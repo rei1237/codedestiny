@@ -1,13 +1,3 @@
-// 베다점 진입 시 자동 실행 보장
-if (window.gotoVedicPremium) {
-  var _origGotoVedic = window.gotoVedicPremium;
-  window.gotoVedicPremium = function() {
-    _origGotoVedic();
-    setTimeout(function(){
-      if (window.tryAutoFillFromDestinyProfile) window.tryAutoFillFromDestinyProfile();
-    }, 400);
-  };
-}
 /* ═══════════════════════════════════════════════════════════════
    Destiny Profile Manager  ·  v1.0
    Deep Space & Sacred Gold — 생년월일 & 장소 기반 시차 보정 프로필
@@ -233,88 +223,6 @@ if (window.gotoVedicPremium) {
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
-  /* ── 관리자 모드 체크 ── */
-  var _dpAdminCache = null;
-  var _dpAdminCheckTime = 0;
-  
-  function _dpIsAdmin() {
-    var now = Date.now();
-    /* 5초 이내 캐시 사용 */
-    if (_dpAdminCache !== null && (now - _dpAdminCheckTime) < 5000) {
-      return _dpAdminCache;
-    }
-    
-    var isAdmin = false;
-    var debugInfo = {
-      bypassFlag: false,
-      authUser: null,
-      cookieRole: null,
-      adminToken: false,
-      forceMode: false
-    };
-    
-    /* 1. window 플래그 체크 (가장 빠름) */
-    if (window.__cdAdminBypass) {
-      isAdmin = true;
-      debugInfo.bypassFlag = true;
-    }
-    
-    /* 2. localStorage 인증 정보 체크 */
-    if (!isAdmin) {
-      try {
-        var raw = localStorage.getItem('fortune_auth_user');
-        var u = raw ? JSON.parse(raw) : null;
-        debugInfo.authUser = u;
-        if (u && (u.role === 'admin' || u.role === 'ADMIN' || u.isAdmin === true)) {
-          isAdmin = true;
-        }
-      } catch (e) {}
-    }
-    
-    /* 3. 쿠키 체크 */
-    if (!isAdmin) {
-      try {
-        var roleMatch = document.cookie.match(/(?:^|;\s*)cd_role=([^;]+)/);
-        if (roleMatch) {
-          var role = decodeURIComponent(roleMatch[1]).trim().toLowerCase();
-          debugInfo.cookieRole = role;
-          if (role === 'admin') {
-            isAdmin = true;
-          }
-        }
-      } catch (e) {}
-    }
-    
-    /* 4. 관리자 토큰 체크 */
-    if (!isAdmin) {
-      try {
-        var tok = sessionStorage.getItem('flower_admin_token') || localStorage.getItem('flower_admin_token');
-        if (tok && /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/.test(tok)) {
-          isAdmin = true;
-          debugInfo.adminToken = true;
-        }
-      } catch (e) {}
-    }
-    
-    /* 5. 콘솔에서 수동 설정 가능하게 (디버깅용) */
-    if (!isAdmin && window.__forceAdminMode === true) {
-      isAdmin = true;
-      debugInfo.forceMode = true;
-    }
-    
-    _dpAdminCache = isAdmin;
-    _dpAdminCheckTime = now;
-    
-    /* 디버그: 관리자 모드 상태 출력 */
-    console.log('[DP Admin Check]', {
-      isAdmin: isAdmin,
-      debugInfo: debugInfo,
-      cacheAge: 'fresh'
-    });
-    
-    return isAdmin;
-  }
-
   /* ── 프로필 카드 운세 선택 모달: 코인 잠금 설정 ──
      기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
      심화/궁합 기능은 _cdCoinGatePerUse(50, ...) 로 1회 50코인 차감. ── */
@@ -523,42 +431,6 @@ if (window.gotoVedicPremium) {
    * @param {string} reason 기능명 (알림 문구용)
    * @param {Function} cb   성공 시 호출할 콜백
    */
-  function _cdSetPerUseCoinGateUi(isProcessing, reason) {
-    try {
-      if (!document || !document.body) return;
-      var body = document.body;
-      var chip = document.getElementById('cdCoinGateProcessingChip');
-      if (!isProcessing) {
-        body.classList.remove('cd-coin-gate-processing');
-        if (chip && chip.parentNode) chip.parentNode.removeChild(chip);
-        return;
-      }
-      body.classList.add('cd-coin-gate-processing');
-      if (!chip) {
-        chip = document.createElement('div');
-        chip.id = 'cdCoinGateProcessingChip';
-        chip.style.position = 'fixed';
-        chip.style.left = '50%';
-        chip.style.bottom = '26px';
-        chip.style.transform = 'translateX(-50%)';
-        chip.style.zIndex = '100130';
-        chip.style.padding = '10px 14px';
-        chip.style.borderRadius = '999px';
-        chip.style.border = '1px solid rgba(251,191,36,0.45)';
-        chip.style.background = 'rgba(17,24,39,0.94)';
-        chip.style.color = '#fde68a';
-        chip.style.fontSize = '13px';
-        chip.style.fontWeight = '700';
-        chip.style.boxShadow = '0 16px 34px rgba(0,0,0,0.35)';
-        chip.style.pointerEvents = 'none';
-        document.body.appendChild(chip);
-      }
-      var label = String(reason || '유료 서비스').trim();
-      if (!label) label = '유료 서비스';
-      chip.textContent = label + ' 결제 처리 중...';
-    } catch (_) {}
-  }
-
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
     // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
     if (window._cdCoinGatePerUseInFlight) {
@@ -585,12 +457,28 @@ if (window.gotoVedicPremium) {
     }
     var balance = 0;
     try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); balance = Number(_u2 && _u2.points) || 0; } catch(_) {}
-    if (!window.confirm('🪙 ' + reason + '\n\n이용 시 ' + cost + '코인이 차감됩니다.\n서버 기준 잔액으로 결제가 진행됩니다.\n\n진행하시겠습니까?')) {
+    if (balance < cost) {
+      if (typeof onCancel === 'function') onCancel();
+      var shortageNow = Date.now();
+      var shortageLastGlobal = Number(window.__cdCoinGateShortagePromptLastAt || 0);
+      if (shortageLastGlobal && (shortageNow - shortageLastGlobal < 1800)) {
+        return;
+      }
+      window.__cdCoinGateShortagePromptLastAt = shortageNow;
+      window.__cdCoinGateShortagePromptLastKey = String(cost || 0) + '|' + String(reason || '');
+      if (typeof window.__cdOpenChargeModal === 'function') {
+        window.alert('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 창을 열겠습니다.');
+        window.__cdOpenChargeModal();
+      } else if (window.confirm('🪙 ' + reason + '\n\n' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n충전 페이지로 이동하시겠습니까?')) {
+        window.location.href = '/points';
+      }
+      return;
+    }
+    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
       if (typeof onCancel === 'function') onCancel();
       return;
     }
     window._cdCoinGatePerUseInFlight = true;
-    _cdSetPerUseCoinGateUi(true, reason);
     fetch('/api/coins/spend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -599,7 +487,6 @@ if (window.gotoVedicPremium) {
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
-      _cdSetPerUseCoinGateUi(false);
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
@@ -607,25 +494,17 @@ if (window.gotoVedicPremium) {
         if (typeof onCancel === 'function') onCancel();
         return;
       }
-      var isTestBypass = !!(res.data && res.data.testAccountBypass);
-      var hasServerPoints = !!(res.data && res.data.user && typeof res.data.user.points === 'number');
-      var nb = hasServerPoints ? res.data.user.points : (isTestBypass ? Number(balance || 0) : Math.max(0, balance - cost));
+      var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
-      if (!isTestBypass) _cdShowCoinDeductNotice(cost, nb, reason);
+      _cdShowCoinDeductNotice(cost, nb, reason);
       cb();
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; _cdSetPerUseCoinGateUi(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {
-    try {
-      if (typeof _dpIsAdmin === 'function' && _dpIsAdmin()) {
-        // 관리자 모드일 때는 특수 토큰 반환 (실제 인증 서버에서는 무시됨, 프론트 인증 우회용)
-        return 'ADMIN-MODE-BYPASS-TOKEN';
-      }
-      return localStorage.getItem('fortune_auth_token') || '';
-    } catch (e) { return ''; }
+    try { return localStorage.getItem('fortune_auth_token') || ''; } catch (e) { return ''; }
   }
 
   function _dpGetUserBalance() {
@@ -849,18 +728,8 @@ if (window.gotoVedicPremium) {
 
       _dpSubTier         = tier;
       _dpSubIsActive     = active;
-      /* ★ 수정: 구독이 활성화되지 않아도 플랜 정보는 유지 */
-      _dpSubProfileLimit = resolvedLimit;
-      
-      console.log('[DP LoadSubCache]', {
-        tier: tier,
-        isActive: active,
-        profileLimit: _dpSubProfileLimit,
-        cached: true
-      });
-    } catch(e) {
-      console.error('[DP LoadSubCache] Error:', e);
-    }
+      _dpSubProfileLimit = active ? resolvedLimit : 1;
+    } catch(e) {}
   }
 
   /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
@@ -887,16 +756,8 @@ if (window.gotoVedicPremium) {
 
       _dpSubTier         = tier;
       _dpSubIsActive     = active;
-      /* ★ 수정: 구독이 활성화되지 않아도 플랜 정보는 유지 */
-      _dpSubProfileLimit = resolvedLimit;
+      _dpSubProfileLimit = active ? resolvedLimit : 1;
       _dpSubScope        = _dpGetProfileScope();
-
-      console.log('[DP FetchSubscription]', {
-        tier: tier,
-        isActive: active,
-        profileLimit: resolvedLimit,
-        expiresAt: d.expiresAt || null
-      });
 
       _dpWriteSubCache(tier, active, resolvedLimit, d.expiresAt || null);
       _dpUpdateSaveBtn();
@@ -907,44 +768,10 @@ if (window.gotoVedicPremium) {
 
   /** 현재 플랜에 따른 최대 프로필 수 반환 */
   function _dpGetMaxProfiles() {
-    /* ★ 관리자 모드: 무제한 */
-    var isAdmin = _dpIsAdmin();
-    if (isAdmin) {
-      console.log('[DP MaxProfiles] Admin mode: 999');
-      return 999;
-    }
-    
     var scope = _dpGetProfileScope();
-    
-    /* 1. 구독이 활성화된 경우: 구독 제한 사용 */
-    if (_dpSubScope !== scope) _dpLoadSubCache();
-    
-    if (_dpSubIsActive) {
-      var tierLabel = _dpGetTierLabel(_dpSubTier);
-      console.log('[DP MaxProfiles] Active subscription', {
-        tier: _dpSubTier,
-        tierLabel: tierLabel,
-        limit: _dpSubProfileLimit
-      });
-      return _dpSubProfileLimit;
-    }
-    
-    /* 2. 구독이 활성화되지 않은 경우: 계정 기본 plan으로 제한 결정 */
-    var userPlan = _dpGetUserPlan();
-    var tierLimit = _dpGetTierProfileLimit(userPlan);
-    var normalizedTier = _dpNormalizeTier(userPlan);
-    
-    console.log('[DP MaxProfiles] Non-active subscription', {
-      userPlan: userPlan,
-      normalizedTier: normalizedTier,
-      tierLabel: _dpGetTierLabel(userPlan),
-      limit: tierLimit,
-      subTier: _dpSubTier,
-      subIsActive: _dpSubIsActive,
-      subProfileLimit: _dpSubProfileLimit
-    });
-    
-    return tierLimit;
+    if (_dpSubScope !== scope || !_dpSubIsActive) _dpLoadSubCache();
+    if (_dpSubIsActive) return _dpSubProfileLimit;
+    return _dpGetTierProfileLimit(_dpGetUserPlan());
   }
 
   /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
@@ -1129,18 +956,7 @@ if (window.gotoVedicPremium) {
     var baseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || String(tzOff)) : tzOff;
     var locationLabel = opt ? opt.text : '대한민국 (서울)';
 
-    /* ★ 이름이 없으면 저장 불가, 생년월일은 관리자 모드에서 선택적 */
-    if (!name) return null;
-    
-    /* 생년월일이 없으면: null 프로필 생성 */
-    if (!bd) {
-      return {
-        name: name,
-        gender: gender,
-        birth: null,
-        location: null
-      };
-    }
+    if (!name || !bd) return null;
 
     var parts  = bd.split('-');
     var year   = parseInt(parts[0]), month = parseInt(parts[1]), day = parseInt(parts[2]);
@@ -1181,65 +997,6 @@ if (window.gotoVedicPremium) {
 
     var b = profile.birth;
     var l = profile.location || {};
-    
-    /* 생년월일이 없는 경우: 간단한 카드만 표시 */
-    if (!b || !b.year) {
-      el.className = 'dp-master-card dp-master-card--active';
-      el.innerHTML =
-        '<div class="dp-mc-glow"></div>'
-        + '<div class="dp-mc-stars" aria-hidden="true"></div>'
-        + '<svg class="dp-mc-flower" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="color:rgba(255,215,0,0.6)">' +
-          '<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="0.5"/>' +
-          '<circle cx="60" cy="60" r="32" stroke="currentColor" stroke-width="0.4"/>' +
-          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4"/>' +
-          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(30 60 60)"/>' +
-          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(60 60 60)"/>' +
-          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(90 60 60)"/>' +
-          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(120 60 60)"/>' +
-          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(150 60 60)"/>' +
-          '<circle cx="60" cy="60" r="4" fill="currentColor" opacity="0.6"/>' +
-        '</svg>' +
-        '<div class="dp-mc-inner">' +
-          '<div class="dp-mc-header">' +
-            '<div class="dp-mc-avatar">✨</div>' +
-            '<div class="dp-mc-identity">' +
-              '<div class="dp-mc-label">✦ MY DESTINY CARD</div>' +
-              '<div class="dp-mc-name">' + _esc(profile.name) + '</div>' +
-              '<div class="dp-mc-birth" style="color:rgba(255,215,0,0.8);">📋 생년월일 정보 없음</div>' +
-              '<div style="margin-top:4px;">' +
-                (profile.gender === 'M'
-                  ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; 남성</span>'
-                  : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
-              + '</div>'
-            + '</div>'
-            + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">' +
-              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>' +
-            '</button>'
-          + '</div>'
-          + '<div class="dp-mc-divider"></div>' +
-          '<div class="dp-mc-info">' +
-            '<div class="dp-mc-info-item dp-mc-info-item--wide">' +
-              '<span class="dp-mc-info-label">' +
-                '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>' +
-                '상태'
-              + '</span>' +
-              '<span class="dp-mc-info-val" style="color:rgba(255,215,0,0.9);">📝 정보 추가 필요</span>' +
-            '</div>' +
-          '</div>' +
-          (function() {
-              if (!_dpIsAdmin()) {
-                return '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation;opacity:0.5;">생년월일 정보가 필요합니다</button>';
-              }
-              // 관리자 모드: 프로필 삭제/생성 모두 허용
-              return '<div style="display:flex;gap:8px;margin-top:12px;">' +
-                '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation;flex:1;">✦ 이 프로필로 운세 보기</button>' +
-                '<button class="dp-mc-load-btn" onclick="dpClearBirthInfo(\'' + profile.id + '\')" style="touch-action:manipulation;flex:0;width:48px;background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.4);padding:10px;font-size:0.9rem;" title="생년월일 추가">➕</button>' +
-                '<button class="dp-mc-load-btn" onclick="dpDeleteProfile(\'' + profile.id + '\')" style="touch-action:manipulation;flex:0;width:48px;background:rgba(248,113,113,0.2);color:#f87171;border:1px solid rgba(248,113,113,0.4);padding:10px;font-size:0.9rem;" title="프로필 삭제">🗑️</button>' +
-                '</div>';
-            })()
-        + '</div>';
-      return;
-    }
     var profileLng = (l.lng !== undefined && l.lng !== null && !isNaN(Number(l.lng)))
       ? Number(l.lng)
       : ((l.lon !== undefined && l.lon !== null && !isNaN(Number(l.lon))) ? Number(l.lon) : null);
@@ -1315,15 +1072,7 @@ if (window.gotoVedicPremium) {
             + '<span class="dp-mc-info-val">' + l.lng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
-        + (function() {
-            if (!_dpIsAdmin()) {
-              return '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>';
-            }
-            return '<div style="display:flex;gap:8px;margin-top:12px;">'
-              + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation;flex:1;">✦ 이 프로필로 운세 보기</button>'
-              + '<button class="dp-mc-load-btn" onclick="dpClearBirthInfo(\'' + profile.id + '\')" style="touch-action:manipulation;flex:0;width:48px;background:rgba(248,113,113,0.2);color:#f87171;border:1px solid rgba(248,113,113,0.4);padding:10px;font-size:0.9rem;">🗑️</button>'
-              + '</div>';
-          })()
+        + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
   }
 
@@ -1724,108 +1473,61 @@ if (window.gotoVedicPremium) {
 
     requestAnimationFrame(function() {
       try {
-        var maxProfiles = _dpGetMaxProfiles();
-        var currentCount = list.length;
-        var isFreeUser = maxProfiles <= 1;
-        var isStandardUser = maxProfiles === 3;
-        var isPremiumUser = maxProfiles === 7;
-        var isVvipUser = maxProfiles === 15;
-        
-        var planLabel = '무료';
-        if (isVvipUser) planLabel = 'VVIP';
-        else if (isPremiumUser) planLabel = '프리미엄';
-        else if (isStandardUser) planLabel = '스탠다드';
-        
-        console.log('[DP RenderList]', {
-          maxProfiles: maxProfiles,
-          currentCount: currentCount,
-          planLabel: planLabel,
-          isFreeUser: isFreeUser,
-          adminMode: _dpIsAdmin()
-        });
-        
-        var lockedNotice = (currentCount >= maxProfiles && !_dpIsAdmin())
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 ' + planLabel + ' 플랜은 프로필 ' + maxProfiles + '개까지 사용할 수 있습니다 (' + currentCount + '/' + maxProfiles + '). 초과 프로필은 ✕ 버튼으로 삭제해 주세요.</div>'
+        var isFreeUser = _dpGetMaxProfiles() <= 1;
+        var lockedNotice = isFreeUser
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 무료 플랜은 프로필 1개만 사용할 수 있습니다. 초과 프로필은 ✕ 버튼으로 삭제해 주세요.</div>'
           : '';
 
     container.innerHTML = list.map(function(p, idx) {
           var safe = p || {};
           var b = safe.birth || {};
           var l = safe.location || {};
-          var pid = safe.id || ('broken_' + idx);
-          var pname = safe.name || '이름 없음';
-          var isActive = safe.id === currId;
-          /* ★ 현재 프로필 인덱스가 제한을 초과하면 사용 불가 표시 */
-          var isAdmin = _dpIsAdmin();
-          var isExceedingLimit = idx >= maxProfiles && !isActive && !isAdmin;
-          
-          /* 생년월일이 없는 경우: 특별 렌더링 */
-          if (!b || !b.year) {
-            return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
-              + ' data-profile-id="' + pid + '"'
-              + ' role="button" tabindex="0"'
-              + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;"'
-              + ' onclick="' + (isExceedingLimit ? 'event.stopPropagation();' : '') + 'dpSelectProfile(\'' + pid + '\')">'
-              + '<div class="dp-li-left">'
-                + '<div class="dp-li-avatar">📝</div>'
-                + '<div class="dp-li-body">'
-                  + '<div class="dp-li-name">' + _esc(pname)
-                    + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
-                    + (isExceedingLimit
-                      ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">플랜 초과</span>'
-                      : '')
-                    + (safe.gender === 'M'
-                      ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
-                      : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
-                  + '</div>'
-                  + '<div class="dp-li-meta" style="color:rgba(255,215,0,0.8);">📋 생년월일 정보 없음</div>'
-                + '</div>'
-              + '</div>'
-              + ((isAdmin || list.length > 1)
-                ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
-                : '')
-              + '</div>';
-          }
-          
-          /* 일반 렌더링 (생년월일 있음) */
           var safeHour = (typeof b.hour === 'number') ? b.hour : 12;
           var safeMinute = (typeof b.minute === 'number') ? b.minute : 0;
           var safeLng = (typeof l.lng === 'number') ? l.lng : 127.0;
           var safeTzOffset = (typeof l.tzOffset === 'number') ? l.tzOffset : 9;
-          var tzResolved = resolveTimezoneOffset(
-            { year: b.year, month: b.month, day: b.day, hour: safeHour, minute: safeMinute },
-            { tz: l.tz, tzOffset: safeTzOffset, baseTzOffset: l.baseTzOffset }
-          );
-          var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
+          var safeYear = (typeof b.year === 'number') ? b.year : new Date().getFullYear();
+          var safeMonth = (typeof b.month === 'number') ? b.month : 1;
+          var safeDay = (typeof b.day === 'number') ? b.day : 1;
+
+          var isActive = safe.id === currId;
+                var tzResolved = resolveTimezoneOffset(
+                  { year: safeYear, month: safeMonth, day: safeDay, hour: safeHour, minute: safeMinute },
+                  { tz: l.tz, tzOffset: safeTzOffset, baseTzOffset: l.baseTzOffset }
+                );
+                var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
           var corrected = applyTrueSolarOffset(safeHour, safeMinute, tso);
           var tsStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
-          var zodiac = _zodiacEmoji(b.year);
+          var zodiac = _zodiacEmoji(safeYear);
           var calLabel = b.calType === 'solar' ? '양' : (b.calType === 'lunar_leap' ? '윤' : '음');
+          var pid = safe.id || ('broken_' + idx);
+          var pname = safe.name || '이름 없음';
           var locLabel = l.label || '출생지 미지정';
 
           return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
             + ' data-profile-id="' + pid + '"'
             + ' role="button" tabindex="0"'
             + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;"'
-            + ' onclick="' + (isExceedingLimit ? 'event.stopPropagation();' : '') + 'dpSelectProfile(\'' + pid + '\')">'
+            + ' onclick="dpSelectProfile(\'' + pid + '\')">'
             + '<div class="dp-li-left">'
               + '<div class="dp-li-avatar">' + zodiac + '</div>'
               + '<div class="dp-li-body">'
                 + '<div class="dp-li-name">' + _esc(pname)
                   + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
-                  + (isExceedingLimit
-                    ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">플랜 초과</span>'
+                  + (isFreeUser && !isActive
+                    ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">사용불가</span>'
                     : '')
                   + (safe.gender === 'M'
                     ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
                     : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
                 + '</div>'
-                + '<div class="dp-li-meta">[' + calLabel + '] ' + b.year + '.' + b.month + '.' + b.day
+                + '<div class="dp-li-meta">[' + calLabel + '] ' + safeYear + '.' + safeMonth + '.' + safeDay
                   + ' · 진태양시 ' + tsStr + '</div>'
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
-            + ((isAdmin || list.length > 1)
+            + '</div>'
+            + (list.length > 1
               ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
               : '')
             + '</div>';
@@ -1864,28 +1566,18 @@ if (window.gotoVedicPremium) {
   ────────────────────────────────────────── */
   window.dpSaveProfile = function() {
     var data = readFormData();
-    console.log('[DP SaveProfile] formData:', data);
     if (!data) {
-      alert('프로필 이름을 입력해주세요.');
+      alert('이름과 생년월일을 입력해주세요.');
       return;
     }
     /* ★ 구독 플랜에 따른 프로필 수 제한 */
     var _cnt = DPStorage.list().length;
     var _max = _dpGetMaxProfiles();
-    var isAdmin = _dpIsAdmin();
-    console.log('[DP SaveProfile] check', {
-      count: _cnt,
-      max: _max,
-      isAdmin: isAdmin,
-      adminMode: window.__cdAdminBypass,
-      authUser: localStorage.getItem('fortune_auth_user')
-    });
-    // 관리자 모드일 때는 프로필 개수 제한 없음
-    if (!isAdmin && _cnt >= _max) {
+    if (_cnt >= _max) {
       var _tier = _dpSubIsActive ? _dpSubTier : _dpNormalizeTier(_dpGetUserPlan());
       var _nextTier = _dpGetNextTier(_tier);
       if (_nextTier) {
-        alert(_dpGetTierLabel(_tier) + ' 플랜은 프로필 ' + _dpFormatLimitLabel(_max) + '까지 저장할 수 있습니다.\n더 많은 프로필이 필요하면 /points 페이지에서 ' + _dpGetTierLabel(_nextTier) + ' 구독으로 업그레이드하세요.');
+        alert(_dpGetTierLabel(_tier) + ' 플랜은 프로필 ' + _dpFormatLimitLabel(_max) + '까지 저장할 수 있습니다.\n더 많은 생년월일 프로필이 필요하면 /points 페이지에서 ' + _dpGetTierLabel(_nextTier) + ' 구독으로 업그레이드하세요.');
       } else {
         alert('현재 플랜 한도(' + _dpFormatLimitLabel(_max) + ')에 도달했습니다.');
       }
@@ -1898,10 +1590,7 @@ if (window.gotoVedicPremium) {
     renderProfileList();
     broadcastProfileChange(saved);
     _dpUpdateSaveBtn();
-    var msg = data.birth 
-      ? '생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 안전하게 저장됩니다.'
-      : '✓ 프로필이 저장되었습니다. 나중에 생년월일을 추가할 수 있습니다.';
-    _toast(msg, data.birth ? 'privacy' : 'success');
+    _toast('생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 안전하게 저장됩니다.', 'privacy');
   };
 
   window.dpOpenList = function() {
@@ -1974,10 +1663,8 @@ if (window.gotoVedicPremium) {
 
   window.dpDeleteProfile = function(id) {
     /* ★ 마지막 프로필(1개)은 삭제 불가; 초과 프로필은 무료/유료 모두 삭제 허용 */
-    var isAdmin = _dpIsAdmin();
     var _profiles = DPStorage.list();
-    // 관리자 모드일 때는 마지막 1개도 삭제 허용
-    if (!isAdmin && _profiles.length <= 1) {
+    if (_profiles.length <= 1) {
       alert('마지막 프로필은 삭제할 수 없습니다.\n프로필을 모두 비울 수 없습니다.');
       return;
     }
@@ -1989,27 +1676,6 @@ if (window.gotoVedicPremium) {
     renderMasterCard(DPStorage.current());
     broadcastProfileChange(DPStorage.current());
     _dpUpdateSaveBtn();
-  };
-
-  window.dpClearBirthInfo = function(id) {
-    /* ★ 관리자 모드: 프로필에서 생년월일 정보만 삭제 */
-    if (!_dpIsAdmin()) {
-      alert('⚠️ 이 기능은 관리자만 사용할 수 있습니다.');
-      return;
-    }
-    var _profiles = DPStorage.list();
-    var p = _profiles.find(function(x) { return x.id === id; });
-    if (!p) return;
-    if (!confirm('"' + p.name + '" 프로필에서 생년월일 정보를 삭제할까요?\n프로필 이름과 성별은 유지됩니다.')) return;
-    /* 생년월일 관련 정보 제거 */
-    var updated = Object.assign({}, p);
-    updated.birth = null;
-    updated.location = null;
-    DPStorage.update(id, updated);
-    renderMasterCard(DPStorage.current());
-    renderProfileList();
-    broadcastProfileChange(DPStorage.current());
-    _toast('✓ 생년월일 정보가 삭제되었습니다.', 'success');
   };
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
@@ -2615,16 +2281,6 @@ if (window.gotoVedicPremium) {
     dpCloseList();
 
     _dpEnsureScopedStorageReady();
-    
-    /* ★ 관리자 캐시 무효화 — 페이지 로드 시 최신 상태 확인 */
-    _dpAdminCache = null;
-    _dpAdminCheckTime = 0;
-    var isAdminNow = _dpIsAdmin();
-    console.log('[DP Init] Admin mode:', isAdminNow, {
-      maxProfiles: _dpGetMaxProfiles(),
-      authUser: localStorage.getItem('fortune_auth_user'),
-      timestamp: new Date().toISOString()
-    });
 
     renderMasterCard(DPStorage.current());
 
@@ -2853,57 +2509,6 @@ if (window.gotoVedicPremium) {
     calcTrueSolarOffset: calcTrueSolarOffset,
     resolveTimezoneOffset: resolveTimezoneOffset,
     getTimeZoneOffsetHoursForDate: getTimeZoneOffsetHoursForDate
-  };
-
-  /* ──────────────────────────────────────────
-     DEBUG HELPERS: 콘솔 테스트용 관리자 모드 제어
-  ────────────────────────────────────────── */
-  window.dpTestAdminMode = function(enable) {
-    if (enable === true) {
-      window.__forceAdminMode = true;
-      _dpAdminCache = null;
-      _dpAdminCheckTime = 0;
-      console.log('[DP Test] ✓ 관리자 모드 강제 활성화됨');
-      console.log('[DP Test] _dpIsAdmin():', _dpIsAdmin());
-      console.log('[DP Test] _dpGetMaxProfiles():', _dpGetMaxProfiles());
-    } else if (enable === false) {
-      window.__forceAdminMode = false;
-      _dpAdminCache = null;
-      _dpAdminCheckTime = 0;
-      console.log('[DP Test] ✗ 관리자 모드 비활성화됨');
-      console.log('[DP Test] _dpIsAdmin():', _dpIsAdmin());
-      console.log('[DP Test] _dpGetMaxProfiles():', _dpGetMaxProfiles());
-    } else {
-      console.log('[DP Test] 사용법: dpTestAdminMode(true) 또는 dpTestAdminMode(false)');
-      console.log('[DP Test] 현재 상태:', {
-        forceMode: window.__forceAdminMode,
-        isAdmin: _dpIsAdmin(),
-        maxProfiles: _dpGetMaxProfiles(),
-        authUser: localStorage.getItem('fortune_auth_user'),
-        cookie: document.cookie.match(/cd_role=[^;]*/)?.[0] || 'none',
-        adminToken: sessionStorage.getItem('flower_admin_token') || localStorage.getItem('flower_admin_token') ? '있음' : '없음'
-      });
-    }
-  };
-
-  window.dpDebugForm = function() {
-    var nameInput = document.getElementById('nameInput');
-    var birthDate = document.getElementById('birthDate');
-    var birthHour = document.getElementById('birthHour');
-    var birthMinute = document.getElementById('birthMinute');
-    var birthCountry = document.getElementById('birthCountry');
-    var btnM = document.getElementById('btnM');
-    var btnF = document.getElementById('btnF');
-    
-    console.log('[DP Form Debug]', {
-      name: nameInput ? nameInput.value : '미존재',
-      birthDate: birthDate ? birthDate.value : '미존재',
-      hour: birthHour ? birthHour.value : '미존재',
-      minute: birthMinute ? birthMinute.value : '미존재',
-      country: birthCountry ? birthCountry.value : '미존재',
-      genderM: btnM ? btnM.classList.contains('on') : '미존재',
-      genderF: btnF ? btnF.classList.contains('on') : '미존재'
-    });
   };
 
   window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;

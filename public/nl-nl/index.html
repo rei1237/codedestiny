@@ -621,6 +621,150 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       color: #d5e9ff;
     }
   </style>
+  <style id="premium-vvip-collection-theme">
+    /* ═══════════════════════════════════════════════
+       VVIP 프리미엄 블랙카드 컬렉션 — 블랙 & 골드 테마
+    ═══════════════════════════════════════════════ */
+    #premiumVvipCollection {
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(180,140,30,0.13) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(160,110,20,0.11) 0%, transparent 50%),
+        linear-gradient(160deg, #0a0a0a 0%, #111008 40%, #0d0b00 70%, #050505 100%);
+      border: 1px solid rgba(212,175,55,0.38);
+      box-shadow:
+        0 0 0 1px rgba(212,175,55,0.12),
+        0 30px 80px rgba(0,0,0,0.85),
+        inset 0 1px 0 rgba(255,215,80,0.12),
+        inset 0 -1px 0 rgba(180,140,30,0.06);
+    }
+    #premiumVvipCollection .feat-collection__header {
+      background: linear-gradient(180deg, rgba(30,24,4,0.55) 0%, rgba(10,8,0,0.25) 100%);
+      border-bottom: 1px solid rgba(212,175,55,0.18);
+    }
+    .pvc-crown-icon {
+      color: #d4af37 !important;
+      font-size: 2.1rem !important;
+      text-shadow: 0 0 18px rgba(212,175,55,0.7), 0 0 40px rgba(180,130,20,0.4);
+    }
+    .pvc-header-badge {
+      display: inline-block;
+      margin: 4px auto 8px;
+      padding: 3px 14px;
+      border-radius: 999px;
+      font-size: 0.62rem;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      color: #0a0800;
+      background: linear-gradient(90deg,#c8960c,#d4af37,#f0d060,#d4af37,#c8960c);
+      background-size: 200% 100%;
+      animation: pvcBadgeShimmer 3s linear infinite;
+      box-shadow: 0 2px 12px rgba(212,175,55,0.5);
+    }
+    @keyframes pvcBadgeShimmer {
+      0%  { background-position: 200% 0; }
+      100%{ background-position: -200% 0; }
+    }
+    /* 닫힌 상태에서 shimmer 중단 — CPU 절약 */
+    [data-collection-open="false"] #premiumVvipCollection .pvc-header-badge {
+      animation: none;
+      background-position: 0% 0;
+    }
+    .pvc-title {
+      background: linear-gradient(135deg,#f0d060 0%,#d4af37 40%,#fff8dc 60%,#d4af37 80%,#c8960c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 6px rgba(212,175,55,0.35));
+    }
+    .pvc-subtitle  { color: rgba(212,175,55,0.82) !important; font-style: italic; }
+    .pvc-lede      { color: rgba(240,220,150,0.72) !important; }
+    .pvc-featureline {
+      border-color: rgba(212,175,55,0.35) !important;
+      background: rgba(20,16,0,0.55) !important;
+      color: rgba(240,210,100,0.9) !important;
+      letter-spacing: 0.02em;
+    }
+    .pvc-divline  { background: linear-gradient(90deg,transparent,rgba(212,175,55,0.8),transparent) !important; }
+    .pvc-gem      { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
+    .pvc-arrow    { color: #d4af37 !important; text-shadow: 0 0 8px  rgba(212,175,55,0.5)  !important; }
+    .pvc-peek-gem { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
+    /* 골드 오브 배경 파티클 — GPU 레이어 승격 */
+    .pvc-gold-orb {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      will-change: transform, opacity;
+      animation: pvcOrbFloat 8s ease-in-out infinite;
+    }
+    .pvc-gold-orb--1 {
+      width:140px; height:140px; top:-30px; left:-40px;
+      background: radial-gradient(circle,rgba(212,175,55,0.12),transparent 70%);
+      animation-delay: 0s;
+    }
+    .pvc-gold-orb--2 {
+      width:100px; height:100px; bottom:-20px; right:-20px;
+      background: radial-gradient(circle,rgba(212,175,55,0.09),transparent 70%);
+      animation-delay: -4s;
+    }
+    @keyframes pvcOrbFloat {
+      0%,100%{ transform:translateY(0) scale(1);       opacity:0.6; }
+      50%    { transform:translateY(-12px) scale(1.05); opacity:1;   }
+    }
+
+    /* ─── 그리드 표시/숨김 — 토글 상태 연동 핵심 수정 ─── */
+    /* 닫힌 상태: 명시적 숨김 (기존 display:flex!important 버그 수정) */
+    [data-collection-open="false"] #premiumVvipCollection .feat-collection__grid {
+      display: none;
+    }
+    /* 열린 상태: flex 복원 (base rule의 display:grid 재정의) */
+    [data-collection-open="true"] #premiumVvipCollection .feat-collection__grid {
+      display: flex !important;
+      animation: fc-grid-reveal 0.35s ease both;
+    }
+
+    /* 프리미엄 카드 그리드 — 1열 세로 배치 + 레이아웃 격리 */
+    .pvc-prem-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 0 16px 16px;
+      contain: layout paint;
+    }
+    /* 각 prem-card 섹션 래퍼 골드 테두리 오버레이 */
+    .pvc-prem-grid > section {
+      border-radius: 18px !important;
+      border-width: 1.5px !important;
+      transition: transform 0.22s, box-shadow 0.22s;
+      outline: 1px solid rgba(212,175,55,0.1);
+    }
+    .pvc-prem-grid > section:hover {
+      transform: translateY(-3px);
+      outline-color: rgba(212,175,55,0.35);
+    }
+
+    /* 닫힌 상태 골드 glow 애니메이션 (yellow → gold 톤 오버라이드) */
+    [data-collection-open="false"].feat-collection--premium-vvip {
+      animation-name: fc-closedGlow-premium-vvip;
+    }
+    @keyframes fc-closedGlow-premium-vvip {
+      0%,100%{ box-shadow:0 0 0 1px rgba(212,175,55,0.15) inset, 0 8px 32px rgba(0,0,0,0.28); }
+      50%    { box-shadow:0 0 0 1px rgba(212,175,55,0.38) inset, 0 8px 32px rgba(0,0,0,0.28), 0 0 18px rgba(212,175,55,0.08); }
+    }
+
+    /* 모바일/터치: 닫힌 상태 orb 애니메이션 정지 */
+    @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+      [data-collection-open="false"] #premiumVvipCollection .pvc-gold-orb {
+        animation: none !important;
+      }
+    }
+    /* reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      .pvc-header-badge,
+      .pvc-gold-orb,
+      [data-collection-open="false"].feat-collection--premium-vvip {
+        animation: none !important;
+      }
+      .pvc-header-badge { background-position: 0 0; }
+    }
+  </style>
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
@@ -3864,10 +4008,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
 
 
-    
-
-   
-    </section>
 <!-- 오늘의 운세 카드 -->
     <div class="card fortune-card" id="dailyFortuneCard" style="display:none;">
       <div class="fortune-header">
@@ -4009,107 +4149,207 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
 
     <!-- ══ 프리미엄 기능 상세 소개 ══ -->
-    <section class="card pf-showcase" aria-label="프리미엄 유료 기능 상세 안내">
-      <div class="pf-showcase__header">
-        <div class="pf-showcase__eyebrow">PREMIUM ANALYSIS</div>
-        <h2 class="pf-showcase__title">당신의 運命을 전략으로 바꾸는<br>심층 분석 3종 세트</h2>
-        <p class="pf-showcase__sub">사주팔자의 전략적 해석 — 단순 운세 이상의 인생 설계도를 제공합니다</p>
-      </div>
-      <div class="pf-showcase__grid">
+    <!-- ══════════════════════════════════════
+         GROUP: VVIP 프리미엄 — PDF 운명 분석
+    ══════════════════════════════════════ -->
+    <section class="fg-group fg-group--premium-vvip" aria-labelledby="fgTitlePremiumVvip" style="margin-bottom: 24px;">
+      <div class="fg-group__cards">
 
-        <!-- 대운 분석 -->
-        <div class="pf-card pf-card--daewun">
-          <div class="pf-card__icon-wrap" aria-hidden="true">🔮</div>
-          <div class="pf-card__body">
-            <div class="pf-card__badge">영구 해금</div>
-            <h3 class="pf-card__title">대운 (大運) 분석</h3>
-            <p class="pf-card__desc">
-              10년 주기 대운의 흐름을 억부·조후·종격 세 가지 시각으로 통합 분석합니다.
-              인생의 길흉(吉凶) 그래프로 한눈에 보는 시대별 전략 로드맵 —
-              <strong>언제 치고 나가고, 언제 버텨야 하는지</strong>를 사주가 말해줍니다.
+        <div class="feat-collection feat-collection--premium-vvip" id="premiumVvipCollection" data-collection-open="false">
+          <div class="feat-collection__cosmos pvc-particles" aria-hidden="true">
+            <span class="fc-star fc-star--1"></span>
+            <span class="fc-star fc-star--2"></span>
+            <span class="fc-star fc-star--3"></span>
+            <span class="fc-star fc-star--4"></span>
+            <span class="fc-star fc-star--5"></span>
+            <span class="fc-star fc-star--6"></span>
+            <span class="pvc-gold-orb pvc-gold-orb--1" aria-hidden="true"></span>
+            <span class="pvc-gold-orb pvc-gold-orb--2" aria-hidden="true"></span>
+          </div>
+          <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="VVIP 프리미엄 PDF 컬렉션 열기">
+            <div class="feat-collection__icon pvc-crown-icon" aria-hidden="true">♛</div>
+            <div class="pvc-header-badge" aria-hidden="true">VVIP · PREMIUM</div>
+            <h3 class="feat-collection__title pvc-title">프리미엄 PDF 운명 분석</h3>
+            <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 정밀 명반 · 즉시 PDF 저장</p>
+            <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 비법을 AI와 결합. 생성 즉시 PDF로 저장되는 VVIP 전용 운명 심층 분석 컬렉션입니다.</p>
+            <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 PDF&nbsp;·&nbsp;점성술 PDF&nbsp;·&nbsp;숙요점 PDF&nbsp;·&nbsp;베다 점성술 PDF ✦</p>
+            <div class="feat-collection__divider" aria-hidden="true">
+              <span class="fc-div-gem pvc-gem">◆</span>
+              <span class="fc-div-line pvc-divline"></span>
+              <span class="fc-div-gem pvc-gem">✦</span>
+              <span class="fc-div-line pvc-divline"></span>
+              <span class="fc-div-gem pvc-gem">◆</span>
+            </div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow pvc-arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+          </button>
+          <div class="fc-closed-peek" aria-hidden="true">
+            <span class="fc-closed-peek__gem pvc-peek-gem">◆</span><span class="fc-closed-peek__gem pvc-peek-gem">✦</span><span class="fc-closed-peek__gem pvc-peek-gem">◆</span>
+          </div>
+
+          <div class="feat-collection__grid pvc-prem-grid">
+    <!-- ── 1. 자미두수 프리미엄 ── -->
+    <section style="background:linear-gradient(145deg,#060312 0%,#120828 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="자미두수 프리미엄">
+        <button type="button"
+                class="prem-card prem-card--ziwei"
+                data-action="gotoZiweiPremium"
+                data-coin-cost="590"
+                style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                aria-label="자미두수 인생 총람 — 590코인">
+          <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+            <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
+            <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+            <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">590코인</span>
+          </div>
+          <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+            <p style="color:rgba(167,139,250,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">자미두수 · 紫微斗數 · Ziwei Premium</p>
+            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">🌌 紫微 인생 총람 PDF북</p>
+            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+              🌌 13챕터 · 12궁 완전 분析 — AI 심층 인생 총람<br>
+              👑 천직·재물·인연·건강·교우·처세술 완전 해독<br>
+              🌊 대한(大限) 10년 맥락 + 2026 소한 전술 로드맵<br>
+              📖 생성 즉시 PDF 저장 · 거장의 마스터플랜 봉서
             </p>
-            <ul class="pf-card__points">
-              <li>📊 10년 단위 인생 길흉 그래프 시각화</li>
-              <li>🌊 대운별 유·불리 요소 심층 해석</li>
-              <li>🎯 현재 대운 위치 & 핵심 전략 제언</li>
-              <li>⚡ 억부·조후·종격 통합 판단</li>
-            </ul>
-            <div class="pf-card__price-row">
-              <div class="pf-card__price">
-                <span class="pf-coin-icon" aria-hidden="true"></span>
-                <span class="pf-coin-amount">50코인</span>
-                <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
-              </div>
-              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">
-                지금 열람하기 →
-              </button>
+            <div style="margin-top:auto;padding-top:10px;">
+              <span style="display:inline-block;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(167,139,250,0.12));border:1px solid rgba(167,139,250,0.38);color:rgba(196,181,253,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">🌌 나만의 자미두수 인생 총람 PDF 생성하기</span>
             </div>
           </div>
-        </div>
+        </button>
+    </section><!-- /자미두수 -->
 
-        <!-- 종합 사주 풀이 -->
-        <div class="pf-card pf-card--summary">
-          <div class="pf-card__icon-wrap" aria-hidden="true">📖</div>
-          <div class="pf-card__body">
-            <div class="pf-card__badge">영구 해금</div>
-            <h3 class="pf-card__title">종합 사주 풀이</h3>
-            <p class="pf-card__desc">
-              A4 20페이지 분량의 사주 종합 리포트. 성격·진로·연애·건강·재물·귀인·개운법까지
-              삶의 모든 영역을 사주 전략 마스터가 심층 해석합니다.
-              <strong>한 번 해금으로 평생 열람 가능</strong>한 당신만의 운명 교과서.
+    <!-- ── 2. 점성술 프리미엄 ── -->
+    <section style="background:linear-gradient(145deg,#070419 0%,#140e05 100%);border:1.5px solid rgba(251,191,36,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(251,191,36,0.12);margin:0;" aria-label="점성술 프리미엄">
+        <button type="button"
+                class="prem-card prem-card--astro"
+                data-action="gotoAstrologyPremium"
+                data-coin-cost="390"
+                style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
+                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
+                aria-label="점성술 코즈믹 차트 — 390코인">
+          <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+            <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,4,25,0.88) 0%,transparent 55%);"></div>
+            <span style="position:absolute;top:10px;left:10px;background:rgba(251,191,36,0.90);color:#1a1200;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+            <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">390코인</span>
+          </div>
+          <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+            <p style="color:rgba(253,230,138,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">점성술 · Cosmic Chart Premium</p>
+            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">✨ 점성술 코즈믹 차트</p>
+            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+              ☀ 태양·달·상승궁 3각 에너지 + 차트 룰러 완전 분析<br>
+              🪐 12하우스 영역별 재물·사랑·직업·카르마 운세<br>
+              🪐 390코인 — 12챕터 분析 후 PDF 즉시 저장
             </p>
-            <ul class="pf-card__points">
-              <li>🧬 8글자로 읽는 타고난 성격과 재능</li>
-              <li>💼 10년간 유망한 직업군 & 진로 전략</li>
-              <li>💕 연애·결혼 타이밍과 인연의 조건</li>
-              <li>💰 재물 흐름과 돈이 모이는 방법</li>
-            </ul>
-            <div class="pf-card__price-row">
-              <div class="pf-card__price">
-                <span class="pf-coin-icon" aria-hidden="true"></span>
-                <span class="pf-coin-amount">50코인</span>
-                <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
-              </div>
-              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">
-                지금 열람하기 →
-              </button>
+            <div style="margin-top:auto;padding-top:10px;">
+              <span style="display:inline-block;background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(253,230,138,0.1));border:1px solid rgba(251,191,36,0.45);color:rgba(253,230,138,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✨ 나의 코즈믹 차트 생성하기</span>
             </div>
           </div>
-        </div>
+        </button>
+    </section><!-- /점성술 -->
 
-        <!-- 궁합 분석 -->
-        <div class="pf-card pf-card--compat">
-          <div class="pf-card__icon-wrap" aria-hidden="true">💞</div>
-          <div class="pf-card__body">
-            <div class="pf-card__badge">영구 해금</div>
-            <h3 class="pf-card__title">궁합 분석</h3>
-            <p class="pf-card__desc">
-              연애·사업·친구 궁합을 사주팔자 기반으로 분석합니다.
-              오행의 상생·상극 원리로 파악하는 두 사람의 에너지 궁합 —
-              <strong>함께할수록 좋아지는 관계인지, 조심해야 하는 관계인지</strong>를 밝혀드립니다.
+    <!-- ── 3. 숙요점 프리미엄 ── -->
+    <section style="background:linear-gradient(145deg,#020817 0%,#041026 100%);border:1.5px solid rgba(125,211,252,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(14,165,233,0.12);margin:0;" aria-label="숙요점 프리미엄">
+        <button type="button"
+                class="prem-card prem-card--sukuyo"
+                data-action="gotoSukuyoPremium"
+                data-coin-cost="390"
+                style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
+                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
+                aria-label="숙요점 프리미엄 — 390코인">
+          <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+            <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(2,8,23,0.90) 0%,transparent 55%);"></div>
+            <span style="position:absolute;top:10px;left:10px;background:rgba(14,165,233,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+            <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">390코인</span>
+          </div>
+          <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+            <p style="color:rgba(125,211,252,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">숙요점 · 宿曜占 Premium</p>
+            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">💫 숙요점(宿曜占) 궁합 분석</p>
+            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+              🌙 에도 막부가 금서로 지정한 27수 비전<br>
+              💑 소울메이트 vs 독성 관계 정밀 판별<br>
+              💫 390코인 — 숙요 궁합 정밀 분析
             </p>
-            <ul class="pf-card__points">
-              <li>🔥 오행 상생·상극 궁합 점수</li>
-              <li>💬 연애·결혼·사업·친구 유형별 분석</li>
-              <li>🌹 좋은 타이밍과 조심할 구간 안내</li>
-              <li>✨ AI 사주 마스터의 맞춤 조언</li>
-            </ul>
-            <div class="pf-card__price-row">
-              <div class="pf-card__price">
-                <span class="pf-coin-icon" aria-hidden="true"></span>
-                <span class="pf-coin-amount">50코인</span>
-                <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
-              </div>
-              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">
-                지금 열람하기 →
-              </button>
+            <div style="margin-top:auto;padding-top:10px;">
+              <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
             </div>
           </div>
-        </div>
+        </button>
+    </section><!-- /숙요점 -->
 
+    <!-- ── 4. 베다 점성술 프리미엄 ── -->
+    <section style="background:linear-gradient(145deg,#0f0a03 0%,#1e1206 100%);border:1.5px solid rgba(251,146,60,0.45);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(234,88,12,0.14);margin:0;" aria-label="베다 점성술 프리미엄">
+        <button type="button"
+                class="prem-card prem-card--veda"
+                data-action="gotoVedicPremium"
+                data-coin-cost="390"
+                style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.45);box-shadow:0 4px 24px rgba(234,88,12,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.32)'"
+                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(234,88,12,0.14)'"
+                aria-label="베다 점성술 인생 총람 — 390코인">
+          <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+            <img src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(15,10,3,0.90) 0%,transparent 55%);"></div>
+            <span style="position:absolute;top:10px;left:10px;background:rgba(234,88,12,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+            <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">390코인</span>
+          </div>
+          <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+            <p style="color:rgba(253,186,116,0.70);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">베다 점성술 · Vedic Astrology Premium</p>
+            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">🪐 베다 인생 총람 리포트</p>
+            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+              🌟 인도 고대 조티쉬 베다 점성술 정밀 분석<br>
+              🪐 390코인 — 베다 운명 완전 해석
+            </p>
+            <div style="margin-top:auto;padding-top:10px;">
+              <span style="display:inline-block;background:linear-gradient(135deg,rgba(234,88,12,0.2),rgba(251,146,60,0.1));border:1px solid rgba(251,146,60,0.50);color:rgba(253,186,116,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 베다 운명 열기</span>
+            </div>
+          </div>
+        </button>
+    </section><!-- /베다 점성술 -->
 
-      </div>
-    </section>
+    <!-- ── 5. 명운 작명 프리미엄 ── -->
+    <section style="background:linear-gradient(145deg,#080c18 0%,#1f1608 100%);border:1.5px solid rgba(212,175,55,0.42);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(212,175,55,0.14);margin:0;" aria-label="명운 작명 프리미엄">
+        <button type="button"
+                class="prem-card prem-card--naming"
+                data-action="gotoNamingPremium"
+                data-coin-cost="700"
+                style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(8,12,24,0.68);border:1.5px solid rgba(212,175,55,0.42);box-shadow:0 4px 24px rgba(212,175,55,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(212,175,55,0.28)'"
+                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(212,175,55,0.14)'"
+                aria-label="명운 프리미엄 작명 — 700코인">
+          <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+            <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,12,24,0.90) 0%,transparent 55%);"></div>
+            <span style="position:absolute;top:10px;left:10px;background:rgba(212,175,55,0.95);color:#0f172a;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+            <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">700코인</span>
+          </div>
+          <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+            <p style="color:rgba(245,226,122,0.72);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">명운 · Naming Premium</p>
+            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">✍️ 명운(明運) 사주 프리미엄 작명</p>
+            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+              🔮 서비스 만세력 엔진 기반 용신·오행 정밀 반영<br>
+              🪙 700코인 — 프리미엄 작명 리포트
+            </p>
+            <div style="margin-top:auto;padding-top:10px;">
+              <span style="display:inline-block;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(245,226,122,0.1));border:1px solid rgba(212,175,55,0.50);color:rgba(245,226,122,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나만의 작명 리포트 시작하기</span>
+            </div>
+          </div>
+        </button>
+    </section><!-- /명운 작명 -->
+
+          </div><!-- /feat-collection__grid -->
+        </div><!-- /feat-collection--premium-vvip -->
+
+      </div><!-- /fg-group__cards -->
+    </section><!-- /fg-group--premium-vvip -->
+<script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'flex':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
 
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
@@ -6301,11 +6541,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!root) return;
     var chargeButtonLabel = '🛍️ 공식 포인트 충전소로 이동';
     var chargeNotice = '<div class="golden-grain-modal__notice">✅ 결제 완료 건만 정책에 맞춰 즉시 반영됩니다.</div>';
-    var subscriptionPlans = [
-      { id: 'standard', title: '스탠다드 꿀', coins: 115, price: '약 9,900원', free: '30코인 이하 무료' },
-      { id: 'premium', title: '프리미엄 꿀', coins: 360, price: '약 29,900원', free: '50코인 이하 무료' },
-      { id: 'vvip', title: 'VVIP 꿀단지', coins: 700, price: '약 59,000원', free: '100코인 이하 무료' },
-    ];
     var packageItems = goldenPackages.map(function (pkg) {
       var baseCoins = Number(pkg.coins || 0);
       var bonusCoins = Number(pkg.bonus || 0);
@@ -6327,24 +6562,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         '</button>'
       ].join('');
     }).join('');
-    var subscriptionItems = subscriptionPlans.map(function (plan) {
-      return [
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(196,140,20,0.26);border-radius:12px;background:linear-gradient(135deg,#fff9ea,#fff4dc);padding:10px 12px;">',
-        '  <div style="min-width:0;">',
-        '    <div style="font-weight:800;color:#7a4a00;font-size:13px;line-height:1.2;">' + plan.title + '</div>',
-        '    <div style="margin-top:2px;font-size:11px;color:#8a6020;">' + Number(plan.coins).toLocaleString('ko-KR') + '코인 / 30일 · ' + plan.free + '</div>',
-        '    <div style="font-size:10.5px;color:#9b7040;">' + plan.price + ' · 정기결제(자동 갱신) 지원</div>',
-        '  </div>',
-        '  <button type="button" data-action="goSubscriptionPlan" data-plan-id="' + plan.id + '" style="flex-shrink:0;border:0;border-radius:10px;padding:7px 10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:800;font-size:11px;cursor:pointer;">구독 보기</button>',
-        '</div>'
-      ].join('');
-    }).join('');
-    var subscriptionSection = [
-      '<div style="margin-top:10px;border:1px solid rgba(196,140,20,0.22);border-radius:14px;background:rgba(255,247,230,0.78);padding:10px 10px 8px;">',
-      '  <p style="margin:0 0 7px;font-size:11px;font-weight:800;color:#9b6b08;letter-spacing:.02em;">🍯 구독 상품</p>',
-      '  <div style="display:grid;gap:7px;">' + subscriptionItems + '</div>',
-      '</div>'
-    ].join('');
 
     root.innerHTML = [
       '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
@@ -6356,7 +6573,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       '      <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
       '    </div>',
       '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages">' + packageItems + '</div></div>',
-      subscriptionSection,
       '    <div class="golden-grain-modal__cta">',
       '      <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">' + chargeButtonLabel + '</button>',
       chargeNotice,
@@ -6544,33 +6760,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     animatePiggy();
   }
 
-  function navigateToTopLevel(path) {
-    var target = path || '/points';
-    try {
-      if (window.top && window.top !== window) {
-        window.top.location.href = target;
-        return;
-      }
-    } catch (_e) {}
-    window.location.href = target;
-  }
-
   async function applyCharge() {
     if (!hasAuthToken()) {
       window.alert('로그인이 필요합니다. 로그인 후 공식 포인트 충전소에서 결제를 진행해 주세요.');
-      navigateToTopLevel('/login?next=%2Fpoints');
+      window.location.href = '/login?next=%2Fpoints';
       return;
     }
 
     closeChargeModal();
-    navigateToTopLevel('/points?entry=golden-charge');
-  }
-
-  function openSubscriptionFromCharge(planId) {
-    closeChargeModal();
-    var target = '/points?focus=subscription';
-    if (planId) target += '&plan=' + encodeURIComponent(String(planId));
-    navigateToTopLevel(target);
+    window.location.href = '/points';
   }
 
   async function tryUnlockFeature(button) {
@@ -7369,10 +7567,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     if (action === 'confirmGoldenCharge') {
       void applyCharge();
-      return;
-    }
-    if (action === 'goSubscriptionPlan') {
-      openSubscriptionFromCharge(actionNode.getAttribute('data-plan-id') || '');
       return;
     }
     if (action === 'unlockPremiumFeature') {
