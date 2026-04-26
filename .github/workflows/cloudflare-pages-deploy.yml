@@ -13,8 +13,6 @@ concurrency:
   group: cloudflare-pages-deploy-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 permissions:
   contents: read
