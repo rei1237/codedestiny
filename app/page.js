@@ -1,6 +1,7 @@
 ﻿import { FaqJsonLd } from "./components/SeoJsonLd";
 import { withUniqueRouteMetadata } from "../lib/generate-page-metadata";
 import { HOME_FAQ_ITEMS, HOME_FAQ_SECTION_COPY } from "./_content/seo-copy";
+import PremiumCollectionClientWrapper from "./components/PremiumCollectionClientWrapper";
 
 /**
  * "/" serves legacy HTML via next.config rewrites (URL stays /). This App Router page is a fallback
@@ -66,6 +67,12 @@ export default async function Home({ searchParams }) {
   return (
     <main style={{ minHeight: "100vh", background: "#05070f", color: "#e5e7eb" }}>
       <FaqJsonLd faqs={HOME_FAQ_ITEMS} />
+
+      {/* 프리미엄 운세 컬렉션 카드: FAQ 위, iframe 아래에 직접 노출 (Client Wrapper) */}
+      <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "32px 0 0" }}>
+        <PremiumCollectionClientWrapper />
+      </div>
+
       <iframe
         src={iframeSrc}
         title="Code Destiny Main Service"

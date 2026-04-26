@@ -51,8 +51,8 @@ console.log(`[build-cloudflare] Using NEXT_VERSION=${nextVersion}`);
 
 const command = isWindows ? "cmd.exe" : "npx";
 const commandArgs = isWindows
-  ? ["/d", "/s", "/c", "npx @opennextjs/cloudflare build"]
-  : ["@opennextjs/cloudflare", "build"];
+  ? ["/d", "/s", "/c", "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion"]
+  : ["@opennextjs/cloudflare", "build", "--dangerouslyUseUnsupportedNextVersion"];
 
 const result = spawnSync(command, commandArgs, {
   stdio: "inherit",
