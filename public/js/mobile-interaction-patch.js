@@ -6,7 +6,9 @@
   var TAP_MAX_DY = 10;
   var GHOST_CLICK_BLOCK_MS = 500;
   var ACTION_DEDUPE_MS = 650;
+  var SCROLL_BLOCK_MS = 250; // 스크롤 직후 클릭 차단 시간
   var suppressClickUntil = 0;
+  var lastScrollAt = 0;
   var touchCtx = null;
   var lastTouchStart = null;
   var lastActionInvoke = { action: '', at: 0 };
@@ -953,13 +955,19 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-          if (handled) {
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
+          // 스크롤 중이 아닐 때만 실행
+          if (Date.now() - lastScrollAt > SCROLL_BLOCK_MS) {
+            var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+            if (handled) {
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+              return;
+            }
           }
+        } else {
+          // 움직임이 감지됨 (스크롤 의도) -> 후속 클릭 차단
+          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
         }
       }
 
@@ -1084,13 +1092,16 @@
 
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
-      if (Date.now() < suppressClickUntil && rule) {
+      
+      // 스크롤 직후이거나 터치 무시 시간 내에 클릭된 경우 차단
+      var now = Date.now();
+      if (now < suppressClickUntil || (now - lastScrollAt < SCROLL_BLOCK_MS)) {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
 
+      var rule = findRuleFromTarget(event.target);
       if (!rule) return;
 
       var handled = invokeBusinessAction(rule, event.target, event);
@@ -1122,6 +1133,11 @@
         window.visualViewport.addEventListener('scroll', update, { passive: true });
       }
     })();
+
+    // 글로벌 스크롤 상태 추적
+    window.addEventListener('scroll', function() {
+      lastScrollAt = Date.now();
+    }, { passive: true });
 
     injectTouchActionStyle();
     createBulletproofDelegator(document);
