@@ -1,6 +1,36 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
+const rootDir = process.cwd();
 const isWindows = process.platform === "win32";
+const npmCmd = isWindows ? "npm.cmd" : "npm";
+
+// Check if build artifacts exist; if not, run build:cf first
+const openNextDir = resolve(rootDir, ".open-next");
+const workerBundle = resolve(openNextDir, "worker.js");
+const workerAssetsDir = resolve(openNextDir, "assets");
+
+const needsBuild =
+  !existsSync(openNextDir) ||
+  !existsSync(workerBundle) ||
+  !existsSync(workerAssetsDir) ||
+  !existsSync(resolve(workerAssetsDir, "index.html"));
+
+if (needsBuild) {
+  console.log(
+    "[opennext-deploy-retry] OpenNext output missing (.open-next/worker.js or .open-next/assets/index.html). Running npm run build:cf...",
+  );
+  const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
+    stdio: "inherit",
+    shell: false,
+    env: process.env,
+  });
+  if (buildResult.status !== 0 || !existsSync(workerBundle) || !existsSync(resolve(workerAssetsDir, "index.html"))) {
+    console.error("[opennext-deploy-retry] build:cf failed or expected outputs still missing.");
+    process.exit(1);
+  }
+}
 const maxAttempts = Math.max(1, Number.parseInt(process.env.CF_DEPLOY_RETRY_ATTEMPTS || "3", 10) || 3);
 const retryDelayMs = Math.max(1000, Number.parseInt(process.env.CF_DEPLOY_RETRY_DELAY_MS || "12000", 10) || 12000);
 

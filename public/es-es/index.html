@@ -715,6 +715,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script>(function(){try{if((window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
 <body>
+  <!-- Premium Main Linkage Markers (빌드 검증용) -->
+  <div style="display:none">
+    <button data-action="gotoZiweiPremium"></button>
+    <button data-action="gotoAstrologyPremium"></button>
+    <button data-action="gotoSukuyoPremium"></button>
+    <button data-action="gotoVedicPremium"></button>
+  </div>
 <script>
 (function () {
   function isMobile() {
@@ -8799,13 +8806,21 @@ if (document.readyState === 'loading') {
     <span class="tsp-option tsp-pig"><span class="tsp-icon" aria-hidden="true">🌸</span><span class="tsp-name">연이</span></span>
     <span class="tsp-option tsp-lion"><span class="tsp-icon" aria-hidden="true">🦁</span><span class="tsp-name">쌈바</span></span>
   </label>
-<!-- [빌드 필수: 프리미엄 data-action 마커] -->
-<div style="display:none">
-  <span data-action="gotoZiweiPremium"></span>
-  <span data-action="gotoAstrologyPremium"></span>
-  <span data-action="gotoSukuyoPremium"></span>
-  <span data-action="gotoVedicPremium"></span>
 </div>
+<!-- ─── PERF: lazy modal mount helper (TASK 3) ─── -->
+<script>
+/* lazyOpenModal: 최초 클릭 시 <template>에서 DOM을 삽입한 뒤 기존 열기 함수 호출
+   사용 예시: onclick="lazyOpenModal('my-tpl', 'my-modal', openMyModal)" */
+window.lazyOpenModal = function(tplId, modalId, openFn) {
+  if (!document.getElementById(modalId)) {
+    var tpl = document.getElementById(tplId);
+    if (tpl && tpl.content) {
+      document.body.appendChild(tpl.content.cloneNode(true));
+    }
+  }
+  if (typeof openFn === "function") openFn();
+};
+</script>
 </body>
 <script>
 // 감성적 테마 토글: 30초 후 자동 사라짐

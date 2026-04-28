@@ -45,7 +45,7 @@
     "deploy:cf:opennext:retry": "node scripts/opennext-deploy-retry.mjs",
     "deploy:cf:versions": "npx wrangler versions upload",
     "deploy:cf:all": "npm run build:cf && node scripts/deploy-worker.mjs && node scripts/deploy-pages.mjs",
-    "deploy": "next build && npx @opennextjs/cloudflare build",
+    "deploy": "npx @opennextjs/cloudflare build",
     "start": "next start",
     "lint": "next lint"
   },
