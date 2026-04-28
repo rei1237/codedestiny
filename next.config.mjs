@@ -6,6 +6,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  swcMinify: true,
+  experimental: {
+    optimizeCss: true,
+    webpackBuildWorker: true,
+  },
 
   /**
    * 301/302 리다이렉트 — GSC 404 오류 처리

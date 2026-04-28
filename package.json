@@ -15,7 +15,7 @@
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
-    "build": "npx @opennextjs/cloudflare@latest build",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' npx @opennextjs/cloudflare@latest build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
     "fortune:generate": "node scripts/gen-daily.mjs && node scripts/gen-fortune-system-pages.mjs",
