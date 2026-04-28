@@ -14,7 +14,7 @@ Workers 배포 스크립트가 충돌을 일으켜 다음 파일들을 `.bak`으
 3. GitHub 저장소 `rei1237/codedestiny` 선택
 4. **Build settings**:
    - **Build command:** `npx @opennextjs/cloudflare@latest build`
-   - **Build output directory:** `.open-next/assets`
+   - **Build output directory:** `.open-next/assets` (또는 `dist`로 설정 시 wrangler.toml 수정)
    - **Root directory:** `/`
 
 ### 2.2 Node.js Version
