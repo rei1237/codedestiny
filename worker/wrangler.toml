@@ -1,0 +1,12 @@
+name = "code-destiny-web"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# Environment variables (secrets should be set via wrangler secret)
+[vars]
+NODE_ENV = "production"
+
+# Example: Add your secrets via CLI
+# wrangler secret put MONGO_URI
+# wrangler secret put MONGO_DB_NAME
+# wrangler secret put JWT_SECRET

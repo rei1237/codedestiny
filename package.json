@@ -48,6 +48,8 @@
     "build:pages": "npm run build",
     "deploy": "wrangler pages deploy dist",
     "deploy:staging": "wrangler pages deploy dist --branch=staging",
+    "deploy:worker": "cd worker && wrangler deploy",
+    "deploy:worker:staging": "cd worker && wrangler deploy --env staging",
     "start": "next start",
     "lint": "next lint"
   },
