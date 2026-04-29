@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { withUniqueRouteMetadata } from "../lib/generate-page-metadata";
 import HomeClient from "./HomeClient";
 
@@ -34,5 +35,22 @@ export const metadata = withUniqueRouteMetadata("/", {
 });
 
 export default function Home() {
-  return <HomeClient />;
+  return (
+    <Suspense fallback={
+      <main style={{ minHeight: "100vh", background: "#05070f", color: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: "40px", height: "40px", border: "3px solid rgba(124,58,237,0.3)", borderTop: "3px solid #a78bfa", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>로딩 중...</p>
+        </div>
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </main>
+    }>
+      <HomeClient />
+    </Suspense>
+  );
 }
