@@ -9,6 +9,7 @@ import AuthWidget from "./components/AuthWidget";
 import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
+import DeferredAdsense from "./components/DeferredAdsense";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const notoSansKR = Noto_Sans_KR({
@@ -228,8 +229,9 @@ export default function RootLayout({ children }) {
         <meta name="yandex-verification" content="98b1cd43eb1188de" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
-      <body>
+      <body className={notoSansKR.variable}>
         <PaymentProcessingProvider>
+          <DeferredAdsense />
           <AppVersionGuard />
           <ToastProvider />
           <header
