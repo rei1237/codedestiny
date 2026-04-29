@@ -1,21 +1,99 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { FaqJsonLd } from "./components/SeoJsonLd";
+import { withUniqueRouteMetadata } from "../lib/generate-page-metadata";
 import { HOME_FAQ_ITEMS, HOME_FAQ_SECTION_COPY } from "./_content/seo-copy";
 import PremiumCollectionClientWrapper from "./components/PremiumCollectionClientWrapper";
 
-// Pure static page - no client hooks, no useSearchParams
+export const metadata = withUniqueRouteMetadata("/", {
+  title: "무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력",
+  description:
+    "생년월일로 보는 무료 사주팔자·타로 리딩·오늘의 운세. 자미두수·점성술·숙요점·궁합·신년운세·토정비결·꿈해몽·대운 분석까지. 코드 데스티니(Code Destiny) 꿀꿀 만세력 — 동서양 운세 무료 통합 플랫폼.",
+  alternates: {
+    canonical: "https://code-destiny.com/",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://code-destiny.com/",
+    title: "무료 사주팔자·타로·오늘의 운세 | 코드 데스티니",
+    description:
+      "생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.",
+    siteName: "코드 데스티니 꿀꿀 만세력",
+    locale: "ko_KR",
+    images: [
+      {
+        url: "https://code-destiny.com/icons/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "코드 데스티니 꿀꿀 만세력",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "코드 데스티니 — 무료 사주·타로·운세",
+    description: "무료 사주팔자·타로·궁합·신년운세 통합 — 코드 데스티니(Code Destiny)",
+    images: ["https://code-destiny.com/icons/og-image.png"],
+  },
+});
+
+function serializeSearchParams(searchParams) {
+  if (!searchParams || typeof searchParams !== "object") return "";
+  const query = new URLSearchParams();
+
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (!key) return;
+    if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        if (typeof entry === "string" && entry.length > 0) query.append(key, entry);
+      });
+      return;
+    }
+    if (typeof value === "string" && value.length > 0) {
+      query.set(key, value);
+    }
+  });
+
+  return query.toString();
+}
+
 export default function Home() {
+  const searchParams = useSearchParams();
+
+  const iframeSrc = useMemo(() => {
+    const iframeQuery = serializeSearchParams(Object.fromEntries(searchParams.entries()));
+    return iframeQuery ? `/static/index.html?${iframeQuery}` : "/static/index.html";
+  }, [searchParams]);
+
   return (
     <main style={{ minHeight: "100vh", background: "#05070f", color: "#e5e7eb" }}>
       <FaqJsonLd faqs={HOME_FAQ_ITEMS} />
 
-      {/* 프리미엄 운세 컬렉션 카드 */}
+      {/* 프리미엄 운세 컬렉션 카드: FAQ 위, iframe 아래에 직접 노출 (Client Wrapper) */}
       <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "32px 0 0" }}>
         <PremiumCollectionClientWrapper />
       </div>
 
-      {/* Static iframe without query params */}
+      {/* 운명의 꽃 아틀리에 숨김 처리를 위한 스타일 */}
+      <style jsx global>{`
+        /* 운명의 꽃 아틀리에 섹션 숨김 */
+        [data-section="flower-atelier"],
+        .flower-atelier,
+        .destiny-flower,
+        #flower-atelier,
+        section:has(> h2[class*="flower"]),
+        section:has(> h2:contains("운명의 꽃")),
+        div:has(> h2:contains("운명의 꽃")),
+        .flower-card,
+        .atelier-card {
+          display: none !important;
+        }
+      `}</style>
+
       <iframe
-        src="/static/index.html"
+        src={iframeSrc}
         title="Code Destiny Main Service"
         style={{
           width: "100%",
