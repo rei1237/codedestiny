@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getApiBaseUrl } from "../_lib/api-config";
 
 declare global {
   interface Window {
@@ -96,18 +97,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
 
-  const authApiBase = useMemo(() => {
-    if (typeof window !== "undefined") {
-      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL)
-          || normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL)
-          || window.location.origin;
-      }
-      // OAuth 라우트는 Next 앱 same-origin 우선으로 고정해 host mismatch를 방지한다.
-      return window.location.origin;
-    }
-    return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
-  }, []);
+  const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 

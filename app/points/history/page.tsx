@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getApiBaseUrl } from "../../_lib/api-config";
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -157,16 +158,7 @@ export default function PointHistoryPage() {
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("all");
 
-  const apiBase = useMemo(() => {
-    if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
-      const h = window.location.hostname;
-      if (h === "localhost" || h === "127.0.0.1")
-        return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-      return window.location.origin;
-    }
-    return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-  }, []);
+  const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   const fetchData = useCallback(async (token: string) => {
     setIsLoading(true);

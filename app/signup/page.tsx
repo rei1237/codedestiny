@@ -5,6 +5,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
+import { getApiBaseUrl } from "../_lib/api-config";
 
 declare global {
   interface Window {
@@ -103,17 +104,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
 
-  const authApiBase = useMemo(() => {
-    if (typeof window !== "undefined") {
-      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL)
-          || normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL)
-          || window.location.origin;
-      }
-      return window.location.origin;
-    }
-    return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
-  }, []);
+  const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 

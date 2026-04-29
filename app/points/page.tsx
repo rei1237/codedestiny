@@ -8,6 +8,7 @@ import WithdrawModal from "../components/WithdrawModal";
 import type { GalaxiaPayResult } from "./GalaxiaPayModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
+import { getApiBaseUrl } from "../_lib/api-config";
 
 const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false });
 
@@ -1021,21 +1022,7 @@ export default function PointsPage() {
   const toastCounter = useRef(0);
 
   /* ── API 기본 URL ─────────────────────────────────────────────── */
-  const apiBase = useMemo(() => {
-    if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      ) {
-        // 로컬 개발: env 또는 로컬 Express 서버
-        return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-      }
-      // 프로덕션: same-origin 우선 (CORS 오류 방지)
-      return window.location.origin;
-    }
-    return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-  }, []);
+  const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [token, setToken] = useState("");
