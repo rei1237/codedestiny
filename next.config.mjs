@@ -7,9 +7,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   swcMinify: true,
+  distDir: '.open-next/assets',
+  output: 'standalone',
   experimental: {
     optimizeCss: true,
     webpackBuildWorker: true,
+    optimisticClientCache: true,
   },
 
   /**
