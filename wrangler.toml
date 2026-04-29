@@ -1,0 +1,5 @@
+name = "codedestiny"
+pages_build_output_dir = "dist"
+
+# API 라우팅은 _redirects 파일에서 처리
+# /api/* -> https://code-destiny-web.bulegyung.workers.dev/api/*

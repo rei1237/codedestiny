@@ -7,26 +7,26 @@ const WORKER_BASE_URL = "https://code-destiny-web.bulegyung.workers.dev";
 
 /**
  * API 기본 URL을 반환합니다.
- * 로컬 개발: 로컬 서버 또는 환경변수
- * 프로덕션: Cloudflare Worker
+ * 로컬 개발: Worker 직접 호출 (CORS 필요)
+ * 프로덕션: Same-origin /api (Pages Functions 라우팅)
  */
 export function getApiBaseUrl(): string {
   if (typeof window === "undefined") {
-    // 빌드 타임에는 Worker URL 반환 (실제 사용되지 않음)
-    return WORKER_BASE_URL;
+    // 빌드 타임: same-origin 사용 (실제 fetch는 클라이언트에서만)
+    return "/api";
   }
 
   const hostname = window.location.hostname;
   
-  // 로컬 개발 환경
+  // 로컬 개발: Worker 직접 호출
   if (hostname === "localhost" || hostname === "127.0.0.1") {
     return (window as any).CODE_DESTINY_API_BASE_URL || 
            process.env.NEXT_PUBLIC_API_BASE_URL || 
-           "http://localhost:4000";
+           WORKER_BASE_URL;
   }
   
-  // 프로덕션: Cloudflare Worker 사용
-  return WORKER_BASE_URL;
+  // 프로덕션: Same-origin /api (Pages가 Worker로 라우팅)
+  return "/api";
 }
 
 /**

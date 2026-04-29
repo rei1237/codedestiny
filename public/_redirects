@@ -1,8 +1,12 @@
 # Cloudflare Pages _redirects
 # 저장 경로: public/_redirects
+# ─────────────────────────────────────────────
+
+# API 라우팅: /api/* → Worker (프록시)
+/api/* https://code-destiny-web.bulegyung.workers.dev/api/:splat 200
+
 # 쿼리스트링 → 클린 URL 리다이렉트 (301 영구)
 # 구형 /insights?topic=XXX 구조를 새 /insights/XXX 경로로 리다이렉트
-# ─────────────────────────────────────────────
 
 # insights 쿼리스트링 리다이렉트는 Cloudflare Pages _redirects에서 지원되지 않음
 # (쿼리스트링 매칭 미지원: ?topic=XXX 전부 /insights로 인식 → 중복 오류)

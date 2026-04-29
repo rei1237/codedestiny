@@ -46,7 +46,8 @@
     "deploy:cf:versions": "npx wrangler versions upload",
     "deploy:cf:all": "npm run build:cf && node scripts/deploy-worker.mjs && node scripts/deploy-pages.mjs",
     "build:pages": "npm run build",
-    "deploy": "npx @opennextjs/cloudflare build",
+    "deploy": "wrangler pages deploy dist",
+    "deploy:staging": "wrangler pages deploy dist --branch=staging",
     "start": "next start",
     "lint": "next lint"
   },
