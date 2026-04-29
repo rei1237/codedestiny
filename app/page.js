@@ -1,44 +1,21 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
 import { FaqJsonLd } from "./components/SeoJsonLd";
 import { HOME_FAQ_ITEMS, HOME_FAQ_SECTION_COPY } from "./_content/seo-copy";
 import PremiumCollectionClientWrapper from "./components/PremiumCollectionClientWrapper";
 
-function serializeSearchParams(searchParams) {
-  if (!searchParams) return "";
-  const query = new URLSearchParams();
-
-  searchParams.forEach((value, key) => {
-    if (!key || !value) return;
-    if (typeof value === "string" && value.length > 0) {
-      query.set(key, value);
-    }
-  });
-
-  return query.toString();
-}
-
+// Pure static page - no client hooks, no useSearchParams
 export default function Home() {
-  const searchParams = useSearchParams();
-
-  const iframeSrc = useMemo(() => {
-    const serialized = serializeSearchParams(searchParams);
-    return serialized ? `/static/index.html?${serialized}` : "/static/index.html";
-  }, [searchParams]);
-
   return (
     <main style={{ minHeight: "100vh", background: "#05070f", color: "#e5e7eb" }}>
       <FaqJsonLd faqs={HOME_FAQ_ITEMS} />
 
-      {/* 프리미엄 운세 컬렉션 카드: FAQ 위, iframe 아래에 직접 노출 (Client Wrapper) */}
+      {/* 프리미엄 운세 컬렉션 카드 */}
       <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "32px 0 0" }}>
         <PremiumCollectionClientWrapper />
       </div>
 
+      {/* Static iframe without query params */}
       <iframe
-        src={iframeSrc}
+        src="/static/index.html"
         title="Code Destiny Main Service"
         style={{
           width: "100%",
