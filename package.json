@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "20"
+    "node": "18.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -15,7 +15,7 @@
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
-    "build": "npx @opennextjs/cloudflare build",
+    "build": "next build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
     "fortune:generate": "node scripts/gen-daily.mjs && node scripts/gen-fortune-system-pages.mjs",
