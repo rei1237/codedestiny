@@ -7,6 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: true,
+  output: 'standalone',
   images: {
     unoptimized: true,
   },

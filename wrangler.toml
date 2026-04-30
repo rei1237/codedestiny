@@ -1,17 +1,20 @@
 name = "code-destiny-web"
-main = ".open-next/worker.js"
-compatibility_date = "2024-04-03"
-compatibility_flags = ["nodejs_compat"]
-
-# 정적 에셋 설정 (Next.js public 및 빌드된 static 파일들)
-assets = { directory = ".open-next/assets", binding = "ASSETS" }
+pages_build_output_dir = ".open-next"
 
 [vars]
-# 클라이언트측에서도 접근 가능한 비민감성 환경 변수
-NEXT_PUBLIC_API_BASE_URL = "https://code-destiny.com"
-AUTH_API_BASE_URL = "https://codedestiny-5md.pages.dev"
-MONGO_DB_NAME = "code_destiny"
-RESEND_API_KEY = "your_resend_api_key_here"
+# Production Environment Variables
+NEXT_PUBLIC_SITE_URL = "https://code-destiny.com"
+NODE_VERSION = "24"
 
-[observability]
-enabled = true
+[[routes]]
+pattern = "code-destiny.com/*"
+script = ".open-next/worker.js"
+
+[compatibility_flags]
+nodejs_compat = true
+
+[build]
+command = "npm run build:cf"
+
+[placement]
+mode = "smart"

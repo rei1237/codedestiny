@@ -41,6 +41,7 @@
     "perf:psi:after": "node scripts/measure-psi.mjs --out reports/psi-after.json",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
     "build:cf": "npm run guard:privacy && npm run clean:cf && npm run sync:public && npm run seo:generate && npm run verify:locale-main-sync && npm run verify:runtime-cache-sync && node scripts/build-cloudflare.mjs && npm run prune:serverfn:heavy && npm run sanitize:cf-env && npm run verify:no-secret-leak && npm run verify:entry-encoding && node scripts/prepare-cloudflare-dist.mjs && node scripts/ensure-pages-manifest.mjs && npm run verify:no-secret-leak",
+    "deploy:cf": "npm run build:cf && npx wrangler versions upload",
     "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
     "deploy:cf:worker": "node scripts/deploy-worker.mjs",
     "deploy:cf:opennext": "node scripts/opennext-deploy-retry.mjs",
