@@ -55,13 +55,19 @@ export async function dbConnect() {
     return m;
   }
 
-  _connecting = m.connect(uri, {
+  const dbName = (process.env.MONGO_DB_NAME || "").trim();
+  const connectOptions = {
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 20000,
     connectTimeoutMS: 10000,
     maxPoolSize: 5,
-    minPoolSize: 0, // 서버리스: 불필요한 백그라운드 연결 유지 안 함
-  }).finally(() => {
+    minPoolSize: 0,
+  };
+  if (dbName) {
+    connectOptions.dbName = dbName;
+  }
+
+  _connecting = m.connect(uri, connectOptions).finally(() => {
     _connecting = null;
   });
 
