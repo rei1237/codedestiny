@@ -8,7 +8,18 @@
     "run_worker_first": true
   },
   "compatibility_date": "2026-03-14",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "NEXT_PUBLIC_API_BASE_URL": "https://code-destiny.com",
+    "NEXT_PUBLIC_CODE_DESTINY_API_URL": "https://code-destiny.com/api",
+    "NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY": "c95c7a1e6d68c1f91fae2649547b0cf1",
+    "KASI_API_BASE_URL": "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService",
+    "AUTH_trust_host": "true",
+    "MONGO_DB_NAME": "code_destiny",
+    "AUTH_API_BASE_URL": "https://codedestiny-5md.pages.dev"
+  },
   "workers_dev": true,
   "minify": true
 }

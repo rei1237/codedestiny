@@ -18,6 +18,10 @@ function pickGeminiKeys() {
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
+  const extraF = String(process.env.GEMINIF_API_KEY || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
   return [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
@@ -41,6 +45,7 @@ function pickGeminiKeys() {
     process.env.GEMINIF_API_KEY8,
     process.env.GEMINIF_API_KEY9,
     ...extra,
+    ...extraF,
   ]
     .map((v) => String(v || "").trim())
     .filter(Boolean);

@@ -16,19 +16,18 @@ function unique(values) {
 function pickGeminiKeys() {
   const extra = String(process.env.GEMINI_API_KEYS || '')
     .split(',').map(v => v.trim()).filter(Boolean);
+  const extraF = String(process.env.GEMINIF_API_KEY || '')
+    .split(',').map(v => v.trim()).filter(Boolean);
   const keys = [
     process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_API_KEY,
-    process.env.LIFEBOOK_API_KEY,
     process.env.GEMINI_API_KEY_2,
-    process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
-    process.env.GOOGLE_API_KEY_3,
     process.env.GEMINI_API_KEY_4,
-    process.env.GOOGLE_API_KEY_4,
+    process.env.GEMINI_API_KEY_5,
+    process.env.GEMINI_API_KEY_6,
+    process.env.GEMINI_API_KEY_7,
+    process.env.GEMINI_API_KEY_8,
     process.env.GEMINI_API_KEY_CF,
-    process.env.GOOGLE_API_KEY_CF,
-    process.env.LIFEBOOK_API_KEY_CF,
     process.env.GEMINIF_API_KEY1,
     process.env.GEMINIF_API_KEY2,
     process.env.GEMINIF_API_KEY3,
@@ -37,8 +36,12 @@ function pickGeminiKeys() {
     process.env.GEMINIF_API_KEY6,
     process.env.GEMINIF_API_KEY7,
     process.env.GEMINIF_API_KEY8,
-    process.env.GEMINIF_API_KEY9,
+    process.env.GOOGLE_API_KEY,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GOOGLE_API_KEY_3,
+    process.env.GOOGLE_API_KEY_4,
     ...extra,
+    ...extraF,
   ].map(v => String(v || '').trim()).filter(Boolean);
   return unique(keys);
 }

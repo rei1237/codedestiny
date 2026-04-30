@@ -57,7 +57,10 @@ for (let i = 1; i <= 9; i++) {
   const oldKey = `GEMINIF_API_KEY${i}`;
   if (finalSecrets[oldKey]) {
     const newKey = i === 1 ? "GEMINI_API_KEY" : `GEMINI_API_KEY_${i}`;
-    finalSecrets[newKey] = finalSecrets[oldKey];
+    // GEMINI_API_KEY_n 형식이 없으면 보충해준다.
+    if (!finalSecrets[newKey]) {
+      finalSecrets[newKey] = finalSecrets[oldKey];
+    }
   }
 }
 if (finalSecrets["portone api"]) finalSecrets["PORTONE_API_KEY"] = finalSecrets["portone api"];
@@ -86,6 +89,16 @@ const TARGET_KEYS = [
   "GEMINI_API_KEY_7",
   "GEMINI_API_KEY_8",
   "GEMINI_API_KEY_9",
+  "GEMINIF_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINIF_API_KEY5",
+  "GEMINIF_API_KEY6",
+  "GEMINIF_API_KEY7",
+  "GEMINIF_API_KEY8",
+  "GEMINIF_API_KEY9",
   "PAGESPEED_API_KEY",
   "EMAILAPI",
   "PORTONE_API_KEY",
