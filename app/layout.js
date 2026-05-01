@@ -1,15 +1,14 @@
 import "../styles/globals.css";
 import "../styles/disclaimer-banner.css";
 import { Noto_Sans_KR } from "next/font/google";
-import Link from "next/link";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
 import InternalLinksHub from "./components/InternalLinksHub";
-import AuthWidget from "./components/AuthWidget";
 import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import DeferredAdsense from "./components/DeferredAdsense";
+import GlobalHeader from "./components/GlobalHeader";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const notoSansKR = Noto_Sans_KR({
@@ -130,18 +129,6 @@ export const viewport = {
   colorScheme: "dark light",
 };
 
-const headerNavItems = [
-  { href: "/", label: "홈" },
-  { href: "/saju/basic", label: "기초사주" },
-  { href: "/saju/lifebook", label: "만세력" },
-  { href: "/saju/love-secret", label: "연애비밀" },
-  { href: "/tarot", label: "타로" },
-  { href: "/tarot/year", label: "타로년운" },
-  { href: "/oracle", label: "오라클" },
-  { href: "/insights", label: "가이드" },
-  { href: "/points", label: "포인트" },
-];
-
 // JSON-LD structured data
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
@@ -234,76 +221,7 @@ export default function RootLayout({ children }) {
           <DeferredAdsense />
           <AppVersionGuard />
           <ToastProvider />
-          <header
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 50,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 16px",
-              height: "52px",
-              background: "rgba(7, 11, 31, 0.88)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
-            }}
-          >
-            <Link
-              href="/"
-              style={{
-                fontWeight: 900,
-                fontSize: "16px",
-                letterSpacing: "-0.02em",
-                background: "linear-gradient(135deg, #a78bfa, #4ecdc4)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                textDecoration: "none",
-              }}
-            >
-              ✦ Code Destiny
-            </Link>
-            <AuthWidget />
-          </header>
-          <nav
-            aria-label="주요 내비게이션"
-            style={{
-              position: "sticky",
-              top: "52px",
-              zIndex: 45,
-              display: "flex",
-              gap: "8px",
-              alignItems: "center",
-              overflowX: "auto",
-              whiteSpace: "nowrap",
-              padding: "8px 12px",
-              borderBottom: "1px solid rgba(124, 58, 237, 0.16)",
-              background: "rgba(10, 14, 37, 0.88)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-            }}
-          >
-            {headerNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                style={{
-                  textDecoration: "none",
-                  color: "#dbe5ff",
-                  border: "1px solid rgba(148,163,184,0.25)",
-                  borderRadius: "999px",
-                  padding: "5px 12px",
-                  fontSize: "0.85rem",
-                  lineHeight: 1.2,
-                  background: "rgba(15,23,42,0.7)",
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <GlobalHeader />
           <div>{children}</div>
           <DisclaimerBanner />
           <InternalLinksHub />

@@ -194,42 +194,6 @@
 		color: #cbd5e1;
 		word-break: keep-all;
 	}
-	.cd-home-premium-wrap {
-		border-radius: 16px;
-		border: 1px solid rgba(148, 163, 184, 0.2);
-		background: rgba(15, 23, 42, 0.28);
-		padding: 10px;
-	}
-	.cd-home-iframe-frame {
-		padding: 14px 16px 0;
-	}
-	.cd-home-iframe-shell {
-		width: min(1200px, 100%);
-		margin-inline: auto;
-		border-radius: 18px;
-		border: 1px solid rgba(148, 163, 184, 0.3);
-		background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.78));
-		box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
-		overflow: hidden;
-	}
-	.cd-home-iframe-label {
-		margin: 0;
-		padding: 10px 14px;
-		font-size: 0.74rem;
-		font-weight: 700;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: rgba(226, 232, 240, 0.86);
-		border-bottom: 1px solid rgba(148, 163, 184, 0.26);
-		background: rgba(2, 6, 23, 0.55);
-	}
-	.cd-home-iframe {
-		width: 100%;
-		height: min(100vh, 920px);
-		border: 0;
-		display: block;
-		background: transparent;
-	}
 	.cd-home-faq-wrap {
 		padding-top: 34px;
 		padding-bottom: 86px;
@@ -241,12 +205,6 @@
 		}
 		.cd-card {
 			padding: 16px;
-		}
-		.cd-home-iframe-frame {
-			padding: 12px 12px 0;
-		}
-		.cd-home-iframe {
-			height: 86vh;
 		}
 		.cd-home-faq-wrap {
 			padding-top: 24px;

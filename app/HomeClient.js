@@ -1,60 +1,14 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
 import { FaqJsonLd } from "./components/SeoJsonLd";
 import { HOME_FAQ_ITEMS, HOME_FAQ_SECTION_COPY } from "./_content/seo-copy";
-
-function serializeSearchParams(searchParams) {
-  if (!searchParams || typeof searchParams !== "object") return "";
-  const query = new URLSearchParams();
-
-  Object.entries(searchParams).forEach(([key, value]) => {
-    if (!key) return;
-    if (Array.isArray(value)) {
-      value.forEach((entry) => {
-        if (typeof entry === "string" && entry.length > 0) query.append(key, entry);
-      });
-      return;
-    }
-    if (typeof value === "string" && value.length > 0) {
-      query.set(key, value);
-    }
-  });
-
-  return query.toString();
-}
+import MainLandingPage from "./components/MainLandingPage";
 
 export default function HomeClient() {
-  const searchParams = useSearchParams();
-
-  const iframeSrc = useMemo(() => {
-    const iframeQuery = serializeSearchParams(Object.fromEntries(searchParams.entries()));
-    return iframeQuery ? `/static/index.html?${iframeQuery}` : "/static/index.html";
-  }, [searchParams]);
-
   return (
-    <main className="cd-home-root">
+    <>
       <FaqJsonLd faqs={HOME_FAQ_ITEMS} />
-
-      <section className="cd-home-top cd-main-shell">
-        <div className="cd-card">
-          <p className="cd-home-kicker">CLASSIC HOME</p>
-          <h1 className="cd-home-headline">생년월일 하나로, 나의 운명 지도를 펼쳐보세요</h1>
-          <p className="cd-home-subline">클래식 운세 흐름을 기반으로 핵심 기능을 가장 빠르게 탐색할 수 있는 메인 화면입니다.</p>
-        </div>
-      </section>
-
-      <section className="cd-home-iframe-frame" aria-label="클래식 메인 화면">
-        <div className="cd-home-iframe-shell">
-          <p className="cd-home-iframe-label">Classic Service Surface</p>
-          <iframe
-            src={iframeSrc}
-            title="Code Destiny Main Service"
-            className="cd-home-iframe"
-          />
-        </div>
-      </section>
+      <MainLandingPage />
 
       <section
         aria-labelledby="homeFaqHeading"
@@ -82,6 +36,6 @@ export default function HomeClient() {
           ))}
         </div>
       </section>
-    </main>
+    </>
   );
 }

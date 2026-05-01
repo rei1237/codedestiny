@@ -20,15 +20,8 @@
       return;
     }
 
-    var host = String(location.hostname || "").toLowerCase();
-    if (host === "code-destiny.com" || host === "www.code-destiny.com") {
-      window.CODE_DESTINY_API_BASE_URL = location.origin;
-      window.__CF_PAGES_API_BASE_URL = location.origin;
-      return;
-    }
-    if (host.endsWith(".pages.dev")) {
-      window.CODE_DESTINY_API_BASE_URL = "https://code-destiny.com";
-      window.__CF_PAGES_API_BASE_URL = "https://code-destiny.com";
-    }
+    // Default to current origin so frontend always uses same-origin /api.
+    window.CODE_DESTINY_API_BASE_URL = location.origin;
+    window.__CF_PAGES_API_BASE_URL = location.origin;
   } catch (e) {}
 })();

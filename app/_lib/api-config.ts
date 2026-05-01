@@ -7,7 +7,7 @@
  * window.CODE_DESTINY_API_BASE_URL.
  */
 
-const FALLBACK_WORKER_BASE_URL = "https://code-destiny-web.bulegyung.workers.dev";
+const FALLBACK_LOCAL_API_BASE_URL = "http://localhost:4000";
 
 function normalizeBaseUrl(rawValue?: string | null): string {
   const value = String(rawValue || "").trim();
@@ -36,9 +36,10 @@ export function getApiBaseUrl(): string {
 
     const hostname = window.location.hostname;
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return configuredBase || FALLBACK_WORKER_BASE_URL;
+      return configuredBase || FALLBACK_LOCAL_API_BASE_URL;
     }
 
+    // In production/previews, default to same-origin /api via Pages routing.
     return configuredBase || "";
   }
 

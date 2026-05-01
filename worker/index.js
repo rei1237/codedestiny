@@ -6,9 +6,9 @@ import { handlePremiumRoutes, handleZiweiBookRoutes } from "./routes/premium.js"
 /**
  * Code Destiny API Worker.
  *
- * Auth, payment, and fortune APIs now run as Worker-native Fetch handlers.
- * API_UPSTREAM_ORIGIN remains optional as a fallback for API groups that have
- * not been ported yet.
+ * Backend-only runtime for /api/*.
+ * Auth, payment, fortune, premium, and ziwei-book routes run natively.
+ * API_UPSTREAM_ORIGIN remains optional as a fallback for unported API groups.
  */
 
 const DEFAULT_ALLOWED_ORIGINS = [
@@ -20,51 +20,6 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://code-destiny.pages.dev",
   "https://codedestiny.pages.dev",
 ];
-
-function generateSitemap() {
-  const base = "https://code-destiny.com";
-  const urls = [
-    { path: "/", priority: "1.0", freq: "daily" },
-    { path: "/saju", priority: "0.97", freq: "daily" },
-    { path: "/saju/basic", priority: "0.95", freq: "weekly" },
-    { path: "/saju/lifebook", priority: "0.92", freq: "weekly" },
-    { path: "/saju/love-secret", priority: "0.91", freq: "weekly" },
-    { path: "/saju/love-simulation", priority: "0.90", freq: "weekly" },
-    { path: "/saju-picture", priority: "0.86", freq: "weekly" },
-    { path: "/ziwei/chart", priority: "0.95", freq: "weekly" },
-    { path: "/tarot", priority: "0.92", freq: "weekly" },
-    { path: "/tarot/year", priority: "0.85", freq: "monthly" },
-    { path: "/tarot/healing", priority: "0.84", freq: "monthly" },
-    { path: "/tarot/love", priority: "0.82", freq: "monthly" },
-    { path: "/oracle", priority: "0.88", freq: "weekly" },
-    { path: "/oracle/hwatu-life", priority: "0.78", freq: "monthly" },
-    { path: "/olympus", priority: "0.72", freq: "monthly" },
-    { path: "/premium-unlock", priority: "0.68", freq: "monthly" },
-    { path: "/points", priority: "0.66", freq: "monthly" },
-    { path: "/insights", priority: "0.85", freq: "weekly" },
-    { path: "/about", priority: "0.90", freq: "monthly" },
-    { path: "/faq", priority: "0.88", freq: "monthly" },
-    { path: "/login", priority: "0.50", freq: "monthly" },
-    { path: "/signup", priority: "0.50", freq: "monthly" },
-  ];
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(({ path, priority, freq }) => `  <url>
-    <loc>${base}${path}</loc>
-    <changefreq>${freq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`).join("\n")}
-</urlset>`;
-}
-
-function generateRobots() {
-  return `User-agent: *
-Allow: /
-Disallow: /api/
-
-Sitemap: https://code-destiny.com/sitemap.xml`;
-}
 
 function normalizeOrigin(rawValue) {
   const value = String(rawValue || "").trim().replace(/\/+$/, "");
@@ -193,86 +148,6 @@ function copyRequestHeaders(request) {
   return headers;
 }
 
-function selectFrontendProxyOrigin(request, env) {
-  const incomingOrigin = new URL(request.url).origin;
-  const candidates = [
-    normalizeOrigin(env.FRONTEND_PROXY_ORIGIN),
-    normalizeOrigin(env.SITE_BASE_URL),
-    normalizeOrigin(env.AUTH_FRONTEND_BASE_URL),
-    "https://7dd8ce02.code-destiny.pages.dev",
-    "https://code-destiny.pages.dev",
-    "https://codedestiny.pages.dev",
-  ].filter(Boolean);
-
-  for (const candidate of candidates) {
-    if (candidate !== incomingOrigin) {
-      return candidate;
-    }
-  }
-
-  return "";
-}
-
-function copyProxyResponseHeaders(responseHeaders, request, env) {
-  const headers = new Headers(responseHeaders);
-  headers.delete("Content-Security-Policy");
-  headers.delete("Content-Security-Policy-Report-Only");
-  for (const [key, value] of Object.entries(getCorsHeaders(request, env))) {
-    headers.set(key, value);
-  }
-  return headers;
-}
-
-async function proxyFrontendRequest(request, env) {
-  const frontendOrigin = selectFrontendProxyOrigin(request, env);
-  if (!frontendOrigin) {
-    return jsonResponse(request, env, {
-      ok: false,
-      error: "frontend_proxy_origin_missing",
-      message: "Set FRONTEND_PROXY_ORIGIN to your frontend custom domain.",
-    }, { status: 503 });
-  }
-
-  const incomingUrl = new URL(request.url);
-  const targetUrl = new URL(frontendOrigin);
-  targetUrl.pathname = incomingUrl.pathname;
-  targetUrl.search = incomingUrl.search;
-
-  const headers = copyRequestHeaders(request);
-  headers.set("X-Forwarded-Host", incomingUrl.host);
-  headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
-  headers.set("X-Code-Destiny-Worker", "frontend-proxy");
-
-  const method = request.method.toUpperCase();
-  const init = {
-    method,
-    headers,
-    redirect: "manual",
-  };
-
-  if (method !== "GET" && method !== "HEAD") {
-    init.body = request.body;
-  }
-
-  try {
-    const response = await fetch(targetUrl.toString(), init);
-    const responseHeaders = copyProxyResponseHeaders(response.headers, request, env);
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: responseHeaders,
-    });
-  } catch (error) {
-    return jsonResponse(request, env, {
-      ok: false,
-      error: "frontend_proxy_failed",
-      message: "Failed to reach frontend origin from Worker.",
-      detail: String(error && error.message ? error.message : error),
-      target: targetUrl.origin,
-    }, { status: 502 });
-  }
-}
-
 async function proxyApiRequest(request, env) {
   const upstreamOrigin = getUpstreamOrigin(env);
   if (!upstreamOrigin) {
@@ -345,30 +220,13 @@ export default {
       });
     }
 
-    if (url.pathname === "/sitemap.xml") {
-      return new Response(generateSitemap(), {
-        headers: {
-          "Content-Type": "application/xml; charset=utf-8",
-          "Cache-Control": "public, max-age=3600",
-        },
-      });
-    }
-
-    if (url.pathname === "/robots.txt") {
-      return new Response(generateRobots(), {
-        headers: {
-          "Content-Type": "text/plain; charset=utf-8",
-          "Cache-Control": "public, max-age=86400",
-        },
-      });
-    }
-
     if (url.pathname === "/api/health") {
       const upstreamOrigin = getUpstreamOrigin(env);
       return jsonResponse(request, env, {
         ok: true,
         service: "code-destiny-api-worker",
         mode: "worker-native",
+        backendOnly: true,
         nativeRoutes: ["auth", "payments", "fortune", "premium", "ziwei-book"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
@@ -405,14 +263,10 @@ export default {
       return proxyApiRequest(request, env);
     }
 
-    if (request.method === "GET" || request.method === "HEAD") {
-      return proxyFrontendRequest(request, env);
-    }
-
     return jsonResponse(request, env, {
       ok: false,
-      error: "method_not_allowed",
-      message: "Only GET/HEAD are supported for non-API routes.",
-    }, { status: 405 });
+      error: "backend_only",
+      message: "This Worker only serves backend API routes under /api/*.",
+    }, { status: 404 });
   },
 };

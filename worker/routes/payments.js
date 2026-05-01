@@ -1,0 +1,1218 @@
+import { connectDb, mongoose } from "../lib/db.js";
+import { Payment, PaymentFailureLog, PointHistory, User } from "../lib/models.js";
+import { requireAuth } from "../lib/auth.js";
+import { cancelPortOnePayment, fetchPortOnePayment } from "../lib/portone.js";
+import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
+import { getEnv } from "../lib/env.js";
+import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+
+function toDateFromUnixSeconds(value) {
+  const unixSeconds = Number(value);
+  if (!Number.isFinite(unixSeconds) || unixSeconds <= 0) return new Date();
+  return new Date(unixSeconds * 1000);
+}
+
+function normalizePaymentMethod(value) {
+  const method = String(value || "unknown").trim();
+  return method ? method.slice(0, 32) : "unknown";
+}
+
+function buildMerchantUid(userId) {
+  const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
+  const randomTag = Math.random().toString(36).slice(2, 8);
+  return `md_${Date.now()}_${userTag}_${randomTag}`;
+}
+
+function parseCustomDataUserId(customData) {
+  if (!customData) return null;
+
+  let parsed = customData;
+  if (typeof customData === "string") {
+    try {
+      parsed = JSON.parse(customData);
+    } catch {
+      return null;
+    }
+  }
+
+  const userId = String(parsed?.userId || parsed?.uid || "").trim();
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return null;
+  return userId;
+}
+
+function formatPaymentResponse(payment) {
+  if (!payment) return null;
+
+  const approvalNumber = String(
+    payment?.rawPortOne?.apply_num
+      || payment?.rawPortOne?.apply_num_vbank
+      || "",
+  ).trim() || null;
+  const receiptUrl = String(payment?.rawPortOne?.receipt_url || "").trim() || null;
+  const cancelAmount = Number(payment?.rawPortOne?.cancel_amount || 0);
+  const cancelledAt = payment?.rawPortOne?.cancelled_at
+    ? toDateFromUnixSeconds(payment.rawPortOne.cancelled_at)
+    : null;
+
+  return {
+    id: String(payment._id),
+    impUid: payment.impUid,
+    merchantUid: payment.merchantUid,
+    paymentAmount: Number(payment.paymentAmount || 0),
+    chargedPoints: Number(payment.chargedPoints || 0),
+    paymentMethod: payment.paymentMethod,
+    status: payment.status,
+    paidAt: payment.paidAt,
+    failureCode: payment.failureCode,
+    failureMessage: payment.failureMessage,
+    failureStage: payment.failureStage,
+    lastErrorAt: payment.lastErrorAt,
+    approvalNumber,
+    receiptUrl,
+    cancelAmount,
+    cancelledAt,
+  };
+}
+
+function summarizePayload(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  const clone = { ...payload };
+  if (clone.card_number) clone.card_number = "[redacted]";
+  if (clone.customer_uid) clone.customer_uid = "[redacted]";
+  return clone;
+}
+
+async function writeFailureLog(params = {}) {
+  const {
+    request,
+    userId,
+    impUid,
+    merchantUid,
+    source,
+    stage,
+    code,
+    message,
+    status,
+    expectedAmount,
+    clientAmount,
+    portOneAmount,
+    portOneStatus,
+    payload,
+    rawPortOne,
+  } = params;
+
+  await PaymentFailureLog.create({
+    userId: userId && mongoose.Types.ObjectId.isValid(String(userId)) ? userId : undefined,
+    impUid,
+    merchantUid,
+    source: source || "system",
+    stage: stage || "unknown",
+    code,
+    message,
+    status,
+    expectedAmount,
+    clientAmount,
+    portOneAmount,
+    portOneStatus,
+    requestMeta: request ? getRequestMeta(request) : undefined,
+    payload: summarizePayload(payload),
+    rawPortOne,
+  }).catch(() => {});
+}
+
+async function getUserPoints(userId) {
+  const user = await User.findById(userId).select("points").lean();
+  return Number(user?.points || 0);
+}
+
+async function markPaymentFailure(paymentRecord, patch = {}) {
+  if (!paymentRecord?._id) return;
+
+  await Payment.findByIdAndUpdate(paymentRecord._id, {
+    $set: {
+      status: patch.status || "failed",
+      paymentMethod: patch.paymentMethod || paymentRecord.paymentMethod || "unknown",
+      rawPortOne: patch.rawPortOne,
+      failureCode: patch.failureCode,
+      failureMessage: patch.failureMessage,
+      failureStage: patch.failureStage,
+      lastErrorAt: new Date(),
+    },
+    ...(patch.incrementAttempt ? { $inc: { confirmAttempts: 1 } } : {}),
+  }).catch(() => {});
+}
+
+async function findPaymentRecord(impUid, merchantUid) {
+  if (impUid) {
+    const byImp = await Payment.findOne({ impUid }).lean();
+    if (byImp) return byImp;
+  }
+
+  if (merchantUid) {
+    const byMerchant = await Payment.findOne({ merchantUid }).lean();
+    if (byMerchant) return byMerchant;
+  }
+
+  return null;
+}
+
+async function ensurePaymentRecord({
+  existing,
+  userId,
+  impUid,
+  merchantUid,
+  paymentAmount,
+  expectedChargedPoints,
+  paymentMethod,
+  source,
+}) {
+  if (existing) return existing;
+
+  const created = await Payment.create({
+    userId,
+    impUid,
+    merchantUid: merchantUid || undefined,
+    paymentAmount,
+    expectedChargedPoints,
+    chargedPoints: 0,
+    paymentMethod,
+    status: "pending",
+    source,
+  });
+
+  return created.toObject();
+}
+
+function isTransactionUnsupported(error) {
+  return /Transaction numbers are only allowed|replica set|Transaction .* not supported/i
+    .test(String(error?.message || ""));
+}
+
+async function settlePaymentByImpUid({
+  env,
+  impUid,
+  requestedUserId,
+  requestedAmount,
+  requestedChargePoints,
+  requestedPaymentMethod,
+  merchantUidHint,
+  source,
+  strictAmountMatch,
+  request,
+  body,
+}) {
+  let portOnePayment;
+  try {
+    portOnePayment = await fetchPortOnePayment(env, impUid);
+  } catch (error) {
+    await writeFailureLog({
+      request,
+      userId: requestedUserId,
+      impUid,
+      merchantUid: merchantUidHint,
+      source,
+      stage: "portone_fetch",
+      code: "portone_fetch_failed",
+      message: error?.message || "PortOne payment lookup failed.",
+      status: 502,
+      payload: body,
+    });
+
+    return {
+      ok: false,
+      status: 502,
+      message: "Payment lookup failed. Please try again.",
+    };
+  }
+
+  const portOneStatus = String(portOnePayment.status || "").toLowerCase();
+  const portOneAmount = Number(portOnePayment.amount);
+  const merchantUid = String(portOnePayment.merchant_uid || merchantUidHint || "").trim();
+  const paymentMethod = normalizePaymentMethod(portOnePayment.pay_method || requestedPaymentMethod);
+
+  let paymentRecord = await findPaymentRecord(impUid, merchantUid);
+  const customDataUserId = parseCustomDataUserId(portOnePayment.custom_data);
+  const ownerUserId = paymentRecord?.userId
+    ? String(paymentRecord.userId)
+    : (requestedUserId ? String(requestedUserId) : customDataUserId);
+
+  if (!ownerUserId || !mongoose.Types.ObjectId.isValid(ownerUserId)) {
+    await writeFailureLog({
+      request,
+      userId: requestedUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "owner_resolve",
+      code: "owner_not_found",
+      message: "Could not resolve the payment owner.",
+      status: 400,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return { ok: false, status: 400, message: "Could not resolve the payment owner." };
+  }
+
+  if (requestedUserId && String(requestedUserId) !== ownerUserId) {
+    await writeFailureLog({
+      request,
+      userId: requestedUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "owner_mismatch",
+      code: "forbidden_owner_mismatch",
+      message: "Only your own payment can be processed.",
+      status: 403,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return { ok: false, status: 403, message: "Only your own payment can be processed." };
+  }
+
+  const expectedAmount = Number.isInteger(Number(requestedAmount))
+    ? Number(requestedAmount)
+    : Number(paymentRecord?.paymentAmount || 0);
+  const expectedChargedPoints = Number.isInteger(Number(requestedChargePoints))
+    ? Number(requestedChargePoints)
+    : Number(paymentRecord?.expectedChargedPoints || 0);
+
+  paymentRecord = await ensurePaymentRecord({
+    existing: paymentRecord,
+    userId: ownerUserId,
+    impUid,
+    merchantUid,
+    paymentAmount: expectedAmount > 0 ? expectedAmount : Math.max(Number(portOneAmount) || 0, 0),
+    expectedChargedPoints,
+    paymentMethod,
+    source,
+  });
+
+  if (paymentRecord.status === "success") {
+    return {
+      ok: true,
+      idempotent: true,
+      user: {
+        id: ownerUserId,
+        points: await getUserPoints(ownerUserId),
+      },
+      payment: formatPaymentResponse(paymentRecord),
+    };
+  }
+
+  if (!Number.isInteger(portOneAmount) || portOneAmount <= 0) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "invalid_portone_amount",
+      failureMessage: "PortOne payment amount is invalid.",
+      failureStage: "amount_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_validate",
+      code: "invalid_portone_amount",
+      message: "PortOne payment amount is invalid.",
+      status: 400,
+      expectedAmount,
+      portOneAmount,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return { ok: false, status: 400, message: "PortOne payment amount is invalid." };
+  }
+
+  if (
+    strictAmountMatch
+    && requestedAmount !== undefined
+    && requestedAmount !== null
+    && Number(requestedAmount) !== portOneAmount
+  ) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "client_amount_mismatch",
+      failureMessage: "Client amount does not match PortOne amount.",
+      failureStage: "amount_match",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_match",
+      code: "client_amount_mismatch",
+      message: "Client amount does not match PortOne amount.",
+      status: 400,
+      clientAmount: Number(requestedAmount),
+      portOneAmount,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return {
+      ok: false,
+      status: 400,
+      message: "Client amount does not match PortOne amount.",
+      clientAmount: Number(requestedAmount),
+      portOneAmount,
+    };
+  }
+
+  if (Number(paymentRecord.paymentAmount || 0) > 0 && Number(paymentRecord.paymentAmount) !== portOneAmount) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "server_amount_mismatch",
+      failureMessage: "Prepared amount does not match PortOne amount.",
+      failureStage: "amount_match",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_match",
+      code: "server_amount_mismatch",
+      message: "Prepared amount does not match PortOne amount.",
+      status: 400,
+      expectedAmount: Number(paymentRecord.paymentAmount),
+      portOneAmount,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return {
+      ok: false,
+      status: 400,
+      message: "Prepared amount does not match PortOne amount.",
+      expectedAmount: Number(paymentRecord.paymentAmount),
+      portOneAmount,
+    };
+  }
+
+  if (portOneStatus !== "paid") {
+    const failedStatus = portOneStatus === "cancelled" ? "cancelled" : "failed";
+    await markPaymentFailure(paymentRecord, {
+      status: failedStatus,
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "payment_not_paid",
+      failureMessage: "Payment is not in paid status.",
+      failureStage: "status_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "status_validate",
+      code: "payment_not_paid",
+      message: "Payment is not in paid status.",
+      status: 400,
+      portOneStatus: portOneStatus || "unknown",
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return {
+      ok: false,
+      status: 400,
+      message: "Payment is not in paid status.",
+      portOneStatus: portOneStatus || "unknown",
+    };
+  }
+
+  let chargedPoints;
+  try {
+    const pointsForPolicy = expectedChargedPoints > 0 ? expectedChargedPoints : undefined;
+    chargedPoints = resolveChargePointsByAmount(env, portOneAmount, pointsForPolicy);
+  } catch (error) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "charge_policy_invalid",
+      failureMessage: error.message || "Charge point policy validation failed.",
+      failureStage: "policy_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "policy_validate",
+      code: "charge_policy_invalid",
+      message: error.message || "Charge point policy validation failed.",
+      status: 400,
+      expectedAmount,
+      portOneAmount,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return { ok: false, status: 400, message: error.message || "Charge point policy validation failed." };
+  }
+
+  const ownerExists = await User.exists({ _id: ownerUserId });
+  if (!ownerExists) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "user_not_found",
+      failureMessage: "User not found for point charge.",
+      failureStage: "user_lookup",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "user_lookup",
+      code: "user_not_found",
+      message: "User not found for point charge.",
+      status: 404,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return { ok: false, status: 404, message: "User not found for point charge." };
+  }
+
+  const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
+
+  const runSettlementWithoutTransaction = async () => {
+    const finalizedPayment = await Payment.findOneAndUpdate(
+      { _id: paymentRecord._id, status: { $ne: "success" } },
+      {
+        $set: {
+          userId: ownerUserId,
+          impUid,
+          merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
+          paymentAmount: portOneAmount,
+          expectedChargedPoints: chargedPoints,
+          chargedPoints,
+          paymentMethod,
+          status: "success",
+          paidAt,
+          source,
+          rawPortOne: portOnePayment,
+          failureCode: null,
+          failureMessage: null,
+          failureStage: null,
+        },
+        $inc: { confirmAttempts: 1 },
+      },
+      { new: true },
+    ).lean();
+
+    if (!finalizedPayment) {
+      const latestPayment = await Payment.findById(paymentRecord._id).lean();
+      return {
+        ok: true,
+        idempotent: true,
+        user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
+        payment: formatPaymentResponse(latestPayment),
+      };
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      ownerUserId,
+      { $inc: { points: chargedPoints } },
+      { new: true, projection: { points: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      await Payment.findByIdAndUpdate(finalizedPayment._id, {
+        $set: {
+          status: "failed",
+          failureCode: "user_not_found",
+          failureMessage: "User not found for point charge.",
+          failureStage: "user_update",
+          lastErrorAt: new Date(),
+        },
+      }).catch(() => {});
+
+      return { ok: false, status: 404, message: "User not found for point charge." };
+    }
+
+    await PointHistory.create({
+      userId: ownerUserId,
+      kind: "charge",
+      delta: chargedPoints,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason: "Point charge",
+      paymentId: finalizedPayment._id,
+      impUid,
+      merchantUid: finalizedPayment.merchantUid,
+      metadata: { source, paymentAmount: portOneAmount, paymentMethod },
+    }).catch(() => {});
+
+    return {
+      ok: true,
+      idempotent: false,
+      user: { id: ownerUserId, points: Number(updatedUser.points || 0) },
+      payment: formatPaymentResponse(finalizedPayment),
+    };
+  };
+
+  const runSettlementWithTransaction = async () => {
+    const session = await mongoose.startSession();
+    let txResult = null;
+
+    try {
+      await session.withTransaction(async () => {
+        const finalizedPayment = await Payment.findOneAndUpdate(
+          { _id: paymentRecord._id, status: { $ne: "success" } },
+          {
+            $set: {
+              userId: ownerUserId,
+              impUid,
+              merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
+              paymentAmount: portOneAmount,
+              expectedChargedPoints: chargedPoints,
+              chargedPoints,
+              paymentMethod,
+              status: "success",
+              paidAt,
+              source,
+              rawPortOne: portOnePayment,
+              failureCode: null,
+              failureMessage: null,
+              failureStage: null,
+            },
+            $inc: { confirmAttempts: 1 },
+          },
+          { new: true, session },
+        ).lean();
+
+        if (!finalizedPayment) {
+          const latestPayment = await Payment.findById(paymentRecord._id).session(session).lean();
+          txResult = {
+            ok: true,
+            idempotent: true,
+            user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
+            payment: formatPaymentResponse(latestPayment),
+          };
+          return;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+          ownerUserId,
+          { $inc: { points: chargedPoints } },
+          { new: true, projection: { points: 1 }, session },
+        ).lean();
+
+        if (!updatedUser) throw new Error("user_not_found");
+
+        await PointHistory.create([{
+          userId: ownerUserId,
+          kind: "charge",
+          delta: chargedPoints,
+          balanceAfter: Number(updatedUser.points || 0),
+          reason: "Point charge",
+          paymentId: finalizedPayment._id,
+          impUid,
+          merchantUid: finalizedPayment.merchantUid,
+          metadata: { source, paymentAmount: portOneAmount, paymentMethod },
+        }], { session });
+
+        txResult = {
+          ok: true,
+          idempotent: false,
+          user: { id: ownerUserId, points: Number(updatedUser.points || 0) },
+          payment: formatPaymentResponse(finalizedPayment),
+        };
+      });
+
+      return txResult;
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  let settlementResult;
+  try {
+    settlementResult = await runSettlementWithTransaction();
+  } catch (error) {
+    if (!isTransactionUnsupported(error)) throw error;
+    settlementResult = await runSettlementWithoutTransaction();
+  }
+
+  if (!settlementResult?.ok) {
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "settlement",
+      code: "settlement_failed",
+      message: settlementResult?.message || "Payment settlement failed.",
+      status: settlementResult?.status || 500,
+      expectedAmount,
+      portOneAmount,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+  }
+
+  return settlementResult;
+}
+
+async function handleWebhook(request, env) {
+  const body = await readJson(request);
+  const expectedWebhookToken = getEnv(env, "PORTONE_WEBHOOK_TOKEN");
+  if (expectedWebhookToken) {
+    const suppliedWebhookToken = String(request.headers.get("x-cd-webhook-token") || "").trim();
+    if (suppliedWebhookToken !== expectedWebhookToken) {
+      await writeFailureLog({
+        request,
+        source: "webhook",
+        stage: "webhook_auth",
+        code: "invalid_webhook_token",
+        message: "Webhook token mismatch.",
+        status: 401,
+        payload: body,
+      });
+      return json({ message: "Invalid webhook request." }, { status: 401 });
+    }
+  }
+
+  const impUid = String(
+    body?.imp_uid
+      || body?.impUid
+      || body?.data?.imp_uid
+      || "",
+  ).trim();
+
+  const merchantUid = String(
+    body?.merchant_uid
+      || body?.merchantUid
+      || body?.data?.merchant_uid
+      || "",
+  ).trim();
+
+  if (!impUid) {
+    await writeFailureLog({
+      request,
+      source: "webhook",
+      stage: "payload_validate",
+      code: "missing_imp_uid",
+      message: "Webhook body must include imp_uid.",
+      status: 400,
+      payload: body,
+    });
+    return json({ message: "Webhook body must include imp_uid." }, { status: 400 });
+  }
+
+  const settled = await settlePaymentByImpUid({
+    env,
+    impUid,
+    merchantUidHint: merchantUid || undefined,
+    source: "webhook",
+    strictAmountMatch: false,
+    request,
+    body,
+  });
+
+  if (!settled.ok) {
+    return json({ ok: false, message: settled.message });
+  }
+
+  return json({
+    ok: true,
+    idempotent: Boolean(settled.idempotent),
+    payment: settled.payment,
+  });
+}
+
+async function handlePrepare(request, env, auth) {
+  const body = await readJson(request);
+  const paymentAmount = Number(body?.paymentAmount ?? body?.amount);
+  const requestedChargePoints = body?.chargePoints === undefined || body?.chargePoints === null
+    ? undefined
+    : Number(body?.chargePoints);
+
+  if (!Number.isInteger(paymentAmount) || paymentAmount <= 0) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      source: "prepare",
+      stage: "payload_validate",
+      code: "invalid_payment_amount",
+      message: "paymentAmount must be a positive integer.",
+      status: 400,
+      payload: body,
+    });
+    return json({ message: "paymentAmount must be a positive integer." }, { status: 400 });
+  }
+
+  if (requestedChargePoints !== undefined && (!Number.isInteger(requestedChargePoints) || requestedChargePoints <= 0)) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      source: "prepare",
+      stage: "payload_validate",
+      code: "invalid_charge_points",
+      message: "chargePoints must be a positive integer.",
+      status: 400,
+      payload: body,
+    });
+    return json({ message: "chargePoints must be a positive integer." }, { status: 400 });
+  }
+
+  const chargedPoints = resolveChargePointsByAmount(env, paymentAmount, requestedChargePoints);
+  const paymentMethod = normalizePaymentMethod(body?.paymentMethod);
+  const rawProductName = String(body?.productName || `${chargedPoints.toLocaleString("ko-KR")} point charge`).trim();
+  const productName = rawProductName.slice(0, 80) || `${chargedPoints.toLocaleString("ko-KR")} point charge`;
+  const merchantUid = buildMerchantUid(auth.userId);
+
+  await Payment.create({
+    userId: auth.userId,
+    merchantUid,
+    paymentAmount,
+    expectedChargedPoints: chargedPoints,
+    chargedPoints: 0,
+    paymentMethod,
+    status: "pending",
+    source: "prepare",
+  });
+
+  return json({
+    message: "Payment preparation completed.",
+    order: {
+      merchantUid,
+      paymentAmount,
+      chargePoints: chargedPoints,
+      productName,
+    },
+  }, { status: 201 });
+}
+
+async function handleConfirm(request, env, auth) {
+  const body = await readJson(request);
+  const hasMinimalRedirectPayload = Boolean(
+    (body?.impUid || body?.paymentId)
+      && (body?.merchantUid || body?.merchant_uid)
+      && (body?.paymentAmount === undefined && body?.amount === undefined),
+  );
+
+  let isValid = false;
+  let errors = [];
+  let sanitized = null;
+
+  if (hasMinimalRedirectPayload) {
+    sanitized = {
+      impUid: String(body?.impUid || body?.paymentId || "").trim(),
+      merchantUid: String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined,
+      paymentAmount: undefined,
+      chargePoints: undefined,
+      paymentMethod: String(body?.paymentMethod || "").trim() || undefined,
+    };
+    isValid = Boolean(sanitized.impUid);
+    if (!isValid) errors = ["impUid is required."];
+  } else {
+    const validated = validatePointChargePayload(body);
+    isValid = validated.isValid;
+    errors = validated.errors;
+    sanitized = validated.sanitized;
+  }
+
+  if (!isValid) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      impUid: String(body?.impUid || body?.paymentId || "").trim() || undefined,
+      merchantUid: String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined,
+      source: "confirm",
+      stage: "payload_validate",
+      code: "invalid_confirm_payload",
+      message: "Invalid payment confirm payload.",
+      status: 400,
+      payload: { ...body, errors },
+    });
+
+    return json({ message: "Invalid payment confirm payload.", errors }, { status: 400 });
+  }
+
+  const settled = await settlePaymentByImpUid({
+    env,
+    impUid: sanitized.impUid,
+    requestedUserId: auth.userId,
+    requestedAmount: sanitized.paymentAmount,
+    requestedChargePoints: sanitized.chargePoints,
+    requestedPaymentMethod: sanitized.paymentMethod,
+    merchantUidHint: sanitized.merchantUid,
+    source: "confirm",
+    strictAmountMatch: true,
+    request,
+    body,
+  });
+
+  if (!settled.ok) {
+    return json({
+      message: settled.message,
+      ...(settled.clientAmount !== undefined ? { clientAmount: settled.clientAmount } : {}),
+      ...(settled.portOneAmount !== undefined ? { portOneAmount: settled.portOneAmount } : {}),
+      ...(settled.expectedAmount !== undefined ? { expectedAmount: settled.expectedAmount } : {}),
+      ...(settled.portOneStatus ? { status: settled.portOneStatus } : {}),
+    }, { status: settled.status || 400 });
+  }
+
+  return json({
+    message: settled.idempotent ? "Payment was already processed." : "Point charge completed.",
+    idempotent: Boolean(settled.idempotent),
+    user: settled.user,
+    payment: settled.payment,
+  });
+}
+
+async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollback, auth, user, requestedCancelAmount, paidAmount }) {
+  const runWithoutTransaction = async () => {
+    const canceledPayment = await Payment.findByIdAndUpdate(
+      paymentRecord._id,
+      {
+        $set: {
+          status: "cancelled",
+          rawPortOne: canceledPortOne,
+          paymentMethod: normalizePaymentMethod(canceledPortOne?.pay_method || paymentRecord.paymentMethod),
+          failureCode: null,
+          failureMessage: null,
+          failureStage: null,
+        },
+      },
+      { new: true },
+    ).lean();
+
+    let updatedPoints = Number(user.points || 0);
+    if (pointsToRollback > 0) {
+      const updatedUser = await User.findByIdAndUpdate(
+        auth.userId,
+        { $inc: { points: -pointsToRollback } },
+        { new: true, projection: { points: 1 } },
+      ).lean();
+      updatedPoints = Number(updatedUser?.points || 0);
+
+      await PointHistory.create({
+        userId: auth.userId,
+        kind: "deduct",
+        delta: -pointsToRollback,
+        balanceAfter: updatedPoints,
+        reason: "Point rollback after payment cancellation",
+        paymentId: paymentRecord._id,
+        impUid: paymentRecord.impUid,
+        merchantUid: paymentRecord.merchantUid,
+        metadata: {
+          source: "cancel",
+          cancelAmount: Number(canceledPortOne?.cancel_amount || requestedCancelAmount || paidAmount || 0),
+        },
+      }).catch(() => {});
+    }
+
+    return { canceledPayment, updatedPoints };
+  };
+
+  const runWithTransaction = async () => {
+    const session = await mongoose.startSession();
+    let txPayload = null;
+
+    try {
+      await session.withTransaction(async () => {
+        const canceledPayment = await Payment.findByIdAndUpdate(
+          paymentRecord._id,
+          {
+            $set: {
+              status: "cancelled",
+              rawPortOne: canceledPortOne,
+              paymentMethod: normalizePaymentMethod(canceledPortOne?.pay_method || paymentRecord.paymentMethod),
+              failureCode: null,
+              failureMessage: null,
+              failureStage: null,
+            },
+          },
+          { new: true, session },
+        ).lean();
+
+        let updatedPoints = Number(user.points || 0);
+        if (pointsToRollback > 0) {
+          const updatedUser = await User.findByIdAndUpdate(
+            auth.userId,
+            { $inc: { points: -pointsToRollback } },
+            { new: true, projection: { points: 1 }, session },
+          ).lean();
+          updatedPoints = Number(updatedUser?.points || 0);
+
+          await PointHistory.create([{
+            userId: auth.userId,
+            kind: "deduct",
+            delta: -pointsToRollback,
+            balanceAfter: updatedPoints,
+            reason: "Point rollback after payment cancellation",
+            paymentId: paymentRecord._id,
+            impUid: paymentRecord.impUid,
+            merchantUid: paymentRecord.merchantUid,
+            metadata: {
+              source: "cancel",
+              cancelAmount: Number(canceledPortOne?.cancel_amount || requestedCancelAmount || paidAmount || 0),
+            },
+          }], { session });
+        }
+
+        txPayload = { canceledPayment, updatedPoints };
+      });
+
+      return txPayload;
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  try {
+    return await runWithTransaction();
+  } catch (error) {
+    if (!isTransactionUnsupported(error)) throw error;
+    return runWithoutTransaction();
+  }
+}
+
+async function handleCancel(request, env, auth) {
+  const body = await readJson(request);
+  const impUid = String(body?.impUid || body?.imp_uid || "").trim() || undefined;
+  const merchantUid = String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined;
+  const reason = String(body?.reason || "Customer refund request").trim().slice(0, 120);
+  const requestedCancelAmountRaw = body?.cancelAmount ?? body?.amount;
+  const requestedCancelAmount = requestedCancelAmountRaw === undefined || requestedCancelAmountRaw === null
+    ? undefined
+    : Number(requestedCancelAmountRaw);
+
+  if (!impUid && !merchantUid) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      source: "confirm",
+      stage: "cancel_payload",
+      code: "missing_cancel_key",
+      message: "impUid or merchantUid is required.",
+      status: 400,
+      payload: body,
+    });
+    return json({ message: "impUid or merchantUid is required." }, { status: 400 });
+  }
+
+  if (requestedCancelAmount !== undefined && (!Number.isInteger(requestedCancelAmount) || requestedCancelAmount <= 0)) {
+    return json({ message: "cancelAmount must be a positive integer." }, { status: 400 });
+  }
+
+  const paymentRecord = await findPaymentRecord(impUid, merchantUid);
+  if (!paymentRecord) return json({ message: "Payment not found." }, { status: 404 });
+
+  if (String(paymentRecord.userId) !== String(auth.userId)) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      impUid,
+      merchantUid,
+      source: "confirm",
+      stage: "cancel_owner",
+      code: "forbidden_owner_mismatch",
+      message: "Only your own payment can be cancelled.",
+      status: 403,
+      payload: body,
+    });
+    return json({ message: "Only your own payment can be cancelled." }, { status: 403 });
+  }
+
+  if (paymentRecord.status === "cancelled") {
+    return json({
+      message: "Payment was already cancelled.",
+      idempotent: true,
+      payment: formatPaymentResponse(paymentRecord),
+    });
+  }
+
+  if (paymentRecord.status !== "success") {
+    return json({ message: "Only successful payments can be cancelled." }, { status: 400 });
+  }
+
+  const paidAmount = Number(paymentRecord.paymentAmount || 0);
+  if (requestedCancelAmount !== undefined && requestedCancelAmount > paidAmount) {
+    return json({ message: "Cancel amount exceeds paid amount." }, { status: 400 });
+  }
+
+  const pointsToRollback = Number(paymentRecord.chargedPoints || paymentRecord.expectedChargedPoints || 0);
+  const user = await User.findById(auth.userId).select("points").lean();
+  if (!user) return json({ message: "User not found." }, { status: 404 });
+
+  if (pointsToRollback > 0 && Number(user.points || 0) < pointsToRollback) {
+    return json({
+      message: "Automatic refund is blocked because the charged points were already used. Please contact support.",
+    }, { status: 409 });
+  }
+
+  const canceledPortOne = await cancelPortOnePayment(env, {
+    impUid: paymentRecord.impUid || impUid,
+    merchantUid: paymentRecord.merchantUid || merchantUid,
+    reason,
+    amount: requestedCancelAmount,
+    checksum: paidAmount > 0 ? paidAmount : undefined,
+  });
+
+  const updateResult = await runCancelUpdate({
+    paymentRecord,
+    canceledPortOne,
+    pointsToRollback,
+    auth,
+    user,
+    requestedCancelAmount,
+    paidAmount,
+  });
+
+  return json({
+    message: "Payment cancelled.",
+    idempotent: false,
+    user: {
+      id: String(auth.userId),
+      points: Number(updateResult?.updatedPoints || 0),
+    },
+    payment: formatPaymentResponse(updateResult?.canceledPayment),
+  });
+}
+
+async function handleReportFailure(request, auth) {
+  const body = await readJson(request);
+  const merchantUid = String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined;
+  const impUid = String(body?.impUid || body?.paymentId || "").trim() || undefined;
+  const reasonCode = String(body?.reasonCode || "client_failure").trim().slice(0, 80);
+  const reasonMessage = String(body?.reasonMessage || "Payment was not completed on the client.").trim().slice(0, 500);
+
+  const payment = await findPaymentRecord(impUid, merchantUid);
+  if (payment && String(payment.userId) !== String(auth.userId)) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      impUid,
+      merchantUid,
+      source: "client",
+      stage: "report_failure",
+      code: "forbidden_owner_mismatch",
+      message: "Only your own payment can be reported.",
+      status: 403,
+      payload: body,
+    });
+    return json({ message: "Only your own payment can be reported." }, { status: 403 });
+  }
+
+  if (payment && payment.status !== "success") {
+    await markPaymentFailure(payment, {
+      status: reasonCode === "cancelled" ? "cancelled" : "failed",
+      paymentMethod: payment.paymentMethod,
+      failureCode: reasonCode,
+      failureMessage: reasonMessage,
+      failureStage: "client_report",
+      incrementAttempt: false,
+    });
+  }
+
+  await writeFailureLog({
+    request,
+    userId: auth.userId,
+    impUid,
+    merchantUid,
+    source: "client",
+    stage: "client_report",
+    code: reasonCode,
+    message: reasonMessage,
+    status: 200,
+    payload: body,
+  });
+
+  return json({ ok: true, message: "Payment failure report recorded." });
+}
+
+async function handleMe(auth) {
+  const user = await User.findById(auth.userId)
+    .select("name email points")
+    .lean();
+
+  if (!user) return json({ message: "User not found." }, { status: 404 });
+
+  const [recentPayments, pointHistories] = await Promise.all([
+    Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
+    PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
+  ]);
+
+  return json({
+    user: {
+      id: String(auth.userId),
+      name: user.name,
+      email: user.email,
+      points: Number(user.points || 0),
+    },
+    payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
+    pointHistories: pointHistories.map((entry) => ({
+      id: String(entry._id),
+      kind: entry.kind,
+      delta: Number(entry.delta || 0),
+      balanceAfter: Number(entry.balanceAfter || 0),
+      reason: entry.reason,
+      featureKey: entry.featureKey,
+      createdAt: entry.createdAt,
+    })),
+  });
+}
+
+export async function handlePaymentRoutes(request, env) {
+  try {
+    const method = request.method.toUpperCase();
+    const path = getRoutePath(request, "/api/payments");
+
+    await connectDb(env);
+
+    if (method === "POST" && path === "/webhook") return await handleWebhook(request, env);
+
+    const auth = await requireAuth(request, env);
+
+    if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
+    if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
+    if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
+    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
+    if (method === "GET" && path === "/me") return await handleMe(auth);
+
+    if (["GET", "POST"].includes(method)) return notFound();
+    return methodNotAllowed();
+  } catch (error) {
+    if (error && error.code === 11000) {
+      return json({ message: "Duplicate payment key." }, { status: 409 });
+    }
+    return handleRouteError(error);
+  }
+}
