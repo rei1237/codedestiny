@@ -15,23 +15,23 @@ export type ServiceCardModel = {
 };
 
 function badgeClass(tone: Badge["tone"]) {
-  if (tone === "free") return "border-emerald-300/40 bg-emerald-500/15 text-emerald-100";
-  if (tone === "coin") return "border-amber-300/40 bg-amber-500/20 text-amber-100";
-  if (tone === "new") return "border-fuchsia-300/40 bg-fuchsia-500/20 text-fuchsia-100";
-  return "border-slate-400/30 bg-slate-700/40 text-slate-200";
+  if (tone === "free") return "border-emerald-300/50 bg-emerald-500/18 text-emerald-100";
+  if (tone === "coin") return "border-amber-300/55 bg-amber-500/25 text-amber-50";
+  if (tone === "new") return "border-fuchsia-300/45 bg-fuchsia-500/18 text-fuchsia-100";
+  return "border-violet-200/30 bg-violet-900/45 text-violet-100";
 }
 
 export default function ServiceCard({ item }: { item: ServiceCardModel }) {
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-violet-300/20 bg-gradient-to-br from-slate-900/90 to-slate-800/70 p-4 shadow-[0_12px_28px_rgba(8,12,28,0.42)] transition hover:-translate-y-0.5 hover:border-violet-300/45 hover:shadow-[0_16px_40px_rgba(76,29,149,0.3)]">
+    <article className="group flex h-full flex-col rounded-[18px] border border-violet-200/25 bg-[linear-gradient(145deg,rgba(22,10,46,0.92),rgba(37,18,72,0.86))] p-4 shadow-[0_12px_28px_rgba(26,13,57,0.35)] transition hover:-translate-y-0.5 hover:border-violet-200/55 hover:shadow-[0_18px_40px_rgba(55,28,109,0.36)]">
       <div className="mb-2 flex items-start justify-between gap-2">
-        <h3 className="text-sm font-bold leading-6 text-slate-100">
+        <h3 className="text-sm font-bold leading-6 text-violet-50">
           {item.emoji ? <span className="mr-1">{item.emoji}</span> : null}
           {item.title}
         </h3>
       </div>
 
-      <p className="mb-3 min-h-[44px] text-xs leading-5 text-slate-300">{item.description}</p>
+      <p className="mb-3 min-h-[44px] text-xs leading-5 text-violet-100/80">{item.description}</p>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
         {(item.badges || []).map((badge) => (
@@ -47,7 +47,7 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
       <div className="mt-auto">
         <Link
           href={item.href}
-          className="inline-flex w-full items-center justify-center rounded-xl border border-violet-300/45 bg-violet-500/20 px-3 py-2 text-xs font-semibold text-violet-100 transition group-hover:bg-violet-500/30"
+          className="inline-flex w-full items-center justify-center rounded-xl border border-violet-200/45 bg-[linear-gradient(135deg,rgba(102,63,195,0.9),rgba(84,115,221,0.88))] px-3 py-2 text-xs font-semibold text-white transition group-hover:brightness-110"
         >
           {item.cta || "바로가기"}
         </Link>

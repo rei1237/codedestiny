@@ -93,10 +93,10 @@
 /* ─── Classic Card System: main pages ─── */
 @layer components {
 	.cd-main-shell {
-		width: min(980px, calc(100% - 32px));
+		width: min(1080px, calc(100% - 28px));
 		margin-inline: auto;
-		padding: 28px 0 56px;
-		color: #e2e8f0;
+		padding: 24px 0 48px;
+		color: #3a2566;
 	}
 	.cd-main-header {
 		margin-bottom: 18px;
@@ -105,18 +105,18 @@
 		margin: 0;
 		line-height: 1.35;
 		font-size: clamp(1.4rem, 3.8vw, 2rem);
-		color: #f8fafc;
+		color: #2f1b5b;
 	}
 	.cd-main-intro {
 		margin: 10px 0 0;
 		line-height: 1.8;
-		color: #cbd5e1;
+		color: #54378f;
 	}
 	.cd-card {
-		border-radius: 16px;
-		border: 1px solid rgba(148, 163, 184, 0.28);
-		background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.78));
-		box-shadow: 0 12px 30px rgba(2, 6, 23, 0.28);
+		border-radius: 18px;
+		border: 1px solid rgba(167, 139, 250, 0.36);
+		background: linear-gradient(145deg, rgba(255, 251, 255, 0.96), rgba(245, 237, 255, 0.92));
+		box-shadow: 0 14px 32px rgba(77, 46, 136, 0.14);
 		padding: 18px;
 	}
 	.cd-card-light {
@@ -162,10 +162,10 @@
 	.cd-home-root {
 		min-height: 100vh;
 		background:
-			radial-gradient(1200px 480px at 15% -10%, rgba(56, 189, 248, 0.16), transparent 60%),
-			radial-gradient(1000px 460px at 85% -20%, rgba(167, 139, 250, 0.16), transparent 58%),
-			#05070f;
-		color: #e5e7eb;
+			radial-gradient(960px 420px at 50% -15%, rgba(127, 91, 224, 0.22), transparent 65%),
+			radial-gradient(900px 360px at 12% 0%, rgba(255, 214, 255, 0.22), transparent 68%),
+			linear-gradient(180deg, #f3eefc 0%, #ece3fb 48%, #e7dbfa 100%);
+		color: #2f1b5b;
 	}
 	.cd-home-top {
 		padding-top: 28px;
@@ -178,30 +178,30 @@
 		font-weight: 800;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
-		color: #f8eecb;
+		color: #6d48af;
 		opacity: 0.9;
 	}
 	.cd-home-headline {
 		margin: 8px 0 0;
 		font-size: clamp(1.34rem, 2.8vw, 2rem);
 		line-height: 1.35;
-		color: #f8fafc;
+		color: #2f1b5b;
 	}
 	.cd-home-subline {
 		margin: 10px 0 0;
 		font-size: 0.96rem;
 		line-height: 1.82;
-		color: #cbd5e1;
+		color: #5d418f;
 		word-break: keep-all;
 	}
 	.cd-home-faq-wrap {
-		padding-top: 34px;
-		padding-bottom: 86px;
+		padding-top: 28px;
+		padding-bottom: 74px;
 	}
 	@media (max-width: 768px) {
 		.cd-main-shell {
 			width: calc(100% - 24px);
-			padding: 24px 0 48px;
+			padding: 20px 0 36px;
 		}
 		.cd-card {
 			padding: 16px;

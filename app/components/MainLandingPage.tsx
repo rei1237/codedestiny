@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import MainHeroFortuneForm from "./MainHeroFortuneForm";
 import QuickServiceShortcuts from "./QuickServiceShortcuts";
@@ -86,23 +87,65 @@ export default function MainLandingPage() {
 
   return (
     <main className="cd-home-root">
-      <section className="cd-main-shell py-6 md:py-10">
+      <section className="cd-main-shell !pb-4 !pt-8 md:!pt-10">
+        <div className="rounded-[26px] border border-violet-300/35 bg-[linear-gradient(145deg,rgba(30,18,66,0.96),rgba(40,24,85,0.9))] px-4 py-8 text-center shadow-[0_24px_60px_rgba(25,16,52,0.42)] md:px-8 md:py-10">
+          <div className="mx-auto mb-3 h-[94px] w-[94px] overflow-hidden rounded-full border-2 border-amber-200/60 shadow-[0_12px_28px_rgba(20,11,45,0.6)] md:h-[120px] md:w-[120px]">
+            <img
+              src="/icons/honeypig-130.webp"
+              alt="꿀꿀 연이 로고"
+              className="h-full w-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+          <h1 className="text-[clamp(1.45rem,3.2vw,2.5rem)] font-black tracking-[-0.02em] text-violet-50">
+            생년월일 하나로, 나의 운명 지도를 펼쳐보세요
+          </h1>
+          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-violet-100/85 md:text-[15px]">
+            사주팔자, 타로, 점성술, 자미두수를 하나의 흐름으로 연결한 메인 운세 화면입니다.
+            먼저 입력을 시작하고, 아래 추천 컬렉션에서 오늘의 리딩을 이어서 탐색해보세요.
+          </p>
+
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+            <Link
+              href="/signup"
+              className="inline-flex items-center rounded-full border border-violet-200/40 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(89,53,188,0.38)] transition hover:brightness-110"
+            >
+              ✨ 회원가입
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center rounded-full border border-amber-200/45 bg-[rgba(17,20,44,0.7)] px-5 py-2.5 text-sm font-bold text-amber-100 transition hover:bg-[rgba(36,38,78,0.78)]"
+            >
+              🔐 로그인
+            </Link>
+            <a
+              href="#fortuneForm"
+              className="inline-flex items-center rounded-full border border-violet-200/30 bg-[rgba(78,56,134,0.25)] px-4 py-2.5 text-sm font-semibold text-violet-100 transition hover:bg-[rgba(98,72,160,0.35)]"
+            >
+              입력 폼으로 이동
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="fortuneForm" className="cd-main-shell !py-4 md:!py-5">
         <MainHeroFortuneForm onProfileReady={setProfile} />
       </section>
 
-      <section className="cd-main-shell pb-5">
+      <section className="cd-main-shell !py-4 md:!py-5">
         <QuickServiceShortcuts />
       </section>
 
-      <section className="cd-main-shell pb-5">
+      <section className="cd-main-shell !py-4 md:!py-5">
         <PersonalizedServiceRecommendations profile={profile} recommendations={recommendations} />
       </section>
 
-      <section className="cd-main-shell space-y-4 pb-8">
+      <section className="cd-main-shell space-y-4 !pb-8 !pt-4">
         <ServiceCollectionSection
-          title="추천 운세 서비스"
-          subtitle="입력 정보를 바탕으로 가장 먼저 시도할 추천 카드"
-          description="첫 분석 진입에 적합한 서비스부터 시작해 결과 흐름을 빠르게 확인하세요."
+          title="나에게 맞는 추천 운세"
+          subtitle="입력 정보를 기준으로 우선순위가 높은 리딩"
+          description="첫 진입에 적합한 서비스부터 시작해 오늘의 운세 흐름을 빠르게 확인하세요."
           icon="🧭"
           defaultOpen
           items={recommendations.length ? recommendations : [...tarotItems.slice(0, 3), ...cosmicItems.slice(0, 2), premiumItems[5]]}
@@ -111,7 +154,7 @@ export default function MainLandingPage() {
         <ServiceCollectionSection
           title="타로 리딩 컬렉션"
           subtitle="관계, 회복, 자존감, 재회, 연간운 타로"
-          description="질문 주제에 맞게 스프레드를 선택하고 바로 리딩을 시작할 수 있습니다."
+          description="질문 주제에 맞는 스프레드를 선택해 즉시 리딩을 시작할 수 있습니다."
           icon="🔮"
           items={tarotItems}
         />
@@ -151,19 +194,19 @@ export default function MainLandingPage() {
         <ServiceCollectionSection
           title="프리미엄/코인 서비스 안내"
           subtitle="소개 보기부터 PDF 생성까지 이어지는 VVIP 리포트"
-          description="프리미엄 분석은 코인 기반으로 제공되며 결과는 고품질 PDF로 보관할 수 있습니다."
+          description="프리미엄 분석은 코인 기반으로 제공되며 결과 리포트는 PDF로 보관할 수 있습니다."
           icon="♛"
           items={premiumItems}
         />
       </section>
 
-      <section className="cd-main-shell pb-8">
+      <section className="cd-main-shell !pb-10 !pt-2">
         <div className="cd-card mb-4">
           <h2 className="cd-main-title" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.7rem)" }}>
-            Membership / Coin / Premium
+            Premium / Coin Information
           </h2>
           <p className="cd-main-intro" style={{ marginTop: "8px", marginBottom: 0 }}>
-            과한 노출 없이 하단에서 가격/신뢰/결제 정보를 확인할 수 있도록 구성했습니다.
+            하단에서 가격, 결제, 신뢰 정보를 한 번에 확인하고 필요할 때만 프리미엄 리포트를 시작할 수 있습니다.
           </p>
         </div>
         <GlobalPricingCard locale="ko" />

@@ -11,15 +11,15 @@ const shortcuts = [
 
 export default function QuickServiceShortcuts() {
   return (
-    <section className="rounded-2xl border border-violet-300/20 bg-slate-900/55 p-4">
-      <h2 className="text-base font-extrabold text-slate-50">Quick Service Shortcuts</h2>
-      <p className="mt-1 text-sm text-slate-300">자주 찾는 운세 서비스를 바로 시작하세요.</p>
+    <section className="rounded-[22px] border border-violet-300/30 bg-[linear-gradient(145deg,rgba(32,17,69,0.93),rgba(43,24,88,0.86))] p-4 shadow-[0_18px_36px_rgba(30,14,66,0.28)]">
+      <h2 className="text-base font-extrabold text-violet-50">빠른 서비스 바로가기</h2>
+      <p className="mt-1 text-sm text-violet-100/75">자주 찾는 운세 서비스를 빠르게 시작하세요.</p>
       <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
         {shortcuts.map((s) => (
           <Link
             key={s.href}
             href={s.href}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-500/35 bg-slate-800/70 px-3 py-3 text-xs font-semibold text-slate-100 transition hover:border-violet-300/45 hover:bg-violet-500/15"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-violet-200/25 bg-[rgba(18,10,41,0.72)] px-3 py-3 text-xs font-semibold text-violet-50 transition hover:border-violet-200/55 hover:bg-[rgba(69,42,126,0.55)]"
           >
             <span>{s.emoji}</span>
             <span>{s.label}</span>

@@ -32,7 +32,7 @@ export default function ServiceCollectionSection({
   const hasMore = items.length > 6;
 
   return (
-    <section className="rounded-2xl border border-violet-300/20 bg-slate-900/55 p-4 shadow-[0_10px_26px_rgba(9,15,32,0.35)] md:p-5">
+    <section className="rounded-[22px] border border-violet-300/30 bg-[linear-gradient(145deg,rgba(29,15,63,0.9),rgba(41,23,84,0.84))] p-4 shadow-[0_14px_32px_rgba(27,14,59,0.3)] md:p-5">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -41,11 +41,11 @@ export default function ServiceCollectionSection({
       >
         <div className="mb-1 flex items-center gap-2">
           {icon ? <span className="text-xl">{icon}</span> : null}
-          <h2 className="text-lg font-extrabold tracking-tight text-slate-50">{title}</h2>
+          <h2 className="text-lg font-extrabold tracking-tight text-violet-50">{title}</h2>
         </div>
         <p className="text-sm font-semibold text-violet-200">{subtitle}</p>
-        <p className="mt-1 text-sm leading-6 text-slate-300">{description}</p>
-        <div className="mt-3 inline-flex items-center rounded-full border border-violet-300/40 bg-violet-500/15 px-3 py-1 text-xs font-semibold text-violet-100">
+        <p className="mt-1 text-sm leading-6 text-violet-100/80">{description}</p>
+        <div className="mt-3 inline-flex items-center rounded-full border border-violet-200/45 bg-[rgba(77,50,140,0.5)] px-3 py-1 text-xs font-semibold text-violet-100">
           {open ? "접기" : "열기"}
         </div>
       </button>
@@ -63,7 +63,7 @@ export default function ServiceCollectionSection({
               <button
                 type="button"
                 onClick={() => setExpandedMobile((v) => !v)}
-                className="rounded-full border border-slate-400/35 bg-slate-800/70 px-4 py-1.5 text-xs font-semibold text-slate-200"
+                className="rounded-full border border-violet-200/45 bg-[rgba(75,48,136,0.62)] px-4 py-1.5 text-xs font-semibold text-violet-50"
               >
                 {expandedMobile ? "핵심 카드만 보기" : "더 보기"}
               </button>

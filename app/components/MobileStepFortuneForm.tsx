@@ -41,30 +41,30 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
         {[1, 2, 3].map((n) => (
           <span
             key={`step-${n}`}
-            className={`h-1.5 flex-1 rounded-full ${n <= step ? "bg-violet-300" : "bg-slate-600/70"}`}
+            className={`h-1.5 flex-1 rounded-full ${n <= step ? "bg-violet-500" : "bg-violet-200/80"}`}
           />
         ))}
       </div>
 
       {step === 1 ? (
         <div className="space-y-3">
-          <label className="block text-xs font-semibold text-slate-200">
+          <label className="block text-xs font-semibold text-violet-900">
             이름
             <input
               value={state.name}
               onChange={(e) => setField("name", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-500/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+              className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
               placeholder="이름을 입력하세요"
             />
           </label>
 
-          <label className="block text-xs font-semibold text-slate-200">
+          <label className="block text-xs font-semibold text-violet-900">
             생년월일
             <input
               type="date"
               value={state.birthDate}
               onChange={(e) => setField("birthDate", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-500/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+              className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             />
           </label>
 
@@ -72,21 +72,21 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
             <button
               type="button"
               onClick={() => setField("calType", "solar")}
-              className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "solar" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+              className={`rounded-xl border px-2 py-2 text-xs font-semibold ${state.calType === "solar" ? "border-violet-300/80 bg-violet-500 text-white" : "border-violet-200/80 bg-white text-violet-900"}`}
             >
               양력
             </button>
             <button
               type="button"
               onClick={() => setField("calType", "lunar")}
-              className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "lunar" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+              className={`rounded-xl border px-2 py-2 text-xs font-semibold ${state.calType === "lunar" ? "border-violet-300/80 bg-violet-500 text-white" : "border-violet-200/80 bg-white text-violet-900"}`}
             >
               음력
             </button>
             <button
               type="button"
               onClick={() => setField("calType", "lunar_leap")}
-              className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "lunar_leap" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+              className={`rounded-xl border px-2 py-2 text-xs font-semibold ${state.calType === "lunar_leap" ? "border-violet-300/80 bg-violet-500 text-white" : "border-violet-200/80 bg-white text-violet-900"}`}
             >
               윤달
             </button>
@@ -97,12 +97,12 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
       {step === 2 ? (
         <div className="space-y-3">
           <div>
-            <p className="text-xs font-semibold text-slate-200">출생 시간</p>
+            <p className="text-xs font-semibold text-violet-900">출생 시간</p>
             <div className="mt-1.5 grid grid-cols-2 gap-2">
               <select
                 value={state.birthHour}
                 onChange={(e) => setField("birthHour", e.target.value)}
-                className="rounded-xl border border-slate-500/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+                className="rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
               >
                 {HOURS.map((h) => (
                   <option key={`h-${h}`} value={h}>{h}시</option>
@@ -111,7 +111,7 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
               <select
                 value={state.birthMinute}
                 onChange={(e) => setField("birthMinute", e.target.value)}
-                className="rounded-xl border border-slate-500/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+                className="rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
               >
                 {MINUTES.map((m) => (
                   <option key={`m-${m}`} value={m}>{m}분</option>
@@ -120,12 +120,12 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
             </div>
           </div>
 
-          <label className="block text-xs font-semibold text-slate-200">
+          <label className="block text-xs font-semibold text-violet-900">
             출생 국가/장소
             <select
               value={state.birthCountry}
               onChange={(e) => setField("birthCountry", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-500/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+              className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             >
               {COUNTRY_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -138,26 +138,26 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
       {step === 3 ? (
         <div className="space-y-3">
           <div>
-            <p className="text-xs font-semibold text-slate-200">성별</p>
+            <p className="text-xs font-semibold text-violet-900">성별</p>
             <div className="mt-1.5 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setField("gender", "F")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${state.gender === "F" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl border px-3 py-2.5 text-xs font-semibold ${state.gender === "F" ? "border-violet-300/80 bg-violet-500 text-white" : "border-violet-200/80 bg-white text-violet-900"}`}
               >
                 여성
               </button>
               <button
                 type="button"
                 onClick={() => setField("gender", "M")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${state.gender === "M" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl border px-3 py-2.5 text-xs font-semibold ${state.gender === "M" ? "border-violet-300/80 bg-violet-500 text-white" : "border-violet-200/80 bg-white text-violet-900"}`}
               >
                 남성
               </button>
             </div>
           </div>
 
-          <label className="flex items-start gap-2 rounded-xl border border-slate-500/35 bg-slate-900/65 p-3 text-xs text-slate-200">
+          <label className="flex items-start gap-2 rounded-xl border border-violet-200/80 bg-white/90 p-3 text-xs text-slate-700">
             <input
               type="checkbox"
               checked={state.agreed}
@@ -170,7 +170,7 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
           <button
             type="button"
             onClick={onSubmit}
-            className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 px-4 py-3 text-sm font-bold text-white"
+            className="w-full rounded-xl border border-violet-300/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-bold text-white"
           >
             운명의 지도 보기
           </button>
@@ -182,7 +182,7 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
           type="button"
           disabled={step === 1}
           onClick={() => setStep(Math.max(1, step - 1))}
-          className="rounded-xl border border-slate-500/35 bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-200 disabled:opacity-40"
+          className="rounded-xl border border-violet-200/80 bg-white/90 px-3 py-2 text-xs font-semibold text-violet-900 disabled:opacity-40"
         >
           이전
         </button>
@@ -190,7 +190,7 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
           type="button"
           disabled={step === 3}
           onClick={() => setStep(Math.min(3, step + 1))}
-          className="rounded-xl border border-violet-300/40 bg-violet-500/20 px-3 py-2 text-xs font-semibold text-violet-100 disabled:opacity-40"
+          className="rounded-xl border border-violet-300/70 bg-violet-500 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
         >
           다음
         </button>

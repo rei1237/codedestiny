@@ -83,66 +83,65 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
   };
 
   return (
-    <section className="rounded-3xl border border-violet-300/20 bg-[linear-gradient(145deg,rgba(10,14,33,0.94),rgba(23,28,52,0.86))] p-4 shadow-[0_22px_54px_rgba(10,16,35,0.52)] md:p-6">
-      <div className="mb-4">
-        <p className="text-[11px] font-extrabold tracking-[0.22em] text-violet-200">DESTINY MAP INPUT</p>
-        <h1 className="mt-2 text-[clamp(1.4rem,3.1vw,2rem)] font-black leading-tight text-slate-50">
-          생년월일 하나로, 나의 운명 지도를 펼쳐보세요
-        </h1>
-        <p className="mt-2 text-sm leading-7 text-slate-300">
-          Classic Service Surface 안의 기능을 메인 첫 화면에서 바로 시작할 수 있도록 통합했습니다.
-          정보 입력 후 즉시 추천 서비스와 운세 계산으로 이어집니다.
+    <section className="rounded-[24px] border border-violet-200/55 bg-[linear-gradient(145deg,rgba(250,246,255,0.96),rgba(242,235,255,0.95))] p-4 shadow-[0_16px_34px_rgba(45,26,88,0.14)] md:p-6">
+      <div className="mb-4 rounded-2xl border border-violet-200/40 bg-[linear-gradient(145deg,rgba(33,17,71,0.95),rgba(48,26,96,0.9))] px-4 py-4 text-center md:px-5">
+        <p className="text-[11px] font-extrabold tracking-[0.24em] text-violet-200">MY DESTINY CARD</p>
+        <h2 className="mt-2 text-[clamp(1.2rem,2.7vw,1.8rem)] font-black leading-tight text-violet-50">
+          아래 정보를 입력하고 운세를 시작해보세요
+        </h2>
+        <p className="mt-1.5 text-sm leading-7 text-violet-100/80">
+          사주팔자와 타로, 점성술 추천이 입력 결과와 자연스럽게 연결됩니다.
         </p>
       </div>
 
-      <div className="mb-3 hidden items-center gap-2 text-xs text-slate-300 md:flex">
-        <span className="inline-flex rounded-full border border-violet-300/35 bg-violet-500/20 px-2 py-0.5 font-semibold text-violet-100">필수 입력</span>
+      <div className="mb-3 hidden items-center gap-2 text-xs text-violet-900 md:flex">
+        <span className="inline-flex rounded-full border border-violet-300/40 bg-violet-200/70 px-2 py-0.5 font-semibold text-violet-900">필수 입력</span>
         <span>이름 · 생년월일 · 시간 · 출생지 · 성별 · 동의</span>
       </div>
 
       <div className="hidden md:block">
         <div className="grid gap-3 md:grid-cols-2">
-          <label className="text-xs font-semibold text-slate-200">
+          <label className="text-xs font-semibold text-violet-900">
             이름
             <input
               value={state.name}
               onChange={(e) => setField("name", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-500/35 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+              className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
               placeholder="이름을 입력하세요"
             />
           </label>
 
-          <label className="text-xs font-semibold text-slate-200">
+          <label className="text-xs font-semibold text-violet-900">
             생년월일
             <input
               type="date"
               value={state.birthDate}
               onChange={(e) => setField("birthDate", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-500/35 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+              className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             />
           </label>
 
           <div>
-            <p className="text-xs font-semibold text-slate-200">양력 / 음력</p>
+            <p className="text-xs font-semibold text-violet-900">양력 / 음력</p>
             <div className="mt-1.5 grid grid-cols-3 gap-1.5">
               <button
                 type="button"
                 onClick={() => setField("calType", "solar")}
-                className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "solar" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "solar" ? "border border-violet-300/70 bg-violet-500 text-white" : "border border-violet-200/80 bg-white text-violet-900"}`}
               >
                 양력
               </button>
               <button
                 type="button"
                 onClick={() => setField("calType", "lunar")}
-                className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "lunar" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "lunar" ? "border border-violet-300/70 bg-violet-500 text-white" : "border border-violet-200/80 bg-white text-violet-900"}`}
               >
                 음력
               </button>
               <button
                 type="button"
                 onClick={() => setField("calType", "lunar_leap")}
-                className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "lunar_leap" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl px-2 py-2 text-xs font-semibold ${state.calType === "lunar_leap" ? "border border-violet-300/70 bg-violet-500 text-white" : "border border-violet-200/80 bg-white text-violet-900"}`}
               >
                 윤달
               </button>
@@ -150,12 +149,12 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-slate-200">출생 시간/분</p>
+            <p className="text-xs font-semibold text-violet-900">출생 시간/분</p>
             <div className="mt-1.5 grid grid-cols-2 gap-2">
               <select
                 value={state.birthHour}
                 onChange={(e) => setField("birthHour", e.target.value)}
-                className="rounded-xl border border-slate-500/35 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+                className="rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
               >
                 {HOURS.map((h) => (
                   <option key={`hour-${h}`} value={h}>{h}시</option>
@@ -164,7 +163,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
               <select
                 value={state.birthMinute}
                 onChange={(e) => setField("birthMinute", e.target.value)}
-                className="rounded-xl border border-slate-500/35 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+                className="rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
               >
                 {MINUTES.map((m) => (
                   <option key={`minute-${m}`} value={m}>{m}분</option>
@@ -173,12 +172,12 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
             </div>
           </div>
 
-          <label className="text-xs font-semibold text-slate-200">
+          <label className="text-xs font-semibold text-violet-900">
             출생 국가/장소
             <select
               value={state.birthCountry}
               onChange={(e) => setField("birthCountry", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-500/35 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100"
+              className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             >
               {COUNTRY_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -187,19 +186,19 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
           </label>
 
           <div>
-            <p className="text-xs font-semibold text-slate-200">성별</p>
+            <p className="text-xs font-semibold text-violet-900">성별</p>
             <div className="mt-1.5 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setField("gender", "F")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${state.gender === "F" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${state.gender === "F" ? "border border-violet-300/70 bg-violet-500 text-white" : "border border-violet-200/80 bg-white text-violet-900"}`}
               >
                 여성
               </button>
               <button
                 type="button"
                 onClick={() => setField("gender", "M")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${state.gender === "M" ? "bg-violet-500/35 text-violet-100" : "bg-slate-800/70 text-slate-300"}`}
+                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${state.gender === "M" ? "border border-violet-300/70 bg-violet-500 text-white" : "border border-violet-200/80 bg-white text-violet-900"}`}
               >
                 남성
               </button>
@@ -207,7 +206,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
           </div>
         </div>
 
-        <label className="mt-3 flex items-start gap-2 rounded-xl border border-slate-500/35 bg-slate-900/65 p-3 text-xs text-slate-200">
+        <label className="mt-3 flex items-start gap-2 rounded-xl border border-violet-200/80 bg-white/90 p-3 text-xs text-slate-700">
           <input
             type="checkbox"
             checked={state.agreed}
@@ -220,7 +219,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
         <button
           type="button"
           onClick={handleSubmit}
-          className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 px-4 py-3 text-sm font-bold text-white"
+          className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-violet-300/50 bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-bold text-white shadow-[0_14px_30px_rgba(98,62,191,0.35)]"
         >
           운명의 지도 보기
         </button>
@@ -234,12 +233,12 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
         onSubmit={handleSubmit}
       />
 
-      {error ? <p className="mt-3 text-xs font-semibold text-rose-300">{error}</p> : null}
+      {error ? <p className="mt-3 text-xs font-semibold text-rose-600">{error}</p> : null}
 
       <button
         type="button"
         onClick={handleSubmit}
-        className="fixed bottom-3 left-3 right-3 z-40 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 px-4 py-3 text-sm font-bold text-white shadow-[0_14px_34px_rgba(31,41,55,0.46)] md:hidden"
+        className="fixed bottom-3 left-3 right-3 z-40 rounded-xl border border-violet-300/40 bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-bold text-white shadow-[0_14px_34px_rgba(51,31,95,0.42)] md:hidden"
       >
         운명의 지도 보기
       </button>
