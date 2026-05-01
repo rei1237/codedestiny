@@ -1,13 +1,11 @@
 name = "code-destiny-web"
-main = "worker/index.js"
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
-# Root fallback config:
-# - `wrangler pages deploy` uses pages_build_output_dir for frontend assets.
-# - `wrangler deploy` now has a valid Worker entrypoint and won't fail with
-#   "Missing entry-point to Worker script" in CI/dashboard misconfiguration.
+# Pages-only config:
+# - Cloudflare Pages reads this file during frontend build/deploy.
+# - Worker runtime config is isolated in worker/wrangler.toml.
 
 [vars]
 NODE_ENV = "production"
