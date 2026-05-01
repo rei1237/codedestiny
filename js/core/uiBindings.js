@@ -53,6 +53,9 @@ const __lazyActionLoaders = {
   gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=20260409-v1'),
   gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'),
   gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1'),
+  gotoNamingPremium: () => Promise.resolve().then(() => {
+    window.location.href = '/myungwun_final.html';
+  }),
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),

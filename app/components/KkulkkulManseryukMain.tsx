@@ -93,10 +93,10 @@ type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
-  ziwei: 390,
+  ziwei: 590,
   astrology: 390,
-  sukuyo: 300,
-  veda: 300,
+  sukuyo: 390,
+  veda: 390,
   naming: 700,
 };
 
@@ -748,8 +748,8 @@ export default function KkulkkulManseryukMain() {
             </div>
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>자미두수 · Ziwei Premium</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>H 프리미엄 인생 총론</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 12궁 완전 분석 · 상하관계 처세술</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>자미두수 프리미엄 PDF</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>590코인 · 13챕터 · 12궁/사화/대한 심층 분석</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
@@ -858,8 +858,8 @@ export default function KkulkkulManseryukMain() {
             </div>
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>숙요점 · Moonlight Strategy</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>달빛 전략 리포트</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 27수 완전 분석 · 달의 주기 전략</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>숙요점 프리미엄 PDF</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>390코인 · 사주와 분리된 27수 숙요점/궁합/달빛 전략</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(30,27,75,0.2))",
@@ -913,8 +913,8 @@ export default function KkulkkulManseryukMain() {
             </div>
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(253,186,116,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>베다 점성술 · Vedic Astrology Premium</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>💰 베다 인생 총람 리포트</p>
-              <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>조티쉬 베다 점성술 · 라그나·나크샤트라 평생 운명 지도</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>베다 인생 총람 PDF</p>
+              <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>390코인 · 라그나·나크샤트라·다샤 평생 운명 지도</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(234,88,12,0.22), rgba(253,186,116,0.12))",
@@ -969,7 +969,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(245,226,122,0.75)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>명운 · Naming Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>사주 프리미엄 작명</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>서비스 만세력 엔진 연동 · 용신 보완 작명 · 코인 게이트 700</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>700코인 · 만세력 엔진 연동 · 용신/오행/수리 작명 PDF</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.12))",

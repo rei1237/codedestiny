@@ -18,8 +18,8 @@
   opacity: 0.08;
 }
 .ins-wrap {
-  width: min(940px, calc(100% - 32px));
-  margin: 24px auto 56px;
+  width: min(980px, calc(100% - 32px));
+  margin: 28px auto 56px;
   position: relative;
   z-index: 2;
   display: grid;
@@ -46,13 +46,13 @@
 .ins-hero {
   position: relative;
   min-height: 280px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
   border-bottom: 1px solid rgba(201, 168, 76, 0.2);
   background: rgba(10, 8, 40, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.28);
   overflow: hidden;
 }
 .ins-hero-nebula {
@@ -191,8 +191,8 @@
   background: rgba(10, 8, 40, 0.72);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
   padding: 12px 20px;
   max-width: 100%;
   overflow-x: hidden;
@@ -239,9 +239,9 @@
 .ins-featured-card {
   position: relative;
   min-height: 160px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: rgba(14, 11, 45, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.26);
   border-left: 3px solid rgba(201, 168, 76, 0.9);
   padding: 22px 24px;
   text-decoration: none;
@@ -330,9 +330,9 @@
 .ins-card {
   position: relative;
   background: rgba(14, 11, 45, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(148, 163, 184, 0.24);
   border-left: 3px solid var(--accent);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px 22px;
   text-decoration: none;
   transition: all 0.25s ease;

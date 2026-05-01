@@ -583,6 +583,7 @@
     gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260410-v1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260410-v1'],
+    gotoNamingPremium: [],
     openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
   };
 
@@ -750,6 +751,10 @@
 
     var fn = window[rule.action];
     var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
+    if (rule.action === 'gotoNamingPremium' && typeof fn !== 'function') {
+      window.location.href = '/myungwun_final.html';
+      return true;
+    }
 
     /* lazy-load: 스크립트 미로드 시 로드 후 재호출 */
     if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {

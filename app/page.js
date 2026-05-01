@@ -4,6 +4,7 @@ import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import MysticalLanding from "./components/MysticalLanding";
 import { FaqJsonLd } from "./components/SeoJsonLd";
+import HomeClient from "./HomeClient";
 
 /**
  * Next.js 15 Migration:
@@ -14,7 +15,7 @@ import { FaqJsonLd } from "./components/SeoJsonLd";
 
 function HomeContent() {
   const searchParams = useSearchParams();
-  const showLegacy = searchParams.get("legacy") === "true";
+  const showModernPreview = searchParams.get("modern") === "true";
 
   const faqData = [
     {
@@ -31,10 +32,12 @@ function HomeContent() {
     },
   ];
 
+  if (!showModernPreview) return <HomeClient />;
+
   return (
     <>
       <FaqJsonLd faqs={faqData} />
-      
+
       <MysticalLanding />
 
       <section style={{ padding: "4rem 2rem", background: "#0f0920", borderTop: "1px solid #2a1b52" }}>
@@ -54,7 +57,7 @@ function HomeContent() {
       <footer style={{ padding: "2rem", textAlign: "center", background: "#0a061a", color: "#666" }}>
         <p style={{ fontSize: "0.8rem" }}>© 2026 Code Destiny. All rights reserved.</p>
         <div style={{ marginTop: "1rem", fontSize: "0.75rem" }}>
-          <a href="/?legacy=true" style={{ color: "#4b3a8a", textDecoration: "none" }}>Classic Mode View</a>
+          <a href="/" style={{ color: "#4b3a8a", textDecoration: "none" }}>Classic Mode View</a>
         </div>
       </footer>
     </>

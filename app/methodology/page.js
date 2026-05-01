@@ -16,28 +16,20 @@ export function generateMetadata() {
   });
 }
 
-const SECTION = {
-  borderRadius: "16px",
-  border: "1px solid rgba(148, 163, 184, 0.28)",
-  background: "linear-gradient(145deg, rgba(15,23,42,0.9), rgba(30,41,59,0.78))",
-  boxShadow: "0 12px 30px rgba(2,6,23,0.28)",
-  padding: "18px 18px",
-};
-
 export default function MethodologyPage() {
   return (
-    <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 56px", color: "#e2e8f0" }}>
-      <header style={{ marginBottom: "18px" }}>
-        <h1 style={{ margin: 0, color: "#f8fafc", lineHeight: 1.35, fontSize: "clamp(1.4rem,3.8vw,2rem)" }}>
+    <main className="cd-main-shell">
+      <header className="cd-main-header">
+        <h1 className="cd-main-title">
           무료 사주 · 자미두수 운세 분석 콘텐츠 방법론 및 면책 고지
         </h1>
-        <p style={{ margin: "10px 0 0", lineHeight: 1.8, color: "#cbd5e1" }}>
+        <p className="cd-main-intro">
           이 페이지는 CODE DESTINY 인사이트 콘텐츠가 어떤 기준으로 작성되고, 어떻게 업데이트되는지,
           그리고 결과 해석을 안전하게 활용하기 위한 원칙을 설명합니다.
         </p>
       </header>
 
-      <section style={SECTION}>
+      <section className="cd-card">
         <h2 style={{ marginTop: 0, color: "#f8fafc" }}>1) 작성 원칙</h2>
         <ul style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.8 }}>
           <li>사주, 타로, 점성술, 자미두수 등 전통 해석 체계를 교차 검토해 핵심 맥락을 정리합니다.</li>
@@ -46,7 +38,7 @@ export default function MethodologyPage() {
         </ul>
       </section>
 
-      <section style={{ ...SECTION, marginTop: "12px" }}>
+      <section className="cd-card">
         <h2 style={{ marginTop: 0, color: "#f8fafc" }}>2) 자료 검증 및 업데이트</h2>
         <ul style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.8 }}>
           <li>콘텐츠는 내부 편집 가이드에 따라 초안 작성 후 문장 명확성, 해석 일관성, 과장 표현 여부를 검토합니다.</li>
@@ -55,7 +47,7 @@ export default function MethodologyPage() {
         </ul>
       </section>
 
-      <section style={{ ...SECTION, marginTop: "12px" }}>
+      <section className="cd-card">
         <h2 style={{ marginTop: 0, color: "#f8fafc" }}>3) 면책 고지</h2>
         <p style={{ margin: 0, lineHeight: 1.82 }}>
           본 서비스의 운세, 사주, 타로, 점성술 콘텐츠는 자기성찰과 참고를 위한 정보이며,
@@ -64,7 +56,7 @@ export default function MethodologyPage() {
         </p>
       </section>
 
-      <section style={{ ...SECTION, marginTop: "12px" }}>
+      <section className="cd-card">
         <h2 style={{ marginTop: 0, color: "#f8fafc" }}>4) 문의 및 정정 요청</h2>
         <p style={{ margin: 0, lineHeight: 1.82 }}>
           콘텐츠 오류, 표현 정정, 출처 보완 요청은 문의 페이지를 통해 접수할 수 있습니다.

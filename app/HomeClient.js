@@ -35,88 +35,49 @@ export default function HomeClient() {
   }, [searchParams]);
 
   return (
-    <main style={{ minHeight: "100vh", background: "#05070f", color: "#e5e7eb" }}>
+    <main className="cd-home-root">
       <FaqJsonLd faqs={HOME_FAQ_ITEMS} />
 
-      {/* 프리미엄 운세 컬렉션 카드: FAQ 위, iframe 아래에 직접 노출 (Client Wrapper) */}
-      <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "32px 0 0" }}>
-        <PremiumCollectionClientWrapper />
-      </div>
+      <section className="cd-home-top cd-main-shell">
+        <div className="cd-card">
+          <p className="cd-home-kicker">CLASSIC HOME</p>
+          <h1 className="cd-home-headline">생년월일 하나로, 나의 운명 지도를 펼쳐보세요</h1>
+          <p className="cd-home-subline">클래식 운세 흐름을 기반으로 핵심 기능을 가장 빠르게 탐색할 수 있는 메인 화면입니다.</p>
+        </div>
 
-      {/* 운명의 꽃 아틀리에 숨김 처리를 위한 스타일 */}
-      <style jsx global>{`
-        /* 운명의 꽃 아틀리에 섹션 숨김 */
-        [data-section="flower-atelier"],
-        .flower-atelier,
-        .destiny-flower,
-        #flower-atelier,
-        section:has(> h2[class*="flower"]),
-        section:has(> h2:contains("운명의 꽃")),
-        div:has(> h2:contains("운명의 꽃")),
-        .flower-card,
-        .atelier-card {
-          display: none !important;
-        }
-      `}</style>
+        {/* 프리미엄 운세 컬렉션 카드: 클래식 홈 상단 보조 영역 */}
+        <div className="cd-home-premium-wrap">
+          <PremiumCollectionClientWrapper />
+        </div>
+      </section>
 
-      <iframe
-        src={iframeSrc}
-        title="Code Destiny Main Service"
-        style={{
-          width: "100%",
-          height: "100vh",
-          border: 0,
-          display: "block",
-          background: "transparent",
-        }}
-      />
+      <section className="cd-home-iframe-frame" aria-label="클래식 메인 화면">
+        <div className="cd-home-iframe-shell">
+          <p className="cd-home-iframe-label">Classic Service Surface</p>
+          <iframe
+            src={iframeSrc}
+            title="Code Destiny Main Service"
+            className="cd-home-iframe"
+          />
+        </div>
+      </section>
 
       <section
         aria-labelledby="homeFaqHeading"
-        style={{
-          maxWidth: "1120px",
-          margin: "0 auto",
-          padding: "56px 18px 86px",
-        }}
+        className="cd-main-shell cd-home-faq-wrap"
       >
-        <div
-          style={{
-            border: "1px solid rgba(148,163,184,0.35)",
-            borderRadius: "20px",
-            padding: "22px 18px",
-            background:
-              "linear-gradient(140deg, rgba(15,23,42,0.95), rgba(30,41,59,0.92))",
-            boxShadow: "0 18px 40px rgba(2, 6, 23, 0.45)",
-          }}
-        >
-          <h1
-            id="homeFaqHeading"
-            style={{
-              margin: "0 0 10px",
-              fontSize: "clamp(1.3rem, 2.5vw, 1.8rem)",
-              fontWeight: 800,
-              color: "#f8fafc",
-              lineHeight: 1.35,
-            }}
-          >
+        <div className="cd-card">
+          <h2 id="homeFaqHeading" className="cd-main-title" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.7rem)" }}>
             {HOME_FAQ_SECTION_COPY.heading}
-          </h1>
-          <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.9, fontSize: "0.97rem" }}>
+          </h2>
+          <p className="cd-main-intro" style={{ marginTop: "8px", marginBottom: 0 }}>
             {HOME_FAQ_SECTION_COPY.intro}
           </p>
         </div>
 
-        <div style={{ display: "grid", gap: "14px", marginTop: "16px" }}>
+        <div className="cd-card-grid">
           {HOME_FAQ_ITEMS.map((item, index) => (
-            <article
-              key={item.question}
-              style={{
-                border: "1px solid rgba(148,163,184,0.28)",
-                borderRadius: "16px",
-                background: "rgba(15, 23, 42, 0.86)",
-                padding: "18px 16px",
-              }}
-            >
+            <article key={item.question} className="cd-card">
               <h3 style={{ margin: "0 0 8px", color: "#f1f5f9", fontSize: "1.03rem", lineHeight: 1.5 }}>
                 Q{index + 1}. {item.question}
               </h3>

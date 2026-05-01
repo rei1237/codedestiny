@@ -1802,7 +1802,7 @@ export default function PointsPage() {
         {/* ④ 패키지 카드 목록 */}
         <section
           aria-label="충전 패키지"
-          className="rounded-[24px] overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
+          className="cd-card-light rounded-[24px] overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
         >
           <div
             className="border border-[#EDDBA3] rounded-[24px] p-5"
@@ -1839,7 +1839,7 @@ export default function PointsPage() {
           </div>
         </section>
 
-        <section className="rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.88)] p-5">
+        <section className="cd-card-light rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.88)] p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="font-bold text-[#5C3A1E]">최근 결제 내역</h3>
             <span className="text-[11px] font-semibold text-[#8A6020]">승인번호 / 주문번호 / 영수증</span>
@@ -1904,7 +1904,7 @@ export default function PointsPage() {
         </section>
 
         {/* ⑤ 결제 실패 안내 */}
-        <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
+        <section className="cd-card-light rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
           <h3 className="font-bold text-[#5C3A1E]">결제 실패 안내</h3>
           <ul className="mt-2 space-y-1.5 text-sm text-[#7A5230]">
             <li>• 창 닫기/취소: 결제가 취소되어 코인이 차감되지 않습니다.</li>

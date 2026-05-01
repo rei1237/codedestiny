@@ -90,6 +90,171 @@
 	100% { transform: translate3d(0, 0, 0); }
 }
 
+/* ─── Classic Card System: main pages ─── */
+@layer components {
+	.cd-main-shell {
+		width: min(980px, calc(100% - 32px));
+		margin-inline: auto;
+		padding: 28px 0 56px;
+		color: #e2e8f0;
+	}
+	.cd-main-header {
+		margin-bottom: 18px;
+	}
+	.cd-main-title {
+		margin: 0;
+		line-height: 1.35;
+		font-size: clamp(1.4rem, 3.8vw, 2rem);
+		color: #f8fafc;
+	}
+	.cd-main-intro {
+		margin: 10px 0 0;
+		line-height: 1.8;
+		color: #cbd5e1;
+	}
+	.cd-card {
+		border-radius: 16px;
+		border: 1px solid rgba(148, 163, 184, 0.28);
+		background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.78));
+		box-shadow: 0 12px 30px rgba(2, 6, 23, 0.28);
+		padding: 18px;
+	}
+	.cd-card-light {
+		border-radius: 20px;
+		border: 1px solid rgba(237, 219, 163, 0.75);
+		background: linear-gradient(145deg, rgba(255, 252, 243, 0.92), rgba(255, 247, 227, 0.82));
+		box-shadow: 0 10px 26px rgba(120, 80, 10, 0.1);
+		padding: 18px;
+	}
+	.cd-card + .cd-card {
+		margin-top: 12px;
+	}
+	.cd-card-light + .cd-card-light {
+		margin-top: 12px;
+	}
+	.cd-card-grid {
+		display: grid;
+		gap: 12px;
+	}
+	.cd-chip-wrap {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.cd-chip {
+		display: inline-flex;
+		align-items: center;
+		border-radius: 999px;
+		padding: 6px 12px;
+		border: 1px solid rgba(148, 163, 184, 0.32);
+		background: rgba(15, 23, 42, 0.7);
+		color: #f8eecb;
+		text-decoration: none;
+		font-size: 0.88rem;
+	}
+	.cd-link-reset {
+		color: inherit;
+		text-decoration: none;
+	}
+	.cd-muted {
+		color: #cbd5e1;
+	}
+	.cd-home-root {
+		min-height: 100vh;
+		background:
+			radial-gradient(1200px 480px at 15% -10%, rgba(56, 189, 248, 0.16), transparent 60%),
+			radial-gradient(1000px 460px at 85% -20%, rgba(167, 139, 250, 0.16), transparent 58%),
+			#05070f;
+		color: #e5e7eb;
+	}
+	.cd-home-top {
+		padding-top: 28px;
+		display: grid;
+		gap: 14px;
+	}
+	.cd-home-kicker {
+		margin: 0;
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: #f8eecb;
+		opacity: 0.9;
+	}
+	.cd-home-headline {
+		margin: 8px 0 0;
+		font-size: clamp(1.34rem, 2.8vw, 2rem);
+		line-height: 1.35;
+		color: #f8fafc;
+	}
+	.cd-home-subline {
+		margin: 10px 0 0;
+		font-size: 0.96rem;
+		line-height: 1.82;
+		color: #cbd5e1;
+		word-break: keep-all;
+	}
+	.cd-home-premium-wrap {
+		border-radius: 16px;
+		border: 1px solid rgba(148, 163, 184, 0.2);
+		background: rgba(15, 23, 42, 0.28);
+		padding: 10px;
+	}
+	.cd-home-iframe-frame {
+		padding: 14px 16px 0;
+	}
+	.cd-home-iframe-shell {
+		width: min(1200px, 100%);
+		margin-inline: auto;
+		border-radius: 18px;
+		border: 1px solid rgba(148, 163, 184, 0.3);
+		background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.78));
+		box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
+		overflow: hidden;
+	}
+	.cd-home-iframe-label {
+		margin: 0;
+		padding: 10px 14px;
+		font-size: 0.74rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: rgba(226, 232, 240, 0.86);
+		border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+		background: rgba(2, 6, 23, 0.55);
+	}
+	.cd-home-iframe {
+		width: 100%;
+		height: min(100vh, 920px);
+		border: 0;
+		display: block;
+		background: transparent;
+	}
+	.cd-home-faq-wrap {
+		padding-top: 34px;
+		padding-bottom: 86px;
+	}
+	@media (max-width: 768px) {
+		.cd-main-shell {
+			width: calc(100% - 24px);
+			padding: 24px 0 48px;
+		}
+		.cd-card {
+			padding: 16px;
+		}
+		.cd-home-iframe-frame {
+			padding: 12px 12px 0;
+		}
+		.cd-home-iframe {
+			height: 86vh;
+		}
+		.cd-home-faq-wrap {
+			padding-top: 24px;
+			padding-bottom: 62px;
+		}
+	}
+}
+
 /* ─── Veda Nebula: Cosmic Orbit ─── */
 @layer components {
 	.veda-orbit-root {

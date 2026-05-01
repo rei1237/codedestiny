@@ -1,5 +1,5 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
-import { ABOUT_PAGE_COPY } from "../_content/seo-copy/index";
+import { ABOUT_PAGE_COPY } from "../_content/seo-copy";
 
 export function generateMetadata() {
   return generatePageMetadata({
@@ -53,29 +53,68 @@ const ABOUT_JSON_LD = JSON.stringify({
   ],
 });
 
-const SECTION = {
-  background: "linear-gradient(145deg, rgba(12,18,48,0.88), rgba(22,11,44,0.76))",
-  border: "1px solid rgba(167,139,250,0.24)",
-  borderRadius: "16px",
-  padding: "22px 24px",
-  marginBottom: "16px",
-  boxShadow: "0 14px 34px rgba(2,6,23,0.4)",
-};
-
-const H2 = { fontSize: "clamp(1rem,2.5vw,1.2rem)", fontWeight: 700, marginBottom: "10px", color: "#f8fafc" };
-const P  = { lineHeight: 1.88, color: "#dbe5ff", wordBreak: "keep-all", margin: 0 };
-
 export default function AboutPage() {
   return (
-    <main
-      style={{
-        maxWidth: "900px",
-        margin: "0 auto",
-        padding: "32px 16px 56px",
-        color: "#e2e8f0",
-      }}
-    >
-      {/* 본문 삭제됨: 소개/운영자/광고/환불/문의/정책 블록 전체 푸터로 이동 */}
+    <main className="cd-main-shell">
+      <script
+        type="application/ld+json"
+        // Static JSON-LD string defined in this module.
+        dangerouslySetInnerHTML={{ __html: ABOUT_JSON_LD }}
+      />
+
+      <header className="cd-main-header">
+        <h1 className="cd-main-title">{ABOUT_PAGE_COPY.heading}</h1>
+        <p className="cd-main-intro">{ABOUT_PAGE_COPY.intro}</p>
+      </header>
+
+      <section className="cd-card">
+        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
+          운영 정보
+        </h2>
+        <div style={{ display: "grid", gap: "8px" }}>
+          {ABOUT_PAGE_COPY.operatorRows.map(([label, value]) => (
+            <div
+              key={label}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(130px, 170px) 1fr",
+                gap: "10px",
+                padding: "9px 10px",
+                borderRadius: "10px",
+                border: "1px solid rgba(148,163,184,0.2)",
+                background: "rgba(15,23,42,0.35)",
+              }}
+            >
+              <strong style={{ color: "#f8eecb", fontSize: "0.88rem" }}>{label}</strong>
+              <span style={{ color: "#dbe5ff", lineHeight: 1.72 }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="cd-card">
+        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
+          주요 서비스
+        </h2>
+        <ul style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.85, color: "#dbe5ff" }}>
+          {ABOUT_PAGE_COPY.serviceItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="cd-card">
+        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
+          관련 링크
+        </h2>
+        <div className="cd-chip-wrap">
+          {ABOUT_PAGE_COPY.relatedLinks.map(([href, label]) => (
+            <a key={href} href={href} className="cd-chip">
+              {label}
+            </a>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
