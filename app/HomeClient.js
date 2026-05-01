@@ -4,7 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { FaqJsonLd } from "./components/SeoJsonLd";
 import { HOME_FAQ_ITEMS, HOME_FAQ_SECTION_COPY } from "./_content/seo-copy";
-import PremiumCollectionClientWrapper from "./components/PremiumCollectionClientWrapper";
 
 function serializeSearchParams(searchParams) {
   if (!searchParams || typeof searchParams !== "object") return "";
@@ -43,11 +42,6 @@ export default function HomeClient() {
           <p className="cd-home-kicker">CLASSIC HOME</p>
           <h1 className="cd-home-headline">생년월일 하나로, 나의 운명 지도를 펼쳐보세요</h1>
           <p className="cd-home-subline">클래식 운세 흐름을 기반으로 핵심 기능을 가장 빠르게 탐색할 수 있는 메인 화면입니다.</p>
-        </div>
-
-        {/* 프리미엄 운세 컬렉션 카드: 클래식 홈 상단 보조 영역 */}
-        <div className="cd-home-premium-wrap">
-          <PremiumCollectionClientWrapper />
         </div>
       </section>
 
