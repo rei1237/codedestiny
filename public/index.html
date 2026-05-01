@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function forceRootToStatic() {
+      try {
+        var path = String(window.location.pathname || '/');
+        if (path === '/' || path === '/index.html') {
+          window.location.replace('/static/');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <noscript><meta http-equiv="refresh" content="0; url=/static/"></noscript>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
