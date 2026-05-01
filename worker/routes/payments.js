@@ -5,6 +5,7 @@ import { cancelPortOnePayment, fetchPortOnePayment } from "../lib/portone.js";
 import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
@@ -1194,6 +1195,11 @@ export async function handlePaymentRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/payments");
+
+    const keyHealth = evaluateFeatureKeyHealth(env, "payments-core");
+    if (!keyHealth.ok) {
+      return json(buildConfigErrorBody("payments-core", keyHealth), { status: 503 });
+    }
 
     await connectDb(env);
 

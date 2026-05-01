@@ -1,7 +1,9 @@
 import { handleAuthRoutes } from "./routes/auth.js";
+import { handleAdminRoutes } from "./routes/admin.js";
 import { handleFortuneRoutes } from "./routes/fortune.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
 import { handlePremiumRoutes, handleZiweiBookRoutes } from "./routes/premium.js";
+import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 
 /**
  * Code Destiny API Worker.
@@ -151,10 +153,17 @@ function copyRequestHeaders(request) {
 async function proxyApiRequest(request, env) {
   const upstreamOrigin = getUpstreamOrigin(env);
   if (!upstreamOrigin) {
+    const pathname = new URL(request.url).pathname;
+    const isAdminPath = pathname.startsWith("/api/admin/") || pathname === "/api/admin";
     return jsonResponse(request, env, {
       ok: false,
       error: "api_upstream_missing",
       message: "Set API_UPSTREAM_ORIGIN on the Cloudflare Worker.",
+      requiredKeys: ["API_UPSTREAM_ORIGIN"],
+      impact: isAdminPath ? "미포팅 /api/admin/* 레거시 API" : "미포팅 /api/* 레거시 API",
+      hint: isAdminPath
+        ? "관리자 비밀번호 게이트는 /api/admin/entry/password 네이티브 지원됨. 그 외 admin API는 API_UPSTREAM_ORIGIN 필요."
+        : "현재 네이티브 미포팅 API는 외부 upstream 설정이 필요합니다.",
     }, { status: 503 });
   }
 
@@ -222,16 +231,25 @@ export default {
 
     if (url.pathname === "/api/health") {
       const upstreamOrigin = getUpstreamOrigin(env);
+      const keyMatrix = buildRuntimeKeyMatrix(env);
+      const brokenFeatures = keyMatrix
+        .filter((item) => !item.ok)
+        .map((item) => item.feature);
       return jsonResponse(request, env, {
         ok: true,
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "payments", "fortune", "premium", "ziwei-book"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "premium", "ziwei-book"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
         upstreamConfigured: Boolean(upstreamOrigin),
+        keyHealth: {
+          ok: brokenFeatures.length === 0,
+          brokenFeatures,
+          checkEndpoint: "/api/admin/keys",
+        },
         legacyMode:
           upstreamOrigin
             ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "proxy")
@@ -241,6 +259,10 @@ export default {
 
     if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
       return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
+      return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
     }
 
     if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {

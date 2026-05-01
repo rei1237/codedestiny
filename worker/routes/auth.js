@@ -5,11 +5,25 @@ import { User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
 import { requireAuth, normalizeUserResponse, signAuthToken, getJwtSecret, JWT_ISSUER } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
+import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
+
+function toOAuthFeature(provider) {
+  if (provider === "google") return "auth-oauth-google";
+  if (provider === "naver") return "auth-oauth-naver";
+  if (provider === "kakao") return "auth-oauth-kakao";
+  return "auth-basic";
+}
+
+function configMismatchResponse(feature, env) {
+  const health = evaluateFeatureKeyHealth(env, feature);
+  if (health.ok) return null;
+  return json(buildConfigErrorBody(feature, health), { status: 503 });
+}
 
 function getFrontendBaseUrl(env) {
   return getEnv(env, "AUTH_FRONTEND_BASE_URL")
@@ -453,6 +467,23 @@ export async function handleAuthRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/auth");
+
+    if (
+      path === "/register"
+      || path === "/login"
+      || path === "/me"
+      || path === "/oauth/complete"
+    ) {
+      const configError = configMismatchResponse("auth-basic", env);
+      if (configError) return configError;
+    }
+
+    const oauthPathMatch = path.match(/^\/oauth\/([^/]+)\/(start|callback)$/);
+    if (oauthPathMatch) {
+      const feature = toOAuthFeature(String(oauthPathMatch[1] || "").toLowerCase());
+      const oauthConfigError = configMismatchResponse(feature, env);
+      if (oauthConfigError) return oauthConfigError;
+    }
 
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);

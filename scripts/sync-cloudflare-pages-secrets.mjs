@@ -14,10 +14,40 @@ const envFiles = [
   ".env",
 ];
 
+function isUsableEnvValue(rawValue) {
+  if (rawValue == null) return false;
+  const value = String(rawValue).trim();
+  if (!value) return false;
+
+  const upper = value.toUpperCase();
+  const placeholderMarkers = [
+    "CHANGE_ME",
+    "PUT_32_CHAR_RANDOM_HASH_HERE",
+    "YOUR_",
+    "EXAMPLE",
+  ];
+  if (placeholderMarkers.some((marker) => upper.includes(marker))) return false;
+
+  return true;
+}
+
+function loadEnvPreferUsable(filePath) {
+  const parsed = dotenv.parse(readFileSync(filePath, "utf8"));
+  for (const [key, value] of Object.entries(parsed)) {
+    const current = process.env[key];
+    const currentUsable = isUsableEnvValue(current);
+    const incomingUsable = isUsableEnvValue(value);
+
+    if (!currentUsable && incomingUsable) {
+      process.env[key] = String(value).trim();
+    }
+  }
+}
+
 for (const envFile of envFiles) {
   const envPath = resolve(rootDir, envFile);
   if (!existsSync(envPath)) continue;
-  dotenv.config({ path: envPath, override: false });
+  loadEnvPreferUsable(envPath);
 }
 
 const projectName =
@@ -74,22 +104,8 @@ const SECRET_KEYS = [
 
 function getSecretValue(key) {
   const raw = process.env[key];
-  if (raw == null) return "";
-  const value = String(raw).trim();
-  if (!value) return "";
-
-  const upper = value.toUpperCase();
-  const placeholderMarkers = [
-    "CHANGE_ME",
-    "PUT_32_CHAR_RANDOM_HASH_HERE",
-    "YOUR_",
-    "EXAMPLE",
-  ];
-  if (placeholderMarkers.some((marker) => upper.includes(marker))) {
-    return "";
-  }
-
-  return value;
+  if (!isUsableEnvValue(raw)) return "";
+  return String(raw).trim();
 }
 
 function putPagesSecret(project, key, value) {

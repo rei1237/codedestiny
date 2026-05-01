@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
@@ -16,11 +16,43 @@ const envFiles = [
   "server/.env",
 ];
 
+function isUsableEnvValue(rawValue) {
+  if (rawValue == null) return false;
+  const value = String(rawValue).trim();
+  if (!value) return false;
+
+  const upper = value.toUpperCase();
+  const placeholders = [
+    "CHANGE_ME",
+    "PLEASE_CHANGE",
+    "YOUR_",
+    "EXAMPLE",
+    "PUT_32_CHAR_RANDOM_HASH_HERE",
+    "YOUR_SECRET",
+    "YOUR_API_KEY",
+  ];
+  if (placeholders.some((marker) => upper.includes(marker))) return false;
+
+  return true;
+}
+
+function loadEnvPreferUsable(filePath) {
+  const parsed = dotenv.parse(readFileSync(filePath, "utf8"));
+  for (const [key, value] of Object.entries(parsed)) {
+    const current = process.env[key];
+    const currentUsable = isUsableEnvValue(current);
+    const incomingUsable = isUsableEnvValue(value);
+
+    if (!currentUsable && incomingUsable) {
+      process.env[key] = String(value).trim();
+    }
+  }
+}
+
 for (const envFile of envFiles) {
   const envPath = resolve(rootDir, envFile);
-  if (existsSync(envPath)) {
-    dotenv.config({ path: envPath, override: false });
-  }
+  if (!existsSync(envPath)) continue;
+  loadEnvPreferUsable(envPath);
 }
 
 if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CF_API_TOKEN) {
@@ -88,23 +120,8 @@ const SECRET_KEYS = [
 
 function getSecretValue(key) {
   const raw = process.env[key];
-  if (raw == null) return "";
-
-  const value = String(raw).trim();
-  if (!value) return "";
-
-  const upper = value.toUpperCase();
-  const placeholders = [
-    "CHANGE_ME",
-    "YOUR_",
-    "EXAMPLE",
-    "PUT_32_CHAR_RANDOM_HASH_HERE",
-    "YOUR_SECRET",
-    "YOUR_API_KEY",
-  ];
-  if (placeholders.some((marker) => upper.includes(marker))) return "";
-
-  return value;
+  if (!isUsableEnvValue(raw)) return "";
+  return String(raw).trim();
 }
 
 function putWorkerSecret(key, value) {
@@ -121,14 +138,28 @@ function putWorkerSecret(key, value) {
   const result = spawnSync(command, commandArgs, {
     input: `${value}\n`,
     encoding: "utf8",
-    stdio: ["pipe", "inherit", "inherit"],
+    stdio: ["pipe", "pipe", "pipe"],
     shell: false,
     env: process.env,
   });
 
+  const stdout = String(result.stdout || "");
+  const stderr = String(result.stderr || "");
+  if (stdout) process.stdout.write(stdout);
+  if (stderr) process.stderr.write(stderr);
+
   if (result.error) {
     console.error(`[worker-secrets] Failed to run wrangler for ${key}: ${result.error.message}`);
     return 1;
+  }
+
+  if (result.status !== 0) {
+    const merged = `${stdout}\n${stderr}`;
+    // Wrangler returns this when a key already exists as a non-secret [vars] binding.
+    if (merged.includes("Binding name") && merged.includes("already in use") && merged.includes("code: 10053")) {
+      console.warn(`[worker-secrets] Skipping ${key}: already defined as non-secret binding.`);
+      return 0;
+    }
   }
 
   return Number.isInteger(result.status) ? result.status : 1;

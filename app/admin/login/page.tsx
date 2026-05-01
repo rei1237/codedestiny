@@ -27,6 +27,23 @@ export default function AdminLoginPage() {
       let data: Record<string, unknown> = {};
       try { data = await res.json(); } catch {}
       if (!res.ok) {
+        if (data?.error === "config_key_mismatch") {
+          const missingKeys = Array.isArray(data?.missingKeys)
+            ? data.missingKeys.map((item) => String(item)).filter(Boolean)
+            : [];
+          const placeholderKeys = Array.isArray(data?.placeholderKeys)
+            ? data.placeholderKeys.map((item) => String(item)).filter(Boolean)
+            : [];
+
+          const parts: string[] = [];
+          if (missingKeys.length) parts.push(`누락: ${missingKeys.join(", ")}`);
+          if (placeholderKeys.length) parts.push(`임시값: ${placeholderKeys.join(", ")}`);
+
+          setError(parts.length
+            ? `관리자 키 설정이 올바르지 않습니다. ${parts.join(" / ")}`
+            : "관리자 키 설정이 올바르지 않습니다. Worker 비밀키를 확인해주세요.");
+          return;
+        }
         setError("비밀번호가 올바르지 않습니다.");
         return;
       }
