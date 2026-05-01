@@ -26,6 +26,18 @@ function __cdPushPerfMetric(name, value, detail) {
   } catch (_) {}
 }
 
+function __cdSyncAdminTokenStorage() {
+  try {
+    var sessionToken = String(sessionStorage.getItem('flower_admin_token') || '');
+    if (sessionToken) return;
+    var localToken = String(localStorage.getItem('flower_admin_token') || '');
+    if (!localToken) return;
+    sessionStorage.setItem('flower_admin_token', localToken);
+  } catch (_) {}
+}
+
+__cdSyncAdminTokenStorage();
+
 function __cdInitCollectionPerfMetrics() {
   if (window.__cdCollectionPerfInited) return;
   window.__cdCollectionPerfInited = true;

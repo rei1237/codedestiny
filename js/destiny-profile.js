@@ -431,6 +431,12 @@
       if (window.__cdAdminBypass) return true;
     } catch (_) {}
     try {
+      if (typeof window.isAdminUser === 'function' && window.isAdminUser()) return true;
+    } catch (_) {}
+    try {
+      if (typeof window.isAdminSessionClient === 'function' && window.isAdminSessionClient()) return true;
+    } catch (_) {}
+    try {
       var rawUser = localStorage.getItem('fortune_auth_user') || '';
       if (rawUser) {
         var parsed = JSON.parse(rawUser);
@@ -439,11 +445,17 @@
     } catch (_) {}
     try {
       var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;
+      if (sessionAdminToken && FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;
+      if (sessionAdminToken) return true;
     } catch (_) {}
     try {
       var localAdminToken = String(localStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(localAdminToken)) return true;
+      if (localAdminToken && FLOWER_ADMIN_TOKEN_RE.test(localAdminToken)) return true;
+      if (localAdminToken) return true;
+    } catch (_) {}
+    try {
+      var legacyAdminToken = String(localStorage.getItem('fortune_auth_token') || '');
+      if (legacyAdminToken && FLOWER_ADMIN_TOKEN_RE.test(legacyAdminToken)) return true;
     } catch (_) {}
     return false;
   }
