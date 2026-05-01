@@ -34,6 +34,7 @@ type SignupResult = {
 type SocialProvider = "google" | "naver" | "kakao";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
+const LOCAL_AUTH_TIMEOUT_MS = 20000;
 
 function normalizeApiBase(rawBase: string | undefined | null) {
   const value = String(rawBase || "").trim();
@@ -49,6 +50,20 @@ function sanitizeNextPath(rawNext: string | null) {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = LOCAL_AUTH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function publishAuthSync(event: "login" | "logout", token?: string) {
@@ -105,6 +120,7 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [birthDate, setBirthDate] = useState("1990-01-01");
   const [birthTime, setBirthTime] = useState("09:00");
   const [gender, setGender] = useState<"M" | "F" | "OTHER">("OTHER");
@@ -281,19 +297,44 @@ export default function SignupPage() {
       const params = new URLSearchParams(window.location.search);
       const nextPath = sanitizeNextPath(params.get("next")) || "/";
 
-      const response = await fetch(`${authApiBase}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: loginId.trim(),
-          password,
-          birthDate,
-          birthTime,
-          gender,
-          nextPath,
-        }),
-      });
+      let response: Response | null = null;
+      let lastFetchError: Error | null = null;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: name.trim(),
+              email: loginId.trim(),
+              password,
+              birthDate,
+              birthTime,
+              gender,
+              nextPath,
+            }),
+          });
+
+          if (nextResponse.status >= 500 && attempt === 0) {
+            await sleep(250);
+            continue;
+          }
+
+          response = nextResponse;
+          break;
+        } catch (error) {
+          lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
+          if (attempt === 0) {
+            await sleep(250);
+            continue;
+          }
+        }
+      }
+
+      if (!response) {
+        throw (lastFetchError || new Error("회원가입 처리 중 오류가 발생했습니다."));
+      }
 
       const payload = await parseJsonResponse<SignupResult & { errors?: string[] }>(response);
       if (!response.ok) {
@@ -404,28 +445,39 @@ export default function SignupPage() {
                   <label htmlFor="signup-id" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">ID / EMAIL</label>
                   <input
                     id="signup-id"
-                    type="text"
-                    autoComplete="username"
+                    type="email"
+                    autoComplete="email"
                     value={loginId}
                     onChange={(event) => setLoginId(event.target.value)}
                     disabled={loading || socialLoading !== null}
-                    placeholder=""
+                    placeholder="name@example.com"
                     className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
                   <label htmlFor="signup-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PASSWORD</label>
-                  <input
-                    id="signup-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    disabled={loading || socialLoading !== null}
-                    placeholder="8자 이상"
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
-                  />
+                  <div className="relative">
+                    <input
+                      id="signup-password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={loading || socialLoading !== null}
+                      placeholder="8자 이상"
+                      className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 pr-14 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      disabled={loading || socialLoading !== null}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
+                      aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
+                    >
+                      {showPassword ? "숨김" : "보기"}
+                    </button>
+                  </div>
                 </div>
 
                 <div>

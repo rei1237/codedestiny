@@ -1,9 +1,11 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 
 const User = require("../models/User");
 const { requireAuth } = require("../middleware/auth.middleware");
+const { validateRegisterPayload, validateLoginPayload } = require("../utils/validation");
 
 const router = express.Router();
 
@@ -319,20 +321,110 @@ function signToken(user) {
   );
 }
 
+async function hashPassword(rawPassword) {
+  return bcrypt.hash(rawPassword, 12);
+}
+
+async function verifyPassword(rawPassword, passwordHash) {
+  try {
+    return await bcrypt.compare(rawPassword, passwordHash);
+  } catch {
+    return false;
+  }
+}
+
 router.post("/register", async (req, res, next) => {
-  return res.status(410).json({
-    ok: false,
-    error: "local_auth_disabled",
-    message: "아이디/비밀번호 회원가입은 지원하지 않습니다. 소셜 회원가입을 이용해 주세요.",
-  });
+  try {
+    const validated = validateRegisterPayload(req.body);
+    if (!validated.isValid) {
+      return res.status(400).json({
+        message: "회원가입 요청값이 올바르지 않습니다.",
+        errors: validated.errors,
+      });
+    }
+
+    const { name, email, password, birthDate, birthTime, gender } = validated.sanitized;
+    const existing = await User.findOne(
+      { email },
+      {
+        _id: 1,
+      },
+    ).lean();
+
+    if (existing) {
+      return res.status(409).json({
+        message: "이미 가입된 이메일입니다.",
+        code: "EMAIL_ALREADY_REGISTERED",
+      });
+    }
+
+    const passwordHash = await hashPassword(password);
+    const user = await User.create({
+      name,
+      email,
+      passwordHash,
+      birthDate,
+      birthTime,
+      gender,
+      role: "user",
+      points: Number(process.env.AUTH_SIGNUP_BONUS_POINTS || "50") || 0,
+      joinedAt: new Date(),
+      localAuth: {
+        enabled: true,
+        activatedAt: new Date(),
+      },
+    });
+
+    const token = signToken(user);
+    return res.status(201).json({
+      message: "회원가입이 완료되었습니다.",
+      token,
+      user: normalizeUserResponse(user),
+      nextPath: sanitizeNextPath(req.body?.nextPath) || "/",
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 router.post("/login", async (req, res, next) => {
-  return res.status(410).json({
-    ok: false,
-    error: "local_auth_disabled",
-    message: "아이디/비밀번호 로그인은 지원하지 않습니다. 소셜 로그인을 이용해 주세요.",
-  });
+  try {
+    const validated = validateLoginPayload(req.body);
+    if (!validated.isValid) {
+      return res.status(400).json({
+        message: "로그인 요청값이 올바르지 않습니다.",
+        errors: validated.errors,
+      });
+    }
+
+    const { email, password } = validated.sanitized;
+    const user = await User.findOne({ email })
+      .select("+passwordHash")
+      .lean();
+
+    if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
+      return res.status(401).json({
+        message: "아이디(이메일) 또는 비밀번호가 올바르지 않습니다.",
+      });
+    }
+
+    const passwordOk = await verifyPassword(password, user.passwordHash);
+    if (!passwordOk) {
+      return res.status(401).json({
+        message: "아이디(이메일) 또는 비밀번호가 올바르지 않습니다.",
+      });
+    }
+
+    const token = signToken(user);
+    return res.status(200).json({
+      message: "로그인에 성공했습니다.",
+      token,
+      user: normalizeUserResponse(user),
+      nextPath: sanitizeNextPath(req.body?.nextPath) || "/",
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 router.get("/me", requireAuth, async (req, res, next) => {

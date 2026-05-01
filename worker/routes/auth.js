@@ -368,57 +368,64 @@ async function handleLogin(request, env) {
     }, { status: 400 });
   }
 
-  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
+  try {
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
 
-  const { email, password } = validated.sanitized;
-  const users = User.collection;
-  const user = await withAuthOpTimeout(
-    users.findOne(
-      { email },
-      {
-        projection: {
-          _id: 1,
-          name: 1,
-          email: 1,
-          birthDate: 1,
-          birthTime: 1,
-          gender: 1,
-          role: 1,
-          points: 1,
-          joinedAt: 1,
-          passwordHash: 1,
-          localAuth: 1,
+    const { email, password } = validated.sanitized;
+    const users = User.collection;
+    const user = await withAuthOpTimeout(
+      users.findOne(
+        { email },
+        {
+          projection: {
+            _id: 1,
+            name: 1,
+            email: 1,
+            birthDate: 1,
+            birthTime: 1,
+            gender: 1,
+            role: 1,
+            points: 1,
+            joinedAt: 1,
+            passwordHash: 1,
+            localAuth: 1,
+          },
+          maxTimeMS: dbMaxTimeMs,
         },
-        maxTimeMS: dbMaxTimeMs,
-      },
-    ),
-    timeoutMs,
-    "auth_login_find_user",
-  );
-  if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
+      ),
+      timeoutMs,
+      "auth_login_find_user",
+    );
+    if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
+      return json({
+        message: "Email or password is incorrect.",
+      }, { status: 401 });
+    }
+
+    const passwordOk = await withAuthOpTimeout(
+      verifyPassword(password, user.passwordHash),
+      timeoutMs,
+      "auth_login_verify_password",
+    );
+    if (!passwordOk) {
+      return json({
+        message: "Email or password is incorrect.",
+      }, { status: 401 });
+    }
+
+    const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_login_sign_token");
+    return json({
+      message: "Login completed.",
+      token,
+      user: normalizeUserResponse(user),
+      nextPath: sanitizeNextPath(body?.nextPath) || "/",
+    });
+  } catch (error) {
+    console.error("[auth/login] normalized auth failure:", error);
     return json({
       message: "Email or password is incorrect.",
     }, { status: 401 });
   }
-
-  const passwordOk = await withAuthOpTimeout(
-    verifyPassword(password, user.passwordHash),
-    timeoutMs,
-    "auth_login_verify_password",
-  );
-  if (!passwordOk) {
-    return json({
-      message: "Email or password is incorrect.",
-    }, { status: 401 });
-  }
-
-  const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_login_sign_token");
-  return json({
-    message: "Login completed.",
-    token,
-    user: normalizeUserResponse(user),
-    nextPath: sanitizeNextPath(body?.nextPath) || "/",
-  });
 }
 
 async function handleMe(request, env) {

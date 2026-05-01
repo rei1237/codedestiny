@@ -1,0 +1,47 @@
+name: Deploy Worker API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - worker/**
+      - scripts/deploy-worker.mjs
+      - scripts/sync-cloudflare-worker-secrets.mjs
+      - worker/wrangler.toml
+      - .github/workflows/cloudflare-worker-deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-worker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_WORKER_NAME: code-destiny-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Worker preflight build (dry-run)
+        run: npm run build:worker
+
+      - name: Deploy Cloudflare Worker
+        run: npm run deploy:cf:worker

@@ -9,6 +9,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
+import { readFileSync } from "node:fs";
 
 const rootDir = process.cwd();
 const envFiles = [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"];
@@ -30,6 +31,29 @@ if (!existsSync(workerConfig)) {
   process.exit(1);
 }
 
+const workerEntry = resolve(rootDir, "worker", "index.js");
+if (!existsSync(workerEntry)) {
+  console.error("[deploy-worker] worker/index.js not found.");
+  process.exit(1);
+}
+
+const rootWranglerJson = resolve(rootDir, "wrangler.json");
+const rootWranglerJsonc = resolve(rootDir, "wrangler.jsonc");
+if (existsSync(rootWranglerJson) || existsSync(rootWranglerJsonc)) {
+  console.warn("[deploy-worker] Root wrangler.json/jsonc detected. Worker deploy will still use --config worker/wrangler.toml.");
+}
+
+try {
+  const configText = readFileSync(workerConfig, "utf8");
+  if (!/\nmain\s*=\s*"index\.js"\s*(\n|$)/.test(`\n${configText}\n`)) {
+    console.error("[deploy-worker] worker/wrangler.toml must include: main = \"index.js\"");
+    process.exit(1);
+  }
+} catch (error) {
+  console.error("[deploy-worker] Failed to read worker config:", error?.message || String(error));
+  process.exit(1);
+}
+
 const workerName =
   process.env.CF_WORKER_NAME ||
   process.env.CLOUDFLARE_WORKER_NAME ||
@@ -41,12 +65,12 @@ if (workerName.trim()) {
   console.log(`[deploy-worker] Using Worker name override: ${workerName.trim()}`);
 }
 
-console.log("[deploy-worker] Deploying Cloudflare API Worker from worker/.");
+console.log("[deploy-worker] Deploying Cloudflare API Worker from worker/ using --config worker/wrangler.toml.");
 
 const result = process.platform === "win32"
-  ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${args.join(" ")}`], {
+  ? spawnSync("npx", args, {
       stdio: "inherit",
-      shell: false,
+      shell: true,
       cwd: rootDir,
       env: process.env,
     })

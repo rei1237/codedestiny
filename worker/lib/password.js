@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 
+const HMAC_PREFIX = "hmac-sha256-v1";
 const PBKDF2_PREFIX = "pbkdf2-sha256";
 const PBKDF2_LEGACY_PREFIX = "pbkdf2$sha256";
-const PBKDF2_ITERATIONS = 60000;
 const PBKDF2_SALT_BYTES = 16;
 const PBKDF2_KEY_BYTES = 32;
 
@@ -69,54 +69,92 @@ async function derivePbkdf2Key(password, salt, iterations) {
   return new Uint8Array(bits);
 }
 
+async function signPasswordHmac(password, salt) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    salt,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(String(password || "")));
+  return new Uint8Array(signature);
+}
+
 export async function hashPassword(password) {
   const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
-  const hash = await derivePbkdf2Key(password, salt, PBKDF2_ITERATIONS);
+  const hash = await signPasswordHmac(password, salt);
 
   return [
-    PBKDF2_PREFIX,
-    String(PBKDF2_ITERATIONS),
+    HMAC_PREFIX,
     toBase64Url(salt),
     toBase64Url(hash),
   ].join("$");
 }
 
+async function verifyHmac(password, encodedHash) {
+  try {
+    const parts = String(encodedHash || "").split("$");
+    if (parts.length !== 3 || parts[0] !== HMAC_PREFIX) return false;
+
+    const salt = fromBase64Url(parts[1]);
+    const expected = fromBase64Url(parts[2]);
+    const actual = await signPasswordHmac(password, salt);
+    return timingSafeEqual(expected, actual);
+  } catch {
+    return false;
+  }
+}
+
 async function verifyPbkdf2(password, encodedHash) {
-  const parts = String(encodedHash || "").split("$");
-  let iterationsRaw = "";
-  let saltRaw = "";
-  let hashRaw = "";
+  try {
+    const parts = String(encodedHash || "").split("$");
+    let iterationsRaw = "";
+    let saltRaw = "";
+    let hashRaw = "";
 
-  if (parts.length === 4 && parts[0] === PBKDF2_PREFIX) {
-    [, iterationsRaw, saltRaw, hashRaw] = parts;
-  } else if (parts.length === 5 && `${parts[0]}$${parts[1]}` === PBKDF2_LEGACY_PREFIX) {
-    [, , iterationsRaw, saltRaw, hashRaw] = parts;
-  } else {
+    if (parts.length === 4 && parts[0] === PBKDF2_PREFIX) {
+      [, iterationsRaw, saltRaw, hashRaw] = parts;
+    } else if (parts.length === 5 && `${parts[0]}$${parts[1]}` === PBKDF2_LEGACY_PREFIX) {
+      [, , iterationsRaw, saltRaw, hashRaw] = parts;
+    } else {
+      return false;
+    }
+
+    const iterations = Number(iterationsRaw);
+    if (!Number.isFinite(iterations) || iterations <= 0) {
+      return false;
+    }
+
+    const salt = fromBase64Url(saltRaw);
+    const expected = fromBase64Url(hashRaw);
+    const actual = await derivePbkdf2Key(password, salt, iterations);
+    return timingSafeEqual(expected, actual);
+  } catch {
     return false;
   }
-
-  const iterations = Number(iterationsRaw);
-  if (!Number.isFinite(iterations) || iterations <= 0) {
-    return false;
-  }
-
-  const salt = fromBase64Url(saltRaw);
-  const expected = fromBase64Url(hashRaw);
-  const actual = await derivePbkdf2Key(password, salt, iterations);
-  return timingSafeEqual(expected, actual);
 }
 
 export async function verifyPassword(password, encodedHash) {
-  const hash = String(encodedHash || "").trim();
-  if (!hash) return false;
+  try {
+    const hash = String(encodedHash || "").trim();
+    if (!hash) return false;
 
-  if (hash.startsWith(`${PBKDF2_PREFIX}$`) || hash.startsWith(`${PBKDF2_LEGACY_PREFIX}$`)) {
-    return verifyPbkdf2(password, hash);
+    if (hash.startsWith(`${HMAC_PREFIX}$`)) {
+      return verifyHmac(password, hash);
+    }
+
+    if (hash.startsWith(`${PBKDF2_PREFIX}$`) || hash.startsWith(`${PBKDF2_LEGACY_PREFIX}$`)) {
+      return verifyPbkdf2(password, hash);
+    }
+
+    if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
+      return bcrypt.compare(password, hash);
+    }
+
+    return false;
+  } catch {
+    return false;
   }
-
-  if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
-    return bcrypt.compare(password, hash);
-  }
-
-  return false;
 }
