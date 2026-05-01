@@ -1,15 +1,17 @@
 /**
- * Deploy to Cloudflare Workers (full stack: Worker + static assets).
- * Use this so that API routes (e.g. /api/tarot/draw, /api/tarot/reading) work.
- * For static-only deploy use deploy:cf:pages instead.
+ * Deploy the Cloudflare API Worker in worker/.
+ *
+ * The Pages frontend is deployed separately from dist/. This Worker receives
+ * /api/* traffic from public/_redirects and forwards it to the configured API
+ * origin until the Express routes are ported to Worker-native handlers.
  */
-import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
 
 const rootDir = process.cwd();
-const envFiles = [".env.cloudflare.local", ".env.cloudflare", ".env"];
+const envFiles = [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"];
 
 for (const envFile of envFiles) {
   const envPath = resolve(rootDir, envFile);
@@ -22,75 +24,10 @@ if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CF_API_TOKEN) {
   process.env.CLOUDFLARE_API_TOKEN = process.env.CF_API_TOKEN;
 }
 
-const openNextDir = resolve(rootDir, ".open-next");
-const workerAssetsDir = resolve(openNextDir, "assets");
-const workerConfig = "wrangler.json";
-
-const isWindows = process.platform === "win32";
-const npmCmd = isWindows ? "npm.cmd" : "npm";
-const maxAttempts = Math.max(1, Number.parseInt(process.env.CF_DEPLOY_RETRY_ATTEMPTS || "3", 10) || 3);
-const retryDelayMs = Math.max(1000, Number.parseInt(process.env.CF_DEPLOY_RETRY_DELAY_MS || "10000", 10) || 10000);
-
-console.log("[deploy-worker] Full stack deploy (Worker + assets) for API routes support.");
-
-const workerBundle = resolve(openNextDir, "worker.js");
-const needsBuild =
-  !existsSync(openNextDir) ||
-  !existsSync(workerBundle) ||
-  !existsSync(workerAssetsDir) ||
-  !existsSync(resolve(workerAssetsDir, "index.html"));
-
-if (needsBuild) {
-  console.log(
-    "[deploy-worker] OpenNext output missing (.open-next/worker.js or .open-next/assets/index.html). Running npm run build:cf...",
-  );
-  const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
-    stdio: "inherit",
-    shell: false,
-    env: process.env,
-  });
-  if (buildResult.status !== 0 || !existsSync(workerBundle) || !existsSync(resolve(workerAssetsDir, "index.html"))) {
-    console.error("[deploy-worker] build:cf failed or expected outputs still missing.");
-    process.exit(1);
-  }
-}
-
+const workerConfig = resolve(rootDir, "worker", "wrangler.toml");
 if (!existsSync(workerConfig)) {
-  console.error("[deploy-worker] wrangler.json not found.");
+  console.error("[deploy-worker] worker/wrangler.toml not found.");
   process.exit(1);
-}
-
-// Guardrail: avoid hitting Cloudflare API with known oversize bundles.
-const sizeCheck = isWindows
-  ? spawnSync("node", ["scripts/verify-worker-size-budget.mjs"], {
-      stdio: "inherit",
-      shell: false,
-      cwd: rootDir,
-      env: process.env,
-    })
-  : spawnSync("node", ["scripts/verify-worker-size-budget.mjs"], {
-      stdio: "inherit",
-      shell: false,
-      cwd: rootDir,
-      env: process.env,
-    });
-
-if (sizeCheck.error) {
-  console.error("[deploy-worker] Failed to run size budget check:", sizeCheck.error.message);
-  process.exit(1);
-}
-
-const sizeCheckStatus = typeof sizeCheck.status === "number" ? sizeCheck.status : 1;
-if (sizeCheckStatus === 2) {
-  console.error(
-    "[deploy-worker] Worker deploy BLOCKED: bundle (gzip estimate) exceeds free-plan budget. " +
-      "Reduce runtime bundle size or upgrade to Workers Paid plan (10 MiB limit).",
-  );
-  // exit 1 so CI (continue-on-error: true) correctly marks this step as failed.
-  process.exit(1);
-}
-if (sizeCheckStatus !== 0) {
-  process.exit(sizeCheckStatus);
 }
 
 const workerName =
@@ -98,54 +35,31 @@ const workerName =
   process.env.CLOUDFLARE_WORKER_NAME ||
   "";
 
-const args = ["wrangler", "deploy", "--config", workerConfig];
+const args = ["wrangler", "deploy", "--config", "worker/wrangler.toml"];
 if (workerName.trim()) {
   args.push("--name", workerName.trim());
   console.log(`[deploy-worker] Using Worker name override: ${workerName.trim()}`);
 }
 
-function runDeployOnce() {
-  const cmdArgs = args
-    .map((arg) => (/[\s"]/u.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg))
-    .join(" ");
+console.log("[deploy-worker] Deploying Cloudflare API Worker from worker/.");
 
-  return isWindows
-    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${cmdArgs}`], {
-        stdio: "inherit",
-        shell: false,
-        cwd: rootDir,
-        env: process.env,
-      })
-    : spawnSync("npx", args, {
-        stdio: "inherit",
-        shell: false,
-        cwd: rootDir,
-        env: process.env,
-      });
+const result = process.platform === "win32"
+  ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${args.join(" ")}`], {
+      stdio: "inherit",
+      shell: false,
+      cwd: rootDir,
+      env: process.env,
+    })
+  : spawnSync("npx", args, {
+      stdio: "inherit",
+      shell: false,
+      cwd: rootDir,
+      env: process.env,
+    });
+
+if (result.error) {
+  console.error("[deploy-worker] Failed to start wrangler:", result.error.message);
+  process.exit(1);
 }
 
-for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-  if (attempt > 1) {
-    console.log(`[deploy-worker] Retry attempt ${attempt}/${maxAttempts}...`);
-  }
-
-  const result = runDeployOnce();
-
-  if (result.error) {
-    console.error("[deploy-worker] Failed to start wrangler:", result.error.message);
-    process.exit(1);
-  }
-
-  const status = typeof result.status === "number" ? result.status : 1;
-  if (status === 0) {
-    process.exit(0);
-  }
-
-  if (attempt < maxAttempts) {
-    console.warn(`[deploy-worker] Deploy failed (exit=${status}). Waiting ${retryDelayMs}ms before retry...`);
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, retryDelayMs);
-    continue;
-  }
-
-  process.exit(status);
-}
+process.exit(typeof result.status === "number" ? result.status : 1);

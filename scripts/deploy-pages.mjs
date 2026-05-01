@@ -26,14 +26,14 @@ const rawProjectName =
   process.env.CF_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PROJECT_NAME ||
-  "code-destiny";
+  "codedestiny";
 
 const projectName = String(rawProjectName || "").trim() === "code-destiny-web"
-  ? "code-destiny"
-  : String(rawProjectName || "code-destiny").trim();
+  ? "codedestiny"
+  : String(rawProjectName || "codedestiny").trim();
 
 if (String(rawProjectName || "").trim() === "code-destiny-web") {
-  console.warn("[deploy-pages] CF_PAGES_PROJECT_NAME=code-destiny-web detected. Overriding to code-destiny.");
+  console.warn("[deploy-pages] CF_PAGES_PROJECT_NAME=code-destiny-web detected. Overriding to codedestiny.");
 }
 
 const branchArgIndex = process.argv.findIndex((arg) => arg === "--branch");
