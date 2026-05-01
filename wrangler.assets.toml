@@ -1,0 +1,16 @@
+name = "codedestiny-pages"
+main = "public/_worker.js"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers Static Assets fallback config.
+# Use only when a Cloudflare Workers pipeline runs `wrangler deploy`.
+# Normal frontend deployment should use:
+#   npx wrangler pages deploy dist --project-name codedestiny --branch main
+[assets]
+directory = "./dist"
+
+[vars]
+AUTH_FRONTEND_BASE_URL = "https://codedestiny-5md.pages.dev"
+SITE_BASE_URL = "https://codedestiny-5md.pages.dev"
+API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev"

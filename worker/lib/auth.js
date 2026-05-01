@@ -29,6 +29,12 @@ export async function requireAuth(request, env) {
     userId: String(payload.userId),
     email: payload.email ? String(payload.email) : "",
     role: payload.role ? String(payload.role) : "user",
+    name: payload.name ? String(payload.name) : "",
+    birthDate: payload.birthDate ? String(payload.birthDate) : "",
+    birthTime: payload.birthTime ? String(payload.birthTime) : "",
+    gender: payload.gender ? String(payload.gender) : "OTHER",
+    points: Number.isFinite(Number(payload.points)) ? Number(payload.points) : 0,
+    joinedAt: payload.joinedAt || null,
   };
 }
 
@@ -38,6 +44,12 @@ export async function signAuthToken(user, env) {
       userId: String(user._id),
       email: user.email,
       role: user.role,
+      name: user.name,
+      birthDate: user.birthDate,
+      birthTime: user.birthTime,
+      gender: user.gender,
+      points: user.points,
+      joinedAt: user.joinedAt,
     },
     getJwtSecret(env),
     {

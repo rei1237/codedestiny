@@ -1,16 +1,37 @@
-import bcrypt from "bcryptjs";
-
-import { connectDb } from "../lib/db.js";
+import { connectDb, mongoose } from "../lib/db.js";
 import { User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
 import { requireAuth, normalizeUserResponse, signAuthToken, getJwtSecret, JWT_ISSUER } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
+import { hashPassword, verifyPassword } from "../lib/password.js";
 import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
+
+function getAuthOpTimeoutMs(env) {
+  const raw = Number(getEnv(env, "AUTH_OPERATION_TIMEOUT_MS", "12000"));
+  if (!Number.isFinite(raw) || raw < 1000) return 5000;
+  return Math.floor(raw);
+}
+
+async function withAuthOpTimeout(task, timeoutMs, label) {
+  let timeoutId;
+  try {
+    return await Promise.race([
+      Promise.resolve(task),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(`${label}_timeout`));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
 
 function toOAuthFeature(provider) {
   if (provider === "google") return "auth-oauth-google";
@@ -265,6 +286,8 @@ function isLocalAuthEnabled(user) {
 }
 
 async function handleRegister(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const body = await readJson(request);
   const validated = validateRegisterPayload(body);
   if (!validated.isValid) {
@@ -274,10 +297,21 @@ async function handleRegister(request, env) {
     }, { status: 400 });
   }
 
-  await connectDb(env);
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_register_connect_db");
 
   const { name, email, password, birthDate, birthTime, gender } = validated.sanitized;
-  const existing = await User.findOne({ email }).select("_id localAuth socialAccounts").lean();
+  const users = User.collection;
+  const existing = await withAuthOpTimeout(
+    users.findOne(
+      { email },
+      {
+        projection: { _id: 1, localAuth: 1, socialAccounts: 1 },
+        maxTimeMS: dbMaxTimeMs,
+      },
+    ),
+    timeoutMs,
+    "auth_register_find_existing",
+  );
   if (existing) {
     return json({
       message: "This email is already registered.",
@@ -285,8 +319,12 @@ async function handleRegister(request, env) {
     }, { status: 409 });
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
-  const user = await User.create({
+  const passwordHash = await withAuthOpTimeout(
+    hashPassword(password),
+    timeoutMs,
+    "auth_register_hash_password",
+  );
+  const user = {
     name,
     email,
     passwordHash,
@@ -300,9 +338,16 @@ async function handleRegister(request, env) {
       enabled: true,
       activatedAt: new Date(),
     },
-  });
+  };
 
-  const token = await signAuthToken(user, env);
+  const insertResult = await withAuthOpTimeout(
+    users.insertOne(user),
+    timeoutMs,
+    "auth_register_create_user",
+  );
+  user._id = insertResult.insertedId;
+
+  const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_register_sign_token");
   return json({
     message: "Registration completed.",
     token,
@@ -312,6 +357,8 @@ async function handleRegister(request, env) {
 }
 
 async function handleLogin(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const body = await readJson(request);
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
@@ -321,24 +368,51 @@ async function handleLogin(request, env) {
     }, { status: 400 });
   }
 
-  await connectDb(env);
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
 
   const { email, password } = validated.sanitized;
-  const user = await User.findOne({ email }).select("+passwordHash");
+  const users = User.collection;
+  const user = await withAuthOpTimeout(
+    users.findOne(
+      { email },
+      {
+        projection: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          birthDate: 1,
+          birthTime: 1,
+          gender: 1,
+          role: 1,
+          points: 1,
+          joinedAt: 1,
+          passwordHash: 1,
+          localAuth: 1,
+        },
+        maxTimeMS: dbMaxTimeMs,
+      },
+    ),
+    timeoutMs,
+    "auth_login_find_user",
+  );
   if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
     return json({
       message: "Email or password is incorrect.",
     }, { status: 401 });
   }
 
-  const passwordOk = await bcrypt.compare(password, user.passwordHash);
+  const passwordOk = await withAuthOpTimeout(
+    verifyPassword(password, user.passwordHash),
+    timeoutMs,
+    "auth_login_verify_password",
+  );
   if (!passwordOk) {
     return json({
       message: "Email or password is incorrect.",
     }, { status: 401 });
   }
 
-  const token = await signAuthToken(user, env);
+  const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_login_sign_token");
   return json({
     message: "Login completed.",
     token,
@@ -348,10 +422,62 @@ async function handleLogin(request, env) {
 }
 
 async function handleMe(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const auth = await requireAuth(request, env);
-  await connectDb(env);
 
-  const user = await User.findById(auth.userId).lean();
+  const userId = String(auth.userId || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return json({ message: "Invalid authentication token." }, { status: 401 });
+  }
+  const objectId = new mongoose.Types.ObjectId(userId);
+
+  let user;
+  try {
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_me_connect_db");
+    const users = User.collection;
+    user = await withAuthOpTimeout(
+      users.findOne(
+        { _id: objectId },
+        {
+          projection: {
+            _id: 1,
+            name: 1,
+            email: 1,
+            birthDate: 1,
+            birthTime: 1,
+            gender: 1,
+            role: 1,
+            points: 1,
+            joinedAt: 1,
+          },
+          maxTimeMS: dbMaxTimeMs,
+        },
+      ),
+      timeoutMs,
+      "auth_me_find_user",
+    );
+  } catch (error) {
+    const message = String(error?.message || "");
+    if (message.includes("auth_me_find_user_timeout") || message.includes("auth_me_connect_db")) {
+      return json({
+        message: "Authenticated user loaded from token.",
+        user: {
+          id: auth.userId,
+          name: auth.name || auth.email,
+          email: auth.email,
+          birthDate: auth.birthDate || "",
+          birthTime: auth.birthTime || "",
+          gender: auth.gender || "OTHER",
+          role: auth.role || "user",
+          points: auth.points || 0,
+          joinedAt: auth.joinedAt,
+        },
+        source: "token",
+      });
+    }
+    throw error;
+  }
   if (!user) return json({ message: "User not found." }, { status: 404 });
 
   return json({

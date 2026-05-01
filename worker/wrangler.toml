@@ -7,15 +7,16 @@ compatibility_flags = ["nodejs_compat"]
 # with `wrangler secret put` or in the Cloudflare dashboard.
 [vars]
 NODE_ENV = "production"
-AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"
-SITE_BASE_URL = "https://code-destiny.com"
-AUTH_API_BASE_URL = "https://code-destiny-web.bulegyung.workers.dev"
-FLOWER_ADMIN_SECRET = "cd_flower_admin_secret_2026_05_gate"
+AUTH_FRONTEND_BASE_URL = "https://codedestiny-5md.pages.dev"
+SITE_BASE_URL = "https://codedestiny-5md.pages.dev"
+AUTH_API_BASE_URL = "https://codedestiny-5md.pages.dev"
 AUTH_SIGNUP_BONUS_POINTS = "50"
-MONGO_SERVER_SELECTION_TIMEOUT_MS = "5000"
-MONGO_CONNECT_TIMEOUT_MS = "5000"
-MONGO_SOCKET_TIMEOUT_MS = "15000"
-MONGO_WORKER_CONNECT_GUARD_MS = "8000"
+AUTH_OPERATION_TIMEOUT_MS = "30000"
+MONGO_SERVER_SELECTION_TIMEOUT_MS = "12000"
+MONGO_CONNECT_TIMEOUT_MS = "12000"
+MONGO_SOCKET_TIMEOUT_MS = "30000"
+MONGO_WORKER_CONNECT_GUARD_MS = "15000"
+MONGO_PING_TIMEOUT_MS = "2500"
 MONGO_IP_FAMILY = "4"
 
 # Worker-native route groups:

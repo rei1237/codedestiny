@@ -68,6 +68,17 @@ function publishAuthSync(event: "login" | "logout", token?: string) {
   }
 }
 
+function clearStoredAuth() {
+  try {
+    localStorage.removeItem("fortune_auth_token");
+    localStorage.removeItem("fortune_auth_user");
+  } catch {
+    // ignore
+  }
+  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
+  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
+}
+
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   const rawText = await response.text();
   if (!rawText) return {} as T;
@@ -129,10 +140,34 @@ export default function LoginPage() {
 
     if (!token) return;
 
-    setIsRedirecting(true);
-    const timer = setTimeout(() => router.replace("/"), 400);
-    return () => clearTimeout(timer);
-  }, [router]);
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    fetch(`${authApiBase}/api/auth/me`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("auth_invalid");
+        return parseJsonResponse<LoginResult>(response);
+      })
+      .then((payload) => {
+        persistAuth(token, payload.user);
+        setIsRedirecting(true);
+        timer = setTimeout(() => router.replace("/"), 400);
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        clearStoredAuth();
+      });
+
+    return () => {
+      controller.abort();
+      if (timer) clearTimeout(timer);
+    };
+  }, [authApiBase, router]);
 
   // 소셜 OAuth 그랜트 처리 (네트워크 호출 중복 방지: socialCompleteOnceRef)
   useEffect(() => {

@@ -26,8 +26,7 @@ function normalizeBaseUrl(rawValue?: string | null): string {
 
 export function getApiBaseUrl(): string {
   const configuredBase = normalizeBaseUrl(
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL
+    process.env.NEXT_PUBLIC_API_BASE_URL
   );
 
   if (typeof window !== "undefined") {

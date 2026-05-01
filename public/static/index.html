@@ -1210,17 +1210,37 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
               btn.addEventListener('click', function () {
-                ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
-                  try { localStorage.removeItem(k); } catch (_) {}
-                });
-                document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
-                document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+                var token = '';
+                try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+                try {
+                  fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: token ? { Authorization: 'Bearer ' + token } : undefined,
+                  }).catch(function () {});
+                } catch (_) {}
+                __cdClearAuthStorage();
                 // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
                 try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
                 try { window.__cdAdminBypass = false; } catch (_) {}
                 location.reload();
               });
             }
+          }
+
+          function __cdClearAuthStorage() {
+            ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+              try { localStorage.removeItem(k); } catch (_) {}
+            });
+            document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+            document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+          }
+
+          function __cdRenderGuestAuthLinks() {
+            var el = document.getElementById('authQuickLinks');
+            if (!el) return;
+            el.innerHTML =
+              '<a href="/signup" class="auth-btn auth-btn--signup">???뚯썝媛??/a>' +
+              '<a href="/login" class="auth-btn auth-btn--login">?뵍 濡쒓렇??/a>';
           }
 
           function __cdAuthState() {
@@ -1274,8 +1294,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               var isAdm = r === 'admin' || _adminTokValid;
               __cdRenderAuthSummary(n, p, isAdm);
 
-              fetch('/api/payments/me', {
+              fetch('/api/auth/me', {
                 method: 'GET',
+                cache: 'no-store',
                 headers: { Authorization: 'Bearer ' + t },
               })
                 .then(function (response) {
@@ -1283,6 +1304,32 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   return response.json();
                 })
                 .then(function (payload) {
+                  var authUser = ((payload || {}).user || {});
+                  if (!authUser.id) throw new Error('auth_user_missing');
+
+                  try {
+                    localStorage.setItem('fortune_auth_user', JSON.stringify(authUser));
+                    document.cookie = 'fortune_auth_role=' + encodeURIComponent(authUser.role || 'user') + ';max-age=604800;path=/;SameSite=Lax';
+                  } catch (_) {}
+
+                  n = authUser.name || n;
+                  p = Number(authUser.points || 0);
+                  r = authUser.role || r;
+                  isAdm = r === 'admin' || _adminTokValid;
+                  __cdRenderAuthSummary(n, p, isAdm);
+
+                  return fetch('/api/payments/me', {
+                    method: 'GET',
+                    headers: { Authorization: 'Bearer ' + t },
+                  });
+                })
+                .then(function (response) {
+                  if (!response) return null;
+                  if (!response.ok) throw new Error('points_sync_failed');
+                  return response.json();
+                })
+                .then(function (payload) {
+                  if (!payload) return;
                   var nextPoints = Number((((payload || {}).user || {}).points) || 0);
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
@@ -1300,7 +1347,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     window.__cdSetGoldenBalance(nextPoints);
                   }
                 })
-                .catch(function () {});
+                .catch(function (error) {
+                  if (error && error.message === 'points_sync_failed') return;
+                  __cdClearAuthStorage();
+                  __cdRenderGuestAuthLinks();
+                });
             } catch (_) {}
           }
           window.__cdUpdateAuthState = __cdAuthState;
@@ -2264,39 +2315,39 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <h3 class="feat-collection__title" style="color:#fff3c1;">프리미엄 PDF 운명 분석 컬렉션</h3>
                 <p class="feat-collection__subtitle" style="color:rgba(245,231,178,.86);">소개 보기부터 PDF 생성까지, 한 번에 이어지는 VVIP 리포트 라인업</p>
                 <p class="feat-collection__lede">자미두수·서양 점성술·숙요점·베다·명운 작명을 각 엔진의 강점에 맞춰 설계해, 결과를 고품질 PDF로 소장할 수 있습니다.</p>
-                <p class="feat-collection__featureline" style="color:#d4af37;">자미두수 590 · 점성술 390 · 숙요점 390 · 베다 390 · 명운 작명 700 코인</p>
+                <p class="feat-collection__featureline" style="display:inline-block;background:linear-gradient(135deg,rgba(30,24,10,0.85) 0%,rgba(20,16,8,0.9) 100%);border:1px solid rgba(212,175,55,0.5);border-radius:24px;padding:10px 20px;color:#fff8e1;font-weight:700;font-size:0.92rem;text-shadow:0 2px 8px rgba(212,175,55,0.5),0 1px 2px rgba(0,0,0,0.8);box-shadow:inset 0 1px 0 rgba(255,215,80,0.15),0 4px 20px rgba(0,0,0,0.4);letter-spacing:0.02em;"><span style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);font-weight:900;">VVIP</span> 자미두수 · <span style="color:#c0c0c0;text-shadow:0 0 8px rgba(192,192,192,0.4);font-weight:800;">SILVER</span> 점성술 · <span style="color:#c0c0c0;text-shadow:0 0 8px rgba(192,192,192,0.4);font-weight:800;">SILVER</span> 숙요점 · <span style="color:#c0c0c0;text-shadow:0 0 8px rgba(192,192,192,0.4);font-weight:800;">SILVER</span> 베다 · <span style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);font-weight:900;">VVIP+</span> 명운 작명</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
                   <span class="fc-div-gem">✦</span>
                 </div>
-                <div class="feat-collection__toggle-hint" data-open-label="컬렉션 닫기" data-closed-label="컬렉션 열기">컬렉션 열기</div>
+                <div class="feat-collection__toggle-hint" data-open-label="컬렉션 닫기 ▲" data-closed-label="눌러서 열기 ▼" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 18px;background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(212,175,55,0.08));border:1.5px solid rgba(212,175,55,0.5);border-radius:20px;color:#f0d060;font-weight:700;font-size:0.8rem;letter-spacing:0.05em;text-shadow:0 1px 3px rgba(0,0,0,0.6);cursor:pointer;transition:all 0.2s ease;">눌러서 열기 ▼</div>
               </button>
               <div class="feat-collection__grid feat-collection__grid--2col">
                 <button type="button" class="tarot-tile prem-card prem-card--ziwei" data-action="gotoZiweiPremium" data-coin-cost="590">
                   <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄 PDF" loading="lazy" decoding="async">
                   <strong>자미두수 프리미엄 PDF</strong>
-                  <span>13챕터 · 12궁/사화/대한 심층 분석</span>
+                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">13챕터 · 12궁/사화/대한 심층 분석</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--astro" data-action="gotoAstrologyPremium" data-coin-cost="390">
                   <img src="/fuctionassets/premiumstar.webp" alt="서양 점성술 프리미엄 PDF" loading="lazy" decoding="async">
                   <strong>서양 점성술 PDF</strong>
-                  <span>12하우스 · ASC/Sun/Moon · 트랜짓</span>
+                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">12하우스 · ASC/Sun/Moon · 트랜짓</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--sukuyo" data-action="gotoSukuyoPremium" data-coin-cost="390">
                   <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄 PDF" loading="lazy" decoding="async">
                   <strong>숙요점 프리미엄 PDF</strong>
-                  <span>사주와 분리된 27수 숙요점 · 궁합/달빛 전략</span>
+                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">사주와 분리된 27수 숙요점 · 궁합/달빛 전략</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--veda" data-action="gotoVedicPremium" data-coin-cost="390">
                   <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄 PDF" loading="lazy" decoding="async">
                   <strong>베다 인생 총람 PDF</strong>
-                  <span>라그나 · 나크샤트라 · 다샤 카르마 지도</span>
+                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">라그나 · 나크샤트라 · 다샤 카르마 지도</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--naming" data-action="gotoNamingPremium" data-coin-cost="700" data-fallback-href="/myungwun_final.html">
                   <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명 PDF" loading="lazy" decoding="async">
                   <strong>명운 프리미엄 작명</strong>
-                  <span>용신 · 오행 · 81수리 기반 작명 리포트</span>
+                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">용신 · 오행 · 81수리 기반 작명 리포트</span>
                 </button>
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--premium-vvip -->

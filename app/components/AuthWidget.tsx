@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * AuthWidget — 전역 인증 상태 위젯
- *
- * localStorage의 fortune_auth_token / fortune_auth_user를 읽어
- * 로그인 여부에 따라 다른 UI를 표시합니다.
- *
- * - 로그인 상태: "{name}님" + "로그아웃" 버튼
- * - 비로그인 상태: "로그인" + "회원가입" 버튼
- */
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,10 +12,20 @@ type AuthUser = {
   points?: number;
 };
 
+const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
+
+function readAuthToken() {
+  try {
+    return localStorage.getItem("fortune_auth_token") || "";
+  } catch {
+    return "";
+  }
+}
+
 function readAuthUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem("fortune_auth_user");
-    const token = localStorage.getItem("fortune_auth_token");
+    const token = readAuthToken();
     if (!token || !raw) return null;
     return JSON.parse(raw) as AuthUser;
   } catch {
@@ -33,11 +33,59 @@ function readAuthUser(): AuthUser | null {
   }
 }
 
+function persistAuthUser(user: AuthUser) {
+  localStorage.setItem("fortune_auth_user", JSON.stringify(user));
+  document.cookie = `fortune_auth_role=${encodeURIComponent(user.role)}; path=/; max-age=604800; samesite=lax`;
+}
+
 function clearAuth() {
   localStorage.removeItem("fortune_auth_token");
   localStorage.removeItem("fortune_auth_user");
-  document.cookie = "fortune_auth_token=; path=/; max-age=0";
-  document.cookie = "fortune_auth_role=; path=/; max-age=0";
+  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
+  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
+}
+
+function publishAuthSync(event: "login" | "logout") {
+  try {
+    if (typeof BroadcastChannel === "undefined") return;
+    const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+    channel.postMessage({ source: "auth-widget", event, at: Date.now() });
+    channel.close();
+  } catch {
+    // Cross-tab sync is best-effort only.
+  }
+}
+
+async function refreshCurrentUser(signal?: AbortSignal) {
+  const token = readAuthToken();
+  if (!token) {
+    clearAuth();
+    return null;
+  }
+
+  const response = await fetch("/api/auth/me", {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+    signal,
+  });
+
+  if (!response.ok) {
+    if ([401, 403, 404].includes(response.status)) {
+      clearAuth();
+      return null;
+    }
+    throw new Error("auth_refresh_failed");
+  }
+
+  const payload = (await response.json()) as { user?: AuthUser };
+  if (!payload.user?.id) {
+    clearAuth();
+    return null;
+  }
+
+  persistAuthUser(payload.user);
+  return payload.user;
 }
 
 export default function AuthWidget() {
@@ -47,34 +95,71 @@ export default function AuthWidget() {
 
   useEffect(() => {
     setMounted(true);
-    setUser(readAuthUser());
 
-    // storage 변경 시 동기화 (다른 탭에서 로그인/로그아웃 시)
-    const onStorage = () => setUser(readAuthUser());
+    const controller = new AbortController();
+    const syncUser = () => {
+      const cachedUser = readAuthUser();
+      setUser(cachedUser);
+
+      if (!readAuthToken()) {
+        setUser(null);
+        return;
+      }
+
+      refreshCurrentUser(controller.signal)
+        .then((nextUser) => setUser(nextUser))
+        .catch((error) => {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+          setUser(readAuthUser());
+        });
+    };
+
+    syncUser();
+
+    const onStorage = () => syncUser();
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+        channel.onmessage = () => syncUser();
+      }
+    } catch {
+      channel = null;
+    }
+
+    return () => {
+      controller.abort();
+      window.removeEventListener("storage", onStorage);
+      channel?.close();
+    };
   }, []);
 
   const handleLogout = async () => {
+    const token = readAuthToken();
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
     } catch {
-      // 서버 로그아웃 실패해도 클라이언트는 정리
+      // Local cleanup still needs to happen if the network request fails.
     }
     clearAuth();
+    publishAuthSync("logout");
     setUser(null);
     router.push("/");
     router.refresh();
   };
 
-  // SSR 하이드레이션 불일치 방지 — mounted 전에는 렌더링 안 함
   if (!mounted) return null;
 
   if (user) {
     const displayPoints = user.points ?? 0;
     return (
       <div className="flex items-center gap-2">
-        <span className="text-sm text-violet-200/80 max-w-[120px] truncate">
+        <span className="max-w-[120px] truncate text-sm text-violet-200/80">
           {user.name}님
         </span>
         {user.role === "admin" && (
@@ -90,14 +175,14 @@ export default function AuthWidget() {
           className="rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/25"
           title="포인트 충전/내역"
         >
-          ✦ {displayPoints.toLocaleString()}P
+          {displayPoints.toLocaleString()}P
         </Link>
         <Link
-          href="/points"
+          href="/me"
           className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
-          title="계정 설정 · 회원 탈퇴"
+          title="마이페이지"
         >
-          내 계정
+          계정
         </Link>
         <button
           type="button"

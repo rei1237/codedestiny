@@ -2,6 +2,10 @@ const encoder = new TextEncoder();
 
 function base64UrlEncode(value) {
   const bytes = typeof value === "string" ? encoder.encode(value) : value;
+  if (typeof btoa !== "function" && typeof Buffer !== "undefined") {
+    return Buffer.from(bytes).toString("base64url");
+  }
+
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -10,6 +14,10 @@ function base64UrlEncode(value) {
 function base64UrlDecode(value) {
   const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
   const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+  if (typeof atob !== "function" && typeof Buffer !== "undefined") {
+    return new Uint8Array(Buffer.from(padded, "base64"));
+  }
+
   const binary = atob(padded);
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) {

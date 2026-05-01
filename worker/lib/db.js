@@ -4,6 +4,16 @@ import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
 
+export async function resetMongooseConnection() {
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+  } catch {
+    // Ignore disconnect failures; next connect attempt will retry.
+  }
+}
+
 function withTimeout(promise, ms, message) {
   let timeoutId;
   const timeout = new Promise((_, reject) => {
@@ -18,8 +28,24 @@ function withTimeout(promise, ms, message) {
 export async function connectDb(env = {}) {
   installProcessEnv(env);
 
+  const guardTimeoutMS = Number(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "8000"));
+  const serverSelectionTimeoutMS = Number(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"));
+  const connectTimeoutMS = Number(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "5000"));
+  const socketTimeoutMS = Number(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "15000"));
+
   if (mongoose.connection.readyState === 1) {
-    return mongoose.connection;
+    const pingTimeoutMS = Number(getEnv(env, "MONGO_PING_TIMEOUT_MS", "2500"));
+    try {
+      await withTimeout(
+        mongoose.connection.db.command({ ping: 1 }),
+        pingTimeoutMS,
+        "MongoDB ping timed out in Worker.",
+      );
+      return mongoose.connection;
+    } catch {
+      await resetMongooseConnection();
+      connectPromise = null;
+    }
   }
 
   const uri = getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI");
@@ -28,34 +54,43 @@ export async function connectDb(env = {}) {
   }
 
   if (!connectPromise) {
-    const serverSelectionTimeoutMS = Number(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"));
-    const connectTimeoutMS = Number(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "5000"));
-    const socketTimeoutMS = Number(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "15000"));
-    const guardTimeoutMS = Number(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "8000"));
-
-    const mongooseConnect = mongoose.connect(uri, {
-      dbName: getEnv(env, "MONGO_DB_NAME") || undefined,
+    const connectTask = mongoose.connect(uri, {
+      dbName: getEnv(env, "MONGO_DB_NAME") || getEnv(env, "MONGO_NAME") || undefined,
       maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
       serverSelectionTimeoutMS,
       connectTimeoutMS,
       socketTimeoutMS,
       bufferCommands: false,
       family: Number(getEnv(env, "MONGO_IP_FAMILY", "4")),
+      autoIndex: false,
     });
 
-    mongooseConnect.catch(() => {});
+    connectTask.catch(() => {});
 
     connectPromise = withTimeout(
-      mongooseConnect,
+      connectTask,
       guardTimeoutMS,
       "MongoDB connection timed out in Worker.",
     ).catch((error) => {
-      connectPromise = null;
+      // Do not block request completion on disconnect path.
+      resetMongooseConnection().catch(() => {});
       throw error;
     });
   }
 
-  await connectPromise;
+  try {
+    await connectPromise;
+  } finally {
+    // Allow a fresh attempt on the next request if current state is unhealthy.
+    if (mongoose.connection.readyState !== 1) {
+      connectPromise = null;
+    }
+  }
+
+  if (mongoose.connection.readyState !== 1) {
+    throw new Error("MongoDB connection is not ready in Worker.");
+  }
+
   return mongoose.connection;
 }
 
