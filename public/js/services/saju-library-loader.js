@@ -42,7 +42,7 @@
     var btn = document.getElementById('run-btn');
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '🐷 사주 분석하기';
+      btn.textContent = '운명의 지도 보러가기';
       btn.onclick = function () {
         if (typeof w.checkPrivacyAndCalculate === 'function') {
           w.checkPrivacyAndCalculate();
