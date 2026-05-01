@@ -1,6 +1,7 @@
 import { handleAuthRoutes } from "./routes/auth.js";
 import { handleAdminRoutes } from "./routes/admin.js";
 import { handleFortuneRoutes } from "./routes/fortune.js";
+import { handleTarotRoutes } from "./routes/tarot.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
 import { handlePremiumRoutes, handleZiweiBookRoutes } from "./routes/premium.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
@@ -61,7 +62,7 @@ function isAllowedOrigin(origin, env) {
     const { hostname, protocol } = new URL(origin);
     if (protocol !== "http:" && protocol !== "https:") return false;
     if (hostname === "code-destiny.com" || hostname.endsWith(".code-destiny.com")) return true;
-    if (hostname.endsWith(".pages.dev")) return true;
+    if (hostname === "localhost" || hostname === "127.0.0.1") return true;
   } catch {
     return false;
   }
@@ -240,7 +241,7 @@ export default {
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "premium", "ziwei-book"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "premium", "ziwei-book"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
@@ -271,6 +272,10 @@ export default {
 
     if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
       return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {
+      return withCorsHeaders(request, env, await handleTarotRoutes(request, env));
     }
 
     if (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/")) {
