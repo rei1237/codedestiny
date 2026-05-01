@@ -156,7 +156,13 @@ function __runChunked(list, worker, chunkSize) {
 
 function __loadScriptOnce(src) {
   if (!src) return Promise.reject(new Error('missing src'));
-  const normSrc = src.replace(/^\.\//, '');
+  const normSrcRaw = src.replace(/^\.\//, '');
+  const normSrc =
+    /^(?:[a-z]+:)?\/\//i.test(normSrcRaw) || normSrcRaw.startsWith('data:') || normSrcRaw.startsWith('blob:')
+      ? normSrcRaw
+      : normSrcRaw.startsWith('/')
+        ? normSrcRaw
+        : '/' + normSrcRaw;
 
   // If script is already in DOM (static or dynamic), reuse it.
   const allScripts = Array.from(document.querySelectorAll('script[src]'));
