@@ -1,3 +1,3 @@
-import LocaleShellPage from "../_locale/LocaleShellPage";
+import { createLocaleShellPage } from "../_locale/LocaleShellPage";
 
-export default LocaleShellPage;
+export default createLocaleShellPage("nl-nl");
