@@ -1852,6 +1852,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
+                  data-static-service="tarot"
                     data-coin-cost="0"
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
@@ -1908,6 +1909,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 화투점 -->
                 <button class="tarot-tile tarot-tile--hwatu" type="button"
                         data-action="openHwatuModal"
+                  data-static-service="hwatu-life"
                         aria-label="화투점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tazza.webp" data-img-alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🀄</span></div>
@@ -1966,7 +1968,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </button>
 
                 <!-- 스톤헨지 룬 오라클 -->
-                <a class="tarot-tile tarot-tile--rune-fc" href="/oracle/rune"
+                 <a class="tarot-tile tarot-tile--rune-fc" href="/static?service=stonehenge-rune"
+                   data-static-service="stonehenge-rune"
                    data-action="openRuneOracle"
                    data-coin-cost="50"
                    aria-label="스톤헨지 룬 오라클 시작">
@@ -1998,7 +2001,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </a>
 
                 <!-- 핀란드 주석점 -->
-                <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
+                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/static?service=pig-oracle"
+                   data-static-service="pig-oracle"
                    aria-label="핀란드 주석점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/piggyfortune.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
@@ -2312,9 +2316,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
               <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="VVIP 프리미엄 PDF 컬렉션 열기">
                 <div class="feat-collection__icon" aria-hidden="true">♛</div>
-                <h3 class="feat-collection__title" style="color:#fff3c1;">프리미엄 PDF 운명 분석 컬렉션</h3>
-                <p class="feat-collection__subtitle" style="color:rgba(245,231,178,.86);">소개 보기부터 PDF 생성까지, 한 번에 이어지는 VVIP 리포트 라인업</p>
-                <p class="feat-collection__lede">자미두수·서양 점성술·숙요점·베다·명운 작명을 각 엔진의 강점에 맞춰 설계해, 결과를 고품질 PDF로 소장할 수 있습니다.</p>
+                <h3 class="feat-collection__title" style="color:#ffffff;text-shadow:0 2px 8px rgba(0,0,0,0.6);">프리미엄 PDF 운명 분석 컬렉션</h3>
+                <p class="feat-collection__subtitle" style="color:rgba(255,255,255,0.92);text-shadow:0 1px 4px rgba(0,0,0,0.5);">동서양 5대 운명 체계를 AI가 통합 분석하여 즉시 PDF 리포트로 제공합니다</p>
+                <p class="feat-collection__lede" style="color:rgba(255,255,255,0.85);">명리학(자미두수), 서양 점성술, 27숙 숙요점, 베다 점성술, 사주 기반 명운 작명까지 — 각 분야의 핵심 원리를 정밀 분석하여 맞춤형 인사이트와 전략적 가이드를 고품질 PDF로 제작합니다. 언제 어디서든 오프라인으로 열람 가능한 나만의 운명 설계도를 소장하세요.</p>
                 <p class="feat-collection__featureline" style="display:inline-block;background:linear-gradient(135deg,rgba(30,24,10,0.85) 0%,rgba(20,16,8,0.9) 100%);border:1px solid rgba(212,175,55,0.5);border-radius:24px;padding:10px 20px;color:#fff8e1;font-weight:700;font-size:0.92rem;text-shadow:0 2px 8px rgba(212,175,55,0.5),0 1px 2px rgba(0,0,0,0.8);box-shadow:inset 0 1px 0 rgba(255,215,80,0.15),0 4px 20px rgba(0,0,0,0.4);letter-spacing:0.02em;"><span style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);font-weight:900;">VVIP</span> 자미두수 · <span style="color:#c0c0c0;text-shadow:0 0 8px rgba(192,192,192,0.4);font-weight:800;">SILVER</span> 점성술 · <span style="color:#c0c0c0;text-shadow:0 0 8px rgba(192,192,192,0.4);font-weight:800;">SILVER</span> 숙요점 · <span style="color:#c0c0c0;text-shadow:0 0 8px rgba(192,192,192,0.4);font-weight:800;">SILVER</span> 베다 · <span style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);font-weight:900;">VVIP+</span> 명운 작명</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -2326,28 +2330,28 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <div class="feat-collection__grid feat-collection__grid--2col">
                 <button type="button" class="tarot-tile prem-card prem-card--ziwei" data-action="gotoZiweiPremium" data-coin-cost="590">
                   <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄 PDF" loading="lazy" decoding="async">
-                  <strong>자미두수 프리미엄 PDF</strong>
-                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">13챕터 · 12궁/사화/대한 심층 분석</span>
+                  <strong style="color:#ffffff;text-shadow:0 2px 4px rgba(0,0,0,0.6);">자미두수 프리미엄 PDF</strong>
+                  <span style="color:rgba(255,255,255,0.95);text-shadow:0 1px 3px rgba(0,0,0,0.8);">13챕터 심층 리포트 — 12궁별 운세·사화(四化) 변화·10년 대운 흐름·월운/일운 상세 분석·길흉 전략까지, 명리학의 정수를 담은 VVIP 전용 자미두수 해석서</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--astro" data-action="gotoAstrologyPremium" data-coin-cost="390">
                   <img src="/fuctionassets/premiumstar.webp" alt="서양 점성술 프리미엄 PDF" loading="lazy" decoding="async">
-                  <strong>서양 점성술 PDF</strong>
-                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">12하우스 · ASC/Sun/Moon · 트랜짓</span>
+                  <strong style="color:#ffffff;text-shadow:0 2px 4px rgba(0,0,0,0.6);">서양 점성술 프리미엄 PDF</strong>
+                  <span style="color:rgba(255,255,255,0.95);text-shadow:0 1px 3px rgba(0,0,0,0.8);">12하우스 전 영역 분석 — 어센던트/태양/달의 위상·행성 트랜짓·역행 주기·타임라인 예측·시너지 해석까지, 현대 점성술의 모든 것을 담은 전문 리포트</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--sukuyo" data-action="gotoSukuyoPremium" data-coin-cost="390">
                   <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄 PDF" loading="lazy" decoding="async">
-                  <strong>숙요점 프리미엄 PDF</strong>
-                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">사주와 분리된 27수 숙요점 · 궁합/달빛 전략</span>
+                  <strong style="color:#ffffff;text-shadow:0 2px 4px rgba(0,0,0,0.6);">숙요점(宿曜占) 프리미엄 PDF</strong>
+                  <span style="color:rgba(255,255,255,0.95);text-shadow:0 1px 3px rgba(0,0,0,0.8);">27숙(二十七宿) 원리 기반 — 사주와 독립적인 운명 해석·궁합 상성 분석·달빛 위상별 운세 전략·연애/결혼/사업 적성 가이드까지, 동양 전통 별점술의 심층 리포트</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--veda" data-action="gotoVedicPremium" data-coin-cost="390">
                   <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄 PDF" loading="lazy" decoding="async">
-                  <strong>베다 인생 총람 PDF</strong>
-                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">라그나 · 나크샤트라 · 다샤 카르마 지도</span>
+                  <strong style="color:#ffffff;text-shadow:0 2px 4px rgba(0,0,0,0.6);">베다 점성술 인생 총람 PDF</strong>
+                  <span style="color:rgba(255,255,255,0.95);text-shadow:0 1px 3px rgba(0,0,0,0.8);">Vedic Astrology 전통 분석 — 라그나(승천점)·나크샤트라(27성좌)·다샤 보리(운세 주기)·카르마 지도·요가 조합·구제법까지, 인도 전통 천문학 기반 운명 가이드</span>
                 </button>
                 <button type="button" class="tarot-tile prem-card prem-card--naming" data-action="gotoNamingPremium" data-coin-cost="700" data-fallback-href="/myungwun_final.html">
                   <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명 PDF" loading="lazy" decoding="async">
-                  <strong>명운 프리미엄 작명</strong>
-                  <span style="color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.8);">용신 · 오행 · 81수리 기반 작명 리포트</span>
+                  <strong style="color:#ffffff;text-shadow:0 2px 4px rgba(0,0,0,0.6);">명운(明運) 프리미엄 작명 PDF</strong>
+                  <span style="color:rgba(255,255,255,0.95);text-shadow:0 1px 3px rgba(0,0,0,0.8);">사주 기반 맞춤 작명 — 용신(用神) 추출·오행(五行) 균형·81수리(數理) 길흉·음양(陰陽) 조화·한자 의미 분석·성명학적 운세 강화까지, 아이의 미래를 설계하는 고품격 작명 리포트</span>
                 </button>
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--premium-vvip -->
@@ -4433,7 +4437,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lovesim-tile__body">
               <h2 class="lovesim-tile__title">💕 LOVE CODE</h2>
               <p class="lovesim-tile__subtitle">사주 오행으로 찾는 운명의 소울메이트</p>
-              <p class="lovesim-tile__desc">생년월일시를 입력하면 사주 엔진이 오행·일간을 분석해 당신과 가장 닮은 가상의 상대방을 만들어냅니다</p>
+              <p class="lovesim-tile__desc">생년월일시를 입력하면 사주 엔진이 오행·일간을 분석해 가장 닮은 가상의 상대방을 만들어냅니다</p>
               <div class="lovesim-tile__features">
                 <span class="lovesim-feat">🔮 사주팔자 명식 분석</span>
                 <span class="lovesim-feat">💕 오행 연애 페르소나 매칭</span>
@@ -7461,6 +7465,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/vedic-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
+<script type="module" src="/static/js/router.js"></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 <!-- Feature Preview Panel v2 -->

@@ -1,4 +1,4 @@
-import HwatuLifeCardTest from "../../../components/HwatuLifeCardTest";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "화투 인생 패 테스트 — 7문항으로 내 인생 패 찾기 | Code Destiny",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function HwatuLifePlayPage() {
-  return <HwatuLifeCardTest />;
+  redirect("/static?service=hwatu-life&source=oracle-hwatu-life-play");
 }

@@ -1,5 +1,4 @@
-import LoveRelationshipTarot from "../../components/LoveRelationshipTarot";
-import FortunePageSEO from "../../components/FortunePageSEO";
+import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
@@ -18,8 +17,14 @@ export function generateMetadata() {
 
 export default function TarotLoveLandingPage() {
   return (
-    <FortunePageSEO {...META} hideHeader>
-      <LoveRelationshipTarot />
-    </FortunePageSEO>
+    <FeatureLandingPage
+      service={{
+        h1: "💕 우리는 무슨 사이?",
+        description: META.description,
+        ogImage: META.image,
+        landingPoints: META.featureList,
+        seoText: "실행은 /static 서비스 화면에서만 진행됩니다.",
+      }}
+    />
   );
 }

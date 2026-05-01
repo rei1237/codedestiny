@@ -1,4 +1,4 @@
-import MingriTarot from "../../../components/MingriTarot";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "명리학 타로 실행 | Code Destiny",
@@ -6,10 +6,5 @@ export const metadata = {
 };
 
 export default function MingriTarotPlayPage() {
-  return (
-    <MingriTarot
-      heading="명리학 타로"
-      subtitle="로컬 전용 실행 모드입니다. API 호출 없이 브라우저에서 바로 리딩합니다."
-    />
-  );
+  redirect("/static?service=tarot&source=tarot-mingri-play");
 }

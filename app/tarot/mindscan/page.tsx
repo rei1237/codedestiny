@@ -1,4 +1,4 @@
-import MindScanTarotClient from "./MindScanTarotClient";
+import FeatureLandingPage from "../../components/FeatureLandingPage";
 
 export const metadata = {
   title: "상대방의 정확한 속마음 알아보기 타로 | Code Destiny",
@@ -12,5 +12,19 @@ export const metadata = {
 };
 
 export default function MindScanTarotPage() {
-  return <MindScanTarotClient />;
+  return (
+    <FeatureLandingPage
+      service={{
+        h1: "🔮 속마음 알아보기 타로",
+        description: metadata.description,
+        ogImage: "https://code-destiny.com/fuctionassets/mindscantaro.webp",
+        landingPoints: [
+          "10카드 십자 스프레드",
+          "상대의 진짜 속마음 분석",
+          "관계 흐름/행동 조언",
+        ],
+        seoText: "실행은 /static 서비스 화면에서만 진행됩니다.",
+      }}
+    />
+  );
 }

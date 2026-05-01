@@ -1,5 +1,4 @@
-import SikojenpovailuApp from "../SikojenpovailuApp";
-import FortunePageSEO from "../../../components/FortunePageSEO";
+import { redirect } from "next/navigation";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
 
 const META = {
@@ -25,9 +24,5 @@ export function generateMetadata() {
 }
 
 export default function SikojenpovailuPlayPage() {
-  return (
-    <FortunePageSEO {...META} hideHeader>
-      <SikojenpovailuApp />
-    </FortunePageSEO>
-  );
+  redirect("/static?service=pig-oracle&source=oracle-sikojen-play");
 }

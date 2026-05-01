@@ -1800,6 +1800,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
+                  data-static-service="tarot"
                     data-coin-cost="0"
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
@@ -1856,6 +1857,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 화투점 -->
                 <button class="tarot-tile tarot-tile--hwatu" type="button"
                         data-action="openHwatuModal"
+                  data-static-service="hwatu-life"
                         aria-label="화투점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tazza.webp" data-img-alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🀄</span></div>
@@ -1914,7 +1916,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </button>
 
                 <!-- 스톤헨지 룬 오라클 -->
-                <a class="tarot-tile tarot-tile--rune-fc" href="/oracle/rune"
+                 <a class="tarot-tile tarot-tile--rune-fc" href="/static?service=stonehenge-rune"
+                   data-static-service="stonehenge-rune"
                    data-action="openRuneOracle"
                    data-coin-cost="50"
                    aria-label="스톤헨지 룬 오라클 시작">
@@ -1946,7 +1949,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </a>
 
                 <!-- 핀란드 주석점 -->
-                <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
+                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/static?service=pig-oracle"
+                   data-static-service="pig-oracle"
                    aria-label="핀란드 주석점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/piggyfortune.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
@@ -4332,7 +4336,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lovesim-tile__body">
               <h2 class="lovesim-tile__title">💕 LOVE CODE</h2>
               <p class="lovesim-tile__subtitle">사주 오행으로 찾는 운명의 소울메이트</p>
-              <p class="lovesim-tile__desc">생년월일시를 입력하면 사주 엔진이 오행·일간을 분석해 당신과 가장 닮은 가상의 상대방을 만들어냅니다</p>
+              <p class="lovesim-tile__desc">생년월일시를 입력하면 사주 엔진이 오행·일간을 분석해 가장 닮은 가상의 상대방을 만들어냅니다</p>
               <div class="lovesim-tile__features">
                 <span class="lovesim-feat">🔮 사주팔자 명식 분석</span>
                 <span class="lovesim-feat">💕 오행 연애 페르소나 매칭</span>
@@ -7360,6 +7364,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/vedic-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
+<script type="module" src="/static/js/router.js"></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 <!-- Feature Preview Panel v2 -->

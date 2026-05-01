@@ -699,10 +699,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     .pvc-subtitle  { color: rgba(212,175,55,0.82) !important; font-style: italic; }
     .pvc-lede      { color: rgba(240,220,150,0.72) !important; }
     .pvc-featureline {
-      border-color: rgba(212,175,55,0.35) !important;
-      background: rgba(20,16,0,0.55) !important;
-      color: rgba(240,210,100,0.9) !important;
-      letter-spacing: 0.02em;
+      border-color: rgba(212,175,55,0.45) !important;
+      background: linear-gradient(135deg, rgba(40,30,10,0.7) 0%, rgba(25,18,5,0.8) 100%) !important;
+      color: #fff8e1 !important;
+      letter-spacing: 0.03em;
+      text-shadow: 0 2px 8px rgba(212,175,55,0.6), 0 1px 2px rgba(0,0,0,0.8);
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255,215,80,0.15), 0 4px 20px rgba(0,0,0,0.4);
     }
     .pvc-divline  { background: linear-gradient(90deg,transparent,rgba(212,175,55,0.8),transparent) !important; }
     .pvc-gem      { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
@@ -1821,6 +1826,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
+                  data-static-service="tarot"
                     data-coin-cost="0"
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
@@ -1877,6 +1883,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 화투점 -->
                 <button class="tarot-tile tarot-tile--hwatu" type="button"
                         data-action="openHwatuModal"
+                  data-static-service="hwatu-life"
                         aria-label="화투점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tazza.webp" data-img-alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🀄</span></div>
@@ -1934,7 +1941,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </button>
 
                 <!-- 스톤헨지 룬 오라클 -->
-                <a class="tarot-tile tarot-tile--rune-fc" href="/oracle/rune"
+                 <a class="tarot-tile tarot-tile--rune-fc" href="/static?service=stonehenge-rune"
+                   data-static-service="stonehenge-rune"
                    data-action="openRuneOracle"
                    data-coin-cost="50"
                    aria-label="스톤헨지 룬 오라클 시작">
@@ -1966,7 +1974,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </a>
 
                 <!-- 핀란드 주석점 -->
-                <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
+                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/static?service=pig-oracle"
+                   data-static-service="pig-oracle"
                    aria-label="핀란드 주석점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/piggyfortune.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
@@ -2290,7 +2299,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <h3 class="feat-collection__title pvc-title">프리미엄 PDF 운명 분석</h3>
                 <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 정밀 명반 · 즉시 PDF 저장</p>
                 <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 비법을 AI와 결합. 생성 즉시 PDF로 저장되는 VVIP 전용 운명 심층 분석 컬렉션입니다.</p>
-                <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 PDF&nbsp;·&nbsp;점성술 PDF&nbsp;·&nbsp;숙요점 PDF&nbsp;·&nbsp;베다 점성술 PDF ✦</p>
+                <p class="feat-collection__featureline pvc-featureline">✦ <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 자미두수 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 점성술 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 숙요점 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 베다 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 작명 ✦</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem pvc-gem">◆</span>
                   <span class="fc-div-line pvc-divline"></span>
@@ -4618,10 +4627,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     .pvc-subtitle  { color: rgba(212,175,55,0.82) !important; font-style: italic; }
     .pvc-lede      { color: rgba(240,220,150,0.72) !important; }
     .pvc-featureline {
-      border-color: rgba(212,175,55,0.35) !important;
-      background: rgba(20,16,0,0.55) !important;
-      color: rgba(240,210,100,0.9) !important;
-      letter-spacing: 0.02em;
+      border-color: rgba(212,175,55,0.45) !important;
+      background: linear-gradient(135deg, rgba(40,30,10,0.7) 0%, rgba(25,18,5,0.8) 100%) !important;
+      color: #fff8e1 !important;
+      letter-spacing: 0.03em;
+      text-shadow: 0 2px 8px rgba(212,175,55,0.6), 0 1px 2px rgba(0,0,0,0.8);
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255,215,80,0.15), 0 4px 20px rgba(0,0,0,0.4);
     }
     .pvc-divline  { background: linear-gradient(90deg,transparent,rgba(212,175,55,0.8),transparent) !important; }
     .pvc-gem      { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
@@ -6209,7 +6223,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <h3 class="feat-collection__title pvc-title">프리미엄 PDF 운명 분석</h3>
                 <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 정밀 명반 · 즉시 PDF 저장</p>
                 <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 비법을 AI와 결합. 생성 즉시 PDF로 저장되는 VVIP 전용 운명 심층 분석 컬렉션입니다.</p>
-                <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 PDF&nbsp;·&nbsp;점성술 PDF&nbsp;·&nbsp;숙요점 PDF&nbsp;·&nbsp;베다 점성술 PDF ✦</p>
+                <p class="feat-collection__featureline pvc-featureline">✦ <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 자미두수 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 점성술 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 숙요점 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 베다 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 작명 ✦</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem pvc-gem">◆</span>
                   <span class="fc-div-line pvc-divline"></span>
@@ -7872,10 +7886,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="VVIP 프리미엄 PDF 컬렉션 열기">
             <div class="feat-collection__icon pvc-crown-icon" aria-hidden="true">♛</div>
             <div class="pvc-header-badge" aria-hidden="true">VVIP · PREMIUM</div>
-            <h3 class="feat-collection__title pvc-title">프리미엄 PDF 운명 분석</h3>
-            <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 정밀 명반 · 즉시 PDF 저장</p>
-            <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 비법을 AI와 결합. 생성 즉시 PDF로 저장되는 VVIP 전용 운명 심층 분석 컬렉션입니다.</p>
-            <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 PDF&nbsp;·&nbsp;점성술 PDF&nbsp;·&nbsp;숙요점 PDF&nbsp;·&nbsp;베다 점성술 PDF ✦</p>
+            <h3 class="feat-collection__title pvc-title" style="color:#ffffff;text-shadow:0 2px 8px rgba(0,0,0,0.6);">프리미엄 PDF 운명 분석 컬렉션</h3>
+            <p class="feat-collection__subtitle pvc-subtitle" style="color:rgba(255,255,255,0.92);text-shadow:0 1px 4px rgba(0,0,0,0.5);">동서양 5대 운명 체계를 AI가 통합 분석하여 즉시 PDF 리포트로 제공합니다</p>
+            <p class="feat-collection__lede pvc-lede" style="color:rgba(255,255,255,0.85);">명리학(자미두수), 서양 점성술, 27숙 숙요점, 베다 점성술, 사주 기반 명운 작명까지 — 각 분야의 핵심 원리를 정밀 분석하여 맞춤형 인사이트와 전략적 가이드를 고품질 PDF로 제작합니다. 언제 어디서든 오프라인으로 열람 가능한 나만의 운명 설계도를 소장하세요.</p>
+            <p class="feat-collection__featureline pvc-featureline">✦ <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 자미두수 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 점성술 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 숙요점 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 베다 · <strong style="color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.6);">PREMIUM</strong> 작명 ✦</p>
             <div class="feat-collection__divider" aria-hidden="true">
               <span class="fc-div-gem pvc-gem">◆</span>
               <span class="fc-div-line pvc-divline"></span>
@@ -7906,13 +7920,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">590코인</span>
           </div>
           <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-            <p style="color:rgba(167,139,250,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">자미두수 · 紫微斗數 · Ziwei Premium</p>
-            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">🌌 紫微 인생 총람 PDF북</p>
-            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
-              🌌 13챕터 · 12궁 완전 분析 — AI 심층 인생 총람<br>
-              👑 천직·재물·인연·건강·교우·처세술 완전 해독<br>
-              🌊 대한(大限) 10년 맥락 + 2026 소한 전술 로드맵<br>
-              📖 생성 즉시 PDF 저장 · 거장의 마스터플랜 봉서
+            <p style="color:rgba(167,139,250,0.8);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">자미두수 · 紫微斗數 · Ziwei Premium</p>
+            <p style="color:#ffffff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;text-shadow:0 2px 4px rgba(0,0,0,0.6);">🌌 자미두수 프리미엄 PDF</p>
+            <p style="color:rgba(255,255,255,0.9);font-size:0.75rem;line-height:1.7;margin:0;">
+              13챕터 심층 리포트 — 12궁별 상세 운세·사화(四化) 변화 분석·10년 대운(大限) 흐름 예측·월운/일운 세부 가이드·길흉 전략 수립까지, 중화 명리학의 정수를 담은 VVIP 전용 자미두수 해석서. 590코인으로 생성 즉시 PDF 저장 가능합니다.
             </p>
             <div style="margin-top:auto;padding-top:10px;">
               <span style="display:inline-block;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(167,139,250,0.12));border:1px solid rgba(167,139,250,0.38);color:rgba(196,181,253,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">🌌 나만의 자미두수 인생 총람 PDF 생성하기</span>
@@ -7939,12 +7950,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">390코인</span>
           </div>
           <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-            <p style="color:rgba(253,230,138,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">점성술 · Cosmic Chart Premium</p>
-            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">✨ 점성술 코즈믹 차트</p>
-            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
-              ☀ 태양·달·상승궁 3각 에너지 + 차트 룰러 완전 분析<br>
-              🪐 12하우스 영역별 재물·사랑·직업·카르마 운세<br>
-              🪐 390코인 — 12챕터 분析 후 PDF 즉시 저장
+            <p style="color:rgba(253,230,138,0.8);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">점성술 · Astrology Premium</p>
+            <p style="color:#ffffff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;text-shadow:0 2px 4px rgba(0,0,0,0.6);">✨ 서양 점성술 프리미엄 PDF</p>
+            <p style="color:rgba(255,255,255,0.9);font-size:0.75rem;line-height:1.7;margin:0;">
+              12하우스 전 영역 심층 분석 — 어센던트(ASC)/태양/달의 위상·행성 트랜짓·역행 주기·타임라인 예측·시너지 해석까지, 현대 서양 점성술의 모든 것을 담은 전문 리포트. 390코인으로 생성 즉시 PDF 저장 가능합니다.
             </p>
             <div style="margin-top:auto;padding-top:10px;">
               <span style="display:inline-block;background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(253,230,138,0.1));border:1px solid rgba(251,191,36,0.45);color:rgba(253,230,138,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✨ 나의 코즈믹 차트 생성하기</span>
@@ -7971,12 +7980,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">390코인</span>
           </div>
           <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-            <p style="color:rgba(125,211,252,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">숙요점 · 宿曜占 Premium</p>
-            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">💫 숙요점(宿曜占) 궁합 분석</p>
-            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
-              🌙 에도 막부가 금서로 지정한 27수 비전<br>
-              💑 소울메이트 vs 독성 관계 정밀 판별<br>
-              💫 390코인 — 숙요 궁합 정밀 분析
+            <p style="color:rgba(125,211,252,0.8);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">숙요점 · 宿曜占 · Sukuyo Premium</p>
+            <p style="color:#ffffff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;text-shadow:0 2px 4px rgba(0,0,0,0.6);">💫 숙요점(宿曜占) 프리미엄 PDF</p>
+            <p style="color:rgba(255,255,255,0.9);font-size:0.75rem;line-height:1.7;margin:0;">
+              27숙(二十七宿) 원리 기반 심층 분석 — 사주와 독립적인 운명 해석·궁합 상성 분석·달빛 위상별 운세 전략·연애/결혼/사업 적성 가이드까지, 동양 전통 별점술의 모든 것을 담은 리포트. 390코인으로 생성 즉시 PDF 저장 가능합니다.
             </p>
             <div style="margin-top:auto;padding-top:10px;">
               <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
@@ -8003,11 +8010,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">390코인</span>
           </div>
           <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-            <p style="color:rgba(253,186,116,0.70);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">베다 점성술 · Vedic Astrology Premium</p>
-            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">🪐 베다 인생 총람 리포트</p>
-            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
-              🌟 인도 고대 조티쉬 베다 점성술 정밀 분석<br>
-              🪐 390코인 — 베다 운명 완전 해석
+            <p style="color:rgba(253,186,116,0.85);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">베다 점성술 · Vedic Astrology Premium</p>
+            <p style="color:#ffffff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;text-shadow:0 2px 4px rgba(0,0,0,0.6);">🪐 베다 점성술 인생 총람 PDF</p>
+            <p style="color:rgba(255,255,255,0.9);font-size:0.75rem;line-height:1.7;margin:0;">
+              Vedic Astrology 전통 기반 심층 분석 — 라그나(승천점)/나크샤트라(27성좌)/다샤 보리(운세 주기)/카르마 지도/요가 조합/구제법까지, 인도 전통 조티쉬 천문학의 모든 것을 담은 리포트. 390코인으로 생성 즉시 PDF 저장 가능합니다.
             </p>
             <div style="margin-top:auto;padding-top:10px;">
               <span style="display:inline-block;background:linear-gradient(135deg,rgba(234,88,12,0.2),rgba(251,146,60,0.1));border:1px solid rgba(251,146,60,0.50);color:rgba(253,186,116,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 베다 운명 열기</span>
@@ -8034,11 +8040,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">700코인</span>
           </div>
           <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-            <p style="color:rgba(245,226,122,0.72);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">명운 · Naming Premium</p>
-            <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">✍️ 명운(明運) 사주 프리미엄 작명</p>
-            <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
-              🔮 서비스 만세력 엔진 기반 용신·오행 정밀 반영<br>
-              🪙 700코인 — 프리미엄 작명 리포트
+            <p style="color:rgba(245,226,122,0.85);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">명운 작명 · Naming Premium</p>
+            <p style="color:#ffffff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;text-shadow:0 2px 4px rgba(0,0,0,0.6);">✍️ 명운(明運) 프리미엄 작명 PDF</p>
+            <p style="color:rgba(255,255,255,0.9);font-size:0.75rem;line-height:1.7;margin:0;">
+              사주 기반 맞춤 작명 리포트 — 용신(用神) 추출·오행(五行) 균형·81수리(數理) 길흉·음양(陰陽) 조화·한자 의미 분석·성명학적 운세 강화까지, 아이의 미래를 설계하는 고품격 작명 해석서. 700코인으로 생성 즉시 PDF 저장 가능합니다.
             </p>
             <div style="margin-top:auto;padding-top:10px;">
               <span style="display:inline-block;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(245,226,122,0.1));border:1px solid rgba(212,175,55,0.50);color:rgba(245,226,122,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나만의 작명 리포트 시작하기</span>
@@ -8056,6 +8061,75 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
+      <style>
+        /* 대운 섹션 프리미엄 헤더 가독성 개선 */
+        .daewun-premium-header {
+          text-align: center;
+          padding: 24px 16px 16px;
+          margin-bottom: 16px;
+          background: linear-gradient(180deg,
+            rgba(212, 175, 55, 0.08) 0%,
+            rgba(212, 175, 55, 0.02) 50%,
+            transparent 100%);
+          border-radius: 16px 16px 0 0;
+          border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        .daewun-premium-header .dph-label {
+          display: inline-block;
+          padding: 5px 14px;
+          background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.08));
+          border: 1.5px solid rgba(212, 175, 55, 0.45);
+          border-radius: 20px;
+          font-size: 0.65rem;
+          font-weight: 800;
+          letter-spacing: 0.18em;
+          color: #d4af37;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+          margin-bottom: 14px;
+        }
+        .daewun-premium-header .dph-headline {
+          font-size: clamp(1.25rem, 4vw, 1.6rem);
+          font-weight: 800;
+          color: #fff8e7;
+          line-height: 1.4;
+          margin: 0 0 8px 0;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+          letter-spacing: -0.01em;
+        }
+        .daewun-premium-header .dph-headline .hanja {
+          color: #ffd700;
+          font-weight: 900;
+          text-shadow: 0 0 16px rgba(255, 215, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        .daewun-premium-header .dph-subtitle {
+          font-size: clamp(1rem, 3vw, 1.25rem);
+          font-weight: 700;
+          color: #f0d060;
+          margin: 0 0 10px 0;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+        }
+        .daewun-premium-header .dph-desc {
+          font-size: 0.85rem;
+          line-height: 1.7;
+          color: rgba(255, 248, 231, 0.88);
+          margin: 0;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+        .daewun-premium-header .dph-desc .highlight {
+          color: #ffd700;
+          font-weight: 700;
+        }
+        .daewun-premium-header .dph-desc .blueprint {
+          color: #a78bfa;
+          font-weight: 700;
+        }
+      </style>
+      <div class="daewun-premium-header">
+        <span class="dph-label">PREMIUM ANALYSIS</span>
+        <h3 class="dph-headline">당신의 <span class="hanja">運命</span>을 전략으로 바꾸는</h3>
+        <p class="dph-subtitle">심층 분석 3종 세트</p>
+        <p class="dph-desc">사주팔자의 전략적 해석 — <span class="highlight">단순 운세 이상의</span> <span class="blueprint">인생 설계도</span>를 제공합니다</p>
+      </div>
       <h3 id="daewunTitle" class="sec-title">🔮 대운 (大運) — 억부+조후+종격 통합 판단 <span class="sec-tier-badge sec-tier-badge--paid">PREMIUM</span></h3>
       <div class="cd-section-gate" id="daewunGate">
         <div class="cd-section-gate__overlay">
@@ -8412,7 +8486,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lovesim-tile__body">
               <h2 class="lovesim-tile__title">💕 LOVE CODE</h2>
               <p class="lovesim-tile__subtitle">사주 오행으로 찾는 운명의 소울메이트</p>
-              <p class="lovesim-tile__desc">생년월일시를 입력하면 사주 엔진이 오행·일간을 분석해 당신과 가장 닮은 가상의 상대방을 만들어냅니다</p>
+              <p class="lovesim-tile__desc">생년월일시를 입력하면 사주 엔진이 오행·일간을 분석해 가장 닮은 가상의 상대방을 만들어냅니다</p>
               <div class="lovesim-tile__features">
                 <span class="lovesim-feat">🔮 사주팔자 명식 분석</span>
                 <span class="lovesim-feat">💕 오행 연애 페르소나 매칭</span>
@@ -11400,6 +11474,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/vedic-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
+<script type="module" src="/static/js/router.js"></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 <!-- Feature Preview Panel v2 -->

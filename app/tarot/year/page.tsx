@@ -1,5 +1,4 @@
-import TarotYearFortuneClient from "../../components/TarotYearFortuneClient";
-import FortunePageSEO from "../../components/FortunePageSEO";
+import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
@@ -18,8 +17,14 @@ export function generateMetadata() {
 
 export default function TarotYearLandingPage() {
   return (
-    <FortunePageSEO {...META} hideHeader>
-      <TarotYearFortuneClient />
-    </FortunePageSEO>
+    <FeatureLandingPage
+      service={{
+        h1: "십이지신 천운(天運)",
+        description: META.description,
+        ogImage: META.image,
+        landingPoints: META.featureList,
+        seoText: "실행은 /static 서비스 화면에서만 진행됩니다.",
+      }}
+    />
   );
 }
