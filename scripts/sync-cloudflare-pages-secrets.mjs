@@ -22,6 +22,7 @@ function isUsableEnvValue(rawValue) {
   const upper = value.toUpperCase();
   const placeholderMarkers = [
     "CHANGE_ME",
+    "PLEASE_CHANGE",
     "PUT_32_CHAR_RANDOM_HASH_HERE",
     "YOUR_",
     "EXAMPLE",
@@ -32,7 +33,11 @@ function isUsableEnvValue(rawValue) {
 }
 
 function loadEnvPreferUsable(filePath) {
-  const parsed = dotenv.parse(readFileSync(filePath, "utf8"));
+  const fileText = readFileSync(filePath, "utf8");
+  const parsed = {
+    ...parseRelaxedEnv(fileText),
+    ...dotenv.parse(fileText),
+  };
   for (const [key, value] of Object.entries(parsed)) {
     const current = process.env[key];
     const currentUsable = isUsableEnvValue(current);
@@ -42,6 +47,58 @@ function loadEnvPreferUsable(filePath) {
       process.env[key] = String(value).trim();
     }
   }
+}
+
+function normalizeEnvKey(rawKey) {
+  return String(rawKey || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/-/g, "_")
+    .toUpperCase();
+}
+
+function unquoteValue(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  if (
+    (value.startsWith('"') && value.endsWith('"'))
+    || (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
+}
+
+function parseRelaxedEnv(fileText) {
+  const parsed = {};
+  const lines = String(fileText || "").split(/\r?\n/);
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    let key = "";
+    let value = "";
+
+    const equalMatch = rawLine.match(/^\s*([^=]+?)\s*=\s*(.*)$/);
+    if (equalMatch) {
+      key = equalMatch[1];
+      value = equalMatch[2];
+    } else {
+      const colonMatch = rawLine.match(/^\s*([^:#=][^:]*?)\s*:\s*(.*)$/);
+      if (!colonMatch) continue;
+      key = colonMatch[1];
+      value = colonMatch[2];
+    }
+
+    const normalizedKey = normalizeEnvKey(key);
+    if (!normalizedKey) continue;
+    parsed[normalizedKey] = unquoteValue(value);
+  }
+
+  return parsed;
 }
 
 for (const envFile of envFiles) {
@@ -91,7 +148,6 @@ const SECRET_KEYS = [
   "AUTH_TRUST_HOST",
   "ADMIN_SECRET_HASH",
   "AUTH_API_BASE_URL",
-  "AUTH_FRONTEND_BASE_URL",
   "GOOGLE_OAUTH_CLIENT_ID",
   "GOOGLE_OAUTH_CLIENT_SECRET",
   "NAVER_OAUTH_CLIENT_ID",
