@@ -229,7 +229,7 @@ async function proxyFrontendRequest(request, env) {
     return jsonResponse(request, env, {
       ok: false,
       error: "frontend_proxy_origin_missing",
-      message: "Set FRONTEND_PROXY_ORIGIN to your Cloudflare Pages domain.",
+      message: "Set FRONTEND_PROXY_ORIGIN to your frontend custom domain.",
     }, { status: 503 });
   }
 
