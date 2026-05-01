@@ -1479,6 +1479,7 @@ window.addEventListener('cd:auth-changed', function() {
 });
 
 var __cdLazyActionLoaders = {
+  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },

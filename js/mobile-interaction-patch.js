@@ -244,6 +244,62 @@
       ].join(',')
     },
     {
+      action: 'startMindScanTarot',
+      cardSelector: '.tarot-tile--mindscan',
+      targetSelector: [
+        '[data-action="startMindScanTarot"]',
+        '.tarot-tile--mindscan',
+        '.tarot-tile--mindscan .tarot-tile__img-wrap',
+        '.tarot-tile--mindscan .tarot-tile__img',
+        '.tarot-tile--mindscan .tarot-tile__badge',
+        '.tarot-tile--mindscan .tarot-tile__title',
+        '.tarot-tile--mindscan .tarot-tile__desc',
+        '.tarot-tile--mindscan .tarot-tile__body'
+      ].join(',')
+    },
+    {
+      action: 'startCrystalSoulTarot',
+      cardSelector: '.tarot-tile--crystal-soul',
+      targetSelector: [
+        '[data-action="startCrystalSoulTarot"]',
+        '.tarot-tile--crystal-soul',
+        '.tarot-tile--crystal-soul .tarot-tile__img-wrap',
+        '.tarot-tile--crystal-soul .tarot-tile__img',
+        '.tarot-tile--crystal-soul .tarot-tile__badge',
+        '.tarot-tile--crystal-soul .tarot-tile__title',
+        '.tarot-tile--crystal-soul .tarot-tile__desc',
+        '.tarot-tile--crystal-soul .tarot-tile__body'
+      ].join(',')
+    },
+    {
+      action: 'openZiweiModal',
+      cardSelector: '.tarot-tile--ziwei-fc',
+      targetSelector: [
+        '[data-action="openZiweiModal"]',
+        '.tarot-tile--ziwei-fc',
+        '.tarot-tile--ziwei-fc .tarot-tile__img-wrap',
+        '.tarot-tile--ziwei-fc .tarot-tile__img',
+        '.tarot-tile--ziwei-fc .tarot-tile__badge',
+        '.tarot-tile--ziwei-fc .tarot-tile__title',
+        '.tarot-tile--ziwei-fc .tarot-tile__desc',
+        '.tarot-tile--ziwei-fc .tarot-tile__body'
+      ].join(',')
+    },
+    {
+      action: 'navigateToZiweiChart',
+      cardSelector: '.tarot-tile--ziwei-deep',
+      targetSelector: [
+        '[data-action="navigateToZiweiChart"]',
+        '.tarot-tile--ziwei-deep',
+        '.tarot-tile--ziwei-deep .tarot-tile__img-wrap',
+        '.tarot-tile--ziwei-deep .tarot-tile__img',
+        '.tarot-tile--ziwei-deep .tarot-tile__badge',
+        '.tarot-tile--ziwei-deep .tarot-tile__title',
+        '.tarot-tile--ziwei-deep .tarot-tile__desc',
+        '.tarot-tile--ziwei-deep .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'openDreamModal',
       cardSelector: '.tarot-tile--dream-tile',
       targetSelector: [
@@ -565,6 +621,7 @@
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js'
     ],
+    openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
     // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
     openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'],
