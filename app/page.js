@@ -1,11 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-
+/**
+ * MAIN ENTRY RULE:
+ * - 메인 서비스 화면은 정적 서비스 화면(public/static/index.html)이 기준이다.
+ * - React 홈은 보조 랜딩으로 /landing 경로에서만 사용한다.
+ */
 export default function Home() {
-  useEffect(() => {
-    window.location.replace("/static/index.html");
-  }, []);
-
-  return null;
+  redirect("/static/index.html");
 }

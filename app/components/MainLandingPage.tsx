@@ -10,6 +10,8 @@ import type { ServiceCardModel } from "./ServiceCard";
 import GlobalPricingCard from "./GlobalPricingCard";
 import GlobalTrustSection from "./GlobalTrustSection";
 
+// AUXILIARY LANDING (React Home): 메인 서비스 기준 화면은 public/static/index.html 의 inputPage.
+
 type FormState = {
   name: string;
   birthDate: string;

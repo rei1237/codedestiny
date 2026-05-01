@@ -4,6 +4,10 @@ import { FaqJsonLd } from "./components/SeoJsonLd";
 import { HOME_FAQ_ITEMS, HOME_FAQ_SECTION_COPY } from "./_content/seo-copy";
 import MainLandingPage from "./components/MainLandingPage";
 
+/**
+ * AUXILIARY LANDING (React Home)
+ * 루트 메인 서비스는 static inputPage이며, 본 컴포넌트는 보조 랜딩 경로에서만 사용한다.
+ */
 export default function HomeClient() {
   return (
     <>
