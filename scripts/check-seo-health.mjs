@@ -2,11 +2,11 @@
 const BASE = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 
 const targets = [
-  // "/" and locale roots → 200 (rewrite serves legacy HTML; URL unchanged).
-  { path: "/", allowRedirect: false },
-  // Direct /static/ variants should normalize to / (single canonical URL).
-  { path: "/static/", allowRedirect: true },
-  // Direct /static/index.html → 308 to / (canonical).
+  // Root must redirect to /static/ (single canonical URL).
+  { path: "/", allowRedirect: true },
+  // Canonical entry should resolve directly.
+  { path: "/static/", allowRedirect: false },
+  // Legacy static index should normalize to /static/.
   { path: "/static/index.html", allowRedirect: true },
   { path: "/sitemap.xml", allowRedirect: false },
   { path: "/robots.txt", allowRedirect: false },

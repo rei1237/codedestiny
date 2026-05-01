@@ -98,20 +98,28 @@ export function middleware(request) {
   }
 
   /**
-   * Address bar stays https://code-destiny.com/.
-   * /static variants are treated as legacy entry paths and normalized to /.
+   * Canonical entry path is /static/.
+   * Root and legacy index paths are normalized to /static/.
    */
-  if (pathname === "/static" || pathname === "/static/" || pathname === "/static/index.html") {
+  if (pathname === "/" || pathname === "/index.html") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/static/";
     url.search = search;
     return NextResponse.redirect(url, 308);
   }
-  if (pathname === "/index.html") {
+
+  if (pathname === "/static") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/static/";
     url.search = search;
-    return NextResponse.redirect(url, 301);
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (pathname === "/static/index.html") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/static/";
+    url.search = search;
+    return NextResponse.redirect(url, 308);
   }
 
   // Keep legacy/static pages referencing an icon path without 404ing.

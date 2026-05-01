@@ -1,4 +1,4 @@
-import HomeClient from "./HomeClient";
+import { redirect } from "next/navigation";
 
 /**
  * MAIN ENTRY RULE:
@@ -6,5 +6,5 @@ import HomeClient from "./HomeClient";
  * - React 홈은 보조 랜딩으로 /landing 경로에서만 사용한다.
  */
 export default function Home() {
-  return <HomeClient />;
+  redirect("/static/");
 }
