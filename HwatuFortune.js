@@ -3,16 +3,16 @@
 
 /* ── 화투 이미지 경로 헬퍼 ── */
 function hwatuImg(month, index) {
-    return 'sudda/hwatu/' + month + '_' + index + '.webp';
+    return '/sudda/hwatu/' + month + '_' + index + '.webp';
 }
 
 const TAZZA_SYSTEM = {
     CHARACTERS: {
-        master: { name: '퐁퐁장', image: 'sudda/master.webp', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
-        goni: { name: '꼬니', image: 'sudda/goni.webp', tone: 'fortune', catchphrase: '"이게 내 팔자인가 보지. 한 판 화끈하게 뒤집어볼까?"' },
-        madam: { name: '천마담', image: 'sudda/madam.webp', tone: 'love', catchphrase: '"나 서울대 나온 여자야. 격조 있는 운세만 내놓을게."' },
-        agui: { name: '아구', image: 'sudda/agui.webp', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
-        gosu: { name: '짝꿍', image: 'sudda/gosu.webp', tone: 'insight', catchphrase: '"기술이 아니라 심리전이야. 니 속마음… 다 들여다보인다."' }
+        master: { name: '퐁퐁장', image: '/sudda/master.webp', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
+        goni: { name: '꼬니', image: '/sudda/goni.webp', tone: 'fortune', catchphrase: '"이게 내 팔자인가 보지. 한 판 화끈하게 뒤집어볼까?"' },
+        madam: { name: '천마담', image: '/sudda/madam.webp', tone: 'love', catchphrase: '"나 서울대 나온 여자야. 격조 있는 운세만 내놓을게."' },
+        agui: { name: '아구', image: '/sudda/agui.webp', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
+        gosu: { name: '짝꿍', image: '/sudda/gosu.webp', tone: 'insight', catchphrase: '"기술이 아니라 심리전이야. 니 속마음… 다 들여다보인다."' }
     },
 
     /*
@@ -617,11 +617,11 @@ function injectHwatuHTML() {
         
         <div class="vignette-overlay"></div><div id="goldAura" class="gold-aura"></div><div class="flickering-lamp"></div>
         <div class="tazza-hero-bg">
-            <img src="sudda/goni.webp" class="tazza-hero-img">
-            <img src="sudda/madam.webp" class="tazza-hero-img">
-            <img src="sudda/agui.webp" class="tazza-hero-img">
-            <img src="sudda/gosu.webp" class="tazza-hero-img">
-            <img src="sudda/master.webp" class="tazza-hero-img">
+            <img src="/sudda/goni.webp" class="tazza-hero-img">
+            <img src="/sudda/madam.webp" class="tazza-hero-img">
+            <img src="/sudda/agui.webp" class="tazza-hero-img">
+            <img src="/sudda/gosu.webp" class="tazza-hero-img">
+            <img src="/sudda/master.webp" class="tazza-hero-img">
         </div>
         <div class="hwatu-table" style="position: relative; z-index: 2;">
             <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">화투 운세: 신의 손길</h2>
@@ -1043,7 +1043,7 @@ window.startShuffleSequence = function() {
     for(let i=0; i<4; i++) {
         const char = TAZZA_SYSTEM.CHARACTERS[charKeys[i]];
         const pos = positions[i];
-        document.getElementById(`tc${pos}Img`).src = char.image || 'icons/honeypig.svg';
+        document.getElementById(`tc${pos}Img`).src = char.image || '/icons/honeypig.svg';
         document.getElementById(`tc${pos}Name`).innerText = char.name;
         document.getElementById(`tc${pos}Text`).innerText = char.catchphrase;
     }
@@ -1193,7 +1193,7 @@ function showReveal() {
         document.getElementById('jokboName').innerText = "【 " + jokbo + " 】";
         let charHTML = `
             <div style="display:flex;align-items:center;margin-bottom:20px;background:rgba(0,0,0,0.4);padding:15px;border-radius:10px;border-left:4px solid #d4af37;">
-                <img src="${character.image || 'icons/honey%20manse.png'}" style="width:70px;height:70px;border-radius:50%;margin-right:15px;border:2px solid #d4af37;box-shadow:0 0 10px rgba(251,191,36,0.2);">
+                <img src="${character.image || '/icons/honey%20manse.png'}" style="width:70px;height:70px;border-radius:50%;margin-right:15px;border:2px solid #d4af37;box-shadow:0 0 10px rgba(251,191,36,0.2);">
                 <div style="flex:1;">
                     <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:5px;">${character.name} 가 말하길..</div>
                     <div style="color:#facc15;font-weight:bold;font-style:italic;line-height:1.4;">${character.catchphrase}</div>
@@ -1742,7 +1742,7 @@ window.shareHwatuLifeCard = function() {
                 content: {
                     title: '화투 인생 패: ' + result.name,
                     description: result.cardTitle + ' | ' + result.tagline,
-                    imageUrl: window.location.origin + '/' + ((resolved && resolved.image) ? resolved.image : result.image),
+                    imageUrl: window.location.origin + String((resolved && resolved.image) ? resolved.image : result.image || '').replace(/^\//, '/'),
                     link: {
                         mobileWebUrl: window.location.href,
                         webUrl: window.location.href
@@ -2432,6 +2432,7 @@ function _showTradResult() {
 
     _tradState = null;
 }
+
 
 
 
