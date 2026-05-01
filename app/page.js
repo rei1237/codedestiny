@@ -1,20 +1,20 @@
 "use client";
 
-import React, { use } from "react";
+import React, { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import MysticalLanding from "./components/MysticalLanding";
 import { FaqJsonLd } from "./components/SeoJsonLd";
 
 /**
  * Next.js 15 Migration:
- * This page is now a Client Component to support styled-jsx and interactive elements
- * used in MysticalLanding and other UI components.
- * 
- * Note: Metadata is now handled via layout.js for the root path.
+ * This page is now a Client Component to support styled-jsx and interactive elements.
+ * To support Static Export (output: 'export'), we use useSearchParams() inside Suspense
+ * instead of accessing searchParams props directly, which would force dynamic rendering.
  */
 
-export default function Home(props) {
-  // Next.js 15: searchParams is a Promise in Client Components
-  const searchParams = use(props.searchParams);
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const showLegacy = searchParams.get("legacy") === "true";
 
   const faqData = [
     {
@@ -35,7 +35,6 @@ export default function Home(props) {
     <>
       <FaqJsonLd faqs={faqData} />
       
-      {/* New Mystical Landing Page UI */}
       <MysticalLanding />
 
       <section style={{ padding: "4rem 2rem", background: "#0f0920", borderTop: "1px solid #2a1b52" }}>
@@ -59,5 +58,13 @@ export default function Home(props) {
         </div>
       </footer>
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }
