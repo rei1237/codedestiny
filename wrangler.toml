@@ -1,5 +1,22 @@
-name = "codedestiny"
+name = "code-destiny-web"
+main = "worker/index.js"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
-# API 라우팅은 _redirects 파일에서 처리
-# /api/* -> https://code-destiny-web.bulegyung.workers.dev/api/*
+# Root fallback config:
+# - `wrangler pages deploy` uses pages_build_output_dir for frontend assets.
+# - `wrangler deploy` now has a valid Worker entrypoint and won't fail with
+#   "Missing entry-point to Worker script" in CI/dashboard misconfiguration.
+
+[vars]
+NODE_ENV = "production"
+AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"
+SITE_BASE_URL = "https://code-destiny.com"
+AUTH_API_BASE_URL = "https://code-destiny-web.bulegyung.workers.dev"
+AUTH_SIGNUP_BONUS_POINTS = "50"
+MONGO_SERVER_SELECTION_TIMEOUT_MS = "5000"
+MONGO_CONNECT_TIMEOUT_MS = "5000"
+MONGO_SOCKET_TIMEOUT_MS = "15000"
+MONGO_WORKER_CONNECT_GUARD_MS = "8000"
+MONGO_IP_FAMILY = "4"
