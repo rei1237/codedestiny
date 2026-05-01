@@ -1,4 +1,4 @@
-import FeatureLandingPage from "../../components/FeatureLandingPage";
+import { redirect } from "next/navigation";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
@@ -16,14 +16,6 @@ export function generateMetadata() {
   return generatePageMetadata(META);
 }
 
-const HEALING_SERVICE = {
-  h1: "따뜻한 태양 회복 타로",
-  title: "따뜻한 태양 회복 타로 - 4카드 힐링 스프레드",
-  description:
-    "햇살 같은 손길에 마음을 어루만지고 다시 일어설 힘을 찾아가는 4카드 타로 리딩. 무료 힐링 타로로 오늘의 회복 에너지를 확인하세요.",
-  landingPoints: ["4카드 힐링 스프레드", "오늘의 회복 에너지 리딩", "과거·현재·방향·선물 카드 해석"],
-};
-
 export default function SunHealingTarotPage() {
-  return <FeatureLandingPage service={HEALING_SERVICE} />;
+  redirect("/static/index.html?action=openTarotHealingModal");
 }

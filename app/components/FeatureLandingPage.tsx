@@ -215,7 +215,7 @@ const ACTION_MAP: Record<string, string> = {
   "/flower/jamidusu":"openJamidusuFlowerStudio", "/flower/sukuyo":"openSukuyoFlowerStudio",
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
   /* ── 추가된 서비스 ── */
-  "/tarot/healing":"/tarot/healing/start",
+  "/tarot/healing":"/static/index.html?action=openTarotHealingModal",
   "/tarot/mingri":"/tarot/mingri/play",
   "/tarot/love":"openTarotLoveModal",
   "/saju/basic":"/",

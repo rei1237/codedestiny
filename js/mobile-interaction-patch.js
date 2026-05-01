@@ -161,10 +161,9 @@
       ].join(',')
     },
     {
-      action: 'openTarotHealingPage',
+      action: 'openTarotHealingModal',
       cardSelector: '.tarot-tile--healing',
       targetSelector: [
-        '[data-action="openTarotHealingPage"]',
         '[data-action="openTarotHealingModal"]',
         '.tarot-tile--healing',
         '.tarot-tile--healing .tarot-tile__img-wrap',
@@ -507,7 +506,7 @@
       if (tile) return tile;
     }
 
-    if (rule.action === 'openTarotHealingPage') {
+    if (rule.action === 'openTarotHealingModal') {
       var tile = origin.closest('.tarot-tile--healing');
       if (tile) return tile;
     }
@@ -791,7 +790,7 @@
       }
     }
 
-    if (rule.action === 'openTarotHealingPage') {
+    if (rule.action === 'openTarotHealingModal') {
       try {
         window.location.href = '/tarot/healing';
         return true;
@@ -937,7 +936,7 @@
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingPage"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
       '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
