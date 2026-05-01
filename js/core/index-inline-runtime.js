@@ -1276,7 +1276,7 @@ function __cdRequireTileLockGate(actionEl) {
   if (!lockKey || lockCost <= 0) return true;
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return false;
@@ -2418,7 +2418,7 @@ function __cdBindAnimalTotemTileDirect() {
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
           return;
@@ -6159,7 +6159,7 @@ function _dfRequirePaidSourceUnlock(source) {
   }
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return false;
@@ -7597,7 +7597,7 @@ function startIjikTarot() {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2Ftarot-ijik.html';
     }
     return;
@@ -7608,7 +7608,7 @@ function startMindScanTarot() {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
     }
     return;
@@ -7619,7 +7619,7 @@ function startCrystalSoulTarot() {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
     }
     return;

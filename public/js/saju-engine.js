@@ -11291,7 +11291,7 @@ function renderZiwei(p, natal, targetId) {
       var token = '';
       try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
       if (!token) {
-        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
         return;
@@ -15388,7 +15388,7 @@ async function runCompat(){
       compatRunBtn.disabled = false;
       compatRunBtn.style.opacity = '';
     }
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return;

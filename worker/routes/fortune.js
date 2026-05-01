@@ -1,7 +1,7 @@
 import { connectDb } from "../lib/db.js";
 import { User, PointHistory } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -22,6 +22,112 @@ const PROFILE_SUB_PLANS = {
 
 const SHARE_REWARD_AMOUNT = 10;
 const SHARE_REWARD_DAILY_LIMIT = 3;
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
+function getFlowerAdminSecret(env) {
+  return String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
+}
+
+function extractAdminTokenFromRequest(request) {
+  const xat = String(request.headers.get("x-admin-token") || "").trim();
+  if (FLOWER_ADMIN_TOKEN_RE.test(xat)) return xat;
+
+  const auth = String(request.headers.get("authorization") || "");
+  if (auth.startsWith("Bearer ")) {
+    const bearer = auth.slice(7).trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(bearer)) return bearer;
+  }
+
+  const cookieHeader = String(request.headers.get("cookie") || "");
+  const flowerMatch = cookieHeader.match(/(?:^|;\s*)flower_admin_token=([^;]+)/);
+  if (flowerMatch) {
+    try {
+      const decoded = decodeURIComponent(flowerMatch[1]);
+      if (FLOWER_ADMIN_TOKEN_RE.test(decoded)) return decoded;
+    } catch (_) {
+      if (FLOWER_ADMIN_TOKEN_RE.test(flowerMatch[1])) return flowerMatch[1];
+    }
+  }
+
+  const legacyMatch = cookieHeader.match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
+  if (legacyMatch) {
+    try {
+      const decoded = decodeURIComponent(legacyMatch[1]);
+      if (FLOWER_ADMIN_TOKEN_RE.test(decoded)) return decoded;
+    } catch (_) {
+      if (FLOWER_ADMIN_TOKEN_RE.test(legacyMatch[1])) return legacyMatch[1];
+    }
+  }
+
+  return "";
+}
+
+function _b64uToJson(payloadB64) {
+  const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
+  const padLen = (4 - (base64.length % 4)) % 4;
+  const withPad = base64 + "=".repeat(padLen);
+  return JSON.parse(atob(withPad));
+}
+
+async function hmacSha256Hex(data, secret) {
+  const subtle = globalThis?.crypto?.subtle;
+  if (!subtle) return "";
+  const key = await subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await subtle.sign("HMAC", key, new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function verifyFlowerAdminToken(token, env) {
+  try {
+    if (!FLOWER_ADMIN_TOKEN_RE.test(String(token || ""))) return false;
+    const dotIdx = token.lastIndexOf(".");
+    if (dotIdx < 1) return false;
+
+    const payloadB64 = token.slice(0, dotIdx);
+    const sig = token.slice(dotIdx + 1);
+    const expected = await hmacSha256Hex(payloadB64, getFlowerAdminSecret(env));
+    if (!expected || expected.length !== sig.length) return false;
+
+    let diff = 0;
+    for (let i = 0; i < expected.length; i += 1) {
+      diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
+    }
+    if (diff !== 0) return false;
+
+    const payload = _b64uToJson(payloadB64);
+    const exp = Number(payload?.exp || 0);
+    const now = Math.floor(Date.now() / 1000);
+    return payload?.v === 1 && Number.isFinite(exp) && now <= exp;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function resolvePigCoinConsumeAuth(request, env) {
+  let auth = null;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (_) {
+    auth = null;
+  }
+
+  const adminToken = extractAdminTokenFromRequest(request);
+  const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
+
+  if (!auth && !adminMode) {
+    throw createHttpError(401, "Authentication is required.");
+  }
+
+  return { auth, adminMode };
+}
 
 function userPayload(auth, points) {
   return {
@@ -115,7 +221,8 @@ async function handleChargeSimulate(request, env, auth) {
   });
 }
 
-async function handlePigCoinConsume(request, auth) {
+async function handlePigCoinConsume(request, auth, options = {}) {
+  const adminMode = Boolean(options?.adminMode);
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
   const cost = Number.isFinite(requestedCost) && requestedCost > 0
@@ -128,6 +235,23 @@ async function handlePigCoinConsume(request, auth) {
 
   const reason = String(body?.reason || "Paid feature unlock").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+
+  if (adminMode) {
+    let currentPoints = null;
+    if (auth?.userId) {
+      const user = await User.findById(auth.userId).select("points").lean();
+      if (user) currentPoints = Number(user.points || 0);
+    }
+
+    return json({
+      message: "Admin bypass enabled. No coins were deducted.",
+      requiredCoins: cost,
+      adminBypass: true,
+      user: auth?.userId
+        ? userPayload(auth, currentPoints == null ? 0 : currentPoints)
+        : { id: "admin", points: null },
+    });
+  }
 
   const updatedUser = await User.findOneAndUpdate(
     { _id: auth.userId, points: { $gte: cost } },
@@ -430,14 +554,19 @@ export async function handleFortuneRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/fortune");
-    const auth = await requireAuth(request, env);
     await connectDb(env);
+
+    if (method === "POST" && path === "/pig-coin/consume") {
+      const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode });
+    }
+
+    const auth = await requireAuth(request, env);
 
     if (method === "GET" && path === "/check") return await handleCheck();
     if (method === "POST" && path === "/consume") return await handleConsume(auth);
     if (method === "GET" && path === "/pig-coin/balance") return await handleBalance(auth);
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
-    if (method === "POST" && path === "/pig-coin/consume") return await handlePigCoinConsume(request, auth);
     if (method === "GET" && path === "/pig-coin/profile-subscription/status") return await handleSubscriptionStatus(auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
