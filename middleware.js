@@ -98,10 +98,10 @@ export function middleware(request) {
   }
 
   /**
-   * Address bar stays https://code-destiny.com/ (rewrite serves legacy in next.config).
-   * If someone opens /static/index.html directly, normalize to / for one canonical URL.
+   * Address bar stays https://code-destiny.com/.
+   * /static variants are treated as legacy entry paths and normalized to /.
    */
-  if (pathname === "/static/index.html") {
+  if (pathname === "/static" || pathname === "/static/" || pathname === "/static/index.html") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = search;
