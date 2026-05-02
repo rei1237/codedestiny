@@ -197,3 +197,8 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
+
+// 전역 함수: coin gate에서 _cdInvokeActionDirect("openRuneOracle") 호출 시 사용
+window.openRuneOracle = function () {
+  renderService("stonehenge-rune");
+};

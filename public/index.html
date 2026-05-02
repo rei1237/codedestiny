@@ -1925,9 +1925,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
 
-            <!-- [기능 연결부] 힐링 타로 → openTarotHealingPage() → /tarot/healing -->
+            <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() 직접 실행 -->
             <button class="tarot-tile tarot-tile--healing" type="button"
-                    data-action="openTarotHealingPage"
+                    data-action="openTarotHealingModal"
+                    data-pvw-bypass="1"
                     aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/healing.webp" data-img-alt="따뜻한 태양 회복 타로 — Sun &amp; Light 4카드 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☀️</span></div>
@@ -2156,9 +2157,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </button>
 
                 <!-- 스톤헨지 룬 오라클 -->
-                <a class="tarot-tile tarot-tile--rune-fc" href="/oracle/rune"
+                <button class="tarot-tile tarot-tile--rune-fc" type="button"
                    data-action="openRuneOracle"
                    data-coin-cost="50"
+                   data-pvw-bypass="1"
                    aria-label="스톤헨지 룬 오라클 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/rune.webp" data-img-alt="스톤헨지 룬 오라클 — 고대 룬 상징 리딩">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">ᚠ</span></div>
@@ -2169,7 +2171,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     <span class="tarot-tile__title">ᚠ 스톤헨지 룬 오라클</span>
                     <span class="tarot-tile__desc">고대 룬 상징 리딩</span>
                   </div>
-                </a>
+                </button>
 
                 <!-- 지오맨시 흙점 -->
                  <a class="tarot-tile tarot-tile--geomancy-fc" href="/geomancy-oracle-v4.html"
@@ -2188,7 +2190,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </a>
 
                 <!-- 핀란드 주석점 -->
-                <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
+                <a class="tarot-tile tarot-tile--sikojen-fc" href="/fortune/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/piggyfortune.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
