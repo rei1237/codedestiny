@@ -26,17 +26,13 @@ function __cdPushPerfMetric(name, value, detail) {
   } catch (_) {}
 }
 
-function __cdSyncAdminTokenStorage() {
-  try {
-    var sessionToken = String(sessionStorage.getItem('flower_admin_token') || '');
-    if (sessionToken) return;
-    var localToken = String(localStorage.getItem('flower_admin_token') || '');
-    if (!localToken) return;
-    sessionStorage.setItem('flower_admin_token', localToken);
-  } catch (_) {}
+// 자동 관리자 모드 방지: localStorage에 남아있는 admin token을 정리 (세션 전용만 허용)
+function __cdCleanLegacyAdminLocalStorage() {
+  try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
+  try { localStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
 }
 
-__cdSyncAdminTokenStorage();
+__cdCleanLegacyAdminLocalStorage();
 
 function __cdInitCollectionPerfMetrics() {
   if (window.__cdCollectionPerfInited) return;
@@ -1233,13 +1229,10 @@ function __cdHasFlowerAdminPasswordSession() {
 function __cdIsAdminLikeUser() {
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   if (!__cdHasFlowerAdminPasswordSession()) return false;
+  // sessionStorage만 확인 — localStorage는 자동 관리자 모드 방지를 위해 사용 안 함
   try {
     var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '').trim();
     if (sessionAdminToken && FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;
-  } catch (_) {}
-  try {
-    var localAdminToken = String(localStorage.getItem('flower_admin_token') || '').trim();
-    if (localAdminToken && FLOWER_ADMIN_TOKEN_RE.test(localAdminToken)) return true;
   } catch (_) {}
   return false;
 }

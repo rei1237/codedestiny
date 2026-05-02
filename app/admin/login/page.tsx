@@ -47,10 +47,12 @@ export default function AdminLoginPage() {
         setError("비밀번호가 올바르지 않습니다.");
         return;
       }
-      // API가 Set-Cookie로 flower_admin_token을 이미 세팅; sessionStorage에도 저장
+      // API가 Set-Cookie로 flower_admin_token을 이미 세팅; sessionStorage에만 저장 (localStorage 금지 — 자동 관리자 모드 방지)
       if (data?.adminToken) {
         try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
-        try { localStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
+        try { sessionStorage.setItem("flower_admin_password_ok", "1"); } catch {}
+        // 혹시 이전 세션에서 남아있던 localStorage 토큰 제거
+        try { localStorage.removeItem("flower_admin_token"); } catch {}
       }
       router.push("/");
       router.refresh();

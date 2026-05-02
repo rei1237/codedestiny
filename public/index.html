@@ -1475,6 +1475,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
                 // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
                 try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
+                try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
+                try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
                 try { window.__cdAdminBypass = false; } catch (_) {}
                 location.reload();
               });
@@ -1521,6 +1523,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   if (_abtn) {
                     _abtn.addEventListener('click', function () {
                       try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
+                      try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
+                      try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
                       try { window.__cdAdminBypass = false; } catch (_) {}
                       location.reload();
                     });
