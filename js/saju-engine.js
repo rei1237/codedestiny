@@ -3665,21 +3665,12 @@ async function calculate(){
     resetEvalDaewunMemo();
     _syncDestinyFlowerSajuSnapshot('full-analysis');
 
-    var inputPageEl = document.getElementById('inputPage');
-    var resultPageEl = document.getElementById('resultPage');
-    var letterBoxEl = document.getElementById('letterBox');
-    var emailSubBoxEl = document.getElementById('emailSubBox');
-    var btnNewSajuEl = document.getElementById('btnNewSaju');
-    if (inputPageEl && resultPageEl) {
-      inputPageEl.style.display = 'none';
-      resultPageEl.style.display = 'block';
-    } else if (resultPageEl) {
-      resultPageEl.style.display = 'block';
-    }
+    document.getElementById('inputPage').style.display='none';
+    document.getElementById('resultPage').style.display='block';
     // 오버레이 닫기는 startSajuCalculationFlow의 Promise.all에서 처리
-    if (letterBoxEl) letterBoxEl.style.display = 'block';
-    if (emailSubBoxEl) emailSubBoxEl.style.display = 'block';
-    if (btnNewSajuEl) btnNewSajuEl.style.display = 'block';
+      document.getElementById('letterBox').style.display='block';
+      document.getElementById('emailSubBox').style.display='block';
+      document.getElementById('btnNewSaju').style.display='block';
     requestAnimationFrame(function () {
       setTimeout(function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3762,11 +3753,8 @@ async function calculate(){
       }
     ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
-    var dwDetailEl = document.getElementById('dwDetail');
-    if (dwDetailEl) {
-      dwDetailEl.innerHTML = '';
-      dwDetailEl.classList.remove('show');
-    }
+    document.getElementById('dwDetail').innerHTML='';
+    document.getElementById('dwDetail').classList.remove('show');
 
     document.getElementById('currentAgeInfo').innerHTML=
       '<b>현재 나이:</b> 만 '+(CURRENT_AGE-1)+'세 — '+
