@@ -1,19 +1,19 @@
 (function () {
   'use strict';
 
-  /* 모바일 터치: 손가락 미세 움직임 허용 (10px로 축소하여 스크롤 오동작 방지) */
+  /* 모바???�치: ?��???미세 ?�직임 ?�용 (10px�?축소?�여 ?�크�??�동??방�?) */
   var TAP_MAX_DX = 10;
   var TAP_MAX_DY = 10;
   var GHOST_CLICK_BLOCK_MS = 500;
   var ACTION_DEDUPE_MS = 650;
-  var SCROLL_BLOCK_MS = 250; // 스크롤 직후 클릭 차단 시간
+  var SCROLL_BLOCK_MS = 250; // ?�크�?직후 ?�릭 차단 ?�간
   var suppressClickUntil = 0;
   var lastScrollAt = 0;
   var touchCtx = null;
   var lastTouchStart = null;
   var lastActionInvoke = { action: '', at: 0 };
 
-  /* INP: index-inline-runtime / uiBindings 과 동일 — 무거운 data-action 동기 호출을 다음 태스크로 */
+  /* INP: index-inline-runtime / uiBindings �??�일 ??무거??data-action ?�기 ?�출???�음 ?�스?�로 */
   var __CD_DEFER_INP_ACTIONS = {
     checkPrivacyAndCalculate: 1,
     agreeAndCalculate: 1,
@@ -483,7 +483,7 @@
     return null;
   }
 
-  /* 모바일: touchend 시 event.target이 부정확한 경우 elementFromPoint로 실제 터치 위치의 요소 확인 */
+  /* 모바?? touchend ??event.target??부?�확??경우 elementFromPoint�??�제 ?�치 ?�치???�소 ?�인 */
   function findRuleFromPoint(x, y) {
     if (!document.elementFromPoint || !Number.isFinite(x) || !Number.isFinite(y)) return null;
     var el = document.elementFromPoint(x, y);
@@ -621,8 +621,8 @@
       'js/animal-totem-experience.js'
     ],
     openHwatuModal: ['HwatuFortune.js'],
-    // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
-    // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
+    // NOTE: uiBindings??`js/...` 경로�??�용?�니?? 모바??patch???�일 경로�?맞춰
+    // ?��??�에??최신 ?�크립트�??�확??로드?�도�??�니??
     openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotLoveModal: ['js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
@@ -693,30 +693,29 @@
 
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
-    // Preview CTA에서 data-pvw-bypass로 재클릭되는 경우는 정상 후속 플로우이므로
-    // dedupe에 걸리지 않게 해야 프리미엄 액션이 무반응으로 소모되지 않는다.
+    // Preview CTA?�서 data-pvw-bypass�??�클�?��??경우???�상 ?�속 ?�로?�이므�?    // dedupe??걸리지 ?�게 ?�야 ?�리미엄 ?�션??무반?�으�??�모?��? ?�는??
     var _fromPreviewBypass = false;
     if (origin && typeof origin.closest === 'function') {
       _fromPreviewBypass = !!origin.closest('[data-pvw-bypass]');
     }
     if (!_fromPreviewBypass && shouldSkipDuplicateAction(rule.action)) return true;
 
-    // ── 코인/잠금 게이트 체크 ──
-    // 터치 이벤트가 코인/잠금 게이트를 우회하지 않도록, 해당 속성을 가진 타일은
-    // 프리뷰 패널에 위임해 정상적인 게이트 흐름을 거치게 한다.
-    // 단, pvw-bypass 속성이 있는 경우(Preview CTA에서 직접 클릭)는 게이트 건너뜀
+    // ?�?� 코인/?�금 게이??체크 ?�?�
+    // ?�치 ?�벤?��? 코인/?�금 게이?��? ?�회?��? ?�도�? ?�당 ?�성??가�??�?��?
+    // ?�리�??�널???�임???�상?�인 게이???�름??거치�??�다.
+    // ?? pvw-bypass ?�성???�는 경우(Preview CTA?�서 직접 ?�릭)??게이??건너?�
     var _coinGateTile = null;
     if (origin && typeof origin.closest === 'function') {
       _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
     }
-    // pvw-bypass 설정된 타일은 이미 Preview CTA를 통과한 것이므로 게이트 스킵
+    // pvw-bypass ?�정???�?��? ?��? Preview CTA�??�과??것이므�?게이???�킵
     if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     if (!_coinGateTile) {
       _coinGateTile = document.querySelector(
         '[data-action="' + rule.action + '"][data-tile-lock-key],' +
         '[data-action="' + rule.action + '"][data-coin-cost]'
       );
-      // fallback으로 찾은 타일도 pvw-bypass 체크
+      // fallback?�로 찾�? ?�?�도 pvw-bypass 체크
       if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     }
     if (_coinGateTile) {
@@ -731,7 +730,7 @@
         return false;
       }
     }
-    // ── 코인/잠금 게이트 체크 끝 ──
+    // ?�?� 코인/?�금 게이??체크 ???�?�
 
     if (rule.action === 'openNevilleMeditationPage') {
       try {
@@ -812,7 +811,7 @@
       return true;
     }
 
-    /* lazy-load: 스크립트 미로드 시 로드 후 재호출 */
+    /* lazy-load: ?�크립트 미로????로드 ???�호�?*/
     if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
       var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       raf(function() {
@@ -837,7 +836,7 @@
 
     if (typeof fn !== 'function') return false;
 
-    /* 모바일: 동기 실행 시 브라우저가 터치 처리 중 UI 업데이트를 막아 화면 멈춤 발생. rAF로 지연 */
+    /* 모바?? ?�기 ?�행 ??브라?��?가 ?�치 처리 �?UI ?�데?�트�?막아 ?�면 멈춤 발생. rAF�?지??*/
     var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     try {
       raf(function() {
@@ -882,8 +881,8 @@
       return true;
     }
 
-    // 프리미엄 4종 코인 타일은 여기서 합성 click으로 소비하지 않고,
-    // 전역 클릭 핸들러로 넘겨 Preview/게이트를 정상 경유시킨다.
+    // ?�리미엄 4�?코인 ?�?��? ?�기???�성 click?�로 ?�비?��? ?�고,
+    // ?�역 ?�릭 ?�들?�로 ?�겨 Preview/게이?��? ?�상 경유?�킨??
     var isPremGateAction = (
       action === 'gotoZiweiPremium'
       || action === 'gotoAstrologyPremium'
@@ -937,7 +936,15 @@
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
       '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
-      '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"] {',
+      '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"],',
+      '/* ?�생??�?�??�빌???�스???�크�?최적??*/',
+      '.lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile,',
+      '.lifebook-tile__inner, .lovebible-tile__inner, .lovesim-tile__inner, .sibyl-entry-inner,',
+      '.lifebook-tile__img-wrap, .lifebook-tile__img, .lifebook-tile__body, .lifebook-tile__title, .lifebook-tile__desc, .lifebook-tile__features, .lifebook-tile__cta,',
+      '.lovebible-tile__inner, .lovebible-tile__body, .lovebible-tile__title, .lovebible-tile__desc, .lovebible-tile__features, .lovebible-tile__cta,',
+      '.lovesim-tile__inner, .lovesim-tile__body, .lovesim-tile__title, .lovesim-tile__desc, .lovesim-tile__features, .lovesim-tile__cta,',
+      '.sibyl-entry-inner, .sibyl-entry-img-col, .sibyl-entry-img, .sibyl-entry-content,',
+      '[data-action="openLifeBookModal"], [data-action="openLoveSecretModal"], [data-action="openLoveSimulation"], [data-action="openSibylModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
@@ -1016,7 +1023,7 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          // 스크롤 중이 아닐 때만 실행
+          // ?�크�?중이 ?�닐 ?�만 ?�행
           if (Date.now() - lastScrollAt > SCROLL_BLOCK_MS) {
             var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
             if (handled) {
@@ -1027,12 +1034,12 @@
             }
           }
         } else {
-          // 움직임이 감지됨 (스크롤 의도) -> 후속 클릭 차단
+          // ?�직임??감�???(?�크�??�도) -> ?�속 ?�릭 차단
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
         }
       }
 
-      /* 모바일 폴백: touchCtx 없거나 처리 실패 시 elementFromPoint로 터치 위치의 요소를 확인 (애니멀 토템 등) */
+      /* 모바???�백: touchCtx ?�거??처리 ?�패 ??elementFromPoint�??�치 ?�치???�소�??�인 (?�니멀 ?�템 ?? */
       if (lastTouchStart) {
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
@@ -1069,7 +1076,7 @@
       }
     }, { passive: false, capture: true });
 
-    /* pointer 이벤트 폴백: 일부 모바일 브라우저에서 touch 대신 pointer 사용 */
+    /* pointer ?�벤???�백: ?��? 모바??브라?��??�서 touch ?�??pointer ?�용 */
     root.addEventListener('pointerdown', function (event) {
       if (event.pointerType !== 'touch') return;
       var pt = getPoint(event);
@@ -1154,7 +1161,7 @@
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
       
-      // 스크롤 직후이거나 터치 무시 시간 내에 클릭된 경우 차단
+      // ?�크�?직후?�거???�치 무시 ?�간 ?�에 ?�릭??경우 차단
       var now = Date.now();
       if (now < suppressClickUntil || (now - lastScrollAt < SCROLL_BLOCK_MS)) {
         event.preventDefault();
@@ -1195,7 +1202,7 @@
       }
     })();
 
-    // 글로벌 스크롤 상태 추적
+    // 글로벌 ?�크�??�태 추적
     window.addEventListener('scroll', function() {
       lastScrollAt = Date.now();
     }, { passive: true });
