@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function HwatuLifePlayPage() {
-  redirect("/static?service=hwatu-life&source=oracle-hwatu-life-play");
+  redirect("/oracle/hwatu-life");
 }

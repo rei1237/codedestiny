@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function MingriTarotPlayPage() {
-  redirect("/static?service=tarot&source=tarot-mingri-play");
+  redirect("/tarot/mingri");
 }

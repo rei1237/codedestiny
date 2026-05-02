@@ -24,5 +24,5 @@ export function generateMetadata() {
 }
 
 export default function SikojenpovailuPlayPage() {
-  redirect("/static?service=pig-oracle&source=oracle-sikojen-play");
+  redirect("/oracle/sikojen-povailu");
 }
