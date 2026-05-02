@@ -1,4 +1,5 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { callGeminiText } from "../lib/gemini.js";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -196,30 +197,20 @@ ${guard}
 각 섹션은 두 문단 이상, 추상적인 위로보다 실제 선택과 행동 기준을 많이 포함하세요.`;
 }
 
-async function callGemini(env, prompt) {
-  const key = String(env.GEMINI_API_KEY || env.GOOGLE_GEMINI_API_KEY || "").trim();
-  if (!key) return "";
-  const model = String(env.GEMINI_MODEL || "gemini-2.0-flash").trim();
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.86, maxOutputTokens: 8192, topP: 0.95 },
-      }),
-    });
-    if (!response.ok) return "";
-    const data = await response.json();
-    return data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("\n").trim() || "";
-  } catch {
-    return "";
-  }
+async function callGemini(env, prompt, modelEnvKeys = []) {
+  const result = await callGeminiText(env, prompt, {
+    modelEnvKeys: ["PREMIUM_GEMINI_MODEL", ...modelEnvKeys],
+    temperature: 0.86,
+    topP: 0.95,
+    maxOutputTokens: 8192,
+    timeoutMs: Number(env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+  });
+  return result.ok ? result.text : "";
 }
 
-async function generatedChapter(env, kind, input, meta, dataLine, fallbackProfile, fallbackFocus) {
+async function generatedChapter(env, kind, input, meta, dataLine, fallbackProfile, fallbackFocus, modelEnvKeys = []) {
   const prompt = buildPrompt(kind, input, meta.title, dataLine);
-  let text = await callGemini(env, prompt);
+  let text = await callGemini(env, prompt, modelEnvKeys);
   let usedFallback = false;
   if (!text || text.length < 900) {
     usedFallback = true;
@@ -296,6 +287,143 @@ async function handleVedicLife(request, env) {
   return json({ ok: true, chart, chapter, chapterMeta: meta, ...generated });
 }
 
+const LIFEBOOK_CHAPTERS = [
+  "사주 원국 완전 해설",
+  "나의 설계도",
+  "숨겨진 무기",
+  "대운 정밀 분석",
+  "재물과 직업의 방향",
+  "관계와 가족의 패턴",
+  "건강과 에너지 관리",
+  "연애와 결혼의 흐름",
+  "위기와 전환점",
+  "나를 지키는 습관",
+  "올해의 실전 전략",
+  "장기 로드맵",
+  "인생의 책 마스터 플랜",
+];
+
+const LOVE_SECRET_CHAPTERS = [
+  "나의 연애 성향",
+  "상대에게 끌리는 이유",
+  "관계의 속도와 거리",
+  "말투와 연락의 비밀",
+  "갈등이 생기는 지점",
+  "상대방 심리 해석",
+  "재회와 회복 가능성",
+  "결혼과 장기 궁합",
+  "피해야 할 관계 패턴",
+  "30일 연애 전략",
+  "연애 비책 마스터 플랜",
+];
+
+function stringifyCompact(value, maxLength = 4200) {
+  if (value == null) return "";
+  if (typeof value === "string") return value.slice(0, maxLength);
+  try {
+    return JSON.stringify(value, null, 2).slice(0, maxLength);
+  } catch {
+    return String(value).slice(0, maxLength);
+  }
+}
+
+function buildSessionInput(body, maxChapter) {
+  const input = normalizeBody(body);
+  input.chapter = clampInt(body.sessionId ?? body.chapter, 1, 1, maxChapter);
+  return input;
+}
+
+function buildSessionPrompt(kind, title, chapter, totalChapters, body) {
+  const sajuData = stringifyCompact(body.sajuData || body.profile || body.birth || body, 5200);
+  const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2600);
+  const relationshipGuide = partnerData
+    ? "\n[Partner / compatibility data]\n" + partnerData
+    : "";
+
+  return [
+    `You are Code Destiny's premium ${kind} writer.`,
+    "Return ONLY natural Korean markdown. Do not use English headings.",
+    "Use the provided saju/birth-analysis data as the source of truth.",
+    "Write a premium PDF chapter with concrete interpretation, choices, cautions, and a practical action plan.",
+    "Avoid generic fortune-telling filler. Make the answer specific to the supplied data.",
+    "",
+    `[Chapter ${chapter}/${totalChapters}] ${title}`,
+    "",
+    "[Saju / analysis data]",
+    sajuData || "No structured saju data was supplied; infer cautiously from the request body.",
+    relationshipGuide,
+    "",
+    "Required markdown structure:",
+    "## 핵심 해석",
+    "## 반복되는 패턴",
+    "## 관계와 선택의 포인트",
+    "## 조심해야 할 그림자",
+    "## 실전 행동 가이드",
+    "",
+    "Each section must be at least two substantial paragraphs. Total length must be at least 900 Korean characters.",
+  ].join("\n");
+}
+
+function bookFallback(kind, title, body) {
+  const source = stringifyCompact(body.sajuData || body.partnerData || body, 900).replace(/\s+/g, " ").trim();
+  const base = [
+    `## 핵심 해석\n${title} 챕터는 현재 입력된 사주 데이터와 선택 흐름을 바탕으로 ${kind}의 중심 패턴을 정리합니다. ${source ? `참고 데이터의 핵심 단서는 "${source.slice(0, 180)}" 구간에 모여 있습니다.` : "현재 데이터가 제한적이므로 기본 사주 흐름을 보수적으로 해석합니다."} 이 결과는 단정이 아니라 선택을 더 선명하게 보기 위한 지도입니다.`,
+    "## 반복되는 패턴\n반복되는 흐름은 감정, 관계, 일의 방식이 서로 영향을 주고받는 지점에서 드러납니다. 같은 문제가 이름만 바뀌어 다시 나타난다면 운이 나빠서가 아니라 아직 정리되지 않은 선택 기준이 있다는 뜻입니다.",
+    "## 관계와 선택의 포인트\n가장 중요한 기준은 지금 당장 강한 감정이 아니라 장기적으로 나를 안정시키는 방향입니다. 관계에서는 말의 양보다 일관성, 직업과 돈에서는 속도보다 지속 가능성을 우선해서 판단하는 것이 좋습니다.",
+    "## 조심해야 할 그림자\n강점이 강하게 드러날수록 조급함, 과잉 책임감, 회피, 완벽주의 같은 그림자도 함께 커질 수 있습니다. 이 그림자를 억누르기보다 미리 알아차리고 작은 규칙으로 관리하는 것이 안전합니다.",
+    "## 실전 행동 가이드\n앞으로 7일 동안은 하나의 큰 결정보다 작은 검증을 먼저 하세요. 매일 감정 점수와 실제 행동 하나를 기록하고, 반복해서 에너지를 빼앗는 선택은 줄이며, 회복감을 주는 루틴은 일정에 고정하는 방식이 좋습니다.",
+  ].join("\n\n");
+  return base.length >= 900 ? base : `${base}\n\n${base}`;
+}
+
+async function handleLifebookSession(request, env) {
+  const body = await readJson(request);
+  const input = buildSessionInput(body, 13);
+  const chapter = input.chapter;
+  const title = LIFEBOOK_CHAPTERS[chapter - 1] || LIFEBOOK_CHAPTERS[0];
+  const prompt = buildSessionPrompt("saju life book", title, chapter, 13, body);
+  let text = await callGemini(env, prompt, ["LIFEBOOK_GEMINI_MODEL"]);
+  let usedFallback = false;
+  if (!text || text.length < 500) {
+    usedFallback = true;
+    text = bookFallback("인생의 책", title, body);
+  }
+
+  return json({
+    ok: true,
+    sessionId: chapter,
+    chapter,
+    chapterMeta: { num: chapter, title, subtitle: "사주 분석 기반 인생의 책", icon: "book" },
+    text,
+    sections: parseSections(text),
+    usedFallback,
+  });
+}
+
+async function handleLoveSecretSession(request, env) {
+  const body = await readJson(request);
+  const input = buildSessionInput(body, 11);
+  const chapter = input.chapter;
+  const title = LOVE_SECRET_CHAPTERS[chapter - 1] || LOVE_SECRET_CHAPTERS[0];
+  const prompt = buildSessionPrompt("love secret relationship guide", title, chapter, 11, body);
+  let text = await callGemini(env, prompt, ["LOVE_SECRET_GEMINI_MODEL"]);
+  let usedFallback = false;
+  if (!text || text.length < 500) {
+    usedFallback = true;
+    text = bookFallback("연애 비책", title, body);
+  }
+
+  return json({
+    ok: true,
+    sessionId: chapter,
+    chapter,
+    chapterMeta: { num: chapter, title, subtitle: "사주 궁합 기반 연애 비책", icon: "heart" },
+    text,
+    sections: parseSections(text),
+    usedFallback,
+  });
+}
+
 async function handleZiweiBookSession(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
@@ -325,6 +453,29 @@ export async function handlePremiumRoutes(request, env) {
     if (path === "/astro-western") return await handleAstroWestern(request, env);
     if (path === "/astro-life") return await handleAstroLife(request, env);
     if (path === "/vedic-life") return await handleVedicLife(request, env);
+    if (path === "/ziwei-life") return await handleZiweiBookSession(request, env);
+    return notFound();
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function handleLifebookRoutes(request, env) {
+  try {
+    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const path = getRoutePath(request, "/api/lifebook");
+    if (path === "/session") return await handleLifebookSession(request, env);
+    return notFound();
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function handleLoveSecretRoutes(request, env) {
+  try {
+    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const path = getRoutePath(request, "/api/love-secret");
+    if (path === "/session") return await handleLoveSecretSession(request, env);
     return notFound();
   } catch (error) {
     return handleRouteError(error);

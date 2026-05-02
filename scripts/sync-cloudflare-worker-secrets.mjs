@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
+const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
 
 const envFiles = [
   ".env.cloudflare.local",
@@ -139,8 +140,24 @@ const SECRET_KEYS = [
   "PORTONE_API_KEY",
   "PORTONE_API_SECRET",
   "PORTONE_WEBHOOK_TOKEN",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
   "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
   "GOOGLE_API_KEY",
+  "GEMINI_MODEL",
+  "PREMIUM_GEMINI_MODEL",
+  "LIFEBOOK_GEMINI_MODEL",
+  "LOVE_SECRET_GEMINI_MODEL",
+  "PSYCHO_ANALYSIS_GEMINI_MODEL",
+  "SUKUYO_GEMINI_MODEL",
+  "ASTRO_GEMINI_MODEL",
+  "VEDIC_GEMINI_MODEL",
+  "ZIWEI_GEMINI_MODEL",
+  "PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS",
+  "PREMIUM_GEMINI_TIMEOUT_MS",
   "ANTHROPIC_API_KEY",
   "DEEPL_API_KEY",
   "KASI_SERVICE_KEY",
@@ -224,7 +241,12 @@ function putWorkerSecret(key, value) {
 
 const available = SECRET_KEYS.filter((key) => getSecretValue(key));
 if (available.length === 0) {
-  console.error("[worker-secrets] No usable secret values found in env files.");
+  const message = "[worker-secrets] No usable secret values found in env files.";
+  if (skipEmpty) {
+    console.warn(`${message} Skipping because --skip-empty was supplied.`);
+    process.exit(0);
+  }
+  console.error(message);
   process.exit(1);
 }
 

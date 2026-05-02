@@ -32,6 +32,9 @@ const FEATURE_KEY_GROUPS = {
   "admin-gate": [
     ["FLOWER_ADMIN_SECRET"],
   ],
+  "gemini-core": [
+    ["GEMINIF_API_KEY1", "GEMINIF_API_KEY2", "GEMINIF_API_KEY3", "GEMINIF_API_KEY4", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY", "GOOGLE_API_KEY"],
+  ],
 };
 
 const FEATURE_IMPACT = {

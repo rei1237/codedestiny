@@ -3,14 +3,20 @@ import { handleAdminRoutes } from "./routes/admin.js";
 import { handleFortuneRoutes } from "./routes/fortune.js";
 import { handleTarotRoutes } from "./routes/tarot.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
-import { handlePremiumRoutes, handleZiweiBookRoutes } from "./routes/premium.js";
+import {
+  handleLifebookRoutes,
+  handleLoveSecretRoutes,
+  handlePremiumRoutes,
+  handleZiweiBookRoutes,
+} from "./routes/premium.js";
+import { handleDreamRoutes } from "./routes/dream.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 
 /**
  * Code Destiny API Worker.
  *
  * Backend-only runtime for /api/*.
- * Auth, payment, fortune, premium, and ziwei-book routes run natively.
+ * Auth, payment, fortune, premium, lifebook, love-secret, and ziwei-book routes run natively.
  * API_UPSTREAM_ORIGIN remains optional as a fallback for unported API groups.
  */
 
@@ -283,7 +289,7 @@ export default {
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "premium", "ziwei-book", "lifebook-session"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "geo"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
@@ -337,12 +343,16 @@ export default {
       return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
     }
 
-    if (url.pathname === "/api/lifebook/session") {
-      // Keep legacy client endpoint compatible by routing to worker-native ziwei session handler.
-      const bridgedUrl = new URL(request.url);
-      bridgedUrl.pathname = "/api/ziwei-book/session";
-      const bridgedRequest = new Request(bridgedUrl.toString(), request);
-      return withCorsHeaders(request, env, await handleZiweiBookRoutes(bridgedRequest, env));
+    if (url.pathname === "/api/lifebook" || url.pathname.startsWith("/api/lifebook/")) {
+      return withCorsHeaders(request, env, await handleLifebookRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
+      return withCorsHeaders(request, env, await handleLoveSecretRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
+      return withCorsHeaders(request, env, await handleDreamRoutes(request, env));
     }
 
     if (url.pathname.startsWith("/api/")) {

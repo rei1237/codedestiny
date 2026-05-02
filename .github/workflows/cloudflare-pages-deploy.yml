@@ -61,6 +61,23 @@ jobs:
       - name: Wrangler token preflight
         run: npx --no-install wrangler whoami
 
+      - name: Sync Worker Gemini secrets
+        env:
+          GEMINIF_API_KEY1: ${{ secrets.GEMINIF_API_KEY1 }}
+          GEMINIF_API_KEY2: ${{ secrets.GEMINIF_API_KEY2 }}
+          GEMINIF_API_KEY3: ${{ secrets.GEMINIF_API_KEY3 }}
+          GEMINIF_API_KEY4: ${{ secrets.GEMINIF_API_KEY4 }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          PREMIUM_GEMINI_MODEL: ${{ vars.PREMIUM_GEMINI_MODEL }}
+          LIFEBOOK_GEMINI_MODEL: ${{ vars.LIFEBOOK_GEMINI_MODEL }}
+          LOVE_SECRET_GEMINI_MODEL: ${{ vars.LOVE_SECRET_GEMINI_MODEL }}
+          PSYCHO_ANALYSIS_GEMINI_MODEL: ${{ vars.PSYCHO_ANALYSIS_GEMINI_MODEL }}
+          SUKUYO_GEMINI_MODEL: ${{ vars.SUKUYO_GEMINI_MODEL }}
+          ASTRO_GEMINI_MODEL: ${{ vars.ASTRO_GEMINI_MODEL }}
+          VEDIC_GEMINI_MODEL: ${{ vars.VEDIC_GEMINI_MODEL }}
+          ZIWEI_GEMINI_MODEL: ${{ vars.ZIWEI_GEMINI_MODEL }}
+        run: npm run secrets:cf:worker -- --skip-empty
+
       - name: Worker preflight build (dry-run)
         run: npm run build:worker
 

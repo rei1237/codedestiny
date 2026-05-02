@@ -22,6 +22,18 @@ npm run secrets:cf:pages:dry
 
 `npm run build:cf`ëŠ” Pagesìš© `dist/`ë¥¼ ë§Œë“¤ê³ , `npm run build:worker`ëŠ” Worker ë²ˆë“¤ dry-runì„ ì‹¤í–‰í•©ë‹ˆë‹¤.
 
+## ë°°í¬ ê·œì¹™ (ì¤‘ìš”)
+
+- Pagesì™€ Workerë¥¼ ë™ì‹œì— ë°°í¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.
+- ë°˜ë“œì‹œ ìˆœì°¨ ë°°í¬ë§Œ ì‚¬ìš©í•©ë‹ˆë‹¤: `Worker -> Pages`.
+- ê¶Œì¥ ë‹¨ì¼ ëª…ë ¹: `npm run deploy:cf:all`.
+- ìˆ˜ë™ ë°°í¬ ì‹œì—ë„ ì•„ë˜ ìˆœì„œë¥¼ ê³ ì •í•©ë‹ˆë‹¤.
+
+```bash
+npm run deploy:cf:worker
+npm run deploy:cf:pages
+```
+
 ## Worker ì„¤ì •
 
 Worker ì„¤ì • íŒŒì¼:
@@ -94,7 +106,7 @@ Cloudflare Pages í”„ë¡œì íŠ¸ ì„¤ì •:
 npm run deploy:cf:pages
 ```
 
-ì „ì²´ ë°°í¬:
+ì „ì²´ ë°°í¬ (ìˆœì°¨, Worker -> Pages):
 
 ```bash
 npm run deploy:cf:all
@@ -158,3 +170,19 @@ git push -u origin main
 - `server/routes/translate.routes.js`
 - `server/routes/subscription.routes.js`
 - Next static exportì—ì„œ ë¹„í™œì„±í™”ë˜ëŠ” `app/api/*`
+
+## Áßº¹ ¹èÆ÷ ¹æÁö Ã¼Å©¸®½ºÆ® (ÇÊ¼ö)
+
+°°Àº `main` Ä¿¹Ô¿¡¼­ Pages°¡ ¿©·¯ ¹ø ¹èÆ÷µÇ¸é ¾Æ·¡ 2°¡Áö¸¦ ¹İµå½Ã °°ÀÌ ¸ÂÃç¾ß ÇÕ´Ï´Ù.
+
+1. GitHub Actions¸¸ ¹èÆ÷ ´ã´ç
+- `.github/workflows/cloudflare-pages-deploy.yml`¸¸ ÀÚµ¿ ¹èÆ÷ »ç¿ë
+- `.github/workflows/cloudflare-worker-deploy.yml`´Â ¼öµ¿ ½ÇÇà(`workflow_dispatch`) Àü¿ë
+
+2. Cloudflare Pages ´ë½Ãº¸µå ÀÚµ¿ ¹èÆ÷ ²ô±â
+- Workers & Pages > `codedestiny` > Settings > Builds > Branch control
+- `Enable automatic production branch deployments` ²ô±â
+- Preview branchµµ `None`À¸·Î ¼³Á¤ (¿øÇÏ¸é)
+
+±×¸®°í Pages ´ë½Ãº¸µå Build/Deploy command¿¡ Worker ¹èÆ÷ ¸í·É(`wrangler deploy --config worker/wrangler.toml`)À» ³ÖÁö ¸¶¼¼¿ä.
+Worker ¹èÆ÷´Â GitHub Actions¿¡¼­ ¸ÕÀú ½ÇÇàµÇ°í, ¼º°øÇÑ °æ¿ì¿¡¸¸ Pages ¹èÆ÷°¡ 1È¸ ½ÇÇàµÇµµ·Ï ±¸¼ºµÇ¾î¾ß ÇÕ´Ï´Ù.
