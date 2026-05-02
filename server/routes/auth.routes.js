@@ -252,11 +252,13 @@ function isLocalAuthEnabled(user) {
   return user?.localAuth?.enabled !== false;
 }
 
-async function exchangeCodeForAccessToken(provider, code, req) {
+async function exchangeCodeForAccessToken(provider, code, req, redirectUriOverride) {
   const cfg = buildProviderConfig(provider, req);
   if (!cfg.clientId || ((provider === "google" || provider === "naver") && !cfg.clientSecret)) {
     throw new Error("oauth_not_configured");
   }
+
+  const redirectUri = normalizeAbsoluteUrl(redirectUriOverride) || cfg.redirectUri;
 
   if (provider === "google") {
     const response = await fetch(cfg.tokenEndpoint, {
@@ -267,7 +269,7 @@ async function exchangeCodeForAccessToken(provider, code, req) {
         code,
         client_id: cfg.clientId,
         client_secret: cfg.clientSecret,
-        redirect_uri: cfg.redirectUri,
+        redirect_uri: redirectUri,
       }),
     });
 
@@ -283,7 +285,7 @@ async function exchangeCodeForAccessToken(provider, code, req) {
       grant_type: "authorization_code",
       code,
       client_id: cfg.clientId,
-      redirect_uri: cfg.redirectUri,
+      redirect_uri: redirectUri,
     };
     if (cfg.clientSecret) {
       tokenParams.client_secret = cfg.clientSecret;
@@ -540,7 +542,13 @@ router.get("/oauth/:provider/start", async (req, res) => {
     const frontendBase = shouldUseRequestOrigin(requestOrigin)
       ? requestOrigin
       : getFrontendBaseUrl();
-    const stateToken = signSocialState({ provider, nextPath, frontendBase, flow });
+    const stateToken = signSocialState({
+      provider,
+      nextPath,
+      frontendBase,
+      flow,
+      redirectUri: cfg.redirectUri,
+    });
 
     const params = new URLSearchParams({
       client_id: cfg.clientId,
@@ -586,7 +594,12 @@ router.get("/oauth/:provider/callback", async (req, res) => {
     const flow = sanitizeAuthFlow(statePayload.flow);
     const redirectPath = flow === "signup" ? "/signup" : "/login";
 
-    const accessToken = await exchangeCodeForAccessToken(provider, code, req);
+    const accessToken = await exchangeCodeForAccessToken(
+      provider,
+      code,
+      req,
+      String(statePayload.redirectUri || ""),
+    );
     const socialProfile = await fetchSocialProfile(provider, accessToken, req);
     const user = await findOrCreateSocialUser(provider, socialProfile);
 
@@ -602,8 +615,9 @@ router.get("/oauth/:provider/callback", async (req, res) => {
     }
 
     return res.redirect(`${frontendBase}${redirectPath}?${redirectParams.toString()}`);
-  } catch {
-    return res.redirect(fallbackRedirect);
+  } catch (error) {
+    const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
+    return res.redirect(`${frontendBase}/login?social_error=${encodeURIComponent(reason)}`);
   }
 });
 

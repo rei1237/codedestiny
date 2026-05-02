@@ -253,17 +253,19 @@ function mapSocialProfile(provider, payload) {
   return { providerId: "", email: "", name: "" };
 }
 
-async function exchangeCodeForAccessToken(provider, code, request, env, stateToken) {
+async function exchangeCodeForAccessToken(provider, code, request, env, stateToken, redirectUriOverride) {
   const cfg = buildProviderConfig(provider, request, env);
   if (!cfg.clientId || ((provider === "google" || provider === "naver") && !cfg.clientSecret)) {
     throw new Error("oauth_not_configured");
   }
 
+  const redirectUri = normalizeAbsoluteUrl(redirectUriOverride) || cfg.redirectUri;
+
   const tokenParams = {
     grant_type: "authorization_code",
     code,
     client_id: cfg.clientId,
-    redirect_uri: cfg.redirectUri,
+    redirect_uri: redirectUri,
   };
 
   if (cfg.clientSecret) tokenParams.client_secret = cfg.clientSecret;
@@ -614,7 +616,13 @@ async function handleOAuthStart(request, env, provider) {
   const frontendBase = requestOrigin && !isWorkersDevOrigin(requestOrigin)
     ? requestOrigin
     : getFrontendBaseUrl(env);
-  const stateToken = await signSocialState({ provider, nextPath, frontendBase, flow }, env);
+  const stateToken = await signSocialState({
+    provider,
+    nextPath,
+    frontendBase,
+    flow,
+    redirectUri: cfg.redirectUri,
+  }, env);
 
   const params = new URLSearchParams({
     client_id: cfg.clientId,
@@ -653,7 +661,14 @@ async function handleOAuthCallback(request, env, provider) {
 
     const flow = sanitizeAuthFlow(statePayload.flow);
     const redirectPath = flow === "signup" ? "/signup" : "/login";
-    const accessToken = await exchangeCodeForAccessToken(provider, code, request, env, stateRaw);
+    const accessToken = await exchangeCodeForAccessToken(
+      provider,
+      code,
+      request,
+      env,
+      stateRaw,
+      String(statePayload.redirectUri || ""),
+    );
     const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
     const user = await findOrCreateSocialUser(provider, socialProfile);
     const grant = await signSocialGrant({
@@ -669,7 +684,8 @@ async function handleOAuthCallback(request, env, provider) {
     return redirect(`${safeFrontendBase}${redirectPath}?${redirectParams.toString()}`);
   } catch (error) {
     console.error(error);
-    return redirect(fallbackRedirect);
+    const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
+    return redirect(`${frontendBase}/login?social_error=${encodeURIComponent(reason)}`);
   }
 }
 

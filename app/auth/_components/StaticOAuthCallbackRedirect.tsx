@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { getApiBaseUrl } from "../../_lib/api-config";
 
 type StaticOAuthCallbackRedirectProps = {
   provider: "google" | "naver" | "kakao";
 };
 
 export default function StaticOAuthCallbackRedirect({ provider }: StaticOAuthCallbackRedirectProps) {
-  const baseTarget = `/api/auth/oauth/${provider}/callback`;
+  const apiBase = getApiBaseUrl();
+  const baseTarget = `${apiBase}/api/auth/oauth/${provider}/callback`;
 
   useEffect(() => {
     const query = window.location.search || "";
