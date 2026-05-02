@@ -1,9 +1,8 @@
 /**
- * Deploy the Cloudflare API Worker in worker/.
+ * Deploy the Cloudflare backend Worker from worker/wrangler.toml.
  *
- * The Pages frontend is deployed separately from dist/. This Worker receives
- * /api/* traffic from public/_redirects and forwards it to the configured API
- * origin until the Express routes are ported to Worker-native handlers.
+ * - Frontend static deployment is handled by Cloudflare Pages.
+ * - /api backend routes are handled by worker/index.js.
  */
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -49,21 +48,10 @@ if (!existsSync(workerEntry)) {
   process.exit(1);
 }
 
-const rootWranglerJson = resolve(rootDir, "wrangler.json");
-const rootWranglerJsonc = resolve(rootDir, "wrangler.jsonc");
-if (existsSync(rootWranglerJson) || existsSync(rootWranglerJsonc)) {
-  console.warn("[deploy-worker] Root wrangler.json/jsonc detected. Worker deploy will still use --config worker/wrangler.toml.");
-}
-
 try {
   const configText = readFileSync(workerConfig, "utf8");
   if (!/\nmain\s*=\s*"index\.js"\s*(\n|$)/.test(`\n${configText}\n`)) {
     console.error("[deploy-worker] worker/wrangler.toml must include: main = \"index.js\"");
-    process.exit(1);
-  }
-
-  if (!/\n\[assets\]\s*\n[\s\S]*?\bdirectory\s*=\s*"[^"]+"/m.test(`\n${configText}\n`)) {
-    console.error("[deploy-worker] worker/wrangler.toml must include an [assets] section with directory.");
     process.exit(1);
   }
 
@@ -94,7 +82,7 @@ if (workerName.trim()) {
   console.log(`[deploy-worker] Using Worker name override: ${workerName.trim()}`);
 }
 
-console.log("[deploy-worker] Deploying Cloudflare API Worker from worker/ using --config worker/wrangler.toml.");
+console.log("[deploy-worker] Deploying Cloudflare backend Worker using --config worker/wrangler.toml.");
 
 const result = process.platform === "win32"
   ? spawnSync("npx", args, {

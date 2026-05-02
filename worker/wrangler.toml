@@ -3,9 +3,6 @@ main = "index.js"
 compatibility_date = "2026-05-02"
 compatibility_flags = ["nodejs_compat"]
 
-[assets]
-directory = "../dist"
-
 # Non-secret defaults. Secrets and deployment-specific values should be set
 # with `wrangler secret put` or in the Cloudflare dashboard.
 [vars]

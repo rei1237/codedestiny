@@ -1,4 +1,4 @@
-name: Deploy Pages Frontend
+name: Deploy Worker Then Pages
 
 on:
   push:
@@ -10,24 +10,65 @@ on:
       - js/**
       - styles/**
       - css/**
+      - worker/**
       - index.html
       - next.config.mjs
       - package.json
       - wrangler.toml
+      - worker/wrangler.toml
+      - scripts/deploy-worker.mjs
       - scripts/sync-legacy-static-to-public.mjs
       - scripts/promote-static-shell-to-root.mjs
+      - scripts/sync-cloudflare-worker-secrets.mjs
       - .github/workflows/cloudflare-pages-deploy.yml
+      - .github/workflows/cloudflare-worker-deploy.yml
   workflow_dispatch:
 
 concurrency:
-  group: cloudflare-pages-${{ github.ref }}
+  group: cloudflare-production-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  deploy-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_WORKER_NAME: code-destiny-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync public static artifacts
+        run: npm run sync:public
+
+      - name: Verify style sync
+        run: npm run verify:style-sync
+
+      - name: Wrangler token preflight
+        run: npx --no-install wrangler whoami
+
+      - name: Worker preflight build (dry-run)
+        run: npm run build:worker
+
+      - name: Deploy Cloudflare Worker
+        run: npm run deploy:cf:worker
+
   deploy-pages:
+    needs: deploy-worker
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

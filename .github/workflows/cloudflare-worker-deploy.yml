@@ -1,21 +1,6 @@
-name: Deploy Worker API
+name: Deploy Worker API (Manual)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - public/**
-      - index.html
-      - js/**
-      - styles/**
-      - worker/**
-      - scripts/deploy-worker.mjs
-      - scripts/sync-legacy-static-to-public.mjs
-      - scripts/sync-cloudflare-worker-secrets.mjs
-      - worker/wrangler.toml
-      - package.json
-      - .github/workflows/cloudflare-worker-deploy.yml
   workflow_dispatch:
 
 concurrency:
