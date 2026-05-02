@@ -38,7 +38,7 @@ const oracleItems: ServiceCardModel[] = [
   { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "50코인", tone: "coin" }] },
   { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", emoji: "🃏", badges: [{ text: "무료", tone: "free" }] },
-  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/ifa_oracle_v2_full_local.html", emoji: "🪬", badges: [{ text: "30코인", tone: "coin" }] },
+  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/oracle/ifa", emoji: "🪬", badges: [{ text: "30코인", tone: "coin" }] },
 ];
 
 const cosmicItems: ServiceCardModel[] = [
@@ -52,8 +52,8 @@ const cosmicItems: ServiceCardModel[] = [
 
 const animalItems: ServiceCardModel[] = [
   { title: "AI 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-picture", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
-  { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/?action=openMbtiModal", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
-  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "무료", tone: "free" }] },
+  { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/static/index.html?action=openMbtiModal", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
+  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/static/index.html?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "무료", tone: "free" }] },
   { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", emoji: "🥚", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "포춘텔러 물고기", description: "상징 움직임 운세 리딩", href: "/fortune-teller-fish.html", emoji: "🐟", badges: [{ text: "무료", tone: "free" }] },
   { title: "사주 가디언 아트", description: "수호 동물 아트 생성", href: "/saju-picture", emoji: "🐲", badges: [{ text: "무료", tone: "free" }] },
@@ -63,16 +63,16 @@ const meditationItems: ServiceCardModel[] = [
   { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", emoji: "🧘", badges: [{ text: "30~50코인", tone: "coin" }] },
   { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "30~50코인", tone: "coin" }] },
   { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "50~100코인", tone: "coin" }] },
-  { title: "드림 타로", description: "꿈 해석 리포트", href: "/?action=openDreamModal", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/?action=openPsychoDreamModal", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
+  { title: "드림 타로", description: "꿈 해석 리포트", href: "/static/index.html?action=openDreamModal", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
+  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/static/index.html?action=openPsychoDreamModal", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
   { title: "힐링 타로 시작", description: "즉시 감정 안정 리딩", href: "/tarot/healing", emoji: "💛", badges: [{ text: "무료", tone: "free" }] },
 ];
 
 const premiumItems: ServiceCardModel[] = [
-  { title: "자미두수 프리미엄 PDF", description: "13챕터 심층 리포트", href: "/?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
-  { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/?action=gotoAstrologyPremium", emoji: "🌟", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "숙요점 프리미엄 PDF", description: "27수 관계/카르마 분석", href: "/?action=gotoSukuyoPremium", emoji: "💫", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "베다 프리미엄 PDF", description: "다샤·카르마 로드맵", href: "/?action=gotoVedicPremium", emoji: "🪷", badges: [{ text: "390코인", tone: "coin" }] },
+  { title: "자미두수 프리미엄 PDF", description: "13챕터 심층 리포트", href: "/static/index.html?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
+  { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/static/index.html?action=gotoAstrologyPremium", emoji: "🌟", badges: [{ text: "390코인", tone: "coin" }] },
+  { title: "숙요점 프리미엄 PDF", description: "27수 관계/카르마 분석", href: "/static/index.html?action=gotoSukuyoPremium", emoji: "💫", badges: [{ text: "390코인", tone: "coin" }] },
+  { title: "베다 프리미엄 PDF", description: "다샤·카르마 로드맵", href: "/static/index.html?action=gotoVedicPremium", emoji: "🪷", badges: [{ text: "390코인", tone: "coin" }] },
   { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "700코인", tone: "coin" }] },
   { title: "포인트/코인 센터", description: "충전 및 사용 내역 관리", href: "/points", emoji: "💳", badges: [{ text: "관리", tone: "soft" }] },
 ];

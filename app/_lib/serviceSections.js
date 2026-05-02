@@ -41,6 +41,7 @@ export const SERVICE_SECTIONS = [
     items: [
       { href: "/oracle/hwatu", title: "타짜들의 화투점", desc: "12달 화투패 운세" },
       { href: "/oracle/hwatu-life", title: "화투 인생 패 테스트", desc: "타짜 컨셉 7문항 심리테스트" },
+      { href: "/oracle/ifa", title: "IFA 오라클", desc: "요루바 256 오두 신탁 · 30코인" },
       { href: "/oracle/kemet", title: "고대 이집트 신탁", desc: "케멧 오라클 리딩" },
       { href: "/oracle/juyuk", title: "주역 거북점", desc: "64괘 상징 해석" },
       { href: "/oracle/sukuyo", title: "숙요점", desc: "기본 서비스 무료 · 궁합 50코인" },

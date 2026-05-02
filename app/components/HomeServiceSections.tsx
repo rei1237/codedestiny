@@ -11,10 +11,17 @@ type Props = {
  */
 export default function HomeServiceSections({ variant = "default" }: Props) {
   const belowLegacy = variant === "belowLegacy";
+  const mysticQuickLinks = [
+    { href: "/oracle/ifa", label: "🪬 이파 오라클" },
+    { href: "/oracle/royal-tea", label: "🫖 타세오그래피" },
+    { href: "/oracle/sikojen-povailu", label: "🐷 핀란드 주석점" },
+    { href: "/flower/destiny", label: "🌸 운명의 꽃" },
+    { href: "/dream/tarot", label: "🌙 드림 타로" },
+  ];
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8" aria-labelledby="home-hub-title">
-      <header className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-5 text-slate-100">
+      <header className="mb-6 rounded-3xl border border-violet-300/30 bg-[linear-gradient(140deg,rgba(45,25,85,0.72),rgba(22,30,70,0.86))] p-5 text-slate-100 shadow-[0_20px_44px_rgba(16,10,35,0.42)]">
         <h1 id="home-hub-title" className="text-2xl font-semibold">
           꿀꿀 만세력
         </h1>
@@ -36,21 +43,36 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
             </span>
           </p>
         ) : null}
+
+        <div className="mt-4">
+          <p className="mb-2 text-xs font-semibold tracking-wide text-violet-200/90">✨ 사주 외 신비 운세 바로가기</p>
+          <div className="flex flex-wrap gap-2">
+            {mysticQuickLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-full border border-violet-300/35 bg-violet-900/35 px-3 py-1.5 text-xs font-semibold text-violet-100 transition hover:border-cyan-300/45 hover:text-cyan-100"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </header>
 
       <div className="space-y-6">
         {SERVICE_SECTIONS.map((section) => (
-          <article key={section.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-            <h2 className="mb-3 text-lg font-semibold text-slate-100">{section.title}</h2>
+          <article key={section.id} className="rounded-3xl border border-violet-300/20 bg-[linear-gradient(170deg,rgba(10,18,48,0.92),rgba(22,14,40,0.86))] p-4 shadow-[0_14px_30px_rgba(8,10,24,0.35)]">
+            <h2 className="mb-3 text-lg font-semibold text-violet-100">{section.title}</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {section.items.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 transition hover:border-slate-500 hover:bg-slate-900"
+                  className="rounded-2xl border border-violet-300/20 bg-[linear-gradient(160deg,rgba(39,26,67,0.72),rgba(25,34,64,0.72))] p-4 transition hover:-translate-y-0.5 hover:border-cyan-300/45 hover:shadow-[0_10px_24px_rgba(34,211,238,0.15)]"
                 >
-                  <div className="text-sm font-semibold text-slate-100">{item.title}</div>
-                  <div className="mt-1 text-xs text-slate-400">{item.desc}</div>
+                  <div className="text-sm font-semibold text-violet-50">{item.title}</div>
+                  <div className="mt-1 text-xs text-violet-100/75">{item.desc}</div>
                 </Link>
               ))}
             </div>

@@ -442,6 +442,24 @@ export const SERVICE_MAP = {
       "tin casting oracle",
     ],
   },
+  "oracle/ifa": {
+    component: FeatureLandingPage,
+    title: "IFA 오라클 - 요루바 256 오두 신탁",
+    h1: "IFA 오라클",
+    description:
+      "요루바 전통 256 오두 체계를 기반으로 질문의 흐름을 읽는 IFA 오라클 안내 페이지입니다.",
+    seoText:
+      "IFA 오라클은 상징 조합과 질문 맥락을 연결해 연애·재물·건강 흐름을 해석하는 인터랙티브 신탁 서비스입니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/ifafortune.webp",
+    landingPoints: ["256 오두 전통 해석", "질문 맥락형 오라클", "회차당 30코인 리딩"],
+    keywords: [
+      "IFA 오라클",
+      "이파 점술",
+      "요루바 신탁",
+      "256 오두",
+      "ifa oracle",
+    ],
+  },
   "oracle/royal-tea": {
     component: FeatureLandingPage,
     title: "타세오그래피 찻잎 점 - 랰던 로열 컵 문양 리딩",
