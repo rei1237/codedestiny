@@ -1,37 +1,37 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import * as React from "react";
 
-type LocaleItem = { key: string; slug: string; label: string };
+type LocaleItem = { key: string; slug: string; label: string; googleLang: string };
 
 const LOCALES: LocaleItem[] = [
-  { key: "ko-KR", slug: "", label: "한국어" },
-  { key: "en-US", slug: "/en-us", label: "English (US)" },
-  { key: "en-CA", slug: "/en-ca", label: "English (Canada)" },
-  { key: "en-SG", slug: "/en-sg", label: "English (Singapore)" },
-  { key: "en-GB", slug: "/en-gb", label: "English (UK)" },
-  { key: "en-AU", slug: "/en-au", label: "English (Australia)" },
-  { key: "en-PH", slug: "/en-ph", label: "English (Philippines)" },
-  { key: "en-IN", slug: "/en-in", label: "English (India)" },
-  { key: "hi-IN", slug: "/hi-in", label: "हिन्दी (भारत)" },
-  { key: "en-ZA", slug: "/en-za", label: "English (South Africa)" },
-  { key: "fr-FR", slug: "/fr-fr", label: "Français (France)" },
-  { key: "fr-CA", slug: "/fr-ca", label: "Français (Canada)" },
-  { key: "de-DE", slug: "/de-de", label: "Deutsch (Deutschland)" },
-  { key: "it-IT", slug: "/it-it", label: "Italiano (Italia)" },
-  { key: "hu-HU", slug: "/hu-hu", label: "Magyar (Magyarország)" },
-  { key: "nl-NL", slug: "/nl-nl", label: "Nederlands (Nederland)" },
-  { key: "ja-JP", slug: "/ja-jp", label: "日本語 (日本)" },
-  { key: "zh-CN", slug: "/zh-cn", label: "简体中文 (中国)" },
-  { key: "zh-TW", slug: "/zh-tw", label: "繁體中文 (台灣)" },
-  { key: "es-ES", slug: "/es-es", label: "Español (España)" },
-  { key: "es-MX", slug: "/es-mx", label: "Español (México)" },
-  { key: "es-CO", slug: "/es-co", label: "Español (Colombia)" },
-  { key: "es-AR", slug: "/es-ar", label: "Español (Argentina)" },
-  { key: "es-PE", slug: "/es-pe", label: "Español (Perú)" },
-  { key: "th-TH", slug: "/th-th", label: "ไทย (ประเทศไทย)" },
-  { key: "vi-VN", slug: "/vi-vn", label: "Tiếng Việt (Việt Nam)" },
+  { key: "ko-KR", slug: "", label: "한국어", googleLang: "ko" },
+  { key: "en-US", slug: "/en-us", label: "English (US)", googleLang: "en" },
+  { key: "en-CA", slug: "/en-ca", label: "English (Canada)", googleLang: "en" },
+  { key: "en-SG", slug: "/en-sg", label: "English (Singapore)", googleLang: "en" },
+  { key: "en-GB", slug: "/en-gb", label: "English (UK)", googleLang: "en" },
+  { key: "en-AU", slug: "/en-au", label: "English (Australia)", googleLang: "en" },
+  { key: "en-PH", slug: "/en-ph", label: "English (Philippines)", googleLang: "en" },
+  { key: "en-IN", slug: "/en-in", label: "English (India)", googleLang: "en" },
+  { key: "hi-IN", slug: "/hi-in", label: "हिन्दी (भारत)", googleLang: "hi" },
+  { key: "en-ZA", slug: "/en-za", label: "English (South Africa)", googleLang: "en" },
+  { key: "fr-FR", slug: "/fr-fr", label: "Français (France)", googleLang: "fr" },
+  { key: "fr-CA", slug: "/fr-ca", label: "Français (Canada)", googleLang: "fr" },
+  { key: "de-DE", slug: "/de-de", label: "Deutsch (Deutschland)", googleLang: "de" },
+  { key: "it-IT", slug: "/it-it", label: "Italiano (Italia)", googleLang: "it" },
+  { key: "hu-HU", slug: "/hu-hu", label: "Magyar (Magyarország)", googleLang: "hu" },
+  { key: "nl-NL", slug: "/nl-nl", label: "Nederlands (Nederland)", googleLang: "nl" },
+  { key: "ja-JP", slug: "/ja-jp", label: "日本語 (日本)", googleLang: "ja" },
+  { key: "zh-CN", slug: "/zh-cn", label: "简体中文 (中国)", googleLang: "zh-CN" },
+  { key: "zh-TW", slug: "/zh-tw", label: "繁體中文 (台灣)", googleLang: "zh-TW" },
+  { key: "es-ES", slug: "/es-es", label: "Español (España)", googleLang: "es" },
+  { key: "es-MX", slug: "/es-mx", label: "Español (México)", googleLang: "es" },
+  { key: "es-CO", slug: "/es-co", label: "Español (Colombia)", googleLang: "es" },
+  { key: "es-AR", slug: "/es-ar", label: "Español (Argentina)", googleLang: "es" },
+  { key: "es-PE", slug: "/es-pe", label: "Español (Perú)", googleLang: "es" },
+  { key: "th-TH", slug: "/th-th", label: "ไทย (ประเทศไทย)", googleLang: "th" },
+  { key: "vi-VN", slug: "/vi-vn", label: "Tiếng Việt (Việt Nam)", googleLang: "vi" },
 ];
 
 function normalizePathname(input: string | null | undefined) {
@@ -62,8 +62,64 @@ function setLocaleCookie(localeKey: string) {
   document.cookie = `cd_locale=${encodeURIComponent(localeKey)}; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
 }
 
+function writeGoogleTranslateCookie(googleLang: string) {
+  const host = window.location.hostname;
+  const expires = "expires=Fri, 31 Dec 9999 23:59:59 GMT";
+  const value = `/ko/${googleLang}`;
+  const cookies = [
+    `googtrans=${value}; ${expires}; Path=/; SameSite=Lax`,
+    host ? `googtrans=${value}; ${expires}; Domain=${host}; Path=/; SameSite=Lax` : "",
+    host && host.includes(".") ? `googtrans=${value}; ${expires}; Domain=.${host}; Path=/; SameSite=Lax` : "",
+  ].filter(Boolean);
+
+  cookies.forEach((cookie) => {
+    document.cookie = cookie;
+  });
+}
+
+function clearGoogleTranslateCookie() {
+  const host = window.location.hostname;
+  const expired = "expires=Thu, 01 Jan 1970 00:00:00 UTC";
+  const cookies = [
+    `googtrans=; ${expired}; Path=/; SameSite=Lax`,
+    host ? `googtrans=; ${expired}; Domain=${host}; Path=/; SameSite=Lax` : "",
+    host && host.includes(".") ? `googtrans=; ${expired}; Domain=.${host}; Path=/; SameSite=Lax` : "",
+  ].filter(Boolean);
+
+  cookies.forEach((cookie) => {
+    document.cookie = cookie;
+  });
+}
+
+function applyGoogleTranslateIntent(locale: LocaleItem) {
+  try {
+    window.localStorage.setItem("cd_lang", locale.googleLang);
+  } catch {}
+
+  if (locale.googleLang === "ko") {
+    clearGoogleTranslateCookie();
+    return;
+  }
+
+  writeGoogleTranslateCookie(locale.googleLang);
+}
+
+function buildMainServiceUrl(pathname: string, searchParams: { toString(): string } | null, locale: LocaleItem) {
+  const basePath = stripLocalePrefix(pathname);
+  const targetPath = basePath === "/" || basePath === "/index.html" ? "/" : basePath;
+  const params = new URLSearchParams(searchParams?.toString() || "");
+
+  if (locale.googleLang === "ko") {
+    params.delete("lang");
+  } else {
+    params.set("lang", locale.googleLang);
+  }
+
+  const qs = params.toString();
+  return qs ? `${targetPath}?${qs}` : targetPath;
+}
+
 export function LocaleSwitcher() {
-  const router = useRouter();
   const pathname = usePathname() || "/";
   const searchParams = useSearchParams();
 
@@ -76,12 +132,10 @@ export function LocaleSwitcher() {
       if (!next) return;
 
       setLocaleCookie(next.key);
-      const basePath = stripLocalePrefix(pathname);
-      const nextPath = next.slug ? `${next.slug}${basePath === "/" ? "" : basePath}` : basePath;
-      const qs = searchParams?.toString();
-      router.push(qs ? `${nextPath}?${qs}` : nextPath);
+      applyGoogleTranslateIntent(next);
+      window.location.assign(buildMainServiceUrl(pathname, searchParams, next));
     },
-    [pathname, router, searchParams],
+    [pathname, searchParams],
   );
 
   // Auto-pick locale once by IP/country if cookie not set

@@ -27,8 +27,10 @@
   /*  1. 매핑 테이블  */
   var LANG_TO_SLUG = {
     'ko': '', 'en': 'en-us', 'ja': 'ja-jp', 'zh-CN': 'zh-cn',
+    'zh-TW': 'zh-tw', 'it': 'it-it', 'hu': 'hu-hu',
     'hi': 'hi-in', 'es': 'es-es', 'fr': 'fr-fr',
-    'de': 'de-de', 'nl': 'nl-nl', 'ms': 'ms-my'
+    'de': 'de-de', 'nl': 'nl-nl', 'ms': 'ms-my',
+    'th': 'th-th', 'vi': 'vi-vn'
   };
 
   var SLUG_TO_LANG = {};
@@ -38,12 +40,16 @@
 
   var LABEL_MAP = {
     'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN',
-    'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS'
+    'zh-TW': 'TW', 'hi': 'HI', 'es': 'ES', 'fr': 'FR',
+    'de': 'DE', 'it': 'IT', 'hu': 'HU', 'nl': 'NL', 'ms': 'MS',
+    'th': 'TH', 'vi': 'VI'
   };
 
   var LANG_TO_GT = {
     'ko': 'ko', 'en': 'en', 'ja': 'ja', 'zh-CN': 'zh-CN',
-    'hi': 'hi', 'es': 'es', 'fr': 'fr', 'de': 'de', 'nl': 'nl', 'ms': 'ms'
+    'zh-TW': 'zh-TW', 'hi': 'hi', 'es': 'es', 'fr': 'fr',
+    'de': 'de', 'it': 'it', 'hu': 'hu', 'nl': 'nl', 'ms': 'ms',
+    'th': 'th', 'vi': 'vi'
   };
 
   var LANG_TO_I18N = {
@@ -82,11 +88,48 @@
   };
 
   /*  3. 현재 언어 감지  */
+  function normalizeLangCode(langCode) {
+    var raw = String(langCode || 'ko').trim();
+    if (!raw) return 'ko';
+    var low = raw.toLowerCase();
+    if (low === 'jp') return 'ja';
+    if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
+    if (low === 'zh-tw') return 'zh-TW';
+    if (low.indexOf('en-') === 0) return 'en';
+    if (low.indexOf('fr-') === 0) return 'fr';
+    if (low.indexOf('es-') === 0) return 'es';
+    if (low.indexOf('de-') === 0) return 'de';
+    if (low.indexOf('it-') === 0) return 'it';
+    if (low.indexOf('hu-') === 0) return 'hu';
+    if (low.indexOf('nl-') === 0) return 'nl';
+    if (low.indexOf('ja-') === 0) return 'ja';
+    if (low.indexOf('hi-') === 0) return 'hi';
+    if (low.indexOf('ms-') === 0) return 'ms';
+    if (low.indexOf('th-') === 0) return 'th';
+    if (low.indexOf('vi-') === 0) return 'vi';
+    if (LANG_TO_GT[raw]) return raw;
+    if (LANG_TO_GT[low]) return low;
+    return 'ko';
+  }
+
   function detectCurrentLang() {
+    try {
+      var q = new URLSearchParams(window.location.search || '');
+      var fromQuery = q.get('lang');
+      if (fromQuery) return normalizeLangCode(fromQuery);
+    } catch (_) {}
+
     var path = (window.location.pathname || '/').toLowerCase().replace(/^\//, '');
     var topSlug = path.split('/')[0] || '';
     if (SLUG_TO_LANG[topSlug]) return SLUG_TO_LANG[topSlug];
-    try { var s = localStorage.getItem('cd_lang'); if (s) return s; } catch (_) {}
+
+    try { var s = localStorage.getItem('cd_lang'); if (s) return normalizeLangCode(s); } catch (_) {}
+
+    try {
+      var gt = document.cookie.match(/(?:^|;\s*)googtrans=\/ko\/([^;]+)/i);
+      if (gt && gt[1]) return normalizeLangCode(gt[1]);
+    } catch (_) {}
+
     return 'ko';
   }
 
@@ -165,7 +208,7 @@
       window.__cdGTInited = true;
       new window.google.translate.TranslateElement({
         pageLanguage: 'ko',
-        includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
+        includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,it,hu,nl,ms,th,vi',
         autoDisplay: false
       }, 'google_translate_element');
     };
@@ -371,6 +414,7 @@
 
   /*  10. 언어 변경 핸들러  */
   function nativeChangeLanguage(langCode, _btn) {
+    langCode = normalizeLangCode(langCode);
     try { localStorage.setItem('cd_lang', langCode); } catch (_) {}
     setCookie('cd_locale_ack', '1', 365);
 
@@ -380,28 +424,22 @@
       _clearGTCookie();
     }
 
-    var slug = LANG_TO_SLUG[langCode];
-    var targetPath = slug ? '/' + slug : '/';
-    var currentPath = window.location.pathname;
-    var normCurrent = currentPath.toLowerCase().replace(/\/$/, '') || '/';
-    var normTarget = targetPath.replace(/\/$/, '') || '/';
+    updateUI(langCode);
+    var wrap = document.getElementById('langWrap');
+    if (wrap) wrap.classList.remove('open');
+    var trigger = document.getElementById('langTrigger');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
 
-    // 이미 해당 로케일에 있으면 in-place GT 재적용
-    if (normCurrent === normTarget || normCurrent.startsWith(normTarget + '/')) {
-      updateUI(langCode);
-      var wrap = document.getElementById('langWrap');
-      if (wrap) wrap.classList.remove('open');
-      if (langCode !== 'ko') {
-        markNotranslate();
-        loadGoogleTranslate(langCode);
-        waitForGTThenOverride(langCode);
-        setTimeout(applyCurrencyConversion, 1200);
-      }
+    if (langCode !== 'ko') {
+      markNotranslate();
+      loadGoogleTranslate(langCode);
+      waitForGTThenOverride(langCode);
+      setTimeout(applyCurrencyConversion, 1200);
       return;
     }
 
-    updateUI(langCode);
-    window.location.href = targetPath;
+    // 한국어 복귀는 GT select가 준비된 경우 즉시 원복하고, 없으면 쿠키 제거만 유지한다.
+    _scheduleGTLangSelect('ko', 12);
   }
 
   window.changeLanguage = nativeChangeLanguage;
