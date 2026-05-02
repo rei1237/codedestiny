@@ -5,10 +5,16 @@ on:
     branches:
       - main
     paths:
+      - public/**
+      - index.html
+      - js/**
+      - styles/**
       - worker/**
       - scripts/deploy-worker.mjs
+      - scripts/sync-legacy-static-to-public.mjs
       - scripts/sync-cloudflare-worker-secrets.mjs
       - worker/wrangler.toml
+      - package.json
       - .github/workflows/cloudflare-worker-deploy.yml
   workflow_dispatch:
 
@@ -39,6 +45,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Sync public static artifacts
+        run: npm run sync:public
+
+      - name: Verify style sync
+        run: npm run verify:style-sync
 
       - name: Wrangler token preflight
         run: npx --no-install wrangler whoami

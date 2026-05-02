@@ -1,15 +1,6 @@
-name: Deploy Pages Frontend
+name: Deploy Pages Frontend (Deprecated)
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - worker/**
-      - scripts/deploy-worker.mjs
-      - scripts/sync-cloudflare-worker-secrets.mjs
-      - worker/wrangler.toml
-      - .github/workflows/cloudflare-worker-deploy.yml
   workflow_dispatch:
 
 concurrency:
@@ -20,47 +11,10 @@ permissions:
   contents: read
 
 jobs:
-  deploy-pages:
+  pages-deploy-disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CF_PAGES_PROJECT_NAME: codedestiny
-      CF_PAGES_BRANCH: main
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Sync public static artifacts
-        run: npm run sync:public
-
-      - name: Verify entry encoding
-        run: npm run verify:entry-encoding
-
-      - name: Verify locale/main sync
-        run: npm run verify:locale-main-sync
-
-      - name: Verify runtime cache sync
-        run: npm run verify:runtime-cache-sync
-
-      - name: Verify style sync
-        run: npm run verify:style-sync
-
-      - name: Verify public parity
-        run: npm run verify:public-parity
-
-      - name: Build frontend
-        run: npm run build:cf
-
-      - name: Deploy Cloudflare Pages
-        run: node scripts/deploy-pages.mjs
+      - name: Notice
+        run: |
+          echo "Pages deployment is deprecated for this repository."
+          echo "Use Worker deployment only: npm run deploy:cf"

@@ -105,6 +105,13 @@ const forcePagesWranglerDeploy =
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
 
+if (!forcePagesWranglerDeploy) {
+  console.log("[deploy-pages] Skipped by default to prevent duplicate Pages deployments.");
+  console.log("[deploy-pages] Production service is served by Worker deployment (`npm run deploy:cf`).");
+  console.log("[deploy-pages] Set CF_PAGES_FORCE_WRANGLER_DEPLOY=true only for explicit one-off Pages deploy.");
+  process.exit(0);
+}
+
 if (!isPagesCi && !process.env.CLOUDFLARE_API_TOKEN) {
   console.log("[deploy-pages] CLOUDFLARE_API_TOKEN not set. Falling back to Wrangler OAuth login flow.");
 }
