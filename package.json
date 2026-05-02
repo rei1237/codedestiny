@@ -16,6 +16,7 @@
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
     "build": "next build",
+    "postbuild": "node scripts/promote-static-shell-to-root.mjs",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
     "fortune:generate": "node scripts/gen-daily.mjs && node scripts/gen-fortune-system-pages.mjs",
