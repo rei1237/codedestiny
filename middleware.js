@@ -98,26 +98,20 @@ export function middleware(request) {
   }
 
   /**
-   * Canonical entry path is /static/.
-   * Root and legacy index paths are normalized to /static/.
+   * Canonical entry path is "/".
+   * - "/" is served from the unified main shell (/index.html) via rewrite.
+   * - Legacy /static paths are normalized to "/".
    */
-  if (pathname === "/" || pathname === "/index.html") {
+  if (pathname === "/") {
     const url = request.nextUrl.clone();
-    url.pathname = "/static/";
+    url.pathname = "/index.html";
     url.search = search;
-    return NextResponse.redirect(url, 308);
+    return NextResponse.rewrite(url);
   }
 
-  if (pathname === "/static") {
+  if (pathname === "/static" || pathname === "/static/" || pathname === "/static/index.html") {
     const url = request.nextUrl.clone();
-    url.pathname = "/static/";
-    url.search = search;
-    return NextResponse.redirect(url, 308);
-  }
-
-  if (pathname === "/static/index.html") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/static/";
+    url.pathname = "/";
     url.search = search;
     return NextResponse.redirect(url, 308);
   }

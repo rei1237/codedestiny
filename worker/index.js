@@ -112,6 +112,48 @@ function getUpstreamOrigin(env) {
   return normalizeOrigin(env.API_UPSTREAM_ORIGIN);
 }
 
+function detectCountry(request) {
+  const fromCf = String(request?.cf?.country || "").trim().toUpperCase();
+  if (fromCf && fromCf !== "XX") return fromCf;
+
+  const fromHeader = String(request.headers.get("CF-IPCountry") || "").trim().toUpperCase();
+  if (fromHeader && fromHeader !== "XX") return fromHeader;
+
+  return "KR";
+}
+
+function detectLocale(country) {
+  const localeMap = {
+    KR: "ko-KR",
+    US: "en-US",
+    GB: "en-GB",
+    AU: "en-AU",
+    CA: "en-CA",
+    SG: "en-SG",
+    PH: "en-PH",
+    ZA: "en-ZA",
+    IN: "hi-IN",
+    JP: "ja-JP",
+    CN: "zh-CN",
+    TW: "zh-TW",
+    ES: "es-ES",
+    MX: "es-MX",
+    CO: "es-CO",
+    AR: "es-AR",
+    PE: "es-PE",
+    FR: "fr-FR",
+    DE: "de-DE",
+    IT: "it-IT",
+    HU: "hu-HU",
+    NL: "nl-NL",
+    TH: "th-TH",
+    VN: "vi-VN",
+    MY: "ms-MY",
+  };
+
+  return localeMap[country] || "en-US";
+}
+
 function isLoop(requestUrl, upstreamOrigin) {
   if (!upstreamOrigin) return false;
 
@@ -241,7 +283,7 @@ export default {
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "premium", "ziwei-book"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "premium", "ziwei-book", "lifebook-session"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
@@ -255,6 +297,15 @@ export default {
           upstreamOrigin
             ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "proxy")
             : "not_configured",
+      });
+    }
+
+    if (url.pathname === "/api/geo") {
+      const country = detectCountry(request);
+      return jsonResponse(request, env, {
+        ok: true,
+        country,
+        locale: detectLocale(country),
       });
     }
 
@@ -284,6 +335,14 @@ export default {
 
     if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
       return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/lifebook/session") {
+      // Keep legacy client endpoint compatible by routing to worker-native ziwei session handler.
+      const bridgedUrl = new URL(request.url);
+      bridgedUrl.pathname = "/api/ziwei-book/session";
+      const bridgedRequest = new Request(bridgedUrl.toString(), request);
+      return withCorsHeaders(request, env, await handleZiweiBookRoutes(bridgedRequest, env));
     }
 
     if (url.pathname.startsWith("/api/")) {

@@ -26,13 +26,17 @@ function assertShellLooksReady(html, options = {}) {
     'id="codeSplash"',
     "openHwatuModal",
     "openTarotHealingModal",
-    "/static/js/router.js",
   ];
 
   for (const marker of requiredMarkers) {
     if (!html.includes(marker)) {
       throw new Error(`[promote-static-shell] Missing required shell marker: ${marker}`);
     }
+  }
+
+  const hasRouterEntrypoint = html.includes("/static/js/router.js") || html.includes("/js/router.js");
+  if (!hasRouterEntrypoint) {
+    throw new Error("[promote-static-shell] Missing required shell marker: router entrypoint");
   }
 
   const hasStaticRedirect = html.includes("forceRootToStatic")

@@ -6,7 +6,7 @@ import AuthWidget from "./AuthWidget";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 const headerNavItems = [
-  { href: "/static/index.html", label: "홈" },
+  { href: "/", label: "홈" },
   { href: "/saju/basic", label: "기초사주" },
   { href: "/saju/lifebook", label: "만세력" },
   { href: "/saju/love-secret", label: "연애" },
@@ -26,7 +26,7 @@ export default function GlobalHeader() {
       <header className="sticky top-0 z-[70] border-b border-violet-200/20 bg-[rgba(12,8,28,0.84)] backdrop-blur-xl">
         <div className="mx-auto flex min-h-[58px] w-[min(1240px,100%-20px)] items-center gap-3 py-2">
           <Link
-            href="/static/index.html"
+            href="/"
             className="shrink-0 bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-100 bg-clip-text text-[17px] font-black tracking-[-0.02em] text-transparent"
           >
             ✦ Code Destiny

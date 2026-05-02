@@ -79,7 +79,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
 
     setError("");
     onProfileReady(state);
-    router.push(`/static/index.html?${queryString}`);
+    router.push(`/?${queryString}`);
   };
 
   return (
