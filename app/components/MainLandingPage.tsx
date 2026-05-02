@@ -38,7 +38,7 @@ const oracleItems: ServiceCardModel[] = [
   { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "50코인", tone: "coin" }] },
   { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", emoji: "🃏", badges: [{ text: "무료", tone: "free" }] },
-  { title: "주역 거북점", description: "64괘 기반 지혜 리딩", href: "/ifa_oracle_v2_full_local.html", emoji: "☯", badges: [{ text: "30코인", tone: "coin" }] },
+  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/ifa_oracle_v2_full_local.html", emoji: "🪬", badges: [{ text: "30코인", tone: "coin" }] },
 ];
 
 const cosmicItems: ServiceCardModel[] = [
