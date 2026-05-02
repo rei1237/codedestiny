@@ -1,6 +1,6 @@
 import { initTarotService } from "./tarot.js";
 import { initStonehengeRuneService } from "./stonehenge-rune.js";
-import { initPigOracleService } from "./pig-oracle.js";
+import { initPigOracleService } from "/js/services/pig-oracle.js";
 import { initHwatuLifeService } from "./hwatu-life.js";
 
 export const SERVICES = {

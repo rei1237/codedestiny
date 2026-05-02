@@ -90,6 +90,18 @@ export function PhaseRitualPrep() {
 
       {/* 메인 콘텐츠 */}
       <div className="relative z-10 max-w-3xl w-full px-6 py-12 mt-96">
+        <div className="sikojen-premium-band mb-7 flex items-center justify-between rounded-2xl border border-rose-200/80 bg-white/70 px-4 py-3 shadow-[0_10px_28px_rgba(190,24,93,0.12)] backdrop-blur">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl leading-none">🐷</span>
+            <div>
+              <p className="text-xs font-semibold tracking-wide text-rose-500">GUIDED CASTING</p>
+              <p className="text-sm font-bold text-rose-700">연이가 선택 순간을 함께 안내해요</p>
+            </div>
+          </div>
+          <span className="rounded-full border border-amber-300 bg-amber-100/80 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+            3 Steps
+          </span>
+        </div>
         
         {/* 제목 */}
         <div className="text-center mb-12">
@@ -113,7 +125,7 @@ export function PhaseRitualPrep() {
               `}
             >
               {/* 주머니 카드 */}
-              <div className={`relative rounded-3xl p-8 transition-all duration-300 bg-white/90 backdrop-blur
+              <div className={`sikojen-premium-card relative rounded-3xl p-8 transition-all duration-300 bg-white/90 backdrop-blur
                 ${selectedCategory === pouch.id ? 'ring-4 ring-pink-300 ring-offset-2 shadow-xl' : 'shadow-lg border-3 border-yellow-300 hover:shadow-xl'}
               `}>
                 

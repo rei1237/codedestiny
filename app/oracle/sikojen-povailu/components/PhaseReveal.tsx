@@ -54,9 +54,28 @@ export function PhaseReveal() {
         ))}
       </div>
 
-      <div className="relative z-10 max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative z-10 max-w-xl w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between rounded-2xl border border-pink-200/70 bg-white/75 px-4 py-3 shadow-[0_8px_24px_rgba(190,24,93,0.12)] backdrop-blur">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/fortune/sikojen-povailu/images/yeon.webp"
+              alt="연이"
+              width={44}
+              height={44}
+              className="rounded-full border-2 border-pink-300 shadow"
+            />
+            <div>
+              <p className="text-xs font-semibold tracking-wide text-pink-500">SIKOJEN POVAILU</p>
+              <p className="text-sm font-bold text-rose-700">연이가 읽어준 주석 형상 결과</p>
+            </div>
+          </div>
+          <span className="rounded-full border border-amber-300 bg-amber-100/80 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+            Premium Reveal
+          </span>
+        </div>
+
         {/* 메인 카드 */}
-        <div className="relative rounded-3xl border-4 border-amber-300 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-2xl p-8 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
+        <div className="sikojen-reveal-card relative rounded-3xl border-4 border-amber-300 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-2xl p-8 transform transition-all duration-300 hover:scale-[1.02]">
           
           {/* 카드 배경 패턴 */}
           <div className="absolute inset-0 rounded-3xl opacity-5 pointer-events-none" style={{
@@ -65,7 +84,10 @@ export function PhaseReveal() {
 
           {/* 형태 아이콘 - 큰 이모지 */}
           <div className="relative z-10 flex justify-center mb-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 shadow-lg flex items-center justify-center text-6xl border-4 border-pink-300 animate-bounce">
+            <div
+              className="sikojen-shape-hero w-28 h-28 rounded-full shadow-lg flex items-center justify-center text-7xl border-4 border-pink-300 animate-bounce"
+              style={{ background: `radial-gradient(circle at 35% 30%, #fff, ${selectedShape.color})` }}
+            >
               {selectedShape.icon}
             </div>
           </div>
@@ -75,6 +97,14 @@ export function PhaseReveal() {
             <h2 className="text-2xl md:text-3xl font-bold text-amber-900 mb-2" style={{ fontFamily: "'Jua', sans-serif" }}>
               {selectedShape.name_ko}
             </h2>
+            <div className="mb-2 flex items-center justify-center gap-2">
+              <span className="rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                형상 코드: {selectedShape.id}
+              </span>
+              <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
+                카테고리: {selectedShape.category}
+              </span>
+            </div>
             <p className="text-sm md:text-base text-amber-700 italic">
               {selectedShape.name_fi}
             </p>
