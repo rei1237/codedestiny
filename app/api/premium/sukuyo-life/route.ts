@@ -53,6 +53,40 @@ const CHAPTER_META = [
   { num: 13, title: "마스터 플랜", subtitle: "핵심 처방과 30일 실천", icon: "📜" },
 ];
 
+const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+function pickGeminiKeys(): string[] {
+  return [
+    process.env.GEMINIF_API_KEY1,
+    process.env.GEMINIF_API_KEY2,
+    process.env.GEMINIF_API_KEY3,
+    process.env.GEMINIF_API_KEY4,
+  ]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+}
+
+let geminiKeyCursor = 0;
+
+function rotateGeminiKeys(keys: string[], seed = 0): string[] {
+  if (!keys.length) return [];
+  const len = keys.length;
+  const base = Number.isFinite(Number(seed)) ? Number(seed) : 0;
+  const start = ((geminiKeyCursor + base) % len + len) % len;
+  geminiKeyCursor = (start + 1) % len;
+  return [...keys.slice(start), ...keys.slice(0, start)];
+}
+
+function parseGeminiText(payload: unknown): string {
+  const p = payload as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+  for (const c of p?.candidates ?? []) {
+    for (const part of c?.content?.parts ?? []) {
+      if (part?.text?.trim()) return part.text.trim();
+    }
+  }
+  return "";
+}
+
 function parseSections(text: string) {
   return text.split(/\n(?=##\s+)/g).map((part) => {
     const m = part.match(/^##\s*(.+?)\n([\s\S]*)$/);
@@ -128,6 +162,32 @@ async function generateText(prompt: string) {
     if (text) return text;
   } catch {
     // Fallback below keeps PDF generation usable when AI credentials are unavailable.
+  }
+
+  const keys = rotateGeminiKeys(pickGeminiKeys(), prompt.length);
+  if (!keys.length) return "";
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+  for (const model of models) {
+    const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
+    for (const key of keys) {
+      try {
+        const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.86, maxOutputTokens: 8192, topP: 0.95 },
+          }),
+          signal: AbortSignal.timeout(18_000),
+        });
+        if (!response.ok) continue;
+        const payload = await response.json().catch(() => ({}));
+        const text = parseGeminiText(payload);
+        if (text) return text;
+      } catch {
+        // try next key/model
+      }
+    }
   }
   return "";
 }

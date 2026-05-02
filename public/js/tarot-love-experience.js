@@ -285,23 +285,18 @@
   function isLoveAdminLikeUser() {
     if (typeof window === "undefined") return false;
     try {
-      if (window.__cdAdminBypass) return true;
-    } catch (e) {}
-    try {
-      var rawUser = localStorage.getItem("fortune_auth_user") || "";
-      if (rawUser) {
-        var parsed = JSON.parse(rawUser);
-        if (parsed && String(parsed.role || "").toLowerCase() === "admin") return true;
-      }
-    } catch (e2) {}
+      if (String(sessionStorage.getItem("flower_admin_password_ok") || "") !== "1") return false;
+    } catch (e) {
+      return false;
+    }
     try {
       var sTok = String(sessionStorage.getItem("flower_admin_token") || "");
       if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) return true;
-    } catch (e3) {}
+    } catch (e2) {}
     try {
       var lTok = String(localStorage.getItem("flower_admin_token") || "");
       if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) return true;
-    } catch (e4) {}
+    } catch (e3) {}
     return false;
   }
 
@@ -435,7 +430,7 @@
     var card = raw && typeof raw === "object" ? raw : {};
     var position = RELATIONSHIP_POSITIONS[idx] || card.position || "position_1";
     var orientation = card.orientation === "reversed" ? "reversed" : "upright";
-    var cardId = card.cardId || card.id || card.code || "";
+    var cardId = String(card.cardId || card.id || card.code || "").trim().toUpperCase();
     var name = card.name || card.title || card.enName || "";
     var nameKr = card.nameKr || card.name_kr || card.krName || card.titleKr || card.title_kr || "";
 
@@ -449,7 +444,7 @@
         return (srcName && itemName === srcName) || (srcNameKr && itemNameKr === srcNameKr);
       });
       if (found) {
-        cardId = found.cardId;
+        cardId = String(found.cardId || "").trim().toUpperCase();
         if (!name) name = found.name;
         if (!nameKr) nameKr = found.nameKr;
       }
@@ -520,9 +515,7 @@
   var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
-    if (card.localImageUrl) return card.localImageUrl;
-    var cardId = card.cardId || card.id;
-    if (!cardId) return "";
+    var cardId = String(card.cardId || card.id || "").trim().toUpperCase();
     var map = {
       M00: "thefool.jpeg", M01: "themagician.jpeg", M02: "thehighpriestess.jpeg", M03: "theempress.jpeg",
       M04: "theemperor.jpeg", M05: "thehierophant.jpeg", M06: "TheLovers.jpg", M07: "thechariot.jpeg",
@@ -547,8 +540,10 @@
       P09: "nineofpentacles.jpeg", P10: "tenofpentacles.jpeg", P11: "pageofpentacles.jpeg", P12: "knightofpentacles.jpeg",
       P13: "queenofpentacles.jpeg", P14: "kingofpentacles.jpeg",
     };
-    var fn = map[cardId];
-    return fn ? TAROT_LOCAL_BASE + fn : "";
+    var fn = cardId ? map[cardId] : "";
+    if (fn) return TAROT_LOCAL_BASE + fn;
+    var hinted = String(card.localImageUrl || "").trim();
+    return hinted || "";
   }
 
   function getLocalTarotImageCandidates(card) {

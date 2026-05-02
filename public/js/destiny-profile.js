@@ -428,34 +428,20 @@
   function _cdIsAdminLikeUser() {
     var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
     try {
-      if (window.__cdAdminBypass) return true;
+      if (String(sessionStorage.getItem('flower_admin_password_ok') || '') !== '1') return false;
+    } catch (_) {
+      return false;
+    }
+    try {
+      if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) return true;
     } catch (_) {}
     try {
-      if (typeof window.isAdminUser === 'function' && window.isAdminUser()) return true;
-    } catch (_) {}
-    try {
-      if (typeof window.isAdminSessionClient === 'function' && window.isAdminSessionClient()) return true;
-    } catch (_) {}
-    try {
-      var rawUser = localStorage.getItem('fortune_auth_user') || '';
-      if (rawUser) {
-        var parsed = JSON.parse(rawUser);
-        if (parsed && String(parsed.role || '').toLowerCase() === 'admin') return true;
-      }
-    } catch (_) {}
-    try {
-      var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '');
+      var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '').trim();
       if (sessionAdminToken && FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;
-      if (sessionAdminToken) return true;
     } catch (_) {}
     try {
-      var localAdminToken = String(localStorage.getItem('flower_admin_token') || '');
+      var localAdminToken = String(localStorage.getItem('flower_admin_token') || '').trim();
       if (localAdminToken && FLOWER_ADMIN_TOKEN_RE.test(localAdminToken)) return true;
-      if (localAdminToken) return true;
-    } catch (_) {}
-    try {
-      var legacyAdminToken = String(localStorage.getItem('fortune_auth_token') || '');
-      if (legacyAdminToken && FLOWER_ADMIN_TOKEN_RE.test(legacyAdminToken)) return true;
     } catch (_) {}
     return false;
   }

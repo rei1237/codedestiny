@@ -26,6 +26,28 @@ function safeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+let geminiKeyCursor = 0;
+
+function pickGeminiKeys() {
+  return [
+    process.env.GEMINIF_API_KEY1,
+    process.env.GEMINIF_API_KEY2,
+    process.env.GEMINIF_API_KEY3,
+    process.env.GEMINIF_API_KEY4,
+  ]
+    .map((v) => safeText(v))
+    .filter(Boolean);
+}
+
+function rotateGeminiKeys(keys, seed = 0) {
+  if (!Array.isArray(keys) || keys.length === 0) return [];
+  const len = keys.length;
+  const base = Number.isFinite(Number(seed)) ? Number(seed) : 0;
+  const start = ((geminiKeyCursor + base) % len + len) % len;
+  geminiKeyCursor = (start + 1) % len;
+  return [...keys.slice(start), ...keys.slice(0, start)];
+}
+
 function ensureMinSectionLength(text, minChars, fallbackText) {
   let out = safeText(text);
   const fallback = safeText(fallbackText);
@@ -177,31 +199,43 @@ function normalizeLoveReading(candidate, baseReading, cards) {
 }
 
 async function createGeminiJobChangeReading({ cards, baseReading }) {
-  const apiKey = safeText(process.env.GEMINI_API_KEY);
-  if (!apiKey) return null;
+  const keys = pickGeminiKeys();
+  if (!keys.length) return null;
 
   const model = safeText(process.env.TAROT_GEMINI_MODEL) || "gemini-2.0-flash-lite";
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const prompt = buildJobChangeGeminiPrompt({ cards, baseReading });
+  const rotatedKeys = rotateGeminiKeys(keys, prompt.length + (Array.isArray(cards) ? cards.length : 0));
 
-  const resp = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.4 },
-    }),
-  });
+  let payload = null;
+  let raw = "";
+  let lastErrorMessage = "";
 
-  const payload = await resp.json().catch(() => null);
-  if (!resp.ok) {
-    const msg = payload?.error?.message || `Gemini job-change failed (${resp.status})`;
-    throw new Error(msg);
+  for (const key of rotatedKeys) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+    const resp = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4 },
+      }),
+    });
+
+    payload = await resp.json().catch(() => null);
+    if (!resp.ok) {
+      lastErrorMessage = payload?.error?.message || `Gemini job-change failed (${resp.status})`;
+      continue;
+    }
+
+    const textOut = payload?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter(Boolean).join("") || "";
+    raw = safeText(textOut);
+    if (raw) break;
   }
 
-  const textOut = payload?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter(Boolean).join("") || "";
-  const raw = safeText(textOut);
-  if (!raw) return null;
+  if (!raw) {
+    if (lastErrorMessage) throw new Error(lastErrorMessage);
+    return null;
+  }
 
   let parsed = null;
   try {

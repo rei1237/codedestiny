@@ -1,12 +1,11 @@
 name = "codedestiny"
-compatibility_date = "2026-05-01"
+compatibility_date = "2026-05-02"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
 # Pages-only config:
-# - Cloudflare Pages reads this file during frontend build/deploy.
-# - Worker runtime config is isolated in worker/wrangler.toml.
-# - If a Workers pipeline needs `wrangler deploy`, use wrangler.assets.toml.
+# - Frontend static build/deploy is handled by Cloudflare Pages.
+# - Backend Worker config is isolated in worker/wrangler.toml.
 
 [vars]
 AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"

@@ -320,9 +320,7 @@
   var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
-    if (card.localImageUrl) return card.localImageUrl;
-    var cardId = card.cardId || card.id;
-    if (!cardId) return "";
+    var cardId = String(card.cardId || card.id || "").trim().toUpperCase();
     var map = {
       M00: "thefool.jpeg", M01: "themagician.jpeg", M02: "thehighpriestess.jpeg", M03: "theempress.jpeg",
       M04: "theemperor.jpeg", M05: "thehierophant.jpeg", M06: "TheLovers.jpg", M07: "thechariot.jpeg",
@@ -347,8 +345,10 @@
       P09: "nineofpentacles.jpeg", P10: "tenofpentacles.jpeg", P11: "pageofpentacles.jpeg", P12: "knightofpentacles.jpeg",
       P13: "queenofpentacles.jpeg", P14: "kingofpentacles.jpeg",
     };
-    var fn = map[cardId];
-    return fn ? TAROT_LOCAL_BASE + fn : "";
+    var fn = cardId ? map[cardId] : "";
+    if (fn) return TAROT_LOCAL_BASE + fn;
+    var hinted = String(card.localImageUrl || "").trim();
+    return hinted || "";
   }
 
   function getLocalTarotImageCandidates(card) {

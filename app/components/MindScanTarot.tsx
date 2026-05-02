@@ -956,14 +956,7 @@ export default function MindScanTarot() {
       const isAdminLikeUser = () => {
         if (typeof window === "undefined") return false;
         try {
-          if ((window as any).__cdAdminBypass) return true;
-        } catch (_) {}
-        try {
-          const rawUser = localStorage.getItem("fortune_auth_user") || "";
-          if (rawUser) {
-            const parsed = JSON.parse(rawUser);
-            if (parsed && parsed.role === "admin") return true;
-          }
+          if (String(sessionStorage.getItem("flower_admin_password_ok") || "") !== "1") return false;
         } catch (_) {}
         try {
           const sTok = String(sessionStorage.getItem("flower_admin_token") || "");
@@ -980,7 +973,9 @@ export default function MindScanTarot() {
         ? localStorage.getItem("fortune_auth_token")
         : "";
       const flowerAdminToken = typeof window !== "undefined"
-        ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
+        ? (String(sessionStorage.getItem("flower_admin_password_ok") || "") === "1"
+          ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
+          : "")
         : "";
       const adminTestTier = typeof window !== "undefined"
         ? String(localStorage.getItem("flower_admin_test_tier") || "").toLowerCase()

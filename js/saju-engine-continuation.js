@@ -26,13 +26,21 @@ function closeModal(e){
 }
 
 function resetApp(){
-  document.getElementById('inputPage').style.display='block';
-  document.getElementById('resultPage').style.display='none';
-    document.getElementById('letterBox').style.display='none';
-    document.getElementById('emailSubBox').style.display='none';
-    document.getElementById('btnNewSaju').style.display='none';
-  document.getElementById('dwDetail').innerHTML='';
-  document.getElementById('dwDetail').classList.remove('show');
+  var inputPageEl = document.getElementById('inputPage');
+  var resultPageEl = document.getElementById('resultPage');
+  var letterBoxEl = document.getElementById('letterBox');
+  var emailSubBoxEl = document.getElementById('emailSubBox');
+  var btnNewSajuEl = document.getElementById('btnNewSaju');
+  var dwDetailEl = document.getElementById('dwDetail');
+  if (inputPageEl) inputPageEl.style.display = 'block';
+  if (resultPageEl) resultPageEl.style.display = 'none';
+  if (letterBoxEl) letterBoxEl.style.display = 'none';
+  if (emailSubBoxEl) emailSubBoxEl.style.display = 'none';
+  if (btnNewSajuEl) btnNewSajuEl.style.display = 'none';
+  if (dwDetailEl) {
+    dwDetailEl.innerHTML = '';
+    dwDetailEl.classList.remove('show');
+  }
   var energyCoordCard=document.getElementById('energyCoordCard');
   var energyCoordSection=document.getElementById('energyCoordSection');
   if(energyCoordCard)energyCoordCard.style.display='none';

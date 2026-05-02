@@ -14,41 +14,25 @@ const GEMINI_ENDPOINT =
  * → 환경변수에 등록된 모든 키를 순서대로 시도
  */
 function pickGeminiKeys() {
-  const extra = String(process.env.GEMINI_API_KEYS || "")
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-  const extraF = String(process.env.GEMINIF_API_KEY || "")
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
   return [
-    process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_API_KEY,
-    process.env.LIFEBOOK_API_KEY,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GOOGLE_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GOOGLE_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
-    process.env.GOOGLE_API_KEY_4,
-    process.env.GEMINI_API_KEY_CF,
-    process.env.GOOGLE_API_KEY_CF,
-    process.env.LIFEBOOK_API_KEY_CF,
     process.env.GEMINIF_API_KEY1,
     process.env.GEMINIF_API_KEY2,
     process.env.GEMINIF_API_KEY3,
     process.env.GEMINIF_API_KEY4,
-    process.env.GEMINIF_API_KEY5,
-    process.env.GEMINIF_API_KEY6,
-    process.env.GEMINIF_API_KEY7,
-    process.env.GEMINIF_API_KEY8,
-    process.env.GEMINIF_API_KEY9,
-    ...extra,
-    ...extraF,
   ]
     .map((v) => String(v || "").trim())
     .filter(Boolean);
+}
+
+let geminiKeyCursor = 0;
+
+function rotateGeminiKeys(keys, seed = 0) {
+  if (!Array.isArray(keys) || keys.length === 0) return [];
+  const len = keys.length;
+  const base = Number.isFinite(Number(seed)) ? Number(seed) : 0;
+  const start = ((geminiKeyCursor + base) % len + len) % len;
+  geminiKeyCursor = (start + 1) % len;
+  return [...keys.slice(start), ...keys.slice(0, start)];
 }
 
 function hasVertexServiceAccountCreds() {
@@ -1179,7 +1163,7 @@ export async function POST(req) {
 
     if (!geminiKeys.length && !hasVertexCred) {
       return NextResponse.json(
-        { ok: false, message: "서버 API 키가 설정되지 않았습니다. VERTEX_SA_JSON(또는 VERTEX_SA_CLIENT_EMAIL/PRIVATE_KEY) 또는 GEMINI_API_KEY 환경변수를 확인해 주세요." },
+        { ok: false, message: "서버 API 키가 설정되지 않았습니다. VERTEX_SA_JSON(또는 VERTEX_SA_CLIENT_EMAIL/PRIVATE_KEY) 또는 GEMINIF_API_KEY1~4 환경변수를 확인해 주세요." },
         { status: 500 }
       );
     }
@@ -1228,7 +1212,8 @@ export async function POST(req) {
         generationConfig: makeGenerationConfig(model),
       });
 
-      for (const key of geminiKeys) {
+      const distributedKeys = rotateGeminiKeys(geminiKeys, sessionId);
+      for (const key of distributedKeys) {
         try {
           const response = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
             method: "POST",

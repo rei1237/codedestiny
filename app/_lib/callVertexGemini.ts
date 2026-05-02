@@ -10,7 +10,7 @@
  * 사용 방법:
  *   import { callVertexGemini } from "@/app/_lib/callVertexGemini";
  *   const text = await callVertexGemini(prompt);
- *   if (!text) { // Vertex 미설정/실패 → 상위에서 GEMINI_API_KEY 폴백 }
+ *   if (!text) { // Vertex 미설정/실패 → 상위에서 GEMINIF_API_KEY1~4 폴백 }
  */
 
 import { createSign } from "node:crypto";
@@ -170,7 +170,7 @@ export interface VertexGenConfig {
 /**
  * Vertex AI를 통해 Gemini 모델 호출.
  * 자격증명 미설정 또는 모든 모델 실패 시 빈 문자열("")을 반환
- * → 호출 측에서 GEMINI_API_KEY 폴백으로 분기.
+ * → 호출 측에서 GEMINIF_API_KEY1~4 폴백으로 분기.
  */
 export async function callVertexGemini(
   prompt: string,
@@ -199,7 +199,7 @@ export async function callVertexGemini(
 
   if (!project) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[Vertex] 프로젝트 ID를 확인할 수 없어 GEMINI_API_KEY 폴백");
+      console.warn("[Vertex] 프로젝트 ID를 확인할 수 없어 GEMINIF_API_KEY1~4 폴백");
     }
     return "";
   }
@@ -218,7 +218,7 @@ export async function callVertexGemini(
     token = await getVertexAccessToken();
   } catch (e) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[Vertex] 토큰 취득 실패 — GEMINI_API_KEY 폴백:", (e as Error).message);
+      console.warn("[Vertex] 토큰 취득 실패 — GEMINIF_API_KEY1~4 폴백:", (e as Error).message);
     }
     return "";
   }

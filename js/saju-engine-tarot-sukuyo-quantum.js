@@ -3998,6 +3998,14 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       window._cdCoinGatePerUse(50, '숙요점 유명인 궁합', function() { window._szPickCelebCore(myIdx, celeb); });
       return;
     }
+    var isAdminBypass = false;
+    try {
+      isAdminBypass = !!(window.__cdAdminBypass || (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()));
+    } catch (_) {}
+    if (isAdminBypass) {
+      window._szPickCelebCore(myIdx, celeb);
+      return;
+    }
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     if (!token) {
@@ -4443,6 +4451,14 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
   window.triggerSynergyCheck = function(myIdx, myMansionName) {
       if (typeof window._cdCoinGatePerUse === 'function') {
         window._cdCoinGatePerUse(50, '숙요점 궁합 분석', function() { window._triggerSynergyCheckCore(myIdx, myMansionName); });
+        return;
+      }
+      var isAdminBypass = false;
+      try {
+        isAdminBypass = !!(window.__cdAdminBypass || (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()));
+      } catch (_) {}
+      if (isAdminBypass) {
+        window._triggerSynergyCheckCore(myIdx, myMansionName);
         return;
       }
       var token = '';

@@ -211,6 +211,58 @@ function makePublicShellFromRoot(rootHtml) {
   return rewritten;
 }
 
+function extractFirst(html, re) {
+  const m = html.match(re);
+  return m ? m[0] : "";
+}
+
+function syncCriticalShellBlocks(rootHtml, targetHtml) {
+  let html = targetHtml;
+  let changed = false;
+
+  const flowerRe = /<section class="fg-group fg-group--flower"[\s\S]*?<\/section><!-- \/fg-group--flower -->/;
+  const footerRe = /<footer[^>]*role="contentinfo"[\s\S]*?<\/footer>/;
+  const flowerHideRe = /\.fg-group--flower\{display:none !important\}/g;
+  const overlayHideRe = /#destinyFlowerStudioOverlay,.df-studio-overlay\{display:none !important\}/g;
+
+  const rootFlower = extractFirst(rootHtml, flowerRe);
+  const rootFooter = extractFirst(rootHtml, footerRe);
+  const rootMainGlassRef = extractFirst(rootHtml, /\/styles\/main-glass\.css\?v=[^"']+/);
+
+  if (rootFlower && flowerRe.test(html)) {
+    const next = html.replace(flowerRe, rootFlower);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  if (rootFooter && footerRe.test(html)) {
+    const next = html.replace(footerRe, rootFooter);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  if (rootMainGlassRef) {
+    const next = html.replace(/\/styles\/main-glass\.css\?v=[^"']+/g, rootMainGlassRef);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  const noFlowerHide = html.replace(flowerHideRe, "");
+  const noOverlayHide = noFlowerHide.replace(overlayHideRe, "");
+  if (noOverlayHide !== html) {
+    html = noOverlayHide;
+    changed = true;
+  }
+
+  return { html, changed };
+}
+
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const canonicalUrl = `https://code-destiny.com${localePath}`;
   return indexHtml
@@ -290,10 +342,16 @@ if (existsSync(rootIndexPath)) {
   } else if (rootIndexIssues.length === 0) {
     const publicIndexBuf = stripLeadingBom(readFileSync(publicIndexPath));
     const publicIndexHtml = publicIndexBuf.toString("utf8");
-    if (hasSevereMojibake(publicIndexHtml)) {
-      const healedHtml = makePublicShellFromRoot(rootIndexHtml);
-      writeFileSync(publicIndexPath, Buffer.from(healedHtml, "utf8"));
-      console.warn("[sync-legacy-static-to-public] Rebuilt mojibake-corrupted public/index.html from root/index.html.");
+    const patched = syncCriticalShellBlocks(rootIndexHtml, publicIndexHtml);
+    if (patched.changed) {
+      writeFileSync(publicIndexPath, Buffer.from(patched.html, "utf8"));
+      console.log(
+        "[sync-legacy-static-to-public] Patched public/index.html with extracted shell blocks (flower/footer/main-glass) from root/index.html.",
+      );
+    } else if (hasSevereMojibake(publicIndexHtml)) {
+      console.warn(
+        "[sync-legacy-static-to-public] Detected severe mojibake in public/index.html but skipped full overwrite; apply targeted fixes manually.",
+      );
     }
   }
 }
@@ -351,6 +409,38 @@ if (existsSync(publicIndex)) {
     indexBuf = Buffer.from(baseIndexHtml, "utf8");
     writeFileSync(publicIndex, indexBuf);
     console.log("[sync-legacy-static-to-public] Normalized legacy replacement-char marker in public/index.html");
+  }
+
+  const baseIssues = collectEntryIssues(baseIndexHtml);
+  if (baseIssues.length > 0) {
+    if (existsSync(rootIndexPath)) {
+      const rootIndexBufForRepair = stripLeadingBom(readFileSync(rootIndexPath));
+      const rootIndexHtmlForRepair = rootIndexBufForRepair.toString("utf8");
+      const rootIssuesForRepair = collectEntryIssues(rootIndexHtmlForRepair);
+      if (rootIssuesForRepair.length === 0) {
+        const patched = syncCriticalShellBlocks(rootIndexHtmlForRepair, baseIndexHtml);
+        const patchedIssues = collectEntryIssues(patched.html);
+        if (patchedIssues.length === 0) {
+          baseIndexHtml = patched.html;
+          indexBuf = Buffer.from(baseIndexHtml, "utf8");
+          writeFileSync(publicIndex, indexBuf);
+          console.log(
+            "[sync-legacy-static-to-public] Healed public/index.html using extracted critical blocks from root/index.html.",
+          );
+        } else {
+          const rebuilt = makePublicShellFromRoot(rootIndexHtmlForRepair);
+          const rebuiltIssues = collectEntryIssues(rebuilt);
+          if (rebuiltIssues.length === 0) {
+            baseIndexHtml = rebuilt;
+            indexBuf = Buffer.from(baseIndexHtml, "utf8");
+            writeFileSync(publicIndex, indexBuf);
+            console.warn(
+              "[sync-legacy-static-to-public] Recovered corrupted public/index.html from root/index.html as final fallback.",
+            );
+          }
+        }
+      }
+    }
   }
 
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");

@@ -421,41 +421,25 @@ const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
 function pickGeminiKeys(): string[] {
-  const extra = String(process.env.GEMINI_API_KEYS || "")
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-  const extraF = String(process.env.GEMINIF_API_KEY || "")
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
   return [
-    process.env.GEMINI_API_KEY,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
-    process.env.GEMINI_API_KEY_5,
-    process.env.GEMINI_API_KEY_6,
-    process.env.GEMINI_API_KEY_7,
-    process.env.GEMINI_API_KEY_8,
-    process.env.GEMINI_API_KEY_CF,
     process.env.GEMINIF_API_KEY1,
     process.env.GEMINIF_API_KEY2,
     process.env.GEMINIF_API_KEY3,
     process.env.GEMINIF_API_KEY4,
-    process.env.GEMINIF_API_KEY5,
-    process.env.GEMINIF_API_KEY6,
-    process.env.GEMINIF_API_KEY7,
-    process.env.GEMINIF_API_KEY8,
-    process.env.GOOGLE_API_KEY,
-    process.env.GOOGLE_API_KEY_2,
-    process.env.GOOGLE_API_KEY_3,
-    process.env.GOOGLE_API_KEY_4,
-    ...extra,
-    ...extraF,
   ]
     .map((v) => String(v || "").trim())
     .filter(Boolean);
+}
+
+let geminiKeyCursor = 0;
+
+function rotateGeminiKeys(keys: string[], seed = 0): string[] {
+  if (!keys.length) return [];
+  const len = keys.length;
+  const base = Number.isFinite(Number(seed)) ? Number(seed) : 0;
+  const start = ((geminiKeyCursor + base) % len + len) % len;
+  geminiKeyCursor = (start + 1) % len;
+  return [...keys.slice(start), ...keys.slice(0, start)];
 }
 
 function pickGeminiModels(): string[] {
@@ -485,13 +469,14 @@ async function callGemini(prompt: string): Promise<string> {
   const keys = pickGeminiKeys();
   const models = pickGeminiModels();
   if (!keys.length) return "";
+  const distributedKeys = rotateGeminiKeys(keys, prompt.length);
 
   let attempts = 0;
   const maxAttempts = 4;
 
   for (const model of models) {
     if (attempts >= maxAttempts) break;
-    for (const key of keys) {
+    for (const key of distributedKeys) {
       if (attempts >= maxAttempts) break;
       attempts += 1;
       try {

@@ -23,8 +23,7 @@ const textExtensions = new Set([
 ]);
 
 const secretNamePatterns = [
-  /\bGEMINI_API_KEY\b/i,
-  /\bGOOGLE_API_KEY\b/i,
+  /\bGEMINIF_API_KEY\d*\b/i,
   /\bANTHROPIC_API_KEY\b/i,
   /\bDEEPL_API_KEY\b/i,
   /\bPORTONE_API_KEY\b/i,
@@ -36,7 +35,7 @@ const secretNamePatterns = [
 
 // Artifact leak signatures (key assignment with inline string-like value).
 const secretAssignmentPatterns = [
-  /\b(?:GEMINI_API_KEY|GOOGLE_API_KEY|ANTHROPIC_API_KEY|DEEPL_API_KEY|PORTONE_API_KEY|PORTONE_API_SECRET|JWT_SECRET|ADMIN_SECRET_HASH)\b\s*[:=]\s*["'`][^"'`\n]{1,}["'`]/i,
+  /\b(?:GEMINIF_API_KEY\d*|ANTHROPIC_API_KEY|DEEPL_API_KEY|PORTONE_API_KEY|PORTONE_API_SECRET|JWT_SECRET|ADMIN_SECRET_HASH)\b\s*[:=]\s*["'`][^"'`\n]{1,}["'`]/i,
   /\b[A-Z][A-Z0-9_]{2,}(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PRIVATE[_-]?KEY)\b\s*[:=]\s*["'`][^"'`\n]{8,}["'`]/,
   /AIza[0-9A-Za-z\-_]{20,}/,
 ];

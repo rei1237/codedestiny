@@ -230,14 +230,24 @@ const POINT_PACKAGES: PointPackage[] = [
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 
-function isFlowerAdminSessionClient(): boolean {
+function hasFlowerAdminPasswordSession(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const token = String(localStorage.getItem("flower_admin_token") || "");
+    return String(sessionStorage.getItem("flower_admin_password_ok") || "") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function isFlowerAdminSessionClient(): boolean {
+  if (typeof window === "undefined") return false;
+  if (!hasFlowerAdminPasswordSession()) return false;
+  try {
+    const token = String(sessionStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
   } catch {}
   try {
-    const token = String(sessionStorage.getItem("flower_admin_token") || "");
+    const token = String(localStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
   } catch {}
   return false;
@@ -245,12 +255,13 @@ function isFlowerAdminSessionClient(): boolean {
 
 function getFlowerAdminTokenClient(): string {
   if (typeof window === "undefined") return "";
+  if (!hasFlowerAdminPasswordSession()) return "";
   try {
-    const token = localStorage.getItem("flower_admin_token");
+    const token = sessionStorage.getItem("flower_admin_token");
     if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
   } catch {}
   try {
-    const token = sessionStorage.getItem("flower_admin_token");
+    const token = localStorage.getItem("flower_admin_token");
     if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
   } catch {}
   return "";
