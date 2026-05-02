@@ -159,27 +159,147 @@ body {
 
 /* ─── Post-saju intro ─── */
 .post-saju-services-intro {
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	border-radius: 22px;
-	padding: 28px 20px 24px;
-	margin-top: 32px;
-	margin-bottom: 28px;
+	--cosmic-deep-space: #050510;
+	--cosmic-mystic-purple: #200A40;
+	--cosmic-gold: #FFD700;
+	--cosmic-gold-glow: #FFFACD;
+	--cosmic-body: #F0F0F0;
+	position: relative;
+	overflow: hidden;
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 26px;
+	padding: 34px 26px 28px;
+	margin-top: 34px;
+	margin-bottom: 30px;
 	text-align: center;
-	border: 1px solid rgba(150, 95, 255, 0.35);
-	background: linear-gradient(160deg, rgba(18, 6, 42, 0.95), rgba(10, 4, 28, 0.97));
+	border: 1px solid rgba(255, 215, 0, 0.48);
+	background:
+		radial-gradient(125% 100% at 16% 0%, rgba(90, 24, 160, 0.38) 0%, rgba(90, 24, 160, 0) 44%),
+		radial-gradient(150% 120% at 88% 100%, rgba(45, 78, 198, 0.32) 0%, rgba(45, 78, 198, 0) 46%),
+		linear-gradient(160deg, rgba(5, 5, 16, 0.97), rgba(32, 10, 64, 0.95));
+	box-shadow:
+		0 20px 52px rgba(1, 2, 10, 0.55),
+		0 0 0 1px rgba(255, 215, 0, 0.2) inset,
+		0 0 38px rgba(88, 55, 190, 0.24);
+}
+.post-saju-services-intro::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		radial-gradient(circle at 9% 22%, rgba(255, 250, 205, 0.84) 0 1.3px, transparent 1.3px),
+		radial-gradient(circle at 18% 68%, rgba(255, 215, 0, 0.48) 0 1.1px, transparent 1.1px),
+		radial-gradient(circle at 32% 40%, rgba(240, 240, 240, 0.52) 0 1.2px, transparent 1.2px),
+		radial-gradient(circle at 48% 82%, rgba(255, 250, 205, 0.45) 0 1px, transparent 1px),
+		radial-gradient(circle at 66% 24%, rgba(255, 215, 0, 0.52) 0 1.2px, transparent 1.2px),
+		radial-gradient(circle at 81% 58%, rgba(240, 240, 240, 0.48) 0 1.1px, transparent 1.1px),
+		radial-gradient(circle at 92% 16%, rgba(255, 250, 205, 0.52) 0 1px, transparent 1px),
+		linear-gradient(104deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0) 24%),
+		linear-gradient(76deg, rgba(255, 215, 0, 0) 76%, rgba(255, 215, 0, 0.16));
+	opacity: 0.78;
+}
+.post-saju-services-intro::after {
+	content: "🌀";
+	position: absolute;
+	top: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 1.04rem;
+	line-height: 1;
+	color: rgba(255, 215, 0, 0.95);
+	text-shadow: 0 0 10px rgba(255, 250, 205, 0.82);
+	filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.58));
 }
 .post-saju-services-intro strong {
 	display: block;
-	font-size: 1.1rem;
-	color: #fde68a;
-	margin-bottom: 10px;
+	position: relative;
+	z-index: 1;
+	margin: 2px 0 12px;
+	padding-top: 6px;
+	font-family: "Noto Serif KR", "Gowun Batang", serif;
+	font-size: clamp(1.08rem, 2.6vw, 1.28rem);
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	line-height: 1.42;
+	background: linear-gradient(128deg, #FFFACD 0%, #FFD700 38%, #FFE8A3 60%, #FFD700 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	color: transparent;
+	text-shadow: 0 0 14px rgba(255, 250, 205, 0.42);
 }
 .post-saju-services-intro span {
 	display: block;
-	font-size: 0.88rem;
-	color: rgba(210, 190, 255, 0.8);
-	line-height: 1.55;
+	position: relative;
+	z-index: 1;
+	max-width: 900px;
+	margin: 0 auto;
+	font-family: "Noto Sans KR", "Gowun Dodum", sans-serif;
+	font-size: clamp(0.82rem, 2.12vw, 0.94rem);
+	font-weight: 500;
+	color: rgba(240, 240, 240, 0.92);
+	line-height: 1.72;
+	text-wrap: pretty;
+}
+.post-saju-services-intro strong,
+.post-saju-services-intro span {
+	padding-left: 54px;
+	padding-right: 54px;
+}
+
+/* 좌/우 별자리 라인 아이콘 그룹 */
+.post-saju-services-intro strong::before,
+.post-saju-services-intro strong::after {
+	position: absolute;
+	top: 56%;
+	transform: translateY(-50%);
+	white-space: pre;
+	font-family: "Noto Sans KR", sans-serif;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	line-height: 1.65;
+	color: rgba(255, 215, 0, 0.84);
+	text-shadow: 0 0 8px rgba(255, 250, 205, 0.35);
+	opacity: 0.78;
+}
+.post-saju-services-intro strong::before {
+	content: "◌ 관상\A│ 타로\A│ 화투";
+	left: 10px;
+	text-align: left;
+}
+.post-saju-services-intro strong::after {
+	content: "심리 ◌\A명상 │\A토템 │";
+	right: 10px;
+	text-align: right;
+}
+
+/* 본문 기능 보강 카피 */
+.post-saju-services-intro span::after {
+	content: "빠른 테마 전환, 카드형 결과 저장, 연애운/재물운 요약 탐색, 다음 추천 리딩으로 이어지는 원클릭 동선까지 한 화면에서 완성됩니다.";
+	display: block;
+	margin-top: 10px;
+	font-size: clamp(0.78rem, 1.92vw, 0.88rem);
+	font-family: "Noto Sans KR", sans-serif;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	line-height: 1.65;
+	color: rgba(255, 250, 205, 0.86);
+	text-shadow: 0 0 8px rgba(255, 250, 205, 0.22);
+	white-space: normal;
+	text-align: center;
+}
+
+.post-saju-services-intro span::before,
+.post-saju-services-intro span::after {
+	position: static;
+	transform: none;
+}
+
+.post-saju-services-intro span::before {
+	content: none;
 }
 
 /* ─── Feature card grid ─── */
@@ -751,7 +871,14 @@ body {
 @media (max-width: 768px) {
 	.logo-area { padding: 32px 12px 28px; }
 	.card.input-section { padding: 20px 14px; }
-	.post-saju-services-intro { padding: 24px 16px 20px; margin-top: 24px; margin-bottom: 24px; }
+	.post-saju-services-intro { padding: 28px 16px 22px; margin-top: 24px; margin-bottom: 24px; border-radius: 22px; }
+	.post-saju-services-intro strong,
+	.post-saju-services-intro span { padding-left: 18px; padding-right: 18px; }
+	.post-saju-services-intro span::after { margin-top: 8px; font-size: 0.76rem; }
+	.post-saju-services-intro strong::before,
+	.post-saju-services-intro strong::after { display: none; }
+	.post-saju-services-intro span::before { display: none; }
+	.post-saju-services-intro span::after { display: block; }
 	.feat-collection,
 	.tarot-collection { padding: 20px 14px 18px; }
 	.feat-collection__grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
