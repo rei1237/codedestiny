@@ -3,10 +3,8 @@ import { buildConfigErrorBody, buildRuntimeKeyMatrix, evaluateFeatureKeyHealth }
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
-  // target password: kangta!7989
+  // current admin entry password: kangta!7989
   "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e",
-  // legacy compatibility: angta!7989
-  "29034f32ce15fe7e459fc1ab512847643b068dd2d297c7ce5ff77eac516fc09b",
 ];
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;

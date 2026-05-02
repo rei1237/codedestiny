@@ -25,9 +25,7 @@ const router = express.Router();
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
-  // 현재 운영 비밀번호: angta!7989
-  "29034f32ce15fe7e459fc1ab512847643b068dd2d297c7ce5ff77eac516fc09b",
-  // 이전 비밀번호(kangta!7989) 임시 호환
+  // 현재 운영 비밀번호: kangta!7989
   "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e",
 ];
 
