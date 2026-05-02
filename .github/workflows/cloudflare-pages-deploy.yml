@@ -41,6 +41,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Sync public static artifacts
+        run: npm run sync:public
+
+      - name: Verify entry encoding
+        run: npm run verify:entry-encoding
+
+      - name: Verify locale/main sync
+        run: npm run verify:locale-main-sync
+
+      - name: Verify runtime cache sync
+        run: npm run verify:runtime-cache-sync
+
+      - name: Verify style sync
+        run: npm run verify:style-sync
+
+      - name: Verify public parity
+        run: npm run verify:public-parity
+
       - name: Build frontend
         run: npm run build:cf
 
