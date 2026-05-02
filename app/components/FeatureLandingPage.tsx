@@ -214,23 +214,20 @@ const ACTION_MAP: Record<string, string> = {
   "/flower/destiny":"openDestinyFlowerStudio", "/flower/astrology":"openAstrologyFlowerStudio",
   "/flower/jamidusu":"openJamidusuFlowerStudio", "/flower/sukuyo":"openSukuyoFlowerStudio",
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
-  /* ── 추가된 서비스 ── */
-  "/tarot/healing":"/static?service=tarot",
-  "/tarot/mingri":"/static?service=tarot",
-  "/tarot/love":"/static?service=tarot",
-  "/tarot/reunion":"/static?service=tarot",
-  "/tarot/year":"/static?service=tarot",
-  "/tarot/mindscan":"/static?service=tarot",
-  "/saju/basic":"/",
+  "/tarot/healing":"openTarotHealingModal",
+  "/tarot/mingri":"openTarotModal",
+  "/tarot/love":"openTarotLoveModal",
+  "/tarot/mindscan":"startMindScanTarot",
+  "/saju/basic":"checkPrivacyAndCalculate",
   "/saju/sibyl":"openSibylModal",
   "/saju/lifebook":"openLifeBookModal",
   "/saju/love-secret":"openLoveSecretModal",
-  "/saju/love-simulation":"/saju/love-simulation",
+  "/saju/love-simulation":"openLoveSimulation",
   "/ziwei/chart":"openZiweiModal",
   "/astrology/cosmic":"openAstroModal",
-  "/oracle/hwatu-life":"/static?service=hwatu-life",
-  "/oracle/rune":"/static?service=stonehenge-rune",
-  "/oracle/sikojen-povailu":"/static?service=pig-oracle",
+  "/oracle/hwatu-life":"openHwatuModal",
+  "/oracle/ifa":"openIfaOracle",
+  "/oracle/rune":"openRuneOracle",
   "/oracle/royal-tea":"openRoyalTeaOracle",
   "/yoga-guru":"openYogaGuru",
 };
@@ -267,8 +264,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
 
   const action = ACTION_MAP[basePath];
   const runHref = action
-    ? (action.startsWith('/') ? action : `/?action=${encodeURIComponent(action)}`)
-    : "/";
+    ? `/index.html?action=${encodeURIComponent(action)}`
+    : "/index.html";
   const paidMeta = PAID_SLUG_META[basePath];
   const isPaidFeature = !!paidMeta;
 

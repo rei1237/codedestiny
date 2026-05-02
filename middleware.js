@@ -58,6 +58,51 @@ const STATIC_PREFIXES = [
   "/_next/",
 ];
 
+const SERVICE_ROUTE_ACTIONS = new Map([
+  ["/tarot", "openTarotModal"],
+  ["/tarot/love", "openTarotLoveModal"],
+  ["/tarot/healing", "openTarotHealingModal"],
+  ["/tarot/healing/start", "openTarotHealingModal"],
+  ["/tarot/self-esteem", "openTarotSelfEsteemModal"],
+  ["/tarot/reunion", "openTarotReunionModal"],
+  ["/tarot/year", "openTarotYearFortuneModal"],
+  ["/tarot/mingri", "openTarotModal"],
+  ["/tarot/mingri/play", "openTarotModal"],
+  ["/tarot/mindscan", "startMindScanTarot"],
+  ["/tarot/crystal-soul", "openCelestialHarmony"],
+  ["/saju", "checkPrivacyAndCalculate"],
+  ["/saju/basic", "checkPrivacyAndCalculate"],
+  ["/saju/basic/play", "checkPrivacyAndCalculate"],
+  ["/saju/sibyl", "openSibylModal"],
+  ["/saju/lifebook", "openLifeBookModal"],
+  ["/saju/love-secret", "openLoveSecretModal"],
+  ["/saju/love-simulation", "openLoveSimulation"],
+  ["/oracle", "openHwatuModal"],
+  ["/oracle/hwatu-life", "openHwatuModal"],
+  ["/oracle/royal-tea", "openRoyalTeaOracle"],
+  ["/oracle/rune", "openRuneOracle"],
+  ["/oracle/ifa", "openIfaOracle"],
+  ["/astrology", "openAstroModal"],
+  ["/astrology/cosmic", "openAstroModal"],
+  ["/ziwei", "openZiweiModal"],
+  ["/ziwei/chart", "openZiweiModal"],
+  ["/olympus", "openOlympusOracleModal"],
+]);
+
+const SERVICE_ROUTE_PARAMS = new Map([
+  ["/oracle/sikojen-povailu", ["service", "pig-oracle"]],
+]);
+
+const LANDING_ONLY_ROUTES = new Set([
+  "/about",
+  "/contact-us",
+  "/faq",
+  "/high-value",
+  "/insights",
+  "/methodology",
+  "/landing",
+]);
+
 function isStaticAssetPath(pathname) {
   if (!pathname) return false;
   for (const prefix of STATIC_PREFIXES) {
@@ -79,6 +124,30 @@ function shouldRedirectToCanonical(host) {
   }
 
   return host.endsWith(".pages.dev");
+}
+
+function normalizePathname(pathname) {
+  if (!pathname || pathname === "/") return "/";
+  return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+}
+
+function stripLocaleSlug(pathname) {
+  const normalized = normalizePathname(pathname);
+  for (const slug of LOCALE_SLUGS) {
+    if (normalized === slug) return "/";
+    if (normalized.startsWith(slug + "/")) return normalized.slice(slug.length) || "/";
+  }
+  return normalized;
+}
+
+function buildMainRedirectUrl(request, paramsPatchFn) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/index.html";
+  const params = new URLSearchParams(url.search || "");
+  paramsPatchFn(params);
+  const q = params.toString();
+  url.search = q ? `?${q}` : "";
+  return url;
 }
 
 export function middleware(request) {
@@ -141,6 +210,30 @@ export function middleware(request) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.protocol = "https";
     redirectUrl.host = CANONICAL_HOST;
+    return NextResponse.redirect(redirectUrl, 308);
+  }
+
+  const normalizedPath = normalizePathname(pathname);
+  const routePath = stripLocaleSlug(normalizedPath);
+
+  const actionForRoute = SERVICE_ROUTE_ACTIONS.get(routePath);
+  if (actionForRoute) {
+    const redirectUrl = buildMainRedirectUrl(request, (params) => {
+      params.set("action", actionForRoute);
+    });
+    return NextResponse.redirect(redirectUrl, 308);
+  }
+
+  const serviceParam = SERVICE_ROUTE_PARAMS.get(routePath);
+  if (serviceParam) {
+    const redirectUrl = buildMainRedirectUrl(request, (params) => {
+      params.set(serviceParam[0], serviceParam[1]);
+    });
+    return NextResponse.redirect(redirectUrl, 308);
+  }
+
+  if (LANDING_ONLY_ROUTES.has(routePath)) {
+    const redirectUrl = buildMainRedirectUrl(request, () => {});
     return NextResponse.redirect(redirectUrl, 308);
   }
 

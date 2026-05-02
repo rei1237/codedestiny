@@ -7,12 +7,12 @@ import { LocaleSwitcher } from "./LocaleSwitcher";
 
 const headerNavItems = [
   { href: "/index.html", label: "홈" },
-  { href: "/saju/basic", label: "기초사주" },
-  { href: "/saju/lifebook", label: "만세력" },
-  { href: "/saju/love-secret", label: "연애" },
-  { href: "/tarot", label: "타로" },
-  { href: "/tarot/year", label: "타로년운" },
-  { href: "/oracle", label: "오라클" },
+  { href: "/index.html?action=checkPrivacyAndCalculate", label: "기초사주" },
+  { href: "/index.html?action=openLifeBookModal", label: "만세력" },
+  { href: "/index.html?action=openLoveSecretModal", label: "연애" },
+  { href: "/index.html?action=openTarotModal", label: "타로" },
+  { href: "/index.html?action=openTarotYearFortuneModal", label: "타로년운" },
+  { href: "/index.html?action=openHwatuModal", label: "오라클" },
   { href: "/insights", label: "가이드" },
   { href: "/points", label: "포인트" },
 ];
@@ -26,7 +26,7 @@ export default function GlobalHeader() {
       <header className="sticky top-0 z-[70] border-b border-violet-200/20 bg-[rgba(12,8,28,0.84)] backdrop-blur-xl">
         <div className="mx-auto flex min-h-[58px] w-[min(1240px,100%-20px)] items-center gap-3 py-2">
           <Link
-            href="/"
+            href="/index.html"
             className="shrink-0 bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-100 bg-clip-text text-[17px] font-black tracking-[-0.02em] text-transparent"
           >
             ✦ Code Destiny

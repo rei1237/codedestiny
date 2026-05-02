@@ -11,18 +11,7 @@
       var action = params.get("action");
       if (!action) return;
 
-      var flowerRouteMap = {
-        openDestinyFlowerStudio: "/flower/destiny",
-        openAstrologyFlowerStudio: "/flower/astrology",
-        openJamidusuFlowerStudio: "/flower/jamidusu",
-        openSukuyoFlowerStudio: "/flower/sukuyo"
-      };
-      if (flowerRouteMap[action]) {
-        window.location.href = flowerRouteMap[action];
-        return;
-      }
-
-      if (!/^open[A-Za-z0-9_]+$|^navigateToVedic$/.test(action)) return;
+      if (!/^open[A-Za-z0-9_]+$|^start[A-Za-z0-9_]+$|^navigateToVedic$/.test(action)) return;
 
       var attempts = 0;
       var maxAttempts = 200;

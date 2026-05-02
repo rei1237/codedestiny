@@ -1223,39 +1223,33 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
+function __cdHasFlowerAdminPasswordSession() {
+  try {
+    return String(sessionStorage.getItem('flower_admin_password_ok') || '') === '1';
+  } catch (_) {}
+  return false;
+}
+
 function __cdIsAdminLikeUser() {
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+  if (!__cdHasFlowerAdminPasswordSession()) return false;
   try {
-    if (window.__cdAdminBypass) return true;
-  } catch (_) {}
-  try {
-    if (typeof window.isAdminUser === 'function' && window.isAdminUser()) return true;
-  } catch (_) {}
-  try {
-    if (typeof window.isAdminSessionClient === 'function' && window.isAdminSessionClient()) return true;
-  } catch (_) {}
-  try {
-    var rawUser = localStorage.getItem('fortune_auth_user') || '';
-    if (rawUser) {
-      var parsed = JSON.parse(rawUser);
-      if (parsed && String(parsed.role || '').toLowerCase() === 'admin') return true;
-    }
-  } catch (_) {}
-  try {
-    var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '');
+    var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '').trim();
     if (sessionAdminToken && FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;
-    if (sessionAdminToken) return true;
   } catch (_) {}
   try {
-    var localAdminToken = String(localStorage.getItem('flower_admin_token') || '');
+    var localAdminToken = String(localStorage.getItem('flower_admin_token') || '').trim();
     if (localAdminToken && FLOWER_ADMIN_TOKEN_RE.test(localAdminToken)) return true;
-    if (localAdminToken) return true;
   } catch (_) {}
   return false;
 }
 
 try {
-  if (__cdIsAdminLikeUser()) window.__cdAdminBypass = true;
+  window.__cdIsAdminLikeUser = __cdIsAdminLikeUser;
+} catch (_) {}
+
+try {
+  window.__cdAdminBypass = !!__cdIsAdminLikeUser();
 } catch (_) {}
 
 function __cdHasAuthToken() {
@@ -1530,6 +1524,7 @@ window.addEventListener('cd:auth-changed', function() {
 
 var __cdLazyActionLoaders = {
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-modal.js'); },
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
@@ -2464,6 +2459,11 @@ function __cdBindAnimalTotemTileDirect() {
           return;
         }
         // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
+        if (__cdIsAdminLikeUser()) {
+          _doOpenTotem();
+          return;
+        }
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
@@ -7646,6 +7646,10 @@ window.closeTarotModal = closeTarotModal;
    이직 운명의 카드 · 속마음 알아보기 · 원석 소울 타로
 ═══════════════════════════════════════════════════════════════ */
 function startIjikTarot() {
+  if (__cdIsAdminLikeUser()) {
+    window.location.href = '/tarot-ijik.html';
+    return;
+  }
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
@@ -7657,6 +7661,10 @@ function startIjikTarot() {
   window.location.href = '/tarot-ijik.html';
 }
 function startMindScanTarot() {
+  if (__cdIsAdminLikeUser()) {
+    window.location.href = '/tarot/mindscan/';
+    return;
+  }
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
@@ -7668,6 +7676,10 @@ function startMindScanTarot() {
   window.location.href = '/tarot/mindscan/';
 }
 function startCrystalSoulTarot() {
+  if (__cdIsAdminLikeUser()) {
+    window.location.href = '/tarot/crystal-soul/';
+    return;
+  }
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
@@ -7935,4 +7947,3 @@ window.addEventListener('load', function() {
     }
   }
 })();
-

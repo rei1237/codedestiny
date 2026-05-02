@@ -31,6 +31,7 @@ const __lazyActionLoaders = {
   runCompat: () => __ensureSajuCoreScripts(),
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
+  openJuyukModal: () => __loadScriptOnce('/js/iching-modal.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js'),
   openDreamModal: () => __loadScriptOnce('/lib/ai-engine.js').then(() => __loadScriptOnce('/js/dream-ledger.js')),
