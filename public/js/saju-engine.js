@@ -3665,12 +3665,17 @@ async function calculate(){
     resetEvalDaewunMemo();
     _syncDestinyFlowerSajuSnapshot('full-analysis');
 
-    document.getElementById('inputPage').style.display='none';
-    document.getElementById('resultPage').style.display='block';
+    var inputPageEl = document.getElementById('inputPage');
+    var resultPageEl = document.getElementById('resultPage');
+    var letterBoxEl = document.getElementById('letterBox');
+    var emailSubBoxEl = document.getElementById('emailSubBox');
+    var btnNewSajuEl = document.getElementById('btnNewSaju');
+    if (inputPageEl) inputPageEl.style.display = 'none';
+    if (resultPageEl) resultPageEl.style.display = 'block';
     // 오버레이 닫기는 startSajuCalculationFlow의 Promise.all에서 처리
-      document.getElementById('letterBox').style.display='block';
-      document.getElementById('emailSubBox').style.display='block';
-      document.getElementById('btnNewSaju').style.display='block';
+    if (letterBoxEl) letterBoxEl.style.display = 'block';
+    if (emailSubBoxEl) emailSubBoxEl.style.display = 'block';
+    if (btnNewSajuEl) btnNewSajuEl.style.display = 'block';
     requestAnimationFrame(function () {
       setTimeout(function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });

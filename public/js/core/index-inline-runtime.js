@@ -1782,7 +1782,7 @@ function __cdEnsureSajuCoreLoaded() {
   var chain = [
     '/js/core/kasi-calendar-service.js?v=20260407-kst-fix',
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
-    '/js/saju-engine.js?v=20260411-saju-sinsal-v7',
+    '/js/saju-engine.js?v=20260502-saju-nullstyle-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260414-tarot-hotfix1',
     '/js/core/saju/modalProfileState.js?v=20260326-modaldeps1',
     '/js/core/saju/reportDashboard.js?v=20260414-saju-rpt4',
@@ -6860,7 +6860,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
 
   var chain = [
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
-    '/js/saju-engine.js?v=20260409-astro-fix1',
+    '/js/saju-engine.js?v=20260502-saju-nullstyle-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1'
   ];
 
