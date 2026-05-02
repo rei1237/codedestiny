@@ -3,7 +3,6 @@ import "../styles/disclaimer-banner.css";
 import { Noto_Sans_KR } from "next/font/google";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
-import InternalLinksHub from "./components/InternalLinksHub";
 import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
@@ -224,7 +223,6 @@ export default function RootLayout({ children }) {
           <GlobalHeader />
           <div>{children}</div>
           <DisclaimerBanner />
-          <InternalLinksHub />
           <SiteFooterHub />
         </PaymentProcessingProvider>
       </body>

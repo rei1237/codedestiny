@@ -6,7 +6,7 @@ import AuthWidget from "./AuthWidget";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 const headerNavItems = [
-  { href: "/", label: "홈" },
+  { href: "/index.html", label: "홈" },
   { href: "/saju/basic", label: "기초사주" },
   { href: "/saju/lifebook", label: "만세력" },
   { href: "/saju/love-secret", label: "연애" },

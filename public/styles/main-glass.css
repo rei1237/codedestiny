@@ -1316,3 +1316,29 @@ body {
 	from { opacity: 0; }
 	to   { opacity: 1; }
 }
+
+/* Flower collection recovery
+   - show flower group on the main screen again
+   - allow studio overlay to open when runtime toggles `is-show` */
+body .fg-group--flower {
+	display: block !important;
+}
+
+body #destinyFlowerStudioOverlay.is-show.df-studio-overlay {
+	display: block !important;
+}
+
+/* Premium collection recovery
+   - keep cf31a7c visual design baseline
+   - ensure premium card collection is always renderable on current runtime */
+body .feat-collection--premium-vvip {
+	display: block !important;
+}
+
+body #premiumVvipCollection[data-collection-open="true"] .feat-collection__grid {
+	display: grid !important;
+}
+
+body #premiumVvipCollection .prem-card {
+	display: flex !important;
+}
