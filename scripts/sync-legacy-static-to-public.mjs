@@ -45,7 +45,8 @@ const staticTargets = [
 // These are NEVER overwritten by the sync in either direction.
 const STATIC_ONLY_OVERRIDES = new Set(["globals.css"]);
 function normalizeCss(buf) {
-  let str = buf.toString("utf8");
+  const cleanBuf = stripLeadingBom(buf);
+  let str = cleanBuf.toString("utf8");
   // Remove UTF-8 BOM (EF BB BF) if present
   if (str.charCodeAt(0) === 0xFEFF) str = str.slice(1);
   // Normalize CRLF → LF
@@ -122,11 +123,129 @@ function syncStylesDir() {
 const rootIndexPath = resolve(rootDir, "index.html");
 const publicIndexPath = resolve(publicDir, "index.html");
 
+function stripLeadingBom(buffer) {
+  let offset = 0;
+  while (
+    offset + 2 < buffer.length &&
+    buffer[offset] === 0xef &&
+    buffer[offset + 1] === 0xbb &&
+    buffer[offset + 2] === 0xbf
+  ) {
+    offset += 3;
+  }
+  return offset > 0 ? buffer.subarray(offset) : buffer;
+}
+
+function hasSevereMojibake(html) {
+  const replacementCount = (html.match(/\uFFFD/g) || []).length;
+  if (replacementCount > 200) return true;
+  if (/\?\?\/[a-z]/i.test(html)) return true;
+  if (/<\?[a-z][^>]*>/i.test(html)) return true;
+  return false;
+}
+
+function dedupeUtf8CharsetMeta(html) {
+  let seen = false;
+  return html
+    .replace(/<meta\s+charset=["']UTF-8["']\s*\/?>/gi, (tag) => {
+      if (seen) return "";
+      seen = true;
+      return tag;
+    })
+    .replace(/\n{3,}/g, "\n\n");
+}
+
+function collectEntryIssues(html) {
+  const issues = [];
+  const replacementCount = (html.match(/\uFFFD/g) || []).length;
+  if (replacementCount > 0) {
+    issues.push(`replacement-char-count=${replacementCount}`);
+  }
+  if (/\?\?\/[a-z]/i.test(html)) issues.push("broken-closing-tag");
+  if (/<\?[a-z][^>]*>/i.test(html)) issues.push("broken-open-tag");
+  if (/臾대즺|轅轅|\?댁꽭/.test(html)) issues.push("legacy-mojibake-signature");
+
+  const charsetMatches = html.match(/<meta\s+charset=["']UTF-8["']\s*\/?>/gi) || [];
+  if (charsetMatches.length === 0) issues.push("missing-early-utf8-meta");
+  if (charsetMatches.length > 1) issues.push(`duplicate-charset-meta=${charsetMatches.length}`);
+
+  return issues;
+}
+
+function assertEntryHtmlHealthy(html, relPath) {
+  const issues = collectEntryIssues(html);
+  if (issues.length > 0) {
+    throw new Error(`[sync-legacy-static-to-public] Refusing to write corrupted ${relPath}: ${issues.join(", ")}`);
+  }
+}
+
+function makePublicShellFromRoot(rootHtml) {
+  const normalizeBlock = [
+    "  <script>",
+    "    (function normalizeRootIndexPath() {",
+    "      try {",
+    "        var path = String(window.location.pathname || '/');",
+    "        if (path === '/index.html') {",
+    "          window.location.replace('/' + (window.location.search || '') + (window.location.hash || ''));",
+    "        }",
+    "      } catch (e) {}",
+    "    })();",
+    "  </script>",
+  ].join("\n");
+
+  const staticRedirectBlockRe =
+    /\s*<script>\s*\(function forceRootToStatic\(\) \{[\s\S]*?window\.location\.replace\('\/static\/'\);[\s\S]*?\}\)\(\);\s*<\/script>\s*<noscript><meta http-equiv="refresh" content="0; url=\/static\/"><\/noscript>\s*/m;
+
+  if (staticRedirectBlockRe.test(rootHtml)) {
+    return rootHtml.replace(staticRedirectBlockRe, `\n${normalizeBlock}\n`);
+  }
+
+  let rewritten = rootHtml
+    .replace("(function forceRootToStatic()", "(function normalizeRootIndexPath()")
+    .replace(
+      "if (path === '/' || path === '/index.html') {\n          window.location.replace('/static/');\n        }",
+      "if (path === '/index.html') {\n          window.location.replace('/' + (window.location.search || '') + (window.location.hash || ''));\n        }",
+    )
+    .replace(/\s*<noscript><meta http-equiv="refresh" content="0; url=\/static\/"><\/noscript>\s*/m, "\n");
+
+  return rewritten;
+}
+
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const canonicalUrl = `https://code-destiny.com${localePath}`;
   return indexHtml
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
     .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`);
+}
+
+function stripBomInPublicHtmlTree(targetDir) {
+  if (!existsSync(targetDir)) return;
+
+  let touched = 0;
+  const stack = [targetDir];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    const entries = readdirSync(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const absPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(absPath);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith(".html")) continue;
+
+      const raw = readFileSync(absPath);
+      const stripped = stripLeadingBom(raw);
+      if (stripped.length !== raw.length) {
+        writeFileSync(absPath, stripped);
+        touched += 1;
+      }
+    }
+  }
+
+  if (touched > 0) {
+    console.log(`[sync-legacy-static-to-public] Stripped UTF-8 BOM from ${touched} public HTML file(s).`);
+  }
 }
 
 if (!existsSync(publicDir)) {
@@ -144,14 +263,39 @@ for (const target of staticTargets) {
   cpSync(sourcePath, destinationPath, { recursive: true, force: true });
 }
 
+// Some legacy source HTML files can carry BOM from manual edits.
+// Strip BOM from public HTML artifacts before any downstream locale propagation.
+stripBomInPublicHtmlTree(publicDir);
+
 // Sync styles/ with pointer-file and tiny-file protection
 syncStylesDir();
 
 // Keep public/index.html as the source of truth for production shell.
-// Root index can be edited independently for local experiments, but should not overwrite deploy entry.
-if (!existsSync(publicIndexPath) && existsSync(rootIndexPath)) {
-  cpSync(rootIndexPath, publicIndexPath, { force: true });
-  console.log("[sync-legacy-static-to-public] Seeded missing public/index.html from root/index.html");
+// If public shell is severely mojibake-corrupted, auto-heal from root index with safe redirect normalization.
+if (existsSync(rootIndexPath)) {
+  const rootIndexBuf = stripLeadingBom(readFileSync(rootIndexPath));
+  const rootIndexHtml = rootIndexBuf.toString("utf8");
+  const rootIndexIssues = collectEntryIssues(rootIndexHtml);
+
+  if (rootIndexIssues.length > 0) {
+    console.warn(
+      `[sync-legacy-static-to-public] Skip root index as healing source due to issues: ${rootIndexIssues.join(", ")}`,
+    );
+  }
+
+  if (rootIndexIssues.length === 0 && !existsSync(publicIndexPath)) {
+    const healedHtml = makePublicShellFromRoot(rootIndexHtml);
+    writeFileSync(publicIndexPath, Buffer.from(healedHtml, "utf8"));
+    console.log("[sync-legacy-static-to-public] Seeded missing public/index.html from root/index.html (normalized)");
+  } else if (rootIndexIssues.length === 0) {
+    const publicIndexBuf = stripLeadingBom(readFileSync(publicIndexPath));
+    const publicIndexHtml = publicIndexBuf.toString("utf8");
+    if (hasSevereMojibake(publicIndexHtml)) {
+      const healedHtml = makePublicShellFromRoot(rootIndexHtml);
+      writeFileSync(publicIndexPath, Buffer.from(healedHtml, "utf8"));
+      console.warn("[sync-legacy-static-to-public] Rebuilt mojibake-corrupted public/index.html from root/index.html.");
+    }
+  }
 }
 
 // Fallback: some pipelines generate ads.txt under build/ only.
@@ -183,31 +327,44 @@ if (existsSync(publicIndex)) {
   // A BOM before <!DOCTYPE html> causes browsers to misidentify the DOCTYPE and enter quirks
   // mode, which breaks Google Translate's DOM rewriting (garbled strings on language switch).
   let indexBuf = readFileSync(publicIndex);
-  let bomStart = 0;
-  while (
-    bomStart + 2 < indexBuf.length &&
-    indexBuf[bomStart] === 0xef &&
-    indexBuf[bomStart + 1] === 0xbb &&
-    indexBuf[bomStart + 2] === 0xbf
-  ) {
-    bomStart += 3;
-  }
+  const stripped = stripLeadingBom(indexBuf);
+  const bomStart = indexBuf.length - stripped.length;
   if (bomStart > 0) {
-    indexBuf = indexBuf.subarray(bomStart);
+    indexBuf = stripped;
     writeFileSync(publicIndex, indexBuf);
     console.log(`[sync-legacy-static-to-public] Stripped ${bomStart} BOM byte(s) from public/index.html`);
   }
+
+  const legacyReplacementMarker = "'�'(replacement char)";
+  let baseIndexHtml = indexBuf.toString("utf8");
+  const dedupedIndexHtml = dedupeUtf8CharsetMeta(baseIndexHtml);
+  if (dedupedIndexHtml !== baseIndexHtml) {
+    baseIndexHtml = dedupedIndexHtml;
+    indexBuf = Buffer.from(baseIndexHtml, "utf8");
+    writeFileSync(publicIndex, indexBuf);
+    console.log("[sync-legacy-static-to-public] Removed duplicate UTF-8 charset meta in public/index.html");
+  }
+
+  const normalizedIndexHtml = baseIndexHtml.replaceAll(legacyReplacementMarker, "U+FFFD(replacement char)");
+  if (normalizedIndexHtml !== baseIndexHtml) {
+    baseIndexHtml = normalizedIndexHtml;
+    indexBuf = Buffer.from(baseIndexHtml, "utf8");
+    writeFileSync(publicIndex, indexBuf);
+    console.log("[sync-legacy-static-to-public] Normalized legacy replacement-char marker in public/index.html");
+  }
+
+  assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
 
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
   writeFileSync(resolve(staticDir, "index.html"), indexBuf);
   console.log("[sync-legacy-static-to-public] Copied index.html -> public/static/index.html (SPA shell; avoids [adminHash] collision).");
 
-  const baseIndexHtml = indexBuf.toString("utf8");
   for (const loc of localeLandingDirs) {
     const locDir = resolve(publicDir, loc);
     mkdirSync(locDir, { recursive: true });
-    const localeIndexHtml = applyLocaleSeoMeta(baseIndexHtml, `/${loc}`);
+    const localeIndexHtml = dedupeUtf8CharsetMeta(applyLocaleSeoMeta(baseIndexHtml, `/${loc}`));
+    assertEntryHtmlHealthy(localeIndexHtml, `public/${loc}/index.html`);
     writeFileSync(resolve(locDir, "index.html"), Buffer.from(localeIndexHtml, "utf8"));
   }
   console.log(
