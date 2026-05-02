@@ -35,6 +35,41 @@ function normalizeGenericReadingPayload(payload) {
   };
 }
 
+function toText(value) {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+  }
+  return "";
+}
+
+function buildConsultingHighlights(reading) {
+  const priorityKeys = [
+    "overallVibe",
+    "deepReading",
+    "realityAndFuture",
+    "opening",
+    "reunionOutcome",
+    "lighthouseGuidance",
+    "integrationMessage",
+    "advice",
+    "summary",
+  ];
+
+  const highlights = [];
+  for (const key of priorityKeys) {
+    const text = toText(reading?.[key]);
+    if (!text) continue;
+    highlights.push(text.replace(/\s+/g, " "));
+    if (highlights.length >= 3) break;
+  }
+  return highlights;
+}
+
 let cachedEngine = null;
 
 export async function getTarotEngine() {
@@ -120,6 +155,7 @@ export function buildReadingResponse(engine, category, spreadType, drawnCards) {
     ? result.reading
     : normalizeGenericReadingPayload(asObject(result));
   const reading = applyEngineQuality(engine, spreadType, rawReading, cardReadings);
+  const consultingHighlights = buildConsultingHighlights(reading);
 
   const payload = {
     ok: true,
@@ -127,6 +163,13 @@ export function buildReadingResponse(engine, category, spreadType, drawnCards) {
     spreadType: result?.spreadType || spreadType,
     cards,
     reading,
+    consultingHighlights,
+    engineMeta: {
+      source: "server/services/tarot-engine.service.js",
+      qualityEnhanced: reading !== rawReading,
+      cardCount: cards.length,
+      spreadType: result?.spreadType || spreadType,
+    },
   };
 
   if (spreadType === "relationship_six_card") payload.isRelationshipReading = true;

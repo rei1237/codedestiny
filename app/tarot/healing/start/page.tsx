@@ -17,5 +17,5 @@ export function generateMetadata() {
 }
 
 export default function SunHealingTarotAppPage() {
-  redirect("/static?service=tarot&source=tarot-healing-start");
+  redirect("/tarot/healing");
 }

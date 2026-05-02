@@ -28,6 +28,31 @@ const POSITION_LABELS: Record<string, string> = {
   position_6: "예상되는 결과",
 };
 
+const READING_LABELS: Record<string, string> = {
+  overallVibe: "전체 관계 흐름",
+  deepReading: "심층 감정 해석",
+  realityAndFuture: "현실 변수와 단기 전망",
+  positionBreakdown: "포지션별 정밀 해석",
+  advice: "실전 행동 가이드",
+  opening: "리딩 오프닝",
+  pastBond: "과거 인연",
+  theirNow: "상대의 현재",
+  outsideFactor: "외부 변수",
+  theirHeart: "상대의 속마음",
+  reunionOutcome: "재회 가능성",
+  lighthouseGuidance: "등대의 조언",
+  actionPlan: "실행 계획",
+};
+
+function sectionTitle(key: string) {
+  return READING_LABELS[key] || key;
+}
+
+function isPositionBreakdownItem(value: unknown): value is { title?: string; card?: string; summary?: string } {
+  if (!value || typeof value !== "object") return false;
+  return "title" in value || "card" in value || "summary" in value;
+}
+
 const TAROT_IMAGE_MAP: Record<string, string> = {
   M00:"thefool.jpeg",M01:"themagician.jpeg",M02:"thehighpriestess.jpeg",M03:"theempress.jpeg",
   M04:"theemperor.jpeg",M05:"thehierophant.jpeg",M06:"TheLovers.jpg",M07:"thechariot.jpeg",
@@ -112,14 +137,7 @@ export default function LoveRelationshipTarot() {
       const isAdminLikeUser = () => {
         if (typeof window === "undefined") return false;
         try {
-          if ((window as any).__cdAdminBypass) return true;
-        } catch (_) {}
-        try {
-          const rawUser = localStorage.getItem("fortune_auth_user") || "";
-          if (rawUser) {
-            const parsed = JSON.parse(rawUser);
-            if (parsed && parsed.role === "admin") return true;
-          }
+          if (String(sessionStorage.getItem("flower_admin_password_ok") || "") !== "1") return false;
         } catch (_) {}
         try {
           const sTok = String(sessionStorage.getItem("flower_admin_token") || "");
@@ -136,7 +154,9 @@ export default function LoveRelationshipTarot() {
         ? localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken")
         : "";
       const flowerAdminToken = typeof window !== "undefined"
-        ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
+        ? (String(sessionStorage.getItem("flower_admin_password_ok") || "") === "1"
+          ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
+          : "")
         : "";
       const adminTestTier = typeof window !== "undefined"
         ? String(localStorage.getItem("flower_admin_test_tier") || "").toLowerCase()
@@ -306,11 +326,34 @@ export default function LoveRelationshipTarot() {
             <div className="space-y-3 text-sm leading-7 text-slate-100">
               {Object.entries(readingRaw).map(([key, value]) => {
                 if (!value) return null;
-                const text = Array.isArray(value) ? value.join("\n") : String(value);
+                const title = sectionTitle(key);
+
+                if (Array.isArray(value) && key === "positionBreakdown") {
+                  const rows = value.filter(isPositionBreakdownItem);
+                  if (!rows.length) return null;
+                  return (
+                    <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                      <h3 className="mb-2 text-sm font-semibold text-emerald-300">{title}</h3>
+                      <div className="space-y-2">
+                        {rows.map((row, idx) => (
+                          <div key={`${key}-${idx}`} className="rounded-md border border-emerald-900/70 bg-slate-900/50 p-2">
+                            <p className="text-xs font-semibold text-emerald-200">{row.title || `포지션 ${idx + 1}`}</p>
+                            <p className="text-xs text-slate-300">{row.card || ""}</p>
+                            <p className="mt-1 text-sm text-slate-100">{row.summary || ""}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                }
+
+                const text = Array.isArray(value)
+                  ? value.map((item) => `• ${String(item)}`).join("\n")
+                  : String(value);
                 if (!text.trim()) return null;
                 return (
                   <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                    <h3 className="mb-1 text-sm font-semibold text-emerald-300">{key}</h3>
+                    <h3 className="mb-1 text-sm font-semibold text-emerald-300">{title}</h3>
                     <pre className="whitespace-pre-wrap font-sans text-sm">{text}</pre>
                   </article>
                 );

@@ -41,7 +41,15 @@ type HealingReadingDto = {
   silverLining?: string;
   stepForward?: string;
   integrationMessage?: string;
+  consultingHighlights?: string[];
   actionPlan?: string[];
+};
+
+type EngineMetaDto = {
+  qualityEnhanced?: boolean;
+  source?: string;
+  spreadType?: string;
+  cardCount?: number;
 };
 
 type Stage = "intro" | "spread" | "result";
@@ -66,6 +74,7 @@ const SHARE_TITLE = "태양 회복 타로";
 const SHARE_TEXT_PREFIX = "태양 회복 타로 결과를 공유합니다.\n\n";
 
 const READING_SECTIONS: ReadingSection[] = [
+  { key: "consultingHighlights", title: "핵심 상담 하이라이트", tone: "focus", icon: Sparkles },
   { key: "opening", title: "상담 시작 안내", tone: "neutral", icon: Sparkles },
   { key: "hiddenTruth", title: "1. 마음 깊은 원인", tone: "focus", icon: Telescope },
   { key: "embracePain", title: "2. 감정 수용", tone: "warm", icon: HeartHandshake },
@@ -90,16 +99,41 @@ function safeCardTitle(card?: TarotCardDto, idx?: number) {
   return isRev ? `${base} (역방향)` : `${base} (정방향)`;
 }
 
+const TAROT_IMAGE_MAP: Record<string, string> = {
+  M00:"thefool.jpeg",M01:"themagician.jpeg",M02:"thehighpriestess.jpeg",M03:"theempress.jpeg",
+  M04:"theemperor.jpeg",M05:"thehierophant.jpeg",M06:"TheLovers.jpg",M07:"thechariot.jpeg",
+  M08:"thestrength.jpeg",M09:"thehermit.jpeg",M10:"wheeloffortune.jpeg",M11:"justice.jpeg",
+  M12:"thehangedman.jpeg",M13:"death.jpeg",M14:"temperance.jpeg",M15:"thedevil.jpeg",
+  M16:"thetower.jpeg",M17:"thestar.jpeg",M18:"themoon.jpeg",M19:"thesun.jpeg",
+  M20:"judgement.jpeg",M21:"theworld.jpeg",
+  W01:"aceofwands.jpeg",W02:"twoofwands.jpeg",W03:"threeofwands.jpeg",W04:"fourofwands.jpeg",
+  W05:"fiveofwands.jpeg",W06:"sixofwands.jpeg",W07:"sevenofwands.jpeg",W08:"eightofwands.jpeg",
+  W09:"nineofwands.jpeg",W10:"tenofwands.jpeg",W11:"pageofwands.jpeg",W12:"knightofwands.jpeg",
+  W13:"queenofwands.jpeg",W14:"kingofwands.jpeg",
+  C01:"aceofcups.jpeg",C02:"twoofcups.jpeg",C03:"threeofcups.jpeg",C04:"fourofcups.jpeg",
+  C05:"fiveofcups.jpeg",C06:"sixofcups.jpeg",C07:"sevenofcups.jpeg",C08:"eightofcups.jpeg",
+  C09:"nineofcups.jpeg",C10:"tenofcups.jpeg",C11:"pageofcups.jpeg",C12:"knightofcups.jpeg",
+  C13:"queenofcups.jpeg",C14:"kingofcups.jpeg",
+  S01:"aceofswords.jpeg",S02:"twoofswords.jpeg",S03:"threeofswords.jpeg",S04:"fourofswords.jpeg",
+  S05:"fiveofswords.jpeg",S06:"sixofswords.jpeg",S07:"sevenofswords.jpeg",S08:"eightofswords.jpeg",
+  S09:"nineofswords.jpeg",S10:"tenofswords.jpeg",S11:"pageofswords.jpeg",S12:"knightofswords.jpeg",
+  S13:"queenofswords.jpeg",S14:"kingofswords.jpeg",
+  P01:"aceofpentacles.jpeg",P02:"twoofpentacles.jpeg",P03:"threeofpentacles.jpeg",P04:"fourofpentacles.jpeg",
+  P05:"fiveofpentacles.jpeg",P06:"sixofpentacles.jpeg",P07:"sevenofpentacles.jpeg",P08:"eightofpentacles.jpeg",
+  P09:"nineofpentacles.jpeg",P10:"tenofpentacles.jpeg",P11:"pageofpentacles.jpeg",P12:"knightofpentacles.jpeg",
+  P13:"queenofpentacles.jpeg",P14:"kingofpentacles.jpeg",
+};
+
 function cardImageUrl(card?: TarotCardDto) {
+  const cardId = String(card?.cardId || "").trim().toUpperCase();
+  if (cardId) {
+    const fn = TAROT_IMAGE_MAP[cardId];
+    if (fn) return `/tarot-cards/${fn}`;
+  }
+  // Fallback to server-provided localImageUrl if map lookup fails
   const local = String(card?.localImageUrl || "").trim();
-  if (local) return local;
-
-  const proxy = String(card?.proxyImageUrl || "").trim();
-  if (proxy) return proxy;
-
-  const cardId = String(card?.cardId || "").trim();
-  if (!cardId) return "";
-  return `/api/tarot/card-image/${encodeURIComponent(cardId)}`;
+  if (local && !local.includes("/fuctionassets/")) return local;
+  return `/tarot-cards/thefool.jpeg`;
 }
 
 // ─── SunHero (밑은 테마 황금빛 태양) ───────────────────────────────────────────
@@ -263,6 +297,8 @@ export default function SunHealingTarot() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [reading, setReading] = useState<HealingReadingDto | null>(null);
+  const [consultingHighlights, setConsultingHighlights] = useState<string[]>([]);
+  const [engineMeta, setEngineMeta] = useState<EngineMetaDto | null>(null);
   const [tapToReveal, setTapToReveal] = useState(true);
   const [typed, setTyped] = useState<Record<string, string>>({});
   const [typingSection, setTypingSection] = useState<string | null>(null);
@@ -281,6 +317,8 @@ export default function SunHealingTarot() {
   const start = useCallback(async () => {
     setLoading(true);
     setReading(null);
+    setConsultingHighlights([]);
+    setEngineMeta(null);
     setTapToReveal(true);
     setTyped({});
     setTypingSection(null);
@@ -356,7 +394,21 @@ export default function SunHealingTarot() {
         throw new Error(data?.message || "reading failed");
       }
 
-      setReading((data?.reading || null) as HealingReadingDto | null);
+      const nextReading = (data?.reading || null) as HealingReadingDto | null;
+      const highlights = Array.isArray(data?.consultingHighlights)
+        ? data.consultingHighlights
+            .map((line: unknown) => String(line || "").trim())
+            .filter(Boolean)
+            .slice(0, 4)
+        : [];
+
+      if (nextReading) {
+        nextReading.consultingHighlights = highlights;
+      }
+
+      setReading(nextReading);
+      setConsultingHighlights(highlights);
+      setEngineMeta(data?.engineMeta && typeof data.engineMeta === "object" ? (data.engineMeta as EngineMetaDto) : null);
       setStage("result");
       setTapToReveal(true);
       setTyped({});
@@ -371,7 +423,10 @@ export default function SunHealingTarot() {
 
   const share = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
-    const text = `${SHARE_TEXT_PREFIX}${url}`;
+    const highlightText = consultingHighlights.length
+      ? `\n🔭 핵심 상담 하이라이트\n${consultingHighlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n`
+      : "";
+    const text = `${SHARE_TEXT_PREFIX}${highlightText}\n${url}`;
 
     try {
       const nav = navigator as Navigator & { share?: (data: object) => Promise<void> };
@@ -389,7 +444,7 @@ export default function SunHealingTarot() {
     } catch {
       alert("공유를 지원하지 않는 환경입니다.");
     }
-  }, []);
+  }, [consultingHighlights]);
 
   useEffect(() => {
     if (!reading || tapToReveal || stage !== "result") return;
@@ -785,6 +840,11 @@ export default function SunHealingTarot() {
                       />
                     );
                   })}
+                  {engineMeta?.qualityEnhanced ? (
+                    <p className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-700">
+                      엔진 품질 강화 상담 모드가 적용되었습니다.
+                    </p>
+                  ) : null}
                 </div>
               )}
 

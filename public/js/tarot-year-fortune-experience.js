@@ -13,6 +13,8 @@
   var state = {
     cards: [],
     reading: null,
+    consultingHighlights: [],
+    engineMeta: null,
     hasAccess: false,
     paymentInFlight: false,
     selectedMonth: null,
@@ -254,6 +256,16 @@
     }
   }
 
+  function isYearAdminLikeUser() {
+    try {
+      if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) return true;
+    } catch (e) {}
+    try {
+      if (window.__cdAdminBypass) return true;
+    } catch (e2) {}
+    return false;
+  }
+
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
@@ -268,6 +280,7 @@
   }
 
   function consumeCoinDirect(cost, reason, featureKey) {
+    if (isYearAdminLikeUser()) return Promise.resolve(true);
     var token = getAuthToken();
     if (!token) {
       if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
@@ -330,6 +343,11 @@
   }
 
   function requireYearAccess() {
+    if (isYearAdminLikeUser()) {
+      state.hasAccess = true;
+      state.paymentInFlight = false;
+      return Promise.resolve(true);
+    }
     if (state.hasAccess) return Promise.resolve(true);
     if (state.paymentInFlight) return Promise.resolve(false);
     state.paymentInFlight = true;
@@ -402,11 +420,11 @@
 
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
-    if (card.localImageUrl) return card.localImageUrl;
-    var cardId = card.cardId || card.id;
-    if (!cardId) return "";
+    var cardId = String(card.cardId || card.id || "").trim().toUpperCase();
     var fn = CARD_TO_FILENAME[cardId];
-    return fn ? TAROT_LOCAL_BASE + fn : "";
+    if (fn) return TAROT_LOCAL_BASE + fn;
+    var hinted = String(card.localImageUrl || "").trim();
+    return hinted || "";
   }
 
   function getLocalTarotImageCandidates(card) {
@@ -567,6 +585,8 @@
   function resetTarotYearFortuneFlow() {
     state.cards = [];
     state.reading = null;
+    state.consultingHighlights = [];
+    state.engineMeta = null;
     state.hasAccess = false;
     state.paymentInFlight = false;
     state.selectedMonth = null;
@@ -636,7 +656,7 @@
       var fn = CARD_TO_FILENAME[id];
       return {
         cardId:id, name:id, nameKr:getCardNameKr(id), orientation:ori, position:labels[i],
-        imageUrl:"", proxyImageUrl:"/api/tarot/card-image/"+id, imageCandidates:[],
+        imageUrl:"", proxyImageUrl:"", imageCandidates:[],
         localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
       };
     });
@@ -793,7 +813,7 @@
       var fn = CARD_TO_FILENAME[id];
       return {
         cardId:id, name:id, nameKr:getCardNameKr(id), orientation:ori, position:labels[i],
-        imageUrl:"", proxyImageUrl:"/api/tarot/card-image/"+id, imageCandidates:[],
+        imageUrl:"", proxyImageUrl:"", imageCandidates:[],
         localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
       };
     });
@@ -1035,6 +1055,13 @@ function updateMonthCategoryPanel(text, cat) {
       var normalized = normalizeYearlyReadingPayload(data);
       if (!normalized) return;
       state.reading = normalized;
+      state.consultingHighlights = Array.isArray(data && data.consultingHighlights)
+        ? data.consultingHighlights
+            .map(function (line) { return String(line || "").trim(); })
+            .filter(Boolean)
+            .slice(0, 4)
+        : [];
+      state.engineMeta = data && typeof data.engineMeta === "object" ? data.engineMeta : null;
       if (intro) intro.classList.remove("is-active");
       if (draw) draw.classList.remove("is-active");
       if (result) result.classList.add("is-active");
@@ -1141,11 +1168,15 @@ function updateMonthCategoryPanel(text, cat) {
 
     var summaryEl = byId("tarotYearSummary");
     if (summaryEl) {
+    var highlightsPrefix = "";
+    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
+      highlightsPrefix = "🔭 핵심 상담 하이라이트\n" + state.consultingHighlights.map(function (line) { return "• " + line; }).join("\n") + "\n\n";
+    }
     summaryEl.style.display = "block";
     typewriterText(
       summaryEl,
-      r.summary ||
-        "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 천천히 따라가 보세요.",
+      highlightsPrefix + (r.summary ||
+        "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 천천히 따라가 보세요."),
       24
     );
     }
@@ -1208,10 +1239,14 @@ function updateMonthCategoryPanel(text, cat) {
 
     var adviceEl = byId("tarotYearFinalAdvice");
   if (adviceEl) {
+    var adviceText = r.finalAdvice ||
+      "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.";
+    if (state.engineMeta && state.engineMeta.qualityEnhanced) {
+      adviceText += "\n\n✨ 엔진 품질 강화: 카드별 맥락 기반 고품질 상담";
+    }
     typewriterText(
       adviceEl,
-      r.finalAdvice ||
-        "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.",
+      adviceText,
       26
     );
   }
@@ -1228,6 +1263,9 @@ function updateMonthCategoryPanel(text, cat) {
     if (!state.reading) return;
     var r = state.reading;
     var text = "🌟 십이지신 천운(天運) 타로\n\n";
+    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
+      text += "🔭 핵심 상담 하이라이트\n" + state.consultingHighlights.slice(0, 2).map(function (line) { return "• " + line; }).join("\n") + "\n\n";
+    }
     if (r.summary) text += r.summary + "\n\n";
     if (r.finalAdvice) text += "💌 " + r.finalAdvice + "\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";

@@ -26,6 +26,8 @@
     cards: [],
     revealedCount: 0,
     reading: null,
+    consultingHighlights: [],
+    engineMeta: null,
     hasAccess: false,
     paymentInFlight: false,
     soundEnabled: false,
@@ -321,6 +323,16 @@
     }
   }
 
+  function isReunionAdminLikeUser() {
+    try {
+      if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) return true;
+    } catch (e) {}
+    try {
+      if (window.__cdAdminBypass) return true;
+    } catch (e2) {}
+    return false;
+  }
+
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
@@ -335,6 +347,7 @@
   }
 
   function consumeCoinDirect(cost, reason, featureKey) {
+    if (isReunionAdminLikeUser()) return Promise.resolve(true);
     var token = getAuthToken();
     if (!token) {
       if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
@@ -396,6 +409,11 @@
   }
 
   function requireReunionAccess() {
+    if (isReunionAdminLikeUser()) {
+      state.hasAccess = true;
+      state.paymentInFlight = false;
+      return Promise.resolve(true);
+    }
     if (state.hasAccess) return Promise.resolve(true);
     if (state.paymentInFlight) return Promise.resolve(false);
     state.paymentInFlight = true;
@@ -444,9 +462,7 @@
   var REUNION_FAST_TAP_DEBOUNCE_MS = 260;
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
-    if (card.localImageUrl) return card.localImageUrl;
-    var cardId = String(card.cardId || card.id || "").toUpperCase();
-    if (!cardId) return "";
+    var cardId = String(card.cardId || card.id || "").trim().toUpperCase();
     var map = {
       M00: "thefool.jpeg", M01: "themagician.jpeg", M02: "thehighpriestess.jpeg", M03: "theempress.jpeg",
       M04: "theemperor.jpeg", M05: "thehierophant.jpeg", M06: "TheLovers.jpg", M07: "thechariot.jpeg",
@@ -471,8 +487,10 @@
       P09: "nineofpentacles.jpeg", P10: "tenofpentacles.jpeg", P11: "pageofpentacles.jpeg", P12: "knightofpentacles.jpeg",
       P13: "queenofpentacles.jpeg", P14: "kingofpentacles.jpeg",
     };
-    var fn = map[cardId];
-    return fn ? TAROT_LOCAL_BASE + fn : "";
+    var fn = cardId ? map[cardId] : "";
+    if (fn) return TAROT_LOCAL_BASE + fn;
+    var hinted = String(card.localImageUrl || "").trim();
+    return hinted || "";
   }
 
   function appendLocalTarotBaseCandidates(candidates, fileName, pushCandidateVariants) {
@@ -774,6 +792,8 @@
     state.cards = [];
     state.revealedCount = 0;
     state.reading = null;
+    state.consultingHighlights = [];
+    state.engineMeta = null;
     state.hasAccess = false;
     state.paymentInFlight = false;
     state.soundEnabled = false;
@@ -1030,6 +1050,8 @@
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
         state.reading = data.reading;
+        state.consultingHighlights = Array.isArray(data.consultingHighlights) ? data.consultingHighlights : [];
+        state.engineMeta = data.engineMeta && typeof data.engineMeta === "object" ? data.engineMeta : null;
         if (rc) rc.removeAttribute("aria-busy");
         renderTarotReunionResult();
       })
@@ -1175,6 +1197,16 @@
     }
 
     var sections = [];
+    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
+      sections.push({
+        title: "🔭 핵심 상담 하이라이트",
+        text: state.consultingHighlights
+          .map(function (line) { return "• " + String(line || "").trim(); })
+          .filter(Boolean)
+          .join("\n"),
+        isGuidance: true,
+      });
+    }
     if (r.opening) sections.push({ title: "🌌 밤바다의 서문", text: r.opening });
     if (r.pastBond) sections.push({ title: "1) 과거의 인연", text: r.pastBond, card: getCardByPosition("past_bond") });
     if (r.theirNow) sections.push({ title: "2) 상대의 현재 근황", text: r.theirNow, card: getCardByPosition("their_now") });
@@ -1294,6 +1326,13 @@
         ul.appendChild(li);
       });
       container.appendChild(sec);
+
+      if (state.engineMeta && state.engineMeta.qualityEnhanced) {
+        var quality = document.createElement("p");
+        quality.className = "tarot-reunion-engine-meta";
+        quality.textContent = "엔진 품질 강화 적용: 카드별 맥락 기반 상담 모드";
+        sec.appendChild(quality);
+      }
     }
 
     var idx = 0;
@@ -1389,6 +1428,9 @@
     var r = state.reading;
     if (!r) return;
     var text = "🌊 [별 헤는 밤바다 재회운 타로] 🌊\n\n";
+    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
+      text += "🔭 핵심 하이라이트\n" + state.consultingHighlights.slice(0, 2).join("\n") + "\n\n";
+    }
     if (r.opening) text += "🌌 " + r.opening + "\n\n";
     if (r.lighthouseGuidance) text += "🕯️ " + r.lighthouseGuidance + "\n\n";
     text += "👉 무료 재회운 타로 보기: https://code-destiny.com";

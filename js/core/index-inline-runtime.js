@@ -1535,7 +1535,7 @@ var __cdLazyActionLoaders = {
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'); },
-  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'); },
+  openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
