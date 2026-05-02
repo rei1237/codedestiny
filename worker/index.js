@@ -353,6 +353,6 @@ export default {
       ok: false,
       error: "backend_only",
       message: "This Worker only serves backend API routes under /api/*.",
-    }, { status: 404 });
+    }, { status: 404, headers: { "X-CF-Worker-Error": "backend_only" } });
   },
 };

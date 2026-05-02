@@ -8,20 +8,20 @@
 # Cloudflare Pages는 쿼리스트링별 분기가 불가하므로
 # 무버전 혼재 가능성을 고려해 must-revalidate 유지.
 /js/*.js
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-store
   Vary: Accept-Encoding
 
 /lib/*.js
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-store
   Vary: Accept-Encoding
 
 # ─── CSS: 버전 태그 포함 → 1년 캐시 가능하나 무버전 혼재 ────
 /styles/*.css
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-store
   Vary: Accept-Encoding
 
 /css/*.css
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-store
   Vary: Accept-Encoding
 
 # ─── 이미지 & 폰트: 내용 불변 — 1년 불변 캐시 ───────────────
