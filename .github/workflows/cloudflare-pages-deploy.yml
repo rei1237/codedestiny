@@ -1,6 +1,22 @@
-name: Deploy Pages Frontend (Deprecated)
+name: Deploy Pages Frontend
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - app/**
+      - public/**
+      - js/**
+      - styles/**
+      - css/**
+      - index.html
+      - next.config.mjs
+      - package.json
+      - wrangler.toml
+      - scripts/sync-legacy-static-to-public.mjs
+      - scripts/promote-static-shell-to-root.mjs
+      - .github/workflows/cloudflare-pages-deploy.yml
   workflow_dispatch:
 
 concurrency:
@@ -11,10 +27,30 @@ permissions:
   contents: read
 
 jobs:
-  pages-deploy-disabled:
+  deploy-pages:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - name: Notice
-        run: |
-          echo "Pages deployment is deprecated for this repository."
-          echo "Use Worker deployment only: npm run deploy:cf"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync legacy static files to public
+        run: node scripts/sync-legacy-static-to-public.mjs
+
+      - name: Build Next.js static export
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        run: npx --no-install wrangler pages deploy dist --project-name codedestiny --branch main --commit-hash ${{ github.sha }}
