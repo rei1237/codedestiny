@@ -3,13 +3,16 @@ main = "index.js"
 compatibility_date = "2026-04-30"
 compatibility_flags = ["nodejs_compat"]
 
+[assets]
+directory = "../public"
+
 # Non-secret defaults. Secrets and deployment-specific values should be set
 # with `wrangler secret put` or in the Cloudflare dashboard.
 [vars]
 NODE_ENV = "production"
-AUTH_FRONTEND_BASE_URL = "https://codedestiny-5md.pages.dev"
-SITE_BASE_URL = "https://codedestiny-5md.pages.dev"
-AUTH_API_BASE_URL = "https://codedestiny-5md.pages.dev"
+AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"
+SITE_BASE_URL = "https://code-destiny.com"
+AUTH_API_BASE_URL = "https://code-destiny.com"
 AUTH_SIGNUP_BONUS_POINTS = "50"
 AUTH_OPERATION_TIMEOUT_MS = "30000"
 MONGO_SERVER_SELECTION_TIMEOUT_MS = "12000"

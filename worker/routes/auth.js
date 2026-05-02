@@ -11,6 +11,40 @@ import { validateLoginPayload, validateRegisterPayload } from "../lib/validation
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
 
+function normalizeOriginOnly(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
+function normalizeAbsoluteUrl(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    const parsed = new URL(value);
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function isWorkersDevOrigin(origin) {
+  try {
+    const hostname = new URL(origin).hostname.toLowerCase();
+    return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
+  } catch {
+    return false;
+  }
+}
+
 function getAuthOpTimeoutMs(env) {
   const raw = Number(getEnv(env, "AUTH_OPERATION_TIMEOUT_MS", "12000"));
   if (!Number.isFinite(raw) || raw < 1000) return 5000;
@@ -47,20 +81,54 @@ function configMismatchResponse(feature, env) {
 }
 
 function getFrontendBaseUrl(env) {
-  return getEnv(env, "AUTH_FRONTEND_BASE_URL")
-    || getEnv(env, "SITE_BASE_URL")
-    || getEnv(env, "AUTH_URL")
-    || "http://localhost:3000";
+  const configured = normalizeOriginOnly(getEnv(env, "AUTH_FRONTEND_BASE_URL"));
+  if (configured && !isWorkersDevOrigin(configured)) return configured;
+
+  const siteBase = normalizeOriginOnly(getEnv(env, "SITE_BASE_URL"));
+  if (siteBase) return siteBase;
+
+  const apiBase = normalizeOriginOnly(getEnv(env, "AUTH_API_BASE_URL"));
+  if (apiBase) return apiBase;
+
+  const authUrl = normalizeOriginOnly(getEnv(env, "AUTH_URL"));
+  if (authUrl) return authUrl;
+
+  return "http://localhost:3000";
 }
 
 function getApiBaseUrl(request, env) {
-  const configured = getEnv(env, "AUTH_API_BASE_URL");
-  if (configured) return configured.replace(/\/+$/, "");
+  const configured = normalizeOriginOnly(getEnv(env, "AUTH_API_BASE_URL"));
+  if (configured) return configured;
 
   const url = new URL(request.url);
   const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
   return `${proto}://${host}`.replace(/\/+$/, "");
+}
+
+function getRequestOrigin(request) {
+  try {
+    const url = new URL(request.url);
+    const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
+    const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
+    return normalizeOriginOnly(`${proto}://${host}`);
+  } catch {
+    return "";
+  }
+}
+
+function resolveProviderCallbackUrl(provider, request, env) {
+  const key = `${provider.toUpperCase()}_OAUTH_CALLBACK`;
+  const configured = String(getEnv(env, key) || "").trim();
+  if (!configured) {
+    return `${getApiBaseUrl(request, env)}/api/auth/oauth/${provider}/callback`;
+  }
+
+  if (configured.startsWith("/")) {
+    return `${getApiBaseUrl(request, env)}${configured}`;
+  }
+
+  return normalizeAbsoluteUrl(configured) || `${getApiBaseUrl(request, env)}/api/auth/oauth/${provider}/callback`;
 }
 
 function sanitizeNextPath(rawNext) {
@@ -113,7 +181,7 @@ async function verifySocialGrant(token, env) {
 }
 
 function buildProviderConfig(provider, request, env) {
-  const redirectUri = `${getApiBaseUrl(request, env)}/api/auth/oauth/${provider}/callback`;
+  const redirectUri = resolveProviderCallbackUrl(provider, request, env);
 
   if (provider === "google") {
     return {
@@ -368,64 +436,93 @@ async function handleLogin(request, env) {
     }, { status: 400 });
   }
 
-  try {
-    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
+  const { email, password } = validated.sanitized;
 
-    const { email, password } = validated.sanitized;
-    const users = User.collection;
-    const user = await withAuthOpTimeout(
-      users.findOne(
-        { email },
-        {
-          projection: {
-            _id: 1,
-            name: 1,
-            email: 1,
-            birthDate: 1,
-            birthTime: 1,
-            gender: 1,
-            role: 1,
-            points: 1,
-            joinedAt: 1,
-            passwordHash: 1,
-            localAuth: 1,
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
+
+      const users = User.collection;
+      const user = await withAuthOpTimeout(
+        users.findOne(
+          { email },
+          {
+            projection: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              birthDate: 1,
+              birthTime: 1,
+              gender: 1,
+              role: 1,
+              points: 1,
+              joinedAt: 1,
+              passwordHash: 1,
+              localAuth: 1,
+            },
+            maxTimeMS: dbMaxTimeMs,
           },
-          maxTimeMS: dbMaxTimeMs,
-        },
-      ),
-      timeoutMs,
-      "auth_login_find_user",
-    );
-    if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
+        ),
+        timeoutMs,
+        "auth_login_find_user",
+      );
+      if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
+        return json({
+          message: "Email or password is incorrect.",
+        }, { status: 401 });
+      }
+
+      const passwordOk = await withAuthOpTimeout(
+        verifyPassword(password, user.passwordHash),
+        timeoutMs,
+        "auth_login_verify_password",
+      );
+      if (!passwordOk) {
+        return json({
+          message: "Email or password is incorrect.",
+        }, { status: 401 });
+      }
+
+      const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_login_sign_token");
+      return json({
+        message: "Login completed.",
+        token,
+        user: normalizeUserResponse(user),
+        nextPath: sanitizeNextPath(body?.nextPath) || "/",
+      });
+    } catch (error) {
+      const message = String(error?.message || "");
+      const infraFailure = (
+        message.includes("auth_login_connect_db")
+        || message.includes("auth_login_find_user")
+        || message.includes("auth_login_verify_password_timeout")
+        || message.includes("Mongo")
+        || message.includes("timed out")
+        || message.includes("ECONN")
+      );
+
+      if (infraFailure && attempt === 1) {
+        console.warn("[auth/login] transient infra failure, retrying once:", error);
+        continue;
+      }
+
+      if (infraFailure) {
+        console.error("[auth/login] infrastructure failure:", error);
+        return json({
+          message: "Login service is temporarily unavailable. Please try again.",
+        }, { status: 503 });
+      }
+
+      console.error("[auth/login] normalized auth failure:", error);
       return json({
         message: "Email or password is incorrect.",
       }, { status: 401 });
     }
-
-    const passwordOk = await withAuthOpTimeout(
-      verifyPassword(password, user.passwordHash),
-      timeoutMs,
-      "auth_login_verify_password",
-    );
-    if (!passwordOk) {
-      return json({
-        message: "Email or password is incorrect.",
-      }, { status: 401 });
-    }
-
-    const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_login_sign_token");
-    return json({
-      message: "Login completed.",
-      token,
-      user: normalizeUserResponse(user),
-      nextPath: sanitizeNextPath(body?.nextPath) || "/",
-    });
-  } catch (error) {
-    console.error("[auth/login] normalized auth failure:", error);
-    return json({
-      message: "Email or password is incorrect.",
-    }, { status: 401 });
   }
+
+  return json({
+    message: "Login service is temporarily unavailable. Please try again.",
+  }, { status: 503 });
 }
 
 async function handleMe(request, env) {
@@ -513,7 +610,10 @@ async function handleOAuthStart(request, env, provider) {
   const url = new URL(request.url);
   const nextPath = sanitizeNextPath(url.searchParams.get("next") || "") || "/";
   const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
-  const frontendBase = getFrontendBaseUrl(env);
+  const requestOrigin = getRequestOrigin(request);
+  const frontendBase = requestOrigin && !isWorkersDevOrigin(requestOrigin)
+    ? requestOrigin
+    : getFrontendBaseUrl(env);
   const stateToken = await signSocialState({ provider, nextPath, frontendBase, flow }, env);
 
   const params = new URLSearchParams({

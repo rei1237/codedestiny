@@ -11,6 +11,18 @@ import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
 import { readFileSync } from "node:fs";
 
+function normalizeOriginOnly(rawValue, label) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    console.error(`[deploy-worker] ${label} must be a valid absolute URL origin. Received: ${value}`);
+    process.exit(1);
+  }
+}
+
 const rootDir = process.cwd();
 const envFiles = [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"];
 
@@ -47,6 +59,23 @@ try {
   const configText = readFileSync(workerConfig, "utf8");
   if (!/\nmain\s*=\s*"index\.js"\s*(\n|$)/.test(`\n${configText}\n`)) {
     console.error("[deploy-worker] worker/wrangler.toml must include: main = \"index.js\"");
+    process.exit(1);
+  }
+
+  if (!/\n\[assets\]\s*\n[\s\S]*?\bdirectory\s*=\s*"[^"]+"/m.test(`\n${configText}\n`)) {
+    console.error("[deploy-worker] worker/wrangler.toml must include an [assets] section with directory.");
+    process.exit(1);
+  }
+
+  const configuredApiBase = configText.match(/^\s*AUTH_API_BASE_URL\s*=\s*"([^"]+)"\s*$/m)?.[1] || "";
+  if (configuredApiBase && normalizeOriginOnly(configuredApiBase, "AUTH_API_BASE_URL") !== configuredApiBase) {
+    console.error("[deploy-worker] AUTH_API_BASE_URL must be origin-only (no path/query/hash). Example: https://code-destiny.com");
+    process.exit(1);
+  }
+
+  const configuredFrontendBase = configText.match(/^\s*AUTH_FRONTEND_BASE_URL\s*=\s*"([^"]+)"\s*$/m)?.[1] || "";
+  if (configuredFrontendBase && normalizeOriginOnly(configuredFrontendBase, "AUTH_FRONTEND_BASE_URL") !== configuredFrontendBase) {
+    console.error("[deploy-worker] AUTH_FRONTEND_BASE_URL must be origin-only (no path/query/hash). Example: https://code-destiny.com");
     process.exit(1);
   }
 } catch (error) {

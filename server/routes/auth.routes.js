@@ -12,19 +12,91 @@ const router = express.Router();
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
 
+function normalizeOriginOnly(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
+function normalizeAbsoluteUrl(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    const parsed = new URL(value);
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function isWorkersDevOrigin(origin) {
+  try {
+    const hostname = new URL(origin).hostname.toLowerCase();
+    return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
+  } catch {
+    return false;
+  }
+}
+
 function getFrontendBaseUrl() {
   return (
-    process.env.AUTH_FRONTEND_BASE_URL
-    || process.env.SITE_BASE_URL
-    || "http://localhost:3000"
+    (() => {
+      const configured = normalizeOriginOnly(process.env.AUTH_FRONTEND_BASE_URL);
+      return configured && !isWorkersDevOrigin(configured) ? configured : "";
+    })()
+    || normalizeOriginOnly(process.env.SITE_BASE_URL)
+    || normalizeOriginOnly(process.env.AUTH_API_BASE_URL)
+    || "http://localhost:3000";
   );
 }
 
 function getApiBaseUrl(req) {
-  if (process.env.AUTH_API_BASE_URL) return process.env.AUTH_API_BASE_URL;
+  if (normalizeOriginOnly(process.env.AUTH_API_BASE_URL)) {
+    return normalizeOriginOnly(process.env.AUTH_API_BASE_URL);
+  }
   const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
   const host = req.headers["x-forwarded-host"] || req.get("host");
   return `${proto}://${host}`;
+}
+
+function getRequestOrigin(req) {
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.headers["x-forwarded-host"] || req.get("host");
+  return normalizeOriginOnly(`${proto}://${host}`);
+}
+
+function shouldUseRequestOrigin(origin) {
+  try {
+    const hostname = new URL(origin).hostname.toLowerCase();
+    if (hostname === "workers.dev" || hostname.endsWith(".workers.dev")) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveProviderCallbackUrl(provider, req) {
+  const key = `${provider.toUpperCase()}_OAUTH_CALLBACK`;
+  const configured = String(process.env[key] || "").trim();
+  if (!configured) {
+    return `${getApiBaseUrl(req)}/api/auth/oauth/${provider}/callback`;
+  }
+
+  if (configured.startsWith("/")) {
+    return `${getApiBaseUrl(req)}${configured}`;
+  }
+
+  return normalizeAbsoluteUrl(configured) || `${getApiBaseUrl(req)}/api/auth/oauth/${provider}/callback`;
 }
 
 function sanitizeNextPath(rawNext) {
@@ -89,7 +161,7 @@ function verifySocialGrant(token) {
 }
 
 function buildProviderConfig(provider, req) {
-  const redirectUri = `${getApiBaseUrl(req)}/api/auth/oauth/${provider}/callback`;
+  const redirectUri = resolveProviderCallbackUrl(provider, req);
 
   if (provider === "google") {
     return {
@@ -464,7 +536,10 @@ router.get("/oauth/:provider/start", async (req, res) => {
 
     const nextPath = sanitizeNextPath(String(req.query.next || "")) || "/";
     const flow = sanitizeAuthFlow(req.query.flow);
-    const frontendBase = getFrontendBaseUrl();
+    const requestOrigin = getRequestOrigin(req);
+    const frontendBase = shouldUseRequestOrigin(requestOrigin)
+      ? requestOrigin
+      : getFrontendBaseUrl();
     const stateToken = signSocialState({ provider, nextPath, frontendBase, flow });
 
     const params = new URLSearchParams({

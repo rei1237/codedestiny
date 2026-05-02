@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Wrangler token preflight
+        run: npx --no-install wrangler whoami
+
       - name: Worker preflight build (dry-run)
         run: npm run build:worker
 
