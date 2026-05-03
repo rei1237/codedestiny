@@ -1,3 +1,5 @@
+import AdminTrigger from "./AdminTrigger";
+
 /**
  * FooterLegal — 푸터 법적 고지 HTML 스니펫
  * 저장 경로: app/components/FooterLegal.jsx
@@ -25,7 +27,7 @@ export default function FooterLegal() {
         이용자 본인에게 있습니다.
       </p>
       <p>
-        © 2026 Code Destiny. All rights reserved. <a href="/admin/login" style={{ cursor: 'pointer', marginLeft: '6px', textDecoration: 'none' }}>🌸</a> &nbsp;·&nbsp;
+        © 2026 Code Destiny. All rights reserved. <AdminTrigger /> &nbsp;·&nbsp;
         <a href="/privacy-policy">개인정보처리방침</a>
         &nbsp;·&nbsp;
         <a href="/terms">이용약관</a>

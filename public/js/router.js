@@ -200,5 +200,5 @@ if (document.readyState === "loading") {
 
 // ?„ì—­ ?¨ìˆ˜: coin gate?ì„œ _cdInvokeActionDirect("openRuneOracle") ?¸ì¶œ ???¬ìš©
 window.openRuneOracle = function () {
-  renderService("stonehenge-rune");
+  window.location.assign("/oracle/rune/");
 };

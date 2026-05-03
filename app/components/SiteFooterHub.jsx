@@ -1,3 +1,5 @@
+import AdminTrigger from "./AdminTrigger";
+
 const POLICY_LINKS = [
   { href: "/faq", text: "FAQ" },
   { href: "/contact-us", text: "문의하기" },
@@ -63,7 +65,7 @@ export default function SiteFooterHub() {
           ))}
         </nav>
         <p style={{ margin: 0, width: "100%", textAlign: "center", color: "#475569" }}>
-          © 2026 Code Destiny. All rights reserved. <a href="/admin/login" style={{ cursor: 'pointer', marginLeft: '6px', textDecoration: 'none' }}>🌸</a>
+          © 2026 Code Destiny. All rights reserved. <AdminTrigger />
         </p>
       </div>
     </footer>
