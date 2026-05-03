@@ -392,6 +392,39 @@ export default function KkulkkulManseryukMain() {
     }, 60);
   };
 
+  const launchPremiumPdfModal = (service: PremiumServiceKey) => {
+    if (typeof window === 'undefined') return;
+
+    const loadScriptAndCall = (src: string, globalFnName: string) => {
+      const existing = document.querySelector(`script[src^="${src.split('?')[0]}"]`);
+      if (existing) {
+        if (typeof (window as any)[globalFnName] === 'function') {
+          (window as any)[globalFnName]();
+        }
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = () => {
+        if (typeof (window as any)[globalFnName] === 'function') {
+          (window as any)[globalFnName]();
+        }
+      };
+      document.body.appendChild(script);
+    };
+
+    if (service === 'ziwei') {
+      loadScriptAndCall('/js/ziwei-book.js?v=20260410-v2', 'openZiweiBookModal');
+    } else if (service === 'astrology') {
+      loadScriptAndCall('/js/astro-book.js?v=20260410-v2', 'openAstroBookModal');
+    } else if (service === 'sukuyo') {
+      loadScriptAndCall('/js/sukuyo-book.js?v=20260410-v2', 'openSukuyoBookModal');
+    } else if (service === 'veda') {
+      loadScriptAndCall('/js/vedic-book.js?v=20260410-v2', 'openVedicBookModal');
+    }
+  };
+
   const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
     if (premiumGateLoading) return;
 
@@ -404,7 +437,11 @@ export default function KkulkkulManseryukMain() {
       if (!passed) return;
 
       if (unlockedFeatures.premiumDivinationPack) {
-        setPremiumFlowStage('generate');
+        if (service === 'naming') {
+          setPremiumFlowStage('generate');
+        } else {
+          launchPremiumPdfModal(service);
+        }
         return;
       }
 
@@ -413,7 +450,11 @@ export default function KkulkkulManseryukMain() {
       const adminToken = getFlowerAdminTokenClient();
       // 관리자 모드: consume API 없이 즉시 generate 단계로 이동 (코인 차감 없음)
       if (adminToken || isAdminUser) {
-        setPremiumFlowStage('generate');
+        if (service === 'naming') {
+          setPremiumFlowStage('generate');
+        } else {
+          launchPremiumPdfModal(service);
+        }
         return;
       }
       const adminTestTier = getFlowerAdminTestTierClient();
@@ -438,7 +479,11 @@ export default function KkulkkulManseryukMain() {
         setCurrentCoins(newPoints);
         saveUserPoints(newPoints);
         notifyCoinDeducted(cost, newPoints, `${service} 프리미엄`);
-        setPremiumFlowStage('generate');
+        if (service === 'naming') {
+          setPremiumFlowStage('generate');
+        } else {
+          launchPremiumPdfModal(service);
+        }
       } catch (e) {
         console.error('[handleStartPremiumGeneration]', e);
         setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
