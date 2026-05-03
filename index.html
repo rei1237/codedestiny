@@ -10681,6 +10681,27 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       document.body.classList.remove('lb-modal-open');
     } catch (_) {}
     if(action==='toggleRptCard'){if(typeof window.toggleReportFeatureCard==='function')window.toggleReportFeatureCard(actionEl);return;}
+    // 관리자 우회 경로에서도 룬 오라클은 href 대신 라우터 액션을 우선 실행
+    if (action === 'openRuneOracle') {
+      if (typeof window.openRuneOracle === 'function') {
+        try { window.openRuneOracle(); return; } catch (e) { console.error('[rune oracle direct invoke]', e); }
+      }
+      var _runeLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openRuneOracle'];
+      if (typeof _runeLoader === 'function') {
+        _runeLoader().then(function() {
+          if (typeof window.openRuneOracle === 'function') {
+            window.openRuneOracle();
+          } else {
+            window.location.href = '/static?service=stonehenge-rune';
+          }
+        }).catch(function() {
+          window.location.href = '/static?service=stonehenge-rune';
+        });
+        return;
+      }
+      window.location.href = '/static?service=stonehenge-rune';
+      return;
+    }
     // <a href> 타일: href 경로로 직접 이동
     if (actionEl && actionEl.tagName === 'A') {
       var href = actionEl.getAttribute('href') || actionEl.getAttribute('data-fallback-href') || '';
@@ -12860,4 +12881,6 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </html>
+
+
 
