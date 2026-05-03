@@ -6699,20 +6699,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium';
     }
 
-    function _cdAutoStartPremiumGeneration(action) {
-      var _fnName = '';
-      if (action === 'gotoZiweiPremium') _fnName = 'generateZiweiBook';
-      else if (action === 'gotoAstrologyPremium') _fnName = 'generateAstroBook';
-      else if (action === 'gotoSukuyoPremium') _fnName = 'generateSukuyoBook';
-      else if (action === 'gotoVedicPremium') _fnName = 'generateVedicBook';
-      if (!_fnName || typeof window[_fnName] !== 'function') return;
-      (window.requestAnimationFrame || function(fn){ setTimeout(fn, 0); })(function() {
-        setTimeout(function() {
-          try { window[_fnName](); } catch (e) { console.error('[premium auto-generate]', action, e); }
-        }, 80);
-      });
-    }
-
     function _cdForcePremiumModalVisible(modalId) {
       try {
         var _modal = document.getElementById(modalId);
@@ -6771,7 +6757,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
             window.openZiweiBookModal(_profileCandidate || null);
             _cdForcePremiumModalVisible('ziweiBookModal');
-            _cdAutoStartPremiumGeneration(action);
             return true;
           }
         } catch (e) {
@@ -6861,7 +6846,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoAstrologyPremium') {
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); _cdAutoStartPremiumGeneration(action); }
+          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
@@ -6872,7 +6857,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               _cdNotifyPremiumOpenFailed('점성술');
             });
             _cdForcePremiumModalVisible('astroBookModal');
-            _cdAutoStartPremiumGeneration(action);
           })
           .catch(function(e) { console.error('[prem-card astro-book]', e); _cdNotifyPremiumOpenFailed('점성술'); });
       }
@@ -6882,7 +6866,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoSukuyoPremium') {
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); _cdAutoStartPremiumGeneration(action); }
+          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
@@ -6893,7 +6877,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               _cdNotifyPremiumOpenFailed('숙요점');
             });
             _cdForcePremiumModalVisible('sukuyoBookModal');
-            _cdAutoStartPremiumGeneration(action);
           })
           .catch(function(e) { console.error('[prem-card sukuyo]', e); _cdNotifyPremiumOpenFailed('숙요점'); });
       }
@@ -6903,7 +6886,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); _cdAutoStartPremiumGeneration(action); }
+          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
@@ -6914,7 +6897,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               _cdNotifyPremiumOpenFailed('베다점');
             });
             _cdForcePremiumModalVisible('vedicBookModal');
-            _cdAutoStartPremiumGeneration(action);
           })
           .catch(function(e) { console.error('[prem-card vedic]', e); _cdNotifyPremiumOpenFailed('베다점'); });
       }
