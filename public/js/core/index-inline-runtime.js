@@ -1518,6 +1518,7 @@ var __cdLazyActionLoaders = {
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-modal.js'); },
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
+  openRuneOracle: function() { return __cdLoadScriptOnce('/js/router.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
@@ -2099,6 +2100,20 @@ window.openDestinyEggPage = function() {
   } catch (err) {
     console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
   }
+};
+window.openRuneOracle = function() {
+  var selfRef = window.openRuneOracle;
+  return __cdLoadScriptOnce('/js/router.js').then(function() {
+    if (typeof window.openRuneOracle === 'function' && window.openRuneOracle !== selfRef) {
+      return window.openRuneOracle();
+    }
+    window.location.assign('/static?service=stonehenge-rune');
+    return undefined;
+  }).catch(function(err) {
+    console.error('[index-inline-runtime] openRuneOracle failed:', err);
+    window.location.assign('/static?service=stonehenge-rune');
+    return undefined;
+  });
 };
 
 if (document.readyState === 'loading') {
