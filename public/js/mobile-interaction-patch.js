@@ -375,6 +375,20 @@
       ].join(',')
     },
     {
+      action: 'openRuneOracle',
+      cardSelector: '.tarot-tile--rune-fc',
+      targetSelector: [
+        '[data-action="openRuneOracle"]',
+        '.tarot-tile--rune-fc',
+        '.tarot-tile--rune-fc .tarot-tile__img-wrap',
+        '.tarot-tile--rune-fc .tarot-tile__img',
+        '.tarot-tile--rune-fc .tarot-tile__badge',
+        '.tarot-tile--rune-fc .tarot-tile__title',
+        '.tarot-tile--rune-fc .tarot-tile__desc',
+        '.tarot-tile--rune-fc .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'navigateToVedic',
       cardSelector: '.tarot-tile--vedic-fc',
       targetSelector: [
@@ -632,6 +646,7 @@
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
+    openRuneOracle: ['js/router.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     openLoveSecretModal: ['js/love-secret-v2.js?v=20260503-portraitfix1'],
     openLifeBookModal: ['js/life-book.js?v=20260503-resetfix1'],
@@ -789,6 +804,23 @@
       }
     }
 
+    if (rule.action === 'openRuneOracle') {
+      try {
+        if (typeof window.openRuneOracle === 'function') {
+          window.openRuneOracle();
+          return true;
+        }
+        window.location.href = '/static?service=stonehenge-rune';
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] rune oracle navigation failed:', err);
+        try {
+          window.location.assign('/static?service=stonehenge-rune');
+          return true;
+        } catch (_) {}
+      }
+    }
+
     if (rule.action === 'openTarotHealingModal') {
       try {
         window.location.href = '/tarot/healing';
@@ -925,6 +957,7 @@
       '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
       '.tarot-tile--hwatu .tarot-tile__img-wrap, .tarot-tile--hwatu .tarot-tile__img, .tarot-tile--hwatu .tarot-tile__body, .tarot-tile--hwatu .tarot-tile__title, .tarot-tile--hwatu .tarot-tile__desc,',
       '.tarot-tile--egypt-fc .tarot-tile__img-wrap, .tarot-tile--egypt-fc .tarot-tile__img, .tarot-tile--egypt-fc .tarot-tile__body, .tarot-tile--egypt-fc .tarot-tile__title, .tarot-tile--egypt-fc .tarot-tile__desc,',
+      '.tarot-tile--rune-fc .tarot-tile__img-wrap, .tarot-tile--rune-fc .tarot-tile__img, .tarot-tile--rune-fc .tarot-tile__badge, .tarot-tile--rune-fc .tarot-tile__body, .tarot-tile--rune-fc .tarot-tile__title, .tarot-tile--rune-fc .tarot-tile__desc,',
       '.tarot-tile--vedic-fc .tarot-tile__img-wrap, .tarot-tile--vedic-fc .tarot-tile__img, .tarot-tile--vedic-fc .tarot-tile__body, .tarot-tile--vedic-fc .tarot-tile__title, .tarot-tile--vedic-fc .tarot-tile__desc,',
       '.tarot-tile--olympus-oracle .tarot-tile__img-wrap, .tarot-tile--olympus-oracle .tarot-tile__img, .tarot-tile--olympus-oracle .tarot-tile__badge, .tarot-tile--olympus-oracle .tarot-tile__body, .tarot-tile--olympus-oracle .tarot-tile__title, .tarot-tile--olympus-oracle .tarot-tile__desc,',
       '.tarot-tile--geomancy-fc .tarot-tile__img-wrap, .tarot-tile--geomancy-fc .tarot-tile__img, .tarot-tile--geomancy-fc .tarot-tile__badge, .tarot-tile--geomancy-fc .tarot-tile__body, .tarot-tile--geomancy-fc .tarot-tile__title, .tarot-tile--geomancy-fc .tarot-tile__desc,',
@@ -935,7 +968,7 @@
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"], [data-action="openRuneOracle"],',
       '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"],',
       '/* ?�생??�?�??�빌???�스???�크�?최적??*/',
       '.lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile,',
