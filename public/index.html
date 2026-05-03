@@ -6653,7 +6653,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
-    // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
+    // ?⑥븘?덈뒗 ?꾨━酉??ㅻ쾭?덉씠/?ㅽ겕濡??좉툑??癒쇱? ?뺣━??硫덉땄 ?곹깭瑜?諛⑹?
     try {
       var _pvwOverlay = document.getElementById('tilePvwOverlay');
       if (_pvwOverlay) {
@@ -6664,7 +6664,28 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       document.body.classList.remove('lb-modal-open');
     } catch (_) {}
     if(action==='toggleRptCard'){if(typeof window.toggleReportFeatureCard==='function')window.toggleReportFeatureCard(actionEl);return;}
-    // <a href> 타일: href 경로로 직접 이동
+    // 관리자 우회 경로에서도 룬 오라클은 href 대신 라우터 액션을 우선 실행
+    if (action === 'openRuneOracle') {
+      if (typeof window.openRuneOracle === 'function') {
+        try { window.openRuneOracle(); return; } catch (e) { console.error('[rune oracle direct invoke]', e); }
+      }
+      var _runeLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openRuneOracle'];
+      if (typeof _runeLoader === 'function') {
+        _runeLoader().then(function() {
+          if (typeof window.openRuneOracle === 'function') {
+            window.openRuneOracle();
+          } else {
+            window.location.href = '/static?service=stonehenge-rune';
+          }
+        }).catch(function() {
+          window.location.href = '/static?service=stonehenge-rune';
+        });
+        return;
+      }
+      window.location.href = '/static?service=stonehenge-rune';
+      return;
+    }
+    // <a href> ??? href 寃쎈줈濡?吏곸젒 ?대룞
     if (actionEl && actionEl.tagName === 'A') {
       var href = actionEl.getAttribute('href') || actionEl.getAttribute('data-fallback-href') || '';
       if (href && href !== '#' && !/^javascript:/i.test(href)) {
@@ -6672,83 +6693,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
     }
-
-    function _cdInvokeWithRetry(fnName, args, onMissing) {
-      var _tries = 0;
-      (function _tick() {
-        _tries += 1;
-        if (typeof window[fnName] === 'function') {
-          try {
-            window[fnName].apply(window, args || []);
-          } catch (e) {
-            console.error('[prem-card ' + fnName + ']', e);
-          }
-          return;
-        }
-        if (_tries >= 30) {
-          if (typeof onMissing === 'function') onMissing();
-          return;
-        }
-        setTimeout(_tick, 80);
-      })();
-    }
-
-    function _cdNotifyPremiumOpenFailed(label) {
-      try {
-        var _msg = (label || '프리미엄') + ' 생성 창을 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-        if (typeof window.alert === 'function') window.alert(_msg);
-      } catch (_) {}
-    }
-
-    function _cdIsDirectPremiumPdfAction(action) {
-      return action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium';
-    }
-
-    function _cdForcePremiumModalVisible(modalId) {
-      try {
-        var _modal = document.getElementById(modalId);
-        if (!_modal) return;
-        _modal.style.display = 'flex';
-        _modal.style.visibility = 'visible';
-        _modal.style.pointerEvents = 'auto';
-        _modal.style.zIndex = '100120';
-        document.body.style.overflow = 'hidden';
-        document.body.classList.add('lb-modal-open');
-      } catch (_) {}
-    }
-
-    function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
-      var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
-      if (_loader) return _loader();
-      var _existing = document.querySelector('script[src*="' + scriptMatch + '"]');
-      // 이미 DOM에 존재하는 스크립트는 load 이벤트를 놓쳤을 수 있으므로 즉시 진행하고 함수 재시도로 보완한다.
-      if (_existing) return Promise.resolve();
-      return new Promise(function(resolve, reject) {
-        var _target = _existing;
-        if (!_target) {
-          _target = document.createElement('script');
-          _target.src = scriptSrc;
-          _target.defer = true;
-          document.head.appendChild(_target);
-        }
-        var _done = false;
-        var _ok = function() {
-          if (_done) return;
-          _done = true;
-          try { _target.dataset.loaded = '1'; } catch (_) {}
-          resolve();
-        };
-        var _fail = function(err) {
-          if (_done) return;
-          _done = true;
-          reject(err || new Error('script load failed: ' + scriptSrc));
-        };
-        _target.addEventListener('load', _ok, { once: true });
-        _target.addEventListener('error', _fail, { once: true });
-      });
-    }
-
-    // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
+    // ?뚮젮吏??≪뀡 蹂꾩묶: gotoZiweiPremium ??openZiweiBookModal
     if (action === 'gotoZiweiPremium') {
       var _profileCandidate = _cdGetZiweiProfileCandidate();
       _cdZiweiTrace('CLICK', {
@@ -6761,7 +6706,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (typeof window.openZiweiBookModal === 'function') {
             _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
             window.openZiweiBookModal(_profileCandidate || null);
-            _cdForcePremiumModalVisible('ziweiBookModal');
+            try {
+              var _zbm = document.getElementById('ziweiBookModal');
+              if (_zbm) {
+                if (_zbm.parentNode !== document.body) document.body.appendChild(_zbm);
+                _zbm.style.display = 'flex';
+                _zbm.style.visibility = 'visible';
+                _zbm.style.pointerEvents = 'auto';
+                _zbm.style.opacity = '1';
+                _zbm.style.zIndex = '100120';
+              }
+              document.body.style.overflow = 'hidden';
+              document.body.classList.add('lb-modal-open');
+            } catch (_) {}
             return true;
           }
         } catch (e) {
@@ -6772,12 +6729,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
       if (_invokeZiwei()) return;
 
-      // ziwei-book.js lazy load 후 재호출 (레이스 컨디션 방지)
+      // ziwei-book.js lazy load ???ы샇異?(?덉씠??而⑤뵒??諛⑹?)
       (function() {
         var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
         var _zbLoadFn = function() {
           var s = document.querySelector('script[src*="ziwei-book.js"]');
-          if (s) {
+          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
             _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
             return Promise.resolve();
           }
@@ -6802,18 +6759,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
             if (!_invokeZiwei()) {
               _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
-              _cdNotifyPremiumOpenFailed('자미두수');
             }
           })
           .catch(function(e) {
             _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
             console.error('[prem-card ziwei]', e);
-            _cdNotifyPremiumOpenFailed('자미두수');
           });
       })();
       return;
     }
-    // 명시적 핸들러: openLifeBookModal
+    // 紐낆떆???몃뱾?? openLifeBookModal
     if (action === 'openLifeBookModal') {
       if (typeof window.openLifeBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
@@ -6830,7 +6785,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
       return;
     }
-    // 명시적 핸들러: openLoveSecretModal
+    // 紐낆떆???몃뱾?? openLoveSecretModal
     if (action === 'openLoveSecretModal') {
       if (typeof window.openLoveSecretModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
@@ -6847,7 +6802,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
       return;
     }
-    // 알려진 액션 별칭: gotoAstrologyPremium → openAstroBookModal
+    // ?뚮젮吏??≪뀡 蹂꾩묶: gotoAstrologyPremium ??openAstroBookModal
     if (action === 'gotoAstrologyPremium') {
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
@@ -6855,19 +6810,23 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
-        _cdLoadActionScript('gotoAstrologyPremium', 'astro-book.js', '/js/astro-book.js?v=20260411-zfix1')
-          .then(function() {
-            _cdInvokeWithRetry('openAstroBookModal', null, function() {
-              console.error('[prem-card astro-book] openAstroBookModal missing after load');
-              _cdNotifyPremiumOpenFailed('점성술');
-            });
-            _cdForcePremiumModalVisible('astroBookModal');
-          })
-          .catch(function(e) { console.error('[prem-card astro-book]', e); _cdNotifyPremiumOpenFailed('점성술'); });
+        // astro-book.js lazy load ???ы샇異?        var _abScr = document.querySelector('script[src*="astro-book.js"]');
+        if (!_abScr) {
+          var _abEl2 = document.createElement('script');
+          _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
+          _abEl2.onload = function() {
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+          };
+          document.head.appendChild(_abEl2);
+        } else {
+          setTimeout(function() {
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+          }, 500);
+        }
       }
       return;
     }
-    // 핸들러 연동: gotoSukuyoPremium → sukuyo-book.js 모달
+    // ?몃뱾???곕룞: gotoSukuyoPremium ??sukuyo-book.js 紐⑤떖
     if (action === 'gotoSukuyoPremium') {
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
@@ -6875,19 +6834,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
-        _cdLoadActionScript('gotoSukuyoPremium', 'sukuyo-book.js', '/js/sukuyo-book.js?v=20260411-zfix1')
-          .then(function() {
-            _cdInvokeWithRetry('openSukuyoBookModal', null, function() {
-              console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
-              _cdNotifyPremiumOpenFailed('숙요점');
-            });
-            _cdForcePremiumModalVisible('sukuyoBookModal');
-          })
-          .catch(function(e) { console.error('[prem-card sukuyo]', e); _cdNotifyPremiumOpenFailed('숙요점'); });
+        (function() {
+          var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
+          var _spLoadFn = function() {
+            var s=document.querySelector('script[src*="sukuyo-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_spLoader?_spLoader():_spLoadFn()).then(function(){
+            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
+          }).catch(function(e){console.error('[prem-card sukuyo]',e);});
+        })();
       }
       return;
     }
-    // 핸들러 연동: gotoVedicPremium → vedic-book.js 모달
+    // ?몃뱾???곕룞: gotoVedicPremium ??vedic-book.js 紐⑤떖
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
@@ -6895,41 +6856,53 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
-        _cdLoadActionScript('gotoVedicPremium', 'vedic-book.js', '/js/vedic-book.js?v=20260411-zfix1')
-          .then(function() {
-            _cdInvokeWithRetry('openVedicBookModal', null, function() {
-              console.error('[prem-card vedic] openVedicBookModal missing after load');
-              _cdNotifyPremiumOpenFailed('베다점');
-            });
-            _cdForcePremiumModalVisible('vedicBookModal');
-          })
-          .catch(function(e) { console.error('[prem-card vedic]', e); _cdNotifyPremiumOpenFailed('베다점'); });
+        (function() {
+          var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
+          var _vdLoadFn = function() {
+            var s=document.querySelector('script[src*="vedic-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
+            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
+          }).catch(function(e){console.error('[prem-card vedic]',e);});
+        })();
       }
       return;
     }
-    // 핸들러 연동: gotoNamingPremium → 명운 작명 페이지
-    if (action === 'gotoNamingPremium') {
-      try {
-        window.location.assign('/myungwun_final.html');
-      } catch (e) {
-        window.location.href = '/myungwun_final.html';
-      }
-      return;
-    }
-    // window[action] 함수가 있으면 직접 호출
+    // window[action] ?⑥닔媛 ?덉쑝硫?吏곸젒 ?몄텧
     if (action && typeof window[action] === 'function') {
       window[action]();
       return;
     }
-    // 폴백: perUseApproved 플래그 세팅 후 프로그래매틱 클릭
-    // pvw-bypass를 명시적으로 설정하여 합성 클릭이 프리뷰 패널을 재오픈하지 않도록 방지
-    perUseApproved[action] = true;
-    try {
-      actionEl.setAttribute('data-pvw-bypass', '1');
-      actionEl.click();
-      setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
-    } catch (_) {}
-    setTimeout(function () { delete perUseApproved[action]; }, 800);
+
+    function _cdDispatchSyntheticActionClick() {
+      perUseApproved[action] = true;
+      try {
+        actionEl.setAttribute('data-pvw-bypass', '1');
+        actionEl.click();
+        setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
+      } catch (_) {}
+      setTimeout(function () { delete perUseApproved[action]; }, 800);
+    }
+
+    var _lazyActionLoader = action && window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[action];
+    if (typeof _lazyActionLoader === 'function') {
+      _lazyActionLoader().then(function() {
+        if (action && typeof window[action] === 'function') {
+          try { window[action](); return; } catch (e) { console.error('[coin-gate invoke]', e); }
+        }
+        _cdDispatchSyntheticActionClick();
+      }).catch(function(e) {
+        console.error('[coin-gate lazy-load]', action, e);
+        _cdDispatchSyntheticActionClick();
+      });
+      return;
+    }
+
+    // ?대갚: perUseApproved ?뚮옒洹??명똿 ???꾨줈洹몃옒留ㅽ떛 ?대┃
+    // pvw-bypass瑜?紐낆떆?곸쑝濡??ㅼ젙?섏뿬 ?⑹꽦 ?대┃???꾨━酉??⑤꼸???ъ삤?덊븯吏 ?딅룄濡?諛⑹?
+    _cdDispatchSyntheticActionClick();
   }
 
   function _cdSafeBlockEvent(event) {
@@ -7096,12 +7069,28 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     var action = actionNode.getAttribute('data-action') || '';
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
-    // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
+    // 吏곸젒 ?몄텧 ?뱀씤 ?곹깭硫?洹몃깷 ?듦낵 (吏곸젒 ?먯깋 以묒씠誘濡??뚮옒洹??뺣━)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 터치이고 pvw-bypass 없으면 Preview 패널이 처리
-    // .prem-card도 Preview 패널을 통해 처리 (coin gate는 CTA 클릭 후 처리)
-    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) return;
-    // 터치 해제 위치가 타일 영역 내인지 확인
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card??Preview ?⑤꼸 ?곗꽑 ?쒕룄
+    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
+      // 愿由ъ옄 紐⑤뱶??prem-card??Preview瑜?嫄대꼫?곌퀬 利됱떆 PDF 紐⑤떖 寃쎈줈濡??대룞
+      if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
+        _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+        return;
+      }
+      var _pvwHandled = false;
+      try {
+        if (typeof window._cdOpenTilePreview === 'function') {
+          _pvwHandled = !!window._cdOpenTilePreview(actionNode);
+        }
+      } catch (_pvwErr) {
+        _pvwHandled = false;
+      }
+      if (_pvwHandled) return;
+      _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+      return;
+    }
+    // ?곗튂 ?댁젣 ?꾩튂媛 ????곸뿭 ?댁씤吏 ?뺤씤
     var t = event.changedTouches && event.changedTouches[0];
     if (__cdLastTouch.moved) return;
     if (t && (Math.abs(t.clientY - __cdLastTouch.y) > 14 || Math.abs(t.clientX - __cdLastTouch.x) > 14)) return;
@@ -7120,34 +7109,29 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!actionNode) return;
     var action = actionNode.getAttribute('data-action');
 
-    // ── 회당 코인 게이트 (per-use) ──
+    // ?? ?뚮떦 肄붿씤 寃뚯씠??(per-use) ??
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // 프리미엄 PDF 카드(goto*Premium)는 UI 프리뷰 충돌을 피하기 위해 항상 직접 코인게이트로 처리
-        var _isDirectPremiumAction = action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium';
-        if (actionNode.classList.contains('prem-card') && _isDirectPremiumAction) {
-          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-          return;
-        }
-        // 그 외 prem-card는 Preview 패널을 통해 처리
-        if (actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
-          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(actionNode)) {
-            _cdSafeBlockEvent(event);
-            return;
-          }
-          // Preview 없는 경우(D 딕셔너리 미등록) 직접 코인게이트로 폴백
-          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-          return;
-        }
-        // .tarot-tile / .lifebook-tile / .lovebible-tile: pvw-bypass 없으면 Preview가 처리
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-bypass')) {
-          // 관리자 모드: preview 패널 없이 직접 처리
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+        // .tarot-tile / .lifebook-tile / .lovebible-tile 吏곸젒 ?대┃? Preview ?⑤꼸 ?곗꽑 ?쒕룄
+        // Preview 誘몄뿰????肄붿씤寃뚯씠?몃줈 利됱떆 ?대갚
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
+          // 愿由ъ옄 紐⑤뱶: preview ?⑤꼸 ?놁씠 吏곸젒 泥섎━
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
-          // Preview 인터셉터로 위임 (이벤트 계속 전파)
+          var _clickPreviewHandled = false;
+          try {
+            if (typeof window._cdOpenTilePreview === 'function') {
+              _clickPreviewHandled = !!window._cdOpenTilePreview(actionNode);
+            }
+          } catch (_clickPreviewErr) {
+            _clickPreviewHandled = false;
+          }
+          if (_clickPreviewHandled) return;
+          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+          return;
         } else {
           _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
           return;
@@ -7157,26 +7141,26 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
     }
 
-    // ── 영구 해금 타일 게이트 ──
+    // ?? ?곴뎄 ?닿툑 ???寃뚯씠????
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
-    if (tileLockKey && tileLockCost > 0 && !unlockedFeatureMap[tileLockKey]) {
-      // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
+    if (tileLockKey && tileLockCost > 0 && !isTileKeyUnlocked(tileLockKey)) {
+      // .tarot-tile 吏곸젒 ?대┃?닿퀬 pvw-bypass ?놁쑝硫?Preview ?⑤꼸??癒쇱? 泥섎━
       if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
-        // Preview 인터셉터로 위임 (이벤트 계속 전파)
+        // Preview ?명꽣?됲꽣濡??꾩엫 (?대깽??怨꾩냽 ?꾪뙆)
       } else {
       _cdSafeBlockEvent(event);
       (async function () {
         if (!hasAuthToken()) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+          if (window.confirm('?뵏 濡쒓렇?몄씠 ?꾩슂???쒕퉬?ㅼ엯?덈떎.\n濡쒓렇?????댁슜??二쇱꽭??')) {
             window.location.href = '/login?next=%2F';
           }
           return;
         }
-        // 관리자 모드: 코인 차감/해금 비용 없이 즉시 실행
+        // 愿由ъ옄 紐⑤뱶: 肄붿씤 李④컧/?닿툑 鍮꾩슜 ?놁씠 利됱떆 ?ㅽ뻾
         try {
           if (isAdminUser()) {
-            unlockedFeatureMap[tileLockKey] = true;
+            markUnlockKey(unlockedFeatureMap, tileLockKey);
             saveTileLocks();
             applyTileLockVisuals();
             sessionStorage.setItem('cd_pa_' + action, '1');
@@ -7184,12 +7168,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return;
           }
         } catch (_adminLockErr) {}
-        // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
+        // ?꾨━誘몄뾼 援щ룆 ?뚮옖 蹂댁쑀?? 肄붿씤 ?놁씠 ?곴뎄 ?닿툑
         try {
           var _lockSubUser = readAuthUser();
           var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
           if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
-            unlockedFeatureMap[tileLockKey] = true;
+            var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
+            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '硫ㅻ쾭???꾩슜 肄섑뀗痢?;
+            var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
+            if (!_lockConsentOk) return;
+            markUnlockKey(unlockedFeatureMap, tileLockKey);
             saveTileLocks();
             applyTileLockVisuals();
             sessionStorage.setItem('cd_pa_' + action, '1');
@@ -7198,56 +7186,56 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
         } catch (_lockSubErr) {}
         var titleEl = actionNode.querySelector('.tarot-tile__title');
-        var fname = titleEl ? titleEl.textContent.trim() : '서비스';
-        if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
-        if (userBalance < tileLockCost) {
-          if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
-            openChargeModal();
-          }
-          return;
-        }
+        var fname = titleEl ? titleEl.textContent.trim() : '?쒕퉬??;
+        if (!window.confirm('?뵑 ' + fname + '\n' + tileLockCost + '肄붿씤?쇰줈 ?곴뎄 ?닿툑?섏떆寃좎뒿?덇퉴?\n?쒕쾭 湲곗? ?붿븸?쇰줈 寃곗젣媛 吏꾪뻾?⑸땲??\n??踰??닿툑?섎㈃ 怨꾩냽 ?댁슜 媛?ν빀?덈떎!')) return;
         if (consumeInFlight) return;
         consumeInFlight = true;
+        var _unlockOverlayOpened = false;
         try {
+          _cdSetCoinGateOverlay(true, fname + ' ?닿툑??吏꾪뻾?섍퀬 ?덉뒿?덈떎...');
+          _unlockOverlayOpened = true;
           var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
             method: 'POST',
-            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
+            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' ?곴뎄 ?닿툑' }),
           });
           if (r.status === 402) { openChargeModal(); return; }
           if (!r.ok) {
-            window.alert((r.payload && r.payload.message) || '해금 처리에 실패했습니다.');
+            window.alert((r.payload && r.payload.message) || '?닿툑 泥섎━???ㅽ뙣?덉뒿?덈떎.');
             return;
           }
           if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
             userBalance = r.payload.user.points;
+          } else if (r.payload && r.payload.testAccountBypass) {
+            userBalance = Number(userBalance || 0);
           } else {
             userBalance = Math.max(0, userBalance - tileLockCost);
           }
           saveBalance();
           updateBadge();
-          unlockedFeatureMap[tileLockKey] = true;
+          markUnlockKey(unlockedFeatureMap, tileLockKey);
           saveTileLocks();
           applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
-          window.alert('✅ ' + fname + ' 해금 완료!\n이제 자유롭게 이용하실 수 있습니다 🌟');
+          window.alert('??' + fname + ' ?닿툑 ?꾨즺!\n?댁젣 ?먯쑀濡?쾶 ?댁슜?섏떎 ???덉뒿?덈떎 ?뙚');
           _cdInvokeActionDirect(action, actionNode);
         } catch (e) {
           console.error('[tile unlock gate]', e);
-          window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+          window.alert('?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
         } finally {
+          if (_unlockOverlayOpened) _cdSetCoinGateOverlay(false);
           consumeInFlight = false;
         }
       })();
       return;
-      } // else: pvw-bypass 있을 때만 해금 진행
+      } // else: pvw-bypass ?덉쓣 ?뚮쭔 ?닿툑 吏꾪뻾
     } // if tileLockKey
 
-    // ── 이미 해금된 toggleRptCard 버튼 직접 토글 ──
+    // ?? ?대? ?닿툑??toggleRptCard 踰꾪듉 吏곸젒 ?좉? ??
     if (action === 'toggleRptCard') {
       if (typeof window.toggleReportFeatureCard === 'function') window.toggleReportFeatureCard(actionNode);
       return;
     }
-    // ── 잠금 해제 후 직접 실행 (버블 핸들러 없는 액션) ──
+    // ?? ?좉툑 ?댁젣 ??吏곸젒 ?ㅽ뻾 (踰꾨툝 ?몃뱾???녿뒗 ?≪뀡) ??
     if (action === 'openSecretHouseRoute') {
       if (typeof window.openSecretHouseRoute === 'function') window.openSecretHouseRoute();
       return;
@@ -7267,6 +7255,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     if (action === 'confirmGoldenCharge') {
       void applyCharge();
+      return;
+    }
+    if (action === 'goSubscriptionPlan') {
+      openSubscriptionFromCharge(actionNode.getAttribute('data-plan-id') || '');
       return;
     }
     if (action === 'unlockPremiumFeature') {
@@ -7674,8 +7666,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(_pvwCoinCost>0&&typeof window.__cdRunPerUseCoinGateFromTile==='function'){
       if(window.__cdRunPerUseCoinGateFromTile(tile))return;
     }
-    var _freeAct=tile.getAttribute('data-action');
-    if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
@@ -7684,9 +7674,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
-    if(window.__cdAdminBypass)return;
+    if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && isTileKeyUnlocked(lockKey)) return;
     var action=tile.getAttribute('data-action');
-    if(action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium'||action==='gotoNamingPremium')return;
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
     if(!key||!D[key])return;
@@ -7696,11 +7687,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     _open(tile,href,D[key]);
   },true);
 
-  // 모바일 패치에서 코인/잠금 게이트 필요 시 직접 호출 가능한 전역 함수
+  // 紐⑤컮???⑥튂?먯꽌 肄붿씤/?좉툑 寃뚯씠???꾩슂 ??吏곸젒 ?몄텧 媛?ν븳 ?꾩뿭 ?⑥닔
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && isTileKeyUnlocked(lockKey)) return false;
     var action = tile.getAttribute('data-action');
-    if (action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium'||action==='gotoNamingPremium') return false;
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
     if (!key || !D[key]) return false;
@@ -7708,9 +7700,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!_ov) _init();
       if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
       _open(tile, href, D[key]);
-      // _open()은 rAF로 pvw-open 클래스를 추가하므로 동기 체크는 항상 false.
-      // _open()이 예외 없이 호출됐으면 Preview가 열릴 것이므로 true 반환.
-      return true;
+      return !!(_ov && _ov.classList && _ov.classList.contains('pvw-open'));
     } catch (err) {
       console.error('[tile-preview] open failed:', err);
       return false;
@@ -8820,5 +8810,7 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
+
 
 
