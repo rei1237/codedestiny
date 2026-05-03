@@ -209,12 +209,15 @@
     });
   }
 
-  window.openVedicBookModal = function(){
+  window.openVedicBookModal = function(profileArg){
     var modal=_qs('vedicBookModal');
     if(!modal){console.error('[베다 점성술 프리미엄] vedicBookModal 요소를 찾을 수 없습니다.');return;}
     _applyVedicTheme(modal);
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
-    var profile=_getActiveBirthProfile();
+    if (profileArg && profileArg.birth && profileArg.birth.year) {
+      try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
+    }
+    var profile=(profileArg && profileArg.birth && profileArg.birth.year) ? profileArg : _getActiveBirthProfile();
     if(!profile){
       modal.style.display='flex'; modal.style.zIndex='100120';
       document.body.style.overflow='hidden';
@@ -249,7 +252,7 @@
   };
 
   // 별칭: openVedicPremiumModal 도 지원
-  window.openVedicPremiumModal = function(){window.openVedicBookModal();};
+  window.openVedicPremiumModal = function(profileArg){window.openVedicBookModal(profileArg);};
 
   function _prefillVedicProfile(profile){
     if(!profile)return;
@@ -454,5 +457,5 @@
     if(act==='closeVedicBookModal'){window.closeVedicBookModal();e.stopPropagation();}
   });
 
-  window.gotoVedicPremium = function(){window.openVedicBookModal();};
+  window.gotoVedicPremium = function(profileArg){window.openVedicBookModal(profileArg);};
 })();

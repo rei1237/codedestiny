@@ -238,12 +238,15 @@
     });
   }
 
-  window.openAstroBookModal = function() {
+  window.openAstroBookModal = function(profileArg) {
     var modal = _qs('astroBookModal');
     if (!modal) { console.error('[점성술 코즈믹 차트] astroBookModal 요소를 찾을 수 없습니다.'); return; }
     _applyAstroTheme(modal);
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
-    var profile = _getActiveBirthProfile();
+    if (profileArg && profileArg.birth && profileArg.birth.year) {
+      try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
+    }
+    var profile = (profileArg && profileArg.birth && profileArg.birth.year) ? profileArg : _getActiveBirthProfile();
     if (!profile) {
       modal.style.display = 'flex'; modal.style.zIndex='100120';
       document.body.style.overflow = 'hidden';
@@ -490,5 +493,5 @@
     if (act==='closeAstroBookModal') { window.closeAstroBookModal(); e.stopPropagation(); }
   });
 
-  window.gotoAstrologyPremium = function() { window.openAstroBookModal(); };
+  window.gotoAstrologyPremium = function(profileArg) { window.openAstroBookModal(profileArg); };
 })();

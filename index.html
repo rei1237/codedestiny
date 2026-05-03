@@ -10827,9 +10827,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // 알려진 액션 별칭: gotoAstrologyPremium → openAstroBookModal
     if (action === 'gotoAstrologyPremium') {
+      var _profileCandidateAstro = _cdGetZiweiProfileCandidate();
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+          try { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
@@ -10839,12 +10840,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _abEl2 = document.createElement('script');
           _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
           _abEl2.onload = function() {
-            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           };
           document.head.appendChild(_abEl2);
         } else {
           setTimeout(function() {
-            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           }, 500);
         }
       }
@@ -10852,9 +10853,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // 핸들러 연동: gotoSukuyoPremium → sukuyo-book.js 모달
     if (action === 'gotoSukuyoPremium') {
+      var _profileCandidateSukuyo = _cdGetZiweiProfileCandidate();
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
+          try { window.openSukuyoBookModal(_profileCandidateSukuyo || null); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
@@ -10866,7 +10868,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
-            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
+            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal(_profileCandidateSukuyo || null);_cdForcePremiumModalVisible('sukuyoBookModal');}
           }).catch(function(e){console.error('[prem-card sukuyo]',e);});
         })();
       }
@@ -10874,9 +10876,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // 핸들러 연동: gotoVedicPremium → vedic-book.js 모달
     if (action === 'gotoVedicPremium') {
+      var _profileCandidateVedic = _cdGetZiweiProfileCandidate();
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
+          try { window.openVedicBookModal(_profileCandidateVedic || null); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
@@ -10888,7 +10891,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
-            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
+            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal(_profileCandidateVedic || null);_cdForcePremiumModalVisible('vedicBookModal');}
           }).catch(function(e){console.error('[prem-card vedic]',e);});
         })();
       }

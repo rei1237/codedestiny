@@ -27,7 +27,26 @@ const SUKUYO_CHAPTER_META = [
   "탄생 숙과 원형", "감정의 조수간만", "페르소나와 브랜딩", "재산의 중력",
   "보이지 않는 카니발", "관계의 정밀 레이어", "파괴와 갱신", "조화로운 성장",
   "정서의 신전", "타이밍과 의식", "그림자의 통합", "인생 로드맵", "마스터 플랜",
-].map((title, i) => ({ num: i + 1, title, subtitle: "27수 숙요점 프리미엄 리포트", icon: "moon" }));
+].map((title, i) => ({
+  num: i + 1,
+  title,
+  subtitle: [
+    "27수 탄생 숙요의 본질·숨겨진 이면·반복되는 패턴·재능 지수 완전 해독",
+    "달의 삭망 사이클과 숙요 에너지 공명·에너지 상승기·하강기 전략",
+    "숙요 이미지 코드·숨은 성향 극복·30일 이미지 관리 실행 플랜",
+    "숙요 재물 코드·달의 상승기 투자 원칙·재물 파괴 패턴 차단",
+    "조직 내 역할·협력 시너지·마찰 포인트 달빛 해결법",
+    "성·친·화·쇠·괴·살 6대 관계 역학 완전 분석",
+    "쇠괴 에너지 위기 전략·달빛 혁신법·역경을 성장 자원으로",
+    "공간 에너지·환경 심리학·건강 루틴·달월령 생활 설계",
+    "깊은 감정 연결·공감 지능·정서적 유대 강화법",
+    "성사·해로운 관계 경계·귀인 구별법·에너지 뱀파이어 차단",
+    "월령 27주기 에너지 사이클·시기별 최적 행동 전략",
+    "힘든 관계 정리·인연 회복 전략·새로운 인연 초대 의식",
+    "10년 운세 지도·생애 핵심 미션·3·5·10년 마스터플랜",
+  ][i],
+  icon: "moon"
+}));
 
 const ASTRO_CHAPTER_META = [
   "페르소나와 존재감", "감정의 뿌리", "인지 체계와 정보의 연금술", "미학과 가치 자산",
@@ -41,10 +60,85 @@ const VEDIC_CHAPTER_META = [
   "건강과 정화", "요가 조합 분석", "우파야 처방", "마스터 플랜",
 ].map((title, i) => ({ num: i + 1, title, subtitle: "베다 점성술 프리미엄 PDF", icon: "veda" }));
 
-const ZIWEI_CHAPTERS = [
-  "명궁과 삶의 주인공", "복덕궁과 내면의 행복", "천이궁과 사회적 얼굴", "관록궁과 커리어",
-  "재백궁과 부의 흐름", "부처궁과 관계", "교우궁과 네트워크", "전택궁과 공간",
-  "질액궁과 몸의 에너지", "자녀궁과 창조성", "부모궁과 뿌리", "사화와 변화의 축", "마스터 플랜",
+const ZIWEI_CHAPTER_META = [
+  {
+    num: 1,
+    title: "내 인생의 주인공 캐릭터 - 명궁 완전 해독",
+    subtitle: "명궁 주성·사화 완전 해독 - 타고난 핵심 성향·삼방사정·상황별 강점 활용 전략",
+    icon: "ziwei"
+  },
+  {
+    num: 2,
+    title: "내면의 본체 - 신궁 심층 분석과 잠재 무기",
+    subtitle: "신궁 심층 분석 - 내면의 본체·잠재 무기·명궁과의 통합으로 완성되는 진짜 자아",
+    icon: "ziwei"
+  },
+  {
+    num: 3,
+    title: "무의식의 도화지 - 복덕궁으로 읽는 행복 설계도",
+    subtitle: "복덕궁 주성 분석 - 행복 DNA·스트레스 패턴·심상화 마인드 트레이닝",
+    icon: "ziwei"
+  },
+  {
+    num: 4,
+    title: "세상이라는 무대 - 천이궁과 이미지 관리",
+    subtitle: "천이궁 주성 분석 - 사회적 이미지·이미지 관리·외부 활동 황금 타이밍",
+    icon: "ziwei"
+  },
+  {
+    num: 5,
+    title: "커리어와 성취 - 관록궁의 천직 방정식",
+    subtitle: "관록궁 주성 분석 - 업무 성향 DNA·천직 영역·오피스 심리학·커리어 도약 타이밍",
+    icon: "ziwei"
+  },
+  {
+    num: 6,
+    title: "재화와 자산의 흐름 - 재백궁의 부의 법칙",
+    subtitle: "재백궁 주성 분석 - 재물 그릇·수입 파이프라인·파재성 역이용·황금 타이밍",
+    icon: "ziwei"
+  },
+  {
+    num: 7,
+    title: "파트너십과 로맨스 - 부처궁의 인연 구조",
+    subtitle: "부처궁 주성 분석 - 이상형 성향·감정 비춤 패턴·관계 경계 설정·인연 타이밍",
+    icon: "ziwei"
+  },
+  {
+    num: 8,
+    title: "팀워크와 네트워크 - 교우궁의 인적 자원 법칙",
+    subtitle: "교우궁 주성 분석 - 귀인 구별법·에너지 뱀파이어 차단·위임과 아웃소싱 전략",
+    icon: "ziwei"
+  },
+  {
+    num: 9,
+    title: "공간과 환경 - 전택궁의 환경심리학",
+    subtitle: "전택궁 주성 분석 - 공간 심리학·인테리어 무드·깔끔한 정리법·자산 전략",
+    icon: "ziwei"
+  },
+  {
+    num: 10,
+    title: "신체 에너지와 바이오리듬 - 질액궁의 건강 설계",
+    subtitle: "질액궁 주성 분석 - 오행 체질·스트레스 신체화 패턴·라이프스타일 의학 가이드",
+    icon: "ziwei"
+  },
+  {
+    num: 11,
+    title: "10년의 메가 트렌드 - 대한 분석과 전 생애 파노라마",
+    subtitle: "현재 대한 완전 해독 - 상승장/하락장 전략 + 전 생애 파노라마 + 황금 대한 지목",
+    icon: "ziwei"
+  },
+  {
+    num: 12,
+    title: "올해의 마이크로 전술 - 유년·유월 로드맵",
+    subtitle: "2026 소한 완전 해독 - Go/Hold/Retreat 판정 · 분기별·월별 마이크로 전술 로드맵",
+    icon: "ziwei"
+  },
+  {
+    num: 13,
+    title: "인생 설계도 총결산 - 자미두수 거장의 마스터플랜 봉서",
+    subtitle: "13챕터 총결산 - 3가지 핵심 비책 · Master Habit · 거장의 천명 봉서",
+    icon: "ziwei"
+  },
 ];
 
 function clampInt(value, fallback, min, max) {
@@ -676,7 +770,12 @@ async function handleZiweiBookSession(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
   const chapter = clampInt(body.sessionId ?? body.chapter, 1, 1, 13);
-  const meta = { num: chapter, title: ZIWEI_CHAPTERS[chapter - 1], subtitle: "자미두수 프리미엄 인생 총람", icon: "ziwei" };
+  const meta = ZIWEI_CHAPTER_META[chapter - 1] || {
+    num: chapter,
+    title: `자미두수 Chapter ${chapter}`,
+    subtitle: "자미두수 프리미엄 인생 총람",
+    icon: "ziwei"
+  };
   const structured = body.ziweiStructured?.palaceStarData;
   const summary = Array.isArray(structured)
     ? structured.slice(0, 6).map((p) => `${p.palace || ""}:${(p.stars || []).map((s) => s.name).join(",")}`).join(" / ")
