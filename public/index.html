@@ -6249,26 +6249,31 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function loadTileLocks() {
+    unlockedFeatureMap = Object.create(null);
+    if (!hasAuthToken()) return;
     try {
       var saved = localStorage.getItem(TILE_LOCKS_KEY);
-      if (!saved) return;
-      var parsed = JSON.parse(saved);
-      if (parsed && typeof parsed === 'object') {
-        var keys = Object.keys(parsed);
-        for (var i = 0; i < keys.length; i += 1) {
-          if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          var keys = Object.keys(parsed);
+          for (var i = 0; i < keys.length; i += 1) {
+            if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
+          }
         }
       }
       for (var lsIndex = 0; lsIndex < localStorage.length; lsIndex += 1) {
         var lsKey = localStorage.key(lsIndex);
         if (!lsKey || lsKey.indexOf(TILE_UNLOCK_BACKUP_PREFIX) !== 0) continue;
         var unlockKey = lsKey.slice(TILE_UNLOCK_BACKUP_PREFIX.length);
-        if (unlockKey) unlockedFeatureMap[unlockKey] = true;
+        var unlockValue = localStorage.getItem(lsKey);
+        if (unlockKey && (unlockValue === '1' || unlockValue === 'true')) unlockedFeatureMap[unlockKey] = true;
       }
     } catch (_e) {}
   }
 
   function saveTileLocks() {
+    if (!hasAuthToken()) return;
     try {
       var merged = Object.create(null);
       var saved = localStorage.getItem(TILE_LOCKS_KEY);
@@ -7113,6 +7118,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var actionNode = target.closest('[data-action]');
     if (!actionNode) return;
     var action = actionNode.getAttribute('data-action');
+
+    // 모바일 직접 탭 우회 방지: 궁합 섹션이 잠겨 있으면 실행 차단 후 해금 유도
+    if (action === 'runCompat' && !isAdminUser() && !unlockedFeatureMap.section_compat) {
+      _cdSafeBlockEvent(event);
+      var compatUnlockBtn = document.querySelector('[data-action="unlockPremiumFeature"][data-unlock-key="section_compat"]');
+      if (compatUnlockBtn && typeof compatUnlockBtn.scrollIntoView === 'function') {
+        compatUnlockBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      window.alert('💞 궁합 분석은 50코인 잠금 해제 후 이용할 수 있습니다.');
+      return;
+    }
 
     // ── 회당 코인 게이트 (per-use) ──
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);

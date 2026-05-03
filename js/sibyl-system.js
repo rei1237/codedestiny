@@ -951,6 +951,19 @@
       if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
     }
 
+    function _isAdminBypassUser() {
+      try {
+        if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) return true;
+      } catch (_) {}
+      try {
+        if (window.__cdAdminBypass === true) return true;
+      } catch (_) {}
+      try {
+        if (typeof window.isAdminUser === 'function' && window.isAdminUser()) return true;
+      } catch (_) {}
+      return false;
+    }
+
     var approved = await _openSibylPremiumModal();
     if (!approved) {
       _restoreUnlockBtn();
@@ -973,6 +986,12 @@
       });
     }
 
+    if (_isAdminBypassUser()) {
+      if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
+      _afterPaid();
+      return;
+    }
+
     if (typeof window._cdCoinGatePerUse === 'function') {
       window._cdCoinGatePerUse(100, '시빌라 도미네이터 리포트', _afterPaid, _restoreUnlockBtn);
       return;
@@ -980,74 +999,6 @@
     _restoreUnlockBtn();
     window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
     return;
-
-    // Auth check
-    try {
-      var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
-      if (!token) {
-        alert('🔒 로그인이 필요합니다. 로그인 후 이용해 주세요.');
-        _restoreUnlockBtn();
-        return;
-      }
-    } catch(e) {}
-
-    // Balance check
-    try {
-      var _u = JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
-      var balance = typeof window.userBalance === 'number' ? window.userBalance : (_u.points || 0);
-      if (balance < 100) {
-        if (confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
-          if (typeof window.openChargeModal === 'function') window.openChargeModal();
-        }
-        _restoreUnlockBtn();
-        return;
-      }
-    } catch(e) {}
-
-    // Confirm
-    if (!confirm('🪙 시빌라 도미네이터 리포트\n100코인이 차감됩니다. 진행하시겠습니까?\n(현재 진행 중인 사주 분석 기반 20,000자+ 전문 리포트)')) {
-      _restoreUnlockBtn();
-      return;
-    }
-
-    // Consume coins
-    try {
-      var token2 = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
-      var consumeRes = await fetch('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token2 },
-        body: JSON.stringify({ cost: 100, reason: '시빌라 도미네이터 리포트' })
-      });
-      if (!consumeRes.ok) {
-        var errJson = await consumeRes.json().catch(function(){return {};});
-        var msg = errJson.message || '코인 차감에 실패했습니다.';
-        if (consumeRes.status === 402) {
-          if (confirm('코인이 부족합니다. 충전 창을 여시겠습니까?')) {
-            if (typeof window.openChargeModal === 'function') window.openChargeModal();
-          }
-        } else {
-          alert(msg);
-        }
-        _restoreUnlockBtn();
-        return;
-      }
-      var consumeData = await consumeRes.json().catch(function(){return {};});
-      if (consumeData.user && typeof consumeData.user.points === 'number') {
-        window.userBalance = consumeData.user.points;
-        if (typeof window.saveBalance === 'function') window.saveBalance();
-        if (typeof window.updateBadge === 'function') window.updateBadge();
-      } else {
-        window.userBalance = Math.max(0, (window.userBalance||0) - 100);
-        if (typeof window.saveBalance === 'function') window.saveBalance();
-        if (typeof window.updateBadge === 'function') window.updateBadge();
-      }
-    } catch(e) {
-      alert('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
-      _restoreUnlockBtn();
-      return;
-    }
-
-    _afterPaid();
   }
 
   /* ── 도미네이터 리포트 생성 API 호출 ── */

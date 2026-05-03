@@ -24,7 +24,9 @@ function getFallbackItems(mode) {
 
 function pickYoutubeApiKey(env) {
   return [
+    env?.YOUTUBE_DATA_API_KEY,
     env?.YOUTUBE_API_KEY,
+    env?.GOOGLE_YOUTUBE_API_KEY,
     env?.GOOGLE_API_KEY,
   ]
     .map((key) => String(key || "").trim())
@@ -62,6 +64,31 @@ function buildQuery(mode) {
   return queryMap[mode] || queryMap.lofi;
 }
 
+function buildSearchUrl(mode, apiKey, strictMode = true) {
+  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+  searchUrl.searchParams.set("part", "snippet");
+  searchUrl.searchParams.set("type", "video");
+  searchUrl.searchParams.set("videoEmbeddable", "true");
+  searchUrl.searchParams.set("maxResults", strictMode ? "8" : "10");
+  searchUrl.searchParams.set("safeSearch", strictMode ? "strict" : "moderate");
+  if (strictMode) {
+    searchUrl.searchParams.set("videoLicense", "creativeCommon");
+  }
+  searchUrl.searchParams.set("key", apiKey);
+  searchUrl.searchParams.set("q", buildQuery(mode));
+  return searchUrl;
+}
+
+async function fetchYoutubeSearch(url, force) {
+  return fetch(url.toString(), {
+    cache: force ? "no-store" : "force-cache",
+    cf: {
+      cacheEverything: !force,
+      cacheTtl: force ? undefined : 1800,
+    },
+  });
+}
+
 async function handleSearch(request, env) {
   const { searchParams } = new URL(request.url);
   const mode = normalizeMode(searchParams.get("mode"));
@@ -78,36 +105,17 @@ async function handleSearch(request, env) {
     });
   }
 
-  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
-  searchUrl.searchParams.set("part", "snippet");
-  searchUrl.searchParams.set("type", "video");
-  searchUrl.searchParams.set("videoEmbeddable", "true");
-  searchUrl.searchParams.set("videoLicense", "creativeCommon");
-  searchUrl.searchParams.set("maxResults", "8");
-  searchUrl.searchParams.set("safeSearch", "strict");
-  searchUrl.searchParams.set("key", apiKey);
-  searchUrl.searchParams.set("q", buildQuery(mode));
+  const strictSearchUrl = buildSearchUrl(mode, apiKey, true);
+  const strictResponse = await fetchYoutubeSearch(strictSearchUrl, force);
+  const strictData = strictResponse.ok ? await strictResponse.json().catch(() => ({})) : {};
+  let items = mapYoutubeItems(strictData);
 
-  const response = await fetch(searchUrl.toString(), {
-    cache: force ? "no-store" : "force-cache",
-    cf: {
-      cacheEverything: !force,
-      cacheTtl: force ? undefined : 1800,
-    },
-  });
-
-  if (!response.ok) {
-    return json({
-      ok: true,
-      mode,
-      source: "fallback",
-      items: getFallbackItems(mode),
-      message: "YouTube API 요청 실패로 기본 무료 플레이리스트를 제공합니다.",
-    });
+  if (!items.length) {
+    const relaxedSearchUrl = buildSearchUrl(mode, apiKey, false);
+    const relaxedResponse = await fetchYoutubeSearch(relaxedSearchUrl, force);
+    const relaxedData = relaxedResponse.ok ? await relaxedResponse.json().catch(() => ({})) : {};
+    items = mapYoutubeItems(relaxedData);
   }
-
-  const data = await response.json().catch(() => ({}));
-  const items = mapYoutubeItems(data);
 
   if (!items.length) {
     return json({
@@ -115,7 +123,7 @@ async function handleSearch(request, env) {
       mode,
       source: "fallback",
       items: getFallbackItems(mode),
-      message: "조건에 맞는 결과가 없어 기본 무료 플레이리스트를 제공합니다.",
+      message: "YouTube API 결과가 비어 기본 무료 플레이리스트를 제공합니다.",
     });
   }
 
