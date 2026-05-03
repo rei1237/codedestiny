@@ -2436,6 +2436,31 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
 
   if (normalizedSpread === "reunion_lighthouse_five_card") {
     const plan = Array.isArray(baseReading.actionPlan) ? baseReading.actionPlan.map(asText).filter(Boolean) : [];
+    const reunionDeepSeeds = {
+      opening: [
+        "재회운 리딩의 정확도는 감정의 크기보다 패턴의 반복성과 현실 변수의 밀도에서 결정됩니다. 따라서 이번 해석은 희망/절망의 양자택일이 아니라, 실제 재접촉 성공률을 바꾸는 조건을 분해해 안내하는 방식으로 읽어야 합니다.",
+        "20년 이상 관계 타로 상담 관점에서, 재회는 마음 확인보다 신뢰 복구 구조를 먼저 세울 때 오차가 줄어듭니다. 감정선·상황선·행동선의 정렬 여부를 반드시 함께 점검하세요.",
+      ],
+      pastBond: [
+        "과거 인연 파트는 좋은 기억의 밀도만 확인하는 구간이 아닙니다. 갈등이 발생했을 때 두 사람이 어떤 방식으로 복귀했는지, 재발 패턴이 있었는지를 함께 확인해야 재회 가능성 판단의 정밀도가 올라갑니다.",
+      ],
+      theirNow: [
+        "상대의 현재 근황 파트에서는 감정 유무보다 여유 자원(시간·정신 에너지·관계 우선순위) 분석이 핵심입니다. 감정이 있어도 자원 부족이면 반응은 차갑게 보일 수 있습니다.",
+      ],
+      outsideFactor: [
+        "외부 변수는 감정과 별개로 재회 성립률을 좌우합니다. 거리, 일정, 주변 시선, 미해결 갈등 기록을 구조 문제로 분리해 정리하면 같은 감정선에서도 결과가 크게 달라집니다.",
+      ],
+      theirHeart: [
+        "속마음은 단일 감정이 아니라 미련·경계·두려움이 공존하는 다층 구조일 수 있습니다. 말보다 반복 행동(복귀 의지, 대화 지속성, 책임성) 중심으로 읽을 때 정확도가 높아집니다.",
+      ],
+      reunionOutcome: [
+        "결과 카드는 고정 운명이 아니라 현재 운영 방식의 추세선입니다. 연락 방식·대화 구조·경계 합의가 바뀌면 결과 역시 유의미하게 이동할 수 있다는 점을 반드시 반영하세요.",
+      ],
+      lighthouseGuidance: [
+        "등대의 조언은 조급함을 줄이고 판단 정확도를 높이는 실행 프로토콜입니다. 사실 확인 질문 → 감정 명료화 → 재발 방지 합의의 순서를 지키면 관계 해석의 오차가 줄고 선택의 질이 올라갑니다.",
+        "재회의 본질은 붙잡기가 아니라 건강한 재연결 역량을 만드는 과정입니다. 자기 안정 루틴을 유지할수록 상대 해석 정확도와 재접촉 타이밍 판단력이 함께 상승합니다.",
+      ],
+    };
     const reunionSeed = [
       "메시지 전송 전 핵심 2문장을 먼저 써서 감정 폭주를 막으세요.",
       "상대 반응 지연을 거절로 단정하지 말고 관찰 기간을 두세요.",
@@ -2443,19 +2468,21 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       "추측 대화를 줄이고 사실 확인 질문 중심으로 대화 구조를 전환하세요.",
       "결과 집착이 강한 날에는 내 수면·식사 루틴부터 회복하세요.",
       "재회 여부와 별개로 자기존중 기준을 먼저 문장화해 경계를 지키세요.",
+      "첫 대화의 목적을 결론 요구가 아닌 신뢰 회복으로 설정하세요.",
+      "반복 갈등 주제를 한 문장으로 정의해 재발 방지 합의 1개를 만드세요.",
     ];
-    while (plan.length < 6) plan.push(reunionSeed[plan.length % reunionSeed.length]);
+    while (plan.length < 8) plan.push(reunionSeed[plan.length % reunionSeed.length]);
 
     return {
       ...baseReading,
-      opening: ensureMinText(baseReading.opening, 550, ["재회 리딩의 핵심은 희망 과장도 단정도 아닌, 감정과 현실을 함께 보는 균형입니다."]),
-      pastBond: ensureMinText(baseReading.pastBond, 380, [cardSummaryLine(0)]),
-      theirNow: ensureMinText(baseReading.theirNow, 380, [cardSummaryLine(1)]),
-      outsideFactor: ensureMinText(baseReading.outsideFactor, 380, [cardSummaryLine(2)]),
-      theirHeart: ensureMinText(baseReading.theirHeart, 380, [cardSummaryLine(3)]),
-      reunionOutcome: ensureMinText(baseReading.reunionOutcome, 420, [cardSummaryLine(4)]),
-      lighthouseGuidance: ensureMinText(baseReading.lighthouseGuidance, 480, ["속도를 늦추고 대화의 구조를 정비할수록 재회 가능성 판단의 정확도가 올라갑니다."]),
-      actionPlan: plan,
+      opening: ensureMinText(baseReading.opening, 1200, ["재회 리딩의 핵심은 희망 과장도 단정도 아닌, 감정과 현실을 함께 보는 균형입니다.", ...reunionDeepSeeds.opening]),
+      pastBond: ensureMinText(baseReading.pastBond, 680, [cardSummaryLine(0), ...reunionDeepSeeds.pastBond]),
+      theirNow: ensureMinText(baseReading.theirNow, 680, [cardSummaryLine(1), ...reunionDeepSeeds.theirNow]),
+      outsideFactor: ensureMinText(baseReading.outsideFactor, 680, [cardSummaryLine(2), ...reunionDeepSeeds.outsideFactor]),
+      theirHeart: ensureMinText(baseReading.theirHeart, 680, [cardSummaryLine(3), ...reunionDeepSeeds.theirHeart]),
+      reunionOutcome: ensureMinText(baseReading.reunionOutcome, 760, [cardSummaryLine(4), ...reunionDeepSeeds.reunionOutcome]),
+      lighthouseGuidance: ensureMinText(baseReading.lighthouseGuidance, 1200, ["속도를 늦추고 대화의 구조를 정비할수록 재회 가능성 판단의 정확도가 올라갑니다.", ...reunionDeepSeeds.lighthouseGuidance]),
+      actionPlan: plan.slice(0, 10),
     };
   }
 

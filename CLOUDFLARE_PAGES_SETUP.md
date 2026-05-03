@@ -171,18 +171,18 @@ git push -u origin main
 - `server/routes/subscription.routes.js`
 - Next static exportì—ì„œ ë¹„í™œì„±í™”ë˜ëŠ” `app/api/*`
 
-## Áßº¹ ¹èÆ÷ ¹æÁö Ã¼Å©¸®½ºÆ® (ÇÊ¼ö)
+## ì¤‘ë³µ ë°°í¬ ë°©ì§€ ì²´í¬ë¦¬ìŠ¤íŠ¸ (í•„ìˆ˜)
 
-°°Àº `main` Ä¿¹Ô¿¡¼­ Pages°¡ ¿©·¯ ¹ø ¹èÆ÷µÇ¸é ¾Æ·¡ 2°¡Áö¸¦ ¹İµå½Ã °°ÀÌ ¸ÂÃç¾ß ÇÕ´Ï´Ù.
+ê°™ì€ `main` ì»¤ë°‹ì—ì„œ Pagesì™€ Workerê°€ ë™ì‹œì— ìë™ ë°°í¬ë˜ë©´ ì•„ë˜ 2ê°€ì§€ë¥¼ ë°˜ë“œì‹œ í•¨ê»˜ ë§ì¶°ì•¼ í•©ë‹ˆë‹¤.
 
-1. GitHub Actions¸¸ ¹èÆ÷ ´ã´ç
-- `.github/workflows/cloudflare-pages-deploy.yml`¸¸ ÀÚµ¿ ¹èÆ÷ »ç¿ë
-- `.github/workflows/cloudflare-worker-deploy.yml`´Â ¼öµ¿ ½ÇÇà(`workflow_dispatch`) Àü¿ë
+1. GitHub Actions ìë™ ì‹¤í–‰ ê´€ë¦¬
+- `.github/workflows/cloudflare-pages-deploy.yml`ë§Œ ìë™ ì‹¤í–‰ ëŒ€ìƒìœ¼ë¡œ ìœ ì§€
+- `.github/workflows/cloudflare-worker-deploy.yml`ëŠ” ìˆ˜ë™ ì‹¤í–‰(`workflow_dispatch`) ì „ìš©ìœ¼ë¡œ ìœ ì§€
 
-2. Cloudflare Pages ´ë½Ãº¸µå ÀÚµ¿ ¹èÆ÷ ²ô±â
+2. Cloudflare Pages ëŒ€ì‹œë³´ë“œ ìë™ ë°°í¬ ë¹„í™œì„±í™”
 - Workers & Pages > `codedestiny` > Settings > Builds > Branch control
-- `Enable automatic production branch deployments` ²ô±â
-- Preview branchµµ `None`À¸·Î ¼³Á¤ (¿øÇÏ¸é)
+- `Enable automatic production branch deployments` ë¹„í™œì„±í™”
+- Preview branchëŠ” `None`ìœ¼ë¡œ ì„¤ì • (í•„ìš”í•˜ë©´)
 
-±×¸®°í Pages ´ë½Ãº¸µå Build/Deploy command¿¡ Worker ¹èÆ÷ ¸í·É(`wrangler deploy --config worker/wrangler.toml`)À» ³ÖÁö ¸¶¼¼¿ä.
-Worker ¹èÆ÷´Â GitHub Actions¿¡¼­ ¸ÕÀú ½ÇÇàµÇ°í, ¼º°øÇÑ °æ¿ì¿¡¸¸ Pages ¹èÆ÷°¡ 1È¸ ½ÇÇàµÇµµ·Ï ±¸¼ºµÇ¾î¾ß ÇÕ´Ï´Ù.
+ê·¸ë¦¬ê³  Pages ëŒ€ì‹œë³´ë“œ Build/Deploy commandì— Worker ë°°í¬ ëª…ë ¹(`wrangler deploy --config worker/wrangler.toml`)ì„ ë„£ì§€ ë§ˆì„¸ìš”.
+Worker ë°°í¬ëŠ” GitHub Actionsì—ì„œë§Œ ë‹¨ì¼ ê²½ë¡œë¡œ ê´€ë¦¬í•˜ê³ , í•„ìš”í•  ë•Œë§Œ Pages ë°°í¬ê°€ 1íšŒ ì‹¤í–‰ë˜ë„ë¡ ìœ ì§€í•´ì•¼ í•©ë‹ˆë‹¤.

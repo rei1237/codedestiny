@@ -263,7 +263,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const basePath = stripLocalePrefix(pathname);
 
   const action = ACTION_MAP[basePath];
-  const runHref = action
+  const runHref = basePath === "/oracle/sikojen-povailu"
+    ? "/oracle/sikojen-povailu"
+    : action
     ? `/index.html?action=${encodeURIComponent(action)}`
     : "/index.html";
   const paidMeta = PAID_SLUG_META[basePath];

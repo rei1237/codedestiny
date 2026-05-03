@@ -1219,8 +1219,11 @@
 
     container.innerHTML = "";
 
-    var typingSpeed = 28;
-    var sectionDelay = 180;
+    var totalChars = sections.reduce(function (sum, section) {
+      return sum + String(section && section.text ? section.text : "").length;
+    }, 0) + String(encouraging || "").length;
+    var typingSpeed = totalChars > 5200 ? 3 : totalChars > 3200 ? 6 : 14;
+    var sectionDelay = totalChars > 3200 ? 90 : 180;
 
     function addSection(section, isLast, onDone) {
       var sec = document.createElement("section");

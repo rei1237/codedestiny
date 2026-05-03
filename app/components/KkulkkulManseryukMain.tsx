@@ -108,6 +108,15 @@ const PREMIUM_SERVICE_LABEL: Record<PremiumServiceKey, string> = {
   naming: "명운 작명 프리미엄 리포트",
 };
 
+const PER_USE_DESTINATION: Partial<Record<PerUseKey, string>> = {
+  turtleIChing: "/index.html?action=openJuyukModal",
+  egyptOracle: "/index.html?action=openKemetModal",
+  geomancy: "/geomancy-oracle-v4.html",
+  stonehengeRunes: "/index.html?action=openRuneOracle",
+  premiumTarot: "/index.html?action=openTarotModal",
+  loveSimulation: "/saju/love-simulation",
+};
+
 const FREE_FEATURES = [
   "기본 만세력: 연/월/일/시 명식표 + 일주 캐릭터 요약",
   "재미 콘텐츠: 매력 테스트, 로또 기능",
@@ -174,6 +183,12 @@ function saveUserPoints(points: number) {
 
 function notifyCoinDeducted(cost: number, points: number, label: string) {
   showToast(`🪙 ${label} 이용으로 ${cost}코인이 차감되었습니다. 남은 코인: ${Number(points).toLocaleString("ko-KR")}`, "info");
+}
+
+function redirectPerUseFeature(key: PerUseKey) {
+  const destination = PER_USE_DESTINATION[key];
+  if (!destination) return;
+  window.location.href = destination;
 }
 
 export default function KkulkkulManseryukMain() {
@@ -270,7 +285,7 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
-  const usePaidFeatureOnce = async (key: PerUseKey, cost: number) => {
+  const runPaidFeatureOnce = async (key: PerUseKey, cost: number) => {
     const token = localStorage.getItem('fortune_auth_token');
     if (!token && !isAdminUser) {
       alert('로그인이 필요합니다.');
@@ -282,7 +297,7 @@ export default function KkulkkulManseryukMain() {
     if (adminToken || isAdminUser) {
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
-      if (key === 'loveSimulation') window.location.href = '/saju/love-simulation';
+      redirectPerUseFeature(key);
       return;
     }
     const adminTestTier = getFlowerAdminTestTierClient();
@@ -305,12 +320,9 @@ export default function KkulkkulManseryukMain() {
       notifyCoinDeducted(cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
-      // 연애 시뮬레이션은 결제 후 전용 페이지로 이동
-      if (key === 'loveSimulation') {
-        window.location.href = '/saju/love-simulation';
-      }
+      redirectPerUseFeature(key);
     } catch (e) {
-      console.error('[usePaidFeatureOnce]', e);
+      console.error('[runPaidFeatureOnce]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
@@ -654,7 +666,7 @@ export default function KkulkkulManseryukMain() {
 
                 <button
                   type="button"
-                  onClick={() => usePaidFeatureOnce(item.key, 50)}
+                  onClick={() => runPaidFeatureOnce(item.key, 50)}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
                   꽃꽃돼지 코인으로 운명 확인하기
@@ -1059,7 +1071,7 @@ export default function KkulkkulManseryukMain() {
               </div>
               <button
                 type="button"
-                onClick={() => usePaidFeatureOnce('loveSimulation', 100)}
+                onClick={() => runPaidFeatureOnce('loveSimulation', 100)}
                 className="rounded-xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-rose-800/40 transition-transform duration-200 hover:scale-105 active:scale-95"
               >
                 💕 시뮬레이션 시작
