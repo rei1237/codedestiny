@@ -79,6 +79,31 @@
   var _currentChapter = 1;
   var _mysticTimer = null;
 
+  function _ensurePremiumModalScript(src, onLoaded) {
+    var scriptSrc = String(src || '');
+    if (!scriptSrc) return;
+    var key = scriptSrc.split('?')[0].replace(/^\//, '');
+    var found = document.querySelector('script[src*="' + key + '"]');
+    if (found && (found.dataset.loaded === '1' || found.readyState === 'complete' || found.readyState === 'loaded')) {
+      if (typeof onLoaded === 'function') onLoaded();
+      return;
+    }
+    if (found) {
+      found.addEventListener('load', function () {
+        try { found.dataset.loaded = '1'; } catch (_) {}
+        if (typeof onLoaded === 'function') onLoaded();
+      }, { once: true });
+      return;
+    }
+    var el = document.createElement('script');
+    el.src = scriptSrc;
+    el.onload = function () {
+      try { el.dataset.loaded = '1'; } catch (_) {}
+      if (typeof onLoaded === 'function') onLoaded();
+    };
+    document.head.appendChild(el);
+  }
+
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
 
@@ -519,6 +544,7 @@
 
     // 프로필 정보 미리 채우기
     _prefillProfileInfo(profile);
+    _renderDetailedChapterPreview();
 
     try {
       modal.setAttribute('aria-hidden', 'false');
@@ -540,6 +566,24 @@
         (b.minute !== undefined && b.minute > 0 ? ' ' + b.minute + '분' : '') + ' 생';
       infoEl.style.display = '';
     }
+  }
+
+  function _renderDetailedChapterPreview() {
+    var wrap = document.querySelector('#zbStartScreen .lb-start__chapters');
+    if (!wrap) return;
+    var list = document.getElementById('zbChapterPreviewList') || wrap.querySelector('.lb-start__ch-list');
+    if (!list) return;
+    var html = '';
+    for (var i = 0; i < CHAPTER_TITLES.length; i++) {
+      html += '<li class="lb-start__ch-item lb-start__ch-item--detail">' +
+        '<div class="lb-start__ch-head" style="display:flex;gap:8px;align-items:flex-start;">' +
+          '<span class="lb-start__ch-num">Ch.' + (i + 1) + '</span>' +
+          '<span class="lb-start__ch-title">' + _escHtml(CHAPTER_TITLES[i]) + '</span>' +
+        '</div>' +
+        '<p class="lb-start__ch-sub" style="margin:6px 0 0 58px;font-size:0.85rem;line-height:1.55;color:#b7c3e0;">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+      '</li>';
+    }
+    list.innerHTML = html;
   }
 
   window.closeZiweiBookModal = function () {
@@ -674,7 +718,8 @@
         var _phase = done === 0
           ? '데이터 검증 및 명반 정렬 중'
           : (done < 13 ? ('AI가 Chapter ' + (done + 1) + ' 분석 중') : 'PDF 저장 준비 완료');
-        stageEl.textContent = '진행 단계: ' + _phase;
+        var _subtitle = done < 13 ? (CHAPTER_SUBTITLES[done] || '') : '전체 챕터 정리를 완료했습니다.';
+        stageEl.textContent = '진행 단계: ' + _phase + ' · ' + _subtitle;
       }
       if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
       if (chapterMsg && done >= 13) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
@@ -894,7 +939,7 @@
       '<style>' +
       '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
       ':root{color-scheme:light;}' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a2e;background:#ffffff!important;color-scheme:light;margin:0;padding:0;}' +
+      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#22163f;background:#fdfcff!important;color-scheme:light;margin:0;padding:0;}' +
       '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#060312 0%,#120828 50%,#060312 100%);color:#fff;page-break-after:always;}' +
       '.cover-badge{font-size:0.75rem;letter-spacing:0.2em;color:#c4b5fd;margin-bottom:16px;text-transform:uppercase;}' +
       '.cover-title{font-size:2.8rem;font-weight:700;margin:0 0 12px;color:#f5f0ff;letter-spacing:0.05em;}' +
@@ -909,16 +954,16 @@
       '.toc-num{color:#7c3aed;font-weight:700;min-width:80px;}' +
       '.toc-main{color:#1e0a3c;}' +
       '.toc-sub{font-size:0.82rem;color:#6d28d9;margin-top:2px;}' +
-      '.chapter{padding:52px 60px;}' +
-      '.chapter-header{border-bottom:2px solid #ede9fe;margin-bottom:36px;padding-bottom:26px;}' +
+      '.chapter{padding:52px 60px;background:#fff;}' +
+      '.chapter-header{border-bottom:2px solid #e9ddff;margin-bottom:34px;padding-bottom:24px;}' +
       '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#7c3aed;text-transform:uppercase;display:block;margin-bottom:10px;}' +
       '.chapter-title{font-size:1.9rem;font-weight:700;color:#1e0a3c;margin:0 0 8px;}' +
       '.chapter-sub{font-size:0.95rem;color:#6d28d9;margin:0;}' +
-      '.chapter-body{line-height:2.0;font-size:1.0rem;color:#2d1a4e;}' +
+      '.chapter-body{line-height:2.08;font-size:1.03rem;color:#2c1d52;letter-spacing:0.01em;}' +
       '.zb-md-h1,.zb-md-h2{font-size:1.3rem;font-weight:700;color:#1e0a3c;margin:30px 0 13px;border-left:4px solid #7c3aed;padding:6px 12px;background:#f5f0ff;}' +
       '.zb-md-h3{font-size:1.1rem;font-weight:700;color:#312e81;margin:22px 0 9px;border-left:2px solid #a78bfa;padding-left:10px;}' +
       '.zb-md-h4{font-size:1rem;font-weight:700;color:#4c0d9f;margin:16px 0 6px;}' +
-      '.zb-md-p{margin:0 0 16px;}' +
+      '.zb-md-p{margin:0 0 16px;color:#2c1d52;}' +
       '.zb-md-ul{margin:0 0 16px;padding-left:26px;}' +
       '.zb-md-li{margin-bottom:8px;line-height:1.8;}' +
       '.zb-md-hr{border:none;border-top:2px solid #ede9fe;margin:28px 0;}' +
@@ -993,21 +1038,21 @@
       '<style>' +
       '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
       ':root{color-scheme:light;}' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a2e;background:#ffffff!important;color-scheme:light;margin:0;padding:0;}' +
+      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#22163f;background:#fdfcff!important;color-scheme:light;margin:0;padding:0;}' +
       '.cover-line{background:linear-gradient(135deg,#060312,#120828);color:#fff;padding:28px 48px;display:flex;justify-content:space-between;align-items:center;}' +
       '.cover-line .cl-badge{font-size:0.7rem;letter-spacing:0.18em;color:#c4b5fd;text-transform:uppercase;}' +
       '.cover-line .cl-name{font-size:0.9rem;color:#fde68a;}' +
       '.cover-line .cl-issued{font-size:0.8rem;color:#c9d4e0;}' +
-      '.chapter{padding:52px 60px;}' +
-      '.chapter-header{border-bottom:2px solid #ede9fe;margin-bottom:36px;padding-bottom:26px;}' +
+      '.chapter{padding:52px 60px;background:#fff;}' +
+      '.chapter-header{border-bottom:2px solid #e9ddff;margin-bottom:34px;padding-bottom:24px;}' +
       '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#7c3aed;text-transform:uppercase;display:block;margin-bottom:10px;}' +
       '.chapter-title{font-size:1.9rem;font-weight:700;color:#1e0a3c;margin:0 0 8px;}' +
       '.chapter-sub{font-size:0.95rem;color:#6d28d9;margin:0;}' +
-      '.chapter-body{line-height:2.0;font-size:1.0rem;color:#2d1a4e;}' +
+      '.chapter-body{line-height:2.08;font-size:1.03rem;color:#2c1d52;letter-spacing:0.01em;}' +
       '.zb-md-h1,.zb-md-h2{font-size:1.3rem;font-weight:700;color:#1e0a3c;margin:30px 0 13px;border-left:4px solid #7c3aed;padding:6px 12px;background:#f5f0ff;}' +
       '.zb-md-h3{font-size:1.1rem;font-weight:700;color:#312e81;margin:22px 0 9px;border-left:2px solid #a78bfa;padding-left:10px;}' +
       '.zb-md-h4{font-size:1rem;font-weight:700;color:#4c0d9f;margin:16px 0 6px;}' +
-      '.zb-md-p{margin:0 0 16px;}' +
+      '.zb-md-p{margin:0 0 16px;color:#2c1d52;}' +
       '.zb-md-ul{margin:0 0 16px;padding-left:26px;}' +
       '.zb-md-li{margin-bottom:8px;line-height:1.8;}' +
       '.zb-md-hr{border:none;border-top:2px solid #ede9fe;margin:28px 0;}' +
@@ -1081,5 +1126,97 @@
 
   // mobile-interaction-patch LAZY_LOAD_ACTIONS 호환: window.gotoZiweiPremium 래퍼
   window.gotoZiweiPremium = function() { window.openZiweiBookModal(); };
+
+  // 방어적 폴백: 기존 라우팅이 실패해도 숙요/베다/점성술 모달을 확실히 오픈
+  function _isModalVisible(id) {
+    var el = document.getElementById(id);
+    if (!el) return false;
+    if (el.style.display && el.style.display === 'none') return false;
+    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+  }
+
+  function _openPremiumModalByType(type, profileArg) {
+    var p = profileArg || _getActiveBirthProfile();
+    if (type === 'astro') {
+      if (typeof window.openAstroBookModal === 'function') {
+        window.openAstroBookModal(p || null);
+        return;
+      }
+      _ensurePremiumModalScript('/js/astro-book.js?v=20260411-zfix1', function() {
+        if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal(p || null);
+      });
+      return;
+    }
+    if (type === 'sukuyo') {
+      if (typeof window.openSukuyoBookModal === 'function') {
+        window.openSukuyoBookModal(p || null);
+        return;
+      }
+      _ensurePremiumModalScript('/js/sukuyo-book.js?v=20260411-zfix1', function() {
+        if (typeof window.openSukuyoBookModal === 'function') window.openSukuyoBookModal(p || null);
+      });
+      return;
+    }
+    if (type === 'vedic') {
+      if (typeof window.openVedicBookModal === 'function') {
+        window.openVedicBookModal(p || null);
+        return;
+      }
+      _ensurePremiumModalScript('/js/vedic-book.js?v=20260411-zfix1', function() {
+        if (typeof window.openVedicBookModal === 'function') window.openVedicBookModal(p || null);
+      });
+    }
+  }
+
+  var _prevGotoAstrologyPremium = window.gotoAstrologyPremium;
+  window.gotoAstrologyPremium = function(profileArg) {
+    try {
+      if (typeof _prevGotoAstrologyPremium === 'function') _prevGotoAstrologyPremium(profileArg);
+    } catch (_) {}
+    setTimeout(function() {
+      if (!_isModalVisible('astroBookModal')) _openPremiumModalByType('astro', profileArg);
+    }, 180);
+  };
+
+  var _prevGotoSukuyoPremium = window.gotoSukuyoPremium;
+  window.gotoSukuyoPremium = function(profileArg) {
+    try {
+      if (typeof _prevGotoSukuyoPremium === 'function') _prevGotoSukuyoPremium(profileArg);
+    } catch (_) {}
+    setTimeout(function() {
+      if (!_isModalVisible('sukuyoBookModal')) _openPremiumModalByType('sukuyo', profileArg);
+    }, 180);
+  };
+
+  var _prevGotoVedicPremium = window.gotoVedicPremium;
+  window.gotoVedicPremium = function(profileArg) {
+    try {
+      if (typeof _prevGotoVedicPremium === 'function') _prevGotoVedicPremium(profileArg);
+    } catch (_) {}
+    setTimeout(function() {
+      if (!_isModalVisible('vedicBookModal')) _openPremiumModalByType('vedic', profileArg);
+    }, 180);
+  };
+
+  document.addEventListener('click', function(e) {
+    var target = e.target;
+    if (!(target instanceof Element)) return;
+    var node = target.closest('[data-action]');
+    if (!node) return;
+    var action = node.getAttribute('data-action') || '';
+    if (action !== 'gotoAstrologyPremium' && action !== 'gotoSukuyoPremium' && action !== 'gotoVedicPremium') return;
+
+    setTimeout(function() {
+      if (action === 'gotoAstrologyPremium' && !_isModalVisible('astroBookModal')) {
+        _openPremiumModalByType('astro', null);
+      }
+      if (action === 'gotoSukuyoPremium' && !_isModalVisible('sukuyoBookModal')) {
+        _openPremiumModalByType('sukuyo', null);
+      }
+      if (action === 'gotoVedicPremium' && !_isModalVisible('vedicBookModal')) {
+        _openPremiumModalByType('vedic', null);
+      }
+    }, 220);
+  });
 
 })();
