@@ -1038,7 +1038,7 @@ export default function MindScanTarot() {
         setReading(data as ReadingResult);
         setStage("result");
       } else {
-        throw new Error(String(data?.error || `요청 실패 (${res.status})`));
+        throw new Error(String(data?.message || data?.error || `요청 실패 (${res.status})`));
       }
     } catch (e) {
       setReadingError(e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해주세요.");

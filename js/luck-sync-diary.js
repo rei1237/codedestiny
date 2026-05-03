@@ -1129,7 +1129,6 @@
   var _lsdMeditationTimer = null;
   var _lsdSatsYouTubeCache = { lofi: null, theta: null };
   var _lsdSatsNowPlaying = { mode: '', videoId: '' };
-  var LSD_YOUTUBE_API_KEY = String(window.LSD_YOUTUBE_API_KEY || '');
   var LSD_SATS_SOURCE_META = {
     lofi: { label: 'LoFi', query: 'copyright free lofi playlist beats to study and relax' },
     theta: { label: 'Theta', query: 'theta binaural beats no copyright meditation playlist' }
@@ -1300,42 +1299,44 @@
     }
   }
 
-  function buildYouTubeSearchUrl(mode) {
-    var meta = LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi;
-    var q = encodeURIComponent(meta.query);
-    return 'https://www.googleapis.com/youtube/v3/search'
-      + '?part=snippet&type=video&videoEmbeddable=true&videoLicense=creativeCommon'
-      + '&maxResults=8&safeSearch=strict&key=' + encodeURIComponent(LSD_YOUTUBE_API_KEY)
-      + '&q=' + q;
+  function buildYouTubeProxyUrl(mode, force) {
+    return '/api/youtube/search?mode=' + encodeURIComponent(mode || 'lofi') + (force ? '&force=true' : '');
+  }
+
+  function normalizePlaylistItems(items) {
+    return (Array.isArray(items) ? items : []).map(function (item) {
+      var id = item && item.videoId;
+      if (!id) return null;
+      return {
+        videoId: String(id),
+        title: String(item.title || '제목 없음'),
+        channel: String(item.channel || 'YouTube'),
+        thumb: String(item.thumb || '')
+      };
+    }).filter(Boolean);
+  }
+
+  function fetchSatsPlaylistViaProxy(mode, force) {
+    var url = buildYouTubeProxyUrl(mode, force);
+    return fetch(url, { cache: 'no-store' })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (json) {
+          if (!res.ok || !json || json.ok === false) {
+            throw new Error((json && json.message) || ('YouTube API 요청 실패 (' + res.status + ')'));
+          }
+          var items = normalizePlaylistItems(json.items);
+          if (!items.length) throw new Error('조건에 맞는 재생 목록을 찾지 못했습니다.');
+          return items;
+        });
+      });
   }
 
   function fetchSatsPlaylist(mode, force) {
     if (!force && Array.isArray(_lsdSatsYouTubeCache[mode]) && _lsdSatsYouTubeCache[mode].length) {
       return Promise.resolve(_lsdSatsYouTubeCache[mode]);
     }
-    if (!LSD_YOUTUBE_API_KEY) {
-      return Promise.reject(new Error('YouTube API 키가 없습니다.'));
-    }
-    var url = buildYouTubeSearchUrl(mode);
-    return fetch(url)
-      .then(function (res) {
-        if (!res.ok) throw new Error('YouTube API 요청 실패 (' + res.status + ')');
-        return res.json();
-      })
-      .then(function (json) {
-        var items = ((json && json.items) || []).map(function (item) {
-          var id = item && item.id && item.id.videoId;
-          if (!id) return null;
-          var sn = item.snippet || {};
-          var thumb = (sn.thumbnails && (sn.thumbnails.medium || sn.thumbnails.default || sn.thumbnails.high)) || {};
-          return {
-            videoId: id,
-            title: String(sn.title || '제목 없음'),
-            channel: String(sn.channelTitle || 'YouTube'),
-            thumb: String(thumb.url || '')
-          };
-        }).filter(Boolean);
-        if (!items.length) throw new Error('조건에 맞는 재생 목록을 찾지 못했습니다.');
+    return fetchSatsPlaylistViaProxy(mode, force)
+      .then(function (items) {
         _lsdSatsYouTubeCache[mode] = items;
         return items;
       });

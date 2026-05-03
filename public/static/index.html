@@ -1855,7 +1855,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__coin-badge">1회 30코인</span>
               </div>
               <div class="tarot-tile__body">
-                <span class="tarot-tile__title">🧘‍♀️ Divya Yoga</span>
+                <span class="tarot-tile__title">&#x1FAB7; Divya Yoga</span>
                 <span class="tarot-tile__desc">맞춤 명상 요가 루틴</span>
               </div>
             </a>
@@ -6677,14 +6677,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (typeof window.openRuneOracle === 'function') {
             window.openRuneOracle();
           } else {
-            window.location.href = '/oracle/rune';
+            window.location.href = '/static?service=stonehenge-rune';
           }
         }).catch(function() {
-          window.location.href = '/oracle/rune';
+          window.location.href = '/static?service=stonehenge-rune';
         });
         return;
       }
-      window.location.href = '/oracle/rune';
+      window.location.href = '/static?service=stonehenge-rune';
       return;
     }
     // <a href> ??? href 寃쎈줈濡?吏곸젒 ?대룞
@@ -6806,9 +6806,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // ?뚮젮吏??≪뀡 蹂꾩묶: gotoAstrologyPremium ??openAstroBookModal
     if (action === 'gotoAstrologyPremium') {
+      var _profileCandidateAstro = _cdGetZiweiProfileCandidate();
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+          try { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
@@ -6817,12 +6818,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _abEl2 = document.createElement('script');
           _abEl2.src = '/js/astro-book.js?v=20260503-premiumfix2';
           _abEl2.onload = function() {
-            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           };
           document.head.appendChild(_abEl2);
         } else {
           setTimeout(function() {
-            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           }, 500);
         }
       }
@@ -6830,9 +6831,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // ?몃뱾???곕룞: gotoSukuyoPremium ??sukuyo-book.js 紐⑤떖
     if (action === 'gotoSukuyoPremium') {
+      var _profileCandidateSukuyo = _cdGetZiweiProfileCandidate();
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
+          try { window.openSukuyoBookModal(_profileCandidateSukuyo || null); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
@@ -6844,7 +6846,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260503-premiumfix2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
-            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
+            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal(_profileCandidateSukuyo || null);_cdForcePremiumModalVisible('sukuyoBookModal');}
           }).catch(function(e){console.error('[prem-card sukuyo]',e);});
         })();
       }
@@ -6852,9 +6854,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // ?몃뱾???곕룞: gotoVedicPremium ??vedic-book.js 紐⑤떖
     if (action === 'gotoVedicPremium') {
+      var _profileCandidateVedic = _cdGetZiweiProfileCandidate();
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
+          try { window.openVedicBookModal(_profileCandidateVedic || null); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
@@ -6866,7 +6869,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260503-premiumfix2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
-            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
+            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal(_profileCandidateVedic || null);_cdForcePremiumModalVisible('vedicBookModal');}
           }).catch(function(e){console.error('[prem-card vedic]',e);});
         })();
       }
@@ -7071,11 +7074,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     var action = actionNode.getAttribute('data-action') || '';
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
-    // 吏곸젒 ?몄텧 ?뱀씤 ?곹깭硫?洹몃깷 ?듦낵 (吏곸젒 ?먯깋 以묒씠誘濡??뚮옒洹??뺣━)
+    // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card??Preview ?⑤꼸 ?곗꽑 ?쒕룄
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 Preview 패널 우선 시도
     if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
-      // 愿由ъ옄 紐⑤뱶??prem-card??Preview瑜?嫄대꼫?곌퀬 利됱떆 PDF 紐⑤떖 寃쎈줈濡??대룞
+      // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 PDF 모달 경로로 이동
       if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
         _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
         return;
@@ -7111,14 +7114,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!actionNode) return;
     var action = actionNode.getAttribute('data-action');
 
-    // ?? ?뚮떦 肄붿씤 寃뚯씠??(per-use) ??
+    // ── 회당 코인 게이트 (per-use) ──
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // .tarot-tile / .lifebook-tile / .lovebible-tile 吏곸젒 ?대┃? Preview ?⑤꼸 ?곗꽑 ?쒕룄
-        // Preview 誘몄뿰????肄붿씤寃뚯씠?몃줈 利됱떆 ?대갚
+        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭은 Preview 패널 우선 시도
+        // Preview 미연동 시 코인게이트로 즉시 폴백
         if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
-          // 愿由ъ옄 紐⑤뱶: preview ?⑤꼸 ?놁씠 吏곸젒 泥섎━
+          // 관리자 모드: preview 패널 없이 직접 처리
           if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
@@ -7143,23 +7146,23 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
     }
 
-    // ?? ?곴뎄 ?닿툑 ???寃뚯씠????
+    // ── 영구 해금 타일 게이트 ──
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
     if (tileLockKey && tileLockCost > 0 && !isTileKeyUnlocked(tileLockKey)) {
-      // .tarot-tile 吏곸젒 ?대┃?닿퀬 pvw-bypass ?놁쑝硫?Preview ?⑤꼸??癒쇱? 泥섎━
+      // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
       if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
-        // Preview ?명꽣?됲꽣濡??꾩엫 (?대깽??怨꾩냽 ?꾪뙆)
+        // Preview 인터셉터로 위임 (이벤트 계속 전파)
       } else {
       _cdSafeBlockEvent(event);
       (async function () {
         if (!hasAuthToken()) {
-          if (window.confirm('?뵏 濡쒓렇?몄씠 ?꾩슂???쒕퉬?ㅼ엯?덈떎.\n濡쒓렇?????댁슜??二쇱꽭??')) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
           return;
         }
-        // 愿由ъ옄 紐⑤뱶: 肄붿씤 李④컧/?닿툑 鍮꾩슜 ?놁씠 利됱떆 ?ㅽ뻾
+        // 관리자 모드: 코인 차감/해금 비용 없이 즉시 실행
         try {
           if (isAdminUser()) {
             markUnlockKey(unlockedFeatureMap, tileLockKey);
@@ -7170,13 +7173,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return;
           }
         } catch (_adminLockErr) {}
-        // ?꾨━誘몄뾼 援щ룆 ?뚮옖 蹂댁쑀?? 肄붿씤 ?놁씠 ?곴뎄 ?닿툑
+        // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
         try {
           var _lockSubUser = readAuthUser();
           var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
           if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
             var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
-            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '硫ㅻ쾭???꾩슜 肄섑뀗痢?;
+            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
             var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
             if (!_lockConsentOk) return;
             markUnlockKey(unlockedFeatureMap, tileLockKey);
@@ -7188,21 +7191,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
         } catch (_lockSubErr) {}
         var titleEl = actionNode.querySelector('.tarot-tile__title');
-        var fname = titleEl ? titleEl.textContent.trim() : '?쒕퉬??;
-        if (!window.confirm('?뵑 ' + fname + '\n' + tileLockCost + '肄붿씤?쇰줈 ?곴뎄 ?닿툑?섏떆寃좎뒿?덇퉴?\n?쒕쾭 湲곗? ?붿븸?쇰줈 寃곗젣媛 吏꾪뻾?⑸땲??\n??踰??닿툑?섎㈃ 怨꾩냽 ?댁슜 媛?ν빀?덈떎!')) return;
+        var fname = titleEl ? titleEl.textContent.trim() : '서비스';
+        if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n서버 기준 잔액으로 결제가 진행됩니다.\n한 번 해금하면 계속 이용 가능합니다!')) return;
         if (consumeInFlight) return;
         consumeInFlight = true;
         var _unlockOverlayOpened = false;
         try {
-          _cdSetCoinGateOverlay(true, fname + ' ?닿툑??吏꾪뻾?섍퀬 ?덉뒿?덈떎...');
+          _cdSetCoinGateOverlay(true, fname + ' 해금을 진행하고 있습니다...');
           _unlockOverlayOpened = true;
           var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
             method: 'POST',
-            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' ?곴뎄 ?닿툑' }),
+            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
           });
           if (r.status === 402) { openChargeModal(); return; }
           if (!r.ok) {
-            window.alert((r.payload && r.payload.message) || '?닿툑 泥섎━???ㅽ뙣?덉뒿?덈떎.');
+            window.alert((r.payload && r.payload.message) || '해금 처리에 실패했습니다.');
             return;
           }
           if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
@@ -7218,26 +7221,26 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           saveTileLocks();
           applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
-          window.alert('??' + fname + ' ?닿툑 ?꾨즺!\n?댁젣 ?먯쑀濡?쾶 ?댁슜?섏떎 ???덉뒿?덈떎 ?뙚');
+          window.alert('✅ ' + fname + ' 해금 완료!\n이제 자유롭게 이용하실 수 있습니다 🌟');
           _cdInvokeActionDirect(action, actionNode);
         } catch (e) {
           console.error('[tile unlock gate]', e);
-          window.alert('?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+          window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         } finally {
           if (_unlockOverlayOpened) _cdSetCoinGateOverlay(false);
           consumeInFlight = false;
         }
       })();
       return;
-      } // else: pvw-bypass ?덉쓣 ?뚮쭔 ?닿툑 吏꾪뻾
+      } // else: pvw-bypass 없을 때만 해금 진행
     } // if tileLockKey
 
-    // ?? ?대? ?닿툑??toggleRptCard 踰꾪듉 吏곸젒 ?좉? ??
+    // 프리미엄 리포트 카드 버튼 직접 처리
     if (action === 'toggleRptCard') {
       if (typeof window.toggleReportFeatureCard === 'function') window.toggleReportFeatureCard(actionNode);
       return;
     }
-    // ?? ?좉툑 ?댁젣 ??吏곸젒 ?ㅽ뻾 (踰꾨툝 ?몃뱾???녿뒗 ?≪뀡) ??
+    // 잠금 해제 후 직접 실행 (버블 핸들러를 거치지 않는 섹션)
     if (action === 'openSecretHouseRoute') {
       if (typeof window.openSecretHouseRoute === 'function') window.openSecretHouseRoute();
       return;

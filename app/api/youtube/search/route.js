@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-static";
+export const revalidate = 1800;
+
+function pickYoutubeApiKey() {
+  const keys = [
+    process.env.YOUTUBE_API_KEY,
+    process.env.GOOGLE_API_KEY,
+  ]
+    .map((key) => String(key || "").trim())
+    .filter(Boolean);
+
+  return keys[0] || null;
+}
 
 export async function GET(req) {
   try {
@@ -8,8 +21,8 @@ export async function GET(req) {
     const mode = searchParams.get("mode") || "lofi";
     const force = searchParams.get("force") === "true";
 
-    // YouTube API 키 확인
-    const apiKey = process.env.YOUTUBE_API_KEY;
+    // YouTube API 키 확인 (.env.local의 YOUTUBE_API_KEY 우선)
+    const apiKey = pickYoutubeApiKey();
     if (!apiKey) {
       return NextResponse.json(
         { ok: false, message: "YouTube API 키가 설정되지 않았습니다." },
@@ -35,7 +48,10 @@ export async function GET(req) {
     searchUrl.searchParams.set("key", apiKey);
     searchUrl.searchParams.set("q", query);
 
-    const response = await fetch(searchUrl.toString());
+    const response = await fetch(searchUrl.toString(), {
+      cache: force ? "no-store" : "force-cache",
+      next: { revalidate: force ? 0 : 1800 },
+    });
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -73,7 +89,7 @@ export async function GET(req) {
     return NextResponse.json({
       ok: true,
       items,
-      mode
+      mode,
     });
   } catch (error) {
     console.error("[youtube/search] Error:", error);

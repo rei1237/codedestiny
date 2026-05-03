@@ -1530,7 +1530,7 @@ var __cdLazyActionLoaders = {
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
-  openRuneOracle: function() { return Promise.resolve(window.location.assign('/static?service=stonehenge-rune')); },
+  openRuneOracle: function() { return Promise.resolve(window.location.assign('/oracle/rune')); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260503-premiumfix2'); },
   gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260503-premiumfix2'); },
   gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260503-premiumfix2'); },
@@ -7662,7 +7662,7 @@ window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
 function openRuneOracle() {
   try {
-    window.location.assign('/static?service=stonehenge-rune');
+    window.location.assign('/oracle/rune');
   } catch (err) {
     console.error('[index-inline-runtime] openRuneOracle failed:', err);
   }
