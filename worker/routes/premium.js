@@ -303,6 +303,56 @@ const LIFEBOOK_CHAPTERS = [
   "인생의 책 마스터 플랜",
 ];
 
+const LIFEBOOK_CHAPTER_SUBTITLES = [
+  "팔자 8글자와 사주 원국의 구조를 정밀 해독",
+  "월지·일간·조후로 읽는 타고난 삶의 설계도",
+  "용신·희신·기신으로 찾는 핵심 강점과 천직 방향",
+  "대운 흐름과 전환 구간을 읽는 시계열 전략",
+  "재물 그릇과 커리어 확장 포인트의 현실적 설계",
+  "가족·동료·파트너 관계에서 반복되는 패턴 분석",
+  "오행 균형 기반 건강·회복·에너지 관리 지침",
+  "연애·결혼의 궁합 구조와 관계 유지 전략",
+  "위기 신호·손실 구간·반전 구간의 대응 시나리오",
+  "삶을 지키는 루틴과 의사결정 습관 재설계",
+  "당해년 실행력 극대화를 위한 월별 행동 전략",
+  "중장기 성장 경로와 인생 포트폴리오 설계",
+  "전체 흐름 통합과 최종 마스터 플랜 제언",
+];
+
+const LIFEBOOK_COUNSELOR_FOCUS = [
+  "원국의 기본축(년·월·일·시)을 분리 해석한 뒤 실제 성격·의사결정 습관과 연결합니다.",
+  "월지·일간·조후의 균형을 통해 환경 적응 방식과 성장 최적 환경을 구체화합니다.",
+  "용신/희신/기신을 행동 선택 기준으로 번역해 직업·학습·관계 전략으로 제시합니다.",
+  "대운의 상승·정체·전환 시점을 구분해 타이밍 기반 실행안을 설계합니다.",
+  "재성·식상·관성 흐름을 돈 버는 방식과 커리어 구조로 연결해 현실안을 제시합니다.",
+  "합충·거리두기·경계선 설정 관점에서 관계 피로를 줄이는 실전 규칙을 제공합니다.",
+  "오행 불균형이 만드는 신체/정서 소진 패턴을 회복 루틴과 함께 제시합니다.",
+  "연애·결혼 의사결정에서 감정과 현실 조건을 함께 점검하는 프레임을 제안합니다.",
+  "위기 발생 전 징후를 분류하고 손실 최소화 행동 순서를 단계별로 제시합니다.",
+  "장기적으로 나를 지키는 핵심 습관을 설계하고 재발 방지 장치를 제공합니다.",
+  "연간 흐름을 월 단위 행동계획으로 쪼개 실전 선택 기준으로 정리합니다.",
+  "생애 포트폴리오(일·돈·관계·건강)를 균형 있게 재배치하는 전략을 제시합니다.",
+  "전 챕터 해석을 통합해 향후 1년/3년/10년 실행 로드맵으로 마무리합니다.",
+];
+
+const LIFEBOOK_SECTION_HEADERS = [
+  ["원국 핵심 구조 해석", "기질과 반응의 반복 패턴", "관계·일·돈 적용 포인트", "리스크와 그림자 관리", "7일 실행 루틴"],
+  ["설계도 핵심 진단", "환경 적응 반복 패턴", "성장 환경 선택 포인트", "과부하 리스크 관리", "2주 실행 루틴"],
+  ["강점 자산 핵심 진단", "성공/실패 반복 패턴", "천직 선택 포인트", "기신 과열 리스크", "실전 강화 루틴"],
+  ["대운 흐름 핵심 진단", "상승/정체 반복 패턴", "타이밍 선택 포인트", "전환기 리스크", "월별 실행 루틴"],
+  ["재물·커리어 핵심 진단", "수익/소진 반복 패턴", "직업 확장 선택 포인트", "손실 리스크 관리", "현실 실행 루틴"],
+  ["관계 구조 핵심 진단", "갈등/회복 반복 패턴", "소통·경계 선택 포인트", "관계 소진 리스크", "관계 회복 루틴"],
+  ["건강 에너지 핵심 진단", "소진/회복 반복 패턴", "생활관리 선택 포인트", "건강 리스크 관리", "회복 실행 루틴"],
+  ["연애·결혼 핵심 진단", "관계 지속 반복 패턴", "정착 선택 포인트", "관계 파열 리스크", "친밀도 실행 루틴"],
+  ["위기 전환 핵심 진단", "위기 재발 반복 패턴", "대응 선택 포인트", "손실 확대 리스크", "위기 대응 루틴"],
+  ["습관 시스템 핵심 진단", "재발 반복 패턴", "행동 전환 선택 포인트", "의지 고갈 리스크", "습관 고정 루틴"],
+  ["연간 전략 핵심 진단", "월별 파동 반복 패턴", "Go/Stop 선택 포인트", "조급함 리스크", "연간 실행 루틴"],
+  ["장기 경로 핵심 진단", "성장/정체 반복 패턴", "중장기 선택 포인트", "방향 상실 리스크", "장기 실행 루틴"],
+  ["통합 마스터 진단", "핵심 패턴 총정리", "최종 선택 포인트", "재발 리스크 관리", "1년·3년·10년 실행 루틴"],
+];
+
+const LIFEBOOK_MIN_CHARS = 6000;
+
 const LOVE_SECRET_CHAPTERS = [
   "🔑 본연의 연애 자아: 나도 몰랐던 사랑의 본능",
   "💘 치명적 매력과 페로몬: 이성을 끌어당기는 나의 무기",
@@ -394,6 +444,9 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
     : DEFAULT_BOOK_SECTION_HEADERS;
   const subtitle = String(options.subtitle || "").trim();
   const counselorFocus = String(options.counselorFocus || "").trim();
+  const minTotalChars = clampInt(options.minTotalChars, 1100, 900, 12000);
+  const minSectionParagraphs = clampInt(options.minSectionParagraphs, 2, 2, 6);
+  const minSectionChars = clampInt(options.minSectionChars, 180, 120, 2400);
   const chapterLabel = subtitle ? `${title} — ${subtitle}` : title;
 
   return [
@@ -421,8 +474,81 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
     "- Include at least one concrete behavioral example in each section.",
     "- Use saju terms only when tied to a plain-language implication.",
     "- End each section with one actionable sentence.",
-    "Each section must be at least two substantial paragraphs. Total length must be at least 1100 Korean characters.",
+    `- Each section must have at least ${minSectionParagraphs} substantial paragraphs and at least ${minSectionChars} Korean characters.`,
+    `- Total length must be at least ${minTotalChars} Korean characters.`,
   ].join("\n");
+}
+
+async function refineChapterToMinLength(env, text, minChars, options = {}, modelEnvKeys = []) {
+  let draft = String(text || "").trim();
+  if (!draft) return draft;
+  if (draft.length >= minChars) return draft;
+
+  const title = String(options.title || "").trim();
+  const subtitle = String(options.subtitle || "").trim();
+  const counselorFocus = String(options.counselorFocus || "").trim();
+  const sectionHeaders = Array.isArray(options.sectionHeaders) ? options.sectionHeaders : DEFAULT_BOOK_SECTION_HEADERS;
+  const chapterLabel = subtitle ? `${title} — ${subtitle}` : title;
+  const dataHint = stringifyCompact(options.data || "", 1400);
+
+  for (let attempt = 0; attempt < 2 && draft.length < minChars; attempt += 1) {
+    const prompt = [
+      "아래 원고를 같은 사실관계와 톤을 유지하면서 고품질로 확장하세요.",
+      `목표 길이: 최소 ${minChars}자`,
+      "응답은 한국어 마크다운만 사용하세요.",
+      "섹션 헤더를 유지하고, 각 섹션은 최소 3문단으로 확장하세요.",
+      "추상적 문장 대신 상황·행동·의사결정 기준을 구체적으로 쓰세요.",
+      "기존 내용의 핵심 진단은 지우지 말고 심화 설명을 추가하세요.",
+      "공포 유도 문구나 단정적 예언은 금지합니다.",
+      "",
+      `[챕터] ${chapterLabel}`,
+      counselorFocus ? `[상담 포커스]\n${counselorFocus}` : "",
+      `[필수 섹션]\n${sectionHeaders.map((h) => `- ${h}`).join("\n")}`,
+      dataHint ? `[데이터 힌트]\n${dataHint}` : "",
+      "",
+      "[기존 원고]",
+      draft,
+    ].filter(Boolean).join("\n");
+
+    const expanded = await callGemini(env, prompt, modelEnvKeys);
+    if (expanded && expanded.trim().length > draft.length) {
+      draft = expanded.trim();
+    } else {
+      break;
+    }
+  }
+
+  return draft;
+}
+
+function lifebookLongFallback(title, subtitle, body, sectionHeaders, counselorFocus, minChars = LIFEBOOK_MIN_CHARS) {
+  const headers = Array.isArray(sectionHeaders) && sectionHeaders.length === 5
+    ? sectionHeaders
+    : DEFAULT_BOOK_SECTION_HEADERS;
+  const chapterLabel = subtitle ? `${title} — ${subtitle}` : title;
+  const dataHint = stringifyCompact(body.sajuData || body.profile || body.birth || body, 1800).replace(/\s+/g, " ").trim();
+  const focus = String(counselorFocus || "").trim() || "사주 구조를 실제 행동 기준으로 번역해 실천 가능한 전략을 제시합니다.";
+
+  const sectionBodies = [
+    `${chapterLabel}에서 먼저 확인할 것은 타고난 성향 자체보다 성향이 의사결정으로 변환되는 방식입니다. 같은 사실을 보아도 어떤 사람은 관계를 우선하고, 어떤 사람은 성취를 우선하며, 또 어떤 사람은 안전을 먼저 계산합니다. 이 차이가 장기적으로 삶의 궤적을 가릅니다.\n\n현재 입력된 데이터 단서${dataHint ? `(${dataHint.slice(0, 280)})` : ""}를 기준으로 보면, 강점은 특정 상황에서 빠르게 발화되지만 피로가 쌓일 때는 판단 편향이 같이 커지는 구조입니다. 따라서 이 챕터의 목표는 장점 확대가 아니라 '지속 가능한 장점 운용법'을 만드는 것입니다.\n\n실행 문장: 오늘부터 중요한 결정을 내릴 때 감정·현실·장기효과를 각각 한 줄로 분리해 기록하세요.`,
+    `반복 패턴은 사건이 아니라 반응에서 드러납니다. 비슷한 갈등이 되풀이되는 이유는 상대가 같아서가 아니라 내가 사용하는 해석 프레임이 늘 비슷하기 때문입니다. 특히 압박이 커질수록 익숙한 반응으로 돌아가는 경향이 강해집니다.\n\n패턴을 바꾸려면 의지를 키우기보다 트리거를 먼저 식별해야 합니다. 언제 피로가 커지고, 어떤 말에 방어가 올라오며, 어떤 상황에서 과한 확신 또는 과한 회피가 나타나는지 추적하면 변화 속도가 빨라집니다.\n\n실행 문장: 이번 주에는 감정이 크게 흔들린 장면 3개를 기록하고, 공통 트리거 1개를 찾아 이름 붙이세요.`,
+    `관계·일·돈은 분리된 주제가 아니라 같은 선택 체계의 다른 표면입니다. 관계에서 경계를 못 세우면 일에서도 우선순위가 무너지고, 돈에서도 손실 회피보다 즉흥 대응이 늘어납니다. 반대로 한 영역의 선택 기준을 정리하면 다른 영역도 안정됩니다.\n\n${focus} 이 관점에서 보면 당장 필요한 것은 더 많은 정보가 아니라 선택 기준의 단순화입니다. 기준이 많을수록 불안은 줄지 않고, 실행은 늦어집니다. 그래서 이 챕터는 '지금 버릴 기준'과 '반드시 지킬 기준'을 구분하는 방식으로 설계됩니다.\n\n실행 문장: 이번 달 핵심 선택 기준을 2개만 남기고 나머지는 보류 리스트로 이동하세요.`,
+    `리스크는 운이 나빠서 생기기보다 누적된 미세 오차가 임계점을 넘을 때 발생합니다. 특히 과로, 과속 의사결정, 관계 과잉 책임, 수면 붕괴는 함께 나타나는 경우가 많습니다. 이런 구간에서는 큰 기회를 잡는 전략보다 손실 상한을 먼저 정하는 전략이 유효합니다.\n\n그림자 관리의 핵심은 자기비판이 아니라 복구 시스템입니다. 실수 이후 회복 시간을 줄이는 사람은 같은 실수를 하더라도 결과가 달라집니다. 회복 규칙이 없으면 같은 패턴이 더 큰 비용으로 재발합니다.\n\n실행 문장: 위기 상황에서 즉시 실행할 3단계(중단-정리-재개) 체크리스트를 메모 앱 첫 화면에 고정하세요.`,
+    `실행 가이드는 거창할수록 실패합니다. 하루 10분, 주 2회, 월 1회처럼 작고 반복 가능한 단위가 장기적으로 더 강력합니다. 중요한 것은 완벽한 계획이 아니라 관성의 방향을 바꾸는 것입니다.\n\n첫 7일은 관찰, 다음 7일은 조정, 다음 7일은 고정, 마지막 7일은 확장으로 운영하면 부담이 낮고 체감 변화가 빠릅니다. 이 리듬을 통해 관계·일·건강·재정의 균형점이 조금씩 올라갑니다.\n\n실행 문장: 오늘부터 28일간 주간 점검(관계/일/돈/건강 각 10점)을 매주 같은 시간에 기록하세요.`,
+  ];
+
+  let text = `## ${chapterLabel} 핵심 진단\n${sectionBodies[0]}\n\n## ${headers[0]}\n${sectionBodies[1]}\n\n## ${headers[1]}\n${sectionBodies[2]}\n\n## ${headers[2]}\n${sectionBodies[3]}\n\n## ${headers[3]}\n${sectionBodies[4]}\n\n## ${headers[4]}\n${sectionBodies.join("\n\n")}`;
+
+  let depth = 1;
+  while (text.length < minChars) {
+    text += `\n\n## 심화 실행 노트 ${depth}\n`;
+    text += `이 심화 노트의 목적은 해석을 실전 결정으로 연결하는 것입니다. ${chapterLabel}의 관점에서는 감정 반응, 시간 관리, 관계 경계, 재정 판단을 따로 보지 않고 하나의 시스템으로 통합합니다.\n\n`;
+    text += `점검 질문: 지금 내 선택이 3개월 뒤에도 유효한가? 대안이 존재하는데도 익숙함 때문에 같은 결정을 반복하고 있지 않은가? 이 질문을 주 1회 반복하면 의사결정 품질이 눈에 띄게 개선됩니다.\n\n`;
+    text += `실행 문장: 이번 주에는 가장 비용이 큰 습관 1개를 멈추고, 대체 행동 1개를 같은 시간대에 고정하세요.`;
+    depth += 1;
+  }
+
+  return text;
 }
 
 function bookFallback(kind, title, body, sectionHeaders) {
@@ -445,19 +571,60 @@ async function handleLifebookSession(request, env) {
   const input = buildSessionInput(body, 13);
   const chapter = input.chapter;
   const title = LIFEBOOK_CHAPTERS[chapter - 1] || LIFEBOOK_CHAPTERS[0];
-  const prompt = buildSessionPrompt("saju life book", title, chapter, 13, body);
+  const subtitle = LIFEBOOK_CHAPTER_SUBTITLES[chapter - 1] || "사주 분석 기반 인생의 책";
+  const counselorFocus = LIFEBOOK_COUNSELOR_FOCUS[chapter - 1] || "사주 구조를 실제 행동 기준으로 번역해 실행 전략으로 제시합니다.";
+  const sectionHeaders = LIFEBOOK_SECTION_HEADERS[chapter - 1] || DEFAULT_BOOK_SECTION_HEADERS;
+  const prompt = buildSessionPrompt(
+    "saju life book",
+    title,
+    chapter,
+    13,
+    body,
+    sectionHeaders,
+    {
+      subtitle,
+      counselorFocus,
+      minTotalChars: LIFEBOOK_MIN_CHARS,
+      minSectionParagraphs: 3,
+      minSectionChars: 850,
+    }
+  );
   let text = await callGemini(env, prompt, ["LIFEBOOK_GEMINI_MODEL"]);
   let usedFallback = false;
-  if (!text || text.length < 500) {
+  if (!text || text.length < 1200) {
     usedFallback = true;
-    text = bookFallback("인생의 책", title, body);
+    text = lifebookLongFallback(title, subtitle, body, sectionHeaders, counselorFocus, LIFEBOOK_MIN_CHARS);
+  }
+
+  if (text.length < LIFEBOOK_MIN_CHARS) {
+    const refined = await refineChapterToMinLength(
+      env,
+      text,
+      LIFEBOOK_MIN_CHARS,
+      {
+        title,
+        subtitle,
+        counselorFocus,
+        sectionHeaders,
+        data: body.sajuData || body.profile || body.birth || body,
+      },
+      ["LIFEBOOK_GEMINI_MODEL"]
+    );
+    if (refined && refined.length > text.length) {
+      text = refined;
+    }
+  }
+
+  if (text.length < LIFEBOOK_MIN_CHARS) {
+    usedFallback = true;
+    text = lifebookLongFallback(title, subtitle, body, sectionHeaders, counselorFocus, LIFEBOOK_MIN_CHARS);
   }
 
   return json({
     ok: true,
     sessionId: chapter,
     chapter,
-    chapterMeta: { num: chapter, title, subtitle: "사주 분석 기반 인생의 책", icon: "book" },
+    chapterMeta: { num: chapter, title, subtitle, icon: "book" },
     text,
     sections: parseSections(text),
     usedFallback,

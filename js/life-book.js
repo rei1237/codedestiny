@@ -71,8 +71,12 @@
     '하늘이 숨긴 천기(天機)를 펼쳐 당신의 이름으로 기록합니다.',
   ];
 
+  var MIN_CHAPTER_CHARS = 6000;
+  var MIN_TOTAL_CHARS = 65500;
+
   /* ─────────────── 상태 ─────────────── */
   var _chapters = Array(13).fill(null);
+  var _chapterSubtitles = CHAPTER_SUBTITLES.slice();
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -515,6 +519,8 @@
     try {
       localStorage.setItem(_lbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
+        subtitles: _chapterSubtitles,
+        totalChars: _chapters.reduce(function (acc, c) { return acc + (typeof c === 'string' ? c.trim().length : 0); }, 0),
         name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
         gender: (profile && profile.gender) || '',
@@ -568,16 +574,24 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 저장된 데이터 복원 시도 — 유효 챕터가 10개 이상이고 각 500자 이상이어야 복원
+    // 저장된 데이터 복원 시도 — 13개 챕터 모두 최소 글자수 조건을 만족해야 복원
     var saved = _lbLoadSaved(profile);
     var _savedValidCount = saved && saved.chapters
       ? saved.chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length
       : 0;
-    var hasValidCache = _savedValidCount >= 10;
+    var _savedTotalChars = saved && Array.isArray(saved.chapters)
+      ? saved.chapters.reduce(function (acc, c) {
+          return acc + (typeof c === 'string' ? c.trim().length : 0);
+        }, 0)
+      : 0;
+    var hasValidCache = _savedValidCount === 13 && _savedTotalChars >= MIN_TOTAL_CHARS;
     if (hasValidCache) {
       _chapters = saved.chapters;
+      _chapterSubtitles = (saved && Array.isArray(saved.subtitles) && saved.subtitles.length === 13)
+        ? saved.subtitles
+        : CHAPTER_SUBTITLES.slice();
       _currentChapter = 1;
       _showScreen('lbResultScreen');
       _updateTocState();
@@ -607,6 +621,7 @@
     }
 
     _chapters = Array(13).fill(null);
+    _chapterSubtitles = CHAPTER_SUBTITLES.slice();
     _currentChapter = 1;
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
@@ -669,7 +684,7 @@
       '<div class="lb-chapter-header">' +
       '<span class="lb-chapter-num">Chapter ' + ch + '</span>' +
       '<h2 class="lb-chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
-      '<p class="lb-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
+      '<p class="lb-chapter-sub">' + _escHtml((_chapterSubtitles[idx] || CHAPTER_SUBTITLES[idx] || '')) + '</p>' +
       '</div>' +
       '<div class="lb-chapter-body">' + _md2html(data) + '</div>' +
       '</div>';
@@ -720,6 +735,7 @@
     _generating = true;
     _cancelGeneration = false;
     _chapters = Array(13).fill(null);
+    _chapterSubtitles = CHAPTER_SUBTITLES.slice();
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
@@ -891,12 +907,15 @@
         _mysticTimer = null;
         _generating = false;
 
-        // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 10개 미만이면 실패 처리
+        // 유효성 체크 — 챕터당 최소 6000자 + 총 65500자
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length;
-        if (_validCount < 10) {
-          console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/13');
+        var _totalChars = _chapters.reduce(function(acc, c) {
+          return acc + (typeof c === 'string' ? c.trim().length : 0);
+        }, 0);
+        if (_validCount < 13 || _totalChars < MIN_TOTAL_CHARS) {
+          console.warn('[인생의 책] 최소 길이 기준 미충족. 유효 챕터:', _validCount + '/13', '총 글자수:', _totalChars);
         }
 
         _showScreen('lbResultScreen');
@@ -924,13 +943,16 @@
       _fetchChapter(idx).then(function (data) {
         if (_cancelGeneration) return;
         var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
-        if (data && data.ok && _text.length >= 500) {
+        if (data && data.ok && _text.length >= MIN_CHAPTER_CHARS) {
           _chapters[idx] = data.text;
+          if (data.chapterMeta && typeof data.chapterMeta.subtitle === 'string' && data.chapterMeta.subtitle.trim()) {
+            _chapterSubtitles[idx] = data.chapterMeta.subtitle.trim();
+          }
         } else {
           _failCount++;
           var msg;
-          if (data && data.ok && _text.length > 0 && _text.length < 500) {
-            msg = '챕터 내용이 너무 짧습니다 (' + _text.length + '자). API가 불완전한 응답을 반환했습니다.';
+          if (data && data.ok && _text.length > 0 && _text.length < MIN_CHAPTER_CHARS) {
+            msg = '챕터 내용이 최소 기준보다 짧습니다 (' + _text.length + '자 / 최소 ' + MIN_CHAPTER_CHARS + '자).';
           } else {
             msg = (data && data.message) ? data.message : '알 수 없는 오류';
           }
@@ -977,7 +999,7 @@
         '<div class="chapter-header">' +
         '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
         '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+        '<p class="chapter-sub">' + _escHtml((_chapterSubtitles[i] || CHAPTER_SUBTITLES[i] || '')) + '</p>' +
         '</div>' +
         '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
         '</div>';
