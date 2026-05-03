@@ -11,7 +11,57 @@
       var action = params.get("action");
       if (!action) return;
 
-      if (!/^open[A-Za-z0-9_]+$|^start[A-Za-z0-9_]+$|^navigateToVedic$/.test(action)) return;
+      var flowerRouteMap = {
+        openDestinyFlowerStudio: "/flower/destiny",
+        openAstrologyFlowerStudio: "/flower/astrology",
+        openJamidusuFlowerStudio: "/flower/jamidusu",
+        openSukuyoFlowerStudio: "/flower/sukuyo"
+      };
+      if (flowerRouteMap[action]) {
+        window.location.href = flowerRouteMap[action];
+        return;
+      }
+
+      var isOpenAction = /^open[A-Za-z0-9_]+$|^navigateToVedic$/.test(action);
+      var isPremiumGotoAction = /^goto(?:Ziwei|Astrology|Sukuyo|Vedic|Naming)Premium$/.test(action);
+      if (!isOpenAction && !isPremiumGotoAction) return;
+
+      if (isPremiumGotoAction) {
+        var tile = document.querySelector('[data-action="' + action + '"]');
+        var invoked = false;
+
+        if (typeof window.__cdRunPerUseCoinGateFromTile === 'function' && tile) {
+          try {
+            invoked = !!window.__cdRunPerUseCoinGateFromTile(tile);
+          } catch (_) {}
+        }
+
+        if (!invoked && typeof window._cdInvokeActionDirect === 'function') {
+          try {
+            window._cdInvokeActionDirect(action, tile || null);
+            invoked = true;
+          } catch (_) {}
+        }
+
+        if (!invoked && tile && typeof tile.click === 'function') {
+          try {
+            tile.setAttribute('data-pvw-bypass', '1');
+            tile.click();
+            setTimeout(function() { try { tile.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 160);
+            invoked = true;
+          } catch (_) {}
+        }
+
+        if (!invoked && action === 'gotoNamingPremium') {
+          window.location.href = '/myungwun_final.html';
+          return;
+        }
+
+        if (invoked) {
+          history.replaceState(null, '', loc.pathname + (loc.hash || ''));
+        }
+        return;
+      }
 
       var attempts = 0;
       var maxAttempts = 200;

@@ -1532,6 +1532,10 @@ var __cdLazyActionLoaders = {
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
+  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260411-zfix1'); },
+  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260411-zfix1'); },
+  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260411-zfix1'); },
+  gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
   openSibylModal: function() {
@@ -2157,11 +2161,12 @@ function __cdInvokeAction(action, actionEl, event) {
     var hasFn = typeof window[action] === 'function';
     if (!loader || hasFn || out !== undefined) return;
 
-    // prem-gate 4종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
+      // prem-gate 5종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
     // 타일 최초 클릭 시 여기서 lazy-load/재호출 중복 방지
     if (!hasFn && actionEl && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
       if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' ||
-          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') return;
+          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' ||
+          action === 'gotoNamingPremium') return;
     }
 
     if (!__cdLazyActionState[action]) {
@@ -2180,6 +2185,14 @@ function __cdInvokeAction(action, actionEl, event) {
           window.LuckSyncDiary.close();
         } else if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
           window.openZiweiBookModal();
+        } else if (action === 'gotoAstrologyPremium' && typeof window.openAstroBookModal === 'function') {
+          window.openAstroBookModal();
+        } else if (action === 'gotoSukuyoPremium' && typeof window.openSukuyoBookModal === 'function') {
+          window.openSukuyoBookModal();
+        } else if (action === 'gotoVedicPremium' && typeof window.openVedicBookModal === 'function') {
+          window.openVedicBookModal();
+        } else if (action === 'gotoNamingPremium') {
+          window.location.assign('/myungwun_final.html');
         }
         return;
       }
