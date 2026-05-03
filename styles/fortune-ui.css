@@ -1418,13 +1418,13 @@ input:checked + .slider .paw-pad {
 .palace-note{font-size:.72rem;margin-top:7px;font-style:italic}
 
 /* ─── 프리미엄 분석 박스 ─── */
-.prem-box{background:#FAFAFA;border:1px solid #EEE;border-radius:12px;padding:16px;margin-top:12px}
+.prem-box{background:#FAFAFA;border:1px solid #EEE;border-radius:12px;padding:16px;margin-top:12px;max-width:100%;box-sizing:border-box}
 .prem-title{display:block;font-weight:700;color:#333;font-size:.88rem;
-  border-left:3px solid var(--pink);padding-left:9px;margin-bottom:10px}
-.prem-text{font-size:.88rem;color:#555;line-height:1.78}
+  border-left:3px solid var(--pink);padding-left:9px;margin-bottom:10px;word-break:keep-all;overflow-wrap:break-word}
+.prem-text{font-size:.88rem;color:#555;line-height:1.78;word-break:keep-all;overflow-wrap:break-word;max-width:100%}
 .hl{background:rgba(255,183,178,.2);padding:0 4px;font-weight:700;color:#D84315;border-radius:3px}
 .tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
-.tip-chip{background:#fff;border:1px solid #FFE0D6;border-radius:10px;padding:13px;font-size:.82rem;line-height:1.65;color:#555}
+.tip-chip{background:#fff;border:1px solid #FFE0D6;border-radius:10px;padding:13px;font-size:.82rem;line-height:1.65;color:#555;word-break:keep-all;overflow-wrap:break-word;max-width:100%;box-sizing:border-box}
 .tip-chip strong{color:#FF6B35;display:block;margin-bottom:5px}
 
 /* ─── 여행 개운 ─── */
@@ -1440,9 +1440,9 @@ input:checked + .slider .paw-pad {
 .travel-chip li{margin-bottom:2px}
 
 /* ─── 대운 ─── */
-.dw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;margin-bottom:12px}
+.dw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;margin-bottom:12px;max-width:100%;box-sizing:border-box}
 .dw-item{border:2px solid #FFE0D6;border-radius:13px;padding:12px 8px;text-align:center;
-  cursor:pointer;transition:all .25s;position:relative;background:linear-gradient(135deg,#FFFBF8,#FFF8F5)}
+  cursor:pointer;transition:all .25s;position:relative;background:linear-gradient(135deg,#FFFBF8,#FFF8F5);max-width:100%;box-sizing:border-box;word-break:keep-all}
 .dw-item:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(255,139,167,.22)}
 .dw-item.excellent{border-color:#4CAF50;background:linear-gradient(135deg,#E8F5E9,#F1F8E9)}
 .dw-item.good{border-color:#2196F3;background:linear-gradient(135deg,#E3F2FD,#E8F4FD)}
@@ -1537,7 +1537,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 
 /* ─── 대운 상세 ─── */
 .dw-detail{margin-top:12px;padding:20px;background:#FFFBF8;border-radius:15px;
-  border:2px solid #FFE0D6;display:none}
+  border:2px solid #FFE0D6;display:none;max-width:100%;box-sizing:border-box}
 .dw-detail.show{display:block;animation:slideDown .3s ease-out}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .gaeun-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
@@ -3357,6 +3357,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .dfr-cat{font-size:.68rem;color:rgba(255,210,80,.7);font-weight:700;letter-spacing:.1em;display:block;margin-bottom:2px}
 .dfr-text{font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.58}
 
+/* ─── 종합 사주 풀이 영역 ─── */
+#summaryArea{max-width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
+
 /* ══════════════════════════════════════
    📈 인생 그래프 (Life Fortune Graph)
 ══════════════════════════════════════ */
@@ -3371,9 +3374,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   background:linear-gradient(180deg,#fafafa 0%,#fff6f9 100%);
   border-radius:16px;border:1px solid #FFE0D6;
   padding:14px 10px 10px;overflow:hidden;
-  position:relative;
+  position:relative;max-width:100%;box-sizing:border-box
 }
-#lifeGraphCanvas{width:100%;height:180px;display:block;cursor:pointer}
+#lifeGraphCanvas{width:100%;max-width:100%;height:180px;display:block;cursor:pointer}
 .life-graph-legend{
   display:flex;justify-content:center;gap:16px;
   margin-top:8px;font-size:.7rem;color:#aaa;
@@ -4066,6 +4069,16 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   .share-btns{grid-template-columns:1fr}
   .lucky-brand-items{grid-template-columns:1fr}
   .dw-grid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px}
+  .dw-item{padding:10px 6px;font-size:.85rem}
+  .dw-age{font-size:.78rem}
+  .dw-gz{font-size:.88rem}
+  .prem-box{padding:14px;margin-top:10px}
+  .prem-title{font-size:.85rem}
+  .prem-text{font-size:.85rem;line-height:1.7}
+  .life-graph-wrap{padding:12px 8px 8px}
+  #lifeGraphCanvas{height:160px}
+  .life-graph-legend{gap:12px;font-size:.65rem}
+  .dw-detail{padding:16px}
   #juyukModalSheet .modal-content-inner-700{max-width:100%}
   .compat-grade-area{display:grid;grid-template-columns:1fr;gap:8px;padding:14px}
   .compat-grade-icon{font-size:2.2rem}
