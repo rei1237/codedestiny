@@ -7120,9 +7120,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-        // prem-card: Preview 패널 먼저 표시 (desktop & mobile 통일 UX, 합성 클릭 이중 실행 방지)
-        // pvw-bypass 없는 prem-card → 프리뷰 패널 오픈 → CTA → 코인게이트 순서
+        // 프리미엄 PDF 카드(goto*Premium)는 UI 프리뷰 충돌을 피하기 위해 항상 직접 코인게이트로 처리
+        var _isDirectPremiumAction = action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium';
+        if (actionNode.classList.contains('prem-card') && _isDirectPremiumAction) {
+          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+          return;
+        }
+        // 그 외 prem-card는 Preview 패널을 통해 처리
         if (actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(actionNode)) {
             _cdSafeBlockEvent(event);
@@ -7678,7 +7682,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(window.__cdAdminBypass)return;
     var action=tile.getAttribute('data-action');
-    if(action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium')return;
+    if(action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium'||action==='gotoNamingPremium')return;
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
     if(!key||!D[key])return;
@@ -7692,7 +7696,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
     var action = tile.getAttribute('data-action');
-    if (action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium') return false;
+    if (action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium'||action==='gotoNamingPremium') return false;
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
     if (!key || !D[key]) return false;
