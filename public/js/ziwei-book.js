@@ -599,8 +599,19 @@
   }
 
   function _renderDetailedChapterPreview() {
-    var wrap = document.querySelector('#zbStartScreen .lb-start__chapters');
-    if (!wrap) return;
+    var start = document.getElementById('zbStartScreen');
+    if (!start) return;
+    var wrap = start.querySelector('.lb-start__chapters');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'lb-start__chapters';
+      wrap.innerHTML =
+        '<div class="lb-start__ch-label">📖 13챕터 구성</div>' +
+        '<ul class="lb-start__ch-list" id="zbChapterPreviewList"></ul>';
+      var anchor = start.querySelector('.lb-start__note');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+      else start.appendChild(wrap);
+    }
     var list = document.getElementById('zbChapterPreviewList') || wrap.querySelector('.lb-start__ch-list');
     if (!list) return;
     var html = '';

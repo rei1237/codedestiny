@@ -4885,9 +4885,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🌌 자미두수 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4906,11 +4903,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🌅 총결산 — 거장의 마스터플랜 봉서</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="zbStartBtn" onclick="generateZiweiBook()">
-            🌌 자미두수 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="zbLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🌌</div>
@@ -5009,50 +5004,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="lb-start__hero">
             <div class="lb-start__icon" aria-hidden="true">✨</div>
             <h3 class="lb-start__headline">점성술 코즈믹 차트 인생 리포트</h3>
-            <p class="lb-start__desc">실제 행성 좌표를 기반으로<br>12하우스 완전 분析 후<br>12챕터 심층 인생 리포트를 생성합니다</p>
+            <p class="lb-start__desc">실제 행성 좌표를 기반으로<br>12하우스 완전 분석 후<br>12챕터 심층 인생 리포트를 생성합니다</p>
           </div>
-                    <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">💫 본인 정보</div>
-            <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분석 대상 프로필</div>
+            <div id="abProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-
-          <!-- 상대방 정보 입력 폼 -->
-          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
-            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
-            <div class="lb-start__partner-fields">
-              <div class="form-group sk-partner-field">
-                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
-              </div>
-              <div class="form-group sk-partner-field">
-                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
-                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
-                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
-                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
-                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
-                </div>
-              </div>
-              <div class="form-group sk-partner-field">
-                <div class="row2">
-                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
-                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
-                </div>
-              </div>
-              <div class="form-group sk-partner-field">
-                <div class="toggle-wrap">
-                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
-                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💞 숙요 궁합 인생 총람 생성하기
+          <button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
+            ✨ 점성술 코즈믹 차트 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -5067,14 +5028,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>🧭 Lunar Nodes — 영혼의 나침반</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🔮 시냅스트리 — 관계의 심리적 투사</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>⭕ 컴포지트 — 우리라는 독립적 운명</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 &amp; 개운법</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 & 개운법</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
-            ✨ 점성술 코즈믹 차트 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="abLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">✨</div>
@@ -5175,39 +5134,65 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <p class="lb-start__desc">에도 막부가 금지했던 27수 비전으로<br>당신의 달빛 운명 코드를 완전 해독해<br>13챕터 인생 총람을 생성합니다</p>
           </div>
           <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div class="lb-start__profile-label">💫 본인 정보</div>
             <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
+
+          <!-- 상대방 정보 입력 폼 -->
+          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
+            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
+            <div class="lb-start__partner-fields">
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
+              </div>
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
+                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
+                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="row2">
+                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
+                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="toggle-wrap">
+                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
+                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💫 숙요점 인생 총람 생성하기
+            💞 숙요 궁합 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.1</span><span>🌑 영혼의 원형 — 숙요별이 새긴 운명 코드</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.2</span><span>🌊 감정의 조수간만 — 달의 정서 파동</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 기억되는 방식</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 당신을 기억하는 방식</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.4</span><span>💰 자산의 중력 — 달빛 부의 전략</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.5</span><span>⚙️ 보이지 않는 톱니바퀴 — 협력 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.6</span><span>📡 관계의 정밀 레이더 — 6대 숙요 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.7</span><span>💥 파괴적 혁신 — 위기를 기회로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.8</span><span>🌿 조화로운 성장 — 공간과 환경의 법칙</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>❤️ 정서적 유대 — 깊은 연결과 감정 지능</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 밸런스</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 뱀파이어</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>🌙 달의 주기 — 월령 에너지 사이클</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 독소를 황금으로</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 인연의 독소를 황금으로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🗺️ 영혼의 마스터플랜 — 10년 로드맵</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💫 숙요점 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">💫</div>
@@ -5305,19 +5290,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="lb-start__hero">
             <div class="lb-start__icon" aria-hidden="true">🪷</div>
             <h3 class="lb-start__headline">베다 점성술(Jyotish) 인생 총람</h3>
-            <p class="lb-start__desc">5000년 인도 베다 점성술로<br>카르마 운명 코드와 다샤 전략을 분析해<br>12챕터 인생 총람을 생성합니다</p>
+            <p class="lb-start__desc">5000년 인도 베다 점성술로<br>카르마 운명 코드와 다샤 전략을 분석해<br>12챕터 인생 총람을 생성합니다</p>
           </div>
           <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div class="lb-start__profile-label">분석 대상 프로필</div>
             <div id="vdProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
           <button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">
             🪷 베다 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -5335,11 +5317,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>🌟 마스터플랜 — 북극성 인생 선언문</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">
-            🪷 베다 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="vdLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🪷</div>
@@ -6655,6 +6635,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (_) {
       return null;
     }
+  }
+
+  function _cdForcePremiumModalVisible(modalId) {
+    try {
+      var modal = document.getElementById(modalId);
+      if (modal) {
+        if (modal.parentNode !== document.body) document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.pointerEvents = 'auto';
+        modal.style.opacity = '1';
+        modal.style.zIndex = '100120';
+      }
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+    } catch (_) {}
   }
 
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)

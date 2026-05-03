@@ -191,9 +191,20 @@
   }
 
   function _renderDetailedChapterPreview(){
-    var wrap=document.querySelector('#skStartScreen .lb-start__chapters');
-    if(!wrap)return;
-    var list=wrap.querySelector('.lb-start__ch-list');
+    var start=document.getElementById('skStartScreen');
+    if(!start)return;
+    var wrap=start.querySelector('.lb-start__chapters');
+    if(!wrap){
+      wrap=document.createElement('div');
+      wrap.className='lb-start__chapters';
+      wrap.innerHTML=
+        '<div class="lb-start__ch-label">📖 13챕터 구성</div>'+
+        '<ul class="lb-start__ch-list" id="skChapterPreviewList"></ul>';
+      var anchor=start.querySelector('.lb-start__note');
+      if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(wrap,anchor.nextSibling);
+      else start.appendChild(wrap);
+    }
+    var list=document.getElementById('skChapterPreviewList')||wrap.querySelector('.lb-start__ch-list');
     if(!list)return;
     var html='';
     for(var i=0;i<CHAPTER_TITLES.length;i++){
