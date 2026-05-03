@@ -48,6 +48,20 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
+function buildSocialStartPath(provider: SocialProvider, flow: "login" | "signup", nextPath: string) {
+  const safeNext = sanitizeNextPath(nextPath) || "/";
+  return `/api/auth/oauth/${provider}/start?flow=${flow}&next=${encodeURIComponent(safeNext)}`;
+}
+
+function buildSocialStartUrl(
+  authApiBase: string,
+  provider: SocialProvider,
+  flow: "login" | "signup",
+  nextPath: string,
+) {
+  return `${authApiBase}${buildSocialStartPath(provider, flow, nextPath)}`;
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -379,7 +393,7 @@ export default function LoginPage() {
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = sanitizeNextPath(params.get("next")) || "/";
-    const startUrl = `${authApiBase}/api/auth/oauth/${provider}/start?flow=login&next=${encodeURIComponent(nextPath)}`;
+    const startUrl = buildSocialStartUrl(authApiBase, provider, "login", nextPath);
     window.location.href = startUrl;
   };
 
@@ -492,35 +506,56 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2.5">
-              <button
-                type="button"
-                onClick={() => startSocialLogin("google")}
-                disabled={loading || socialLoading !== null}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
+              <a
+                href={buildSocialStartPath("google", "login", "/")}
+                onClick={(event) => {
+                  if (loading || socialLoading !== null) {
+                    event.preventDefault();
+                    return;
+                  }
+                  event.preventDefault();
+                  startSocialLogin("google");
+                }}
+                aria-disabled={loading || socialLoading !== null}
+                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] ${(loading || socialLoading !== null) ? "pointer-events-none opacity-60" : ""}`}
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
                 {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 계속하기"}
-              </button>
+              </a>
 
-              <button
-                type="button"
-                onClick={() => startSocialLogin("naver")}
-                disabled={loading || socialLoading !== null}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
+              <a
+                href={buildSocialStartPath("naver", "login", "/")}
+                onClick={(event) => {
+                  if (loading || socialLoading !== null) {
+                    event.preventDefault();
+                    return;
+                  }
+                  event.preventDefault();
+                  startSocialLogin("naver");
+                }}
+                aria-disabled={loading || socialLoading !== null}
+                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] ${(loading || socialLoading !== null) ? "pointer-events-none opacity-60" : ""}`}
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
                 {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 계속하기"}
-              </button>
+              </a>
 
-              <button
-                type="button"
-                onClick={() => startSocialLogin("kakao")}
-                disabled={loading || socialLoading !== null}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
+              <a
+                href={buildSocialStartPath("kakao", "login", "/")}
+                onClick={(event) => {
+                  if (loading || socialLoading !== null) {
+                    event.preventDefault();
+                    return;
+                  }
+                  event.preventDefault();
+                  startSocialLogin("kakao");
+                }}
+                aria-disabled={loading || socialLoading !== null}
+                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] ${(loading || socialLoading !== null) ? "pointer-events-none opacity-60" : ""}`}
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
                 {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 계속하기"}
-              </button>
+              </a>
             </div>
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">

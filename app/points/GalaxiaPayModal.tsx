@@ -31,6 +31,8 @@ type Props = {
   buyerName: string;
   buyerEmail: string;
   orderId: string;          // 서버에서 발급한 주문번호
+  initialPayType?: "card" | "simple";
+  initialCardId?: string;
   onSuccess: (res: GalaxiaPayResult) => void;
   onFail: (res: GalaxiaPayResult) => void;
   onClose: () => void;
@@ -50,6 +52,7 @@ const CARD_LIST = [
   { id: "54", name: "AX", logo: "AX" },
   { id: "62", name: "카카오뱅크", logo: "카카오" },
   { id: "96", name: "롯데", logo: "롯데" },
+  { id: "artmoney", name: "아트머니", logo: "AM" },
   { id: "kakao", name: "카카오페이", logo: "🟨" },
   { id: "toss",  name: "토스페이",   logo: "TOSS" },
   { id: "naver", name: "네이버페이", logo: "🟩" },
@@ -111,23 +114,30 @@ function ensurePortoneSdk(): Promise<void> {
 }
 
 /* ─── 간편결제 ID 목록 ───────────────────────────────────────── */
-const SIMPLE_PAY_IDS = ["kakao", "toss", "naver"];
+const SIMPLE_PAY_IDS = ["artmoney", "kakao", "toss", "naver"];
 
 export default function GalaxiaPayModal({
   pkg,
   buyerName,
   buyerEmail,
   orderId,
+  initialPayType = "card",
+  initialCardId = "",
   onSuccess,
   onFail,
   onClose,
   isProcessing = false,
 }: Props) {
-  const [selectedCard, setSelectedCard] = useState<string>("");
+  const [selectedCard, setSelectedCard] = useState<string>(initialCardId);
   const [installment, setInstallment] = useState("00");
-  const [payType, setPayType] = useState<"card" | "simple">("card");
+  const [payType, setPayType] = useState<"card" | "simple">(initialPayType);
   const [isLaunching, setIsLaunching] = useState(false);
   const launchedRef = useRef(false);
+
+  useEffect(() => {
+    setPayType(initialPayType);
+    setSelectedCard(initialCardId);
+  }, [initialCardId, initialPayType]);
 
   /* 간편결제 선택 시 탭 자동 전환 */
   useEffect(() => {
@@ -147,6 +157,8 @@ export default function GalaxiaPayModal({
 
       const impCode = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
       const galaxiaMid = process.env.NEXT_PUBLIC_GALAXIA_MID || "";
+      const galaxiaPg = process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA
+        || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia");
       window.IMP.init(impCode);
 
       let pg: string;
@@ -155,7 +167,10 @@ export default function GalaxiaPayModal({
 
       if (payType === "simple") {
         /* 간편결제: 각 PG 직접 연동 */
-        if (selectedCard === "kakao") {
+        if (selectedCard === "artmoney") {
+          pg = process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA_ARTMONEY || galaxiaPg;
+          payMethod = process.env.NEXT_PUBLIC_PORTONE_PAY_METHOD_GALAXIA_ARTMONEY || "card";
+        } else if (selectedCard === "kakao") {
           pg = process.env.NEXT_PUBLIC_PORTONE_PG_KAKAO || "kakaopay";
           payMethod = "card";
         } else if (selectedCard === "toss") {
@@ -165,13 +180,13 @@ export default function GalaxiaPayModal({
           pg = process.env.NEXT_PUBLIC_PORTONE_PG_NAVERPAY || "naverpay";
           payMethod = "card";
         } else {
-          /* 간편결제 수단 미선택 시 기본 카카오페이 */
-          pg = process.env.NEXT_PUBLIC_PORTONE_PG_KAKAO || "kakaopay";
+          /* 간편결제 수단 미선택 시 기본 아트머니 */
+          pg = process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA_ARTMONEY || galaxiaPg;
           payMethod = "card";
         }
       } else {
         /* 신용/체크카드: 갤럭시아머니트리 PG */
-        pg = galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia";
+        pg = galaxiaPg;
         payMethod = "card";
 
         /* 카드사 사전 선택 — bypass로 갤럭시아에 전달 */
