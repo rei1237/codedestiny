@@ -13,6 +13,8 @@ declare global {
 
 type LoginResult = {
   message?: string;
+  code?: string;
+  error?: string;
   token?: string;
   nextPath?: string;
   provider?: "google" | "naver" | "kakao";
@@ -110,6 +112,28 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 
     throw new Error("서버 응답 파싱 중 오류가 발생했습니다.");
   }
+}
+
+function normalizeSocialAuthError(rawReason: string | null): string {
+  const reason = String(rawReason || "").trim().toLowerCase();
+  if (!reason) return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+  if (reason.includes("token_exchange_failed")) return "소셜 인증 토큰 교환에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+  if (reason === "oauth_not_configured") return "소셜 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
+  if (reason === "invalid_callback" || reason === "provider_mismatch") return "소셜 인증 콜백이 유효하지 않습니다. 다시 시도해 주세요.";
+  return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+}
+
+function normalizeAuthApiError(payload: LoginResult & { errors?: string[] }, fallbackMessage: string): string {
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+    return payload.errors.join(" ");
+  }
+
+  const code = String(payload.code || payload.error || "").trim().toUpperCase();
+  if (code === "EMAIL_ALREADY_REGISTERED") {
+    return "이미 가입된 이메일입니다. 회원가입 대신 로그인해 주세요.";
+  }
+
+  return payload.message || fallbackMessage;
 }
 
 export default function LoginPage() {
@@ -211,7 +235,7 @@ export default function LoginPage() {
 
     if (socialError) {
       socialCompleteOnceRef.current = true;
-      setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(normalizeSocialAuthError(socialError));
       return;
     }
 
@@ -258,10 +282,7 @@ export default function LoginPage() {
         const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
 
         if (!response.ok) {
-          if (Array.isArray(payload.errors) && payload.errors.length > 0) {
-            throw new Error(payload.errors.join(" "));
-          }
-          throw new Error(payload.message || "소셜 로그인 처리에 실패했습니다.");
+          throw new Error(normalizeAuthApiError(payload, "소셜 로그인 처리에 실패했습니다."));
         }
 
         persistAuth(payload.token, payload.user);
@@ -332,10 +353,7 @@ export default function LoginPage() {
 
       const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
       if (!response.ok) {
-        if (Array.isArray(payload.errors) && payload.errors.length > 0) {
-          throw new Error(payload.errors.join(" "));
-        }
-        throw new Error(payload.message || "로그인에 실패했습니다.");
+        throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
       }
 
       persistAuth(payload.token, payload.user);
@@ -344,6 +362,10 @@ export default function LoginPage() {
       redirectAfterAuth(resolvedNextPath, payload.user);
     } catch (e) {
       const message = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
+      if (message === "Failed to fetch") {
+        setError("로그인 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.");
+        return;
+      }
       setError(message);
     } finally {
       setLoading(false);

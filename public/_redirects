@@ -108,3 +108,7 @@
 
 # SPA 폴백 (Next.js가 처리하지 않는 경로)
 # Next.js App Router가 있으므로 아래는 Cloudflare Pages 정적 자산에만 적용
+
+# API 라우팅: Pages -> Worker (auth/login/signup 포함)
+/api                          https://code-destiny-web.bulegyung.workers.dev/api                 200
+/api/*                        https://code-destiny-web.bulegyung.workers.dev/api/:splat          200
