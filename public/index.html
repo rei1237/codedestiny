@@ -7677,7 +7677,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(window.__cdAdminBypass)return;
     var action=tile.getAttribute('data-action');
-    if(_cdIsDirectPremiumPdfAction(action))return;
+    if(action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium')return;
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
     if(!key||!D[key])return;
@@ -7691,7 +7691,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
     var action = tile.getAttribute('data-action');
-    if (_cdIsDirectPremiumPdfAction(action)) return false;
+    if (action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium') return false;
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
     if (!key || !D[key]) return false;
