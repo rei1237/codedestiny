@@ -237,22 +237,12 @@ export default function KkulkkulManseryukMain() {
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !isAdminUser) {
+    if (!token) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
       return;
     }
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: API 호출 없이 즉시 해금 (코인 차감 없음)
-    if (adminToken || isAdminUser) {
-      setUnlockedFeatures((prev) => {
-        const next = { ...prev, [key]: true };
-        if (alsoUnlock?.length) for (const aliasKey of alsoUnlock) next[aliasKey] = true;
-        return next;
-      });
-      setSparkleTarget(key);
-      return;
-    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -287,19 +277,12 @@ export default function KkulkkulManseryukMain() {
 
   const runPaidFeatureOnce = async (key: PerUseKey, cost: number) => {
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !isAdminUser) {
+    if (!token) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
       return;
     }
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: API 호출 없이 즉시 회당 사용 처리 (코인 차감 없음)
-    if (adminToken || isAdminUser) {
-      setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-      setSparkleTarget(key);
-      redirectPerUseFeature(key);
-      return;
-    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -329,7 +312,7 @@ export default function KkulkkulManseryukMain() {
 
   const runPremiumIntroGate = async (service: PremiumServiceKey) => {
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !isAdminUser) {
+    if (!token) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
       return false;
@@ -340,10 +323,6 @@ export default function KkulkkulManseryukMain() {
     }
 
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: 잔액 확인 없이 즉시 통과 (코인 차감 없음)
-    if (adminToken || isAdminUser) {
-      return true;
-    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -409,13 +388,8 @@ export default function KkulkkulManseryukMain() {
       }
 
       const token = localStorage.getItem('fortune_auth_token');
-      if (!token && !isAdminUser) return;
+      if (!token) return;
       const adminToken = getFlowerAdminTokenClient();
-      // 관리자 모드: consume API 없이 즉시 generate 단계로 이동 (코인 차감 없음)
-      if (adminToken || isAdminUser) {
-        setPremiumFlowStage('generate');
-        return;
-      }
       const adminTestTier = getFlowerAdminTestTierClient();
       const authHeaders = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
