@@ -112,7 +112,7 @@ const PER_USE_DESTINATION: Partial<Record<PerUseKey, string>> = {
   turtleIChing: "/index.html?action=openJuyukModal",
   egyptOracle: "/index.html?action=openKemetModal",
   geomancy: "/geomancy-oracle-v4.html",
-  stonehengeRunes: "/static?service=stonehenge-rune",
+  stonehengeRunes: "/oracle/rune",
   premiumTarot: "/index.html?action=openTarotModal",
   loveSimulation: "/saju/love-simulation",
 };

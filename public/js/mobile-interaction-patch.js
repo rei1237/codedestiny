@@ -1193,16 +1193,17 @@
 
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
-      if (!rule) return;
-
-      // Scroll/touch ghost click suppression must only apply to bridge-managed rules.
+      
+      // ?�크�?직후?�거???�치 무시 ?�간 ?�에 ?�릭??경우 차단
       var now = Date.now();
       if (now < suppressClickUntil || (now - lastScrollAt < SCROLL_BLOCK_MS)) {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
+
+      var rule = findRuleFromTarget(event.target);
+      if (!rule) return;
 
       var handled = invokeBusinessAction(rule, event.target, event);
       if (!handled) return;

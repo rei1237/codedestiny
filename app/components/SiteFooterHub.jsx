@@ -63,7 +63,7 @@ export default function SiteFooterHub() {
           ))}
         </nav>
         <p style={{ margin: 0, width: "100%", textAlign: "center", color: "#475569" }}>
-          © 2026 Code Destiny. All rights reserved.
+          © 2026 Code Destiny. All rights reserved. <a href="/admin/login" style={{ cursor: 'pointer', marginLeft: '6px', textDecoration: 'none' }}>🌸</a>
         </p>
       </div>
     </footer>

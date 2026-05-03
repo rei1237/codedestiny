@@ -24,24 +24,6 @@ if (typeof window !== 'undefined' && typeof window.openFortuneTellerFishPage !==
   };
 }
 
-if (typeof window !== 'undefined' && typeof window.openRuneOracle !== 'function') {
-  window.openRuneOracle = function openRuneOracle() {
-    const selfRef = window.openRuneOracle;
-    return __loadScriptOnce('/js/router.js')
-      .then(() => {
-        if (typeof window.openRuneOracle === 'function' && window.openRuneOracle !== selfRef) {
-          return window.openRuneOracle();
-        }
-        window.location.assign('/static?service=stonehenge-rune');
-        return undefined;
-      })
-      .catch(() => {
-        window.location.assign('/static?service=stonehenge-rune');
-        return undefined;
-      });
-  };
-}
-
 const __lazyActionLoaders = {
   checkPrivacyAndCalculate: () => __ensureSajuCoreScripts(),
   agreeAndCalculate: () => __ensureSajuCoreScripts(),
@@ -62,7 +44,6 @@ const __lazyActionLoaders = {
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'),
-  openRuneOracle: () => __loadScriptOnce('/js/router.js'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'),

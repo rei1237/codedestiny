@@ -25,7 +25,7 @@ export default function FooterLegal() {
         이용자 본인에게 있습니다.
       </p>
       <p>
-        © 2026 Code Destiny. All rights reserved. &nbsp;·&nbsp;
+        © 2026 Code Destiny. All rights reserved. <a href="/admin/login" style={{ cursor: 'pointer', marginLeft: '6px', textDecoration: 'none' }}>🌸</a> &nbsp;·&nbsp;
         <a href="/privacy-policy">개인정보처리방침</a>
         &nbsp;·&nbsp;
         <a href="/terms">이용약관</a>
