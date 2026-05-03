@@ -304,17 +304,67 @@ const LIFEBOOK_CHAPTERS = [
 ];
 
 const LOVE_SECRET_CHAPTERS = [
-  "나의 연애 성향",
-  "상대에게 끌리는 이유",
-  "관계의 속도와 거리",
-  "말투와 연락의 비밀",
-  "갈등이 생기는 지점",
-  "상대방 심리 해석",
-  "재회와 회복 가능성",
-  "결혼과 장기 궁합",
-  "피해야 할 관계 패턴",
-  "30일 연애 전략",
-  "연애 비책 마스터 플랜",
+  "🔑 본연의 연애 자아: 나도 몰랐던 사랑의 본능",
+  "💘 치명적 매력과 페로몬: 이성을 끌어당기는 나의 무기",
+  "💑 두 사람의 사주 궁합: 우리는 운명인가",
+  "⚔️ 밀당 전략서: 상대방 심리를 꿰뚫는 작전 지도",
+  "📅 시기별 연애 운의 흐름: 운명이 허락하는 그날",
+  "🌑 연애 리스크: 충돌 지점과 금기 지도",
+  "🔥 육체적 궁합: 두 사람의 감각 에너지 호환성",
+  "📲 현대적 상황별 비책: 디지털 시대의 연애 전략",
+  "💍 결혼 시기: 언제, 누구와 정착할 것인가",
+  "🌿 개운 처방전: 두 사람의 사랑을 부르는 비책",
+  "🌊 속궁합 완전 해석: 조후와 십성으로 본 깊은 궁합의 비밀",
+];
+
+const LOVE_SECRET_CHAPTER_SUBTITLES = [
+  "감정 반응과 애착 리듬을 읽는 연애 기초 해석",
+  "매력 발산 포인트와 관계 유입 신호 분석",
+  "오행/일주 합충으로 보는 궁합의 실제 체감",
+  "상대 심리 단계별 접근 전략과 금기어 정리",
+  "연애 운 상승/정체/변곡 시점별 의사결정 가이드",
+  "반복 충돌 패턴과 경계선 설정 플랜",
+  "감각 궁합과 친밀도 에너지 온도차 해석",
+  "연락/메신저/소개팅 플랫폼 실전 운영법",
+  "결혼 적기와 정착 파트너 조건 매칭",
+  "기운 보완 루틴과 관계 회복 실천 루틴",
+  "조후·십성·심층 궁합을 종합한 최종 판정",
+];
+
+const LOVE_SECRET_COUNSELOR_FOCUS = [
+  "일간·일지·애착 반응을 연결해 감정 기동 패턴을 진단하고, 자기 파괴적 연애 트리거를 명확히 짚습니다.",
+  "도화/홍염/관성·식상 균형을 바탕으로 매력 발현 포인트와 첫인상 설계 전략을 제시합니다.",
+  "두 사람의 일주·합충·오행 보완 구조를 비교해 실제 관계 지속력과 체감 궁합을 판단합니다.",
+  "상대의 반응 리듬을 십성 관점으로 해석해 접근-거리두기-회복의 대화 시퀀스를 설계합니다.",
+  "대운·세운의 변곡점을 근거로 고백/관계전환/정리 타이밍을 월 단위로 제안합니다.",
+  "충돌 원인(감정, 언어, 경계선)을 분리 진단하고 악화 시그널과 차단 규칙을 구체화합니다.",
+  "친밀도와 감각 궁합의 온도차를 해석하고 신뢰를 해치지 않는 친밀도 합의 프레임을 제안합니다.",
+  "메신저/DM/소개팅앱 상황별로 오해를 줄이는 문장 구조와 응답 템포 전략을 제공합니다.",
+  "결혼 적기, 동거/재정/가치관 정착 조건을 사주 리스크와 함께 현실적으로 매칭합니다.",
+  "개운 루틴(수면, 공간, 관계 습관)을 통해 감정 소진을 줄이고 관계 회복 확률을 높이는 처방을 제시합니다.",
+  "조후·십성·오행 상생/상극을 통합해 속궁합과 장기 친밀 지속 가능성을 최종 판정합니다.",
+];
+
+const DEFAULT_BOOK_SECTION_HEADERS = [
+  "핵심 해석",
+  "반복되는 패턴",
+  "관계와 선택의 포인트",
+  "조심해야 할 그림자",
+  "실전 행동 가이드",
+];
+
+const LOVE_SECRET_SECTION_HEADERS = [
+  ["연애 본능 핵심 해석", "감정 트리거의 반복 패턴", "관계 시작의 선택 포인트", "집착/회피의 그림자", "7일 자기조율 행동 가이드"],
+  ["치명적 매력의 구조 해석", "호감 유입의 반복 패턴", "매력 발산 타이밍 포인트", "과잉 어필의 그림자", "매력 강화 실전 루틴"],
+  ["두 사람 궁합 핵심 해석", "합/충의 반복 패턴", "관계 유지 선택 포인트", "궁합 약점의 그림자", "관계 안정 행동 가이드"],
+  ["상대 심리 핵심 해석", "밀당 실패의 반복 패턴", "대화/거리 조절 포인트", "심리전 과몰입의 그림자", "상황별 밀당 행동 가이드"],
+  ["연애 타이밍 핵심 해석", "운의 파동 반복 패턴", "고백/관계전환 포인트", "조급함의 그림자", "월별 실행 행동 가이드"],
+  ["리스크 핵심 해석", "충돌 재발 반복 패턴", "갈등 중재 선택 포인트", "파국 신호의 그림자", "리스크 차단 행동 가이드"],
+  ["감각 궁합 핵심 해석", "친밀도 온도차 반복 패턴", "속도/강도 조율 포인트", "신뢰 훼손의 그림자", "친밀 회복 행동 가이드"],
+  ["디지털 연애 핵심 해석", "연락 텐션 반복 패턴", "채널별 운영 포인트", "오해 증폭의 그림자", "메신저 실전 행동 가이드"],
+  ["정착 가능성 핵심 해석", "결혼 변수 반복 패턴", "정착 의사결정 포인트", "현실 조건의 그림자", "결혼 준비 행동 가이드"],
+  ["개운 전략 핵심 해석", "운 보정 반복 패턴", "관계 회복 선택 포인트", "소진의 그림자", "개운 실천 행동 가이드"],
+  ["속궁합 심층 핵심 해석", "조후/십성 반복 패턴", "심층 친밀 선택 포인트", "불균형의 그림자", "장기 궁합 행동 가이드"],
 ];
 
 function stringifyCompact(value, maxLength = 4200) {
@@ -333,45 +383,59 @@ function buildSessionInput(body, maxChapter) {
   return input;
 }
 
-function buildSessionPrompt(kind, title, chapter, totalChapters, body) {
+function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHeaders, options = {}) {
   const sajuData = stringifyCompact(body.sajuData || body.profile || body.birth || body, 5200);
   const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2600);
   const relationshipGuide = partnerData
     ? "\n[Partner / compatibility data]\n" + partnerData
     : "";
+  const headers = Array.isArray(sectionHeaders) && sectionHeaders.length === 5
+    ? sectionHeaders
+    : DEFAULT_BOOK_SECTION_HEADERS;
+  const subtitle = String(options.subtitle || "").trim();
+  const counselorFocus = String(options.counselorFocus || "").trim();
+  const chapterLabel = subtitle ? `${title} — ${subtitle}` : title;
 
   return [
     `You are Code Destiny's premium ${kind} writer.`,
+    "Your role: elite relationship counselor + advanced saju analyst.",
     "Return ONLY natural Korean markdown. Do not use English headings.",
     "Use the provided saju/birth-analysis data as the source of truth.",
     "Write a premium PDF chapter with concrete interpretation, choices, cautions, and a practical action plan.",
     "Avoid generic fortune-telling filler. Make the answer specific to the supplied data.",
+    "Do NOT describe other chapters. Keep all interpretation tightly aligned to this chapter title and subtitle.",
+    "Keep a professional, warm counseling tone without fear marketing or deterministic verdicts.",
     "",
-    `[Chapter ${chapter}/${totalChapters}] ${title}`,
+    `[Chapter ${chapter}/${totalChapters}] ${chapterLabel}`,
+    counselorFocus ? `[Counselor Focus]\n${counselorFocus}` : "",
     "",
     "[Saju / analysis data]",
     sajuData || "No structured saju data was supplied; infer cautiously from the request body.",
     relationshipGuide,
     "",
     "Required markdown structure:",
-    "## 핵심 해석",
-    "## 반복되는 패턴",
-    "## 관계와 선택의 포인트",
-    "## 조심해야 할 그림자",
-    "## 실전 행동 가이드",
+    `## ${chapterLabel} 핵심 진단`,
+    ...headers.map((h) => `## ${h}`),
     "",
-    "Each section must be at least two substantial paragraphs. Total length must be at least 900 Korean characters.",
+    "Quality constraints:",
+    "- Include at least one concrete behavioral example in each section.",
+    "- Use saju terms only when tied to a plain-language implication.",
+    "- End each section with one actionable sentence.",
+    "Each section must be at least two substantial paragraphs. Total length must be at least 1100 Korean characters.",
   ].join("\n");
 }
 
-function bookFallback(kind, title, body) {
+function bookFallback(kind, title, body, sectionHeaders) {
   const source = stringifyCompact(body.sajuData || body.partnerData || body, 900).replace(/\s+/g, " ").trim();
+  const headers = Array.isArray(sectionHeaders) && sectionHeaders.length === 5
+    ? sectionHeaders
+    : DEFAULT_BOOK_SECTION_HEADERS;
   const base = [
-    `## 핵심 해석\n${title} 챕터는 현재 입력된 사주 데이터와 선택 흐름을 바탕으로 ${kind}의 중심 패턴을 정리합니다. ${source ? `참고 데이터의 핵심 단서는 "${source.slice(0, 180)}" 구간에 모여 있습니다.` : "현재 데이터가 제한적이므로 기본 사주 흐름을 보수적으로 해석합니다."} 이 결과는 단정이 아니라 선택을 더 선명하게 보기 위한 지도입니다.`,
-    "## 반복되는 패턴\n반복되는 흐름은 감정, 관계, 일의 방식이 서로 영향을 주고받는 지점에서 드러납니다. 같은 문제가 이름만 바뀌어 다시 나타난다면 운이 나빠서가 아니라 아직 정리되지 않은 선택 기준이 있다는 뜻입니다.",
-    "## 관계와 선택의 포인트\n가장 중요한 기준은 지금 당장 강한 감정이 아니라 장기적으로 나를 안정시키는 방향입니다. 관계에서는 말의 양보다 일관성, 직업과 돈에서는 속도보다 지속 가능성을 우선해서 판단하는 것이 좋습니다.",
-    "## 조심해야 할 그림자\n강점이 강하게 드러날수록 조급함, 과잉 책임감, 회피, 완벽주의 같은 그림자도 함께 커질 수 있습니다. 이 그림자를 억누르기보다 미리 알아차리고 작은 규칙으로 관리하는 것이 안전합니다.",
-    "## 실전 행동 가이드\n앞으로 7일 동안은 하나의 큰 결정보다 작은 검증을 먼저 하세요. 매일 감정 점수와 실제 행동 하나를 기록하고, 반복해서 에너지를 빼앗는 선택은 줄이며, 회복감을 주는 루틴은 일정에 고정하는 방식이 좋습니다.",
+    `## ${headers[0]}\n${title} 챕터는 현재 입력된 사주 데이터와 선택 흐름을 바탕으로 ${kind}의 중심 패턴을 정리합니다. ${source ? `참고 데이터의 핵심 단서는 "${source.slice(0, 180)}" 구간에 모여 있습니다.` : "현재 데이터가 제한적이므로 기본 사주 흐름을 보수적으로 해석합니다."} 이 결과는 단정이 아니라 선택을 더 선명하게 보기 위한 지도입니다.`,
+    `## ${headers[1]}\n반복되는 흐름은 감정, 관계, 일의 방식이 서로 영향을 주고받는 지점에서 드러납니다. 같은 문제가 이름만 바뀌어 다시 나타난다면 운이 나빠서가 아니라 아직 정리되지 않은 선택 기준이 있다는 뜻입니다.`,
+    `## ${headers[2]}\n가장 중요한 기준은 지금 당장 강한 감정이 아니라 장기적으로 나를 안정시키는 방향입니다. 관계에서는 말의 양보다 일관성, 직업과 돈에서는 속도보다 지속 가능성을 우선해서 판단하는 것이 좋습니다.`,
+    `## ${headers[3]}\n강점이 강하게 드러날수록 조급함, 과잉 책임감, 회피, 완벽주의 같은 그림자도 함께 커질 수 있습니다. 이 그림자를 억누르기보다 미리 알아차리고 작은 규칙으로 관리하는 것이 안전합니다.`,
+    `## ${headers[4]}\n앞으로 7일 동안은 하나의 큰 결정보다 작은 검증을 먼저 하세요. 매일 감정 점수와 실제 행동 하나를 기록하고, 반복해서 에너지를 빼앗는 선택은 줄이며, 회복감을 주는 루틴은 일정에 고정하는 방식이 좋습니다.`,
   ].join("\n\n");
   return base.length >= 900 ? base : `${base}\n\n${base}`;
 }
@@ -404,20 +468,37 @@ async function handleLoveSecretSession(request, env) {
   const body = await readJson(request);
   const input = buildSessionInput(body, 11);
   const chapter = input.chapter;
+  const totalChapters = clampInt(body.totalChapters, 11, 10, 11);
   const title = LOVE_SECRET_CHAPTERS[chapter - 1] || LOVE_SECRET_CHAPTERS[0];
-  const prompt = buildSessionPrompt("love secret relationship guide", title, chapter, 11, body);
+  const subtitle = LOVE_SECRET_CHAPTER_SUBTITLES[chapter - 1] || "사주 궁합 기반 연애 비책";
+  const counselorFocus = LOVE_SECRET_COUNSELOR_FOCUS[chapter - 1] || "사주 기반 연애 패턴 분석과 실전 상담 가이드를 균형 있게 제시합니다.";
+  const sectionHeaders = LOVE_SECRET_SECTION_HEADERS[chapter - 1] || DEFAULT_BOOK_SECTION_HEADERS;
+  const prompt = buildSessionPrompt(
+    "love secret relationship guide",
+    title,
+    chapter,
+    totalChapters,
+    body,
+    sectionHeaders,
+    { subtitle, counselorFocus }
+  );
   let text = await callGemini(env, prompt, ["LOVE_SECRET_GEMINI_MODEL"]);
   let usedFallback = false;
   if (!text || text.length < 500) {
     usedFallback = true;
-    text = bookFallback("연애 비책", title, body);
+    text = bookFallback("연애 비책", title, body, sectionHeaders);
   }
 
   return json({
     ok: true,
     sessionId: chapter,
     chapter,
-    chapterMeta: { num: chapter, title, subtitle: "사주 궁합 기반 연애 비책", icon: "heart" },
+    chapterMeta: {
+      num: chapter,
+      title,
+      subtitle,
+      icon: "heart"
+    },
     text,
     sections: parseSections(text),
     usedFallback,

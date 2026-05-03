@@ -67,17 +67,53 @@
   ];
 
   var _chapters = Array(11).fill(null);
+  var _chapterTitles = CHAPTER_TITLES.slice();
+  var _chapterSubtitles = CHAPTER_SUBTITLES.slice();
   var _generating = false;
   var _quoteTimer = null;
   var _heartTimer = null;
   var _quoteIdx = 0;
   var _activeRequestController = null;
   var _cancelGeneration = false;
+  var _lsSessionProfile = null;
+  var _lsTargetChapterCount = 11;
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
       try { _activeRequestController.abort(); } catch (_) {}
       _activeRequestController = null;
+    }
+  }
+
+  function _lsCloneProfile(profile) {
+    if (!profile || typeof profile !== 'object') return null;
+    try { return JSON.parse(JSON.stringify(profile)); } catch (_) { return null; }
+  }
+
+  function _lsClearAllSaved() {
+    try {
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var key = localStorage.key(i);
+        if (key && key.indexOf(_STORE_VER) === 0) localStorage.removeItem(key);
+      }
+    } catch (_) {}
+  }
+
+  function _lsResetSession(options) {
+    var opts = options || {};
+    _cancelGeneration = true;
+    _generating = false;
+    _abortActiveRequest();
+    _stopLoadingAnimation();
+    _chapters = Array(11).fill(null);
+    _chapterTitles = CHAPTER_TITLES.slice();
+    _chapterSubtitles = CHAPTER_SUBTITLES.slice();
+    _cachedSajuData = '';
+    _lsTargetChapterCount = 11;
+    _lsSessionProfile = null;
+    if (opts.clearStorage) _lsClearAllSaved();
+    if (opts.clearGlobalProfile) {
+      try { window.__cdActiveBirthProfile = null; } catch (_) {}
     }
   }
 
@@ -578,7 +614,7 @@
       p.classList.remove('done', 'active');
       if (i < done) {
         p.classList.add('done');
-      } else if (i === done && done < 11) {
+      } else if (i === done && done < _lsTargetChapterCount) {
         p.classList.add('active');
       }
     });
@@ -638,7 +674,13 @@
       alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
-    _chapters = Array(11).fill(null);
+
+    _lsResetSession({ clearStorage: true, clearGlobalProfile: false });
+    _lsSessionProfile = _lsCloneProfile(window.__cdActiveBirthProfile) || window.__cdActiveBirthProfile || null;
+    if (_lsSessionProfile) {
+      window.__cdActiveBirthProfile = _lsCloneProfile(_lsSessionProfile) || _lsSessionProfile;
+    }
+
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -652,10 +694,7 @@
   window.closeLoveSecretModal = function () {
     var modal = _qs('loveSecretModal');
     if (!modal) return;
-    _cancelGeneration = true;
-    _generating = false;
-    _abortActiveRequest();
-    _stopLoadingAnimation();
+    _lsResetSession({ clearStorage: true, clearGlobalProfile: true });
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
@@ -668,6 +707,7 @@
       var btn = e.target.closest('[data-ls-chapter]');
       if (!btn) return;
       var ch = Number(btn.getAttribute('data-ls-chapter'));
+      if (ch > _lsTargetChapterCount) return;
       if (!ch || !_chapters[ch - 1]) return;
       _renderChapter(ch);
       Array.prototype.forEach.call(nav.querySelectorAll('.ls-toc-item'), function (b) {
@@ -680,8 +720,15 @@
   function _renderChapter(ch) {
     var content = _qs('lsChapterContent');
     if (!content) return;
+    if (ch > _lsTargetChapterCount) {
+      content.innerHTML = '<p class="ls-ch-empty">현재 모드에서는 이 챕터를 생성하지 않습니다.</p>';
+      return;
+    }
+
     var idx = ch - 1;
     var data = _chapters[idx];
+    var chapterTitle = _chapterTitles[idx] || CHAPTER_TITLES[idx] || ('Chapter ' + ch);
+    var chapterSubtitle = _chapterSubtitles[idx] || CHAPTER_SUBTITLES[idx] || '사주 기반 연애 심층 해석';
     if (!data) {
       content.innerHTML = '<p class="ls-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';
       return;
@@ -690,8 +737,8 @@
       '<div class="ls-chapter-wrap">' +
       '<div class="ls-chapter-header">' +
       '<span class="ls-chapter-num">Chapter ' + ch + '</span>' +
-      '<h2 class="ls-chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
-      '<p class="ls-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
+      '<h2 class="ls-chapter-title">' + _escHtml(chapterTitle) + '</h2>' +
+      '<p class="ls-chapter-sub">' + _escHtml(chapterSubtitle) + '</p>' +
       '</div>' +
       '<div class="ls-chapter-body">' + _md2html(data) + '</div>' +
       '</div>';
@@ -702,8 +749,10 @@
     var items = document.querySelectorAll('.ls-toc-item');
     Array.prototype.forEach.call(items, function (btn) {
       var ch = Number(btn.getAttribute('data-ls-chapter'));
-      btn.classList.toggle('loaded', !!_chapters[ch - 1]);
-      btn.classList.toggle('active', ch === 1);
+      var enabled = ch <= _lsTargetChapterCount;
+      btn.classList.toggle('loaded', enabled && !!_chapters[ch - 1]);
+      btn.classList.toggle('active', enabled && ch === 1);
+      btn.classList.toggle('disabled', !enabled);
     });
   }
 
@@ -724,12 +773,17 @@
     }
     var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
     if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
+    _lsSessionProfile = _lsCloneProfile(window.__cdActiveBirthProfile) || window.__cdActiveBirthProfile;
+    if (_lsSessionProfile) {
+      window.__cdActiveBirthProfile = _lsCloneProfile(_lsSessionProfile) || _lsSessionProfile;
+    }
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
       try { window.computeProfileForModal(window.__cdActiveBirthProfile); } catch (_cpE) {}
     }
     _cachedSajuData = _collectSajuData();
     _chapters = Array(11).fill(null);
+    _lsTargetChapterCount = 11;
     _showScreen('lsPartnerScreen');
     _bindPartnerScreen();
   };
@@ -780,6 +834,7 @@
   };
 
   function _startGeneration(partnerData) {
+    _lsTargetChapterCount = partnerData ? 11 : 10;
     _generating = true;
     _cancelGeneration = false;
     _showScreen('lsLoadingScreen');
@@ -790,11 +845,11 @@
     var chapterMsg = _qs('lsLoadingChapter');
 
     function _setProgress(done) {
-      var pct = (done / 11) * 100;
+      var pct = (done / _lsTargetChapterCount) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / 11 챕터 완성';
-      if (chapterMsg && done < 11) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 11) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
+      if (progressText) progressText.textContent = done + ' / ' + _lsTargetChapterCount + ' 챕터 완성';
+      if (chapterMsg && done < _lsTargetChapterCount) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (chapterMsg && done >= _lsTargetChapterCount) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
       _updateLoadPills(done);
     }
     _setProgress(0);
@@ -849,7 +904,7 @@
           fetch(_plan.url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
+            body: JSON.stringify({ sessionId: idx + 1, totalChapters: _lsTargetChapterCount, sajuData: sajuData, partnerData: partnerData || '' }),
             signal: _controller ? _controller.signal : undefined,
           })
             .then(function (res) {
@@ -888,14 +943,14 @@
 
     (function generateNext(idx) {
       if (_cancelGeneration) return;
-      if (idx >= 11) {
+      if (idx >= _lsTargetChapterCount) {
         _generating = false;
         _stopLoadingAnimation();
         _showScreen('lsResultScreen');
         _updateTocState();
         _renderChapter(1);
         _bindToc();
-        var profile = window.__cdActiveBirthProfile || {};
+        var profile = _lsSessionProfile || window.__cdActiveBirthProfile || {};
         _saveResult(profile);
         _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
         return;
@@ -903,6 +958,12 @@
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
           if (_cancelGeneration) return;
+          if (data && data.chapterMeta) {
+            var _metaTitle = String(data.chapterMeta.title || '').trim();
+            var _metaSubtitle = String(data.chapterMeta.subtitle || '').trim();
+            if (_metaTitle) _chapterTitles[idx] = _metaTitle;
+            if (_metaSubtitle) _chapterSubtitles[idx] = _metaSubtitle;
+          }
           _chapters[idx] = (data && data.ok && data.text)
             ? data.text
             : '⚠️ 이 챕터의 분석을 불러오는 데 실패했습니다.\n\n' + (data && data.message ? data.message : '알 수 없는 오류');
@@ -919,7 +980,7 @@
 
   window.downloadLoveSecretPdf = function () {
     if (!_chapters.some(Boolean)) { alert('먼저 연애 비책을 생성해 주세요.'); return; }
-    var profile = window.__cdActiveBirthProfile || {};
+    var profile = _lsSessionProfile || window.__cdActiveBirthProfile || {};
     var birth = profile.birth || {};
     var birthStr = birth.year
       ? birth.year + '년 ' + (birth.month || '') + '월 ' + (birth.day || '') + '일'
@@ -927,22 +988,25 @@
     var genderStr = profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : '';
     var issued = new Date().toLocaleDateString('ko-KR');
     var bodyHtml = '';
-    for (var i = 0; i < 11; i++) {
+    for (var i = 0; i < _lsTargetChapterCount; i++) {
       if (!_chapters[i]) continue;
+      var pdfTitle = _chapterTitles[i] || CHAPTER_TITLES[i] || ('Chapter ' + (i + 1));
+      var pdfSubtitle = _chapterSubtitles[i] || CHAPTER_SUBTITLES[i] || '사주 기반 연애 심층 해석';
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
         '<div class="chapter-header">' +
         '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
-        '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+        '<h2 class="chapter-title">' + _escHtml(pdfTitle) + '</h2>' +
+        '<p class="chapter-sub">' + _escHtml(pdfSubtitle) + '</p>' +
         '</div>' +
         '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
         '</div>';
     }
 
-    var tocHtml = _chapters.map(function (c, i) {
+    var tocHtml = _chapters.slice(0, _lsTargetChapterCount).map(function (c, i) {
       if (!c) return '';
-      return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(CHAPTER_TITLES[i]) + '</span></div>';
+      var tocTitle = _chapterTitles[i] || CHAPTER_TITLES[i] || ('Chapter ' + (i + 1));
+      return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(tocTitle) + '</span></div>';
     }).join('');
 
     var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
