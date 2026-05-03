@@ -197,3 +197,8 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
+
+// 전역 함수: 코인 게이트 후 openRuneOracle 액션 재호출 시 사용
+window.openRuneOracle = function () {
+  renderService("stonehenge-rune");
+};

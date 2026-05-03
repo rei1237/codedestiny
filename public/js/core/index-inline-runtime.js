@@ -1518,7 +1518,6 @@ var __cdLazyActionLoaders = {
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-modal.js'); },
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
-  openRuneOracle: function() { return __cdLoadScriptOnce('/js/router.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
@@ -1531,11 +1530,8 @@ var __cdLazyActionLoaders = {
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
+  openRuneOracle: function() { return Promise.resolve(window.location.assign('/static?service=stonehenge-rune')); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260411-zfix1'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260411-zfix1'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260411-zfix1'); },
-  gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
   openSibylModal: function() {
@@ -2105,20 +2101,6 @@ window.openDestinyEggPage = function() {
     console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
   }
 };
-window.openRuneOracle = function() {
-  var selfRef = window.openRuneOracle;
-  return __cdLoadScriptOnce('/js/router.js').then(function() {
-    if (typeof window.openRuneOracle === 'function' && window.openRuneOracle !== selfRef) {
-      return window.openRuneOracle();
-    }
-    window.location.assign('/static?service=stonehenge-rune');
-    return undefined;
-  }).catch(function(err) {
-    console.error('[index-inline-runtime] openRuneOracle failed:', err);
-    window.location.assign('/static?service=stonehenge-rune');
-    return undefined;
-  });
-};
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
@@ -2161,12 +2143,11 @@ function __cdInvokeAction(action, actionEl, event) {
     var hasFn = typeof window[action] === 'function';
     if (!loader || hasFn || out !== undefined) return;
 
-      // prem-gate 5종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
+    // prem-gate 4종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
     // 타일 최초 클릭 시 여기서 lazy-load/재호출 중복 방지
     if (!hasFn && actionEl && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
       if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' ||
-          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' ||
-          action === 'gotoNamingPremium') return;
+          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') return;
     }
 
     if (!__cdLazyActionState[action]) {
@@ -2185,14 +2166,6 @@ function __cdInvokeAction(action, actionEl, event) {
           window.LuckSyncDiary.close();
         } else if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
           window.openZiweiBookModal();
-        } else if (action === 'gotoAstrologyPremium' && typeof window.openAstroBookModal === 'function') {
-          window.openAstroBookModal();
-        } else if (action === 'gotoSukuyoPremium' && typeof window.openSukuyoBookModal === 'function') {
-          window.openSukuyoBookModal();
-        } else if (action === 'gotoVedicPremium' && typeof window.openVedicBookModal === 'function') {
-          window.openVedicBookModal();
-        } else if (action === 'gotoNamingPremium') {
-          window.location.assign('/myungwun_final.html');
         }
         return;
       }
@@ -7660,6 +7633,14 @@ function closeTarotModal() {
 // Ensure uiBindings `data-action` routing can always find these handlers on `window`.
 window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
+function openRuneOracle() {
+  try {
+    window.location.assign('/static?service=stonehenge-rune');
+  } catch (err) {
+    console.error('[index-inline-runtime] openRuneOracle failed:', err);
+  }
+}
+window.openRuneOracle = openRuneOracle;
 
 /* ═══════════════════════════════════════════════════════════════
    세 타로 메인 화면 클릭 시 코인 차감 핸들러

@@ -1530,6 +1530,7 @@ var __cdLazyActionLoaders = {
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
+  openRuneOracle: function() { return Promise.resolve(window.location.assign('/static?service=stonehenge-rune')); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
   gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260411-zfix1'); },
   gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260411-zfix1'); },
@@ -2095,6 +2096,20 @@ window.openYogaGuru = function() {
     window.location.href = '/yoga-guru.html';
   } catch (err) {
     console.error('[index-inline-runtime] openYogaGuru failed:', err);
+  }
+};
+window.openAdminFlowerGate = function() {
+  try {
+    if (typeof window.requestAdminFlowerEntry === 'function') {
+      var out = window.requestAdminFlowerEntry();
+      return out;
+    }
+    window.location.href = '/admin/login';
+    return undefined;
+  } catch (err) {
+    console.error('[index-inline-runtime] openAdminFlowerGate failed:', err);
+    try { window.location.assign('/admin/login'); } catch (_) {}
+    return undefined;
   }
 };
 window.openDestinyEggPage = function() {
@@ -7645,6 +7660,14 @@ function closeTarotModal() {
 // Ensure uiBindings `data-action` routing can always find these handlers on `window`.
 window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
+function openRuneOracle() {
+  try {
+    window.location.assign('/static?service=stonehenge-rune');
+  } catch (err) {
+    console.error('[index-inline-runtime] openRuneOracle failed:', err);
+  }
+}
+window.openRuneOracle = openRuneOracle;
 
 /* ═══════════════════════════════════════════════════════════════
    세 타로 메인 화면 클릭 시 코인 차감 핸들러
