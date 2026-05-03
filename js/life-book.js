@@ -96,9 +96,46 @@
     try {
       for (var i = localStorage.length - 1; i >= 0; i--) {
         var key = localStorage.key(i);
-        if (key && key.indexOf(_LB_STORE_VER) === 0) localStorage.removeItem(key);
+        if (!key) continue;
+        if (key.indexOf(_LB_STORE_VER) === 0 || /life[-_]?book/i.test(key) || /^lb_result/i.test(key)) {
+          localStorage.removeItem(key);
+        }
       }
     } catch (_) {}
+  }
+
+  function _lbResetUiState() {
+    var epBanner = _qs('lbEpilogueBanner');
+    if (epBanner) epBanner.style.display = 'none';
+
+    var content = _qs('lbChapterContent');
+    if (content) content.innerHTML = '<p class="lb-ch-empty">아직 생성된 챕터가 없습니다.</p>';
+
+    var nameEl = _qs('lbResultName');
+    if (nameEl) nameEl.textContent = '📜 사용자의 인생의 책';
+
+    var dateEl = _qs('lbResultDate');
+    if (dateEl) dateEl.textContent = '';
+
+    var progressBar = _qs('lbProgressBar');
+    if (progressBar) progressBar.style.width = '0%';
+
+    var progressText = _qs('lbProgressText');
+    if (progressText) progressText.textContent = '0 / 13 챕터 완성';
+
+    var chapterMsg = _qs('lbLoadingChapter');
+    if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[0] || '분석 준비 중...';
+
+    var chapterNumEl = _qs('lbLoadingChapterNum');
+    if (chapterNumEl) chapterNumEl.textContent = 'Chapter 1';
+
+    Array.prototype.forEach.call(document.querySelectorAll('.lb-toc-item'), function (btn) {
+      btn.classList.remove('loaded', 'active');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.lb-ch-dot'), function (d, idx) {
+      d.classList.remove('lb-ch-dot--done', 'lb-ch-dot--active');
+      if (idx === 0) d.classList.add('lb-ch-dot--active');
+    });
   }
 
   function _lbResetSession(options) {
@@ -594,6 +631,7 @@
     }
 
     _lbResetSession({ clearStorage: true, clearGlobalProfile: false });
+    _lbResetUiState();
     _lbSessionProfile = _lbCloneProfile(profile) || profile;
     window.__cdActiveBirthProfile = _lbCloneProfile(_lbSessionProfile) || _lbSessionProfile;
 
@@ -619,6 +657,7 @@
     var modal = _qs('lifeBookModal');
     if (!modal) return;
     _lbResetSession({ clearStorage: true, clearGlobalProfile: true });
+    _lbResetUiState();
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
