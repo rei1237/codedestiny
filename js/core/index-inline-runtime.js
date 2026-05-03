@@ -296,6 +296,187 @@ function __cdSetPaymentLoadingOverlay(open, message) {
   overlay.style.display = open ? 'flex' : 'none';
 }
 
+function __cdEnsurePaymentStatusNoticeStyle() {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById('cdPaymentStatusNoticeStyle')) return;
+  var style = document.createElement('style');
+  style.id = 'cdPaymentStatusNoticeStyle';
+  style.textContent = [
+    '#cdPaymentStatusNotice {',
+    '  position: fixed;',
+    '  top: max(12px, env(safe-area-inset-top, 0px) + 8px);',
+    '  left: 50%;',
+    '  transform: translate(-50%, -14px);',
+    '  width: min(560px, calc(100% - 24px));',
+    '  border-radius: 14px;',
+    '  border: 1px solid transparent;',
+    '  padding: 11px 14px;',
+    '  box-shadow: 0 16px 44px rgba(2, 6, 23, 0.35);',
+    '  color: #ffffff;',
+    '  font-size: 14px;',
+    '  font-weight: 700;',
+    '  line-height: 1.4;',
+    '  opacity: 0;',
+    '  pointer-events: none;',
+    '  transition: opacity 0.18s ease, transform 0.18s ease;',
+    '  z-index: 1500;',
+    '}',
+    '#cdPaymentStatusNotice.is-show {',
+    '  opacity: 1;',
+    '  transform: translate(-50%, 0);',
+    '}',
+    '#cdPaymentStatusNotice[data-kind="success"] {',
+    '  background: rgba(5, 150, 105, 0.95);',
+    '  border-color: rgba(209, 250, 229, 0.65);',
+    '}',
+    '#cdPaymentStatusNotice[data-kind="cancel"] {',
+    '  background: rgba(180, 83, 9, 0.94);',
+    '  border-color: rgba(254, 215, 170, 0.7);',
+    '}',
+    '#cdPaymentStatusNotice[data-kind="login"] {',
+    '  background: rgba(30, 64, 175, 0.94);',
+    '  border-color: rgba(191, 219, 254, 0.68);',
+    '}',
+    '#cdPaymentStatusNotice[data-kind="fail"] {',
+    '  background: rgba(185, 28, 28, 0.94);',
+    '  border-color: rgba(254, 202, 202, 0.68);',
+    '}'
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
+function __cdShowPaymentStatusNotice(kind, message) {
+  if (typeof document === 'undefined') return;
+  __cdEnsurePaymentStatusNoticeStyle();
+
+  var notice = document.getElementById('cdPaymentStatusNotice');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'cdPaymentStatusNotice';
+    notice.setAttribute('role', 'status');
+    notice.setAttribute('aria-live', 'polite');
+    document.body.appendChild(notice);
+  }
+
+  notice.dataset.kind = kind || 'success';
+  notice.textContent = message || '';
+  notice.classList.add('is-show');
+
+  if (notice.__hideTimer) {
+    clearTimeout(notice.__hideTimer);
+  }
+  notice.__hideTimer = setTimeout(function() {
+    notice.classList.remove('is-show');
+  }, 4200);
+}
+
+function __cdNormalizePaymentStatus(rawStatus) {
+  var normalized = String(rawStatus || '').trim().toLowerCase();
+  if (!normalized) return '';
+
+  if (normalized === 'success' || normalized === 'succeeded' || normalized === 'paid' || normalized === 'ok' || normalized === 'done' || normalized === 'complete' || normalized === 'completed') {
+    return 'success';
+  }
+  if (normalized === 'cancel' || normalized === 'canceled' || normalized === 'cancelled' || normalized === 'aborted' || normalized === 'user_cancel') {
+    return 'cancel';
+  }
+  if (normalized === 'login' || normalized === 'auth' || normalized === 'unauthorized' || normalized === 'auth_required' || normalized === 'login_required') {
+    return 'login';
+  }
+  if (normalized === 'fail' || normalized === 'failed' || normalized === 'error' || normalized === 'denied') {
+    return 'fail';
+  }
+  return '';
+}
+
+function __cdConsumePaymentStatusFromQuery() {
+  if (typeof window === 'undefined') return null;
+
+  var url;
+  try {
+    url = new URL(window.location.href);
+  } catch (_) {
+    return null;
+  }
+
+  var q = url.searchParams;
+  var statusKeys = ['paymentStatus', 'payment_status', 'paymentResult', 'payment_result', 'status', 'result'];
+  var paymentKeys = ['payment', 'checkout', 'checkoutStatus', 'checkout_status', 'coinPayment', 'coin_payment'];
+  var messageKeys = ['paymentMessage', 'payment_message', 'error_description', 'errorMessage', 'error_message'];
+  var errorKeys = ['error', 'errorCode', 'error_code'];
+
+  var rawStatus = '';
+  var paymentIntentPresent = false;
+
+  for (var i = 0; i < statusKeys.length; i += 1) {
+    var statusValue = q.get(statusKeys[i]);
+    if (!statusValue) continue;
+    rawStatus = statusValue;
+    paymentIntentPresent = true;
+    break;
+  }
+
+  for (var j = 0; j < paymentKeys.length; j += 1) {
+    var paymentValue = q.get(paymentKeys[j]);
+    if (!paymentValue) continue;
+    paymentIntentPresent = true;
+    if (!rawStatus) rawStatus = paymentValue;
+    break;
+  }
+
+  var kind = __cdNormalizePaymentStatus(rawStatus);
+  var hasErrorFlag = false;
+  for (var e = 0; e < errorKeys.length; e += 1) {
+    if (q.get(errorKeys[e])) {
+      hasErrorFlag = true;
+      break;
+    }
+  }
+  if (!kind && paymentIntentPresent && hasErrorFlag) {
+    kind = 'fail';
+  }
+  if (!kind) return null;
+
+  var rawMessage = '';
+  for (var m = 0; m < messageKeys.length; m += 1) {
+    var messageValue = q.get(messageKeys[m]);
+    if (!messageValue) continue;
+    rawMessage = messageValue;
+    break;
+  }
+
+  var defaultMessage = {
+    success: '결제가 완료되었습니다. 잠금 상태를 동기화하고 있습니다.',
+    cancel: '결제가 취소되었습니다. 원할 때 다시 시도할 수 있습니다.',
+    fail: '결제가 실패했습니다. 잠시 후 다시 시도해 주세요.',
+    login: '로그인이 필요합니다. 로그인 후 다시 결제를 진행해 주세요.'
+  }[kind] || '결제 상태를 확인해 주세요.';
+
+  var message = (typeof rawMessage === 'string' && rawMessage.trim()) ? rawMessage.trim() : defaultMessage;
+
+  for (var d = 0; d < statusKeys.length; d += 1) q.delete(statusKeys[d]);
+  for (var p = 0; p < paymentKeys.length; p += 1) q.delete(paymentKeys[p]);
+  for (var k = 0; k < messageKeys.length; k += 1) q.delete(messageKeys[k]);
+  for (var x = 0; x < errorKeys.length; x += 1) q.delete(errorKeys[x]);
+
+  var nextSearch = q.toString();
+  var nextUrl = url.pathname + (nextSearch ? ('?' + nextSearch) : '') + (url.hash || '');
+  if (nextUrl !== (window.location.pathname + window.location.search + window.location.hash)) {
+    window.history.replaceState({}, '', nextUrl);
+  }
+
+  return { kind: kind, message: message };
+}
+
+function __cdInitPaymentStatusNoticeFromQuery() {
+  var status = __cdConsumePaymentStatusFromQuery();
+  if (!status) return;
+  __cdShowPaymentStatusNotice(status.kind, status.message);
+  try {
+    document.dispatchEvent(new CustomEvent('cd:payment-status', { detail: status }));
+  } catch (_) {}
+}
+
 function __cdInitGlobalPaymentLoading() {
   if (window.__cdPaymentLoadingInited) return;
   window.__cdPaymentLoadingInited = true;
@@ -389,6 +570,12 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', __cdInitGlobalPaymentLoading, { once: true });
 } else {
   __cdInitGlobalPaymentLoading();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __cdInitPaymentStatusNoticeFromQuery, { once: true });
+} else {
+  __cdInitPaymentStatusNoticeFromQuery();
 }
 
 function cdNormalizeLang(langCode) {

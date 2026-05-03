@@ -906,6 +906,35 @@ body {
 .feat-collection__grid--2col { grid-template-columns: repeat(2, 1fr); }
 .tarot-collection__grid { grid-template-columns: repeat(3, 1fr); }
 
+/* Collection tap guard baseline: prefer vertical scroll and reduce accidental drag taps. */
+.feat-collection__grid,
+.tarot-collection__grid {
+	touch-action: pan-y;
+	overscroll-behavior-y: contain;
+	overscroll-behavior-x: none;
+	-webkit-overflow-scrolling: touch;
+	-webkit-tap-highlight-color: transparent;
+}
+.feat-collection__grid .tarot-tile,
+.tarot-collection__grid .tarot-tile,
+.feat-collection__grid .prem-card,
+.tarot-collection__grid .prem-card,
+.feat-collection__grid .lifebook-tile,
+.feat-collection__grid .lovebible-tile,
+.tarot-collection__grid .lifebook-tile,
+.tarot-collection__grid .lovebible-tile,
+.feature-card-grid .feature-card__launch,
+.feature-card-grid .feature-card__cta {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}
+.feature-card-grid .feature-card__launch,
+.feature-card-grid .feature-card__cta,
+.feature-card-grid .fc-toggle-btn {
+	min-height: 44px;
+}
+
 /* ─── Tiles (배포 사이트: purplish-blue glow, 별빛 효과) ─── */
 .tarot-tile {
 	display: flex;

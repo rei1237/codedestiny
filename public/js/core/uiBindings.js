@@ -151,6 +151,118 @@ function __resolveEventElement(event) {
   return null;
 }
 
+const __CD_COLLECTION_TAP_GUARD = Object.freeze({
+  moveThresholdPx: 10,
+  dragSuppressMs: 140,
+  ghostClickLockMs: 180
+});
+
+const __cdCollectionTapGuardState = {
+  starts: new Map(),
+  suppressUntil: 0
+};
+
+function __cdIsCollectionTapGuardTarget(target) {
+  if (!target || !target.closest) return false;
+  if (target.closest('.fc-toggle-btn, .feat-collection__header, .tarot-collection__header')) return false;
+  if (target.closest('[data-action="toggleCollection"]')) return false;
+  return !!target.closest(
+    '.feature-card-grid .tarot-tile, .feature-card-grid .prem-card, .feature-card-grid .lifebook-tile, .feature-card-grid .lovebible-tile, .feature-card-grid .feature-card__launch, .feature-card-grid .feature-card__cta, .feat-collection__grid .tarot-tile, .tarot-collection__grid .tarot-tile, .feat-collection__grid .prem-card, .tarot-collection__grid .prem-card, .feat-collection__grid .lifebook-tile, .feat-collection__grid .lovebible-tile, .tarot-collection__grid .lifebook-tile, .tarot-collection__grid .lovebible-tile'
+  );
+}
+
+function __cdSetCollectionTapSuppressed(durationMs) {
+  const until = Date.now() + Math.max(0, Number(durationMs) || 0);
+  if (until > __cdCollectionTapGuardState.suppressUntil) {
+    __cdCollectionTapGuardState.suppressUntil = until;
+  }
+}
+
+function __cdShouldSuppressCollectionTapEvent(event, target) {
+  const resolvedTarget = target || __resolveEventElement(event);
+  if (!__cdIsCollectionTapGuardTarget(resolvedTarget)) return false;
+  if (event && event.type === 'click' && typeof event.detail === 'number' && event.detail === 0) return false;
+  return Date.now() < __cdCollectionTapGuardState.suppressUntil;
+}
+
+function __cdBindCollectionTapGuard(root) {
+  if (!root || root.__cdCollectionTapGuardBound) return;
+  root.__cdCollectionTapGuardBound = true;
+
+  const handleTouchStart = (event) => {
+    const target = __resolveEventElement(event);
+    if (!__cdIsCollectionTapGuardTarget(target)) return;
+    if (!event.touches || !event.touches.length) return;
+
+    for (let i = 0; i < event.touches.length; i += 1) {
+      const t = event.touches[i];
+      __cdCollectionTapGuardState.starts.set(t.identifier, {
+        x: t.clientX,
+        y: t.clientY,
+        moved: false
+      });
+    }
+  };
+
+  const handleTouchMove = (event) => {
+    if (!event.changedTouches || !event.changedTouches.length) return;
+    let movedAny = false;
+    for (let i = 0; i < event.changedTouches.length; i += 1) {
+      const t = event.changedTouches[i];
+      const start = __cdCollectionTapGuardState.starts.get(t.identifier);
+      if (!start) continue;
+      if (start.moved) continue;
+      const dx = Math.abs(t.clientX - start.x);
+      const dy = Math.abs(t.clientY - start.y);
+      if (dx > __CD_COLLECTION_TAP_GUARD.moveThresholdPx || dy > __CD_COLLECTION_TAP_GUARD.moveThresholdPx) {
+        start.moved = true;
+        movedAny = true;
+      }
+    }
+    if (movedAny) {
+      __cdSetCollectionTapSuppressed(__CD_COLLECTION_TAP_GUARD.dragSuppressMs);
+    }
+  };
+
+  const handleTouchEndLike = (event) => {
+    if (!event.changedTouches || !event.changedTouches.length) return;
+    let movedAny = false;
+    for (let i = 0; i < event.changedTouches.length; i += 1) {
+      const t = event.changedTouches[i];
+      const start = __cdCollectionTapGuardState.starts.get(t.identifier);
+      if (start && start.moved) movedAny = true;
+      __cdCollectionTapGuardState.starts.delete(t.identifier);
+    }
+    if (movedAny) {
+      __cdSetCollectionTapSuppressed(__CD_COLLECTION_TAP_GUARD.ghostClickLockMs);
+    }
+  };
+
+  root.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+  root.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
+  root.addEventListener('touchend', handleTouchEndLike, { capture: true, passive: true });
+  root.addEventListener('touchcancel', handleTouchEndLike, { capture: true, passive: true });
+
+  if (typeof window !== 'undefined' && !window.__cdCollectionTapClickGuardBound) {
+    window.__cdCollectionTapClickGuardBound = true;
+    window.addEventListener('click', (event) => {
+      const target = __resolveEventElement(event);
+      if (!target || !__cdShouldSuppressCollectionTapEvent(event, target)) return;
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
+    }, { capture: true, passive: false });
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__cdShouldSuppressCollectionClick = function __cdShouldSuppressCollectionClick(event, target) {
+      return __cdShouldSuppressCollectionTapEvent(event, target || __resolveEventElement(event));
+    };
+  }
+}
+
 function parseArgs(raw) {
   if (!raw) return [];
   return raw
@@ -241,6 +353,11 @@ function bindEventAction(root, eventName, attrName) {
     if (!target) return;
     const actionEl = target.closest(`[${attrName}]`);
     if (!actionEl) return;
+
+    if ((eventName === 'touchend' || eventName === 'mouseup') && __cdShouldSuppressCollectionTapEvent(event, actionEl)) {
+      if (event.cancelable) event.preventDefault();
+      return;
+    }
 
     const action = actionEl.getAttribute(attrName);
     if (!action) return;
@@ -396,6 +513,8 @@ function __releaseCollectionImagesChunked(collection) {
 
 export function bindGlobalActions(root) {
   if (!root || typeof root.addEventListener !== 'function') return;
+  __cdBindCollectionTapGuard(root);
+
   if (typeof window !== 'undefined') {
     // Do not bind twice; a non-module fallback may already be active.
     if (window.__codeDestinyGlobalActionsBound === 'uiBindings') return;
@@ -408,6 +527,11 @@ export function bindGlobalActions(root) {
     if (!target) return;
     const actionEl = target.closest('[data-action]');
     if (!actionEl) return;
+
+    if (__cdShouldSuppressCollectionTapEvent(event, actionEl)) {
+      if (event.cancelable) event.preventDefault();
+      return;
+    }
 
     const action = actionEl.getAttribute('data-action');
     if (!action) return;
