@@ -632,12 +632,12 @@
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
-    openLoveSecretModal: ['js/love-secret-v2.js'],
-    openLifeBookModal: ['js/life-book.js?v=20260410-v2'],
-    gotoZiweiPremium: ['js/ziwei-book.js?v=20260408-v3'],
-    gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
-    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260409-v1'],
-    gotoVedicPremium: ['js/vedic-book.js?v=20260409-v1'],
+    openLoveSecretModal: ['js/love-secret-v2.js?v=20260503-portraitfix1'],
+    openLifeBookModal: ['js/life-book.js?v=20260503-resetfix1'],
+    gotoZiweiPremium: ['js/ziwei-book.js?v=20260411-zfix1'],
+    gotoAstrologyPremium: ['js/astro-book.js?v=20260411-zfix1'],
+    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260411-zfix1'],
+    gotoVedicPremium: ['js/vedic-book.js?v=20260411-zfix1'],
     gotoNamingPremium: [],
     openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
   };

@@ -2705,7 +2705,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--premium-vvip -->
 <!-- premiumVvipCollection-toggle-script -->
-<script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'flex':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
+<script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
 
     </div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
