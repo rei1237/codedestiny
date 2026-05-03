@@ -160,6 +160,54 @@
     for(var i=0;i<screens.length;i++){var el=_qs(screens[i]);if(el)el.style.display=(screens[i]===id)?'':'none';}
   }
 
+  function _ensurePremiumCinematicStyles(){
+    if(document.getElementById('cdPremiumLoadingCinematicStyles'))return;
+    var style=document.createElement('style');
+    style.id='cdPremiumLoadingCinematicStyles';
+    style.textContent=
+      '.lb-loading--cinematic{position:relative;overflow:hidden;--cd-glow-a:#7c3aed;--cd-glow-b:#4338ca;--cd-ring:rgba(129,140,248,0.45);}' +
+      '.lb-loading--cinematic::before{content:"";position:absolute;inset:-20% -10% auto -10%;height:65%;background:radial-gradient(circle at center,var(--cd-ring),transparent 68%);pointer-events:none;opacity:.85;filter:blur(2px);}' +
+      '.lb-loading--cinematic .lb-loading__symbol{position:relative;display:inline-flex;align-items:center;justify-content:center;width:86px;height:86px;border-radius:999px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.35),transparent 40%),linear-gradient(135deg,var(--cd-glow-a),var(--cd-glow-b));box-shadow:0 14px 40px rgba(15,23,42,.45),0 0 34px var(--cd-ring);animation:cd-premium-orb-pulse 2.8s ease-in-out infinite;}' +
+      '.lb-loading--cinematic .lb-loading__symbol::before,.lb-loading--cinematic .lb-loading__symbol::after{content:"";position:absolute;inset:-10px;border-radius:999px;border:1px solid var(--cd-ring);}' +
+      '.lb-loading--cinematic .lb-loading__symbol::before{animation:cd-premium-ring-spin 7.2s linear infinite;}' +
+      '.lb-loading--cinematic .lb-loading__symbol::after{inset:-16px;border-style:dashed;opacity:.7;animation:cd-premium-ring-spin 10.5s linear infinite reverse;}' +
+      '.lb-loading--cinematic .lb-progress__bar{background:linear-gradient(90deg,var(--cd-glow-a),#f8fafc,var(--cd-glow-b));background-size:200% 100%;animation:cd-premium-bar-shimmer 2.4s linear infinite;}' +
+      '.lb-loading--cinematic .lb-loading__chapter{animation:cd-premium-float 1.8s ease-in-out infinite;}' +
+      '@keyframes cd-premium-orb-pulse{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}' +
+      '@keyframes cd-premium-ring-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}' +
+      '@keyframes cd-premium-bar-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}' +
+      '@keyframes cd-premium-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}';
+    document.head.appendChild(style);
+  }
+
+  function _activateCinematicLoading(screenId,glowA,glowB,ring){
+    _ensurePremiumCinematicStyles();
+    var screen=_qs(screenId);
+    if(!screen)return;
+    screen.classList.add('lb-loading--cinematic');
+    if(glowA)screen.style.setProperty('--cd-glow-a',glowA);
+    if(glowB)screen.style.setProperty('--cd-glow-b',glowB);
+    if(ring)screen.style.setProperty('--cd-ring',ring);
+  }
+
+  function _renderDetailedChapterPreview(){
+    var wrap=document.querySelector('#skStartScreen .lb-start__chapters');
+    if(!wrap)return;
+    var list=wrap.querySelector('.lb-start__ch-list');
+    if(!list)return;
+    var html='';
+    for(var i=0;i<CHAPTER_TITLES.length;i++){
+      html+='<li class="lb-start__ch-item lb-start__ch-item--detail">'+
+        '<div class="lb-start__ch-head" style="display:flex;gap:8px;align-items:flex-start;">'+
+          '<span class="lb-start__ch-num">Ch.'+(i+1)+'</span>'+
+          '<span class="lb-start__ch-title">'+_escHtml(CHAPTER_TITLES[i])+'</span>'+
+        '</div>'+
+        '<p class="lb-start__ch-sub" style="margin:6px 0 0 58px;font-size:0.85rem;line-height:1.55;color:#cffafe;">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p>'+
+      '</li>';
+    }
+    list.innerHTML=html;
+  }
+
   var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
 
   function _renderToc(){
@@ -245,6 +293,7 @@
     document.body.classList.add('lb-modal-open');
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillSukuyoProfile(profile);
+    _renderDetailedChapterPreview();
     _populatePartnerSelects();
     _bindPartnerGenderToggle();
   };
@@ -337,6 +386,7 @@
     _generating=true;
     _chapters=Array(13).fill(null);
     _showScreen('skLoadingScreen');
+    _activateCinematicLoading('skLoadingScreen','#67e8f9','#0369a1','rgba(34,211,238,0.46)');
 
     var partner=_readPartnerData();
 
@@ -375,7 +425,8 @@
         var _phase=done===0
           ? '별자리 관계 데이터 정렬 중'
           : (done<13?('AI가 Chapter '+(done+1)+' 숙요 해석 중'):'PDF 저장 준비 완료');
-        stageEl.textContent='진행 단계: '+_phase;
+        var _subtitle=done<13?(CHAPTER_SUBTITLES[done]||''):'전체 챕터 정리를 완료했습니다.';
+        stageEl.textContent='진행 단계: '+_phase+(_subtitle?' · '+_subtitle:'');
       }
       if(chapterMsg&&done<13)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if(chapterMsg&&done>=13)chapterMsg.textContent='숙요점 인생 총람이 완성되었습니다 ✦';

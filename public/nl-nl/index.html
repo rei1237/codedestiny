@@ -6012,10 +6012,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
-<script src="/js/mobile-interaction-patch.js?v=20260503-runefix3" defer></script>
+<script src="/js/mobile-interaction-patch.js?v=20260503-premiumfix2" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260414-vedic-entry-fix3"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260503-premiumfix2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -6721,7 +6721,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           return new Promise(function(res, rej) {
             var el = document.createElement('script');
-            el.src = '/js/ziwei-book.js?v=20260411-zfix1';
+            el.src = '/js/ziwei-book.js?v=20260503-premiumfix2';
             el.defer = true;
             el.onload = function() {
               el.dataset.loaded = '1';
@@ -6794,7 +6794,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         // astro-book.js lazy load ?????‡ç•°?        var _abScr = document.querySelector('script[src*="astro-book.js"]');
         if (!_abScr) {
           var _abEl2 = document.createElement('script');
-          _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
+          _abEl2.src = '/js/astro-book.js?v=20260503-premiumfix2';
           _abEl2.onload = function() {
             if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           };
@@ -6819,7 +6819,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _spLoadFn = function() {
             var s=document.querySelector('script[src*="sukuyo-book.js"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260503-premiumfix2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
             if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
@@ -6840,7 +6840,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _vdLoadFn = function() {
             var s=document.querySelector('script[src*="vedic-book.js"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260503-premiumfix2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
             if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
@@ -7354,10 +7354,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/astro-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/vedic-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/astro-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/vedic-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
