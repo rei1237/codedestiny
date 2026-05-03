@@ -6695,6 +6695,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       } catch (_) {}
     }
 
+    function _cdForcePremiumModalVisible(modalId) {
+      try {
+        var _modal = document.getElementById(modalId);
+        if (!_modal) return;
+        _modal.style.display = 'flex';
+        _modal.style.visibility = 'visible';
+        _modal.style.pointerEvents = 'auto';
+        _modal.style.zIndex = '100120';
+        document.body.style.overflow = 'hidden';
+        document.body.classList.add('lb-modal-open');
+      } catch (_) {}
+    }
+
     function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
       var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
       if (_loader) return _loader();
@@ -6739,6 +6752,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (typeof window.openZiweiBookModal === 'function') {
             _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
             window.openZiweiBookModal(_profileCandidate || null);
+            _cdForcePremiumModalVisible('ziweiBookModal');
             return true;
           }
         } catch (e) {
@@ -6828,7 +6842,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoAstrologyPremium') {
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); }
+          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
@@ -6838,6 +6852,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               console.error('[prem-card astro-book] openAstroBookModal missing after load');
               _cdNotifyPremiumOpenFailed('점성술');
             });
+            _cdForcePremiumModalVisible('astroBookModal');
           })
           .catch(function(e) { console.error('[prem-card astro-book]', e); _cdNotifyPremiumOpenFailed('점성술'); });
       }
@@ -6847,7 +6862,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoSukuyoPremium') {
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); }
+          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
@@ -6857,6 +6872,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
               _cdNotifyPremiumOpenFailed('숙요점');
             });
+            _cdForcePremiumModalVisible('sukuyoBookModal');
           })
           .catch(function(e) { console.error('[prem-card sukuyo]', e); _cdNotifyPremiumOpenFailed('숙요점'); });
       }
@@ -6866,7 +6882,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); }
+          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
@@ -6876,6 +6892,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               console.error('[prem-card vedic] openVedicBookModal missing after load');
               _cdNotifyPremiumOpenFailed('베다점');
             });
+            _cdForcePremiumModalVisible('vedicBookModal');
           })
           .catch(function(e) { console.error('[prem-card vedic]', e); _cdNotifyPremiumOpenFailed('베다점'); });
       }
@@ -7293,6 +7310,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window.__cdOpenChargeModal = openChargeModal;
 
   // prem-card용 코인게이트 직접 호출 (프리뷰 패널 CTA → user-gesture 컨텍스트 유지)
+  window.__cdRunPerUseCoinGateFromTile = function(actionNode) {
+    if (!actionNode) return false;
+    var action = actionNode.getAttribute('data-action') || '';
+    var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
+    if (!action || tileCoinCost <= 0 || action === 'unlockPremiumFeature') return false;
+    _cdRunPerUseCoinGate(null, actionNode, action, tileCoinCost);
+    return true;
+  };
+
+  // 기존 호출부 호환
   window.__cdPremCardCoinGate = function(action, actionNode, coinCost) {
     if (!action || !actionNode || !(coinCost > 0)) return Promise.resolve(false);
     return _cdRunPerUseCoinGate(null, actionNode, action, coinCost);
@@ -7624,38 +7651,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function _onCta(){
-    if(_ctaLoading)return;
     var tile=_pendingTile,href=_pendingHref;
+    _close();
     if(!tile)return;
     var _pvwCoinCost=Number(tile.getAttribute('data-coin-cost')||0);
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
-    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){_close();window.location.href=href;return;}
-    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){_close();window.location.href=_fbHref;return;}
-    // 유료 CTA는 패널을 유지한 채 로딩 상태를 보여주고 코인게이트를 호출한다.
-    // 성공 시 _cdInvokeActionDirect()가 패널을 닫고 각 프리미엄 모달로 이동한다.
-    if(_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
-      var _paidAct=tile.getAttribute('data-action');
-      if(_paidAct){
-        var _autoPdfAction = _paidAct==='gotoZiweiPremium' || _paidAct==='gotoAstrologyPremium' || _paidAct==='gotoSukuyoPremium' || _paidAct==='gotoVedicPremium';
-        _setCtaLoading(true,'결제 확인 후 챕터 생성 화면으로 이동 중입니다...');
-        try{
-          window.__cdAutoGeneratePremiumBookAction=_paidAct;
-          if(_autoPdfAction)window.__cdAutoDownloadPremiumBookAction=_paidAct;
-        }catch(_){ }
-        Promise.resolve(window.__cdPremCardCoinGate(_paidAct,tile,_pvwCoinCost)).then(function(ok){
-          if(ok)return;
-          try{if(window.__cdAutoGeneratePremiumBookAction===_paidAct)window.__cdAutoGeneratePremiumBookAction='';}catch(_){ }
-          try{if(window.__cdAutoDownloadPremiumBookAction===_paidAct)window.__cdAutoDownloadPremiumBookAction='';}catch(_){ }
-          _setCtaLoading(false,'요청이 취소되었습니다. 다시 시도해 주세요.');
-        }).catch(function(){
-          try{if(window.__cdAutoGeneratePremiumBookAction===_paidAct)window.__cdAutoGeneratePremiumBookAction='';}catch(_){ }
-          try{if(window.__cdAutoDownloadPremiumBookAction===_paidAct)window.__cdAutoDownloadPremiumBookAction='';}catch(_){ }
-          _setCtaLoading(false,'연결 중 오류가 발생했습니다. 다시 시도해 주세요.');
-        });
-        return;
-      }
+    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
+    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
+    if(_pvwCoinCost>0&&typeof window.__cdRunPerUseCoinGateFromTile==='function'){
+      if(window.__cdRunPerUseCoinGateFromTile(tile))return;
     }
-    _close();
     var _freeAct=tile.getAttribute('data-action');
     if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
     tile.setAttribute('data-pvw-bypass','1');
@@ -7668,6 +7673,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(window.__cdAdminBypass)return;
     var action=tile.getAttribute('data-action');
+    if(action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium')return;
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
     if(!key||!D[key])return;
@@ -7681,6 +7687,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
     var action = tile.getAttribute('data-action');
+    if (action==='gotoZiweiPremium'||action==='gotoAstrologyPremium'||action==='gotoSukuyoPremium'||action==='gotoVedicPremium') return false;
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
     if (!key || !D[key]) return false;
