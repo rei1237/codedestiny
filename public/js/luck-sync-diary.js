@@ -1313,28 +1313,17 @@
     if (!force && Array.isArray(_lsdSatsYouTubeCache[mode]) && _lsdSatsYouTubeCache[mode].length) {
       return Promise.resolve(_lsdSatsYouTubeCache[mode]);
     }
-    if (!LSD_YOUTUBE_API_KEY) {
-      return Promise.reject(new Error('YouTube API 키가 없습니다.'));
-    }
-    var url = buildYouTubeSearchUrl(mode);
+    // 서버 API 호출 (API 키는 서버에서 관리)
+    var url = '/api/youtube/search?mode=' + encodeURIComponent(mode);
+    if (force) url += '&force=true';
     return fetch(url)
       .then(function (res) {
-        if (!res.ok) throw new Error('YouTube API 요청 실패 (' + res.status + ')');
+        if (!res.ok) throw new Error('재생 목록 요청 실패 (' + res.status + ')');
         return res.json();
       })
-      .then(function (json) {
-        var items = ((json && json.items) || []).map(function (item) {
-          var id = item && item.id && item.id.videoId;
-          if (!id) return null;
-          var sn = item.snippet || {};
-          var thumb = (sn.thumbnails && (sn.thumbnails.medium || sn.thumbnails.default || sn.thumbnails.high)) || {};
-          return {
-            videoId: id,
-            title: String(sn.title || '제목 없음'),
-            channel: String(sn.channelTitle || 'YouTube'),
-            thumb: String(thumb.url || '')
-          };
-        }).filter(Boolean);
+      .then(function (data) {
+        if (!data.ok) throw new Error(data.message || '재생 목록을 불러오지 못했습니다.');
+        var items = data.items || [];
         if (!items.length) throw new Error('조건에 맞는 재생 목록을 찾지 못했습니다.');
         _lsdSatsYouTubeCache[mode] = items;
         return items;
