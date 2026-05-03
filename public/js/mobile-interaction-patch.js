@@ -6,7 +6,7 @@
   var TAP_MAX_DY = 10;
   var GHOST_CLICK_BLOCK_MS = 500;
   var ACTION_DEDUPE_MS = 650;
-  var SCROLL_BLOCK_MS = 250; // ?�크�?직후 ?�릭 차단 ?�간
+  var SCROLL_BLOCK_MS = 400; // 스크롤 직후 클릭 차단 시간 (400ms로 증가)�간
   var suppressClickUntil = 0;
   var lastScrollAt = 0;
   var touchCtx = null;
@@ -631,6 +631,7 @@
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
+    openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     openLoveSecretModal: ['js/love-secret-v2.js?v=20260503-portraitfix1'],
     openLifeBookModal: ['js/life-book.js?v=20260503-resetfix1'],
@@ -771,19 +772,6 @@
         var fallbackHref3 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/yoga-guru.html';
         if (fallbackHref3) {
           try { window.location.assign(fallbackHref3); return true; } catch (_) {}
-        }
-      }
-    }
-
-    if (rule.action === 'openRoyalTeaOracle') {
-      try {
-        window.location.href = '/royal-tea-oracle.html';
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] royal tea navigation failed:', err);
-        var fallbackHref4 = (origin && origin.getAttribute && origin.getAttribute('href')) || '/royal-tea-oracle.html';
-        if (fallbackHref4) {
-          try { window.location.assign(fallbackHref4); return true; } catch (_) {}
         }
       }
     }
@@ -1205,6 +1193,50 @@
       lastScrollAt = Date.now();
     }, { passive: true });
 
+    // 메인 화면 컬렉션 스크롤 감지 - 프리미엄, 동물&관상, 명상 컬렉션
+    var collectionSelectors = [
+      '#premiumVvipCollection',
+      '#animalCollection',
+      '#meditationCollection',
+      '.feat-collection__grid',
+      '.tarot-collection__grid',
+      '.fg-group--animal',
+      '.fg-group--lovebible',
+      '.fg-group--premium'
+    ];
+
+    function setupCollectionScrollListeners() {
+      collectionSelectors.forEach(function(selector) {
+        var containers = document.querySelectorAll(selector);
+        containers.forEach(function(container) {
+          if (container && !container.__cdScrollBound) {
+            container.__cdScrollBound = true;
+            container.addEventListener('scroll', function() {
+              lastScrollAt = Date.now();
+            }, { passive: true });
+          }
+        });
+      });
+
+      // 메인 fg-group 섹션들의 스크롤 가능한 부모도 감지
+      var scrollableParents = document.querySelectorAll('.fg-group, .tarot-collection, .feat-collection');
+      scrollableParents.forEach(function(parent) {
+        if (parent && !parent.__cdScrollBound) {
+          parent.__cdScrollBound = true;
+          parent.addEventListener('scroll', function() {
+            lastScrollAt = Date.now();
+          }, { passive: true });
+        }
+      });
+    }
+
+    // 초기 설정 및 DOM 변경 시 재설정
+    setupCollectionScrollListeners();
+    var scrollObserver = new MutationObserver(function() {
+      setupCollectionScrollListeners();
+    });
+    scrollObserver.observe(document.body, { childList: true, subtree: true });
+
     injectTouchActionStyle();
     createBulletproofDelegator(document);
   }
@@ -1214,4 +1246,66 @@
   } else {
     init();
   }
+
+  // 코인 게이트 통과 후 호출되는 함수 - 영국 홍차점 페이지 이동
+  window.openRoyalTeaOracle = function() {
+    window.location.href = '/royal-tea-oracle.html';
+  };
+
+  // 기본 베다점 기능 - 프로필 데이터 전달 및 페이지 이동
+  window.navigateToVedic = function(profileArg) {
+    try {
+      var profile = profileArg || null;
+      // 프로필이 없으면 저장소에서 읽기 시도
+      if (!profile && typeof window._readProfileFromStorage === 'function') {
+        profile = window._readProfileFromStorage();
+      }
+      // localStorage에서도 확인
+      if (!profile && typeof localStorage !== 'undefined') {
+        try {
+          var saved = localStorage.getItem('FORTUNE_PROFILE_DATA');
+          if (saved) profile = JSON.parse(saved);
+        } catch (_) {}
+      }
+      // 프로필이 있으면 Vedic 페이지로 전달할 형식으로 저장
+      if (profile && profile.birth) {
+        var vedicPayload = {
+          id: profile.id || 'profile',
+          name: profile.name || '',
+          gender: profile.gender || 'M',
+          birth: {
+            year: profile.birth.year,
+            month: profile.birth.month,
+            day: profile.birth.day,
+            hour: profile.birth.hour != null ? profile.birth.hour : 12,
+            minute: profile.birth.minute != null ? profile.birth.minute : 0
+          },
+          location: {
+            lat: profile.location && profile.location.lat != null ? profile.location.lat : 37.5665,
+            lng: profile.location && profile.location.lng != null ? profile.location.lng : 126.978,
+            tzOffset: profile.location && profile.location.tzOffset != null ? profile.location.tzOffset : 9,
+            baseTzOffset: profile.location && profile.location.baseTzOffset != null ? profile.location.baseTzOffset : 9,
+            label: profile.location && profile.location.label ? profile.location.label : '대한민국 (서울)'
+          }
+        };
+        // vedic-astrology.html에서 읽을 수 있도록 저장
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
+        }
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
+        }
+        // URL 파라미터로도 전달 (백업)
+        var vp = encodeURIComponent(JSON.stringify(vedicPayload));
+        window.location.href = '/vedic-astrology.html?vp=' + vp;
+        return;
+      }
+      // 프로필이 없으면 그냥 이동 (입력 페이지 표시)
+      window.location.href = '/vedic-astrology.html';
+    } catch (err) {
+      console.error('[navigateToVedic] Error:', err);
+      // 오류 발생 시에도 페이지 이동은 시도
+      window.location.href = '/vedic-astrology.html';
+    }
+  };
 })();

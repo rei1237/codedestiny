@@ -1,4 +1,5 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { callGeminiText } from "../lib/gemini.js";
 
 const SPREAD_CONFIG = {
   one_card: { cardCount: 1, labels: ["today"] },
@@ -503,20 +504,73 @@ function buildHealingReading(cards) {
   const c = (i) => cards[i] || cards[0];
   const m = (i) => getCardMeaning(c(i));
   const n = (i) => cardNameLine(c(i));
+  const d = (i) => getDetailedCardReading(c(i));
 
   return {
-    opening: `태양 회복 리딩이 시작됩니다. 지금 당신의 마음은 이미 회복의 방향으로 움직이고 있습니다. ${n(0)}, ${n(1)}, ${n(2)}, ${n(3)} — 네 장의 카드가 내면을 밝히는 황금빛 빛줄기처럼 길을 안내합니다.`,
-    hiddenTruth: `${n(0)}가 마음 깊은 원인을 비춥니다. ${m(0)} 반복되는 소진 패턴의 뿌리가 여기 있습니다. 이 카드의 에너지를 직면할 때 회복의 첫 문이 열립니다.`,
-    embracePain: `${n(1)}는 지금 당신이 안고 있는 감정의 결을 보여줍니다. ${m(1)} 이 감정을 밀어내거나 이름 붙이지 않으면 회복이 지연됩니다. 오늘 감정을 인정하는 짧은 글 한 줄이 큰 변화의 시작이 될 수 있습니다.`,
-    silverLining: `${n(2)}는 이번 경험이 숨기고 있는 선물을 보여줍니다. ${m(2)} 지금의 어려움은 더 깊은 자기 이해를 위한 기회입니다. 이 통찰을 놓치지 마세요.`,
-    stepForward: `${n(3)}는 오늘 당신이 취할 수 있는 가장 작고 실행 가능한 한 걸음을 안내합니다. ${m(3)} 거대한 변화가 아니라 작은 루틴의 반복이 정서적 안정을 다시 세워줍니다.`,
-    integrationMessage: `네 카드가 전하는 통합 메시지: 치유는 속도가 아니라 방향입니다. ${n(0)}의 원인을 인정하고, ${n(1)}의 감정을 수용하며, ${n(2)}의 통찰을 곱씹고, ${n(3)}의 행동을 반복하면 — 황금빛 회복의 빛이 서서히 되돌아옵니다.`,
+    opening: `🌅 태양 회복 리딩이 시작됩니다.\n\n지금 이 순간, 당신의 마음은 이미 회복의 방향으로 움직이고 있습니다. 타로 전문가로서 20년 이상의 경험을 통해 확인한 바에 따르면, 진정한 치유는 외부의 조언이 아닌 내면의 통찰에서 시작됩니다.\n\n${n(0)}, ${n(1)}, ${n(2)}, ${n(3)} — 이 네 장의 카드는 단순한 운세가 아닌, 당신의 무의식이 선택한 심리적 거울입니다. 각 카드는 내면을 밝히는 황금빛 빛줄기처럼 정확한 지점을 비추고 있으며, 이 리딩을 통해 당신은 단순한 위로를 넘어 구체적이고 실행 가능한 회복의 길을 발견하게 될 것입니다.`,
+    hiddenTruth: `🔍 1. 마음 깊은 원인: ${n(0)}\n\n${d(0)}\n\n이 카드가 위치한 '숨겨진 진실' 자리는 당신이 반복적으로 경험하는 소진 패턴의 뿌리를 보여줍니다. ${n(0)}의 에너지가 이 위치에서 작동할 때, 우리는 표면적인 문제 이면에 있는 심리적 원인에 주목해야 합니다.\n\n${m(0)}\n\n이 카드가 전하는 핵심 메시지는 단순합니다: 회복의 첫 걸음은 문제의 근원을 정확히 보는 것입니다. ${n(0)}이(가) 지적하는 바를 인정할 때, 당신은 더 이상 같은 패턴에 갇히지 않게 됩니다.`,
+    embracePain: `💝 2. 감정 수용: ${n(1)}\n\n${d(1)}\n\n두 번째 카드는 당신이 지금 안고 있는 감정의 결을 명확히 드러냅니다. ${n(1)}이(가) '감정 수용' 자리에 나타났다는 것은, 당신의 감정이 지금 필요로 하는 것이 치유가 아닌 '인정'임을 의미합니다.\n\n${m(1)}\n\n타로 상담 현장에서 가장 흔한 실수는 감정을 빨리 해결하려는 조급함입니다. 그러나 ${n(1)}은(는) 말합니다: "이 감정은 밀어낼 대상이 아니라 통과해야 할 문이다." 이 감정을 이름 짓고, 펜으로 적고, 혹은 눈물로 흘려보낼 때 비로소 다음 단계로 나아갈 수 있습니다.`,
+    silverLining: `✨ 3. 회복의 단서: ${n(2)}\n\n${d(2)}\n\n세 번째 카드는 이번 경험이 당신에게 숨기고 있는 선물, 즉 '은혜로운 선물(Silver Lining)'을 보여줍니다. ${n(2)}이(가) 이 자리에 나타난 것은 우연이 아닙니다. 당신의 영혼이 이 어려움을 통해 얻어야 할 더 깊은 자기 이해가 바로 여기에 있습니다.\n\n${m(2)}\n\n전문 타로 리더로서, 이 카드 조합은 종종 "성장통"이라고 부르는 패턴을 보여줍니다. 지금의 고통이 없었다면 당신은 결코 발견하지 못했을 자신의 깊은 층면을 ${n(2)}이(가) 비추고 있습니다. 이 통찰을 일기에 남기고, 한 달 후 다시 읽어보세요. 그때 당신은 이 카드가 얼마나 정확했는지 깨닫게 될 것입니다.`,
+    stepForward: `👣 4. 다음 행동: ${n(3)}\n\n${d(3)}\n\n마지막 카드는 오늘, 지금 당장 실행할 수 있는 가장 작고 구체적인 한 걸음을 안내합니다. ${n(3)}의 에너지는 거창한 계획이 아닌, 실행 가능한 행동을 요구합니다.\n\n${m(3)}\n\n치유의 전문가들은 '작은 승리의 연쇄'를 강조합니다. ${n(3)}이(가) 제시하는 행동은 당신에게 즉각적이고 실질적인 안정감을 줄 것입니다. 거대한 변화가 아니라 작은 루틴의 반복이 정서적 안정을 다시 세워줍니다. 오늘 밤, 이 카드가 제안하는 행동을 실천하세요.`,
+    integrationMessage: `🌟 통합 메시지: 네 카드의 지혜\n\n${n(0)}의 원인 인정 → ${n(1)}의 감정 수용 → ${n(2)}의 통찰 발견 → ${n(3)}의 실행\n\n이 네 단계는 단순한 순서가 아닌, 회복의 자연스러운 순환입니다. 태양은 매일 떠오르듯, 당신의 내면에도 회복의 빛은 이미 존재합니다.\n\n전문 타로 해석의 핵심 원리: 카드는 미래를 예언하지 않습니다. 그것은 당신이 가진 잠재력과 현재 흐름의 가능성을 보여줍니다. ${n(0)}, ${n(1)}, ${n(2)}, ${n(3)} — 이 네 장의 카드가 함께 작동할 때, 당신은 더 이상 과거의 패턴에 갇히지 않고, 황금빛 회복의 길을 걷게 될 것입니다.`,
     actionPlan: [
-      `${n(3)} 에너지를 살려 오늘 10분 산책 또는 호흡 루틴을 시작하세요.`,
-      "감정 기록 3문장(사실 / 감정 / 내가 원하는 것)을 매일 작성하세요.",
-      "과부하 신호가 오면 즉시 '지금 나는 쉬어야 한다'고 선언하고 멈추세요.",
+      `📅 오늘: ${n(3)}의 에너지를 살려 10분 산책 또는 호흡 루틴으로 몸과 마음의 긴장을 풀어보세요.`,
+      "📝 이번 주: 감정 기록 3문장을 매일 작성하세요. (1)지금 무슨 일이 일어났는가 (2)나는 무슨 감정을 느끼는가 (3)내가 정말 원하는 것은 무엇인가",
+      "⏸️ 과부하 신호가 오면 즉시 '지금 나는 쉬어야 한다'고 소리 내어 선언하고, 모든 활동을 5분간 멈추세요.",
+      `🎴 한 달 후: 이 리딩을 다시 읽고 ${n(2)}이(가) 암시했던 '은혜로운 선물'을 발견했는지 확인하세요.`,
     ],
   };
+}
+
+// ─── 카드별 상세 해석 테이블 (힐링 스프레드 전용) ──────────────────────────────
+const CARD_DETAILED_READINGS = {
+  M00: { upright: "🃏 바보(The Fool) - 정방향\n\n당신의 마음속에는 새로운 시작을 향한 순수한 열망이 살아있습니다. 이 카드는 마치 아침의 첫 햇살처럼, 모든 가능성이 열려 있는 순간을 상징합니다. 타로 전문가의 시각에서, 이 카드는 '회복의 씨앗'이 이미 심어졌음을 알립니다.\n\n심리적 해석: 현재 당신은 과거의 짐을 내려놓고 새로운 정체성을 찾아가는 과정에 있습니다. 이것은 위태로워 보일 수 있지만, 실제로는 가장 자연스러운 치유의 흐름입니다. 무의식적으로 당신은 이미 다음 단계를 준비하고 있으며, 이 카드는 그 준비가 충분하다고 말합니다.", reversed: "🃏 바보(The Fool) - 역방향\n\n지금 당신은 '무모한 도전'과 '준비 없는 출발' 사이에서 갈등하고 있습니다. 마음은 앞으로 나아가고 싶지만, 과거의 경험이 발목을 잡고 있습니다.\n\n심리적 해석: 이 카드가 역방향으로 나타났을 때, 우리는 종종 '도피하고 싶은 마음'과 '현실을 직면해야 하는 마음'의 충돌을 봩니다. 당신이 피하고 있는 것은 문제 자체가 아니라, 문제를 바라보는 방식일 수 있습니다. 작은 단계부터 시작하세요. 완벽한 준비보다는 의도적인 작은 행동이 더 중요합니다." },
+  M01: { upright: "🎩 마법사(The Magician) - 정방향\n\n당신에게는 현재 상황을 변화시킬 모든 도구가 이미 갖춰져 있습니다. 이 카드는 의지와 능력의 완벽한 조화를 상징하며, '당신은 할 수 있다'는 강력한 메시지를 전달합니다.\n\n심리적 해석: 무의식적으로 당신은 자신의 자원을 과소평가하고 있었을 수 있습니다. 이 카드는 당신이 생각하는 것보다 훨씬 많은 내적 힘을 가지고 있음을 상징합니다. 회복의 열쇠는 외부에서 찾는 것이 아니라, 당신 안에 있는 의지와 능력을 깨닫는 것입니다.", reversed: "🎩 마법사(The Magician) - 역방향\n\n현재 당신의 에너지가 분산되거나, 자신의 능력을 과시하는 데 집중되어 있습니다. 이 카드는 '진짜 힘은 과시하지 않는다'는 진리를 일깨웁니다.\n\n심리적 해석: 외부의 인정이나 성과에 너무 집중하다 보니 내면의 소리를 놓치고 있을 수 있습니다. 이 카드는 당신에게 에너지를 재집중하고, 정말 중요한 것에 의도를 모으라고 말합니다." },
+  M02: { upright: "🌙 여사제(The High Priestess) - 정방향\n\n당신의 직관이 가장 정확한 시기입니다. 이 카드는 이성적인 분석을 넘어선, 깊은 내면의 지혜를 상징합니다. 답은 이미 당신 안에 있습니다.\n\n심리적 해석: 과도한 정보 검색이나 타인의 조언이 오히려 당신을 혼란스럽게 하고 있을 수 있습니다. 이 카드는 '잠시 모든 외부 소리를 끄고 내면으로 들어가라'고 말합니다. 당혹스러운 문제에 대한 답은 조용한 명상 속에서 찾아질 것입니다.", reversed: "🌙 여사제(The High Priestess) - 역방향\n\n감추어진 진실이 밖으로 나오려고 하고 있습니다. 무의식적으로 알고 있던 것들이 의식으로 떠오르는 중입니다.\n\n심리적 해석: 당신이 외면했던 감정이나 무시했던 신호들이 이제는 무시할 수 없는 형태로 나타나고 있습니다. 이것은 위협이 아닌 치유의 기회입니다. '놓아야 할 것'을 정확히 보는 것만큼 중요한 것은 없습니다." },
+  M03: { upright: "👑 여황제(The Empress) - 정방향\n\n자기 돌봄(self-care)의 최고 카드입니다. 이 카드는 당신에게 풍요와 창조적 번영, 따뜻한 돌봄이 필요함을 상징합니다.\n\n심리적 해석: 타로 전문가로서, 이 카드는 '어머니의 에너지'가 필요하다고 말합니다. 자기 자신을 마치 소중한 아이처럼 돌보세요. 충분한 휴식, 영양가 있는 음식, 자연과의 교감 - 이런 단순한 것들이 지금 가장 큰 치유가 될 것입니다.", reversed: "👑 여황제(The Empress) - 역방향\n\n자기 방치와 의존성의 패턴이 뿌리 깊게 자리 잡고 있을 수 있습니다. 타인에게 너무 많은 에너지를 주고 자신은 텅 비워 있습니다.\n\n심리적 해석: 이 카드는 당신에게 '경계'의 중요성을 일깨웁니다. 타인을 돌보는 것은 아름다운 일이지만, 그것이 자기 소모가 된다면 재고해야 합니다. 당신의 창의성과 생명력을 회복하기 위해 '아니오'라고 말하는 연습을 시작하세요." },
+  M04: { upright: "🏛️ 황제(The Emperor) - 정방향\n\n구조와 질서가 회복에 필요합니다. 이 카드는 안정적인 루틴과 체계적인 접근이 지금 당신에게 필요함을 상징합니다.\n\n심리적 해석: 감정의 소용돌이 속에서 '구조'는 생명줄과 같습니다. 매일 같은 시간에 일어나기, 정해진 시간에 식사하기, 짧은 운동 루틴 - 이런 단순한 구조들이 당신에게 안정감을 되찾아줄 것입니다. 자신에게 엄격해지기보다는 규칙적인 패턴을 만들어보세요.", reversed: "🏛️ 황제(The Emperor) - 역방향\n\n과도한 통제와 경직된 태도가 오히려 문제를 키우고 있습니다. 모든 것을 관리하려는 시도가 역효과를 내고 있습니다.\n\n심리적 해석: 이 카드가 역방향일 때, 우리는 종종 '감정을 억누르려는 과도한 노력'을 봅니다. 지금 당신에게 필요한 것은 더 많은 규칙이 아니라, 흘러가게 두는 능력입니다. 완벽한 통제를 포기할 때 진정한 평화가 찾아옵니다." },
+  M05: { upright: "⛪ 교황(The Hierophant) - 정방향\n\n전통적인 지혜와 체계적인 지식이 당신에게 도움이 될 것입니다. 이 카드는 검증된 방법과 신뢰할 수 있는 가이드를 상징합니다.\n\n심리적 해석: 혼자서 모든 것을 해결하려 하지 마세요. 20년 경력 타로 리더로서, 이 카드는 '전문가의 도움'을 받을 때임을 알립니다. 상담사, 치료사, 혹은 믿을 수 있는 멘토의 지혜가 지금 당신에게 필요합니다.", reversed: "⛪ 교황(The Hierophant) - 역방향\n\n기존의 규칙이나 타인의 기대에서 벗어나 자신만의 길을 찾을 때입니다.\n\n심리적 해석: 주변의 조언이 오히려 당신의 직관을 흐리게 하고 있을 수 있습니다. 이 카드는 '다른 사람의 기준'에서 벗어나, 당신만의 회복 방식을 개발하라고 말합니다." },
+  M06: { upright: "💑 연인(The Lovers) - 정방향\n\n자기 자신과의 조화가 우선입니다. 이 카드는 내면의 갈등을 해결하고, 진정한 자기 수용으로 나아가라는 메시지를 전달합니다.\n\n심리적 해석: 타로에서 이 카드는 단순히 남녀 관계를 넘어 '내면의 남성성과 여성성의 통합'을 상징합니다. 당신 안의 논리와 감정, 행동과 직관이 조화를 이루는 것이 진정한 회복입니다.", reversed: "💑 연인(The Lovers) - 역방향\n\n가치관의 혼란과 선택의 어려움이 있습니다. 무엇이 진정으로 중요한지 다시 물어보세요.\n\n심리적 해석: 다른 사람의 기대와 자신의 욕구 사이에서 갈등하고 있을 수 있습니다. 이 카드는 '타인을 위한 선택'과 '자신을 위한 선택'을 분명히 구분하라고 말합니다." },
+  M07: { upright: "🏆 전차(The Chariot) - 정방향\n\n강한 의지로 장애물을 극복할 수 있는 힘이 있습니다. 이 카드는 승리와 성취의 에너지를 상징합니다.\n\n심리적 해석: 지금 당신에게는 목표를 향해 힘차게 나아갈 수 있는 내적 동력이 충만합니다. 그러나 주의할 점은 '무모한 돌진'이 아닌 '의도적인 전진'이어야 한다는 것입니다. 하나의 목표에 집중하세요.", reversed: "🏆 전차(The Chariot) - 역방향\n\n방향 상실과 자기 통제력의 부족이 문제입니다. 에너지는 있지만 제대로 집중되지 않고 있습니다.\n\n심리적 해석: 너무 많은 방향으로 동시에 가려고 하다 보니 어디에도 도달하지 못하고 있습니다. 이 카드는 '모든 것을 동시에 고치려 하지 말고, 한 가지에 집중하라'고 말합니다." },
+  M08: { upright: "🦁 힘(Strength) - 정방향\n\n내면의 힘과 감정 통제 능력이 당신의 가장 큰 강점입니다. 부드럽지만 강한 인내로 어려움을 극복할 수 있습니다.\n\n심리적 해석: 이 카드는 '강함'을 보여주되, 그것이 공격적인 힘이 아닌 내면의 인내와 자기 통제에서 나온다고 말합니다. 당신은 생각보다 훨씬 강한 사람입니다. 그 힘을 믿으세요.", reversed: "🦁 힘(Strength) - 역방향\n\n자기 의심과 감정 폭발의 위험이 있습니다. 두려움에 의한 회피 패턴이 작동하고 있습니다.\n\n심리적 해석: 지금 당신은 자신의 힘을 과소평가하고 있습니다. 이 카드는 '당신은 할 수 있다'는 메시지를 다시 전달합니다. 작은 성공을 쌓아가며 자신감을 회복하세요." },
+  M09: { upright: "🕯️ 은둔자(The Hermit) - 정방향\n\n내면의 지혜를 찾는 홀로의 시간이 필요합니다. 이 카드는 외부의 소음을 끄고 깊은 성찰로 들어가라는 메시지를 전달합니다.\n\n심리적 해석: 타로 전문가로서, 이 카드는 '사회적 리더'가 아닌 '내면의 현자'가 답을 가지고 있음을 알립니다. 혼자 있는 시간을 두려워하지 마세요. 그 시간이 오히려 당신을 치유할 것입니다.", reversed: "🕯️ 은둔자(The Hermit) - 역방향\n\n고립과 자기 비하, 성찰 거부가 문제입니다. 혼자 있는 것과 외로움은 다릅니다.\n\n심리적 해석: 너무 오래 혼자 있었거나, 혹은 혼자 있는 것에 대한 거부감이 문제일 수 있습니다. 이 카드는 '건강한 연결'의 중요성을 일깨웁니다. 혼자 고민하지 말고 믿을 수 있는 사람과 나누세요." },
+  M10: { upright: "☸️ 운명의 수레바퀴(Wheel of Fortune) - 정방향\n\n운명의 전환점이 왔습니다. 새로운 기회의 문이 열리는 긍정적 변화의 신호입니다.\n\n심리적 해석: 이 카드는 '변화는 불가피하다'는 진리를 상징합니다. 지금 어려운 상황도 결국 지나갈 것이며, 새로운 사이클이 시작되고 있습니다. 이 변화에 저항하지 말고 흐름에 몸을 맡기세요.", reversed: "☸️ 운명의 수레바퀴(Wheel of Fortune) - 역방향\n\n불운의 사이클이지만, 그것은 영원하지 않습니다. 변화를 저항하면 더 고통스러워집니다.\n\n심리적 해석: 이 카드가 역방향일 때, 우리는 종종 '내 잘못이 아닌 것 같은 고통'을 경험합니다. 그러나 이 카드는 말합니다: '모든 것은 지나간다.' 이 어려움도 결국 변화할 것입니다." },
+  M11: { upright: "⚖️ 정의(Justice) - 정방향\n\n공정한 균형과 진실, 올바른 판단이 필요합니다. 인과의 법칙이 작동하고 있습니다.\n\n심리적 해석: 이 카드는 '진실을 마주하는 용기'를 요구합니다. 당신이 마주해야 할 것을 피하지 마세요. 진실은 처음엔 아프지만, 결국 당신을 자유롭게 합니다.", reversed: "⚖️ 정의(Justice) - 역방향\n\n불공정한 상황과 편향된 판단, 책임 회피가 문제입니다.\n\n심리적 해석: 자신에게 거짓말을 하고 있을 수 있습니다. 이 카드는 '정직함'의 중요성을 강조합니다. 타인에게 정직해지기 전에, 자신에게 먼저 정직하세요." },
+  M12: { upright: "🙃 매달린 사람(The Hanged Man) - 정방향\n\n새로운 시각으로 상황을 바라보는 능력이 필요합니다. 희생을 통한 깊은 통찰의 시간입니다.\n\n심리적 해석: 이 카드는 '잠시 멈추는 것'의 가치를 상징합니다. 계속 앞으로만 가려 하지 말고, 매달려 위아래가 뒤집힌 시선으로 세상을 보세요. 그러면 전혀 다른 해결책이 보일 것입니다.", reversed: "🙃 매달린 사람(The Hanged Man) - 역방향\n\n희생의 거부와 고집, 정체된 시간 낭비가 문제입니다.\n\n심리적 해석: 변화를 거부하고 같은 자리에서 버티고 있을 수 있습니다. 그러나 이 카드는 말합니다: '고집은 고통을 연장할 뿐입니다.' 놓아야 할 것을 놓아야 합니다." },
+  M13: { upright: "💀 죽음(Death) - 정방향\n\n낡은 것의 끝과 새로운 시작, 근본적인 변화와 재탄생의 에너지입니다.\n\n심리적 해석: 타로에서 가장 오해받는 카드입니다. 이 카드는 '물리적 죽음'이 아닌 '변환'을 상징합니다. 끝나야 할 것이 끝나고, 새로운 것이 시작됩니다. 이 변화를 두려워하지 마세요.", reversed: "💀 죽음(Death) - 역방향\n\n변화 저항과 집착, 불필요한 연장이 문제입니다.\n\n심리적 해석: 끝내야 할 것을 끝내지 못하고 있습니다. 이 카드는 '놓아주는 것'의 중요성을 상징합니다. 끝내지 않으면 새로운 것은 시작할 수 없습니다." },
+  M14: { upright: "🏺 절제(Temperance) - 정방향\n\n절제와 균형, 인내를 가지고 조화를 만들어가는 치유와 통합의 힘입니다.\n\n심리적 해석: 이 카드는 '중용'의 미덕을 상징합니다. 너무 많은 것도, 너무 적은 것도 문제입니다. 균형 잡힌 접근이 지금 가장 필요합니다. 서두르지 마세요.", reversed: "🏺 절제(Temperance) - 역방향\n\n불균형과 과잉, 인내심 부족이 문제입니다.\n\n심리적 해석: 한쪽으로 치우친 생활 패턴이 회복을 방해하고 있습니다. 이 카드는 '조절'의 필요성을 알립니다. 극단적인 변화보다는 점진적인 조정이 필요합니다." },
+  M15: { upright: "😈 악마(The Devil) - 정방향\n\n집착과 두려움을 인식하고 그것에서 자유로워질 기회입니다.\n\n심리적 해석: 이 카드는 '속박'을 상징하지만, 그 속박은 실제로는 환상입니다. 당신은 생각보다 훨씬 자유로운 존재입니다. 무엇에 집착하고 있는지 정확히 보는 것이 해방의 첫 걸음입니다.", reversed: "😈 악마(The Devil) - 역방향\n\n집착 심화와 독성 관계 지속, 자기 파괴적 패턴이 깊어지고 있습니다.\n\n심리적 해석: 이 카드가 역방향일 때, 우리는 종종 '인식하지 못하는 중독'을 봅니다. 당신을 속박하는 것이 무엇인지 정직하게 질문하세요. 그것이 해방의 시작입니다." },
+  M16: { upright: "🗼 탑(The Tower) - 정방향\n\n갑작스러운 변화와 기존 구조의 붕괴, 고통이지만 진실을 드러내는 정화입니다.\n\n심리적 해석: 타로에서 가장 강력한 변화의 카드입니다. 그러나 이 변화는 파괴가 아닌 '필요한 붕괴'입니다. 거짓된 기반이 무너지고, 진실만 남습니다. 이 과정은 고통스럽지만 필요합니다.", reversed: "🗼 탑(The Tower) - 역방향\n\n재앙 회피와 변화 지연, 숨겨진 위험이 여전히 존재합니다.\n\n심리적 해석: 붕괴를 피하려 하고 있지만, 그것은 불가능합니다. 이 카드는 '얼마나 오래 피할 수 있을까?'라고 묻습니다. 빨리 직면할수록 회복도 빨라집니다." },
+  M17: { upright: "⭐ 별(The Star) - 정방향\n\n희망과 영감, 어둠 속에서도 빛나는 가이드의 별이 새 방향을 제시합니다.\n\n심리적 해석: 이 카드는 '치유'의 가장 강력한 상징입니다. 어둠 속에서도 희망이 살아있으며, 당신은 보호받고 있습니다. 이 카드가 나타났을 때, 회복은 단순한 가능성이 아닌 '예정된 결과'입니다.", reversed: "⭐ 별(The Star) - 역방향\n\n희망 상실과 방향 감각 혼란, 영감 고갈이 문제입니다.\n\n심리적 해석: 이 카드가 역방향일 때, 우리는 종종 '영적 고독'을 느낍니다. 그러나 이것은 영원한 상태가 아닙니다. 작은 것부터 시작하세요. 매일 감사할 한 가지를 찾는 것만으로도 변화가 시작됩니다." },
+  M18: { upright: "🌙 달(The Moon) - 정방향\n\n무의식과 직관의 세계, 환상과 현실의 경계에서 진실을 탐색하는 과정입니다.\n\n심리적 해석: 이 카드는 '보이지 않는 것'의 중요성을 상징합니다. 지금 당신이 겪는 혼란은 실제로는 직관이 깨어나는 과정입니다. 꿈, 직감, 감정의 흐름에 주목하세요.", reversed: "🌙 달(The Moon) - 역방향\n\n혼란과 자기기만, 두려움에 의한 왜곡이 문제입니다.\n\n심리적 해석: 두려움이 진실을 가리고 있습니다. 이 카드는 '환상에서 깨어나라'고 말합니다. 상상의 문제와 실제 문제를 구분하세요. 대부분의 두려움은 실현되지 않습니다." },
+  M19: { upright: "☀️ 태양(The Sun) - 정방향\n\n기쁨과 활력, 명확한 에너지로 성공과 행복이 빛나는 황금빛 시기입니다.\n\n심리적 해석: 타로에서 가장 긍정적인 카드입니다. 어떤 어둠도 태양 앞에서는 사라집니다. 이 카드는 당신의 회복이 성공적이며, 빛의 에너지가 당신을 채울 것임을 약속합니다. 기쁨을 허락하세요.", reversed: "☀️ 태양(The Sun) - 역방향\n\n일시적 침체와 과신, 에너지 낭비가 문제입니다.\n\n심리적 해석: 태양도 가끔 구름에 가려집니다. 그러나 그것은 영원하지 않습니다. 이 카드는 '일시적'임을 강조합니다. 곧 구름이 걷히고 다시 빛이 찾아올 것입니다." },
+  M20: { upright: "🎺 심판(Judgement) - 정방향\n\n과거를 통합하고 새로운 부름에 응답하는 각성, 진정한 자기 발견입니다.\n\n심리적 해석: 이 카드는 '두 번째 기회'를 상징합니다. 과거를 심판하는 것이 아니라, 과거로부터 배우고 새로운 삶을 시작하는 것입니다. 당신은 이미 새로운 존재로 거듭나고 있습니다.", reversed: "🎺 심판(Judgement) - 역방향\n\n자기 판단 혹독과 과거 집착, 각성 거부가 문제입니다.\n\n심리적 해석: 자신에게 너무 엄격할 수 있습니다. 이 카드는 '용서'의 중요성을 강조합니다. 타인을 용서하기 전에, 자신을 먼저 용서하세요." },
+  M21: { upright: "🌍 세계(The World) - 정방향\n\n사이클의 완성과 통합, 모든 경험을 통해 이룬 성취와 풍요로운 결실입니다.\n\n심리적 해석: 이 카드는 '완성'을 상징합니다. 당신이 겪어온 모든 것이 의미 있었으며, 이제 그것이 완성됩니다. 통합의 에너지가 당신을 채울 것입니다.", reversed: "🌍 세계(The World) - 역방향\n\n미완성과 마무리 거부, 완성 직전의 좌절이 문제입니다.\n\n심리적 해석: 거의 다 왔지만 마지막 한 걸음이 부족합니다. 이 카드는 '마무리'의 중요성을 상징합니다. 끝내지 않으면 새로운 시작도 없습니다." },
+};
+
+function getDetailedCardReading(card) {
+  const id = String(card?.cardId || "").toUpperCase();
+  const orientation = card?.orientation === "reversed" ? "reversed" : "upright";
+  if (id && CARD_DETAILED_READINGS[id]) {
+    return CARD_DETAILED_READINGS[id][orientation];
+  }
+  // Minor Arcana 기본 해석
+  const prefix = id.charAt(0);
+  const rankNum = id.slice(1);
+  const suitName = { W: "완드", C: "컵", S: "소드", P: "펜타클" }[prefix] || "카드";
+  const rankName = {
+    "01": "에이스", "02": "투", "03": "쓰리", "04": "포", "05": "파이브",
+    "06": "식스", "07": "세븐", "08": "에잇", "09": "나인", "10": "텐",
+    "11": "페이지", "12": "나이트", "13": "퀸", "14": "킹"
+  }[rankNum] || rankNum;
+  
+  const baseMeaning = getCardMeaning(card);
+  
+  if (orientation === "reversed") {
+    return `🎴 ${suitName} ${rankName} - 역방향\n\n${baseMeaning}\n\n이 카드가 역방향으로 나타났을 때, 그것은 단순한 긍정/부정이 아닌 에너지의 흐름이 막혀 있음을 의미합니다. 타로 전문가로서, 이 카드는 '내면에서 저항하는 무언가'가 있음을 알립니다. 이 저항을 인정하고, 작은 단계로 에너지를 다시 흐르게 하는 것이 중요합니다.`;
+  }
+  
+  return `🎴 ${suitName} ${rankName} - 정방향\n\n${baseMeaning}\n\n이 카드가 정방향으로 나타난 것은 그 에너지가 명확하고 순수하게 작동하고 있음을 의미합니다. 타로 전문가의 시각에서, 이 카드는 당신의 현재 상황에 정확한 메시지를 전달하고 있으며, 그 지혜를 따른다면 긍정적인 흐름을 만들 수 있습니다.`;
 }
 
 // ─── 재회운 등대 5카드 스프레드 ──────────────────────────────────────────────
@@ -588,7 +642,140 @@ function pickReading(spreadType, cards) {
   return buildGenericReading(cards);
 }
 
-export async function handleTarotRoutes(request) {
+const MINDSCAN_POSITION_TITLES = [
+  "표면 감정",
+  "과거의 잔상",
+  "핵심 진심",
+  "미래 기대",
+  "무의식 욕구",
+];
+
+function normalizeMindscanPair(pair, idx) {
+  const slot = Number(pair?.slot || idx + 1);
+  const positionLabel = asText(pair?.positionLabel) || MINDSCAN_POSITION_TITLES[idx] || `포지션 ${slot}`;
+  const positionMeaning = asText(pair?.positionMeaning) || "이 위치의 감정 흐름을 읽어냅니다.";
+  const mainCardName = asText(pair?.mainCardName) || `Card ${Number(pair?.mainCardId ?? idx)}`;
+  const subCardName = asText(pair?.subCardName) || `Card ${Number(pair?.subCardId ?? (idx + 5))}`;
+
+  return {
+    slot,
+    positionLabel,
+    positionMeaning,
+    mainCardName,
+    subCardName,
+  };
+}
+
+function parseJsonCandidate(text) {
+  const source = asText(text);
+  if (!source) return null;
+
+  const candidates = [source];
+  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) candidates.push(asText(fenced[1]));
+
+  const firstBrace = source.indexOf("{");
+  const lastBrace = source.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    candidates.push(source.slice(firstBrace, lastBrace + 1));
+  }
+
+  for (const raw of candidates) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null;
+}
+
+function buildMindscanFallback(pairs) {
+  const sections = pairs.map((pair, idx) => ({
+    slot: idx + 1,
+    title: pair.positionLabel,
+    content:
+      `${pair.mainCardName}와 ${pair.subCardName} 조합은 이 위치에서 감정을 숨기기보다 안전하게 표현할 때 관계의 신뢰가 회복된다는 신호입니다. `
+      + "당장 결론을 내리기보다 상대의 반응 패턴을 관찰하고, 질문형 대화를 늘리는 것이 좋습니다.",
+    mainCardName: pair.mainCardName,
+    subCardName: pair.subCardName,
+  }));
+
+  return {
+    source: "fallback",
+    persona: "공감형 심층 분석가",
+    intro: "현재 에너지는 감정의 명료화 단계에 있습니다. 서로의 의도를 확인하는 대화가 핵심입니다.",
+    sections,
+    masterAdvice:
+      "핵심은 속도보다 방향입니다. 하루에 한 번 솔직한 감정 문장을 나누고, 상대의 답을 판단 없이 끝까지 듣는 루틴을 유지하세요.",
+    closing:
+      "상대의 마음을 읽는 가장 강한 방법은 추측이 아니라 일관된 관심입니다. 지금의 진심은 충분히 전달될 수 있습니다.",
+  };
+}
+
+async function buildMindscanReading(env, pairs) {
+  const normalizedPairs = pairs.slice(0, 5).map(normalizeMindscanPair);
+  const pairLines = normalizedPairs
+    .map((pair, idx) => `${idx + 1}. slot=${pair.slot}, position=${pair.positionLabel}, meaning=${pair.positionMeaning}, main=${pair.mainCardName}, sub=${pair.subCardName}`)
+    .join("\n");
+
+  const prompt = [
+    "당신은 마인드 스캔 타로 마스터입니다.",
+    "아래 카드 페어를 바탕으로 상대방 속마음을 분석하세요.",
+    "반드시 JSON만 출력하세요. 마크다운 금지.",
+    "JSON 스키마:",
+    '{"persona":"","intro":"","sections":[{"slot":1,"title":"","content":"","mainCardName":"","subCardName":""}],"masterAdvice":"","closing":""}',
+    "sections는 5개를 반환하고, 각 content는 2~4문장으로 작성하세요.",
+    "카드 페어:",
+    pairLines,
+  ].join("\n\n");
+
+  const ai = await callGeminiText(env, prompt, {
+    modelEnvKeys: ["MINDSCAN_GEMINI_MODEL"],
+    temperature: 0.8,
+    maxOutputTokens: 4096,
+    timeoutMs: Number(env.MINDSCAN_PROVIDER_TIMEOUT_MS || 45000),
+  });
+
+  const fallback = buildMindscanFallback(normalizedPairs);
+  if (!ai.ok) {
+    return {
+      ok: true,
+      ...fallback,
+      message: ai.message || "Gemini 호출 실패로 기본 리딩을 반환했습니다.",
+    };
+  }
+
+  const parsed = parseJsonCandidate(ai.text);
+  const rawSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
+
+  const sections = normalizedPairs.map((pair, idx) => {
+    const item = rawSections[idx] || {};
+    return {
+      slot: Number(item.slot || idx + 1),
+      title: asText(item.title) || pair.positionLabel,
+      content:
+        asText(item.content)
+        || `${pair.mainCardName}와 ${pair.subCardName}의 조합은 상대가 관계의 안정성과 진정성을 동시에 확인하고 싶어 한다는 신호입니다.`,
+      mainCardName: asText(item.mainCardName) || pair.mainCardName,
+      subCardName: asText(item.subCardName) || pair.subCardName,
+    };
+  });
+
+  return {
+    ok: true,
+    source: parsed ? "gemini" : "fallback",
+    persona: asText(parsed?.persona) || fallback.persona,
+    intro: asText(parsed?.intro) || fallback.intro,
+    sections,
+    masterAdvice: asText(parsed?.masterAdvice) || fallback.masterAdvice,
+    closing: asText(parsed?.closing) || fallback.closing,
+  };
+}
+
+export async function handleTarotRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/tarot");
@@ -661,6 +848,15 @@ export async function handleTarotRoutes(request) {
         isRelationshipReading: true,
         api: "love-reading",
       });
+    }
+
+    if (path === "/mindscan") {
+      const pairs = Array.isArray(body?.pairs) ? body.pairs : [];
+      if (!pairs.length) {
+        return json({ ok: false, message: "카드 페어 데이터가 필요합니다." }, { status: 400 });
+      }
+      const reading = await buildMindscanReading(env, pairs);
+      return json(reading);
     }
 
     return notFound();

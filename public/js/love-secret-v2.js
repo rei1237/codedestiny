@@ -74,6 +74,11 @@
   var _activeRequestController = null;
   var _cancelGeneration = false;
 
+  /* ── 스크롤 중 터치 방지 ──────────────────────────────── */
+  var _isScrolling = false;
+  var _scrollTimeout = null;
+  var _scrollTarget = null;
+
   function _abortActiveRequest() {
     if (_activeRequestController) {
       try { _activeRequestController.abort(); } catch (_) {}
@@ -663,8 +668,36 @@
 
   function _bindToc() {
     var nav = document.querySelector('.ls-toc');
+    var content = document.getElementById('lsChapterContent');
     if (!nav) return;
+
+    // 스크롤 감지 - 챕터 콘텐츠 영역
+    if (content) {
+      content.addEventListener('scroll', function () {
+        _isScrolling = true;
+        _scrollTarget = 'content';
+        if (_scrollTimeout) clearTimeout(_scrollTimeout);
+        _scrollTimeout = setTimeout(function () {
+          _isScrolling = false;
+          _scrollTarget = null;
+        }, 150); // 150ms 후 스크롤 종료로 간주
+      }, { passive: true });
+
+      // 터치 이벤트도 감지
+      content.addEventListener('touchstart', function () {
+        _isScrolling = false; // 터치 시작 시 초기화
+      }, { passive: true });
+    }
+
+    // 목차 네비게이션 클릭 처리
     nav.addEventListener('click', function (e) {
+      // 스크롤 중이면 클릭 무시
+      if (_isScrolling) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
       var btn = e.target.closest('[data-ls-chapter]');
       if (!btn) return;
       var ch = Number(btn.getAttribute('data-ls-chapter'));

@@ -2,6 +2,8 @@ import { handleAuthRoutes } from "./routes/auth.js";
 import { handleAdminRoutes } from "./routes/admin.js";
 import { handleFortuneRoutes } from "./routes/fortune.js";
 import { handleTarotRoutes } from "./routes/tarot.js";
+import { handleCelestialHarmonyRoutes } from "./routes/celestial-harmony.js";
+import { handleYoutubeRoutes } from "./routes/youtube.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
 import {
   handleLifebookRoutes,
@@ -295,7 +297,7 @@ export default {
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "geo"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "geo"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
@@ -355,6 +357,14 @@ export default {
 
     if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {
       return withCorsHeaders(request, env, await handleTarotRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/youtube" || url.pathname.startsWith("/api/youtube/")) {
+      return withCorsHeaders(request, env, await handleYoutubeRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/celestial-harmony" || url.pathname.startsWith("/api/celestial-harmony/")) {
+      return withCorsHeaders(request, env, await handleCelestialHarmonyRoutes(request, env));
     }
 
     if (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/")) {

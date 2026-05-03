@@ -10042,6 +10042,8 @@ function renderZiwei(p, natal, targetId) {
         white-space: normal;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+        opacity: 1;
+        animation: none;
       }
       .zw-center-panel {
         grid-column: 2 / 4;
