@@ -4,10 +4,40 @@ import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
 
+function extractDbNameFromUri(uri) {
+  try {
+    const parsed = new URL(String(uri || ""));
+    const pathname = String(parsed.pathname || "").replace(/^\/+/, "");
+    if (!pathname) return "";
+    const firstSegment = pathname.split("/")[0] || "";
+    return firstSegment.trim();
+  } catch {
+    return "";
+  }
+}
+
+export function resolveMongoDbName(env = {}) {
+  const explicit = (
+    getEnv(env, "MONGO_DB_NAME")
+    || getEnv(env, "MONGO_NAME")
+    || getEnv(env, "MONGODB_DB_NAME")
+  );
+  if (explicit) return explicit;
+
+  const uri = getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI");
+  return extractDbNameFromUri(uri) || "code_destiny";
+}
+
 export async function resetMongooseConnection() {
+  const disconnectTimeoutMs = 1500;
   try {
     if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
+      await Promise.race([
+        mongoose.disconnect(),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("mongoose_disconnect_timeout")), disconnectTimeoutMs);
+        }),
+      ]);
     }
   } catch {
     // Ignore disconnect failures; next connect attempt will retry.
@@ -55,7 +85,7 @@ export async function connectDb(env = {}) {
 
   if (!connectPromise) {
     const connectTask = mongoose.connect(uri, {
-      dbName: getEnv(env, "MONGO_DB_NAME") || getEnv(env, "MONGO_NAME") || undefined,
+      dbName: resolveMongoDbName(env) || undefined,
       maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
       serverSelectionTimeoutMS,
       connectTimeoutMS,

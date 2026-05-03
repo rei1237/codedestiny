@@ -10,7 +10,9 @@ import {
   handleZiweiBookRoutes,
 } from "./routes/premium.js";
 import { handleDreamRoutes } from "./routes/dream.js";
+import { handleDebugRoutes } from "./routes/debug.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
+import { getEnv } from "./lib/env.js";
 
 /**
  * Code Destiny API Worker.
@@ -102,6 +104,10 @@ function jsonResponse(request, env, body, init = {}) {
     ...init,
     headers,
   });
+}
+
+function resolveHealthBool(env, keys = []) {
+  return keys.some((key) => Boolean(getEnv(env, key)));
 }
 
 function withCorsHeaders(request, env, response) {
@@ -306,6 +312,22 @@ export default {
       });
     }
 
+    if (url.pathname === "/api/health/auth-env") {
+      const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
+      const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
+      const jwtSecretConfigured = resolveHealthBool(env, ["JWT_SECRET", "AUTH_SECRET"]);
+
+      return jsonResponse(request, env, {
+        ok: true,
+        service: "code-destiny-api-worker",
+        authEnv: {
+          mongoUriConfigured,
+          mongoDbNameConfigured,
+          jwtSecretConfigured,
+        },
+      });
+    }
+
     if (url.pathname === "/api/geo") {
       const country = detectCountry(request);
       return jsonResponse(request, env, {
@@ -353,6 +375,10 @@ export default {
 
     if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
       return withCorsHeaders(request, env, await handleDreamRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {
+      return withCorsHeaders(request, env, await handleDebugRoutes(request, env));
     }
 
     if (url.pathname.startsWith("/api/")) {

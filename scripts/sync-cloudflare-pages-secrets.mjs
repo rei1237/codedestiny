@@ -113,31 +113,15 @@ const projectName =
   process.env.CLOUDFLARE_PROJECT_NAME ||
   "code-destiny";
 
-const SECRET_KEYS = [
-  "MONGO_URI",
-  "MONGO_DB_NAME",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "YOUTUBE_API_KEY",
-  "ANTHROPIC_API_KEY",
-  "DEEPL_API_KEY",
-  "PORTONE_API_KEY",
-  "PORTONE_API_SECRET",
-  "JWT_SECRET",
-  "AUTH_URL",
-  "AUTH_TRUST_HOST",
-  "ADMIN_SECRET_HASH",
-  "AUTH_API_BASE_URL",
-  "GOOGLE_OAUTH_CLIENT_ID",
-  "GOOGLE_OAUTH_CLIENT_SECRET",
-  "NAVER_OAUTH_CLIENT_ID",
-  "NAVER_OAUTH_CLIENT_SECRET",
-  "KAKAO_OAUTH_CLIENT_ID",
-  "KAKAO_OAUTH_CLIENT_SECRET",
-  "KASI_SERVICE_KEY",
-  "KASI_API_BASE_URL",
+const PAGES_PUBLIC_KEYS = [
+  "NEXT_PUBLIC_API_BASE_URL",
+  "NEXT_PUBLIC_AUTH_API_BASE_URL",
+  "NEXT_PUBLIC_PORTONE_IMP_CODE",
+  "NEXT_PUBLIC_PORTONE_STORE_ID",
+  "NEXT_PUBLIC_PORTONE_CHANNEL_KEY",
+  "NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY",
+  "NEXT_PUBLIC_PORTONE_PG_CARD",
+  "NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH",
 ];
 
 function getSecretValue(key) {
@@ -173,10 +157,10 @@ function putPagesSecret(project, key, value) {
   return Number.isInteger(result.status) ? result.status : 1;
 }
 
-const available = SECRET_KEYS.filter((key) => getSecretValue(key));
+const available = PAGES_PUBLIC_KEYS.filter((key) => getSecretValue(key));
 if (available.length === 0) {
   console.error(
-    "[secrets] No secret values found in env files (.env.cloudflare.local/.env.cloudflare/.env.local/.env)."
+    "[secrets] No Pages public values found in env files (.env.cloudflare.local/.env.cloudflare/.env.local/.env)."
   );
   process.exit(1);
 }

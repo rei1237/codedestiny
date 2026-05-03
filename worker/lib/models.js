@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
   birthTime: { type: String, required: true, default: "00:00", match: birthTimeRegex },
   gender: { type: String, required: true, enum: ["M", "F", "OTHER"], default: "OTHER" },
   joinedAt: { type: Date, default: Date.now },
+  status: { type: String, enum: ["active", "withdrawn"], default: "active", index: true },
+  withdrawnAt: { type: Date, default: null },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   points: { type: Number, default: 0, min: 0 },
   localAuth: {

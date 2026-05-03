@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
+import WithdrawModal from "../components/WithdrawModal";
 
 type AuthUser = {
   id: string;
   name: string;
   email: string;
+  hasLocalAuth?: boolean;
   role?: "user" | "admin";
   points?: number;
   birthDate?: string;
@@ -162,6 +164,8 @@ export default function MePage() {
     profileLimit: 1,
   });
   const [loading, setLoading] = useState(true);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [hasLocalAuth, setHasLocalAuth] = useState(true);
 
   const scope = useMemo(() => resolveScope(user), [user]);
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
@@ -186,6 +190,7 @@ export default function MePage() {
 
     setToken(savedToken);
     setUser(cachedUser);
+    setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
     reloadProfiles(cachedUser);
 
     fetch(`${apiBase}/api/auth/me`, {
@@ -200,6 +205,7 @@ export default function MePage() {
         if (!payload?.user) return;
         localStorage.setItem("fortune_auth_user", JSON.stringify(payload.user));
         setUser(payload.user);
+        setHasLocalAuth(payload.user?.hasLocalAuth !== false);
         reloadProfiles(payload.user);
       })
       .catch((error) => {
@@ -282,6 +288,13 @@ export default function MePage() {
             <Link href="/points" className="rounded-md border border-amber-300/35 bg-amber-400/10 px-3 py-2 text-sm font-semibold text-amber-100">
               구독 및 코인
             </Link>
+            <button
+              type="button"
+              onClick={() => setIsWithdrawOpen(true)}
+              className="rounded-md border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-200"
+            >
+              회원 탈퇴
+            </button>
             <button onClick={handleLogout} className="rounded-md border border-slate-500/50 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200">
               로그아웃
             </button>
@@ -411,6 +424,12 @@ export default function MePage() {
           </aside>
         </section>
       </div>
+
+      <WithdrawModal
+        isOpen={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+        hasLocalAuth={hasLocalAuth}
+      />
     </main>
   );
 }

@@ -1,15 +1,22 @@
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName } from "../lib/db.js";
 import { User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
 import { requireAuth, normalizeUserResponse, signAuthToken, getJwtSecret, JWT_ISSUER } from "../lib/auth.js";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
+import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
+import { createHmac, createHash, timingSafeEqual } from "node:crypto";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
+const CSRF_COOKIE_NAME = "cd_csrf_token";
+const CSRF_HEADER_NAME = "x-csrf-token";
+const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
+const WITHDRAW_RATE_LIMIT_MAX = 3;
+const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const withdrawRateLimitMap = new Map();
 
 function normalizeOriginOnly(rawValue) {
   const value = String(rawValue || "").trim();
@@ -355,66 +362,308 @@ function isLocalAuthEnabled(user) {
   return user?.localAuth?.enabled !== false;
 }
 
+function getCsrfSecret(env) {
+  return getEnv(env, "CSRF_SECRET") || getJwtSecret(env) || "dev-csrf-secret";
+}
+
+function generateCsrfToken(env) {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).slice(2, 10);
+  const payload = `${timestamp}.${random}`;
+  const sig = createHmac("sha256", getCsrfSecret(env)).update(payload).digest("hex");
+  return `${payload}.${sig}`;
+}
+
+function verifyCsrfToken(token, env) {
+  if (typeof token !== "string" || !token) {
+    return { valid: false, reason: "missing_token" };
+  }
+
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    return { valid: false, reason: "invalid_token_format" };
+  }
+
+  const [ts36, random, providedSig] = parts;
+  const issuedAt = parseInt(ts36, 36);
+  if (!Number.isFinite(issuedAt)) {
+    return { valid: false, reason: "invalid_timestamp" };
+  }
+  if (Date.now() - issuedAt > CSRF_TOKEN_TTL_MS) {
+    return { valid: false, reason: "token_expired" };
+  }
+
+  const payload = `${ts36}.${random}`;
+  const expectedSig = createHmac("sha256", getCsrfSecret(env)).update(payload).digest("hex");
+  const expected = Buffer.from(expectedSig, "hex");
+  const provided = Buffer.from(String(providedSig || "").padEnd(expectedSig.length, "0"), "hex");
+
+  if (expected.length !== provided.length) {
+    return { valid: false, reason: "signature_length_mismatch" };
+  }
+  if (!timingSafeEqual(expected, provided)) {
+    return { valid: false, reason: "signature_mismatch" };
+  }
+  return { valid: true };
+}
+
+function validateCsrfFromRequest(request, env) {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const cookieMatch = cookieHeader.match(new RegExp(`(?:^|;\\s*)${CSRF_COOKIE_NAME}=([^;]+)`));
+  const cookieToken = cookieMatch ? decodeURIComponent(cookieMatch[1]) : "";
+  const headerToken = request.headers.get(CSRF_HEADER_NAME) || "";
+
+  if (!cookieToken || !headerToken) {
+    return { valid: false, reason: "csrf_token_missing" };
+  }
+
+  const cookieBuf = Buffer.from(cookieToken);
+  const headerBuf = Buffer.from(headerToken);
+  if (cookieBuf.length !== headerBuf.length || !timingSafeEqual(cookieBuf, headerBuf)) {
+    return { valid: false, reason: "csrf_token_mismatch" };
+  }
+
+  return verifyCsrfToken(cookieToken, env);
+}
+
+function setCsrfCookie(response, token) {
+  response.headers.append("Set-Cookie", `${CSRF_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; Max-Age=7200; SameSite=Strict; Secure`);
+}
+
+function clearAuthCookies(response) {
+  response.headers.append("Set-Cookie", "fortune_auth_token=; Path=/; Max-Age=0; SameSite=Lax");
+  response.headers.append("Set-Cookie", "fortune_auth_role=; Path=/; Max-Age=0; SameSite=Lax");
+  response.headers.append("Set-Cookie", `${CSRF_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Strict; Secure`);
+}
+
+function isWithdrawRateLimited(request) {
+  const meta = getRequestMeta(request);
+  const key = String(meta.ip || "unknown");
+  const now = Date.now();
+  const state = withdrawRateLimitMap.get(key);
+
+  if (!state || now > state.resetAt) {
+    withdrawRateLimitMap.set(key, {
+      count: 1,
+      resetAt: now + WITHDRAW_RATE_LIMIT_WINDOW_MS,
+    });
+    return false;
+  }
+
+  state.count += 1;
+  withdrawRateLimitMap.set(key, state);
+  return state.count > WITHDRAW_RATE_LIMIT_MAX;
+}
+
+function hashEmailForAudit(email, env) {
+  const normalized = String(email || "").trim().toLowerCase();
+  const salt = getJwtSecret(env);
+  return createHash("sha256").update(`${normalized}|${salt}`).digest("hex");
+}
+
+function resolveAuthDbName(env) {
+  return resolveMongoDbName(env) || mongoose?.connection?.name || "";
+}
+
+function toErrorMessage(error) {
+  return String(error?.message || "").slice(0, 240);
+}
+
+function logSignupFailure(request, env, errorCode, errorMessage) {
+  const meta = getRequestMeta(request);
+  console.error("[auth/signup]", JSON.stringify({
+    requestId: meta.requestId || "",
+    endpoint: "/api/auth/register",
+    errorCode,
+    errorMessage: String(errorMessage || "unknown_error").slice(0, 240),
+    dbName: resolveAuthDbName(env),
+  }));
+}
+
+function signupErrorResponse(request, env, status, code, message, extra = {}) {
+  logSignupFailure(request, env, code, message);
+  return json({
+    message,
+    code,
+    error: code,
+    ...extra,
+  }, { status });
+}
+
 async function handleRegister(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const body = await readJson(request);
+  let body;
+
+  try {
+    body = await readJson(request);
+  } catch {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_request_body",
+      "Request body must be valid JSON.",
+    );
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_request_body",
+      "Request body must be a JSON object.",
+    );
+  }
+
+  const requiredKeys = ["name", "email", "password", "birthDate", "birthTime", "gender"];
+  const missingFields = requiredKeys.filter((key) => {
+    const value = body[key];
+    return typeof value !== "string" || value.trim() === "";
+  });
+
+  if (missingFields.length > 0) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "missing_fields",
+      "Required signup fields are missing.",
+      { missingFields },
+    );
+  }
+
   const validated = validateRegisterPayload(body);
   if (!validated.isValid) {
-    return json({
-      message: "Registration payload is invalid.",
-      errors: validated.errors,
-    }, { status: 400 });
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_request_body",
+      "Registration payload is invalid.",
+      { errors: validated.errors },
+    );
   }
 
-  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_register_connect_db");
+  try {
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_register_connect_db");
+  } catch (error) {
+    return signupErrorResponse(
+      request,
+      env,
+      503,
+      "db_connection_failed",
+      toErrorMessage(error) || "Database connection failed.",
+    );
+  }
 
   const { name, email, password, birthDate, birthTime, gender } = validated.sanitized;
-  const users = User.collection;
-  const existing = await withAuthOpTimeout(
-    users.findOne(
-      { email },
-      {
-        projection: { _id: 1, localAuth: 1, socialAccounts: 1 },
-        maxTimeMS: dbMaxTimeMs,
-      },
-    ),
-    timeoutMs,
-    "auth_register_find_existing",
-  );
-  if (existing) {
-    return json({
-      message: "This email is already registered.",
-      code: "EMAIL_ALREADY_REGISTERED",
-    }, { status: 409 });
+
+  try {
+    const users = User.collection;
+    const existing = await withAuthOpTimeout(
+      users.findOne(
+        { email },
+        {
+          projection: { _id: 1, localAuth: 1, socialAccounts: 1 },
+          maxTimeMS: dbMaxTimeMs,
+        },
+      ),
+      timeoutMs,
+      "auth_register_find_existing",
+    );
+
+    if (existing) {
+      return signupErrorResponse(
+        request,
+        env,
+        409,
+        "duplicate_email",
+        "This email is already registered.",
+      );
+    }
+  } catch (error) {
+    return signupErrorResponse(
+      request,
+      env,
+      503,
+      "db_connection_failed",
+      toErrorMessage(error) || "Failed to query existing user.",
+    );
   }
 
-  const passwordHash = await withAuthOpTimeout(
-    hashPassword(password),
-    timeoutMs,
-    "auth_register_hash_password",
-  );
-  const user = await withAuthOpTimeout(
-    User.create({
-      name,
-      email,
-      passwordHash,
-      birthDate,
-      birthTime,
-      gender,
-      role: "user",
-      points: Number(getEnv(env, "AUTH_SIGNUP_BONUS_POINTS", "50")) || 0,
-      joinedAt: new Date(),
-      localAuth: {
-        enabled: true,
-        activatedAt: new Date(),
-      },
-    }),
-    timeoutMs,
-    "auth_register_create_user",
-  );
+  let passwordHash = "";
+  try {
+    passwordHash = await withAuthOpTimeout(
+      hashPassword(password),
+      timeoutMs,
+      "auth_register_hash_password",
+    );
+  } catch (error) {
+    return signupErrorResponse(
+      request,
+      env,
+      500,
+      "unknown_error",
+      toErrorMessage(error) || "Password hashing failed.",
+    );
+  }
 
-  const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_register_sign_token");
+  let user;
+  try {
+    user = await withAuthOpTimeout(
+      User.create({
+        name,
+        email,
+        passwordHash,
+        birthDate,
+        birthTime,
+        gender,
+        role: "user",
+        points: Number(getEnv(env, "AUTH_SIGNUP_BONUS_POINTS", "50")) || 0,
+        joinedAt: new Date(),
+        localAuth: {
+          enabled: true,
+          activatedAt: new Date(),
+        },
+      }),
+      timeoutMs,
+      "auth_register_create_user",
+    );
+  } catch (error) {
+    if (error && error.code === 11000) {
+      return signupErrorResponse(
+        request,
+        env,
+        409,
+        "duplicate_email",
+        "This email is already registered.",
+      );
+    }
+
+    return signupErrorResponse(
+      request,
+      env,
+      500,
+      "db_write_failed",
+      toErrorMessage(error) || "Failed to create user.",
+    );
+  }
+
+  let token = "";
+  try {
+    token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_register_sign_token");
+  } catch (error) {
+    return signupErrorResponse(
+      request,
+      env,
+      500,
+      "unknown_error",
+      toErrorMessage(error) || "Token signing failed.",
+    );
+  }
+
   return json({
     message: "Registration completed.",
     token,
@@ -437,7 +686,7 @@ async function handleLogin(request, env) {
 
   const { email, password } = validated.sanitized;
 
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
 
@@ -500,8 +749,9 @@ async function handleLogin(request, env) {
         || message.includes("ECONN")
       );
 
-      if (infraFailure && attempt === 1) {
-        console.warn("[auth/login] transient infra failure, retrying once:", error);
+      if (infraFailure && attempt < 3) {
+        console.warn("[auth/login] transient infra failure, retrying:", error);
+        resetMongooseConnection().catch(() => {});
         continue;
       }
 
@@ -575,6 +825,7 @@ async function handleMe(request, env) {
           role: auth.role || "user",
           points: auth.points || 0,
           joinedAt: auth.joinedAt,
+          hasLocalAuth: true,
         },
         source: "token",
       });
@@ -585,14 +836,200 @@ async function handleMe(request, env) {
 
   return json({
     message: "Authenticated user loaded.",
-    user: normalizeUserResponse(user),
+    user: {
+      ...normalizeUserResponse(user),
+      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+    },
   });
 }
 
 async function handleLogout() {
   const response = json({ message: "Logged out." });
-  response.headers.append("Set-Cookie", "fortune_auth_token=; Path=/; Max-Age=0; SameSite=Lax");
-  response.headers.append("Set-Cookie", "fortune_auth_role=; Path=/; Max-Age=0; SameSite=Lax");
+  clearAuthCookies(response);
+  return response;
+}
+
+async function handleWithdrawCsrfIssue(request, env) {
+  await requireAuth(request, env);
+  const csrfToken = generateCsrfToken(env);
+  const response = json({ csrfToken });
+  setCsrfCookie(response, csrfToken);
+  return response;
+}
+
+async function handleWithdraw(request, env) {
+  if (isWithdrawRateLimited(request)) {
+    return json({ message: "Too many requests. Please try again shortly." }, { status: 429 });
+  }
+
+  const auth = await requireAuth(request, env);
+  const csrfResult = validateCsrfFromRequest(request, env);
+  if (!csrfResult.valid) {
+    return json({ message: "CSRF validation failed." }, { status: 403 });
+  }
+
+  let body;
+  try {
+    body = await readJson(request);
+  } catch {
+    return json({ message: "Request body must be valid JSON." }, { status: 400 });
+  }
+
+  const agreeIrreversible = Boolean(body?.agreeIrreversible);
+  if (!agreeIrreversible) {
+    return json({ message: "Please agree to irreversible deletion before continuing." }, { status: 400 });
+  }
+
+  const confirmText = String(body?.confirmText || "").trim();
+  if (confirmText !== "회원탈퇴") {
+    return json({ message: 'Please type "회원탈퇴" to confirm account withdrawal.' }, { status: 400 });
+  }
+
+  await connectDb(env);
+
+  if (!mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) {
+    return json({ message: "Invalid authentication token." }, { status: 401 });
+  }
+  const objectId = new mongoose.Types.ObjectId(String(auth.userId));
+
+  const user = await User.collection.findOne(
+    { _id: objectId },
+    {
+      projection: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        passwordHash: 1,
+        localAuth: 1,
+        socialAccounts: 1,
+        status: 1,
+      },
+      maxTimeMS: 8000,
+    },
+  );
+
+  if (!user) {
+    return json({ message: "User not found." }, { status: 404 });
+  }
+
+  if (String(user.status || "").toLowerCase() === "withdrawn") {
+    return json({ message: "This account is already withdrawn." }, { status: 409 });
+  }
+
+  const localAuthRequired = isLocalAuthEnabled(user) && Boolean(user.passwordHash);
+  const password = String(body?.password || "");
+  if (localAuthRequired) {
+    if (password.length < 8) {
+      return json({ message: "Current password is required." }, { status: 400 });
+    }
+
+    const passwordOk = await verifyPassword(password, user.passwordHash);
+    if (!passwordOk) {
+      return json({ message: "Current password is incorrect." }, { status: 403 });
+    }
+  }
+
+  const now = new Date();
+  const userId = String(user._id);
+  const emailHash = hashEmailForAudit(user.email, env);
+  const anonymizedEmail = `withdrawn_${userId}_${now.getTime()}@withdrawn.local`;
+
+  let partialFailure = false;
+
+  try {
+    await User.collection.updateOne(
+      { _id: objectId },
+      {
+        $set: {
+          name: "[탈퇴한 회원]",
+          email: anonymizedEmail,
+          passwordHash: "",
+          birthDate: "1900-01-01",
+          birthTime: "00:00",
+          gender: "OTHER",
+          role: "user",
+          points: 0,
+          status: "withdrawn",
+          withdrawnAt: now,
+          localAuth: {
+            enabled: false,
+            activatedAt: null,
+          },
+          socialAccounts: {
+            google: { id: "", connectedAt: null },
+            naver: { id: "", connectedAt: null },
+            kakao: { id: "", connectedAt: null },
+          },
+        },
+      },
+      { maxTimeMS: 8000 },
+    );
+  } catch (error) {
+    console.error("[auth/withdraw] user anonymize failed:", error);
+    return json({ message: "Account withdrawal failed. Please try again." }, { status: 500 });
+  }
+
+  try {
+    await User.db.collection("payments").updateMany(
+      { userId: objectId },
+      {
+        $unset: { userId: "" },
+        $set: {
+          _anonymized: true,
+          anonymizedAt: now,
+          userEmailHash: emailHash,
+        },
+      },
+      { maxTimeMS: 8000 },
+    );
+  } catch (error) {
+    partialFailure = true;
+    console.error("[auth/withdraw] payment anonymize failed:", error);
+  }
+
+  try {
+    await User.db.collection("pointhistories").deleteMany(
+      { userId: objectId },
+      { maxTimeMS: 8000 },
+    );
+  } catch (error) {
+    partialFailure = true;
+    console.error("[auth/withdraw] point history delete failed:", error);
+  }
+
+  try {
+    await User.db.collection("fortuneviewlogs").updateMany(
+      { userId: objectId },
+      {
+        $unset: { userId: "" },
+        $set: { _anonymized: true, anonymizedAt: now, userEmailHash: emailHash },
+      },
+      { maxTimeMS: 8000 },
+    );
+  } catch (error) {
+    partialFailure = true;
+    console.error("[auth/withdraw] fortune view log anonymize failed:", error);
+  }
+
+  try {
+    await User.db.collection("deleted_account_logs").insertOne({
+      userId,
+      emailHash,
+      withdrawnAt: now,
+      reason: "self",
+      partialFailure,
+      source: "worker_auth_withdraw",
+    });
+  } catch (error) {
+    partialFailure = true;
+    console.error("[auth/withdraw] audit log insert failed:", error);
+  }
+
+  const response = json({
+    message: "Account withdrawal completed.",
+    partialFailure,
+  });
+  clearAuthCookies(response);
   return response;
 }
 
@@ -718,6 +1155,7 @@ export async function handleAuthRoutes(request, env) {
       path === "/register"
       || path === "/login"
       || path === "/me"
+      || path === "/withdraw"
       || path === "/oauth/complete"
     ) {
       const configError = configMismatchResponse("auth-basic", env);
@@ -734,6 +1172,8 @@ export async function handleAuthRoutes(request, env) {
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);
+    if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
+    if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
     if (method === "POST" && path === "/logout") return await handleLogout();
     if (method === "POST" && path === "/oauth/complete") return await handleOAuthComplete(request, env);
 
@@ -753,7 +1193,8 @@ export async function handleAuthRoutes(request, env) {
     if (error && error.code === 11000) {
       return json({
         message: "This email is already registered.",
-        code: "EMAIL_ALREADY_REGISTERED",
+        code: "duplicate_email",
+        error: "duplicate_email",
       }, { status: 409 });
     }
     return handleRouteError(error);

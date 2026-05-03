@@ -18,6 +18,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { getApiBaseUrl } from "../_lib/api-config";
 
 // ─────────────────────────────────────────────────────────────────
 // 유틸
@@ -56,6 +57,7 @@ function clearClientStorage() {
  * @param {{ isOpen: boolean, onClose: () => void, hasLocalAuth?: boolean }} props
  */
 export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) {
+  const apiBase = getApiBaseUrl();
   // 입력 상태
   const [password, setPassword]         = useState("");
   const [confirmText, setConfirmText]   = useState("");
@@ -77,14 +79,14 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
   // ── CSRF 토큰 발급 ─────────────────────────────────────────────
   const fetchCsrfToken = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/withdraw", { method: "GET" });
+      const res = await fetch(`${apiBase}/api/auth/withdraw`, { method: "GET" });
       if (!res.ok) throw new Error("CSRF 토큰 발급 실패");
       const data = await res.json();
       csrfTokenRef.current = data.csrfToken || "";
     } catch {
       setError("보안 토큰을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     }
-  }, []);
+  }, [apiBase]);
 
   // 모달 오픈 시 상태 초기화 + CSRF 토큰 발급
   useEffect(() => {
@@ -143,7 +145,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/withdraw", {
+      const res = await fetch(`${apiBase}/api/auth/withdraw`, {
         method: "POST",
         headers: {
           "Content-Type":  "application/json",

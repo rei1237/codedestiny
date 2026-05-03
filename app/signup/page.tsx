@@ -131,7 +131,7 @@ function normalizeAuthApiError(payload: SignupResult & { errors?: string[] }, fa
   }
 
   const code = String(payload.code || payload.error || "").trim().toUpperCase();
-  if (code === "EMAIL_ALREADY_REGISTERED") {
+  if (code === "EMAIL_ALREADY_REGISTERED" || code === "DUPLICATE_EMAIL") {
     return "이미 가입된 이메일입니다. 로그인 페이지에서 로그인해 주세요.";
   }
 

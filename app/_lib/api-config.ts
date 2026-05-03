@@ -3,6 +3,8 @@
  *
  * In production the frontend should call same-origin /api/*. Cloudflare Pages
  * then forwards those requests to the API Worker through public/_redirects.
+ * If same-origin routing is unavailable, set NEXT_PUBLIC_AUTH_API_BASE_URL
+ * to an explicit Worker origin.
  * Local development can override this with NEXT_PUBLIC_API_BASE_URL or
  * window.CODE_DESTINY_API_BASE_URL.
  */
@@ -25,9 +27,8 @@ function normalizeBaseUrl(rawValue?: string | null): string {
 }
 
 export function getApiBaseUrl(): string {
-  const configuredBase = normalizeBaseUrl(
-    process.env.NEXT_PUBLIC_API_BASE_URL
-  );
+  const configuredBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
+  const configuredAuthBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL);
 
   if (typeof window !== "undefined") {
     const runtimeBase = normalizeBaseUrl((window as any).CODE_DESTINY_API_BASE_URL);
@@ -35,14 +36,15 @@ export function getApiBaseUrl(): string {
 
     const hostname = window.location.hostname;
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return configuredBase || FALLBACK_LOCAL_API_BASE_URL;
+      return configuredBase || configuredAuthBase || FALLBACK_LOCAL_API_BASE_URL;
     }
 
-    // In production/previews, default to same-origin /api via Pages routing.
-    return configuredBase || "";
+    // In production/previews, prefer same-origin /api via Pages routing first.
+    // If routing is unavailable, configure NEXT_PUBLIC_AUTH_API_BASE_URL.
+    return configuredBase || configuredAuthBase || "";
   }
 
-  return configuredBase;
+  return configuredBase || configuredAuthBase;
 }
 
 export function getApiUrl(path: string): string {
