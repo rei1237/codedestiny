@@ -19,6 +19,7 @@ on:
       - scripts/deploy-worker.mjs
       - scripts/sync-legacy-static-to-public.mjs
       - scripts/promote-static-shell-to-root.mjs
+      - scripts/deploy-pages.mjs
       - scripts/sync-cloudflare-worker-secrets.mjs
       - .github/workflows/cloudflare-pages-deploy.yml
       - .github/workflows/cloudflare-worker-deploy.yml
@@ -111,4 +112,4 @@ jobs:
         run: npm run build
 
       - name: Deploy to Cloudflare Pages
-        run: npx --no-install wrangler pages deploy dist --project-name codedestiny --branch main --commit-hash ${{ github.sha }}
+        run: npm run deploy:cf:pages -- --branch main

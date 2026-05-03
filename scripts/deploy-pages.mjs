@@ -42,6 +42,13 @@ const branch =
   process.env.CF_PAGES_BRANCH ||
   "main";
 
+const isGitHubActions = String(process.env.GITHUB_ACTIONS || "").toLowerCase() === "true";
+if (!isGitHubActions) {
+  console.error("[deploy-pages] Blocked: Cloudflare Pages deploy is allowed only from GitHub Actions.");
+  console.error("[deploy-pages] Use the workflow `.github/workflows/cloudflare-pages-deploy.yml` to deploy Pages.");
+  process.exit(1);
+}
+
 const isWindows = process.platform === "win32";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const outputDir = resolve(process.cwd(), "dist");
@@ -97,61 +104,19 @@ function runBuildIfMissingOutput() {
   return existsSync(outputDir);
 }
 
-const isPagesCi =
-  process.env.CF_PAGES === "1" ||
-  process.env.CF_PAGES === "true" ||
-  process.env.CLOUDFLARE_PAGES === "1";
-const forcePagesWranglerDeploy =
-  process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
-  process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
-
-if (!forcePagesWranglerDeploy) {
-  console.log("[deploy-pages] Skipped by default to prevent duplicate Pages deployments.");
-  console.log("[deploy-pages] Production service is served by Worker deployment (`npm run deploy:cf`).");
-  console.log("[deploy-pages] Set CF_PAGES_FORCE_WRANGLER_DEPLOY=true only for explicit one-off Pages deploy.");
-  process.exit(0);
+if (!process.env.CLOUDFLARE_API_TOKEN) {
+  console.error("[deploy-pages] CLOUDFLARE_API_TOKEN is required in GitHub Actions.");
+  process.exit(1);
 }
 
-if (!isPagesCi && !process.env.CLOUDFLARE_API_TOKEN) {
-  console.log("[deploy-pages] CLOUDFLARE_API_TOKEN not set. Falling back to Wrangler OAuth login flow.");
-}
-
-if (isPagesCi && !forcePagesWranglerDeploy) {
-  if (!runBuildIfMissingOutput()) {
-    console.error("[deploy-pages] Build output missing after build:cf. Cannot continue.");
-    process.exit(1);
-  }
-
-  console.log(
-    "[deploy-pages] CF Pages CI detected. Skipping `wrangler pages deploy` and relying on pages_build_output_dir auto-publish."
-  );
-  process.exit(0);
+if (!runBuildIfMissingOutput()) {
+  console.error("[deploy-pages] Build output missing after build:cf. Cannot continue.");
+  process.exit(1);
 }
 
 let result;
 
-if (isPagesCi && process.env.CLOUDFLARE_API_TOKEN) {
-  // Some CI setups inject a low-scope token that breaks Pages deploy.
-  // First try without overriding token to allow platform/default auth.
-  const envWithoutToken = { ...process.env };
-  delete envWithoutToken.CLOUDFLARE_API_TOKEN;
-  console.log("[deploy-pages] CF Pages CI detected. Trying deploy without CLOUDFLARE_API_TOKEN override...");
-  result = runDeploy(envWithoutToken);
-
-  if (result.status !== 0) {
-    console.log("[deploy-pages] Retry with CLOUDFLARE_API_TOKEN...");
-    result = runDeploy(process.env);
-  }
-} else {
-  result = runDeploy(process.env);
-
-  if (!isPagesCi && process.env.CLOUDFLARE_API_TOKEN && result.status !== 0) {
-    const envWithoutToken = { ...process.env };
-    delete envWithoutToken.CLOUDFLARE_API_TOKEN;
-    console.log("[deploy-pages] Token-based deploy failed. Retrying with Wrangler OAuth login...");
-    result = runDeploy(envWithoutToken);
-  }
-}
+result = runDeploy(process.env);
 
 if (typeof result.status === "number") {
   process.exit(result.status);
