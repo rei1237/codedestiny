@@ -316,6 +316,13 @@
     _showScreen('abLoadingScreen');
 
     var progressBar=_qs('abProgressBar'), progressText=_qs('abProgressText');
+    var stageEl=_qs('abLoadingStageText');
+    if(!stageEl&&progressText&&progressText.parentElement){
+      stageEl=document.createElement('div');
+      stageEl.id='abLoadingStageText';
+      stageEl.style.cssText='margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(56,189,248,0.12);border:1px solid rgba(125,211,252,0.35);font-size:0.83rem;color:#dbeafe;line-height:1.45;';
+      progressText.parentElement.appendChild(stageEl);
+    }
     var chapterMsg=_qs('abLoadingChapter'), chapterNumEl=_qs('abLoadingChapterNum');
     var mysticEl=_qs('abMysticQuote');
 
@@ -339,9 +346,15 @@
       : null;
 
     function _setProgress(done) {
-      var pct=(done/12)*100;
+      var pct=Math.round((done/12)*100);
       if (progressBar) progressBar.style.width=pct+'%';
-      if (progressText) progressText.textContent=done+' / 12 챕터 완성';
+      if (progressText) progressText.textContent=done+' / 12 챕터 완성 ('+pct+'%)';
+      if (stageEl) {
+        var _phase = done===0
+          ? '천궁 데이터 정렬 및 좌표 동기화'
+          : (done<12 ? ('AI가 Chapter '+(done+1)+' 코즈믹 해석 중') : 'PDF 저장 준비 완료');
+        stageEl.textContent='진행 단계: '+_phase;
+      }
       if (chapterMsg&&done<12) chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if (chapterMsg&&done>=12) chapterMsg.textContent='점성술 코즈믹 차트가 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';

@@ -338,6 +338,13 @@
     var partner=_readPartnerData();
 
     var progressBar=_qs('skProgressBar'),progressText=_qs('skProgressText');
+    var stageEl=_qs('skLoadingStageText');
+    if(!stageEl&&progressText&&progressText.parentElement){
+      stageEl=document.createElement('div');
+      stageEl.id='skLoadingStageText';
+      stageEl.style.cssText='margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(56,189,248,0.12);border:1px solid rgba(125,211,252,0.35);font-size:0.83rem;color:#cffafe;line-height:1.45;';
+      progressText.parentElement.appendChild(stageEl);
+    }
     var chapterMsg=_qs('skLoadingChapter'),chapterNumEl=_qs('skLoadingChapterNum');
     var mysticEl=_qs('skMysticQuote');
 
@@ -358,9 +365,15 @@
       : null;
 
     function _setProgress(done){
-      var pct=(done/13)*100;
+      var pct=Math.round((done/13)*100);
       if(progressBar)progressBar.style.width=pct+'%';
-      if(progressText)progressText.textContent=done+' / 13 챕터 완성';
+      if(progressText)progressText.textContent=done+' / 13 챕터 완성 ('+pct+'%)';
+      if(stageEl){
+        var _phase=done===0
+          ? '별자리 관계 데이터 정렬 중'
+          : (done<13?('AI가 Chapter '+(done+1)+' 숙요 해석 중'):'PDF 저장 준비 완료');
+        stageEl.textContent='진행 단계: '+_phase;
+      }
       if(chapterMsg&&done<13)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if(chapterMsg&&done>=13)chapterMsg.textContent='숙요점 인생 총람이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<13?'Chapter '+(done+1):'✦ 완성 ✦';

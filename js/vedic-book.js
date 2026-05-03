@@ -285,6 +285,13 @@
     _showScreen('vdLoadingScreen');
 
     var progressBar=_qs('vdProgressBar'),progressText=_qs('vdProgressText');
+    var stageEl=_qs('vdLoadingStageText');
+    if(!stageEl&&progressText&&progressText.parentElement){
+      stageEl=document.createElement('div');
+      stageEl.id='vdLoadingStageText';
+      stageEl.style.cssText='margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(251,146,60,0.12);border:1px solid rgba(253,186,116,0.35);font-size:0.83rem;color:#ffedd5;line-height:1.45;';
+      progressText.parentElement.appendChild(stageEl);
+    }
     var chapterMsg=_qs('vdLoadingChapter'),chapterNumEl=_qs('vdLoadingChapterNum');
     var mysticEl=_qs('vdMysticQuote');
 
@@ -305,9 +312,15 @@
       : null;
 
     function _setProgress(done){
-      var pct=(done/12)*100;
+      var pct=Math.round((done/12)*100);
       if(progressBar)progressBar.style.width=pct+'%';
-      if(progressText)progressText.textContent=done+' / 12 챕터 완성';
+      if(progressText)progressText.textContent=done+' / 12 챕터 완성 ('+pct+'%)';
+      if(stageEl){
+        var _phase=done===0
+          ? '라그나/나크샤트라 데이터 정렬 중'
+          : (done<12?('AI가 Chapter '+(done+1)+' 베다 해석 중'):'PDF 저장 준비 완료');
+        stageEl.textContent='진행 단계: '+_phase;
+      }
       if(chapterMsg&&done<12)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if(chapterMsg&&done>=12)chapterMsg.textContent='베다 인생 총람이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';

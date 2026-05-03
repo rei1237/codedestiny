@@ -624,6 +624,13 @@
 
     var progressBar = _qs('zbProgressBar');
     var progressText = _qs('zbProgressText');
+    var stageEl = _qs('zbLoadingStageText');
+    if (!stageEl && progressText && progressText.parentElement) {
+      stageEl = document.createElement('div');
+      stageEl.id = 'zbLoadingStageText';
+      stageEl.style.cssText = 'margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(124,58,237,0.12);border:1px solid rgba(167,139,250,0.35);font-size:0.83rem;color:#ddd6fe;line-height:1.45;';
+      progressText.parentElement.appendChild(stageEl);
+    }
     var chapterMsg = _qs('zbLoadingChapter');
     var chapterNumEl = _qs('zbLoadingChapterNum');
     var mysticEl = _qs('zbMysticQuote');
@@ -660,9 +667,15 @@
       : null;
 
     function _setProgress(done) {
-      var pct = (done / 13) * 100;
+      var pct = Math.round((done / 13) * 100);
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
+      if (progressText) progressText.textContent = done + ' / 13 챕터 완성 (' + pct + '%)';
+      if (stageEl) {
+        var _phase = done === 0
+          ? '데이터 검증 및 명반 정렬 중'
+          : (done < 13 ? ('AI가 Chapter ' + (done + 1) + ' 분석 중') : 'PDF 저장 준비 완료');
+        stageEl.textContent = '진행 단계: ' + _phase;
+      }
       if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
       if (chapterMsg && done >= 13) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
