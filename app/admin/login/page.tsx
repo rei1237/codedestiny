@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -54,8 +52,7 @@ export default function AdminLoginPage() {
         // 혹시 이전 세션에서 남아있던 localStorage 토큰 제거
         try { localStorage.removeItem("flower_admin_token"); } catch {}
       }
-      router.push("/");
-      router.refresh();
+      window.location.assign("/");
     } catch {
       setError("네트워크 오류가 발생했습니다.");
     } finally {

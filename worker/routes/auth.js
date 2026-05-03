@@ -394,28 +394,25 @@ async function handleRegister(request, env) {
     timeoutMs,
     "auth_register_hash_password",
   );
-  const user = {
-    name,
-    email,
-    passwordHash,
-    birthDate,
-    birthTime,
-    gender,
-    role: "user",
-    points: Number(getEnv(env, "AUTH_SIGNUP_BONUS_POINTS", "50")) || 0,
-    joinedAt: new Date(),
-    localAuth: {
-      enabled: true,
-      activatedAt: new Date(),
-    },
-  };
-
-  const insertResult = await withAuthOpTimeout(
-    users.insertOne(user),
+  const user = await withAuthOpTimeout(
+    User.create({
+      name,
+      email,
+      passwordHash,
+      birthDate,
+      birthTime,
+      gender,
+      role: "user",
+      points: Number(getEnv(env, "AUTH_SIGNUP_BONUS_POINTS", "50")) || 0,
+      joinedAt: new Date(),
+      localAuth: {
+        enabled: true,
+        activatedAt: new Date(),
+      },
+    }),
     timeoutMs,
     "auth_register_create_user",
   );
-  user._id = insertResult.insertedId;
 
   const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_register_sign_token");
   return json({

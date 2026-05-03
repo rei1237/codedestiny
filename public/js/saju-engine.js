@@ -966,7 +966,7 @@ function onLibReady(){
   var btn=document.getElementById('run-btn');
   if (btn) {
     btn.disabled=false;
-    btn.textContent='운명의 지도 보러가기';
+    btn.textContent='무료로 사주 보기 →';
     /* INP: onclick은 data-action 경로를 타지 않으므로 동일하게 한 틱 지연 */
     btn.onclick = function () { setTimeout(checkPrivacyAndCalculate, 0); };
   }

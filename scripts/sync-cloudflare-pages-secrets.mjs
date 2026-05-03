@@ -8,9 +8,9 @@ const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
 
 const envFiles = [
+  ".env.local",
   ".env.cloudflare.local",
   ".env.cloudflare",
-  ".env.local",
   ".env",
 ];
 

@@ -12,7 +12,6 @@ import {
   Telescope,
 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // ─── Design Token ───────────────────────────────────────────────────────────
@@ -291,7 +290,6 @@ function ReadingCard({
 }
 
 export default function SunHealingTarot() {
-  const router = useRouter();
   const [stage, setStage] = useState<Stage>("intro");
   const [cards, setCards] = useState<TarotCardDto[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
@@ -311,8 +309,8 @@ export default function SunHealingTarot() {
   );
 
   const goHome = useCallback(() => {
-    router.push("/");
-  }, [router]);
+    window.location.assign("/");
+  }, []);
 
   const start = useCallback(async () => {
     setLoading(true);

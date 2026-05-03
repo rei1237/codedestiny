@@ -510,7 +510,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
 
         {/* ── 꿀꿀 만세력 바로가기 ── */}
         <div className="flp-in flp-d4" style={{ marginBottom:"12px" }}>
-          <Link
+          <a
             href="/"
             style={{
               display:"flex", alignItems:"center", gap:"12px",
@@ -577,12 +577,12 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:"0.75rem", color:"rgba(190,24,93,0.8)",
             }}>→</span>
-          </Link>
+          </a>
         </div>
 
         {/* CTA Buttons */}
         <div className="flp-in flp-d4" style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
-          <Link href={runHref} className="flp-btn-p" style={{
+          <a href={runHref} className="flp-btn-p" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
             gap:"10px", padding:"16px 24px", background:t.btnPrimary,
             color:"#fff", borderRadius:"14px", fontWeight:800, fontSize:"1rem",
@@ -591,7 +591,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           }}>
             <span style={{ fontSize:"1.1rem" }}>{cfg.icon}</span>
             <span>{isPaidFeature ? `유료 기능 실행 · ${paidMeta.coins}` : "기능 바로 실행"}</span>
-          </Link>
+          </a>
           <Link href="/insights" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"13px 24px", background:t.btnSec,

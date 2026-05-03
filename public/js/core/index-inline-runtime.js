@@ -1229,7 +1229,6 @@ function __cdHasFlowerAdminPasswordSession() {
 function __cdIsAdminLikeUser() {
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   if (!__cdHasFlowerAdminPasswordSession()) return false;
-  // sessionStorage만 확인 — localStorage는 자동 관리자 모드 방지를 위해 사용 안 함
   try {
     var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '').trim();
     if (sessionAdminToken && FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;

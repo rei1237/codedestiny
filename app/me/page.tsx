@@ -256,7 +256,7 @@ export default function MePage() {
     }
     clearAuth();
     publishLogout();
-    router.replace("/");
+    window.location.assign("/");
   };
 
   if (loading) {

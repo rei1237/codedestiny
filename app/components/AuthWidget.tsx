@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type AuthUser = {
@@ -89,7 +88,6 @@ async function refreshCurrentUser(signal?: AbortSignal) {
 }
 
 export default function AuthWidget() {
-  const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -149,8 +147,7 @@ export default function AuthWidget() {
     clearAuth();
     publishAuthSync("logout");
     setUser(null);
-    router.push("/");
-    router.refresh();
+    window.location.assign("/");
   };
 
   if (!mounted) return null;

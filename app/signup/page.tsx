@@ -148,6 +148,20 @@ export default function SignupPage() {
     }
   };
 
+  const redirectAfterAuth = (nextPath: string, user?: SignupResult["user"]) => {
+    if (user?.role === "admin" && nextPath === "/") {
+      router.replace("/admin");
+      return;
+    }
+
+    if (nextPath === "/" || nextPath === "/index.html") {
+      window.location.replace("/");
+      return;
+    }
+
+    router.replace(nextPath);
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("social_grant") || params.get("social_error")) return;
@@ -177,7 +191,7 @@ export default function SignupPage() {
       .then((payload) => {
         persistAuth(token, payload.user);
         setIsRedirecting(true);
-        timer = setTimeout(() => router.replace("/"), 400);
+        timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -259,12 +273,7 @@ export default function SignupPage() {
         const nextFromQuery = sanitizeNextPath(params.get("next"));
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
-        if (payload.user?.role === "admin" && nextPath === "/") {
-          router.replace("/admin");
-          return;
-        }
-
-        router.replace(nextPath);
+        redirectAfterAuth(nextPath, payload.user);
       })
       .catch((e: Error) => {
         setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");
@@ -347,12 +356,7 @@ export default function SignupPage() {
       persistAuth(payload.token, payload.user);
       const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
 
-      if (payload.user?.role === "admin" && resolvedNextPath === "/") {
-        router.replace("/admin");
-        return;
-      }
-
-      router.replace(resolvedNextPath);
+      redirectAfterAuth(resolvedNextPath, payload.user);
     } catch (e) {
       const message = e instanceof Error ? e.message : "회원가입 처리 중 오류가 발생했습니다.";
       setError(message);

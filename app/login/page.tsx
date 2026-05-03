@@ -141,6 +141,20 @@ export default function LoginPage() {
     }
   };
 
+  const redirectAfterAuth = (nextPath: string, user?: LoginResult["user"]) => {
+    if (user?.role === "admin" && nextPath === "/") {
+      router.replace("/admin");
+      return;
+    }
+
+    if (nextPath === "/" || nextPath === "/index.html") {
+      window.location.replace("/");
+      return;
+    }
+
+    router.replace(nextPath);
+  };
+
   // 마운트 직후: 이미 로그인된 사용자 → 홈으로 리다이렉트
   // 소셜 그랜트가 있는 URL의 경우는 이 effect에서 처리하지 않음 (socialEffect가 담당)
   useEffect(() => {
@@ -172,7 +186,7 @@ export default function LoginPage() {
       .then((payload) => {
         persistAuth(token, payload.user);
         setIsRedirecting(true);
-        timer = setTimeout(() => router.replace("/"), 400);
+        timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -254,12 +268,7 @@ export default function LoginPage() {
         const nextFromQuery = sanitizeNextPath(params.get("next"));
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
-        if (payload.user?.role === "admin" && nextPath === "/") {
-          router.replace("/admin");
-          return;
-        }
-
-        router.replace(nextPath);
+        redirectAfterAuth(nextPath, payload.user);
       })
       .catch((e: Error) => {
         setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
@@ -332,12 +341,7 @@ export default function LoginPage() {
       persistAuth(payload.token, payload.user);
       const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
 
-      if (payload.user?.role === "admin" && resolvedNextPath === "/") {
-        router.replace("/admin");
-        return;
-      }
-
-      router.replace(resolvedNextPath);
+      redirectAfterAuth(resolvedNextPath, payload.user);
     } catch (e) {
       const message = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
       setError(message);

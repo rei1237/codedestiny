@@ -9,9 +9,9 @@ const isDryRun = args.has("--dry-run");
 const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
 
 const envFiles = [
+  ".env.local",
   ".env.cloudflare.local",
   ".env.cloudflare",
-  ".env.local",
   ".env",
   "server/.env.local",
   "server/.env",
