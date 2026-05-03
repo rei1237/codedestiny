@@ -26,7 +26,7 @@ function __cdPushPerfMetric(name, value, detail) {
   } catch (_) {}
 }
 
-// ?�동 관리자 모드 방�?: localStorage???�아?�는 admin token???�리 (?�션 ?�용�??�용)
+// 자동 관리자 모드 방지: localStorage에 남아있는 admin token을 정리 (세션 전용만 허용)
 function __cdCleanLegacyAdminLocalStorage() {
   try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
   try { localStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
@@ -185,9 +185,9 @@ function __cdShouldTrackPaymentRequest(pathname, method) {
 
 function __cdResolvePaymentMessage(pathname) {
   if (pathname && pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) {
-    return '결제가 진행 중입?�다.';
+    return '결제가 진행 중입니다.';
   }
-  return '?�명???�어?�는 중입?�다...';
+  return '운명을 읽어오는 중입니다...';
 }
 
 function __cdEnsurePaymentLoadingStyle() {
@@ -277,9 +277,9 @@ function __cdEnsurePaymentLoadingOverlay() {
   overlay.innerHTML = [
     '<div class="cd-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
     '  <div class="cd-payment-spinner-wrap"><div class="cd-payment-spinner"></div></div>',
-    '  <p class="cd-payment-title">?�명???�어?�는 중입?�다...</p>',
-    '  <p class="cd-payment-desc">결제가 진행 중입?�다.</p>',
-    '  <p class="cd-payment-status" id="cdPaymentLoadingStatus">결제가 진행 중입?�다.</p>',
+    '  <p class="cd-payment-title">운명을 읽어오는 중입니다...</p>',
+    '  <p class="cd-payment-desc">결제가 진행 중입니다.</p>',
+    '  <p class="cd-payment-status" id="cdPaymentLoadingStatus">결제가 진행 중입니다.</p>',
     '</div>'
   ].join('');
   document.body.appendChild(overlay);
@@ -302,7 +302,7 @@ function __cdInitGlobalPaymentLoading() {
 
   var state = {
     depth: 0,
-    message: '결제가 진행 중입?�다.'
+    message: '결제가 진행 중입니다.'
   };
 
   function startPayment(message) {
@@ -430,11 +430,11 @@ function cdSaveCurrentLang(langCode) {
 }
 
 var __cdCollectionToggleHintTextByLang = {
-  ko: { open: '?�러???�기', close: '?�기' },
+  ko: { open: '눌러서 열기', close: '닫기' },
   en: { open: 'Tap to open', close: 'Close' },
-  ja: { open: '?�ッ?�し??��??, close: '?�じ?? },
-  'zh-CN': { open: '?�击展�?', close: '?�起' },
-  hi: { open: 'खोलन�?के लि�?टै�?करें', close: 'बं�?करें' },
+  ja: { open: 'タップして開く', close: '閉じる' },
+  'zh-CN': { open: '点击展开', close: '收起' },
+  hi: { open: 'खोलने के लिए टैप करें', close: 'बंद करें' },
   es: { open: 'Toca para abrir', close: 'Cerrar' },
   fr: { open: 'Touchez pour ouvrir', close: 'Fermer' },
   de: { open: 'Zum Oeffnen tippen', close: 'Schliessen' },
@@ -556,16 +556,17 @@ function cdRetargetLocaleSensitiveLinks() {
 window.__cdResolveLocalizedFeatureHref = cdResolveLocalizedFeatureHref;
 window.__cdRetargetLocaleSensitiveLinks = cdRetargetLocaleSensitiveLinks;
 
-// 구�? 번역 ?�어 ?�택 카드 ?��? 기능 (DOM 로드 ?��?
+// 구글 번역 언어 선택 카드 토글 기능 (DOM 로드 대기)
 function initTranslateLangUI() {
   var langWrap = document.querySelector('.translate-lang-wrap');
   var langBtn = document.getElementById('translateLangToggleBtn');
   var langCard = document.getElementById('translateLangCard');
   var langLabel = document.getElementById('translateLangLabel');
   var hideTimer = null;
-  var HIDE_DELAY = 30000; // 30�?  window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
+  var HIDE_DELAY = 30000; // 30초
+  window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
   
-  // ?�소가 ?�으�??�한?�으�??�시??(무한 루프 방�?)
+  // 요소가 없으면 제한적으로 재시도 (무한 루프 방지)
   if (!langBtn || !langCard || !langWrap) {
     if (window.__cdTranslateInitAttempts < 120) {
       setTimeout(initTranslateLangUI, 100);
@@ -573,7 +574,7 @@ function initTranslateLangUI() {
     return;
   }
   
-  // ?�동 ?��? ?�작
+  // 자동 숨김 시작
   function startHideTimer() {
     clearTimeout(hideTimer);
     hideTimer = setTimeout(function() {
@@ -583,7 +584,7 @@ function initTranslateLangUI() {
     }, HIDE_DELAY);
   }
   
-  // 버튼 ?�시 �??�?�머 리셋
+  // 버튼 표시 및 타이머 리셋
   function showTranslateButton() {
     clearTimeout(hideTimer);
     if (langWrap) {
@@ -591,21 +592,22 @@ function initTranslateLangUI() {
     }
   }
   
-  // 버튼 ?�릭 ??카드 ?��?
+  // 버튼 클릭 시 카드 토글
   langBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     langCard.classList.toggle('active');
     showTranslateButton();
   });
   
-  // 바깥 ?�릭 ??카드 ?�기
+  // 바깥 클릭 시 카드 닫기
   document.addEventListener('click', function(e) {
     if (langWrap && !langWrap.contains(e.target)) {
       langCard.classList.remove('active');
     }
   });
   
-  // ?�어 변�?카드 버튼 ?�들??  // NOTE: Google Translate includedLanguages?� ?�벨 매핑??맞춘??
+  // 언어 변경 카드 버튼 핸들러
+  // NOTE: Google Translate includedLanguages와 라벨 매핑을 맞춘다.
   var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
   var langCodeBtns = document.querySelectorAll('.translate-lang-code');
   Array.prototype.forEach.call(langCodeBtns, function(btn) {
@@ -617,14 +619,14 @@ function initTranslateLangUI() {
       if (!lang) return;
       cdSaveCurrentLang(lang);
       
-      // ?�성 ?�태 ?�데?�트
+      // 활성 상태 업데이트
       Array.prototype.forEach.call(langCodeBtns, function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       
-      // 버튼 ?�이�??�데?�트
+      // 버튼 레이블 업데이트
       if (langLabel) langLabel.textContent = langCodeMap[lang] || lang.toUpperCase();
       
-      // Google Translate ?�롭?�운 변�?(로딩 지??중복 ?�스?�스 ?�??
+      // Google Translate 드롭다운 변경 (로딩 지연/중복 인스턴스 대응)
       cdSetGoogleTranslateLanguage(lang, {
         maxAttempts: 60,
         retryDelay: 200,
@@ -634,7 +636,7 @@ function initTranslateLangUI() {
       cdApplyCollectionToggleHintTexts(lang);
       startHideTimer();
       
-      // 카드 ?�기
+      // 카드 닫기
       if (langCard) langCard.classList.remove('active');
     });
   });
@@ -703,8 +705,8 @@ function cdSetGoogleTranslateLanguage(langCode, options) {
     }
   }
 
-  // language change가 ?�제 DOM 번역?�로 반영?��? ?�는 케?�스�??�비해,
-  // select 변�??�에 cookie�?먼�? ?�팅?�다.
+  // language change가 실제 DOM 번역으로 반영되지 않는 케이스를 대비해,
+  // select 변경 전에 cookie를 먼저 세팅한다.
   function setCookieForLang(code) {
     if (!code || code === 'ko') return;
     var host = window.location.hostname;
@@ -733,7 +735,7 @@ function cdSetGoogleTranslateLanguage(langCode, options) {
       var selectField = pickGoogleTranslateSelect();
       if (selectField) {
         selectField.value = langCode;
-        // 추�? ?�리�? ?��? ?�작 ?�?�밍???�라 'change'만으�???�� 반영?�는 경우가 ?�다.
+        // 추가 트리거: 내부 동작 타이밍에 따라 'change'만으로 늦게 반영되는 경우가 있다.
         try { selectField.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
         cdDispatchNativeChangeEvent(selectField);
         resolve(true);
@@ -817,7 +819,8 @@ function cdInstallGoogleTranslateBannerGuard() {
   }
 }
 
-// DOM 준�??�료 ??초기??if (document.readyState === 'loading') {
+// DOM 준비 완료 시 초기화
+if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     cdInstallGoogleTranslateBannerGuard();
     try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
@@ -1004,8 +1007,8 @@ function fcToggle(btn) {
   var detail = card.querySelector('.feature-card__detail');
   if (detail) detail.setAttribute('aria-hidden', open ? 'false' : 'true');
   syncFeatureCardHeight(card);
-  btn.querySelector('.feature-card__cta-label').textContent = open ? '?�기' : btn.dataset.label;
-  btn.querySelector('.feature-card__cta-arrow').textContent = open ? '?? : '??;
+  btn.querySelector('.feature-card__cta-label').textContent = open ? '닫기' : btn.dataset.label;
+  btn.querySelector('.feature-card__cta-arrow').textContent = open ? '▲' : '▼';
 }
 
 function bindFeatureCardVisualActions() {
@@ -1146,7 +1149,8 @@ function __cdResolveEventElement(event) {
 }
 
 /**
- * ?�버?�이 루트??data-action???�으�?모바?�에??event.target???�버?�이로만 ?�힐 ?? * closest가 ?�기�?처리?�다. ?�트 ?�택?�로 ?�트 ?��? ?�제 ?�소�?복구?�다.
+ * 오버레이 루트에 data-action이 있으면 모바일에서 event.target이 오버레이로만 잡힐 때
+ * closest가 닫기로 처리한다. 히트 스택으로 시트 내부 실제 요소를 복구한다.
  */
 function __cdDestinyFlowerPickHitFromElementsStack(event) {
   var sheet = document.getElementById('destinyFlowerStudioSheet');
@@ -1258,7 +1262,7 @@ function __cdResolveTileLockAliasKeys(lockKey) {
   map[base] = true;
   if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
   if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
-  // �??�명??�?기능?� 개별 50코인 ?�금 (flower-fc 교차 alias ?�거)
+  // 각 운명의 꽃 기능은 개별 50코인 해금 (flower-fc 교차 alias 제거)
   return Object.keys(map);
 }
 
@@ -1308,7 +1312,7 @@ function __cdRequireTileLockGate(actionEl) {
   if (__cdIsAdminLikeUser()) return true;
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm('?�� 로그?�이 ?�요???�비?�입?�다.\n로그?????�용??주세??')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return false;
@@ -1322,7 +1326,7 @@ function __cdRequireTileLockGate(actionEl) {
     } catch (_) {}
   }
 
-  window.alert('?�금???�비?�입?�다. ?�금 ???�용??주세??');
+  window.alert('잠금된 서비스입니다. 해금 후 이용해 주세요.');
   return false;
 }
 
@@ -1526,8 +1530,12 @@ var __cdLazyActionLoaders = {
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
-  openRuneOracle: function() { return Promise.resolve(window.location.assign('/oracle/rune')); },
+  openRuneOracle: function() { return Promise.resolve(window.location.assign('/static?service=stonehenge-rune')); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
+  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260411-zfix1'); },
+  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260411-zfix1'); },
+  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260411-zfix1'); },
+  gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
   openSibylModal: function() {
@@ -1564,8 +1572,8 @@ function __cdEnsureSibylSystemEntry() {
         fallbackTile.type = 'button';
         fallbackTile.className = 'sibyl-entry-tile sibyl-entry-tile--fallback';
         fallbackTile.setAttribute('data-action', 'openSibylModal');
-        fallbackTile.setAttribute('aria-label', '?�빌???�주 ?�스???�기');
-        fallbackTile.innerHTML = '<span>??SIBYL SYSTEM 복원??· ??��???�기</span>';
+        fallbackTile.setAttribute('aria-label', '시빌라 사주 시스템 열기');
+        fallbackTile.innerHTML = '<span>⚡ SIBYL SYSTEM 복원됨 · 탭하여 열기</span>';
         section.insertBefore(fallbackTile, section.firstChild || null);
       }
       return true;
@@ -1577,8 +1585,8 @@ function __cdEnsureSibylSystemEntry() {
     fallbackSection.className = 'saju-section-wrap';
     fallbackSection.id = 'sibylSystemSection';
     fallbackSection.innerHTML =
-      '<button type="button" class="sibyl-entry-tile sibyl-entry-tile--fallback" data-action="openSibylModal" aria-label="?�빌???�주 ?�스???�기">'
-      + '<span>??SIBYL SYSTEM 복원??· ??��???�기</span>'
+      '<button type="button" class="sibyl-entry-tile sibyl-entry-tile--fallback" data-action="openSibylModal" aria-label="시빌라 사주 시스템 열기">'
+      + '<span>⚡ SIBYL SYSTEM 복원됨 · 탭하여 열기</span>'
       + '</button>';
 
     var anchor = document.getElementById('ziweiBookModal');
@@ -1591,7 +1599,7 @@ function __cdEnsureSibylSystemEntry() {
     }
     return true;
   } catch (e) {
-    console.warn('[SibylGuard] ?�션 복원 ?�패:', e);
+    console.warn('[SibylGuard] 섹션 복원 실패:', e);
     return false;
   }
 }
@@ -1611,8 +1619,9 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * INP: ?�릭 직후 메인 ?�레?�에???�기 ?�행?�던 무거???�들???�주/궁합/리딩 ??�? * setTimeout(0)?�로 ????미뤄 ?�음 ?�인?�·입???�답??먼�? 처리?�게 ?�다.
- * (uiBindings.js ??__CD_DEFER_INP_ACTIONS ?� ?�일 목록 ?��?)
+ * INP: 클릭 직후 메인 스레드에서 동기 실행되던 무거운 핸들러(사주/궁합/리딩 등)를
+ * setTimeout(0)으로 한 틱 미뤄 다음 페인트·입력 응답을 먼저 처리하게 한다.
+ * (uiBindings.js 의 __CD_DEFER_INP_ACTIONS 와 동일 목록 유지)
  */
 var __CD_DEFER_INP_ACTIONS = {
   checkPrivacyAndCalculate: 1,
@@ -1980,12 +1989,12 @@ function __cdRepairSajuInputsFallback() {
 
   if (hourSel && hourSel.options && hourSel.options.length === 0) {
     var hBuf = '';
-    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '??/option>';
+    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
     hourSel.innerHTML = hBuf;
   }
   if (minuteSel && minuteSel.options && minuteSel.options.length === 0) {
     var mBuf = '';
-    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '�?/option>';
+    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
     minuteSel.innerHTML = mBuf;
   }
 
@@ -2005,7 +2014,7 @@ function __cdRepairSajuInputsFallback() {
       countrySel.appendChild(first);
     }
     first.value = first.value || 'Asia/Seoul';
-    first.textContent = '?�?��?�?· ?�울';
+    first.textContent = '대한민국 · 서울';
     first.setAttribute('data-long', first.getAttribute('data-long') || '127.0');
     first.setAttribute('data-lat', first.getAttribute('data-lat') || '37.6');
     first.setAttribute('data-tz', first.getAttribute('data-tz') || '9');
@@ -2025,8 +2034,8 @@ function __cdRepairSajuInputsFallback() {
   if (infoDiv) {
     infoDiv.classList.remove('time-correction-info--loading');
     infoDiv.setAttribute('aria-busy', 'false');
-    if (!infoDiv.innerHTML || infoDiv.innerHTML.indexOf('불러?�는 �?) >= 0) {
-      infoDiv.innerHTML = '?�� <b>?�간 보정 미리보기</b><br><span style="font-size:0.75rem;">기�? UTC+9, 기본 출생지(?�울)�?계산?�니??</span>';
+    if (!infoDiv.innerHTML || infoDiv.innerHTML.indexOf('불러오는 중') >= 0) {
+      infoDiv.innerHTML = '🌍 <b>시간 보정 미리보기</b><br><span style="font-size:0.75rem;">기준 UTC+9, 기본 출생지(서울)로 계산됩니다.</span>';
     }
   }
 }
@@ -2089,6 +2098,20 @@ window.openYogaGuru = function() {
     console.error('[index-inline-runtime] openYogaGuru failed:', err);
   }
 };
+window.openAdminFlowerGate = function() {
+  try {
+    if (typeof window.requestAdminFlowerEntry === 'function') {
+      var out = window.requestAdminFlowerEntry();
+      return out;
+    }
+    window.location.href = '/admin/login';
+    return undefined;
+  } catch (err) {
+    console.error('[index-inline-runtime] openAdminFlowerGate failed:', err);
+    try { window.location.assign('/admin/login'); } catch (_) {}
+    return undefined;
+  }
+};
 window.openDestinyEggPage = function() {
   try {
     window.location.href = '/tadagochi.html';
@@ -2138,10 +2161,12 @@ function __cdInvokeAction(action, actionEl, event) {
     var hasFn = typeof window[action] === 'function';
     if (!loader || hasFn || out !== undefined) return;
 
-    // prem-gate 4�? 코인 차감 ??_cdInvokeActionDirect가 처리?��?�?    // ?�??최초 ?�릭 ???�기??lazy-load/?�호�?중복 방�?
+      // prem-gate 5종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
+    // 타일 최초 클릭 시 여기서 lazy-load/재호출 중복 방지
     if (!hasFn && actionEl && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
       if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' ||
-          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') return;
+          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' ||
+          action === 'gotoNamingPremium') return;
     }
 
     if (!__cdLazyActionState[action]) {
@@ -2160,6 +2185,14 @@ function __cdInvokeAction(action, actionEl, event) {
           window.LuckSyncDiary.close();
         } else if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
           window.openZiweiBookModal();
+        } else if (action === 'gotoAstrologyPremium' && typeof window.openAstroBookModal === 'function') {
+          window.openAstroBookModal();
+        } else if (action === 'gotoSukuyoPremium' && typeof window.openSukuyoBookModal === 'function') {
+          window.openSukuyoBookModal();
+        } else if (action === 'gotoVedicPremium' && typeof window.openVedicBookModal === 'function') {
+          window.openVedicBookModal();
+        } else if (action === 'gotoNamingPremium') {
+          window.location.assign('/myungwun_final.html');
         }
         return;
       }
@@ -2355,7 +2388,7 @@ function __cdBindGlobalActionsFallback() {
 
       var currentLabel = actionEl.getAttribute('aria-label') || '';
       if (currentLabel) {
-        actionEl.setAttribute('aria-label', currentLabel.replace(/?�기|?�기/, newState ? '?�기' : '?�기'));
+        actionEl.setAttribute('aria-label', currentLabel.replace(/열기|닫기/, newState ? '닫기' : '열기'));
       }
 
       if (newState) {
@@ -2369,7 +2402,7 @@ function __cdBindGlobalActionsFallback() {
     __cdInvokeAction(action, actionEl, event);
   });
 
-  /* 모바?? modal-top-nav ?�기 버튼 touchend ?�백 (로딩 �?발동 방�?: ?�당 overlay가 ?�제 ?�시 중일 ?�만) */
+  /* 모바일: modal-top-nav 닫기 버튼 touchend 폴백 (로딩 중 발동 방지: 해당 overlay가 실제 표시 중일 때만) */
   var _cdPageLoadTime = Date.now();
   root.addEventListener('touchend', function(event) {
     var target = __cdResolveEventElement(event);
@@ -2411,7 +2444,7 @@ function __cdBindAnimalTotemTileDirect() {
   var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
   var touchStart = null;
   var lastTouchStart = null;
-  /* 모바?? ?�크�???미세 ?�직임 ?�용 (10px�?축소?�여 ?�크�??�동??방�?) */
+  /* 모바일: 스크롤 시 미세 움직임 허용 (10px로 축소하여 스크롤 오동작 방지) */
   var TAP_THRESH = 10;
 
   function loadScriptOnce(src) {
@@ -2436,16 +2469,17 @@ function __cdBindAnimalTotemTileDirect() {
     try {
       var overlay = document.getElementById('animalTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-      // ?�?� 코인 게이??체크 ?�?�
+      // ── 코인 게이트 체크 ──
       var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
       var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
       if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
         if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(_coinCost, '?�니멀 ?�템 리딩', function() { _doOpenTotem(); });
+          window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
           return;
         }
-        // ?�️ 미로그인 ?�태: _cdCoinGatePerUse 미정??        var token = '';
+        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
         if (__cdIsAdminLikeUser()) {
           _doOpenTotem();
           return;
@@ -2453,16 +2487,16 @@ function __cdBindAnimalTotemTileDirect() {
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
-          if (window.confirm('?�� 로그?�이 ?�요???�비?�입?�다.\n로그?????�용??주세??')) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
           return;
         }
-        // 로그???�태?�데 _cdCoinGatePerUse가 ?�으�??�류�?간주
-        window.alert('?�비???�류가 발생?�습?�다. ?�시 ???�시 ?�도??주세??');
+        // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
+        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         return;
       }
-      // ?�?� 코인 게이???�과 ?�?�
+      // ── 코인 게이트 통과 ──
       _doOpenTotem();
     } catch (err) { console.error('[totem] openTotemModal error:', err); }
     function _doOpenTotem() {
@@ -2517,7 +2551,7 @@ function __cdBindAnimalTotemTileDirect() {
       var dy = Math.abs(y - start.y);
       if (dx > TAP_THRESH || dy > TAP_THRESH) return;
     }
-    /* touchStart�??�작?�거?? elementFromPoint�??�치 ?�치가 ?�템 ?�?�인 경우 (모바??event.target 부?�확 ?��? */
+    /* touchStart로 시작했거나, elementFromPoint로 터치 위치가 토템 타일인 경우 (모바일 event.target 부정확 대비) */
     var fromStart = start && isTotemTile(ev.target);
     var elAtPoint = null;
     if (typeof document.elementFromPoint === 'function') {
@@ -2539,7 +2573,7 @@ function __cdBindAnimalTotemTileDirect() {
   document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
   document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
 
-  /* 직접 바인?? ?�임???�패?�는 ?�경(?�버?�이/?�택 컨텍?�트) ?��?*/
+  /* 직접 바인딩: 위임이 실패하는 환경(오버레이/스택 컨텍스트) 대비 */
   function bindDirectToTiles() {
     var tiles = document.querySelectorAll(sel);
     tiles.forEach(function(tile) {
@@ -2566,7 +2600,7 @@ function __cdBindAnimalTotemTileDirect() {
           var dy = Math.abs(y - start.y);
           if (dx > TAP_THRESH || dy > TAP_THRESH) return;
         } else {
-          /* touchstart 미수????elementFromPoint�??�치 ?�제 ?�치 ?�인 (모바???�?? */
+          /* touchstart 미수신 시 elementFromPoint로 터치 해제 위치 확인 (모바일 대응) */
           var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
           if (!elAt || !tile.contains(elAt)) return;
         }
@@ -2576,7 +2610,7 @@ function __cdBindAnimalTotemTileDirect() {
     });
   }
   bindDirectToTiles();
-  /* ?�적 ?�입 ?��? ?�플?�시 ?�거 ???�바?�딩 */
+  /* 동적 삽입 대비: 스플래시 제거 후 재바인딩 */
   var splash = document.getElementById('codeSplash');
   if (splash && splash.parentNode) {
     var obs = new MutationObserver(function() {
@@ -2590,7 +2624,8 @@ function __cdBindAnimalTotemTileDirect() {
 }
 
 /**
- * ?�명??�??�????모바???�치 직접 바인?? * click ?�벤?��? ?�크�??��??�프?� 충돌??모바?�에??미발?�하??문제 ?�결
+ * 운명의 꽃 타일 — 모바일 터치 직접 바인딩
+ * click 이벤트가 스크롤/스와이프와 충돌해 모바일에서 미발동하는 문제 해결
  */
 function __cdBindDestinyFlowerTileDirect() {
   var sel = '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl, [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"]';
@@ -2646,7 +2681,7 @@ function __cdBindDestinyFlowerTileDirect() {
       var dy = Math.abs(y - start.y);
       if (dx > TAP_THRESH || dy > TAP_THRESH) return;
     }
-    /* touchStart�??�작?�거?? elementFromPoint�??�치 ?�제 ?�치가 �??�?�인 경우 (모바??event.target 부?�확 ?��? */
+    /* touchStart로 시작했거나, elementFromPoint로 터치 해제 위치가 꽃 타일인 경우 (모바일 event.target 부정확 대비) */
     var fromStart = start && isFlowerTile(ev.target);
     var elAtPoint = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
     var fromPoint = elAtPoint && isFlowerTile(elAtPoint);
@@ -2690,7 +2725,7 @@ function __cdBindDestinyFlowerTileDirect() {
           var dy = Math.abs(y - start.y);
           if (dx > TAP_THRESH || dy > TAP_THRESH) return;
         } else {
-          /* touchstart 미수????elementFromPoint�??�치 ?�제 ?�치 ?�인 (모바???�?? */
+          /* touchstart 미수신 시 elementFromPoint로 터치 해제 위치 확인 (모바일 대응) */
           var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
           if (!elAt || !tile.contains(elAt)) return;
         }
@@ -2741,8 +2776,8 @@ function _cdInitAfterSplash() {
   }
 }
 
-/* 모바??containment ?�결: transform:translateZ(0) 부�???fixed가 뷰포???�??부�?기�??�로 배치?�는 ?�슈.
-   ???�버?�이?��? body 직계가 ?�니�?모바?�에???�면????보임 ??body�??�동 */
+/* 모바일 containment 해결: transform:translateZ(0) 부모 내 fixed가 뷰포트 대신 부모 기준으로 배치되는 이슈.
+   이 오버레이들은 body 직계가 아니면 모바일에서 화면에 안 보임 → body로 이동 */
 function __cdEnsureModalOverlaysInBody() {
   var ids = ['tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
     'dreamModalOverlay', 'psychoDreamModalOverlay', 'kemetOracleOverlay', 'tarotModalOverlay'];
@@ -2949,7 +2984,7 @@ function _dfApplyGeneratedFlowerImage(imageEl, selection, sourceOverride) {
     }
     imageEl.setAttribute('data-df-generated', '1');
   } catch (e) {
-    console.warn('[DestinyFlower] ?�적 SVG ?�성 ?�패:', e);
+    console.warn('[DestinyFlower] 동적 SVG 생성 실패:', e);
   }
 }
 
@@ -2962,9 +2997,9 @@ function _dfEnsureCardOpen(card) {
   if (cta) {
     cta.setAttribute('aria-expanded', 'true');
     var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '?�� ?�명??�??�시 ?�우�?;
+    if (labelEl) labelEl.textContent = '🌸 운명의 꽃 다시 피우기';
     var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '??;
+    if (arrowEl) arrowEl.textContent = '✦';
   }
   syncFeatureCardHeight(card);
 }
@@ -3013,18 +3048,18 @@ function _dfNormalizeAstroSign(raw) {
   }
 
   var map = {
-    '?�자�?: 'Aries',
-    '?�소?�리': 'Taurus',
-    '?�둥?�자�?: 'Gemini',
-    '게자�?: 'Cancer',
-    '?�자?�리': 'Leo',
-    '처�??�리': 'Virgo',
-    '천칭?�리': 'Libra',
-    '?�갈?�리': 'Scorpio',
-    '?�수?�리': 'Sagittarius',
-    '?�소?�리': 'Capricorn',
-    '물병?�리': 'Aquarius',
-    '물고기자�?: 'Pisces'
+    '양자리': 'Aries',
+    '황소자리': 'Taurus',
+    '쌍둥이자리': 'Gemini',
+    '게자리': 'Cancer',
+    '사자자리': 'Leo',
+    '처녀자리': 'Virgo',
+    '천칭자리': 'Libra',
+    '전갈자리': 'Scorpio',
+    '사수자리': 'Sagittarius',
+    '염소자리': 'Capricorn',
+    '물병자리': 'Aquarius',
+    '물고기자리': 'Pisces'
   };
   var keys = Object.keys(map);
   for (var i = 0; i < keys.length; i++) {
@@ -3076,7 +3111,7 @@ function _dfResolveBirthContext(payload) {
   var lon = _dfPickNumber([pBirth.lon, pBirth.lng, iBirth.lon, iBirth.lng, location.lng, location.lon], 127, false);
   var tz = _dfPickNumber([pBirth.tz, pBirth.tzOffset, iBirth.tz, iBirth.tzOffset, location.tzOffset, location.baseTzOffset], 9, false);
 
-  // ?��??�수·?�성???��? ?�력 기�?. ?�력 ?�력 ???�력?�로 변?�하??명궁 ?�이 ?�확??계산?�도�???
+  // 자미두수·점성술 등은 양력 기준. 음력 입력 시 양력으로 변환하여 명궁 등이 정확히 계산되도록 함.
   var calType = pBirth.calType || iBirth.calType || 'solar';
   if ((calType === 'lunar' || calType === 'lunar_leap') && year && month && day &&
       window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
@@ -3088,7 +3123,7 @@ function _dfResolveBirthContext(payload) {
         day = Number(conv.day);
       }
     } catch (e) {
-      console.warn('[DestinyFlower] ?�력?�양??변???�패, ?�본 ?�용:', e);
+      console.warn('[DestinyFlower] 음력→양력 변환 실패, 원본 사용:', e);
     }
   }
 
@@ -3123,9 +3158,9 @@ function _dfExtractAstroLiveData(birthCtx) {
         window.ASTRO_HOUSE_SYSTEM || 'P'
       );
     } catch (e) {
-      // Strict SwissEph 모드 미�?�??�에??조용???�거??차트�??�백 ?�도.
+      // Strict SwissEph 모드 미준비 시에는 조용히 레거시 차트로 폴백 시도.
       if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
-        console.warn('[DestinyFlower] ?�성??브리지 계산 ?�패:', e);
+        console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
       }
     }
   }
@@ -3143,7 +3178,7 @@ function _dfExtractAstroLiveData(birthCtx) {
         { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
       );
     } catch (e2) {
-      console.warn('[DestinyFlower] ?�성??브리지 계산 ?�패:', e2);
+      console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e2);
       return null;
     }
   }
@@ -3157,7 +3192,8 @@ function _dfExtractAstroLiveData(birthCtx) {
 }
 
 function _dfExtractZiweiLiveRaw(birthCtx) {
-  // ?�년?�일???�으�???�� ?�당 ?�이?�로 ?�계?? _currentZiweiData???�전 ?�용??모달 조회 캐시?��?�?  // ?�명??�??��?리에?�서???�용?��? ?�음(?�못??명궁 결과 방�?).
+  // 생년월일이 있으면 항상 해당 데이터로 재계산. _currentZiweiData는 이전 사용자/모달 조회 캐시이므로
+  // 운명의 꽃 아틀리에에서는 사용하지 않음(잘못된 명궁 결과 방지).
   if (!_dfHasBirthCore(birthCtx) || typeof window.calcZiweiPalaces !== 'function') return null;
   try {
     return window.calcZiweiPalaces(
@@ -3168,7 +3204,7 @@ function _dfExtractZiweiLiveRaw(birthCtx) {
       Number(birthCtx.minute)
     );
   } catch (e) {
-    console.warn('[DestinyFlower] ?��??�수 브리지 계산 ?�패:', e);
+    console.warn('[DestinyFlower] 자미두수 브리지 계산 실패:', e);
   }
   return null;
 }
@@ -3222,7 +3258,7 @@ function _dfExtractSukuyoLiveData(birthCtx) {
       ));
     }
   } catch (e) {
-    console.warn('[DestinyFlower] ?�요 ?�력 변???�패:', e);
+    console.warn('[DestinyFlower] 숙요 달력 변환 실패:', e);
   }
 
   if (!lunarObj) return null;
@@ -3243,7 +3279,7 @@ function _dfExtractSukuyoLiveData(birthCtx) {
       phase: phase
     };
   } catch (e2) {
-    console.warn('[DestinyFlower] ?�요 브리지 계산 ?�패:', e2);
+    console.warn('[DestinyFlower] 숙요 브리지 계산 실패:', e2);
   }
 
   return null;
@@ -3331,7 +3367,7 @@ function _dfGetProfilePayload(options) {
         return window.DestinyProfileManager.storage.current() || {};
       }
     } catch (e) {
-      console.warn('[DestinyFlower] ?�로??로드 ?�패:', e);
+      console.warn('[DestinyFlower] 프로필 로드 실패:', e);
     }
     return {};
   }
@@ -3343,7 +3379,7 @@ function _dfGetProfilePayload(options) {
       && Number(a.day || 0) === Number(b.day || 0);
     if (!sameYmd) return false;
 
-    // snapshot ?�이?�에 ??�??�력 ?�?�이 ?�는 경우가 ?�어, ?�쪽 값이 모두 ?�을 ?�만 ?�격 비교?�다.
+    // snapshot 데이터에 시/분/달력 타입이 없는 경우가 있어, 양쪽 값이 모두 있을 때만 엄격 비교한다.
     var aHour = Number(a.hour);
     var bHour = Number(b.hour);
     if (Number.isFinite(aHour) && Number.isFinite(bHour) && aHour !== bHour) return false;
@@ -3433,7 +3469,7 @@ function _dfGetProfilePayload(options) {
       snapshot = pickSajuSnapshot(payload);
       if (snapshot) payload = mergePayload(payload, snapshot);
     } catch (e2) {
-      console.warn('[DestinyFlower] ?�주 ?�계???�패:', e2);
+      console.warn('[DestinyFlower] 사주 재계산 실패:', e2);
     }
   }
 
@@ -3460,8 +3496,8 @@ function _dfResolveSelection() {
   var birthCtx = _dfResolveBirthContext(payload || {});
   var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
 
-  // ?�년?�일 ?�심 ?�보가 ?��? ?�으�??�명??꽃을 계산?��? ?�는??
-  // (�??�태?�서???�떤 꽃도 ?�출?��? ?�고 ?�내 문구�?보여주기 ?�함)
+  // 생년월일 핵심 정보가 전혀 없으면 운명의 꽃을 계산하지 않는다.
+  // (빈 상태에서는 어떤 꽃도 노출하지 않고 안내 문구만 보여주기 위함)
   if (!_dfHasBirthCore(birthCtx)) {
     console.warn('[DestinyFlower][Saju] resolve failed: missing birth core', {
       year: birthCtx && birthCtx.year,
@@ -3501,7 +3537,7 @@ function _dfResolveSelection() {
       matched = window.matchDestinyFlower(payload, { limit: 5 });
     }
   } catch (e2) {
-    console.warn('[DestinyFlower] 매칭 ?�패:', e2);
+    console.warn('[DestinyFlower] 매칭 실패:', e2);
   }
 
   if (!matched) {
@@ -3565,7 +3601,7 @@ function _afResolveSelection() {
       matched = window.getAstrologyFlower((payload && payload.astrology) || {});
     }
   } catch (e) {
-    console.warn('[AstrologyFlower] 매칭 ?�패:', e);
+    console.warn('[AstrologyFlower] 매칭 실패:', e);
   }
   if (!matched) return null;
 
@@ -3581,14 +3617,14 @@ function _afResolveSelection() {
   if (!flower) {
     flower = {
       id: 'astro_lavender',
-      name: '?�운 ?�벤??,
+      name: '성운 라벤더',
       scientific_name: 'Lavandula nebula',
-      symbolism: '별빛??결을 ?�라 ?�르??�?��??직�?',
+      symbolism: '별빛의 결을 따라 흐르는 청명한 직관',
       primary_color: '#8D99FF',
       secondary_color: '#C77DFF',
       keywords: ['nebula', 'zodiac', 'stardust'],
       particle_type: 'stardust_air',
-      vibe_message: '별의 리듬???�라 ?�흡?�면 직�????�명?�집?�다.'
+      vibe_message: '별의 리듬을 따라 호흡하면 직관이 선명해집니다.'
     };
   }
 
@@ -3638,9 +3674,9 @@ function _afEnsureCardOpen(card) {
   if (cta) {
     cta.setAttribute('aria-expanded', 'true');
     var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '???�성??�??�시 ?�환?�기';
+    if (labelEl) labelEl.textContent = '✨ 점성술 꽃 다시 소환하기';
     var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '??;
+    if (arrowEl) arrowEl.textContent = '✦';
   }
   syncFeatureCardHeight(card);
 }
@@ -3672,13 +3708,13 @@ function _afApplyCardVisual(card, selection) {
   }
 
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.astro_verdict || matched.narrative || '?�성??차트 기반 ?�명꽃을 ?�독 중입?�다.';
-  keywordsEl.textContent = 'zodiac flower keywords · ' + selection.keywords.join(' ??');
-  if (sunBadgeEl) sunBadgeEl.textContent = chart.sun_sign ? ('?�양�?' + chart.sun_sign) : '?�양�?미확??;
-  if (risingBadgeEl) risingBadgeEl.textContent = chart.rising_sign ? ('?�승�?' + chart.rising_sign) : '?�승�?미확??;
-  if (moonBadgeEl) moonBadgeEl.textContent = chart.moon_sign ? ('?�궁 ' + chart.moon_sign) : '?�궁 미확??;
+  symbolismEl.textContent = matched.astro_verdict || matched.narrative || '점성술 차트 기반 운명꽃을 판독 중입니다.';
+  keywordsEl.textContent = 'zodiac flower keywords · ' + selection.keywords.join(' • ');
+  if (sunBadgeEl) sunBadgeEl.textContent = chart.sun_sign ? ('태양궁 ' + chart.sun_sign) : '태양궁 미확인';
+  if (risingBadgeEl) risingBadgeEl.textContent = chart.rising_sign ? ('상승궁 ' + chart.rising_sign) : '상승궁 미확인';
+  if (moonBadgeEl) moonBadgeEl.textContent = chart.moon_sign ? ('달궁 ' + chart.moon_sign) : '달궁 미확인';
   if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || '차트 ?�그???��?) + ' · ' + (flowerData.ritual_tip || '별의 리듬??고정 중입?�다.');
+    dataLineEl.textContent = (flowerData.focus_signal || '차트 시그널 대기') + ' · ' + (flowerData.ritual_tip || '별의 리듬을 고정 중입니다.');
   }
 
   if (nebula) {
@@ -3720,8 +3756,8 @@ function _jfResolveSelection() {
   var matched = null;
 
   try {
-    // ?��??�수 ?�이?�는 명궁�??�니??�?궁의 주성 ?�보�??�께 ?��??�다.
-    // (?�진/?�더가 궁별 �??�보�?참조?????�락?��? ?�도�???
+    // 자미두수 데이터는 명궁뿐 아니라 각 궁의 주성 정보를 함께 유지한다.
+    // (엔진/렌더가 궁별 별 정보를 참조할 때 누락되지 않도록 함)
     if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function') {
       try {
         var zw = window.calcZiweiPalaces(
@@ -3736,7 +3772,7 @@ function _jfResolveSelection() {
             return String(raw || '')
               .replace(/<[^>]*>/g, ' ')
               .replace(/\(차성\)/g, ' ')
-              .replace(/?�록|?�권|?�과|?�기/g, ' ')
+              .replace(/화록|화권|화과|화기/g, ' ')
               .replace(/\s+/g, ' ')
               .trim();
           };
@@ -3801,7 +3837,7 @@ function _jfResolveSelection() {
       matched = window.getJamidusuFlower((payload && payload.ziwei) || {});
     }
   } catch (e) {
-    console.warn('[JamidusuFlower] 매칭 ?�패:', e);
+    console.warn('[JamidusuFlower] 매칭 실패:', e);
   }
   if (!_dfHasReadySourceData('jamidusu', payload)) return null;
   if (!matched) return null;
@@ -3810,14 +3846,14 @@ function _jfResolveSelection() {
   if (!flower) {
     flower = {
       id: 'peony_ziwei',
-      name: '모�?',
+      name: '모란',
       scientific_name: 'Paeonia suffruticosa',
-      symbolism: '?�왕??기품�?중심????,
+      symbolism: '제왕의 기품과 중심의 힘',
       primary_color: '#D946EF',
       secondary_color: '#F9A8D4',
-      keywords: ['?�왕', '기품', '중심'],
+      keywords: ['제왕', '기품', '중심'],
       particle_type: 'imperial_petal',
-      vibe_message: '중심??지?�는 ?�도가 결국 가??멀�?갑니??'
+      vibe_message: '중심을 지키는 태도가 결국 가장 멀리 갑니다.'
     };
   }
 
@@ -3868,9 +3904,9 @@ function _jfEnsureCardOpen(card) {
   if (cta) {
     cta.setAttribute('aria-expanded', 'true');
     var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '?�� ?��??�수 �??�시 ?�환?�기';
+    if (labelEl) labelEl.textContent = '🌺 자미두수 꽃 다시 소환하기';
     var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '??;
+    if (arrowEl) arrowEl.textContent = '✦';
   }
   syncFeatureCardHeight(card);
 }
@@ -3880,7 +3916,7 @@ function _jfApplyCardVisual(card, selection) {
   var matched = selection.matched || {};
   var flowerData = selection.flowerData || matched.flower_data || {};
   var ziwei = matched.ziwei || {};
-  var intensity = matched.visual_intensity || { glow: 0.7, saturation: 0.8, mist: 0.2, brightness_label: '??�?' };
+  var intensity = matched.visual_intensity || { glow: 0.7, saturation: 0.8, mist: 0.2, brightness_label: '평(平)' };
   var stage = card.querySelector('.jamidusu-flower-stage');
   var nameEl = document.getElementById('jfCardName');
   var symbolismEl = document.getElementById('jfCardSymbolism');
@@ -3902,16 +3938,16 @@ function _jfApplyCardVisual(card, selection) {
   stage.style.setProperty('--jf-saturation', String(intensity.saturation || 0.8));
 
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || '?�늘??강한 �?기반 ?�명꽃을 ?�독 중입?�다.';
-  keywordsEl.textContent = 'ziwei flower keywords · ' + selection.keywords.join(' ??');
+  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || '오늘의 강한 별 기반 운명꽃을 판독 중입니다.';
+  keywordsEl.textContent = 'ziwei flower keywords · ' + selection.keywords.join(' • ');
   if (starBadgeEl) {
-    var starLine = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '주성 미확??;
-    starBadgeEl.textContent = '?�늘??강한 �?' + starLine;
+    var starLine = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '주성 미확인';
+    starBadgeEl.textContent = '오늘의 강한 별 ' + starLine;
   }
-  if (brightBadgeEl) brightBadgeEl.textContent = '�?밝기 ' + (ziwei.brightness || intensity.brightness_label || '??�?');
-  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || '미확??;
+  if (brightBadgeEl) brightBadgeEl.textContent = '별 밝기 ' + (ziwei.brightness || intensity.brightness_label || '평(平)');
+  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || '미확인';
   if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || '주성 ?�그???��?) + ' · ' + (flowerData.ritual_tip || '별의 기운???�렬 중입?�다.');
+    dataLineEl.textContent = (flowerData.focus_signal || '주성 시그널 대기') + ' · ' + (flowerData.ritual_tip || '별의 기운을 정렬 중입니다.');
   }
 
   if (mist) {
@@ -3921,7 +3957,7 @@ function _jfApplyCardVisual(card, selection) {
   }
 
   var shouldFall = Array.isArray(ziwei.primary_stars) && ziwei.primary_stars.some(function(s) {
-    return /천기|?�음/.test(String(s || ''));
+    return /천기|태음/.test(String(s || ''));
   });
   _jfRenderPetals(petals, selection.primary, selection.secondary, shouldFall);
   _dfApplyGeneratedFlowerImage(image, selection, 'jamidusu');
@@ -3934,7 +3970,7 @@ function _jfApplyCardVisual(card, selection) {
     var popupEl = document.getElementById('jfCardKeywordPopup');
     stage.addEventListener('click', function() {
       if (!popupEl) return;
-      popupEl.textContent = (card.__jfKeywords || []).join(' · ') || '?�왕??기품';
+      popupEl.textContent = (card.__jfKeywords || []).join(' · ') || '제왕의 기품';
       popupEl.classList.add('is-show');
       setTimeout(function() {
         popupEl.classList.remove('is-show');
@@ -3965,7 +4001,7 @@ function _sfResolveSelection() {
       matched = window.calculateSukyoFlower(idx, payload && payload.sukuyo && payload.sukuyo.phase);
     }
   } catch (e) {
-    console.warn('[SukuyoFlower] 매칭 ?�패:', e);
+    console.warn('[SukuyoFlower] 매칭 실패:', e);
   }
   if (!_dfHasReadySourceData('sukuyo', payload)) return null;
   if (!matched) return null;
@@ -3976,12 +4012,12 @@ function _sfResolveSelection() {
       id: 'moon_lily',
       name: '백합',
       scientific_name: 'Lilium candidum',
-      symbolism: '?�빛 ?�에??맑게 ?�어?�는 ?�호??�?,
+      symbolism: '달빛 속에서 맑게 피어나는 수호의 꽃',
       primary_color: '#F8FAFC',
       secondary_color: '#93C5FD',
-      keywords: ['?�빛', '?�호', '?�화'],
+      keywords: ['달빛', '수호', '정화'],
       particle_type: 'lunar_pollen',
-      vibe_message: '?�늘 �??�의 ?�흡�?리듬??맞추�??�택?????�명?�집?�다.'
+      vibe_message: '오늘 밤 달의 호흡과 리듬을 맞추면 선택이 더 선명해집니다.'
     };
   }
 
@@ -3991,7 +4027,7 @@ function _sfResolveSelection() {
   var sukuyo = (matched && matched.sukuyo) || {};
   var keywords = Array.isArray(flower.keywords) && flower.keywords.length
     ? flower.keywords.slice(0, 5)
-    : [sukuyo.mansion_name || '?�요', sukuyo.guardian_animal || '?�호?�물', sukuyo.moon_phase || '?�위??];
+    : [sukuyo.mansion_name || '숙요', sukuyo.guardian_animal || '수호동물', sukuyo.moon_phase || '달위상'];
 
   return {
     source: 'sukuyo',
@@ -4045,9 +4081,9 @@ function _sfEnsureCardOpen(card) {
   if (cta) {
     cta.setAttribute('aria-expanded', 'true');
     var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '?�� ?�요 �??�시 ?�환?�기';
+    if (labelEl) labelEl.textContent = '🌙 숙요 꽃 다시 소환하기';
     var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '??;
+    if (arrowEl) arrowEl.textContent = '✦';
   }
   syncFeatureCardHeight(card);
 }
@@ -4057,7 +4093,7 @@ function _sfApplyCardVisual(card, selection) {
   var matched = selection.matched || {};
   var flowerData = selection.flowerData || matched.flower_data || {};
   var sukuyo = matched.sukuyo || {};
-  var intensity = matched.visual_intensity || { glow: 0.72, halo: 0.56, moon_style: 'lunar_flow', moon_label: '?�현/?�현?? };
+  var intensity = matched.visual_intensity || { glow: 0.72, halo: 0.56, moon_style: 'lunar_flow', moon_label: '상현/하현달' };
   var theme = matched.theme || {};
 
   var stage = card.querySelector('.sukuyo-flower-stage');
@@ -4084,17 +4120,17 @@ function _sfApplyCardVisual(card, selection) {
   }
 
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.sukuyo_verdict || matched.narrative || '?�요 27??기반 ?�명꽃을 ?�독 중입?�다.';
-  keywordsEl.textContent = 'sukuyo flower keywords · ' + selection.keywords.join(' ??');
+  symbolismEl.textContent = matched.sukuyo_verdict || matched.narrative || '숙요 27숙 기반 운명꽃을 판독 중입니다.';
+  keywordsEl.textContent = 'sukuyo flower keywords · ' + selection.keywords.join(' • ');
   if (mansionBadgeEl) {
     var mansionLabel = _dfNormalizeSukuyoMansionLabel(sukuyo.mansion_name);
     var groupLabel = _dfNormalizeSukuyoGroupLabel(sukuyo.group);
-    mansionBadgeEl.textContent = (mansionLabel || '??미확??) + (groupLabel ? (' · ' + groupLabel) : '');
+    mansionBadgeEl.textContent = (mansionLabel || '숙 미확인') + (groupLabel ? (' · ' + groupLabel) : '');
   }
-  if (phaseBadgeEl) phaseBadgeEl.textContent = '???�상 ' + (sukuyo.moon_phase || intensity.moon_label || '?�정 ?��?);
-  if (guardianBadgeEl) guardianBadgeEl.textContent = '?�호?�물 ' + (sukuyo.guardian_animal || '미확??);
+  if (phaseBadgeEl) phaseBadgeEl.textContent = '달 위상 ' + (sukuyo.moon_phase || intensity.moon_label || '판정 대기');
+  if (guardianBadgeEl) guardianBadgeEl.textContent = '수호동물 ' + (sukuyo.guardian_animal || '미확인');
   if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || '?�요 ?�그???��?) + ' · ' + (flowerData.ritual_tip || '?�의 리듬???�기??중입?�다.');
+    dataLineEl.textContent = (flowerData.focus_signal || '숙요 시그널 대기') + ' · ' + (flowerData.ritual_tip || '달의 리듬을 동기화 중입니다.');
   }
 
   if (constellationPath) {
@@ -4181,7 +4217,7 @@ function _dfApplyCardVisual(card, selection) {
 
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
   symbolismEl.textContent = stageContent.symbolism || sajuVerdict;
-  keywordsEl.textContent = sourceMeta.labelKo + ' ?�워??· ' + (_dfToArray(selection.keywords).join(' ??') || sourceMeta.fallbackKeyword);
+  keywordsEl.textContent = sourceMeta.labelKo + ' 키워드 · ' + (_dfToArray(selection.keywords).join(' • ') || sourceMeta.fallbackKeyword);
   if (descEl) descEl.textContent = sourceMeta.description;
   if (dayMasterBadgeEl) dayMasterBadgeEl.textContent = stageContent.badge1;
   if (seasonBadgeEl) seasonBadgeEl.textContent = stageContent.badge2;
@@ -4255,32 +4291,32 @@ var _DF_SOURCE_ALIAS = {
 };
 var _DF_SOURCE_META = {
   saju: {
-    labelKo: '?�주',
-    stickerMain: '?�柱',
+    labelKo: '사주',
+    stickerMain: '四柱',
     stickerSub: 'Native',
     description: '',
-    fallbackKeyword: 'saju ??bloom ??destiny'
+    fallbackKeyword: 'saju • bloom • destiny'
   },
   astrology: {
-    labelKo: '?�성??,
+    labelKo: '점성술',
     stickerMain: 'Zodiac',
     stickerSub: 'Star',
     description: '',
-    fallbackKeyword: 'zodiac ??nebula ??stardust'
+    fallbackKeyword: 'zodiac • nebula • stardust'
   },
   jamidusu: {
-    labelKo: '?��??�수',
+    labelKo: '자미두수',
     stickerMain: '紫微',
     stickerSub: 'Purple Star',
     description: '',
-    fallbackKeyword: 'ziwei ??ming-gong ??imperial bloom'
+    fallbackKeyword: 'ziwei • ming-gong • imperial bloom'
   },
   sukuyo: {
-    labelKo: '?�요??,
+    labelKo: '숙요점',
     stickerMain: '27-Suk',
     stickerSub: '宿曜',
     description: '',
-    fallbackKeyword: 'sukuyo ??lunar mansion ??moon bloom'
+    fallbackKeyword: 'sukuyo • lunar mansion • moon bloom'
   }
 };
 
@@ -4309,10 +4345,10 @@ var _dfStudioState = {
   },
   coinGatePassed: false,
   coinGateInFlight: false,
-  _coinGatePassToken: null  // 코인 게이???�큰 (?��? 콜백?? ?��? ?�출 방어)
+  _coinGatePassToken: null  // 코인 게이트 토큰 (내부 콜백용, 외부 호출 방어)
 };
 
-var _DF_STUDIO_TITLE = '?�� ?�명??�??��?리에';
+var _DF_STUDIO_TITLE = '🌸 운명의 꽃 아틀리에';
 var _dfOriginalTitle = null;
 
 function _dfCaptureOriginalTitle() {
@@ -4471,9 +4507,9 @@ function _dfGetNextRecommendedSource() {
 
 function _dfBuildSourceFlowGuide() {
   var nextSource = _dfGetNextRecommendedSource();
-  if (!nextSource) return '모든 꽃이 개화?�었?�니?? ?�하????��???�시 감상??보세??';
-  if (nextSource === 'saju') return '?�음 ?�계: ?�주 꽃을 먼�? ?�어 개화�??�작??보세??';
-  return '?�음 ?�계: ' + _dfGetSourceLabel(nextSource) + ' 꽃으�??�동??개화�??�어가?�요.';
+  if (!nextSource) return '모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.';
+  if (nextSource === 'saju') return '다음 단계: 사주 꽃을 먼저 열어 개화를 시작해 보세요.';
+  return '다음 단계: ' + _dfGetSourceLabel(nextSource) + ' 꽃으로 이동해 개화를 이어가세요.';
 }
 
 function _dfIsSourcePaidUnlocked(source) {
@@ -4550,7 +4586,7 @@ function _dfSyncSourceTabsLockState(options) {
 
     if (!unlocked) {
       var required = _dfGetRequiredSourceForUnlock(src);
-      var lockLabel = required ? (_dfGetSourceLabel(required) + ' ?�료 ???�금') : '?�금 조건 ?�요';
+      var lockLabel = required ? (_dfGetSourceLabel(required) + ' 완료 시 해금') : '해금 조건 필요';
       tab.setAttribute('aria-disabled', 'true');
       tab.setAttribute('data-df-lock-label', lockLabel);
       tab.title = lockLabel;
@@ -4610,7 +4646,7 @@ function _dfMarkSourceCompleted(source, options) {
 
   _dfSyncSourceTabsLockState({ highlightSources: newlyUnlocked });
   if (!opts.silent && newlyUnlocked.length) {
-    _dfSetStudioStatus('??' + _dfGetSourceLabel(newlyUnlocked[0]) + ' 꽃이 ?�로 ?�렸?�니??');
+    _dfSetStudioStatus('✨ ' + _dfGetSourceLabel(newlyUnlocked[0]) + ' 꽃이 새로 열렸습니다.');
   }
   return { changed: true, newlyUnlocked: newlyUnlocked };
 }
@@ -4699,7 +4735,7 @@ function _dfBuildUnifiedFlowerData(forceRefresh, source) {
     if (selection) selection.source = _dfNormalizeSource(selection.source || normalizedSource);
     sources[normalizedSource] = selection || null;
   } catch (e) {
-    console.warn('[DestinyFlower] ?�합 ?�이??계산 ?�패 (' + normalizedSource + '):', e);
+    console.warn('[DestinyFlower] 통합 데이터 계산 실패 (' + normalizedSource + '):', e);
     sources[normalizedSource] = null;
   }
 
@@ -4730,7 +4766,7 @@ _dfStudioState.activeSource = _dfLoadActiveSource();
 _dfLoadSourceProgressState();
 
 function _dfGetSajuVerdict(selection) {
-  if (!selection) return '?�명??�??�정??준�?중입?�다.';
+  if (!selection) return '운명의 꽃 판정을 준비 중입니다.';
   var matched = selection.matched || {};
   if (matched.sukuyo_verdict) return matched.sukuyo_verdict;
   if (matched.jamidusu_verdict) return matched.jamidusu_verdict;
@@ -4738,54 +4774,54 @@ function _dfGetSajuVerdict(selection) {
   if (matched.saju_verdict) return matched.saju_verdict;
   if (matched.verdict) return matched.verdict;
   var flower = selection.flower || {};
-  var flowerName = flower.name || '?�명??�?;
+  var flowerName = flower.name || '운명의 꽃';
   var latin = flower.scientific_name ? ' (' + flower.scientific_name + ')' : '';
   if (selection.source === 'sukuyo') {
-    return '?�요?�으�?�????�신??꽃�? ' + flowerName + latin + ' ?�니??';
+    return '숙요점으로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
   }
   if (selection.source === 'jamidusu') {
-    return '?��??�수�?�????�신??꽃�? ' + flowerName + latin + ' ?�니??';
+    return '자미두수로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
   }
   if (selection.source === 'astrology') {
-    return '?�성?�로 �????�신??꽃�? ' + flowerName + latin + ' ?�니??';
+    return '점성술로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
   }
-  return '?�주�?�????�신??꽃�? ' + flowerName + latin + ' ?�니??';
+  return '사주로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
 }
 
 function _dfElementLabelKo(raw) {
   var map = {
-    wood: '�???',
-    fire: '????',
-    earth: '????',
-    metal: '�???',
-    water: '??�?',
-    Wood: '�???',
-    Fire: '????',
-    Earth: '????',
-    Metal: '�???',
-    Water: '??�?'
+    wood: '목(木)',
+    fire: '화(火)',
+    earth: '토(土)',
+    metal: '금(金)',
+    water: '수(水)',
+    Wood: '목(木)',
+    Fire: '화(火)',
+    Earth: '토(土)',
+    Metal: '금(金)',
+    Water: '수(水)'
   };
   return map[String(raw || '').trim()] || String(raw || '').trim();
 }
 
 function _dfJohuLabel(raw) {
   var v = String(raw || '').trim().toLowerCase();
-  if (!v) return '?�정 ?��?;
-  if (v === 'hot' || v === 'warm') return '?�조(溫燥)';
-  if (v === 'cold' || v === 'cool') return '?�습(寒濕)';
-  if (v === 'temperate' || v === 'balanced') return '중화(�?��)';
+  if (!v) return '판정 대기';
+  if (v === 'hot' || v === 'warm') return '온조(溫燥)';
+  if (v === 'cold' || v === 'cool') return '한습(寒濕)';
+  if (v === 'temperate' || v === 'balanced') return '중화(中和)';
   return String(raw || '').trim();
 }
 
 function _dfJoinElementLabels(list) {
   var arr = _dfToArray(list).map(_dfElementLabelKo).filter(Boolean);
-  return arr.length ? arr.join(' · ') : '?�정 ?��?;
+  return arr.length ? arr.join(' · ') : '판정 대기';
 }
 
 function _dfNormalizeSukuyoMansionLabel(raw) {
   var text = String(raw || '').trim();
   if (!text) return '';
-  text = text.replace(/^??s+/, '').trim();
+  text = text.replace(/^숙\s+/, '').trim();
   if (text.indexOf('·') >= 0) text = text.split('·')[0].trim();
   if (text.indexOf('|') >= 0) text = text.split('|')[0].trim();
   return text;
@@ -4796,7 +4832,7 @@ function _dfNormalizeSukuyoGroupLabel(raw) {
   if (!text) return '';
   text = text.replace(/^그룹\s+/, '').trim();
   if (/그룹$/.test(text)) return text;
-  text = text.replace(/??/, '').trim();
+  text = text.replace(/숙$/, '').trim();
   return text ? (text + ' 그룹') : '';
 }
 
@@ -4805,34 +4841,34 @@ function _dfGetSajuBadges(selection) {
   if (saved && typeof saved === 'object' && saved.mode === 'sukuyo') {
     return {
       mode: 'sukuyo',
-      mansion: _dfNormalizeSukuyoMansionLabel(saved.mansion) || '미확??,
+      mansion: _dfNormalizeSukuyoMansionLabel(saved.mansion) || '미확인',
       group: _dfNormalizeSukuyoGroupLabel(saved.group || ''),
-      phase: saved.phase || '미확??,
-      guardian: saved.guardian || '미확??
+      phase: saved.phase || '미확인',
+      guardian: saved.guardian || '미확인'
     };
   }
   if (saved && typeof saved === 'object' && saved.mode === 'jamidusu') {
     return {
       mode: 'jamidusu',
-      star: saved.star || '미확??,
-      brightness: saved.brightness || '미확??,
-      palace: saved.palace || '미확??
+      star: saved.star || '미확인',
+      brightness: saved.brightness || '미확인',
+      palace: saved.palace || '미확인'
     };
   }
   if (saved && typeof saved === 'object' && saved.mode === 'astrology') {
     return {
       mode: 'astrology',
-      sun: saved.sun || '미확??,
-      rising: saved.rising || '미확??,
-      moon: saved.moon || '미확??
+      sun: saved.sun || '미확인',
+      rising: saved.rising || '미확인',
+      moon: saved.moon || '미확인'
     };
   }
   if (saved && typeof saved === 'object' && saved.mode !== 'astrology') {
     return {
       mode: 'saju',
-      strength: saved.strength || '?�정 ?��?,
-      yongshin: saved.yongshin || '?�정 ?��?,
-      johu: saved.johu || '?�정 ?��?
+      strength: saved.strength || '판정 대기',
+      yongshin: saved.yongshin || '판정 대기',
+      johu: saved.johu || '판정 대기'
     };
   }
 
@@ -4841,10 +4877,10 @@ function _dfGetSajuBadges(selection) {
     var sy = matched.sukuyo || {};
     return {
       mode: 'sukuyo',
-      mansion: _dfNormalizeSukuyoMansionLabel(sy.mansion_name) || '미확??,
+      mansion: _dfNormalizeSukuyoMansionLabel(sy.mansion_name) || '미확인',
       group: _dfNormalizeSukuyoGroupLabel(sy.group || ''),
-      phase: sy.moon_phase || (matched.visual_intensity && matched.visual_intensity.moon_label) || '미확??,
-      guardian: sy.guardian_animal || '미확??
+      phase: sy.moon_phase || (matched.visual_intensity && matched.visual_intensity.moon_label) || '미확인',
+      guardian: sy.guardian_animal || '미확인'
     };
   }
   if ((selection && selection.source === 'jamidusu') || matched.source === 'jamidusu') {
@@ -4852,18 +4888,18 @@ function _dfGetSajuBadges(selection) {
     var stars = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '';
     return {
       mode: 'jamidusu',
-      star: stars || '미확??,
-      brightness: ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || '미확??,
-      palace: ziwei.palace || '미확??
+      star: stars || '미확인',
+      brightness: ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || '미확인',
+      palace: ziwei.palace || '미확인'
     };
   }
   if ((selection && selection.source === 'astrology') || matched.source === 'astrology') {
     var chart = matched.chart || {};
     return {
       mode: 'astrology',
-      sun: chart.sun_sign || '미확??,
-      rising: chart.rising_sign || '미확??,
-      moon: chart.moon_sign || '미확??
+      sun: chart.sun_sign || '미확인',
+      rising: chart.rising_sign || '미확인',
+      moon: chart.moon_sign || '미확인'
     };
   }
 
@@ -4874,9 +4910,9 @@ function _dfGetSajuBadges(selection) {
   var strength = '';
   if (analysis.power_label) strength = String(analysis.power_label);
   else if (saju.power_label) strength = String(saju.power_label);
-  else if (typeof analysis.isStrong === 'boolean') strength = analysis.isStrong ? '?�강' : '?�약';
-  else if (typeof saju.is_strong === 'boolean') strength = saju.is_strong ? '?�강' : '?�약';
-  else strength = '?�정 ?��?;
+  else if (typeof analysis.isStrong === 'boolean') strength = analysis.isStrong ? '신강' : '신약';
+  else if (typeof saju.is_strong === 'boolean') strength = saju.is_strong ? '신강' : '신약';
+  else strength = '판정 대기';
 
   var yongshin = _dfJoinElementLabels(saju.yongshin_elements || analysis.yongshin_elements || []);
   var johu = _dfJohuLabel(saju.johu_type || saju.johuType || analysis.johuType || analysis.johu_type || '');
@@ -4897,43 +4933,43 @@ function _dfGetUnifiedStageContent(selection) {
 
   if (source === 'astrology') {
     return {
-      badge1: '?�양�?' + (badges.sun || '미확??),
-      badge2: '?�승�?' + (badges.rising || '미확??),
-      badge3: '?�궁 ' + (badges.moon || '미확??),
-      scenarioTitle: matched.astro_verdict || matched.narrative || '?�성??별자�?개화 ?�나리오�?계산 중입?�다.',
-      dataLine: (flowerData.focus_signal || '차트 ?�그???��?) + ' · ' + (flowerData.ritual_tip || '?�운 리듬???�렬 중입?�다.'),
+      badge1: '태양궁 ' + (badges.sun || '미확인'),
+      badge2: '상승궁 ' + (badges.rising || '미확인'),
+      badge3: '달궁 ' + (badges.moon || '미확인'),
+      scenarioTitle: matched.astro_verdict || matched.narrative || '점성술 별자리 개화 시나리오를 계산 중입니다.',
+      dataLine: (flowerData.focus_signal || '차트 시그널 대기') + ' · ' + (flowerData.ritual_tip || '성운 리듬을 정렬 중입니다.'),
       symbolism: matched.astro_verdict || matched.narrative || ''
     };
   }
 
   if (source === 'jamidusu') {
     return {
-      badge1: '?�늘??강한 �?' + (badges.star || '미확??),
-      badge2: '�?밝기 ' + (badges.brightness || '미확??),
-      badge3: '궁위 ' + (badges.palace || '미확??),
-      scenarioTitle: matched.jamidusu_verdict || matched.narrative || '?��??�수 주성 개화 ?�나리오�?계산 중입?�다.',
-      dataLine: (flowerData.focus_signal || '주성 ?�그???��?) + ' · ' + (flowerData.ritual_tip || '?�왕??기운??조율 중입?�다.'),
+      badge1: '오늘의 강한 별 ' + (badges.star || '미확인'),
+      badge2: '별 밝기 ' + (badges.brightness || '미확인'),
+      badge3: '궁위 ' + (badges.palace || '미확인'),
+      scenarioTitle: matched.jamidusu_verdict || matched.narrative || '자미두수 주성 개화 시나리오를 계산 중입니다.',
+      dataLine: (flowerData.focus_signal || '주성 시그널 대기') + ' · ' + (flowerData.ritual_tip || '제왕의 기운을 조율 중입니다.'),
       symbolism: matched.jamidusu_verdict || matched.narrative || ''
     };
   }
 
   if (source === 'sukuyo') {
     return {
-      badge1: badges.mansion || '미확??,
-      badge2: '???�상 ' + (badges.phase || '미확??),
-      badge3: '?�호?�물 ' + (badges.guardian || '미확??),
-      scenarioTitle: matched.sukuyo_verdict || matched.narrative || '?�요 ?�빛 개화 ?�나리오�?계산 중입?�다.',
-      dataLine: (flowerData.focus_signal || '?�요 ?�그???��?) + ' · ' + (flowerData.ritual_tip || '?�의 리듬???�기??중입?�다.'),
+      badge1: badges.mansion || '미확인',
+      badge2: '달 위상 ' + (badges.phase || '미확인'),
+      badge3: '수호동물 ' + (badges.guardian || '미확인'),
+      scenarioTitle: matched.sukuyo_verdict || matched.narrative || '숙요 달빛 개화 시나리오를 계산 중입니다.',
+      dataLine: (flowerData.focus_signal || '숙요 시그널 대기') + ' · ' + (flowerData.ritual_tip || '달의 리듬을 동기화 중입니다.'),
       symbolism: matched.sukuyo_verdict || matched.narrative || ''
     };
   }
 
   return {
-    badge1: flowerData.day_master_badge || '?�간 ?�독 ?��?,
-    badge2: (flowerData.season_label || '계절') + ' �?,
-    badge3: (flowerData.environment_label || '?�경') + ' 무드',
-    scenarioTitle: flowerData.scenario_title || '?�간-?�경 개화 ?�나리오�?계산 중입?�다.',
-    dataLine: (flowerData.ritual_tip || '') + ((flowerData.ritual_tip && flowerData.focus_signal) ? ' · ' : '') + (flowerData.focus_signal || '�??�이???�트�?준�?중입?�다.'),
+    badge1: flowerData.day_master_badge || '일간 판독 대기',
+    badge2: (flowerData.season_label || '계절') + ' 결',
+    badge3: (flowerData.environment_label || '환경') + ' 무드',
+    scenarioTitle: flowerData.scenario_title || '일간-환경 개화 시나리오를 계산 중입니다.',
+    dataLine: (flowerData.ritual_tip || '') + ((flowerData.ritual_tip && flowerData.focus_signal) ? ' · ' : '') + (flowerData.focus_signal || '꽃 데이터 시트를 준비 중입니다.'),
     symbolism: flowerData.scenario_reason || ''
   };
 }
@@ -5034,30 +5070,30 @@ function _dfRenderSajuBadges(selection) {
   var badges = _dfGetSajuBadges(selection);
   var rows = badges.mode === 'sukuyo'
     ? [
-      { cls: 'is-strength', label: '??, value: badges.mansion },
-      { cls: 'is-yongshin', label: '???�상', value: badges.phase },
-      { cls: 'is-johu', label: '?�호?�물', value: badges.guardian }
+      { cls: 'is-strength', label: '숙', value: badges.mansion },
+      { cls: 'is-yongshin', label: '달 위상', value: badges.phase },
+      { cls: 'is-johu', label: '수호동물', value: badges.guardian }
     ]
     : (badges.mode === 'jamidusu'
       ? [
-        { cls: 'is-strength', label: '?�늘??강한 �?, value: badges.star },
-        { cls: 'is-yongshin', label: '�?밝기', value: badges.brightness },
+        { cls: 'is-strength', label: '오늘의 강한 별', value: badges.star },
+        { cls: 'is-yongshin', label: '별 밝기', value: badges.brightness },
         { cls: 'is-johu', label: '궁위', value: badges.palace }
       ]
       : (badges.mode === 'astrology'
         ? [
-          { cls: 'is-strength', label: '?�양�?, value: badges.sun },
-          { cls: 'is-yongshin', label: '?�승�?, value: badges.rising },
-          { cls: 'is-johu', label: '?�궁', value: badges.moon }
+          { cls: 'is-strength', label: '태양궁', value: badges.sun },
+          { cls: 'is-yongshin', label: '상승궁', value: badges.rising },
+          { cls: 'is-johu', label: '달궁', value: badges.moon }
         ]
         : [
-          { cls: 'is-strength', label: '?�강/?�약', value: badges.strength },
-          { cls: 'is-yongshin', label: '?�신', value: badges.yongshin },
+          { cls: 'is-strength', label: '신강/신약', value: badges.strength },
+          { cls: 'is-yongshin', label: '용신', value: badges.yongshin },
           { cls: 'is-johu', label: '조후', value: badges.johu }
         ]));
 
   wrap.innerHTML = rows.map(function(row) {
-    return '<span class="df-saju-badge ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>' + _dfEscapeHtml(row.value || '?�정 ?��?) + '</em></span>';
+    return '<span class="df-saju-badge ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>' + _dfEscapeHtml(row.value || '판정 대기') + '</em></span>';
   }).join('');
 }
 
@@ -5098,7 +5134,7 @@ function _dfBuildSnapshot(selection) {
     saju_badges: badges,
     saju_verdict: _dfGetSajuVerdict(selection),
     narrative: (selection.matched && selection.matched.narrative) || '',
-    guidance: flower.vibe_message || '?�늘?� 결과보다 리듬??먼�? 맞추�?개화 ?�도가 빨라집니??'
+    guidance: flower.vibe_message || '오늘은 결과보다 리듬을 먼저 맞추면 개화 속도가 빨라집니다.'
   };
 }
 
@@ -5147,7 +5183,7 @@ function _dfPersistHistory() {
   try {
     localStorage.setItem(_DF_STUDIO_HISTORY_KEY, JSON.stringify(_dfStudioState.history.slice(0, _DF_STUDIO_HISTORY_LIMIT)));
   } catch (e) {
-    console.warn('[DestinyFlower] ?�스?�리 ?�???�패:', e);
+    console.warn('[DestinyFlower] 히스토리 저장 실패:', e);
   }
 }
 
@@ -5235,13 +5271,13 @@ function _dfHasBirthInfo(payload) {
 function _dfGetNoDomainDataMessage(source) {
   var normalized = _dfNormalizeSource(source);
   var label = _dfGetSourceLabel(normalized);
-  return '?�직 ?�동??' + label + ' ?�이?��? ?�습?�다. ?�래 버튼???�러 ?�신만의 ?�명??꽃을 ?�워보세??';
+  return '아직 연동된 ' + label + ' 데이터가 없습니다. 아래 버튼을 눌러 당신만의 운명의 꽃을 피워보세요.';
 }
 
 function _dfGetNotLinkedMessage(source) {
   var normalized = _dfNormalizeSource(source);
   var label = _dfGetSourceLabel(normalized);
-  return label + ' ?�명??�??��?리에???�동?�기 버튼???�러??계산?�니?? ?�래 버튼???�러 결과�?불러?�세??';
+  return label + ' 운명의 꽃 아틀리에는 연동하기 버튼을 눌러야 계산됩니다. 아래 버튼을 눌러 결과를 불러오세요.';
 }
 
 function _dfCanShowLoadButton(source, missingDomain) {
@@ -5293,7 +5329,7 @@ function _dfEnsureStudioEmptyState(main) {
   emptyEl.hidden = true;
   emptyEl.innerHTML = ''
     + '<p id="dfStudioEmptyMessage" class="df-studio-empty-message"></p>'
-    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="?�명??�??�동?�기">?�명??�??�동?�기</button>';
+    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="운명의 꽃 연동하기">운명의 꽃 연동하기</button>';
   main.appendChild(emptyEl);
 
   var loadBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
@@ -5323,7 +5359,7 @@ function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
   btn.disabled = !!isLoading;
   btn.classList.toggle('is-loading', !!isLoading);
   btn.setAttribute('data-df-source', normalized);
-  btn.textContent = isLoading ? '?�동 �?..' : '?�명??�??�동?�기';
+  btn.textContent = isLoading ? '연동 중...' : '운명의 꽃 연동하기';
 }
 
 function _dfShowStudioEmptyState(source, message, showLoadButton) {
@@ -5349,9 +5385,9 @@ function _dfShowStudioEmptyState(source, message, showLoadButton) {
     sourceDescEl.textContent = meta.description || '';
   }
   if (narrativeEl) narrativeEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
-  if (nameEl) nameEl.textContent = _dfGetSourceLabel(normalized) + ' ?�이???�동 ?��?;
+  if (nameEl) nameEl.textContent = _dfGetSourceLabel(normalized) + ' 데이터 연동 대기';
   if (latinEl) latinEl.textContent = 'Data not linked';
-  if (dayMasterEl) dayMasterEl.textContent = _dfGetSourceLabel(normalized) + ' ?�독 ?��?;
+  if (dayMasterEl) dayMasterEl.textContent = _dfGetSourceLabel(normalized) + ' 판독 대기';
   if (symbolismEl) symbolismEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
   if (keywordsEl) keywordsEl.textContent = _dfGetSourceLabel(normalized) + ' keywords · loading';
   if (badgesEl) badgesEl.style.display = 'none';
@@ -5399,7 +5435,7 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   _dfHideStudioEmptyState();
   var main = document.querySelector('.df-studio-main');
   if (main) main.style.display = '';
-  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과�??�?�하거나 카카?�톡?�로 공유?????�습?�다.');
+  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
   return selection;
 }
 
@@ -5407,7 +5443,7 @@ function _dfReloadSourceData(source, options) {
   var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   if (!opts.silentStatus) {
-    _dfSetStudioStatus('?�이?��? ?�시 불러?�는 중입?�다. ?�시�?기다?�주?�요.');
+    _dfSetStudioStatus('데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.');
   }
 
   var loader = Promise.resolve(true);
@@ -5419,7 +5455,7 @@ function _dfReloadSourceData(source, options) {
         }
         return true;
       }).catch(function(err) {
-        console.warn('[DestinyFlower] ?�진 부?�스?�랩 ?�패:', err);
+        console.warn('[DestinyFlower] 엔진 부트스트랩 실패:', err);
         return false;
       });
     });
@@ -5428,7 +5464,7 @@ function _dfReloadSourceData(source, options) {
   if (typeof __cdEnsureLunarLibReady === 'function') {
     loader = loader.then(function() {
       return __cdEnsureLunarLibReady().catch(function(err) {
-        console.warn('[DestinyFlower] ?�력 ?�이브러�?로드 ?�패:', err);
+        console.warn('[DestinyFlower] 음력 라이브러리 로드 실패:', err);
         return false;
       });
     });
@@ -5437,7 +5473,7 @@ function _dfReloadSourceData(source, options) {
   if (normalized === 'astrology' && typeof __cdEnsureSwissEphLoaded === 'function') {
     loader = loader.then(function() {
       return __cdEnsureSwissEphLoaded().catch(function(err) {
-        console.warn('[DestinyFlower] SwissEph 로드 ?�패:', err);
+        console.warn('[DestinyFlower] SwissEph 로드 실패:', err);
         return false;
       });
     });
@@ -5446,7 +5482,7 @@ function _dfReloadSourceData(source, options) {
   if (typeof __cdEnsureSajuCoreLoaded === 'function') {
     loader = loader.then(function() {
       return __cdEnsureSajuCoreLoaded().catch(function(err) {
-        console.warn('[DestinyFlower] ?�이??로드 준�??�패:', err);
+        console.warn('[DestinyFlower] 데이터 로드 준비 실패:', err);
         return false;
       });
     });
@@ -5496,7 +5532,7 @@ function _dfFetchSourceOnDemand(source, options) {
   _dfSetEmptyLoadButtonState(true, normalized, true);
 
   if (!opts.silentStatus) {
-    _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' ?�이?��? ?�동 중입?�다. ?�시�?기다?�주?�요.', {
+    _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 연동 중입니다. 잠시만 기다려주세요.', {
       showLoadButton: true,
       source: normalized,
       isLoading: true
@@ -5510,13 +5546,14 @@ function _dfFetchSourceOnDemand(source, options) {
     if (selection) {
       _dfSetActiveSource(normalized);
       if (_dfStudioState.linkedSources) _dfStudioState.linkedSources[normalized] = true;
-      // ?�릭?�로 ?��? 1�?결과�?그�?�?반영?�야 fallback ?�래�??�거 ??      // ?�계??null)�???��?��????��?�?막을 ???�다.
+      // 클릭으로 얻은 1차 결과를 그대로 반영해야 fallback 플래그 소거 후
+      // 재계산(null)로 덮어써지는 회귀를 막을 수 있다.
       _dfStudioState.selection = selection;
       _dfApplyStudioSelection(selection);
       _dfHideStudioEmptyState();
       var main = document.querySelector('.df-studio-main');
       if (main) main.style.display = '';
-      _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' ?�이?��? 불러?�습?�다.');
+      _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 불러왔습니다.');
       return selection;
     }
 
@@ -5568,21 +5605,21 @@ function _dfEscapeHtml(s) {
 }
 
 function _dfBuildShareText(snapshot) {
-  if (!snapshot) return '?�명??�?결과�?준�?중입?�다.';
+  if (!snapshot) return '운명의 꽃 결과를 준비 중입니다.';
   var sourceLabel = snapshot.source === 'sukuyo'
-    ? '?�요??
-    : (snapshot.source === 'jamidusu' ? '?��??�수' : (snapshot.source === 'astrology' ? '?�성?? : '?�주'));
-  var sajuVerdict = snapshot.saju_verdict || (sourceLabel + '�?�????�신??꽃�? ' + snapshot.name + ' ?�니??');
+    ? '숙요점'
+    : (snapshot.source === 'jamidusu' ? '자미두수' : (snapshot.source === 'astrology' ? '점성술' : '사주'));
+  var sajuVerdict = snapshot.saju_verdict || (sourceLabel + '로 볼 때 당신의 꽃은 ' + snapshot.name + ' 입니다.');
   var lines = [
-    '?�� ?�명??�??��?리에 결과',
+    '🌸 운명의 꽃 아틀리에 결과',
     '',
     sajuVerdict,
     snapshot.name + ' (' + snapshot.scientific_name + ')',
-    snapshot.day_master_badge ? ((snapshot.source === 'astrology' ? '차트 배�?: ' : (snapshot.source === 'jamidusu' ? '주성 배�?: ' : (snapshot.source === 'sukuyo' ? '?�요 배�?: ' : '?�간 배�?: '))) + snapshot.day_master_badge) : '',
+    snapshot.day_master_badge ? ((snapshot.source === 'astrology' ? '차트 배지: ' : (snapshot.source === 'jamidusu' ? '주성 배지: ' : (snapshot.source === 'sukuyo' ? '숙요 배지: ' : '일간 배지: '))) + snapshot.day_master_badge) : '',
     snapshot.symbolism,
-    '?�워?? ' + _dfToArray(snapshot.keywords).join(' ??'),
-    '?�레?? ' + snapshot.primary + ' / ' + snapshot.secondary,
-    '?�자 무드: ' + snapshot.particle_type
+    '키워드: ' + _dfToArray(snapshot.keywords).join(' • '),
+    '팔레트: ' + snapshot.primary + ' / ' + snapshot.secondary,
+    '입자 무드: ' + snapshot.particle_type
   ];
   if (snapshot.narrative) lines.push('', snapshot.narrative);
   lines.push('', window.location.href);
@@ -5596,14 +5633,14 @@ function _dfOneLineText(value, fallback) {
 
 function _dfGetSourceLabel(source) {
   return source === 'sukuyo'
-    ? '?�요??
-    : (source === 'jamidusu' ? '?��??�수' : (source === 'astrology' ? '?�성?? : '?�주'));
+    ? '숙요점'
+    : (source === 'jamidusu' ? '자미두수' : (source === 'astrology' ? '점성술' : '사주'));
 }
 
 function _dfGetPromptArtDirection(source) {
   if (source === 'astrology') {
     return {
-      mood: '별빛 ?�운�??�온 글로우가 감도??몽환???�로??,
+      mood: '별빛 성운과 네온 글로우가 감도는 몽환적 플로럴',
       lighting: 'moonlit rim light, cosmic dust volumetric light',
       background: 'deep navy nebula sky with subtle zodiac traces',
       composition: 'hero blossom centered, spiral petal motion, celestial particles'
@@ -5611,7 +5648,7 @@ function _dfGetPromptArtDirection(source) {
   }
   if (source === 'jamidusu') {
     return {
-      mood: '?�왕???�격�?궁중???�제미�? 공존?�는 ?�로??,
+      mood: '제왕의 품격과 궁중의 정제미가 공존하는 플로럴',
       lighting: 'royal soft spotlight, silky ambient glow',
       background: 'imperial jade and plum gradient with star map motif',
       composition: 'symmetrical ceremonial bloom, layered velvet petals'
@@ -5619,14 +5656,14 @@ function _dfGetPromptArtDirection(source) {
   }
   if (source === 'sukuyo') {
     return {
-      mood: '?�빛 명상�?고요???�면 같�? �?��???�로??,
+      mood: '달빛 명상과 고요한 수면 같은 청명한 플로럴',
       lighting: 'silver moon halo, soft mist backlight',
       background: 'midnight blue sky with lunar mansion orbit lines',
       composition: 'single moon-bloom portrait, floating pollen and orbit arcs'
     };
   }
   return {
-    mood: '?�행??결을 ?�라 ?�어?�는 ?�정???�양 ?�로??,
+    mood: '오행의 결을 따라 피어나는 서정적 동양 플로럴',
     lighting: 'soft dawn light, translucent petal glow',
     background: 'seasonal gradient inspired by wood fire earth metal water',
     composition: 'centered blossom portrait, elegant negative space, subtle petal drift'
@@ -5636,17 +5673,17 @@ function _dfGetPromptArtDirection(source) {
 function _dfAstroElementFromSign(sign) {
   var v = String(sign || '').trim().toLowerCase();
   if (!v) return '';
-  if (/aries|leo|sagittarius|?�자�??�자?�리|?�수?�리/.test(v)) return 'fire';
-  if (/taurus|virgo|capricorn|?�소?�리|처�??�리|?�소?�리/.test(v)) return 'earth';
-  if (/gemini|libra|aquarius|?�둥?�자�?천칭?�리|물병?�리/.test(v)) return 'air';
-  if (/cancer|scorpio|pisces|게자�??�갈?�리|물고기자�?.test(v)) return 'water';
+  if (/aries|leo|sagittarius|양자리|사자자리|사수자리/.test(v)) return 'fire';
+  if (/taurus|virgo|capricorn|황소자리|처녀자리|염소자리/.test(v)) return 'earth';
+  if (/gemini|libra|aquarius|쌍둥이자리|천칭자리|물병자리/.test(v)) return 'air';
+  if (/cancer|scorpio|pisces|게자리|전갈자리|물고기자리/.test(v)) return 'water';
   return '';
 }
 
 function _dfExtractFiveElements(text) {
   var src = String(text || '');
   var list = [];
-  ['�?, '??, '??, '�?, '??].forEach(function(el) {
+  ['목', '화', '토', '금', '수'].forEach(function(el) {
     if (src.indexOf(el) >= 0) list.push(el);
   });
   return list;
@@ -5654,15 +5691,15 @@ function _dfExtractFiveElements(text) {
 
 function _dfBuildYongshinCareLine(yongshinText) {
   var careByElement = {
-    '�?: '?�침 ?�살???�는 ?�쪽 창�??�서 8�??�트?�칭?�로 ?�장?�을 깨우�?,
-    '??: '?�향 빛을 5�?쬐며 ?�늘??목표�??�리 ?�어 ?�언?�기',
-    '??: '?�업 공간 ??구역???�리??중심 축을 ?�단???�우�?,
-    '�?: '?�선?�위 3가지�??�고 불필?�한 ?�속??과감??가지치기',
-    '??: '?�??10�??�책�??�분 보충?�로 감정???�환�??�기'
+    '목': '아침 햇살이 드는 동쪽 창가에서 8분 스트레칭으로 생장점을 깨우기',
+    '화': '남향 빛을 5분 쬐며 오늘의 목표를 소리 내어 선언하기',
+    '토': '작업 공간 한 구역을 정리해 중심 축을 단단히 세우기',
+    '금': '우선순위 3가지를 적고 불필요한 약속을 과감히 가지치기',
+    '수': '저녁 10분 산책과 수분 보충으로 감정의 순환로 열기'
   };
   var elements = _dfExtractFiveElements(yongshinText);
   if (!elements.length) {
-    return '�??�전)�??�분(?�?? 루틴??고정??기초 ?�육 리듬??먼�? ?�정?�하?�요.';
+    return '빛(오전)과 수분(저녁) 루틴을 고정해 기초 생육 리듬을 먼저 안정화하세요.';
   }
   return elements.slice(0, 2).map(function(el) {
     return careByElement[el] || '';
@@ -5674,13 +5711,13 @@ function _dfBuildSynergyPaletteText(source, primaryHex, secondaryHex) {
   var secondary = _dfSafeColor(secondaryHex, '#22d3ee');
   var accent = _dfMixHex(primary, secondary, 0.5);
   var materials = source === 'astrology'
-    ? '?�리 ?�기, ?�버 ?�레?? 미세 조명'
+    ? '유리 화기, 실버 프레임, 미세 조명'
     : (source === 'jamidusu'
-      ? '?�틴 ?�브�? 브론�??�브?? ?��?�� ?�라�?
+      ? '새틴 패브릭, 브론즈 오브제, 대칭형 세라믹'
       : (source === 'sukuyo'
-        ? '?�리 ?�리, ?�빛 ??린넨, 물결 무늬 ?�레??
-        : '무광 ?�라�? ?�추???�드, ?�잔???�턴 ?�브�?));
-  return '추천 컬러: Primary ' + primary + ', Secondary ' + secondary + ', Accent ' + accent + ' / 추천 ?�재: ' + materials + '.';
+        ? '서리 유리, 달빛 톤 린넨, 물결 무늬 트레이'
+        : '무광 세라믹, 내추럴 우드, 잔잔한 패턴 패브릭'));
+  return '추천 컬러: Primary ' + primary + ', Secondary ' + secondary + ', Accent ' + accent + ' / 추천 소재: ' + materials + '.';
 }
 
 function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sajuVerdict) {
@@ -5688,9 +5725,9 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
   var flower = (selection && selection.flower) || {};
   var primary = _dfSafeColor(selection && selection.primary, '#f472b6');
   var secondary = _dfSafeColor(selection && selection.secondary, '#22d3ee');
-  var scenarioTitle = flowerData.scenario_title || (sourceLabel + ' 개화 ?�나리오');
-  var growthCycle = flowerData.growth_cycle || '개화 ?�이??계산 ?��?;
-  var ritualTip = flowerData.ritual_tip || '?�늘???�천 루틴??계산 중입?�다.';
+  var scenarioTitle = flowerData.scenario_title || (sourceLabel + ' 개화 시나리오');
+  var growthCycle = flowerData.growth_cycle || '개화 사이클 계산 대기';
+  var ritualTip = flowerData.ritual_tip || '오늘의 실천 루틴을 계산 중입니다.';
   var relation = flowerData.relationship_theme || '';
   var career = flowerData.career_theme || '';
   var matrix = [];
@@ -5702,135 +5739,135 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
   var particleMood = '';
 
   if (source === 'astrology') {
-    var sun = badges.sun || '미확??;
+    var sun = badges.sun || '미확인';
     var rising = badges.rising || sun;
     var moon = badges.moon || sun;
     var risingEl = _dfAstroElementFromSign(rising) || _dfAstroElementFromSign(sun) || 'air';
     var moonEl = _dfAstroElementFromSign(moon) || risingEl;
     var lighting = risingEl === 'fire'
-      ? '?�여�??�오처럼 각도가 ?��? 강렬???�양�?
+      ? '한여름 정오처럼 각도가 높은 강렬한 태양광'
       : (risingEl === 'earth'
-        ? '??? ?�후???�금빛이 ?�래 머무???�정??광량'
+        ? '늦은 오후의 황금빛이 오래 머무는 안정형 광량'
         : (risingEl === 'water'
-          ? '?�벽?�의 차�????�른 빛이 천천??번�???조도'
-          : '바람결처??기울?�진 ?�선광이 공간??가볍게 ?�는 조도'));
+          ? '새벽녘의 차가운 푸른 빛이 천천히 번지는 조도'
+          : '바람결처럼 기울어진 사선광이 공간을 가볍게 여는 조도'));
     var humidity = moonEl === 'water'
-      ? '감성 ?�도가 ?��? ?�버 미스???�태'
+      ? '감성 습도가 높은 실버 미스트 상태'
       : (moonEl === 'fire'
-        ? '?�기�??��? ?�라???�어, 감정 반응??빠른 ?�태'
+        ? '열기를 품은 드라이 에어, 감정 반응이 빠른 상태'
         : (moonEl === 'earth'
-          ? '?�정?�인 ?�분 ?�도, 감정???�서???�익???�태'
-          : '가볍고 ?�동?�인 브리�??�도, ?�이?�어가 빠르�??�기?�는 ?�태'));
+          ? '안정적인 토분 습도, 감정이 서서히 농익는 상태'
+          : '가볍고 유동적인 브리즈 습도, 아이디어가 빠르게 환기되는 상태'));
     var cosmicSeason = risingEl === 'fire'
-      ? '개화 가?�기: ?�행�?발표가 꽃봉?�리�?밀???�리??구간'
+      ? '개화 가속기: 실행과 발표가 꽃봉오리를 밀어 올리는 구간'
       : (risingEl === 'water'
-        ? '?�면 ?�분�? ?�식�?직�???뿌리층을 채우??구간'
-        : '균형 조율�? 구조?� 감성??교차?�며 ?�음 꽃눈??준비하??구간');
+        ? '내면 양분기: 휴식과 직관이 뿌리층을 채우는 구간'
+        : '균형 조율기: 구조와 감성이 교차하며 다음 꽃눈을 준비하는 구간');
 
-    sectionTitle = '천체??조도?� ?�너지';
+    sectionTitle = '천체의 조도와 에너지';
     matrix = [
-      '?��?천체??조도: ' + lighting,
-      '?�� ?�기의 ?�도: ' + humidity,
-      '?�� ?�주??계절: ' + cosmicSeason
+      '☀️ 천체의 조도: ' + lighting,
+      '💧 대기의 습도: ' + humidity,
+      '🪐 우주의 계절: ' + cosmicSeason
     ];
-    observationLog = '?�원?�의 관�??��?: ?�양�?' + sun + '??방향?�과 ?�승�?' + rising + '??빛이 꽃�???각도�??�아줍니?? ?�궁 ' + moon + '???�도 조절??감정 ?�맥??부?�럽�??�며, ?�번 주는 기회가 먼�? 보이??개화 ?�조 구간?�니??';
-    secretRecipe = '비�? ?�시?? �?9???�후 창�? 조명?????�계 ??���? ?�일 ?�행????가지�??�트 �?줄에 ?�어 ?�세?? ?�침 �?12분�? �???가지?�만 집중?�면 별빛 리듬??가??빠르�?맞춰집니??';
-    flowerLanguage = '?�명??꽃말: 별의 각도�?믿고 ??걸음??먼�? ?�딛???�기.';
-    gardenerWord = '??꽃을 ?�한 가?�너????마디: ?�늘??직감?� 과장???�니???�보?�니?? ?��? ?�행???�운???�실??꽃밭?�로 바꿉?�다.';
-    particleMood = sourceLabel + '??광량???�자�?번역?�면 "' + (flower.particle_type || 'stardust') + '" 결이 가???�정?�으�?빛납?�다.';
+    observationLog = '정원사의 관찰 일지: 태양궁 ' + sun + '의 방향성과 상승궁 ' + rising + '의 빛이 꽃대의 각도를 잡아줍니다. 달궁 ' + moon + '의 습도 조절이 감정 잎맥을 부드럽게 열며, 이번 주는 기회가 먼저 보이는 개화 전조 구간입니다.';
+    secretRecipe = '비밀 레시피: 밤 9시 이후 창가 조명을 한 단계 낮추고, 내일 실행할 한 가지를 노트 첫 줄에 적어 두세요. 아침 첫 12분은 그 한 가지에만 집중하면 별빛 리듬이 가장 빠르게 맞춰집니다.';
+    flowerLanguage = '운명의 꽃말: 별의 각도를 믿고 한 걸음을 먼저 내딛는 용기.';
+    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 오늘의 직감은 과장이 아니라 예보입니다. 작은 실행이 성운을 현실의 꽃밭으로 바꿉니다.';
+    particleMood = sourceLabel + '의 광량을 입자로 번역하면 "' + (flower.particle_type || 'stardust') + '" 결이 가장 안정적으로 빛납니다.';
   } else if (source === 'jamidusu') {
-    var star = badges.star || '미확??;
-    var brightness = badges.brightness || '미확??;
-    var palace = badges.palace || '미확??;
-    var structure = /?��?|zi ?wei/i.test(star)
-      ? '?��???계열???�실 기품??깃든 ?�단??꽃�?'
-      : (/칠살|?�군|qisha|pogun/i.test(star)
-        ? '?�파???�군 기질??만든 굵고 강직??줄기'
-        : (/?�음|tai ?yin|천기|tian ?ji/i.test(star)
-          ? '?�연?��?�??�게 꺾이지 ?�는 ?��???복층 꽃잎'
-          : '균형??주성??만든 ?�제???��?구조??꽃골�?));
-    var social = palace + ' 주�??�로 ?�비?� 벌이 ?�환?�듯, 가까운 ?�연????�� 분담???�눠 ?�장???�는 ?�름?�니??';
-    var thorns = /????????.test(brightness)
-      ? '방어?�이 ?��? 짧�? 가?��? 촘촘??경계�??�워주는 ?�기'
-      : '빛을 반사?�는 �?무늬가 가????��???�?�해 ?�격 ?�게 ?�신??보호?�는 ?�기';
+    var star = badges.star || '미확인';
+    var brightness = badges.brightness || '미확인';
+    var palace = badges.palace || '미확인';
+    var structure = /자미|zi ?wei/i.test(star)
+      ? '자미성 계열의 황실 기품이 깃든 단단한 꽃대'
+      : (/칠살|파군|qisha|pogun/i.test(star)
+        ? '돌파형 장군 기질이 만든 굵고 강직한 줄기'
+        : (/태음|tai ?yin|천기|tian ?ji/i.test(star)
+          ? '유연하지만 쉽게 꺾이지 않는 세밀한 복층 꽃잎'
+          : '균형형 주성이 만든 정제된 대칭 구조의 꽃골격'));
+    var social = palace + ' 주변으로 나비와 벌이 순환하듯, 가까운 인연이 역할 분담을 나눠 성장을 돕는 흐름입니다.';
+    var thorns = /함|陷|한|閑/.test(brightness)
+      ? '방어력이 높은 짧은 가시가 촘촘해 경계를 세워주는 시기'
+      : '빛을 반사하는 결 무늬가 가시 역할을 대신해 품격 있게 자신을 보호하는 시기';
 
-    sectionTitle = '꽃의 ?�격�??�태';
+    sectionTitle = '꽃의 품격과 형태';
     matrix = [
-      '?���?꽃의 골격: ' + structure,
-      '?�� ?�비?� �? ' + social,
-      '?�� ?�호??가?? ' + thorns
+      '🏛️ 꽃의 골격: ' + structure,
+      '🦋 나비와 벌: ' + social,
+      '🌵 수호의 가시: ' + thorns
     ];
-    observationLog = '?�원?�의 관�??��?: ?�늘??강한 �?' + star + '??줄기 중심??곧게 ?�우�? �?밝기 ' + brightness + '가 꽃잎???�기�?조정?�니?? 지금�? ?�려?�보??구조???�성?��? ?�과�??�우???�기?�니??';
-    secretRecipe = '비�? ?�시?? 책상 ?�쪽??메탈 계열 ?�브?��? ?�나 ?�고, ?�늘??기�? 1개�? ?�보??1개�? ?�시??기록?�세?? 경계가 ?�명?�질?�록 꽃�? ???�아?�게 ?�니??';
-    flowerLanguage = '?�명??꽃말: ?�격?� ?�단??구조?�서 ?�어?�는 가??조용??광채.';
-    gardenerWord = '??꽃을 ?�한 가?�너????마디: ?�려?�을 ?�두르�? 마세?? 기�???지???�루가 결국 가???�래가??꽃�?�?만듭?�다.';
-    particleMood = sourceLabel + '???�계�??�자�?번역?�면 "' + (flower.particle_type || 'imperial') + '" 무드가 질서�?가???�름?�게 ?�러?�니??';
+    observationLog = '정원사의 관찰 일지: 오늘의 강한 별 ' + star + '이 줄기 중심을 곧게 세우고, 별 밝기 ' + brightness + '가 꽃잎의 윤기를 조정합니다. 지금은 화려함보다 구조적 완성도가 성과를 키우는 시기입니다.';
+    secretRecipe = '비밀 레시피: 책상 왼쪽에 메탈 계열 오브제를 하나 두고, 오늘의 기준 1개와 양보선 1개를 동시에 기록하세요. 경계가 선명해질수록 꽃은 더 우아하게 핍니다.';
+    flowerLanguage = '운명의 꽃말: 품격은 단단한 구조에서 피어나는 가장 조용한 광채.';
+    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 화려함을 서두르지 마세요. 기준을 지킨 하루가 결국 가장 오래가는 꽃대를 만듭니다.';
+    particleMood = sourceLabel + '의 위계를 입자로 번역하면 "' + (flower.particle_type || 'imperial') + '" 무드가 질서를 가장 아름답게 드러냅니다.';
   } else if (source === 'sukuyo') {
-    var mansion = badges.mansion || '미확??;
-    var phase = badges.phase || '미확??;
-    var guardian = badges.guardian || '?�호?�물 미확??;
-    var scent = /�???friend/i.test(mansion)
-      ? '?�빛 ?�래 번�????�?�???�이??머스??계열'
-      : (/????danger/i.test(mansion)
-        ? '짙고 깊�? 침향 계열, 집중?�을 ?�어?�리????
-        : '�?��???�브 ?�로??계열, 관계의 ?�도�?부?�럽�?맞추????);
+    var mansion = badges.mansion || '미확인';
+    var phase = badges.phase || '미확인';
+    var guardian = badges.guardian || '수호동물 미확인';
+    var scent = /친|友|friend/i.test(mansion)
+      ? '달빛 아래 번지는 은은한 화이트 머스크 계열'
+      : (/업|危|danger/i.test(mansion)
+        ? '짙고 깊은 침향 계열, 집중력을 끌어올리는 향'
+        : '청명한 허브 플로럴 계열, 관계의 온도를 부드럽게 맞추는 향');
     var dew = /보름|full/i.test(phase)
-      ? '밤이?�이 가??충만???�감�?감정 ?�현???�시???�성???�태'
-      : (/??new/i.test(phase)
-        ? '?�슬???�게 맺히???�월 구간?�로, 관찰과 준비�? ?�선???�태'
-        : '?�당???�슬?�으�?감정??균형�??�행?�이 ?�께 ?�라???�태');
-    var companion = /??dragon/i.test(guardian)
-      ? '?�나무�? 블루?�이지 조합, ???�장 ?�름??지지'
-      : (/�?dog/i.test(guardian)
-        ? '로즈메리?� 캐모마일 조합, 관�??�정�??�복 ?�력 강화'
-        : (/?�랑??tiger/i.test(guardian)
-          ? '?�칼립투?��? 루드베키??조합, 결단?�과 보호 본능 강화'
-          : '?�벤?��? ?�이�?조합, ?�서 ?�정�??�기 ?�장 ?�시 지??));
+      ? '밤이슬이 가장 충만해 영감과 감정 표현이 동시에 풍성한 상태'
+      : (/삭|new/i.test(phase)
+        ? '이슬이 얇게 맺히는 신월 구간으로, 관찰과 준비가 우선인 상태'
+        : '적당한 이슬량으로 감정의 균형과 실행력이 함께 자라는 상태');
+    var companion = /용|dragon/i.test(guardian)
+      ? '등나무와 블루세이지 조합, 큰 확장 흐름을 지지'
+      : (/개|dog/i.test(guardian)
+        ? '로즈메리와 캐모마일 조합, 관계 안정과 회복 탄력 강화'
+        : (/호랑이|tiger/i.test(guardian)
+          ? '유칼립투스와 루드베키아 조합, 결단력과 보호 본능 강화'
+          : '라벤더와 아이비 조합, 정서 안정과 장기 성장 동시 지원'));
 
-    sectionTitle = '?�연???�기?� ?�슬';
+    sectionTitle = '인연의 향기와 이슬';
     matrix = [
-      '?�� ?�명???�기: ' + scent,
-      '?�� 밤이?�의 ?? ' + dew,
-      '?�� ?�반 ?�물: ' + companion
+      '🌙 운명의 향기: ' + scent,
+      '💦 밤이슬의 양: ' + dew,
+      '🌿 동반 식물: ' + companion
     ];
-    observationLog = '?�원?�의 관�??��?: ' + mansion + '??관계성?� ?�기�?먼�? ?�러?�고, ???�상 ' + phase + '?� ?�슬??밀?�로 감정 리듬??조절?�니?? 지금�? ?�연???�도�??�촉?�기보다 결을 맞추???�심?�이 꽃을 ?�래 지?�니??';
-    secretRecipe = '비�? ?�시?? ?�기 ??�????�을 천천??마신 ?? ?�늘 고마?�던 ?�름 1개�? 조용???�어?�세?? ?�의 ?�분 리듬???�정?�며 관�??�이 부?�럽�??�립?�다.';
-    flowerLanguage = '?�명??꽃말: 조용??공감??가??멀�??��????�기가 ?�다.';
-    gardenerWord = '??꽃을 ?�한 가?�너????마디: ?�두르�? ?�아??괜찮?�니?? 밤이?�이 모이?? ?�신???�연???�확???�?�밍???�명?�집?�다.';
-    particleMood = sourceLabel + '???�빛 리듬???�자�?번역?�면 "' + (flower.particle_type || 'lunar') + '" 무드가 가???�근?�게 감싸줍니??';
+    observationLog = '정원사의 관찰 일지: ' + mansion + '의 관계성은 향기로 먼저 드러나고, 달 위상 ' + phase + '은 이슬의 밀도로 감정 리듬을 조절합니다. 지금은 인연의 속도를 재촉하기보다 결을 맞추는 세심함이 꽃을 오래 지킵니다.';
+    secretRecipe = '비밀 레시피: 자기 전 물 한 잔을 천천히 마신 뒤, 오늘 고마웠던 이름 1개를 조용히 적어두세요. 달의 수분 리듬이 안정되며 관계 운이 부드럽게 열립니다.';
+    flowerLanguage = '운명의 꽃말: 조용한 공감이 가장 멀리 퍼지는 향기가 된다.';
+    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 서두르지 않아도 괜찮습니다. 밤이슬이 모이듯, 당신의 인연도 정확한 타이밍에 선명해집니다.';
+    particleMood = sourceLabel + '의 달빛 리듬을 입자로 번역하면 "' + (flower.particle_type || 'lunar') + '" 무드가 가장 포근하게 감싸줍니다.';
   } else {
-    var strength = badges.strength || '?�정 ?��?;
-    var johu = badges.johu || '?�정 ?��?;
+    var strength = badges.strength || '판정 대기';
+    var johu = badges.johu || '판정 대기';
     var yongshin = badges.yongshin || '';
-    var soil = johu.indexOf('?�습') >= 0
-      ? '?�분??머금?� ?��????�토'
-      : (johu.indexOf('?�조') >= 0
-        ? '배수?�이 ?��? ?�뜻???�갈 ?�합??
-        : '?�자가 고르�?미네?�이 ?�정??비옥???�토');
-    var root = strength.indexOf('?�강') >= 0
-      ? '뿌리가 깊게 박�? ?��? 변?�에??중심??지?�는 ?�계'
-      : (strength.indexOf('?�약') >= 0
-        ? '?�세???�뿌리�? 먼�? ?��?�?지지?��??�요�??�는 ?�계'
-        : '중간 깊이 뿌리가 고르�??�장?�는 균형 ?�계');
+    var soil = johu.indexOf('한습') >= 0
+      ? '수분을 머금은 습지형 옥토'
+      : (johu.indexOf('온조') >= 0
+        ? '배수성이 높은 따뜻한 자갈 혼합토'
+        : '입자가 고르고 미네랄이 안정된 비옥한 옥토');
+    var root = strength.indexOf('신강') >= 0
+      ? '뿌리가 깊게 박혀 외부 변화에도 중심을 지키는 단계'
+      : (strength.indexOf('신약') >= 0
+        ? '섬세한 잔뿌리가 먼저 퍼지며 지지대를 필요로 하는 단계'
+        : '중간 깊이 뿌리가 고르게 확장되는 균형 단계');
     var nutrient = _dfBuildYongshinCareLine(yongshin);
 
-    sectionTitle = '?�장???�양�?뿌리';
+    sectionTitle = '성장의 토양과 뿌리';
     matrix = [
-      '?�� ?�양???�분: ' + soil,
-      '?�� 뿌리??깊이: ' + root,
-      '?�� 가?�너???�양?? ' + nutrient
+      '🪨 토양의 성분: ' + soil,
+      '🌱 뿌리의 깊이: ' + root,
+      '🧪 가드너의 영양제: ' + nutrient
     ];
-    observationLog = '?�원?�의 관�??��?: ?�늘 ?�원?� ' + soil + '??결을 ?�며, ' + root + ' ?�름?�로 ?�장 ?�너지가 ?�직입?�다. 겉으�?조용??보여??뿌리층에?�는 ?�음 개화�??�한 ?�이 ?�단???�?�되�??�습?�다.';
-    secretRecipe = '비�? ?�시?? 북쪽 ?�는 ?�쪽 창�????�른 ???�물???�고, ?�침 10분�? 몸을 ?��??�??10분�? ?�흡??고르?�요. ?�루 ??번의 리듬 고정???�신 기운??가??빠르�??�어?�립?�다.';
-    flowerLanguage = '?�명??꽃말: ?�단??뿌리????�� 보여??결국 가???�게 ?�??';
-    gardenerWord = '??꽃을 ?�한 가?�너????마디: 조급?�보??축적??믿으?�요. ?�늘???��? 관리�? ?�음 계절????결실??만듭?�다.';
-    particleMood = sourceLabel + ' 기운??미세???�직임???�자�?번역?�면 "' + (flower.particle_type || 'petal') + '" 무드가 가??조화�?��?�다.';
+    observationLog = '정원사의 관찰 일지: 오늘 정원은 ' + soil + '의 결을 띠며, ' + root + ' 흐름으로 생장 에너지가 움직입니다. 겉으로 조용해 보여도 뿌리층에서는 다음 개화를 위한 힘이 단단히 저장되고 있습니다.';
+    secretRecipe = '비밀 레시피: 북쪽 또는 동쪽 창가에 푸른 잎 식물을 두고, 아침 10분은 몸을 풀고 저녁 10분은 호흡을 고르세요. 하루 두 번의 리듬 고정이 용신 기운을 가장 빠르게 끌어올립니다.';
+    flowerLanguage = '운명의 꽃말: 단단한 뿌리는 늦어 보여도 결국 가장 높게 핀다.';
+    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 조급함보다 축적을 믿으세요. 오늘의 작은 관리가 다음 계절의 큰 결실을 만듭니다.';
+    particleMood = sourceLabel + ' 기운의 미세한 움직임을 입자로 번역하면 "' + (flower.particle_type || 'petal') + '" 무드가 가장 조화롭습니다.';
   }
 
   return {
     dataSummary: '[' + sectionTitle + '] ' + scenarioTitle + ' · ' + growthCycle,
     ritualLine: ritualTip,
-    themesLine: [relation, career].filter(Boolean).join(' · ') || '관�????�마�?분석 중입?�다.',
+    themesLine: [relation, career].filter(Boolean).join(' · ') || '관계/일 테마를 분석 중입니다.',
     sourceMatrix: matrix,
     observationLog: observationLog,
     secretRecipe: secretRecipe,
@@ -5838,22 +5875,22 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
     synergyPalette: _dfBuildSynergyPaletteText(source, primary, secondary),
     gardenerWord: gardenerWord,
     particleMood: particleMood,
-    oneLineGuidance: sourceLabel + ' ?�명�??�천 가?�드: ' + (flower.vibe_message || sajuVerdict)
+    oneLineGuidance: sourceLabel + ' 운명꽃 실천 가이드: ' + (flower.vibe_message || sajuVerdict)
   };
 }
 
 function _dfBuildPromptBadgeLine(selection) {
   var badges = _dfGetSajuBadges(selection || {});
   if (badges.mode === 'sukuyo') {
-    return '?�요 배�?: ' + _dfOneLineText(badges.mansion, '미확??) + ' / ???�상 ' + _dfOneLineText(badges.phase, '미확??) + ' / ?�호?�물 ' + _dfOneLineText(badges.guardian, '미확??);
+    return '숙요 배지: ' + _dfOneLineText(badges.mansion, '미확인') + ' / 달 위상 ' + _dfOneLineText(badges.phase, '미확인') + ' / 수호동물 ' + _dfOneLineText(badges.guardian, '미확인');
   }
   if (badges.mode === 'jamidusu') {
-    return '?��??�수 배�?: ?�늘??강한 �?' + _dfOneLineText(badges.star, '미확??) + ' / �?밝기 ' + _dfOneLineText(badges.brightness, '미확??) + ' / 궁위 ' + _dfOneLineText(badges.palace, '미확??);
+    return '자미두수 배지: 오늘의 강한 별 ' + _dfOneLineText(badges.star, '미확인') + ' / 별 밝기 ' + _dfOneLineText(badges.brightness, '미확인') + ' / 궁위 ' + _dfOneLineText(badges.palace, '미확인');
   }
   if (badges.mode === 'astrology') {
-    return '?�성??배�?: ?�양�?' + _dfOneLineText(badges.sun, '미확??) + ' / ?�승�?' + _dfOneLineText(badges.rising, '미확??) + ' / ?�궁 ' + _dfOneLineText(badges.moon, '미확??);
+    return '점성술 배지: 태양궁 ' + _dfOneLineText(badges.sun, '미확인') + ' / 상승궁 ' + _dfOneLineText(badges.rising, '미확인') + ' / 달궁 ' + _dfOneLineText(badges.moon, '미확인');
   }
-  return '?�주 배�?: ?�강/?�약 ' + _dfOneLineText(badges.strength, '?�정 ?��?) + ' / ?�신 ' + _dfOneLineText(badges.yongshin, '?�정 ?��?) + ' / 조후 ' + _dfOneLineText(badges.johu, '?�정 ?��?);
+  return '사주 배지: 신강/신약 ' + _dfOneLineText(badges.strength, '판정 대기') + ' / 용신 ' + _dfOneLineText(badges.yongshin, '판정 대기') + ' / 조후 ' + _dfOneLineText(badges.johu, '판정 대기');
 }
 
 function _dfBuildArtPrompt(selection) {
@@ -5866,11 +5903,11 @@ function _dfBuildArtPrompt(selection) {
   var sourceLabel = _dfGetSourceLabel(source);
   var direction = _dfGetPromptArtDirection(source);
   var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
-  var nameKo = _dfOneLineText(flower.name, '?�명??�?);
+  var nameKo = _dfOneLineText(flower.name, '운명의 꽃');
   var latin = _dfOneLineText(flower.scientific_name, 'Unknown species');
-  var symbolism = _dfOneLineText(flower.symbolism, '?�명???�름???�징?�는 �?);
-  var narrative = _dfOneLineText((selection.matched && selection.matched.narrative) || _dfGetSajuVerdict(selection), '?�명??�??�사');
-  var scenario = _dfOneLineText(flowerData.scenario_reason || flowerData.scenario_title, '개화 ?�나리오 기반 ?�출');
+  var symbolism = _dfOneLineText(flower.symbolism, '운명의 흐름을 상징하는 꽃');
+  var narrative = _dfOneLineText((selection.matched && selection.matched.narrative) || _dfGetSajuVerdict(selection), '운명의 꽃 서사');
+  var scenario = _dfOneLineText(flowerData.scenario_reason || flowerData.scenario_title, '개화 시나리오 기반 연출');
   var keywords = _dfToArray(selection.keywords).slice(0, 8).map(function(word) {
     return _dfOneLineText(word, '');
   }).filter(Boolean);
@@ -5918,7 +5955,7 @@ function _dfUpdateStudioPrompt(selection) {
   var sourceLabel = _dfGetSourceLabel(source);
   var direction = _dfGetPromptArtDirection(source);
   if (guideEl) {
-    guideEl.textContent = sourceLabel + ' ???�렉?? ' + direction.mood + ' / ' + direction.background;
+    guideEl.textContent = sourceLabel + ' 톤 디렉션: ' + direction.mood + ' / ' + direction.background;
   }
   if (promptEl) promptEl.value = _dfBuildArtPrompt(selection);
   if (negativeEl) negativeEl.value = _dfBuildNegativePrompt();
@@ -5927,8 +5964,8 @@ function _dfUpdateStudioPrompt(selection) {
 function _dfClipboardWrite(text, onDoneMessage) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text)
-      .then(function() { _dfSetStudioStatus(onDoneMessage || '?�립보드??복사?�었?�니??'); })
-      .catch(function() { _dfSetStudioStatus('복사 권한???�어 ?�동 복사가 ?�요?�니??'); });
+      .then(function() { _dfSetStudioStatus(onDoneMessage || '클립보드에 복사되었습니다.'); })
+      .catch(function() { _dfSetStudioStatus('복사 권한이 없어 수동 복사가 필요합니다.'); });
     return;
   }
 
@@ -5941,9 +5978,9 @@ function _dfClipboardWrite(text, onDoneMessage) {
   ta.select();
   try {
     var ok = document.execCommand('copy');
-    _dfSetStudioStatus(ok ? (onDoneMessage || '?�립보드??복사?�었?�니??') : '복사???�패?�습?�다.');
+    _dfSetStudioStatus(ok ? (onDoneMessage || '클립보드에 복사되었습니다.') : '복사에 실패했습니다.');
   } catch (e) {
-    _dfSetStudioStatus('복사???�패?�습?�다.');
+    _dfSetStudioStatus('복사에 실패했습니다.');
   }
   document.body.removeChild(ta);
 }
@@ -5952,7 +5989,7 @@ function _dfShareSnapshot(snapshot) {
   var text = _dfBuildShareText(snapshot);
   var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
   if (!isMobile) {
-    _dfClipboardWrite(text, 'PC ?�경?�서??카카?�톡 링크�??�립보드??복사?�습?�다. 카카?�톡??붙여?�어 공유?�세??');
+    _dfClipboardWrite(text, 'PC 환경에서는 카카오톡 링크를 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.');
     return;
   }
 
@@ -5964,15 +6001,15 @@ function _dfShareSnapshot(snapshot) {
   document.body.appendChild(anchor);
 
   var fallbackTimer = setTimeout(function() {
-    _dfClipboardWrite(text, '카카?�톡 ?�행???�인?��? ?�아 ?�약???�립보드??복사?�습?�다. 카카?�톡??붙여?�어 공유?�세??');
+    _dfClipboardWrite(text, '카카오톡 실행이 확인되지 않아 요약을 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.');
   }, 1000);
 
   try {
     anchor.click();
-    _dfSetStudioStatus('카카?�톡 공유�??�는 중입?�다...');
+    _dfSetStudioStatus('카카오톡 공유를 여는 중입니다...');
   } catch (e) {
     clearTimeout(fallbackTimer);
-    _dfClipboardWrite(text, '카카?�톡 공유�??��? 못해 ?�약???�립보드??복사?�습?�다.');
+    _dfClipboardWrite(text, '카카오톡 공유를 열지 못해 요약을 클립보드에 복사했습니다.');
   }
 
   setTimeout(function() {
@@ -5986,7 +6023,7 @@ function _dfRenderHistoryList() {
   var history = _dfStudioState.history;
   if (!history.length) {
     listEl.innerHTML = '';
-    _dfSetStudioStatus('?�직 ?�?�된 개화 기록???�습?�다. ?�재 결과�??�?�해보세??');
+    _dfSetStudioStatus('아직 저장된 개화 기록이 없습니다. 현재 결과를 저장해보세요.');
     return;
   }
 
@@ -5996,11 +6033,11 @@ function _dfRenderHistoryList() {
       + '<p class="df-history-item-name">' + _dfEscapeHtml(item.name) + '</p>'
       + '<span class="df-history-item-time">' + _dfEscapeHtml(item.savedAtLabel || _dfFormatSavedAt(item.savedAt)) + '</span>'
       + '</div>'
-      + '<p class="df-history-item-keywords">' + _dfEscapeHtml(_dfToArray(item.keywords).join(' ??')) + '</p>'
+      + '<p class="df-history-item-keywords">' + _dfEscapeHtml(_dfToArray(item.keywords).join(' • ')) + '</p>'
       + '<div class="df-history-item-actions">'
-      + '<button type="button" class="df-history-btn df-history-btn--restore" data-action="restoreDestinyFlowerSnapshot" data-action-args="' + item.id + '">불러?�기</button>'
-        + '<button type="button" class="df-history-btn df-history-btn--share" data-action="shareDestinyFlowerSnapshotById" data-action-args="' + item.id + '">카카??공유</button>'
-        + '<button type="button" class="df-history-btn df-history-btn--delete" data-action="deleteDestinyFlowerSnapshot" data-action-args="' + item.id + '">??��</button>'
+      + '<button type="button" class="df-history-btn df-history-btn--restore" data-action="restoreDestinyFlowerSnapshot" data-action-args="' + item.id + '">불러오기</button>'
+        + '<button type="button" class="df-history-btn df-history-btn--share" data-action="shareDestinyFlowerSnapshotById" data-action-args="' + item.id + '">카카오 공유</button>'
+        + '<button type="button" class="df-history-btn df-history-btn--delete" data-action="deleteDestinyFlowerSnapshot" data-action-args="' + item.id + '">삭제</button>'
       + '</div>'
       + '</article>';
   }).join('');
@@ -6013,11 +6050,11 @@ function _dfApplyStudioSelection(selection) {
   _dfMarkSourceCompleted(selection.source || _dfStudioState.activeSource || 'saju', { silent: true });
   var flower = selection.flower;
   var sourceLabel = selection.source === 'sukuyo'
-    ? '?�요??
-    : (selection.source === 'jamidusu' ? '?��??�수' : (selection.source === 'astrology' ? '?�성?? : '?�주'));
+    ? '숙요점'
+    : (selection.source === 'jamidusu' ? '자미두수' : (selection.source === 'astrology' ? '점성술' : '사주'));
   var sourceShort = selection.source === 'sukuyo'
-    ? '?�요'
-    : (selection.source === 'jamidusu' ? '?��??�수' : (selection.source === 'astrology' ? '차트' : '?�주'));
+    ? '숙요'
+    : (selection.source === 'jamidusu' ? '자미두수' : (selection.source === 'astrology' ? '차트' : '사주'));
   var sajuVerdict = _dfGetSajuVerdict(selection);
   var badges = _dfGetSajuBadges(selection);
   var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
@@ -6055,15 +6092,15 @@ function _dfApplyStudioSelection(selection) {
     sourceDescEl.textContent = meta.description || '';
   }
   if (dayMasterEl) {
-    dayMasterEl.textContent = flowerData.day_master_badge || (selection.source === 'jamidusu' ? '주성 ?�독 ?��? : (selection.source === 'sukuyo' ? '?�요 ?�독 ?��? : '?�간 ?�독 ?��?));
+    dayMasterEl.textContent = flowerData.day_master_badge || (selection.source === 'jamidusu' ? '주성 판독 대기' : (selection.source === 'sukuyo' ? '숙요 판독 대기' : '일간 판독 대기'));
   }
   if (symbolismEl) {
-    symbolismEl.textContent = sajuVerdict + ' ' + (flowerData.scenario_reason || (flower.symbolism ? ('??꽃�? ' + flower.symbolism + '???�징?�니??') : '??꽃이 ?�신???�재 ?�세 ?�름�?강하�?공명?�니??'));
+    symbolismEl.textContent = sajuVerdict + ' ' + (flowerData.scenario_reason || (flower.symbolism ? ('이 꽃은 ' + flower.symbolism + '을 상징합니다.') : '이 꽃이 당신의 현재 운세 흐름과 강하게 공명합니다.'));
   }
-  if (keywordsEl) keywordsEl.textContent = sourceLabel + ' ?�워??· ' + _dfToArray(selection.keywords).join(' ??');
+  if (keywordsEl) keywordsEl.textContent = sourceLabel + ' 키워드 · ' + _dfToArray(selection.keywords).join(' • ');
   if (narrativeEl) {
     narrativeEl.textContent = (selection.matched && selection.matched.narrative)
-      || (sajuVerdict + ' ' + sourceShort + ' 균형??기�??�로 지금의 개화 ?�인?��? ?�렬?�습?�다.');
+      || (sajuVerdict + ' ' + sourceShort + ' 균형을 기준으로 지금의 개화 포인트를 정렬했습니다.');
   }
   if (dataSummaryEl) {
     dataSummaryEl.textContent = extension.dataSummary;
@@ -6194,13 +6231,13 @@ function _dfRequirePaidSourceUnlock(source) {
   }
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm('?�� 로그?�이 ?�요???�비?�입?�다.\n로그?????�용??주세??')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return false;
   }
 
-  window.alert(_dfGetSourceLabel(normalized) + ' 꽃�? ?�금 ???�용?????�습?�다.');
+  window.alert(_dfGetSourceLabel(normalized) + ' 꽃은 해금 후 이용할 수 있습니다.');
   return false;
 }
 
@@ -6209,8 +6246,8 @@ function _dfRequireSourceCoinPayment(source) {
   if (!_dfRequirePaidSourceUnlock(normalized)) return false;
   if (_dfIsSourceUnlocked(normalized)) return true;
   var required = _dfGetRequiredSourceForUnlock(normalized);
-  var requiredLabel = required ? _dfGetSourceLabel(required) : '?�전 ?�계';
-  _dfSetStudioStatus(requiredLabel + '??먼�? ?�료?�면 ' + _dfGetSourceLabel(normalized) + ' 꽃이 ?�립?�다.');
+  var requiredLabel = required ? _dfGetSourceLabel(required) : '이전 단계';
+  _dfSetStudioStatus(requiredLabel + '을 먼저 완료하면 ' + _dfGetSourceLabel(normalized) + ' 꽃이 열립니다.');
   _dfSyncSourceTabsLockState();
   return false;
 }
@@ -6243,7 +6280,7 @@ function openDestinyFlower(forceRefreshData) {
     var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
     var emptyState = _dfGetDataMissingUiState(activeSource);
     if (stage && nameEl && symbolismEl) {
-      nameEl.textContent = '?�이??불러?�기 ?��?;
+      nameEl.textContent = '데이터 불러오기 대기';
       symbolismEl.textContent = emptyState.message;
     }
   }
@@ -6388,7 +6425,7 @@ function openDestinyFlowerStudio(source, gatePassed) {
     _dfHideStudioEmptyState();
     _dfLoadHistory();
     _dfRenderHistoryList();
-    _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과�??�?�하거나 카카?�톡?�로 공유?????�습?�다.');
+    _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
   }
 
   overlay.style.display = 'block';
@@ -6406,15 +6443,15 @@ function openDestinyFlowerStudio(source, gatePassed) {
   }
 }
 
-/* ?�로??카드 ???�명??�?진입?? ?�의 직후 window???�출 (?�크립트 ?�반 ?�류 ?�에???�용 가?? */
+/* 프로필 카드 → 운명의 꽃 진입용: 정의 직후 window에 노출 (스크립트 후반 오류 시에도 사용 가능) */
 window.openDestinyFlowerStudio = openDestinyFlowerStudio;
 window.openDestinyFlower = openDestinyFlower;
 
 function _dfGetNoBirthMessage(source) {
   var normalized = _dfNormalizeSource(source);
-  if (normalized === 'jamidusu') return '?��??�수 꽃을 보려�??�년?�일???�력?�주?�요.';
-  if (normalized === 'sukuyo') return '?�요??꽃을 보려�??�년?�일???�력?�주?�요.';
-  return '?�름�??�년?�일 ?�보�?먼�? ?�력?�면, ?�만???�명??꽃이 ?�기?�서 ?�어?�니??';
+  if (normalized === 'jamidusu') return '자미두수 꽃을 보려면 생년월일을 입력해주세요.';
+  if (normalized === 'sukuyo') return '숙요점 꽃을 보려면 생년월일을 입력해주세요.';
+  return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
 }
 
 function setDestinyFlowerSourceTab(source, gatePassed) {
@@ -6432,7 +6469,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
     var studioSelection = _dfRefreshStudioForSource(normalized, false);
     if (studioSelection) {
       _dfMarkSourceCompleted(normalized, { silent: true });
-      _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기�??�로 ??�� ?�롬?�트�?갱신?�습?�다.');
+      _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
@@ -6446,7 +6483,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
         var nameEl = card.querySelector('.destiny-flower-stage__name');
         var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
         if (stage && nameEl && symbolismEl) {
-          nameEl.textContent = '?�년?�일 ?�력 ?��?;
+          nameEl.textContent = '생년월일 입력 대기';
           symbolismEl.textContent = _dfGetDataMissingUiState(normalized).message;
         }
       }
@@ -6467,7 +6504,7 @@ function closeDestinyFlowerStudio() {
   if (!overlay) return;
   _dfStudioState.coinGatePassed = false;
   _dfStudioState.coinGateInFlight = false;
-  _dfStudioState._coinGatePassToken = null;  // ?�큰??리셋
+  _dfStudioState._coinGatePassToken = null;  // 토큰도 리셋
   _dfRestoreOriginalTitle();
   overlay.classList.remove('is-show');
   setTimeout(function() {
@@ -6486,7 +6523,7 @@ function goHomeFromDestinyFlower() {
 
 function goAskAIFromDestinyFlower() {
   closeDestinyFlowerStudio();
-  _dfSetStudioStatus('ChatGPT�?????��???�니?? ?�리지 ?�으�??�업 ?�용 ???�시 ?�도??주세??');
+  _dfSetStudioStatus('ChatGPT를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.');
   setTimeout(function() {
     var url = 'https://chatgpt.com/';
     var w = null;
@@ -6499,7 +6536,7 @@ function goAskAIFromDestinyFlower() {
       try {
         window.open(url, '_blank', 'noopener');
       } catch (e2) {}
-      _dfSetStudioStatus('????�� 차단??�?같습?�다. 브라?��??�서 ?�업???�용?�거??주소창에 chatgpt.com ???�력??주세??');
+      _dfSetStudioStatus('새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 주소창에 chatgpt.com 을 입력해 주세요.');
     }
   }, 100);
 }
@@ -6517,7 +6554,7 @@ function saveDestinyFlowerSnapshot() {
   _dfStudioState.history = _dfStudioState.history.slice(0, _DF_STUDIO_HISTORY_LIMIT);
   _dfPersistHistory();
   _dfRenderHistoryList();
-  _dfSetStudioStatus('개화 기록???�?�되?�습?�다: ' + snapshot.name + ' (' + snapshot.savedAtLabel + ')');
+  _dfSetStudioStatus('개화 기록이 저장되었습니다: ' + snapshot.name + ' (' + snapshot.savedAtLabel + ')');
 }
 
 function restoreDestinyFlowerSnapshot(snapshotId) {
@@ -6531,7 +6568,7 @@ function restoreDestinyFlowerSnapshot(snapshotId) {
     }
   }
   if (!target) {
-    _dfSetStudioStatus('?�당 기록??찾을 ???�습?�다.');
+    _dfSetStudioStatus('해당 기록을 찾을 수 없습니다.');
     return;
   }
 
@@ -6544,7 +6581,7 @@ function restoreDestinyFlowerSnapshot(snapshotId) {
     _dfEnsureCardOpen(card);
     _dfAnimateUnifiedCardSwitch(card, selection);
   }
-  _dfSetStudioStatus('?�?�한 개화 기록??불러?�습?�다: ' + target.name);
+  _dfSetStudioStatus('저장한 개화 기록을 불러왔습니다: ' + target.name);
 }
 
 function deleteDestinyFlowerSnapshot(snapshotId) {
@@ -6555,26 +6592,26 @@ function deleteDestinyFlowerSnapshot(snapshotId) {
     return item.id !== snapshotId;
   });
   if (_dfStudioState.history.length === before) {
-    _dfSetStudioStatus('??��??기록??찾�? 못했?�니??');
+    _dfSetStudioStatus('삭제할 기록을 찾지 못했습니다.');
     return;
   }
   _dfPersistHistory();
   _dfRenderHistoryList();
-  _dfSetStudioStatus('?�택??개화 기록????��?�습?�다.');
+  _dfSetStudioStatus('선택한 개화 기록을 삭제했습니다.');
 }
 
 function clearDestinyFlowerSnapshots() {
   _dfLoadHistory();
   if (!_dfStudioState.history.length) {
-    _dfSetStudioStatus('??��??개화 기록???�습?�다.');
+    _dfSetStudioStatus('삭제할 개화 기록이 없습니다.');
     return;
   }
-  var ok = window.confirm('?�?�된 ?�명??�?기록??모두 ??��?�까??');
+  var ok = window.confirm('저장된 운명의 꽃 기록을 모두 삭제할까요?');
   if (!ok) return;
   _dfStudioState.history = [];
   _dfPersistHistory();
   _dfRenderHistoryList();
-  _dfSetStudioStatus('?�?�된 개화 기록??모두 ??��?�습?�다.');
+  _dfSetStudioStatus('저장된 개화 기록을 모두 삭제했습니다.');
 }
 
 function shareDestinyFlowerSnapshot() {
@@ -6594,7 +6631,7 @@ function shareDestinyFlowerSnapshotById(snapshotId) {
     }
   }
   if (!target) {
-    _dfSetStudioStatus('공유??기록??찾을 ???�습?�다.');
+    _dfSetStudioStatus('공유할 기록을 찾을 수 없습니다.');
     return;
   }
   _dfShareSnapshot(target);
@@ -6604,19 +6641,19 @@ function copyDestinyFlowerSummary() {
   var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
   var snapshot = _dfBuildSnapshot(selection);
   var text = _dfBuildShareText(snapshot);
-  _dfClipboardWrite(text, '?�약???�립보드??복사?�습?�다.');
+  _dfClipboardWrite(text, '요약을 클립보드에 복사했습니다.');
 }
 
 function copyDestinyFlowerArtPrompt() {
   var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
   var text = _dfBuildArtPrompt(selection);
-  _dfClipboardWrite(text, 'AI �?메인 ?�롬?�트�??�립보드??복사?�습?�다.');
+  _dfClipboardWrite(text, 'AI 꽃 메인 프롬프트를 클립보드에 복사했습니다.');
 }
 
 function copyDestinyFlowerPromptPack() {
   var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
   var text = _dfBuildPromptPack(selection);
-  _dfClipboardWrite(text, '메인/?�거?�브 ?�롬?�트 ?�트�??�립보드??복사?�습?�다.');
+  _dfClipboardWrite(text, '메인/네거티브 프롬프트 세트를 클립보드에 복사했습니다.');
 }
 
 window.openDestinyFlower = openDestinyFlower;
@@ -6647,7 +6684,7 @@ if (document.readyState === 'loading') {
     _dfSyncSourceTabsLockState();
     _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
     _dfBindBloomingInteractions();
-    // [UX FIX] ?�동 ?�니메이???�거 ??버튼 ?�릭?�로�?�??��?리에 진입
+    // [UX FIX] 자동 애니메이션 제거 — 버튼 클릭으로만 꽃 아틀리에 진입
     // _dfRunIntroBloom();
   }, { once: true });
 } else {
@@ -6655,7 +6692,7 @@ if (document.readyState === 'loading') {
   _dfSyncSourceTabsLockState();
   _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
   _dfBindBloomingInteractions();
-  // [UX FIX] ?�동 ?�니메이???�거 ??버튼 ?�릭?�로�?�??��?리에 진입
+  // [UX FIX] 자동 애니메이션 제거 — 버튼 클릭으로만 꽃 아틀리에 진입
   // _dfRunIntroBloom();
 }
 
@@ -6676,7 +6713,7 @@ function _dpEsc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 function _dpZodiac(y) {
-  return ['??', '?��', '?��', '?��', '?��', '?��', '?��', '?��', '?��', '?��', '?��', '?��'][(y - 4 + 120) % 12];
+  return ['🐀', '🐂', '🐅', '🐇', '🐉', '🐍', '🐎', '🐑', '🐒', '🐓', '🐕', '🐖'][(y - 4 + 120) % 12];
 }
 
 var _dpSwitchPending = null;
@@ -6684,7 +6721,7 @@ var _dpSwitchPending = null;
 function _dpShowSwitchConfirm(profile, onYes) {
   _dpSwitchPending = { profile: profile, onYes: onYes };
   var b = profile.birth || {}, l = profile.location || {};
-  var cal = b.calType === 'solar' ? '?�력' : (b.calType === 'lunar_leap' ? '?�력(??' : '?�력');
+  var cal = b.calType === 'solar' ? '양력' : (b.calType === 'lunar_leap' ? '음력(윤)' : '음력');
   var dateStr = cal + ' ' + b.year + '.'
     + String(b.month || 1).padStart(2, '0') + '.' + String(b.day || 1).padStart(2, '0')
     + ' · ' + String(b.hour != null ? b.hour : 12).padStart(2, '0')
@@ -6696,7 +6733,7 @@ function _dpShowSwitchConfirm(profile, onYes) {
   if (iconEl) iconEl.textContent = _dpZodiac(b.year);
   if (nameEl) nameEl.textContent = profile.name || '';
   if (detailEl) detailEl.textContent = dateStr;
-  if (locEl) locEl.textContent = l.label ? '?�� ' + l.label : '';
+  if (locEl) locEl.textContent = l.label ? '📍 ' + l.label : '';
   var ov = document.getElementById('dpSwitchConfirmOverlay');
   if (!ov) return;
   ov.style.display = 'flex';
@@ -6713,7 +6750,7 @@ function dpSwitchConfirmYes() {
   if (_dpSwitchPending) {
     var cb = _dpSwitchPending.onYes, p = _dpSwitchPending.profile;
     _dpSwitchPending = null;
-    try { cb(p); } catch (e) { console.error('[dpSwitchConfirm] 콜백 ?�류:', e); }
+    try { cb(p); } catch (e) { console.error('[dpSwitchConfirm] 콜백 오류:', e); }
   }
 }
 
@@ -6753,15 +6790,15 @@ function _dpPickerHTML(profiles, type, theme, backFn) {
     + '<div style="text-align:center;margin-bottom:22px;padding:0 8px;">'
     + '<div style="font-size:2.5rem;margin-bottom:10px;">' + theme.icon + '</div>'
     + '<div style="font-family:\'Gowun Dodum\',serif;font-size:1rem;color:' + theme.ac + ';letter-spacing:2px;font-weight:700;margin-bottom:6px;">' + theme.title + '</div>'
-    + '<div style="font-size:0.8rem;color:rgba(255,255,255,0.4);line-height:1.6;">' + (theme.sub || '?�명 카드�??�택?�면 바로 결과�??�인?????�습?�다') + '</div>'
+    + '<div style="font-size:0.8rem;color:rgba(255,255,255,0.4);line-height:1.6;">' + (theme.sub || '운명 카드를 선택하면 바로 결과를 확인할 수 있습니다') + '</div>'
     + '</div><div style="display:flex;flex-direction:column;gap:10px;">';
   profiles.forEach(function(p) {
     var b = p.birth, l = p.location || {};
     var zodiac = _dpZodiac(b.year);
-    var cal = b.calType === 'solar' ? '?�력' : (b.calType === 'lunar_leap' ? '?�력(??' : '?�력');
+    var cal = b.calType === 'solar' ? '양력' : (b.calType === 'lunar_leap' ? '음력(윤)' : '음력');
     var gbadge = p.gender === 'M'
-      ? '<span style="font-size:0.63rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">??/span>'
-      : '<span style="font-size:0.63rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">?�</span>';
+      ? '<span style="font-size:0.63rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">♂</span>'
+      : '<span style="font-size:0.63rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">♀</span>';
     h += '<div data-action="_dpSelect" data-action-args="' + p.id + ',' + type + '" '
       + 'style="display:flex;align-items:center;gap:13px;padding:13px 15px;cursor:pointer;'
       + 'background:rgba(255,255,255,0.03);border:1px solid rgba(' + theme.br + ',0.22);'
@@ -6773,7 +6810,7 @@ function _dpPickerHTML(profiles, type, theme, backFn) {
       + '<div style="font-size:0.76rem;color:rgba(255,255,255,0.45);">'
       + cal + '&nbsp;' + b.year + '.' + String(b.month).padStart(2, '0') + '.' + String(b.day).padStart(2, '0')
       + '&nbsp;&middot;&nbsp;' + String(b.hour != null ? b.hour : 12).padStart(2, '0') + ':' + String(b.minute != null ? b.minute : 0).padStart(2, '0') + '</div>'
-      + (l.label ? '<div style="font-size:0.7rem;color:rgba(255,255,255,0.28);margin-top:2px;">?��&nbsp;' + _dpEsc(l.label) + '</div>' : '')
+      + (l.label ? '<div style="font-size:0.7rem;color:rgba(255,255,255,0.28);margin-top:2px;">📍&nbsp;' + _dpEsc(l.label) + '</div>' : '')
       + '</div>'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + theme.ac + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.7;"><polyline points="9 18 15 12 9 6"/></svg>'
       + '</div>';
@@ -6782,7 +6819,7 @@ function _dpPickerHTML(profiles, type, theme, backFn) {
     + '<div style="text-align:center;margin-top:18px;">'
     + '<button data-action="' + (backFn || 'closeAllMysticModalsToHome') + '" '
     + 'style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);'
-    + 'padding:9px 18px;border-radius:10px;font-family:\'Gowun Dodum\',serif;font-size:0.8rem;cursor:pointer;touch-action:manipulation;">' + (backFn ? '???�기' : '???�으�?) + '</button>'
+    + 'padding:9px 18px;border-radius:10px;font-family:\'Gowun Dodum\',serif;font-size:0.8rem;cursor:pointer;touch-action:manipulation;">' + (backFn ? '← 닫기' : '← 홈으로') + '</button>'
     + '</div></div>';
   return h;
 }
@@ -6790,11 +6827,11 @@ function _dpPickerHTML(profiles, type, theme, backFn) {
 function _dpEmptyHTML(theme) {
   return '<div style="text-align:center;padding:60px 20px;">'
     + '<div style="font-size:3rem;margin-bottom:16px;">' + theme.icon + '</div>'
-    + '<h3 style="color:' + theme.ac + ';margin-bottom:8px;font-family:\'Gowun Dodum\',serif;">?�의 ?�명 카드 ?�요</h3>'
+    + '<h3 style="color:' + theme.ac + ';margin-bottom:8px;font-family:\'Gowun Dodum\',serif;">나의 운명 카드 필요</h3>'
     + '<p style="color:#9ca3af;line-height:1.6;margin-bottom:24px;">' + theme.desc + '</p>'
     + '<button data-action="closeAllMysticModalsToHome" '
     + 'style="background:' + theme.bb + ';border:1px solid rgba(' + theme.br + ',0.5);color:' + theme.ac + ';'
-    + 'padding:12px 24px;border-radius:12px;font-family:\'Gowun Dodum\',serif;font-size:0.9rem;cursor:pointer;touch-action:manipulation;">??카드 ?�정?�러 가�?/button>'
+    + 'padding:12px 24px;border-radius:12px;font-family:\'Gowun Dodum\',serif;font-size:0.9rem;cursor:pointer;touch-action:manipulation;">← 카드 설정하러 가기</button>'
     + '</div>';
 }
 
@@ -6890,7 +6927,7 @@ function openSukuyoModal(_retried) {
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
-  var theme = { icon: '?��', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '?�� 宿曜??· ?�요??, desc: '?�요?�을 보려�?메인 ?�면?�서<br>?�의 ?�명 카드�?먼�? ?�정?�주?�요' };
+  var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
   if (typeof _ModalProfileState === 'undefined' || typeof _ModalProfileState.subscribe !== 'function' || typeof _renderSukuyoSection !== 'function') {
     console.error('[openSukuyoModal] missing modal profile dependencies');
     if (card) card.style.display = 'none';
@@ -6977,7 +7014,7 @@ function navigateToVedic() {
         calType: b.calType || 'solar'
       },
       location: {
-        label: l.label || '?�?��?�?(?�울)',
+        label: l.label || '대한민국 (서울)',
         tz: l.tz || 'Asia/Seoul',
         lat: (!isNaN(lat) ? lat : 37.5665),
         lng: (!isNaN(lng) ? lng : 126.978),
@@ -7068,10 +7105,10 @@ function navigateToVedic() {
       var lng = opt ? parseFloat(opt.getAttribute('data-long') || '127') : 127.0;
       var lat = opt ? parseFloat(opt.getAttribute('data-lat') || '37.6') : 37.6;
       var tzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
-      var locationLabel = opt ? opt.text : '?�?��?�?(?�울)';
+      var locationLabel = opt ? opt.text : '대한민국 (서울)';
       return {
         id: 'vedic_main_form',
-        name: '(메인 ?�력)',
+        name: '(메인 입력)',
         gender: gender,
         birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: 'solar' },
         location: { label: locationLabel, tz: tz, lng: lng, lat: lat, tzOffset: tzOff, baseTzOffset: tzOff }
@@ -7124,7 +7161,7 @@ function navigateToVedic() {
 }
 
 function navigateToZiweiChart() {
-  // 메인 ?�면 ?�명 카드 ?�로?�에???�년?�일 추출
+  // 메인 화면 운명 카드 프로필에서 생년월일 추출
   var profile = null;
   try {
     var listRaw = localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
@@ -7138,7 +7175,7 @@ function navigateToZiweiChart() {
       }
     }
   } catch (e) {}
-  // ?�명 카드 ?�로?�이 ?�으�?/ziwei/chart ?�력 ???�동 ?�팅 ???�동
+  // 운명 카드 프로필이 있으면 /ziwei/chart 입력 폼 자동 세팅 후 이동
   if (profile && profile.birth) {
     try {
       var b = profile.birth;
@@ -7179,7 +7216,7 @@ function openZiweiModal(_retried) {
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
-  var theme = { icon: '?��', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '?�� 紫微?�數 · ?��??�수', desc: '?��??�수 명반??보려�?br>메인 ?�면?�서 ?�의 ?�명 카드�?먼�? ?�정?�주?�요' };
+  var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
   if (typeof _ModalProfileState === 'undefined' || typeof _ModalProfileState.subscribe !== 'function' || typeof _renderZiweiSection !== 'function') {
     console.error('[openZiweiModal] missing modal profile dependencies');
     if (card) card.style.display = 'none';
@@ -7228,7 +7265,7 @@ function openAstroModal(_retried) {
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
-  var theme = { icon: '??, ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '??Cosmic Chart · ?�성??, desc: '?�성??분석??보려�?메인 ?�면?�서<br>?�의 ?�명 카드�?먼�? ?�정?�주?�요' };
+  var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
   if (typeof _ModalProfileState === 'undefined' || typeof _ModalProfileState.subscribe !== 'function' || typeof _renderAstroSection !== 'function') {
     console.error('[openAstroModal] missing modal profile dependencies');
     if (cardWrap) cardWrap.style.display = 'none';
@@ -7290,23 +7327,23 @@ function closeCurrentPage() {
 window.closeCurrentPage = closeCurrentPage;
 
 var _animalTotemPool = [
-  { category: '기본', name: '고양??, icon: '?��', keyword: '?�립?�과 직�?', advice: '?�신만의 ?�이?�로 걸어가??괜찮?�요. ?�옹!' },
-  { category: '기본', name: '?�람�?, icon: '?���?, keyword: '준비�? ?�기', advice: '?��? ?�력????결실????거예?? ?�토리�? 모으??차근차근!' },
-  { category: '기본', name: '?�랑??, icon: '?��', keyword: '?�망�??�식', advice: '?�운?� 멀�??��? ?�아?? 바로 ?�신???�깨 ?�에 ?�죠.' },
-  { category: '기본', name: '강아지', icon: '?��', keyword: '충성?�과 ?�랑', advice: '?�신?� ?�자가 ?�니?�요. 곁에 ?�는 ?�중???�연??믿으?�요.' },
-  { category: '기본', name: '?�끼', icon: '?��', keyword: '?�약�??�요', advice: '겁내지 말고 ?�짝 ?�어보세?? ?�로???�상??기다?�요!' },
-  { category: '지??, name: '?��?', icon: '?��', keyword: '직�?, ?�유', advice: '?�신??본능??믿으?�요. 공동체�? ?�께?�되 개성???��? 마세??' },
-  { category: '지??, name: '�?, icon: '?��', keyword: '?�찰, 치유', advice: '지금�? ?�면?�로 ?�어�??�간?�니?? ?�식???�해 ?�을 ?�복?�세??' },
-  { category: '지??, name: '?�슴', icon: '?��', keyword: '부?�러?�, 민감', advice: '강함보다 부?�러?�???�요???�입?�다. 주�???변?��? ?��??�게 ?�피?�요.' },
-  { category: '지??, name: '?�랑??, icon: '?��', keyword: '?�기, ?��???, advice: '?�신?� 충분???�을 가졌습?�다. 목표�??�해 집중?�고 ?�진?�세??' },
-  { category: '공중', name: '?�빼�?, icon: '?��', keyword: '지?? ?�찰', advice: '겉모???�머??진실??보세?? 밤의 ?�둠 ?�에?�도 길을 찾을 ???�습?�다.' },
-  { category: '공중', name: '?�수�?, icon: '?��', keyword: '고결, ?�야', advice: '?�소??문제?�서 벗어?????��? ?�야�??�생????그림??그리?�요.' },
-  { category: '공중', name: '?�비', icon: '?��', keyword: '변?? 가벼�?', advice: '변?�는 ?�름?�운 것입?�다. 과거???�물??벗고 ?�로??모습?�로 ?�아?�르?�요.' },
-  { category: '공중', name: '까마귀', icon: '?��?�⬛', keyword: '마법, 창조', advice: '?�연???�들??주목?�세?? 지�??�신 주�??�는 변?�의 마법???�어?�고 ?�습?�다.' },
-  { category: '�?기�?', name: '?�고??, icon: '?��', keyword: '조화, ?�희', advice: '?�을 ?�무 ?�각?�게 ?�각?��? 마세?? ?�흡?�고, 즐기�? ?�통?�세??' },
-  { category: '�?기�?', name: '거북??, icon: '?��', keyword: '?�내, 보호', advice: '천천??가??괜찮?�니?? ?�신???�도�??��??�며 꾸�????�아가?�요.' },
-  { category: '�?기�?', name: '뱀', icon: '?��', keyword: '?�생, ?�명??, advice: '?��? 감정??벗어?�질 ?�입?�다. ?�명 ?�너지�??�복?�고 ?�시 ?�어?�세??' },
-  { category: '�?기�?', name: '?�우', icon: '?��', keyword: '기�?, ?�응', advice: '?�황??맞춰 ?�연?�게 ?�처하?�요. 지?�로??관찰이 문제�??�결??�?것입?�다.' }
+  { category: '기본', name: '고양이', icon: '🐱', keyword: '독립심과 직관', advice: '당신만의 페이스로 걸어가도 괜찮아요. 야옹!' },
+  { category: '기본', name: '다람쥐', icon: '🐿️', keyword: '준비와 활기', advice: '작은 노력이 큰 결실이 될 거예요. 도토리를 모으듯 차근차근!' },
+  { category: '기본', name: '파랑새', icon: '🐦', keyword: '희망과 소식', advice: '행운은 멀리 있지 않아요. 바로 당신의 어깨 위에 있죠.' },
+  { category: '기본', name: '강아지', icon: '🐶', keyword: '충성심과 사랑', advice: '당신은 혼자가 아니에요. 곁에 있는 소중한 인연을 믿으세요.' },
+  { category: '기본', name: '토끼', icon: '🐰', keyword: '도약과 풍요', advice: '겁내지 말고 폴짝 뛰어보세요. 새로운 세상이 기다려요!' },
+  { category: '지상', name: '늑대', icon: '🐺', keyword: '직관, 자유', advice: '자신의 본능을 믿으세요. 공동체와 함께하되 개성을 잃지 마세요.' },
+  { category: '지상', name: '곰', icon: '🐻', keyword: '성찰, 치유', advice: '지금은 내면으로 들어갈 시간입니다. 휴식을 통해 힘을 회복하세요.' },
+  { category: '지상', name: '사슴', icon: '🦌', keyword: '부드러움, 민감', advice: '강함보다 부드러움이 필요한 때입니다. 주변의 변화를 예민하게 살피세요.' },
+  { category: '지상', name: '호랑이', icon: '🐯', keyword: '용기, 의지력', advice: '당신은 충분한 힘을 가졌습니다. 목표를 향해 집중하고 돌진하세요.' },
+  { category: '공중', name: '올빼미', icon: '🦉', keyword: '지혜, 통찰', advice: '겉모습 너머의 진실을 보세요. 밤의 어둠 속에서도 길을 찾을 수 있습니다.' },
+  { category: '공중', name: '독수리', icon: '🦅', keyword: '고결, 시야', advice: '사소한 문제에서 벗어나 더 넓은 시야로 인생의 큰 그림을 그리세요.' },
+  { category: '공중', name: '나비', icon: '🦋', keyword: '변화, 가벼움', advice: '변화는 아름다운 것입니다. 과거의 허물을 벗고 새로운 모습으로 날아오르세요.' },
+  { category: '공중', name: '까마귀', icon: '🐦‍⬛', keyword: '마법, 창조', advice: '우연한 일들에 주목하세요. 지금 당신 주변에는 변화의 마법이 일어나고 있습니다.' },
+  { category: '물/기타', name: '돌고래', icon: '🐬', keyword: '조화, 유희', advice: '삶을 너무 심각하게 생각하지 마세요. 호흡하고, 즐기고, 소통하세요.' },
+  { category: '물/기타', name: '거북이', icon: '🐢', keyword: '인내, 보호', advice: '천천히 가도 괜찮습니다. 자신의 속도를 유지하며 꾸준히 나아가세요.' },
+  { category: '물/기타', name: '뱀', icon: '🐍', keyword: '재생, 생명력', advice: '낡은 감정을 벗어던질 때입니다. 생명 에너지를 회복하고 다시 태어나세요.' },
+  { category: '물/기타', name: '여우', icon: '🦊', keyword: '기지, 적응', advice: '상황에 맞춰 유연하게 대처하세요. 지혜로운 관찰이 문제를 해결해 줄 것입니다.' }
 ];
 var _animalTotemDeck = [];
 var _animalTotemMeditationTimer = null;
@@ -7315,9 +7352,9 @@ var _animalTotemReadLocked = false;
 var _animalTotemSelected = null;
 var _animalTotemCategoryWeights = {
   '기본': 0.2,
-  '지??: 0.33,
+  '지상': 0.33,
   '공중': 0.27,
-  '�?기�?': 0.2
+  '물/기타': 0.2
 };
 
 function _pickAnimalTotemDeck(size) {
@@ -7405,9 +7442,9 @@ function resetAnimalTotemFlow() {
   if (result) result.style.display = 'none';
   if (btn) {
     btn.disabled = false;
-    btn.textContent = '?�� 10�?명상 ?�작?�기';
+    btn.textContent = '🧘 10초 명상 시작하기';
   }
-  _setAnimalTotemMeditationStatus('?�직 명상???�작?��? ?�았?�요.');
+  _setAnimalTotemMeditationStatus('아직 명상을 시작하지 않았어요.');
   document.querySelectorAll('.animal-totem-card').forEach(function(card) {
     card.classList.remove('is-flipped');
     card.classList.remove('is-muted');
@@ -7427,17 +7464,17 @@ function startAnimalTotemMeditation() {
   _animalTotemMeditationRunning = true;
   btn.disabled = true;
   var remain = 10;
-  _setAnimalTotemMeditationStatus('명상 진행 �?.. ' + remain + '�?);
-  btn.textContent = '?�흡 ?��? �?..';
+  _setAnimalTotemMeditationStatus('명상 진행 중... ' + remain + '초');
+  btn.textContent = '호흡 유지 중...';
 
   _animalTotemMeditationTimer = setInterval(function() {
     remain -= 1;
     if (remain > 0) {
-      _setAnimalTotemMeditationStatus('명상 진행 �?.. ' + remain + '�?);
+      _setAnimalTotemMeditationStatus('명상 진행 중... ' + remain + '초');
       return;
     }
     _clearAnimalTotemTimer();
-    _setAnimalTotemMeditationStatus('명상 ?�료! ?�제 ?��?카드�??�택??주세??');
+    _setAnimalTotemMeditationStatus('명상 완료! 이제 타로 카드를 선택해 주세요.');
     meditationStage.style.display = 'none';
     drawStage.style.display = 'block';
   }, 1000);
@@ -7469,8 +7506,8 @@ function drawAnimalTotemCard(btn, idxRaw) {
     var keywordEl = document.getElementById('animalTotemKeyword');
     var adviceEl = document.getElementById('animalTotemAdvice');
     if (nameEl) nameEl.textContent = picked.icon + ' ' + picked.name;
-    if (keywordEl) keywordEl.textContent = (picked.category || '?�템') + ' · ' + picked.keyword;
-    if (adviceEl) adviceEl.textContent = '?? + picked.advice + '??;
+    if (keywordEl) keywordEl.textContent = (picked.category || '토템') + ' · ' + picked.keyword;
+    if (adviceEl) adviceEl.textContent = '“' + picked.advice + '”';
     result.style.display = 'block';
   }, 450);
 }
@@ -7480,16 +7517,16 @@ function shareAnimalTotemResult() {
   if (!_animalTotemSelected) return;
   var picked = _animalTotemSelected;
   var text =
-    '?�� ?�늘???�니멀 ?�템\n\n' +
+    '🧸 오늘의 애니멀 토템\n\n' +
     picked.icon + ' ' + picked.name + '\n' +
-    '분류: ' + (picked.category || '?�템') + '\n' +
-    '?�워?? ' + picked.keyword + '\n' +
+    '분류: ' + (picked.category || '토템') + '\n' +
+    '키워드: ' + picked.keyword + '\n' +
     '메시지: "' + picked.advice + '"\n\n' +
     'https://code-destiny.com';
 
   if (navigator.share) {
     navigator.share({
-      title: '?�니멀 ?�템 리딩 결과',
+      title: '애니멀 토템 리딩 결과',
       text: text
     }).catch(function() {});
     return;
@@ -7497,7 +7534,7 @@ function shareAnimalTotemResult() {
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text)
-      .then(function() { alert('?�템 결과 문구�?복사?�어??'); })
+      .then(function() { alert('토템 결과 문구를 복사했어요!'); })
       .catch(function() { alert(text); });
     return;
   }
@@ -7563,7 +7600,7 @@ function _resetTarotUI() {
   var cardEl = document.getElementById('tarotCardEl');
   if (cardEl) cardEl.classList.remove('flipped');
   var ritualMsgEl = document.getElementById('tarotRitualMsg');
-  if (ritualMsgEl) ritualMsgEl.innerText = '"?�신??간절??고�????�택?�주?�요..."';
+  if (ritualMsgEl) ritualMsgEl.innerText = '"당신의 간절한 고민을 선택해주세요..."';
   document.querySelectorAll('.oracle-cat-btn-m').forEach(function(btn) { btn.classList.remove('active'); });
   document.querySelectorAll('.tarot-spread-card').forEach(function(el) { el.classList.remove('flipped'); });
   var finalBtn = document.getElementById('tarotFinalBtn');
@@ -7594,7 +7631,7 @@ function openTarotModal() {
     }
   };
 
-  // ?��??�진????�� 로드?�면 카테고리/카드 ?�릭??무반?�이 ?????�어 모달 ?�픈 ?�에 보장?�다.
+  // 타로 엔진이 늦게 로드되면 카테고리/카드 클릭이 무반응이 될 수 있어 모달 오픈 전에 보장한다.
   if (typeof __cdEnsureSajuCoreLoaded === 'function') {
     __cdEnsureSajuCoreLoaded()
       .then(showOverlay)
@@ -7625,14 +7662,17 @@ window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
 function openRuneOracle() {
   try {
-    window.location.assign('/oracle/rune');
+    window.location.assign('/static?service=stonehenge-rune');
   } catch (err) {
     console.error('[index-inline-runtime] openRuneOracle failed:', err);
   }
 }
 window.openRuneOracle = openRuneOracle;
 
-/* ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??   ???��?메인 ?�면 ?�릭 ??코인 차감 ?�들??   ?�직 ?�명??카드 · ?�마???�아보기 · ?�석 ?�울 ?��??�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??*/
+/* ═══════════════════════════════════════════════════════════════
+   세 타로 메인 화면 클릭 시 코인 차감 핸들러
+   이직 운명의 카드 · 속마음 알아보기 · 원석 소울 타로
+═══════════════════════════════════════════════════════════════ */
 function startIjikTarot() {
   if (__cdIsAdminLikeUser()) {
     window.location.href = '/tarot-ijik.html';
@@ -7641,7 +7681,7 @@ function startIjikTarot() {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('?�� 로그?�이 ?�요???�비?�입?�다.\n로그?????�용??주세??')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2Ftarot-ijik.html';
     }
     return;
@@ -7656,7 +7696,7 @@ function startMindScanTarot() {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('?�� 로그?�이 ?�요???�비?�입?�다.\n로그?????�용??주세??')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
     }
     return;
@@ -7671,7 +7711,7 @@ function startCrystalSoulTarot() {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('?�� 로그?�이 ?�요???�비?�입?�다.\n로그?????�용??주세??')) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
     }
     return;
@@ -7718,14 +7758,14 @@ function updateCompatUI() {
   if (!t || !desc || !btn) return;
   var v = t.value || 'love';
   if (v === 'love') {
-    desc.textContent = '?�애/결혼: 감정, ?�기, ?��?·??�� 간의 조화??초점??맞춘 분석???�공?�니??';
-    btn.innerHTML = '?�� ?�애 궁합 분석?�기';
+    desc.textContent = '연애/결혼: 감정, 온기, 일지·십성 간의 조화에 초점을 맞춘 분석을 제공합니다.';
+    btn.innerHTML = '💗 연애 궁합 분석하기';
   } else if (v === 'business') {
-    desc.textContent = '?�업/?�업: ??��·책임·?�신·?�극??중심?�로 ?�무?�·재무적 ?�합?�을 ?��??�니??';
-    btn.innerHTML = '?�� ?�업 궁합 분석?�기';
+    desc.textContent = '사업/동업: 역할·책임·용신·상극을 중심으로 실무적·재무적 적합성을 평가합니다.';
+    btn.innerHTML = '💼 사업 궁합 분석하기';
   } else {
-    desc.textContent = '친구/?�료: ?�정·?�업·?�너지 ?�흡??중심?�로 ?�안?�과 ?�너지 ?�인?��? ?�내?�니??';
-    btn.innerHTML = '?�� ?�정/?�료 궁합 분석?�기';
+    desc.textContent = '친구/동료: 우정·협업·에너지 호흡을 중심으로 편안함과 시너지 포인트를 안내합니다.';
+    btn.innerHTML = '🤝 우정/동료 궁합 분석하기';
   }
 }
 var compatTypeEl = document.getElementById('compatType');
@@ -7743,7 +7783,7 @@ window.googleTranslateElementInit = window.googleTranslateElementInit || functio
   }, 'google_translate_element');
 };
 
-/* 기능(로더/모달/?�버?�이) ?�작 중에???�어 버튼 ?�동 ?��?, 종료 ???�시 ?�시 */
+/* 기능(로더/모달/오버레이) 동작 중에는 언어 버튼 자동 숨김, 종료 시 다시 표시 */
 var _langWrapFeatureOverlayIds = [
   'sajuLoaderOverlay', 'privacy-modal-overlay', 'destinyFlowerStudioOverlay',
   'tarotModalOverlay', 'tarotFocusOverlay', 'tarotSelfEsteemOverlay',
@@ -7756,9 +7796,10 @@ var _langWrapFeatureOverlayIds = [
 
 var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
 
-// ?�어 ?�택(구�? 번역 ?�비???�용) ???�정 ?�간 ???�젯 ?�동 ?��?
+// 언어 선택(구글 번역 서비스 사용) 후 일정 시간 뒤 위젯 자동 숨김
 var __cdLangWrapHideTimer = null;
-var __cdLangWrapHideDelayMs = 30000; // 30�?
+var __cdLangWrapHideDelayMs = 30000; // 30초
+
 function __cdCancelLangWrapHide() {
   if (__cdLangWrapHideTimer) clearTimeout(__cdLangWrapHideTimer);
   __cdLangWrapHideTimer = null;
@@ -7793,8 +7834,8 @@ function cdAllowGoogleTranslateForContent() {
 }
 
 function changeLanguage(langCode, btn) {
-  // cd-lang-native.js 가 로드?�면 ?�당 ?�수가 window.changeLanguage �???��?�.
-  // ??기본 구현?� native 모드 ?�일 로드 ???�는 ?�백?�로�??�행??
+  // cd-lang-native.js 가 로드되면 해당 함수가 window.changeLanguage 를 덮어씀.
+  // 이 기본 구현은 native 모드 파일 로드 전 또는 폴백으로만 실행됨.
   if (window.__cdNativeLangBound) {
     return;
   }
@@ -7831,7 +7872,7 @@ function changeLanguage(langCode, btn) {
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + domain + '; path=/;';
   }
 
-  // 번역 ?�택 직후 ?�롭?�운 ?�고, 30�????�젯???�동 ?��?
+  // 번역 선택 직후 드롭다운 닫고, 30초 후 위젯을 자동 숨김
   var wrap = document.getElementById('langWrap');
   if (wrap) {
     wrap.classList.remove('open');
@@ -7850,7 +7891,7 @@ function toggleLangDropdown() {
   if (isOpen) {
     wrap.classList.remove('open');
   } else {
-    // ?�젯???�시 ?�용?�려???�점?��?�??��?/?�?�머�??�제?�고, ?�시 30�????��? ?�약
+    // 위젯을 다시 사용하려는 시점이므로 숨김/타이머를 해제하고, 다시 30초 후 숨김 예약
     __cdCancelLangWrapHide();
     wrap.classList.add('open');
     __cdScheduleLangWrapHide();

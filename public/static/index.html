@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -1855,7 +1855,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__coin-badge">1회 30코인</span>
               </div>
               <div class="tarot-tile__body">
-                <span class="tarot-tile__title">&#x1FAB7; Divya Yoga</span>
+                <span class="tarot-tile__title">🪷 Divya Yoga</span>
                 <span class="tarot-tile__desc">맞춤 명상 요가 루틴</span>
               </div>
             </a>
@@ -6098,7 +6098,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260503-qualityfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -6203,6 +6203,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function requestAdminFlowerEntry() {
+    var pw = window.prompt('\uAD00\uB9AC\uC790 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694:');
+    if (pw === null) return;
+    if (pw !== '8282') {
+      window.alert('\uBE44\uBC00\uBC88\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.');
+      return;
+    }
     window.location.href = '/admin/login';
   }
 
@@ -7381,7 +7387,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/life-book.js?v=20260410-v2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/ziwei-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/astro-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -8810,7 +8816,4 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
-
-
-
 
