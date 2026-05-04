@@ -7036,6 +7036,46 @@ function __cdForceUnlockBodyScroll() {
   } catch (e) {}
 }
 
+function __cdHardResetScrollTop(el) {
+  if (!el) return;
+  try { el.scrollTop = 0; } catch (e) {}
+  try {
+    if (typeof el.scrollTo === 'function') {
+      el.scrollTo(0, 0);
+    }
+  } catch (e2) {}
+}
+
+function __cdScrollModalTop(overlayId, sheetId, anchorId) {
+  var overlay = overlayId ? document.getElementById(overlayId) : null;
+  var sheet = sheetId ? document.getElementById(sheetId) : null;
+  var anchor = anchorId ? document.getElementById(anchorId) : null;
+
+  var alignTop = function() {
+    __cdHardResetScrollTop(overlay);
+    __cdHardResetScrollTop(sheet);
+    __cdHardResetScrollTop(anchor);
+    if (anchor && typeof anchor.scrollIntoView === 'function') {
+      try {
+        anchor.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+      } catch (e) {}
+    }
+  };
+
+  alignTop();
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(alignTop);
+    requestAnimationFrame(function() {
+      requestAnimationFrame(alignTop);
+    });
+  }
+  setTimeout(alignTop, 60);
+  setTimeout(alignTop, 180);
+  try { window.scrollTo(0, 0); } catch (e) {}
+}
+
+window.__cdScrollModalTop = __cdScrollModalTop;
+
 function __cdBirthModalDepsMissing() {
   return (
     typeof _ModalProfileState === 'undefined' ||
@@ -7112,6 +7152,7 @@ function openSukuyoModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('sukuyoModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
+  __cdScrollModalTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -7125,9 +7166,13 @@ function openSukuyoModal(_retried) {
   if (!profile || !profile.birth) {
     if (card) card.style.display = 'none';
     if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'sukuyo', theme) : _dpEmptyHTML(theme); }
+    __cdScrollModalTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoNoProfile');
     return;
   }
   _ModalProfileState.dispatch(profile, 'sukuyo');
+  setTimeout(function() {
+    __cdScrollModalTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
+  }, 24);
 }
 function closeSukuyoModal() {
   var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
@@ -7401,6 +7446,7 @@ function openZiweiModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('ziweiModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
+  __cdScrollModalTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -7414,9 +7460,13 @@ function openZiweiModal(_retried) {
   if (!profile || !profile.birth) {
     if (card) card.style.display = 'none';
     if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'ziwei', theme) : _dpEmptyHTML(theme); }
+    __cdScrollModalTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiNoProfile');
     return;
   }
   _ModalProfileState.dispatch(profile, 'ziwei');
+  setTimeout(function() {
+    __cdScrollModalTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
+  }, 24);
 }
 function closeZiweiModal() {
   var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
@@ -7450,6 +7500,7 @@ function openAstroModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('astroModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
+  __cdScrollModalTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
   var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -7463,9 +7514,13 @@ function openAstroModal(_retried) {
   if (!profile || !profile.birth) {
     if (cardWrap) cardWrap.style.display = 'none';
     if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'astro', theme) : _dpEmptyHTML(theme); }
+    __cdScrollModalTop('astroModalOverlay', 'astroModalSheet', 'astroNoProfile');
     return;
   }
   _ModalProfileState.dispatch(profile, 'astro');
+  setTimeout(function() {
+    __cdScrollModalTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
+  }, 24);
 }
 function closeAstroModal() {
   var o = document.getElementById('astroModalOverlay'); if (o) o.style.display = 'none';

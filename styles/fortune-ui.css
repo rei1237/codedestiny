@@ -1002,6 +1002,11 @@ input:checked + .slider .paw-pad {
 .modal-content-inner-wide{width:1200px;max-width:95%;margin:0 auto;padding:20px 16px calc(120px + env(safe-area-inset-bottom));box-sizing:border-box}
 .modal-content-pad-astro{padding:20px 16px calc(120px + env(safe-area-inset-bottom));box-sizing:border-box}
 .modal-content-pad-ziwei{padding:20px 14px calc(120px + env(safe-area-inset-bottom));box-sizing:border-box}
+@media (max-width:768px){
+  .modal-content-pad-astro{padding-top:10px!important}
+  .modal-content-pad-ziwei{padding-top:8px!important}
+  #sukuyoModalSheet>div{padding-top:10px!important}
+}
 
 .tc-header-note{font-size:.72rem;color:rgba(180,140,60,.5)}
 .tc-shell-emoji{font-size:1.6rem;margin-bottom:2px;opacity:.7}

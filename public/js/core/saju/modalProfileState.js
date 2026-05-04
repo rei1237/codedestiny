@@ -80,6 +80,26 @@ var _ModalProfileState = (function () {
   };
 })();
 
+function _cdModalHardResetTop(overlayId, sheetId, anchorId) {
+  if (typeof window.__cdScrollModalTop === 'function') {
+    window.__cdScrollModalTop(overlayId, sheetId, anchorId);
+    return;
+  }
+  var sheet = sheetId ? document.getElementById(sheetId) : null;
+  var anchor = anchorId ? document.getElementById(anchorId) : null;
+  if (sheet) {
+    try { sheet.scrollTop = 0; } catch (e) {}
+  }
+  if (anchor) {
+    try {
+      anchor.scrollTop = 0;
+      if (typeof anchor.scrollIntoView === 'function') {
+        anchor.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+      }
+    } catch (e2) {}
+  }
+}
+
 function _renderSukuyoSection(profile) {
   var card = document.getElementById('sukuyoCard');
   var noP = document.getElementById('sukuyoNoProfile');
@@ -91,6 +111,7 @@ function _renderSukuyoSection(profile) {
   area.innerHTML =
     '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
+  _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
   var b = profile.birth;
   var lunarObj = null;
   try {
@@ -102,6 +123,7 @@ function _renderSukuyoSection(profile) {
   }
   setTimeout(function () {
     if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
+    _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
   }, 0);
 }
 
@@ -116,6 +138,7 @@ function _renderZiweiSection() {
   area.innerHTML =
     '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
+  _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
   setTimeout(function () {
     if (typeof renderZiwei === 'function') {
       try {
@@ -124,6 +147,7 @@ function _renderZiweiSection() {
         console.warn('[Ziwei] 렌더 오류:', e);
       }
     }
+    _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
   }, 0);
 }
 
@@ -138,8 +162,10 @@ function _renderAstroSection() {
   area.innerHTML =
     '<div style="text-align:center;padding:50px 20px;color:#d1c4e9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 코즈믹 차트를 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
+  _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
   setTimeout(function () {
     if (typeof renderAstroInsight === 'function') renderAstroInsight();
+    _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
   }, 0);
 }
 

@@ -23,15 +23,6 @@ type FormState = {
   agreed: boolean;
 };
 
-const tarotItems: ServiceCardModel[] = [
-  { title: "우리는 무슨 사이?", description: "관계 6카드 심층 리딩", href: "/tarot/love", emoji: "💕", badges: [{ text: "50코인", tone: "coin" }, { text: "NEW", tone: "new" }] },
-  { title: "회복 타로", description: "감정 회복 4카드 스프레드", href: "/tarot/healing", emoji: "☀️", badges: [{ text: "무료", tone: "free" }] },
-  { title: "자존감 레벨업", description: "자기신뢰 강화 퀘스트", href: "/tarot/self-esteem", emoji: "✨", badges: [{ text: "무료", tone: "free" }] },
-  { title: "재회운 타로", description: "관계 흐름 재접속 리딩", href: "/tarot/reunion", emoji: "🌊", badges: [{ text: "50코인", tone: "coin" }] },
-  { title: "십이지신 천운", description: "12개월 연간 운세", href: "/tarot/year", emoji: "🐲", badges: [{ text: "30코인", tone: "coin" }] },
-  { title: "명리학 타로", description: "78장 덱 기반 리딩", href: "/tarot", emoji: "🔮", badges: [{ text: "무료", tone: "free" }] },
-];
-
 const oracleItems: ServiceCardModel[] = [
   { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", emoji: "🎴", badges: [{ text: "무료", tone: "free" }] },
   { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "30코인", tone: "coin" }] },
@@ -43,8 +34,10 @@ const oracleItems: ServiceCardModel[] = [
 ];
 
 const cosmicItems: ServiceCardModel[] = [
-  { title: "점성술 코즈믹", description: "태양·달·상승궁 분석", href: "/astrology/cosmic", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 50", tone: "coin" }] },
+  { title: "자미두수 기본 명반", description: "12궁 기반 운명 지도", href: "/static/index.html?action=openZiweiModal", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "숙요점 기본 리딩", description: "27숙 기반 관계·성향 분석", href: "/static/index.html?action=openSukuyoModal", emoji: "💫", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "점성술 기본 차트", description: "태양·달·상승궁 분석", href: "/static/index.html?action=openAstroModal", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "자미두수 심화 차트", description: "대운·궁합 확장 리딩", href: "/ziwei/chart", emoji: "🪭", badges: [{ text: "심화", tone: "soft" }, { text: "궁합 50", tone: "coin" }] },
   { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", emoji: "🪐", badges: [{ text: "기본 무료", tone: "free" }] },
   { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 100", tone: "coin" }, { text: "NEW", tone: "new" }] },
   { title: "명리학 인사이트", description: "해석 가이드 콘텐츠", href: "/insights", emoji: "📚", badges: [{ text: "가이드", tone: "soft" }] },
@@ -83,51 +76,70 @@ export default function MainLandingPage() {
 
   const recommendations = useMemo<ServiceCardModel[]>(() => {
     if (!profile) return [];
-    const base = profile.calType === "solar" ? tarotItems : cosmicItems;
-    const genderBoost = profile.gender === "F" ? tarotItems : oracleItems;
+    const base = profile.calType === "solar" ? cosmicItems : oracleItems;
+    const genderBoost = profile.gender === "F" ? oracleItems : cosmicItems;
     return [...base.slice(0, 2), ...genderBoost.slice(0, 1), premiumItems[5]];
   }, [profile]);
 
   return (
     <main className="cd-home-root">
       <section className="cd-main-shell !pb-4 !pt-8 md:!pt-10">
-        <div className="rounded-[26px] border border-violet-300/35 bg-[linear-gradient(145deg,rgba(30,18,66,0.96),rgba(40,24,85,0.9))] px-4 py-8 text-center shadow-[0_24px_60px_rgba(25,16,52,0.42)] md:px-8 md:py-10">
-          <div className="mx-auto mb-3 h-[94px] w-[94px] overflow-hidden rounded-full border-2 border-amber-200/60 shadow-[0_12px_28px_rgba(20,11,45,0.6)] md:h-[120px] md:w-[120px]">
-            <img
-              src="/icons/honeypig-130.webp"
-              alt="꿀꿀 연이 로고"
-              className="h-full w-full object-cover"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          <h1 className="text-[clamp(1.45rem,3.2vw,2.5rem)] font-black tracking-[-0.02em] text-violet-50">
-            생년월일 하나로, 나의 운명 지도를 펼쳐보세요
-          </h1>
-          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-violet-100/85 md:text-[15px]">
-            사주팔자, 타로, 점성술, 자미두수를 하나의 흐름으로 연결한 메인 운세 화면입니다.
-            먼저 입력을 시작하고, 아래 추천 컬렉션에서 오늘의 리딩을 이어서 탐색해보세요.
-          </p>
+        <div className="relative overflow-hidden rounded-[26px] border border-indigo-200/30 bg-[radial-gradient(circle_at_18%_15%,rgba(252,211,153,0.24),transparent_34%),radial-gradient(circle_at_82%_24%,rgba(165,180,252,0.2),transparent_36%),linear-gradient(150deg,rgba(18,14,52,0.96),rgba(28,20,70,0.94)_52%,rgba(12,22,51,0.96))] px-4 py-8 text-center shadow-[0_26px_64px_rgba(16,11,44,0.5)] md:px-8 md:py-10">
+          <div className="pointer-events-none absolute -left-20 -top-24 h-52 w-52 rounded-full bg-amber-200/20 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -right-16 top-6 h-48 w-48 rounded-full bg-indigo-300/20 blur-3xl" aria-hidden />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-35"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 12% 24%, rgba(255,255,255,0.55) 0 1.2px, transparent 2px), radial-gradient(circle at 34% 68%, rgba(255,255,255,0.35) 0 1px, transparent 2px), radial-gradient(circle at 60% 18%, rgba(255,255,255,0.4) 0 1.1px, transparent 2px), radial-gradient(circle at 82% 62%, rgba(255,255,255,0.3) 0 1px, transparent 2px)"
+            }}
+            aria-hidden
+          />
 
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
-            <Link
-              href="/signup"
-              className="inline-flex items-center rounded-full border border-violet-200/40 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(89,53,188,0.38)] transition hover:brightness-110"
-            >
-              ✨ 회원가입
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center rounded-full border border-amber-200/45 bg-[rgba(17,20,44,0.7)] px-5 py-2.5 text-sm font-bold text-amber-100 transition hover:bg-[rgba(36,38,78,0.78)]"
-            >
-              🔐 로그인
-            </Link>
-            <a
-              href="#fortuneForm"
-              className="inline-flex items-center rounded-full border border-violet-200/30 bg-[rgba(78,56,134,0.25)] px-4 py-2.5 text-sm font-semibold text-violet-100 transition hover:bg-[rgba(98,72,160,0.35)]"
-            >
-              입력 폼으로 이동
-            </a>
+          <div className="relative z-10">
+            <div className="mx-auto mb-3 h-[94px] w-[94px] overflow-hidden rounded-full border-2 border-amber-200/60 shadow-[0_12px_28px_rgba(20,11,45,0.6)] md:h-[120px] md:w-[120px]">
+              <img
+                src="/icons/honeypig-130.webp"
+                alt="꿀꿀 연이 로고"
+                className="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            <h1 className="text-[clamp(1.45rem,3.2vw,2.5rem)] font-black tracking-[-0.02em] text-violet-50">
+              생년월일 하나로, 나의 운명 지도를 펼쳐보세요
+            </h1>
+            <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-violet-100/85 md:text-[15px]">
+              점성술, 자미두수, 오라클 리딩을 하나의 흐름으로 연결한 메인 운세 화면입니다.
+              먼저 입력을 시작하고, 아래 추천 컬렉션에서 오늘의 리딩을 이어서 탐색해보세요.
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-indigo-50 md:text-xs">
+              <span className="rounded-full border border-amber-200/55 bg-amber-100/12 px-3 py-1">기본 3종 즉시 시작</span>
+              <span className="rounded-full border border-indigo-200/45 bg-indigo-200/10 px-3 py-1">모바일 최적화 결과 화면</span>
+              <span className="rounded-full border border-violet-200/45 bg-violet-200/10 px-3 py-1">코즈믹 컬렉션 큐레이션</span>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+              <Link
+                href="/signup"
+                className="inline-flex items-center rounded-full border border-violet-200/40 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(89,53,188,0.38)] transition hover:brightness-110"
+              >
+                ✨ 회원가입
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center rounded-full border border-amber-200/45 bg-[rgba(17,20,44,0.7)] px-5 py-2.5 text-sm font-bold text-amber-100 transition hover:bg-[rgba(36,38,78,0.78)]"
+              >
+                🔐 로그인
+              </Link>
+              <a
+                href="#fortuneForm"
+                className="inline-flex items-center rounded-full border border-violet-200/30 bg-[rgba(78,56,134,0.25)] px-4 py-2.5 text-sm font-semibold text-violet-100 transition hover:bg-[rgba(98,72,160,0.35)]"
+              >
+                입력 폼으로 이동
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -151,15 +163,7 @@ export default function MainLandingPage() {
           description="첫 진입에 적합한 서비스부터 시작해 오늘의 운세 흐름을 빠르게 확인하세요."
           icon="🧭"
           defaultOpen
-          items={recommendations.length ? recommendations : [...tarotItems.slice(0, 3), ...cosmicItems.slice(0, 2), premiumItems[5]]}
-        />
-
-        <ServiceCollectionSection
-          title="타로 리딩 컬렉션"
-          subtitle="관계, 회복, 자존감, 재회, 연간운 타로"
-          description="질문 주제에 맞는 스프레드를 선택해 즉시 리딩을 시작할 수 있습니다."
-          icon="🔮"
-          items={tarotItems}
+          items={recommendations.length ? recommendations : [...oracleItems.slice(0, 3), ...cosmicItems.slice(0, 2), premiumItems[5]]}
         />
 
         <ServiceCollectionSection

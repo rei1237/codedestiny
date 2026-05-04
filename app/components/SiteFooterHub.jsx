@@ -7,15 +7,6 @@ const POLICY_LINKS = [
   { href: "/privacy-policy", text: "개인정보처리방침" },
 ];
 
-const LANG_LINKS = [
-  { href: "/en-us", text: "EN" },
-  { href: "/ja-jp", text: "JP" },
-  { href: "/zh-cn", text: "中文" },
-  { href: "/es-es", text: "ES" },
-  { href: "/fr-fr", text: "FR" },
-  { href: "/de-de", text: "DE" },
-];
-
 const rootStyle = {
   marginTop: "28px",
   borderTop: "1px solid rgba(120,119,198,0.22)",
@@ -53,13 +44,6 @@ export default function SiteFooterHub() {
         <nav aria-label="정책 링크" style={navStyle}>
           {POLICY_LINKS.map((link) => (
             <a key={link.href} href={link.href} style={linkStyle}>
-              {link.text}
-            </a>
-          ))}
-        </nav>
-        <nav aria-label="다국어 링크" style={navStyle}>
-          {LANG_LINKS.map((link) => (
-            <a key={link.href} href={link.href} style={{ ...linkStyle, color: "#6ee7d8" }}>
               {link.text}
             </a>
           ))}

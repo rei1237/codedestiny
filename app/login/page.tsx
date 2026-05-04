@@ -428,7 +428,7 @@ export default function LoginPage() {
 
       <div className="relative mx-auto w-full max-w-md opacity-0 animate-fade-in-up">
         <div className="rounded-3xl bg-gradient-to-br from-violet-300/35 via-fuchsia-300/10 to-slate-200/35 p-[1px] shadow-violet-neon">
-          <section className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl sm:p-8">
+          <section className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl [color-scheme:dark] sm:p-8">
             <header className="mb-6 text-center">
               <p className="mb-2 inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-violet-200">
                 TWILIGHT LOGIN
@@ -437,6 +437,17 @@ export default function LoginPage() {
               <p className="mt-2 text-sm leading-6 text-violet-100/80">
                 아이디(이메일)/비밀번호 또는 소셜 계정으로 로그인할 수 있습니다.
               </p>
+              <div className="mt-4 inline-flex rounded-full border border-violet-200/25 bg-slate-950/30 p-1">
+                <span className="min-h-0 min-w-0 rounded-full bg-violet-400/20 px-3 py-1.5 text-xs font-semibold text-violet-100">
+                  로그인
+                </span>
+                <Link
+                  href="/signup"
+                  className="min-h-0 min-w-0 rounded-full px-3 py-1.5 text-xs font-semibold text-violet-200/85 transition hover:text-violet-100"
+                >
+                  회원가입
+                </Link>
+              </div>
             </header>
 
             {error ? (
@@ -456,6 +467,7 @@ export default function LoginPage() {
                   placeholder="name@example.com"
                   className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                 />
+                <p className="mt-1.5 text-[11px] text-violet-100/65">가입할 때 사용한 이메일 아이디를 입력해 주세요.</p>
               </div>
               <div>
                 <label htmlFor="login-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PASSWORD</label>
@@ -474,7 +486,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     disabled={loading || socialLoading !== null}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
+                    className="absolute right-2 top-1/2 h-8 min-h-0 min-w-0 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                   >
                     {showPassword ? "숨김" : "보기"}
@@ -484,7 +496,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setError("비밀번호 재설정 기능은 준비 중입니다. 잠시만 기다려 주세요.")}
-                    className="text-xs font-semibold text-violet-200/85 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-100"
+                    className="min-h-0 min-w-0 px-0 py-0 text-xs font-semibold text-violet-200/85 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-100"
                   >
                     비밀번호를 잊으셨나요?
                   </button>

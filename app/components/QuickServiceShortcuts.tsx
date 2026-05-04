@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 const shortcuts = [
-  { label: "사주 팔자", href: "/saju/basic", emoji: "☯" },
-  { label: "오늘의 운세", href: "/tarot/year", emoji: "📅" },
-  { label: "타로", href: "/tarot", emoji: "🔮" },
-  { label: "점성술", href: "/astrology/cosmic", emoji: "🌌" },
-  { label: "자미두수", href: "/ziwei/chart", emoji: "✨" },
-  { label: "궁합", href: "/saju/love-simulation", emoji: "💞" },
+  { label: "자미두수 기본", href: "/static/index.html?action=openZiweiModal", emoji: "✨" },
+  { label: "숙요점 기본", href: "/static/index.html?action=openSukuyoModal", emoji: "💫" },
+  { label: "점성술 기본", href: "/static/index.html?action=openAstroModal", emoji: "🌌" },
+  { label: "오라클", href: "/oracle/rune", emoji: "ᚱ" },
+  { label: "인사이트", href: "/insights", emoji: "📚" },
+  { label: "포인트", href: "/points", emoji: "💳" },
+  { label: "내 정보", href: "/me", emoji: "👤" },
 ];
 
 export default function QuickServiceShortcuts() {

@@ -1,20 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import AuthWidget from "./AuthWidget";
-import { LocaleSwitcher } from "./LocaleSwitcher";
 
 const headerNavItems = [
   { href: "/index.html", label: "홈" },
-  { href: "/index.html?action=checkPrivacyAndCalculate", label: "기초사주" },
-  { href: "/index.html?action=openLifeBookModal", label: "인생의 책" },
-  { href: "/index.html?action=openLoveSecretModal", label: "연애" },
-  { href: "/index.html?action=openTarotModal", label: "타로" },
-  { href: "/index.html?action=openTarotYearFortuneModal", label: "타로년운" },
-  { href: "/index.html?action=openHwatuModal", label: "오라클" },
-  { href: "/insights", label: "가이드" },
-  { href: "/points", label: "포인트" },
 ];
 
 function isStaticShellHref(href: string) {
@@ -23,7 +14,6 @@ function isStaticShellHref(href: string) {
 
 export default function GlobalHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const localeFallback = <span className="text-xs text-slate-400">Language</span>;
 
   return (
     <>
@@ -52,9 +42,6 @@ export default function GlobalHeader() {
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
-            <Suspense fallback={localeFallback}>
-              <LocaleSwitcher />
-            </Suspense>
             <AuthWidget />
           </div>
 
@@ -73,9 +60,7 @@ export default function GlobalHeader() {
       {menuOpen ? (
         <div className="sticky top-[58px] z-[65] border-b border-violet-200/20 bg-[rgba(11,8,26,0.95)] px-3 pb-4 pt-3 md:hidden">
           <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-violet-200/20 bg-[rgba(36,20,68,0.45)] p-2">
-            <Suspense fallback={localeFallback}>
-              <LocaleSwitcher />
-            </Suspense>
+            <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">AUTH</span>
             <AuthWidget />
           </div>
           <div className="grid grid-cols-3 gap-2">

@@ -429,7 +429,7 @@ export default function SignupPage() {
 
       <div className="relative mx-auto w-full max-w-xl opacity-0 animate-fade-in-up">
         <div className="rounded-3xl bg-gradient-to-br from-violet-300/35 via-fuchsia-300/10 to-slate-200/35 p-[1px] shadow-violet-neon">
-          <section className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl sm:p-8">
+          <section className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl [color-scheme:dark] sm:p-8">
             <header className="mb-6 text-center">
               <p className="mb-2 inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-violet-200">
                 TWILIGHT SIGN UP
@@ -445,13 +445,25 @@ export default function SignupPage() {
                 </Link>
                 으로 이동하세요.
               </p>
+
+              <div className="mt-4 inline-flex rounded-full border border-violet-200/25 bg-slate-950/30 p-1">
+                <Link
+                  href="/login"
+                  className="min-h-0 min-w-0 rounded-full px-3 py-1.5 text-xs font-semibold text-violet-200/85 transition hover:text-violet-100"
+                >
+                  로그인
+                </Link>
+                <span className="min-h-0 min-w-0 rounded-full bg-violet-400/20 px-3 py-1.5 text-xs font-semibold text-violet-100">
+                  회원가입
+                </span>
+              </div>
             </header>
 
             {error ? (
               <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
             ) : null}
 
-            <form className="space-y-3 mb-5" onSubmit={handleLocalSignup}>
+            <form className="mb-6 space-y-4" onSubmit={handleLocalSignup}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label htmlFor="signup-name" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">NAME</label>
@@ -498,12 +510,13 @@ export default function SignupPage() {
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
                       disabled={loading || socialLoading !== null}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
+                      className="absolute right-2 top-1/2 h-8 min-h-0 min-w-0 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
                       aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                     >
                       {showPassword ? "숨김" : "보기"}
                     </button>
                   </div>
+                  <p className="mt-1.5 text-[11px] text-violet-100/65">비밀번호는 8자 이상으로 설정해 주세요.</p>
                 </div>
 
                 <div>
@@ -514,7 +527,7 @@ export default function SignupPage() {
                     value={birthDate}
                     onChange={(event) => setBirthDate(event.target.value)}
                     disabled={loading || socialLoading !== null}
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 [color-scheme:dark] outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 
@@ -526,7 +539,7 @@ export default function SignupPage() {
                     value={birthTime}
                     onChange={(event) => setBirthTime(event.target.value)}
                     disabled={loading || socialLoading !== null}
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 [color-scheme:dark] outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 
@@ -537,7 +550,7 @@ export default function SignupPage() {
                     value={gender}
                     onChange={(event) => setGender(event.target.value as "M" | "F" | "OTHER")}
                     disabled={loading || socialLoading !== null}
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 [color-scheme:dark] outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <option value="OTHER">선택 안 함</option>
                     <option value="M">남성</option>

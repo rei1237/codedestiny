@@ -8528,6 +8528,16 @@ function renderZiwei(p, natal, targetId) {
       max-width: none;
       font-family: 'Pretendard', sans-serif;
     }
+    #ziweiModalSection {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+    #ziweiModalSection .zw-dashboard {
+      margin-top: 8px;
+    }
     
     .zw-grid-wrap {
       flex: 1.4;
@@ -9998,6 +10008,10 @@ function renderZiwei(p, natal, targetId) {
 
     /* 모바일 반응형 — 12궁 그리드 구조 유지, 소형화 */
     @media (max-width: 768px) {
+      #ziweiModalSection {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
       #ziweiModalSheet > div {
         max-width: 100% !important;
         padding-left: 4px !important;
@@ -10017,16 +10031,19 @@ function renderZiwei(p, natal, targetId) {
       }
       .zw-dashboard { flex-direction: column; }
       .zw-grid-wrap {
-        padding: 6px;
+        padding: 8px;
         border-radius: 12px;
         overflow-x: auto;
+        overflow-y: visible;
       }
       /* 12궁 4×4 그리드 — aspect-ratio 기반 정방형, 모든 모바일 해상도 대응 */
       .zw-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(124px, 1fr));
         grid-template-rows: repeat(4, minmax(74px, auto));
         gap: 3px;
+        min-width: 540px;
+        width: 540px;
       }
       .zw-cell {
         min-height: 74px;
@@ -10059,18 +10076,18 @@ function renderZiwei(p, natal, targetId) {
         flex-direction: column;
         justify-content: center;
       }
-      .zw-center-title { font-size: clamp(0.62rem, 2.4vw, 0.8rem); margin-bottom: 4px; }
-      .zw-center-desc { font-size: clamp(0.5rem, 1.6vw, 0.62rem); line-height: 1.4; display: block; }
+      .zw-center-title { font-size: 0.8rem; margin-bottom: 4px; }
+      .zw-center-desc { font-size: 0.62rem; line-height: 1.4; display: block; }
       /* 가변 폰트(clamp): 좁은 화면에서도 텍스트 넘침 방지 */
-      .zw-palace-name { font-size: clamp(0.5rem, 1.8vw, 0.65rem); margin-bottom: 3px; padding: 0 30px 2px 0; }
+      .zw-palace-name { font-size: 0.66rem; margin-bottom: 3px; padding: 0 30px 2px 0; }
       .zw-stars-wrap, .star-list { padding-right: 30px; }
-      .zw-star-main { font-size: clamp(0.58rem, 2.2vw, 0.76rem); margin-bottom: 1px; padding: 1px 3px; }
-      .zw-star-main-borrowed { font-size: clamp(0.46rem, 1.6vw, 0.58rem); }
-      .zw-star-aux, .zw-star-bad { font-size: clamp(0.48rem, 1.7vw, 0.62rem); }
-      .zw-branch-name { font-size: clamp(0.52rem, 1.7vw, 0.68rem); bottom: 2px; right: 4px; }
-      .zw-palace-gan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); bottom: 2px; right: 18px; }
-      .zw-dahan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); top: 3px; right: 3px; padding: 1px 3px; line-height: 1.15; }
-      .zw-empty { font-size: clamp(0.46rem, 1.5vw, 0.6rem); }
+      .zw-star-main { font-size: 0.74rem; margin-bottom: 1px; padding: 1px 3px; }
+      .zw-star-main-borrowed { font-size: 0.6rem; }
+      .zw-star-aux, .zw-star-bad { font-size: 0.62rem; line-height: 1.35; }
+      .zw-branch-name { font-size: 0.66rem; bottom: 2px; right: 4px; }
+      .zw-palace-gan { font-size: 0.58rem; bottom: 2px; right: 18px; }
+      .zw-dahan { font-size: 0.58rem; top: 3px; right: 3px; padding: 1px 3px; line-height: 1.15; }
+      .zw-empty { font-size: 0.58rem; }
       .zw-radar-col {
         min-width: 0;
         max-width: none;
@@ -10196,6 +10213,10 @@ function renderZiwei(p, natal, targetId) {
     }
 
     @media (max-width: 430px) {
+      .zw-grid {
+        min-width: 500px;
+        width: 500px;
+      }
       .report-container,
       #zwComprehensiveReport,
       .ziwei-report-container {
