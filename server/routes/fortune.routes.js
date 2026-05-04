@@ -8,6 +8,7 @@ const router = express.Router();
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
+const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
 
 const PIG_COIN_PACKAGES = {
   sample: {
@@ -36,6 +37,49 @@ const PIG_COIN_PACKAGES = {
     bonus: 500,
   },
 };
+
+const PROFILE_SUB_PLANS = {
+  standard: { name: "스탠다드 꿀", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
+  premium: { name: "프리미엄 꿀", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
+  vvip: { name: "VVIP 꿀단지", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
+};
+
+function normalizeSubscriptionTier(value) {
+  const tier = String(value || "").trim().toLowerCase();
+  return VALID_SUB_TIERS.has(tier) ? tier : null;
+}
+
+function getPlanPolicy(tier) {
+  const plan = PROFILE_SUB_PLANS[tier] || null;
+  if (!plan) {
+    return {
+      tier: "free",
+      freeLimit: 0,
+      profileLimit: 1,
+      recommendedCoins: 0,
+    };
+  }
+
+  return {
+    tier,
+    freeLimit: Number(plan.lowWarnAt || 0),
+    profileLimit: Number(plan.profileLimit || 1),
+    recommendedCoins: Number(plan.coins || 0),
+  };
+}
+
+function resolveEffectiveActiveTier(user) {
+  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  if (!tier) return null;
+
+  const expAtRaw = user?.profileSubscription?.expiresAt;
+  if (!expAtRaw) return null;
+
+  const expAt = new Date(expAtRaw);
+  if (!Number.isFinite(expAt.getTime())) return null;
+
+  return expAt.getTime() > Date.now() ? tier : null;
+}
 
 router.use(requireAuth);
 
@@ -161,6 +205,9 @@ router.post("/pig-coin/charge-simulate", async (req, res, next) => {
 
 router.post("/pig-coin/consume", async (req, res, next) => {
   try {
+    const adminTestTier = req.auth?.role === "admin"
+      ? normalizeSubscriptionTier(req.headers["x-admin-subscription-tier"])
+      : null;
     const requestedCost = Number(req.body?.cost);
     const cost = Number.isFinite(requestedCost) && requestedCost > 0
       ? Math.floor(requestedCost)
@@ -176,6 +223,65 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     const featureKey = String(req.body?.featureKey || "pig-coin-unlock")
       .trim()
       .slice(0, 60);
+    const requestId = String(req.body?.requestId || "")
+      .trim()
+      .slice(0, 120);
+    const forceDeduct = req.body?.forceDeduct === true || String(req.body?.forceDeduct || "").toLowerCase() === "true";
+
+    if (req.auth?.role === "admin") {
+      const simulatedPolicy = getPlanPolicy(adminTestTier);
+      const user = await User.findById(req.auth.userId)
+        .select("points")
+        .lean();
+
+      return res.status(200).json({
+        message: "관리자 우회가 적용되어 코인이 차감되지 않았습니다.",
+        requiredCoins: cost,
+        chargedCoins: 0,
+        simulatedChargeCoins: 0,
+        adminBypass: true,
+        adminMode: true,
+        simulated: true,
+        adminTestTier: adminTestTier || null,
+        freeLimit: simulatedPolicy.freeLimit,
+        profileLimit: simulatedPolicy.profileLimit,
+        recommendedCoins: simulatedPolicy.recommendedCoins,
+        freeBySubscription: Boolean(adminTestTier && !forceDeduct && cost <= simulatedPolicy.freeLimit),
+        user: {
+          id: String(req.auth.userId),
+          points: Number(user?.points || 0),
+        },
+      });
+    }
+
+    const user = await User.findById(req.auth.userId)
+      .select("points profileSubscription")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    const effectiveTier = resolveEffectiveActiveTier(user);
+    const policy = getPlanPolicy(effectiveTier);
+    const isIncludedBySubscription = Boolean(!forceDeduct && effectiveTier && cost <= policy.freeLimit);
+
+    if (isIncludedBySubscription) {
+      return res.status(200).json({
+        message: "활성 구독 혜택에 포함되어 코인이 차감되지 않았습니다.",
+        requiredCoins: cost,
+        chargedCoins: 0,
+        freeBySubscription: true,
+        subscriptionTier: effectiveTier,
+        freeLimit: policy.freeLimit,
+        profileLimit: policy.profileLimit,
+        recommendedCoins: policy.recommendedCoins,
+        user: {
+          id: String(req.auth.userId),
+          points: Number(user.points || 0),
+        },
+      });
+    }
 
     const updatedUser = await User.findOneAndUpdate(
       {
@@ -207,12 +313,20 @@ router.post("/pig-coin/consume", async (req, res, next) => {
       featureKey,
       metadata: {
         source: "fortune.pig-coin.consume",
+        ...(requestId ? { requestId } : {}),
+        subscriptionTierAtConsume: effectiveTier || "free",
       },
     });
 
     return res.status(200).json({
       message: `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다.`,
       requiredCoins: cost,
+      chargedCoins: cost,
+      freeBySubscription: false,
+      subscriptionTier: effectiveTier || "free",
+      freeLimit: policy.freeLimit,
+      profileLimit: policy.profileLimit,
+      recommendedCoins: policy.recommendedCoins,
       transactionId: String(history?._id || ""),
       user: {
         id: String(req.auth.userId),
@@ -352,18 +466,6 @@ router.post("/pig-coin/refund", async (req, res, next) => {
   }
 });
 
-/* ─────────────────────────────────────────────────────────────────────
-   프로필 구독 플랜
-   coins:        구독 시 차감 코인 수 (코인 잔액이 충분하면 만료 시 자동 갱신)
-   profileLimit: 최대 프로필 수 (0 = 무제한)
-   lowWarnAt:    이 코인 이하이면 잔액 부족 경고
-───────────────────────────────────────────────────────────────── */
-const PROFILE_SUB_PLANS = {
-  standard: { name: "스탠다드 꿀",   coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
-  premium:  { name: "프리미엄 꿀",   coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
-  vvip:     { name: "VVIP 꿀단지",   coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
-};
-
 /* GET /api/fortune/pig-coin/profile-subscription/status */
 router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
   try {
@@ -424,6 +526,32 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
     const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
     const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
 
+    const adminTestTier = req.auth?.role === "admin"
+      ? normalizeSubscriptionTier(req.headers["x-admin-subscription-tier"])
+      : null;
+
+    if (adminTestTier) {
+      const simulatedPolicy = getPlanPolicy(adminTestTier);
+      return res.status(200).json({
+        tier:              adminTestTier,
+        isActive:          true,
+        expiresAt:         effectiveExpAt ? effectiveExpAt.toISOString() : null,
+        profileLimit:      simulatedPolicy.profileLimit,
+        points,
+        lowBalanceWarning: points <= simulatedPolicy.freeLimit,
+        autoRenewed:       false,
+        hasStartedPaidService: !!user.has_started_paid_service,
+        firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+        adminMode:         true,
+        simulated:         true,
+        adminTestTier,
+        freeLimit:         simulatedPolicy.freeLimit,
+        recommendedCoins:  simulatedPolicy.recommendedCoins,
+      });
+    }
+
+    const policy = getPlanPolicy(isActive ? effectiveTier : null);
+
     return res.status(200).json({
       tier:              effectiveTier,
       isActive:          !!isActive,
@@ -434,6 +562,11 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       autoRenewed:       !!autoRenewed,
       hasStartedPaidService: !!user.has_started_paid_service,
       firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+      adminMode:         req.auth?.role === "admin",
+      simulated:         false,
+      adminTestTier:     null,
+      freeLimit:         policy.freeLimit,
+      recommendedCoins:  policy.recommendedCoins,
     });
   } catch (error) {
     return next(error);

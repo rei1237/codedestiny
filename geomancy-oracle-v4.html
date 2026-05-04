@@ -363,47 +363,6 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Cormorant Garamond'
 </style>
 </head>
 <body>
-<script>
-(function(){
-  'use strict';
-  var COST = 50, KEY = 'openGeomancyOracle';
-  var flag = 'cd_pa_' + KEY;
-  if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); return; }
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
-  if (!token) {
-    if (window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')) {
-      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
-    } else { window.history.back(); }
-    return;
-  }
-  var pts = 0;
-  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch(e) {}
-  if (pts < COST) {
-    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
-    window.history.back();
-    return;
-  }
-  fetch('/api/fortune/pig-coin/consume', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify({ cost: COST, reason: KEY + ' 이용' })
-  }).then(function(r) {
-    return r.json().then(function(d) {
-      if (r.status === 402 || !r.ok) {
-        window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
-        window.history.back();
-        return;
-      }
-      if (d && d.user && typeof d.user.points === 'number') {
-        try { var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}'); u.points = d.user.points; localStorage.setItem('fortune_auth_user', JSON.stringify(u)); } catch(e) {}
-        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
-      }
-    });
-  }).catch(function() {});
-})();
-</script>
-
 <canvas id="bg-canvas"></canvas>
 <div id="bg-noise"></div>
 <div id="flash"></div>
@@ -753,12 +712,87 @@ function setStatus(msg,glo=false){
 ═══════════════════════════════════════════ */
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
+const GEOMANCY_COIN_COST = 50;
+const GEOMANCY_FEATURE_KEY = 'openGeomancyOracle';
+let geomancyPayingInFlight = false;
+
+function consumeGeomancyPerUseCoin() {
+  return new Promise((resolve) => {
+    if (GEOMANCY_COIN_COST <= 0) { resolve(true); return; }
+    if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
+      resolve(true);
+      return;
+    }
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      try {
+        window._cdCoinGatePerUse(
+          GEOMANCY_COIN_COST,
+          '지오맨시 흙점 리딩',
+          function() { resolve(true); },
+          function() { resolve(false); }
+        );
+        return;
+      } catch (_gateErr) {}
+    }
+
+    var token = '';
+    try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
+    if (!token) {
+      if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + (window.location.search || ''));
+      }
+      resolve(false);
+      return;
+    }
+
+    fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify({
+        cost: GEOMANCY_COIN_COST,
+        reason: '지오맨시 흙점 리딩',
+        featureKey: GEOMANCY_FEATURE_KEY,
+      }),
+    }).then(function(resp) {
+      return resp.json().catch(function() { return {}; }).then(function(payload) {
+        if (resp.ok) {
+          if (payload && payload.user && typeof payload.user.points === 'number') {
+            try {
+              var user = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+              user.points = payload.user.points;
+              localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+            } catch (_e2) {}
+            if (typeof window.__cdSetGoldenBalance === 'function') {
+              window.__cdSetGoldenBalance(payload.user.points);
+            }
+          }
+          resolve(true);
+          return;
+        }
+        if (resp.status === 402) {
+          window.alert('코인이 부족합니다. 충전 후 다시 시도해 주세요.');
+        } else {
+          window.alert((payload && payload.message) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+        resolve(false);
+      });
+    }).catch(function() {
+      window.alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      resolve(false);
+    });
+  });
+}
+
 function onCircleClick(){
   document.getElementById('q-screen').classList.add('show');
   document.getElementById('q-input').focus();
 }
 
-function submitQ(){
+async function submitQ(){
+  if (geomancyPayingInFlight) return;
   const v=document.getElementById('q-input').value.trim();
   if(!v){
     const inp=document.getElementById('q-input');
@@ -767,6 +801,22 @@ function submitQ(){
     setTimeout(()=>inp.style.borderColor='',1200);
     return;
   }
+  geomancyPayingInFlight = true;
+  const qBtn = document.getElementById('q-btn');
+  const prevText = qBtn ? qBtn.innerHTML : '';
+  if (qBtn) {
+    qBtn.setAttribute('disabled', 'disabled');
+    qBtn.style.opacity = '0.72';
+    qBtn.innerHTML = '<span>✦</span><span>결제를 확인하고 있습니다…</span><span>✦</span>';
+  }
+  const paid = await consumeGeomancyPerUseCoin();
+  geomancyPayingInFlight = false;
+  if (qBtn) {
+    qBtn.removeAttribute('disabled');
+    qBtn.style.opacity = '';
+    qBtn.innerHTML = prevText;
+  }
+  if (!paid) return;
   question=v;
   document.getElementById('q-screen').classList.remove('show');
   doActivation();

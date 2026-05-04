@@ -23,6 +23,8 @@ const PROFILE_SUB_PLANS = {
   vvip: { name: "VVIP", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
 };
 
+const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
+
 const SHARE_REWARD_AMOUNT = 10;
 const SHARE_REWARD_DAILY_LIMIT = 3;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -139,6 +141,43 @@ function userPayload(auth, points) {
   };
 }
 
+function normalizeSubscriptionTier(value) {
+  const tier = String(value || "").trim().toLowerCase();
+  return VALID_SUB_TIERS.has(tier) ? tier : null;
+}
+
+function getPlanPolicy(tier) {
+  const plan = PROFILE_SUB_PLANS[tier] || null;
+  if (!plan) {
+    return {
+      tier: "free",
+      freeLimit: 0,
+      profileLimit: 1,
+      recommendedCoins: 0,
+    };
+  }
+
+  return {
+    tier,
+    freeLimit: Number(plan.lowWarnAt || 0),
+    profileLimit: Number(plan.profileLimit || 1),
+    recommendedCoins: Number(plan.coins || 0),
+  };
+}
+
+function resolveEffectiveActiveTier(user) {
+  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  if (!tier) return null;
+
+  const expAtRaw = user?.profileSubscription?.expiresAt;
+  if (!expAtRaw) return null;
+
+  const expAt = new Date(expAtRaw);
+  if (!Number.isFinite(expAt.getTime())) return null;
+
+  return expAt.getTime() > Date.now() ? tier : null;
+}
+
 async function handleCheck() {
   return json({
     message: "Fortune reading is currently free.",
@@ -238,10 +277,14 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   const reason = String(body?.reason || "Paid feature unlock").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const requestId = String(body?.requestId || "").trim().slice(0, 120);
+  const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").toLowerCase() === "true";
   const authEmail = String(auth?.email || "").trim().toLowerCase();
   const forcePaidMode = Boolean(authEmail && FORCE_PAID_TEST_ACCOUNT_EMAILS.has(authEmail));
 
   if (adminMode && !forcePaidMode) {
+    const adminTestTier = normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier"));
+    const policy = getPlanPolicy(adminTestTier);
     let currentPoints = null;
     if (auth?.userId) {
       const user = await User.findById(auth.userId).select("points").lean();
@@ -251,10 +294,45 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     return json({
       message: "Admin bypass enabled. No coins were deducted.",
       requiredCoins: cost,
+      chargedCoins: 0,
+      simulatedChargeCoins: 0,
       adminBypass: true,
+      adminMode: true,
+      simulated: true,
+      adminTestTier: adminTestTier || null,
+      freeLimit: policy.freeLimit,
+      profileLimit: policy.profileLimit,
+      recommendedCoins: policy.recommendedCoins,
+      freeBySubscription: Boolean(adminTestTier && !forceDeduct && cost <= policy.freeLimit),
       user: auth?.userId
         ? userPayload(auth, currentPoints == null ? 0 : currentPoints)
         : { id: "admin", points: null },
+    });
+  }
+
+  const user = await User.findById(auth.userId)
+    .select("points profileSubscription")
+    .lean();
+
+  if (!user) {
+    return json({ message: "User not found." }, { status: 404 });
+  }
+
+  const effectiveTier = resolveEffectiveActiveTier(user);
+  const policy = getPlanPolicy(effectiveTier);
+  const isIncludedBySubscription = Boolean(!forceDeduct && effectiveTier && cost <= policy.freeLimit);
+
+  if (isIncludedBySubscription) {
+    return json({
+      message: "Included in your active subscription. No coins were deducted.",
+      requiredCoins: cost,
+      chargedCoins: 0,
+      freeBySubscription: true,
+      subscriptionTier: effectiveTier,
+      freeLimit: policy.freeLimit,
+      profileLimit: policy.profileLimit,
+      recommendedCoins: policy.recommendedCoins,
+      user: userPayload(auth, Number(user.points || 0)),
     });
   }
 
@@ -278,12 +356,22 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     balanceAfter: Number(updatedUser.points || 0),
     reason,
     featureKey,
-    metadata: { source: "fortune.pig-coin.consume" },
+    metadata: {
+      source: "fortune.pig-coin.consume",
+      ...(requestId ? { requestId } : {}),
+      subscriptionTierAtConsume: effectiveTier || "free",
+    },
   });
 
   return json({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
     requiredCoins: cost,
+    chargedCoins: cost,
+    freeBySubscription: false,
+    subscriptionTier: effectiveTier || "free",
+    freeLimit: policy.freeLimit,
+    profileLimit: policy.profileLimit,
+    recommendedCoins: policy.recommendedCoins,
     transactionId: String(history?._id || ""),
     user: userPayload(auth, updatedUser.points),
   });
@@ -402,7 +490,7 @@ async function handlePigCoinRefund(request, auth) {
   });
 }
 
-async function handleSubscriptionStatus(auth) {
+async function handleSubscriptionStatus(request, env, auth) {
   const user = await User.findById(auth.userId)
     .select("points profileSubscription has_started_paid_service first_service_access_date")
     .lean();
@@ -458,6 +546,31 @@ async function handleSubscriptionStatus(auth) {
   const isActive = effectiveTier !== "free";
   const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
   const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
+  const policy = getPlanPolicy(isActive ? effectiveTier : null);
+
+  const adminToken = extractAdminTokenFromRequest(request);
+  const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
+  const adminTestTier = adminMode ? normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier")) : null;
+
+  if (adminMode && adminTestTier) {
+    const simulatedPolicy = getPlanPolicy(adminTestTier);
+    return json({
+      tier: adminTestTier,
+      isActive: true,
+      expiresAt: effectiveExpAt ? effectiveExpAt.toISOString() : null,
+      profileLimit: simulatedPolicy.profileLimit,
+      points,
+      lowBalanceWarning: Boolean(points <= simulatedPolicy.freeLimit),
+      autoRenewed: false,
+      hasStartedPaidService: Boolean(user.has_started_paid_service),
+      firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+      adminMode: true,
+      simulated: true,
+      adminTestTier,
+      freeLimit: simulatedPolicy.freeLimit,
+      recommendedCoins: simulatedPolicy.recommendedCoins,
+    });
+  }
 
   return json({
     tier: effectiveTier,
@@ -469,6 +582,11 @@ async function handleSubscriptionStatus(auth) {
     autoRenewed: Boolean(autoRenewed),
     hasStartedPaidService: Boolean(user.has_started_paid_service),
     firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+    adminMode,
+    simulated: false,
+    adminTestTier: null,
+    freeLimit: policy.freeLimit,
+    recommendedCoins: policy.recommendedCoins,
   });
 }
 
@@ -688,7 +806,7 @@ export async function handleFortuneRoutes(request, env) {
     if (method === "POST" && path === "/consume") return await handleConsume(auth);
     if (method === "GET" && path === "/pig-coin/balance") return await handleBalance(auth);
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
-    if (method === "GET" && path === "/pig-coin/profile-subscription/status") return await handleSubscriptionStatus(auth);
+    if (method === "GET" && path === "/pig-coin/profile-subscription/status") return await handleSubscriptionStatus(request, env, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/subscribe") return await handleSubscribe(request, auth);
