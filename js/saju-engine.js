@@ -8527,6 +8527,8 @@ function renderZiwei(p, natal, targetId) {
       width: 100%;
       max-width: none;
       font-family: 'Pretendard', sans-serif;
+      position: relative;
+      isolation: isolate;
     }
     #ziweiModalSection {
       width: 100%;
@@ -8538,17 +8540,77 @@ function renderZiwei(p, natal, targetId) {
     #ziweiModalSection .zw-dashboard {
       margin-top: 8px;
     }
+    #ziweiModalSection .zw-dashboard::before,
+    #ziweiModalSection .zw-dashboard::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: 16px;
+      z-index: -1;
+    }
+    #ziweiModalSection .zw-dashboard::before {
+      background:
+        radial-gradient(circle at 12% 14%, rgba(255, 216, 140, 0.14), transparent 34%),
+        radial-gradient(circle at 88% 18%, rgba(125, 211, 252, 0.12), transparent 36%),
+        radial-gradient(circle at 50% 90%, rgba(196, 181, 253, 0.1), transparent 42%);
+      filter: blur(6px);
+      opacity: 0.95;
+      animation: zwNebulaDrift 14s ease-in-out infinite;
+    }
+    #ziweiModalSection .zw-dashboard::after {
+      background-image:
+        radial-gradient(circle at 10% 26%, rgba(255,255,255,0.5) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 34% 70%, rgba(255,255,255,0.38) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 62% 18%, rgba(255,255,255,0.42) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 84% 54%, rgba(255,255,255,0.34) 0 1px, transparent 1.6px);
+      opacity: 0.35;
+      animation: zwStarsBlink 7s ease-in-out infinite;
+    }
+    @keyframes zwNebulaDrift {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(0, -6px, 0) scale(1.02); }
+    }
+    @keyframes zwStarsBlink {
+      0%, 100% { opacity: 0.22; }
+      50% { opacity: 0.42; }
+    }
     
     .zw-grid-wrap {
       flex: 1.4;
-      background: linear-gradient(135deg, #0a0f25 0%, #1a0b2e 100%);
+      background:
+        radial-gradient(circle at 14% 16%, rgba(250, 204, 21, 0.14), transparent 34%),
+        radial-gradient(circle at 86% 84%, rgba(59, 130, 246, 0.16), transparent 38%),
+        linear-gradient(140deg, #080f24 0%, #140a2a 52%, #0b1630 100%);
       padding: 15px;
       border-radius: 16px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow:
+        inset 0 0 26px rgba(0,0,0,0.78),
+        inset 0 0 0 1px rgba(167,139,250,0.2),
+        0 12px 28px rgba(2,6,23,0.55);
       position: relative;
       min-width: 0; /* flex child 오버플로우 방지 */
       overflow: hidden;
       -webkit-overflow-scrolling: touch;
+      border: 1px solid rgba(167, 139, 250, 0.24);
+    }
+    .zw-grid-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 24% 30%, rgba(255,255,255,0.2) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 72% 22%, rgba(255,255,255,0.18) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 48% 78%, rgba(255,255,255,0.16) 0 1px, transparent 1.8px);
+      opacity: 0.3;
+    }
+    .zw-grid-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(14, 24, 52, 0) 0%, rgba(14, 24, 52, 0.18) 100%);
     }
     .zw-grid {
       display: grid;
@@ -8559,10 +8621,10 @@ function renderZiwei(p, natal, targetId) {
     }
     
     .zw-cell {
-      background: rgba(255, 255, 255, 0.05);
+      background: linear-gradient(165deg, rgba(30,41,79,0.66), rgba(18,24,52,0.88));
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(212, 175, 55, 0.2);
+      border: 1px solid rgba(186, 165, 255, 0.26);
       border-radius: 10px;
       padding: 6px;
       display: flex;
@@ -8580,6 +8642,17 @@ function renderZiwei(p, natal, targetId) {
       overflow-wrap: anywhere;
       white-space: normal;
     }
+    .zw-cell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 84% 18%, rgba(250, 204, 21, 0.2), transparent 40%),
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      opacity: 0.65;
+    }
     @keyframes zwFadeIn {
       0% { opacity: 0; transform: translateY(15px) scale(0.95); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -8592,10 +8665,10 @@ function renderZiwei(p, natal, targetId) {
     /* iOS Safari: 자식 요소로 이벤트가 흡수되는 버그 방지 → 부모 .zw-cell onclick 항상 발화 */
     .zw-cell > * { pointer-events: none; }
     .zw-cell.active {
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+      box-shadow: 0 0 22px rgba(167, 139, 250, 0.45), 0 0 14px rgba(250, 204, 21, 0.3);
       z-index: 10;
-      background: rgba(212, 175, 55, 0.15);
-      border-color: rgba(212, 175, 55, 0.9);
+      background: linear-gradient(162deg, rgba(77, 55, 141, 0.5), rgba(37, 56, 106, 0.68));
+      border-color: rgba(250, 204, 21, 0.72);
     }
     .zw-cell:focus-visible {
       outline: 2px solid rgba(250, 204, 21, 0.9);
@@ -8604,10 +8677,10 @@ function renderZiwei(p, natal, targetId) {
     @media (hover: hover) {
       .zw-cell:hover {
         transform: translateY(-2px);
-        box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        box-shadow: 0 0 20px rgba(167, 139, 250, 0.4), 0 0 12px rgba(250, 204, 21, 0.28);
         z-index: 10;
-        background: rgba(212, 175, 55, 0.15);
-        border-color: rgba(212, 175, 55, 0.9);
+        background: linear-gradient(162deg, rgba(70, 50, 132, 0.45), rgba(35, 52, 97, 0.66));
+        border-color: rgba(250, 204, 21, 0.68);
       }
     }
     
@@ -8619,15 +8692,19 @@ function renderZiwei(p, natal, targetId) {
       justify-content: center;
       align-items: center;
       text-align: center;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 52% 26%, rgba(252, 211, 77, 0.26), transparent 58%),
+        radial-gradient(circle at 28% 78%, rgba(147, 197, 253, 0.2), transparent 54%),
+        linear-gradient(160deg, rgba(36, 28, 78, 0.76), rgba(15, 27, 56, 0.84));
       /* 지속 깜박임 대신 고정 광원 효과로 안정화 */
       box-shadow:
-        inset 0 0 30px rgba(212,175,55,0.26),
-        0 0 22px rgba(212,175,55,0.2);
+        inset 0 0 34px rgba(250,204,21,0.24),
+        0 0 24px rgba(125,211,252,0.18);
       color: #fff;
       padding: 10px;
       word-break: keep-all; /* 번역 대응 */
+      border: 1px solid rgba(250, 204, 21, 0.32);
     }
 
     
@@ -8709,21 +8786,24 @@ function renderZiwei(p, natal, targetId) {
     .zw-star-bad { color: #ff8b8b; text-shadow: 0 1px 1px rgba(0,0,0,0.55); }
     .zw-empty { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 4px; }
     .zw-dahan { font-size: 0.7rem; color: #10B981; position: absolute; top: 8px; right: 6px; font-weight: 700; background: rgba(16, 185, 129, 0.15); padding: 1px 4px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3); line-height: 1.2; z-index: 3; }
-    .zw-center-title { font-size: 1.3rem; font-weight: 900; color: #FFD700; letter-spacing: 1px; margin-bottom: 6px; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
-    .zw-center-desc { font-size: 0.85rem; color: #EEE; line-height: 1.6; }
+    .zw-center-title { font-size: 1.3rem; font-weight: 900; color: #fde68a; letter-spacing: 1px; margin-bottom: 6px; text-shadow: 0 0 14px rgba(250,204,21,0.85); }
+    .zw-center-desc { font-size: 0.85rem; color: #e0e7ff; line-height: 1.6; }
     .zw-palace-gan { font-size: 0.65rem; color: #BBB; position: absolute; bottom: 4px; right: 26px; }
 
     /* Right: Dynamic Interpretation Panel */
     .zw-detail-panel {
       flex: 1;
-      background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(125, 211, 252, 0.12), transparent 34%),
+        radial-gradient(circle at 86% 82%, rgba(196, 181, 253, 0.15), transparent 42%),
+        linear-gradient(145deg, #0c1328 0%, #1a1c47 58%, #122038 100%);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(138, 43, 226, 0.3);
+      border: 1px solid rgba(167, 139, 250, 0.38);
       border-radius: 16px;
       padding: clamp(16px, 2.2vw, 24px);
       color: #E2E8F0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      box-shadow: 0 12px 32px rgba(1, 7, 22, 0.48), inset 0 0 0 1px rgba(125, 211, 252, 0.12);
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -8733,8 +8813,24 @@ function renderZiwei(p, natal, targetId) {
       min-width: 0;
       overflow-x: clip;
     }
+    .zw-detail-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background-image:
+        radial-gradient(circle at 22% 16%, rgba(255,255,255,0.28) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 76% 28%, rgba(255,255,255,0.18) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 64% 84%, rgba(255,255,255,0.14) 0 1px, transparent 1.7px);
+      opacity: 0.28;
+    }
     #ziweiModalOverlay {
-      background: radial-gradient(circle at top, #1c1c2e, #0f0f1a);
+      background:
+        radial-gradient(circle at 14% 12%, rgba(245, 158, 11, 0.14), transparent 30%),
+        radial-gradient(circle at 86% 14%, rgba(96, 165, 250, 0.16), transparent 34%),
+        radial-gradient(circle at 50% 88%, rgba(167, 139, 250, 0.16), transparent 40%),
+        linear-gradient(180deg, #15142a 0%, #0a1224 58%, #0b1020 100%);
     }
     .report-container,
     #zwComprehensiveReport,
@@ -8768,9 +8864,9 @@ function renderZiwei(p, natal, targetId) {
       box-sizing: border-box;
     }
     
-    .zw-dp-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 4px; }
-    .zw-dp-title { font-size: 1.4rem; font-weight: 900; color: #FFD700; display: flex; align-items: center; gap: 8px; }
-    .zw-dp-subtitle { font-size: 0.85rem; color: #94A3B8; margin-top: 4px; }
+    .zw-dp-header { border-bottom: 1px solid rgba(196,181,253,0.26); padding-bottom: 12px; margin-bottom: 4px; }
+    .zw-dp-title { font-size: 1.4rem; font-weight: 900; color: #fde68a; display: flex; align-items: center; gap: 8px; text-shadow: 0 0 12px rgba(250,204,21,0.35); }
+    .zw-dp-subtitle { font-size: 0.85rem; color: #bfdbfe; margin-top: 4px; }
     
     .zw-chart-container { width: 100%; height: 210px; position: relative; margin-bottom: 8px; background: rgba(0,0,0,0.25); border-radius: 12px; padding: 10px; box-sizing:border-box; }
     
@@ -8870,9 +8966,12 @@ function renderZiwei(p, natal, targetId) {
       border-radius: 14px;
       margin-bottom: 18px;
       line-height: 1.6;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,215,130,0.25);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(125,211,252,0.14), transparent 34%),
+        radial-gradient(circle at 86% 82%, rgba(196,181,253,0.14), transparent 44%),
+        linear-gradient(150deg, rgba(17,24,39,0.7), rgba(30,27,75,0.74));
+      border: 1px solid rgba(196,181,253,0.36);
+      box-shadow: 0 8px 20px rgba(2,6,23,0.4);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       transition: transform 0.2s ease;

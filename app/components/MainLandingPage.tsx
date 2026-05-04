@@ -34,10 +34,8 @@ const oracleItems: ServiceCardModel[] = [
 ];
 
 const cosmicItems: ServiceCardModel[] = [
-  { title: "자미두수 기본 명반", description: "12궁 기반 운명 지도", href: "/static/index.html?action=openZiweiModal", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "숙요점 기본 리딩", description: "27숙 기반 관계·성향 분석", href: "/static/index.html?action=openSukuyoModal", emoji: "💫", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "점성술 기본 차트", description: "태양·달·상승궁 분석", href: "/static/index.html?action=openAstroModal", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "자미두수 심화 차트", description: "대운·궁합 확장 리딩", href: "/ziwei/chart", emoji: "🪭", badges: [{ text: "심화", tone: "soft" }, { text: "궁합 50", tone: "coin" }] },
+  { title: "점성술 코즈믹", description: "태양·달·상승궁 분석", href: "/astrology/cosmic", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 50", tone: "coin" }] },
   { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", emoji: "🪐", badges: [{ text: "기본 무료", tone: "free" }] },
   { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 100", tone: "coin" }, { text: "NEW", tone: "new" }] },
   { title: "명리학 인사이트", description: "해석 가이드 콘텐츠", href: "/insights", emoji: "📚", badges: [{ text: "가이드", tone: "soft" }] },
@@ -115,7 +113,6 @@ export default function MainLandingPage() {
             </p>
 
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-indigo-50 md:text-xs">
-              <span className="rounded-full border border-amber-200/55 bg-amber-100/12 px-3 py-1">기본 3종 즉시 시작</span>
               <span className="rounded-full border border-indigo-200/45 bg-indigo-200/10 px-3 py-1">모바일 최적화 결과 화면</span>
               <span className="rounded-full border border-violet-200/45 bg-violet-200/10 px-3 py-1">코즈믹 컬렉션 큐레이션</span>
             </div>
