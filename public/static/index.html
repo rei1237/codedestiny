@@ -6242,6 +6242,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     return changed;
   }
+
+  function isTileKeyUnlocked(rawKey) {
+    var keys = resolveTileLockAliasKeys(rawKey);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (unlockedFeatureMap[keys[i]] === true) return true;
+    }
+    return false;
+  }
   var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
