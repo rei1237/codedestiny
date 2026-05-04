@@ -5,6 +5,9 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
+const FORCE_PAID_TEST_ACCOUNT_EMAILS = new Set([
+  "test1234@example.com",
+]);
 
 const PIG_COIN_PACKAGES = {
   sample: { name: "Sample Pack", coins: 30, bonus: 0 },
@@ -235,8 +238,10 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   const reason = String(body?.reason || "Paid feature unlock").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const authEmail = String(auth?.email || "").trim().toLowerCase();
+  const forcePaidMode = Boolean(authEmail && FORCE_PAID_TEST_ACCOUNT_EMAILS.has(authEmail));
 
-  if (adminMode) {
+  if (adminMode && !forcePaidMode) {
     let currentPoints = null;
     if (auth?.userId) {
       const user = await User.findById(auth.userId).select("points").lean();
