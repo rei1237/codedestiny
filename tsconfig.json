@@ -51,6 +51,7 @@
     "**/_fix_*.mjs",
     "**/_patch_*.mjs",
     "**/_verify_*.mjs",
-    "**/_sync_*.mjs"
+    "**/_sync_*.mjs",
+    "veda"
   ]
 }

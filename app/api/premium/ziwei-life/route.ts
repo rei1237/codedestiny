@@ -92,6 +92,8 @@ const STAR_CHARACTER_MAP: Record<string, { title: string; subtitle: string; emoj
 const PALACE_NAMES_KR = ["명궁","형제궁","부처궁","자녀궁","재백궁","질액궁","천이궁","노복궁","관록궁","전택궁","복덕궁","부모궁"];
 
 interface StarResult {
+  sihuaSummary?: string;
+  fullChartContext?: string;
   mingongStars: string[];
   shingongStars: string[];
   bokdeokgongStars: string[];

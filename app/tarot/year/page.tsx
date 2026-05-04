@@ -22,7 +22,7 @@ export default function TarotYearLandingPage() {
         h1: "십이지신 천운(天運)",
         description: META.description,
         ogImage: META.image,
-        landingPoints: META.featureList,
+        landingPoints: [...META.featureList],
         seoText: "실행은 /static 서비스 화면에서만 진행됩니다.",
       }}
     />

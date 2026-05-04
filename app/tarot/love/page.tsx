@@ -22,7 +22,7 @@ export default function TarotLoveLandingPage() {
         h1: "💕 우리는 무슨 사이?",
         description: META.description,
         ogImage: META.image,
-        landingPoints: META.featureList,
+        landingPoints: [...META.featureList],
         seoText: "실행은 /static 서비스 화면에서만 진행됩니다.",
       }}
     />

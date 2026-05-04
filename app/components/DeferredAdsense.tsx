@@ -34,7 +34,7 @@ export default function DeferredAdsense() {
     const idleLoad =
       "requestIdleCallback" in window
         ? window.requestIdleCallback(() => load(), { timeout: 5000 })
-        : window.setTimeout(() => load(), 4500);
+        : (window as any).setTimeout(() => load(), 4500);
 
     window.addEventListener("pointerdown", load, true);
     window.addEventListener("touchstart", load, true);

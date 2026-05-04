@@ -166,7 +166,7 @@ function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
   const h = isLarge ? 122 : 90;
 
   return (
-    <motion.div ref={ref} style={{ width: w, height: h, rotateX: rotX, rotateY: rotY, perspective: 900 }}
+    <motion.div ref={ref}
       onMouseMove={e => {
         if (!ref.current) return;
         const r = ref.current.getBoundingClientRect();
@@ -175,12 +175,10 @@ function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
       }}
       onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
       className="rounded-xl overflow-hidden relative select-none"
-      style={{
-        background: `linear-gradient(155deg, ${c1}, ${c2})`,
+      style={{ width: w, height: h, rotateX: rotX, rotateY: rotY, perspective: 900, background: `linear-gradient(155deg, ${c1}, ${c2})`,
         boxShadow: isLarge
           ? `0 0 28px ${c1}aa, 0 0 55px ${c1}33, 0 4px 20px rgba(0,0,0,0.6)`
           : `0 0 16px ${c1}77, 0 0 32px ${c1}22, 0 4px 12px rgba(0,0,0,0.5)`,
-        width: w, height: h,
       }}>
       <div style={{ position: "absolute", inset: 3, border: "1px solid rgba(255,255,255,0.2)", borderRadius: 9 }} />
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column",

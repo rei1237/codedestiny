@@ -527,14 +527,6 @@ export default function HPremiumVedicSection({
     }
   }, [showIntro, resetVedicState]);
 
-  // 프로필에서 자동 로드된 경우 즉시 계산
-  useEffect(() => {
-    if (showIntro) return;
-    if (!autoComputeRef.current) return;
-    if (!birthYear || !birthMonth || !birthDay) return;
-    autoComputeRef.current = false;
-    handleCalcChart();
-  }, [showIntro, birthYear, birthMonth, birthDay, handleCalcChart]);
 
   const postVedicJson = useCallback(async (payload: unknown) => {
     let lastError: unknown = null;
@@ -583,6 +575,16 @@ export default function HPremiumVedicSection({
       stopProcessing();
     }
   }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,postVedicJson,startProcessing,stopProcessing]);
+
+  // 프로필에서 자동 로드된 경우 즉시 계산
+  useEffect(() => {
+    if (showIntro) return;
+    if (!autoComputeRef.current) return;
+    if (!birthYear || !birthMonth || !birthDay) return;
+    autoComputeRef.current = false;
+    handleCalcChart();
+  }, [showIntro, birthYear, birthMonth, birthDay, handleCalcChart]);
+
 
 
   const handleGenerateChapter = useCallback(async (chNum:number) => {
