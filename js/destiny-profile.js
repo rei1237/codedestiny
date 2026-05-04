@@ -275,13 +275,16 @@
     if (!_dpHasAuthToken()) return Object.create(null);
 
     var merged = Object.create(null);
+    var scopedKey = '';
+    var hasScopedData = false;
     try {
-      var scopedKey = _dpGetTileLockScopeKey();
+      scopedKey = _dpGetTileLockScopeKey();
       if (scopedKey) {
         var scopedRaw = localStorage.getItem(scopedKey);
         if (scopedRaw) {
           var scopedParsed = JSON.parse(scopedRaw);
           if (scopedParsed && typeof scopedParsed === 'object') {
+            hasScopedData = true;
             var scopedKeys = Object.keys(scopedParsed);
             for (var si = 0; si < scopedKeys.length; si += 1) {
               if (scopedParsed[scopedKeys[si]] === true) merged[scopedKeys[si]] = true;
@@ -290,6 +293,24 @@
         }
       }
     } catch (e) {}
+
+    // Legacy fallback: scoped 식별자가 없거나 scoped 데이터가 비어 있는 경우에만
+    // 이전 저장 키(cd_tile_locks)의 해금 상태를 읽어 잠금 재발을 방지한다.
+    // (scoped 데이터가 있으면 legacy를 병합하지 않아 계정 간 오염을 막는다)
+    try {
+      if (!scopedKey || !hasScopedData) {
+        var legacyRaw = localStorage.getItem('cd_tile_locks');
+        if (legacyRaw) {
+          var legacyParsed = JSON.parse(legacyRaw);
+          if (legacyParsed && typeof legacyParsed === 'object') {
+            var legacyKeys = Object.keys(legacyParsed);
+            for (var li = 0; li < legacyKeys.length; li += 1) {
+              if (legacyParsed[legacyKeys[li]] === true) merged[legacyKeys[li]] = true;
+            }
+          }
+        }
+      }
+    } catch (e2) {}
 
     var normalized = Object.create(null);
     var keys = Object.keys(merged);
@@ -504,11 +525,12 @@
       if (typeof onCancel === 'function') onCancel();
       return;
     }
+    var requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     window._cdCoinGatePerUseInFlight = true;
-    fetch('/api/coins/spend', {
+    fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, reason: reason })
+      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'coin-gate-per-use', forceDeduct: true, requestId: requestId })
     })
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
@@ -650,7 +672,8 @@
       var inFlight = false;
       if (inFlight) return;
       inFlight = true;
-      fetch('/api/coins/spend', {
+      var requestId = 'unlock-' + info.key + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+      fetch('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -659,7 +682,9 @@
         body: JSON.stringify({
           cost: info.cost,
           featureKey: info.key,
-          reason: info.name + ' 영구 해금'
+          reason: info.name + ' 영구 해금',
+          forceDeduct: true,
+          requestId: requestId
         })
       })
       .then(function (r) {

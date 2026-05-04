@@ -94,6 +94,87 @@ const SPREAD_LABELS = {
   ],
 };
 
+const RUNE_COIN_COST = 50;
+const RUNE_FEATURE_KEY = "openRuneOracle";
+
+function consumeRunePerUseCoin() {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") {
+      resolve(false);
+      return;
+    }
+    if (RUNE_COIN_COST <= 0) {
+      resolve(true);
+      return;
+    }
+    if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) {
+      resolve(true);
+      return;
+    }
+    if (typeof window._cdCoinGatePerUse === "function") {
+      try {
+        window._cdCoinGatePerUse(
+          RUNE_COIN_COST,
+          "스톤헨지 룬 리딩",
+          () => resolve(true),
+          () => resolve(false)
+        );
+        return;
+      } catch (_gateError) {}
+    }
+
+    let token = "";
+    try {
+      token = String(localStorage.getItem("fortune_auth_token") || "");
+    } catch (_e) {}
+
+    if (!token) {
+      if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+        window.location.href = "/login?next=%2Foracle%2Frune";
+      }
+      resolve(false);
+      return;
+    }
+
+    fetch("/api/fortune/pig-coin/consume", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        cost: RUNE_COIN_COST,
+        reason: "스톤헨지 룬 리딩",
+        featureKey: RUNE_FEATURE_KEY,
+      }),
+    })
+      .then((resp) => resp.json().catch(() => ({})))
+      .then((res) => {
+        if (res && res.ok) {
+          try {
+            if (typeof res.remainingPoints === "number") {
+              localStorage.setItem("fortune_user_points", String(res.remainingPoints));
+            }
+          } catch (_e2) {}
+          resolve(true);
+          return;
+        }
+
+        const code = String((res && res.code) || "").toUpperCase();
+        if (code === "INSUFFICIENT_POINTS") {
+          window.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
+        } else {
+          window.alert((res && res.error) || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        }
+        resolve(false);
+      })
+      .catch(() => {
+        window.alert("코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        resolve(false);
+      });
+  });
+}
+
 const RUNE_GUIDE = {
   fehu: {
     axis: "가치와 자원 순환",
@@ -505,6 +586,7 @@ export default function StonehengeRune() {
   const [spread, setSpread] = useState(null);
   const [selectedRune, setSelectedRune] = useState(null);
   const [visibleCards, setVisibleCards] = useState([]);
+  const [isPaying, setIsPaying] = useState(false);
 
   useEffect(() => {
     if (phase === "revealed" && drawnRunes.length > 0) {
@@ -525,8 +607,12 @@ export default function StonehengeRune() {
     reset();
   };
 
-  const handleDraw = () => {
-    if (!spread) return;
+  const handleDraw = async () => {
+    if (!spread || isDrawing || isPaying) return;
+    setIsPaying(true);
+    const paid = await consumeRunePerUseCoin();
+    setIsPaying(false);
+    if (!paid) return;
     setSelectedRune(null);
     drawRunes(spread);
   };
@@ -1664,9 +1750,15 @@ export default function StonehengeRune() {
           <button
             className="sr-draw-btn"
             onClick={handleDraw}
-            disabled={!spread || isDrawing}
+            disabled={!spread || isDrawing || isPaying}
           >
-            {isDrawing ? "룬을 소환하는 중..." : spread ? "⬡  룬 주머니를 흔들어라  ⬡" : "배열을 먼저 선택하세요"}
+            {isPaying
+              ? "코인을 결제하는 중..."
+              : isDrawing
+                ? "룬을 소환하는 중..."
+                : spread
+                  ? "⬡  룬 주머니를 흔들어라  ⬡"
+                  : "배열을 먼저 선택하세요"}
           </button>
 
           {/* Bag / idle state */}

@@ -103,16 +103,26 @@
     }
     if (typeof window !== "undefined") {
       if (window.CODE_DESTINY_API_BASE_URL) return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL);
-      try {
-        var custom = localStorage.getItem("fortune_api_base_url");
-        if (custom) return normalizeApiBase(custom);
-      } catch (e) {}
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return "http://localhost:3000";
-      if (host === "api.code-destiny.com") return location.origin || "";
-      if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
+      return normalizeApiBase(location.origin || "");
     }
-    return "https://code-destiny.com";
+    return "";
+  }
+
+  function isSafeTarotApiBase(raw) {
+    var base = normalizeApiBase(raw);
+    if (!base) return false;
+    try {
+      var parsed = new URL(base);
+      var host = String(parsed.hostname || "").toLowerCase();
+      if (host === "localhost" || host === "127.0.0.1") return true;
+      if (typeof window === "undefined") return false;
+      var sameOrigin = normalizeApiBase(location.origin || "");
+      return normalizeApiBase(parsed.origin || "") === sameOrigin;
+    } catch (e) {
+      return false;
+    }
   }
 
   function buildTarotApiBaseCandidates() {
@@ -134,8 +144,10 @@
       if (sameOrigin) add(sameOrigin);
     }
 
-    add(getRuntimeEnvApiBase());
-    add(getTarotApiBase());
+    var runtimeBase = getRuntimeEnvApiBase();
+    if (isSafeTarotApiBase(runtimeBase)) add(runtimeBase);
+    var computedBase = getTarotApiBase();
+    if (isSafeTarotApiBase(computedBase)) add(computedBase);
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
@@ -143,7 +155,6 @@
         add("http://localhost:3000");
         add("http://localhost:4000");
       }
-      if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
       add("http://localhost:3000");
       add("http://localhost:4000");
@@ -333,6 +344,8 @@
         cost: cost,
         reason: reason,
         featureKey: featureKey,
+        forceDeduct: true,
+        requestId: "tarot-love:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9),
       }),
     })
       .then(function (res) {

@@ -547,8 +547,9 @@
           var res=await fetch('/api/celestial-harmony',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:cards,goldenCard:goldenCard})});
           var payload=await res.json();
           clearInterval(mt);$loadSec.style.display='none';
-          if(!payload||!payload.ok||!payload.result)throw new Error((payload&&payload.message)||'리딩 생성 실패');
-          renderResults(payload.result);renderGolden(payload.result.finalGolden);
+          var resultData=(payload&&payload.result)||(payload&&payload.data&&payload.data.result)||(payload&&payload.data)||null;
+          if(!payload||payload.ok===false||!resultData)throw new Error((payload&&payload.message)||'리딩 생성 실패');
+          renderResults(resultData);renderGolden(resultData.finalGolden||null);
           setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},80);
         }catch(err){
           clearInterval(mt);$loadSec.style.display='none';

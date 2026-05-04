@@ -774,6 +774,50 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
     }
   },[paidTxId]);
 
+  const playReadingTypewriter = useCallback((rawText)=>{
+    const text = String(rawText || "").trim();
+    if (!text) {
+      setLoading(false);
+      return;
+    }
+    let i = 0;
+    const iv = setInterval(()=>{
+      setReading(text.slice(0, i));
+      i += 4;
+      if (i > text.length + 4) {
+        setReading(text);
+        setLoading(false);
+        clearInterval(iv);
+      }
+    }, 28);
+  }, []);
+
+  const buildLocalCrystalReading = useCallback(()=>{
+    const cardLines = cards.map((card, idx)=>{
+      const gemId = assignments[idx];
+      const assignedGem = GEMSTONES.find((g)=>g.id === gemId);
+      const pos = topic?.spread?.positions?.[idx] || `${idx + 1}번째 포지션`;
+      const cardKr = CARD_KR[card] || card;
+      const gemName = assignedGem ? assignedGem.name : gem.name;
+      return `${idx + 1}. ${pos}: ${cardKr} (${card}) · ${gemName}의 기운`;
+    }).join("\n");
+
+    if (!cardLines) return "";
+
+    return [
+      `${topic.name} 크리스탈 소울 리딩`,
+      "",
+      `핵심 원석: ${gem.name} (${gem.theme})`,
+      "",
+      "카드 배치 해석",
+      cardLines,
+      "",
+      "통합 조언",
+      `${gem.name}의 에너지는 지금 너무 빠른 결정보다는 흐름을 정돈하고 우선순위를 분명히 하라는 메시지를 전합니다.",
+      "오늘은 마음이 끌리는 한 가지 실행을 정해 작게 시작하고, 그 결과를 기록해 내일의 선택 근거로 삼아보세요.",
+    ].join("\n");
+  }, [topic, gem, cards, assignments]);
+
   const doFetch = useCallback(async()=>{
     setLoading(true);setError(false);setReading("");
     const positions = topic.spread.positions;
@@ -793,21 +837,25 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
         }),
       });
       const data=await res.json().catch(()=>({}));
-      const text=data?.reading||"";
+      var text = String(data?.reading || "").trim();
+      if(!text){
+        text = buildLocalCrystalReading();
+      }
       if(!text){
         await autoRefundCrystal();
         setError(true);setLoading(false);return;
       }
-      let i=0;
-      const iv=setInterval(()=>{
-        setReading(text.slice(0,i));i+=4;
-        if(i>text.length+4){setReading(text);setLoading(false);clearInterval(iv);}
-      },28);
+      playReadingTypewriter(text);
     }catch{
+      const localText = buildLocalCrystalReading();
+      if (localText) {
+        playReadingTypewriter(localText);
+        return;
+      }
       await autoRefundCrystal();
       setError(true);setLoading(false);
     }
-  },[topic,gem,cards,assignments,autoRefundCrystal]);
+  },[topic,gem,cards,assignments,autoRefundCrystal,buildLocalCrystalReading,playReadingTypewriter]);
 
   const handlePay = useCallback(async()=>{
     setPayError("");setPaying(true);

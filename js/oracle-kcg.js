@@ -493,6 +493,76 @@ function closeKemetModal() {
   resetKemetOracle();
 }
 
+function consumeKemetPerUseCoin() {
+  var COST = 30;
+  var FEATURE_KEY = 'openKemetModal';
+
+  return new Promise(function(resolve) {
+    if (COST <= 0) { resolve(true); return; }
+    if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
+      resolve(true);
+      return;
+    }
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      try {
+        window._cdCoinGatePerUse(
+          COST,
+          '이집트 신탁 리딩',
+          function() { resolve(true); },
+          function() { resolve(false); }
+        );
+        return;
+      } catch (_gateErr) {}
+    }
+
+    var token = '';
+    try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
+    if (!token) {
+      if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+        window.location.href = '/login?next=%2F';
+      }
+      resolve(false);
+      return;
+    }
+
+    fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        cost: COST,
+        reason: '이집트 신탁 리딩',
+        featureKey: FEATURE_KEY
+      })
+    }).then(function(resp) {
+      return resp.json().catch(function() { return {}; });
+    }).then(function(res) {
+      if (res && res.ok) {
+        try {
+          if (typeof res.remainingPoints === 'number') {
+            localStorage.setItem('fortune_user_points', String(res.remainingPoints));
+          }
+        } catch (_e2) {}
+        resolve(true);
+        return;
+      }
+
+      var code = String((res && res.code) || '').toUpperCase();
+      if (code === 'INSUFFICIENT_POINTS') {
+        alert('코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.');
+      } else {
+        alert((res && res.error) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      }
+      resolve(false);
+    }).catch(function() {
+      alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      resolve(false);
+    });
+  });
+}
+
 function startKemetOracle() {
   const inputEl = document.getElementById('kemetWorry');
   const qStr = (inputEl ? inputEl.value : '').trim();
@@ -507,15 +577,18 @@ function startKemetOracle() {
   const loader = document.getElementById('kemetLoader');
   const cardStage = document.getElementById('kemetCardStage');
 
-  if(searchBox) searchBox.style.display = 'none';
-  if(loader) loader.style.display = 'none';
-  if(cardStage) {
-    cardStage.style.display = 'block';
-    // 질문을 카드 단계에 저장
-    cardStage.dataset.question = qStr;
-  }
-  // 초기 원형 배치
-  kcgInitCircle();
+  consumeKemetPerUseCoin().then(function(ok) {
+    if (!ok) return;
+    if(searchBox) searchBox.style.display = 'none';
+    if(loader) loader.style.display = 'none';
+    if(cardStage) {
+      cardStage.style.display = 'block';
+      // 질문을 카드 단계에 저장
+      cardStage.dataset.question = qStr;
+    }
+    // 초기 원형 배치
+    kcgInitCircle();
+  });
 }
 
 function showKemetSpread(userInput, selectedIndices) {

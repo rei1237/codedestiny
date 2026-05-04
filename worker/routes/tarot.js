@@ -715,6 +715,56 @@ function buildMindscanFallback(pairs) {
   };
 }
 
+function buildCrystalSoulReading(body = {}) {
+  const topicName = asText(body?.topic?.name) || "원석 소울 타로";
+  const topicHint = asText(body?.topic?.hint);
+  const gemName = asText(body?.gem?.name) || "선택한 원석";
+  const gemTheme = asText(body?.gem?.theme);
+  const cards = Array.isArray(body?.cards) ? body.cards : [];
+  const positions = Array.isArray(body?.positions) ? body.positions : [];
+  const assignments = Array.isArray(body?.assignments) ? body.assignments : [];
+  const gemstonesMap = body?.gemstonesMap && typeof body.gemstonesMap === "object" ? body.gemstonesMap : {};
+
+  const lines = [];
+  lines.push(`🔮 ${topicName} 리딩`);
+  lines.push("");
+  lines.push(`${gemName}의 기운이 현재 흐름을 비추고 있습니다.${gemTheme ? ` 핵심 테마는 ${gemTheme}입니다.` : ""}`);
+  if (topicHint) {
+    lines.push(`${topicHint}`);
+  }
+  lines.push("");
+
+  cards.slice(0, 6).forEach((card, idx) => {
+    const position = asText(positions[idx]) || `포지션 ${idx + 1}`;
+    const cardName = asText(card) || `카드 ${idx + 1}`;
+    const gemId = asText(assignments[idx]);
+    const gemInfo = gemId && gemstonesMap[gemId] && typeof gemstonesMap[gemId] === "object"
+      ? gemstonesMap[gemId]
+      : null;
+    const slotGemName = asText(gemInfo?.name) || gemName;
+    const slotGemTheme = asText(gemInfo?.theme);
+
+    lines.push(`• ${position}: ${cardName}`);
+    lines.push(
+      `  ${slotGemName} 에너지는 이 자리에서 ${slotGemTheme || "감정과 판단의 균형"}을 강조합니다. `
+      + "서두르기보다 사실 확인과 작은 실행을 이어가면 흐름이 빠르게 안정됩니다."
+    );
+  });
+
+  lines.push("");
+  lines.push("✨ 마스터 조언");
+  lines.push(
+    "이번 리딩의 핵심은 결과를 단번에 확인하려는 조급함을 줄이고, "
+    + "지금 가능한 행동 1가지를 반복해 에너지를 고정하는 것입니다."
+  );
+  lines.push(
+    "오늘 안에 하나의 결정을 문장으로 적고 실행 시간을 확정하세요. "
+    + "행동이 시작되는 순간 운의 밀도가 달라집니다."
+  );
+
+  return lines.join("\n");
+}
+
 async function buildMindscanReading(env, pairs) {
   const normalizedPairs = pairs.slice(0, 5).map(normalizeMindscanPair);
   const pairLines = normalizedPairs
@@ -847,6 +897,18 @@ export async function handleTarotRoutes(request, env = {}) {
         },
         isRelationshipReading: true,
         api: "love-reading",
+      });
+    }
+
+    if (path === "/crystal-soul") {
+      const cards = Array.isArray(body?.cards) ? body.cards : [];
+      if (!cards.length) {
+        return json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });
+      }
+      return json({
+        ok: true,
+        source: "worker/routes/tarot.js",
+        reading: buildCrystalSoulReading(body),
       });
     }
 

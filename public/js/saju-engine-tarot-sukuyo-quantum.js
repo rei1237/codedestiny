@@ -3447,6 +3447,11 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                       <option value="lunar_leap">음력(윤달)</option>
                   </select>
                   <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark; font-size: 16px; min-height: 44px;">
+                  <select id="sy3PartnerGender" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; min-height: 44px;">
+                    <option value="F">여성</option>
+                    <option value="M">남성</option>
+                    <option value="OTHER">기타</option>
+                  </select>
               </div>
               <button id="sy3AnalyzeBtn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
           </div>
@@ -4491,6 +4496,8 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           : '';
       const timeStr = document.getElementById('sy3BirthTime').value || "12:00";
       const calType = document.getElementById('sy3CalType').value || "solar";
+      const partnerGender = (document.getElementById('sy3PartnerGender') || {}).value || 'OTHER';
+      const partnerGenderLabel = partnerGender === 'M' ? '남성' : (partnerGender === 'F' ? '여성' : '기타');
 
       if(!dateStr) {
           clearTimeout(_sy3Guard);
@@ -4682,6 +4689,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
               <div style="font-size:0.82rem; color:rgba(255,255,255,0.8); margin-bottom:10px;">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:0.78rem;">
                 <span style="background:rgba(0,0,0,0.25); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.85);">상대방 별: <strong>${tData.mansion}</strong></span>
+                <span style="background:rgba(59,130,246,0.2); border:1px solid rgba(59,130,246,0.45); padding:3px 10px; border-radius:20px; color:#bfdbfe;">상대 성별: ${partnerGenderLabel}</span>
                 <span style="background:rgba(251,191,36,0.2); border:1px solid rgba(251,191,36,0.45); padding:3px 10px; border-radius:20px; color:#fde68a;">${relationStory.distanceBadge}</span>
                 <span style="background:rgba(196,181,253,0.2); border:1px solid rgba(196,181,253,0.45); padding:3px 10px; border-radius:20px; color:#e9d5ff;">${relationStory.relationBadge}</span>
               </div>

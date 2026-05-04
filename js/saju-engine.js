@@ -405,8 +405,10 @@ function parseKasiGanjiPair(raw) {
 
 async function resolveKasiDateContextSafe(input, options) {
   if (!window.KasiCalendarService || typeof window.KasiCalendarService.resolveDateContext !== 'function') return null;
+  var safeOptions = Object.assign({}, options || {});
+  if (safeOptions.localOnly !== false) safeOptions.localOnly = true;
   try {
-    return await window.KasiCalendarService.resolveDateContext(input, options || {});
+    return await window.KasiCalendarService.resolveDateContext(input, safeOptions);
   } catch (e) {
     console.warn('[KASI] resolveDateContext failed:', e);
     return null;
@@ -6743,6 +6745,14 @@ function renderAstroInsight() {
         +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:120px;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
+        +'<label class="astro-label">상대 성별</label>'
+        +'<select id="asDirect_gender" class="astro-neon-select" style="width:120px;">'
+        +'<option value="F">여성</option>'
+        +'<option value="M">남성</option>'
+        +'<option value="OTHER">기타</option>'
+        +'</select>'
+        +'</div>'
+        +'<div style="flex:0 0 auto;">'
         +'<label class="astro-label">도시(시/군)</label>'
         +'<select id="asDirect_city" class="astro-neon-select" style="width:240px;">'
         +'<option value="">도시 선택(시/군 단위)</option>'
@@ -7590,6 +7600,7 @@ function renderAstroInsight() {
         var nameVal = (document.getElementById('asDirect_name') || {}).value || '상대방';
         var dateVal = (document.getElementById('asDirect_date') || {}).value;
         var timeVal = (document.getElementById('asDirect_time') || {}).value || '12:00';
+        var genderVal = (document.getElementById('asDirect_gender') || {}).value || 'OTHER';
         var cityEl  = document.getElementById('asDirect_city');
         var tzVal   = 9;
         var latVal  = (lat != null) ? Number(lat) : 37.5665;
@@ -7636,7 +7647,7 @@ function renderAstroInsight() {
                   latitude: latVal,
                   longitude: lonVal,
                   tzOffsetHours: tzVal
-                }, { setCurrent: false });
+                }, { setCurrent: false, localOnly: true });
                 if (directCtx && directCtx.solar) {
                   py = directCtx.solar.year || py;
                   pm = directCtx.solar.month || pm;
@@ -7740,7 +7751,7 @@ function renderAstroInsight() {
                 h += '<div class="astro-syn-header">'
                   +'<div class="astro-syn-name" style="color:#fde68a;">'+nameVal+'</div>'
                   +'<div class="astro-syn-pill gold">'+ pSunSign + ' ☀</div>'
-                  +'<div class="astro-syn-meta">UTC+'+tzVal+'</div>'
+                  +'<div class="astro-syn-meta">'+(genderVal === 'M' ? '남성' : (genderVal === 'F' ? '여성' : '기타'))+' · UTC+'+tzVal+'</div>'
                     +'</div>';
 
                 h += '<div class="astro-syn-score-row">'
@@ -11594,9 +11605,11 @@ function renderZiwei(p, natal, targetId) {
     window._runZwCompatibilityCore = function() {
       var dateEl = document.getElementById('zwCompatBirthDate');
       var timeEl = document.getElementById('zwCompatBirthTime');
+      var genderEl = document.getElementById('zwCompatGender');
       var cityEl = document.getElementById('zwCompatBirthCity');
       var outEl = document.getElementById('zwCompatResult');
       var corrEl = document.getElementById('zwCompatTimeCorrectionInfo');
+      var partnerGender = genderEl ? (genderEl.value || 'OTHER') : 'OTHER';
       if (!dateEl || !timeEl || !outEl) return;
 
       // Mobile-safe 2-digit formatter for legacy WebViews (avoids String.padStart dependency).
@@ -11659,7 +11672,7 @@ function renderZiwei(p, natal, targetId) {
           latitude: cityLat,
           longitude: cityLong,
           tzOffsetHours: isNaN(cityTzOff) ? 9 : cityTzOff
-        }, { setCurrent: false });
+        }, { setCurrent: false, localOnly: true });
         if (zwCtx && zwCtx.solar) {
           py = zwCtx.solar.year || py;
           pm = zwCtx.solar.month || pm;
@@ -11684,7 +11697,7 @@ function renderZiwei(p, natal, targetId) {
         + ' (경도 ' + cityLngOffset + '분, DST ' + tzResolved.dstMinutes + '분, UTC'
         + (tzResolved.tzOffsetHours >= 0 ? '+' : '') + tzResolved.tzOffsetHours + ')';
       if (corrEl) {
-        corrEl.innerHTML = '🌍 ' + cityLabel + '<br><span style="font-size:0.75rem;color:#c4b5fd;">' + correctionMsg + '</span>';
+        corrEl.innerHTML = '🌍 ' + cityLabel + ' · ' + (partnerGender === 'M' ? '남성' : (partnerGender === 'F' ? '여성' : '기타')) + '<br><span style="font-size:0.75rem;color:#c4b5fd;">' + correctionMsg + '</span>';
       }
 
       var meBirth = window._ziweiBirth;
@@ -13642,6 +13655,7 @@ function renderZiwei(p, natal, targetId) {
             +'<div class="zw-cosmic-input-grid">'
               +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="date" class="zw-cosmic-control"></label>'
               +'<label class="zw-cosmic-field"><span>상대 태어난 시간</span><input id="zwCompatBirthTime" type="time" value="12:00" class="zw-cosmic-control"></label>'
+              +'<label class="zw-cosmic-field"><span>상대 성별</span><select id="zwCompatGender" class="zw-cosmic-control"><option value="F">여성</option><option value="M">남성</option><option value="OTHER">기타</option></select></label>'
               +'<label class="zw-cosmic-field"><span>상대 태어난 도시</span><select id="zwCompatBirthCity" class="zw-cosmic-control">'+compatCityOptions+'</select></label>'
               +'<button type="button" onclick="window._runZwCompatibility()" class="zw-cosmic-btn">궁합 보기</button>'
             +'</div>'

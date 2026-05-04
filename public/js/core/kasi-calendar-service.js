@@ -808,10 +808,17 @@
 
     var task = (async function () {
       var fallbackUsed = false;
+      var localOnly = options && options.localOnly === true;
       var solarFromLunar = null;
 
       if (norm.calendarType !== 'solar') {
-        solarFromLunar = await _fetchSolarFromLunar(norm);
+        if (localOnly) {
+          solarFromLunar = _fallbackSolarFromLunar(norm);
+          fallbackUsed = true;
+          diagnostics.push('local-only: solar conversion fallback');
+        } else {
+          solarFromLunar = await _fetchSolarFromLunar(norm);
+        }
         if (!solarFromLunar) {
           solarFromLunar = _fallbackSolarFromLunar(norm);
           fallbackUsed = true;
@@ -825,7 +832,13 @@
 
       var lunarObj = null;
       if (norm.calendarType === 'solar') {
-        lunarObj = await _fetchLunarFromSolar(solarDate);
+        if (localOnly) {
+          lunarObj = _fallbackLunarFromSolar(solarDate);
+          fallbackUsed = true;
+          diagnostics.push('local-only: lunar conversion fallback');
+        } else {
+          lunarObj = await _fetchLunarFromSolar(solarDate);
+        }
         if (!lunarObj) {
           lunarObj = _fallbackLunarFromSolar(solarDate);
           fallbackUsed = true;
@@ -848,16 +861,18 @@
       }
 
       var apiTerms = [];
-      try {
-        apiTerms = await _fetchSolarTerms(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
-      } catch (e) {
-        diagnostics.push('solar terms API failed');
-        hadProxyFailure = true;
+      if (!localOnly) {
+        try {
+          apiTerms = await _fetchSolarTerms(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
+        } catch (e) {
+          diagnostics.push('solar terms API failed');
+          hadProxyFailure = true;
+        }
       }
       var fallbackTerms = _fallbackSolarTerms(solarDate.getFullYear());
       if (!apiTerms.length && fallbackTerms.length) {
         fallbackUsed = true;
-        diagnostics.push('solar terms fallback');
+        diagnostics.push(localOnly ? 'local-only: solar terms fallback' : 'solar terms fallback');
         hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
       }
       var terms = _normalizeTerms(apiTerms, fallbackTerms);
