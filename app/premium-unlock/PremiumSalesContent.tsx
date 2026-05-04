@@ -737,7 +737,6 @@ export default function PremiumSalesContent() {
   const { isPaymentLoading, startPayment, endPayment } = usePayment();
   const [isCtaPending, setIsCtaPending] = useState(false);
   const ctaDelayTimerRef = useRef<number | null>(null);
-  const ctaFallbackTimerRef = useRef<number | null>(null);
 
   const isBusy = isPaymentLoading || isCtaPending;
 
@@ -745,9 +744,6 @@ export default function PremiumSalesContent() {
     return () => {
       if (ctaDelayTimerRef.current) {
         window.clearTimeout(ctaDelayTimerRef.current);
-      }
-      if (ctaFallbackTimerRef.current) {
-        window.clearTimeout(ctaFallbackTimerRef.current);
       }
     };
   }, []);
@@ -760,19 +756,16 @@ export default function PremiumSalesContent() {
     if (ctaDelayTimerRef.current) {
       window.clearTimeout(ctaDelayTimerRef.current);
     }
-    if (ctaFallbackTimerRef.current) {
-      window.clearTimeout(ctaFallbackTimerRef.current);
-    }
 
     ctaDelayTimerRef.current = window.setTimeout(() => {
       startPayment("안전하게 결제를 진행 중입니다.");
       setIsCtaPending(false);
       router.push("/points");
 
-      // 드물게 라우팅이 지연되더라도 오버레이 고착을 방지합니다.
-      ctaFallbackTimerRef.current = window.setTimeout(() => {
+      // 페이지 전환/언마운트 여부와 무관하게 오버레이 고착을 방지한다.
+      window.setTimeout(() => {
         endPayment();
-      }, 6000);
+      }, 1500);
     }, 180);
   };
 

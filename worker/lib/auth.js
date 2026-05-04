@@ -17,12 +17,12 @@ export function getBearerToken(request) {
 export async function requireAuth(request, env) {
   const token = getBearerToken(request);
   if (!token) {
-    throw createHttpError(401, "Authentication is required.");
+    throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
   }
 
   const payload = await verifyJwt(token, getJwtSecret(env), { issuer: JWT_ISSUER });
   if (!payload?.userId) {
-    throw createHttpError(401, "Invalid authentication token.");
+    throw createHttpError(401, "Invalid authentication token.", { code: "UNAUTHORIZED" });
   }
 
   return {

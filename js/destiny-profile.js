@@ -230,6 +230,10 @@
     olympus: { key: 'olympus-fc', cost: 100, name: '올림푸스 신탁' },
     flower:  { key: 'flower-fc',  cost: 50, name: '운명의 꽃 4종 세트', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
   };
+  var _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY = {
+    'olympus-fc': 'unlock.olympus_fc',
+    'flower-fc': 'unlock.flower_fc'
+  };
   var _DP_TILE_LOCKS_KEY_PREFIX = 'cd_tile_locks_v2::';
 
   function _dpGetTileLockScopeKey() {
@@ -545,7 +549,12 @@
       var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
-      _cdShowCoinDeductNotice(cost, nb, reason);
+      var chargedCoins = Number((res.data && res.data.chargedCoins) || 0);
+      if (res.data && res.data.freeBySubscription === true) {
+        window.alert(String(res.data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+      } else if (chargedCoins > 0) {
+        _cdShowCoinDeductNotice(chargedCoins, nb, reason);
+      }
       cb();
     })
     .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
@@ -655,20 +664,25 @@
       var inFlight = false;
       if (inFlight) return;
       inFlight = true;
-      var requestId = 'unlock-' + info.key + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-      fetch('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({
+      var productId = _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY[info.key] || '';
+      var requestId = 'unlock-' + (productId || info.key) + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
+      var payload = productId
+        ? { productId: productId, requestId: requestId }
+        : {
           cost: info.cost,
           featureKey: info.key,
           reason: info.name + ' 영구 해금',
           forceDeduct: true,
           requestId: requestId
-        })
+        };
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(payload)
       })
       .then(function (r) {
         return r.json().then(function (data) { return { status: r.status, ok: r.ok, data: data }; });
@@ -693,7 +707,12 @@
           : Math.max(0, balance - info.cost);
         _dpSaveUserBalance(newBalance);
         if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newBalance);
-        _cdShowCoinDeductNotice(info.cost, newBalance, info.name + ' 영구 해금');
+        var chargedCoins = Number((res.data && res.data.chargedCoins) || info.cost);
+        if (res.data && res.data.freeBySubscription === true) {
+          window.alert(String(res.data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+        } else if (chargedCoins > 0) {
+          _cdShowCoinDeductNotice(chargedCoins, newBalance, info.name + ' 영구 해금');
+        }
         _dpSaveFeatureUnlock(info.key);
         if (info.extraUnlockKeys) { for (var _ekI = 0; _ekI < info.extraUnlockKeys.length; _ekI++) _dpSaveFeatureUnlock(info.extraUnlockKeys[_ekI]); }
         window.alert('🎉 ' + info.name + '이(가) 해금되었습니다!');

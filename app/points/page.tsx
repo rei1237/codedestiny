@@ -83,6 +83,9 @@ type SubscriptionStatus = {
   expiresAt:          string | null;
   profileLimit:       number; // 0 = unlimited
   lowBalanceWarning?: boolean;
+  cancelAtPeriodEnd?: boolean;
+  cancelRequestedAt?: string | null;
+  freeLimit?: number;
 };
 
 type SubscriptionPlan = {
@@ -150,10 +153,7 @@ declare global {
 const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
 // PortOne 관리자 콘솔의 상점/채널 값입니다. V1(IMP.request_pay) 구조를 유지하면서 V2 전환 대비용으로 함께 관리합니다.
 const PORTONE_STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
-const PORTONE_CHANNEL_KEY =
-  process.env.NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY
-  || process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY
-  || "";
+const PORTONE_CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
 const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
 
@@ -282,16 +282,14 @@ function saveAdminTestTierClient(tier: AdminTestTier) {
 }
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
-  { id: "kakao",         label: "카카오페이",             logo: "🟨", desc: "간편 결제",              group: "domestic" },
-  { id: "galaxia",       label: "갤럭시아(카드/간편)",    logo: "💳", desc: "카드사 선택 결제",        group: "domestic" },
-  { id: "galaxia_artmoney", label: "갤럭시아 아트머니",   logo: "🟣", desc: "아트머니/간편결제",       group: "domestic" },
-  { id: "toss_card",     label: "토스페이먼츠(카드)",     logo: "💠", desc: "국내 카드",               group: "domestic" },
-  { id: "toss_transfer", label: "토스페이먼츠(계좌이체)", logo: "🏦", desc: "실시간 이체",              group: "domestic" },
-  { id: "naverpay",      label: "네이버페이",             logo: "🟩", desc: "네이버 간편 결제",         group: "domestic" },
-  { id: "card_general",  label: "일반 신용카드",          logo: "🔵", desc: "토스페이먼츠 일반카드",    group: "domestic" },
-  { id: "paypal",        label: "PayPal",                 logo: "🅿️", desc: "해외 결제",              group: "global"   },
-  { id: "applepay",      label: "Apple Pay",              logo: "🍎", desc: "포트원 지원 PG 기준",     group: "global"   },
-  { id: "googlepay",     label: "Google Pay",             logo: "🟢", desc: "포트원 지원 PG 기준",     group: "global"   },
+  { id: "kakao",            label: "카카오페이",                    logo: "🟨", desc: "간편 결제",                          group: "domestic" },
+  { id: "galaxia",          label: "갤럭시아 일반결제",              logo: "💳", desc: "카드사 선택 결제",                    group: "domestic" },
+  { id: "galaxia_artmoney", label: "갤럭시아 아트머니",              logo: "🟣", desc: "카드사 선택 + 카카오페이/네이버페이", group: "domestic" },
+  { id: "naverpay",         label: "네이버페이",                    logo: "🟩", desc: "네이버 간편 결제",                    group: "domestic" },
+  { id: "card_general",     label: "일반 신용카드",                 logo: "🔵", desc: "국내 카드 결제",                       group: "domestic" },
+  { id: "paypal",           label: "PayPal",                        logo: "🅿️", desc: "해외 결제",                           group: "global"   },
+  { id: "applepay",         label: "Apple Pay",                     logo: "🍎", desc: "포트원 지원 PG 기준",                  group: "global"   },
+  { id: "googlepay",        label: "Google Pay",                    logo: "🟢", desc: "포트원 지원 PG 기준",                  group: "global"   },
 ];
 
 /* ══════════════════════════════════════════════════════════════════
@@ -390,8 +388,6 @@ function resolvePgConfig(methodId: string) {
     kakao:         process.env.NEXT_PUBLIC_PORTONE_PG_KAKAO,
     galaxia:       process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA,
     galaxia_artmoney: process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA_ARTMONEY,
-    toss_card:     process.env.NEXT_PUBLIC_PORTONE_PG_TOSS_CARD,
-    toss_transfer: process.env.NEXT_PUBLIC_PORTONE_PG_TOSS_TRANSFER,
     naverpay:      process.env.NEXT_PUBLIC_PORTONE_PG_NAVERPAY,
     card_general:  process.env.NEXT_PUBLIC_PORTONE_PG_CARD,
     paypal:        process.env.NEXT_PUBLIC_PORTONE_PG_PAYPAL,
@@ -404,15 +400,13 @@ function resolvePgConfig(methodId: string) {
     kakao:         { pg: overrides.kakao         || "kakaopay.TC0ONETIME",                payMethod: "card"   },
     galaxia:       { pg: overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
     galaxia_artmoney: { pg: overrides.galaxia_artmoney || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card" },
-    toss_card:     { pg: overrides.toss_card      || "tosspayments",                      payMethod: "card"   },
-    toss_transfer: { pg: overrides.toss_transfer  || "tosspayments",                      payMethod: "trans"  },
     naverpay:      { pg: overrides.naverpay       || "naverpay",                          payMethod: "card"   },
-    card_general:  { pg: overrides.card_general   || "tosspayments",                      payMethod: "card"   },
+    card_general:  { pg: overrides.card_general   || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
     paypal:        { pg: overrides.paypal         || "paypal",                            payMethod: "paypal" },
-    applepay:      { pg: overrides.applepay       || "tosspayments",                      payMethod: "card"   },
-    googlepay:     { pg: overrides.googlepay      || "tosspayments",                      payMethod: "card"   },
+    applepay:      { pg: overrides.applepay       || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
+    googlepay:     { pg: overrides.googlepay      || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
   };
-  return defaults[methodId] || defaults.card_general;
+  return defaults[methodId] || defaults.galaxia;
 }
 
 function readPendingOrder() {
@@ -442,6 +436,7 @@ function SubscriptionSection({
   subscription,
   currentPoints,
   onSubscribe,
+  onCancelSubscription,
   isProcessing,
   isFlowerAdminMode,
   adminTestTier,
@@ -450,6 +445,7 @@ function SubscriptionSection({
   subscription:  SubscriptionStatus;
   currentPoints: number;
   onSubscribe:   (plan: SubscriptionPlan) => void;
+  onCancelSubscription: (resume: boolean) => void;
   isProcessing:  boolean;
   isFlowerAdminMode: boolean;
   adminTestTier: AdminTestTier;
@@ -553,6 +549,36 @@ function SubscriptionSection({
               현재 코인이 거의 소진되었습니다. 구독 기간({expires}까지)은 유지되지만,
               추가 콘텐츠 이용을 위해 충전을 추천드립니다.
             </p>
+          </div>
+        )}
+
+        {subscription.isActive && subscription.tier !== "free" && (
+          <div className="mb-4 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
+              <span aria-hidden="true">🧭</span>
+              {subscription.cancelAtPeriodEnd ? "구독 해지 예약됨" : "구독 자동 갱신 활성화"}
+            </p>
+            <p className="mt-1 text-[11.5px] text-violet-700">
+              {subscription.cancelAtPeriodEnd
+                ? `해지 예약 상태입니다. ${expires || "만료일"}까지 혜택은 유지되며 이후 자동 갱신되지 않습니다.`
+                : "현재는 만료 시 자동 갱신됩니다. 원하시면 해지를 예약할 수 있고, 만료 전까지 언제든 다시 취소할 수 있습니다."}
+            </p>
+            <div className="mt-2.5 flex justify-end">
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
+                className={[
+                  "rounded-[11px] px-3.5 py-2 text-[12px] font-bold transition",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                  subscription.cancelAtPeriodEnd
+                    ? "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                    : "border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100",
+                ].join(" ")}
+              >
+                {subscription.cancelAtPeriodEnd ? "해지 예약 취소" : "구독 해지 예약"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -1071,6 +1097,9 @@ export default function PointsPage() {
     isActive:     false,
     expiresAt:    null,
     profileLimit: 1,
+    cancelAtPeriodEnd: false,
+    cancelRequestedAt: null,
+    freeLimit: 0,
   });
 
   /** Toast 알림 목록 */
@@ -1226,6 +1255,9 @@ export default function PointsPage() {
           expiresAt:         d.expiresAt    || null,
           profileLimit:      typeof d.profileLimit === "number" ? d.profileLimit : 1,
           lowBalanceWarning: !!d.lowBalanceWarning,
+          cancelAtPeriodEnd: !!d.cancelAtPeriodEnd,
+          cancelRequestedAt: d.cancelRequestedAt || null,
+          freeLimit: typeof d.freeLimit === "number" ? d.freeLimit : 0,
         });
       })
       .catch(() => {});
@@ -1472,7 +1504,7 @@ export default function PointsPage() {
       if (selectedMethod === "galaxia" || selectedMethod === "galaxia_artmoney") {
         const isArtMoneyFlow = selectedMethod === "galaxia_artmoney";
         setGalaxiaFlowMethod(isArtMoneyFlow ? "galaxia_artmoney" : "galaxia");
-        setGalaxiaInitialPayType(isArtMoneyFlow ? "simple" : "card");
+        setGalaxiaInitialPayType("card");
         setGalaxiaInitialCardId(isArtMoneyFlow ? "artmoney" : "");
         setGalaxiaMerchantUid(order.merchantUid);
         setIsMethodModalOpen(false);
@@ -1660,13 +1692,73 @@ export default function PointsPage() {
       }
       if (data.user?.points !== undefined) persistUserPoints(Number(data.user.points));
       if (data.subscription) {
-        setSubscription(data.subscription);
+        setSubscription((prev) => ({
+          tier: data.subscription?.tier || prev.tier,
+          isActive: !!data.subscription?.isActive,
+          expiresAt: data.subscription?.expiresAt || null,
+          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : prev.profileLimit,
+          lowBalanceWarning: false,
+          cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
+          cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
+          freeLimit: prev.freeLimit || 0,
+        }));
       }
       pushToast("success", data.message || `${plan.title} 구독이 시작되었습니다! ✨`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     } catch (error: unknown) {
       pushToast("error", getErrorMessage(error, "구독 처리 중 오류가 발생했습니다."));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSubscriptionCancel = async (resume: boolean) => {
+    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
+    const flowerAdminToken = getFlowerAdminTokenClient();
+    if ((!token && !isFlowerAdmin) || !authUser) {
+      router.replace("/login?next=%2Fpoints");
+      return;
+    }
+
+    const confirmText = resume
+      ? "해지 예약을 취소하고 자동 갱신을 다시 활성화할까요?"
+      : "구독 해지를 예약할까요? 만료일까지는 모든 혜택을 유지합니다.";
+    if (!window.confirm(confirmText)) return;
+
+    setIsProcessing(true);
+    setProcessingText(resume ? "자동 갱신을 다시 설정하는 중입니다..." : "구독 해지를 예약하는 중입니다...");
+    try {
+      const res = await fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+          ...(isFlowerAdmin && adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
+        },
+        body: JSON.stringify({ resume }),
+      });
+      const data = await safeParseJson<{ message?: string; subscription?: SubscriptionStatus }>(res);
+      if (!res.ok) {
+        pushToast("error", data.message || "구독 상태 변경에 실패했습니다.");
+        return;
+      }
+      if (data.subscription) {
+        setSubscription((prev) => ({
+          tier: data.subscription?.tier || prev.tier,
+          isActive: !!data.subscription?.isActive,
+          expiresAt: data.subscription?.expiresAt || null,
+          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : prev.profileLimit,
+          lowBalanceWarning: prev.lowBalanceWarning,
+          cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
+          cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
+          freeLimit: prev.freeLimit || 0,
+        }));
+      }
+      pushToast("success", data.message || "구독 상태가 변경되었습니다.");
+    } catch (error: unknown) {
+      pushToast("error", getErrorMessage(error, "구독 상태 변경 중 오류가 발생했습니다."));
     } finally {
       setIsProcessing(false);
     }
@@ -1806,6 +1898,7 @@ export default function PointsPage() {
           subscription={subscription}
           currentPoints={currentPoints}
           onSubscribe={handleSubscribe}
+          onCancelSubscription={handleSubscriptionCancel}
           isProcessing={isProcessing}
           isFlowerAdminMode={isFlowerAdminMode}
           adminTestTier={adminTestTier}
@@ -2132,6 +2225,7 @@ export default function PointsPage() {
           buyerName={authUser.name || "회원"}
           buyerEmail={authUser.email || ""}
           orderId={galaxiaMerchantUid}
+          flowMethod={galaxiaFlowMethod}
           initialPayType={galaxiaInitialPayType}
           initialCardId={galaxiaInitialCardId}
           onSuccess={handleGalaxiaSuccess}

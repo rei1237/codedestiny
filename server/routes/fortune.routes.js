@@ -38,6 +38,32 @@ const PIG_COIN_PACKAGES = {
   },
 };
 
+const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "대운 섹션 해금", forceDeduct: true },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "요약 섹션 해금", forceDeduct: true },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "궁합 섹션 해금", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "운명의 꽃 세트 해금", forceDeduct: true },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "올림푸스 신탁 해금", forceDeduct: true },
+  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "사주 풀패키지 해금", forceDeduct: true },
+  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG 캐릭터 해금", forceDeduct: true },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 100, reason: "여행 운세 해금", forceDeduct: true },
+  "unlock.health_report": { featureKey: "healthReport", cost: 100, reason: "건강 리포트 해금", forceDeduct: true },
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 200, reason: "사주 일기 해금", forceDeduct: true },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 100, reason: "시크릿 하우스 해금", forceDeduct: true },
+  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "프리미엄 점술팩 해금", forceDeduct: true },
+  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 500, reason: "자미두수 프리미엄 해금", forceDeduct: true },
+  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "점성술 프리미엄 해금", forceDeduct: true },
+  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "숙요점 프리미엄 해금", forceDeduct: true },
+  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "베다 프리미엄 해금", forceDeduct: true },
+  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "작명 프리미엄 해금", forceDeduct: true },
+});
+
+function resolveUnlockProductSpec(productId) {
+  const id = String(productId || "").trim().toLowerCase();
+  if (!id) return null;
+  return PIG_COIN_UNLOCK_PRODUCTS[id] || null;
+}
+
 const PROFILE_SUB_PLANS = {
   standard: { name: "스탠다드 꿀", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
   premium: { name: "프리미엄 꿀", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
@@ -313,31 +339,43 @@ router.post("/pig-coin/charge-simulate", async (req, res, next) => {
   }
 });
 
-router.post("/pig-coin/consume", async (req, res, next) => {
+async function handlePigCoinConsumeRoute(req, res, next) {
   try {
     const adminTestTier = req.auth?.role === "admin"
       ? normalizeSubscriptionTier(req.headers["x-admin-subscription-tier"])
       : null;
-    const requestedCost = Number(req.body?.cost);
+    const productId = String(req.body?.productId || "").trim().toLowerCase();
+    const productSpec = productId ? resolveUnlockProductSpec(productId) : null;
+    if (productId && !productSpec) {
+      return res.status(400).json({
+        message: "지원하지 않는 해금 상품입니다.",
+        code: "INVALID_PRODUCT",
+        productId,
+      });
+    }
+
+    const requestedCost = Number(productSpec ? productSpec.cost : req.body?.cost);
     const cost = Number.isFinite(requestedCost) && requestedCost > 0
       ? Math.floor(requestedCost)
       : PIG_COIN_DEFAULT_UNLOCK_COST;
 
     if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
-      return res.status(400).json({ message: "유효하지 않은 코인 차감 수량입니다." });
+      return res.status(400).json({ message: "유효하지 않은 코인 차감 수량입니다.", code: "INVALID_REQUEST" });
     }
 
-    const reason = String(req.body?.reason || "유료 섹션 잠금 해제")
+    const reason = String(productSpec?.reason || req.body?.reason || "유료 섹션 잠금 해제")
       .trim()
       .slice(0, 120);
-    const featureKey = String(req.body?.featureKey || "pig-coin-unlock")
+    const featureKey = String(productSpec?.featureKey || req.body?.featureKey || "pig-coin-unlock")
       .trim()
       .slice(0, 60);
     const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
     const requestId = String(req.body?.requestId || "")
       .trim()
       .slice(0, 120);
-    const forceDeduct = req.body?.forceDeduct === true || String(req.body?.forceDeduct || "").toLowerCase() === "true";
+    const forceDeductRaw = productSpec ? productSpec.forceDeduct : req.body?.forceDeduct;
+    const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
+    const forceDeductApplied = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
 
     if (req.auth?.role === "admin") {
       const simulatedPolicy = getPlanPolicy(adminTestTier);
@@ -348,6 +386,8 @@ router.post("/pig-coin/consume", async (req, res, next) => {
 
       return res.status(200).json({
         message: "관리자 우회가 적용되어 코인이 차감되지 않았습니다.",
+        code: "ADMIN_BYPASS",
+        productId: productId || null,
         requiredCoins: cost,
         chargedCoins: 0,
         simulatedChargeCoins: 0,
@@ -358,7 +398,8 @@ router.post("/pig-coin/consume", async (req, res, next) => {
         freeLimit: simulatedPolicy.freeLimit,
         profileLimit: simulatedPolicy.profileLimit,
         recommendedCoins: simulatedPolicy.recommendedCoins,
-        freeBySubscription: Boolean(adminTestTier && !forceDeduct && cost <= simulatedPolicy.freeLimit),
+        freeBySubscription: Boolean(adminTestTier && !forceDeductApplied && cost <= simulatedPolicy.freeLimit),
+        forceDeductApplied,
         user: {
           id: String(req.auth.userId),
           points: Number(user?.points || 0),
@@ -370,23 +411,26 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     }
 
     const user = await User.findById(req.auth.userId)
-      .select("points profileSubscription unlockedFeatures")
+      .select("points profileSubscription unlockedFeatures recentConsumeRequestIds")
       .lean();
 
     if (!user) {
-      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다.", code: "USER_NOT_FOUND" });
     }
 
     const effectiveTier = resolveEffectiveActiveTier(user);
     const policy = getPlanPolicy(effectiveTier);
-    const isIncludedBySubscription = Boolean(!forceDeduct && effectiveTier && cost <= policy.freeLimit);
+    const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
     if (isIncludedBySubscription) {
       return res.status(200).json({
-        message: "활성 구독 혜택에 포함되어 코인이 차감되지 않았습니다.",
+        message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
+        code: "SUBSCRIPTION_INCLUDED",
+        productId: productId || null,
         requiredCoins: cost,
         chargedCoins: 0,
         freeBySubscription: true,
+        forceDeductApplied,
         subscriptionTier: effectiveTier,
         freeLimit: policy.freeLimit,
         profileLimit: policy.profileLimit,
@@ -404,6 +448,14 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     const updatePayload = {
       $inc: { points: -cost },
     };
+    if (requestId) {
+      updatePayload.$push = {
+        recentConsumeRequestIds: {
+          $each: [requestId],
+          $slice: -200,
+        },
+      };
+    }
     if (unlockKeysToPersist.length) {
       updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
     }
@@ -412,6 +464,7 @@ router.post("/pig-coin/consume", async (req, res, next) => {
       {
         _id: req.auth.userId,
         points: { $gte: cost },
+        ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
       },
       updatePayload,
       {
@@ -421,9 +474,43 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     ).lean();
 
     if (!updatedUser) {
+      if (requestId) {
+        const replayUser = await User.findById(req.auth.userId)
+          .select("points unlockedFeatures recentConsumeRequestIds")
+          .lean();
+        const replayIds = Array.isArray(replayUser?.recentConsumeRequestIds)
+          ? replayUser.recentConsumeRequestIds.map((v) => String(v))
+          : [];
+        if (replayIds.includes(requestId)) {
+          const replayUnlocks = normalizePersistentUnlockKeys(replayUser?.unlockedFeatures || []);
+          return res.status(200).json({
+            message: "이미 처리된 요청입니다.",
+            code: "IDEMPOTENT_REPLAY",
+            alreadyProcessed: true,
+            productId: productId || null,
+            requiredCoins: cost,
+            chargedCoins: 0,
+            freeBySubscription: false,
+            forceDeductApplied,
+            subscriptionTier: effectiveTier || "free",
+            freeLimit: policy.freeLimit,
+            profileLimit: policy.profileLimit,
+            recommendedCoins: policy.recommendedCoins,
+            user: {
+              id: String(req.auth.userId),
+              points: Number(replayUser?.points || 0),
+              unlockedFeatures: replayUnlocks,
+            },
+            unlockedFeatures: replayUnlocks,
+            unlockMap: toUnlockMap(replayUnlocks),
+          });
+        }
+      }
       return res.status(402).json({
         message: "코인이 부족합니다.",
         requiredCoins: cost,
+        code: "INSUFFICIENT_BALANCE",
+        productId: productId || null,
       });
     }
 
@@ -447,9 +534,12 @@ router.post("/pig-coin/consume", async (req, res, next) => {
 
     return res.status(200).json({
       message: `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다.`,
+      code: "OK",
+      productId: productId || null,
       requiredCoins: cost,
       chargedCoins: cost,
       freeBySubscription: false,
+      forceDeductApplied,
       subscriptionTier: effectiveTier || "free",
       freeLimit: policy.freeLimit,
       profileLimit: policy.profileLimit,
@@ -463,6 +553,29 @@ router.post("/pig-coin/consume", async (req, res, next) => {
       unlockedFeatures,
       unlockMap: toUnlockMap(unlockedFeatures),
     });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+router.post("/pig-coin/consume", handlePigCoinConsumeRoute);
+
+router.post("/pig-coin/unlock", async (req, res, next) => {
+  try {
+    const productId = String(req.body?.productId || "").trim().toLowerCase();
+    if (!productId) {
+      return res.status(400).json({ message: "productId가 필요합니다.", code: "INVALID_PRODUCT" });
+    }
+
+    if (!resolveUnlockProductSpec(productId)) {
+      return res.status(400).json({ message: "지원하지 않는 해금 상품입니다.", code: "INVALID_PRODUCT", productId });
+    }
+
+    req.body = {
+      productId,
+      requestId: String(req.body?.requestId || "").trim().slice(0, 120),
+    };
+    return handlePigCoinConsumeRoute(req, res, next);
   } catch (error) {
     return next(error);
   }
@@ -607,7 +720,9 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
     const sub    = user.profileSubscription || {};
     const tier   = sub.tier || "free";
     const expAt  = sub.expiresAt || null;
-    const points = Number(user.points || 0);
+    const cancelAtPeriodEnd = !!sub.cancelAtPeriodEnd;
+    const cancelRequestedAt = sub.cancelRequestedAt || null;
+    let points = Number(user.points || 0);
 
     const plan = PROFILE_SUB_PLANS[tier];
     const now  = new Date();
@@ -621,7 +736,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       if (effectiveExpAt > now) {
         // 구독 활성
         effectiveTier = tier;
-      } else if (plan && points >= plan.coins) {
+      } else if (!cancelAtPeriodEnd && plan && points >= plan.coins) {
         // 만료됐지만 코인 충분 → 자동 갱신
         const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 24 * 60 * 60 * 1000);
         const updatedUser2 = await User.findOneAndUpdate(
@@ -636,6 +751,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
           { new: true, projection: { points: 1 } },
         ).lean();
         if (updatedUser2) {
+          points = Number(updatedUser2.points || 0);
           effectiveTier  = tier;
           effectiveExpAt = newExpAt;
           autoRenewed    = true;
@@ -670,6 +786,8 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
         points,
         lowBalanceWarning: points <= simulatedPolicy.freeLimit,
         autoRenewed:       false,
+        cancelAtPeriodEnd: false,
+        cancelRequestedAt: null,
         hasStartedPaidService: !!user.has_started_paid_service,
         firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
         adminMode:         true,
@@ -690,6 +808,8 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       points,
       lowBalanceWarning: !!lowBalanceWarning,
       autoRenewed:       !!autoRenewed,
+      cancelAtPeriodEnd: !!cancelAtPeriodEnd,
+      cancelRequestedAt: cancelRequestedAt ? new Date(cancelRequestedAt).toISOString() : null,
       hasStartedPaidService: !!user.has_started_paid_service,
       firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
       adminMode:         req.auth?.role === "admin",
@@ -917,6 +1037,8 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
           "profileSubscription.tier":       reqTier,
           "profileSubscription.startedAt":  now,
           "profileSubscription.expiresAt":  expiresAt,
+          "profileSubscription.cancelAtPeriodEnd": false,
+          "profileSubscription.cancelRequestedAt": null,
           ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
         },
       },
@@ -946,8 +1068,62 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
         isActive:     true,
         expiresAt:    expiresAt.toISOString(),
         profileLimit: plan.profileLimit,
+        cancelAtPeriodEnd: false,
+        cancelRequestedAt: null,
       },
       user: { points: balanceAfter },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/pig-coin/profile-subscription/cancel", async (req, res, next) => {
+  try {
+    const resume = req.body?.resume === true || String(req.body?.resume || "").toLowerCase() === "true";
+    const now = new Date();
+
+    const existingUser = await User.findById(req.auth.userId)
+      .select("profileSubscription")
+      .lean();
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    const sub = existingUser.profileSubscription || {};
+    const tier = String(sub.tier || "free");
+    const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
+    const isActive = tier !== "free" && !!expiresAt && expiresAt > now;
+
+    if (!isActive) {
+      return res.status(400).json({ message: "해지 가능한 활성 구독이 없습니다." });
+    }
+
+    await User.updateOne(
+      { _id: req.auth.userId },
+      {
+        $set: {
+          "profileSubscription.cancelAtPeriodEnd": !resume,
+          "profileSubscription.cancelRequestedAt": resume ? null : now,
+        },
+      },
+    );
+
+    const plan = PROFILE_SUB_PLANS[tier];
+
+    return res.status(200).json({
+      message: resume
+        ? "구독 해지가 취소되어 자동 갱신이 다시 활성화되었습니다."
+        : "구독 해지가 예약되었습니다. 만료일까지는 모든 혜택을 그대로 이용할 수 있습니다.",
+      subscription: {
+        tier,
+        isActive: true,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        profileLimit: plan?.profileLimit ?? 1,
+        cancelAtPeriodEnd: !resume,
+        cancelRequestedAt: resume ? null : now.toISOString(),
+      },
     });
   } catch (error) {
     return next(error);

@@ -1436,11 +1436,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <script>
         (function () {
-          function __cdRenderAuthSummary(name, points, isAdmin) {
+          function __cdRenderAuthSummary(name, points, isAdmin, subscriptionLabel) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
             var _esc = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
             var safeName = _esc(name || '사용자');
+            var safeSubscription = subscriptionLabel ? _esc(subscriptionLabel) : '';
+            var taglineText = safeSubscription
+              ? (safeSubscription + ' · 오늘도 운명의 별자리를 탐험해 보세요')
+              : '오늘도 운명의 별자리를 탐험해 보세요';
             var initial = String(name || '✦').trim().charAt(0) || '✦';
             var adminBadgeHtml = isAdmin
               ? '<span class="admin-badge" title="관리자 모드 활성화 — 코인 제한 없음">'
@@ -1465,7 +1469,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '<div class="cd-user-card__info">' +
               '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
               '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
-              '<span class="cd-user-card__tagline">오늘도 운명의 별자리를 탐험해 보세요</span>' +
+              '<span class="cd-user-card__tagline">' + taglineText + '</span>' +
               '</div>' +
               '<div class="cd-user-card__actions">' +
               adminBadgeHtml +
@@ -1491,6 +1495,29 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 try { window.__cdAdminBypass = false; } catch (_) {}
                 location.reload();
               });
+            }
+          }
+
+          function __cdMakeSubscriptionLabel(status) {
+            try {
+              var normalized = status || {};
+              var tier = String(normalized.tier || 'free').toLowerCase();
+              var isActive = !!normalized.isActive;
+              if (!isActive || tier === 'free') return '';
+
+              var tierLabels = {
+                standard: '🍯 스탠다드 꿀 구독 중',
+                premium: '🌹 프리미엄 꿀 구독 중',
+                vvip: '👑 VVIP 꿀단지 구독 중',
+              };
+              var base = tierLabels[tier] || '✨ 구독 혜택 활성화';
+              if (!normalized.expiresAt) return base;
+
+              var expiresAt = new Date(normalized.expiresAt);
+              if (Number.isNaN(expiresAt.getTime())) return base;
+              return base + ' (' + (expiresAt.getMonth() + 1) + '/' + expiresAt.getDate() + '까지)';
+            } catch (_) {
+              return '';
             }
           }
 
@@ -1544,10 +1571,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 return;
               }
               var us = localStorage.getItem('fortune_auth_user');
-              var n = '사용자', p = 0, r = 'user';
-              try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) {}
+              var n = '사용자', p = 0, r = 'user', u = {};
+              try { u = JSON.parse(us || '{}') || {}; n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) { u = {}; }
               var isAdm = r === 'admin' || _adminTokValid;
-              __cdRenderAuthSummary(n, p, isAdm);
+              var subLabel = __cdMakeSubscriptionLabel((u || {}).profileSubscription);
+              var __cdRenderWithSub = function (pointsValue, forcedLabel) {
+                var activeLabel = typeof forcedLabel === 'string' ? forcedLabel : subLabel;
+                __cdRenderAuthSummary(n, pointsValue, isAdm, activeLabel);
+              };
+
+              var __cdSyncSubscription = function (pointsValue) {
+                fetch('/api/fortune/pig-coin/profile-subscription/status', {
+                  method: 'GET',
+                  headers: { Authorization: 'Bearer ' + t },
+                })
+                  .then(function (response) {
+                    if (!response.ok) throw new Error('subscription_sync_failed');
+                    return response.json();
+                  })
+                  .then(function (statusPayload) {
+                    var label = __cdMakeSubscriptionLabel(statusPayload || {});
+                    subLabel = label;
+                    try {
+                      var raw = localStorage.getItem('fortune_auth_user');
+                      var user = raw ? JSON.parse(raw) : {};
+                      if (typeof user !== 'object' || user === null) user = {};
+                      user.profileSubscription = {
+                        tier: (statusPayload && statusPayload.tier) || 'free',
+                        isActive: !!(statusPayload && statusPayload.isActive),
+                        expiresAt: (statusPayload && statusPayload.expiresAt) || null,
+                      };
+                      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                    } catch (_) {}
+                    __cdRenderWithSub(pointsValue, label);
+                  })
+                  .catch(function () {});
+              };
+
+              __cdRenderWithSub(p);
+              __cdSyncSubscription(p);
 
               fetch('/api/payments/me', {
                 method: 'GET',
@@ -1570,7 +1632,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     localStorage.setItem('fortune_auth_user', JSON.stringify(user));
                   } catch (_) {}
 
-                  __cdRenderAuthSummary(n, nextPoints, isAdm);
+                  __cdRenderWithSub(nextPoints);
+                  __cdSyncSubscription(nextPoints);
                   if (typeof window.__cdSetGoldenBalance === 'function') {
                     window.__cdSetGoldenBalance(nextPoints);
                   }
@@ -6154,6 +6217,39 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var unlockedFeatureMap = Object.create(null);
   var perUseApproved = Object.create(null);
   var TILE_LOCKS_KEY = 'cd_tile_locks';
+
+  var TILE_LOCK_ALIAS_MAP = {
+    'olympus-profile-fc': ['olympus-fc'],
+    'olympus-fc': ['olympus-profile-fc'],
+    'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
+    'flower-destiny': ['flower-fc'],
+    'flower-astro': ['flower-fc'],
+    'flower-ziwei': ['flower-fc'],
+    'flower-sukuyo': ['flower-fc']
+  };
+
+  function resolveTileLockAliasKeys(rawKey) {
+    var base = String(rawKey || '').trim();
+    if (!base) return [];
+    var map = Object.create(null);
+    map[base] = true;
+    var aliases = TILE_LOCK_ALIAS_MAP[base] || [];
+    for (var i = 0; i < aliases.length; i += 1) map[aliases[i]] = true;
+    return Object.keys(map);
+  }
+
+  function markUnlockKey(unlockMap, rawKey) {
+    if (!unlockMap || typeof unlockMap !== 'object') return false;
+    var changed = false;
+    var keys = resolveTileLockAliasKeys(rawKey);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (unlockMap[keys[i]] !== true) {
+        unlockMap[keys[i]] = true;
+        changed = true;
+      }
+    }
+    return changed;
+  }
   var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
@@ -6413,7 +6509,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileBtns = document.querySelectorAll('[data-tile-lock-key]');
     for (var t = 0; t < tileBtns.length; t += 1) {
       var tk = tileBtns[t].getAttribute('data-tile-lock-key');
-      if (tk) map[tk] = true;
+      if (tk) {
+        var aliases = resolveTileLockAliasKeys(tk);
+        for (var a = 0; a < aliases.length; a += 1) map[aliases[a]] = true;
+      }
     }
     return map;
   }
@@ -6425,12 +6524,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     function applyKey(rawKey) {
       var k = String(rawKey || '').trim();
       if (!k || k === 'pig-coin-unlock') return;
-      var aliases = (typeof resolveTileLockAliasKeys === 'function') ? resolveTileLockAliasKeys(k) : [k];
+      var aliases = resolveTileLockAliasKeys(k);
       for (var ai = 0; ai < aliases.length; ai += 1) {
         var ak = aliases[ai];
         if (known[ak] && unlockedFeatureMap[ak] !== true) {
-          if (typeof markUnlockKey === 'function') markUnlockKey(unlockedFeatureMap, ak);
-          else unlockedFeatureMap[ak] = true;
+          markUnlockKey(unlockedFeatureMap, ak);
           changed = true;
         }
       }
@@ -6554,19 +6652,32 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     window.location.href = '/points';
   }
 
+  function resolveUnlockProductIdByFeatureKey(featureKey) {
+    var key = String(featureKey || '').trim();
+    if (!key) return '';
+    var map = {
+      section_daewun: 'unlock.section_daewun',
+      section_summary: 'unlock.section_summary',
+      section_compat: 'unlock.section_compat',
+      'flower-fc': 'unlock.flower_fc',
+      'olympus-fc': 'unlock.olympus_fc'
+    };
+    return map[key] || '';
+  }
+
   async function tryUnlockFeature(button) {
     if (!button) return;
     var featureKey = button.getAttribute('data-unlock-key') || '';
     var cost = Number(button.getAttribute('data-unlock-cost') || 10);
 
-    if (unlockedFeatureMap[featureKey]) {
+    if (isTileKeyUnlocked(featureKey)) {
       window.alert('이미 해제된 기능입니다.');
       return;
     }
 
     // 관리자 모드: 코인 차감 없이 즉시 해금
     if (isAdminUser()) {
-      unlockedFeatureMap[featureKey] = true;
+      markUnlockKey(unlockedFeatureMap, featureKey);
       saveTileLocks();
       UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
@@ -6585,13 +6696,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (consumeInFlight) return;
     consumeInFlight = true;
     try {
-      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        body: JSON.stringify({
+      var productId = resolveUnlockProductIdByFeatureKey(featureKey);
+      var requestId = 'unlock:' + (productId || featureKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
+      var payload = productId
+        ? { productId: productId, requestId: requestId }
+        : {
           cost: cost,
           featureKey: featureKey,
           reason: '유료 섹션 잠금 해제 코인 차감',
-        }),
+          forceDeduct: true,
+          requestId: requestId,
+        };
+
+      var result = await fetchJsonWithAuth(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(payload),
       });
 
       if (result.status === 402) {
@@ -6608,7 +6728,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
       saveBalance();
       updateBadge();
-      unlockedFeatureMap[featureKey] = true;
+      markUnlockKey(unlockedFeatureMap, featureKey);
       saveTileLocks();
       UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
@@ -8873,6 +8993,7 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
 
 
 

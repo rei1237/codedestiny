@@ -58,6 +58,10 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
+  recentConsumeRequestIds: {
+    type: [String],
+    default: [],
+  },
   unlockedFeatures: {
     type: [String],
     default: [],
@@ -116,6 +120,8 @@ const userSchema = new mongoose.Schema({
     startedAt:  { type: Date, default: null },
     expiresAt:  { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
+    cancelAtPeriodEnd: { type: Boolean, default: false },
+    cancelRequestedAt: { type: Date, default: null },
   },
   // 구독형 디지털 콘텐츠 서비스 개시 기록
   // - 멤버십 전용 콘텐츠 열람 확인 팝업의 [확인] 클릭 시 true

@@ -17,6 +17,32 @@ const PIG_COIN_PACKAGES = {
   emperorReserve: { name: "Emperor Reserve", coins: 1500, bonus: 500 },
 };
 
+const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "Flower destiny pack unlock", forceDeduct: true },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
+  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
+  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG character unlock", forceDeduct: true },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 100, reason: "Travel destiny unlock", forceDeduct: true },
+  "unlock.health_report": { featureKey: "healthReport", cost: 100, reason: "Health report unlock", forceDeduct: true },
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 200, reason: "Saju diary unlock", forceDeduct: true },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 100, reason: "Secret house episodes unlock", forceDeduct: true },
+  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
+  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 500, reason: "Premium ziwei unlock", forceDeduct: true },
+  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock", forceDeduct: true },
+  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
+  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
+  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
+});
+
+function resolveUnlockProductSpec(productId) {
+  const id = String(productId || "").trim().toLowerCase();
+  if (!id) return null;
+  return PIG_COIN_UNLOCK_PRODUCTS[id] || null;
+}
+
 const PROFILE_SUB_PLANS = {
   standard: { name: "Standard", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
   premium: { name: "Premium", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
@@ -235,7 +261,7 @@ async function resolvePigCoinConsumeAuth(request, env) {
   const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
 
   if (!auth && !adminMode) {
-    throw createHttpError(401, "Authentication is required.");
+    throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
   }
 
   return { auth, adminMode };
@@ -380,20 +406,32 @@ async function handleChargeSimulate(request, env, auth) {
 async function handlePigCoinConsume(request, auth, options = {}) {
   const adminMode = Boolean(options?.adminMode);
   const body = await readJson(request);
-  const requestedCost = Number(body?.cost);
+  const productId = String(body?.productId || options?.productId || "").trim().toLowerCase();
+  const productSpec = productId ? resolveUnlockProductSpec(productId) : null;
+  if (productId && !productSpec) {
+    return json({
+      message: "Unsupported unlock product.",
+      code: "INVALID_PRODUCT",
+      productId,
+    }, { status: 400 });
+  }
+
+  const requestedCost = Number(productSpec ? productSpec.cost : body?.cost);
   const cost = Number.isFinite(requestedCost) && requestedCost > 0
     ? Math.floor(requestedCost)
     : PIG_COIN_DEFAULT_UNLOCK_COST;
 
   if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
-    return json({ message: "Invalid coin deduction amount." }, { status: 400 });
+    return json({ message: "Invalid coin deduction amount.", code: "INVALID_REQUEST" }, { status: 400 });
   }
 
-  const reason = String(body?.reason || "Paid feature unlock").trim().slice(0, 120);
-  const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const reason = String(productSpec?.reason || body?.reason || "Paid feature unlock").trim().slice(0, 120);
+  const featureKey = String(productSpec?.featureKey || body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
   const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
   const requestId = String(body?.requestId || "").trim().slice(0, 120);
-  const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").toLowerCase() === "true";
+  const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
+  const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
+  const forceDeductApplied = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
   const authEmail = String(auth?.email || "").trim().toLowerCase();
   const forcePaidMode = Boolean(authEmail && FORCE_PAID_TEST_ACCOUNT_EMAILS.has(authEmail));
 
@@ -412,6 +450,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
     return json({
       message: "Admin bypass enabled. No coins were deducted.",
+      code: "ADMIN_BYPASS",
+      productId: productId || null,
       requiredCoins: cost,
       chargedCoins: 0,
       simulatedChargeCoins: 0,
@@ -422,7 +462,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       freeLimit: policy.freeLimit,
       profileLimit: policy.profileLimit,
       recommendedCoins: policy.recommendedCoins,
-      freeBySubscription: Boolean(adminTestTier && !forceDeduct && cost <= policy.freeLimit),
+      freeBySubscription: Boolean(adminTestTier && !forceDeductApplied && cost <= policy.freeLimit),
+      forceDeductApplied,
       user: auth?.userId
         ? userPayload(auth, currentPoints == null ? 0 : currentPoints, unlockedFeatures)
         : { id: "admin", points: null },
@@ -432,23 +473,26 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   }
 
   const user = await User.findById(auth.userId)
-    .select("points profileSubscription unlockedFeatures")
+    .select("points profileSubscription unlockedFeatures recentConsumeRequestIds")
     .lean();
 
   if (!user) {
-    return json({ message: "User not found." }, { status: 404 });
+    return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
   }
 
   const effectiveTier = resolveEffectiveActiveTier(user);
   const policy = getPlanPolicy(effectiveTier);
-  const isIncludedBySubscription = Boolean(!forceDeduct && effectiveTier && cost <= policy.freeLimit);
+  const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
   if (isIncludedBySubscription) {
     return json({
-      message: "Included in your active subscription. No coins were deducted.",
+      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
+      code: "SUBSCRIPTION_INCLUDED",
+      productId: productId || null,
       requiredCoins: cost,
       chargedCoins: 0,
       freeBySubscription: true,
+      forceDeductApplied,
       subscriptionTier: effectiveTier,
       freeLimit: policy.freeLimit,
       profileLimit: policy.profileLimit,
@@ -462,20 +506,62 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const updatePayload = {
     $inc: { points: -cost },
   };
+  if (requestId) {
+    updatePayload.$push = {
+      recentConsumeRequestIds: {
+        $each: [requestId],
+        $slice: -200,
+      },
+    };
+  }
   if (unlockKeysToPersist.length) {
     updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
   }
 
   const updatedUser = await User.findOneAndUpdate(
-    { _id: auth.userId, points: { $gte: cost } },
+    {
+      _id: auth.userId,
+      points: { $gte: cost },
+      ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
+    },
     updatePayload,
     { new: true, projection: { points: 1, unlockedFeatures: 1 } },
   ).lean();
 
   if (!updatedUser) {
+    if (requestId) {
+      const replayUser = await User.findById(auth.userId)
+        .select("points unlockedFeatures recentConsumeRequestIds")
+        .lean();
+      const replayIds = Array.isArray(replayUser?.recentConsumeRequestIds)
+        ? replayUser.recentConsumeRequestIds.map((v) => String(v))
+        : [];
+      if (replayIds.includes(requestId)) {
+        const replayUnlocks = normalizePersistentUnlockKeys(replayUser?.unlockedFeatures || []);
+        return json({
+          message: "Already processed request.",
+          code: "IDEMPOTENT_REPLAY",
+          alreadyProcessed: true,
+          productId: productId || null,
+          requiredCoins: cost,
+          chargedCoins: 0,
+          freeBySubscription: false,
+          forceDeductApplied,
+          subscriptionTier: effectiveTier || "free",
+          freeLimit: policy.freeLimit,
+          profileLimit: policy.profileLimit,
+          recommendedCoins: policy.recommendedCoins,
+          user: userPayload(auth, Number(replayUser?.points || 0), replayUnlocks),
+          unlockedFeatures: replayUnlocks,
+          unlockMap: toUnlockMap(replayUnlocks),
+        });
+      }
+    }
     return json({
       message: "Not enough coins.",
       requiredCoins: cost,
+      code: "INSUFFICIENT_BALANCE",
+      productId: productId || null,
     }, { status: 402 });
   }
 
@@ -499,9 +585,12 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   return json({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
+    code: "OK",
+    productId: productId || null,
     requiredCoins: cost,
     chargedCoins: cost,
     freeBySubscription: false,
+    forceDeductApplied,
     subscriptionTier: effectiveTier || "free",
     freeLimit: policy.freeLimit,
     profileLimit: policy.profileLimit,
@@ -510,6 +599,35 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     user: userPayload(auth, updatedUser.points, unlockedFeatures),
     unlockedFeatures,
     unlockMap: toUnlockMap(unlockedFeatures),
+  });
+}
+
+async function handlePigCoinUnlock(request, auth, options = {}) {
+  const body = await readJson(request);
+  const productId = String(body?.productId || "").trim().toLowerCase();
+  if (!productId) {
+    return json({ message: "productId is required.", code: "INVALID_PRODUCT" }, { status: 400 });
+  }
+
+  if (!resolveUnlockProductSpec(productId)) {
+    return json({ message: "Unsupported unlock product.", code: "INVALID_PRODUCT", productId }, { status: 400 });
+  }
+
+  const delegatedBody = {
+    productId,
+    requestId: String(body?.requestId || "").trim().slice(0, 120),
+  };
+  const delegatedRequest = new Request(request.url, {
+    method: "POST",
+    headers: new Headers({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(delegatedBody),
+  });
+
+  return handlePigCoinConsume(delegatedRequest, auth, {
+    ...options,
+    productId,
   });
 }
 
@@ -636,6 +754,8 @@ async function handleSubscriptionStatus(request, env, auth) {
   const sub = user.profileSubscription || {};
   const tier = sub.tier || "free";
   const expAt = sub.expiresAt || null;
+  const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
+  const cancelRequestedAt = sub.cancelRequestedAt || null;
   let points = Number(user.points || 0);
   const plan = PROFILE_SUB_PLANS[tier];
   const now = new Date();
@@ -647,7 +767,7 @@ async function handleSubscriptionStatus(request, env, auth) {
   if (tier !== "free" && effectiveExpAt) {
     if (effectiveExpAt > now) {
       effectiveTier = tier;
-    } else if (plan && points >= plan.coins) {
+    } else if (!cancelAtPeriodEnd && plan && points >= plan.coins) {
       const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 86400000);
       const updatedUser = await User.findOneAndUpdate(
         { _id: auth.userId, points: { $gte: plan.coins } },
@@ -698,6 +818,8 @@ async function handleSubscriptionStatus(request, env, auth) {
       points,
       lowBalanceWarning: Boolean(points <= simulatedPolicy.freeLimit),
       autoRenewed: false,
+      cancelAtPeriodEnd: false,
+      cancelRequestedAt: null,
       hasStartedPaidService: Boolean(user.has_started_paid_service),
       firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
       adminMode: true,
@@ -716,6 +838,8 @@ async function handleSubscriptionStatus(request, env, auth) {
     points,
     lowBalanceWarning: Boolean(lowBalanceWarning),
     autoRenewed: Boolean(autoRenewed),
+    cancelAtPeriodEnd: Boolean(cancelAtPeriodEnd),
+    cancelRequestedAt: cancelRequestedAt ? new Date(cancelRequestedAt).toISOString() : null,
     hasStartedPaidService: Boolean(user.has_started_paid_service),
     firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
     adminMode,
@@ -890,6 +1014,8 @@ async function handleSubscribe(request, auth) {
         "profileSubscription.tier": reqTier,
         "profileSubscription.startedAt": now,
         "profileSubscription.expiresAt": expiresAt,
+        "profileSubscription.cancelAtPeriodEnd": false,
+        "profileSubscription.cancelRequestedAt": null,
         ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
       },
     },
@@ -918,8 +1044,57 @@ async function handleSubscribe(request, auth) {
       isActive: true,
       expiresAt: expiresAt.toISOString(),
       profileLimit: plan.profileLimit,
+      cancelAtPeriodEnd: false,
+      cancelRequestedAt: null,
     },
     user: { points: balanceAfter },
+  });
+}
+
+async function handleSubscriptionCancel(request, auth) {
+  const body = await readJson(request);
+  const resume = body?.resume === true || String(body?.resume || "").toLowerCase() === "true";
+  const now = new Date();
+
+  const existingUser = await User.findById(auth.userId)
+    .select("profileSubscription")
+    .lean();
+
+  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
+
+  const sub = existingUser.profileSubscription || {};
+  const tier = String(sub.tier || "free");
+  const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
+  const isActive = tier !== "free" && !!expiresAt && expiresAt > now;
+
+  if (!isActive) {
+    return json({ message: "No active subscription available to cancel." }, { status: 400 });
+  }
+
+  await User.updateOne(
+    { _id: auth.userId },
+    {
+      $set: {
+        "profileSubscription.cancelAtPeriodEnd": !resume,
+        "profileSubscription.cancelRequestedAt": resume ? null : now,
+      },
+    },
+  );
+
+  const plan = PROFILE_SUB_PLANS[tier];
+
+  return json({
+    message: resume
+      ? "Subscription cancellation has been reverted. Auto-renewal is active again."
+      : "Subscription cancellation is scheduled. Benefits stay active until expiry.",
+    subscription: {
+      tier,
+      isActive: true,
+      expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      profileLimit: plan?.profileLimit ?? 1,
+      cancelAtPeriodEnd: !resume,
+      cancelRequestedAt: resume ? null : now.toISOString(),
+    },
   });
 }
 
@@ -928,6 +1103,11 @@ export async function handleFortuneRoutes(request, env) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/fortune");
     await connectDb(env);
+
+    if (method === "POST" && path === "/pig-coin/unlock") {
+      const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      return await handlePigCoinUnlock(request, authCtx.auth, { adminMode: authCtx.adminMode });
+    }
 
     if (method === "POST" && path === "/pig-coin/consume") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
@@ -946,6 +1126,7 @@ export async function handleFortuneRoutes(request, env) {
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/subscribe") return await handleSubscribe(request, auth);
+    if (method === "POST" && path === "/pig-coin/profile-subscription/cancel") return await handleSubscriptionCancel(request, auth);
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

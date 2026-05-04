@@ -1199,11 +1199,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <script>
         (function () {
-          function __cdRenderAuthSummary(name, points, isAdmin) {
+          function __cdRenderAuthSummary(name, points, isAdmin, subscriptionLabel) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
             var _esc = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
             var safeName = _esc(name || '사용자');
+            var safeSubscription = subscriptionLabel ? _esc(subscriptionLabel) : '';
+            var taglineText = safeSubscription
+              ? (safeSubscription + ' · 오늘도 운명의 별자리를 탐험해 보세요')
+              : '오늘도 운명의 별자리를 탐험해 보세요';
             var initial = String(name || '✦').trim().charAt(0) || '✦';
             var adminBadgeHtml = isAdmin
               ? '<span class="admin-badge" title="관리자 모드 활성화 — 코인 제한 없음">'
@@ -1228,7 +1232,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '<div class="cd-user-card__info">' +
               '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
               '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
-              '<span class="cd-user-card__tagline">오늘도 운명의 별자리를 탐험해 보세요</span>' +
+              '<span class="cd-user-card__tagline">' + taglineText + '</span>' +
               '</div>' +
               '<div class="cd-user-card__actions">' +
               adminBadgeHtml +
@@ -1249,6 +1253,29 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 try { window.__cdAdminBypass = false; } catch (_) {}
                 location.reload();
               });
+            }
+          }
+
+          function __cdMakeSubscriptionLabel(status) {
+            try {
+              var normalized = status || {};
+              var tier = String(normalized.tier || 'free').toLowerCase();
+              var isActive = !!normalized.isActive;
+              if (!isActive || tier === 'free') return '';
+
+              var tierLabels = {
+                standard: '🍯 스탠다드 꿀 구독 중',
+                premium: '🌹 프리미엄 꿀 구독 중',
+                vvip: '👑 VVIP 꿀단지 구독 중',
+              };
+              var base = tierLabels[tier] || '✨ 구독 혜택 활성화';
+              if (!normalized.expiresAt) return base;
+
+              var expiresAt = new Date(normalized.expiresAt);
+              if (Number.isNaN(expiresAt.getTime())) return base;
+              return base + ' (' + (expiresAt.getMonth() + 1) + '/' + expiresAt.getDate() + '까지)';
+            } catch (_) {
+              return '';
             }
           }
 
@@ -1298,10 +1325,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 return;
               }
               var us = localStorage.getItem('fortune_auth_user');
-              var n = '사용자', p = 0, r = 'user';
-              try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) {}
+              var n = '사용자', p = 0, r = 'user', u = {};
+              try { u = JSON.parse(us || '{}') || {}; n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) { u = {}; }
               var isAdm = r === 'admin' || _adminTokValid;
-              __cdRenderAuthSummary(n, p, isAdm);
+              var subLabel = __cdMakeSubscriptionLabel((u || {}).profileSubscription);
+              var __cdRenderWithSub = function (pointsValue, forcedLabel) {
+                var activeLabel = typeof forcedLabel === 'string' ? forcedLabel : subLabel;
+                __cdRenderAuthSummary(n, pointsValue, isAdm, activeLabel);
+              };
+
+              var __cdSyncSubscription = function (pointsValue) {
+                fetch('/api/fortune/pig-coin/profile-subscription/status', {
+                  method: 'GET',
+                  headers: { Authorization: 'Bearer ' + t },
+                })
+                  .then(function (response) {
+                    if (!response.ok) throw new Error('subscription_sync_failed');
+                    return response.json();
+                  })
+                  .then(function (statusPayload) {
+                    var label = __cdMakeSubscriptionLabel(statusPayload || {});
+                    subLabel = label;
+                    try {
+                      var raw = localStorage.getItem('fortune_auth_user');
+                      var user = raw ? JSON.parse(raw) : {};
+                      if (typeof user !== 'object' || user === null) user = {};
+                      user.profileSubscription = {
+                        tier: (statusPayload && statusPayload.tier) || 'free',
+                        isActive: !!(statusPayload && statusPayload.isActive),
+                        expiresAt: (statusPayload && statusPayload.expiresAt) || null,
+                      };
+                      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                    } catch (_) {}
+                    __cdRenderWithSub(pointsValue, label);
+                  })
+                  .catch(function () {});
+              };
+
+              __cdRenderWithSub(p);
+              __cdSyncSubscription(p);
 
               fetch('/api/payments/me', {
                 method: 'GET',
@@ -1324,7 +1386,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     localStorage.setItem('fortune_auth_user', JSON.stringify(user));
                   } catch (_) {}
 
-                  __cdRenderAuthSummary(n, nextPoints, isAdm);
+                  __cdRenderWithSub(nextPoints);
+                  __cdSyncSubscription(nextPoints);
                   if (typeof window.__cdSetGoldenBalance === 'function') {
                     window.__cdSetGoldenBalance(nextPoints);
                   }
@@ -10554,6 +10617,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     window.location.href = '/points';
   }
 
+  function resolveUnlockProductIdByFeatureKey(featureKey) {
+    var key = String(featureKey || '').trim();
+    if (!key) return '';
+    var map = {
+      section_daewun: 'unlock.section_daewun',
+      section_summary: 'unlock.section_summary',
+      section_compat: 'unlock.section_compat',
+      'flower-fc': 'unlock.flower_fc',
+      'olympus-fc': 'unlock.olympus_fc'
+    };
+    return map[key] || '';
+  }
+
   async function tryUnlockFeature(button) {
     if (!button) return;
     var featureKey = button.getAttribute('data-unlock-key') || '';
@@ -10579,25 +10655,32 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return;
     }
 
-    var confirmed = window.confirm('꽃꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
+    var confirmed = window.confirm('꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
     if (consumeInFlight) return;
     consumeInFlight = true;
     try {
-      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        body: JSON.stringify({
+      var productId = resolveUnlockProductIdByFeatureKey(featureKey);
+      var requestId = 'unlock:' + (productId || featureKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
+      var payload = productId
+        ? { productId: productId, requestId: requestId }
+        : {
           cost: cost,
           featureKey: featureKey,
           reason: '유료 섹션 잠금 해제 코인 차감',
           forceDeduct: true,
-          requestId: 'unlock:' + featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
-        }),
+          requestId: requestId,
+        };
+
+      var result = await fetchJsonWithAuth(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(payload),
       });
 
       if (result.status === 402) {
-        window.alert('꽃꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+        window.alert('꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
         openChargeModal();
         return;
       }
@@ -11332,9 +11415,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         try {
           _cdSetCoinGateOverlay(true, fname + ' 해금을 진행하고 있습니다...');
           _unlockOverlayOpened = true;
-          var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+          var tileProductId = resolveUnlockProductIdByFeatureKey(tileLockKey);
+          var tileRequestId = 'unlock:' + (tileProductId || tileLockKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+          var tileEndpoint = tileProductId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
+          var tilePayload = tileProductId
+            ? { productId: tileProductId, requestId: tileRequestId }
+            : { cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금', forceDeduct: true, requestId: tileRequestId };
+          var r = await fetchJsonWithAuth(tileEndpoint, {
             method: 'POST',
-            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
+            body: JSON.stringify(tilePayload),
           });
           if (r.status === 402) { openChargeModal(); return; }
           if (!r.ok) {
@@ -12912,6 +13001,7 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </html>
+
 
 
 

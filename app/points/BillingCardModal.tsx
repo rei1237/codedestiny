@@ -158,7 +158,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
       onClick={(e) => { if (e.target === e.currentTarget && !isLoading) onClose(); }}
     >
       <div className="w-full max-w-md rounded-t-[28px] sm:rounded-[28px] overflow-hidden shadow-[0_-8px_60px_rgba(0,0,0,0.35)]">
-        {/* toss payments 스타일 헤더 */}
+        {/* 결제 스타일 헤더 */}
         <div className="bg-white px-5 pb-6 pt-5 max-h-[90vh] overflow-y-auto">
           <div className="mb-5 flex items-center justify-between gap-3">
             {step !== "input" ? (

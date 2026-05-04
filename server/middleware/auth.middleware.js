@@ -35,7 +35,7 @@ function requireAuth(req, res, next) {
   const token = getTokenFromRequest(req);
 
   if (!token) {
-    return res.status(401).json({ message: "인증 토큰이 필요합니다." });
+    return res.status(401).json({ message: "인증 토큰이 필요합니다.", code: "UNAUTHORIZED" });
   }
 
   try {
@@ -48,7 +48,7 @@ function requireAuth(req, res, next) {
     };
     return next();
   } catch (error) {
-    return res.status(401).json({ message: "유효하지 않거나 만료된 토큰입니다." });
+    return res.status(401).json({ message: "유효하지 않거나 만료된 토큰입니다.", code: "UNAUTHORIZED" });
   }
 }
 

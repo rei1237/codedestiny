@@ -13,6 +13,8 @@ type SubscriptionStatus = {
   expiresAt: string | null;
   profileLimit: number;
   lowBalanceWarning?: boolean;
+  cancelAtPeriodEnd?: boolean;
+  cancelRequestedAt?: string | null;
 };
 
 type Props = {
@@ -199,6 +201,15 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">⏰</span>
                 <p className="text-[11.5px] text-orange-800">
                   구독이 <strong>{daysLeft}일 후</strong> 만료됩니다. 만료 전 하단에서 갱신하세요.
+                </p>
+              </div>
+            )}
+
+            {subscription.cancelAtPeriodEnd && (
+              <div className="rounded-[12px] border border-violet-300 bg-violet-50 px-3.5 py-2.5 flex items-start gap-2">
+                <span className="text-violet-500 flex-shrink-0 mt-0.5">🧭</span>
+                <p className="text-[11.5px] text-violet-800">
+                  해지 예약 상태입니다. 현재 혜택은 유지되며 만료 후 자동 갱신되지 않습니다.
                 </p>
               </div>
             )}

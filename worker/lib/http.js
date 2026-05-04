@@ -98,11 +98,11 @@ export async function handleRouteError(error) {
   }
 
   if (error?.name === "TokenExpiredError") {
-    return json({ message: "Authentication has expired. Please sign in again." }, { status: 401 });
+    return json({ message: "Authentication has expired. Please sign in again.", code: "UNAUTHORIZED" }, { status: 401 });
   }
 
   if (error?.name === "JsonWebTokenError") {
-    return json({ message: "Invalid authentication token." }, { status: 401 });
+    return json({ message: "Invalid authentication token.", code: "UNAUTHORIZED" }, { status: 401 });
   }
 
   console.error(error);

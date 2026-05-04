@@ -53,6 +53,8 @@ export async function getUserModel() {
         startedAt:  { type: Date, default: null },
         expiresAt:  { type: Date, default: null },
         firstSubAt: { type: Date, default: null },
+        cancelAtPeriodEnd: { type: Boolean, default: false },
+        cancelRequestedAt: { type: Date, default: null },
       },
       has_started_paid_service: { type: Boolean, default: false, index: true },
       first_service_access_date: { type: Date, default: null },

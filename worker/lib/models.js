@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
   withdrawnAt: { type: Date, default: null },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   points: { type: Number, default: 0, min: 0 },
+  recentConsumeRequestIds: { type: [String], default: [] },
   unlockedFeatures: { type: [String], default: [] },
   localAuth: {
     enabled: { type: Boolean, default: true },
@@ -47,6 +48,8 @@ const userSchema = new mongoose.Schema({
     startedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
+    cancelAtPeriodEnd: { type: Boolean, default: false },
+    cancelRequestedAt: { type: Date, default: null },
   },
   has_started_paid_service: { type: Boolean, default: false, index: true },
   first_service_access_date: { type: Date, default: null },
