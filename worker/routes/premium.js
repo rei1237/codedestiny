@@ -293,11 +293,18 @@ ${guard}
 
 async function callGemini(env, prompt, modelEnvKeys = []) {
   const result = await callGeminiText(env, prompt, {
+    keyEnvKeys: [
+      "PREMIUM_GEMINI_API_KEY1",
+      "PREMIUM_GEMINI_API_KEY2",
+      "PREMIUM_GEMINI_API_KEY3",
+      "PREMIUM_GEMINI_API_KEY4",
+    ],
     modelEnvKeys: ["PREMIUM_GEMINI_MODEL", ...modelEnvKeys],
     temperature: 0.86,
     topP: 0.95,
     maxOutputTokens: 8192,
     timeoutMs: Number(env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+    maxAttemptsPerPair: Number(env.PREMIUM_GEMINI_RETRIES || 2),
   });
   return result.ok ? result.text : "";
 }

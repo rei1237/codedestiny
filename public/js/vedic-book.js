@@ -69,8 +69,52 @@
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var PREMIUM_VEDIC_COST = 390;
+  var PREMIUM_VEDIC_FEATURE_KEY = 'premium-veda';
+  var PREMIUM_VEDIC_TX_KEY = 'cd_premium_tx_veda';
 
   function _qs(id){return document.getElementById(id);}
+
+  function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    if (!token) return Promise.resolve(false);
+
+    var sourceTransactionId = '';
+    try { sourceTransactionId = sessionStorage.getItem(txStorageKey) || ''; } catch (_) {}
+    var requestId = 'premium-refund:' + featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+
+    return fetch('/api/fortune/pig-coin/refund', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify({
+        cost: cost,
+        featureKey: featureKey,
+        sourceTransactionId: sourceTransactionId || undefined,
+        requestId: requestId,
+        reason: label + ' 생성 실패 자동 환급',
+      }),
+    })
+    .then(function (res) { return res.json().catch(function () { return {}; }).then(function (data) { return { ok: res.ok, data: data }; }); })
+    .then(function (payload) {
+      if (!payload.ok && !payload.data?.alreadyRefunded) return false;
+      var pts = Number(payload.data?.user?.points);
+      if (isFinite(pts)) {
+        try {
+          var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+          user.points = pts;
+          localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+        } catch (_) {}
+        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(pts);
+      }
+      try { sessionStorage.removeItem(txStorageKey); } catch (_) {}
+      return true;
+    })
+    .catch(function () { return false; });
+  }
 
   function _applyVedicTheme(modal){
     if(!modal||!modal.style)return;
@@ -419,32 +463,47 @@
     _setProgress(0);
 
     function _fetchChapter(idx){
-      return new Promise(function(resolve){
-        var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (60초).'});},60000);
-        fetch('/api/premium/vedic-life',{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            year:b.year,month:b.month,day:b.day,
-            hour:b.hour!==undefined?b.hour:12,
-            minute:b.minute!==undefined?b.minute:0,
-            timezone:loc.tzOffset!==undefined?loc.tzOffset:9,
-            lat:loc.lat!==undefined?loc.lat:37.5665,
-            lon:loc.lng!==undefined?loc.lng:126.978,
-            chapter:idx+1
+      function _attempt(tryNo){
+        return new Promise(function(resolve){
+          var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (70초).'});},70000);
+          fetch('/api/premium/vedic-life',{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+              year:b.year,month:b.month,day:b.day,
+              hour:b.hour!==undefined?b.hour:12,
+              minute:b.minute!==undefined?b.minute:0,
+              timezone:loc.tzOffset!==undefined?loc.tzOffset:9,
+              lat:loc.lat!==undefined?loc.lat:37.5665,
+              lon:loc.lng!==undefined?loc.lng:126.978,
+              chapter:idx+1
+            })
           })
-        })
-        .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
-        .then(function(data){clearTimeout(tid);resolve(data);})
-        .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
-      });
+          .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
+          .then(function(data){clearTimeout(tid);resolve(data);})
+          .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
+        }).then(function(data){
+          if(data&&data.ok&&data.text) return data;
+          if(tryNo>=3) return data;
+          return _attempt(tryNo+1);
+        });
+      }
+      return _attempt(1);
     }
 
     var _failCount=0;
     (function generateNext(idx){
       if(idx>=12){
         clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-        var allFailed=_chapters.every(function(c){return !c||/^⚠️/.test(c);});
-        if(allFailed){var errEl=_qs('vdErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.';_showScreen('vdErrorScreen');return;}
+        var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>=900&&!/^⚠️/.test(c.trim());}).length;
+        if(validCount<9){
+          var errEl=_qs('vdErrorMsg');
+          if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/12). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
+          _showScreen('vdErrorScreen');
+          _autoRefundPremium(PREMIUM_VEDIC_COST, PREMIUM_VEDIC_FEATURE_KEY, '베다 프리미엄 PDF', PREMIUM_VEDIC_TX_KEY)
+            .then(function(refunded){ if(refunded) window.alert('베다 프리미엄 결제가 자동 환급되었습니다.'); });
+          return;
+        }
+        try { sessionStorage.removeItem(PREMIUM_VEDIC_TX_KEY); } catch (_) {}
         _showScreen('vdResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};

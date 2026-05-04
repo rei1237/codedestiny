@@ -198,7 +198,7 @@ router.post("/pig-coin/consume", async (req, res, next) => {
       });
     }
 
-    await PointHistory.create({
+    const history = await PointHistory.create({
       userId: req.auth.userId,
       kind: "deduct",
       delta: -cost,
@@ -213,6 +213,135 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     return res.status(200).json({
       message: `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다.`,
       requiredCoins: cost,
+      transactionId: String(history?._id || ""),
+      user: {
+        id: String(req.auth.userId),
+        points: Number(updatedUser.points || 0),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+function isObjectIdLike(value) {
+  return /^[a-f0-9]{24}$/i.test(String(value || "").trim());
+}
+
+router.post("/pig-coin/refund", async (req, res, next) => {
+  try {
+    const requestedCost = Number(req.body?.cost);
+    const cost = Number.isFinite(requestedCost) && requestedCost > 0
+      ? Math.floor(requestedCost)
+      : PIG_COIN_DEFAULT_UNLOCK_COST;
+
+    if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
+      return res.status(400).json({ message: "유효하지 않은 코인 환급 수량입니다." });
+    }
+
+    const reason = String(req.body?.reason || "프리미엄 생성 실패 자동 환급")
+      .trim()
+      .slice(0, 120);
+    const featureKey = String(req.body?.featureKey || "pig-coin-unlock")
+      .trim()
+      .slice(0, 60);
+    const sourceTransactionId = String(req.body?.sourceTransactionId || "").trim();
+    const requestId = String(req.body?.requestId || "").trim().slice(0, 120);
+    const recentWindow = new Date(Date.now() - 1000 * 60 * 60 * 48);
+
+    if (requestId) {
+      const alreadyByRequest = await PointHistory.findOne({
+        userId: req.auth.userId,
+        kind: "refund",
+        "metadata.requestId": requestId,
+      }).lean();
+
+      if (alreadyByRequest) {
+        const user = await User.findById(req.auth.userId).select("points").lean();
+        return res.status(200).json({
+          message: "이미 환급 처리된 요청입니다.",
+          alreadyRefunded: true,
+          refundTransactionId: String(alreadyByRequest._id || ""),
+          user: {
+            id: String(req.auth.userId),
+            points: Number(user?.points || 0),
+          },
+        });
+      }
+    }
+
+    const deductQuery = {
+      userId: req.auth.userId,
+      kind: "deduct",
+      delta: -cost,
+      featureKey,
+      createdAt: { $gte: recentWindow },
+    };
+
+    if (isObjectIdLike(sourceTransactionId)) {
+      deductQuery._id = sourceTransactionId;
+    }
+
+    const deducted = await PointHistory.findOne(deductQuery)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (!deducted) {
+      return res.status(409).json({
+        message: "환급 가능한 차감 내역을 찾지 못했습니다.",
+        code: "NO_REFUNDABLE_DEDUCTION",
+      });
+    }
+
+    const alreadyRefunded = await PointHistory.findOne({
+      userId: req.auth.userId,
+      kind: "refund",
+      "metadata.refundForPointHistoryId": String(deducted._id),
+    }).lean();
+
+    if (alreadyRefunded) {
+      const user = await User.findById(req.auth.userId).select("points").lean();
+      return res.status(200).json({
+        message: "이미 환급 처리된 차감 건입니다.",
+        alreadyRefunded: true,
+        refundTransactionId: String(alreadyRefunded._id || ""),
+        user: {
+          id: String(req.auth.userId),
+          points: Number(user?.points || 0),
+        },
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.auth.userId,
+      { $inc: { points: cost } },
+      { new: true, projection: { points: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    const refundHistory = await PointHistory.create({
+      userId: req.auth.userId,
+      kind: "refund",
+      delta: cost,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey,
+      metadata: {
+        source: "fortune.pig-coin.refund",
+        requestId,
+        refundForPointHistoryId: String(deducted._id),
+        sourceTransactionId: String(deducted._id),
+      },
+    });
+
+    return res.status(200).json({
+      message: `${cost.toLocaleString("ko-KR")} 코인이 환급되었습니다.`,
+      refundedCoins: cost,
+      sourceTransactionId: String(deducted._id),
+      refundTransactionId: String(refundHistory?._id || ""),
       user: {
         id: String(req.auth.userId),
         points: Number(updatedUser.points || 0),

@@ -26,8 +26,10 @@ function unique(values) {
   return out;
 }
 
-export function pickGeminiKeys(env) {
+export function pickGeminiKeys(env, preferredEnvKeys = []) {
+  const preferred = preferredEnvKeys.map((key) => env?.[key]);
   return unique([
+    ...preferred,
     env.GEMINIF_API_KEY1,
     env.GEMINIF_API_KEY2,
     env.GEMINIF_API_KEY3,
@@ -71,13 +73,38 @@ function buildSignal(timeoutMs) {
   return undefined;
 }
 
+function isRetriableStatus(status) {
+  const code = Number(status);
+  if (!Number.isFinite(code)) return false;
+  return code === 408 || code === 429 || (code >= 500 && code <= 599);
+}
+
+function isRetriableErrorMessage(message) {
+  const text = clean(message).toLowerCase();
+  if (!text) return false;
+  return (
+    text.includes("timeout")
+    || text.includes("timed out")
+    || text.includes("deadline")
+    || text.includes("network")
+    || text.includes("econn")
+    || text.includes("socket")
+    || text.includes("fetch failed")
+    || text.includes("temporarily")
+    || text.includes("unavailable")
+    || text.includes("overloaded")
+    || text.includes("rate limit")
+    || text.includes("quota")
+  );
+}
+
 export async function callGeminiText(env, prompt, options = {}) {
   const textPrompt = clean(prompt);
   if (!textPrompt) {
     return { ok: false, error: "empty_prompt", message: "Gemini prompt is empty." };
   }
 
-  const keys = pickGeminiKeys(env);
+  const keys = pickGeminiKeys(env, options.keyEnvKeys || []);
   if (!keys.length) {
     return {
       ok: false,
@@ -94,35 +121,49 @@ export async function callGeminiText(env, prompt, options = {}) {
     maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
   };
 
+  const maxAttemptsPerPair = Math.max(1, Math.min(3, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     for (const key of rotatedKeys) {
-      try {
-        const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: textPrompt }] }],
-            generationConfig,
-          }),
-          signal: buildSignal(options.timeoutMs),
-        });
+      for (let attempt = 1; attempt <= maxAttemptsPerPair; attempt += 1) {
+        try {
+          const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: textPrompt }] }],
+              generationConfig,
+            }),
+            signal: buildSignal(options.timeoutMs),
+          });
 
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          lastError = payload?.error?.message || `Gemini request failed (${response.status})`;
-          continue;
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            lastError = payload?.error?.message || `Gemini request failed (${response.status})`;
+            if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
+              continue;
+            }
+            break;
+          }
+
+          const text = extractGeminiText(payload);
+          if (text) {
+            return { ok: true, text, model };
+          }
+
+          lastError = "Gemini returned an empty response.";
+          if (attempt < maxAttemptsPerPair) {
+            continue;
+          }
+          break;
+        } catch (error) {
+          lastError = error?.message || String(error);
+          if (attempt < maxAttemptsPerPair && isRetriableErrorMessage(lastError)) {
+            continue;
+          }
+          break;
         }
-
-        const text = extractGeminiText(payload);
-        if (text) {
-          return { ok: true, text, model };
-        }
-
-        lastError = "Gemini returned an empty response.";
-      } catch (error) {
-        lastError = error?.message || String(error);
       }
     }
   }

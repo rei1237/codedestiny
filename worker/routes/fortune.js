@@ -271,7 +271,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 402 });
   }
 
-  await PointHistory.create({
+  const history = await PointHistory.create({
     userId: auth.userId,
     kind: "deduct",
     delta: -cost,
@@ -284,6 +284,120 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   return json({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
     requiredCoins: cost,
+    transactionId: String(history?._id || ""),
+    user: userPayload(auth, updatedUser.points),
+  });
+}
+
+function isObjectIdLike(value) {
+  return /^[a-f0-9]{24}$/i.test(String(value || "").trim());
+}
+
+async function handlePigCoinRefund(request, auth) {
+  const body = await readJson(request);
+  const requestedCost = Number(body?.cost);
+  const cost = Number.isFinite(requestedCost) && requestedCost > 0
+    ? Math.floor(requestedCost)
+    : PIG_COIN_DEFAULT_UNLOCK_COST;
+
+  if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
+    return json({ message: "Invalid coin refund amount." }, { status: 400 });
+  }
+
+  const reason = String(body?.reason || "Premium generation failed auto-refund").trim().slice(0, 120);
+  const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const sourceTransactionId = String(body?.sourceTransactionId || "").trim();
+  const requestId = String(body?.requestId || "").trim().slice(0, 120);
+  const now = new Date();
+  const recentWindow = new Date(now.getTime() - 1000 * 60 * 60 * 48);
+
+  if (requestId) {
+    const alreadyByRequest = await PointHistory.findOne({
+      userId: auth.userId,
+      kind: "refund",
+      "metadata.requestId": requestId,
+    }).lean();
+
+    if (alreadyByRequest) {
+      const user = await User.findById(auth.userId).select("points").lean();
+      return json({
+        message: "Refund already processed.",
+        alreadyRefunded: true,
+        refundTransactionId: String(alreadyByRequest._id || ""),
+        user: userPayload(auth, Number(user?.points || 0)),
+      });
+    }
+  }
+
+  const deductQuery = {
+    userId: auth.userId,
+    kind: "deduct",
+    delta: -cost,
+    featureKey,
+    createdAt: { $gte: recentWindow },
+  };
+
+  if (isObjectIdLike(sourceTransactionId)) {
+    deductQuery._id = sourceTransactionId;
+  }
+
+  const deducted = await PointHistory.findOne(deductQuery)
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (!deducted) {
+    return json({
+      message: "No refundable deduction found.",
+      code: "NO_REFUNDABLE_DEDUCTION",
+    }, { status: 409 });
+  }
+
+  const alreadyRefunded = await PointHistory.findOne({
+    userId: auth.userId,
+    kind: "refund",
+    "metadata.refundForPointHistoryId": String(deducted._id),
+  }).lean();
+
+  if (alreadyRefunded) {
+    const user = await User.findById(auth.userId).select("points").lean();
+    return json({
+      message: "Refund already processed.",
+      alreadyRefunded: true,
+      refundTransactionId: String(alreadyRefunded._id || ""),
+      user: userPayload(auth, Number(user?.points || 0)),
+    });
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    auth.userId,
+    { $inc: { points: cost } },
+    { new: true, projection: { points: 1 } },
+  ).lean();
+
+  if (!updatedUser) {
+    return json({ message: "User not found." }, { status: 404 });
+  }
+
+  const refundHistory = await PointHistory.create({
+    userId: auth.userId,
+    kind: "refund",
+    delta: cost,
+    balanceAfter: Number(updatedUser.points || 0),
+    reason,
+    featureKey,
+    metadata: {
+      source: "fortune.pig-coin.refund",
+      requestId,
+      refundForPointHistoryId: String(deducted._id),
+      sourceTransactionId: String(deducted._id),
+    },
+  });
+
+  return json({
+    message: `${cost.toLocaleString("ko-KR")} coins refunded.`,
+    refundedCoins: cost,
+    sourceTransactionId: String(deducted._id),
+    refundTransactionId: String(refundHistory?._id || ""),
     user: userPayload(auth, updatedUser.points),
   });
 }
@@ -567,6 +681,8 @@ export async function handleFortuneRoutes(request, env) {
     }
 
     const auth = await requireAuth(request, env);
+
+    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
 
     if (method === "GET" && path === "/check") return await handleCheck();
     if (method === "POST" && path === "/consume") return await handleConsume(auth);

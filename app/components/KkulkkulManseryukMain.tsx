@@ -408,6 +408,9 @@ export default function KkulkkulManseryukMain() {
         });
         if (res.status === 402) { setShowRechargeModal(true); return; }
         if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
+        if (data?.transactionId) {
+          try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(data.transactionId)); } catch (_) {}
+        }
         const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
         setCurrentCoins(newPoints);
         saveUserPoints(newPoints);
