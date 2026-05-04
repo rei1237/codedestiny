@@ -1590,9 +1590,6 @@
               + '</div>'
             + '</div>'
             + '</div>'
-            + (list.length > 1
-              ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
-              : '')
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
@@ -1646,6 +1643,9 @@
       }
       return;
     }
+      return;
+    }
+    if (!confirm('새 프로필 카드를 추가하시겠습니까?\n프로필 카드는 한 번 생성하면 수정 및 삭제가 "절대" 불가능합니다.\n잘못 입력하신 경우 고객센터에 직접 연락하여 수정을 요청하셔야 하니, 정보를 다시 한 번 정확히 확인해 주세요.')) return;
     var saved = DPStorage.add(data);
     DPStorage.setCurrent(saved.id);
     spawnStardust(document.getElementById('dpSaveBtn'));
@@ -1725,20 +1725,7 @@
   };
 
   window.dpDeleteProfile = function(id) {
-    /* ★ 마지막 프로필(1개)은 삭제 불가; 초과 프로필은 무료/유료 모두 삭제 허용 */
-    var _profiles = DPStorage.list();
-    if (_profiles.length <= 1) {
-      alert('마지막 프로필은 삭제할 수 없습니다.\n프로필을 모두 비울 수 없습니다.');
-      return;
-    }
-    var p = _profiles.find(function(x) { return x.id === id; });
-    if (!p) return;
-    if (!confirm('"' + p.name + '" 프로필을 삭제할까요?')) return;
-    DPStorage.remove(id);
-    renderProfileList();
-    renderMasterCard(DPStorage.current());
-    broadcastProfileChange(DPStorage.current());
-    _dpUpdateSaveBtn();
+    alert('프로필 카드는 한 번 생성하면 수정 및 삭제가 불가능합니다.\n잘못 입력하신 경우 고객센터로 연락하여 도움을 받으시기 바랍니다.');
   };
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */

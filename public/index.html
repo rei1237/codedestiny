@@ -2048,11 +2048,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 자존감 레벨업 타로 → openTarotSelfEsteemModal() -->
             <button class="tarot-tile tarot-tile--self-esteem" type="button"
                     data-action="openTarotSelfEsteemModal"
+                    data-coin-cost="0"
                     aria-label="자존감 레벨업 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jajongam.webp" data-img-alt="자존감 레벨업 — 5카드 RPG 퀘스트 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--levelup">LEVEL UP</span>
-                <span class="tarot-tile__coin-badge">1회 30코인</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">✨ 자존감 레벨업</span>
@@ -2305,12 +2306,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 영국 홍차점 -->
                 <a class="tarot-tile tarot-tile--royal-tea" href="/royal-tea-oracle.html"
                    data-action="openRoyalTeaOracle"
-                   data-coin-cost="30"
+                   data-coin-cost="0"
                    aria-label="영국 홍차점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/london.webp" data-img-alt="영국 홍차점 — 찻잎 문양으로 읽는 타세오그래피">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🫖</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">1회 30코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🫖 영국 홍차점</span>
@@ -7703,7 +7704,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openSukuyoModal:{cat:'숙요점 · 금서 궁합 분석',title:'💫 숙요점(宿曜占)',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다',feats:['불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/sukyo.webp'},
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',title:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/geomancy.webp'},
-    openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎을 읽었습니다 — 왕실의 찻잎 문양이 오늘의 운명을 말합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/london.webp'},
+    openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎을 읽었습니다 — 왕실의 찻잎 문양이 오늘의 운명을 말합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/london.webp'},
     '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석을 물에 던지는 순간 올해 운명이 보입니다 — 핀란드 전통 새해 점술을 지금 체험하세요',feats:['핀란드 정통 주석점 의식 시뮬레이션 완전 구현','주석 형태 상징 20가지 즉석 해석','돼지 마스코트 연이와 함께하는 귀여운 운세 리딩','행운·사랑·재물 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fortune/sikojen-povailu/images/piggyfortune.webp'},
     '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLifeBookModal:{cat:'프리미엄 · 사주 심층 분석',title:'📜 인생의 책',tagline:'10년 후 내 인생이 어떻게 될지 지금 미리 볼 수 있습니다 — 돈이 들어오는 해와 조심해야 할 해를 미리 아는 것',feats:['사주 팔자 8글자로 평생 운세 흐름 완전 분석','대운 10년 단위로 기회의 해 & 위기의 해 미리 파악','재물이 크게 들어오는 시기 & 피해야 할 시기 정확히 계산','평생 간직할 PDF 저장 가능 프리미엄 리포트'],cost:'🪙 490코인',ct:'paid',img:'/fuctionassets/lifebook.webp'},
