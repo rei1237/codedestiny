@@ -1,4 +1,4 @@
-import { ZiweiChartData, ZiweiPalaceData } from "./ziwei-engine";
+﻿import { ZiweiChartData, ZiweiPalaceData } from "./ziwei-engine";
 
 export interface AdvancedZiweiInput {
   user: {
@@ -61,5 +61,5 @@ export function normalizeAdvancedInput(
  * 특정 궁의 정보를 안전하게 가져오는 헬퍼
  */
 export function getPalaceData(chart: ZiweiChartData, label: string): ZiweiPalaceData | undefined {
-  return chart.palaceStarData.find(p =\u003e p.palace === label);
+  return chart.palaceStarData.find(p => p.palace === label);
 }
