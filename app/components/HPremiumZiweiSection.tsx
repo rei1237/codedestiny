@@ -883,20 +883,193 @@ export default function HPremiumZiweiSection({
           </div>
         </div>
 
-        {/* 명반 요약 카드 */}
+        {/* 12궁 명반 보드 */}
         <div style={{ padding: "12px 14px 0" }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "8px",
-            background: "rgba(139,92,246,0.07)", border: "1px solid rgba(196,181,253,0.15)",
-            borderRadius: "14px", padding: "14px 10px",
-          }}>
-            {result.palaces.slice(0,6).map((p, i) => (
-              <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ color: "rgba(196,181,253,0.5)", fontSize: "0.65rem" }}>{p.label}</div>
-                <div style={{ color: "#c4b5fd", fontSize: "0.72rem", fontWeight: 700 }}>{p.zhi}</div>
-                <div style={{ color: "rgba(221,214,254,0.75)", fontSize: "0.68rem", lineHeight: 1.3 }}>{p.mainStars.join("·") || "—"}</div>
-              </div>
-            ))}
+          <style>{`@keyframes ziweiTwinkle{0%,100%{opacity:.42;transform:scale(1)}50%{opacity:.9;transform:scale(1.08)}}`}</style>
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: "18px",
+              border: "1px solid rgba(196,181,253,0.22)",
+              background:
+                "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.18) 0%, rgba(17,24,39,0.28) 42%, rgba(9,10,34,0.96) 100%)",
+              boxShadow: "0 22px 42px rgba(2,6,23,0.6)",
+              padding: "12px",
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage:
+                  "radial-gradient(circle at 10% 22%, rgba(255,255,255,0.45) 0 1px, transparent 2px), radial-gradient(circle at 24% 78%, rgba(255,255,255,0.35) 0 1px, transparent 2px), radial-gradient(circle at 41% 18%, rgba(255,255,255,0.4) 0 1.1px, transparent 2px), radial-gradient(circle at 62% 74%, rgba(255,255,255,0.3) 0 1px, transparent 2px), radial-gradient(circle at 83% 34%, rgba(255,255,255,0.34) 0 1px, transparent 2px)",
+                opacity: 0.45,
+              }}
+            />
+
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: "13%",
+                top: "16%",
+                color: "rgba(250,204,21,0.74)",
+                fontSize: "10px",
+                animation: "ziweiTwinkle 2.3s ease-in-out infinite",
+              }}
+            >
+              ✦
+            </div>
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                right: "14%",
+                bottom: "14%",
+                color: "rgba(125,211,252,0.7)",
+                fontSize: "11px",
+                animation: "ziweiTwinkle 2.8s ease-in-out infinite",
+              }}
+            >
+              ✦
+            </div>
+
+            <div
+              style={{
+                position: "relative",
+                display: "grid",
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gap: "8px",
+              }}
+            >
+              {([0, 1, 2, 3, 11, -1, -1, 4, 10, -1, -1, 5, 9, 8, 7, 6] as const).map((slot, idx) => {
+                if (slot === -1) {
+                  if (idx !== 5) return null;
+                  return (
+                    <article
+                      key="center-core"
+                      style={{
+                        gridColumn: "2 / span 2",
+                        gridRow: "2 / span 2",
+                        borderRadius: "14px",
+                        border: "1px solid rgba(250,204,21,0.38)",
+                        background:
+                          "radial-gradient(circle at 50% 42%, rgba(251,191,36,0.2), rgba(30,41,59,0.78) 58%, rgba(15,23,42,0.9) 100%)",
+                        boxShadow: "inset 0 0 36px rgba(59,130,246,0.2)",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                        padding: "10px 8px",
+                        minHeight: "120px",
+                      }}
+                    >
+                      <div style={{ color: "#fde047", fontWeight: 900, letterSpacing: "0.03em", fontSize: "1.02rem" }}>
+                        자미두수 명반
+                      </div>
+                      <div style={{ marginTop: "5px", color: "#dbeafe", fontSize: "0.74rem", lineHeight: 1.6 }}>
+                        명궁: {ZHI[result.mingIdx]} · 신궁: {ZHI[result.shenIdx]}
+                      </div>
+                      <div style={{ color: "rgba(196,181,253,0.8)", fontSize: "0.72rem", lineHeight: 1.6 }}>
+                        {result.yearGan}{result.yearZhi}年 · 12궁 별자리 흐름
+                      </div>
+                      <div style={{ color: "rgba(186,230,253,0.88)", marginTop: "4px", fontSize: "0.7rem" }}>
+                        化祿 {ZHI[result.sihua.luk]} · 化權 {ZHI[result.sihua.quan]} · 化科 {ZHI[result.sihua.ke]} · 化忌 {ZHI[result.sihua.ji]}
+                      </div>
+                    </article>
+                  );
+                }
+
+                const palace = result.palaces[slot];
+                if (!palace) return null;
+
+                const isMing = palace.idx === result.mingIdx;
+                const isShen = palace.idx === result.shenIdx;
+                const sihuaLabel =
+                  palace.idx === result.sihua.luk
+                    ? "화록"
+                    : palace.idx === result.sihua.quan
+                      ? "화권"
+                      : palace.idx === result.sihua.ke
+                        ? "화과"
+                        : palace.idx === result.sihua.ji
+                          ? "화기"
+                          : "";
+                const daihanTag = result.daihan.find((d) => d.palaceIdx === palace.idx);
+
+                return (
+                  <article
+                    key={`${palace.label}-${palace.idx}`}
+                    style={{
+                      position: "relative",
+                      borderRadius: "12px",
+                      border: isMing
+                        ? "1px solid rgba(250,204,21,0.78)"
+                        : isShen
+                          ? "1px solid rgba(125,211,252,0.78)"
+                          : "1px solid rgba(196,181,253,0.3)",
+                      background:
+                        "linear-gradient(145deg, rgba(30,27,75,0.9), rgba(17,24,39,0.88))",
+                      minHeight: "78px",
+                      padding: "8px 7px",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                      <strong style={{ color: "#e9d5ff", fontSize: "0.71rem", lineHeight: 1.3 }}>{palace.label}</strong>
+                      <span style={{ color: "rgba(45,212,191,0.84)", fontSize: "0.66rem", fontWeight: 700 }}>{palace.zhi}</span>
+                    </div>
+
+                    <div style={{ marginTop: "4px", display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                      {(palace.mainStars.length ? palace.mainStars.slice(0, 2) : ["공궁"]).map((star) => (
+                        <span
+                          key={star}
+                          style={{
+                            fontSize: "0.64rem",
+                            lineHeight: 1.2,
+                            padding: "2px 5px",
+                            borderRadius: "999px",
+                            color: star === "공궁" ? "rgba(226,232,240,0.66)" : "#fef3c7",
+                            background: star === "공궁" ? "rgba(51,65,85,0.62)" : "rgba(124,58,237,0.34)",
+                            border: star === "공궁" ? "1px solid rgba(148,163,184,0.3)" : "1px solid rgba(196,181,253,0.34)",
+                          }}
+                        >
+                          {star}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: "5px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                      <span style={{ color: "rgba(226,232,240,0.64)", fontSize: "0.6rem" }}>
+                        {daihanTag ? `${daihanTag.age}-${daihanTag.age + 9}` : ""}
+                      </span>
+                      {sihuaLabel ? (
+                        <span style={{ color: "#fef08a", fontSize: "0.6rem", fontWeight: 700 }}>
+                          {sihuaLabel}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {(isMing || isShen) && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          right: "6px",
+                          top: "6px",
+                          fontSize: "0.58rem",
+                          color: isMing ? "#fde047" : "#7dd3fc",
+                          fontWeight: 800,
+                        }}
+                      >
+                        {isMing ? "명" : "신"}
+                      </span>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </div>
 
