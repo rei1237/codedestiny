@@ -8575,6 +8575,10 @@ function renderZiwei(p, natal, targetId) {
       0%, 100% { opacity: 0.22; }
       50% { opacity: 0.42; }
     }
+    @keyframes zwConstellationPulse {
+      0%, 100% { opacity: 0.22; transform: scale(1); }
+      50% { opacity: 0.44; transform: scale(1.03); }
+    }
     
     .zw-grid-wrap {
       flex: 1.4;
@@ -8604,6 +8608,7 @@ function renderZiwei(p, natal, targetId) {
         radial-gradient(circle at 72% 22%, rgba(255,255,255,0.18) 0 1px, transparent 1.8px),
         radial-gradient(circle at 48% 78%, rgba(255,255,255,0.16) 0 1px, transparent 1.8px);
       opacity: 0.3;
+      animation: zwConstellationPulse 9s ease-in-out infinite;
     }
     .zw-grid-wrap::after {
       content: "";
@@ -8734,6 +8739,47 @@ function renderZiwei(p, natal, targetId) {
       overflow-wrap: anywhere;
       white-space: normal;
     }
+    .zw-tag-layer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      align-items: center;
+      margin: -1px 0 5px;
+      min-height: 14px;
+      position: relative;
+      z-index: 2;
+    }
+    .zw-tag {
+      font-size: 0.56rem;
+      line-height: 1;
+      border-radius: 999px;
+      padding: 2px 5px;
+      border: 1px solid transparent;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .zw-tag-meng {
+      color: #fde68a;
+      background: rgba(250, 204, 21, 0.16);
+      border-color: rgba(250, 204, 21, 0.45);
+    }
+    .zw-tag-shen {
+      color: #bae6fd;
+      background: rgba(56, 189, 248, 0.14);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .zw-tag-hwa-good {
+      color: #ddd6fe;
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(196, 181, 253, 0.45);
+    }
+    .zw-tag-hwa-gi {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(248, 113, 113, 0.45);
+    }
     .zw-branch-name { font-size: 0.8rem; color: rgba(255,255,255,0.5); position: absolute; bottom: 4px; right: 6px; font-weight: 900; }
     .zw-stars-wrap,
     .star-list {
@@ -8786,8 +8832,49 @@ function renderZiwei(p, natal, targetId) {
     .zw-star-bad { color: #ff8b8b; text-shadow: 0 1px 1px rgba(0,0,0,0.55); }
     .zw-empty { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 4px; }
     .zw-dahan { font-size: 0.7rem; color: #10B981; position: absolute; top: 8px; right: 6px; font-weight: 700; background: rgba(16, 185, 129, 0.15); padding: 1px 4px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3); line-height: 1.2; z-index: 3; }
-    .zw-center-title { font-size: 1.3rem; font-weight: 900; color: #fde68a; letter-spacing: 1px; margin-bottom: 6px; text-shadow: 0 0 14px rgba(250,204,21,0.85); }
-    .zw-center-desc { font-size: 0.85rem; color: #e0e7ff; line-height: 1.6; }
+    .zw-center-title { font-size: 1.3rem; font-weight: 900; color: #fde68a; letter-spacing: 1px; margin-bottom: 8px; text-shadow: 0 0 14px rgba(250,204,21,0.85); }
+    .zw-center-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .zw-center-chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      font-size: 0.63rem;
+      font-weight: 800;
+      line-height: 1;
+      padding: 3px 8px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(15, 23, 42, 0.44);
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .zw-center-chip-meng {
+      border-color: rgba(250, 204, 21, 0.55);
+      color: #fde68a;
+      background: rgba(250, 204, 21, 0.16);
+    }
+    .zw-center-chip-shen {
+      border-color: rgba(125, 211, 252, 0.5);
+      color: #bae6fd;
+      background: rgba(56, 189, 248, 0.16);
+    }
+    .zw-center-chip-ju {
+      border-color: rgba(196, 181, 253, 0.55);
+      color: #e9d5ff;
+      background: rgba(139, 92, 246, 0.17);
+    }
+    .zw-center-desc { font-size: 0.8rem; color: #e0e7ff; line-height: 1.55; }
+    .zw-center-hint {
+      font-size: 0.72rem;
+      color: rgba(191, 219, 254, 0.74);
+      margin-top: 6px;
+      display: block;
+    }
     .zw-palace-gan { font-size: 0.65rem; color: #BBB; position: absolute; bottom: 4px; right: 26px; }
 
     /* Right: Dynamic Interpretation Panel */
@@ -10176,9 +10263,14 @@ function renderZiwei(p, natal, targetId) {
         justify-content: center;
       }
       .zw-center-title { font-size: 0.8rem; margin-bottom: 4px; }
-      .zw-center-desc { font-size: 0.62rem; line-height: 1.4; display: block; }
+      .zw-center-meta { gap: 3px; margin-bottom: 5px; }
+      .zw-center-chip { font-size: 0.53rem; padding: 2px 5px; }
+      .zw-center-desc { font-size: 0.59rem; line-height: 1.35; display: block; }
+      .zw-center-hint { font-size: 0.56rem; margin-top: 5px; }
       /* 가변 폰트(clamp): 좁은 화면에서도 텍스트 넘침 방지 */
       .zw-palace-name { font-size: 0.66rem; margin-bottom: 3px; padding: 0 30px 2px 0; }
+      .zw-tag-layer { margin: -1px 0 4px; gap: 2px; }
+      .zw-tag { font-size: 0.5rem; padding: 2px 4px; }
       .zw-stars-wrap, .star-list { padding-right: 30px; }
       .zw-star-main { font-size: 0.74rem; margin-bottom: 1px; padding: 1px 3px; }
       .zw-star-main-borrowed { font-size: 0.6rem; }
@@ -11037,16 +11129,32 @@ function renderZiwei(p, natal, targetId) {
     let pName = palace.palacesByIndex[i]; // 명궁, 형제궁..
     let pZhi = ZHI_LIST[i];
     let pGan = palace.gongGan[pZhi];
-    let st = palace.stars[i];
+    let st = palace.stars[i] || { main: [], borrowedMain: [], aux: [], bad: [] };
     let mainList = (st.main && st.main.length) ? st.main : (st.borrowedMain || []);
     
     let highlight = (pZhi === palace.meng) ? 'box-shadow: inset 0 0 20px rgba(212,175,55,0.6); border-color: #FFD700;' : '';
     let dName = pName;
-    if (pZhi === palace.meng) dName = '🌟 ' + dName;
-    if (pZhi === palace.shen) dName = dName + ' (신)';
+    let cellTags = '';
+    if (pZhi === palace.meng) cellTags += '<span class="zw-tag zw-tag-meng">명궁</span>';
+    if (pZhi === palace.shen) cellTags += '<span class="zw-tag zw-tag-shen">신궁</span>';
+    let mergedStarRaw = mainList.concat(st.aux || [], st.bad || []);
+    let sihuaCell = '';
+    for (let m = 0; m < mergedStarRaw.length; m++) {
+      let rawStar = String(mergedStarRaw[m] || '');
+      let sihuaMatch = rawStar.match(/화록|화권|화과|화기/);
+      if (sihuaMatch) {
+        sihuaCell = sihuaMatch[0];
+        break;
+      }
+    }
+    if (sihuaCell) {
+      let sihuaClass = sihuaCell === '화기' ? 'zw-tag-hwa-gi' : 'zw-tag-hwa-good';
+      cellTags += '<span class="zw-tag ' + sihuaClass + '">' + sihuaCell + '</span>';
+    }
 
     html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;" onclick="window._handleZwClick('+i+', this)">';
     html += '<div class="zw-palace-name">' + dName + '</div>';
+    if (cellTags) html += '<div class="zw-tag-layer">' + cellTags + '</div>';
     html += '<div class="zw-stars-wrap star-list">';
     if(mainList.length > 0) {
       mainList.forEach(function(s){
@@ -11076,14 +11184,16 @@ function renderZiwei(p, natal, targetId) {
 
   html += '<div class="zw-center-panel">';
   html += '<div class="zw-center-title">자미두수 명반</div>';
+  html += '<div class="zw-center-meta">';
+  html += '<span class="zw-center-chip zw-center-chip-meng">명궁 ' + palace.meng + '</span>';
+  html += '<span class="zw-center-chip zw-center-chip-shen">신궁 ' + palace.shen + '</span>';
+  html += '<span class="zw-center-chip zw-center-chip-ju">오행국 ' + palace.juInfo + '</span>';
+  html += '</div>';
   html += '<div class="zw-center-desc">';
-  html += '명궁: <span style="color:#FFF">' + palace.meng + '</span><br>';
-  html += '신궁: <span style="color:#FFF">' + palace.shen + '</span><br>';
-  html += '오행국: <span style="color:#FFD700; font-weight:bold">' + palace.juInfo + '</span><br>';
   if (palace.calcMeta) {
     html += '<span style="font-size:0.68rem;color:#94a3b8;display:block;margin-top:6px">기준: 음력 '+palace.calcMeta.lunarMonth+'월 '+palace.calcMeta.lunarDay+'일 · 시지 '+palace.calcMeta.hourBranch+'</span>';
   }
-  html += '<span style="font-size:0.75rem; color:#888; margin-top:8px; display:block;">궁(宮)을 클릭하면 <br>각 궁에 대한 해석이 나옵니다.</span>';
+  html += '<span class="zw-center-hint">궁(宮)을 클릭하면 각 궁의 별 해석과 실행 가이드를 확인할 수 있습니다.</span>';
   html += '</div>';
   html += '</div>';
   html += '</div></div>';
