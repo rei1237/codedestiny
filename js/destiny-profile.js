@@ -641,30 +641,13 @@
     }
 
     var balance = _dpGetUserBalance();
-    if (balance < info.cost) {
-      if (typeof window.__cdOpenChargeModal === 'function') {
-        window.alert(
-          '🔒 ' + info.name + '\n\n' +
-          '이 기능은 영구 해금 ' + info.cost + '코인이 필요합니다.\n' +
-          '현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n' +
-          '코인 충전 창을 열겠습니다.'
-        );
-        window.__cdOpenChargeModal();
-      } else if (window.confirm(
-        '🔒 ' + info.name + '\n\n' +
-        '이 기능은 영구 해금 ' + info.cost + '코인이 필요합니다.\n' +
-        '현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n' +
-        '코인 충전 페이지로 이동하시겠습니까?'
-      )) {
-        window.location.href = '/points';
-      }
-      return;
-    }
+    var balanceLabel = Number(balance).toLocaleString('ko-KR');
 
     if (!window.confirm(
       '🪙 ' + info.name + ' 영구 해금\n\n' +
       '한 번 결제로 영구적으로 이용할 수 있습니다.\n' +
-      '비용: ' + info.cost + '코인 (현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인)\n\n' +
+      '비용: ' + info.cost + '코인 (현재 표시 잔액: ' + balanceLabel + '코인)\n' +
+      '최종 차감/부족 판정은 서버 잔액 기준으로 처리됩니다.\n\n' +
       '진행하시겠습니까?'
     )) return;
 

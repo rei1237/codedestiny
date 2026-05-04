@@ -1318,7 +1318,7 @@ router.post("/report-failure", async (req, res) => {
 router.get("/me", async (req, res, next) => {
   try {
     const user = await User.findById(req.auth.userId)
-      .select("name email points")
+      .select("name email points unlockedFeatures")
       .lean();
 
     if (!user) {
@@ -1342,7 +1342,9 @@ router.get("/me", async (req, res, next) => {
         name: user.name,
         email: user.email,
         points: Number(user.points || 0),
+        unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
       },
+      unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
       payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
       pointHistories: pointHistories.map((entry) => ({
         id: String(entry._id),

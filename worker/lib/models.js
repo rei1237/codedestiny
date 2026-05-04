@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
   withdrawnAt: { type: Date, default: null },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   points: { type: Number, default: 0, min: 0 },
+  unlockedFeatures: { type: [String], default: [] },
   localAuth: {
     enabled: { type: Boolean, default: true },
     activatedAt: { type: Date, default: Date.now },

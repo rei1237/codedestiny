@@ -127,6 +127,61 @@ const FREE_FEATURES = [
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const EMPTY_UNLOCK_STATE: Record<UnlockKey, boolean> = {
+  allPaidSaju: false,
+  rpgCharacter: false,
+  travelDestiny: false,
+  healthReport: false,
+  sajuDiary: false,
+  secretHouseEpisodes: false,
+  premiumDivinationPack: false,
+};
+const UNLOCK_KEY_ALIASES: Record<UnlockKey, string[]> = {
+  allPaidSaju: ["allPaidSaju", "all-paid-saju"],
+  rpgCharacter: ["rpgCharacter", "rpg-character"],
+  travelDestiny: ["travelDestiny", "travel-destiny"],
+  healthReport: ["healthReport", "health-report"],
+  sajuDiary: ["sajuDiary", "saju-diary"],
+  secretHouseEpisodes: ["secretHouseEpisodes", "secret-house-episodes"],
+  premiumDivinationPack: [
+    "premiumDivinationPack",
+    "premium-divination-pack",
+    "premium-ziwei",
+    "premium-astrology",
+    "premium-sukuyo",
+    "premium-veda",
+    "premium-naming",
+  ],
+};
+
+function buildUnlockStateFromPayload(payload: any): Record<UnlockKey, boolean> {
+  const merged = new Set<string>();
+
+  if (payload && Array.isArray(payload.unlockedFeatures)) {
+    payload.unlockedFeatures.forEach((value: unknown) => merged.add(String(value || "").trim()));
+  }
+  if (payload && payload.user && Array.isArray(payload.user.unlockedFeatures)) {
+    payload.user.unlockedFeatures.forEach((value: unknown) => merged.add(String(value || "").trim()));
+  }
+  if (payload && payload.unlockMap && typeof payload.unlockMap === "object") {
+    Object.keys(payload.unlockMap).forEach((key) => {
+      if (payload.unlockMap[key] === true) merged.add(String(key || "").trim());
+    });
+  }
+
+  const next: Record<UnlockKey, boolean> = { ...EMPTY_UNLOCK_STATE };
+  (Object.keys(UNLOCK_KEY_ALIASES) as UnlockKey[]).forEach((key) => {
+    next[key] = UNLOCK_KEY_ALIASES[key].some((alias) => merged.has(alias));
+  });
+  if (next.allPaidSaju) {
+    next.rpgCharacter = true;
+    next.travelDestiny = true;
+    next.healthReport = true;
+    next.sajuDiary = true;
+    next.secretHouseEpisodes = true;
+  }
+  return next;
+}
 
 function hasFlowerAdminPasswordSession(): boolean {
   if (typeof window === 'undefined') return false;
@@ -203,15 +258,7 @@ export default function KkulkkulManseryukMain() {
   const [premiumFlowStage, setPremiumFlowStage] = useState<PremiumFlowStage>("intro");
   const [premiumGateLoading, setPremiumGateLoading] = useState<PremiumServiceKey | null>(null);
   const [premiumGateError, setPremiumGateError] = useState("");
-  const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({
-    allPaidSaju: false,
-    rpgCharacter: false,
-    travelDestiny: false,
-    healthReport: false,
-    sajuDiary: false,
-    secretHouseEpisodes: false,
-    premiumDivinationPack: false,
-  });
+  const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({ ...EMPTY_UNLOCK_STATE });
 
   const [perUseCount, setPerUseCount] = useState<Record<PerUseKey, number>>({
     turtleIChing: 0,
@@ -497,6 +544,11 @@ export default function KkulkkulManseryukMain() {
           setCurrentCoins(pts);
           saveUserPoints(pts);
         }
+        const restored = buildUnlockStateFromPayload(d);
+        setUnlockedFeatures((prev) => ({
+          ...prev,
+          ...restored,
+        }));
       })
       .catch(() => {});
   }, []);

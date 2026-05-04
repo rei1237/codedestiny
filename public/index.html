@@ -6419,20 +6419,44 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function _cdApplyUnlocksFromPaymentPayload(payload) {
-    var histories = (payload && payload.pointHistories && Array.isArray(payload.pointHistories)) ? payload.pointHistories : [];
-    if (!histories.length) return false;
     var known = _cdCollectKnownUnlockKeys();
     var changed = false;
+
+    function applyKey(rawKey) {
+      var k = String(rawKey || '').trim();
+      if (!k || k === 'pig-coin-unlock') return;
+      var aliases = (typeof resolveTileLockAliasKeys === 'function') ? resolveTileLockAliasKeys(k) : [k];
+      for (var ai = 0; ai < aliases.length; ai += 1) {
+        var ak = aliases[ai];
+        if (known[ak] && unlockedFeatureMap[ak] !== true) {
+          if (typeof markUnlockKey === 'function') markUnlockKey(unlockedFeatureMap, ak);
+          else unlockedFeatureMap[ak] = true;
+          changed = true;
+        }
+      }
+    }
+
+    var directUnlocks = (payload && Array.isArray(payload.unlockedFeatures)) ? payload.unlockedFeatures : [];
+    for (var du = 0; du < directUnlocks.length; du += 1) applyKey(directUnlocks[du]);
+
+    var userUnlocks = (payload && payload.user && Array.isArray(payload.user.unlockedFeatures)) ? payload.user.unlockedFeatures : [];
+    for (var uu = 0; uu < userUnlocks.length; uu += 1) applyKey(userUnlocks[uu]);
+
+    var unlockMap = (payload && payload.unlockMap && typeof payload.unlockMap === 'object') ? payload.unlockMap : null;
+    if (unlockMap) {
+      var unlockMapKeys = Object.keys(unlockMap);
+      for (var um = 0; um < unlockMapKeys.length; um += 1) {
+        if (unlockMap[unlockMapKeys[um]] === true) applyKey(unlockMapKeys[um]);
+      }
+    }
+
+    var histories = (payload && payload.pointHistories && Array.isArray(payload.pointHistories)) ? payload.pointHistories : [];
     for (var i = 0; i < histories.length; i += 1) {
       var h = histories[i] || {};
       if (String(h.kind || '') !== 'deduct') continue;
-      var k = String(h.featureKey || '').trim();
-      if (!k || k === 'pig-coin-unlock') continue;
-      if (known[k] && unlockedFeatureMap[k] !== true) {
-        unlockedFeatureMap[k] = true;
-        changed = true;
-      }
+      applyKey(h.featureKey);
     }
+
     return changed;
   }
 

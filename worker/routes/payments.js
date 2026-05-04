@@ -1161,7 +1161,7 @@ async function handleReportFailure(request, auth) {
 
 async function handleMe(auth) {
   const user = await User.findById(auth.userId)
-    .select("name email points")
+    .select("name email points unlockedFeatures")
     .lean();
 
   if (!user) return json({ message: "User not found." }, { status: 404 });
@@ -1177,7 +1177,9 @@ async function handleMe(auth) {
       name: user.name,
       email: user.email,
       points: Number(user.points || 0),
+      unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
     },
+    unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
     payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
     pointHistories: pointHistories.map((entry) => ({
       id: String(entry._id),

@@ -43,6 +43,111 @@ const PROFILE_SUB_PLANS = {
   premium: { name: "프리미엄 꿀", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
   vvip: { name: "VVIP 꿀단지", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
 };
+const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
+  "olympus-profile-fc": ["olympus-fc"],
+  "olympus-fc": ["olympus-profile-fc"],
+  "flower-fc": ["flower-destiny", "flower-astro", "flower-ziwei", "flower-sukuyo"],
+  "flower-destiny": ["flower-fc"],
+  "flower-astro": ["flower-fc"],
+  "flower-ziwei": ["flower-fc"],
+  "flower-sukuyo": ["flower-fc"],
+  allPaidSaju: ["rpgCharacter", "travelDestiny", "healthReport", "sajuDiary", "secretHouseEpisodes"],
+});
+const PERSISTENT_UNLOCK_KEY_SET = new Set([
+  "flower-fc",
+  "flower-destiny",
+  "flower-astro",
+  "flower-ziwei",
+  "flower-sukuyo",
+  "olympus-fc",
+  "olympus-profile-fc",
+  "section_daewun",
+  "section_summary",
+  "section_compat",
+  "allPaidSaju",
+  "rpgCharacter",
+  "travelDestiny",
+  "healthReport",
+  "sajuDiary",
+  "secretHouseEpisodes",
+  "premiumDivinationPack",
+  "premium-ziwei",
+  "premium-astrology",
+  "premium-sukuyo",
+  "premium-veda",
+  "premium-naming",
+]);
+
+function isPersistentUnlockFeatureKey(rawKey) {
+  const base = String(rawKey || "").trim();
+  if (!base) return false;
+  if (base === "pig-coin-unlock" || base === "coin-gate-per-use") return false;
+  if (PERSISTENT_UNLOCK_KEY_SET.has(base)) return true;
+  if (base.startsWith("section_")) return true;
+  if (base.startsWith("flower-") || base.startsWith("olympus-")) return true;
+  return false;
+}
+
+function resolvePersistentUnlockAliasKeys(rawKey) {
+  const base = String(rawKey || "").trim();
+  if (!base) return [];
+  const map = Object.create(null);
+  map[base] = true;
+  const aliases = PERSISTENT_UNLOCK_ALIAS_MAP[base] || [];
+  for (let i = 0; i < aliases.length; i += 1) {
+    map[aliases[i]] = true;
+  }
+  return Object.keys(map);
+}
+
+function resolvePersistentUnlockKeys(rawKey) {
+  if (!isPersistentUnlockFeatureKey(rawKey)) return [];
+  const aliases = resolvePersistentUnlockAliasKeys(rawKey);
+  const map = Object.create(null);
+  for (let i = 0; i < aliases.length; i += 1) {
+    if (isPersistentUnlockFeatureKey(aliases[i])) map[aliases[i]] = true;
+  }
+  return Object.keys(map);
+}
+
+function normalizePersistentUnlockKeys(values) {
+  if (!Array.isArray(values)) return [];
+  const map = Object.create(null);
+  for (let i = 0; i < values.length; i += 1) {
+    const aliases = resolvePersistentUnlockKeys(values[i]);
+    for (let j = 0; j < aliases.length; j += 1) {
+      map[aliases[j]] = true;
+    }
+  }
+  return Object.keys(map);
+}
+
+function toUnlockMap(unlockedFeatures) {
+  const map = Object.create(null);
+  const keys = normalizePersistentUnlockKeys(unlockedFeatures);
+  for (let i = 0; i < keys.length; i += 1) {
+    map[keys[i]] = true;
+  }
+  return map;
+}
+
+async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
+  const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
+  if (fromUser.length || !userId) return fromUser;
+
+  const historyKeys = await PointHistory.distinct("featureKey", {
+    userId,
+    kind: "deduct",
+  });
+  const inferred = normalizePersistentUnlockKeys(historyKeys);
+  if (inferred.length) {
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { unlockedFeatures: { $each: inferred } } },
+    ).catch(() => {});
+  }
+  return inferred;
+}
 
 function normalizeSubscriptionTier(value) {
   const tier = String(value || "").trim().toLowerCase();
@@ -119,19 +224,24 @@ router.post("/consume", async (req, res, next) => {
 router.get("/pig-coin/balance", async (req, res, next) => {
   try {
     const user = await User.findById(req.auth.userId)
-      .select("points")
+      .select("points unlockedFeatures")
       .lean();
 
     if (!user) {
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
 
+    const unlockedFeatures = await resolvePersistedUnlockFeatures(req.auth.userId, user.unlockedFeatures);
+
     return res.status(200).json({
       message: "꽃돼지 코인 잔액을 불러왔습니다.",
       user: {
         id: String(req.auth.userId),
         points: Number(user.points || 0),
+        unlockedFeatures,
       },
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
     });
   } catch (error) {
     return next(error);
@@ -223,6 +333,7 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     const featureKey = String(req.body?.featureKey || "pig-coin-unlock")
       .trim()
       .slice(0, 60);
+    const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
     const requestId = String(req.body?.requestId || "")
       .trim()
       .slice(0, 120);
@@ -231,8 +342,9 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     if (req.auth?.role === "admin") {
       const simulatedPolicy = getPlanPolicy(adminTestTier);
       const user = await User.findById(req.auth.userId)
-        .select("points")
+        .select("points unlockedFeatures")
         .lean();
+      const unlockedFeatures = await resolvePersistedUnlockFeatures(req.auth.userId, user?.unlockedFeatures);
 
       return res.status(200).json({
         message: "관리자 우회가 적용되어 코인이 차감되지 않았습니다.",
@@ -250,12 +362,15 @@ router.post("/pig-coin/consume", async (req, res, next) => {
         user: {
           id: String(req.auth.userId),
           points: Number(user?.points || 0),
+          unlockedFeatures,
         },
+        unlockedFeatures,
+        unlockMap: toUnlockMap(unlockedFeatures),
       });
     }
 
     const user = await User.findById(req.auth.userId)
-      .select("points profileSubscription")
+      .select("points profileSubscription unlockedFeatures")
       .lean();
 
     if (!user) {
@@ -279,8 +394,18 @@ router.post("/pig-coin/consume", async (req, res, next) => {
         user: {
           id: String(req.auth.userId),
           points: Number(user.points || 0),
+          unlockedFeatures: normalizePersistentUnlockKeys(user.unlockedFeatures),
         },
+        unlockedFeatures: normalizePersistentUnlockKeys(user.unlockedFeatures),
+        unlockMap: toUnlockMap(user.unlockedFeatures),
       });
+    }
+
+    const updatePayload = {
+      $inc: { points: -cost },
+    };
+    if (unlockKeysToPersist.length) {
+      updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
     }
 
     const updatedUser = await User.findOneAndUpdate(
@@ -288,12 +413,10 @@ router.post("/pig-coin/consume", async (req, res, next) => {
         _id: req.auth.userId,
         points: { $gte: cost },
       },
-      {
-        $inc: { points: -cost },
-      },
+      updatePayload,
       {
         new: true,
-        projection: { points: 1 },
+        projection: { points: 1, unlockedFeatures: 1 },
       },
     ).lean();
 
@@ -318,6 +441,10 @@ router.post("/pig-coin/consume", async (req, res, next) => {
       },
     });
 
+    const unlockedFeatures = normalizePersistentUnlockKeys(
+      (updatedUser && updatedUser.unlockedFeatures) || unlockKeysToPersist,
+    );
+
     return res.status(200).json({
       message: `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다.`,
       requiredCoins: cost,
@@ -331,7 +458,10 @@ router.post("/pig-coin/consume", async (req, res, next) => {
       user: {
         id: String(req.auth.userId),
         points: Number(updatedUser.points || 0),
+        unlockedFeatures,
       },
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
     });
   } catch (error) {
     return next(error);

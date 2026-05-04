@@ -28,6 +28,113 @@ const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
 const SHARE_REWARD_AMOUNT = 10;
 const SHARE_REWARD_DAILY_LIMIT = 3;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
+  "olympus-profile-fc": ["olympus-fc"],
+  "olympus-fc": ["olympus-profile-fc"],
+  "flower-fc": ["flower-destiny", "flower-astro", "flower-ziwei", "flower-sukuyo"],
+  "flower-destiny": ["flower-fc"],
+  "flower-astro": ["flower-fc"],
+  "flower-ziwei": ["flower-fc"],
+  "flower-sukuyo": ["flower-fc"],
+  allPaidSaju: ["rpgCharacter", "travelDestiny", "healthReport", "sajuDiary", "secretHouseEpisodes"],
+});
+const PERSISTENT_UNLOCK_KEY_SET = new Set([
+  "flower-fc",
+  "flower-destiny",
+  "flower-astro",
+  "flower-ziwei",
+  "flower-sukuyo",
+  "olympus-fc",
+  "olympus-profile-fc",
+  "section_daewun",
+  "section_summary",
+  "section_compat",
+  "allPaidSaju",
+  "rpgCharacter",
+  "travelDestiny",
+  "healthReport",
+  "sajuDiary",
+  "secretHouseEpisodes",
+  "premiumDivinationPack",
+  "premium-ziwei",
+  "premium-astrology",
+  "premium-sukuyo",
+  "premium-veda",
+  "premium-naming",
+]);
+
+function isPersistentUnlockFeatureKey(rawKey) {
+  const base = String(rawKey || "").trim();
+  if (!base) return false;
+  if (base === "pig-coin-unlock" || base === "coin-gate-per-use") return false;
+  if (PERSISTENT_UNLOCK_KEY_SET.has(base)) return true;
+  if (base.startsWith("section_")) return true;
+  if (base.startsWith("flower-") || base.startsWith("olympus-")) return true;
+  return false;
+}
+
+function resolvePersistentUnlockAliasKeys(rawKey) {
+  const base = String(rawKey || "").trim();
+  if (!base) return [];
+  const map = Object.create(null);
+  map[base] = true;
+  const aliases = PERSISTENT_UNLOCK_ALIAS_MAP[base] || [];
+  for (let i = 0; i < aliases.length; i += 1) {
+    map[aliases[i]] = true;
+  }
+  return Object.keys(map);
+}
+
+function resolvePersistentUnlockKeys(rawKey) {
+  if (!isPersistentUnlockFeatureKey(rawKey)) return [];
+  const aliases = resolvePersistentUnlockAliasKeys(rawKey);
+  const map = Object.create(null);
+  for (let i = 0; i < aliases.length; i += 1) {
+    if (isPersistentUnlockFeatureKey(aliases[i])) {
+      map[aliases[i]] = true;
+    }
+  }
+  return Object.keys(map);
+}
+
+function normalizePersistentUnlockKeys(values) {
+  if (!Array.isArray(values)) return [];
+  const map = Object.create(null);
+  for (let i = 0; i < values.length; i += 1) {
+    const aliases = resolvePersistentUnlockKeys(values[i]);
+    for (let j = 0; j < aliases.length; j += 1) {
+      map[aliases[j]] = true;
+    }
+  }
+  return Object.keys(map);
+}
+
+function toUnlockMap(unlockedFeatures) {
+  const map = Object.create(null);
+  const keys = normalizePersistentUnlockKeys(unlockedFeatures);
+  for (let i = 0; i < keys.length; i += 1) {
+    map[keys[i]] = true;
+  }
+  return map;
+}
+
+async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
+  const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
+  if (fromUser.length || !userId) return fromUser;
+
+  const historyKeys = await PointHistory.distinct("featureKey", {
+    userId,
+    kind: "deduct",
+  });
+  const inferred = normalizePersistentUnlockKeys(historyKeys);
+  if (inferred.length) {
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { unlockedFeatures: { $each: inferred } } },
+    ).catch(() => {});
+  }
+  return inferred;
+}
 
 function getFlowerAdminSecret(env) {
   return String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
@@ -134,11 +241,14 @@ async function resolvePigCoinConsumeAuth(request, env) {
   return { auth, adminMode };
 }
 
-function userPayload(auth, points) {
-  return {
+function userPayload(auth, points, unlockedFeatures) {
+  const payload = {
     id: String(auth.userId),
     points: Number(points || 0),
   };
+  const normalizedUnlocks = normalizePersistentUnlockKeys(unlockedFeatures);
+  if (normalizedUnlocks.length) payload.unlockedFeatures = normalizedUnlocks;
+  return payload;
 }
 
 function normalizeSubscriptionTier(value) {
@@ -200,12 +310,16 @@ async function handleConsume(auth) {
 }
 
 async function handleBalance(auth) {
-  const user = await User.findById(auth.userId).select("points").lean();
+  const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
   if (!user) return json({ message: "User not found." }, { status: 404 });
+
+  const unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
 
   return json({
     message: "Coin balance loaded.",
-    user: userPayload(auth, user.points),
+    user: userPayload(auth, user.points, unlockedFeatures),
+    unlockedFeatures,
+    unlockMap: toUnlockMap(unlockedFeatures),
   });
 }
 
@@ -277,6 +391,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   const reason = String(body?.reason || "Paid feature unlock").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
   const requestId = String(body?.requestId || "").trim().slice(0, 120);
   const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").toLowerCase() === "true";
   const authEmail = String(auth?.email || "").trim().toLowerCase();
@@ -286,9 +401,13 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     const adminTestTier = normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier"));
     const policy = getPlanPolicy(adminTestTier);
     let currentPoints = null;
+    let unlockedFeatures = [];
     if (auth?.userId) {
-      const user = await User.findById(auth.userId).select("points").lean();
-      if (user) currentPoints = Number(user.points || 0);
+      const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
+      if (user) {
+        currentPoints = Number(user.points || 0);
+        unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+      }
     }
 
     return json({
@@ -305,13 +424,15 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       recommendedCoins: policy.recommendedCoins,
       freeBySubscription: Boolean(adminTestTier && !forceDeduct && cost <= policy.freeLimit),
       user: auth?.userId
-        ? userPayload(auth, currentPoints == null ? 0 : currentPoints)
+        ? userPayload(auth, currentPoints == null ? 0 : currentPoints, unlockedFeatures)
         : { id: "admin", points: null },
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
     });
   }
 
   const user = await User.findById(auth.userId)
-    .select("points profileSubscription")
+    .select("points profileSubscription unlockedFeatures")
     .lean();
 
   if (!user) {
@@ -332,14 +453,23 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       freeLimit: policy.freeLimit,
       profileLimit: policy.profileLimit,
       recommendedCoins: policy.recommendedCoins,
-      user: userPayload(auth, Number(user.points || 0)),
+      user: userPayload(auth, Number(user.points || 0), user.unlockedFeatures),
+      unlockedFeatures: normalizePersistentUnlockKeys(user.unlockedFeatures),
+      unlockMap: toUnlockMap(user.unlockedFeatures),
     });
+  }
+
+  const updatePayload = {
+    $inc: { points: -cost },
+  };
+  if (unlockKeysToPersist.length) {
+    updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
   }
 
   const updatedUser = await User.findOneAndUpdate(
     { _id: auth.userId, points: { $gte: cost } },
-    { $inc: { points: -cost } },
-    { new: true, projection: { points: 1 } },
+    updatePayload,
+    { new: true, projection: { points: 1, unlockedFeatures: 1 } },
   ).lean();
 
   if (!updatedUser) {
@@ -363,6 +493,10 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     },
   });
 
+  const unlockedFeatures = normalizePersistentUnlockKeys(
+    (updatedUser && updatedUser.unlockedFeatures) || unlockKeysToPersist,
+  );
+
   return json({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
     requiredCoins: cost,
@@ -373,7 +507,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     profileLimit: policy.profileLimit,
     recommendedCoins: policy.recommendedCoins,
     transactionId: String(history?._id || ""),
-    user: userPayload(auth, updatedUser.points),
+    user: userPayload(auth, updatedUser.points, unlockedFeatures),
+    unlockedFeatures,
+    unlockMap: toUnlockMap(unlockedFeatures),
   });
 }
 
