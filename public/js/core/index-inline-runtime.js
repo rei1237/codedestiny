@@ -1654,7 +1654,7 @@ function __cdSyncTileLocksFromServer() {
   if (!token || __cdTileLockServerSyncInFlight) return;
 
   __cdTileLockServerSyncInFlight = true;
-  var url = __cdResolveApiBaseForLockSync() + '/api/flower/unlock/status?all=1';
+  var url = __cdResolveApiBaseForLockSync() + '/api/fortune/pig-coin/balance';
 
   fetch(url, {
     method: 'GET',

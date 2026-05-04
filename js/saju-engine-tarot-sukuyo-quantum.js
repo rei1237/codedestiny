@@ -3447,11 +3447,14 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                       <option value="lunar_leap">음력(윤달)</option>
                   </select>
                   <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark; font-size: 16px; min-height: 44px;">
-                  <select id="sy3PartnerGender" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; min-height: 44px;">
-                    <option value="F">여성</option>
-                    <option value="M">남성</option>
-                    <option value="OTHER">기타</option>
-                  </select>
+                  <label style="display:flex;align-items:center;gap:6px;color:#ffd9e0;font-size:0.82rem;">
+                    <span style="white-space:nowrap;">상대 성별</span>
+                    <select id="sy3PartnerGender" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; min-height: 44px;">
+                      <option value="F">여성</option>
+                      <option value="M">남성</option>
+                      <option value="OTHER">기타</option>
+                    </select>
+                  </label>
               </div>
               <button id="sy3AnalyzeBtn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
           </div>
