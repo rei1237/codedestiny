@@ -1145,6 +1145,26 @@ export default function PointsPage() {
     } catch { /* noop */ }
   }, []);
 
+  /** 구독 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
+  const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
+    try {
+      const rawUser = localStorage.getItem("fortune_auth_user");
+      const user = rawUser ? JSON.parse(rawUser) : null;
+      const scopeRaw = user && (user.id || user.userId || user.email || user.loginId || user.username);
+      const scope = String(scopeRaw || "").trim().toLowerCase() || "guest";
+      const payload = JSON.stringify({
+        tier: sub.tier || "free",
+        isActive: !!sub.isActive,
+        profileLimit: sub.profileLimit ?? 1,
+        expiresAt: sub.expiresAt || null,
+      });
+      const scopedKey = `fortune_profile_subscription::${scope}`;
+      localStorage.setItem(scopedKey, payload);
+      localStorage.setItem("fortune_profile_subscription", payload);
+      localStorage.setItem("fortune_profile_subscription_owner", scope);
+    } catch { /* noop */ }
+  }, []);
+
   /* ── 서버에서 포인트 상태 조회 ─────────────────────────────────── */
   const fetchMyPointState = useCallback(
     async (authToken: string) => {
@@ -1692,16 +1712,18 @@ export default function PointsPage() {
       }
       if (data.user?.points !== undefined) persistUserPoints(Number(data.user.points));
       if (data.subscription) {
-        setSubscription((prev) => ({
-          tier: data.subscription?.tier || prev.tier,
+        const newSub: SubscriptionStatus = {
+          tier: data.subscription?.tier || "free",
           isActive: !!data.subscription?.isActive,
           expiresAt: data.subscription?.expiresAt || null,
-          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : prev.profileLimit,
+          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
           lowBalanceWarning: false,
           cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-          freeLimit: prev.freeLimit || 0,
-        }));
+          freeLimit: 0,
+        };
+        setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+        persistSubscriptionCache(newSub);
       }
       pushToast("success", data.message || `${plan.title} 구독이 시작되었습니다! ✨`);
       setShowStarBurst(true);
@@ -1745,16 +1767,18 @@ export default function PointsPage() {
         return;
       }
       if (data.subscription) {
-        setSubscription((prev) => ({
-          tier: data.subscription?.tier || prev.tier,
+        const newSub: SubscriptionStatus = {
+          tier: data.subscription?.tier || "free",
           isActive: !!data.subscription?.isActive,
           expiresAt: data.subscription?.expiresAt || null,
-          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : prev.profileLimit,
-          lowBalanceWarning: prev.lowBalanceWarning,
+          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
+          lowBalanceWarning: false,
           cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-          freeLimit: prev.freeLimit || 0,
-        }));
+          freeLimit: 0,
+        };
+        setSubscription((prev) => ({ ...newSub, lowBalanceWarning: prev.lowBalanceWarning, freeLimit: prev.freeLimit || 0 }));
+        persistSubscriptionCache(newSub);
       }
       pushToast("success", data.message || "구독 상태가 변경되었습니다.");
     } catch (error: unknown) {

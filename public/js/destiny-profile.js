@@ -2366,6 +2366,30 @@
     _dpUpdateSaveBtn();
     _fetchSubscription(); // API 로드 후 재검증
 
+    /* ★ 다른 탭(/points)에서 구독 완료 시 즉시 반영 — storage 이벤트 감지 */
+    window.addEventListener('storage', function(e) {
+      if (!e.key) return;
+      var k = String(e.key);
+      var isSubKey = k === 'fortune_profile_subscription'
+        || k.indexOf('fortune_profile_subscription::') === 0;
+      if (!isSubKey) return;
+      try {
+        var raw = e.newValue;
+        if (!raw) return;
+        var c = JSON.parse(raw);
+        var tier = _dpNormalizeTier(c && c.tier);
+        var active = !!(c && c.isActive) && tier !== 'free';
+        var rawLimit = Number(c && c.profileLimit);
+        var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+        _dpSubTier         = tier;
+        _dpSubIsActive     = active;
+        _dpSubProfileLimit = active ? resolvedLimit : 1;
+        _dpSubScope        = _dpGetProfileScope();
+        _dpUpdateSaveBtn();
+        renderProfileList();
+      } catch (_) {}
+    });
+
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') dpCloseList();
