@@ -54,7 +54,7 @@ function getFrontendBaseUrl() {
     })()
     || normalizeOriginOnly(process.env.SITE_BASE_URL)
     || normalizeOriginOnly(process.env.AUTH_API_BASE_URL)
-    || "http://localhost:3000";
+    || "http://localhost:3000"
   );
 }
 

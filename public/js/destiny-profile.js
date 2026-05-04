@@ -539,6 +539,7 @@
     }
     var requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     window._cdCoinGatePerUseInFlight = true;
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제가 진행 중입니다. 잠시만 기다려 주세요.');
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -547,6 +548,7 @@
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
+      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
@@ -565,7 +567,7 @@
       }
       cb();
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {
@@ -1588,7 +1590,6 @@
                   + ' · 진태양시 ' + tsStr + '</div>'
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
-            + '</div>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;

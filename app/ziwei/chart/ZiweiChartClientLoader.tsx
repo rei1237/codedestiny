@@ -1,11 +1,11 @@
 "use client";
 import dynamic from "next/dynamic";
 
-const HPremiumZiweiSection = dynamic(
-  () => import("../../components/HPremiumZiweiSection"),
+const AdvancedZiweiSection = dynamic(
+  () => import("../../components/AdvancedZiweiSection"),
   { ssr: false, loading: () => null }
 );
 
 export default function ZiweiChartClientLoader() {
-  return <HPremiumZiweiSection />;
+  return <AdvancedZiweiSection />;
 }

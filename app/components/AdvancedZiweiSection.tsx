@@ -36,19 +36,20 @@ interface FormState {
   birthHour: string; unknownHour: boolean; name: string; gender: "M" | "F";
 }
 
-interface HPremiumZiweiSectionProps {
+interface AdvancedZiweiSectionProps {
   showIntro?: boolean;
   onStartGeneration?: () => void;
   generationLoading?: boolean;
   isUnlocked?: boolean; // 결제 여부
 }
 
-export default function HPremiumZiweiSection({
+// 심화 자미두수 기능 (로컬 자미두수 분석)
+export default function AdvancedZiweiSection({
   showIntro = false,
   onStartGeneration,
   generationLoading = false,
   isUnlocked = false,
-}: HPremiumZiweiSectionProps) {
+}: AdvancedZiweiSectionProps) {
   const [step, setStep] = useState<Step>("form");
   const [form, setForm] = useState<FormState>({
     birthYear: "", birthMonth: "1", birthDay: "1", birthHour: "12",

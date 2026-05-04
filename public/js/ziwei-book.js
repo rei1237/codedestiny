@@ -887,11 +887,11 @@
           }, 70000);
           var _zbHeaders = { 'Content-Type': 'application/json' };
           if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
-          fetch('/api/ziwei-book/session', {
+          fetch('/api/premium/ziwei-life', {
             method: 'POST',
             headers: _zbHeaders,
             body: JSON.stringify({
-              sessionId:   idx + 1,
+              chapter: idx + 1,
               ziweiData:   ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
               birthYear:   _zbProfile.birthYear,
@@ -1223,24 +1223,7 @@
   // mobile-interaction-patch LAZY_LOAD_ACTIONS 호환: window.gotoZiweiPremium 래퍼
   window.gotoZiweiPremium = function() { window.openZiweiBookModal(); };
 
-  // 방어적 폴백: 기존 라우팅이 실패해도 숙요/베다/점성술 모달을 확실히 오픈
-  function _isModalVisible(id) {
-    var el = document.getElementById(id);
-    if (!el) return false;
-    if (el.style.display && el.style.display === 'none') return false;
-    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-  }
-
-  function _openPremiumModalByType(type, profileArg) {
-    var p = profileArg || _getActiveBirthProfile();
-    if (type === 'astro') {
-      if (typeof window.openAstroBookModal === 'function') {
-        window.openAstroBookModal(p || null);
-        return;
-      }
-      _ensurePremiumModalScript('/js/astro-book.js?v=20260503-premiumfix2', function() {
-        if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal(p || null);
-      });
+  // (Removed fallback routing)
       return;
     }
     if (type === 'sukuyo') {
