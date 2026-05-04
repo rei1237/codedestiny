@@ -8553,7 +8553,8 @@ function renderZiwei(p, natal, targetId) {
       background:
         radial-gradient(circle at 12% 14%, rgba(255, 216, 140, 0.14), transparent 34%),
         radial-gradient(circle at 88% 18%, rgba(125, 211, 252, 0.12), transparent 36%),
-        radial-gradient(circle at 50% 90%, rgba(196, 181, 253, 0.1), transparent 42%);
+        radial-gradient(circle at 50% 90%, rgba(196, 181, 253, 0.1), transparent 42%),
+        radial-gradient(circle at 32% 54%, rgba(147, 197, 253, 0.08), transparent 46%);
       filter: blur(6px);
       opacity: 0.95;
       animation: zwNebulaDrift 14s ease-in-out infinite;
@@ -8585,7 +8586,8 @@ function renderZiwei(p, natal, targetId) {
       background:
         radial-gradient(circle at 14% 16%, rgba(250, 204, 21, 0.14), transparent 34%),
         radial-gradient(circle at 86% 84%, rgba(59, 130, 246, 0.16), transparent 38%),
-        linear-gradient(140deg, #080f24 0%, #140a2a 52%, #0b1630 100%);
+        radial-gradient(circle at 54% 52%, rgba(125, 211, 252, 0.08), transparent 62%),
+        linear-gradient(140deg, #070d20 0%, #130a2c 46%, #0a1734 100%);
       padding: 15px;
       border-radius: 16px;
       box-shadow:
@@ -8658,6 +8660,17 @@ function renderZiwei(p, natal, targetId) {
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
       opacity: 0.65;
     }
+    .zw-cell::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 0;
+      height: 1px;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(186, 230, 253, 0.6), rgba(255,255,255,0));
+      opacity: 0.7;
+    }
     @keyframes zwFadeIn {
       0% { opacity: 0; transform: translateY(15px) scale(0.95); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -8670,9 +8683,9 @@ function renderZiwei(p, natal, targetId) {
     /* iOS Safari: 자식 요소로 이벤트가 흡수되는 버그 방지 → 부모 .zw-cell onclick 항상 발화 */
     .zw-cell > * { pointer-events: none; }
     .zw-cell.active {
-      box-shadow: 0 0 22px rgba(167, 139, 250, 0.45), 0 0 14px rgba(250, 204, 21, 0.3);
+      box-shadow: 0 0 22px rgba(167, 139, 250, 0.45), 0 0 14px rgba(250, 204, 21, 0.3), inset 0 0 20px rgba(147, 197, 253, 0.12);
       z-index: 10;
-      background: linear-gradient(162deg, rgba(77, 55, 141, 0.5), rgba(37, 56, 106, 0.68));
+      background: linear-gradient(162deg, rgba(77, 55, 141, 0.58), rgba(37, 56, 106, 0.74));
       border-color: rgba(250, 204, 21, 0.72);
     }
     .zw-cell:focus-visible {
@@ -8681,7 +8694,7 @@ function renderZiwei(p, natal, targetId) {
     }
     @media (hover: hover) {
       .zw-cell:hover {
-        transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.01);
         box-shadow: 0 0 20px rgba(167, 139, 250, 0.4), 0 0 12px rgba(250, 204, 21, 0.28);
         z-index: 10;
         background: linear-gradient(162deg, rgba(70, 50, 132, 0.45), rgba(35, 52, 97, 0.66));
@@ -8701,15 +8714,38 @@ function renderZiwei(p, natal, targetId) {
       background:
         radial-gradient(circle at 52% 26%, rgba(252, 211, 77, 0.26), transparent 58%),
         radial-gradient(circle at 28% 78%, rgba(147, 197, 253, 0.2), transparent 54%),
-        linear-gradient(160deg, rgba(36, 28, 78, 0.76), rgba(15, 27, 56, 0.84));
-      /* 지속 깜박임 대신 고정 광원 효과로 안정화 */
+        radial-gradient(circle at 74% 46%, rgba(196, 181, 253, 0.14), transparent 56%),
+        linear-gradient(160deg, rgba(36, 28, 78, 0.76), rgba(12, 23, 54, 0.88));
       box-shadow:
         inset 0 0 34px rgba(250,204,21,0.24),
-        0 0 24px rgba(125,211,252,0.18);
+        0 0 24px rgba(125,211,252,0.18),
+        0 0 40px rgba(56, 189, 248, 0.12);
       color: #fff;
       padding: 10px;
       word-break: keep-all; /* 번역 대응 */
       border: 1px solid rgba(250, 204, 21, 0.32);
+      position: relative;
+      overflow: hidden;
+    }
+    .zw-center-panel::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(250, 204, 21, 0.18);
+      pointer-events: none;
+      box-shadow: inset 0 0 20px rgba(250, 204, 21, 0.12);
+    }
+    .zw-center-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 22% 28%, rgba(255,255,255,0.36) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 70% 36%, rgba(255,255,255,0.3) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 56% 76%, rgba(255,255,255,0.22) 0 1px, transparent 1.8px);
+      opacity: 0.38;
     }
 
     
@@ -8759,6 +8795,7 @@ function renderZiwei(p, natal, targetId) {
       letter-spacing: 0.01em;
       text-transform: uppercase;
       white-space: nowrap;
+      box-shadow: inset 0 0 6px rgba(255,255,255,0.08);
     }
     .zw-tag-meng {
       color: #fde68a;
@@ -8832,7 +8869,19 @@ function renderZiwei(p, natal, targetId) {
     .zw-star-bad { color: #ff8b8b; text-shadow: 0 1px 1px rgba(0,0,0,0.55); }
     .zw-empty { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 4px; }
     .zw-dahan { font-size: 0.7rem; color: #10B981; position: absolute; top: 8px; right: 6px; font-weight: 700; background: rgba(16, 185, 129, 0.15); padding: 1px 4px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3); line-height: 1.2; z-index: 3; }
-    .zw-center-title { font-size: 1.3rem; font-weight: 900; color: #fde68a; letter-spacing: 1px; margin-bottom: 8px; text-shadow: 0 0 14px rgba(250,204,21,0.85); }
+    .zw-center-title {
+      font-size: 1.34rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      color: transparent;
+      background: linear-gradient(180deg, #fde68a 0%, #fbbf24 42%, #fef3c7 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      text-shadow: 0 0 16px rgba(250,204,21,0.78), 0 0 28px rgba(147, 197, 253, 0.22);
+      position: relative;
+      z-index: 1;
+    }
     .zw-center-meta {
       display: flex;
       flex-wrap: wrap;
@@ -8847,11 +8896,14 @@ function renderZiwei(p, natal, targetId) {
       font-size: 0.63rem;
       font-weight: 800;
       line-height: 1;
-      padding: 3px 8px;
+      padding: 4px 8px;
       border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(15, 23, 42, 0.44);
+      background: rgba(10, 18, 39, 0.54);
       color: #e2e8f0;
       white-space: nowrap;
+      box-shadow: inset 0 0 8px rgba(255,255,255,0.08), 0 4px 10px rgba(2,6,23,0.28);
+      position: relative;
+      z-index: 1;
     }
     .zw-center-chip-meng {
       border-color: rgba(250, 204, 21, 0.55);
@@ -8868,7 +8920,7 @@ function renderZiwei(p, natal, targetId) {
       color: #e9d5ff;
       background: rgba(139, 92, 246, 0.17);
     }
-    .zw-center-desc { font-size: 0.8rem; color: #e0e7ff; line-height: 1.55; }
+    .zw-center-desc { font-size: 0.81rem; color: #e0e7ff; line-height: 1.58; position: relative; z-index: 1; }
     .zw-center-hint {
       font-size: 0.72rem;
       color: rgba(191, 219, 254, 0.74);
@@ -10256,7 +10308,10 @@ function renderZiwei(p, natal, targetId) {
         min-height: 0;
         padding: 8px 6px;
         border-radius: 10px;
-        background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(20,25,45,0.92) 70%);
+        background:
+          radial-gradient(circle at 50% 24%, rgba(252, 211, 77, 0.2), transparent 56%),
+          radial-gradient(circle at 50% 76%, rgba(147, 197, 253, 0.16), transparent 62%),
+          radial-gradient(circle, rgba(212,175,55,0.14) 0%, rgba(20,25,45,0.92) 72%);
         border: 1px solid rgba(212,175,55,0.45);
         display: flex;
         flex-direction: column;
@@ -10264,7 +10319,7 @@ function renderZiwei(p, natal, targetId) {
       }
       .zw-center-title { font-size: 0.8rem; margin-bottom: 4px; }
       .zw-center-meta { gap: 3px; margin-bottom: 5px; }
-      .zw-center-chip { font-size: 0.53rem; padding: 2px 5px; }
+      .zw-center-chip { font-size: 0.53rem; padding: 3px 5px; }
       .zw-center-desc { font-size: 0.59rem; line-height: 1.35; display: block; }
       .zw-center-hint { font-size: 0.56rem; margin-top: 5px; }
       /* 가변 폰트(clamp): 좁은 화면에서도 텍스트 넘침 방지 */
