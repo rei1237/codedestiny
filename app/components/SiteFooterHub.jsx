@@ -1,5 +1,3 @@
-import AdminTrigger from "./AdminTrigger";
-
 const POLICY_LINKS = [
   { href: "/terms-of-service", text: "이용약관" },
   { href: "/terms-of-service#refund-policy", text: "교환/환불 정책" },
@@ -138,7 +136,7 @@ export default function SiteFooterHub() {
           ))}
         </nav>
         <p style={{ margin: "14px 0 0", width: "100%", textAlign: "center", color: "#64748b" }}>
-          © 2026 Code Destiny. All rights reserved. <AdminTrigger />
+          © 2026 Code Destiny. All rights reserved.
         </p>
       </div>
     </footer>

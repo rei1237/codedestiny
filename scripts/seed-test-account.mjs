@@ -26,7 +26,7 @@ if (
 // - /api/fortune/pig-coin/consume API 통해 실제로 코인 차감됨
 // - PointHistory 컬렉션에 차감 기록 남김 (kind: "deduct")
 // - unlockedFeatures 빈 배열로 설정되어 결제 필요
-const TEST_LOGIN_ID = "test1234";
+const TEST_LOGIN_ID = "test1234@example.com";
 const TEST_PASSWORD = "test!1234";
 const TEST_POINTS = 9999;
 
@@ -67,7 +67,7 @@ async function upsertTestAccount() {
 
   const user = await User.findOne({ email: TEST_LOGIN_ID }).lean();
   if (!user) {
-    throw new Error("test1234 계정 생성/갱신 후 조회에 실패했습니다.");
+    throw new Error("test1234@example.com 계정 생성/갱신 후 조회에 실패했습니다.");
   }
 
   console.log("[seed-test-account] done");
@@ -75,7 +75,7 @@ async function upsertTestAccount() {
   console.log("✅ 테스트 계정 생성/갱신 완료");
   console.log("============================================");
   console.log("【계정 정보】");
-  console.log(`  - ID: ${TEST_LOGIN_ID}`);
+  console.log(`  - Email: ${TEST_LOGIN_ID}`);
   console.log(`  - PW: ${TEST_PASSWORD}`);
   console.log(`  - MongoDB _id: ${String(user._id)}`);
   console.log("");
