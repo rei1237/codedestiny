@@ -11028,6 +11028,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return;
     }
 
+    if (action === 'navigateToVedic') {
+      if (typeof window._dpOpenFortuneType === 'function') {
+        window._dpOpenFortuneType('vedic');
+      } else {
+        window.location.href = '/vedic-astrology.html';
+      }
+      return;
+    }
+
     function _cdDispatchSyntheticActionClick() {
       perUseApproved[action] = true;
       try {
@@ -11106,17 +11115,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   var __cdCoinGateOverlayDepth = 0;
   function _cdSetCoinGateOverlay(isOpen, message) {
-    var overlay = document.getElementById('sajuLoaderOverlay');
-    var txt = document.getElementById('sajuLoadingTxt');
-    if (!overlay) return;
-    if (isOpen) {
-      if (txt && message) txt.textContent = message;
-      overlay.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    } else {
-      overlay.style.display = 'none';
-      document.body.style.overflow = '';
-    }
+    var overlays = document.querySelectorAll('#sajuLoaderOverlay');
+    if (!overlays.length) return;
+    overlays.forEach(function(overlay) {
+      var txt = overlay.querySelector('#sajuLoadingTxt') || overlay.querySelector('.saju-loader-text') || overlay.querySelector('.saju-typing-txt');
+      if (isOpen) {
+        if (txt && message) txt.textContent = message;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      } else {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
   }
   window._cdSetCoinGateOverlay = _cdSetCoinGateOverlay;
 

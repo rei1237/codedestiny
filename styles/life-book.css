@@ -1966,7 +1966,7 @@ body.lb-modal-open {
 
 .lb-loading__chapter-title {
   font-size: 0.9rem;
-  color: rgba(242,234,255,0.97);
+  color: #fff;
   font-weight: 500;
   min-height: 1.3em;
   transition: color 0.24s ease;
