@@ -1100,6 +1100,9 @@ async function showResult(chart){
   const t=theme;
   const isAlch=t==='alchemist';
   const interp=f=>f[isAlch?'al':'su'];
+  const causeData=findFig(chart.witnesses[0]);
+  const flowData=findFig(chart.witnesses[1]);
+  const judgeData=findFig(chart.judge);
 
   // Populate question
   document.getElementById('rs-q-txt').textContent=question;
@@ -1112,25 +1115,24 @@ async function showResult(chart){
     'card-past','🜁',
     '제 1 도가니 — 원인',
     '질문을 만들어낸 과거의 에너지',
-    interp(findFig(chart.witnesses[0]))
+    interp(causeData)
   ));
   grid.appendChild(buildFigCard(
     chart.witnesses[1],
     'card-present','🜃',
     '제 2 도가니 — 흐름',
     '지금 이 순간 작용하는 힘',
-    interp(findFig(chart.witnesses[1]))
+    interp(flowData)
   ));
   grid.appendChild(buildFigCard(
     chart.judge,
     'card-judge','☉',
     '재판관 — 신탁',
     '운명의 최종 판결',
-    interp(findFig(chart.judge))
+    interp(judgeData)
   ));
 
   // Set AI advice from judge
-  const judgeData=findFig(chart.judge);
   if(judgeData){
     document.getElementById('rs-advice').style.display='block';
     document.getElementById('rs-advice-txt').textContent=interp(judgeData).a;
@@ -1152,7 +1154,7 @@ async function showResult(chart){
   document.getElementById('rs-ai-loading').classList.add('show');
   document.getElementById('rs-ai-txt').style.opacity='0';
 
-  const oracleResult=await fetchOracle(question,judgeData,t);
+  const oracleResult=await fetchOracle(question,{cause:causeData,flow:flowData,judge:judgeData},t);
   document.getElementById('rs-ai-loading').classList.remove('show');
   document.getElementById('rs-ai-txt').style.opacity='1';
 
@@ -1161,34 +1163,65 @@ async function showResult(chart){
     document.getElementById('rs-advice-txt').textContent=oracleResult.advice;
   }
 
-  if(oracleResult?.text){await typeOut(document.getElementById('rs-ai-txt'),oracleResult.text);}
-  else{document.getElementById('rs-ai-txt').textContent=interp(judgeData).m;}
+  if(oracleResult?.text){
+    await typeOut(document.getElementById('rs-ai-txt'),oracleResult.text);
+  } else {
+    document.getElementById('rs-ai-txt').textContent=buildLocalCombinedOracle(causeData,flowData,judgeData,t);
+  }
 }
 
-async function fetchOracle(q,fd,t){
+function toOracleCardPayload(fd,t,roleName){
   if(!fd)return null;
+  const isAlch=t==='alchemist';
+  const tone=fd[isAlch?'al':'su']||{};
+  return {
+    role:roleName,
+    english:fd.en||'',
+    korean:fd.nm||'',
+    symbol:fd.sig||'',
+    element:fd.el||'',
+    meaning:String(tone.m||''),
+    advice:String(tone.a||''),
+  };
+}
+
+function buildLocalCombinedOracle(causeData,flowData,judgeData,t){
+  const isAlch=t==='alchemist';
+  const pick=function(fd){ return fd ? (fd[isAlch?'al':'su']||{}) : {}; };
+  const c=pick(causeData), f=pick(flowData), j=pick(judgeData);
+  const causeName=(causeData&& (causeData.nm||causeData.en))||'원인 형상';
+  const flowName=(flowData&& (flowData.nm||flowData.en))||'흐름 형상';
+  const judgeName=(judgeData&& (judgeData.nm||judgeData.en))||'신탁 형상';
+
+  const p1=`${causeName}가 보여주는 뿌리는 현재 고민이 순간적인 변덕이 아니라, 오래 누적된 선택의 결에서 비롯되었음을 뜻합니다. ${String(c.m||'과거의 패턴을 정리하면 지금의 문제는 훨씬 단순하게 보이기 시작합니다.')}`;
+  const p2=`${flowName}는 지금 이 순간 작동하는 힘의 방향을 드러냅니다. ${String(f.m||'에너지는 이미 움직이고 있으며, 망설임보다 작은 실행이 흐름을 선명하게 만듭니다.')}`;
+  const p3=`최종 재판관 ${judgeName}의 판결은 다음과 같습니다. ${String(j.m||'복잡함을 줄이고 핵심 하나를 붙들 때 운이 열린다는 신호입니다.')}`;
+  const p4=`따라서 현 시점의 최선은 '정리 -> 결정 -> 실행' 순서를 하루 단위로 고정하는 것입니다. 오늘 바로 할 수 있는 가장 작은 행동 하나를 완료해, 흐름을 현실로 고정하십시오.`;
+
+  return [p1,p2,p3,p4].join('\n\n');
+}
+
+async function fetchOracle(q,cards,t){
+  if(!cards||!cards.judge)return null;
   try{
-    const isAlch=t==='alchemist';
     const r=await fetch('/api/oracle/geomancy',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         question:q,
         theme:t,
-        judge:{
-          english:fd.en,
-          korean:fd.nm,
-          element:fd.el,
-          meaning:(fd[isAlch?'al':'su']?.m)||'',
-          advice:(fd[isAlch?'al':'su']?.a)||''
-        }
+        cards:{
+          cause:toOracleCardPayload(cards.cause,t,'원인'),
+          flow:toOracleCardPayload(cards.flow,t,'흐름'),
+          judge:toOracleCardPayload(cards.judge,t,'신탁'),
+        },
       })
     });
     if(!r.ok)return null;
     const data=await r.json();
     const txt=formatOraclePayload(data);
     if(!txt)return null;
-    return {text:txt,advice:data?.actionTip||null};
+    return {text:txt,advice:data?.advice||data?.actionTip||null};
   }catch{return null;}
 }
 
@@ -1201,6 +1234,7 @@ function formatOraclePayload(data){
   if(data.risk)sections.push('[주의 신호]\n'+String(data.risk).trim());
   if(data.timing)sections.push('[타이밍]\n'+String(data.timing).trim());
   if(data.actionTip)sections.push('[실천 제안]\n'+String(data.actionTip).trim());
+  if(data.advice&&String(data.advice).trim()!==String(data.actionTip||'').trim())sections.push('[현자의 경구]\n'+String(data.advice).trim());
   return sections.filter(Boolean).join('\n\n');
 }
 

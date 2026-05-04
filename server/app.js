@@ -13,6 +13,7 @@ const subscriptionRoutes = require("./routes/subscription.routes");
 const astroRoutes = require("./routes/astro.routes");
 const yogaGuruRoutes = require("./routes/yoga-guru.routes");
 const sibylRoutes = require("./routes/sibyl.routes");
+const oracleRoutes = require("./routes/oracle.routes");
 
 const app = express();
 
@@ -94,6 +95,7 @@ app.use("/api/astro", astroRoutes);
 app.use("/api/vedic", astroRoutes);
 app.use("/api/yoga-guru", yogaGuruRoutes);
 app.use("/api/sibyl", sibylRoutes);
+app.use("/api/oracle", oracleRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "요청한 API 경로를 찾을 수 없습니다." });

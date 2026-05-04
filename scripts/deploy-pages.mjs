@@ -42,10 +42,21 @@ const branch =
   process.env.CF_PAGES_BRANCH ||
   "main";
 
+const forceDirectDeploy =
+  String(process.env.CF_PAGES_FORCE_DIRECT_DEPLOY || "").toLowerCase() === "1"
+  || String(process.env.CF_PAGES_FORCE_DIRECT_DEPLOY || "").toLowerCase() === "true";
+
+if (!forceDirectDeploy) {
+  console.log("[deploy-pages] Skipped direct deploy.");
+  console.log("[deploy-pages] Cloudflare Pages should be deployed automatically from Git pushes.");
+  console.log("[deploy-pages] Set CF_PAGES_FORCE_DIRECT_DEPLOY=1 only for emergency manual override.");
+  process.exit(0);
+}
+
 const isGitHubActions = String(process.env.GITHUB_ACTIONS || "").toLowerCase() === "true";
 if (!isGitHubActions) {
-  console.error("[deploy-pages] Blocked: Cloudflare Pages deploy is allowed only from GitHub Actions.");
-  console.error("[deploy-pages] Use the workflow `.github/workflows/cloudflare-pages-deploy.yml` to deploy Pages.");
+  console.error("[deploy-pages] Blocked: forced direct deploy is allowed only from GitHub Actions.");
+  console.error("[deploy-pages] Default policy is Git push auto-deploy for Cloudflare Pages.");
   process.exit(1);
 }
 

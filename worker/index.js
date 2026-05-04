@@ -15,6 +15,7 @@ import { handleDreamRoutes } from "./routes/dream.js";
 import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
 import { handleSibylRoutes } from "./routes/sibyl.js";
+import { handleOracleRoutes } from "./routes/oracle.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -299,7 +300,7 @@ export default {
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "geo"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "geo"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
@@ -395,6 +396,10 @@ export default {
 
     if (url.pathname === "/api/sibyl" || url.pathname.startsWith("/api/sibyl/")) {
       return withCorsHeaders(request, env, await handleSibylRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/oracle" || url.pathname.startsWith("/api/oracle/")) {
+      return withCorsHeaders(request, env, await handleOracleRoutes(request, env));
     }
 
     if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {
