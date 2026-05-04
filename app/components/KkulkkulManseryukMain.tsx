@@ -93,7 +93,7 @@ type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
-  ziwei: 590,
+  ziwei: 500,
   astrology: 390,
   sukuyo: 390,
   veda: 390,
@@ -751,7 +751,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>자미두수 · Ziwei Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>자미두수 프리미엄 PDF</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>590코인 · 13챕터 · 12궁/사화/대한 심층 분석</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>500코인 · 15챕터 · 12궁/사화/대한 심층 분석</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
@@ -767,6 +767,7 @@ export default function KkulkkulManseryukMain() {
                 showIntro={premiumFlowStage === 'intro'}
                 onStartGeneration={() => handleStartPremiumGeneration('ziwei')}
                 generationLoading={premiumGateLoading === 'ziwei'}
+                isUnlocked={premiumFlowStage === 'generate'}
               />
             </div>
           )}
