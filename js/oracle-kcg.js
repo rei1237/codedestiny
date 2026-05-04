@@ -504,17 +504,6 @@ function consumeKemetPerUseCoin() {
       resolve(true);
       return;
     }
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      try {
-        window._cdCoinGatePerUse(
-          COST,
-          '이집트 신탁 리딩',
-          function() { resolve(true); },
-          function() { resolve(false); }
-        );
-        return;
-      } catch (_gateErr) {}
-    }
 
     var token = '';
     try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
@@ -550,7 +539,14 @@ function consumeKemetPerUseCoin() {
         if (typeof res.remainingPoints === 'number') remaining = res.remainingPoints;
         else if (res.user && typeof res.user.points === 'number') remaining = res.user.points;
         try {
-          if (typeof remaining === 'number') localStorage.setItem('fortune_user_points', String(remaining));
+          if (typeof remaining === 'number') {
+            localStorage.setItem('fortune_user_points', String(remaining));
+            var authRaw = localStorage.getItem('fortune_auth_user') || '';
+            var authUser = authRaw ? JSON.parse(authRaw) : {};
+            authUser.points = remaining;
+            localStorage.setItem('fortune_auth_user', JSON.stringify(authUser));
+            if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(remaining);
+          }
         } catch (_e2) {}
         resolve(true);
         return;

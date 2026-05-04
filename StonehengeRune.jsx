@@ -111,17 +111,6 @@ function consumeRunePerUseCoin() {
       resolve(true);
       return;
     }
-    if (typeof window._cdCoinGatePerUse === "function") {
-      try {
-        window._cdCoinGatePerUse(
-          RUNE_COIN_COST,
-          "스톤헨지 룬 리딩",
-          () => resolve(true),
-          () => resolve(false)
-        );
-        return;
-      } catch (_gateError) {}
-    }
 
     let token = "";
     try {
@@ -169,6 +158,13 @@ function consumeRunePerUseCoin() {
           try {
             if (Number.isFinite(remainingPoints)) {
               localStorage.setItem("fortune_user_points", String(remainingPoints));
+              const authRaw = localStorage.getItem("fortune_auth_user") || "";
+              const authUser = authRaw ? JSON.parse(authRaw) : {};
+              authUser.points = remainingPoints;
+              localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
+              if (typeof window.__cdSetGoldenBalance === "function") {
+                window.__cdSetGoldenBalance(remainingPoints);
+              }
             }
           } catch (_e2) {}
           resolve(true);
@@ -1016,6 +1012,8 @@ export default function StonehengeRune() {
           grid-template-columns: 1fr 1fr;
           gap: 12px;
           margin-bottom: 36px;
+          position: relative;
+          z-index: 20;
         }
         .sr-spread-btn {
           background: rgba(15,23,42,0.7);
@@ -1027,6 +1025,10 @@ export default function StonehengeRune() {
           transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
+          pointer-events: auto;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+          z-index: 1;
         }
         .sr-spread-btn::before {
           content: '';
@@ -1038,6 +1040,10 @@ export default function StonehengeRune() {
         }
         .sr-spread-btn:hover::before,
         .sr-spread-btn.active::before { opacity: 1; }
+        .sr-spread-btn > * {
+          position: relative;
+          z-index: 1;
+        }
         .sr-spread-btn.active {
           border-color: rgba(99,102,241,0.7);
           box-shadow: 0 0 20px rgba(99,102,241,0.2), inset 0 0 20px rgba(99,102,241,0.05);
@@ -1750,6 +1756,7 @@ export default function StonehengeRune() {
           <div className="sr-spread-row">
             {SPREAD_OPTIONS.map((option) => (
               <button
+                type="button"
                 key={option.count}
                 className={`sr-spread-btn ${spread === option.count ? "active" : ""}`}
                 onClick={() => handleSpreadSelect(option.count)}
@@ -1763,6 +1770,7 @@ export default function StonehengeRune() {
 
           {/* Draw button */}
           <button
+            type="button"
             className="sr-draw-btn"
             onClick={handleDraw}
             disabled={!spread || isDrawing || isPaying}
@@ -1827,7 +1835,7 @@ export default function StonehengeRune() {
               {selectedRune && (
                 <div className="sr-detail-overlay" onClick={closeRuneDetail} role="presentation">
                   <div className="sr-detail sr-detail-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="룬 상세 해석">
-                    <button className="sr-detail-close" onClick={closeRuneDetail} aria-label="상세 해석 닫기">✕</button>
+                    <button type="button" className="sr-detail-close" onClick={closeRuneDetail} aria-label="상세 해석 닫기">✕</button>
 
                     <div className="sr-detail-header">
                       <div className={`sr-detail-stone ${selectedRune.isReversed ? "rev" : ""}`}>
@@ -1875,8 +1883,8 @@ export default function StonehengeRune() {
                     <p className="sr-detail-mantra">"{selectedReading?.mantra}"</p>
 
                     <div className="sr-detail-nav">
-                      <button className="sr-detail-nav-btn" onClick={showPrevRune} disabled={selectedRune.index <= 0}>← 이전 룬</button>
-                      <button className="sr-detail-nav-btn" onClick={showNextRune} disabled={selectedRune.index >= drawnRunes.length - 1}>다음 룬 →</button>
+                      <button type="button" className="sr-detail-nav-btn" onClick={showPrevRune} disabled={selectedRune.index <= 0}>← 이전 룬</button>
+                      <button type="button" className="sr-detail-nav-btn" onClick={showNextRune} disabled={selectedRune.index >= drawnRunes.length - 1}>다음 룬 →</button>
                     </div>
                     <p className="sr-detail-ux-note">카드를 연속으로 비교해 보고 싶다면 좌우 화살표 키를 사용하세요.</p>
                   </div>
@@ -1905,12 +1913,12 @@ export default function StonehengeRune() {
                 <p className="sr-cta-title">함께 나누고 바로 만나기</p>
                 <p className="sr-cta-desc">룬 결과를 카카오톡으로 공유하거나 메인 화면으로 이동해 다른 점술도 이어서 확인해보세요.</p>
                 <div className="sr-cta-btns">
-                  <button className="sr-cta-btn primary" onClick={handleShareKakao}>카카오톡 공유하기</button>
-                  <button className="sr-cta-btn" onClick={handleGoMain}>메인 화면 바로가기</button>
+                  <button type="button" className="sr-cta-btn primary" onClick={handleShareKakao}>카카오톡 공유하기</button>
+                  <button type="button" className="sr-cta-btn" onClick={handleGoMain}>메인 화면 바로가기</button>
                 </div>
               </div>
 
-              <button className="sr-reset-btn" onClick={reset}>
+              <button type="button" className="sr-reset-btn" onClick={reset}>
                 ↺ &nbsp;다시 뽑기
               </button>
             </>
