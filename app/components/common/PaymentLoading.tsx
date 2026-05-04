@@ -36,24 +36,38 @@ export default function PaymentLoading({
       role="alertdialog"
       aria-modal="true"
       aria-live="assertive"
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md"
+      className="fixed inset-0 z-[130] flex items-center justify-center bg-[#050510]/80 px-4 backdrop-blur-xl"
     >
-      <div className="w-full max-w-md rounded-3xl border border-amber-200/35 bg-slate-950/85 p-6 text-center shadow-[0_32px_80px_rgba(0,0,0,0.45)] sm:p-8">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-amber-200/20 bg-amber-50/5">
-          <div className="relative h-12 w-12">
-            <span className="absolute inset-0 rounded-full border-2 border-amber-200/40" />
-            <span className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-amber-300 border-r-amber-200 animate-spin" />
-            <span className="absolute inset-[9px] rounded-full border-2 border-transparent border-t-white/85 animate-spin [animation-duration:1.5s] [animation-direction:reverse]" />
-          </div>
+      <div className="w-full max-w-md relative overflow-hidden rounded-[2rem] border border-indigo-500/30 bg-gradient-to-b from-[#0B0C21]/95 to-[#060612]/95 p-8 text-center shadow-[0_0_80px_rgba(79,70,229,0.3)]">
+        {/* 장식용 은하수 글로우 */}
+        <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-violet-600/20 blur-[60px] pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-cyan-600/20 blur-[60px] pointer-events-none" />
+
+        {/* 행성/우주 느낌의 로딩 애니메이션 */}
+        <div className="mx-auto mb-8 relative flex h-24 w-24 items-center justify-center">
+          {/* 궤도 1 */}
+          <span className="absolute inset-0 rounded-full border-[1px] border-indigo-500/30 animate-[spin_4s_linear_infinite]">
+            <span className="absolute -top-1 left-1/2 h-2 w-2 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
+          </span>
+          {/* 궤도 2 */}
+          <span className="absolute inset-2 rounded-full border-[1px] border-violet-400/20 animate-[spin_3s_linear_infinite_reverse]">
+            <span className="absolute top-1/2 -left-1 h-1.5 w-1.5 rounded-full bg-violet-300 shadow-[0_0_6px_rgba(196,181,253,0.8)]" />
+          </span>
+          
+          {/* 중심 행성/별 */}
+          <div className="relative h-11 w-11 rounded-full bg-gradient-to-tr from-indigo-600 via-violet-400 to-cyan-300 shadow-[0_0_30px_rgba(139,92,246,0.6)] animate-pulse" />
         </div>
 
-        <p className="text-lg font-bold tracking-[-0.015em] text-white sm:text-xl">{title}</p>
-        <p className="mt-2 text-sm leading-relaxed text-slate-200/85">{description}</p>
+        <p className="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-indigo-200 to-violet-300 sm:text-2xl">{title}</p>
+        <p className="mt-3 text-sm leading-relaxed text-indigo-200/70">{description}</p>
 
         {statusMessage ? (
-          <p className="mt-4 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-amber-100/90 sm:text-sm">
-            {statusMessage}
-          </p>
+          <div className="mt-6 flex justify-center">
+            <p className="relative rounded-2xl border border-indigo-500/30 bg-indigo-950/50 px-4 py-2.5 text-xs font-medium text-cyan-100 sm:text-sm">
+              <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-violet-500/10 pointer-events-none" />
+              <span className="relative">{statusMessage}</span>
+            </p>
+          </div>
         ) : null}
       </div>
     </div>

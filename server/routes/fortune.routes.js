@@ -424,7 +424,7 @@ async function handlePigCoinConsumeRoute(req, res, next) {
 
     if (isIncludedBySubscription) {
       return res.status(200).json({
-        message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
+        message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"}을 이용 중이시므로 코인이 차감되지 않습니다. 우주의 별빛이 고객님의 운명을 환히 비추고 있습니다.`,
         code: "SUBSCRIPTION_INCLUDED",
         productId: productId || null,
         requiredCoins: cost,

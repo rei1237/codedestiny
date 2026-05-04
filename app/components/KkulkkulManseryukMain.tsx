@@ -325,6 +325,8 @@ export default function KkulkkulManseryukMain() {
       ...(adminToken ? { 'x-admin-token': adminToken } : {}),
       ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
     };
+    
+    startPayment(`결제를 진행 중입니다.`);
     try {
       const productId = UNLOCK_PRODUCT_BY_KEY[key];
       const requestId = `unlock:${productId || key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
@@ -355,6 +357,8 @@ export default function KkulkkulManseryukMain() {
     } catch (e) {
       console.error('[unlockByCoins]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      endPayment();
     }
   };
 
@@ -372,6 +376,8 @@ export default function KkulkkulManseryukMain() {
       ...(adminToken ? { 'x-admin-token': adminToken } : {}),
       ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
     };
+    
+    startPayment(`결제를 진행 중입니다.`);
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
@@ -393,6 +399,8 @@ export default function KkulkkulManseryukMain() {
     } catch (e) {
       console.error('[runPaidFeatureOnce]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      endPayment();
     }
   };
 
