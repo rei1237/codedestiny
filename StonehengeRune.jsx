@@ -136,6 +136,8 @@ function consumeRunePerUseCoin() {
       return;
     }
 
+    const requestId = `rune:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+
     fetch("/api/fortune/pig-coin/consume", {
       method: "POST",
       headers: {
@@ -146,14 +148,27 @@ function consumeRunePerUseCoin() {
         cost: RUNE_COIN_COST,
         reason: "스톤헨지 룬 리딩",
         featureKey: RUNE_FEATURE_KEY,
+        requestId,
+        forceDeduct: true,
       }),
     })
-      .then((resp) => resp.json().catch(() => ({})))
-      .then((res) => {
-        if (res && res.ok) {
+      .then((resp) =>
+        resp.json().catch(() => ({})).then((data) => ({
+          ok: resp.ok,
+          status: resp.status,
+          data: data || {},
+        }))
+      )
+      .then((payload) => {
+        const res = payload?.data || {};
+        if (payload.ok || res.ok === true) {
+          const remainingPoints =
+            typeof res.remainingPoints === "number"
+              ? res.remainingPoints
+              : Number(res?.user?.points);
           try {
-            if (typeof res.remainingPoints === "number") {
-              localStorage.setItem("fortune_user_points", String(res.remainingPoints));
+            if (Number.isFinite(remainingPoints)) {
+              localStorage.setItem("fortune_user_points", String(remainingPoints));
             }
           } catch (_e2) {}
           resolve(true);
@@ -161,10 +176,10 @@ function consumeRunePerUseCoin() {
         }
 
         const code = String((res && res.code) || "").toUpperCase();
-        if (code === "INSUFFICIENT_POINTS") {
+        if (payload.status === 402 || code === "INSUFFICIENT_POINTS") {
           window.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
         } else {
-          window.alert((res && res.error) || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          window.alert((res && (res.message || res.error)) || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         }
         resolve(false);
       })

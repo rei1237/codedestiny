@@ -496,6 +496,7 @@ function closeKemetModal() {
 function consumeKemetPerUseCoin() {
   var COST = 30;
   var FEATURE_KEY = 'openKemetModal';
+  var REQUEST_ID = 'kemet:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
 
   return new Promise(function(resolve) {
     if (COST <= 0) { resolve(true); return; }
@@ -534,26 +535,32 @@ function consumeKemetPerUseCoin() {
       body: JSON.stringify({
         cost: COST,
         reason: '이집트 신탁 리딩',
-        featureKey: FEATURE_KEY
+        featureKey: FEATURE_KEY,
+        requestId: REQUEST_ID,
+        forceDeduct: true
       })
     }).then(function(resp) {
-      return resp.json().catch(function() { return {}; });
-    }).then(function(res) {
-      if (res && res.ok) {
+      return resp.json().catch(function() { return {}; }).then(function(data) {
+        return { ok: !!resp.ok, status: resp.status, data: data || {} };
+      });
+    }).then(function(payload) {
+      var res = payload.data || {};
+      if (payload.ok || res.ok === true) {
+        var remaining = null;
+        if (typeof res.remainingPoints === 'number') remaining = res.remainingPoints;
+        else if (res.user && typeof res.user.points === 'number') remaining = res.user.points;
         try {
-          if (typeof res.remainingPoints === 'number') {
-            localStorage.setItem('fortune_user_points', String(res.remainingPoints));
-          }
+          if (typeof remaining === 'number') localStorage.setItem('fortune_user_points', String(remaining));
         } catch (_e2) {}
         resolve(true);
         return;
       }
 
       var code = String((res && res.code) || '').toUpperCase();
-      if (code === 'INSUFFICIENT_POINTS') {
+      if (payload.status === 402 || code === 'INSUFFICIENT_POINTS') {
         alert('코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.');
       } else {
-        alert((res && res.error) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        alert((res && (res.message || res.error)) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       }
       resolve(false);
     }).catch(function() {
