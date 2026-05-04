@@ -489,6 +489,10 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
     </div>
     <div class="glass" style="padding:18px 16px;margin-bottom:12px">
       <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
+      <div style="margin-bottom:12px">
+        <label for="v_name">이름</label>
+        <input id="v_name" placeholder="이름을 입력하세요 (예: 홍길동)">
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <label for="v_year">연도</label>
@@ -557,7 +561,8 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
   <div id="page-loading" class="page">
     <div class="loading" style="padding-top:80px">
       <div class="loading-ring"></div>
-      <div class="loading-text">우주의 기운을 읽는 중…</div>
+      <div id="loading-name" style="font-size:18px;color:var(--gold);margin-bottom:6px;font-family:var(--font-display)"></div>
+      <div class="loading-text">우주의 기운을 읽는 중...</div>
     </div>
   </div>
 
@@ -2040,7 +2045,7 @@ function normalizeProfileForVedic(profile){
   return{
     id:profile.id,
     name:profile.name,
-    gender:profile.gender,
+    gender:(profile.gender==='female'||profile.gender==='F')?'F':'M',
     birth:{
       year:b.year,
       month:b.month,
@@ -2088,6 +2093,8 @@ function profileToForm(profile){
 function doCalculateFromProfile(profile){
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.lat)||isNaN(f.lon)){alert('프로필 정보가 부족합니다.');return;}
+  var nameEl=document.getElementById('loading-name');
+  if(nameEl) nameEl.textContent=f.name+'님의';
   showPage('loading');
 
   function runWithPlanets(planetsFromApi){
@@ -2107,16 +2114,33 @@ function doCalculateFromProfile(profile){
   }
 
   function showApiRequiredError(detail){
-    var msg='Swiss API 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-    if(detail){ msg += '<br><br>상세: ' + String(detail); }
-    document.getElementById('result-content').innerHTML='<div class="error-box">'+msg+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
-    showPage('result');
+    var msg='정밀 계산 API 응답이 지연되고 있습니다. 로컬 엔진으로 전환합니다.';
+    if(detail){ console.warn('[vedic] API Error:', detail); }
+    // API 에러 시 사용자에게 알리고 로컬로 자동 전환됨을 알림
+    var errEl=document.getElementById('result-content');
+    if(errEl) errEl.innerHTML='<div class="loading-text" style="color:var(--gold2)">정밀 분석 중 오류가 발생하여 로컬 엔진으로 전환 중입니다...</div>';
+  }
+
+  function runLocalFallback(){
+    try{
+      var chart=buildChart(f,null);
+      var report=analyze(chart);
+      var insights=generateInsights(chart,report);
+      G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
+      G.usedLocalCalc=true;
+      renderResult();
+      showPage('result');
+    }catch(err){
+      console.error('[vedic] local fallback failed:', err);
+      document.getElementById('result-content').innerHTML='<div class="error-box">계산 엔진 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.<br><br><button onclick="showPage(\'input\')" class="btn-sm" style="margin-top:10px">입력 화면으로 돌아가기</button></div>';
+      showPage('result');
+    }
   }
 
   var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
   var url=apiBase+'/api/vedic/planets';
   var payload={ year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute,timezone:f.timezone };
-  var timeoutMs=2500;
+  var timeoutMs=3000;
   var reqPromise;
   if(typeof AbortController==='function'){
     var ac=new AbortController();
@@ -2136,11 +2160,12 @@ function doCalculateFromProfile(profile){
         runWithPlanets(res.planets);
         return;
       }
-      showApiRequiredError(res&&res.error?res.error:'Swiss API 응답 형식이 올바르지 않습니다.');
+      console.warn('Vedic API returned error, falling back to local:', res?res.error:'unknown');
+      runLocalFallback();
     })
     .catch(function(err){
-      console.warn('Vedic API unavailable:', err&&err.message?err.message:'');
-      showApiRequiredError(err&&err.message?err.message:'API timeout');
+      console.warn('Vedic API unavailable, falling back to local:', err&&err.message?err.message:'');
+      runLocalFallback();
     });
 }
 
@@ -2271,6 +2296,7 @@ function _fillInputFromProfile(profile){
     var b=(profile&&profile.birth)||{};
     var l=(profile&&profile.location)||{};
     function setV(id,v){ var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=String(v); }
+    setV('v_name',profile.name||'');
     setV('v_year',b.year);
     setV('v_month',b.month);
     setV('v_day',b.day);
@@ -2572,6 +2598,7 @@ function runVedicFromInput(){
     var lat=parseFloat((document.getElementById('v_lat')||{}).value);
     var lon=parseFloat((document.getElementById('v_lon')||{}).value);
     var tz=parseFloat((document.getElementById('v_tz')||{}).value);
+    var name=(document.getElementById('v_name')||{}).value||'(직접 입력)';
     var gender=(document.getElementById('v_gender')||{}).value||'M';
 
     if(isNaN(y)||isNaN(m)||isNaN(d)){ alert('생년월일을 확인해 주세요.'); return; }
@@ -2582,7 +2609,7 @@ function runVedicFromInput(){
 
     var profile={
       id:'vedic_manual',
-      name:'(직접 입력)',
+      name:name,
       gender:gender,
       birth:{ year:y,month:m,day:d,hour:hr,minute:min },
       location:{ lat:lat, lng:lon, tzOffset:tz, baseTzOffset:tz, label:'(직접 입력)', tz:'' }

@@ -259,17 +259,12 @@
     var map = Object.create(null);
     map[base] = true;
 
-    if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
-    if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
-
-    if (base === 'flower-fc') {
-      map['flower-destiny'] = true;
-      map['flower-astro'] = true;
-      map['flower-ziwei'] = true;
-      map['flower-sukuyo'] = true;
+    if (base === 'olympus' || base === 'olympus-fc' || base === 'olympus-profile-fc' || base === 'olympus_all') {
+      ['olympus', 'olympus-fc', 'olympus-profile-fc', 'olympus_all'].forEach(function(k){ map[k]=true; });
     }
-    if (base === 'flower-destiny' || base === 'flower-astro' || base === 'flower-ziwei' || base === 'flower-sukuyo') {
-      map['flower-fc'] = true;
+
+    if (base === 'flower' || base === 'flower-fc' || base === 'flower_premium' || base === 'flower_all' || base.indexOf('flower-') === 0) {
+      ['flower', 'flower-fc', 'flower_premium', 'flower_all', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'].forEach(function(k){ map[k]=true; });
     }
 
     return Object.keys(map);

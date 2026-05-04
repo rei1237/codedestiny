@@ -1509,8 +1509,72 @@ function formatDetailedAdvice(symbol) {
   ].join('\n');
 }
 
-function startReading() {
+async function startReading() {
   if (phase === 'swirl' || phase === 'morph') return;
+
+  // --- Coin Gate Implementation ---
+  const token = localStorage.getItem('fortune_auth_token') || localStorage.getItem('cdToken') || '';
+  if (!token) {
+    if (confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      location.href = '/login?next=' + encodeURIComponent(location.pathname);
+    }
+    return;
+  }
+
+  // Admin / Bypass Check
+  const isAdmin = window.__cdAdminBypass || !!sessionStorage.getItem('flower_admin_token') || !!localStorage.getItem('flower_admin_token');
+  
+  if (!isAdmin) {
+    if (!confirm('🪙 영국 홍차점 리딩\n이용 시 30코인이 차감됩니다.\n진행하시겠습니까?')) return;
+    
+    const originalBtn = document.getElementById('oracle-btn');
+    originalBtn.disabled = true;
+    setStatus('결제를 확인하고 있습니다...');
+
+    try {
+      const res = await fetch('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          cost: 30,
+          reason: '영국 홍차점 리딩',
+          featureKey: 'royal-tea-oracle',
+          forceDeduct: true,
+          requestId: 'royal-tea:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 402) {
+        alert('코인이 부족합니다. 충전 후 이용해 주세요.');
+        if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+        else location.href = '/points';
+        originalBtn.disabled = false;
+        setStatus('대기 중...');
+        return;
+      }
+      if (!res.ok || data.ok === false) {
+        alert(data.message || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
+        originalBtn.disabled = false;
+        setStatus('다시 시도해 주세요.');
+        return;
+      }
+      // Success: update balance if possible
+      if (data.payload && data.payload.user && typeof window.__cdSetGoldenBalance === 'function') {
+        window.__cdSetGoldenBalance(data.payload.user.points);
+      }
+    } catch (err) {
+      console.error('[royal-tea] payment error:', err);
+      alert('통신 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      originalBtn.disabled = false;
+      return;
+    }
+  }
+  // --- End Coin Gate ---
+
   morphTarget = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
 
   // Close result panel if open
