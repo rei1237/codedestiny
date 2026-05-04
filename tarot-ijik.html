@@ -1220,6 +1220,9 @@ body {
 <script>
 const TAROT_SPREAD_TYPE = 'job_change_seven_card';
 const TAROT_API_TIMEOUT_MS = 12000;
+const IJIK_COIN_COST = 50;
+
+let _ijikLastCoinTx = '';
 
 const TAROT_LOCAL_BASE = '/tarot-cards/';
 const TAROT_CARD_IMAGE_BY_ID = {
@@ -1615,6 +1618,7 @@ async function ijikCoinGate(cost, reason) {
       if (resp.status === 402 || resp.status === 403) window.location.href = '/points';
       return false;
     }
+    _ijikLastCoinTx = String((data && data.transactionId) || '');
     var nb = (data && data.user && typeof data.user.points === 'number') ? data.user.points : Math.max(0, balance - cost);
     try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
     if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
@@ -1622,6 +1626,58 @@ async function ijikCoinGate(cost, reason) {
   } catch(e) {
     console.error('[tarot-ijik coin-gate]', e);
     window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+}
+
+async function _ijikAutoRefundCoin(cost, sourceTransactionId) {
+  var txId = String(sourceTransactionId || '').trim();
+  if (!txId) return false;
+
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) return false;
+
+  var _ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
+  var adminToken = '';
+  try {
+    var _rawTk = String(sessionStorage.getItem('flower_admin_token') || localStorage.getItem('flower_admin_token') || '');
+    if (_ADMIN_TOKEN_RE.test(_rawTk)) adminToken = _rawTk;
+  } catch(_) {}
+  var adminTier = '';
+  try { adminTier = String(localStorage.getItem('flower_admin_test_tier') || '').toLowerCase(); } catch(_) {}
+
+  try {
+    var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+    if (adminToken) headers['x-admin-token'] = adminToken;
+    if (adminToken && (adminTier === 'standard' || adminTier === 'premium' || adminTier === 'vvip')) {
+      headers['x-admin-subscription-tier'] = adminTier;
+    }
+    var refundRes = await fetch('/api/fortune/pig-coin/refund', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        cost: cost,
+        reason: '이직 타로 API 실패 자동 환불',
+        featureKey: 'tarot-ijik',
+        sourceTransactionId: txId,
+        requestId: 'refund:tarot-ijik:' + txId,
+      }),
+    });
+    var refundData = {};
+    try { refundData = await refundRes.json(); } catch (_) { refundData = {}; }
+    if (!refundRes.ok && !refundData.alreadyRefunded) return false;
+
+    if (refundData && refundData.user && typeof refundData.user.points === 'number') {
+      try {
+        var _u4 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+        _u4.points = refundData.user.points;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(_u4));
+      } catch(_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(refundData.user.points);
+    }
+    return true;
+  } catch (_) {
     return false;
   }
 }
@@ -1761,7 +1817,7 @@ async function getReading() {
   const btn = document.getElementById('readBtn');
   btn.disabled = true;
 
-  const gateOk = await ijikCoinGate(50, '이직 타로 리딩');
+  const gateOk = await ijikCoinGate(IJIK_COIN_COST, '이직 타로 리딩');
   if (!gateOk) {
     btn.disabled = false;
     return;
@@ -1804,6 +1860,11 @@ async function getReading() {
     btn.innerHTML = '<div>✦ 해석 완료</div>';
   } catch (e) {
     console.error('[tarot-ijik] reading failed', e);
+    var refunded = await _ijikAutoRefundCoin(IJIK_COIN_COST, _ijikLastCoinTx);
+    if (refunded) {
+      _ijikLastCoinTx = '';
+      window.alert('API 오류로 이번 결제 코인이 자동 환불되었습니다.');
+    }
     const localText = createLocalJobChangeReading(drawnCards);
     textEl.textContent = '';
     await typeWriteText(textEl, localText);

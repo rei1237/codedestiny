@@ -720,9 +720,59 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [paid, setPaid] = useState(false);
+  const [paidTxId, setPaidTxId] = useState("");
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
   const called = useRef(false);
+
+  const autoRefundCrystal = useCallback(async()=>{
+    const txId = String(paidTxId || "").trim();
+    if (!txId) return false;
+    const token = localStorage.getItem("fortune_auth_token")||localStorage.getItem("cdToken")||"";
+    if (!token) return false;
+    const adminToken=(()=>{
+      try{
+        const raw=String(sessionStorage.getItem("flower_admin_token")||localStorage.getItem("flower_admin_token")||"");
+        return FLOWER_ADMIN_TOKEN_RE.test(raw)?raw:"";
+      }catch{return "";}
+    })();
+    const adminTier=(()=>{
+      try{return String(localStorage.getItem("flower_admin_test_tier")||"").toLowerCase();}catch{return "";}
+    })();
+
+    try{
+      const headers={"Content-Type":"application/json","Authorization":`Bearer ${token}`};
+      if(adminToken) headers["x-admin-token"]=adminToken;
+      if(adminToken && (adminTier==="standard"||adminTier==="premium"||adminTier==="vvip")) {
+        headers["x-admin-subscription-tier"]=adminTier;
+      }
+      const rr=await fetch("/api/fortune/pig-coin/refund",{
+        method:"POST",
+        headers,
+        body:JSON.stringify({
+          cost:CRYSTAL_COST,
+          reason:"크리스탈 소울 타로 API 실패 자동 환불",
+          featureKey:"tarot-crystal-soul-reading",
+          sourceTransactionId:txId,
+          requestId:`refund:tarot-crystal-soul:${txId}`,
+        }),
+      });
+      const rd=await rr.json().catch(()=>({}));
+      if(!rr.ok && !rd?.alreadyRefunded) return false;
+      if(rd?.user && typeof rd.user.points === "number"){
+        try{
+          const u=JSON.parse(localStorage.getItem("fortune_auth_user")||"null")||{};
+          u.points = Number(rd.user.points);
+          localStorage.setItem("fortune_auth_user", JSON.stringify(u));
+        }catch{}
+      }
+      setPaidTxId("");
+      setPaid(false);
+      return true;
+    }catch{
+      return false;
+    }
+  },[paidTxId]);
 
   const doFetch = useCallback(async()=>{
     setLoading(true);setError(false);setReading("");
@@ -744,14 +794,20 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       });
       const data=await res.json().catch(()=>({}));
       const text=data?.reading||"";
-      if(!text){setError(true);setLoading(false);return;}
+      if(!text){
+        await autoRefundCrystal();
+        setError(true);setLoading(false);return;
+      }
       let i=0;
       const iv=setInterval(()=>{
         setReading(text.slice(0,i));i+=4;
         if(i>text.length+4){setReading(text);setLoading(false);clearInterval(iv);}
       },28);
-    }catch{setError(true);setLoading(false);}
-  },[topic,gem,cards,assignments]);
+    }catch{
+      await autoRefundCrystal();
+      setError(true);setLoading(false);
+    }
+  },[topic,gem,cards,assignments,autoRefundCrystal]);
 
   const handlePay = useCallback(async()=>{
     setPayError("");setPaying(true);
@@ -801,6 +857,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
         setPayError(String(d?.message||"코인 차감에 실패했습니다."));
         setPaying(false);return;
       }
+      setPaidTxId(String(d?.transactionId||""));
       setPaid(true);
       doFetch();
     }catch{

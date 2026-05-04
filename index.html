@@ -11008,7 +11008,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       || actionNode.classList.contains('lovebible-tile')
       || actionNode.classList.contains('prem-card')
     ));
-    if (isMainTile) return false;
+    if (isMainTile) {
+      if (action === 'openNevilleMeditationPage' || action === 'openYogaGuru' || action === 'openCosmicSoulMeditation') return true;
+      if (action === 'openCelestialHarmony') return true;
+      if (action === 'startIjikTarot' || action === 'startMindScanTarot' || action === 'startCrystalSoulTarot') return true;
+      return action.indexOf('openTarot') === 0;
+    }
     return action === 'startIjikTarot'
       || action === 'startMindScanTarot'
       || action === 'startCrystalSoulTarot';
@@ -11048,7 +11053,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return false;
     }
   }
-
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
     if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return;

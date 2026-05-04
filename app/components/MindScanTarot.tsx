@@ -952,6 +952,8 @@ export default function MindScanTarot() {
     }));
     setReadingLoading(true);
     setReadingError("");
+    let consumedTxId = "";
+    let refundHeaders: Record<string, string> | null = null;
     try {
       const isAdminLikeUser = () => {
         if (typeof window === "undefined") return false;
@@ -997,16 +999,17 @@ export default function MindScanTarot() {
       }
 
       if (!isFlowerAdminMode) {
+        const consumeRequestHeaders: Record<string, string> = {
+          "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
+          ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
+            ? { "x-admin-subscription-tier": adminTestTier }
+            : {}),
+        };
         const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-            ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
-            ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
-              ? { "x-admin-subscription-tier": adminTestTier }
-              : {}),
-          },
+          headers: consumeRequestHeaders,
           body: JSON.stringify({
             cost: MINDSCAN_COIN_COST,
             reason: "마인드 스캔 타로 이용",
@@ -1024,6 +1027,8 @@ export default function MindScanTarot() {
           setReadingError(String(consumeData?.message || "코인 차감에 실패했습니다."));
           return;
         }
+        consumedTxId = String(consumeData?.transactionId || "");
+        refundHeaders = consumeRequestHeaders;
         const remainPoints = Number(consumeData?.user?.points ?? 0);
         showToast(`🪙 마인드 스캔 타로 이용으로 ${MINDSCAN_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
       }
@@ -1041,6 +1046,34 @@ export default function MindScanTarot() {
         throw new Error(String(data?.message || data?.error || `요청 실패 (${res.status})`));
       }
     } catch (e) {
+      if (consumedTxId && refundHeaders) {
+        try {
+          const refundRes = await fetch("/api/fortune/pig-coin/refund", {
+            method: "POST",
+            headers: refundHeaders,
+            body: JSON.stringify({
+              cost: MINDSCAN_COIN_COST,
+              reason: "마인드 스캔 타로 API 실패 자동 환불",
+              featureKey: "tarot-mindscan",
+              sourceTransactionId: consumedTxId,
+              requestId: `refund:tarot-mindscan:${consumedTxId}`,
+            }),
+          });
+          const refundData = await refundRes.json().catch(() => ({}));
+          if (refundRes.ok || refundData?.alreadyRefunded) {
+            const refundedPoints = Number(refundData?.user?.points ?? NaN);
+            if (Number.isFinite(refundedPoints)) {
+              try {
+                const userRaw = localStorage.getItem("fortune_auth_user") || "null";
+                const user = JSON.parse(userRaw) || {};
+                user.points = refundedPoints;
+                localStorage.setItem("fortune_auth_user", JSON.stringify(user));
+              } catch (_) {}
+            }
+            showToast("API 오류로 이번 결제가 자동 환불되었습니다.", "info");
+          }
+        } catch (_) {}
+      }
       setReadingError(e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setReadingLoading(false);

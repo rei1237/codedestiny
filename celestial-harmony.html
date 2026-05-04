@@ -447,6 +447,7 @@
     }
     function readBtnOn(on){$read.disabled=!on;$read.style.opacity=on?'1':'.4';$read.style.cursor=on?'pointer':'not-allowed';}
     var _CH_ADMIN_TOKEN_RE=/^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
+    var _chLastCoinTx='';
     function _chIsAdminLikeUser(){
       try{if(window.__cdAdminBypass)return true;}catch(_){ }
       try{
@@ -466,9 +467,49 @@
       }catch(_){ }
       return false;
     }
+    async function _chAutoRefundCoin(cost, sourceTransactionId){
+      var txId=String(sourceTransactionId||'').trim();
+      if(!txId)return false;
+      var tk=localStorage.getItem('fortune_auth_token')||'';
+      if(!tk)return false;
+      var adminTk='';
+      try{adminTk=String(sessionStorage.getItem('flower_admin_token')||localStorage.getItem('flower_admin_token')||'');}catch(_){adminTk='';}
+      if(adminTk&&!_CH_ADMIN_TOKEN_RE.test(adminTk))adminTk='';
+      var adminTier='';
+      try{adminTier=String(localStorage.getItem('flower_admin_test_tier')||'').toLowerCase();}catch(_){adminTier='';}
+      var headers={'Content-Type':'application/json','Authorization':'Bearer '+tk};
+      if(adminTk)headers['x-admin-token']=adminTk;
+      if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
+      try{
+        var rr=await fetch('/api/fortune/pig-coin/refund',{
+          method:'POST',
+          headers:headers,
+          body:JSON.stringify({
+            cost:Number(cost||0),
+            reason:'천체의 선율 API 실패 자동 환불',
+            featureKey:'tarot-celestial-harmony',
+            sourceTransactionId:txId,
+            requestId:'refund:celestial:'+txId,
+          })
+        });
+        var rd={};
+        try{rd=await rr.json();}catch(_){rd={};}
+        if(!rr.ok&&!rd.alreadyRefunded)return false;
+        if(rd&&rd.user&&typeof rd.user.points==='number'){
+          try{
+            var _u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
+            _u.points=rd.user.points;
+            localStorage.setItem('fortune_auth_user',JSON.stringify(_u));
+          }catch(_){ }
+          if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(rd.user.points);
+        }
+        return true;
+      }catch(_){
+        return false;
+      }
+    }
     function _chCoinGate(onOk,onCancel){
-      if(_chIsAdminLikeUser()){onOk();return;}
-      if(typeof window._cdCoinGatePerUse==='function'){window._cdCoinGatePerUse(100,'천체의 선율 코즈믹 리딩',onOk,onCancel);return;}
+      if(_chIsAdminLikeUser()){onOk('');return;}
       var tk=localStorage.getItem('fortune_auth_token');
       var adminTk='';
       try{adminTk=String(sessionStorage.getItem('flower_admin_token')||localStorage.getItem('flower_admin_token')||'');}catch(_){adminTk='';}
@@ -481,7 +522,7 @@
       if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
       fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:headers,body:JSON.stringify({amount:100,cost:100,reason:'천체의 선율 코즈믹 리딩',featureKey:'tarot-celestial-harmony',forceDeduct:true,requestId:'celestial:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)})})
         .then(function(r){return r.json();})
-        .then(function(d){if(d&&d.ok){onOk();}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
+        .then(function(d){if(d&&d.ok){_chLastCoinTx=String(d.transactionId||'');onOk(_chLastCoinTx);}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
         .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();});
     }
     $draw.addEventListener('click',function(){
@@ -496,7 +537,7 @@
     $read.addEventListener('click',function(){
       if(!spread.length||$read.disabled)return;
       readBtnOn(false);
-      _chCoinGate(async function(){
+      _chCoinGate(async function(sourceTxId){
         $loadSec.style.display='block';$resSec.style.display='none';$goldSec.style.display='none';
         setTimeout(function(){$loadSec.scrollIntoView({behavior:'smooth'});},80);
         var msgs=['태양의 황금빛 에너지를 분석 중&#8230;','수성의 지적 파동을 해독 중&#8230;','금성의 사랑 에너지를 채널링 중&#8230;','달의 무의식 깊은 곳을 탐색 중&#8230;','화성의 의지 흐름을 읽는 중&#8230;','목성의 풍요 코드를 해석 중&#8230;','토성의 카르마 패턴을 인식 중&#8230;','천왕성의 혁신 신호를 수신 중&#8230;','우주의 깊은 지혜를 통합 중&#8230;'];
@@ -509,7 +550,15 @@
           if(!payload||!payload.ok||!payload.result)throw new Error((payload&&payload.message)||'리딩 생성 실패');
           renderResults(payload.result);renderGolden(payload.result.finalGolden);
           setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},80);
-        }catch(err){clearInterval(mt);$loadSec.style.display='none';window.alert('리딩 생성 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));}
+        }catch(err){
+          clearInterval(mt);$loadSec.style.display='none';
+          var refunded=await _chAutoRefundCoin(100,sourceTxId||_chLastCoinTx);
+          if(refunded){
+            _chLastCoinTx='';
+            window.alert('리딩 생성에 실패하여 코인이 자동 환불되었습니다.');
+          }
+          window.alert('리딩 생성 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));
+        }
         finally{readBtnOn(true);}
       },function(){readBtnOn(true);});
     });

@@ -1376,6 +1376,7 @@ function _redirectLoginForMeditation() {
 }
 
 var _cdMeditationPayToastTimer = null;
+var _cdYogaLastTx = '';
 
 function _ensureMeditationPaymentUi() {
   if (document.getElementById('cdMeditationPayUiStyle')) return;
@@ -1472,6 +1473,8 @@ async function _consumeMeditationCoin(cost, reason) {
       return false;
     }
 
+    _cdYogaLastTx = String((d && d.transactionId) || '');
+
     var balanceAfter = null;
     if (d && d.user && typeof d.user.points === 'number') {
       balanceAfter = d.user.points;
@@ -1489,6 +1492,43 @@ async function _consumeMeditationCoin(cost, reason) {
     return false;
   } finally {
     _hideMeditationPaymentUi();
+  }
+}
+
+async function _refundMeditationCoinForApiFailure(cost, sourceTxId, reasonTag) {
+  var txId = String(sourceTxId || '').trim();
+  if (!txId || _isAdminMeditationSession()) return false;
+
+  var token = _getMeditationAuthToken();
+  if (!token) return false;
+
+  try {
+    var rr = await fetch('/api/fortune/pig-coin/refund', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        cost: Number(cost || 0),
+        reason: '요가 구루 API 실패 자동 환불',
+        featureKey: 'yoga-guru-per-use',
+        sourceTransactionId: txId,
+        requestId: 'refund:yoga-guru:' + String(reasonTag || 'session') + ':' + txId,
+      })
+    });
+    var rd = {};
+    try { rd = await rr.json(); } catch (_) { rd = {}; }
+    if (!rr.ok && !rd.alreadyRefunded) return false;
+
+    if (rd && rd.user && typeof rd.user.points === 'number') {
+      try {
+        var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+        u.points = rd.user.points;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(u));
+      } catch (_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(rd.user.points);
+    }
+    return true;
+  } catch (_) {
+    return false;
   }
 }
 
@@ -2020,6 +2060,11 @@ async function invokeGuru() {
     renderCourse(courseData);
 
   } catch (err) {
+    var refunded = await _refundMeditationCoinForApiFailure(sessionCost, _cdYogaLastTx, selectedDuration + 'm');
+    if (refunded) {
+      _cdYogaLastTx = '';
+      window.alert('요가 코스 생성 실패로 코인이 자동 환불되었습니다.');
+    }
     clearInterval(msgInterval);
     document.getElementById('loadingState').classList.remove('active');
     document.getElementById('inputSection').style.display = 'block';

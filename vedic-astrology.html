@@ -2010,18 +2010,26 @@ function profileToForm(profile){
   let tz=9;
   if(typeof loc.baseTzOffset==='number'&&!isNaN(loc.baseTzOffset))tz=loc.baseTzOffset;
   else if(typeof loc.tzOffset==='number'&&!isNaN(loc.tzOffset))tz=Math.abs(loc.tzOffset)<=24?loc.tzOffset:loc.tzOffset/60;
-  const lat=parseFloat(loc.lat);
-  const lon=parseFloat(loc.lng)||parseFloat(loc.lon);
+  const latRaw=parseFloat(loc.lat);
+  const lonRaw=parseFloat(loc.lng)||parseFloat(loc.lon);
+  const lat=(typeof latRaw==='number'&&!isNaN(latRaw))?latRaw:NaN;
+  const lon=(typeof lonRaw==='number'&&!isNaN(lonRaw))?lonRaw:NaN;
+  const yearRaw=parseInt(birth.year,10);
+  const monthRaw=parseInt(birth.month,10);
+  const dayRaw=parseInt(birth.day,10);
+  const year=(Number.isFinite(yearRaw)&&yearRaw>1900&&yearRaw<2100)?yearRaw:NaN;
+  const month=(Number.isFinite(monthRaw)&&monthRaw>=1&&monthRaw<=12)?monthRaw:NaN;
+  const day=(Number.isFinite(dayRaw)&&dayRaw>=1&&dayRaw<=31)?dayRaw:NaN;
   return{
     name:(p.name||'').trim()||'이름없음',
     gender:p.gender||'M',
-    year:parseInt(birth.year,10)||1990,
-    month:parseInt(birth.month,10)||1,
-    day:parseInt(birth.day,10)||1,
+    year:year,
+    month:month,
+    day:day,
     hour:parseInt(birth.hour,10)||12,
     minute:parseInt(birth.minute,10)||0,
-    lat:(typeof lat==='number'&&!isNaN(lat))?lat:37.5665,
-    lon:(typeof lon==='number'&&!isNaN(lon))?lon:126.978,
+    lat:lat,
+    lon:lon,
     timezone:tz
   };
 }
@@ -2029,21 +2037,31 @@ function profileToForm(profile){
 // ─── CALCULATE FROM PROFILE (API 우선, 실패 시 로컬) ───────
 function doCalculateFromProfile(profile){
   const f=profileToForm(profile);
-  if(isNaN(f.year)||isNaN(f.lat)||isNaN(f.lon)){alert('프로필 정보가 부족합니다.');return;}
+  if(isNaN(f.year)||isNaN(f.month)||isNaN(f.day)){alert('생년월일을 확인해 주세요. (연도:'+f.year+', 월:'+f.month+', 일:'+f.day+')');return;}
+  if(isNaN(f.lat)||isNaN(f.lon)){alert('위도/경도를 확인해 주세요. 장소를 선택하거나 수동으로 입력해 주세요.');return;}
   showPage('loading');
 
   function runWithPlanets(planetsFromApi){
     try{
       var chart=buildChart(f,planetsFromApi);
+      if(!chart||!chart.f){throw new Error('Chart build failed: invalid chart structure');}
       var report=analyze(chart);
+      if(!report){throw new Error('Analysis failed: no report generated');}
       var insights=generateInsights(chart,report);
+      if(!insights){throw new Error('Insights generation failed');}
       G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
       G.usedLocalCalc=!planetsFromApi;
-      renderResult();
-      showPage('result');
+      try{
+        renderResult();
+        showPage('result');
+      }catch(renderErr){
+        console.error('Render error:',renderErr);
+        document.getElementById('result-content').innerHTML='<div class="error-box">결과 표시 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.<br><br>오류: '+(renderErr&&renderErr.message?renderErr.message:'Unknown error')+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
+        showPage('result');
+      }
     }catch(err){
-      console.error(err);
-      document.getElementById('result-content').innerHTML='<div class="error-box">계산 중 오류가 발생했습니다. 생년월일·시간·장소를 확인해 주세요.<br><a href="/" style="color:var(--gold);margin-top:12px;display:inline-block">← 메인으로</a></div>';
+      console.error('Calculation error:',err);
+      document.getElementById('result-content').innerHTML='<div class="error-box">계산 중 오류가 발생했습니다. 생년월일·시간·장소를 확인해 주세요.<br><br>상세: '+(err&&err.message?err.message:'Unknown error')+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
       showPage('result');
     }
   }
@@ -2435,25 +2453,35 @@ function _prefillVedicInput(){
 function runVedicFromInput(){
   try{
     var compatProfile=_readVedicCompatProfileCardData();
-    if(compatProfile&&compatProfile.birth){
+    if(compatProfile&&compatProfile.birth&&compatProfile.birth.year&&compatProfile.birth.month&&compatProfile.birth.day){
       doCalculateFromProfile(compatProfile);
       return;
     }
-    var y=parseInt((document.getElementById('v_year')||{}).value,10);
-    var m=parseInt((document.getElementById('v_month')||{}).value,10);
-    var d=parseInt((document.getElementById('v_day')||{}).value,10);
-    var hr=parseInt((document.getElementById('v_hour')||{}).value,10);
-    var min=parseInt((document.getElementById('v_minute')||{}).value,10);
-    var lat=parseFloat((document.getElementById('v_lat')||{}).value);
-    var lon=parseFloat((document.getElementById('v_lon')||{}).value);
-    var tz=parseFloat((document.getElementById('v_tz')||{}).value);
-    var gender=(document.getElementById('v_gender')||{}).value||'M';
+    var yEl=document.getElementById('v_year');
+    var mEl=document.getElementById('v_month');
+    var dEl=document.getElementById('v_day');
+    var hEl=document.getElementById('v_hour');
+    var minEl=document.getElementById('v_minute');
+    var latEl=document.getElementById('v_lat');
+    var lonEl=document.getElementById('v_lon');
+    var tzEl=document.getElementById('v_tz');
+    var gEl=document.getElementById('v_gender');
+    
+    var y=parseInt(yEl&&yEl.value?yEl.value:'',10);
+    var m=parseInt(mEl&&mEl.value?mEl.value:'',10);
+    var d=parseInt(dEl&&dEl.value?dEl.value:'',10);
+    var hr=parseInt(hEl&&hEl.value?hEl.value:'',10);
+    var min=parseInt(minEl&&minEl.value?minEl.value:'',10);
+    var lat=parseFloat(latEl&&latEl.value?latEl.value:'');
+    var lon=parseFloat(lonEl&&lonEl.value?lonEl.value:'');
+    var tz=parseFloat(tzEl&&tzEl.value?tzEl.value:'');
+    var gender=gEl&&gEl.value?gEl.value:'M';
 
-    if(isNaN(y)||isNaN(m)||isNaN(d)){ alert('생년월일을 확인해 주세요.'); return; }
-    if(isNaN(hr))hr=12;
-    if(isNaN(min))min=0;
-    if(isNaN(lat)||isNaN(lon)){ alert('위도/경도를 확인해 주세요.'); return; }
-    if(isNaN(tz))tz=9;
+    if(!Number.isFinite(y)||!Number.isFinite(m)||!Number.isFinite(d)){ alert('생년월일을 확인해 주세요. (입력값: '+yEl.value+'-'+mEl.value+'-'+dEl.value+')'); return; }
+    if(!Number.isFinite(hr))hr=12;
+    if(!Number.isFinite(min))min=0;
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)){ alert('위도/경도를 확인해 주세요. 장소를 선택하거나 위도/경도를 입력해 주세요.'); return; }
+    if(!Number.isFinite(tz))tz=9;
 
     var profile={
       id:'vedic_manual',
@@ -2464,8 +2492,8 @@ function runVedicFromInput(){
     };
     doCalculateFromProfile(profile);
   }catch(e){
-    console.error(e);
-    alert('입력값 처리 중 오류가 발생했습니다.');
+    console.error('runVedicFromInput error:',e);
+    alert('입력값 처리 중 오류가 발생했습니다. 오류: '+(e&&e.message?e.message:'Unknown'));
   }
 }
 
