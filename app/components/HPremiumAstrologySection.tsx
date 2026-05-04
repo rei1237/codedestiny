@@ -1,5 +1,7 @@
-﻿"use client";
+"use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
+
 
 // ─────────────────────────────────────────────────────────────────
 // 타입
@@ -338,7 +340,9 @@ export default function HPremiumAstrologySection({
   const [requestError, setRequestError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const { startProcessing, stopProcessing } = usePaymentProcessing();
   const storageReadyRef = useRef(false);
+
 
   const resetAstrologyState = useCallback((resetInputs = false) => {
     setChart(null);
@@ -531,6 +535,7 @@ ${chaptersHtml}
     setCalcError("");
     setRequestError("");
     setCalcLoading(true);
+    startProcessing("당신의 출생 차트를 계산하여 별들의 배치를 분석하고 있습니다...");
     try {
       const data = await postAstroJson("/api/premium/astro-western", {
         year:y, month:m, day:d,
@@ -554,14 +559,17 @@ ${chaptersHtml}
       setRequestError(message);
     } finally {
       setCalcLoading(false);
+      stopProcessing();
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, postAstroJson]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, postAstroJson, startProcessing, stopProcessing]);
+
 
   // 챕터 생성
   const handleGenerateChapter = useCallback(async (chNum: number) => {
 
     setRequestError("");
     setChapters(prev => ({ ...prev, [chNum]: { step:"loading", result:null } }));
+    startProcessing(`챕터 ${chNum}의 별자리 에너지를 분석하여 심층 리포트를 생성하고 있습니다...`);
     try {
       const data = await postAstroJson("/api/premium/astro-life", {
         year:   parseInt(birthYear,  10),
@@ -581,8 +589,11 @@ ${chaptersHtml}
     } catch (e: unknown) {
       setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev => ({ ...prev, [chNum]: { step:"error", result:null } }));
+    } finally {
+      stopProcessing();
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, postAstroJson]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, postAstroJson, startProcessing, stopProcessing]);
+
 
   // 전체 챕터 순차 생성
   const handleGenerateAll = useCallback(async () => {

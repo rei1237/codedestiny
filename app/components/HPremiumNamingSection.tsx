@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
+
 
 type PremiumSectionProps = {
   showIntro?: boolean;
@@ -221,6 +223,8 @@ export default function HPremiumNamingSection({
   const [error, setError] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [names, setNames] = useState<NameCandidate[]>([]);
+  const { startProcessing, stopProcessing } = usePaymentProcessing();
+
 
   const yongshinElement = useMemo(() => {
     if (!analysis?.yongshin) return null;
@@ -242,6 +246,7 @@ export default function HPremiumNamingSection({
     }
 
     setAnalyzing(true);
+    startProcessing("출생 사주를 분석하여 용신 오행과 에너지를 조율하고 있습니다...");
     try {
       const res = await fetch("/api/love-saju-pillar", {
         method: "POST",
@@ -264,8 +269,10 @@ export default function HPremiumNamingSection({
       setError(e instanceof Error ? e.message : "사주 분석 중 오류가 발생했습니다.");
     } finally {
       setAnalyzing(false);
+      stopProcessing();
     }
   };
+
 
   const makeRecommendations = () => {
     if (!yongshinElement) {

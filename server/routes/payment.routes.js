@@ -1315,13 +1315,19 @@ router.post("/report-failure", async (req, res) => {
   return res.status(200).json({ ok: true, message: "결제 실패 보고가 기록되었습니다." });
 });
 
-router.get("/me", async (req, res, next) => {
+router.get("/me", requireAuth, async (req, res, next) => {
   try {
-    const user = await User.findById(req.auth.userId)
+    const userId = req.auth?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "인증 정보가 없습니다." });
+    }
+
+    const user = await User.findById(userId)
       .select("name email points unlockedFeatures")
       .lean();
 
     if (!user) {
+      console.warn("[PAYMENT] User not found for ID:", userId);
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
 

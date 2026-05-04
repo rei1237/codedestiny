@@ -40,15 +40,25 @@ function requireAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
+    
+    // Support both 'userId' and 'id' (legacy) and ensure it's a string
+    const userId = String(payload.userId || payload.id || "");
+    
+    if (!userId || !/^[a-f0-9]{24}$/i.test(userId)) {
+      console.warn("[AUTH] Invalid or missing userId in token payload:", payload);
+      return res.status(401).json({ message: "유효하지 않은 인증 정보입니다." });
+    }
+
     req.auth = {
-      userId: payload.userId,
-      role: payload.role,
+      userId,
+      role: payload.role || "user",
       email: payload.email,
       issuer: payload.iss,
     };
     return next();
   } catch (error) {
-    return res.status(401).json({ message: "유효하지 않거나 만료된 토큰입니다.", code: "UNAUTHORIZED" });
+    console.error("[AUTH ERROR]", error.message);
+    return res.status(401).json({ message: "유효하지 않은 인증 토큰입니다." });
   }
 }
 

@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
+
 
 // ─── Design Token ───────────────────────────────────────────────────────────
 // Bg:      #FFFBF0 (믻 크림)  Surface: 백황색 반투명
@@ -280,7 +282,9 @@ export default function SunHealingTarot() {
   const [typed, setTyped] = useState<Record<string, string>>({});
   const [typingSection, setTypingSection] = useState<string | null>(null);
   const [glowingCard, setGlowingCard] = useState<number | null>(null);
+  const { startProcessing, stopProcessing } = usePaymentProcessing();
   const abortRef = useRef<AbortController | null>(null);
+
 
   const progressPct = useMemo(() => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100), [revealedCount]);
 
@@ -289,6 +293,7 @@ export default function SunHealingTarot() {
   }, []);
 
   const start = useCallback(async () => {
+    startProcessing("신비로운 기운으로 타로 카드를 준비하고 있습니다...");
     setLoading(true);
     setReading(null);
     setConsultingHighlights([]);
@@ -313,12 +318,15 @@ export default function SunHealingTarot() {
       setCards(drawn.slice(0, SPREAD_CARD_COUNT));
       setStage("spread");
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
       console.error(error);
       alert("카드를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
+      stopProcessing();
     }
-  }, []);
+  }, [startProcessing, stopProcessing]);
+
 
   const canFlip = useCallback((idx: number) => idx === revealedCount && idx < SPREAD_CARD_COUNT && stage === "spread" && !loading, [loading, revealedCount, stage]);
 
@@ -331,6 +339,8 @@ export default function SunHealingTarot() {
 
   const fetchReading = useCallback(async () => {
     if (revealedCount < SPREAD_CARD_COUNT || cards.length !== SPREAD_CARD_COUNT) return;
+    
+    startProcessing("타로 카드의 깊은 상징을 분석하여 회복의 메시지를 구성하고 있습니다...");
     setLoading(true);
     abortRef.current?.abort();
     const ac = new AbortController();
@@ -356,12 +366,15 @@ export default function SunHealingTarot() {
       setTyped({});
       setTypingSection(null);
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
       console.error(error);
       alert("해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
+      stopProcessing();
     }
-  }, [cards, revealedCount]);
+  }, [cards, revealedCount, startProcessing, stopProcessing]);
+
 
   const share = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;

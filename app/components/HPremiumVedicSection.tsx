@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
+
 
 // ─────────────────────────────────────────────────────────────────
 // 타입
@@ -408,7 +410,9 @@ export default function HPremiumVedicSection({
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const { startProcessing, stopProcessing } = usePaymentProcessing();
   const storageReadyRef = useRef(false);
+
   const autoComputeRef = useRef(false);
 
   const resetVedicState = useCallback((resetInputs = false) => {
@@ -565,6 +569,7 @@ export default function HPremiumVedicSection({
     if (!y||!m||!d){ setCalcError("생년월일을 입력해 주세요."); return; }
     if (y<1900||y>2100||m<1||m>12||d<1||d>31){ setCalcError("올바른 날짜를 입력해 주세요."); return; }
     setCalcError(""); setRequestError(""); setCalcLoading(true);
+    startProcessing("베다 점성술 차트를 계산하여 카르마 청사진을 작성하고 있습니다...");
     try {
       const data = await postVedicJson({ year:y, month:m, day:d, hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:1 });
       setChart(data.chart);
@@ -573,13 +578,18 @@ export default function HPremiumVedicSection({
       const message = e instanceof Error ? e.message : "차트 계산 중 오류";
       setCalcError(message);
       setRequestError(message);
-    } finally { setCalcLoading(false); }
-  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,postVedicJson]);
+    } finally {
+      setCalcLoading(false);
+      stopProcessing();
+    }
+  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,postVedicJson,startProcessing,stopProcessing]);
+
 
   const handleGenerateChapter = useCallback(async (chNum:number) => {
 
     setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
+    startProcessing(`베다 챕터 ${chNum}의 에너지를 분석하여 리포트를 생성하고 있습니다...`);
     try {
       const data = await postVedicJson({ year:parseInt(birthYear,10), month:parseInt(birthMonth,10), day:parseInt(birthDay,10), hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:chNum });
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{chapter:chNum,chapterMeta:data.chapterMeta,text:data.text,sections:data.sections}}}));
@@ -587,8 +597,11 @@ export default function HPremiumVedicSection({
     } catch (e: unknown) {
       setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
+    } finally {
+      stopProcessing();
     }
-  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,chart,postVedicJson]);
+  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,chart,postVedicJson,startProcessing,stopProcessing]);
+
 
   const handleGenerateAll = useCallback(async () => {
     // 현재 스냅샷 기준으로 미완료된 챘터만 순차 생성

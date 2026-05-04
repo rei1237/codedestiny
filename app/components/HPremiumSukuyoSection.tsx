@@ -1,5 +1,7 @@
-﻿"use client";
+"use client";
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
+
 
 // ─────────────────────────────────────────────────────────────────
 // 타입 정의
@@ -660,7 +662,9 @@ export default function HPremiumSukuyoSection({
   const [initError, setInitError] = useState("");
   const [allGenerating, setAllGenerating] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const { startProcessing, stopProcessing } = usePaymentProcessing();
   const resultRef = useRef<HTMLDivElement>(null);
+
   const pdfBtnRef = useRef<HTMLButtonElement>(null);
   const storageReadyRef = useRef(false);
 

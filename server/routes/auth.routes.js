@@ -503,8 +503,14 @@ router.post("/login", async (req, res, next) => {
 
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
-    const user = await User.findById(req.auth.userId).lean();
+    const userId = req.auth?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "인증 정보가 없습니다." });
+    }
+
+    const user = await User.findById(userId).lean();
     if (!user) {
+      console.warn("[AUTH] User not found during /me check:", userId);
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
 
