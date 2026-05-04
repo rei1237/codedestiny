@@ -2222,12 +2222,28 @@ function installPWA() {
   }
 })();
 
-// Service Worker 등록
-if ('serviceWorker' in navigator) {
+// Service Worker 무효화: 구버전 PWA 캐시 고착 방지
+if ('serviceWorker' in navigator || 'caches' in window) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/tadagochi-sw.js', { scope: '/' })
-      .then(function(reg) { console.log('[FortuneTama SW]', reg.scope); })
-      .catch(function(e)  { console.warn('[FortuneTama SW] failed', e); });
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(function(regs) {
+          return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
+        })
+        .catch(function() {});
+    }
+
+    if ('caches' in window) {
+      caches.keys()
+        .then(function(keys) {
+          return Promise.all(
+            keys
+              .filter(function(key) { return key.indexOf('fortune-tama-') === 0; })
+              .map(function(key) { return caches.delete(key); })
+          );
+        })
+        .catch(function() {});
+    }
   });
 }
 

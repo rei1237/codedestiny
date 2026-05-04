@@ -1,147 +1,82 @@
-# ✅ PERF: Cloudflare Pages Cache-Control 헤더 설정
-# ★ 2026-03-28 Core Web Vitals 최적화 업데이트
-#   - 버전 쿼리스트링(?v=...) 포함 자산 → 1년 불변 캐시
-#   - 무버전 자산 → 항상 재검증
-#   - 전체 응답에 Vary: Accept-Encoding, Link preload 힌트 추가
+# Cloudflare Pages cache policy
+# Goal: always deliver latest HTML/API, cache only hashed build assets for long-term.
 
-# ─── JS: 버전 쿼리스트링 포함 파일 — 1년 불변 캐시 ──────────
-# Cloudflare Pages는 쿼리스트링별 분기가 불가하므로
-# 무버전 혼재 가능성을 고려해 must-revalidate 유지.
-/js/*.js
-  Cache-Control: no-store
-  Vary: Accept-Encoding
+# HTML and entry routes must never be long-cached.
+/
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/lib/*.js
-  Cache-Control: no-store
-  Vary: Accept-Encoding
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
 
-# ─── CSS: 버전 태그 포함 → 1년 캐시 가능하나 무버전 혼재 ────
-/styles/*.css
-  Cache-Control: no-store
-  Vary: Accept-Encoding
+/static
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/css/*.css
-  Cache-Control: no-store
-  Vary: Accept-Encoding
+/static/
+  Cache-Control: no-cache, no-store, must-revalidate
 
-# ─── 이미지 & 폰트: 내용 불변 — 1년 불변 캐시 ───────────────
-/icons/*
-  Cache-Control: public, max-age=31536000, immutable
-  Vary: Accept-Encoding
+/static/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/fuctionassets/*
-  Cache-Control: public, max-age=31536000, immutable
-  Vary: Accept-Encoding
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/tarot-cards/*
-  Cache-Control: public, max-age=31536000, immutable
-  Vary: Accept-Encoding
+# Runtime metadata and APIs must always revalidate.
+/api/*
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/public/fonts/*
-  Cache-Control: public, max-age=31536000, immutable
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate
 
-# ─── 서비스 워커 — 항상 재검증 ────────────────────────────────
+/status.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Service worker and manifest should update immediately.
 /service-worker.js
   Cache-Control: no-cache, no-store, must-revalidate
 
 /tadagochi-sw.js
   Cache-Control: no-cache, no-store, must-revalidate
 
-# ─── PWA 매니페스트 — 단기 캐시 ──────────────────────────────
 /manifest.json
   Cache-Control: no-cache, no-store, must-revalidate
 
 /manifest-samba.json
   Cache-Control: no-cache, no-store, must-revalidate
 
-# ─── HTML 페이지 — revalidate (SEO 필수) ─────────────────────
-/
+# Non-hashed legacy assets: do not use immutable cache.
+/*.js
   Cache-Control: no-cache, no-store, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  X-XSS-Protection: 1; mode=block
-  Referrer-Policy: strict-origin-when-cross-origin
-  # LCP 자산 HTTP/2 Server Push (Cloudflare 지원 시 동작)
-  Link: </icons/samba.webp>; rel=preload; as=image, </icons/honeypig.webp>; rel=preload; as=image; fetchpriority=low
 
-/index.html
+/*.css
   Cache-Control: no-cache, no-store, must-revalidate
-  X-Robots-Tag: index, follow
-  Link: </icons/samba.webp>; rel=preload; as=image
 
-/static/index.html
+/js/*.js
   Cache-Control: no-cache, no-store, must-revalidate
-  X-Robots-Tag: index, follow
 
-/en-us
-  X-Robots-Tag: index, follow
-
-/ja-jp
-  X-Robots-Tag: index, follow
-
-/zh-cn
-  X-Robots-Tag: index, follow
-
-/hi-in
-  X-Robots-Tag: index, follow
-
-/es-es
-  X-Robots-Tag: index, follow
-
-/fr-fr
-  X-Robots-Tag: index, follow
-
-/de-de
-  X-Robots-Tag: index, follow
-
-/nl-nl
-  X-Robots-Tag: index, follow
-
-/ms-my
-  X-Robots-Tag: index, follow
-
-/*.html
+/lib/*.js
   Cache-Control: no-cache, no-store, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
 
-# ─── fortune 정적 운세 HTML — SEO 명시적 허용 ────────────────
-# NOTE: Cloudflare Pages _headers의 * 는 / 경계를 넘지 않으므로
-#       depth별 규칙을 모두 선언합니다.
-# /fortune/today/rat.html (depth 2)
-/fortune/*
-  Cache-Control: public, max-age=3600, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
+/styles/*.css
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/fortune/*.html
-  Cache-Control: public, max-age=3600, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
+/css/*.css
+  Cache-Control: no-cache, no-store, must-revalidate
 
-# /fortune/today/rat.html, /fortune/weekly/rat.html (depth 2 sub-dir)
-/fortune/*/*
-  Cache-Control: public, max-age=3600, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
+/icons/*
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/fortune/*/*.html
-  Cache-Control: public, max-age=3600, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
+/fuctionassets/*
+  Cache-Control: no-cache, no-store, must-revalidate
 
-# /fortune/today/sukuyo/1.html (depth 3)
-/fortune/*/*/*
-  Cache-Control: public, max-age=3600, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
+/tarot-cards/*
+  Cache-Control: no-cache, no-store, must-revalidate
 
-/fortune/*/*/*.html
-  Cache-Control: public, max-age=3600, must-revalidate
-  X-Robots-Tag: index, follow
-  X-Content-Type-Options: nosniff
+/fonts/*
+  Cache-Control: no-cache, no-store, must-revalidate
 
-# ─── API 응답 — 캐시 없음 ─────────────────────────────────────
-/api/*
-  Cache-Control: no-store
+/assets/*
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Hashed Next.js static build assets only.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

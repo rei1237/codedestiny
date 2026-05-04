@@ -2,7 +2,7 @@ import { existsSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 
 const rootDir = process.cwd();
-const targets = [".open-next", ".next", "dist"];
+const targets = [".open-next", ".next/cache", ".next", "dist", "out"];
 
 for (const target of targets) {
   const targetPath = resolve(rootDir, target);

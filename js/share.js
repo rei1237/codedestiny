@@ -1,18 +1,47 @@
 ﻿/* ─── 공유하기 함수 ─── */
-var APP_VERSION = '2026-04-08-v1-swcors';
+var APP_VERSION = 'dev';
 var APP_VERSION_KEY = 'app_version';
+var SW_CACHE_PREFIXES = ['kkul-mansaeryeok-', 'fortune-tama-'];
+
+function pickRuntimeVersion(payload) {
+  if (!payload || typeof payload !== 'object') return APP_VERSION;
+  var candidates = [payload.commitShort, payload.commit, payload.builtAt];
+  for (var i = 0; i < candidates.length; i += 1) {
+    var value = String(candidates[i] || '').trim();
+    if (value) return value;
+  }
+  return APP_VERSION;
+}
+
+function resolveRuntimeVersion() {
+  return fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(function(res) {
+      if (!res.ok) return null;
+      return res.json().catch(function() { return null; });
+    })
+    .then(function(payload) {
+      APP_VERSION = pickRuntimeVersion(payload);
+      return APP_VERSION;
+    })
+    .catch(function() {
+      return APP_VERSION;
+    });
+}
 
 function runNuclearVersionGuard() {
-  var saved = '';
-  try {
-    saved = localStorage.getItem(APP_VERSION_KEY) || '';
-  } catch (e) {
-    saved = '';
-  }
-  if (saved === APP_VERSION) return;
+  return resolveRuntimeVersion().then(function(version) {
+    var saved = '';
+    try {
+      saved = localStorage.getItem(APP_VERSION_KEY) || '';
+    } catch (e) {
+      saved = '';
+    }
+    if (saved === version) return version;
 
-  // 인증 안정성 우선: 전체 스토리지 삭제/강제 리로드는 수행하지 않습니다.
-  try { localStorage.setItem(APP_VERSION_KEY, APP_VERSION); } catch (e) {}
+    // 인증 안정성 우선: 전체 스토리지 삭제/강제 리로드는 수행하지 않습니다.
+    try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
+    return version;
+  });
 }
 
 runNuclearVersionGuard();
@@ -458,45 +487,39 @@ function bindFavoriteButtons() {
   });
 }
 
-if ('serviceWorker' in navigator) {
+function retireServiceWorkers() {
+  var tasks = [];
+
+  if ('serviceWorker' in navigator) {
+    tasks.push(
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
+      }).catch(function() {})
+    );
+  }
+
+  if ('caches' in window) {
+    tasks.push(
+      caches.keys().then(function(keys) {
+        return Promise.all(
+          keys
+            .filter(function(key) {
+              return SW_CACHE_PREFIXES.some(function(prefix) { return key.indexOf(prefix) === 0; });
+            })
+            .map(function(key) { return caches.delete(key); })
+        );
+      }).catch(function() {})
+    );
+  }
+
+  return Promise.all(tasks).catch(function() {});
+}
+
+if ('serviceWorker' in navigator || 'caches' in window) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js?v=' + encodeURIComponent(APP_VERSION))
-      .then(function(reg) {
-        var reloading = false;
-
-        function forceReload() {
-          if (reloading) return;
-          reloading = true;
-          window.location.reload();
-        }
-
-        function activateWaitingWorker(waiting) {
-          if (!waiting) return;
-          try {
-            waiting.postMessage({ type: 'SKIP_WAITING' });
-          } catch (e) {}
-        }
-
-        if (reg.waiting) activateWaitingWorker(reg.waiting);
-
-        reg.onupdatefound = function() {
-          var installing = reg.installing;
-          if (!installing) return;
-          installing.addEventListener('statechange', function() {
-            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-              activateWaitingWorker(reg.waiting || installing);
-              setTimeout(forceReload, 1200);
-            }
-          });
-        };
-
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          if (window.__SW_RELOADED__) return;
-          window.__SW_RELOADED__ = true;
-          forceReload();
-        });
-      })
-      .catch(function(err) {  });
+    runNuclearVersionGuard().finally(function() {
+      retireServiceWorkers();
+    });
   });
 }
 
