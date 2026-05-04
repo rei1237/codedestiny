@@ -108,14 +108,34 @@ const PREMIUM_SERVICE_LABEL: Record<PremiumServiceKey, string> = {
   naming: "명운 작명 프리미엄 리포트",
 };
 
+const UNLOCK_PRODUCT_BY_KEY: Record<UnlockKey, string> = {
+  allPaidSaju: "unlock.all_paid_saju",
+  rpgCharacter: "unlock.rpg_character",
+  travelDestiny: "unlock.travel_destiny",
+  healthReport: "unlock.health_report",
+  sajuDiary: "unlock.saju_diary",
+  secretHouseEpisodes: "unlock.secret_house_episodes",
+  premiumDivinationPack: "unlock.premium_divination_pack",
+};
+
+const PREMIUM_PRODUCT_BY_SERVICE: Record<PremiumServiceKey, string> = {
+  ziwei: "unlock.premium_ziwei",
+  astrology: "unlock.premium_astrology",
+  sukuyo: "unlock.premium_sukuyo",
+  veda: "unlock.premium_veda",
+  naming: "unlock.premium_naming",
+};
+
 const PER_USE_DESTINATION: Partial<Record<PerUseKey, string>> = {
   turtleIChing: "/index.html?action=openJuyukModal",
   egyptOracle: "/index.html?action=openKemetModal",
   geomancy: "/geomancy-oracle-v4.html",
-  stonehengeRunes: "/static?service=stonehenge-rune",
+  stonehengeRunes: "/oracle/rune?entry=per-use",
   premiumTarot: "/index.html?action=openTarotModal",
   loveSimulation: "/saju/love-simulation",
 };
+
+const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
 
 const FREE_FEATURES = [
   "기본 만세력: 연/월/일/시 명식표 + 일주 캐릭터 요약",
@@ -240,6 +260,15 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
   showToast(`🪙 ${label} 이용으로 ${cost}코인이 차감되었습니다. 남은 코인: ${Number(points).toLocaleString("ko-KR")}`, "info");
 }
 
+function markRunePrepaidOnce() {
+  try {
+    sessionStorage.setItem(
+      RUNE_PREPAID_MARKER_KEY,
+      JSON.stringify({ at: Date.now() }),
+    );
+  } catch (_) {}
+}
+
 function redirectPerUseFeature(key: PerUseKey) {
   const destination = PER_USE_DESTINATION[key];
   if (!destination) return;
@@ -297,10 +326,17 @@ export default function KkulkkulManseryukMain() {
       ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
     };
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+      const productId = UNLOCK_PRODUCT_BY_KEY[key];
+      const requestId = `unlock:${productId || key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
+      const endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
+      const payload = productId
+        ? { productId, requestId }
+        : { cost, reason: `${key} 해금`, featureKey: key, forceDeduct: true, requestId };
+
+      const { res, data } = await fetchJsonWithTimeout(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ cost, reason: `${key} 해금`, featureKey: key, forceDeduct: true, requestId: `unlock:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
+        body: JSON.stringify(payload),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
@@ -350,6 +386,9 @@ export default function KkulkkulManseryukMain() {
       notifyCoinDeducted(cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
+      if (key === "stonehengeRunes") {
+        markRunePrepaidOnce();
+      }
       redirectPerUseFeature(key);
     } catch (e) {
       console.error('[runPaidFeatureOnce]', e);
@@ -445,13 +484,19 @@ export default function KkulkkulManseryukMain() {
       };
 
       const cost = PREMIUM_SERVICE_COST[service];
+      const productId = PREMIUM_PRODUCT_BY_SERVICE[service];
+      const requestId = `premium:${productId || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
       setPaymentMessage(`${premiumLabel} 결제를 진행 중입니다.`);
       setPremiumGateLoading(service);
       try {
-        const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+        const { res, data } = await fetchJsonWithTimeout(productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders },
-          body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId: `premium:${service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
+          body: JSON.stringify(
+            productId
+              ? { productId, requestId }
+              : { cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId },
+          ),
         });
         if (res.status === 402) { setShowRechargeModal(true); return; }
         if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }

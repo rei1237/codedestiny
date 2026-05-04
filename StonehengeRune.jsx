@@ -96,6 +96,25 @@ const SPREAD_LABELS = {
 
 const RUNE_COIN_COST = 50;
 const RUNE_FEATURE_KEY = "openRuneOracle";
+const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
+const RUNE_PREPAID_MARKER_TTL_MS = 10 * 60 * 1000;
+
+function consumeRunePrepaidMarker() {
+  try {
+    const raw = sessionStorage.getItem(RUNE_PREPAID_MARKER_KEY) || "";
+    if (!raw) return false;
+    sessionStorage.removeItem(RUNE_PREPAID_MARKER_KEY);
+    const parsed = JSON.parse(raw);
+    const markedAt = Number(parsed && parsed.at);
+    if (!Number.isFinite(markedAt)) return false;
+    return Date.now() - markedAt <= RUNE_PREPAID_MARKER_TTL_MS;
+  } catch (_e) {
+    try {
+      sessionStorage.removeItem(RUNE_PREPAID_MARKER_KEY);
+    } catch (_e2) {}
+    return false;
+  }
+}
 
 function consumeRunePerUseCoin() {
   return new Promise((resolve) => {
@@ -108,6 +127,10 @@ function consumeRunePerUseCoin() {
       return;
     }
     if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) {
+      resolve(true);
+      return;
+    }
+    if (consumeRunePrepaidMarker()) {
       resolve(true);
       return;
     }

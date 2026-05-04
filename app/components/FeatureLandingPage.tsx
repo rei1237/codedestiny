@@ -266,7 +266,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const runHref = basePath === "/oracle/sikojen-povailu"
     ? "/oracle/sikojen-povailu"
     : basePath === "/oracle/rune"
-    ? "/static?service=stonehenge-rune"
+    ? "/oracle/rune"
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
     : "/index.html";
