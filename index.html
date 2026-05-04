@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <script>
@@ -525,7 +525,53 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
-#sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
+#sajuLoaderOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.saju-loader-orb {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #a78bfa 0%, #7c3aed 50%, #4c1d95 100%);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
+  animation: sajuOrbPulse 2s ease-in-out infinite;
+}
+.saju-loader-orb::after {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-top-color: transparent;
+  animation: sajuOrbRotate 1.5s linear infinite;
+}
+@keyframes sajuOrbPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(139, 92, 246, 0.6); }
+}
+@keyframes sajuOrbRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.saju-loader-text {
+  color: #e2e8f0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
 .cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
 /* 운명의 꽃 섹션 메인 화면에서 숨김 - 컬렉션에서만 접근 가능 */
 
@@ -1118,30 +1164,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </div>
 </div>
 
-<!-- ═══ 사주 풀이 로딩 애니메이션 (만세력) ═══ -->
-
+<!-- ═══ 사주 풀이 로딩 애니메이션 (만세력/결제) ═══ -->
 <div id="sajuLoaderOverlay">
-  <div class="hanja-particle-container" id="hanjaParticleContainer"></div>
-
-  <div class="saju-book-wrapper">
-    <div class="saju-vortex">
-      <div class="orb w"></div><div class="orb f"></div><div class="orb e"></div><div class="orb m"></div><div class="orb wa"></div>
-    </div>
-    <div class="saju-book">
-      <!-- 겉표지 -->
-      <div class="book-base left"><div class="book-cover-title">萬</div></div>
-      <div class="book-base right"><div class="book-cover-title">歲</div></div>
-      <!-- 넘겨지는 내지 -->
-      <div class="book-page page-right"></div>
-      <div class="book-page page3"></div>
-      <div class="book-page page2"></div>
-      <div class="book-page page1"></div>
-    </div>
-  </div>
-
-  <div class="saju-txt-wrap">
-    <div id="sajuLoadingTxt" class="saju-typing-txt">사주 만세력을 조율하는 중...</div>
-  </div>
+  <div class="saju-loader-orb"></div>
+  <div id="sajuLoadingTxt" class="saju-loader-text">사주 만세력을 조율하는 중...</div>
 </div>
 
 <div class="wrap">
@@ -4508,7 +4534,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
-#sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
+#sajuLoaderOverlay{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
 /* 운명의 꽃 섹션 메인 화면에서 숨김 - 컬렉션에서만 접근 가능 */
 
@@ -5222,9 +5248,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
               btn.addEventListener('click', function () {
-                ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+                ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role', 'cd_tile_locks'].forEach(function (k) {
                   try { localStorage.removeItem(k); } catch (_) {}
                 });
+                try {
+                  var keysToRemove = [];
+                  for (var i = 0; i < localStorage.length; i++) {
+                    var k = localStorage.key(i);
+                    if (k && k.indexOf('cd_tile_locks_v2::') === 0) keysToRemove.push(k);
+                  }
+                  keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+                } catch(e) {}
                 document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
                 document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
                 // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
@@ -10286,6 +10320,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function saveTileLocks() {
+    if (window.__cdAdminBypass) return;
     if (!hasAuthToken()) return;
     try {
       var scopedKey = getUnlockStorageKey();
@@ -11072,21 +11107,18 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var __cdCoinGateOverlayDepth = 0;
   function _cdSetCoinGateOverlay(isOpen, message) {
     var overlay = document.getElementById('sajuLoaderOverlay');
+    var txt = document.getElementById('sajuLoadingTxt');
     if (!overlay) return;
-    var textNode = document.getElementById('sajuLoadingTxt');
     if (isOpen) {
-      __cdCoinGateOverlayDepth += 1;
-      if (textNode && message) textNode.textContent = String(message);
-      overlay.style.display = 'grid';
-      overlay.setAttribute('aria-hidden', 'false');
-      return;
+      if (txt && message) txt.textContent = message;
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    } else {
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
     }
-    __cdCoinGateOverlayDepth = Math.max(0, __cdCoinGateOverlayDepth - 1);
-    if (__cdCoinGateOverlayDepth > 0) return;
-    overlay.style.display = 'none';
-    overlay.setAttribute('aria-hidden', 'true');
-    if (textNode) textNode.textContent = '사주 만세력을 조율하는 중...';
   }
+  window._cdSetCoinGateOverlay = _cdSetCoinGateOverlay;
 
   var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
 

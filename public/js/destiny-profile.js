@@ -326,6 +326,7 @@
   }
 
   function _dpWriteTileLockMap(map) {
+    if (window.__cdAdminBypass) return; // Do not save admin bypass state to local storage
     var safe = Object.create(null);
     if (map && typeof map === 'object') {
       var keys = Object.keys(map);
@@ -356,7 +357,19 @@
   }
 
   function _dpIsFeatureLocked(lockKey) {
+    if (window.__cdAdminBypass) return false;
     if (!_dpHasAuthToken()) return true;
+
+    // Check active subscription first
+    var lockCost = 0;
+    if (String(lockKey).indexOf('olympus') >= 0) lockCost = 100;
+    else if (String(lockKey).indexOf('flower') >= 0) lockCost = 50;
+    
+    if (typeof _dpSubIsActive !== 'undefined' && _dpSubIsActive) {
+      if (_dpSubTier === 'vvip' && lockCost <= 100) return false;
+      if (_dpSubTier === 'premium' && lockCost <= 50) return false;
+      if (_dpSubTier === 'standard' && lockCost <= 30) return false;
+    }
 
     var map = _dpReadTileLockMap();
     var aliases = _dpResolveUnlockAliasKeys(lockKey);

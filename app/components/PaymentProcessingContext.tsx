@@ -61,6 +61,23 @@ export function PaymentProcessingProvider({
   }, []);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any)._cdSetCoinGateOverlay = (show: boolean, message?: string) => {
+        if (show) {
+          startProcessing(message);
+        } else {
+          stopProcessing();
+        }
+      };
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        delete (window as any)._cdSetCoinGateOverlay;
+      }
+    };
+  }, [startProcessing, stopProcessing]);
+
+  useEffect(() => {
     if (!isProcessing || typeof window === "undefined") return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {

@@ -552,36 +552,6 @@ function SubscriptionSection({
           </div>
         )}
 
-        {subscription.isActive && subscription.tier !== "free" && (
-          <div className="mb-4 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
-            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
-              <span aria-hidden="true">🧭</span>
-              {subscription.cancelAtPeriodEnd ? "구독 해지 예약됨" : "구독 자동 갱신 활성화"}
-            </p>
-            <p className="mt-1 text-[11.5px] text-violet-700">
-              {subscription.cancelAtPeriodEnd
-                ? `해지 예약 상태입니다. ${expires || "만료일"}까지 혜택은 유지되며 이후 자동 갱신되지 않습니다.`
-                : "현재는 만료 시 자동 갱신됩니다. 원하시면 해지를 예약할 수 있고, 만료 전까지 언제든 다시 취소할 수 있습니다."}
-            </p>
-            <div className="mt-2.5 flex justify-end">
-              <button
-                type="button"
-                disabled={isProcessing}
-                onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
-                className={[
-                  "rounded-[11px] px-3.5 py-2 text-[12px] font-bold transition",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                  subscription.cancelAtPeriodEnd
-                    ? "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                    : "border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100",
-                ].join(" ")}
-              >
-                {subscription.cancelAtPeriodEnd ? "해지 예약 취소" : "구독 해지 예약"}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* 공통 운영 정책 안내 */}
         <div className="mb-4 rounded-[14px] border border-sky-200 bg-sky-50/60 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-sky-700">
@@ -833,6 +803,36 @@ function SubscriptionSection({
           );
         })}
       </div>
+
+      {subscription.isActive && subscription.tier !== "free" && (
+        <div className="mx-5 mb-5 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
+            <span aria-hidden="true">🧭</span>
+            {subscription.cancelAtPeriodEnd ? "구독 해지 예약됨" : "구독 자동 갱신 활성화"}
+          </p>
+          <p className="mt-1 text-[11.5px] text-violet-700">
+            {subscription.cancelAtPeriodEnd
+              ? `해지 예약 상태입니다. ${expires || "만료일"}까지 혜택은 유지되며 이후 자동 갱신되지 않습니다.`
+              : "현재는 만료 시 자동 갱신됩니다. 원하시면 해지를 예약할 수 있고, 만료 전까지 언제든 다시 취소할 수 있습니다."}
+          </p>
+          <div className="mt-2.5 flex justify-end">
+            <button
+              type="button"
+              disabled={isProcessing}
+              onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
+              className={[
+                "rounded-[11px] px-3.5 py-2 text-[12px] font-bold transition",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                subscription.cancelAtPeriodEnd
+                  ? "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100",
+              ].join(" ")}
+            >
+              {subscription.cancelAtPeriodEnd ? "해지 예약 취소" : "구독 해지 예약"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="px-5 pb-5 space-y-1">
         <p className="text-[11px] text-[#9B7040]">✅ 구독 코인은 즉시 차감되며 <strong>30일간 유효</strong>합니다.</p>
