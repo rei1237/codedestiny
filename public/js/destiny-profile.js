@@ -1540,7 +1540,7 @@
       try {
         var isFreeUser = _dpGetMaxProfiles() <= 1;
         var lockedNotice = isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 무료 플랜은 프로필 1개만 사용할 수 있습니다. 초과 프로필은 ✕ 버튼으로 삭제해 주세요.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 프로필 카드는 한 번 생성하면 수정/삭제가 불가능합니다. 생성 전에 정보를 꼭 확인해 주세요.</div>'
           : '';
 
     container.innerHTML = list.map(function(p, idx) {
@@ -1644,9 +1644,7 @@
       }
       return;
     }
-      return;
-    }
-    if (!confirm('새 프로필 카드를 추가하시겠습니까?\n프로필 카드는 한 번 생성하면 수정 및 삭제가 "절대" 불가능합니다.\n잘못 입력하신 경우 고객센터에 직접 연락하여 수정을 요청하셔야 하니, 정보를 다시 한 번 정확히 확인해 주세요.')) return;
+    if (!confirm('새 프로필 카드를 생성할까요?\n한 번 생성된 프로필 카드는 수정 및 삭제가 불가능합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.')) return;
     var saved = DPStorage.add(data);
     DPStorage.setCurrent(saved.id);
     spawnStardust(document.getElementById('dpSaveBtn'));
@@ -1713,7 +1711,7 @@
     /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
     var _curId = (DPStorage.current() || {}).id;
     if (_dpGetMaxProfiles() <= 1 && id !== _curId) {
-      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n초과 저장된 프로필은 삭제 버튼(✕)으로 정리하거나, /points 페이지에서 구독을 업그레이드하면 여러 프로필을 이용할 수 있습니다.');
+      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 구독을 업그레이드하면 여러 프로필을 이용할 수 있습니다.');
       return;
     }
     DPStorage.setCurrent(id);
@@ -1726,7 +1724,7 @@
   };
 
   window.dpDeleteProfile = function(id) {
-    alert('프로필 카드는 한 번 생성하면 수정 및 삭제가 불가능합니다.\n잘못 입력하신 경우 고객센터로 연락하여 도움을 받으시기 바랍니다.');
+    alert('프로필 카드는 한 번 생성하면 수정 및 삭제가 불가능합니다.\n생성 전에 입력 정보를 꼭 다시 확인해 주세요.');
   };
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
@@ -2165,10 +2163,21 @@
         }
         var pOlympus = DPStorage.current();
         if (!pOlympus || !pOlympus.birth) {
+          try { pOlympus = _normalizeProfileForVedic(readFormData()); } catch (_) {}
+        }
+        if (!pOlympus || !pOlympus.birth) {
           _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필이 필요합니다.', 'warn');
           return;
         }
         var b = pOlympus.birth;
+        var lOlympus = (pOlympus && pOlympus.location) || {};
+        var latOlympus = Number(lOlympus.lat);
+        var lonOlympus = Number(lOlympus.lng);
+        if (!Number.isFinite(lonOlympus)) lonOlympus = Number(lOlympus.lon);
+        var tzOlympus = Number(lOlympus.baseTzOffset);
+        if (!Number.isFinite(tzOlympus)) tzOlympus = Number(lOlympus.tzOffset);
+        if (Number.isFinite(tzOlympus) && Math.abs(tzOlympus) > 24) tzOlympus = tzOlympus / 60;
+        var tzForApi = Number.isFinite(tzOlympus) ? tzOlympus : _olympusTimezoneOffset();
         var payload = {
           name: pOlympus.name,
           date: _olympusToDateString(b),
@@ -2183,7 +2192,9 @@
             day: b.day,
             hour: b.hour != null ? b.hour : 12,
             minute: b.minute != null ? b.minute : 0,
-            timezone: _olympusTimezoneOffset()
+            timezone: tzForApi,
+            lat: Number.isFinite(latOlympus) ? latOlympus : 37.5665,
+            lon: Number.isFinite(lonOlympus) ? lonOlympus : 126.9780
           })
         })
           .then(function(res) { return res.ok ? res.json() : null; })
