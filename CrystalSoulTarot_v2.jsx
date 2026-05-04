@@ -741,7 +741,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
     })();
 
     try{
-      const headers={"Content-Type":"application/json","Authorization":`Bearer ${token}`};
+      const headers={"Content-Type":"application/json","Authorization":"Bearer " + token};
       if(adminToken) headers["x-admin-token"]=adminToken;
       if(adminToken && (adminTier==="standard"||adminTier==="premium"||adminTier==="vvip")) {
         headers["x-admin-subscription-tier"]=adminTier;
@@ -813,7 +813,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       cardLines,
       "",
       "통합 조언",
-      `${gem.name}의 에너지는 지금 너무 빠른 결정보다는 흐름을 정돈하고 우선순위를 분명히 하라는 메시지를 전합니다.",
+      gem.name + "의 에너지는 지금 너무 빠른 결정보다는 흐름을 정돈하고 우선순위를 분명히 하라는 메시지를 전합니다.",
       "오늘은 마음이 끌리는 한 가지 실행을 정해 작게 시작하고, 그 결과를 기록해 내일의 선택 근거로 삼아보세요.",
     ].join("\n");
   }, [topic, gem, cards, assignments]);
@@ -886,7 +886,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       return;
     }
     try{
-      const headers={"Content-Type":"application/json","Authorization":`Bearer ${token}`};
+      const headers={"Content-Type":"application/json","Authorization":"Bearer " + token};
       if(adminToken) headers["x-admin-token"]=adminToken;
       if(adminToken && (adminTier==="standard"||adminTier==="premium"||adminTier==="vvip")) {
         headers["x-admin-subscription-tier"]=adminTier;
@@ -898,7 +898,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       });
       const d=await r.json().catch(()=>({}));
       if(r.status===402){
-        setPayError(`코인이 부족합니다. ${CRYSTAL_COST}코인이 필요합니다.`);
+        setPayError("코인이 부족합니다. " + CRYSTAL_COST + "코인이 필요합니다.");
         setPaying(false);return;
       }
       if(!r.ok){

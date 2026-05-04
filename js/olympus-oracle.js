@@ -112,13 +112,20 @@
       return;
     }
 
+    var location = (currentProfile && currentProfile.location) || {};
+    var lat = Number(location.lat);
+    var lon = Number(location.lng);
+    var tzOffset = Number(location.tzOffset);
+
     var payload = {
       year: parsed.year,
       month: parsed.month,
       day: parsed.day,
       hour: parsed.hour,
       minute: parsed.minute,
-      timezone: getLocalTimezoneHours()
+      timezone: Number.isFinite(tzOffset) ? tzOffset : getLocalTimezoneHours(),
+      lat: Number.isFinite(lat) ? lat : 37.5665,
+      lon: Number.isFinite(lon) ? lon : 126.9780
     };
 
     getSunKeyFromApi(payload).then(function(sunKey) {
@@ -128,7 +135,13 @@
         time: parsed.time,
         sunKey: sunKey
       });
-    }).catch(function() {
+    }).catch(function(err) {
+      console.error('[Astrology API] request failed', {
+        endpoint: '/api/vedic/planets',
+        status: 0,
+        errorMessage: String((err && err.message) || err || 'unknown'),
+        requestId: null,
+      });
       if (typeof window._toast === 'function') {
         window._toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
       }

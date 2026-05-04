@@ -3345,27 +3345,7 @@ function _dfExtractAstroLiveData(birthCtx) {
         window.ASTRO_HOUSE_SYSTEM || 'P'
       );
     } catch (e) {
-      // Strict SwissEph 모드 미준비 시에는 조용히 레거시 차트로 폴백 시도.
-      if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
-        console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
-      }
-    }
-  }
-
-  if (!chart && window.AstroEngine && typeof window.AstroEngine.calcAll === 'function') {
-    try {
-      chart = window.AstroEngine.calcAll(
-        Number(birthCtx.year),
-        Number(birthCtx.month),
-        Number(birthCtx.day),
-        localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
-      );
-    } catch (e2) {
-      console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e2);
+      console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
       return null;
     }
   }

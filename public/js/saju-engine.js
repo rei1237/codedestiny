@@ -5740,9 +5740,8 @@ function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, hou
   var hs = houseSystem || (window.ASTRO_HOUSE_SYSTEM || 'P');
   var chart = AstroEngine.calcAll(year, month, day, localHour, lat, lon, tz, { houseSystem: hs });
   var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : 'unknown';
-  // legacy-fallback(Jean Meeus 기반)도 허용 — SwissEph WASM 미로드 시에도 천문 계산 진행
-  if (mode !== 'swisseph' && mode !== 'legacy-fallback') {
-    throw new Error('SwissEph API 결과가 준비되지 않았습니다. precisionMode=' + mode);
+  if (mode !== 'swisseph') {
+    throw new Error('정확한 차트 계산 API 연결에 실패했습니다. precisionMode=' + mode);
   }
   return chart;
 }
@@ -5757,9 +5756,9 @@ function renderAstroApiUnavailable(reason) {
     + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
     + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 엔진 연결 중</div>'
     + '<div class="astro-desc" style="line-height:1.75;">'
-    + '<p style="margin:0;color:#ffe4e6;">아직 코즈믹 데이터가 완전히 연결되지 않았어요. 잠시 후 다시 시도하면 정상 반영됩니다.</p>'
+    + '<p style="margin:0;color:#ffe4e6;">정확한 차트 계산 API 연결에 실패했습니다.</p>'
+    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지, 출생시간, 네트워크 상태를 확인한 뒤 다시 시도해 주세요.</p>'
     + '<p style="margin:8px 0 0 0;color:#fecdd3;"><b>참고 로그:</b> ' + msg + '</p>'
-    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">지금은 급하게 새로고침 1회 후 다시 열면 복구되는 케이스가 가장 많아요.</p>'
     + '</div></div></div>';
 }
 
