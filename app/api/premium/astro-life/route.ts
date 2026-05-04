@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ASTRO_CHAPTER_META, buildAstroPrompt, buildWesternChart, fallbackAstroText, generateAstroText, parseSections } from "../_astroCommon";
+import { ASTRO_CHAPTER_META, buildAstroPrompt, fallbackAstroText, generateAstroText, parseSections } from "../_astroCommon";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -14,16 +14,33 @@ export async function POST(req: NextRequest) {
     if (!year || !month || !day) return NextResponse.json({ ok: false, error: "Missing birth date" }, { status: 400 });
     if (chapter < 1 || chapter > 12) return NextResponse.json({ ok: false, error: "Chapter must be 1-12" }, { status: 400 });
 
-    const chart = buildWesternChart({
-      year,
-      month,
-      day,
-      hour: Number(body.hour ?? 12),
-      minute: Number(body.minute ?? 0),
-      timezone: Number(body.timezone ?? 9),
-      lat: Number(body.lat ?? 37.5665),
-      lon: Number(body.lon ?? 126.978),
+    const response = await fetch(`${req.nextUrl.origin}/api/astro/western-chart`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        year,
+        month,
+        day,
+        hour: Number(body.hour ?? 12),
+        minute: Number(body.minute ?? 0),
+        timezone: Number(body.timezone ?? 9),
+        lat: Number(body.lat ?? 37.5665),
+        lon: Number(body.lon ?? 126.978),
+      }),
+      signal: AbortSignal.timeout(12_000),
     });
+    const chartPayload = await response.json().catch(() => ({}));
+    if (!response.ok || !chartPayload?.ok) {
+      return NextResponse.json({ ok: false, error: chartPayload?.error || "Swiss API western chart unavailable" }, { status: 502 });
+    }
+    const chart = {
+      planets: chartPayload.planets,
+      ascendant: chartPayload.ascendant,
+      midheaven: chartPayload.midheaven,
+      northNode: chartPayload.northNode,
+      southNode: chartPayload.southNode,
+      aspects: Array.isArray(chartPayload.aspects) ? chartPayload.aspects : [],
+    };
     let text = await generateAstroText(buildAstroPrompt(chapter, chart));
     let usedFallback = false;
     if (!text) {

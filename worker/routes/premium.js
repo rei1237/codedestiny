@@ -170,6 +170,119 @@ function normalizeBody(body) {
   };
 }
 
+function normalizeDeg(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return NaN;
+  return ((n % 360) + 360) % 360;
+}
+
+function signFromDeg(value) {
+  const lon = normalizeDeg(value);
+  if (!Number.isFinite(lon)) return null;
+  const sign = Math.floor(lon / 30);
+  return {
+    longitude: Math.round(lon * 100) / 100,
+    sign,
+    signKo: SIGN_KO[sign],
+    degree: Math.round((lon % 30) * 100) / 100,
+  };
+}
+
+function getApiBaseOrigin(request, env) {
+  const preferred = String(env.API_UPSTREAM_ORIGIN || "").trim();
+  if (preferred) return preferred.replace(/\/+$/, "");
+  return new URL(request.url).origin;
+}
+
+async function postBackendJson(request, env, apiPath, payload, timeoutMs = 12000) {
+  const base = getApiBaseOrigin(request, env);
+  const url = `${base}${apiPath}`;
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = setTimeout(() => {
+    if (controller) {
+      try { controller.abort(); } catch (_) {}
+    }
+  }, timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+      signal: controller ? controller.signal : undefined,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.ok) {
+      const message = String(data?.error || data?.message || `API 호출 실패 (${response.status})`).trim();
+      throw new Error(message);
+    }
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function getSwissWesternChart(request, env, input) {
+  return postBackendJson(request, env, "/api/astro/western-chart", input, Number(env.PREMIUM_SWISS_TIMEOUT_MS || 12000));
+}
+
+const VEDIC_NAKSHATRAS = [
+  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha",
+  "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha",
+  "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishtha", "Shatabhisha",
+  "Purva Bhadrapada", "Uttara Bhadrapada", "Revati",
+];
+
+function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
+  const planets = planetsPayload.planets || {};
+  const asc = signFromDeg(planetsPayload.ascendantSidereal);
+  if (!asc) {
+    throw new Error("Swiss API 응답에 ascendantSidereal이 없어 베다 차트를 생성할 수 없습니다.");
+  }
+
+  const moon = signFromDeg(planets.Moon);
+  if (!moon) {
+    throw new Error("Swiss API 응답에 Moon sidereal longitude가 없습니다.");
+  }
+
+  const nakIndex = Math.floor(moon.longitude / (360 / 27));
+  const dashaSequence = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
+  const year = Number(input.year || new Date().getUTCFullYear());
+
+  const vedicPlanets = {};
+  ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"].forEach((name) => {
+    const info = signFromDeg(planets[name]);
+    if (!info) return;
+    vedicPlanets[name] = {
+      name,
+      ...info,
+      house: ((info.sign - asc.sign + 12) % 12) + 1,
+    };
+  });
+
+  return {
+    source: "swiss-api",
+    lagna: { ...asc, house: 1 },
+    moonNakshatra: {
+      name: VEDIC_NAKSHATRAS[nakIndex] || "Unknown",
+      ko: VEDIC_NAKSHATRAS[nakIndex] || "Unknown",
+      pada: (nakIndex % 4) + 1,
+    },
+    planets: vedicPlanets,
+    vimshottariDasha: {
+      current: { planet: dashaSequence[year % 9], remainYears: 4.8 },
+      antar: { planet: "Moon", remainYears: 0.8 },
+    },
+    yogas: [{ name: "Dharma Focus", nameKo: "다르마 정렬", description: "삶의 방향성을 실행으로 고정하는 조합입니다." }],
+    ayanamsa: planetsPayload.ayanamsa,
+  };
+}
+
+async function getSwissVedicChart(request, env, input) {
+  const payload = await postBackendJson(request, env, "/api/vedic/planets", input, Number(env.PREMIUM_SWISS_TIMEOUT_MS || 12000));
+  return deriveVedicChartFromPlanets(payload, input);
+}
+
 function zodiacBySeed(year, month, day, hour, offset = 0) {
   const raw = year * 372 + month * 31 + day + hour + offset * 17;
   const longitude = ((raw * 13.176 + offset * 29.53) % 360 + 360) % 360;
@@ -346,17 +459,18 @@ async function handleSukuyoLife(request, env) {
   return json({ ok: true, sukuyo, partner, relation: rel, chapter, chapterMeta: meta, ...generated });
 }
 
-async function handleAstroWestern(request) {
+async function handleAstroWestern(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
-  return json({ ok: true, ...buildWesternChart(input) });
+  const chart = await getSwissWesternChart(request, env, input);
+  return json({ ok: true, ...chart });
 }
 
 async function handleAstroLife(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
   const chapter = clampInt(body.chapter, 1, 1, 12);
-  const chart = buildWesternChart(input);
+  const chart = await getSwissWesternChart(request, env, input);
   const meta = ASTRO_CHAPTER_META[chapter - 1];
   const generated = await generatedChapter(
     env,
@@ -374,7 +488,7 @@ async function handleVedicLife(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
   const chapter = clampInt(body.chapter, 1, 1, 12);
-  const chart = buildVedicChart(input);
+  const chart = await getSwissVedicChart(request, env, input);
   const meta = VEDIC_CHAPTER_META[chapter - 1];
   const generated = await generatedChapter(
     env,

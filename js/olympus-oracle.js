@@ -29,20 +29,19 @@
     return signs[Math.floor(normalized / 30)];
   }
 
-  function getSunKeyFromApi(payload, fallbackKey) {
+  function getSunKeyFromApi(payload) {
     return fetch('/api/vedic/planets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(function(res) { return res.ok ? res.json() : null; })
+      .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('vedic api failed')); })
       .then(function(data) {
-        if (!data || !data.ok || !data.planets || typeof data.planets.Sun !== 'number') return fallbackKey;
+        if (!data || !data.ok || !data.planets || typeof data.planets.Sun !== 'number') throw new Error('invalid vedic payload');
         var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
         var tropicalSun = (data.planets.Sun + ayanamsa) % 360;
         return tropicalDegreeToSign(tropicalSun);
-      })
-      .catch(function() { return fallbackKey; });
+      });
   }
 
   function getCurrentProfileFromStorage() {
@@ -113,7 +112,6 @@
       return;
     }
 
-    var fallbackKey = sunSignFromDate(parsed.month, parsed.day);
     var payload = {
       year: parsed.year,
       month: parsed.month,
@@ -123,7 +121,7 @@
       timezone: getLocalTimezoneHours()
     };
 
-    getSunKeyFromApi(payload, fallbackKey).then(function(sunKey) {
+    getSunKeyFromApi(payload).then(function(sunKey) {
       commitAndMove({
         name: currentProfile && currentProfile.name ? currentProfile.name : '',
         date: parsed.date,
@@ -131,12 +129,9 @@
         sunKey: sunKey
       });
     }).catch(function() {
-      commitAndMove({
-        name: currentProfile && currentProfile.name ? currentProfile.name : '',
-        date: parsed.date,
-        time: parsed.time,
-        sunKey: fallbackKey
-      });
+      if (typeof window._toast === 'function') {
+        window._toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+      }
     });
   }
 

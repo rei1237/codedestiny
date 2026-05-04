@@ -411,6 +411,69 @@ function buildVedicChart(year:number, month:number, day:number, hour:number, min
   };
 }
 
+function applySwissCoreToChart(chart: VedicChart, swiss: { planets?: Record<string, number>; ascendantSidereal?: number | null; ayanamsa?: number | null }) {
+  const planets = swiss?.planets || {};
+  const ascLon = typeof swiss?.ascendantSidereal === "number" ? nd(swiss.ascendantSidereal) : NaN;
+  const lagnaSign = Number.isFinite(ascLon) ? Math.floor(ascLon / 30) : chart.lagna.sign;
+
+  if (Number.isFinite(ascLon)) {
+    chart.lagna = {
+      sign: lagnaSign,
+      signName: RASHI_NAMES[lagnaSign],
+      signSanskrit: RASHI_SANSKRIT[lagnaSign],
+      signKo: RASHI_KO[lagnaSign],
+      signEmoji: RASHI_EMOJI[lagnaSign],
+      degree: Math.round((ascLon % 30) * 10) / 10,
+    };
+  }
+
+  for (const pName of ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]) {
+    if (!Number.isFinite(Number(planets[pName]))) continue;
+    const pLon = nd(Number(planets[pName]));
+    const pSignIdx = Math.floor(pLon / 30);
+    const pDeg = pLon % 30;
+    const house = ((pSignIdx - lagnaSign + 12) % 12) + 1;
+    const nak = calcNakshatraInfo(pLon);
+    chart.planets[pName] = {
+      ...chart.planets[pName],
+      name: pName,
+      nameKo: PLANET_KO[pName] ?? pName,
+      longitude: Math.round(pLon * 10) / 10,
+      sign: pSignIdx,
+      signName: RASHI_NAMES[pSignIdx],
+      signSanskrit: RASHI_SANSKRIT[pSignIdx],
+      signKo: RASHI_KO[pSignIdx],
+      signEmoji: RASHI_EMOJI[pSignIdx],
+      degree: Math.round(pDeg * 10) / 10,
+      house,
+      dignity: calcDignity(pName, pSignIdx),
+      isRetrograde: chart.planets[pName]?.isRetrograde ?? false,
+      nakshatra: nak.nakshatra.name,
+      nakshatraKo: nak.nakshatra.ko,
+      nakshatraPada: nak.pada,
+      nakshatraLord: nak.nakshatra.lord,
+    };
+  }
+
+  const moon = chart.planets.Moon;
+  if (moon) {
+    const moonNak = calcNakshatraInfo(moon.longitude);
+    chart.moonNakshatra = {
+      ...moonNak.nakshatra,
+      pada: moonNak.pada,
+      degreeInNak: Math.round(moonNak.degreeInNakshatra * 100) / 100,
+      moonSign: moon.signName,
+      moonSignKo: moon.signKo,
+    };
+  }
+
+  if (Number.isFinite(Number(swiss?.ayanamsa))) {
+    chart.ayanamsa = Number(swiss.ayanamsa);
+  }
+
+  return chart;
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
@@ -919,8 +982,26 @@ export async function POST(req: NextRequest) {
     if (chapter < 1 || chapter > 12)
       return NextResponse.json({ ok:false, error:"Chapter must be 1-12" }, { status:400 });
 
-    // 1) 베다 차트 계산
-    const chart = buildVedicChart(year, month, day, hour, minute, tz, lat, lon);
+    const swissRes = await fetch(`${req.nextUrl.origin}/api/vedic/planets`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year, month, day, hour, minute, timezone: tz, lat, lon }),
+      signal: AbortSignal.timeout(12_000),
+    });
+    const swissData = await swissRes.json().catch(() => ({}));
+    if (!swissRes.ok || !swissData?.ok || !swissData?.planets) {
+      return NextResponse.json({ ok: false, error: swissData?.error || "Swiss API vedic planets unavailable" }, { status: 502 });
+    }
+
+    // 1) 베다 차트 계산 (Swiss API core 값 강제 반영)
+    const chart = applySwissCoreToChart(
+      buildVedicChart(year, month, day, hour, minute, tz, lat, lon),
+      {
+        planets: swissData.planets,
+        ascendantSidereal: swissData.ascendantSidereal,
+        ayanamsa: swissData.ayanamsa,
+      }
+    );
 
     // 2) AI 텍스트 생성
     const prompt = buildPrompt(chapter, chart);

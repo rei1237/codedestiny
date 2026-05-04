@@ -2151,7 +2151,6 @@
           date: _olympusToDateString(b),
           time: _olympusToTimeString(b)
         };
-        var fallbackKey = _olympusSunSignFromDate(b.month, b.day);
         fetch('/api/vedic/planets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2172,14 +2171,14 @@
               var idx = Math.floor(((tropical % 360) + 360) % 360 / 30);
               var signs = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
               payload.sunKey = signs[idx];
+              _olympusCommitProfile(payload);
             } else {
-              payload.sunKey = fallbackKey;
+              _toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+              return;
             }
-            _olympusCommitProfile(payload);
           })
           .catch(function() {
-            payload.sunKey = fallbackKey;
-            _olympusCommitProfile(payload);
+            _toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
           });
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();

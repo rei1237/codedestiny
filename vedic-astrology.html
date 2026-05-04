@@ -523,11 +523,10 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       <div style="margin-bottom:10px">
         <label for="v_place">태어난 장소 선택 (자동 위도/경도)</label>
         <select id="v_place" style="width:100%">
-          <option value="" selected>장소를 선택하세요</option>
-          <option value="Asia/Seoul" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">대한민국 · 서울</option>
+          <option value="" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">장소를 선택하세요 (기본: 서울)</option>
         </select>
         <div style="margin-top:6px;color:var(--text3);font-size:12px;line-height:1.5">
-          메인과 동일한 장소 목록이 로드되면 자동으로 확장됩니다.
+          국가/도시를 선택하면 위도·경도·타임존이 자동으로 설정됩니다.
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -589,25 +588,57 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 function vedicInitBirthPlaceSelect(){
   var sel=document.getElementById('v_place');
   if(!sel) return;
-  if(!(typeof window!=='undefined' && Array.isArray(window.BIRTH_PLACE_GROUPS) && window.BIRTH_PLACE_GROUPS.length)){
+  
+  // Build place list from BIRTH_PLACE_GROUPS or use embedded fallback data
+  var groups = (typeof window!=='undefined' && Array.isArray(window.BIRTH_PLACE_GROUPS)) ? window.BIRTH_PLACE_GROUPS : null;
+  
+  // If groups not available, try loading the script
+  if(!groups){
     try{
       var existing=document.getElementById('birthPlaceGroupsScript');
       if(!existing){
         var s=document.createElement('script');
         s.id='birthPlaceGroupsScript';
         s.src='/js/birth-place-groups.js';
-        s.onload=function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} };
-        s.onerror=function(){};
+        s.onload=function(){ 
+          try{ 
+            vedicInitBirthPlaceSelect(); 
+          }catch(_){} 
+        };
+        s.onerror=function(){ 
+          // If script fails, use hardcoded minimal fallback
+          try{ vedicInitBirthPlaceSelect(); }catch(_){} 
+        };
         document.head.appendChild(s);
       }
     }catch(_){}
-    return;
+    // Use hardcoded fallback data until script loads
+    groups = [
+      { label:'대한민국', places:[
+        {label:'대한민국 · 서울', tz:'Asia/Seoul', lon:126.9780, lat:37.5665, tzOff:9, def:true},
+        {label:'대한민국 · 부산', tz:'Asia/Seoul', lon:129.0756, lat:35.1796, tzOff:9},
+        {label:'대한민국 · 인천', tz:'Asia/Seoul', lon:126.7052, lat:37.4563, tzOff:9},
+        {label:'대한민국 · 대구', tz:'Asia/Seoul', lon:128.6014, lat:35.8714, tzOff:9}
+      ]},
+      { label:'주요 도시', places:[
+        {label:'일본 · 도쿄', tz:'Asia/Tokyo', lon:139.6917, lat:35.6895, tzOff:9},
+        {label:'중국 · 베이징', tz:'Asia/Shanghai', lon:116.4074, lat:39.9042, tzOff:8},
+        {label:'미국 · 뉴욕', tz:'America/New_York', lon:-74.0060, lat:40.7128, tzOff:-5},
+        {label:'미국 · 로스앤젤레스', tz:'America/Los_Angeles', lon:-118.2437, lat:34.0522, tzOff:-8},
+        {label:'영국 · 런던', tz:'Europe/London', lon:-0.1278, lat:51.5074, tzOff:0},
+        {label:'프랑스 · 파리', tz:'Europe/Paris', lon:2.3522, lat:48.8566, tzOff:1}
+      ]}
+    ];
   }
-  // If main engine exposed grouped places, reuse it.
+  
+  // Build the select dropdown
   try{
-    var groups = (typeof window!=='undefined') ? window.BIRTH_PLACE_GROUPS : null;
     if(Array.isArray(groups) && groups.length){
-      sel.innerHTML = '<option value=\"\" selected>장소를 선택하세요</option>';
+      // Keep first option as placeholder, remove any existing options
+      var firstOpt = sel.options[0];
+      sel.innerHTML = '';
+      if(firstOpt) sel.appendChild(firstOpt);
+      
       groups.forEach(function(g){
         if(!g || !Array.isArray(g.places) || !g.places.length) return;
         var og=document.createElement('optgroup');
@@ -621,28 +652,65 @@ function vedicInitBirthPlaceSelect(){
           opt.setAttribute('data-lat', String(p.lat));
           opt.setAttribute('data-tz', String(p.tzOff));
           opt.setAttribute('data-base-tz', String(p.tzOff));
-          if(p.def) opt.selected = true;
+          if(p.def){
+            opt.selected = true;
+            // Immediately apply default place coordinates
+            setTimeout(function(){ 
+              try{ 
+                var evt = document.createEvent('HTMLEvents');
+                evt.initEvent('change', true, false);
+                sel.dispatchEvent(evt);
+              }catch(_){} 
+            }, 0);
+          }
           og.appendChild(opt);
         });
         sel.appendChild(og);
       });
-      // if a default place is marked, reflect lat/lon/tz immediately
-      try{ vedicApplySelectedPlace(); }catch(_){}
     }
-  }catch(e){}
+  }catch(e){ console.error('Error building place select:', e); }
 }
 
 function vedicApplySelectedPlace(){
   var sel=document.getElementById('v_place');
   if(!sel) return;
+  
   var opt=sel.options[sel.selectedIndex];
   if(!opt) return;
+  
   var lat=parseFloat(opt.getAttribute('data-lat')||'');
   var lon=parseFloat(opt.getAttribute('data-long')||'');
   var tz=parseFloat(opt.getAttribute('data-tz')||opt.getAttribute('data-base-tz')||'');
-  if(!isNaN(lat)) { var latEl=document.getElementById('v_lat'); if(latEl) latEl.value=String(lat); }
-  if(!isNaN(lon)) { var lonEl=document.getElementById('v_lon'); if(lonEl) lonEl.value=String(lon); }
-  if(!isNaN(tz)) { var tzEl=document.getElementById('v_tz'); if(tzEl) tzEl.value=String(tz); }
+  
+  var latEl=document.getElementById('v_lat');
+  var lonEl=document.getElementById('v_lon');
+  var tzEl=document.getElementById('v_tz');
+  
+  if(latEl && !isNaN(lat)) { 
+    latEl.value = String(lat); 
+    // Trigger input event for sync
+    try{
+      var evt = document.createEvent('HTMLEvents');
+      evt.initEvent('input', true, false);
+      latEl.dispatchEvent(evt);
+    }catch(_){}
+  }
+  if(lonEl && !isNaN(lon)) { 
+    lonEl.value = String(lon); 
+    try{
+      var evt = document.createEvent('HTMLEvents');
+      evt.initEvent('input', true, false);
+      lonEl.dispatchEvent(evt);
+    }catch(_){}
+  }
+  if(tzEl && !isNaN(tz)) { 
+    tzEl.value = String(tz); 
+    try{
+      var evt = document.createEvent('HTMLEvents');
+      evt.initEvent('input', true, false);
+      tzEl.dispatchEvent(evt);
+    }catch(_){}
+  }
 }
 
 // ─── STAR CANVAS ───────────────────────────────────────────
@@ -2034,7 +2102,7 @@ function profileToForm(profile){
   };
 }
 
-// ─── CALCULATE FROM PROFILE (API 우선, 실패 시 로컬) ───────
+// ─── CALCULATE FROM PROFILE (API 전용: 로컬 fallback 금지) ───────
 function doCalculateFromProfile(profile){
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.month)||isNaN(f.day)){alert('생년월일을 확인해 주세요. (연도:'+f.year+', 월:'+f.month+', 일:'+f.day+')');return;}
@@ -2050,7 +2118,7 @@ function doCalculateFromProfile(profile){
       var insights=generateInsights(chart,report);
       if(!insights){throw new Error('Insights generation failed');}
       G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
-      G.usedLocalCalc=!planetsFromApi;
+      G.usedLocalCalc=false;
       try{
         renderResult();
         showPage('result');
@@ -2066,8 +2134,11 @@ function doCalculateFromProfile(profile){
     }
   }
 
-  function runLocal(){
-    runWithPlanets(undefined);
+  function showApiRequiredError(detail){
+    var msg='Swiss API 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+    if(detail){ msg += '<br><br>상세: ' + String(detail); }
+    document.getElementById('result-content').innerHTML='<div class="error-box">'+msg+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
+    showPage('result');
   }
 
   var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
@@ -2089,12 +2160,15 @@ function doCalculateFromProfile(profile){
   }
   reqPromise
     .then(function(res){
-      if(res&&res.ok&&res.planets){ runWithPlanets(res.planets); }
-      else { runLocal(); }
+      if(res&&res.ok&&res.planets){
+        runWithPlanets(res.planets);
+        return;
+      }
+      showApiRequiredError(res&&res.error?res.error:'Swiss API 응답 형식이 올바르지 않습니다.');
     })
     .catch(function(err){
-      console.warn('Vedic API unavailable, using local calculation:', err&&err.message?err.message:'');
-      runLocal();
+      console.warn('Vedic API unavailable:', err&&err.message?err.message:'');
+      showApiRequiredError(err&&err.message?err.message:'API timeout');
     });
 }
 
@@ -2319,10 +2393,16 @@ document.addEventListener('DOMContentLoaded', function(){
       el.addEventListener('change', function(){ try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
     });
     try{ _syncVedicToProfileCardCompatFields(); }catch(_){}
+    // Apply default place coordinates (Seoul) immediately
+    setTimeout(function(){ 
+      try{ 
+        vedicApplySelectedPlace(); 
+      }catch(_){} 
+    }, 0);
     // If the place list script is slow, try again shortly
-    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 0);
-    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 300);
-    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 1200);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ vedicApplySelectedPlace(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 0);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ vedicApplySelectedPlace(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 300);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ vedicApplySelectedPlace(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 1200);
   }catch(_){}
 });
 

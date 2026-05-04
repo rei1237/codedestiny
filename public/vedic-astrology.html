@@ -2084,7 +2084,7 @@ function profileToForm(profile){
   };
 }
 
-// ─── CALCULATE FROM PROFILE (API 우선, 실패 시 로컬) ───────
+// ─── CALCULATE FROM PROFILE (API 전용: 로컬 fallback 금지) ───────
 function doCalculateFromProfile(profile){
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.lat)||isNaN(f.lon)){alert('프로필 정보가 부족합니다.');return;}
@@ -2096,7 +2096,7 @@ function doCalculateFromProfile(profile){
       var report=analyze(chart);
       var insights=generateInsights(chart,report);
       G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
-      G.usedLocalCalc=!planetsFromApi;
+      G.usedLocalCalc=false;
       renderResult();
       showPage('result');
     }catch(err){
@@ -2106,8 +2106,11 @@ function doCalculateFromProfile(profile){
     }
   }
 
-  function runLocal(){
-    runWithPlanets(undefined);
+  function showApiRequiredError(detail){
+    var msg='Swiss API 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+    if(detail){ msg += '<br><br>상세: ' + String(detail); }
+    document.getElementById('result-content').innerHTML='<div class="error-box">'+msg+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
+    showPage('result');
   }
 
   var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
@@ -2129,12 +2132,15 @@ function doCalculateFromProfile(profile){
   }
   reqPromise
     .then(function(res){
-      if(res&&res.ok&&res.planets){ runWithPlanets(res.planets); }
-      else { runLocal(); }
+      if(res&&res.ok&&res.planets){
+        runWithPlanets(res.planets);
+        return;
+      }
+      showApiRequiredError(res&&res.error?res.error:'Swiss API 응답 형식이 올바르지 않습니다.');
     })
     .catch(function(err){
-      console.warn('Vedic API unavailable, using local calculation:', err&&err.message?err.message:'');
-      runLocal();
+      console.warn('Vedic API unavailable:', err&&err.message?err.message:'');
+      showApiRequiredError(err&&err.message?err.message:'API timeout');
     });
 }
 
