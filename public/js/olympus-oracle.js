@@ -67,6 +67,44 @@
     return getCurrentProfileFromStorage();
   }
 
+  function getMainFormProfileFallback() {
+    try {
+      var birthDateEl = document.getElementById('birthDate');
+      var birthDate = birthDateEl ? String(birthDateEl.value || '').trim() : '';
+      if (!birthDate) return null;
+
+      var parts = birthDate.split('-');
+      if (parts.length < 3) return null;
+      var year = Number(parts[0]);
+      var month = Number(parts[1]);
+      var day = Number(parts[2]);
+      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+      var hourRaw = Number((document.getElementById('birthHour') || {}).value);
+      var minuteRaw = Number((document.getElementById('birthMinute') || {}).value);
+      var hour = Number.isFinite(hourRaw) ? hourRaw : 12;
+      var minute = Number.isFinite(minuteRaw) ? minuteRaw : 0;
+
+      var countrySel = document.getElementById('birthCountry');
+      var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
+      var lat = Number(opt ? opt.getAttribute('data-lat') : 37.5665);
+      var lon = Number(opt ? opt.getAttribute('data-long') : 126.9780);
+      var tzOffset = Number(opt ? (opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz')) : 9);
+
+      return {
+        name: '',
+        birth: { year: year, month: month, day: day, hour: hour, minute: minute },
+        location: {
+          lat: Number.isFinite(lat) ? lat : 37.5665,
+          lng: Number.isFinite(lon) ? lon : 126.9780,
+          tzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+          baseTzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+        }
+      };
+    } catch (e) {}
+    return null;
+  }
+
   function showMissingProfileMessage() {
     if (typeof window._toast === 'function') {
       window._toast('⚠️ 먼저 프로필 카드를 저장해 주세요. (생년월일/시간 필요)', 'warn');
@@ -105,7 +143,12 @@
   }
 
   function openOlympusOracleModal() {
-    var currentProfile = getCurrentProfile();
+    if (typeof window._dpOpenFortuneType === 'function') {
+      window._dpOpenFortuneType('olympus');
+      return;
+    }
+
+    var currentProfile = getCurrentProfile() || getMainFormProfileFallback();
     var parsed = formatDateTimeFromBirth(currentProfile && currentProfile.birth);
     if (!parsed) {
       showMissingProfileMessage();
@@ -115,7 +158,10 @@
     var location = (currentProfile && currentProfile.location) || {};
     var lat = Number(location.lat);
     var lon = Number(location.lng);
-    var tzOffset = Number(location.tzOffset);
+    if (!Number.isFinite(lon)) lon = Number(location.lon);
+    var tzOffset = Number(location.baseTzOffset);
+    if (!Number.isFinite(tzOffset)) tzOffset = Number(location.tzOffset);
+    if (Number.isFinite(tzOffset) && Math.abs(tzOffset) > 24) tzOffset = tzOffset / 60;
 
     var payload = {
       year: parsed.year,

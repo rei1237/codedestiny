@@ -21,7 +21,7 @@ const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "Flower destiny pack unlock", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock", forceDeduct: true },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
   "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG character unlock", forceDeduct: true },
@@ -486,7 +486,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   if (isIncludedBySubscription) {
     return json({
-      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독을 이용 중이시므로 코인이 차감되지 않았습니다. 별빛 혜택으로 고객님의 리딩이 보호되고 있습니다.`,
+      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
       code: "SUBSCRIPTION_INCLUDED",
       productId: productId || null,
       requiredCoins: cost,

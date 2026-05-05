@@ -863,8 +863,11 @@ function createReading({ category, spreadType, drawnCards }) {
     .join("\n\n");
 
   const categoryLabel = { general: "전반적인 흐름", love: "연애·관계", money: "재물·재정", career: "직업·커리어", healing: "치유·회복", reunion: "재회·인연" }[normalizedCategory] || normalizedCategory;
+  const roleToneLead = (normalizedCategory === "love" || normalizedCategory === "reunion")
+    ? "연애 상담 관점과 타로 해석을 함께 반영한 종합 조언"
+    : "타로 리딩과 상담 관점을 함께 반영한 종합 조언";
   const advice = [
-    `베테랑 타로 상담사의 종합 조언 (${categoryLabel} 관점):`,
+    `${roleToneLead} (${categoryLabel} 관점):`,
     `오늘 뽑힌 카드의 흐름은 ${cardReadings.map((item) => `${item.nameKr}(${item.orientation === "reversed" ? "역" : "정"})`).join(" → ")}입니다.`,
     `이 카드들의 연결된 메시지는: 현재 ${normalizedCategory === "love" ? "감정과 관계" : normalizedCategory === "money" ? "재물과 현실 자원" : normalizedCategory === "career" ? "직업과 성장" : "삶의 방향"}에서 중요한 전환점 또는 확인 포인트에 와 있다는 신호입니다.`,
     `핵심 행동 조언: 카드가 전달하는 에너지를 억지로 바꾸려 하지 말고, 먼저 지금 상태를 솔직하게 인정한 뒤 가장 작은 실행부터 시작하세요.`,
@@ -955,7 +958,7 @@ function createRelationshipReading({ drawnCards }) {
     position_4:
       "관계 의지는 강도보다 지속성이 중요합니다. 뜨거운 한 번보다 안정적인 반복이 신뢰를 만들고 미래를 바꿉니다.",
     position_5:
-      "병목은 대개 사랑이 부족해서가 아니라 방식이 맞지 않아서 생깁니다. 감정 문제와 구조 문제를 분리하면 해결의 실마리가 빨리 보입니다.",
+      "막히는 지점은 대개 사랑이 부족해서가 아니라 방식이 맞지 않아서 생깁니다. 감정 문제와 구조 문제를 분리하면 해결의 실마리가 빨리 보입니다.",
     position_6:
       "예상 결과는 운명 확정이 아니라 현재 선택의 누적치입니다. 지금의 대화 방식과 경계 설정을 바꾸면 결말의 결도 달라질 수 있습니다.",
   };
@@ -1006,6 +1009,8 @@ function createRelationshipReading({ drawnCards }) {
           ? "마음은 있으나 현실의 벽"
           : "마음과 상황 모두 유리";
 
+    const counselorTone = "이번 해석은 연애 상담사가 마음을 정리하듯, 타로 카드가 보여준 흐름을 일상 대화와 행동으로 옮겨드리는 방식입니다. 당장 결론을 재촉하기보다 서로의 감정 속도와 관계 리듬을 맞추는 데 집중해 보세요.";
+
   // Build narrative sections
   const overallVibe = `지금 두 사람의 관계는 ${isHeavyMajor ? "운명적 전환의 힘이 크게 작동하는 국면" : "일상 속 선택과 소통이 결과를 좌우하는 국면"}에 들어와 있습니다. 6장의 카드에서 ${elementVibe} 성향이 강하게 나타나, 감정의 온도와 표현 방식이 관계 만족도를 크게 바꿀 수 있습니다. 현재 흐름에서는 ${mirrorTone} 패턴이 읽히며, 핵심 현실은 '${desireReality}'에 가깝습니다. 중요한 점은 이 결과가 고정된 예언이 아니라는 사실입니다. 지금부터의 대화 태도, 경계 설정, 확인 방식에 따라 같은 감정도 전혀 다른 결말로 이어질 수 있습니다.`;
 
@@ -1040,10 +1045,10 @@ function createRelationshipReading({ drawnCards }) {
 
   const realityAndFuture = [
     p5
-      ? `관계를 가로막는 병목은 ${cardLabel(p5)}입니다. ${relationshipMeaning(
+      ? `관계를 가로막는 막히는 지점은 ${cardLabel(p5)}입니다. ${relationshipMeaning(
           p5,
           "현실적 장애물, 타이밍, 성향 충돌이 핵심 이슈입니다."
-        )} 병목을 정확히 이해하면 감정 소모가 줄고, '풀 수 있는 문제'와 '기다려야 하는 문제'가 분리됩니다. 이 구분이 되는 순간 관계는 훨씬 건강한 방향으로 움직이기 시작합니다.`
+        )} 막히는 지점을 정확히 이해하면 감정 소모가 줄고, '풀 수 있는 문제'와 '기다려야 하는 문제'가 분리됩니다. 이 구분이 되는 순간 관계는 훨씬 건강한 방향으로 움직이기 시작합니다.`
       : "",
     p6
       ? `이 흐름이 유지될 때, 향후 3개월의 종착지는 ${cardLabel(p6)}에 가깝습니다. ${relationshipMeaning(
@@ -1082,6 +1087,7 @@ function createRelationshipReading({ drawnCards }) {
     category: "love",
     cardReadings,
     reading: {
+      counselorTone,
       overallVibe,
       deepReading,
       realityAndFuture,
@@ -1321,11 +1327,13 @@ function createReunionLighthouseReading({ drawnCards }) {
   const reversedCount = cardReadings.filter((r) => r.orientation === "reversed").length;
   const hopefulSignal = c4?.orientation === "upright" || c5?.orientation === "upright";
 
+  const counselorTone = "이번 재회 리딩은 연애 상담사가 관계를 점검하듯, 타로 카드의 신호를 감정 관리와 소통 전략으로 풀어드리는 방식입니다. 마음이 흔들릴수록 결론보다 관계의 안전한 대화 구조를 먼저 세워보세요.";
+
   const opening = `깊은 밤바다 위를 비추는 등대처럼, 이번 5카드 리딩은 당신의 그리움을 부정하지 않으면서도 길을 잃지 않게 돕는 안내서입니다. ${
     majorCount >= 2
       ? "운명적 전환의 에너지가 강하게 감지되어 감정의 결이 깊습니다."
       : "일상적 선택과 소통의 변화로도 흐름을 충분히 바꿀 수 있는 구간입니다."
-  } 지금 필요한 것은 조급한 확답이 아니라, 마음의 진실과 현실의 간격을 동시에 보는 시선입니다.`;
+  } 지금 필요한 것은 조급한 확답이 아니라, 마음의 진실과 현실의 간격을 동시에 보는 시선입니다. 연애 상담 관점과 타로 해석을 함께 적용하면 감정 소모를 줄이면서도 현실적인 선택을 할 수 있습니다.`;
 
   const pastBond = c1 ? `${cardLabel(c1)} 카드가 과거 인연 자리에서 말하는 메시지는, ${buildReunionPositionMeaning(c1, "past_bond")}` : "";
 
@@ -1396,6 +1404,7 @@ function createReunionLighthouseReading({ drawnCards }) {
     category: "reunion",
     cardReadings,
     reading: {
+      counselorTone,
       opening,
       pastBond,
       theirNow,
@@ -1747,7 +1756,7 @@ function createYearlyFromThreeCardReading({ drawnCards }) {
   };
 }
 
-// ─── 12카드 월별 스프레드: 메이저 아르카나 내장 해석 (베테랑 상담사 퀄리티) ───
+// ─── 12카드 월별 스프레드: 메이저 아르카나 내장 해석 (상담형 고품질 문안) ───
 const MAJOR_ARCANA_YEARLY = {
   M00: {
     upright: {
@@ -2304,8 +2313,117 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
   const baseReading = reading && typeof reading === "object" ? { ...reading } : reading;
   const safeCards = Array.isArray(cardReadings) ? cardReadings : [];
 
+  const FORBIDDEN_TONE_PATTERNS = [
+    /20\s*년[^\n.]{0,40}(경력|이상|타로|상담|리더|전문가)/gi,
+    /타로\s*경력\s*20\s*년[^\n.]*/gi,
+    /20\s*년\s*경력\s*타로\s*상담가[^\n.]*/gi,
+    /베테랑\s*타로\s*상담사/gi,
+  ];
+
+  const NATURAL_WORD_REPLACEMENTS = [
+    [/병목/g, "막히는 지점"],
+    [/프로토콜/g, "진행 순서"],
+    [/데이터/g, "근거"],
+    [/오차/g, "차이"],
+    [/정밀도/g, "읽는 정확함"],
+    [/정확도/g, "읽는 정확함"],
+  ];
+
   function asText(value) {
     return typeof value === "string" ? value.trim() : "";
+  }
+
+  function cleanForbiddenTone(text) {
+    let out = String(text || "");
+    FORBIDDEN_TONE_PATTERNS.forEach((pattern) => {
+      out = out.replace(pattern, "");
+    });
+    return out;
+  }
+
+  function replaceWithNaturalWords(text) {
+    let out = String(text || "");
+    NATURAL_WORD_REPLACEMENTS.forEach(([pattern, replacement]) => {
+      out = out.replace(pattern, replacement);
+    });
+    return out;
+  }
+
+  function dedupeSentences(text) {
+    const source = String(text || "").trim();
+    if (!source) return "";
+    const rawParts = source
+      .split(/\n{2,}/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    const seen = new Set();
+    const unique = [];
+
+    rawParts.forEach((part) => {
+      const key = part
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!key) return;
+      if (seen.has(key)) return;
+      seen.add(key);
+      unique.push(part);
+    });
+
+    return unique.join("\n\n").trim();
+  }
+
+  function smoothCounselorTone(text) {
+    if (!text) return "";
+    let out = String(text);
+    out = cleanForbiddenTone(out);
+    out = replaceWithNaturalWords(out);
+    out = out.replace(/\s{2,}/g, " ");
+    out = out.replace(/\n{3,}/g, "\n\n");
+    out = out.replace(/([가-힣A-Za-z]{2,})(\s+\1){1,}/g, "$1");
+    out = dedupeSentences(out);
+    return out.trim();
+  }
+
+  function deepPolishReading(value) {
+    if (typeof value === "string") return smoothCounselorTone(value);
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => deepPolishReading(item))
+        .filter((item) => {
+          if (typeof item === "string") return item.trim().length > 0;
+          return item !== undefined && item !== null;
+        });
+    }
+    if (value && typeof value === "object") {
+      const next = {};
+      Object.entries(value).forEach(([key, item]) => {
+        next[key] = deepPolishReading(item);
+      });
+      return next;
+    }
+    return value;
+  }
+
+  function buildCardMeaningGuide() {
+    return safeCards
+      .map((card, idx) => {
+        const name = asText(card?.nameKr || card?.name) || `카드 ${idx + 1}`;
+        const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
+        const meaning = asText(card?.interpretation) || `${name}은(는) 지금 상황에서 마음과 행동의 기준을 알려주는 카드입니다.`;
+        return smoothCounselorTone(`${idx + 1}번 카드 ${name}(${orientation}): ${meaning}`);
+      })
+      .filter(Boolean);
+  }
+
+  function finalizeReadingOutput(nextReading) {
+    const polished = deepPolishReading(nextReading);
+    if (!polished || typeof polished !== "object") return polished;
+    const cardMeaningGuide = buildCardMeaningGuide();
+    if (cardMeaningGuide.length) {
+      polished.cardMeaningGuide = cardMeaningGuide;
+    }
+    return polished;
   }
 
   function cardSummaryLine(idx) {
@@ -2319,13 +2437,16 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
 
   function ensureMinText(value, minChars, fallbackParts) {
     let out = asText(value);
-    const seed = (Array.isArray(fallbackParts) ? fallbackParts : [])
+    const seedPool = (Array.isArray(fallbackParts) ? fallbackParts : [])
       .map(asText)
-      .filter(Boolean)
-      .join(" ");
-    if (!out && seed) out = seed;
-    while (out.length < minChars && seed) {
+      .filter(Boolean);
+    if (!out && seedPool.length) out = seedPool[0];
+    let cursor = 0;
+    while (out.length < minChars && seedPool.length) {
+      const seed = seedPool[cursor % seedPool.length];
       out += `\n\n${seed}`;
+      cursor += 1;
+      if (cursor > 120) break;
     }
     return out;
   }
@@ -2335,25 +2456,26 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
   }
 
   if (normalizedSpread === "relationship_six_card") {
-    const RELATION_MAIN_MIN_CHARS = 3000;
-    const RELATION_POSITION_MIN_CHARS = 1450;
-    const RELATION_TOTAL_MIN_CHARS = 18200; // 기존 대비 약 +5000자 수준의 총량 보강 목표
+    const RELATION_MAIN_MIN_CHARS = 2200;
+    const RELATION_POSITION_MIN_CHARS = 980;
+    const RELATION_TOTAL_MIN_CHARS = 13200;
 
     const relationPartSeeds = {
       overallVibe: [
+        "연애 상담 관점에서는 카드의 상징을 감정 정리와 대화 방법으로 바꿔 읽을 때 체감 변화가 더 빨리 나타납니다.",
         "관계의 전체 분위기 파트에서는 감정의 크기보다 감정의 관리 방식이 핵심 변수입니다. 같은 호감도라도 확인 대화와 경계 합의가 있는 커플은 안정적으로 성장하고, 추측과 단정이 반복되는 관계는 소모가 빠르게 커집니다.",
-        "전체 흐름을 읽을 때는 사건 하나의 강도보다 반복 패턴을 먼저 보세요. 연락의 규칙성, 갈등 후 회복 속도, 약속 이행률이 누적되면 관계의 체력과 신뢰도가 숫자처럼 드러납니다.",
+        "전체 흐름을 읽을 때는 사건 하나의 강도보다 반복 패턴을 먼저 보세요. 연락의 규칙성, 갈등 후 회복 속도, 약속 이행률이 누적되면 관계의 체력과 신뢰도가 분명해집니다.",
         "현재 관계 분위기는 고정된 운명이 아니라 운영 설계의 결과입니다. 대화 시간대, 말의 톤, 기대치 조율을 구조화하면 같은 카드 조합도 더 성숙한 결말로 이동할 수 있습니다.",
       ],
       deepReading: [
         "심층 해석 파트의 핵심은 서로의 심리 언어를 번역하는 것입니다. 한쪽은 확답을 사랑으로 느끼고, 다른 쪽은 안정적 루틴을 사랑으로 느낄 수 있으니, 표현 방식의 차이를 모르면 호감이 있어도 거리감이 커집니다.",
         "깊은 층위를 분석할 때는 상처 반응을 구분해야 합니다. 회피형 반응과 무관심은 다르고, 불안형 반응과 집착도 다릅니다. 반응의 유형을 분리하면 관계 판단의 정확도가 크게 올라갑니다.",
-        "내면 동기를 읽을 때는 말보다 반복 행동이 더 강한 데이터입니다. 애정 표현의 빈도, 갈등 후 복귀 의지, 책임 회피 여부를 함께 보면 관계의 진짜 깊이를 보다 객관적으로 해석할 수 있습니다.",
+        "내면 동기를 읽을 때는 말보다 반복 행동이 더 강한 근거입니다. 애정 표현의 빈도, 갈등 후 복귀 의지, 책임 회피 여부를 함께 보면 관계의 진짜 깊이를 보다 객관적으로 해석할 수 있습니다.",
       ],
       realityAndFuture: [
         "현실·미래 파트는 낭만보다 운영 전략이 중요합니다. 단기 결말을 예측하는 데 그치지 말고, 갈등 회복 규칙과 경계 문장을 미리 합의하면 3개월 이후의 안정도가 눈에 띄게 달라집니다.",
         "미래는 감정의 세기보다 일관성의 누적으로 결정됩니다. 연락 리듬, 만남 주기, 책임 분담처럼 반복 가능한 규칙을 만들면 불확실성이 줄고 관계 만족도가 높아집니다.",
-        "현실 병목을 해결할 때는 감정 문제와 구조 문제를 분리하세요. 감정은 공감으로 다루고, 구조는 합의로 다룰 때 관계는 소모적 논쟁에서 벗어나 실제 변화로 연결됩니다.",
+        "현실의 막히는 지점을 풀 때는 감정 문제와 구조 문제를 분리하세요. 감정은 공감으로 다루고, 구조는 합의로 다룰 때 관계는 소모적 논쟁에서 벗어나 실제 변화로 연결됩니다.",
       ],
       position: [
         "포지션 해석에서는 카드 상징을 행동 지침으로 번역하는 것이 중요합니다. 해석이 정확해도 실행 문장이 없으면 체감 변화가 작습니다.",
@@ -2441,6 +2563,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
 
     const enrichedReading = {
       ...baseReading,
+      counselorTone: ensureRelationshipSection(baseReading.counselorTone, 900, "overallVibe", ["연애 상담 관점과 타로 해석을 함께 적용하면 감정은 더 안정되고 행동은 더 또렷해집니다."]),
       overallVibe: ensureRelationshipSection(baseReading.overallVibe, RELATION_MAIN_MIN_CHARS, "overallVibe", ["관계의 결과는 고정값이 아니라 소통 방식과 경계 조율에 따라 달라집니다."]),
       deepReading: ensureRelationshipSection(baseReading.deepReading, RELATION_MAIN_MIN_CHARS, "deepReading", ["감정 강도보다 전달 방식의 정렬이 관계 안정도와 신뢰를 결정합니다."]),
       realityAndFuture: ensureRelationshipSection(baseReading.realityAndFuture, RELATION_MAIN_MIN_CHARS, "realityAndFuture", ["단기 결론보다 반복 가능한 약속과 행동 일관성이 미래 결말을 바꿉니다."]),
@@ -2463,7 +2586,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       if (expandCursor > 24) break;
     }
 
-    return enrichedReading;
+    return finalizeReadingOutput(enrichedReading);
   }
 
   if (normalizedSpread === "healing_rising_four_card") {
@@ -2478,7 +2601,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
     ];
     while (plan.length < 6) plan.push(healingSeed[plan.length % healingSeed.length]);
 
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
       opening: ensureMinText(baseReading.opening, 700, ["치유는 고통을 부정하는 과정이 아니라 감정을 안전하게 다루는 기술을 회복하는 과정입니다."]),
       hiddenTruth: ensureMinText(baseReading.hiddenTruth, 500, [cardSummaryLine(0)]),
@@ -2487,18 +2610,19 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       stepForward: ensureMinText(baseReading.stepForward, 500, [cardSummaryLine(3)]),
       integrationMessage: ensureMinText(baseReading.integrationMessage, 700, ["작은 회복 행동의 반복이 자기신뢰를 재구축하고 장기적 정서 안정으로 이어집니다."]),
       actionPlan: plan,
-    };
+    });
   }
 
   if (normalizedSpread === "reunion_lighthouse_five_card") {
     const plan = Array.isArray(baseReading.actionPlan) ? baseReading.actionPlan.map(asText).filter(Boolean) : [];
     const reunionDeepSeeds = {
       opening: [
+        "연애 상담 관점과 타로 상징을 함께 읽으면 재회 흐름을 감정 과열 없이 더 현실적으로 판단할 수 있습니다.",
         "재회운 리딩의 정확도는 감정의 크기보다 패턴의 반복성과 현실 변수의 밀도에서 결정됩니다. 따라서 이번 해석은 희망/절망의 양자택일이 아니라, 실제 재접촉 성공률을 바꾸는 조건을 분해해 안내하는 방식으로 읽어야 합니다.",
-        "20년 이상 관계 타로 상담 관점에서, 재회는 마음 확인보다 신뢰 복구 구조를 먼저 세울 때 오차가 줄어듭니다. 감정선·상황선·행동선의 정렬 여부를 반드시 함께 점검하세요.",
+        "관계 상담 관점에서, 재회는 마음 확인보다 신뢰 회복 구조를 먼저 세울 때 차이가 줄어듭니다. 감정선·상황선·행동선의 정렬 여부를 함께 점검하세요.",
       ],
       pastBond: [
-        "과거 인연 파트는 좋은 기억의 밀도만 확인하는 구간이 아닙니다. 갈등이 발생했을 때 두 사람이 어떤 방식으로 복귀했는지, 재발 패턴이 있었는지를 함께 확인해야 재회 가능성 판단의 정밀도가 올라갑니다.",
+        "과거 인연 파트는 좋은 기억의 밀도만 확인하는 구간이 아닙니다. 갈등이 생겼을 때 두 사람이 어떤 방식으로 회복했는지, 재발 패턴이 있었는지를 함께 확인해야 재회 가능성을 더 정확하게 읽을 수 있습니다.",
       ],
       theirNow: [
         "상대의 현재 근황 파트에서는 감정 유무보다 여유 자원(시간·정신 에너지·관계 우선순위) 분석이 핵심입니다. 감정이 있어도 자원 부족이면 반응은 차갑게 보일 수 있습니다.",
@@ -2513,8 +2637,8 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
         "결과 카드는 고정 운명이 아니라 현재 운영 방식의 추세선입니다. 연락 방식·대화 구조·경계 합의가 바뀌면 결과 역시 유의미하게 이동할 수 있다는 점을 반드시 반영하세요.",
       ],
       lighthouseGuidance: [
-        "등대의 조언은 조급함을 줄이고 판단 정확도를 높이는 실행 프로토콜입니다. 사실 확인 질문 → 감정 명료화 → 재발 방지 합의의 순서를 지키면 관계 해석의 오차가 줄고 선택의 질이 올라갑니다.",
-        "재회의 본질은 붙잡기가 아니라 건강한 재연결 역량을 만드는 과정입니다. 자기 안정 루틴을 유지할수록 상대 해석 정확도와 재접촉 타이밍 판단력이 함께 상승합니다.",
+        "등대의 조언은 조급함을 줄이고 판단 정확도를 높이는 실행 순서입니다. 사실 확인 질문 → 감정 명료화 → 재발 방지 합의의 순서를 지키면 관계 해석의 차이가 줄고 선택의 질이 올라갑니다.",
+        "재회의 본질은 붙잡기가 아니라 건강한 재연결 역량을 만드는 과정입니다. 자기 안정 루틴을 유지할수록 상대 해석 정확도와 재접촉 타이밍 판단력이 함께 올라갑니다.",
       ],
     };
     const reunionSeed = [
@@ -2529,8 +2653,9 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
     ];
     while (plan.length < 8) plan.push(reunionSeed[plan.length % reunionSeed.length]);
 
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
+      counselorTone: ensureMinText(baseReading.counselorTone, 850, ["이번 재회 리딩은 연애 상담 관점과 타로 해석을 함께 적용해, 감정이 아닌 관계 회복 순서에 집중하도록 돕습니다."]),
       opening: ensureMinText(baseReading.opening, 1200, ["재회 리딩의 핵심은 희망 과장도 단정도 아닌, 감정과 현실을 함께 보는 균형입니다.", ...reunionDeepSeeds.opening]),
       pastBond: ensureMinText(baseReading.pastBond, 680, [cardSummaryLine(0), ...reunionDeepSeeds.pastBond]),
       theirNow: ensureMinText(baseReading.theirNow, 680, [cardSummaryLine(1), ...reunionDeepSeeds.theirNow]),
@@ -2539,7 +2664,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       reunionOutcome: ensureMinText(baseReading.reunionOutcome, 760, [cardSummaryLine(4), ...reunionDeepSeeds.reunionOutcome]),
       lighthouseGuidance: ensureMinText(baseReading.lighthouseGuidance, 1200, ["속도를 늦추고 대화의 구조를 정비할수록 재회 가능성 판단의 정확도가 올라갑니다.", ...reunionDeepSeeds.lighthouseGuidance]),
       actionPlan: plan.slice(0, 10),
-    };
+    });
   }
 
   if (normalizedSpread === "self_esteem_levelup_five_card") {
@@ -2554,7 +2679,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
     ];
     while (plan.length < 6) plan.push(selfSeed[plan.length % selfSeed.length]);
 
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
       opening: ensureMinText(baseReading.opening, 650, ["자존감은 단번에 완성되는 상태가 아니라, 경계를 지키는 선택의 반복으로 강화됩니다."]),
       pastDebuff: ensureMinText(baseReading.pastDebuff, 360, [cardSummaryLine(0)]),
@@ -2564,7 +2689,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       levelupMastery: ensureMinText(baseReading.levelupMastery, 420, [cardSummaryLine(4)]),
       levelupGuidance: ensureMinText(baseReading.levelupGuidance, 480, ["작은 자기존중 행동의 누적이 내면 기준을 안정적으로 재구축합니다."]),
       actionPlan: plan,
-    };
+    });
   }
 
   if (normalizedSpread === "yearly_twelve_card") {
@@ -2591,12 +2716,12 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       });
     }
 
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
       summary: ensureMinText(baseReading.summary, 700, ["12개월 리딩은 월별 행동 포인트를 누적할 때 실제 체감 변화가 커집니다."]),
       finalAdvice: ensureMinText(baseReading.finalAdvice, 700, ["월별 메시지를 실행 루틴으로 연결하면 연말에 구조적 성장을 확인할 수 있습니다."]),
       monthlyReadings,
-    };
+    });
   }
 
   if (normalizedSpread === "yearly_three_card") {
@@ -2608,16 +2733,16 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       relationship: ensureMinText(item?.relationship, 140, ["관계는 반복되는 작은 배려에서 신뢰가 형성됩니다."]),
     }));
 
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
       summary: ensureMinText(baseReading.summary, 700, ["3카드 연간 리딩은 기준-도전-결과의 구조를 월별 행동으로 번역할 때 효과가 큽니다."]),
       finalAdvice: ensureMinText(baseReading.finalAdvice, 700, ["월별 행동 기준을 미리 적어두면 감정 기복에도 방향을 유지할 수 있습니다."]),
       monthlyReadings,
-    };
+    });
   }
 
   if (normalizedSpread === "job_change_seven_card") {
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
       stage1: ensureMinText(baseReading.stage1, 850, ["천직 판단은 선호·강점·시장가치의 교집합을 문장화할 때 정확도가 올라갑니다."]),
       stage2: ensureMinText(baseReading.stage2, 850, ["이직 성공률은 결심 강도보다 주간 실행 루틴과 점검 지표에서 결정됩니다."]),
@@ -2629,18 +2754,18 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
         ensureMinText(baseReading.stage3, 850, ["포기할 습관을 명확히 규정해야 새로운 커리어 패턴이 정착됩니다."]),
         ensureMinText(baseReading.finalAdvice, 900, ["30일 행동 계획과 주간 점검 루틴을 연결하면 현실 전환 속도가 빨라집니다."]),
       ].join("\n\n"),
-    };
+    });
   }
 
   if (typeof baseReading.story === "string" || typeof baseReading.advice === "string") {
-    return {
+    return finalizeReadingOutput({
       ...baseReading,
       story: ensureMinText(baseReading.story, 1200, ["카드 메시지는 운명 확정이 아니라 현재 선택을 정교화하는 안내 지도입니다.", safeCards.map((_, idx) => cardSummaryLine(idx)).filter(Boolean).join(" ")]),
       advice: ensureMinText(baseReading.advice, 700, ["오늘은 실행 가능한 행동 1개를 시간·장소·행동 단위로 확정해 즉시 시작하세요."]),
-    };
+    });
   }
 
-  return baseReading;
+  return finalizeReadingOutput(baseReading);
 }
 
 module.exports = {

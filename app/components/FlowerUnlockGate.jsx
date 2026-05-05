@@ -7,7 +7,7 @@ import { usePayment } from "../hooks/usePayment";
 export default function FlowerUnlockGate({
   slug,
   featureKey,
-  requiredCoins = 50,
+  requiredCoins = 200,
   currentPoints = 0,
 }) {
   const router = useRouter();
@@ -35,13 +35,13 @@ export default function FlowerUnlockGate({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cost: Number(requiredCoins || 50),
-          featureKey: String(featureKey || "flower-destiny"),
-          reason: "운명의 꽃 상세 콘텐츠 해금",
+          cost: Number(requiredCoins || 200),
+          featureKey: String(featureKey || "flower-fc"),
+          reason: "운명의 꽃 아틀리에 전체 해금",
           forceDeduct: true,
           requestId:
             "flower-unlock:" +
-            String(featureKey || "flower-destiny") +
+            String(featureKey || "flower-fc") +
             ":" +
             Date.now().toString(36) +
             "-" +
@@ -97,7 +97,7 @@ export default function FlowerUnlockGate({
         <p style={{ margin: 0, lineHeight: 1.8, color: "#dbe5ff" }}>
           이 페이지는 로그인 사용자 중 해당 콘텐츠를 해금한 경우에만 열립니다.
           <br />
-          50코인을 사용하여 운명의 꽃 결과를 확인할 수 있습니다.
+          200코인을 사용해 운명의 꽃 아틀리에 전체 기능을 해금할 수 있습니다.
         </p>
 
         <div
@@ -135,7 +135,7 @@ export default function FlowerUnlockGate({
           >
             {isSubmitting
               ? "해금 처리 중..."
-              : "50코인을 사용하여 운명의 꽃을 확인하시겠습니까?"}
+              : "200코인으로 운명의 꽃 아틀리에 전체를 해금하시겠습니까?"}
           </button>
 
           <button

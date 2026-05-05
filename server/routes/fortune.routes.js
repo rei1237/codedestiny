@@ -42,7 +42,7 @@ const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "대운 섹션 해금", forceDeduct: true },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "요약 섹션 해금", forceDeduct: true },
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "궁합 섹션 해금", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "운명의 꽃 세트 해금", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "운명의 꽃 아틀리에 전체 해금", forceDeduct: true },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "올림푸스 신탁 해금", forceDeduct: true },
   "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "사주 풀패키지 해금", forceDeduct: true },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG 캐릭터 해금", forceDeduct: true },

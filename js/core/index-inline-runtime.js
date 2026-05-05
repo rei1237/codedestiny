@@ -1449,7 +1449,14 @@ function __cdResolveTileLockAliasKeys(lockKey) {
   map[base] = true;
   if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
   if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
-  // 각 운명의 꽃 기능은 개별 50코인 해금 (flower-fc 교차 alias 제거)
+  if (base === 'flower' || base === 'flower-fc' || base.indexOf('flower-') === 0) {
+    map['flower'] = true;
+    map['flower-fc'] = true;
+    map['flower-destiny'] = true;
+    map['flower-astro'] = true;
+    map['flower-ziwei'] = true;
+    map['flower-sukuyo'] = true;
+  }
   return Object.keys(map);
 }
 
@@ -1490,7 +1497,31 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
 }
 
 function __cdRequireTileLockGate(actionEl) {
-  return true;
+  if (!actionEl) return true;
+  if (actionEl.getAttribute('data-pvw-bypass')) return true;
+  var lockKey = actionEl.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(actionEl.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return true;
+
+  if (__cdIsAdminLikeUser()) return true;
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
+
+  if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
+
+  if (typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(actionEl)) return false;
+    } catch (_) {}
+  }
+
+  window.alert('잠금된 서비스입니다. 해금 후 이용해 주세요.');
+  return false;
 }
 
 var __cdTileLockServerSyncInFlight = false;
@@ -6354,7 +6385,34 @@ function _dfIsSourceUnlocked(source) {
 }
 
 function _dfRequirePaidSourceUnlock(source) {
-  return true;
+  var normalized = _dfNormalizeSource(source);
+  var lockTile = _dfResolveLockTileBySource(normalized);
+  if (!lockTile) return true;
+
+  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return true;
+
+  if (__cdIsAdminLikeUser()) return true;
+
+  if (_dfIsLockKeyUnlocked(lockKey)) return true;
+  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
+
+  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(lockTile)) return false;
+    } catch (_) {}
+  }
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
+
+  window.alert(_dfGetSourceLabel(normalized) + ' 꽃은 해금 후 이용할 수 있습니다.');
+  return false;
 }
 
 function _dfRequireSourceCoinPayment(source) {

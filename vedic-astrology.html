@@ -3671,12 +3671,7 @@ async function _vedicCompatCoinGate(cost, reason){
     return false;
   }
 
-  var _paymentOverlayOpened = false;
   try {
-    if (typeof window._cdSetCoinGateOverlay === 'function') {
-      window._cdSetCoinGateOverlay(true, reason + ' 결제를 확인하고 있습니다...');
-      _paymentOverlayOpened = true;
-    }
     var resp = await fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -3700,8 +3695,6 @@ async function _vedicCompatCoinGate(cost, reason){
     console.error('[vedic compat coin-gate]', e);
     window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
-  } finally {
-    if (_paymentOverlayOpened) window._cdSetCoinGateOverlay(false);
   }
 }
 
