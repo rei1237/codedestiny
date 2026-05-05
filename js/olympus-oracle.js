@@ -29,6 +29,77 @@
     return signs[Math.floor(normalized / 30)];
   }
 
+  function ensureSwissBridgeLoaded() {
+    if (window.swisseph || window.Swe || window.swe) return Promise.resolve(true);
+
+    return new Promise(function(resolve) {
+      var src = '/js/swisseph-loader.js?v=20260328-lazy1';
+
+      function done(ok) {
+        try { window.removeEventListener('swisseph:ready', onReady); } catch (_) {}
+        resolve(Boolean(ok));
+      }
+
+      function onReady() { done(true); }
+      window.addEventListener('swisseph:ready', onReady, { once: true });
+
+      var existing = document.querySelector('script[src*="/js/swisseph-loader.js"]');
+      if (!existing) {
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.src = src;
+        s.async = true;
+        s.defer = true;
+        s.onerror = function() { done(false); };
+        s.onload = function() {
+          if (window.swisseph || window.Swe || window.swe) done(true);
+        };
+        document.head.appendChild(s);
+      }
+
+      setTimeout(function() {
+        if (window.swisseph || window.Swe || window.swe) done(true);
+        else done(false);
+      }, 12000);
+    });
+  }
+
+  function computeSunSignWithSwissBridge(payload) {
+    return ensureSwissBridgeLoaded().then(function(ok) {
+      if (!ok) throw new Error('swisseph bridge unavailable');
+
+      var swe = window.swisseph || window.Swe || window.swe;
+      if (!swe) throw new Error('swisseph object missing');
+
+      var calcFn = swe.swe_calc_ut || swe.calc_ut;
+      if (typeof calcFn !== 'function') throw new Error('swisseph calc function missing');
+
+      var year = Number(payload && payload.year);
+      var month = Number(payload && payload.month);
+      var day = Number(payload && payload.day);
+      var hour = Number(payload && payload.hour);
+      var minute = Number(payload && payload.minute);
+      var tz = Number(payload && payload.timezone);
+
+      if (!Number.isFinite(hour)) hour = 12;
+      if (!Number.isFinite(minute)) minute = 0;
+      if (!Number.isFinite(tz)) tz = getLocalTimezoneHours();
+
+      var utcHour = (hour + (minute / 60)) - tz;
+      var baseMs = Date.UTC(year, month - 1, day, 0, 0, 0, 0);
+      if (!Number.isFinite(baseMs)) throw new Error('invalid payload datetime');
+
+      var jdUT = (baseMs + (utcHour * 3600000)) / 86400000 + 2440587.5;
+      var sunId = Number.isFinite(Number(swe.SE_SUN)) ? Number(swe.SE_SUN) : 0;
+      var flags = Number(swe.SEFLG_SWIEPH || 0) | Number(swe.SEFLG_SPEED || 0);
+      var raw = calcFn.call(swe, jdUT, sunId, flags);
+      var lon = Array.isArray(raw) ? Number(raw[0]) : Number(raw && raw[0]);
+      if (!Number.isFinite(lon)) throw new Error('invalid swisseph sun longitude');
+
+      return tropicalDegreeToSign(lon);
+    });
+  }
+
   function getSunKeyFromApi(payload) {
     return fetch('/api/vedic/planets', {
       method: 'POST',
@@ -143,16 +214,11 @@
   }
 
   function openOlympusOracleModal() {
-    if (typeof window._dpOpenFortuneType === 'function') {
-      window._dpOpenFortuneType('olympus');
-      return;
-    }
-
     var currentProfile = getCurrentProfile() || getMainFormProfileFallback();
     var parsed = formatDateTimeFromBirth(currentProfile && currentProfile.birth);
     if (!parsed) {
       showMissingProfileMessage();
-      return;
+      return false;
     }
 
     var location = (currentProfile && currentProfile.location) || {};
@@ -188,17 +254,31 @@
         errorMessage: String((err && err.message) || err || 'unknown'),
         requestId: null,
       });
-      var fallbackSunKey = sunSignFromDate(parsed.month, parsed.day);
-      if (typeof window._toast === 'function') {
-        window._toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
-      }
-      commitAndMove({
-        name: currentProfile && currentProfile.name ? currentProfile.name : '',
-        date: parsed.date,
-        time: parsed.time,
-        sunKey: fallbackSunKey
+      return computeSunSignWithSwissBridge(payload).then(function(localSunKey) {
+        if (typeof window._toast === 'function') {
+          window._toast('⚠️ API 지연으로 기기 내 Swiss 계산으로 계속 진행합니다.', 'warn');
+        }
+        commitAndMove({
+          name: currentProfile && currentProfile.name ? currentProfile.name : '',
+          date: parsed.date,
+          time: parsed.time,
+          sunKey: localSunKey
+        });
+      }).catch(function(localErr) {
+        console.warn('[olympus] local swiss fallback failed', localErr);
+        var fallbackSunKey = sunSignFromDate(parsed.month, parsed.day);
+        if (typeof window._toast === 'function') {
+          window._toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
+        }
+        commitAndMove({
+          name: currentProfile && currentProfile.name ? currentProfile.name : '',
+          date: parsed.date,
+          time: parsed.time,
+          sunKey: fallbackSunKey
+        });
       });
     });
+    return true;
   }
 
   function closeOlympusOracleModal() {

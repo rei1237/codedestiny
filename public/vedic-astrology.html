@@ -551,7 +551,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       <div style="height:14px"></div>
       <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
       <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
-        프로필 카드 없이도 바로 계산합니다. (Swiss API 응답 실패 시 결과 생성이 중단되고 재시도를 안내합니다.)
+        프로필 카드 없이도 바로 계산합니다. (Swiss API 장애 시 로컬 계산으로 자동 전환됩니다.)
       </div>
     </div>
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
@@ -1475,7 +1475,7 @@ function calcCompatibility(nak1,nak2){
 }
 
 // ─── STATE ────────────────────────────────────────────────
-let G={chart:null,report:null,chartStyle:"south",activeTab:"overview"};
+let G={chart:null,report:null,chartStyle:"south",activeTab:"overview",usedLocalCalc:false};
 let VEDIC_LANG_STATE={
   current:'ko',
   token:0,
@@ -2113,6 +2113,22 @@ function doCalculateFromProfile(profile){
     }
   }
 
+  function runWithLocalFallback(detail){
+    if(detail){ console.warn('[vedic] API fallback to local:', detail); }
+    try{
+      var chart=buildChart(f);
+      var report=analyze(chart);
+      var insights=generateInsights(chart,report);
+      G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
+      G.usedLocalCalc=true;
+      renderResult();
+      showPage('result');
+    }catch(localErr){
+      console.error('[vedic] local fallback failed', localErr);
+      showApiRequiredError((detail?String(detail)+' | ':'') + String((localErr&&localErr.message)||localErr||'local fallback failed'));
+    }
+  }
+
   function showApiRequiredError(detail){
     if(detail){ console.warn('[vedic] API Error:', detail); }
     var detailText=detail?('<br><br>상세: '+String(detail)):'';
@@ -2146,10 +2162,10 @@ function doCalculateFromProfile(profile){
         runWithPlanets(res.planets);
         return;
       }
-      showApiRequiredError(res&&res.error?res.error:'Swiss API invalid response');
+      runWithLocalFallback(res&&res.error?res.error:'Swiss API invalid response');
     })
     .catch(function(err){
-      showApiRequiredError(err&&err.message?err.message:'Swiss API request failed');
+      runWithLocalFallback(err&&err.message?err.message:'Swiss API request failed');
     });
 }
 

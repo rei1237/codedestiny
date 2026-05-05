@@ -5627,6 +5627,37 @@ var AstroEngine = (function(){
       var wsCusps=[];
       for (var i=0;i<12;i++) wsCusps.push(revDeg((asc.idx + i) * 30));
 
+      var cuspSource = null;
+      if (housesRaw) {
+        if (Array.isArray(housesRaw.cusps)) cuspSource = housesRaw.cusps;
+        else if (Array.isArray(housesRaw.house)) cuspSource = housesRaw.house;
+        else if (Array.isArray(housesRaw.houses)) cuspSource = housesRaw.houses;
+        else if (Array.isArray(housesRaw.cusp)) cuspSource = housesRaw.cusp;
+        else if (Array.isArray(housesRaw)) cuspSource = housesRaw;
+      }
+
+      var houseCuspsLon = [];
+      if (Array.isArray(cuspSource) && cuspSource.length >= 12) {
+        var values = cuspSource.map(function(v){ return Number(v); });
+        if (values.length >= 13 && Number.isFinite(values[1])) {
+          for (var ci=1; ci<=12; ci++) {
+            if (Number.isFinite(values[ci])) houseCuspsLon.push(revDeg(values[ci]));
+          }
+        } else {
+          for (var cj=0; cj<12; cj++) {
+            if (Number.isFinite(values[cj])) houseCuspsLon.push(revDeg(values[cj]));
+          }
+        }
+      }
+      if (houseCuspsLon.length !== 12) {
+        houseCuspsLon = wsCusps.slice();
+      }
+
+      var houses = {};
+      for (var hi=0; hi<12; hi++) {
+        houses['h'+(hi+1)] = LegacyAstroEngine.toSign(houseCuspsLon[hi]);
+      }
+
       return {
         jdUT: jdUT,
         jdTT: jdTT,
@@ -5639,6 +5670,8 @@ var AstroEngine = (function(){
         desc: LegacyAstroEngine.toSign(revDeg((ascLon || 0) + 180)),
         ic: LegacyAstroEngine.toSign(revDeg((mcLon || 0) + 180)),
         planets: planets,
+        houses: houses,
+        houseCuspsLon: houseCuspsLon,
         wholeSign:{
           h1:LegacyAstroEngine.toSign(wsCusps[0]), h2:LegacyAstroEngine.toSign(wsCusps[1]), h3:LegacyAstroEngine.toSign(wsCusps[2]),
           h4:LegacyAstroEngine.toSign(wsCusps[3]), h5:LegacyAstroEngine.toSign(wsCusps[4]), h6:LegacyAstroEngine.toSign(wsCusps[5]),
@@ -5760,6 +5793,380 @@ function renderAstroApiUnavailable(reason) {
     + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지, 출생시간, 네트워크 상태를 확인한 뒤 다시 시도해 주세요.</p>'
     + '<p style="margin:8px 0 0 0;color:#fecdd3;"><b>참고 로그:</b> ' + msg + '</p>'
     + '</div></div></div>';
+}
+
+function _astroWheelNorm360(v) {
+  var n = Number(v);
+  if (!isFinite(n)) return NaN;
+  var out = n % 360;
+  return out < 0 ? out + 360 : out;
+}
+
+function _astroWheelLonFromSignObj(signObj) {
+  if (!signObj || signObj.idx == null) return NaN;
+  return _astroWheelNorm360(Number(signObj.idx) * 30 + Number(signObj.deg || 0));
+}
+
+function _astroWheelSvgAngle(lon, ascLon) {
+  return _astroWheelNorm360(180 - (_astroWheelNorm360(lon) - _astroWheelNorm360(ascLon)));
+}
+
+function _astroWheelPolar(cx, cy, radius, angleDeg) {
+  var rad = (Number(angleDeg || 0) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(rad),
+    y: cy - radius * Math.sin(rad)
+  };
+}
+
+function _astroWheelEsc(text) {
+  return String(text == null ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function _astroWheelFmtDeg(deg) {
+  if (!isFinite(Number(deg))) return '-';
+  var d = Math.floor(Math.abs(Number(deg)));
+  var m = Math.round((Math.abs(Number(deg)) - d) * 60);
+  if (m === 60) {
+    d += 1;
+    m = 0;
+  }
+  return d + '°' + String(m).padStart(2, '0') + "'";
+}
+
+function _astroWheelHouseOfLon(lon, cusps) {
+  if (!isFinite(lon) || !Array.isArray(cusps) || cusps.length !== 12) return null;
+  var L = _astroWheelNorm360(lon);
+  for (var i = 0; i < 12; i++) {
+    var start = _astroWheelNorm360(cusps[i]);
+    var end = _astroWheelNorm360(cusps[(i + 1) % 12]);
+    var inArc = (start <= end) ? (L >= start && L < end) : (L >= start || L < end);
+    if (inArc) return i + 1;
+  }
+  return null;
+}
+
+function _astroWheelResolveLabelOffsets(items) {
+  var sorted = items.slice().sort(function(a, b){ return a.angle - b.angle; });
+  var offsets = {};
+  var slots = [0, 10, -10, 18, -18, 26, -26, 34, -34];
+  var cluster = [];
+
+  function flushCluster() {
+    if (!cluster.length) return;
+    var center = Math.floor(cluster.length / 2);
+    for (var i = 0; i < cluster.length; i++) {
+      var slotIdx = center + i - Math.floor(cluster.length / 2);
+      if (slotIdx < 0) slotIdx = i;
+      if (slotIdx >= slots.length) slotIdx = slots.length - 1;
+      offsets[cluster[i].id] = slots[slotIdx];
+    }
+    cluster = [];
+  }
+
+  for (var si = 0; si < sorted.length; si++) {
+    var cur = sorted[si];
+    if (!cluster.length) {
+      cluster.push(cur);
+      continue;
+    }
+    var prev = cluster[cluster.length - 1];
+    var diff = Math.abs(cur.angle - prev.angle);
+    if (diff <= 8) {
+      cluster.push(cur);
+    } else {
+      flushCluster();
+      cluster.push(cur);
+    }
+  }
+  flushCluster();
+
+  if (sorted.length >= 2) {
+    var first = sorted[0];
+    var last = sorted[sorted.length - 1];
+    var wrapDiff = (first.angle + 360) - last.angle;
+    if (wrapDiff <= 8) {
+      offsets[first.id] = -12;
+      offsets[last.id] = 12;
+    }
+  }
+
+  return offsets;
+}
+
+function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
+  var SIGN_KO = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
+  var SIGN_GLYPH = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+  var PLANET_META = [
+    { key: 'Sun', label: '태양', glyph: '☉', source: 'sun' },
+    { key: 'Moon', label: '달', glyph: '☽', source: 'moon' },
+    { key: 'Mercury', label: '수성', glyph: '☿', source: 'planet' },
+    { key: 'Venus', label: '금성', glyph: '♀', source: 'planet' },
+    { key: 'Mars', label: '화성', glyph: '♂', source: 'planet' },
+    { key: 'Jupiter', label: '목성', glyph: '♃', source: 'planet' },
+    { key: 'Saturn', label: '토성', glyph: '♄', source: 'planet' },
+    { key: 'Uranus', label: '천왕성', glyph: '♅', source: 'planet' },
+    { key: 'Neptune', label: '해왕성', glyph: '♆', source: 'planet' },
+    { key: 'Pluto', label: '명왕성', glyph: '♇', source: 'planet' }
+  ];
+  var ASPECT_META = {
+    conjunction: { label: '합', color: 'rgba(226,232,240,0.54)' },
+    opposition: { label: '충', color: 'rgba(251,146,60,0.52)' },
+    trine: { label: '트라인', color: 'rgba(56,189,248,0.52)' },
+    square: { label: '스퀘어', color: 'rgba(248,113,113,0.5)' },
+    sextile: { label: '섹스타일', color: 'rgba(52,211,153,0.5)' }
+  };
+
+  if (!chart || !chart.asc) {
+    return { cardHtml: '' };
+  }
+
+  var warnings = [];
+  var ascLon = _astroWheelLonFromSignObj(chart.asc);
+  var mcLon = _astroWheelLonFromSignObj(chart.mc);
+  if (!isFinite(ascLon)) {
+    ascLon = 0;
+    warnings.push('ASC 데이터가 누락되어 기본 회전을 사용합니다.');
+  }
+  if (!isFinite(mcLon)) {
+    mcLon = _astroWheelNorm360(ascLon + 90);
+    warnings.push('MC 데이터가 누락되어 ASC+90°로 대체했습니다.');
+  }
+
+  var cuspLon = [];
+  if (Array.isArray(chart.houseCuspsLon) && chart.houseCuspsLon.length >= 12) {
+    for (var ci = 0; ci < 12; ci++) {
+      var cv = _astroWheelNorm360(Number(chart.houseCuspsLon[ci]));
+      if (isFinite(cv)) cuspLon.push(cv);
+    }
+  }
+  if (cuspLon.length !== 12 && chart.houses) {
+    cuspLon = [];
+    for (var hc = 1; hc <= 12; hc++) {
+      var hLon = _astroWheelLonFromSignObj(chart.houses['h' + hc]);
+      if (isFinite(hLon)) cuspLon.push(hLon);
+    }
+  }
+  if (cuspLon.length !== 12) {
+    cuspLon = [];
+    for (var hf = 0; hf < 12; hf++) cuspLon.push(_astroWheelNorm360(ascLon + hf * 30));
+    warnings.push('하우스 커스프 데이터가 부족해 ASC 기준 등분으로 표시됩니다.');
+  }
+
+  var planets = [];
+  for (var pm = 0; pm < PLANET_META.length; pm++) {
+    var meta = PLANET_META[pm];
+    var signObj = null;
+    var retro = false;
+    if (meta.source === 'sun') {
+      signObj = chart.sun;
+    } else if (meta.source === 'moon') {
+      signObj = chart.moon;
+    } else {
+      signObj = chart.planets && chart.planets[meta.key] ? chart.planets[meta.key].sign : null;
+      retro = !!(chart.planets && chart.planets[meta.key] && chart.planets[meta.key].retro);
+    }
+    var lon = _astroWheelLonFromSignObj(signObj);
+    if (!isFinite(lon)) continue;
+    var signIdx = Math.floor(_astroWheelNorm360(lon) / 30) % 12;
+    var degInSign = _astroWheelNorm360(lon) - signIdx * 30;
+    var house = _astroWheelHouseOfLon(lon, cuspLon);
+    if (!house && signObj && signObj.idx != null && chart.asc && chart.asc.idx != null) {
+      house = ((Number(signObj.idx) - Number(chart.asc.idx) + 12) % 12) + 1;
+    }
+    planets.push({
+      id: meta.key,
+      label: meta.label,
+      glyph: meta.glyph,
+      lon: lon,
+      angle: _astroWheelSvgAngle(lon, ascLon),
+      signIdx: signIdx,
+      degInSign: degInSign,
+      house: house,
+      retro: retro
+    });
+  }
+
+  if (!planets.length) {
+    warnings.push('행성 데이터가 누락되어 원형 차트를 제한적으로 표시합니다.');
+  }
+
+  var planetByKey = {};
+  planets.forEach(function(p){ planetByKey[p.id] = p; });
+
+  var majorAspects = [];
+  var aspectsRaw = (chart.natal && Array.isArray(chart.natal.aspects)) ? chart.natal.aspects : [];
+  for (var ai = 0; ai < aspectsRaw.length; ai++) {
+    var ar = aspectsRaw[ai] || {};
+    var typeKey = String(ar.aspect || ar.type || '').toLowerCase();
+    if (!ASPECT_META[typeKey]) continue;
+    if (!planetByKey[ar.p1] || !planetByKey[ar.p2]) continue;
+    majorAspects.push({
+      p1: ar.p1,
+      p2: ar.p2,
+      type: typeKey,
+      orb: Number(ar.orb),
+      label: ASPECT_META[typeKey].label,
+      color: ASPECT_META[typeKey].color
+    });
+  }
+
+  var labelOffsets = _astroWheelResolveLabelOffsets(planets.map(function(p){ return { id: p.id, angle: p.angle }; }));
+
+  var size = 420;
+  var cx = 210;
+  var cy = 210;
+  var rOuter = 192;
+  var rZodiacInner = 162;
+  var rHouse = 134;
+  var rHouseInner = 66;
+  var rPlanet = 120;
+  var rLabelBase = 148;
+  var rAspect = 86;
+
+  var svg = [];
+  svg.push('<svg viewBox="0 0 420 420" role="img" aria-label="정확한 네이탈 차트" class="astro-wheel-svg">');
+  svg.push('<defs>');
+  svg.push('<radialGradient id="astroWheelBg" cx="50%" cy="45%" r="68%"><stop offset="0%" stop-color="rgba(17,24,39,0.96)"/><stop offset="100%" stop-color="rgba(3,7,18,0.98)"/></radialGradient>');
+  svg.push('<radialGradient id="astroWheelCore" cx="50%" cy="50%" r="70%"><stop offset="0%" stop-color="rgba(30,41,59,0.95)"/><stop offset="100%" stop-color="rgba(8,12,24,0.96)"/></radialGradient>');
+  svg.push('<filter id="astroWheelGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>');
+  svg.push('</defs>');
+  svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+rOuter+'" fill="url(#astroWheelBg)" stroke="rgba(251,191,36,0.2)" stroke-width="1.1"/>');
+  svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+rZodiacInner+'" fill="none" stroke="rgba(148,163,184,0.2)" stroke-width="1"/>');
+
+  for (var zi = 0; zi < 12; zi++) {
+    var zBoundAngle = _astroWheelSvgAngle(zi * 30, ascLon);
+    var zStart = _astroWheelPolar(cx, cy, rZodiacInner, zBoundAngle);
+    var zEnd = _astroWheelPolar(cx, cy, rOuter, zBoundAngle);
+    svg.push('<line x1="'+zStart.x.toFixed(2)+'" y1="'+zStart.y.toFixed(2)+'" x2="'+zEnd.x.toFixed(2)+'" y2="'+zEnd.y.toFixed(2)+'" stroke="rgba(148,163,184,0.35)" stroke-width="0.9"/>');
+
+    var zMidAngle = _astroWheelSvgAngle(zi * 30 + 15, ascLon);
+    var zGlyph = _astroWheelPolar(cx, cy, 176, zMidAngle);
+    var zName = _astroWheelPolar(cx, cy, 157, zMidAngle);
+    svg.push('<text x="'+zGlyph.x.toFixed(2)+'" y="'+zGlyph.y.toFixed(2)+'" text-anchor="middle" dominant-baseline="middle" fill="rgba(253,230,138,0.92)" font-size="14" font-weight="700">'+SIGN_GLYPH[zi]+'</text>');
+    svg.push('<text x="'+zName.x.toFixed(2)+'" y="'+zName.y.toFixed(2)+'" text-anchor="middle" dominant-baseline="middle" fill="rgba(203,213,225,0.78)" font-size="9">'+SIGN_KO[zi]+'</text>');
+  }
+
+  svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+rHouse+'" fill="none" stroke="rgba(99,102,241,0.24)" stroke-width="1"/>');
+  for (var hi = 0; hi < 12; hi++) {
+    var cuspAngle = _astroWheelSvgAngle(cuspLon[hi], ascLon);
+    var hStart = _astroWheelPolar(cx, cy, rHouseInner, cuspAngle);
+    var hEnd = _astroWheelPolar(cx, cy, rHouse, cuspAngle);
+    svg.push('<line x1="'+hStart.x.toFixed(2)+'" y1="'+hStart.y.toFixed(2)+'" x2="'+hEnd.x.toFixed(2)+'" y2="'+hEnd.y.toFixed(2)+'" stroke="rgba(125,211,252,0.38)" stroke-width="'+(hi === 0 ? '1.6' : '1')+'"/>');
+
+    var nextCusp = cuspLon[(hi + 1) % 12];
+    var delta = _astroWheelNorm360(nextCusp - cuspLon[hi]);
+    var midLon = _astroWheelNorm360(cuspLon[hi] + delta / 2);
+    var midAngle = _astroWheelSvgAngle(midLon, ascLon);
+    var hLabel = _astroWheelPolar(cx, cy, 100, midAngle);
+    svg.push('<text x="'+hLabel.x.toFixed(2)+'" y="'+hLabel.y.toFixed(2)+'" text-anchor="middle" dominant-baseline="middle" fill="rgba(186,230,253,0.74)" font-size="10">'+(hi+1)+'</text>');
+  }
+
+  var angles = [
+    { key: 'ASC', lon: ascLon, color: 'rgba(251,191,36,0.92)' },
+    { key: 'MC', lon: mcLon, color: 'rgba(125,211,252,0.88)' },
+    { key: 'DSC', lon: _astroWheelNorm360(ascLon + 180), color: 'rgba(244,114,182,0.68)' },
+    { key: 'IC', lon: _astroWheelNorm360(mcLon + 180), color: 'rgba(134,239,172,0.68)' }
+  ];
+  for (var ag = 0; ag < angles.length; ag++) {
+    var am = angles[ag];
+    var aa = _astroWheelSvgAngle(am.lon, ascLon);
+    var aIn = _astroWheelPolar(cx, cy, 58, aa);
+    var aOut = _astroWheelPolar(cx, cy, rOuter, aa);
+    var aText = _astroWheelPolar(cx, cy, rOuter - 8, aa);
+    svg.push('<line x1="'+aIn.x.toFixed(2)+'" y1="'+aIn.y.toFixed(2)+'" x2="'+aOut.x.toFixed(2)+'" y2="'+aOut.y.toFixed(2)+'" stroke="'+am.color+'" stroke-width="1.5"/>');
+    svg.push('<text x="'+aText.x.toFixed(2)+'" y="'+aText.y.toFixed(2)+'" text-anchor="middle" dominant-baseline="middle" fill="'+am.color+'" font-size="10" font-weight="700">'+am.key+'</text>');
+  }
+
+  for (var al = 0; al < majorAspects.length; al++) {
+    var asp = majorAspects[al];
+    var pA = planetByKey[asp.p1];
+    var pB = planetByKey[asp.p2];
+    if (!pA || !pB) continue;
+    var aa1 = _astroWheelSvgAngle(pA.lon, ascLon);
+    var aa2 = _astroWheelSvgAngle(pB.lon, ascLon);
+    var ap1 = _astroWheelPolar(cx, cy, rAspect, aa1);
+    var ap2 = _astroWheelPolar(cx, cy, rAspect, aa2);
+    svg.push('<line x1="'+ap1.x.toFixed(2)+'" y1="'+ap1.y.toFixed(2)+'" x2="'+ap2.x.toFixed(2)+'" y2="'+ap2.y.toFixed(2)+'" stroke="'+asp.color+'" stroke-width="1.2" stroke-linecap="round"><title>'+_astroWheelEsc(pA.label+'-'+pB.label+' '+asp.label+' orb '+(isFinite(asp.orb)?asp.orb.toFixed(2):'-')+'°')+'</title></line>');
+  }
+
+  for (var pi = 0; pi < planets.length; pi++) {
+    var p = planets[pi];
+    var pAngle = _astroWheelSvgAngle(p.lon, ascLon);
+    var pp = _astroWheelPolar(cx, cy, rPlanet, pAngle);
+    var labelR = rLabelBase + Number(labelOffsets[p.id] || 0);
+    var pl = _astroWheelPolar(cx, cy, labelR, pAngle);
+    svg.push('<line x1="'+pp.x.toFixed(2)+'" y1="'+pp.y.toFixed(2)+'" x2="'+pl.x.toFixed(2)+'" y2="'+pl.y.toFixed(2)+'" stroke="rgba(148,163,184,0.42)" stroke-width="0.8"/>');
+    svg.push('<circle cx="'+pp.x.toFixed(2)+'" cy="'+pp.y.toFixed(2)+'" r="4" fill="rgba(248,250,252,0.92)" stroke="rgba(251,191,36,0.4)" stroke-width="0.9" filter="url(#astroWheelGlow)"><title>'+_astroWheelEsc(p.label+' '+SIGN_KO[p.signIdx]+' '+_astroWheelFmtDeg(p.degInSign)+' / '+(p.house?p.house+'H':'-'))+'</title></circle>');
+    svg.push('<text x="'+pp.x.toFixed(2)+'" y="'+(pp.y - 9).toFixed(2)+'" text-anchor="middle" dominant-baseline="middle" fill="rgba(250,250,255,0.94)" font-size="11" font-weight="700">'+p.glyph+'</text>');
+    svg.push('<text x="'+pl.x.toFixed(2)+'" y="'+pl.y.toFixed(2)+'" text-anchor="middle" dominant-baseline="middle" fill="rgba(226,232,240,0.9)" font-size="10">'+p.label+'</text>');
+  }
+
+  svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="58" fill="url(#astroWheelCore)" stroke="rgba(251,191,36,0.25)" stroke-width="1"/>');
+  svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="42" fill="none" stroke="rgba(125,211,252,0.25)" stroke-width="0.9" stroke-dasharray="2 4"/>');
+  svg.push('<text x="'+cx+'" y="'+(cy - 8)+'" text-anchor="middle" fill="rgba(253,230,138,0.9)" font-size="12" font-weight="800">NATAL WHEEL</text>');
+  svg.push('<text x="'+cx+'" y="'+(cy + 10)+'" text-anchor="middle" fill="rgba(186,230,253,0.8)" font-size="9">ASC 기준 정밀 회전</text>');
+  svg.push('</svg>');
+
+  var coreByKey = {};
+  planets.forEach(function(p){ coreByKey[p.id] = p; });
+  var sun = coreByKey.Sun;
+  var moon = coreByKey.Moon;
+  var ascSignIdx = Math.floor(_astroWheelNorm360(ascLon) / 30) % 12;
+
+  var planetRows = planets.map(function(p){
+    return '<tr>'
+      + '<td>'+p.glyph+' '+_astroWheelEsc(p.label)+(p.retro ? ' <span style="color:#fda4af;">Rx</span>' : '')+'</td>'
+      + '<td>'+SIGN_GLYPH[p.signIdx]+' '+SIGN_KO[p.signIdx]+' '+_astroWheelFmtDeg(p.degInSign)+'</td>'
+      + '<td>'+(p.house ? (p.house + 'H') : '-')+'</td>'
+      + '</tr>';
+  }).join('');
+
+  var aspectRows = majorAspects.slice(0, 14).map(function(a){
+    var left = planetByKey[a.p1];
+    var right = planetByKey[a.p2];
+    return '<tr>'
+      + '<td>'+_astroWheelEsc((left ? left.label : a.p1) + ' - ' + (right ? right.label : a.p2))+'</td>'
+      + '<td>'+_astroWheelEsc(a.label)+'</td>'
+      + '<td>'+(isFinite(a.orb) ? a.orb.toFixed(2) + '°' : '-')+'</td>'
+      + '</tr>';
+  }).join('');
+  if (!aspectRows) {
+    aspectRows = '<tr><td colspan="3" style="color:#94a3b8;">주요 어스펙트 데이터가 없습니다.</td></tr>';
+  }
+
+  var warningHtml = warnings.length
+    ? '<div class="astro-wheel-warning">※ 일부 차트 데이터가 누락되어 일부 요소만 표시됩니다. ('+_astroWheelEsc(warnings.join(' / '))+')</div>'
+    : '';
+
+  var birthText = _astroWheelEsc(
+    String(birth.year) + '-' + String(birth.month).padStart(2, '0') + '-' + String(birth.day).padStart(2, '0')
+    + ' ' + String(birth.hour).padStart(2, '0') + ':' + String(birth.minute).padStart(2, '0')
+    + ' UTC' + (Number(birth.tz) >= 0 ? '+' : '') + String(birth.tz)
+  );
+
+  var cardHtml = ''
+    + '<div class="astro-section astro-wheel-card">'
+    + '<div class="astro-subhead" style="margin-bottom:8px;color:#fde68a;">🪐 정확한 네이탈 차트 (Swiss)</div>'
+    + '<p class="astro-wheel-caption">출생정보 '+birthText+' · House System '+_astroWheelEsc(String(houseSystemLabel || 'P'))+' · ASC를 9시 방향 기준으로 정렬했습니다.</p>'
+    + warningHtml
+    + '<div class="astro-wheel-summary">'
+    + '<span>☉ '+(sun ? (SIGN_GLYPH[sun.signIdx]+' '+SIGN_KO[sun.signIdx]+' '+_astroWheelFmtDeg(sun.degInSign)) : '-')+'</span>'
+    + '<span>☽ '+(moon ? (SIGN_GLYPH[moon.signIdx]+' '+SIGN_KO[moon.signIdx]+' '+_astroWheelFmtDeg(moon.degInSign)) : '-')+'</span>'
+    + '<span>ASC '+SIGN_GLYPH[ascSignIdx]+' '+SIGN_KO[ascSignIdx]+' '+_astroWheelFmtDeg(_astroWheelNorm360(ascLon) - ascSignIdx*30)+'</span>'
+    + '<span>MC '+SIGN_GLYPH[Math.floor(_astroWheelNorm360(mcLon)/30)%12]+' '+SIGN_KO[Math.floor(_astroWheelNorm360(mcLon)/30)%12]+' '+_astroWheelFmtDeg(_astroWheelNorm360(mcLon) - (Math.floor(_astroWheelNorm360(mcLon)/30)%12)*30)+'</span>'
+    + '</div>'
+    + '<div class="astro-wheel-visual">'+svg.join('')+'</div>'
+    + '<div class="astro-wheel-tables">'
+    + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">행성 위치표</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성</th><th>위치</th><th>하우스</th></tr></thead><tbody>'+planetRows+'</tbody></table></div>'
+    + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">어스펙트 요약</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성쌍</th><th>유형</th><th>오브</th></tr></thead><tbody>'+aspectRows+'</tbody></table></div>'
+    + '</div>'
+    + '</div>';
+
+  return { cardHtml: cardHtml };
 }
 
 function renderAstroInsight() {
@@ -6549,13 +6956,35 @@ function renderAstroInsight() {
       +'.astro-neon-actions ul{margin:0;padding-left:18px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
       +'.astro-neon-total{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#a5f3fc;}'
       +'.astro-neon-total strong{font-size:16px;color:#fff;}'
+      +'.astro-wheel-card{border:1px solid rgba(251,191,36,0.22) !important;background:linear-gradient(155deg,rgba(12,18,36,.95),rgba(7,12,26,.95)) !important;box-shadow:0 14px 28px -24px rgba(251,191,36,.65);}'
+      +'.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.65;}'
+      +'.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:12px;line-height:1.55;}'
+      +'.astro-wheel-summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
+      +'.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:11px;font-weight:700;}'
+      +'.astro-wheel-visual{border-radius:14px;border:1px solid rgba(148,163,184,.2);background:radial-gradient(circle at 50% 35%,rgba(15,23,42,.95),rgba(2,6,23,.97));padding:8px;}'
+      +'.astro-wheel-svg{display:block;width:100%;height:auto;}'
+      +'.astro-wheel-tables{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}'
+      +'.astro-wheel-table-wrap{border-radius:11px;border:1px solid rgba(148,163,184,.2);background:rgba(2,6,23,.42);padding:9px;}'
+      +'.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:12px;font-weight:700;letter-spacing:.01em;}'
+      +'.astro-wheel-table th,.astro-wheel-table td{font-size:12px;padding:6px 7px;line-height:1.55;}'
       +'@media (min-width:700px){.astro-neon-wrap{padding:18px;}.astro-neon-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}'
       +'@media (min-width:1100px){.astro-neon-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}'
+      +'@media (max-width:860px){.astro-wheel-tables{grid-template-columns:1fr;}}'
       +'@media (max-width:640px){.astro-readable .astro-subhead{font-size:18px;}.astro-readable .astro-desc p{font-size:14px;line-height:1.75;}.astro-syn-score-row{grid-template-columns:1fr;}.astro-syn-score-card{min-width:0;}.astro-syn-header{gap:6px;margin-bottom:10px;}.astro-syn-name{font-size:15px;}.astro-neon-cta{min-height:44px;font-size:13px;}.astro-neon-input,.astro-neon-select{min-height:42px;font-size:13px;}}'
       +'</style>';
 
+    var natalWheel = _astroBuildNatalWheelCard(chart, {
+      year: y,
+      month: m,
+      day: d,
+      hour: h,
+      minute: min,
+      tz: tz
+    }, houseSystem);
+
     var html = '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap">'
       + astroNeonCss
+      + (natalWheel && natalWheel.cardHtml ? natalWheel.cardHtml : '')
       +'<div class="astro-section" style="margin-bottom:16px;">'
       +'<div class="astro-neon-wrap">'
       +'<div class="astro-neon-head">'

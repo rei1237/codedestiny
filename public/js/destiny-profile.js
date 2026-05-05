@@ -2186,11 +2186,6 @@
         if (pAstro) _toast(_fortuneStartMessage(pAstro.name, 'astro'), 'success');
         if (typeof openAstroModal === 'function') openAstroModal();
       } else if (type === 'olympus') {
-        // Safety net: enforce lock gate even if this branch is called directly.
-        if (_DP_FEATURE_LOCKS.olympus && _dpIsFeatureLocked(_DP_FEATURE_LOCKS.olympus.key)) {
-          _dpGateLockFeature('olympus', function() { _runFortuneType('olympus'); });
-          return;
-        }
         var pOlympus = DPStorage.current();
         if (!pOlympus || !pOlympus.birth) {
           try { pOlympus = _normalizeProfileForVedic(readFormData()); } catch (_) {}
@@ -2317,6 +2312,18 @@
   window.openFortuneFromProfile = function(type) {
     var targetType = type || 'saju';
     if (typeof window._dpOpenFortuneType !== 'function') return false;
+
+    if (targetType === 'olympus') {
+      var olympusProfile = DPStorage.current();
+      if (!olympusProfile || !olympusProfile.birth) {
+        try { olympusProfile = _normalizeProfileForVedic(readFormData()); } catch (_) {}
+      }
+      if (!olympusProfile || !olympusProfile.birth) {
+        _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필을 먼저 입력해 주세요.', 'warn');
+        if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+        return false;
+      }
+    }
 
     if (targetType === 'vedic') {
       var vedicProfile = _resolveVedicProfileCandidate();

@@ -6246,15 +6246,18 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var TILE_LOCKS_KEY = 'cd_tile_locks_v2';
 
   var TILE_LOCK_ALIAS_MAP = {
-    'olympus-profile-fc': ['olympus-fc'],
-    'olympus-fc': ['olympus-profile-fc'],
+    'olympus_all': ['olympus', 'olympus-fc', 'olympus-profile-fc'],
+    'olympus': ['olympus-fc', 'olympus-profile-fc'],
+    'olympus-profile-fc': ['olympus-fc', 'olympus'],
+    'olympus-fc': ['olympus-profile-fc', 'olympus'],
     'premium-ziwei': ['ziwei-deep'],
     'ziwei-deep': ['premium-ziwei'],
-    'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
-    'flower-destiny': ['flower-fc'],
-    'flower-astro': ['flower-fc'],
-    'flower-ziwei': ['flower-fc'],
-    'flower-sukuyo': ['flower-fc']
+    'flower_all': ['flower', 'flower-fc', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
+    'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo', 'flower'],
+    'flower-destiny': ['flower-fc', 'flower'],
+    'flower-astro': ['flower-fc', 'flower'],
+    'flower-ziwei': ['flower-fc', 'flower'],
+    'flower-sukuyo': ['flower-fc', 'flower']
   };
 
   function resolveTileLockAliasKeys(rawKey) {
@@ -6541,7 +6544,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       for (var i = 0; i < tiles.length; i++) {
         var tile = tiles[i];
         var key = tile.getAttribute('data-tile-lock-key');
+        var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
         var wrap = tile.querySelector('.tarot-tile__img-wrap');
+        var badge = tile.querySelector('.tarot-tile__coin-badge');
         if (!wrap) continue;
         if (!wrap.querySelector('.tarot-tile__lock-icon')) {
           var icon = document.createElement('span');
@@ -6550,10 +6555,24 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           icon.textContent = '🔒';
           wrap.appendChild(icon);
         }
-        if (unlockedFeatureMap[key]) {
+        if (isTileKeyUnlocked(key)) {
           tile.classList.remove('tarot-tile--tileLocked');
+          tile.classList.add('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--lock');
+            badge.classList.add('tarot-tile__coin-badge--free');
+            badge.textContent = '해금 완료 ✅';
+            badge.setAttribute('aria-label', '해금 완료');
+          }
         } else {
           tile.classList.add('tarot-tile--tileLocked');
+          tile.classList.remove('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--free');
+            badge.classList.add('tarot-tile__coin-badge--lock');
+            badge.textContent = '🔒 해금 ' + lockCost + '코인';
+            badge.setAttribute('aria-label', '해금 필요');
+          }
         }
       }
     } catch (_e) {}
@@ -6997,25 +7016,42 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     if (action === 'openOlympusOracleModal') {
       var _openOlympus = function() {
+        if (typeof window.openFortuneFromProfile === 'function') {
+          try {
+            return window.openFortuneFromProfile('olympus') ? 'handled' : 'blocked';
+          } catch (_profileErr) {
+            return 'blocked';
+          }
+        }
         if (typeof window.openOlympusOracleModal === 'function') {
-          window.openOlympusOracleModal();
-          return true;
+          try {
+            return window.openOlympusOracleModal() === false ? 'blocked' : 'handled';
+          } catch (_openErr) {
+            return 'blocked';
+          }
         }
         if (typeof window._dpOpenFortuneType === 'function') {
-          window._dpOpenFortuneType('olympus');
-          return true;
+          try {
+            window._dpOpenFortuneType('olympus');
+            return 'handled';
+          } catch (_dpErr) {
+            return 'blocked';
+          }
         }
-        return false;
+        return 'missing';
       };
+      var _olympusState = 'missing';
       try {
-        if (_openOlympus()) return;
+        _olympusState = _openOlympus();
+        if (_olympusState === 'handled' || _olympusState === 'blocked') return;
       } catch (e) {
         console.error('[olympus direct invoke]', e);
       }
       var _olympusLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openOlympusOracleModal'];
       if (typeof _olympusLoader === 'function') {
         _olympusLoader().then(function() {
-          if (_openOlympus()) return;
+          var _nextState = _openOlympus();
+          if (_nextState === 'handled' || _nextState === 'blocked') return;
           window.location.href = '/olympus';
         }).catch(function(err) {
           console.error('[olympus lazy-load]', err);
@@ -7029,7 +7065,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         _olympusEl.src = '/js/olympus-oracle.js?v=20260505-hotfix1';
         _olympusEl.defer = true;
         _olympusEl.onload = function() {
-          if (_openOlympus()) return;
+          var _loadedState = _openOlympus();
+          if (_loadedState === 'handled' || _loadedState === 'blocked') return;
           window.location.href = '/olympus';
         };
         _olympusEl.onerror = function() {

@@ -3208,6 +3208,249 @@ function getDailyKarmicGuidance(lunarObj, m) {
     };
 }
 
+const SUKYO_MANSIONS_27 = Object.freeze([
+  { key: '각', ko: '각', han: '角' },
+  { key: '항', ko: '항', han: '亢' },
+  { key: '저', ko: '저', han: '氐' },
+  { key: '방', ko: '방', han: '房' },
+  { key: '심', ko: '심', han: '心' },
+  { key: '미', ko: '미', han: '尾' },
+  { key: '기', ko: '기', han: '箕' },
+  { key: '두', ko: '두', han: '斗' },
+  { key: '여', ko: '여', han: '女' },
+  { key: '허', ko: '허', han: '虛' },
+  { key: '위危', ko: '위', han: '危' },
+  { key: '실', ko: '실', han: '室' },
+  { key: '벽', ko: '벽', han: '壁' },
+  { key: '규', ko: '규', han: '奎' },
+  { key: '루', ko: '루', han: '婁' },
+  { key: '위胃', ko: '위', han: '胃' },
+  { key: '묘', ko: '묘', han: '昴' },
+  { key: '필', ko: '필', han: '畢' },
+  { key: '자', ko: '자', han: '觜' },
+  { key: '삼', ko: '삼', han: '參' },
+  { key: '정', ko: '정', han: '井' },
+  { key: '귀', ko: '귀', han: '鬼' },
+  { key: '류', ko: '류', han: '柳' },
+  { key: '성', ko: '성', han: '星' },
+  { key: '장', ko: '장', han: '張' },
+  { key: '익', ko: '익', han: '翼' },
+  { key: '진', ko: '진', han: '軫' }
+]);
+
+const SUKYO_SEGMENT_ANGLE = 360 / 27;
+
+function polarToCartesian(cx, cy, r, angleDeg) {
+  var rad = (angleDeg - 90) * Math.PI / 180;
+  return {
+    x: cx + r * Math.cos(rad),
+    y: cy + r * Math.sin(rad)
+  };
+}
+
+function describeArc(cx, cy, innerR, outerR, startAngle, endAngle) {
+  var startOuter = polarToCartesian(cx, cy, outerR, startAngle);
+  var endOuter = polarToCartesian(cx, cy, outerR, endAngle);
+  var startInner = polarToCartesian(cx, cy, innerR, startAngle);
+  var endInner = polarToCartesian(cx, cy, innerR, endAngle);
+  var sweep = (endAngle - startAngle + 360) % 360;
+  var largeArcFlag = sweep > 180 ? 1 : 0;
+
+  return [
+    'M', startOuter.x.toFixed(2), startOuter.y.toFixed(2),
+    'A', outerR, outerR, 0, largeArcFlag, 1, endOuter.x.toFixed(2), endOuter.y.toFixed(2),
+    'L', endInner.x.toFixed(2), endInner.y.toFixed(2),
+    'A', innerR, innerR, 0, largeArcFlag, 0, startInner.x.toFixed(2), startInner.y.toFixed(2),
+    'Z'
+  ].join(' ');
+}
+
+function getSegmentAngles(index) {
+  var idx = ((Number(index) % 27) + 27) % 27;
+  return {
+    startAngle: idx * SUKYO_SEGMENT_ANGLE,
+    endAngle: (idx + 1) * SUKYO_SEGMENT_ANGLE,
+    midAngle: idx * SUKYO_SEGMENT_ANGLE + SUKYO_SEGMENT_ANGLE / 2
+  };
+}
+
+function syWheelEsc(text) {
+  return String(text == null ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function syWheelNormalizeIndex(idx) {
+  var n = Number(idx);
+  if (!Number.isFinite(n)) return null;
+  return ((Math.floor(n) % 27) + 27) % 27;
+}
+
+function syWheelMansion(index) {
+  var idx = syWheelNormalizeIndex(index);
+  if (idx == null) return null;
+  return SUKYO_MANSIONS_27[idx] || null;
+}
+
+function syWheelRelationFromDistance(distance) {
+  var d = ((Number(distance) % 27) + 27) % 27;
+  if (d === 0) return { short: '명', label: '명(命)', color: 'rgba(250,204,21,0.45)' };
+  if (d === 9) return { short: '업', label: '업(業)', color: 'rgba(248,113,113,0.45)' };
+  if (d === 18) return { short: '태', label: '태(胎)', color: 'rgba(251,146,60,0.45)' };
+  if ([1, 10, 19].indexOf(d) >= 0) return { short: '영', label: '영(榮)', color: 'rgba(16,185,129,0.42)' };
+  if ([8, 17, 26].indexOf(d) >= 0) return { short: '친', label: '친(親)', color: 'rgba(34,197,94,0.42)' };
+  if ([2, 11, 20].indexOf(d) >= 0) return { short: '우', label: '우(友)', color: 'rgba(56,189,248,0.42)' };
+  if ([7, 16, 25].indexOf(d) >= 0) return { short: '쇠', label: '쇠(衰)', color: 'rgba(96,165,250,0.42)' };
+  if ([3, 12, 21].indexOf(d) >= 0) return { short: '안', label: '안(安)', color: 'rgba(244,114,182,0.42)' };
+  if ([6, 15, 24].indexOf(d) >= 0) return { short: '괴', label: '괴(壞)', color: 'rgba(239,68,68,0.42)' };
+  if ([4, 13, 22].indexOf(d) >= 0) return { short: '성', label: '성(成)', color: 'rgba(167,139,250,0.42)' };
+  if ([5, 14, 23].indexOf(d) >= 0) return { short: '위', label: '위(危)', color: 'rgba(129,140,248,0.42)' };
+  return { short: '우', label: '우(友)', color: 'rgba(56,189,248,0.4)' };
+}
+
+function syWheelRelationByIndex(myIdx, targetIdx) {
+  if (myIdx == null || targetIdx == null) return { short: '-', label: '관계 미상', color: 'rgba(148,163,184,0.36)' };
+  var d = (targetIdx - myIdx + 27) % 27;
+  return syWheelRelationFromDistance(d);
+}
+
+function syRenderWheelCard(wheelState, compatInfo) {
+  if (!wheelState || wheelState.mansionIdx == null) return '';
+
+  var myIdx = syWheelNormalizeIndex(wheelState.mansionIdx);
+  if (myIdx == null) return '';
+
+  var partnerIdx = null;
+  if (compatInfo && compatInfo.partnerIdx != null) partnerIdx = syWheelNormalizeIndex(compatInfo.partnerIdx);
+  var hasPartner = partnerIdx != null;
+
+  var myM = syWheelMansion(myIdx) || { ko: '미상', han: '?' };
+  var partnerM = hasPartner ? (syWheelMansion(partnerIdx) || { ko: '미상', han: '?' }) : null;
+  var relCore = hasPartner ? syWheelRelationFromDistance((partnerIdx - myIdx + 27) % 27) : null;
+  var relationLabel = hasPartner
+    ? (compatInfo && compatInfo.relationType ? String(compatInfo.relationType) : relCore.label)
+    : '단독 숙요점';
+
+  var cx = 210;
+  var cy = 210;
+  var outerOuterR = 198;
+  var outerInnerR = 154;
+  var relOuterR = 152;
+  var relInnerR = 112;
+  var centerR = 80;
+
+  var svg = [];
+  svg.push('<svg class="sy-wheel-svg" viewBox="0 0 420 420" role="img" aria-label="27숙 원형 차트">');
+  svg.push('<defs>');
+  svg.push('<radialGradient id="syWheelBg" cx="50%" cy="46%" r="72%"><stop offset="0%" stop-color="rgba(30,41,59,0.94)"/><stop offset="100%" stop-color="rgba(2,6,23,0.98)"/></radialGradient>');
+  svg.push('<radialGradient id="syWheelCenter" cx="50%" cy="50%" r="72%"><stop offset="0%" stop-color="rgba(79,70,229,0.24)"/><stop offset="100%" stop-color="rgba(15,23,42,0.95)"/></radialGradient>');
+  svg.push('<filter id="syWheelGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>');
+  svg.push('</defs>');
+
+  svg.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + outerOuterR + '" fill="url(#syWheelBg)" stroke="rgba(196,181,253,0.22)" stroke-width="1"/>');
+
+  var stars = [
+    [66, 94, 1.4], [94, 58, 1.1], [122, 78, 1.2], [302, 74, 1.3], [336, 106, 1.0],
+    [352, 188, 1.1], [328, 302, 1.2], [84, 326, 1.1], [66, 214, 1.0], [226, 42, 1.0],
+    [210, 376, 1.0], [370, 234, 1.3]
+  ];
+  for (var si = 0; si < stars.length; si++) {
+    var s = stars[si];
+    svg.push('<circle cx="' + s[0] + '" cy="' + s[1] + '" r="' + s[2] + '" fill="rgba(226,232,240,0.62)"/>');
+  }
+
+  for (var i = 0; i < 27; i++) {
+    var m = SUKYO_MANSIONS_27[i];
+    var rel = syWheelRelationByIndex(myIdx, i);
+    var ang = getSegmentAngles(i);
+
+    var outerFill = 'rgba(15,23,42,0.64)';
+    var outerStroke = 'rgba(148,163,184,0.24)';
+    var outerStrokeWidth = '0.9';
+    if (i === myIdx) {
+      outerFill = 'rgba(250,204,21,0.25)';
+      outerStroke = 'rgba(250,204,21,0.92)';
+      outerStrokeWidth = '2';
+    } else if (hasPartner && i === partnerIdx) {
+      outerFill = 'rgba(226,232,240,0.2)';
+      outerStroke = 'rgba(226,232,240,0.84)';
+      outerStrokeWidth = '1.8';
+    }
+
+    var outerPath = describeArc(cx, cy, outerInnerR, outerOuterR, ang.startAngle, ang.endAngle);
+    var relPath = describeArc(cx, cy, relInnerR, relOuterR, ang.startAngle, ang.endAngle);
+    var txtPos = polarToCartesian(cx, cy, (outerOuterR + outerInnerR) / 2, ang.midAngle);
+    var relPos = polarToCartesian(cx, cy, (relOuterR + relInnerR) / 2, ang.midAngle);
+
+    var title = (i + 1) + '수 ' + m.ko + '(' + m.han + ')' + ' · 관계 ' + rel.label;
+    svg.push('<path d="' + outerPath + '" fill="' + outerFill + '" stroke="' + outerStroke + '" stroke-width="' + outerStrokeWidth + '"><title>' + syWheelEsc(title) + '</title></path>');
+    svg.push('<path d="' + relPath + '" fill="' + rel.color + '" stroke="rgba(148,163,184,0.18)" stroke-width="0.8"/>');
+    svg.push('<text x="' + txtPos.x.toFixed(2) + '" y="' + txtPos.y.toFixed(2) + '" text-anchor="middle" dominant-baseline="middle" fill="rgba(248,250,252,0.92)" font-size="12" font-weight="700">' + m.han + '</text>');
+    svg.push('<text x="' + relPos.x.toFixed(2) + '" y="' + relPos.y.toFixed(2) + '" text-anchor="middle" dominant-baseline="middle" fill="rgba(226,232,240,0.92)" font-size="8.6" font-weight="700">' + rel.short + '</text>');
+  }
+
+  for (var b = 0; b < 27; b++) {
+    var ba = getSegmentAngles(b).startAngle;
+    var p1 = polarToCartesian(cx, cy, relInnerR, ba);
+    var p2 = polarToCartesian(cx, cy, outerOuterR, ba);
+    svg.push('<line x1="' + p1.x.toFixed(2) + '" y1="' + p1.y.toFixed(2) + '" x2="' + p2.x.toFixed(2) + '" y2="' + p2.y.toFixed(2) + '" stroke="rgba(148,163,184,0.2)" stroke-width="0.6"/>');
+  }
+
+  var myMid = getSegmentAngles(myIdx).midAngle;
+  var myIn = polarToCartesian(cx, cy, centerR + 6, myMid);
+  var myOut = polarToCartesian(cx, cy, outerOuterR - 3, myMid);
+  svg.push('<line x1="' + myIn.x.toFixed(2) + '" y1="' + myIn.y.toFixed(2) + '" x2="' + myOut.x.toFixed(2) + '" y2="' + myOut.y.toFixed(2) + '" stroke="rgba(250,204,21,0.95)" stroke-width="1.8"/>');
+
+  if (hasPartner) {
+    var pMid = getSegmentAngles(partnerIdx).midAngle;
+    var pIn = polarToCartesian(cx, cy, centerR + 6, pMid);
+    var pOut = polarToCartesian(cx, cy, outerOuterR - 3, pMid);
+    svg.push('<line x1="' + pIn.x.toFixed(2) + '" y1="' + pIn.y.toFixed(2) + '" x2="' + pOut.x.toFixed(2) + '" y2="' + pOut.y.toFixed(2) + '" stroke="rgba(226,232,240,0.92)" stroke-width="1.5"/>');
+
+    if (partnerIdx !== myIdx) {
+      var linkA = polarToCartesian(cx, cy, centerR - 10, myMid);
+      var linkB = polarToCartesian(cx, cy, centerR - 10, pMid);
+      svg.push('<path d="M ' + linkA.x.toFixed(2) + ' ' + linkA.y.toFixed(2) + ' Q ' + cx + ' ' + cy + ' ' + linkB.x.toFixed(2) + ' ' + linkB.y.toFixed(2) + '" stroke="rgba(167,139,250,0.9)" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#syWheelGlow)"/>');
+    }
+  }
+
+  svg.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + centerR + '" fill="url(#syWheelCenter)" stroke="rgba(196,181,253,0.36)" stroke-width="1.1"/>');
+  svg.push('<text x="' + cx + '" y="' + (cy - 28) + '" text-anchor="middle" fill="rgba(196,181,253,0.92)" font-size="10" font-weight="800">27숙 원형 차트</text>');
+  svg.push('<text x="' + cx + '" y="' + (cy - 7) + '" text-anchor="middle" fill="rgba(250,204,21,0.96)" font-size="13" font-weight="900">본명숙 ' + syWheelEsc(myM.ko + '(' + myM.han + ')') + '</text>');
+  if (hasPartner && partnerM) {
+    svg.push('<text x="' + cx + '" y="' + (cy + 13) + '" text-anchor="middle" fill="rgba(226,232,240,0.96)" font-size="11" font-weight="800">상대숙 ' + syWheelEsc(partnerM.ko + '(' + partnerM.han + ')') + '</text>');
+    svg.push('<text x="' + cx + '" y="' + (cy + 32) + '" text-anchor="middle" fill="rgba(216,180,254,0.95)" font-size="10" font-weight="700">관계: ' + syWheelEsc(relationLabel) + '</text>');
+  } else {
+    svg.push('<text x="' + cx + '" y="' + (cy + 16) + '" text-anchor="middle" fill="rgba(226,232,240,0.88)" font-size="10">상대 정보 입력 시 궁합선이 표시됩니다</text>');
+  }
+  svg.push('</svg>');
+
+  var legend = [];
+  legend.push('<span class="sy-wheel-chip sy-wheel-chip-my">금색: 본명숙</span>');
+  if (hasPartner) legend.push('<span class="sy-wheel-chip sy-wheel-chip-partner">은빛: 상대숙</span>');
+  legend.push('<span class="sy-wheel-chip sy-wheel-chip-rel">내부 링: 본명숙 기준 관계(명/업/태/안/괴/성/위/영/친/우/쇠)</span>');
+
+  var infoRows = [];
+  infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">나의 본명숙</div><div class="sy-wheel-meta-value">' + syWheelEsc(myM.ko + '(' + myM.han + ')') + '</div></div>');
+  if (hasPartner && partnerM) {
+    infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">상대방 숙</div><div class="sy-wheel-meta-value">' + syWheelEsc(partnerM.ko + '(' + partnerM.han + ')') + '</div></div>');
+    infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">관계 요약</div><div class="sy-wheel-meta-value">' + syWheelEsc(relationLabel) + '</div></div>');
+  } else {
+    infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">궁합 표시</div><div class="sy-wheel-meta-value">상대 생년월일 입력 후 자동 연결</div></div>');
+  }
+
+  return ''
+    + '<div class="sy-card sy-wheel-card" id="syWheelCardHost">'
+    + '<div class="sy-wheel-title">🪐 27숙 네이탈 명반 (동적 SVG)</div>'
+    + '<p class="sy-wheel-caption">12시 방향부터 시계 방향으로 27숙을 균등 배치했습니다. 내부 링은 본명숙 기준 관계 구간이 실시간으로 반영됩니다.</p>'
+    + '<div class="sy-wheel-svg-wrap">' + svg.join('') + '</div>'
+    + '<div class="sy-wheel-legend">' + legend.join('') + '</div>'
+    + '<div class="sy-wheel-meta-grid">' + infoRows.join('') + '</div>'
+    + '</div>';
+}
+
 function renderSukuyo(p, natal, bazi, lunarObj) {
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
@@ -3260,6 +3503,20 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-ritual-icon { font-size:1.3rem; display:block; margin-bottom:4px; }
         .sy-ritual-label { font-size:0.74rem; color:#9ca3af; display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em; }
         .sy-ritual-val { font-size:0.86rem; color:#e2d9ff; font-weight:bold; line-height:1.5; }
+        .sy-wheel-card { border-left-color:#f5d76e; background:linear-gradient(160deg, rgba(20,23,40,0.94) 0%, rgba(11,15,28,0.98) 100%); }
+        .sy-wheel-title { font-size:0.98rem; font-weight:800; color:#fde68a; margin-bottom:6px; letter-spacing:0.02em; }
+        .sy-wheel-caption { margin:0 0 10px 0; color:#cbd5e1; font-size:0.86rem; line-height:1.75; }
+        .sy-wheel-svg-wrap { position:relative; border-radius:14px; padding:8px; border:1px solid rgba(148,163,184,0.24); background:radial-gradient(circle at 50% 40%, rgba(30,41,59,0.9) 0%, rgba(2,6,23,0.98) 100%); overflow:hidden; }
+        .sy-wheel-svg { width:100%; max-width:460px; height:auto; display:block; margin:0 auto; }
+        .sy-wheel-legend { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+        .sy-wheel-chip { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:4px 10px; font-size:0.72rem; line-height:1.35; border:1px solid rgba(148,163,184,0.3); color:#e2e8f0; background:rgba(15,23,42,0.68); }
+        .sy-wheel-chip-my { border-color:rgba(250,204,21,0.58); color:#fde68a; }
+        .sy-wheel-chip-partner { border-color:rgba(226,232,240,0.6); color:#e2e8f0; }
+        .sy-wheel-chip-rel { border-color:rgba(196,181,253,0.52); color:#d8b4fe; }
+        .sy-wheel-meta-grid { margin-top:10px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-wheel-meta-box { border-radius:10px; background:rgba(15,23,42,0.7); border:1px solid rgba(148,163,184,0.24); padding:10px 11px; }
+        .sy-wheel-meta-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; margin-bottom:4px; }
+        .sy-wheel-meta-value { font-size:0.9rem; color:#f8fafc; font-weight:700; line-height:1.45; }
         @keyframes syMoonBob { 0%,100% { transform:translateY(0px) scale(1); } 50% { transform:translateY(-3px) scale(1.04); } }
         @keyframes syTinyTwinkle { 0%,100% { opacity:0.35; transform:scale(0.75); } 50% { opacity:0.95; transform:scale(1.15); } }
         .sy-guardian-card { margin-top:14px; border-left-color:#93c5fd; position:relative; overflow:hidden; background: radial-gradient(circle at 16% 10%, rgba(125,211,252,0.17) 0%, rgba(30,32,55,0.9) 45%, rgba(18,20,40,0.95) 100%); }
@@ -3287,6 +3544,9 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           .sy-header h3 { font-size:1.35rem; }
           .sy-natal-text,.sy-mantra,.sy-insight,.sy-guardian-main-desc,.sy-guardian-detail-item p { font-size:0.92rem; line-height:1.82; }
           .sy-ritual-grid { grid-template-columns:1fr; }
+          .sy-wheel-title { font-size:0.92rem; }
+          .sy-wheel-caption { font-size:0.82rem; }
+          .sy-wheel-meta-grid { grid-template-columns:1fr; }
         }
         `;
         document.head.appendChild(_sySt);
@@ -3315,10 +3575,22 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     }
 
     let sData = lunarObj ? calcSukuyoData(lunarObj) : null;
+    if (!sData) {
+      window._syWheelState = null;
+    }
 
     if (sData) {
+        if (window._syLastCompat && window._syLastCompat.myIdx !== sData.mansionIdx) {
+          window._syLastCompat = null;
+        }
+        window._syWheelState = {
+          mansionIdx: sData.mansionIdx,
+          mansion: sData.mansion
+        };
+
         let tr = sData.traits;
         html += `
+        ${syRenderWheelCard(window._syWheelState, window._syLastCompat)}
         <div class="sy-grid">
             <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #a78bfa;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -4042,6 +4314,22 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     var tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
     var scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
 
+    window._syLastCompat = {
+      myIdx: syWheelNormalizeIndex(myIdx),
+      partnerIdx: syWheelNormalizeIndex(tIdx),
+      partnerMansion: '',
+      relationType: rel.typeLabel || rel.type || '',
+      distanceLabel: distInfo.label || '',
+      temperature: rel.temperature || 0
+    };
+    try {
+      var _wheelState = window._syWheelState;
+      var _wheelHost = document.getElementById('syWheelCardHost');
+      if (_wheelState && _wheelHost && typeof syRenderWheelCard === 'function') {
+        _wheelHost.outerHTML = syRenderWheelCard(_wheelState, window._syLastCompat);
+      }
+    } catch (_we) {}
+
     // 유명인 birth → 숙요 이름 조회
     var tLunar = null;
     try {
@@ -4050,6 +4338,9 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       tLunar = KasiEngine.solarToLunar(tSolar, true);
     } catch(e) {}
     var tMansionName = tLunar ? (calcSukuyoData(tLunar) || {}).mansion || '' : '';
+    if (window._syLastCompat) {
+      window._syLastCompat.partnerMansion = tMansionName || '';
+    }
 
     badge.style.display = 'block';
     badge.innerHTML = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px;">'
@@ -4609,6 +4900,22 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
               window._sy3Running = false;
               alert('인연 분석 중 오류가 발생했습니다. 다시 시도해주세요.'); return;
           }
+
+          window._syLastCompat = {
+            myIdx: myIdx,
+            partnerIdx: tIdx,
+            partnerMansion: tData.mansion || '',
+            relationType: rel.typeLabel || rel.type || '',
+            distanceLabel: distInfo.label || '',
+            temperature: rel.temperature || 0
+          };
+          try {
+            var _wheelState = window._syWheelState;
+            var _wheelHost = document.getElementById('syWheelCardHost');
+            if (_wheelState && _wheelHost && typeof syRenderWheelCard === 'function') {
+              _wheelHost.outerHTML = syRenderWheelCard(_wheelState, window._syLastCompat);
+            }
+          } catch (_we) {}
 
         try {
           if (ld) ld.style.display = 'none';

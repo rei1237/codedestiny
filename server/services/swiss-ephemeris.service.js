@@ -18,15 +18,31 @@ function parseNumber(value, fallback = NaN) {
 }
 
 function pickSwissBaseUrl() {
-  return clean(process.env.SWISS_EPHEMERIS_API_URL || process.env.SWISS_API_BASE_URL || process.env.ASTRO_SWISS_API_URL);
+  return clean(
+    process.env.SWISS_EPHEMERIS_API_URL
+    || process.env.SWISS_API_BASE_URL
+    || process.env.ASTRO_SWISS_API_URL
+    || process.env.SWISS_EPHEMERIS_URL
+    || process.env.SWISS_EPHEMERIS
+  );
 }
 
 function pickSwissApiKey() {
-  return clean(process.env.SWISS_EPHEMERIS_API_KEY || process.env.SWISS_API_KEY || process.env.ASTRO_SWISS_API_KEY);
+  return clean(
+    process.env.SWISS_EPHEMERIS_API_KEY
+    || process.env.SWISS_API_KEY
+    || process.env.ASTRO_SWISS_API_KEY
+    || process.env.SWISS_EPHEMERIS_KEY
+  );
 }
 
 function pickSwissTimeoutMs() {
-  const timeoutMs = Number(process.env.SWISS_EPHEMERIS_TIMEOUT_MS || process.env.SWISS_API_TIMEOUT_MS || 9000);
+  const timeoutMs = Number(
+    process.env.SWISS_EPHEMERIS_TIMEOUT_MS
+    || process.env.SWISS_API_TIMEOUT_MS
+    || process.env.SWISS_EPHEMERIS_TIMEOUT
+    || 9000,
+  );
   return Number.isFinite(timeoutMs) ? Math.max(1500, timeoutMs) : 9000;
 }
 
@@ -79,7 +95,7 @@ function parsePayloadJson(raw) {
 async function fetchSwiss(pathname, payload) {
   const baseUrl = pickSwissBaseUrl();
   if (!baseUrl) {
-    const error = new Error("SWISS_EPHEMERIS_API_URL 환경변수가 필요합니다.");
+    const error = new Error("Swiss endpoint env is missing. Set SWISS_EPHEMERIS_API_URL (or SWISS_API_BASE_URL / ASTRO_SWISS_API_URL / SWISS_EPHEMERIS_URL / SWISS_EPHEMERIS).");
     error.status = 500;
     throw error;
   }

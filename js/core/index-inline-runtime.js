@@ -2389,8 +2389,12 @@ function __cdInvokeAction(action, actionEl, event) {
 
     __cdLazyActionState[action].then(function() {
       if (typeof window[action] !== 'function') {
-        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
-          window._dpOpenFortuneType('olympus');
+        if (action === 'openOlympusOracleModal') {
+          if (typeof window.openFortuneFromProfile === 'function') {
+            window.openFortuneFromProfile('olympus');
+          } else if (typeof window._dpOpenFortuneType === 'function') {
+            window._dpOpenFortuneType('olympus');
+          }
         } else if (action === 'openLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
           window.LuckSyncDiary.open();
         } else if (action === 'closeLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
@@ -2411,8 +2415,12 @@ function __cdInvokeAction(action, actionEl, event) {
       try {
         __cdInvokeActionWithConfig(action, actionEl, event, args);
       } catch (err) {
-        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
-          window._dpOpenFortuneType('olympus');
+        if (action === 'openOlympusOracleModal') {
+          if (typeof window.openFortuneFromProfile === 'function') {
+            window.openFortuneFromProfile('olympus');
+          } else if (typeof window._dpOpenFortuneType === 'function') {
+            window._dpOpenFortuneType('olympus');
+          }
           return;
         }
         throw err;

@@ -31,7 +31,9 @@ function pickSwissBaseUrl(env) {
   return clean(
     getEnv(env, "SWISS_EPHEMERIS_API_URL")
     || getEnv(env, "SWISS_API_BASE_URL")
-    || getEnv(env, "ASTRO_SWISS_API_URL"),
+    || getEnv(env, "ASTRO_SWISS_API_URL")
+    || getEnv(env, "SWISS_EPHEMERIS_URL")
+    || getEnv(env, "SWISS_EPHEMERIS")
   );
 }
 
@@ -39,7 +41,8 @@ function pickSwissApiKey(env) {
   return clean(
     getEnv(env, "SWISS_EPHEMERIS_API_KEY")
     || getEnv(env, "SWISS_API_KEY")
-    || getEnv(env, "ASTRO_SWISS_API_KEY"),
+    || getEnv(env, "ASTRO_SWISS_API_KEY")
+    || getEnv(env, "SWISS_EPHEMERIS_KEY")
   );
 }
 
@@ -47,6 +50,7 @@ function pickSwissTimeoutMs(env) {
   const timeoutMs = Number(
     getEnv(env, "SWISS_EPHEMERIS_TIMEOUT_MS")
     || getEnv(env, "SWISS_API_TIMEOUT_MS")
+    || getEnv(env, "SWISS_EPHEMERIS_TIMEOUT")
     || 9000,
   );
   return Number.isFinite(timeoutMs) ? Math.max(1500, timeoutMs) : 9000;
@@ -105,7 +109,7 @@ function toStatusError(status, message) {
 async function fetchSwiss(env, pathname, payload) {
   const baseUrl = pickSwissBaseUrl(env);
   if (!baseUrl) {
-    throw toStatusError(500, "SWISS_EPHEMERIS_API_URL 환경변수가 필요합니다.");
+    throw toStatusError(500, "Swiss endpoint env is missing. Set SWISS_EPHEMERIS_API_URL (or SWISS_API_BASE_URL / ASTRO_SWISS_API_URL / SWISS_EPHEMERIS_URL / SWISS_EPHEMERIS).");
   }
 
   const url = new URL(pathname, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);

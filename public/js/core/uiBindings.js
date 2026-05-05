@@ -313,8 +313,12 @@ function __invokeAction(action, actionEl, event) {
       const tryInvokeOnceWhenReady = () => {
         if (typeof window[action] !== 'function') {
           if (attempt >= maxAttempts) {
-            if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
-              window._dpOpenFortuneType('olympus');
+            if (action === 'openOlympusOracleModal') {
+              if (typeof window.openFortuneFromProfile === 'function') {
+                window.openFortuneFromProfile('olympus');
+              } else if (typeof window._dpOpenFortuneType === 'function') {
+                window._dpOpenFortuneType('olympus');
+              }
             }
             return;
           }
@@ -328,8 +332,12 @@ function __invokeAction(action, actionEl, event) {
         try {
           __callActionWithConfig(action, actionEl, event, args);
         } catch (err) {
-          if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
-            window._dpOpenFortuneType('olympus');
+          if (action === 'openOlympusOracleModal') {
+            if (typeof window.openFortuneFromProfile === 'function') {
+              window.openFortuneFromProfile('olympus');
+            } else if (typeof window._dpOpenFortuneType === 'function') {
+              window._dpOpenFortuneType('olympus');
+            }
           } else {
             throw err;
           }
