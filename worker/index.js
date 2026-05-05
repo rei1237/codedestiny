@@ -17,6 +17,7 @@ import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
 import { handleSibylRoutes } from "./routes/sibyl.js";
 import { handleOracleRoutes } from "./routes/oracle.js";
 import { handleUserRoutes } from "./routes/user.js";
+import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -411,6 +412,10 @@ export default {
       return withCorsHeaders(request, env, await handleUserRoutes(request, env));
     }
 
+    if (url.pathname === "/api/subscriptions" || url.pathname.startsWith("/api/subscriptions/")) {
+      return withCorsHeaders(request, env, await handleSubscriptionRoutes(request, env));
+    }
+
     if (url.pathname.startsWith("/api/")) {
       return proxyApiRequest(request, env);
     }
@@ -420,5 +425,10 @@ export default {
       error: "backend_only",
       message: "This Worker only serves backend API routes under /api/*.",
     }, { status: 404, headers: { "X-CF-Worker-Error": "backend_only" } });
+  },
+
+  async scheduled(event, env, ctx) {
+    const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
+    ctx.waitUntil(runDailyFortuneTask(env));
   },
 };

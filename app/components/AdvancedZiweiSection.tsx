@@ -1,12 +1,17 @@
 "use client";
-
+/**
+ * [자미두수 심화 기능]
+ * - 인터랙티브 웹 리포트 형식의 심화 분석 서비스입니다.
+ * - 15개 챕터로 구성되어 있으며, 명궁/사화/대한 데이터를 실시간으로 시각화하여 보여줍니다.
+ * - 'Premium Ziwei PDF'와는 별개의 프리미엄 서비스입니다.
+ */
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { calcZiweiPalaces, ZiweiChartData } from "../_lib/ziwei-engine";
 import { generateAdvancedReport } from "../_lib/ziwei-interpretations";
 import { AdvancedZiweiResult } from "../_lib/ziwei-normalization";
 import { usePayment } from "./PaymentProcessingContext";
 import { useToast } from "./Toast";
-import { PremiumBlurGate } from "./PremiumBlurGate";
+import PremiumBlurGate from "./PremiumBlurGate";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Step = "form" | "computing" | "result";

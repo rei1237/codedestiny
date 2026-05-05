@@ -1,5 +1,10 @@
 "use client";
-
+/**
+ * [프리미엄 자미두수 PDF 기능]
+ * - 13개 챕터의 정밀 리포트를 PDF 파일로 생성하여 제공하는 서비스입니다.
+ * - public/js/ziwei-book.js 및 전역 window 함수를 사용하여 동작합니다.
+ * - '자미두수 심화 기능' 웹 리포트와는 별개의 독립적인 PDF 전용 서비스입니다.
+ */
 import { useEffect, useCallback } from "react";
 import PremiumBlurGate from "./PremiumBlurGate";
 

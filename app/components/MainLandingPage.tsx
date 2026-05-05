@@ -9,6 +9,7 @@ import ServiceCollectionSection from "./ServiceCollectionSection";
 import type { ServiceCardModel } from "./ServiceCard";
 import GlobalPricingCard from "./GlobalPricingCard";
 import GlobalTrustSection from "./GlobalTrustSection";
+import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 // AUXILIARY LANDING (React Home): 메인 서비스 기준 화면은 public/static/index.html 의 inputPage.
 
@@ -147,6 +148,10 @@ export default function MainLandingPage() {
 
       <section className="cd-main-shell !py-4 md:!py-5">
         <QuickServiceShortcuts />
+      </section>
+      
+      <section className="cd-main-shell !py-4 md:!py-5">
+        <EmailSubscriptionSection birthYear={profile?.birthDate ? parseInt(profile.birthDate.split("-")[0], 10) : undefined} />
       </section>
 
       <section className="cd-main-shell !py-4 md:!py-5">

@@ -10,6 +10,7 @@ import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "
 import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
 import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 type LockedSectionProps = {
   title: string;
@@ -746,6 +747,8 @@ export default function KkulkkulManseryukMain() {
             </div>
           </div>
         </header>
+
+        <EmailSubscriptionSection />
 
         {/* FREE: 바로 노출되는 영역 */}
         <section className="rounded-3xl border border-emerald-200 bg-white/90 p-5 shadow-sm">
