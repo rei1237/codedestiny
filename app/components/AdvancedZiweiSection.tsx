@@ -1,33 +1,70 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { calcZiweiPalaces, ZiweiChartData } from "../_lib/ziwei-engine";
 import { generateAdvancedReport } from "../_lib/ziwei-interpretations";
 import { AdvancedZiweiResult } from "../_lib/ziwei-normalization";
 import PremiumBlurGate from "./PremiumBlurGate";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ─── 상수 정의 ────────────────────────────────────────────────
+type Step = "form" | "computing" | "result";
 
-const CHAPTERS = [
-  { id: "intro", title: "🌌 심화 자미두수 소개", free: true },
-  { id: "destiny", title: "👤 타고난 운명", free: true },
-  { id: "personality", title: "💎 본질적인 성향", free: true },
-  { id: "career", title: "🏆 직업적 적성", free: false },
-  { id: "wealth", title: "💰 재물운", free: false },
-  { id: "love", title: "💖 애정, 인연운", free: false },
-  { id: "family", title: "🙏 가정환경", free: false },
-  { id: "social", title: "🌐 사회적 운", free: false },
-  { id: "health", title: "💊 건강운", free: false },
-  { id: "innerMind", title: "🧘 내면, 정신적 특징", free: false },
-  { id: "realEstate", title: "🏘️ 부동산", free: false },
-  { id: "environment", title: "✈️ 환경", free: false },
-  { id: "children", title: "👨‍👩‍👧 자녀운", free: false },
-  { id: "majorCycle", title: "🌊 대한", free: false },
-  { id: "total", title: "📜 종합적인 총운", free: false },
+interface FormState {
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
+  birthHour: string;
+  unknownHour: boolean;
+  name: string;
+  gender: "M" | "F";
+}
+
+interface AdvancedZiweiSectionProps {
+  showIntro?: boolean;
+  onStartGeneration?: () => void;
+  generationLoading?: boolean;
+  isUnlocked?: boolean;
+}
+
+type ChapterId = keyof AdvancedZiweiResult;
+
+interface ChapterMeta {
+  id: ChapterId;
+  title: string;
+  constellation: string;
+  free: boolean;
+}
+
+const CHAPTERS: ChapterMeta[] = [
+  { id: "intro", title: "성도 안내", constellation: "Orion", free: true },
+  { id: "destiny", title: "운명의 축", constellation: "Polaris", free: true },
+  { id: "personality", title: "기질의 코어", constellation: "Lyra", free: true },
+  { id: "career", title: "직업 궤도", constellation: "Vega", free: false },
+  { id: "wealth", title: "재물 항로", constellation: "Cygnus", free: false },
+  { id: "love", title: "관계 중력", constellation: "Andromeda", free: false },
+  { id: "family", title: "가문의 결", constellation: "Cassiopeia", free: false },
+  { id: "social", title: "사회 좌표", constellation: "Draco", free: false },
+  { id: "health", title: "신체 리듬", constellation: "Aquila", free: false },
+  { id: "innerMind", title: "내면 우주", constellation: "Phoenix", free: false },
+  { id: "realEstate", title: "공간 자산", constellation: "Pegasus", free: false },
+  { id: "environment", title: "환경 변곡", constellation: "Hydra", free: false },
+  { id: "children", title: "후속 에너지", constellation: "Gemini", free: false },
+  { id: "majorCycle", title: "10년 파동", constellation: "Ursa", free: false },
+  { id: "total", title: "총합 마스터플랜", constellation: "Argo", free: false },
 ];
 
-const RESULT_CACHE_KEY = "premium:ziwei:result:v4";
+const RESULT_CACHE_KEY = "premium:ziwei:result:v5";
+const PREMIUM_UNLOCK_MARKER_KEY = "premium:ziwei:unlock:v1";
+const LEGACY_TILE_LOCK_KEY = "cd_tile_locks";
+const TILE_LOCK_PREFIX = "cd_tile_locks_v2::";
+const PREMIUM_UNLOCK_ALIASES = [
+  "premium-ziwei",
+  "ziwei-deep",
+  "unlock.premium_ziwei",
+  "premiumDivinationPack",
+  "premium-divination-pack",
+  "unlock.premium_divination_pack",
+];
 
 function getDaysInMonth(year: number, month: number) {
   if (!Number.isFinite(year) || year < 1 || !Number.isFinite(month) || month < 1 || month > 12) {
@@ -45,21 +82,160 @@ function isValidBirthDate(year: number, month: number, day: number) {
   return dt.getFullYear() === year && dt.getMonth() === month - 1 && dt.getDate() === day;
 }
 
-type Step = "form" | "computing" | "result";
-
-interface FormState {
-  birthYear: string; birthMonth: string; birthDay: string;
-  birthHour: string; unknownHour: boolean; name: string; gender: "M" | "F";
+function normalizeKey(raw: unknown) {
+  return String(raw || "").trim();
 }
 
-interface AdvancedZiweiSectionProps {
-  showIntro?: boolean;
-  onStartGeneration?: () => void;
-  generationLoading?: boolean;
-  isUnlocked?: boolean; // 결제 여부
+function isPremiumUnlockKey(raw: unknown) {
+  const key = normalizeKey(raw);
+  if (!key) return false;
+  return PREMIUM_UNLOCK_ALIASES.includes(key);
 }
 
-// 심화 자미두수 기능 (로컬 자미두수 분석)
+function resolveAuthScope() {
+  try {
+    const raw = localStorage.getItem("fortune_auth_user");
+    if (!raw) return "";
+    const parsed = JSON.parse(raw);
+    const scope = String(parsed?.id || parsed?.userId || parsed?._id || parsed?.uid || "").trim().toLowerCase();
+    return scope;
+  } catch (_) {
+    return "";
+  }
+}
+
+function hasAuthToken() {
+  try {
+    return !!localStorage.getItem("fortune_auth_token");
+  } catch (_) {
+    return false;
+  }
+}
+
+function readObjectStorage(storageKey: string): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    const result: Record<string, boolean> = {};
+    Object.keys(parsed).forEach((k) => {
+      if (parsed[k] === true) result[k] = true;
+    });
+    return result;
+  } catch (_) {
+    return {};
+  }
+}
+
+function writeUnlockToMaps() {
+  try {
+    const legacy = readObjectStorage(LEGACY_TILE_LOCK_KEY);
+    PREMIUM_UNLOCK_ALIASES.forEach((alias) => {
+      legacy[alias] = true;
+    });
+    localStorage.setItem(LEGACY_TILE_LOCK_KEY, JSON.stringify(legacy));
+  } catch (_) {}
+
+  try {
+    const scope = resolveAuthScope();
+    if (!scope) return;
+    const scopedKey = `${TILE_LOCK_PREFIX}${scope}`;
+    const scoped = readObjectStorage(scopedKey);
+    PREMIUM_UNLOCK_ALIASES.forEach((alias) => {
+      scoped[alias] = true;
+    });
+    localStorage.setItem(scopedKey, JSON.stringify(scoped));
+  } catch (_) {}
+}
+
+function markPremiumUnlockedLocal() {
+  try {
+    const payload = JSON.stringify({ unlocked: true, updatedAt: Date.now() });
+    localStorage.setItem(PREMIUM_UNLOCK_MARKER_KEY, payload);
+    sessionStorage.setItem(PREMIUM_UNLOCK_MARKER_KEY, payload);
+  } catch (_) {}
+  writeUnlockToMaps();
+}
+
+function readPremiumMarkerUnlocked() {
+  try {
+    const candidate = sessionStorage.getItem(PREMIUM_UNLOCK_MARKER_KEY) || localStorage.getItem(PREMIUM_UNLOCK_MARKER_KEY);
+    if (!candidate) return false;
+    const parsed = JSON.parse(candidate);
+    return parsed?.unlocked === true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function readLocalUnlockByTileMap() {
+  const bags: Array<Record<string, boolean>> = [];
+  bags.push(readObjectStorage(LEGACY_TILE_LOCK_KEY));
+
+  const scope = resolveAuthScope();
+  if (scope) {
+    bags.push(readObjectStorage(`${TILE_LOCK_PREFIX}${scope}`));
+  }
+
+  for (let i = 0; i < bags.length; i += 1) {
+    const keys = Object.keys(bags[i]);
+    for (let j = 0; j < keys.length; j += 1) {
+      if (bags[i][keys[j]] === true && isPremiumUnlockKey(keys[j])) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function payloadHasPremiumUnlock(payload: any) {
+  const keys = new Set<string>();
+
+  const addKeys = (arr: unknown[]) => {
+    arr.forEach((value) => {
+      const key = normalizeKey(value);
+      if (key) keys.add(key);
+    });
+  };
+
+  if (Array.isArray(payload?.unlockedFeatures)) addKeys(payload.unlockedFeatures);
+  if (Array.isArray(payload?.user?.unlockedFeatures)) addKeys(payload.user.unlockedFeatures);
+  if (payload?.unlockMap && typeof payload.unlockMap === "object") {
+    Object.keys(payload.unlockMap).forEach((k) => {
+      if (payload.unlockMap[k] === true) keys.add(normalizeKey(k));
+    });
+  }
+
+  const rawKeys = Array.from(keys);
+  for (let i = 0; i < rawKeys.length; i += 1) {
+    if (isPremiumUnlockKey(rawKeys[i])) return true;
+  }
+  return false;
+}
+
+function StarDust() {
+  const dots = Array.from({ length: 16 }, (_, i) => i);
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      {dots.map((n) => (
+        <span
+          key={n}
+          className="absolute block h-1 w-1 rounded-full bg-cyan-200/70"
+          style={{
+            left: `${(n * 37) % 100}%`,
+            top: `${(n * 23) % 100}%`,
+            boxShadow: "0 0 14px rgba(165,243,252,0.7)",
+            opacity: 0.25 + ((n % 5) / 10),
+            transform: `scale(${0.7 + ((n % 4) * 0.2)})`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function AdvancedZiweiSection({
   showIntro = false,
   onStartGeneration,
@@ -68,19 +244,74 @@ export default function AdvancedZiweiSection({
 }: AdvancedZiweiSectionProps) {
   const [step, setStep] = useState<Step>("form");
   const [form, setForm] = useState<FormState>({
-    birthYear: "", birthMonth: "1", birthDay: "1", birthHour: "12",
-    unknownHour: false, name: "", gender: "F",
+    birthYear: "",
+    birthMonth: "1",
+    birthDay: "1",
+    birthHour: "12",
+    unknownHour: false,
+    name: "",
+    gender: "F",
   });
   const [result, setResult] = useState<AdvancedZiweiResult | null>(null);
   const [chartData, setChartData] = useState<ZiweiChartData | null>(null);
   const [savedName, setSavedName] = useState("");
-  const [activeTab, setActiveTab] = useState("intro");
+  const [activeTab, setActiveTab] = useState<ChapterId>("intro");
   const [progress, setProgress] = useState(0);
-  const [loadingText, setLoadingText] = useState("명반을 구성하는 중...");
+  const [loadingText, setLoadingText] = useState("성도 데이터를 정렬하는 중...");
+  const [resolvedUnlocked, setResolvedUnlocked] = useState(Boolean(isUnlocked));
+  const [unlockSyncing, setUnlockSyncing] = useState(false);
   const autoComputeRef = useRef(false);
+
   const birthYearNum = Number(form.birthYear);
   const birthMonthNum = Number(form.birthMonth);
   const maxDayInMonth = getDaysInMonth(birthYearNum, birthMonthNum);
+
+  const activeChapter = useMemo(() => CHAPTERS.find((c) => c.id === activeTab), [activeTab]);
+
+  const syncUnlockState = useCallback(async (checkServer: boolean) => {
+    if (isUnlocked) {
+      setResolvedUnlocked(true);
+      markPremiumUnlockedLocal();
+      return true;
+    }
+
+    const loggedIn = hasAuthToken();
+    const localUnlocked = loggedIn && (readPremiumMarkerUnlocked() || readLocalUnlockByTileMap());
+
+    if (localUnlocked) {
+      setResolvedUnlocked(true);
+      markPremiumUnlockedLocal();
+      return true;
+    }
+
+    if (!checkServer || !loggedIn) {
+      return false;
+    }
+
+    setUnlockSyncing(true);
+    try {
+      const token = localStorage.getItem("fortune_auth_token") || "";
+      const response = await fetch("/api/fortune/pig-coin/balance", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payloadHasPremiumUnlock(payload)) {
+        setResolvedUnlocked(true);
+        markPremiumUnlockedLocal();
+        return true;
+      }
+    } catch (_) {
+      // ignore unlock sync failure
+    } finally {
+      setUnlockSyncing(false);
+    }
+
+    return false;
+  }, [isUnlocked]);
 
   useEffect(() => {
     const curDay = Number(form.birthDay);
@@ -90,31 +321,62 @@ export default function AdvancedZiweiSection({
     }
   }, [form.birthDay, maxDayInMonth]);
 
-  // ── 초기 데이터 로드 ──
+  useEffect(() => {
+    void syncUnlockState(true);
+  }, [syncUnlockState]);
+
+  useEffect(() => {
+    if (!isUnlocked) return;
+    setResolvedUnlocked(true);
+    markPremiumUnlockedLocal();
+  }, [isUnlocked]);
+
+  useEffect(() => {
+    const handleRuntimeUnlock = () => {
+      void syncUnlockState(false);
+    };
+
+    window.addEventListener("storage", handleRuntimeUnlock);
+    window.addEventListener("focus", handleRuntimeUnlock);
+    window.addEventListener("cd:tile-locks-updated", handleRuntimeUnlock as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", handleRuntimeUnlock);
+      window.removeEventListener("focus", handleRuntimeUnlock);
+      window.removeEventListener("cd:tile-locks-updated", handleRuntimeUnlock as EventListener);
+    };
+  }, [syncUnlockState]);
+
   useEffect(() => {
     try {
       const cached = sessionStorage.getItem(RESULT_CACHE_KEY);
       if (cached) {
-        const c = JSON.parse(cached);
-        setResult(c.result);
-        setChartData(c.chart);
-        setSavedName(c.name);
-        setStep("result");
-        return;
+        const parsed = JSON.parse(cached);
+        if (parsed?.result && parsed?.chart) {
+          setResult(parsed.result);
+          setChartData(parsed.chart);
+          setSavedName(parsed.name || "당신");
+          if (parsed.unlocked === true) {
+            setResolvedUnlocked(true);
+            markPremiumUnlockedLocal();
+          }
+          setStep("result");
+          return;
+        }
       }
 
-      const raw = localStorage.getItem("FORTUNE_APP_VEDIC_PAYLOAD");
-      if (raw) {
-        const p = JSON.parse(raw);
-        if (p?.birth?.year) {
+      const rawProfile = localStorage.getItem("FORTUNE_APP_VEDIC_PAYLOAD");
+      if (rawProfile) {
+        const payload = JSON.parse(rawProfile);
+        if (payload?.birth?.year) {
           setForm({
-            birthYear: String(p.birth.year), 
-            birthMonth: String(p.birth.month ?? 1),
-            birthDay: String(p.birth.day ?? 1), 
-            birthHour: String(p.birth.hour ?? 12),
-            unknownHour: false, 
-            name: p.name || "", 
-            gender: (p.gender === "F" ? "F" : "M") as "M" | "F",
+            birthYear: String(payload.birth.year),
+            birthMonth: String(payload.birth.month ?? 1),
+            birthDay: String(payload.birth.day ?? 1),
+            birthHour: String(payload.birth.hour ?? 12),
+            unknownHour: false,
+            name: payload.name || "",
+            gender: (payload.gender === "F" ? "F" : "M") as "M" | "F",
           });
           autoComputeRef.current = true;
         }
@@ -123,31 +385,38 @@ export default function AdvancedZiweiSection({
   }, []);
 
   const handleCompute = useCallback(() => {
-    const y = Number(form.birthYear), m = Number(form.birthMonth), d = Number(form.birthDay);
+    const y = Number(form.birthYear);
+    const m = Number(form.birthMonth);
+    const d = Number(form.birthDay);
     const h = form.unknownHour ? 12 : Number(form.birthHour);
+
     if (!isValidBirthDate(y, m, d)) {
       alert("생년월일을 정확히 입력해 주세요. 월/일 조합이 올바른지 확인해 주세요.");
       return;
     }
+
     const displayName = form.name.trim() || "당신";
     setStep("computing");
     setProgress(0);
 
     const texts = [
-      "자미성의 위치를 파악하는 중...",
-      "12궁의 에너지를 조율하는 중...",
-      "사화(四化)의 변화를 계산하는 중...",
-      "대한(大限)의 흐름을 분석하는 중...",
-      "전문가 수준의 해석 리포트를 생성하는 중...",
+      "명궁과 신궁의 축을 정렬하는 중...",
+      "12궁 에너지 지도를 구성하는 중...",
+      "사화(化祿/化權/化科/化忌)를 결합하는 중...",
+      "10년 대한 파동을 시뮬레이션하는 중...",
+      "카테고리별 전문 리포트를 집필하는 중...",
     ];
 
     let p = 0;
     const timer = setInterval(() => {
       p += Math.random() * 5 + 1;
-      if (p >= 100) { p = 100; clearInterval(timer); }
+      if (p >= 100) {
+        p = 100;
+        clearInterval(timer);
+      }
       setProgress(Math.floor(p));
       setLoadingText(texts[Math.floor((p / 100) * texts.length)] || texts[texts.length - 1]);
-    }, 150);
+    }, 140);
 
     setTimeout(() => {
       try {
@@ -158,17 +427,28 @@ export default function AdvancedZiweiSection({
         setSavedName(displayName);
         setChartData(chart);
         setResult(report);
+
         try {
-          sessionStorage.setItem(RESULT_CACHE_KEY, JSON.stringify({ result: report, chart, name: displayName }));
+          sessionStorage.setItem(
+            RESULT_CACHE_KEY,
+            JSON.stringify({
+              result: report,
+              chart,
+              name: displayName,
+              unlocked: resolvedUnlocked,
+              updatedAt: Date.now(),
+            }),
+          );
         } catch (_) {}
-        setTimeout(() => setStep("result"), 800);
-      } catch (e) {
+
+        setTimeout(() => setStep("result"), 650);
+      } catch (_) {
         clearInterval(timer);
         alert("분석 중 오류가 발생했습니다.");
         setStep("form");
       }
-    }, 4000);
-  }, [form]);
+    }, 3300);
+  }, [form, resolvedUnlocked]);
 
   useEffect(() => {
     if (autoComputeRef.current && form.birthYear) {
@@ -177,253 +457,393 @@ export default function AdvancedZiweiSection({
     }
   }, [form.birthYear, handleCompute]);
 
-  // ── 렌더링 파트 ──
-
   if (showIntro) {
     return (
-      <div className="p-8 bg-gradient-to-br from-[#0a061e] via-[#1a0b3a] to-[#0a061e] rounded-[2.5rem] border border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.15)] relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 blur-[100px] -mr-32 -mt-32" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 blur-[100px] -ml-32 -mb-32" />
-        
+      <section className="relative overflow-hidden rounded-[2rem] border border-cyan-300/20 bg-[#050816] p-6 md:p-8">
+        <StarDust />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-12 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
+
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <span className="text-2xl text-white">✨</span>
+          <div className="mb-6 flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-sky-500 text-xl shadow-lg shadow-cyan-500/30">
+              ✦
             </div>
             <div>
-              <span className="text-[10px] font-black tracking-[0.4em] text-purple-400 uppercase">Premium Service</span>
-              <h3 className="text-2xl font-black text-white leading-none mt-1">심화 자미두수 분석</h3>
+              <p className="text-[11px] font-extrabold tracking-[0.28em] text-cyan-200/80">ASTRAL PREMIUM</p>
+              <h3 className="text-2xl font-black text-white" style={{ fontFamily: "'Cinzel', 'Noto Serif KR', serif" }}>
+                심화 자미두수 성도 리포트
+              </h3>
             </div>
           </div>
 
-          <div className="space-y-4 mb-8">
-            <p className="text-purple-100/80 text-sm leading-relaxed">
-              단순한 운세가 아닙니다. 30년 경력 전문가의 통찰을 담은 <span className="text-purple-300 font-bold">15개 카테고리 심층 리포트</span>를 통해 당신의 인생 지도를 정밀하게 해부합니다.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {["12궁 정밀 배치", "사화(四化) 심층해석", "10년 대한 분석", "전문가 맞춤 조언"].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-[11px] text-purple-300/70 bg-purple-500/5 py-2 px-3 rounded-xl border border-purple-500/10">
-                  <span className="text-purple-500">✦</span> {item}
-                </div>
-              ))}
-            </div>
+          <p className="mb-6 text-sm leading-7 text-slate-200/90">
+            단편 운세가 아닌, 명궁·신궁·사화·대한을 교차 해석한 장문 보고서입니다. 무료 챕터로 구조를 먼저 확인하고,
+            해금 후에는 전체 카테고리의 상세 전략과 실행 지침을 모두 확인할 수 있습니다.
+          </p>
+
+          <div className="mb-8 grid gap-2 text-xs text-cyan-100/85 md:grid-cols-2">
+            {[
+              "12궁 구조 + 주성 조합 해석",
+              "사화(祿/權/科/忌) 실전 적용",
+              "10년 대한 파동별 의사결정",
+              "관계/재물/커리어 실행 체크리스트",
+            ].map((item) => (
+              <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                {item}
+              </div>
+            ))}
           </div>
 
           <div className="space-y-3">
             <button
               onClick={() => onStartGeneration?.()}
               disabled={generationLoading}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-[#1a1200] font-black rounded-2xl shadow-[0_10px_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 group/btn"
+              className="w-full rounded-2xl bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-500 px-4 py-4 text-sm font-black text-[#261600] shadow-[0_12px_24px_rgba(251,191,36,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span>👑 전 구간 즉시 해금하기</span>
-              <span className="text-[10px] px-2 py-0.5 bg-black/10 rounded-full font-bold">500코인</span>
+              전체 챕터 해금하고 바로 분석하기
             </button>
             <button
               onClick={() => setStep("form")}
-              className="w-full py-4 bg-white/5 border border-white/10 text-purple-200 font-bold rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+              className="w-full rounded-2xl border border-cyan-200/25 bg-cyan-100/5 px-4 py-4 text-sm font-bold text-cyan-100 transition hover:bg-cyan-100/10"
             >
-              <span>무료 분석 미리보기</span>
-              <span className="text-lg opacity-50">→</span>
+              무료 챕터 먼저 보기
             </button>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   if (step === "form") {
     return (
-      <div className="min-h-screen bg-[#050510] p-6 pt-12">
-        <div className="max-w-md mx-auto space-y-8">
-          <div className="text-center">
-            <div className="inline-block px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full text-purple-400 text-[10px] font-bold tracking-widest uppercase mb-4">
-              Advanced Analysis
-            </div>
-            <h1 className="text-4xl font-black text-white tracking-tight">명반 데이터 입력</h1>
-            <p className="text-purple-400/60 text-sm mt-2">정밀한 결과를 위해 정확한 정보를 입력해 주세요.</p>
+      <section className="relative min-h-screen overflow-hidden bg-[#030712] px-4 py-10 text-slate-100 sm:px-6">
+        <StarDust />
+        <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
+
+        <div className="relative mx-auto w-full max-w-3xl rounded-[2rem] border border-white/10 bg-[#070f22]/85 p-6 shadow-2xl backdrop-blur-xl md:p-8">
+          <div className="mb-8 text-center">
+            <p className="mb-2 text-[11px] font-extrabold tracking-[0.3em] text-cyan-200/80">ZIWEI STAR MAP</p>
+            <h1 className="text-3xl font-black text-white md:text-4xl" style={{ fontFamily: "'Cinzel', 'Noto Serif KR', serif" }}>
+              심화 명반 입력 센터
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              입력 정보는 명반 계산에만 사용되며, 분석은 명궁/사화/대한 축을 기준으로 생성됩니다.
+            </p>
           </div>
-          <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] space-y-6 backdrop-blur-3xl shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-[50px] -mr-16 -mt-16" />
-            
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-xs font-bold tracking-wide text-cyan-100/80">이름(선택)</span>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/70 focus:bg-white/10"
+                placeholder="예: 홍길동"
+              />
+            </label>
+
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-purple-400/60 uppercase tracking-widest px-1">성함</label>
-              <input type="text" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} className="w-full bg-white/10 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-purple-500/50 focus:bg-white/15 transition-all" placeholder="이름을 입력하세요" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-purple-400/60 uppercase tracking-widest px-1">성별</label>
-                  <div className="flex gap-2 bg-white/5 p-1 rounded-[1.25rem] border border-white/5">
-                    {["M", "F"].map(g => (
-                      <button key={g} onClick={() => setForm(f => ({...f, gender: g as "M" | "F"}))} className={`flex-1 py-3 rounded-[1rem] text-sm font-bold transition-all ${form.gender === g ? "bg-purple-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"}`}>
-                        {g === "M" ? "남성" : "여성"}
-                      </button>
-                    ))}
-                  </div>
-               </div>
-               <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-purple-400/60 uppercase tracking-widest px-1">태어난 년도</label>
-                  <input type="number" value={form.birthYear} onChange={e => setForm(f => ({...f, birthYear: e.target.value}))} className="w-full bg-white/10 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-purple-500/50" placeholder="1990" />
-               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-purple-400/60 uppercase tracking-widest px-1">월</label>
-                <select value={form.birthMonth} onChange={e => setForm(f => ({...f, birthMonth: e.target.value}))} className="w-full bg-white/10 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none">
-                  {Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1}월</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-purple-400/60 uppercase tracking-widest px-1">일</label>
-                <select value={form.birthDay} onChange={e => setForm(f => ({...f, birthDay: e.target.value}))} className="w-full bg-white/10 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none">
-                  {Array.from({length:maxDayInMonth},(_,i)=><option key={i+1} value={i+1}>{i+1}일</option>)}
-                </select>
+              <span className="text-xs font-bold tracking-wide text-cyan-100/80">성별</span>
+              <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/15 bg-white/5 p-1">
+                {[
+                  { key: "M", label: "남성" },
+                  { key: "F", label: "여성" },
+                ].map((gender) => (
+                  <button
+                    key={gender.key}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, gender: gender.key as "M" | "F" }))}
+                    className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
+                      form.gender === gender.key
+                        ? "bg-cyan-300 text-slate-900"
+                        : "bg-transparent text-slate-300 hover:bg-white/10"
+                    }`}
+                  >
+                    {gender.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <button onClick={handleCompute} className="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-lg rounded-2xl mt-4 shadow-[0_20px_40px_rgba(139,92,246,0.3)] active:scale-[0.98] transition-all">무료 분석 시작</button>
+            <label className="space-y-2">
+              <span className="text-xs font-bold tracking-wide text-cyan-100/80">출생 연도</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={form.birthYear}
+                onChange={(e) => setForm((prev) => ({ ...prev, birthYear: e.target.value }))}
+                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/70 focus:bg-white/10"
+                placeholder="1994"
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-xs font-bold tracking-wide text-cyan-100/80">출생 시(24시간)</span>
+              <select
+                value={form.birthHour}
+                onChange={(e) => setForm((prev) => ({ ...prev, birthHour: e.target.value }))}
+                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/70 focus:bg-white/10"
+                disabled={form.unknownHour}
+              >
+                {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                  <option key={hour} value={hour}>
+                    {String(hour).padStart(2, "0")}시
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-xs font-bold tracking-wide text-cyan-100/80">출생 월</span>
+              <select
+                value={form.birthMonth}
+                onChange={(e) => setForm((prev) => ({ ...prev, birthMonth: e.target.value }))}
+                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/70 focus:bg-white/10"
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                  <option key={month} value={month}>
+                    {month}월
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-xs font-bold tracking-wide text-cyan-100/80">출생 일</span>
+              <select
+                value={form.birthDay}
+                onChange={(e) => setForm((prev) => ({ ...prev, birthDay: e.target.value }))}
+                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/70 focus:bg-white/10"
+              >
+                {Array.from({ length: maxDayInMonth }, (_, i) => i + 1).map((day) => (
+                  <option key={day} value={day}>
+                    {day}일
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
+
+          <label className="mt-5 flex items-center gap-2 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={form.unknownHour}
+              onChange={(e) => setForm((prev) => ({ ...prev, unknownHour: e.target.checked }))}
+              className="h-4 w-4 accent-cyan-300"
+            />
+            출생 시간을 모르는 경우 정오(12시) 기준으로 계산합니다.
+          </label>
+
+          <button
+            type="button"
+            onClick={handleCompute}
+            className="mt-6 w-full rounded-xl bg-gradient-to-r from-cyan-300 via-sky-300 to-cyan-500 px-5 py-4 text-sm font-black text-[#082032] shadow-lg shadow-cyan-500/25 transition hover:brightness-105"
+          >
+            성도 분석 시작하기
+          </button>
         </div>
-      </div>
+      </section>
     );
   }
 
   if (step === "computing") {
     return (
-      <div className="min-h-screen bg-[#050510] flex flex-col items-center justify-center p-6 text-center">
-        <div className="relative w-32 h-32 mb-12">
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute inset-0 border-2 border-dashed border-purple-500/30 rounded-full" />
-          <motion.div animate={{ rotate: -360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="absolute inset-4 border-2 border-purple-500/50 rounded-full border-t-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center text-5xl">🌌</div>
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#020617] px-6 text-center text-slate-100">
+        <StarDust />
+        <div className="pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 bottom-8 h-64 w-64 rounded-full bg-amber-200/10 blur-3xl" />
+
+        <div className="relative mb-10 h-36 w-36">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 rounded-full border border-cyan-200/35"
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-4 rounded-full border border-dashed border-amber-200/50"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.06, 1] }}
+            transition={{ duration: 2.6, repeat: Infinity }}
+            className="absolute inset-0 grid place-items-center text-5xl"
+          >
+            ✧
+          </motion.div>
         </div>
-        <h2 className="text-3xl font-black text-white mb-3 tracking-tight">{loadingText}</h2>
-        <p className="text-purple-400/60 text-sm mb-12 max-w-xs">당신의 명반을 기반으로 한 15개 영역의 심층 데이터를 우주에서 가져오고 있습니다.</p>
-        <div className="w-72 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-          <motion.div className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.5)]" initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
+
+        <h2 className="text-3xl font-black text-white md:text-4xl" style={{ fontFamily: "'Cinzel', 'Noto Serif KR', serif" }}>
+          {loadingText}
+        </h2>
+        <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
+          명궁, 사화, 대한 데이터를 교차 검증하면서 카테고리별 장문 해석을 작성하고 있습니다.
+        </p>
+
+        <div className="mt-10 w-full max-w-md overflow-hidden rounded-full border border-white/15 bg-white/5">
+          <motion.div
+            className="h-2 bg-gradient-to-r from-cyan-300 via-sky-300 to-cyan-500"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+          />
         </div>
-        <p className="text-[10px] font-black text-purple-500 mt-6 tracking-[0.3em] uppercase">{progress}% COMPLETE</p>
-      </div>
+
+        <p className="mt-4 text-xs font-bold tracking-[0.22em] text-cyan-200/80">{progress}% COMPLETE</p>
+      </section>
     );
   }
 
   if (step === "result" && result && chartData) {
-    const activeSection = (result as any)[activeTab];
+    const activeSection = result[activeTab];
+    const canReadAll = resolvedUnlocked;
+    const canReadCurrent = canReadAll || !!activeChapter?.free;
 
     return (
-      <div className="min-h-screen bg-[#050510] text-gray-100 font-sans pb-32">
-        <header className="relative h-80 overflow-hidden">
-          <img src="/fuctionassets/jamipremiun.webp" className="w-full h-full object-cover opacity-30 blur-[2px]" alt="" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050510] via-[#050510]/60 to-transparent" />
-          <div className="absolute inset-x-0 bottom-12 px-8">
-            <div className="flex flex-col items-center text-center">
-              <div className="px-4 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full text-purple-300 text-[10px] font-black tracking-[0.3em] uppercase mb-4">Advanced Report</div>
-              <h1 className="text-4xl font-black text-white leading-tight mb-4">{savedName}님의 인생 총람</h1>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                   <span className="text-[10px] text-gray-500 font-bold block mb-0.5">명궁(命宮)</span>
-                   <span className="text-sm font-black text-purple-300">{chartData.meng}</span>
-                </div>
-                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                   <span className="text-[10px] text-gray-500 font-bold block mb-0.5">주성(主星)</span>
-                   <span className="text-sm font-black text-purple-300">{chartData.juInfo}</span>
-                </div>
+      <section className="relative min-h-screen overflow-hidden bg-[#02050f] pb-28 text-slate-100">
+        <StarDust />
+        <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-96 w-96 rounded-full bg-amber-200/10 blur-3xl" />
+
+        <header className="relative z-10 border-b border-white/10 px-4 pb-8 pt-10 sm:px-6">
+          <div className="mx-auto max-w-6xl rounded-[2rem] border border-white/15 bg-gradient-to-br from-slate-900/80 via-[#0a1a30]/75 to-slate-900/80 p-6 backdrop-blur-xl md:p-8">
+            <p className="text-[11px] font-extrabold tracking-[0.28em] text-cyan-200/80">ADVANCED ZIWEI DOSSIER</p>
+            <h1 className="mt-2 text-3xl font-black text-white md:text-4xl" style={{ fontFamily: "'Cinzel', 'Noto Serif KR', serif" }}>
+              {savedName}님의 우주 해석 리포트
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+              명궁과 신궁, 사화 변화, 대한의 흐름을 교차 분석한 결과입니다. 카테고리별로 길게 읽고 실행 전략까지 바로 옮길 수 있도록 설계했습니다.
+            </p>
+
+            <div className="mt-6 grid gap-3 md:grid-cols-4">
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <p className="text-[11px] text-slate-400">명궁 지지</p>
+                <p className="mt-1 text-sm font-black text-cyan-200">{chartData.meng}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <p className="text-[11px] text-slate-400">신궁 지지</p>
+                <p className="mt-1 text-sm font-black text-cyan-200">{chartData.body}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <p className="text-[11px] text-slate-400">오행국</p>
+                <p className="mt-1 text-sm font-black text-cyan-200">{chartData.juInfo}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <p className="text-[11px] text-slate-400">사화 기준</p>
+                <p className="mt-1 text-sm font-black text-cyan-200">{chartData.yearGan}년 {chartData.yearZhi}</p>
               </div>
             </div>
           </div>
         </header>
 
-        {/* 탭 네비게이션 */}
-        <div className="sticky top-0 z-50 bg-[#050510]/80 backdrop-blur-xl border-y border-white/5">
-          <nav className="px-4 flex gap-2 overflow-x-auto no-scrollbar py-4">
-            {CHAPTERS.map(ch => (
-              <button
-                key={ch.id}
-                onClick={() => setActiveTab(ch.id)}
-                className={`flex-shrink-0 px-5 py-3 rounded-2xl text-xs font-black transition-all border ${activeTab === ch.id ? "bg-purple-600 border-purple-500 text-white shadow-[0_10px_20px_rgba(139,92,246,0.3)]" : "bg-white/5 border-white/5 text-gray-500 hover:text-gray-300"}`}
-              >
-                {ch.title}
-              </button>
-            ))}
+        <div className="sticky top-0 z-20 border-b border-white/10 bg-[#02050f]/90 px-4 py-3 backdrop-blur-xl sm:px-6">
+          <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto">
+            {CHAPTERS.map((chapter) => {
+              const chapterUnlocked = canReadAll || chapter.free;
+              return (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  onClick={() => setActiveTab(chapter.id)}
+                  className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold transition ${
+                    activeTab === chapter.id
+                      ? "border-cyan-200/60 bg-cyan-200 text-[#032035]"
+                      : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                  }`}
+                  title={`${chapter.constellation}${chapterUnlocked ? "" : " · 잠금"}`}
+                >
+                  {chapter.title}
+                  {!chapterUnlocked ? " • 잠금" : ""}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
-        {/* 상세 해석 영역 */}
-        <main className="px-6 mt-12 max-w-3xl mx-auto">
+        <main className="relative z-10 mx-auto mt-8 w-full max-w-4xl px-4 sm:px-6">
           <AnimatePresence mode="wait">
-            <motion.div
+            <motion.article
               key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="relative"
+              exit={{ opacity: 0, y: -10 }}
+              className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6 shadow-2xl backdrop-blur-xl md:p-8"
             >
-              <div className="bg-gradient-to-b from-white/10 to-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 shadow-3xl backdrop-blur-2xl overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 blur-[100px] -mr-32 -mt-32" />
-                
-                <div className="flex flex-col items-center text-center mb-12">
-                  <div className="text-6xl mb-6">{CHAPTERS.find(c => c.id === activeTab)?.title.split(" ")[0]}</div>
-                  <h2 className="text-3xl font-black text-white mb-4">{activeSection.title}</h2>
-                  <div className="w-12 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent rounded-full" />
-                </div>
+              <header className="mb-8 border-b border-white/10 pb-6">
+                <p className="text-[11px] font-bold tracking-[0.18em] text-cyan-200/80">{activeChapter?.constellation || "CONSTELLATION"}</p>
+                <h2 className="mt-2 text-2xl font-black text-white md:text-3xl" style={{ fontFamily: "'Cinzel', 'Noto Serif KR', serif" }}>
+                  {activeSection.title}
+                </h2>
+                <p className="mt-4 rounded-xl border border-cyan-200/25 bg-cyan-100/5 px-4 py-3 text-sm leading-7 text-cyan-100/90">
+                  {activeSection.summary}
+                </p>
+              </header>
 
-                {isUnlocked || CHAPTERS.find(c => c.id === activeTab)?.free ? (
-                  <div className="space-y-10">
-                    <div className="p-6 bg-purple-900/20 border border-purple-500/20 rounded-[2rem] text-center">
-                      <p className="text-purple-200 text-lg italic font-medium leading-relaxed">
-                        "{activeSection.summary}"
+              {canReadCurrent ? (
+                <div className="space-y-4 text-[15px] leading-8 text-slate-200">
+                  {activeSection.detail.split("\n").map((line, idx) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return <div key={`sp-${idx}`} className="h-2" />;
+                    if (trimmed.startsWith("### ")) {
+                      return (
+                        <h3 key={`h-${idx}`} className="mt-8 text-xl font-black text-cyan-100">
+                          {trimmed.replace("### ", "")}
+                        </h3>
+                      );
+                    }
+                    return (
+                      <p key={`p-${idx}`} className="text-slate-200/95">
+                        {line}
                       </p>
-                    </div>
-                    <div className="text-gray-300 text-base md:text-lg leading-[2.2] whitespace-pre-wrap font-light">
-                      {activeSection.detail.split("\n").map((line: string, i: number) => {
-                         if (line.startsWith("### ")) return <h3 key={i} className="text-2xl font-black text-purple-300 mt-12 mb-6 tracking-tight">{line.replace("### ", "")}</h3>;
-                         if (line.trim() === "") return <div key={i} className="h-4" />;
-                         return <p key={i} className="mb-4">{line}</p>;
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative min-h-[400px]">
-                    <div className="absolute inset-0 z-0 opacity-20 blur-xl select-none pointer-events-none">
-                      <p className="text-sm leading-8">당신의 {activeSection.title}에 대한 깊은 통찰이 여기에 담겨 있습니다. 당신이 태어난 순간의 별들은 당신의 재물과 명예, 그리고 사랑에 대해 끊임없이 이야기하고 있습니다. 전문가의 해석을 통해 당신의 미래를 준비하세요.</p>
-                    </div>
-                    <div className="relative z-10">
-                      <PremiumBlurGate
-                        lockedTitle={activeSection.title}
-                        subDesc="전문가급 심화 분석 리포트 해금"
-                        onUnlock={() => onStartGeneration?.()}
-                        previewContent={
-                          <div className="text-purple-300/50 text-center italic mb-8">
-                            당신의 {activeSection.title} 영역에 대한 3,000자 이상의 정밀 분석 리포트가 생성되었습니다.
-                          </div>
-                        }
-                        lockedItems={[
-                          `${activeSection.title} 심층 리포트`,
-                          "타고난 운명적 반복 패턴 분석",
-                          "성공을 위한 전문가 개운법 조언",
-                          "시점별 변화 정밀 산출 데이터"
-                        ]}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-2">
+                  <PremiumBlurGate
+                    lockedTitle={activeSection.title}
+                    subDesc="메인 해금과 자동 동기화되는 프리미엄 상세 리포트"
+                    onUnlock={() => onStartGeneration?.()}
+                    previewContent={
+                      <div className="mb-8 text-center text-cyan-100/55">
+                        해금 시 이 챕터의 정밀 해석, 리스크 관리 전략, 실행 체크리스트가 전체 공개됩니다.
+                      </div>
+                    }
+                    lockedItems={[
+                      "명궁/사화 기반 장문 해석",
+                      "10년 주기 리스크와 기회 포인트",
+                      "재물/관계/커리어 실행 체크리스트",
+                      "회귀 패턴 차단을 위한 개운 루틴",
+                    ]}
+                  />
+                </div>
+              )}
+            </motion.article>
           </AnimatePresence>
         </main>
 
-        <footer className="mt-20 px-6 text-center space-y-8">
-          <div className="p-8 border border-white/5 bg-white/5 rounded-[2.5rem] max-w-md mx-auto">
-             <p className="text-xs text-gray-500 leading-relaxed">본 리포트는 30년 경력의 자미두수 분석 알고리즘을 기반으로 생성되었습니다. 운세는 인생의 지도일 뿐, 실제 길을 걷는 것은 당신의 의지입니다.</p>
+        <footer className="relative z-10 mt-12 px-4 text-center sm:px-6">
+          <div className="mx-auto max-w-4xl space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-xs text-slate-400">
+            <p>
+              본 리포트는 자미두수 계산 엔진을 기반으로 생성되며, 실제 삶의 의사결정은 개인의 상황과 선택을 함께 고려해 진행해야 합니다.
+            </p>
+            {unlockSyncing ? <p className="text-cyan-200/80">해금 상태를 동기화하는 중입니다...</p> : null}
           </div>
+
           <button
-            onClick={() => { setStep("form"); sessionStorage.removeItem(RESULT_CACHE_KEY); }}
-            className="px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-bold text-gray-400 transition-all border border-white/5"
+            type="button"
+            onClick={() => {
+              setStep("form");
+              sessionStorage.removeItem(RESULT_CACHE_KEY);
+            }}
+            className="mt-6 rounded-xl border border-white/15 bg-white/5 px-6 py-3 text-xs font-bold text-slate-300 transition hover:bg-white/10"
           >
-            다른 명반 분석하기
+            다른 명반 다시 분석하기
           </button>
         </footer>
-      </div>
+      </section>
     );
   }
 

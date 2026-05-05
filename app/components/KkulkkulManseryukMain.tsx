@@ -138,6 +138,17 @@ const PER_USE_DESTINATION: Partial<Record<PerUseKey, string>> = {
 };
 
 const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
+const PREMIUM_ZIWEI_UNLOCK_MARKER_KEY = "premium:ziwei:unlock:v1";
+const LEGACY_TILE_LOCK_KEY = "cd_tile_locks";
+const TILE_LOCK_PREFIX = "cd_tile_locks_v2::";
+const PREMIUM_ZIWEI_UNLOCK_ALIASES = [
+  "premium-ziwei",
+  "ziwei-deep",
+  "unlock.premium_ziwei",
+  "premiumDivinationPack",
+  "premium-divination-pack",
+  "unlock.premium_divination_pack",
+];
 
 const FREE_FEATURES = [
   "기본 만세력: 연/월/일/시 명식표 + 일주 캐릭터 요약",
@@ -255,6 +266,66 @@ function saveUserPoints(points: number) {
     const user = raw ? JSON.parse(raw) : {};
     user.points = points;
     persistSanitizedAuthUser(user);
+  } catch (_) {}
+}
+
+function getAuthScopeFromStorage(): string {
+  try {
+    const raw = localStorage.getItem("fortune_auth_user");
+    if (!raw) return "";
+    const user = JSON.parse(raw);
+    return String(user?.id || user?.userId || user?._id || user?.uid || "").trim().toLowerCase();
+  } catch (_) {
+    return "";
+  }
+}
+
+function readBooleanMapStorage(storageKey: string): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    const result: Record<string, boolean> = {};
+    Object.keys(parsed).forEach((key) => {
+      if ((parsed as Record<string, unknown>)[key] === true) {
+        result[key] = true;
+      }
+    });
+    return result;
+  } catch (_) {
+    return {};
+  }
+}
+
+function markZiweiPremiumUnlockedClient() {
+  try {
+    const marker = JSON.stringify({ unlocked: true, updatedAt: Date.now() });
+    localStorage.setItem(PREMIUM_ZIWEI_UNLOCK_MARKER_KEY, marker);
+    sessionStorage.setItem(PREMIUM_ZIWEI_UNLOCK_MARKER_KEY, marker);
+  } catch (_) {}
+
+  try {
+    const legacy = readBooleanMapStorage(LEGACY_TILE_LOCK_KEY);
+    PREMIUM_ZIWEI_UNLOCK_ALIASES.forEach((alias) => {
+      legacy[alias] = true;
+    });
+    localStorage.setItem(LEGACY_TILE_LOCK_KEY, JSON.stringify(legacy));
+  } catch (_) {}
+
+  try {
+    const scope = getAuthScopeFromStorage();
+    if (!scope) return;
+    const scopedKey = `${TILE_LOCK_PREFIX}${scope}`;
+    const scoped = readBooleanMapStorage(scopedKey);
+    PREMIUM_ZIWEI_UNLOCK_ALIASES.forEach((alias) => {
+      scoped[alias] = true;
+    });
+    localStorage.setItem(scopedKey, JSON.stringify(scoped));
+  } catch (_) {}
+
+  try {
+    window.dispatchEvent(new CustomEvent("cd:tile-locks-updated"));
   } catch (_) {}
 }
 
@@ -494,6 +565,9 @@ export default function KkulkkulManseryukMain() {
       if (!passed) return;
 
       if (unlockedFeatures.premiumDivinationPack) {
+        if (service === "ziwei") {
+          markZiweiPremiumUnlockedClient();
+        }
         setPremiumFlowStage('generate');
         return;
       }
@@ -532,6 +606,9 @@ export default function KkulkkulManseryukMain() {
         setCurrentCoins(newPoints);
         saveUserPoints(newPoints);
         notifyCoinResult(data, cost, newPoints, `${service} 프리미엄`);
+        if (service === "ziwei") {
+          markZiweiPremiumUnlockedClient();
+        }
         setPremiumFlowStage('generate');
       } catch (e) {
         console.error('[handleStartPremiumGeneration]', e);
