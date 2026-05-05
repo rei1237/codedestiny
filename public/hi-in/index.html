@@ -6763,7 +6763,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
     if (consumeInFlight) return;
     consumeInFlight = true;
+    var _unlockOverlayOpened = false;
     try {
+      _cdSetCoinGateOverlay(true, '프리미엄 기능을 해금하고 있습니다...');
+      _unlockOverlayOpened = true;
       var productId = resolveUnlockProductIdByFeatureKey(featureKey);
       var requestId = 'unlock:' + (productId || featureKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
@@ -6813,6 +6816,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (error) {
       console.error('[golden-pig-coin] consume failed', error);
     } finally {
+      if (_unlockOverlayOpened) _cdSetCoinGateOverlay(false);
       consumeInFlight = false;
     }
   }
@@ -9092,6 +9096,7 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
 
 
 
