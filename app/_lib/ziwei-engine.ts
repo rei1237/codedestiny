@@ -1,4 +1,12 @@
-import { Solar, Lunar } from "lunar-javascript";
+import { Solar } from "lunar-javascript";
+import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
+import {
+  ZiweiDeepChart,
+  ZiweiPalace,
+  ZiweiPalaceId,
+  ZiweiStarMeta,
+  ZiweiUserInput,
+} from "./ziwei-types";
 
 /** 자미두수 지지 목록 */
 export const ZHI_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
@@ -204,4 +212,183 @@ function getBrightness(star: string, branch: number): string {
   if (miao.includes(branch)) return "◎";
   if (xian.includes(branch)) return "X";
   return "○";
+}
+
+const PALACE_LABEL_TO_ID: Record<string, ZiweiPalaceId> = {
+  "명궁": "ming",
+  "형제궁": "siblings",
+  "부처궁": "spouse",
+  "자녀궁": "children",
+  "재백궁": "wealth",
+  "질액궁": "health",
+  "천이궁": "travel",
+  "노복궁": "friends",
+  "교우궁": "friends",
+  "관록궁": "career",
+  "전택궁": "property",
+  "복덕궁": "fortune",
+  "부모궁": "parents",
+};
+
+const PALACE_ID_ORDER: ZiweiPalaceId[] = [
+  "ming",
+  "siblings",
+  "spouse",
+  "children",
+  "wealth",
+  "health",
+  "travel",
+  "friends",
+  "career",
+  "property",
+  "fortune",
+  "parents",
+];
+
+const LUCKY_STAR_SET = new Set(["문창", "문곡", "좌보", "우필", "록존", "천괴", "천월", "천마"]);
+
+const STAR_KEYWORD_MAP: Record<string, string[]> = {
+  자미: ["중심", "리더십", "책임"],
+  천기: ["전략", "분석", "설계"],
+  태양: ["표현", "추진", "영향력"],
+  무곡: ["실무", "재정", "관리"],
+  천동: ["회복", "공감", "완충"],
+  염정: ["원칙", "개혁", "집중"],
+  천부: ["안정", "축적", "보존"],
+  태음: ["감수성", "디테일", "직관"],
+  탐랑: ["확장", "매력", "기회"],
+  거문: ["언어", "설득", "논리"],
+  천상: ["조율", "균형", "협력"],
+  천량: ["보호", "멘토", "윤리"],
+  칠살: ["결단", "돌파", "집중"],
+  파군: ["전환", "혁신", "개척"],
+};
+
+function toStarMeta(stars: ZiweiStar[]): ZiweiStarMeta[] {
+  return stars.map((s) => ({ name: s.name, symbol: s.symbol }));
+}
+
+function findSihuaInPalace(stars: ZiweiStarMeta[], sihua: ZiweiChartData["sihua"]): string[] {
+  const sourceNames = new Set(stars.map((s) => s.name));
+  const tags: string[] = [];
+  if (sihua.luk && sourceNames.has(sihua.luk)) tags.push("화록");
+  if (sihua.quan && sourceNames.has(sihua.quan)) tags.push("화권");
+  if (sihua.ke && sourceNames.has(sihua.ke)) tags.push("화과");
+  if (sihua.ji && sourceNames.has(sihua.ji)) tags.push("화기");
+  return tags;
+}
+
+function buildPalaceKeywords(mainStars: ZiweiStarMeta[], sihua: string[]): string[] {
+  const set = new Set<string>();
+  mainStars.forEach((star) => {
+    (STAR_KEYWORD_MAP[star.name] || ["균형", "관리"]).forEach((k) => set.add(k));
+  });
+  sihua.forEach((k) => set.add(k));
+  if (!set.size) {
+    set.add("균형");
+    set.add("관리");
+    set.add("실행");
+  }
+  return Array.from(set).slice(0, 6);
+}
+
+function palaceScore(main: ZiweiStarMeta[], aux: ZiweiStarMeta[], bad: ZiweiStarMeta[], sihua: string[]): number {
+  let score = 50;
+  score += main.length * 8;
+  score += aux.length * 3;
+  score -= bad.length * 4;
+  if (sihua.includes("화록")) score += 4;
+  if (sihua.includes("화권")) score += 3;
+  if (sihua.includes("화과")) score += 3;
+  if (sihua.includes("화기")) score -= 5;
+  return Math.max(10, Math.min(95, score));
+}
+
+function buildPalaces(chart: ZiweiChartData): ZiweiPalace[] {
+  const converted = chart.palaceStarData
+    .map((palaceData) => {
+      const id = PALACE_LABEL_TO_ID[palaceData.palace];
+      if (!id) return null;
+
+      const mainStars = toStarMeta(palaceData.stars);
+      const auxiliaryStars = toStarMeta(palaceData.auxStars);
+      const maleficStars = toStarMeta(palaceData.badStars);
+      const luckyStars = auxiliaryStars.filter((s) => LUCKY_STAR_SET.has(s.name));
+      const sihua = findSihuaInPalace([...mainStars, ...auxiliaryStars], chart.sihua);
+      const keywords = buildPalaceKeywords(mainStars, sihua);
+
+      return {
+        id,
+        name: id === "friends" ? "교우궁" : palaceData.palace,
+        earthlyBranch: palaceData.branch,
+        mainStars,
+        auxiliaryStars,
+        maleficStars,
+        luckyStars,
+        sihua,
+        oppositePalaceId: "ming",
+        triadPalaceIds: ["ming", "career", "wealth"],
+        keywords,
+        score: palaceScore(mainStars, auxiliaryStars, maleficStars, sihua),
+        isEmpty: mainStars.length === 0,
+        dahan: palaceData.dahan,
+      } as ZiweiPalace;
+    })
+    .filter(Boolean) as ZiweiPalace[];
+
+  converted.forEach((palace) => {
+    const idx = PALACE_ID_ORDER.indexOf(palace.id);
+    const opposite = (idx + 6) % 12;
+    palace.oppositePalaceId = PALACE_ID_ORDER[opposite];
+    palace.triadPalaceIds = [PALACE_ID_ORDER[(idx + 4) % 12], PALACE_ID_ORDER[(idx + 8) % 12]];
+  });
+
+  return PALACE_ID_ORDER.map((id) => converted.find((p) => p.id === id)).filter(Boolean) as ZiweiPalace[];
+}
+
+export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
+  const base = calcZiweiPalaces(
+    input.birthYear,
+    input.birthMonth,
+    input.birthDay,
+    input.birthHour,
+    input.birthMinute,
+    input.gender,
+  );
+
+  const palaces = buildPalaces(base);
+  const withoutSummary = {
+    user: input,
+    warnings: [],
+    mingGong: base.meng,
+    shenGong: base.body,
+    yearGan: base.yearGan,
+    yearZhi: base.yearZhi,
+    juInfo: base.juInfo,
+    sihua: {
+      hualu: base.sihua.luk,
+      huaquan: base.sihua.quan,
+      huake: base.sihua.ke,
+      huaji: base.sihua.ji,
+    },
+    palaces,
+    majorPeriods: palaces.map((p) => ({ palaceId: p.id, range: p.dahan })),
+    annualFlow: {
+      yearLabel: `${base.yearGan}${base.yearZhi}`,
+      keyPalaces: palaces
+        .slice()
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2)
+        .map((p) => p.id),
+      notes: [
+        "유년/유월 정밀 예측은 제공 범위 내에서 보수적으로 해석합니다.",
+        "핵심 궁의 흐름을 기준으로 월별 실행 강도를 조절해 보세요.",
+      ],
+    },
+  };
+
+  return {
+    ...withoutSummary,
+    summary: generateZiweiDeepSummary(withoutSummary),
+  };
 }

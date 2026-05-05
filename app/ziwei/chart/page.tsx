@@ -4,9 +4,9 @@ import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/ziwei/chart",
-    title: "자미두수 명반 무료 분석 · 12궁 심화 16챕터 | Code Destiny",
+    title: "자미두수 명반 심화 · 12궁 인터랙티브 14섹션 | Code Destiny",
     description:
-      "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 16챕터로 정밀 해석하는 무료 자미두수 심화 분석 리포트입니다.",
+      "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 로컬 계산과 템플릿으로 생성하는 인터랙티브 심화 리포트입니다.",
     keywords: [
       "자미두수",
       "자미두수 명반",
@@ -16,6 +16,8 @@ export function generateMetadata() {
       "신궁",
       "사화",
       "대한",
+      "자미두수 심화",
+      "12궁 심층 분석",
       "ziwei chart",
       "zi wei dou shu",
     ],

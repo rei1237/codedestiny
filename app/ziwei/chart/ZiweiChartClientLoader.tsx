@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 
 const AdvancedZiweiSection = dynamic(
-  () => import("../../components/AdvancedZiweiSection"),
+  () => import("../../components/AdvancedZiweiSectionV2"),
   { ssr: false, loading: () => null }
 );
 
