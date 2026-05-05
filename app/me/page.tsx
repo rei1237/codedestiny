@@ -4,12 +4,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import WithdrawModal from "../components/WithdrawModal";
 
 type AuthUser = {
-  id: string;
-  name: string;
-  email: string;
+  id?: string;
+  userId?: string;
+  _id?: string;
+  uid?: string;
+  name?: string;
+  email?: string;
   hasLocalAuth?: boolean;
   role?: "user" | "admin";
   points?: number;
@@ -59,17 +63,11 @@ function readToken() {
 }
 
 function readCachedUser(): AuthUser | null {
-  try {
-    const raw = localStorage.getItem("fortune_auth_user");
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
-  } catch {
-    return null;
-  }
+  return readSanitizedAuthUser() as AuthUser | null;
 }
 
 function resolveScope(user: AuthUser | null) {
-  const raw = user?.id || user?.email || "";
-  return String(raw).trim().toLowerCase() || "guest";
+  return resolveAuthScopeFromUser(user) || "guest";
 }
 
 function scopedListKey(scope: string) {
@@ -203,7 +201,7 @@ export default function MePage() {
       })
       .then((payload) => {
         if (!payload?.user) return;
-        localStorage.setItem("fortune_auth_user", JSON.stringify(payload.user));
+        persistSanitizedAuthUser(payload.user);
         setUser(payload.user);
         setHasLocalAuth(payload.user?.hasLocalAuth !== false);
         reloadProfiles(payload.user);

@@ -20,15 +20,61 @@
   function _dpReadAuthUser() {
     try {
       var raw = localStorage.getItem('fortune_auth_user') || '';
-      return raw ? JSON.parse(raw) : null;
+      var parsed = raw ? JSON.parse(raw) : null;
+      var safe = _dpSanitizeAuthUser(parsed);
+      if (!safe) return null;
+      var normalized = JSON.stringify(safe);
+      if (raw !== normalized) localStorage.setItem('fortune_auth_user', normalized);
+      return safe;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function _dpResolveIdScope(user) {
+    var scopeRaw = user && (user.id || user.userId || user._id || user.uid);
+    return String(scopeRaw || '').trim().toLowerCase();
+  }
+
+  function _dpSanitizeAuthUser(user) {
+    if (!user || typeof user !== 'object') return null;
+    var safe = {};
+    if (user.id) safe.id = String(user.id);
+    if (user.userId) safe.userId = String(user.userId);
+    if (user._id) safe._id = String(user._id);
+    if (user.uid) safe.uid = String(user.uid);
+    if (user.name) safe.name = String(user.name);
+    if (user.role) safe.role = String(user.role);
+    if (user.plan) safe.plan = String(user.plan);
+    if (typeof user.hasLocalAuth === 'boolean') safe.hasLocalAuth = user.hasLocalAuth;
+    var points = Number(user.points);
+    if (Number.isFinite(points) && points >= 0) safe.points = points;
+    if (user.profileSubscription && typeof user.profileSubscription === 'object') {
+      safe.profileSubscription = {
+        tier: String(user.profileSubscription.tier || 'free'),
+        isActive: !!user.profileSubscription.isActive,
+        expiresAt: user.profileSubscription.expiresAt || null,
+      };
+    }
+    return Object.keys(safe).length ? safe : null;
+  }
+
+  function _dpWriteAuthUser(user) {
+    try {
+      var safe = _dpSanitizeAuthUser(user);
+      if (!safe) {
+        localStorage.removeItem('fortune_auth_user');
+        return null;
+      }
+      localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
+      return safe;
     } catch (e) {
       return null;
     }
   }
 
   function _dpResolveProfileScope(user) {
-    var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
-    var scope = String(scopeRaw || '').trim().toLowerCase();
+    var scope = _dpResolveIdScope(user);
     return scope || 'guest';
   }
 
@@ -240,8 +286,7 @@
     try {
       var raw = localStorage.getItem('fortune_auth_user') || '';
       var user = raw ? JSON.parse(raw) : null;
-      var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
-      var scope = String(scopeRaw || '').trim().toLowerCase();
+      var scope = _dpResolveIdScope(user);
       if (!scope) return '';
       return _DP_TILE_LOCKS_KEY_PREFIX + scope;
     } catch (e) {}
@@ -557,7 +602,7 @@
         return;
       }
       var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
-      try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
+      try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; _dpWriteAuthUser(_u3); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
       var chargedCoins = Number((res.data && res.data.chargedCoins) || 0);
       if (res.data && res.data.freeBySubscription === true) {
@@ -588,7 +633,7 @@
       var raw = localStorage.getItem('fortune_auth_user');
       var u = (raw && JSON.parse(raw)) || {};
       u.points = Number(newBalance);
-      localStorage.setItem('fortune_auth_user', JSON.stringify(u));
+      _dpWriteAuthUser(u);
     } catch (e) {}
   }
   function _dpGetUserPlan() {

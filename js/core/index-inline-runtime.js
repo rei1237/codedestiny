@@ -1483,7 +1483,7 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
   try {
     var authRaw = localStorage.getItem('fortune_auth_user') || '';
     var auth = authRaw ? JSON.parse(authRaw) : null;
-    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
+    var scopeRaw = auth && (auth.id || auth.userId || auth._id || auth.uid);
     var scope = String(scopeRaw || '').trim().toLowerCase();
     if (scope) {
       var scopedKey = 'cd_tile_locks_v2::' + scope;
@@ -1553,7 +1553,7 @@ function __cdGetTileLockScopeStorageKey() {
   try {
     var raw = localStorage.getItem('fortune_auth_user') || '';
     var user = raw ? JSON.parse(raw) : null;
-    var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
+    var scopeRaw = user && (user.id || user.userId || user._id || user.uid);
     var scope = String(scopeRaw || '').trim().toLowerCase();
     if (!scope) return '';
     return 'cd_tile_locks_v2::' + scope;
@@ -6365,7 +6365,7 @@ function _dfIsLockKeyUnlocked(lockKey) {
   try {
     var authRaw = localStorage.getItem('fortune_auth_user') || '';
     var auth = authRaw ? JSON.parse(authRaw) : null;
-    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
+    var scopeRaw = auth && (auth.id || auth.userId || auth._id || auth.uid);
     var scope = String(scopeRaw || '').trim().toLowerCase();
     if (scope) {
       var scopedKey = 'cd_tile_locks_v2::' + scope;

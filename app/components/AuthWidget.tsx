@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 
 type AuthUser = {
-  id: string;
-  name: string;
-  email: string;
+  id?: string;
+  userId?: string;
+  _id?: string;
+  uid?: string;
+  name?: string;
   role: "user" | "admin";
   points?: number;
 };
@@ -23,18 +26,18 @@ function readAuthToken() {
 
 function readAuthUser(): AuthUser | null {
   try {
-    const raw = localStorage.getItem("fortune_auth_user");
     const token = readAuthToken();
-    if (!token || !raw) return null;
-    return JSON.parse(raw) as AuthUser;
+    if (!token) return null;
+    return readSanitizedAuthUser() as AuthUser | null;
   } catch {
     return null;
   }
 }
 
 function persistAuthUser(user: AuthUser) {
-  localStorage.setItem("fortune_auth_user", JSON.stringify(user));
-  document.cookie = `fortune_auth_role=${encodeURIComponent(user.role)}; path=/; max-age=604800; samesite=lax`;
+  const safeUser = persistSanitizedAuthUser(user);
+  const role = String((safeUser && safeUser.role) || user.role || "user");
+  document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
 }
 
 function clearAuth() {

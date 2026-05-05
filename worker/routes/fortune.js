@@ -314,6 +314,86 @@ function resolveEffectiveActiveTier(user) {
   return expAt.getTime() > Date.now() ? tier : null;
 }
 
+async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
+  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  if (!tier) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const expAtRaw = user?.profileSubscription?.expiresAt;
+  if (!expAtRaw) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const expAt = new Date(expAtRaw);
+  if (!Number.isFinite(expAt.getTime())) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  if (expAt.getTime() > Date.now()) {
+    return { user, effectiveTier: tier, autoRenewed: false };
+  }
+
+  if (Boolean(user?.profileSubscription?.cancelAtPeriodEnd)) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const plan = PROFILE_SUB_PLANS[tier];
+  if (!plan) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const requiredCoins = Number(plan.coins || 0);
+  if (!Number.isFinite(requiredCoins) || requiredCoins <= 0) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  if (Number(user?.points || 0) < requiredCoins) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const now = new Date();
+  const newExpAt = new Date(Math.max(expAt.getTime(), now.getTime()) + Number(plan.durationDays || 30) * 86400000);
+  const nextProjection = projection || {
+    points: 1,
+    profileSubscription: 1,
+    unlockedFeatures: 1,
+    recentConsumeRequestIds: 1,
+  };
+
+  const renewedUser = await User.findOneAndUpdate(
+    { _id: userId, points: { $gte: requiredCoins } },
+    {
+      $inc: { points: -requiredCoins },
+      $set: {
+        "profileSubscription.expiresAt": newExpAt,
+        "profileSubscription.startedAt": now,
+      },
+    },
+    { new: true, projection: nextProjection },
+  ).lean();
+
+  if (!renewedUser) {
+    return {
+      user,
+      effectiveTier: resolveEffectiveActiveTier(user),
+      autoRenewed: false,
+    };
+  }
+
+  await PointHistory.create({
+    userId,
+    kind: "deduct",
+    delta: -requiredCoins,
+    balanceAfter: Number(renewedUser.points || 0),
+    reason: `${plan.name} subscription auto-renewal`,
+    featureKey: "profile-subscription-auto-renew",
+    metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
+  }).catch(() => {});
+
+  return { user: renewedUser, effectiveTier: tier, autoRenewed: true };
+}
+
 async function handleCheck() {
   return json({
     message: "Fortune reading is currently free.",
@@ -480,7 +560,18 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
   }
 
-  const effectiveTier = resolveEffectiveActiveTier(user);
+  const renewState = await ensureActiveSubscriptionByAutoRenew(
+    auth.userId,
+    user,
+    {
+      points: 1,
+      profileSubscription: 1,
+      unlockedFeatures: 1,
+      recentConsumeRequestIds: 1,
+    },
+  );
+  const runtimeUser = renewState.user || user;
+  const effectiveTier = renewState.effectiveTier;
   const policy = getPlanPolicy(effectiveTier);
   const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
@@ -497,9 +588,10 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       freeLimit: policy.freeLimit,
       profileLimit: policy.profileLimit,
       recommendedCoins: policy.recommendedCoins,
-      user: userPayload(auth, Number(user.points || 0), user.unlockedFeatures),
-      unlockedFeatures: normalizePersistentUnlockKeys(user.unlockedFeatures),
-      unlockMap: toUnlockMap(user.unlockedFeatures),
+      autoRenewed: Boolean(renewState.autoRenewed),
+      user: userPayload(auth, Number(runtimeUser.points || 0), runtimeUser.unlockedFeatures),
+      unlockedFeatures: normalizePersistentUnlockKeys(runtimeUser.unlockedFeatures),
+      unlockMap: toUnlockMap(runtimeUser.unlockedFeatures),
     });
   }
 

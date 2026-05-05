@@ -9,6 +9,7 @@ import { showToast } from "./Toast";
 import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
 import { usePayment } from "../hooks/usePayment";
+import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
 type LockedSectionProps = {
   title: string;
@@ -253,7 +254,7 @@ function saveUserPoints(points: number) {
     const raw = localStorage.getItem('fortune_auth_user');
     const user = raw ? JSON.parse(raw) : {};
     user.points = points;
-    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+    persistSanitizedAuthUser(user);
   } catch (_) {}
 }
 

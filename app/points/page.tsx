@@ -9,6 +9,7 @@ import type { GalaxiaPayResult } from "./GalaxiaPayModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 
 const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false });
 
@@ -17,9 +18,12 @@ const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false 
 ══════════════════════════════════════════════════════════════════ */
 
 type AuthUser = {
-  id: string;
-  name: string;
-  email: string;
+  id?: string;
+  userId?: string;
+  _id?: string;
+  uid?: string;
+  name?: string;
+  email?: string;
   role?: "user" | "admin";
   points?: number;
 };
@@ -1137,21 +1141,17 @@ export default function PointsPage() {
   const persistUserPoints = useCallback((points: number) => {
     setCurrentPoints(points);
     try {
-      const raw = localStorage.getItem("fortune_auth_user");
-      if (!raw) return;
-      const user = JSON.parse(raw);
+      const user = readSanitizedAuthUser() || {};
       user.points = points;
-      localStorage.setItem("fortune_auth_user", JSON.stringify(user));
+      persistSanitizedAuthUser(user);
     } catch { /* noop */ }
   }, []);
 
   /** 구독 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
     try {
-      const rawUser = localStorage.getItem("fortune_auth_user");
-      const user = rawUser ? JSON.parse(rawUser) : null;
-      const scopeRaw = user && (user.id || user.userId || user.email || user.loginId || user.username);
-      const scope = String(scopeRaw || "").trim().toLowerCase() || "guest";
+      const user = readSanitizedAuthUser();
+      const scope = resolveAuthScopeFromUser(user) || "guest";
       const payload = JSON.stringify({
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
@@ -1213,8 +1213,7 @@ export default function PointsPage() {
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
     const savedToken = localStorage.getItem("fortune_auth_token");
-    const rawUser = localStorage.getItem("fortune_auth_user");
-    let parsedUser: AuthUser | null = null;
+    const parsedUser = readSanitizedAuthUser() as AuthUser | null;
 
     if (!savedToken) {
       router.replace("/login?next=%2Fpoints");
@@ -1223,15 +1222,11 @@ export default function PointsPage() {
 
     setToken(savedToken);
 
-    if (rawUser) {
-      try {
-        const parsed = JSON.parse(rawUser) as AuthUser;
-        parsedUser = parsed;
-        setAuthUser(parsed);
-        if (typeof parsed.points === "number") {
-          setCurrentPoints(parsed.points);
-        }
-      } catch { /* noop */ }
+    if (parsedUser) {
+      setAuthUser(parsedUser);
+      if (typeof parsedUser.points === "number") {
+        setCurrentPoints(parsedUser.points);
+      }
     }
 
     const isAdminSession = parsedUser?.role === "admin" && isFlowerAdminSessionClient();

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { showToast } from "./Toast";
 import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { usePayment } from "../hooks/usePayment";
+import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
 type DrawnCard = {
   cardId: string;
@@ -270,7 +271,7 @@ export default function LoveRelationshipTarot() {
                 const userRaw = localStorage.getItem("fortune_auth_user") || "null";
                 const user = JSON.parse(userRaw) || {};
                 user.points = refundedPoints;
-                localStorage.setItem("fortune_auth_user", JSON.stringify(user));
+                persistSanitizedAuthUser(user);
               } catch (_) {}
             }
             showToast("API 오류로 이번 결제가 자동 환불되었습니다.", "info");

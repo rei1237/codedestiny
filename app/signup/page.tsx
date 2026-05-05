@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
 declare global {
   interface Window {
@@ -167,8 +168,9 @@ export default function SignupPage() {
     }
 
     if (user) {
-      localStorage.setItem("fortune_auth_user", JSON.stringify(user));
-      document.cookie = `fortune_auth_role=${encodeURIComponent(user.role)}; path=/; max-age=604800; samesite=lax`;
+      const safeUser = persistSanitizedAuthUser(user);
+      const role = String((safeUser && safeUser.role) || user.role || "user");
+      document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
     }
   };
 

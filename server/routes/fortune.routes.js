@@ -212,6 +212,86 @@ function resolveEffectiveActiveTier(user) {
   return expAt.getTime() > Date.now() ? tier : null;
 }
 
+async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
+  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  if (!tier) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const expAtRaw = user?.profileSubscription?.expiresAt;
+  if (!expAtRaw) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const expAt = new Date(expAtRaw);
+  if (!Number.isFinite(expAt.getTime())) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  if (expAt.getTime() > Date.now()) {
+    return { user, effectiveTier: tier, autoRenewed: false };
+  }
+
+  if (!!user?.profileSubscription?.cancelAtPeriodEnd) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const plan = PROFILE_SUB_PLANS[tier];
+  if (!plan) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const requiredCoins = Number(plan.coins || 0);
+  if (!Number.isFinite(requiredCoins) || requiredCoins <= 0) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  if (Number(user?.points || 0) < requiredCoins) {
+    return { user, effectiveTier: null, autoRenewed: false };
+  }
+
+  const now = new Date();
+  const newExpAt = new Date(Math.max(expAt.getTime(), now.getTime()) + Number(plan.durationDays || 30) * 24 * 60 * 60 * 1000);
+  const nextProjection = projection || {
+    points: 1,
+    profileSubscription: 1,
+    unlockedFeatures: 1,
+    recentConsumeRequestIds: 1,
+  };
+
+  const renewedUser = await User.findOneAndUpdate(
+    { _id: userId, points: { $gte: requiredCoins } },
+    {
+      $inc: { points: -requiredCoins },
+      $set: {
+        "profileSubscription.expiresAt": newExpAt,
+        "profileSubscription.startedAt": now,
+      },
+    },
+    { new: true, projection: nextProjection },
+  ).lean();
+
+  if (!renewedUser) {
+    return {
+      user,
+      effectiveTier: resolveEffectiveActiveTier(user),
+      autoRenewed: false,
+    };
+  }
+
+  await PointHistory.create({
+    userId,
+    kind: "deduct",
+    delta: -requiredCoins,
+    balanceAfter: Number(renewedUser.points || 0),
+    reason: `${plan.name} 구독 자동 갱신`,
+    featureKey: "profile-subscription-auto-renew",
+    metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
+  }).catch(() => {});
+
+  return { user: renewedUser, effectiveTier: tier, autoRenewed: true };
+}
+
 router.use(requireAuth);
 
 router.get("/check", async (req, res) => {
@@ -418,7 +498,18 @@ async function handlePigCoinConsumeRoute(req, res, next) {
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다.", code: "USER_NOT_FOUND" });
     }
 
-    const effectiveTier = resolveEffectiveActiveTier(user);
+    const renewState = await ensureActiveSubscriptionByAutoRenew(
+      req.auth.userId,
+      user,
+      {
+        points: 1,
+        profileSubscription: 1,
+        unlockedFeatures: 1,
+        recentConsumeRequestIds: 1,
+      },
+    );
+    const runtimeUser = renewState.user || user;
+    const effectiveTier = renewState.effectiveTier;
     const policy = getPlanPolicy(effectiveTier);
     const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
@@ -435,13 +526,14 @@ async function handlePigCoinConsumeRoute(req, res, next) {
         freeLimit: policy.freeLimit,
         profileLimit: policy.profileLimit,
         recommendedCoins: policy.recommendedCoins,
+        autoRenewed: !!renewState.autoRenewed,
         user: {
           id: String(req.auth.userId),
-          points: Number(user.points || 0),
-          unlockedFeatures: normalizePersistentUnlockKeys(user.unlockedFeatures),
+          points: Number(runtimeUser.points || 0),
+          unlockedFeatures: normalizePersistentUnlockKeys(runtimeUser.unlockedFeatures),
         },
-        unlockedFeatures: normalizePersistentUnlockKeys(user.unlockedFeatures),
-        unlockMap: toUnlockMap(user.unlockedFeatures),
+        unlockedFeatures: normalizePersistentUnlockKeys(runtimeUser.unlockedFeatures),
+        unlockMap: toUnlockMap(runtimeUser.unlockedFeatures),
       });
     }
 

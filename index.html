@@ -1381,7 +1381,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                         isActive: !!(statusPayload && statusPayload.isActive),
                         expiresAt: (statusPayload && statusPayload.expiresAt) || null,
                       };
-                      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                      __cdWriteAuthUserCache(user);
                     } catch (_) {}
                     __cdRenderWithSub(pointsValue, label);
                   })
@@ -1409,7 +1409,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     if (typeof user !== 'object' || user === null) user = {};
                     user.name = user.name || n;
                     user.points = nextPoints;
-                    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                    __cdWriteAuthUserCache(user);
                   } catch (_) {}
 
                   __cdRenderWithSub(nextPoints);
@@ -10234,18 +10234,63 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var raw = localStorage.getItem('fortune_auth_user');
       if (!raw) return null;
       var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return null;
-      return parsed;
+      var safe = __cdSanitizeAuthUserCache(parsed);
+      if (!safe) return null;
+      var normalized = JSON.stringify(safe);
+      if (normalized !== raw) localStorage.setItem('fortune_auth_user', normalized);
+      return safe;
     } catch (_e) {
       return null;
     }
+  }
+
+  function __cdSanitizeAuthUserCache(user) {
+    if (!user || typeof user !== 'object') return null;
+    var safe = {};
+    if (user.id) safe.id = String(user.id);
+    if (user.userId) safe.userId = String(user.userId);
+    if (user._id) safe._id = String(user._id);
+    if (user.uid) safe.uid = String(user.uid);
+    if (user.name) safe.name = String(user.name);
+    if (user.role) safe.role = String(user.role);
+    if (user.plan) safe.plan = String(user.plan);
+    if (typeof user.hasLocalAuth === 'boolean') safe.hasLocalAuth = user.hasLocalAuth;
+    var points = Number(user.points);
+    if (Number.isFinite(points) && points >= 0) safe.points = points;
+    if (user.profileSubscription && typeof user.profileSubscription === 'object') {
+      safe.profileSubscription = {
+        tier: String(user.profileSubscription.tier || 'free'),
+        isActive: !!user.profileSubscription.isActive,
+        expiresAt: user.profileSubscription.expiresAt || null,
+      };
+    }
+    return Object.keys(safe).length ? safe : null;
+  }
+
+  function __cdWriteAuthUserCache(user) {
+    try {
+      var safe = __cdSanitizeAuthUserCache(user);
+      if (!safe) {
+        localStorage.removeItem('fortune_auth_user');
+        return null;
+      }
+      localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
+      return safe;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  function __cdResolveAuthScopeId(user) {
+    var scopeRaw = user && (user.id || user.userId || user._id || user.uid);
+    return String(scopeRaw || '').trim().toLowerCase();
   }
 
   function syncAuthUserPoints(points) {
     try {
       var user = readAuthUser() || {};
       user.points = Number(points || 0);
-      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+      __cdWriteAuthUserCache(user);
     } catch (_e) {}
   }
 
@@ -10276,8 +10321,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function getUnlockStorageKey() {
     try {
       var user = readAuthUser();
-      var scopeRaw = (user && (user.id || user.userId || user._id || user.uid || user.email || user.username || user.loginId)) || '';
-      var scope = String(scopeRaw || '').trim().toLowerCase();
+      var scope = __cdResolveAuthScopeId(user);
       if (!scope) return '';
       return TILE_LOCKS_KEY_PREFIX + scope;
     } catch (_e) {
