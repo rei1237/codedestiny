@@ -621,7 +621,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       <div style="height:14px"></div>
       <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
       <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
-        프로필 카드 없이도 바로 계산합니다. (Swiss API 장애 시 로컬 계산으로 자동 전환됩니다.)
+        프로필 카드 없이도 바로 계산합니다. (Swiss 라이브러리 기반으로 즉시 계산합니다.)
       </div>
     </div>
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
@@ -2309,33 +2309,7 @@ function doCalculateFromProfile(profile){
   if(nameEl) nameEl.textContent=f.name+'님의';
   showPage('loading');
 
-  function runWithPlanets(planetsFromApi){
-    try{
-      var chart=buildChart(f,planetsFromApi);
-      if(!chart||!chart.f){throw new Error('Chart build failed: invalid chart structure');}
-      var report=analyze(chart);
-      if(!report){throw new Error('Analysis failed: no report generated');}
-      var insights=generateInsights(chart,report);
-      if(!insights){throw new Error('Insights generation failed');}
-      G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
-      G.usedLocalCalc=false;
-      try{
-        renderResult();
-        showPage('result');
-      }catch(renderErr){
-        console.error('Render error:',renderErr);
-        document.getElementById('result-content').innerHTML='<div class="error-box">결과 표시 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.<br><br>오류: '+(renderErr&&renderErr.message?renderErr.message:'Unknown error')+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
-        showPage('result');
-      }
-    }catch(err){
-      console.error('Calculation error:',err);
-      document.getElementById('result-content').innerHTML='<div class="error-box">계산 중 오류가 발생했습니다. 생년월일·시간·장소를 확인해 주세요.<br><br>상세: '+(err&&err.message?err.message:'Unknown error')+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
-      showPage('result');
-    }
-  }
-
-  function runWithLocalFallback(detail){
-    if(detail){ console.warn('[vedic] API fallback to local:', detail); }
+  function runWithLocalSwiss(detail){
     try{
       var chart=buildChart(f);
       if(!chart||!chart.f){throw new Error('Chart build failed: invalid chart structure');}
@@ -2348,22 +2322,22 @@ function doCalculateFromProfile(profile){
       renderResult();
       showPage('result');
     }catch(localErr){
-      console.error('[vedic] local fallback failed', localErr);
-      showApiRequiredError((detail?String(detail)+' | ':'') + String((localErr&&localErr.message)||localErr||'local fallback failed'));
+      console.error('[vedic] local swiss calculation failed', localErr);
+      showLocalSwissError((detail?String(detail)+' | ':'') + String((localErr&&localErr.message)||localErr||'local swiss calculation failed'));
     }
   }
 
-  function showApiRequiredError(detail){
+  function showLocalSwissError(detail){
     if(detail){ console.warn('[vedic] Local Swiss Error:', detail); }
     var detailText=detail?('<br><br>상세: '+String(detail)):'';
     document.getElementById('result-content').innerHTML='<div class="error-box">로컬 Swiss 라이브러리 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.'+detailText+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
     showPage('result');
   }
 
-  runWithLocalFallback('local swisseph mode');
+  runWithLocalSwiss('local swisseph mode');
 }
 
-// ─── INIT: 프로필 있으면 API 호출 후 결과, 없으면 noprofile ─
+// ─── INIT: 프로필이 있으면 바로 로컬 Swiss 계산 결과 화면으로 진입 ─
 function _hasValidBirth(p){
   if(!p||!p.birth)return false;
   const b=p.birth;
@@ -2423,6 +2397,76 @@ function _repairProfile(profile){
   profile.birth=b;
   return profile;
 }
+function _readVedicAuthScope(){
+  if(typeof localStorage==='undefined') return 'guest';
+  try{
+    var user=JSON.parse(localStorage.getItem('fortune_auth_user')||'null')||{};
+    var raw=user.id||user.userId||user._id||user.uid;
+    var scope=String(raw||'').trim().toLowerCase();
+    return scope||'guest';
+  }catch(_){
+    return 'guest';
+  }
+}
+function _pickProfileFromList(arr,currentId){
+  if(!Array.isArray(arr)||!arr.length) return null;
+  var profile=null;
+  if(currentId){
+    profile=arr.find(function(p){ return p&&p.id===currentId; })||null;
+  }
+  if(!profile) profile=arr[0];
+  if(profile&&!_hasValidBirth(profile)) profile=arr.find(_hasValidBirth)||arr.find(_hasAnyBirth)||arr[0];
+  return profile||null;
+}
+function _selectBirthPlaceByProfile(loc){
+  try{
+    var sel=document.getElementById('v_place');
+    if(!sel||!sel.options||!sel.options.length) return false;
+
+    var label=String((loc&&loc.label)||'').trim();
+    var tz=String((loc&&loc.tz)||'').trim();
+    var lat=parseFloat(loc&&loc.lat);
+    var lon=parseFloat(loc&&loc.lng);
+    if(!isFinite(lon)) lon=parseFloat(loc&&loc.lon);
+
+    var bestIdx=-1;
+    var bestScore=-1;
+    for(var i=0;i<sel.options.length;i++){
+      var opt=sel.options[i];
+      if(!opt) continue;
+
+      var score=0;
+      var optText=String(opt.textContent||'').trim();
+      var optTz=String(opt.value||'').trim();
+      var optLat=parseFloat(opt.getAttribute('data-lat')||'');
+      var optLon=parseFloat(opt.getAttribute('data-long')||'');
+
+      if(label&&optText===label) score+=100;
+      else if(label&&optText&&(optText.indexOf(label)>=0||label.indexOf(optText)>=0)) score+=70;
+      if(tz&&optTz===tz) score+=20;
+
+      if(isFinite(lat)&&isFinite(lon)&&isFinite(optLat)&&isFinite(optLon)){
+        var dist=Math.abs(optLat-lat)+Math.abs(optLon-lon);
+        if(dist<0.0005) score+=80;
+        else if(dist<0.01) score+=60;
+        else if(dist<0.05) score+=40;
+        else if(dist<0.2) score+=20;
+      }
+
+      if(score>bestScore){
+        bestScore=score;
+        bestIdx=i;
+      }
+    }
+
+    if(bestIdx<0||bestScore<20) return false;
+    sel.selectedIndex=bestIdx;
+    try{ vedicApplySelectedPlace(); }catch(_){ }
+    return true;
+  }catch(_){
+    return false;
+  }
+}
 function _readProfileFromStorage(){
   let profile=null;
   var raw;
@@ -2469,16 +2513,25 @@ function _readProfileFromStorage(){
     }
   }
   if(typeof localStorage!=='undefined'){
+    var scopes=[_readVedicAuthScope()];
+    if(scopes[0]!=='guest') scopes.push('guest');
+    for(var si=0;si<scopes.length;si++){
+      var scope=String(scopes[si]||'guest');
+      var scopedListRaw=localStorage.getItem('FORTUNE_APP_USER_PROFILES.list::'+scope);
+      if(!scopedListRaw) continue;
+      var scopedArr=[];
+      try{ scopedArr=JSON.parse(scopedListRaw); }catch(_){ scopedArr=[]; }
+      var scopedCurrentId=localStorage.getItem('FORTUNE_APP_USER_PROFILES.current::'+scope)||'';
+      profile=_pickProfileFromList(scopedArr,scopedCurrentId);
+      if(profile) return _repairProfile(profile);
+    }
+
     const listRaw=localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
     const currentId=localStorage.getItem('FORTUNE_APP_USER_PROFILES.current');
     if(listRaw){
       let arr=[]; try{ arr=JSON.parse(listRaw); }catch(_){}
-      if(Array.isArray(arr)&&arr.length){
-        profile=currentId?arr.find(p=>p.id===currentId):null;
-        if(!profile)profile=arr[0];
-        if(profile&&!_hasValidBirth(profile))profile=arr.find(_hasValidBirth)||arr.find(_hasAnyBirth)||arr[0];
-        if(profile)return _repairProfile(profile);
-      }
+      profile=_pickProfileFromList(arr,currentId);
+      if(profile)return _repairProfile(profile);
     }
     const legacy=localStorage.getItem('FORTUNE_APP_USER_PROFILES');
     if(legacy){ try{ const a=JSON.parse(legacy); if(Array.isArray(a)&&a.length){ profile=a.find(_hasValidBirth)||a.find(_hasAnyBirth)||a[0]; if(profile)return _repairProfile(profile); } }catch(_){ } }
@@ -2502,6 +2555,15 @@ function _fillInputFromProfile(profile){
     setV('v_lat',lat);
     setV('v_lon',lng);
     setV('v_tz',tz);
+
+    var matchedPlace=_selectBirthPlaceByProfile(l);
+    if(!matchedPlace){
+      try{ vedicApplySelectedPlace(); }catch(_){ }
+      setV('v_lat',lat);
+      setV('v_lon',lng);
+      setV('v_tz',tz);
+    }
+
     try{ _syncVedicToProfileCardCompatFields(); }catch(_){ }
   }catch(_){}
 }

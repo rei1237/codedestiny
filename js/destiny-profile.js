@@ -2194,54 +2194,47 @@
           _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필이 필요합니다.', 'warn');
           return;
         }
-        var b = pOlympus.birth;
-        var lOlympus = (pOlympus && pOlympus.location) || {};
-        var latOlympus = Number(lOlympus.lat);
-        var lonOlympus = Number(lOlympus.lng);
-        if (!Number.isFinite(lonOlympus)) lonOlympus = Number(lOlympus.lon);
-        var tzOlympus = Number(lOlympus.baseTzOffset);
-        if (!Number.isFinite(tzOlympus)) tzOlympus = Number(lOlympus.tzOffset);
-        if (Number.isFinite(tzOlympus) && Math.abs(tzOlympus) > 24) tzOlympus = tzOlympus / 60;
-        var tzForApi = Number.isFinite(tzOlympus) ? tzOlympus : _olympusTimezoneOffset();
-        var payload = {
-          name: pOlympus.name,
-          date: _olympusToDateString(b),
-          time: _olympusToTimeString(b)
-        };
-        fetch('/api/vedic/planets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            year: b.year,
-            month: b.month,
-            day: b.day,
-            hour: b.hour != null ? b.hour : 12,
-            minute: b.minute != null ? b.minute : 0,
-            timezone: tzForApi,
-            lat: Number.isFinite(latOlympus) ? latOlympus : 37.5665,
-            lon: Number.isFinite(lonOlympus) ? lonOlympus : 126.9780
-          })
-        })
-          .then(function(res) { return res.ok ? res.json() : null; })
-          .then(function(data) {
-            if (data && data.ok && data.planets && typeof data.planets.Sun === 'number') {
-              var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
-              var tropical = (data.planets.Sun + ayanamsa) % 360;
-              var idx = Math.floor(((tropical % 360) + 360) % 360 / 30);
-              var signs = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
-              payload.sunKey = signs[idx];
-              _olympusCommitProfile(payload);
-            } else {
-              payload.sunKey = _olympusSunSignFromDate(Number(b.month), Number(b.day));
-              _toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
-              _olympusCommitProfile(payload);
+        if (pOlympus.id) {
+          try { DPStorage.setCurrent(pOlympus.id); } catch (_) {}
+        }
+
+        function _runOlympusBridge() {
+          if (typeof window.openOlympusOracleModal === 'function') {
+            window.openOlympusOracleModal();
+            return true;
+          }
+          return false;
+        }
+
+        if (_runOlympusBridge()) return;
+
+        var _olympusScript = document.querySelector('script[src*="/js/olympus-oracle.js"]');
+        if (_olympusScript) {
+          setTimeout(function() {
+            if (!_runOlympusBridge()) {
+              _toast('⚠️ 올림푸스 신탁 모듈 로딩이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 'warn');
             }
-          })
-          .catch(function() {
-            payload.sunKey = _olympusSunSignFromDate(Number(b.month), Number(b.day));
-            _toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
-            _olympusCommitProfile(payload);
-          });
+          }, 0);
+          return;
+        }
+
+        try {
+          var _s = document.createElement('script');
+          _s.src = '/js/olympus-oracle.js?v=20260506-swiss';
+          _s.async = true;
+          _s.defer = true;
+          _s.onload = function() {
+            if (!_runOlympusBridge()) {
+              _toast('⚠️ 올림푸스 신탁 모듈 로딩이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+            }
+          };
+          _s.onerror = function() {
+            _toast('⚠️ 올림푸스 신탁 모듈 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+          };
+          document.head.appendChild(_s);
+        } catch (_) {
+          _toast('⚠️ 올림푸스 신탁 모듈 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+        }
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
         if (!pVedic || !pVedic.birth) {
