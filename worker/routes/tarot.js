@@ -203,6 +203,110 @@ function asText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+const FORBIDDEN_TONE_PATTERNS = [
+  /20\s*년[^\n.]{0,40}(경력|이상|타로|상담|리더|전문가)/gi,
+  /타로\s*경력\s*20\s*년[^\n.]*/gi,
+  /20\s*년\s*경력\s*타로\s*상담가[^\n.]*/gi,
+  /베테랑\s*타로\s*상담사/gi,
+];
+
+const NATURAL_WORD_REPLACEMENTS = [
+  [/병목/g, "막히는 지점"],
+  [/프로토콜/g, "진행 순서"],
+  [/데이터/g, "근거"],
+  [/오차/g, "차이"],
+  [/정밀도/g, "읽는 정확함"],
+  [/정확도/g, "읽는 정확함"],
+];
+
+function cleanForbiddenTone(text) {
+  let out = String(text || "");
+  FORBIDDEN_TONE_PATTERNS.forEach((pattern) => {
+    out = out.replace(pattern, "");
+  });
+  return out;
+}
+
+function replaceWithNaturalWords(text) {
+  let out = String(text || "");
+  NATURAL_WORD_REPLACEMENTS.forEach(([pattern, replacement]) => {
+    out = out.replace(pattern, replacement);
+  });
+  return out;
+}
+
+function dedupeBlocks(text) {
+  const source = String(text || "").trim();
+  if (!source) return "";
+  const blocks = source
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const seen = new Set();
+  const unique = [];
+  blocks.forEach((part) => {
+    const key = part.toLowerCase().replace(/\s+/g, " ").trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    unique.push(part);
+  });
+  return unique.join("\n\n").trim();
+}
+
+function smoothCounselorTone(text) {
+  if (!text) return "";
+  let out = String(text);
+  out = cleanForbiddenTone(out);
+  out = replaceWithNaturalWords(out);
+  out = out.replace(/\s{2,}/g, " ");
+  out = out.replace(/\n{3,}/g, "\n\n");
+  out = out.replace(/([가-힣A-Za-z]{2,})(\s+\1){1,}/g, "$1");
+  out = dedupeBlocks(out);
+  return out.trim();
+}
+
+function deepPolishReading(value) {
+  if (typeof value === "string") return smoothCounselorTone(value);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => deepPolishReading(item))
+      .filter((item) => {
+        if (typeof item === "string") return item.trim().length > 0;
+        return item !== undefined && item !== null;
+      });
+  }
+  if (value && typeof value === "object") {
+    const next = {};
+    Object.entries(value).forEach(([key, item]) => {
+      next[key] = deepPolishReading(item);
+    });
+    return next;
+  }
+  return value;
+}
+
+function buildCardMeaningGuide(cards) {
+  const safeCards = Array.isArray(cards) ? cards : [];
+  return safeCards
+    .map((card, idx) => {
+      const name = asText(card?.nameKr || card?.name) || `카드 ${idx + 1}`;
+      const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
+      const meaning = asText(card?.interpretation) || getCardMeaning(card);
+      return smoothCounselorTone(`${idx + 1}번 카드 ${name}(${orientation}): ${meaning}`);
+    })
+    .filter(Boolean);
+}
+
+function finalizeReadingPayload(reading, cards) {
+  const polished = deepPolishReading(reading);
+  if (!polished || typeof polished !== "object") return polished;
+  const cardMeaningGuide = buildCardMeaningGuide(cards);
+  if (cardMeaningGuide.length) {
+    polished.cardMeaningGuide = cardMeaningGuide;
+  }
+  return polished;
+}
+
 function ensureTextLength(text, minChars, blocks) {
   let out = asText(text);
   const safeBlocks = Array.isArray(blocks) ? blocks.map(asText).filter(Boolean) : [];
@@ -241,20 +345,22 @@ function enhanceRelationshipReading(reading, cards) {
   const n = (i) => cardNameLine(c(i));
   const m = (i) => getCardMeaning(c(i));
 
+  const counselorTone = "이번 해석은 연애 상담사가 마음을 정리하듯, 타로 카드가 보여준 흐름을 일상 대화와 행동으로 옮겨드리는 방식입니다. 당장 결론을 재촉하기보다 서로의 감정 속도와 관계 리듬을 맞추는 데 집중해 보세요.";
+
   const overallBlocks = [
-    `${n(0)}와 ${n(1)} 조합은 관계의 '체감 온도'와 '관계 운영 방식'이 분리되어 있다는 신호를 줍니다. 즉, 감정은 분명 존재하지만 전달 방식과 해석 방식에서 오해 비용이 누적될 수 있습니다. 20년 경력 타로 상담에서는 이런 배열을 볼 때 먼저 감정의 진위를 의심하지 않고, 감정 전달의 구조를 재설계하도록 안내합니다.`,
+    `${n(0)}와 ${n(1)} 조합은 관계의 '체감 온도'와 '관계 운영 방식'이 분리되어 있다는 신호를 줍니다. 즉, 감정은 분명 존재하지만 전달 방식과 해석 방식에서 오해 비용이 누적될 수 있습니다. 이 배열에서는 감정의 진위를 의심하기보다 감정 전달의 구조를 다시 설계하는 접근이 더 효과적입니다.`,
     `현재 흐름에서는 누가 더 사랑하느냐보다 '누가 더 정확하게 표현하느냐'가 관계 안정도를 좌우합니다. ${m(0)}의 메시지는 개인 감정의 결을, ${m(1)}의 메시지는 관계 시스템의 상태를 가리키므로 둘을 동시에 읽어야 정확도가 높아집니다.`,
     "특히 연락 빈도, 반응 지연 해석, 갈등 후 복귀 방식이 관계의 실제 체력을 결정합니다. 카드가 좋더라도 운영이 불안정하면 소모가 커지고, 카드가 거칠어도 운영이 정교하면 회복이 가능합니다. 그래서 이번 리딩의 1순위는 감정 확인이 아니라 구조 확인입니다.",
   ];
 
   const deepBlocks = [
     `${n(2)}와 ${n(3)}는 '상대의 인식'과 '상대의 의지'를 분리해서 보라는 핵심 신호입니다. 상대가 당신을 좋게 인식해도 현재 연애 의지가 낮을 수 있고, 반대로 표현이 서툴러 차갑게 보이지만 실제 의지는 살아 있을 수 있습니다.`,
-    "전문가 관점에서 이 파트의 정확도는 한 문장으로 요약됩니다. '말의 강도'보다 '행동의 일관성'을 우선 데이터로 보세요. 약속 이행률, 대화 지속성, 책임 회피 패턴은 감정의 진짜 깊이를 매우 정확하게 보여줍니다.",
+    "상담 관점에서 이 파트는 한 문장으로 요약됩니다. '말의 강도'보다 '행동의 일관성'을 우선 근거로 보세요. 약속 이행률, 대화 지속성, 책임 회피 패턴은 감정의 진짜 깊이를 꽤 분명하게 보여줍니다.",
     "또한 방어기제의 종류를 구분해야 합니다. 회피형 침묵, 불안형 확인 요구, 통제형 대화는 모두 다른 처방이 필요합니다. 이 구분을 하지 않으면 같은 문제를 반복 해석하게 되고, 반복 해석은 관계 피로를 크게 증가시킵니다.",
   ];
 
   const futureBlocks = [
-    `${n(4)}는 현재 병목을, ${n(5)}는 단기 결말의 방향을 가리킵니다. 타로의 정확도를 높이는 방법은 예언을 소비하는 것이 아니라 병목을 해소하는 실행을 붙이는 것입니다. 장애요인을 방치한 채 결말만 확인하면 해석 체감이 급격히 떨어집니다.`,
+    `${n(4)}는 현재 막히는 지점을, ${n(5)}는 단기 결말의 방향을 가리킵니다. 리딩의 읽는 정확함을 높이는 방법은 예언을 소비하는 것이 아니라 막히는 지점을 푸는 실행을 붙이는 것입니다. 장애요인을 방치한 채 결말만 확인하면 해석 체감이 급격히 떨어집니다.`,
     "앞으로 2~6주 구간의 핵심은 '관계 운영 리듬 재정렬'입니다. 감정이 올라온 순간 바로 결론을 묻기보다, 사실 확인 질문 → 감정 명료화 → 기대치 합의 순서를 지키면 관계가 불필요한 급락을 피할 가능성이 높습니다.",
     "미래는 단일 이벤트가 아니라 반복 선택의 누적입니다. 따라서 관계 개선은 대화의 질, 경계 존중, 응답 일관성이라는 세 지표를 기준으로 점검해야 하며, 이 세 지표가 회복되면 카드가 말한 결말도 더 좋은 쪽으로 구체화됩니다.",
   ];
@@ -264,7 +370,7 @@ function enhanceRelationshipReading(reading, cards) {
     "이 포지션은 관계 운영 패턴을 보여줍니다. 말의 내용보다 말이 오가는 구조(타이밍, 톤, 반복성)를 점검해야 정확한 해석이 됩니다.",
     "이 포지션은 상대의 인지·정서 반응을 분리해서 보라는 신호입니다. 반응 속도 하나만으로 마음을 단정하지 마세요.",
     "이 포지션은 현재 의지의 지속 가능성을 점검합니다. 일관된 행동이 있는지, 약속 이행률이 유지되는지 확인해 보세요.",
-    "이 포지션은 병목 원인을 압축해 보여줍니다. 문제를 한 문장으로 정의한 뒤 해결 행동 1개를 먼저 실행해야 흐름이 움직입니다.",
+    "이 포지션은 막히는 지점의 원인을 압축해 보여줍니다. 문제를 한 문장으로 정의한 뒤 해결 행동 1개를 먼저 실행해야 흐름이 움직입니다.",
     "이 포지션은 단기 결말을 보여주지만 고정 운명을 뜻하지 않습니다. 운영 방식이 바뀌면 결말도 함께 이동합니다.",
   ];
 
@@ -310,6 +416,7 @@ function enhanceRelationshipReading(reading, cards) {
 
   return {
     ...reading,
+    counselorTone: ensureTextLength(reading.counselorTone, 900, [counselorTone]),
     overallVibe: ensureTextLength(reading.overallVibe, 1800, overallBlocks),
     deepReading: ensureTextLength(reading.deepReading, 1800, deepBlocks),
     realityAndFuture: ensureTextLength(reading.realityAndFuture, 1800, futureBlocks),
@@ -323,9 +430,11 @@ function enhanceReunionReading(reading, cards) {
   const n = (i) => cardNameLine(c(i));
   const m = (i) => getCardMeaning(c(i));
 
+  const counselorTone = "이번 재회 리딩은 연애 상담사가 관계를 점검하듯, 타로 카드의 신호를 감정 관리와 소통 전략으로 풀어드리는 방식입니다. 마음이 흔들릴수록 결론보다 관계의 안전한 대화 구조를 먼저 세워보세요.";
+
   const openingBlocks = [
     `이번 리딩의 핵심은 재회 가능성 자체보다 '재회가 성립되는 조건'을 분리해서 보는 것입니다. ${n(0)}부터 ${n(4)}까지의 배열은 감정선, 현실 변수, 타이밍 변수를 각각 분해해 보여주므로 단순히 긍정/부정을 단정하는 접근보다 훨씬 정확한 해석이 가능합니다.`,
-    "20년 이상 관계 타로를 읽어온 관점에서, 재회 리딩의 정확도는 희망의 강도보다 패턴의 반복성에서 결정됩니다. 같은 갈등 구조가 반복되는지, 대화 회복 루틴이 있었는지, 상호 책임성이 살아 있는지를 함께 봐야 실제 결론과의 오차가 줄어듭니다.",
+    "관계 상담 관점에서, 재회 리딩의 읽는 정확함은 희망의 강도보다 패턴의 반복성에서 결정됩니다. 같은 갈등 구조가 반복되는지, 대화 회복 루틴이 있었는지, 상호 책임성이 살아 있는지를 함께 봐야 실제 결론과의 차이가 줄어듭니다.",
     "따라서 이번 결과는 감정적 위로나 단호한 단절 중 하나를 강요하지 않습니다. 대신 감정의 진실과 현실의 제약을 동시에 인정하고, 재접촉의 질을 높이는 실행 조건을 제시하는 방식으로 읽어야 실전 정확도가 높아집니다.",
   ];
 
@@ -355,7 +464,7 @@ function enhanceReunionReading(reading, cards) {
   ];
 
   const guideBlocks = [
-    "등대의 조언 파트는 감정의 진폭을 줄이고 판단 정확도를 높이는 실전 프로토콜입니다. 첫째, 즉시 결론 요구를 멈추고 짧고 명료한 소통을 유지하세요. 둘째, 상대 반응을 속도로 평가하지 말고 일관성으로 평가하세요. 셋째, 과거와 다른 행동 증거 1개를 확인한 뒤 다음 단계를 밟으세요.",
+    "등대의 조언 파트는 감정의 진폭을 줄이고 판단 정확도를 높이는 실전 진행 순서입니다. 첫째, 즉시 결론 요구를 멈추고 짧고 명료한 소통을 유지하세요. 둘째, 상대 반응을 속도로 평가하지 말고 일관성으로 평가하세요. 셋째, 과거와 다른 행동 증거 1개를 확인한 뒤 다음 단계를 밟으세요.",
     "재회는 사랑의 크기만으로 완성되지 않습니다. 관계를 운영하는 기술, 갈등을 복구하는 태도, 경계를 지키는 성숙함이 함께 필요합니다. 이번 리딩이 말하는 핵심은 '붙잡기'가 아니라 '건강한 방식으로 다시 연결될 자격을 갖추는 과정'입니다.",
     "따라서 지금의 최적 전략은 조급함을 줄이고, 대화 품질을 높이며, 자기 안정 루틴을 유지하는 것입니다. 자기 안정이 확보될수록 상대를 해석하는 정확도와 선택의 질이 함께 상승합니다.",
   ];
@@ -375,6 +484,7 @@ function enhanceReunionReading(reading, cards) {
 
   return {
     ...reading,
+    counselorTone: ensureTextLength(reading.counselorTone, 850, [counselorTone]),
     opening: ensureTextLength(reading.opening, 1200, openingBlocks),
     pastBond: ensureTextLength(reading.pastBond, 680, pastBlocks),
     theirNow: ensureTextLength(reading.theirNow, 680, nowBlocks),
@@ -389,9 +499,10 @@ function enhanceReunionReading(reading, cards) {
 function applyQualityEnhancement(spreadType, reading, cards) {
   const normalized = normalizeSpreadType(spreadType || "one_card");
   if (!reading || typeof reading !== "object") return reading;
-  if (normalized === "relationship_six_card") return enhanceRelationshipReading(reading, cards);
-  if (normalized === "reunion_lighthouse_five_card") return enhanceReunionReading(reading, cards);
-  return reading;
+  let next = reading;
+  if (normalized === "relationship_six_card") next = enhanceRelationshipReading(reading, cards);
+  else if (normalized === "reunion_lighthouse_five_card") next = enhanceReunionReading(reading, cards);
+  return finalizeReadingPayload(next, cards);
 }
 
 // ─── 카드별 핵심 의미 테이블 ───────────────────────────────────────────────────
