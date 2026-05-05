@@ -7838,7 +7838,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-    if (lockKey && isTileKeyUnlocked(lockKey)) return;
+    if (lockKey && (typeof isTileKeyUnlocked === 'function' ? !!isTileKeyUnlocked(lockKey) : (typeof window.isTileKeyUnlocked === 'function' && !!window.isTileKeyUnlocked(lockKey)))) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
@@ -7853,7 +7853,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-    if (lockKey && isTileKeyUnlocked(lockKey)) return false;
+    if (lockKey && (typeof isTileKeyUnlocked === 'function' ? !!isTileKeyUnlocked(lockKey) : (typeof window.isTileKeyUnlocked === 'function' && !!window.isTileKeyUnlocked(lockKey)))) return false;
     var action = tile.getAttribute('data-action');
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;

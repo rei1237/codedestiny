@@ -1513,7 +1513,6 @@ function __cdRequireTileLockGate(actionEl) {
     } catch (_) {}
   }
 
-  window.alert('잠금된 서비스입니다. 해금 후 이용해 주세요.');
   return false;
 }
 
