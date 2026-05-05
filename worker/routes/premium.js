@@ -63,82 +63,102 @@ const VEDIC_CHAPTER_META = [
 const ZIWEI_CHAPTER_META = [
   {
     num: 1,
-    title: "내 인생의 주인공 캐릭터 - 명궁 완전 해독",
-    subtitle: "명궁 주성·사화 완전 해독 - 타고난 핵심 성향·삼방사정·상황별 강점 활용 전략",
+    title: "타고난 명(命)과 본질 - 명궁·신궁 분석",
+    subtitle: "핵심 자아·행동 방식·삼방사정 기반 인생 방향 해석",
     icon: "ziwei"
   },
   {
     num: 2,
-    title: "내면의 본체 - 신궁 심층 분석과 잠재 무기",
-    subtitle: "신궁 심층 분석 - 내면의 본체·잠재 무기·명궁과의 통합으로 완성되는 진짜 자아",
+    title: "내면의 심리와 무의식 - 복덕궁 분석",
+    subtitle: "스트레스 패턴·회복력·정서 개운 루틴 심층 분석",
     icon: "ziwei"
   },
   {
     num: 3,
-    title: "무의식의 도화지 - 복덕궁으로 읽는 행복 설계도",
-    subtitle: "복덕궁 주성 분석 - 행복 DNA·스트레스 패턴·심상화 마인드 트레이닝",
+    title: "외형적 이미지와 사회적 페르소나 - 천이궁 분석",
+    subtitle: "첫인상·대외 활동운·이동/여행/확장 전략",
     icon: "ziwei"
   },
   {
     num: 4,
-    title: "세상이라는 무대 - 천이궁과 이미지 관리",
-    subtitle: "천이궁 주성 분석 - 사회적 이미지·이미지 관리·외부 활동 황금 타이밍",
+    title: "진로, 적성 및 직업운 - 관록궁 분석",
+    subtitle: "직업 적성·조직/사업 성향·명예운과 실전 커리어 전략",
     icon: "ziwei"
   },
   {
     num: 5,
-    title: "커리어와 성취 - 관록궁의 천직 방정식",
-    subtitle: "관록궁 주성 분석 - 업무 성향 DNA·천직 영역·오피스 심리학·커리어 도약 타이밍",
+    title: "재물운과 자산 관리 스타일 - 재백궁 분석",
+    subtitle: "수익 구조·지출 패턴·리스크 관리 기반 자산 전략",
     icon: "ziwei"
   },
   {
     num: 6,
-    title: "재화와 자산의 흐름 - 재백궁의 부의 법칙",
-    subtitle: "재백궁 주성 분석 - 재물 그릇·수입 파이프라인·파재성 역이용·황금 타이밍",
+    title: "연애 성향과 배우자운 - 부처궁 분석",
+    subtitle: "연애 패턴·궁합 구조·관계 안정화 전략",
     icon: "ziwei"
   },
   {
     num: 7,
-    title: "파트너십과 로맨스 - 부처궁의 인연 구조",
-    subtitle: "부처궁 주성 분석 - 이상형 성향·감정 비춤 패턴·관계 경계 설정·인연 타이밍",
+    title: "인간관계와 인맥 - 교우궁·형제궁 분석",
+    subtitle: "귀인/소인 구분·네트워크 운영·관계 스트레스 관리",
     icon: "ziwei"
   },
   {
     num: 8,
-    title: "팀워크와 네트워크 - 교우궁의 인적 자원 법칙",
-    subtitle: "교우궁 주성 분석 - 귀인 구별법·에너지 뱀파이어 차단·위임과 아웃소싱 전략",
+    title: "부동산 운과 가정 환경 - 전택궁 분석",
+    subtitle: "거주 안정성·공간 에너지·이사/주거 전략",
     icon: "ziwei"
   },
   {
     num: 9,
-    title: "공간과 환경 - 전택궁의 환경심리학",
-    subtitle: "전택궁 주성 분석 - 공간 심리학·인테리어 무드·깔끔한 정리법·자산 전략",
+    title: "건강과 활력 - 질액궁 분석",
+    subtitle: "체력 흐름·생활 습관·회복 루틴 기반 건강 관리",
     icon: "ziwei"
   },
   {
     num: 10,
-    title: "신체 에너지와 바이오리듬 - 질액궁의 건강 설계",
-    subtitle: "질액궁 주성 분석 - 오행 체질·스트레스 신체화 패턴·라이프스타일 의학 가이드",
+    title: "생애 주기와 10년 대운 - 대한 분석",
+    subtitle: "현재 대한 중심의 10년 전략 보고서",
     icon: "ziwei"
   },
   {
     num: 11,
-    title: "10년의 메가 트렌드 - 대한 분석과 전 생애 파노라마",
-    subtitle: "현재 대한 완전 해독 - 상승장/하락장 전략 + 전 생애 파노라마 + 황금 대한 지목",
+    title: "올해의 신년운세와 월별 흐름 - 유년·유월 분석",
+    subtitle: "연간 핵심 흐름과 12개월 타이밍 로드맵",
     icon: "ziwei"
   },
   {
     num: 12,
-    title: "올해의 마이크로 전술 - 유년·유월 로드맵",
-    subtitle: "2026 소한 완전 해독 - Go/Hold/Retreat 판정 · 분기별·월별 마이크로 전술 로드맵",
+    title: "액운 대처법과 맞춤형 행운 아이템 - 개운법 총결산",
+    subtitle: "수호 상징·행운 아이템·리스크 대응 개운 설계",
     icon: "ziwei"
   },
   {
     num: 13,
-    title: "인생 설계도 총결산 - 자미두수 거장의 마스터플랜 봉서",
-    subtitle: "13챕터 총결산 - 3가지 핵심 비책 · Master Habit · 거장의 천명 봉서",
+    title: "종합 총운과 90일 실행 로드맵",
+    subtitle: "전체 명반 통합 총평과 실천 중심 변화 계획",
     icon: "ziwei"
   },
+];
+
+const ZIWEI_REPORT_TITLE = "나의 운명을 깨우는 심화 자미두수 리포트";
+const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 큰 방향";
+const ZIWEI_MIN_CHARS = 5200;
+
+const ZIWEI_CHAPTER_GUIDES = [
+  "명궁과 신궁을 중심으로 타고난 기질, 실제 행동 방식, 겉모습과 내면의 차이, 강점·약점, 핵심 키워드, 아침/저녁 루틴, 마인드셋 개운법을 다루고 마지막에 '나는 어떤 방식으로 살아야 운이 열리는 사람인가?'를 상담형으로 정리하세요.",
+  "복덕궁 중심으로 깊은 불안 원인, 스트레스/붕괴 패턴, 회복 환경, 취미, 5분 명상, 잠들기 전 심상화, 감정 정화 글쓰기, 공간 정리, 불안 완화 취미를 포함해 상담가 톤으로 작성하세요.",
+  "천이궁을 세상과 만나는 방식으로 해석하고 첫인상, 사회생활 태도, 이동/이사/해외 인연, 귀인 장소, 피해야 할 대외 행동, 스타일링, 운 트이는 색/방향/장소, 여행 개운법을 포함하세요.",
+  "관록궁 중심으로 직업 재능, 추천 직업군 3~5개(근거 포함), 직장형/사업형, 리더십 스타일, 조직 관계 유의점, 승진운, 사무실 풍수, 처세술을 작성하고 인생 격을 올리는 일의 조건을 명확히 정리하세요.",
+  "재백궁 중심으로 수익 구조, 누수 패턴, 저축/투자 성향, 수익 형태 궁합, 유리한 시기, 피해야 할 투자 습관, 지갑 색상, 보관 방향, 생활 풍수를 포함하세요. 수익 보장 표현은 금지하고 위험 관리 조언으로 쓰세요.",
+  "부처궁 중심으로 끌리는 사람과 실제 궁합, 연애 실수, 결혼 후 성향, 상처 지점, 악연 구별, 좋은 인연 행동, 데이트 스타일링, 말투/장소/색상, 관계 안정화 전략을 포함하세요.",
+  "교우궁·형제궁을 함께 해석해 귀인/소인 유형, 동업 가능성, 배신 예방, 인맥 기회화, 거리 조절, 대화 개운법, 관계운 소품/방향을 제시하고 두 궁의 충돌/보완 지점을 명확히 설명하세요.",
+  "전택궁 중심으로 부동산 인연, 내 집 마련 흐름, 청약/매매/임대/상속, 가정환경 영향, 안정되는 집 조건, 피할 환경, 현관/침실/책상/침대 배치, 이사 방향/시기, 대장군방/삼살방 현대 해석을 포함하세요.",
+  "질액궁 중심으로 취약 부위 경향, 스트레스 신체화, 체력 장단점, 생활 습관, 오행 균형 음식, 운동, 숙면 환경, 머리 방향, 약한 시기 관리, 몸-마음 동시 회복 루틴을 제시하세요. 질병 진단/보장은 금지하세요.",
+  "대한 중심으로 현재 10년을 가장 자세히 다루고 이전/다음 대한과 연결하세요. 강해지는 운/약해지는 운, 재물·직업·관계·건강 흐름, 확장/수비 타이밍, 무리수 방지, 대운 강약 대응법을 포함하고 핵심 행동 강령 5가지를 제시하세요.",
+  "유년·유월 분석으로 올해 전체 흐름, 기회/주의점, 직업/재물/관계/건강 흐름을 다루고 반드시 1월~12월을 '## N월' + 핵심 흐름/좋은 선택/주의할 점/개운 행동 형식으로 모두 작성하세요.",
+  "1~11챕터 종합 개운법으로 수호 동물, 행운 색/숫자/방향/장소, 추천 소품, 피할 습관, 액운 신호, 대응 행동, 상승기 행동, 운명 개조 마스터플랜을 제시하고 마지막에 '나만의 개운 선언문'을 작성하세요.",
+  "전체 명반의 핵심 총평과 1년/3년 방향, 실패 패턴과 차단법, 7일·30일·60일·90일 루틴을 제시하고 반드시 90일 실행 로드맵 표를 포함하세요. 엔딩 메시지는 운명은 고정이 아니라 선택의 결과라는 방향으로 마무리하세요.",
 ];
 
 function clampInt(value, fallback, min, max) {
@@ -404,7 +424,16 @@ ${guard}
 각 섹션은 두 문단 이상, 추상적인 위로보다 실제 선택과 행동 기준을 많이 포함하세요.`;
 }
 
-async function callGemini(env, prompt, modelEnvKeys = []) {
+async function callGemini(env, prompt, modelEnvKeys = [], options = {}) {
+  const temperature = Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86;
+  const topP = Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95;
+  const maxOutputTokens = Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192;
+  const timeoutMs = Number.isFinite(Number(options.timeoutMs))
+    ? Number(options.timeoutMs)
+    : Number(env.PREMIUM_GEMINI_TIMEOUT_MS || 45000);
+  const maxAttemptsPerPair = Number.isFinite(Number(options.maxAttemptsPerPair))
+    ? Number(options.maxAttemptsPerPair)
+    : Number(env.PREMIUM_GEMINI_RETRIES || 2);
   const result = await callGeminiText(env, prompt, {
     keyEnvKeys: [
       "PREMIUM_GEMINI_API_KEY1",
@@ -413,11 +442,11 @@ async function callGemini(env, prompt, modelEnvKeys = []) {
       "PREMIUM_GEMINI_API_KEY4",
     ],
     modelEnvKeys: ["PREMIUM_GEMINI_MODEL", ...modelEnvKeys],
-    temperature: 0.86,
-    topP: 0.95,
-    maxOutputTokens: 8192,
-    timeoutMs: Number(env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    maxAttemptsPerPair: Number(env.PREMIUM_GEMINI_RETRIES || 2),
+    temperature,
+    topP,
+    maxOutputTokens,
+    timeoutMs,
+    maxAttemptsPerPair,
   });
   return result.ok ? result.text : "";
 }
@@ -435,6 +464,305 @@ async function generatedChapter(env, kind, input, meta, dataLine, fallbackProfil
       focusLine: fallbackFocus,
     });
   }
+  return { text, sections: parseSections(text), usedFallback };
+}
+
+function normalizeZiweiField(value, fallback = "정보 없음") {
+  const text = String(value == null ? "" : value).trim();
+  return text || fallback;
+}
+
+function buildZiweiDataContext(body, input, summary, structured) {
+  const lunarType = normalizeZiweiField(body?.calendarType || body?.calendar || body?.isLunar || body?.solarLunar || "정보 없음");
+  const leapMonth = normalizeZiweiField(body?.isLeapMonth || body?.leapMonth || "정보 없음");
+  const baseLines = [
+    `- 사용자 생년월일: ${input.year}-${input.month}-${input.day}`,
+    `- 출생 시간: ${input.hour}:${String(input.minute).padStart(2, "0")}`,
+    `- 성별: ${normalizeZiweiField(body?.gender || input.gender || "정보 없음")}`,
+    `- 음력/양력: ${lunarType}`,
+    `- 윤달 여부: ${leapMonth}`,
+    `- 명궁: ${normalizeZiweiField(body?.mingong || body?.mingung || "정보 없음")}`,
+    `- 신궁: ${normalizeZiweiField(body?.shingong || body?.shingung || "정보 없음")}`,
+    `- 12궁 배치: ${normalizeZiweiField(body?.palaces || body?.palaceLayout || "정보 없음")}`,
+    `- 각 궁의 주성: ${normalizeZiweiField(body?.mainStars || body?.palaceMainStars || "정보 없음")}`,
+    `- 보조성: ${normalizeZiweiField(body?.auxStars || body?.palaceAuxStars || "정보 없음")}`,
+    `- 살성: ${normalizeZiweiField(body?.badStars || body?.palaceBadStars || "정보 없음")}`,
+    `- 사화: ${normalizeZiweiField(body?.sihua || body?.sihuaSummary || "정보 없음")}`,
+    `- 대한: ${normalizeZiweiField(body?.daehan || body?.majorCycle || "정보 없음")}`,
+    `- 유년: ${normalizeZiweiField(body?.yunyeon || body?.yearFlow || "정보 없음")}`,
+    `- 유월: ${normalizeZiweiField(body?.yuwol || body?.monthFlow || "정보 없음")}`,
+    `- 기타 계산된 자미두수 데이터: ${normalizeZiweiField(summary || body?.ziweiData || "정보 없음")}`,
+  ];
+
+  if (Array.isArray(structured) && structured.length) {
+    const palaceLines = structured.slice(0, 12).map((p) => {
+      const palace = normalizeZiweiField(p?.palace || p?.name || "미상궁");
+      const main = Array.isArray(p?.stars) ? p.stars.map((s) => normalizeZiweiField(s?.name || s)).filter(Boolean).join(", ") : "";
+      const aux = Array.isArray(p?.auxStars) ? p.auxStars.map((s) => normalizeZiweiField(s?.name || s)).filter(Boolean).join(", ") : "";
+      const bad = Array.isArray(p?.badStars) ? p.badStars.map((s) => normalizeZiweiField(s?.name || s)).filter(Boolean).join(", ") : "";
+      return `- ${palace}: 주성[${main || "정보 없음"}] 보조성[${aux || "정보 없음"}] 살성[${bad || "정보 없음"}]`;
+    });
+    return {
+      dataText: baseLines.concat("", "[구조화된 12궁 요약]", ...palaceLines).join("\n"),
+      missingNotice: "",
+    };
+  }
+
+  return {
+    dataText: baseLines.join("\n"),
+    missingNotice: "명반 데이터가 부족해 일반론으로 보완한다",
+  };
+}
+
+function ziweiMissingMarkers(text, chapter) {
+  const source = String(text || "");
+  const required = [
+    "### 핵심 요약 5줄",
+    "### 명반 근거 해석",
+    "### 성향과 현실 적용",
+    "### 장점과 기회",
+    "### 약점과 주의점",
+    "### 구체적인 개운법",
+    "### 실천 체크리스트",
+    "### 따뜻한 상담 메시지",
+    "### 오늘부터 실천할 3가지",
+    "---",
+  ];
+
+  if (chapter === 1) {
+    required.push(`# ${ZIWEI_REPORT_TITLE}`);
+    required.push(`# ${ZIWEI_PROLOGUE_TITLE}`);
+  }
+  if (chapter === 11) {
+    required.push("## 1월");
+    required.push("## 12월");
+    required.push("- 핵심 흐름:");
+    required.push("- 좋은 선택:");
+    required.push("- 주의할 점:");
+    required.push("- 개운 행동:");
+  }
+  if (chapter === 13) {
+    required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
+    required.push("| 1~7일 |  |  |  |  |");
+    required.push("| 8~30일 |  |  |  |  |");
+    required.push("| 31~60일 |  |  |  |  |");
+    required.push("| 61~90일 |  |  |  |  |");
+  }
+
+  return required.filter((marker) => !source.includes(marker));
+}
+
+function looksTruncatedMarkdown(text) {
+  const source = String(text || "").trim();
+  if (!source) return true;
+  const tail = source.slice(-140);
+  const hasTerminalMark = /[.!?。！？]$/.test(tail.trim()) || /---\s*$/.test(source);
+  const abruptlyCut = /(:|,|\(|\[|\-|\*|\s)$/.test(tail);
+  return !hasTerminalMark && abruptlyCut;
+}
+
+function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice) {
+  const chapterGuide = ZIWEI_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 궁위·삼방사정·대운·세운 흐름을 함께 해석하세요.";
+  const chapterMinChars = chapter === 11 || chapter === 13 ? 5600 : 5200;
+  const chapterHeading = `## 챕터 ${chapter}. ${meta.title}`;
+
+  const monthlyRule = chapter === 11
+    ? "챕터 11에서는 반드시 1월부터 12월까지 아래 형식을 반복하세요: ## N월 / - 핵심 흐름: / - 좋은 선택: / - 주의할 점: / - 개운 행동:"
+    : "";
+  const roadmapRule = chapter === 13
+    ? "챕터 13에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
+    : "";
+  const prologueRule = chapter === 1
+    ? `챕터 1 시작 전 반드시 '# ${ZIWEI_REPORT_TITLE}' 다음 줄에 '# ${ZIWEI_PROLOGUE_TITLE}'를 작성하고, 프롤로그에는 가장 강한 기운·반복 패턴·운이 열리는 방식·심리적 함정·리포트 활용법·자미두수는 선택의 나침반이라는 안내를 포함하세요.`
+    : "";
+
+  return [
+    "너는 30년 경력의 자미두수 명리 전문가이자, 심리 상담가, 인생 전략 컨설턴트, 프리미엄 PDF 리포트 작가다.",
+    "사용자의 자미두수 명반 데이터를 기반으로 단순 점괘가 아니라 타고난 구조→현재 심리/현실→선택 전략→구체적 개운 실천법을 연결해 작성하라.",
+    "오직 마크다운 본문만 출력하라. 코드, 컴포넌트, UI 설명, 개발 설명은 절대 출력하지 마라.",
+    "건강·투자·법률·의료는 진단/보장 표현을 금지하고 생활 관리 수준의 조언으로 작성하라.",
+    "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
+    "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
+    "별 하나만 단편 해석하지 말고 궁위·삼방사정·대운·세운·사화를 종합하라.",
+    "",
+    `[현재 생성 대상] ${chapterHeading}`,
+    `[부제] ${meta.subtitle}`,
+    `[최소 분량] ${chapterMinChars}자 이상 (권장 6000자)` ,
+    "",
+    "[반드시 지킬 형식]",
+    "- 챕터 제목: H2(##)",
+    "- 소제목: H3(###)",
+    "- 핵심 요약: bullet 5줄",
+    "- 실천 체크리스트: 체크박스 형식(- [ ])",
+    "- 중요한 문장: 굵게(** **)",
+    "- 챕터 마지막: 오늘부터 실천할 3가지 + 구분선(---)",
+    "",
+    "[챕터 본문 필수 순서]",
+    chapter === 1 ? `# ${ZIWEI_REPORT_TITLE}` : "",
+    chapter === 1 ? `# ${ZIWEI_PROLOGUE_TITLE}` : "",
+    chapterHeading,
+    "### 핵심 요약 5줄",
+    "### 명반 근거 해석",
+    "### 성향과 현실 적용",
+    "### 장점과 기회",
+    "### 약점과 주의점",
+    "### 구체적인 개운법",
+    "### 실천 체크리스트",
+    "### 따뜻한 상담 메시지",
+    "### 오늘부터 실천할 3가지",
+    "---",
+    "",
+    "[챕터 전용 추가 지시]",
+    chapterGuide,
+    monthlyRule,
+    roadmapRule,
+    prologueRule,
+    "",
+    "[입력 데이터]",
+    dataText,
+    missingNotice ? `- 데이터 주의: ${missingNotice}` : "",
+    "",
+    "데이터가 일부 부족하면 문장 중에 반드시 '명반 데이터가 부족해 일반론으로 보완한다'를 포함하고, 가능한 범위 내 최선 해석을 제공하라.",
+  ].filter(Boolean).join("\n");
+}
+
+function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice) {
+  const chapterHeading = `## 챕터 ${chapter}. ${meta.title}`;
+  const intro = chapter === 1
+    ? `# ${ZIWEI_REPORT_TITLE}\n\n# ${ZIWEI_PROLOGUE_TITLE}\n**이 명반의 가장 강한 기운은 타고난 책임감과 현실 대응력의 결합입니다.** 삶에서 반복되는 핵심 패턴은 중요한 순간에 스스로를 과도하게 압박한 뒤, 다시 균형을 회복하는 방식으로 나타납니다. 운이 열리는 방식은 큰 결심보다 작은 실행을 꾸준히 쌓을 때이며, 조심해야 할 심리적 함정은 완벽주의와 비교 의식입니다. 이 리포트는 정답을 강요하는 문서가 아니라 선택의 품질을 높이는 안내서입니다. **자미두수는 운명을 고정하는 도구가 아니라, 선택의 질을 높이는 나침반입니다.**\n\n`
+    : "";
+
+  const summaryList = [
+    "- **핵심 에너지는 강점과 부담이 동시에 작동하는 이중 구조입니다.**",
+    "- 타이밍을 잡을 때는 감정 속도보다 실행 지속성을 우선하는 편이 유리합니다.",
+    "- 관계·일·재정은 분리된 문제가 아니라 같은 의사결정 습관의 다른 얼굴입니다.",
+    "- 리스크는 외부 변수보다 내부 리듬 붕괴(수면, 과부하, 경계 붕괴)에서 커집니다.",
+    "- 오늘의 작은 조정이 3개월 뒤 운의 체감을 바꾸는 출발점이 됩니다.",
+  ].join("\n");
+
+  const monthlyTemplate = chapter === 11
+    ? [
+      "## 1월\n- 핵심 흐름: 속도보다 정렬이 중요한 달입니다.\n- 좋은 선택: 오래 미뤄둔 우선순위 1개를 확정하세요.\n- 주의할 점: 충동적 확장 결정을 피하세요.\n- 개운 행동: 아침 10분 계획 점검을 고정하세요.",
+      "## 2월\n- 핵심 흐름: 관계 조정과 협업 재정렬이 필요한 달입니다.\n- 좋은 선택: 대화 기준을 문장으로 합의하세요.\n- 주의할 점: 감정 누적 후 폭발 패턴을 경계하세요.\n- 개운 행동: 주 1회 감정 기록을 실천하세요.",
+      "## 3월\n- 핵심 흐름: 실행력이 회복되는 구간입니다.\n- 좋은 선택: 작은 성과를 빠르게 반복하세요.\n- 주의할 점: 완벽주의로 시작이 늦어지지 않게 하세요.\n- 개운 행동: 25분 집중 루틴을 도입하세요.",
+      "## 4월\n- 핵심 흐름: 외부 활동운이 점차 확장됩니다.\n- 좋은 선택: 이동/미팅을 전략적으로 배치하세요.\n- 주의할 점: 체력 과소평가를 피하세요.\n- 개운 행동: 수면 우선 루틴을 지키세요.",
+      "## 5월\n- 핵심 흐름: 재정 의사결정의 분기점입니다.\n- 좋은 선택: 위험 노출도를 숫자로 점검하세요.\n- 주의할 점: 단기 기대 수익에 과몰입하지 마세요.\n- 개운 행동: 고정지출 재정렬을 실행하세요.",
+      "## 6월\n- 핵심 흐름: 관계 안정화와 경계 설정이 중요합니다.\n- 좋은 선택: 요청·거절 기준을 명확히 하세요.\n- 주의할 점: 정서적 소모 관계를 방치하지 마세요.\n- 개운 행동: 주간 관계 정리 시간을 고정하세요.",
+      "## 7월\n- 핵심 흐름: 커리어 집중력이 상승합니다.\n- 좋은 선택: 성과 지표를 단순화하세요.\n- 주의할 점: 다중 프로젝트 동시 과부하를 피하세요.\n- 개운 행동: 가장 중요한 한 가지를 먼저 완료하세요.",
+      "## 8월\n- 핵심 흐름: 회복과 재충전이 성과를 좌우합니다.\n- 좋은 선택: 리듬 회복 계획을 먼저 세우세요.\n- 주의할 점: 누적 피로를 의지로만 버티지 마세요.\n- 개운 행동: 저녁 디지털 디톡스 시간을 만드세요.",
+      "## 9월\n- 핵심 흐름: 장기 계획을 다시 설계하기 좋은 달입니다.\n- 좋은 선택: 1년 목표를 90일 단위로 재배치하세요.\n- 주의할 점: 과거 실패 기억에 발목 잡히지 마세요.\n- 개운 행동: 주간 회고 30분을 유지하세요.",
+      "## 10월\n- 핵심 흐름: 대외 신뢰와 평판 관리가 중요합니다.\n- 좋은 선택: 약속 이행률을 높이세요.\n- 주의할 점: 즉흥적 발언으로 오해를 만들지 마세요.\n- 개운 행동: 핵심 메시지 3문장 템플릿을 준비하세요.",
+      "## 11월\n- 핵심 흐름: 수확과 정리의 균형이 필요합니다.\n- 좋은 선택: 유지할 것과 종료할 것을 분리하세요.\n- 주의할 점: 미련으로 비효율을 끌지 마세요.\n- 개운 행동: 월말 정리 루틴을 실행하세요.",
+      "## 12월\n- 핵심 흐름: 다음 해를 위한 구조화가 핵심입니다.\n- 좋은 선택: 체력·관계·재정의 기준선을 재설정하세요.\n- 주의할 점: 과도한 자기평가로 의욕을 잃지 마세요.\n- 개운 행동: 7일 실천 계획을 먼저 시작하세요.",
+    ].join("\n\n")
+    : "";
+
+  const roadmapTable = chapter === 13
+    ? "### 90일 실행 로드맵\n| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |\n|---|---|---|---|---|\n| 1~7일 |  |  |  |  |\n| 8~30일 |  |  |  |  |\n| 31~60일 |  |  |  |  |\n| 61~90일 |  |  |  |  |"
+    : "";
+
+  let text = [
+    intro,
+    chapterHeading,
+    "### 핵심 요약 5줄",
+    summaryList,
+    "### 명반 근거 해석",
+    `${missingNotice ? "명반 데이터가 부족해 일반론으로 보완한다. " : ""}입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
+    `데이터 단서 요약:\n${dataText}\n\n해석의 목적은 예언이 아니라 실행 가능한 선택 기준을 만드는 것입니다. 따라서 이 챕터는 지금 당장 바꿀 수 있는 행동과 중장기적으로 지켜야 할 원칙을 분리해 제시합니다.`,
+    "### 성향과 현실 적용",
+    "성향은 고정된 운명이 아니라 반복되는 반응 방식입니다. 현실 적용의 핵심은 내 반응 속도를 늦추고, 중요한 결정의 평가 기준을 명문화하는 것입니다. 예를 들어 관계에서는 감정 강도보다 경계의 일관성을, 커리어에서는 열정 강도보다 지속 가능성을 먼저 점검하면 리스크가 빠르게 줄어듭니다.",
+    "또한 궁위 해석은 영역별로 나눠 보되 결국 하나의 생활 시스템으로 통합해야 체감이 생깁니다. 아침 루틴, 주간 회고, 월간 점검의 3단계만 고정해도 운세 해석이 생활 운영 매뉴얼로 전환됩니다.",
+    "### 장점과 기회",
+    "**이 명반의 장점은 위기 상황에서 구조를 재정렬하는 능력입니다.** 감정이 흔들리는 상황에서도 핵심을 다시 붙잡는 힘이 있어, 장기전에서 강점을 발휘합니다. 외부 확장 기회는 준비된 루틴 위에서 더 빠르게 현실화됩니다.",
+    "기회를 키우는 방법은 복잡하지 않습니다. 핵심 목표를 줄이고, 실행 단위를 작게 나누고, 반복 가능한 리듬으로 고정하는 것입니다. 이렇게 하면 기회가 들어올 때 과부하 없이 받아낼 수 있습니다.",
+    "### 약점과 주의점",
+    "약점은 저주가 아니라 관리해야 할 에너지입니다. 특히 과도한 자기압박, 완벽주의, 관계 과잉 책임은 성과를 늦추는 대표 패턴입니다. 이 시기에는 보수적으로 접근하는 것이 좋으며, 큰 결정보다 손실을 줄이는 운영이 유리합니다.",
+    "주의점은 실패를 두려워하는 태도 자체보다, 실패 후 회복 프로토콜이 없는 상태입니다. 회복 규칙이 있으면 동일한 실수도 다른 결과를 만듭니다.",
+    "### 구체적인 개운법",
+    "개운의 핵심은 생활 리듬 재정렬입니다. 아침에는 10분 계획 정리, 낮에는 핵심 1개 완수, 저녁에는 감정/행동 분리 회고를 실행하세요. 심리 안정이 필요한 날에는 5분 복식호흡(4초 들숨-4초 멈춤-6초 날숨)을 5회 반복하세요.",
+    "공간 개운은 과장된 풍수보다 동선 단순화가 효과적입니다. 현관-책상-침실 3구역의 잡음을 줄이고, 시선이 닿는 곳에 실행 체크리스트를 배치하면 행동 지속성이 올라갑니다.",
+    "### 실천 체크리스트",
+    "- [ ] 오늘 의사결정 1건을 감정/현실/장기효과로 분리 기록한다.",
+    "- [ ] 이번 주 가장 큰 소모 패턴 1개를 식별하고 대체 행동 1개를 정한다.",
+    "- [ ] 수면 시간을 기준선으로 고정해 체력 변동폭을 줄인다.",
+    "- [ ] 관계 경계 문장 1개를 만들어 실제 대화에 사용한다.",
+    "- [ ] 주간 회고에서 다음 주 중단할 행동 1개를 확정한다.",
+    "### 따뜻한 상담 메시지",
+    "지금까지의 흔들림은 실패의 증거가 아니라 방향을 미세 조정해 온 과정입니다. 당신의 강점은 이미 충분하며, 필요한 것은 더 큰 의지가 아니라 더 안정적인 리듬입니다. **지금의 작은 실행이 앞으로의 운을 바꾸는 가장 현실적인 시작점입니다.**",
+    monthlyTemplate,
+    roadmapTable,
+    chapter === 13 ? "### 엔딩 메시지\n운명은 고정된 판결문이 아닙니다. 명반은 나를 이해하기 위한 지도이며, 약점은 관리해야 할 에너지이고 강점은 실천할 때 현실이 되는 선물입니다. 지금부터의 선택이 앞으로의 운을 바꿉니다." : "",
+    "### 오늘부터 실천할 3가지",
+    "1. 하루 10분, 내 선택 기준을 글로 남깁니다.",
+    "2. 이번 주 가장 큰 소모 패턴 1개를 멈추고 대체 행동을 고정합니다.",
+    "3. 월말에 관계·일·건강·재정 점검을 한 번에 정리합니다.",
+    "---",
+  ].filter(Boolean).join("\n\n");
+
+  let depth = 1;
+  while (text.length < ZIWEI_MIN_CHARS) {
+    text += `\n\n### 심화 보충 노트 ${depth}\n`;
+    text += "이 보충 노트는 해석을 행동으로 연결하기 위한 실전 안내입니다. 큰 결정을 서두르기보다, 매주 같은 시간에 복기 루틴을 반복하면 리스크가 줄고 기회 포착력이 높아집니다. 궁위 해석은 정답이 아니라 선택 품질을 높이는 프레임이므로, 현재 상황에 맞게 가중치를 조정해 적용하세요.\n\n";
+    text += "실행 문장: 이번 주에는 하나의 핵심 목표만 남기고, 나머지는 보류 리스트로 이동해 실행 피로를 줄이세요.";
+    depth += 1;
+  }
+
+  return text;
+}
+
+async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summary, structured) {
+  const { dataText, missingNotice } = buildZiweiDataContext(body, input, summary, structured);
+  const prompt = buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice);
+  const genOptions = {
+    temperature: 0.72,
+    topP: 0.92,
+    maxOutputTokens: 16384,
+    timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 70000),
+    maxAttemptsPerPair: Number(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+
+  let text = await callGemini(env, prompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], genOptions);
+  let usedFallback = false;
+
+  if (!text || text.trim().length < 1200) {
+    usedFallback = true;
+    text = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
+  }
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const missing = ziweiMissingMarkers(text, chapter);
+    const tooShort = text.length < ZIWEI_MIN_CHARS;
+    const truncated = looksTruncatedMarkdown(text);
+    if (!tooShort && missing.length === 0 && !truncated) break;
+
+    const refinePrompt = [
+      "아래 자미두수 챕터 초안을 고품질로 보강하세요.",
+      `목표 길이: 최소 ${ZIWEI_MIN_CHARS}자`,
+      "중요: 초안의 장점을 유지하면서 누락 섹션만 보완하고 문장 흐름을 자연스럽게 연결하세요.",
+      "오직 마크다운 본문만 출력하세요.",
+      `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김 의심" : ""}`.trim(),
+      "",
+      "[초안]",
+      text,
+    ].join("\n");
+
+    const refined = await callGemini(env, refinePrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], genOptions);
+    if (!refined || !refined.trim()) break;
+    const candidate = refined.trim();
+    if (candidate.length >= Math.floor(text.length * 0.8)) {
+      text = candidate;
+    } else {
+      text = `${text}\n\n${candidate}`;
+    }
+  }
+
+  const finalMissing = ziweiMissingMarkers(text, chapter);
+  if (text.length < ZIWEI_MIN_CHARS || finalMissing.length > 0 || looksTruncatedMarkdown(text)) {
+    usedFallback = true;
+    text = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
+  }
+
   return { text, sections: parseSections(text), usedFallback };
 }
 
@@ -899,16 +1227,22 @@ async function handleZiweiBookSession(request, env) {
   };
   const structured = body.ziweiStructured?.palaceStarData;
   const summary = Array.isArray(structured)
-    ? structured.slice(0, 6).map((p) => `${p.palace || ""}:${(p.stars || []).map((s) => s.name).join(",")}`).join(" / ")
-    : String(body.ziweiData || "").slice(0, 600);
-  const generated = await generatedChapter(
+    ? structured.slice(0, 12).map((p) => {
+      const palace = p?.palace || "미상궁";
+      const stars = Array.isArray(p?.stars) ? p.stars.map((s) => s?.name || "").filter(Boolean).join(",") : "";
+      const aux = Array.isArray(p?.auxStars) ? p.auxStars.map((s) => s?.name || "").filter(Boolean).join(",") : "";
+      const bad = Array.isArray(p?.badStars) ? p.badStars.map((s) => s?.name || "").filter(Boolean).join(",") : "";
+      return `${palace}: 주성(${stars || "정보없음"}) 보조(${aux || "정보없음"}) 살성(${bad || "정보없음"})`;
+    }).join(" / ")
+    : String(body.ziweiData || "").slice(0, 2200);
+  const generated = await generateZiweiPremiumChapter(
     env,
-    "ziwei",
+    body,
     input,
+    chapter,
     meta,
-    summary || "명궁, 복덕궁, 관록궁, 재백궁 중심의 자미두수 구조",
-    `${input.name}님의 자미두수 차트는 12궁의 배치와 주성의 강약을 통해 삶의 역할과 선택 습관을 읽습니다.`,
-    "자미두수에서는 명궁의 주제와 궁위 간 연결을 실제 커리어, 관계, 돈의 흐름으로 번역해야 합니다.",
+    summary || "명반 데이터가 부족해 일반론으로 보완한다",
+    Array.isArray(structured) ? structured : [],
   );
   return json({ ok: true, chapter, chapterMeta: meta, ...generated });
 }
