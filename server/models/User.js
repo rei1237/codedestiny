@@ -84,6 +84,14 @@ const userSchema = new mongoose.Schema({
       connectedAt: { type: Date, default: null },
     },
   },
+  destinyProfiles: {
+    type: [mongoose.Schema.Types.Mixed],
+    default: [],
+  },
+  destinyProfilesCurrentId: {
+    type: String,
+    default: "",
+  },
   /**
    * 2FA(TOTP) 설정
    * - 이 값은 관리자 로그인에서만 사용한다.

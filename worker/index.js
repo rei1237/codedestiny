@@ -16,6 +16,7 @@ import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
 import { handleSibylRoutes } from "./routes/sibyl.js";
 import { handleOracleRoutes } from "./routes/oracle.js";
+import { handleUserRoutes } from "./routes/user.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -404,6 +405,10 @@ export default {
 
     if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {
       return withCorsHeaders(request, env, await handleDebugRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/user" || url.pathname.startsWith("/api/user/")) {
+      return withCorsHeaders(request, env, await handleUserRoutes(request, env));
     }
 
     if (url.pathname.startsWith("/api/")) {

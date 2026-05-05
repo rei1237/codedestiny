@@ -14,6 +14,12 @@ export function getBearerToken(request) {
   return bearer || cookieValue(request, "fortune_auth_token");
 }
 
+function extractTokenUserId(payload) {
+  const userId = String(payload?.userId || payload?.id || "").trim();
+  if (!/^[a-f0-9]{24}$/i.test(userId)) return "";
+  return userId;
+}
+
 export async function requireAuth(request, env) {
   const token = getBearerToken(request);
   if (!token) {
@@ -21,12 +27,13 @@ export async function requireAuth(request, env) {
   }
 
   const payload = await verifyJwt(token, getJwtSecret(env), { issuer: JWT_ISSUER });
-  if (!payload?.userId) {
+  const userId = extractTokenUserId(payload);
+  if (!userId) {
     throw createHttpError(401, "Invalid authentication token.", { code: "UNAUTHORIZED" });
   }
 
   return {
-    userId: String(payload.userId),
+    userId,
     email: payload.email ? String(payload.email) : "",
     role: payload.role ? String(payload.role) : "user",
     name: payload.name ? String(payload.name) : "",
