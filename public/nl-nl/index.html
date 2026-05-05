@@ -6474,7 +6474,37 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     syncUnlockedFeatureMapGlobal();
     if (!hasAuthToken()) return;
     clearLegacyUnlockStorage();
-    // 서버 응답이 잠금 상태의 단일 진실 원천이다.
+    var storageKey = getTileLocksStorageKey();
+    var hasScopedData = false;
+    try {
+      if (storageKey) {
+        var saved = localStorage.getItem(storageKey);
+        if (saved) {
+          hasScopedData = true;
+          var parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            var keys = Object.keys(parsed);
+            for (var i = 0; i < keys.length; i += 1) {
+              if (parsed[keys[i]] === true) markUnlockKey(unlockedFeatureMap, keys[i]);
+            }
+          }
+        }
+      }
+    } catch (_e) {}
+    try {
+      if (!storageKey || !hasScopedData) {
+        var legacySaved = localStorage.getItem('cd_tile_locks');
+        if (legacySaved) {
+          var legacyParsed = JSON.parse(legacySaved);
+          if (legacyParsed && typeof legacyParsed === 'object') {
+            var legacyKeys = Object.keys(legacyParsed);
+            for (var li = 0; li < legacyKeys.length; li += 1) {
+              if (legacyParsed[legacyKeys[li]] === true) markUnlockKey(unlockedFeatureMap, legacyKeys[li]);
+            }
+          }
+        }
+      }
+    } catch (_legacyErr) {}
     syncUnlockedFeatureMapGlobal();
   }
 
@@ -7197,6 +7227,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }).catch(function(e){console.error('[prem-card vedic]',e);});
         })();
       }
+      return;
+    }
+    if (action === 'navigateToVedic') {
+      if (typeof window.openFortuneFromProfile === 'function') {
+        try {
+          if (window.openFortuneFromProfile('vedic')) return;
+        } catch (_openFromProfileErr) {}
+      }
+      if (typeof window.navigateToVedic === 'function') {
+        try {
+          window.navigateToVedic();
+          return;
+        } catch (_navVedicErr) {}
+      }
+      if (typeof window._dpOpenFortuneType === 'function') {
+        window._dpOpenFortuneType('vedic');
+        return;
+      }
+      window.location.href = '/vedic-astrology.html';
       return;
     }
     // window[action] ?⑥닔媛 ?덉쑝硫?吏곸젒 ?몄텧
@@ -9211,7 +9260,4 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
-
-
-
 

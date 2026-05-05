@@ -1485,14 +1485,23 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
     var auth = authRaw ? JSON.parse(authRaw) : null;
     var scopeRaw = auth && (auth.id || auth.userId || auth._id || auth.uid);
     var scope = String(scopeRaw || '').trim().toLowerCase();
+    var hasScopedData = false;
     if (scope) {
       var scopedKey = 'cd_tile_locks_v2::' + scope;
       var scopedRaw = localStorage.getItem(scopedKey);
       if (scopedRaw) {
+        hasScopedData = true;
         var scopedMap = JSON.parse(scopedRaw);
-        return __cdMapHasTileLockUnlocked(scopedMap, lockKey);
+        if (__cdMapHasTileLockUnlocked(scopedMap, lockKey)) return true;
       }
-      return false;
+      if (hasScopedData) return false;
+    }
+  } catch (_) {}
+  try {
+    var legacyRaw = localStorage.getItem('cd_tile_locks');
+    if (legacyRaw) {
+      var legacy = JSON.parse(legacyRaw);
+      if (__cdMapHasTileLockUnlocked(legacy, lockKey)) return true;
     }
   } catch (_) {}
   return false;

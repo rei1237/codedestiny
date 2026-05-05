@@ -10348,11 +10348,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     syncUnlockedFeatureMapGlobal();
     clearLegacyUnlockStorage();
     if (!hasAuthToken()) return;
+    var scopedKey = '';
+    var hasScopedData = false;
     try {
-      var scopedKey = getUnlockStorageKey();
+      scopedKey = getUnlockStorageKey();
       if (scopedKey) {
         var saved = localStorage.getItem(scopedKey);
         if (saved) {
+          hasScopedData = true;
           var parsed = JSON.parse(saved);
           if (parsed && typeof parsed === 'object') {
             var keys = Object.keys(parsed);
@@ -10363,6 +10366,20 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
       }
     } catch (_e) {}
+    try {
+      if (!scopedKey || !hasScopedData) {
+        var legacySaved = localStorage.getItem('cd_tile_locks');
+        if (legacySaved) {
+          var legacyParsed = JSON.parse(legacySaved);
+          if (legacyParsed && typeof legacyParsed === 'object') {
+            var legacyKeys = Object.keys(legacyParsed);
+            for (var li = 0; li < legacyKeys.length; li += 1) {
+              if (legacyParsed[legacyKeys[li]] === true) markUnlockKey(unlockedFeatureMap, legacyKeys[li]);
+            }
+          }
+        }
+      }
+    } catch (_legacyErr) {}
     syncUnlockedFeatureMapGlobal();
   }
 
@@ -11129,11 +11146,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
 
     if (action === 'navigateToVedic') {
+      if (typeof window.openFortuneFromProfile === 'function') {
+        try {
+          if (window.openFortuneFromProfile('vedic')) return;
+        } catch (_openFromProfileErr) {}
+      }
+      if (typeof window.navigateToVedic === 'function') {
+        try {
+          window.navigateToVedic();
+          return;
+        } catch (_navVedicErr) {}
+      }
       if (typeof window._dpOpenFortuneType === 'function') {
         window._dpOpenFortuneType('vedic');
-      } else {
-        window.location.href = '/vedic-astrology.html';
+        return;
       }
+      window.location.href = '/vedic-astrology.html';
       return;
     }
 
