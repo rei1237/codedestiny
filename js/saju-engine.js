@@ -6186,15 +6186,8 @@ function renderAstroInsight() {
       chartNow = calcAstroApiChartOrThrow(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, lat, lon, tz, houseSystem);
     } catch (apiErr) {
       precisionReason = apiErr && apiErr.message ? String(apiErr.message) : String(apiErr || 'swiss unavailable');
-      try {
-        chart = AstroEngine.calcAll(y, m, d, h + min / 60, lat, lon, tz, { houseSystem: houseSystem });
-        var nowFallback = new Date();
-        chartNow = AstroEngine.calcAll(nowFallback.getFullYear(), nowFallback.getMonth() + 1, nowFallback.getDate(), 12, lat, lon, tz, { houseSystem: houseSystem });
-        precisionMode = (chart && chart.natal && chart.natal.meta && chart.natal.meta.precisionMode) ? chart.natal.meta.precisionMode : 'legacy-fallback';
-      } catch (fallbackErr) {
-        renderAstroApiUnavailable(fallbackErr && fallbackErr.message ? fallbackErr.message : fallbackErr);
-        return;
-      }
+      renderAstroApiUnavailable(precisionReason);
+      return;
     }
 
     if (!chart || !chartNow || !chart.planets || !chartNow.planets || !chartNow.planets.Jupiter || !chartNow.planets.Jupiter.sign) {
@@ -6643,7 +6636,7 @@ function renderAstroInsight() {
       Sun:'태양', Moon:'달', Mercury:'수성', Venus:'금성', Mars:'화성',
       Jupiter:'목성', Saturn:'토성', Uranus:'천왕성', Neptune:'해왕성', Pluto:'명왕성'
     };
-    var placementRows = [];
+    var placementData = [];
     planetDisplayOrder.forEach(function(pn){
       var sObj = (pn === 'Sun') ? chart.sun : (pn === 'Moon' ? chart.moon : (chart.planets[pn] && chart.planets[pn].sign));
       if(!sObj || sObj.idx == null) return;
@@ -6651,14 +6644,15 @@ function renderAstroInsight() {
       var hPlacidus = _houseOfLon(lon, cuspsLon);
       var hWhole = _wholeSignHouse(sObj.idx, ascIndex);
       var retro = (pn !== 'Sun' && pn !== 'Moon' && chart.planets[pn] && chart.planets[pn].retro) ? ' Rx' : '';
-      placementRows.push(
-        '<tr>'
-        +'<td class="astro-col-planet" style="color:#cbd5e1;">'+planetKr[pn]+'</td>'
-        +'<td class="astro-col-longitude" style="color:#e2e8f0;">'+_fmtLon(lon)+retro+'</td>'
-        +'<td class="astro-col-placidus" style="color:#bae6fd;">'+(hPlacidus ? (hPlacidus+'H') : '-')+'</td>'
-        +'<td class="astro-col-whole" style="color:#bbf7d0;">'+(hWhole ? (hWhole+'H') : '-')+'</td>'
-        +'</tr>'
-      );
+      placementData.push({
+        key: pn,
+        label: planetKr[pn],
+        signIdx: sObj.idx,
+        longitudeText: _fmtLon(lon) + retro,
+        hPlacidus: hPlacidus,
+        hWhole: hWhole,
+        isRetro: !!retro
+      });
     });
 
     var majorAspectRows = [];
@@ -6674,15 +6668,15 @@ function renderAstroInsight() {
         var asp = _aspectName(diff);
         if(!asp) continue;
         majorAspectRows.push({
+          a: pa,
+          b: pb,
+          name: asp.name,
           text: planetKr[pa] + ' - ' + planetKr[pb] + ' : ' + asp.name + ' (orb ' + asp.orb.toFixed(2) + '°)',
           orb: asp.orb
         });
       }
     }
     majorAspectRows.sort(function(a,b){ return a.orb - b.orb; });
-    var majorAspectHtml = majorAspectRows.slice(0,6).map(function(r){
-      return '<li style="margin-bottom:4px;">'+r.text+'</li>';
-    }).join('') || '<li>지금은 강하게 붙는 각이 적어서, 큰 흔들림 없이 잔잔한 흐름입니다.</li>';
 
     var elemWeakest = Object.keys(elemCount).reduce(function(a,b){ return elemCount[a] <= elemCount[b] ? a : b; });
     var elemShortNames = { fire:'불', earth:'흙', air:'공기', water:'물' };
@@ -6713,6 +6707,120 @@ function renderAstroInsight() {
     var plutoHousePair = _housePairText(_planetSignObjByName('Pluto'));
     var fortunaHousePair = _housePairText(chart.lots && chart.lots.fortuna ? chart.lots.fortuna : null);
     var spiritHousePair = _housePairText(chart.lots && chart.lots.spirit ? chart.lots.spirit : null);
+    var ascHousePair = _housePairText(chart.asc);
+
+    var PLANET_MEANINGS = {
+      Sun:'핵심 정체성과 인생의 주연 에너지',
+      Moon:'감정 반응과 회복 패턴',
+      Mercury:'사고방식, 학습법, 말투',
+      Venus:'호감 표현, 취향, 관계의 온도',
+      Mars:'행동 스위치, 추진력, 분노 방식',
+      Jupiter:'성장 기회와 확장 운',
+      Saturn:'책임, 한계, 오래 남는 실력',
+      Uranus:'급변, 혁신, 자유 욕구',
+      Neptune:'직관, 상상력, 경계 흐림',
+      Pluto:'근본 변화와 재탄생'
+    };
+    var SIGN_MEANINGS = [
+      '스타트가 빠르고 도전 본능이 강함',
+      '안정, 실속, 감각적 만족을 중시함',
+      '대화, 정보교환, 멀티태스킹에 강함',
+      '정서적 안정과 소속감이 중요함',
+      '표현력, 자존감, 창조성이 돋보임',
+      '정리력, 디테일, 개선 본능이 강함',
+      '관계 균형, 협상력, 미적 감각이 좋음',
+      '집중력, 깊이, 몰입이 강한 편',
+      '탐험, 학습, 확장 욕구가 큼',
+      '목표 지향, 책임감, 성취 욕구가 큼',
+      '독립성, 아이디어, 실험 정신이 강함',
+      '공감력, 직관, 상상력이 뛰어남'
+    ];
+    var HOUSE_MEANINGS = {
+      1:'자기정체성/첫인상', 2:'돈/가치/자원', 3:'학습/소통/이동',
+      4:'가정/마음기반', 5:'연애/창작/즐거움', 6:'업무루틴/건강',
+      7:'파트너십/계약', 8:'공동재정/심층변화', 9:'여행/학문/신념',
+      10:'커리어/명성', 11:'네트워크/비전', 12:'회복/정리/무의식'
+    };
+    var ASPECT_TONE = {
+      '딱 맞는 각(합)':'에너지가 한곳에 모여 강하게 발현됩니다.',
+      '도움 각(육합)':'무리 없이 협력 흐름이 살아나는 배치입니다.',
+      '긴장 각(직각)':'마찰이 있지만 성장의 트리거가 되는 각입니다.',
+      '편한 각(삼합)':'재능이 자연스럽게 발휘되는 편안한 흐름입니다.',
+      '마주보는 각(충)':'균형 감각이 필요한 관계형 긴장 구조입니다.'
+    };
+
+    function _houseTopicText(h){ return h ? (HOUSE_MEANINGS[h] || '복합 주제') : '정보 없음'; }
+    function _planetHouseOneLine(hp, hw){
+      return 'Placidus ' + (hp ? hp + 'H' : '-') + ' · Whole Sign ' + (hw ? hw + 'H' : '-');
+    }
+
+    var birthMapSummaryChips = [
+      { label:'태양', value:sunSign + ' · ' + sunHousePair },
+      { label:'달', value:moonSign + ' · ' + moonHousePair },
+      { label:'상승궁', value:ascSign + ' · ' + ascHousePair }
+    ].map(function(chip){
+      return '<span class="astro-birth-chip"><b>' + chip.label + '</b> ' + chip.value + '</span>';
+    }).join('');
+
+    var birthMapPlanetCardsHtml = placementData.map(function(p){
+      var signName = (astrologer.signs && astrologer.signs[p.signIdx]) ? astrologer.signs[p.signIdx] : '-';
+      var signMeaning = SIGN_MEANINGS[p.signIdx] || '해당 별자리의 일반 해석을 참고하세요.';
+      var focusHouse = p.hWhole || p.hPlacidus;
+      var practical = _houseTopicText(focusHouse);
+      var retroNote = p.isRetro ? '역행이라 과거 패턴을 다시 점검하면 정확도가 올라갑니다.' : '순행이라 외부 실행으로 성과를 연결하기 좋습니다.';
+      return ''
+        + '<details class="astro-birth-card" data-planet="'+p.key+'">'
+        + '<summary>'
+        + '<span class="astro-birth-planet">'+p.label+'</span>'
+        + '<span class="astro-birth-sign">'+signName+'</span>'
+        + '<span class="astro-birth-house">'+_planetHouseOneLine(p.hPlacidus, p.hWhole)+'</span>'
+        + '</summary>'
+        + '<div class="astro-birth-card-body">'
+        + '<p><b>핵심 역할:</b> '+(PLANET_MEANINGS[p.key] || '삶의 특정 영역에서 작동하는 심리 기능')+'</p>'
+        + '<p><b>별자리 톤:</b> '+signMeaning+'</p>'
+        + '<p><b>현실 적용:</b> '+practical+'에서 체감이 빠릅니다.</p>'
+        + '<p class="astro-birth-advanced"><b>실전 팁:</b> '+retroNote+'</p>'
+        + '<p class="astro-birth-one-line">한줄 요약: '+p.label+'은(는) '+signName+' 톤으로 '+practical+'에 반응합니다.</p>'
+        + '</div>'
+        + '</details>';
+    }).join('');
+
+    var birthMapAspectsHtml = majorAspectRows.slice(0, 8).map(function(a){
+      return ''
+        + '<details class="astro-birth-aspect">'
+        + '<summary>'
+        + '<span class="astro-birth-aspect-title">'+planetKr[a.a]+' × '+planetKr[a.b]+' · '+a.name+'</span>'
+        + '<span class="astro-birth-aspect-orb">orb '+a.orb.toFixed(2)+'°</span>'
+        + '</summary>'
+        + '<div class="astro-birth-aspect-body">'
+        + '<p>'+(ASPECT_TONE[a.name] || '현재는 복합적인 상호작용으로 읽는 것이 정확합니다.')+'</p>'
+        + '<p class="astro-birth-advanced">'+a.text+'</p>'
+        + '</div>'
+        + '</details>';
+    }).join('') || '<p class="astro-birth-empty">지금은 타이트한 주요각이 적어 비교적 안정적인 흐름입니다.</p>';
+
+    var birthMapSectionHtml = ''
+      + '<div class="astro-section astro-birth-map" id="astroBirthMapSection">'
+      + '<div class="astro-birth-top">'
+      + '<div class="astro-subhead" style="margin:0;">🗺 0. 내 탄생 별자리 지도</div>'
+      + '<button type="button" class="astro-birth-mode-btn" id="astroBirthModeToggle" aria-pressed="false">초보자 모드 ON</button>'
+      + '</div>'
+      + '<p class="astro-birth-lead">중복 설명은 줄이고, 지금 차트에서 실제로 쓰는 정보만 남겼습니다. 아래 카드를 열면 행성 의미, 하우스 해석, 실전 팁을 바로 볼 수 있어요.</p>'
+      + '<div class="astro-birth-chip-row">'+birthMapSummaryChips+'</div>'
+      + '<details class="astro-birth-help">'
+      + '<summary>하우스 해석 방식이 뭐예요? (Placidus vs Whole Sign)</summary>'
+      + '<div class="astro-birth-help-body">'
+      + '<p><b>Placidus</b>는 시간 기반 분할이라 실제 체감 이벤트를 세밀하게 읽기 좋고, <b>Whole Sign</b>은 별자리 단위 분할이라 큰 흐름을 파악하기 좋습니다.</p>'
+      + '<p class="astro-birth-advanced">두 체계가 같은 하우스를 가리키면 해당 주제가 강하게 반복되고, 다르면 "큰 방향(Whole) + 세부 체감(Placidus)"으로 함께 읽으면 정확도가 높습니다.</p>'
+      + '</div>'
+      + '</details>'
+      + '<div class="astro-birth-grid">'+birthMapPlanetCardsHtml+'</div>'
+      + '<div class="astro-birth-aspects-wrap">'
+      + '<div class="astro-birth-aspects-title">주요 행성 각 (가까운 orb 우선)</div>'
+      + birthMapAspectsHtml
+      + '</div>'
+      + '<p class="astro-birth-foot">포르투나 '+fortunaSign+' ('+fortunaHousePair+') · 스피릿 '+spiritSign+' ('+spiritHousePair+') 기준으로 보면, 성과 포인트와 소명 포인트를 함께 추적할 수 있습니다.</p>'
+      + '</div>';
 
     masterInsight = '<div class="astro-section precision-insight-card astro-neon-accent astro-neon-accent-gold" style="margin-bottom:20px;">'
       +'<div class="astro-subhead" style="color:#D4AF37;">✨ 내 별자리 3줄 핵심 요약 (한눈에 쏙)</div>'
@@ -6982,10 +7090,46 @@ function renderAstroInsight() {
       +'.astro-wheel-table-wrap{border-radius:11px;border:1px solid rgba(148,163,184,.2);background:rgba(2,6,23,.42);padding:9px;}'
       +'.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:12px;font-weight:700;letter-spacing:.01em;}'
       +'.astro-wheel-table th,.astro-wheel-table td{font-size:12px;padding:6px 7px;line-height:1.55;}'
+      +'.astro-birth-map{border-color:rgba(125,211,252,.35) !important;background:linear-gradient(155deg,rgba(7,17,38,.95),rgba(15,23,42,.95)) !important;}'
+      +'.astro-birth-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}'
+      +'.astro-birth-mode-btn{padding:7px 12px;border-radius:999px;border:1px solid rgba(125,211,252,.5);background:rgba(14,116,144,.25);color:#cffafe;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s ease;}'
+      +'.astro-birth-mode-btn[aria-pressed="true"]{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.58);color:#fde68a;}'
+      +'.astro-birth-mode-btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
+      +'.astro-birth-lead{margin:0 0 10px 0;font-size:14px;line-height:1.72;color:#e2e8f0;}'
+      +'.astro-birth-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
+      +'.astro-birth-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.65);font-size:12px;color:#e2e8f0;}'
+      +'.astro-birth-help{margin-bottom:10px;border:1px solid rgba(148,163,184,.3);border-radius:10px;background:rgba(15,23,42,.52);}'
+      +'.astro-birth-help > summary{cursor:pointer;padding:9px 12px;color:#bae6fd;font-size:12px;font-weight:700;list-style:none;}'
+      +'.astro-birth-help > summary::-webkit-details-marker{display:none;}'
+      +'.astro-birth-help-body{padding:0 12px 10px 12px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
+      +'.astro-birth-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px;}'
+      +'.astro-birth-card{border:1px solid rgba(125,211,252,.26);border-radius:11px;background:rgba(15,23,42,.58);overflow:hidden;}'
+      +'.astro-birth-card > summary{list-style:none;cursor:pointer;padding:10px 12px;display:grid;gap:3px;}'
+      +'.astro-birth-card > summary::-webkit-details-marker{display:none;}'
+      +'.astro-birth-card > summary:focus-visible{outline:2px solid #67e8f9;outline-offset:-2px;}'
+      +'.astro-birth-planet{font-weight:800;color:#e0f2fe;font-size:13px;}'
+      +'.astro-birth-sign{color:#fef3c7;font-size:12px;font-weight:700;}'
+      +'.astro-birth-house{color:#a5f3fc;font-size:11px;}'
+      +'.astro-birth-card-body{padding:0 12px 10px 12px;color:#e2e8f0;font-size:13px;line-height:1.68;}'
+      +'.astro-birth-card-body p{margin:0 0 7px 0;}'
+      +'.astro-birth-one-line{padding:7px 9px;border-radius:8px;border:1px solid rgba(148,163,184,.28);background:rgba(30,41,59,.42);font-size:12px;color:#bfdbfe;}'
+      +'.astro-birth-aspects-wrap{border:1px solid rgba(148,163,184,.26);border-radius:11px;background:rgba(2,6,23,.36);padding:10px;}'
+      +'.astro-birth-aspects-title{font-size:12px;font-weight:800;color:#c4b5fd;margin-bottom:8px;}'
+      +'.astro-birth-aspect{border:1px solid rgba(148,163,184,.2);border-radius:9px;background:rgba(15,23,42,.5);margin-bottom:7px;}'
+      +'.astro-birth-aspect > summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;}'
+      +'.astro-birth-aspect > summary::-webkit-details-marker{display:none;}'
+      +'.astro-birth-aspect-title{font-size:12px;color:#e2e8f0;font-weight:700;}'
+      +'.astro-birth-aspect-orb{font-size:11px;color:#67e8f9;white-space:nowrap;}'
+      +'.astro-birth-aspect-body{padding:0 10px 8px 10px;font-size:12px;color:#cbd5e1;line-height:1.65;}'
+      +'.astro-birth-empty{margin:0;font-size:12px;color:#cbd5e1;}'
+      +'.astro-birth-foot{margin:10px 0 0 0;font-size:12px;color:#93c5fd;line-height:1.65;}'
+      +'.astro-birth-map.is-beginner .astro-birth-advanced{display:none;}'
       +'@media (min-width:700px){.astro-neon-wrap{padding:18px;}.astro-neon-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}'
+      +'@media (min-width:760px){.astro-birth-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}'
       +'@media (min-width:1100px){.astro-neon-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}'
       +'@media (max-width:860px){.astro-wheel-tables{grid-template-columns:1fr;}}'
-      +'@media (max-width:640px){.astro-readable .astro-subhead{font-size:18px;}.astro-readable .astro-desc p{font-size:14px;line-height:1.75;}.astro-syn-score-row{grid-template-columns:1fr;}.astro-syn-score-card{min-width:0;}.astro-syn-header{gap:6px;margin-bottom:10px;}.astro-syn-name{font-size:15px;}.astro-neon-cta{min-height:44px;font-size:13px;}.astro-neon-input,.astro-neon-select{min-height:42px;font-size:13px;}}'
+      +'@media (max-width:640px){.astro-readable .astro-subhead{font-size:18px;}.astro-readable .astro-desc p{font-size:14px;line-height:1.75;}.astro-syn-score-row{grid-template-columns:1fr;}.astro-syn-score-card{min-width:0;}.astro-syn-header{gap:6px;margin-bottom:10px;}.astro-syn-name{font-size:15px;}.astro-neon-cta{min-height:44px;font-size:13px;}.astro-neon-input,.astro-neon-select{min-height:42px;font-size:13px;}.astro-birth-mode-btn{width:100%;}.astro-birth-card > summary{padding:9px 10px;}}'
+      +'@media (prefers-reduced-motion: reduce){.astro-neon-cta,.astro-birth-mode-btn{transition:none;}}'
       +'</style>';
 
     var natalWheel = _astroBuildNatalWheelCard(chart, {
@@ -7038,28 +7182,7 @@ function renderAstroInsight() {
       +'</div>'
       +'</div>'
       + masterInsight
-      +'<div class="astro-subhead">🗺 0. 내 탄생 별자리 지도</div>'
-        +'<div class="astro-desc">'
-      +'<p>이 표는 "태어난 순간 하늘 사진"이라고 생각하면 쉽습니다. 하우스(1H~12H)는 그 에너지가 삶의 어떤 분야(일, 사랑, 돈, 관계 등)에서 강하게 쓰이는지 보여줘요.</p>'
-        +'<div class="table-wrapper" style="border:1px solid rgba(148,163,184,0.2);border-radius:10px;margin:10px 0;">'
-        +'<table class="astro-table" style="font-size:0.83rem;">'
-        +'<colgroup><col><col><col><col></colgroup>'
-        +'<thead><tr style="background:rgba(30,41,59,0.6);">'
-        +'<th style="text-align:left;color:#94a3b8;">행성</th>'
-        +'<th style="text-align:left;color:#94a3b8;">행성 위치(황도)</th>'
-        +'<th style="text-align:left;color:#94a3b8;">Placidus(세부)</th>'
-        +'<th style="text-align:left;color:#94a3b8;">Whole Sign(큰 흐름)</th>'
-        +'</tr></thead>'
-        +'<tbody>'+placementRows.join('')+'</tbody>'
-        +'</table>'
-        +'</div>'
-        +'<p style="margin:8px 0 0 0;color:#cbd5e1;font-size:0.82rem;">포르투나: <b>'+fortunaSign+'</b> ('+fortunaHousePair+') · 스피릿: <b>'+spiritSign+'</b> ('+spiritHousePair+')</p>'
-        +'<div style="background:rgba(15,23,42,0.5);border:1px solid rgba(148,163,184,0.2);border-radius:10px;padding:10px;">'
-        +'<div style="color:#94a3b8;font-size:0.78rem;margin-bottom:6px;">주요 행성 각(타이트 오브 우선)</div>'
-        +'<ul style="margin:0;padding-left:18px;color:#e2e8f0;font-size:0.84rem;line-height:1.6;">'+majorAspectHtml+'</ul>'
-        +'</div>'
-        +'</div>'
-        +'</div>'
+      + birthMapSectionHtml
 
         +'<div class="astro-section">'
         +'<div class="astro-subhead">🌟 1. 내 캐릭터 한눈 요약 (태양·달·상승궁)</div>'
@@ -7411,6 +7534,48 @@ function renderAstroInsight() {
         +'</div>';
 
     document.getElementById('astroResult').innerHTML = html;
+
+    function _astroInitBirthMapSection(){
+      var wrap = document.getElementById('astroBirthMapSection');
+      if(!wrap || wrap.getAttribute('data-init') === '1') return;
+      wrap.setAttribute('data-init', '1');
+
+      var modeBtn = document.getElementById('astroBirthModeToggle');
+      function applyMode(detailMode){
+        if(detailMode){
+          wrap.classList.remove('is-beginner');
+        } else {
+          wrap.classList.add('is-beginner');
+        }
+        if(modeBtn){
+          modeBtn.setAttribute('aria-pressed', detailMode ? 'true' : 'false');
+          modeBtn.textContent = detailMode ? '디테일 모드 ON' : '초보자 모드 ON';
+        }
+      }
+      applyMode(false);
+
+      if(modeBtn){
+        modeBtn.addEventListener('click', function(){
+          var nextMode = modeBtn.getAttribute('aria-pressed') !== 'true';
+          applyMode(nextMode);
+        });
+      }
+
+      var detailsEls = wrap.querySelectorAll('details.astro-birth-card, details.astro-birth-aspect, details.astro-birth-help');
+      detailsEls.forEach(function(el){
+        var summary = el.querySelector('summary');
+        if(summary){
+          summary.setAttribute('aria-expanded', el.open ? 'true' : 'false');
+        }
+        el.addEventListener('toggle', function(){
+          var curSummary = el.querySelector('summary');
+          if(curSummary){
+            curSummary.setAttribute('aria-expanded', el.open ? 'true' : 'false');
+          }
+        });
+      });
+    }
+    _astroInitBirthMapSection();
 
     /* ── 시나스트리 성궁 진법 초기화 (DOM 삽입 후) ── */
     setTimeout(function() {

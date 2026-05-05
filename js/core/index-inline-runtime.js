@@ -2044,21 +2044,35 @@ function __cdEnsureSwissEphLoaded() {
         markReady();
         return;
       }
+      if (window.__swissephBridge && window.__swissephBridge.error) {
+        reject(new Error(String(window.__swissephBridge.error)));
+        return;
+      }
 
       var settled = false;
       var done = function(ok) {
         if (settled) return;
         settled = true;
         window.removeEventListener('swisseph:ready', onReady);
+        window.removeEventListener('swisseph:error', onError);
         if (ok) {
           markReady();
         } else {
-          resolve(false);
+          reject(new Error('swisseph bridge ready timeout'));
         }
       };
 
       var onReady = function() { done(true); };
+      var onError = function(ev) {
+        var msg = ev && ev.detail && ev.detail.error ? String(ev.detail.error) : 'swisseph bridge init failed';
+        if (settled) return;
+        settled = true;
+        window.removeEventListener('swisseph:ready', onReady);
+        window.removeEventListener('swisseph:error', onError);
+        reject(new Error(msg));
+      };
       window.addEventListener('swisseph:ready', onReady, { once: true });
+      window.addEventListener('swisseph:error', onError, { once: true });
       setTimeout(function() { done(false); }, 12000);
     }
 
@@ -7494,13 +7508,13 @@ function openAstroModal(_retried) {
         return __cdBirthModalDepsMissing() ? __cdEnsureBirthModalDepsLoaded() : true;
       })
       .then(function() {
-        return __cdEnsureSwissEphLoaded().catch(function(err) {
-          console.warn('[openAstroModal] swisseph lazy load failed; using legacy fallback.', err);
-          return false;
-        });
+        return __cdEnsureSwissEphLoaded();
       })
       .then(function() { openAstroModal(true); })
-      .catch(function(err) { console.error('[openAstroModal] dependency load failed:', err); });
+      .catch(function(err) {
+        console.error('[openAstroModal] dependency load failed:', err);
+        openAstroModal(true);
+      });
     return;
   }
   var overlay = document.getElementById('astroModalOverlay');

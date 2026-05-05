@@ -1,4 +1,22 @@
-import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js';
+const SWISS_WASM_SOURCES = [
+	'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js',
+	'https://unpkg.com/swisseph-wasm@latest/src/swisseph.js'
+];
+
+async function loadSwissEphConstructor() {
+	var errs = [];
+	for (var i = 0; i < SWISS_WASM_SOURCES.length; i += 1) {
+		var src = SWISS_WASM_SOURCES[i];
+		try {
+			var mod = await import(src);
+			if (mod && mod.default) return mod.default;
+			errs.push(src + ': missing default export');
+		} catch (e) {
+			errs.push(src + ': ' + String((e && e.message) || e || 'import failed'));
+		}
+	}
+	throw new Error('SwissEph module import failed. ' + errs.join(' | '));
+}
 
 (function initSwissEphBridge() {
 	if (typeof window === 'undefined') return;
@@ -63,7 +81,8 @@ import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src
 	}
 
 	(async function start() {
-		var swe = new SwissEph();
+		var SwissEphCtor = await loadSwissEphConstructor();
+		var swe = new SwissEphCtor();
 		await swe.initSwissEph();
 
 		var bridge = buildBridge(swe);
@@ -83,7 +102,10 @@ import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src
 		window.__swissephBridge.ready = false;
 		window.__swissephBridge.precision = 'legacy';
 		window.__swissephBridge.error = String((err && err.message) || err || 'SwissEph init failed');
-		window.ASTRO_STRICT_PRECISION = false;
-		console.warn('[SwissEph] init failed; legacy fallback remains active.', err);
+		window.ASTRO_STRICT_PRECISION = true;
+		window.dispatchEvent(new CustomEvent('swisseph:error', {
+			detail: { error: window.__swissephBridge.error }
+		}));
+		console.warn('[SwissEph] init failed; strict precision remains enabled.', err);
 	});
 })();

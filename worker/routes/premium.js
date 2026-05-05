@@ -1,5 +1,9 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import {
+  getSwissWesternChart as getLocalSwissWesternChart,
+  getSwissVedicPlanets as getLocalSwissVedicPlanets,
+} from "../lib/swiss-ephemeris.js";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -375,7 +379,7 @@ async function postBackendJson(request, env, apiPath, payload, timeoutMs = 12000
 }
 
 async function getSwissWesternChart(request, env, input) {
-  return postBackendJson(request, env, "/api/astro/western-chart", input, Number(env.PREMIUM_SWISS_TIMEOUT_MS || 12000));
+  return getLocalSwissWesternChart(env, input, { requestUrl: request?.url });
 }
 
 const VEDIC_DIGNITY_MAP = {
@@ -639,12 +643,12 @@ function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
   const planets = planetsPayload.planets || {};
   const asc = signFromDeg(planetsPayload.ascendantSidereal);
   if (!asc) {
-    throw new Error("Swiss API 응답에 ascendantSidereal이 없어 베다 차트를 생성할 수 없습니다.");
+    throw new Error("Swiss 라이브러리 계산 응답에 ascendantSidereal이 없어 베다 차트를 생성할 수 없습니다.");
   }
 
   const moonLon = Number(planets.Moon);
   if (!Number.isFinite(moonLon)) {
-    throw new Error("Swiss API 응답에 Moon sidereal longitude가 없습니다.");
+    throw new Error("Swiss 라이브러리 계산 응답에 Moon sidereal longitude가 없습니다.");
   }
 
   const retroMap = planetsPayload.retrograde || planetsPayload.retro || planetsPayload.retrogrades || {};
@@ -707,7 +711,7 @@ function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
   }
 
   const derived = {
-    source: "swiss-api",
+    source: String(planetsPayload.source || "swiss-wasm-local"),
     ayanamsa: Number.isFinite(Number(planetsPayload.ayanamsa)) ? Number(planetsPayload.ayanamsa) : null,
     ayanamsaMode: String(input.ayanamsa || "lahiri").toLowerCase(),
     lagna: {
@@ -762,7 +766,7 @@ function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
 }
 
 async function getSwissVedicChart(request, env, input) {
-  const payload = await postBackendJson(request, env, "/api/vedic/planets", input, Number(env.PREMIUM_SWISS_TIMEOUT_MS || 12000));
+  const payload = await getLocalSwissVedicPlanets(env, input, { requestUrl: request?.url });
   return deriveVedicChartFromPlanets(payload, input);
 }
 
@@ -1098,7 +1102,7 @@ function buildWesternPremiumChart(rawChart = {}, input = {}, options = {}) {
   }
 
   return {
-    source: rawChart?.source || "swiss-api",
+    source: rawChart?.source || "swiss-wasm-local",
     zodiacType,
     houseSystem,
     houseSystemMeta: {
@@ -1892,7 +1896,7 @@ function buildSukuyoOrientalChart(sukuyo, partner, rel, swissBasis, partnerSwiss
 
   return {
     type: "sukuyo-oriental-chart",
-    source: Number.isFinite(moonLon) && Number.isFinite(sunLon) ? "swiss-api+oriental-mapping" : String(sukuyo.source || "kasi-api"),
+    source: Number.isFinite(moonLon) && Number.isFinite(sunLon) ? "swiss-wasm-local+oriental-mapping" : String(sukuyo.source || "kasi-api"),
     core: {
       primaryMansion: `${sukuyo.mansion}宿(${sukuyo.mansionCh})`,
       primaryDirection: sukuyo.direction,

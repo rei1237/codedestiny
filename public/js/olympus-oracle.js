@@ -8,21 +8,6 @@
     return offset;
   }
 
-  function sunSignFromDate(month, day) {
-    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'aries';
-    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'taurus';
-    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'gemini';
-    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'cancer';
-    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'leo';
-    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'virgo';
-    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'libra';
-    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'scorpio';
-    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'sagittarius';
-    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'capricorn';
-    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'aquarius';
-    return 'pisces';
-  }
-
   function tropicalDegreeToSign(deg) {
     var normalized = ((deg % 360) + 360) % 360;
     var signs = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
@@ -98,21 +83,6 @@
 
       return tropicalDegreeToSign(lon);
     });
-  }
-
-  function getSunKeyFromApi(payload) {
-    return fetch('/api/vedic/planets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('vedic api failed')); })
-      .then(function(data) {
-        if (!data || !data.ok || !data.planets || typeof data.planets.Sun !== 'number') throw new Error('invalid vedic payload');
-        var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
-        var tropicalSun = (data.planets.Sun + ayanamsa) % 360;
-        return tropicalDegreeToSign(tropicalSun);
-      });
   }
 
   function getCurrentProfileFromStorage() {
@@ -240,7 +210,7 @@
       lon: Number.isFinite(lon) ? lon : 126.9780
     };
 
-    getSunKeyFromApi(payload).then(function(sunKey) {
+    computeSunSignWithSwissBridge(payload).then(function(sunKey) {
       commitAndMove({
         name: currentProfile && currentProfile.name ? currentProfile.name : '',
         date: parsed.date,
@@ -248,35 +218,12 @@
         sunKey: sunKey
       });
     }).catch(function(err) {
-      console.error('[Astrology API] request failed', {
-        endpoint: '/api/vedic/planets',
-        status: 0,
-        errorMessage: String((err && err.message) || err || 'unknown'),
-        requestId: null,
+      console.error('[olympus] Swiss calculation failed', {
+        errorMessage: String((err && err.message) || err || 'unknown')
       });
-      return computeSunSignWithSwissBridge(payload).then(function(localSunKey) {
-        if (typeof window._toast === 'function') {
-          window._toast('⚠️ API 지연으로 기기 내 Swiss 계산으로 계속 진행합니다.', 'warn');
-        }
-        commitAndMove({
-          name: currentProfile && currentProfile.name ? currentProfile.name : '',
-          date: parsed.date,
-          time: parsed.time,
-          sunKey: localSunKey
-        });
-      }).catch(function(localErr) {
-        console.warn('[olympus] local swiss fallback failed', localErr);
-        var fallbackSunKey = sunSignFromDate(parsed.month, parsed.day);
-        if (typeof window._toast === 'function') {
-          window._toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
-        }
-        commitAndMove({
-          name: currentProfile && currentProfile.name ? currentProfile.name : '',
-          date: parsed.date,
-          time: parsed.time,
-          sunKey: fallbackSunKey
-        });
-      });
+      if (typeof window._toast === 'function') {
+        window._toast('⚠️ Swiss 라이브러리 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+      }
     });
     return true;
   }

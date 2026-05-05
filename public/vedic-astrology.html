@@ -2089,7 +2089,7 @@ function profileToForm(profile){
   };
 }
 
-// ─── CALCULATE FROM PROFILE (Swiss API 전용) ─────────────────
+// ─── CALCULATE FROM PROFILE (로컬 Swiss 라이브러리 계산) ───────
 function doCalculateFromProfile(profile){
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.lat)||isNaN(f.lon)){alert('프로필 정보가 부족합니다.');return;}
@@ -2130,43 +2130,16 @@ function doCalculateFromProfile(profile){
   }
 
   function showApiRequiredError(detail){
-    if(detail){ console.warn('[vedic] API Error:', detail); }
+    if(detail){ console.warn('[vedic] Local Swiss Error:', detail); }
     var detailText=detail?('<br><br>상세: '+String(detail)):'';
     var errEl=document.getElementById('result-content');
     if(errEl){
-      errEl.innerHTML='<div class="error-box">Swiss API 응답이 없어 베다 결과를 생성할 수 없습니다. 잠시 후 다시 시도해 주세요.'+detailText+'<br><br><button onclick="showPage(\'input\')" class="btn-sm" style="margin-top:10px">입력 화면으로 돌아가기</button></div>';
+      errEl.innerHTML='<div class="error-box">로컬 Swiss 라이브러리 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.'+detailText+'<br><br><button onclick="showPage(\'input\')" class="btn-sm" style="margin-top:10px">입력 화면으로 돌아가기</button></div>';
     }
     showPage('result');
   }
 
-  var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
-  var url=apiBase+'/api/vedic/planets';
-  var payload={ year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute,timezone:f.timezone,lat:f.lat,lon:f.lon };
-  var timeoutMs=12000;
-  var reqPromise;
-  if(typeof AbortController==='function'){
-    var ac=new AbortController();
-    var t=setTimeout(function(){ try{ ac.abort(); }catch(_){} }, timeoutMs);
-    reqPromise=fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ac.signal})
-      .then(function(r){ return r.json(); })
-      .finally(function(){ clearTimeout(t); });
-  } else {
-    reqPromise=Promise.race([
-      fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){return r.json();}),
-      new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, timeoutMs); })
-    ]);
-  }
-  reqPromise
-    .then(function(res){
-      if(res&&res.ok&&res.planets){
-        runWithPlanets(res.planets);
-        return;
-      }
-      runWithLocalFallback(res&&res.error?res.error:'Swiss API invalid response');
-    })
-    .catch(function(err){
-      runWithLocalFallback(err&&err.message?err.message:'Swiss API request failed');
-    });
+  runWithLocalFallback('local swisseph mode');
 }
 
 // ─── INIT: 프로필 있으면 API 호출 후 결과, 없으면 noprofile ─
