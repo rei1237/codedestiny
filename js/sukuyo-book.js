@@ -67,6 +67,7 @@
   ];
 
   var _chapters = Array(13).fill(null);
+  var _sukuyoChart = null;
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -196,7 +197,7 @@
 
   var _SK_STORE_VER='sk_v1_';
   function _skMakeKey(p){var b=(p&&p.birth)||{};return _SK_STORE_VER+(b.year||'0')+'_'+(b.month||'0')+'_'+(b.day||'0')+'_'+((p&&p.gender)||'u');}
-  function _skSaveResult(p){try{sessionStorage.setItem(_skMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
+  function _skSaveResult(p){try{sessionStorage.setItem(_skMakeKey(p),JSON.stringify({chapters:_chapters,chart:_sukuyoChart,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
   function _skLoadSaved(p){try{var raw=sessionStorage.getItem(_skMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
   function _showScreen(id){
@@ -290,12 +291,54 @@
     });
   }
 
+  function _numOrText(v, suffix){
+    var n=Number(v);
+    if(!isFinite(n)) return '정보 없음';
+    var rounded=Math.round(n*10)/10;
+    return String(rounded)+(suffix||'');
+  }
+
+  function _renderSukuyoChartCard(chart){
+    if(!chart||!chart.core) return '';
+    var core=chart.core||{};
+    var phase=chart.moonPhase||{};
+    var rel=chart.relation||{};
+    var wheel=Array.isArray(chart.wheel)?chart.wheel:[];
+    var chips='';
+    for(var i=0;i<wheel.length;i++){
+      var node=wheel[i]||{};
+      var isPrimary=!!node.isPrimary;
+      var isPartner=!!node.isPartner;
+      var bg=isPrimary?'rgba(56,189,248,0.35)':(isPartner?'rgba(186,230,253,0.3)':'rgba(8,47,73,0.44)');
+      var border=isPrimary?'rgba(125,211,252,0.9)':(isPartner?'rgba(186,230,253,0.8)':'rgba(125,211,252,0.24)');
+      chips+='<span style="display:inline-flex;align-items:center;gap:3px;padding:4px 8px;border-radius:999px;background:'+bg+';border:1px solid '+border+';font-size:11px;color:#ecfeff;">'+
+        '<strong style="font-weight:700;">'+_escHtml(String(node.mansion||'?'))+'</strong>'+
+        '<span style="opacity:0.85">'+_escHtml(String(node.mansionCh||''))+'</span>'+
+      '</span>';
+    }
+    return '<section style="margin:0 0 16px;padding:14px 14px 12px;border-radius:14px;border:1px solid rgba(125,211,252,0.34);background:linear-gradient(135deg,rgba(2,6,23,0.76),rgba(8,47,73,0.7));">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">'+
+        '<div><p style="margin:0 0 6px;font-size:12px;letter-spacing:.08em;color:#bae6fd;text-transform:uppercase;">SUKUYO ORIENTAL CHART</p><h3 style="margin:0;font-size:16px;color:#e0f2fe;">'+_escHtml(String(core.primaryMansion||'본명숙 정보 없음'))+'</h3></div>'+
+        '<div style="display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:6px 10px;font-size:12px;color:#e0f2fe;">'+
+          '<span>방위: <strong>'+_escHtml(String(core.primaryDirection||'정보 없음'))+'</strong></span>'+
+          '<span>오행: <strong>'+_escHtml(String(core.primaryElement||'정보 없음'))+'</strong></span>'+
+          '<span>월상: <strong>'+_escHtml(String(phase.label||'정보 없음'))+'</strong></span>'+
+          '<span>삭망각: <strong>'+_escHtml(_numOrText(phase.phaseAngle,'도'))+'</strong></span>'+
+          '<span>조도: <strong>'+_escHtml(_numOrText(phase.illumination,'%'))+'</strong></span>'+
+          '<span>관계축: <strong>'+_escHtml(String(rel.label||'개인 리포트'))+'</strong></span>'+
+        '</div>'+
+      '</div>'+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(125,211,252,0.35);display:flex;flex-wrap:wrap;gap:6px;">'+chips+'</div>'+
+    '</section>';
+  }
+
   function _renderChapter(ch){
     var content=_qs('skChapterContent');
     if(!content)return;
     var idx=ch-1, data=_chapters[idx];
     if(!data){content.innerHTML='<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';return;}
-    content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(CHAPTER_TITLES[idx])+'</h2><p class="zb-chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[idx])+'</p></div><div class="zb-chapter-body">'+_md2html(data)+'</div></div>';
+    var chartHtml=(ch===1)?_renderSukuyoChartCard(_sukuyoChart):'';
+    content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(CHAPTER_TITLES[idx])+'</h2><p class="zb-chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[idx])+'</p></div>'+chartHtml+'<div class="zb-chapter-body">'+_md2html(data)+'</div></div>';
     content.scrollTop=0;
   }
 
@@ -329,6 +372,7 @@
     var saved=_skLoadSaved(profile);
     if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
       _chapters=saved.chapters;
+      _sukuyoChart=saved.chart||null;
       _currentChapter=1;
       _showScreen('skResultScreen');
       _updateTocState(); _renderChapter(1); _bindToc();
@@ -341,6 +385,7 @@
       return;
     }
     _chapters=Array(13).fill(null);
+    _sukuyoChart=null;
     _currentChapter=1;
     _showScreen('skStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
@@ -440,6 +485,7 @@
 
     _generating=true;
     _chapters=Array(13).fill(null);
+    _sukuyoChart=null;
     _showScreen('skLoadingScreen');
     _activateCinematicLoading('skLoadingScreen','#67e8f9','#0369a1','rgba(34,211,238,0.46)');
 
@@ -569,7 +615,10 @@
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
-        if(data&&data.ok&&data.text){_chapters[idx]=data.text;}
+        if(data&&data.ok&&data.text){
+          _chapters[idx]=data.text;
+          if(!_sukuyoChart&&data.chart) _sukuyoChart=data.chart;
+        }
         else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);_chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';}
         _setProgress(idx+1);
         generateNext(idx+1);

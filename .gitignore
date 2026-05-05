@@ -3,12 +3,19 @@ node_modules/
 .open-next/
 out/
 dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.wrangler/
 build-cache/
 
 *.log
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 dev_log.txt
 
 .DS_Store
@@ -53,6 +60,7 @@ removed-duplicates.txt
 audit_phase1/
 ._deploy_*/
 _tmp_*
+reports/*.tmp.json
 
 # one-time patch/fix scripts archive (not needed in repo)
 _scripts-archive/

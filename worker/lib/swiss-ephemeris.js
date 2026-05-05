@@ -1,9 +1,33 @@
+import SwissEPH from "sweph-wasm";
 import { getEnv } from "./env.js";
 import { createHttpError } from "./http.js";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const SIGN_EMOJI = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
-const WESTERN_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+const WESTERN_PLANETS = [
+  ["Sun", "SE_SUN"],
+  ["Moon", "SE_MOON"],
+  ["Mercury", "SE_MERCURY"],
+  ["Venus", "SE_VENUS"],
+  ["Mars", "SE_MARS"],
+  ["Jupiter", "SE_JUPITER"],
+  ["Saturn", "SE_SATURN"],
+  ["Uranus", "SE_URANUS"],
+  ["Neptune", "SE_NEPTUNE"],
+  ["Pluto", "SE_PLUTO"],
+];
+const VEDIC_PLANETS = [
+  ["Sun", "SE_SUN"],
+  ["Moon", "SE_MOON"],
+  ["Mercury", "SE_MERCURY"],
+  ["Venus", "SE_VENUS"],
+  ["Mars", "SE_MARS"],
+  ["Jupiter", "SE_JUPITER"],
+  ["Saturn", "SE_SATURN"],
+];
+const EPHE_FILES = ["seas_18.se1", "sepl_18.se1", "semo_18.se1", "sefstars.txt"];
+
+let swissPromise = null;
 
 function clean(value) {
   return String(value || "").trim();
@@ -20,40 +44,13 @@ function parseNumber(value, fallback = NaN) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function firstFinite(...values) {
-  for (const value of values) {
-    if (Number.isFinite(value)) return value;
-  }
-  return NaN;
+function toFiniteNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 
-function pickSwissBaseUrl(env) {
-  return clean(
-    getEnv(env, "SWISS_EPHEMERIS_API_URL")
-    || getEnv(env, "SWISS_API_BASE_URL")
-    || getEnv(env, "ASTRO_SWISS_API_URL")
-    || getEnv(env, "SWISS_EPHEMERIS_URL")
-    || getEnv(env, "SWISS_EPHEMERIS")
-  );
-}
-
-function pickSwissApiKey(env) {
-  return clean(
-    getEnv(env, "SWISS_EPHEMERIS_API_KEY")
-    || getEnv(env, "SWISS_API_KEY")
-    || getEnv(env, "ASTRO_SWISS_API_KEY")
-    || getEnv(env, "SWISS_EPHEMERIS_KEY")
-  );
-}
-
-function pickSwissTimeoutMs(env) {
-  const timeoutMs = Number(
-    getEnv(env, "SWISS_EPHEMERIS_TIMEOUT_MS")
-    || getEnv(env, "SWISS_API_TIMEOUT_MS")
-    || getEnv(env, "SWISS_EPHEMERIS_TIMEOUT")
-    || 9000,
-  );
-  return Number.isFinite(timeoutMs) ? Math.max(1500, timeoutMs) : 9000;
+function toStatusError(status, message) {
+  return createHttpError(status, message, { ok: false, error: message });
 }
 
 function aspectBetween(a, b) {
@@ -84,183 +81,185 @@ function signInfo(longitude, ascLon) {
   };
 }
 
-function extractLon(value) {
-  if (typeof value === "number") return nd(value);
-  if (value && typeof value === "object") {
-    return nd(value.longitude ?? value.lon ?? value.elon ?? value.deg ?? value.degree);
-  }
-  return NaN;
-}
-
-function extractObject(root) {
-  if (!root || typeof root !== "object") return {};
-  return root;
-}
-
-function parsePayloadJson(raw) {
-  if (raw && typeof raw === "object") return raw;
-  return {};
-}
-
-function toStatusError(status, message) {
-  return createHttpError(status, message, { ok: false, error: message });
-}
-
-async function fetchSwiss(env, pathname, payload) {
-  const baseUrl = pickSwissBaseUrl(env);
-  if (!baseUrl) {
-    throw toStatusError(500, "Swiss endpoint env is missing. Set SWISS_EPHEMERIS_API_URL (or SWISS_API_BASE_URL / ASTRO_SWISS_API_URL / SWISS_EPHEMERIS_URL / SWISS_EPHEMERIS).");
-  }
-
-  const url = new URL(pathname, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
-  const apiKey = pickSwissApiKey(env);
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-    headers["x-api-key"] = apiKey;
-  }
-
-  const timeoutMs = pickSwissTimeoutMs(env);
-  const controller = typeof AbortController === "function" ? new AbortController() : null;
-  const timeoutId = setTimeout(() => {
-    if (controller) {
-      try { controller.abort(); } catch (_) {}
-    }
-  }, timeoutMs);
-
-  try {
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload || {}),
-      signal: controller ? controller.signal : undefined,
-    });
-
-    const json = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const message = clean(json?.error || json?.message) || `Swiss API 오류 (HTTP ${response.status})`;
-      throw toStatusError(response.status, message);
-    }
-
-    return parsePayloadJson(json);
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      throw toStatusError(504, `Swiss API 요청이 ${timeoutMs}ms 내에 완료되지 않았습니다.`);
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-function resolvePayloadRoot(payload) {
-  const root = extractObject(payload);
-  if (root.data && typeof root.data === "object") return root.data;
-  if (root.result && typeof root.result === "object") return root.result;
-  return root;
-}
-
-function normalizeWesternChart(payload) {
-  const root = resolvePayloadRoot(payload);
-  const planetsSource = extractObject(root.planets);
-  const pointsSource = extractObject(root.points);
-
-  const ascLon = firstFinite(
-    extractLon(root.ascendant),
-    extractLon(pointsSource.ascendant),
-    extractLon(pointsSource.ASC),
-    extractLon(root.asc),
-    extractLon(root.risingSign),
-  );
-
-  if (!Number.isFinite(ascLon)) {
-    throw toStatusError(502, "Swiss API 응답에 ascendant longitude가 없습니다.");
-  }
-
-  const planets = {};
-  for (const name of WESTERN_PLANETS) {
-    const lon = extractLon(planetsSource[name]);
-    if (!Number.isFinite(lon)) {
-      throw toStatusError(502, `Swiss API 응답에 ${name} longitude가 없습니다.`);
-    }
-    planets[name] = signInfo(lon, ascLon);
-  }
-
-  const northNodeLon = firstFinite(
-    extractLon(planetsSource.NorthNode),
-    extractLon(planetsSource.Rahu),
-    extractLon(pointsSource.northNode),
-    extractLon(root.northNode),
-  );
-
-  const aspects = [];
-  const names = Object.keys(planets);
-  for (let i = 0; i < names.length; i += 1) {
-    for (let j = i + 1; j < names.length; j += 1) {
-      const hit = aspectBetween(planets[names[i]].longitude, planets[names[j]].longitude);
-      if (hit) aspects.push({ p1: names[i], p2: names[j], ...hit });
-    }
-  }
-
-  const asc = signInfo(ascLon, ascLon);
-  const mcLon = firstFinite(
-    extractLon(root.midheaven),
-    extractLon(pointsSource.midheaven),
-    extractLon(pointsSource.MC),
-    nd(ascLon + 90),
-  );
-  const nnLon = Number.isFinite(northNodeLon) ? northNodeLon : nd(ascLon + 120);
-
+function normalizeChartInput(payload) {
+  const src = payload && typeof payload === "object" ? payload : {};
   return {
-    planets,
-    ascendant: asc,
-    midheaven: signInfo(mcLon, ascLon),
-    northNode: signInfo(nnLon, ascLon),
-    southNode: signInfo(nnLon + 180, ascLon),
-    aspects,
-    source: "swiss-api",
+    year: toFiniteNumber(src.year, NaN),
+    month: toFiniteNumber(src.month, NaN),
+    day: toFiniteNumber(src.day, NaN),
+    hour: toFiniteNumber(src.hour, 12),
+    minute: toFiniteNumber(src.minute, 0),
+    timezone: toFiniteNumber(src.timezone, 9),
+    lat: toFiniteNumber(src.lat, 37.5665),
+    lon: toFiniteNumber(src.lon ?? src.lng, 126.978),
   };
 }
 
-function normalizeVedicPlanets(payload) {
-  const root = resolvePayloadRoot(payload);
-  const planetsSource = extractObject(root.planets);
-  const names = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"];
+function validateChartInput(input) {
+  if (!Number.isFinite(input.year) || !Number.isFinite(input.month) || !Number.isFinite(input.day)) {
+    throw toStatusError(400, "Invalid chart input: year/month/day are required.");
+  }
+  if (!Number.isFinite(input.lat) || !Number.isFinite(input.lon)) {
+    throw toStatusError(400, "Invalid chart input: lat/lon are required.");
+  }
+}
+
+function julianDayFromInput(swe, input) {
+  const utcHour = input.hour + (input.minute / 60) - input.timezone;
+  const utcMillis = Date.UTC(input.year, input.month - 1, input.day, 0, 0, 0, 0) + utcHour * 3600000;
+  if (!Number.isFinite(utcMillis)) {
+    throw toStatusError(400, "Invalid chart input: datetime conversion failed.");
+  }
+  const utc = new Date(utcMillis);
+  const decimalHour = utc.getUTCHours() + (utc.getUTCMinutes() / 60) + (utc.getUTCSeconds() / 3600) + (utc.getUTCMilliseconds() / 3600000);
+  return swe.swe_julday(
+    utc.getUTCFullYear(),
+    utc.getUTCMonth() + 1,
+    utc.getUTCDate(),
+    decimalHour,
+    swe.SE_GREG_CAL,
+  );
+}
+
+function resolveEpheBaseUrl(env, options = {}) {
+  const fromEnv = clean(
+    getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
+    || getEnv(env, "SWISS_EPHE_BASE_URL")
+    || getEnv(env, "PUBLIC_EPHE_BASE_URL"),
+  );
+  if (fromEnv) {
+    return fromEnv.endsWith("/") ? fromEnv : `${fromEnv}/`;
+  }
+
+  const requestUrl = clean(options.requestUrl);
+  if (requestUrl) {
+    return new URL("/ephe/", requestUrl).toString();
+  }
+
+  throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");
+}
+
+async function createSwissInstance(env, options = {}) {
+  const wasmPath = clean(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
+  const swe = await SwissEPH.init(wasmPath || undefined);
+  const epheBaseUrl = resolveEpheBaseUrl(env, options);
+
+  try {
+    await swe.swe_set_ephe_path(epheBaseUrl, EPHE_FILES);
+  } catch (error) {
+    throw toStatusError(500, `Swiss ephemeris load failed from ${epheBaseUrl}: ${error?.message || error}`);
+  }
+
+  return swe;
+}
+
+async function getSwiss(env, options = {}) {
+  if (!swissPromise) {
+    swissPromise = createSwissInstance(env, options).catch((error) => {
+      swissPromise = null;
+      throw error;
+    });
+  }
+  return swissPromise;
+}
+
+function readLongitudeFromResult(result, label) {
+  const lon = nd(result?.[0]);
+  if (!Number.isFinite(lon)) {
+    throw toStatusError(502, `Swiss calculation returned invalid longitude for ${label}.`);
+  }
+  return lon;
+}
+
+function calcPlanetsByMap(swe, jd, iflag, map) {
+  const out = {};
+  for (const [name, constantName] of map) {
+    const result = swe.swe_calc_ut(jd, swe[constantName], iflag);
+    out[name] = readLongitudeFromResult(result, name);
+  }
+  return out;
+}
+
+function calcAscMc(swe, jd, iflag, lat, lon) {
+  const houses = swe.swe_houses_ex(jd, iflag, lat, lon, "P");
+  const asc = nd(houses?.ascmc?.[0]);
+  const mc = nd(houses?.ascmc?.[1]);
+  if (!Number.isFinite(asc) || !Number.isFinite(mc)) {
+    throw toStatusError(502, "Swiss calculation returned invalid ascendant/midheaven.");
+  }
+  return { asc, mc };
+}
+
+function calcAspects(planetsBySignInfo) {
+  const aspects = [];
+  const names = Object.keys(planetsBySignInfo);
+  for (let i = 0; i < names.length; i += 1) {
+    for (let j = i + 1; j < names.length; j += 1) {
+      const hit = aspectBetween(planetsBySignInfo[names[i]].longitude, planetsBySignInfo[names[j]].longitude);
+      if (hit) {
+        aspects.push({ p1: names[i], p2: names[j], ...hit });
+      }
+    }
+  }
+  return aspects;
+}
+
+export async function getSwissWesternChart(env, payload, options = {}) {
+  const swe = await getSwiss(env, options);
+  const input = normalizeChartInput(payload);
+  validateChartInput(input);
+
+  const jd = julianDayFromInput(swe, input);
+  const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
+
+  const rawPlanets = calcPlanetsByMap(swe, jd, iflag, WESTERN_PLANETS);
+  const { asc, mc } = calcAscMc(swe, jd, iflag, input.lat, input.lon);
 
   const planets = {};
-  for (const name of names) {
-    const lon = extractLon(planetsSource[name]);
-    if (!Number.isFinite(lon)) {
-      throw toStatusError(502, `Swiss API 응답에 ${name} sidereal longitude가 없습니다.`);
-    }
-    planets[name] = lon;
+  for (const [name] of WESTERN_PLANETS) {
+    planets[name] = signInfo(rawPlanets[name], asc);
   }
 
-  const ayanamsa = parseNumber(root.ayanamsa, NaN);
+  const trueNodeLon = readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_TRUE_NODE, iflag), "NorthNode");
+  const aspects = calcAspects(planets);
+
+  return {
+    planets,
+    ascendant: signInfo(asc, asc),
+    midheaven: signInfo(mc, asc),
+    northNode: signInfo(trueNodeLon, asc),
+    southNode: signInfo(trueNodeLon + 180, asc),
+    aspects,
+    source: "swiss-wasm-local",
+  };
+}
+
+export async function getSwissVedicPlanets(env, payload, options = {}) {
+  const swe = await getSwiss(env, options);
+  const input = normalizeChartInput(payload);
+  validateChartInput(input);
+
+  const jd = julianDayFromInput(swe, input);
+  const tropicalFlag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
+  swe.swe_set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0);
+  const siderealFlag = tropicalFlag | swe.SEFLG_SIDEREAL;
+
+  const planets = calcPlanetsByMap(swe, jd, siderealFlag, VEDIC_PLANETS);
+  const rahu = readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_TRUE_NODE, siderealFlag), "Rahu");
+  planets.Rahu = rahu;
+  planets.Ketu = nd(rahu + 180);
+
+  const ayanamsa = parseNumber(swe.swe_get_ayanamsa_ut(jd), NaN);
   if (!Number.isFinite(ayanamsa)) {
-    throw toStatusError(502, "Swiss API 응답에 ayanamsa가 없습니다.");
+    throw toStatusError(502, "Swiss calculation returned invalid ayanamsa.");
   }
 
-  const ascendantSidereal = firstFinite(
-    extractLon(root.ascendantSidereal),
-    extractLon(root.ascendant),
-    extractLon(root.lagna),
-  );
+  const siderealAsc = calcAscMc(swe, jd, siderealFlag, input.lat, input.lon).asc;
 
   return {
     planets,
     ayanamsa,
-    ascendantSidereal: Number.isFinite(ascendantSidereal) ? ascendantSidereal : null,
-    source: "swiss-api",
+    ascendantSidereal: Number.isFinite(siderealAsc) ? siderealAsc : null,
+    source: "swiss-wasm-local",
   };
-}
-
-export async function getSwissWesternChart(env, payload) {
-  const raw = await fetchSwiss(env, "western-chart", payload);
-  return normalizeWesternChart(raw);
-}
-
-export async function getSwissVedicPlanets(env, payload) {
-  const raw = await fetchSwiss(env, "vedic-planets", payload);
-  return normalizeVedicPlanets(raw);
 }

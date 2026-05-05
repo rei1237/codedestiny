@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-05-05T14:26:44.277Z",
+  "mode": "dry-run",
+  "candidateCount": 0,
+  "skippedProtectedCount": 0,
+  "candidates": [],
+  "skippedProtected": [],
+  "notes": [
+    "This cleaner only targets cache/build/temp artifacts.",
+    "Protected files and directories are never removed."
+  ]
+}

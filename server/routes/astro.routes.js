@@ -160,7 +160,7 @@ router.post("/western-chart", async (req, res) => {
     return res.json({ ok: true, ...chart });
   } catch (err) {
     const status = Number(err?.status) || 502;
-    const message = err?.message || "Swiss API western chart fetch failed";
+    const message = err?.message || "Swiss western chart calculation failed";
     console.error("[astro/western-chart]", message);
     return res.status(status).json({ ok: false, error: message });
   }
@@ -184,7 +184,7 @@ router.post("/planets", async (req, res) => {
     return res.json({ ok: true, ...result });
   } catch (err) {
     const status = Number(err?.status) || 502;
-    const message = err?.message || "Swiss API vedic planets fetch failed";
+    const message = err?.message || "Swiss vedic planets calculation failed";
     console.error("[vedic/planets]", message);
     return res.status(status).json({ ok: false, error: message });
   }

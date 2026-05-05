@@ -21,13 +21,13 @@ function normalizeChartInput(body = {}) {
 
 async function handleAstroWesternChart(request, env) {
   const body = await readJson(request);
-  const chart = await getSwissWesternChart(env, normalizeChartInput(body));
+  const chart = await getSwissWesternChart(env, normalizeChartInput(body), { requestUrl: request.url });
   return json({ ok: true, ...chart });
 }
 
 async function handleVedicPlanets(request, env) {
   const body = await readJson(request);
-  const result = await getSwissVedicPlanets(env, normalizeChartInput(body));
+  const result = await getSwissVedicPlanets(env, normalizeChartInput(body), { requestUrl: request.url });
   return json({ ok: true, ...result });
 }
 

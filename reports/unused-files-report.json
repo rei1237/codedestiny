@@ -1,0 +1,7416 @@
+{
+  "generatedAt": "2026-05-05T14:26:45.258Z",
+  "mode": "dry-run",
+  "totalFilesScanned": 2155,
+  "entryPointCount": 629,
+  "reachableCount": 1027,
+  "unreachableCount": 1128,
+  "entryPoints": [
+    "app/AnimalTotem.tsx",
+    "app/HomeClient.js",
+    "app/_content/seo-copy.js",
+    "app/_content/seo-copy/index.js",
+    "app/_content/seo-copy/seo-copy.js",
+    "app/_lib/api-config.ts",
+    "app/_lib/auth-storage.ts",
+    "app/_lib/callVertexGemini.ts",
+    "app/_lib/csrf.js",
+    "app/_lib/dbConnect.js",
+    "app/_lib/featureUnlocks.js",
+    "app/_lib/flowerAdminToken.js",
+    "app/_lib/generate-ziwei-deep-chapter.ts",
+    "app/_lib/generate-ziwei-deep-summary.ts",
+    "app/_lib/legacyApiProxy.js",
+    "app/_lib/localePath.js",
+    "app/_lib/models/AppSettingsModel.js",
+    "app/_lib/models/AuditLogModel.js",
+    "app/_lib/models/DailyFortuneSubscriptionModel.js",
+    "app/_lib/models/DeletedAccountLogModel.js",
+    "app/_lib/models/FortuneContentModel.js",
+    "app/_lib/models/FortuneViewLogModel.js",
+    "app/_lib/models/PaymentFailureLogModel.js",
+    "app/_lib/models/PaymentModel.js",
+    "app/_lib/models/PointHistoryModel.js",
+    "app/_lib/models/UserModel.js",
+    "app/_lib/normalize-ziwei-input.ts",
+    "app/_lib/serviceMap.js",
+    "app/_lib/serviceSections.js",
+    "app/_lib/validate-ziwei-chart.ts",
+    "app/_lib/ziwei-deep-runtime.ts",
+    "app/_lib/ziwei-deep-templates.ts",
+    "app/_lib/ziwei-engine.ts",
+    "app/_lib/ziwei-interpretations.ts",
+    "app/_lib/ziwei-normalization.ts",
+    "app/_lib/ziwei-star-interpretations.ts",
+    "app/_lib/ziwei-types.ts",
+    "app/_locale/LocaleShellPage.js",
+    "app/about/page.js",
+    "app/admin/login/page.tsx",
+    "app/api/celestial-harmony/route.js",
+    "app/api/lifebook/session/route.js",
+    "app/api/premium/_astroCommon.ts",
+    "app/api/premium/astro-life/route.ts",
+    "app/api/premium/astro-western/route.ts",
+    "app/api/premium/sukuyo-life/route.ts",
+    "app/api/premium/vedic-life/route.ts",
+    "app/api/premium/ziwei-life/route.ts",
+    "app/api/tarot/_engine.js",
+    "app/api/tarot/draw/route.js",
+    "app/api/tarot/love-reading/route.js",
+    "app/api/tarot/mindscan/route.js",
+    "app/api/tarot/reading/route.js",
+    "app/astrology/cosmic/page.tsx",
+    "app/auth/_components/StaticOAuthCallbackRedirect.tsx",
+    "app/auth/google/callback/page.tsx",
+    "app/auth/kakao/callback/page.tsx",
+    "app/auth/naver/callback/page.tsx",
+    "app/components/AdvancedZiweiSection.tsx",
+    "app/components/AdvancedZiweiSectionV2.tsx",
+    "app/components/AnalysisLoadingScreen.tsx",
+    "app/components/AppVersionGuard.tsx",
+    "app/components/AstrologyCosmicPage.tsx",
+    "app/components/AuthWidget.tsx",
+    "app/components/Breadcrumb.js",
+    "app/components/DeferredAdsense.tsx",
+    "app/components/DisclaimerBanner.jsx",
+    "app/components/EmailSubscriptionSection.tsx",
+    "app/components/FeatureLandingPage.tsx",
+    "app/components/FeatureUnlockShowcase.tsx",
+    "app/components/FlowerUnlockGate.jsx",
+    "app/components/FooterLegal.jsx",
+    "app/components/FortunePageSEO.tsx",
+    "app/components/GlobalHeader.tsx",
+    "app/components/GlobalPricingCard.jsx",
+    "app/components/GlobalTrustSection.jsx",
+    "app/components/HPremiumAstrologySection.tsx",
+    "app/components/HPremiumNamingSection.tsx",
+    "app/components/HPremiumSukuyoSection.tsx",
+    "app/components/HPremiumVedicSection.tsx",
+    "app/components/HPremiumZiweiBookSection.tsx",
+    "app/components/HomeServiceSections.tsx",
+    "app/components/HwatuLifeCardTest.tsx",
+    "app/components/KakaoSdk.tsx",
+    "app/components/KkulkkulManseryukMain.tsx",
+    "app/components/LocaleSwitcher.tsx",
+    "app/components/LoveRelationshipTarot.tsx",
+    "app/components/MainHeroFortuneForm.tsx",
+    "app/components/MainLandingPage.tsx",
+    "app/components/MindScanTarot.tsx",
+    "app/components/MingriTarot.tsx",
+    "app/components/MobileStepFortuneForm.tsx",
+    "app/components/MysticalLanding.tsx",
+    "app/components/OhangRadarChart.tsx",
+    "app/components/PaymentProcessingContext.tsx",
+    "app/components/PaymentProcessingOverlay.tsx",
+    "app/components/PersonalizedServiceRecommendations.tsx",
+    "app/components/PremiumBlurGate.tsx",
+    "app/components/PremiumFeatureCard.tsx",
+    "app/components/PremiumPreview.jsx",
+    "app/components/PublicOptimizedImage.tsx",
+    "app/components/QuickServiceShortcuts.tsx",
+    "app/components/RelatedServices.js",
+    "app/components/SajuBasicPage.tsx",
+    "app/components/SeoJsonLd.jsx",
+    "app/components/ServiceCTA.js",
+    "app/components/ServiceCard.tsx",
+    "app/components/ServiceCollectionSection.tsx",
+    "app/components/ServiceRenderSkeleton.jsx",
+    "app/components/SiteFooterHub.jsx",
+    "app/components/SunHealingTarot.tsx",
+    "app/components/TarotCard.tsx",
+    "app/components/TarotReunionClient.tsx",
+    "app/components/TarotYearFortuneClient.tsx",
+    "app/components/Toast.tsx",
+    "app/components/WebVitalsConsole.tsx",
+    "app/components/WithdrawModal.jsx",
+    "app/components/ZiweiChartPage.tsx",
+    "app/components/common/PaymentLoading.tsx",
+    "app/components/hwatu-life/testData.ts",
+    "app/components/luck-diary/NightReflectionPlanner.tsx",
+    "app/components/subscriptionNotice.ts",
+    "app/components/ziwei/ZiweiCosmicHero.tsx",
+    "app/components/ziwei/ZiweiDeepChapterView.tsx",
+    "app/components/ziwei/ZiweiMasterPlan.tsx",
+    "app/components/ziwei/ZiweiPalaceOrbit.tsx",
+    "app/components/ziwei/ZiweiPalaceTabs.tsx",
+    "app/components/ziwei/ZiweiRemedyChecklist.tsx",
+    "app/components/ziwei/ZiweiStarField.tsx",
+    "app/contact-us/page.js",
+    "app/contact/page.js",
+    "app/de-de/page.js",
+    "app/dev-status/layout.tsx",
+    "app/dev-status/page.tsx",
+    "app/en-us/page.js",
+    "app/es-es/page.js",
+    "app/faq/page.js",
+    "app/fr-fr/page.js",
+    "app/hi-in/page.js",
+    "app/high-value/[slug]/page.js",
+    "app/high-value/category/[category]/page.js",
+    "app/high-value/content.js",
+    "app/high-value/page.js",
+    "app/hooks/usePayment.ts",
+    "app/insights/InsightsCosmicClient.js",
+    "app/insights/[slug]/InsightArticleCosmicClient.js",
+    "app/insights/[slug]/page.js",
+    "app/insights/adsense-ready-articles.js",
+    "app/insights/articles.js",
+    "app/insights/layout.js",
+    "app/insights/page.js",
+    "app/ja-jp/page.js",
+    "app/landing/page.js",
+    "app/layout.js",
+    "app/login/layout.tsx",
+    "app/login/page.tsx",
+    "app/me/page.tsx",
+    "app/methodology/page.js",
+    "app/ms-my/page.js",
+    "app/nl-nl/page.js",
+    "app/not-found.js",
+    "app/olympus/page.js",
+    "app/oracle/hwatu-life/page.tsx",
+    "app/oracle/hwatu-life/play/page.tsx",
+    "app/oracle/ifa/page.tsx",
+    "app/oracle/royal-tea/page.tsx",
+    "app/oracle/rune/page.tsx",
+    "app/oracle/sikojen-povailu/SikojenpovailuApp.tsx",
+    "app/oracle/sikojen-povailu/SikojenpovailuContext.tsx",
+    "app/oracle/sikojen-povailu/components/PhaseCasting.tsx",
+    "app/oracle/sikojen-povailu/components/PhaseReveal.tsx",
+    "app/oracle/sikojen-povailu/components/PhaseRitualPrep.tsx",
+    "app/oracle/sikojen-povailu/components/PhaseSharing.tsx",
+    "app/oracle/sikojen-povailu/components/PhaseWelcoming.tsx",
+    "app/oracle/sikojen-povailu/components/ShadowReading.tsx",
+    "app/oracle/sikojen-povailu/data/shapes.ts",
+    "app/oracle/sikojen-povailu/layout.tsx",
+    "app/oracle/sikojen-povailu/page.tsx",
+    "app/oracle/sikojen-povailu/play/page.tsx",
+    "app/points/BillingCardModal.tsx",
+    "app/points/GalaxiaPayModal.tsx",
+    "app/points/SubscriptionStatusCard.tsx",
+    "app/points/history/page.tsx",
+    "app/points/page.tsx",
+    "app/premium-unlock/PremiumSalesContent.tsx",
+    "app/premium-unlock/page.tsx",
+    "app/privacy-policy/PrivacyPolicyContent.jsx",
+    "app/privacy-policy/page.js",
+    "app/saju-picture/layout.js",
+    "app/saju-picture/page.tsx",
+    "app/saju/basic/page.tsx",
+    "app/saju/basic/play/page.tsx",
+    "app/saju/lifebook/LifebookChapterViewer.tsx",
+    "app/saju/lifebook/SajuLifebookLandingClient.tsx",
+    "app/saju/lifebook/page.tsx",
+    "app/saju/love-secret/page.tsx",
+    "app/saju/love-simulation/LoveSimulationClient.tsx",
+    "app/saju/love-simulation/page.tsx",
+    "app/saju/sibyl/page.tsx",
+    "app/signup/layout.tsx",
+    "app/signup/page.tsx",
+    "app/tarot/crystal-soul/CrystalSoulTarotClient.jsx",
+    "app/tarot/crystal-soul/page.js",
+    "app/tarot/healing/TarotHealingClient.tsx",
+    "app/tarot/healing/page.tsx",
+    "app/tarot/healing/start/page.tsx",
+    "app/tarot/love/page.tsx",
+    "app/tarot/mindscan/MindScanTarotClient.tsx",
+    "app/tarot/mindscan/page.tsx",
+    "app/tarot/mingri/page.tsx",
+    "app/tarot/mingri/play/page.tsx",
+    "app/tarot/reunion/page.tsx",
+    "app/tarot/self-esteem/page.tsx",
+    "app/tarot/year/page.tsx",
+    "app/terms-of-service/TermsContent.jsx",
+    "app/terms-of-service/page.js",
+    "app/zh-cn/page.js",
+    "app/ziwei/chart/ZiweiChartClientLoader.tsx",
+    "app/ziwei/chart/page.tsx",
+    "celestial-harmony.html",
+    "cosmic-soul-meditation.html",
+    "destiny-poker.html",
+    "fortune-teller-fish.html",
+    "geomancy-oracle-v4.html",
+    "ifa-oracle-about.html",
+    "ifa_oracle_v2_full.html",
+    "index.html",
+    "middleware.js",
+    "myungwun_final.html",
+    "neville-meditation.html",
+    "next.config.mjs",
+    "package.json",
+    "public/_worker.js",
+    "public/blog/daewoon-sewoon.html",
+    "public/blog/goonghap-guide.html",
+    "public/blog/ilju-personality.html",
+    "public/blog/index.html",
+    "public/blog/ohang-five-elements.html",
+    "public/blog/saju-basics.html",
+    "public/blog/saju-career.html",
+    "public/blog/tarot-major-arcana.html",
+    "public/blog/tarot-spread-howto.html",
+    "public/blog/yongshin-guide.html",
+    "public/blog/ziwei-intro.html",
+    "public/celestial-harmony.html",
+    "public/cosmic-soul-meditation.html",
+    "public/de-de/index.html",
+    "public/destiny-poker.html",
+    "public/en-us/index.html",
+    "public/es-es/index.html",
+    "public/famous/index.html",
+    "public/fortune-teller-fish.html",
+    "public/fortune/index.html",
+    "public/fortune/monthly/aquarius.html",
+    "public/fortune/monthly/aries.html",
+    "public/fortune/monthly/cancer.html",
+    "public/fortune/monthly/capricorn.html",
+    "public/fortune/monthly/dog.html",
+    "public/fortune/monthly/dragon.html",
+    "public/fortune/monthly/gemini.html",
+    "public/fortune/monthly/goat.html",
+    "public/fortune/monthly/horse.html",
+    "public/fortune/monthly/leo.html",
+    "public/fortune/monthly/libra.html",
+    "public/fortune/monthly/monkey.html",
+    "public/fortune/monthly/ox.html",
+    "public/fortune/monthly/pig.html",
+    "public/fortune/monthly/pisces.html",
+    "public/fortune/monthly/rabbit.html",
+    "public/fortune/monthly/rat.html",
+    "public/fortune/monthly/rooster.html",
+    "public/fortune/monthly/sagittarius.html",
+    "public/fortune/monthly/scorpio.html",
+    "public/fortune/monthly/snake.html",
+    "public/fortune/monthly/sukuyo/1.html",
+    "public/fortune/monthly/sukuyo/10.html",
+    "public/fortune/monthly/sukuyo/11.html",
+    "public/fortune/monthly/sukuyo/12.html",
+    "public/fortune/monthly/sukuyo/13.html",
+    "public/fortune/monthly/sukuyo/14.html",
+    "public/fortune/monthly/sukuyo/15.html",
+    "public/fortune/monthly/sukuyo/16.html",
+    "public/fortune/monthly/sukuyo/17.html",
+    "public/fortune/monthly/sukuyo/18.html",
+    "public/fortune/monthly/sukuyo/19.html",
+    "public/fortune/monthly/sukuyo/2.html",
+    "public/fortune/monthly/sukuyo/20.html",
+    "public/fortune/monthly/sukuyo/21.html",
+    "public/fortune/monthly/sukuyo/22.html",
+    "public/fortune/monthly/sukuyo/23.html",
+    "public/fortune/monthly/sukuyo/24.html",
+    "public/fortune/monthly/sukuyo/25.html",
+    "public/fortune/monthly/sukuyo/26.html",
+    "public/fortune/monthly/sukuyo/27.html",
+    "public/fortune/monthly/sukuyo/3.html",
+    "public/fortune/monthly/sukuyo/4.html",
+    "public/fortune/monthly/sukuyo/5.html",
+    "public/fortune/monthly/sukuyo/6.html",
+    "public/fortune/monthly/sukuyo/7.html",
+    "public/fortune/monthly/sukuyo/8.html",
+    "public/fortune/monthly/sukuyo/9.html",
+    "public/fortune/monthly/taurus.html",
+    "public/fortune/monthly/tiger.html",
+    "public/fortune/monthly/vedic/dhanu.html",
+    "public/fortune/monthly/vedic/kanya.html",
+    "public/fortune/monthly/vedic/karka.html",
+    "public/fortune/monthly/vedic/kumbha.html",
+    "public/fortune/monthly/vedic/makara.html",
+    "public/fortune/monthly/vedic/meena.html",
+    "public/fortune/monthly/vedic/mesha.html",
+    "public/fortune/monthly/vedic/mithuna.html",
+    "public/fortune/monthly/vedic/simha.html",
+    "public/fortune/monthly/vedic/tula.html",
+    "public/fortune/monthly/vedic/vrishabha.html",
+    "public/fortune/monthly/vedic/vrishchika.html",
+    "public/fortune/monthly/virgo.html",
+    "public/fortune/monthly/ziwei/bokdeok.html",
+    "public/fortune/monthly/ziwei/bubu.html",
+    "public/fortune/monthly/ziwei/bumo.html",
+    "public/fortune/monthly/ziwei/chunyi.html",
+    "public/fortune/monthly/ziwei/gwanllok.html",
+    "public/fortune/monthly/ziwei/hyeongje.html",
+    "public/fortune/monthly/ziwei/jaeback.html",
+    "public/fortune/monthly/ziwei/janyeo.html",
+    "public/fortune/monthly/ziwei/jeonaek.html",
+    "public/fortune/monthly/ziwei/jilaek.html",
+    "public/fortune/monthly/ziwei/mingong.html",
+    "public/fortune/monthly/ziwei/noebok.html",
+    "public/fortune/sikojen-povailu/index.html",
+    "public/fortune/today/aquarius.html",
+    "public/fortune/today/aries.html",
+    "public/fortune/today/cancer.html",
+    "public/fortune/today/capricorn.html",
+    "public/fortune/today/dog.html",
+    "public/fortune/today/dragon.html",
+    "public/fortune/today/gemini.html",
+    "public/fortune/today/goat.html",
+    "public/fortune/today/horse.html",
+    "public/fortune/today/leo.html",
+    "public/fortune/today/libra.html",
+    "public/fortune/today/monkey.html",
+    "public/fortune/today/ox.html",
+    "public/fortune/today/pig.html",
+    "public/fortune/today/pisces.html",
+    "public/fortune/today/rabbit.html",
+    "public/fortune/today/rat.html",
+    "public/fortune/today/rooster.html",
+    "public/fortune/today/sagittarius.html",
+    "public/fortune/today/scorpio.html",
+    "public/fortune/today/snake.html",
+    "public/fortune/today/sukuyo/1.html",
+    "public/fortune/today/sukuyo/10.html",
+    "public/fortune/today/sukuyo/11.html",
+    "public/fortune/today/sukuyo/12.html",
+    "public/fortune/today/sukuyo/13.html",
+    "public/fortune/today/sukuyo/14.html",
+    "public/fortune/today/sukuyo/15.html",
+    "public/fortune/today/sukuyo/16.html",
+    "public/fortune/today/sukuyo/17.html",
+    "public/fortune/today/sukuyo/18.html",
+    "public/fortune/today/sukuyo/19.html",
+    "public/fortune/today/sukuyo/2.html",
+    "public/fortune/today/sukuyo/20.html",
+    "public/fortune/today/sukuyo/21.html",
+    "public/fortune/today/sukuyo/22.html",
+    "public/fortune/today/sukuyo/23.html",
+    "public/fortune/today/sukuyo/24.html",
+    "public/fortune/today/sukuyo/25.html",
+    "public/fortune/today/sukuyo/26.html",
+    "public/fortune/today/sukuyo/27.html",
+    "public/fortune/today/sukuyo/3.html",
+    "public/fortune/today/sukuyo/4.html",
+    "public/fortune/today/sukuyo/5.html",
+    "public/fortune/today/sukuyo/6.html",
+    "public/fortune/today/sukuyo/7.html",
+    "public/fortune/today/sukuyo/8.html",
+    "public/fortune/today/sukuyo/9.html",
+    "public/fortune/today/taurus.html",
+    "public/fortune/today/tiger.html",
+    "public/fortune/today/vedic/dhanu.html",
+    "public/fortune/today/vedic/kanya.html",
+    "public/fortune/today/vedic/karka.html",
+    "public/fortune/today/vedic/kumbha.html",
+    "public/fortune/today/vedic/makara.html",
+    "public/fortune/today/vedic/meena.html",
+    "public/fortune/today/vedic/mesha.html",
+    "public/fortune/today/vedic/mithuna.html",
+    "public/fortune/today/vedic/simha.html",
+    "public/fortune/today/vedic/tula.html",
+    "public/fortune/today/vedic/vrishabha.html",
+    "public/fortune/today/vedic/vrishchika.html",
+    "public/fortune/today/virgo.html",
+    "public/fortune/today/ziwei/bokdeok.html",
+    "public/fortune/today/ziwei/bubu.html",
+    "public/fortune/today/ziwei/bumo.html",
+    "public/fortune/today/ziwei/chunyi.html",
+    "public/fortune/today/ziwei/gwanllok.html",
+    "public/fortune/today/ziwei/hyeongje.html",
+    "public/fortune/today/ziwei/jaeback.html",
+    "public/fortune/today/ziwei/janyeo.html",
+    "public/fortune/today/ziwei/jeonaek.html",
+    "public/fortune/today/ziwei/jilaek.html",
+    "public/fortune/today/ziwei/mingong.html",
+    "public/fortune/today/ziwei/noebok.html",
+    "public/fortune/tomorrow/aquarius.html",
+    "public/fortune/tomorrow/aries.html",
+    "public/fortune/tomorrow/cancer.html",
+    "public/fortune/tomorrow/capricorn.html",
+    "public/fortune/tomorrow/dog.html",
+    "public/fortune/tomorrow/dragon.html",
+    "public/fortune/tomorrow/gemini.html",
+    "public/fortune/tomorrow/goat.html",
+    "public/fortune/tomorrow/horse.html",
+    "public/fortune/tomorrow/leo.html",
+    "public/fortune/tomorrow/libra.html",
+    "public/fortune/tomorrow/monkey.html",
+    "public/fortune/tomorrow/ox.html",
+    "public/fortune/tomorrow/pig.html",
+    "public/fortune/tomorrow/pisces.html",
+    "public/fortune/tomorrow/rabbit.html",
+    "public/fortune/tomorrow/rat.html",
+    "public/fortune/tomorrow/rooster.html",
+    "public/fortune/tomorrow/sagittarius.html",
+    "public/fortune/tomorrow/scorpio.html",
+    "public/fortune/tomorrow/snake.html",
+    "public/fortune/tomorrow/sukuyo/1.html",
+    "public/fortune/tomorrow/sukuyo/10.html",
+    "public/fortune/tomorrow/sukuyo/11.html",
+    "public/fortune/tomorrow/sukuyo/12.html",
+    "public/fortune/tomorrow/sukuyo/13.html",
+    "public/fortune/tomorrow/sukuyo/14.html",
+    "public/fortune/tomorrow/sukuyo/15.html",
+    "public/fortune/tomorrow/sukuyo/16.html",
+    "public/fortune/tomorrow/sukuyo/17.html",
+    "public/fortune/tomorrow/sukuyo/18.html",
+    "public/fortune/tomorrow/sukuyo/19.html",
+    "public/fortune/tomorrow/sukuyo/2.html",
+    "public/fortune/tomorrow/sukuyo/20.html",
+    "public/fortune/tomorrow/sukuyo/21.html",
+    "public/fortune/tomorrow/sukuyo/22.html",
+    "public/fortune/tomorrow/sukuyo/23.html",
+    "public/fortune/tomorrow/sukuyo/24.html",
+    "public/fortune/tomorrow/sukuyo/25.html",
+    "public/fortune/tomorrow/sukuyo/26.html",
+    "public/fortune/tomorrow/sukuyo/27.html",
+    "public/fortune/tomorrow/sukuyo/3.html",
+    "public/fortune/tomorrow/sukuyo/4.html",
+    "public/fortune/tomorrow/sukuyo/5.html",
+    "public/fortune/tomorrow/sukuyo/6.html",
+    "public/fortune/tomorrow/sukuyo/7.html",
+    "public/fortune/tomorrow/sukuyo/8.html",
+    "public/fortune/tomorrow/sukuyo/9.html",
+    "public/fortune/tomorrow/taurus.html",
+    "public/fortune/tomorrow/tiger.html",
+    "public/fortune/tomorrow/vedic/dhanu.html",
+    "public/fortune/tomorrow/vedic/kanya.html",
+    "public/fortune/tomorrow/vedic/karka.html",
+    "public/fortune/tomorrow/vedic/kumbha.html",
+    "public/fortune/tomorrow/vedic/makara.html",
+    "public/fortune/tomorrow/vedic/meena.html",
+    "public/fortune/tomorrow/vedic/mesha.html",
+    "public/fortune/tomorrow/vedic/mithuna.html",
+    "public/fortune/tomorrow/vedic/simha.html",
+    "public/fortune/tomorrow/vedic/tula.html",
+    "public/fortune/tomorrow/vedic/vrishabha.html",
+    "public/fortune/tomorrow/vedic/vrishchika.html",
+    "public/fortune/tomorrow/virgo.html",
+    "public/fortune/tomorrow/ziwei/bokdeok.html",
+    "public/fortune/tomorrow/ziwei/bubu.html",
+    "public/fortune/tomorrow/ziwei/bumo.html",
+    "public/fortune/tomorrow/ziwei/chunyi.html",
+    "public/fortune/tomorrow/ziwei/gwanllok.html",
+    "public/fortune/tomorrow/ziwei/hyeongje.html",
+    "public/fortune/tomorrow/ziwei/jaeback.html",
+    "public/fortune/tomorrow/ziwei/janyeo.html",
+    "public/fortune/tomorrow/ziwei/jeonaek.html",
+    "public/fortune/tomorrow/ziwei/jilaek.html",
+    "public/fortune/tomorrow/ziwei/mingong.html",
+    "public/fortune/tomorrow/ziwei/noebok.html",
+    "public/fortune/weekly/aquarius.html",
+    "public/fortune/weekly/aries.html",
+    "public/fortune/weekly/cancer.html",
+    "public/fortune/weekly/capricorn.html",
+    "public/fortune/weekly/dog.html",
+    "public/fortune/weekly/dragon.html",
+    "public/fortune/weekly/gemini.html",
+    "public/fortune/weekly/goat.html",
+    "public/fortune/weekly/horse.html",
+    "public/fortune/weekly/leo.html",
+    "public/fortune/weekly/libra.html",
+    "public/fortune/weekly/monkey.html",
+    "public/fortune/weekly/ox.html",
+    "public/fortune/weekly/pig.html",
+    "public/fortune/weekly/pisces.html",
+    "public/fortune/weekly/rabbit.html",
+    "public/fortune/weekly/rat.html",
+    "public/fortune/weekly/rooster.html",
+    "public/fortune/weekly/sagittarius.html",
+    "public/fortune/weekly/scorpio.html",
+    "public/fortune/weekly/snake.html",
+    "public/fortune/weekly/sukuyo/1.html",
+    "public/fortune/weekly/sukuyo/10.html",
+    "public/fortune/weekly/sukuyo/11.html",
+    "public/fortune/weekly/sukuyo/12.html",
+    "public/fortune/weekly/sukuyo/13.html",
+    "public/fortune/weekly/sukuyo/14.html",
+    "public/fortune/weekly/sukuyo/15.html",
+    "public/fortune/weekly/sukuyo/16.html",
+    "public/fortune/weekly/sukuyo/17.html",
+    "public/fortune/weekly/sukuyo/18.html",
+    "public/fortune/weekly/sukuyo/19.html",
+    "public/fortune/weekly/sukuyo/2.html",
+    "public/fortune/weekly/sukuyo/20.html",
+    "public/fortune/weekly/sukuyo/21.html",
+    "public/fortune/weekly/sukuyo/22.html",
+    "public/fortune/weekly/sukuyo/23.html",
+    "public/fortune/weekly/sukuyo/24.html",
+    "public/fortune/weekly/sukuyo/25.html",
+    "public/fortune/weekly/sukuyo/26.html",
+    "public/fortune/weekly/sukuyo/27.html",
+    "public/fortune/weekly/sukuyo/3.html",
+    "public/fortune/weekly/sukuyo/4.html",
+    "public/fortune/weekly/sukuyo/5.html",
+    "public/fortune/weekly/sukuyo/6.html",
+    "public/fortune/weekly/sukuyo/7.html",
+    "public/fortune/weekly/sukuyo/8.html",
+    "public/fortune/weekly/sukuyo/9.html",
+    "public/fortune/weekly/taurus.html",
+    "public/fortune/weekly/tiger.html",
+    "public/fortune/weekly/vedic/dhanu.html",
+    "public/fortune/weekly/vedic/kanya.html",
+    "public/fortune/weekly/vedic/karka.html",
+    "public/fortune/weekly/vedic/kumbha.html",
+    "public/fortune/weekly/vedic/makara.html",
+    "public/fortune/weekly/vedic/meena.html",
+    "public/fortune/weekly/vedic/mesha.html",
+    "public/fortune/weekly/vedic/mithuna.html",
+    "public/fortune/weekly/vedic/simha.html",
+    "public/fortune/weekly/vedic/tula.html",
+    "public/fortune/weekly/vedic/vrishabha.html",
+    "public/fortune/weekly/vedic/vrishchika.html",
+    "public/fortune/weekly/virgo.html",
+    "public/fortune/weekly/ziwei/bokdeok.html",
+    "public/fortune/weekly/ziwei/bubu.html",
+    "public/fortune/weekly/ziwei/bumo.html",
+    "public/fortune/weekly/ziwei/chunyi.html",
+    "public/fortune/weekly/ziwei/gwanllok.html",
+    "public/fortune/weekly/ziwei/hyeongje.html",
+    "public/fortune/weekly/ziwei/jaeback.html",
+    "public/fortune/weekly/ziwei/janyeo.html",
+    "public/fortune/weekly/ziwei/jeonaek.html",
+    "public/fortune/weekly/ziwei/jilaek.html",
+    "public/fortune/weekly/ziwei/mingong.html",
+    "public/fortune/weekly/ziwei/noebok.html",
+    "public/fr-fr/index.html",
+    "public/geomancy-oracle-v4.html",
+    "public/hi-in/index.html",
+    "public/ifa-oracle-about.html",
+    "public/ifa_oracle_v2_full_local.html",
+    "public/index.html",
+    "public/insights/index.html",
+    "public/ja-jp/index.html",
+    "public/ms-my/index.html",
+    "public/myungwun_final.html",
+    "public/neville-meditation.html",
+    "public/nl-nl/index.html",
+    "public/royal-tea-oracle.html",
+    "public/sample/saju-result.html",
+    "public/sample/tarot-result.html",
+    "public/sample/today-fortune.html",
+    "public/secret-house_real.html",
+    "public/static/geomancy-oracle-v4.html",
+    "public/static/index.html",
+    "public/tadagochi.html",
+    "public/tarot-ijik.html",
+    "public/vedic-astrology.html",
+    "public/vedic-astrology_beta.html",
+    "public/vedic-beta-shell.html",
+    "public/yoga-guru.html",
+    "public/zh-cn/index.html",
+    "royal-tea-oracle.html",
+    "scripts/adsense-crawl-audit.mjs",
+    "scripts/audit-unused-files.mjs",
+    "scripts/check-seo-health.mjs",
+    "scripts/clean-cloudflare-build.mjs",
+    "scripts/deploy-pages.mjs",
+    "scripts/deploy-worker.mjs",
+    "scripts/fortune-daily-once.mjs",
+    "scripts/gen-daily.mjs",
+    "scripts/gen-fortune-system-pages.mjs",
+    "scripts/generate-rss.mjs",
+    "scripts/generate-sitemap.mjs",
+    "scripts/guard-blocked-keywords.mjs",
+    "scripts/migrate-withdraw-indexes.mjs",
+    "scripts/opennext-deploy-retry.mjs",
+    "scripts/print-build-context.mjs",
+    "scripts/promote-static-shell-to-root.mjs",
+    "scripts/prune-server-function-static-heavy.mjs",
+    "scripts/safe-clean-repo.mjs",
+    "scripts/sanitize-open-next-env.mjs",
+    "scripts/seed-inicis-test-account.mjs",
+    "scripts/seed-test-account.mjs",
+    "scripts/smoke-oauth-callbacks.mjs",
+    "scripts/sync-cloudflare-pages-secrets.mjs",
+    "scripts/sync-cloudflare-worker-secrets.mjs",
+    "scripts/sync-legacy-static-to-public.mjs",
+    "scripts/test-signup.mjs",
+    "scripts/verify-entry-encoding.mjs",
+    "scripts/verify-inicis-local-auth.mjs",
+    "scripts/verify-locale-main-sync.mjs",
+    "scripts/verify-no-secret-leak.mjs",
+    "scripts/verify-public-parity.mjs",
+    "scripts/verify-runtime-cache-sync.mjs",
+    "scripts/verify-style-sync.mjs",
+    "scripts/verify-test-account-payment-flow.mjs",
+    "scripts/verify-worker-size-budget.mjs",
+    "scripts/write-version-json.mjs",
+    "secret-house_real.html",
+    "server/app.js",
+    "server/jobs/daily-content-cron.js",
+    "server/server.js",
+    "tadagochi.html",
+    "tarot-ijik.html",
+    "vedic-astrology.html",
+    "worker/index.js",
+    "worker/wrangler.toml",
+    "wrangler.assets.toml",
+    "wrangler.toml",
+    "yoga-guru.html"
+  ],
+  "graphNodeCount": 884,
+  "unusedCandidates": [
+    {
+      "path": "_tmp_ppt_review/source.zip",
+      "size": 6096903,
+      "sizeHuman": "5.81 MB",
+      "extension": ".zip"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image1.png",
+      "size": 1882655,
+      "sizeHuman": "1.80 MB",
+      "extension": ".png"
+    },
+    {
+      "path": "js/saju-engine.js",
+      "size": 1230321,
+      "sizeHuman": "1.17 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image3.png",
+      "size": 1211533,
+      "sizeHuman": "1.16 MB",
+      "extension": ".png"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image4.png",
+      "size": 835384,
+      "sizeHuman": "815.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "js/saju-engine-tarot-sukuyo-quantum.js",
+      "size": 437164,
+      "sizeHuman": "426.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "icons/honeypig-512.png",
+      "size": 400553,
+      "sizeHuman": "391.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image2.png",
+      "size": 398138,
+      "sizeHuman": "388.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "fuctionassets/jami2.webp",
+      "size": 356406,
+      "sizeHuman": "348.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/sajuhealth.webp",
+      "size": 318636,
+      "sizeHuman": "311.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/1_1.webp",
+      "size": 298166,
+      "sizeHuman": "291.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image8.png",
+      "size": 256689,
+      "sizeHuman": "250.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image15.png",
+      "size": 240460,
+      "sizeHuman": "234.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image9.png",
+      "size": 228489,
+      "sizeHuman": "223.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "fuctionassets/destiny pocker.webp",
+      "size": 217426,
+      "sizeHuman": "212.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/piggyfortune.webp",
+      "size": 217268,
+      "sizeHuman": "212.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/imsolo.webp",
+      "size": 216214,
+      "sizeHuman": "211.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image7.png",
+      "size": 206701,
+      "sizeHuman": "201.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image6.png",
+      "size": 198885,
+      "sizeHuman": "194.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "fuctionassets/lotto.webp",
+      "size": 187804,
+      "sizeHuman": "183.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/8_1.webp",
+      "size": 182478,
+      "sizeHuman": "178.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/trip.webp",
+      "size": 181084,
+      "sizeHuman": "176.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/meryok.webp",
+      "size": 159048,
+      "sizeHuman": "155.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/vilun.webp",
+      "size": 154346,
+      "sizeHuman": "150.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/ai face.webp",
+      "size": 142128,
+      "sizeHuman": "138.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image5.png",
+      "size": 139421,
+      "sizeHuman": "136.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "fuctionassets/4CUT.webp",
+      "size": 137800,
+      "sizeHuman": "134.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/4_1.webp",
+      "size": 133256,
+      "sizeHuman": "130.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/quntum.webp",
+      "size": 131892,
+      "sizeHuman": "128.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/sajuprompt.webp",
+      "size": 131558,
+      "sizeHuman": "128.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/unsetama.webp",
+      "size": 127156,
+      "sizeHuman": "124.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/ai tarrot.webp",
+      "size": 117742,
+      "sizeHuman": "115.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image12.png",
+      "size": 117598,
+      "sizeHuman": "114.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "sudda/hwatu/5_1.webp",
+      "size": 116618,
+      "sizeHuman": "113.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/9_1.webp",
+      "size": 112926,
+      "sizeHuman": "110.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/fortuneteller fish.webp",
+      "size": 112732,
+      "sizeHuman": "110.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/7_1.webp",
+      "size": 110270,
+      "sizeHuman": "107.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/tetoegen.webp",
+      "size": 97304,
+      "sizeHuman": "95.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/10_1.webp",
+      "size": 95462,
+      "sizeHuman": "93.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/tbal.webp",
+      "size": 90740,
+      "sizeHuman": "88.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/ai animal.webp",
+      "size": 90180,
+      "sizeHuman": "88.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image10.png",
+      "size": 89646,
+      "sizeHuman": "87.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "fuctionassets/sajurpg.webp",
+      "size": 88236,
+      "sizeHuman": "86.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/1_3.webp",
+      "size": 87220,
+      "sizeHuman": "85.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/9_4.webp",
+      "size": 86134,
+      "sizeHuman": "84.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/11_1.webp",
+      "size": 86012,
+      "sizeHuman": "84.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image11.png",
+      "size": 85435,
+      "sizeHuman": "83.4 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "sudda/hwatu/9_2.webp",
+      "size": 81742,
+      "sizeHuman": "79.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/10_2.webp",
+      "size": 80360,
+      "sizeHuman": "78.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/9_3.webp",
+      "size": 75092,
+      "sizeHuman": "73.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "js/love-secret-service.js",
+      "size": 71723,
+      "sizeHuman": "70.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image14.png",
+      "size": 69760,
+      "sizeHuman": "68.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "sudda/hwatu/8_2.webp",
+      "size": 69644,
+      "sizeHuman": "68.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/2_2.webp",
+      "size": 69582,
+      "sizeHuman": "68.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/2_3.webp",
+      "size": 69420,
+      "sizeHuman": "67.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/1_4.webp",
+      "size": 69376,
+      "sizeHuman": "67.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/4_4.webp",
+      "size": 68924,
+      "sizeHuman": "67.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/3_3.webp",
+      "size": 66936,
+      "sizeHuman": "65.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/2_4.webp",
+      "size": 66832,
+      "sizeHuman": "65.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/media/image13.png",
+      "size": 66506,
+      "sizeHuman": "64.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "sudda/hwatu/10_4.webp",
+      "size": 65814,
+      "sizeHuman": "64.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/5_3.webp",
+      "size": 65364,
+      "sizeHuman": "63.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/12_2.webp",
+      "size": 65188,
+      "sizeHuman": "63.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/3_4.webp",
+      "size": 65140,
+      "sizeHuman": "63.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/10_3.webp",
+      "size": 65058,
+      "sizeHuman": "63.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/8_3.webp",
+      "size": 64756,
+      "sizeHuman": "63.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/11_3.webp",
+      "size": 64162,
+      "sizeHuman": "62.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/6_1.webp",
+      "size": 63854,
+      "sizeHuman": "62.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/4_3.webp",
+      "size": 63530,
+      "sizeHuman": "62.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/7_2.webp",
+      "size": 63294,
+      "sizeHuman": "61.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/7_4.webp",
+      "size": 60410,
+      "sizeHuman": "59.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "js/entertain-engine.js",
+      "size": 60407,
+      "sizeHuman": "59.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "sudda/hwatu/8_4.webp",
+      "size": 60296,
+      "sizeHuman": "58.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/6_3.webp",
+      "size": 58316,
+      "sizeHuman": "56.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "js/core/saju/reportDashboard.js",
+      "size": 58065,
+      "sizeHuman": "56.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "sudda/hwatu/3_2.webp",
+      "size": 57896,
+      "sizeHuman": "56.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/5_2.webp",
+      "size": 56324,
+      "sizeHuman": "55.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "sudda/hwatu/7_3.webp",
+      "size": 54926,
+      "sizeHuman": "53.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "lib/sukuyo-engine-server.ts",
+      "size": 51790,
+      "sizeHuman": "50.6 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "sudda/hwatu/5_4.webp",
+      "size": 51610,
+      "sizeHuman": "50.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "js/astral-soul.js",
+      "size": 50487,
+      "sizeHuman": "49.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "sudda/hwatu/12_4.webp",
+      "size": 49046,
+      "sizeHuman": "47.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "js/tarot-self-esteem-experience.js",
+      "size": 47386,
+      "sizeHuman": "46.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/tarot-love-experience.js",
+      "size": 46686,
+      "sizeHuman": "45.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "sudda/hwatu/11_2.webp",
+      "size": 42394,
+      "sizeHuman": "41.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "js/core/kasi-calendar-service.js",
+      "size": 36530,
+      "sizeHuman": "35.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "sudda/hwatu/6_4.webp",
+      "size": 35630,
+      "sizeHuman": "34.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "scripts/patch-diary-ui.mjs",
+      "size": 26478,
+      "sizeHuman": "25.9 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "js/inline/planet-widget-cosmic.js",
+      "size": 25351,
+      "sizeHuman": "24.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/inject-godlife.mjs",
+      "size": 21977,
+      "sizeHuman": "21.5 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "__tests__/api/auth/withdraw.test.js",
+      "size": 20857,
+      "sizeHuman": "20.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "fuctionassets/flower-320.webp",
+      "size": 17896,
+      "sizeHuman": "17.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "lib/i18n-locales.js",
+      "size": 14039,
+      "sizeHuman": "13.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideMasters/slideMaster1.xml",
+      "size": 12498,
+      "sizeHuman": "12.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "js/services/sajuAnalyzer.js",
+      "size": 11587,
+      "sizeHuman": "11.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/tarot-data.js",
+      "size": 10926,
+      "sizeHuman": "10.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/services/sajuWorkerServiceAdvanced.js",
+      "size": 10700,
+      "sizeHuman": "10.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/saju-engine-continuation.js",
+      "size": 10681,
+      "sizeHuman": "10.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/docProps/thumbnail.jpeg",
+      "size": 10240,
+      "sizeHuman": "10.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "PROJECT_STRUCTURE.md",
+      "size": 10207,
+      "sizeHuman": "10.0 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "js/core/kasi/calendar.js",
+      "size": 9831,
+      "sizeHuman": "9.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/validate-mobile-touch.js",
+      "size": 9752,
+      "sizeHuman": "9.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/engines/ziwei-doushu.js",
+      "size": 9700,
+      "sizeHuman": "9.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "fuctionassets/yeon.webp",
+      "size": 9392,
+      "sizeHuman": "9.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "scripts/validate-seo-meta.js",
+      "size": 8991,
+      "sizeHuman": "8.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/test-saju-regression.js",
+      "size": 8847,
+      "sizeHuman": "8.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/services/sajuWorkerExamples.js",
+      "size": 8695,
+      "sizeHuman": "8.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/build-tarot-db-from-themaintarot.mjs",
+      "size": 8625,
+      "sizeHuman": "8.4 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "scripts/verify-ziwei-brightness-constraints.cjs",
+      "size": 7980,
+      "sizeHuman": "7.8 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "js/data/chinese-astrology.js",
+      "size": 7774,
+      "sizeHuman": "7.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout5.xml",
+      "size": 7655,
+      "sizeHuman": "7.5 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "docs/adsense-stage1-content-architecture-2026-04-13.md",
+      "size": 7298,
+      "sizeHuman": "7.1 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/theme/theme1.xml",
+      "size": 7101,
+      "sizeHuman": "6.9 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "scripts/validate-phase4.mjs",
+      "size": 6959,
+      "sizeHuman": "6.8 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "CelestialHarmony.jsx",
+      "size": 6764,
+      "sizeHuman": "6.6 KB",
+      "extension": ".jsx"
+    },
+    {
+      "path": "lib/README.md",
+      "size": 6673,
+      "sizeHuman": "6.5 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "CLOUDFLARE_PAGES_SETUP.md",
+      "size": 6546,
+      "sizeHuman": "6.4 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "styles/README.md",
+      "size": 5929,
+      "sizeHuman": "5.8 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "CLEANUP_REPORT.md",
+      "size": 5590,
+      "sizeHuman": "5.5 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "QUICK_START.md",
+      "size": 5484,
+      "sizeHuman": "5.4 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "scripts/ziwei-autotune-report.cjs",
+      "size": 5478,
+      "sizeHuman": "5.3 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "icons/samba-130.webp",
+      "size": 5218,
+      "sizeHuman": "5.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/[Content_Types].xml",
+      "size": 5149,
+      "sizeHuman": "5.0 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout8.xml",
+      "size": 5087,
+      "sizeHuman": "5.0 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout4.xml",
+      "size": 5080,
+      "sizeHuman": "5.0 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "styles/critical-above-fold.css",
+      "size": 5065,
+      "sizeHuman": "4.9 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide3.xml",
+      "size": 4856,
+      "sizeHuman": "4.7 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout9.xml",
+      "size": 4834,
+      "sizeHuman": "4.7 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout3.xml",
+      "size": 4606,
+      "sizeHuman": "4.5 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": ".env.local",
+      "size": 4589,
+      "sizeHuman": "4.5 KB",
+      "extension": ".local"
+    },
+    {
+      "path": "lib/seo-site-urls.ts",
+      "size": 4561,
+      "sizeHuman": "4.5 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout1.xml",
+      "size": 4524,
+      "sizeHuman": "4.4 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "js/README.md",
+      "size": 4513,
+      "sizeHuman": "4.4 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "fuctionassets/animaltotem-cute.svg",
+      "size": 4390,
+      "sizeHuman": "4.3 KB",
+      "extension": ".svg"
+    },
+    {
+      "path": "scripts/README.md",
+      "size": 4351,
+      "sizeHuman": "4.2 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "scripts/dream-tarot-calibration.mjs",
+      "size": 4316,
+      "sizeHuman": "4.2 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "docs/admin-subscription-tier-simulation-checklist-2026-04-22.md",
+      "size": 4310,
+      "sizeHuman": "4.2 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide10.xml",
+      "size": 4008,
+      "sizeHuman": "3.9 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "docs/admin-coin-paid-flow-checklist-2026-04-14.md",
+      "size": 3908,
+      "sizeHuman": "3.8 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "scripts/download-tarot-images.js",
+      "size": 3881,
+      "sizeHuman": "3.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/dream-tarot-calibration-results.json",
+      "size": 3809,
+      "sizeHuman": "3.7 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "tailwind.config.js",
+      "size": 3796,
+      "sizeHuman": "3.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/services/sajuWorkerService.js",
+      "size": 3715,
+      "sizeHuman": "3.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/presentation.xml",
+      "size": 3701,
+      "sizeHuman": "3.6 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide2.xml",
+      "size": 3647,
+      "sizeHuman": "3.6 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide6.xml",
+      "size": 3625,
+      "sizeHuman": "3.5 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide5.xml",
+      "size": 3622,
+      "sizeHuman": "3.5 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide7.xml",
+      "size": 3618,
+      "sizeHuman": "3.5 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "Rules/agent-regression-guard.md",
+      "size": 3515,
+      "sizeHuman": "3.4 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout11.xml",
+      "size": 3496,
+      "sizeHuman": "3.4 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "scripts/verify-kasi-calendar-conversion.cjs",
+      "size": 3494,
+      "sizeHuman": "3.4 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "scripts/cleanup-unused-assets.mjs",
+      "size": 3402,
+      "sizeHuman": "3.3 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout10.xml",
+      "size": 3275,
+      "sizeHuman": "3.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "icons/samba-96.webp",
+      "size": 3264,
+      "sizeHuman": "3.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout2.xml",
+      "size": 3212,
+      "sizeHuman": "3.1 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide4.xml",
+      "size": 3136,
+      "sizeHuman": "3.1 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "docs/portone-resubmission-checklist-2026-04-16.md",
+      "size": 3054,
+      "sizeHuman": "3.0 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide8.xml",
+      "size": 3047,
+      "sizeHuman": "3.0 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "scripts/build-cloudflare.mjs",
+      "size": 3034,
+      "sizeHuman": "3.0 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "js/inline/mobile-safe-render-init.js",
+      "size": 3000,
+      "sizeHuman": "2.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/_rels/presentation.xml.rels",
+      "size": 2990,
+      "sizeHuman": "2.9 KB",
+      "extension": ".rels"
+    },
+    {
+      "path": "scripts/prepare-cloudflare-dist.mjs",
+      "size": 2911,
+      "sizeHuman": "2.8 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/tableStyles.xml",
+      "size": 2860,
+      "sizeHuman": "2.8 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide9.xml",
+      "size": 2807,
+      "sizeHuman": "2.7 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "docs/landing-duplicate-usage-2026-05-04.md",
+      "size": 2795,
+      "sizeHuman": "2.7 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "scripts/optimize-static-thirdparty-loading.cjs",
+      "size": 2570,
+      "sizeHuman": "2.5 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "scripts/deploy-cloudflare.mjs",
+      "size": 2549,
+      "sizeHuman": "2.5 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "scripts/parse-lh-summary.cjs",
+      "size": 2421,
+      "sizeHuman": "2.4 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "css/sibyl-premium.css",
+      "size": 2360,
+      "sizeHuman": "2.3 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout6.xml",
+      "size": 2359,
+      "sizeHuman": "2.3 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "js/collection-action-bridge.js",
+      "size": 2281,
+      "sizeHuman": "2.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": ".github/workflows/cloudflare-worker-deploy.yml",
+      "size": 2262,
+      "sizeHuman": "2.2 KB",
+      "extension": ".yml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide12.xml",
+      "size": 2205,
+      "sizeHuman": "2.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide13.xml",
+      "size": 2205,
+      "sizeHuman": "2.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide14.xml",
+      "size": 2205,
+      "sizeHuman": "2.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide15.xml",
+      "size": 2205,
+      "sizeHuman": "2.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide16.xml",
+      "size": 2205,
+      "sizeHuman": "2.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide11.xml",
+      "size": 2204,
+      "sizeHuman": "2.2 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "scripts/minify-handler.mjs",
+      "size": 2187,
+      "sizeHuman": "2.1 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "scripts/patch-index-html-optimized-images.mjs",
+      "size": 2173,
+      "sizeHuman": "2.1 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "scripts/fix-saju-onclick.mjs",
+      "size": 2119,
+      "sizeHuman": "2.1 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "DEPLOY_CHECKLIST.md",
+      "size": 1998,
+      "sizeHuman": "2.0 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideMasters/_rels/slideMaster1.xml.rels",
+      "size": 1991,
+      "sizeHuman": "1.9 KB",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout7.xml",
+      "size": 1989,
+      "sizeHuman": "1.9 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "types/astrology.ts",
+      "size": 1961,
+      "sizeHuman": "1.9 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "scripts/fix-critical-css-loading.cjs",
+      "size": 1933,
+      "sizeHuman": "1.9 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/docProps/app.xml",
+      "size": 1884,
+      "sizeHuman": "1.8 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide1.xml",
+      "size": 1878,
+      "sizeHuman": "1.8 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "lib/mongodb.ts",
+      "size": 1770,
+      "sizeHuman": "1.7 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "scripts/_check_sizes.mjs",
+      "size": 1572,
+      "sizeHuman": "1.5 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "js/utils/dom.js",
+      "size": 1271,
+      "sizeHuman": "1.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "_git_push.cjs",
+      "size": 1264,
+      "sizeHuman": "1.2 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "DEPLOYMENT_MODE.md",
+      "size": 1217,
+      "sizeHuman": "1.2 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "scripts/indexnow-submit.ts",
+      "size": 1126,
+      "sizeHuman": "1.1 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "js/inline/fortune-tabs.js",
+      "size": 1117,
+      "sizeHuman": "1.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": ".gitignore",
+      "size": 1103,
+      "sizeHuman": "1.1 KB",
+      "extension": "(none)"
+    },
+    {
+      "path": "scripts/fix-main-glass-fouc.cjs",
+      "size": 1098,
+      "sizeHuman": "1.1 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "tsconfig.json",
+      "size": 1003,
+      "sizeHuman": "1003 B",
+      "extension": ".json"
+    },
+    {
+      "path": "lib/indexnow.ts",
+      "size": 977,
+      "sizeHuman": "977 B",
+      "extension": ".ts"
+    },
+    {
+      "path": "scripts/web-vitals-console.mjs",
+      "size": 964,
+      "sizeHuman": "964 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": "js/inline/pwa-theme-init.js",
+      "size": 917,
+      "sizeHuman": "917 B",
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/setup-cloudflare-auth.mjs",
+      "size": 910,
+      "sizeHuman": "910 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/viewProps.xml",
+      "size": 854,
+      "sizeHuman": "854 B",
+      "extension": ".xml"
+    },
+    {
+      "path": "js/utils/date.js",
+      "size": 756,
+      "sizeHuman": "756 B",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/_rels/.rels",
+      "size": 738,
+      "sizeHuman": "738 B",
+      "extension": "(none)"
+    },
+    {
+      "path": "scripts/rm-godlife.mjs",
+      "size": 719,
+      "sizeHuman": "719 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/docProps/core.xml",
+      "size": 679,
+      "sizeHuman": "679 B",
+      "extension": ".xml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/presProps.xml",
+      "size": 651,
+      "sizeHuman": "651 B",
+      "extension": ".xml"
+    },
+    {
+      "path": "scripts/gen-daily-2026-03-21.mjs",
+      "size": 614,
+      "sizeHuman": "614 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": ".env.cloudflare.local",
+      "size": 599,
+      "sizeHuman": "599 B",
+      "extension": ".local"
+    },
+    {
+      "path": "scripts/test-resend-email.mjs",
+      "size": 578,
+      "sizeHuman": "578 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": "lib/optimized-image-url.ts",
+      "size": 572,
+      "sizeHuman": "572 B",
+      "extension": ".ts"
+    },
+    {
+      "path": "scripts/ensure-pages-manifest.mjs",
+      "size": 560,
+      "sizeHuman": "560 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": "fix-encoding.js",
+      "size": 512,
+      "sizeHuman": "512 B",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide11.xml.rels",
+      "size": 447,
+      "sizeHuman": "447 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide12.xml.rels",
+      "size": 447,
+      "sizeHuman": "447 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide13.xml.rels",
+      "size": 447,
+      "sizeHuman": "447 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide14.xml.rels",
+      "size": 447,
+      "sizeHuman": "447 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide15.xml.rels",
+      "size": 447,
+      "sizeHuman": "447 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide16.xml.rels",
+      "size": 447,
+      "sizeHuman": "447 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide10.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide2.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide3.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide4.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide5.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide6.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide7.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide8.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide9.xml.rels",
+      "size": 446,
+      "sizeHuman": "446 B",
+      "extension": ".rels"
+    },
+    {
+      "path": ".github/workflows/secret-scan.yml",
+      "size": 417,
+      "sizeHuman": "417 B",
+      "extension": ".yml"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout1.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout10.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout11.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout2.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout3.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout4.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout5.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout6.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout7.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout8.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout9.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide1.xml.rels",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "extension": ".rels"
+    },
+    {
+      "path": ".github/workflows/cloudflare-pages-deploy.yml",
+      "size": 292,
+      "sizeHuman": "292 B",
+      "extension": ".yml"
+    },
+    {
+      "path": "fix-acting-btn.js",
+      "size": 280,
+      "sizeHuman": "280 B",
+      "extension": ".js"
+    },
+    {
+      "path": "next-env.d.ts",
+      "size": 268,
+      "sizeHuman": "268 B",
+      "extension": ".ts"
+    },
+    {
+      "path": ".gitattributes",
+      "size": 213,
+      "sizeHuman": "213 B",
+      "extension": "(none)"
+    },
+    {
+      "path": ".secret.example",
+      "size": 118,
+      "sizeHuman": "118 B",
+      "extension": ".example"
+    },
+    {
+      "path": "types/css-modules.d.ts",
+      "size": 117,
+      "sizeHuman": "117 B",
+      "extension": ".ts"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "size": 87,
+      "sizeHuman": "87 B",
+      "extension": ".mjs"
+    },
+    {
+      "path": ".eslintrc.json",
+      "size": 73,
+      "sizeHuman": "73 B",
+      "extension": ".json"
+    },
+    {
+      "path": ".nvmrc",
+      "size": 4,
+      "sizeHuman": "4 B",
+      "extension": "(none)"
+    }
+  ],
+  "protectedButUnreached": [
+    {
+      "path": "app/README.md",
+      "size": 4496,
+      "sizeHuman": "4.4 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-21.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-22.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-24.json",
+      "size": 467856,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-25.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-27.json",
+      "size": 467844,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-28.json",
+      "size": 467843,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-29.json",
+      "size": 467835,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-30.json",
+      "size": 467855,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-03-31.json",
+      "size": 467857,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-01.json",
+      "size": 467842,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-02.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-03.json",
+      "size": 467850,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-04.json",
+      "size": 467851,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-05.json",
+      "size": 467838,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-06.json",
+      "size": 467859,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-07.json",
+      "size": 467860,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-08.json",
+      "size": 467856,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-09.json",
+      "size": 469569,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-10.json",
+      "size": 469504,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-11.json",
+      "size": 469509,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-12.json",
+      "size": 469514,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-13.json",
+      "size": 469576,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-14.json",
+      "size": 469565,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-15.json",
+      "size": 469514,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-16.json",
+      "size": 469548,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-17.json",
+      "size": 469550,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-18.json",
+      "size": 469499,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-19.json",
+      "size": 469502,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-20.json",
+      "size": 469510,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-21.json",
+      "size": 469568,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-22.json",
+      "size": 469573,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-23.json",
+      "size": 469516,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-24.json",
+      "size": 469491,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-25.json",
+      "size": 469498,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-26.json",
+      "size": 469510,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/data/daily-2026-04-27.json",
+      "size": 469507,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/monthly/aquarius.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/aries.html",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/cancer.html",
+      "size": 2082,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/capricorn.html",
+      "size": 2100,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/dog.html",
+      "size": 2072,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/dragon.html",
+      "size": 2078,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/gemini.html",
+      "size": 2112,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/goat.html",
+      "size": 2068,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/horse.html",
+      "size": 2076,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/leo.html",
+      "size": 2094,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/libra.html",
+      "size": 2098,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/monkey.html",
+      "size": 2096,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ox.html",
+      "size": 2064,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/pig.html",
+      "size": 2078,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/pisces.html",
+      "size": 2100,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/rabbit.html",
+      "size": 2096,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/rat.html",
+      "size": 2066,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/rooster.html",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sagittarius.html",
+      "size": 2098,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/scorpio.html",
+      "size": 2096,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/snake.html",
+      "size": 2064,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/1.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/10.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/11.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/12.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/13.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/14.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/15.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/16.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/17.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/18.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/19.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/2.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/20.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/21.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/22.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/23.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/24.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/25.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/26.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/27.html",
+      "size": 1921,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/3.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/4.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/5.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/6.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/7.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/8.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/sukuyo/9.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/taurus.html",
+      "size": 2094,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/tiger.html",
+      "size": 2100,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/dhanu.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/kanya.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/karka.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/kumbha.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/makara.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/meena.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/mesha.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/mithuna.html",
+      "size": 1947,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/simha.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/tula.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/vrishabha.html",
+      "size": 1955,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/vedic/vrishchika.html",
+      "size": 1959,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/virgo.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/bokdeok.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/bubu.html",
+      "size": 1933,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/bumo.html",
+      "size": 1933,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/chunyi.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/gwanllok.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/hyeongje.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/jaeback.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/janyeo.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/jeonaek.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/jilaek.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/mingong.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/monthly/ziwei/noebok.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tarot/tarot-data.json",
+      "size": 11896,
+      "sizeHuman": "11.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "fortune/today/sukuyo/1.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/10.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/11.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/12.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/13.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/14.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/15.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/16.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/17.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/18.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/19.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/2.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/20.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/21.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/22.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/23.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/24.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/25.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/26.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/27.html",
+      "size": 1917,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/3.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/4.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/5.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/6.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/7.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/8.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/sukuyo/9.html",
+      "size": 1913,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/dhanu.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/kanya.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/karka.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/kumbha.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/makara.html",
+      "size": 1939,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/meena.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/mesha.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/mithuna.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/simha.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/tula.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/vrishabha.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/vedic/vrishchika.html",
+      "size": 1955,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/bokdeok.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/bubu.html",
+      "size": 1929,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/bumo.html",
+      "size": 1929,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/chunyi.html",
+      "size": 1937,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/gwanllok.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/hyeongje.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/jaeback.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/janyeo.html",
+      "size": 1937,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/jeonaek.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/jilaek.html",
+      "size": 1937,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/mingong.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/today/ziwei/noebok.html",
+      "size": 1937,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/aquarius.html",
+      "size": 2112,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/aries.html",
+      "size": 2094,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/cancer.html",
+      "size": 2090,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/capricorn.html",
+      "size": 2108,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/dog.html",
+      "size": 2080,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/dragon.html",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/gemini.html",
+      "size": 2120,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/goat.html",
+      "size": 2076,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/horse.html",
+      "size": 2084,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/leo.html",
+      "size": 2102,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/libra.html",
+      "size": 2106,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/monkey.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ox.html",
+      "size": 2072,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/pig.html",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/pisces.html",
+      "size": 2108,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/rabbit.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/rat.html",
+      "size": 2074,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/rooster.html",
+      "size": 2094,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sagittarius.html",
+      "size": 2106,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/scorpio.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/snake.html",
+      "size": 2072,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/1.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/10.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/11.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/12.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/13.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/14.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/15.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/16.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/17.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/18.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/19.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/2.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/20.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/21.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/22.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/23.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/24.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/25.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/26.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/27.html",
+      "size": 1923,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/3.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/4.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/5.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/6.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/7.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/8.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/sukuyo/9.html",
+      "size": 1919,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/taurus.html",
+      "size": 2102,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/tiger.html",
+      "size": 2108,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/dhanu.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/kanya.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/karka.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/kumbha.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/makara.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/meena.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/mesha.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/mithuna.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/simha.html",
+      "size": 1941,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/tula.html",
+      "size": 1937,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/vrishabha.html",
+      "size": 1957,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/vedic/vrishchika.html",
+      "size": 1961,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/virgo.html",
+      "size": 2112,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/bokdeok.html",
+      "size": 1947,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/bubu.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/bumo.html",
+      "size": 1935,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/chunyi.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/gwanllok.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/hyeongje.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/jaeback.html",
+      "size": 1947,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/janyeo.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/jeonaek.html",
+      "size": 1947,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/jilaek.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/mingong.html",
+      "size": 1947,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/tomorrow/ziwei/noebok.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/aquarius.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/aries.html",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/cancer.html",
+      "size": 2082,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/capricorn.html",
+      "size": 2100,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/dog.html",
+      "size": 2072,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/dragon.html",
+      "size": 2078,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/gemini.html",
+      "size": 2112,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/goat.html",
+      "size": 2068,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/horse.html",
+      "size": 2076,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/leo.html",
+      "size": 2094,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/libra.html",
+      "size": 2098,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/monkey.html",
+      "size": 2096,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ox.html",
+      "size": 2064,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/pig.html",
+      "size": 2078,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/pisces.html",
+      "size": 2100,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/rabbit.html",
+      "size": 2096,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/rat.html",
+      "size": 2066,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/rooster.html",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sagittarius.html",
+      "size": 2098,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/scorpio.html",
+      "size": 2096,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/snake.html",
+      "size": 2064,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/1.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/10.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/11.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/12.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/13.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/14.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/15.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/16.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/17.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/18.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/19.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/2.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/20.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/21.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/22.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/23.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/24.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/25.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/26.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/27.html",
+      "size": 1931,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/3.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/4.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/5.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/6.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/7.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/8.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/sukuyo/9.html",
+      "size": 1927,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/taurus.html",
+      "size": 2094,
+      "sizeHuman": "2.0 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/tiger.html",
+      "size": 2100,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/dhanu.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/kanya.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/karka.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/kumbha.html",
+      "size": 1953,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/makara.html",
+      "size": 1953,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/meena.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/mesha.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/mithuna.html",
+      "size": 1957,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/simha.html",
+      "size": 1949,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/tula.html",
+      "size": 1945,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/vrishabha.html",
+      "size": 1965,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/vedic/vrishchika.html",
+      "size": 1969,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/virgo.html",
+      "size": 2104,
+      "sizeHuman": "2.1 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/bokdeok.html",
+      "size": 1955,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/bubu.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/bumo.html",
+      "size": 1943,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/chunyi.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/gwanllok.html",
+      "size": 1959,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/hyeongje.html",
+      "size": 1959,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/jaeback.html",
+      "size": 1955,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/janyeo.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/jeonaek.html",
+      "size": 1955,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/jilaek.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/mingong.html",
+      "size": 1955,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "fortune/weekly/ziwei/noebok.html",
+      "size": 1951,
+      "sizeHuman": "1.9 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/_headers",
+      "size": 2106,
+      "sizeHuman": "2.1 KB",
+      "extension": "(none)"
+    },
+    {
+      "path": "public/_redirects",
+      "size": 6254,
+      "sizeHuman": "6.1 KB",
+      "extension": "(none)"
+    },
+    {
+      "path": "public/.assetsignore",
+      "size": 11,
+      "sizeHuman": "11 B",
+      "extension": "(none)"
+    },
+    {
+      "path": "public/5bc08c66f3854c4bb6591216cfa84d29.txt",
+      "size": 33,
+      "sizeHuman": "33 B",
+      "extension": ".txt"
+    },
+    {
+      "path": "public/cosmic-soul-meditation.html.verify.txt",
+      "size": 26,
+      "sizeHuman": "26 B",
+      "extension": ".txt"
+    },
+    {
+      "path": "public/css/index-inline-extracted.css",
+      "size": 286391,
+      "sizeHuman": "279.7 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "public/css/sibyl-premium.css",
+      "size": 2360,
+      "sizeHuman": "2.3 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "public/ephe/seas_18.se1",
+      "size": 223004,
+      "sizeHuman": "217.8 KB",
+      "extension": ".se1"
+    },
+    {
+      "path": "public/ephe/sefstars.txt",
+      "size": 136618,
+      "sizeHuman": "133.4 KB",
+      "extension": ".txt"
+    },
+    {
+      "path": "public/ephe/semo_18.se1",
+      "size": 1304771,
+      "sizeHuman": "1.24 MB",
+      "extension": ".se1"
+    },
+    {
+      "path": "public/ephe/sepl_18.se1",
+      "size": 484061,
+      "sizeHuman": "472.7 KB",
+      "extension": ".se1"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-21.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-22.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-24.json",
+      "size": 467856,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-25.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-27.json",
+      "size": 467844,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-28.json",
+      "size": 467843,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-29.json",
+      "size": 467835,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-30.json",
+      "size": 467855,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-03-31.json",
+      "size": 467857,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-01.json",
+      "size": 467842,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-02.json",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-03.json",
+      "size": 467850,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-04.json",
+      "size": 467851,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-05.json",
+      "size": 467838,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-06.json",
+      "size": 467859,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-07.json",
+      "size": 467860,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-08.json",
+      "size": 467856,
+      "sizeHuman": "456.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-09.json",
+      "size": 469569,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-10.json",
+      "size": 469504,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-11.json",
+      "size": 469509,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-12.json",
+      "size": 469514,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-13.json",
+      "size": 469576,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-14.json",
+      "size": 469565,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-15.json",
+      "size": 469514,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-16.json",
+      "size": 469548,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-17.json",
+      "size": 469550,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-18.json",
+      "size": 469499,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-19.json",
+      "size": 469502,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-20.json",
+      "size": 469510,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-21.json",
+      "size": 469568,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-22.json",
+      "size": 469573,
+      "sizeHuman": "458.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-23.json",
+      "size": 469516,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-24.json",
+      "size": 469491,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-25.json",
+      "size": 469498,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-26.json",
+      "size": 469510,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/data/daily-2026-04-27.json",
+      "size": 469507,
+      "sizeHuman": "458.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fortune/tarot/tarot-data.json",
+      "size": 11896,
+      "sizeHuman": "11.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/fuctionassets/4CUT.webp",
+      "size": 137800,
+      "sizeHuman": "134.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 강아지.jpg",
+      "size": 27030,
+      "sizeHuman": "26.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 닭.jpg",
+      "size": 27610,
+      "sizeHuman": "27.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 돼지.jpg",
+      "size": 26547,
+      "sizeHuman": "25.9 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 말.jpg",
+      "size": 27653,
+      "sizeHuman": "27.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 뱀.jpg",
+      "size": 26113,
+      "sizeHuman": "25.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 소.jpg",
+      "size": 28922,
+      "sizeHuman": "28.2 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 양.jpg",
+      "size": 29101,
+      "sizeHuman": "28.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 용.jpg",
+      "size": 27459,
+      "sizeHuman": "26.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 원숭이.jpg",
+      "size": 29853,
+      "sizeHuman": "29.2 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.jpg",
+      "size": 26357,
+      "sizeHuman": "25.7 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 토끼.jpg",
+      "size": 26368,
+      "sizeHuman": "25.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 호랑이.jpg",
+      "size": 27004,
+      "sizeHuman": "26.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 강아지.jpg",
+      "size": 29175,
+      "sizeHuman": "28.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 닭.jpg",
+      "size": 27147,
+      "sizeHuman": "26.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 돼지.jpg",
+      "size": 26686,
+      "sizeHuman": "26.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 말.jpg",
+      "size": 30180,
+      "sizeHuman": "29.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 뱀.jpg",
+      "size": 27635,
+      "sizeHuman": "27.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 소.jpg",
+      "size": 27526,
+      "sizeHuman": "26.9 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 양.jpg",
+      "size": 30809,
+      "sizeHuman": "30.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 용.jpg",
+      "size": 28911,
+      "sizeHuman": "28.2 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 원숭이.jpg",
+      "size": 29317,
+      "sizeHuman": "28.6 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 쥐.jpg",
+      "size": 29667,
+      "sizeHuman": "29.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 토끼.jpg",
+      "size": 28156,
+      "sizeHuman": "27.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/딸기 컨셉/딸기 컨셉 호랑이.jpg",
+      "size": 28809,
+      "sizeHuman": "28.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 강아지.jpg",
+      "size": 28668,
+      "sizeHuman": "28.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 닭.jpg",
+      "size": 29128,
+      "sizeHuman": "28.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 돼지.jpg",
+      "size": 27679,
+      "sizeHuman": "27.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 말.jpg",
+      "size": 30410,
+      "sizeHuman": "29.7 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 뱀.jpg",
+      "size": 29345,
+      "sizeHuman": "28.7 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 소.jpg",
+      "size": 29313,
+      "sizeHuman": "28.6 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 양.jpg",
+      "size": 30915,
+      "sizeHuman": "30.2 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 용.jpg",
+      "size": 30666,
+      "sizeHuman": "29.9 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 원숭이.jpg",
+      "size": 29513,
+      "sizeHuman": "28.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 쥐.jpg",
+      "size": 30823,
+      "sizeHuman": "30.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 토끼.jpg",
+      "size": 30094,
+      "sizeHuman": "29.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/벚꽃 컨셉/벚꽃 컨셉 호랑이.jpg",
+      "size": 30152,
+      "sizeHuman": "29.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 강아지.jpg",
+      "size": 25709,
+      "sizeHuman": "25.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 닭.jpg",
+      "size": 24400,
+      "sizeHuman": "23.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 돼지.jpg",
+      "size": 25311,
+      "sizeHuman": "24.7 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 말.jpg",
+      "size": 25773,
+      "sizeHuman": "25.2 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 뱀.jpg",
+      "size": 25658,
+      "sizeHuman": "25.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 소.jpg",
+      "size": 27137,
+      "sizeHuman": "26.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 양.jpg",
+      "size": 26402,
+      "sizeHuman": "25.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 용.jpg",
+      "size": 27223,
+      "sizeHuman": "26.6 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 원숭이.jpg",
+      "size": 27409,
+      "sizeHuman": "26.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 쥐.jpg",
+      "size": 27396,
+      "sizeHuman": "26.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 토끼.jpg",
+      "size": 26658,
+      "sizeHuman": "26.0 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/별 컨셉/별 컨셉 호랑이.jpg",
+      "size": 27506,
+      "sizeHuman": "26.9 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 강아지.jpg",
+      "size": 28425,
+      "sizeHuman": "27.8 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 닭.jpg",
+      "size": 28208,
+      "sizeHuman": "27.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 돼지.jpg",
+      "size": 28074,
+      "sizeHuman": "27.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 말.jpg",
+      "size": 29774,
+      "sizeHuman": "29.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 뱀.jpg",
+      "size": 28812,
+      "sizeHuman": "28.1 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 소.jpg",
+      "size": 30658,
+      "sizeHuman": "29.9 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 양.jpg",
+      "size": 30404,
+      "sizeHuman": "29.7 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 용.jpg",
+      "size": 29237,
+      "sizeHuman": "28.6 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 원숭이.jpg",
+      "size": 30650,
+      "sizeHuman": "29.9 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 쥐.jpg",
+      "size": 28973,
+      "sizeHuman": "28.3 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 토끼.jpg",
+      "size": 27164,
+      "sizeHuman": "26.5 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/다마고치 에셋/천사 컨셉/천사 컨셉 호랑이.jpg",
+      "size": 29366,
+      "sizeHuman": "28.7 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/fuctionassets/ai animal.webp",
+      "size": 90180,
+      "sizeHuman": "88.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/ai face.webp",
+      "size": 142128,
+      "sizeHuman": "138.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/ai tarrot.webp",
+      "size": 117742,
+      "sizeHuman": "115.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/animaltotem-cute.svg",
+      "size": 4390,
+      "sizeHuman": "4.3 KB",
+      "extension": ".svg"
+    },
+    {
+      "path": "public/fuctionassets/Celestial Harmony.webp",
+      "size": 220114,
+      "sizeHuman": "215.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/destiny pocker.webp",
+      "size": 217426,
+      "sizeHuman": "212.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/flower-320.webp",
+      "size": 17896,
+      "sizeHuman": "17.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/fortuneteller fish.webp",
+      "size": 112732,
+      "sizeHuman": "110.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/harry.webp",
+      "size": 49598,
+      "sizeHuman": "48.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/ifa.webp",
+      "size": 99482,
+      "sizeHuman": "97.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/imsolo.webp",
+      "size": 216214,
+      "sizeHuman": "211.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/jami2.webp",
+      "size": 356406,
+      "sizeHuman": "348.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/lotto.webp",
+      "size": 187804,
+      "sizeHuman": "183.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/meryok.webp",
+      "size": 159048,
+      "sizeHuman": "155.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/piggyfortune.webp",
+      "size": 217268,
+      "sizeHuman": "212.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/quntum.webp",
+      "size": 131892,
+      "sizeHuman": "128.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/sajuhealth.webp",
+      "size": 318636,
+      "sizeHuman": "311.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/sajuprompt.webp",
+      "size": 131558,
+      "sizeHuman": "128.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/sajurpg.webp",
+      "size": 88236,
+      "sizeHuman": "86.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/검은별 알-Photoroom.png",
+      "size": 327452,
+      "sizeHuman": "319.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 강아지-Photoroom.webp",
+      "size": 121098,
+      "sizeHuman": "118.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 닭-Photoroom.webp",
+      "size": 98136,
+      "sizeHuman": "95.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 돼지-Photoroom.webp",
+      "size": 92068,
+      "sizeHuman": "89.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 돼지2-Photoroom.webp",
+      "size": 89654,
+      "sizeHuman": "87.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 말2-Photoroom.webp",
+      "size": 58562,
+      "sizeHuman": "57.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 뱀 2.webp",
+      "size": 94298,
+      "sizeHuman": "92.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 뱀-Photoroom (1).webp",
+      "size": 102058,
+      "sizeHuman": "99.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 뱀-Photoroom.webp",
+      "size": 102058,
+      "sizeHuman": "99.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 소-Photoroom.webp",
+      "size": 134774,
+      "sizeHuman": "131.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 소2-Photoroom.webp",
+      "size": 127082,
+      "sizeHuman": "124.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 양-Photoroom.webp",
+      "size": 112930,
+      "sizeHuman": "110.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 용-Photoroom.webp",
+      "size": 121300,
+      "sizeHuman": "118.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 원숭이-Photoroom.webp",
+      "size": 115750,
+      "sizeHuman": "113.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 쥐1-Photoroom.webp",
+      "size": 140468,
+      "sizeHuman": "137.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 쥐2-Photoroom.webp",
+      "size": 133084,
+      "sizeHuman": "130.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 쥐3-Photoroom.webp",
+      "size": 136594,
+      "sizeHuman": "133.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 쥐4-Photoroom.webp",
+      "size": 132106,
+      "sizeHuman": "129.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 토끼-Photoroom.webp",
+      "size": 106266,
+      "sizeHuman": "103.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 호랑이-Photoroom.webp",
+      "size": 126596,
+      "sizeHuman": "123.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 뱀-Photoroom.webp",
+      "size": 120932,
+      "sizeHuman": "118.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 소-Photoroom.webp",
+      "size": 141014,
+      "sizeHuman": "137.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 알.png",
+      "size": 344870,
+      "sizeHuman": "336.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 용-Photoroom.webp",
+      "size": 133730,
+      "sizeHuman": "130.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 쥐-Photoroom.webp",
+      "size": 142472,
+      "sizeHuman": "139.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 호랑이-Photoroom.webp",
+      "size": 134012,
+      "sizeHuman": "130.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (3).webp",
+      "size": 102630,
+      "sizeHuman": "100.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (4).webp",
+      "size": 99260,
+      "sizeHuman": "96.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (5).webp",
+      "size": 92820,
+      "sizeHuman": "90.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (6).webp",
+      "size": 109830,
+      "sizeHuman": "107.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (7).webp",
+      "size": 111602,
+      "sizeHuman": "109.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (8).webp",
+      "size": 105036,
+      "sizeHuman": "102.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기 알-Photoroom.webp",
+      "size": 13948,
+      "sizeHuman": "13.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마 호랑이-Photoroom.webp",
+      "size": 133926,
+      "sizeHuman": "130.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마 호랑이2-Photoroom.webp",
+      "size": 128574,
+      "sizeHuman": "125.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마개-Photoroom.webp",
+      "size": 123208,
+      "sizeHuman": "120.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마닭-Photoroom.webp",
+      "size": 113690,
+      "sizeHuman": "111.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마돼지-Photoroom.webp",
+      "size": 114242,
+      "sizeHuman": "111.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마말-Photoroom.webp",
+      "size": 121134,
+      "sizeHuman": "118.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마뱀-Photoroom.webp",
+      "size": 129702,
+      "sizeHuman": "126.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마소-Photoroom.webp",
+      "size": 111718,
+      "sizeHuman": "109.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마양-Photoroom.webp",
+      "size": 130852,
+      "sizeHuman": "127.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마용-Photoroom.webp",
+      "size": 136334,
+      "sizeHuman": "133.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마원숭이-Photoroom.webp",
+      "size": 135810,
+      "sizeHuman": "132.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마쥐-Photoroom.webp",
+      "size": 130748,
+      "sizeHuman": "127.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/딸기 컨셉/딸기테마토끼-Photoroom.webp",
+      "size": 108448,
+      "sizeHuman": "105.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 알.png",
+      "size": 98521,
+      "sizeHuman": "96.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 강아지.png",
+      "size": 370578,
+      "sizeHuman": "361.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 닭.png",
+      "size": 354150,
+      "sizeHuman": "345.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 돼지.png",
+      "size": 334898,
+      "sizeHuman": "327.0 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 말.png",
+      "size": 369278,
+      "sizeHuman": "360.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 뱀.png",
+      "size": 376946,
+      "sizeHuman": "368.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 소.png",
+      "size": 350493,
+      "sizeHuman": "342.3 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 양.png",
+      "size": 345125,
+      "sizeHuman": "337.0 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 용.png",
+      "size": 365983,
+      "sizeHuman": "357.4 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 원숭이.png",
+      "size": 377313,
+      "sizeHuman": "368.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 쥐.png",
+      "size": 373595,
+      "sizeHuman": "364.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 토끼.png",
+      "size": 342344,
+      "sizeHuman": "334.3 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 컨셉 호랑이.png",
+      "size": 339094,
+      "sizeHuman": "331.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 강아지.png",
+      "size": 341124,
+      "sizeHuman": "333.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 닭.png",
+      "size": 322110,
+      "sizeHuman": "314.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 돼지.png",
+      "size": 332573,
+      "sizeHuman": "324.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 말.png",
+      "size": 361524,
+      "sizeHuman": "353.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 뱀.png",
+      "size": 351586,
+      "sizeHuman": "343.3 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 소.png",
+      "size": 366202,
+      "sizeHuman": "357.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 양.png",
+      "size": 342671,
+      "sizeHuman": "334.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 용.png",
+      "size": 388117,
+      "sizeHuman": "379.0 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 원숭이.png",
+      "size": 352862,
+      "sizeHuman": "344.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 쥐.png",
+      "size": 366110,
+      "sizeHuman": "357.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 토끼.png",
+      "size": 356073,
+      "sizeHuman": "347.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃 컨셉 호랑이.png",
+      "size": 364927,
+      "sizeHuman": "356.4 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃의 알.png",
+      "size": 135690,
+      "sizeHuman": "132.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 컨셉 알.png",
+      "size": 268223,
+      "sizeHuman": "261.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 개.png",
+      "size": 500545,
+      "sizeHuman": "488.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 닭.png",
+      "size": 490827,
+      "sizeHuman": "479.3 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 돼지.png",
+      "size": 486487,
+      "sizeHuman": "475.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 말.png",
+      "size": 564506,
+      "sizeHuman": "551.3 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 뱀.png",
+      "size": 300854,
+      "sizeHuman": "293.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 소.png",
+      "size": 304317,
+      "sizeHuman": "297.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 양.png",
+      "size": 275950,
+      "sizeHuman": "269.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 용.png",
+      "size": 322687,
+      "sizeHuman": "315.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 원숭이.png",
+      "size": 275112,
+      "sizeHuman": "268.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 쥐.png",
+      "size": 326755,
+      "sizeHuman": "319.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 토끼.png",
+      "size": 320449,
+      "sizeHuman": "312.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 호랑이.png",
+      "size": 310508,
+      "sizeHuman": "303.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 알-Photoroom.webp",
+      "size": 30178,
+      "sizeHuman": "29.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 강아지.png",
+      "size": 354386,
+      "sizeHuman": "346.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 닭.png",
+      "size": 314868,
+      "sizeHuman": "307.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 돼지.png",
+      "size": 341938,
+      "sizeHuman": "333.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 말.png",
+      "size": 313520,
+      "sizeHuman": "306.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀.png",
+      "size": 371402,
+      "sizeHuman": "362.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀2.png",
+      "size": 373373,
+      "sizeHuman": "364.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀3.png",
+      "size": 378986,
+      "sizeHuman": "370.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀4.png",
+      "size": 114379,
+      "sizeHuman": "111.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 소.png",
+      "size": 392603,
+      "sizeHuman": "383.4 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 양.png",
+      "size": 339429,
+      "sizeHuman": "331.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 용.png",
+      "size": 374699,
+      "sizeHuman": "365.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 원숭이.png",
+      "size": 349713,
+      "sizeHuman": "341.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 쥐.png",
+      "size": 399211,
+      "sizeHuman": "389.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 토끼.png",
+      "size": 376489,
+      "sizeHuman": "367.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 호랑이.png",
+      "size": 386031,
+      "sizeHuman": "377.0 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/검은별 알-Photoroom.png",
+      "size": 327452,
+      "sizeHuman": "319.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 강아지.webp",
+      "size": 76402,
+      "sizeHuman": "74.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 닭.webp",
+      "size": 73990,
+      "sizeHuman": "72.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 돼지.webp",
+      "size": 69860,
+      "sizeHuman": "68.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 돼지2.webp",
+      "size": 66230,
+      "sizeHuman": "64.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 말.webp",
+      "size": 70966,
+      "sizeHuman": "69.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 말2.webp",
+      "size": 36594,
+      "sizeHuman": "35.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 뱀.webp",
+      "size": 84412,
+      "sizeHuman": "82.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 뱀2.webp",
+      "size": 73976,
+      "sizeHuman": "72.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 소.webp",
+      "size": 85782,
+      "sizeHuman": "83.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 소2.webp",
+      "size": 77252,
+      "sizeHuman": "75.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 양.webp",
+      "size": 86642,
+      "sizeHuman": "84.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 용.webp",
+      "size": 91116,
+      "sizeHuman": "89.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 용2.webp",
+      "size": 75712,
+      "sizeHuman": "73.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 원숭이.webp",
+      "size": 83502,
+      "sizeHuman": "81.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 쥐1.webp",
+      "size": 89580,
+      "sizeHuman": "87.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 쥐2.webp",
+      "size": 86562,
+      "sizeHuman": "84.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 쥐3.webp",
+      "size": 90156,
+      "sizeHuman": "88.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 쥐4.webp",
+      "size": 81090,
+      "sizeHuman": "79.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 토끼.webp",
+      "size": 81864,
+      "sizeHuman": "79.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 호랑이.webp",
+      "size": 96642,
+      "sizeHuman": "94.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 뱀-Photoroom.webp",
+      "size": 120932,
+      "sizeHuman": "118.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 소-Photoroom.webp",
+      "size": 141014,
+      "sizeHuman": "137.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 알.png",
+      "size": 344870,
+      "sizeHuman": "336.8 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 용-Photoroom.webp",
+      "size": 133730,
+      "sizeHuman": "130.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 쥐-Photoroom.webp",
+      "size": 142472,
+      "sizeHuman": "139.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 호랑이-Photoroom.webp",
+      "size": 134012,
+      "sizeHuman": "130.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (3).webp",
+      "size": 102630,
+      "sizeHuman": "100.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (4).webp",
+      "size": 99260,
+      "sizeHuman": "96.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (5).webp",
+      "size": 92820,
+      "sizeHuman": "90.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (6).webp",
+      "size": 109830,
+      "sizeHuman": "107.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (7).webp",
+      "size": 111602,
+      "sizeHuman": "109.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (8).webp",
+      "size": 105036,
+      "sizeHuman": "102.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기 알.webp",
+      "size": 8474,
+      "sizeHuman": "8.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마 호랑이.webp",
+      "size": 67480,
+      "sizeHuman": "65.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마 호랑이2.webp",
+      "size": 66310,
+      "sizeHuman": "64.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마개.webp",
+      "size": 62768,
+      "sizeHuman": "61.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마닭.webp",
+      "size": 58372,
+      "sizeHuman": "57.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마돼지.webp",
+      "size": 57830,
+      "sizeHuman": "56.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마말.webp",
+      "size": 62560,
+      "sizeHuman": "61.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마뱀.webp",
+      "size": 64856,
+      "sizeHuman": "63.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마소.webp",
+      "size": 54280,
+      "sizeHuman": "53.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마양.webp",
+      "size": 71164,
+      "sizeHuman": "69.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마용.webp",
+      "size": 68208,
+      "sizeHuman": "66.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마원숭이.webp",
+      "size": 67036,
+      "sizeHuman": "65.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마쥐.webp",
+      "size": 65760,
+      "sizeHuman": "64.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/딸기 컨셉/딸기테마토끼.webp",
+      "size": 58292,
+      "sizeHuman": "56.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 알.webp",
+      "size": 9342,
+      "sizeHuman": "9.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 강아지.webp",
+      "size": 123640,
+      "sizeHuman": "120.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 닭.webp",
+      "size": 121738,
+      "sizeHuman": "118.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 돼지.webp",
+      "size": 122962,
+      "sizeHuman": "120.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 말.webp",
+      "size": 129574,
+      "sizeHuman": "126.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 뱀.webp",
+      "size": 122350,
+      "sizeHuman": "119.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 소.webp",
+      "size": 114298,
+      "sizeHuman": "111.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 양.webp",
+      "size": 121230,
+      "sizeHuman": "118.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 용.webp",
+      "size": 117882,
+      "sizeHuman": "115.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 원숭이.webp",
+      "size": 127990,
+      "sizeHuman": "125.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 쥐.webp",
+      "size": 118586,
+      "sizeHuman": "115.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 토끼.webp",
+      "size": 105668,
+      "sizeHuman": "103.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/마카롱 컨셉/마카롱 컨셉 호랑이.webp",
+      "size": 113778,
+      "sizeHuman": "111.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 강아지.webp",
+      "size": 80128,
+      "sizeHuman": "78.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 닭.webp",
+      "size": 78084,
+      "sizeHuman": "76.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 돼지.webp",
+      "size": 104312,
+      "sizeHuman": "101.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 말.webp",
+      "size": 86794,
+      "sizeHuman": "84.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 뱀.webp",
+      "size": 112440,
+      "sizeHuman": "109.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 소.webp",
+      "size": 90126,
+      "sizeHuman": "88.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 양.webp",
+      "size": 81682,
+      "sizeHuman": "79.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 용.webp",
+      "size": 119354,
+      "sizeHuman": "116.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 원숭이.webp",
+      "size": 82126,
+      "sizeHuman": "80.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 쥐.webp",
+      "size": 87744,
+      "sizeHuman": "85.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 토끼.webp",
+      "size": 82594,
+      "sizeHuman": "80.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃 컨셉 호랑이.webp",
+      "size": 89996,
+      "sizeHuman": "87.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃의 알.webp",
+      "size": 12804,
+      "sizeHuman": "12.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 컨셉 알.webp",
+      "size": 11650,
+      "sizeHuman": "11.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 개.webp",
+      "size": 36438,
+      "sizeHuman": "35.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 닭.webp",
+      "size": 36194,
+      "sizeHuman": "35.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 돼지.webp",
+      "size": 35116,
+      "sizeHuman": "34.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 말.webp",
+      "size": 43512,
+      "sizeHuman": "42.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 뱀.webp",
+      "size": 45676,
+      "sizeHuman": "44.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 소.webp",
+      "size": 50704,
+      "sizeHuman": "49.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 양.webp",
+      "size": 41168,
+      "sizeHuman": "40.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 용.webp",
+      "size": 52478,
+      "sizeHuman": "51.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 원숭이.webp",
+      "size": 39848,
+      "sizeHuman": "38.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 쥐.webp",
+      "size": 54830,
+      "sizeHuman": "53.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 토끼.webp",
+      "size": 49546,
+      "sizeHuman": "48.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/우주 테마/우주 테마 호랑이.webp",
+      "size": 51268,
+      "sizeHuman": "50.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 알-Photoroom.webp",
+      "size": 30178,
+      "sizeHuman": "29.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 강아지.png",
+      "size": 354386,
+      "sizeHuman": "346.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 닭.png",
+      "size": 314868,
+      "sizeHuman": "307.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 돼지.png",
+      "size": 341938,
+      "sizeHuman": "333.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 말.png",
+      "size": 313520,
+      "sizeHuman": "306.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀.png",
+      "size": 371402,
+      "sizeHuman": "362.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀2.png",
+      "size": 373373,
+      "sizeHuman": "364.6 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀3.png",
+      "size": 378986,
+      "sizeHuman": "370.1 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀4.png",
+      "size": 114379,
+      "sizeHuman": "111.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 소.png",
+      "size": 392603,
+      "sizeHuman": "383.4 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 양.png",
+      "size": 339429,
+      "sizeHuman": "331.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 용.png",
+      "size": 374699,
+      "sizeHuman": "365.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 원숭이.png",
+      "size": 349713,
+      "sizeHuman": "341.5 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 쥐.png",
+      "size": 399211,
+      "sizeHuman": "389.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 토끼.png",
+      "size": 376489,
+      "sizeHuman": "367.7 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 호랑이.png",
+      "size": 386031,
+      "sizeHuman": "377.0 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/fuctionassets/tbal.webp",
+      "size": 90740,
+      "sizeHuman": "88.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/tetoegen.webp",
+      "size": 97304,
+      "sizeHuman": "95.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/trip.webp",
+      "size": 181084,
+      "sizeHuman": "176.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/unsetama.webp",
+      "size": 127156,
+      "sizeHuman": "124.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/vilun.webp",
+      "size": 154346,
+      "sizeHuman": "150.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/yeon.webp",
+      "size": 9392,
+      "sizeHuman": "9.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/i18n/de.json",
+      "size": 4720,
+      "sizeHuman": "4.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/en.json",
+      "size": 13101,
+      "sizeHuman": "12.8 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/es.json",
+      "size": 4699,
+      "sizeHuman": "4.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/fr.json",
+      "size": 4788,
+      "sizeHuman": "4.7 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/hi.json",
+      "size": 8169,
+      "sizeHuman": "8.0 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/ja.json",
+      "size": 5617,
+      "sizeHuman": "5.5 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/ms.json",
+      "size": 3891,
+      "sizeHuman": "3.8 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/nl.json",
+      "size": 3967,
+      "sizeHuman": "3.9 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/i18n/zh-cn.json",
+      "size": 4895,
+      "sizeHuman": "4.8 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "public/icons/android-chrome-192x192.png",
+      "size": 78142,
+      "sizeHuman": "76.3 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/icons/android-chrome-512x512.png",
+      "size": 400553,
+      "sizeHuman": "391.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/icons/fortune-tama-512.png",
+      "size": 332734,
+      "sizeHuman": "324.9 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/icons/honeypig-512.png",
+      "size": 400553,
+      "sizeHuman": "391.2 KB",
+      "extension": ".png"
+    },
+    {
+      "path": "public/icons/samba-130.webp",
+      "size": 5218,
+      "sizeHuman": "5.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/icons/samba-96.webp",
+      "size": 3264,
+      "sizeHuman": "3.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/images/Celestial Harmony.webp",
+      "size": 220114,
+      "sizeHuman": "215.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/js/astral-soul.js",
+      "size": 50487,
+      "sizeHuman": "49.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/cd-google-translate-lazy.js",
+      "size": 2009,
+      "sizeHuman": "2.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/cd-inline-click-binder.js",
+      "size": 963,
+      "sizeHuman": "963 B",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/collection-action-bridge.js",
+      "size": 2281,
+      "sizeHuman": "2.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/compat-llm-prompts.js",
+      "size": 43645,
+      "sizeHuman": "42.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/core/kasi-calendar-service.js",
+      "size": 36530,
+      "sizeHuman": "35.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/core/kasi/calendar.js",
+      "size": 9831,
+      "sizeHuman": "9.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/core/saju/reportDashboard.js",
+      "size": 58065,
+      "sizeHuman": "56.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/data/chinese-astrology.js",
+      "size": 7774,
+      "sizeHuman": "7.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/engines/ziwei-doushu.js",
+      "size": 9700,
+      "sizeHuman": "9.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/entertain-engine.js",
+      "size": 60407,
+      "sizeHuman": "59.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/features/tarotHealing/images.js",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/inline/fortune-tabs.js",
+      "size": 1117,
+      "sizeHuman": "1.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/inline/mobile-safe-render-init.js",
+      "size": 3000,
+      "sizeHuman": "2.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/inline/planet-widget-cosmic.js",
+      "size": 25351,
+      "sizeHuman": "24.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/inline/pwa-theme-init.js",
+      "size": 917,
+      "sizeHuman": "917 B",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/inline/site-verification-inject.js",
+      "size": 1922,
+      "sizeHuman": "1.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/love-secret-service.js",
+      "size": 71723,
+      "sizeHuman": "70.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/README.md",
+      "size": 4513,
+      "sizeHuman": "4.4 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "public/js/router.js",
+      "size": 6583,
+      "sizeHuman": "6.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/saju-engine-continuation.js",
+      "size": 10681,
+      "sizeHuman": "10.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
+      "size": 437164,
+      "sizeHuman": "426.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/saju-engine.js",
+      "size": 1230321,
+      "sizeHuman": "1.17 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/fortune-point-service.js",
+      "size": 5199,
+      "sizeHuman": "5.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/hwatu-life.js",
+      "size": 2134,
+      "sizeHuman": "2.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/pig-oracle.js",
+      "size": 1042,
+      "sizeHuman": "1.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/sajuAnalyzer.js",
+      "size": 11587,
+      "sizeHuman": "11.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/sajuWorkerExamples.js",
+      "size": 8695,
+      "sizeHuman": "8.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/sajuWorkerService.js",
+      "size": 3715,
+      "sizeHuman": "3.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/sajuWorkerServiceAdvanced.js",
+      "size": 10700,
+      "sizeHuman": "10.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/service-registry.js",
+      "size": 1105,
+      "sizeHuman": "1.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/stonehenge-rune.js",
+      "size": 2170,
+      "sizeHuman": "2.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/tarot.js",
+      "size": 2995,
+      "sizeHuman": "2.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/tarot-data.js",
+      "size": 10926,
+      "sizeHuman": "10.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/tarot-love-experience.js",
+      "size": 46686,
+      "sizeHuman": "45.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/tarot-self-esteem-experience.js",
+      "size": 47386,
+      "sizeHuman": "46.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/utils/date.js",
+      "size": 756,
+      "sizeHuman": "756 B",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/utils/dom.js",
+      "size": 1271,
+      "sizeHuman": "1.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/vedic-astrology-module.js",
+      "size": 2944,
+      "sizeHuman": "2.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/README.md",
+      "size": 4340,
+      "sizeHuman": "4.2 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "public/static/js/router.js",
+      "size": 6561,
+      "sizeHuman": "6.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/static/js/services/hwatu-life.js",
+      "size": 2134,
+      "sizeHuman": "2.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/static/js/services/service-registry.js",
+      "size": 1112,
+      "sizeHuman": "1.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/static/js/services/stonehenge-rune.js",
+      "size": 2170,
+      "sizeHuman": "2.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/static/js/services/tarot.js",
+      "size": 2995,
+      "sizeHuman": "2.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/styles/critical-above-fold.css",
+      "size": 5065,
+      "sizeHuman": "4.9 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "public/styles/disclaimer-banner.css",
+      "size": 3608,
+      "sizeHuman": "3.5 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "public/styles/README.md",
+      "size": 5929,
+      "sizeHuman": "5.8 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "public/sudda/hwatu/1_1.webp",
+      "size": 298166,
+      "sizeHuman": "291.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/1_3.webp",
+      "size": 87220,
+      "sizeHuman": "85.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/1_4.webp",
+      "size": 69376,
+      "sizeHuman": "67.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/10_1.webp",
+      "size": 95462,
+      "sizeHuman": "93.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/10_2.webp",
+      "size": 80360,
+      "sizeHuman": "78.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/10_3.webp",
+      "size": 65058,
+      "sizeHuman": "63.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/10_4.webp",
+      "size": 65814,
+      "sizeHuman": "64.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/11_1.webp",
+      "size": 86012,
+      "sizeHuman": "84.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/11_2.webp",
+      "size": 42394,
+      "sizeHuman": "41.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/11_3.webp",
+      "size": 64162,
+      "sizeHuman": "62.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/12_2.webp",
+      "size": 65188,
+      "sizeHuman": "63.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/12_4.webp",
+      "size": 49046,
+      "sizeHuman": "47.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/2_2.webp",
+      "size": 69582,
+      "sizeHuman": "68.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/2_3.webp",
+      "size": 69420,
+      "sizeHuman": "67.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/2_4.webp",
+      "size": 66832,
+      "sizeHuman": "65.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/3_2.webp",
+      "size": 57896,
+      "sizeHuman": "56.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/3_3.webp",
+      "size": 66936,
+      "sizeHuman": "65.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/3_4.webp",
+      "size": 65140,
+      "sizeHuman": "63.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/4_1.webp",
+      "size": 133256,
+      "sizeHuman": "130.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/4_3.webp",
+      "size": 63530,
+      "sizeHuman": "62.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/4_4.webp",
+      "size": 68924,
+      "sizeHuman": "67.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/5_1.webp",
+      "size": 116618,
+      "sizeHuman": "113.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/5_2.webp",
+      "size": 56324,
+      "sizeHuman": "55.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/5_3.webp",
+      "size": 65364,
+      "sizeHuman": "63.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/5_4.webp",
+      "size": 51610,
+      "sizeHuman": "50.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/6_1.webp",
+      "size": 63854,
+      "sizeHuman": "62.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/6_3.webp",
+      "size": 58316,
+      "sizeHuman": "56.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/6_4.webp",
+      "size": 35630,
+      "sizeHuman": "34.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/7_1.webp",
+      "size": 110270,
+      "sizeHuman": "107.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/7_2.webp",
+      "size": 63294,
+      "sizeHuman": "61.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/7_3.webp",
+      "size": 54926,
+      "sizeHuman": "53.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/7_4.webp",
+      "size": 60410,
+      "sizeHuman": "59.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/8_1.webp",
+      "size": 182478,
+      "sizeHuman": "178.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/8_2.webp",
+      "size": 69644,
+      "sizeHuman": "68.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/8_3.webp",
+      "size": 64756,
+      "sizeHuman": "63.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/8_4.webp",
+      "size": 60296,
+      "sizeHuman": "58.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/9_1.webp",
+      "size": 112926,
+      "sizeHuman": "110.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/9_2.webp",
+      "size": 81742,
+      "sizeHuman": "79.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/9_3.webp",
+      "size": 75092,
+      "sizeHuman": "73.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/sudda/hwatu/9_4.webp",
+      "size": 86134,
+      "sizeHuman": "84.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/tadagochi-sw.js",
+      "size": 2296,
+      "sizeHuman": "2.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/tarot-cards/aceofcups.jpeg",
+      "size": 29972,
+      "sizeHuman": "29.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/aceofpentacles.jpeg",
+      "size": 28500,
+      "sizeHuman": "27.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/aceofswords.jpeg",
+      "size": 25679,
+      "sizeHuman": "25.1 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/aceofwands.jpeg",
+      "size": 25486,
+      "sizeHuman": "24.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/death.jpeg",
+      "size": 38914,
+      "sizeHuman": "38.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/eightofcups.jpeg",
+      "size": 24719,
+      "sizeHuman": "24.1 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/eightofpentacles.jpeg",
+      "size": 26522,
+      "sizeHuman": "25.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/eightofswords.jpeg",
+      "size": 29421,
+      "sizeHuman": "28.7 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/eightofwands.jpeg",
+      "size": 25599,
+      "sizeHuman": "25.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fiveofcups.jpeg",
+      "size": 19014,
+      "sizeHuman": "18.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fiveofpentacles.jpeg",
+      "size": 41018,
+      "sizeHuman": "40.1 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fiveofswords.jpeg",
+      "size": 29412,
+      "sizeHuman": "28.7 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fiveofwands.jpeg",
+      "size": 29083,
+      "sizeHuman": "28.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fourofcups.jpeg",
+      "size": 26082,
+      "sizeHuman": "25.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fourofpentacles.jpeg",
+      "size": 22090,
+      "sizeHuman": "21.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fourofswords.jpeg",
+      "size": 26703,
+      "sizeHuman": "26.1 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/fourofwands.jpeg",
+      "size": 28302,
+      "sizeHuman": "27.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/judgement.jpeg",
+      "size": 37122,
+      "sizeHuman": "36.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/justice.jpeg",
+      "size": 32627,
+      "sizeHuman": "31.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/kingofcups.jpeg",
+      "size": 30314,
+      "sizeHuman": "29.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/kingofpentacles.jpeg",
+      "size": 35437,
+      "sizeHuman": "34.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/kingofswords.jpeg",
+      "size": 31394,
+      "sizeHuman": "30.7 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/kingofwands.jpeg",
+      "size": 35483,
+      "sizeHuman": "34.7 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/knightofcups.jpeg",
+      "size": 29266,
+      "sizeHuman": "28.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/knightofpentacles.jpeg",
+      "size": 25916,
+      "sizeHuman": "25.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/knightofswords.jpeg",
+      "size": 32093,
+      "sizeHuman": "31.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/knightofwands.jpeg",
+      "size": 33754,
+      "sizeHuman": "33.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/nineofcups.jpeg",
+      "size": 31251,
+      "sizeHuman": "30.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/nineofpentacles.jpeg",
+      "size": 32345,
+      "sizeHuman": "31.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/nineofswords.jpeg",
+      "size": 28296,
+      "sizeHuman": "27.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/nineofwands.jpeg",
+      "size": 30463,
+      "sizeHuman": "29.7 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/pageofcups.jpeg",
+      "size": 27633,
+      "sizeHuman": "27.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/pageofpentacles.jpeg",
+      "size": 25170,
+      "sizeHuman": "24.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/pageofswords.jpeg",
+      "size": 28979,
+      "sizeHuman": "28.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/pageofwands.jpeg",
+      "size": 28130,
+      "sizeHuman": "27.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/queenofcups.jpeg",
+      "size": 32282,
+      "sizeHuman": "31.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/queenofpentacles.jpeg",
+      "size": 38744,
+      "sizeHuman": "37.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/queenofswords.jpeg",
+      "size": 29256,
+      "sizeHuman": "28.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/queenofwands.jpeg",
+      "size": 37601,
+      "sizeHuman": "36.7 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sevenofcups.jpeg",
+      "size": 34130,
+      "sizeHuman": "33.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sevenofpentacles.jpeg",
+      "size": 30255,
+      "sizeHuman": "29.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sevenofswords.jpeg",
+      "size": 27730,
+      "sizeHuman": "27.1 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sevenofwands.jpeg",
+      "size": 25161,
+      "sizeHuman": "24.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sixofcups.jpeg",
+      "size": 40351,
+      "sizeHuman": "39.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sixofpentacles.jpeg",
+      "size": 28498,
+      "sizeHuman": "27.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sixofswords.jpeg",
+      "size": 27062,
+      "sizeHuman": "26.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/sixofwands.jpeg",
+      "size": 30217,
+      "sizeHuman": "29.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/temperance.jpeg",
+      "size": 119153,
+      "sizeHuman": "116.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/tenofcups.jpeg",
+      "size": 30648,
+      "sizeHuman": "29.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/tenofpentacles.jpeg",
+      "size": 38372,
+      "sizeHuman": "37.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/tenofswords.jpeg",
+      "size": 26623,
+      "sizeHuman": "26.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/tenofwands.jpeg",
+      "size": 27547,
+      "sizeHuman": "26.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thechariot.jpeg",
+      "size": 36201,
+      "sizeHuman": "35.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thedevil.jpeg",
+      "size": 30173,
+      "sizeHuman": "29.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/theemperor.jpeg",
+      "size": 35107,
+      "sizeHuman": "34.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/theempress.jpeg",
+      "size": 39800,
+      "sizeHuman": "38.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thehangedman.jpeg",
+      "size": 26454,
+      "sizeHuman": "25.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thehermit.jpeg",
+      "size": 297326,
+      "sizeHuman": "290.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thehierophant.jpeg",
+      "size": 36165,
+      "sizeHuman": "35.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thehighpriestess.jpeg",
+      "size": 171399,
+      "sizeHuman": "167.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/TheLovers.jpg",
+      "size": 37316,
+      "sizeHuman": "36.4 KB",
+      "extension": ".jpg"
+    },
+    {
+      "path": "public/tarot-cards/themagician.jpeg",
+      "size": 484264,
+      "sizeHuman": "472.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/themoon.jpeg",
+      "size": 31534,
+      "sizeHuman": "30.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thestar.jpeg",
+      "size": 31505,
+      "sizeHuman": "30.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thestrength.jpeg",
+      "size": 28499,
+      "sizeHuman": "27.8 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thesun.jpeg",
+      "size": 159633,
+      "sizeHuman": "155.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/thetower.jpeg",
+      "size": 29320,
+      "sizeHuman": "28.6 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/theworld.jpeg",
+      "size": 37298,
+      "sizeHuman": "36.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/threeofcups.jpeg",
+      "size": 31921,
+      "sizeHuman": "31.2 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/threeofpentacles.jpeg",
+      "size": 36314,
+      "sizeHuman": "35.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/threeofswords.jpeg",
+      "size": 23506,
+      "sizeHuman": "23.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/threeofwands.jpeg",
+      "size": 27596,
+      "sizeHuman": "26.9 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/twoofcups.jpeg",
+      "size": 30156,
+      "sizeHuman": "29.4 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/twoofpentacles.jpeg",
+      "size": 29173,
+      "sizeHuman": "28.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/twoofswords.jpeg",
+      "size": 21981,
+      "sizeHuman": "21.5 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/twoofwands.jpeg",
+      "size": 25944,
+      "sizeHuman": "25.3 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "public/tarot-cards/wheeloffortune.jpeg",
+      "size": 30738,
+      "sizeHuman": "30.0 KB",
+      "extension": ".jpeg"
+    },
+    {
+      "path": "server/.env",
+      "size": 1562,
+      "sizeHuman": "1.5 KB",
+      "extension": "(none)"
+    },
+    {
+      "path": "server/.env.example",
+      "size": 2967,
+      "sizeHuman": "2.9 KB",
+      "extension": ".example"
+    },
+    {
+      "path": "server/data/fixed-phrases.ko.json",
+      "size": 259,
+      "sizeHuman": "259 B",
+      "extension": ".json"
+    },
+    {
+      "path": "server/data/tarot-cards.db.json",
+      "size": 1301487,
+      "sizeHuman": "1.24 MB",
+      "extension": ".json"
+    },
+    {
+      "path": "server/data/tarot-cards.sample.json",
+      "size": 5718,
+      "sizeHuman": "5.6 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "server/data/tarot-cards.schema.json",
+      "size": 2858,
+      "sizeHuman": "2.8 KB",
+      "extension": ".json"
+    },
+    {
+      "path": "server/kasi-virtual-server.js",
+      "size": 2391,
+      "sizeHuman": "2.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/middleware/auth.middleware.js",
+      "size": 3732,
+      "sizeHuman": "3.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/middleware/flower-admin.middleware.js",
+      "size": 2900,
+      "sizeHuman": "2.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/middleware/point.middleware.js",
+      "size": 1216,
+      "sizeHuman": "1.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/AdminAuditLog.js",
+      "size": 783,
+      "sizeHuman": "783 B",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/Payment.js",
+      "size": 1854,
+      "sizeHuman": "1.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/PaymentFailureLog.js",
+      "size": 1492,
+      "sizeHuman": "1.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/PointHistory.js",
+      "size": 1092,
+      "sizeHuman": "1.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/TranslationCache.js",
+      "size": 778,
+      "sizeHuman": "778 B",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/TranslationUsage.js",
+      "size": 555,
+      "sizeHuman": "555 B",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/User.js",
+      "size": 4638,
+      "sizeHuman": "4.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/admin.routes.js",
+      "size": 40349,
+      "sizeHuman": "39.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/astro.routes.js",
+      "size": 8092,
+      "sizeHuman": "7.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/auth.routes.js",
+      "size": 19360,
+      "sizeHuman": "18.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/fortune.routes.js",
+      "size": 43064,
+      "sizeHuman": "42.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/kasi.routes.js",
+      "size": 1426,
+      "sizeHuman": "1.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/oracle.routes.js",
+      "size": 12092,
+      "sizeHuman": "11.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/payment.routes.js",
+      "size": 52159,
+      "sizeHuman": "50.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/sibyl.routes.js",
+      "size": 16740,
+      "sizeHuman": "16.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/subscription.routes.js",
+      "size": 2869,
+      "sizeHuman": "2.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/tarot.routes.js",
+      "size": 22137,
+      "sizeHuman": "21.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/translate.routes.js",
+      "size": 10968,
+      "sizeHuman": "10.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/user.routes.js",
+      "size": 3370,
+      "sizeHuman": "3.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/routes/yoga-guru.routes.js",
+      "size": 14142,
+      "sizeHuman": "13.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/services/kasi-calendar.service.js",
+      "size": 9018,
+      "sizeHuman": "8.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/services/portone.service.js",
+      "size": 6587,
+      "sizeHuman": "6.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/services/swiss-ephemeris.service.js",
+      "size": 9801,
+      "sizeHuman": "9.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/utils/validation.js",
+      "size": 5498,
+      "sizeHuman": "5.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "utils/astrology/chartFormat.ts",
+      "size": 10825,
+      "sizeHuman": "10.6 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "utils/astrology/chartMath.ts",
+      "size": 3432,
+      "sizeHuman": "3.4 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "veda/charts.ts",
+      "size": 16793,
+      "sizeHuman": "16.4 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "veda/destiny-engine.ts",
+      "size": 33634,
+      "sizeHuman": "32.8 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "veda/ephemeris.ts",
+      "size": 14836,
+      "sizeHuman": "14.5 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "veda/index.ts",
+      "size": 11970,
+      "sizeHuman": "11.7 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "veda/knowledge-base.ts",
+      "size": 22025,
+      "sizeHuman": "21.5 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "veda/package.json",
+      "size": 483,
+      "sizeHuman": "483 B",
+      "extension": ".json"
+    },
+    {
+      "path": "veda/tsconfig.json",
+      "size": 577,
+      "sizeHuman": "577 B",
+      "extension": ".json"
+    },
+    {
+      "path": "veda/types.ts",
+      "size": 7201,
+      "sizeHuman": "7.0 KB",
+      "extension": ".ts"
+    }
+  ],
+  "notes": [
+    "This report does not delete files.",
+    "Candidates are heuristic and require manual validation for runtime/dynamic links."
+  ]
+}

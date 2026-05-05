@@ -100,6 +100,55 @@ function _cdModalHardResetTop(overlayId, sheetId, anchorId) {
   }
 }
 
+function _resolveSukuyoLunarObj(profile) {
+  if (!profile || !profile.birth) return Promise.resolve(null);
+  var b = profile.birth;
+  var l = profile.location || {};
+
+  try {
+    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+      var direct = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
+      if (direct && direct.year && direct.month && direct.day) {
+        return Promise.resolve(direct);
+      }
+    }
+  } catch (e) {
+    console.warn('[Sukuyo] KasiEngine.solarToLunar 오류:', e);
+  }
+
+  if (typeof resolvePrimaryCalendarContext === 'function') {
+    return resolvePrimaryCalendarContext({
+      calendarType: b.calType || 'solar',
+      year: b.year,
+      month: b.month,
+      day: b.day,
+      hour: b.hour != null ? b.hour : 12,
+      minute: b.minute != null ? b.minute : 0,
+      second: 0,
+      latitude: l.lat != null ? l.lat : 37.5665,
+      longitude: l.lng != null ? l.lng : 126.978,
+      tzOffsetHours: l.tzOffset != null ? l.tzOffset : 9
+    }, { setCurrent: false, localOnly: false })
+      .then(function (ctx) {
+        if (ctx && ctx.lunar && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day) {
+          return {
+            year: ctx.lunar.year,
+            month: ctx.lunar.month,
+            day: ctx.lunar.day,
+            isLeap: !!ctx.lunar.isLeap
+          };
+        }
+        return null;
+      })
+      .catch(function (e) {
+        console.warn('[Sukuyo] resolvePrimaryCalendarContext fallback 실패:', e);
+        return null;
+      });
+  }
+
+  return Promise.resolve(null);
+}
+
 function _renderSukuyoSection(profile) {
   var card = document.getElementById('sukuyoCard');
   var noP = document.getElementById('sukuyoNoProfile');
@@ -112,18 +161,18 @@ function _renderSukuyoSection(profile) {
     '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
-  var b = profile.birth;
-  var lunarObj = null;
-  try {
-    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
-      lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
-    }
-  } catch (e) {
-    console.warn('[Sukuyo] lunarObj 계산 오류:', e);
-  }
   setTimeout(function () {
-    if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
-    _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
+    _resolveSukuyoLunarObj(profile)
+      .then(function (lunarObj) {
+        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
+      })
+      .catch(function (e) {
+        console.warn('[Sukuyo] 렌더 준비 실패:', e);
+        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, null);
+      })
+      .finally(function () {
+        _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
+      });
   }, 0);
 }
 

@@ -57,7 +57,7 @@ export const SERVICE_SECTIONS = [
     id: "special",
     title: "특별 콘텐츠",
     items: [
-      { href: "/secret-house-final.html", title: "나는 솔로 시크릿 하우스", desc: "자동 일간 캐치 연애 시뮬" },
+      { href: "/secret-house_real.html", title: "나는 솔로 시크릿 하우스", desc: "자동 일간 캐치 연애 시뮬" },
       { href: "/animal/physio", title: "AI 동물 관상", desc: "셀카 얼굴형 분석" },
       { href: "/animal/mbti", title: "MBTI 동물 궁합", desc: "16유형 케미 분석" },
       { href: "/animal/totem", title: "애니멀 토템", desc: "수호 동물 메시지" },

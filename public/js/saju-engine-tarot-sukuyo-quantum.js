@@ -4844,7 +4844,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                     latitude: syLat,
                     longitude: syLon,
                     tzOffsetHours: syTz
-                  }, { setCurrent: false, localOnly: true });
+                  }, { setCurrent: false, localOnly: false });
                   if (syCtx && syCtx.lunar && syCtx.lunar.year && syCtx.lunar.month && syCtx.lunar.day) {
                     lunarObj = {
                       year: syCtx.lunar.year,

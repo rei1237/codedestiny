@@ -36,7 +36,7 @@ window.openSecretHouseRoute = function() {
   } catch (_eStem) {
     stem = '';
   }
-  var target = '/secret-house-final.html';
+  var target = '/secret-house_real.html';
   if (/^[甲乙丙丁戊己庚辛壬癸]$/.test(stem)) {
     target += '?dayStem=' + encodeURIComponent(stem);
   }

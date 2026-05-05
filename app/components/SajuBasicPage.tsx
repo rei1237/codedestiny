@@ -35,7 +35,7 @@ export default function SajuBasicPage() {
             사주 정보 입력 없이도 자동 일간 캐치 후 멀티 엔딩으로 분기됩니다.
           </p>
           <Link
-            href="/secret-house-final.html"
+            href="/secret-house_real.html"
             className="mt-3 inline-flex rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white"
           >
             나는 솔로 시크릿 하우스 입장

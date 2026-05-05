@@ -406,7 +406,7 @@ function parseKasiGanjiPair(raw) {
 async function resolveKasiDateContextSafe(input, options) {
   if (!window.KasiCalendarService || typeof window.KasiCalendarService.resolveDateContext !== 'function') return null;
   var safeOptions = Object.assign({}, options || {});
-  if (safeOptions.localOnly !== false) safeOptions.localOnly = true;
+  if (safeOptions.localOnly == null) safeOptions.localOnly = false;
   try {
     return await window.KasiCalendarService.resolveDateContext(input, safeOptions);
   } catch (e) {
@@ -6178,12 +6178,27 @@ function renderAstroInsight() {
     /* ── AstroEngine 천체역학 계산 (Jean Meeus 기반) ── */
     var houseSystem = (window.ASTRO_HOUSE_SYSTEM || 'P');
     var chart, chartNow;
+    var precisionMode = 'swisseph';
+    var precisionReason = '';
     try {
       chart = calcAstroApiChartOrThrow(y, m, d, h + min / 60, lat, lon, tz, houseSystem);
       var now = new Date();
       chartNow = calcAstroApiChartOrThrow(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, lat, lon, tz, houseSystem);
     } catch (apiErr) {
-      renderAstroApiUnavailable(apiErr && apiErr.message ? apiErr.message : apiErr);
+      precisionReason = apiErr && apiErr.message ? String(apiErr.message) : String(apiErr || 'swiss unavailable');
+      try {
+        chart = AstroEngine.calcAll(y, m, d, h + min / 60, lat, lon, tz, { houseSystem: houseSystem });
+        var nowFallback = new Date();
+        chartNow = AstroEngine.calcAll(nowFallback.getFullYear(), nowFallback.getMonth() + 1, nowFallback.getDate(), 12, lat, lon, tz, { houseSystem: houseSystem });
+        precisionMode = (chart && chart.natal && chart.natal.meta && chart.natal.meta.precisionMode) ? chart.natal.meta.precisionMode : 'legacy-fallback';
+      } catch (fallbackErr) {
+        renderAstroApiUnavailable(fallbackErr && fallbackErr.message ? fallbackErr.message : fallbackErr);
+        return;
+      }
+    }
+
+    if (!chart || !chartNow || !chart.planets || !chartNow.planets || !chartNow.planets.Jupiter || !chartNow.planets.Jupiter.sign) {
+      renderAstroApiUnavailable('점성술 차트 계산 데이터가 불완전합니다.');
       return;
     }
 
@@ -6982,8 +6997,21 @@ function renderAstroInsight() {
       tz: tz
     }, houseSystem);
 
+    var precisionNoticeHtml = '';
+    if (precisionMode !== 'swisseph') {
+      var precisionReasonEsc = _astroWheelEsc(precisionReason || 'Swiss API 연결 지연');
+      precisionNoticeHtml = ''
+        + '<div class="astro-section" style="margin-bottom:12px;border:1px solid rgba(251,191,36,.45);background:linear-gradient(160deg,rgba(64,35,5,.3),rgba(20,20,45,.88));">'
+        + '<div class="astro-subhead" style="color:#fde68a;margin-bottom:8px;">⚠️ 기본 정밀 차트 연결 지연</div>'
+        + '<div class="astro-desc" style="line-height:1.72;">'
+        + '<p style="margin:0;color:#fef3c7;">현재는 로컬 fallback 엔진으로 차트를 표시 중입니다. 핵심 해석과 차트 표시는 계속 이용할 수 있습니다.</p>'
+        + '<p style="margin:8px 0 0 0;color:#fde68a;"><b>참고 로그:</b> ' + precisionReasonEsc + '</p>'
+        + '</div></div>';
+    }
+
     var html = '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap">'
       + astroNeonCss
+      + precisionNoticeHtml
       + (natalWheel && natalWheel.cardHtml ? natalWheel.cardHtml : '')
       +'<div class="astro-section" style="margin-bottom:16px;">'
       +'<div class="astro-neon-wrap">'
@@ -8075,7 +8103,7 @@ function renderAstroInsight() {
                   latitude: latVal,
                   longitude: lonVal,
                   tzOffsetHours: tzVal
-                }, { setCurrent: false, localOnly: true });
+                }, { setCurrent: false, localOnly: false });
                 if (directCtx && directCtx.solar) {
                   py = directCtx.solar.year || py;
                   pm = directCtx.solar.month || pm;
@@ -12100,7 +12128,7 @@ function renderZiwei(p, natal, targetId) {
           latitude: cityLat,
           longitude: cityLong,
           tzOffsetHours: isNaN(cityTzOff) ? 9 : cityTzOff
-        }, { setCurrent: false, localOnly: true });
+        }, { setCurrent: false, localOnly: false });
         if (zwCtx && zwCtx.solar) {
           py = zwCtx.solar.year || py;
           pm = zwCtx.solar.month || pm;

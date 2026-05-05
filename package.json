@@ -42,6 +42,11 @@
     "verify:inicis-local-auth": "node scripts/verify-inicis-local-auth.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
+    "audit:files": "node scripts/audit-unused-files.mjs",
+    "audit:duplicates": "node scripts/audit-unused-files.mjs --duplicates",
+    "audit:cleanup": "node scripts/audit-unused-files.mjs --all",
+    "clean:repo:dry": "node scripts/safe-clean-repo.mjs",
+    "clean:repo:apply": "node scripts/safe-clean-repo.mjs --apply",
     "smoke:oauth:prod": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny.com",
     "smoke:oauth:worker": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny-web.bulegyung.workers.dev",
     "test:signup": "node scripts/test-signup.mjs",
@@ -91,6 +96,7 @@
     "react-dom": "18.3.1",
     "recharts": "^3.8.1",
     "resend": "^6.12.2",
+    "sweph-wasm": "^2.6.9",
     "web-vitals": "^4.2.4"
   },
   "devDependencies": {

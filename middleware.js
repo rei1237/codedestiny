@@ -155,6 +155,13 @@ export function middleware(request) {
   const ua = request.headers.get("user-agent") || "";
   const method = (request.method || "GET").toUpperCase();
 
+  if (pathname === "/secret-house-final.html") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/secret-house_real.html";
+    url.search = search;
+    return NextResponse.redirect(url, 308);
+  }
+
   // SEO/public discovery files and static assets should always pass through unchanged.
   if (SEO_PUBLIC_PATHS.has(pathname) || isStaticAssetPath(pathname)) {
     return NextResponse.next();

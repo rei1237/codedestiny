@@ -1719,9 +1719,9 @@ function writeAstroCache(cacheKey, payload, ttlMs = 30 * 60 * 1000) {
   });
 }
 
-function calcSukuyo(input) {
-  const lunarMonth = ((input.month + 10) % 12) + 1;
-  const lunarDay = ((input.day + input.hour) % 30) + 1;
+function buildSukuyoFromLunar(lunarMonthRaw, lunarDayRaw, source = "kasi-api") {
+  const lunarMonth = Math.max(1, Math.min(12, Math.abs(Number(lunarMonthRaw) || 1)));
+  const lunarDay = Math.max(1, Math.min(30, Math.abs(Number(lunarDayRaw) || 1)));
   const start = SUKUYO_MONTH_START[lunarMonth - 1] ?? 11;
   const mansionIdx = (start + lunarDay - 1) % 27;
   const m = SUKUYO_MANSIONS[mansionIdx];
@@ -1736,7 +1736,47 @@ function calcSukuyo(input) {
     animal: m[5],
     lunarMonth,
     lunarDay,
+    source,
   };
+}
+
+async function fetchKasiLunarFromSolar(request, env, input) {
+  try {
+    const data = await postBackendJson(
+      request,
+      env,
+      "/api/kasi/calendar",
+      {
+        method: "getLunCalInfo",
+        params: {
+          solYear: String(input.year),
+          solMonth: String(input.month).padStart(2, "0"),
+          solDay: String(input.day).padStart(2, "0"),
+        },
+      },
+      Number(env.PREMIUM_KASI_TIMEOUT_MS || 8000),
+    );
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    if (!rows.length) return null;
+    const row = rows[0] || {};
+    const lunarMonth = Number(row.lunMonth ?? row.month ?? row.lunarMonth);
+    const lunarDay = Number(row.lunDay ?? row.day ?? row.lunarDay);
+    if (!Number.isFinite(lunarMonth) || !Number.isFinite(lunarDay)) return null;
+    return { lunarMonth, lunarDay };
+  } catch (_) {
+    return null;
+  }
+}
+
+async function calcSukuyo(request, env, input) {
+  const kasiLunar = await fetchKasiLunarFromSolar(request, env, input);
+  if (kasiLunar) {
+    return buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, "kasi-api");
+  }
+
+  const fallbackLunarMonth = ((input.month + 10) % 12) + 1;
+  const fallbackLunarDay = ((input.day + input.hour) % 30) + 1;
+  return buildSukuyoFromLunar(fallbackLunarMonth, fallbackLunarDay, "fallback-approx");
 }
 
 function resolveSukuyoDirection(distance, label) {
@@ -1773,6 +1813,135 @@ function sukuyoRelation(myIdx, otherIdx) {
     roleIcon: direction.icon,
     score: Math.max(38, 96 - Math.abs(13 - distance) * 4),
   };
+}
+
+function extractSwissEclipticLongitude(chartPayload, planetName) {
+  if (!chartPayload || !planetName) return NaN;
+  const direct = Number(chartPayload?.planets?.[planetName]?.longitude);
+  if (Number.isFinite(direct)) return normalizeDeg(direct);
+  const flat = Number(chartPayload?.planets?.[planetName]);
+  if (Number.isFinite(flat)) return normalizeDeg(flat);
+  const lower = String(planetName).toLowerCase();
+  const lowerObj = Number(chartPayload?.planets?.[lower]?.longitude);
+  if (Number.isFinite(lowerObj)) return normalizeDeg(lowerObj);
+  const lowerFlat = Number(chartPayload?.planets?.[lower]);
+  if (Number.isFinite(lowerFlat)) return normalizeDeg(lowerFlat);
+  return NaN;
+}
+
+function resolveMoonPhaseByAngle(angle) {
+  const a = normalizeDeg(angle);
+  if (!Number.isFinite(a)) {
+    return {
+      phaseAngle: null,
+      illumination: null,
+      label: "정보 없음",
+      cycle: "미확인",
+      yinYangFlow: "미확인",
+    };
+  }
+
+  let label = "정보 없음";
+  if (a < 22.5 || a >= 337.5) label = "삭(신월)";
+  else if (a < 67.5) label = "초승";
+  else if (a < 112.5) label = "상현";
+  else if (a < 157.5) label = "차는달";
+  else if (a < 202.5) label = "망(보름)";
+  else if (a < 247.5) label = "기우는달";
+  else if (a < 292.5) label = "하현";
+  else label = "그믐";
+
+  const illumination = Math.round((((1 - Math.cos((a * Math.PI) / 180)) / 2) * 1000)) / 10;
+  const waxing = a < 180;
+  return {
+    phaseAngle: Math.round(a * 10) / 10,
+    illumination,
+    label,
+    cycle: waxing ? "상현 이전(증가)" : "하현 이후(감소)",
+    yinYangFlow: waxing ? "양기 생장" : "음기 수렴",
+  };
+}
+
+function buildSukuyoOrientalChart(sukuyo, partner, rel, swissBasis, partnerSwissBasis) {
+  const moonLon = Number(swissBasis?.moonLongitude);
+  const sunLon = Number(swissBasis?.sunLongitude);
+  const phase = resolveMoonPhaseByAngle(moonLon - sunLon);
+
+  const partnerMoonLon = Number(partnerSwissBasis?.moonLongitude);
+  const partnerSunLon = Number(partnerSwissBasis?.sunLongitude);
+  const partnerPhase = Number.isFinite(partnerMoonLon) && Number.isFinite(partnerSunLon)
+    ? resolveMoonPhaseByAngle(partnerMoonLon - partnerSunLon)
+    : null;
+
+  const wheel = SUKUYO_MANSIONS.map((m, idx) => {
+    const isPrimary = idx === sukuyo.mansionIdx;
+    const isPartner = partner ? idx === partner.mansionIdx : false;
+    return {
+      index: idx + 1,
+      mansion: m[0],
+      mansionCh: m[1],
+      mansionEn: m[2],
+      direction: m[3],
+      element: m[4],
+      guardian: m[5],
+      isPrimary,
+      isPartner,
+      role: isPrimary ? "본명숙" : (isPartner ? "상대숙" : ""),
+    };
+  });
+
+  return {
+    type: "sukuyo-oriental-chart",
+    source: Number.isFinite(moonLon) && Number.isFinite(sunLon) ? "swiss-api+oriental-mapping" : String(sukuyo.source || "kasi-api"),
+    core: {
+      primaryMansion: `${sukuyo.mansion}宿(${sukuyo.mansionCh})`,
+      primaryDirection: sukuyo.direction,
+      primaryElement: sukuyo.element,
+      primaryGuardian: sukuyo.animal,
+      lunarDate: `${sukuyo.lunarMonth}월 ${sukuyo.lunarDay}일`,
+      partnerMansion: partner ? `${partner.mansion}宿(${partner.mansionCh})` : null,
+    },
+    moonPhase: phase,
+    relation: rel ? {
+      label: rel.label,
+      pairLabel: rel.pairLabel,
+      axis: rel.axis,
+      distance: rel.distance,
+      score: rel.score,
+      roleMe: rel.roleMe,
+      roleOther: rel.roleOther,
+      roleIcon: rel.roleIcon,
+    } : null,
+    swissBasis: {
+      moonLongitude: Number.isFinite(moonLon) ? Math.round(normalizeDeg(moonLon) * 100) / 100 : null,
+      sunLongitude: Number.isFinite(sunLon) ? Math.round(normalizeDeg(sunLon) * 100) / 100 : null,
+      partnerMoonLongitude: Number.isFinite(partnerMoonLon) ? Math.round(normalizeDeg(partnerMoonLon) * 100) / 100 : null,
+      partnerSunLongitude: Number.isFinite(partnerSunLon) ? Math.round(normalizeDeg(partnerSunLon) * 100) / 100 : null,
+    },
+    partnerMoonPhase: partnerPhase,
+    wheel,
+  };
+}
+
+async function fetchSwissSukuyoBasis(request, env, input) {
+  try {
+    const payload = await getSwissWesternChart(request, env, {
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      timezone: input.timezone,
+      lat: input.lat,
+      lon: input.lon,
+    });
+    return {
+      moonLongitude: extractSwissEclipticLongitude(payload, "Moon"),
+      sunLongitude: extractSwissEclipticLongitude(payload, "Sun"),
+    };
+  } catch (_) {
+    return null;
+  }
 }
 
 function buildVedicChart(input) {
@@ -2572,21 +2741,37 @@ async function handleSukuyoLife(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
   const chapter = clampInt(body.chapter, 1, 1, 13);
-  const sukuyo = calcSukuyo(input);
+  const sukuyo = await calcSukuyo(request, env, input);
   const hasPartner = body.partnerYear && body.partnerMonth && body.partnerDay;
-  const partner = hasPartner ? calcSukuyo(normalizeBody({ year: body.partnerYear, month: body.partnerMonth, day: body.partnerDay, hour: body.partnerHour ?? 12 })) : null;
+  const partner = hasPartner
+    ? await calcSukuyo(request, env, normalizeBody({ year: body.partnerYear, month: body.partnerMonth, day: body.partnerDay, hour: body.partnerHour ?? 12 }))
+    : null;
   const rel = sukuyoRelation(sukuyo.mansionIdx, partner?.mansionIdx);
+  const swissBasis = await fetchSwissSukuyoBasis(request, env, input);
+  const partnerSwissBasis = hasPartner
+    ? await fetchSwissSukuyoBasis(request, env, normalizeBody({
+      year: body.partnerYear,
+      month: body.partnerMonth,
+      day: body.partnerDay,
+      hour: body.partnerHour ?? 12,
+      minute: body.partnerMinute ?? 0,
+      timezone: body.partnerTimezone ?? body.timezone,
+      lat: body.partnerLat ?? body.lat,
+      lon: body.partnerLon ?? body.lon,
+    }))
+    : null;
+  const chart = buildSukuyoOrientalChart(sukuyo, partner, rel, swissBasis, partnerSwissBasis);
   const meta = SUKUYO_CHAPTER_META[chapter - 1];
   const generated = await generatedChapter(
     env,
     "sukuyo",
     input,
     meta,
-    `${sukuyo.mansion}宿/${sukuyo.mansionCh}, ${sukuyo.direction}, ${sukuyo.element}, 관계 ${rel ? rel.label : "개인 리포트"}`,
+    `${sukuyo.mansion}宿/${sukuyo.mansionCh}, ${sukuyo.direction}, ${sukuyo.element}, 관계 ${rel ? rel.label : "개인 리포트"}, 월상 ${chart.moonPhase?.label || "정보 없음"}, 삭망각 ${chart.moonPhase?.phaseAngle ?? "정보 없음"}도, 조도 ${chart.moonPhase?.illumination ?? "정보 없음"}%`,
     `${sukuyo.mansion}宿은 달의 리듬과 관계의 반복 패턴을 통해 삶을 읽는 숙요점 데이터입니다.`,
     "숙요점에서는 같은 사건보다 같은 감정 리듬이 반복되는 지점을 먼저 조정해야 합니다.",
   );
-  return json({ ok: true, sukuyo, partner, relation: rel, chapter, chapterMeta: meta, ...generated });
+  return json({ ok: true, sukuyo, partner, relation: rel, chart, chapter, chapterMeta: meta, ...generated });
 }
 
 async function handleAstroWestern(request, env) {

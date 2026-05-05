@@ -1,0 +1,5817 @@
+{
+  "generatedAt": "2026-05-05T14:26:46.159Z",
+  "mode": "dry-run",
+  "groups": [
+    {
+      "hash": "280323b64caa162eeb280b75bb3cfeae807ab7373fb42b98436fbe982ef95a08",
+      "size": 1230321,
+      "sizeHuman": "1.17 MB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/saju-engine.js",
+          "size": 1230321,
+          "sizeHuman": "1.17 MB"
+        },
+        {
+          "path": "public/js/saju-engine.js",
+          "size": 1230321,
+          "sizeHuman": "1.17 MB"
+        }
+      ]
+    },
+    {
+      "hash": "c87fe9e4626a619fde79acf994bdd8fbc639ead8d2f9443917d6b1fbc2262a6b",
+      "size": 652261,
+      "sizeHuman": "637.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/index.html",
+          "size": 652261,
+          "sizeHuman": "637.0 KB"
+        },
+        {
+          "path": "public/static/index.html",
+          "size": 652261,
+          "sizeHuman": "637.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "42b2afd1bdabc115f16c15304304f32312b11e5c2447bdf3ecefd858450919a5",
+      "size": 568894,
+      "sizeHuman": "555.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/secret-house_real.html",
+          "size": 568894,
+          "sizeHuman": "555.6 KB"
+        },
+        {
+          "path": "secret-house_real.html",
+          "size": 568894,
+          "sizeHuman": "555.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "20c1883636e29ef6b5a2a154a59df4ac5a26f209ea605e570e99ecb25006987c",
+      "size": 499369,
+      "sizeHuman": "487.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/fortune-ui.css",
+          "size": 499369,
+          "sizeHuman": "487.7 KB"
+        },
+        {
+          "path": "styles/fortune-ui.css",
+          "size": 499369,
+          "sizeHuman": "487.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "688af75ba2234c42559283a9c139593c3b3cc5af4b4bedfd179ceacaec260fe2",
+      "size": 469576,
+      "sizeHuman": "458.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-13.json",
+          "size": 469576,
+          "sizeHuman": "458.6 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-13.json",
+          "size": 469576,
+          "sizeHuman": "458.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9b650bc476e6864f78e77679f429d12ac83adedf88e46d1b53875b62d685197d",
+      "size": 469573,
+      "sizeHuman": "458.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-22.json",
+          "size": 469573,
+          "sizeHuman": "458.6 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-22.json",
+          "size": 469573,
+          "sizeHuman": "458.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "299f28fc92699780563f42021eb18a7388e8101943711c054f922f35ad380efd",
+      "size": 469569,
+      "sizeHuman": "458.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-09.json",
+          "size": 469569,
+          "sizeHuman": "458.6 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-09.json",
+          "size": 469569,
+          "sizeHuman": "458.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e95c6b1f4f743e6a5752fce4c1ee5ea7bfa00237345a344bc2d92f203b9d2835",
+      "size": 469568,
+      "sizeHuman": "458.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-21.json",
+          "size": 469568,
+          "sizeHuman": "458.6 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-21.json",
+          "size": 469568,
+          "sizeHuman": "458.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "42abd4bd21b4328b048bf23be2e545793919418798f603d223816b0541e4a1d2",
+      "size": 469565,
+      "sizeHuman": "458.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-14.json",
+          "size": 469565,
+          "sizeHuman": "458.6 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-14.json",
+          "size": 469565,
+          "sizeHuman": "458.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2d759eb83fcaf107f2608fcc5c5617ef0f7b88b457725063ebf5b8528f0953ea",
+      "size": 469550,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-17.json",
+          "size": 469550,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-17.json",
+          "size": 469550,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e6402669062a19023a734652816ec2d69935f7f50b93dd0c4f937566156cf34b",
+      "size": 469548,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-16.json",
+          "size": 469548,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-16.json",
+          "size": 469548,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5f04bbd3805148692097ba8ea3d684dd806c0a4f2e3c9095dfc31f6d610ee139",
+      "size": 469516,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-23.json",
+          "size": 469516,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-23.json",
+          "size": 469516,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "81703cdf7e5f8d92e67137a74487673b33d68d9bc960bc1671d73902057ad881",
+      "size": 469514,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-12.json",
+          "size": 469514,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-12.json",
+          "size": 469514,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1fc5522e74a583cd32a969b578878f2fc0aabb1a1bb38cc065fa0f447bc5d0da",
+      "size": 469514,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-15.json",
+          "size": 469514,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-15.json",
+          "size": 469514,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6c77d89c3fc546bb4bec99228bce3c67e849f79463505fe95336a3ba6e5ba344",
+      "size": 469510,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-20.json",
+          "size": 469510,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-20.json",
+          "size": 469510,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cbd7487c0c11e986ec3ddc1a03fa5add91027dfa627b345ac8bf6c8b0866cb95",
+      "size": 469510,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-26.json",
+          "size": 469510,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-26.json",
+          "size": 469510,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "484a3746fe597c10579492b912045c1b7c284cc14fba6d929687cc638895baf5",
+      "size": 469509,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-11.json",
+          "size": 469509,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-11.json",
+          "size": 469509,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fe81a070838f19e975d387eb155ea05cdcc79ff18762fec580cc4717e06c8223",
+      "size": 469507,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-27.json",
+          "size": 469507,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-27.json",
+          "size": 469507,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "53e314a1415e3e5bce79d631efa2aa4c9accfe9a8d7b7e88e7345ed6af0a7ec2",
+      "size": 469504,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-10.json",
+          "size": 469504,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-10.json",
+          "size": 469504,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d775cdd40b469c1f21eb738a2766c217bca89293d6bc975aa35c2d6151ed161d",
+      "size": 469502,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-19.json",
+          "size": 469502,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-19.json",
+          "size": 469502,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0c6711067c3a6d80e8e2a0ae40356ab1ec8b3ba824a29d2a41e3f5197560d361",
+      "size": 469499,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-18.json",
+          "size": 469499,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-18.json",
+          "size": 469499,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e75a87ba2b4ed3c7a13b3ff46fe3d65d1e91b1aefc665114398247e6754a5ca8",
+      "size": 469498,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-25.json",
+          "size": 469498,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-25.json",
+          "size": 469498,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "025d7bce1b93e16f3f429b1738f1e8a0eff2d6c0dafdbe4bfbc8432b57b0e05a",
+      "size": 469491,
+      "sizeHuman": "458.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-24.json",
+          "size": 469491,
+          "sizeHuman": "458.5 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-24.json",
+          "size": 469491,
+          "sizeHuman": "458.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0500b9c78d90877a6d7ec8bcdf515eebf30e7e455ddee816c3e5751467882a13",
+      "size": 467860,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-07.json",
+          "size": 467860,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-07.json",
+          "size": 467860,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5835ddad36c22ae547b6ba745c4231f0dfb675d685284db9f38890df97db9dc5",
+      "size": 467859,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-06.json",
+          "size": 467859,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-06.json",
+          "size": 467859,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9bdaa34c49ddc894dbba1d37a4c8c6bfb1c409ac9a643553459aef6ae5aa0d95",
+      "size": 467857,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-31.json",
+          "size": 467857,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-31.json",
+          "size": 467857,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "331af5ce8868f006098766b2365dd109e625579f35f53b251a5270bf8c9a5dc7",
+      "size": 467856,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-24.json",
+          "size": 467856,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-24.json",
+          "size": 467856,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "dfa17dc714f8c6e5bd153d699feb810bbe14d1e8136989f45424697520da6eb9",
+      "size": 467856,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-08.json",
+          "size": 467856,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-08.json",
+          "size": 467856,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "473485ed08c14073ba7c0348f6b17750f8fdf5b7467d8fbcab7de9ca199fcadb",
+      "size": 467855,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-30.json",
+          "size": 467855,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-30.json",
+          "size": 467855,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "52a481d905e55916ceb059d9e318a1ea045ed2f5f40abd087efc775177eb7bc9",
+      "size": 467851,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-04.json",
+          "size": 467851,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-04.json",
+          "size": 467851,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "14744903cdb0630ec273e0916190d392ceb8a9aecd893afc46c5b6114683d065",
+      "size": 467850,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-03.json",
+          "size": 467850,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-03.json",
+          "size": 467850,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5f33fd84ec3bdd982dda9de32e168e5bb5d5612b81a2d71faf1ce87b0908178d",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-21.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-21.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fb6e5b34cdeaa4876826b8aa26836d852456cee2b81acb3581c6662d0b2befd0",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-22.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-22.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4528c8aa72415725ddaa2e78dbc45852e6323f2f34dac42a1c4fc0bcae3cb5be",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-25.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-25.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "04f6c8d2277922c09cce646cd1edbe0c69e75e8031c2c66df79fbf130bea68d8",
+      "size": 467846,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-02.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-02.json",
+          "size": 467846,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9e48fe8fee732137c76364a0872476318d6938d43b258059de2f89f61d87adac",
+      "size": 467844,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-27.json",
+          "size": 467844,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-27.json",
+          "size": 467844,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c527c79677ab3f1ed79d9ab0fdad1684fb0e8126f435489bf7a6303c76b08efc",
+      "size": 467843,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-28.json",
+          "size": 467843,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-28.json",
+          "size": 467843,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "54ead17e8c786563eff0c5bcd06387e10d29dbda6c3ba32a5bf60ec5dffe1044",
+      "size": 467842,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-01.json",
+          "size": 467842,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-01.json",
+          "size": 467842,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3dfc43a1b8427fc161fa45677cec68b1d875f9f860dbb1e48ce40a61fe635260",
+      "size": 467838,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-04-05.json",
+          "size": 467838,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-04-05.json",
+          "size": 467838,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "f20e64071554c5fea5c04e59edb1d5d0ec9d20894941a64bbf56dd46c93f682c",
+      "size": 467835,
+      "sizeHuman": "456.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-03-29.json",
+          "size": 467835,
+          "sizeHuman": "456.9 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-03-29.json",
+          "size": 467835,
+          "sizeHuman": "456.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9d3b40e122da86368cc46ac4a080a8b54c2b36f9016d0f3ef95d817e4f55d6a7",
+      "size": 437164,
+      "sizeHuman": "426.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "size": 437164,
+          "sizeHuman": "426.9 KB"
+        },
+        {
+          "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
+          "size": 437164,
+          "sizeHuman": "426.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8a2abd394deb9e6b4ea611d181df025b068e6429b9cc8442325e7cd79b9d2646",
+      "size": 400553,
+      "sizeHuman": "391.2 KB",
+      "copies": 3,
+      "files": [
+        {
+          "path": "icons/honeypig-512.png",
+          "size": 400553,
+          "sizeHuman": "391.2 KB"
+        },
+        {
+          "path": "public/icons/android-chrome-512x512.png",
+          "size": 400553,
+          "sizeHuman": "391.2 KB"
+        },
+        {
+          "path": "public/icons/honeypig-512.png",
+          "size": 400553,
+          "sizeHuman": "391.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3851bccf2fbf69edcb6699f090982a917a15bc6592d11229c19c8a245c44de30",
+      "size": 399211,
+      "sizeHuman": "389.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 쥐.png",
+          "size": 399211,
+          "sizeHuman": "389.9 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 쥐.png",
+          "size": 399211,
+          "sizeHuman": "389.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e167c649d470a760e159e23f6043dcf8d2fc23b1e04e44122215c8cd85d050fc",
+      "size": 392603,
+      "sizeHuman": "383.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 소.png",
+          "size": 392603,
+          "sizeHuman": "383.4 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 소.png",
+          "size": 392603,
+          "sizeHuman": "383.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3eee50ac9afe4637fe0147df65ac8fa86fb2e16c2aaa2e4a631ecd023c6f1910",
+      "size": 386031,
+      "sizeHuman": "377.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 호랑이.png",
+          "size": 386031,
+          "sizeHuman": "377.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 호랑이.png",
+          "size": 386031,
+          "sizeHuman": "377.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cb2d95543da765ca72a26527b15002cd882ba038c62017c4dc370994f05e0324",
+      "size": 378986,
+      "sizeHuman": "370.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀3.png",
+          "size": 378986,
+          "sizeHuman": "370.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀3.png",
+          "size": 378986,
+          "sizeHuman": "370.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fa777bf30192724d1a1cbdb6e728e097824c6fad501553db6cdbbcb2f5694133",
+      "size": 376489,
+      "sizeHuman": "367.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 토끼.png",
+          "size": 376489,
+          "sizeHuman": "367.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 토끼.png",
+          "size": 376489,
+          "sizeHuman": "367.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "558d1da0a04afe5e05f06659a5cb162edd3cff87aa8ea5da4cd04970b111ca78",
+      "size": 374699,
+      "sizeHuman": "365.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 용.png",
+          "size": 374699,
+          "sizeHuman": "365.9 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 용.png",
+          "size": 374699,
+          "sizeHuman": "365.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "def8f6b9a564ecd79978625be1f281a91e6a8c16a570d56d900a790ca733d54e",
+      "size": 373373,
+      "sizeHuman": "364.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀2.png",
+          "size": 373373,
+          "sizeHuman": "364.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀2.png",
+          "size": 373373,
+          "sizeHuman": "364.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1651db6482d9915ab61e84e5261cfc92d2079baa46cf2a4d33edb8edaec7a32a",
+      "size": 371402,
+      "sizeHuman": "362.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀.png",
+          "size": 371402,
+          "sizeHuman": "362.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀.png",
+          "size": 371402,
+          "sizeHuman": "362.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c324ddc1aea2b9197e2f4e689b615afb19215538a8046ae5c9c53cf3b369be2e",
+      "size": 357064,
+      "sizeHuman": "348.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/premiumstar.webp",
+          "size": 357064,
+          "sizeHuman": "348.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/premiumstar.webp",
+          "size": 357064,
+          "sizeHuman": "348.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0639f5ca628e65772bae88b494fe6edeac02d402d3bfad96ce723f9e8a1922d8",
+      "size": 356406,
+      "sizeHuman": "348.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/jami2.webp",
+          "size": 356406,
+          "sizeHuman": "348.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/jami2.webp",
+          "size": 356406,
+          "sizeHuman": "348.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "41f7309be1d2c9843ba972abb33238b9db8cb58b51fd9a7be89378d662af2d7c",
+      "size": 354386,
+      "sizeHuman": "346.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 강아지.png",
+          "size": 354386,
+          "sizeHuman": "346.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 강아지.png",
+          "size": 354386,
+          "sizeHuman": "346.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8703ee352546a4a4f7c92e2d238baaf34053c3ab0beb6ff8c6c4a2efc2e7e4bf",
+      "size": 349713,
+      "sizeHuman": "341.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 원숭이.png",
+          "size": 349713,
+          "sizeHuman": "341.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 원숭이.png",
+          "size": 349713,
+          "sizeHuman": "341.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "19aca713cbf54694baea6796887b9ff19e11e6fa2b4b9d923a1baeae02790bd6",
+      "size": 344870,
+      "sizeHuman": "336.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 알.png",
+          "size": 344870,
+          "sizeHuman": "336.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 알.png",
+          "size": 344870,
+          "sizeHuman": "336.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8631258c71fc2f21a4609b79f8b50f0a204c961732e4584d5fd3284a1326506e",
+      "size": 341938,
+      "sizeHuman": "333.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 돼지.png",
+          "size": 341938,
+          "sizeHuman": "333.9 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 돼지.png",
+          "size": 341938,
+          "sizeHuman": "333.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9968363bdec67bbba8082540b15e173f3157dbbc8c57498c659a089b0a31fd9c",
+      "size": 339429,
+      "sizeHuman": "331.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 양.png",
+          "size": 339429,
+          "sizeHuman": "331.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 양.png",
+          "size": 339429,
+          "sizeHuman": "331.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2a07df5c624b8f7d7de75399d51c40c4cd6bc4342a1e71860a13ffca47555f30",
+      "size": 336464,
+      "sizeHuman": "328.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/info.webp",
+          "size": 336464,
+          "sizeHuman": "328.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/info.webp",
+          "size": 336464,
+          "sizeHuman": "328.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c11d09b4db63b15fc76bb3d7b0ce89525e3d1665efbe4fb7d04d1071496046e8",
+      "size": 331166,
+      "sizeHuman": "323.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/index-inline-runtime.js",
+          "size": 331166,
+          "sizeHuman": "323.4 KB"
+        },
+        {
+          "path": "public/js/core/index-inline-runtime.js",
+          "size": 331166,
+          "sizeHuman": "323.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0b5edc25e9793d55ec174f496ef04fcf1953e4581726823fee282b7f0b3f4ffb",
+      "size": 327452,
+      "sizeHuman": "319.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/검은별 알-Photoroom.png",
+          "size": 327452,
+          "sizeHuman": "319.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/검은 별 컨셉/검은별 알-Photoroom.png",
+          "size": 327452,
+          "sizeHuman": "319.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "223ccabccd2e97e9a6a7f26f06b71e7995ce7b21373ed4c4c6f586f9e73349a0",
+      "size": 318636,
+      "sizeHuman": "311.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/sajuhealth.webp",
+          "size": 318636,
+          "sizeHuman": "311.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/sajuhealth.webp",
+          "size": 318636,
+          "sizeHuman": "311.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "dd7a4649c3fd59fabc7f1916f6ef8a55224cb36b7fd42fe73aa3364d2530842a",
+      "size": 314868,
+      "sizeHuman": "307.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 닭.png",
+          "size": 314868,
+          "sizeHuman": "307.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 닭.png",
+          "size": 314868,
+          "sizeHuman": "307.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1742e8728125a3478034560e93126a294d88179c2bdb8898b98112dab1c5a6ba",
+      "size": 313638,
+      "sizeHuman": "306.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/egypt.webp",
+          "size": 313638,
+          "sizeHuman": "306.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/egypt.webp",
+          "size": 313638,
+          "sizeHuman": "306.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0d5bf9aba1a3490e4f5d50e7af194db85fb544053a2573c3dd80b9f8be23dc55",
+      "size": 313520,
+      "sizeHuman": "306.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 말.png",
+          "size": 313520,
+          "sizeHuman": "306.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 말.png",
+          "size": 313520,
+          "sizeHuman": "306.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "44226bf085a2d32dbdbe43e999b46d9b253134639b594db79e98e2d05c1adcfa",
+      "size": 298166,
+      "sizeHuman": "291.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/1_1.webp",
+          "size": 298166,
+          "sizeHuman": "291.2 KB"
+        },
+        {
+          "path": "sudda/hwatu/1_1.webp",
+          "size": 298166,
+          "sizeHuman": "291.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9a126bba069e31642d87b9a0543b56fcf8f5faaa99df95ef944efccfe48df6ae",
+      "size": 293434,
+      "sizeHuman": "286.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/reunion.webp",
+          "size": 293434,
+          "sizeHuman": "286.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/reunion.webp",
+          "size": 293434,
+          "sizeHuman": "286.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d0958ccb8c73b87e7aaedff508a9c201f7a091067e9ce1fd0b61fcd250fd2d71",
+      "size": 269164,
+      "sizeHuman": "262.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/juyuk.webp",
+          "size": 269164,
+          "sizeHuman": "262.9 KB"
+        },
+        {
+          "path": "public/fuctionassets/juyuk.webp",
+          "size": 269164,
+          "sizeHuman": "262.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c47fcada1fdbda0059d0639ed3e726557acad2408e4acf679019fb1b51217ce4",
+      "size": 248952,
+      "sizeHuman": "243.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/lovebible.webp",
+          "size": 248952,
+          "sizeHuman": "243.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/lovebible.webp",
+          "size": 248952,
+          "sizeHuman": "243.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b406cce45143e9243418af0515984c1a14f02201f486dfaf36a861c76221e0ca",
+      "size": 242638,
+      "sizeHuman": "237.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/r=vd.webp",
+          "size": 242638,
+          "sizeHuman": "237.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/r=vd.webp",
+          "size": 242638,
+          "sizeHuman": "237.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4ef7a7ef2ec4067444765d96711dab6639e4f89731c48ca4785e0b6deecd3428",
+      "size": 241834,
+      "sizeHuman": "236.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/lifebook.webp",
+          "size": 241834,
+          "sizeHuman": "236.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/lifebook.webp",
+          "size": 241834,
+          "sizeHuman": "236.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b51e99a505ea8c6e15faf55559779ccacc836ad1a1ab5ca7c2cac27e0928b92d",
+      "size": 238896,
+      "sizeHuman": "233.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/veda.webp",
+          "size": 238896,
+          "sizeHuman": "233.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/veda.webp",
+          "size": 238896,
+          "sizeHuman": "233.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "df3665f6a37c03438d3eea375f60be29cc8b2307ff1825b80521e601a87f85b8",
+      "size": 229090,
+      "sizeHuman": "223.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/phydream.webp",
+          "size": 229090,
+          "sizeHuman": "223.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/phydream.webp",
+          "size": 229090,
+          "sizeHuman": "223.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "95bc86b3798cb53c0f68991961c5bac812de5663a805b77f69b7ec1248895412",
+      "size": 226784,
+      "sizeHuman": "221.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/12animals.webp",
+          "size": 226784,
+          "sizeHuman": "221.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/12animals.webp",
+          "size": 226784,
+          "sizeHuman": "221.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e08ccbe2fa82fd2b0b86c411db8bd3d2b71c7ef347e8ea21a998f22361beeac0",
+      "size": 222702,
+      "sizeHuman": "217.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/jamipremiun.webp",
+          "size": 222702,
+          "sizeHuman": "217.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/jamipremiun.webp",
+          "size": 222702,
+          "sizeHuman": "217.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2b4230ade7e534628448a588d6c2f2825b97f92fe5eb13d12df3f8ed2feab6a0",
+      "size": 222012,
+      "sizeHuman": "216.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/olympus.webp",
+          "size": 222012,
+          "sizeHuman": "216.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/olympus.webp",
+          "size": 222012,
+          "sizeHuman": "216.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7e4d03330bd34b5ce4ce8de027b43d06d0fba201612faa766ae78081a5c18682",
+      "size": 220114,
+      "sizeHuman": "215.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/Celestial Harmony.webp",
+          "size": 220114,
+          "sizeHuman": "215.0 KB"
+        },
+        {
+          "path": "public/images/Celestial Harmony.webp",
+          "size": 220114,
+          "sizeHuman": "215.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "df5bdc7b35b1abeae0c2a1cf2cc60f3c0cf2cd3411d17b779650f80b98c8b886",
+      "size": 218404,
+      "sizeHuman": "213.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/2_1.webp",
+          "size": 218404,
+          "sizeHuman": "213.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/2_1.webp",
+          "size": 218404,
+          "sizeHuman": "213.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e08f85337226d4068aea55169d3be5541b4a5cf14abfcbd7d3621ef6c54e03dd",
+      "size": 217426,
+      "sizeHuman": "212.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/destiny pocker.webp",
+          "size": 217426,
+          "sizeHuman": "212.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/destiny pocker.webp",
+          "size": 217426,
+          "sizeHuman": "212.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "07fa835711943f9c1a55abda3961487b0d6efdfbea6ca6a837169a6cde7be160",
+      "size": 217268,
+      "sizeHuman": "212.2 KB",
+      "copies": 3,
+      "files": [
+        {
+          "path": "fuctionassets/piggyfortune.webp",
+          "size": 217268,
+          "sizeHuman": "212.2 KB"
+        },
+        {
+          "path": "public/fortune/sikojen-povailu/images/piggyfortune.webp",
+          "size": 217268,
+          "sizeHuman": "212.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/piggyfortune.webp",
+          "size": 217268,
+          "sizeHuman": "212.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "98e9474fdb1b5143faba60b85f60ed7081539d4ac3e4813fa3d2d33c209ac4e2",
+      "size": 216214,
+      "sizeHuman": "211.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/imsolo.webp",
+          "size": 216214,
+          "sizeHuman": "211.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/imsolo.webp",
+          "size": 216214,
+          "sizeHuman": "211.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6b843dd9644a06963bd8749bc6f685247eb55ef633a524617be23622326981a3",
+      "size": 204172,
+      "sizeHuman": "199.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/india.webp",
+          "size": 204172,
+          "sizeHuman": "199.4 KB"
+        },
+        {
+          "path": "public/fuctionassets/india.webp",
+          "size": 204172,
+          "sizeHuman": "199.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "f5868b20d901b127027d65faebfead59bd5ebb59bae8d15b3ab1ef01299cf081",
+      "size": 197624,
+      "sizeHuman": "193.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/tarolove.webp",
+          "size": 197624,
+          "sizeHuman": "193.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/tarolove.webp",
+          "size": 197624,
+          "sizeHuman": "193.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "069f040855cd4c812f5f74de98b18924bbb485f0f7014d2c4da64af6f0074a2d",
+      "size": 197296,
+      "sizeHuman": "192.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/sukyo_premium.webp",
+          "size": 197296,
+          "sizeHuman": "192.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/sukyo_premium.webp",
+          "size": 197296,
+          "sizeHuman": "192.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a973128135111d52712ddbf44974c39ca43677decef318c39478c721cdec387d",
+      "size": 195702,
+      "sizeHuman": "191.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/geomancy.webp",
+          "size": 195702,
+          "sizeHuman": "191.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/geomancy.webp",
+          "size": 195702,
+          "sizeHuman": "191.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a317e8c484f2274c137449784417a3c591d8d13ffa37ed8112c7f93b137f58cb",
+      "size": 192309,
+      "sizeHuman": "187.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "destiny-poker.html",
+          "size": 192309,
+          "sizeHuman": "187.8 KB"
+        },
+        {
+          "path": "public/destiny-poker.html",
+          "size": 192309,
+          "sizeHuman": "187.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "aab5f9553090b4091564f3a77291a84dd12c675127adfc61a31ff79b918e5b19",
+      "size": 190701,
+      "sizeHuman": "186.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "AnalysisEngine.js",
+          "size": 190701,
+          "sizeHuman": "186.2 KB"
+        },
+        {
+          "path": "public/AnalysisEngine.js",
+          "size": 190701,
+          "sizeHuman": "186.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "155cc7b70e616cad8e21d85e7b3dbec0e196ad1e3fb152dae73c289001e1f865",
+      "size": 187804,
+      "sizeHuman": "183.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/lotto.webp",
+          "size": 187804,
+          "sizeHuman": "183.4 KB"
+        },
+        {
+          "path": "public/fuctionassets/lotto.webp",
+          "size": 187804,
+          "sizeHuman": "183.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3084bae208ad96bd9418ad9376e23d9bb73ff9136715c56859645da9508fa4a5",
+      "size": 187194,
+      "sizeHuman": "182.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/destinyporker/pokergod.webp",
+          "size": 187194,
+          "sizeHuman": "182.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/destinyporker/pokergod.webp",
+          "size": 187194,
+          "sizeHuman": "182.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "35071f51f50092ea27cfa36d982334bdb89c9c4809f0f68cf5db8ae8af19855c",
+      "size": 183950,
+      "sizeHuman": "179.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/godlife.webp",
+          "size": 183950,
+          "sizeHuman": "179.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/godlife.webp",
+          "size": 183950,
+          "sizeHuman": "179.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ad41cde8a53d381a0534597cf0e0dad6ccbe67d2e8a0be05c7fd8021520bcf49",
+      "size": 182478,
+      "sizeHuman": "178.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/8_1.webp",
+          "size": 182478,
+          "sizeHuman": "178.2 KB"
+        },
+        {
+          "path": "sudda/hwatu/8_1.webp",
+          "size": 182478,
+          "sizeHuman": "178.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c4cb9cdf71b720e6d24aec2f229d5b2e4def0f183e6ab4031f62d65f91f2ec0e",
+      "size": 181440,
+      "sizeHuman": "177.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/flower.webp",
+          "size": 181440,
+          "sizeHuman": "177.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/flower.webp",
+          "size": 181440,
+          "sizeHuman": "177.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8e508c12abecd9e437a17d7e1a1a8109e6b418c8def1637d410fe20a90051e48",
+      "size": 181084,
+      "sizeHuman": "176.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/trip.webp",
+          "size": 181084,
+          "sizeHuman": "176.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/trip.webp",
+          "size": 181084,
+          "sizeHuman": "176.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "711b4ccfebcbfd70869661acadd8c095f90efa3f8558a3dd100cf7d60cd1c7f9",
+      "size": 168668,
+      "sizeHuman": "164.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/london.webp",
+          "size": 168668,
+          "sizeHuman": "164.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/london.webp",
+          "size": 168668,
+          "sizeHuman": "164.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "daa9755dbbdc419e08273a9199b643b4c8534189a814931798a03759c50f3412",
+      "size": 168082,
+      "sizeHuman": "164.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/animaltotem.webp",
+          "size": 168082,
+          "sizeHuman": "164.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/animaltotem.webp",
+          "size": 168082,
+          "sizeHuman": "164.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1e848924bd39b980bc993500e82617d32d60efd6961f6bc60d59115d96b8c698",
+      "size": 160848,
+      "sizeHuman": "157.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/lovesimulation.webp",
+          "size": 160848,
+          "sizeHuman": "157.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/lovesimulation.webp",
+          "size": 160848,
+          "sizeHuman": "157.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "456d558134dfd556c7fc20758e3344535223e4b82bb304a4fbdddbbeb4c74e5c",
+      "size": 159753,
+      "sizeHuman": "156.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/luck-sync-diary.js",
+          "size": 159753,
+          "sizeHuman": "156.0 KB"
+        },
+        {
+          "path": "public/js/luck-sync-diary.js",
+          "size": 159753,
+          "sizeHuman": "156.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9f7a8f9eabd5c7ad2dbba1dec2382d444de0d608885ee11c9601b60e2616f1d8",
+      "size": 159048,
+      "sizeHuman": "155.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/meryok.webp",
+          "size": 159048,
+          "sizeHuman": "155.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/meryok.webp",
+          "size": 159048,
+          "sizeHuman": "155.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fe05413c69d01f0bcd528d44b21941d9a68010d61861553542aca0d90ff51d57",
+      "size": 157908,
+      "sizeHuman": "154.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/flower3.webp",
+          "size": 157908,
+          "sizeHuman": "154.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/flower3.webp",
+          "size": 157908,
+          "sizeHuman": "154.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d9537b04ef300de7a3bc04b8260b4dfa4093a8eb5dee51ba46c80c29a515ea33",
+      "size": 154808,
+      "sizeHuman": "151.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/sukyo.webp",
+          "size": 154808,
+          "sizeHuman": "151.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/sukyo.webp",
+          "size": 154808,
+          "sizeHuman": "151.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5960b72cde797b00f878710b4b630f8dc3591d958eb25affee17de6fb0466ab7",
+      "size": 154346,
+      "sizeHuman": "150.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/vilun.webp",
+          "size": 154346,
+          "sizeHuman": "150.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/vilun.webp",
+          "size": 154346,
+          "sizeHuman": "150.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "78961072794705100a9b50cb9c5bfbb0e7837ac2eb66fa112352effb1d7eacc4",
+      "size": 153242,
+      "sizeHuman": "149.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/3_1.webp",
+          "size": 153242,
+          "sizeHuman": "149.7 KB"
+        },
+        {
+          "path": "sudda/hwatu/3_1.webp",
+          "size": 153242,
+          "sizeHuman": "149.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b946402abb32666acebfde2798920fc05e7744533d3295244dbaccabe10eab1e",
+      "size": 152760,
+      "sizeHuman": "149.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/flower2.webp",
+          "size": 152760,
+          "sizeHuman": "149.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/flower2.webp",
+          "size": 152760,
+          "sizeHuman": "149.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5f2a2d7aecd09800f739ec8f47929a1a20f554ff6a6396af98eba0ea39875c18",
+      "size": 149708,
+      "sizeHuman": "146.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/destiny-flower-engine.js",
+          "size": 149708,
+          "sizeHuman": "146.2 KB"
+        },
+        {
+          "path": "public/js/services/destiny-flower-engine.js",
+          "size": 149708,
+          "sizeHuman": "146.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c5145f14f4bd023db94e2fc766035f62e75f917fb8b9be52718024ff742415ad",
+      "size": 147548,
+      "sizeHuman": "144.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/destinyporker/pokerwarrior.webp",
+          "size": 147548,
+          "sizeHuman": "144.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/destinyporker/pokerwarrior.webp",
+          "size": 147548,
+          "sizeHuman": "144.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "280c693b73602d1a3f6a4c7df6086e11c2b9baa9c613aed10163df6991139f0b",
+      "size": 144684,
+      "sizeHuman": "141.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/flower4.webp",
+          "size": 144684,
+          "sizeHuman": "141.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/flower4.webp",
+          "size": 144684,
+          "sizeHuman": "141.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "f647e2ca946013a501e9317fd659e0d39239162ebaaf3affe98ca303f4011c14",
+      "size": 144574,
+      "sizeHuman": "141.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/Who am I with saju.webp",
+          "size": 144574,
+          "sizeHuman": "141.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/Who am I with saju.webp",
+          "size": 144574,
+          "sizeHuman": "141.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e1f197097128d628049a6a44a99e540c63d9f6db21e08a6d775508ca70926a0f",
+      "size": 143430,
+      "sizeHuman": "140.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/healing.webp",
+          "size": 143430,
+          "sizeHuman": "140.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/healing.webp",
+          "size": 143430,
+          "sizeHuman": "140.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "434189ed74721a338439fe47cc9aa8ffb56b3f4e4c2cf8bb16f05661634adc18",
+      "size": 142472,
+      "sizeHuman": "139.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 쥐-Photoroom.webp",
+          "size": 142472,
+          "sizeHuman": "139.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 쥐-Photoroom.webp",
+          "size": 142472,
+          "sizeHuman": "139.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "50ea4e392ac290c100c7fb72f3c83e84b7bc114c7a040d74604071cf9a9359b7",
+      "size": 142128,
+      "sizeHuman": "138.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/ai face.webp",
+          "size": 142128,
+          "sizeHuman": "138.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/ai face.webp",
+          "size": 142128,
+          "sizeHuman": "138.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9a44d2d4897d9d4f4f3ef254e9187f04ed61f3982f7cc430f179bbb44d004918",
+      "size": 141014,
+      "sizeHuman": "137.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 소-Photoroom.webp",
+          "size": 141014,
+          "sizeHuman": "137.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 소-Photoroom.webp",
+          "size": 141014,
+          "sizeHuman": "137.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d13f3ba07af4f2ee045c7bfa60e0bb5a1b9c2e99391d3624ba542f1c563a3d09",
+      "size": 137800,
+      "sizeHuman": "134.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/4CUT.webp",
+          "size": 137800,
+          "sizeHuman": "134.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/4CUT.webp",
+          "size": 137800,
+          "sizeHuman": "134.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d9ff211d9694d53134d142654bfdc19b52b6e4ad07571f3785a70da35dc00f1f",
+      "size": 134012,
+      "sizeHuman": "130.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 호랑이-Photoroom.webp",
+          "size": 134012,
+          "sizeHuman": "130.9 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 호랑이-Photoroom.webp",
+          "size": 134012,
+          "sizeHuman": "130.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5b1f35fd549bbbe2fec3b228cb85a69d342e416b29e5f27b6bbefe7c4252794f",
+      "size": 133730,
+      "sizeHuman": "130.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 용-Photoroom.webp",
+          "size": 133730,
+          "sizeHuman": "130.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 용-Photoroom.webp",
+          "size": 133730,
+          "sizeHuman": "130.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "83eba549bd38c7c33d96c9660beeedb7d73a8e4c86f1d0084ab91415a60d8d7d",
+      "size": 133256,
+      "sizeHuman": "130.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/4_1.webp",
+          "size": 133256,
+          "sizeHuman": "130.1 KB"
+        },
+        {
+          "path": "sudda/hwatu/4_1.webp",
+          "size": 133256,
+          "sizeHuman": "130.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "bbf50b8bf4374014dc549d1e412d84a83caf95473d62f162a703dcef1d57dbfe",
+      "size": 131892,
+      "sizeHuman": "128.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/quntum.webp",
+          "size": 131892,
+          "sizeHuman": "128.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/quntum.webp",
+          "size": 131892,
+          "sizeHuman": "128.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0f5082b2da58a7d2ebeff9ca683eca7dd9d90cf491d9591c34f6ad582f3fbe67",
+      "size": 131558,
+      "sizeHuman": "128.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/sajuprompt.webp",
+          "size": 131558,
+          "sizeHuman": "128.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/sajuprompt.webp",
+          "size": 131558,
+          "sizeHuman": "128.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a7558376fb279e389682be65905df29b947b7893fd5e41d169669b4472071ec1",
+      "size": 131388,
+      "sizeHuman": "128.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/jajongam.webp",
+          "size": 131388,
+          "sizeHuman": "128.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/jajongam.webp",
+          "size": 131388,
+          "sizeHuman": "128.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9e9d3fb292c058985f5954c49027d29ad9ddc655fd7f7c7428138b9ee615dcf7",
+      "size": 127156,
+      "sizeHuman": "124.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/unsetama.webp",
+          "size": 127156,
+          "sizeHuman": "124.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/unsetama.webp",
+          "size": 127156,
+          "sizeHuman": "124.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cd9ad5355f054eb9e9c12b3b1d8e30333f67b9482355414e56fe69676d7eb02b",
+      "size": 126458,
+      "sizeHuman": "123.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/jumsung.webp",
+          "size": 126458,
+          "sizeHuman": "123.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/jumsung.webp",
+          "size": 126458,
+          "sizeHuman": "123.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4e954fc47cbd95dd0ad307956fe656938f153f8813769c9101b04c62806d4590",
+      "size": 125490,
+      "sizeHuman": "122.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "HwatuFortune.js",
+          "size": 125490,
+          "sizeHuman": "122.5 KB"
+        },
+        {
+          "path": "public/HwatuFortune.js",
+          "size": 125490,
+          "sizeHuman": "122.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8185509e84c8d3753f524e118d3755c8d895d67fa10c8d51b91a4dca1dc2b42c",
+      "size": 124366,
+      "sizeHuman": "121.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/heamong.webp",
+          "size": 124366,
+          "sizeHuman": "121.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/heamong.webp",
+          "size": 124366,
+          "sizeHuman": "121.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "70e9c24170105e656449ee8b498ae9e1fe71ee90da600167d1a4e9df7569bd7b",
+      "size": 123740,
+      "sizeHuman": "120.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/rune.webp",
+          "size": 123740,
+          "sizeHuman": "120.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/rune.webp",
+          "size": 123740,
+          "sizeHuman": "120.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6b34cac81c42447db62ca6ae64e8deced31c16953b87008a87a8801f6d61ce9c",
+      "size": 120932,
+      "sizeHuman": "118.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 뱀-Photoroom.webp",
+          "size": 120932,
+          "sizeHuman": "118.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/달 컨셉 뱀-Photoroom.webp",
+          "size": 120932,
+          "sizeHuman": "118.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c1433213d251789480842c36a7d9ad4b6dccffd1db5138e227b1c7af04e8bf3e",
+      "size": 120014,
+      "sizeHuman": "117.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/jami.webp",
+          "size": 120014,
+          "sizeHuman": "117.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/jami.webp",
+          "size": 120014,
+          "sizeHuman": "117.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "05443283fa43a9ee82630be304d4fbf4c8c84b0ab3adc4ce9556b80b675d77ec",
+      "size": 117742,
+      "sizeHuman": "115.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/ai tarrot.webp",
+          "size": 117742,
+          "sizeHuman": "115.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/ai tarrot.webp",
+          "size": 117742,
+          "sizeHuman": "115.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7aff43ad665481baacdf845063b9fab88578bda1c2dd355a736ab7b21e8a5ebd",
+      "size": 116618,
+      "sizeHuman": "113.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/5_1.webp",
+          "size": 116618,
+          "sizeHuman": "113.9 KB"
+        },
+        {
+          "path": "sudda/hwatu/5_1.webp",
+          "size": 116618,
+          "sizeHuman": "113.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1128a8cce14c15ecde3352556cde1f7214371d7388177e867d385eaf44d6c2bb",
+      "size": 114583,
+      "sizeHuman": "111.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/destiny-profile.js",
+          "size": 114583,
+          "sizeHuman": "111.9 KB"
+        },
+        {
+          "path": "public/js/destiny-profile.js",
+          "size": 114583,
+          "sizeHuman": "111.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3283c4f6f1eec50559c0c0be0e6d1e83c20e0d3c5ef98be187bbb169a008e730",
+      "size": 114379,
+      "sizeHuman": "111.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 뱀4.png",
+          "size": 114379,
+          "sizeHuman": "111.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 뱀4.png",
+          "size": 114379,
+          "sizeHuman": "111.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "605ac6874dffd1f50d8a38be70f64eaa4ea9df32718612f8ae263198b0f4422b",
+      "size": 113062,
+      "sizeHuman": "110.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/UNSETAMA2.webp",
+          "size": 113062,
+          "sizeHuman": "110.4 KB"
+        },
+        {
+          "path": "public/fuctionassets/UNSETAMA2.webp",
+          "size": 113062,
+          "sizeHuman": "110.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a15e2b77bfc40dfd9eba42b73531669a4cd43629fa77eba0fcdfcd1408507f48",
+      "size": 112926,
+      "sizeHuman": "110.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/9_1.webp",
+          "size": 112926,
+          "sizeHuman": "110.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/9_1.webp",
+          "size": 112926,
+          "sizeHuman": "110.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "49b91236b3add79c78638d49af6c627fa64c8ce2ae349fe23d9b0e5fb144fced",
+      "size": 112732,
+      "sizeHuman": "110.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/fortuneteller fish.webp",
+          "size": 112732,
+          "sizeHuman": "110.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/fortuneteller fish.webp",
+          "size": 112732,
+          "sizeHuman": "110.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2f7a375a85d4d299155fc06b54ae8a22b5907a0c5533d4a1b6f89bf6e315318a",
+      "size": 111602,
+      "sizeHuman": "109.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (7).webp",
+          "size": 111602,
+          "sizeHuman": "109.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (7).webp",
+          "size": 111602,
+          "sizeHuman": "109.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4c70d77ee3a53883e339e36c9f734ca5499b2040432dd1e7d4fa999f7e678a30",
+      "size": 110270,
+      "sizeHuman": "107.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/7_1.webp",
+          "size": 110270,
+          "sizeHuman": "107.7 KB"
+        },
+        {
+          "path": "sudda/hwatu/7_1.webp",
+          "size": 110270,
+          "sizeHuman": "107.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e129105880b57caf8b35a8e5b12a41da86ca55ede875128ef6947dfd66c8cb9e",
+      "size": 109830,
+      "sizeHuman": "107.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (6).webp",
+          "size": 109830,
+          "sizeHuman": "107.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (6).webp",
+          "size": 109830,
+          "sizeHuman": "107.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cd98833133df11db94d20b66e908396875996077b99650b93b3c48c6524d553d",
+      "size": 105036,
+      "sizeHuman": "102.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (8).webp",
+          "size": 105036,
+          "sizeHuman": "102.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (8).webp",
+          "size": 105036,
+          "sizeHuman": "102.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5f2586cdb2290744eaebd119eab4a9ce190dffcb4af019b1709e7dab54227c2f",
+      "size": 102630,
+      "sizeHuman": "100.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (3).webp",
+          "size": 102630,
+          "sizeHuman": "100.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (3).webp",
+          "size": 102630,
+          "sizeHuman": "100.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6fd5a307628f3deb10a9e4e13348244dd0b37c2c1144728ad007bc641c10bf46",
+      "size": 102058,
+      "sizeHuman": "99.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 뱀-Photoroom (1).webp",
+          "size": 102058,
+          "sizeHuman": "99.7 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi-local/검은 별 컨셉/별 컨셉 뱀-Photoroom.webp",
+          "size": 102058,
+          "sizeHuman": "99.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b015be0366aefb86905db8b11e977ff5cc87fdf9f8dc4a42648d4408fc78d8d1",
+      "size": 101354,
+      "sizeHuman": "99.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/famous.webp",
+          "size": 101354,
+          "sizeHuman": "99.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/famous.webp",
+          "size": 101354,
+          "sizeHuman": "99.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0aae218a693448d0839e787ab3fda8727ebebc369220300330d243762a35314b",
+      "size": 99260,
+      "sizeHuman": "96.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (4).webp",
+          "size": 99260,
+          "sizeHuman": "96.9 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (4).webp",
+          "size": 99260,
+          "sizeHuman": "96.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2fc3947afc07f522a8ba86574bf7504d28cfa8bb5353cc87b670627d4ecf3818",
+      "size": 97500,
+      "sizeHuman": "95.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/destinyporker/pokergirl.webp",
+          "size": 97500,
+          "sizeHuman": "95.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/destinyporker/pokergirl.webp",
+          "size": 97500,
+          "sizeHuman": "95.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6cf3cec49c77f14149ea4a4969968b2af672b2c4899b041791c520223795fb07",
+      "size": 97304,
+      "sizeHuman": "95.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/tetoegen.webp",
+          "size": 97304,
+          "sizeHuman": "95.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/tetoegen.webp",
+          "size": 97304,
+          "sizeHuman": "95.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "99deb094ca429359941ed47e1e0a4a27b10351322a9c7f5de2cb67e2125c1ef9",
+      "size": 95462,
+      "sizeHuman": "93.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/10_1.webp",
+          "size": 95462,
+          "sizeHuman": "93.2 KB"
+        },
+        {
+          "path": "sudda/hwatu/10_1.webp",
+          "size": 95462,
+          "sizeHuman": "93.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ec65d39da45449cdd6e2e320af4445fe1d59375c2b8865fdb7eccc1b6d6e058e",
+      "size": 93982,
+      "sizeHuman": "91.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/premium veda.webp",
+          "size": 93982,
+          "sizeHuman": "91.8 KB"
+        },
+        {
+          "path": "public/fuctionassets/premium veda.webp",
+          "size": 93982,
+          "sizeHuman": "91.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8d5e046292d4fee72ca545eecf7762e70690bb90a4b41d13f0771cd8149f56b8",
+      "size": 93428,
+      "sizeHuman": "91.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "cosmic-soul-meditation.html",
+          "size": 93428,
+          "sizeHuman": "91.2 KB"
+        },
+        {
+          "path": "public/cosmic-soul-meditation.html",
+          "size": 93428,
+          "sizeHuman": "91.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "637f7cdbe968986b4ef044991dad40a53861aa7d914edec8351987fa9ebbbd22",
+      "size": 92820,
+      "sizeHuman": "90.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/달 컨셉/image-Photoroom (5).webp",
+          "size": 92820,
+          "sizeHuman": "90.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/달 컨셉/image-Photoroom (5).webp",
+          "size": 92820,
+          "sizeHuman": "90.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "56b73bd46d48554e4f33f90577152ebf79135c6c0b0b719c35b5596a5e89ff83",
+      "size": 90740,
+      "sizeHuman": "88.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/tbal.webp",
+          "size": 90740,
+          "sizeHuman": "88.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/tbal.webp",
+          "size": 90740,
+          "sizeHuman": "88.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "f46d2a62b1915937df78d5363386a33fae783cbe713ead7eb63620ff9645e395",
+      "size": 90180,
+      "sizeHuman": "88.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/ai animal.webp",
+          "size": 90180,
+          "sizeHuman": "88.1 KB"
+        },
+        {
+          "path": "public/fuctionassets/ai animal.webp",
+          "size": 90180,
+          "sizeHuman": "88.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "eab3e0136af94a69abb07661bdf5f9ac4ad64cbd7f6823505e6ec8cd901ede2e",
+      "size": 88236,
+      "sizeHuman": "86.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/sajurpg.webp",
+          "size": 88236,
+          "sizeHuman": "86.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/sajurpg.webp",
+          "size": 88236,
+          "sizeHuman": "86.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fb66368363f9b7223d878becd6f3f7054275fa527d289e6fb4b5a3b306ec9a2d",
+      "size": 87220,
+      "sizeHuman": "85.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/1_3.webp",
+          "size": 87220,
+          "sizeHuman": "85.2 KB"
+        },
+        {
+          "path": "sudda/hwatu/1_3.webp",
+          "size": 87220,
+          "sizeHuman": "85.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "116ad81a0b07e53c61486a0f4d494bfa7f1ed57d6c6430d2daf437a55dc8d5cb",
+      "size": 86350,
+      "sizeHuman": "84.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/tazza.webp",
+          "size": 86350,
+          "sizeHuman": "84.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/tazza.webp",
+          "size": 86350,
+          "sizeHuman": "84.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b522067ee66b743e87dcf47a37c12d53c48c9cfdf03d9d2f3e2d8572a051a66b",
+      "size": 86134,
+      "sizeHuman": "84.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/9_4.webp",
+          "size": 86134,
+          "sizeHuman": "84.1 KB"
+        },
+        {
+          "path": "sudda/hwatu/9_4.webp",
+          "size": 86134,
+          "sizeHuman": "84.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fcac4fec56e2613d473350edbb03e83909746b52b1ddb0213297eb4fbd1d9ba1",
+      "size": 86012,
+      "sizeHuman": "84.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/11_1.webp",
+          "size": 86012,
+          "sizeHuman": "84.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/11_1.webp",
+          "size": 86012,
+          "sizeHuman": "84.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "504cbd339c64e6fc79508f40bfedec41a8fbf029297c2a7fb76ca29d531494a7",
+      "size": 84324,
+      "sizeHuman": "82.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/taromove.webp",
+          "size": 84324,
+          "sizeHuman": "82.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/taromove.webp",
+          "size": 84324,
+          "sizeHuman": "82.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7456742e08b8d5be8b9c086702631d874351d5b079d49c4cfa52f1c156ace37b",
+      "size": 83716,
+      "sizeHuman": "81.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "myungwun_final.html",
+          "size": 83716,
+          "sizeHuman": "81.8 KB"
+        },
+        {
+          "path": "public/myungwun_final.html",
+          "size": 83716,
+          "sizeHuman": "81.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9edd1bcd62301c70fa5fd526e48f7a0f050a5a098a630984af5452b97250c9d3",
+      "size": 83417,
+      "sizeHuman": "81.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/sibyl-system.js",
+          "size": 83417,
+          "sizeHuman": "81.5 KB"
+        },
+        {
+          "path": "public/js/sibyl-system.js",
+          "size": 83417,
+          "sizeHuman": "81.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5608c9736bbe3e6af1912ac386d06c63aa369c544197a1bd6699726618c1db55",
+      "size": 81742,
+      "sizeHuman": "79.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/9_2.webp",
+          "size": 81742,
+          "sizeHuman": "79.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/9_2.webp",
+          "size": 81742,
+          "sizeHuman": "79.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1749e6036bd7ec2f8cc617b9c9121b9f439495e77f8e95f49a6b64dca49adcd5",
+      "size": 80360,
+      "sizeHuman": "78.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/10_2.webp",
+          "size": 80360,
+          "sizeHuman": "78.5 KB"
+        },
+        {
+          "path": "sudda/hwatu/10_2.webp",
+          "size": 80360,
+          "sizeHuman": "78.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "08c3e6a7675cbf4992a6157b03e43b2a7f4241e63895cd4d427723a5c4105e8a",
+      "size": 78142,
+      "sizeHuman": "76.3 KB",
+      "copies": 7,
+      "files": [
+        {
+          "path": "icons/honeypig-192.png",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        },
+        {
+          "path": "public/icons/android-chrome-192x192.png",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        },
+        {
+          "path": "public/icons/apple-touch-icon.png",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        },
+        {
+          "path": "public/icons/favicon-16x16.png",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        },
+        {
+          "path": "public/icons/favicon-32x32.png",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        },
+        {
+          "path": "public/icons/favicon.ico",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        },
+        {
+          "path": "public/icons/honeypig-192.png",
+          "size": 78142,
+          "sizeHuman": "76.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "030768c7f0eb82bd5a0285dd8736de8640f719a4ca4f273900d19490a6b46a75",
+      "size": 75784,
+      "sizeHuman": "74.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/12_1.webp",
+          "size": 75784,
+          "sizeHuman": "74.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/12_1.webp",
+          "size": 75784,
+          "sizeHuman": "74.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e5bca6831e8bd3ee4942dbd8dcc1e234c25afa0e6ae873be01c26c72ead4076f",
+      "size": 75092,
+      "sizeHuman": "73.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/9_3.webp",
+          "size": 75092,
+          "sizeHuman": "73.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/9_3.webp",
+          "size": 75092,
+          "sizeHuman": "73.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1476ae050c720d3733e41bf76e3b94da5bb59003ca45f4ab9b5606084f3c2fb1",
+      "size": 72018,
+      "sizeHuman": "70.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune-teller-fish.html",
+          "size": 72018,
+          "sizeHuman": "70.3 KB"
+        },
+        {
+          "path": "public/fortune-teller-fish.html",
+          "size": 72018,
+          "sizeHuman": "70.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "41ec9ae072db108caba97a8dc4c727ca71dc27edcde8e0433a043a12e3f0106c",
+      "size": 71723,
+      "sizeHuman": "70.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/love-secret-service.js",
+          "size": 71723,
+          "sizeHuman": "70.0 KB"
+        },
+        {
+          "path": "public/js/love-secret-service.js",
+          "size": 71723,
+          "sizeHuman": "70.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ba095b9e5cbc2cfa0b5b81435dcecafc42065c3d4a985aff41814ab1c7f6ae0c",
+      "size": 70446,
+      "sizeHuman": "68.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/4_2.webp",
+          "size": 70446,
+          "sizeHuman": "68.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/4_2.webp",
+          "size": 70446,
+          "sizeHuman": "68.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "46008f6d85c6e97af9ab60915029fd609e0d8dd57d5c3e0c2db1eeac8a847f95",
+      "size": 69903,
+      "sizeHuman": "68.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/honeypig-180.png",
+          "size": 69903,
+          "sizeHuman": "68.3 KB"
+        },
+        {
+          "path": "public/icons/honeypig-180.png",
+          "size": 69903,
+          "sizeHuman": "68.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "94be03b0e576326811ddaeac42d3322c1af700ba2e45aa73a6bb5f988e65987d",
+      "size": 69644,
+      "sizeHuman": "68.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/8_2.webp",
+          "size": 69644,
+          "sizeHuman": "68.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/8_2.webp",
+          "size": 69644,
+          "sizeHuman": "68.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ae59705bedd93b89f73ee4ebd50a431e9ba7fc1ea6b70dc98c1c111e2048ad89",
+      "size": 69598,
+      "sizeHuman": "68.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/destinyporker/greedyman.webp",
+          "size": 69598,
+          "sizeHuman": "68.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/destinyporker/greedyman.webp",
+          "size": 69598,
+          "sizeHuman": "68.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6e5936b263b0d630aa1c3ce2e947e944665a9128712023c46a8ccb0685ea8a40",
+      "size": 69582,
+      "sizeHuman": "68.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/2_2.webp",
+          "size": 69582,
+          "sizeHuman": "68.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/2_2.webp",
+          "size": 69582,
+          "sizeHuman": "68.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cce274886cbc8afaafdb225bc6cf1d3e6651ad7c5c716611e1a6d39f2e9fd45f",
+      "size": 69420,
+      "sizeHuman": "67.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/2_3.webp",
+          "size": 69420,
+          "sizeHuman": "67.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/2_3.webp",
+          "size": 69420,
+          "sizeHuman": "67.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1e353c245f26f6625044ed24ded84000441ce52bdc7dc81b2ea3fb68b05a78c8",
+      "size": 69376,
+      "sizeHuman": "67.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/1_4.webp",
+          "size": 69376,
+          "sizeHuman": "67.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/1_4.webp",
+          "size": 69376,
+          "sizeHuman": "67.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5b6c8a14de432740788fa48425062d32522b6126f68388d745a6a7209def03d4",
+      "size": 69228,
+      "sizeHuman": "67.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/dream-ledger.js",
+          "size": 69228,
+          "sizeHuman": "67.6 KB"
+        },
+        {
+          "path": "public/js/dream-ledger.js",
+          "size": 69228,
+          "sizeHuman": "67.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4f277727384c8b9d036365a8fda25127b8e1bb10602cde0645cf17b99973960a",
+      "size": 68924,
+      "sizeHuman": "67.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/4_4.webp",
+          "size": 68924,
+          "sizeHuman": "67.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/4_4.webp",
+          "size": 68924,
+          "sizeHuman": "67.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1d89dc3ff955cd5671054afa63a9e2aae62a49314edee4420864b2bc68ba5e16",
+      "size": 67889,
+      "sizeHuman": "66.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "lib/ai-engine.js",
+          "size": 67889,
+          "sizeHuman": "66.3 KB"
+        },
+        {
+          "path": "public/lib/ai-engine.js",
+          "size": 67889,
+          "sizeHuman": "66.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d92657200943a89d53532557c1cd9e7a93d867ad6416a048cb355b112c1c30b2",
+      "size": 66936,
+      "sizeHuman": "65.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/3_3.webp",
+          "size": 66936,
+          "sizeHuman": "65.4 KB"
+        },
+        {
+          "path": "sudda/hwatu/3_3.webp",
+          "size": 66936,
+          "sizeHuman": "65.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "93389b0ba048ce6b1ff43161ee925e74a442bb5e0727f082d1f968c979a9386b",
+      "size": 66832,
+      "sizeHuman": "65.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/2_4.webp",
+          "size": 66832,
+          "sizeHuman": "65.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/2_4.webp",
+          "size": 66832,
+          "sizeHuman": "65.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4b963340168c46e0a9d8f477b1afb6a09f116a64e413cd7c728d76252892b092",
+      "size": 65814,
+      "sizeHuman": "64.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/10_4.webp",
+          "size": 65814,
+          "sizeHuman": "64.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/10_4.webp",
+          "size": 65814,
+          "sizeHuman": "64.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "403a8b8cfa3bce53e05d66aeeff878536cd182a480ff7864a2c14fe9c3f2f0b8",
+      "size": 65364,
+      "sizeHuman": "63.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/5_3.webp",
+          "size": 65364,
+          "sizeHuman": "63.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/5_3.webp",
+          "size": 65364,
+          "sizeHuman": "63.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "929119036fcf0855f97970a4d169139742066e56052d69ae45b48cda6909d5cf",
+      "size": 65188,
+      "sizeHuman": "63.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/12_2.webp",
+          "size": 65188,
+          "sizeHuman": "63.7 KB"
+        },
+        {
+          "path": "sudda/hwatu/12_2.webp",
+          "size": 65188,
+          "sizeHuman": "63.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cefe9f7100fdd1ee52c9b2d2ad997a15a97ef6ab67a4ee25499b1f1d53ef97b6",
+      "size": 65140,
+      "sizeHuman": "63.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/3_4.webp",
+          "size": 65140,
+          "sizeHuman": "63.6 KB"
+        },
+        {
+          "path": "sudda/hwatu/3_4.webp",
+          "size": 65140,
+          "sizeHuman": "63.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "15b54639f9590d85cd9e133417c86604123a9f8c4b3f30a9016acf1bd8dffdfc",
+      "size": 65058,
+      "sizeHuman": "63.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/10_3.webp",
+          "size": 65058,
+          "sizeHuman": "63.5 KB"
+        },
+        {
+          "path": "sudda/hwatu/10_3.webp",
+          "size": 65058,
+          "sizeHuman": "63.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a4fbd0e25c59d3f2582ac8751dabaea6ab128574ab2b170d647ba0e1fd5b4bb9",
+      "size": 64756,
+      "sizeHuman": "63.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/8_3.webp",
+          "size": 64756,
+          "sizeHuman": "63.2 KB"
+        },
+        {
+          "path": "sudda/hwatu/8_3.webp",
+          "size": 64756,
+          "sizeHuman": "63.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "def966ed0712bba12b3565a0cc7ec8b49a5f3129c0487cf5a8154533152e74f1",
+      "size": 64162,
+      "sizeHuman": "62.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/11_3.webp",
+          "size": 64162,
+          "sizeHuman": "62.7 KB"
+        },
+        {
+          "path": "sudda/hwatu/11_3.webp",
+          "size": 64162,
+          "sizeHuman": "62.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "34be9fa2160c834ebafced1b39483dfbc353a8509196f5172721279ecf91acf1",
+      "size": 63854,
+      "sizeHuman": "62.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/6_1.webp",
+          "size": 63854,
+          "sizeHuman": "62.4 KB"
+        },
+        {
+          "path": "sudda/hwatu/6_1.webp",
+          "size": 63854,
+          "sizeHuman": "62.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "abb74ad5be11f192a1ea1956f830bab617d5af6dd5013b42c8b82272b021ee4d",
+      "size": 63610,
+      "sizeHuman": "62.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/1_2.webp",
+          "size": 63610,
+          "sizeHuman": "62.1 KB"
+        },
+        {
+          "path": "sudda/hwatu/1_2.webp",
+          "size": 63610,
+          "sizeHuman": "62.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "bebdd2907fd72dd716107d41149b08753dadc506f2edf7469a944e9b0c7001ff",
+      "size": 63530,
+      "sizeHuman": "62.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/4_3.webp",
+          "size": 63530,
+          "sizeHuman": "62.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/4_3.webp",
+          "size": 63530,
+          "sizeHuman": "62.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "301e08484114ea759fad1c8c075d06756873c3280156954ca43086c87228af68",
+      "size": 63294,
+      "sizeHuman": "61.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/7_2.webp",
+          "size": 63294,
+          "sizeHuman": "61.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/7_2.webp",
+          "size": 63294,
+          "sizeHuman": "61.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ce735aa4a4f63918de01b40a45265ba9cb819a9efe37aed36aa123e33b1186ee",
+      "size": 63280,
+      "sizeHuman": "61.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/ziwei-book.js",
+          "size": 63280,
+          "sizeHuman": "61.8 KB"
+        },
+        {
+          "path": "public/js/ziwei-book.js",
+          "size": 63280,
+          "sizeHuman": "61.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "94e3a9730061ecc7faaf4e099ff324758ca43839b38c76c77adaf898a309c556",
+      "size": 62805,
+      "sizeHuman": "61.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/tarot-year-fortune-experience.js",
+          "size": 62805,
+          "sizeHuman": "61.3 KB"
+        },
+        {
+          "path": "public/js/tarot-year-fortune-experience.js",
+          "size": 62805,
+          "sizeHuman": "61.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "57194c9c927f0e265eeb2832a6b3d1559aa9427d19e538d2f549621e0f9768bd",
+      "size": 60410,
+      "sizeHuman": "59.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/7_4.webp",
+          "size": 60410,
+          "sizeHuman": "59.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/7_4.webp",
+          "size": 60410,
+          "sizeHuman": "59.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "32a6dae8e43c51bf8d2a03b688e917c8a6e6167d9b3e75d217de31f95244d515",
+      "size": 60407,
+      "sizeHuman": "59.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/entertain-engine.js",
+          "size": 60407,
+          "sizeHuman": "59.0 KB"
+        },
+        {
+          "path": "public/js/entertain-engine.js",
+          "size": 60407,
+          "sizeHuman": "59.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d14a20c00c4bba46654671daa559fbefae36fce989f800558810d3beaa8f9039",
+      "size": 60296,
+      "sizeHuman": "58.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/8_4.webp",
+          "size": 60296,
+          "sizeHuman": "58.9 KB"
+        },
+        {
+          "path": "sudda/hwatu/8_4.webp",
+          "size": 60296,
+          "sizeHuman": "58.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d9847c74f2d96fe72ae6082f34a374093af6ae824ca0c84b297180604a9265f2",
+      "size": 58316,
+      "sizeHuman": "56.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/6_3.webp",
+          "size": 58316,
+          "sizeHuman": "56.9 KB"
+        },
+        {
+          "path": "sudda/hwatu/6_3.webp",
+          "size": 58316,
+          "sizeHuman": "56.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "794bb0f5616a9d6e9fa7978e8240429f1b1c7b57d6ec2b42f9838b064682196f",
+      "size": 58065,
+      "sizeHuman": "56.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/saju/reportDashboard.js",
+          "size": 58065,
+          "sizeHuman": "56.7 KB"
+        },
+        {
+          "path": "public/js/core/saju/reportDashboard.js",
+          "size": 58065,
+          "sizeHuman": "56.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cd03079b7cb4fc48dc6ea56774729ee18346c3780ca84464ef7ee80a6e8c6ca1",
+      "size": 57896,
+      "sizeHuman": "56.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/3_2.webp",
+          "size": 57896,
+          "sizeHuman": "56.5 KB"
+        },
+        {
+          "path": "sudda/hwatu/3_2.webp",
+          "size": 57896,
+          "sizeHuman": "56.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "5c233496ff818cc0804dd8a5883bf28b75f6d952fbb1cab43fdf4ea6c523cb07",
+      "size": 57592,
+      "sizeHuman": "56.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/tarot-reunion-experience.js",
+          "size": 57592,
+          "sizeHuman": "56.2 KB"
+        },
+        {
+          "path": "public/js/tarot-reunion-experience.js",
+          "size": 57592,
+          "sizeHuman": "56.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c5f2e6c070be0fef838d8db3d5bc77fba7722f40a6982fbbf25d0e5515209e70",
+      "size": 56324,
+      "sizeHuman": "55.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/5_2.webp",
+          "size": 56324,
+          "sizeHuman": "55.0 KB"
+        },
+        {
+          "path": "sudda/hwatu/5_2.webp",
+          "size": 56324,
+          "sizeHuman": "55.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "21962d454478784927d31c0a7512b00819a40edda818f5d79c0972c7119a821c",
+      "size": 56079,
+      "sizeHuman": "54.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/mobile-interaction-patch.js",
+          "size": 56079,
+          "sizeHuman": "54.8 KB"
+        },
+        {
+          "path": "public/js/mobile-interaction-patch.js",
+          "size": 56079,
+          "sizeHuman": "54.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e1d1c6cb133afdd729d53eef5651eeefeb21cca1061385bf893080aed268b2a4",
+      "size": 55828,
+      "sizeHuman": "54.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/life-book.js",
+          "size": 55828,
+          "sizeHuman": "54.5 KB"
+        },
+        {
+          "path": "public/js/life-book.js",
+          "size": 55828,
+          "sizeHuman": "54.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "08af2a5fcaac6cfa86081d089a5538eaeba57551d4191664735d4c3ee1ec50ad",
+      "size": 54926,
+      "sizeHuman": "53.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/7_3.webp",
+          "size": 54926,
+          "sizeHuman": "53.6 KB"
+        },
+        {
+          "path": "sudda/hwatu/7_3.webp",
+          "size": 54926,
+          "sizeHuman": "53.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c5d6c70fe5e09e35ac55d3bc1adc06b3055be334d2c5563957a1e46f228f9207",
+      "size": 53532,
+      "sizeHuman": "52.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/6_2.webp",
+          "size": 53532,
+          "sizeHuman": "52.3 KB"
+        },
+        {
+          "path": "sudda/hwatu/6_2.webp",
+          "size": 53532,
+          "sizeHuman": "52.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "03b5fdf2c25287817972568a34b0a2f96aafa34438054ac2fa02184d692303d2",
+      "size": 52996,
+      "sizeHuman": "51.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/12_3.webp",
+          "size": 52996,
+          "sizeHuman": "51.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/12_3.webp",
+          "size": 52996,
+          "sizeHuman": "51.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b0a8c23b853a8981339cddb60922c1292b2d5c65570e123c1a18f2aabca501d8",
+      "size": 52627,
+      "sizeHuman": "51.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/life-book.css",
+          "size": 52627,
+          "sizeHuman": "51.4 KB"
+        },
+        {
+          "path": "styles/life-book.css",
+          "size": 52627,
+          "sizeHuman": "51.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "339081a3cd804c521c2fc86ff5fa9d5bed1a3d9da53bf83ee689407454d655df",
+      "size": 51740,
+      "sizeHuman": "50.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/fortune-engine.js",
+          "size": 51740,
+          "sizeHuman": "50.5 KB"
+        },
+        {
+          "path": "public/js/fortune-engine.js",
+          "size": 51740,
+          "sizeHuman": "50.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3360957274ef0fc18df4be9ce32105311df3cc470e5a0ac4276b75d79dc25093",
+      "size": 51610,
+      "sizeHuman": "50.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/5_4.webp",
+          "size": 51610,
+          "sizeHuman": "50.4 KB"
+        },
+        {
+          "path": "sudda/hwatu/5_4.webp",
+          "size": 51610,
+          "sizeHuman": "50.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "49afd66aa0344244be9e8e742b4f31ba968ca84c2a88c3f912170d87f962f9e3",
+      "size": 50590,
+      "sizeHuman": "49.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/oracle-kcg.js",
+          "size": 50590,
+          "sizeHuman": "49.4 KB"
+        },
+        {
+          "path": "public/js/oracle-kcg.js",
+          "size": 50590,
+          "sizeHuman": "49.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3fcb185d4c7d7d868d7b9e0e12f48794c1c94f8e702ede6d34b01e07cd6142cf",
+      "size": 50487,
+      "sizeHuman": "49.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/astral-soul.js",
+          "size": 50487,
+          "sizeHuman": "49.3 KB"
+        },
+        {
+          "path": "public/js/astral-soul.js",
+          "size": 50487,
+          "sizeHuman": "49.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "288756d08e7ea289783ed51af7af79ba1a77c4f8111bb97b5ffdddda9f8f4822",
+      "size": 49046,
+      "sizeHuman": "47.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/12_4.webp",
+          "size": 49046,
+          "sizeHuman": "47.9 KB"
+        },
+        {
+          "path": "sudda/hwatu/12_4.webp",
+          "size": 49046,
+          "sizeHuman": "47.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7ee6daa24b0db1cc28362aff20e3df9506e9bb0e6ad2bfb907f8a0fd9f2d0b92",
+      "size": 48862,
+      "sizeHuman": "47.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/love-secret-v2.js",
+          "size": 48862,
+          "sizeHuman": "47.7 KB"
+        },
+        {
+          "path": "public/js/love-secret-v2.js",
+          "size": 48862,
+          "sizeHuman": "47.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3c70226d76c21ec1a12625ff735715584d885635d70626a41fedd4f10e40ec35",
+      "size": 48788,
+      "sizeHuman": "47.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/sibyl-system.css",
+          "size": 48788,
+          "sizeHuman": "47.6 KB"
+        },
+        {
+          "path": "styles/sibyl-system.css",
+          "size": 48788,
+          "sizeHuman": "47.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1429548ccfaae0932972e7e620d2f29c8957fb93a2a84be2fc43492cf87c45ed",
+      "size": 48704,
+      "sizeHuman": "47.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/saju.webp",
+          "size": 48704,
+          "sizeHuman": "47.6 KB"
+        },
+        {
+          "path": "public/fuctionassets/saju.webp",
+          "size": 48704,
+          "sizeHuman": "47.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6319c340a6807a923ed08d94dbeabb222923a43b42e885e0a50161091f04ee9c",
+      "size": 48210,
+      "sizeHuman": "47.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/samba.webp",
+          "size": 48210,
+          "sizeHuman": "47.1 KB"
+        },
+        {
+          "path": "public/icons/samba.webp",
+          "size": 48210,
+          "sizeHuman": "47.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1acdc2ab9c46aa3a068674f3b9fed612a848a139b68a5bdcdbc5abee315a6959",
+      "size": 47626,
+      "sizeHuman": "46.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/main-glass.css",
+          "size": 47626,
+          "sizeHuman": "46.5 KB"
+        },
+        {
+          "path": "styles/main-glass.css",
+          "size": 47626,
+          "sizeHuman": "46.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9d139884d45a3883f8534e862a8a9a5710fbd3093a97eaf61d1f5c8c2df41175",
+      "size": 47386,
+      "sizeHuman": "46.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/tarot-self-esteem-experience.js",
+          "size": 47386,
+          "sizeHuman": "46.3 KB"
+        },
+        {
+          "path": "public/js/tarot-self-esteem-experience.js",
+          "size": 47386,
+          "sizeHuman": "46.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d61218efaf15b470186bf65835c92ce8049d8da1579a452384d734174f9bc69e",
+      "size": 46699,
+      "sizeHuman": "45.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/share.js",
+          "size": 46699,
+          "sizeHuman": "45.6 KB"
+        },
+        {
+          "path": "public/js/share.js",
+          "size": 46699,
+          "sizeHuman": "45.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8756fe42e81818247c503624f80ea76d3a969baacdfdb7b92a49b2a435eebd8d",
+      "size": 46686,
+      "sizeHuman": "45.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/tarot-love-experience.js",
+          "size": 46686,
+          "sizeHuman": "45.6 KB"
+        },
+        {
+          "path": "public/js/tarot-love-experience.js",
+          "size": 46686,
+          "sizeHuman": "45.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ce0ec7d80fc91a3bd7bb3edf1c555407d59a4fe47cd45597829e2e2f2eb1f903",
+      "size": 45719,
+      "sizeHuman": "44.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/tarot-healing-dawn.css",
+          "size": 45719,
+          "sizeHuman": "44.6 KB"
+        },
+        {
+          "path": "styles/tarot-healing-dawn.css",
+          "size": 45719,
+          "sizeHuman": "44.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c7ecd6be1341157a34a754c8376300aafc00a604c32df210ea182af68bc59a86",
+      "size": 45284,
+      "sizeHuman": "44.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/iching-engine.js",
+          "size": 45284,
+          "sizeHuman": "44.2 KB"
+        },
+        {
+          "path": "public/js/iching-engine.js",
+          "size": 45284,
+          "sizeHuman": "44.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8f868527da0cbc80a6717b49cd59d4d92d53901030d54ab95ddea8119bdb7c11",
+      "size": 44080,
+      "sizeHuman": "43.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/psycho-dream-analyzer-freuds-study.js",
+          "size": 44080,
+          "sizeHuman": "43.0 KB"
+        },
+        {
+          "path": "public/js/psycho-dream-analyzer-freuds-study.js",
+          "size": 44080,
+          "sizeHuman": "43.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "01094fbacfb0a49d81cbd33e27cd4a4b5e8f862fbe11afaa93464fad31f9e37c",
+      "size": 43645,
+      "sizeHuman": "42.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/compat-llm-prompts.js",
+          "size": 43645,
+          "sizeHuman": "42.6 KB"
+        },
+        {
+          "path": "public/js/compat-llm-prompts.js",
+          "size": 43645,
+          "sizeHuman": "42.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "534f36591c3a2b8072d83b628e8767cd49829b33cea388c5cb58935b5a8323db",
+      "size": 42910,
+      "sizeHuman": "41.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/honeypig.webp",
+          "size": 42910,
+          "sizeHuman": "41.9 KB"
+        },
+        {
+          "path": "public/icons/honeypig.webp",
+          "size": 42910,
+          "sizeHuman": "41.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "f7849e94b1b276600fb34ac210881f5fce9051a34eaa52886ab94a7ba872ba02",
+      "size": 42394,
+      "sizeHuman": "41.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/11_2.webp",
+          "size": 42394,
+          "sizeHuman": "41.4 KB"
+        },
+        {
+          "path": "sudda/hwatu/11_2.webp",
+          "size": 42394,
+          "sizeHuman": "41.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "059d43f75d7974359ebe3daa59cd6ac575b97f02f5f24037637576800790f277",
+      "size": 42167,
+      "sizeHuman": "41.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/tarot-year-fortune.css",
+          "size": 42167,
+          "sizeHuman": "41.2 KB"
+        },
+        {
+          "path": "styles/tarot-year-fortune.css",
+          "size": 42167,
+          "sizeHuman": "41.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0a69d7773f24908afe20795eec87d743a100e841c99ecfa061bc797c0156d3d1",
+      "size": 40219,
+      "sizeHuman": "39.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/animal-totem-content-engine.js",
+          "size": 40219,
+          "sizeHuman": "39.3 KB"
+        },
+        {
+          "path": "public/js/services/animal-totem-content-engine.js",
+          "size": 40219,
+          "sizeHuman": "39.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3fc7ea07cf58b78eb0cf64cae4ebc9f66fb8f214f59a755ccb8c44630afec1c7",
+      "size": 39346,
+      "sizeHuman": "38.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/11_4.webp",
+          "size": 39346,
+          "sizeHuman": "38.4 KB"
+        },
+        {
+          "path": "sudda/hwatu/11_4.webp",
+          "size": 39346,
+          "sizeHuman": "38.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e4d30548fcdb0ff3a36d621f92f81208a116b94811d06a8817028795c92b8d2f",
+      "size": 37965,
+      "sizeHuman": "37.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/sukuyo-book.js",
+          "size": 37965,
+          "sizeHuman": "37.1 KB"
+        },
+        {
+          "path": "public/js/sukuyo-book.js",
+          "size": 37965,
+          "sizeHuman": "37.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "167e22929d4b67d23d3420d97efb140a2e7dbfe4cb96bd2517367c360be3f92d",
+      "size": 37473,
+      "sizeHuman": "36.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/rss.xml",
+          "size": 37473,
+          "sizeHuman": "36.6 KB"
+        },
+        {
+          "path": "rss.xml",
+          "size": 37473,
+          "sizeHuman": "36.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d8664a243d6cc409e60206a30e8eb112e74b2fcae556114308c7dca0afc031c6",
+      "size": 37441,
+      "sizeHuman": "36.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "ifa_oracle_v2_full.html",
+          "size": 37441,
+          "sizeHuman": "36.6 KB"
+        },
+        {
+          "path": "public/ifa_oracle_v2_full_local.html",
+          "size": 37441,
+          "sizeHuman": "36.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0c9384ae7af8ef8ea7d2337b8650b456053b38da3a7f683a0be6fc540c5482fb",
+      "size": 36815,
+      "sizeHuman": "36.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/tarot-reunion-lighthouse.css",
+          "size": 36815,
+          "sizeHuman": "36.0 KB"
+        },
+        {
+          "path": "styles/tarot-reunion-lighthouse.css",
+          "size": 36815,
+          "sizeHuman": "36.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6ca31c1d6e449aac7e70ae8376e64050b4834fb1624a9dded436d44caf07887d",
+      "size": 36530,
+      "sizeHuman": "35.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/kasi-calendar-service.js",
+          "size": 36530,
+          "sizeHuman": "35.7 KB"
+        },
+        {
+          "path": "public/js/core/kasi-calendar-service.js",
+          "size": 36530,
+          "sizeHuman": "35.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e0d22782d27b2f3ebf948edb635a335ed43b3521d8692036f3c6815b74a5ea68",
+      "size": 36305,
+      "sizeHuman": "35.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "celestial-harmony.html",
+          "size": 36305,
+          "sizeHuman": "35.5 KB"
+        },
+        {
+          "path": "public/celestial-harmony.html",
+          "size": 36305,
+          "sizeHuman": "35.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6c5be9f263dc3a30d9f8b508f92208731ce05c67a57ec347f36c5edb53d0785d",
+      "size": 36293,
+      "sizeHuman": "35.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/astro-book.js",
+          "size": 36293,
+          "sizeHuman": "35.4 KB"
+        },
+        {
+          "path": "public/js/astro-book.js",
+          "size": 36293,
+          "sizeHuman": "35.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "eca12dd74903179105e270a9d2719b274cdcf94fcbfe270a2f7c96c759da3eb3",
+      "size": 35630,
+      "sizeHuman": "34.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/hwatu/6_4.webp",
+          "size": 35630,
+          "sizeHuman": "34.8 KB"
+        },
+        {
+          "path": "sudda/hwatu/6_4.webp",
+          "size": 35630,
+          "sizeHuman": "34.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d5db6f5c4345bc820d345110b1ae30d327ed70ca2cab26aa7dbc0753acd5f5b9",
+      "size": 34042,
+      "sizeHuman": "33.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/vedic-book.js",
+          "size": 34042,
+          "sizeHuman": "33.2 KB"
+        },
+        {
+          "path": "public/js/vedic-book.js",
+          "size": 34042,
+          "sizeHuman": "33.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1f8c479337fcd492d7ac913f5f4e2e8baa31d8d4237c29034c440cc76694b064",
+      "size": 32602,
+      "sizeHuman": "31.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/tarot-love-mystic.css",
+          "size": 32602,
+          "sizeHuman": "31.8 KB"
+        },
+        {
+          "path": "styles/tarot-love-mystic.css",
+          "size": 32602,
+          "sizeHuman": "31.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "71f12b9ad2c124926b03a48aaf427a1eb5fe4549fa64ef94ad4d570f1f4fd02e",
+      "size": 30625,
+      "sizeHuman": "29.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "PhysiognomyUI.js",
+          "size": 30625,
+          "sizeHuman": "29.9 KB"
+        },
+        {
+          "path": "public/PhysiognomyUI.js",
+          "size": 30625,
+          "sizeHuman": "29.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e251b8fd16ce919e1b4b4615180052a094c0852b03ce2bbd11fc47815b3d61fe",
+      "size": 30178,
+      "sizeHuman": "29.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 알-Photoroom.webp",
+          "size": 30178,
+          "sizeHuman": "29.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 알-Photoroom.webp",
+          "size": 30178,
+          "sizeHuman": "29.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a6fdafc1cb8a7ff7c50abb3f3768c362dc20ec9216914a991734794b303d2d49",
+      "size": 29588,
+      "sizeHuman": "28.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/dream-meaning-library.js",
+          "size": 29588,
+          "sizeHuman": "28.9 KB"
+        },
+        {
+          "path": "public/js/dream-meaning-library.js",
+          "size": 29588,
+          "sizeHuman": "28.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "711bc03dfd7945a9fc4ec39327df353b90a12d5871610cf425982686c47222e2",
+      "size": 29232,
+      "sizeHuman": "28.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/animal-totem-experience.js",
+          "size": 29232,
+          "sizeHuman": "28.5 KB"
+        },
+        {
+          "path": "public/js/animal-totem-experience.js",
+          "size": 29232,
+          "sizeHuman": "28.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1e803812019509bdfac07a69e37788b2495d8b7879cd094efde0bb6bb8354c06",
+      "size": 26426,
+      "sizeHuman": "25.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/mobile-performance-bootstrap.js",
+          "size": 26426,
+          "sizeHuman": "25.8 KB"
+        },
+        {
+          "path": "public/js/mobile-performance-bootstrap.js",
+          "size": 26426,
+          "sizeHuman": "25.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "297dbc73fef958bf1b2d8814f094134bcc2c4ef439bc2100c393e03e8632cac8",
+      "size": 25686,
+      "sizeHuman": "25.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "css/entertain-system.css",
+          "size": 25686,
+          "sizeHuman": "25.1 KB"
+        },
+        {
+          "path": "public/css/entertain-system.css",
+          "size": 25686,
+          "sizeHuman": "25.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7e7739bae5e9f68da0709f88004cfccdc3d28ae29f159341153d07e64d5c66d8",
+      "size": 25351,
+      "sizeHuman": "24.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/planet-widget-cosmic.js",
+          "size": 25351,
+          "sizeHuman": "24.8 KB"
+        },
+        {
+          "path": "public/js/inline/planet-widget-cosmic.js",
+          "size": 25351,
+          "sizeHuman": "24.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "13f73161ce2c1fb93f23ce9d67227acd4f4ef991b090633f7aada3c4892db4b2",
+      "size": 23122,
+      "sizeHuman": "22.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/uiBindings.js",
+          "size": 23122,
+          "sizeHuman": "22.6 KB"
+        },
+        {
+          "path": "public/js/core/uiBindings.js",
+          "size": 23122,
+          "sizeHuman": "22.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d6cab0344938ae69b35288717f4291f1f7f1a2f92fe0a2cc9ed542c9f25a4ea3",
+      "size": 22116,
+      "sizeHuman": "21.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/cosmic-main.css",
+          "size": 22116,
+          "sizeHuman": "21.6 KB"
+        },
+        {
+          "path": "styles/cosmic-main.css",
+          "size": 22116,
+          "sizeHuman": "21.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0d5a640e5cac64e37462aea3fe059b41584f0fe4151c6f794539f2a5617b3a36",
+      "size": 17896,
+      "sizeHuman": "17.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/flower-320.webp",
+          "size": 17896,
+          "sizeHuman": "17.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/flower-320.webp",
+          "size": 17896,
+          "sizeHuman": "17.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6535e161b4706811216fe2dbc8471f66ffd9fbdf74c0f017a20fb688d44ede42",
+      "size": 17374,
+      "sizeHuman": "17.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/destiny-flower-cosmic.css",
+          "size": 17374,
+          "sizeHuman": "17.0 KB"
+        },
+        {
+          "path": "styles/destiny-flower-cosmic.css",
+          "size": 17374,
+          "sizeHuman": "17.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e0f2413b2dce645ec37acaab597ecba082512092c4c915a77d34a889f4850165",
+      "size": 16363,
+      "sizeHuman": "16.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/mobile-ux.css",
+          "size": 16363,
+          "sizeHuman": "16.0 KB"
+        },
+        {
+          "path": "styles/mobile-ux.css",
+          "size": 16363,
+          "sizeHuman": "16.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e1941bc926dc6850349f362f9611bd641b1726584b09b048d620c9232e4cd87c",
+      "size": 15512,
+      "sizeHuman": "15.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/master.webp",
+          "size": 15512,
+          "sizeHuman": "15.1 KB"
+        },
+        {
+          "path": "sudda/master.webp",
+          "size": 15512,
+          "sizeHuman": "15.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ff2b57f083dca45d25f2843db45d264de7dcec1cc8b4856af01bf7adc10b5d52",
+      "size": 13405,
+      "sizeHuman": "13.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/share-reward.js",
+          "size": 13405,
+          "sizeHuman": "13.1 KB"
+        },
+        {
+          "path": "public/js/share-reward.js",
+          "size": 13405,
+          "sizeHuman": "13.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9951a19479f1907de4c2901c7aafdf1f2f377cf2d691f56f3620ea0ae67fd46a",
+      "size": 12608,
+      "sizeHuman": "12.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/goni.webp",
+          "size": 12608,
+          "sizeHuman": "12.3 KB"
+        },
+        {
+          "path": "sudda/goni.webp",
+          "size": 12608,
+          "sizeHuman": "12.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "912864b256f272e0a1a1d578fcde445e5d4ea3138feebdd1fb3a248b91c62a95",
+      "size": 11896,
+      "sizeHuman": "11.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/tarot/tarot-data.json",
+          "size": 11896,
+          "sizeHuman": "11.6 KB"
+        },
+        {
+          "path": "public/fortune/tarot/tarot-data.json",
+          "size": 11896,
+          "sizeHuman": "11.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4951aec9fc15d8db39e0cb4d35a881984ed67b95737fd9a74f692d5751a4f7f1",
+      "size": 11587,
+      "sizeHuman": "11.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/sajuAnalyzer.js",
+          "size": 11587,
+          "sizeHuman": "11.3 KB"
+        },
+        {
+          "path": "public/js/services/sajuAnalyzer.js",
+          "size": 11587,
+          "sizeHuman": "11.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "456b596e020667753f63bd0cabfbd04dd6fbb641f5560cf4a2078a4919d17be2",
+      "size": 11544,
+      "sizeHuman": "11.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/agui.webp",
+          "size": 11544,
+          "sizeHuman": "11.3 KB"
+        },
+        {
+          "path": "sudda/agui.webp",
+          "size": 11544,
+          "sizeHuman": "11.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "40fbb17c39d1dc94ff78c1830463064a8dd3eb6d321d7fef05ff893abfb289e9",
+      "size": 11440,
+      "sizeHuman": "11.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/madam.webp",
+          "size": 11440,
+          "sizeHuman": "11.2 KB"
+        },
+        {
+          "path": "sudda/madam.webp",
+          "size": 11440,
+          "sizeHuman": "11.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "fbbae06412c63c7b5fcd9b4c81bb239ce22337fbcddb94c8b0482391e1b9470d",
+      "size": 11225,
+      "sizeHuman": "11.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/olympus-oracle.js",
+          "size": 11225,
+          "sizeHuman": "11.0 KB"
+        },
+        {
+          "path": "public/js/olympus-oracle.js",
+          "size": 11225,
+          "sizeHuman": "11.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1364aa1a5ba0968433963ca589903f883c67c709d9cedb4084c48cc7abb18aab",
+      "size": 10936,
+      "sizeHuman": "10.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/runtime-stability.js",
+          "size": 10936,
+          "sizeHuman": "10.7 KB"
+        },
+        {
+          "path": "public/js/runtime-stability.js",
+          "size": 10936,
+          "sizeHuman": "10.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1cfd0fe89ed2143b1845ac85f7dec8b76f35797337005875abc928b8848161ba",
+      "size": 10926,
+      "sizeHuman": "10.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/tarot-data.js",
+          "size": 10926,
+          "sizeHuman": "10.7 KB"
+        },
+        {
+          "path": "public/js/tarot-data.js",
+          "size": 10926,
+          "sizeHuman": "10.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7be3f16703d5d6cd7919a88070f164dbe9973007327592416bd1a72c4b0bfd53",
+      "size": 10836,
+      "sizeHuman": "10.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "css/fortune.css",
+          "size": 10836,
+          "sizeHuman": "10.6 KB"
+        },
+        {
+          "path": "public/css/fortune.css",
+          "size": 10836,
+          "sizeHuman": "10.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4ad191441e0f1f0b347049248d93a815fd0069dd319612d450612a69bf5f49d5",
+      "size": 10769,
+      "sizeHuman": "10.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/fate-scroll-reveal.js",
+          "size": 10769,
+          "sizeHuman": "10.5 KB"
+        },
+        {
+          "path": "public/js/fate-scroll-reveal.js",
+          "size": 10769,
+          "sizeHuman": "10.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ca5e13b03589da3d01e266b746be9bbcc7f23f40b18c039e0a9d14f38c9ff65e",
+      "size": 10700,
+      "sizeHuman": "10.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/sajuWorkerServiceAdvanced.js",
+          "size": 10700,
+          "sizeHuman": "10.4 KB"
+        },
+        {
+          "path": "public/js/services/sajuWorkerServiceAdvanced.js",
+          "size": 10700,
+          "sizeHuman": "10.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6b261a331a178f2c6efe10c4272f1c167eb95ccf0952b087ec0a12fbad3a6989",
+      "size": 10681,
+      "sizeHuman": "10.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/saju-engine-continuation.js",
+          "size": 10681,
+          "sizeHuman": "10.4 KB"
+        },
+        {
+          "path": "public/js/saju-engine-continuation.js",
+          "size": 10681,
+          "sizeHuman": "10.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7313b137650a1d98df1fd0c0bd10cc4de292a0d415fff2942cd594b42654c342",
+      "size": 9894,
+      "sizeHuman": "9.7 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/index.html",
+          "size": 9894,
+          "sizeHuman": "9.7 KB"
+        },
+        {
+          "path": "public/fortune/index.html",
+          "size": 9894,
+          "sizeHuman": "9.7 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cf6b13d6a8a32f34de75d4b4b6708fccc866d340367d685f51728e105ac8e90b",
+      "size": 9831,
+      "sizeHuman": "9.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/kasi/calendar.js",
+          "size": 9831,
+          "sizeHuman": "9.6 KB"
+        },
+        {
+          "path": "public/js/core/kasi/calendar.js",
+          "size": 9831,
+          "sizeHuman": "9.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e45933798685015bd898a39db90dac2a76fa9ddc566d7423d4f35f357e68730b",
+      "size": 9714,
+      "sizeHuman": "9.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sudda/gosu.webp",
+          "size": 9714,
+          "sizeHuman": "9.5 KB"
+        },
+        {
+          "path": "sudda/gosu.webp",
+          "size": 9714,
+          "sizeHuman": "9.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "052a9874b269cc6261e13daf9dfdbd8b82df9c71f66be3e05d760b2efa7b737e",
+      "size": 9700,
+      "sizeHuman": "9.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/engines/ziwei-doushu.js",
+          "size": 9700,
+          "sizeHuman": "9.5 KB"
+        },
+        {
+          "path": "public/js/engines/ziwei-doushu.js",
+          "size": 9700,
+          "sizeHuman": "9.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e8bb6d4d7f0fedb48ad90a46468e69f44bd30f761bd86fec2a9c6563ac532d7d",
+      "size": 9392,
+      "sizeHuman": "9.2 KB",
+      "copies": 3,
+      "files": [
+        {
+          "path": "fuctionassets/yeon.webp",
+          "size": 9392,
+          "sizeHuman": "9.2 KB"
+        },
+        {
+          "path": "public/fortune/sikojen-povailu/images/yeon.webp",
+          "size": 9392,
+          "sizeHuman": "9.2 KB"
+        },
+        {
+          "path": "public/fuctionassets/yeon.webp",
+          "size": 9392,
+          "sizeHuman": "9.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "822ef3eb607bb4dc143a67fef733a79ac1d26567ba384220a8a868f1301209fe",
+      "size": 8831,
+      "sizeHuman": "8.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/mobile-totem-flower-fix.css",
+          "size": 8831,
+          "sizeHuman": "8.6 KB"
+        },
+        {
+          "path": "styles/mobile-totem-flower-fix.css",
+          "size": 8831,
+          "sizeHuman": "8.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "767f7b8de89ad23c672ab54f660593f5197f72b9d5c3da133c929d88e186db7f",
+      "size": 8695,
+      "sizeHuman": "8.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/sajuWorkerExamples.js",
+          "size": 8695,
+          "sizeHuman": "8.5 KB"
+        },
+        {
+          "path": "public/js/services/sajuWorkerExamples.js",
+          "size": 8695,
+          "sizeHuman": "8.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "bcbe73e9de10af6d3c135fd3ccb5131610167c39b11aacb70255593924a98ac3",
+      "size": 8591,
+      "sizeHuman": "8.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/web-vitals-console.js",
+          "size": 8591,
+          "sizeHuman": "8.4 KB"
+        },
+        {
+          "path": "public/js/web-vitals-console.js",
+          "size": 8591,
+          "sizeHuman": "8.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a42a508f0c8f2b3d0445292e272e0b973da0329a8f239c12dea374662f5d153c",
+      "size": 7774,
+      "sizeHuman": "7.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/data/chinese-astrology.js",
+          "size": 7774,
+          "sizeHuman": "7.6 KB"
+        },
+        {
+          "path": "public/js/data/chinese-astrology.js",
+          "size": 7774,
+          "sizeHuman": "7.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "14343d72fb2c30fb0177aa6aa88478431c86d2a962ade33885393aa50e3f18b3",
+      "size": 7746,
+      "sizeHuman": "7.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/saju/modalProfileState.js",
+          "size": 7746,
+          "sizeHuman": "7.6 KB"
+        },
+        {
+          "path": "public/js/core/saju/modalProfileState.js",
+          "size": 7746,
+          "sizeHuman": "7.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "98b0c8c06c6f08a6c031badaccfd452ffbfceb9a5d24765116c52c8eb5dc015e",
+      "size": 6923,
+      "sizeHuman": "6.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/service-worker.js",
+          "size": 6923,
+          "sizeHuman": "6.8 KB"
+        },
+        {
+          "path": "service-worker.js",
+          "size": 6923,
+          "sizeHuman": "6.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3559b8bc34f511320a8a3321f58faa7b8ebc585cf7bc74ea837b6f22ceb393fa",
+      "size": 6752,
+      "sizeHuman": "6.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/kill-switch.js",
+          "size": 6752,
+          "sizeHuman": "6.6 KB"
+        },
+        {
+          "path": "public/js/kill-switch.js",
+          "size": 6752,
+          "sizeHuman": "6.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2c1950fb50082831b34e7d570fd6d01fa4d02b418c556f83e437dba6dec9c348",
+      "size": 6413,
+      "sizeHuman": "6.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/splash.js",
+          "size": 6413,
+          "sizeHuman": "6.3 KB"
+        },
+        {
+          "path": "public/js/splash.js",
+          "size": 6413,
+          "sizeHuman": "6.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9cc69a128fce13e088def432ff2242f130a036c37de2807500c864d7845f796c",
+      "size": 5929,
+      "sizeHuman": "5.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/README.md",
+          "size": 5929,
+          "sizeHuman": "5.8 KB"
+        },
+        {
+          "path": "styles/README.md",
+          "size": 5929,
+          "sizeHuman": "5.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4bfce2b88eb75f4a0ce15c0fba865ef1d64417e20721bf7e2e2f516149138b2b",
+      "size": 5391,
+      "sizeHuman": "5.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/noncritical-defer-loader.js",
+          "size": 5391,
+          "sizeHuman": "5.3 KB"
+        },
+        {
+          "path": "public/js/noncritical-defer-loader.js",
+          "size": 5391,
+          "sizeHuman": "5.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0f2857c549b59b6a2aecf4e33f9055816e6e596d563011dd1d2d874f736f0541",
+      "size": 5218,
+      "sizeHuman": "5.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/samba-130.webp",
+          "size": 5218,
+          "sizeHuman": "5.1 KB"
+        },
+        {
+          "path": "public/icons/samba-130.webp",
+          "size": 5218,
+          "sizeHuman": "5.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "bc61cb1ca0c0bfa7b5610e7a86559f6df003922222632abeccff5fa7a650156e",
+      "size": 5192,
+      "sizeHuman": "5.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/fsn-navbar.js",
+          "size": 5192,
+          "sizeHuman": "5.1 KB"
+        },
+        {
+          "path": "public/js/fsn-navbar.js",
+          "size": 5192,
+          "sizeHuman": "5.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "17e1f8758f9236c6b90d4fb633e56e755f6aa89c53bdf910d3bf47e0fb833274",
+      "size": 5065,
+      "sizeHuman": "4.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/critical-above-fold.css",
+          "size": 5065,
+          "sizeHuman": "4.9 KB"
+        },
+        {
+          "path": "styles/critical-above-fold.css",
+          "size": 5065,
+          "sizeHuman": "4.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "91514542a585feefc54f6b41ce831183ed75bf871e5ce16f422ea0ba8e5ccfe8",
+      "size": 4997,
+      "sizeHuman": "4.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/touch-perf.js",
+          "size": 4997,
+          "sizeHuman": "4.9 KB"
+        },
+        {
+          "path": "public/js/touch-perf.js",
+          "size": 4997,
+          "sizeHuman": "4.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "e3a3d79dd42f82324e74050020f27a05de159112dbf2d58d00ee7cd6e59c0e03",
+      "size": 4704,
+      "sizeHuman": "4.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/honeypig-130.webp",
+          "size": 4704,
+          "sizeHuman": "4.6 KB"
+        },
+        {
+          "path": "public/icons/honeypig-130.webp",
+          "size": 4704,
+          "sizeHuman": "4.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "666fac09388cb20a4e0de289aee22a7a4a7d369a1e54a62a1c36d916b90526f8",
+      "size": 4556,
+      "sizeHuman": "4.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "ifa-oracle-about.html",
+          "size": 4556,
+          "sizeHuman": "4.4 KB"
+        },
+        {
+          "path": "public/ifa-oracle-about.html",
+          "size": 4556,
+          "sizeHuman": "4.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6abfead9deb0d3875a04c5e458d904ebc791357427771bfb909cc29fce5f1c2b",
+      "size": 4535,
+      "sizeHuman": "4.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/fate-scroll-top.js",
+          "size": 4535,
+          "sizeHuman": "4.4 KB"
+        },
+        {
+          "path": "public/js/fate-scroll-top.js",
+          "size": 4535,
+          "sizeHuman": "4.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a58dde9648ddc80f6eb28f5639f5a4f055fd6335050a3cb660fd8965d5bfacfd",
+      "size": 4513,
+      "sizeHuman": "4.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/README.md",
+          "size": 4513,
+          "sizeHuman": "4.4 KB"
+        },
+        {
+          "path": "public/js/README.md",
+          "size": 4513,
+          "sizeHuman": "4.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8da8cb45d47ae23e0270c5ddb090f7bf44b76b5ecefa5f23ef6d686d8157f900",
+      "size": 4390,
+      "sizeHuman": "4.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/animaltotem-cute.svg",
+          "size": 4390,
+          "sizeHuman": "4.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/animaltotem-cute.svg",
+          "size": 4390,
+          "sizeHuman": "4.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "3eb7fd9cb4d5b1a232c0544443e7400f1318c20b588421b98a2b3c2f6fd9fa85",
+      "size": 4001,
+      "sizeHuman": "3.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/cd-lazy-feature-loader.js",
+          "size": 4001,
+          "sizeHuman": "3.9 KB"
+        },
+        {
+          "path": "public/js/cd-lazy-feature-loader.js",
+          "size": 4001,
+          "sizeHuman": "3.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "106541da8bfa12d733242186c756f22523057fff22fc935753651788ab896241",
+      "size": 3906,
+      "sizeHuman": "3.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/app.js",
+          "size": 3906,
+          "sizeHuman": "3.8 KB"
+        },
+        {
+          "path": "public/js/app.js",
+          "size": 3906,
+          "sizeHuman": "3.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "397c507ff87213675462f7c15d19de277b6c6da5d77e85a471794c3e053562c7",
+      "size": 3715,
+      "sizeHuman": "3.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/sajuWorkerService.js",
+          "size": 3715,
+          "sizeHuman": "3.6 KB"
+        },
+        {
+          "path": "public/js/services/sajuWorkerService.js",
+          "size": 3715,
+          "sizeHuman": "3.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "09bd124ce5de9f8a8ad8a048e46a2716174c0d22930e5e367f97512e4a8269dd",
+      "size": 3673,
+      "sizeHuman": "3.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/image-fallback.js",
+          "size": 3673,
+          "sizeHuman": "3.6 KB"
+        },
+        {
+          "path": "public/js/image-fallback.js",
+          "size": 3673,
+          "sizeHuman": "3.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d7f345cf3f295099b4021888da06cd476c6f92e09cf3f5ea653594463d14e7d3",
+      "size": 3264,
+      "sizeHuman": "3.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/samba-96.webp",
+          "size": 3264,
+          "sizeHuman": "3.2 KB"
+        },
+        {
+          "path": "public/icons/samba-96.webp",
+          "size": 3264,
+          "sizeHuman": "3.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b154efa8b7f4e310667d258f0d40910861ee061e0df1fc899e66a3f02fa3e42a",
+      "size": 3030,
+      "sizeHuman": "3.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/honeypig-96.webp",
+          "size": 3030,
+          "sizeHuman": "3.0 KB"
+        },
+        {
+          "path": "public/icons/honeypig-96.webp",
+          "size": 3030,
+          "sizeHuman": "3.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "12b132e95be1c98d97ccf396223f48f9d81e95d286645525ada170aaab8a9ff4",
+      "size": 3022,
+      "sizeHuman": "3.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/legacy-action-launcher.js",
+          "size": 3022,
+          "sizeHuman": "3.0 KB"
+        },
+        {
+          "path": "public/js/inline/legacy-action-launcher.js",
+          "size": 3022,
+          "sizeHuman": "3.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "296d69d5458dfcb04e2bfd1a2867295c8c373fe809249182f3336fe937e0753f",
+      "size": 3000,
+      "sizeHuman": "2.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/mobile-safe-render-init.js",
+          "size": 3000,
+          "sizeHuman": "2.9 KB"
+        },
+        {
+          "path": "public/js/inline/mobile-safe-render-init.js",
+          "size": 3000,
+          "sizeHuman": "2.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "7c796531a4cedf2c58ead8ee016068a0acfcdb15d904803bedfe6b92b144ff29",
+      "size": 2995,
+      "sizeHuman": "2.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/js/services/tarot.js",
+          "size": 2995,
+          "sizeHuman": "2.9 KB"
+        },
+        {
+          "path": "public/static/js/services/tarot.js",
+          "size": 2995,
+          "sizeHuman": "2.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "705ca007480d40412fe2e897be96f925b5e187e9bdf59a4d3c63f9ca114737bf",
+      "size": 2659,
+      "sizeHuman": "2.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/fortuneService.js",
+          "size": 2659,
+          "sizeHuman": "2.6 KB"
+        },
+        {
+          "path": "public/js/services/fortuneService.js",
+          "size": 2659,
+          "sizeHuman": "2.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "78f0f85d009db888f71e8a5377abe892e9499ca6186a225e95a4b3ff2c5a2552",
+      "size": 2504,
+      "sizeHuman": "2.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/swisseph-loader.js",
+          "size": 2504,
+          "sizeHuman": "2.4 KB"
+        },
+        {
+          "path": "public/js/swisseph-loader.js",
+          "size": 2504,
+          "sizeHuman": "2.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8351499b15b0d5f43cbe0c16ca7e946b03785f3cf555046fb966591015394840",
+      "size": 2360,
+      "sizeHuman": "2.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "css/sibyl-premium.css",
+          "size": 2360,
+          "sizeHuman": "2.3 KB"
+        },
+        {
+          "path": "public/css/sibyl-premium.css",
+          "size": 2360,
+          "sizeHuman": "2.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "585039b6fc387ebdff652a779c2a8decc64096e5ce454bb28b3ab89d6c67d8a5",
+      "size": 2293,
+      "sizeHuman": "2.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/mobile-lite.css",
+          "size": 2293,
+          "sizeHuman": "2.2 KB"
+        },
+        {
+          "path": "styles/mobile-lite.css",
+          "size": 2293,
+          "sizeHuman": "2.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d4b73be15b2bf2d94f7e8307cd3401a05a48358f7e68c9e515be7ec5beabe148",
+      "size": 2281,
+      "sizeHuman": "2.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/collection-action-bridge.js",
+          "size": 2281,
+          "sizeHuman": "2.2 KB"
+        },
+        {
+          "path": "public/js/collection-action-bridge.js",
+          "size": 2281,
+          "sizeHuman": "2.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a89a206807ad13de1bd442245b95ea1e7dd2f75dafcff2bad45065ef21cf9f43",
+      "size": 2170,
+      "sizeHuman": "2.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/js/services/stonehenge-rune.js",
+          "size": 2170,
+          "sizeHuman": "2.1 KB"
+        },
+        {
+          "path": "public/static/js/services/stonehenge-rune.js",
+          "size": 2170,
+          "sizeHuman": "2.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "6492371ad60635033a33221dcf04f511b6c376baa8a7f18c86b94a40a456b399",
+      "size": 2134,
+      "sizeHuman": "2.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/js/services/hwatu-life.js",
+          "size": 2134,
+          "sizeHuman": "2.1 KB"
+        },
+        {
+          "path": "public/static/js/services/hwatu-life.js",
+          "size": 2134,
+          "sizeHuman": "2.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a5365a786991dab971ac3bd8ac825feadefd4ee420d243ec2671d89c380929ad",
+      "size": 2091,
+      "sizeHuman": "2.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/canonical-redirect.js",
+          "size": 2091,
+          "sizeHuman": "2.0 KB"
+        },
+        {
+          "path": "public/js/inline/canonical-redirect.js",
+          "size": 2091,
+          "sizeHuman": "2.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "22f4969232c92ecf757c41bdd220a0ae3d725852e8a3070dd48facaa0f413e2f",
+      "size": 1492,
+      "sizeHuman": "1.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/styles/browser-compat.css",
+          "size": 1492,
+          "sizeHuman": "1.5 KB"
+        },
+        {
+          "path": "styles/browser-compat.css",
+          "size": 1492,
+          "sizeHuman": "1.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "8452f62bb7ba9dc55ec17b54bf85d43640906f098ab2c4d7b2201634d9debace",
+      "size": 1301,
+      "sizeHuman": "1.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "manifest.json",
+          "size": 1301,
+          "sizeHuman": "1.3 KB"
+        },
+        {
+          "path": "public/manifest.json",
+          "size": 1301,
+          "sizeHuman": "1.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9a2ae9f10574d414af881692f78d188a5f73190ae78b860294104d7e87e1de9e",
+      "size": 1271,
+      "sizeHuman": "1.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/utils/dom.js",
+          "size": 1271,
+          "sizeHuman": "1.2 KB"
+        },
+        {
+          "path": "public/js/utils/dom.js",
+          "size": 1271,
+          "sizeHuman": "1.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0fc81237ac11304562c85a99868bfa0df7db48bc6194427f611e80887b75a150",
+      "size": 1209,
+      "sizeHuman": "1.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "manifest-samba.json",
+          "size": 1209,
+          "sizeHuman": "1.2 KB"
+        },
+        {
+          "path": "public/manifest-samba.json",
+          "size": 1209,
+          "sizeHuman": "1.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "560ee316ffa6e8ef73eabce3cb0b19471591230229b9b40a28704b4706e7a4bc",
+      "size": 1117,
+      "sizeHuman": "1.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/fortune-tabs.js",
+          "size": 1117,
+          "sizeHuman": "1.1 KB"
+        },
+        {
+          "path": "public/js/inline/fortune-tabs.js",
+          "size": 1117,
+          "sizeHuman": "1.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "4a6620aaa35824585b8babe403ea892936ea0c4a6d21511235e30382053ade1b",
+      "size": 1116,
+      "sizeHuman": "1.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/init.js",
+          "size": 1116,
+          "sizeHuman": "1.1 KB"
+        },
+        {
+          "path": "public/js/core/init.js",
+          "size": 1116,
+          "sizeHuman": "1.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "aedd02647a367a75b508840f34824fb243da5c5db6dce7e1fd8bc152d598f401",
+      "size": 1035,
+      "sizeHuman": "1.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/chunks/extra-fortune.chunk.js",
+          "size": 1035,
+          "sizeHuman": "1.0 KB"
+        },
+        {
+          "path": "public/js/chunks/extra-fortune.chunk.js",
+          "size": 1035,
+          "sizeHuman": "1.0 KB"
+        }
+      ]
+    },
+    {
+      "hash": "96936e3f8ec614b3a4c46c8dcc5b3934defe281dc1e9e593c39032a561b2001e",
+      "size": 964,
+      "sizeHuman": "964 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/api-base-init.js",
+          "size": 964,
+          "sizeHuman": "964 B"
+        },
+        {
+          "path": "public/js/inline/api-base-init.js",
+          "size": 964,
+          "sizeHuman": "964 B"
+        }
+      ]
+    },
+    {
+      "hash": "05f304b6d5921ece8227b98188166f5f15af66bdd8e1308d379316a2155ec9bf",
+      "size": 917,
+      "sizeHuman": "917 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/pwa-theme-init.js",
+          "size": 917,
+          "sizeHuman": "917 B"
+        },
+        {
+          "path": "public/js/inline/pwa-theme-init.js",
+          "size": 917,
+          "sizeHuman": "917 B"
+        }
+      ]
+    },
+    {
+      "hash": "bc50c02982bacef6f257481f3172d4a6f950cfe72197ca83bcf5defa578344f8",
+      "size": 861,
+      "sizeHuman": "861 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/services/sajuService.js",
+          "size": 861,
+          "sizeHuman": "861 B"
+        },
+        {
+          "path": "public/js/services/sajuService.js",
+          "size": 861,
+          "sizeHuman": "861 B"
+        }
+      ]
+    },
+    {
+      "hash": "ceb2b1b1a0ebc3cb6e4d3c7e1b647a22f6ce5d191b15ef4f6e388f05aaecb75c",
+      "size": 795,
+      "sizeHuman": "795 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/iching-modal.js",
+          "size": 795,
+          "sizeHuman": "795 B"
+        },
+        {
+          "path": "public/js/iching-modal.js",
+          "size": 795,
+          "sizeHuman": "795 B"
+        }
+      ]
+    },
+    {
+      "hash": "b4412b0df37017cea5364dc599bc7c043fc50b2026db924a9ea53df01d862658",
+      "size": 778,
+      "sizeHuman": "778 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/chunks/saju-analysis.chunk.js",
+          "size": 778,
+          "sizeHuman": "778 B"
+        },
+        {
+          "path": "public/js/chunks/saju-analysis.chunk.js",
+          "size": 778,
+          "sizeHuman": "778 B"
+        }
+      ]
+    },
+    {
+      "hash": "a93a8f9ec3bef91f086efbde1e7b6daf926e5ab3df1684a189ca560940bbfd48",
+      "size": 756,
+      "sizeHuman": "756 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/utils/date.js",
+          "size": 756,
+          "sizeHuman": "756 B"
+        },
+        {
+          "path": "public/js/utils/date.js",
+          "size": 756,
+          "sizeHuman": "756 B"
+        }
+      ]
+    },
+    {
+      "hash": "f974d5f5793f58e557a4768a5ff95997ec880d51f1dc092d2e74049a670be262",
+      "size": 657,
+      "sizeHuman": "657 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/chunks/compat.chunk.js",
+          "size": 657,
+          "sizeHuman": "657 B"
+        },
+        {
+          "path": "public/js/chunks/compat.chunk.js",
+          "size": 657,
+          "sizeHuman": "657 B"
+        }
+      ]
+    },
+    {
+      "hash": "7bfb8d1d75cfb9e443abfa45dfcec18d64e747614006cbb84997172151584c00",
+      "size": 368,
+      "sizeHuman": "368 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/bootstrapDestinyFlower.js",
+          "size": 368,
+          "sizeHuman": "368 B"
+        },
+        {
+          "path": "public/js/core/bootstrapDestinyFlower.js",
+          "size": 368,
+          "sizeHuman": "368 B"
+        }
+      ]
+    },
+    {
+      "hash": "8246d333bf3764cd35563e3df1828c26bbc28890815a2987caf3e592791ba60d",
+      "size": 311,
+      "sizeHuman": "311 B",
+      "copies": 11,
+      "files": [
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout1.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout10.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout11.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout2.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout3.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout4.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout5.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout6.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout7.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout8.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        },
+        {
+          "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout9.xml.rels",
+          "size": 311,
+          "sizeHuman": "311 B"
+        }
+      ]
+    },
+    {
+      "hash": "734626da46da73da8f920e6f36f6ffe9934dccc7e2b7c40d9c0ec5211b13e282",
+      "size": 59,
+      "sizeHuman": "59 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "ads.txt",
+          "size": 59,
+          "sizeHuman": "59 B"
+        },
+        {
+          "path": "public/ads.txt",
+          "size": 59,
+          "sizeHuman": "59 B"
+        }
+      ]
+    },
+    {
+      "hash": "d72d80da431649c31820f7bd6734968203bc17dd54f780245e05dce02accc379",
+      "size": 47,
+      "sizeHuman": "47 B",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/status.json",
+          "size": 47,
+          "sizeHuman": "47 B"
+        },
+        {
+          "path": "status.json",
+          "size": 47,
+          "sizeHuman": "47 B"
+        }
+      ]
+    }
+  ],
+  "groupCount": 318,
+  "fileCountInGroups": 653
+}
