@@ -5769,28 +5769,28 @@ const astrologer = {
   houses: ['1 하우스 (자아/외모)', '2 하우스 (가치/재물)', '3 하우스 (소통/학습)', '4 하우스 (뿌리/가정)', '5 하우스 (창조/연애)', '6 하우스 (노동/건강)', '7 하우스 (관계/파트너)', '8 하우스 (변환/공유자산)', '9 하우스 (철학/확장)', '10 하우스 (성취/천직)', '11 하우스 (비전/네트워크)', '12 하우스 (무의식/영성)']
 };
 
-function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, houseSystem) {
+function calcAstroSwissChartOrThrow(year, month, day, localHour, lat, lon, tz, houseSystem) {
   var hs = houseSystem || (window.ASTRO_HOUSE_SYSTEM || 'P');
   var chart = AstroEngine.calcAll(year, month, day, localHour, lat, lon, tz, { houseSystem: hs });
   var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : 'unknown';
   if (mode !== 'swisseph') {
-    throw new Error('정확한 차트 계산 API 연결에 실패했습니다. precisionMode=' + mode);
+    throw new Error('정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다. precisionMode=' + mode);
   }
   return chart;
 }
 
-function renderAstroApiUnavailable(reason) {
+function renderAstroSwissUnavailable(reason) {
   var area = document.getElementById('astroResult');
   if (!area) return;
-  var msg = String(reason || 'SwissEph API 초기화 실패')
+  var msg = String(reason || 'SwissEph 라이브러리 초기화 실패')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   area.innerHTML = ''
     + '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;">'
     + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
     + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 엔진 연결 중</div>'
     + '<div class="astro-desc" style="line-height:1.75;">'
-    + '<p style="margin:0;color:#ffe4e6;">정확한 차트 계산 API 연결에 실패했습니다.</p>'
-    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지, 출생시간, 네트워크 상태를 확인한 뒤 다시 시도해 주세요.</p>'
+    + '<p style="margin:0;color:#ffe4e6;">정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다.</p>'
+    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지/출생시간 입력과 Swiss 라이브러리 로드 상태를 확인한 뒤 다시 시도해 주세요.</p>'
     + '<p style="margin:8px 0 0 0;color:#fecdd3;"><b>참고 로그:</b> ' + msg + '</p>'
     + '</div></div></div>';
 }
@@ -6181,17 +6181,17 @@ function renderAstroInsight() {
     var precisionMode = 'swisseph';
     var precisionReason = '';
     try {
-      chart = calcAstroApiChartOrThrow(y, m, d, h + min / 60, lat, lon, tz, houseSystem);
+      chart = calcAstroSwissChartOrThrow(y, m, d, h + min / 60, lat, lon, tz, houseSystem);
       var now = new Date();
-      chartNow = calcAstroApiChartOrThrow(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, lat, lon, tz, houseSystem);
-    } catch (apiErr) {
-      precisionReason = apiErr && apiErr.message ? String(apiErr.message) : String(apiErr || 'swiss unavailable');
-      renderAstroApiUnavailable(precisionReason);
+      chartNow = calcAstroSwissChartOrThrow(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, lat, lon, tz, houseSystem);
+    } catch (swissErr) {
+      precisionReason = swissErr && swissErr.message ? String(swissErr.message) : String(swissErr || 'swiss unavailable');
+      renderAstroSwissUnavailable(precisionReason);
       return;
     }
 
     if (!chart || !chartNow || !chart.planets || !chartNow.planets || !chartNow.planets.Jupiter || !chartNow.planets.Jupiter.sign) {
-      renderAstroApiUnavailable('점성술 차트 계산 데이터가 불완전합니다.');
+      renderAstroSwissUnavailable('점성술 차트 계산 데이터가 불완전합니다.');
       return;
     }
 
@@ -7143,7 +7143,7 @@ function renderAstroInsight() {
 
     var precisionNoticeHtml = '';
     if (precisionMode !== 'swisseph') {
-      var precisionReasonEsc = _astroWheelEsc(precisionReason || 'Swiss API 연결 지연');
+      var precisionReasonEsc = _astroWheelEsc(precisionReason || 'Swiss 라이브러리 로드 지연');
       precisionNoticeHtml = ''
         + '<div class="astro-section" style="margin-bottom:12px;border:1px solid rgba(251,191,36,.45);background:linear-gradient(160deg,rgba(64,35,5,.3),rgba(20,20,45,.88));">'
         + '<div class="astro-subhead" style="color:#fde68a;margin-bottom:8px;">⚠️ 기본 정밀 차트 연결 지연</div>'
@@ -7644,7 +7644,7 @@ function renderAstroInsight() {
         function _syGetSunIdx(birth, hour) {
             try {
                 var p = birth.split('-');
-                var c = calcAstroApiChartOrThrow(+p[0], +p[1], +p[2], hour || 12, 37.6, 127.0, 0, (window.ASTRO_HOUSE_SYSTEM || 'P')); // 유명인은 UTC 기준 (tz=0)
+                var c = calcAstroSwissChartOrThrow(+p[0], +p[1], +p[2], hour || 12, 37.6, 127.0, 0, (window.ASTRO_HOUSE_SYSTEM || 'P')); // 유명인은 UTC 기준 (tz=0)
                 return { sunIdx: c.sun.idx, venusIdx: c.planets.Venus ? c.planets.Venus.sign.idx : -1,
                          moonIdx: c.moon.idx, marsIdx: c.planets.Mars ? c.planets.Mars.sign.idx : -1,
                          sunSign: c.sun.sign, moonSign: c.moon.sign,
@@ -8016,7 +8016,7 @@ function renderAstroInsight() {
                 var g = hasExactGeo ? celebRec.birthGeo : (geoByNat[nat] || geoByNat.KR);
                 var hC = (celebRec && celebRec.hour != null) ? celebRec.hour : hour;
                 var mC = (celebRec && celebRec.minute != null) ? celebRec.minute : 0;
-                var celebChart = calcAstroApiChartOrThrow(+p[0], +p[1], +p[2], (hC || 12) + (mC || 0) / 60, g.lat, g.lon, g.tz, (window.ASTRO_HOUSE_SYSTEM || 'P'));
+                var celebChart = calcAstroSwissChartOrThrow(+p[0], +p[1], +p[2], (hC || 12) + (mC || 0) / 60, g.lat, g.lon, g.tz, (window.ASTRO_HOUSE_SYSTEM || 'P'));
                 var celebSunIdx   = _sySignIdx(celebChart, 'Sun') || 0;
                 var celebMoonIdx  = _sySignIdx(celebChart, 'Moon') || 0;
                 var celebVenusIdx = _sySignIdx(celebChart, 'Venus') || 0;
@@ -8279,7 +8279,7 @@ function renderAstroInsight() {
               }
 
                 var localHour = parseInt(tp[0], 10) + parseInt(tp[1] || '0', 10) / 60;
-                var partnerChart = calcAstroApiChartOrThrow(py, pm, pd, localHour, latVal, lonVal, tzVal, (window.ASTRO_HOUSE_SYSTEM || 'P'));
+                var partnerChart = calcAstroSwissChartOrThrow(py, pm, pd, localHour, latVal, lonVal, tzVal, (window.ASTRO_HOUSE_SYSTEM || 'P'));
 
                 var pSunIdx   = _sySignIdx(partnerChart, 'Sun') || 0;
                 var pMoonIdx  = _sySignIdx(partnerChart, 'Moon') || 0;
