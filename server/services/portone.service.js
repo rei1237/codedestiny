@@ -1,5 +1,30 @@
 const DEFAULT_PORTONE_BASE_URL = "https://api.iamport.kr";
 
+function normalizeEnvKey(raw) {
+  return String(raw || "")
+    .trim()
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toUpperCase();
+}
+
+function getEnvByAliases(...keys) {
+  const env = process.env || {};
+  for (const key of keys) {
+    const direct = String(env[key] || "").trim();
+    if (direct) return direct;
+  }
+
+  const normalizedCandidates = keys.map(normalizeEnvKey).filter(Boolean);
+  for (const [rawKey, rawValue] of Object.entries(env)) {
+    if (!normalizedCandidates.includes(normalizeEnvKey(rawKey))) continue;
+    const trimmed = String(rawValue || "").trim();
+    if (trimmed) return trimmed;
+  }
+
+  return "";
+}
+
 function getPortOneBaseUrl() {
   return String(process.env.PORTONE_API_BASE_URL || DEFAULT_PORTONE_BASE_URL).replace(/\/+$/, "");
 }
@@ -17,11 +42,11 @@ async function requestJson(url, options, errorPrefix) {
 }
 
 async function getPortOneAccessToken() {
-  const apiKey = process.env.PORTONE_API_KEY;
-  const apiSecret = process.env.PORTONE_API_SECRET;
+  const apiKey = getEnvByAliases("PORTONE_API_KEY", "PORTONE_REST_API_KEY", "PORTONE API Key");
+  const apiSecret = getEnvByAliases("PORTONE_API_SECRET", "PORTONE_REST_API_SECRET", "PORTONE API Secret");
 
   if (!apiKey || !apiSecret) {
-    throw new Error("PORTONE_API_KEY 및 PORTONE_API_SECRET 환경변수가 필요합니다.");
+    throw new Error("PORTONE_API_KEY/PORTONE_API_SECRET(또는 REST/공백 별칭) 환경변수가 필요합니다.");
   }
 
   const baseUrl = getPortOneBaseUrl();
@@ -158,8 +183,69 @@ async function cancelPortOnePayment(params = {}) {
   return canceled;
 }
 
+async function chargePortOneBilling(params = {}) {
+  const {
+    customerUid,
+    merchantUid,
+    amount,
+    name,
+    buyerName,
+    buyerEmail,
+    customData,
+  } = params;
+
+  const normalizedCustomerUid = String(customerUid || "").trim();
+  const normalizedMerchantUid = String(merchantUid || "").trim();
+  const normalizedAmount = Number(amount);
+
+  if (!normalizedCustomerUid) {
+    throw new Error("customerUid가 필요합니다.");
+  }
+  if (!normalizedMerchantUid) {
+    throw new Error("merchantUid가 필요합니다.");
+  }
+  if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
+    throw new Error("amount는 0보다 큰 숫자여야 합니다.");
+  }
+
+  const token = await getPortOneAccessToken();
+  const baseUrl = getPortOneBaseUrl();
+
+  const body = {
+    customer_uid: normalizedCustomerUid,
+    merchant_uid: normalizedMerchantUid,
+    amount: normalizedAmount,
+    name: String(name || "Subscription renewal").trim().slice(0, 120),
+  };
+
+  if (buyerName) body.buyer_name = String(buyerName).trim().slice(0, 80);
+  if (buyerEmail) body.buyer_email = String(buyerEmail).trim().slice(0, 120);
+  if (customData !== undefined) body.custom_data = customData;
+
+  const payload = await requestJson(
+    `${baseUrl}/subscribe/payments/again`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+      body: JSON.stringify(body),
+    },
+    "포트원 정기결제 청구 실패",
+  );
+
+  const billed = payload?.response;
+  if (!billed) {
+    throw new Error("포트원 정기결제 응답이 비어있습니다.");
+  }
+
+  return billed;
+}
+
 module.exports = {
   fetchPortOnePayment,
   fetchPortOnePaymentByMerchantUid,
   cancelPortOnePayment,
+  chargePortOneBilling,
 };

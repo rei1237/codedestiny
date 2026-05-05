@@ -110,3 +110,58 @@ export async function cancelPortOnePayment(env, params = {}) {
   if (!canceled) throw new Error("PortOne cancel response was empty.");
   return canceled;
 }
+
+export async function chargePortOneBilling(env, params = {}) {
+  const {
+    customerUid,
+    merchantUid,
+    amount,
+    name,
+    buyerName,
+    buyerEmail,
+    customData,
+  } = params;
+
+  const normalizedCustomerUid = String(customerUid || "").trim();
+  const normalizedMerchantUid = String(merchantUid || "").trim();
+  const normalizedAmount = Number(amount);
+
+  if (!normalizedCustomerUid) {
+    throw new Error("customerUid is required.");
+  }
+  if (!normalizedMerchantUid) {
+    throw new Error("merchantUid is required.");
+  }
+  if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
+    throw new Error("amount must be a positive number.");
+  }
+
+  const body = {
+    customer_uid: normalizedCustomerUid,
+    merchant_uid: normalizedMerchantUid,
+    amount: normalizedAmount,
+    name: String(name || "Subscription renewal").trim().slice(0, 120),
+  };
+
+  if (buyerName) body.buyer_name = String(buyerName).trim().slice(0, 80);
+  if (buyerEmail) body.buyer_email = String(buyerEmail).trim().slice(0, 120);
+  if (customData !== undefined) body.custom_data = customData;
+
+  const token = await getPortOneAccessToken(env);
+  const payload = await requestJson(
+    `${getPortOneBaseUrl(env)}/subscribe/payments/again`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+      body: JSON.stringify(body),
+    },
+    "PortOne billing charge failed",
+  );
+
+  const billed = payload?.response;
+  if (!billed) throw new Error("PortOne billing response was empty.");
+  return billed;
+}

@@ -46,6 +46,7 @@ type DestinyProfile = {
 
 type SubscriptionStatus = {
   tier: "free" | "standard" | "premium" | "vvip";
+  source?: "coin" | "card";
   isActive: boolean;
   expiresAt: string | null;
   profileLimit: number;
@@ -148,6 +149,12 @@ function planLabel(tier: SubscriptionStatus["tier"]) {
   return "무료";
 }
 
+function sourceLabel(source?: SubscriptionStatus["source"]) {
+  if (source === "card") return "카드 정기결제";
+  if (source === "coin") return "코인 구독";
+  return "미설정";
+}
+
 export default function MePage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
@@ -157,6 +164,7 @@ export default function MePage() {
   const [currentId, setCurrentId] = useState("");
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier: "free",
+    source: "coin",
     isActive: false,
     expiresAt: null,
     profileLimit: 1,
@@ -226,6 +234,7 @@ export default function MePage() {
         if (!payload) return;
         setSubscription({
           tier: payload.tier || "free",
+          source: payload.source === "card" ? "card" : "coin",
           isActive: !!payload.isActive,
           expiresAt: payload.expiresAt || null,
           profileLimit: typeof payload.profileLimit === "number" ? payload.profileLimit : 1,
@@ -316,6 +325,7 @@ export default function MePage() {
               <div className="h-2 rounded-full bg-amber-300" style={{ width: `${slotPercent}%` }} />
             </div>
             <p className="mt-2 text-xs text-slate-400">{planLabel(subscription.tier)} 플랜</p>
+            <p className="mt-1 text-xs text-slate-500">결제 방식: {sourceLabel(subscription.source)}</p>
           </div>
         </section>
 

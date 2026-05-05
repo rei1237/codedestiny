@@ -34,6 +34,39 @@ function buildMerchantUid(userId) {
   return `md_${Date.now()}_${userTag}_${randomTag}`;
 }
 
+const SUBSCRIPTION_PAYMENT_PLANS = {
+  standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30, profileLimit: 3 },
+  premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30, profileLimit: 7 },
+  vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15 },
+};
+
+function resolveSubscriptionPlan(tierRaw) {
+  const tier = String(tierRaw || "").trim().toLowerCase();
+  return SUBSCRIPTION_PAYMENT_PLANS[tier] || null;
+}
+
+function buildSubscriptionMerchantUid(userId, tier) {
+  const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
+  const randomTag = Math.random().toString(36).slice(2, 6);
+  return `sub_${Date.now()}_${tier}_${userTag}_${randomTag}`;
+}
+
+function buildSubscriptionCustomerUid(userId) {
+  return `cdsub_${String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "")}`;
+}
+
+function toValidDate(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
+function hasActiveSubscriptionConflict(sub) {
+  const tier = String(sub?.tier || "free").toLowerCase();
+  const expAt = toValidDate(sub?.expiresAt);
+  return tier !== "free" && !!expAt && expAt.getTime() > Date.now();
+}
+
 function parseCustomDataUserId(customData) {
   if (!customData) return null;
 
@@ -72,6 +105,8 @@ function formatPaymentResponse(payment) {
     paymentAmount: Number(payment.paymentAmount || 0),
     chargedPoints: Number(payment.chargedPoints || 0),
     paymentMethod: payment.paymentMethod,
+    paymentType: payment.paymentType || "point_charge",
+    subscriptionTier: payment.subscriptionTier || "",
     status: payment.status,
     paidAt: payment.paidAt,
     failureCode: payment.failureCode,
@@ -896,6 +931,8 @@ router.post("/prepare", async (req, res, next) => {
       paymentMethod,
       status: "pending",
       source: "prepare",
+      paymentType: "point_charge",
+      subscriptionTier: "",
     });
 
     return res.status(201).json({
@@ -918,6 +955,226 @@ router.post("/prepare", async (req, res, next) => {
       status: 500,
       payload: req.body,
     });
+    return next(error);
+  }
+});
+
+router.post("/subscription/prepare", async (req, res, next) => {
+  try {
+    const tier = String(req.body?.tier || "").trim().toLowerCase();
+    const plan = resolveSubscriptionPlan(tier);
+    if (!plan) {
+      return res.status(400).json({ message: "지원하지 않는 구독 플랜입니다.", code: "INVALID_SUBSCRIPTION_TIER" });
+    }
+
+    const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod || "card_general");
+    const currentUser = await User.findById(req.auth.userId).select("profileSubscription").lean();
+    if (!currentUser) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    if (hasActiveSubscriptionConflict(currentUser?.profileSubscription)) {
+      return res.status(409).json({
+        message: "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.",
+        code: "SUBSCRIPTION_CONFLICT",
+      });
+    }
+
+    const merchantUid = buildSubscriptionMerchantUid(req.auth.userId, tier);
+    const customerUid = buildSubscriptionCustomerUid(req.auth.userId);
+
+    await Payment.create({
+      userId: req.auth.userId,
+      merchantUid,
+      paymentAmount: plan.wonPrice,
+      expectedChargedPoints: 0,
+      chargedPoints: 0,
+      paymentMethod,
+      status: "pending",
+      source: "prepare",
+      paymentType: "subscription_initial",
+      subscriptionTier: tier,
+    });
+
+    return res.status(201).json({
+      message: "구독 결제 준비가 완료되었습니다.",
+      order: {
+        merchantUid,
+        customerUid,
+        tier,
+        paymentAmount: plan.wonPrice,
+        productName: `${plan.name} 정기결제`,
+        profileLimit: plan.profileLimit,
+        durationDays: plan.durationDays,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/subscription/confirm", async (req, res, next) => {
+  try {
+    const impUid = String(req.body?.impUid || req.body?.paymentId || "").trim();
+    const tier = String(req.body?.tier || "").trim().toLowerCase();
+    const customerUidFromClient = String(req.body?.customerUid || "").trim();
+    const merchantUidHint = String(req.body?.merchantUid || req.body?.merchant_uid || "").trim();
+    const paymentMethodHint = normalizePaymentMethod(req.body?.paymentMethod || "card");
+    const plan = resolveSubscriptionPlan(tier);
+
+    if (!impUid || !plan) {
+      return res.status(400).json({ message: "impUid와 유효한 tier가 필요합니다." });
+    }
+
+    let portOnePayment;
+    try {
+      portOnePayment = await fetchPortOnePayment(impUid);
+    } catch (error) {
+      return res.status(502).json({ message: "결제 검증에 실패했습니다." });
+    }
+
+    const portOneStatus = String(portOnePayment?.status || "").toLowerCase();
+    const portOneAmount = Number(portOnePayment?.amount || 0);
+    const merchantUid = String(portOnePayment?.merchant_uid || merchantUidHint || "").trim();
+    const resolvedPaymentMethod = normalizePaymentMethod(portOnePayment?.pay_method || paymentMethodHint);
+
+    if (merchantUidHint && merchantUidHint !== merchantUid) {
+      return res.status(400).json({ message: "merchantUid가 일치하지 않습니다." });
+    }
+
+    const paymentRecord = await findPaymentRecord(impUid, merchantUid);
+    if (!paymentRecord) {
+      return res.status(404).json({ message: "결제 준비 정보를 찾을 수 없습니다." });
+    }
+    if (String(paymentRecord.userId) !== String(req.auth.userId)) {
+      return res.status(403).json({ message: "본인 결제 건만 처리할 수 있습니다." });
+    }
+
+    if (paymentRecord.status === "success") {
+      const currentUser = await User.findById(req.auth.userId).select("profileSubscription").lean();
+      const sub = currentUser?.profileSubscription || {};
+      return res.status(200).json({
+        message: "이미 처리된 구독 결제입니다.",
+        idempotent: true,
+        payment: formatPaymentResponse(paymentRecord),
+        subscription: {
+          tier: sub?.tier || "free",
+          source: sub?.source || "coin",
+          isActive: hasActiveSubscriptionConflict(sub),
+          expiresAt: sub?.expiresAt ? new Date(sub.expiresAt).toISOString() : null,
+          profileLimit: plan.profileLimit,
+          cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
+          cancelRequestedAt: sub?.cancelRequestedAt ? new Date(sub.cancelRequestedAt).toISOString() : null,
+        },
+      });
+    }
+
+    if (portOneStatus !== "paid") {
+      await markPaymentFailure(paymentRecord, {
+        status: "failed",
+        paymentMethod: resolvedPaymentMethod,
+        rawPortOne: portOnePayment,
+        failureCode: "subscription_not_paid",
+        failureMessage: `결제 상태가 paid가 아닙니다: ${portOneStatus || "unknown"}`,
+        failureStage: "subscription_status_validate",
+        incrementAttempt: true,
+      });
+      return res.status(400).json({ message: "결제가 완료되지 않았습니다.", status: portOneStatus || "unknown" });
+    }
+
+    if (!Number.isInteger(portOneAmount) || portOneAmount !== plan.wonPrice) {
+      await markPaymentFailure(paymentRecord, {
+        status: "failed",
+        paymentMethod: resolvedPaymentMethod,
+        rawPortOne: portOnePayment,
+        failureCode: "subscription_amount_mismatch",
+        failureMessage: "구독 결제 금액이 서버 정책과 일치하지 않습니다.",
+        failureStage: "subscription_amount_validate",
+        incrementAttempt: true,
+      });
+      return res.status(400).json({ message: "구독 결제 금액 검증에 실패했습니다." });
+    }
+
+    const now = new Date();
+    const paidAt = portOnePayment?.paid_at ? toDateFromUnixSeconds(portOnePayment.paid_at) : now;
+    const expiresAt = new Date(Math.max(now.getTime(), paidAt.getTime()) + plan.durationDays * 24 * 60 * 60 * 1000);
+    const customerUid = customerUidFromClient || buildSubscriptionCustomerUid(req.auth.userId);
+
+    const existingUser = await User.findById(req.auth.userId).select("profileSubscription").lean();
+    if (hasActiveSubscriptionConflict(existingUser?.profileSubscription)) {
+      return res.status(409).json({
+        message: "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.",
+        code: "SUBSCRIPTION_CONFLICT",
+      });
+    }
+
+    await Payment.findByIdAndUpdate(paymentRecord._id, {
+      $set: {
+        impUid,
+        merchantUid,
+        paymentAmount: plan.wonPrice,
+        expectedChargedPoints: 0,
+        chargedPoints: 0,
+        paymentMethod: resolvedPaymentMethod,
+        status: "success",
+        paidAt,
+        source: "confirm",
+        paymentType: "subscription_initial",
+        subscriptionTier: tier,
+        rawPortOne: portOnePayment,
+        failureCode: null,
+        failureMessage: null,
+        failureStage: null,
+        lastErrorAt: null,
+      },
+    });
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.auth.userId,
+      {
+        $set: {
+          "profileSubscription.tier": tier,
+          "profileSubscription.source": "card",
+          "profileSubscription.startedAt": paidAt,
+          "profileSubscription.expiresAt": expiresAt,
+          "profileSubscription.cancelAtPeriodEnd": false,
+          "profileSubscription.cancelRequestedAt": null,
+          "profileSubscription.customerUid": customerUid,
+          "profileSubscription.paymentMethod": resolvedPaymentMethod,
+          "profileSubscription.nextBillingAt": expiresAt,
+          "profileSubscription.lastBillingAt": paidAt,
+          "profileSubscription.lastBillingStatus": "success",
+          "profileSubscription.lastBillingError": "",
+          "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
+        },
+      },
+      { new: true, projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+
+    const updatedPayment = await Payment.findById(paymentRecord._id).lean();
+    return res.status(200).json({
+      message: "카드 정기결제가 활성화되었습니다.",
+      idempotent: false,
+      payment: formatPaymentResponse(updatedPayment),
+      subscription: {
+        tier,
+        source: "card",
+        isActive: true,
+        expiresAt: expiresAt.toISOString(),
+        profileLimit: plan.profileLimit,
+        cancelAtPeriodEnd: false,
+        cancelRequestedAt: null,
+        customerUid,
+        paymentMethod: resolvedPaymentMethod,
+        nextBillingAt: expiresAt.toISOString(),
+        lastBillingStatus: "success",
+      },
+      user: {
+        id: String(req.auth.userId),
+        points: Number(updatedUser?.points || 0),
+      },
+    });
+  } catch (error) {
     return next(error);
   }
 });

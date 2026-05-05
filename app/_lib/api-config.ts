@@ -10,6 +10,7 @@
  */
 
 const FALLBACK_LOCAL_API_BASE_URL = "http://localhost:4000";
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 function normalizeBaseUrl(rawValue?: string | null): string {
   const value = String(rawValue || "").trim();
@@ -26,18 +27,46 @@ function normalizeBaseUrl(rawValue?: string | null): string {
   }
 }
 
+function isLocalHostname(hostname?: string | null): boolean {
+  return LOCAL_HOSTS.has(String(hostname || "").trim().toLowerCase());
+}
+
+function isLocalBaseUrl(baseUrl?: string | null): boolean {
+  const value = String(baseUrl || "").trim();
+  if (!value) return false;
+
+  try {
+    return isLocalHostname(new URL(value).hostname);
+  } catch {
+    return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(value);
+  }
+}
+
+function pickPreferredLocalBase(candidates: Array<string>): string {
+  for (const candidate of candidates) {
+    if (isLocalBaseUrl(candidate)) return candidate;
+  }
+  return "";
+}
+
 export function getApiBaseUrl(): string {
   const configuredBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
   const configuredAuthBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL);
 
   if (typeof window !== "undefined") {
     const runtimeBase = normalizeBaseUrl((window as any).CODE_DESTINY_API_BASE_URL);
-    if (runtimeBase) return runtimeBase;
+    const isLocalDev = isLocalHostname(window.location.hostname);
 
-    const hostname = window.location.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return configuredBase || configuredAuthBase || FALLBACK_LOCAL_API_BASE_URL;
+    if (isLocalDev) {
+      const localBase = pickPreferredLocalBase([
+        runtimeBase,
+        configuredAuthBase,
+        configuredBase,
+      ]);
+      return localBase || FALLBACK_LOCAL_API_BASE_URL;
     }
+
+    if (runtimeBase) return runtimeBase;
 
     // In production/previews, prefer same-origin /api via Pages routing first.
     // If routing is unavailable, configure NEXT_PUBLIC_AUTH_API_BASE_URL.

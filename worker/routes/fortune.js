@@ -317,6 +317,7 @@ function resolveEffectiveActiveTier(user) {
 
 async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
   const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  const source = String(user?.profileSubscription?.source || "coin").toLowerCase();
   if (!tier) {
     return { user, effectiveTier: null, autoRenewed: false };
   }
@@ -333,6 +334,10 @@ async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
 
   if (expAt.getTime() > Date.now()) {
     return { user, effectiveTier: tier, autoRenewed: false };
+  }
+
+  if (source === "card") {
+    return { user, effectiveTier: null, autoRenewed: false };
   }
 
   if (Boolean(user?.profileSubscription?.cancelAtPeriodEnd)) {
@@ -857,6 +862,7 @@ async function handleSubscriptionStatus(request, env, auth) {
 
   const sub = user.profileSubscription || {};
   const tier = sub.tier || "free";
+  const source = String(sub.source || "coin").toLowerCase();
   const expAt = toValidDate(sub.expiresAt);
   const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
   const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
@@ -871,7 +877,7 @@ async function handleSubscriptionStatus(request, env, auth) {
   if (tier !== "free" && effectiveExpAt) {
     if (effectiveExpAt > now) {
       effectiveTier = tier;
-    } else if (!cancelAtPeriodEnd && plan && points >= plan.coins) {
+    } else if (source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
       const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 86400000);
       const updatedUser = await User.findOneAndUpdate(
         { _id: auth.userId, points: { $gte: plan.coins } },
@@ -936,6 +942,7 @@ async function handleSubscriptionStatus(request, env, auth) {
 
   return json({
     tier: effectiveTier,
+    source: effectiveTier === "free" ? "coin" : source,
     isActive: Boolean(isActive),
     expiresAt: toIsoOrNull(effectiveExpAt),
     profileLimit,
@@ -1103,6 +1110,16 @@ async function handleSubscribe(request, auth) {
 
   if (!existingUser) return json({ message: "User not found." }, { status: 404 });
 
+  const existingTier = String(existingUser?.profileSubscription?.tier || "free");
+  const existingSource = String(existingUser?.profileSubscription?.source || "coin").toLowerCase();
+  const existingExpAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
+  if (existingSource === "card" && existingTier !== "free" && existingExpAt && existingExpAt > now) {
+    return json({
+      message: "카드 정기결제가 활성화되어 있어 코인 구독을 동시에 신청할 수 없습니다.",
+      code: "SUBSCRIPTION_CONFLICT",
+    }, { status: 409 });
+  }
+
   const prevExpAt = existingUser.profileSubscription?.expiresAt;
   const baseTime = (prevExpAt && new Date(prevExpAt) > now)
     ? new Date(prevExpAt).getTime()
@@ -1116,10 +1133,16 @@ async function handleSubscribe(request, auth) {
       $inc: { points: -cost },
       $set: {
         "profileSubscription.tier": reqTier,
+        "profileSubscription.source": "coin",
         "profileSubscription.startedAt": now,
         "profileSubscription.expiresAt": expiresAt,
         "profileSubscription.cancelAtPeriodEnd": false,
         "profileSubscription.cancelRequestedAt": null,
+        "profileSubscription.customerUid": "",
+        "profileSubscription.paymentMethod": "",
+        "profileSubscription.nextBillingAt": null,
+        "profileSubscription.lastBillingStatus": "idle",
+        "profileSubscription.lastBillingError": "",
         ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
       },
     },

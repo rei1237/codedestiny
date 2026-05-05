@@ -79,6 +79,17 @@ const paymentSchema = new mongoose.Schema({
     enum: ["prepare", "confirm", "webhook", "system"],
     default: "confirm",
   },
+  paymentType: {
+    type: String,
+    enum: ["point_charge", "subscription_initial", "subscription_recurring"],
+    default: "point_charge",
+    index: true,
+  },
+  subscriptionTier: {
+    type: String,
+    enum: ["standard", "premium", "vvip", ""],
+    default: "",
+  },
   rawPortOne: {
     type: mongoose.Schema.Types.Mixed,
   },

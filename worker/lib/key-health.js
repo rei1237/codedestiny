@@ -26,8 +26,8 @@ const FEATURE_KEY_GROUPS = {
   "payments-core": [
     ["JWT_SECRET", "AUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI"],
-    ["PORTONE_API_KEY"],
-    ["PORTONE_API_SECRET"],
+    ["PORTONE_API_KEY", "PORTONE_REST_API_KEY", "PORTONE API Key"],
+    ["PORTONE_API_SECRET", "PORTONE_REST_API_SECRET", "PORTONE API Secret"],
   ],
   "admin-gate": [
     ["FLOWER_ADMIN_SECRET"],

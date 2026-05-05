@@ -47,11 +47,22 @@ const userSchema = new mongoose.Schema({
   adminLastActivityAt: { type: Date, default: null },
   profileSubscription: {
     tier: { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
+    source: { type: String, enum: ["coin", "card"], default: "coin" },
     startedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
     cancelAtPeriodEnd: { type: Boolean, default: false },
     cancelRequestedAt: { type: Date, default: null },
+    customerUid: { type: String, default: "" },
+    paymentMethod: { type: String, default: "" },
+    nextBillingAt: { type: Date, default: null },
+    lastBillingAt: { type: Date, default: null },
+    lastBillingStatus: {
+      type: String,
+      enum: ["idle", "success", "failed", "cancelled"],
+      default: "idle",
+    },
+    lastBillingError: { type: String, default: "" },
   },
   has_started_paid_service: { type: Boolean, default: false, index: true },
   first_service_access_date: { type: Date, default: null },
@@ -73,6 +84,17 @@ const paymentSchema = new mongoose.Schema({
   confirmAttempts: { type: Number, default: 0, min: 0 },
   paidAt: { type: Date },
   source: { type: String, enum: ["prepare", "confirm", "webhook", "system"], default: "confirm" },
+  paymentType: {
+    type: String,
+    enum: ["point_charge", "subscription_initial", "subscription_recurring"],
+    default: "point_charge",
+    index: true,
+  },
+  subscriptionTier: {
+    type: String,
+    enum: ["standard", "premium", "vvip", ""],
+    default: "",
+  },
   rawPortOne: { type: mongoose.Schema.Types.Mixed },
 }, { timestamps: true });
 

@@ -215,6 +215,7 @@ function resolveEffectiveActiveTier(user) {
 
 async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
   const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  const source = String(user?.profileSubscription?.source || "coin").toLowerCase();
   if (!tier) {
     return { user, effectiveTier: null, autoRenewed: false };
   }
@@ -231,6 +232,10 @@ async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
 
   if (expAt.getTime() > Date.now()) {
     return { user, effectiveTier: tier, autoRenewed: false };
+  }
+
+  if (source === "card") {
+    return { user, effectiveTier: null, autoRenewed: false };
   }
 
   if (!!user?.profileSubscription?.cancelAtPeriodEnd) {
@@ -812,6 +817,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
 
     const sub    = user.profileSubscription || {};
     const tier   = sub.tier || "free";
+    const source = String(sub.source || "coin").toLowerCase();
     const expAt  = sub.expiresAt || null;
     const cancelAtPeriodEnd = !!sub.cancelAtPeriodEnd;
     const cancelRequestedAt = sub.cancelRequestedAt || null;
@@ -829,7 +835,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       if (effectiveExpAt > now) {
         // 구독 활성
         effectiveTier = tier;
-      } else if (!cancelAtPeriodEnd && plan && points >= plan.coins) {
+      } else if (source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
         // 만료됐지만 코인 충분 → 자동 갱신
         const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 24 * 60 * 60 * 1000);
         const updatedUser2 = await User.findOneAndUpdate(
@@ -895,6 +901,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
 
     return res.status(200).json({
       tier:              effectiveTier,
+      source:            effectiveTier === "free" ? "coin" : source,
       isActive:          !!isActive,
       expiresAt:         effectiveExpAt ? effectiveExpAt.toISOString() : null,
       profileLimit,
@@ -1114,6 +1121,18 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
 
+    const existingTier = String(existingUser?.profileSubscription?.tier || "free");
+    const existingSource = String(existingUser?.profileSubscription?.source || "coin").toLowerCase();
+    const existingExpAt = existingUser?.profileSubscription?.expiresAt
+      ? new Date(existingUser.profileSubscription.expiresAt)
+      : null;
+    if (existingSource === "card" && existingTier !== "free" && existingExpAt && existingExpAt > now) {
+      return res.status(409).json({
+        message: "카드 정기결제가 활성화되어 있어 코인 구독을 동시에 신청할 수 없습니다.",
+        code: "SUBSCRIPTION_CONFLICT",
+      });
+    }
+
     const prevExpAt = existingUser.profileSubscription?.expiresAt;
     const baseTime  = (prevExpAt && new Date(prevExpAt) > now)
       ? new Date(prevExpAt).getTime()
@@ -1128,10 +1147,16 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
         $inc: { points: -cost },
         $set: {
           "profileSubscription.tier":       reqTier,
+          "profileSubscription.source":     "coin",
           "profileSubscription.startedAt":  now,
           "profileSubscription.expiresAt":  expiresAt,
           "profileSubscription.cancelAtPeriodEnd": false,
           "profileSubscription.cancelRequestedAt": null,
+          "profileSubscription.customerUid": "",
+          "profileSubscription.paymentMethod": "",
+          "profileSubscription.nextBillingAt": null,
+          "profileSubscription.lastBillingStatus": "idle",
+          "profileSubscription.lastBillingError": "",
           ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
         },
       },

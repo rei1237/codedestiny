@@ -125,11 +125,22 @@ const userSchema = new mongoose.Schema({
    */
   profileSubscription: {
     tier:       { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
+    source: { type: String, enum: ["coin", "card"], default: "coin" },
     startedAt:  { type: Date, default: null },
     expiresAt:  { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
     cancelAtPeriodEnd: { type: Boolean, default: false },
     cancelRequestedAt: { type: Date, default: null },
+    customerUid: { type: String, default: "" },
+    paymentMethod: { type: String, default: "" },
+    nextBillingAt: { type: Date, default: null },
+    lastBillingAt: { type: Date, default: null },
+    lastBillingStatus: {
+      type: String,
+      enum: ["idle", "success", "failed", "cancelled"],
+      default: "idle",
+    },
+    lastBillingError: { type: String, default: "" },
   },
   // 구독형 디지털 콘텐츠 서비스 개시 기록
   // - 멤버십 전용 콘텐츠 열람 확인 팝업의 [확인] 클릭 시 true

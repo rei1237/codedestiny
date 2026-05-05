@@ -196,10 +196,19 @@ const SECRET_KEYS = [
   "DEFAULT_FORTUNE_COST_POINTS",
 ];
 
+const SECRET_KEY_ALIASES = {
+  PORTONE_API_KEY: ["PORTONE_REST_API_KEY", "PORTONE_APIKEY", "PORTONE API Key"],
+  PORTONE_API_SECRET: ["PORTONE_REST_API_SECRET", "PORTONE_APISECRET", "PORTONE API Secret"],
+};
+
 function getSecretValue(key) {
-  const raw = process.env[key];
-  if (!isUsableEnvValue(raw)) return "";
-  return String(raw).trim();
+  const candidates = [key, ...(SECRET_KEY_ALIASES[key] || [])];
+  for (const candidate of candidates) {
+    const raw = process.env[candidate];
+    if (!isUsableEnvValue(raw)) continue;
+    return String(raw).trim();
+  }
+  return "";
 }
 
 function putWorkerSecret(key, value) {

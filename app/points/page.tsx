@@ -53,6 +53,19 @@ type PrepareOrderResponse = {
   };
 };
 
+type PrepareSubscriptionOrderResponse = {
+  message?: string;
+  order?: {
+    merchantUid: string;
+    customerUid: string;
+    tier: "standard" | "premium" | "vvip";
+    paymentAmount: number;
+    productName: string;
+    profileLimit: number;
+    durationDays: number;
+  };
+};
+
 type ConfirmResponse = {
   message?: string;
   idempotent?: boolean;
@@ -61,6 +74,22 @@ type ConfirmResponse = {
     points: number;
   };
   payment?: PaymentHistoryItem;
+};
+
+type ConfirmSubscriptionResponse = {
+  message?: string;
+  idempotent?: boolean;
+  user?: {
+    id: string;
+    points: number;
+  };
+  subscription?: SubscriptionStatus & {
+    source?: "coin" | "card";
+    customerUid?: string;
+    paymentMethod?: string;
+    nextBillingAt?: string | null;
+    lastBillingStatus?: string;
+  };
 };
 
 type PaymentHistoryItem = {
@@ -83,6 +112,7 @@ type AdminTestTier = "off" | "standard" | "premium" | "vvip";
 
 type SubscriptionStatus = {
   tier:               SubscriptionTier;
+  source?:            "coin" | "card";
   isActive:           boolean;
   expiresAt:          string | null;
   profileLimit:       number; // 0 = unlimited
@@ -119,6 +149,13 @@ type PendingOrder = {
   merchantUid: string;
   paymentAmount: number;
   chargePoints: number;
+  paymentMethod: string;
+};
+
+type PendingSubscriptionOrder = {
+  merchantUid: string;
+  customerUid: string;
+  tier: "standard" | "premium" | "vvip";
   paymentMethod: string;
 };
 
@@ -430,6 +467,27 @@ function savePendingOrder(order: PendingOrder) {
 function clearPendingOrder() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("fortune_pending_order");
+}
+
+function readPendingSubscriptionOrder() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("fortune_pending_subscription_order");
+    if (!raw) return null;
+    return JSON.parse(raw) as PendingSubscriptionOrder;
+  } catch {
+    return null;
+  }
+}
+
+function savePendingSubscriptionOrder(order: PendingSubscriptionOrder) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("fortune_pending_subscription_order", JSON.stringify(order));
+}
+
+function clearPendingSubscriptionOrder() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("fortune_pending_subscription_order");
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1409,29 +1467,33 @@ export default function PointsPage() {
 
     const query = new URLSearchParams(window.location.search);
     const redirectMarked = query.get("portone_redirect");
+    const subscriptionRedirectMarked = query.get("portone_subscription_redirect");
     const impSuccess = String(query.get("imp_success") || "").toLowerCase();
     const impUid = query.get("imp_uid");
 
-    if (!impUid && impSuccess !== "false" && !redirectMarked) return;
+    if (!impUid && impSuccess !== "false" && !redirectMarked && !subscriptionRedirectMarked) return;
 
     redirectHandledRef.current = true;
 
     const merchantUidFromQuery = query.get("merchant_uid") || undefined;
     const pending = readPendingOrder();
+    const pendingSubscription = readPendingSubscriptionOrder();
+    const isSubscriptionRedirect = !!subscriptionRedirectMarked;
 
     if (!impUid || impSuccess === "false") {
       clearPendingOrder();
+      clearPendingSubscriptionOrder();
 
       const failMessage = mapPaymentErrorMessage(
         query.get("error_msg") || query.get("errorMsg") || "결제가 취소되었습니다.",
       );
 
       reportPaymentFailureToServer({
-        merchantUid: merchantUidFromQuery || pending?.merchantUid,
+        merchantUid: merchantUidFromQuery || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid),
         impUid: impUid || undefined,
-        reasonCode: "mobile_redirect_failed",
+        reasonCode: isSubscriptionRedirect ? "subscription_mobile_redirect_failed" : "mobile_redirect_failed",
         reasonMessage: failMessage,
-        paymentMethod: pending?.paymentMethod,
+        paymentMethod: isSubscriptionRedirect ? pendingSubscription?.paymentMethod : pending?.paymentMethod,
       });
 
       pushToast("error", failMessage);
@@ -1442,7 +1504,93 @@ export default function PointsPage() {
     }
 
     setIsProcessing(true);
-    setProcessingText("모바일 결제 복귀 신호를 확인하고 있습니다...");
+    setProcessingText(
+      isSubscriptionRedirect
+        ? "모바일 구독 결제 복귀 신호를 확인하고 있습니다..."
+        : "모바일 결제 복귀 신호를 확인하고 있습니다...",
+    );
+
+    if (isSubscriptionRedirect) {
+      const pendingSub = pendingSubscription;
+      const merchantUid = merchantUidFromQuery || pendingSub?.merchantUid;
+
+      if (!pendingSub || !merchantUid) {
+        clearPendingSubscriptionOrder();
+        pushToast("error", "구독 결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
+        if (window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+        setIsProcessing(false);
+        return;
+      }
+
+      fetch(`${apiBase}/api/payments/subscription/confirm`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          impUid,
+          merchantUid,
+          tier: pendingSub.tier,
+          customerUid: pendingSub.customerUid,
+          paymentMethod: pendingSub.paymentMethod,
+        }),
+      })
+        .then(async (response) => {
+          const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
+          if (!response.ok) {
+            throw new Error(data.message || "모바일 구독 결제 검증에 실패했습니다.");
+          }
+
+          if (data.user?.points !== undefined) {
+            persistUserPoints(Number(data.user.points));
+          }
+
+          if (data.subscription) {
+            const newSub: SubscriptionStatus = {
+              tier: data.subscription?.tier || "free",
+              source: data.subscription?.source || "card",
+              isActive: !!data.subscription?.isActive,
+              expiresAt: data.subscription?.expiresAt || null,
+              profileLimit: typeof data.subscription?.profileLimit === "number"
+                ? data.subscription.profileLimit
+                : 1,
+              lowBalanceWarning: false,
+              cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
+              cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
+              freeLimit: 0,
+            };
+            setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+            persistSubscriptionCache(newSub);
+          }
+
+          clearPendingSubscriptionOrder();
+          pushToast("success", data.message || "구독 결제가 완료되어 멤버십이 활성화되었습니다.");
+          setShowStarBurst(true);
+          setTimeout(() => setShowStarBurst(false), 1200);
+          if (window.location.search) {
+            window.history.replaceState({}, "", window.location.pathname);
+          }
+        })
+        .catch((error) => {
+          reportPaymentFailureToServer({
+            merchantUid,
+            impUid,
+            reasonCode: "subscription_redirect_confirm_failed",
+            reasonMessage: getErrorMessage(error, "모바일 구독 결제 검증에 실패했습니다."),
+            paymentMethod: pendingSub.paymentMethod,
+          });
+          pushToast("error", getErrorMessage(error, "모바일 구독 결제 검증에 실패했습니다."));
+          if (window.location.search) {
+            window.history.replaceState({}, "", window.location.pathname);
+          }
+        })
+        .finally(() => setIsProcessing(false));
+
+      return;
+    }
 
     confirmPaymentWithServer({
       impUid,
@@ -1472,7 +1620,16 @@ export default function PointsPage() {
         }
       })
       .finally(() => setIsProcessing(false));
-  }, [confirmPaymentWithServer, handleConfirmSuccess, isBooting, token, pushToast, reportPaymentFailureToServer]);
+  }, [
+    apiBase,
+    confirmPaymentWithServer,
+    handleConfirmSuccess,
+    isBooting,
+    persistUserPoints,
+    pushToast,
+    reportPaymentFailureToServer,
+    token,
+  ]);
 
   /* ── 결제 시작 ─────────────────────────────────────────────────── */
   const startPayment = async () => {
@@ -1667,7 +1824,7 @@ export default function PointsPage() {
   );
 
   /* ── 구독 결제 핸들러 ───────────────────────────────────────────── */
-  const handleSubscribe = async (plan: SubscriptionPlan) => {
+  const handleSubscribeLegacy = async (plan: SubscriptionPlan) => {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
 
@@ -1709,6 +1866,7 @@ export default function PointsPage() {
       if (data.subscription) {
         const newSub: SubscriptionStatus = {
           tier: data.subscription?.tier || "free",
+          source: data.subscription?.source || "coin",
           isActive: !!data.subscription?.isActive,
           expiresAt: data.subscription?.expiresAt || null,
           profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
@@ -1725,6 +1883,189 @@ export default function PointsPage() {
       setTimeout(() => setShowStarBurst(false), 1200);
     } catch (error: unknown) {
       pushToast("error", getErrorMessage(error, "구독 처리 중 오류가 발생했습니다."));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSubscribe = async (plan: SubscriptionPlan) => {
+    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
+    const flowerAdminToken = getFlowerAdminTokenClient();
+
+    if ((!token && !isFlowerAdmin) || !authUser) {
+      router.replace("/login?next=%2Fpoints");
+      return;
+    }
+
+    setIsProcessing(true);
+    setProcessingText(`${plan.title} 카드 정기결제를 준비하고 있습니다...`);
+
+    try {
+      const prepareRes = await fetch(`${apiBase}/api/payments/subscription/prepare`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+        },
+        body: JSON.stringify({ tier: plan.id, paymentMethod: selectedMethod || "card_general" }),
+      });
+
+      if (prepareRes.status === 404 || prepareRes.status === 405 || prepareRes.status === 501) {
+        await handleSubscribeLegacy(plan);
+        return;
+      }
+
+      const prepareData = await safeParseJson<PrepareSubscriptionOrderResponse>(prepareRes);
+      if (!prepareRes.ok || !prepareData.order) {
+        if (prepareRes.status === 409) {
+          pushToast("error", prepareData.message || "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.");
+          return;
+        }
+        pushToast("error", prepareData.message || "구독 결제 준비에 실패했습니다.");
+        return;
+      }
+
+      await ensurePortoneSdk();
+      if (!window.IMP) throw new Error("포트원 결제 SDK가 초기화되지 않았습니다.");
+
+      const order = prepareData.order;
+      const pgConfig = resolvePgConfig(selectedMethod || "card_general");
+      window.IMP.init(PORTONE_IMP_CODE);
+
+      const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
+      redirectUrl.searchParams.set("portone_subscription_redirect", "1");
+
+      const buyerName = authUser.name || "회원";
+      const buyerEmail = authUser.email || "";
+
+      const requestData: Record<string, unknown> = {
+        pg: pgConfig.pg,
+        pay_method: pgConfig.payMethod,
+        merchant_uid: order.merchantUid,
+        name: order.productName,
+        amount: order.paymentAmount,
+        buyer_name: buyerName,
+        buyer_email: buyerEmail,
+        customer_uid: order.customerUid,
+        customerName: buyerName,
+        customerEmail: buyerEmail,
+        m_redirect_url: redirectUrl.toString(),
+        custom_data: {
+          userId: authUser.id,
+          subscriptionTier: plan.id,
+          subscriptionSource: "card",
+          paymentMethod: selectedMethod || "card_general",
+        },
+      };
+
+      if (PORTONE_STORE_ID) requestData.storeId = PORTONE_STORE_ID;
+      if (PORTONE_CHANNEL_KEY) requestData.channelKey = PORTONE_CHANNEL_KEY;
+      if (PORTONE_NOTICE_URL) requestData.notice_url = PORTONE_NOTICE_URL;
+
+      savePendingSubscriptionOrder({
+        merchantUid: order.merchantUid,
+        customerUid: order.customerUid,
+        tier: plan.id,
+        paymentMethod: selectedMethod || "card_general",
+      });
+
+      await new Promise<void>((resolve) => {
+        window.IMP!.request_pay(requestData, async (rsp: PortOnePaymentResponse) => {
+          if (!rsp || !rsp.success || !rsp.imp_uid) {
+            clearPendingSubscriptionOrder();
+            const message = mapPaymentErrorMessage(
+              rsp?.error_msg || rsp?.errorMsg || "구독 결제가 취소되었습니다.",
+            );
+            reportPaymentFailureToServer({
+              merchantUid: order.merchantUid,
+              impUid: rsp?.imp_uid,
+              reasonCode: "subscription_client_cancel_or_fail",
+              reasonMessage: message,
+              paymentMethod: selectedMethod || "card_general",
+            });
+            pushToast("error", message);
+            resolve();
+            return;
+          }
+
+          try {
+            setProcessingText("구독 결제 검증 및 활성화를 진행하고 있습니다...");
+            const confirmRes = await fetch(`${apiBase}/api/payments/subscription/confirm`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                impUid: rsp.imp_uid,
+                merchantUid: order.merchantUid,
+                tier: plan.id,
+                customerUid: order.customerUid,
+                paymentMethod: selectedMethod || "card_general",
+              }),
+            });
+
+            const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
+            if (!confirmRes.ok) {
+              clearPendingSubscriptionOrder();
+              pushToast("error", confirmData.message || "구독 결제 확인에 실패했습니다.");
+              resolve();
+              return;
+            }
+
+            if (confirmData.user?.points !== undefined) persistUserPoints(Number(confirmData.user.points));
+
+            if (confirmData.subscription) {
+              const newSub: SubscriptionStatus = {
+                tier: confirmData.subscription?.tier || "free",
+                source: confirmData.subscription?.source || "card",
+                isActive: !!confirmData.subscription?.isActive,
+                expiresAt: confirmData.subscription?.expiresAt || null,
+                profileLimit: typeof confirmData.subscription?.profileLimit === "number"
+                  ? confirmData.subscription.profileLimit
+                  : 1,
+                lowBalanceWarning: false,
+                cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
+                cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
+                freeLimit: 0,
+              };
+              setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+              persistSubscriptionCache(newSub);
+            }
+
+            clearPendingSubscriptionOrder();
+            pushToast("success", confirmData.message || `${plan.title} 카드 정기결제가 활성화되었습니다! ✨`);
+            setShowStarBurst(true);
+            setTimeout(() => setShowStarBurst(false), 1200);
+          } catch (error: unknown) {
+            clearPendingSubscriptionOrder();
+            reportPaymentFailureToServer({
+              merchantUid: order.merchantUid,
+              impUid: rsp.imp_uid,
+              reasonCode: "subscription_confirm_failed",
+              reasonMessage: getErrorMessage(error, "구독 결제 확인에 실패했습니다."),
+              paymentMethod: selectedMethod || "card_general",
+            });
+            pushToast("error", getErrorMessage(error, "구독 결제 확인에 실패했습니다."));
+          } finally {
+            resolve();
+          }
+        });
+      });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error, "구독 처리 중 오류가 발생했습니다.");
+      clearPendingSubscriptionOrder();
+      if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 구독")) {
+        pushToast("error", "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.");
+        return;
+      }
+      try {
+        await handleSubscribeLegacy(plan);
+        return;
+      } catch {
+        pushToast("error", message);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -1764,6 +2105,7 @@ export default function PointsPage() {
       if (data.subscription) {
         const newSub: SubscriptionStatus = {
           tier: data.subscription?.tier || "free",
+          source: data.subscription?.source || subscription.source,
           isActive: !!data.subscription?.isActive,
           expiresAt: data.subscription?.expiresAt || null,
           profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
