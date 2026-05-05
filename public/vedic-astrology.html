@@ -551,7 +551,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       <div style="height:14px"></div>
       <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
       <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
-        프로필 카드 없이도 바로 계산합니다. (API가 실패하면 로컬 계산으로 자동 전환됩니다.)
+        프로필 카드 없이도 바로 계산합니다. (Swiss API 응답 실패 시 결과 생성이 중단되고 재시도를 안내합니다.)
       </div>
     </div>
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
@@ -2089,7 +2089,7 @@ function profileToForm(profile){
   };
 }
 
-// ─── CALCULATE FROM PROFILE (API 전용: 로컬 fallback 금지) ───────
+// ─── CALCULATE FROM PROFILE (Swiss API 전용) ─────────────────
 function doCalculateFromProfile(profile){
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.lat)||isNaN(f.lon)){alert('프로필 정보가 부족합니다.');return;}
@@ -2114,33 +2114,19 @@ function doCalculateFromProfile(profile){
   }
 
   function showApiRequiredError(detail){
-    var msg='정밀 계산 API 응답이 지연되고 있습니다. 로컬 엔진으로 전환합니다.';
     if(detail){ console.warn('[vedic] API Error:', detail); }
-    // API 에러 시 사용자에게 알리고 로컬로 자동 전환됨을 알림
+    var detailText=detail?('<br><br>상세: '+String(detail)):'';
     var errEl=document.getElementById('result-content');
-    if(errEl) errEl.innerHTML='<div class="loading-text" style="color:var(--gold2)">정밀 분석 중 오류가 발생하여 로컬 엔진으로 전환 중입니다...</div>';
-  }
-
-  function runLocalFallback(){
-    try{
-      var chart=buildChart(f,null);
-      var report=analyze(chart);
-      var insights=generateInsights(chart,report);
-      G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
-      G.usedLocalCalc=true;
-      renderResult();
-      showPage('result');
-    }catch(err){
-      console.error('[vedic] local fallback failed:', err);
-      document.getElementById('result-content').innerHTML='<div class="error-box">계산 엔진 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.<br><br><button onclick="showPage(\'input\')" class="btn-sm" style="margin-top:10px">입력 화면으로 돌아가기</button></div>';
-      showPage('result');
+    if(errEl){
+      errEl.innerHTML='<div class="error-box">Swiss API 응답이 없어 베다 결과를 생성할 수 없습니다. 잠시 후 다시 시도해 주세요.'+detailText+'<br><br><button onclick="showPage(\'input\')" class="btn-sm" style="margin-top:10px">입력 화면으로 돌아가기</button></div>';
     }
+    showPage('result');
   }
 
   var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
   var url=apiBase+'/api/vedic/planets';
-  var payload={ year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute,timezone:f.timezone };
-  var timeoutMs=3000;
+  var payload={ year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute,timezone:f.timezone,lat:f.lat,lon:f.lon };
+  var timeoutMs=12000;
   var reqPromise;
   if(typeof AbortController==='function'){
     var ac=new AbortController();
@@ -2160,12 +2146,10 @@ function doCalculateFromProfile(profile){
         runWithPlanets(res.planets);
         return;
       }
-      console.warn('Vedic API returned error, falling back to local:', res?res.error:'unknown');
-      runLocalFallback();
+      showApiRequiredError(res&&res.error?res.error:'Swiss API invalid response');
     })
     .catch(function(err){
-      console.warn('Vedic API unavailable, falling back to local:', err&&err.message?err.message:'');
-      runLocalFallback();
+      showApiRequiredError(err&&err.message?err.message:'Swiss API request failed');
     });
 }
 
@@ -3501,7 +3485,12 @@ async function _vedicCompatCoinGate(cost, reason){
     return false;
   }
 
+  var _paymentOverlayOpened = false;
   try {
+    if (typeof window._cdSetCoinGateOverlay === 'function') {
+      window._cdSetCoinGateOverlay(true, reason + ' 결제를 확인하고 있습니다...');
+      _paymentOverlayOpened = true;
+    }
     var resp = await fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -3525,6 +3514,8 @@ async function _vedicCompatCoinGate(cost, reason){
     console.error('[vedic compat coin-gate]', e);
     window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
+  } finally {
+    if (_paymentOverlayOpened) window._cdSetCoinGateOverlay(false);
   }
 }
 
@@ -3888,7 +3879,7 @@ function renderVimshottari(chart,ins){
   <!-- 현재 활성 대운 강조 카드 -->
   <div class="reveal reveal-delay-1" style="background:linear-gradient(135deg,${PCOL[activeDasha.planet]||'#8B5CF6'}10,rgba(212,175,55,0.05));border:1px solid ${PCOL[activeDasha.planet]||'#8B5CF6'}40;border-radius:20px;padding:18px;margin-bottom:16px">
     <div style="font-size:11px;color:var(--text3);letter-spacing:0.12em;margin-bottom:8px">✦ 현재 활성 대운 ✦</div>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">Disp||activeDasha.start}~${activeDasha.endDisp||
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
       <div style="font-size:36px;filter:drop-shadow(0 0 10px ${PCOL[activeDasha.planet]||'#8B5CF6'})">${PSYM[activeDasha.planet]||'⭐'}</div>
       <div>
         <div style="font-size:20px;font-weight:700;color:${PCOL[activeDasha.planet]||'#8B5CF6'}">${PKRKR[activeDasha.planet]||''} 마하다샤</div>
@@ -3904,7 +3895,7 @@ function renderVimshottari(chart,ins){
     <div style="margin-top:14px">
       <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;margin-bottom:8px">현재 소운 (안타르다샤)</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${activeDasha.antardasha.slice(0,5).map((ad,i)=>{Disp||ad.start}~${ad.endDisp||
+        ${activeDasha.antardasha.slice(0,5).map((ad,i)=>{
           const adNow=now>=new Date(ad.start)&&now<new Date(ad.end);
           return`<div style="padding:6px 10px;border-radius:10px;background:${adNow?PCOL[ad.planet]+'20':'rgba(255,255,255,0.04)'};border:1px solid ${adNow?PCOL[ad.planet]+'50':'rgba(255,255,255,0.07)'};font-size:11px;color:${adNow?PCOL[ad.planet]:'var(--text3)'}">
             ${PSYM[ad.planet]||''} ${PKRKR[ad.planet]||ad.planet}${adNow?' 🔥':''}
@@ -3934,7 +3925,7 @@ function renderVimshottari(chart,ins){
             </div>
             <div style="flex:1">
               <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-                <span style="font-size:13px;font-weight:700;color:${isPast?'var(--text3)':col}">${PKRKDisp||d.start} ~ ${d.endDisp||anet]||d.planet} 대운</span>
+                <span style="font-size:13px;font-weight:700;color:${isPast?'var(--text3)':col}">${PKRKR[d.planet]||d.planet} 대운</span>
                 ${isActive?`<span style="font-size:9px;padding:2px 7px;border-radius:8px;background:${col}22;color:${col};border:1px solid ${col}44">진행 중</span>`:''}
                 ${isPast?`<span style="font-size:9px;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,0.04);color:var(--text3)">완료</span>`:''}
               </div>

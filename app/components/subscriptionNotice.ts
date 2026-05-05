@@ -35,7 +35,7 @@ export function showSubscriptionIncludedNotice(options: SubscriptionNoticeOption
 
   const message = String(
     options.message
-      || "구독 혜택이 적용되어 이번 이용은 코인이 차감되지 않았습니다. 별빛 보호가 리딩을 지켜드리고 있어요."
+      || "구독 혜택이 적용되어 이번 이용은 코인이 차감되지 않았습니다. 별빛 혜택으로 고객님의 리딩이 보호되고 있습니다."
   );
   const reason = String(options.reason || "프리미엄 리딩");
   const tier = String(options.tier || "");

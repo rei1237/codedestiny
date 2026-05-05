@@ -548,7 +548,7 @@
         + '<span>✦</span><span>COSMIC MEMBERSHIP ACTIVE</span></div>'
         + '<h3 style="margin:14px 0 8px;font-size:26px;line-height:1.28;color:#f8fafc;letter-spacing:-.02em;">구독 혜택 적용 완료</h3>'
         + '<p style="margin:0;color:rgba(226,232,240,.95);font-size:14px;line-height:1.65;">'
-        + String(message || '구독 혜택이 적용되어 이번 이용은 코인이 차감되지 않았습니다. 별빛 보호가 리딩을 지켜드리고 있어요.')
+        + String(message || '구독 혜택이 적용되어 이번 이용은 코인이 차감되지 않았습니다. 별빛 혜택으로 고객님의 리딩이 보호되고 있습니다.')
         + '</p>';
 
       var meta = document.createElement('div');

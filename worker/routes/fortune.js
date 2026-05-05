@@ -486,7 +486,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   if (isIncludedBySubscription) {
     return json({
-      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
+      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독을 이용 중이시므로 코인이 차감되지 않았습니다. 별빛 혜택으로 고객님의 리딩이 보호되고 있습니다.`,
       code: "SUBSCRIPTION_INCLUDED",
       productId: productId || null,
       requiredCoins: cost,
@@ -635,6 +635,17 @@ function isObjectIdLike(value) {
   return /^[a-f0-9]{24}$/i.test(String(value || "").trim());
 }
 
+function toValidDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toIsoOrNull(value) {
+  const date = toValidDate(value);
+  return date ? date.toISOString() : null;
+}
+
 async function handlePigCoinRefund(request, auth) {
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
@@ -753,15 +764,15 @@ async function handleSubscriptionStatus(request, env, auth) {
 
   const sub = user.profileSubscription || {};
   const tier = sub.tier || "free";
-  const expAt = sub.expiresAt || null;
+  const expAt = toValidDate(sub.expiresAt);
   const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
-  const cancelRequestedAt = sub.cancelRequestedAt || null;
+  const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
   let points = Number(user.points || 0);
   const plan = PROFILE_SUB_PLANS[tier];
   const now = new Date();
 
   let effectiveTier = "free";
-  let effectiveExpAt = expAt ? new Date(expAt) : null;
+  let effectiveExpAt = expAt;
   let autoRenewed = false;
 
   if (tier !== "free" && effectiveExpAt) {
@@ -813,7 +824,7 @@ async function handleSubscriptionStatus(request, env, auth) {
     return json({
       tier: adminTestTier,
       isActive: true,
-      expiresAt: effectiveExpAt ? effectiveExpAt.toISOString() : null,
+      expiresAt: toIsoOrNull(effectiveExpAt),
       profileLimit: simulatedPolicy.profileLimit,
       points,
       lowBalanceWarning: Boolean(points <= simulatedPolicy.freeLimit),
@@ -821,7 +832,7 @@ async function handleSubscriptionStatus(request, env, auth) {
       cancelAtPeriodEnd: false,
       cancelRequestedAt: null,
       hasStartedPaidService: Boolean(user.has_started_paid_service),
-      firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+      firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
       adminMode: true,
       simulated: true,
       adminTestTier,
@@ -833,15 +844,15 @@ async function handleSubscriptionStatus(request, env, auth) {
   return json({
     tier: effectiveTier,
     isActive: Boolean(isActive),
-    expiresAt: effectiveExpAt ? effectiveExpAt.toISOString() : null,
+    expiresAt: toIsoOrNull(effectiveExpAt),
     profileLimit,
     points,
     lowBalanceWarning: Boolean(lowBalanceWarning),
     autoRenewed: Boolean(autoRenewed),
     cancelAtPeriodEnd: Boolean(cancelAtPeriodEnd),
-    cancelRequestedAt: cancelRequestedAt ? new Date(cancelRequestedAt).toISOString() : null,
+    cancelRequestedAt: toIsoOrNull(cancelRequestedAt),
     hasStartedPaidService: Boolean(user.has_started_paid_service),
-    firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+    firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
     adminMode,
     simulated: false,
     adminTestTier: null,
