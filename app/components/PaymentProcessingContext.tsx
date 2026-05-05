@@ -132,3 +132,5 @@ export function usePaymentProcessing() {
   }
   return context;
 }
+
+export const usePayment = usePaymentProcessing;

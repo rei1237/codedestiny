@@ -132,3 +132,7 @@ export function ToastProvider() {
     document.body,
   );
 }
+
+export function useToast() {
+  return { showToast };
+}
