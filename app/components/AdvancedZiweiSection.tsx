@@ -29,6 +29,22 @@ const CHAPTERS = [
 
 const RESULT_CACHE_KEY = "premium:ziwei:result:v4";
 
+function getDaysInMonth(year: number, month: number) {
+  if (!Number.isFinite(year) || year < 1 || !Number.isFinite(month) || month < 1 || month > 12) {
+    return 31;
+  }
+  return new Date(year, month, 0).getDate();
+}
+
+function isValidBirthDate(year: number, month: number, day: number) {
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return false;
+  if (year < 1900 || year > 2099) return false;
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  const dt = new Date(year, month - 1, day);
+  return dt.getFullYear() === year && dt.getMonth() === month - 1 && dt.getDate() === day;
+}
+
 type Step = "form" | "computing" | "result";
 
 interface FormState {
@@ -62,6 +78,17 @@ export default function AdvancedZiweiSection({
   const [progress, setProgress] = useState(0);
   const [loadingText, setLoadingText] = useState("명반을 구성하는 중...");
   const autoComputeRef = useRef(false);
+  const birthYearNum = Number(form.birthYear);
+  const birthMonthNum = Number(form.birthMonth);
+  const maxDayInMonth = getDaysInMonth(birthYearNum, birthMonthNum);
+
+  useEffect(() => {
+    const curDay = Number(form.birthDay);
+    if (!Number.isFinite(curDay)) return;
+    if (curDay > maxDayInMonth) {
+      setForm((prev) => ({ ...prev, birthDay: String(maxDayInMonth) }));
+    }
+  }, [form.birthDay, maxDayInMonth]);
 
   // ── 초기 데이터 로드 ──
   useEffect(() => {
@@ -98,8 +125,8 @@ export default function AdvancedZiweiSection({
   const handleCompute = useCallback(() => {
     const y = Number(form.birthYear), m = Number(form.birthMonth), d = Number(form.birthDay);
     const h = form.unknownHour ? 12 : Number(form.birthHour);
-    if (!y || !m || !d) {
-      alert("생년월일을 정확히 입력해 주세요.");
+    if (!isValidBirthDate(y, m, d)) {
+      alert("생년월일을 정확히 입력해 주세요. 월/일 조합이 올바른지 확인해 주세요.");
       return;
     }
     const displayName = form.name.trim() || "당신";
@@ -250,7 +277,7 @@ export default function AdvancedZiweiSection({
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-purple-400/60 uppercase tracking-widest px-1">일</label>
                 <select value={form.birthDay} onChange={e => setForm(f => ({...f, birthDay: e.target.value}))} className="w-full bg-white/10 border border-white/10 rounded-2xl p-4 text-white outline-none appearance-none">
-                  {Array.from({length:31},(_,i)=><option key={i+1} value={i+1}>{i+1}일</option>)}
+                  {Array.from({length:maxDayInMonth},(_,i)=><option key={i+1} value={i+1}>{i+1}일</option>)}
                 </select>
               </div>
             </div>

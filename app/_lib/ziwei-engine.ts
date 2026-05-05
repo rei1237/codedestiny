@@ -5,6 +5,16 @@ export const ZHI_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미",
 /** 자미두수 천간 목록 */
 export const GAN_LIST = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 
+const HAN_TO_KR_GAN: Record<string, string> = {
+  "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무",
+  "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",
+};
+
+const HAN_TO_KR_ZHI: Record<string, string> = {
+  "子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
+  "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해",
+};
+
 export interface ZiweiStar {
   name: string;
   symbol: string; // 묘왕평리함
@@ -48,10 +58,14 @@ export function calcZiweiPalaces(
   const lMonth = Math.abs(lunar.getMonth());
   const lDay = lunar.getDay();
   
-  const yGan = lunar.getYearGan();
-  const yZhi = lunar.getYearZhi();
-  const gIdx = GAN_LIST.indexOf(yGan);
-  const zIdx = ZHI_LIST.indexOf(yZhi);
+  const yGanRaw = String(lunar.getYearGan() || "");
+  const yZhiRaw = String(lunar.getYearZhi() || "");
+  const yGan = HAN_TO_KR_GAN[yGanRaw] || yGanRaw;
+  const yZhi = HAN_TO_KR_ZHI[yZhiRaw] || yZhiRaw;
+  let gIdx = GAN_LIST.indexOf(yGan);
+  let zIdx = ZHI_LIST.indexOf(yZhi);
+  if (gIdx < 0) gIdx = ((lYear - 4) % 10 + 10) % 10;
+  if (zIdx < 0) zIdx = ((lYear - 4) % 12 + 12) % 12;
   
   // 시지 index (자시=0, 축시=1 ...)
   const hIdx = (hour === 23 || hour === 0) ? 0 : Math.floor((hour + 1) / 2);
@@ -137,9 +151,11 @@ export function calcZiweiPalaces(
   
   const luCunMap = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
   const luCunPos = luCunMap[gIdx];
-  addStar(luCunPos, "록존", "aux");
-  addStar(luCunPos + 1, "경양", "bad");
-  addStar(luCunPos + 11, "타라", "bad");
+  if (Number.isFinite(luCunPos)) {
+    addStar(luCunPos, "록존", "aux");
+    addStar(luCunPos + 1, "경양", "bad");
+    addStar(luCunPos + 11, "타라", "bad");
+  }
   
   addStar(11 - hIdx, "지공", "bad");
   addStar(11 + hIdx, "지겁", "bad");
