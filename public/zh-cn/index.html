@@ -6768,7 +6768,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     consumeInFlight = true;
     var _unlockOverlayOpened = false;
     try {
-      _cdSetCoinGateOverlay(true, '프리미엄 기능을 해금하고 있습니다...');
+      _cdSetCoinGateOverlay(true, '해금 중입니다. 잠시만 기다려 주세요...');
       _unlockOverlayOpened = true;
       var productId = resolveUnlockProductIdByFeatureKey(featureKey);
       var requestId = 'unlock:' + (productId || featureKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
@@ -7464,7 +7464,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         consumeInFlight = true;
         var _unlockOverlayOpened = false;
         try {
-          _cdSetCoinGateOverlay(true, fname + ' 해금을 진행하고 있습니다...');
+          _cdSetCoinGateOverlay(true, fname + ' 해금 중입니다. 잠시만 기다려 주세요...');
           _unlockOverlayOpened = true;
           var tileRequestId = 'unlock:' + tileLockKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
           var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -9108,6 +9108,7 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
 
 
 
