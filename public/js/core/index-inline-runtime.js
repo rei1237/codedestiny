@@ -1447,6 +1447,8 @@ function __cdResolveTileLockAliasKeys(lockKey) {
   if (!base) return [];
   var map = Object.create(null);
   map[base] = true;
+  if (base === 'premium-ziwei') map['ziwei-deep'] = true;
+  if (base === 'ziwei-deep') map['premium-ziwei'] = true;
   if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
   if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
   if (base === 'flower' || base === 'flower-fc' || base.indexOf('flower-') === 0) {
@@ -2344,7 +2346,14 @@ function __cdInvokeActionWithConfig(action, actionEl, event, args) {
 
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
-  if (!__cdRequireTileLockGate(actionEl)) return;
+  if (!__cdRequireTileLockGate(actionEl)) {
+    if (event) {
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    return;
+  }
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
 

@@ -2173,11 +2173,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 심화 분석 (H 프리미엄) -->
                 <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
                         data-action="navigateToZiweiChart"
+                        data-tile-lock-key="premium-ziwei"
+                        data-tile-lock-cost="500"
                         aria-label="자미두수 심화 분석 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 심화 분석 — 16챕터 인생 총람">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌟</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei">심화</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 500코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌟 자미두수 심화</span>
@@ -10131,6 +10133,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     'olympus': ['olympus-fc', 'olympus-profile-fc'],
     'olympus-profile-fc': ['olympus-fc', 'olympus'],
     'olympus-fc': ['olympus-profile-fc', 'olympus'],
+    'premium-ziwei': ['ziwei-deep'],
+    'ziwei-deep': ['premium-ziwei'],
     'flower_all': ['flower', 'flower-fc', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
     'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo', 'flower'],
     'flower-destiny': ['flower-fc', 'flower'],
@@ -10660,7 +10664,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       section_summary: 'unlock.section_summary',
       section_compat: 'unlock.section_compat',
       'flower-fc': 'unlock.flower_fc',
-      'olympus-fc': 'unlock.olympus_fc'
+      'olympus-fc': 'unlock.olympus_fc',
+      'premium-ziwei': 'unlock.premium_ziwei',
+      'ziwei-deep': 'unlock.premium_ziwei'
     };
     return map[key] || '';
   }
@@ -11020,6 +11026,52 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }).catch(function(e){console.error('[prem-card vedic]',e);});
         })();
       }
+      return;
+    }
+    if (action === 'openOlympusOracleModal') {
+      var _openOlympus = function() {
+        if (typeof window.openOlympusOracleModal === 'function') {
+          window.openOlympusOracleModal();
+          return true;
+        }
+        if (typeof window._dpOpenFortuneType === 'function') {
+          window._dpOpenFortuneType('olympus');
+          return true;
+        }
+        return false;
+      };
+      try {
+        if (_openOlympus()) return;
+      } catch (e) {
+        console.error('[olympus direct invoke]', e);
+      }
+      var _olympusLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openOlympusOracleModal'];
+      if (typeof _olympusLoader === 'function') {
+        _olympusLoader().then(function() {
+          if (_openOlympus()) return;
+          window.location.href = '/olympus';
+        }).catch(function(err) {
+          console.error('[olympus lazy-load]', err);
+          window.location.href = '/olympus';
+        });
+        return;
+      }
+      var _olympusScript = document.querySelector('script[src*="olympus-oracle.js"]');
+      if (!_olympusScript) {
+        var _olympusEl = document.createElement('script');
+        _olympusEl.src = '/js/olympus-oracle.js?v=20260505-hotfix1';
+        _olympusEl.defer = true;
+        _olympusEl.onload = function() {
+          if (_openOlympus()) return;
+          window.location.href = '/olympus';
+        };
+        _olympusEl.onerror = function() {
+          window.location.href = '/olympus';
+        };
+        document.head.appendChild(_olympusEl);
+        return;
+      }
+      window.location.href = '/olympus';
       return;
     }
     // window[action] 함수가 있으면 직접 호출
