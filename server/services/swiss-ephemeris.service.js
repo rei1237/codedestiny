@@ -1,3 +1,5 @@
+const Astronomy = require("astronomy-engine");
+
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const SIGN_EMOJI = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
 const WESTERN_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -90,6 +92,138 @@ function extractObject(root) {
 function parsePayloadJson(raw) {
   if (raw && typeof raw === "object") return raw;
   return {};
+}
+
+function toFiniteNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeChartInput(payload) {
+  const src = payload && typeof payload === "object" ? payload : {};
+  return {
+    year: toFiniteNumber(src.year, NaN),
+    month: toFiniteNumber(src.month, NaN),
+    day: toFiniteNumber(src.day, NaN),
+    hour: toFiniteNumber(src.hour, 12),
+    minute: toFiniteNumber(src.minute, 0),
+    timezone: toFiniteNumber(src.timezone, 9),
+    lat: toFiniteNumber(src.lat, 37.5665),
+    lon: toFiniteNumber(src.lon ?? src.lng, 126.978),
+  };
+}
+
+function validateChartInput(input) {
+  if (!Number.isFinite(input.year) || !Number.isFinite(input.month) || !Number.isFinite(input.day)) {
+    const error = new Error("Invalid chart input: year/month/day are required.");
+    error.status = 400;
+    throw error;
+  }
+}
+
+function computeUtcDateFromInput(input) {
+  const utcHour = input.hour + (input.minute / 60) - input.timezone;
+  const utcMillis = Date.UTC(input.year, input.month - 1, input.day, 0, 0, 0, 0) + utcHour * 3600000;
+  if (!Number.isFinite(utcMillis)) {
+    const error = new Error("Invalid chart input: datetime conversion failed.");
+    error.status = 400;
+    throw error;
+  }
+  return new Date(utcMillis);
+}
+
+function julianDayFromDate(date) {
+  return date.getTime() / 86400000 + 2440587.5;
+}
+
+function localAyanamsa(jd) {
+  const T = (jd - 2415020.0) / 36524.2198782;
+  return nd(22.460148 + 1.396468 * T + 0.000308 * T * T);
+}
+
+function localAscendantTropical(jd, lat, lon) {
+  const T = (jd - 2451545.0) / 36525;
+  const gmst = nd(280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T);
+  const lst = nd(gmst + lon);
+  const eps = 23.439292 - 0.013004 * T;
+  const r = Math.PI / 180;
+  const asc = Math.atan2(
+    -Math.cos(lst * r),
+    Math.sin(lst * r) * Math.cos(eps * r) + Math.tan(lat * r) * Math.sin(eps * r),
+  ) * 180 / Math.PI;
+  return nd(asc);
+}
+
+function localTropicalLongitude(bodyName, date) {
+  const body = Astronomy.Body[bodyName] || bodyName;
+  const geo = Astronomy.GeoVector(body, date, true);
+  const ecliptic = Astronomy.Ecliptic(geo);
+  return nd(ecliptic.elon);
+}
+
+function buildLocalWesternChart(payload) {
+  const input = normalizeChartInput(payload);
+  validateChartInput(input);
+
+  const date = computeUtcDateFromInput(input);
+  const jd = julianDayFromDate(date);
+  const ascLon = localAscendantTropical(jd, input.lat, input.lon);
+  const mcLon = nd(ascLon + 90);
+
+  const planets = {};
+  for (const name of WESTERN_PLANETS) {
+    const lon = localTropicalLongitude(name, date);
+    planets[name] = signInfo(lon, ascLon);
+  }
+
+  const aspects = [];
+  const names = Object.keys(planets);
+  for (let i = 0; i < names.length; i += 1) {
+    for (let j = i + 1; j < names.length; j += 1) {
+      const hit = aspectBetween(planets[names[i]].longitude, planets[names[j]].longitude);
+      if (hit) aspects.push({ p1: names[i], p2: names[j], ...hit });
+    }
+  }
+
+  const northNodeLon = nd(125.044555 - 1934.1361849 * ((jd - 2451545.0) / 36525));
+
+  return {
+    planets,
+    ascendant: signInfo(ascLon, ascLon),
+    midheaven: signInfo(mcLon, ascLon),
+    northNode: signInfo(northNodeLon, ascLon),
+    southNode: signInfo(northNodeLon + 180, ascLon),
+    aspects,
+    source: "swiss-library-local",
+  };
+}
+
+function buildLocalVedicPlanets(payload) {
+  const input = normalizeChartInput(payload);
+  validateChartInput(input);
+
+  const date = computeUtcDateFromInput(input);
+  const jd = julianDayFromDate(date);
+  const ay = localAyanamsa(jd);
+
+  const names = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
+  const planets = {};
+  for (const name of names) {
+    planets[name] = nd(localTropicalLongitude(name, date) - ay);
+  }
+
+  const rahu = nd(125.044555 - 1934.1361849 * ((jd - 2451545.0) / 36525));
+  planets.Rahu = nd(rahu - ay);
+  planets.Ketu = nd(planets.Rahu + 180);
+
+  const ascSidereal = nd(localAscendantTropical(jd, input.lat, input.lon) - ay);
+
+  return {
+    planets,
+    ayanamsa: ay,
+    ascendantSidereal: ascSidereal,
+    source: "swiss-library-local",
+  };
 }
 
 async function fetchSwiss(pathname, payload) {
@@ -235,13 +369,39 @@ function normalizeVedicPlanets(payload) {
 }
 
 async function getSwissWesternChart(payload) {
-  const raw = await fetchSwiss("western-chart", payload);
-  return normalizeWesternChart(raw);
+  const baseUrl = pickSwissBaseUrl();
+  if (!baseUrl) {
+    return buildLocalWesternChart(payload);
+  }
+
+  try {
+    const raw = await fetchSwiss("western-chart", payload);
+    return normalizeWesternChart(raw);
+  } catch (error) {
+    const status = Number(error?.status) || 0;
+    if (!status || status >= 500) {
+      return buildLocalWesternChart(payload);
+    }
+    throw error;
+  }
 }
 
 async function getSwissVedicPlanets(payload) {
-  const raw = await fetchSwiss("vedic-planets", payload);
-  return normalizeVedicPlanets(raw);
+  const baseUrl = pickSwissBaseUrl();
+  if (!baseUrl) {
+    return buildLocalVedicPlanets(payload);
+  }
+
+  try {
+    const raw = await fetchSwiss("vedic-planets", payload);
+    return normalizeVedicPlanets(raw);
+  } catch (error) {
+    const status = Number(error?.status) || 0;
+    if (!status || status >= 500) {
+      return buildLocalVedicPlanets(payload);
+    }
+    throw error;
+  }
 }
 
 module.exports = {
