@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -6627,11 +6627,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     return map;
   }
-
-  function _cdApplyUnlocksFromPaymentPayload(payload, options) {
+  function _cdApplyUnlocksFromPaymentPayload(payload) {
     var known = _cdCollectKnownUnlockKeys();
-    var serverUnlockMap = Object.create(null);
-    var replaceMode = !!(options && options.replace === true);
+    var changed = false;
 
     function applyKey(rawKey) {
       var k = String(rawKey || '').trim();
@@ -6639,7 +6637,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var aliases = resolveTileLockAliasKeys(k);
       for (var ai = 0; ai < aliases.length; ai += 1) {
         var ak = aliases[ai];
-        if (known[ak]) serverUnlockMap[ak] = true;
+        if (known[ak] && unlockedFeatureMap[ak] !== true) {
+          markUnlockKey(unlockedFeatureMap, ak);
+          changed = true;
+        }
       }
     }
 
@@ -6664,43 +6665,20 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       applyKey(h.featureKey);
     }
 
-    var nextMap = replaceMode ? Object.create(null) : Object.assign(Object.create(null), unlockedFeatureMap);
-    var serverKeys = Object.keys(serverUnlockMap);
-    for (var sk = 0; sk < serverKeys.length; sk += 1) {
-      nextMap[serverKeys[sk]] = true;
-    }
-
-    var prevKeys = Object.keys(unlockedFeatureMap);
-    var nextKeys = Object.keys(nextMap);
-    var changed = prevKeys.length !== nextKeys.length;
-    if (!changed) {
-      for (var pk = 0; pk < prevKeys.length; pk += 1) {
-        if (unlockedFeatureMap[prevKeys[pk]] !== true || nextMap[prevKeys[pk]] !== true) {
-          changed = true;
-          break;
-        }
-      }
-    }
-    unlockedFeatureMap = nextMap;
-    syncUnlockedFeatureMapGlobal();
     return changed;
   }
 
   async function syncUnlocksFromServer() {
     if (!hasAuthToken()) return false;
     try {
-      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
+      var result = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
       if (!result.ok) return false;
-      if (result.payload && result.payload.user && typeof result.payload.user.points === 'number') {
-        userBalance = Number(result.payload.user.points || 0);
-        saveBalance();
-        updateBadge();
+      if (_cdApplyUnlocksFromPaymentPayload(result.payload)) {
+        saveTileLocks();
+        applyTileLockVisuals();
+        refreshUnlockButtons();
+        if (typeof applySectionGates === 'function') applySectionGates();
       }
-      _cdApplyUnlocksFromPaymentPayload(result.payload, { replace: true });
-      saveTileLocks();
-      applyTileLockVisuals();
-      refreshUnlockButtons();
-      if (typeof applySectionGates === 'function') applySectionGates();
       return true;
     } catch (_e) {
       return false;
@@ -6827,12 +6805,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       window.location.href = '/login?next=%2F';
       return;
     }
-
-    var serverStateReady = await syncUnlocksFromServer();
-    if (!serverStateReady) {
-      window.alert('잠금 상태를 서버에서 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-      return;
-    }
     if (isTileKeyUnlocked(featureKey)) {
       UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
@@ -6881,7 +6853,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
       saveBalance();
       updateBadge();
-      _cdApplyUnlocksFromPaymentPayload(result.payload, { replace: false });
+      _cdApplyUnlocksFromPaymentPayload(result.payload);
       if (!isTileKeyUnlocked(featureKey)) {
         var rechecked = await syncUnlocksFromServer();
         if (!rechecked || !isTileKeyUnlocked(featureKey)) {
@@ -7556,11 +7528,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           return;
         }
-        var _lockServerReady = await syncUnlocksFromServer();
-        if (!_lockServerReady) {
-          window.alert('잠금 상태를 서버에서 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-          return;
-        }
         if (isTileKeyUnlocked(tileLockKey)) {
           applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
@@ -7630,7 +7597,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           saveBalance();
           updateBadge();
-          _cdApplyUnlocksFromPaymentPayload(r.payload, { replace: false });
+          _cdApplyUnlocksFromPaymentPayload(r.payload);
           if (!isTileKeyUnlocked(tileLockKey)) {
             var _lockRechecked = await syncUnlocksFromServer();
             if (!_lockRechecked || !isTileKeyUnlocked(tileLockKey)) {
@@ -9246,6 +9213,8 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
+
 
 
 
