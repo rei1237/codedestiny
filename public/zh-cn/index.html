@@ -6234,11 +6234,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function isTileKeyUnlocked(rawKey) {
-    var keys = resolveTileLockAliasKeys(rawKey);
-    for (var i = 0; i < keys.length; i += 1) {
-      if (unlockedFeatureMap[keys[i]] === true) return true;
-    }
-    return false;
+    return !!String(rawKey || '').trim();
   }
 
   function syncUnlockedFeatureMapGlobal() {
@@ -6496,7 +6492,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   var SECTION_GATE_KEYS=[{gateId:'daewunGate',unlockKey:'section_daewun'},{gateId:'summaryGate',unlockKey:'section_summary'},{gateId:'compatGate',unlockKey:'section_compat'}];
-  function applySectionGates(){SECTION_GATE_KEYS.forEach(function(sg){var el=document.getElementById(sg.gateId);if(!el)return;if(unlockedFeatureMap[sg.unlockKey]){el.classList.add('cd-section-gate--unlocked');}else{el.classList.remove('cd-section-gate--unlocked');}});}
+  function applySectionGates(){SECTION_GATE_KEYS.forEach(function(sg){var el=document.getElementById(sg.gateId);if(!el)return;el.classList.add('cd-section-gate--unlocked');});}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
@@ -7324,96 +7320,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
     }
 
-    // ── 영구 해금 타일 게이트 ──
-    var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
-    var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
-    if (tileLockKey && tileLockCost > 0 && !isTileKeyUnlocked(tileLockKey)) {
-      // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-      if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
-        // Preview 인터셉터로 위임 (이벤트 계속 전파)
-      } else {
-      _cdSafeBlockEvent(event);
-      (async function () {
-        if (!hasAuthToken()) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-            window.location.href = '/login?next=%2F';
-          }
-          return;
-        }
-        // 관리자 모드: 코인 차감/해금 비용 없이 즉시 실행
-        try {
-          if (isAdminUser()) {
-            markUnlockKey(unlockedFeatureMap, tileLockKey);
-            saveTileLocks();
-            applyTileLockVisuals();
-            sessionStorage.setItem('cd_pa_' + action, '1');
-            _cdInvokeActionDirect(action, actionNode);
-            return;
-          }
-        } catch (_adminLockErr) {}
-        // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
-        try {
-          var _lockSubUser = readAuthUser();
-          var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
-          if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
-            var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
-            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
-            var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
-            if (!_lockConsentOk) return;
-            markUnlockKey(unlockedFeatureMap, tileLockKey);
-            saveTileLocks();
-            applyTileLockVisuals();
-            sessionStorage.setItem('cd_pa_' + action, '1');
-            _cdInvokeActionDirect(action, actionNode);
-            return;
-          }
-        } catch (_lockSubErr) {}
-        var titleEl = actionNode.querySelector('.tarot-tile__title');
-        var fname = titleEl ? titleEl.textContent.trim() : '서비스';
-        if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n서버 기준 잔액으로 결제가 진행됩니다.\n한 번 해금하면 계속 이용 가능합니다!')) return;
-        if (consumeInFlight) return;
-        consumeInFlight = true;
-        var _unlockOverlayOpened = false;
-        try {
-          _cdSetCoinGateOverlay(true, fname + ' 해금을 진행하고 있습니다...');
-          _unlockOverlayOpened = true;
-          var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
-            method: 'POST',
-            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
-          });
-          if (r.status === 402) { openChargeModal(); return; }
-          if (!r.ok) {
-            window.alert((r.payload && r.payload.message) || '해금 처리에 실패했습니다.');
-            return;
-          }
-          if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
-            userBalance = r.payload.user.points;
-          } else if (r.payload && r.payload.testAccountBypass) {
-            userBalance = Number(userBalance || 0);
-          } else {
-            userBalance = Math.max(0, userBalance - tileLockCost);
-          }
-          saveBalance();
-          updateBadge();
-          markUnlockKey(unlockedFeatureMap, tileLockKey);
-          saveTileLocks();
-          applyTileLockVisuals();
-          sessionStorage.setItem('cd_pa_' + action, '1');
-          window.alert('✅ ' + fname + ' 해금 완료!\n이제 자유롭게 이용하실 수 있습니다 🌟');
-          _cdInvokeActionDirect(action, actionNode);
-        } catch (e) {
-          console.error('[tile unlock gate]', e);
-          window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        } finally {
-          if (_unlockOverlayOpened) _cdSetCoinGateOverlay(false);
-          consumeInFlight = false;
-        }
-      })();
-      return;
-      } // else: pvw-bypass 없을 때만 해금 진행
-    } // if tileLockKey
-
-    // 프리미엄 리포트 카드 버튼 직접 처리
     if (action === 'toggleRptCard') {
       if (typeof window.toggleReportFeatureCard === 'function') window.toggleReportFeatureCard(actionNode);
       return;
@@ -9004,6 +8910,9 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
+
+
 
 
 
