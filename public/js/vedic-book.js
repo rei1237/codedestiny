@@ -1,9 +1,11 @@
 /**
  * 베다 점성술 프리미엄 (Vedic Astrology — Premium Life Report)
- * CODE-DESTINY v1.0  •  Jyotish 조티쉬 기반 12챕터 인생 총람
+ * CODE-DESTINY v1.0  •  Jyotish 조티쉬 기반 13챕터 인생 총람
  */
 (function () {
   'use strict';
+
+  var VEDIC_TOTAL_CHAPTERS = 13;
 
   var CHAPTER_TITLES = [
     '🕉️ 라그나와 영혼의 목적 — Lagna & Atmakaraka',
@@ -18,6 +20,7 @@
     '✨ 요가 — 특별한 축복의 조합, 차트의 천부적 재능',
     '🙏 우파야 — 운명을 바꾸는 실천, 행성 에너지 정화 비책',
     '🌟 마스터플랜 — 삶의 과제를 넘어서는 성장, 총결산 & 북극성 선언',
+    '🧭 카르믹 블루프린트 — 90일 현실 실행 로드맵',
   ];
 
   var CHAPTER_SUBTITLES = [
@@ -33,6 +36,7 @@
     '차트에서 검출된 요가(Yoga) 완전 해석·천부적 재능 발굴',
     '우파야(Upaya) 행성별 정화·만트라·요일 의례·삶의 과제 해소법',
     '차트 전체 총결산·단 하나의 마스터 해빗·북극성 인생 선언문',
+    '1~90일 구간별 목표·실천 행동·주의 포인트를 표 기반으로 실행 설계',
   ];
 
   var LOADING_MSGS = [
@@ -48,6 +52,7 @@
     '요가(Yoga) 조합·천부적 재능을 검출하는 중...',
     '우파야(Upaya) 행성 에너지 정화 비책을 설계하는 중...',
     '베다 마스터플랜과 북극성 선언문을 총결산하는 중...',
+    '카르믹 블루프린트 90일 실행 로드맵을 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -65,7 +70,7 @@
     '행성은 강요하지 않습니다. 다만 당신이 놓친 가능성을 비추어줄 뿐.',
   ];
 
-  var _chapters = Array(12).fill(null);
+  var _chapters = Array(VEDIC_TOTAL_CHAPTERS).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -246,7 +251,7 @@
       wrap=document.createElement('div');
       wrap.className='lb-start__chapters';
       wrap.innerHTML=
-        '<div class="lb-start__ch-label">📖 12챕터 구성</div>'+
+        '<div class="lb-start__ch-label">📖 13챕터 구성</div>'+
         '<ul class="lb-start__ch-list" id="vdChapterPreviewList"></ul>';
       var anchor=start.querySelector('.lb-start__note');
       if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(wrap,anchor.nextSibling);
@@ -267,13 +272,13 @@
     list.innerHTML=html;
   }
 
-  var VD_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  var VD_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
 
   function _renderToc(){
     var nav=document.getElementById('vdToc');
     if(!nav||nav.querySelector('[data-vd-chapter]'))return;
     var html='';
-    for(var i=1;i<=12;i++) html+='<button type="button" class="lb-toc-item vd-toc-item'+(i===1?' active':'')+'" data-vd-chapter="'+i+'">'+VD_ROMAN[i-1]+'</button>';
+    for(var i=1;i<=VEDIC_TOTAL_CHAPTERS;i++) html+='<button type="button" class="lb-toc-item vd-toc-item'+(i===1?' active':'')+'" data-vd-chapter="'+i+'">'+VD_ROMAN[i-1]+'</button>';
     nav.innerHTML=html;
   }
 
@@ -344,7 +349,7 @@
       try{modal.setAttribute('aria-hidden','false');}catch(_){}
       return;
     }
-    _chapters=Array(12).fill(null);
+    _chapters=Array(VEDIC_TOTAL_CHAPTERS).fill(null);
     _currentChapter=1;
     _showScreen('vdStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
@@ -388,7 +393,7 @@
     var loc=profile.location||{lat:37.5665,lng:126.978,tzOffset:9};
 
     _generating=true;
-    _chapters=Array(12).fill(null);
+    _chapters=Array(VEDIC_TOTAL_CHAPTERS).fill(null);
     _showScreen('vdLoadingScreen');
     _activateCinematicLoading('vdLoadingScreen','#fdba74','#ea580c','rgba(251,146,60,0.5)');
 
@@ -420,19 +425,19 @@
       : null;
 
     function _setProgress(done){
-      var pct=Math.round((done/12)*100);
+      var pct=Math.round((done/VEDIC_TOTAL_CHAPTERS)*100);
       if(progressBar)progressBar.style.width=pct+'%';
-      if(progressText)progressText.textContent=done+' / 12 챕터 완성 ('+pct+'%)';
+      if(progressText)progressText.textContent=done+' / '+VEDIC_TOTAL_CHAPTERS+' 챕터 완성 ('+pct+'%)';
       if(stageEl){
         var _phase=done===0
           ? '라그나/나크샤트라 데이터 정렬 중'
-          : (done<12?('AI가 Chapter '+(done+1)+' 베다 해석 중'):'PDF 저장 준비 완료');
-        var _subtitle=done<12?(CHAPTER_SUBTITLES[done]||''):'전체 챕터 정리를 완료했습니다.';
+          : (done<VEDIC_TOTAL_CHAPTERS?('AI가 Chapter '+(done+1)+' 베다 해석 중'):'PDF 저장 준비 완료');
+        var _subtitle=done<VEDIC_TOTAL_CHAPTERS?(CHAPTER_SUBTITLES[done]||''):'전체 챕터 정리를 완료했습니다.';
         stageEl.textContent='진행 단계: '+_phase+(_subtitle?' · '+_subtitle:'');
       }
-      if(chapterMsg&&done<12)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
-      if(chapterMsg&&done>=12)chapterMsg.textContent='베다 인생 총람이 완성되었습니다 ✦';
-      if(chapterNumEl)chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';
+      if(chapterMsg&&done<VEDIC_TOTAL_CHAPTERS)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
+      if(chapterMsg&&done>=VEDIC_TOTAL_CHAPTERS)chapterMsg.textContent='베다 Karmic Blueprint가 완성되었습니다 ✦';
+      if(chapterNumEl)chapterNumEl.textContent=done<VEDIC_TOTAL_CHAPTERS?'Chapter '+(done+1):'✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
         void chapterMsg.offsetWidth;
@@ -446,7 +451,7 @@
       Array.prototype.forEach.call(chDots,function(d){
         var ch=Number(d.getAttribute('data-vdch'));
         var isDone=ch<=done;
-        var isActive=ch===done+1&&done<12;
+        var isActive=ch===done+1&&done<VEDIC_TOTAL_CHAPTERS;
         var wasDone=d.classList.contains('zb-ch-dot--done')||d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done',isDone);
         d.classList.toggle('zb-ch-dot--active',isActive);
@@ -475,7 +480,13 @@
               timezone:loc.tzOffset!==undefined?loc.tzOffset:9,
               lat:loc.lat!==undefined?loc.lat:37.5665,
               lon:loc.lng!==undefined?loc.lng:126.978,
-              chapter:idx+1
+              chapter:idx+1,
+              reportType:'personal',
+              birthPlace:loc.label||'대한민국 (서울)',
+              timezoneName:loc.tz||'Asia/Seoul',
+              calendarType:profile.calendarType||b.calendarType||'solar',
+              isLeapMonth:!!(profile.isLeapMonth||b.isLeapMonth),
+              ayanamsa:profile.ayanamsa||'lahiri'
             })
           })
           .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
@@ -492,12 +503,13 @@
 
     var _failCount=0;
     (function generateNext(idx){
-      if(idx>=12){
+      if(idx>=VEDIC_TOTAL_CHAPTERS){
         clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
         var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>=900&&!/^⚠️/.test(c.trim());}).length;
-        if(validCount<9){
+        var minValid=Math.max(10, VEDIC_TOTAL_CHAPTERS-3);
+        if(validCount<minValid){
           var errEl=_qs('vdErrorMsg');
-          if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/12). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
+          if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/'+VEDIC_TOTAL_CHAPTERS+'). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _showScreen('vdErrorScreen');
           _autoRefundPremium(PREMIUM_VEDIC_COST, PREMIUM_VEDIC_FEATURE_KEY, '베다 프리미엄 PDF', PREMIUM_VEDIC_TX_KEY)
             .then(function(refunded){ if(refunded) window.alert('베다 프리미엄 결제가 자동 환급되었습니다.'); });
@@ -508,7 +520,7 @@
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
         var _nameEl=_qs('vdResultName'),_dateEl=_qs('vdResultDate');
-        if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';
+        if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 Karmic Blueprint';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _vdSaveResult(prof);
         return;
@@ -530,7 +542,7 @@
     var birth=profile.birth||{};
     var issued=new Date().toLocaleDateString('ko-KR');
     var bodyHtml='';
-    for(var i=0;i<12;i++){
+    for(var i=0;i<VEDIC_TOTAL_CHAPTERS;i++){
       if(!_chapters[i])continue;
       bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
     }
@@ -552,8 +564,8 @@
       'strong{color:#9a3412;} ul,ol{padding-left:1.5em;} li{margin-bottom:6px;}' +
       '</style></head><body>' +
       '<div class="cover"><p class="cover-badge">🪷 VEDIC JYOTISH PREMIUM</p>' +
-      '<h1 class="cover-title">베다 인생 총람</h1>' +
-      '<p style="font-size:1rem;color:#fdba74;margin-bottom:20px;">인도 조티쉬(Jyotish) 기반 12챕터 인생 흐름 리포트</p>' +
+      '<h1 class="cover-title">베다 Karmic Blueprint</h1>' +
+      '<p style="font-size:1rem;color:#fdba74;margin-bottom:20px;">인도 조티쉬(Jyotish) 기반 13챕터 인생 흐름 리포트</p>' +
       '<div style="width:60px;height:1px;background:rgba(253,186,116,0.4);margin:0 auto 20px;"></div>' +
       '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 베다 차트</p>' +
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +

@@ -24,29 +24,40 @@ const SUKUYO_MANSIONS = [
 const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const SUKUYO_CHAPTER_META = [
-  "탄생 숙과 원형", "감정의 조수간만", "페르소나와 브랜딩", "재산의 중력",
-  "보이지 않는 카니발", "관계의 정밀 레이어", "파괴와 갱신", "조화로운 성장",
-  "정서의 신전", "타이밍과 의식", "그림자의 통합", "인생 로드맵", "마스터 플랜",
-].map((title, i) => ({
-  num: i + 1,
-  title,
-  subtitle: [
-    "27수 탄생 숙요의 본질·숨겨진 이면·반복되는 패턴·재능 지수 완전 해독",
-    "달의 삭망 사이클과 숙요 에너지 공명·에너지 상승기·하강기 전략",
-    "숙요 이미지 코드·숨은 성향 극복·30일 이미지 관리 실행 플랜",
-    "숙요 재물 코드·달의 상승기 투자 원칙·재물 파괴 패턴 차단",
-    "조직 내 역할·협력 시너지·마찰 포인트 달빛 해결법",
-    "성·친·화·쇠·괴·살 6대 관계 역학 완전 분석",
-    "쇠괴 에너지 위기 전략·달빛 혁신법·역경을 성장 자원으로",
-    "공간 에너지·환경 심리학·건강 루틴·달월령 생활 설계",
-    "깊은 감정 연결·공감 지능·정서적 유대 강화법",
-    "성사·해로운 관계 경계·귀인 구별법·에너지 뱀파이어 차단",
-    "월령 27주기 에너지 사이클·시기별 최적 행동 전략",
-    "힘든 관계 정리·인연 회복 전략·새로운 인연 초대 의식",
-    "10년 운세 지도·생애 핵심 미션·3·5·10년 마스터플랜",
-  ][i],
-  icon: "moon"
-}));
+  { num: 1, title: "영혼의 원형", subtitle: "당신의 숙요별이 새긴 운명 코드", icon: "moon" },
+  { num: 2, title: "감정의 조수간만", subtitle: "달의 주기가 만들어내는 정서 파동", icon: "moon" },
+  { num: 3, title: "페르소나와 브랜딩", subtitle: "세상이 당신을 기억하는 방식", icon: "moon" },
+  { num: 4, title: "자산의 중력", subtitle: "부를 끌어당기는 달빛 전략", icon: "moon" },
+  { num: 5, title: "보이지 않는 톱니바퀴", subtitle: "성공 뒤에 숨겨진 협력 역학", icon: "moon" },
+  { num: 6, title: "관계의 정밀 레이더", subtitle: "안괴·성쇠·우친 방향성과 거리 기반 궁합 해석", icon: "moon" },
+  { num: 7, title: "파괴적 혁신", subtitle: "위기를 기회로 전환하는 달빛 전략", icon: "moon" },
+  { num: 8, title: "조화로운 성장", subtitle: "나를 살리는 공간과 환경의 법칙", icon: "moon" },
+  { num: 9, title: "정서적 유대", subtitle: "깊은 연결을 만드는 감정 지능", icon: "moon" },
+  { num: 10, title: "운명적 거리", subtitle: "가까이해야 할 것과 멀리해야 할 것", icon: "moon" },
+  { num: 11, title: "달의 주기", subtitle: "월령 에너지 사이클 완전 공략", icon: "moon" },
+  { num: 12, title: "관계를 정리하는 회복 기술", subtitle: "힘든 인연을 좋은 흐름으로 바꾸는 법", icon: "moon" },
+  { num: 13, title: "영혼의 마스터플랜", subtitle: "달빛 전략가의 10년 로드맵", icon: "moon" },
+];
+
+const SUKUYO_REPORT_TITLE_PERSONAL = "Moonlight Strategy: 숙요점 프리미엄 인생 리포트";
+const SUKUYO_REPORT_TITLE_COMPAT = "Moonlight Strategy: 숙요점 프리미엄 궁합 리포트";
+const SUKUYO_MIN_CHARS = 4000;
+const SUKUYO_RELATION_LABELS = ["명", "영친", "우쇠", "안괴", "성위", "위성", "친영", "쇠우", "괴안"];
+const SUKUYO_CHAPTER_GUIDES = [
+  "27수 원형, 무의식 반응, 반복 패턴, 재능 사용 조건을 명확히 풀어내고 잘못 쓰일 때의 그림자도 함께 제시하세요.",
+  "초승·상현·보름·하현·그믐 리듬을 감정 파동과 연결해 상승/하강 구간의 행동 규칙을 제시하세요.",
+  "첫인상, 외부 평판, 브랜드 언어, 관계에서의 기대치 관리를 실제 문장/행동 예시로 제시하세요.",
+  "수익 패턴, 누수 패턴, 손실 회피 습관, 달 리듬 기반 재정 운영 루틴을 현실적으로 제시하세요.",
+  "협업 시 강점 역할, 충돌 트리거, 조정 대화 프레임을 구체적인 상황 예시와 함께 쓰세요.",
+  "관계 축(안괴/성쇠/우친/영친)과 거리값을 근거로 방향성(나/상대 역할)을 절대 반대로 쓰지 말고 명시하세요.",
+  "위기 구간에서의 감정 폭주를 혁신 동력으로 바꾸는 단계형 전환 전략을 작성하세요.",
+  "공간, 수면, 식사, 이동 리듬을 숙요 에너지에 맞춰 재배치하는 생활 설계를 제시하세요.",
+  "정서적 친밀감 형성 방식, 오해 누적 패턴, 회복 대화 문장을 포함한 관계 유지 지침을 제시하세요.",
+  "관계 거리 조절법, 에너지 소모 관계 경계선, 귀인 구분 기준을 실제 상황 중심으로 쓰세요.",
+  "한 달 주기를 5단계(초승/상현/보름/하현/그믐)로 나눠 각 단계별 행동 우선순위를 제시하세요.",
+  "힘든 인연 정리와 회복의 경계선을 구분하고 안전한 종료/유지/복원 규칙을 단계별로 제시하세요.",
+  "1년·3년·10년 마스터플랜과 90일 실행표를 제공하고 마지막에 핵심 행동 3가지를 확정하세요.",
+];
 
 const ASTRO_CHAPTER_META = [
   "페르소나와 존재감", "감정의 뿌리", "인지 체계와 정보의 연금술", "미학과 가치 자산",
@@ -55,10 +66,97 @@ const ASTRO_CHAPTER_META = [
 ].map((title, i) => ({ num: i + 1, title, subtitle: "서양 점성술 프리미엄 PDF", icon: "star" }));
 
 const VEDIC_CHAPTER_META = [
-  "라그나와 삶의 설계도", "달과 나크샤트라", "다샤 타이밍", "부와 번영의 정렬",
-  "다르마와 커리어", "나밤샤 D9", "아슈타 쿠타 관계성", "인연과 카르마 계약",
-  "건강과 정화", "요가 조합 분석", "우파야 처방", "마스터 플랜",
-].map((title, i) => ({ num: i + 1, title, subtitle: "베다 점성술 프리미엄 PDF", icon: "veda" }));
+  { num: 1, title: "라그나와 영혼의 목적", subtitle: "Lagna & Atmakaraka", icon: "veda" },
+  { num: 2, title: "나크샤트라", subtitle: "무의식의 27가지 빛", icon: "veda" },
+  { num: 3, title: "다샤", subtitle: "인생의 웅장한 계절", icon: "veda" },
+  { num: 4, title: "푸루샤르타와 부의 정렬", subtitle: "Artha·2하우스·11하우스", icon: "veda" },
+  { num: 5, title: "카르마와 천직", subtitle: "Dharma·10하우스·D9·D10", icon: "veda" },
+  { num: 6, title: "나밤샤", subtitle: "영혼의 성숙도와 잠재력", icon: "veda" },
+  { num: 7, title: "관계의 거울", subtitle: "Ashta Koota Compatibility", icon: "veda" },
+  { num: 8, title: "인연의 깊이와 카르믹 계약", subtitle: "7하우스·금성·화성", icon: "veda" },
+  { num: 9, title: "생명력과 정화", subtitle: "6·8·12하우스 Health Analysis", icon: "veda" },
+  { num: 10, title: "요가", subtitle: "특별한 축복의 조합", icon: "veda" },
+  { num: 11, title: "우파야", subtitle: "운명을 바꾸는 실천 비책", icon: "veda" },
+  { num: 12, title: "고차라와 올해의 전략", subtitle: "Transit & Annual Strategy", icon: "veda" },
+  { num: 13, title: "마스터플랜", subtitle: "카르마를 넘어선 자유", icon: "veda" },
+];
+
+const VEDIC_REPORT_TITLE_PERSONAL = "Karmic Blueprint: 베다 점성술 프리미엄 리포트";
+const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나, 나크샤트라, 다샤로 읽는 이번 생의 카르마 지도";
+const VEDIC_REPORT_TITLE_COMPAT = "Karmic Blueprint: 베다 점성술 궁합 리포트";
+const VEDIC_REPORT_SUBTITLE_COMPAT = "Ashta Koota와 7하우스로 읽는 두 사람의 카르믹 계약";
+const VEDIC_MIN_CHARS = 4000;
+const VEDIC_PLANET_ORDER = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
+const VEDIC_PLANET_KO = {
+  Sun: "태양(Surya)",
+  Moon: "달(Chandra)",
+  Mars: "화성(Mangala)",
+  Mercury: "수성(Budha)",
+  Jupiter: "목성(Guru)",
+  Venus: "금성(Shukra)",
+  Saturn: "토성(Shani)",
+  Rahu: "라후(Rahu)",
+  Ketu: "케투(Ketu)",
+};
+const VEDIC_DASHA_SEQUENCE = [
+  { planet: "Ketu", years: 7 },
+  { planet: "Venus", years: 20 },
+  { planet: "Sun", years: 6 },
+  { planet: "Moon", years: 10 },
+  { planet: "Mars", years: 7 },
+  { planet: "Rahu", years: 18 },
+  { planet: "Jupiter", years: 16 },
+  { planet: "Saturn", years: 19 },
+  { planet: "Mercury", years: 17 },
+];
+const VEDIC_SIGN_EN = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+];
+const VEDIC_NAKSHATRA_META = [
+  { name: "Ashwini", lord: "Ketu", deity: "Ashvini Kumaras", symbol: "말의 머리" },
+  { name: "Bharani", lord: "Venus", deity: "Yama", symbol: "자궁" },
+  { name: "Krittika", lord: "Sun", deity: "Agni", symbol: "칼날" },
+  { name: "Rohini", lord: "Moon", deity: "Brahma", symbol: "수레" },
+  { name: "Mrigashira", lord: "Mars", deity: "Soma", symbol: "사슴 머리" },
+  { name: "Ardra", lord: "Rahu", deity: "Rudra", symbol: "눈물" },
+  { name: "Punarvasu", lord: "Jupiter", deity: "Aditi", symbol: "활집" },
+  { name: "Pushya", lord: "Saturn", deity: "Brihaspati", symbol: "꽃" },
+  { name: "Ashlesha", lord: "Mercury", deity: "Nagas", symbol: "뱀" },
+  { name: "Magha", lord: "Ketu", deity: "Pitris", symbol: "왕좌" },
+  { name: "Purva Phalguni", lord: "Venus", deity: "Bhaga", symbol: "침대 앞다리" },
+  { name: "Uttara Phalguni", lord: "Sun", deity: "Aryaman", symbol: "침대 뒷다리" },
+  { name: "Hasta", lord: "Moon", deity: "Savitar", symbol: "손" },
+  { name: "Chitra", lord: "Mars", deity: "Tvashtar", symbol: "보석" },
+  { name: "Swati", lord: "Rahu", deity: "Vayu", symbol: "바람" },
+  { name: "Vishakha", lord: "Jupiter", deity: "Indra-Agni", symbol: "개선문" },
+  { name: "Anuradha", lord: "Saturn", deity: "Mitra", symbol: "연꽃" },
+  { name: "Jyeshtha", lord: "Mercury", deity: "Indra", symbol: "귀걸이" },
+  { name: "Mula", lord: "Ketu", deity: "Nirriti", symbol: "뿌리 묶음" },
+  { name: "Purva Ashadha", lord: "Venus", deity: "Apah", symbol: "부채" },
+  { name: "Uttara Ashadha", lord: "Sun", deity: "Vishwadevas", symbol: "코끼리 이빨" },
+  { name: "Shravana", lord: "Moon", deity: "Vishnu", symbol: "귀" },
+  { name: "Dhanishtha", lord: "Mars", deity: "Vasus", symbol: "북" },
+  { name: "Shatabhisha", lord: "Rahu", deity: "Varuna", symbol: "빈 원" },
+  { name: "Purva Bhadrapada", lord: "Jupiter", deity: "Aja Ekapada", symbol: "칼" },
+  { name: "Uttara Bhadrapada", lord: "Saturn", deity: "Ahir Budhnya", symbol: "뒷다리" },
+  { name: "Revati", lord: "Mercury", deity: "Pushan", symbol: "탬버린" },
+];
+const VEDIC_CHAPTER_GUIDES = [
+  "라그나·라그나로드·아트마카라카를 함께 해석하고, 영혼 과제를 현실 루틴으로 연결하세요.",
+  "Moon Nakshatra 신화·상징·지배 행성을 설명하고 감정 트리거와 안정 루틴을 제시하세요.",
+  "Maha/Antar/Pratyantar Dasha 흐름을 계절 은유로 설명하고 확장/수성 시기를 나누세요.",
+  "2·11하우스와 다나 요가를 근거로 수익/누수 패턴과 재정 루틴을 제시하세요.",
+  "10하우스·아마티아카라카·D10 중심으로 직업 전략과 조직/독립 적합도를 제시하세요.",
+  "D1 대비 D9 변화를 설명하고 중년 이후 발현되는 성숙 과제를 구체화하세요.",
+  "궁합 데이터가 있으면 Ashta Koota 8항목과 총점을 해석하고, 없으면 조화로운 파트너 기준을 제시하세요.",
+  "7하우스·금성·화성·다라카라카를 연결해 연애/결혼 패턴과 경계 설정법을 제시하세요.",
+  "6·8·12하우스와 생활 루틴을 연결해 건강 관리·정화 전략을 제시하세요.",
+  "Raja/Dhana/Gaja Kesari/Neecha Bhanga/Vipareeta Raja를 중심으로 요가 발현 조건을 제시하세요.",
+  "우파야를 미신이 아닌 행동 처방으로 제시하고 요일·색상·만트라·봉사 루틴을 제공합니다.",
+  "고차라(목성/토성/라후-케투)와 다샤를 결합해 월별 행동 전략 1~12월을 작성하세요.",
+  "전체 분석을 통합해 90일 로드맵 표와 최종 선언문을 포함한 마스터플랜을 작성하세요.",
+];
+const VEDIC_MISSING_DATA_NOTICE = "일부 세부 계산 데이터가 부족하므로, 제공된 베다 점성술 데이터와 일반 주티쉬 원리를 바탕으로 보완 분석합니다. 단, 없는 데이터를 있는 것처럼 단정하지 않습니다.";
 
 const ZIWEI_CHAPTER_META = [
   {
@@ -246,12 +344,262 @@ async function getSwissWesternChart(request, env, input) {
   return postBackendJson(request, env, "/api/astro/western-chart", input, Number(env.PREMIUM_SWISS_TIMEOUT_MS || 12000));
 }
 
-const VEDIC_NAKSHATRAS = [
-  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha",
-  "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha",
-  "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishtha", "Shatabhisha",
-  "Purva Bhadrapada", "Uttara Bhadrapada", "Revati",
-];
+const VEDIC_DIGNITY_MAP = {
+  Sun: { exalt: 0, debit: 6, own: [4] },
+  Moon: { exalt: 1, debit: 7, own: [3] },
+  Mars: { exalt: 9, debit: 3, own: [0, 7] },
+  Mercury: { exalt: 5, debit: 11, own: [2, 5] },
+  Jupiter: { exalt: 3, debit: 9, own: [8, 11] },
+  Venus: { exalt: 11, debit: 5, own: [1, 6] },
+  Saturn: { exalt: 6, debit: 0, own: [9, 10] },
+  Rahu: { exalt: 2, debit: 8, own: [] },
+  Ketu: { exalt: 8, debit: 2, own: [] },
+};
+
+function round1(value) {
+  return Math.round(Number(value) * 10) / 10;
+}
+
+function toIsoDate(value) {
+  const d = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(d.getTime())) return "";
+  return d.toISOString().slice(0, 10);
+}
+
+function asBool(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    return s === "true" || s === "1" || s === "yes" || s === "y";
+  }
+  return false;
+}
+
+function getRashiLord(signIdx) {
+  const lords = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+  const idx = ((Number(signIdx) % 12) + 12) % 12;
+  return lords[idx];
+}
+
+function calcNakshatraInfoByLongitude(longitude) {
+  const lon = normalizeDeg(longitude);
+  if (!Number.isFinite(lon)) {
+    return {
+      name: "Unknown",
+      ko: "정보 없음",
+      pada: null,
+      lord: "Unknown",
+      deity: "정보 없음",
+      symbol: "정보 없음",
+      degreeInNakshatra: null,
+    };
+  }
+  const span = 360 / 27;
+  const padaSpan = span / 4;
+  const idx = Math.floor(lon / span);
+  const inNak = lon - idx * span;
+  const pada = Math.floor(inNak / padaSpan) + 1;
+  const meta = VEDIC_NAKSHATRA_META[idx] || { name: "Unknown", lord: "Unknown", deity: "정보 없음", symbol: "정보 없음" };
+  return {
+    name: meta.name,
+    ko: meta.name,
+    pada,
+    lord: meta.lord,
+    deity: meta.deity,
+    symbol: meta.symbol,
+    degreeInNakshatra: Math.round(inNak * 100) / 100,
+  };
+}
+
+function calcNavamsaSign(longitude) {
+  const lon = normalizeDeg(longitude);
+  if (!Number.isFinite(lon)) return null;
+  const signIdx = Math.floor(lon / 30);
+  const degInSign = lon % 30;
+  const part = Math.floor(degInSign / (30 / 9));
+  const startSign = [0, 8, 4, 0, 8, 4, 0, 8, 4, 0, 8, 4][signIdx];
+  const navSign = (startSign + part) % 12;
+  return { sign: navSign, signName: VEDIC_SIGN_EN[navSign], signKo: SIGN_KO[navSign] };
+}
+
+function calcDashamsaSign(longitude) {
+  const lon = normalizeDeg(longitude);
+  if (!Number.isFinite(lon)) return null;
+  const signIdx = Math.floor(lon / 30);
+  const degInSign = lon % 30;
+  const part = Math.floor(degInSign / 3);
+  const isOdd = signIdx % 2 === 0;
+  const start = isOdd ? signIdx : (signIdx + 9) % 12;
+  const d10Sign = (start + part) % 12;
+  return { sign: d10Sign, signName: VEDIC_SIGN_EN[d10Sign], signKo: SIGN_KO[d10Sign] };
+}
+
+function calcDignityFlags(planetName, signIdx) {
+  const info = VEDIC_DIGNITY_MAP[planetName];
+  if (!info) {
+    return {
+      dignity: "Neutral",
+      isExalted: false,
+      isDebilitated: false,
+      isOwnSign: false,
+      isFriendlySign: false,
+      isEnemySign: false,
+    };
+  }
+  const isExalted = info.exalt === signIdx;
+  const isDebilitated = info.debit === signIdx;
+  const isOwnSign = Array.isArray(info.own) && info.own.includes(signIdx);
+  return {
+    dignity: isExalted ? "Exalted" : isDebilitated ? "Debilitated" : isOwnSign ? "Own Sign" : "Neutral",
+    isExalted,
+    isDebilitated,
+    isOwnSign,
+    isFriendlySign: false,
+    isEnemySign: false,
+  };
+}
+
+function calcVimshottariFromMoon(moonLongitude, input) {
+  const moonNak = calcNakshatraInfoByLongitude(moonLongitude);
+  const lordIndex = VEDIC_DASHA_SEQUENCE.findIndex((d) => d.planet === moonNak.lord);
+  const seqStart = lordIndex >= 0 ? lordIndex : 0;
+  const span = 360 / 27;
+  const elapsed = Number(moonNak.degreeInNakshatra || 0) / span;
+  const firstYears = VEDIC_DASHA_SEQUENCE[seqStart].years * (1 - elapsed);
+  const birthDate = new Date(Date.UTC(
+    Number(input.year || 1990),
+    Math.max(0, Number(input.month || 1) - 1),
+    Number(input.day || 1),
+    Number(input.hour || 12),
+    Number(input.minute || 0),
+    0,
+    0,
+  ));
+  const now = new Date();
+
+  let cursor = new Date(birthDate);
+  let seq = seqStart;
+  let current = null;
+  let antar = null;
+  let pratyantar = null;
+  let upcoming = null;
+
+  for (let i = 0; i < 27; i += 1) {
+    const major = VEDIC_DASHA_SEQUENCE[seq % 9];
+    const years = i === 0 ? firstYears : major.years;
+    const start = new Date(cursor);
+    const end = new Date(cursor.getTime() + years * 365.25 * 86400000);
+
+    if (start <= now && now < end) {
+      const remainYears = Math.round(((end.getTime() - now.getTime()) / (365.25 * 86400000)) * 10) / 10;
+      current = {
+        planet: major.planet,
+        startDate: toIsoDate(start),
+        endDate: toIsoDate(end),
+        remainYears,
+      };
+
+      let antarCursor = new Date(start);
+      for (let j = 0; j < 9; j += 1) {
+        const antarMajor = VEDIC_DASHA_SEQUENCE[(seq + j) % 9];
+        const antarMs = ((major.years * antarMajor.years) / 120) * 365.25 * 86400000;
+        const antarEnd = new Date(antarCursor.getTime() + antarMs);
+        if (antarCursor <= now && now < antarEnd) {
+          const antarRemain = Math.round(((antarEnd.getTime() - now.getTime()) / (365.25 * 86400000)) * 10) / 10;
+          antar = {
+            planet: antarMajor.planet,
+            startDate: toIsoDate(antarCursor),
+            endDate: toIsoDate(antarEnd),
+            remainYears: antarRemain,
+          };
+
+          let prCursor = new Date(antarCursor);
+          for (let k = 0; k < 9; k += 1) {
+            const prMajor = VEDIC_DASHA_SEQUENCE[(seq + j + k) % 9];
+            const prMs = ((major.years * antarMajor.years * prMajor.years) / (120 * 120)) * 365.25 * 86400000;
+            const prEnd = new Date(prCursor.getTime() + prMs);
+            if (prCursor <= now && now < prEnd) {
+              const prRemain = Math.round(((prEnd.getTime() - now.getTime()) / (365.25 * 86400000)) * 10) / 10;
+              pratyantar = {
+                planet: prMajor.planet,
+                startDate: toIsoDate(prCursor),
+                endDate: toIsoDate(prEnd),
+                remainYears: prRemain,
+              };
+              break;
+            }
+            prCursor = new Date(prEnd);
+          }
+          break;
+        }
+        antarCursor = new Date(antarEnd);
+      }
+    } else if (start > now && !upcoming && current) {
+      upcoming = {
+        planet: major.planet,
+        startDate: toIsoDate(start),
+        endDate: toIsoDate(end),
+        remainYears: Math.round(((end.getTime() - start.getTime()) / (365.25 * 86400000)) * 10) / 10,
+      };
+      break;
+    }
+
+    cursor = new Date(end);
+    seq = (seq + 1) % 9;
+  }
+
+  if (!current) {
+    const major = VEDIC_DASHA_SEQUENCE[seqStart];
+    current = {
+      planet: major.planet,
+      startDate: toIsoDate(birthDate),
+      endDate: "",
+      remainYears: major.years,
+    };
+  }
+  if (!antar) {
+    antar = {
+      planet: current.planet,
+      startDate: current.startDate,
+      endDate: current.endDate,
+      remainYears: current.remainYears,
+    };
+  }
+
+  return { current, antar, pratyantar, upcoming };
+}
+
+function detectVedicYogasFromChart(chart) {
+  const planets = chart.planets || {};
+  const yogas = [];
+  const moon = planets.Moon;
+  const jupiter = planets.Jupiter;
+  const sun = planets.Sun;
+  const mercury = planets.Mercury;
+
+  if (moon && jupiter) {
+    const diff = Math.abs((jupiter.house || 0) - (moon.house || 0));
+    const kendra = [0, 3, 6, 9].includes(diff) || [0, 3, 6, 9].includes(12 - diff);
+    if (kendra) yogas.push({ name: "Gaja Kesari Yoga", nameKo: "가자 케사리 요가", description: "목성과 달의 켄드라 연결" });
+  }
+
+  if (sun && mercury && sun.sign === mercury.sign) {
+    yogas.push({ name: "Budha-Aditya Yoga", nameKo: "부다-아디티야 요가", description: "태양-수성 동궁" });
+  }
+
+  const dhanaCandidates = [2, 11].some((house) => Object.values(planets).some((p) => p && p.house === house && p.isOwnSign));
+  if (dhanaCandidates) {
+    yogas.push({ name: "Dhana Yoga", nameKo: "다나 요가", description: "자산·이익 하우스의 강화 배치" });
+  }
+
+  const rajaCandidates = Object.values(planets).some((p) => p && [1, 4, 7, 10].includes(p.house) && p.isExalted);
+  if (rajaCandidates) {
+    yogas.push({ name: "Raja Yoga", nameKo: "라자 요가", description: "켄드라에서의 강한 권위 배치" });
+  }
+
+  return yogas;
+}
 
 function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
   const planets = planetsPayload.planets || {};
@@ -260,42 +608,123 @@ function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
     throw new Error("Swiss API 응답에 ascendantSidereal이 없어 베다 차트를 생성할 수 없습니다.");
   }
 
-  const moon = signFromDeg(planets.Moon);
-  if (!moon) {
+  const moonLon = Number(planets.Moon);
+  if (!Number.isFinite(moonLon)) {
     throw new Error("Swiss API 응답에 Moon sidereal longitude가 없습니다.");
   }
 
-  const nakIndex = Math.floor(moon.longitude / (360 / 27));
-  const dashaSequence = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
-  const year = Number(input.year || new Date().getUTCFullYear());
+  const retroMap = planetsPayload.retrograde || planetsPayload.retro || planetsPayload.retrogrades || {};
+  const combustMap = planetsPayload.combust || planetsPayload.combustion || {};
+  const strengthMap = planetsPayload.strength || planetsPayload.dignityStrength || {};
 
   const vedicPlanets = {};
-  ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"].forEach((name) => {
+  for (const name of VEDIC_PLANET_ORDER) {
     const info = signFromDeg(planets[name]);
-    if (!info) return;
+    if (!info) continue;
+    const nak = calcNakshatraInfoByLongitude(info.longitude);
+    const dignityFlags = calcDignityFlags(name, info.sign);
     vedicPlanets[name] = {
       name,
+      nameKo: VEDIC_PLANET_KO[name] || name,
       ...info,
+      signName: VEDIC_SIGN_EN[info.sign],
       house: ((info.sign - asc.sign + 12) % 12) + 1,
+      nakshatra: nak.name,
+      nakshatraKo: nak.ko,
+      nakshatraPada: nak.pada,
+      nakshatraLord: nak.lord,
+      nakshatraDeity: nak.deity,
+      nakshatraSymbol: nak.symbol,
+      isRetrograde: asBool(retroMap[name]),
+      isCombust: asBool(combustMap[name]),
+      strength: Number.isFinite(Number(strengthMap[name])) ? Number(strengthMap[name]) : null,
+      ...dignityFlags,
     };
-  });
+  }
 
-  return {
+  const moonNak = calcNakshatraInfoByLongitude(moonLon);
+  const moonSign = signFromDeg(moonLon) || { signKo: "정보 없음", sign: null };
+
+  const movablePlanets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+  const sortedByDegree = movablePlanets
+    .map((p) => vedicPlanets[p])
+    .filter(Boolean)
+    .sort((a, b) => b.degree - a.degree);
+  const atmakaraka = sortedByDegree[0] || null;
+  const amatyakaraka = sortedByDegree[1] || null;
+  const darakaraka = sortedByDegree[sortedByDegree.length - 1] || null;
+
+  const computedDasha = calcVimshottariFromMoon(moonLon, input);
+  const payloadDasha = planetsPayload.vimshottariDasha || planetsPayload.dasha || {};
+  const vimshottariDasha = {
+    current: payloadDasha.current || computedDasha.current,
+    antar: payloadDasha.antar || computedDasha.antar,
+    pratyantar: payloadDasha.pratyantar || computedDasha.pratyantar || null,
+    upcoming: payloadDasha.upcoming || computedDasha.upcoming || null,
+  };
+
+  const d9 = {};
+  const d10 = {};
+  for (const p of Object.keys(vedicPlanets)) {
+    const nav = calcNavamsaSign(vedicPlanets[p].longitude);
+    const da10 = calcDashamsaSign(vedicPlanets[p].longitude);
+    if (nav) d9[p] = nav;
+    if (da10) d10[p] = da10;
+  }
+
+  const derived = {
     source: "swiss-api",
-    lagna: { ...asc, house: 1 },
+    ayanamsa: Number.isFinite(Number(planetsPayload.ayanamsa)) ? Number(planetsPayload.ayanamsa) : null,
+    ayanamsaMode: String(input.ayanamsa || "lahiri").toLowerCase(),
+    lagna: {
+      ...asc,
+      house: 1,
+      signName: VEDIC_SIGN_EN[asc.sign],
+      lord: getRashiLord(asc.sign),
+    },
     moonNakshatra: {
-      name: VEDIC_NAKSHATRAS[nakIndex] || "Unknown",
-      ko: VEDIC_NAKSHATRAS[nakIndex] || "Unknown",
-      pada: (nakIndex % 4) + 1,
+      name: moonNak.name,
+      ko: moonNak.ko,
+      pada: moonNak.pada,
+      lord: moonNak.lord,
+      deity: moonNak.deity,
+      symbol: moonNak.symbol,
+      degreeInNakshatra: moonNak.degreeInNakshatra,
+      moonSign: VEDIC_SIGN_EN[moonSign.sign] || "Unknown",
+      moonSignKo: moonSign.signKo || "정보 없음",
     },
     planets: vedicPlanets,
-    vimshottariDasha: {
-      current: { planet: dashaSequence[year % 9], remainYears: 4.8 },
-      antar: { planet: "Moon", remainYears: 0.8 },
+    atmakaraka,
+    amatyakaraka,
+    darakaraka,
+    vimshottariDasha,
+    d1: {
+      lagnaSign: VEDIC_SIGN_EN[asc.sign],
+      lagnaDegree: round1(asc.degree),
+      ascendantSidereal: round1(asc.longitude),
     },
-    yogas: [{ name: "Dharma Focus", nameKo: "다르마 정렬", description: "삶의 방향성을 실행으로 고정하는 조합입니다." }],
-    ayanamsa: planetsPayload.ayanamsa,
+    d9,
+    d10,
+    yogas: Array.isArray(planetsPayload.yogas) && planetsPayload.yogas.length
+      ? planetsPayload.yogas
+      : detectVedicYogasFromChart({ planets: vedicPlanets }),
+    houses: {
+      h2: { sign: VEDIC_SIGN_EN[(asc.sign + 1) % 12], lord: getRashiLord((asc.sign + 1) % 12) },
+      h7: { sign: VEDIC_SIGN_EN[(asc.sign + 6) % 12], lord: getRashiLord((asc.sign + 6) % 12) },
+      h10: { sign: VEDIC_SIGN_EN[(asc.sign + 9) % 12], lord: getRashiLord((asc.sign + 9) % 12) },
+      h11: { sign: VEDIC_SIGN_EN[(asc.sign + 10) % 12], lord: getRashiLord((asc.sign + 10) % 12) },
+      h12: { sign: VEDIC_SIGN_EN[(asc.sign + 11) % 12], lord: getRashiLord((asc.sign + 11) % 12) },
+    },
+    transits: planetsPayload.transits || planetsPayload.gochar || null,
+    ashtaKoota: planetsPayload.ashtaKoota || planetsPayload.compatibility || null,
+    rawSwiss: {
+      ayanamsa: planetsPayload.ayanamsa,
+      ascendantSidereal: planetsPayload.ascendantSidereal,
+      planets,
+    },
   };
+
+  return derived;
 }
 
 async function getSwissVedicChart(request, env, input) {
@@ -364,11 +793,40 @@ function calcSukuyo(input) {
   };
 }
 
+function resolveSukuyoDirection(distance, label) {
+  if (distance === 0) return { axis: "명", me: "명", other: "명", pairLabel: "명", icon: "🪞" };
+  if ([1, 10, 19].includes(distance)) return { axis: "영친", me: "영", other: "친", pairLabel: "영친", icon: "✨" };
+  if ([8, 17, 26].includes(distance)) return { axis: "영친", me: "친", other: "영", pairLabel: "친영", icon: "🌟" };
+  if ([2, 11, 20].includes(distance)) return { axis: "우친", me: "우", other: "친", pairLabel: "우친", icon: "🤝" };
+  if ([7, 16, 25].includes(distance)) return { axis: "우친", me: "친", other: "우", pairLabel: "친우", icon: "🌙" };
+  if ([3, 12, 21].includes(distance)) return { axis: "안괴", me: "안", other: "괴", pairLabel: "안괴", icon: "🛡️" };
+  if ([6, 15, 24].includes(distance)) return { axis: "안괴", me: "괴", other: "안", pairLabel: "괴안", icon: "⚔️" };
+  if ([4, 13, 22].includes(distance)) return { axis: "성쇠", me: "성", other: "쇠", pairLabel: "성쇠", icon: "🏛️" };
+  if ([5, 14, 23].includes(distance)) return { axis: "성쇠", me: "쇠", other: "성", pairLabel: "쇠성", icon: "🗝️" };
+  return {
+    axis: String(label || "관계"),
+    me: "정보 없음",
+    other: "정보 없음",
+    pairLabel: String(label || "관계"),
+    icon: "🌙",
+  };
+}
+
 function sukuyoRelation(myIdx, otherIdx) {
   if (otherIdx == null) return null;
   const distance = (otherIdx - myIdx + 27) % 27;
-  const labels = ["명", "업", "태", "영", "친", "우", "괴", "성", "위"];
-  return { distance, label: labels[distance % labels.length], score: Math.max(38, 96 - Math.abs(13 - distance) * 4) };
+  const label = SUKUYO_RELATION_LABELS[distance % SUKUYO_RELATION_LABELS.length] || "관계";
+  const direction = resolveSukuyoDirection(distance, label);
+  return {
+    distance,
+    label,
+    axis: direction.axis,
+    pairLabel: direction.pairLabel,
+    roleMe: direction.me,
+    roleOther: direction.other,
+    roleIcon: direction.icon,
+    score: Math.max(38, 96 - Math.abs(13 - distance) * 4),
+  };
 }
 
 function buildVedicChart(input) {
@@ -465,6 +923,404 @@ async function generatedChapter(env, kind, input, meta, dataLine, fallbackProfil
     });
   }
   return { text, sections: parseSections(text), usedFallback };
+}
+
+function stableHash(value) {
+  const source = String(value || "");
+  let hash = 2166136261;
+  for (let i = 0; i < source.length; i += 1) {
+    hash ^= source.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function hasPreciseBirthTime(body = {}) {
+  if (asBool(body.birthTimeUnknown) || asBool(body.noBirthTime) || asBool(body.timeUnknown)) return false;
+  if (body.hour == null && body.birthHour == null) return false;
+  return true;
+}
+
+function computeAshtaKoota(myChart, partnerChart) {
+  if (!myChart?.moonNakshatra || !partnerChart?.moonNakshatra) return null;
+  const myMoon = myChart.planets?.Moon;
+  const otherMoon = partnerChart.planets?.Moon;
+  const myLagna = myChart.lagna;
+  const otherLagna = partnerChart.lagna;
+  if (!myMoon || !otherMoon || !myLagna || !otherLagna) return null;
+
+  const moonDiff = (otherMoon.sign - myMoon.sign + 12) % 12;
+  const nakIndexA = VEDIC_NAKSHATRA_META.findIndex((n) => n.name === myChart.moonNakshatra.name);
+  const nakIndexB = VEDIC_NAKSHATRA_META.findIndex((n) => n.name === partnerChart.moonNakshatra.name);
+  const nakDiff = ((nakIndexB - nakIndexA) + 27) % 27;
+
+  const scoreVarna = moonDiff % 3 === 0 ? 1 : 0.5;
+  const scoreVashya = [0, 1, 5, 7, 9].includes(moonDiff) ? 2 : 1;
+  const scoreTara = [1, 3, 5, 7].includes(nakDiff % 9) ? 3 : 1.5;
+  const scoreYoni = [0, 1, 2].includes(nakDiff % 6) ? 4 : 2;
+  const scoreGrahaMaitri = getRashiLord(myMoon.sign) === getRashiLord(otherMoon.sign) ? 5 : 3;
+  const scoreGana = nakDiff % 3 === 0 ? 6 : 3;
+  const scoreBhakoot = [0, 1, 5, 7, 9, 11].includes(moonDiff) ? 7 : 2;
+  const scoreNadi = nakDiff % 9 === 0 ? 0 : 8;
+
+  const rows = [
+    { key: "Varna", score: scoreVarna, max: 1 },
+    { key: "Vashya", score: scoreVashya, max: 2 },
+    { key: "Tara", score: scoreTara, max: 3 },
+    { key: "Yoni", score: scoreYoni, max: 4 },
+    { key: "Graha Maitri", score: scoreGrahaMaitri, max: 5 },
+    { key: "Gana", score: scoreGana, max: 6 },
+    { key: "Bhakoot", score: scoreBhakoot, max: 7 },
+    { key: "Nadi", score: scoreNadi, max: 8 },
+  ];
+  const total = Math.round(rows.reduce((sum, row) => sum + row.score, 0) * 10) / 10;
+
+  return {
+    total,
+    totalMax: 36,
+    verdict: total >= 28 ? "우수" : total >= 21 ? "양호" : "보완 필요",
+    rows,
+    moonDiff,
+    nakDiff,
+  };
+}
+
+function buildVedicDataContext(body, input, chart, reportType, partnerChart, ashta) {
+  const birthTimeKnown = hasPreciseBirthTime(body);
+  const profileLines = [
+    `- 사용자 이름: ${String(body.name || input.name || "사용자")}`,
+    `- 생년월일: ${input.year}-${input.month}-${input.day}`,
+    `- 출생 시간: ${birthTimeKnown ? `${input.hour}:${String(input.minute).padStart(2, "0")}` : "미상"}`,
+    `- 출생지: ${String(body.birthPlace || body.place || "정보 없음")}`,
+    `- 위도/경도: ${Number(input.lat).toFixed(4)}, ${Number(input.lon).toFixed(4)}`,
+    `- 시간대: ${String(body.timezoneName || body.timezone || input.timezone || "정보 없음")}`,
+    `- 성별: ${String(body.gender || input.gender || "정보 없음")}`,
+    `- 양력/음력: ${String(body.calendarType || "solar")}`,
+    `- 윤달 여부: ${String(body.isLeapMonth ?? "정보 없음")}`,
+    `- Ayanamsa 모드: ${String(body.ayanamsa || chart.ayanamsaMode || "lahiri")}`,
+    `- Ayanamsa 값: ${chart.ayanamsa == null ? "정보 없음" : chart.ayanamsa}`,
+    `- Lahiri 사용 여부: ${String((body.ayanamsa || chart.ayanamsaMode || "lahiri").toLowerCase() === "lahiri")}`,
+  ];
+
+  const lagna = chart.lagna || {};
+  const moonNak = chart.moonNakshatra || {};
+  const dasha = chart.vimshottariDasha || {};
+  const planets = chart.planets || {};
+  const planetLines = VEDIC_PLANET_ORDER.map((name) => {
+    const p = planets[name];
+    if (!p) return `- ${name}: 정보 없음`;
+    return [
+      `- ${name}:`,
+      `  - Sign: ${p.signName || "정보 없음"}(${p.signKo || "정보 없음"})`,
+      `  - Degree: ${p.degree ?? "정보 없음"}`,
+      `  - Nakshatra/Pada: ${p.nakshatra || "정보 없음"} / ${p.nakshatraPada || "정보 없음"}`,
+      `  - House: ${p.house ?? "정보 없음"}`,
+      `  - Retrograde: ${String(!!p.isRetrograde)}`,
+      `  - Combust: ${String(!!p.isCombust)}`,
+      `  - Dignity: ${p.dignity || "정보 없음"}`,
+      `  - Exaltation/Debilitation: ${String(!!p.isExalted)} / ${String(!!p.isDebilitated)}`,
+      `  - Own/Friendly/Enemy: ${String(!!p.isOwnSign)} / ${String(!!p.isFriendlySign)} / ${String(!!p.isEnemySign)}`,
+    ].join("\n");
+  });
+
+  const coreLines = [
+    `- 라그나 Sign: ${lagna.signName || "정보 없음"}`,
+    `- 라그나 Degree: ${lagna.degree ?? "정보 없음"}`,
+    `- 라그나 Lord: ${lagna.lord || "정보 없음"}`,
+    `- Sun Sign: ${planets.Sun?.signName || "정보 없음"}`,
+    `- Moon Sign: ${planets.Moon?.signName || "정보 없음"}`,
+    `- Moon Nakshatra: ${moonNak.name || "정보 없음"}`,
+    `- Moon Nakshatra Pada: ${moonNak.pada || "정보 없음"}`,
+    `- Atmakaraka: ${chart.atmakaraka?.name || "정보 없음"}`,
+    `- Amatyakaraka: ${chart.amatyakaraka?.name || "정보 없음"}`,
+    `- Darakaraka: ${chart.darakaraka?.name || "정보 없음"}`,
+    `- Rahu 위치: ${planets.Rahu ? `${planets.Rahu.signName} ${planets.Rahu.house}H` : "정보 없음"}`,
+    `- Ketu 위치: ${planets.Ketu ? `${planets.Ketu.signName} ${planets.Ketu.house}H` : "정보 없음"}`,
+    `- D1 Rashi Chart: ${JSON.stringify(chart.d1 || {})}`,
+    `- D9 Navamsa Chart: ${JSON.stringify(chart.d9 || {})}`,
+    `- D10 Dashamsa Chart: ${JSON.stringify(chart.d10 || {})}`,
+    `- 현재 Maha Dasha: ${dasha.current?.planet || "정보 없음"}`,
+    `- 현재 Antar Dasha: ${dasha.antar?.planet || "정보 없음"}`,
+    `- 현재 Pratyantar Dasha: ${dasha.pratyantar?.planet || "정보 없음"}`,
+    `- Dasha Start Date: ${dasha.current?.startDate || "정보 없음"}`,
+    `- Dasha End Date: ${dasha.current?.endDate || "정보 없음"}`,
+    `- 주요 Yoga 목록: ${(chart.yogas || []).map((y) => y.nameKo || y.name).join(", ") || "정보 없음"}`,
+    `- Dhana Yoga 여부: ${String((chart.yogas || []).some((y) => /Dhana|다나/i.test(String(y.name || y.nameKo || ""))))}`,
+    `- Raja Yoga 여부: ${String((chart.yogas || []).some((y) => /Raja|라자/i.test(String(y.name || y.nameKo || ""))))}`,
+    `- Gaja Kesari Yoga 여부: ${String((chart.yogas || []).some((y) => /Gaja\s*Kesari|가자\s*케사리/i.test(String(y.name || y.nameKo || ""))))}`,
+    `- Neecha Bhanga Yoga 여부: ${String((chart.yogas || []).some((y) => /Neecha\s*Bhanga|니차\s*방가/i.test(String(y.name || y.nameKo || ""))))}`,
+    `- Vipareeta Raja Yoga 여부: ${String((chart.yogas || []).some((y) => /Vipareeta\s*Raja|비파리타\s*라자/i.test(String(y.name || y.nameKo || ""))))}`,
+    `- 기타 특수 요가: ${(chart.yogas || []).map((y) => y.name || y.nameKo).slice(0, 8).join(", ") || "정보 없음"}`,
+    `- Saturn Transit: ${JSON.stringify(chart.transits?.saturn || chart.transits?.Saturn || "정보 없음")}`,
+    `- Jupiter Transit: ${JSON.stringify(chart.transits?.jupiter || chart.transits?.Jupiter || "정보 없음")}`,
+    `- Rahu/Ketu Transit: ${JSON.stringify(chart.transits?.rahuKetu || chart.transits?.RahuKetu || "정보 없음")}`,
+  ];
+
+  const houseLines = [
+    `- 2하우스: ${JSON.stringify(chart.houses?.h2 || "정보 없음")}`,
+    `- 7하우스: ${JSON.stringify(chart.houses?.h7 || "정보 없음")}`,
+    `- 10하우스: ${JSON.stringify(chart.houses?.h10 || "정보 없음")}`,
+    `- 11하우스: ${JSON.stringify(chart.houses?.h11 || "정보 없음")}`,
+    `- 12하우스: ${JSON.stringify(chart.houses?.h12 || "정보 없음")}`,
+  ];
+
+  const compatLines = [];
+  if (reportType === "compatibility" && partnerChart) {
+    compatLines.push(
+      `- 상대방 이름: ${String(body.partnerName || "상대")}`,
+      `- 상대방 생년월일: ${[body.partnerYear, body.partnerMonth, body.partnerDay].filter(Boolean).join("-") || "정보 없음"}`,
+      `- 상대방 출생 시간: ${body.partnerHour == null ? "미상" : `${body.partnerHour}:${String(body.partnerMinute || 0).padStart(2, "0")}`}`,
+      `- 상대방 출생지: ${String(body.partnerBirthPlace || "정보 없음")}`,
+      `- 상대 Moon Nakshatra: ${partnerChart.moonNakshatra?.name || "정보 없음"}`,
+      `- 상대 Moon Sign: ${partnerChart.planets?.Moon?.signName || "정보 없음"}`,
+      `- 상대 Lagna: ${partnerChart.lagna?.signName || "정보 없음"}`,
+      `- Manglik Dosha 여부(본인/상대): ${String([1, 2, 4, 7, 8, 12].includes(Number(chart.planets?.Mars?.house || -1)))}/${String([1, 2, 4, 7, 8, 12].includes(Number(partnerChart.planets?.Mars?.house || -1)))}`,
+    );
+
+    if (ashta) {
+      compatLines.push(
+        `- Ashta Koota 총점: ${ashta.total}/${ashta.totalMax}`,
+        ...ashta.rows.map((r) => `- ${r.key}: ${r.score}/${r.max}`),
+      );
+    }
+  }
+
+  const warnings = [];
+  if (!birthTimeKnown) {
+    warnings.push("출생 시간이 없어 라그나, 하우스, 분할 차트 분석의 정밀도가 제한됩니다. 이 리포트는 달과 나크샤트라 중심으로 보완 분석되었습니다.");
+  }
+  if (!body.birthPlace && !body.place) {
+    warnings.push("출생지 정보가 부족해 시간대/위경도 기반 정밀 계산이 제한될 수 있습니다.");
+  }
+  if (!chart?.ayanamsaMode || String(chart.ayanamsaMode).trim() === "") {
+    warnings.push(VEDIC_MISSING_DATA_NOTICE);
+  }
+
+  const dataText = [
+    "[사용자 프로필]",
+    ...profileLines,
+    "",
+    "[베다 핵심 계산값]",
+    ...coreLines,
+    "",
+    "[하우스 핵심값]",
+    ...houseLines,
+    "",
+    "[행성 상세값]",
+    ...planetLines,
+    compatLines.length ? "" : null,
+    compatLines.length ? "[궁합 데이터]" : null,
+    ...compatLines,
+  ].filter(Boolean).join("\n");
+
+  return {
+    dataText,
+    warnings,
+    birthTimeKnown,
+  };
+}
+
+function vedicMissingMarkers(text, chapter) {
+  const source = String(text || "");
+  const required = [
+    "### 핵심 요약",
+    "### 데이터 근거 해석",
+    "### 심화 분석",
+    "### 실전 우파야",
+    "### 오늘부터 실천할 3가지",
+  ];
+
+  if (chapter === 12) {
+    required.push("### 1월");
+    required.push("### 12월");
+    required.push("- 핵심 흐름:");
+    required.push("- 좋은 선택:");
+    required.push("- 주의할 점:");
+    required.push("- 개운 행동:");
+  }
+  if (chapter === 13) {
+    required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
+    required.push("| 1~7일 |  |  |  |  |");
+    required.push("| 8~30일 |  |  |  |  |");
+    required.push("| 31~60일 |  |  |  |  |");
+    required.push("| 61~90일 |  |  |  |  |");
+  }
+
+  return required.filter((m) => !source.includes(m));
+}
+
+function hasBannedDeterministicExpression(text) {
+  const source = String(text || "");
+  const banned = [
+    /무조건\s*실패/i,
+    /반드시\s*이혼/i,
+    /평생\s*가난/i,
+    /확정\s*수익/i,
+    /100%\s*수익/i,
+    /질병\s*진단/i,
+    /사망\s*확정/i,
+  ];
+  return banned.some((re) => re.test(source));
+}
+
+function buildVedicPremiumPrompt(meta, chapter, input, reportType, context) {
+  const chapterGuide = VEDIC_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
+  const reportTitle = reportType === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
+  const reportSubtitle = reportType === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
+  const monthlyRule = chapter === 12
+    ? "챕터 12에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동을 작성하세요."
+    : "";
+  const roadmapRule = chapter === 13
+    ? "챕터 13에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
+    : "";
+
+  return [
+    "너는 30년 경력의 베다 점성술 전문가이자, 주티쉬(Jyotish) 마스터, 인도 철학 연구가, 심리 상담가, 프리미엄 PDF 리포트 작가다.",
+    "사용자의 베다 점성술 차트 데이터를 바탕으로 단순한 운세 풀이가 아니라 카르마 구조와 실행 전략을 연결한다.",
+    "전문적이되 어렵지 않게 작성하고, 산스크리트 용어는 반드시 쉬운 한국어 설명을 붙인다.",
+    "공포 조장 문구와 단정 예언(결혼/이혼/사망/투자 보장/질병 진단)을 금지한다.",
+    "카르마를 저주가 아닌 성장 과제와 반복 패턴으로 설명한다.",
+    "오직 마크다운 본문만 출력한다.",
+    "",
+    `[리포트 제목] ${reportTitle}`,
+    `[리포트 부제] ${reportSubtitle}`,
+    `[리포트 타입] ${reportType}`,
+    `[현재 챕터] ${chapter}. ${meta.title} — ${meta.subtitle}`,
+    `[최소 분량] ${VEDIC_MIN_CHARS}자 이상 (권장 5000자 이상)`,
+    "",
+    "[반드시 지킬 구조]",
+    `## 챕터 ${chapter}. ${meta.title}`,
+    "### 핵심 요약",
+    "### 데이터 근거 해석",
+    "### 심화 분석",
+    "### 실전 우파야",
+    "### 오늘부터 실천할 3가지",
+    "",
+    "[챕터 전용 지시]",
+    chapterGuide,
+    monthlyRule,
+    roadmapRule,
+    "",
+    "[데이터 부족 시 반드시 포함할 문장]",
+    VEDIC_MISSING_DATA_NOTICE,
+    "",
+    "[입력 데이터]",
+    context.dataText,
+    context.warnings.length ? `\n[주의/제한]\n- ${context.warnings.join("\n- ")}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function buildVedicFallbackMarkdown(meta, chapter, input, reportType, context) {
+  const reportTitle = reportType === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
+  const reportSubtitle = reportType === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
+
+  const core = [
+    `# ${reportTitle}`,
+    `# ${reportSubtitle}`,
+    `## 챕터 ${chapter}. ${meta.title}`,
+    "### 핵심 요약",
+    "- 라그나와 나크샤트라는 성격보다 반복되는 선택 패턴을 설명하는 좌표입니다.",
+    "- 현재 다샤는 외부 사건보다 내부 의사결정 습관의 재정렬을 요구합니다.",
+    "- 요가의 강점은 자동 성공이 아니라 발현 조건을 지켰을 때 현실화됩니다.",
+    "- 우파야는 미신이 아닌 행동 루틴이며, 지속성이 핵심입니다.",
+    "- 작은 루틴의 누적이 카르마 체감 흐름을 바꿉니다.",
+    "### 데이터 근거 해석",
+    context.warnings.length ? `${VEDIC_MISSING_DATA_NOTICE}\n\n${context.warnings.join("\n")}` : "제공된 Swiss 기반 베다 데이터(사이드리얼 황도/아야남샤/행성 배치)를 중심으로 분석합니다.",
+    `입력값 요약: ${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")}, 위도 ${Number(input.lat).toFixed(3)}, 경도 ${Number(input.lon).toFixed(3)}.`,
+    "### 심화 분석",
+    "카르마는 정해진 형벌이 아니라 반복되는 반응 패턴을 인식하고 재설계할 기회입니다. 이 챕터에서는 라그나 축(현실 태도), 나크샤트라 축(감정 반응), 다샤 축(시기 과제)을 한 번에 보아 실행 우선순위를 설계합니다.",
+    "실무적으로는 결정 속도를 늦추는 기준선, 관계 대화의 경계선, 체력 관리를 통한 집중력 복원이 핵심입니다. 세 영역을 분리하지 않고 하나의 생활 시스템으로 묶어야 운의 체감이 개선됩니다.",
+    "### 실전 우파야",
+    "1. 요일 루틴: 월(감정 정리), 화(실행), 수(대화), 목(확장), 금(관계), 토(정리), 일(복기)로 리듬을 고정합니다.",
+    "2. 만트라/확언: 종교 강요 없이 3분 호흡 후 핵심 확언 1문장을 반복합니다.",
+    "3. 봉사/기여 루틴: 주 1회 타인에게 실질적 도움을 주는 행동을 고정해 라후/케투 불안을 낮춥니다.",
+    "4. 수면/식단: 과도한 자극과 야간 각성을 줄이고 회복 시간을 먼저 확보합니다.",
+    "### 오늘부터 실천할 3가지",
+    "1. 오늘 의사결정 1건을 감정/현실/장기로 분리해 기록합니다.",
+    "2. 이번 주 소모 패턴 1개를 멈추고 대체 루틴 1개를 고정합니다.",
+    "3. 월말에 관계·직업·재정·건강을 한 번에 점검합니다.",
+  ].join("\n\n");
+
+  let text = core;
+  if (chapter === 12) {
+    const months = [];
+    for (let m = 1; m <= 12; m += 1) {
+      months.push(`### ${m}월\n- 핵심 흐름: 외부 이벤트보다 내부 리듬 정렬이 중요합니다.\n- 좋은 선택: 핵심 우선순위 1개를 먼저 확정하세요.\n- 주의할 점: 과속 확장과 감정적 결정을 피하세요.\n- 개운 행동: 주간 복기 30분을 고정하세요.`);
+    }
+    text += `\n\n${months.join("\n\n")}`;
+  }
+  if (chapter === 13) {
+    text += "\n\n| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |\n|---|---|---|---|---|\n| 1~7일 |  |  |  |  |\n| 8~30일 |  |  |  |  |\n| 31~60일 |  |  |  |  |\n| 61~90일 |  |  |  |  |";
+  }
+
+  let depth = 1;
+  while (text.length < VEDIC_MIN_CHARS) {
+    text += `\n\n### 심화 보충 노트 ${depth}\n베다 리포트의 핵심은 해석 자체보다 실행의 지속성입니다. 같은 챕터를 읽어도 루틴으로 옮긴 사람만 체감이 달라집니다. 이번 주에는 큰 결정보다 작은 루틴 고정을 우선하고, 월말에는 반드시 복기해서 다음 달에 이어가세요.`;
+    depth += 1;
+  }
+
+  return text;
+}
+
+async function generateVedicPremiumChapter(env, body, input, chapter, meta, chart, reportType, partnerChart, ashta) {
+  const context = buildVedicDataContext(body, input, chart, reportType, partnerChart, ashta);
+  const prompt = buildVedicPremiumPrompt(meta, chapter, input, reportType, context);
+  const options = {
+    temperature: 0.86,
+    topP: 0.95,
+    maxOutputTokens: 16384,
+    timeoutMs: Number(env.PREMIUM_VEDIC_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 75000),
+    maxAttemptsPerPair: Number(env.PREMIUM_VEDIC_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+
+  let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
+  let usedFallback = false;
+
+  if (!text || text.trim().length < 1200) {
+    usedFallback = true;
+    text = buildVedicFallbackMarkdown(meta, chapter, input, reportType, context);
+  }
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const missing = vedicMissingMarkers(text, chapter);
+    const tooShort = text.length < VEDIC_MIN_CHARS;
+    const truncated = looksTruncatedMarkdown(text);
+    const banned = hasBannedDeterministicExpression(text);
+    if (!tooShort && missing.length === 0 && !truncated && !banned) break;
+
+    const refinePrompt = [
+      "아래 베다 점성술 챕터 초안을 고품질로 보강하세요.",
+      `목표 길이: 최소 ${VEDIC_MIN_CHARS}자`,
+      "오직 마크다운 본문만 출력하고, 기존 흐름을 유지하면서 누락 요소를 채우세요.",
+      `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""}`.trim(),
+      "",
+      "[초안]",
+      text,
+    ].join("\n");
+
+    const refined = await callGemini(env, refinePrompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
+    if (!refined || !refined.trim()) break;
+    const candidate = refined.trim();
+    if (candidate.length >= Math.floor(text.length * 0.8)) {
+      text = candidate;
+    } else {
+      text = `${text}\n\n${candidate}`;
+    }
+  }
+
+  const finalMissing = vedicMissingMarkers(text, chapter);
+  if (text.length < VEDIC_MIN_CHARS || finalMissing.length > 0 || looksTruncatedMarkdown(text) || hasBannedDeterministicExpression(text)) {
+    usedFallback = true;
+    text = buildVedicFallbackMarkdown(meta, chapter, input, reportType, context);
+  }
+
+  return {
+    text,
+    sections: parseSections(text),
+    usedFallback,
+    warnings: context.warnings,
+  };
 }
 
 function normalizeZiweiField(value, fallback = "정보 없음") {
@@ -815,19 +1671,98 @@ async function handleAstroLife(request, env) {
 async function handleVedicLife(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
-  const chapter = clampInt(body.chapter, 1, 1, 12);
+  const chapter = clampInt(body.chapter, 1, 1, VEDIC_TOTAL_CHAPTERS);
+  const partnerIntent = body.partnerName || body.partnerYear || body.partnerMonth || body.partnerDay;
+  const requestedReportType = String(body.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
+  let reportType = requestedReportType === "compatibility" ? "compatibility" : "personal";
+
+  input.birthPlace = String(body.birthPlace || body.place || body.location || "");
+  input.calendarType = String(body.calendarType || "solar");
+  input.isLeapMonth = body.isLeapMonth ?? false;
+  input.ayanamsa = String(body.ayanamsa || "lahiri");
+
   const chart = await getSwissVedicChart(request, env, input);
+  let partnerChart = null;
+  let ashtaKoota = chart.ashtaKoota || null;
+
+  if (reportType === "compatibility") {
+    const hasPartnerBirth = Number.isFinite(Number(body.partnerYear))
+      && Number.isFinite(Number(body.partnerMonth))
+      && Number.isFinite(Number(body.partnerDay));
+
+    if (!hasPartnerBirth) {
+      reportType = "personal";
+    } else {
+      const partnerInput = normalizeBody({
+        ...body,
+        year: body.partnerYear,
+        month: body.partnerMonth,
+        day: body.partnerDay,
+        hour: body.partnerHour ?? body.hour ?? 12,
+        minute: body.partnerMinute ?? body.minute ?? 0,
+        lat: body.partnerLat ?? body.lat,
+        lon: body.partnerLon ?? body.lon,
+      });
+
+      partnerInput.birthPlace = String(body.partnerBirthPlace || body.birthPlace || body.place || "");
+      partnerInput.calendarType = String(body.partnerCalendarType || body.calendarType || "solar");
+      partnerInput.isLeapMonth = body.partnerIsLeapMonth ?? false;
+      partnerInput.ayanamsa = String(body.ayanamsa || "lahiri");
+
+      partnerChart = await getSwissVedicChart(request, env, partnerInput);
+      ashtaKoota = computeAshtaKoota(chart, partnerChart);
+      if (ashtaKoota) {
+        chart.ashtaKoota = ashtaKoota;
+      }
+    }
+  }
+
   const meta = VEDIC_CHAPTER_META[chapter - 1];
-  const generated = await generatedChapter(
+  const generated = await generateVedicPremiumChapter(
     env,
-    "vedic",
+    body,
     input,
+    chapter,
     meta,
-    `Lagna ${chart.lagna.signKo}, Moon Nakshatra ${chart.moonNakshatra.name}, Dasha ${chart.vimshottariDasha.current.planet}`,
-    `라그나 ${chart.lagna.signKo}와 달의 나크샤트라 ${chart.moonNakshatra.name}가 베다 차트의 핵심 리듬입니다.`,
-    "베다 점성술에서는 다샤 타이밍과 다르마의 방향을 함께 보며 장기 선택을 정렬해야 합니다.",
+    chart,
+    reportType,
+    partnerChart,
+    ashtaKoota,
   );
-  return json({ ok: true, chart, chapter, chapterMeta: meta, ...generated });
+
+  const reportId = `vedic_${Date.now().toString(36)}_${stableHash([
+    reportType,
+    chapter,
+    input.year,
+    input.month,
+    input.day,
+    input.hour,
+    input.minute,
+    input.lat,
+    input.lon,
+    body.name,
+    body.partnerName,
+  ].join("|"))}`;
+
+  return json({
+    ok: true,
+    reportId,
+    reportType,
+    chapter,
+    totalChapters: VEDIC_TOTAL_CHAPTERS,
+    chapterMeta: meta,
+    chart,
+    partnerChart,
+    ashtaKoota,
+    generatedAt: new Date().toISOString(),
+    quality: {
+      minChars: VEDIC_MIN_CHARS,
+      actualChars: generated.text.length,
+      usedFallback: generated.usedFallback,
+      warnings: generated.warnings || [],
+    },
+    ...generated,
+  });
 }
 
 const LIFEBOOK_CHAPTERS = [
