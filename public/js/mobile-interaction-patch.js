@@ -621,8 +621,8 @@
       'js/animal-totem-experience.js'
     ],
     openHwatuModal: ['HwatuFortune.js'],
-    // NOTE: uiBindings??`js/...` 경로�??�용?�니?? 모바??patch???�일 경로�?맞춰
-    // ?��??�에??최신 ?�크립트�??�확??로드?�도�??�니??
+    // NOTE: uiBindings??`js/...` 경로??용?니?? 모바??patch???일 경로?맞춰
+    // ???에??최신 ?크립트??확??로드?도??니??
     openTarotLoveModal: ['js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],

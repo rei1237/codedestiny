@@ -18,6 +18,7 @@ import { handleSibylRoutes } from "./routes/sibyl.js";
 import { handleOracleRoutes } from "./routes/oracle.js";
 import { handleUserRoutes } from "./routes/user.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
+import { handleAstroRoutes } from "./routes/astro.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -302,7 +303,7 @@ export default {
         service: "code-destiny-api-worker",
         mode: "worker-native",
         backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "geo"],
+        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "astro", "vedic", "geo"],
         fallbackProxyMode: upstreamOrigin
           ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
           : "disabled",
@@ -402,6 +403,14 @@ export default {
 
     if (url.pathname === "/api/oracle" || url.pathname.startsWith("/api/oracle/")) {
       return withCorsHeaders(request, env, await handleOracleRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {
+      return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/vedic" || url.pathname.startsWith("/api/vedic/")) {
+      return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
     }
 
     if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {

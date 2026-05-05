@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -499,6 +499,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cd-section-gate__btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:14px 28px;background:linear-gradient(90deg,#ffd54f 0%,#ffaa00 50%,#ff8c00 100%);color:#1a0a3a;font-size:.92rem;font-weight:900;cursor:pointer;box-shadow:0 4px 22px rgba(255,160,0,.48),inset 0 1px 0 rgba(255,255,220,.38);transition:filter .2s,transform .2s;letter-spacing:.03em}
 .cd-section-gate__btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,160,0,.58)}
 .cd-section-gate__badge{display:inline-flex;align-items:center;gap:7px;padding:4px 12px 4px 9px;border-radius:5px;background:rgba(14,8,2,.82);color:#fde68a;font-size:.68rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(250,204,21,.55);box-shadow:0 2px 10px rgba(0,0,0,.55)}.cd-section-gate__badge::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 46%,#c97a08 100%);border:1.5px solid rgba(255,200,50,.55);box-shadow:0 0 7px rgba(255,195,40,.6),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
+@media(max-width:768px){
+  .cd-section-gate__overlay{padding:28px 18px;border-radius:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .cd-section-gate__body{filter:blur(8px) brightness(.88)}
+  .cd-section-gate__title{font-size:1.05rem;max-width:280px}
+  .cd-section-gate__desc{font-size:.8rem;max-width:260px;line-height:1.55}
+  .cd-section-gate__btn{padding:13px 24px;font-size:.88rem;width:100%;max-width:280px;justify-content:center}
+  .cd-section-gate__icon{font-size:2.6rem}
+}
 @media(max-width:600px){.cd-section-gate__overlay{padding:22px 14px}.cd-section-gate__btn{padding:12px 22px;font-size:.86rem}}
 .sec-tier-badge{display:inline-flex;align-items:center;vertical-align:middle;gap:4px;font-size:.58rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;border-radius:4px;padding:2px 7px;margin-left:7px;pointer-events:none;line-height:1.3}
 .sec-tier-badge--free{background:rgba(4,28,20,.9);color:#34d399;border:1px solid rgba(52,211,153,.42)}
@@ -543,7 +551,53 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
-#sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
+#sajuLoaderOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.saju-loader-orb {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #a78bfa 0%, #7c3aed 50%, #4c1d95 100%);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
+  animation: sajuOrbPulse 2s ease-in-out infinite;
+}
+.saju-loader-orb::after {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-top-color: transparent;
+  animation: sajuOrbRotate 1.5s linear infinite;
+}
+@keyframes sajuOrbPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(139, 92, 246, 0.6); }
+}
+@keyframes sajuOrbRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.saju-loader-text {
+  color: #e2e8f0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
 .cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
 /* ── starfall: critical-inline 모바일 로드 보장 (cosmic-main.css 지연 전에 실행) ── */
 body:not(.neo-mode) .logo-area{overflow:clip}
@@ -1347,30 +1401,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </div>
 </div>
 
-<!-- ═══ 사주 풀이 로딩 애니메이션 (만세력) ═══ -->
-
+<!-- ═══ 사주 풀이 로딩 애니메이션 (만세력/결제) ═══ -->
 <div id="sajuLoaderOverlay">
-  <div class="hanja-particle-container" id="hanjaParticleContainer"></div>
-
-  <div class="saju-book-wrapper">
-    <div class="saju-vortex">
-      <div class="orb w"></div><div class="orb f"></div><div class="orb e"></div><div class="orb m"></div><div class="orb wa"></div>
-    </div>
-    <div class="saju-book">
-      <!-- 겉표지 -->
-      <div class="book-base left"><div class="book-cover-title">萬</div></div>
-      <div class="book-base right"><div class="book-cover-title">歲</div></div>
-      <!-- 넘겨지는 내지 -->
-      <div class="book-page page-right"></div>
-      <div class="book-page page3"></div>
-      <div class="book-page page2"></div>
-      <div class="book-page page1"></div>
-    </div>
-  </div>
-
-  <div class="saju-txt-wrap">
-    <div id="sajuLoadingTxt" class="saju-typing-txt">사주 만세력을 조율하는 중...</div>
-  </div>
+  <div class="saju-loader-orb"></div>
+  <div id="sajuLoadingTxt" class="saju-loader-text">사주 만세력을 조율하는 중...</div>
 </div>
 
 <div class="wrap">
@@ -1593,7 +1627,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                         isActive: !!(statusPayload && statusPayload.isActive),
                         expiresAt: (statusPayload && statusPayload.expiresAt) || null,
                       };
-                      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                      __cdWriteAuthUserCache(user);
                     } catch (_) {}
                     __cdRenderWithSub(pointsValue, label);
                   })
@@ -1621,7 +1655,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     if (typeof user !== 'object' || user === null) user = {};
                     user.name = user.name || n;
                     user.points = nextPoints;
-                    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                    __cdWriteAuthUserCache(user);
                   } catch (_) {}
 
                   __cdRenderWithSub(nextPoints);
@@ -2013,11 +2047,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 자존감 레벨업 타로 → openTarotSelfEsteemModal() -->
             <button class="tarot-tile tarot-tile--self-esteem" type="button"
                     data-action="openTarotSelfEsteemModal"
+                    data-coin-cost="0"
                     aria-label="자존감 레벨업 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jajongam.webp" data-img-alt="자존감 레벨업 — 5카드 RPG 퀘스트 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--levelup">LEVEL UP</span>
-                <span class="tarot-tile__coin-badge">1회 30코인</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">✨ 자존감 레벨업</span>
@@ -2270,12 +2305,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 영국 홍차점 -->
                 <a class="tarot-tile tarot-tile--royal-tea" href="/royal-tea-oracle.html"
                    data-action="openRoyalTeaOracle"
-                   data-coin-cost="30"
+                   data-coin-cost="0"
                    aria-label="영국 홍차점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/london.webp" data-img-alt="영국 홍차점 — 찻잎 문양으로 읽는 타세오그래피">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🫖</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">1회 30코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🫖 영국 홍차점</span>
@@ -2372,7 +2407,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 심화 분析 (H 프리미엄) -->
                 <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
                         data-action="navigateToZiweiChart"
-                        data-tile-lock-key="premium-ziwei"
+                  data-tile-lock-key="premium-ziwei"
                         data-tile-lock-cost="500"
                         aria-label="자미두수 심화 분析 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamigod.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
@@ -2462,13 +2497,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 운명의 꽃 통합 아틀리에 -->
                 <button class="tarot-tile tarot-tile--bloom" type="button"
                         data-action="openDestinyFlowerStudio"
-                        data-tile-lock-key="flower-fc"
-                        data-tile-lock-cost="200"
+                  data-tile-lock-key="flower-fc"
+                  data-tile-lock-cost="200"
                         aria-label="운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수 통합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
-                    <span class="tarot-tile__coin-badge">50코인</span>
                     <span class="tarot-tile__badge tarot-tile__badge--bloom">BLOOM</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 200코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌸 운명의 꽃</span>
@@ -2479,12 +2514,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 점성술 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--astro-flower" type="button"
                         data-action="openAstrologyFlowerStudio"
-                        data-tile-lock-key="flower-fc"
-                        data-tile-lock-cost="200"
+                  data-tile-lock-key="flower-fc"
+                  data-tile-lock-cost="200"
                         aria-label="점성술 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower2.webp" data-img-alt="점성술 운명의 꽃 — 네온 성운 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--nebula">NEBULA</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 200코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">✨ 점성술 꽃</span>
@@ -2495,12 +2531,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--jami-flower" type="button"
                         data-action="openJamidusuFlowerStudio"
-                        data-tile-lock-key="flower-fc"
-                        data-tile-lock-cost="200"
+                  data-tile-lock-key="flower-fc"
+                  data-tile-lock-cost="200"
                         aria-label="자미두수 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower3.webp" data-img-alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌺</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei">ZIWEI</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 200코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌺 자미두수 꽃</span>
@@ -2511,12 +2548,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 숙요 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--sukuyo-fl" type="button"
                         data-action="openSukuyoFlowerStudio"
-                        data-tile-lock-key="flower-fc"
-                        data-tile-lock-cost="200"
+                  data-tile-lock-key="flower-fc"
+                  data-tile-lock-cost="200"
                         aria-label="숙요 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower4.webp" data-img-alt="숙요 운명의 꽃 — 27숙 달빛 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--sukuyo">SUKUYO</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 200코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌙 숙요 꽃</span>
@@ -6249,7 +6287,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     return false;
   }
-  var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
+
+  function syncUnlockedFeatureMapGlobal() {
+    try {
+      window.unlockedFeatureMap = unlockedFeatureMap;
+    } catch (_e) {}
+  }
+
+  window.isTileKeyUnlocked = isTileKeyUnlocked;
+  syncUnlockedFeatureMapGlobal();
+
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
     { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
@@ -6291,6 +6338,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return '';
     }
   }
+
+  function _cdSetCoinGateOverlay(isOpen, message) {
+    var overlay = document.getElementById('sajuLoaderOverlay');
+    var txt = document.getElementById('sajuLoadingTxt');
+    if (!overlay) return;
+    if (isOpen) {
+      if (txt && message) txt.textContent = message;
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    } else {
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+  window._cdSetCoinGateOverlay = _cdSetCoinGateOverlay;
 
   function hasAuthToken() {
     return !!getAuthToken();
@@ -6903,6 +6965,52 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       window.location.href = '/static?service=stonehenge-rune';
       return;
     }
+    if (action === 'openOlympusOracleModal') {
+      var _openOlympus = function() {
+        if (typeof window.openOlympusOracleModal === 'function') {
+          window.openOlympusOracleModal();
+          return true;
+        }
+        if (typeof window._dpOpenFortuneType === 'function') {
+          window._dpOpenFortuneType('olympus');
+          return true;
+        }
+        return false;
+      };
+      try {
+        if (_openOlympus()) return;
+      } catch (e) {
+        console.error('[olympus direct invoke]', e);
+      }
+      var _olympusLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openOlympusOracleModal'];
+      if (typeof _olympusLoader === 'function') {
+        _olympusLoader().then(function() {
+          if (_openOlympus()) return;
+          window.location.href = '/olympus';
+        }).catch(function(err) {
+          console.error('[olympus lazy-load]', err);
+          window.location.href = '/olympus';
+        });
+        return;
+      }
+      var _olympusScript = document.querySelector('script[src*="olympus-oracle.js"]');
+      if (!_olympusScript) {
+        var _olympusEl = document.createElement('script');
+        _olympusEl.src = '/js/olympus-oracle.js?v=20260505-hotfix1';
+        _olympusEl.defer = true;
+        _olympusEl.onload = function() {
+          if (_openOlympus()) return;
+          window.location.href = '/olympus';
+        };
+        _olympusEl.onerror = function() {
+          window.location.href = '/olympus';
+        };
+        document.head.appendChild(_olympusEl);
+        return;
+      }
+      window.location.href = '/olympus';
+      return;
+    }
     // <a href> ??? href 寃쎈줈濡?吏곸젒 ?대룞
     if (actionEl && actionEl.tagName === 'A') {
       var href = actionEl.getAttribute('href') || actionEl.getAttribute('data-fallback-href') || '';
@@ -7163,7 +7271,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return true;
   }
 
-
   function _cdShouldBypassMainCoinGate(action, actionNode) {
     if (!action) return false;
     var isMainTile = !!(actionNode && actionNode.classList && (
@@ -7247,10 +7354,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return false;
       }
       consumeInFlight = true;
-      var _perUseOverlayOpened = false;
       try {
-        _cdSetCoinGateOverlay(true, fname + ' 결제를 확인하고 있습니다...');
-        _perUseOverlayOpened = true;
         var perUseRequestId = 'peruse:' + action + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
         var perUseFeatureKey = String(action || 'coin-gate-per-use').trim().slice(0, 60) || 'coin-gate-per-use';
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -7288,7 +7392,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         return false;
       } finally {
-        if (_perUseOverlayOpened) _cdSetCoinGateOverlay(false);
         consumeInFlight = false;
       }
       } finally {
@@ -7323,8 +7426,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!actionNode) return;
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     var action = actionNode.getAttribute('data-action') || '';
-    var touchTileLockKey = actionNode.getAttribute('data-tile-lock-key') || '';
-    if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature' || action === 'openDestinyFlowerStudio' || touchTileLockKey) return;
+    if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
     // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 Preview 패널 우선 시도
@@ -7365,6 +7467,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!actionNode) return;
     var action = actionNode.getAttribute('data-action');
 
+    // 모바일 직접 탭 우회 방지: 궁합 섹션이 잠겨 있으면 실행 차단 후 해금 유도
+    if (action === 'runCompat' && !isAdminUser() && !unlockedFeatureMap.section_compat) {
+      _cdSafeBlockEvent(event);
+      var compatUnlockBtn = document.querySelector('[data-action="unlockPremiumFeature"][data-unlock-key="section_compat"]');
+      if (compatUnlockBtn && typeof compatUnlockBtn.scrollIntoView === 'function') {
+        compatUnlockBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      window.alert('💞 궁합 분석은 50코인 잠금 해제 후 이용할 수 있습니다.');
+      return;
+    }
+
     // ── 회당 코인 게이트 (per-use) ──
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
@@ -7396,6 +7509,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         delete perUseApproved[action];
       }
     }
+
     // ── 영구 해금 타일 게이트 ──
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
@@ -7713,10 +7827,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     gotoSukuyoPremium:{cat:'숙요점 · 宿曜占 Premium',title:'💫 숙요점(宿曜占) 궁합 분석',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다.',feats:['🌙 불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','💑 생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','⭐ 재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','💫 390코인 — 지금 바로 이용 가능'],cost:'💫 390코인',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
     gotoVedicPremium:{cat:'베다 점성술 · Vedic Astrology Premium',title:'🪷 베다 인생 총람 리포트',tagline:'인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도.',feats:['🪷 라그나·달·태양 3축 완전 분석','🌙 나크샤트라(27수) 별 운명 해석','📅 다샤 주기별 운세 예측 · 생애 흐름 총람','🔮 까르마 패턴 · 해탈 지점 분석'],cost:'🪐 390코인',ct:'paid',img:'/fuctionassets/premium veda.webp'},
     gotoNamingPremium:{cat:'명운 · Naming Premium',title:'✍️ 명운(明運) 사주 프리미엄 작명',tagline:'서비스 만세력 엔진 결과를 바탕으로 용신·오행·수리를 반영해 이름을 추천합니다.',feats:['서비스 만세력 기반 사주 팔자 정밀 반영','자원오행·발음오행·81수리·음양 배합 필터링','이름 카드와 상세 근거 리딩 제공','700코인 프리미엄 작명 리포트'],cost:'🪙 700코인',ct:'paid',img:'/fuctionassets/naming.webp'},
-    openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
-    openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/flower2.webp'},
-    openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
-    openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'숙요 27수(숙명)와 월상 정보를 바탕으로 달빛 테마 운명꽃을 생성합니다.',feats:['숙요 27수 인덱스/별칭 기반 꽃 매칭','월상(달 위상) 보정 테마 반영','숙요 그룹·수호 키워드 해석 제공','결과 요약·저장·공유·프롬프트 도구 지원'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/sukyo.webp'},
+    openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
+    openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
+    openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
+    openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'숙요 27수(숙명)와 월상 정보를 바탕으로 달빛 테마 운명꽃을 생성합니다.',feats:['숙요 27수 인덱스/별칭 기반 꽃 매칭','월상(달 위상) 보정 테마 반영','숙요 그룹·수호 키워드 해석 제공','결과 요약·저장·공유·프롬프트 도구 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/sukyo.webp'},
     openDreamModal:{cat:'드림 타로 · 해몽',title:'🌙 드림 타로',tagline:'어젯밤 꿈이 찜찜하다면 — 그 꿈이 진짜로 무엇을 예고하는지 타로가 바로 해독합니다',feats:['꿈 속 이미지를 타로 카드와 직접 연결 분석','불길한 꿈과 좋은 꿈의 정확한 의미 즉시 해독','꿈이 예고하는 미래 상황 & 운명 메시지 리딩','완전 무료 — 지금 바로 결과 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/heamong.webp'},
     openPsychoDreamModal:{cat:'정신분석 · 해몽',title:'🕯️ 정신분석 해몽',tagline:'당신이 꾼 꿈, 사실 무의식이 보내는 경고신호일 수 있습니다 — 프로이트가 그 꿈을 분석합니다',feats:['프로이트 & 현대 임상심리학 교차 분석','꿈이 드러내는 숨겨진 욕구·불안·트라우마 해독','지금 내 심리 상태를 꿈을 통해 정확히 파악','완전 무료 전문가 수준 심리 리포트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/phydream.webp'},
     openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장이면 됩니다 — 이 얼굴이 돈 버는 관상인지 사랑받는 관상인지 AI가 즉시 판독합니다',feats:['AI가 내 얼굴에서 관상 포인트 정밀 분석','내 얼굴이 닮은 동물 토템 & 숨겨진 성격 파악','재물운·연애운·귀인운 얼굴에서 직접 분석','셀카 업로드 1번으로 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20animal.webp'},
@@ -7742,7 +7856,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openSukuyoModal:{cat:'숙요점 · 금서 궁합 분석',title:'💫 숙요점(宿曜占)',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다',feats:['불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/sukyo.webp'},
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',title:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/geomancy.webp'},
-    openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎을 읽었습니다 — 왕실의 찻잎 문양이 오늘의 운명을 말합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/london.webp'},
+    openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎을 읽었습니다 — 왕실의 찻잎 문양이 오늘의 운명을 말합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/london.webp'},
     '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석을 물에 던지는 순간 올해 운명이 보입니다 — 핀란드 전통 새해 점술을 지금 체험하세요',feats:['핀란드 정통 주석점 의식 시뮬레이션 완전 구현','주석 형태 상징 20가지 즉석 해석','돼지 마스코트 연이와 함께하는 귀여운 운세 리딩','행운·사랑·재물 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fortune/sikojen-povailu/images/piggyfortune.webp'},
     '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLifeBookModal:{cat:'프리미엄 · 사주 심층 분석',title:'📜 인생의 책',tagline:'10년 후 내 인생이 어떻게 될지 지금 미리 볼 수 있습니다 — 돈이 들어오는 해와 조심해야 할 해를 미리 아는 것',feats:['사주 팔자 8글자로 평생 운세 흐름 완전 분석','대운 10년 단위로 기회의 해 & 위기의 해 미리 파악','재물이 크게 들어오는 시기 & 피해야 할 시기 정확히 계산','평생 간직할 PDF 저장 가능 프리미엄 리포트'],cost:'🪙 490코인',ct:'paid',img:'/fuctionassets/lifebook.webp'},
@@ -7947,12 +8061,23 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
   }
 
+  function _pvwIsUnlocked(lockKey){
+    if (!lockKey) return false;
+    try {
+      if (typeof isTileKeyUnlocked === 'function') return !!isTileKeyUnlocked(lockKey);
+    } catch (_) {}
+    try {
+      if (typeof window.isTileKeyUnlocked === 'function') return !!window.isTileKeyUnlocked(lockKey);
+    } catch (_) {}
+    return false;
+  }
+
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-    if (lockKey && isTileKeyUnlocked(lockKey)) return;
+    if (lockKey && _pvwIsUnlocked(lockKey)) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
@@ -7967,7 +8092,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-    if (lockKey && isTileKeyUnlocked(lockKey)) return false;
+    if (lockKey && _pvwIsUnlocked(lockKey)) return false;
     var action = tile.getAttribute('data-action');
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
@@ -9086,10 +9211,6 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
-
-
-
-
 
 
 

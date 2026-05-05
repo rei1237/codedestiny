@@ -188,9 +188,16 @@
         errorMessage: String((err && err.message) || err || 'unknown'),
         requestId: null,
       });
+      var fallbackSunKey = sunSignFromDate(parsed.month, parsed.day);
       if (typeof window._toast === 'function') {
-        window._toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+        window._toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
       }
+      commitAndMove({
+        name: currentProfile && currentProfile.name ? currentProfile.name : '',
+        date: parsed.date,
+        time: parsed.time,
+        sunKey: fallbackSunKey
+      });
     });
   }
 

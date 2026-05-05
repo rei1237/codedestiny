@@ -7,6 +7,7 @@ import QuickServiceShortcuts from "./QuickServiceShortcuts";
 import PersonalizedServiceRecommendations from "./PersonalizedServiceRecommendations";
 import ServiceCollectionSection from "./ServiceCollectionSection";
 import type { ServiceCardModel } from "./ServiceCard";
+import FeatureUnlockShowcase from "./FeatureUnlockShowcase";
 import GlobalPricingCard from "./GlobalPricingCard";
 import GlobalTrustSection from "./GlobalTrustSection";
 import EmailSubscriptionSection from "./EmailSubscriptionSection";
@@ -156,6 +157,10 @@ export default function MainLandingPage() {
 
       <section className="cd-main-shell !py-4 md:!py-5">
         <PersonalizedServiceRecommendations profile={profile} recommendations={recommendations} />
+      </section>
+
+      <section className="cd-main-shell !py-4 md:!py-5">
+        <FeatureUnlockShowcase />
       </section>
 
       <section className="cd-main-shell space-y-4 !pb-8 !pt-4">

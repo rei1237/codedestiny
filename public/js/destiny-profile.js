@@ -366,7 +366,6 @@
   }
 
   function _dpWriteTileLockMap(map) {
-    if (window.__cdAdminBypass) return; // Do not save admin bypass state to local storage
     var safe = Object.create(null);
     if (map && typeof map === 'object') {
       var keys = Object.keys(map);
@@ -397,19 +396,7 @@
   }
 
   function _dpIsFeatureLocked(lockKey) {
-    if (window.__cdAdminBypass) return false;
     if (!_dpHasAuthToken()) return true;
-
-    // Check active subscription first
-    var lockCost = 0;
-    if (String(lockKey).indexOf('olympus') >= 0) lockCost = 100;
-    else if (String(lockKey).indexOf('flower') >= 0) lockCost = 200;
-    
-    if (typeof _dpSubIsActive !== 'undefined' && _dpSubIsActive) {
-      if (_dpSubTier === 'vvip' && lockCost <= 100) return false;
-      if (_dpSubTier === 'premium' && lockCost <= 50) return false;
-      if (_dpSubTier === 'standard' && lockCost <= 30) return false;
-    }
 
     var map = _dpReadTileLockMap();
     var aliases = _dpResolveUnlockAliasKeys(lockKey);
@@ -584,7 +571,6 @@
     }
     var requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     window._cdCoinGatePerUseInFlight = true;
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제가 진행 중입니다. 잠시만 기다려 주세요.');
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -593,7 +579,6 @@
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
-      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
@@ -612,7 +597,7 @@
       }
       cb();
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {
@@ -2252,12 +2237,15 @@
               payload.sunKey = signs[idx];
               _olympusCommitProfile(payload);
             } else {
-              _toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
-              return;
+              payload.sunKey = _olympusSunSignFromDate(Number(b.month), Number(b.day));
+              _toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
+              _olympusCommitProfile(payload);
             }
           })
           .catch(function() {
-            _toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+            payload.sunKey = _olympusSunSignFromDate(Number(b.month), Number(b.day));
+            _toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
+            _olympusCommitProfile(payload);
           });
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
@@ -2404,30 +2392,6 @@
     _dpLoadSubCache();
     _dpUpdateSaveBtn();
     _fetchSubscription(); // API 로드 후 재검증
-
-    /* ★ 다른 탭(/points)에서 구독 완료 시 즉시 반영 — storage 이벤트 감지 */
-    window.addEventListener('storage', function(e) {
-      if (!e.key) return;
-      var k = String(e.key);
-      var isSubKey = k === 'fortune_profile_subscription'
-        || k.indexOf('fortune_profile_subscription::') === 0;
-      if (!isSubKey) return;
-      try {
-        var raw = e.newValue;
-        if (!raw) return;
-        var c = JSON.parse(raw);
-        var tier = _dpNormalizeTier(c && c.tier);
-        var active = !!(c && c.isActive) && tier !== 'free';
-        var rawLimit = Number(c && c.profileLimit);
-        var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
-        _dpSubTier         = tier;
-        _dpSubIsActive     = active;
-        _dpSubProfileLimit = active ? resolvedLimit : 1;
-        _dpSubScope        = _dpGetProfileScope();
-        _dpUpdateSaveBtn();
-        renderProfileList();
-      } catch (_) {}
-    });
 
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {

@@ -887,11 +887,11 @@
           }, 70000);
           var _zbHeaders = { 'Content-Type': 'application/json' };
           if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
-          fetch('/api/premium/ziwei-life', {
+          fetch('/api/ziwei-book/session', {
             method: 'POST',
             headers: _zbHeaders,
             body: JSON.stringify({
-              chapter: idx + 1,
+              sessionId:   idx + 1,
               ziweiData:   ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
               birthYear:   _zbProfile.birthYear,

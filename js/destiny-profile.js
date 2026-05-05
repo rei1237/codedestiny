@@ -2237,12 +2237,15 @@
               payload.sunKey = signs[idx];
               _olympusCommitProfile(payload);
             } else {
-              _toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
-              return;
+              payload.sunKey = _olympusSunSignFromDate(Number(b.month), Number(b.day));
+              _toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
+              _olympusCommitProfile(payload);
             }
           })
           .catch(function() {
-            _toast('⚠️ 점성술 API 응답이 없어 올림푸스 신탁을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+            payload.sunKey = _olympusSunSignFromDate(Number(b.month), Number(b.day));
+            _toast('⚠️ 점성술 API가 지연되어 기본 별자리 모드로 진행합니다.', 'warn');
+            _olympusCommitProfile(payload);
           });
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
