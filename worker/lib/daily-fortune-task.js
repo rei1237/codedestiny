@@ -4,6 +4,9 @@ import { callGeminiText } from "./gemini.js";
 import { sendEmail } from "./resend.js";
 
 const ANIMAL_IDS = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"];
+const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
+const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const GANJI_LIST = Array.from({ length: 60 }, (_, i) => STEMS[i % 10] + BRANCHES[i % 12]);
 
 function getBirthAnimalId(birthYear) {
   if (!birthYear || birthYear < 1900) return null;
@@ -11,73 +14,69 @@ function getBirthAnimalId(birthYear) {
   return ANIMAL_IDS[idx];
 }
 
-async function fetchDailyFortuneData(env) {
-  try {
-    const baseUrl = env.SITE_BASE_URL || "https://code-destiny.com";
-    const kst = new Date(Date.now() + 9 * 3600 * 1000);
-    const dateStr = kst.toISOString().slice(0, 10);
-    const url = `${baseUrl}/fortune/data/daily-${dateStr}.json`;
-    
-    console.log(`[TASK] Fetching fortune data from: ${url}`);
-    const resp = await fetch(url);
-    if (resp.ok) {
-      return await resp.json();
-    }
-    console.warn(`[TASK] Failed to fetch today's fortune JSON (${dateStr}), status: ${resp.status}`);
-  } catch (err) {
-    console.error("[TASK] Error fetching fortune JSON:", err);
+function getJulianDay(year, month, day) {
+  let y = year;
+  let m = month;
+  if (m <= 2) {
+    y -= 1;
+    m += 12;
   }
-  return null;
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + B - 1524.5;
+}
+
+function getTodayPillars() {
+  const now = new Date(Date.now() + 9 * 3600 * 1000); // KST
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+
+  const jd = getJulianDay(y, m, d);
+  const dayIdx = (Math.floor(jd + 0.5) + 49) % 60;
+  const dayPillar = GANJI_LIST[dayIdx];
+
+  const yearIdx = (y - 4) % 60;
+  const yearPillar = GANJI_LIST[yearIdx];
+
+  return {
+    date: `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
+    yearPillar,
+    dayPillar,
+    dayName: ["일", "월", "화", "수", "목", "금", "토"][now.getDay()],
+  };
 }
 
 export async function sendSingleFortune(env, sub) {
-  const kst = new Date(Date.now() + 9 * 3600 * 1000);
-  const dateLabel = kst.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "long",
-  });
+  const pillars = getTodayPillars();
+  const birthAnimalId = getBirthAnimalId(sub.birthYear);
+  const animalName = birthAnimalId ? {
+    rat: "쥐띠", ox: "소띠", tiger: "범띠", rabbit: "토끼띠",
+    dragon: "용띠", snake: "뱀띠", horse: "말띠", goat: "양띠",
+    monkey: "잔나비띠", rooster: "닭띠", dog: "개띠", pig: "돼지띠"
+  }[birthAnimalId] : "운명가";
 
-  const fortuneData = await fetchDailyFortuneData(env);
-  const animalId = sub.birthYear ? getBirthAnimalId(sub.birthYear) : null;
-  const animalData = (fortuneData && animalId) ? fortuneData.animals[animalId] : null;
-  const calendar = fortuneData ? fortuneData.calendar : null;
-
-  let contextInfo = "";
-  if (calendar) {
-    contextInfo += `\n오늘의 일진: ${calendar.ilchin} (${calendar.wolgeon} ${calendar.year_ganji})`;
-    contextInfo += `\n음력 날짜: ${calendar.lunar_date}`;
-  }
-  if (animalData) {
-    contextInfo += `\n구독자 띠(${animalId}) 오늘의 핵심 키워드: ${animalData.keyword.kr}`;
-    contextInfo += `\n오늘의 점수: 종합 ${animalData.score.overall}, 금전 ${animalData.score.money}, 애정 ${animalData.score.love}, 건강 ${animalData.score.health}, 직업 ${animalData.score.work}`;
-    contextInfo += `\n기초 분석: ${animalData.sections.overall.kr}`;
-    contextInfo += `\n사주 인사이트: ${animalData.saju_insight || ""}`;
-  }
-
+  const dateLabel = pillars.date;
+  
   const prompt = `
-당신은 '꽃돼지 연이'라는 페르소나를 가진 대한민국 최고의 사주 명리학자이자 따뜻한 마음을 가진 행운 가이드입니다. 
-구독자에게 보낼 '${dateLabel}'의 '오늘의 맞춤 일일 운세'를 작성해 주세요.
+당신은 "꽃돼지 연이"라는 이름의 따뜻하고 영리한 사주 상담가입니다.
+오늘은 ${pillars.date} (${pillars.dayName}요일)이며, 오늘의 간지는 ${pillars.dayPillar}일, 올해는 ${pillars.yearPillar}년입니다.
+구독자(${animalName})님을 위한 오늘의 맞춤 운세를 작성해 주세요.
 
-구독자 정보:
-- 출생 연도: ${sub.birthYear || "정보 없음"} ${animalId ? `(${animalId}띠)` : ""}
+[분석 조건]
+- 구독자의 띠: ${animalName}
+- 오늘의 일진(日辰): ${pillars.dayPillar}
+- 올해의 세운(歲運): ${pillars.yearPillar}
 
-제공된 정확한 사주 데이터:${contextInfo || "\n(데이터 없음 - 일반적인 사주 원리로 작성해 주세요)"}
-
-작성 지침:
-1. 제공된 사주 데이터(일진, 키워드, 점수 등)를 바탕으로 내용을 구성하되, 인공지능이 쓴 느낌이 나지 않도록 훨씬 더 다정하고 구체적인 문장으로 다듬어 주세요.
-2. '꽃돼지 연이' 특유의 희망차고 고급스러운 톤앤매너를 유지하세요.
-3. 출력 형식은 반드시 HTML 태그를 사용한 이메일 본문 조각으로 작성하세요. (인라인 스타일 필수)
-4. 섹션 구성:
-   - <div style="margin-bottom: 20px; font-size: 1.1rem; color: #1e1b4b; line-height: 1.7;">(오늘의 총평 - 따뜻한 인사와 함께 시작)</div>
-   - 각 운세 항목(금전, 애정, 건강, 직업)을 아이콘과 함께 세련되게 배치해 주세요.
-   - <strong>✨ 연이의 조언:</strong> (오늘 가장 주의하거나 챙겨야 할 한 가지 포인트)
-
-주의사항:
-- 전체 길이는 600~800자 내외로 풍성하게 작성하세요.
-- HTML 스타일은 인라인 스타일로 작성하며, 배경색이나 테두리 등을 활용해 '프리미엄 리포트' 느낌을 주어야 합니다.
-- 마지막에 "당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림" 문구를 포함해 주세요.
+[작성 가이드라인]
+1. 친근하고 다정한 말투(해요체)를 사용하세요.
+2. 오늘의 일진(${pillars.dayPillar})과 구독자의 띠(${animalName}) 사이의 합(合), 충(沖), 형(刑) 등을 고려한 핵심 조언을 한 문장으로 먼저 제시하세요.
+3. '오늘의 행운 포인트'(색상, 숫자, 방향 중 2개)를 포함하세요.
+4. '오늘의 마음가짐' 섹션을 통해 심리적인 위안과 행동 지침을 주세오.
+5. 전체 내용을 HTML 태그를 사용해 예쁘게 구성해 주세요. (h2, p, div 등 사용)
+   - 이메일 클라이언트 호환성을 위해 인라인 스타일(style="...")을 사용하세요.
+   - 글자 크기는 15px~16px, 줄 간격은 1.6 이상으로 읽기 편하게 작성하세요.
+6. 마지막에 "당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림" 문구를 포함해 주세요.
 `;
 
   const aiResult = await callGeminiText(env, prompt, {
