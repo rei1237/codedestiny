@@ -2372,7 +2372,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 심화 분析 (H 프리미엄) -->
                 <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
                         data-action="navigateToZiweiChart"
-                        data-tile-lock-key="ziwei-deep"
+                        data-tile-lock-key="premium-ziwei"
                         data-tile-lock-cost="500"
                         aria-label="자미두수 심화 분析 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamigod.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
@@ -2462,7 +2462,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 운명의 꽃 통합 아틀리에 -->
                 <button class="tarot-tile tarot-tile--bloom" type="button"
                         data-action="openDestinyFlowerStudio"
-                        data-coin-cost="50"
+                        data-tile-lock-key="flower-fc"
+                        data-tile-lock-cost="200"
                         aria-label="운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수 통합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
@@ -2478,6 +2479,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 점성술 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--astro-flower" type="button"
                         data-action="openAstrologyFlowerStudio"
+                        data-tile-lock-key="flower-fc"
+                        data-tile-lock-cost="200"
                         aria-label="점성술 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower2.webp" data-img-alt="점성술 운명의 꽃 — 네온 성운 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
@@ -2492,6 +2495,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--jami-flower" type="button"
                         data-action="openJamidusuFlowerStudio"
+                        data-tile-lock-key="flower-fc"
+                        data-tile-lock-cost="200"
                         aria-label="자미두수 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower3.webp" data-img-alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌺</span></div>
@@ -2506,6 +2511,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 숙요 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--sukuyo-fl" type="button"
                         data-action="openSukuyoFlowerStudio"
+                        data-tile-lock-key="flower-fc"
+                        data-tile-lock-cost="200"
                         aria-label="숙요 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower4.webp" data-img-alt="숙요 운명의 꽃 — 27숙 달빛 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
@@ -6203,6 +6210,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var TILE_LOCK_ALIAS_MAP = {
     'olympus-profile-fc': ['olympus-fc'],
     'olympus-fc': ['olympus-profile-fc'],
+    'premium-ziwei': ['ziwei-deep'],
+    'ziwei-deep': ['premium-ziwei'],
     'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
     'flower-destiny': ['flower-fc'],
     'flower-astro': ['flower-fc'],
@@ -6234,7 +6243,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function isTileKeyUnlocked(rawKey) {
-    return !!String(rawKey || '').trim();
+    var keys = resolveTileLockAliasKeys(rawKey);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (unlockedFeatureMap[keys[i]] === true) return true;
+    }
+    return false;
   }
   var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
   var goldenPackages = [
@@ -6471,7 +6484,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   var SECTION_GATE_KEYS=[{gateId:'daewunGate',unlockKey:'section_daewun'},{gateId:'summaryGate',unlockKey:'section_summary'},{gateId:'compatGate',unlockKey:'section_compat'}];
-  function applySectionGates(){SECTION_GATE_KEYS.forEach(function(sg){var el=document.getElementById(sg.gateId);if(!el)return;el.classList.add('cd-section-gate--unlocked');});}
+  function applySectionGates(){SECTION_GATE_KEYS.forEach(function(sg){var el=document.getElementById(sg.gateId);if(!el)return;if(unlockedFeatureMap[sg.unlockKey]){el.classList.add('cd-section-gate--unlocked');}else{el.classList.remove('cd-section-gate--unlocked');}});}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
@@ -6641,7 +6654,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       section_summary: 'unlock.section_summary',
       section_compat: 'unlock.section_compat',
       'flower-fc': 'unlock.flower_fc',
-      'olympus-fc': 'unlock.olympus_fc'
+      'olympus-fc': 'unlock.olympus_fc',
+      'premium-ziwei': 'unlock.premium_ziwei',
+      'ziwei-deep': 'unlock.premium_ziwei'
     };
     return map[key] || '';
   }
@@ -8968,6 +8983,7 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
+
 
 
 

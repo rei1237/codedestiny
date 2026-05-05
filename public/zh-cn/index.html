@@ -2372,7 +2372,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 심화 분析 (H 프리미엄) -->
                 <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
                         data-action="navigateToZiweiChart"
-                        data-tile-lock-key="ziwei-deep"
+                        data-tile-lock-key="premium-ziwei"
                         data-tile-lock-cost="500"
                         aria-label="자미두수 심화 분析 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamigod.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
@@ -6213,6 +6213,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var TILE_LOCK_ALIAS_MAP = {
     'olympus-profile-fc': ['olympus-fc'],
     'olympus-fc': ['olympus-profile-fc'],
+    'premium-ziwei': ['ziwei-deep'],
+    'ziwei-deep': ['premium-ziwei'],
     'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
     'flower-destiny': ['flower-fc'],
     'flower-astro': ['flower-fc'],
@@ -6676,7 +6678,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       section_summary: 'unlock.section_summary',
       section_compat: 'unlock.section_compat',
       'flower-fc': 'unlock.flower_fc',
-      'olympus-fc': 'unlock.olympus_fc'
+      'olympus-fc': 'unlock.olympus_fc',
+      'premium-ziwei': 'unlock.premium_ziwei',
+      'ziwei-deep': 'unlock.premium_ziwei'
     };
     return map[key] || '';
   }
