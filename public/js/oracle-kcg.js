@@ -515,6 +515,8 @@ function consumeKemetPerUseCoin() {
       return;
     }
 
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
+
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: {
@@ -562,6 +564,8 @@ function consumeKemetPerUseCoin() {
     }).catch(function() {
       alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       resolve(false);
+    }).finally(function() {
+      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
     });
   });
 }

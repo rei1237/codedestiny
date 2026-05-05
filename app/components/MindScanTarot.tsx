@@ -3,6 +3,8 @@
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showToast } from "./Toast";
+import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
+import { usePayment } from "../hooks/usePayment";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 type Stage = "intro" | "picking" | "spread" | "result";
@@ -879,6 +881,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function MindScanTarot() {
+  const { startPayment, endPayment } = usePayment();
   const [stage, setStage] = useState<Stage>("intro");
   const [pickRound, setPickRound] = useState<PickRound>("main");
   const [mainPicks, setMainPicks] = useState<number[]>([]);
@@ -952,6 +955,7 @@ export default function MindScanTarot() {
     setReadingError("");
     let consumedTxId = "";
     let refundHeaders: Record<string, string> | null = null;
+    let paymentOverlayActive = false;
     try {
       const isAdminLikeUser = () => {
         if (typeof window === "undefined") return false;
@@ -997,6 +1001,8 @@ export default function MindScanTarot() {
       }
 
       if (!isFlowerAdminMode) {
+        paymentOverlayActive = true;
+        startPayment("결제를 확인 중입니다...");
         const consumeRequestHeaders: Record<string, string> = {
           "Content-Type": "application/json",
           ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
@@ -1028,7 +1034,18 @@ export default function MindScanTarot() {
         consumedTxId = String(consumeData?.transactionId || "");
         refundHeaders = consumeRequestHeaders;
         const remainPoints = Number(consumeData?.user?.points ?? 0);
-        showToast(`🪙 마인드 스캔 타로 이용으로 ${MINDSCAN_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
+        const chargedCoins = Number(consumeData?.chargedCoins ?? MINDSCAN_COIN_COST);
+        if (isSubscriptionIncludedResponse(consumeData, chargedCoins)) {
+          showSubscriptionIncludedNotice({
+            message: String(consumeData?.message || "구독 혜택이 적용되어 코인이 차감되지 않았습니다."),
+            reason: "마인드 스캔 타로",
+            tier: String(consumeData?.subscriptionTier || ""),
+          });
+        } else if (chargedCoins > 0) {
+          showToast(`🪙 마인드 스캔 타로 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
+        }
+        endPayment();
+        paymentOverlayActive = false;
       }
 
       const res = await fetch("/api/tarot/mindscan", {
@@ -1074,9 +1091,10 @@ export default function MindScanTarot() {
       }
       setReadingError(e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
+      if (paymentOverlayActive) endPayment();
       setReadingLoading(false);
     }
-  }, [readingLoading, reading]);
+  }, [readingLoading, reading, startPayment, endPayment]);
 
   const restart = useCallback(() => {
     setStage("intro"); setPickRound("main");

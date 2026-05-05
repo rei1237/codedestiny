@@ -450,6 +450,159 @@
     } catch (_) {}
   }
 
+  function _cdGetSubscriptionTierLabel(tierRaw) {
+    var tier = String(tierRaw || '').trim().toLowerCase();
+    if (tier === 'vip') tier = 'vvip';
+    if (tier === 'unlimited') tier = 'vvip';
+    if (tier === 'pro') tier = 'premium';
+    if (tier === 'basic') tier = 'standard';
+    if (tier === 'vvip') return 'VVIP';
+    if (tier === 'premium') return '프리미엄';
+    if (tier === 'standard') return '스탠다드';
+    return '멤버십';
+  }
+
+  function _cdShowSubscriptionIncludedNotice(message, reason, tierRaw) {
+    try {
+      var now = Date.now();
+      var key = String(reason || '') + '|' + String(tierRaw || '');
+      if (window.__cdSubIncludedNoticeKey === key && (now - Number(window.__cdSubIncludedNoticeAt || 0)) < 1200) return;
+      window.__cdSubIncludedNoticeKey = key;
+      window.__cdSubIncludedNoticeAt = now;
+
+      var oldRoot = document.getElementById('cd-sub-included-notice');
+      if (oldRoot && oldRoot.parentNode) oldRoot.parentNode.removeChild(oldRoot);
+
+      var styleId = 'cd-sub-included-notice-style';
+      if (!document.getElementById(styleId)) {
+        var styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        styleEl.textContent = ''
+          + '@keyframes cdSubInFade { from { opacity:0; transform: translateY(12px) scale(0.96); } to { opacity:1; transform: translateY(0) scale(1); } }'
+          + '@keyframes cdSubStarTwinkle { 0%,100% { opacity:.35; transform: scale(1); } 50% { opacity:1; transform: scale(1.25); } }'
+          + '@keyframes cdSubAuraPulse { 0%,100% { opacity:.35; transform: scale(1); } 50% { opacity:.7; transform: scale(1.08); } }';
+        document.head.appendChild(styleEl);
+      }
+
+      var root = document.createElement('div');
+      root.id = 'cd-sub-included-notice';
+      root.style.position = 'fixed';
+      root.style.inset = '0';
+      root.style.zIndex = '100001';
+      root.style.display = 'flex';
+      root.style.alignItems = 'center';
+      root.style.justifyContent = 'center';
+      root.style.padding = '20px';
+      root.style.background = 'radial-gradient(circle at 20% 20%, rgba(56,189,248,0.16), transparent 45%), radial-gradient(circle at 80% 80%, rgba(168,85,247,0.22), transparent 52%), rgba(3,7,18,0.56)';
+      root.style.backdropFilter = 'blur(8px)';
+
+      var card = document.createElement('div');
+      card.style.position = 'relative';
+      card.style.width = 'min(92vw, 540px)';
+      card.style.borderRadius = '24px';
+      card.style.padding = '24px 22px 20px';
+      card.style.border = '1px solid rgba(125,211,252,0.4)';
+      card.style.background = 'linear-gradient(160deg, rgba(15,23,42,0.96) 0%, rgba(30,41,59,0.96) 45%, rgba(49,46,129,0.92) 100%)';
+      card.style.boxShadow = '0 30px 60px rgba(2,6,23,0.6), 0 0 38px rgba(56,189,248,0.26), inset 0 1px 0 rgba(255,255,255,0.14)';
+      card.style.color = '#e2e8f0';
+      card.style.animation = 'cdSubInFade 280ms cubic-bezier(.2,.9,.2,1)';
+      card.style.overflow = 'hidden';
+
+      var auraTop = document.createElement('div');
+      auraTop.style.position = 'absolute';
+      auraTop.style.width = '220px';
+      auraTop.style.height = '220px';
+      auraTop.style.left = '-80px';
+      auraTop.style.top = '-110px';
+      auraTop.style.borderRadius = '50%';
+      auraTop.style.background = 'radial-gradient(circle, rgba(56,189,248,0.5), rgba(56,189,248,0) 70%)';
+      auraTop.style.filter = 'blur(6px)';
+      auraTop.style.animation = 'cdSubAuraPulse 2.6s ease-in-out infinite';
+
+      var auraBottom = document.createElement('div');
+      auraBottom.style.position = 'absolute';
+      auraBottom.style.width = '240px';
+      auraBottom.style.height = '240px';
+      auraBottom.style.right = '-90px';
+      auraBottom.style.bottom = '-130px';
+      auraBottom.style.borderRadius = '50%';
+      auraBottom.style.background = 'radial-gradient(circle, rgba(167,139,250,0.45), rgba(167,139,250,0) 72%)';
+      auraBottom.style.filter = 'blur(8px)';
+      auraBottom.style.animation = 'cdSubAuraPulse 3.2s ease-in-out infinite';
+
+      var stars = document.createElement('div');
+      stars.style.position = 'absolute';
+      stars.style.inset = '0';
+      stars.style.pointerEvents = 'none';
+      stars.innerHTML = '<span style="position:absolute;left:11%;top:16%;width:4px;height:4px;border-radius:999px;background:#bfdbfe;animation:cdSubStarTwinkle 2.1s ease-in-out infinite"></span>'
+        + '<span style="position:absolute;left:82%;top:22%;width:5px;height:5px;border-radius:999px;background:#a5f3fc;animation:cdSubStarTwinkle 2.8s ease-in-out infinite"></span>'
+        + '<span style="position:absolute;left:70%;top:68%;width:3px;height:3px;border-radius:999px;background:#e9d5ff;animation:cdSubStarTwinkle 1.9s ease-in-out infinite"></span>'
+        + '<span style="position:absolute;left:22%;top:72%;width:3px;height:3px;border-radius:999px;background:#fef3c7;animation:cdSubStarTwinkle 2.5s ease-in-out infinite"></span>';
+
+      var tierLabel = _cdGetSubscriptionTierLabel(tierRaw);
+      var title = document.createElement('div');
+      title.style.position = 'relative';
+      title.style.zIndex = '1';
+      title.innerHTML = ''
+        + '<div style="display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(56,189,248,0.14);border:1px solid rgba(125,211,252,0.36);font-size:11px;font-weight:800;letter-spacing:.1em;color:#bae6fd;">'
+        + '<span>✦</span><span>COSMIC MEMBERSHIP ACTIVE</span></div>'
+        + '<h3 style="margin:14px 0 8px;font-size:26px;line-height:1.28;color:#f8fafc;letter-spacing:-.02em;">구독 혜택 적용 완료</h3>'
+        + '<p style="margin:0;color:rgba(226,232,240,.95);font-size:14px;line-height:1.65;">'
+        + String(message || '구독 혜택이 적용되어 이번 이용은 코인이 차감되지 않았습니다. 별빛 보호가 리딩을 지켜드리고 있어요.')
+        + '</p>';
+
+      var meta = document.createElement('div');
+      meta.style.position = 'relative';
+      meta.style.zIndex = '1';
+      meta.style.marginTop = '14px';
+      meta.style.padding = '12px';
+      meta.style.borderRadius = '14px';
+      meta.style.background = 'rgba(15,23,42,0.48)';
+      meta.style.border = '1px solid rgba(148,163,184,0.26)';
+      meta.style.fontSize = '13px';
+      meta.style.lineHeight = '1.7';
+      meta.innerHTML = ''
+        + '<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">구독 플랜</span><strong style="color:#f8fafc;">' + tierLabel + '</strong></div>'
+        + '<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">차감 코인</span><strong style="color:#86efac;">0코인</strong></div>'
+        + '<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">서비스</span><strong style="color:#f8fafc;">' + String(reason || '프리미엄 리딩') + '</strong></div>';
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = '우주의 리딩 계속하기';
+      btn.style.position = 'relative';
+      btn.style.zIndex = '1';
+      btn.style.marginTop = '16px';
+      btn.style.width = '100%';
+      btn.style.border = '1px solid rgba(125,211,252,0.45)';
+      btn.style.borderRadius = '12px';
+      btn.style.padding = '12px 14px';
+      btn.style.background = 'linear-gradient(135deg, rgba(14,165,233,0.28), rgba(99,102,241,0.36))';
+      btn.style.color = '#e0f2fe';
+      btn.style.fontSize = '14px';
+      btn.style.fontWeight = '800';
+      btn.style.cursor = 'pointer';
+
+      function closeNotice() {
+        if (root && root.parentNode) root.parentNode.removeChild(root);
+      }
+      btn.addEventListener('click', closeNotice);
+      root.addEventListener('click', function (evt) {
+        if (evt.target === root) closeNotice();
+      });
+
+      card.appendChild(auraTop);
+      card.appendChild(auraBottom);
+      card.appendChild(stars);
+      card.appendChild(title);
+      card.appendChild(meta);
+      card.appendChild(btn);
+      root.appendChild(card);
+      document.body.appendChild(root);
+
+      setTimeout(closeNotice, 6200);
+    } catch (_) {}
+  }
+
   function _cdIsAdminLikeUser() {
     var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
     try {
@@ -531,6 +684,7 @@
     }
     var requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     window._cdCoinGatePerUseInFlight = true;
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제가 진행 중입니다. 잠시만 기다려 주세요.');
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -539,6 +693,7 @@
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
+      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
@@ -550,14 +705,22 @@
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
       var chargedCoins = Number((res.data && res.data.chargedCoins) || 0);
-      if (res.data && res.data.freeBySubscription === true) {
-        window.alert(String(res.data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+      var freeBySubscription = Boolean(
+        res.data
+        && (
+          res.data.freeBySubscription === true
+          || String(res.data.code || '') === 'SUBSCRIPTION_INCLUDED'
+          || (chargedCoins === 0 && String(res.data.subscriptionTier || 'free').toLowerCase() !== 'free')
+        )
+      );
+      if (freeBySubscription) {
+        _cdShowSubscriptionIncludedNotice(res.data && res.data.message, reason, res.data && res.data.subscriptionTier);
       } else if (chargedCoins > 0) {
         _cdShowCoinDeductNotice(chargedCoins, nb, reason);
       }
       cb();
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {
@@ -676,6 +839,7 @@
           forceDeduct: true,
           requestId: requestId
         };
+      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다. 잠시만 기다려 주세요.');
       fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -708,8 +872,16 @@
         _dpSaveUserBalance(newBalance);
         if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newBalance);
         var chargedCoins = Number((res.data && res.data.chargedCoins) || info.cost);
-        if (res.data && res.data.freeBySubscription === true) {
-          window.alert(String(res.data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+        var freeBySubscription = Boolean(
+          res.data
+          && (
+            res.data.freeBySubscription === true
+            || String(res.data.code || '') === 'SUBSCRIPTION_INCLUDED'
+            || (chargedCoins === 0 && String(res.data.subscriptionTier || 'free').toLowerCase() !== 'free')
+          )
+        );
+        if (freeBySubscription) {
+          _cdShowSubscriptionIncludedNotice(res.data && res.data.message, info.name, res.data && res.data.subscriptionTier);
         } else if (chargedCoins > 0) {
           _cdShowCoinDeductNotice(chargedCoins, newBalance, info.name + ' 영구 해금');
         }
@@ -722,6 +894,9 @@
         inFlight = false;
         console.error('[dp-coin-gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      })
+      .finally(function () {
+        if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
       });
     })();
   }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePayment } from "../hooks/usePayment";
 
 export default function FlowerUnlockGate({
   slug,
@@ -10,6 +11,7 @@ export default function FlowerUnlockGate({
   currentPoints = 0,
 }) {
   const router = useRouter();
+  const { startPayment, endPayment } = usePayment();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -24,8 +26,11 @@ export default function FlowerUnlockGate({
     if (isSubmitting) return;
     setMessage("");
     setIsSubmitting(true);
+    let paymentOverlayActive = false;
 
     try {
+      paymentOverlayActive = true;
+      startPayment("결제를 확인 중입니다...");
       const response = await fetch("/api/coins/spend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,9 +69,12 @@ export default function FlowerUnlockGate({
 
       setMessage("해금이 완료되었습니다. 결과를 불러오는 중입니다.");
       router.refresh();
+      endPayment();
+      paymentOverlayActive = false;
     } catch (_error) {
       setMessage("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      if (paymentOverlayActive) endPayment();
       setIsSubmitting(false);
     }
   }

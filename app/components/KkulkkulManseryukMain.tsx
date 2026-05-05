@@ -6,6 +6,7 @@ import HPremiumAstrologySection from "./HPremiumAstrologySection";
 import HPremiumVedicSection from "./HPremiumVedicSection";
 import HPremiumNamingSection from "./HPremiumNamingSection";
 import { showToast } from "./Toast";
+import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
 import { usePayment } from "../hooks/usePayment";
 
@@ -260,6 +261,21 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
   showToast(`🪙 ${label} 이용으로 ${cost}코인이 차감되었습니다. 남은 코인: ${Number(points).toLocaleString("ko-KR")}`, "info");
 }
 
+function notifyCoinResult(data: any, fallbackCost: number, points: number, label: string) {
+  const chargedCoins = Number(data?.chargedCoins ?? fallbackCost);
+  if (isSubscriptionIncludedResponse(data, chargedCoins)) {
+    showSubscriptionIncludedNotice({
+      message: String(data?.message || "구독 혜택이 적용되어 코인이 차감되지 않았습니다."),
+      reason: label,
+      tier: String(data?.subscriptionTier || ""),
+    });
+    return;
+  }
+  if (chargedCoins > 0) {
+    notifyCoinDeducted(chargedCoins, points, label);
+  }
+}
+
 function markRunePrepaidOnce() {
   try {
     sessionStorage.setItem(
@@ -345,7 +361,7 @@ export default function KkulkkulManseryukMain() {
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
-      notifyCoinDeducted(cost, newPoints, key);
+      notifyCoinResult(data, cost, newPoints, key);
       setUnlockedFeatures((prev) => {
         const next = { ...prev, [key]: true };
         if (alsoUnlock?.length) {
@@ -389,7 +405,7 @@ export default function KkulkkulManseryukMain() {
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
-      notifyCoinDeducted(cost, newPoints, key);
+      notifyCoinResult(data, cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
       if (key === "stonehengeRunes") {
@@ -514,7 +530,7 @@ export default function KkulkkulManseryukMain() {
         const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
         setCurrentCoins(newPoints);
         saveUserPoints(newPoints);
-        notifyCoinDeducted(cost, newPoints, `${service} 프리미엄`);
+        notifyCoinResult(data, cost, newPoints, `${service} 프리미엄`);
         setPremiumFlowStage('generate');
       } catch (e) {
         console.error('[handleStartPremiumGeneration]', e);

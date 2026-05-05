@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { showToast } from "./Toast";
+import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
+import { usePayment } from "../hooks/usePayment";
 
 type DrawnCard = {
   cardId: string;
@@ -92,6 +94,7 @@ function safeCardName(card?: DrawnCard, idx?: number) {
 
 export default function LoveRelationshipTarot() {
   const router = useRouter();
+  const { startPayment, endPayment } = usePayment();
   const [cards, setCards] = useState<DrawnCard[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -135,6 +138,7 @@ export default function LoveRelationshipTarot() {
     setError("");
     let consumedTxId = "";
     let refundHeaders: Record<string, string> | null = null;
+    let paymentOverlayActive = false;
     try {
       const isAdminLikeUser = () => {
         if (typeof window === "undefined") return false;
@@ -180,6 +184,8 @@ export default function LoveRelationshipTarot() {
       }
 
       if (!isFlowerAdminMode) {
+        paymentOverlayActive = true;
+        startPayment("결제를 확인 중입니다...");
         const consumeRequestHeaders: Record<string, string> = {
           "Content-Type": "application/json",
           ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
@@ -211,7 +217,18 @@ export default function LoveRelationshipTarot() {
         consumedTxId = String(consumeData?.transactionId || "");
         refundHeaders = consumeRequestHeaders;
         const remainPoints = Number(consumeData?.user?.points ?? 0);
-        showToast(`🪙 우리는 무슨 사이? 타로 이용으로 ${LOVE_RELATIONSHIP_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
+        const chargedCoins = Number(consumeData?.chargedCoins ?? LOVE_RELATIONSHIP_COIN_COST);
+        if (isSubscriptionIncludedResponse(consumeData, chargedCoins)) {
+          showSubscriptionIncludedNotice({
+            message: String(consumeData?.message || "구독 혜택이 적용되어 코인이 차감되지 않았습니다."),
+            reason: "우리는 무슨 사이 타로",
+            tier: String(consumeData?.subscriptionTier || ""),
+          });
+        } else if (chargedCoins > 0) {
+          showToast(`🪙 우리는 무슨 사이? 타로 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
+        }
+        endPayment();
+        paymentOverlayActive = false;
       }
 
       const payloadCards = cards.map((c) => ({
@@ -262,6 +279,7 @@ export default function LoveRelationshipTarot() {
       }
       setError(e?.message || "해석 생성 중 오류가 발생했습니다.");
     } finally {
+      if (paymentOverlayActive) endPayment();
       setLoading(false);
     }
   }
