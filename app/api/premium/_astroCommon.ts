@@ -63,7 +63,10 @@ export const ASTRO_CHAPTER_META = [
   { num: 10, title: "노드와 영혼의 목적", subtitle: "North Node/South Node", icon: "☊" },
   { num: 11, title: "트랜짓 운세 전략", subtitle: "현재 행성 흐름 적용", icon: "📡" },
   { num: 12, title: "마스터 플랜", subtitle: "12개월 실행 로드맵", icon: "📜" },
+  { num: 13, title: "90일 현실 전환 플랜", subtitle: "관계·커리어·재정 실천 설계", icon: "🧭" },
 ];
+
+export const ASTRO_TOTAL_CHAPTERS = ASTRO_CHAPTER_META.length;
 
 function nd(n: number) {
   return ((n % 360) + 360) % 360;
@@ -168,18 +171,52 @@ export function fallbackAstroText(chapter: number, chart: ReturnType<typeof buil
   const sun = chart.planets.Sun;
   const moon = chart.planets.Moon;
   const asc = chart.ascendant;
-  return [
+  const lines = [
     `## ${meta.title}`,
     `이 챕터는 서양 점성술 차트 기반 리포트입니다. 상승궁은 ${asc.signKo}, 태양은 ${sun.signKo}, 달은 ${moon.signKo}에 놓여 있어 겉으로 드러나는 인상, 의지의 방향, 감정 안전기지가 서로 다른 층으로 작동합니다.`,
     `## 차트 해석`,
     `${meta.subtitle} 관점에서 가장 중요한 점은 행성 하나를 단독으로 보지 않고 하우스와 에스펙트를 함께 읽는 것입니다. 현재 차트의 주요 에스펙트 ${chart.aspects.length}개는 삶의 반복 패턴을 드러내며, 강한 긴장각은 훈련할수록 장점으로 바뀝니다.`,
     `## 실행 전략`,
     `이번 리포트는 PDF 보관용으로 읽을 수 있도록 행동 기준을 포함합니다. 앞으로 30일 동안 ${meta.title}에 해당하는 선택을 할 때, 즉흥 반응보다 '내 상승궁이 보여주는 방식'과 '달이 실제로 안정을 느끼는 방식'을 분리해 기록하세요.`,
-  ].join("\n\n");
+  ];
+
+  if (chapter === 12) {
+    const monthBlocks = Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      return [
+        `## ${m}월`,
+        "- 핵심 흐름: 장기 목표와 일상 루틴의 정렬",
+        "- 좋은 선택: 우선순위 1개를 먼저 마감",
+        "- 주의할 점: 감정적 과속 결정",
+        "- 개운 행동: 주간 복기 30분 고정",
+      ].join("\n");
+    });
+    lines.push(...monthBlocks);
+  }
+
+  if (chapter === 13) {
+    lines.push(
+      "## 90일 실행표",
+      "| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |",
+      "|---|---|---|---|---|",
+      "| 1~7일 | 핵심 의사결정 기준 정리 | 매일 10분 점검 기록 | 과도한 정보 탐색 | 판단 피로 감소 |",
+      "| 8~30일 | 루틴 안정화 | 주 3회 핵심 과제 선완료 | 일정 과포화 | 실행 일관성 상승 |",
+      "| 31~60일 | 관계/일 조율 | 경계 설정 + 피드백 루프 | 감정 과잉 반응 | 갈등 비용 감소 |",
+      "| 61~90일 | 성과 고도화 | 월간 리뷰와 전략 수정 | 단기 성과 집착 | 장기 성과 체감 |",
+    );
+  }
+
+  return lines.join("\n\n");
 }
 
 export function buildAstroPrompt(chapter: number, chart: ReturnType<typeof buildWesternChart>) {
   const meta = ASTRO_CHAPTER_META[chapter - 1] ?? ASTRO_CHAPTER_META[0];
+  const monthlyRule = chapter === 12
+    ? "챕터 12는 반드시 1월부터 12월까지 월별 블록을 포함하세요."
+    : "";
+  const roadmapRule = chapter === 13
+    ? "챕터 13은 반드시 1~7일/8~30일/31~60일/61~90일 표를 포함하세요."
+    : "";
   return `당신은 전문 서양 점성술 리포트 작가입니다.
 
 차트 데이터:
@@ -199,6 +236,9 @@ export function buildAstroPrompt(chapter: number, chart: ReturnType<typeof build
 ## 삶에서 드러나는 패턴
 ## 관계/커리어/타이밍 적용
 ## 30일 실행 가이드
+
+${monthlyRule}
+${roadmapRule}
 
 각 섹션은 2문단 이상으로, 앱 사용자가 바로 행동으로 옮길 수 있는 구체적 조언을 포함하세요.`;
 }

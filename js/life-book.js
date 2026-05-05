@@ -71,14 +71,8 @@
     '하늘이 숨긴 천기(天機)를 펼쳐 당신의 이름으로 기록합니다.',
   ];
 
-  var MIN_CHAPTER_CHARS = 6000;
-  var MIN_TOTAL_CHARS = 65500;
-  var LIFE_BOOK_FEATURE_KEY = 'life-book';
-  var LIFE_BOOK_TX_KEY = 'cd_premium_tx_lifebook';
-
   /* ─────────────── 상태 ─────────────── */
   var _chapters = Array(13).fill(null);
-  var _chapterSubtitles = CHAPTER_SUBTITLES.slice();
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -90,92 +84,6 @@
       try { _activeRequestController.abort(); } catch (_) {}
       _activeRequestController = null;
     }
-  }
-
-  function _getAuthToken() {
-    try { return localStorage.getItem('fortune_auth_token') || ''; } catch (_) { return ''; }
-  }
-
-  function _consumeLifeBook(cost) {
-    var token = _getAuthToken();
-    if (!token) {
-      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-        window.location.href = '/login?next=%2F';
-      }
-      return Promise.resolve(false);
-    }
-
-    if (!window.confirm('🪙 인생의 책 생성에는 ' + Number(cost || 0).toLocaleString('ko-KR') + '코인이 차감됩니다.\n진행하시겠습니까?')) {
-      return Promise.resolve(false);
-    }
-
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
-    return fetch('/api/fortune/pig-coin/consume', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        cost: Number(cost || 0),
-        reason: '인생의 책 생성 (13챕터)',
-        featureKey: LIFE_BOOK_FEATURE_KEY,
-      }),
-    })
-      .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (data) {
-          return { ok: res.ok, status: res.status, data: data || {} };
-        });
-      })
-      .then(function (result) {
-        if (!result.ok) {
-          if (result.status === 402 && typeof window.__cdOpenChargeModal === 'function') {
-            window.alert((result.data && result.data.message) || '코인이 부족합니다.');
-            window.__cdOpenChargeModal();
-          } else {
-            window.alert((result.data && result.data.message) || '결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-          }
-          return false;
-        }
-
-        try {
-          var txId = String((result.data && result.data.transactionId) || '').trim();
-          if (txId) sessionStorage.setItem(LIFE_BOOK_TX_KEY, txId);
-        } catch (_) {}
-        return true;
-      })
-      .catch(function () {
-        window.alert('결제 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        return false;
-      })
-      .finally(function () {
-        if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
-      });
-  }
-
-  function _autoRefundLifeBook(cost) {
-    var token = _getAuthToken();
-    if (!token) return Promise.resolve(false);
-
-    var sourceTransactionId = '';
-    try { sourceTransactionId = sessionStorage.getItem(LIFE_BOOK_TX_KEY) || ''; } catch (_) {}
-
-    var requestId = 'premium-refund:' + LIFE_BOOK_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-
-    return fetch('/api/fortune/pig-coin/refund', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        cost: Number(cost || 0),
-        reason: '인생의 책 생성 실패 자동 환급',
-        featureKey: LIFE_BOOK_FEATURE_KEY,
-        sourceTransactionId: sourceTransactionId,
-        requestId: requestId,
-      }),
-    })
-      .then(function (res) {
-        if (!res.ok) return false;
-        try { sessionStorage.removeItem(LIFE_BOOK_TX_KEY); } catch (_) {}
-        return true;
-      })
-      .catch(function () { return false; });
   }
 
   /* ─────────────── 유틸 ─────────────── */
@@ -607,8 +515,6 @@
     try {
       localStorage.setItem(_lbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
-        subtitles: _chapterSubtitles,
-        totalChars: _chapters.reduce(function (acc, c) { return acc + (typeof c === 'string' ? c.trim().length : 0); }, 0),
         name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
         gender: (profile && profile.gender) || '',
@@ -662,24 +568,16 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 저장된 데이터 복원 시도 — 13개 챕터 모두 최소 글자수 조건을 만족해야 복원
+    // 저장된 데이터 복원 시도 — 유효 챕터가 10개 이상이고 각 500자 이상이어야 복원
     var saved = _lbLoadSaved(profile);
     var _savedValidCount = saved && saved.chapters
       ? saved.chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length
       : 0;
-    var _savedTotalChars = saved && Array.isArray(saved.chapters)
-      ? saved.chapters.reduce(function (acc, c) {
-          return acc + (typeof c === 'string' ? c.trim().length : 0);
-        }, 0)
-      : 0;
-    var hasValidCache = _savedValidCount === 13 && _savedTotalChars >= MIN_TOTAL_CHARS;
+    var hasValidCache = _savedValidCount >= 10;
     if (hasValidCache) {
       _chapters = saved.chapters;
-      _chapterSubtitles = (saved && Array.isArray(saved.subtitles) && saved.subtitles.length === 13)
-        ? saved.subtitles
-        : CHAPTER_SUBTITLES.slice();
       _currentChapter = 1;
       _showScreen('lbResultScreen');
       _updateTocState();
@@ -709,7 +607,6 @@
     }
 
     _chapters = Array(13).fill(null);
-    _chapterSubtitles = CHAPTER_SUBTITLES.slice();
     _currentChapter = 1;
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
@@ -772,7 +669,7 @@
       '<div class="lb-chapter-header">' +
       '<span class="lb-chapter-num">Chapter ' + ch + '</span>' +
       '<h2 class="lb-chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
-      '<p class="lb-chapter-sub">' + _escHtml((_chapterSubtitles[idx] || CHAPTER_SUBTITLES[idx] || '')) + '</p>' +
+      '<p class="lb-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
       '</div>' +
       '<div class="lb-chapter-body">' + _md2html(data) + '</div>' +
       '</div>';
@@ -823,7 +720,6 @@
     _generating = true;
     _cancelGeneration = false;
     _chapters = Array(13).fill(null);
-    _chapterSubtitles = CHAPTER_SUBTITLES.slice();
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
@@ -901,16 +797,14 @@
       var _lbAuthToken = '';
       try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
-        var _maxAttemptsPerEndpoint = 3;
-        var _requestTimeoutMs = 70000;
         var _settled = false;
-        var _abortMsg = '응답 시간 초과 (70초). 네트워크 상태를 확인해 주세요.';
+        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
         var _endpoints = _buildApiCandidates('/api/lifebook/session');
         var _attemptPlan = [];
         var _lastMsg = '';
 
         for (var _ei = 0; _ei < _endpoints.length; _ei++) {
-          for (var _ri = 0; _ri < _maxAttemptsPerEndpoint; _ri++) {
+          for (var _ri = 0; _ri < 2; _ri++) {
             _attemptPlan.push({ url: _endpoints[_ei], retry: _ri + 1 });
           }
         }
@@ -942,7 +836,7 @@
             if (_controller) {
               try { _controller.abort(); } catch (_) {}
             }
-          }, _requestTimeoutMs);
+          }, 45000);
 
           fetch(_plan.url, {
             method: 'POST',
@@ -966,7 +860,7 @@
                 return;
               }
               _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
-              setTimeout(function () { _runAttempt(at + 1); }, 280 * (_plan.retry || 1));
+              _runAttempt(at + 1);
             })
             .catch(function (err) {
               clearTimeout(timeoutId);
@@ -976,7 +870,7 @@
               } else {
                 _lastMsg = String(err && err.message ? err.message : err);
               }
-              setTimeout(function () { _runAttempt(at + 1); }, 280 * (_plan.retry || 1));
+              _runAttempt(at + 1);
             });
         }
 
@@ -997,24 +891,13 @@
         _mysticTimer = null;
         _generating = false;
 
-        // 유효성 체크 — 챕터당 최소 6000자 + 총 65500자
+        // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 10개 미만이면 실패 처리
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length;
-        var _totalChars = _chapters.reduce(function(acc, c) {
-          return acc + (typeof c === 'string' ? c.trim().length : 0);
-        }, 0);
-        if (_validCount < 10 || _totalChars < MIN_TOTAL_CHARS) {
-          console.warn('[인생의 책] 생성 불완전. 유효 챕터:', _validCount + '/13', '총 글자수:', _totalChars, '실패 챕터:', _failCount);
-          var _errEl = _qs('lbErrorMsg');
-          if (_errEl) _errEl.textContent = '챕터 생성이 불완전합니다 (' + _validCount + '/13). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
-          _showScreen('lbErrorScreen');
-          _autoRefundLifeBook(window.__cdLifeBookPaidCost || 490)
-            .then(function (refunded) { if (refunded) window.alert('인생의 책 결제가 자동 환급되었습니다.'); });
-          return;
+        if (_validCount < 10) {
+          console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/13');
         }
-
-        try { sessionStorage.removeItem(LIFE_BOOK_TX_KEY); } catch (_) {}
 
         _showScreen('lbResultScreen');
         _updateTocState();
@@ -1041,16 +924,13 @@
       _fetchChapter(idx).then(function (data) {
         if (_cancelGeneration) return;
         var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
-        if (data && data.ok && _text.length >= MIN_CHAPTER_CHARS) {
+        if (data && data.ok && _text.length >= 500) {
           _chapters[idx] = data.text;
-          if (data.chapterMeta && typeof data.chapterMeta.subtitle === 'string' && data.chapterMeta.subtitle.trim()) {
-            _chapterSubtitles[idx] = data.chapterMeta.subtitle.trim();
-          }
         } else {
           _failCount++;
           var msg;
-          if (data && data.ok && _text.length > 0 && _text.length < MIN_CHAPTER_CHARS) {
-            msg = '챕터 내용이 최소 기준보다 짧습니다 (' + _text.length + '자 / 최소 ' + MIN_CHAPTER_CHARS + '자).';
+          if (data && data.ok && _text.length > 0 && _text.length < 500) {
+            msg = '챕터 내용이 너무 짧습니다 (' + _text.length + '자). API가 불완전한 응답을 반환했습니다.';
           } else {
             msg = (data && data.message) ? data.message : '알 수 없는 오류';
           }
@@ -1097,7 +977,7 @@
         '<div class="chapter-header">' +
         '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
         '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml((_chapterSubtitles[i] || CHAPTER_SUBTITLES[i] || '')) + '</p>' +
+        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
         '</div>' +
         '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
         '</div>';
@@ -1201,13 +1081,20 @@
         return;
       }
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
-      btn.disabled = true;
-      _consumeLifeBook(_lbCoinCost).then(function (paid) {
-        btn.disabled = false;
-        if (!paid) return;
-        window.__cdLifeBookPaidCost = _lbCoinCost;
-        window.generateLifeBook();
-      });
+      if (typeof window._cdCoinGatePerUse === 'function') {
+        // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
+        btn.disabled = true;
+        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
+          btn.disabled = false;
+          window.generateLifeBook();
+        }, function () {
+          // 취소 또는 오류 시 버튼 복원
+          btn.disabled = false;
+        });
+      } else {
+        // 결제 확인 모듈 미로드 — 결제 없이 생성 불가
+        window.alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
+      }
       return;
     }
     if (action === 'downloadLifeBookPdf') {

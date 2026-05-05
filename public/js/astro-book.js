@@ -1,9 +1,11 @@
 /**
  * 점성술 코즈믹 차트 프리미엄 (Astrology Cosmic Chart — Premium Life Report)
- * CODE-DESTINY v1.0  •  열대황도 점성술 기반 12챕터 인생 총람
+ * CODE-DESTINY v1.0  •  열대황도 점성술 기반 13챕터 인생 총람
  */
 (function () {
   'use strict';
+
+  var ASTRO_TOTAL_CHAPTERS = 13;
 
   var CHAPTER_TITLES = [
     '🌌 페르소나와 존재의 핵 — ASC·Sun·Moon의 입체적 결합',
@@ -16,8 +18,9 @@
     '🌀 세대적 변화와 개인의 혁신 — Uranus · Neptune · Pluto',
     '🧭 영혼의 나침반 — Lunar Nodes, North/South Node',
     '🔮 궁합 비교 — 관계의 감정 패턴',
-    '⭕ 커플 통합 차트 — 우리라는 독립적 운명',
-    '✨ 별들의 마스터플랜 — 총결산 및 개운법',
+    '⭕ 커플 통합 차트 — 우리라는 독립적 운명(Composite)',
+    '📡 현재 하늘의 메시지 — Transit·Progression·Solar Return',
+    '🌟 별들의 마스터플랜 — 총결산·Master Habit·90일 실행 로드맵',
   ];
 
   var CHAPTER_SUBTITLES = [
@@ -31,8 +34,9 @@
     '외행성의 혁신 에너지·세대적 사명·창의적 발상법',
     '노드 축의 진화 방향·전생 패턴 극복·영혼 목적지',
     '관계의 감정 비춤 패턴·파트너십 조건·상처 주지 않는 대화법',
-    '공동 에너지 분석·우리만의 독립적 운명 설계',
-    '차트 전체 요약·단 하나의 마스터 해빗·개운 루틴·인생 조언',
+    '공동 에너지 분석·우리만의 독립적 운명 설계·공동 루틴 제시',
+    '트랜짓·프로그레션·솔라리턴 기반 올해 흐름 및 월별 실전 전략',
+    '차트 전체 요약·Master Habit·90일 실행표·최종 선언문',
   ];
 
   var LOADING_MSGS = [
@@ -46,8 +50,9 @@
     '외행성의 혁신 에너지와 세대적 사명을 분석하는 중...',
     '노드 축의 영혼 목적지와 진화 방향을 읽는 중...',
     '관계의 감정 비춤 패턴을 파악하는 중...',
-    '우리라는 독립적 운명의 에너지를 분석하는 중...',
-    '별들의 마스터플랜과 개운 루틴을 총결산하는 중...',
+    '우리라는 독립적 운명의 Composite 차트를 분석하는 중...',
+    '현재 하늘의 트랜짓·프로그레션·솔라리턴을 해석하는 중...',
+    '별들의 마스터플랜과 90일 로드맵을 총결산하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -67,7 +72,7 @@
     '차트는 당신이 누구인지가 아니라, 어떤 가능성을 지닌 존재인지를 보여줍니다.',
   ];
 
-  var _chapters = Array(12).fill(null);
+  var _chapters = Array(ASTRO_TOTAL_CHAPTERS).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -265,7 +270,7 @@
       wrap = document.createElement('div');
       wrap.className = 'lb-start__chapters';
       wrap.innerHTML =
-        '<div class="lb-start__ch-label">📖 12챕터 구성</div>' +
+        '<div class="lb-start__ch-label">📖 13챕터 구성</div>' +
         '<ul class="lb-start__ch-list" id="abChapterPreviewList"></ul>';
       var anchor = start.querySelector('.lb-start__note');
       if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
@@ -286,13 +291,13 @@
     list.innerHTML = html;
   }
 
-  var AB_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  var AB_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
 
   function _renderToc() {
     var nav = document.getElementById('abToc');
     if (!nav || nav.querySelector('[data-ab-chapter]')) return;
     var html = '';
-    for (var i=1; i<=12; i++) html += '<button type="button" class="lb-toc-item ab-toc-item'+(i===1?' active':'')+'" data-ab-chapter="'+i+'">' + AB_ROMAN[i-1] + '</button>';
+    for (var i=1; i<=ASTRO_TOTAL_CHAPTERS; i++) html += '<button type="button" class="lb-toc-item ab-toc-item'+(i===1?' active':'')+'" data-ab-chapter="'+i+'">' + AB_ROMAN[i-1] + '</button>';
     nav.innerHTML = html;
   }
 
@@ -375,7 +380,7 @@
       try { modal.setAttribute('aria-hidden','false'); } catch(_){}
       return;
     }
-    _chapters = Array(12).fill(null);
+    _chapters = Array(ASTRO_TOTAL_CHAPTERS).fill(null);
     _currentChapter = 1;
     _showScreen('abStartScreen');
     modal.style.display = 'flex'; modal.style.zIndex='100120';
@@ -418,7 +423,7 @@
     var loc = profile.location || { lat:37.5665, lng:126.978, tzOffset:9 };
 
     _generating = true;
-    _chapters = Array(12).fill(null);
+    _chapters = Array(ASTRO_TOTAL_CHAPTERS).fill(null);
 
     _showScreen('abLoadingScreen');
     _activateCinematicLoading('abLoadingScreen', '#67e8f9', '#1d4ed8', 'rgba(59,130,246,0.46)');
@@ -454,19 +459,19 @@
       : null;
 
     function _setProgress(done) {
-      var pct=Math.round((done/12)*100);
+      var pct=Math.round((done/ASTRO_TOTAL_CHAPTERS)*100);
       if (progressBar) progressBar.style.width=pct+'%';
-      if (progressText) progressText.textContent=done+' / 12 챕터 완성 ('+pct+'%)';
+      if (progressText) progressText.textContent=done+' / '+ASTRO_TOTAL_CHAPTERS+' 챕터 완성 ('+pct+'%)';
       if (stageEl) {
         var _phase = done===0
           ? '천궁 데이터 정렬 및 좌표 동기화'
-          : (done<12 ? ('AI가 Chapter '+(done+1)+' 코즈믹 해석 중') : 'PDF 저장 준비 완료');
-        var _subtitle = done < 12 ? (CHAPTER_SUBTITLES[done] || '') : '전체 챕터 정리를 완료했습니다.';
+          : (done<ASTRO_TOTAL_CHAPTERS ? ('AI가 Chapter '+(done+1)+' Professional 해석 중') : 'PDF 저장 준비 완료');
+        var _subtitle = done < ASTRO_TOTAL_CHAPTERS ? (CHAPTER_SUBTITLES[done] || '') : '전체 챕터 정리를 완료했습니다.';
         stageEl.textContent='진행 단계: '+_phase+(_subtitle ? ' · '+_subtitle : '');
       }
-      if (chapterMsg&&done<12) chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
-      if (chapterMsg&&done>=12) chapterMsg.textContent='점성술 코즈믹 차트가 완성되었습니다 ✦';
-      if (chapterNumEl) chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';
+      if (chapterMsg&&done<ASTRO_TOTAL_CHAPTERS) chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
+      if (chapterMsg&&done>=ASTRO_TOTAL_CHAPTERS) chapterMsg.textContent='Professional Edition 리포트가 완성되었습니다 ✦';
+      if (chapterNumEl) chapterNumEl.textContent=done<ASTRO_TOTAL_CHAPTERS?'Chapter '+(done+1):'✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
         void chapterMsg.offsetWidth;
@@ -480,7 +485,7 @@
       Array.prototype.forEach.call(chDots, function(d){
         var ch=Number(d.getAttribute('data-abch'));
         var isDone=ch<=done;
-        var isActive=ch===done+1&&done<12;
+        var isActive=ch===done+1&&done<ASTRO_TOTAL_CHAPTERS;
         var wasDone=d.classList.contains('zb-ch-dot--done')||d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done', isDone);
         d.classList.toggle('zb-ch-dot--active', isActive);
@@ -509,7 +514,14 @@
               timezone: loc.tzOffset !== undefined ? loc.tzOffset : 9,
               lat: loc.lat !== undefined ? loc.lat : 37.5665,
               lon: loc.lng !== undefined ? loc.lng : 126.978,
-              chapter: idx+1
+              chapter: idx+1,
+              reportType: 'personal',
+              houseSystem: profile.houseSystem || 'placidus',
+              zodiacType: profile.zodiacType || 'tropical',
+              birthPlace: loc.label || '대한민국 (서울)',
+              timezoneName: loc.tz || 'Asia/Seoul',
+              birthTimeUnknown: !!(profile.birthTimeUnknown || b.birthTimeUnknown || b.timeUnknown),
+              includeMinorAspects: true
             })
           })
           .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};}); })
@@ -526,12 +538,13 @@
 
     var _failCount=0;
     (function generateNext(idx) {
-      if (idx>=12) {
+      if (idx>=ASTRO_TOTAL_CHAPTERS) {
         clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
         var validCount = _chapters.filter(function(c){ return typeof c === 'string' && c.trim().length >= 900 && !/^⚠️/.test(c.trim()); }).length;
-        if (validCount < 9) {
+        var minValid = Math.max(10, ASTRO_TOTAL_CHAPTERS - 3);
+        if (validCount < minValid) {
           var errEl=_qs('abErrorMsg');
-          if(errEl) errEl.textContent='챕터 생성이 불완전합니다 (' + validCount + '/12). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
+          if(errEl) errEl.textContent='챕터 생성이 불완전합니다 (' + validCount + '/'+ASTRO_TOTAL_CHAPTERS+'). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _showScreen('abErrorScreen');
           _autoRefundPremium(PREMIUM_ASTRO_COST, PREMIUM_ASTRO_FEATURE_KEY, '점성술 프리미엄 PDF', PREMIUM_ASTRO_TX_KEY)
             .then(function(refunded){ if(refunded) window.alert('점성술 프리미엄 결제가 자동 환급되었습니다.'); });
@@ -542,7 +555,7 @@
         _updateTocState(); _renderChapter(1); _bindToc();
         var prof=window.__cdActiveBirthProfile||{};
         var _nameEl=_qs('abResultName'), _dateEl=_qs('abResultDate');
-        if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 점성술 코즈믹 차트';
+        if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 Professional Astrology Report';
         if (_dateEl) { var _b=prof.birth||{}; _dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행'; }
         _abSaveResult(prof);
         return;
@@ -564,10 +577,13 @@
     var birth=profile.birth||{};
     var issued=new Date().toLocaleDateString('ko-KR');
     var bodyHtml='';
-    for (var i=0;i<12;i++) {
+    var tocItems='';
+    for (var i=0;i<ASTRO_TOTAL_CHAPTERS;i++) {
       if (!_chapters[i]) continue;
+      tocItems+='<li><span>Chapter '+(i+1)+'. '+_escHtml(CHAPTER_TITLES[i])+'</span><span>Sec.'+(i+1)+'</span></li>';
       bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
     }
+    var tocHtml='<div class="toc" style="page-break-after:always;"><h2>Table of Contents</h2><ul>'+tocItems+'</ul></div>';
     var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
       '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap");' +
       'body{font-family:"Noto Serif KR",serif;color:#0a0820;background:#fff;margin:0;padding:0;}' +
@@ -576,6 +592,10 @@
       '.cover-title{font-size:2.6rem;font-weight:700;margin:0 0 12px;color:#fff;}' +
       '.cover-name{font-size:1.6rem;color:#fde68a;margin:8px 0;}' +
       '.cover-info{font-size:0.9rem;color:#94a3b8;}' +
+      '.toc{padding:46px 60px;background:#f8fafc;}' +
+      '.toc h2{margin:0 0 14px;color:#0f172a;border-bottom:2px solid #cbd5e1;padding-bottom:8px;}' +
+      '.toc ul{list-style:none;padding:0;margin:0;}' +
+      '.toc li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:0.95rem;color:#0f172a;}' +
       '.chapter{padding:52px 60px;}' +
       '.chapter-header{border-bottom:2px solid #fde68a;margin-bottom:28px;padding-bottom:20px;}' +
       '.chapter-num{font-size:0.75rem;letter-spacing:0.2em;color:#b45309;text-transform:uppercase;}' +
@@ -584,15 +604,17 @@
       'h1,h2,h3,h4{color:#1c0a00;}p{line-height:1.9;color:#1c0a00;}' +
       'blockquote{border-left:3px solid #fbbf24;padding:8px 16px;background:#fffbeb;margin:16px 0;}' +
       'strong{color:#92400e;} ul,ol{padding-left:1.5em;} li{margin-bottom:6px;}' +
+      '.page-footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:0.75rem;color:#64748b;}' +
+      '.page-footer:after{content:"Page " counter(page) " of " counter(pages);}' +
       '</style></head><body>' +
       '<div class="cover"><p class="cover-badge">✨ COSMIC CHART PREMIUM</p>' +
-      '<h1 class="cover-title">점성술 코즈믹 차트</h1>' +
-      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">열대황도 행성 배치 기반 12챕터 인생 분석 리포트</p>' +
+      '<h1 class="cover-title">Professional Edition</h1>' +
+      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">서양 점성술 프리미엄 리포트 · 13 Chapters</p>' +
       '<div style="width:60px;height:1px;background:rgba(253,230,138,0.4);margin:0 auto 20px;"></div>' +
       '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 코즈믹 차트</p>' +
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
       '<p class="cover-info" style="margin-top:10px;">🗓️ '+issued+' 발행</p></div>' +
-      bodyHtml+'</body></html>';
+      tocHtml + bodyHtml + '<div class="page-footer"></div></body></html>';
     var win = window.open('', '_blank', 'width=900,height=700');
     if (!win) {
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');

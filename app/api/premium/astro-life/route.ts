@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ASTRO_CHAPTER_META, buildAstroPrompt, fallbackAstroText, generateAstroText, parseSections } from "../_astroCommon";
+import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, buildAstroPrompt, fallbackAstroText, generateAstroText, parseSections } from "../_astroCommon";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -12,7 +12,9 @@ export async function POST(req: NextRequest) {
     const day = Number(body.day);
     const chapter = Number(body.chapter || 1);
     if (!year || !month || !day) return NextResponse.json({ ok: false, error: "Missing birth date" }, { status: 400 });
-    if (chapter < 1 || chapter > 12) return NextResponse.json({ ok: false, error: "Chapter must be 1-12" }, { status: 400 });
+    if (chapter < 1 || chapter > ASTRO_TOTAL_CHAPTERS) {
+      return NextResponse.json({ ok: false, error: `Chapter must be 1-${ASTRO_TOTAL_CHAPTERS}` }, { status: 400 });
+    }
 
     const response = await fetch(`${req.nextUrl.origin}/api/astro/western-chart`, {
       method: "POST",
@@ -51,6 +53,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       chart,
       chapter,
+      totalChapters: ASTRO_TOTAL_CHAPTERS,
       chapterMeta: ASTRO_CHAPTER_META[chapter - 1],
       text,
       sections: parseSections(text),

@@ -73,104 +73,12 @@
   var _quoteIdx = 0;
   var _activeRequestController = null;
   var _cancelGeneration = false;
-  var LOVE_SECRET_COST = 100;
-  var LOVE_SECRET_FEATURE_KEY = 'love-secret';
-  var LOVE_SECRET_TX_KEY = 'cd_premium_tx_love_secret';
-
-  /* ── 스크롤 중 터치 방지 ──────────────────────────────── */
-  var _isScrolling = false;
-  var _scrollTimeout = null;
-  var _scrollTarget = null;
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
       try { _activeRequestController.abort(); } catch (_) {}
       _activeRequestController = null;
     }
-  }
-
-  function _getAuthToken() {
-    try { return localStorage.getItem('fortune_auth_token') || ''; } catch (_) { return ''; }
-  }
-
-  function _consumeLoveSecret(cost, reason) {
-    var token = _getAuthToken();
-    if (!token) {
-      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-        window.location.href = '/login?next=%2F';
-      }
-      return Promise.resolve(false);
-    }
-
-    if (!window.confirm('🪙 ' + reason + '\n\n' + Number(cost || 0).toLocaleString('ko-KR') + '코인이 차감됩니다. 진행하시겠습니까?')) {
-      return Promise.resolve(false);
-    }
-
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
-    return fetch('/api/fortune/pig-coin/consume', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        cost: Number(cost || 0),
-        reason: reason,
-        featureKey: LOVE_SECRET_FEATURE_KEY,
-      }),
-    })
-      .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (data) {
-          return { ok: res.ok, status: res.status, data: data || {} };
-        });
-      })
-      .then(function (result) {
-        if (!result.ok) {
-          if (result.status === 402 && typeof window.__cdOpenChargeModal === 'function') {
-            window.alert((result.data && result.data.message) || '코인이 부족합니다.');
-            window.__cdOpenChargeModal();
-          } else {
-            window.alert((result.data && result.data.message) || '결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-          }
-          return false;
-        }
-        try {
-          var txId = String((result.data && result.data.transactionId) || '').trim();
-          if (txId) sessionStorage.setItem(LOVE_SECRET_TX_KEY, txId);
-        } catch (_) {}
-        return true;
-      })
-      .catch(function () {
-        window.alert('결제 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        return false;
-      })
-      .finally(function () {
-        if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
-      });
-  }
-
-  function _autoRefundLoveSecret(cost) {
-    var token = _getAuthToken();
-    if (!token) return Promise.resolve(false);
-
-    var sourceTransactionId = '';
-    try { sourceTransactionId = sessionStorage.getItem(LOVE_SECRET_TX_KEY) || ''; } catch (_) {}
-    var requestId = 'premium-refund:' + LOVE_SECRET_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-
-    return fetch('/api/fortune/pig-coin/refund', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        cost: Number(cost || 0),
-        reason: '연애 비책 생성 실패 자동 환급',
-        featureKey: LOVE_SECRET_FEATURE_KEY,
-        sourceTransactionId: sourceTransactionId,
-        requestId: requestId,
-      }),
-    })
-      .then(function (res) {
-        if (!res.ok) return false;
-        try { sessionStorage.removeItem(LOVE_SECRET_TX_KEY); } catch (_) {}
-        return true;
-      })
-      .catch(function () { return false; });
   }
 
   /* ── localStorage 저장/복원 ──────────────────────────────── */
@@ -755,36 +663,8 @@
 
   function _bindToc() {
     var nav = document.querySelector('.ls-toc');
-    var content = document.getElementById('lsChapterContent');
     if (!nav) return;
-
-    // 스크롤 감지 - 챕터 콘텐츠 영역
-    if (content) {
-      content.addEventListener('scroll', function () {
-        _isScrolling = true;
-        _scrollTarget = 'content';
-        if (_scrollTimeout) clearTimeout(_scrollTimeout);
-        _scrollTimeout = setTimeout(function () {
-          _isScrolling = false;
-          _scrollTarget = null;
-        }, 150); // 150ms 후 스크롤 종료로 간주
-      }, { passive: true });
-
-      // 터치 이벤트도 감지
-      content.addEventListener('touchstart', function () {
-        _isScrolling = false; // 터치 시작 시 초기화
-      }, { passive: true });
-    }
-
-    // 목차 네비게이션 클릭 처리
     nav.addEventListener('click', function (e) {
-      // 스크롤 중이면 클릭 무시
-      if (_isScrolling) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-
       var btn = e.target.closest('[data-ls-chapter]');
       if (!btn) return;
       var ch = Number(btn.getAttribute('data-ls-chapter'));
@@ -882,35 +762,26 @@
     function _startWithPartnerData() {
       _restorePartnerStartBtn();
       var partnerData = _collectPartnerScreenData();
-      _startGeneration(partnerData, { paid: true, cost: LOVE_SECRET_COST });
+      _startGeneration(partnerData);
     }
 
-    _consumeLoveSecret(LOVE_SECRET_COST, '연애 비책 궁합 분석')
-      .then(function (paid) {
-        if (!paid) {
-          _restorePartnerStartBtn();
-          return;
-        }
-        _startWithPartnerData();
-      });
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(100, '연애 비책 궁합 분석', _startWithPartnerData, _restorePartnerStartBtn);
+      return;
+    }
+
+    _restorePartnerStartBtn();
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
   };
 
   window.lsSkipPartner = function () {
     if (_generating) return;
-    _startGeneration('', { paid: false, cost: 0 });
+    _startGeneration('');
   };
 
-  function _startGeneration(partnerData, options) {
+  function _startGeneration(partnerData) {
     _generating = true;
     _cancelGeneration = false;
-    var _paidFlow = !!(options && options.paid);
-    var _paidCost = Number((options && options.cost) || LOVE_SECRET_COST);
-    try {
-      if (!_paidFlow) {
-        var _tx = sessionStorage.getItem(LOVE_SECRET_TX_KEY) || '';
-        if (_tx) _paidFlow = true;
-      }
-    } catch (_) {}
     _showScreen('lsLoadingScreen');
     _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
@@ -936,16 +807,14 @@
 
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
-        var _maxAttemptsPerEndpoint = 3;
-        var _requestTimeoutMs = 70000;
         var _settled = false;
-        var _abortMsg = '응답 시간 초과 (70초). 네트워크 상태를 확인해 주세요.';
+        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
         var _endpoints = _buildApiCandidates('/api/love-secret/session');
         var _attemptPlan = [];
         var _lastMsg = '';
 
         for (var _ei = 0; _ei < _endpoints.length; _ei++) {
-          for (var _ri = 0; _ri < _maxAttemptsPerEndpoint; _ri++) {
+          for (var _ri = 0; _ri < 2; _ri++) {
             _attemptPlan.push({ url: _endpoints[_ei], retry: _ri + 1 });
           }
         }
@@ -975,7 +844,7 @@
             if (_controller) {
               try { _controller.abort(); } catch (_) {}
             }
-          }, _requestTimeoutMs);
+          }, 45000);
 
           fetch(_plan.url, {
             method: 'POST',
@@ -999,7 +868,7 @@
                 return;
               }
               _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
-              setTimeout(function () { _runAttempt(at + 1); }, 280 * (_plan.retry || 1));
+              _runAttempt(at + 1);
             })
             .catch(function (err) {
               clearTimeout(timeoutId);
@@ -1009,7 +878,7 @@
               } else {
                 _lastMsg = String(err && err.message ? err.message : err);
               }
-              setTimeout(function () { _runAttempt(at + 1); }, 280 * (_plan.retry || 1));
+              _runAttempt(at + 1);
             });
         }
 
@@ -1022,22 +891,6 @@
       if (idx >= 11) {
         _generating = false;
         _stopLoadingAnimation();
-        var _validCount = _chapters.filter(function (c) {
-          return typeof c === 'string' && c.trim().length >= 900 && !/^⚠️/.test(c.trim());
-        }).length;
-        if (_validCount < 8) {
-          _showScreen('lsErrorScreen');
-          var _errMsg = _qs('lsErrorMsg');
-          if (_errMsg) _errMsg.textContent = '챕터 생성이 불완전합니다 (' + _validCount + '/11). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
-          if (_paidFlow) {
-            _autoRefundLoveSecret(_paidCost)
-              .then(function (refunded) { if (refunded) window.alert('연애 비책 결제가 자동 환급되었습니다.'); });
-          }
-          return;
-        }
-        if (_paidFlow) {
-          try { sessionStorage.removeItem(LOVE_SECRET_TX_KEY); } catch (_) {}
-        }
         _showScreen('lsResultScreen');
         _updateTocState();
         _renderChapter(1);

@@ -60,10 +60,43 @@ const SUKUYO_CHAPTER_GUIDES = [
 ];
 
 const ASTRO_CHAPTER_META = [
-  "페르소나와 존재감", "감정의 뿌리", "인지 체계와 정보의 연금술", "미학과 가치 자산",
-  "추진력과 갈등 처리", "확장과 행운의 문", "세계와 성공의 구조", "관계의 계약 지도",
-  "상처와 회복 코드", "노드와 영혼의 목적", "트랜짓 해석 전략", "마스터 플랜",
-].map((title, i) => ({ num: i + 1, title, subtitle: "서양 점성술 프리미엄 PDF", icon: "star" }));
+  { num: 1, title: "페르소나와 존재의 핵", subtitle: "ASC·Sun·Moon", icon: "star" },
+  { num: 2, title: "감정의 뿌리와 무의식의 안전가옥", subtitle: "Moon & 4th House", icon: "star" },
+  { num: 3, title: "인지 체계와 정보의 연금술", subtitle: "Mercury & 3rd/9th", icon: "star" },
+  { num: 4, title: "욕망의 미학과 가치 자산", subtitle: "Venus & 2nd/7th", icon: "star" },
+  { num: 5, title: "추진력의 방향과 에너지 관리", subtitle: "Mars & 1st/8th", icon: "star" },
+  { num: 6, title: "행운의 좌표와 확장의 철학", subtitle: "Jupiter & 9th", icon: "star" },
+  { num: 7, title: "업보의 한계와 마스터의 길", subtitle: "Saturn & 10th", icon: "star" },
+  { num: 8, title: "세대적 변화와 개인의 혁신", subtitle: "Uranus·Neptune·Pluto", icon: "star" },
+  { num: 9, title: "영혼의 나침반", subtitle: "Lunar Nodes", icon: "star" },
+  { num: 10, title: "시냅스트리", subtitle: "관계의 심리적 투사", icon: "star" },
+  { num: 11, title: "컴포지트", subtitle: "우리라는 독립적 운명", icon: "star" },
+  { num: 12, title: "현재 하늘의 메시지", subtitle: "Transit·Progression·Solar Return", icon: "star" },
+  { num: 13, title: "별들의 마스터플랜", subtitle: "총결산과 Master Habit", icon: "star" },
+];
+const ASTRO_TOTAL_CHAPTERS = ASTRO_CHAPTER_META.length;
+const ASTRO_REPORT_TITLE_PERSONAL = "Professional Edition: 서양 점성술 프리미엄 리포트";
+const ASTRO_REPORT_SUBTITLE_PERSONAL = "ASC, Sun, Moon과 행성의 각도로 읽는 나의 심리적 우주 지도";
+const ASTRO_REPORT_TITLE_COMPAT = "Professional Edition: 서양 점성술 궁합 리포트";
+const ASTRO_REPORT_SUBTITLE_COMPAT = "Synastry와 Composite Chart로 읽는 두 사람의 관계 심리와 공동 운명";
+const ASTRO_MIN_CHARS = 4000;
+const ASTRO_MISSING_DATA_NOTICE = "일부 세부 점성술 데이터가 부족하므로, 제공된 차트 데이터와 일반 점성술 원리를 바탕으로 보완 분석합니다. 단, 없는 데이터를 있는 것처럼 단정하지 않습니다.";
+const ASTRO_NO_BIRTHTIME_NOTICE = "출생 시간이 없어 ASC, MC, 하우스, 차트 통치성, 일부 궁합 하우스 오버레이 분석의 정밀도가 제한됩니다. 이 리포트는 태양, 달, 행성 간 주요 각도 중심으로 보완 분석되었습니다.";
+const ASTRO_CHAPTER_GUIDES = [
+  "ASC·Sun·Moon 삼각 구조, Chart Ruler, 원소/모달리티 균형을 결합해 성격 핵심과 행동 루틴을 작성하세요.",
+  "Moon·4하우스·IC·4하우스 로드를 근거로 정서 패턴과 안전가옥 회복 루틴을 제시하세요.",
+  "Mercury·3/9하우스·학습 스타일·정보 과부하 트리거를 분석하고 소통/브랜딩 전략을 제시하세요.",
+  "Venus·2/7하우스·가치관·재물·관계 패턴을 연결하고 풍요 루틴과 관계 경계 규칙을 제시하세요.",
+  "Mars·1/8하우스·분노 전환·에너지 관리·위기 돌파 전략을 구체적으로 제시하세요.",
+  "Jupiter·9하우스 중심의 확장 통로, 전문성, 철학 정렬, 기회 포착 전략을 제시하세요.",
+  "Saturn·10하우스·MC·Saturn Return을 통해 장기 성공 구조와 마스터리 훈련 계획을 제시하세요.",
+  "Uranus·Neptune·Pluto와 개인 행성 연결을 통해 혁신/영감/변용의 균형을 제시하세요.",
+  "North/South Node 축을 통해 익숙한 패턴과 진화 과제를 대비하고 30일 챌린지를 제시하세요.",
+  "궁합이면 Synastry를, 개인 리포트면 관계 트리거/이상형 기준을 다루고 NVC 대화법을 포함하세요.",
+  "궁합이면 Composite를, 개인 리포트면 미래 관계 설계를 다루고 공동 루틴을 제시하세요.",
+  "Transit/Progression/Solar Return을 통합해 1~12월 월별 전략을 반드시 포함하세요.",
+  "1~12챕터를 통합해 Master Habit 1개와 90일 실행표를 반드시 포함하세요.",
+];
 
 const VEDIC_CHAPTER_META = [
   { num: 1, title: "라그나와 영혼의 목적", subtitle: "Lagna & Atmakaraka", icon: "veda" },
@@ -80,6 +113,7 @@ const VEDIC_CHAPTER_META = [
   { num: 12, title: "고차라와 올해의 전략", subtitle: "Transit & Annual Strategy", icon: "veda" },
   { num: 13, title: "마스터플랜", subtitle: "카르마를 넘어선 자유", icon: "veda" },
 ];
+const VEDIC_TOTAL_CHAPTERS = VEDIC_CHAPTER_META.length;
 
 const VEDIC_REPORT_TITLE_PERSONAL = "Karmic Blueprint: 베다 점성술 프리미엄 리포트";
 const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나, 나크샤트라, 다샤로 읽는 이번 생의 카르마 지도";
@@ -771,6 +805,918 @@ function buildWesternChart(input) {
     southNode: { ...zodiacBySeed(input.year, input.month, input.day, input.hour, 13), house: 3 },
     aspects,
   };
+}
+
+const ASTRO_SIGN_RULER = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Pluto", "Jupiter", "Saturn", "Uranus", "Neptune"];
+const ASTRO_ELEMENT_BY_SIGN = ["Fire", "Earth", "Air", "Water", "Fire", "Earth", "Air", "Water", "Fire", "Earth", "Air", "Water"];
+const ASTRO_MODALITY_BY_SIGN = ["Cardinal", "Fixed", "Mutable", "Cardinal", "Fixed", "Mutable", "Cardinal", "Fixed", "Mutable", "Cardinal", "Fixed", "Mutable"];
+const ASTRO_PLANET_KO = {
+  Sun: "태양", Moon: "달", Mercury: "수성", Venus: "금성", Mars: "화성", Jupiter: "목성", Saturn: "토성",
+  Uranus: "천왕성", Neptune: "해왕성", Pluto: "명왕성", NorthNode: "북노드", SouthNode: "남노드", Chiron: "키론",
+  PartOfFortune: "포르투나", Vertex: "버텍스",
+};
+const ASTRO_MAJORS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "NorthNode", "SouthNode", "Chiron"];
+const ASTRO_REPORT_CACHE = new Map();
+
+function round2(value) {
+  return Math.round(Number(value) * 100) / 100;
+}
+
+function normalizeAspectType(type) {
+  const source = String(type || "").trim().toLowerCase();
+  if (source.includes("conj")) return "conjunction";
+  if (source.includes("opp")) return "opposition";
+  if (source.includes("squ")) return "square";
+  if (source.includes("tri")) return "trine";
+  if (source.includes("sex")) return "sextile";
+  if (source.includes("quin")) return "quincunx";
+  if (source.includes("semi")) return "semi-square";
+  if (source.includes("sesqui")) return "sesquiquadrate";
+  return source || "aspect";
+}
+
+function aspectDegreeByType(type) {
+  const t = normalizeAspectType(type);
+  const map = {
+    conjunction: 0,
+    sextile: 60,
+    square: 90,
+    trine: 120,
+    opposition: 180,
+    quincunx: 150,
+    "semi-square": 45,
+    sesquiquadrate: 135,
+  };
+  return Number.isFinite(map[t]) ? map[t] : null;
+}
+
+function getAspectOrbLimit(p1, p2, type) {
+  const major = ["conjunction", "opposition", "square", "trine", "sextile"].includes(type);
+  const luminary = p1 === "Sun" || p1 === "Moon" || p2 === "Sun" || p2 === "Moon";
+  if (!major) return luminary ? 3.5 : 2.8;
+  if (luminary) return 8;
+  if (p1.includes("Node") || p2.includes("Node") || p1 === "Chiron" || p2 === "Chiron") return 5;
+  return 6;
+}
+
+function calcAspectsFromLongitudes(points, includeMinor = true) {
+  const defs = [
+    { type: "conjunction", deg: 0 },
+    { type: "sextile", deg: 60 },
+    { type: "square", deg: 90 },
+    { type: "trine", deg: 120 },
+    { type: "opposition", deg: 180 },
+  ];
+  if (includeMinor) {
+    defs.push(
+      { type: "quincunx", deg: 150 },
+      { type: "semi-square", deg: 45 },
+      { type: "sesquiquadrate", deg: 135 },
+    );
+  }
+
+  const aspects = [];
+  const names = Object.keys(points || {}).filter((k) => Number.isFinite(Number(points[k])));
+  for (let i = 0; i < names.length; i += 1) {
+    for (let j = i + 1; j < names.length; j += 1) {
+      const p1 = names[i];
+      const p2 = names[j];
+      const lon1 = normalizeDeg(points[p1]);
+      const lon2 = normalizeDeg(points[p2]);
+      if (!Number.isFinite(lon1) || !Number.isFinite(lon2)) continue;
+      const diff = Math.abs(lon1 - lon2);
+      const dist = diff > 180 ? 360 - diff : diff;
+      for (const def of defs) {
+        const orb = Math.abs(dist - def.deg);
+        const maxOrb = getAspectOrbLimit(p1, p2, def.type);
+        if (orb <= maxOrb) {
+          aspects.push({ p1, p2, type: def.type, orb: round2(orb), exact: round2(def.deg), distance: round2(dist) });
+          break;
+        }
+      }
+    }
+  }
+  return aspects.sort((a, b) => a.orb - b.orb);
+}
+
+function buildHouseCusps(ascLon, houseSystem = "placidus") {
+  const normalizedAsc = normalizeDeg(ascLon);
+  if (!Number.isFinite(normalizedAsc)) return [];
+  const system = String(houseSystem || "placidus").toLowerCase();
+  const cusps = [];
+  if (system === "whole-sign" || system === "whole" || system === "wholesign") {
+    const start = Math.floor(normalizedAsc / 30) * 30;
+    for (let i = 0; i < 12; i += 1) cusps.push(normalizeDeg(start + i * 30));
+    return cusps;
+  }
+  // Swiss 응답에 하우스 커스프가 없을 때는 ASC 기준 30도 등분 근사값을 사용한다.
+  for (let i = 0; i < 12; i += 1) cusps.push(normalizeDeg(normalizedAsc + i * 30));
+  return cusps;
+}
+
+function locateHouseByCusps(longitude, cusps) {
+  const lon = normalizeDeg(longitude);
+  if (!Number.isFinite(lon) || !Array.isArray(cusps) || cusps.length !== 12) return null;
+  for (let i = 0; i < 12; i += 1) {
+    const start = normalizeDeg(cusps[i]);
+    const end = normalizeDeg(cusps[(i + 1) % 12]);
+    const inHouse = start <= end ? (lon >= start && lon < end) : (lon >= start || lon < end);
+    if (inHouse) return i + 1;
+  }
+  return 1;
+}
+
+function signByLongitude(longitude) {
+  const lon = normalizeDeg(longitude);
+  if (!Number.isFinite(lon)) return null;
+  const sign = Math.floor(lon / 30);
+  return {
+    sign,
+    signKo: SIGN_KO[sign],
+    degree: round2(lon % 30),
+    longitude: round2(lon),
+    element: ASTRO_ELEMENT_BY_SIGN[sign],
+    modality: ASTRO_MODALITY_BY_SIGN[sign],
+  };
+}
+
+function enrichPlanet(name, longitude, house, extras = {}) {
+  const info = signByLongitude(longitude);
+  if (!info) return null;
+  return {
+    name,
+    nameKo: ASTRO_PLANET_KO[name] || name,
+    ...info,
+    house: Number.isFinite(Number(house)) ? Number(house) : null,
+    ...extras,
+  };
+}
+
+function dominantByCount(values = []) {
+  const counter = {};
+  for (const v of values) {
+    if (!v) continue;
+    counter[v] = (counter[v] || 0) + 1;
+  }
+  const entries = Object.entries(counter).sort((a, b) => b[1] - a[1]);
+  return entries[0] ? { key: entries[0][0], count: entries[0][1], breakdown: counter } : { key: null, count: 0, breakdown: counter };
+}
+
+function dedupeAspects(aspects) {
+  const seen = new Set();
+  const result = [];
+  for (const a of aspects || []) {
+    const left = String(a.p1 || "");
+    const right = String(a.p2 || "");
+    const key = `${[left, right].sort().join("~")}::${normalizeAspectType(a.type)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ ...a, type: normalizeAspectType(a.type), orb: round2(a.orb) });
+  }
+  return result;
+}
+
+function buildWesternPremiumChart(rawChart = {}, input = {}, options = {}) {
+  const houseSystem = String(options.houseSystem || input.houseSystem || "placidus").toLowerCase();
+  const zodiacType = String(options.zodiacType || input.zodiacType || "tropical").toLowerCase();
+  const includeMinorAspects = options.includeMinorAspects !== false;
+
+  const ascLon = Number(rawChart?.ascendant?.longitude);
+  const mcLon = Number(rawChart?.midheaven?.longitude);
+  const northNodeLon = Number(rawChart?.northNode?.longitude);
+  const southNodeLon = Number(rawChart?.southNode?.longitude);
+  if (!Number.isFinite(ascLon)) {
+    throw new Error("서양 점성술 차트에 ASC longitude가 없습니다.");
+  }
+
+  const houseCusps = buildHouseCusps(ascLon, houseSystem);
+  const planets = {};
+  const points = {};
+  for (const name of PLANETS) {
+    const lon = Number(rawChart?.planets?.[name]?.longitude);
+    if (!Number.isFinite(lon)) continue;
+    const house = locateHouseByCusps(lon, houseCusps);
+    const enriched = enrichPlanet(name, lon, house, {
+      sourceHouse: Number(rawChart?.planets?.[name]?.house) || null,
+      dignity: "Neutral",
+    });
+    if (enriched) {
+      planets[name] = enriched;
+      points[name] = enriched.longitude;
+    }
+  }
+
+  const northNode = Number.isFinite(northNodeLon)
+    ? enrichPlanet("NorthNode", northNodeLon, locateHouseByCusps(northNodeLon, houseCusps))
+    : null;
+  const southNode = Number.isFinite(southNodeLon)
+    ? enrichPlanet("SouthNode", southNodeLon, locateHouseByCusps(southNodeLon, houseCusps))
+    : null;
+  if (northNode) points.NorthNode = northNode.longitude;
+  if (southNode) points.SouthNode = southNode.longitude;
+
+  const chironLon = Number(rawChart?.chiron?.longitude);
+  const chiron = Number.isFinite(chironLon)
+    ? enrichPlanet("Chiron", chironLon, locateHouseByCusps(chironLon, houseCusps))
+    : null;
+  if (chiron) points.Chiron = chiron.longitude;
+
+  const rawAspects = Array.isArray(rawChart?.aspects)
+    ? rawChart.aspects.map((a) => ({
+      p1: String(a.p1 || ""),
+      p2: String(a.p2 || ""),
+      type: normalizeAspectType(a.type),
+      orb: round2(a.orb),
+      exact: aspectDegreeByType(a.type),
+    }))
+    : [];
+
+  const calcAspects = calcAspectsFromLongitudes(points, includeMinorAspects);
+  const aspects = dedupeAspects(rawAspects.concat(calcAspects));
+
+  const asc = enrichPlanet("Ascendant", ascLon, 1);
+  const mc = Number.isFinite(mcLon)
+    ? enrichPlanet("Midheaven", mcLon, locateHouseByCusps(mcLon, houseCusps))
+    : enrichPlanet("Midheaven", ascLon + 90, 10);
+
+  const chartRulerName = ASTRO_SIGN_RULER[asc.sign] || "Sun";
+  const chartRuler = planets[chartRulerName] || null;
+  const chartRulerAspects = aspects.filter((a) => a.p1 === chartRulerName || a.p2 === chartRulerName);
+
+  const majorNames = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+  const majors = majorNames.map((n) => planets[n]).filter(Boolean);
+  const element = {
+    Fire: majors.filter((p) => p.element === "Fire").length,
+    Earth: majors.filter((p) => p.element === "Earth").length,
+    Air: majors.filter((p) => p.element === "Air").length,
+    Water: majors.filter((p) => p.element === "Water").length,
+  };
+  const modality = {
+    Cardinal: majors.filter((p) => p.modality === "Cardinal").length,
+    Fixed: majors.filter((p) => p.modality === "Fixed").length,
+    Mutable: majors.filter((p) => p.modality === "Mutable").length,
+  };
+
+  const eastHouses = [10, 11, 12, 1, 2, 3];
+  const westHouses = [4, 5, 6, 7, 8, 9];
+  const northHouses = [7, 8, 9, 10, 11, 12];
+  const southHouses = [1, 2, 3, 4, 5, 6];
+  const hemisphere = {
+    east: majors.filter((p) => eastHouses.includes(p.house)).length,
+    west: majors.filter((p) => westHouses.includes(p.house)).length,
+    north: majors.filter((p) => northHouses.includes(p.house)).length,
+    south: majors.filter((p) => southHouses.includes(p.house)).length,
+  };
+
+  const planetScore = {};
+  for (const p of majors) {
+    let score = 1;
+    if ([1, 4, 7, 10].includes(p.house)) score += 2;
+    const aspCount = aspects.filter((a) => a.p1 === p.name || a.p2 === p.name).length;
+    if (aspCount >= 5) score += 2;
+    if (aspCount >= 3 && aspCount < 5) score += 1;
+    if (ASTRO_SIGN_RULER[p.sign] === p.name) score += 1;
+    planetScore[p.name] = score;
+  }
+  const dominantPlanet = Object.entries(planetScore).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+  const dominantSignInfo = dominantByCount(majors.map((p) => p.signKo));
+  const dominantHouseInfo = dominantByCount(majors.map((p) => String(p.house || "")));
+
+  const houses = [];
+  for (let i = 0; i < 12; i += 1) {
+    const cuspLon = houseCusps[i];
+    const sign = signByLongitude(cuspLon);
+    houses.push({
+      house: i + 1,
+      cuspLongitude: round2(cuspLon),
+      sign: sign?.sign,
+      signKo: sign?.signKo,
+      ruler: ASTRO_SIGN_RULER[sign?.sign ?? 0],
+      planets: Object.values(planets).filter((p) => p.house === i + 1).map((p) => p.name),
+    });
+  }
+
+  return {
+    source: rawChart?.source || "swiss-api",
+    zodiacType,
+    houseSystem,
+    houseSystemMeta: {
+      requested: houseSystem,
+      approximation: houseSystem !== "whole-sign" && houseSystem !== "whole" && houseSystem !== "wholesign",
+      note: houseSystem !== "whole-sign" && houseSystem !== "whole" && houseSystem !== "wholesign"
+        ? "Swiss 응답의 하우스 커스프 부재로 ASC 기준 30도 등분 근사를 사용했습니다."
+        : "Whole Sign 커스프를 적용했습니다.",
+    },
+    ascendant: asc,
+    midheaven: mc,
+    chartRuler: {
+      planet: chartRulerName,
+      sign: chartRuler?.signKo || "정보 없음",
+      house: chartRuler?.house || null,
+      aspects: chartRulerAspects,
+    },
+    planets,
+    northNode,
+    southNode,
+    chiron,
+    partOfFortune: rawChart?.partOfFortune || null,
+    vertex: rawChart?.vertex || null,
+    houseCusps,
+    houses,
+    aspects,
+    elementBalance: element,
+    modalityBalance: modality,
+    hemisphereBalance: hemisphere,
+    dominantPlanet,
+    dominantSign: dominantSignInfo.key,
+    dominantHouse: dominantHouseInfo.key ? Number(dominantHouseInfo.key) : null,
+    rawSwiss: rawChart,
+  };
+}
+
+function midpointLongitude(a, b) {
+  const lonA = normalizeDeg(a);
+  const lonB = normalizeDeg(b);
+  if (!Number.isFinite(lonA) || !Number.isFinite(lonB)) return NaN;
+  let diff = lonB - lonA;
+  if (diff > 180) diff -= 360;
+  if (diff < -180) diff += 360;
+  return normalizeDeg(lonA + diff / 2);
+}
+
+function buildSynastry(primary, partner) {
+  const primaryPoints = {};
+  const partnerPoints = {};
+  for (const k of ASTRO_MAJORS) {
+    const p1 = primary.planets?.[k] || primary[k.charAt(0).toLowerCase() + k.slice(1)] || null;
+    const p2 = partner.planets?.[k] || partner[k.charAt(0).toLowerCase() + k.slice(1)] || null;
+    if (Number.isFinite(Number(p1?.longitude))) primaryPoints[k] = Number(p1.longitude);
+    if (Number.isFinite(Number(p2?.longitude))) partnerPoints[k] = Number(p2.longitude);
+  }
+  if (primary.northNode?.longitude != null) primaryPoints.NorthNode = Number(primary.northNode.longitude);
+  if (partner.northNode?.longitude != null) partnerPoints.NorthNode = Number(partner.northNode.longitude);
+  if (primary.southNode?.longitude != null) primaryPoints.SouthNode = Number(primary.southNode.longitude);
+  if (partner.southNode?.longitude != null) partnerPoints.SouthNode = Number(partner.southNode.longitude);
+
+  const defs = [
+    { type: "conjunction", deg: 0 },
+    { type: "sextile", deg: 60 },
+    { type: "square", deg: 90 },
+    { type: "trine", deg: 120 },
+    { type: "opposition", deg: 180 },
+    { type: "quincunx", deg: 150 },
+  ];
+
+  const aspects = [];
+  const aKeys = Object.keys(primaryPoints);
+  const bKeys = Object.keys(partnerPoints);
+  for (const a of aKeys) {
+    for (const b of bKeys) {
+      const lonA = primaryPoints[a];
+      const lonB = partnerPoints[b];
+      const diff = Math.abs(lonA - lonB);
+      const dist = diff > 180 ? 360 - diff : diff;
+      for (const def of defs) {
+        const orb = Math.abs(dist - def.deg);
+        const maxOrb = getAspectOrbLimit(a, b, def.type);
+        if (orb <= maxOrb) {
+          aspects.push({ p1: a, p2: b, type: def.type, orb: round2(orb), exact: def.deg, distance: round2(dist) });
+          break;
+        }
+      }
+    }
+  }
+
+  const filterPairs = (left, right) => aspects.filter((a) => (a.p1 === left && a.p2 === right) || (a.p1 === right && a.p2 === left));
+
+  const overlays = [];
+  const overlayTargets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "NorthNode", "Chiron"];
+  for (const name of overlayTargets) {
+    const partnerLon = partnerPoints[name];
+    if (!Number.isFinite(partnerLon)) continue;
+    const house = locateHouseByCusps(partnerLon, primary.houseCusps || []);
+    if (house) overlays.push({ who: "partnerToMe", planet: name, house });
+  }
+
+  return {
+    aspects: aspects.sort((a, b) => a.orb - b.orb),
+    sunMoonAspects: filterPairs("Sun", "Moon"),
+    moonMoonAspects: filterPairs("Moon", "Moon"),
+    venusMarsAspects: filterPairs("Venus", "Mars"),
+    venusSaturnAspects: filterPairs("Venus", "Saturn"),
+    marsSaturnAspects: filterPairs("Mars", "Saturn"),
+    saturnHardAspects: aspects.filter((a) => (a.p1 === "Saturn" || a.p2 === "Saturn") && ["square", "opposition", "conjunction"].includes(a.type)),
+    plutoHardAspects: aspects.filter((a) => (a.p1 === "Pluto" || a.p2 === "Pluto") && ["square", "opposition", "conjunction"].includes(a.type)),
+    nodeContacts: aspects.filter((a) => a.p1.includes("Node") || a.p2.includes("Node")),
+    chironContacts: aspects.filter((a) => a.p1 === "Chiron" || a.p2 === "Chiron"),
+    houseOverlays: overlays,
+    house7Overlays: overlays.filter((o) => o.house === 7),
+    house8Overlays: overlays.filter((o) => o.house === 8),
+    house12Overlays: overlays.filter((o) => o.house === 12),
+  };
+}
+
+function buildCompositeChart(primary, partner, houseSystem = "placidus") {
+  const names = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "NorthNode"];
+  const base = {};
+  for (const name of names) {
+    const lonA = primary.planets?.[name]?.longitude ?? (name === "NorthNode" ? primary.northNode?.longitude : NaN);
+    const lonB = partner.planets?.[name]?.longitude ?? (name === "NorthNode" ? partner.northNode?.longitude : NaN);
+    const mid = midpointLongitude(lonA, lonB);
+    if (Number.isFinite(mid)) base[name] = mid;
+  }
+
+  const compAscLon = midpointLongitude(primary.ascendant?.longitude, partner.ascendant?.longitude);
+  const compMcLon = midpointLongitude(primary.midheaven?.longitude, partner.midheaven?.longitude);
+  const cusps = buildHouseCusps(compAscLon, houseSystem);
+
+  const planets = {};
+  for (const [name, lon] of Object.entries(base)) {
+    const house = locateHouseByCusps(lon, cusps);
+    planets[name] = enrichPlanet(name, lon, house);
+  }
+
+  const aspects = calcAspectsFromLongitudes(base, true);
+  const houseEmphasis = dominantByCount(Object.values(planets).map((p) => String(p.house || "")));
+  return {
+    ascendant: enrichPlanet("Ascendant", compAscLon, 1),
+    midheaven: enrichPlanet("Midheaven", Number.isFinite(compMcLon) ? compMcLon : compAscLon + 90, locateHouseByCusps(compMcLon, cusps) || 10),
+    planets,
+    nodes: {
+      northNode: planets.NorthNode || null,
+      southNode: planets.NorthNode ? enrichPlanet("SouthNode", planets.NorthNode.longitude + 180, locateHouseByCusps(planets.NorthNode.longitude + 180, cusps)) : null,
+    },
+    houseCusps: cusps,
+    house7: { signKo: signByLongitude(cusps[6])?.signKo || "정보 없음", planets: Object.values(planets).filter((p) => p.house === 7).map((p) => p.name) },
+    house10: { signKo: signByLongitude(cusps[9])?.signKo || "정보 없음", planets: Object.values(planets).filter((p) => p.house === 10).map((p) => p.name) },
+    aspects,
+    houseEmphasis,
+  };
+}
+
+async function buildAstroTimingData(request, env, input, natalChart) {
+  const now = new Date();
+  const transitInput = {
+    ...input,
+    year: now.getUTCFullYear(),
+    month: now.getUTCMonth() + 1,
+    day: now.getUTCDate(),
+    hour: now.getUTCHours(),
+    minute: now.getUTCMinutes(),
+  };
+  const transitRaw = await getSwissWesternChart(request, env, transitInput);
+  const transitChart = buildWesternPremiumChart(transitRaw, transitInput, {
+    houseSystem: input.houseSystem,
+    zodiacType: input.zodiacType,
+    includeMinorAspects: true,
+  });
+
+  const natalPoints = {};
+  const transitPoints = {};
+  for (const n of ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "NorthNode"]) {
+    const natalLon = natalChart.planets?.[n]?.longitude ?? (n === "NorthNode" ? natalChart.northNode?.longitude : NaN);
+    const transitLon = transitChart.planets?.[n]?.longitude ?? (n === "NorthNode" ? transitChart.northNode?.longitude : NaN);
+    if (Number.isFinite(Number(natalLon))) natalPoints[n] = Number(natalLon);
+    if (Number.isFinite(Number(transitLon))) transitPoints[n] = Number(transitLon);
+  }
+
+  const transitToNatal = [];
+  const defs = [
+    { type: "conjunction", deg: 0 },
+    { type: "sextile", deg: 60 },
+    { type: "square", deg: 90 },
+    { type: "trine", deg: 120 },
+    { type: "opposition", deg: 180 },
+    { type: "quincunx", deg: 150 },
+  ];
+  for (const [tp, tLon] of Object.entries(transitPoints)) {
+    for (const [np, nLon] of Object.entries(natalPoints)) {
+      const diff = Math.abs(tLon - nLon);
+      const dist = diff > 180 ? 360 - diff : diff;
+      for (const def of defs) {
+        const orb = Math.abs(dist - def.deg);
+        if (orb <= getAspectOrbLimit(tp, np, def.type)) {
+          transitToNatal.push({ transit: tp, natal: np, type: def.type, orb: round2(orb), exact: def.deg });
+          break;
+        }
+      }
+    }
+  }
+  transitToNatal.sort((a, b) => a.orb - b.orb);
+
+  const age = Math.max(0, now.getUTCFullYear() - input.year);
+  const progressedDate = new Date(Date.UTC(input.year, Math.max(0, input.month - 1), input.day, input.hour, input.minute, 0, 0));
+  progressedDate.setUTCDate(progressedDate.getUTCDate() + age);
+  const progressedInput = {
+    ...input,
+    year: progressedDate.getUTCFullYear(),
+    month: progressedDate.getUTCMonth() + 1,
+    day: progressedDate.getUTCDate(),
+    hour: progressedDate.getUTCHours(),
+    minute: progressedDate.getUTCMinutes(),
+  };
+  const progressedRaw = await getSwissWesternChart(request, env, progressedInput);
+  const progressed = buildWesternPremiumChart(progressedRaw, progressedInput, {
+    houseSystem: input.houseSystem,
+    zodiacType: input.zodiacType,
+    includeMinorAspects: false,
+  });
+
+  const solarReturnInput = {
+    ...input,
+    year: now.getUTCFullYear(),
+    month: input.month,
+    day: input.day,
+    hour: input.hour,
+    minute: input.minute,
+  };
+  const solarRaw = await getSwissWesternChart(request, env, solarReturnInput);
+  const solarReturn = buildWesternPremiumChart(solarRaw, solarReturnInput, {
+    houseSystem: input.houseSystem,
+    zodiacType: input.zodiacType,
+    includeMinorAspects: false,
+  });
+
+  const progressedMoonSunDiff = Math.abs((progressed.planets.Moon?.longitude || 0) - (progressed.planets.Sun?.longitude || 0));
+  const progressedMoonPhase = round2(progressedMoonSunDiff > 180 ? 360 - progressedMoonSunDiff : progressedMoonSunDiff);
+  const saturnReturn = transitToNatal.some((a) => a.transit === "Saturn" && a.natal === "Saturn" && a.orb <= 2);
+  const jupiterReturn = transitToNatal.some((a) => a.transit === "Jupiter" && a.natal === "Jupiter" && a.orb <= 2);
+  const nodalReturn = transitToNatal.some((a) => a.transit === "NorthNode" && a.natal === "NorthNode" && a.orb <= 2);
+
+  return {
+    currentDate: now.toISOString().slice(0, 10),
+    transitPlanetPositions: transitChart.planets,
+    transitToNatalAspects: transitToNatal,
+    progressedSun: progressed.planets.Sun || null,
+    progressedMoon: progressed.planets.Moon || null,
+    progressedAsc: progressed.ascendant || null,
+    progressedMoonPhase,
+    solarReturn: {
+      ascendant: solarReturn.ascendant,
+      sunHouse: solarReturn.planets.Sun?.house || null,
+      moonHouse: solarReturn.planets.Moon?.house || null,
+    },
+    saturnReturn,
+    jupiterReturn,
+    nodalReturn,
+    keyTransitPeriods: transitToNatal.slice(0, 18),
+  };
+}
+
+function buildAstroDataContext(body, input, chart, reportType, partnerChart, synastry, composite, timingData) {
+  const birthTimeKnown = hasPreciseBirthTime(body);
+  const warnings = [];
+  if (!birthTimeKnown) warnings.push(ASTRO_NO_BIRTHTIME_NOTICE);
+  if (!body.birthPlace && !body.place && !body.location) warnings.push("출생지가 없어 시간대/위경도 계산의 정밀도가 제한됩니다.");
+  if (chart?.houseSystemMeta?.approximation) warnings.push(ASTRO_MISSING_DATA_NOTICE);
+  if (reportType === "compatibility" && !partnerChart) warnings.push("궁합 리포트 입력이 부족해 개인 리포트 기준으로 보완 분석합니다.");
+
+  const profileLines = [
+    `- 사용자 이름: ${String(body.name || input.name || "사용자")}`,
+    `- 생년월일: ${input.year}-${input.month}-${input.day}`,
+    `- 출생 시간: ${birthTimeKnown ? `${input.hour}:${String(input.minute).padStart(2, "0")}` : "미상"}`,
+    `- 출생지: ${String(body.birthPlace || body.place || body.location || "정보 없음")}`,
+    `- 위도/경도: ${round2(input.lat)}, ${round2(input.lon)}`,
+    `- 시간대: ${String(body.timezoneName || body.timezone || input.timezone || "정보 없음")}`,
+    `- 성별: ${String(body.gender || input.gender || "정보 없음")}`,
+    `- 하우스 시스템: ${String(input.houseSystem || "placidus")}`,
+    `- Zodiac: ${String(input.zodiacType || "tropical")}`,
+  ];
+
+  const chartLines = [
+    `- Ascendant Sign: ${chart.ascendant?.signKo || "정보 없음"}`,
+    `- Ascendant Degree: ${chart.ascendant?.degree ?? "정보 없음"}`,
+    `- Midheaven Sign: ${chart.midheaven?.signKo || "정보 없음"}`,
+    `- Midheaven Degree: ${chart.midheaven?.degree ?? "정보 없음"}`,
+    `- Chart Ruler: ${chart.chartRuler?.planet || "정보 없음"}`,
+    `- Chart Ruler Sign: ${chart.chartRuler?.sign || "정보 없음"}`,
+    `- Chart Ruler House: ${chart.chartRuler?.house || "정보 없음"}`,
+    `- Chart Ruler Aspects: ${(chart.chartRuler?.aspects || []).map((a) => `${a.p1}-${a.p2} ${a.type} orb ${a.orb}`).join(", ") || "정보 없음"}`,
+  ];
+
+  const requiredPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+  const planetLines = requiredPlanets.map((name) => {
+    const p = chart.planets?.[name];
+    if (!p) return `- ${name}: 정보 없음`;
+    const pAspects = chart.aspects.filter((a) => a.p1 === name || a.p2 === name).map((a) => `${a.p1}-${a.p2} ${a.type} orb ${a.orb}`).slice(0, 10).join(", ");
+    return `- ${name}: Sign ${p.signKo}, House ${p.house}, Degree ${p.degree}, Aspects ${pAspects || "정보 없음"}`;
+  });
+
+  const nodeLines = [
+    `- North Node Sign/House: ${chart.northNode?.signKo || "정보 없음"} / ${chart.northNode?.house || "정보 없음"}`,
+    `- South Node Sign/House: ${chart.southNode?.signKo || "정보 없음"} / ${chart.southNode?.house || "정보 없음"}`,
+    `- Chiron Sign/House: ${chart.chiron?.signKo || "정보 없음"} / ${chart.chiron?.house || "정보 없음"}`,
+    `- Part of Fortune: ${chart.partOfFortune ? JSON.stringify(chart.partOfFortune) : "정보 없음"}`,
+    `- Vertex: ${chart.vertex ? JSON.stringify(chart.vertex) : "정보 없음"}`,
+  ];
+
+  const houseLines = chart.houses.map((h) => `- House ${h.house}: cusp ${h.cuspLongitude}, sign ${h.signKo}, planets ${h.planets.join(", ") || "없음"}`);
+
+  const balanceLines = [
+    `- Element Balance: ${JSON.stringify(chart.elementBalance)}`,
+    `- Modality Balance: ${JSON.stringify(chart.modalityBalance)}`,
+    `- Hemisphere Balance: ${JSON.stringify(chart.hemisphereBalance)}`,
+    `- Dominant Planet: ${chart.dominantPlanet || "정보 없음"}`,
+    `- Dominant Sign: ${chart.dominantSign || "정보 없음"}`,
+    `- Dominant House: ${chart.dominantHouse || "정보 없음"}`,
+  ];
+
+  const compatLines = [];
+  if (reportType === "compatibility" && partnerChart) {
+    compatLines.push(
+      `- 상대방 이름: ${String(body.partnerName || "상대")}`,
+      `- 상대방 생년월일: ${[body.partnerYear, body.partnerMonth, body.partnerDay].filter(Boolean).join("-") || "정보 없음"}`,
+      `- 상대방 출생시간: ${body.partnerHour == null ? "미상" : `${body.partnerHour}:${String(body.partnerMinute || 0).padStart(2, "0")}`}`,
+      `- 상대방 출생지: ${String(body.partnerBirthPlace || "정보 없음")}`,
+      `- Synastry Aspects: ${(synastry?.aspects || []).slice(0, 40).map((a) => `${a.p1}-${a.p2} ${a.type} orb ${a.orb}`).join(", ") || "정보 없음"}`,
+      `- Sun-Moon aspects: ${JSON.stringify(synastry?.sunMoonAspects || [])}`,
+      `- Moon-Moon aspects: ${JSON.stringify(synastry?.moonMoonAspects || [])}`,
+      `- Venus-Mars aspects: ${JSON.stringify(synastry?.venusMarsAspects || [])}`,
+      `- Venus-Saturn aspects: ${JSON.stringify(synastry?.venusSaturnAspects || [])}`,
+      `- Mars-Saturn aspects: ${JSON.stringify(synastry?.marsSaturnAspects || [])}`,
+      `- Saturn hard aspects: ${JSON.stringify(synastry?.saturnHardAspects || [])}`,
+      `- Pluto hard aspects: ${JSON.stringify(synastry?.plutoHardAspects || [])}`,
+      `- Node contacts: ${JSON.stringify(synastry?.nodeContacts || [])}`,
+      `- Chiron contacts: ${JSON.stringify(synastry?.chironContacts || [])}`,
+      `- 7th House overlays: ${JSON.stringify(synastry?.house7Overlays || [])}`,
+      `- 8th House overlays: ${JSON.stringify(synastry?.house8Overlays || [])}`,
+      `- 12th House overlays: ${JSON.stringify(synastry?.house12Overlays || [])}`,
+      `- Composite ASC: ${composite?.ascendant?.signKo || "정보 없음"}`,
+      `- Composite Sun: ${JSON.stringify(composite?.planets?.Sun || null)}`,
+      `- Composite Moon: ${JSON.stringify(composite?.planets?.Moon || null)}`,
+      `- Composite Venus: ${JSON.stringify(composite?.planets?.Venus || null)}`,
+      `- Composite Mars: ${JSON.stringify(composite?.planets?.Mars || null)}`,
+      `- Composite Saturn: ${JSON.stringify(composite?.planets?.Saturn || null)}`,
+      `- Composite Nodes: ${JSON.stringify(composite?.nodes || null)}`,
+      `- Composite 7th House: ${JSON.stringify(composite?.house7 || null)}`,
+      `- Composite 10th House: ${JSON.stringify(composite?.house10 || null)}`,
+    );
+  }
+
+  const timingLines = timingData ? [
+    `- Current Date: ${timingData.currentDate}`,
+    `- Transit Planet Positions: ${JSON.stringify(timingData.transitPlanetPositions || {})}`,
+    `- Transit to Natal Aspects: ${JSON.stringify((timingData.transitToNatalAspects || []).slice(0, 30))}`,
+    `- Progressed Sun: ${JSON.stringify(timingData.progressedSun || null)}`,
+    `- Progressed Moon: ${JSON.stringify(timingData.progressedMoon || null)}`,
+    `- Progressed ASC: ${JSON.stringify(timingData.progressedAsc || null)}`,
+    `- Solar Return: ${JSON.stringify(timingData.solarReturn || null)}`,
+    `- Saturn Return: ${String(!!timingData.saturnReturn)}`,
+    `- Jupiter Return: ${String(!!timingData.jupiterReturn)}`,
+    `- Nodal Return: ${String(!!timingData.nodalReturn)}`,
+    `- Progressed Moon Phase: ${timingData.progressedMoonPhase}`,
+    `- 주요 Transit 기간: ${JSON.stringify((timingData.keyTransitPeriods || []).slice(0, 15))}`,
+  ] : [
+    "- 시기 분석 데이터는 챕터 12/13에서 집중 계산됩니다.",
+  ];
+
+  const dataText = [
+    "[사용자 데이터]",
+    ...profileLines,
+    "",
+    "[네이탈 핵심값]",
+    ...chartLines,
+    ...nodeLines,
+    "",
+    "[행성 데이터]",
+    ...planetLines,
+    "",
+    "[하우스 커스프/행성]",
+    ...houseLines,
+    "",
+    "[밸런스/지배성]",
+    ...balanceLines,
+    "",
+    "[시기 분석]",
+    ...timingLines,
+    compatLines.length ? "" : null,
+    compatLines.length ? "[궁합 분석]" : null,
+    ...compatLines,
+  ].filter(Boolean).join("\n");
+
+  return { dataText, warnings, birthTimeKnown };
+}
+
+function astroMissingMarkers(text, chapter, reportType) {
+  const source = String(text || "");
+  const required = [
+    "### 핵심 요약",
+    "### 데이터 근거 해석",
+    "### 심화 분석",
+    "### 관계·일·재물 적용",
+    "### 오늘부터 실천할 3가지",
+  ];
+  if (chapter === 12) {
+    required.push("### 1월");
+    required.push("### 12월");
+    required.push("- 핵심 흐름:");
+    required.push("- 좋은 선택:");
+    required.push("- 주의할 점:");
+    required.push("- 개운 행동:");
+  }
+  if (chapter === 13) {
+    required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
+    required.push("| 1~7일 |  |  |  |  |");
+    required.push("| 8~30일 |  |  |  |  |");
+    required.push("| 31~60일 |  |  |  |  |");
+    required.push("| 61~90일 |  |  |  |  |");
+  }
+  if (reportType === "compatibility" && chapter === 10) required.push("Synastry");
+  if (reportType === "compatibility" && chapter === 11) required.push("Composite");
+  return required.filter((m) => !source.includes(m));
+}
+
+function buildAstroPremiumPrompt(meta, chapter, input, reportType, context) {
+  const guide = ASTRO_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 차트 근거 중심으로 작성하세요.";
+  const reportTitle = reportType === "compatibility" ? ASTRO_REPORT_TITLE_COMPAT : ASTRO_REPORT_TITLE_PERSONAL;
+  const reportSubtitle = reportType === "compatibility" ? ASTRO_REPORT_SUBTITLE_COMPAT : ASTRO_REPORT_SUBTITLE_PERSONAL;
+  const monthlyRule = chapter === 12
+    ? "챕터 12에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동 형식을 지키세요."
+    : "";
+  const roadmapRule = chapter === 13
+    ? "챕터 13에서는 반드시 아래 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
+    : "";
+  const compatibilityRule = reportType === "compatibility"
+    ? "궁합 리포트에서는 Synastry와 Composite를 반드시 구분해 설명하세요."
+    : "개인 리포트에서는 궁합 데이터가 없음을 명시하고 이상적 파트너/관계 트리거 중심으로 작성하세요.";
+
+  return [
+    "너는 30년 경력의 서양 점성술 전문가이자, 융 심리학 기반 상담가, 관계 심리 컨설턴트, 프리미엄 PDF 리포트 작가다.",
+    "사용자의 점성술 차트 데이터를 바탕으로 단순한 별자리 운세가 아니라, 사용자가 자신의 성격 구조, 무의식 패턴, 관계 방식, 직업적 재능, 현재 삶의 흐름을 이해하고 실제 선택을 개선할 수 있도록 돕는 고급 리포트를 작성한다.",
+    "전문적이지만 어렵지 않게 작성하고, 점성술 용어는 처음 등장할 때 쉬운 한국어 설명을 붙인다.",
+    "ASC, Chart Ruler, Aspect, House, Transit, Synastry, Composite를 반드시 해설한다.",
+    "공포를 조장하지 말고 단정 예언(이별/사망/투자 보장/질병 진단)을 금지한다.",
+    "오직 마크다운 본문만 출력한다.",
+    "",
+    `[리포트 제목] ${reportTitle}`,
+    `[리포트 부제] ${reportSubtitle}`,
+    `[리포트 타입] ${reportType}`,
+    `[현재 챕터] ${chapter}. ${meta.title} — ${meta.subtitle}`,
+    `[최소 분량] ${ASTRO_MIN_CHARS}자 이상 (권장 5000자 이상)`,
+    "",
+    "[반드시 지킬 구조]",
+    `## 챕터 ${chapter}. ${meta.title}`,
+    "### 핵심 요약",
+    "### 데이터 근거 해석",
+    "### 심화 분석",
+    "### 관계·일·재물 적용",
+    "### 오늘부터 실천할 3가지",
+    "",
+    "[챕터 전용 지시]",
+    guide,
+    compatibilityRule,
+    monthlyRule,
+    roadmapRule,
+    "",
+    "[데이터 부족 시 반드시 포함할 문장]",
+    ASTRO_MISSING_DATA_NOTICE,
+    "",
+    "[입력 데이터]",
+    context.dataText,
+    context.warnings.length ? `\n[주의/제한]\n- ${context.warnings.join("\n- ")}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function buildAstroFallbackMarkdown(meta, chapter, input, reportType, context) {
+  const title = reportType === "compatibility" ? ASTRO_REPORT_TITLE_COMPAT : ASTRO_REPORT_TITLE_PERSONAL;
+  const subtitle = reportType === "compatibility" ? ASTRO_REPORT_SUBTITLE_COMPAT : ASTRO_REPORT_SUBTITLE_PERSONAL;
+  let text = [
+    `# ${title}`,
+    `# ${subtitle}`,
+    `## 챕터 ${chapter}. ${meta.title}`,
+    "### 핵심 요약",
+    "- ASC·Sun·Moon은 같은 성격을 다른 각도에서 보여주는 좌표입니다.",
+    "- 어스펙트는 저주가 아니라 에너지의 패턴이며, 관리 가능한 행동 변수입니다.",
+    "- 장점과 약점은 같은 에너지의 사용 방식 차이에서 갈립니다.",
+    "- 관계·일·재물은 분리된 문제가 아니라 같은 의사결정 체계의 결과입니다.",
+    "- 작은 루틴의 고정이 장기적 운의 체감을 바꿉니다.",
+    "### 데이터 근거 해석",
+    context.warnings.length ? `${ASTRO_MISSING_DATA_NOTICE}\n\n${context.warnings.join("\n")}` : "제공된 네이탈 차트/어스펙트 데이터를 기반으로 해석합니다.",
+    `입력 요약: ${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")}, 위도 ${round2(input.lat)}, 경도 ${round2(input.lon)}.`,
+    "### 심화 분석",
+    "현재 챕터의 핵심은 사건 예언이 아니라 반응 패턴의 구조화입니다. 같은 사건이라도 해석 프레임에 따라 결과가 달라집니다. 따라서 이 리포트는 성향을 단정하지 않고 의사결정 기준을 선명하게 만드는 데 집중합니다.",
+    "행성 간 긴장각은 갈등 자체가 아니라 성장의 방향을 알려주는 신호입니다. 회피보다 조정, 과속보다 지속성이 장기 성과를 만듭니다.",
+    "### 관계·일·재물 적용",
+    "1. 관계: 감정 강도보다 경계의 일관성을 우선하세요.",
+    "2. 일: 우선순위 1개를 먼저 완료해 실행 피로를 줄이세요.",
+    "3. 재물: 확장보다 누수 차단을 먼저 설계하세요.",
+    "4. 회복: 주간 복기 루틴으로 재발 비용을 줄이세요.",
+    "### 오늘부터 실천할 3가지",
+    "1. 오늘 결정 1건을 감정/현실/장기로 분리해 기록합니다.",
+    "2. 이번 주 소모 패턴 1개를 멈추고 대체 행동 1개를 고정합니다.",
+    "3. 월말에 관계·일·재정·건강 점검을 한 번에 실행합니다.",
+  ].join("\n\n");
+
+  if (chapter === 12) {
+    const months = [];
+    for (let m = 1; m <= 12; m += 1) {
+      months.push(`### ${m}월\n- 핵심 흐름: 내부 리듬 정렬이 성과를 좌우합니다.\n- 좋은 선택: 핵심 우선순위 1개를 먼저 확정하세요.\n- 주의할 점: 과속 확장과 감정적 결정을 피하세요.\n- 개운 행동: 주간 복기 30분을 고정하세요.`);
+    }
+    text += `\n\n${months.join("\n\n")}`;
+  }
+  if (chapter === 13) {
+    text += "\n\n| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |\n|---|---|---|---|---|\n| 1~7일 |  |  |  |  |\n| 8~30일 |  |  |  |  |\n| 31~60일 |  |  |  |  |\n| 61~90일 |  |  |  |  |";
+  }
+
+  let depth = 1;
+  while (text.length < ASTRO_MIN_CHARS) {
+    text += `\n\n### 심화 보충 노트 ${depth}\n점성술 해석의 목적은 운명의 단정이 아니라 선택의 품질 개선입니다. 이번 주에는 큰 결정보다 작은 루틴 고정을 우선하고, 월말에는 반드시 복기해 다음 달 실행 기준으로 이어가세요.`;
+    depth += 1;
+  }
+  return text;
+}
+
+async function generateAstroPremiumChapter(env, body, input, chapter, meta, chart, reportType, partnerChart, synastry, composite, timingData) {
+  const context = buildAstroDataContext(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
+  const prompt = buildAstroPremiumPrompt(meta, chapter, input, reportType, context);
+  const options = {
+    temperature: 0.84,
+    topP: 0.95,
+    maxOutputTokens: 16384,
+    timeoutMs: Number(env.PREMIUM_ASTRO_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 75000),
+    maxAttemptsPerPair: Number(env.PREMIUM_ASTRO_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+
+  let text = await callGemini(env, prompt, ["PREMIUM_ASTRO_GEMINI_MODEL"], options);
+  let usedFallback = false;
+  if (!text || text.trim().length < 1200) {
+    usedFallback = true;
+    text = buildAstroFallbackMarkdown(meta, chapter, input, reportType, context);
+  }
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const missing = astroMissingMarkers(text, chapter, reportType);
+    const tooShort = text.length < ASTRO_MIN_CHARS;
+    const truncated = looksTruncatedMarkdown(text);
+    const banned = hasBannedDeterministicExpression(text);
+    if (!tooShort && missing.length === 0 && !truncated && !banned) break;
+
+    const refinePrompt = [
+      "아래 서양 점성술 챕터 초안을 고품질로 보강하세요.",
+      `목표 길이: 최소 ${ASTRO_MIN_CHARS}자`,
+      "오직 마크다운 본문만 출력하고 기존 구조를 유지하면서 누락 요소를 채우세요.",
+      `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""}`.trim(),
+      "",
+      "[초안]",
+      text,
+    ].join("\n");
+
+    const refined = await callGemini(env, refinePrompt, ["PREMIUM_ASTRO_GEMINI_MODEL"], options);
+    if (!refined || !refined.trim()) break;
+    const candidate = refined.trim();
+    text = candidate.length >= Math.floor(text.length * 0.8) ? candidate : `${text}\n\n${candidate}`;
+  }
+
+  const finalMissing = astroMissingMarkers(text, chapter, reportType);
+  if (text.length < ASTRO_MIN_CHARS || finalMissing.length > 0 || looksTruncatedMarkdown(text) || hasBannedDeterministicExpression(text)) {
+    usedFallback = true;
+    text = buildAstroFallbackMarkdown(meta, chapter, input, reportType, context);
+  }
+
+  return {
+    text,
+    sections: parseSections(text),
+    usedFallback,
+    warnings: context.warnings,
+  };
+}
+
+function astroReportIdFromInput(body, input, reportType) {
+  const seed = [
+    reportType,
+    input.year,
+    input.month,
+    input.day,
+    input.hour,
+    input.minute,
+    input.lat,
+    input.lon,
+    String(body.name || input.name || ""),
+    String(body.partnerName || ""),
+    String(input.houseSystem || "placidus"),
+    String(input.zodiacType || "tropical"),
+    String(body.reportYear || new Date().getUTCFullYear()),
+  ].join("|");
+  return `astro_${stableHash(seed)}`;
+}
+
+function readAstroCache(cacheKey) {
+  const hit = ASTRO_REPORT_CACHE.get(cacheKey);
+  if (!hit) return null;
+  if (hit.expiresAt < Date.now()) {
+    ASTRO_REPORT_CACHE.delete(cacheKey);
+    return null;
+  }
+  return hit.payload;
+}
+
+function writeAstroCache(cacheKey, payload, ttlMs = 30 * 60 * 1000) {
+  ASTRO_REPORT_CACHE.set(cacheKey, {
+    expiresAt: Date.now() + ttlMs,
+    payload,
+  });
 }
 
 function calcSukuyo(input) {
@@ -1653,19 +2599,114 @@ async function handleAstroWestern(request, env) {
 async function handleAstroLife(request, env) {
   const body = await readJson(request);
   const input = normalizeBody(body);
-  const chapter = clampInt(body.chapter, 1, 1, 12);
-  const chart = await getSwissWesternChart(request, env, input);
+  const chapter = clampInt(body.chapter, 1, 1, ASTRO_TOTAL_CHAPTERS);
+  const partnerIntent = body.partnerName || body.partnerYear || body.partnerMonth || body.partnerDay;
+  const requestedReportType = String(body.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
+  let reportType = requestedReportType === "compatibility" ? "compatibility" : "personal";
+
+  input.birthPlace = String(body.birthPlace || body.place || body.location || "");
+  input.houseSystem = String(body.houseSystem || "placidus").toLowerCase();
+  input.zodiacType = String(body.zodiacType || "tropical").toLowerCase();
+  input.includeMinorAspects = body.includeMinorAspects !== false;
+
+  const reportId = astroReportIdFromInput(body, input, reportType);
+  const cacheKey = `${reportId}:${chapter}:${reportType}:${input.houseSystem}:${input.zodiacType}`;
+  const forceRegen = asBool(body.forceRegenerate) || asBool(body.retryChapter);
+  if (!forceRegen) {
+    const cached = readAstroCache(cacheKey);
+    if (cached) return json({ ok: true, cached: true, ...cached });
+  }
+
+  const rawChart = await getSwissWesternChart(request, env, input);
+  const chart = buildWesternPremiumChart(rawChart, input, {
+    houseSystem: input.houseSystem,
+    zodiacType: input.zodiacType,
+    includeMinorAspects: input.includeMinorAspects,
+  });
+
+  let partnerChart = null;
+  let synastry = null;
+  let composite = null;
+  if (reportType === "compatibility") {
+    const hasPartnerBirth = Number.isFinite(Number(body.partnerYear))
+      && Number.isFinite(Number(body.partnerMonth))
+      && Number.isFinite(Number(body.partnerDay));
+
+    if (!hasPartnerBirth) {
+      reportType = "personal";
+    } else {
+      const partnerInput = normalizeBody({
+        ...body,
+        year: body.partnerYear,
+        month: body.partnerMonth,
+        day: body.partnerDay,
+        hour: body.partnerHour ?? body.hour ?? 12,
+        minute: body.partnerMinute ?? body.minute ?? 0,
+        lat: body.partnerLat ?? body.lat,
+        lon: body.partnerLon ?? body.lon,
+      });
+      partnerInput.houseSystem = input.houseSystem;
+      partnerInput.zodiacType = input.zodiacType;
+      partnerInput.includeMinorAspects = input.includeMinorAspects;
+
+      const partnerRaw = await getSwissWesternChart(request, env, partnerInput);
+      partnerChart = buildWesternPremiumChart(partnerRaw, partnerInput, {
+        houseSystem: partnerInput.houseSystem,
+        zodiacType: partnerInput.zodiacType,
+        includeMinorAspects: partnerInput.includeMinorAspects,
+      });
+      synastry = buildSynastry(chart, partnerChart);
+      composite = buildCompositeChart(chart, partnerChart, input.houseSystem);
+    }
+  }
+
+  let timingData = null;
+  if (chapter === 12 || chapter === 13) {
+    try {
+      timingData = await buildAstroTimingData(request, env, input, chart);
+    } catch (_) {
+      timingData = null;
+    }
+  }
+
   const meta = ASTRO_CHAPTER_META[chapter - 1];
-  const generated = await generatedChapter(
+  const generated = await generateAstroPremiumChapter(
     env,
-    "astro",
+    body,
     input,
+    chapter,
     meta,
-    `ASC ${chart.ascendant.signKo}, Sun ${chart.planets.Sun.signKo}, Moon ${chart.planets.Moon.signKo}, aspects ${chart.aspects.length}`,
-    `상승궁 ${chart.ascendant.signKo}, 태양 ${chart.planets.Sun.signKo}, 달 ${chart.planets.Moon.signKo}의 결합이 기본 성향을 만듭니다.`,
-    "서양 점성술에서는 행성의 긴장을 생활의 언어로 번역해 선택 기준을 명확히 하는 것이 중요합니다.",
+    chart,
+    reportType,
+    partnerChart,
+    synastry,
+    composite,
+    timingData,
   );
-  return json({ ok: true, chart, chapter, chapterMeta: meta, ...generated });
+
+  const responsePayload = {
+    reportId,
+    reportType,
+    chapter,
+    totalChapters: ASTRO_TOTAL_CHAPTERS,
+    chapterMeta: meta,
+    chart,
+    partnerChart,
+    synastry,
+    composite,
+    timingData,
+    generatedAt: new Date().toISOString(),
+    quality: {
+      minChars: ASTRO_MIN_CHARS,
+      actualChars: generated.text.length,
+      usedFallback: generated.usedFallback,
+      warnings: generated.warnings || [],
+    },
+    ...generated,
+  };
+
+  writeAstroCache(cacheKey, responsePayload);
+  return json({ ok: true, ...responsePayload });
 }
 
 async function handleVedicLife(request, env) {

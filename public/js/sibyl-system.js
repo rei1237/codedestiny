@@ -8,6 +8,8 @@
 
   /* ── 상수 ── */
   var NS = 'FORTUNE_APP_USER_PROFILES';
+  var SIBYL_REPORT_CACHE_VERSION = '20260505-v1';
+  var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
 
   /* 십성 → 섹터 매핑 */
   var TENSTAR_SECTOR = {
@@ -166,6 +168,98 @@
       if (p && (!p.birth || !p.birth.year)) p = null;
       return p;
     } catch(e) { return null; }
+  }
+
+  function _sibylHash(text) {
+    var src = String(text || '');
+    var hash = 2166136261;
+    for (var i = 0; i < src.length; i += 1) {
+      hash ^= src.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16);
+  }
+
+  function _sibylProfileCacheKey(profile) {
+    if (!profile || !profile.birth) return '';
+    var b = profile.birth || {};
+    var scope = [
+      profile.id || '',
+      b.year || '', b.month || '', b.day || '', b.hour || '', b.minute || '',
+      profile.gender || ''
+    ].join('|');
+    return SIBYL_REPORT_CACHE_NS + ':' + _sibylHash(scope);
+  }
+
+  function _loadSibylCachedReport(profile) {
+    var key = _sibylProfileCacheKey(profile);
+    if (!key) return null;
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || parsed.version !== SIBYL_REPORT_CACHE_VERSION) return null;
+      if (!parsed.reportData || !Array.isArray(parsed.reportData.chapters) || !parsed.reportData.chapters.length) return null;
+      return parsed;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function _saveSibylCachedReport(profile, reportData, analysisData) {
+    var key = _sibylProfileCacheKey(profile);
+    if (!key || !reportData || !Array.isArray(reportData.chapters) || !reportData.chapters.length) return false;
+    var payload = {
+      version: SIBYL_REPORT_CACHE_VERSION,
+      savedAt: Date.now(),
+      reportData: {
+        source: reportData.source || 'gemini',
+        model: reportData.model || '',
+        totalChars: Number(reportData.totalChars || 0),
+        minTotalChars: Number(reportData.minTotalChars || 0),
+        chapters: reportData.chapters
+      },
+      analysisData: {
+        pillars: analysisData && analysisData.pillars ? analysisData.pillars : null,
+        domEl: analysisData && analysisData.domEl,
+        dominant: analysisData && analysisData.dominant,
+        coeff: analysisData && analysisData.coeff,
+        risk: analysisData && analysisData.risk
+      }
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(payload));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _syncSibylUnlockButton(profile) {
+    var btn = _q('sbUnlockBtn');
+    if (!btn) return;
+    var cached = _loadSibylCachedReport(profile);
+    if (cached) {
+      btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인';
+    btn.disabled = false;
+  }
+
+  function _openCachedDominatorReport(profile, fallbackAnalysis) {
+    var cached = _loadSibylCachedReport(profile);
+    if (!cached || !cached.reportData) return false;
+
+    var lockEl = _q('sbLockOverlay');
+    if (lockEl) lockEl.classList.add('sb-hidden');
+    var genEl = _q('sbGenerating');
+    if (genEl) genEl.classList.add('sb-hidden');
+
+    var analysis = cached.analysisData || fallbackAnalysis || {};
+    _renderDominatorReport(cached.reportData, analysis);
+    return true;
   }
 
   /* G_PILLARS → 십성 카운트 */
@@ -809,7 +903,7 @@
     var btn = _q('sbUnlockBtn');
 
     function _restoreUnlockBtn() {
-      if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+      _syncSibylUnlockButton(_getCurrentProfile());
     }
 
     function _isAdminBypassUser() {
@@ -826,6 +920,13 @@
     }
 
     if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
+
+    var currentProfile = _getCurrentProfile();
+    var currentData = window._sibylCurrentData || {};
+    if (_openCachedDominatorReport(currentProfile, currentData)) {
+      _restoreUnlockBtn();
+      return;
+    }
 
     function _afterPaid() {
       var lockEl = _q('sbLockOverlay');
@@ -956,6 +1057,8 @@
       if (!reportData) {
         throw new Error(_lastErr || '시빌라 리포트 생성 API가 응답하지 않습니다.');
       }
+
+      _saveSibylCachedReport(profile, reportData, data);
 
       clearInterval(stageTimer);
       if (genBar) genBar.style.width = '100%';
@@ -1116,6 +1219,8 @@
       // Run scan animation then render free section
       _runScanAnim(function() {
         _renderFreeSection(pillars, natal);
+        _syncSibylUnlockButton(profile);
+        _openCachedDominatorReport(profile, window._sibylCurrentData || {});
       });
     }
 
