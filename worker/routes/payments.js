@@ -1170,6 +1170,12 @@ async function handleMe(auth) {
     Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
     PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
   ]);
+  const unlockedFeatures = Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [];
+  const unlockMap = Object.create(null);
+  for (let i = 0; i < unlockedFeatures.length; i += 1) {
+    const key = String(unlockedFeatures[i] || "").trim();
+    if (key) unlockMap[key] = true;
+  }
 
   return json({
     user: {
@@ -1177,9 +1183,10 @@ async function handleMe(auth) {
       name: user.name,
       email: user.email,
       points: Number(user.points || 0),
-      unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
+      unlockedFeatures,
     },
-    unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
+    unlockedFeatures,
+    unlockMap,
     payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
     pointHistories: pointHistories.map((entry) => ({
       id: String(entry._id),

@@ -1341,6 +1341,12 @@ router.get("/me", requireAuth, async (req, res, next) => {
         .limit(20)
         .lean(),
     ]);
+    const unlockedFeatures = Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [];
+    const unlockMap = Object.create(null);
+    for (let i = 0; i < unlockedFeatures.length; i += 1) {
+      const key = String(unlockedFeatures[i] || "").trim();
+      if (key) unlockMap[key] = true;
+    }
 
     return res.status(200).json({
       user: {
@@ -1348,9 +1354,10 @@ router.get("/me", requireAuth, async (req, res, next) => {
         name: user.name,
         email: user.email,
         points: Number(user.points || 0),
-        unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
+        unlockedFeatures,
       },
-      unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
+      unlockedFeatures,
+      unlockMap,
       payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
       pointHistories: pointHistories.map((entry) => ({
         id: String(entry._id),

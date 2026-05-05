@@ -164,6 +164,7 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
   const historyKeys = await PointHistory.distinct("featureKey", {
     userId,
     kind: "deduct",
+    featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
   });
   const inferred = normalizePersistentUnlockKeys(historyKeys);
   if (inferred.length) {

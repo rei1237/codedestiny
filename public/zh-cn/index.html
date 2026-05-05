@@ -6208,7 +6208,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var syncInFlight = false;
   var unlockedFeatureMap = Object.create(null);
   var perUseApproved = Object.create(null);
-  var TILE_LOCKS_KEY = 'cd_tile_locks';
+  var TILE_LOCKS_KEY = 'cd_tile_locks_v2';
 
   var TILE_LOCK_ALIAS_MAP = {
     'olympus-profile-fc': ['olympus-fc'],
@@ -6313,18 +6313,63 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var raw = localStorage.getItem('fortune_auth_user');
       if (!raw) return null;
       var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return null;
-      return parsed;
+      var safe = __cdSanitizeAuthUserCache(parsed);
+      if (!safe) return null;
+      var normalized = JSON.stringify(safe);
+      if (normalized !== raw) localStorage.setItem('fortune_auth_user', normalized);
+      return safe;
     } catch (_e) {
       return null;
     }
+  }
+
+  function __cdSanitizeAuthUserCache(user) {
+    if (!user || typeof user !== 'object') return null;
+    var safe = {};
+    if (user.id) safe.id = String(user.id);
+    if (user.userId) safe.userId = String(user.userId);
+    if (user._id) safe._id = String(user._id);
+    if (user.uid) safe.uid = String(user.uid);
+    if (user.name) safe.name = String(user.name);
+    if (user.role) safe.role = String(user.role);
+    if (user.plan) safe.plan = String(user.plan);
+    if (typeof user.hasLocalAuth === 'boolean') safe.hasLocalAuth = user.hasLocalAuth;
+    var points = Number(user.points);
+    if (Number.isFinite(points) && points >= 0) safe.points = points;
+    if (user.profileSubscription && typeof user.profileSubscription === 'object') {
+      safe.profileSubscription = {
+        tier: String(user.profileSubscription.tier || 'free'),
+        isActive: !!user.profileSubscription.isActive,
+        expiresAt: user.profileSubscription.expiresAt || null,
+      };
+    }
+    return Object.keys(safe).length ? safe : null;
+  }
+
+  function __cdWriteAuthUserCache(user) {
+    try {
+      var safe = __cdSanitizeAuthUserCache(user);
+      if (!safe) {
+        localStorage.removeItem('fortune_auth_user');
+        return null;
+      }
+      localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
+      return safe;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  function __cdResolveAuthScopeId(user) {
+    var scopeRaw = user && (user.id || user.userId || user._id || user.uid);
+    return String(scopeRaw || '').trim().toLowerCase();
   }
 
   function syncAuthUserPoints(points) {
     try {
       var user = readAuthUser() || {};
       user.points = Number(points || 0);
-      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+      __cdWriteAuthUserCache(user);
     } catch (_e) {}
   }
 
@@ -6366,33 +6411,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (_e) {}
   }
 
+  function getTileLocksStorageKey() {
+    if (!hasAuthToken()) return '';
+    var user = readAuthUser() || {};
+    var scope = __cdResolveAuthScopeId(user);
+    if (!scope) return '';
+    return TILE_LOCKS_KEY + '::' + scope;
+  }
+
   function loadTileLocks() {
     unlockedFeatureMap = Object.create(null);
     syncUnlockedFeatureMapGlobal();
     if (!hasAuthToken()) return;
     clearLegacyUnlockStorage();
-    try {
-      var saved = localStorage.getItem(TILE_LOCKS_KEY);
-      if (!saved) {
-        syncUnlockedFeatureMapGlobal();
-        return;
-      }
-      var parsed = JSON.parse(saved);
-      if (parsed && typeof parsed === 'object') {
-        var keys = Object.keys(parsed);
-        for (var i = 0; i < keys.length; i += 1) {
-          if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
-        }
-      }
-    } catch (_e) {}
+    // 서버 응답이 잠금 상태의 단일 진실 원천이다.
     syncUnlockedFeatureMapGlobal();
   }
 
   function saveTileLocks() {
     if (!hasAuthToken()) return;
+    var storageKey = getTileLocksStorageKey();
+    if (!storageKey) return;
     try {
       var merged = Object.create(null);
-      var saved = localStorage.getItem(TILE_LOCKS_KEY);
+      var saved = localStorage.getItem(storageKey);
       if (saved) {
         var parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
@@ -6406,7 +6448,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       for (var j = 0; j < nextKeys.length; j += 1) {
         if (unlockedFeatureMap[nextKeys[j]] === true) merged[nextKeys[j]] = true;
       }
-      localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(merged));
+      localStorage.setItem(storageKey, JSON.stringify(merged));
       unlockedFeatureMap = merged;
       syncUnlockedFeatureMapGlobal();
     } catch (_e) {}
@@ -6535,9 +6577,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return map;
   }
 
-  function _cdApplyUnlocksFromPaymentPayload(payload) {
+  function _cdApplyUnlocksFromPaymentPayload(payload, options) {
     var known = _cdCollectKnownUnlockKeys();
-    var changed = false;
+    var serverUnlockMap = Object.create(null);
+    var replaceMode = !!(options && options.replace === true);
 
     function applyKey(rawKey) {
       var k = String(rawKey || '').trim();
@@ -6545,10 +6588,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var aliases = resolveTileLockAliasKeys(k);
       for (var ai = 0; ai < aliases.length; ai += 1) {
         var ak = aliases[ai];
-        if (known[ak] && unlockedFeatureMap[ak] !== true) {
-          markUnlockKey(unlockedFeatureMap, ak);
-          changed = true;
-        }
+        if (known[ak]) serverUnlockMap[ak] = true;
       }
     }
 
@@ -6573,20 +6613,47 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       applyKey(h.featureKey);
     }
 
+    var nextMap = replaceMode ? Object.create(null) : Object.assign(Object.create(null), unlockedFeatureMap);
+    var serverKeys = Object.keys(serverUnlockMap);
+    for (var sk = 0; sk < serverKeys.length; sk += 1) {
+      nextMap[serverKeys[sk]] = true;
+    }
+
+    var prevKeys = Object.keys(unlockedFeatureMap);
+    var nextKeys = Object.keys(nextMap);
+    var changed = prevKeys.length !== nextKeys.length;
+    if (!changed) {
+      for (var pk = 0; pk < prevKeys.length; pk += 1) {
+        if (unlockedFeatureMap[prevKeys[pk]] !== true || nextMap[prevKeys[pk]] !== true) {
+          changed = true;
+          break;
+        }
+      }
+    }
+    unlockedFeatureMap = nextMap;
+    syncUnlockedFeatureMapGlobal();
     return changed;
   }
 
   async function syncUnlocksFromServer() {
-    if (!hasAuthToken()) return;
+    if (!hasAuthToken()) return false;
     try {
-      var result = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
-      if (!result.ok) return;
-      if (!_cdApplyUnlocksFromPaymentPayload(result.payload)) return;
+      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
+      if (!result.ok) return false;
+      if (result.payload && result.payload.user && typeof result.payload.user.points === 'number') {
+        userBalance = Number(result.payload.user.points || 0);
+        saveBalance();
+        updateBadge();
+      }
+      _cdApplyUnlocksFromPaymentPayload(result.payload, { replace: true });
       saveTileLocks();
       applyTileLockVisuals();
       refreshUnlockButtons();
       if (typeof applySectionGates === 'function') applySectionGates();
-    } catch (_e) {}
+      return true;
+    } catch (_e) {
+      return false;
+    }
   }
 
   async function fetchJsonWithAuth(path, init) {
@@ -6710,6 +6777,18 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return;
     }
 
+    var serverStateReady = await syncUnlocksFromServer();
+    if (!serverStateReady) {
+      window.alert('잠금 상태를 서버에서 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if (isTileKeyUnlocked(featureKey)) {
+      UnlockButton(button);
+      if(typeof applySectionGates==='function')applySectionGates();
+      window.alert('이미 해제된 기능입니다.');
+      return;
+    }
+
     var confirmed = window.confirm('꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
@@ -6748,7 +6827,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
       saveBalance();
       updateBadge();
-      markUnlockKey(unlockedFeatureMap, featureKey);
+      _cdApplyUnlocksFromPaymentPayload(result.payload, { replace: false });
+      if (!isTileKeyUnlocked(featureKey)) {
+        var rechecked = await syncUnlocksFromServer();
+        if (!rechecked || !isTileKeyUnlocked(featureKey)) {
+          window.alert('결제는 확인됐지만 해금 상태를 확정하지 못했습니다. 잠시 후 다시 확인해 주세요.');
+          return;
+        }
+      }
       saveTileLocks();
       UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
@@ -7124,10 +7210,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     ));
     if (!isMainTile) return false;
 
-    if (action === 'openNevilleMeditationPage' || action === 'openYogaGuru' || action === 'openCosmicSoulMeditation') return true;
-    if (action === 'openCelestialHarmony') return true;
-    if (action === 'startIjikTarot' || action === 'startMindScanTarot' || action === 'startCrystalSoulTarot') return true;
-    return action.indexOf('openTarot') === 0;
+    var SELF_GATED_ACTIONS = {
+      openNevilleMeditationPage: true,
+      openYogaGuru: true,
+      openCosmicSoulMeditation: true,
+      openCelestialHarmony: true,
+      startIjikTarot: true,
+      startMindScanTarot: true,
+      startCrystalSoulTarot: true,
+    };
+    return SELF_GATED_ACTIONS[action] === true;
   }
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
@@ -7184,12 +7276,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           return true;
         }
       }
-      if (userBalance < tileCoinCost) {
-        if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
-          openChargeModal();
-        }
-        return false;
-      }
       var titleEl = actionNode.querySelector('.tarot-tile__title');
       var fname = titleEl ? titleEl.textContent.trim() : '서비스';
       if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return false;
@@ -7197,10 +7283,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return false;
       }
       consumeInFlight = true;
+      var _perUseOverlayOpened = false;
       try {
+        _cdSetCoinGateOverlay(true, fname + ' 결제를 확인하고 있습니다...');
+        _perUseOverlayOpened = true;
+        var perUseRequestId = 'peruse:' + action + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+        var perUseFeatureKey = String(action || 'coin-gate-per-use').trim().slice(0, 60) || 'coin-gate-per-use';
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
           method: 'POST',
-          body: JSON.stringify({ cost: tileCoinCost, reason: fname + ' 이용' }),
+          body: JSON.stringify({
+            cost: tileCoinCost,
+            amount: tileCoinCost,
+            reason: fname + ' 이용',
+            featureKey: perUseFeatureKey,
+            forceDeduct: true,
+            requestId: perUseRequestId,
+          }),
         });
         if (r.status === 404 || r.status >= 500) {
           window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
@@ -7226,6 +7324,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         return false;
       } finally {
+        if (_perUseOverlayOpened) _cdSetCoinGateOverlay(false);
         consumeInFlight = false;
       }
       } finally {
@@ -7332,7 +7431,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         delete perUseApproved[action];
       }
     }
-
     // ── 영구 해금 타일 게이트 ──
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
@@ -7347,6 +7445,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
+          return;
+        }
+        var _lockServerReady = await syncUnlocksFromServer();
+        if (!_lockServerReady) {
+          window.alert('잠금 상태를 서버에서 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+          return;
+        }
+        if (isTileKeyUnlocked(tileLockKey)) {
+          applyTileLockVisuals();
+          sessionStorage.setItem('cd_pa_' + action, '1');
+          _cdInvokeActionDirect(action, actionNode);
           return;
         }
         // 관리자 모드: 코인 차감/해금 비용 없이 즉시 실행
@@ -7386,9 +7495,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         try {
           _cdSetCoinGateOverlay(true, fname + ' 해금을 진행하고 있습니다...');
           _unlockOverlayOpened = true;
+          var tileRequestId = 'unlock:' + tileLockKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
           var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
             method: 'POST',
-            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
+            body: JSON.stringify({
+              cost: tileLockCost,
+              amount: tileLockCost,
+              featureKey: tileLockKey,
+              reason: fname + ' 영구 해금',
+              forceDeduct: true,
+              requestId: tileRequestId,
+            }),
           });
           if (r.status === 402) { openChargeModal(); return; }
           if (!r.ok) {
@@ -7404,7 +7521,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           saveBalance();
           updateBadge();
-          markUnlockKey(unlockedFeatureMap, tileLockKey);
+          _cdApplyUnlocksFromPaymentPayload(r.payload, { replace: false });
+          if (!isTileKeyUnlocked(tileLockKey)) {
+            var _lockRechecked = await syncUnlocksFromServer();
+            if (!_lockRechecked || !isTileKeyUnlocked(tileLockKey)) {
+              window.alert('결제는 확인됐지만 해금 상태를 확정하지 못했습니다. 잠시 후 다시 확인해 주세요.');
+              return;
+            }
+          }
           saveTileLocks();
           applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
