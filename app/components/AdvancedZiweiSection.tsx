@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { calcZiweiPalaces, ZiweiChartData } from "../_lib/ziwei-engine";
 import { generateAdvancedReport } from "../_lib/ziwei-interpretations";
 import { AdvancedZiweiResult } from "../_lib/ziwei-normalization";
-import PremiumBlurGate from "./PremiumBlurGate";
+import { usePayment } from "./PaymentProcessingContext";
+import { useToast } from "./Toast";
+import { PremiumBlurGate } from "./PremiumBlurGate";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Step = "form" | "computing" | "result";
@@ -158,7 +160,7 @@ function markPremiumUnlockedLocal() {
   writeUnlockToMaps();
 }
 
-function readPremiumMarkerUnlocked() {
+function isPremiumUnlockedLocal() {
   try {
     const candidate = sessionStorage.getItem(PREMIUM_UNLOCK_MARKER_KEY) || localStorage.getItem(PREMIUM_UNLOCK_MARKER_KEY);
     if (!candidate) return false;
@@ -215,6 +217,14 @@ function payloadHasPremiumUnlock(payload: any) {
   return false;
 }
 
+function getFlowerAdminTokenClient() {
+  try {
+    return localStorage.getItem("flower_admin_token");
+  } catch (_) {
+    return null;
+  }
+}
+
 function StarDust() {
   const dots = Array.from({ length: 16 }, (_, i) => i);
   return (
@@ -258,6 +268,8 @@ export default function AdvancedZiweiSection({
   const [activeTab, setActiveTab] = useState<ChapterId>("intro");
   const [progress, setProgress] = useState(0);
   const [loadingText, setLoadingText] = useState("성도 데이터를 정렬하는 중...");
+  const { startPayment, endPayment, setPaymentMessage } = usePayment();
+  const { showToast } = useToast();
   const [resolvedUnlocked, setResolvedUnlocked] = useState(Boolean(isUnlocked));
   const [unlockSyncing, setUnlockSyncing] = useState(false);
   const autoComputeRef = useRef(false);
@@ -269,43 +281,43 @@ export default function AdvancedZiweiSection({
   const activeChapter = useMemo(() => CHAPTERS.find((c) => c.id === activeTab), [activeTab]);
 
   const syncUnlockState = useCallback(async (checkServer: boolean) => {
-    if (isUnlocked) {
+    if (resolvedUnlocked) return true;
+    const isLocal = isPremiumUnlockedLocal();
+    if (isLocal) {
       setResolvedUnlocked(true);
-      markPremiumUnlockedLocal();
       return true;
     }
 
-    const loggedIn = hasAuthToken();
-    const localUnlocked = loggedIn && (readPremiumMarkerUnlocked() || readLocalUnlockByTileMap());
-
-    if (localUnlocked) {
-      setResolvedUnlocked(true);
-      markPremiumUnlockedLocal();
-      return true;
-    }
-
-    if (!checkServer || !loggedIn) {
-      return false;
-    }
+    if (!checkServer) return false;
 
     setUnlockSyncing(true);
+    startPayment("프리미엄 해금 정보를 확인하고 있습니다...");
     try {
-      const token = localStorage.getItem("fortune_auth_token") || "";
-      const response = await fetch("/api/fortune/pig-coin/balance", {
-        method: "GET",
+      const token = localStorage.getItem('fortune_auth_token');
+      const adminToken = getFlowerAdminTokenClient();
+      if (!token && !adminToken) {
+        setUnlockSyncing(false);
+        endPayment();
+        return false;
+      }
+
+      const response = await fetch('/api/user/destiny-profiles', {
         headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+        }
       });
-      const payload = await response.json().catch(() => ({}));
+      const payload = await response.json();
       if (response.ok && payloadHasPremiumUnlock(payload)) {
         setResolvedUnlocked(true);
         markPremiumUnlockedLocal();
+        showToast("✨ 자미두수 프리미엄 해금이 확인되었습니다!", "success");
+        setUnlockSyncing(false);
+        endPayment();
         return true;
       }
-    } catch (_) {
-      // ignore unlock sync failure
+    } catch (err) {
+      console.error('[AdvancedZiwei] sync error:', err);
     } finally {
       setUnlockSyncing(false);
     }

@@ -27,15 +27,28 @@ function LockedSection({
   cost,
   isUnlocked,
   onUnlock,
-  buttonLabel = "꽃꽃돼지 코인으로 운명 확인하기",
+  buttonLabel = "꽃돼지 코인으로 운명 확인하기",
   children,
 }: LockedSectionProps) {
   if (isUnlocked) {
     return (
-      <section className="rounded-3xl border border-amber-300/50 bg-white/90 p-5 shadow-lg shadow-rose-100">
-        <h3 className="text-lg font-extrabold text-neutral-900">{title}</h3>
-        <p className="mt-1 text-sm text-neutral-600">{description}</p>
-        <div className="mt-3 rounded-2xl border border-amber-100 bg-gradient-to-br from-white to-amber-50 p-4">
+      <section className="relative overflow-hidden rounded-3xl border border-amber-400 bg-gradient-to-br from-white to-amber-50 p-5 shadow-xl shadow-amber-100/50">
+        <div className="absolute -right-8 -top-8 h-20 w-20 rotate-12 bg-amber-400/20" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-black text-neutral-900">{title}</h3>
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
+               해금됨 
+            </span>
+          </div>
+          <div className="h-6 w-6 text-amber-500">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+            </svg>
+          </div>
+        </div>
+        <p className="mt-1 text-sm font-medium text-neutral-600">{description}</p>
+        <div className="mt-4 rounded-2xl border border-amber-200/50 bg-white/80 p-4 shadow-inner">
           {children}
         </div>
       </section>
@@ -442,6 +455,9 @@ export default function KkulkkulManseryukMain() {
         return next;
       });
       setSparkleTarget(key);
+      setPaymentMessage("✅ 성공적으로 해금되었습니다!");
+      await new Promise(r => setTimeout(r, 1000));
+      showToast(`🎉 해금이 완료되었습니다! 바로 확인해 보세요.`, "success");
     } catch (e) {
       console.error('[unlockByCoins]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
@@ -480,6 +496,7 @@ export default function KkulkkulManseryukMain() {
       notifyCoinResult(data, cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
+      showToast(`✨ 운명 확인을 위해 코인이 사용되었습니다. 잠시 후 결과가 열립니다.`, "success");
       if (key === "stonehengeRunes") {
         markRunePrepaidOnce();
       }
@@ -609,6 +626,8 @@ export default function KkulkkulManseryukMain() {
         if (service === "ziwei") {
           markZiweiPremiumUnlockedClient();
         }
+        setPaymentMessage("✅ 해금이 완료되었습니다! 잠시 후 이동합니다.");
+        await new Promise(r => setTimeout(r, 800));
         setPremiumFlowStage('generate');
       } catch (e) {
         console.error('[handleStartPremiumGeneration]', e);
@@ -854,12 +873,16 @@ export default function KkulkkulManseryukMain() {
                 </button>
 
                 {perUseCount[item.key] > 0 ? (
-                  <p className="mt-3 rounded-lg border border-amber-100 bg-white/70 p-2 text-xs text-neutral-700">
-                    최근 결과가 열렸습니다. (데모 표시)
-                  </p>
+                  <div className="mt-3 rounded-xl border border-emerald-400/50 bg-emerald-50 px-3 py-2.5 shadow-sm">
+                    <p className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white">✓</span>
+                      운명이 해독되었습니다!
+                    </p>
+                    <p className="mt-1 text-[10px] text-emerald-600">결과 데이터가 하단에 활성화되었습니다.</p>
+                  </div>
                 ) : (
-                  <div className="mt-3 rounded-lg border border-rose-100 bg-white/40 p-2 text-xs text-neutral-500 blur-[6px] grayscale-[50%] select-none">
-                    결제 전 결과 데이터 비노출
+                  <div className="mt-3 rounded-xl border border-rose-200 bg-white/40 p-2.5 text-center text-[11px] font-medium text-neutral-400 blur-[4px] grayscale-[50%] select-none">
+                    결제 전에는 데이터가 비노출됩니다.
                   </div>
                 )}
               </article>
