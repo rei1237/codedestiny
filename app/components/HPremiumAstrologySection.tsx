@@ -54,7 +54,9 @@ const CHAPTER_META: ChapterMeta[] = [
   { num: 10, title: "시냅스트리 — 관계의 투사",   subtitle: "궁합 1: 심리적 행성 각도",           icon: "🔮" },
   { num: 11, title: "컴포지트 — 우리라는 운명",   subtitle: "궁합 2: 합산 차트",                  icon: "⭕" },
   { num: 12, title: "별들의 마스터플랜",           subtitle: "총결산 및 개운법",                   icon: "✨" },
+  { num: 13, title: "90일 현실 전환 플랜",         subtitle: "관계·커리어·재정 실천 설계",         icon: "🧭" },
 ];
+const TOTAL_CHAPTERS = CHAPTER_META.length;
 
 const ASTROLOGY_STORAGE_KEY = "premium:astrology:session:v1";
 
@@ -500,7 +502,7 @@ ${chaptersHtml}
     let lastError: unknown = null;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 65000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
       try {
         const res = await fetch(path, {
           method: "POST",
@@ -630,12 +632,12 @@ ${chaptersHtml}
           <div style={{ position:"absolute", left:20, right:20, bottom:20 }}>
             <p style={{ color:"rgba(251,191,36,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>ASTROLOGY PREMIUM · DETAIL INTRO</p>
             <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>점성술 프리미엄 리포트</h3>
-            <p style={{ color:"rgba(203,213,225,0.75)", fontSize:"0.88rem", margin:0, lineHeight:1.8 }}>ASC/Sun/Moon 기반 12챕터 분석을 먼저 확인하고, 원할 때 PDF 생성 단계로 진입하세요.</p>
+            <p style={{ color:"rgba(203,213,225,0.75)", fontSize:"0.88rem", margin:0, lineHeight:1.8 }}>ASC/Sun/Moon 기반 {TOTAL_CHAPTERS}챕터 분석을 먼저 확인하고, 원할 때 PDF 생성 단계로 진입하세요.</p>
           </div>
         </div>
 
         <div style={{ padding:"18px 18px 22px" }}>
-          <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.72rem", letterSpacing:"0.18em", margin:"0 0 10px" }}>리포트 목차 미리보기 (12 CHAPTERS)</p>
+          <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.72rem", letterSpacing:"0.18em", margin:"0 0 10px" }}>리포트 목차 미리보기 ({TOTAL_CHAPTERS} CHAPTERS)</p>
           <div style={{ display:"grid", gap:8 }}>
             {CHAPTER_META.map((ch) => (
               <div key={ch.num} style={{ borderRadius:12, border:"1px solid rgba(251,191,36,0.18)", background:"rgba(15,23,42,0.35)", padding:"10px 12px" }}>
@@ -714,7 +716,7 @@ ${chaptersHtml}
               "☀️ 태양·달·상승궁 3각 에너지",
               "🪐 12하우스 재물·사랑·직업 운세",
               "🌌 지금 트랜지트 인생 영향",
-              "✨ AI 12챕터 심층 해석",
+              `✨ AI ${TOTAL_CHAPTERS}챕터 심층 해석`,
               "💫 서양 열대황도 전문 엔진",
             ].map((f,i) => (
               <span key={i} style={{
@@ -734,13 +736,13 @@ ${chaptersHtml}
               <p style={{ color:"#fbbf24", fontWeight:900, fontSize:"1rem", margin:0 }}>🪙 1회 390코인</p>
             </div>
             <p style={{ color:"rgba(148,163,184,0.55)", fontSize:"0.73rem", margin:0, lineHeight:1.7 }}>
-              ✦ 결제 즉시 전체 12챕터 생성 시작<br/>
+              ✦ 결제 즉시 전체 {TOTAL_CHAPTERS}챕터 생성 시작<br/>
               ✦ AI 개인 맞춤 분석 — 동일한 결과 없음
             </p>
             {doneCount > 0 && (
               <div style={{ marginLeft:"auto", textAlign:"center", flexShrink:0 }}>
                 <p style={{ color:"rgba(251,191,36,0.6)", fontSize:"0.65rem", letterSpacing:"0.15em", margin:0 }}>완료</p>
-                <p style={{ color:"#fbbf24", fontWeight:900, fontSize:"1.4rem", margin:0 }}>{doneCount}/12</p>
+                <p style={{ color:"#fbbf24", fontWeight:900, fontSize:"1.4rem", margin:0 }}>{doneCount}/{TOTAL_CHAPTERS}</p>
               </div>
             )}
           </div>
@@ -833,16 +835,16 @@ ${chaptersHtml}
               </button>
               <button
                 onClick={handleGenerateAll}
-                disabled={doneCount === 12}
+                disabled={doneCount === TOTAL_CHAPTERS}
                 style={{
                   borderRadius:10, padding:"8px 20px", fontSize:"0.82rem", fontWeight:800,
-                  background: doneCount === 12 ? "rgba(100,116,139,0.2)" : "linear-gradient(135deg, #9333ea, #7c3aed)",
-                  border:"none", color: doneCount === 12 ? "rgba(148,163,184,0.5)" : "#fff",
-                  cursor: doneCount === 12 ? "not-allowed" : "pointer",
-                  boxShadow: doneCount === 12 ? "none" : "0 4px 16px rgba(147,51,234,0.35)",
+                  background: doneCount === TOTAL_CHAPTERS ? "rgba(100,116,139,0.2)" : "linear-gradient(135deg, #9333ea, #7c3aed)",
+                  border:"none", color: doneCount === TOTAL_CHAPTERS ? "rgba(148,163,184,0.5)" : "#fff",
+                  cursor: doneCount === TOTAL_CHAPTERS ? "not-allowed" : "pointer",
+                  boxShadow: doneCount === TOTAL_CHAPTERS ? "none" : "0 4px 16px rgba(147,51,234,0.35)",
                 }}
               >
-                ✦ 전체 12챕터 순차 생성
+                ✦ 전체 {TOTAL_CHAPTERS}챕터 순차 생성
               </button>
             </div>
 
@@ -874,7 +876,7 @@ ${chaptersHtml}
                     transition:"all 0.2s",
                   }}
                 >
-                  {pdfLoading ? "\ud83d\udcc4 PDF 생성 중…" : `\ud83d\udce5 PDF 다운로드 (${doneCount}/12쳭터)`}
+                  {pdfLoading ? "\ud83d\udcc4 PDF 생성 중…" : `\ud83d\udce5 PDF 다운로드 (${doneCount}/${TOTAL_CHAPTERS}챕터)`}
                 </button>
                 {pdfError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {pdfError}</p>}
                 <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>\uc644\ub8cc\ub41c {doneCount}\uac1c \ucced\ud130\ub97c \ud3ec\ud568\ud55c \uc810\uc131\uc220 PDF \ub9ac\ud3ec\ud2b8\ub97c \uc0dd\uc131\ud569\ub2c8\ub2e4</p>

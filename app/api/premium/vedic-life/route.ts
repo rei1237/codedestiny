@@ -478,18 +478,20 @@ function applySwissCoreToChart(chart: VedicChart, swiss: { planets?: Record<stri
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
 export const VEDIC_CHAPTER_META = [
-  { num:1,  title:"라그나와 영혼의 목적",        subtitle:"Lagna & Atmakaraka",                icon:"🕉️" },
-  { num:2,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분석",       icon:"🌙" },
-  { num:3,  title:"다샤 — 인생의 웅장한 계절",   subtitle:"Vimshottari Dasha 전략",            icon:"⏳" },
-  { num:4,  title:"부와 번영의 정렬",            subtitle:"Artha & 2·11하우스 다나 요가",       icon:"💰" },
-  { num:5,  title:"카르마와 천직",               subtitle:"Dharma & 10하우스 · D9 · D10",      icon:"👑" },
-  { num:6,  title:"나밤샤 — 영혼의 성숙도",       subtitle:"D9 숨겨진 잠재력",                  icon:"💎" },
-  { num:7,  title:"관계의 거울 — 아슈타 쿠타",   subtitle:"Ashta Koota 궁합 분석",             icon:"🔮" },
-  { num:8,  title:"인연의 깊이와 카르믹 계약",   subtitle:"7하우스 · 금성/화성",               icon:"💞" },
-  { num:9,  title:"생명력과 정화",               subtitle:"Health 6·8·12하우스 · 아유르베다",  icon:"🌿" },
-  { num:10, title:"요가 — 특별한 축복의 조합",   subtitle:"차트의 천부적 재능과 치트키",        icon:"✨" },
-  { num:11, title:"우파야 — 운명을 바꾸는 실천", subtitle:"행성 에너지 정화 비책",             icon:"🙏" },
-  { num:12, title:"마스터플랜 — 카르마를 넘어선 자유", subtitle:"총결산 & 북극성 선언",         icon:"🌟" },
+  { num:1,  title:"프롤로그 — 카르마 블루프린트 소개", subtitle:"베다 점성술 리포트 사용 가이드",       icon:"📜" },
+  { num:2,  title:"라그나와 영혼의 목적", subtitle:"Lagna & Atmakaraka",       icon:"🕉️" },
+  { num:3,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분석", icon:"🌙" },
+  { num:4,  title:"다샤 — 인생의 웅장한 계절",   subtitle:"Vimshottari Dasha 전략",            icon:"⏳" },
+  { num:5,  title:"부와 번영의 정렬",            subtitle:"Artha & 2·11하우스 다나 요가",       icon:"💰" },
+  { num:6,  title:"카르마와 천직",               subtitle:"Dharma & 10하우스 · D9 · D10",      icon:"👑" },
+  { num:7,  title:"나밤샤 — 영혼의 성숙도",       subtitle:"D9 숨겨진 잠재력",                  icon:"💎" },
+  { num:8,  title:"관계의 거울 — 아슈타 쿠타",   subtitle:"Ashta Koota 궁합 분석",             icon:"🔮" },
+  { num:9,  title:"인연의 깊이와 카르믹 계약",   subtitle:"7하우스 · 금성/화성",               icon:"💞" },
+  { num:10, title:"생명력과 정화",               subtitle:"Health 6·8·12하우스 · 아유르베다",  icon:"🌿" },
+  { num:11, title:"요가 — 특별한 축복의 조합",   subtitle:"차트의 천부적 재능과 치트키",        icon:"✨" },
+  { num:12, title:"우파야 — 운명을 바꾸는 실천", subtitle:"행성 에너지 정화 비책",             icon:"🙏" },
+  { num:13, title:"고차라와 올해의 행동 전략",   subtitle:"Transit & Annual Strategy",          icon:"🪐" },
+  { num:14, title:"마스터플랜 — 카르마를 넘어선 자유", subtitle:"총결산 & 북극성 선언",         icon:"🌟" },
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -590,64 +592,101 @@ const STYLE_GUIDE = `[작성 지침]
 // ─────────────────────────────────────────────────────────────────
 // 12챕터 프롬프트 빌더
 // ─────────────────────────────────────────────────────────────────
-function buildPrompt(ch: number, c: VedicChart): string {
+function buildPrompt(ch: number, c: VedicChart, reportType: "personal" | "compatibility" = "personal", body?: Record<string, unknown>): string {
   const bd = baseData(c);
   const p = c.planets;
   const lagna = c.lagna;
 
   switch (ch) {
     case 1: {
-      const lagnaLord = getRashiLord(lagna.sign);
-      const llPos = p[lagnaLord];
+      const userName = String(body?.name || "사용자");
+      const partnerName = String(body?.partnerName || "상대");
+      const isCompat = reportType === "compatibility";
       return `${bd}
 
-[챕터 1 — 라그나(Lagna)와 영혼의 목적 작성 지시]
-너는 인도 베다 철학과 현대 심리학을 통합한 주티쉬(Jyotish) 마스터다.
+    [챕터 1 — 프롤로그: 카르마 블루프린트 소개 작성 지시]
+    너는 베다 점성술(Jyotish) 마스터다. 이 챕터는 예언문이 아니라 "리포트 안내서"여야 한다.
 
-## 1. 라그나의 환경 — ${lagna.signSanskrit} 상승궁의 삶의 무대
-라그나가 결정하는 신체적·사회적 환경, 타고난 체질, 외형적 페르소나를 구체적으로 분석하라. 이 별자리의 원소(Tattwa)와 성질(Guna)이 일상에 어떻게 발현되는가?
+    ## 1. 베다 점성술(Jyotish)의 의미
+    베다 점성술이 무엇이며, 왜 라그나(Lagna), 나크샤트라(Nakshatra), 다샤(Dasha)가 핵심 축인지 쉬운 한국어로 설명하라.
 
-## 2. 라그나 지배성(Lagna Lord) — ${lagnaLord}의 위치
-라그나 지배성인 ${llPos?.nameKo??lagnaLord}이 ${llPos?.signSanskrit??""} ${llPos?.house??0}하우스에 위치한 의미를 분석하라. 이 배치가 인생 여정과 주요 관심사를 어떻게 형성하는가?
+    ## 2. 이 리포트를 읽는 법
+    이 리포트가 "운명 판결문"이 아니라 "자기 이해와 선택 전략 도구"임을 분명히 하고, 각 챕터를 어떻게 활용하면 좋을지 사용법을 안내하라.
 
-## 3. 아트마카라카(Atmakaraka) — 영혼의 지표성
-아트마카라카인 ${c.atmakaraka.nameKo}이 이번 생의 영혼 숙제를 어떻게 암시하는지 분석하라. 왜 이런 배치로 태어났는지 카르마(Karma) 관점에서 설명하고, 영혼의 최종 목적(Moksha)에 다가가는 방법을 제시하라.
+    ## 3. 사용자 차트 핵심 요약
+    ${userName}의 라그나, 달 나크샤트라, 아트마카라카, 현재 다샤를 연결해 이번 생의 큰 테마를 요약하라.
 
-## 4. 카르마 원인과 현생 환경의 연결
-이번 생에 이런 라그나와 아트마카라카를 받은 영혼적 이유를 전생의 카르마 관점에서 분석하라.
+    ## 4. 현재 인생 주기의 분위기
+    현재 Maha/Antar Dasha 기반으로 "지금은 확장기/정리기/수성기 중 어디에 가까운지"를 설명하고, 당장 피해야 할 무리수 3가지를 제시하라.
 
-## 5. 아침 개운법 — 라그나 에너지 활성화 루틴
-잠재력을 깨우기 위한 라그나·아트마카라카 기반의 구체적인 아침 루틴(요가 아사나, 만트라, 색상, 음식, 보석)을 5가지 이상 상세히 제시하라.
+    ## 5. 시작 선언문
+    챕터 2 이후를 읽기 전 마음가짐 5문장을 제시하라. 공포 조장 없이 실천 중심으로 작성하라.
+
+    ${isCompat ? `
+    [궁합 모드 추가 지시]
+    - 대상: ${userName} vs ${partnerName}
+    - 점수가 낮아도 단정/파국 표현 금지.
+    - 궁합은 판결문이 아니라 관계 사용설명서라는 톤을 유지하라.
+    ` : ""}
 
 ${STYLE_GUIDE}`;
     }
 
     case 2: {
+      const lagnaLord = getRashiLord(lagna.sign);
+      const llPos = p[lagnaLord];
+      const atma = c.atmakaraka;
+      return `${bd}
+
+    [챕터 2 — 라그나(Lagna)와 영혼의 목적 작성 지시]
+    너는 인도 베다 철학과 현대 심리학을 통합한 주티쉬(Jyotish) 마스터다.
+
+    ## 1. 라그나가 보여주는 외적 삶의 방향
+    라그나 ${lagna.signSanskrit}(${lagna.signKo})의 원소/성질을 근거로 사용자가 세상과 관계 맺는 방식, 첫인상, 행동 패턴을 설명하라.
+
+    ## 2. 라그나 별자리와 하우스 해석
+    라그나 별자리 의미와 1하우스 중심 테마를 실제 삶(일/관계/자기표현)에 연결해 구체적으로 해석하라.
+
+    ## 3. 라그나 로드의 위치와 인생 운영 방식
+    라그나 로드 ${llPos?.nameKo ?? lagnaLord}가 ${llPos?.signSanskrit ?? "정보 없음"} ${llPos?.house ?? "정보 없음"}하우스에 위치한 의미를 분석하라.
+    이 배치가 인생의 우선순위와 성취 방식에 어떻게 작동하는지 설명하라.
+
+    ## 4. 아트마카라카가 의미하는 영혼의 숙제
+    아트마카라카 ${atma.nameKo}(${atma.signKo})를 중심으로 이번 생에서 반복되는 카르마 패턴과 반드시 성숙해야 할 과제를 분석하라.
+
+    ## 5. 잠재력 활성화 루틴과 오늘부터 실천할 3가지
+    아침 루틴(호흡/명상/기록/행동)을 제시하고, 영혼의 목적을 현실에서 실현하는 실행 전략을 작성하라.
+    마지막에는 반드시 "오늘부터 실천할 3가지"를 체크리스트로 제시하라.
+
+${STYLE_GUIDE}`;
+    }
+
+    case 3: {
       const nak = c.moonNakshatra;
       return `${bd}
 
-[챕터 2 — 나크샤트라(Nakshatra) 심층 분석 작성 지시]
+[챕터 3 — 나크샤트라(Nakshatra) 심층 분석 작성 지시]
 27나크샤트라 중 ${nak.ko}(${nak.name})에서 태어난 사용자의 무의식적 본능을 분석하라.
 
 ## 1. ${nak.ko} 나크샤트라의 신화적 세계
 수호신(${nak.deity})과 상징(${nak.symbol})의 신화적 배경을 깊이 설명하라. 이 나크샤트라가 인류 집단 무의식에서 어떤 원형(Archetype)을 담당하는가?
 
 ## 2. 무의식적 반응 패턴 진단
-${nak.ko} pada ${nak.pada}에서 태어난 사람의 심리적 특성, 감정적 반응 패턴, MBTI를 초월하는 정밀한 성격 지층을 분석하라.
+${nak.ko} pada ${nak.pada}에서 태어난 사람의 심리적 특성, 감정적 반응 패턴, 결핍과 트리거를 분석하라.
 
-## 3. 감정적 결핍의 뿌리
-이 나크샤트라가 만들어내는 무의식적 결핍(Shadow)과 그것이 대인관계·커리어·건강에 미치는 영향을 분석하라.
+## 3. 감정적 결핍의 뿌리와 방어기제
+이 나크샤트라가 만들어내는 무의식적 결핍(Shadow)과 방어기제가 대인관계·커리어·건강에 미치는 영향을 분석하라.
 
-## 4. 네빌 고다드식 만트라 명상 루틴
-네빌 고다드의 '가정의 법칙(Law of Assumption)'과 ${nak.ko} 나크샤트라 에너지를 결합한, 감정의 격랑을 잠재우고 풍요를 창조하는 '나크샤트라 만트라(Nakshatra Mantra)' 명상 루틴을 5,000자로 제안하라. 구체적인 아침·저녁 명상 스크립트 포함.
+## 4. 만트라 명상 + 네빌식 심상화 루틴
+${nak.ko} 에너지에 맞춘 아침·저녁 명상 루틴과 감정 정렬 루틴을 단계별로 작성하라.
 
-## 5. 정서적 안정도 분석과 회복 전략
-${nak.ko}의 정서적 약점을 보완하는 에너지 정화법, 색상 테라피, 아유르베다 식이 지침을 상세히 제시하라.
+## 5. 마음이 안정되는 조건과 실천 3가지
+정서 안정 조건, 상처받을 때 반복 행동, 오늘부터 실천할 3가지를 체크리스트로 제시하라.
 
 ${STYLE_GUIDE}`;
     }
 
-    case 3: {
+    case 4: {
       const md = c.vimshottariDasha;
       return `${bd}
 
@@ -672,7 +711,7 @@ ${md.current?.planet??"-"} 행성이 지배하는 이 시기의 핵심 테마를
 ${STYLE_GUIDE}`;
     }
 
-    case 4: {
+    case 5: {
       const h2lord = getRashiLord((lagna.sign+1)%12);
       const h11lord = getRashiLord((lagna.sign+10)%12);
       const jup = p["Jupiter"], ven = p["Venus"];
@@ -699,7 +738,7 @@ ${STYLE_GUIDE}`;
 ${STYLE_GUIDE}`;
     }
 
-    case 5: {
+    case 6: {
       const h10lord = getRashiLord((lagna.sign+9)%12);
       const d10sun = c.d10["Sun"];
       return `${bd}
@@ -725,7 +764,7 @@ ${STYLE_GUIDE}`;
 ${STYLE_GUIDE}`;
     }
 
-    case 6: {
+    case 7: {
       const d9moon = c.d9["Moon"], d9asc = c.d9["Sun"];
       return `${bd}
 
@@ -749,7 +788,7 @@ D9 배치에서 찾을 수 있는 진정한 재능·창의성·영성을 발굴�
 ${STYLE_GUIDE}`;
     }
 
-    case 7: {
+    case 8: {
       const moonNak = c.moonNakshatra;
       return `${bd}
 
@@ -774,7 +813,7 @@ ${moonNak.ko}과 최고로 조화로운 나크샤트라와 그 이유, 그리고
 ${STYLE_GUIDE}`;
     }
 
-    case 8: {
+    case 9: {
       const h7lord = getRashiLord((lagna.sign+6)%12);
       const venus = p["Venus"], mars = p["Mars"];
       return `${bd}
@@ -800,7 +839,7 @@ ${STYLE_GUIDE}`;
 ${STYLE_GUIDE}`;
     }
 
-    case 9: {
+    case 10: {
       const h6lord = getRashiLord((lagna.sign+5)%12);
       const h8lord = getRashiLord((lagna.sign+7)%12);
       const h12lord = getRashiLord((lagna.sign+11)%12);
@@ -828,7 +867,7 @@ ${STYLE_GUIDE}`;
 ${STYLE_GUIDE}`;
     }
 
-    case 10: {
+    case 11: {
       const yogaNames = c.yogas.map(y=>y.nameKo).join(", ")||"잠재적 요가";
       return `${bd}
 
@@ -853,7 +892,7 @@ ${STYLE_GUIDE}`;
 ${STYLE_GUIDE}`;
     }
 
-    case 11: {
+    case 12: {
       const malefic = ["Saturn","Mars","Rahu","Ketu"];
       const maleficPlanets = malefic.filter(m=>p[m]).map(m=>`${PLANET_KO[m]}(${p[m]?.signSanskrit??""} ${p[m]?.house??0}H)`).join(", ");
       return `${bd}
@@ -879,10 +918,39 @@ ${STYLE_GUIDE}`;
 ${STYLE_GUIDE}`;
     }
 
-    case 12: {
+    case 13: {
       return `${bd}
 
-[챕터 12 — 마스터플랜 — 카르마를 넘어선 자유 작성 지시]
+[챕터 13 — 고차라(Transit)와 올해의 행동 전략 작성 지시]
+목성/토성/라후·케투 고차라와 현재 다샤를 결합해 올해 전략을 작성하라.
+
+## 1. 올해 전체 흐름
+현재 Dasha와 Transit 결합 효과를 설명하고, 올해의 핵심 분위기를 5줄 이내로 요약하라.
+
+## 2. 분야별 연간 전략
+직업운/재물운/관계운/건강운을 각각 분석하고 확장해야 할 영역과 보수적으로 관리해야 할 영역을 나눠 제시하라.
+
+## 3. 올해 잡아야 할 기회와 피해야 할 무리수
+큰 결정을 내리기 좋은 시기와 피해야 할 무리수를 명확히 제시하라.
+
+## 4. 1월~12월 월별 행동 전략
+반드시 아래 형식으로 1월부터 12월까지 모두 작성하라.
+### 1월
+- 핵심 흐름:
+- 좋은 선택:
+- 주의할 점:
+- 개운 행동:
+
+## 5. 올해 핵심 키워드 5개
+연말까지 반복 점검할 키워드 5개를 제시하라.
+
+${STYLE_GUIDE}`;
+    }
+
+    case 14: {
+      return `${bd}
+
+[챕터 14 — 마스터플랜 — 카르마를 넘어선 자유 작성 지시]
 1~11챕터의 모든 분석을 종합하여 최종 미션을 작성하라.
 
 ## 1. 차트 전체 요약 — 별들이 그린 운명의 지도
@@ -968,6 +1036,9 @@ export async function POST(req: NextRequest) {
       year:number; month:number; day:number;
       hour?:number; minute?:number; timezone?:number;
       lat?:number; lon?:number; chapter:number;
+      reportType?: "personal" | "compatibility";
+      name?: string;
+      partnerName?: string;
     };
 
     const { year, month, day, chapter } = body;
@@ -976,35 +1047,46 @@ export async function POST(req: NextRequest) {
     const tz     = body.timezone ?? 9;
     const lat    = body.lat ?? 37.5665;
     const lon    = body.lon ?? 126.9780;
+    const reportType = body.reportType === "compatibility" ? "compatibility" : "personal";
 
     if (!year || !month || !day || !chapter)
       return NextResponse.json({ ok:false, error:"Missing required fields" }, { status:400 });
-    if (chapter < 1 || chapter > 12)
-      return NextResponse.json({ ok:false, error:"Chapter must be 1-12" }, { status:400 });
+    if (chapter < 1 || chapter > 14)
+      return NextResponse.json({ ok:false, error:"Chapter must be 1-14" }, { status:400 });
 
-    const swissRes = await fetch(`${req.nextUrl.origin}/api/vedic/planets`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ year, month, day, hour, minute, timezone: tz, lat, lon }),
-      signal: AbortSignal.timeout(12_000),
-    });
-    const swissData = await swissRes.json().catch(() => ({}));
-    if (!swissRes.ok || !swissData?.ok || !swissData?.planets) {
-      return NextResponse.json({ ok: false, error: swissData?.error || "Swiss API vedic planets unavailable" }, { status: 502 });
+    let swissData: Record<string, unknown> | null = null;
+    let swissWarning = "";
+    try {
+      const swissRes = await fetch(`${req.nextUrl.origin}/api/vedic/planets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ year, month, day, hour, minute, timezone: tz, lat, lon }),
+        signal: AbortSignal.timeout(12_000),
+      });
+      const parsed = await swissRes.json().catch(() => ({}));
+      if (swissRes.ok && parsed?.ok && parsed?.planets) {
+        swissData = parsed;
+      } else {
+        swissWarning = String(parsed?.error || "Swiss API vedic planets unavailable");
+      }
+    } catch (swissErr: unknown) {
+      swissWarning = swissErr instanceof Error ? swissErr.message : "Swiss API call failed";
     }
 
     // 1) 베다 차트 계산 (Swiss API core 값 강제 반영)
     const chart = applySwissCoreToChart(
       buildVedicChart(year, month, day, hour, minute, tz, lat, lon),
-      {
-        planets: swissData.planets,
-        ascendantSidereal: swissData.ascendantSidereal,
-        ayanamsa: swissData.ayanamsa,
-      }
+      swissData
+        ? {
+            planets: swissData.planets,
+            ascendantSidereal: swissData.ascendantSidereal,
+            ayanamsa: swissData.ayanamsa,
+          }
+        : {}
     );
 
     // 2) AI 텍스트 생성
-    const prompt = buildPrompt(chapter, chart);
+    const prompt = buildPrompt(chapter, chart, reportType, body as unknown as Record<string, unknown>);
     let text = "";
     let sections: { title:string; body:string }[] = [];
     let usedFallback = false;
@@ -1029,6 +1111,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      reportType,
       chart,
       chapter,
       chapterMeta: VEDIC_CHAPTER_META[chapter - 1],
@@ -1036,6 +1119,7 @@ export async function POST(req: NextRequest) {
       sections,
       usedFallback,
       fallbackReason: usedFallback ? fallbackReason : undefined,
+      warnings: swissWarning ? [swissWarning] : [],
     });
 
   } catch (err: unknown) {

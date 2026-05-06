@@ -255,9 +255,13 @@ export async function generateAstroText(prompt: string) {
   if (!keys.length) return "";
 
   const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+  let attempts = 0;
+  const maxAttempts = 4;
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     for (const key of keys) {
+      if (attempts >= maxAttempts) return "";
+      attempts += 1;
       try {
         const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
           method: "POST",
@@ -266,7 +270,7 @@ export async function generateAstroText(prompt: string) {
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig: { temperature: 0.86, maxOutputTokens: 8192, topP: 0.95 },
           }),
-          signal: AbortSignal.timeout(18_000),
+          signal: AbortSignal.timeout(10_000),
         });
         if (!response.ok) continue;
         const payload = await response.json().catch(() => ({}));

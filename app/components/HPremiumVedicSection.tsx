@@ -40,21 +40,26 @@ type PremiumSectionProps = {
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
 const CHAPTER_META: ChapterMeta[] = [
-  { num:1,  title:"라그나와 영혼의 목적",           subtitle:"Lagna & Atmakaraka",                icon:"🕉️" },
-  { num:2,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분석",           icon:"🌙" },
-  { num:3,  title:"다샤 — 인생의 웅장한 계절",       subtitle:"Vimshottari Dasha 전략",             icon:"⏳" },
-  { num:4,  title:"부와 번영의 정렬",                subtitle:"Artha & 2·11하우스 다나 요가",       icon:"💰" },
-  { num:5,  title:"카르마와 천직",                   subtitle:"Dharma & 10하우스 · D9 · D10",      icon:"👑" },
-  { num:6,  title:"나밤샤 — 영혼의 성숙도",           subtitle:"D9 숨겨진 잠재력",                  icon:"💎" },
-  { num:7,  title:"관계의 거울 — 아슈타 쿠타",       subtitle:"Ashta Koota 궁합 분석",             icon:"🔮" },
-  { num:8,  title:"인연의 깊이와 카르믹 계약",       subtitle:"7하우스 · 금성/화성",               icon:"💞" },
-  { num:9,  title:"생명력과 정화",                   subtitle:"Health 6·8·12하우스 · 아유르베다",   icon:"🌿" },
-  { num:10, title:"요가 — 특별한 축복의 조합",       subtitle:"차트의 천부적 재능과 치트키",        icon:"✨" },
-  { num:11, title:"우파야 — 운명을 바꾸는 실천",     subtitle:"행성 에너지 정화 비책",              icon:"🙏" },
-  { num:12, title:"마스터플랜 — 카르마를 넘어선 자유", subtitle:"총결산 & 북극성 선언",              icon:"🌟" },
+  { num:1,  title:"프롤로그 — 카르마 블루프린트 소개", subtitle:"베다 점성술 리포트 사용 가이드",        icon:"📜" },
+  { num:2,  title:"라그나와 영혼의 목적", subtitle:"Lagna & Atmakaraka",           icon:"🕉️" },
+  { num:3,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분석",           icon:"🌙" },
+  { num:4,  title:"다샤 — 인생의 웅장한 계절",       subtitle:"Vimshottari Dasha 전략",             icon:"⏳" },
+  { num:5,  title:"부와 번영의 정렬",                subtitle:"Artha & 2·11하우스 다나 요가",       icon:"💰" },
+  { num:6,  title:"카르마와 천직",                   subtitle:"Dharma & 10하우스 · D9 · D10",      icon:"👑" },
+  { num:7,  title:"나밤샤 — 영혼의 성숙도",           subtitle:"D9 숨겨진 잠재력",                  icon:"💎" },
+  { num:8,  title:"관계의 거울 — 아슈타 쿠타",       subtitle:"Ashta Koota 궁합 분석",             icon:"🔮" },
+  { num:9,  title:"인연의 깊이와 카르믹 계약",       subtitle:"7하우스 · 금성/화성",               icon:"💞" },
+  { num:10, title:"생명력과 정화",                   subtitle:"Health 6·8·12하우스 · 아유르베다",   icon:"🌿" },
+  { num:11, title:"요가 — 특별한 축복의 조합",       subtitle:"차트의 천부적 재능과 치트키",        icon:"✨" },
+  { num:12, title:"우파야 — 운명을 바꾸는 실천",     subtitle:"행성 에너지 정화 비책",              icon:"🙏" },
+  { num:13, title:"고차라와 올해의 행동 전략",       subtitle:"Transit & Annual Strategy",         icon:"🪐" },
+  { num:14, title:"마스터플랜 — 카르마를 넘어선 자유", subtitle:"총결산 & 북극성 선언",              icon:"🌟" },
 ];
+const TOTAL_CHAPTERS = CHAPTER_META.length;
 
 const VEDIC_STORAGE_KEY = "premium:vedic:session:v1";
+const VEDIC_COMPAT_ADDON_COST = 300;
+const VEDIC_COMPAT_ADDON_TX_KEY = "cd_premium_tx_veda_compat";
 
 /** 사용자 프로필 스토리지에서 베다 점성술 입력값 읽기 */
 function readVedicProfile(): { year: string; month: string; day: string; hour: string; minute: string; lat: string; lon: string; timezone: string } | null {
@@ -371,7 +376,7 @@ ${chaptersHtml}
           transition:"all 0.2s",
         }}
       >
-        {loading ? "📄 PDF 생성 중…" : `📥 PDF 다운로드 (${doneChapters.length}/12챕터)`}
+        {loading ? "📄 PDF 생성 중…" : `📥 PDF 다운로드 (${doneChapters.length}/${TOTAL_CHAPTERS}챕터)`}
       </button>
       {error && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {error}</p>}
       {doneChapters.length > 0 && (
@@ -399,9 +404,21 @@ export default function HPremiumVedicSection({
   const [birthDay,    setBirthDay]    = useState("");
   const [birthHour,   setBirthHour]   = useState("12");
   const [birthMinute, setBirthMinute] = useState("0");
+  const [birthPlace,  setBirthPlace]  = useState("");
   const [timezone,    setTimezone]    = useState("9");
   const [lat,         setLat]         = useState("37.5665");
   const [lon,         setLon]         = useState("126.9780");
+  const [reportMode,  setReportMode]  = useState<"personal" | "compatibility">("personal");
+  const [partnerName, setPartnerName] = useState("");
+  const [partnerYear, setPartnerYear] = useState("");
+  const [partnerMonth, setPartnerMonth] = useState("");
+  const [partnerDay, setPartnerDay] = useState("");
+  const [partnerHour, setPartnerHour] = useState("12");
+  const [partnerMinute, setPartnerMinute] = useState("0");
+  const [partnerBirthPlace, setPartnerBirthPlace] = useState("");
+  const [partnerTimezone, setPartnerTimezone] = useState("9");
+  const [partnerLat, setPartnerLat] = useState("37.5665");
+  const [partnerLon, setPartnerLon] = useState("126.9780");
 
   const [chart,    setChart]    = useState<VedicChart|null>(null);
   const [chapters, setChapters] = useState<Record<number,ChapterState>>(
@@ -427,9 +444,21 @@ export default function HPremiumVedicSection({
       setBirthDay("");
       setBirthHour("12");
       setBirthMinute("0");
+      setBirthPlace("");
       setTimezone("9");
       setLat("37.5665");
       setLon("126.9780");
+      setReportMode("personal");
+      setPartnerName("");
+      setPartnerYear("");
+      setPartnerMonth("");
+      setPartnerDay("");
+      setPartnerHour("12");
+      setPartnerMinute("0");
+      setPartnerBirthPlace("");
+      setPartnerTimezone("9");
+      setPartnerLat("37.5665");
+      setPartnerLon("126.9780");
       try {
         localStorage.removeItem(VEDIC_STORAGE_KEY);
       } catch {
@@ -465,9 +494,21 @@ export default function HPremiumVedicSection({
         birthDay?: string;
         birthHour?: string;
         birthMinute?: string;
+        birthPlace?: string;
         timezone?: string;
         lat?: string;
         lon?: string;
+        reportMode?: "personal" | "compatibility";
+        partnerName?: string;
+        partnerYear?: string;
+        partnerMonth?: string;
+        partnerDay?: string;
+        partnerHour?: string;
+        partnerMinute?: string;
+        partnerBirthPlace?: string;
+        partnerTimezone?: string;
+        partnerLat?: string;
+        partnerLon?: string;
         chart?: VedicChart | null;
         chapters?: Record<number, ChapterState>;
       };
@@ -477,9 +518,21 @@ export default function HPremiumVedicSection({
       if (saved.birthDay) setBirthDay(saved.birthDay);
       if (saved.birthHour) setBirthHour(saved.birthHour);
       if (saved.birthMinute) setBirthMinute(saved.birthMinute);
+      if (saved.birthPlace) setBirthPlace(saved.birthPlace);
       if (saved.timezone) setTimezone(saved.timezone);
       if (saved.lat) setLat(saved.lat);
       if (saved.lon) setLon(saved.lon);
+      if (saved.reportMode === "compatibility" || saved.reportMode === "personal") setReportMode(saved.reportMode);
+      if (saved.partnerName) setPartnerName(saved.partnerName);
+      if (saved.partnerYear) setPartnerYear(saved.partnerYear);
+      if (saved.partnerMonth) setPartnerMonth(saved.partnerMonth);
+      if (saved.partnerDay) setPartnerDay(saved.partnerDay);
+      if (saved.partnerHour) setPartnerHour(saved.partnerHour);
+      if (saved.partnerMinute) setPartnerMinute(saved.partnerMinute);
+      if (saved.partnerBirthPlace) setPartnerBirthPlace(saved.partnerBirthPlace);
+      if (saved.partnerTimezone) setPartnerTimezone(saved.partnerTimezone);
+      if (saved.partnerLat) setPartnerLat(saved.partnerLat);
+      if (saved.partnerLon) setPartnerLon(saved.partnerLon);
       if (saved.chart) setChart(saved.chart);
       if (saved.chapters) {
         const normalized = Object.fromEntries(
@@ -509,9 +562,21 @@ export default function HPremiumVedicSection({
           birthDay,
           birthHour,
           birthMinute,
+          birthPlace,
           timezone,
           lat,
           lon,
+          reportMode,
+          partnerName,
+          partnerYear,
+          partnerMonth,
+          partnerDay,
+          partnerHour,
+          partnerMinute,
+          partnerBirthPlace,
+          partnerTimezone,
+          partnerLat,
+          partnerLon,
           chart,
           chapters,
         })
@@ -519,7 +584,7 @@ export default function HPremiumVedicSection({
     } catch {
       // ignore storage quota errors
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, chart, chapters, showIntro]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chart, chapters, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -555,6 +620,85 @@ export default function HPremiumVedicSection({
     throw lastError instanceof Error ? lastError : new Error("베다 요청 처리 중 오류가 발생했습니다.");
   }, []);
 
+  const buildRequestPayload = useCallback((chapterNum: number) => {
+    const payload: Record<string, unknown> = {
+      year: parseInt(birthYear, 10),
+      month: parseInt(birthMonth, 10),
+      day: parseInt(birthDay, 10),
+      hour: parseInt(birthHour, 10),
+      minute: parseInt(birthMinute, 10),
+      timezone: parseFloat(timezone),
+      lat: parseFloat(lat),
+      lon: parseFloat(lon),
+      birthPlace,
+      chapter: chapterNum,
+      reportType: reportMode,
+    };
+
+    if (reportMode === "compatibility") {
+      payload.partnerName = partnerName;
+      payload.partnerYear = parseInt(partnerYear, 10);
+      payload.partnerMonth = parseInt(partnerMonth, 10);
+      payload.partnerDay = parseInt(partnerDay, 10);
+      payload.partnerHour = parseInt(partnerHour, 10);
+      payload.partnerMinute = parseInt(partnerMinute, 10);
+      payload.partnerBirthPlace = partnerBirthPlace;
+      payload.partnerTimezone = parseFloat(partnerTimezone);
+      payload.partnerLat = parseFloat(partnerLat);
+      payload.partnerLon = parseFloat(partnerLon);
+    }
+    return payload;
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon]);
+
+  const ensureCompatibilityAddonCharged = useCallback(async () => {
+    if (reportMode !== "compatibility") return;
+    const y = parseInt(partnerYear, 10);
+    const m = parseInt(partnerMonth, 10);
+    const d = parseInt(partnerDay, 10);
+    if (!y || !m || !d) {
+      throw new Error("2인 궁합 모드는 상대방 생년월일 입력이 필요합니다.");
+    }
+
+    try {
+      if (sessionStorage.getItem(VEDIC_COMPAT_ADDON_TX_KEY)) return;
+    } catch {
+      // ignore storage errors
+    }
+
+    const token = localStorage.getItem("fortune_auth_token");
+    if (!token) throw new Error("로그인 후 궁합 리포트를 생성해 주세요.");
+
+    const requestId = `premium:veda:compat-addon:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const res = await fetch("/api/fortune/pig-coin/consume", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        cost: VEDIC_COMPAT_ADDON_COST,
+        reason: "베다 프리미엄 궁합 모드 추가",
+        featureKey: "premium-veda-compatibility-addon",
+        forceDeduct: true,
+        requestId,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 402) {
+      throw new Error("코인이 부족합니다. 궁합 모드는 300코인이 추가됩니다.");
+    }
+    if (!res.ok) {
+      throw new Error(data?.message || "궁합 모드 추가 코인 차감에 실패했습니다.");
+    }
+    if (data?.transactionId) {
+      try {
+        sessionStorage.setItem(VEDIC_COMPAT_ADDON_TX_KEY, String(data.transactionId));
+      } catch {
+        // ignore storage errors
+      }
+    }
+  }, [reportMode, partnerYear, partnerMonth, partnerDay]);
+
   // 차트 미리 계산 (chapter 1 분석으로 대체)
   const handleCalcChart = useCallback(async () => {
     const y=parseInt(birthYear,10), m=parseInt(birthMonth,10), d=parseInt(birthDay,10);
@@ -563,7 +707,8 @@ export default function HPremiumVedicSection({
     setCalcError(""); setRequestError(""); setCalcLoading(true);
     startProcessing("베다 점성술 차트를 계산하여 카르마 청사진을 작성하고 있습니다...");
     try {
-      const data = await postVedicJson({ year:y, month:m, day:d, hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:1 });
+      await ensureCompatibilityAddonCharged();
+      const data = await postVedicJson(buildRequestPayload(1));
       setChart(data.chart);
       setChapters(prev => ({ ...prev, 1: { step:"done", result:{ chapter:1, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } } }));
     } catch (e: unknown) {
@@ -574,7 +719,7 @@ export default function HPremiumVedicSection({
       setCalcLoading(false);
       stopProcessing();
     }
-  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,postVedicJson,startProcessing,stopProcessing]);
+  }, [birthYear,birthMonth,birthDay,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload]);
 
   // 프로필에서 자동 로드된 경우 즉시 계산
   useEffect(() => {
@@ -593,7 +738,8 @@ export default function HPremiumVedicSection({
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
     startProcessing(`베다 챕터 ${chNum}의 에너지를 분석하여 리포트를 생성하고 있습니다...`);
     try {
-      const data = await postVedicJson({ year:parseInt(birthYear,10), month:parseInt(birthMonth,10), day:parseInt(birthDay,10), hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:chNum });
+      await ensureCompatibilityAddonCharged();
+      const data = await postVedicJson(buildRequestPayload(chNum));
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{chapter:chNum,chapterMeta:data.chapterMeta,text:data.text,sections:data.sections}}}));
       if (data.chart&&!chart) setChart(data.chart);
     } catch (e: unknown) {
@@ -602,7 +748,7 @@ export default function HPremiumVedicSection({
     } finally {
       stopProcessing();
     }
-  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,chart,postVedicJson,startProcessing,stopProcessing]);
+  }, [chart,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload]);
 
 
   const handleGenerateAll = useCallback(async () => {
@@ -632,7 +778,7 @@ export default function HPremiumVedicSection({
           <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>JYOTISH MASTER · DETAIL INTRO</p>
           <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>Karmic Blueprint</h3>
           <p style={{ color:"rgba(203,213,225,0.72)", fontSize:"0.88rem", lineHeight:1.8, margin:0 }}>
-            베다 점성술 12챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
+            베다 점성술 ${TOTAL_CHAPTERS}챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
           </p>
           <div style={{ display:"grid", gap:8, marginTop:12 }}>
             {CHAPTER_META.map((ch) => (
@@ -686,13 +832,13 @@ export default function HPremiumVedicSection({
             🕉️ Karmic Blueprint
           </h2>
           <p style={{ color:"rgba(167,139,250,0.65)", fontSize:"0.84rem", marginTop:5, fontWeight:300, lineHeight:1.6 }}>
-            베다 점성술 프리미엄 리포트 · AI 12챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
+            베다 점성술 프리미엄 리포트 · AI ${TOTAL_CHAPTERS}챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
           </p>
         </div>
         {doneCount > 0 && (
           <div style={{ marginLeft:"auto", textAlign:"center", flexShrink:0 }}>
             <p style={{ color:"rgba(212,160,23,0.6)", fontSize:"0.62rem", letterSpacing:"0.15em" }}>완료</p>
-            <p style={{ color:"#d4a017", fontWeight:900, fontSize:"1.4rem" }}>{doneCount}/12</p>
+            <p style={{ color:"#d4a017", fontWeight:900, fontSize:"1.4rem" }}>{doneCount}/{TOTAL_CHAPTERS}</p>
           </div>
         )}
       </div>
@@ -703,6 +849,40 @@ export default function HPremiumVedicSection({
         {!chart && (
           <div style={{ borderRadius:14, padding:"18px", marginBottom:18, background:"rgba(4,3,15,0.75)", border:"1px solid rgba(212,160,23,0.18)" }}>
             <p style={{ color:"#fff", fontWeight:800, fontSize:"0.97rem", marginBottom:14 }}>🕉️ 출생 정보 입력</p>
+            <div style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap" }}>
+              <button
+                type="button"
+                onClick={() => setReportMode("personal")}
+                style={{
+                  borderRadius: 999,
+                  padding: "6px 14px",
+                  fontSize: "0.74rem",
+                  fontWeight: 800,
+                  border: reportMode === "personal" ? "1px solid rgba(212,160,23,0.55)" : "1px solid rgba(100,116,139,0.35)",
+                  color: reportMode === "personal" ? "rgba(253,230,138,0.95)" : "rgba(148,163,184,0.8)",
+                  background: reportMode === "personal" ? "rgba(212,160,23,0.16)" : "rgba(15,23,42,0.45)",
+                  cursor: "pointer",
+                }}
+              >
+                1인 모드
+              </button>
+              <button
+                type="button"
+                onClick={() => setReportMode("compatibility")}
+                style={{
+                  borderRadius: 999,
+                  padding: "6px 14px",
+                  fontSize: "0.74rem",
+                  fontWeight: 800,
+                  border: reportMode === "compatibility" ? "1px solid rgba(212,160,23,0.55)" : "1px solid rgba(100,116,139,0.35)",
+                  color: reportMode === "compatibility" ? "rgba(253,230,138,0.95)" : "rgba(148,163,184,0.8)",
+                  background: reportMode === "compatibility" ? "rgba(212,160,23,0.16)" : "rgba(15,23,42,0.45)",
+                  cursor: "pointer",
+                }}
+              >
+                2인 궁합 모드 (+300코인)
+              </button>
+            </div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"11px", marginBottom:12 }} className="vedic-input-grid">
               <style>{`@media(max-width:560px){.vedic-input-grid{grid-template-columns:1fr 1fr!important}}`}</style>
               <div><span style={labelStyle}>출생 연도</span><input style={inputStyle} type="number" placeholder="1990" value={birthYear} onChange={e=>setBirthYear(e.target.value)} /></div>
@@ -713,7 +893,25 @@ export default function HPremiumVedicSection({
               <div><span style={labelStyle}>시간대 (UTC+)</span><input style={inputStyle} type="number" placeholder="9" step={0.5} value={timezone} onChange={e=>setTimezone(e.target.value)} /></div>
               <div><span style={labelStyle}>위도 (기본: 서울)</span><input style={inputStyle} type="number" placeholder="37.5665" step={0.01} value={lat} onChange={e=>setLat(e.target.value)} /></div>
               <div><span style={labelStyle}>경도</span><input style={inputStyle} type="number" placeholder="126.9780" step={0.01} value={lon} onChange={e=>setLon(e.target.value)} /></div>
+              <div style={{ gridColumn:"1 / -1" }}><span style={labelStyle}>태어난 도시</span><input style={inputStyle} type="text" placeholder="예: Seoul" value={birthPlace} onChange={e=>setBirthPlace(e.target.value)} /></div>
             </div>
+            {reportMode === "compatibility" && (
+              <div style={{ borderTop:"1px solid rgba(212,160,23,0.15)", marginTop:4, paddingTop:12, marginBottom:12 }}>
+                <p style={{ color:"rgba(253,230,138,0.9)", fontSize:"0.8rem", fontWeight:700, marginBottom:10 }}>💞 상대방 출생 정보</p>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"11px" }} className="vedic-input-grid">
+                  <div><span style={labelStyle}>상대 이름</span><input style={inputStyle} type="text" placeholder="상대 이름" value={partnerName} onChange={e=>setPartnerName(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 출생 연도</span><input style={inputStyle} type="number" placeholder="1990" value={partnerYear} onChange={e=>setPartnerYear(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 월</span><input style={inputStyle} type="number" placeholder="1" min={1} max={12} value={partnerMonth} onChange={e=>setPartnerMonth(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 일</span><input style={inputStyle} type="number" placeholder="1" min={1} max={31} value={partnerDay} onChange={e=>setPartnerDay(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 출생 시 (0-23)</span><input style={inputStyle} type="number" placeholder="12" min={0} max={23} value={partnerHour} onChange={e=>setPartnerHour(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 출생 분</span><input style={inputStyle} type="number" placeholder="0" min={0} max={59} value={partnerMinute} onChange={e=>setPartnerMinute(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 시간대 (UTC+)</span><input style={inputStyle} type="number" placeholder="9" step={0.5} value={partnerTimezone} onChange={e=>setPartnerTimezone(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 위도</span><input style={inputStyle} type="number" placeholder="37.5665" step={0.01} value={partnerLat} onChange={e=>setPartnerLat(e.target.value)} /></div>
+                  <div><span style={labelStyle}>상대 경도</span><input style={inputStyle} type="number" placeholder="126.9780" step={0.01} value={partnerLon} onChange={e=>setPartnerLon(e.target.value)} /></div>
+                  <div style={{ gridColumn:"1 / -1" }}><span style={labelStyle}>상대 태어난 도시</span><input style={inputStyle} type="text" placeholder="예: Busan" value={partnerBirthPlace} onChange={e=>setPartnerBirthPlace(e.target.value)} /></div>
+                </div>
+              </div>
+            )}
             {calcError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.8rem", marginBottom:10 }}>⚠ {calcError}</p>}
             {requestError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.8rem", marginBottom:10 }}>⚠ {requestError}</p>}
             <button
@@ -738,14 +936,14 @@ export default function HPremiumVedicSection({
             {/* 전체 생성 버튼 */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, flexWrap:"wrap", gap:10 }}>
               <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.82rem", fontWeight:700 }}>
-                🕉️ 챕터 분석 ({doneCount}/12)
+                🕉️ 챕터 분석 ({doneCount}/{TOTAL_CHAPTERS})
               </p>
               <div style={{ display:"flex", gap:8 }}>
                 <button
                   onClick={handleGenerateAll}
                   style={{ borderRadius:10, padding:"7px 16px", fontSize:"0.76rem", fontWeight:800, background:"linear-gradient(135deg,rgba(212,160,23,0.25),rgba(99,102,241,0.15))", border:"1px solid rgba(212,160,23,0.4)", color:"rgba(253,230,138,0.95)", cursor:"pointer" }}
                 >
-                  ✦ 전체 생성 (12챕터)
+                  ✦ 전체 생성 (${TOTAL_CHAPTERS}챕터)
                 </button>
                 <button
                   onClick={()=>{ resetVedicState(true); }}
@@ -768,7 +966,7 @@ export default function HPremiumVedicSection({
                 <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:10, textAlign:"center" }}>KARMIC BLUEPRINT PDF</p>
                 <p style={{ color:"rgba(203,213,225,0.65)", fontSize:"0.82rem", lineHeight:1.7, marginBottom:14, textAlign:"center" }}>
                   완성된 챕터를 고급스러운 베다 점성술 PDF 리포트로 다운로드하세요.<br/>
-                  목차 · 12챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
+                  목차 · ${TOTAL_CHAPTERS}챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
                 </p>
                 <PDFDownloadButton chapters={chapters} chart={chart} birthDate={birthDate} />
               </div>
