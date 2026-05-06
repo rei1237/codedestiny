@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 
 const User = require("../models/User");
 const { requireAuth } = require("../middleware/auth.middleware");
@@ -11,6 +12,16 @@ function toIsoOrNull(value) {
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
+async function findUserByIdRaw(userId, projection = {}) {
+  const normalizedId = String(userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
+
+  return User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(normalizedId) },
+    { projection },
+  );
+}
+
 router.get("/status", requireAuth, async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
@@ -18,9 +29,9 @@ router.get("/status", requireAuth, async (req, res, next) => {
       return res.status(401).json({ message: "인증 정보가 없습니다." });
     }
 
-    const user = await User.findById(userId)
-      .select("profileSubscription")
-      .lean();
+    const user = await findUserByIdRaw(userId, {
+      profileSubscription: 1,
+    });
 
     const sub = user?.profileSubscription || {};
     const tier = String(sub.tier || "free").trim() || "free";

@@ -66,6 +66,16 @@ function toIsoOrNull(value) {
   return date ? date.toISOString() : null;
 }
 
+async function findUserByIdRaw(userId, projection = {}) {
+  const normalizedId = String(userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
+
+  return User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(normalizedId) },
+    { projection },
+  );
+}
+
 function hasActiveSubscriptionConflict(sub) {
   const tier = String(sub?.tier || "free").toLowerCase();
   const expAt = toValidDate(sub?.expiresAt);
@@ -1584,9 +1594,13 @@ router.get("/me", requireAuth, async (req, res, next) => {
       return res.status(401).json({ message: "인증 정보가 없습니다." });
     }
 
-    const user = await User.findById(userId)
-      .select("name email points unlockedFeatures profileSubscription")
-      .lean();
+    const user = await findUserByIdRaw(userId, {
+      name: 1,
+      email: 1,
+      points: 1,
+      unlockedFeatures: 1,
+      profileSubscription: 1,
+    });
 
     const [recentPayments, pointHistories] = await Promise.all([
       Payment.find({ userId: req.auth.userId })
@@ -1671,9 +1685,11 @@ router.get("/points/me", requireAuth, async (req, res, next) => {
       return res.status(401).json({ message: "인증 정보가 없습니다." });
     }
 
-    const user = await User.findById(userId)
-      .select("name email points")
-      .lean();
+    const user = await findUserByIdRaw(userId, {
+      name: 1,
+      email: 1,
+      points: 1,
+    });
 
     const pointHistories = await PointHistory.find({ userId })
       .sort({ createdAt: -1 })

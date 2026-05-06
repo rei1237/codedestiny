@@ -1,4 +1,4 @@
-import { connectDb } from "../lib/db.js";
+import { connectDb, mongoose } from "../lib/db.js";
 import { User, PointHistory } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -744,6 +744,16 @@ function toIsoOrNull(value) {
   return date ? date.toISOString() : null;
 }
 
+async function findUserByIdRaw(userId, projection = {}) {
+  const normalizedId = String(userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
+
+  return User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(normalizedId) },
+    { projection },
+  );
+}
+
 async function handlePigCoinRefund(request, auth) {
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
@@ -854,9 +864,12 @@ async function handlePigCoinRefund(request, auth) {
 }
 
 async function handleSubscriptionStatus(request, env, auth) {
-  const user = await User.findById(auth.userId)
-    .select("points profileSubscription has_started_paid_service first_service_access_date")
-    .lean();
+  const user = await findUserByIdRaw(auth.userId, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
 
   if (!user) return json({ message: "User not found." }, { status: 404 });
 

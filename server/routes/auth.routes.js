@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
+const mongoose = require("mongoose");
 
 const User = require("../models/User");
 const { requireAuth } = require("../middleware/auth.middleware");
@@ -11,6 +12,16 @@ const router = express.Router();
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
+
+async function findUserByIdRaw(userId, projection = {}) {
+  const normalizedId = String(userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
+
+  return User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(normalizedId) },
+    { projection },
+  );
+}
 
 function normalizeOriginOnly(rawValue) {
   const value = String(rawValue || "").trim();
@@ -508,7 +519,17 @@ router.get("/me", requireAuth, async (req, res, next) => {
       return res.status(401).json({ message: "인증 정보가 없습니다." });
     }
 
-    const user = await User.findById(userId).lean();
+    const user = await findUserByIdRaw(userId, {
+      _id: 1,
+      name: 1,
+      email: 1,
+      birthDate: 1,
+      birthTime: 1,
+      gender: 1,
+      role: 1,
+      points: 1,
+      joinedAt: 1,
+    });
     if (!user) {
       console.warn("[AUTH] User not found during /me check:", userId);
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
