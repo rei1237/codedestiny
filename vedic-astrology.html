@@ -619,7 +619,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
         </div>
       </div>
       <div style="height:14px"></div>
-      <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
+      <button class="btn-primary" id="v_run_btn" type="button" onclick="runVedicFromInput()">우주의 기운 확인하기 🔯</button>
       <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
         프로필 카드 없이도 바로 계산합니다. (Swiss 라이브러리 기반으로 즉시 계산합니다.)
       </div>
@@ -2032,7 +2032,12 @@ function vedicInitLanguageBridge(){
 // ─── NAVIGATION ───────────────────────────────────────────
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  var el=document.getElementById('page-'+id);
+  if(!el){
+    console.warn('[vedic] showPage: missing element for', id);
+    return;
+  }
+  el.classList.add('active');
   window.scrollTo(0,0);
   if(id!=='input') setTimeout(initReveal,80);
 }
@@ -2278,22 +2283,28 @@ function profileToForm(profile){
   else if(typeof loc.tzOffset==='number'&&!isNaN(loc.tzOffset))tz=Math.abs(loc.tzOffset)<=24?loc.tzOffset:loc.tzOffset/60;
   const latRaw=parseFloat(loc.lat);
   const lonRaw=parseFloat(loc.lng)||parseFloat(loc.lon);
-  const lat=(typeof latRaw==='number'&&!isNaN(latRaw))?latRaw:NaN;
-  const lon=(typeof lonRaw==='number'&&!isNaN(lonRaw))?lonRaw:NaN;
+  // profile 카드 payload가 일부 값이 누락/범위 이탈되어도 결과 화면으로 진입하도록 기본값 처리
+  const lat=(typeof latRaw==='number'&&!isNaN(latRaw))?latRaw:37.5665;
+  const lon=(typeof lonRaw==='number'&&!isNaN(lonRaw))?lonRaw:126.978;
   const yearRaw=parseInt(birth.year,10);
   const monthRaw=parseInt(birth.month,10);
   const dayRaw=parseInt(birth.day,10);
-  const year=(Number.isFinite(yearRaw)&&yearRaw>1900&&yearRaw<2100)?yearRaw:NaN;
-  const month=(Number.isFinite(monthRaw)&&monthRaw>=1&&monthRaw<=12)?monthRaw:NaN;
-  const day=(Number.isFinite(dayRaw)&&dayRaw>=1&&dayRaw<=31)?dayRaw:NaN;
+  // 연도 범위 검증을 결과 화면 진입을 막는 형태로 쓰지 않음
+  const year=Number.isFinite(yearRaw)?yearRaw:1990;
+  const month=(Number.isFinite(monthRaw)&&monthRaw>=1&&monthRaw<=12)?monthRaw:1;
+  const day=(Number.isFinite(dayRaw)&&dayRaw>=1&&dayRaw<=31)?dayRaw:1;
+  const hourRaw=parseInt(birth.hour,10);
+  const minuteRaw=parseInt(birth.minute,10);
+  const hour=(Number.isFinite(hourRaw)&&hourRaw>=0&&hourRaw<=23)?hourRaw:12;
+  const minute=(Number.isFinite(minuteRaw)&&minuteRaw>=0&&minuteRaw<=59)?minuteRaw:0;
   return{
     name:(p.name||'').trim()||'이름없음',
     gender:p.gender||'M',
     year:year,
     month:month,
     day:day,
-    hour:parseInt(birth.hour,10)||12,
-    minute:parseInt(birth.minute,10)||0,
+    hour:hour,
+    minute:minute,
     lat:lat,
     lon:lon,
     timezone:tz

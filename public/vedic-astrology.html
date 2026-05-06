@@ -549,7 +549,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
         </div>
       </div>
       <div style="height:14px"></div>
-      <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
+      <button class="btn-primary" id="v_run_btn" type="button" onclick="runVedicFromInput()">우주의 기운 확인하기 🔯</button>
       <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
         프로필 카드 없이도 바로 계산합니다. (Swiss 라이브러리 기반으로 즉시 계산합니다.)
       </div>
@@ -1780,7 +1780,12 @@ function vedicInitLanguageBridge(){
 // ─── NAVIGATION ───────────────────────────────────────────
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  var el=document.getElementById('page-'+id);
+  if(!el){
+    console.warn('[vedic] showPage: missing element for', id);
+    return;
+  }
+  el.classList.add('active');
   window.scrollTo(0,0);
   if(id!=='input') setTimeout(initReveal,80);
 }
