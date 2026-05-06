@@ -601,7 +601,7 @@ body.lb-modal-open {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: var(--lb-amethyst);
+  color: #e9ddff;
   text-transform: uppercase;
   background: rgba(124,58,237,0.18);
   border: 1px solid rgba(167,139,250,0.3);
@@ -719,7 +719,7 @@ body.lb-modal-open {
 
 .lb-progress-text {
   font-size: 0.8rem;
-  color: #7c6fa0;
+  color: #dbeafe;
   margin: 0;
   z-index: 1;
 }
@@ -760,7 +760,7 @@ body.lb-modal-open {
 
 .lb-result-date {
   font-size: 0.78rem;
-  color: #64748b;
+  color: #bfd3ff;
   margin: 0;
 }
 
@@ -879,12 +879,12 @@ body.lb-modal-open {
   border-radius: 9px;
   border: 1px solid rgba(139, 92, 246, 0.2);
   background: rgba(80, 20, 180, 0.08);
-  color: #6b7580;
+  color: #c7d2fe;
   font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.22s;
-  opacity: 0.45;
+  opacity: 0.62;
   font-family: inherit;
 }
 .lb-toc-item.loaded {
@@ -2123,7 +2123,7 @@ body.theme-pig .lb-ch-dot--pending {
 
 .lb-result__date {
   font-size: 0.78rem;
-  color: #64748b;
+  color: #bfd3ff;
 }
 
 .lb-result__content {
@@ -2246,7 +2246,7 @@ body.theme-pig .lb-ch-dot--pending {
   background: linear-gradient(135deg, rgba(124,58,237,0.7), rgba(79,70,229,0.7));
   border: 1px solid rgba(196,181,253,0.45);
   border-radius: 10px;
-  color: #f0e8ff;
+  color: #ffffff;
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;

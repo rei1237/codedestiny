@@ -245,80 +245,80 @@ const VEDIC_MISSING_DATA_NOTICE = "일부 세부 계산 데이터가 부족하�
 const ZIWEI_CHAPTER_META = [
   {
     num: 1,
-    title: "명궁 - 타고난 자아와 인생의 핵심",
-    subtitle: "0. 전체 명반 요약 포함, 명궁/신궁/삼방사정 정밀 해석",
+    title: "내 인생의 주인공 캐릭터 — 명궁(命宮) 완전 해독",
+    subtitle: "명궁 주성/보성/사화/삼방사정 기반 핵심 캐릭터 분석",
     icon: "ziwei"
   },
   {
     num: 2,
-    title: "형제궁 - 형제, 동료, 가까운 경쟁자",
-    subtitle: "형제자매·동료·경쟁 관계와 협력운 분석",
+    title: "내면의 본체 — 신궁(身宮) 심층 분석과 잠재 무기",
+    subtitle: "신궁 위치와 명궁-신궁 관계 기반 잠재력 해석",
     icon: "ziwei"
   },
   {
     num: 3,
-    title: "부처궁 - 연애, 결혼, 배우자운",
-    subtitle: "연애 패턴·배우자상·관계 회복 루틴 분석",
+    title: "무의식의 도화지 — 복덕궁(福德宮)으로 읽는 행복의 설계도",
+    subtitle: "복덕궁·명궁·질액궁 연결 기반 감정 회복 설계",
     icon: "ziwei"
   },
   {
     num: 4,
-    title: "자녀궁 - 자녀, 창작물, 미래의 결실",
-    subtitle: "자녀/후배/제자 인연과 결실 구조 분석",
+    title: "세상이라는 무대 — 천이궁(遷移宮)과 이미지 관리",
+    subtitle: "천이궁 기반 대외 이미지/이동/외부 기회 전략",
     icon: "ziwei"
   },
   {
     num: 5,
-    title: "재백궁 - 재물운과 돈의 흐름",
-    subtitle: "수익/지출/투자/저축 성향과 재물 개운 전략",
+    title: "커리어와 성취 — 관록궁(官祿宮)의 천직 방정식",
+    subtitle: "관록궁 기반 커리어 DNA와 성취 전략",
     icon: "ziwei"
   },
   {
     num: 6,
-    title: "질액궁 - 건강과 생체 리듬",
-    subtitle: "생활 관리 중심 건강 리듬 해석",
+    title: "재화와 자산의 흐름 — 재백궁(財帛宮)의 부의 법칙",
+    subtitle: "재백궁 기반 수익 구조와 재정 운영 전략",
     icon: "ziwei"
   },
   {
     num: 7,
-    title: "천이궁 - 사회적 이미지, 이동운, 외부 활동",
-    subtitle: "대외 이미지·이동/여행/해외운·귀인 장소 분석",
+    title: "파트너십과 로맨스 — 부처궁(夫妻宮)의 인연 구조",
+    subtitle: "부처궁 기반 관계 패턴/경계/타이밍 전략",
     icon: "ziwei"
   },
   {
     num: 8,
-    title: "교우궁 - 인간관계, 친구, 인맥",
-    subtitle: "친구운·인맥운·구설 관리와 관계 개운 전략",
+    title: "팀워크와 네트워크 — 교우궁(交友宮)의 인적 자원 법칙",
+    subtitle: "교우궁 기반 귀인 판별/협업/네트워크 전략",
     icon: "ziwei"
   },
   {
     num: 9,
-    title: "관록궁 - 직업, 천직, 사회적 성취",
-    subtitle: "직업 적성·리더십·성과 시스템 정밀 분석",
+    title: "공간과 환경 — 전택궁(田宅宮)의 환경심리학",
+    subtitle: "전택궁 기반 주거 환경/공간 리셋 전략",
     icon: "ziwei"
   },
   {
     num: 10,
-    title: "전택궁 - 부동산, 집, 가정환경",
-    subtitle: "주거/부동산 운과 공간 개운 전략",
+    title: "신체 에너지와 바이오리듬 — 질액궁(疾厄宮)의 건강 설계",
+    subtitle: "질액궁 기반 생활 습관형 건강 루틴",
     icon: "ziwei"
   },
   {
     num: 11,
-    title: "복덕궁 - 내면, 정신, 행복감",
-    subtitle: "내면 회복·정신 안정·감정 정화 루틴",
+    title: "10년의 메가 트렌드 — 대한(大限) 분석과 전 생애 파노라마",
+    subtitle: "대한 배열 기반 10년 단위 인생 전략",
     icon: "ziwei"
   },
   {
     num: 12,
-    title: "부모궁 - 부모, 윗사람, 보호자, 사회적 후원",
-    subtitle: "부모/스승/후원자 인연과 권위자 관계 해석",
+    title: "올해의 마이크로 전술 — 2026 유년(流年)·유월(流月) 로드맵",
+    subtitle: "2026 분기/월별 행동 가이드와 Go/Hold/Retreat",
     icon: "ziwei"
   },
   {
     num: 13,
-    title: "종합 총운과 인생 마스터플랜",
-    subtitle: "12궁 통합 총평과 1년/3년/90일 전략",
+    title: "인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서",
+    subtitle: "13챕터 통합 총결산과 통합 실천 전략",
     icon: "ziwei"
   },
 ];
@@ -328,28 +328,27 @@ const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 �
 const ZIWEI_MIN_CHARS = 5200;
 
 const ZIWEI_CHAPTER_GUIDES = [
-  "챕터 1은 반드시 '## 0. 전체 명반 요약' 후 '## 1. 명궁 — 타고난 자아와 인생의 핵심' 순서로 작성하고, 12궁 전체 요약표를 포함하세요.",
-  "형제궁 중심으로 형제자매/동료/경쟁자 관계를 나눠 해석하고 협력운·스트레스·거리조절법을 실전 문장으로 제시하세요.",
-  "부처궁 중심으로 연애·결혼·배우자운을 실제 관계 패턴 관점에서 분석하고 반복 문제와 회복 루틴을 구체화하세요.",
-  "자녀궁 중심으로 자녀/후배/제자/창작 결실을 함께 해석하고 책임감의 형태와 미래 결실 개운법을 제시하세요.",
-  "재백궁은 돈 습관 중심으로 해석하고 투자 수익 보장 표현 없이 수입구조·지출관리·화록/화기 영향과 개운법을 작성하세요.",
-  "질액궁은 생활 관리 관점만 허용하며 진단처럼 단정하지 말고 수면·식단·운동·스트레스 관리 루틴으로 제시하세요.",
-  "천이궁 중심으로 사회적 이미지·이동운·외부 활동운을 해석하고 여행/이직/이사/해외운과 귀인 장소를 명확히 제시하세요.",
-  "교우궁 중심으로 친구·인맥·귀인/소인 구분과 구설수 예방 대화법, 동업 리스크 관리까지 실전 중심으로 작성하세요.",
-  "관록궁 중심으로 직업 적성·천직·조직형/사업형·리더십·승진/명예 흐름과 업무 루틴 개운법을 제시하세요.",
-  "전택궁 중심으로 주거 안정성·부동산 흐름·공간 개운(현관/침실/책상)과 피해야 할 공간을 분명히 해석하세요.",
-  "복덕궁 중심으로 내면 안정·스트레스 해소·무의식 불안·회복 환경·명상/심상화/감정 정화 루틴을 작성하세요.",
-  "부모궁 중심으로 부모/윗사람/스승/후원자 인연과 권위자 갈등 완화법, 후원운 상승 개운법을 제시하세요.",
-  "챕터 13은 12궁 종합 총평, 1년/3년 전략, 90일 실행 로드맵, 최종 조언, 운명을 바꾸는 핵심 습관을 반드시 포함하세요.",
+  "명궁의 주성/보성/사화/삼방사정/대궁을 세기와 함께 분석하고 상황별 강점 전략을 제시하세요.",
+  "신궁 중심으로 명궁-신궁 상호작용과 숨은 잠재 무기를 해석하고 성장 방향을 제시하세요.",
+  "복덕궁 중심으로 감정 에너지의 소모/회복 패턴과 마인드 트레이닝 루틴을 제시하세요.",
+  "천이궁 중심으로 외부 이미지와 이동/확장 전략, 사회적 평판 관리법을 제시하세요.",
+  "관록궁 중심으로 직업 적성, 조직/독립 성향, 도약 타이밍 전략을 제시하세요.",
+  "재백궁 중심으로 수익 파이프라인과 누수 패턴을 성향 중심으로 해석하세요.",
+  "부처궁 중심으로 관계 경계/반복 패턴/건강한 파트너십 전략을 제시하세요.",
+  "교우궁 중심으로 귀인 판별, 협업 성공 패턴, 네트워크 자산화 전략을 제시하세요.",
+  "전택궁 중심으로 주거/공간 심리, 생활 동선, 공간 리셋 루틴을 제시하세요.",
+  "질액궁은 의료 진단 금지 원칙 하에 생활 습관형 건강 설계를 제시하세요.",
+  "대한 배열을 근거로 10년 단위 상승/정체/조정 흐름을 분리해 제시하세요.",
+  "2026 유년/유월 데이터를 근거로 분기/월별 행동 가이드와 Go/Hold/Retreat를 제시하세요.",
+  "전체 데이터를 통합해 3가지 핵심 비책, 3가지 주의 패턴, 통합 전략으로 마무리하세요.",
 ];
 
 const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
   1: {
-    exactHeading: "## 1. 명궁 — 타고난 자아와 인생의 핵심",
+    exactHeading: "## Ch.1. 🌌 내 인생의 주인공 캐릭터 — 명궁(命宮) 완전 해독",
     includes: [
-      "타고난 성격", "본질적 기질", "외부에 보이는 모습", "실제 내면", "인생 핵심 키워드",
-      "명궁 주성 해석", "명궁 보조성 해석", "명궁 살성 해석", "명궁 사화 해석",
-      "명궁과 신궁의 관계", "삼방사정 해석", "장점", "약점", "개운법", "오늘부터 실천할 3가지"
+      "사용된 궁", "사용된 주성", "주성의 세기", "사용된 사화", "연결해서 본 궁",
+      "상황별 강점 활용 전략", "주의해야 할 반복 패턴"
     ],
     prefaceHeading: "## 0. 전체 명반 요약",
     prefaceIncludes: [
@@ -358,90 +357,77 @@ const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
     ],
   },
   2: {
-    exactHeading: "## 2. 형제궁 — 형제, 동료, 가까운 경쟁자",
+    exactHeading: "## Ch.2. 🌟 내면의 본체 — 신궁(身宮) 심층 분석과 잠재 무기",
     includes: [
-      "형제자매와의 인연", "가까운 동료와의 관계", "경쟁자와의 관계", "협력운", "가까운 사람에게 받는 도움",
-      "가까운 사람으로 인한 스트레스", "관계 거리 조절법", "형제궁 주성/보조성/살성 해석", "개운법"
+      "신궁이 들어간 궁", "명궁과 신궁의 관계", "잠재 무기", "성장 전략"
     ],
   },
   3: {
-    exactHeading: "## 3. 부처궁 — 연애, 결혼, 배우자운",
+    exactHeading: "## Ch.3. 🌙 무의식의 도화지 — 복덕궁(福德宮)으로 읽는 행복의 설계도",
     includes: [
-      "연애 성향", "이상형", "실제로 맞는 배우자상", "결혼운", "관계에서 반복되는 문제", "악연을 피하는 법",
-      "좋은 인연을 부르는 법", "부처궁 주성 해석", "부처궁 사화 해석", "연애 개운법", "관계 회복 루틴"
+      "행복 DNA", "스트레스 패턴", "감정 회복 루틴", "마인드 트레이닝"
     ],
   },
   4: {
-    exactHeading: "## 4. 자녀궁 — 자녀, 창작물, 미래의 결실",
+    exactHeading: "## Ch.4. 🌍 세상이라는 무대 — 천이궁(遷移宮)과 이미지 관리",
     includes: [
-      "자녀운", "후배운", "제자운", "창작물과 프로젝트 결실", "내가 남기는 유산", "돌봄 방식", "책임감의 형태",
-      "자녀궁 주성 해석", "자녀궁 길흉성 해석", "미래 결실을 키우는 개운법"
+      "외부 이미지", "이동/외부 활동 운", "평판 관리", "외부 활동 타이밍"
     ],
   },
   5: {
-    exactHeading: "## 5. 재백궁 — 재물운과 돈의 흐름",
+    exactHeading: "## Ch.5. 👑 커리어와 성취 — 관록궁(官祿宮)의 천직 방정식",
     includes: [
-      "돈 버는 방식", "재물 그릇", "수입 구조", "지출 습관", "투자 성향", "저축 성향", "돈이 새는 원인",
-      "재백궁 주성 해석", "재백궁 사화 해석", "화록/화기 영향", "재물운 개운법", "지갑 색상, 통장 관리, 생활 풍수"
+      "업무 성향 DNA", "조직형/독립형", "커리어 도약 타이밍", "성취 전략"
     ],
-    caution: "투자 수익을 보장하지 말고 성향과 습관 중심으로 설명",
   },
   6: {
-    exactHeading: "## 6. 질액궁 — 건강과 생체 리듬",
+    exactHeading: "## Ch.6. 💰 재화와 자산의 흐름 — 재백궁(財帛宮)의 부의 법칙",
     includes: [
-      "체력 흐름", "약해지기 쉬운 부위", "스트레스가 몸으로 나타나는 방식", "생활 습관 주의점", "수면 리듬",
-      "식단 관리", "운동법", "질액궁 주성 해석", "질액궁 살성 해석", "건강운 개운법"
+      "재물 그릇", "수입 파이프라인", "누수 패턴", "재정 관리 루틴"
     ],
-    caution: "질병 진단처럼 말하지 말고 생활 관리 조언으로 작성",
+    caution: "투자 수익을 단정하지 말고 성향 기반의 관리 전략으로 작성",
   },
   7: {
-    exactHeading: "## 7. 천이궁 — 사회적 이미지, 이동운, 외부 활동",
+    exactHeading: "## Ch.7. 💑 파트너십과 로맨스 — 부처궁(夫妻宮)의 인연 구조",
     includes: [
-      "타인이 보는 나", "사회적 페르소나", "외부 활동에서 운이 열리는 방식", "여행운", "이직운", "이사운", "해외운",
-      "귀인을 만나는 장소", "천이궁 주성 해석", "스타일링 개운법", "이동 방향 개운법"
+      "이상형 성향", "반복 감정 패턴", "경계 설정", "인연 타이밍"
     ],
   },
   8: {
-    exactHeading: "## 8. 교우궁 — 인간관계, 친구, 인맥",
+    exactHeading: "## Ch.8. 🤝 팀워크와 네트워크 — 교우궁(交友宮)의 인적 자원 법칙",
     includes: [
-      "친구운", "인맥운", "귀인운", "소인배를 피하는 법", "동업운", "인간관계 스트레스", "구설수를 줄이는 대화법",
-      "교우궁 주성 해석", "교우궁 살성 해석", "관계 개운법"
+      "협업 운", "귀인/소인 구분", "손해 패턴", "사회적 확장 전략"
     ],
   },
   9: {
-    exactHeading: "## 9. 관록궁 — 직업, 천직, 사회적 성취",
+    exactHeading: "## Ch.9. 🏠 공간과 환경 — 전택궁(田宅宮)의 환경심리학",
     includes: [
-      "직업 적성", "천직", "조직형/사업형 여부", "리더십", "승진운", "명예운", "업무 스타일", "상사/부하와의 관계",
-      "관록궁 주성 해석", "관록궁 사화 해석", "직업운 개운법", "사무실 풍수와 업무 루틴"
+      "안정 환경", "집중 공간", "공간 리셋 루틴", "자산 전략으로서의 공간"
     ],
   },
   10: {
-    exactHeading: "## 10. 전택궁 — 부동산, 집, 가정환경",
+    exactHeading: "## Ch.10. 💪 신체 에너지와 바이오리듬 — 질액궁(疾厄宮)의 건강 설계",
     includes: [
-      "집과의 인연", "부동산운", "내 집 마련운", "이사운", "상속운", "가정의 안정성", "좋은 주거 환경", "피해야 할 공간",
-      "전택궁 주성 해석", "전택궁 사화 해석", "현관/침실/책상 풍수", "공간 개운법"
+      "에너지 패턴", "수면/식사/운동 루틴", "스트레스 신체화", "회복 환경"
     ],
+    caution: "의학적 진단이 아닌 자미두수 기반 생활 경향 분석으로만 작성",
   },
   11: {
-    exactHeading: "## 11. 복덕궁 — 내면, 정신, 행복감",
+    exactHeading: "## Ch.11. 🌊 10년의 메가 트렌드 — 대한(大限) 분석과 전 생애 파노라마",
     includes: [
-      "내면의 안정감", "정신적 만족감", "스트레스 해소 방식", "무의식의 불안", "혼자 있을 때의 진짜 모습",
-      "마음이 회복되는 환경", "복덕궁 주성 해석", "복덕궁 길흉성 해석", "명상법", "심상화 루틴", "감정 정화법"
+      "현재 대한 핵심 주제", "상승/조정 전략", "반복 패턴", "황금 대한 후보"
     ],
   },
   12: {
-    exactHeading: "## 12. 부모궁 — 부모, 윗사람, 보호자, 사회적 후원",
+    exactHeading: "## Ch.12. 📅 올해의 마이크로 전술 — 2026 유년(流年)·유월(流月) 로드맵",
     includes: [
-      "부모와의 인연", "윗사람 복", "스승운", "후원자운", "권위자와의 관계", "부모궁 주성 해석", "부모궁 사화 해석",
-      "윗사람과의 갈등 줄이는 법", "후원운을 높이는 개운법"
+      "2026 핵심 키워드", "Go/Hold/Retreat", "분기 전략", "1~12월 행동 가이드"
     ],
   },
   13: {
-    exactHeading: "## 13. 종합 총운과 인생 마스터플랜",
+    exactHeading: "## Ch.13. 🌅 인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서",
     includes: [
-      "12궁 전체 종합", "인생의 큰 방향", "가장 강한 운", "가장 약한 운",
-      "직업, 재물, 연애, 건강, 인간관계 종합", "앞으로 1년 전략", "앞으로 3년 전략",
-      "90일 실행 로드맵", "최종 조언", "운명을 바꾸는 핵심 습관"
+      "13챕터 핵심 통합", "기억할 3가지 비책", "피해야 할 3가지 패턴", "통합 실천 전략"
     ],
   },
 };
@@ -2918,27 +2904,224 @@ function normalizeZiweiField(value, fallback = "정보 없음") {
   return text || fallback;
 }
 
+const ZIWEI_SYMBOL_TO_STRENGTH = {
+  "◎": "묘",
+  "○": "왕",
+  "▲": "리",
+  "△": "평",
+  "X": "함",
+};
+
+const ZIWEI_STRENGTH_TO_SYMBOL = {
+  "묘": "◎",
+  "왕": "○",
+  "리": "▲",
+  "평": "△",
+  "함": "X",
+};
+
+function normalizeZiweiStrengthLabel(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (v === "묘" || v === "廟") return "묘";
+  if (v === "왕" || v === "旺" || /^O$/i.test(v) || v === "○") return "왕";
+  if (v === "리" || v === "利" || v === "▲") return "리";
+  if (v === "평" || v === "平" || v === "△") return "평";
+  if (v === "함" || v === "陷" || /^x$/i.test(v) || v === "X") return "함";
+  return "";
+}
+
+function ziweiStrengthToHan(strength) {
+  const s = normalizeZiweiStrengthLabel(strength);
+  if (s === "묘") return "廟";
+  if (s === "왕") return "旺";
+  if (s === "리") return "利";
+  if (s === "평") return "平";
+  if (s === "함") return "陷";
+  return "";
+}
+
+function pushUnique(list, value) {
+  if (!Array.isArray(list)) return;
+  const v = String(value || "").trim();
+  if (!v) return;
+  if (!list.includes(v)) list.push(v);
+}
+
+function createZiweiDataQuality() {
+  return {
+    missingFields: [],
+    supplementedFields: [],
+    warnings: [],
+  };
+}
+
+function normalizeZiweiStarRecord(star, fieldPath, dataQuality) {
+  const src = (star && typeof star === "object") ? star : { name: String(star || "") };
+  const name = String(src.name || src.nameKo || "").trim();
+  if (!name) {
+    pushUnique(dataQuality?.missingFields, `${fieldPath}.name`);
+  }
+
+  let symbol = String(src.symbol || "").trim();
+  let strength = normalizeZiweiStrengthLabel(src.strength || src.brightness || src.brightnessKo);
+
+  if (!strength && symbol) {
+    strength = ZIWEI_SYMBOL_TO_STRENGTH[symbol] || "";
+    if (strength) pushUnique(dataQuality?.supplementedFields, `${fieldPath}.strength`);
+  }
+  if (!symbol && strength) {
+    symbol = ZIWEI_STRENGTH_TO_SYMBOL[strength] || "";
+    if (symbol) pushUnique(dataQuality?.supplementedFields, `${fieldPath}.symbol`);
+  }
+
+  // fail-open policy: if both are missing, keep deterministic neutral fallback and continue generation
+  if (!strength) {
+    strength = "평";
+    pushUnique(dataQuality?.missingFields, `${fieldPath}.strength`);
+    pushUnique(dataQuality?.supplementedFields, `${fieldPath}.strength`);
+  }
+  if (!symbol) {
+    symbol = ZIWEI_STRENGTH_TO_SYMBOL[strength] || "△";
+    pushUnique(dataQuality?.missingFields, `${fieldPath}.symbol`);
+    pushUnique(dataQuality?.supplementedFields, `${fieldPath}.symbol`);
+  }
+
+  return {
+    name,
+    nameKo: String(src.nameKo || name || "").trim(),
+    strength,
+    brightness: ziweiStrengthToHan(strength),
+    brightnessKo: strength,
+    symbol,
+    borrowed: !!src.borrowed,
+  };
+}
+
+function normalizeZiweiStarArray(stars, fieldPath, dataQuality) {
+  if (!Array.isArray(stars)) {
+    pushUnique(dataQuality?.missingFields, fieldPath);
+    return [];
+  }
+  return stars.map((s, idx) => normalizeZiweiStarRecord(s, `${fieldPath}[${idx}]`, dataQuality));
+}
+
+function normalizeZiweiStructuredPayload(structuredPayload, dataQuality) {
+  const payload = (structuredPayload && typeof structuredPayload === "object") ? structuredPayload : {};
+  const rows = Array.isArray(payload.palaceStarData) ? payload.palaceStarData : [];
+  if (!rows.length) {
+    pushUnique(dataQuality?.warnings, "12궁 구조 데이터가 부족해 요약 중심 보완 해석으로 생성합니다.");
+  }
+
+  return {
+    ...payload,
+    palaceStarData: rows.map((row, idx) => {
+      const palacePath = `palaceStarData[${idx}]`;
+      return {
+        palace: String(row?.palace || row?.name || "").trim(),
+        branch: String(row?.branch || "").trim(),
+        dahan: String(row?.dahan || "").trim(),
+        stars: normalizeZiweiStarArray(row?.stars, `${palacePath}.stars`, dataQuality),
+        auxStars: normalizeZiweiStarArray(row?.auxStars, `${palacePath}.auxStars`, dataQuality),
+        badStars: normalizeZiweiStarArray(row?.badStars, `${palacePath}.badStars`, dataQuality),
+      };
+    }),
+  };
+}
+
+function validateZiweiChartSoft(chartJson, dataQuality) {
+  const missing = [];
+  if (!chartJson?.userProfile?.birthDateSolar) missing.push("userProfile.birthDateSolar");
+  if (!chartJson?.chartMeta?.mingGong) missing.push("chartMeta.mingGong");
+  if (!chartJson?.palaces || Object.keys(chartJson.palaces).length === 0) missing.push("palaces");
+
+  missing.forEach((m) => pushUnique(dataQuality?.missingFields, m));
+  return {
+    isValid: true,
+    canProceed: true,
+    missingFields: missing,
+    warnings: Array.isArray(dataQuality?.warnings) ? dataQuality.warnings : [],
+  };
+}
+
+function generateZiweiChart(body, input, structuredPayload, reportType, partnerOverview, dataQuality) {
+  const normalized = normalizeZiweiStructuredPayload(structuredPayload, dataQuality);
+  const rows = Array.isArray(normalized?.palaceStarData) ? normalized.palaceStarData : [];
+  const palaces = {};
+  rows.slice(0, 12).forEach((row) => {
+    const palaceName = String(row?.palace || "").trim();
+    if (!palaceName) return;
+    palaces[palaceName] = {
+      nameKo: palaceName,
+      position: String(row?.branch || "").trim(),
+      mainStars: row?.stars || [],
+      auxStars: row?.auxStars || [],
+      minorStars: row?.badStars || [],
+      siHua: [],
+      sanFangSiZheng: [],
+      oppositePalace: "",
+      interpretationKeywords: [],
+    };
+  });
+
+  const targetYear = Number(body?.targetYear || body?.yearFortuneYear || 2026);
+  const birthDateSolar = `${input.year}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`;
+
+  return {
+    userProfile: {
+      name: String(body?.name || input?.name || "사용자"),
+      gender: String(body?.gender || input?.gender || "unknown").toLowerCase(),
+      birthDateSolar,
+      birthTime: `${String(input.hour).padStart(2, "0")}:${String(input.minute).padStart(2, "0")}`,
+      birthPlace: String(body?.birthPlace || body?.place || "").trim(),
+      calendarType: String(body?.calendarType || body?.calendar || "solar"),
+      targetYear,
+    },
+    chartMeta: {
+      mingGong: String(normalized?.meng || normalized?.mingGong || "").trim(),
+      shenGong: String(normalized?.shen || normalized?.shenGong || "").trim(),
+      fiveElementBureau: String(normalized?.juInfo || "").trim(),
+      lifeMaster: "",
+      bodyMaster: "",
+      calculationVersion: String(normalized?.calcMeta?.version || "v1").trim(),
+      engineName: "internal_ziwei_engine",
+    },
+    palaces,
+    majorPeriods: Array.isArray(normalized?.daHanList) ? normalized.daHanList : [],
+    currentMajorPeriod: {},
+    annualFortune: {
+      year: targetYear,
+      yearPalace: "",
+      mainStars: [],
+      siHua: [],
+      goHoldRetreat: "Hold",
+      quarterlyRoadmap: [],
+      monthlyRoadmap: [],
+    },
+    validation: {
+      isValid: true,
+      missingFields: [],
+      warnings: Array.isArray(dataQuality?.warnings) ? dataQuality.warnings : [],
+    },
+    sourcePayload: normalized,
+    reportType,
+    partnerOverview,
+  };
+}
+
 function ziweiStrengthFromStar(star) {
   const symbol = String(star?.symbol || "").trim();
-  if (symbol === "◎") return "묘";
-  if (symbol === "○") return "왕";
-  if (symbol === "▲") return "리";
-  if (symbol === "△") return "평";
-  if (symbol === "X") return "함";
-  const rawStrength = String(star?.strength || "").trim();
+  if (symbol && ZIWEI_SYMBOL_TO_STRENGTH[symbol]) return ZIWEI_SYMBOL_TO_STRENGTH[symbol];
+  const rawStrength = normalizeZiweiStrengthLabel(star?.strength || star?.brightness || star?.brightnessKo);
   if (rawStrength) return rawStrength;
   return "평";
 }
 
 function ziweiStrengthSymbolFromStar(star) {
   const symbol = String(star?.symbol || "").trim();
-  if (symbol) return symbol;
+  if (symbol && ZIWEI_SYMBOL_TO_STRENGTH[symbol]) return symbol;
   const strength = ziweiStrengthFromStar(star);
-  if (strength === "묘") return "◎";
-  if (strength === "왕") return "○";
-  if (strength === "리") return "▲";
-  if (strength === "평") return "△";
-  if (strength === "함") return "X";
+  if (ZIWEI_STRENGTH_TO_SYMBOL[strength]) return ZIWEI_STRENGTH_TO_SYMBOL[strength];
   return "△";
 }
 
@@ -2986,11 +3169,12 @@ function formatZiweiStarList(stars) {
   return rows.length ? rows.join(", ") : "없음";
 }
 
-function buildZiweiDataContext(body, input, summary, structuredPayload, reportType, partnerOverview) {
-  const structured = Array.isArray(structuredPayload)
-    ? structuredPayload
-    : Array.isArray(structuredPayload?.palaceStarData)
-      ? structuredPayload.palaceStarData
+function buildZiweiDataContext(body, input, summary, structuredPayload, reportType, partnerOverview, dataQuality) {
+  const normalizedPayload = normalizeZiweiStructuredPayload(structuredPayload, dataQuality);
+  const structured = Array.isArray(normalizedPayload)
+    ? normalizedPayload
+    : Array.isArray(normalizedPayload?.palaceStarData)
+      ? normalizedPayload.palaceStarData
       : [];
 
   const profileLines = [
@@ -3006,19 +3190,19 @@ function buildZiweiDataContext(body, input, summary, structuredPayload, reportTy
   const lunarType = normalizeZiweiField(body?.calendarType || body?.calendar || body?.isLunar || body?.solarLunar || "");
   if (lunarType) profileLines.push(`- 역법: ${lunarType}`);
 
-  const leapMonth = normalizeZiweiField(body?.isLeapMonth || body?.leapMonth || structuredPayload?.isLeap || "");
+  const leapMonth = normalizeZiweiField(body?.isLeapMonth || body?.leapMonth || normalizedPayload?.isLeap || "");
   if (leapMonth) profileLines.push(`- 윤달: ${leapMonth}`);
 
   const mingGong = normalizeZiweiField(
-    structuredPayload?.meng
-    || structuredPayload?.mingGong
+    normalizedPayload?.meng
+    || normalizedPayload?.mingGong
     || body?.mingong
     || body?.mingung
     || ""
   );
   const shenGong = normalizeZiweiField(
-    structuredPayload?.shen
-    || structuredPayload?.shenGong
+    normalizedPayload?.shen
+    || normalizedPayload?.shenGong
     || body?.shingong
     || body?.shingung
     || ""
@@ -3027,14 +3211,14 @@ function buildZiweiDataContext(body, input, summary, structuredPayload, reportTy
   if (shenGong) profileLines.push(`- 신궁 지지: ${shenGong}`);
   profileLines.push("- 강약 기호 기준(묘왕리평함): ◎=묘, ○=왕, ▲=리, △=평, X=함");
 
-  const juInfo = normalizeZiweiField(structuredPayload?.juInfo || body?.juInfo || "");
+  const juInfo = normalizeZiweiField(normalizedPayload?.juInfo || body?.juInfo || "");
   if (juInfo) profileLines.push(`- 오행국: ${juInfo}`);
 
-  const yearGan = normalizeZiweiField(structuredPayload?.yearGan || body?.yearGan || "");
-  const yearZhi = normalizeZiweiField(structuredPayload?.yearZhi || body?.yearZhi || "");
+  const yearGan = normalizeZiweiField(normalizedPayload?.yearGan || body?.yearGan || "");
+  const yearZhi = normalizeZiweiField(normalizedPayload?.yearZhi || body?.yearZhi || "");
   if (yearGan || yearZhi) profileLines.push(`- 연간지: ${yearGan}${yearZhi}`);
 
-  const sihuaData = structuredPayload?.sihuaData;
+  const sihuaData = normalizedPayload?.sihuaData;
   if (sihuaData && typeof sihuaData === "object") {
     const sihuaRows = Object.entries(sihuaData)
       .map(([star, meta]) => {
@@ -3081,8 +3265,11 @@ function buildZiweiDataContext(body, input, summary, structuredPayload, reportTy
         .concat("", "[12궁 원자료]", ...palaceLines, "", "[궁별 성강(묘왕리평함) 원자료]", ...detailLines)
         .join("\n"),
       missingNotice: "",
+      structuredPayload: normalizedPayload,
     };
   }
+
+  pushUnique(dataQuality?.warnings, "12궁 구조 데이터가 부족해 계산 요약 기반 보완 해석으로 생성합니다.");
 
   const fallbackLine = normalizeZiweiField(summary || body?.ziweiData || "", "");
   if (fallbackLine) profileLines.push(`- 계산 요약: ${fallbackLine}`);
@@ -3091,6 +3278,29 @@ function buildZiweiDataContext(body, input, summary, structuredPayload, reportTy
     hasStructured: false,
     dataText: profileLines.join("\n"),
     missingNotice: "명반 구조 데이터 부족",
+    structuredPayload: normalizedPayload,
+  };
+}
+
+function buildZiweiPdfPrompt(meta, chapter, input, dataText, missingNotice, hasStructured, reportType) {
+  return buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, hasStructured, reportType);
+}
+
+async function generateChapterContents(env, prompt, genOptions) {
+  return callGemini(env, prompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], genOptions);
+}
+
+function validateGeneratedChapters(chapter, text) {
+  const missing = ziweiMissingMarkers(text, chapter);
+  const tooShort = text.length < ZIWEI_MIN_CHARS;
+  const truncated = looksTruncatedMarkdown(text);
+  const banned = hasZiweiBannedSummaryExpression(text);
+  return {
+    isValid: !tooShort && missing.length === 0 && !truncated && !banned,
+    missing,
+    tooShort,
+    truncated,
+    banned,
   };
 }
 
@@ -3103,17 +3313,16 @@ function ziweiMissingMarkers(text, chapter) {
   const source = String(text || "");
   const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
   const required = [
-    "### 핵심 요약 5줄",
-    "### 명반 근거 해석",
-    "### 12궁 별·강약 상세 해석",
-    "### 명궁·신궁 집중 해석",
-    "### 성향과 현실 적용",
-    "### 장점과 기회",
-    "### 약점과 주의점",
-    "### 구체적인 개운법",
-    "### 실천 체크리스트",
-    "### 따뜻한 상담 메시지",
-    "### 오늘부터 실천할 3가지",
+    "## 1. 이 챕터에서 보는 핵심",
+    "## 2. 별의 구조와 세기 분석",
+    "## 3. 별의 밝기로 본 강점과 약점",
+    "## 4. 심리적 의미",
+    "## 5. 현실에서 드러나는 모습",
+    "## 6. 강점 활용 전략",
+    "## 7. 주의해야 할 패턴",
+    "## 8. 세기별 보완 전략",
+    "## 9. 실천 가이드",
+    "## 10. 챕터 핵심 요약",
     "---",
   ];
 
@@ -3171,6 +3380,9 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
 
   return [
     "너는 30년 경력의 자미두수 명리 전문가이자, 심리 상담가, 인생 전략 컨설턴트, 프리미엄 PDF 리포트 작가다.",
+    "너는 계산자가 아니다. 너는 해석자다.",
+    "자미두수 명반 계산은 내부 엔진에서 이미 완료되었으며, 제공된 데이터만 사용해 해석하라.",
+    "JSON에 없는 별, 사화, 궁위, 대한, 유년 정보를 추측해 추가하지 마라.",
     "사용자의 자미두수 명반 데이터를 기반으로 단순 점괘가 아니라 타고난 구조→현재 심리/현실→선택 전략→구체적 개운 실천법을 연결해 작성하라.",
     "오직 마크다운 본문만 출력하라. 코드, 컴포넌트, UI 설명, 개발 설명은 절대 출력하지 마라.",
     "건강·투자·법률·의료는 진단/보장 표현을 금지하고 생활 관리 수준의 조언으로 작성하라.",
@@ -3178,6 +3390,8 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
     "별 하나만 단편 해석하지 말고 궁위·삼방사정·대운·세운·사화를 종합하라.",
     "입력 원자료의 궁별 별 목록과 강약(묘왕리평함)은 기호(◎/○/▲/△/X) 중심으로 해석 근거에 직접 반영하라.",
+    "자미두수 별의 해석은 별 이름만 나열하지 말고 반드시 묘(廟)/왕(旺)/리(利)/평(平)/함(陷) 세기 상태를 함께 반영하라.",
+    "묘·왕은 강점과 활용 전략 중심, 리는 균형/실용성 중심, 평은 환경·습관 중심, 함은 단정이 아닌 보완·회복 전략 중심으로 작성하라.",
     "명궁과 신궁은 반드시 별도 소제목(명궁·신궁 집중 해석)에서 별명+강약기호+실전 의미를 분리 설명하라.",
     "심화 보충 노트라는 이름의 섹션을 만들지 마라. 대신 챕터 주제에 맞는 카테고리 섹션을 만들고, 카테고리 간 문장을 중복하지 마라.",
     "12궁 각각에 대해 반드시 실제 별 이름, 강약(묘왕리평함), 강약이 의미하는 해석을 빠짐없이 작성하라.",
@@ -3205,17 +3419,16 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     prefaceHeading,
     chapter === 1 ? "### 12궁 전체 요약표" : "",
     exactHeading,
-    "### 핵심 요약 5줄",
-    "### 명반 근거 해석",
-    "### 12궁 별·강약 상세 해석",
-    "### 명궁·신궁 집중 해석",
-    "### 성향과 현실 적용",
-    "### 장점과 기회",
-    "### 약점과 주의점",
-    "### 구체적인 개운법",
-    "### 실천 체크리스트",
-    "### 따뜻한 상담 메시지",
-    "### 오늘부터 실천할 3가지",
+    "## 1. 이 챕터에서 보는 핵심",
+    "## 2. 별의 구조와 세기 분석",
+    "## 3. 별의 밝기로 본 강점과 약점",
+    "## 4. 심리적 의미",
+    "## 5. 현실에서 드러나는 모습",
+    "## 6. 강점 활용 전략",
+    "## 7. 주의해야 할 패턴",
+    "## 8. 세기별 보완 전략",
+    "## 9. 실천 가이드",
+    "## 10. 챕터 핵심 요약",
     "---",
     "",
     "[챕터 전용 추가 지시]",
@@ -3348,29 +3561,39 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     "### 필수 포함 항목 점검",
     topicChecklist,
     cautionLine ? `- 주의: ${cautionLine}.` : "",
-    "### 핵심 요약 5줄",
+    "## 1. 이 챕터에서 보는 핵심",
+    "- 사용된 궁:",
+    "- 사용된 주성:",
+    "- 주성의 세기:",
+    "- 사용된 보성/잡성:",
+    "- 보성/잡성의 세기:",
+    "- 사용된 사화:",
+    "- 연결해서 본 궁:",
+    "- 핵심 키워드:",
     summaryList,
-    "### 명반 근거 해석",
+    "## 2. 별의 구조와 세기 분석",
     `${missingNotice ? "명반 데이터가 부족해 일반론으로 보완한다. " : ""}입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
     `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘왕리평함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
     "### 12궁 별·강약 상세 해석",
     palaceDetailText,
-    "### 명궁·신궁 집중 해석",
+    "## 3. 별의 밝기로 본 강점과 약점",
     "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/▲/△/X)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
     "신궁은 실제 행동과 외부 환경에서 발현되는 패턴입니다. 신궁 별 조합을 명궁과 비교해 보면 내부 의도와 외부 실행의 불일치 구간을 찾을 수 있으며, 이 구간을 조정하면 관계·커리어·재정 성과가 동시에 개선됩니다.",
     categoryBlocks,
-    "### 성향과 현실 적용",
+    "## 4. 심리적 의미",
     "성향은 고정된 운명이 아니라 반복되는 반응 방식입니다. 현실 적용의 핵심은 내 반응 속도를 늦추고, 중요한 결정의 평가 기준을 명문화하는 것입니다. 예를 들어 관계에서는 감정 강도보다 경계의 일관성을, 커리어에서는 열정 강도보다 지속 가능성을 먼저 점검하면 리스크가 빠르게 줄어듭니다.",
+    "## 5. 현실에서 드러나는 모습",
     "또한 궁위 해석은 영역별로 나눠 보되 결국 하나의 생활 시스템으로 통합해야 체감이 생깁니다. 아침 루틴, 주간 회고, 월간 점검의 3단계만 고정해도 운세 해석이 생활 운영 매뉴얼로 전환됩니다.",
-    "### 장점과 기회",
+    "## 6. 강점 활용 전략",
     "**이 명반의 장점은 위기 상황에서 구조를 재정렬하는 능력입니다.** 감정이 흔들리는 상황에서도 핵심을 다시 붙잡는 힘이 있어, 장기전에서 강점을 발휘합니다. 외부 확장 기회는 준비된 루틴 위에서 더 빠르게 현실화됩니다.",
     "기회를 키우는 방법은 복잡하지 않습니다. 핵심 목표를 줄이고, 실행 단위를 작게 나누고, 반복 가능한 리듬으로 고정하는 것입니다. 이렇게 하면 기회가 들어올 때 과부하 없이 받아낼 수 있습니다.",
-    "### 약점과 주의점",
+    "## 7. 주의해야 할 패턴",
     "약점은 저주가 아니라 관리해야 할 에너지입니다. 특히 과도한 자기압박, 완벽주의, 관계 과잉 책임은 성과를 늦추는 대표 패턴입니다. 이 시기에는 보수적으로 접근하는 것이 좋으며, 큰 결정보다 손실을 줄이는 운영이 유리합니다.",
     "주의점은 실패를 두려워하는 태도 자체보다, 실패 후 회복 프로토콜이 없는 상태입니다. 회복 규칙이 있으면 동일한 실수도 다른 결과를 만듭니다.",
-    "### 구체적인 개운법",
+    "## 8. 세기별 보완 전략",
     "개운의 핵심은 생활 리듬 재정렬입니다. 아침에는 10분 계획 정리, 낮에는 핵심 1개 완수, 저녁에는 감정/행동 분리 회고를 실행하세요. 심리 안정이 필요한 날에는 5분 복식호흡(4초 들숨-4초 멈춤-6초 날숨)을 5회 반복하세요.",
     "공간 개운은 과장된 풍수보다 동선 단순화가 효과적입니다. 현관-책상-침실 3구역의 잡음을 줄이고, 시선이 닿는 곳에 실행 체크리스트를 배치하면 행동 지속성이 올라갑니다.",
+    "## 9. 실천 가이드",
     "### 실천 체크리스트",
     "- [ ] 오늘 의사결정 1건을 감정/현실/장기효과로 분리 기록한다.",
     "- [ ] 이번 주 가장 큰 소모 패턴 1개를 식별하고 대체 행동 1개를 정한다.",
@@ -3382,6 +3605,10 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     monthlyTemplate,
     roadmapTable,
     chapter === 13 ? "### 엔딩 메시지\n운명은 고정된 판결문이 아닙니다. 명반은 나를 이해하기 위한 지도이며, 약점은 관리해야 할 에너지이고 강점은 실천할 때 현실이 되는 선물입니다. 지금부터의 선택이 앞으로의 운을 바꿉니다." : "",
+    "## 10. 챕터 핵심 요약",
+    "- 핵심 1:",
+    "- 핵심 2:",
+    "- 핵심 3:",
     "### 오늘부터 실천할 3가지",
     "1. 하루 10분, 내 선택 기준을 글로 남깁니다.",
     "2. 이번 주 가장 큰 소모 패턴 1개를 멈추고 대체 행동을 고정합니다.",
@@ -3402,9 +3629,9 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
   return text;
 }
 
-async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summary, structuredPayload, reportType, partnerOverview) {
-  const { dataText, missingNotice, hasStructured } = buildZiweiDataContext(body, input, summary, structuredPayload, reportType, partnerOverview);
-  const prompt = buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, hasStructured, reportType);
+async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summary, structuredPayload, reportType, partnerOverview, dataQuality) {
+  const { dataText, missingNotice, hasStructured, structuredPayload: normalizedPayload } = buildZiweiDataContext(body, input, summary, structuredPayload, reportType, partnerOverview, dataQuality);
+  const prompt = buildZiweiPdfPrompt(meta, chapter, input, dataText, missingNotice, hasStructured, reportType);
   const genOptions = {
     temperature: 0.72,
     topP: 0.92,
@@ -3413,7 +3640,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summ
     maxAttemptsPerPair: Number(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
 
-  let text = await callGemini(env, prompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], genOptions);
+  let text = await generateChapterContents(env, prompt, genOptions);
   let usedFallback = false;
 
   if (!text || text.trim().length < 1200) {
@@ -3422,10 +3649,8 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summ
   }
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const missing = ziweiMissingMarkers(text, chapter);
-    const tooShort = text.length < ZIWEI_MIN_CHARS;
-    const truncated = looksTruncatedMarkdown(text);
-    const banned = hasZiweiBannedSummaryExpression(text);
+    const chapterValidation = validateGeneratedChapters(chapter, text);
+    const { missing, tooShort, truncated, banned } = chapterValidation;
     if (!tooShort && missing.length === 0 && !truncated && !banned) break;
 
     const refinePrompt = [
@@ -3441,7 +3666,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summ
       text,
     ].join("\n");
 
-    const refined = await callGemini(env, refinePrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], genOptions);
+    const refined = await generateChapterContents(env, refinePrompt, genOptions);
     if (!refined || !refined.trim()) break;
     const candidate = refined.trim();
     if (candidate.length >= Math.floor(text.length * 0.8)) {
@@ -3451,13 +3676,13 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summ
     }
   }
 
-  const finalMissing = ziweiMissingMarkers(text, chapter);
-  if (text.length < ZIWEI_MIN_CHARS || finalMissing.length > 0 || looksTruncatedMarkdown(text) || hasZiweiBannedSummaryExpression(text)) {
+  const finalValidation = validateGeneratedChapters(chapter, text);
+  if (!finalValidation.isValid) {
     usedFallback = true;
     text = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
   }
 
-  return { text, sections: parseSections(text), usedFallback };
+  return { text, sections: parseSections(text), usedFallback, normalizedPayload };
 }
 
 async function handleSukuyoLife(request, env) {
@@ -4355,8 +4580,12 @@ async function handleZiweiBookSession(request, env) {
     subtitle: "자미두수 프리미엄 인생 총람",
     icon: "ziwei"
   };
+  const dataQuality = createZiweiDataQuality();
   const structuredPayload = (body.ziweiStructured && typeof body.ziweiStructured === "object") ? body.ziweiStructured : null;
-  const structured = Array.isArray(structuredPayload?.palaceStarData) ? structuredPayload.palaceStarData : [];
+  const chartJson = generateZiweiChart(body, input, structuredPayload, reportType, partnerOverview, dataQuality);
+  const chartValidation = validateZiweiChartSoft(chartJson, dataQuality);
+  const normalizedPayload = chartJson?.sourcePayload || structuredPayload || {};
+  const structured = Array.isArray(normalizedPayload?.palaceStarData) ? normalizedPayload.palaceStarData : [];
   const summary = Array.isArray(structured)
     ? structured.slice(0, 12).map((p) => {
       const palace = p?.palace || "미상궁";
@@ -4373,9 +4602,10 @@ async function handleZiweiBookSession(request, env) {
     chapter,
     meta,
     summary || "명반 데이터가 부족해 일반론으로 보완한다",
-    structuredPayload || (Array.isArray(structured) ? structured : []),
+    normalizedPayload || (Array.isArray(structured) ? structured : []),
     reportType,
     partnerOverview,
+    dataQuality,
   );
 
   const storage = writeReportSessionChapter(
@@ -4385,10 +4615,42 @@ async function handleZiweiBookSession(request, env) {
     13,
     meta,
     generated.text,
-    { reportType }
+    {
+      reportType,
+      dataQuality: {
+        missingFields: dataQuality.missingFields,
+        supplementedFields: dataQuality.supplementedFields,
+        warnings: dataQuality.warnings,
+      },
+    }
   );
 
-  return json({ ok: true, reportId, reportType, chapter, totalChapters: 13, chapterMeta: meta, storage, ...generated });
+  return json({
+    ok: true,
+    reportId,
+    reportType,
+    chapter,
+    totalChapters: 13,
+    chapterMeta: meta,
+    storage,
+    dataQuality: {
+      missingFields: dataQuality.missingFields,
+      supplementedFields: dataQuality.supplementedFields,
+      warnings: dataQuality.warnings,
+      validation: chartValidation,
+    },
+    pipeline: [
+      "generateZiweiChart",
+      "validateZiweiChart",
+      "buildZiweiPdfPrompt",
+      "generateChapterContents",
+      "validateGeneratedChapters",
+      "renderPdf",
+      "savePdf",
+      "returnDownloadUrl",
+    ],
+    ...generated,
+  });
 }
 
 export async function handlePremiumRoutes(request, env) {
