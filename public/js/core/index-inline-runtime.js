@@ -2264,15 +2264,12 @@ function __cdBootstrapSajuInputsOnLoad() {
   if (!__cdNeedsSajuInputBootstrap()) return;
 
   window.__cdSajuBootstrapAttempted = 1;
-  __cdEnsureSajuCoreLoaded().then(function() {
-    __cdWarmupSajuInputsIfNeeded();
-    if (__cdNeedsSajuInputBootstrap()) {
-      __cdRepairSajuInputsFallback();
-    }
-  }).catch(function(err) {
-    console.error('[index-inline-runtime] saju bootstrap load failed:', err);
+  __cdWarmupSajuInputsIfNeeded();
+  try {
     __cdRepairSajuInputsFallback();
-  });
+  } catch (err) {
+    console.error('[index-inline-runtime] saju bootstrap fallback failed:', err);
+  }
 }
 
 window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
