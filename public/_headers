@@ -1,16 +1,32 @@
 # Cloudflare Pages cache policy
-# Goal: always deliver latest HTML/API, cache only hashed build assets for long-term.
+# ══════════════════════════════════════════════════════════════
+# 원칙:
+#   - HTML, SW, manifest, version.json → 절대 캐시 금지
+#   - 해시 기반 Next.js 빌드 assets(_next/static/) → 장기 캐시
+#   - 그 외 고정 파일명 JS/CSS/assets → 캐시 금지
+# ══════════════════════════════════════════════════════════════
 
-# HTML and entry routes must never be long-cached.
+# ── HTML 진입점: 절대 캐시 금지 ──────────────────────────────────
 /
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
 
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
 
 /static
   Cache-Control: no-cache, no-store, must-revalidate
@@ -27,32 +43,42 @@
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
-/*.html
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
-
-# Runtime metadata and APIs must always revalidate.
+# ── API: 절대 캐시 금지 ──────────────────────────────────────────
 /api/*
   Cache-Control: no-cache, no-store, must-revalidate
 
+# ── 버전/상태 파일: 절대 캐시 금지 ──────────────────────────────
 /version.json
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
 
 /status.json
-  Cache-Control: no-cache, no-store, must-revalidate
-
-# Service worker and manifest should update immediately.
-/service-worker.js
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
+# ── Service Worker: 절대 캐시 금지 ──────────────────────────────
+/service-worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
 /tadagochi-sw.js
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+
+# ── Manifest: 절대 캐시 금지 (PWA 설치 상태에서 구버전 앱 방지) ──
 /manifest.json
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
@@ -63,7 +89,12 @@
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
-# Non-hashed legacy assets: do not use immutable cache.
+/manifest-tadagochi.json
+  Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+
+# ── 고정 파일명 JS/CSS (해시 없음): 절대 캐시 금지 ──────────────
 /*.js
   Cache-Control: no-cache, no-store, must-revalidate
 
@@ -82,6 +113,7 @@
 /css/*.css
   Cache-Control: no-cache, no-store, must-revalidate
 
+# ── 고정 파일명 assets: 캐시 금지 ────────────────────────────────
 /icons/*
   Cache-Control: no-cache, no-store, must-revalidate
 
@@ -97,6 +129,11 @@
 /assets/*
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Hashed Next.js static build assets only.
+/images/*
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# ── Next.js 해시 기반 빌드 assets: 장기 캐시 허용 ───────────────
+# _next/static/ 하위 파일은 content hash가 파일명에 포함됨
+# 파일이 변경되면 자동으로 새 해시 URL이 생성됨
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable

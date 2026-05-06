@@ -1,7 +1,8 @@
-﻿/* ─── 공유하기 함수 ─── */
+/* ─── 공유하기 함수 ─── */
 var APP_VERSION = 'dev';
 var APP_VERSION_KEY = 'app_version';
-var SW_CACHE_PREFIXES = ['kkul-mansaeryeok-', 'fortune-tama-'];
+var APP_VERSION_RELOAD_GUARD = 'app_version_reload_guard';  // 무한 reload 방지
+var SW_PURGED_VERSION_KEY = 'app_sw_purged_version';
 
 function pickRuntimeVersion(payload) {
   if (!payload || typeof payload !== 'object') return APP_VERSION;
@@ -28,19 +29,64 @@ function resolveRuntimeVersion() {
     });
 }
 
+/** 모든 SW 해제 + 모든 Cache Storage 삭제 */
+function nukeAllCachesLegacy() {
+  var tasks = [];
+  if ('serviceWorker' in navigator) {
+    tasks.push(
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
+      }).catch(function() {})
+    );
+  }
+  if ('caches' in window) {
+    tasks.push(
+      caches.keys().then(function(keys) {
+        return Promise.all(keys.map(function(key) { return caches.delete(key); }));
+      }).catch(function() {})
+    );
+  }
+  return Promise.all(tasks).catch(function() {});
+}
+
 function runNuclearVersionGuard() {
   return resolveRuntimeVersion().then(function(version) {
-    var saved = '';
-    try {
-      saved = localStorage.getItem(APP_VERSION_KEY) || '';
-    } catch (e) {
-      saved = '';
-    }
-    if (saved === version) return version;
+    // dev 버전 또는 fetch 실패 시 아무 작업 안 함
+    if (!version || version === 'dev') return version;
 
-    // 인증 안정성 우선: 전체 스토리지 삭제/강제 리로드는 수행하지 않습니다.
-    try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-    return version;
+    var saved = '';
+    try { saved = localStorage.getItem(APP_VERSION_KEY) || ''; } catch (e) { saved = ''; }
+
+    if (saved === version) {
+      // 버전 동일: SW/캐시만 정리 (이미 정리된 버전이면 skip)
+      var purged = '';
+      try { purged = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
+      if (purged !== version) {
+        nukeAllCachesLegacy().then(function() {
+          try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
+        });
+      }
+      return version;
+    }
+
+    // 버전 불일치: 무한 reload 방지 체크
+    var reloaded = '';
+    try { reloaded = sessionStorage.getItem(APP_VERSION_RELOAD_GUARD) || ''; } catch (e) { reloaded = ''; }
+
+    if (reloaded === version) {
+      // 이미 이 버전으로 reload 했음 → 버전만 저장하고 종료
+      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
+      return version;
+    }
+
+    // SW 전체 해제 + Cache Storage 전부 삭제 후 reload
+    return nukeAllCachesLegacy().then(function() {
+      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
+      try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
+      try { sessionStorage.setItem(APP_VERSION_RELOAD_GUARD, version); } catch (e) {}
+      window.location.reload();
+      return version;
+    });
   });
 }
 

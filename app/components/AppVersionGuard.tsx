@@ -4,9 +4,9 @@ import { useEffect } from "react";
 
 const APP_VERSION = "dev";
 const VERSION_KEY = "app_version";
-const VERSION_RUN_KEY = "app_version_guard_ran";
+// 무한 reload 방지: sessionStorage에 이미 reload한 버전을 기록
+const RELOAD_GUARD_KEY = "app_version_reload_guard";
 const SW_PURGED_VERSION_KEY = "app_sw_purged_version";
-const SW_CACHE_PREFIXES = ["kkul-mansaeryeok-", "fortune-tama-"];
 
 function pickRuntimeVersion(payload: any): string {
   if (!payload || typeof payload !== "object") return APP_VERSION;
@@ -29,42 +29,43 @@ async function resolveRuntimeVersion(): Promise<string> {
   }
 }
 
-async function purgeStaleServiceWorkers(version: string): Promise<void> {
-  let alreadyPurged = "";
-  try {
-    alreadyPurged = window.localStorage.getItem(SW_PURGED_VERSION_KEY) || "";
-  } catch {
-    alreadyPurged = "";
-  }
-
-  if (alreadyPurged === version) return;
-
+/** 모든 SW 등록 해제 + 모든 Cache Storage 삭제 */
+async function nukeAllCaches(): Promise<void> {
   try {
     if ("serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map((reg) => reg.unregister()));
     }
   } catch {
-    // ignore purge errors
+    // ignore
   }
 
   try {
     if ("caches" in window) {
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((key) => SW_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix)))
-          .map((key) => caches.delete(key)),
-      );
+      await Promise.all(keys.map((key) => caches.delete(key)));
     }
   } catch {
-    // ignore purge errors
+    // ignore
   }
+}
+
+/** 이미 purge한 버전이면 skip */
+async function purgeIfNeeded(version: string): Promise<void> {
+  let alreadyPurged = "";
+  try {
+    alreadyPurged = window.localStorage.getItem(SW_PURGED_VERSION_KEY) || "";
+  } catch {
+    alreadyPurged = "";
+  }
+  if (alreadyPurged === version) return;
+
+  await nukeAllCaches();
 
   try {
     window.localStorage.setItem(SW_PURGED_VERSION_KEY, version);
   } catch {
-    // ignore storage errors
+    // ignore
   }
 }
 
@@ -73,18 +74,12 @@ export default function AppVersionGuard() {
     let cancelled = false;
 
     (async () => {
-      const runtimeVersion = await resolveRuntimeVersion();
+      // version.json을 no-store로 fetch해 서버 최신 버전 확인
+      const serverVersion = await resolveRuntimeVersion();
       if (cancelled) return;
 
-      // 같은 탭에서 반복 실행(중복 마운트 포함) 시 재실행 방지
-      try {
-        const ran = window.sessionStorage.getItem(VERSION_RUN_KEY);
-        if (ran !== runtimeVersion) {
-          window.sessionStorage.setItem(VERSION_RUN_KEY, runtimeVersion);
-        }
-      } catch {
-        // ignore storage errors
-      }
+      // dev 버전 또는 fetch 실패 시 아무 작업도 하지 않음
+      if (!serverVersion || serverVersion === APP_VERSION) return;
 
       let savedVersion = "";
       try {
@@ -93,15 +88,56 @@ export default function AppVersionGuard() {
         savedVersion = "";
       }
 
-      if (savedVersion !== runtimeVersion) {
+      const versionChanged = savedVersion !== serverVersion;
+
+      if (versionChanged) {
+        // ── 무한 reload 방지 guard ──
+        // sessionStorage는 탭 닫힘 시 초기화 → 새 탭/재시작 시 다시 동작
+        let reloadedVersion = "";
         try {
-          window.localStorage.setItem(VERSION_KEY, runtimeVersion);
+          reloadedVersion = window.sessionStorage.getItem(RELOAD_GUARD_KEY) || "";
         } catch {
-          // ignore storage errors
+          reloadedVersion = "";
         }
+
+        if (reloadedVersion === serverVersion) {
+          // 이미 이 버전으로 reload 했음 → 무한 루프 방지, 버전만 저장
+          try {
+            window.localStorage.setItem(VERSION_KEY, serverVersion);
+          } catch {
+            // ignore
+          }
+          await purgeIfNeeded(serverVersion);
+          return;
+        }
+
+        // 1. 모든 SW 해제 + Cache Storage 삭제
+        await nukeAllCaches();
+
+        // 2. localStorage 버전 업데이트
+        try {
+          window.localStorage.setItem(VERSION_KEY, serverVersion);
+          window.localStorage.setItem(SW_PURGED_VERSION_KEY, serverVersion);
+        } catch {
+          // ignore
+        }
+
+        // 3. reload guard 기록 (sessionStorage — 탭당 1회)
+        try {
+          window.sessionStorage.setItem(RELOAD_GUARD_KEY, serverVersion);
+        } catch {
+          // ignore
+        }
+
+        if (cancelled) return;
+
+        // 4. 강제 새로고침 (최신 index.html 강제 fetch)
+        window.location.reload();
+        return;
       }
 
-      await purgeStaleServiceWorkers(runtimeVersion);
+      // 버전이 같아도 SW/캐시가 남아있을 수 있으므로 purge 체크
+      await purgeIfNeeded(serverVersion);
     })();
 
     return () => {
