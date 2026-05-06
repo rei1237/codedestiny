@@ -8,7 +8,7 @@
 
   /* ── 상수 ── */
   var NS = 'FORTUNE_APP_USER_PROFILES';
-  var SIBYL_REPORT_CACHE_VERSION = '20260505-v1';
+  var SIBYL_REPORT_CACHE_VERSION = '20260506-local-v2';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
 
   /* 십성 → 섹터 매핑 */
@@ -375,6 +375,178 @@
     if (riskScore <= 30) return 'nle';
     if (riskScore <= 60) return 'le';
     return 'dd';
+  }
+
+  function _toInt(value, fallback) {
+    var n = Number(value);
+    return Number.isFinite(n) ? Math.round(n) : fallback;
+  }
+
+  function _getYearGanZhi(year) {
+    var GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+    var ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    var g = GAN[(year - 4 + 6000) % 10];
+    var z = ZHI[(year - 4 + 6000) % 12];
+    return { gan: g, zhi: z, label: g + z };
+  }
+
+  function _buildMonthlyRiskPlan(pillars, dominantEl, dominantTenStar, baseRisk, year) {
+    var MONTH_ZHI = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+    var ELEMENT_PRIORITY = {
+      wood: ['목(木) 과열', '화(火) 과열', '토(土) 고갈'],
+      fire: ['화(火) 과열', '토(土) 과다', '수(水) 고갈'],
+      earth: ['토(土) 정체', '금(金) 과다', '목(木) 제어 실패'],
+      metal: ['금(金) 과다', '수(水) 과다', '화(火) 압박'],
+      water: ['수(水) 과다', '목(木) 과성장', '토(土) 제어 부족']
+    };
+    var dayZhi = pillars && pillars.d ? pillars.d.j : '子';
+    var monthZhi = pillars && pillars.m ? pillars.m.j : '子';
+    var dayGan = pillars && pillars.d ? pillars.d.g : '';
+    var cautionPool = ELEMENT_PRIORITY[dominantEl] || ELEMENT_PRIORITY.water;
+    var plan = [];
+    var CHONG = { '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳' };
+    var HE6 = { '子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午' };
+
+    for (var i = 0; i < 12; i += 1) {
+      var z = MONTH_ZHI[i];
+      var risk = _toInt(baseRisk, 35) + ((i % 3) * 4);
+      if (CHONG[z] === dayZhi) risk += 19;
+      if (CHONG[z] === monthZhi) risk += 11;
+      if (HE6[z] === dayZhi) risk -= 10;
+      risk = Math.max(8, Math.min(95, risk));
+
+      var caution = cautionPool[i % cautionPool.length];
+      if (risk >= 70) caution = caution + ' + 대인 충돌';
+      if (dominantTenStar === '비견' || dominantTenStar === '겁재') caution += ' (독단 의사결정 주의)';
+      if (dominantTenStar === '편관' || dominantTenStar === '정관') caution += ' (권위 충돌 주의)';
+
+      var counter = risk >= 70
+        ? '중요 결정은 24시간 보류 후 실행하고, 금전/계약은 제3자 검토를 거치세요.'
+        : risk >= 50
+          ? '주간 우선순위를 3개 이하로 제한하고 관계 갈등은 즉시 문서화해 오해를 차단하세요.'
+          : '강점 실행 구간입니다. 핵심 프로젝트 1개 집중 + 체력 루틴 유지로 상승폭을 고정하세요.';
+
+      plan.push({
+        month: i + 1,
+        year: year,
+        ganZhi: _getYearGanZhi(year).label,
+        monthZhi: z,
+        risk: risk,
+        caution: caution,
+        countermeasure: counter,
+        checkpoints: [
+          '의사결정 로그 주 1회 점검',
+          '지출/수입 밸런스 주 1회 확인',
+          '갈등 신호 발생 시 48시간 내 대화'
+        ]
+      });
+    }
+    return plan;
+  }
+
+  function _buildLocalDominatorReport(payload, analysisData) {
+    var profile = payload && payload.profile ? payload.profile : {};
+    var b = profile.birth || {};
+    var year = _toInt(payload.currentYear, new Date().getFullYear());
+    var dominantTenStar = payload.dominantTenStar || analysisData.dominant || '편재';
+    var dominantEl = payload.dominantEl || analysisData.domEl || 'water';
+    var risk = _toInt(payload.riskScore, analysisData.risk || 35);
+    var coeff = _toInt(payload.aptCoeff, analysisData.coeff || 420);
+    var pillars = payload.pillars || analysisData.pillars || window.G_PILLARS || null;
+    var monthlyPlan = _buildMonthlyRiskPlan(pillars, dominantEl, dominantTenStar, risk, year);
+    var topRiskMonths = monthlyPlan.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
+    var lowRiskMonths = monthlyPlan.slice().sort(function(a, b) { return a.risk - b.risk; }).slice(0, 2);
+
+    var cautionGuide = topRiskMonths.map(function(item) {
+      return item.month + '월: ' + item.caution + ' / 대응: ' + item.countermeasure;
+    }).join('\n');
+
+    var chapters = [
+      {
+        title: '사주 코어 매트릭스',
+        content: [
+          '## 핵심 진단',
+          '- 입력 사주: ' + (b.year || '?') + '.' + (b.month || '?') + '.' + (b.day || '?') + ' ' + (b.hour || '?') + ':' + (b.minute || '?'),
+          '- 지배 오행: ' + (EL_KR[dominantEl] || dominantEl),
+          '- 주도 십성: ' + dominantTenStar,
+          '- 적성 계수: ' + coeff,
+          '- 위험 계수: ' + risk,
+          '',
+          '## 해석 포인트',
+          '원국 오행 분포와 십성 주도 패턴을 기준으로 커리어·재물·관계 리스크를 행동 단위로 환산했습니다. 이 리포트는 외부 API 없이 현재 화면의 사주 엔진 결과를 그대로 사용합니다.'
+        ].join('\n')
+      },
+      {
+        title: '커리어 적합도와 실행 전략',
+        content: [
+          '## 강점 활용',
+          '- 강점은 단기 성과보다 반복 가능한 프로세스에서 크게 증폭됩니다.',
+          '- 주도 십성(' + dominantTenStar + ')은 의사결정 스타일을 고정하므로, 팀 역할을 먼저 명확히 해야 마찰이 줄어듭니다.',
+          '',
+          '## 주의할 점',
+          '- 과속 실행은 정확도 하락으로 연결됩니다.',
+          '- 의견 충돌 구간에서는 말보다 기록이 리스크를 줄입니다.',
+          '',
+          '## 30일 액션',
+          '- 핵심 목표 1개, 성과 지표 2개, 금지 행동 2개를 문서화하세요.',
+          '- 주간 회고에서 실행률 70% 미만 항목을 즉시 구조 수정하세요.'
+        ].join('\n')
+      },
+      {
+        title: '돈의 흐름과 손실 차단',
+        content: [
+          '## 자금 운영 원칙',
+          '- 수입 확장과 지출 통제를 같은 비중으로 관리해야 합니다.',
+          '- 감정 지출이 발생하는 요일/시간대를 추적하면 누수를 빠르게 줄일 수 있습니다.',
+          '',
+          '## 위험 신호',
+          '- 고위험 월에는 계약·투자 결정을 분할 실행하세요.',
+          '- 구두 합의는 반드시 체크리스트 문서로 전환하세요.',
+          '',
+          '## 이번 달 체크',
+          '- 필수지출/변동지출 비율 점검',
+          '- 월 1회 고정비 재협상',
+          '- 비상예산 최소 1개월치 유지'
+        ].join('\n')
+      },
+      {
+        title: '월별 위험 대책 리포트',
+        content: monthlyPlan.map(function(item) {
+          return (item.month < 10 ? '0' + item.month : String(item.month))
+            + '월 | 위험 ' + item.risk
+            + ' | 주의: ' + item.caution
+            + ' | 대책: ' + item.countermeasure;
+        }).join('\n')
+      },
+      {
+        title: '무엇을 주의해야 하는가',
+        content: [
+          '## 최우선 주의사항',
+          cautionGuide,
+          '',
+          '## 상대적으로 안정적인 구간',
+          lowRiskMonths.map(function(item) {
+            return '- ' + item.month + '월: 위험 ' + item.risk + ' (집중 추진 가능 구간)';
+          }).join('\n'),
+          '',
+          '## 운영 원칙',
+          '- 높은 리스크 달: 결정 보류 + 검토 강화',
+          '- 중간 리스크 달: 협업/커뮤니케이션 구조 정비',
+          '- 낮은 리스크 달: 실행량 확대 및 결과 고정'
+        ].join('\n')
+      }
+    ];
+
+    var totalChars = chapters.reduce(function(sum, ch) { return sum + String(ch.content || '').length; }, 0);
+    return {
+      source: 'local-saju-engine',
+      model: 'local',
+      totalChars: totalChars,
+      minTotalChars: 3500,
+      generatedAt: Date.now(),
+      monthlyRiskPlan: monthlyPlan,
+      chapters: chapters
+    };
   }
 
   /* 10년 위험 그래프 데이터 */
@@ -958,13 +1130,13 @@
     return;
   }
 
-  /* ── 도미네이터 리포트 생성 API 호출 ── */
+  /* ── 도미네이터 리포트 생성 (순수 로컬 계산) ── */
   async function _generateDominatorReport() {
     var data = window._sibylCurrentData || {};
     var profile = _getCurrentProfile();
     var pillars = data.pillars || window.G_PILLARS;
 
-    // Build request payload
+    // Build local payload
     var payload = {
       profile: profile,
       pillars: pillars ? {
@@ -1006,57 +1178,12 @@
     var stageTimer = setInterval(_advanceStage, 2000);
 
     try {
-      var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
-      var _maxAttempts = 3;
-      var _timeoutMs = 70000;
-      var _lastErr = '';
-      var reportData = null;
-
-      for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
-        var controller = (typeof AbortController === 'function') ? new AbortController() : null;
-        var timeoutId = setTimeout(function () {
-          if (controller) {
-            try { controller.abort(); } catch (_) {}
-          }
-        }, _timeoutMs);
-
-        try {
-          var response = await fetch('/api/sibyl/report', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify(payload),
-            signal: controller ? controller.signal : undefined
-          });
-
-          clearTimeout(timeoutId);
-
-          if (!response.ok) {
-            var errBody = await response.json().catch(function(){return {};});
-            _lastErr = errBody.message || ('API 응답 실패: ' + response.status);
-          } else {
-            reportData = await response.json();
-            break;
-          }
-        } catch (err) {
-          clearTimeout(timeoutId);
-          if (err && err.name === 'AbortError') {
-            _lastErr = '응답 시간 초과 (70초). 네트워크 상태를 확인해 주세요.';
-          } else {
-            _lastErr = String(err && err.message ? err.message : err);
-          }
-        }
-
-        if (attempt < _maxAttempts) {
-          await new Promise(function (r) { setTimeout(r, 320 * attempt); });
-        }
+      if (!payload.pillars || !payload.pillars.day || !payload.pillars.day.g) {
+        throw new Error('사주 원국 데이터가 비어 있습니다. 먼저 사주 분석을 완료해 주세요.');
       }
 
-      if (!reportData) {
-        throw new Error(_lastErr || '시빌라 리포트 생성 API가 응답하지 않습니다.');
-      }
+      await new Promise(function (r) { setTimeout(r, 240); });
+      var reportData = _buildLocalDominatorReport(payload, data);
 
       _saveSibylCachedReport(profile, reportData, data);
 
@@ -1068,6 +1195,63 @@
       clearInterval(stageTimer);
       throw e;
     }
+  }
+
+  function _renderMonthlyRiskPanel(monthlyPlan) {
+    if (!Array.isArray(monthlyPlan) || !monthlyPlan.length) return '';
+    var cards = monthlyPlan.map(function(item) {
+      var tone = item.risk >= 70 ? 'danger' : item.risk >= 50 ? 'warn' : 'ok';
+      return '<article class="sb-monthly-card sb-monthly-card--' + tone + '">'
+        + '<div class="sb-monthly-card-head">'
+        + '<span class="sb-monthly-month">' + String(item.month).padStart(2, '0') + '월</span>'
+        + '<span class="sb-monthly-risk">위험 ' + item.risk + '</span>'
+        + '</div>'
+        + '<div class="sb-monthly-label">주의</div>'
+        + '<p class="sb-monthly-text">' + item.caution + '</p>'
+        + '<div class="sb-monthly-label">대책</div>'
+        + '<p class="sb-monthly-text">' + item.countermeasure + '</p>'
+        + '</article>';
+    }).join('');
+    return '<section class="sb-monthly-wrap">'
+      + '<div class="sb-monthly-title">MONTHLY RISK TACTICS · 월별 운세/위험 대책</div>'
+      + '<div class="sb-monthly-grid">' + cards + '</div>'
+      + '</section>';
+  }
+
+  function _renderChapterBodyRich(text) {
+    var src = String(text || '').replace(/\r/g, '');
+    var lines = src.split('\n');
+    var html = [];
+    var listBuf = [];
+
+    function flushList() {
+      if (!listBuf.length) return;
+      html.push('<ul class="sb-chapter-list">' + listBuf.map(function(item) {
+        return '<li>' + item + '</li>';
+      }).join('') + '</ul>');
+      listBuf = [];
+    }
+
+    lines.forEach(function(raw) {
+      var line = String(raw || '').trim();
+      if (!line) {
+        flushList();
+        return;
+      }
+      if (line.indexOf('## ') === 0) {
+        flushList();
+        html.push('<h4 class="sb-chapter-subtitle">' + line.slice(3) + '</h4>');
+        return;
+      }
+      if (line.indexOf('- ') === 0) {
+        listBuf.push(line.slice(2));
+        return;
+      }
+      flushList();
+      html.push('<p>' + line + '</p>');
+    });
+    flushList();
+    return html.join('');
   }
 
   /* ── 도미네이터 리포트 렌더링 ── */
@@ -1127,6 +1311,12 @@
     var chaptersEl = _q('sbReportChapters');
     if (chaptersEl && reportData && reportData.chapters) {
       chaptersEl.innerHTML = '';
+      if (Array.isArray(reportData.monthlyRiskPlan) && reportData.monthlyRiskPlan.length) {
+        var monthlyWrap = document.createElement('div');
+        monthlyWrap.className = 'sb-report-monthly';
+        monthlyWrap.innerHTML = _renderMonthlyRiskPanel(reportData.monthlyRiskPlan);
+        chaptersEl.appendChild(monthlyWrap);
+      }
       reportData.chapters.forEach(function(ch, i) {
         var div = document.createElement('div');
         div.className = 'sb-report-chapter';
@@ -1134,10 +1324,10 @@
           + '<span class="sb-chapter-num">CH.' + String(i+1).padStart(2,'0') + '</span>'
           + '<span class="sb-chapter-title">' + (ch.title || '') + '</span>'
           + '</div>'
-          + '<div class="sb-chapter-body sb-typewriter" id="sbChapBody_'+i+'"></div>';
+          + '<div class="sb-chapter-body" id="sbChapBody_'+i+'"></div>';
         chaptersEl.appendChild(div);
-        // Typewriter effect per chapter
-        _typewriterEffect('sbChapBody_'+i, ch.content || '', i * 80);
+        var target = _q('sbChapBody_'+i);
+        if (target) target.innerHTML = _renderChapterBodyRich(ch.content || '');
       });
     } else if (chaptersEl && reportData && reportData.text) {
       // Fallback: single text block

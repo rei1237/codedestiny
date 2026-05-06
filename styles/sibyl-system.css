@@ -1171,6 +1171,28 @@
   padding: 0 4px;
 }
 
+.sb-chapter-subtitle {
+  margin: 12px 0 8px;
+  font-size: 0.73rem;
+  letter-spacing: 0.08em;
+  color: var(--sb-cyan);
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+}
+
+.sb-chapter-list {
+  margin: 0 0 10px;
+  padding-left: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.sb-chapter-list li {
+  font-size: 0.76rem;
+  line-height: 1.72;
+  color: rgba(220, 236, 255, 0.9);
+}
+
 .sb-chapter-body p {
   margin-bottom: 10px;
 }
@@ -1187,6 +1209,89 @@
 .sb-chapter-body em {
   color: var(--sb-cyan);
   font-style: normal;
+}
+
+.sb-monthly-wrap {
+  margin: 0 0 18px;
+  border: 1px solid rgba(0, 200, 255, 0.22);
+  border-radius: 10px;
+  background: linear-gradient(170deg, rgba(2, 18, 34, 0.82), rgba(3, 8, 22, 0.94));
+  padding: 14px;
+}
+
+.sb-monthly-title {
+  font-family: 'Courier New', monospace;
+  font-size: 0.62rem;
+  color: var(--sb-cyan);
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.sb-monthly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.sb-monthly-card {
+  border-radius: 8px;
+  border: 1px solid rgba(120, 190, 255, 0.2);
+  background: rgba(0, 16, 38, 0.78);
+  padding: 10px;
+}
+
+.sb-monthly-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sb-monthly-month {
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.sb-monthly-risk {
+  font-family: 'Courier New', monospace;
+  font-size: 0.64rem;
+  color: rgba(210, 230, 255, 0.85);
+}
+
+.sb-monthly-label {
+  font-size: 0.61rem;
+  color: rgba(130, 208, 255, 0.92);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.sb-monthly-text {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  line-height: 1.62;
+  color: rgba(225, 240, 255, 0.92);
+}
+
+.sb-monthly-text:last-child {
+  margin-bottom: 0;
+}
+
+.sb-monthly-card--danger {
+  border-color: rgba(255, 66, 97, 0.45);
+  background: linear-gradient(170deg, rgba(42, 10, 18, 0.9), rgba(20, 8, 16, 0.95));
+}
+
+.sb-monthly-card--warn {
+  border-color: rgba(255, 178, 56, 0.42);
+  background: linear-gradient(170deg, rgba(45, 26, 8, 0.9), rgba(22, 14, 6, 0.95));
+}
+
+.sb-monthly-card--ok {
+  border-color: rgba(70, 206, 255, 0.35);
 }
 
 /* ── Typewriter effect ── */
