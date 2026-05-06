@@ -5,6 +5,12 @@ const { requireAuth } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
+function toIsoOrNull(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
 router.get("/status", requireAuth, async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
@@ -18,10 +24,7 @@ router.get("/status", requireAuth, async (req, res, next) => {
 
     const sub = user?.profileSubscription || {};
     const tier = String(sub.tier || "free").trim() || "free";
-    const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
-    const validExpiresAt = expiresAt && Number.isFinite(expiresAt.getTime())
-      ? expiresAt.toISOString()
-      : null;
+    const validExpiresAt = toIsoOrNull(sub.expiresAt);
 
     return res.status(200).json({
       ok: true,
@@ -32,7 +35,7 @@ router.get("/status", requireAuth, async (req, res, next) => {
       expiresAt: validExpiresAt,
       profileLimit: Number(sub.profileLimit || 1),
       cancelAtPeriodEnd: !!sub.cancelAtPeriodEnd,
-      cancelRequestedAt: sub.cancelRequestedAt ? new Date(sub.cancelRequestedAt).toISOString() : null,
+      cancelRequestedAt: toIsoOrNull(sub.cancelRequestedAt),
     });
   } catch (error) {
     return next(error);

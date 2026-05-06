@@ -51,6 +51,11 @@ function toValidDate(value) {
   return Number.isFinite(date.getTime()) ? date : null;
 }
 
+function toIsoOrNull(value) {
+  const date = toValidDate(value);
+  return date ? date.toISOString() : null;
+}
+
 function hasActiveSubscriptionConflict(sub) {
   const tier = String(sub?.tier || "free").toLowerCase();
   const expAt = toValidDate(sub?.expiresAt);
@@ -968,10 +973,10 @@ async function handleSubscriptionConfirm(request, env, auth) {
         tier: sub?.tier || "free",
         source: sub?.source || "coin",
         isActive: hasActiveSubscriptionConflict(sub),
-        expiresAt: sub?.expiresAt ? new Date(sub.expiresAt).toISOString() : null,
+        expiresAt: toIsoOrNull(sub?.expiresAt),
         profileLimit: plan.profileLimit,
         cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
-        cancelRequestedAt: sub?.cancelRequestedAt ? new Date(sub.cancelRequestedAt).toISOString() : null,
+        cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
       },
     });
   }
@@ -1451,7 +1456,7 @@ function buildSubscriptionSummary(profileSubscription) {
     isActive,
     expiresAt: validExpiresAt,
     cancelAtPeriodEnd: Boolean(sub.cancelAtPeriodEnd),
-    cancelRequestedAt: sub.cancelRequestedAt ? new Date(sub.cancelRequestedAt).toISOString() : null,
+    cancelRequestedAt: toIsoOrNull(sub.cancelRequestedAt),
   }];
 }
 
