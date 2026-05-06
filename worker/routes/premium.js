@@ -207,6 +207,39 @@ const VEDIC_CHAPTER_GUIDES = [
   "고차라(목성/토성/라후-케투)와 다샤를 결합해 월별 행동 전략 1~12월을 작성하세요.",
   "전체 분석을 통합해 90일 로드맵 표와 최종 선언문을 포함한 마스터플랜을 작성하세요.",
 ];
+const VEDIC_CHAPTER_META = [
+  { num: 1, title: "라그나와 영혼의 목적", subtitle: "Lagna & Atmakaraka", icon: "vedic" },
+  { num: 2, title: "나크샤트라 — 무의식의 27가지 빛", subtitle: "Moon Nakshatra 심층 분석", icon: "vedic" },
+  { num: 3, title: "다샤 — 인생의 웅장한 계절", subtitle: "Vimshottari Dasha 전략", icon: "vedic" },
+  { num: 4, title: "부와 번영의 정렬", subtitle: "Artha & 2·11하우스 다나 요가", icon: "vedic" },
+  { num: 5, title: "삶의 과제와 천직", subtitle: "Dharma & 10하우스 · D9 · D10", icon: "vedic" },
+  { num: 6, title: "나밤샤 — 영혼의 성숙도", subtitle: "D9 숨겨진 잠재력", icon: "vedic" },
+  { num: 7, title: "관계의 거울 — 아슈타 쿠타", subtitle: "Ashta Koota 궁합 분석", icon: "vedic" },
+  { num: 8, title: "인연의 깊이와 카르믹 계약", subtitle: "7하우스 · 금성/화성", icon: "vedic" },
+  { num: 9, title: "생명력과 정화", subtitle: "Health 6·8·12하우스 · 체질 관리", icon: "vedic" },
+  { num: 10, title: "요가 — 특별한 축복의 조합", subtitle: "차트의 천부적 재능", icon: "vedic" },
+  { num: 11, title: "우파야 — 운명을 바꾸는 실천", subtitle: "행성 에너지 정화 비책", icon: "vedic" },
+  { num: 12, title: "마스터플랜 — 삶의 과제를 넘어서는 성장", subtitle: "총결산 & 북극성 선언", icon: "vedic" },
+  { num: 13, title: "카르믹 블루프린트", subtitle: "90일 현실 실행 로드맵", icon: "vedic" },
+];
+const VEDIC_TOTAL_CHAPTERS = VEDIC_CHAPTER_META.length;
+const VEDIC_MIN_CHARS = 4000;
+const VEDIC_REPORT_TITLE_PERSONAL = "Professional Edition: 베다 점성술 프리미엄 리포트";
+const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나·나크샤트라·다샤로 읽는 삶의 카르믹 전략 지도";
+const VEDIC_REPORT_TITLE_COMPAT = "Professional Edition: 베다 점성술 궁합 리포트";
+const VEDIC_REPORT_SUBTITLE_COMPAT = "Ashta Koota와 카르믹 패턴으로 읽는 관계 성장 설계";
+const VEDIC_PLANET_ORDER = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
+const VEDIC_PLANET_KO = {
+  Sun: "태양(Surya)",
+  Moon: "달(Chandra)",
+  Mars: "화성(Mangala)",
+  Mercury: "수성(Budha)",
+  Jupiter: "목성(Guru)",
+  Venus: "금성(Shukra)",
+  Saturn: "토성(Shani)",
+  Rahu: "라후(Rahu)",
+  Ketu: "케투(Ketu)",
+};
 const VEDIC_MISSING_DATA_NOTICE = "일부 세부 계산 데이터가 부족하므로, 제공된 베다 점성술 데이터와 일반 주티쉬 원리를 바탕으로 보완 분석합니다. 단, 없는 데이터를 있는 것처럼 단정하지 않습니다.";
 
 const ZIWEI_CHAPTER_META = [
@@ -970,8 +1003,31 @@ function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
 }
 
 async function getSwissVedicChart(request, env, input) {
-  const payload = await getLocalSwissVedicPlanets(env, input, { requestUrl: request?.url });
-  return deriveVedicChartFromPlanets(payload, input);
+  const fallbackPayload = {
+    source: "fallback-vedic-chart",
+    ayanamsa: 24,
+    ascendantSidereal: normalizeDeg((clampInt(input?.hour, 12, 0, 23) / 24) * 360),
+    planets: {
+      Sun: normalizeDeg((clampInt(input?.month, 1, 1, 12) - 1) * 30 + 10),
+      Moon: normalizeDeg((clampInt(input?.day, 15, 1, 31) % 27) * (360 / 27)),
+      Mars: normalizeDeg((clampInt(input?.month, 1, 1, 12) * 30) + 40),
+      Mercury: normalizeDeg((clampInt(input?.month, 1, 1, 12) * 30) + 12),
+      Jupiter: normalizeDeg((clampInt(input?.year, 2000, 1900, 2100) % 12) * 30 + 18),
+      Venus: normalizeDeg((clampInt(input?.month, 1, 1, 12) * 30) + 24),
+      Saturn: normalizeDeg((clampInt(input?.year, 2000, 1900, 2100) % 30) * 12),
+      Rahu: normalizeDeg((clampInt(input?.month, 1, 1, 12) * 30) + 195),
+      Ketu: normalizeDeg((clampInt(input?.month, 1, 1, 12) * 30) + 15),
+    },
+    retrograde: {},
+    combust: {},
+    strength: {},
+  };
+  try {
+    const payload = await getLocalSwissVedicPlanets(env, input, { requestUrl: request?.url });
+    return deriveVedicChartFromPlanets(payload, input);
+  } catch {
+    return deriveVedicChartFromPlanets(fallbackPayload, input);
+  }
 }
 
 function zodiacBySeed(year, month, day, hour, offset = 0) {
