@@ -128,6 +128,12 @@ function withCorsHeaders(request, env, response) {
   return response;
 }
 
+function rewriteRequestPath(request, nextPathname) {
+  const rewrittenUrl = new URL(request.url);
+  rewrittenUrl.pathname = nextPathname;
+  return new Request(rewrittenUrl.toString(), request);
+}
+
 function getUpstreamOrigin(env) {
   return normalizeOrigin(env.API_UPSTREAM_ORIGIN);
 }
@@ -357,8 +363,18 @@ export default {
       return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
     }
 
+    if (url.pathname === "/api/points/me") {
+      const rewrittenRequest = rewriteRequestPath(request, "/api/payments/points/me");
+      return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+    }
+
     if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
       return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/subscription/status") {
+      const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
+      return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
     }
 
     if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {

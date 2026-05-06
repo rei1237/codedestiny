@@ -135,7 +135,13 @@ type SubscriptionPlan = {
 };
 
 type MeResponse = {
+  ok?: boolean;
+  success?: boolean;
   message?: string;
+  data?: {
+    balance?: number;
+    payments?: PaymentHistoryItem[];
+  };
   user?: {
     id: string;
     name: string;
@@ -379,6 +385,24 @@ function mapPaymentErrorMessage(rawMessage: string) {
   if (text.includes("점검") || text.includes("maintenance") || text.includes("unavailable"))
     return "카드사/PG 점검 시간으로 결제가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
   return "결제를 완료하지 못했습니다. 네트워크 상태와 결제 정보를 확인 후 다시 시도해 주세요.";
+}
+
+function normalizeMePayload(payload: MeResponse) {
+  const node = payload?.data && typeof payload.data === "object" ? payload.data : {};
+  const user = payload?.user;
+  const balance = Number(
+    (typeof node.balance === "number" ? node.balance : undefined)
+    ?? (typeof user?.points === "number" ? user.points : 0),
+  );
+  const payments = Array.isArray(node.payments)
+    ? node.payments
+    : (Array.isArray(payload?.payments) ? payload.payments : []);
+
+  return {
+    user,
+    balance: Number.isFinite(balance) ? balance : 0,
+    payments,
+  };
 }
 
 /**
@@ -1227,8 +1251,12 @@ export default function PointsPage() {
   const fetchMyPointState = useCallback(
     async (authToken: string) => {
       const response = await fetch(`${apiBase}/api/payments/me`, {
+        credentials: "include",
         headers: { Authorization: `Bearer ${authToken}` },
       });
+      if (!response.ok && response.status !== 401 && response.status !== 403) {
+        console.warn("[points-page] API error", { path: "/api/payments/me", status: response.status });
+      }
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("fortune_auth_token");
@@ -1244,12 +1272,13 @@ export default function PointsPage() {
         throw new Error(payload.message || "포인트 정보를 불러오지 못했습니다.");
       }
 
-      const nextUser = payload.user;
-      const points = Number(nextUser?.points || 0);
+      const normalized = normalizeMePayload(payload);
+      const nextUser = normalized.user;
+      const points = normalized.balance;
       persistUserPoints(points);
 
-      const normalizedPayments = Array.isArray(payload.payments)
-        ? payload.payments
+      const normalizedPayments = Array.isArray(normalized.payments)
+        ? normalized.payments
             .filter((entry) => entry && typeof entry === "object")
             .slice(0, 10)
         : [];
@@ -1316,9 +1345,16 @@ export default function PointsPage() {
       "x-admin-token": flowerAdminToken,
       ...(adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
     } : {};
-    fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/status`, {
+    fetch(`${apiBase}/api/subscription/status`, {
+      credentials: "include",
       headers: { Authorization: `Bearer ${token}`, ...adminHeaders },
     })
+      .then((r) => {
+        if (!r.ok && r.status !== 401 && r.status !== 403) {
+          console.warn("[points-page] API error", { path: "/api/subscription/status", status: r.status });
+        }
+        return r;
+      })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         if (!d) return;
@@ -2230,6 +2266,7 @@ export default function PointsPage() {
                 </Link>
                 <Link
                   href="/"
+                  prefetch={false}
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:shadow-[0_4px_14px_rgba(180,130,30,0.22)] hover:-translate-y-0.5 active:scale-[0.97]"
                 >
                   ← 서비스 화면으로

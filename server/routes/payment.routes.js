@@ -1580,13 +1580,8 @@ router.get("/me", requireAuth, async (req, res, next) => {
     }
 
     const user = await User.findById(userId)
-      .select("name email points unlockedFeatures")
+      .select("name email points unlockedFeatures profileSubscription")
       .lean();
-
-    if (!user) {
-      console.warn("[PAYMENT] User not found for ID:", userId);
-      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
-    }
 
     const [recentPayments, pointHistories] = await Promise.all([
       Payment.find({ userId: req.auth.userId })
@@ -1598,33 +1593,114 @@ router.get("/me", requireAuth, async (req, res, next) => {
         .limit(20)
         .lean(),
     ]);
-    const unlockedFeatures = Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [];
+    const unlockedFeatures = Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : [];
     const unlockMap = Object.create(null);
     for (let i = 0; i < unlockedFeatures.length; i += 1) {
       const key = String(unlockedFeatures[i] || "").trim();
       if (key) unlockMap[key] = true;
     }
 
+    const mappedPayments = recentPayments.map((payment) => formatPaymentResponse(payment));
+    const mappedPointHistories = pointHistories.map((entry) => ({
+      id: String(entry._id),
+      kind: entry.kind,
+      delta: Number(entry.delta || 0),
+      balanceAfter: Number(entry.balanceAfter || 0),
+      reason: entry.reason,
+      featureKey: entry.featureKey,
+      createdAt: entry.createdAt,
+    }));
+
+    const sub = user?.profileSubscription || {};
+    const tier = String(sub.tier || "free");
+    const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
+    const validExpiresAt = expiresAt && Number.isFinite(expiresAt.getTime())
+      ? expiresAt.toISOString()
+      : null;
+    const subscriptions = tier !== "free" && validExpiresAt
+      ? [{
+          tier,
+          source: String(sub.source || "coin"),
+          isActive: new Date(validExpiresAt).getTime() > Date.now(),
+          expiresAt: validExpiresAt,
+        }]
+      : [];
+
+    const balance = Number(user?.points || 0);
+
     return res.status(200).json({
+      success: true,
+      ok: true,
+      data: {
+        balance,
+        transactions: mappedPointHistories,
+        payments: mappedPayments,
+        subscriptions,
+      },
       user: {
         id: String(req.auth.userId),
-        name: user.name,
-        email: user.email,
-        points: Number(user.points || 0),
+        name: user?.name || "",
+        email: user?.email || "",
+        points: balance,
         unlockedFeatures,
       },
       unlockedFeatures,
       unlockMap,
-      payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
-      pointHistories: pointHistories.map((entry) => ({
-        id: String(entry._id),
-        kind: entry.kind,
-        delta: Number(entry.delta || 0),
-        balanceAfter: Number(entry.balanceAfter || 0),
-        reason: entry.reason,
-        featureKey: entry.featureKey,
-        createdAt: entry.createdAt,
-      })),
+      payments: mappedPayments,
+      pointHistories: mappedPointHistories,
+      subscriptions,
+      ...(user ? {} : {
+        message: "사용자 프로필이 없어 기본값으로 응답했습니다.",
+        userFound: false,
+      }),
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/points/me", requireAuth, async (req, res, next) => {
+  try {
+    const userId = req.auth?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "인증 정보가 없습니다." });
+    }
+
+    const user = await User.findById(userId)
+      .select("name email points")
+      .lean();
+
+    const pointHistories = await PointHistory.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const mappedPointHistories = pointHistories.map((entry) => ({
+      id: String(entry._id),
+      kind: entry.kind,
+      delta: Number(entry.delta || 0),
+      balanceAfter: Number(entry.balanceAfter || 0),
+      reason: entry.reason,
+      featureKey: entry.featureKey,
+      createdAt: entry.createdAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      ok: true,
+      data: {
+        balance: Number(user?.points || 0),
+        transactions: mappedPointHistories,
+        payments: [],
+        subscriptions: [],
+      },
+      user: {
+        id: String(userId),
+        name: user?.name || "",
+        email: user?.email || "",
+        points: Number(user?.points || 0),
+      },
+      pointHistories: mappedPointHistories,
     });
   } catch (error) {
     return next(error);

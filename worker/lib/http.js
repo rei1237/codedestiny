@@ -89,22 +89,87 @@ export function getRequestMeta(request) {
   };
 }
 
-export async function handleRouteError(error) {
+function resolveRequestPathFromContext(context = {}) {
+  const fromTrace = String(context?.trace?.requestPath || "").trim();
+  if (fromTrace) return fromTrace;
+
+  const rawUrl = context?.request?.url;
+  if (!rawUrl) return "";
+
+  try {
+    return new URL(rawUrl).pathname;
+  } catch {
+    return "";
+  }
+}
+
+function isDevelopmentLike(env = {}) {
+  const nodeEnv = String(env.NODE_ENV || env.ENV || "").trim().toLowerCase();
+  return nodeEnv === "development" || nodeEnv === "dev" || nodeEnv === "local";
+}
+
+export async function handleRouteError(error, context = {}) {
   if (error instanceof HttpError) {
     return json({
+      ok: false,
+      success: false,
       message: error.message,
       ...error.payload,
     }, { status: error.status });
   }
 
   if (error?.name === "TokenExpiredError") {
-    return json({ message: "Authentication has expired. Please sign in again.", code: "UNAUTHORIZED" }, { status: 401 });
+    return json({ ok: false, success: false, message: "Authentication has expired. Please sign in again.", code: "UNAUTHORIZED" }, { status: 401 });
   }
 
   if (error?.name === "JsonWebTokenError") {
-    return json({ message: "Invalid authentication token.", code: "UNAUTHORIZED" }, { status: 401 });
+    return json({ ok: false, success: false, message: "Invalid authentication token.", code: "UNAUTHORIZED" }, { status: 401 });
   }
 
-  console.error(error);
-  return json({ message: "Internal server error." }, { status: 500 });
+  const trace = context?.trace || {};
+  const requestPath = resolveRequestPathFromContext(context);
+  const requestMeta = context?.request ? getRequestMeta(context.request) : null;
+  const exposeMessage = context?.exposeMessage === true || isDevelopmentLike(context?.env || {});
+  const errorText = String(error?.message || "");
+  const mongoQueryFailed = Boolean(trace.mongoQueryFailed)
+    || /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(errorText);
+  const paymentProviderFailed = Boolean(trace.paymentProviderFailed)
+    || /portone|iamport|payment provider|merchant_uid|imp_uid/i.test(errorText);
+
+  const logPayload = {
+    level: "error",
+    route: trace.route || "unknown",
+    requestPath,
+    method: trace.method || context?.request?.method || "",
+    authPresent: Boolean(trace.authPresent),
+    authVerified: Boolean(trace.authVerified),
+    dbConnected: Boolean(trace.dbConnected),
+    env: trace.env || null,
+    mongoQueryFailed,
+    paymentProviderFailed,
+    requestMeta,
+    name: error?.name || "Error",
+    code: error?.code || "INTERNAL_SERVER_ERROR",
+    message: errorText || "Unknown error",
+    stack: error?.stack || null,
+  };
+
+  try {
+    console.error("[worker-route-error]", JSON.stringify(logPayload));
+  } catch {
+    console.error("[worker-route-error]", logPayload);
+  }
+
+  return json({
+    ok: false,
+    success: false,
+    code: "INTERNAL_SERVER_ERROR",
+    message: exposeMessage && errorText ? errorText : "Internal server error.",
+    requestPath: exposeMessage ? requestPath : undefined,
+  }, {
+    status: 500,
+    headers: {
+      "X-Error-Code": "INTERNAL_SERVER_ERROR",
+    },
+  });
 }

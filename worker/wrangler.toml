@@ -27,7 +27,9 @@ PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*
+# - /api/points/me (alias)
 # - /api/fortune/*
+# - /api/subscription/status (alias)
 #
 # Required secrets include JWT_SECRET, MONGO_URI, OAuth provider credentials,
 # and PortOne credentials. API_UPSTREAM_ORIGIN is now optional and only used as

@@ -2447,46 +2447,127 @@ function normalizeZiweiField(value, fallback = "정보 없음") {
   return text || fallback;
 }
 
-function buildZiweiDataContext(body, input, summary, structured) {
-  const lunarType = normalizeZiweiField(body?.calendarType || body?.calendar || body?.isLunar || body?.solarLunar || "정보 없음");
-  const leapMonth = normalizeZiweiField(body?.isLeapMonth || body?.leapMonth || "정보 없음");
-  const baseLines = [
-    `- 사용자 생년월일: ${input.year}-${input.month}-${input.day}`,
-    `- 출생 시간: ${input.hour}:${String(input.minute).padStart(2, "0")}`,
-    `- 성별: ${normalizeZiweiField(body?.gender || input.gender || "정보 없음")}`,
-    `- 음력/양력: ${lunarType}`,
-    `- 윤달 여부: ${leapMonth}`,
-    `- 명궁: ${normalizeZiweiField(body?.mingong || body?.mingung || "정보 없음")}`,
-    `- 신궁: ${normalizeZiweiField(body?.shingong || body?.shingung || "정보 없음")}`,
-    `- 12궁 배치: ${normalizeZiweiField(body?.palaces || body?.palaceLayout || "정보 없음")}`,
-    `- 각 궁의 주성: ${normalizeZiweiField(body?.mainStars || body?.palaceMainStars || "정보 없음")}`,
-    `- 보조성: ${normalizeZiweiField(body?.auxStars || body?.palaceAuxStars || "정보 없음")}`,
-    `- 살성: ${normalizeZiweiField(body?.badStars || body?.palaceBadStars || "정보 없음")}`,
-    `- 사화: ${normalizeZiweiField(body?.sihua || body?.sihuaSummary || "정보 없음")}`,
-    `- 대한: ${normalizeZiweiField(body?.daehan || body?.majorCycle || "정보 없음")}`,
-    `- 유년: ${normalizeZiweiField(body?.yunyeon || body?.yearFlow || "정보 없음")}`,
-    `- 유월: ${normalizeZiweiField(body?.yuwol || body?.monthFlow || "정보 없음")}`,
-    `- 기타 계산된 자미두수 데이터: ${normalizeZiweiField(summary || body?.ziweiData || "정보 없음")}`,
+function ziweiStrengthFromStar(star) {
+  const rawStrength = String(star?.strength || "").trim();
+  if (rawStrength) return rawStrength;
+  const symbol = String(star?.symbol || "").trim();
+  if (symbol === "◎") return "묘";
+  if (symbol === "△") return "왕";
+  if (symbol === "○") return "평";
+  if (symbol === "▲") return "리";
+  if (symbol === "X") return "함";
+  return "평";
+}
+
+function formatZiweiStarList(stars) {
+  if (!Array.isArray(stars) || stars.length === 0) return "없음";
+  const rows = stars
+    .map((s) => {
+      const name = normalizeZiweiField(s?.name || s, "");
+      if (!name) return "";
+      const strength = ziweiStrengthFromStar(s);
+      const borrowed = s?.borrowed ? "(차성)" : "";
+      return `${name}${borrowed}(${strength})`;
+    })
+    .filter(Boolean);
+  return rows.length ? rows.join(", ") : "없음";
+}
+
+function buildZiweiDataContext(body, input, summary, structuredPayload) {
+  const structured = Array.isArray(structuredPayload)
+    ? structuredPayload
+    : Array.isArray(structuredPayload?.palaceStarData)
+      ? structuredPayload.palaceStarData
+      : [];
+
+  const profileLines = [
+    `- 생년월일시: ${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")}`,
+    `- 성별: ${normalizeZiweiField(body?.gender || input.gender || "") || "미상"}`,
   ];
+
+  const lunarType = normalizeZiweiField(body?.calendarType || body?.calendar || body?.isLunar || body?.solarLunar || "");
+  if (lunarType) profileLines.push(`- 역법: ${lunarType}`);
+
+  const leapMonth = normalizeZiweiField(body?.isLeapMonth || body?.leapMonth || structuredPayload?.isLeap || "");
+  if (leapMonth) profileLines.push(`- 윤달: ${leapMonth}`);
+
+  const mingGong = normalizeZiweiField(
+    structuredPayload?.meng
+    || structuredPayload?.mingGong
+    || body?.mingong
+    || body?.mingung
+    || ""
+  );
+  const shenGong = normalizeZiweiField(
+    structuredPayload?.shen
+    || structuredPayload?.shenGong
+    || body?.shingong
+    || body?.shingung
+    || ""
+  );
+  if (mingGong) profileLines.push(`- 명궁 지지: ${mingGong}`);
+  if (shenGong) profileLines.push(`- 신궁 지지: ${shenGong}`);
+
+  const juInfo = normalizeZiweiField(structuredPayload?.juInfo || body?.juInfo || "");
+  if (juInfo) profileLines.push(`- 오행국: ${juInfo}`);
+
+  const yearGan = normalizeZiweiField(structuredPayload?.yearGan || body?.yearGan || "");
+  const yearZhi = normalizeZiweiField(structuredPayload?.yearZhi || body?.yearZhi || "");
+  if (yearGan || yearZhi) profileLines.push(`- 연간지: ${yearGan}${yearZhi}`);
+
+  const sihuaData = structuredPayload?.sihuaData;
+  if (sihuaData && typeof sihuaData === "object") {
+    const sihuaRows = Object.entries(sihuaData)
+      .map(([star, meta]) => {
+        const type = normalizeZiweiField(meta?.type || "", "");
+        const palaceName = normalizeZiweiField(meta?.palaceName || "", "");
+        return type ? `${star}:${type}${palaceName ? `@${palaceName}` : ""}` : "";
+      })
+      .filter(Boolean);
+    if (sihuaRows.length) profileLines.push(`- 사화: ${sihuaRows.join(" / ")}`);
+  }
 
   if (Array.isArray(structured) && structured.length) {
     const palaceLines = structured.slice(0, 12).map((p) => {
       const palace = normalizeZiweiField(p?.palace || p?.name || "미상궁");
-      const main = Array.isArray(p?.stars) ? p.stars.map((s) => normalizeZiweiField(s?.name || s)).filter(Boolean).join(", ") : "";
-      const aux = Array.isArray(p?.auxStars) ? p.auxStars.map((s) => normalizeZiweiField(s?.name || s)).filter(Boolean).join(", ") : "";
-      const bad = Array.isArray(p?.badStars) ? p.badStars.map((s) => normalizeZiweiField(s?.name || s)).filter(Boolean).join(", ") : "";
-      return `- ${palace}: 주성[${main || "정보 없음"}] 보조성[${aux || "정보 없음"}] 살성[${bad || "정보 없음"}]`;
+      const branch = normalizeZiweiField(p?.branch || "", "");
+      const main = formatZiweiStarList(p?.stars);
+      const aux = formatZiweiStarList(p?.auxStars);
+      const bad = formatZiweiStarList(p?.badStars);
+      const dahan = normalizeZiweiField(p?.dahan || "", "");
+      return `- ${palace}${branch ? `(${branch})` : ""}: 주성[${main}] 보조성[${aux}] 살성[${bad}]${dahan ? ` 대한[${dahan}]` : ""}`;
     });
+
+    const detailLines = structured.slice(0, 12).map((p) => {
+      const palace = normalizeZiweiField(p?.palace || p?.name || "미상궁");
+      const main = formatZiweiStarList(p?.stars);
+      const aux = formatZiweiStarList(p?.auxStars);
+      const bad = formatZiweiStarList(p?.badStars);
+      return `- ${palace}: 주성강약(${main}) / 보조강약(${aux}) / 살성강약(${bad})`;
+    });
+
     return {
-      dataText: baseLines.concat("", "[구조화된 12궁 요약]", ...palaceLines).join("\n"),
+      hasStructured: true,
+      dataText: profileLines
+        .concat("", "[12궁 원자료]", ...palaceLines, "", "[궁별 성강(묘왕리함) 원자료]", ...detailLines)
+        .join("\n"),
       missingNotice: "",
     };
   }
 
+  const fallbackLine = normalizeZiweiField(summary || body?.ziweiData || "", "");
+  if (fallbackLine) profileLines.push(`- 계산 요약: ${fallbackLine}`);
+
   return {
-    dataText: baseLines.join("\n"),
-    missingNotice: "명반 데이터가 부족해 일반론으로 보완한다",
+    hasStructured: false,
+    dataText: profileLines.join("\n"),
+    missingNotice: "명반 구조 데이터 부족",
   };
+}
+
+function hasZiweiBannedSummaryExpression(text) {
+  const source = String(text || "");
+  return /데이터\s*단서\s*요약|\[구조화된\s*12궁\s*요약\]|해석의 목적은 예언이 아니라 실행 가능한 선택 기준을 만드는 것입니다\./.test(source);
 }
 
 function ziweiMissingMarkers(text, chapter) {
@@ -2536,7 +2617,7 @@ function looksTruncatedMarkdown(text) {
   return !hasTerminalMark && abruptlyCut;
 }
 
-function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice) {
+function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, hasStructured) {
   const chapterGuide = ZIWEI_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 궁위·삼방사정·대운·세운 흐름을 함께 해석하세요.";
   const chapterMinChars = chapter === 11 || chapter === 13 ? 5600 : 5200;
   const chapterHeading = `## 챕터 ${chapter}. ${meta.title}`;
@@ -2559,6 +2640,9 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice) 
     "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
     "별 하나만 단편 해석하지 말고 궁위·삼방사정·대운·세운·사화를 종합하라.",
+    "입력 원자료의 궁별 별 목록과 강약(묘/왕/평/리/함)을 해석 근거로 직접 반영하라.",
+    "절대로 '데이터 단서 요약', '[구조화된 12궁 요약]' 같은 메타 요약 문구를 출력하지 마라.",
+    "절대로 '정보 없음' 나열 문장을 만들지 마라. 누락 정보는 자연스럽게 생략하고, 확보된 명반 데이터만으로 정밀 해석하라.",
     "",
     `[현재 생성 대상] ${chapterHeading}`,
     `[부제] ${meta.subtitle}`,
@@ -2597,7 +2681,9 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice) 
     dataText,
     missingNotice ? `- 데이터 주의: ${missingNotice}` : "",
     "",
-    "데이터가 일부 부족하면 문장 중에 반드시 '명반 데이터가 부족해 일반론으로 보완한다'를 포함하고, 가능한 범위 내 최선 해석을 제공하라.",
+    hasStructured
+      ? "입력 데이터는 12궁 원자료와 별 강약 정보가 포함되어 있으므로, 궁별 근거 문장(별명+강약+궁의 기능)을 반드시 써라."
+      : "구조 데이터가 제한적이므로 과도한 단정 없이 보수적으로 해석하되, 일반론 반복 대신 실행 가능한 선택 기준을 충분히 제시하라.",
   ].filter(Boolean).join("\n");
 }
 
@@ -2643,7 +2729,7 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     summaryList,
     "### 명반 근거 해석",
     `${missingNotice ? "명반 데이터가 부족해 일반론으로 보완한다. " : ""}입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
-    `데이터 단서 요약:\n${dataText}\n\n해석의 목적은 예언이 아니라 실행 가능한 선택 기준을 만드는 것입니다. 따라서 이 챕터는 지금 당장 바꿀 수 있는 행동과 중장기적으로 지켜야 할 원칙을 분리해 제시합니다.`,
+    `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘왕평리함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
     "### 성향과 현실 적용",
     "성향은 고정된 운명이 아니라 반복되는 반응 방식입니다. 현실 적용의 핵심은 내 반응 속도를 늦추고, 중요한 결정의 평가 기준을 명문화하는 것입니다. 예를 들어 관계에서는 감정 강도보다 경계의 일관성을, 커리어에서는 열정 강도보다 지속 가능성을 먼저 점검하면 리스크가 빠르게 줄어듭니다.",
     "또한 궁위 해석은 영역별로 나눠 보되 결국 하나의 생활 시스템으로 통합해야 체감이 생깁니다. 아침 루틴, 주간 회고, 월간 점검의 3단계만 고정해도 운세 해석이 생활 운영 매뉴얼로 전환됩니다.",
@@ -2685,9 +2771,9 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
   return text;
 }
 
-async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summary, structured) {
-  const { dataText, missingNotice } = buildZiweiDataContext(body, input, summary, structured);
-  const prompt = buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice);
+async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summary, structuredPayload) {
+  const { dataText, missingNotice, hasStructured } = buildZiweiDataContext(body, input, summary, structuredPayload);
+  const prompt = buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, hasStructured);
   const genOptions = {
     temperature: 0.72,
     topP: 0.92,
@@ -2708,15 +2794,17 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summ
     const missing = ziweiMissingMarkers(text, chapter);
     const tooShort = text.length < ZIWEI_MIN_CHARS;
     const truncated = looksTruncatedMarkdown(text);
-    if (!tooShort && missing.length === 0 && !truncated) break;
+    const banned = hasZiweiBannedSummaryExpression(text);
+    if (!tooShort && missing.length === 0 && !truncated && !banned) break;
 
     const refinePrompt = [
       "아래 자미두수 챕터 초안을 고품질로 보강하세요.",
       `목표 길이: 최소 ${ZIWEI_MIN_CHARS}자`,
       "중요: 초안의 장점을 유지하면서 누락 섹션만 보완하고 문장 흐름을 자연스럽게 연결하세요.",
       "오직 마크다운 본문만 출력하세요.",
+      "'데이터 단서 요약', '[구조화된 12궁 요약]' 같은 메타 요약 문구는 절대 쓰지 마세요.",
       `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
-      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김 의심" : ""}`.trim(),
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김 의심" : ""} ${banned ? "금지 문구 포함" : ""}`.trim(),
       "",
       "[초안]",
       text,
@@ -2733,7 +2821,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, summ
   }
 
   const finalMissing = ziweiMissingMarkers(text, chapter);
-  if (text.length < ZIWEI_MIN_CHARS || finalMissing.length > 0 || looksTruncatedMarkdown(text)) {
+  if (text.length < ZIWEI_MIN_CHARS || finalMissing.length > 0 || looksTruncatedMarkdown(text) || hasZiweiBannedSummaryExpression(text)) {
     usedFallback = true;
     text = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
   }
@@ -3390,7 +3478,8 @@ async function handleZiweiBookSession(request, env) {
     subtitle: "자미두수 프리미엄 인생 총람",
     icon: "ziwei"
   };
-  const structured = body.ziweiStructured?.palaceStarData;
+  const structuredPayload = (body.ziweiStructured && typeof body.ziweiStructured === "object") ? body.ziweiStructured : null;
+  const structured = Array.isArray(structuredPayload?.palaceStarData) ? structuredPayload.palaceStarData : [];
   const summary = Array.isArray(structured)
     ? structured.slice(0, 12).map((p) => {
       const palace = p?.palace || "미상궁";
@@ -3407,7 +3496,7 @@ async function handleZiweiBookSession(request, env) {
     chapter,
     meta,
     summary || "명반 데이터가 부족해 일반론으로 보완한다",
-    Array.isArray(structured) ? structured : [],
+    structuredPayload || (Array.isArray(structured) ? structured : []),
   );
   return json({ ok: true, chapter, chapterMeta: meta, ...generated });
 }

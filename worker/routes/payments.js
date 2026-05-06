@@ -1422,62 +1422,170 @@ async function handleReportFailure(request, auth) {
   return json({ ok: true, message: "Payment failure report recorded." });
 }
 
-async function handleMe(auth) {
-  const user = await User.findById(auth.userId)
-    .select("name email points unlockedFeatures")
-    .lean();
+function formatPointHistoryEntry(entry) {
+  return {
+    id: String(entry?._id || ""),
+    kind: entry?.kind,
+    delta: Number(entry?.delta || 0),
+    balanceAfter: Number(entry?.balanceAfter || 0),
+    reason: entry?.reason,
+    featureKey: entry?.featureKey,
+    createdAt: entry?.createdAt,
+  };
+}
 
-  if (!user) return json({ message: "User not found." }, { status: 404 });
+function buildSubscriptionSummary(profileSubscription) {
+  const sub = profileSubscription || {};
+  const tier = String(sub.tier || "free").trim() || "free";
+  const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
+  const validExpiresAt = expiresAt && Number.isFinite(expiresAt.getTime())
+    ? expiresAt.toISOString()
+    : null;
+  const isActive = tier !== "free" && !!validExpiresAt && new Date(validExpiresAt).getTime() > Date.now();
 
-  const [recentPayments, pointHistories] = await Promise.all([
-    Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
-    PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
-  ]);
-  const unlockedFeatures = Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [];
+  if (!isActive) return [];
+
+  return [{
+    tier,
+    source: String(sub.source || "coin"),
+    isActive,
+    expiresAt: validExpiresAt,
+    cancelAtPeriodEnd: Boolean(sub.cancelAtPeriodEnd),
+    cancelRequestedAt: sub.cancelRequestedAt ? new Date(sub.cancelRequestedAt).toISOString() : null,
+  }];
+}
+
+function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
+  const safeUser = user || {};
+  const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
   const unlockMap = Object.create(null);
   for (let i = 0; i < unlockedFeatures.length; i += 1) {
     const key = String(unlockedFeatures[i] || "").trim();
     if (key) unlockMap[key] = true;
   }
 
-  return json({
+  const mappedPayments = Array.isArray(recentPayments)
+    ? recentPayments.map((payment) => formatPaymentResponse(payment)).filter(Boolean)
+    : [];
+  const mappedTransactions = Array.isArray(pointHistories)
+    ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
+    : [];
+  const subscriptions = buildSubscriptionSummary(safeUser.profileSubscription);
+  const balance = Number(safeUser.points || 0);
+
+  return {
+    success: true,
+    ok: true,
+    data: {
+      balance,
+      transactions: mappedTransactions,
+      payments: mappedPayments,
+      subscriptions,
+    },
     user: {
       id: String(auth.userId),
-      name: user.name,
-      email: user.email,
-      points: Number(user.points || 0),
+      name: safeUser.name || "",
+      email: safeUser.email || "",
+      points: balance,
       unlockedFeatures,
     },
     unlockedFeatures,
     unlockMap,
-    payments: recentPayments.map((payment) => formatPaymentResponse(payment)),
-    pointHistories: pointHistories.map((entry) => ({
-      id: String(entry._id),
-      kind: entry.kind,
-      delta: Number(entry.delta || 0),
-      balanceAfter: Number(entry.balanceAfter || 0),
-      reason: entry.reason,
-      featureKey: entry.featureKey,
-      createdAt: entry.createdAt,
-    })),
+    payments: mappedPayments,
+    pointHistories: mappedTransactions,
+    subscriptions,
+  };
+}
+
+async function handleMe(auth) {
+  const user = await User.findById(auth.userId)
+    .select("name email points unlockedFeatures profileSubscription")
+    .lean();
+
+  const [recentPayments, pointHistories] = await Promise.all([
+    Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
+    PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
+  ]);
+
+  const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
+  if (!user) {
+    body.message = "User profile is missing. Returned safe defaults.";
+    body.userFound = false;
+  }
+
+  return json(body);
+}
+
+async function handlePointsMe(auth) {
+  const user = await User.findById(auth.userId)
+    .select("name email points")
+    .lean();
+
+  const pointHistories = await PointHistory.find({ userId: auth.userId })
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .lean();
+
+  const transactions = Array.isArray(pointHistories)
+    ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
+    : [];
+  const balance = Number(user?.points || 0);
+
+  return json({
+    success: true,
+    ok: true,
+    data: {
+      balance,
+      transactions,
+      payments: [],
+      subscriptions: [],
+    },
+    user: {
+      id: String(auth.userId),
+      name: user?.name || "",
+      email: user?.email || "",
+      points: balance,
+    },
+    pointHistories: transactions,
+    transactions,
   });
 }
 
 export async function handlePaymentRoutes(request, env) {
-  try {
-    const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/payments");
+  const method = request.method.toUpperCase();
+  const path = getRoutePath(request, "/api/payments");
+  const trace = {
+    route: "payments",
+    requestPath: new URL(request.url).pathname,
+    method,
+    authPresent: Boolean(request.headers.get("Authorization") || request.headers.get("Cookie")),
+    authVerified: false,
+    dbConnected: false,
+    mongoQueryFailed: false,
+    paymentProviderFailed: false,
+    env: {
+      mongoUriConfigured: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
+      jwtSecretConfigured: Boolean(getEnv(env, "JWT_SECRET") || getEnv(env, "AUTH_SECRET")),
+      portoneApiKeyConfigured: Boolean(getEnv(env, "PORTONE_API_KEY") || getEnv(env, "PORTONE_REST_API_KEY")),
+      portoneApiSecretConfigured: Boolean(getEnv(env, "PORTONE_API_SECRET") || getEnv(env, "PORTONE_REST_API_SECRET")),
+    },
+  };
 
-    const keyHealth = evaluateFeatureKeyHealth(env, "payments-core");
+  try {
+    const readOnlyEndpoints = method === "GET" && (path === "/me" || path === "/points/me");
+    const keyFeature = readOnlyEndpoints ? "auth-basic" : "payments-core";
+    const keyHealth = evaluateFeatureKeyHealth(env, keyFeature);
     if (!keyHealth.ok) {
-      return json(buildConfigErrorBody("payments-core", keyHealth), { status: 503 });
+      return json(buildConfigErrorBody(keyFeature, keyHealth), { status: 503 });
     }
 
     await connectDb(env);
+    trace.dbConnected = true;
 
     if (method === "POST" && path === "/webhook") return await handleWebhook(request, env);
 
     const auth = await requireAuth(request, env);
+    trace.authVerified = true;
 
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
     if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, auth);
@@ -1486,6 +1594,7 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
     if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
     if (method === "GET" && path === "/me") return await handleMe(auth);
+    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth);
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
@@ -1493,6 +1602,9 @@ export async function handlePaymentRoutes(request, env) {
     if (error && error.code === 11000) {
       return json({ message: "Duplicate payment key." }, { status: 409 });
     }
-    return handleRouteError(error);
+    const errorText = String(error?.message || "");
+    trace.mongoQueryFailed = /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(errorText);
+    trace.paymentProviderFailed = /portone|iamport|payment provider|merchant_uid|imp_uid/i.test(errorText);
+    return handleRouteError(error, { request, env, trace });
   }
 }

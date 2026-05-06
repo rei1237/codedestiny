@@ -843,32 +843,47 @@
       try {
         var zd = window._currentZiweiData || null;
         if (!zd || !Array.isArray(zd.palaceStarData)) return null;
+
+        function _strengthFromSymbol(sym) {
+          if (sym === '◎') return '묘';
+          if (sym === '△') return '왕';
+          if (sym === '○') return '평';
+          if (sym === '▲') return '리';
+          if (sym === 'X') return '함';
+          return '';
+        }
+
+        function _mapStars(list) {
+          return Array.isArray(list) ? list.map(function (s) {
+            var symbol = s && s.symbol ? String(s.symbol) : '';
+            var strength = s && s.strength ? String(s.strength) : _strengthFromSymbol(symbol);
+            return {
+              name: s && s.name ? String(s.name) : '',
+              strength: strength,
+              symbol: symbol,
+              borrowed: !!(s && s.borrowed)
+            };
+          }) : [];
+        }
+
         return {
+          yearGan: zd.yearGan || '',
+          yearZhi: zd.yearZhi || '',
+          meng: zd.meng || '',
+          shen: zd.shen || '',
+          juInfo: zd.juInfo || '',
+          isLeap: !!zd.isLeap,
+          daHanList: Array.isArray(zd.daHanList) ? zd.daHanList : [],
+          sihuaData: (zd.sihuaData && typeof zd.sihuaData === 'object') ? zd.sihuaData : {},
+          calcMeta: (zd.calcMeta && typeof zd.calcMeta === 'object') ? zd.calcMeta : {},
           palaceStarData: zd.palaceStarData.map(function (row) {
             return {
               palace: row && row.palace ? String(row.palace) : '',
               branch: row && row.branch ? String(row.branch) : '',
-              stars: Array.isArray(row && row.stars) ? row.stars.map(function (s) {
-                return {
-                  name: s && s.name ? String(s.name) : '',
-                  strength: s && s.strength ? String(s.strength) : '',
-                  borrowed: !!(s && s.borrowed)
-                };
-              }) : [],
-              auxStars: Array.isArray(row && row.auxStars) ? row.auxStars.map(function (s) {
-                return {
-                  name: s && s.name ? String(s.name) : '',
-                  strength: s && s.strength ? String(s.strength) : '',
-                  borrowed: !!(s && s.borrowed)
-                };
-              }) : [],
-              badStars: Array.isArray(row && row.badStars) ? row.badStars.map(function (s) {
-                return {
-                  name: s && s.name ? String(s.name) : '',
-                  strength: s && s.strength ? String(s.strength) : '',
-                  borrowed: !!(s && s.borrowed)
-                };
-              }) : []
+              dahan: row && row.dahan ? String(row.dahan) : '',
+              stars: _mapStars(row && row.stars),
+              auxStars: _mapStars(row && row.auxStars),
+              badStars: _mapStars(row && row.badStars)
             };
           })
         };

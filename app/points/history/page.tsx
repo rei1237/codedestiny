@@ -30,6 +30,14 @@ type PaymentHistoryItem = {
 };
 
 type MeResponse = {
+  ok?: boolean;
+  success?: boolean;
+  data?: {
+    balance?: number;
+    transactions?: PointHistoryEntry[];
+    payments?: PaymentHistoryItem[];
+  };
+  message?: string;
   user?: {
     id: string;
     name: string;
@@ -37,6 +45,13 @@ type MeResponse = {
   };
   payments?: PaymentHistoryItem[];
   pointHistories?: PointHistoryEntry[];
+};
+
+type SubscriptionStatusResponse = {
+  tier?: string;
+  isActive?: boolean;
+  expiresAt?: string | null;
+  message?: string;
 };
 
 declare global {
@@ -116,6 +131,35 @@ function resolveFeatureName(featureKey?: string) {
   return map[key] || key.replace(/[-_]/g, " ");
 }
 
+function normalizePointPayload(payload: MeResponse) {
+  const dataNode = payload?.data && typeof payload.data === "object" ? payload.data : {};
+  const balanceRaw =
+    (typeof dataNode.balance === "number" ? dataNode.balance : undefined)
+    ?? (typeof payload?.user?.points === "number" ? payload.user.points : 0);
+  const pointHistories = Array.isArray(dataNode.transactions)
+    ? dataNode.transactions
+    : (Array.isArray(payload?.pointHistories) ? payload.pointHistories : []);
+
+  return {
+    userName: payload?.user?.name || "사용자",
+    balance: Number.isFinite(Number(balanceRaw)) ? Number(balanceRaw) : 0,
+    pointHistories,
+    message: payload?.message || "",
+  };
+}
+
+function normalizePaymentPayload(payload: MeResponse) {
+  const dataNode = payload?.data && typeof payload.data === "object" ? payload.data : {};
+  const payments = Array.isArray(dataNode.payments)
+    ? dataNode.payments
+    : (Array.isArray(payload?.payments) ? payload.payments : []);
+
+  return {
+    payments,
+    message: payload?.message || "",
+  };
+}
+
 /* ══════════════════════════════════════════════════════════════════
    서브 컴포넌트: CoinIcon
 ══════════════════════════════════════════════════════════════════ */
@@ -150,7 +194,11 @@ export default function PointHistoryPage() {
   const router = useRouter();
   const [isBooting, setIsBooting] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [pointsError, setPointsError] = useState<string | null>(null);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [hasLoadedPoints, setHasLoadedPoints] = useState(false);
+  const [subscriptionSummary, setSubscriptionSummary] = useState("구독 상태 확인 중");
 
   const [userName, setUserName] = useState("사용자");
   const [currentPoints, setCurrentPoints] = useState(0);
@@ -160,13 +208,15 @@ export default function PointHistoryPage() {
 
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
-  const fetchData = useCallback(async (token: string) => {
-    setIsLoading(true);
-    setError(null);
+  const fetchPointsSection = useCallback(async (token: string) => {
     try {
-      const res = await fetch(`${apiBase}/api/payments/me`, {
+      const res = await fetch(`${apiBase}/api/points/me`, {
+        credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok && res.status !== 401 && res.status !== 403) {
+        console.warn("[points-history] API error", { path: "/api/points/me", status: res.status });
+      }
       if (res.status === 401 || res.status === 403) {
         localStorage.removeItem("fortune_auth_token");
         router.replace("/login?next=%2Fpoints%2Fhistory");
@@ -177,26 +227,98 @@ export default function PointHistoryPage() {
         throw new Error(`서버 점검 중입니다. (HTTP ${res.status})`);
       }
       const data: MeResponse = await res.json();
-      if (!res.ok) throw new Error((data as { message?: string }).message || "데이터를 불러오지 못했습니다.");
+      if (!res.ok) throw new Error((data as { message?: string }).message || "포인트 내역을 불러오지 못했습니다.");
 
-      setUserName(data.user?.name || "사용자");
-      setCurrentPoints(Number(data.user?.points || 0));
+      const normalized = normalizePointPayload(data);
+      setUserName(normalized.userName);
+      setCurrentPoints(normalized.balance);
       setHistories(
-        Array.isArray(data.pointHistories)
-          ? data.pointHistories.filter(Boolean)
+        Array.isArray(normalized.pointHistories)
+          ? normalized.pointHistories.filter(Boolean)
           : [],
       );
-      setPayments(
-        Array.isArray(data.payments)
-          ? data.payments.filter((p) => p?.status === "success")
-          : [],
-      );
+      setHasLoadedPoints(true);
+      setPointsError(null);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "데이터를 불러오지 못했습니다.");
-    } finally {
-      setIsLoading(false);
+      setPointsError(e instanceof Error ? e.message : "포인트 내역을 불러오지 못했습니다.");
     }
   }, [apiBase, router]);
+
+  const fetchPaymentsSection = useCallback(async (token: string) => {
+    try {
+      const res = await fetch(`${apiBase}/api/payments/me`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok && res.status !== 401 && res.status !== 403) {
+        console.warn("[points-history] API error", { path: "/api/payments/me", status: res.status });
+      }
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("fortune_auth_token");
+        router.replace("/login?next=%2Fpoints%2Fhistory");
+        return;
+      }
+      const ct = res.headers.get("content-type") ?? "";
+      if (!ct.includes("application/json")) {
+        throw new Error(`서버 점검 중입니다. (HTTP ${res.status})`);
+      }
+      const data: MeResponse = await res.json();
+      if (!res.ok) throw new Error((data as { message?: string }).message || "결제 내역을 불러오지 못했습니다.");
+
+      const normalized = normalizePaymentPayload(data);
+      setPayments(
+        Array.isArray(normalized.payments)
+          ? normalized.payments.filter((p) => p?.status === "success")
+          : [],
+      );
+      setPaymentsError(null);
+    } catch (e: unknown) {
+      setPaymentsError(e instanceof Error ? e.message : "결제 내역을 불러오지 못했습니다.");
+    }
+  }, [apiBase, router]);
+
+  const fetchSubscriptionSection = useCallback(async (token: string) => {
+    try {
+      const res = await fetch(`${apiBase}/api/subscription/status`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok && res.status !== 401 && res.status !== 403) {
+        console.warn("[points-history] API error", { path: "/api/subscription/status", status: res.status });
+      }
+      if (res.status === 401 || res.status === 403) {
+        setSubscriptionSummary("로그인 필요");
+        return;
+      }
+      const ct = res.headers.get("content-type") ?? "";
+      if (!ct.includes("application/json")) {
+        throw new Error(`구독 상태 조회 실패 (HTTP ${res.status})`);
+      }
+      const data: SubscriptionStatusResponse = await res.json();
+      if (!res.ok) throw new Error(data.message || "구독 상태를 불러오지 못했습니다.");
+
+      const tier = String(data?.tier || "free").toLowerCase();
+      const isActive = !!data?.isActive;
+      const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt) : "-";
+      const tierLabel = tier === "free" ? "무료" : tier.toUpperCase();
+      const activeLabel = isActive ? "활성" : "비활성";
+      setSubscriptionSummary(`${tierLabel} · ${activeLabel} · 만료 ${expiresAt}`);
+      setSubscriptionError(null);
+    } catch (e: unknown) {
+      setSubscriptionError(e instanceof Error ? e.message : "구독 상태를 불러오지 못했습니다.");
+      setSubscriptionSummary("구독 상태 조회 실패");
+    }
+  }, [apiBase]);
+
+  const fetchData = useCallback(async (token: string) => {
+    setIsLoading(true);
+    await Promise.allSettled([
+      fetchPointsSection(token),
+      fetchPaymentsSection(token),
+      fetchSubscriptionSection(token),
+    ]);
+    setIsLoading(false);
+  }, [fetchPaymentsSection, fetchPointsSection, fetchSubscriptionSection]);
 
   useEffect(() => {
     const token = localStorage.getItem("fortune_auth_token");
@@ -290,6 +412,7 @@ export default function PointHistoryPage() {
                 </Link>
                 <Link
                   href="/"
+                  prefetch={false}
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
                 >
                   서비스 화면으로
@@ -317,17 +440,44 @@ export default function PointHistoryPage() {
             <div className="flex items-center gap-3">
               <CoinIcon size="lg" />
               <span className="text-[28px] font-black text-[#7A4A00] leading-none">
-                {currentPoints.toLocaleString("ko-KR")}
+                {pointsError && !hasLoadedPoints ? "-" : currentPoints.toLocaleString("ko-KR")}
                 <span className="ml-1.5 text-base font-bold text-amber-800">원</span>
               </span>
             </div>
-            <p className="mt-2 text-[11px] text-amber-800 font-semibold">
-              {userName} 님의 실시간 잔여 포인트입니다.
-            </p>
+            {pointsError ? (
+              <div className="mt-2 rounded-[10px] border border-rose-200 bg-rose-50 px-2.5 py-2">
+                <p className="text-[11px] font-bold text-rose-700">잔액 조회 실패: {pointsError}</p>
+                <button
+                  type="button"
+                  onClick={() => { if (tokenRef.current) fetchPointsSection(tokenRef.current); }}
+                  className="mt-1 text-[11px] font-bold text-rose-600 underline"
+                >
+                  잔액 다시 조회
+                </button>
+              </div>
+            ) : (
+              <p className="mt-2 text-[11px] text-amber-800 font-semibold">
+                {userName} 님의 실시간 잔여 포인트입니다.
+              </p>
+            )}
             <p className="mt-1 text-[11px] text-[#9B7040]">
               ⏳ 포인트 충전 소진 기한은 결제한 시점부터 1년 이내까지이며, 미사용한 포인트는 소멸됩니다.
             </p>
           </div>
+        </section>
+
+        <section className="rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] px-4 py-3">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">구독 상태</p>
+          <p className="mt-1 text-sm font-semibold text-[#7A5230]">{subscriptionSummary}</p>
+          {subscriptionError && (
+            <button
+              type="button"
+              onClick={() => { if (tokenRef.current) fetchSubscriptionSection(tokenRef.current); }}
+              className="mt-1 text-[12px] font-bold text-rose-600 underline"
+            >
+              구독 상태 다시 조회
+            </button>
+          )}
         </section>
 
         {/* 요약 통계 */}
@@ -394,12 +544,12 @@ export default function PointHistoryPage() {
                 <div className="text-3xl animate-bounce">🐷</div>
                 <p className="ml-3 text-sm text-[#7A5230]">내역을 불러오는 중...</p>
               </div>
-            ) : error ? (
+            ) : pointsError ? (
               <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
-                <p className="text-sm font-semibold text-rose-700">⚠️ {error}</p>
+                <p className="text-sm font-semibold text-rose-700">⚠️ {pointsError}</p>
                 <button
                   type="button"
-                  onClick={() => { if (tokenRef.current) fetchData(tokenRef.current); }}
+                  onClick={() => { if (tokenRef.current) fetchPointsSection(tokenRef.current); }}
                   className="mt-2 text-[12px] font-bold text-rose-600 underline"
                 >
                   다시 시도
@@ -473,7 +623,18 @@ export default function PointHistoryPage() {
           className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
         >
           <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">충전 결제 내역</h2>
-          {payments.length === 0 && !isLoading ? (
+          {paymentsError ? (
+            <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
+              <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
+              <button
+                type="button"
+                onClick={() => { if (tokenRef.current) fetchPaymentsSection(tokenRef.current); }}
+                className="mt-2 text-[12px] font-bold text-rose-600 underline"
+              >
+                결제 내역 다시 조회
+              </button>
+            </div>
+          ) : payments.length === 0 && !isLoading ? (
             <p className="text-sm text-[#7A5230]">완료된 결제 내역이 없습니다.</p>
           ) : (
             <div className="space-y-2.5">

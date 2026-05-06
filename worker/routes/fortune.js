@@ -1226,10 +1226,22 @@ async function handleSubscriptionCancel(request, auth) {
 }
 
 export async function handleFortuneRoutes(request, env) {
+  const method = request.method.toUpperCase();
+  const path = getRoutePath(request, "/api/fortune");
+  const trace = {
+    route: "fortune",
+    requestPath: new URL(request.url).pathname,
+    method,
+    authPresent: Boolean(request.headers.get("Authorization") || request.headers.get("Cookie")),
+    authVerified: false,
+    dbConnected: false,
+    mongoQueryFailed: false,
+    paymentProviderFailed: false,
+  };
+
   try {
-    const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/fortune");
     await connectDb(env);
+    trace.dbConnected = true;
 
     if (method === "POST" && path === "/pig-coin/unlock") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
@@ -1242,6 +1254,7 @@ export async function handleFortuneRoutes(request, env) {
     }
 
     const auth = await requireAuth(request, env);
+    trace.authVerified = true;
 
     if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
 
@@ -1258,6 +1271,7 @@ export async function handleFortuneRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
-    return handleRouteError(error);
+    trace.mongoQueryFailed = /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(String(error?.message || ""));
+    return handleRouteError(error, { request, env, trace });
   }
 }
