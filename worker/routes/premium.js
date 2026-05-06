@@ -102,40 +102,53 @@ const ASTRO_CHAPTER_GUIDES = [
   "1~12챕터를 통합해 Master Habit 1개와 90일 실행표를 반드시 포함하세요.",
 ];
 
-const VEDIC_CHAPTER_META = [
-  { num: 1, title: "라그나와 영혼의 목적", subtitle: "Lagna & Atmakaraka", icon: "veda" },
-  { num: 2, title: "나크샤트라", subtitle: "무의식의 27가지 빛", icon: "veda" },
-  { num: 3, title: "다샤", subtitle: "인생의 웅장한 계절", icon: "veda" },
-  { num: 4, title: "푸루샤르타와 부의 정렬", subtitle: "Artha·2하우스·11하우스", icon: "veda" },
-  { num: 5, title: "카르마와 천직", subtitle: "Dharma·10하우스·D9·D10", icon: "veda" },
-  { num: 6, title: "나밤샤", subtitle: "영혼의 성숙도와 잠재력", icon: "veda" },
-  { num: 7, title: "관계의 거울", subtitle: "Ashta Koota Compatibility", icon: "veda" },
-  { num: 8, title: "인연의 깊이와 카르믹 계약", subtitle: "7하우스·금성·화성", icon: "veda" },
-  { num: 9, title: "생명력과 정화", subtitle: "6·8·12하우스 Health Analysis", icon: "veda" },
-  { num: 10, title: "요가", subtitle: "특별한 축복의 조합", icon: "veda" },
-  { num: 11, title: "우파야", subtitle: "운명을 바꾸는 실천 비책", icon: "veda" },
-  { num: 12, title: "고차라와 올해의 전략", subtitle: "Transit & Annual Strategy", icon: "veda" },
-  { num: 13, title: "마스터플랜", subtitle: "카르마를 넘어선 자유", icon: "veda" },
-];
-const VEDIC_TOTAL_CHAPTERS = VEDIC_CHAPTER_META.length;
-
-const VEDIC_REPORT_TITLE_PERSONAL = "Karmic Blueprint: 베다 점성술 프리미엄 리포트";
-const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나, 나크샤트라, 다샤로 읽는 이번 생의 카르마 지도";
-const VEDIC_REPORT_TITLE_COMPAT = "Karmic Blueprint: 베다 점성술 궁합 리포트";
-const VEDIC_REPORT_SUBTITLE_COMPAT = "Ashta Koota와 7하우스로 읽는 두 사람의 카르믹 계약";
-const VEDIC_MIN_CHARS = 4000;
-const VEDIC_PLANET_ORDER = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
-const VEDIC_PLANET_KO = {
-  Sun: "태양(Surya)",
-  Moon: "달(Chandra)",
-  Mars: "화성(Mangala)",
-  Mercury: "수성(Budha)",
-  Jupiter: "목성(Guru)",
-  Venus: "금성(Shukra)",
-  Saturn: "토성(Shani)",
-  Rahu: "라후(Rahu)",
-  Ketu: "케투(Ketu)",
+const LOVE_SECRET_MODE_CONFIG = {
+  solo: {
+    mode: "solo",
+    reportType: "saju_love_solo",
+    totalChapters: 10,
+    minTotalChars: 45000,
+    chapterMinDefault: 4500,
+    chapterMinByIndex: { 5: 5000, 7: 4000, 8: 4000 },
+    title: "프리미엄 사주 연애운 리포트",
+    chapters: [
+      { title: "💗 본연의 연애 자아", subtitle: "일간/월지/일지와 십성으로 읽는 나의 연애 기질", required: ["일간별 연애 본능", "일간이 사랑을 받아들이는 방식", "월지와 일지로 본 무의식적 욕구", "십성 비중으로 본 연애 주도권", "식상다자/재다자/관다자/인성다자/비겁다자 경향", "사주-MBTI 스타일 매칭", "연애 자존감의 근원", "상처받는 포인트", "반복 감정 패턴", "강해지는 순간과 약해지는 순간"] },
+      { title: "🌹 치명적 매력과 페로몬", subtitle: "도화/홍염/화개와 12운성 기반 매력 분석", required: ["도화살 해석", "년지/일지/시지 도화 차이", "홍염살 해석", "화개살 해석", "12운성 첫인상/아우라", "이성이 느끼는 분위기", "나만 모르는 플러팅 강점", "플러팅 약점", "스타일링/색상/향/장신구 추천"] },
+      { title: "🧲 운명의 상대방 리포트", subtitle: "배우자궁과 오행 보완으로 읽는 이상형", required: ["갈구하는 오행", "용신/희신 기반 이상형", "일지 배우자궁 분석", "미래 배우자 성격/분위기", "보완해 줄 일간", "잘 맞는 오행 구조", "천간합/지지합 좋은 유형", "피해야 할 빌런 특징", "원진/귀문/상충 주의", "건강한 인연 판별 기준"] },
+      { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "식상/재성/관성 운용 중심 실전 커뮤니케이션", required: ["식상 활용 대화법", "재성/관성 조절법", "밀당 적정선", "고백 타이밍", "마음을 여는 공략 키워드 10개", "카카오톡/DM 소통법", "답장 텀 전략", "소개팅 후 애프터 전략", "썸에서 연인 전환 흐름", "절대 하면 안 되는 실수"] },
+      { title: "📅 시기별 연애운 흐름", subtitle: "대운/세운/월운 기반 타이밍 전략", required: ["10년 대운 흐름", "현재 대운 의미", "다음 대운 변화", "올해 연애운", "내년 연애운", "월별 성공 가능성", "새 인연 유입 시기", "고백 적기", "재회운 시기", "이별수 강한 시기", "감정 폭발 주의 시기"] },
+      { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "집착/회피/통제 패턴의 예방 전략", required: ["집착 성향 가능성", "회피 성향 가능성", "감정 폭발 패턴", "가스라이팅 취약 구조", "통제 패턴", "나쁜 사람에게 끌리는 이유", "권태기 패턴", "이별 후 무너지는 방식", "반복 원인", "반복 차단 방법", "감정 안전장치"] },
+      { title: "🔥 섹슈얼리티와 육체적 매력", subtitle: "수기/화기와 친밀감 속도 해석", required: ["수기와 화기 균형", "성적 에너지 표현", "스킨십 수용 방식", "육체적 친밀감에서 중요한 요소", "밤의 궁합에서 추구 분위기", "감각적 만족 포인트", "상대에게 매력적으로 느껴지는 부분", "소모 방지법", "정서 안정과 친밀감 관계"] },
+      { title: "📱 현대적 상황별 연애 비책", subtitle: "디지털 연애 환경에서의 사주 활용", required: ["소개팅 앱 프로필 전략", "프로필 사진 분위기", "첫 메시지 스타일", "사내 연애 가능성", "장거리 연애 적합성", "비밀 연애 성향", "SNS 매력 연출", "썸→연인 결정타", "관계를 망치는 온라인 습관", "운을 여는 행동"] },
+      { title: "💍 결혼과 정착", subtitle: "결혼운/배우자운/가정운의 현실 해석", required: ["결혼 무의식 태도", "결혼 적기", "결혼 후 변화", "배우자 기대", "현실 결혼 조건", "고부/장서 갈등 가능성", "가정 내 역할", "자녀운/가정 행복도", "결혼 전 확인 조건", "결혼운 안정 방법"] },
+      { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "상징적/심리적 보완 중심 30일 루틴", required: ["공간 정리법", "침대 방향/방 분위기", "거실 인테리어", "권장 색상", "회피 색상", "향수 계열", "보석/장신구", "음식 추천", "데이트 장소", "명상법", "확언 문구", "30일 개선 루틴"] },
+    ],
+  },
+  couple: {
+    mode: "couple",
+    reportType: "saju_love_couple",
+    totalChapters: 12,
+    minTotalChars: 60000,
+    chapterMinDefault: 4500,
+    chapterMinByIndex: { 11: 5000, 12: 5000 },
+    title: "프리미엄 사주 궁합 리포트",
+    chapters: [
+      { title: "💞 두 사람의 연애 자아 비교", subtitle: "두 사람의 기본 연애 기질 비교" },
+      { title: "🌹 끌림과 페로몬 궁합", subtitle: "도화/홍염/아우라 상호작용" },
+      { title: "🧲 운명의 상대인가, 배움의 상대인가", subtitle: "인연 성격과 성장 과제 진단" },
+      { title: "⚔️ 실전 궁합 전략", subtitle: "갈등 예방과 관계 운영 프로토콜" },
+      { title: "📅 두 사람의 연애 타이밍", subtitle: "대운/세운 동시성 기반 타이밍" },
+      { title: "🌑 관계의 위기와 갈등 관리", subtitle: "충돌 패턴과 회복 전략" },
+      { title: "🔥 섹슈얼리티와 속궁합", subtitle: "친밀감 속도와 감각 합의 전략" },
+      { title: "📱 현대 연애 상황별 궁합 비책", subtitle: "현대 관계 환경 최적화" },
+      { title: "💍 결혼과 동거 궁합", subtitle: "정착 가능성과 현실 조건" },
+      { title: "🧭 두 사람을 위한 개운 처방전", subtitle: "관계 안정 루틴과 환경 보완" },
+      { title: "🧪 궁합 점수 정밀 리포트", subtitle: "영역별 궁합 점수와 해석 근거", required: ["전체 궁합 점수", "끌림 점수", "대화 점수", "정서 안정 점수", "결혼 점수", "속궁합 점수", "갈등 위험 점수", "장기 지속 가능성 점수", "점수 상승 이유", "점수 하락 이유", "점수보다 중요한 조언", "관계 유지 전략"] },
+      { title: "💌 최종 궁합 전략 제언", subtitle: "1년 전략과 최종 상담 제안", required: ["관계 핵심 한 줄", "만난 이유", "가장 강한 끌림", "가장 큰 갈등", "오래 가기 위한 조건", "결혼까지 필요한 것", "헤어짐 방지 핵심 행동", "상대에게 꼭 해줄 말", "내가 내려놓을 태도", "상대에게 기대하지 말아야 할 것", "앞으로 1년 전략", "최종 메시지"] },
+    ],
+  },
 };
+
 const VEDIC_DASHA_SEQUENCE = [
   { planet: "Ketu", years: 7 },
   { planet: "Venus", years: 20 },
@@ -199,80 +212,80 @@ const VEDIC_MISSING_DATA_NOTICE = "일부 세부 계산 데이터가 부족하�
 const ZIWEI_CHAPTER_META = [
   {
     num: 1,
-    title: "타고난 명(命)과 본질 - 명궁·신궁 분석",
-    subtitle: "핵심 자아·행동 방식·삼방사정 기반 인생 방향 해석",
+    title: "명궁 - 타고난 자아와 인생의 핵심",
+    subtitle: "0. 전체 명반 요약 포함, 명궁/신궁/삼방사정 정밀 해석",
     icon: "ziwei"
   },
   {
     num: 2,
-    title: "내면의 심리와 무의식 - 복덕궁 분석",
-    subtitle: "스트레스 패턴·회복력·정서 개운 루틴 심층 분석",
+    title: "형제궁 - 형제, 동료, 가까운 경쟁자",
+    subtitle: "형제자매·동료·경쟁 관계와 협력운 분석",
     icon: "ziwei"
   },
   {
     num: 3,
-    title: "외형적 이미지와 사회적 페르소나 - 천이궁 분석",
-    subtitle: "첫인상·대외 활동운·이동/여행/확장 전략",
+    title: "부처궁 - 연애, 결혼, 배우자운",
+    subtitle: "연애 패턴·배우자상·관계 회복 루틴 분석",
     icon: "ziwei"
   },
   {
     num: 4,
-    title: "진로, 적성 및 직업운 - 관록궁 분석",
-    subtitle: "직업 적성·조직/사업 성향·명예운과 실전 커리어 전략",
+    title: "자녀궁 - 자녀, 창작물, 미래의 결실",
+    subtitle: "자녀/후배/제자 인연과 결실 구조 분석",
     icon: "ziwei"
   },
   {
     num: 5,
-    title: "재물운과 자산 관리 스타일 - 재백궁 분석",
-    subtitle: "수익 구조·지출 패턴·리스크 관리 기반 자산 전략",
+    title: "재백궁 - 재물운과 돈의 흐름",
+    subtitle: "수익/지출/투자/저축 성향과 재물 개운 전략",
     icon: "ziwei"
   },
   {
     num: 6,
-    title: "연애 성향과 배우자운 - 부처궁 분석",
-    subtitle: "연애 패턴·궁합 구조·관계 안정화 전략",
+    title: "질액궁 - 건강과 생체 리듬",
+    subtitle: "생활 관리 중심 건강 리듬 해석",
     icon: "ziwei"
   },
   {
     num: 7,
-    title: "인간관계와 인맥 - 교우궁·형제궁 분석",
-    subtitle: "귀인/소인 구분·네트워크 운영·관계 스트레스 관리",
+    title: "천이궁 - 사회적 이미지, 이동운, 외부 활동",
+    subtitle: "대외 이미지·이동/여행/해외운·귀인 장소 분석",
     icon: "ziwei"
   },
   {
     num: 8,
-    title: "부동산 운과 가정 환경 - 전택궁 분석",
-    subtitle: "거주 안정성·공간 에너지·이사/주거 전략",
+    title: "교우궁 - 인간관계, 친구, 인맥",
+    subtitle: "친구운·인맥운·구설 관리와 관계 개운 전략",
     icon: "ziwei"
   },
   {
     num: 9,
-    title: "건강과 활력 - 질액궁 분석",
-    subtitle: "체력 흐름·생활 습관·회복 루틴 기반 건강 관리",
+    title: "관록궁 - 직업, 천직, 사회적 성취",
+    subtitle: "직업 적성·리더십·성과 시스템 정밀 분석",
     icon: "ziwei"
   },
   {
     num: 10,
-    title: "생애 주기와 10년 대운 - 대한 분석",
-    subtitle: "현재 대한 중심의 10년 전략 보고서",
+    title: "전택궁 - 부동산, 집, 가정환경",
+    subtitle: "주거/부동산 운과 공간 개운 전략",
     icon: "ziwei"
   },
   {
     num: 11,
-    title: "올해의 신년운세와 월별 흐름 - 유년·유월 분석",
-    subtitle: "연간 핵심 흐름과 12개월 타이밍 로드맵",
+    title: "복덕궁 - 내면, 정신, 행복감",
+    subtitle: "내면 회복·정신 안정·감정 정화 루틴",
     icon: "ziwei"
   },
   {
     num: 12,
-    title: "액운 대처법과 맞춤형 행운 아이템 - 개운법 총결산",
-    subtitle: "수호 상징·행운 아이템·리스크 대응 개운 설계",
+    title: "부모궁 - 부모, 윗사람, 보호자, 사회적 후원",
+    subtitle: "부모/스승/후원자 인연과 권위자 관계 해석",
     icon: "ziwei"
   },
   {
     num: 13,
-    title: "종합 총운과 90일 실행 로드맵",
-    subtitle: "전체 명반 통합 총평과 실천 중심 변화 계획",
+    title: "종합 총운과 인생 마스터플랜",
+    subtitle: "12궁 통합 총평과 1년/3년/90일 전략",
     icon: "ziwei"
   },
 ];
@@ -282,20 +295,123 @@ const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 �
 const ZIWEI_MIN_CHARS = 5200;
 
 const ZIWEI_CHAPTER_GUIDES = [
-  "명궁과 신궁을 중심으로 타고난 기질, 실제 행동 방식, 겉모습과 내면의 차이, 강점·약점, 핵심 키워드, 아침/저녁 루틴, 마인드셋 개운법을 다루고 마지막에 '나는 어떤 방식으로 살아야 운이 열리는 사람인가?'를 상담형으로 정리하세요.",
-  "복덕궁 중심으로 깊은 불안 원인, 스트레스/붕괴 패턴, 회복 환경, 취미, 5분 명상, 잠들기 전 심상화, 감정 정화 글쓰기, 공간 정리, 불안 완화 취미를 포함해 상담가 톤으로 작성하세요.",
-  "천이궁을 세상과 만나는 방식으로 해석하고 첫인상, 사회생활 태도, 이동/이사/해외 인연, 귀인 장소, 피해야 할 대외 행동, 스타일링, 운 트이는 색/방향/장소, 여행 개운법을 포함하세요.",
-  "관록궁 중심으로 직업 재능, 추천 직업군 3~5개(근거 포함), 직장형/사업형, 리더십 스타일, 조직 관계 유의점, 승진운, 사무실 풍수, 처세술을 작성하고 인생 격을 올리는 일의 조건을 명확히 정리하세요.",
-  "재백궁 중심으로 수익 구조, 누수 패턴, 저축/투자 성향, 수익 형태 궁합, 유리한 시기, 피해야 할 투자 습관, 지갑 색상, 보관 방향, 생활 풍수를 포함하세요. 수익 보장 표현은 금지하고 위험 관리 조언으로 쓰세요.",
-  "부처궁 중심으로 끌리는 사람과 실제 궁합, 연애 실수, 결혼 후 성향, 상처 지점, 악연 구별, 좋은 인연 행동, 데이트 스타일링, 말투/장소/색상, 관계 안정화 전략을 포함하세요.",
-  "교우궁·형제궁을 함께 해석해 귀인/소인 유형, 동업 가능성, 배신 예방, 인맥 기회화, 거리 조절, 대화 개운법, 관계운 소품/방향을 제시하고 두 궁의 충돌/보완 지점을 명확히 설명하세요.",
-  "전택궁 중심으로 부동산 인연, 내 집 마련 흐름, 청약/매매/임대/상속, 가정환경 영향, 안정되는 집 조건, 피할 환경, 현관/침실/책상/침대 배치, 이사 방향/시기, 대장군방/삼살방 현대 해석을 포함하세요.",
-  "질액궁 중심으로 취약 부위 경향, 스트레스 신체화, 체력 장단점, 생활 습관, 오행 균형 음식, 운동, 숙면 환경, 머리 방향, 약한 시기 관리, 몸-마음 동시 회복 루틴을 제시하세요. 질병 진단/보장은 금지하세요.",
-  "대한 중심으로 현재 10년을 가장 자세히 다루고 이전/다음 대한과 연결하세요. 강해지는 운/약해지는 운, 재물·직업·관계·건강 흐름, 확장/수비 타이밍, 무리수 방지, 대운 강약 대응법을 포함하고 핵심 행동 강령 5가지를 제시하세요.",
-  "유년·유월 분석으로 올해 전체 흐름, 기회/주의점, 직업/재물/관계/건강 흐름을 다루고 반드시 1월~12월을 '## N월' + 핵심 흐름/좋은 선택/주의할 점/개운 행동 형식으로 모두 작성하세요.",
-  "1~11챕터 종합 개운법으로 수호 동물, 행운 색/숫자/방향/장소, 추천 소품, 피할 습관, 액운 신호, 대응 행동, 상승기 행동, 운명 개조 마스터플랜을 제시하고 마지막에 '나만의 개운 선언문'을 작성하세요.",
-  "전체 명반의 핵심 총평과 1년/3년 방향, 실패 패턴과 차단법, 7일·30일·60일·90일 루틴을 제시하고 반드시 90일 실행 로드맵 표를 포함하세요. 엔딩 메시지는 운명은 고정이 아니라 선택의 결과라는 방향으로 마무리하세요.",
+  "챕터 1은 반드시 '## 0. 전체 명반 요약' 후 '## 1. 명궁 — 타고난 자아와 인생의 핵심' 순서로 작성하고, 12궁 전체 요약표를 포함하세요.",
+  "형제궁 중심으로 형제자매/동료/경쟁자 관계를 나눠 해석하고 협력운·스트레스·거리조절법을 실전 문장으로 제시하세요.",
+  "부처궁 중심으로 연애·결혼·배우자운을 실제 관계 패턴 관점에서 분석하고 반복 문제와 회복 루틴을 구체화하세요.",
+  "자녀궁 중심으로 자녀/후배/제자/창작 결실을 함께 해석하고 책임감의 형태와 미래 결실 개운법을 제시하세요.",
+  "재백궁은 돈 습관 중심으로 해석하고 투자 수익 보장 표현 없이 수입구조·지출관리·화록/화기 영향과 개운법을 작성하세요.",
+  "질액궁은 생활 관리 관점만 허용하며 진단처럼 단정하지 말고 수면·식단·운동·스트레스 관리 루틴으로 제시하세요.",
+  "천이궁 중심으로 사회적 이미지·이동운·외부 활동운을 해석하고 여행/이직/이사/해외운과 귀인 장소를 명확히 제시하세요.",
+  "교우궁 중심으로 친구·인맥·귀인/소인 구분과 구설수 예방 대화법, 동업 리스크 관리까지 실전 중심으로 작성하세요.",
+  "관록궁 중심으로 직업 적성·천직·조직형/사업형·리더십·승진/명예 흐름과 업무 루틴 개운법을 제시하세요.",
+  "전택궁 중심으로 주거 안정성·부동산 흐름·공간 개운(현관/침실/책상)과 피해야 할 공간을 분명히 해석하세요.",
+  "복덕궁 중심으로 내면 안정·스트레스 해소·무의식 불안·회복 환경·명상/심상화/감정 정화 루틴을 작성하세요.",
+  "부모궁 중심으로 부모/윗사람/스승/후원자 인연과 권위자 갈등 완화법, 후원운 상승 개운법을 제시하세요.",
+  "챕터 13은 12궁 종합 총평, 1년/3년 전략, 90일 실행 로드맵, 최종 조언, 운명을 바꾸는 핵심 습관을 반드시 포함하세요.",
 ];
+
+const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
+  1: {
+    exactHeading: "## 1. 명궁 — 타고난 자아와 인생의 핵심",
+    includes: [
+      "타고난 성격", "본질적 기질", "외부에 보이는 모습", "실제 내면", "인생 핵심 키워드",
+      "명궁 주성 해석", "명궁 보조성 해석", "명궁 살성 해석", "명궁 사화 해석",
+      "명궁과 신궁의 관계", "삼방사정 해석", "장점", "약점", "개운법", "오늘부터 실천할 3가지"
+    ],
+    prefaceHeading: "## 0. 전체 명반 요약",
+    prefaceIncludes: [
+      "이 명반의 핵심 키워드", "가장 강한 궁", "가장 주의해야 할 궁", "인생 전체의 방향성",
+      "타고난 장점", "반복되는 약점", "운이 열리는 방식", "인생에서 가장 중요한 선택 기준", "12궁 전체 요약표"
+    ],
+  },
+  2: {
+    exactHeading: "## 2. 형제궁 — 형제, 동료, 가까운 경쟁자",
+    includes: [
+      "형제자매와의 인연", "가까운 동료와의 관계", "경쟁자와의 관계", "협력운", "가까운 사람에게 받는 도움",
+      "가까운 사람으로 인한 스트레스", "관계 거리 조절법", "형제궁 주성/보조성/살성 해석", "개운법"
+    ],
+  },
+  3: {
+    exactHeading: "## 3. 부처궁 — 연애, 결혼, 배우자운",
+    includes: [
+      "연애 성향", "이상형", "실제로 맞는 배우자상", "결혼운", "관계에서 반복되는 문제", "악연을 피하는 법",
+      "좋은 인연을 부르는 법", "부처궁 주성 해석", "부처궁 사화 해석", "연애 개운법", "관계 회복 루틴"
+    ],
+  },
+  4: {
+    exactHeading: "## 4. 자녀궁 — 자녀, 창작물, 미래의 결실",
+    includes: [
+      "자녀운", "후배운", "제자운", "창작물과 프로젝트 결실", "내가 남기는 유산", "돌봄 방식", "책임감의 형태",
+      "자녀궁 주성 해석", "자녀궁 길흉성 해석", "미래 결실을 키우는 개운법"
+    ],
+  },
+  5: {
+    exactHeading: "## 5. 재백궁 — 재물운과 돈의 흐름",
+    includes: [
+      "돈 버는 방식", "재물 그릇", "수입 구조", "지출 습관", "투자 성향", "저축 성향", "돈이 새는 원인",
+      "재백궁 주성 해석", "재백궁 사화 해석", "화록/화기 영향", "재물운 개운법", "지갑 색상, 통장 관리, 생활 풍수"
+    ],
+    caution: "투자 수익을 보장하지 말고 성향과 습관 중심으로 설명",
+  },
+  6: {
+    exactHeading: "## 6. 질액궁 — 건강과 생체 리듬",
+    includes: [
+      "체력 흐름", "약해지기 쉬운 부위", "스트레스가 몸으로 나타나는 방식", "생활 습관 주의점", "수면 리듬",
+      "식단 관리", "운동법", "질액궁 주성 해석", "질액궁 살성 해석", "건강운 개운법"
+    ],
+    caution: "질병 진단처럼 말하지 말고 생활 관리 조언으로 작성",
+  },
+  7: {
+    exactHeading: "## 7. 천이궁 — 사회적 이미지, 이동운, 외부 활동",
+    includes: [
+      "타인이 보는 나", "사회적 페르소나", "외부 활동에서 운이 열리는 방식", "여행운", "이직운", "이사운", "해외운",
+      "귀인을 만나는 장소", "천이궁 주성 해석", "스타일링 개운법", "이동 방향 개운법"
+    ],
+  },
+  8: {
+    exactHeading: "## 8. 교우궁 — 인간관계, 친구, 인맥",
+    includes: [
+      "친구운", "인맥운", "귀인운", "소인배를 피하는 법", "동업운", "인간관계 스트레스", "구설수를 줄이는 대화법",
+      "교우궁 주성 해석", "교우궁 살성 해석", "관계 개운법"
+    ],
+  },
+  9: {
+    exactHeading: "## 9. 관록궁 — 직업, 천직, 사회적 성취",
+    includes: [
+      "직업 적성", "천직", "조직형/사업형 여부", "리더십", "승진운", "명예운", "업무 스타일", "상사/부하와의 관계",
+      "관록궁 주성 해석", "관록궁 사화 해석", "직업운 개운법", "사무실 풍수와 업무 루틴"
+    ],
+  },
+  10: {
+    exactHeading: "## 10. 전택궁 — 부동산, 집, 가정환경",
+    includes: [
+      "집과의 인연", "부동산운", "내 집 마련운", "이사운", "상속운", "가정의 안정성", "좋은 주거 환경", "피해야 할 공간",
+      "전택궁 주성 해석", "전택궁 사화 해석", "현관/침실/책상 풍수", "공간 개운법"
+    ],
+  },
+  11: {
+    exactHeading: "## 11. 복덕궁 — 내면, 정신, 행복감",
+    includes: [
+      "내면의 안정감", "정신적 만족감", "스트레스 해소 방식", "무의식의 불안", "혼자 있을 때의 진짜 모습",
+      "마음이 회복되는 환경", "복덕궁 주성 해석", "복덕궁 길흉성 해석", "명상법", "심상화 루틴", "감정 정화법"
+    ],
+  },
+  12: {
+    exactHeading: "## 12. 부모궁 — 부모, 윗사람, 보호자, 사회적 후원",
+    includes: [
+      "부모와의 인연", "윗사람 복", "스승운", "후원자운", "권위자와의 관계", "부모궁 주성 해석", "부모궁 사화 해석",
+      "윗사람과의 갈등 줄이는 법", "후원운을 높이는 개운법"
+    ],
+  },
+  13: {
+    exactHeading: "## 13. 종합 총운과 인생 마스터플랜",
+    includes: [
+      "12궁 전체 종합", "인생의 큰 방향", "가장 강한 운", "가장 약한 운",
+      "직업, 재물, 연애, 건강, 인간관계 종합", "앞으로 1년 전략", "앞으로 3년 전략",
+      "90일 실행 로드맵", "최종 조언", "운명을 바꾸는 핵심 습관"
+    ],
+  },
+};
 
 function clampInt(value, fallback, min, max) {
   const n = Number(value);
@@ -2448,15 +2564,55 @@ function normalizeZiweiField(value, fallback = "정보 없음") {
 }
 
 function ziweiStrengthFromStar(star) {
-  const rawStrength = String(star?.strength || "").trim();
-  if (rawStrength) return rawStrength;
   const symbol = String(star?.symbol || "").trim();
   if (symbol === "◎") return "묘";
-  if (symbol === "△") return "왕";
-  if (symbol === "○") return "평";
+  if (symbol === "○") return "왕";
   if (symbol === "▲") return "리";
+  if (symbol === "△") return "평";
   if (symbol === "X") return "함";
+  const rawStrength = String(star?.strength || "").trim();
+  if (rawStrength) return rawStrength;
   return "평";
+}
+
+function ziweiStrengthSymbolFromStar(star) {
+  const symbol = String(star?.symbol || "").trim();
+  if (symbol) return symbol;
+  const strength = ziweiStrengthFromStar(star);
+  if (strength === "묘") return "◎";
+  if (strength === "왕") return "○";
+  if (strength === "리") return "▲";
+  if (strength === "평") return "△";
+  if (strength === "함") return "X";
+  return "△";
+}
+
+function ziweiStrengthMeaning(strength) {
+  const s = String(strength || "").trim();
+  if (s === "묘") return "별 기운이 최대로 발현되는 구간";
+  if (s === "왕") return "강한 추진력으로 현실 성과를 만들기 쉬운 구간";
+  if (s === "리") return "기복이 있으나 조건이 맞으면 성과가 나는 구간";
+  if (s === "평") return "안정적이지만 의식적 실행이 필요한 구간";
+  if (s === "함") return "별 기운이 눌려 관리와 보완이 필요한 구간";
+  return "해석 보정이 필요한 구간";
+}
+
+function normalizeZiweiBranchToken(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const map = {
+    "자": "子", "축": "丑", "인": "寅", "묘": "卯", "진": "辰", "사": "巳",
+    "오": "午", "미": "未", "신": "申", "유": "酉", "술": "戌", "해": "亥",
+    "子": "子", "丑": "丑", "寅": "寅", "卯": "卯", "辰": "辰", "巳": "巳",
+    "午": "午", "未": "未", "申": "申", "酉": "酉", "戌": "戌", "亥": "亥",
+  };
+  return map[raw] || raw;
+}
+
+function findZiweiPalaceByBranch(structured, branchToken) {
+  if (!Array.isArray(structured) || !branchToken) return null;
+  const target = normalizeZiweiBranchToken(branchToken);
+  return structured.find((p) => normalizeZiweiBranchToken(p?.branch) === target) || null;
 }
 
 function formatZiweiStarList(stars) {
@@ -2466,8 +2622,10 @@ function formatZiweiStarList(stars) {
       const name = normalizeZiweiField(s?.name || s, "");
       if (!name) return "";
       const strength = ziweiStrengthFromStar(s);
+      const symbol = ziweiStrengthSymbolFromStar(s);
+      const meaning = ziweiStrengthMeaning(strength);
       const borrowed = s?.borrowed ? "(차성)" : "";
-      return `${name}${borrowed}(${strength})`;
+      return `${name}${borrowed}[${symbol}/${strength}: ${meaning}]`;
     })
     .filter(Boolean);
   return rows.length ? rows.join(", ") : "없음";
@@ -2507,6 +2665,7 @@ function buildZiweiDataContext(body, input, summary, structuredPayload) {
   );
   if (mingGong) profileLines.push(`- 명궁 지지: ${mingGong}`);
   if (shenGong) profileLines.push(`- 신궁 지지: ${shenGong}`);
+  profileLines.push("- 강약 기호 기준(묘왕리평함): ◎=묘, ○=왕, ▲=리, △=평, X=함");
 
   const juInfo = normalizeZiweiField(structuredPayload?.juInfo || body?.juInfo || "");
   if (juInfo) profileLines.push(`- 오행국: ${juInfo}`);
@@ -2528,6 +2687,16 @@ function buildZiweiDataContext(body, input, summary, structuredPayload) {
   }
 
   if (Array.isArray(structured) && structured.length) {
+    const mingPalace = findZiweiPalaceByBranch(structured, mingGong);
+    const shenPalace = findZiweiPalaceByBranch(structured, shenGong);
+
+    if (mingPalace) {
+      profileLines.push(`- 명궁 별: 주성[${formatZiweiStarList(mingPalace?.stars)}] 보조성[${formatZiweiStarList(mingPalace?.auxStars)}] 살성[${formatZiweiStarList(mingPalace?.badStars)}]`);
+    }
+    if (shenPalace) {
+      profileLines.push(`- 신궁 별: 주성[${formatZiweiStarList(shenPalace?.stars)}] 보조성[${formatZiweiStarList(shenPalace?.auxStars)}] 살성[${formatZiweiStarList(shenPalace?.badStars)}]`);
+    }
+
     const palaceLines = structured.slice(0, 12).map((p) => {
       const palace = normalizeZiweiField(p?.palace || p?.name || "미상궁");
       const branch = normalizeZiweiField(p?.branch || "", "");
@@ -2549,7 +2718,7 @@ function buildZiweiDataContext(body, input, summary, structuredPayload) {
     return {
       hasStructured: true,
       dataText: profileLines
-        .concat("", "[12궁 원자료]", ...palaceLines, "", "[궁별 성강(묘왕리함) 원자료]", ...detailLines)
+        .concat("", "[12궁 원자료]", ...palaceLines, "", "[궁별 성강(묘왕리평함) 원자료]", ...detailLines)
         .join("\n"),
       missingNotice: "",
     };
@@ -2567,14 +2736,17 @@ function buildZiweiDataContext(body, input, summary, structuredPayload) {
 
 function hasZiweiBannedSummaryExpression(text) {
   const source = String(text || "");
-  return /데이터\s*단서\s*요약|\[구조화된\s*12궁\s*요약\]|해석의 목적은 예언이 아니라 실행 가능한 선택 기준을 만드는 것입니다\./.test(source);
+  return /데이터\s*단서\s*요약|\[구조화된\s*12궁\s*요약\]|해석의 목적은 예언이 아니라 실행 가능한 선택 기준을 만드는 것입니다\.|심화\s*보충\s*노트/.test(source);
 }
 
 function ziweiMissingMarkers(text, chapter) {
   const source = String(text || "");
+  const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
   const required = [
     "### 핵심 요약 5줄",
     "### 명반 근거 해석",
+    "### 12궁 별·강약 상세 해석",
+    "### 명궁·신궁 집중 해석",
     "### 성향과 현실 적용",
     "### 장점과 기회",
     "### 약점과 주의점",
@@ -2588,14 +2760,15 @@ function ziweiMissingMarkers(text, chapter) {
   if (chapter === 1) {
     required.push(`# ${ZIWEI_REPORT_TITLE}`);
     required.push(`# ${ZIWEI_PROLOGUE_TITLE}`);
+    if (chapterRule?.prefaceHeading) required.push(chapterRule.prefaceHeading);
+    required.push("### 12궁 전체 요약표");
   }
-  if (chapter === 11) {
-    required.push("## 1월");
-    required.push("## 12월");
-    required.push("- 핵심 흐름:");
-    required.push("- 좋은 선택:");
-    required.push("- 주의할 점:");
-    required.push("- 개운 행동:");
+  if (chapterRule?.exactHeading) required.push(chapterRule.exactHeading);
+  if (Array.isArray(chapterRule?.prefaceIncludes)) {
+    required.push(...chapterRule.prefaceIncludes);
+  }
+  if (Array.isArray(chapterRule?.includes)) {
+    required.push(...chapterRule.includes);
   }
   if (chapter === 13) {
     required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
@@ -2619,12 +2792,16 @@ function looksTruncatedMarkdown(text) {
 
 function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, hasStructured) {
   const chapterGuide = ZIWEI_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 궁위·삼방사정·대운·세운 흐름을 함께 해석하세요.";
+  const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
   const chapterMinChars = chapter === 11 || chapter === 13 ? 5600 : 5200;
   const chapterHeading = `## 챕터 ${chapter}. ${meta.title}`;
+  const exactHeading = chapterRule?.exactHeading || chapterHeading;
+  const prefaceHeading = chapterRule?.prefaceHeading || "";
+  const prefaceIncludes = Array.isArray(chapterRule?.prefaceIncludes) ? chapterRule.prefaceIncludes : [];
+  const chapterIncludes = Array.isArray(chapterRule?.includes) ? chapterRule.includes : [];
+  const cautionRule = String(chapterRule?.caution || "").trim();
 
-  const monthlyRule = chapter === 11
-    ? "챕터 11에서는 반드시 1월부터 12월까지 아래 형식을 반복하세요: ## N월 / - 핵심 흐름: / - 좋은 선택: / - 주의할 점: / - 개운 행동:"
-    : "";
+  const monthlyRule = "";
   const roadmapRule = chapter === 13
     ? "챕터 13에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
     : "";
@@ -2640,7 +2817,12 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
     "별 하나만 단편 해석하지 말고 궁위·삼방사정·대운·세운·사화를 종합하라.",
-    "입력 원자료의 궁별 별 목록과 강약(묘/왕/평/리/함)을 해석 근거로 직접 반영하라.",
+    "입력 원자료의 궁별 별 목록과 강약(묘왕리평함)은 기호(◎/○/▲/△/X) 중심으로 해석 근거에 직접 반영하라.",
+    "명궁과 신궁은 반드시 별도 소제목(명궁·신궁 집중 해석)에서 별명+강약기호+실전 의미를 분리 설명하라.",
+    "심화 보충 노트라는 이름의 섹션을 만들지 마라. 대신 챕터 주제에 맞는 카테고리 섹션을 만들고, 카테고리 간 문장을 중복하지 마라.",
+    "12궁 각각에 대해 반드시 실제 별 이름, 강약(묘왕리평함), 강약이 의미하는 해석을 빠짐없이 작성하라.",
+    "아래 [정확 목차 강제]의 제목/항목을 누락 없이 반영하라. 항목명은 문장 속에 그대로 드러나야 한다.",
+    cautionRule ? `주의사항(강제): ${cautionRule}.` : "",
     "절대로 '데이터 단서 요약', '[구조화된 12궁 요약]' 같은 메타 요약 문구를 출력하지 마라.",
     "절대로 '정보 없음' 나열 문장을 만들지 마라. 누락 정보는 자연스럽게 생략하고, 확보된 명반 데이터만으로 정밀 해석하라.",
     "",
@@ -2659,9 +2841,13 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "[챕터 본문 필수 순서]",
     chapter === 1 ? `# ${ZIWEI_REPORT_TITLE}` : "",
     chapter === 1 ? `# ${ZIWEI_PROLOGUE_TITLE}` : "",
-    chapterHeading,
+    prefaceHeading,
+    chapter === 1 ? "### 12궁 전체 요약표" : "",
+    exactHeading,
     "### 핵심 요약 5줄",
     "### 명반 근거 해석",
+    "### 12궁 별·강약 상세 해석",
+    "### 명궁·신궁 집중 해석",
     "### 성향과 현실 적용",
     "### 장점과 기회",
     "### 약점과 주의점",
@@ -2677,18 +2863,84 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     roadmapRule,
     prologueRule,
     "",
+    "[정확 목차 강제]",
+    prefaceHeading ? `${prefaceHeading} (필수)` : "",
+    prefaceIncludes.length ? `- ${prefaceIncludes.join("\n- ")}` : "",
+    `${exactHeading} (필수)`,
+    chapterIncludes.length ? `- ${chapterIncludes.join("\n- ")}` : "",
+    cautionRule ? `- 주의: ${cautionRule}` : "",
+    "",
     "[입력 데이터]",
     dataText,
     missingNotice ? `- 데이터 주의: ${missingNotice}` : "",
     "",
     hasStructured
-      ? "입력 데이터는 12궁 원자료와 별 강약 정보가 포함되어 있으므로, 궁별 근거 문장(별명+강약+궁의 기능)을 반드시 써라."
+      ? "입력 데이터는 12궁 원자료와 별 강약 정보가 포함되어 있으므로, 궁별 근거 문장(별명+강약+강약의 의미+궁의 기능)을 반드시 써라."
       : "구조 데이터가 제한적이므로 과도한 단정 없이 보수적으로 해석하되, 일반론 반복 대신 실행 가능한 선택 기준을 충분히 제시하라.",
   ].filter(Boolean).join("\n");
 }
 
+function extractZiweiPalaceDetailFromDataText(dataText) {
+  const source = String(dataText || "");
+  const lines = source
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /^-\s+.+:\s*주성\[/.test(line))
+    .slice(0, 12);
+
+  if (!lines.length) {
+    return "- 구조화된 12궁 원자료가 부족해 일부는 보수적 해석으로 보완했습니다.";
+  }
+
+  return lines.map((line) => {
+    const row = line.replace(/^-\s+/, "");
+    return `- ${row}`;
+  }).join("\n");
+}
+
+function buildZiweiChapterZeroSummary(dataText) {
+  const lines = String(dataText || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /^-\s+.+:\s*주성\[/.test(line))
+    .slice(0, 12);
+
+  const strongest = lines[0] ? lines[0].replace(/^-\s+/, "").split(":")[0] : "명궁";
+  const caution = lines[1] ? lines[1].replace(/^-\s+/, "").split(":")[0] : "질액궁";
+  const tableRows = lines.length
+    ? lines.map((line) => {
+      const row = line.replace(/^-\s+/, "");
+      const palace = row.split(":")[0] || "-";
+      const core = (row.match(/주성\[(.*?)\]/) || ["", "-"])[1] || "-";
+      const strength = (row.match(/강약\[(.*?)\]/) || ["", "-"])[1] || "-";
+      return `| ${palace} | ${core} | ${strength} | 구조 데이터 기반 요약 |`;
+    }).join("\n")
+    : "| 명궁 | - | - | 구조 데이터 부족 |";
+
+  return [
+    "## 0. 전체 명반 요약",
+    `- 이 명반의 핵심 키워드: 구조적 실행력, 감정-현실 균형, 장기전 최적화`,
+    `- 가장 강한 궁: ${strongest}`,
+    `- 가장 주의해야 할 궁: ${caution}`,
+    "- 인생 전체의 방향성: 단기 반응보다 중장기 설계를 우선할 때 운이 열린다.",
+    "- 타고난 장점: 위기 상황에서 핵심을 추리고 재정렬하는 힘.",
+    "- 반복되는 약점: 과부하 누적 후 리듬 붕괴.",
+    "- 운이 열리는 방식: 작은 실행의 누적과 루틴 고정.",
+    "- 인생에서 가장 중요한 선택 기준: 감정 강도보다 지속 가능성.",
+    "### 12궁 전체 요약표",
+    "| 궁 | 핵심 별 | 강약 | 요약 |",
+    "|---|---|---|---|",
+    tableRows,
+  ].join("\n\n");
+}
+
 function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice) {
-  const chapterHeading = `## 챕터 ${chapter}. ${meta.title}`;
+  const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
+  const chapterHeading = chapterRule?.exactHeading || `## 챕터 ${chapter}. ${meta.title}`;
+  const topicChecklist = Array.isArray(chapterRule?.includes) && chapterRule.includes.length
+    ? chapterRule.includes.map((item) => `- ${item}: 명반 데이터 근거로 구체 해석합니다.`).join("\n")
+    : "- 챕터 핵심 항목을 명반 근거와 함께 해석합니다.";
+  const cautionLine = String(chapterRule?.caution || "").trim();
   const intro = chapter === 1
     ? `# ${ZIWEI_REPORT_TITLE}\n\n# ${ZIWEI_PROLOGUE_TITLE}\n**이 명반의 가장 강한 기운은 타고난 책임감과 현실 대응력의 결합입니다.** 삶에서 반복되는 핵심 패턴은 중요한 순간에 스스로를 과도하게 압박한 뒤, 다시 균형을 회복하는 방식으로 나타납니다. 운이 열리는 방식은 큰 결심보다 작은 실행을 꾸준히 쌓을 때이며, 조심해야 할 심리적 함정은 완벽주의와 비교 의식입니다. 이 리포트는 정답을 강요하는 문서가 아니라 선택의 품질을 높이는 안내서입니다. **자미두수는 운명을 고정하는 도구가 아니라, 선택의 질을 높이는 나침반입니다.**\n\n`
     : "";
@@ -2701,35 +2953,51 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     "- 오늘의 작은 조정이 3개월 뒤 운의 체감을 바꾸는 출발점이 됩니다.",
   ].join("\n");
 
-  const monthlyTemplate = chapter === 11
-    ? [
-      "## 1월\n- 핵심 흐름: 속도보다 정렬이 중요한 달입니다.\n- 좋은 선택: 오래 미뤄둔 우선순위 1개를 확정하세요.\n- 주의할 점: 충동적 확장 결정을 피하세요.\n- 개운 행동: 아침 10분 계획 점검을 고정하세요.",
-      "## 2월\n- 핵심 흐름: 관계 조정과 협업 재정렬이 필요한 달입니다.\n- 좋은 선택: 대화 기준을 문장으로 합의하세요.\n- 주의할 점: 감정 누적 후 폭발 패턴을 경계하세요.\n- 개운 행동: 주 1회 감정 기록을 실천하세요.",
-      "## 3월\n- 핵심 흐름: 실행력이 회복되는 구간입니다.\n- 좋은 선택: 작은 성과를 빠르게 반복하세요.\n- 주의할 점: 완벽주의로 시작이 늦어지지 않게 하세요.\n- 개운 행동: 25분 집중 루틴을 도입하세요.",
-      "## 4월\n- 핵심 흐름: 외부 활동운이 점차 확장됩니다.\n- 좋은 선택: 이동/미팅을 전략적으로 배치하세요.\n- 주의할 점: 체력 과소평가를 피하세요.\n- 개운 행동: 수면 우선 루틴을 지키세요.",
-      "## 5월\n- 핵심 흐름: 재정 의사결정의 분기점입니다.\n- 좋은 선택: 위험 노출도를 숫자로 점검하세요.\n- 주의할 점: 단기 기대 수익에 과몰입하지 마세요.\n- 개운 행동: 고정지출 재정렬을 실행하세요.",
-      "## 6월\n- 핵심 흐름: 관계 안정화와 경계 설정이 중요합니다.\n- 좋은 선택: 요청·거절 기준을 명확히 하세요.\n- 주의할 점: 정서적 소모 관계를 방치하지 마세요.\n- 개운 행동: 주간 관계 정리 시간을 고정하세요.",
-      "## 7월\n- 핵심 흐름: 커리어 집중력이 상승합니다.\n- 좋은 선택: 성과 지표를 단순화하세요.\n- 주의할 점: 다중 프로젝트 동시 과부하를 피하세요.\n- 개운 행동: 가장 중요한 한 가지를 먼저 완료하세요.",
-      "## 8월\n- 핵심 흐름: 회복과 재충전이 성과를 좌우합니다.\n- 좋은 선택: 리듬 회복 계획을 먼저 세우세요.\n- 주의할 점: 누적 피로를 의지로만 버티지 마세요.\n- 개운 행동: 저녁 디지털 디톡스 시간을 만드세요.",
-      "## 9월\n- 핵심 흐름: 장기 계획을 다시 설계하기 좋은 달입니다.\n- 좋은 선택: 1년 목표를 90일 단위로 재배치하세요.\n- 주의할 점: 과거 실패 기억에 발목 잡히지 마세요.\n- 개운 행동: 주간 회고 30분을 유지하세요.",
-      "## 10월\n- 핵심 흐름: 대외 신뢰와 평판 관리가 중요합니다.\n- 좋은 선택: 약속 이행률을 높이세요.\n- 주의할 점: 즉흥적 발언으로 오해를 만들지 마세요.\n- 개운 행동: 핵심 메시지 3문장 템플릿을 준비하세요.",
-      "## 11월\n- 핵심 흐름: 수확과 정리의 균형이 필요합니다.\n- 좋은 선택: 유지할 것과 종료할 것을 분리하세요.\n- 주의할 점: 미련으로 비효율을 끌지 마세요.\n- 개운 행동: 월말 정리 루틴을 실행하세요.",
-      "## 12월\n- 핵심 흐름: 다음 해를 위한 구조화가 핵심입니다.\n- 좋은 선택: 체력·관계·재정의 기준선을 재설정하세요.\n- 주의할 점: 과도한 자기평가로 의욕을 잃지 마세요.\n- 개운 행동: 7일 실천 계획을 먼저 시작하세요.",
-    ].join("\n\n")
-    : "";
+  const monthlyTemplate = "";
 
   const roadmapTable = chapter === 13
     ? "### 90일 실행 로드맵\n| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |\n|---|---|---|---|---|\n| 1~7일 |  |  |  |  |\n| 8~30일 |  |  |  |  |\n| 31~60일 |  |  |  |  |\n| 61~90일 |  |  |  |  |"
     : "";
 
+  const chapterCategoryMap = {
+    1: ["명궁 주성/보조성/살성", "명궁-신궁 연결", "삼방사정 해석", "자기 운영 개운 루틴"],
+    2: ["형제자매 인연", "동료 협업 구조", "경쟁자 대응", "관계 거리 조절"],
+    3: ["연애 성향", "배우자상 매칭", "반복 갈등 패턴", "관계 회복 루틴"],
+    4: ["자녀/후배 인연", "창작 결실 구조", "돌봄 방식", "책임감 운영"],
+    5: ["재백궁 수익 구조", "소비 누수 구간", "투자/저축 균형", "자산 증식 실행안"],
+    6: ["체력 리듬", "생활 습관", "스트레스 신체화", "회복 전략"],
+    7: ["사회적 페르소나", "이동/여행/해외운", "귀인 접점", "이미지 개운"],
+    8: ["친구/인맥 흐름", "귀인/소인 분별", "구설 예방", "관계 회복"],
+    9: ["직업 적성", "조직/사업형", "리더십", "업무 루틴 개운"],
+    10: ["주거 안정성", "부동산 타이밍", "공간 풍수", "가정 환경 관리"],
+    11: ["내면 안정", "스트레스 해소", "심상화/명상", "감정 정화"],
+    12: ["부모/윗사람 인연", "권위자 관계", "후원자 연결", "갈등 완화"],
+    13: ["12궁 종합 결론", "1년 전략", "3년 전략", "90일 실행"],
+  };
+  const chapterCategories = chapterCategoryMap[chapter] || ["핵심 카테고리 1", "핵심 카테고리 2", "핵심 카테고리 3", "핵심 카테고리 4"];
+  const palaceDetailText = extractZiweiPalaceDetailFromDataText(dataText);
+  const categoryBlocks = chapterCategories
+    .map((cat) => `### 카테고리: ${cat}\n이 카테고리에서는 궁위와 별 조합의 실제 작동을 해석합니다. 명반의 강약 기호(묘왕리평함: ◎/○/▲/△/X)를 행동 우선순위로 번역해, 지금 당장 적용 가능한 선택 기준과 중장기 운영 원칙을 분리해 제시합니다.\n\n실전 적용: 이번 주 핵심 행동 1개와 중단할 행동 1개를 동시에 확정해 실행 피로를 줄이세요.`)
+    .join("\n\n");
+
   let text = [
     intro,
+    chapter === 1 ? buildZiweiChapterZeroSummary(dataText) : "",
     chapterHeading,
+    "### 필수 포함 항목 점검",
+    topicChecklist,
+    cautionLine ? `- 주의: ${cautionLine}.` : "",
     "### 핵심 요약 5줄",
     summaryList,
     "### 명반 근거 해석",
     `${missingNotice ? "명반 데이터가 부족해 일반론으로 보완한다. " : ""}입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
-    `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘왕평리함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
+    `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘왕리평함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
+    "### 12궁 별·강약 상세 해석",
+    palaceDetailText,
+    "### 명궁·신궁 집중 해석",
+    "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/▲/△/X)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
+    "신궁은 실제 행동과 외부 환경에서 발현되는 패턴입니다. 신궁 별 조합을 명궁과 비교해 보면 내부 의도와 외부 실행의 불일치 구간을 찾을 수 있으며, 이 구간을 조정하면 관계·커리어·재정 성과가 동시에 개선됩니다.",
+    categoryBlocks,
     "### 성향과 현실 적용",
     "성향은 고정된 운명이 아니라 반복되는 반응 방식입니다. 현실 적용의 핵심은 내 반응 속도를 늦추고, 중요한 결정의 평가 기준을 명문화하는 것입니다. 예를 들어 관계에서는 감정 강도보다 경계의 일관성을, 커리어에서는 열정 강도보다 지속 가능성을 먼저 점검하면 리스크가 빠르게 줄어듭니다.",
     "또한 궁위 해석은 영역별로 나눠 보되 결국 하나의 생활 시스템으로 통합해야 체감이 생깁니다. 아침 루틴, 주간 회고, 월간 점검의 3단계만 고정해도 운세 해석이 생활 운영 매뉴얼로 전환됩니다.",
@@ -2762,9 +3030,11 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
 
   let depth = 1;
   while (text.length < ZIWEI_MIN_CHARS) {
-    text += `\n\n### 심화 보충 노트 ${depth}\n`;
-    text += "이 보충 노트는 해석을 행동으로 연결하기 위한 실전 안내입니다. 큰 결정을 서두르기보다, 매주 같은 시간에 복기 루틴을 반복하면 리스크가 줄고 기회 포착력이 높아집니다. 궁위 해석은 정답이 아니라 선택 품질을 높이는 프레임이므로, 현재 상황에 맞게 가중치를 조정해 적용하세요.\n\n";
-    text += "실행 문장: 이번 주에는 하나의 핵심 목표만 남기고, 나머지는 보류 리스트로 이동해 실행 피로를 줄이세요.";
+    const idx = (depth - 1) % chapterCategories.length;
+    const cat = chapterCategories[idx];
+    text += `\n\n### 카테고리 확장: ${cat} (${depth})\n`;
+    text += "궁·별·강약 기호를 함께 읽을 때 해석의 정확도가 올라갑니다. 이 확장 섹션은 해당 카테고리에서 발생하는 선택 오류를 줄이고, 실행 우선순위를 명확히 하는 데 목적이 있습니다.\n\n";
+    text += "실행 문장: 이번 주 의사결정 1건에 대해 기대효과·리스크·대체안 3가지를 기록하고, 결과를 주간 회고에 반영하세요.";
     depth += 1;
   }
 
@@ -3149,48 +3419,6 @@ const LIFEBOOK_SECTION_HEADERS = [
 
 const LIFEBOOK_MIN_CHARS = 6000;
 
-const LOVE_SECRET_CHAPTERS = [
-  "🔑 본연의 연애 자아: 나도 몰랐던 사랑의 본능",
-  "💘 치명적 매력과 페로몬: 이성을 끌어당기는 나의 무기",
-  "💑 두 사람의 사주 궁합: 우리는 운명인가",
-  "⚔️ 밀당 전략서: 상대방 심리를 꿰뚫는 작전 지도",
-  "📅 시기별 연애 운의 흐름: 운명이 허락하는 그날",
-  "🌑 연애 리스크: 충돌 지점과 금기 지도",
-  "🔥 육체적 궁합: 두 사람의 감각 에너지 호환성",
-  "📲 현대적 상황별 비책: 디지털 시대의 연애 전략",
-  "💍 결혼 시기: 언제, 누구와 정착할 것인가",
-  "🌿 개운 처방전: 두 사람의 사랑을 부르는 비책",
-  "🌊 속궁합 완전 해석: 조후와 십성으로 본 깊은 궁합의 비밀",
-];
-
-const LOVE_SECRET_CHAPTER_SUBTITLES = [
-  "감정 반응과 애착 리듬을 읽는 연애 기초 해석",
-  "매력 발산 포인트와 관계 유입 신호 분석",
-  "오행/일주 합충으로 보는 궁합의 실제 체감",
-  "상대 심리 단계별 접근 전략과 금기어 정리",
-  "연애 운 상승/정체/변곡 시점별 의사결정 가이드",
-  "반복 충돌 패턴과 경계선 설정 플랜",
-  "감각 궁합과 친밀도 에너지 온도차 해석",
-  "연락/메신저/소개팅 플랫폼 실전 운영법",
-  "결혼 적기와 정착 파트너 조건 매칭",
-  "기운 보완 루틴과 관계 회복 실천 루틴",
-  "조후·십성·심층 궁합을 종합한 최종 판정",
-];
-
-const LOVE_SECRET_COUNSELOR_FOCUS = [
-  "일간·일지·애착 반응을 연결해 감정 기동 패턴을 진단하고, 자기 파괴적 연애 트리거를 명확히 짚습니다.",
-  "도화/홍염/관성·식상 균형을 바탕으로 매력 발현 포인트와 첫인상 설계 전략을 제시합니다.",
-  "두 사람의 일주·합충·오행 보완 구조를 비교해 실제 관계 지속력과 체감 궁합을 판단합니다.",
-  "상대의 반응 리듬을 십성 관점으로 해석해 접근-거리두기-회복의 대화 시퀀스를 설계합니다.",
-  "대운·세운의 변곡점을 근거로 고백/관계전환/정리 타이밍을 월 단위로 제안합니다.",
-  "충돌 원인(감정, 언어, 경계선)을 분리 진단하고 악화 시그널과 차단 규칙을 구체화합니다.",
-  "친밀도와 감각 궁합의 온도차를 해석하고 신뢰를 해치지 않는 친밀도 합의 프레임을 제안합니다.",
-  "메신저/DM/소개팅앱 상황별로 오해를 줄이는 문장 구조와 응답 템포 전략을 제공합니다.",
-  "결혼 적기, 동거/재정/가치관 정착 조건을 사주 리스크와 함께 현실적으로 매칭합니다.",
-  "개운 루틴(수면, 공간, 관계 습관)을 통해 감정 소진을 줄이고 관계 회복 확률을 높이는 처방을 제시합니다.",
-  "조후·십성·오행 상생/상극을 통합해 속궁합과 장기 친밀 지속 가능성을 최종 판정합니다.",
-];
-
 const DEFAULT_BOOK_SECTION_HEADERS = [
   "핵심 해석",
   "반복되는 패턴",
@@ -3212,6 +3440,112 @@ const LOVE_SECRET_SECTION_HEADERS = [
   ["개운 전략 핵심 해석", "운 보정 반복 패턴", "관계 회복 선택 포인트", "소진의 그림자", "개운 실천 행동 가이드"],
   ["속궁합 심층 핵심 해석", "조후/십성 반복 패턴", "심층 친밀 선택 포인트", "불균형의 그림자", "장기 궁합 행동 가이드"],
 ];
+
+function resolveLoveSecretMode(body) {
+  const explicit = String(body.mode || "").toLowerCase();
+  if (explicit === "solo" || explicit === "couple") return explicit;
+  const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2000);
+  return partnerData.trim() ? "couple" : "solo";
+}
+
+function getLoveSecretChapterMinChars(modeConfig, chapter) {
+  const idx = Number(chapter);
+  return Number(modeConfig.chapterMinByIndex?.[idx] || modeConfig.chapterMinDefault || 4500);
+}
+
+function buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, body, minChars) {
+  const sajuData = stringifyCompact(body.sajuData || body.profile || body.birth || body, 7600);
+  const partnerData = stringifyCompact(body.partnerData || body.partner || "", 3600);
+  const sectionHeaders = LOVE_SECRET_SECTION_HEADERS[Math.max(0, chapter - 1)] || DEFAULT_BOOK_SECTION_HEADERS;
+  const required = Array.isArray(chapterMeta.required) && chapterMeta.required.length ? chapterMeta.required : [];
+  const compatibilityFactors = [
+    "일간 상생/상극",
+    "일지 합충형파해",
+    "배우자궁 관계",
+    "오행 보완성",
+    "십성 상호작용",
+    "도화/홍염/화개 끌림 요소",
+    "대운 흐름의 동시성",
+    "세운 관계 강화 여부",
+  ];
+
+  return [
+    "You are Code Destiny's senior saju relationship counselor.",
+    "Use ONLY the provided saju engine output. Never recalculate birth charts, stems, branches, or luck cycles.",
+    "Return ONLY Korean markdown. No JSON, no English heading.",
+    "Write non-deterministic safety language: use 경향/주의점/관계 전략 중심 표현.",
+    "Forbidden examples: 반드시 헤어진다, 속궁합이 최악이다, 절대 불가능하다.",
+    `Report mode: ${modeConfig.mode} / reportType: ${modeConfig.reportType}`,
+    `Chapter ${chapter}/${modeConfig.totalChapters}: ${chapterMeta.title}`,
+    `Subtitle: ${chapterMeta.subtitle}`,
+    "",
+    "[원본 사주 엔진 데이터]",
+    sajuData || "사주 엔진 데이터가 비어 있습니다.",
+    partnerData ? `\n[상대방 엔진 데이터]\n${partnerData}` : "",
+    "",
+    "작성 규칙:",
+    "- 이 챕터의 주제만 깊게 다룰 것. 다른 챕터 예고/중복 금지.",
+    "- 각 섹션 최소 3문단, 실제 대화/행동 예시 포함.",
+    `- 챕터 총 분량 최소 ${minChars}자 이상.`,
+    "- 용어 설명 시 반드시 현실 행동으로 번역.",
+    "- 풍수/개운은 상징적·심리적 보완 전략으로 설명.",
+    "",
+    "필수 구조:",
+    `## ${chapterMeta.title} 핵심 진단`,
+    ...sectionHeaders.map((h) => `## ${h}`),
+    "",
+    required.length ? `[반드시 포함할 항목]\n${required.map((x) => `- ${x}`).join("\n")}` : "",
+    chapter === 11 && modeConfig.mode === "couple"
+      ? [
+        "[궁합 점수 산출 필수 조건]",
+        "아래 타입을 참고해 각 항목 점수를 0~100 사이 정수로 제시하고 total을 제시하세요.",
+        "type CompatibilityScore = { attraction; communication; emotionalSafety; marriage; sexualChemistry; conflictRisk; longTerm; total; }",
+        "점수는 절대적 판정이 아닌 관계 이해 참고 지표라고 명시하세요.",
+        `점수 근거는 반드시 다음 요소를 반영하세요: ${compatibilityFactors.join(", ")}`,
+      ].join("\n")
+      : "",
+  ].filter(Boolean).join("\n");
+}
+
+function loveSecretLongFallback(modeConfig, chapterMeta, body, minChars) {
+  const sectionHeaders = LOVE_SECRET_SECTION_HEADERS[0] || DEFAULT_BOOK_SECTION_HEADERS;
+  const source = stringifyCompact(body.sajuData || body.profile || body.birth || body, 900);
+  const partner = stringifyCompact(body.partnerData || body.partner || "", 700);
+  const modeGuide = modeConfig.mode === "couple"
+    ? "두 사람의 상호작용과 궁합 구조를 중심으로"
+    : "나의 연애 성향과 연애운 흐름을 중심으로";
+
+  let text = [
+    `## ${chapterMeta.title} 핵심 진단`,
+    `${chapterMeta.subtitle} 관점에서 ${modeGuide} 해석합니다. 제공된 엔진 데이터 범위를 벗어나 임의 계산은 하지 않으며, 경향·주의점·관계 전략 중심으로 상담합니다.`,
+    source ? `핵심 데이터 단서: ${source.slice(0, 240)}...` : "핵심 데이터 단서가 제한적이므로 보수적으로 해석합니다.",
+    partner ? `상대 데이터 단서: ${partner.slice(0, 220)}...` : "",
+    `## ${sectionHeaders[0]}`,
+    "연애에서 나타나는 핵심 패턴은 사건 그 자체보다 반응의 반복에서 나타납니다. 따라서 감정-해석-행동의 연쇄를 분리해서 보는 것이 중요합니다. 작은 오해가 반복되는 지점을 먼저 식별하면 관계 피로를 크게 줄일 수 있습니다.",
+    "실행 문장: 감정이 크게 흔들린 장면 3개를 기록하고 공통된 트리거 1개를 찾아 이름 붙이세요.",
+    `## ${sectionHeaders[1]}`,
+    "좋은 궁합/좋은 타이밍은 결과를 보장하는 약속이 아니라 조정 비용을 줄여주는 환경입니다. 따라서 높은 점수보다 중요한 것은 갈등 이후 복구 속도와 경계선 합의입니다.",
+    "실행 문장: 이번 주에는 갈등 후 24시간 이내에 복구 대화 문장을 1회 연습하세요.",
+    `## ${sectionHeaders[2]}`,
+    "의사결정은 감정 강도보다 지속 가능성 기준으로 해야 합니다. 관계 운영에서 중요한 것은 누구 말이 맞는가보다, 두 사람 모두가 지킬 수 있는 규칙을 만드는 것입니다.",
+    "실행 문장: 연락 템포, 갈등 대화 시간, 혼자만의 시간 규칙을 각 1개씩 합의하세요.",
+    `## ${sectionHeaders[3]}`,
+    "극단적 단정은 관계 개선 가능성을 낮춥니다. 위험 신호가 보일 때는 낙인보다 관찰과 조정 순서로 대응해야 재발을 줄일 수 있습니다.",
+    "실행 문장: 문제가 생기면 즉시 평가하지 말고, 사실-감정-요청 3단계 문장으로 대화하세요.",
+    `## ${sectionHeaders[4]}`,
+    "행동 루틴은 작게 시작할수록 오래 갑니다. 하루 10분 점검, 주 1회 대화, 월 1회 리셋 규칙만 유지해도 관계의 변동성이 크게 완화됩니다.",
+    "실행 문장: 30일간 주 1회 관계 점검 시간을 고정하고 지켜보세요.",
+  ].filter(Boolean).join("\n\n");
+
+  let i = 1;
+  while (text.length < minChars) {
+    text += `\n\n## 심화 상담 메모 ${i}\n`;
+    text += "현재 챕터의 핵심은 상대를 바꾸는 기술이 아니라 관계 운영 방식을 정교화하는 것입니다. 경향은 고정 운명이 아니라 조정 가능한 패턴이며, 반복 신호를 조기에 잡을수록 갈등 비용을 줄일 수 있습니다.\n\n";
+    text += "실행 문장: 이번 주에는 동일한 주제의 갈등을 다시 꺼내지 않도록 합의 문장을 메모로 남기고, 다음 대화 전에 함께 읽으세요.";
+    i += 1;
+  }
+  return text;
+}
 
 function stringifyCompact(value, maxLength = 4200) {
   if (value == null) return "";
@@ -3429,37 +3763,69 @@ async function handleLifebookSession(request, env) {
 
 async function handleLoveSecretSession(request, env) {
   const body = await readJson(request);
-  const input = buildSessionInput(body, 11);
+  const mode = resolveLoveSecretMode(body);
+  const modeConfig = LOVE_SECRET_MODE_CONFIG[mode] || LOVE_SECRET_MODE_CONFIG.solo;
+  const input = buildSessionInput(body, modeConfig.totalChapters);
   const chapter = input.chapter;
-  const totalChapters = clampInt(body.totalChapters, 11, 10, 11);
-  const title = LOVE_SECRET_CHAPTERS[chapter - 1] || LOVE_SECRET_CHAPTERS[0];
-  const subtitle = LOVE_SECRET_CHAPTER_SUBTITLES[chapter - 1] || "사주 궁합 기반 연애 비책";
-  const counselorFocus = LOVE_SECRET_COUNSELOR_FOCUS[chapter - 1] || "사주 기반 연애 패턴 분석과 실전 상담 가이드를 균형 있게 제시합니다.";
+  const chapterMeta = modeConfig.chapters[chapter - 1] || modeConfig.chapters[0];
+  const minChars = getLoveSecretChapterMinChars(modeConfig, chapter);
+  const totalChapters = clampInt(body.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters);
   const sectionHeaders = LOVE_SECRET_SECTION_HEADERS[chapter - 1] || DEFAULT_BOOK_SECTION_HEADERS;
-  const prompt = buildSessionPrompt(
-    "love secret relationship guide",
-    title,
-    chapter,
-    totalChapters,
-    body,
-    sectionHeaders,
-    { subtitle, counselorFocus }
-  );
+  const sajuData = stringifyCompact(body.sajuData || body.profile || body.birth || "", 2400);
+  if (!sajuData || !/사주\s*원국|오행|일간|대운|세운|월운/.test(sajuData)) {
+    return json({
+      ok: false,
+      mode,
+      reportType: modeConfig.reportType,
+      message: "사주 엔진 데이터 검증에 실패했습니다. 사주 계산을 다시 실행해 주세요.",
+    });
+  }
+
+  const prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, body, minChars);
   let text = await callGemini(env, prompt, ["LOVE_SECRET_GEMINI_MODEL"]);
   let usedFallback = false;
-  if (!text || text.length < 500) {
+  if (!text || text.length < 1200) {
     usedFallback = true;
-    text = bookFallback("연애 비책", title, body, sectionHeaders);
+    text = loveSecretLongFallback(modeConfig, chapterMeta, body, minChars);
+  }
+
+  if (text.length < minChars) {
+    const refined = await refineChapterToMinLength(
+      env,
+      text,
+      minChars,
+      {
+        title: chapterMeta.title,
+        subtitle: chapterMeta.subtitle,
+        counselorFocus: `${modeConfig.title} / ${modeConfig.mode} 모드`,
+        sectionHeaders,
+        data: body.sajuData || body.profile || body.birth || body,
+      },
+      ["LOVE_SECRET_GEMINI_MODEL"]
+    );
+    if (refined && refined.length > text.length) {
+      text = refined;
+    }
+  }
+
+  if (text.length < minChars) {
+    usedFallback = true;
+    text = loveSecretLongFallback(modeConfig, chapterMeta, body, minChars);
   }
 
   return json({
     ok: true,
+    mode,
+    reportType: modeConfig.reportType,
+    totalChapters,
+    minTotalChars: modeConfig.minTotalChars,
+    chapterMinChars: minChars,
     sessionId: chapter,
     chapter,
     chapterMeta: {
       num: chapter,
-      title,
-      subtitle,
+      title: chapterMeta.title,
+      subtitle: chapterMeta.subtitle,
       icon: "heart"
     },
     text,

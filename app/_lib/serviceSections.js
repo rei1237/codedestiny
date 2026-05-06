@@ -6,7 +6,7 @@ export const SERVICE_SECTIONS = [
       { href: "/saju/basic", title: "🌸 사주 만세력 기본 해석", desc: "오행·십성 기반 명식 분석 · 무료" },
       { href: "/saju/sibyl", title: "⚡ 시빌라 시스템", desc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료" },
       { href: "/saju/lifebook", title: "📜 인생의 책", desc: "프리미엄 사주 심층 분석 · 490코인" },
-      { href: "/saju/love-secret", title: "💕 연애 비책", desc: "사주 기반 연애 전략 · 290코인" },
+      { href: "/saju/love-secret", title: "💕 연애 비책", desc: "사주 기반 연애 전략 · 1인 300코인 / 2인 500코인" },
       { href: "/saju/love-simulation", title: "💕 LOVE CODE", desc: "사주 연애 시뮬레이션 · 무료" },
     ],
   },

@@ -243,7 +243,7 @@ const PAID_SLUG_META: Record<string, { coins: string }> = {
   "/oracle/royal-tea": { coins: "30코인" },
   "/yoga-guru": { coins: "30코인" },
   "/saju/lifebook": { coins: "490코인" },
-  "/saju/love-secret": { coins: "290코인" },
+  "/saju/love-secret": { coins: "1인 300코인 · 2인 500코인" },
 };
 
 /* Particle positions for the 5 floating items */
