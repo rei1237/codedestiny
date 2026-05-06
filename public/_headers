@@ -4,21 +4,33 @@
 # HTML and entry routes must never be long-cached.
 /
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /static
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /static/
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /static/index.html
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /*.html
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 # Runtime metadata and APIs must always revalidate.
 /api/*
@@ -26,6 +38,8 @@
 
 /version.json
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /status.json
   Cache-Control: no-cache, no-store, must-revalidate
@@ -33,15 +47,21 @@
 # Service worker and manifest should update immediately.
 /service-worker.js
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /tadagochi-sw.js
   Cache-Control: no-cache, no-store, must-revalidate
 
 /manifest.json
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /manifest-samba.json
   Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 # Non-hashed legacy assets: do not use immutable cache.
 /*.js

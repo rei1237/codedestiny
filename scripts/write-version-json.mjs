@@ -31,7 +31,8 @@ const commitSha = firstNonEmpty([
   runGit(["rev-parse", "HEAD"]),
 ]);
 
-const commitShort = commitSha ? commitSha.slice(0, 12) : "unknown";
+const timeStamp = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+const commitShort = commitSha ? commitSha.slice(0, 12) : `build-${timeStamp}`;
 
 const branch = firstNonEmpty([
   process.env.CF_PAGES_BRANCH,
@@ -64,13 +65,16 @@ const payload = {
 const versionPath = resolve(distDir, "version.json");
 const staticDir = resolve(distDir, "static");
 const staticVersionPath = resolve(staticDir, "version.json");
+const publicVersionPath = resolve(rootDir, "public", "version.json");
 
 mkdirSync(staticDir, { recursive: true });
 
 const body = JSON.stringify(payload, null, 2) + "\n";
 writeFileSync(versionPath, body, "utf8");
 writeFileSync(staticVersionPath, body, "utf8");
+writeFileSync(publicVersionPath, body, "utf8");
 
 console.log("[write-version-json] wrote " + versionPath);
 console.log("[write-version-json] wrote " + staticVersionPath);
+console.log("[write-version-json] wrote " + publicVersionPath);
 console.log("[write-version-json] commit=" + payload.commitShort + " branch=" + payload.branch);
