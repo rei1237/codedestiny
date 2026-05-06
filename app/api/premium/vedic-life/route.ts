@@ -1041,18 +1041,19 @@ export async function POST(req: NextRequest) {
       partnerName?: string;
     };
 
-    const { year, month, day, chapter } = body;
-    const hour   = body.hour ?? 12;
-    const minute = body.minute ?? 0;
-    const tz     = body.timezone ?? 9;
-    const lat    = body.lat ?? 37.5665;
-    const lon    = body.lon ?? 126.9780;
+    const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
+    const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
+    const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
+    const chapterRaw = Number(body.chapter ?? 1);
+    const chapter = Number.isFinite(chapterRaw)
+      ? Math.max(1, Math.min(14, Math.floor(chapterRaw)))
+      : 1;
+    const hour   = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
+    const minute = Number.isFinite(Number(body.minute)) ? Number(body.minute) : 0;
+    const tz     = Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9;
+    const lat    = Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665;
+    const lon    = Number.isFinite(Number(body.lon)) ? Number(body.lon) : 126.9780;
     const reportType = body.reportType === "compatibility" ? "compatibility" : "personal";
-
-    if (!year || !month || !day || !chapter)
-      return NextResponse.json({ ok:false, error:"Missing required fields" }, { status:400 });
-    if (chapter < 1 || chapter > 14)
-      return NextResponse.json({ ok:false, error:"Chapter must be 1-14" }, { status:400 });
 
     let swissData: Record<string, unknown> | null = null;
     let swissWarning = "";

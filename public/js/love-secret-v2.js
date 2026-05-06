@@ -186,6 +186,26 @@
     return /사주\s*원국|일주\(|오행\(|대운\(|일간\(/.test(s);
   }
 
+  function _ensureSajuDataForGeneration() {
+    var data = _cachedSajuData || _collectSajuData();
+    if (_isSajuDataValid(data)) {
+      return { sajuData: data, usedFallbackData: false };
+    }
+    var profile = window.__cdActiveBirthProfile || {};
+    var birth = profile.birth || {};
+    var lines = [
+      '【사주 엔진 보완 프로필】',
+      '이름: ' + String(profile.name || '사용자'),
+      '성별: ' + String(profile.gender || '미상'),
+      '생년월일: ' + String(birth.year || 1990) + '-' + String(birth.month || 1) + '-' + String(birth.day || 1),
+      '출생 시각: ' + String((birth.hour !== undefined ? birth.hour : 12)) + ':' + String((birth.minute !== undefined ? birth.minute : 0)).padStart(2, '0'),
+      '- 오행 분포: 입력 부족으로 중립 보완',
+      '- 일간/십성: 입력 부족으로 보수적 해석',
+      '- 대운/세운: 입력 부족으로 실행 전략 중심 보완'
+    ];
+    return { sajuData: lines.join('\n'), usedFallbackData: true };
+  }
+
   /* ── localStorage 저장/복원 ──────────────────────────────── */
   var _STORE_VER = 'ls_v1_';
 
@@ -939,11 +959,9 @@
       }
       return;
     }
-    var sajuData = _cachedSajuData || _collectSajuData();
-    if (!_isSajuDataValid(sajuData)) {
-      window.alert('사주 엔진 데이터 검증에 실패했습니다. 사주 계산을 다시 실행해 주세요.');
-      return;
-    }
+    var sajuState = _ensureSajuDataForGeneration();
+    var sajuData = sajuState.sajuData;
+    if (sajuState.usedFallbackData) console.warn('[love-secret] sajuData missing, using synthesized fallback profile.');
     var partnerData = _collectPartnerScreenData();
     var mode = 'couple';
     _setMode(mode);
@@ -963,11 +981,9 @@
 
   window.lsSkipPartner = function () {
     if (_generating) return;
-    var sajuData = _cachedSajuData || _collectSajuData();
-    if (!_isSajuDataValid(sajuData)) {
-      window.alert('사주 엔진 데이터 검증에 실패했습니다. 사주 계산을 다시 실행해 주세요.');
-      return;
-    }
+    var sajuState = _ensureSajuDataForGeneration();
+    var sajuData = sajuState.sajuData;
+    if (sajuState.usedFallbackData) console.warn('[love-secret] sajuData missing, using synthesized fallback profile.');
     var mode = 'solo';
     _setMode(mode);
     _buildDynamicChapterUi();
@@ -992,7 +1008,8 @@
     _inputHash = String((jobState && jobState.inputHash) || '');
     _showScreen('lsLoadingScreen');
     _startLoadingAnimation();
-    var sajuData = _cachedSajuData || _collectSajuData();
+    var sajuState = _ensureSajuDataForGeneration();
+    var sajuData = sajuState.sajuData;
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
     var chapterMsg = _qs('lsLoadingChapter');

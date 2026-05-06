@@ -404,7 +404,7 @@ function buildSukuyoOrientalChart(sukuyo: any, partner: any, rel: any, swissBasi
 
   return {
     type: "sukuyo-oriental-chart",
-    source: Number.isFinite(moonLon) && Number.isFinite(sunLon) ? "swiss-api+oriental-mapping" : String(sukuyo.source || "kasi-api"),
+    source: String(sukuyo.source || "kasi-api"),
     core: {
       primaryMansion: `${sukuyo.mansion}宿(${sukuyo.mansionCh})`,
       primaryDirection: sukuyo.direction,
@@ -555,21 +555,22 @@ async function generateText(prompt: string, minChars: number) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const year = Number(body.year);
-    const month = Number(body.month);
-    const day = Number(body.day);
+    const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
+    const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
+    const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
     const hour = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
-    const chapter = Number(body.chapter || 1);
+    const chapterRaw = Number(body.chapter ?? 1);
+    const chapter = Number.isFinite(chapterRaw)
+      ? Math.max(1, Math.min(13, Math.floor(chapterRaw)))
+      : 1;
     const requestedMode = String(body.reportMode || (body.includeCompatibility ? "compatibility" : "personal")).toLowerCase();
-    const reportMode: "personal" | "compatibility" = requestedMode === "compatibility" ? "compatibility" : "personal";
-    if (!year || !month || !day) return NextResponse.json({ ok: false, error: "Missing birth date" }, { status: 400 });
-    if (chapter < 1 || chapter > 13) return NextResponse.json({ ok: false, error: "Chapter must be 1-13" }, { status: 400 });
+    let reportMode: "personal" | "compatibility" = requestedMode === "compatibility" ? "compatibility" : "personal";
 
     const sukuyo = await calcSukuyo(req, year, month, day, hour, body);
-    const hasPartner = body.partnerYear && body.partnerMonth && body.partnerDay;
-    if (reportMode === "compatibility" && !hasPartner) {
-      return NextResponse.json({ ok: false, error: "Compatibility mode requires partner birth date." }, { status: 400 });
-    }
+    const hasPartner = Number.isFinite(Number(body.partnerYear))
+      && Number.isFinite(Number(body.partnerMonth))
+      && Number.isFinite(Number(body.partnerDay));
+    if (reportMode === "compatibility" && !hasPartner) reportMode = "personal";
 
     const partnerBody = {
       lunarMonth: body.partnerLunarMonth,

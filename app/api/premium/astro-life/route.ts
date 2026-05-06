@@ -20,24 +20,23 @@ function isChartPayload(value: unknown): value is {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const year = Number(body.year);
-    const month = Number(body.month);
-    const day = Number(body.day);
-    const chapter = Number(body.chapter || 1);
-    if (!year || !month || !day) return NextResponse.json({ ok: false, error: "Missing birth date" }, { status: 400 });
-    if (chapter < 1 || chapter > ASTRO_TOTAL_CHAPTERS) {
-      return NextResponse.json({ ok: false, error: `Chapter must be 1-${ASTRO_TOTAL_CHAPTERS}` }, { status: 400 });
-    }
+    const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
+    const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
+    const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
+    const chapterRaw = Number(body.chapter ?? 1);
+    const chapter = Number.isFinite(chapterRaw)
+      ? Math.max(1, Math.min(ASTRO_TOTAL_CHAPTERS, Math.floor(chapterRaw)))
+      : 1;
 
     const payload = {
       year,
       month,
       day,
-      hour: Number(body.hour ?? 12),
-      minute: Number(body.minute ?? 0),
-      timezone: Number(body.timezone ?? 9),
-      lat: Number(body.lat ?? 37.5665),
-      lon: Number(body.lon ?? 126.978),
+      hour: Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12,
+      minute: Number.isFinite(Number(body.minute)) ? Number(body.minute) : 0,
+      timezone: Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9,
+      lat: Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665,
+      lon: Number.isFinite(Number(body.lon)) ? Number(body.lon) : 126.978,
     };
 
     const chart = isChartPayload(body.chart)

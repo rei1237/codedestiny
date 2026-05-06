@@ -272,6 +272,70 @@
     list.innerHTML=html;
   }
 
+  function _ensureCompatibilityInputs(){
+    var start=document.getElementById('vdStartScreen');
+    if(!start||document.getElementById('vdCompatPanel'))return;
+
+    var panel=document.createElement('section');
+    panel.id='vdCompatPanel';
+    panel.style.cssText='margin:14px 0 10px;padding:12px 14px;border-radius:12px;background:rgba(194,65,12,0.18);border:1px solid rgba(253,186,116,0.35);';
+    panel.innerHTML=
+      '<label style="display:flex;align-items:center;gap:8px;font-weight:700;color:#ffedd5;cursor:pointer;">'+
+        '<input type="checkbox" id="vdCompatMode" style="width:16px;height:16px;"> 궁합 리포트 모드 (상대 정보 입력)'+
+      '</label>'+
+      '<div id="vdPartnerFields" style="display:none;margin-top:10px;">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+          '<input id="vdPartnerName" type="text" placeholder="상대 이름" style="padding:10px;border-radius:8px;border:1px solid rgba(253,186,116,.45);background:rgba(15,23,42,.5);color:#ffedd5;">'+
+          '<input id="vdPartnerBirthDate" type="date" style="padding:10px;border-radius:8px;border:1px solid rgba(253,186,116,.45);background:rgba(15,23,42,.5);color:#ffedd5;">'+
+          '<input id="vdPartnerHour" type="number" min="0" max="23" placeholder="태어난 시 (0-23)" style="padding:10px;border-radius:8px;border:1px solid rgba(253,186,116,.45);background:rgba(15,23,42,.5);color:#ffedd5;">'+
+          '<input id="vdPartnerMinute" type="number" min="0" max="59" placeholder="태어난 분 (0-59)" style="padding:10px;border-radius:8px;border:1px solid rgba(253,186,116,.45);background:rgba(15,23,42,.5);color:#ffedd5;">'+
+        '</div>'+
+        '<input id="vdPartnerBirthPlace" type="text" placeholder="상대 출생지 (도시/국가)" style="margin-top:8px;width:100%;padding:10px;border-radius:8px;border:1px solid rgba(253,186,116,.45);background:rgba(15,23,42,.5);color:#ffedd5;">'+
+      '</div>';
+
+    var anchor=start.querySelector('.lb-start__note')||start.firstElementChild;
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(panel,anchor.nextSibling);
+    else start.appendChild(panel);
+
+    var mode=document.getElementById('vdCompatMode');
+    var fields=document.getElementById('vdPartnerFields');
+    if(mode&&fields){
+      mode.addEventListener('change',function(){ fields.style.display=mode.checked?'':'none'; });
+    }
+  }
+
+  function _readCompatibilityPayload(){
+    var modeEl=document.getElementById('vdCompatMode');
+    var useCompat=!!(modeEl&&modeEl.checked);
+    if(!useCompat)return{reportType:'personal'};
+
+    var dateText=String((_qs('vdPartnerBirthDate')&&_qs('vdPartnerBirthDate').value)||'').trim();
+    var dateParts=dateText?dateText.split('-'):[];
+    var py=Number(dateParts[0]), pm=Number(dateParts[1]), pd=Number(dateParts[2]);
+    var ph=Number((_qs('vdPartnerHour')&&_qs('vdPartnerHour').value)||12);
+    var pmin=Number((_qs('vdPartnerMinute')&&_qs('vdPartnerMinute').value)||0);
+    var pname=String((_qs('vdPartnerName')&&_qs('vdPartnerName').value)||'').trim();
+    var pplace=String((_qs('vdPartnerBirthPlace')&&_qs('vdPartnerBirthPlace').value)||'').trim();
+
+    if(!py)py=1990;
+    if(!pm)pm=1;
+    if(!pd)pd=1;
+    if(!isFinite(ph)||ph<0||ph>23)ph=12;
+    if(!isFinite(pmin)||pmin<0||pmin>59)pmin=0;
+    if(!pplace)pplace='정보 없음';
+
+    return{
+      reportType:'compatibility',
+      partnerName:pname||'상대',
+      partnerYear:py,
+      partnerMonth:pm,
+      partnerDay:pd,
+      partnerHour:ph,
+      partnerMinute:pmin,
+      partnerBirthPlace:pplace,
+    };
+  }
+
   var VD_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
 
   function _renderToc(){
@@ -357,6 +421,7 @@
     document.body.classList.add('lb-modal-open');
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillVedicProfile(profile);
+    _ensureCompatibilityInputs();
     _renderDetailedChapterPreview();
   };
 
@@ -391,6 +456,8 @@
     var b=profile.birth||{};
     if(!b.year||!b.month||!b.day){alert('생년월일을 확인할 수 없습니다. 사주 계산 후 다시 시도해 주세요.');return;}
     var loc=profile.location||{lat:37.5665,lng:126.978,tzOffset:9};
+    var compat=_readCompatibilityPayload();
+    if(compat.error){alert(compat.error);return;}
 
     _generating=true;
     _chapters=Array(VEDIC_TOTAL_CHAPTERS).fill(null);
@@ -481,12 +548,19 @@
               lat:loc.lat!==undefined?loc.lat:37.5665,
               lon:loc.lng!==undefined?loc.lng:126.978,
               chapter:idx+1,
-              reportType:'personal',
+              reportType:compat.reportType,
               birthPlace:loc.label||'대한민국 (서울)',
               timezoneName:loc.tz||'Asia/Seoul',
               calendarType:profile.calendarType||b.calendarType||'solar',
               isLeapMonth:!!(profile.isLeapMonth||b.isLeapMonth),
-              ayanamsa:profile.ayanamsa||'lahiri'
+              ayanamsa:profile.ayanamsa||'lahiri',
+              partnerName:compat.partnerName,
+              partnerYear:compat.partnerYear,
+              partnerMonth:compat.partnerMonth,
+              partnerDay:compat.partnerDay,
+              partnerHour:compat.partnerHour,
+              partnerMinute:compat.partnerMinute,
+              partnerBirthPlace:compat.partnerBirthPlace
             })
           })
           .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})

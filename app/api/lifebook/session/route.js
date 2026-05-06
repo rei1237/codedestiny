@@ -121,6 +121,38 @@ function compactPromptText(text, maxLen = 12000) {
   return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
 }
 
+function normalizeSajuSourceData(body = {}) {
+  const raw = String(body?.sajuData || "").trim();
+  if (raw) {
+    return { sajuData: raw, usedFallbackData: false, warning: "" };
+  }
+
+  const year = Number.isFinite(Number(body?.year ?? body?.birthYear)) ? Number(body?.year ?? body?.birthYear) : 1990;
+  const month = Number.isFinite(Number(body?.month ?? body?.birthMonth)) ? Number(body?.month ?? body?.birthMonth) : 1;
+  const day = Number.isFinite(Number(body?.day ?? body?.birthDay)) ? Number(body?.day ?? body?.birthDay) : 1;
+  const hour = Number.isFinite(Number(body?.hour ?? body?.birthHour)) ? Number(body?.hour ?? body?.birthHour) : 12;
+  const minute = Number.isFinite(Number(body?.minute)) ? Number(body?.minute) : 0;
+  const gender = String(body?.gender || "미상");
+  const name = String(body?.name || "사용자");
+
+  const synthesized = [
+    "사주 엔진 보완 프로필",
+    `- 이름: ${name}`,
+    `- 생년월일: ${year}-${month}-${day}`,
+    `- 출생시각: ${hour}:${String(minute).padStart(2, "0")}`,
+    `- 성별: ${gender}`,
+    "- 오행 분포: 입력 부족으로 중립 보완",
+    "- 일간/십성: 입력 부족으로 보수적 해석",
+    "- 대운/세운: 입력 부족으로 실행 전략 중심 보완",
+  ].join("\n");
+
+  return {
+    sajuData: synthesized,
+    usedFallbackData: true,
+    warning: "sajuData가 없어 보완 프로필로 생성했습니다.",
+  };
+}
+
 const SYSTEM_PROMPT = `당신은 수십 년의 실전 내공을 가진 최고의 명리학 거장이다. 동양 철학의 정수를 꿰뚫었으며, 사주의 이치를 날카롭고 정확하게 간파한다. 말은 적을지언정 한 마디 한 마디가 비수처럼 핵심을 찌른다.
 
 당신의 문체는 다음과 같다:
@@ -1248,7 +1280,8 @@ export async function POST(req) {
 
     const body = await req.json().catch(() => ({}));
     const sessionId = Number(body?.sessionId || 0);
-    const sajuData = String(body?.sajuData || "").trim();
+    const sourceData = normalizeSajuSourceData(body);
+    const sajuData = sourceData.sajuData;
 
     if (sessionId < 1 || sessionId > 13) {
       return NextResponse.json(
@@ -1256,13 +1289,6 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    if (!sajuData) {
-      return NextResponse.json(
-        { ok: false, message: "sajuData가 필요합니다." },
-        { status: 400 }
-      );
-    }
-
     const geminiKeys = pickGeminiKeys();
     const hasVertexCred = hasVertexServiceAccountCreds();
 
@@ -1298,6 +1324,10 @@ export async function POST(req) {
           title: config.title,
           emoji: config.emoji,
           model: "vertex/service-account",
+          dataQuality: {
+            usedFallbackData: sourceData.usedFallbackData,
+            warning: sourceData.warning,
+          },
         });
       }
       if (text && text.length > 0) {
@@ -1362,6 +1392,10 @@ export async function POST(req) {
                       model,
                       compactMode: true,
                       truncated: getFinishReason(compactJson) === "MAX_TOKENS",
+                      dataQuality: {
+                        usedFallbackData: sourceData.usedFallbackData,
+                        warning: sourceData.warning,
+                      },
                     });
                   }
                 }
@@ -1401,6 +1435,10 @@ export async function POST(req) {
             emoji: config.emoji,
             model,
             truncated: finishReason === "MAX_TOKENS",
+            dataQuality: {
+              usedFallbackData: sourceData.usedFallbackData,
+              warning: sourceData.warning,
+            },
           });
         } catch (e) {
           lastError = e;

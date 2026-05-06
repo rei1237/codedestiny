@@ -77,8 +77,33 @@ function signInfo(longitude, ascLon) {
     signKo: SIGN_KO[sign],
     signEmoji: SIGN_EMOJI[sign],
     degree,
-    house: Math.floor(nd(normalized - ascLon) / 30) + 1,
+    house: Number.isFinite(ascLon) ? (Math.floor(nd(normalized - ascLon) / 30) + 1) : null,
   };
+}
+
+function extractHouseCusps(housesResult) {
+  const rawCusps = Array.isArray(housesResult?.cusps)
+    ? housesResult.cusps
+    : (Array.isArray(housesResult?.house) ? housesResult.house : []);
+  const out = [];
+  for (let i = 0; i < rawCusps.length; i += 1) {
+    const lon = nd(rawCusps[i]);
+    if (Number.isFinite(lon)) out.push(lon);
+  }
+  if (out.length >= 12) return out.slice(0, 12);
+  return [];
+}
+
+function locateHouseByCusps(longitude, cusps) {
+  const lon = nd(longitude);
+  if (!Number.isFinite(lon) || !Array.isArray(cusps) || cusps.length !== 12) return null;
+  for (let i = 0; i < 12; i += 1) {
+    const start = nd(cusps[i]);
+    const end = nd(cusps[(i + 1) % 12]);
+    const inHouse = start <= end ? (lon >= start && lon < end) : (lon >= start || lon < end);
+    if (inHouse) return i + 1;
+  }
+  return 1;
 }
 
 function normalizeChartInput(payload) {
@@ -184,10 +209,14 @@ function calcAscMc(swe, jd, iflag, lat, lon) {
   const houses = swe.swe_houses_ex(jd, iflag, lat, lon, "P");
   const asc = nd(houses?.ascmc?.[0]);
   const mc = nd(houses?.ascmc?.[1]);
+  const houseCusps = extractHouseCusps(houses);
   if (!Number.isFinite(asc) || !Number.isFinite(mc)) {
     throw toStatusError(502, "Swiss calculation returned invalid ascendant/midheaven.");
   }
-  return { asc, mc };
+  if (houseCusps.length !== 12) {
+    throw toStatusError(502, "Swiss calculation returned invalid house cusps.");
+  }
+  return { asc, mc, houseCusps };
 }
 
 function calcAspects(planetsBySignInfo) {
@@ -213,11 +242,14 @@ export async function getSwissWesternChart(env, payload, options = {}) {
   const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
 
   const rawPlanets = calcPlanetsByMap(swe, jd, iflag, WESTERN_PLANETS);
-  const { asc, mc } = calcAscMc(swe, jd, iflag, input.lat, input.lon);
+  const { asc, mc, houseCusps } = calcAscMc(swe, jd, iflag, input.lat, input.lon);
 
   const planets = {};
   for (const [name] of WESTERN_PLANETS) {
-    planets[name] = signInfo(rawPlanets[name], asc);
+    planets[name] = {
+      ...signInfo(rawPlanets[name], asc),
+      house: locateHouseByCusps(rawPlanets[name], houseCusps),
+    };
   }
 
   const trueNodeLon = readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_TRUE_NODE, iflag), "NorthNode");
@@ -225,10 +257,12 @@ export async function getSwissWesternChart(env, payload, options = {}) {
 
   return {
     planets,
-    ascendant: signInfo(asc, asc),
-    midheaven: signInfo(mc, asc),
-    northNode: signInfo(trueNodeLon, asc),
-    southNode: signInfo(trueNodeLon + 180, asc),
+    ascendant: { ...signInfo(asc, asc), house: 1 },
+    midheaven: { ...signInfo(mc, asc), house: locateHouseByCusps(mc, houseCusps) },
+    northNode: { ...signInfo(trueNodeLon, asc), house: locateHouseByCusps(trueNodeLon, houseCusps) },
+    southNode: { ...signInfo(trueNodeLon + 180, asc), house: locateHouseByCusps(trueNodeLon + 180, houseCusps) },
+    houseCusps,
+    houseSystem: "placidus",
     aspects,
     source: "swiss-wasm-local",
   };
