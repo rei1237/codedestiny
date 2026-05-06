@@ -588,7 +588,6 @@
 
     // 프로필 정보 미리 채우기
     _prefillProfileInfo(profile);
-    _ensureCompatibilityInputs();
     _renderDetailedChapterPreview();
 
     try {
@@ -672,74 +671,6 @@
     list.innerHTML = html;
   }
 
-  function _ensureCompatibilityInputs() {
-    var start = document.getElementById('zbStartScreen');
-    if (!start || document.getElementById('zbCompatPanel')) return;
-
-    var panel = document.createElement('section');
-    panel.id = 'zbCompatPanel';
-    panel.style.cssText = 'margin:14px 0 10px;padding:12px 14px;border-radius:12px;background:rgba(76,29,149,0.2);border:1px solid rgba(196,181,253,0.35);';
-    panel.innerHTML =
-      '<label style="display:flex;align-items:center;gap:8px;font-weight:700;color:#ede9fe;cursor:pointer;">' +
-        '<input type="checkbox" id="zbCompatMode" style="width:16px;height:16px;"> 궁합 리포트 모드 (상대 정보 입력)' +
-      '</label>' +
-      '<div id="zbPartnerFields" style="display:none;margin-top:10px;">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
-          '<input id="zbPartnerName" type="text" placeholder="상대 이름" style="padding:10px;border-radius:8px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.5);color:#ede9fe;">' +
-          '<input id="zbPartnerBirthDate" type="date" style="padding:10px;border-radius:8px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.5);color:#ede9fe;">' +
-          '<input id="zbPartnerHour" type="number" min="0" max="23" placeholder="태어난 시 (0-23)" style="padding:10px;border-radius:8px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.5);color:#ede9fe;">' +
-          '<input id="zbPartnerMinute" type="number" min="0" max="59" placeholder="태어난 분 (0-59)" style="padding:10px;border-radius:8px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.5);color:#ede9fe;">' +
-        '</div>' +
-        '<input id="zbPartnerBirthPlace" type="text" placeholder="상대 출생지 (도시/국가)" style="margin-top:8px;width:100%;padding:10px;border-radius:8px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.5);color:#ede9fe;">' +
-      '</div>';
-
-    var anchor = start.querySelector('.lb-start__note') || start.firstElementChild;
-    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
-    else start.appendChild(panel);
-
-    var mode = document.getElementById('zbCompatMode');
-    var fields = document.getElementById('zbPartnerFields');
-    if (mode && fields) {
-      mode.addEventListener('change', function () {
-        fields.style.display = mode.checked ? '' : 'none';
-      });
-    }
-  }
-
-  function _readCompatibilityPayload() {
-    var modeEl = document.getElementById('zbCompatMode');
-    var useCompat = !!(modeEl && modeEl.checked);
-    if (!useCompat) return { reportType: 'personal' };
-
-    var dateText = String((_qs('zbPartnerBirthDate') && _qs('zbPartnerBirthDate').value) || '').trim();
-    var dateParts = dateText ? dateText.split('-') : [];
-    var py = Number(dateParts[0]);
-    var pm = Number(dateParts[1]);
-    var pd = Number(dateParts[2]);
-    var ph = Number((_qs('zbPartnerHour') && _qs('zbPartnerHour').value) || 12);
-    var pmin = Number((_qs('zbPartnerMinute') && _qs('zbPartnerMinute').value) || 0);
-    var pname = String((_qs('zbPartnerName') && _qs('zbPartnerName').value) || '').trim();
-    var pplace = String((_qs('zbPartnerBirthPlace') && _qs('zbPartnerBirthPlace').value) || '').trim();
-
-    if (!py) py = 1990;
-    if (!pm) pm = 1;
-    if (!pd) pd = 1;
-    if (!isFinite(ph) || ph < 0 || ph > 23) ph = 12;
-    if (!isFinite(pmin) || pmin < 0 || pmin > 59) pmin = 0;
-    if (!pplace) pplace = '정보 없음';
-
-    return {
-      reportType: 'compatibility',
-      partnerName: pname || '상대',
-      partnerYear: py,
-      partnerMonth: pm,
-      partnerDay: pd,
-      partnerHour: ph,
-      partnerMinute: pmin,
-      partnerBirthPlace: pplace,
-    };
-  }
-
   window.closeZiweiBookModal = function () {
     var modal = _qs('ziweiBookModal');
     if (!modal) return;
@@ -782,8 +713,6 @@
         if (window.__cdActiveBirthProfile) window.__cdActiveBirthProfile.location = _newLoc;
       }
     }
-
-    var compat = _readCompatibilityPayload();
 
     _generating = true;
     _chapters = Array(13).fill(null);
@@ -1000,7 +929,6 @@
             headers: _zbHeaders,
             body: JSON.stringify({
               sessionId:   idx + 1,
-              reportType:  compat.reportType,
               ziweiData:   ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
               birthYear:   _zbProfile.birthYear,
@@ -1009,13 +937,6 @@
               birthHour:   _zbProfile.birthHour,
               gender:      _zbProfile.gender,
               name:        _zbProfile.name,
-              partnerName: compat.partnerName,
-              partnerYear: compat.partnerYear,
-              partnerMonth: compat.partnerMonth,
-              partnerDay: compat.partnerDay,
-              partnerHour: compat.partnerHour,
-              partnerMinute: compat.partnerMinute,
-              partnerBirthPlace: compat.partnerBirthPlace,
             }),
           })
             .then(function (res) {

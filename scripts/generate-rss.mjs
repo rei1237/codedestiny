@@ -1,15 +1,19 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const rootDir = process.cwd();
 const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
 const rootRssPath = resolve(rootDir, "rss.xml");
 const publicRssPath = resolve(rootDir, "public", "rss.xml");
+const rootInsightsRssPath = resolve(rootDir, "insights", "rss.xml");
+const publicInsightsRssPath = resolve(rootDir, "public", "insights", "rss.xml");
 
 const BASE_URL = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
+const INSIGHTS_API_BASE_URL = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const SITE_TITLE = "Code Destiny Insights RSS";
 const SITE_DESCRIPTION = "사주·타로·자미두수·점성술 인사이트 업데이트 피드";
 const FEED_URL = `${BASE_URL}/rss.xml`;
+const INSIGHTS_FEED_URL = `${BASE_URL}/insights/rss.xml`;
 const SITE_LINK = `${BASE_URL}/insights`;
 const MAX_ITEMS = 60;
 
@@ -102,15 +106,63 @@ function buildRssXml(articles) {
   ].join("\n");
 }
 
-function main() {
-  const source = readFileSync(insightsSourcePath, "utf8");
-  const articles = parseArticlesFromSource(source);
+function normalizeApiInsight(item) {
+  return {
+    slug: String(item?.slug || "").trim(),
+    title: String(item?.title || "").trim(),
+    description: String(item?.excerpt || "").replace(/\s+/g, " ").trim(),
+    category: String(item?.category || "").trim() || "Insights",
+    updatedAt: String(item?.publishedAt || item?.updatedAt || "").trim(),
+  };
+}
+
+async function fetchInsightsFromApi() {
+  const out = [];
+  const seen = new Set();
+
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore && page <= 200 && out.length < MAX_ITEMS * 2) {
+    const url = `${INSIGHTS_API_BASE_URL}/api/insights?sort=latest&pageSize=50&page=${page}&excludeNoIndex=1`;
+    const response = await fetch(url, { method: "GET" });
+    if (!response.ok) break;
+
+    const data = await response.json().catch(() => ({}));
+    const items = Array.isArray(data?.items) ? data.items : [];
+
+    for (const raw of items) {
+      const item = normalizeApiInsight(raw);
+      if (!item.slug || seen.has(item.slug)) continue;
+      seen.add(item.slug);
+      out.push(item);
+    }
+
+    hasMore = Boolean(data?.hasMore);
+    page += 1;
+  }
+
+  return out;
+}
+
+async function main() {
+  const fromApi = await fetchInsightsFromApi().catch(() => []);
+  const articles = fromApi.length > 0
+    ? fromApi
+    : parseArticlesFromSource(readFileSync(insightsSourcePath, "utf8"));
+
   const xml = buildRssXml(articles);
+  const insightsXml = xml.replace(FEED_URL, INSIGHTS_FEED_URL);
+
+  mkdirSync(resolve(rootDir, "public", "insights"), { recursive: true });
+  mkdirSync(resolve(rootDir, "insights"), { recursive: true });
 
   writeFileSync(rootRssPath, xml, "utf8");
   writeFileSync(publicRssPath, xml, "utf8");
+  writeFileSync(rootInsightsRssPath, insightsXml, "utf8");
+  writeFileSync(publicInsightsRssPath, insightsXml, "utf8");
 
-  console.log(`[rss] Generated ${Math.min(articles.length, MAX_ITEMS)} items -> rss.xml, public/rss.xml`);
+  console.log(`[rss] Generated ${Math.min(articles.length, MAX_ITEMS)} items -> rss.xml, insights/rss.xml, public/rss.xml, public/insights/rss.xml`);
 }
 
 main();

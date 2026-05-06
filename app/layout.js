@@ -188,7 +188,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKR.variable}>
       <head>
-        <link rel="preconnect" href="https://code-destiny.com" />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko-KR" href="https://code-destiny.com/" />
         <link rel="alternate" hrefLang="en-US" href="https://code-destiny.com/en-us/" />

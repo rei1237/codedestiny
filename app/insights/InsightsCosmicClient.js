@@ -1,315 +1,285 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getTopicKey } from "./articles";
+import { useEffect, useMemo, useState } from "react";
+import { getApiBaseUrl } from "../_lib/api-config";
 
-const TOPIC_META = {
-  all: { color: "#c9a84c", symbol: "✦", label: "전체" },
-  saju: { color: "#ff6b9d", symbol: "☽", label: "사주" },
-  tarot: { color: "#a78bfa", symbol: "✦", label: "타로" },
-  sukuyo: { color: "#4ecdc4", symbol: "◈", label: "숙요점" },
-  vedic: { color: "#f0d080", symbol: "♃", label: "베다점" },
-  astrology: { color: "#60a5fa", symbol: "♄", label: "점성술" },
-  ziwei: { color: "#c084fc", symbol: "✵", label: "자미두수" },
-};
+const PAGE_SIZE = 12;
 
-const TOPIC_SEO_META = {
-  all: {
-    title: "운세 인사이트 아카이브 — 사주·타로·자미두수 핵심 원리 무료 학습 | Code Destiny",
-    description:
-      "사주명리학·타로·자미두수·숙요점·베다점성술의 핵심 원리를 무료로 읽는 운세 지식 아카이브. 입문부터 실전까지 26편 이상의 깊이 있는 해설을 지금 바로 확인하세요.",
-  },
-  saju: {
-    title: "사주팔자 완전 해설 | 명리학 기초부터 대운까지 — 코드 데스티니",
-    description:
-      "사주팔자란 무엇인가. 천간·지지·60갑자·신강신약·용신·대운의 원리를 알기 쉽게 해설합니다. 코드 데스티니 꿀꿀 만세력.",
-  },
-  tarot: {
-    title: "타로 카드 완전 가이드 | 대·소 아르카나 78장 해석 — 코드 데스티니",
-    description:
-      "타로 카드 78장의 의미와 스프레드 방법. 연애운·재물운·취업운별 타로 리딩 가이드. 코드 데스티니 꿀꿀 만세력.",
-  },
-  astrology: {
-    title: "서양 점성술 완전 가이드 | 12궁·행성·하우스 — 코드 데스티니",
-    description:
-      "서양 점성술의 12별자리·행성 배치·하우스 해석법. 출생 차트 읽는 법과 트랜지트 분석. 코드 데스티니 꿀꿀 만세력.",
-  },
-  ziwei: {
-    title: "자미두수 완전 해설 | 12궁 명반 읽는 법 — 코드 데스티니",
-    description:
-      "자미두수(紫微斗數) 명궁·명반 보는 법. 주성·보성·살성 완전 해설. 중국 황실 점성술의 비밀. 코드 데스티니.",
-  },
-  sukuyo: {
-    title: "숙요점 완전 가이드 | 27수 달별자리 운명 — 코드 데스티니",
-    description:
-      "숙요점(宿曜占) 27수 달별자리로 보는 운명. 에도시대 금서로 지정된 동양 최고 비전 점술. 코드 데스티니.",
-  },
-  vedic: {
-    title: "베다 점성술 완전 가이드 | 조티쉬·나크샤트라 — 코드 데스티니",
-    description:
-      "인도 베다 점성술(Jyotish) 라그나·나크샤트라·다샤로 보는 운명 지도. 코드 데스티니 꿀꿀 만세력.",
-  },
-};
-
-const CATEGORY_META = {
-  "사주 기초": { color: "#ff6b9d", symbol: "☽" },
-  "사주 심화": { color: "#ff8c42", symbol: "☀" },
-  "타로 이론": { color: "#a78bfa", symbol: "✦" },
-  숙요점: { color: "#4ecdc4", symbol: "◈" },
-  베다점: { color: "#f0d080", symbol: "♃" },
-  점성술: { color: "#60a5fa", symbol: "♄" },
-  자미두수: { color: "#c084fc", symbol: "✵" },
-};
-
-function safeTopic(topicKey) {
-  return INSIGHT_TOPICS.some((topic) => topic.key === topicKey) ? topicKey : "all";
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
 
-function getCardMeta(article) {
-  return CATEGORY_META[article?.category] || { color: "#6b7280", symbol: "✦" };
+function buildCardImage(item) {
+  const url = String(item?.featuredImage?.url || "").trim();
+  const alt = String(item?.featuredImage?.alt || item?.title || "인사이트 대표 이미지").trim();
+  return {
+    url,
+    alt,
+  };
 }
 
-function upsertMetaTag(selector, attrs, content) {
-  if (typeof document === "undefined" || !content) return;
-  let tag = document.head.querySelector(selector);
-  if (!tag) {
-    tag = document.createElement("meta");
-    Object.entries(attrs).forEach(([key, value]) => tag.setAttribute(key, value));
-    document.head.appendChild(tag);
+function sortTagLabel(sort) {
+  return sort === "popular" ? "인기 글" : "최신 글";
+}
+
+export default function InsightsCosmicClient() {
+  const apiBase = useMemo(() => getApiBaseUrl(), []);
+
+  const [items, setItems] = useState([]);
+  const [recommended, setRecommended] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
+
+  const [category, setCategory] = useState("");
+  const [tag, setTag] = useState("");
+  const [sort, setSort] = useState("latest");
+  const [searchInput, setSearchInput] = useState("");
+  const [query, setQuery] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState("");
+
+  async function fetchList(nextPage, append) {
+    const endpoint = `${apiBase || ""}/api/insights`;
+    const url = new URL(endpoint, window.location.origin);
+
+    if (query) url.searchParams.set("q", query);
+    if (category) url.searchParams.set("category", category);
+    if (tag) url.searchParams.set("tag", tag);
+    url.searchParams.set("sort", sort);
+    url.searchParams.set("page", String(nextPage));
+    url.searchParams.set("pageSize", String(PAGE_SIZE));
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(String(data?.message || "인사이트 목록을 불러오지 못했습니다."));
+    }
+
+    const nextItems = Array.isArray(data?.items) ? data.items : [];
+    setItems((prev) => (append ? [...prev, ...nextItems] : nextItems));
+    setRecommended(Array.isArray(data?.recommended) ? data.recommended : []);
+    setCategories(Array.isArray(data?.categories) ? data.categories : []);
+    setTags(Array.isArray(data?.tags) ? data.tags.slice(0, 80) : []);
+    setTotalCount(Math.max(0, Number(data?.totalCount || 0) || 0));
+    setHasMore(Boolean(data?.hasMore));
+    setPage(nextPage);
   }
-  tag.setAttribute("content", content);
-}
-
-function upsertCanonical(url) {
-  if (typeof document === "undefined") return;
-  let link = document.head.querySelector('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement("link");
-    link.setAttribute("rel", "canonical");
-    document.head.appendChild(link);
-  }
-  link.setAttribute("href", url);
-}
-
-function applyTopicMeta(topicKey) {
-  if (typeof document === "undefined") return;
-  const safeKey = TOPIC_SEO_META[topicKey] ? topicKey : "all";
-  const meta = TOPIC_SEO_META[safeKey];
-  const canonicalUrl = "https://code-destiny.com/insights";
-  const ogUrl =
-    safeKey === "all"
-      ? canonicalUrl
-      : `https://code-destiny.com/insights?topic=${encodeURIComponent(safeKey)}`;
-
-  document.title = meta.title;
-  upsertMetaTag('meta[name="description"]', { name: "description" }, meta.description);
-  upsertMetaTag('meta[property="og:title"]', { property: "og:title" }, meta.title);
-  upsertMetaTag('meta[property="og:description"]', { property: "og:description" }, meta.description);
-  upsertMetaTag('meta[property="og:url"]', { property: "og:url" }, ogUrl);
-  upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title" }, meta.title);
-  upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description" }, meta.description);
-  upsertCanonical(canonicalUrl);
-}
-
-export default function InsightsCosmicClient({ initialTopic = "all" }) {
-  const searchParams = useSearchParams();
-  const [topic, setTopic] = useState(safeTopic(initialTopic));
-  const starCanvasRef = useRef(null);
 
   useEffect(() => {
-    const queryTopic = searchParams?.get("topic");
-    setTopic(safeTopic(queryTopic || initialTopic));
-  }, [initialTopic, searchParams]);
+    let cancelled = false;
 
-  useEffect(() => {
-    applyTopicMeta(topic);
-  }, [topic]);
-
-  const filteredArticles = useMemo(() => {
-    if (topic === "all") return INSIGHT_ARTICLES;
-    return INSIGHT_ARTICLES.filter((article) => getTopicKey(article) === topic);
-  }, [topic]);
-
-  const featuredArticle = filteredArticles[0] || null;
-  const normalArticles = featuredArticle ? filteredArticles.slice(1) : filteredArticles;
-
-  useEffect(() => {
-    const canvas = starCanvasRef.current;
-    if (!canvas) return undefined;
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return undefined;
-
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let rafId = 0;
-
-    const layers = [
-      { count: 120, minR: 0.4, maxR: 1, speed: 0.009, minA: 0.18, maxA: 0.46 },
-      { count: 90, minR: 0.9, maxR: 1.7, speed: 0.013, minA: 0.25, maxA: 0.66 },
-      { count: 52, minR: 1.5, maxR: 2.5, speed: 0.019, minA: 0.33, maxA: 0.9 },
-    ];
-
-    let stars = [];
-
-    function buildStars() {
-      stars = [];
-      layers.forEach((layer) => {
-        for (let i = 0; i < layer.count; i += 1) {
-          stars.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            r: layer.minR + Math.random() * (layer.maxR - layer.minR),
-            a: layer.minA + Math.random() * (layer.maxA - layer.minA),
-            t: Math.random() * Math.PI * 2,
-            tw: layer.speed * (0.7 + Math.random() * 1.3),
-          });
+    async function run() {
+      setLoading(true);
+      setError("");
+      try {
+        await fetchList(1, false);
+      } catch (fetchError) {
+        if (!cancelled) {
+          setItems([]);
+          setRecommended([]);
+          setHasMore(false);
+          setError(String(fetchError?.message || "인사이트 목록을 불러오지 못했습니다."));
         }
-      });
-    }
-
-    function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildStars();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      for (const star of stars) {
-        star.t += star.tw;
-        const twinkle = (Math.sin(star.t) + 1) / 2;
-        const alpha = star.a * (0.35 + twinkle * 0.65);
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(232,228,255,${alpha.toFixed(3)})`;
-        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-        ctx.fill();
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      rafId = window.requestAnimationFrame(draw);
     }
 
-    resize();
-    draw();
-
-    window.addEventListener("resize", resize, { passive: true });
+    run();
     return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
+      cancelled = true;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiBase, query, category, tag, sort]);
+
+  async function onLoadMore() {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    setError("");
+
+    try {
+      await fetchList(page + 1, true);
+    } catch (fetchError) {
+      setError(String(fetchError?.message || "더보기 로딩에 실패했습니다."));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
-    <>
-      <canvas ref={starCanvasRef} className="ins-starfield" />
-      <div className="ins-grain" />
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#261547_0%,#100a1f_45%,#090612_100%)] text-slate-100">
+      <section className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-10 space-y-6">
+        <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7 backdrop-blur">
+          <p className="text-xs tracking-[0.18em] text-amber-200/80">FORTUNE INSIGHTS</p>
+          <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 아카이브</h1>
+          <p className="mt-3 text-sm md:text-base text-slate-300 leading-7">
+            관리자에서 발행된 인사이트를 최신 흐름과 인기 흐름으로 탐색하세요.
+            사주, 타로, 점성술 콘텐츠를 카테고리/태그/검색으로 빠르게 찾을 수 있습니다.
+          </p>
+          <p className="mt-3 text-xs text-slate-400">총 {totalCount.toLocaleString("ko-KR")}개 글</p>
+        </header>
 
-      <main className="ins-wrap">
-        <section className="ins-hero ins-reveal-a">
-          <div className="ins-hero-nebula" aria-hidden="true" />
-          <div className="ins-hero-inner">
-            <Link href="/" className="ins-home-pill">
-              <span aria-hidden="true">⌂</span> 홈으로
-            </Link>
-            <div className="ins-sigil" aria-hidden="true">
-              <svg viewBox="0 0 100 100" fill="none">
-                <circle cx="50" cy="50" r="41" stroke="rgba(240,208,128,.75)" strokeWidth="1.3" />
-                <circle cx="50" cy="50" r="31" stroke="rgba(232,228,255,.42)" strokeWidth="1.1" />
-                <path d="M50 18 L56 44 L83 50 L56 56 L50 82 L44 56 L17 50 L44 44 Z" fill="rgba(240,208,128,.2)" />
-                <circle cx="50" cy="50" r="4.2" fill="rgba(240,208,128,.92)" />
-                <circle cx="50" cy="50" r="17" stroke="rgba(167,139,250,.4)" strokeWidth="1" />
-                <circle cx="50" cy="50" r="41" stroke="rgba(240,208,128,.42)" strokeWidth="1" className="ins-orbit-ring" />
-              </svg>
-            </div>
-            <h1 className="ins-title">
-              <span className="ins-title-deco">「</span>
-              운세 인사이트 허브
-              <span className="ins-title-deco">」</span>
-            </h1>
-            <p className="ins-subtitle-en">어렵지 않게 읽는 운세 지식 · 3분 인사이트</p>
-            <div className="ins-hero-line" aria-hidden="true" />
-            <p className="ins-desc">
-              심우주 어딘가에 숨겨진 운명의 서가에서, 사주부터 점성술까지 핵심만 선명하게 읽어보세요.
-            </p>
-            <div className="ins-hero-stats">
-              <span>총 {INSIGHT_ARTICLES.length}개 글</span>
-              <span>{INSIGHT_TOPICS.length}개 카테고리</span>
-              <span>평균 3분 읽기</span>
-            </div>
+        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:p-5 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+            <input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") setQuery(searchInput.trim());
+              }}
+              placeholder="제목/설명/태그 검색"
+              className="md:col-span-5 rounded-xl border border-white/15 bg-[#1a1230] px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-400"
+            />
+            <select
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+              className="md:col-span-2 rounded-xl border border-white/15 bg-[#1a1230] px-3 py-2.5 text-sm"
+            >
+              <option value="">카테고리 전체</option>
+              {categories.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+            <select
+              value={tag}
+              onChange={(event) => setTag(event.target.value)}
+              className="md:col-span-2 rounded-xl border border-white/15 bg-[#1a1230] px-3 py-2.5 text-sm"
+            >
+              <option value="">태그 전체</option>
+              {tags.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value)}
+              className="md:col-span-2 rounded-xl border border-white/15 bg-[#1a1230] px-3 py-2.5 text-sm"
+            >
+              <option value="latest">최신순</option>
+              <option value="popular">인기순</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setQuery(searchInput.trim())}
+              className="md:col-span-1 rounded-xl border border-amber-300/40 bg-amber-300/10 px-3 py-2.5 text-sm hover:bg-amber-300/20"
+            >
+              검색
+            </button>
           </div>
         </section>
 
-        <section className="ins-sticky-filter ins-reveal-b">
-          <nav className="ins-filters" aria-label="인사이트 카테고리 필터">
-            {INSIGHT_TOPICS.map((item) => {
-              const active = topic === item.key;
-              const meta = TOPIC_META[item.key] || TOPIC_META.all;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`ins-pill ${active ? "is-active" : ""}`}
-                  style={{ "--accent": meta.color }}
-                  onClick={() => setTopic(item.key)}
-                >
-                  <span className="ins-pill-symbol">{meta.symbol}</span>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </section>
+        {recommended.length > 0 ? (
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-amber-100">추천 글</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {recommended.map((item) => {
+                const image = buildCardImage(item);
+                return (
+                  <Link key={`recommend-${item.slug}`} href={`/insights/${item.slug}`} className="group rounded-2xl border border-amber-200/20 bg-amber-100/[0.05] overflow-hidden hover:border-amber-200/40 transition">
+                    {image.url ? (
+                      <img src={image.url} alt={image.alt} loading="lazy" className="h-40 w-full object-cover" />
+                    ) : (
+                      <div className="h-40 w-full bg-gradient-to-br from-amber-300/15 to-pink-300/10" />
+                    )}
+                    <div className="p-4">
+                      <p className="text-[11px] text-amber-200/80">{item.category || "인사이트"} · {formatDate(item.publishedAt || item.updatedAt)}</p>
+                      <h3 className="mt-2 text-sm font-semibold leading-6 text-slate-100 group-hover:text-amber-100">{item.title}</h3>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
-        <section className="ins-list ins-reveal-c" aria-live="polite">
-          {featuredArticle && (
-            <Link href={`/insights/${featuredArticle.slug}`} className="ins-featured-card">
-              <span className="ins-featured-accent" aria-hidden="true" />
-              <span className="ins-featured-label">FEATURED</span>
-              <div className="ins-featured-meta">
-                <span className="ins-badge" style={{ "--accent": getCardMeta(featuredArticle).color }}>
-                  {featuredArticle.category}
-                </span>
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-slate-100">{sortTagLabel(sort)}</h2>
+            <span className="text-xs text-slate-400">{items.length.toLocaleString("ko-KR")}개 표시</span>
+          </div>
+
+          {error ? (
+            <div className="rounded-xl border border-rose-300/40 bg-rose-300/10 px-4 py-3 text-sm text-rose-100">{error}</div>
+          ) : null}
+
+          {loading ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-12 text-sm text-slate-300">목록을 불러오는 중...</div>
+          ) : null}
+
+          {!loading && items.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-12 text-center text-sm text-slate-300">
+              조건에 맞는 인사이트 글이 없습니다.
+            </div>
+          ) : null}
+
+          {!loading && items.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {items.map((item) => {
+                  const image = buildCardImage(item);
+                  return (
+                    <Link key={item.slug} href={`/insights/${item.slug}`} className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden hover:border-amber-300/40 hover:bg-white/[0.05] transition">
+                      {image.url ? (
+                        <img src={image.url} alt={image.alt} loading="lazy" className="h-44 w-full object-cover" />
+                      ) : (
+                        <div className="h-44 w-full bg-gradient-to-br from-indigo-300/10 to-sky-300/10" />
+                      )}
+                      <div className="p-4">
+                        <p className="text-[11px] text-slate-400">{item.category || "인사이트"} · 조회 {Number(item.viewCount || 0).toLocaleString("ko-KR")}</p>
+                        <h3 className="mt-2 text-base font-semibold leading-6 text-slate-100 group-hover:text-amber-100">{item.title}</h3>
+                        {item.subtitle ? <p className="mt-2 text-sm text-slate-300 line-clamp-2">{item.subtitle}</p> : null}
+                        <p className="mt-3 text-sm text-slate-300 line-clamp-3 leading-6">{item.excerpt}</p>
+                        <p className="mt-3 text-xs text-slate-400">{formatDate(item.publishedAt || item.updatedAt)}</p>
+                        {Array.isArray(item.tags) && item.tags.length > 0 ? (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {item.tags.slice(0, 3).map((value) => (
+                              <span key={`${item.slug}-${value}`} className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[11px] text-slate-300">#{value}</span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-              <h2>
-                <span className="ins-label">제목</span>
-                <span className="ins-value">{featuredArticle.title}</span>
-              </h2>
-              <p>
-                <span className="ins-label">설명</span>
-                <span className="ins-value">{featuredArticle.description}</span>
-              </p>
-              <div className="ins-featured-read">읽기 →</div>
-            </Link>
-          )}
 
-          {normalArticles.map((article) => {
-            const meta = getCardMeta(article);
-            return (
-              <Link key={article.slug} href={`/insights/${article.slug}`} className="ins-card" style={{ "--accent": meta.color }}>
-                <div className="ins-card-meta">
-                  <span className="ins-badge">{article.category}</span>
-                </div>
-                <h2>
-                  <span className="ins-label">제목</span>
-                  <span className="ins-value">{article.title}</span>
-                </h2>
-                <p>
-                  <span className="ins-label">설명</span>
-                  <span className="ins-value">{article.description}</span>
-                </p>
-              </Link>
-            );
-          })}
+              <div className="flex justify-center pt-2">
+                {hasMore ? (
+                  <button
+                    type="button"
+                    onClick={onLoadMore}
+                    disabled={loadingMore}
+                    className="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-60"
+                  >
+                    {loadingMore ? "불러오는 중..." : "더보기"}
+                  </button>
+                ) : (
+                  <p className="text-xs text-slate-500">마지막 글까지 모두 확인했습니다.</p>
+                )}
+              </div>
+            </>
+          ) : null}
         </section>
-      </main>
-    </>
+      </section>
+    </main>
   );
 }
-

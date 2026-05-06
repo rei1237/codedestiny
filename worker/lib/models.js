@@ -161,3 +161,61 @@ dailyFortuneSubscriptionSchema.index({ isActive: 1, subDaily: 1 });
 
 export const DailyFortuneSubscription = mongoose.models.DailyFortuneSubscription
   || mongoose.model("DailyFortuneSubscription", dailyFortuneSubscriptionSchema);
+
+const insightFeaturedImageSchema = new mongoose.Schema({
+  url: { type: String, default: "", trim: true },
+  alt: { type: String, default: "", trim: true },
+  width: { type: Number, default: 0, min: 0 },
+  height: { type: Number, default: 0, min: 0 },
+}, { _id: false });
+
+const insightSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true },
+  subtitle: { type: String, default: "", trim: true },
+  slug: { type: String, required: true, unique: true, index: true, trim: true, lowercase: true },
+  excerpt: { type: String, default: "", trim: true },
+  contentHtml: { type: String, default: "" },
+  contentJson: { type: mongoose.Schema.Types.Mixed, default: {} },
+
+  featuredImage: { type: insightFeaturedImageSchema, default: () => ({}) },
+
+  category: { type: String, default: "", trim: true },
+  tags: { type: [String], default: [] },
+
+  metaTitle: { type: String, default: "", trim: true },
+  metaDescription: { type: String, default: "", trim: true },
+  keywords: { type: [String], default: [] },
+  canonicalUrl: { type: String, default: "", trim: true },
+
+  ogTitle: { type: String, default: "", trim: true },
+  ogDescription: { type: String, default: "", trim: true },
+  ogImage: { type: String, default: "", trim: true },
+
+  twitterTitle: { type: String, default: "", trim: true },
+  twitterDescription: { type: String, default: "", trim: true },
+  twitterImage: { type: String, default: "", trim: true },
+
+  author: { type: String, default: "", trim: true },
+
+  status: {
+    type: String,
+    enum: ["draft", "published", "private", "trash"],
+    default: "draft",
+    required: true,
+  },
+
+  isPublished: { type: Boolean, default: false },
+  isFeatured: { type: Boolean, default: false },
+  noIndex: { type: Boolean, default: false },
+
+  viewCount: { type: Number, default: 0, min: 0 },
+  readingTime: { type: Number, default: 0, min: 0 },
+
+  publishedAt: { type: Date, default: null },
+}, { timestamps: true });
+
+insightSchema.index({ status: 1, updatedAt: -1 });
+insightSchema.index({ category: 1, updatedAt: -1 });
+insightSchema.index({ isFeatured: 1, updatedAt: -1 });
+
+export const Insight = mongoose.models.Insight || mongoose.model("Insight", insightSchema);

@@ -79,18 +79,6 @@
   var _activeRequestController = null;
   var _cancelGeneration = false;
 
-  function _resetLifeBookRuntimeState() {
-    _cancelGeneration = false;
-    _generating = false;
-    _currentChapter = 1;
-    _chapters = Array(13).fill(null);
-    _abortActiveRequest();
-    if (_mysticTimer) {
-      clearInterval(_mysticTimer);
-      _mysticTimer = null;
-    }
-  }
-
   function _abortActiveRequest() {
     if (_activeRequestController) {
       try { _activeRequestController.abort(); } catch (_) {}
@@ -580,9 +568,46 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 요구사항: 모달 진입 시 항상 새 세션으로 시작 (이전 결과 자동 복원 금지)
-    _resetLifeBookRuntimeState();
-    _lbClearSaved(profile);
+    // 저장된 데이터 복원 시도 — 유효 챕터가 10개 이상이고 각 500자 이상이어야 복원
+    var saved = _lbLoadSaved(profile);
+    var _savedValidCount = saved && saved.chapters
+      ? saved.chapters.filter(function(c) {
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+        }).length
+      : 0;
+    var hasValidCache = _savedValidCount >= 10;
+    if (hasValidCache) {
+      _chapters = saved.chapters;
+      _currentChapter = 1;
+      _showScreen('lbResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      var nameEl = _qs('lbResultName');
+      var dateEl = _qs('lbResultDate');
+      if (nameEl) nameEl.textContent = '📜 ' + (saved.name || '사용자') + '님의 인생의 책';
+      if (dateEl) {
+        var b = saved.birth || {};
+        var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' +
+          (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '') +
+          (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
+      }
+      // 저장된 결과 복원 시 마무리 배너 표시
+      var lbEpBannerSaved = _qs('lbEpilogueBanner');
+      if (lbEpBannerSaved) lbEpBannerSaved.style.display = '';
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      try {
+        modal.setAttribute('aria-hidden', 'false');
+        var closeBtn2 = modal.querySelector('.lb-modal__close');
+        if (closeBtn2) setTimeout(function () { closeBtn2.focus(); }, 60);
+      } catch (_) {}
+      return;
+    }
+
+    _chapters = Array(13).fill(null);
+    _currentChapter = 1;
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';

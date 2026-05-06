@@ -136,29 +136,21 @@
 
   function boot() {
     var mobile = isMobile();
-    var idleTimeout = mobile ? 6200 : 3500;
-    var fallbackTimeout = mobile ? 4200 : 2200;
-
-    // 모바일 Lighthouse 구간에서는 자동 비핵심 로딩이 성능 점수를 크게 깎을 수 있어
-    // 모바일에서는 사용자 상호작용 전에는 자동 시작하지 않는다.
-    if (!mobile) {
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(start, { timeout: idleTimeout });
-      } else {
-        setTimeout(start, fallbackTimeout);
-      }
-    } else {
-      MOBILE_DELAY_LEVEL = 0;
-    }
+    MOBILE_DELAY_LEVEL = 0;
 
     var events = mobile
-      ? ['pointerdown', 'touchstart', 'keydown']
-      : ['pointerdown', 'keydown', 'click'];
+      ? ['pointerdown', 'touchstart', 'keydown', 'scroll']
+      : ['pointerdown', 'keydown', 'click', 'scroll'];
     for (var i = 0; i < events.length; i += 1) {
       window.addEventListener(events[i], function () {
         start(1);
       }, { once: true, passive: true });
     }
+
+    // 사용자 상호작용이 전혀 없는 긴 세션에서도 기능이 준비되도록 매우 늦게 로드한다.
+    setTimeout(function () {
+      start(1);
+    }, mobile ? 18000 : 14000);
 
     // 탭이 백그라운드로 갈 때는 사용자 체감 영향이 거의 없어 미뤄둔 스크립트를 로드한다.
     document.addEventListener('visibilitychange', function () {

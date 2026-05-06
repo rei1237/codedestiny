@@ -8,7 +8,7 @@
   var ASTRO_TOTAL_CHAPTERS = 13;
 
   var CHAPTER_TITLES = [
-    '🌌 프롤로그와 페르소나의 핵 — 우주 지도 소개 + ASC·Sun·Moon',
+    '🌌 페르소나와 존재의 핵 — ASC·Sun·Moon의 입체적 결합',
     '🌊 감정의 뿌리 — Moon & 4하우스, 무의식의 안전가옥',
     '🧠 사고 방식과 정보 활용 — Mercury & 3·9하우스',
     '💎 욕망의 미학과 가치 자산 — Venus & 2·7하우스',
@@ -16,15 +16,15 @@
     '🌠 행운의 좌표와 확장의 철학 — Jupiter & 9하우스',
     '🏛️ 업보의 한계와 마스터의 길 — Saturn & 10하우스',
     '🌀 세대적 변화와 개인의 혁신 — Uranus · Neptune · Pluto',
-    '🧭 영혼의 나침반 — North/South Node · Chiron',
-    '🏆 직업과 사회적 성공 — MC · 10th · 6th · 2nd House',
-    '💞 사랑과 관계의 패턴 — 7th House · Venus · Mars · Juno',
+    '🧭 영혼의 나침반 — Lunar Nodes, North/South Node',
+    '🔮 궁합 비교 — 관계의 감정 패턴',
+    '⭕ 커플 통합 차트 — 우리라는 독립적 운명(Composite)',
     '📡 현재 하늘의 메시지 — Transit·Progression·Solar Return',
     '🌟 별들의 마스터플랜 — 총결산·Master Habit·90일 실행 로드맵',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '네이탈 차트 읽는 법 프롤로그 + 상승궁·태양·달의 3각 에너지로 성격 핵심과 차트 룰러 분석',
+    '상승궁·태양·달의 3각 에너지를 입체적으로 결합해 타고난 핵심 성향과 차트 룰러 분석',
     '달 별자리와 4하우스가 만드는 무의식의 정서 패턴·유년기 그림자·감정 치유 지도',
     '수성의 사고 지도·학습 최적화·이미지 관리 커뮤니케이션 전략',
     '금성의 욕망 코드·재물 블록·관계 끌림 패턴·풍요 전략',
@@ -32,15 +32,15 @@
     '목성의 황금 통로·행운 좌표·전문성 확장 로드맵',
     '토성의 삶의 과제·한계·마스터의 길·29.5년 귀환 전략',
     '외행성의 혁신 에너지·세대적 사명·창의적 발상법',
-    '노드 축과 키론 기반 영혼 성장 방향·치유 과제·30일 성장 루틴',
-    'MC·10하우스·6하우스·2하우스 기반 직업 성취·수입 구조·1년 전략',
-    '7하우스·금성·화성·Juno 기반 사랑 패턴·장기 관계 조건·회복 대화법',
+    '노드 축의 진화 방향·전생 패턴 극복·영혼 목적지',
+    '관계의 감정 비춤 패턴·파트너십 조건·상처 주지 않는 대화법',
+    '공동 에너지 분석·우리만의 독립적 운명 설계·공동 루틴 제시',
     '트랜짓·프로그레션·솔라리턴 기반 올해 흐름 및 월별 실전 전략',
     '차트 전체 요약·Master Habit·90일 실행표·최종 선언문',
   ];
 
   var LOADING_MSGS = [
-    '프롤로그와 ASC·태양·달의 핵심 구조를 작성하는 중...',
+    '상승궁(ASC)·태양·달의 3각 에너지를 결합하는 중...',
     '달의 무의식 안전가옥과 4하우스 그림자를 분석하는 중...',
     '수성의 사고 지도와 커뮤니케이션 전략을 구성하는 중...',
     '금성의 욕망 코드와 풍요 블록을 해독하는 중...',
@@ -48,9 +48,9 @@
     '목성의 황금 통로와 행운 좌표를 탐색하는 중...',
     '토성의 과제와 성장의 길을 분석하는 중...',
     '외행성의 혁신 에너지와 세대적 사명을 분석하는 중...',
-    '노드 축과 키론의 성장·치유 과제를 통합하는 중...',
-    '직업·재물·사회적 성취 전략을 정리하는 중...',
-    '사랑·관계·장기 파트너십 패턴을 해석하는 중...',
+    '노드 축의 영혼 목적지와 진화 방향을 읽는 중...',
+    '관계의 감정 비춤 패턴을 파악하는 중...',
+    '우리라는 독립적 운명의 Composite 차트를 분석하는 중...',
     '현재 하늘의 트랜짓·프로그레션·솔라리턴을 해석하는 중...',
     '별들의 마스터플랜과 90일 로드맵을 총결산하는 중...',
   ];
@@ -317,74 +317,6 @@
     list.innerHTML = html;
   }
 
-  function _ensureCompatibilityInputs() {
-    var start = document.getElementById('abStartScreen');
-    if (!start || document.getElementById('abCompatPanel')) return;
-
-    var panel = document.createElement('section');
-    panel.id = 'abCompatPanel';
-    panel.style.cssText = 'margin:14px 0 10px;padding:12px 14px;border-radius:12px;background:rgba(30,58,138,0.22);border:1px solid rgba(125,211,252,0.35);';
-    panel.innerHTML =
-      '<label style="display:flex;align-items:center;gap:8px;font-weight:700;color:#dbeafe;cursor:pointer;">' +
-        '<input type="checkbox" id="abCompatMode" style="width:16px;height:16px;"> 궁합 리포트 모드 (상대 정보 입력)' +
-      '</label>' +
-      '<div id="abPartnerFields" style="display:none;margin-top:10px;">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
-          '<input id="abPartnerName" type="text" placeholder="상대 이름" style="padding:10px;border-radius:8px;border:1px solid rgba(147,197,253,.45);background:rgba(15,23,42,.5);color:#e2e8f0;">' +
-          '<input id="abPartnerBirthDate" type="date" style="padding:10px;border-radius:8px;border:1px solid rgba(147,197,253,.45);background:rgba(15,23,42,.5);color:#e2e8f0;">' +
-          '<input id="abPartnerHour" type="number" min="0" max="23" placeholder="태어난 시 (0-23)" style="padding:10px;border-radius:8px;border:1px solid rgba(147,197,253,.45);background:rgba(15,23,42,.5);color:#e2e8f0;">' +
-          '<input id="abPartnerMinute" type="number" min="0" max="59" placeholder="태어난 분 (0-59)" style="padding:10px;border-radius:8px;border:1px solid rgba(147,197,253,.45);background:rgba(15,23,42,.5);color:#e2e8f0;">' +
-        '</div>' +
-        '<input id="abPartnerBirthPlace" type="text" placeholder="상대 출생지 (도시/국가)" style="margin-top:8px;width:100%;padding:10px;border-radius:8px;border:1px solid rgba(147,197,253,.45);background:rgba(15,23,42,.5);color:#e2e8f0;">' +
-      '</div>';
-
-    var anchor = start.querySelector('.lb-start__note') || start.firstElementChild;
-    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
-    else start.appendChild(panel);
-
-    var mode = document.getElementById('abCompatMode');
-    var fields = document.getElementById('abPartnerFields');
-    if (mode && fields) {
-      mode.addEventListener('change', function () {
-        fields.style.display = mode.checked ? '' : 'none';
-      });
-    }
-  }
-
-  function _readCompatibilityPayload() {
-    var modeEl = document.getElementById('abCompatMode');
-    var useCompat = !!(modeEl && modeEl.checked);
-    if (!useCompat) return { reportType: 'personal' };
-
-    var dateText = String((_qs('abPartnerBirthDate') && _qs('abPartnerBirthDate').value) || '').trim();
-    var dateParts = dateText ? dateText.split('-') : [];
-    var py = Number(dateParts[0]);
-    var pm = Number(dateParts[1]);
-    var pd = Number(dateParts[2]);
-    var ph = Number((_qs('abPartnerHour') && _qs('abPartnerHour').value) || 12);
-    var pmin = Number((_qs('abPartnerMinute') && _qs('abPartnerMinute').value) || 0);
-    var pname = String((_qs('abPartnerName') && _qs('abPartnerName').value) || '').trim();
-    var pplace = String((_qs('abPartnerBirthPlace') && _qs('abPartnerBirthPlace').value) || '').trim();
-
-    if (!py) py = 1990;
-    if (!pm) pm = 1;
-    if (!pd) pd = 1;
-    if (!isFinite(ph) || ph < 0 || ph > 23) ph = 12;
-    if (!isFinite(pmin) || pmin < 0 || pmin > 59) pmin = 0;
-    if (!pplace) pplace = '정보 없음';
-
-    return {
-      reportType: 'compatibility',
-      partnerName: pname || '상대',
-      partnerYear: py,
-      partnerMonth: pm,
-      partnerDay: pd,
-      partnerHour: ph,
-      partnerMinute: pmin,
-      partnerBirthPlace: pplace,
-    };
-  }
-
   var AB_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
 
   function _renderToc() {
@@ -482,7 +414,6 @@
     document.body.classList.add('lb-modal-open');
     try { modal.setAttribute('aria-hidden','false'); var closeBtn=modal.querySelector('.lb-modal__close'); if(closeBtn) setTimeout(function(){closeBtn.focus();},60); } catch(_){}
     _prefillAstroProfile(profile);
-    _ensureCompatibilityInputs();
     _renderDetailedChapterPreview();
   };
 
@@ -516,8 +447,6 @@
     if (!b.year || !b.month || !b.day) { alert('생년월일을 확인할 수 없습니다. 사주 계산 후 다시 시도해 주세요.'); return; }
 
     var loc = profile.location || { lat:37.5665, lng:126.978, tzOffset:9 };
-    var compat = _readCompatibilityPayload();
-    if (compat.error) { alert(compat.error); return; }
 
     _generating = true;
     _chapters = Array(ASTRO_TOTAL_CHAPTERS).fill(null);
@@ -614,20 +543,13 @@
               lat: loc.lat !== undefined ? loc.lat : 37.5665,
               lon: loc.lng !== undefined ? loc.lng : 126.978,
               chapter: idx+1,
-              reportType: compat.reportType,
+              reportType: 'personal',
               houseSystem: profile.houseSystem || 'placidus',
               zodiacType: profile.zodiacType || 'tropical',
               birthPlace: loc.label || '대한민국 (서울)',
               timezoneName: loc.tz || 'Asia/Seoul',
               birthTimeUnknown: !!(profile.birthTimeUnknown || b.birthTimeUnknown || b.timeUnknown),
-              includeMinorAspects: true,
-              partnerName: compat.partnerName,
-              partnerYear: compat.partnerYear,
-              partnerMonth: compat.partnerMonth,
-              partnerDay: compat.partnerDay,
-              partnerHour: compat.partnerHour,
-              partnerMinute: compat.partnerMinute,
-              partnerBirthPlace: compat.partnerBirthPlace
+              includeMinorAspects: true
             })
           })
           .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.error)||(e&&e.message)||'HTTP '+res.status};}); })

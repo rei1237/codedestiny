@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
         // 혹시 이전 세션에서 남아있던 localStorage 토큰 제거
         try { localStorage.removeItem("flower_admin_token"); } catch {}
       }
-      window.location.assign("/");
+      window.location.assign("/admin/insights");
     } catch {
       setError("네트워크 오류가 발생했습니다.");
     } finally {

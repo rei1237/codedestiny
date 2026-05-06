@@ -1,321 +1,505 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import ServiceCTA from "../../components/ServiceCTA";
-import Breadcrumb from "../../components/Breadcrumb";
+import { getApiBaseUrl } from "../../_lib/api-config";
+import { sanitizePublicInsightHtml, stripHtmlText } from "../_lib/sanitizePublicHtml";
 
-const SECTION_ACCENTS = ["#c9a84c", "#4ecdc4", "#a78bfa", "#ff6b9d", "#60a5fa"];
+function upsertMetaTag(selector, attrs, content) {
+  if (typeof document === "undefined") return;
 
-function getSectionAccent(index) {
-  return SECTION_ACCENTS[index % SECTION_ACCENTS.length];
+  let tag = document.head.querySelector(selector);
+  if (!tag) {
+    tag = document.createElement("meta");
+    Object.entries(attrs).forEach(([key, value]) => tag.setAttribute(key, value));
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("content", String(content || ""));
 }
 
-function buildTarotImageUrl(cardId) {
-  const safeId = String(cardId || "").trim();
-  if (!safeId) return "";
-  return `/api/tarot/card-image/${encodeURIComponent(safeId)}`;
+function upsertCanonical(url) {
+  if (typeof document === "undefined") return;
+
+  let tag = document.head.querySelector('link[rel="canonical"]');
+  if (!tag) {
+    tag = document.createElement("link");
+    tag.setAttribute("rel", "canonical");
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("href", String(url || ""));
 }
 
-export default function InsightArticleCosmicClient({ article, topic, relatedArticles, faqItems = [] }) {
-  const [scrollProgress, setScrollProgress] = useState(0);
+function slugifyHeading(text) {
+  return String(text || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function enrichHtmlWithToc(rawHtml) {
+  if (typeof window === "undefined") {
+    return { html: String(rawHtml || ""), toc: [] };
+  }
+
+  const parser = new window.DOMParser();
+  const doc = parser.parseFromString(`<article>${String(rawHtml || "")}</article>`, "text/html");
+  const article = doc.body.firstElementChild;
+  if (!article) return { html: String(rawHtml || ""), toc: [] };
+
+  const toc = [];
+  const seen = new Map();
+  const headings = article.querySelectorAll("h2, h3");
+  headings.forEach((node) => {
+    const level = Number(String(node.tagName || "").replace("H", "") || 0);
+    const text = String(node.textContent || "").trim();
+    if (!text || (level !== 2 && level !== 3)) return;
+
+    const baseId = slugifyHeading(text) || `section-${toc.length + 1}`;
+    const count = Number(seen.get(baseId) || 0) + 1;
+    seen.set(baseId, count);
+    const id = count > 1 ? `${baseId}-${count}` : baseId;
+
+    node.setAttribute("id", id);
+    toc.push({ id, text, level });
+  });
+
+  const images = article.querySelectorAll("img");
+  images.forEach((node) => {
+    const loading = String(node.getAttribute("loading") || "").toLowerCase();
+    if (loading !== "eager") node.setAttribute("loading", "lazy");
+    const alt = String(node.getAttribute("alt") || "").trim();
+    if (!alt) node.setAttribute("alt", "본문 이미지");
+  });
+
+  return {
+    html: article.innerHTML,
+    toc,
+  };
+}
+
+function extractFaqItemsFromHtml(rawHtml) {
+  if (typeof window === "undefined") return [];
+
+  const parser = new window.DOMParser();
+  const doc = parser.parseFromString(`<article>${String(rawHtml || "")}</article>`, "text/html");
+  const article = doc.body.firstElementChild;
+  if (!article) return [];
+
+  const items = [];
+  let pendingQuestion = "";
+  const blocks = article.querySelectorAll("h2, h3, h4, p, li, dt, dd");
+
+  for (const block of blocks) {
+    const text = String(block.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) continue;
+
+    const questionLabel = text.match(/^(질문|Q|Question)\s*[:：]\s*(.+)$/i);
+    if (questionLabel) {
+      pendingQuestion = String(questionLabel[2] || "").trim();
+      continue;
+    }
+
+    const answerLabel = text.match(/^(답변|A|Answer)\s*[:：]\s*(.+)$/i);
+    if (answerLabel && pendingQuestion) {
+      const answer = String(answerLabel[2] || "").trim();
+      if (answer) items.push({ question: pendingQuestion, answer });
+      pendingQuestion = "";
+      continue;
+    }
+
+    if (!pendingQuestion && text.endsWith("?")) {
+      pendingQuestion = text;
+      continue;
+    }
+
+    if (pendingQuestion) {
+      items.push({ question: pendingQuestion, answer: text });
+      pendingQuestion = "";
+    }
+
+    if (items.length >= 10) break;
+  }
+
+  return items.filter((item) => item.question && item.answer);
+}
+
+function resolveSeo(item, shareUrl) {
+  const title = String(item?.title || "").trim();
+  const subtitle = String(item?.subtitle || "").trim();
+  const excerpt = String(item?.excerpt || "").trim();
+  const plainBody = stripHtmlText(String(item?.contentHtml || ""));
+  const bodySnippet = plainBody.slice(0, 170);
+
+  const metaTitle = String(item?.metaTitle || "").trim() || title;
+  const metaDescription = String(item?.metaDescription || "").trim() || excerpt || bodySnippet;
+  const ogTitle = String(item?.ogTitle || "").trim() || metaTitle;
+  const ogDescription = String(item?.ogDescription || "").trim() || metaDescription;
+  const ogImage = String(item?.ogImage || "").trim() || String(item?.featuredImage?.url || "").trim();
+  const twitterTitle = String(item?.twitterTitle || "").trim() || ogTitle;
+  const twitterDescription = String(item?.twitterDescription || "").trim() || ogDescription;
+  const twitterImage = String(item?.twitterImage || "").trim() || ogImage;
+  const canonical = String(item?.canonicalUrl || "").trim() || shareUrl;
+
+  return {
+    title: subtitle ? `${title} | ${subtitle}` : title,
+    metaTitle,
+    metaDescription,
+    canonical,
+    robots: item?.noIndex ? "noindex, nofollow" : "index, follow",
+    ogTitle,
+    ogDescription,
+    ogImage,
+    ogType: "article",
+    twitterTitle,
+    twitterDescription,
+    twitterImage,
+  };
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function buildShareUrl(rawShareUrl, slug) {
+  const safeFromApi = String(rawShareUrl || "").trim();
+  if (safeFromApi) return safeFromApi;
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/insights/${encodeURIComponent(String(slug || ""))}`;
+  }
+  return `/insights/${encodeURIComponent(String(slug || ""))}`;
+}
+
+export default function InsightArticleCosmicClient({ slug }) {
+  const apiBase = useMemo(() => getApiBaseUrl(), []);
+
+  const [item, setItem] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [previous, setPrevious] = useState(null);
+  const [next, setNext] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [shareMessage, setShareMessage] = useState("");
+  const [tocOpen, setTocOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => {
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      if (total <= 0) {
-        setScrollProgress(0);
+    let cancelled = false;
+
+    async function loadDetail() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const endpoint = `${apiBase || ""}/api/insights/${encodeURIComponent(String(slug || ""))}`;
+        const response = await fetch(endpoint, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(String(data?.message || "글을 불러오지 못했습니다."));
+        }
+
+        if (cancelled) return;
+
+        setItem(data?.item || null);
+        setRelated(Array.isArray(data?.related) ? data.related : []);
+        setPrevious(data?.previous || null);
+        setNext(data?.next || null);
+      } catch (fetchError) {
+        if (!cancelled) {
+          setItem(null);
+          setRelated([]);
+          setPrevious(null);
+          setNext(null);
+          setError(String(fetchError?.message || "글을 불러오지 못했습니다."));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadDetail();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBase, slug]);
+
+  const safeHtml = useMemo(() => sanitizePublicInsightHtml(String(item?.contentHtml || "")), [item?.contentHtml]);
+  const tocBundle = useMemo(() => enrichHtmlWithToc(safeHtml), [safeHtml]);
+  const renderedHtml = tocBundle.html;
+  const tocItems = tocBundle.toc;
+  const faqItems = useMemo(() => extractFaqItemsFromHtml(renderedHtml), [renderedHtml]);
+  const readingTime = Math.max(1, Number(item?.readingTime || 0) || 1);
+  const shareUrl = buildShareUrl(item?.shareUrl, item?.slug || slug);
+  const seo = useMemo(() => resolveSeo(item, shareUrl), [item, shareUrl]);
+
+  const blogPostingSchema = useMemo(() => {
+    if (!item) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: String(item?.title || ""),
+      description: String(seo.metaDescription || ""),
+      image: seo.ogImage || undefined,
+      author: {
+        "@type": "Person",
+        name: String(item?.author || "꽃돼지 연이"),
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "Code Destiny",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://code-destiny.com/icons/og-image.png",
+        },
+      },
+      datePublished: item?.publishedAt || item?.createdAt || undefined,
+      dateModified: item?.updatedAt || undefined,
+      mainEntityOfPage: seo.canonical,
+    };
+  }, [item, seo.canonical, seo.metaDescription, seo.ogImage]);
+
+  const faqSchema = useMemo(() => {
+    if (!Array.isArray(faqItems) || faqItems.length === 0) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    };
+  }, [faqItems]);
+
+  useEffect(() => {
+    if (!item) return;
+
+    document.title = seo.metaTitle || seo.title || "인사이트";
+    upsertMetaTag('meta[name="description"]', { name: "description" }, seo.metaDescription);
+    upsertCanonical(seo.canonical);
+    upsertMetaTag('meta[name="robots"]', { name: "robots" }, seo.robots);
+    upsertMetaTag('meta[property="og:title"]', { property: "og:title" }, seo.ogTitle);
+    upsertMetaTag('meta[property="og:description"]', { property: "og:description" }, seo.ogDescription);
+    upsertMetaTag('meta[property="og:image"]', { property: "og:image" }, seo.ogImage);
+    upsertMetaTag('meta[property="og:type"]', { property: "og:type" }, seo.ogType);
+    upsertMetaTag('meta[property="og:url"]', { property: "og:url" }, seo.canonical);
+    upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title" }, seo.twitterTitle);
+    upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description" }, seo.twitterDescription);
+    upsertMetaTag('meta[name="twitter:image"]', { name: "twitter:image" }, seo.twitterImage);
+    upsertMetaTag('meta[name="twitter:card"]', { name: "twitter:card" }, "summary_large_image");
+  }, [item, seo]);
+
+  function onTocClick(id) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTocOpen(false);
+  }
+
+  async function onShare() {
+    if (!item) return;
+
+    const title = String(item?.title || "인사이트 글");
+    const text = String(item?.excerpt || stripHtmlText(item?.contentHtml || "")).slice(0, 140);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url: shareUrl });
+        setShareMessage("공유창을 열었습니다.");
         return;
       }
-      const value = Math.max(0, Math.min(100, (window.scrollY / total) * 100));
-      setScrollProgress(value);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
 
-  useEffect(() => {
-    const canvas = document.querySelector(".ins-article-star-canvas");
-    if (!(canvas instanceof HTMLCanvasElement)) return undefined;
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return undefined;
-
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let rafId = 0;
-    let stars = [];
-
-    function buildStars() {
-      const count = Math.max(90, Math.floor((width * height) / 14000));
-      stars = Array.from({ length: count }).map(() => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        r: 0.5 + Math.random() * 1.8,
-        a: 0.2 + Math.random() * 0.8,
-        t: Math.random() * Math.PI * 2,
-        tw: 0.008 + Math.random() * 0.02,
-      }));
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage("링크를 복사했습니다.");
+    } catch {
+      setShareMessage("공유를 완료하지 못했습니다.");
     }
+  }
 
-    function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildStars();
-    }
+  if (loading) {
+    return <div className="mx-auto w-full max-w-4xl px-4 py-16 text-sm text-slate-300">인사이트를 불러오는 중...</div>;
+  }
 
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      for (const star of stars) {
-        star.t += star.tw;
-        const twinkle = (Math.sin(star.t) + 1) / 2;
-        const alpha = star.a * (0.35 + twinkle * 0.65);
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(232,228,255,${alpha.toFixed(3)})`;
-        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      rafId = window.requestAnimationFrame(draw);
-    }
-
-    resize();
-    draw();
-    window.addEventListener("resize", resize, { passive: true });
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  const metaLine = useMemo(() => {
-    const topicLabel = topic?.label ? ` (${topic.label})` : "";
-    return `${article.category}${topicLabel} · 업데이트 ${article.updatedAt}`;
-  }, [article.category, article.updatedAt, topic?.label]);
-
-  const authorName = useMemo(
-    () => String(article?.author?.name || "꽃돼지 연이"),
-    [article?.author?.name],
-  );
-
-  const references = useMemo(
-    () => (Array.isArray(article?.references) ? article.references : []),
-    [article?.references],
-  );
-
-  const breadcrumbItems = useMemo(() => [
-    { label: '홈', href: '/' },
-    { label: 'Insights', href: '/insights' },
-    { label: article.category, href: `/insights?topic=${article.category}` },
-    { label: article.title, href: `/insights/${article.slug}` },
-  ], [article.category, article.slug, article.title]);
+  if (error || !item) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-4 py-16 space-y-4">
+        <p className="rounded-xl border border-rose-300/40 bg-rose-300/10 px-4 py-3 text-sm text-rose-100">{error || "존재하지 않거나 비공개 상태의 글입니다."}</p>
+        <Link href="/insights" className="inline-flex rounded-lg border border-white/20 px-3 py-2 text-sm text-slate-100 hover:bg-white/10">목록으로 돌아가기</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="ins-detail-root">
-    <Breadcrumb items={breadcrumbItems} />
-    <main className="ins-article-cosmic">
-      <div className="ins-scroll-progress" style={{ width: `${scrollProgress}%` }} />
-      <canvas className="ins-article-star-canvas" aria-hidden="true" />
-      <div className="ins-article-bg-layer ins-article-nebula-a" aria-hidden="true" />
-      <div className="ins-article-bg-layer ins-article-nebula-b" aria-hidden="true" />
-      <div className="ins-article-bg-layer ins-article-grain" aria-hidden="true" />
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#2a1a47_0%,#100a1f_45%,#090612_100%)] text-slate-100">
+      <section className="mx-auto w-full max-w-4xl px-4 py-8 md:py-10 space-y-6">
+        <Link href="/insights" className="inline-flex rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10">목록으로 돌아가기</Link>
 
-      <div className="ins-article-wrap">
-        <section className="ins-article-hero">
-          <Link href="/insights" className="ins-back-pill">
-            <span aria-hidden="true">‹</span> 목록으로
-          </Link>
+        <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">
+          <p className="text-xs text-amber-200/85">{item.category || "인사이트"}</p>
+          <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">{item.title}</h1>
+          {item.subtitle ? <p className="mt-3 text-base text-slate-300 leading-7">{item.subtitle}</p> : null}
 
-          <div className="ins-hero-meta-line">
-            <span className="ins-hero-badge">{article.category}</span>
-            <span className="ins-hero-date">{metaLine}</span>
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
+            <span>작성일 {formatDateTime(item.publishedAt || item.createdAt)}</span>
+            <span>수정일 {formatDateTime(item.updatedAt)}</span>
+            <span>조회 {Number(item.viewCount || 0).toLocaleString("ko-KR")}</span>
+            <span>약 {readingTime}분 읽기</span>
           </div>
 
-          <h1 className="ins-hero-title">
-            <span className="ins-deco">「</span>
-            {article.title}
-            <span className="ins-deco">」</span>
-          </h1>
-          <div className="ins-hero-divider" aria-hidden="true" />
-          <p className="ins-hero-lead">{article.description}</p>
+          {item.noIndex ? (
+            <p className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+              이 글은 검색 색인 제외(noIndex) 설정이 켜져 있습니다.
+            </p>
+          ) : null}
 
-          <div className="ins-tag-row">
-            <span>✦ 어렵지 않은 설명</span>
-            <span>✦ 실전 포인트 중심</span>
-          </div>
-        </section>
+          {item.featuredImage?.url ? (
+            <div className="mt-5 overflow-hidden rounded-2xl border border-white/10">
+              <img
+                src={item.featuredImage.url}
+                alt={item.featuredImage.alt || item.title}
+                loading="lazy"
+                width={item.featuredImage.width || undefined}
+                height={item.featuredImage.height || undefined}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          ) : null}
 
-        <div className="ins-sections">
-          {article.sections.map((section, index) => {
-            const accent = getSectionAccent(index);
-            return (
-              <div key={section.heading}>
-                <section className="ins-section-card" style={{ "--accent": accent, animationDelay: `${0.1 * index}s` }}>
-                  <div className="ins-section-accent" aria-hidden="true" />
-                  <div className="ins-section-head">
-                    <span className="ins-section-no">{String(index + 1).padStart(2, "0")}</span>
-                    <h2>{section.heading}</h2>
-                  </div>
-                  <div className="ins-section-divider" />
-                  <p className="ins-article-body">{section.body}</p>
-                  {Array.isArray(section.cards) && section.cards.length > 0 && (
-                    <div className="ins-tarot-card-grid">
-                      {section.cards.map((card) => (
-                        <article key={card.id} className="ins-tarot-card-item">
-                          <div className="ins-tarot-card-thumb">
-                            <Image
-                              src={buildTarotImageUrl(card.id)}
-                              alt={`${card.name} 카드 이미지`}
-                              fill
-                              sizes="(max-width: 640px) 42vw, 220px"
-                              className="ins-tarot-card-image"
-                            />
-                          </div>
-                          <h3 className="ins-tarot-card-title">
-                            {card.id} · {card.name}
-                          </h3>
-                          <p className="ins-tarot-card-meaning">{card.meaning}</p>
-                          <p className="ins-tarot-card-reading">{card.reading}</p>
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                  {Array.isArray(section.animalCards) && section.animalCards.length > 0 && (
-                    <div className="ins-animal-card-grid">
-                      {section.animalCards.map((item) => (
-                        <article key={`${item.star}-${item.animalName}`} className="ins-animal-card-item">
-                          <div className="ins-animal-card-head">
-                            <span className="ins-animal-emoji" aria-hidden="true">{item.animalEmoji}</span>
-                            <div className="ins-animal-title-wrap">
-                              <h3 className="ins-animal-star">{item.star}</h3>
-                              <p className="ins-animal-name">{item.animalName}</p>
-                            </div>
-                          </div>
-                          <p className="ins-animal-trait">{item.trait}</p>
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </section>
-                {index < article.sections.length - 1 && <div className="ins-section-sep" aria-hidden="true">─ ✦ ─ ─ ─ ─ ─ ─ ─ ✦ ─</div>}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="ins-end-ornament" aria-hidden="true">
-          ── ✦ ✦ ✦ ──
-        </div>
-
-        <div className="ins-bottom-back-wrap">
-          <Link href="/insights" className="ins-bottom-back">
-            ✦ 목록으로 돌아가기
-          </Link>
-        </div>
-
-        <section
-          aria-label="저자 전문성 소개"
-          style={{
-            marginTop: "22px",
-            marginBottom: "8px",
-            borderRadius: "18px",
-            padding: "18px 16px",
-            border: "1px solid rgba(201, 168, 76, 0.36)",
-            background:
-              "linear-gradient(135deg, rgba(20, 23, 44, 0.88), rgba(32, 15, 48, 0.82))",
-            boxShadow: "0 14px 28px rgba(4, 10, 28, 0.36)",
-          }}
-        >
-          <p
-            style={{
-              margin: "0 0 10px",
-              fontSize: "0.82rem",
-              color: "#f8eecb",
-              letterSpacing: "0.02em",
-            }}
-          >
-            작성자 {authorName} · 최종 수정일 {article.updatedAt}
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.78, color: "#e2e8f0", wordBreak: "keep-all" }}>
-            꽃돼지 연이는 감성의 결을 깊게 읽지만, 동시에 백사자 쌈바의 추진력으로 해석을 행동으로 바꾸는
-            작성자입니다. Code: Destiny에서는 사주, 운세, 타로, 명리학 데이터를 바탕으로 지금 필요한 선택지를
-            선명하게 제시합니다. 꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력의 흐름을 통해 신비로운 통찰을 현실적인 계획으로
-            연결합니다.
-          </p>
-          <p style={{ margin: "10px 0 0", lineHeight: 1.7, color: "#cbd5e1", fontSize: "0.88rem" }}>
-            저자 프로필: <Link href={article?.author?.profileUrl || "/about"} style={{ color: "#f0d080" }}>소개 페이지 보기</Link>
-          </p>
-        </section>
-
-        <section className="ins-related" aria-label="참고자료 및 작성 기준">
-          <h3>참고자료</h3>
-          {references.length > 0 ? (
-            <ul className="ins-reference-list">
-              {references.map((item, index) => (
-                <li key={`${item.title}-${index}`}>
-                  {item.url ? (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer">
-                      {item.title}
-                    </a>
-                  ) : (
-                    <span>{item.title}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="ins-reference-empty">현재 문서에 별도 참고자료 링크는 표기되지 않았습니다.</p>
-          )}
-          <p className="ins-methodology-note">{article.methodologyNote}</p>
-          <p className="ins-methodology-note">
-            작성 기준 및 면책 고지: <Link href="/methodology" style={{ color: "#f0d080" }}>방법론 안내 보기</Link>
-          </p>
-        </section>
-
-        {Array.isArray(faqItems) && faqItems.length > 0 && (
-          <section className="ins-related" aria-label="자주 묻는 질문">
-            <h2 className="ins-faq-title">자주 묻는 질문</h2>
-            <div className="ins-faq-list">
-              {faqItems.map((item, index) => (
-                <article key={`${item.question}-${index}`} className="ins-faq-item">
-                  <h3>{item.question}</h3>
-                  <p>{item.answer}</p>
-                </article>
+          {Array.isArray(item.tags) && item.tags.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {item.tags.map((value) => (
+                <span key={`${item.slug}-${value}`} className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] text-slate-200">#{value}</span>
               ))}
             </div>
-          </section>
-        )}
+          ) : null}
 
-        {relatedArticles.length > 0 && (
-          <section className="ins-related">
-            <h3>같은 카테고리 추천 글</h3>
-            <div className="ins-related-grid">
-              {relatedArticles.map((related) => (
-                <Link key={related.slug} href={`/insights/${related.slug}`} className="ins-related-card">
-                  <div className="meta">{related.category} · 업데이트 {related.updatedAt}</div>
-                  <div className="title">{related.title}</div>
-                  <div className="desc">{related.description}</div>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onShare}
+              className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+            >
+              공유하기
+            </button>
+            <a
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(item.title)}`}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+            >
+              X 공유
+            </a>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+            >
+              Facebook 공유
+            </a>
+            {shareMessage ? <span className="text-xs text-emerald-300">{shareMessage}</span> : null}
+          </div>
+        </header>
+
+        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-amber-100">목차</h2>
+            <button
+              type="button"
+              className="rounded-lg border border-white/20 bg-white/5 px-2.5 py-1 text-xs text-slate-200 md:hidden"
+              onClick={() => setTocOpen((open) => !open)}
+            >
+              {tocOpen ? "접기" : "펼치기"}
+            </button>
+          </div>
+
+          {tocItems.length > 0 ? (
+            <nav className={`${tocOpen ? "block" : "hidden"} md:block mt-3`} aria-label="본문 목차">
+              <ul className="space-y-1.5">
+                {tocItems.map((toc) => (
+                  <li key={toc.id} className={toc.level === 3 ? "pl-4" : ""}>
+                    <button
+                      type="button"
+                      onClick={() => onTocClick(toc.id)}
+                      className="text-left text-sm text-slate-200 hover:text-amber-100 leading-6"
+                    >
+                      {toc.level === 3 ? "- " : ""}{toc.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : (
+            <p className="mt-3 text-xs text-slate-400">목차를 생성할 h2/h3가 없습니다.</p>
+          )}
+        </section>
+
+        <article className="rounded-3xl border border-white/10 bg-white/[0.03] px-5 py-6 md:px-8 md:py-8">
+          <div className="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-headings:text-amber-50 prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:leading-8 prose-li:leading-8 prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-blockquote:border-amber-300/40 prose-blockquote:text-slate-200" dangerouslySetInnerHTML={{ __html: renderedHtml }} />
+        </article>
+
+        {(previous || next) ? (
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-xs text-slate-400">이전 글</p>
+              {previous ? (
+                <Link href={`/insights/${previous.slug}`} className="mt-2 block text-sm font-semibold text-slate-100 hover:text-amber-100">{previous.title}</Link>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500">이전 글이 없습니다.</p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-xs text-slate-400">다음 글</p>
+              {next ? (
+                <Link href={`/insights/${next.slug}`} className="mt-2 block text-sm font-semibold text-slate-100 hover:text-amber-100">{next.title}</Link>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500">다음 글이 없습니다.</p>
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        {related.length > 0 ? (
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-amber-100">관련 글</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {related.map((rel) => (
+                <Link key={`rel-${rel.slug}`} href={`/insights/${rel.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:border-amber-300/40 transition">
+                  <p className="text-xs text-slate-400">{rel.category || "인사이트"} · {formatDateTime(rel.publishedAt)}</p>
+                  <h3 className="mt-2 text-sm font-semibold text-slate-100 leading-6">{rel.title}</h3>
                 </Link>
               ))}
             </div>
           </section>
-        )}
+        ) : null}
 
-        {article.relatedService && <ServiceCTA slug={article.relatedService} />}
-      </div>
+        {blogPostingSchema ? (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }} />
+        ) : null}
+        {faqSchema ? (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+        ) : null}
+      </section>
     </main>
-    </div>
   );
 }
-

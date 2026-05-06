@@ -3,9 +3,11 @@ import { resolve } from "node:path";
 
 const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
+const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
+const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const today = new Date().toISOString().slice(0, 10);
 
 const coreRoutes = [
@@ -19,6 +21,7 @@ const coreRoutes = [
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/rss.xml", changefreq: "daily", priority: 0.2 },
+  { path: "/insights/rss.xml", changefreq: "daily", priority: 0.2 },
 ];
 
 function normalizeDate(dateLike) {
@@ -103,10 +106,54 @@ function toUrl(pathname) {
   return new URL(pathname, siteBaseUrl).toString();
 }
 
-function main() {
+async function fetchPublishedInsightsFromApi() {
+  const out = [];
+  const seen = new Set();
+
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore && page <= 200) {
+    const url = `${insightsApiBase}/api/insights?sort=latest&pageSize=50&page=${page}&excludeNoIndex=1`;
+    const response = await fetch(url, { method: "GET" });
+    if (!response.ok) break;
+
+    const data = await response.json().catch(() => ({}));
+    const items = Array.isArray(data?.items) ? data.items : [];
+
+    for (const item of items) {
+      const slug = String(item?.slug || "").trim();
+      if (!slug) continue;
+
+      const canonicalUrl = String(item?.canonicalUrl || "").trim()
+        || `${siteBaseUrl}/insights/${encodeURIComponent(slug)}`;
+
+      if (seen.has(canonicalUrl)) continue;
+      seen.add(canonicalUrl);
+
+      out.push({
+        path: canonicalUrl.replace(siteBaseUrl, "") || "/",
+        changefreq: "weekly",
+        priority: 0.74,
+        lastmod: normalizeDate(item?.updatedAt),
+      });
+    }
+
+    hasMore = Boolean(data?.hasMore);
+    page += 1;
+  }
+
+  return out;
+}
+
+async function main() {
+  const dynamicInsights = await fetchPublishedInsightsFromApi().catch(() => []);
+  const fallbackInsights = dynamicInsights.length > 0 ? [] : extractInsightRoutes();
+
   const routeEntries = [
     ...coreRoutes,
-    ...extractInsightRoutes(),
+    ...fallbackInsights,
+    ...dynamicInsights,
     ...extractHighValueRoutes(),
   ];
 
@@ -161,7 +208,8 @@ function main() {
   ].join("\n");
 
   writeFileSync(sitemapRootPath, xml, "utf8");
-  console.log(`[sitemap] Generated ${sorted.length} static URLs -> sitemap.xml`);
+  writeFileSync(sitemapPublicPath, xml, "utf8");
+  console.log(`[sitemap] Generated ${sorted.length} URLs -> sitemap.xml, public/sitemap.xml`);
 }
 
 main();

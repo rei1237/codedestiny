@@ -38,12 +38,16 @@
   function preconnectOrigins(srcList) {
     try {
       var seen = {};
+      var thirdPartyCount = 0;
       for (var i = 0; i < srcList.length; i++) {
         var raw = srcList[i];
         if (!raw) continue;
         var u = new URL(raw, window.location.href);
         if (!u || !u.origin || seen[u.origin]) continue;
+        if (u.origin === window.location.origin) continue;
+        if (thirdPartyCount >= 2) continue;
         seen[u.origin] = true;
+        thirdPartyCount += 1;
         var ln = document.createElement('link');
         ln.rel = 'preconnect';
         ln.href = u.origin;
@@ -107,14 +111,10 @@
       window.addEventListener(events[i], onFirstInteraction, { passive: true, once: true });
     }
 
-    if (!isMobile()) {
-      if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(loadDeferredFeatureScripts, { timeout: 3200 });
-      } else {
-        setTimeout(loadDeferredFeatureScripts, 1800);
-      }
-      return;
-    }
+    setTimeout(function () {
+      interactionCount = Math.max(interactionCount, 1);
+      loadDeferredFeatureScripts();
+    }, isMobile() ? 18000 : 12000);
 
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'hidden') {

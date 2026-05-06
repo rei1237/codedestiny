@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -344,8 +344,6 @@
 <!-- ═══ LCP + Resource Hints (PERF-TASK17) ═══ -->
 <link rel="preload" as="image" href="/icons/honeypig.webp">
 <link rel="preload" as="image" href="/icons/samba.webp">
-<link rel="preconnect" href="https://developers.kakao.com">
-<link rel="dns-prefetch" href="//t1.kakaocdn.net">
 <!-- 폰트 CSS: 초기 렌더 이후(상호작용/유휴) 지연 로드 -->
 <script>
 (function(){
@@ -655,8 +653,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link data-cd-noncritical-style-src="/styles/animations.css" data-cd-mobile-delay="1">
-  <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
 
   <link data-cd-noncritical-style-src="/styles/cosmic-main.css?v=20260413" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260413"></noscript>
@@ -685,7 +681,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=20260411-foucfix2" data-cd-mobile-delay="1">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2"></noscript>
   <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=20260415" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415"></noscript>
   <link data-cd-noncritical-style-src="/styles/love-secret.css?v=20260405-epilogue" data-cd-mobile-delay="1">
@@ -2644,7 +2641,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     aria-label="자미두수 인생 총람 — 590코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북"
+                 <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북" width="960" height="540"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -2677,7 +2674,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
                     aria-label="점성술 코즈믹 차트 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                 <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트" width="960" height="540"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,4,25,0.88) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(251,191,36,0.90);color:#1a1200;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -2710,7 +2707,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
                     aria-label="숙요점 프리미엄 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                 <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄" width="960" height="540"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(2,8,23,0.90) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(14,165,233,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -2743,7 +2740,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(234,88,12,0.14)'"
                     aria-label="베다 점성술 인생 총람 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄"
+                 <img src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄" width="960" height="540"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(15,10,3,0.90) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(234,88,12,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -2776,7 +2773,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(212,175,55,0.14)'"
                     aria-label="명운 프리미엄 작명 — 700코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명"
+                 <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명" width="960" height="540"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,12,24,0.90) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(212,175,55,0.95);color:#0f172a;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -3356,7 +3353,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <div class="oracle-card-m" id="tarotCardEl" data-action="startTarotReading">
                 <div class="oracle-face-m oracle-back-m" id="tarotCardBack"></div>
                 <div class="oracle-face-m oracle-front-m" id="tarotCardFront">
-                  <img id="tarotCardFrontImg" class="tarot-face-img" alt="Tarot card" loading="lazy" decoding="async">
+                  <img id="tarotCardFrontImg" class="tarot-face-img" alt="Tarot card" loading="lazy" decoding="async" width="200" height="300">
                 </div>
               </div>
             </div>
@@ -3370,7 +3367,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="0">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="0">
-                      <img class="tarot-face-img" data-card-img="0" alt="Tarot card 1" loading="lazy" decoding="async" fetchpriority="low">
+                      <img class="tarot-face-img" data-card-img="0" alt="Tarot card 1" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -3379,7 +3376,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="1">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="1">
-                      <img class="tarot-face-img" data-card-img="1" alt="Tarot card 2" loading="lazy" decoding="async" fetchpriority="low">
+                      <img class="tarot-face-img" data-card-img="1" alt="Tarot card 2" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -3388,7 +3385,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="2">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="2">
-                      <img class="tarot-face-img" data-card-img="2" alt="Tarot card 3" loading="lazy" decoding="async" fetchpriority="low">
+                      <img class="tarot-face-img" data-card-img="2" alt="Tarot card 3" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -3843,7 +3840,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="cd-banner-inner">
             <img src="/fuctionassets/info.webp"
               alt="운세 인사이트 허브 — 동서양 운명학 아카이브"
-              loading="lazy" decoding="async">
+              loading="lazy" decoding="async" width="1600" height="900">
             <div class="cd-banner-overlay"></div>
             <div class="cd-tap-badge">▶ 탭하여 열기</div>
             <div class="cd-banner-text" itemprop="description">
@@ -3901,7 +3898,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="cd-banner-inner">
             <img src="/fuctionassets/famous.webp"
               alt="유명인 사주 분석 아카이브 대표 이미지"
-              loading="lazy" decoding="async">
+              loading="lazy" decoding="async" width="1600" height="900">
             <div class="cd-banner-overlay" style="background:linear-gradient(180deg,rgba(10,13,46,0.04) 0%,rgba(10,13,46,0.42) 48%,rgba(10,13,46,0.92) 100%);"></div>
             <div class="cd-tap-badge" style="border-color:rgba(183,148,244,0.25);color:rgba(220,200,255,0.88);">▶ 탭하여 열기</div>
             <div class="cd-banner-text">
@@ -4739,7 +4736,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <button class="sb-close-btn" onclick="window.closeSibylModal()" aria-label="닫기">✕</button>
           <div class="sb-header__logo">
             <div class="sb-logo-hex">
-              <img src="/fuctionassets/sybila.webp" alt="SIBYL" class="sb-logo-img" loading="lazy">
+              <img src="/fuctionassets/sybila.webp" alt="SIBYL" class="sb-logo-img" loading="lazy" width="160" height="160">
             </div>
             <div class="sb-header__text">
               <div class="sb-system-tag">SIBYL SYSTEM v3.14 — [ACTIVE]</div>
@@ -7865,7 +7862,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-noncritical-src="/js/vedic-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
-<script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 <!-- Feature Preview Panel v2 -->
 <div id="tilePvwOverlay" class="tile-pvw-overlay" role="dialog" aria-modal="true" aria-labelledby="tilePvwTitle">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
@@ -7874,7 +7870,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="tile-pvw-close" id="tilePvwClose" aria-label="닫기">✕</button>
     <!-- 히어로 이미지 섹션 -->
     <div class="tile-pvw-hero" id="tilePvwHero">
-      <img class="tile-pvw-hero-img" id="tilePvwHeroImg" src="" alt="" loading="lazy" decoding="async">
+      <img class="tile-pvw-hero-img" id="tilePvwHeroImg" src="" alt="" loading="lazy" decoding="async" width="800" height="450">
       <div class="tile-pvw-hero-gradient" aria-hidden="true"></div>
       <div class="tile-pvw-hero-badges">
         <span class="tile-pvw-hero-cat" id="tilePvwCat"></span>
@@ -9297,5 +9293,4 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
-
 

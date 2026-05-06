@@ -7,6 +7,56 @@
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
 
+function ensureUtf8Charset(contentType, fallbackType) {
+  const value = String(contentType || "").trim();
+  if (!value) return `${fallbackType}; charset=utf-8`;
+  if (/charset=/i.test(value)) return value;
+  return `${value}; charset=utf-8`;
+}
+
+function hardenResponse(requestUrl, response, options = {}) {
+  const headers = new Headers(response.headers);
+  const contentType = headers.get("Content-Type") || "";
+  const pathname = (() => {
+    try {
+      return new URL(requestUrl).pathname;
+    } catch {
+      return "";
+    }
+  })();
+
+  if (!headers.has("X-Content-Type-Options")) {
+    headers.set("X-Content-Type-Options", "nosniff");
+  }
+  if (!headers.has("Referrer-Policy")) {
+    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  }
+
+  if (options.api) {
+    if (/^application\/json\b/i.test(contentType) || pathname === "/api" || pathname.startsWith("/api/")) {
+      headers.set("Content-Type", ensureUtf8Charset(contentType, "application/json"));
+    }
+  } else {
+    const isHtmlLikePath = pathname === "/"
+      || pathname.endsWith(".html")
+      || pathname === "/static"
+      || pathname === "/static/";
+    if (!contentType && isHtmlLikePath) {
+      headers.set("Content-Type", "text/html; charset=utf-8");
+    } else if (/^text\/html\b/i.test(contentType)) {
+      headers.set("Content-Type", ensureUtf8Charset(contentType, "text/html"));
+    } else if (/^application\/json\b/i.test(contentType)) {
+      headers.set("Content-Type", ensureUtf8Charset(contentType, "application/json"));
+    }
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function resolveApiWorkerOrigin(env) {
   const raw = String((env && env.API_WORKER_ORIGIN) || DEFAULT_API_WORKER_ORIGIN)
     .trim()
@@ -84,9 +134,11 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
-      return proxyApiRequest(request, env);
+      const apiResponse = await proxyApiRequest(request, env);
+      return hardenResponse(request.url, apiResponse, { api: true });
     }
 
-    return env.ASSETS.fetch(request);
+    const assetResponse = await env.ASSETS.fetch(request);
+    return hardenResponse(request.url, assetResponse);
   },
 };

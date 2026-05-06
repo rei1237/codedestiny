@@ -5,6 +5,8 @@
 
 User-agent: *
 Allow: /
+Allow: /insights
+Allow: /insights/
 
 Disallow: /admin
 Disallow: /_admin
@@ -26,3 +28,4 @@ Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
 Sitemap: https://code-destiny.com/rss.xml
+Sitemap: https://code-destiny.com/insights/rss.xml

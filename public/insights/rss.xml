@@ -9,7 +9,7 @@
     <docs>https://www.rssboard.org/rss-specification</docs>
     <generator>Code Destiny RSS Generator</generator>
     <ttl>60</ttl>
-    <atom:link href="https://code-destiny.com/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://code-destiny.com/insights/rss.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>사주 명리학 기초: 사주팔자·천간지지·오행을 한 번에 이해하는 완전 입문 가이드</title>
       <link>https://code-destiny.com/insights/saju-four-pillars-basics</link>

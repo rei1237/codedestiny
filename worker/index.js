@@ -19,6 +19,7 @@ import { handleOracleRoutes } from "./routes/oracle.js";
 import { handleUserRoutes } from "./routes/user.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
 import { handleAstroRoutes } from "./routes/astro.js";
+import { handleInsightsRoutes } from "./routes/insights.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -357,6 +358,10 @@ export default {
 
     if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
       return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/insights" || url.pathname.startsWith("/api/insights/")) {
+      return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
     }
 
     if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
