@@ -4,6 +4,19 @@ import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, buildAstroPrompt, buildWester
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+function isChartPayload(value: unknown): value is {
+  planets: Record<string, unknown>;
+  ascendant: Record<string, unknown>;
+  midheaven: Record<string, unknown>;
+  northNode?: Record<string, unknown>;
+  southNode?: Record<string, unknown>;
+  aspects?: unknown[];
+} {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return !!(v.planets && v.ascendant && v.midheaven);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -16,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: `Chapter must be 1-${ASTRO_TOTAL_CHAPTERS}` }, { status: 400 });
     }
 
-    const chart = buildWesternChart({
+    const payload = {
       year,
       month,
       day,
@@ -25,7 +38,15 @@ export async function POST(req: NextRequest) {
       timezone: Number(body.timezone ?? 9),
       lat: Number(body.lat ?? 37.5665),
       lon: Number(body.lon ?? 126.978),
-    });
+    };
+
+    const chart = isChartPayload(body.chart)
+      ? body.chart
+      : buildWesternChart(payload);
+    const calculationSource = isChartPayload(body.chart)
+      ? "client-chart-reuse"
+      : "server-build";
+
     let text = await generateAstroText(buildAstroPrompt(chapter, chart));
     let usedFallback = false;
     if (!text) {
@@ -41,6 +62,8 @@ export async function POST(req: NextRequest) {
       text,
       sections: parseSections(text),
       usedFallback,
+      calculationSource,
+      warnings: usedFallback ? ["AI text unavailable, fallback chapter text used"] : [],
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

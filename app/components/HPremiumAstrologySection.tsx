@@ -550,8 +550,8 @@ ${chaptersHtml}
         ascendant: data.ascendant,
         midheaven: data.midheaven,
         aspects:   data.aspects,
-        northNode: data.planets?.NorthNode ?? data.ascendant,
-        southNode: data.planets?.SouthNode ?? data.ascendant,
+        northNode: data.northNode ?? data.planets?.NorthNode ?? data.ascendant,
+        southNode: data.southNode ?? data.planets?.SouthNode ?? data.ascendant,
       });
       // 상태 초기화
       setChapters(createEmptyChapters());
@@ -581,6 +581,7 @@ ${chaptersHtml}
         minute: parseInt(birthMinute,10),
         timezone: parseFloat(timezone),
         chapter: chNum,
+        chart,
       });
       setChapters(prev => ({
         ...prev,
