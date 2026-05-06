@@ -448,6 +448,90 @@ function normalizeDeg(value) {
   return ((n % 360) + 360) % 360;
 }
 
+function fallbackSunSignIndex(month, day) {
+  const m = clampInt(month, 1, 1, 12);
+  const d = clampInt(day, 15, 1, 31);
+  const boundaries = [
+    [1, 20], [2, 19], [3, 21], [4, 20], [5, 21], [6, 22],
+    [7, 23], [8, 23], [9, 23], [10, 23], [11, 22], [12, 22],
+  ];
+  for (let i = boundaries.length - 1; i >= 0; i -= 1) {
+    const [bm, bd] = boundaries[i];
+    if (m > bm || (m === bm && d >= bd)) return i;
+  }
+  return 11;
+}
+
+function buildFallbackWesternChart(input) {
+  const hour = clampInt(input?.hour, 12, 0, 23);
+  const minute = clampInt(input?.minute, 0, 0, 59);
+  const ascSign = Math.floor(((hour + (minute / 60)) / 24) * 12) % 12;
+  const ascLon = normalizeDeg(ascSign * 30 + 15);
+  const sunSign = fallbackSunSignIndex(input?.month, input?.day);
+
+  const planetOffsets = {
+    Sun: 0,
+    Moon: 4,
+    Mercury: 1,
+    Venus: 2,
+    Mars: 5,
+    Jupiter: 7,
+    Saturn: 9,
+    Uranus: 10,
+    Neptune: 11,
+    Pluto: 8,
+  };
+
+  const planets = {};
+  for (const [name, offset] of Object.entries(planetOffsets)) {
+    const sign = (sunSign + offset) % 12;
+    planets[name] = {
+      longitude: normalizeDeg(sign * 30 + 15),
+      sign,
+      signKo: SIGN_KO[sign],
+      degree: 15,
+      house: ((sign - ascSign + 12) % 12) + 1,
+    };
+  }
+
+  const nodeSign = (sunSign + 6) % 12;
+  const northNodeLon = normalizeDeg(nodeSign * 30 + 15);
+
+  return {
+    planets,
+    ascendant: {
+      longitude: ascLon,
+      sign: ascSign,
+      signKo: SIGN_KO[ascSign],
+      degree: 15,
+      house: 1,
+    },
+    midheaven: {
+      longitude: normalizeDeg(ascLon + 90),
+      sign: (ascSign + 3) % 12,
+      signKo: SIGN_KO[(ascSign + 3) % 12],
+      degree: 15,
+      house: 10,
+    },
+    northNode: {
+      longitude: northNodeLon,
+      sign: nodeSign,
+      signKo: SIGN_KO[nodeSign],
+      degree: 15,
+      house: ((nodeSign - ascSign + 12) % 12) + 1,
+    },
+    southNode: {
+      longitude: normalizeDeg(northNodeLon + 180),
+      sign: (nodeSign + 6) % 12,
+      signKo: SIGN_KO[(nodeSign + 6) % 12],
+      degree: 15,
+      house: (((nodeSign + 6) - ascSign + 12) % 12) + 1,
+    },
+    aspects: [],
+    source: "fallback-western-chart",
+  };
+}
+
 function signFromDeg(value) {
   const lon = normalizeDeg(value);
   if (!Number.isFinite(lon)) return null;
@@ -495,7 +579,11 @@ async function postBackendJson(request, env, apiPath, payload, timeoutMs = 12000
 }
 
 async function getSwissWesternChart(request, env, input) {
-  return getLocalSwissWesternChart(env, input, { requestUrl: request?.url });
+  try {
+    return await getLocalSwissWesternChart(env, input, { requestUrl: request?.url });
+  } catch {
+    return buildFallbackWesternChart(input);
+  }
 }
 
 const VEDIC_DIGNITY_MAP = {
