@@ -72,10 +72,142 @@
   var _currentChapter = 1;
   var _mysticTimer = null;
   var PREMIUM_SUKUYO_COST = 390;
+  var PREMIUM_SUKUYO_COMPAT_EXTRA_COST = 300;
   var PREMIUM_SUKUYO_FEATURE_KEY = 'premium-sukuyo';
+  var PREMIUM_SUKUYO_COMPAT_FEATURE_KEY = 'premium-sukuyo-compat-extra';
   var PREMIUM_SUKUYO_TX_KEY = 'cd_premium_tx_sukuyo';
+  var PREMIUM_SUKUYO_COMPAT_TX_KEY = 'cd_premium_tx_sukuyo_compat_extra';
+  var _reportMode = 'personal';
 
   function _qs(id) { return document.getElementById(id); }
+
+  function _buildApiCandidates(pathname) {
+    var p = String(pathname || '');
+    if (p.charAt(0) !== '/') p = '/' + p;
+    var bases = ['', (window && window.__CD_API_BASE_URL) || '', (window && window.location && window.location.origin) || ''];
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < bases.length; i++) {
+      var b = String(bases[i] || '').trim();
+      var u = b ? (b.replace(/\/+$/, '') + p) : p;
+      if (seen[u]) continue;
+      seen[u] = true;
+      out.push(u);
+    }
+    return out.length ? out : [p];
+  }
+
+  function _syncUserPoints(payload) {
+    try {
+      var points = Number(payload && (payload.remainingPoints != null ? payload.remainingPoints : (payload.user && payload.user.points)));
+      if (!isFinite(points)) return;
+      var raw = localStorage.getItem('fortune_auth_user');
+      if (!raw) return;
+      var user = JSON.parse(raw);
+      user.points = points;
+      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(points);
+    } catch (_) {}
+  }
+
+  function _getReportMode() {
+    var yes = document.getElementById('skCompatOn');
+    return (yes && yes.checked) ? 'compatibility' : 'personal';
+  }
+
+  function _applyReportModeUi() {
+    var partnerBox = document.getElementById('skPartnerFormSection');
+    var startBtn = document.getElementById('skStartBtn');
+    var mode = _getReportMode();
+    _reportMode = mode;
+    if (partnerBox) partnerBox.style.display = mode === 'compatibility' ? '' : 'none';
+    if (startBtn) {
+      startBtn.textContent = mode === 'compatibility'
+        ? '💞 숙요 궁합 인생 총람 생성하기 (690코인)'
+        : '💫 숙요점 인생 총람 생성하기 (390코인)';
+    }
+  }
+
+  function _ensureReportModeSelector() {
+    var host = document.getElementById('skStartScreen');
+    if (!host || document.getElementById('skReportModeBox')) {
+      _applyReportModeUi();
+      return;
+    }
+    var profileBox = host.querySelector('.lb-start__profile-box');
+    var modeBox = document.createElement('div');
+    modeBox.id = 'skReportModeBox';
+    modeBox.className = 'lb-start__profile-box';
+    modeBox.style.marginTop = '12px';
+    modeBox.innerHTML = ''+
+      '<div class="lb-start__profile-label">🧭 리포트 모드 선택</div>'+
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;padding-top:4px;">'+
+        '<label style="display:inline-flex;align-items:center;gap:6px;color:#e0f2fe;"><input type="radio" name="skReportMode" id="skCompatOff" checked> 1인 기본 (390코인)</label>'+
+        '<label style="display:inline-flex;align-items:center;gap:6px;color:#e0f2fe;"><input type="radio" name="skReportMode" id="skCompatOn"> 궁합 포함 (+300코인)</label>'+
+      '</div>';
+    if (profileBox && profileBox.parentNode) profileBox.parentNode.insertBefore(modeBox, profileBox.nextSibling);
+    else host.insertBefore(modeBox, host.firstChild);
+    var off = document.getElementById('skCompatOff');
+    var on = document.getElementById('skCompatOn');
+    if (off) off.addEventListener('change', _applyReportModeUi);
+    if (on) on.addEventListener('change', _applyReportModeUi);
+    _applyReportModeUi();
+  }
+
+  function _ensureCompatibilitySurchargeIfNeeded(profile, partner) {
+    if (_reportMode !== 'compatibility') return Promise.resolve({ ok: true, skipped: true });
+    if (!partner || !partner.year || !partner.month || !partner.day) {
+      return Promise.resolve({ ok: false, message: '궁합 모드에서는 상대방 생년월일이 필요합니다.' });
+    }
+    try {
+      var existing = sessionStorage.getItem(PREMIUM_SUKUYO_COMPAT_TX_KEY);
+      if (existing) return Promise.resolve({ ok: true, alreadyCharged: true });
+    } catch (_) {}
+
+    var requestId = [
+      'premium-sukuyo-compat-extra',
+      (profile && profile.birth ? [profile.birth.year, profile.birth.month, profile.birth.day].join('-') : 'na'),
+      [partner.year, partner.month, partner.day].join('-')
+    ].join(':');
+
+    var endpoints = _buildApiCandidates('/api/fortune/pig-coin/consume');
+    return new Promise(function (resolve) {
+      function run(at) {
+        if (at >= endpoints.length) {
+          resolve({ ok: false, message: '궁합 추가 코인 차감 API 호출에 실패했습니다.' });
+          return;
+        }
+        fetch(endpoints[at], {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cost: PREMIUM_SUKUYO_COMPAT_EXTRA_COST,
+            reason: '숙요점 궁합 확장 분석 추가',
+            featureKey: PREMIUM_SUKUYO_COMPAT_FEATURE_KEY,
+            forceDeduct: true,
+            requestId: requestId,
+            inputHash: requestId,
+            reportJobId: requestId
+          })
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (!res.ok) {
+              resolve({ ok: false, message: String((data && data.message) || ('HTTP ' + res.status)) });
+              return;
+            }
+            _syncUserPoints(data);
+            try {
+              if (data && data.transactionId) sessionStorage.setItem(PREMIUM_SUKUYO_COMPAT_TX_KEY, String(data.transactionId));
+            } catch (_) {}
+            resolve({ ok: true, data: data });
+          });
+        }).catch(function () {
+          run(at + 1);
+        });
+      }
+      run(0);
+    });
+  }
 
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var token = '';
@@ -193,6 +325,26 @@
       }
     } catch(_){}
     return null;
+  }
+
+  function _resolveExistingLunarHint(profile) {
+    var p = profile || {};
+    var b = p.birth || {};
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var sameBirth = !!(snap && snap.birth && b &&
+      Number(snap.birth.year) === Number(b.year) &&
+      Number(snap.birth.month) === Number(b.month) &&
+      Number(snap.birth.day) === Number(b.day));
+    if (!sameBirth) return null;
+
+    var lm = Number(snap.lunarMonth);
+    var ld = Number(snap.lunarDay);
+    if (!Number.isFinite(lm) || !Number.isFinite(ld)) return null;
+    return {
+      lunarMonth: lm,
+      lunarDay: ld,
+      isLeap: !!snap.isLeap,
+    };
   }
 
   var _SK_STORE_VER='sk_v1_';
@@ -388,6 +540,7 @@
     _sukuyoChart=null;
     _currentChapter=1;
     _showScreen('skStartScreen');
+    _ensureReportModeSelector();
     modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
     document.body.classList.add('lb-modal-open');
@@ -443,6 +596,9 @@
   }
 
   function _readPartnerData(){
+    if (_reportMode !== 'compatibility') {
+      return { name: '', year: null, month: null, day: null, hour: null, minute: null, gender: 'F', calType: 'solar' };
+    }
     var nameEl=document.getElementById('skPartnerName');
     var dateEl=document.getElementById('skPartnerBirthDate');
     var hourEl=document.getElementById('skPartnerHour');
@@ -483,13 +639,24 @@
     var b=profile.birth||{};
     if(!b.year||!b.month||!b.day){alert('생년월일을 확인할 수 없습니다. 사주 계산 후 다시 시도해 주세요.');return;}
 
-    _generating=true;
-    _chapters=Array(13).fill(null);
-    _sukuyoChart=null;
-    _showScreen('skLoadingScreen');
-    _activateCinematicLoading('skLoadingScreen','#67e8f9','#0369a1','rgba(34,211,238,0.46)');
-
+    _reportMode = _getReportMode();
     var partner=_readPartnerData();
+    if (_reportMode === 'compatibility' && (!partner.year || !partner.month || !partner.day)) {
+      alert('궁합 모드에서는 상대방 생년월일을 입력해 주세요.');
+      return;
+    }
+
+    _ensureCompatibilitySurchargeIfNeeded(profile, partner).then(function (chargeResult) {
+      if (!chargeResult || !chargeResult.ok) {
+        alert((chargeResult && chargeResult.message) || '궁합 추가 코인 차감에 실패했습니다.');
+        return;
+      }
+
+      _generating=true;
+      _chapters=Array(13).fill(null);
+      _sukuyoChart=null;
+      _showScreen('skLoadingScreen');
+      _activateCinematicLoading('skLoadingScreen','#67e8f9','#0369a1','rgba(34,211,238,0.46)');
 
     var progressBar=_qs('skProgressBar'),progressText=_qs('skProgressText');
     var stageEl=_qs('skLoadingStageText');
@@ -562,12 +729,18 @@
     _setProgress(0);
 
     function _fetchChapter(idx){
+      var lunarHint = _resolveExistingLunarHint(profile);
       function _attempt(tryNo){
         return new Promise(function(resolve){
-          var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (70초).'});},70000);
+          var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (120초).'});},120000);
           fetch('/api/premium/sukuyo-life',{
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
+              reportMode:_reportMode,
+              includeCompatibility:_reportMode==='compatibility',
+              lunarMonth:lunarHint?lunarHint.lunarMonth:undefined,
+              lunarDay:lunarHint?lunarHint.lunarDay:undefined,
+              isLeap:lunarHint?lunarHint.isLeap:undefined,
               partnerName:partner.name||undefined,
               partnerYear:partner.year||undefined,
               partnerMonth:partner.month||undefined,
@@ -583,7 +756,7 @@
           .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
         }).then(function(data){
           if(data&&data.ok&&data.text) return data;
-          if(tryNo>=3) return data;
+          if(tryNo>=4) return data;
           return _attempt(tryNo+1);
         });
       }
@@ -600,10 +773,17 @@
           if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/13). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _showScreen('skErrorScreen');
           _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+            .then(function(){
+              if (_reportMode === 'compatibility') {
+                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
+              }
+              return false;
+            })
             .then(function(refunded){ if(refunded) window.alert('숙요 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
         try { sessionStorage.removeItem(PREMIUM_SUKUYO_TX_KEY); } catch (_) {}
+        try { sessionStorage.removeItem(PREMIUM_SUKUYO_COMPAT_TX_KEY); } catch (_) {}
         _showScreen('skResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
@@ -624,6 +804,7 @@
         generateNext(idx+1);
       });
     })(0);
+    });
   };
 
   window.downloadSukuyoBookPdf = function(){
@@ -682,4 +863,5 @@
   });
 
   window.gotoSukuyoPremium = function(profileArg){window.openSukuyoBookModal(profileArg);};
+  _ensureReportModeSelector();
 })();

@@ -1117,6 +1117,111 @@ ${d}`,
 ${d}`,
   },
 ];
+
+const LIFEBOOK_STRICT_REQUIREMENTS = [
+  {
+    minChars: 5000,
+    mustInclude: ["년주", "월주", "일주", "시주", "일간", "월령", "오행 분포", "십성 분포", "지장간", "천간의 흐름", "지지의 흐름", "합", "충", "형", "파", "해", "강약", "용신", "희신", "기신", "핵심 인생 패턴"],
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["타고난 기질", "의사결정 방식", "감정 반응 패턴", "사람을 대하는 방식", "반복되는 선택 구조", "안정감을 느끼는 조건", "불안정해지는 조건", "내면의 욕구", "성장 방향", "인생의 기본 설계도"],
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["숨은 장점", "위기에서 살아남는 방식", "경쟁력", "따라 하기 어려운 능력", "약점처럼 보이지만 강점", "인생 후반", "실전 활용법", "자기계발 방향", "자기소모 패턴"],
+  },
+  {
+    minChars: 6000,
+    mustInclude: ["대운 시작 나이", "각 대운별 간지", "각 대운의 십성", "성장기 대운", "청년기 대운", "중년기 대운", "장년기 대운", "인생 전환점", "좋은 대운", "조심해야 할 대운", "현재 대운 집중 분석", "다음 대운 준비 전략"],
+    caution: "대운 데이터는 반드시 기존 사주 엔진에서 받은 값을 사용한다.",
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["사회에서 맡게 되는 역할", "인정받는 방식", "리더십 유형", "조직 적응 방식", "독립형", "조직형", "명예운", "책임감의 구조", "상사", "동료", "후배", "사회적 성공 키워드", "장기적 커리어 방향"],
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["첫인상", "가까워지는 방식", "사람을 신뢰하는 기준", "반복되는 문제", "귀인 유형", "피해야 할 인연 유형", "가족과의 관계 패턴", "친구 관계", "동료 관계", "갈등 해결 방식", "관계에서 운을 여는 전략"],
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["연애 성향", "끌리는 사람의 유형", "자신을 좋아하는 사람의 유형", "연애에서 반복되는 패턴", "결혼관", "배우자운", "결혼 생활에서 중요한 조건", "갈등 포인트", "이별 패턴", "좋은 인연", "장기 관계 유지 전략", "재성", "관성"],
+    caution: "성별에 따라 재성/관성 해석을 다르게 적용하되, 현대적이고 유연하게 해석한다.",
+  },
+  {
+    minChars: 5500,
+    mustInclude: ["재물에 대한 태도", "돈을 버는 방식", "돈이 새는 패턴", "직업 적성", "사업운", "프리랜서", "조직", "전문직", "재성 구조", "식상 활용법", "관성 활용법", "인성 활용법", "장기 자산 전략", "피해야 할 재정 습관"],
+    caution: "투자 수익을 보장하는 표현은 금지한다.",
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["오행별 신체 에너지", "과다한 오행", "부족한 오행", "스트레스 반응", "수면", "회복 패턴", "감정 소진 포인트", "건강 관리 방향", "운동 스타일", "마음 관리법", "생활 리듬 조언"],
+    caution: "질병 진단처럼 단정하지 말고 경향/관리 포인트/주의할 수 있는 부분으로 표현한다.",
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["주요 신살", "12운성", "일주 기준 상징성", "월주 기준 사회성", "시주 기준 미래성", "반복되는 운명의 상징", "무의식적 끌림", "사건의 문", "퀀텀 명리", "현실 적용 조언"],
+    caution: "퀀텀은 과학적 사실처럼 단정하지 말고 상징적·철학적 표현으로 사용한다.",
+  },
+  {
+    minChars: 6000,
+    mustInclude: ["2026년 세운 간지 분석", "원국과 병오년의 관계", "2026년 핵심 키워드", "직업운", "재물운", "연애운", "관계운", "건강운", "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월", "중요한 선택 시기", "주의할 시기", "적극적으로 움직일 시기", "2026년 전체 전략"],
+    caution: "2026년 월운 데이터는 반드시 기존 엔진에서 받은 값을 사용한다.",
+  },
+  {
+    minChars: 5500,
+    mustInclude: ["인생 전반기 전략", "인생 중반기 전략", "인생 후반기 전략", "커리어 장기 플랜", "관계 장기 플랜", "재물 장기 플랜", "내면 성장 플랜", "대운 변화", "태도 변화", "반복되는 인생 과제", "키워야 할 능력", "내려놓아야 할 패턴"],
+  },
+  {
+    minChars: 5000,
+    mustInclude: ["핵심 한 줄", "가장 큰 강점", "가장 조심해야 할 약점", "운을 여는 방법", "가장 중요한 선택 기준", "관계 조언", "직업 조언", "재물 조언", "건강 조언", "2026년 핵심 제언", "앞으로 10년의 방향성", "최종 메시지"],
+  },
+];
+
+function normalizeForContains(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function findLifebookMissing(text, sessionId) {
+  const req = LIFEBOOK_STRICT_REQUIREMENTS[sessionId - 1];
+  if (!req) return [];
+  const source = normalizeForContains(text);
+  const missing = [];
+
+  if (String(text || "").trim().length < req.minChars) {
+    missing.push(`최소 ${req.minChars}자`);
+  }
+
+  for (const keyword of req.mustInclude || []) {
+    const token = normalizeForContains(keyword);
+    if (token && !source.includes(token)) missing.push(keyword);
+  }
+
+  return missing;
+}
+
+function buildLifebookStrictPrompt(sessionId) {
+  const req = LIFEBOOK_STRICT_REQUIREMENTS[sessionId - 1];
+  if (!req) return "";
+  const cautionLine = req.caution
+    ? `- 주의사항: ${req.caution}`
+    : "";
+  return [
+    "",
+    "[강제 품질 규칙 — 반드시 준수]",
+    `- 아래 [필수 포함 체크리스트] 항목을 본문에 동일 문구로 최소 1회 이상 포함하세요.`,
+    `- 본문 분량은 반드시 ${req.minChars}자 이상으로 작성하세요.`,
+    "- 실제 입력된 사주 데이터(원국/대운/세운/월운)에서 확인 가능한 값만 근거로 해석하세요.",
+    cautionLine,
+    "",
+    "[필수 포함 체크리스트]",
+    ...(req.mustInclude || []).map((item) => `- ${item}`),
+  ].filter(Boolean).join("\n");
+}
 export async function POST(req) {
   try {
     // ── JWT 인증 검증 (결제 없이 API 직접 호출 차단) ──
@@ -1171,7 +1276,8 @@ export async function POST(req) {
     const config = SESSION_CONFIGS[sessionId - 1];
     const modelCandidates = pickLifebookModels();
 
-    const userPrompt = config.prompt(sajuData);
+    const strictPrompt = buildLifebookStrictPrompt(sessionId);
+    const userPrompt = `${config.prompt(sajuData)}\n\n${strictPrompt}`;
 
     let lastError = null;
     let lastErrorStatus = 502;
@@ -1183,7 +1289,8 @@ export async function POST(req) {
         temperature: 1.0,
         maxOutputTokens: 16384,
       });
-      if (text && text.length >= 200) {
+      const missing = findLifebookMissing(text, sessionId);
+      if (text && missing.length === 0) {
         return NextResponse.json({
           ok: true,
           text,
@@ -1193,8 +1300,8 @@ export async function POST(req) {
           model: "vertex/service-account",
         });
       }
-      if (text && text.length > 0 && text.length < 200) {
-        lastError = new Error("Vertex AI 응답이 비어 있거나 너무 짧습니다.");
+      if (text && text.length > 0) {
+        lastError = new Error(`Vertex AI 응답 품질 미달: ${findLifebookMissing(text, sessionId).join(", ") || "요건 불충족"}`);
       }
     } catch (e) {
       lastError = e;
@@ -1244,7 +1351,8 @@ export async function POST(req) {
                 const compactJson = await compactRes.json().catch(() => ({}));
                 if (compactRes.ok) {
                   const compactText = parseText(compactJson);
-                  if (compactText && compactText.length >= 200) {
+                  const compactMissing = findLifebookMissing(compactText, sessionId);
+                  if (compactText && compactMissing.length === 0) {
                     return NextResponse.json({
                       ok: true,
                       text: compactText,
@@ -1274,9 +1382,9 @@ export async function POST(req) {
             continue;
           }
 
-          // 최소 길이 검증 (200자 미만은 불완전 응답)
-          if (text.length < 200) {
-            lastError = new Error(`모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.`);
+          const missing = findLifebookMissing(text, sessionId);
+          if (missing.length > 0) {
+            lastError = new Error(`모델 응답 품질 미달: ${missing.join(", ")}`);
             continue;
           }
 

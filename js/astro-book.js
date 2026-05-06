@@ -82,6 +82,32 @@
 
   function _qs(id) { return document.getElementById(id); }
 
+  function _buildApiCandidates(path) {
+    var normalizedPath = String(path || '/').trim();
+    if (normalizedPath[0] !== '/') normalizedPath = '/' + normalizedPath;
+    var seen = Object.create(null);
+    var out = [];
+
+    function push(raw) {
+      var value = String(raw || '').trim();
+      if (!value || seen[value]) return;
+      seen[value] = true;
+      out.push(value);
+    }
+
+    push(normalizedPath);
+    try {
+      var base = (window && window.__CD_API_BASE_URL) ? String(window.__CD_API_BASE_URL).trim() : '';
+      if (base) push(base.replace(/\/+$/, '') + normalizedPath);
+    } catch (_) {}
+    try {
+      var origin = (window && window.location && window.location.origin) ? String(window.location.origin).trim() : '';
+      if (origin) push(origin.replace(/\/+$/, '') + normalizedPath);
+    } catch (_) {}
+
+    return out;
+  }
+
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
@@ -502,10 +528,12 @@
     _setProgress(0);
 
     function _fetchChapter(idx) {
+      var endpoints = _buildApiCandidates('/api/premium/astro-life');
       function _attempt(tryNo) {
         return new Promise(function(resolve) {
           var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (70초).'}); },70000);
-          fetch('/api/premium/astro-life', {
+          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/premium/astro-life';
+          fetch(endpoint, {
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({
               year: b.year, month: b.month, day: b.day,
@@ -524,7 +552,7 @@
               includeMinorAspects: true
             })
           })
-          .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};}); })
+          .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.error)||(e&&e.message)||'HTTP '+res.status};}); })
           .then(function(data){ clearTimeout(tid); resolve(data); })
           .catch(function(err){ clearTimeout(tid); resolve({ok:false,message:String(err&&err.message?err.message:err)}); });
         }).then(function(data) {
