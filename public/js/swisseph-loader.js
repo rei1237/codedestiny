@@ -42,6 +42,16 @@ async function loadSwissEphConstructor() {
 			return res;
 		}
 
+		function sweGetAyanamsaUt(jdUT) {
+			if (typeof swe.swe_get_ayanamsa_ut === 'function') {
+				return Number(swe.swe_get_ayanamsa_ut(Number(jdUT)));
+			}
+			if (typeof swe.get_ayanamsa_ut === 'function') {
+				return Number(swe.get_ayanamsa_ut(Number(jdUT)));
+			}
+			return null;
+		}
+
 		function sweHouses(jdUT, lat, lon, hsys) {
 			var hs = String(hsys || 'P');
 			var h = swe.houses(Number(jdUT), Number(lat), Number(lon), hs);
@@ -68,6 +78,8 @@ async function loadSwissEphConstructor() {
 			SE_MARS: swe.SE_MARS,
 			SE_JUPITER: swe.SE_JUPITER,
 			SE_SATURN: swe.SE_SATURN,
+			SE_TRUE_NODE: swe.SE_TRUE_NODE,
+			SE_MEAN_NODE: swe.SE_MEAN_NODE,
 			SE_URANUS: swe.SE_URANUS,
 			SE_NEPTUNE: swe.SE_NEPTUNE,
 			SE_PLUTO: swe.SE_PLUTO,
@@ -75,6 +87,7 @@ async function loadSwissEphConstructor() {
 			SEFLG_SPEED: swe.SEFLG_SPEED,
 			swe_calc_ut: sweCalcUt,
 			calc_ut: sweCalcUt,
+			swe_get_ayanamsa_ut: sweGetAyanamsaUt,
 			swe_houses: sweHouses,
 			swe_houses_ex: sweHousesEx
 		};

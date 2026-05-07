@@ -647,6 +647,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 </div>
 
 <script src="js/compat-llm-prompts.js?v=20260321-llm4"></script>
+<script type="module" src="js/swisseph-loader.js?v=20260328-lazy1"></script>
 <script>
 (function(){
   if(typeof Math!=='object'||typeof Date!=='function'||typeof JSON!=='object'){
@@ -659,6 +660,60 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
   }
   document.addEventListener('DOMContentLoaded',function(){ initVedicPage(); });
 })();
+
+function _vedicGetSwissBridge(){
+  return window.swisseph||window.Swe||window.swe||null;
+}
+
+function _vedicEnsureSwissReady(timeoutMs){
+  if(_vedicGetSwissBridge()) return Promise.resolve(true);
+  var timeout=(typeof timeoutMs==='number'&&timeoutMs>0)?timeoutMs:12000;
+  return new Promise(function(resolve,reject){
+    var settled=false;
+    function done(ok,err){
+      if(settled) return;
+      settled=true;
+      try{window.removeEventListener('swisseph:ready',onReady);}catch(_){}
+      try{window.removeEventListener('swisseph:error',onErr);}catch(_){}
+      if(ok) resolve(true); else reject(err||new Error('swisseph bridge ready timeout'));
+    }
+    function onReady(){ done(true); }
+    function onErr(ev){
+      var msg=(ev&&ev.detail&&ev.detail.error)?String(ev.detail.error):'swisseph bridge init failed';
+      done(false,new Error(msg));
+    }
+    window.addEventListener('swisseph:ready',onReady,{once:true});
+    window.addEventListener('swisseph:error',onErr,{once:true});
+
+    var existing=document.querySelector('script[src*="swisseph-loader.js"]');
+    if(!existing){
+      var s=document.createElement('script');
+      s.type='module';
+      s.src='js/swisseph-loader.js?v=20260328-lazy1';
+      s.async=true;
+      s.defer=true;
+      s.onerror=function(){ done(false,new Error('swisseph module load failed')); };
+      document.head.appendChild(s);
+    }
+
+    setTimeout(function(){
+      if(_vedicGetSwissBridge()) done(true);
+      else done(false,new Error('swisseph bridge ready timeout'));
+    },timeout);
+  });
+}
+
+function _vedicReadSwissLon(res,label){
+  var v=null;
+  if(Array.isArray(res)) v=Number(res[0]);
+  else if(res&&typeof res==='object'){
+    if(Array.isArray(res.xx)) v=Number(res.xx[0]);
+    else if(typeof res.longitude==='number') v=Number(res.longitude);
+    else if(typeof res.lon==='number') v=Number(res.lon);
+  }
+  if(!Number.isFinite(v)) throw new Error('invalid swisseph longitude: '+String(label||''));
+  return nd(v);
+}
 
 function vedicInitBirthPlaceSelect(){
   var sel=document.getElementById('v_place');
@@ -1158,113 +1213,51 @@ function ayanamsa(jd){
   return nd(22.460148+1.396468*T+0.000308*T*T);
 }
 function calcPlanets(jd){
-  // Local fallback ephemeris:
-  // - Uses simple Keplerian orbital elements (good "ballpark" accuracy) for Sun+planets
-  // - Keeps current fast Moon approximation (Moon is the most sensitive; API remains the gold standard)
-  const ay=ayanamsa(jd);
-  const d = jd - 2451543.5; // days since J2000 (matches common low-precision element sets)
+  var swe=_vedicGetSwissBridge();
+  if(!swe) throw new Error('SwissEph bridge unavailable');
+  var calcFn=swe.swe_calc_ut||swe.calc_ut;
+  if(typeof calcFn!=='function') throw new Error('SwissEph calc function missing');
 
-  function _deg(x){ return x*180/Math.PI; }
-  function _rad(x){ return x*Math.PI/180; }
-  function _fix(a){ return nd(a); }
-  function _sin(x){ return Math.sin(x); }
-  function _cos(x){ return Math.cos(x); }
+  var flagSwiss=(typeof swe.SEFLG_SWIEPH==='number')?swe.SEFLG_SWIEPH:2;
+  var flagSpeed=(typeof swe.SEFLG_SPEED==='number')?swe.SEFLG_SPEED:256;
+  var flags=flagSwiss|flagSpeed;
 
-  function _kepler(M,e){
-    // solve E - e sin E = M (radians)
-    let E=M,delta=1,iter=0;
-    while(Math.abs(delta) > 1e-6 && iter < 20){
-      delta = (E - e*_sin(E) - M) / (1 - e*_cos(E));
-      E = E - delta;
-      iter++;
-    }
-    return E;
-  }
+  var ay=(typeof swe.swe_get_ayanamsa_ut==='function')?Number(swe.swe_get_ayanamsa_ut(jd)):NaN;
+  if(!Number.isFinite(ay)) ay=ayanamsa(jd);
 
-  // Paul Schlyter-style low-precision elements (degrees, AU). Accurate enough for fallback UI.
-  // Source idea: "Computing planetary positions" (commonly used in hobby ephemeris).
-  function _elements(name){
-    const el = {
-      Sun:     { N:0,      i:0,        w:282.9404+4.70935e-5*d, a:1.000000, e:0.016709-1.151e-9*d, M:356.0470+0.9856002585*d },
-      Mercury: { N:48.3313+3.24587e-5*d, i:7.0047+5.00e-8*d,  w:29.1241+1.01444e-5*d, a:0.387098, e:0.205635+5.59e-10*d, M:168.6562+4.0923344368*d },
-      Venus:   { N:76.6799+2.46590e-5*d, i:3.3946+2.75e-8*d,  w:54.8910+1.38374e-5*d, a:0.723330, e:0.006773-1.302e-9*d, M:48.0052+1.6021302244*d },
-      Mars:    { N:49.5574+2.11081e-5*d, i:1.8497-1.78e-8*d,  w:286.5016+2.92961e-5*d, a:1.523688, e:0.093405+2.516e-9*d, M:18.6021+0.5240207766*d },
-      Jupiter: { N:100.4542+2.76854e-5*d,i:1.3030-1.557e-7*d, w:273.8777+1.64505e-5*d, a:5.202560, e:0.048498+4.469e-9*d, M:19.8950+0.0830853001*d },
-      Saturn:  { N:113.6634+2.38980e-5*d,i:2.4886-1.081e-7*d, w:339.3939+2.97661e-5*d, a:9.554750, e:0.055546-9.499e-9*d, M:316.9670+0.0334442282*d }
-    };
-    return el[name];
-  }
-
-  function _helioEcl(name){
-    const e=_elements(name);
-    const N=_rad(_fix(e.N||0));
-    const i=_rad(_fix(e.i||0));
-    const w=_rad(_fix(e.w||0));
-    const a=e.a, ecc=e.e;
-    const M=_rad(_fix(e.M||0));
-
-    const E=_kepler(M,ecc);
-    const xv=a*(_cos(E)-ecc);
-    const yv=a*(Math.sqrt(1-ecc*ecc)*_sin(E));
-    const v=Math.atan2(yv,xv);
-    const r=Math.sqrt(xv*xv+yv*yv);
-
-    const xh=r*(_cos(N)*_cos(v+w) - _sin(N)*_sin(v+w)*_cos(i));
-    const yh=r*(_sin(N)*_cos(v+w) + _cos(N)*_sin(v+w)*_cos(i));
-    const zh=r*(_sin(v+w)*_sin(i));
-    return {x:xh,y:yh,z:zh,r:r};
-  }
-
-  // Earth heliocentric position via "Sun" elements (Sun's orbit == Earth's heliocentric)
-  const earth=_helioEcl("Sun");
-
-  function _geoLon(name){
-    const p=_helioEcl(name);
-    const xg=p.x - earth.x;
-    const yg=p.y - earth.y;
-    const lon=_fix(_deg(Math.atan2(yg,xg)));
-    return lon;
-  }
-
-  // Sun geocentric longitude is Earth heliocentric + 180
-  const sunLon = _fix(_deg(Math.atan2(earth.y, earth.x)) + 180);
-
-  // Moon (keep existing fast approximation, but compute from jd consistently)
-  const T=(jd-2451545.0)/36525;
-  let moonLon=_fix(218.3164591+481267.88134236*T);
-  const D=_fix(297.85036+445267.11480*T);
-  const Mm=_fix(134.96298+477198.867398*T);
-  moonLon=_fix(moonLon
-    +6.289*_sin(_rad(Mm))
-    -1.274*_sin(_rad(2*D-Mm))
-    +0.658*_sin(_rad(2*D))
-    -0.214*_sin(_rad(2*Mm))
-    -0.110*_sin(_rad(D))
-  );
-
-  // Mean node (fallback); true node differs and can be off versus some sites.
-  const rahuT=_fix(125.044555 - 1934.1361849*T);
-
-  const sid = {
-    Sun: _fix(sunLon - ay),
-    Moon: _fix(moonLon - ay),
-    Mercury: _fix(_geoLon("Mercury") - ay),
-    Venus: _fix(_geoLon("Venus") - ay),
-    Mars: _fix(_geoLon("Mars") - ay),
-    Jupiter: _fix(_geoLon("Jupiter") - ay),
-    Saturn: _fix(_geoLon("Saturn") - ay),
-    Rahu: _fix(rahuT - ay)
+  var P={
+    Sun:swe.SE_SUN,
+    Moon:swe.SE_MOON,
+    Mercury:swe.SE_MERCURY,
+    Venus:swe.SE_VENUS,
+    Mars:swe.SE_MARS,
+    Jupiter:swe.SE_JUPITER,
+    Saturn:swe.SE_SATURN,
+    Rahu:(typeof swe.SE_TRUE_NODE==='number'?swe.SE_TRUE_NODE:swe.SE_MEAN_NODE)
   };
-  sid.Ketu=_fix(sid.Rahu+180);
+  if(typeof P.Rahu!=='number') throw new Error('SwissEph node constant missing');
+
+  var sid={};
+  Object.keys(P).forEach(function(name){
+    var raw=calcFn.call(swe,jd,P[name],flags);
+    var trop=_vedicReadSwissLon(raw,name);
+    sid[name]=nd(trop-ay);
+  });
+  sid.Ketu=nd(sid.Rahu+180);
   return sid;
 }
 function calcAscendant(jd,lat,lon){
-  const T=(jd-2451545.0)/36525;
-  const GMST=nd(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T);
-  const LST=nd(GMST+lon);
-  const eps=23.439292-0.013004*T;
-  const asc=nd(Math.atan2(-Math.cos(r2d(LST)),Math.sin(r2d(LST))*Math.cos(r2d(eps))+Math.tan(r2d(lat))*Math.sin(r2d(eps)))*180/Math.PI);
-  return nd(asc-ayanamsa(jd));
+  var swe=_vedicGetSwissBridge();
+  if(!swe) throw new Error('SwissEph bridge unavailable');
+  var houseFn=swe.swe_houses_ex||swe.swe_houses;
+  if(typeof houseFn!=='function') throw new Error('SwissEph houses function missing');
+  var hs=(houseFn===swe.swe_houses_ex)?houseFn.call(swe,jd,0,lat,lon,'P'):houseFn.call(swe,jd,lat,lon,'P');
+  var ascmc=hs&&hs.ascmc;
+  var asc=ascmc&&ascmc.length?Number(ascmc[0]):NaN;
+  if(!Number.isFinite(asc)) throw new Error('SwissEph ascendant unavailable');
+  var ay=(typeof swe.swe_get_ayanamsa_ut==='function')?Number(swe.swe_get_ayanamsa_ut(jd)):NaN;
+  if(!Number.isFinite(ay)) ay=ayanamsa(jd);
+  return nd(asc-ay);
 }
 function isRetrograde(planet,jd){
   if(["Sun","Moon"].includes(planet))return false;
@@ -2345,7 +2338,9 @@ function doCalculateFromProfile(profile){
     showPage('result');
   }
 
-  runWithLocalSwiss('local swisseph mode');
+  _vedicEnsureSwissReady(12000)
+    .then(function(){ runWithLocalSwiss('local swisseph mode'); })
+    .catch(function(err){ showLocalSwissError((String((err&&err.message)||err||'SwissEph bridge unavailable'))); });
 }
 
 // ─── INIT: 프로필이 있으면 바로 로컬 Swiss 계산 결과 화면으로 진입 ─
@@ -3704,11 +3699,11 @@ function renderCompatInput(){
   <div id="compat-result"></div>`;
 }
 
+const VEDIC_COMPAT_COST=50;
+let _vedicCompatChargeInFlight=false;
 async function _vedicCompatCoinGate(cost, reason){
-  var plan = '';
-  try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
-  if (plan === 'unlimited' || plan === 'premium') return true;
-  try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch(_) {}
+  cost=VEDIC_COMPAT_COST;
+  reason=String(reason||'베다점 궁합 계산');
 
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
@@ -3736,11 +3731,17 @@ async function _vedicCompatCoinGate(cost, reason){
     return false;
   }
 
+  if(_vedicCompatChargeInFlight){
+    window.alert('결제 요청 처리 중입니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+  _vedicCompatChargeInFlight=true;
+
   try {
     var resp = await fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'vedic-per-use', forceDeduct: true, requestId: 'vedic:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9) })
+      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'vedic-compatibility-per-use', forceDeduct: true, requestId: 'vedic:compat:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9) })
     });
     var data = await resp.json();
     if (!resp.ok) {
@@ -3760,11 +3761,19 @@ async function _vedicCompatCoinGate(cost, reason){
     console.error('[vedic compat coin-gate]', e);
     window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
+  } finally {
+    _vedicCompatChargeInFlight=false;
   }
 }
 
 async function doCompatCalc(){
-  var ok = await _vedicCompatCoinGate(50, '베다점 궁합 계산');
+  try{
+    await _vedicEnsureSwissReady(12000);
+  }catch(err){
+    window.alert('Swiss 라이브러리 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.\n상세: '+String((err&&err.message)||err||''));
+    return;
+  }
+  var ok = await _vedicCompatCoinGate(VEDIC_COMPAT_COST, '베다점 궁합 계산');
   if (!ok) return;
   const f2={
     name:document.getElementById('c-name').value||'이름없음',
