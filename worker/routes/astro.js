@@ -1,5 +1,6 @@
 import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { requireAuth } from "../lib/auth.js";
 
 function toNumber(value, fallback) {
   const n = Number(value);
@@ -35,6 +36,10 @@ export async function handleAstroRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const pathname = new URL(request.url).pathname;
+
+    if (method === "POST") {
+      await requireAuth(request, env);
+    }
 
     if (pathname === "/api/astro" || pathname.startsWith("/api/astro/")) {
       const path = getRoutePath(request, "/api/astro");

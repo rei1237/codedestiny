@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 900;
@@ -522,6 +523,9 @@ async function generateText(prompt: string, minChars: number) {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireRouteAuth(req);
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;

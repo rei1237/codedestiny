@@ -1442,6 +1442,182 @@ function __cdHasAuthToken() {
   return false;
 }
 
+var __cdAuthSessionState = {
+  checkedAt: 0,
+  ok: false,
+  userId: '',
+  pending: null
+};
+
+function __cdBuildRedirectAfterLogin(explicitPath) {
+  if (explicitPath && typeof explicitPath === 'string') return explicitPath;
+  try {
+    return window.location.pathname + window.location.search + window.location.hash;
+  } catch (_) {}
+  return '/';
+}
+
+function __cdOpenLoginRequiredModal(options) {
+  var opts = options || {};
+  var reason = String(opts.reason || '로그인 후 이용할 수 있는 기능입니다.').trim();
+  var redirectTo = __cdBuildRedirectAfterLogin(opts.redirectTo);
+
+  if (typeof document === 'undefined') {
+    window.location.href = '/login?redirect=' + encodeURIComponent(redirectTo);
+    return;
+  }
+
+  if (!document.getElementById('cdLoginRequiredModalStyle')) {
+    var style = document.createElement('style');
+    style.id = 'cdLoginRequiredModalStyle';
+    style.textContent = [
+      '#cdLoginRequiredModal{position:fixed;inset:0;z-index:2200;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.62);padding:16px;}',
+      '#cdLoginRequiredModal .cd-login-card{width:min(480px,100%);border-radius:18px;border:1px solid rgba(255,255,255,.16);background:#0f172a;color:#f8fafc;box-shadow:0 24px 60px rgba(2,6,23,.45);padding:20px;}',
+      '#cdLoginRequiredModal .cd-login-title{margin:0 0 10px;font-size:20px;font-weight:800;line-height:1.35;}',
+      '#cdLoginRequiredModal .cd-login-desc{margin:0;color:rgba(226,232,240,.95);font-size:14px;line-height:1.6;}',
+      '#cdLoginRequiredModal .cd-login-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}',
+      '#cdLoginRequiredModal .cd-login-btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;}',
+      '#cdLoginRequiredModal .cd-login-btn--primary{background:#f59e0b;color:#111827;}',
+      '#cdLoginRequiredModal .cd-login-btn--secondary{background:#2563eb;color:#ffffff;}',
+      '#cdLoginRequiredModal .cd-login-btn--ghost{background:rgba(255,255,255,.08);color:#e2e8f0;}',
+      '@media (max-width:480px){#cdLoginRequiredModal .cd-login-card{padding:16px;}#cdLoginRequiredModal .cd-login-title{font-size:18px;}}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  var modal = document.getElementById('cdLoginRequiredModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'cdLoginRequiredModal';
+    modal.innerHTML = [
+      '<div class="cd-login-card" role="dialog" aria-modal="true" aria-labelledby="cdLoginRequiredTitle">',
+      '<h3 id="cdLoginRequiredTitle" class="cd-login-title"></h3>',
+      '<p id="cdLoginRequiredDesc" class="cd-login-desc"></p>',
+      '<div class="cd-login-actions">',
+      '<button type="button" class="cd-login-btn cd-login-btn--primary" data-cd-login-action="login">로그인하기</button>',
+      '<button type="button" class="cd-login-btn cd-login-btn--secondary" data-cd-login-action="signup">회원가입하기</button>',
+      '<button type="button" class="cd-login-btn cd-login-btn--ghost" data-cd-login-action="close">닫기</button>',
+      '</div>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(modal);
+  }
+
+  var titleEl = document.getElementById('cdLoginRequiredTitle');
+  var descEl = document.getElementById('cdLoginRequiredDesc');
+  if (titleEl) titleEl.textContent = reason;
+  if (descEl) {
+    descEl.textContent = '회원가입 또는 로그인하면 Code:Destiny의 모든 운세 기능을 안전하게 저장하고 이어서 볼 수 있습니다.';
+  }
+
+  modal.style.display = 'flex';
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  modal.onclick = function(event) {
+    var target = event.target;
+    if (!target) return;
+    if (target === modal) {
+      closeModal();
+      return;
+    }
+    var action = target.getAttribute && target.getAttribute('data-cd-login-action');
+    if (!action) return;
+    if (action === 'close') {
+      closeModal();
+      return;
+    }
+    if (action === 'login') {
+      window.location.href = '/login?redirect=' + encodeURIComponent(redirectTo);
+      return;
+    }
+    if (action === 'signup') {
+      window.location.href = '/signup?redirect=' + encodeURIComponent(redirectTo);
+    }
+  };
+}
+
+function __cdClearStoredAuth() {
+  try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+  try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
+}
+
+async function __cdVerifyAuthSession(forceRefresh) {
+  if (__cdIsAdminLikeUser()) {
+    __cdAuthSessionState.ok = true;
+    __cdAuthSessionState.userId = 'admin-like';
+    __cdAuthSessionState.checkedAt = Date.now();
+    return true;
+  }
+
+  var now = Date.now();
+  if (!forceRefresh && __cdAuthSessionState.checkedAt && (now - __cdAuthSessionState.checkedAt < 30000)) {
+    return !!__cdAuthSessionState.ok;
+  }
+
+  if (__cdAuthSessionState.pending) {
+    return __cdAuthSessionState.pending;
+  }
+
+  var token = '';
+  try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) {}
+  if (!token) {
+    __cdAuthSessionState.checkedAt = now;
+    __cdAuthSessionState.ok = false;
+    __cdAuthSessionState.userId = '';
+    return false;
+  }
+
+  __cdAuthSessionState.pending = fetch('/api/auth/me', {
+    method: 'GET',
+    headers: { Authorization: 'Bearer ' + token },
+    credentials: 'include',
+    cache: 'no-store'
+  }).then(function(response) {
+    if (!response.ok) return null;
+    return response.json().catch(function() { return null; });
+  }).then(function(payload) {
+    var user = payload && payload.user ? payload.user : null;
+    var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
+    var ok = !!userId;
+    __cdAuthSessionState.checkedAt = Date.now();
+    __cdAuthSessionState.ok = ok;
+    __cdAuthSessionState.userId = ok ? userId : '';
+    if (!ok) __cdClearStoredAuth();
+    return ok;
+  }).catch(function() {
+    __cdAuthSessionState.checkedAt = Date.now();
+    __cdAuthSessionState.ok = false;
+    __cdAuthSessionState.userId = '';
+    return false;
+  }).finally(function() {
+    __cdAuthSessionState.pending = null;
+  });
+
+  return __cdAuthSessionState.pending;
+}
+
+async function requireLoginBeforeAction(action, options) {
+  var opts = options || {};
+  var ok = await __cdVerifyAuthSession(false);
+  if (!ok) {
+    __cdOpenLoginRequiredModal({
+      reason: String(opts.reason || ((opts.featureName || '이 기능') + '은 로그인 후 이용할 수 있습니다.')),
+      redirectTo: __cdBuildRedirectAfterLogin(opts.redirectTo)
+    });
+    return false;
+  }
+  if (typeof action === 'function') {
+    await action();
+  }
+  return true;
+}
+
+window.__cdOpenLoginRequiredModal = __cdOpenLoginRequiredModal;
+window.requireLoginBeforeAction = requireLoginBeforeAction;
+
 function __cdResolveTileLockAliasKeys(lockKey) {
   var base = String(lockKey || '').trim();
   if (!base) return [];
@@ -1517,9 +1693,10 @@ function __cdRequireTileLockGate(actionEl) {
   if (__cdIsAdminLikeUser()) return true;
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2F';
-    }
+    __cdOpenLoginRequiredModal({
+      reason: '로그인 후 이용할 수 있는 기능입니다.',
+      redirectTo: __cdBuildRedirectAfterLogin()
+    });
     return false;
   }
 
@@ -2432,16 +2609,62 @@ function __cdInvokeActionWithConfig(action, actionEl, event, args) {
   return __cdCallGlobal(action);
 }
 
+var __cdProtectedActions = {
+  openPhysiognomyApp: true,
+  openMbtiModal: true,
+  openTarotLoveModal: true,
+  openTarotHealingModal: true,
+  openTarotSelfEsteemModal: true,
+  openTarotReunionModal: true,
+  openTarotYearFortuneModal: true,
+  openTarotModal: true,
+  openAnimalTotemModal: true,
+  openHwatuModal: true,
+  openKemetModal: true,
+  openJuyukModal: true,
+  openSukuyoModal: true,
+  openAstroModal: true,
+  openZiweiModal: true,
+  openDestinyFlower: true,
+  openAstrologyFlower: true,
+  openJamidusuFlower: true,
+  openSukuyoFlower: true,
+  openDreamModal: true,
+  openOlympusOracleModal: true,
+  openRuneOracle: true,
+  openIfaOracle: true,
+  openRoyalTeaOracle: true,
+  openLifeBookModal: true,
+  openLoveSecretModal: true,
+  openSibylModal: true,
+  gotoZiweiPremium: true,
+  gotoAstrologyPremium: true,
+  gotoSukuyoPremium: true,
+  gotoVedicPremium: true,
+  gotoNamingPremium: true,
+  startIjikTarot: true,
+  startMindScanTarot: true,
+  startCrystalSoulTarot: true
+};
+
+function __cdActionNeedsAuth(actionEl, action) {
+  if (!action) return false;
+  if (actionEl && actionEl.getAttribute('data-action-auth') === '0') return false;
+  if (__cdProtectedActions[action]) return true;
+  if (actionEl && actionEl.getAttribute('data-action-auth') === '1') return true;
+  return false;
+}
+
+function __cdResolveFeatureName(actionEl, action) {
+  if (actionEl) {
+    var explicit = String(actionEl.getAttribute('data-feature-name') || '').trim();
+    if (explicit) return explicit;
+  }
+  return action || '이 기능';
+}
+
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
-  if (!__cdRequireTileLockGate(actionEl)) {
-    if (event) {
-      if (typeof event.preventDefault === 'function') event.preventDefault();
-      if (typeof event.stopPropagation === 'function') event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-    }
-    return;
-  }
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
 
@@ -2511,6 +2734,40 @@ function __cdInvokeAction(action, actionEl, event) {
     setTimeout(runInvoke, 0);
     return;
   }
+
+  if (__cdActionNeedsAuth(actionEl, action) && !__cdIsAdminLikeUser()) {
+    Promise.resolve(window.requireLoginBeforeAction(function() {
+      if (!__cdRequireTileLockGate(actionEl)) {
+        if (event) {
+          if (typeof event.preventDefault === 'function') event.preventDefault();
+          if (typeof event.stopPropagation === 'function') event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+        }
+        return;
+      }
+      if (__CD_DEFER_INP_ACTIONS[action]) {
+        setTimeout(runInvoke, 0);
+        return;
+      }
+      runInvoke();
+    }, {
+      featureName: __cdResolveFeatureName(actionEl, action),
+      redirectTo: __cdBuildRedirectAfterLogin()
+    })).catch(function(err) {
+      console.error('[index-inline-runtime] auth gate failed:', err);
+    });
+    return;
+  }
+
+  if (!__cdRequireTileLockGate(actionEl)) {
+    if (event) {
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    return;
+  }
+
   runInvoke();
 }
 
@@ -2786,9 +3043,10 @@ function __cdBindAnimalTotemTileDirect() {
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-            window.location.href = '/login?next=%2F';
-          }
+          __cdOpenLoginRequiredModal({
+            reason: '로그인 후 이용할 수 있는 기능입니다.',
+            redirectTo: __cdBuildRedirectAfterLogin()
+          });
           return;
         }
         // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
@@ -6546,9 +6804,10 @@ function _dfRequirePaidSourceUnlock(source) {
   }
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2F';
-    }
+    __cdOpenLoginRequiredModal({
+      reason: '로그인 후 이용할 수 있는 기능입니다.',
+      redirectTo: __cdBuildRedirectAfterLogin()
+    });
     return false;
   }
 
@@ -8048,49 +8307,98 @@ function startIjikTarot() {
     window.location.href = '/tarot-ijik.html';
     return;
   }
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-  if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2Ftarot-ijik.html';
-    }
-    return;
-  }
-  window.location.href = '/tarot-ijik.html';
+  window.requireLoginBeforeAction(function() {
+    window.location.href = '/tarot-ijik.html';
+  }, {
+    featureName: '이직 운명의 카드',
+    redirectTo: '/tarot-ijik.html'
+  });
 }
 function startMindScanTarot() {
   if (__cdIsAdminLikeUser()) {
     window.location.href = '/tarot/mindscan/';
     return;
   }
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-  if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
-    }
-    return;
-  }
-  window.location.href = '/tarot/mindscan/';
+  window.requireLoginBeforeAction(function() {
+    window.location.href = '/tarot/mindscan/';
+  }, {
+    featureName: '마인드스캔 타로',
+    redirectTo: '/tarot/mindscan/'
+  });
 }
 function startCrystalSoulTarot() {
   if (__cdIsAdminLikeUser()) {
     window.location.href = '/tarot/crystal-soul/';
     return;
   }
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-  if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
-    }
-    return;
-  }
-  window.location.href = '/tarot/crystal-soul/';
+  window.requireLoginBeforeAction(function() {
+    window.location.href = '/tarot/crystal-soul/';
+  }, {
+    featureName: '크리스탈 소울 타로',
+    redirectTo: '/tarot/crystal-soul/'
+  });
 }
 window.startIjikTarot = startIjikTarot;
 window.startMindScanTarot = startMindScanTarot;
 window.startCrystalSoulTarot = startCrystalSoulTarot;
+
+function __cdInstallProtectedActionWrappers() {
+  var defs = [
+    ['openTarotModal', '타로 리딩'],
+    ['openTarotLoveModal', '연애 타로'],
+    ['openTarotHealingModal', '힐링 타로'],
+    ['openTarotSelfEsteemModal', '자존감 타로'],
+    ['openTarotReunionModal', '재회 타로'],
+    ['openTarotYearFortuneModal', '연운 타로'],
+    ['openZiweiModal', '자미두수'],
+    ['openAstroModal', '점성술'],
+    ['openSukuyoModal', '숙요점'],
+    ['openHwatuModal', '화투 점괘'],
+    ['openPhysiognomyApp', '관상 분석'],
+    ['openLifeBookModal', '라이프북'],
+    ['openLoveSecretModal', '러브 시크릿'],
+    ['openSibylModal', '시빌라 사주'],
+    ['openDreamModal', '꿈 분석'],
+    ['openOlympusOracleModal', '올림푸스 신탁'],
+    ['openRuneOracle', '룬 오라클'],
+    ['openIfaOracle', '이파 오라클'],
+    ['openRoyalTeaOracle', '왕실 티 오라클'],
+    ['openDestinyFlower', '운명의 꽃'],
+    ['openAstrologyFlower', '점성술 꽃'],
+    ['openJamidusuFlower', '자미두수 꽃'],
+    ['openSukuyoFlower', '숙요점 꽃'],
+    ['gotoZiweiPremium', '프리미엄 자미두수'],
+    ['gotoAstrologyPremium', '프리미엄 점성술'],
+    ['gotoSukuyoPremium', '프리미엄 숙요점'],
+    ['gotoVedicPremium', '프리미엄 베다'],
+    ['gotoNamingPremium', '프리미엄 작명']
+  ];
+
+  for (var i = 0; i < defs.length; i += 1) {
+    var name = defs[i][0];
+    var featureName = defs[i][1];
+    var fn = window[name];
+    if (typeof fn !== 'function') continue;
+    if (fn.__cdAuthWrapped) continue;
+
+    (function(actionName, original, featureLabel) {
+      var wrapped = function() {
+        var args = arguments;
+        return window.requireLoginBeforeAction(function() {
+          return original.apply(window, args);
+        }, {
+          featureName: featureLabel,
+          redirectTo: __cdBuildRedirectAfterLogin()
+        });
+      };
+      wrapped.__cdAuthWrapped = true;
+      window[actionName] = wrapped;
+    })(name, fn, featureName);
+  }
+}
+
+setTimeout(__cdInstallProtectedActionWrappers, 0);
+setTimeout(__cdInstallProtectedActionWrappers, 1200);
 
 (function() {
   function onFsChange() {

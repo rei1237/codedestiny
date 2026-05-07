@@ -1739,8 +1739,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="form-group form-group-mt15">
         <label class="form-label">성별</label>
         <div class="toggle-wrap">
-          <button class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F">♀ 여성</button>
-          <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
+          <button type="button" class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F">♀ 여성</button>
+          <button type="button" class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
         </div>
       </div>
       <div class="birth-time-tip">
@@ -7325,7 +7325,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // window[action] ?⑥닔媛 ?덉쑝硫?吏곸젒 ?몄텧
     if (action && typeof window[action] === 'function') {
-      window[action]();
+      var _actionArgs = actionEl ? String(actionEl.getAttribute('data-action-args') || '').split(',').map(function(v){ return v.trim(); }).filter(function(v){ return v; }) : [];
+      window[action].apply(window, _actionArgs);
       return;
     }
 
@@ -7343,7 +7344,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (typeof _lazyActionLoader === 'function') {
       _lazyActionLoader().then(function() {
         if (action && typeof window[action] === 'function') {
-          try { window[action](); return; } catch (e) { console.error('[coin-gate invoke]', e); }
+          var _lazyActionArgs = actionEl ? String(actionEl.getAttribute('data-action-args') || '').split(',').map(function(v){ return v.trim(); }).filter(function(v){ return v; }) : [];
+          try { window[action].apply(window, _lazyActionArgs); return; } catch (e) { console.error('[coin-gate invoke]', e); }
         }
         _cdDispatchSyntheticActionClick();
       }).catch(function(e) {
@@ -9334,4 +9336,3 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </body>
 
 </html>
-

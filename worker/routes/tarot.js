@@ -1,5 +1,6 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { requireAuth } from "../lib/auth.js";
 
 const SPREAD_CONFIG = {
   one_card: { cardCount: 1, labels: ["today"] },
@@ -955,6 +956,8 @@ export async function handleTarotRoutes(request, env = {}) {
       if (["GET", "POST"].includes(method)) return notFound();
       return methodNotAllowed();
     }
+
+    await requireAuth(request, env);
 
     const body = await readJson(request);
 

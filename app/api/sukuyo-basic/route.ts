@@ -4,6 +4,7 @@ import {
   buildSukuyoFromLunar,
   buildSukuyoNatalDataSummaryTable,
 } from "@/worker/lib/sukuyo-premium.js";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -143,6 +144,9 @@ async function fetchSwissSukuyoBasis(
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireRouteAuth(req);
+    if (!auth.ok) return auth.response;
+
     const body = await req.json().catch(() => ({}));
 
     const year = Number(body?.birth?.year ?? body?.year);

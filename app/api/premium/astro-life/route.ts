@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, buildAstroPrompt, buildWesternChart, fallbackAstroText, generateAstroText, parseSections } from "../_astroCommon";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -19,6 +20,9 @@ function isChartPayload(value: unknown): value is {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireRouteAuth(req);
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;

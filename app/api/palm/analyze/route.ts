@@ -8,6 +8,7 @@ import {
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { buildBothHandsComparison } from "@/lib/palm/both-hands-comparison";
 import { analyzePalmHandInput } from "@/lib/palm/palm-map-engine";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -170,6 +171,9 @@ function pickRepresentativeImageQuality(analyses: Array<{ side: "left" | "right"
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireRouteAuth(req);
+    if (!auth.ok) return auth.response;
+
     const payload = await parsePayload(req);
     const dominantHand = normalizeDominantHand(payload.dominantHand);
     const analysisPurpose = normalizeAnalysisPurpose(payload.analysisPurpose);

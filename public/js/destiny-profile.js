@@ -548,7 +548,14 @@
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     if (!token) {
-      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) window.location.href = '/login?next=%2F';
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: '로그인 후 이용할 수 있는 기능입니다.',
+          redirectTo: window.location.pathname + window.location.search + window.location.hash,
+        });
+      } else {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+      }
       if (typeof onCancel === 'function') onCancel();
       return;
     }
@@ -585,6 +592,16 @@
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
+      if (res.status === 401) {
+        if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+          window.__cdOpenLoginRequiredModal({
+            reason: '로그인 후 이용할 수 있는 기능입니다.',
+            redirectTo: window.location.pathname + window.location.search + window.location.hash,
+          });
+        }
+        if (typeof onCancel === 'function') onCancel();
+        return;
+      }
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
@@ -689,8 +706,13 @@
 
     var token = _dpGetAuthToken();
     if (!token) {
-      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-        window.location.href = '/login?next=%2F';
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: '로그인 후 이용할 수 있는 기능입니다.',
+          redirectTo: window.location.pathname + window.location.search + window.location.hash,
+        });
+      } else {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
       }
       return;
     }
@@ -735,6 +757,15 @@
       })
       .then(function (res) {
         inFlight = false;
+        if (res.status === 401) {
+          if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+            window.__cdOpenLoginRequiredModal({
+              reason: '로그인 후 이용할 수 있는 기능입니다.',
+              redirectTo: window.location.pathname + window.location.search + window.location.hash,
+            });
+          }
+          return;
+        }
         if (res.status === 402) {
           if (typeof window.__cdOpenChargeModal === 'function') {
             window.alert('꽃돼지 코인이 부족해요. 충전 창을 열겠습니다.');

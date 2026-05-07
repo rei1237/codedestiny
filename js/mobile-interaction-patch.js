@@ -1053,10 +1053,6 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
-          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
           __cdRafBatch(function () {
             var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);
@@ -1126,14 +1122,12 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          if (Date.now() - lastScrollAt > SCROLL_BLOCK_MS) {
-            var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-            if (handled) {
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-              return;
-            }
+          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          if (handled) {
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
           }
         }
       }
@@ -1141,10 +1135,6 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
-          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
           __cdRafBatch(function () {
             var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);

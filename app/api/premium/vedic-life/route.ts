@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Body, Ecliptic, GeoVector } from "astronomy-engine";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -1032,6 +1033,9 @@ ${saturn?.nameKo ?? "토성"}이 관여하는 책임/지연 이슈는 과로 또
 // ─────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireRouteAuth(req);
+    if (!auth.ok) return auth.response;
+
     const body = await req.json() as {
       year:number; month:number; day:number;
       hour?:number; minute?:number; timezone?:number;

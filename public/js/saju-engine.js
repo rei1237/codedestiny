@@ -2003,10 +2003,20 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
    STEP 4: 유틸 함수
 ═══════════════════════════════════════ */
 function setGender(g){
-  GENDER=g;
-  window._gender=g;
-  document.getElementById('btnM').classList.toggle('on',g==='M');
-  document.getElementById('btnF').classList.toggle('on',g==='F');
+  var normalized = String(g || '').trim().toUpperCase();
+  if (normalized !== 'M' && normalized !== 'F') return;
+  GENDER = normalized;
+  window._gender = normalized;
+  var btnM = document.getElementById('btnM');
+  var btnF = document.getElementById('btnF');
+  if (btnM) {
+    btnM.classList.toggle('on', normalized === 'M');
+    btnM.setAttribute('aria-pressed', normalized === 'M' ? 'true' : 'false');
+  }
+  if (btnF) {
+    btnF.classList.toggle('on', normalized === 'F');
+    btnF.setAttribute('aria-pressed', normalized === 'F' ? 'true' : 'false');
+  }
 }
 function getTenGod(dayGan,target){
   var gOrJ=GAN[target]||JI[target];
@@ -3389,6 +3399,22 @@ async function startSajuCalculationFlow() {
   __pendingAutoCalculation = false;
   var bd=document.getElementById('birthDate').value;
   if(!bd){alert('생년월일을 입력하세요');return;}
+  var selectedGender = String(GENDER || window._gender || '').trim().toUpperCase();
+  if (selectedGender !== 'M' && selectedGender !== 'F') {
+    alert('성별을 선택해 주세요.');
+    return;
+  }
+  GENDER = selectedGender;
+  window._gender = selectedGender;
+  try {
+    if (location && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+      console.debug('[saju] submit input', {
+        name: String((document.getElementById('nameInput') || {}).value || '').trim(),
+        birthDate: bd,
+        gender: selectedGender
+      });
+    }
+  } catch (_) {}
 
   var canProceed = await checkFortunePointEligibility();
   if (!canProceed) return;

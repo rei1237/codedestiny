@@ -1,5 +1,6 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { requireAuth } from "../lib/auth.js";
 import {
   getSwissWesternChart as getLocalSwissWesternChart,
   getSwissVedicPlanets as getLocalSwissVedicPlanets,
@@ -7298,6 +7299,7 @@ async function handleZiweiBookSession(request, env) {
 export async function handlePremiumRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    await requireAuth(request, env);
     const path = getRoutePath(request, "/api/premium");
     if (path === "/sukuyo-life") return await handleSukuyoLife(request, env);
     if (path === "/astro-western") return await handleAstroWestern(request, env);
@@ -7379,6 +7381,7 @@ export const __sukuyoTestUtils = {
 export async function handleLifebookRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    await requireAuth(request, env);
     const path = getRoutePath(request, "/api/lifebook");
     if (path === "/session") return await handleLifebookSession(request, env);
     return notFound();
@@ -7390,6 +7393,7 @@ export async function handleLifebookRoutes(request, env) {
 export async function handleLoveSecretRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    await requireAuth(request, env);
     const path = getRoutePath(request, "/api/love-secret");
     if (path === "/session") return await handleLoveSecretSession(request, env);
     return notFound();
@@ -7401,6 +7405,7 @@ export async function handleLoveSecretRoutes(request, env) {
 export async function handleZiweiBookRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    await requireAuth(request, env);
     const path = getRoutePath(request, "/api/ziwei-book");
     if (path === "/session") return await handleZiweiBookSession(request, env);
     return notFound();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildWesternChart } from "../_astroCommon";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -72,6 +73,9 @@ async function fetchSwissWesternChart(req: NextRequest, payload: Record<string, 
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = requireRouteAuth(req);
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const year = Number(body.year);
     const month = Number(body.month);

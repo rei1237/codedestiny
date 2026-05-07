@@ -142,6 +142,19 @@ function buildMainRedirectUrl(request, paramsPatchFn) {
   return url;
 }
 
+function hasAuthSessionCookie(request) {
+  const token = String(request.cookies.get("fortune_auth_token")?.value || "").trim();
+  return Boolean(token);
+}
+
+function buildLoginRedirectUrl(request) {
+  const loginUrl = request.nextUrl.clone();
+  const redirectTo = `${request.nextUrl.pathname}${request.nextUrl.search || ""}`;
+  loginUrl.pathname = "/login";
+  loginUrl.search = `?redirect=${encodeURIComponent(redirectTo)}`;
+  return loginUrl;
+}
+
 export function middleware(request) {
   const { pathname, search } = request.nextUrl;
   const ua = request.headers.get("user-agent") || "";
@@ -217,6 +230,9 @@ export function middleware(request) {
 
   const actionForRoute = SERVICE_ROUTE_ACTIONS.get(routePath);
   if (actionForRoute) {
+    if (!hasAuthSessionCookie(request)) {
+      return NextResponse.redirect(buildLoginRedirectUrl(request), 307);
+    }
     const redirectUrl = buildMainRedirectUrl(request, (params) => {
       params.set("action", actionForRoute);
     });
@@ -225,6 +241,9 @@ export function middleware(request) {
 
   const serviceParam = SERVICE_ROUTE_PARAMS.get(routePath);
   if (serviceParam) {
+    if (!hasAuthSessionCookie(request)) {
+      return NextResponse.redirect(buildLoginRedirectUrl(request), 307);
+    }
     const redirectUrl = buildMainRedirectUrl(request, (params) => {
       params.set(serviceParam[0], serviceParam[1]);
     });

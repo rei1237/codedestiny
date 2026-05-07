@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 // @ts-ignore
 import { Solar } from "lunar-javascript";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 // ─────────────────────────────────────────────────────────────────
 // 자미두수 계산 로직 (서버사이드)
@@ -1949,6 +1950,9 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  const auth = requireRouteAuth(req);
+  if (!auth.ok) return auth.response;
+
   let body: unknown;
   try {
     body = await req.json();
