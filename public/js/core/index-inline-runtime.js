@@ -2146,10 +2146,12 @@ function __cdInstallSajuActionStub(actionName) {
 
 function __cdIsDesktopNoTouchEnvironment() {
   try {
-    var finePointer = window.matchMedia && window.matchMedia('(pointer:fine)').matches;
-    var anyCoarsePointer = window.matchMedia && window.matchMedia('(any-pointer:coarse)').matches;
-    var noTouch = !anyCoarsePointer && ((navigator.maxTouchPoints || 0) === 0);
-    return !!(finePointer && noTouch);
+    var finePointer = window.matchMedia && (
+      window.matchMedia('(pointer:fine)').matches ||
+      window.matchMedia('(hover:hover)').matches
+    );
+    var coarsePointer = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+    return !!(finePointer && !coarsePointer);
   } catch (_) {
     return false;
   }

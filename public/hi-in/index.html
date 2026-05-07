@@ -6153,10 +6153,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
   function isDesktopNoTouch(){
     try {
-      var finePointer = window.matchMedia && window.matchMedia('(pointer:fine)').matches;
-      var anyCoarsePointer = window.matchMedia && window.matchMedia('(any-pointer:coarse)').matches;
-      var noTouch = !anyCoarsePointer && ((navigator.maxTouchPoints || 0) === 0);
-      return !!(finePointer && noTouch);
+      var finePointer = window.matchMedia && (
+        window.matchMedia('(pointer:fine)').matches ||
+        window.matchMedia('(hover:hover)').matches
+      );
+      var coarsePointer = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+      return !!(finePointer && !coarsePointer);
     } catch (_) {
       return false;
     }
@@ -6182,15 +6184,55 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('submit', loadRuntime, {capture:true,once:true});
 })();
 </script>
+  var intentSelector = [
+    '[data-action]',
+    '[data-action-pass-event]',
+    '[onclick*="open"]',
+    'a[href*="action="]',
+    '#birthDate',
+    '#birthHour',
+    '#birthMinute',
+    '#birthCountry',
+    '#btnF',
+    '#btnM'
+  ].join(',');
+  var isIntentTarget = function(target) {
+    try {
+      return !!(target && target.closest && target.closest(intentSelector));
+    } catch (_) {
+      return false;
+    }
+  };
+  if (!desktopNoTouch) {
+    if (document.readyState==='complete') schedule();
+    else window.addEventListener('load', schedule, {once:true});
+  }
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
+    var target = (event && event.target) || document.activeElement;
+    if (desktopNoTouch && !isIntentTarget(target)) return;
 <script data-cd-noncritical-src="/js/share-reward.js?v=2026-04-03-v1"></script>
 <script data-cd-noncritical-src="/js/share.js?v=2026-04-03-share-reward"></script>
 
-<script data-cd-noncritical-src="/js/iching-engine.js"></script>
+  if (!desktopNoTouch) {
+    window.addEventListener('pointerdown', loadRuntime, {capture:true,passive:true,once:true});
+    window.addEventListener('touchstart', loadRuntime, {capture:true,passive:true,once:true});
+  } else {
+    var onIntentPointerdown = function(event) {
+      if (!isIntentTarget(event && event.target)) return;
+      window.removeEventListener('pointerdown', onIntentPointerdown, true);
+      loadRuntime();
+    };
+    var onIntentTouchstart = function(event) {
+      if (!isIntentTarget(event && event.target)) return;
+      window.removeEventListener('touchstart', onIntentTouchstart, true);
+      loadRuntime();
+    };
+    window.addEventListener('pointerdown', onIntentPointerdown, {capture:true,passive:true});
+    window.addEventListener('touchstart', onIntentTouchstart, {capture:true,passive:true});
+  }
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=20260321-sukuyo-scroll2"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <script data-cd-noncritical-src="/js/cd-lang-native.js"></script>
