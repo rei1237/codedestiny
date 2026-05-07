@@ -21,7 +21,6 @@
   Expires: 0
 
 /index.html
-  Content-Type: text/html; charset=utf-8
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
@@ -47,7 +46,6 @@
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
 /static/index.html
-  Content-Type: text/html; charset=utf-8
   Cache-Control: no-cache, no-store, must-revalidate
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate

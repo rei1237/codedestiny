@@ -155,6 +155,15 @@ function dedupeUtf8CharsetMeta(html) {
     .replace(/\n{3,}/g, "\n\n");
 }
 
+function stripStartupSplash(html) {
+  return html
+    .replace(/\s*<script\s+src="\/js\/splash\.js"\s+defer><\/script>\s*/g, "\n")
+    .replace(
+      /<div id="codeSplash" class="code-splash">/g,
+      '<div id="codeSplash" class="code-splash" style="display:none" aria-hidden="true">',
+    );
+}
+
 function collectEntryIssues(html) {
   const issues = [];
   const replacementCount = (html.match(/\uFFFD/g) || []).length;
@@ -409,6 +418,14 @@ if (existsSync(publicIndex)) {
     indexBuf = Buffer.from(baseIndexHtml, "utf8");
     writeFileSync(publicIndex, indexBuf);
     console.log("[sync-legacy-static-to-public] Normalized legacy replacement-char marker in public/index.html");
+  }
+
+  const noSplashIndexHtml = stripStartupSplash(baseIndexHtml);
+  if (noSplashIndexHtml !== baseIndexHtml) {
+    baseIndexHtml = noSplashIndexHtml;
+    indexBuf = Buffer.from(baseIndexHtml, "utf8");
+    writeFileSync(publicIndex, indexBuf);
+    console.log("[sync-legacy-static-to-public] Removed startup splash script/overlay from public/index.html");
   }
 
   const baseIssues = collectEntryIssues(baseIndexHtml);
