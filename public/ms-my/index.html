@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
+  <meta charset="UTF-8">
+<!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
-<meta charset="UTF-8">
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력</title>
 
@@ -16,7 +20,7 @@
 <link rel="sitemap" type="application/xml" title="Sitemap" href="https://code-destiny.com/sitemap.xml">
 
 <!-- ═══ SEO: Canonical & Hreflang (public/static/index.html 과 동일 — sync 시 복사됨) ═══ -->
-<link rel="canonical" href="https://code-destiny.com/">
+<link rel="canonical" href="https://code-destiny.com/ms-my">
 <link rel="alternate" hreflang="ko" href="https://code-destiny.com/">
 <link rel="alternate" hreflang="en" href="https://code-destiny.com/en-us">
 <link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja-jp">
@@ -48,7 +52,7 @@
 <meta property="og:site_name" content="코드 데스티니 꿀꿀 만세력">
 <meta property="og:title" content="무료 사주팔자·타로·오늘의 운세 | 코드 데스티니">
 <meta property="og:description" content="생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.">
-<meta property="og:url" content="https://code-destiny.com/">
+<meta property="og:url" content="https://code-destiny.com/ms-my">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:locale:alternate" content="ja_JP">
@@ -601,11 +605,6 @@ body:not(.neo-mode) .logo-area{overflow:clip}
 body:not(.neo-mode) .logo-area::after{content:'';position:absolute;left:0;right:0;top:-100%;width:100%;height:300%;pointer-events:none;z-index:0;background-image:radial-gradient(1.5px 1.5px at 8% 2%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 22% 8%,rgba(255,230,250,0.85),transparent),radial-gradient(1.5px 1.5px at 38% 4%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 55% 12%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 72% 3%,rgba(255,220,245,0.9),transparent),radial-gradient(1px 1px at 88% 10%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 15% 18%,rgba(255,240,250,0.7),transparent),radial-gradient(1.5px 1.5px at 45% 22%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 68% 16%,rgba(255,228,248,0.75),transparent),radial-gradient(1.5px 1.5px at 92% 24%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 5% 28%,rgba(255,235,252,0.7),transparent),radial-gradient(1.5px 1.5px at 28% 32%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 58% 26%,rgba(255,230,250,0.8),transparent),radial-gradient(1px 1px at 82% 30%,rgba(255,245,255,0.75),transparent),radial-gradient(1.5px 1.5px at 12% 38%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 48% 42%,rgba(255,220,245,0.85),transparent),radial-gradient(1px 1px at 75% 36%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 35% 48%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 65% 52%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 18% 58%,rgba(255,230,250,0.7),transparent),radial-gradient(1.5px 1.5px at 52% 62%,rgba(255,245,255,0.8),transparent),radial-gradient(1px 1px at 85% 56%,rgba(255,255,255,0.75),transparent);background-size:100% 33.333%;background-repeat:repeat-y;will-change:transform;animation:starfall 12s linear infinite;-webkit-animation:starfall 12s linear infinite}
 body:not(.neo-mode) .logo-area .logo-cosmos,body:not(.neo-mode) .logo-area .normal-logo{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){body:not(.neo-mode) .logo-area::after{animation:none;opacity:.6}}
-@media(min-width:1025px){
-  body:not(.neo-mode) .logo-area::after{animation:none;-webkit-animation:none;opacity:.42}
-  .neo-logo-icon,.honeypig-logo-icon{animation:none;-webkit-animation:none}
-  .pig-svg-wrap::after{animation:none;-webkit-animation:none;opacity:.2}
-}
   </style>
   <!-- ─── PERF: 라이브러리 로딩 스켈레톤 + reduced-motion (TASK 2·5) ─── -->
   <style id="cd-perf">
@@ -647,9 +646,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/core-ui.css?v=20260504-tapguard1">
-  <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=20260411-foucfix3" data-cd-mobile-delay="1">
-  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3"></noscript>
-  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix" media="(max-width: 1024px)">
+  <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
+  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix">
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
@@ -1298,9 +1296,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
      초기 로딩 스플래시 오버레이
 ══════════════════════════════════════ -->
-<div id="codeSplash" class="code-splash" style="display:none" aria-hidden="true">
+<div id="codeSplash" class="code-splash">
   <!-- 별빛 캔버스 (트윙클 — 데스크탑 전용) -->
   <canvas id="splashCanvas" class="code-splash-canvas"></canvas>
 
@@ -1336,6 +1335,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   </div>
 </div>
+
+<script src="/js/splash.js" defer></script>
 
 <!-- 섹션 네비게이션 바 -->
 <div id="fsnNavBar" class="fsn-navbar fsn-pig" role="navigation" aria-label="현재 섹션">
@@ -1759,7 +1760,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <!-- ═══ 부가 기능 카드 그리드 ═══ -->
     <div class="feature-card-grid">
 
-                     GROUP: 동물 & 관상
+        <!-- ══════════════════════════════════════
+             GROUP: 동물 & 관상
+        ══════════════════════════════════════ -->
         <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
           <div class="fg-group__cards">
 
@@ -1890,7 +1893,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--animal -->
 
-                     GROUP: 명상 & 내면
+        <!-- ══════════════════════════════════════
+             GROUP: 명상 & 내면
+        ══════════════════════════════════════ -->
         <section class="fg-group fg-group--meditation" aria-labelledby="fgTitleMeditation">
           <div class="fg-group__cards">
 
@@ -1969,6 +1974,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
+        ══════════════════════════════════════ -->
         <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot">
           <div class="fg-group__cards">
 
@@ -2159,6 +2165,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
         <!-- ══════════════════════════════════════
              GROUP: 신탁 & 점술
+        ══════════════════════════════════════ -->
         <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle">
           <div class="fg-group__cards">
 
@@ -2796,11 +2803,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- premiumVvipCollection-toggle-script -->
 <script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'flex':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
 
+    </div>
+    
         <!-- psychotest-visual-entry -->
         <section class="fg-group fg-group--psychotest-visual" aria-label="심리테스트 배너">
           <div class="fg-group__cards">
-            <a href="https://replit.com/@youngchan1237/Aesthetic-Pig-Design" target="_blank" rel="noopener noreferrer"
-               data-fallback-href="https://replit.com/@youngchan1237/Aesthetic-Pig-Design"
+            <a href="https://aesthetic-pig-design--youngchan1237.replit.app"
+               data-fallback-href="https://aesthetic-pig-design--youngchan1237.replit.app"
                aria-label="심리테스트 시작"
                style="display:block;position:relative;overflow:hidden;border-radius:20px;border:1px solid rgba(192,132,252,0.32);box-shadow:0 10px 28px rgba(34,8,74,0.34);text-decoration:none;background:linear-gradient(160deg,rgba(29,8,62,0.88),rgba(46,16,95,0.84));">
               <img src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp"
@@ -2815,14 +2824,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <strong style="font-size:1rem;line-height:1.3;color:#f5f3ff;letter-spacing:0.01em;">🧠 심리테스트</strong>
                   <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(52,211,153,0.18);border:1px solid rgba(52,211,153,0.5);color:#6ee7b7;font-size:0.74rem;font-weight:800;">무료 시작</span>
                 </div>
-                <p style="margin:8px 0 0;color:rgba(237,233,254,0.9);font-size:0.82rem;line-height:1.5;">컬렉션 카드가 아닌 단일 이미지 배치형 진입점입니다. 탭하면 Replit 심리테스트 사이트로 이동합니다.</p>
+                <p style="margin:8px 0 0;color:rgba(237,233,254,0.9);font-size:0.82rem;line-height:1.5;">컬렉션 카드가 아닌 단일 이미지 배치형 진입점입니다. 탭하면 심리테스트 사이트로 이동합니다.</p>
               </div>
             </a>
           </div>
         </section>
         <!-- /psychotest-visual-entry -->
-</div>
-    <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
+<!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
       <!-- 드림 타로 모달 -->
       <div id="dreamModalOverlay" class="dream-ledger-overlay" style="display:none;">
@@ -5033,19 +5041,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             </div>
           </div>
           <div class="lb-loading__dots-wrap">
-            <span id="zbChDot0"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="1"  title="Ch.1 명궁"></span>
-            <span id="zbChDot1"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="2"  title="Ch.2 신궁"></span>
-            <span id="zbChDot2"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="3"  title="Ch.3 12궁 배치"></span>
-            <span id="zbChDot3"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="4"  title="Ch.4 주성 해독"></span>
-            <span id="zbChDot4"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="5"  title="Ch.5 관록궁"></span>
-            <span id="zbChDot5"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="6"  title="Ch.6 재백궁"></span>
-            <span id="zbChDot6"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="7"  title="Ch.7 부처궁"></span>
-            <span id="zbChDot7"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="8"  title="Ch.8 살성·화기"></span>
-            <span id="zbChDot8"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="9"  title="Ch.9 대한 분석"></span>
-            <span id="zbChDot9"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="10" title="Ch.10 천이궁·복덕궁"></span>
-            <span id="zbChDot10" class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="11" title="Ch.11 2026 소한"></span>
-            <span id="zbChDot11" class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="12" title="Ch.12 생애 마스터플랜"></span>
-            <span id="zbChDot12" class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="13" title="Ch.13 천명 총결산"></span>
+            <span id="zbChDot0"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="1"  title="Ch.1 명궁"></span>
+            <span id="zbChDot1"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="2"  title="Ch.2 신궁"></span>
+            <span id="zbChDot2"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="3"  title="Ch.3 12궁 배치"></span>
+            <span id="zbChDot3"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="4"  title="Ch.4 주성 해독"></span>
+            <span id="zbChDot4"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="5"  title="Ch.5 관록궁"></span>
+            <span id="zbChDot5"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="6"  title="Ch.6 재백궁"></span>
+            <span id="zbChDot6"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="7"  title="Ch.7 부처궁"></span>
+            <span id="zbChDot7"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="8"  title="Ch.8 살성·화기"></span>
+            <span id="zbChDot8"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="9"  title="Ch.9 대한 분석"></span>
+            <span id="zbChDot9"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="10" title="Ch.10 천이궁·복덕궁"></span>
+            <span id="zbChDot10" class="lb-ch-dot lb-ch-dot--pending" data-zbch="11" title="Ch.11 2026 소한"></span>
+            <span id="zbChDot11" class="lb-ch-dot lb-ch-dot--pending" data-zbch="12" title="Ch.12 생애 마스터플랜"></span>
+            <span id="zbChDot12" class="lb-ch-dot lb-ch-dot--pending" data-zbch="13" title="Ch.13 천명 총결산"></span>
           </div>
           <blockquote class="lb-loading__mystic" id="zbMysticQuote">
             "명궁은 하늘이 이 생에 각인한 첫 번째 별빛이다."
@@ -6125,106 +6133,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/mobile-interaction-patch.js?v=20260503-premiumfix2" data-cd-mobile-delay="0"></script>
+<script src="/js/mobile-interaction-patch.js?v=20260503-premiumfix2" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script>
-(function(){
-  var src='/js/core/index-inline-runtime.js?v=20260504-tapguard1';
-  if (window.__cdRuntimeLoaderInit===1) return;
-  window.__cdRuntimeLoaderInit=1;
-  var loaded=false;
-  function loadRuntime(){
-    if(loaded) return;
-    loaded=true;
-    if(document.querySelector('script[src="'+src+'"]')) return;
-    var s=document.createElement('script');
-    s.src=src;
-    s.defer=true;
-    s.async=false;
-    document.body.appendChild(s);
-  }
-  function schedule(){
-    if('requestIdleCallback' in window){
-      window.requestIdleCallback(loadRuntime,{timeout:2600});
-    } else {
-      setTimeout(loadRuntime,1400);
-    }
-  }
-  function isDesktopNoTouch(){
-    try {
-      var finePointer = window.matchMedia && (
-        window.matchMedia('(pointer:fine)').matches ||
-        window.matchMedia('(hover:hover)').matches
-      );
-      var coarsePointer = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
-      var viewportWidth = Math.max(
-        window.innerWidth || 0,
-        (document.documentElement && document.documentElement.clientWidth) || 0
-      );
-      var wideViewport = viewportWidth >= 1024;
-      return !!((finePointer || wideViewport) && !coarsePointer);
-    } catch (_) {
-      return false;
-    }
-  }
-  if (location.search.indexOf('action=')!==-1 || location.hash) {
-    loadRuntime();
-    return;
-  }
-  var desktopNoTouch = isDesktopNoTouch();
-  var intentSelector = [
-    '[data-action]',
-    '[data-action-pass-event]',
-    '[onclick*="open"]',
-    'a[href*="action="]',
-    '#birthDate',
-    '#birthHour',
-    '#birthMinute',
-    '#birthCountry',
-    '#btnF',
-    '#btnM'
-  ].join(',');
-  var isIntentTarget = function(target) {
-    try {
-      return !!(target && target.closest && target.closest(intentSelector));
-    } catch (_) {
-      return false;
-    }
-  };
-  if (!desktopNoTouch) {
-    if (document.readyState==='complete') schedule();
-    else window.addEventListener('load', schedule, {once:true});
-  }
-  var onIntentKeydown = function(event) {
-    var key = event && event.key;
-    if (key !== 'Enter' && key !== ' ' && key !== 'Spacebar') return;
-    var target = (event && event.target) || document.activeElement;
-    if (desktopNoTouch && !isIntentTarget(target)) return;
-    window.removeEventListener('keydown', onIntentKeydown, true);
-    loadRuntime();
-  };
-  if (!desktopNoTouch) {
-    window.addEventListener('pointerdown', loadRuntime, {capture:true,passive:true,once:true});
-    window.addEventListener('touchstart', loadRuntime, {capture:true,passive:true,once:true});
-  } else {
-    var onIntentPointerdown = function(event) {
-      if (!isIntentTarget(event && event.target)) return;
-      window.removeEventListener('pointerdown', onIntentPointerdown, true);
-      loadRuntime();
-    };
-    var onIntentTouchstart = function(event) {
-      if (!isIntentTarget(event && event.target)) return;
-      window.removeEventListener('touchstart', onIntentTouchstart, true);
-      loadRuntime();
-    };
-    window.addEventListener('pointerdown', onIntentPointerdown, {capture:true,passive:true});
-    window.addEventListener('touchstart', onIntentTouchstart, {capture:true,passive:true});
-  }
-  window.addEventListener('keydown', onIntentKeydown, {capture:true});
-  document.addEventListener('submit', loadRuntime, {capture:true,once:true});
-})();
-</script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260504-tapguard1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
