@@ -2179,12 +2179,10 @@ function __cdBindSajuIntentPrefetch() {
     __cdEnsureSajuCoreLoaded().catch(function(err) {
       console.error('[index-inline-runtime] saju prefetch failed:', err);
     });
-    document.removeEventListener('focusin', trigger, true);
     document.removeEventListener('pointerdown', trigger, true);
     document.removeEventListener('touchstart', trigger, true);
   };
 
-  document.addEventListener('focusin', trigger, true);
   document.addEventListener('pointerdown', trigger, true);
   document.addEventListener('touchstart', trigger, true);
 }

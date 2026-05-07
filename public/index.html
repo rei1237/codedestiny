@@ -1298,7 +1298,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
      초기 로딩 스플래시 오버레이
 ══════════════════════════════════════ -->
 <div id="codeSplash" class="code-splash" style="display:none" aria-hidden="true">
@@ -1760,9 +1759,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <!-- ═══ 부가 기능 카드 그리드 ═══ -->
     <div class="feature-card-grid">
 
-        <!-- ══════════════════════════════════════
-             GROUP: 동물 & 관상
-        ══════════════════════════════════════ -->
+                     GROUP: 동물 & 관상
         <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
           <div class="fg-group__cards">
 
@@ -1893,9 +1890,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--animal -->
 
-        <!-- ══════════════════════════════════════
-             GROUP: 명상 & 내면
-        ══════════════════════════════════════ -->
+                     GROUP: 명상 & 내면
         <section class="fg-group fg-group--meditation" aria-labelledby="fgTitleMeditation">
           <div class="fg-group__cards">
 
@@ -1974,7 +1969,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
-        ══════════════════════════════════════ -->
         <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot">
           <div class="fg-group__cards">
 
@@ -2165,7 +2159,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
         <!-- ══════════════════════════════════════
              GROUP: 신탁 & 점술
-        ══════════════════════════════════════ -->
         <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle">
           <div class="fg-group__cards">
 
@@ -2803,58 +2796,32 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- premiumVvipCollection-toggle-script -->
 <script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'flex':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
 
-        <!-- ══════════════════════════════════════
-             GROUP: 심리테스트 컬렉션
-        ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--psychotest" aria-labelledby="fgTitlePsychotest">
+        <!-- psychotest-visual-entry -->
+        <section class="fg-group fg-group--psychotest-visual" aria-label="심리테스트 배너">
           <div class="fg-group__cards">
-
-            <div class="feat-collection feat-collection--psychotest" id="psychotestCollection" data-collection-open="false">
-              <div class="feat-collection__cosmos" aria-hidden="true">
-                <span class="fc-star fc-star--1"></span>
-                <span class="fc-star fc-star--2"></span>
-                <span class="fc-star fc-star--3"></span>
-                <span class="fc-star fc-star--4"></span>
-                <span class="fc-star fc-star--5"></span>
-                <span class="fc-star fc-star--6"></span>
-              </div>
-              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="psychotestCollection" aria-expanded="false">
-                <div class="feat-collection__icon" aria-hidden="true">🧠</div>
-                <h3 class="feat-collection__title" id="fgTitlePsychotest">심리테스트 컬렉션</h3>
-                <p class="feat-collection__subtitle">재미와 인사이트를 함께 보는 성향 진단</p>
-                <p class="feat-collection__lede">Aesthetic-Pig-Design의 심리테스트 기능을 이 서비스에 맞게 배포 가능한 정적 페이지로 연결했습니다.</p>
-                <p class="feat-collection__featureline">성향 · 연애 · 공감 · 직장 · 멘탈 테스트</p>
-                <div class="feat-collection__divider" aria-hidden="true">
-                  <span class="fc-div-gem">✦</span>
-                  <span class="fc-div-line"></span>
-                  <span class="fc-div-gem">◈</span>
-                  <span class="fc-div-line"></span>
-                  <span class="fc-div-gem">✦</span>
+            <a href="/psychotest.html"
+               data-fallback-href="/psychotest.html"
+               aria-label="심리테스트 시작"
+               style="display:block;position:relative;overflow:hidden;border-radius:20px;border:1px solid rgba(192,132,252,0.32);box-shadow:0 10px 28px rgba(34,8,74,0.34);text-decoration:none;background:linear-gradient(160deg,rgba(29,8,62,0.88),rgba(46,16,95,0.84));">
+              <img src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp"
+                   alt="심리테스트 대표 이미지"
+                   loading="lazy"
+                   decoding="async"
+                   width="1600"
+                   height="900"
+                   style="display:block;width:100%;height:auto;max-height:420px;object-fit:cover;object-position:center;filter:saturate(1.04) contrast(1.03);">
+              <div style="position:absolute;left:14px;right:14px;bottom:14px;padding:12px 14px;border-radius:14px;background:linear-gradient(180deg,rgba(18,8,38,0.12),rgba(18,8,38,0.84));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:1px solid rgba(196,181,253,0.28);">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                  <strong style="font-size:1rem;line-height:1.3;color:#f5f3ff;letter-spacing:0.01em;">🧠 심리테스트</strong>
+                  <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(52,211,153,0.18);border:1px solid rgba(52,211,153,0.5);color:#6ee7b7;font-size:0.74rem;font-weight:800;">무료 시작</span>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
-              </button>
-              <div class="fc-closed-peek" aria-hidden="true">
-                <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
+                <p style="margin:8px 0 0;color:rgba(237,233,254,0.9);font-size:0.82rem;line-height:1.5;">컬렉션 카드가 아닌 단일 이미지 배치형 진입점입니다. 탭하면 심리테스트 페이지로 이동합니다.</p>
               </div>
-
-              <div class="feat-collection__grid feat-collection__grid--2col">
-                <a class="tarot-tile tarot-tile--psychotest" href="/psychotest.html" data-fallback-href="/psychotest.html" aria-label="심리테스트 컬렉션 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp" data-img-alt="심리테스트 컬렉션 - 성향 분석">
-                    <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp" alt="심리테스트 컬렉션 - 성향 분석">
-                    <span class="tarot-tile__badge tarot-tile__badge--new">PSYCHO TEST</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🧠 심리테스트</span>
-                    <span class="tarot-tile__desc">나를 발견하는 성향 진단 컬렉션</span>
-                  </div>
-                </a>
-              </div><!-- /feat-collection__grid -->
-            </div><!-- /feat-collection--psychotest -->
-
-          </div><!-- /fg-group__cards --></section><!-- /fg-group--psychotest -->
-
-    </div>
+            </a>
+          </div>
+        </section>
+        <!-- /psychotest-visual-entry -->
+</div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
       <!-- 드림 타로 모달 -->
@@ -6201,8 +6168,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (document.readyState==='complete') schedule();
     else window.addEventListener('load', schedule, {once:true});
   }
+  var onIntentKeydown = function(event) {
+    var key = event && event.key;
+    if (key !== 'Enter' && key !== ' ' && key !== 'Spacebar') return;
+    window.removeEventListener('keydown', onIntentKeydown, true);
+    loadRuntime();
+  };
   window.addEventListener('pointerdown', loadRuntime, {capture:true,passive:true,once:true});
-  window.addEventListener('keydown', loadRuntime, {capture:true,once:true});
+  window.addEventListener('keydown', onIntentKeydown, {capture:true});
   window.addEventListener('touchstart', loadRuntime, {capture:true,passive:true,once:true});
   document.addEventListener('submit', loadRuntime, {capture:true,once:true});
 })();
