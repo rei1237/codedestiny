@@ -2144,8 +2144,20 @@ function __cdInstallSajuActionStub(actionName) {
   window[actionName] = stub;
 }
 
+function __cdIsDesktopNoTouchEnvironment() {
+  try {
+    var finePointer = window.matchMedia && window.matchMedia('(pointer:fine)').matches;
+    var anyCoarsePointer = window.matchMedia && window.matchMedia('(any-pointer:coarse)').matches;
+    var noTouch = !anyCoarsePointer && ((navigator.maxTouchPoints || 0) === 0);
+    return !!(finePointer && noTouch);
+  } catch (_) {
+    return false;
+  }
+}
+
 function __cdBindSajuIntentPrefetch() {
   if (window.__cdSajuIntentPrefetchBound) return;
+  if (__cdIsDesktopNoTouchEnvironment()) return;
   window.__cdSajuIntentPrefetchBound = 1;
 
   var selectors = [

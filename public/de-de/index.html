@@ -6128,17 +6128,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
   function schedule(){
     if('requestIdleCallback' in window){
-      window.requestIdleCallback(loadRuntime,{timeout:2200});
+      window.requestIdleCallback(loadRuntime,{timeout:2600});
     } else {
-      setTimeout(loadRuntime,1200);
+      setTimeout(loadRuntime,1400);
+    }
+  }
+  function isDesktopNoTouch(){
+    try {
+      var finePointer = window.matchMedia && window.matchMedia('(pointer:fine)').matches;
+      var anyCoarsePointer = window.matchMedia && window.matchMedia('(any-pointer:coarse)').matches;
+      var noTouch = !anyCoarsePointer && ((navigator.maxTouchPoints || 0) === 0);
+      return !!(finePointer && noTouch);
+    } catch (_) {
+      return false;
     }
   }
   if (location.search.indexOf('action=')!==-1 || location.hash) {
     loadRuntime();
     return;
   }
-  if (document.readyState==='complete') schedule();
-  else window.addEventListener('load', schedule, {once:true});
+  var desktopNoTouch = isDesktopNoTouch();
+  if (!desktopNoTouch) {
+    if (document.readyState==='complete') schedule();
+    else window.addEventListener('load', schedule, {once:true});
+  }
   window.addEventListener('pointerdown', loadRuntime, {capture:true,passive:true,once:true});
   window.addEventListener('keydown', loadRuntime, {capture:true,once:true});
   window.addEventListener('touchstart', loadRuntime, {capture:true,passive:true,once:true});
