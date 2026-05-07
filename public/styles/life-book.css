@@ -2133,6 +2133,29 @@ body.theme-pig .lb-ch-dot--pending {
   padding: 0 0 32px;
 }
 
+#ziweiBookModal .lb-result__name {
+  color: #ede9fe;
+  text-shadow: 0 1px 8px rgba(76, 29, 149, 0.45);
+}
+
+#ziweiBookModal .lb-result__date {
+  color: #dbeafe;
+  text-shadow: 0 1px 6px rgba(30, 41, 59, 0.5);
+}
+
+#ziweiBookModal .lb-toc-item {
+  color: #b9c9ee;
+  opacity: 0.72;
+}
+
+#ziweiBookModal .lb-toc-item.loaded {
+  color: #ede9fe;
+}
+
+#ziweiBookModal .lb-toc-item:hover:not(.active) {
+  color: #f8fbff;
+}
+
 /* ── 프리미엄 리포트 공통 가독성 보강(자미두수/점성술/베다/숙요/인생의책) ── */
 #ziweiBookModal .lb-result__content,
 #astroBookModal .lb-result__content,

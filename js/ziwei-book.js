@@ -813,8 +813,10 @@
       stageEl.style.cssText = 'margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(124,58,237,0.12);border:1px solid rgba(167,139,250,0.35);font-size:0.83rem;color:#ddd6fe;line-height:1.45;';
       progressText.parentElement.appendChild(stageEl);
     }
+    var loadingStatusEl = _qs('zbLoadingStatus');
     var chapterMsg = _qs('zbLoadingChapter');
     var chapterNumEl = _qs('zbLoadingChapterNum');
+    var chapterTitleEl = _qs('zbLoadingChapterTitle');
     var mysticEl = _qs('zbMysticQuote');
 
     // 신비 멘트 인터벌
@@ -859,13 +861,15 @@
         var _subtitle = done < 13 ? (CHAPTER_SUBTITLES[done] || '') : '전체 챕터 정리를 완료했습니다.';
         stageEl.textContent = '진행 단계: ' + _phase + ' · ' + _subtitle;
       }
-      if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 13) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
+      if (loadingStatusEl && done < 13) loadingStatusEl.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (loadingStatusEl && done >= 13) loadingStatusEl.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
-      if (chapterMsg) {
-        chapterMsg.classList.remove('lb-loading__status--pulse');
-        void chapterMsg.offsetWidth;
-        chapterMsg.classList.add('lb-loading__status--pulse');
+      if (chapterTitleEl && done < 13) chapterTitleEl.textContent = CHAPTER_TITLES[done] || '분석 중...';
+      if (chapterTitleEl && done >= 13) chapterTitleEl.textContent = '모든 챕터 분석 완료';
+      if (loadingStatusEl) {
+        loadingStatusEl.classList.remove('lb-loading__status--pulse');
+        void loadingStatusEl.offsetWidth;
+        loadingStatusEl.classList.add('lb-loading__status--pulse');
       }
       if (chapterWrap) {
         chapterWrap.classList.remove('is-updating');
@@ -1057,7 +1061,7 @@
         if (epBanner) epBanner.style.display = '';
         return;
       }
-      if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
+      if (loadingStatusEl) loadingStatusEl.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
       if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
