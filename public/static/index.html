@@ -358,23 +358,22 @@
   function loadFonts() {
     if (loaded) return;
     loaded = true;
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
-    window.removeEventListener('pointerdown', loadFonts, true);
-    window.removeEventListener('touchstart', loadFonts, true);
-    window.removeEventListener('keydown', loadFonts, true);
-    window.removeEventListener('scroll', loadFonts, true);
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=optional');
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=optional');
+    window.removeEventListener('pointerdown', onIntent, true);
+    window.removeEventListener('touchstart', onIntent, true);
+    window.removeEventListener('keydown', onIntent, true);
   }
-  window.addEventListener('pointerdown', loadFonts, true);
-  window.addEventListener('touchstart', loadFonts, true);
-  window.addEventListener('keydown', loadFonts, true);
-  window.addEventListener('scroll', loadFonts, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') loadFonts();
-  }, { once: true });
+  function onIntent(ev){
+    if (ev && ev.isTrusted === false) return;
+    loadFonts();
+  }
+  window.addEventListener('pointerdown', onIntent, true);
+  window.addEventListener('touchstart', onIntent, true);
+  window.addEventListener('keydown', onIntent, true);
 })();
 </script>
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=optional" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
   <!-- ════════════════════════════════════════════════════════
