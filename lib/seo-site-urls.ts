@@ -4,15 +4,6 @@ export const BASE_URL = "https://code-destiny.com";
 
 export const LOCALE_PREFIXES = [
   "",
-  "/en-us",
-  "/ja-jp",
-  "/zh-cn",
-  "/hi-in",
-  "/es-es",
-  "/fr-fr",
-  "/de-de",
-  "/nl-nl",
-  "/ms-my",
 ];
 
 export type SitemapRouteEntry = {
@@ -33,6 +24,9 @@ export type SitemapRouteEntry = {
 export const ROUTES: SitemapRouteEntry[] = [
   // ── 홈 (최우선) ──────────────────────────────────────────────
   { path: "/", changeFrequency: "daily", priority: 1.0 },
+  { path: "/en-us", changeFrequency: "monthly", priority: 0.45, noLocale: true },
+  { path: "/ja-jp", changeFrequency: "monthly", priority: 0.45, noLocale: true },
+  { path: "/zh-cn", changeFrequency: "monthly", priority: 0.45, noLocale: true },
 
   // ── 핵심 서비스 (직접 사용자 inflow) ─────────────────────────
   { path: "/saju/basic",       changeFrequency: "weekly", priority: 0.95 },
@@ -44,8 +38,6 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/oracle/hwatu-life",      changeFrequency: "weekly", priority: 0.88 },
   { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.87 },
   { path: "/saju-picture",           changeFrequency: "weekly", priority: 0.86 },
-  { path: "/geomancy-oracle-v4.html", changeFrequency: "weekly", priority: 0.85, noLocale: true },
-  { path: "/royal-tea-oracle.html",   changeFrequency: "weekly", priority: 0.84, noLocale: true },
 
   // ── 콘텐츠 허브 ───────────────────────────────────────────────
   { path: "/insights",    changeFrequency: "weekly", priority: 0.90 },
@@ -66,9 +58,11 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/about",            changeFrequency: "monthly", priority: 0.80 },
   { path: "/methodology",      changeFrequency: "monthly", priority: 0.78 },
   { path: "/faq",              changeFrequency: "monthly", priority: 0.70 },
-  { path: "/contact-us",       changeFrequency: "yearly",  priority: 0.55 },
-  { path: "/privacy-policy",   changeFrequency: "yearly",  priority: 0.50 },
-  { path: "/terms-of-service", changeFrequency: "yearly",  priority: 0.50 },
+  { path: "/contact",          changeFrequency: "yearly",  priority: 0.58 },
+  { path: "/privacy",          changeFrequency: "yearly",  priority: 0.56 },
+  { path: "/terms",            changeFrequency: "yearly",  priority: 0.56 },
+  { path: "/disclaimer",       changeFrequency: "yearly",  priority: 0.54 },
+  { path: "/advertising-policy", changeFrequency: "yearly", priority: 0.54 },
   { path: "/points",           changeFrequency: "weekly",  priority: 0.50 },
 ];
 

@@ -17,5 +17,24 @@ export function generateMetadata() {
 }
 
 export default function SunHealingTarotPage() {
-  return <TarotHealingClient />;
+  return (
+    <>
+      <h1
+        style={{
+          position: "absolute",
+          width: "1px",
+          height: "1px",
+          padding: 0,
+          margin: "-1px",
+          overflow: "hidden",
+          clip: "rect(0, 0, 0, 0)",
+          whiteSpace: "nowrap",
+          border: 0,
+        }}
+      >
+        무료 힐링 타로 4카드 리딩
+      </h1>
+      <TarotHealingClient />
+    </>
+  );
 }

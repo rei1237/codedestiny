@@ -69,17 +69,21 @@ function normalizeMetaText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function pickFirstImageUrl(value: unknown): string {
+  if (!Array.isArray(value) || value.length === 0) return "";
+  const first = value[0];
+  if (typeof first === "string") return first.trim();
+  if (first && typeof first === "object" && "url" in first) {
+    return normalizeMetaText((first as { url?: unknown }).url);
+  }
+  return "";
+}
+
 const LOCALE_PREFIXES: Array<{ prefix: string; hrefLang: string }> = [
   { prefix: "", hrefLang: "ko" },
   { prefix: "/en-us", hrefLang: "en" },
   { prefix: "/ja-jp", hrefLang: "ja" },
   { prefix: "/zh-cn", hrefLang: "zh-Hans" },
-  { prefix: "/hi-in", hrefLang: "hi" },
-  { prefix: "/es-es", hrefLang: "es" },
-  { prefix: "/fr-fr", hrefLang: "fr" },
-  { prefix: "/de-de", hrefLang: "de" },
-  { prefix: "/nl-nl", hrefLang: "nl" },
-  { prefix: "/ms-my", hrefLang: "ms" },
 ];
 
 export interface FortunePageMeta {
@@ -260,34 +264,55 @@ export function withUniqueRouteMetadata(
   const openGraph = (metadata?.openGraph as Record<string, unknown> | undefined) || undefined;
   const twitter = (metadata?.twitter as Record<string, unknown> | undefined) || undefined;
   const alternates = (metadata?.alternates as Record<string, unknown> | undefined) || undefined;
+  const canonical = normalizeMetaText(alternates?.canonical) || toAbsoluteUrl(canonicalPath);
+  const mergedTitle = uniqueTitle || rawTitle || "Code Destiny";
+  const mergedDescription = uniqueDescription || rawDescription;
+  const imageCandidate =
+    pickFirstImageUrl(openGraph?.images) ||
+    pickFirstImageUrl(twitter?.images) ||
+    `${SITE_ORIGIN}/icons/honeypig.webp`;
+  const absoluteImage = toAbsoluteUrl(imageCandidate);
+  const locale = languageHint.replace("-", "_");
 
   return {
     ...metadata,
     ...(uniqueTitle ? { title: uniqueTitle } : {}),
     ...(uniqueDescription ? { description: uniqueDescription } : {}),
-    openGraph: openGraph
-      ? {
-          ...openGraph,
-          title: appendUniqueTitle(normalizeMetaText(openGraph.title) || uniqueTitle, routeMetaCode),
-          description: appendUniqueDescription(
-            normalizeMetaText(openGraph.description) || uniqueDescription,
-            routeMetaCode,
-          ),
-        }
-      : undefined,
-    twitter: twitter
-      ? {
-          ...twitter,
-          title: appendUniqueTitle(normalizeMetaText(twitter.title) || uniqueTitle, routeMetaCode),
-          description: appendUniqueDescription(
-            normalizeMetaText(twitter.description) || uniqueDescription,
-            routeMetaCode,
-          ),
-        }
-      : undefined,
+    openGraph: {
+      ...(openGraph || {}),
+      type: normalizeMetaText(openGraph?.type) || "website",
+      locale,
+      url: normalizeMetaText(openGraph?.url) || canonical,
+      siteName: normalizeMetaText(openGraph?.siteName) || "꿀꿀 만세력",
+      title: appendUniqueTitle(normalizeMetaText(openGraph?.title) || mergedTitle, routeMetaCode),
+      description: appendUniqueDescription(
+        normalizeMetaText(openGraph?.description) || mergedDescription,
+        routeMetaCode,
+      ),
+      images:
+        openGraph?.images ||
+        [
+          {
+            url: absoluteImage,
+            width: 1200,
+            height: 630,
+            alt: mergedTitle,
+          },
+        ],
+    },
+    twitter: {
+      ...(twitter || {}),
+      card: normalizeMetaText(twitter?.card) || "summary_large_image",
+      title: appendUniqueTitle(normalizeMetaText(twitter?.title) || mergedTitle, routeMetaCode),
+      description: appendUniqueDescription(
+        normalizeMetaText(twitter?.description) || mergedDescription,
+        routeMetaCode,
+      ),
+      images: (twitter?.images as unknown) || [absoluteImage],
+    },
     alternates: {
       ...(alternates || {}),
-      canonical: normalizeMetaText(alternates?.canonical) || toAbsoluteUrl(canonicalPath),
+      canonical,
     },
   };
 }

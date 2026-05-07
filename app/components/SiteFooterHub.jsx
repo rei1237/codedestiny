@@ -1,12 +1,14 @@
 import styles from "./SiteFooterHub.module.css";
 
 const POLICY_LINKS = [
-  { href: "/terms-of-service", text: "이용약관" },
-  { href: "/terms-of-service#refund-policy", text: "교환/환불 정책" },
-  { href: "/privacy-policy", text: "개인정보처리방침" },
+  { href: "/privacy", text: "개인정보처리방침 / Privacy" },
+  { href: "/terms", text: "이용약관 / Terms" },
+  { href: "/contact", text: "문의하기 / Contact" },
+  { href: "/about", text: "서비스 소개 / About" },
+  { href: "/disclaimer", text: "면책 고지 / Disclaimer" },
+  { href: "/advertising-policy", text: "광고 운영정책 / Advertising Policy" },
+  { href: "/terms#refund-policy", text: "교환/환불 정책" },
   { href: "/faq", text: "FAQ" },
-  { href: "/contact-us", text: "문의하기" },
-  { href: "/about", text: "서비스 소개" },
   { href: "/methodology", text: "콘텐츠 방법론" },
   { href: "/insights", text: "인사이트 아카이브" },
 ];
@@ -46,14 +48,14 @@ const SEO_LINK_GROUPS = [
     ],
   },
   {
-    title: "정적 인기 페이지",
+    title: "추천 가이드",
     links: [
-      { href: "/geomancy-oracle-v4.html", text: "지오맨시 흙점" },
-      { href: "/destiny-poker.html", text: "데스티니 포커" },
-      { href: "/fortune-teller-fish.html", text: "포춘텔러 물고기" },
-      { href: "/cosmic-soul-meditation.html", text: "코즈믹 소울 명상" },
-      { href: "/neville-meditation.html", text: "네빌 명상" },
-      { href: "/yoga-guru.html", text: "요가 구루" },
+      { href: "/insights", text: "운명 인사이트 허브" },
+      { href: "/high-value", text: "하이밸류 아카이브" },
+      { href: "/high-value/complete-guide-to-saju", text: "사주 완전 가이드" },
+      { href: "/high-value/how-tarot-actually-works", text: "타로 리딩 구조 이해" },
+      { href: "/high-value/understanding-your-destiny", text: "운명 해석 프레임" },
+      { href: "/faq", text: "자주 묻는 질문" },
     ],
   },
 ];
