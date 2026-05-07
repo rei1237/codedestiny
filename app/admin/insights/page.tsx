@@ -21,6 +21,31 @@ type InsightItem = {
   publishedAt?: string | null;
 };
 
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
+function getFlowerAdminTokenClient(): string {
+  if (typeof window === "undefined") return "";
+
+  try {
+    const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
+  } catch {}
+
+  try {
+    const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
+  } catch {}
+
+  return "";
+}
+
+function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...(extraHeaders || {}) };
+  const adminToken = getFlowerAdminTokenClient();
+  if (adminToken) headers["x-admin-token"] = adminToken;
+  return headers;
+}
+
 const FILTER_OPTIONS: Array<{ key: FilterKey; label: string }> = [
   { key: "all", label: "전체" },
   { key: "draft", label: "임시저장" },
@@ -84,6 +109,7 @@ export default function AdminInsightsPage() {
       const res = await fetch(url.toString(), {
         method: "GET",
         credentials: "include",
+        headers: buildAdminHeaders(),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -121,7 +147,7 @@ export default function AdminInsightsPage() {
       const res = await fetch(`${endpointBase}/${id}`, {
         method: "PUT",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ status }),
       });
       const data = await res.json().catch(() => ({}));
@@ -142,6 +168,7 @@ export default function AdminInsightsPage() {
       const res = await fetch(`${endpointBase}/${id}`, {
         method: "DELETE",
         credentials: "include",
+        headers: buildAdminHeaders(),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

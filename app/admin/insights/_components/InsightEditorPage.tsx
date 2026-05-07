@@ -27,6 +27,31 @@ type InsightEditorPageProps = {
   insightId?: string;
 };
 
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
+function getFlowerAdminTokenClient(): string {
+  if (typeof window === "undefined") return "";
+
+  try {
+    const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
+  } catch {}
+
+  try {
+    const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
+  } catch {}
+
+  return "";
+}
+
+function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...(extraHeaders || {}) };
+  const adminToken = getFlowerAdminTokenClient();
+  if (adminToken) headers["x-admin-token"] = adminToken;
+  return headers;
+}
+
 function slugify(input: string): string {
   return String(input || "")
     .normalize("NFKD")
@@ -205,6 +230,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         file,
         usage: "featured",
         alt: featuredImageAlt || title || "대표 이미지",
+        adminToken: getFlowerAdminTokenClient(),
       });
       setFeaturedImageUrl(uploaded.url);
       setFeaturedImageAlt(uploaded.alt || featuredImageAlt || title || "대표 이미지");
@@ -236,6 +262,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         file,
         usage: "body",
         alt,
+        adminToken: getFlowerAdminTokenClient(),
       });
 
       editor.chain().focus().setImage({
@@ -311,7 +338,11 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       url.searchParams.set("q", candidateSlug);
       url.searchParams.set("pageSize", "100");
 
-      const res = await fetch(url.toString(), { method: "GET", credentials: "include" });
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        credentials: "include",
+        headers: buildAdminHeaders(),
+      });
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) return { duplicated: false, checkFailed: true };
@@ -469,6 +500,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         const res = await fetch(`${endpointBase}/${insightId}`, {
           method: "GET",
           credentials: "include",
+          headers: buildAdminHeaders(),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -606,7 +638,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       const res = await fetch(targetUrl, {
         method,
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 

@@ -10,6 +10,8 @@ export type UploadedInsightImage = {
   size: number;
 };
 
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -103,10 +105,12 @@ export async function uploadInsightImage(params: {
   file: File;
   usage: UploadUsage;
   alt: string;
+  adminToken?: string;
 }): Promise<UploadedInsightImage> {
   const apiBase = String(params.apiBase || "");
   const usage = params.usage;
   const alt = String(params.alt || "").trim().slice(0, 300);
+  const adminToken = String(params.adminToken || "").trim();
 
   validateClientFile(params.file);
 
@@ -126,6 +130,9 @@ export async function uploadInsightImage(params: {
   const response = await fetch(endpoint, {
     method: "POST",
     credentials: "include",
+    headers: FLOWER_ADMIN_TOKEN_RE.test(adminToken)
+      ? { "x-admin-token": adminToken }
+      : undefined,
     body: formData,
   });
 
