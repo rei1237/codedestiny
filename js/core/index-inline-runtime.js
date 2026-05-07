@@ -2025,6 +2025,46 @@ function __cdEnsureDestinyProfileLoaded() {
   return __cdDestinyProfileLoadPromise;
 }
 
+function __cdScheduleDestinyProfileLoad() {
+  var fired = false;
+  function runLoad() {
+    if (fired) return;
+    fired = true;
+    __cdEnsureDestinyProfileLoaded().catch(function(err) {
+      console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
+    });
+  }
+
+  var idle = window.requestIdleCallback;
+  var desktopNoTouch = __cdIsDesktopNoTouchEnvironment();
+
+  if (!desktopNoTouch) {
+    if (typeof idle === 'function') {
+      idle(runLoad, { timeout: 1200 });
+    } else {
+      setTimeout(runLoad, 0);
+    }
+    return;
+  }
+
+  function onIntent() {
+    window.removeEventListener('pointerdown', onIntent, true);
+    window.removeEventListener('keydown', onIntent, true);
+    window.removeEventListener('touchstart', onIntent, true);
+    runLoad();
+  }
+
+  window.addEventListener('pointerdown', onIntent, true);
+  window.addEventListener('keydown', onIntent, true);
+  window.addEventListener('touchstart', onIntent, true);
+
+  if (typeof idle === 'function') {
+    idle(runLoad, { timeout: 3600 });
+  } else {
+    setTimeout(runLoad, 3600);
+  }
+}
+
 function __cdEnsureSwissEphLoaded() {
   if (window.__cdSwissEphReady === 1 || window.swisseph || window.Swe || window.swe) {
     window.__cdSwissEphReady = 1;
@@ -2146,17 +2186,26 @@ function __cdInstallSajuActionStub(actionName) {
 
 function __cdIsDesktopNoTouchEnvironment() {
   try {
-    var finePointer = window.matchMedia && (
+    var hasMatchMedia = typeof window.matchMedia === 'function';
+    var finePointer = hasMatchMedia && (
       window.matchMedia('(pointer:fine)').matches ||
+      window.matchMedia('(any-pointer:fine)').matches ||
       window.matchMedia('(hover:hover)').matches
     );
-    var coarsePointer = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+    var coarsePointer = hasMatchMedia && (
+      window.matchMedia('(pointer:coarse)').matches ||
+      window.matchMedia('(any-pointer:coarse)').matches
+    );
+    var maxTouchPoints = (navigator && typeof navigator.maxTouchPoints === 'number')
+      ? navigator.maxTouchPoints
+      : 0;
     var viewportWidth = Math.max(
       window.innerWidth || 0,
       (document.documentElement && document.documentElement.clientWidth) || 0
     );
     var wideViewport = viewportWidth >= 1024;
-    return !!((finePointer || wideViewport) && !coarsePointer);
+    var hasTouchCapability = coarsePointer || maxTouchPoints > 0;
+    return !!((finePointer || wideViewport) && !hasTouchCapability);
   } catch (_) {
     return false;
   }
@@ -2361,17 +2410,13 @@ window.openDestinyEggPage = function() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
-    __cdEnsureDestinyProfileLoaded().catch(function(err) {
-      console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
-    });
+    __cdScheduleDestinyProfileLoad();
     __cdBindSajuIntentPrefetch();
     __cdWarmupSajuInputsIfNeeded();
     __cdBootstrapSajuInputsOnLoad();
   }, { once: true });
 } else {
-  __cdEnsureDestinyProfileLoaded().catch(function(err) {
-    console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
-  });
+  __cdScheduleDestinyProfileLoad();
   __cdBindSajuIntentPrefetch();
   __cdWarmupSajuInputsIfNeeded();
   __cdBootstrapSajuInputsOnLoad();

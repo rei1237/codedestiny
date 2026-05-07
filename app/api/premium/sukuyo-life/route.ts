@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-// @ts-ignore
-import { Solar } from "lunar-javascript";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 
 export const runtime = "nodejs";
@@ -168,22 +166,6 @@ function buildSukuyoFromLunar(lunarMonth: number, lunarDay: number, isLeap = fal
   };
 }
 
-function readLunarFromBody(body: any): { lunarMonth: number; lunarDay: number; isLeap: boolean } | null {
-  const topMonth = Number(body?.lunarMonth);
-  const topDay = Number(body?.lunarDay);
-  const nestedMonth = Number(body?.lunar?.month);
-  const nestedDay = Number(body?.lunar?.day);
-  const month = Number.isFinite(topMonth) ? topMonth : (Number.isFinite(nestedMonth) ? nestedMonth : NaN);
-  const day = Number.isFinite(topDay) ? topDay : (Number.isFinite(nestedDay) ? nestedDay : NaN);
-  if (!Number.isFinite(month) || !Number.isFinite(day)) return null;
-  const leapRaw = body?.isLeap ?? body?.lunarIsLeap ?? body?.lunar?.isLeap;
-  return {
-    lunarMonth: Number(month),
-    lunarDay: Number(day),
-    isLeap: !!leapRaw,
-  };
-}
-
 async function fetchKasiLunarFromSolar(req: NextRequest, year: number, month: number, day: number) {
   try {
     const response = await fetch(`${req.nextUrl.origin}/api/kasi/calendar`, {
@@ -214,26 +196,12 @@ async function fetchKasiLunarFromSolar(req: NextRequest, year: number, month: nu
   }
 }
 
-async function calcSukuyo(req: NextRequest, year: number, month: number, day: number, hour = 12, sourceBody?: any) {
-  const providedLunar = readLunarFromBody(sourceBody || null);
-  if (providedLunar) {
-    // Keep parity with existing client calcSukuyoData: lunar month/day + monthStart offsets.
-    return {
-      ...buildSukuyoFromLunar(providedLunar.lunarMonth, providedLunar.lunarDay, providedLunar.isLeap),
-      source: "client-existing-engine",
-    };
-  }
-
+async function calcSukuyo(req: NextRequest, year: number, month: number, day: number) {
   const kasiLunar = await fetchKasiLunarFromSolar(req, year, month, day);
   if (kasiLunar) {
     return buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, kasiLunar.isLeap);
   }
-
-  const lunar = Solar.fromYmdHms(year, month, day, hour, 0, 0).getLunar();
-  return {
-    ...buildSukuyoFromLunar(Math.abs(Number(lunar.getMonth())), Number(lunar.getDay()), !!lunar.isLeap()),
-    source: "fallback-lunar-javascript",
-  };
+  return null;
 }
 
 function relation(myIdx: number, otherIdx?: number | null) {
@@ -558,7 +526,6 @@ export async function POST(req: NextRequest) {
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
-    const hour = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
     const chapterRaw = Number(body.chapter ?? 1);
     const chapter = Number.isFinite(chapterRaw)
       ? Math.max(1, Math.min(13, Math.floor(chapterRaw)))
@@ -566,21 +533,35 @@ export async function POST(req: NextRequest) {
     const requestedMode = String(body.reportMode || (body.includeCompatibility ? "compatibility" : "personal")).toLowerCase();
     let reportMode: "personal" | "compatibility" = requestedMode === "compatibility" ? "compatibility" : "personal";
 
-    const sukuyo = await calcSukuyo(req, year, month, day, hour, body);
+    const sukuyo = await calcSukuyo(req, year, month, day);
+    if (!sukuyo) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "SUKUYO_LUNAR_CONVERSION_FAILED",
+          error: "KASI lunar conversion unavailable",
+        },
+        { status: 422 },
+      );
+    }
     const hasPartner = Number.isFinite(Number(body.partnerYear))
       && Number.isFinite(Number(body.partnerMonth))
       && Number.isFinite(Number(body.partnerDay));
     if (reportMode === "compatibility" && !hasPartner) reportMode = "personal";
 
-    const partnerBody = {
-      lunarMonth: body.partnerLunarMonth,
-      lunarDay: body.partnerLunarDay,
-      isLeap: body.partnerIsLeap,
-      lunar: body.partnerLunar,
-    };
     const partner = hasPartner
-      ? await calcSukuyo(req, Number(body.partnerYear), Number(body.partnerMonth), Number(body.partnerDay), Number(body.partnerHour ?? 12), partnerBody)
+      ? await calcSukuyo(req, Number(body.partnerYear), Number(body.partnerMonth), Number(body.partnerDay))
       : null;
+    if (hasPartner && !partner) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "SUKUYO_PARTNER_LUNAR_CONVERSION_FAILED",
+          error: "KASI partner lunar conversion unavailable",
+        },
+        { status: 422 },
+      );
+    }
     const rel = relation(sukuyo.mansionIdx, partner?.mansionIdx);
     const swissBasis = await fetchSwissSukuyoBasis(req, {
       year,
@@ -609,15 +590,32 @@ export async function POST(req: NextRequest) {
     const prompt = buildPrompt(chapter, sukuyo, reportMode, partner, chart, compatibilityScores);
     const minChars = reportMode === "compatibility" ? 5000 : 2800;
     let text = await generateText(prompt, minChars);
-    let usedFallback = false;
     if (!text) {
-      usedFallback = true;
-      text = fallbackText(chapter, sukuyo, rel, reportMode);
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "SUKUYO_TEXT_GENERATION_FAILED",
+          error: "AI text generation returned empty output",
+          chapter,
+          reportMode,
+        },
+        { status: 502 },
+      );
     }
 
     if (text.length < minChars) {
-      usedFallback = true;
-      text = `${text}\n\n${fallbackText(chapter, sukuyo, rel, reportMode)}`;
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "SUKUYO_TEXT_TOO_SHORT",
+          error: "Generated text did not meet minimum length",
+          chapter,
+          reportMode,
+          minimum: minChars,
+          actual: text.length,
+        },
+        { status: 502 },
+      );
     }
 
     const chapterMetaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
@@ -634,7 +632,6 @@ export async function POST(req: NextRequest) {
       chapterMeta: chapterMetaList[chapter - 1],
       text,
       sections: parseSections(text),
-      usedFallback,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

@@ -117,8 +117,10 @@ export const ABOUT_PAGE_COPY = {
     ["/insights", "운세 인사이트 아카이브"],
     ["/methodology", "콘텐츠 방법론/면책 고지"],
     ["/faq", "자주 묻는 질문 FAQ"],
-    ["/privacy-policy", "개인정보처리방침"],
-    ["/terms-of-service", "이용약관"],
-    ["/contact-us", "문의하기"],
+    ["/privacy", "개인정보처리방침"],
+    ["/terms", "이용약관"],
+    ["/disclaimer", "면책 고지"],
+    ["/advertising-policy", "광고 운영정책"],
+    ["/contact", "문의하기"],
   ],
 };

@@ -149,6 +149,43 @@ function _resolveSukuyoLunarObj(profile) {
   return Promise.resolve(null);
 }
 
+function _fetchSukuyoBasicCanonical(profile) {
+  if (!profile || !profile.birth || typeof fetch !== 'function') return Promise.resolve(null);
+  var b = profile.birth;
+  var l = profile.location || {};
+
+  return fetch('/api/sukuyo-basic', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: profile.name || '사용자',
+      gender: profile.gender || 'OTHER',
+      birth: {
+        year: Number(b.year),
+        month: Number(b.month),
+        day: Number(b.day),
+        hour: b.hour != null ? Number(b.hour) : 12,
+        minute: b.minute != null ? Number(b.minute) : 0
+      },
+      location: {
+        lat: l.lat != null ? Number(l.lat) : 37.5665,
+        lon: l.lng != null ? Number(l.lng) : 126.978,
+        timezone: l.tzOffset != null ? Number(l.tzOffset) : 9
+      }
+    })
+  })
+    .then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (data) {
+        if (!res.ok || !data || !data.ok || !data.canonical) return null;
+        return data;
+      });
+    })
+    .catch(function (e) {
+      console.warn('[Sukuyo] 기본 canonical 조회 실패:', e);
+      return null;
+    });
+}
+
 function _renderSukuyoSection(profile) {
   var card = document.getElementById('sukuyoCard');
   var noP = document.getElementById('sukuyoNoProfile');
@@ -164,7 +201,10 @@ function _renderSukuyoSection(profile) {
   setTimeout(function () {
     _resolveSukuyoLunarObj(profile)
       .then(function (lunarObj) {
-        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
+        return _fetchSukuyoBasicCanonical(profile)
+          .then(function (canonicalPayload) {
+            if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj, canonicalPayload);
+          });
       })
       .catch(function (e) {
         console.warn('[Sukuyo] 렌더 준비 실패:', e);

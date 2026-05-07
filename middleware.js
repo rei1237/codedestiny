@@ -10,12 +10,6 @@ const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"
 const ACCEPT_LANG_MAP = [
   { prefix: "ja", slug: "/ja-jp" },
   { prefix: "zh", slug: "/zh-cn" },
-  { prefix: "hi", slug: "/hi-in" },
-  { prefix: "es", slug: "/es-es" },
-  { prefix: "fr", slug: "/fr-fr" },
-  { prefix: "de", slug: "/de-de" },
-  { prefix: "nl", slug: "/nl-nl" },
-  { prefix: "ms", slug: "/ms-my" },
   { prefix: "en", slug: "/en-us" },
 ];
 /** 이미 로케일 prefix 하에 있는 경로인지 확인 */
@@ -94,8 +88,6 @@ const SERVICE_ROUTE_PARAMS = new Map([
 ]);
 
 const LANDING_ONLY_ROUTES = new Set([
-  "/about",
-  "/contact-us",
   "/faq",
   "/high-value",
   "/insights",

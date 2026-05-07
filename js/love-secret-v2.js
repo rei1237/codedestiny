@@ -13,44 +13,42 @@
       reportTitle: '프리미엄 사주 연애운 리포트',
       totalChapters: 10,
       minTotalChars: 45000,
-      chapterMinDefault: 4500,
-      chapterMinByIndex: { 5: 5000, 7: 4000, 8: 4000 },
+      chapterMinDefault: 4000,
+      chapterMinByIndex: { 1: 5000, 2: 5000, 3: 5500, 4: 4500, 5: 5500, 6: 4500, 7: 4500, 8: 4500, 9: 5500, 10: 5000 },
       price: 300,
       chapters: [
-        { title: '💗 본연의 연애 자아', subtitle: '일간/월지/일지와 십성으로 읽는 나의 연애 기질' },
-        { title: '🌹 치명적 매력과 페로몬', subtitle: '도화/홍염/화개와 12운성 기반 매력 분석' },
-        { title: '🧲 운명의 상대방 리포트', subtitle: '배우자궁과 오행 보완으로 읽는 이상형' },
-        { title: '⚔️ 실전 연애 전략 및 스킬', subtitle: '식상/재성/관성 운용 중심 실전 커뮤니케이션' },
-        { title: '📅 시기별 연애운 흐름', subtitle: '대운/세운/월운 기반 타이밍 전략' },
-        { title: '🌑 연애의 어두운 면과 위기 관리', subtitle: '집착/회피/통제 패턴의 예방 전략' },
-        { title: '🔥 섹슈얼리티와 육체적 매력', subtitle: '수기/화기와 친밀감 속도 해석' },
-        { title: '📱 현대적 상황별 연애 비책', subtitle: '디지털 연애 환경에서의 사주 활용' },
-        { title: '💍 결혼과 정착', subtitle: '결혼운/배우자운/가정운의 현실 해석' },
-        { title: '🧭 맞춤형 연애 개운 처방전', subtitle: '상징적/심리적 보완 중심 30일 루틴' },
+        { title: '💗 본연의 연애 자아', subtitle: '일간/월지/일지/오행/십성으로 읽는 관계 자아' },
+        { title: '🌹 치명적 매력과 페로몬', subtitle: '도화/홍염/화개/역마가 만드는 매력 결' },
+        { title: '🧲 운명의 상대방 리포트', subtitle: '배우자궁·배우자성·오행 보완으로 보는 이상형' },
+        { title: '⚔️ 실전 연애 전략 및 스킬', subtitle: '식상·재성·관성·인성·비겁 기반 실전 대화법' },
+        { title: '📅 시기별 연애운 흐름', subtitle: '대운·세운·월운 기반 Go/Hold/Retreat' },
+        { title: '🌑 연애의 어두운 면과 위기 관리', subtitle: '기신 과열·오행 불균형의 위기 패턴' },
+        { title: '🔥 친밀감과 육체적 매력', subtitle: '관계 온도와 친밀 리듬의 데이터 기반 해석' },
+        { title: '📱 현대적 상황별 연애 비책', subtitle: '카톡/DM/썸/재회/장거리 실전 운영' },
+        { title: '💍 결혼과 정착', subtitle: '배우자궁·배우자성·책임 구조로 보는 장기 안정성' },
+        { title: '🧭 맞춤형 연애 개운 처방전', subtitle: '용신/희신 강화와 기신 절감의 7·30·90일 플랜' },
       ],
     },
     couple: {
       mode: 'couple',
       reportType: 'saju_love_couple',
       reportTitle: '프리미엄 사주 궁합 리포트',
-      totalChapters: 12,
+      totalChapters: 10,
       minTotalChars: 60000,
-      chapterMinDefault: 4500,
-      chapterMinByIndex: { 11: 5000, 12: 5000 },
+      chapterMinDefault: 5500,
+      chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 5500, 8: 5500, 9: 6500, 10: 6000 },
       price: 500,
       chapters: [
-        { title: '💞 두 사람의 연애 자아 비교', subtitle: '두 사람의 기본 연애 기질 비교' },
-        { title: '🌹 끌림과 페로몬 궁합', subtitle: '도화/홍염/아우라 상호작용' },
-        { title: '🧲 운명의 상대인가, 배움의 상대인가', subtitle: '인연 성격과 성장 과제 진단' },
-        { title: '⚔️ 실전 궁합 전략', subtitle: '갈등 예방과 관계 운영 프로토콜' },
-        { title: '📅 두 사람의 연애 타이밍', subtitle: '대운/세운 동시성 기반 타이밍' },
-        { title: '🌑 관계의 위기와 갈등 관리', subtitle: '충돌 패턴과 회복 전략' },
-        { title: '🔥 섹슈얼리티와 속궁합', subtitle: '친밀감 속도와 감각 합의 전략' },
-        { title: '📱 현대 연애 상황별 궁합 비책', subtitle: '현대 관계 환경 최적화' },
-        { title: '💍 결혼과 동거 궁합', subtitle: '정착 가능성과 현실 조건' },
-        { title: '🧭 두 사람을 위한 개운 처방전', subtitle: '관계 안정 루틴과 환경 보완' },
-        { title: '🧪 궁합 점수 정밀 리포트', subtitle: '영역별 궁합 점수와 해석 근거' },
-        { title: '💌 최종 궁합 전략 제언', subtitle: '1년 전략과 최종 상담 제안' },
+        { title: '💗 본연의 연애 자아', subtitle: '두 사람의 연애 자아와 수용 방식 비교' },
+        { title: '🌹 치명적 매력과 페로몬', subtitle: '도화/홍염/화개/역마의 상호작용' },
+        { title: '🧲 운명의 상대방 리포트', subtitle: '이상형 구조와 실제 상대 일치도' },
+        { title: '⚔️ 실전 연애 전략 및 스킬', subtitle: '두 사람 명식에 맞춘 대화 운영 매뉴얼' },
+        { title: '📅 시기별 연애운 흐름', subtitle: '대운·세운·월운 동시성 타이밍' },
+        { title: '🌑 연애의 어두운 면과 위기 관리', subtitle: '충돌 버튼과 회복 프로토콜' },
+        { title: '🔥 친밀감과 육체적 매력', subtitle: '관계 온도와 친밀 속도 조율' },
+        { title: '📱 현대적 상황별 연애 비책', subtitle: '상황별 맞춤 소통/거리 전략' },
+        { title: '💍 결혼과 정착', subtitle: '장기 안정성·역할 분담·생활 리듬' },
+        { title: '🧭 맞춤형 연애 개운 처방전', subtitle: '공동 7·30·90일 관계 강화 플랜' },
       ],
     }
   };
@@ -183,7 +181,7 @@
   function _isSajuDataValid(sajuData) {
     var s = String(sajuData || '');
     if (!s || s.length < 120) return false;
-    return /사주\s*원국|일주\(|오행\(|대운\(|일간\(/.test(s);
+    return /사주\s*원국|일주\(|오행\(|대운\(|일간\(|십성\(/.test(s);
   }
 
   function _ensureSajuDataForGeneration() {
@@ -191,19 +189,11 @@
     if (_isSajuDataValid(data)) {
       return { sajuData: data, usedFallbackData: false };
     }
-    var profile = window.__cdActiveBirthProfile || {};
-    var birth = profile.birth || {};
-    var lines = [
-      '【사주 엔진 보완 프로필】',
-      '이름: ' + String(profile.name || '사용자'),
-      '성별: ' + String(profile.gender || '미상'),
-      '생년월일: ' + String(birth.year || 1990) + '-' + String(birth.month || 1) + '-' + String(birth.day || 1),
-      '출생 시각: ' + String((birth.hour !== undefined ? birth.hour : 12)) + ':' + String((birth.minute !== undefined ? birth.minute : 0)).padStart(2, '0'),
-      '- 오행 분포: 입력 부족으로 중립 보완',
-      '- 일간/십성: 입력 부족으로 보수적 해석',
-      '- 대운/세운: 입력 부족으로 실행 전략 중심 보완'
-    ];
-    return { sajuData: lines.join('\n'), usedFallbackData: true };
+    return {
+      sajuData: '',
+      usedFallbackData: true,
+      error: '사주 원국 데이터가 부족합니다. 먼저 사주 분석을 다시 실행해 주세요.'
+    };
   }
 
   /* ── localStorage 저장/복원 ──────────────────────────────── */
@@ -371,7 +361,7 @@
         lines.push('용신: ' + (Array.isArray(GP.yongshin) ? GP.yongshin.join(', ') : GP.yongshin));
       }
     }
-    // ─── 신살(神殺) 계산 — AI가 직접 계산하면 오류가 생기므로 정확한 결과를 명시 ───
+    // ─── 신살(神殺) 계산 — 연애 비책에서 사용 가능한 핵심 신살만 명시 ───
     if (G && G.d) {
       var _ssDay = (G.d.g || '') + (G.d.j || '');
       var _ssJArr = [G.y && G.y.j, G.m && G.m.j, G.d.j, G.h && G.h.j];
@@ -379,12 +369,6 @@
       // 홍염살 — 일주 기준 (甲午 丙寅 丁未 戊辰 庚戌 辛酉 壬子)
       var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
       if (_ssHong.indexOf(_ssDay) >= 0) _sinsalNames.push('홍염살(紅艶殺)[일주 '+_ssDay+']');
-      // 괴강살 — 일주 기준 (庚辰 庚戌 壬辰 壬戌 戊戌)
-      var _ssGoe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
-      if (_ssGoe.indexOf(_ssDay) >= 0) _sinsalNames.push('괴강살(魁罡殺)[일주 '+_ssDay+']');
-      // 양인살 — 양간(甲丙戊庚壬)에만 존재. 음간(乙丁己辛癸)은 해당 없음
-      var _ssYangMap = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
-      if (G.d.g && _ssYangMap[G.d.g] && G.d.j === _ssYangMap[G.d.g]) _sinsalNames.push('양인살(羊刃殺)[일주 '+_ssDay+']');
       // 도화살 — 지지 子午卯酉
       var _ssTao = ['子','午','卯','酉'];
       var _taoPos = _ssJArr.filter(function(b){return b&&_ssTao.indexOf(b)>=0;});
@@ -397,16 +381,13 @@
       var _ssHwa = ['辰','戌','丑','未'];
       var _hwaPos = _ssJArr.filter(function(b){return b&&_ssHwa.indexOf(b)>=0;});
       if (_hwaPos.length > 0) _sinsalNames.push('화개살(華蓋殺)');
-      // 간여지동
-      var _ssGyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
-      if (_ssGyn.indexOf(_ssDay) >= 0) _sinsalNames.push('간여지동(干與支同)[일주 '+_ssDay+']');
       lines.push('\n【신살(神殺) 계산 결과 — 정확한 로직으로 도출】');
       if (_sinsalNames.length > 0) {
         lines.push('보유 신살: ' + _sinsalNames.join(', '));
       } else {
         lines.push('보유 신살: 없음 (주요 신살에 해당하지 않는 순수 오행 에너지의 사주)');
       }
-      lines.push('※ 주의: 위 목록에 없는 신살(예: 辛酉 양인살, 辛酉 괴강살 등)은 존재하지 않으므로 언급하지 말 것');
+      lines.push('※ 본 리포트는 도화/홍염/화개/역마 등 엔진 확인 신살만 사용합니다.');
     }
     var GD = window.G_DAEWUN || window.G_DAEUN;
     // G_DAEWUN 없으면 Solar 라이브러리로 직접 계산 (성별 방향 포함)
@@ -961,7 +942,10 @@
     }
     var sajuState = _ensureSajuDataForGeneration();
     var sajuData = sajuState.sajuData;
-    if (sajuState.usedFallbackData) console.warn('[love-secret] sajuData missing, using synthesized fallback profile.');
+    if (!sajuData) {
+      window.alert(sajuState.error || '사주 원국 데이터가 부족합니다. 먼저 사주 분석을 다시 실행해 주세요.');
+      return;
+    }
     var partnerData = _collectPartnerScreenData();
     var mode = 'couple';
     _setMode(mode);
@@ -983,7 +967,10 @@
     if (_generating) return;
     var sajuState = _ensureSajuDataForGeneration();
     var sajuData = sajuState.sajuData;
-    if (sajuState.usedFallbackData) console.warn('[love-secret] sajuData missing, using synthesized fallback profile.');
+    if (!sajuData) {
+      window.alert(sajuState.error || '사주 원국 데이터가 부족합니다. 먼저 사주 분석을 다시 실행해 주세요.');
+      return;
+    }
     var mode = 'solo';
     _setMode(mode);
     _buildDynamicChapterUi();
@@ -1010,6 +997,14 @@
     _startLoadingAnimation();
     var sajuState = _ensureSajuDataForGeneration();
     var sajuData = sajuState.sajuData;
+    if (!sajuData) {
+      _generating = false;
+      _stopLoadingAnimation();
+      _showScreen('lsErrorScreen');
+      var preErr = _qs('lsErrorMessage');
+      if (preErr) preErr.textContent = sajuState.error || '사주 원국 데이터가 부족합니다. 먼저 사주 분석을 다시 실행해 주세요.';
+      return;
+    }
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
     var chapterMsg = _qs('lsLoadingChapter');

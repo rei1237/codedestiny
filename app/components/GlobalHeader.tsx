@@ -8,6 +8,15 @@ const headerNavItems = [
   { href: "/index.html", label: "홈" },
 ];
 
+const policyNavItems = [
+  { href: "/privacy", label: "개인정보" },
+  { href: "/terms", label: "이용약관" },
+  { href: "/contact", label: "문의" },
+  { href: "/about", label: "소개" },
+  { href: "/disclaimer", label: "면책" },
+  { href: "/advertising-policy", label: "광고정책" },
+];
+
 function isStaticShellHref(href: string) {
   return href === "/index.html" || href.startsWith("/index.html?");
 }
@@ -55,6 +64,19 @@ export default function GlobalHeader() {
             {menuOpen ? "닫기" : "메뉴"}
           </button>
         </div>
+        <div className="hidden border-t border-violet-200/15 xl:block">
+          <nav className="mx-auto flex w-[min(1240px,100%-20px)] flex-wrap items-center justify-end gap-2 py-2" aria-label="정책 링크">
+            {policyNavItems.map((item) => (
+              <Link
+                key={`d-${item.href}`}
+                href={item.href}
+                className="rounded-full border border-violet-200/20 bg-[rgba(32,19,60,0.54)] px-2.5 py-1 text-[11px] font-semibold text-violet-100/90 transition hover:border-violet-200/45 hover:bg-[rgba(65,39,120,0.48)]"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </header>
 
       {menuOpen ? (
@@ -76,6 +98,21 @@ export default function GlobalHeader() {
                 </Link>
               );
             })}
+          </div>
+          <div className="mt-4 border-t border-violet-200/15 pt-3">
+            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-200/70">정책 링크</p>
+            <div className="flex flex-wrap gap-2">
+              {policyNavItems.map((item) => (
+                <Link
+                  key={`m-policy-${item.href}`}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-1 text-[11px] font-semibold text-violet-100"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}

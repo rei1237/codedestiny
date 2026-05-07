@@ -29,11 +29,15 @@ export default function FooterLegal() {
       </p>
       <p>
         © 2026 Code Destiny. All rights reserved. <AdminTrigger /> &nbsp;·&nbsp;
-        <a href="/privacy-policy">개인정보처리방침</a>
+        <a href="/privacy">개인정보처리방침</a>
         &nbsp;·&nbsp;
         <a href="/terms">이용약관</a>
         &nbsp;·&nbsp;
-        <a href="/contact-us">문의하기</a>
+        <a href="/contact">문의하기</a>
+        &nbsp;·&nbsp;
+        <a href="/disclaimer">면책 고지</a>
+        &nbsp;·&nbsp;
+        <a href="/advertising-policy">광고 운영정책</a>
       </p>
     </div>
   );

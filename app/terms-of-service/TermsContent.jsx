@@ -3,6 +3,8 @@
  * — iframe 없이 회원가입 페이지에서 인라인으로 임베드하기 위한 컴포넌트
  * — 독립 페이지(/terms-of-service)에서도 재사용 가능
  */
+import { OPERATOR_NAME, SUPPORT_EMAIL } from "../../lib/site-policy-config";
+
 export default function TermsContent() {
   return (
     <div className="policy-embed-body">
@@ -27,7 +29,7 @@ export default function TermsContent() {
         <p>
           Code Destiny는 사주/타로/운세 기반의 해석 콘텐츠를 제공하며, 서비스 품질 향상을 위해 기능이 추가/변경/중단될 수 있습니다.
         </p>
-        <p>서비스 주소: https://code-destiny.com / 운영자: 박병하</p>
+        <p>서비스 주소: https://code-destiny.com / 운영자: {OPERATOR_NAME}</p>
       </section>
 
       <section className="policy-embed-section">
@@ -62,6 +64,7 @@ export default function TermsContent() {
         <h3 className="policy-embed-h3">8. 서비스 성격 및 한계 / Nature and Limitations</h3>
         <p>
           운세/타로 결과는 오락 및 참고 목적의 정보이며, 법률/의료/투자/세무 등 전문 자문을 대체하지 않습니다. Fortune interpretations are informational entertainment content and do not guarantee outcomes.
+          특히 의료적 진단/치료 결과, 법률 분쟁 또는 형사 사건의 결과, 투자 수익 또는 손실 회피를 보장하지 않습니다. In particular, we do not guarantee medical outcomes, legal dispute or criminal case results, or investment returns.
         </p>
       </section>
 
@@ -118,8 +121,8 @@ export default function TermsContent() {
         <p>
           서비스명: Code Destiny<br />
           사이트: https://code-destiny.com<br />
-          운영자: 박병하<br />
-          약관 문의: seongbae555@gmail.com
+          운영자: {OPERATOR_NAME}<br />
+          약관 문의: {SUPPORT_EMAIL}
         </p>
       </section>
     </div>

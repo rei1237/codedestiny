@@ -1,13 +1,30 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import { OPERATOR_NAME, SUPPORT_EMAIL } from "../../lib/site-policy-config";
 
 export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/terms-of-service",
+  const metadata = generatePageMetadata({
+    path: "/terms",
     title: "Terms of Service | 이용약관 — Code Destiny",
     description:
       "Code Destiny 이용약관 페이지입니다. 서비스 이용 규칙, 면책, 책임 제한 및 분쟁 처리 원칙을 안내합니다.",
     keywords: ["Terms of Service", "이용약관", "서비스 책임 제한", "면책"],
   });
+
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
+    },
+    alternates: {
+      ...(metadata.alternates || {}),
+      canonical: "https://code-destiny.com/terms",
+    },
+  };
 }
 
 const sectionStyle = {
@@ -74,7 +91,7 @@ export default function TermsOfServicePage() {
         <p style={{ lineHeight: 1.75 }}>
           서비스 주소: https://code-destiny.com
           <br />
-          운영자: 박병하
+          운영자: {OPERATOR_NAME}
         </p>
       </section>
 
@@ -115,6 +132,8 @@ export default function TermsOfServicePage() {
         <p style={{ lineHeight: 1.75 }}>
           운세/타로 결과는 오락 및 참고 목적의 정보이며, 법률/의료/투자/세무 등 전문 자문을 대체하지 않습니다.
           Fortune interpretations are informational entertainment content and do not guarantee outcomes.
+          특히 의료적 진단/치료 결과, 법률 분쟁 또는 형사 사건의 결과, 투자 수익 또는 손실 회피를 보장하지 않습니다.
+          In particular, we do not guarantee medical outcomes, legal dispute or criminal case results, or investment returns.
         </p>
       </section>
 
@@ -215,11 +234,11 @@ export default function TermsOfServicePage() {
           <br />
           사이트: https://code-destiny.com
           <br />
-          운영자: 박병하
+          운영자: {OPERATOR_NAME}
           <br />
-          약관 문의: seongbae555@gmail.com
+          약관 문의: {SUPPORT_EMAIL}
           <br />
-          Terms inquiries: seongbae555@gmail.com
+          Terms inquiries: {SUPPORT_EMAIL}
         </p>
       </section>
     </main>

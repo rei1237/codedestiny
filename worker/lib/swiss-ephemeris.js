@@ -53,6 +53,148 @@ function toStatusError(status, message) {
   return createHttpError(status, message, { ok: false, error: message });
 }
 
+function toBool(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function summarizeChartInput(input) {
+  return {
+    year: Number(input?.year),
+    month: Number(input?.month),
+    day: Number(input?.day),
+    hour: Number(input?.hour),
+    minute: Number(input?.minute),
+    timezone: Number(input?.timezone),
+    lat: Number(input?.lat),
+    lon: Number(input?.lon),
+  };
+}
+
+function parsePlanetLongitude(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? nd(n) : NaN;
+}
+
+function normalizeExternalVedicPayload(payload = {}) {
+  const rawPlanets = payload?.planets && typeof payload.planets === "object" ? payload.planets : {};
+  const planets = {};
+  for (const [name] of VEDIC_PLANETS) {
+    planets[name] = parsePlanetLongitude(rawPlanets[name]);
+  }
+  planets.Rahu = parsePlanetLongitude(rawPlanets.Rahu);
+  planets.Ketu = parsePlanetLongitude(rawPlanets.Ketu);
+
+  const requiredPlanetNames = [...VEDIC_PLANETS.map(([name]) => name), "Rahu", "Ketu"];
+  const missingPlanets = requiredPlanetNames.filter((name) => !Number.isFinite(planets[name]));
+  if (missingPlanets.length > 0) {
+    return null;
+  }
+
+  const ayanamsa = Number(payload?.ayanamsa);
+  if (!Number.isFinite(ayanamsa)) {
+    return null;
+  }
+
+  const ascendantSidereal = Number(payload?.ascendantSidereal);
+  const retrogradeRaw = payload?.retrograde && typeof payload.retrograde === "object" ? payload.retrograde : {};
+  const retrograde = {};
+  for (const [name] of VEDIC_PLANETS) {
+    retrograde[name] = Boolean(retrogradeRaw[name]);
+  }
+
+  return {
+    planets,
+    retrograde,
+    ayanamsa,
+    ascendantSidereal: Number.isFinite(ascendantSidereal) ? ascendantSidereal : null,
+    source: String(payload?.source || "external-vedic-api"),
+  };
+}
+
+async function getExternalVedicPlanets(env, input) {
+  const baseUrl = clean(getEnv(env, "VEDIC_API_BASE_URL") || getEnv(env, "VEDIC_API_BASE"));
+  const apiKey = clean(getEnv(env, "VEDIC_API_KEY") || getEnv(env, "VEDIC_API_TOKEN"));
+  const apiPath = clean(getEnv(env, "VEDIC_API_PATH") || "/api/vedic/planets");
+  const forceExternal = toBool(getEnv(env, "VEDIC_API_FORCE_EXTERNAL"));
+
+  const hasBaseUrl = Boolean(baseUrl);
+  const hasApiKey = Boolean(apiKey);
+
+  try {
+    console.info("[vedic-api-config]", JSON.stringify({
+      hasBaseUrl,
+      hasApiKey,
+      forceExternal,
+      request: summarizeChartInput(input),
+    }));
+  } catch {
+    // ignore logging failure
+  }
+
+  if (!hasBaseUrl && !hasApiKey) {
+    if (forceExternal) {
+      throw toStatusError(503, "External Vedic API is required but VEDIC_API_BASE_URL/KEY are not configured.");
+    }
+    return null;
+  }
+
+  if (!hasBaseUrl || !hasApiKey) {
+    throw toStatusError(503, "External Vedic API configuration is incomplete. Set both VEDIC_API_BASE_URL and VEDIC_API_KEY.");
+  }
+
+  let endpoint = "";
+  try {
+    endpoint = new URL(apiPath.startsWith("/") ? apiPath : `/${apiPath}`, baseUrl).toString();
+  } catch {
+    throw toStatusError(503, "VEDIC_API_BASE_URL is invalid.");
+  }
+
+  const timeoutMs = Math.max(2000, Number(getEnv(env, "VEDIC_API_TIMEOUT_MS") || 15000));
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(input),
+      signal: controller.signal,
+    });
+
+    const data = await response.json().catch(() => null);
+    const normalized = normalizeExternalVedicPayload(data || {});
+
+    try {
+      console.info("[vedic-api-result]", JSON.stringify({
+        status: response.status,
+        ok: response.ok,
+        hasPayload: Boolean(normalized),
+      }));
+    } catch {
+      // ignore logging failure
+    }
+
+    if (!response.ok) {
+      throw toStatusError(503, `External Vedic API request failed with status ${response.status}.`);
+    }
+    if (!normalized) {
+      throw toStatusError(503, "External Vedic API returned invalid payload.");
+    }
+
+    return normalized;
+  } catch (error) {
+    if (error?.status) throw error;
+    throw toStatusError(503, `External Vedic API request failed: ${error?.message || error}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function aspectBetween(a, b) {
   const diff = Math.abs(nd(a) - nd(b));
   const normalized = diff > 180 ? 360 - diff : diff;
@@ -200,7 +342,13 @@ function calcPlanetsByMap(swe, jd, iflag, map) {
   const out = {};
   for (const [name, constantName] of map) {
     const result = swe.swe_calc_ut(jd, swe[constantName], iflag);
-    out[name] = readLongitudeFromResult(result, name);
+    const longitude = readLongitudeFromResult(result, name);
+    const speedLongitude = parseNumber(result?.[3], NaN);
+    out[name] = {
+      longitude,
+      speedLongitude: Number.isFinite(speedLongitude) ? Math.round(speedLongitude * 1000000) / 1000000 : null,
+      retrograde: Number.isFinite(speedLongitude) ? speedLongitude < 0 : null,
+    };
   }
   return out;
 }
@@ -246,9 +394,12 @@ export async function getSwissWesternChart(env, payload, options = {}) {
 
   const planets = {};
   for (const [name] of WESTERN_PLANETS) {
+    const raw = rawPlanets[name] || {};
     planets[name] = {
-      ...signInfo(rawPlanets[name], asc),
-      house: locateHouseByCusps(rawPlanets[name], houseCusps),
+      ...signInfo(raw.longitude, asc),
+      house: locateHouseByCusps(raw.longitude, houseCusps),
+      speedLongitude: raw.speedLongitude,
+      retrograde: raw.retrograde,
     };
   }
 
@@ -269,16 +420,29 @@ export async function getSwissWesternChart(env, payload, options = {}) {
 }
 
 export async function getSwissVedicPlanets(env, payload, options = {}) {
-  const swe = await getSwiss(env, options);
   const input = normalizeChartInput(payload);
   validateChartInput(input);
+
+  const external = await getExternalVedicPlanets(env, input);
+  if (external) {
+    return external;
+  }
+
+  const swe = await getSwiss(env, options);
 
   const jd = julianDayFromInput(swe, input);
   const tropicalFlag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
   swe.swe_set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0);
   const siderealFlag = tropicalFlag | swe.SEFLG_SIDEREAL;
 
-  const planets = calcPlanetsByMap(swe, jd, siderealFlag, VEDIC_PLANETS);
+  const rawPlanets = calcPlanetsByMap(swe, jd, siderealFlag, VEDIC_PLANETS);
+  const planets = {};
+  const retrograde = {};
+  for (const [name] of VEDIC_PLANETS) {
+    const raw = rawPlanets[name] || {};
+    planets[name] = Number(raw.longitude);
+    retrograde[name] = raw.retrograde;
+  }
   const rahu = readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_TRUE_NODE, siderealFlag), "Rahu");
   planets.Rahu = rahu;
   planets.Ketu = nd(rahu + 180);
@@ -292,6 +456,7 @@ export async function getSwissVedicPlanets(env, payload, options = {}) {
 
   return {
     planets,
+    retrograde,
     ayanamsa,
     ascendantSidereal: Number.isFinite(siderealAsc) ? siderealAsc : null,
     source: "swiss-wasm-local",

@@ -3451,7 +3451,98 @@ function syRenderWheelCard(wheelState, compatInfo) {
     + '</div>';
 }
 
-function renderSukuyo(p, natal, bazi, lunarObj) {
+function syCanonicalEsc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function syCanonicalList(value, fallbackText) {
+  if (Array.isArray(value) && value.length) return value;
+  return [fallbackText || '정보 없음'];
+}
+
+function syRenderCanonicalDashboard(canonicalPayload) {
+  var canonical = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
+  if (!canonical || !canonical.natalSukuyo) return '';
+
+  var birth = canonical.profile && canonical.profile.birth ? canonical.profile.birth : {};
+  var natalInfo = canonical.natalSukuyo || {};
+  var phase = canonical.lunarPhase || {};
+  var attrs = canonical.sukuyoAttributes || {};
+  var validation = canonical.validation || {};
+
+  var mansionLabel = (natalInfo.nameKo || '미상') + '宿(' + (natalInfo.nameHan || '?') + ')';
+  var lunarDate = birth.lunarDate || '미확인';
+  var indexText = natalInfo.index == null ? '미확인' : String(natalInfo.index);
+  var directionText = natalInfo.direction || '미확인';
+  var elementText = natalInfo.element || '미확인';
+  var phaseLabel = phase.phaseName || '미확인';
+  var illum = phase.illumination == null ? '미확인' : String(phase.illumination) + '%';
+  var angle = phase.elongationAngle == null ? '미확인' : String(phase.elongationAngle) + '도';
+
+  var relationshipRhythm = syCanonicalList(attrs.relationshipStyle, '관계 리듬 정보 없음');
+  var careerRhythm = syCanonicalList(attrs.careerStyle, '커리어 리듬 정보 없음');
+  var wealthRhythm = syCanonicalList(attrs.wealthStyle, '재물 리듬 정보 없음');
+  var recoveryRhythm = syCanonicalList(attrs.recoveryPattern, '회복 리듬 정보 없음');
+  var temperament = syCanonicalList(attrs.temperament, '기질 정보 없음');
+
+  var renderTagList = function (items) {
+    return items.map(function (item) {
+      return '<span class="sy-canon-chip">' + syCanonicalEsc(item) + '</span>';
+    }).join('');
+  };
+
+  var validationMsg = '';
+  if (Array.isArray(validation.missingFields) && validation.missingFields.length) {
+    validationMsg = '<div class="sy-canon-validation">⚠️ 일부 계산값이 누락되었습니다: ' + syCanonicalEsc(validation.missingFields.join(', ')) + '</div>';
+  }
+
+  return ''
+    + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard">'
+    + '<div class="sy-canon-hero">'
+    + '<div class="sy-canon-overline">MAIN SUKUYO · CANONICAL</div>'
+    + '<h4>🌕 기본 숙요점 핵심 대시보드</h4>'
+    + '<p>PDF와 동일한 canonical 기준으로 본명숙, 달 위상, 생활 리듬을 한 화면에서 확인합니다.</p>'
+    + '</div>'
+    + validationMsg
+    + '<div class="sy-canon-tabs">'
+    + '<button type="button" class="sy-canon-tab active" data-sycanon="overview">핵심 좌표</button>'
+    + '<button type="button" class="sy-canon-tab" data-sycanon="rhythm">관계·커리어·재물·회복</button>'
+    + '<button type="button" class="sy-canon-tab" data-sycanon="moon">달 리듬</button>'
+    + '</div>'
+    + '<div class="sy-canon-panel active" data-sycanon-panel="overview">'
+    + '<div class="sy-canon-grid">'
+    + '<div class="sy-canon-kv"><span>본명숙</span><strong>' + syCanonicalEsc(mansionLabel) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>27숙 Index</span><strong>' + syCanonicalEsc(indexText) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>음력 생일</span><strong>' + syCanonicalEsc(lunarDate) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>방향 / 속성</span><strong>' + syCanonicalEsc(directionText + ' / ' + elementText) + '</strong></div>'
+    + '</div>'
+    + '<div class="sy-canon-chip-row">' + renderTagList(temperament) + '</div>'
+    + '</div>'
+    + '<div class="sy-canon-panel" data-sycanon-panel="rhythm">'
+    + '<div class="sy-canon-rhythm-grid">'
+    + '<article><h5>관계 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(relationshipRhythm) + '</div></article>'
+    + '<article><h5>커리어 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(careerRhythm) + '</div></article>'
+    + '<article><h5>재물 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(wealthRhythm) + '</div></article>'
+    + '<article><h5>회복 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(recoveryRhythm) + '</div></article>'
+    + '</div>'
+    + '</div>'
+    + '<div class="sy-canon-panel" data-sycanon-panel="moon">'
+    + '<div class="sy-canon-grid">'
+    + '<div class="sy-canon-kv"><span>월상</span><strong>' + syCanonicalEsc(phaseLabel) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>조도</span><strong>' + syCanonicalEsc(illum) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>삭망각</span><strong>' + syCanonicalEsc(angle) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>월상 흐름</span><strong>' + syCanonicalEsc(phase.waxingOrWaning || '미확인') + '</strong></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload) {
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
     if (!area || !card) return;
@@ -3539,6 +3630,26 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
+        .sy-canon-card { border-left-color:#fbbf24; background:linear-gradient(150deg, rgba(36,26,58,0.95) 0%, rgba(20,23,42,0.95) 100%); }
+        .sy-canon-hero { margin-bottom:12px; }
+        .sy-canon-overline { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:#fde68a; margin-bottom:4px; }
+        .sy-canon-hero h4 { margin:0 0 6px 0; color:#fef3c7; font-size:1.05rem; }
+        .sy-canon-hero p { margin:0; color:#d8d0ee; font-size:0.88rem; line-height:1.7; }
+        .sy-canon-validation { margin-bottom:10px; font-size:0.78rem; color:#fca5a5; background:rgba(127,29,29,0.25); border:1px solid rgba(252,165,165,0.4); border-radius:8px; padding:8px 10px; }
+        .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
+        .sy-canon-tab { padding:7px 12px; border-radius:999px; border:1px solid rgba(251,191,36,0.35); background:rgba(251,191,36,0.1); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:38px; }
+        .sy-canon-tab.active { background:rgba(251,191,36,0.26); border-color:rgba(251,191,36,0.75); color:#fff7d6; }
+        .sy-canon-panel { display:none; }
+        .sy-canon-panel.active { display:block; }
+        .sy-canon-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-canon-kv { border:1px solid rgba(226,232,240,0.2); background:rgba(15,23,42,0.55); border-radius:10px; padding:10px; }
+        .sy-canon-kv span { display:block; font-size:0.7rem; color:#94a3b8; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; }
+        .sy-canon-kv strong { color:#f8fafc; font-size:0.92rem; line-height:1.45; }
+        .sy-canon-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+        .sy-canon-chip { display:inline-flex; align-items:center; border-radius:999px; padding:4px 10px; font-size:0.74rem; color:#e2e8f0; background:rgba(15,23,42,0.75); border:1px solid rgba(148,163,184,0.3); }
+        .sy-canon-rhythm-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-canon-rhythm-grid article { border:1px solid rgba(167,139,250,0.32); background:rgba(76,29,149,0.16); border-radius:10px; padding:10px; }
+        .sy-canon-rhythm-grid h5 { margin:0; font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:#c4b5fd; }
         @media (max-width: 768px) {
           .sy-container { padding:22px 16px; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
           .sy-header h3 { font-size:1.35rem; }
@@ -3547,6 +3658,8 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           .sy-wheel-title { font-size:0.92rem; }
           .sy-wheel-caption { font-size:0.82rem; }
           .sy-wheel-meta-grid { grid-template-columns:1fr; }
+          .sy-canon-grid { grid-template-columns:1fr; }
+          .sy-canon-rhythm-grid { grid-template-columns:1fr; }
         }
         `;
         document.head.appendChild(_sySt);
@@ -3558,6 +3671,11 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     const starsHtml = '<span class="sy-star">✦</span> <span class="sy-star">✧</span> <span class="sy-star">✦</span> <span class="sy-star">✧</span>';
     html += `<div class="sy-container" id="lunarNexusApp">`;
     html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
+
+    var canonicalData = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
+    if (canonicalData) {
+      html += syRenderCanonicalDashboard(canonicalData);
+    }
 
     if (!lunarObj) {
         try {
@@ -3823,6 +3941,20 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         document.querySelectorAll('.sy-talent-fill').forEach(bar => {
             bar.style.width = bar.getAttribute('data-target');
         });
+        // canonical 대시보드 탭 이벤트
+        const canonicalRoot = document.getElementById('syCanonicalDashboard');
+        if (canonicalRoot) {
+          canonicalRoot.querySelectorAll('.sy-canon-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const tabKey = btn.getAttribute('data-sycanon');
+              canonicalRoot.querySelectorAll('.sy-canon-tab').forEach(t => t.classList.remove('active'));
+              canonicalRoot.querySelectorAll('.sy-canon-panel').forEach(p => p.classList.remove('active'));
+              btn.classList.add('active');
+              const panel = canonicalRoot.querySelector('[data-sycanon-panel="' + tabKey + '"]');
+              if (panel) panel.classList.add('active');
+            });
+          });
+        }
         // 본성 탭 클릭 이벤트
         document.querySelectorAll('.sy-ntab').forEach(btn => {
             btn.addEventListener('click', () => {

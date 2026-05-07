@@ -74,18 +74,12 @@ export const metadata = {
       "en-US": "/en-us",
       "ja-JP": "/ja-jp",
       "zh-CN": "/zh-cn",
-      "hi-IN": "/hi-in",
-      "es-ES": "/es-es",
-      "fr-FR": "/fr-fr",
-      "de-DE": "/de-de",
-      "nl-NL": "/nl-nl",
-      "ms-MY": "/ms-my",
     },
   },
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    alternateLocale: ["en_US", "ja_JP", "zh_CN", "hi_IN", "es_ES", "fr_FR", "de_DE", "nl_NL", "ms_MY"],
+    alternateLocale: ["en_US", "ja_JP", "zh_CN"],
     url: "https://code-destiny.com",
     siteName: "꿀꿀 만세력",
     title: "무료 사주팔자 · 자미두수 운세 분석 · AI 타로 | 코드 데스티니",
@@ -192,24 +186,12 @@ export default function RootLayout({ children }) {
         <link rel="alternate" hrefLang="en-US" href="https://code-destiny.com/en-us/" />
         <link rel="alternate" hrefLang="ja-JP" href="https://code-destiny.com/ja-jp/" />
         <link rel="alternate" hrefLang="zh-CN" href="https://code-destiny.com/zh-cn/" />
-        <link rel="alternate" hrefLang="hi-IN" href="https://code-destiny.com/hi-in/" />
-        <link rel="alternate" hrefLang="es-ES" href="https://code-destiny.com/es-es/" />
-        <link rel="alternate" hrefLang="fr-FR" href="https://code-destiny.com/fr-fr/" />
-        <link rel="alternate" hrefLang="de-DE" href="https://code-destiny.com/de-de/" />
-        <link rel="alternate" hrefLang="nl-NL" href="https://code-destiny.com/nl-nl/" />
-        <link rel="alternate" hrefLang="ms-MY" href="https://code-destiny.com/ms-my/" />
         <link rel="alternate" hrefLang="x-default" href="https://code-destiny.com/" />
         <meta property="og:site_name" content="Code Destiny" />
         <meta property="og:locale" content="ko_KR" />
         <meta property="og:locale:alternate" content="en_US" />
         <meta property="og:locale:alternate" content="ja_JP" />
         <meta property="og:locale:alternate" content="zh_CN" />
-        <meta property="og:locale:alternate" content="hi_IN" />
-        <meta property="og:locale:alternate" content="es_ES" />
-        <meta property="og:locale:alternate" content="fr_FR" />
-        <meta property="og:locale:alternate" content="de_DE" />
-        <meta property="og:locale:alternate" content="nl_NL" />
-        <meta property="og:locale:alternate" content="ms_MY" />
         <meta name="yandex-verification" content="98b1cd43eb1188de" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>

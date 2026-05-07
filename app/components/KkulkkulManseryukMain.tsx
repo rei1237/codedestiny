@@ -107,6 +107,12 @@ type UnlockKey =
 type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot" | "loveSimulation";
 type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
+type VedaPaymentFlowState = "idle" | "checking_access" | "access_granted" | "payment_required" | "generating_pdf" | "success" | "error";
+type PremiumGateResult = {
+  ok: boolean;
+  reason?: "login-required" | "payment-required" | "error";
+  message?: string;
+};
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
   ziwei: 500,
@@ -389,7 +395,10 @@ export default function KkulkkulManseryukMain() {
   const [premiumFlowStage, setPremiumFlowStage] = useState<PremiumFlowStage>("intro");
   const [premiumGateLoading, setPremiumGateLoading] = useState<PremiumServiceKey | null>(null);
   const [premiumGateError, setPremiumGateError] = useState("");
+  const [vedaFlowState, setVedaFlowState] = useState<VedaPaymentFlowState>("idle");
+  const [vedaFlowError, setVedaFlowError] = useState("");
   const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({ ...EMPTY_UNLOCK_STATE });
+  const rechargeModalVisible = showRechargeModal || (openPremSection === 'veda' && vedaFlowState === 'payment_required');
 
   const [perUseCount, setPerUseCount] = useState<Record<PerUseKey, number>>({
     turtleIChing: 0,
@@ -467,6 +476,17 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
+  const handleVedaPdfFlowStateChange = (state: "generating_pdf" | "success" | "error", message?: string) => {
+    if (openPremSection !== 'veda') return;
+    setVedaFlowState(state);
+    if (state === 'error' && message) {
+      setVedaFlowError(message);
+    }
+    if (state === 'success') {
+      setVedaFlowError('');
+    }
+  };
+
   const runPaidFeatureOnce = async (key: PerUseKey, cost: number) => {
     const token = localStorage.getItem('fortune_auth_token');
     if (!token) {
@@ -510,16 +530,16 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
-  const runPremiumIntroGate = async (service: PremiumServiceKey) => {
+  const runPremiumIntroGate = async (service: PremiumServiceKey): Promise<PremiumGateResult> => {
     const token = localStorage.getItem('fortune_auth_token');
     if (!token) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
-      return false;
+      return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
     }
 
     if (unlockedFeatures.premiumDivinationPack) {
-      return true;
+      return { ok: true };
     }
 
     const adminToken = getFlowerAdminTokenClient();
@@ -544,15 +564,15 @@ export default function KkulkkulManseryukMain() {
 
       const required = PREMIUM_SERVICE_COST[service] ?? 0;
       if (points < required) {
-        setShowRechargeModal(true);
-        return false;
+        return { ok: false, reason: 'payment-required', message: '코인이 부족합니다.' };
       }
 
-      return true;
+      return { ok: true };
     } catch (error) {
       console.error('[runPremiumIntroGate]', error);
-      setPremiumGateError('코인/권한 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-      return false;
+      const message = '코인/권한 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      setPremiumGateError(message);
+      return { ok: false, reason: 'error', message };
     }
   };
 
@@ -561,11 +581,19 @@ export default function KkulkkulManseryukMain() {
       setOpenPremSection(null);
       setPremiumFlowStage('intro');
       setPremiumGateError('');
+      if (key === 'veda') {
+        setVedaFlowState('idle');
+        setVedaFlowError('');
+      }
       return;
     }
     setOpenPremSection(key);
     setPremiumFlowStage('intro');
     setPremiumGateError('');
+    if (key === 'veda') {
+      setVedaFlowState('idle');
+      setVedaFlowError('');
+    }
     setTimeout(() => {
       document.getElementById('prem-active-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 60);
@@ -575,16 +603,44 @@ export default function KkulkkulManseryukMain() {
     if (premiumGateLoading) return;
 
     setPremiumGateError('');
+    if (service === 'veda') {
+      setVedaFlowError('');
+      setVedaFlowState('checking_access');
+    }
     const premiumLabel = PREMIUM_SERVICE_LABEL[service] ?? '프리미엄 리포트';
     startPayment(`${premiumLabel} 결제를 확인 중입니다.`);
 
     try {
-      const passed = await runPremiumIntroGate(service);
-      if (!passed) return;
+      const gate = await runPremiumIntroGate(service);
+      if (!gate.ok) {
+        if (gate.reason === 'payment-required') {
+          if (service === 'veda') {
+            setVedaFlowState('payment_required');
+            setVedaFlowError(gate.message || '코인이 부족합니다.');
+          } else {
+            setShowRechargeModal(true);
+          }
+        } else if (gate.reason === 'error') {
+          if (service === 'veda') {
+            setVedaFlowState('error');
+            setVedaFlowError(gate.message || '코인/권한 확인 중 오류가 발생했습니다.');
+          }
+        } else if (service === 'veda') {
+          setVedaFlowState('idle');
+        }
+        return;
+      }
+
+      if (service === 'veda') {
+        setVedaFlowState('access_granted');
+      }
 
       if (unlockedFeatures.premiumDivinationPack) {
         if (service === "ziwei") {
           markZiweiPremiumUnlockedClient();
+        }
+        if (service === 'veda') {
+          setVedaFlowState('generating_pdf');
         }
         setPremiumFlowStage('generate');
         return;
@@ -615,8 +671,24 @@ export default function KkulkkulManseryukMain() {
               : { cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId },
           ),
         });
-        if (res.status === 402) { setShowRechargeModal(true); return; }
-        if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
+        if (res.status === 402) {
+          if (service === 'veda') {
+            setVedaFlowState('payment_required');
+            setVedaFlowError(data?.message || '코인이 부족합니다.');
+          } else {
+            setShowRechargeModal(true);
+          }
+          return;
+        }
+        if (!res.ok) {
+          const message = data?.message || '코인 차감 실패';
+          setPremiumGateError(message);
+          if (service === 'veda') {
+            setVedaFlowState('error');
+            setVedaFlowError(message);
+          }
+          return;
+        }
         if (data?.transactionId) {
           try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(data.transactionId)); } catch (_) {}
         }
@@ -629,10 +701,18 @@ export default function KkulkkulManseryukMain() {
         }
         setPaymentMessage("✅ 해금이 완료되었습니다! 잠시 후 이동합니다.");
         await new Promise(r => setTimeout(r, 800));
+        if (service === 'veda') {
+          setVedaFlowState('generating_pdf');
+        }
         setPremiumFlowStage('generate');
       } catch (e) {
         console.error('[handleStartPremiumGeneration]', e);
-        setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        const message = '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+        setPremiumGateError(message);
+        if (service === 'veda') {
+          setVedaFlowState('error');
+          setVedaFlowError(message);
+        }
       } finally {
         setPremiumGateLoading(null);
       }
@@ -1173,10 +1253,16 @@ export default function KkulkkulManseryukMain() {
           </button>
           {openPremSection === 'veda' && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(234,88,12,0.18)" }}>
+              {vedaFlowError ? (
+                <p style={{ margin: "12px 16px 0", color: "rgba(252,165,165,0.9)", fontSize: "0.82rem", fontWeight: 700 }}>
+                  ⚠ {vedaFlowError}
+                </p>
+              ) : null}
               <HPremiumVedicSection
                 showIntro={premiumFlowStage === 'intro'}
                 onStartGeneration={() => handleStartPremiumGeneration('veda')}
                 generationLoading={premiumGateLoading === 'veda'}
+                onPdfFlowStateChange={handleVedaPdfFlowStateChange}
               />
             </div>
           )}
@@ -1331,7 +1417,7 @@ export default function KkulkkulManseryukMain() {
         </div>
       ) : null}
 
-      {showRechargeModal ? (
+      {rechargeModalVisible ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-3xl border border-rose-300 bg-white p-6 text-center shadow-2xl">
             <p className="text-2xl">🐷💰</p>
@@ -1342,6 +1428,9 @@ export default function KkulkkulManseryukMain() {
                 type="button"
                 onClick={() => {
                   setShowRechargeModal(false);
+                  if (openPremSection === 'veda') {
+                    setVedaFlowState('idle');
+                  }
                   window.location.href = '/points';
                 }}
                 className="rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
@@ -1350,7 +1439,12 @@ export default function KkulkkulManseryukMain() {
               </button>
               <button
                 type="button"
-                onClick={() => setShowRechargeModal(false)}
+                onClick={() => {
+                  setShowRechargeModal(false);
+                  if (openPremSection === 'veda' && vedaFlowState === 'payment_required') {
+                    setVedaFlowState('idle');
+                  }
+                }}
                 className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700"
               >
                 닫기

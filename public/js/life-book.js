@@ -79,6 +79,19 @@
   var _activeRequestController = null;
   var _cancelGeneration = false;
   var _cachedSajuData = '';
+  var _flowState = 'input';
+  var _formInput = null;
+  var _calculationResult = null;
+  var _canonicalSajuChart = null;
+  var _generatedPdfObjectUrl = '';
+  var _lastError = null;
+  var _chapterPlan = [];
+  var _premiumAccessState = {
+    productId: 'saju-life-book',
+    isUnlocked: false,
+    pointBalance: null,
+    paymentStatus: 'idle'
+  };
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
@@ -86,6 +99,66 @@
       _activeRequestController = null;
     }
   }
+
+  function _setFlowState(next) {
+    _flowState = String(next || 'input');
+  }
+
+  function _syncPremiumAccessState() {
+    try {
+      var token = localStorage.getItem('fortune_auth_token') || '';
+      _premiumAccessState.isUnlocked = !!token;
+    } catch (_) {}
+  }
+
+  function _clearLifeBookStorageArtifacts() {
+    function clearStore(store) {
+      if (!store) return;
+      for (var i = store.length - 1; i >= 0; i--) {
+        var key = String(store.key(i) || '');
+        if (!key) continue;
+        if (!/(^lb_v1_)|saju-life-book|lifebook|life-book/i.test(key)) continue;
+        try { store.removeItem(key); } catch (_) {}
+      }
+    }
+    try { clearStore(window.localStorage); } catch (_) {}
+    try { clearStore(window.sessionStorage); } catch (_) {}
+  }
+
+  function _revokeGeneratedPdfObjectUrl() {
+    if (!_generatedPdfObjectUrl) return;
+    try { URL.revokeObjectURL(_generatedPdfObjectUrl); } catch (_) {}
+    _generatedPdfObjectUrl = '';
+  }
+
+  window.resetSajuLifeBookState = function (opts) {
+    var options = opts || {};
+    _abortActiveRequest();
+    _cancelGeneration = true;
+    _generating = false;
+    _chapters = Array(13).fill(null);
+    _currentChapter = 1;
+    _cachedSajuData = '';
+    _formInput = null;
+    _calculationResult = null;
+    _canonicalSajuChart = null;
+    _lastError = null;
+    _chapterPlan = [];
+    _setFlowState('input');
+    if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+    _revokeGeneratedPdfObjectUrl();
+    if (options.clearStorage !== false) _clearLifeBookStorageArtifacts();
+    if (options.keepPremiumAccess !== true) {
+      _premiumAccessState = {
+        productId: 'saju-life-book',
+        isUnlocked: false,
+        pointBalance: null,
+        paymentStatus: 'idle'
+      };
+    } else {
+      _syncPremiumAccessState();
+    }
+  };
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
@@ -439,6 +512,277 @@
     return lines.join('\n');
   }
 
+  function _asTwo(v) {
+    var n = Number(v);
+    if (!Number.isFinite(n)) return '00';
+    return String(Math.max(0, n)).padStart(2, '0');
+  }
+
+  function _toSolarDateString(profile) {
+    var b = (profile && profile.birth) || {};
+    if (!b.year || !b.month || !b.day) return '';
+    return String(b.year) + '-' + _asTwo(b.month) + '-' + _asTwo(b.day);
+  }
+
+  function _toTimeString(profile) {
+    var b = (profile && profile.birth) || {};
+    if (b.hour === undefined || b.minute === undefined) return '';
+    return _asTwo(b.hour) + ':' + _asTwo(b.minute);
+  }
+
+  function _elementKo(v) {
+    var s = String(v || '').toLowerCase().replace(/[\s()]/g, '');
+    if (s === 'wood' || s === '목') return '목';
+    if (s === 'fire' || s === '화') return '화';
+    if (s === 'earth' || s === '토') return '토';
+    if (s === 'metal' || s === '금') return '금';
+    if (s === 'water' || s === '수') return '수';
+    return String(v || '');
+  }
+
+  function _buildTenGodDistributionFromPillars() {
+    var G = window.G_PILLARS || {};
+    var dg = G && G.d && G.d.g;
+    var dist = {};
+    if (!dg || typeof window.getTenGod !== 'function') return dist;
+    var targets = [
+      G.y && G.y.g, G.y && G.y.j,
+      G.m && G.m.g, G.m && G.m.j,
+      G.d && G.d.j,
+      G.h && G.h.g, G.h && G.h.j
+    ];
+    for (var i = 0; i < targets.length; i++) {
+      var t = targets[i];
+      if (!t) continue;
+      var tg = window.getTenGod(dg, t);
+      if (!tg || tg === '?' || tg === '일간') continue;
+      dist[tg] = (dist[tg] || 0) + 1;
+    }
+    return dist;
+  }
+
+  function _buildRelationsFromPillars() {
+    var G = window.G_PILLARS || {};
+    var stems = ['y','m','d','h'].map(function(k){ return (G[k] && G[k].g) || ''; }).filter(Boolean);
+    var branches = ['y','m','d','h'].map(function(k){ return (G[k] && G[k].j) || ''; }).filter(Boolean);
+    var stemComb = [];
+    var branchComb = [];
+    var clashes = [];
+    var punishments = [];
+    var harms = [];
+    var breaks = [];
+
+    var GAN_PAIRS = [['甲','己'],['乙','庚'],['丙','辛'],['丁','壬'],['戊','癸']];
+    for (var i = 0; i < GAN_PAIRS.length; i++) {
+      var gp = GAN_PAIRS[i];
+      if (stems.indexOf(gp[0]) >= 0 && stems.indexOf(gp[1]) >= 0) {
+        stemComb.push({ pair: gp[0] + gp[1] });
+      }
+    }
+    var YUKHAP = [['子','丑'],['寅','亥'],['卯','戌'],['辰','酉'],['巳','申'],['午','未']];
+    for (var y = 0; y < YUKHAP.length; y++) {
+      var yp = YUKHAP[y];
+      if (branches.indexOf(yp[0]) >= 0 && branches.indexOf(yp[1]) >= 0) {
+        branchComb.push({ pair: yp[0] + yp[1] });
+      }
+    }
+    var CHUNG = [['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
+    for (var c = 0; c < CHUNG.length; c++) {
+      var cp = CHUNG[c];
+      if (branches.indexOf(cp[0]) >= 0 && branches.indexOf(cp[1]) >= 0) {
+        clashes.push({ pair: cp[0] + cp[1] });
+      }
+    }
+
+    return {
+      heavenlyStemCombinations: stemComb,
+      earthlyBranchCombinations: branchComb,
+      clashes: clashes,
+      punishments: punishments,
+      harms: harms,
+      breaks: breaks,
+      threeHarmony: [],
+      directionalCombinations: []
+    };
+  }
+
+  function _buildCanonicalSajuChart(profile) {
+    var p = profile || _getActiveBirthProfile() || {};
+    var G = window.G_PILLARS || {};
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var pw = window.G_POWER || {};
+    var daewunList = window.G_DAEWUN || window.G_DAEUN || [];
+    var el = analysis.elementWeights || {};
+    var tenGodDist = _buildTenGodDistributionFromPillars();
+
+    function pillarOf(row, isDay) {
+      row = row || {};
+      return {
+        stem: row.g || '',
+        branch: row.j || '',
+        ganji: (row.g || '') + (row.j || ''),
+        stemElement: _elementKo(row.gE || ''),
+        branchElement: _elementKo(row.jE || ''),
+        tenGod: isDay ? '일간' : '',
+        hiddenStems: []
+      };
+    }
+
+    var pairs = [
+      ['wood', Number(el.wood || 0)],
+      ['fire', Number(el.fire || 0)],
+      ['earth', Number(el.earth || 0)],
+      ['metal', Number(el.metal || 0)],
+      ['water', Number(el.water || 0)]
+    ].sort(function(a,b){ return b[1]-a[1]; });
+
+    var currentDaewoon = null;
+    var ageNow = (p.birth && p.birth.year) ? (new Date().getFullYear() - Number(p.birth.year) + 1) : 0;
+    if (Array.isArray(daewunList) && daewunList.length) {
+      for (var i = 0; i < daewunList.length; i++) {
+        var cur = daewunList[i] || {};
+        var next = daewunList[i + 1] || null;
+        if (!next || (Number(cur.age || 0) <= ageNow && ageNow < Number(next.age || 999))) {
+          currentDaewoon = {
+            ageRange: next ? (String(cur.age || '') + '~' + String(Number(next.age || 0) - 1)) : String(cur.age || ''),
+            ganji: (cur.g || '') + (cur.j || ''),
+            stem: cur.g || '',
+            branch: cur.j || '',
+            tenGod: '',
+            elementEffect: ''
+          };
+          break;
+        }
+      }
+    }
+
+    var yong = (analysis.yongshin_elements && analysis.yongshin_elements[0]) || (Array.isArray(pw.yongshin) && pw.yongshin[0]) || '';
+    var hui = (analysis.huisin_elements && analysis.huisin_elements[0]) || '';
+    var gi = (analysis.kishin_elements && analysis.kishin_elements[0]) || (Array.isArray(pw.kijishin) && pw.kijishin[0]) || '';
+
+    var chart = {
+      reportType: 'saju-life-book',
+      profile: {
+        name: p.name || '사용자',
+        gender: p.gender || '',
+        birth: {
+          solarDate: _toSolarDateString(p),
+          lunarDate: (snap.birth && snap.birth.lunarDate) || null,
+          time: _toTimeString(p),
+          timezone: (p.location && p.location.tz) || 'Asia/Seoul',
+          locationName: (p.location && p.location.label) || null,
+          isLeapMonth: (snap.birth && snap.birth.isLeapMonth) || null
+        }
+      },
+      calculationMeta: {
+        engine: 'internal-saju-engine',
+        calendarSource: snap.calendarSource || 'internal',
+        solarTermApplied: true,
+        calculatedAt: new Date().toISOString(),
+        methodVersion: 'lifebook-client-canonical-v1'
+      },
+      fourPillars: {
+        year: pillarOf(G.y, false),
+        month: pillarOf(G.m, false),
+        day: pillarOf(G.d, true),
+        hour: pillarOf(G.h, false)
+      },
+      dayMaster: {
+        stem: (G.d && G.d.g) || '',
+        element: _elementKo((G.d && G.d.gE) || ''),
+        yinYang: '',
+        strength: analysis.power_label || '',
+        strengthScore: Number(analysis.power_score || 0),
+        reasoning: []
+      },
+      fiveElements: {
+        wood: Number(el.wood || 0),
+        fire: Number(el.fire || 0),
+        earth: Number(el.earth || 0),
+        metal: Number(el.metal || 0),
+        water: Number(el.water || 0),
+        dominant: pairs[0] && pairs[0][1] > 0 ? pairs[0][0] : '',
+        weakest: pairs[4] ? pairs[4][0] : '',
+        missing: pairs.filter(function(p){ return p[1] <= 0; }).map(function(p){ return p[0]; }),
+        balanceComment: ''
+      },
+      tenGods: {
+        distribution: tenGodDist,
+        dominantTenGods: [],
+        weakTenGods: [],
+        relationshipToDayMaster: []
+      },
+      usefulGods: {
+        yongsin: { element: _elementKo(yong), reason: '' },
+        huisin: { element: _elementKo(hui), reason: '' },
+        gisin: { element: _elementKo(gi), reason: '' },
+        gusinhansin: []
+      },
+      relations: _buildRelationsFromPillars(),
+      twelveStages: [],
+      specialStars: Array.isArray(snap.specialStars) ? snap.specialStars : [],
+      luckCycles: {
+        direction: '',
+        startAge: Array.isArray(daewunList) && daewunList[0] ? Number(daewunList[0].age || 0) : 0,
+        currentDaewoon: currentDaewoon,
+        daewoonList: Array.isArray(daewunList) ? daewunList.map(function(dw){
+          return {
+            ageRange: String(dw.age || ''),
+            ganji: (dw.g || '') + (dw.j || ''),
+            stem: dw.g || '',
+            branch: dw.j || '',
+            tenGod: '',
+            elementEffect: ''
+          };
+        }) : []
+      },
+      annualLuck: {
+        year: 2026,
+        ganji: '丙午',
+        stem: '丙',
+        branch: '午',
+        tenGod: '',
+        interactionWithNatal: [],
+        monthlyLuck: []
+      },
+      lifeThemes: {
+        career: {},
+        wealth: {},
+        relationship: {},
+        health: {},
+        family: {},
+        socialMission: {}
+      }
+    };
+
+    return chart;
+  }
+
+  function _validateCanonicalSajuChart(chart) {
+    var missing = [];
+    var p = (chart && chart.fourPillars) || {};
+    if (!(p.year && p.year.stem && p.year.branch)) missing.push('fourPillars.year');
+    if (!(p.month && p.month.stem && p.month.branch)) missing.push('fourPillars.month');
+    if (!(p.day && p.day.stem && p.day.branch)) missing.push('fourPillars.day');
+    if (!(p.hour && p.hour.stem && p.hour.branch)) missing.push('fourPillars.hour');
+    if (!(chart && chart.dayMaster && chart.dayMaster.stem)) missing.push('dayMaster.stem');
+    if (!(chart && chart.fiveElements && chart.fiveElements.dominant)) missing.push('fiveElements.dominant');
+    if (!(chart && chart.fiveElements && chart.fiveElements.weakest)) missing.push('fiveElements.weakest');
+    if (!(chart && chart.tenGods && chart.tenGods.distribution && Object.keys(chart.tenGods.distribution).length)) missing.push('tenGods.distribution');
+    if (!(chart && chart.usefulGods && chart.usefulGods.yongsin && chart.usefulGods.yongsin.element)) missing.push('usefulGods.yongsin.element');
+    if (!(chart && chart.usefulGods && chart.usefulGods.huisin && chart.usefulGods.huisin.element)) missing.push('usefulGods.huisin.element');
+    if (!(chart && chart.usefulGods && chart.usefulGods.gisin && chart.usefulGods.gisin.element)) missing.push('usefulGods.gisin.element');
+    if (!(chart && chart.luckCycles && chart.luckCycles.currentDaewoon && chart.luckCycles.currentDaewoon.ganji)) missing.push('luckCycles.currentDaewoon');
+    if (!(chart && chart.annualLuck && chart.annualLuck.year)) missing.push('annualLuck.year');
+    if (!(chart && chart.annualLuck && chart.annualLuck.ganji)) missing.push('annualLuck.ganji');
+
+    return {
+      isValid: missing.length === 0,
+      missingFields: missing
+    };
+  }
+
   /* ─────────────── 모달 제어 ─────────────── */
   function _showScreen(id) {
     var screens = ['lbStartScreen', 'lbLoadingScreen', 'lbResultScreen', 'lbErrorScreen'];
@@ -624,12 +968,9 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 재진입 시 이전 결과가 남지 않도록 캐시를 즉시 비운다.
+    // 새 진입 기본값: 작성 상태 초기화, 결제/해금 상태는 유지
+    window.resetSajuLifeBookState({ clearStorage: true, keepPremiumAccess: true });
     _lbClearSaved(profile);
-    _cachedSajuData = '';
-
-    _chapters = Array(13).fill(null);
-    _currentChapter = 1;
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -651,13 +992,7 @@
   window.closeLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
     if (!modal) return;
-    _cancelGeneration = true;
-    _generating = false;
-    _abortActiveRequest();
-    if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
-    _chapters = Array(13).fill(null);
-    _currentChapter = 1;
-    _cachedSajuData = '';
+    window.resetSajuLifeBookState({ clearStorage: true, keepPremiumAccess: true });
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
@@ -707,7 +1042,7 @@
   }
 
   /* ─────────────── 생성 로직 ─────────────── */
-  window.generateLifeBook = function () {
+  window.generateLifeBook = function (prepared) {
     if (_generating) return;
 
     var profile = _getActiveBirthProfile();
@@ -738,9 +1073,26 @@
       }
     }
 
+    var canonical = prepared && prepared.canonicalSajuChart ? prepared.canonicalSajuChart : _buildCanonicalSajuChart(profile);
+    var canonicalCheck = _validateCanonicalSajuChart(canonical);
+    if (!canonicalCheck.isValid) {
+      _setFlowState('error');
+      _lastError = '사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다\n누락: ' + canonicalCheck.missingFields.join(', ');
+      alert(_lastError);
+      return;
+    }
+
+    _canonicalSajuChart = canonical;
+    _formInput = {
+      name: profile.name || '',
+      gender: profile.gender || '',
+      birth: profile.birth || {}
+    };
+
     _generating = true;
     _cancelGeneration = false;
     _chapters = Array(13).fill(null);
+    _setFlowState('generating_pdf');
     var sajuState = _ensureSajuDataForGeneration(profile);
     var sajuData = sajuState.sajuData;
     if (sajuState.usedFallbackData) {
@@ -865,6 +1217,21 @@
             body: JSON.stringify({
               sessionId: idx + 1,
               sajuData: sajuData,
+              canonicalSajuChart: _canonicalSajuChart,
+              previousChapterTexts: _chapters.slice(0, idx).filter(function(v){ return typeof v === 'string' && v.trim(); }),
+              profile: {
+                name: String((profile && profile.name) || ''),
+                gender: String((profile && profile.gender) || ''),
+                birth: {
+                  solarDate: _toSolarDateString(profile),
+                  time: _toTimeString(profile),
+                  timezone: String(((profile && profile.location && profile.location.tz) || 'Asia/Seoul')),
+                  locationName: String(((profile && profile.location && profile.location.label) || '')),
+                  isLeapMonth: null
+                }
+              },
+              requireAccessCheck: false,
+              hasPremiumAccess: true,
               name: String((profile && profile.name) || ''),
               gender: String((profile && profile.gender) || ''),
               year: Number((profile && profile.birth && profile.birth.year) || 0),
@@ -878,7 +1245,13 @@
             .then(function (res) {
               if (!res.ok) {
                 return res.json().catch(function () { return {}; }).then(function (e) {
-                  return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
+                  return {
+                    ok: false,
+                    status: Number(res.status || 0),
+                    message: (e && e.message) || ('HTTP ' + res.status),
+                    code: (e && e.code) || '',
+                    missingFields: (e && e.missingFields) || []
+                  };
                 });
               }
               return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
@@ -887,6 +1260,10 @@
               clearTimeout(timeoutId);
               if (_activeRequestController === _controller) _activeRequestController = null;
               if (data && data.ok) {
+                _done(data);
+                return;
+              }
+              if (data && [402,409,422,500,503].indexOf(Number(data.status || 0)) >= 0) {
                 _done(data);
                 return;
               }
@@ -921,6 +1298,7 @@
         clearInterval(_mysticTimer);
         _mysticTimer = null;
         _generating = false;
+        _setFlowState('success');
 
         // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 10개 미만이면 실패 처리
         var _validCount = _chapters.filter(function(c) {
@@ -953,6 +1331,37 @@
 
       _fetchChapter(idx).then(function (data) {
         if (_cancelGeneration) return;
+        if (data && data.ok && data.canonicalSajuChart) _canonicalSajuChart = data.canonicalSajuChart;
+        if (data && data.ok && Array.isArray(data.chapterPlan)) _chapterPlan = data.chapterPlan;
+
+        if (!data || !data.ok) {
+          var status = Number((data && data.status) || 0);
+          var msgByStatus = '';
+          if (status === 402) msgByStatus = '결제 또는 포인트가 필요합니다.';
+          if (status === 409) msgByStatus = '이미 생성 중인 요청이 있어 잠시 후 다시 시도해 주세요.';
+          if (status === 422) msgByStatus = '사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다.';
+          if (status === 500) msgByStatus = '서버 오류로 챕터 생성에 실패했습니다.';
+          if (status === 503) msgByStatus = '외부 음력/절기 API 장애로 생성할 수 없습니다.';
+
+          if (status === 402 || status === 409 || status === 422 || status === 500 || status === 503) {
+            _generating = false;
+            _setFlowState('error');
+            _lastError = msgByStatus || ((data && data.message) ? data.message : '챕터 생성 실패');
+            if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+            var lbErr = _qs('lbErrorMessage');
+            if (lbErr) lbErr.textContent = _lastError;
+            _showScreen('lbErrorScreen');
+            return;
+          }
+        }
+
+        if (data && data.ok && data.skipped) {
+          _chapters[idx] = null;
+          _setProgress(idx + 1);
+          generateNext(idx + 1);
+          return;
+        }
+
         var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
         if (data && data.ok && _text.length >= 500) {
           _chapters[idx] = data.text;
@@ -1070,21 +1479,47 @@
       bodyHtml +
       '</body></html>';
 
-    // 새 창 열어서 print
-    var win = window.open('', '_blank', 'width=900,height=700');
+    // Blob URL 기반으로 새 창을 열어 about:blank 노출을 줄인다.
+    var blobUrl = '';
+    try {
+      var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      blobUrl = URL.createObjectURL(blob);
+    } catch (_) {
+      blobUrl = '';
+    }
+
+    var win = window.open(blobUrl || '', '_blank', 'width=900,height=700');
     if (!win) {
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
       return;
     }
-    win.document.open();
-    win.document.write(fullHtml);
-    win.document.close();
     win.focus();
-    setTimeout(function () {
-      try {
-        win.print();
-      } catch (_) {}
-    }, 1200);
+
+    if (!blobUrl) {
+      win.document.open();
+      win.document.write(fullHtml);
+      win.document.close();
+      setTimeout(function () {
+        try {
+          win.print();
+        } catch (_) {}
+      }, 1200);
+      return;
+    }
+
+    var _didPrint = false;
+    var _printNow = function () {
+      if (_didPrint) return;
+      _didPrint = true;
+      setTimeout(function () {
+        try { win.print(); } catch (_) {}
+        try { URL.revokeObjectURL(blobUrl); } catch (_) {}
+      }, 600);
+    };
+    try {
+      win.addEventListener('load', _printNow);
+    } catch (_) {}
+    setTimeout(_printNow, 1500);
   };
 
   /* ─────────────── 이벤트 위임 바인딩 ─────────────── */
@@ -1110,13 +1545,26 @@
         window.alert('인생의 책이 이미 생성 중입니다. 잠시만 기다려 주세요.');
         return;
       }
+
+      var _profileForPreflight = _getActiveBirthProfile();
+      if (!_profileForPreflight) {
+        window.alert('사주 계산을 먼저 완료해 주세요.');
+        return;
+      }
+      var _prepared = { canonicalSajuChart: _buildCanonicalSajuChart(_profileForPreflight) };
+      var _preflight = _validateCanonicalSajuChart(_prepared.canonicalSajuChart);
+      if (!_preflight.isValid) {
+        window.alert('사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다\n누락: ' + _preflight.missingFields.join(', '));
+        return;
+      }
+
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
       if (typeof window._cdCoinGatePerUse === 'function') {
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
         window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
           btn.disabled = false;
-          window.generateLifeBook();
+          window.generateLifeBook(_prepared);
         }, function () {
           // 취소 또는 오류 시 버튼 복원
           btn.disabled = false;
@@ -1152,5 +1600,20 @@
   if (_overlay) {
     _overlay.addEventListener('click', function () { window.closeLifeBookModal(); });
   }
+
+  // 라우트 이동 시 모달/작성 상태 정리
+  window.addEventListener('popstate', function () {
+    var modal = _qs('lifeBookModal');
+    if (modal && modal.style.display !== 'none') {
+      window.closeLifeBookModal();
+    }
+  });
+
+  window.addEventListener('hashchange', function () {
+    var modal = _qs('lifeBookModal');
+    if (modal && modal.style.display !== 'none') {
+      window.closeLifeBookModal();
+    }
+  });
 
 })();

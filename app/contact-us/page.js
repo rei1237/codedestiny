@@ -1,12 +1,29 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
 export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/contact-us",
+  const metadata = generatePageMetadata({
+    path: "/contact",
     title: "Contact Us | 문의하기 — Code Destiny",
     description: "Code Destiny 문의 페이지입니다. 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
     keywords: ["Contact Us", "문의하기", "고객지원", "Code Destiny 문의"],
   });
+
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
+    },
+    alternates: {
+      ...(metadata.alternates || {}),
+      canonical: "https://code-destiny.com/contact",
+    },
+  };
 }
 
 const cardStyle = {
@@ -63,8 +80,8 @@ export default function ContactUsPage() {
           서비스명: Code Destiny
           <br />
           운영 이메일:{" "}
-          <a href="mailto:seongbae555@gmail.com" style={{ color: "#93c5fd", textDecoration: "underline" }}>
-            seongbae555@gmail.com
+          <a href={SUPPORT_MAILTO} style={{ color: "#93c5fd", textDecoration: "underline" }}>
+            {SUPPORT_EMAIL}
           </a>
         </p>
         <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
@@ -91,7 +108,7 @@ export default function ContactUsPage() {
       <section style={cardStyle}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>간단 문의 폼 / Quick Contact Form</h2>
         <form
-          action="mailto:seongbae555@gmail.com"
+          action={SUPPORT_MAILTO}
           method="post"
           encType="text/plain"
           style={{ display: "grid", gap: "10px" }}

@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import {
+  LIFEBOOK_SYSTEM_PROMPT,
+  buildCanonicalSajuChart,
+  validateCanonicalSajuChart,
+  buildLifebookChapterPlan,
+  buildChapterPromptPayload,
+  buildChapterUserPrompt,
+  validateGeneratedChapterText,
+  withSummaryTable,
+} from "@/app/_lib/lifebook/canonical";
 
 // Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
 export const maxDuration = 300;
@@ -8,6 +18,8 @@ export const maxDuration = 300;
 // Gemini API (Google AI Studio) — API 키 인증, v1beta
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+const LIFEBOOK_IN_FLIGHT = new Map();
 
 /**
  * 사용 가능한 Gemini API 키 목록 반환 (love-secret 패턴 동일)
@@ -1211,50 +1223,60 @@ const LIFEBOOK_STRICT_REQUIREMENTS = [
   },
 ];
 
-function normalizeForContains(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
+function buildInFlightKey(userId, sessionId) {
+  return `${String(userId || "anonymous")}::${String(sessionId || "0")}`;
 }
 
-function findLifebookMissing(text, sessionId) {
-  const req = LIFEBOOK_STRICT_REQUIREMENTS[sessionId - 1];
-  if (!req) return [];
-  const source = normalizeForContains(text);
-  const missing = [];
-
-  if (String(text || "").trim().length < req.minChars) {
-    missing.push(`최소 ${req.minChars}자`);
-  }
-
-  for (const keyword of req.mustInclude || []) {
-    const token = normalizeForContains(keyword);
-    if (token && !source.includes(token)) missing.push(keyword);
-  }
-
-  return missing;
+function shouldUse503FromCalendarError(body = {}) {
+  return Boolean(body?.externalCalendarError) || Boolean(body?.calendarApiError);
 }
 
-function buildLifebookStrictPrompt(sessionId) {
-  const req = LIFEBOOK_STRICT_REQUIREMENTS[sessionId - 1];
-  if (!req) return "";
-  const cautionLine = req.caution
-    ? `- 주의사항: ${req.caution}`
-    : "";
+async function callGeminiOnce({ endpoint, key, systemPrompt, userPrompt, model }) {
+  const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: makeGenerationConfig(model),
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      errorMessage: getApiErrorMessage(response.status, payload),
+      text: "",
+      finishReason: "",
+    };
+  }
+
+  return {
+    ok: true,
+    status: response.status,
+    errorMessage: "",
+    text: parseText(payload),
+    finishReason: getFinishReason(payload),
+  };
+}
+
+function buildQualityRetryPrompt(userPrompt, qualityErrors = []) {
   return [
+    userPrompt,
     "",
-    "[강제 품질 규칙 — 반드시 준수]",
-    `- 아래 [필수 포함 체크리스트] 항목을 본문에 동일 문구로 최소 1회 이상 포함하세요.`,
-    `- 본문 분량은 반드시 ${req.minChars}자 이상으로 작성하세요.`,
-    "- 실제 입력된 사주 데이터(원국/대운/세운/월운)에서 확인 가능한 값만 근거로 해석하세요.",
-    cautionLine,
-    "",
-    "[필수 포함 체크리스트]",
-    ...(req.mustInclude || []).map((item) => `- ${item}`),
-  ].filter(Boolean).join("\n");
+    "[품질 재작성 요청]",
+    "- 아래 품질 오류를 모두 해결해서 본문을 처음부터 다시 작성하라.",
+    ...qualityErrors.map((err) => `- ${err}`),
+    "- 금지 문구를 사용하지 마라.",
+    "- 30자 이상 동일 문장 반복을 제거하라.",
+    "- 최소 5개 이상의 실제 사주 데이터(원국/용신/십성/대운/세운)를 명시하라.",
+  ].join("\n");
 }
+
 export async function POST(req) {
+  let inFlightKey = "";
   try {
     // ── JWT 인증 검증 (결제 없이 API 직접 호출 차단) ──
     const authHeader = req.headers.get("Authorization") || "";
@@ -1267,10 +1289,11 @@ export async function POST(req) {
         { status: 401 }
       );
     }
+    let decodedToken = null;
     try {
       const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) throw new Error("JWT_SECRET not configured");
-      jwt.verify(bearerToken, jwtSecret);
+      decodedToken = jwt.verify(bearerToken, jwtSecret);
     } catch (_jwtErr) {
       return NextResponse.json(
         { ok: false, message: "인증에 실패했습니다. 다시 로그인해 주세요." },
@@ -1280,8 +1303,6 @@ export async function POST(req) {
 
     const body = await req.json().catch(() => ({}));
     const sessionId = Number(body?.sessionId || 0);
-    const sourceData = normalizeSajuSourceData(body);
-    const sajuData = sourceData.sajuData;
 
     if (sessionId < 1 || sessionId > 13) {
       return NextResponse.json(
@@ -1289,6 +1310,91 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+
+    if (shouldUse503FromCalendarError(body)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "외부 음력/절기 API 장애로 사주 계산을 완료할 수 없습니다.",
+          code: "KASI_UNAVAILABLE",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (body?.requireAccessCheck && body?.hasPremiumAccess === false) {
+      return NextResponse.json(
+        { ok: false, message: "프리미엄 결제 또는 포인트가 필요합니다.", code: "PAYMENT_REQUIRED" },
+        { status: 402 }
+      );
+    }
+
+    inFlightKey = buildInFlightKey(decodedToken?.userId || decodedToken?.id || "user", sessionId);
+    if (LIFEBOOK_IN_FLIGHT.has(inFlightKey)) {
+      return NextResponse.json(
+        { ok: false, message: "이미 생성 중인 요청이 있습니다.", code: "DUPLICATE_IN_FLIGHT" },
+        { status: 409 }
+      );
+    }
+    LIFEBOOK_IN_FLIGHT.set(inFlightKey, Date.now());
+
+    const canonicalSajuChart = buildCanonicalSajuChart({
+      canonicalSajuChart: body?.canonicalSajuChart,
+      profile: body?.profile,
+      name: body?.name,
+      gender: body?.gender,
+      calendarSource: body?.calendarSource,
+      methodVersion: body?.methodVersion,
+      solarDate: body?.solarDate,
+      lunarDate: body?.lunarDate,
+      time: body?.time,
+      timezone: body?.timezone,
+      locationName: body?.locationName,
+      isLeapMonth: body?.isLeapMonth,
+    });
+
+    const canonicalValidation = validateCanonicalSajuChart(canonicalSajuChart);
+    if (!canonicalValidation.isValid) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "SAJU_CANONICAL_VALIDATION_FAILED",
+          message: "사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다",
+          missingFields: canonicalValidation.missingFields,
+          canonicalSajuChart,
+        },
+        { status: 422 }
+      );
+    }
+
+    const chapterPlan = buildLifebookChapterPlan(canonicalSajuChart);
+    const chapterMeta = chapterPlan.find((meta) => Number(meta.id) === sessionId);
+    if (!chapterMeta) {
+      return NextResponse.json(
+        { ok: false, message: "챕터 메타데이터를 찾을 수 없습니다." },
+        { status: 400 }
+      );
+    }
+
+    if (!chapterMeta.enabled) {
+      return NextResponse.json({
+        ok: true,
+        sessionId,
+        skipped: true,
+        reason: chapterMeta.reason,
+        title: chapterMeta.title,
+        chapterPlan,
+        canonicalSajuChart,
+      });
+    }
+
+    const promptPayload = buildChapterPromptPayload(
+      chapterMeta,
+      canonicalSajuChart,
+      Array.isArray(body?.previousChapterTexts) ? body.previousChapterTexts : []
+    );
+    const userPrompt = buildChapterUserPrompt(promptPayload, canonicalSajuChart);
+
     const geminiKeys = pickGeminiKeys();
     const hasVertexCred = hasVertexServiceAccountCreds();
 
@@ -1298,147 +1404,161 @@ export async function POST(req) {
         { status: 500 }
       );
     }
-
-    const config = SESSION_CONFIGS[sessionId - 1];
     const modelCandidates = pickLifebookModels();
 
-    const strictPrompt = buildLifebookStrictPrompt(sessionId);
-    const userPrompt = `${config.prompt(sajuData)}\n\n${strictPrompt}`;
-
     let lastError = null;
-    let lastErrorStatus = 502;
+    let lastErrorStatus = 500;
 
-    // ─── 1단계: Vertex AI 서비스계정(JSON/분리형) 우선 시도 ───
+    // 1) Vertex AI 우선 시도
     try {
-      const vertexPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
+      const vertexPrompt = `${LIFEBOOK_SYSTEM_PROMPT}\n\n${userPrompt}`;
       const text = await callVertexGemini(vertexPrompt, {
-        temperature: 1.0,
-        maxOutputTokens: 16384,
+        temperature: 0.45,
+        maxOutputTokens: 12288,
       });
-      const missing = findLifebookMissing(text, sessionId);
-      if (text && missing.length === 0) {
+      const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
+      if (text && quality.isValid) {
         return NextResponse.json({
           ok: true,
-          text,
+          text: withSummaryTable(text, canonicalSajuChart),
           sessionId,
-          title: config.title,
-          emoji: config.emoji,
+          title: chapterMeta.title,
+          mode: chapterMeta.mode,
           model: "vertex/service-account",
-          dataQuality: {
-            usedFallbackData: sourceData.usedFallbackData,
-            warning: sourceData.warning,
-          },
+          canonicalSajuChart,
+          chapterPlan,
+          validation: canonicalValidation,
         });
       }
       if (text && text.length > 0) {
-        lastError = new Error(`Vertex AI 응답 품질 미달: ${findLifebookMissing(text, sessionId).join(", ") || "요건 불충족"}`);
+        const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
+        const retried = await callVertexGemini(`${LIFEBOOK_SYSTEM_PROMPT}\n\n${retryPrompt}`, {
+          temperature: 0.35,
+          maxOutputTokens: 12288,
+        });
+        const retriedQuality = validateGeneratedChapterText(retried, promptPayload, canonicalSajuChart);
+        if (retried && retriedQuality.isValid) {
+          return NextResponse.json({
+            ok: true,
+            text: withSummaryTable(retried, canonicalSajuChart),
+            sessionId,
+            title: chapterMeta.title,
+            mode: chapterMeta.mode,
+            model: "vertex/service-account-retry",
+            canonicalSajuChart,
+            chapterPlan,
+            validation: canonicalValidation,
+          });
+        }
+        lastError = new Error(`Vertex AI 응답 품질 미달: ${quality.errors.join(", ") || "요건 불충족"}`);
       }
     } catch (e) {
       lastError = e;
     }
 
-    // ─── 2단계: Gemini API 키 + 모델 폴백 순차 시도 ────────────────
+    // 2) Gemini API 키 + 모델 폴백
     for (const model of modelCandidates) {
-      const geminiEndpoint = GEMINI_ENDPOINT.replace(
-        "{model}",
-        encodeURIComponent(model)
-      );
-      const requestPayload = JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: makeGenerationConfig(model),
-      });
+      const geminiEndpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
 
       const distributedKeys = rotateGeminiKeys(geminiKeys, sessionId);
       for (const key of distributedKeys) {
         try {
-          const response = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: requestPayload,
+          const primary = await callGeminiOnce({
+            endpoint: geminiEndpoint,
+            key,
+            systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
+            userPrompt,
+            model,
           });
 
-          const payload = await response.json().catch(() => ({}));
-
-          if (!response.ok) {
-            const errMsg = getApiErrorMessage(response.status, payload);
-            if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
-
-            if (isTokenLimitError(response.status, errMsg)) {
-              try {
-                const compactPayload = JSON.stringify({
-                  systemInstruction: {
-                    parts: [{ text: "핵심 명리 근거를 유지하면서 불필요한 수사를 줄여 완결된 한국어 보고서를 작성하세요." }],
-                  },
-                  contents: [{ role: "user", parts: [{ text: compactPromptText(userPrompt) }] }],
-                  generationConfig: makeGenerationConfig(model),
-                });
-                const compactRes = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: compactPayload,
-                });
-                const compactJson = await compactRes.json().catch(() => ({}));
-                if (compactRes.ok) {
-                  const compactText = parseText(compactJson);
-                  const compactMissing = findLifebookMissing(compactText, sessionId);
-                  if (compactText && compactMissing.length === 0) {
-                    return NextResponse.json({
-                      ok: true,
-                      text: compactText,
-                      sessionId,
-                      title: config.title,
-                      emoji: config.emoji,
-                      model,
-                      compactMode: true,
-                      truncated: getFinishReason(compactJson) === "MAX_TOKENS",
-                      dataQuality: {
-                        usedFallbackData: sourceData.usedFallbackData,
-                        warning: sourceData.warning,
-                      },
-                    });
-                  }
+          if (!primary.ok) {
+            if (isQuotaError(primary.status, primary.errorMessage)) lastErrorStatus = 429;
+            if (isTokenLimitError(primary.status, primary.errorMessage)) {
+              const compactTry = await callGeminiOnce({
+                endpoint: geminiEndpoint,
+                key,
+                systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
+                userPrompt: compactPromptText(userPrompt),
+                model,
+              });
+              if (compactTry.ok) {
+                const compactQuality = validateGeneratedChapterText(
+                  compactTry.text,
+                  promptPayload,
+                  canonicalSajuChart
+                );
+                if (compactQuality.isValid) {
+                  return NextResponse.json({
+                    ok: true,
+                    text: withSummaryTable(compactTry.text, canonicalSajuChart),
+                    sessionId,
+                    title: chapterMeta.title,
+                    mode: chapterMeta.mode,
+                    model,
+                    compactMode: true,
+                    truncated: compactTry.finishReason === "MAX_TOKENS",
+                    canonicalSajuChart,
+                    chapterPlan,
+                    validation: canonicalValidation,
+                  });
                 }
-              } catch {
-                // compact retry failed; continue fallback chain
               }
             }
 
-            lastError = new Error(errMsg);
+            lastError = new Error(primary.errorMessage || "Gemini 호출 실패");
             continue;
           }
 
-          const text = parseText(payload);
-          const finishReason = getFinishReason(payload);
-
+          const text = primary.text;
           if (!text) {
             lastError = new Error("모델 응답이 비어 있습니다.");
             continue;
           }
 
-          const missing = findLifebookMissing(text, sessionId);
-          if (missing.length > 0) {
-            lastError = new Error(`모델 응답 품질 미달: ${missing.join(", ")}`);
-            continue;
+          const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
+          if (!quality.isValid) {
+            const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
+            const retried = await callGeminiOnce({
+              endpoint: geminiEndpoint,
+              key,
+              systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
+              userPrompt: retryPrompt,
+              model,
+            });
+            if (!retried.ok || !retried.text) {
+              lastError = new Error(quality.errors.join(", "));
+              continue;
+            }
+            const retriedQuality = validateGeneratedChapterText(retried.text, promptPayload, canonicalSajuChart);
+            if (!retriedQuality.isValid) {
+              lastError = new Error(retriedQuality.errors.join(", "));
+              continue;
+            }
+            return NextResponse.json({
+              ok: true,
+              text: withSummaryTable(retried.text, canonicalSajuChart),
+              sessionId,
+              title: chapterMeta.title,
+              mode: chapterMeta.mode,
+              model: `${model}-retry`,
+              truncated: retried.finishReason === "MAX_TOKENS",
+              canonicalSajuChart,
+              chapterPlan,
+              validation: canonicalValidation,
+            });
           }
-
-          const suffix =
-            finishReason === "MAX_TOKENS"
-              ? "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달하여 일부 생략되었을 수 있습니다.*"
-              : "";
 
           return NextResponse.json({
             ok: true,
-            text: text + suffix,
+            text: withSummaryTable(text, canonicalSajuChart),
             sessionId,
-            title: config.title,
-            emoji: config.emoji,
+            title: chapterMeta.title,
+            mode: chapterMeta.mode,
             model,
-            truncated: finishReason === "MAX_TOKENS",
-            dataQuality: {
-              usedFallbackData: sourceData.usedFallbackData,
-              warning: sourceData.warning,
-            },
+            truncated: primary.finishReason === "MAX_TOKENS",
+            canonicalSajuChart,
+            chapterPlan,
+            validation: canonicalValidation,
           });
         } catch (e) {
           lastError = e;
@@ -1448,8 +1568,7 @@ export async function POST(req) {
 
     const defaultMessage = "챕터 생성에 실패했습니다.";
     const finalMessage = String(lastError?.message || defaultMessage);
-    const quotaHelp =
-      "현재 API 키에서 사용 가능한 모델 쿼터가 부족합니다. 환경변수 LIFEBOOK_GEMINI_MODEL을 gemini-2.5-flash로 설정하거나 결제/쿼터를 확인해 주세요.";
+    const quotaHelp = "현재 모델 쿼터가 부족합니다. 잠시 후 다시 시도해 주세요.";
 
     return NextResponse.json(
       { ok: false, message: lastErrorStatus === 429 ? `${finalMessage}\n${quotaHelp}` : finalMessage },
@@ -1460,5 +1579,15 @@ export async function POST(req) {
       { ok: false, message: String(e?.message || "요청 처리에 실패했습니다.") },
       { status: 500 }
     );
+  } finally {
+    if (inFlightKey) LIFEBOOK_IN_FLIGHT.delete(inFlightKey);
   }
 }
+
+export const __lifeBookTestUtils = {
+  buildCanonicalSajuChart,
+  validateCanonicalSajuChart,
+  buildLifebookChapterPlan,
+  buildChapterPromptPayload,
+  validateGeneratedChapterText,
+};

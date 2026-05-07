@@ -1369,11 +1369,51 @@ function ayanamsa(jd){
   const T=(jd-2415020.0)/36524.2198782;
   return nd(22.460148+1.396468*T+0.000308*T*T);
 }
+const VEDIC_FALLBACK_MEAN_MOTION={
+  Sun:{L0:280.46646,n:0.98564736},
+  Moon:{L0:218.3165,n:13.17639648},
+  Mercury:{L0:252.25084,n:4.09233445},
+  Venus:{L0:181.97973,n:1.60213034},
+  Mars:{L0:355.433,n:0.5240384},
+  Jupiter:{L0:34.35152,n:0.08309103},
+  Saturn:{L0:50.07744,n:0.03345965},
+  Rahu:{L0:125.04452,n:-0.05295381}
+};
+function markVedicSwissFallbackUsed(){
+  try{window.__vedicSwissFallbackUsed=true;}catch(_){ }
+}
+function calcPlanetsFallback(jd){
+  markVedicSwissFallbackUsed();
+  var d=Number(jd)-2451545.0;
+  var ay=ayanamsa(jd);
+  var sid={};
+  Object.keys(VEDIC_FALLBACK_MEAN_MOTION).forEach(function(name){
+    var cfg=VEDIC_FALLBACK_MEAN_MOTION[name]||{L0:0,n:0};
+    var trop=nd(cfg.L0+cfg.n*d);
+    sid[name]=nd(trop-ay);
+  });
+  sid.Ketu=nd(sid.Rahu+180);
+  return sid;
+}
+function calcAscendantFallback(jd,lat,lon){
+  markVedicSwissFallbackUsed();
+  var T=(Number(jd)-2451545.0)/36525;
+  var gmst=280.46061837+360.98564736629*(Number(jd)-2451545.0)+0.000387933*T*T-(T*T*T)/38710000;
+  var lst=nd(gmst+Number(lon||0));
+  var eps=23.439291-0.0130042*T;
+  var phi=r2d(Math.max(-66,Math.min(66,Number(lat||0))));
+  var theta=r2d(lst);
+  var e=r2d(eps);
+  var y=-Math.cos(theta);
+  var x=Math.sin(theta)*Math.cos(e)+Math.tan(phi)*Math.sin(e);
+  var asc=nd(Math.atan2(y,x)*180/Math.PI);
+  return nd(asc-ayanamsa(jd));
+}
 function calcPlanets(jd){
   var swe=_vedicGetSwissBridge();
-  if(!swe) throw new Error('SwissEph bridge unavailable');
+  if(!swe) return calcPlanetsFallback(jd);
   var calcFn=swe.swe_calc_ut||swe.calc_ut;
-  if(typeof calcFn!=='function') throw new Error('SwissEph calc function missing');
+  if(typeof calcFn!=='function') return calcPlanetsFallback(jd);
 
   var flagSwiss=(typeof swe.SEFLG_SWIEPH==='number')?swe.SEFLG_SWIEPH:2;
   var flagSpeed=(typeof swe.SEFLG_SPEED==='number')?swe.SEFLG_SPEED:256;
@@ -1392,29 +1432,37 @@ function calcPlanets(jd){
     Saturn:swe.SE_SATURN,
     Rahu:(typeof swe.SE_TRUE_NODE==='number'?swe.SE_TRUE_NODE:swe.SE_MEAN_NODE)
   };
-  if(typeof P.Rahu!=='number') throw new Error('SwissEph node constant missing');
+  if(typeof P.Rahu!=='number') return calcPlanetsFallback(jd);
 
-  var sid={};
-  Object.keys(P).forEach(function(name){
-    var raw=calcFn.call(swe,jd,P[name],flags);
-    var trop=_vedicReadSwissLon(raw,name);
-    sid[name]=nd(trop-ay);
-  });
-  sid.Ketu=nd(sid.Rahu+180);
-  return sid;
+  try{
+    var sid={};
+    Object.keys(P).forEach(function(name){
+      var raw=calcFn.call(swe,jd,P[name],flags);
+      var trop=_vedicReadSwissLon(raw,name);
+      sid[name]=nd(trop-ay);
+    });
+    sid.Ketu=nd(sid.Rahu+180);
+    return sid;
+  }catch(_){
+    return calcPlanetsFallback(jd);
+  }
 }
 function calcAscendant(jd,lat,lon){
   var swe=_vedicGetSwissBridge();
-  if(!swe) throw new Error('SwissEph bridge unavailable');
+  if(!swe) return calcAscendantFallback(jd,lat,lon);
   var houseFn=swe.swe_houses_ex||swe.swe_houses;
-  if(typeof houseFn!=='function') throw new Error('SwissEph houses function missing');
-  var hs=(houseFn===swe.swe_houses_ex)?houseFn.call(swe,jd,0,lat,lon,'P'):houseFn.call(swe,jd,lat,lon,'P');
-  var ascmc=hs&&hs.ascmc;
-  var asc=ascmc&&ascmc.length?Number(ascmc[0]):NaN;
-  if(!Number.isFinite(asc)) throw new Error('SwissEph ascendant unavailable');
-  var ay=(typeof swe.swe_get_ayanamsa_ut==='function')?Number(swe.swe_get_ayanamsa_ut(jd)):NaN;
-  if(!Number.isFinite(ay)) ay=ayanamsa(jd);
-  return nd(asc-ay);
+  if(typeof houseFn!=='function') return calcAscendantFallback(jd,lat,lon);
+  try{
+    var hs=(houseFn===swe.swe_houses_ex)?houseFn.call(swe,jd,0,lat,lon,'P'):houseFn.call(swe,jd,lat,lon,'P');
+    var ascmc=hs&&hs.ascmc;
+    var asc=ascmc&&ascmc.length?Number(ascmc[0]):NaN;
+    if(!Number.isFinite(asc)) return calcAscendantFallback(jd,lat,lon);
+    var ay=(typeof swe.swe_get_ayanamsa_ut==='function')?Number(swe.swe_get_ayanamsa_ut(jd)):NaN;
+    if(!Number.isFinite(ay)) ay=ayanamsa(jd);
+    return nd(asc-ay);
+  }catch(_){
+    return calcAscendantFallback(jd,lat,lon);
+  }
 }
 function isRetrograde(planet,jd){
   if(["Sun","Moon"].includes(planet))return false;
@@ -1440,6 +1488,7 @@ function planetHouse(rasi,planet){
 
 // ─── CHART BUILDER (f.timezone = UTC 오프셋 시간, 예: 9 = UTC+9) ─
 function buildChart(f,lonsOverride){
+  try{window.__vedicSwissFallbackUsed=false;}catch(_){ }
   const utcH=f.hour+(f.minute||0)/60-f.timezone;
   const jd=julianDay(f.year,f.month,f.day,utcH);
   const lons=lonsOverride||calcPlanets(jd);
@@ -1828,7 +1877,7 @@ function calcCompatibility(nak1,nak2){
 }
 
 // ─── STATE ────────────────────────────────────────────────
-let G={chart:null,report:null,chartStyle:"south",activeTab:"overview",usedLocalCalc:false};
+let G={chart:null,report:null,chartStyle:"south",activeTab:"overview",usedLocalCalc:false,usedSwissFallback:false};
 let VEDIC_LANG_STATE={
   current:'ko',
   token:0,
@@ -2224,6 +2273,145 @@ function switchTab(id){
   G.activeTab=id;
 }
 
+function hEsc(value){
+  return String(value==null?'':value)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function buildCurrentVedicDataSnapshot(chart,report){
+  if(!chart||!report)return null;
+  const rasi=chart.rasi||{};
+  const ext=(report&&report.ext)||{};
+  const allP=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Rahu","Ketu"];
+  const planetRows=allP.map(function(name){
+    const pl=(rasi.planets&&rasi.planets[name])||{};
+    const lon=Number(pl.lon);
+    const span=360/27;
+    const idx=Number.isFinite(lon)?Math.floor(nd(lon)/span):-1;
+    const nak=idx>=0&&NAKS[idx]?NAKS[idx]:null;
+    const degInNak=Number.isFinite(lon)?(nd(lon)-idx*span):NaN;
+    const pada=Number.isFinite(degInNak)?Math.floor(degInNak/(span/4))+1:null;
+    const house=planetHouse(rasi,name);
+    return {
+      graha:name,
+      grahaKo:PKR[name]||name,
+      longitude:Number.isFinite(lon)?Math.round(lon*100)/100:null,
+      rashi:pl.signName||null,
+      rashiKo:SIGNKR[pl.sign]||pl.signName||null,
+      degree:Number.isFinite(pl.deg)?Math.round(pl.deg*100)/100:null,
+      bhava:house||null,
+      nakshatra:nak?nak.n:null,
+      nakshatraLord:nak?nak.l:null,
+      pada:pada,
+      dignity:pl.dignity||null,
+      retrograde:!!pl.retro,
+      navamsa:(chart.d9&&chart.d9[name]&&chart.d9[name].signName)||null,
+      dashamsa:(chart.d10&&chart.d10[name]&&chart.d10[name].signName)||null
+    };
+  });
+
+  const yogaRaw=[]
+    .concat((report.wealth&&report.wealth.yogas)||[])
+    .concat((report.career&&report.career.yogas)||[])
+    .filter(Boolean);
+  const yogaRows=[];
+  yogaRaw.forEach(function(y){ if(yogaRows.indexOf(y)<0) yogaRows.push(y); });
+
+  return {
+    profile:{
+      name:(chart.f&&chart.f.name)||"",
+      birth:{
+        year:chart.f&&chart.f.year,
+        month:chart.f&&chart.f.month,
+        day:chart.f&&chart.f.day,
+        hour:chart.f&&chart.f.hour,
+        minute:chart.f&&chart.f.minute,
+        gender:chart.f&&chart.f.gender,
+        timezone:chart.f&&chart.f.timezone,
+        lat:chart.f&&chart.f.lat,
+        lon:chart.f&&chart.f.lon
+      }
+    },
+    lagna:{
+      sign:rasi.ascSign||null,
+      signKo:rasi.ascSignKr||null,
+      degree:Number.isFinite(rasi.asc)?Math.round((nd(rasi.asc)%30)*100)/100:null,
+      lord:(rasi.houses&&rasi.houses[0]&&rasi.houses[0].lord)||null
+    },
+    moonNakshatra:{
+      name:chart.nak&&chart.nak.name,
+      pada:chart.nak&&chart.nak.pada,
+      lord:chart.nak&&chart.nak.lord,
+      deity:ext.nakDeityInfo&&ext.nakDeityInfo.deity,
+      motive:ext.nakDeityInfo&&ext.nakDeityInfo.motive
+    },
+    karakas:{
+      atmakaraka:ext.atmakaraka||null,
+      amatyakaraka:ext.amatyakaraka||null,
+      darakaraka:ext.darakaraka||null
+    },
+    yogas:yogaRows,
+    planets:planetRows,
+    bhavas:(rasi.houses||[]).map(function(h){
+      return {
+        number:h.num,
+        rashi:h.sign||null,
+        rashiKo:h.signKr||null,
+        lord:h.lord||null,
+        planets:(h.planets||[]).slice()
+      };
+    }),
+    dasha:(chart.dashas||[]).map(function(d){
+      return {
+        planet:d.p,
+        start:d.start instanceof Date?d.start.toISOString().slice(0,10):String(d.start||""),
+        end:d.end instanceof Date?d.end.toISOString().slice(0,10):String(d.end||""),
+        years:Number.isFinite(d.dur)?Math.round(d.dur*10)/10:null,
+        active:chart.maha&&chart.maha.p===d.p
+      };
+    }),
+    navamsa:allP.reduce(function(acc,name){
+      acc[name]=(chart.d9&&chart.d9[name]&&chart.d9[name].signName)||null;
+      return acc;
+    },{}),
+    dashamsa:allP.reduce(function(acc,name){
+      acc[name]=(chart.d10&&chart.d10[name]&&chart.d10[name].signName)||null;
+      return acc;
+    },{})
+  };
+}
+
+async function copyCurrentVedicDataSnapshot(){
+  try{
+    const snapshot=buildCurrentVedicDataSnapshot(G.chart,G.report);
+    if(!snapshot){
+      alert('복사할 데이터가 아직 없습니다.');
+      return;
+    }
+    const text=JSON.stringify(snapshot,null,2);
+    if(navigator&&navigator.clipboard&&typeof navigator.clipboard.writeText==='function'){
+      await navigator.clipboard.writeText(text);
+    }else{
+      const ta=document.createElement('textarea');
+      ta.value=text;
+      ta.setAttribute('readonly','readonly');
+      ta.style.position='absolute';
+      ta.style.left='-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    alert('분석 데이터 JSON을 복사했습니다.');
+  }catch(_){
+    alert('복사에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+  }
+}
+
 // ─── DEEP INSIGHT GENERATOR ───────────────────────────────
 function generateInsights(chart,report){
   const{rasi,nak,maha,anta,dashas}=chart;
@@ -2528,6 +2716,7 @@ function doCalculateFromProfile(profile){
       if(!insights){throw new Error('Insights generation failed');}
       G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
       G.usedLocalCalc=true;
+      G.usedSwissFallback=!!window.__vedicSwissFallbackUsed;
       renderResult();
       showPage('result');
     }catch(localErr){
@@ -2543,9 +2732,12 @@ function doCalculateFromProfile(profile){
     showPage('result');
   }
 
-  _vedicEnsureSwissReady(12000)
+  _vedicEnsureSwissReady(4500)
     .then(function(){ runWithLocalSwiss('local swisseph mode'); })
-    .catch(function(err){ showLocalSwissError((String((err&&err.message)||err||'SwissEph bridge unavailable'))); });
+    .catch(function(err){
+      console.warn('[vedic] Swiss bridge timeout; continue with fallback engine', err);
+      runWithLocalSwiss('fallback analytical mode');
+    });
 }
 
 // ─── INIT: 프로필이 있으면 바로 로컬 Swiss 계산 결과 화면으로 진입 ─
@@ -3172,6 +3364,9 @@ function renderResult(){
   const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
   const nkData=NAKTR[nak.name]||{sym:"⭐"};
   const scoreColor=s=>s>=70?"#22C55E":s>=50?"#F59E0B":"#FF5555";
+  const allPlanets=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Rahu","Ketu"];
+  const dataSnapshot=buildCurrentVedicDataSnapshot(chart,report);
+  const snapshotText=dataSnapshot?JSON.stringify(dataSnapshot,null,2):"";
 
   // ── 탭 1: 개요 (Overview) ─────────────────────────────
   const tabOverview=`
@@ -3322,6 +3517,150 @@ function renderResult(){
     }).join('')}
   </div>`;
 
+  const tabData=`
+  <div class="reveal">
+    <div class="sage-text" style="margin-bottom:12px">
+      현재 계산된 라시·낙샤트라·그라하·바바·다샤·D9/D10 데이터를 한 번에 확인할 수 있습니다.
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      <span class="tag tag-gold">라그나: ${rasi.ascSignKr}</span>
+      <span class="tag tag-cyan">문 낙샤트라: ${nkData.sym} ${nak.name} P${nak.pada}</span>
+      <span class="tag tag-purple">아트마카라카: ${PKR[(report.ext&&report.ext.atmakaraka)||'Sun']||((report.ext&&report.ext.atmakaraka)||'Sun')}</span>
+      <span class="tag tag-pink">현재 대운: ${PKR[maha.p]}</span>
+    </div>
+    <button class="btn-sm" onclick="copyCurrentVedicDataSnapshot()" style="margin-bottom:14px">JSON 복사</button>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-1">
+    <div class="acc-header" onclick="toggleAcc('data-planets')">
+      <span style="font-size:16px">🪐</span>
+      <span class="acc-title">그라하 원본표 (라시/바바/낙샤트라/나밤샤)</span>
+      <span class="acc-arrow" id="arr-data-planets">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-data-planets">
+      <div class="acc-inner" style="overflow:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;min-width:760px">
+          <thead>
+            <tr style="color:var(--text3)">
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Graha</th>
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Rashi</th>
+              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Lon</th>
+              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Bhava</th>
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Nakshatra</th>
+              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Pada</th>
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">D9</th>
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">D10</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allPlanets.map(function(name){
+              var p=rasi.planets[name]||{};
+              var lon=Number(p.lon);
+              var span=360/27;
+              var idx=Number.isFinite(lon)?Math.floor(nd(lon)/span):-1;
+              var nk=idx>=0&&NAKS[idx]?NAKS[idx]:null;
+              var din=Number.isFinite(lon)?(nd(lon)-idx*span):NaN;
+              var pada=Number.isFinite(din)?Math.floor(din/(span/4))+1:'-';
+              var house=planetHouse(rasi,name)||'-';
+              var d9Sign=(chart.d9&&chart.d9[name]&&chart.d9[name].signName)||'-';
+              var d10Sign=(chart.d10&&chart.d10[name]&&chart.d10[name].signName)||'-';
+              return '<tr>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((PSYM[name]||'')+' '+(PKR[name]||name))+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((SIGNKR[p.sign]||p.signName||'-')+' '+(Number.isFinite(p.deg)?p.deg.toFixed(2):'-')+'°')+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(Number.isFinite(lon)?lon.toFixed(2):'-')+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(house)+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(nk?nk.n+' ('+(PKR[nk.l]||nk.l)+')':'-')+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(pada)+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(d9Sign)+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(d10Sign)+'</td>'+
+              '</tr>';
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('data-houses')">
+      <span style="font-size:16px">🏠</span>
+      <span class="acc-title">12바바 하우스 구조</span>
+      <span class="acc-arrow" id="arr-data-houses">▾</span>
+    </div>
+    <div class="acc-body" id="acc-data-houses">
+      <div class="acc-inner" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        ${(rasi.houses||[]).map(function(h){
+          var ps=(h.planets||[]).map(function(p){return PSYM[p]+' '+(PKR[p]||p);}).join(' · ')||'공실';
+          return '<div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:rgba(255,255,255,0.03)">'+
+            '<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+hEsc(h.num+'H · '+(h.signKr||h.sign))+'</div>'+
+            '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">지배: '+hEsc(PKR[h.lord]||h.lord)+'</div>'+
+            '<div style="font-size:11px;color:var(--text3);line-height:1.5">'+hEsc(ps)+'</div>'+
+          '</div>';
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('data-dasha')">
+      <span style="font-size:16px">⏳</span>
+      <span class="acc-title">빔쇼타리 다샤 전체표</span>
+      <span class="acc-arrow" id="arr-data-dasha">▾</span>
+    </div>
+    <div class="acc-body" id="acc-data-dasha">
+      <div class="acc-inner" style="overflow:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;min-width:560px">
+          <thead>
+            <tr style="color:var(--text3)">
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">대운</th>
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">시작</th>
+              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">종료</th>
+              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">연수</th>
+              <th style="text-align:center;padding:6px;border-bottom:1px solid var(--border)">현재</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(dashas||[]).map(function(d){
+              var active=(maha&&maha.p===d.p);
+              return '<tr>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((PSYM[d.p]||'')+' '+(PKR[d.p]||d.p))+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(fmtDate(d.start))+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(fmtDate(d.end))+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(Number(d.dur||0).toFixed(1))+'</td>'+
+                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center">'+(active?'<span class="tag tag-gold" style="font-size:9px">진행중</span>':'-')+'</td>'+
+              '</tr>';
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('data-yoga')">
+      <span style="font-size:16px">🧘</span>
+      <span class="acc-title">요가 · 카라카 요약</span>
+      <span class="acc-arrow" id="arr-data-yoga">▾</span>
+    </div>
+    <div class="acc-body" id="acc-data-yoga">
+      <div class="acc-inner">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+          <span class="tag tag-gold">Atmakaraka: ${PKR[(report.ext&&report.ext.atmakaraka)||'Sun']||((report.ext&&report.ext.atmakaraka)||'Sun')}</span>
+          <span class="tag tag-cyan">Amatyakaraka: ${PKR[(report.ext&&report.ext.amatyakaraka)||'Mercury']||((report.ext&&report.ext.amatyakaraka)||'Mercury')}</span>
+          <span class="tag tag-purple">Darakaraka: ${PKR[(report.ext&&report.ext.darakaraka)||'Moon']||((report.ext&&report.ext.darakaraka)||'Moon')}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.75">
+          ${[].concat((report.wealth&&report.wealth.yogas)||[]).concat((report.career&&report.career.yogas)||[]).filter(Boolean).map(function(y){return '• '+hEsc(y);}).join('<br>')||'• 요가 데이터 없음'}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="reveal reveal-delay-4" style="margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;background:rgba(255,255,255,0.02)">
+    <summary style="cursor:pointer;color:var(--text2);font-size:12px">분석 데이터 JSON 펼치기</summary>
+    <pre style="margin-top:8px;white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.55;color:var(--text3)">${hEsc(snapshotText)}</pre>
+  </details>`;
+
   // ── 최종 결과 페이지 HTML ─────────────────────────────
   document.getElementById('result-content').innerHTML=decorateBhavaTerms(`
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px">
@@ -3335,7 +3674,7 @@ function renderResult(){
     <div class="hero-sub" style="margin:6px 0">
       ${chart.f.year}.${String(chart.f.month).padStart(2,'0')}.${String(chart.f.day).padStart(2,'0')} ${String(chart.f.hour).padStart(2,'0')}:${String(chart.f.minute||0).padStart(2,'0')} · ${chart.f.gender==='M'?'남성 ♂':'여성 ♀'}
     </div>
-    ${G.usedLocalCalc?'<div style="font-size:10px;color:var(--text3);margin-top:6px">로컬 계산으로 표시됨 (API 미사용)</div>':''}
+    ${G.usedLocalCalc?('<div style="font-size:10px;color:var(--text3);margin-top:6px">'+(G.usedSwissFallback?'로컬 근사 계산으로 표시됨 (네트워크 없이 동작)':'로컬 Swiss 계산으로 표시됨 (API 미사용)')+'</div>'):''}
     <div style="width:40px;height:1px;background:var(--bordergold);margin:10px auto"></div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center">
       <span class="tag tag-gold">🌅 ${rasi.ascSignKr} 라그나</span>
@@ -3351,12 +3690,14 @@ function renderResult(){
     <button class="tab-btn" id="tbtn-chart" onclick="switchTab('chart')">🗺️ 차트</button>
     <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰️ 대운</button>
     <button class="tab-btn" id="tbtn-antar" onclick="switchTab('antar')">✨ 세운</button>
+    <button class="tab-btn" id="tbtn-data" onclick="switchTab('data')">📚 심층데이터</button>
   </div>
 
   <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
   <div id="tpanel-chart" class="tab-panel">${tabChart}</div>
   <div id="tpanel-dasha" class="tab-panel">${tabDasha}</div>
   <div id="tpanel-antar" class="tab-panel">${tabAntar}</div>
+  <div id="tpanel-data" class="tab-panel">${tabData}</div>
 
   <div style="height:36px"></div>`);
 
@@ -3986,10 +4327,9 @@ async function _vedicCompatCoinGate(cost, reason){
 
 async function doCompatCalc(){
   try{
-    await _vedicEnsureSwissReady(12000);
+    await _vedicEnsureSwissReady(4500);
   }catch(err){
-    window.alert('Swiss 라이브러리 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.\n상세: '+String((err&&err.message)||err||''));
-    return;
+    console.warn('[vedic compat] Swiss bridge timeout; continue with fallback engine', err);
   }
   var ok = await _vedicCompatCoinGate(VEDIC_COMPAT_COST, '베다점 궁합 계산');
   if (!ok) return;

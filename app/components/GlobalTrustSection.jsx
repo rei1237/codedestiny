@@ -50,12 +50,14 @@ const TRUST_BADGES = [
 ];
 
 const GLOBAL_FOOTER_LINKS = [
-  { href: "/privacy-policy", label: "Privacy Policy" },
-  { href: "/terms-of-service", label: "Terms of Service" },
-  { href: "/contact-us", label: "Refund Policy" },
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/terms#refund-policy", label: "Refund Policy" },
   { href: "/about", label: "About Us" },
+  { href: "/disclaimer", label: "Disclaimer" },
+  { href: "/advertising-policy", label: "Advertising Policy" },
   { href: "/faq", label: "FAQ" },
-  { href: "/contact-us", label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const ORIGIN = "https://code-destiny.com";
@@ -296,7 +298,7 @@ export default function GlobalTrustSection({ compact = false, showFooter = true,
                   <strong style={{ color: "#64748b" }}>14 days of purchase</strong> if unused,
                   per consumer protection law. Used credits are non-refundable.{" "}
                   <a
-                    href={`${ORIGIN}/contact-us`}
+                    href={`${ORIGIN}/contact`}
                     style={{ color: "#a78bfa", textDecoration: "none" }}
                   >
                     Contact support →
@@ -319,9 +321,11 @@ export default function GlobalTrustSection({ compact = false, showFooter = true,
             >
               <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px" }}>
                 {[
-                  { href: "/privacy-policy", label: "Privacy Policy" },
-                  { href: "/terms-of-service", label: "Terms of Service" },
-                  { href: "/contact-us", label: "Refund & Support" },
+                  { href: "/privacy", label: "Privacy Policy" },
+                  { href: "/terms", label: "Terms of Service" },
+                  { href: "/disclaimer", label: "Disclaimer" },
+                  { href: "/advertising-policy", label: "Advertising Policy" },
+                  { href: "/contact", label: "Refund & Support" },
                 ].map((l) => (
                   <a
                     key={l.href}

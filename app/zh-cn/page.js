@@ -1,3 +1,5 @@
-import { createLocaleShellPage } from "../_locale/LocaleShellPage";
+import { createLocaleMetadata, createLocaleShellPage } from "../_locale/LocaleShellPage";
+
+export const metadata = createLocaleMetadata("zh-cn");
 
 export default createLocaleShellPage("zh-cn");

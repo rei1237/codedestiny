@@ -1074,6 +1074,15 @@ export async function POST(req: NextRequest) {
       swissWarning = swissErr instanceof Error ? swissErr.message : "Swiss API call failed";
     }
 
+    if (!swissData) {
+      return NextResponse.json({
+        ok: false,
+        code: "VEDIC_SWISS_DATA_UNAVAILABLE",
+        message: "베다 계산 데이터가 부족하여 PDF를 생성할 수 없습니다.",
+        warnings: swissWarning ? [swissWarning] : [],
+      }, { status: 503 });
+    }
+
     // 1) 베다 차트 계산 (Swiss API core 값 강제 반영)
     const chart = applySwissCoreToChart(
       buildVedicChart(year, month, day, hour, minute, tz, lat, lon),
@@ -1090,24 +1099,25 @@ export async function POST(req: NextRequest) {
     const prompt = buildPrompt(chapter, chart, reportType, body as unknown as Record<string, unknown>);
     let text = "";
     let sections: { title:string; body:string }[] = [];
-    let usedFallback = false;
-    let fallbackReason = "";
 
     try {
       text = await callGemini(prompt);
       sections = parseSections(text);
       if (!sections.length) {
-        usedFallback = true;
-        fallbackReason = "AI 응답 섹션 파싱 실패";
-        text = buildFallbackChapterText(chapter, chart, fallbackReason);
-        sections = parseSections(text);
+        return NextResponse.json({
+          ok: false,
+          code: "VEDIC_CHAPTER_VALIDATION_FAILED",
+          message: "AI 응답이 구조 요건을 충족하지 않아 PDF를 생성할 수 없습니다.",
+        }, { status: 422 });
       }
     } catch (aiErr: unknown) {
-      usedFallback = true;
-      fallbackReason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
-      console.warn("[api/premium/vedic-life] fallback:", fallbackReason);
-      text = buildFallbackChapterText(chapter, chart, fallbackReason);
-      sections = parseSections(text);
+      const reason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
+      return NextResponse.json({
+        ok: false,
+        code: "VEDIC_CHAPTER_GENERATION_FAILED",
+        message: "AI 생성 실패로 PDF를 생성할 수 없습니다.",
+        details: [reason],
+      }, { status: 422 });
     }
 
     return NextResponse.json({
@@ -1118,8 +1128,7 @@ export async function POST(req: NextRequest) {
       chapterMeta: VEDIC_CHAPTER_META[chapter - 1],
       text,
       sections,
-      usedFallback,
-      fallbackReason: usedFallback ? fallbackReason : undefined,
+      usedFallback: false,
       warnings: swissWarning ? [swissWarning] : [],
     });
 

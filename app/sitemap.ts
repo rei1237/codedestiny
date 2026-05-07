@@ -1,11 +1,17 @@
 import type { MetadataRoute } from "next";
 import { BASE_URL, ROUTES } from "../lib/seo-site-urls";
+import { INSIGHT_SEED_ARTICLES } from "./insights/seed-articles";
 
 export const dynamic = "force-static";
 
 type InsightListItem = {
   slug?: string;
   canonicalUrl?: string;
+  updatedAt?: string;
+};
+
+type SeedInsightItem = {
+  slug?: string;
   updatedAt?: string;
 };
 
@@ -34,6 +40,24 @@ function buildBaseEntries(): MetadataRoute.Sitemap {
     changeFrequency: "daily",
     priority: 0.2,
   });
+
+  return entries;
+}
+
+function buildSeedInsightEntries(): MetadataRoute.Sitemap {
+  const entries: MetadataRoute.Sitemap = [];
+
+  for (const item of INSIGHT_SEED_ARTICLES as SeedInsightItem[]) {
+    const slug = String(item?.slug || "").trim();
+    if (!slug) continue;
+
+    entries.push({
+      url: `${BASE_URL}/insights/${encodeURIComponent(slug)}`,
+      lastModified: normalizeDate(item?.updatedAt),
+      changeFrequency: "monthly",
+      priority: 0.76,
+    });
+  }
 
   return entries;
 }
@@ -79,10 +103,11 @@ async function fetchPublishedInsights(): Promise<MetadataRoute.Sitemap> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseEntries = buildBaseEntries();
+  const seedEntries = buildSeedInsightEntries();
 
   try {
     const insightsEntries = await fetchPublishedInsights();
-    const merged = [...baseEntries, ...insightsEntries];
+    const merged = [...baseEntries, ...seedEntries, ...insightsEntries];
     const uniq = new Map<string, MetadataRoute.Sitemap[number]>();
 
     for (const entry of merged) {
@@ -91,6 +116,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return Array.from(uniq.values());
   } catch {
-    return baseEntries;
+    const merged = [...baseEntries, ...seedEntries];
+    const uniq = new Map<string, MetadataRoute.Sitemap[number]>();
+
+    for (const entry of merged) {
+      uniq.set(String(entry.url), entry);
+    }
+
+    return Array.from(uniq.values());
   }
 }

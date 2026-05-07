@@ -63,6 +63,39 @@ const ANIMAL_EMOJI: Record<string, string> = {
   돼지: "🐷",
 };
 
+const SAJU_PICTURE_VALUE_SECTIONS = [
+  {
+    title: "1. 사주 동물 해석은 성격 낙인이 아니라 현재 에너지 번역입니다",
+    body:
+      "사주 동물 결과는 당신을 하나의 동물로 고정하려는 진단이 아니라, 지금 시점의 오행 균형을 직관적으로 이해하도록 돕는 번역 장치입니다. 같은 사람도 시기와 환경에 따라 기운의 체감이 달라질 수 있기 때문에 결과를 절대값으로 보지 않고, 현재 나의 강점과 피로 구간을 파악하는 참고 자료로 읽는 것이 더 정확합니다.",
+  },
+  {
+    title: "2. 오행 조합은 강약이 아니라 배합의 문제입니다",
+    body:
+      "목·화·토·금·수의 비율은 높고 낮음 자체보다 어떤 조합으로 일상에 드러나는지가 중요합니다. 예를 들어 추진력이 강한 조합은 시작이 빠르지만 과열되기 쉽고, 안정형 조합은 리스크 관리가 좋지만 결정이 늦어질 수 있습니다. 이 배합 관점으로 보면 결과가 성격 평가가 아닌 생활 운영 힌트로 바뀝니다.",
+  },
+  {
+    title: "3. 동물 이미지와 성격 문장은 함께 읽어야 의미가 선명합니다",
+    body:
+      "이미지 자체는 감각적 이해를 돕고, 성격 문장은 행동 패턴을 설명합니다. 둘 중 하나만 보면 해석이 피상적으로 끝나기 쉽습니다. 결과 카드의 핵심 문장을 바탕으로 \"내가 스트레스 받을 때 어떤 반응을 보이는가\"를 체크하면, 단순한 재미 콘텐츠를 넘어 자기이해 도구로 활용할 수 있습니다.",
+  },
+  {
+    title: "4. 관계 활용은 상대 판정보다 내 소통 습관 점검이 우선입니다",
+    body:
+      "동물 결과를 가지고 타인을 단정하면 오해가 커질 수 있습니다. 대신 내가 갈등 상황에서 급해지는지, 회피하는지, 확인 질문을 잘 하는지 같은 소통 습관을 먼저 점검하는 데 사용하세요. 결과를 기반으로 대화 속도와 표현 강도를 조정하면 같은 관계에서도 체감 충돌이 눈에 띄게 줄어듭니다.",
+  },
+  {
+    title: "5. 기록과 비교를 통해 변화 신호를 읽어보세요",
+    body:
+      "한 번의 결과보다 일정 간격으로 다시 확인한 기록이 더 큰 통찰을 줍니다. 중요한 프로젝트 전후, 관계 변화 시점, 수면 패턴이 바뀐 시점에 결과를 비교하면 현재 컨디션과 선택 성향의 변화를 관찰할 수 있습니다. 이런 비교 데이터는 다음 행동 전략을 세우는 데 현실적인 기준이 됩니다.",
+  },
+  {
+    title: "6. 결과는 실행 항목 2개로 마무리할 때 가치가 커집니다",
+    body:
+      "해석을 읽은 뒤 이번 주에 바로 적용할 행동 2가지를 정해보세요. 예를 들어 감정 기복이 크게 보인다면 휴식 블록을 일정에 고정하고, 관계 긴장이 보인다면 확인 질문을 먼저 하는 규칙을 추가하는 방식입니다. 이렇게 작은 실행으로 연결할 때 사주 동물 리딩은 즐거움과 실용성을 동시에 갖춘 도구가 됩니다.",
+  },
+] as const;
+
 /* ─────────────────────────── 셀렉터 UI ─────────────────────── */
 function SelectField({
   label,
@@ -500,6 +533,16 @@ export default function SajuPicturePage() {
               </div>
             ))}
           </div>
+
+          <section className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3" aria-label="사주 동물 해석 가이드">
+            <h2 className="text-sm font-black text-slate-700 tracking-wide">사주 동물 해석을 제대로 쓰는 6단계</h2>
+            {SAJU_PICTURE_VALUE_SECTIONS.map((section) => (
+              <article key={section.title} className="rounded-2xl border border-pink-100 bg-white/70 p-3.5">
+                <h3 className="text-sm font-bold text-pink-600 leading-relaxed">{section.title}</h3>
+                <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">{section.body}</p>
+              </article>
+            ))}
+          </section>
 
           {/* 시작 버튼 */}
           <button

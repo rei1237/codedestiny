@@ -82,6 +82,43 @@
 
   function _qs(id) { return document.getElementById(id); }
 
+  function _toRoman(num) {
+    var n = Number(num) || 0;
+    if (n <= 0) return String(num || '');
+    var pairs = [
+      [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+      [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+      [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+    ];
+    var out = '';
+    for (var i = 0; i < pairs.length; i++) {
+      while (n >= pairs[i][0]) {
+        out += pairs[i][1];
+        n -= pairs[i][0];
+      }
+    }
+    return out;
+  }
+
+  function _applyServerChapterPlan(plan) {
+    if (!Array.isArray(plan) || !plan.length) return;
+    var nextTitles = [];
+    var nextSubtitles = [];
+    for (var i = 0; i < plan.length; i++) {
+      var item = plan[i] || {};
+      nextTitles.push(String(item.title || ('Chapter ' + (i + 1))));
+      nextSubtitles.push(String(item.subtitle || ''));
+    }
+    CHAPTER_TITLES = nextTitles;
+    CHAPTER_SUBTITLES = nextSubtitles;
+    ASTRO_TOTAL_CHAPTERS = plan.length;
+    if (!_chapters || _chapters.length !== ASTRO_TOTAL_CHAPTERS) {
+      var next = Array(ASTRO_TOTAL_CHAPTERS).fill(null);
+      for (var j = 0; j < Math.min(_chapters ? _chapters.length : 0, next.length); j++) next[j] = _chapters[j];
+      _chapters = next;
+    }
+  }
+
   function _buildApiCandidates(path) {
     var normalizedPath = String(path || '/').trim();
     if (normalizedPath[0] !== '/') normalizedPath = '/' + normalizedPath;
@@ -296,7 +333,7 @@
       wrap = document.createElement('div');
       wrap.className = 'lb-start__chapters';
       wrap.innerHTML =
-        '<div class="lb-start__ch-label">📖 13챕터 구성</div>' +
+        '<div class="lb-start__ch-label">📖 리포트 챕터 구성</div>' +
         '<ul class="lb-start__ch-list" id="abChapterPreviewList"></ul>';
       var anchor = start.querySelector('.lb-start__note');
       if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
@@ -317,13 +354,11 @@
     list.innerHTML = html;
   }
 
-  var AB_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
-
   function _renderToc() {
     var nav = document.getElementById('abToc');
     if (!nav || nav.querySelector('[data-ab-chapter]')) return;
     var html = '';
-    for (var i=1; i<=ASTRO_TOTAL_CHAPTERS; i++) html += '<button type="button" class="lb-toc-item ab-toc-item'+(i===1?' active':'')+'" data-ab-chapter="'+i+'">' + AB_ROMAN[i-1] + '</button>';
+    for (var i=1; i<=ASTRO_TOTAL_CHAPTERS; i++) html += '<button type="button" class="lb-toc-item ab-toc-item'+(i===1?' active':'')+'" data-ab-chapter="'+i+'">' + _toRoman(i) + '</button>';
     nav.innerHTML = html;
   }
 
@@ -553,7 +588,13 @@
             })
           })
           .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.error)||(e&&e.message)||'HTTP '+res.status};}); })
-          .then(function(data){ clearTimeout(tid); resolve(data); })
+          .then(function(data){
+            clearTimeout(tid);
+            if (data && data.ok && Array.isArray(data.chapterPlan) && data.chapterPlan.length) {
+              _applyServerChapterPlan(data.chapterPlan);
+            }
+            resolve(data);
+          })
           .catch(function(err){ clearTimeout(tid); resolve({ok:false,message:String(err&&err.message?err.message:err)}); });
         }).then(function(data) {
           if (data && data.ok && data.text) return data;
@@ -606,10 +647,16 @@
     var issued=new Date().toLocaleDateString('ko-KR');
     var bodyHtml='';
     var tocItems='';
+    var printable = [];
     for (var i=0;i<ASTRO_TOTAL_CHAPTERS;i++) {
       if (!_chapters[i]) continue;
-      tocItems+='<li><span>Chapter '+(i+1)+'. '+_escHtml(CHAPTER_TITLES[i])+'</span><span>Sec.'+(i+1)+'</span></li>';
-      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
+      printable.push({ idx: i, text: _chapters[i] });
+    }
+    var totalLogicalPages = 2 + printable.length;
+    for (var p=0; p<printable.length; p++) {
+      var i2 = printable[p].idx;
+      tocItems+='<li><span>Chapter '+(p+1)+'. '+_escHtml(CHAPTER_TITLES[i2])+'</span><span>'+(p+3)+' / '+totalLogicalPages+'</span></li>';
+      bodyHtml+='<div class="chapter" style="page-break-before:'+(p>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(p+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i2])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i2])+'</p></div><div class="chapter-body">'+_md2html(printable[p].text)+'</div><div class="page-footer">'+(p+3)+' / '+totalLogicalPages+'</div></div>';
     }
     var tocHtml='<div class="toc" style="page-break-after:always;"><h2>Table of Contents</h2><ul>'+tocItems+'</ul></div>';
     var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
@@ -624,25 +671,25 @@
       '.toc h2{margin:0 0 14px;color:#0f172a;border-bottom:2px solid #cbd5e1;padding-bottom:8px;}' +
       '.toc ul{list-style:none;padding:0;margin:0;}' +
       '.toc li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:0.95rem;color:#0f172a;}' +
-      '.chapter{padding:52px 60px;}' +
+      '.chapter{position:relative;padding:52px 60px 74px;word-break:keep-all;overflow-wrap:anywhere;}' +
       '.chapter-header{border-bottom:2px solid #fde68a;margin-bottom:28px;padding-bottom:20px;}' +
       '.chapter-num{font-size:0.75rem;letter-spacing:0.2em;color:#b45309;text-transform:uppercase;}' +
       '.chapter-title{font-size:1.5rem;font-weight:700;color:#1c0a00;margin:8px 0 6px;}' +
       '.chapter-sub{font-size:0.9rem;color:#78350f;margin:0;}' +
       'h1,h2,h3,h4{color:#1c0a00;}p{line-height:1.9;color:#1c0a00;}' +
       'blockquote{border-left:3px solid #fbbf24;padding:8px 16px;background:#fffbeb;margin:16px 0;}' +
+      'table{width:100%;border-collapse:collapse;page-break-inside:auto;margin:10px 0;}th,td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left;}tr{page-break-inside:avoid;page-break-after:auto;}' +
       'strong{color:#92400e;} ul,ol{padding-left:1.5em;} li{margin-bottom:6px;}' +
-      '.page-footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:0.75rem;color:#64748b;}' +
-      '.page-footer:after{content:"Page " counter(page) " of " counter(pages);}' +
+      '.page-footer{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:0.75rem;color:#64748b;}' +
       '</style></head><body>' +
       '<div class="cover"><p class="cover-badge">✨ COSMIC CHART PREMIUM</p>' +
       '<h1 class="cover-title">Professional Edition</h1>' +
-      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">서양 점성술 프리미엄 리포트 · 13 Chapters</p>' +
+      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">서양 점성술 프리미엄 리포트 · '+ASTRO_TOTAL_CHAPTERS+' Chapters</p>' +
       '<div style="width:60px;height:1px;background:rgba(253,230,138,0.4);margin:0 auto 20px;"></div>' +
       '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 코즈믹 차트</p>' +
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
       '<p class="cover-info" style="margin-top:10px;">🗓️ '+issued+' 발행</p></div>' +
-      tocHtml + bodyHtml + '<div class="page-footer"></div></body></html>';
+      tocHtml + bodyHtml + '</body></html>';
     var win = window.open('', '_blank', 'width=900,height=700');
     if (!win) {
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');

@@ -1,0 +1,166 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+export type OverlayLineKey = "lifeLine" | "headLine" | "heartLine" | "fateLine";
+export type OverlayPathMap = Partial<Record<OverlayLineKey, string>>;
+
+type OverlayMeta = {
+  key: OverlayLineKey;
+  label: string;
+  stroke: string;
+  glow: string;
+};
+
+const LINE_META: OverlayMeta[] = [
+  { key: "lifeLine", label: "생명선", stroke: "#8FBF7C", glow: "rgba(171, 214, 132, 0.55)" },
+  { key: "headLine", label: "두뇌선", stroke: "#78ABD9", glow: "rgba(131, 188, 255, 0.55)" },
+  { key: "heartLine", label: "감정선", stroke: "#DEA4BE", glow: "rgba(250, 178, 212, 0.55)" },
+  { key: "fateLine", label: "운명선", stroke: "#B89ADA", glow: "rgba(203, 170, 245, 0.55)" },
+];
+
+const SYMBOLIC_PATHS: Record<OverlayLineKey, string> = {
+  lifeLine: "M62 19 C 43 27, 30 46, 27 65 C 25 76, 30 86, 38 91",
+  headLine: "M68 42 C 55 46, 46 48, 37 52 C 31 54, 26 56, 20 58",
+  heartLine: "M78 31 C 64 26, 51 24, 38 26 C 28 28, 19 33, 13 40",
+  fateLine: "M49 88 C 49 76, 49 66, 50 56 C 51 45, 52 34, 54 22",
+};
+
+function normalizePath(pathLike: unknown): string | null {
+  if (typeof pathLike !== "string") return null;
+  const text = pathLike.trim();
+  if (!text) return null;
+  if (!/[MLCQAZmlcqaz]/.test(text)) return null;
+  return text;
+}
+
+export default function PalmLineOverlay({
+  imageUrl,
+  imageAlt,
+  pathMap,
+  activeLine,
+  onSelectLine,
+}: {
+  imageUrl: string | null;
+  imageAlt: string;
+  pathMap?: OverlayPathMap | null;
+  activeLine: OverlayLineKey | null;
+  onSelectLine: (line: OverlayLineKey) => void;
+}) {
+  const [hoverLine, setHoverLine] = useState<OverlayLineKey | null>(null);
+
+  const normalizedMap = useMemo(() => {
+    const out: OverlayPathMap = {};
+    for (const item of LINE_META) {
+      const normalized = normalizePath(pathMap?.[item.key]);
+      if (normalized) out[item.key] = normalized;
+    }
+    return out;
+  }, [pathMap]);
+
+  const hasPreciseCoordinates = Object.keys(normalizedMap).length > 0;
+
+  const renderedPaths: Record<OverlayLineKey, string> = {
+    lifeLine: normalizedMap.lifeLine || SYMBOLIC_PATHS.lifeLine,
+    headLine: normalizedMap.headLine || SYMBOLIC_PATHS.headLine,
+    heartLine: normalizedMap.heartLine || SYMBOLIC_PATHS.heartLine,
+    fateLine: normalizedMap.fateLine || SYMBOLIC_PATHS.fateLine,
+  };
+
+  if (!imageUrl) {
+    return (
+      <div className="rounded-2xl border border-[#d8bf72]/40 bg-[#0b111b]/85 p-4 text-sm text-[#f6eecf]/90">
+        오버레이를 표시할 손바닥 이미지가 없습니다.
+      </div>
+    );
+  }
+
+  return (
+    <section className="cd-ink-card cd-hanji relative overflow-hidden rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(9,14,23,0.95),rgba(26,18,16,0.9))]">
+      <span className="cd-seal-dot pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full border border-[#f3d888]/65 bg-[#8f1c1c]/85" />
+      <div className="flex items-center justify-between border-b border-[#d8bf72]/25 px-3 py-2 md:px-4">
+        <h3 className="text-sm font-black text-[#f3de9e] md:text-base">손바닥 흐름 오버레이</h3>
+        <span className="rounded-full border border-[#d8bf72]/35 bg-[#141f2f]/80 px-2 py-1 text-[11px] font-bold text-[#fce9b4]">
+          {hasPreciseCoordinates ? "AI가 인식한 주요 흐름" : "상징적 안내선"}
+        </span>
+      </div>
+
+      <div className="relative w-full bg-[#04070d]">
+        <img
+          src={imageUrl}
+          alt={imageAlt}
+          className="block max-h-[70vh] w-full object-contain"
+        />
+
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+        >
+          {LINE_META.map((line) => {
+            const isActive = activeLine === line.key || hoverLine === line.key;
+            return (
+              <g key={line.key}>
+                <path
+                  d={renderedPaths[line.key]}
+                  fill="none"
+                  stroke={line.stroke}
+                  strokeWidth={isActive ? 2.3 : 1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity={isActive ? 0.98 : 0.88}
+                  style={{
+                    filter: isActive
+                      ? `drop-shadow(0 0 6px ${line.glow}) drop-shadow(0 0 12px ${line.glow})`
+                      : `drop-shadow(0 0 4px ${line.glow})`,
+                    transition: "all 200ms ease",
+                  }}
+                  className="pointer-events-none"
+                />
+                <path
+                  d={renderedPaths[line.key]}
+                  fill="none"
+                  stroke="transparent"
+                  strokeWidth={8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="pointer-events-auto cursor-pointer"
+                  onMouseEnter={() => setHoverLine(line.key)}
+                  onMouseLeave={() => setHoverLine(null)}
+                  onClick={() => onSelectLine(line.key)}
+                  onTouchStart={() => onSelectLine(line.key)}
+                />
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <div className="scrollbar-none flex gap-2 overflow-x-auto px-3 py-3 md:px-4">
+        {LINE_META.map((line) => {
+          const active = activeLine === line.key;
+          return (
+            <button
+              key={line.key}
+              type="button"
+              onClick={() => onSelectLine(line.key)}
+              className={`min-h-[44px] min-w-[88px] shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition-all duration-200 md:text-sm ${
+                active
+                  ? "border-[#e5cd82]/70 bg-[#2c1d1c] text-[#ffe7b8] shadow-[0_0_14px_rgba(236,206,126,0.32)]"
+                  : "border-[#d8bf72]/30 bg-[#101828] text-[#f4e8c3] hover:bg-[#17233a] hover:shadow-[0_0_12px_rgba(226,193,106,0.24)]"
+              }`}
+            >
+              {line.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {!hasPreciseCoordinates ? (
+        <p className="border-t border-[#d8bf72]/25 px-3 py-2 text-[11px] leading-5 text-[#f5eccc]/80 md:px-4 md:text-xs">
+          현재 라인은 정밀 좌표가 아닌 상징적 안내선입니다. 정밀 인식 결과가 없을 때 흐름 이해를 돕기 위한 시각화입니다.
+        </p>
+      ) : null}
+    </section>
+  );
+}

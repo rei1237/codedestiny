@@ -3,6 +3,8 @@
  * — iframe 없이 회원가입 페이지에서 인라인으로 임베드하기 위한 컴포넌트
  * — 독립 페이지(/privacy-policy)에서도 재사용 가능
  */
+import { SUPPORT_EMAIL } from "../../lib/site-policy-config";
+
 export default function PrivacyPolicyContent() {
   return (
     <div className="policy-embed-body">
@@ -100,7 +102,7 @@ export default function PrivacyPolicyContent() {
         <p>
           서비스명: Code Destiny<br />
           사이트: https://code-destiny.com<br />
-          개인정보 보호 문의: seongbae555@gmail.com
+          개인정보 보호 문의: {SUPPORT_EMAIL}
         </p>
       </section>
     </div>

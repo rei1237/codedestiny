@@ -13,6 +13,28 @@
   var lastTouchStart = null;
   var lastActionInvoke = { action: '', at: 0 };
 
+  function isDesktopNoTouch() {
+    try {
+      var hasMatchMedia = typeof window.matchMedia === 'function';
+      var finePointer = hasMatchMedia && (
+        window.matchMedia('(pointer:fine)').matches ||
+        window.matchMedia('(any-pointer:fine)').matches ||
+        window.matchMedia('(hover:hover)').matches
+      );
+      var coarsePointer = hasMatchMedia && (
+        window.matchMedia('(pointer:coarse)').matches ||
+        window.matchMedia('(any-pointer:coarse)').matches
+      );
+      var maxTouchPoints = (navigator && typeof navigator.maxTouchPoints === 'number')
+        ? navigator.maxTouchPoints
+        : 0;
+      var hasTouchCapability = coarsePointer || maxTouchPoints > 0;
+      return !!(finePointer && !hasTouchCapability);
+    } catch (_) {
+      return false;
+    }
+  }
+
   /* INP: index-inline-runtime / uiBindings �??�일 ??무거??data-action ?�기 ?�출???�음 ?�스?�로 */
   var __CD_DEFER_INP_ACTIONS = {
     checkPrivacyAndCalculate: 1,
@@ -1031,6 +1053,10 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
+          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
           __cdRafBatch(function () {
             var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);
@@ -1100,12 +1126,14 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-          if (handled) {
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
+          if (Date.now() - lastScrollAt > SCROLL_BLOCK_MS) {
+            var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+            if (handled) {
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+              return;
+            }
           }
         }
       }
@@ -1113,6 +1141,10 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
+          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
           __cdRafBatch(function () {
             var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);
@@ -1167,6 +1199,9 @@
   }
 
   function init() {
+    // This file is for mobile interaction safety; skip heavy observers/listeners on desktop no-touch.
+    if (isDesktopNoTouch()) return;
+
     (function syncViewportHeight() {
       var root = document.documentElement;
       if (!root) return;

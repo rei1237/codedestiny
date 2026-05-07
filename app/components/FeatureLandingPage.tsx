@@ -11,6 +11,11 @@ type ServiceLike = {
   landingPoints?: string[];
   seoText?: string;
   ogImage?: string;
+  valueGuideTitle?: string;
+  valueSections?: Array<{
+    title: string;
+    body: string;
+  }>;
 };
 
 /* ═══════════════════════════════════════════
@@ -284,6 +289,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const title = service?.h1 || service?.title || "운세 서비스";
   const description = service?.description || "Code Destiny 메인 기능으로 연결되는 서비스입니다.";
   const points = Array.isArray(service?.landingPoints) ? service!.landingPoints! : [];
+  const valueSections = Array.isArray(service?.valueSections) ? service.valueSections : [];
+  const valueGuideTitle = service?.valueGuideTitle || "실전 활용 가이드";
   const isFlower = category === "flower";
 
   return (
@@ -510,6 +517,44 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               ))}
             </div>
           </div>
+        )}
+
+        {/* Long-form value section (low-value content reinforcement) */}
+        {valueSections.length > 0 && (
+          <section className="flp-in flp-d3" style={{ marginBottom:"30px" }} aria-label={valueGuideTitle}>
+            <h2 style={{
+              fontSize:"0.66rem", fontWeight:800, letterSpacing:"0.22em",
+              textTransform:"uppercase", color:t.accent, opacity:.78,
+              marginBottom:"12px", marginTop:0,
+            }}>{valueGuideTitle}</h2>
+            <div style={{ display:"grid", gap:"10px" }}>
+              {valueSections.map((section, i) => (
+                <article key={`${section.title}-${i}`} style={{
+                  background:"rgba(255,255,255,0.045)",
+                  border:`1px solid ${t.ptBorder}`,
+                  borderRadius:"12px",
+                  padding:"14px 14px 12px",
+                  boxShadow:`0 4px 20px ${t.glow}`,
+                }}>
+                  <h3 style={{
+                    margin:"0 0 6px",
+                    color:t.accent,
+                    fontSize:"0.84rem",
+                    letterSpacing:"0.01em",
+                    fontWeight:800,
+                    lineHeight:1.45,
+                  }}>{section.title}</h3>
+                  <p style={{
+                    margin:0,
+                    color:"rgba(241,245,249,0.88)",
+                    fontSize:"0.82rem",
+                    lineHeight:1.8,
+                    wordBreak:"keep-all",
+                  }}>{section.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Divider */}

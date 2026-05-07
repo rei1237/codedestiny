@@ -1,13 +1,30 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import { OPERATOR_NAME, SUPPORT_EMAIL } from "../../lib/site-policy-config";
 
 export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/privacy-policy",
+  const metadata = generatePageMetadata({
+    path: "/privacy",
     title: "Privacy Policy | 개인정보처리방침 — Code Destiny",
     description:
       "Code Destiny 개인정보처리방침 페이지입니다. 쿠키 사용, 광고 제공, 개인정보 처리 목적과 이용자 권리를 안내합니다.",
     keywords: ["Privacy Policy", "개인정보처리방침", "쿠키", "애드센스", "Google AdSense"],
   });
+
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
+    },
+    alternates: {
+      ...(metadata.alternates || {}),
+      canonical: "https://code-destiny.com/privacy",
+    },
+  };
 }
 
 const sectionStyle = {
@@ -158,11 +175,11 @@ export default function PrivacyPolicyPage() {
           <br />
           사이트: https://code-destiny.com
           <br />
-          운영자: Code Destiny
+          운영자: {OPERATOR_NAME}
           <br />
-          개인정보 보호 문의 이메일: seongbae555@gmail.com
+          개인정보 보호 문의 이메일: {SUPPORT_EMAIL}
           <br />
-          Contact Email: seongbae555@gmail.com
+          Contact Email: {SUPPORT_EMAIL}
         </p>
       </section>
     </main>

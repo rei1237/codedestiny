@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function IfaOraclePage() {
-  redirect("/ifa_oracle_v2_full_local.html?source=oracle-ifa");
+  redirect("/ifa-oracle.html?source=oracle-ifa");
 }

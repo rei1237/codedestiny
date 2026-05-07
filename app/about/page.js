@@ -1,5 +1,6 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { ABOUT_PAGE_COPY } from "../_content/seo-copy";
+import { SUPPORT_EMAIL } from "../../lib/site-policy-config";
 
 export function generateMetadata() {
   return generatePageMetadata({
@@ -32,7 +33,7 @@ const ABOUT_JSON_LD = JSON.stringify({
       },
       contactPoint: {
         "@type": "ContactPoint",
-        email: "seongbae555@gmail.com",
+        email: SUPPORT_EMAIL,
         contactType: "customer support",
         availableLanguage: ["Korean", "English"],
       },

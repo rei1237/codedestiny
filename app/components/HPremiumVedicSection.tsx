@@ -29,11 +29,14 @@ interface ChapterMeta { num:number; title:string; subtitle:string; icon:string; 
 interface ChapterResult { chapter:number; chapterMeta:ChapterMeta; text:string; sections:{title:string;body:string}[]; }
 type ChapterStep = "idle"|"loading"|"done"|"error";
 interface ChapterState { step:ChapterStep; result:ChapterResult|null; }
+type VedaPdfFlowState = "generating_pdf" | "success" | "error";
+type VedicApiError = Error & { status?: number; code?: string; details?: unknown };
 
 type PremiumSectionProps = {
   showIntro?: boolean;
   onStartGeneration?: () => void | Promise<void>;
   generationLoading?: boolean;
+  onPdfFlowStateChange?: (state: VedaPdfFlowState, message?: string) => void;
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -395,6 +398,7 @@ export default function HPremiumVedicSection({
   showIntro = false,
   onStartGeneration,
   generationLoading = false,
+  onPdfFlowStateChange,
 }: PremiumSectionProps) {
   const createEmptyChapters = () =>
     Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
@@ -592,6 +596,25 @@ export default function HPremiumVedicSection({
     }
   }, [showIntro, resetVedicState]);
 
+  const toVedicUiError = useCallback((error: unknown) => {
+    const err = error as VedicApiError;
+    const status = Number(err?.status || 0);
+    const code = String(err?.code || "");
+    const fallback = err instanceof Error ? err.message : "베다 요청 처리 중 오류가 발생했습니다.";
+
+    if (status === 400) return "입력값이 올바르지 않습니다. 생년월일/시간/좌표를 확인해 주세요.";
+    if (status === 402) return "코인이 부족합니다. 결제 후 다시 시도해 주세요.";
+    if (status === 409) return "이미 처리 중인 요청입니다. 잠시 후 다시 시도해 주세요.";
+    if (status === 422) {
+      if (code === "VEDIC_CHAPTER_UNAVAILABLE") return "요청한 챕터를 생성할 수 없습니다. 챕터 조건을 먼저 충족해 주세요.";
+      if (code === "VEDIC_CANONICAL_VALIDATION_FAILED") return "필수 베다 계산 데이터가 부족하여 PDF를 생성할 수 없습니다.";
+      return "베다 계산/검증 데이터가 부족하여 챕터를 생성할 수 없습니다.";
+    }
+    if (status === 503) return "베다 계산 API에 일시적으로 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.";
+    if (status >= 500) return "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    return fallback;
+  }, []);
+
 
   const postVedicJson = useCallback(async (payload: unknown) => {
     let lastError: unknown = null;
@@ -607,12 +630,36 @@ export default function HPremiumVedicSection({
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data?.ok) {
-          throw new Error(data?.error || "베다 요청 처리 중 오류가 발생했습니다.");
+          const status = Number(res.status || 500);
+          const code = String(data?.code || "");
+          const genericMessage = typeof data?.message === "string"
+            ? data.message
+            : (typeof data?.error === "string" ? data.error : "베다 요청 처리 중 오류가 발생했습니다.");
+
+          let mappedMessage = genericMessage;
+          if (status === 400) mappedMessage = "입력값이 올바르지 않습니다. 생년월일/시간/좌표를 확인해 주세요.";
+          if (status === 402) mappedMessage = "코인이 부족합니다. 결제 후 다시 시도해 주세요.";
+          if (status === 409) mappedMessage = "이미 처리 중인 요청입니다. 잠시 후 다시 시도해 주세요.";
+          if (status === 422) {
+            if (code === "VEDIC_CHAPTER_UNAVAILABLE") mappedMessage = "요청한 챕터를 생성할 수 없습니다. 챕터 조건을 확인해 주세요.";
+            else if (code === "VEDIC_CANONICAL_VALIDATION_FAILED") mappedMessage = "필수 베다 계산 데이터가 부족하여 PDF를 생성할 수 없습니다.";
+            else mappedMessage = "베다 계산/검증 데이터가 부족하여 챕터를 생성할 수 없습니다.";
+          }
+          if (status === 503) mappedMessage = "베다 계산 API에 일시적으로 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.";
+
+          const err = new Error(mappedMessage) as VedicApiError;
+          err.status = status;
+          err.code = code;
+          err.details = data?.details || data?.missingFields || null;
+          throw err;
         }
         return data;
       } catch (e) {
         lastError = e;
-        if (attempt === 2) break;
+        const status = Number((e as VedicApiError)?.status || 0);
+        const retryableStatus = [408, 429, 500, 502, 503, 504];
+        const retryable = !status || retryableStatus.includes(status);
+        if (attempt === 2 || !retryable) break;
       } finally {
         clearTimeout(timeoutId);
       }
@@ -705,21 +752,24 @@ export default function HPremiumVedicSection({
     if (!y||!m||!d){ setCalcError("생년월일을 입력해 주세요."); return; }
     if (y<1900||y>2100||m<1||m>12||d<1||d>31){ setCalcError("올바른 날짜를 입력해 주세요."); return; }
     setCalcError(""); setRequestError(""); setCalcLoading(true);
+    onPdfFlowStateChange?.("generating_pdf");
     startProcessing("베다 점성술 차트를 계산하여 카르마 청사진을 작성하고 있습니다...");
     try {
       await ensureCompatibilityAddonCharged();
       const data = await postVedicJson(buildRequestPayload(1));
       setChart(data.chart);
       setChapters(prev => ({ ...prev, 1: { step:"done", result:{ chapter:1, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } } }));
+      onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "차트 계산 중 오류";
+      const message = toVedicUiError(e);
       setCalcError(message);
       setRequestError(message);
+      onPdfFlowStateChange?.("error", message);
     } finally {
       setCalcLoading(false);
       stopProcessing();
     }
-  }, [birthYear,birthMonth,birthDay,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload]);
+  }, [birthYear,birthMonth,birthDay,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError]);
 
   // 프로필에서 자동 로드된 경우 즉시 계산
   useEffect(() => {
@@ -736,19 +786,23 @@ export default function HPremiumVedicSection({
 
     setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
+    onPdfFlowStateChange?.("generating_pdf");
     startProcessing(`베다 챕터 ${chNum}의 에너지를 분석하여 리포트를 생성하고 있습니다...`);
     try {
       await ensureCompatibilityAddonCharged();
       const data = await postVedicJson(buildRequestPayload(chNum));
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{chapter:chNum,chapterMeta:data.chapterMeta,text:data.text,sections:data.sections}}}));
       if (data.chart&&!chart) setChart(data.chart);
+      onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
-      setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
+      const message = toVedicUiError(e);
+      setRequestError(message);
       setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
+      onPdfFlowStateChange?.("error", message);
     } finally {
       stopProcessing();
     }
-  }, [chart,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload]);
+  }, [chart,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError]);
 
 
   const handleGenerateAll = useCallback(async () => {
