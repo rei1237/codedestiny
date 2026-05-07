@@ -7,7 +7,6 @@ const REQUIRED_FILES = [
   "wrangler.toml",
   "worker/wrangler.toml",
   "next.config.mjs",
-  "public/psychotest.html",
   "public/index.html",
   "worker/index.js",
 ];
@@ -24,17 +23,6 @@ const WARNING_MODULE_PATTERNS = [
   /from\s+["']mongoose["']/g,
   /from\s+["']express["']/g,
   /require\(("|')(mongoose|express)\1\)/g,
-];
-
-const PSYCHOTEST_BACKEND_PATTERNS = [
-  /fetch\s*\(\s*["']\/api\//g,
-  /fetch\s*\(\s*["'][^"']*\/api\//g,
-  /XMLHttpRequest/g,
-  /WebSocket/g,
-  /EventSource/g,
-  /process\.env/g,
-  /require\s*\(/g,
-  /module\.exports/g,
 ];
 
 async function exists(relPath) {
@@ -111,22 +99,6 @@ async function analyzeWorkerCompatibility() {
   };
 }
 
-async function analyzePsychotest() {
-  const rel = "public/psychotest.html";
-  if (!(await exists(rel))) {
-    return { exists: false };
-  }
-
-  const content = await readText(rel);
-  const backendSignals = findRegexMatches(content, PSYCHOTEST_BACKEND_PATTERNS);
-
-  return {
-    exists: true,
-    backendSignals,
-    isStaticFrontendOnly: backendSignals.length === 0,
-  };
-}
-
 async function analyzeLegacyServer() {
   const rel = "server/server.js";
   if (!(await exists(rel))) {
@@ -170,7 +142,6 @@ async function main() {
   }
 
   const worker = await analyzeWorkerCompatibility();
-  const psychotest = await analyzePsychotest();
   const legacyServer = await analyzeLegacyServer();
   const wrangler = await analyzeWrangler();
   const nextOutput = await analyzeNextOutput();
@@ -188,17 +159,6 @@ async function main() {
 
   if (!wrangler.rootHasPagesOutput || !wrangler.workerHasMainIndex) {
     blockers.push({ type: "wrangler-config-mismatch", wrangler });
-  }
-
-  if (!psychotest.exists) {
-    blockers.push({ type: "psychotest-missing", file: "public/psychotest.html" });
-  }
-
-  if (psychotest.exists && !psychotest.isStaticFrontendOnly) {
-    warnings.push({
-      type: "psychotest-has-backend-signals",
-      signals: psychotest.backendSignals,
-    });
   }
 
   if (worker.warnings.length > 0) {
@@ -225,9 +185,6 @@ async function main() {
   }
 
   const appClassification = {
-    psychotest: psychotest.exists
-      ? (psychotest.isStaticFrontendOnly ? "frontend-static" : "frontend-with-backend-calls")
-      : "missing",
     repository: legacyServer.exists ? "hybrid-static-plus-backend" : "static-or-worker-only",
   };
 
@@ -247,7 +204,6 @@ async function main() {
       wrangler,
       nextOutput,
       worker,
-      psychotest,
       legacyServer,
     },
     blockers,

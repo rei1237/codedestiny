@@ -106,10 +106,6 @@
 /sample/tarot                   /sample/tarot-result.html        301
 /sample/today                   /sample/today-fortune.html       301
 
-# 심리테스트 폴더형 라우팅 (Aesthetic-Pig-Design 구조 반영)
-/psychotest.html                /psychotest/                     301
-/psychotest                     /psychotest/                     301
-
 # SPA 폴백 (Next.js가 처리하지 않는 경로)
 # Next.js App Router가 있으므로 아래는 Cloudflare Pages 정적 자산에만 적용
 

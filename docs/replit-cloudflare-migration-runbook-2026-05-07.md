@@ -7,13 +7,11 @@ Current repository is **not frontend-only**.
 - Frontend static:
   - Next.js export output (`dist/`)
   - Legacy static entries (`public/index.html`, localized static files)
-  - Replit psychotest page (`public/psychotest.html`)
 - Backend logic present:
   - Cloudflare Worker API (`worker/index.js`, `worker/routes/*`)
   - Legacy Node/Express server (`server/*`) still exists as fallback code
 
 Final classification:
-- `psychotest.html`: frontend-static
 - whole service: hybrid-static-plus-backend
 
 ## 2) Cloudflare-incompatible Node module policy
@@ -34,7 +32,6 @@ What it validates:
 - Required deployment files exist
 - `wrangler.toml` and `worker/wrangler.toml` core keys are aligned
 - Worker source does not import blocked Node-only modules (`fs`, `path`, `child_process`, etc.)
-- Psychotest page backend signals (`/api` calls, Node globals)
 - Legacy Express server presence warning
 
 Use this check before production deploy.
@@ -94,10 +91,6 @@ Do not switch to D1 in one shot without data validation + rollback plan.
    - payment callback (if active)
    - social oauth callback (if active)
 
-## 6) Notes for psychotest from Replit
+## 6) External feature links
 
-`public/psychotest.html` is currently deployable as static content.
-
-- Works under Pages without Node backend dependency.
-- Keep assets under `public/fuctionassets/*` and avoid runtime server rewrites.
-- If future editing becomes difficult, split psychotest into source template + build script, then generate final static HTML in CI.
+If a feature is hosted externally (for example, on Replit), keep the main-page banner CTA as an external link and avoid in-repo static route dependencies for that feature.
