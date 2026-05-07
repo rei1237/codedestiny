@@ -21,6 +21,7 @@ const CANONICAL_ORIGIN = "https://code-destiny.com";
 
 // Static metadata for static export
 export const metadata = {
+  charset: "utf-8",
   metadataBase: new URL("https://code-destiny.com"),
   applicationName: "꿀꿀 만세력",
   title: {
