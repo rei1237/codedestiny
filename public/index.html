@@ -7,9 +7,6 @@
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력</title>
 
@@ -604,6 +601,11 @@ body:not(.neo-mode) .logo-area{overflow:clip}
 body:not(.neo-mode) .logo-area::after{content:'';position:absolute;left:0;right:0;top:-100%;width:100%;height:300%;pointer-events:none;z-index:0;background-image:radial-gradient(1.5px 1.5px at 8% 2%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 22% 8%,rgba(255,230,250,0.85),transparent),radial-gradient(1.5px 1.5px at 38% 4%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 55% 12%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 72% 3%,rgba(255,220,245,0.9),transparent),radial-gradient(1px 1px at 88% 10%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 15% 18%,rgba(255,240,250,0.7),transparent),radial-gradient(1.5px 1.5px at 45% 22%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 68% 16%,rgba(255,228,248,0.75),transparent),radial-gradient(1.5px 1.5px at 92% 24%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 5% 28%,rgba(255,235,252,0.7),transparent),radial-gradient(1.5px 1.5px at 28% 32%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 58% 26%,rgba(255,230,250,0.8),transparent),radial-gradient(1px 1px at 82% 30%,rgba(255,245,255,0.75),transparent),radial-gradient(1.5px 1.5px at 12% 38%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 48% 42%,rgba(255,220,245,0.85),transparent),radial-gradient(1px 1px at 75% 36%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 35% 48%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 65% 52%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 18% 58%,rgba(255,230,250,0.7),transparent),radial-gradient(1.5px 1.5px at 52% 62%,rgba(255,245,255,0.8),transparent),radial-gradient(1px 1px at 85% 56%,rgba(255,255,255,0.75),transparent);background-size:100% 33.333%;background-repeat:repeat-y;will-change:transform;animation:starfall 12s linear infinite;-webkit-animation:starfall 12s linear infinite}
 body:not(.neo-mode) .logo-area .logo-cosmos,body:not(.neo-mode) .logo-area .normal-logo{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){body:not(.neo-mode) .logo-area::after{animation:none;opacity:.6}}
+@media(min-width:1025px){
+  body:not(.neo-mode) .logo-area::after{animation:none;-webkit-animation:none;opacity:.42}
+  .neo-logo-icon,.honeypig-logo-icon{animation:none;-webkit-animation:none}
+  .pig-svg-wrap::after{animation:none;-webkit-animation:none;opacity:.2}
+}
   </style>
   <!-- ─── PERF: 라이브러리 로딩 스켈레톤 + reduced-motion (TASK 2·5) ─── -->
   <style id="cd-perf">
@@ -646,7 +648,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/core-ui.css?v=20260504-tapguard1">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
-  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix">
+  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix" media="(max-width: 1024px)">
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
