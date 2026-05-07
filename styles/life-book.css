@@ -2123,7 +2123,7 @@ body.theme-pig .lb-ch-dot--pending {
 
 .lb-result__date {
   font-size: 0.78rem;
-  color: #64748b;
+  color: #bfd1ef;
 }
 
 .lb-result__content {
@@ -2133,7 +2133,8 @@ body.theme-pig .lb-ch-dot--pending {
   padding: 0 0 32px;
 }
 
-/* ── 프리미엄 리포트 공통 가독성 보강(점성술/베다/숙요/인생의책) ── */
+/* ── 프리미엄 리포트 공통 가독성 보강(자미두수/점성술/베다/숙요/인생의책) ── */
+#ziweiBookModal .lb-result__content,
 #astroBookModal .lb-result__content,
 #vedicBookModal .lb-result__content,
 #sukuyoBookModal .lb-result__content,
@@ -2142,6 +2143,7 @@ body.theme-pig .lb-ch-dot--pending {
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
 }
 
+#ziweiBookModal .zb-chapter-num,
 #astroBookModal .zb-chapter-num,
 #vedicBookModal .zb-chapter-num,
 #sukuyoBookModal .zb-chapter-num,
@@ -2149,6 +2151,7 @@ body.theme-pig .lb-ch-dot--pending {
   color: #fcd34d !important;
 }
 
+#ziweiBookModal .zb-chapter-title,
 #astroBookModal .zb-chapter-title,
 #vedicBookModal .zb-chapter-title,
 #sukuyoBookModal .zb-chapter-title,
@@ -2156,6 +2159,7 @@ body.theme-pig .lb-ch-dot--pending {
   color: #f8fbff !important;
 }
 
+#ziweiBookModal .zb-chapter-sub,
 #astroBookModal .zb-chapter-sub,
 #vedicBookModal .zb-chapter-sub,
 #sukuyoBookModal .zb-chapter-sub,
@@ -2163,6 +2167,7 @@ body.theme-pig .lb-ch-dot--pending {
   color: #dbeafe !important;
 }
 
+#ziweiBookModal .zb-chapter-body,
 #astroBookModal .zb-chapter-body,
 #vedicBookModal .zb-chapter-body,
 #sukuyoBookModal .zb-chapter-body,
@@ -2172,6 +2177,8 @@ body.theme-pig .lb-ch-dot--pending {
   font-size: 0.98rem;
 }
 
+#ziweiBookModal .zb-md-h1,
+#ziweiBookModal .zb-md-h2,
 #astroBookModal .zb-md-h1,
 #astroBookModal .zb-md-h2,
 #vedicBookModal .zb-md-h1,
@@ -2185,6 +2192,8 @@ body.theme-pig .lb-ch-dot--pending {
   border-left-color: rgba(191, 219, 254, 0.9) !important;
 }
 
+#ziweiBookModal .zb-md-h3,
+#ziweiBookModal .zb-md-h4,
 #astroBookModal .zb-md-h3,
 #astroBookModal .zb-md-h4,
 #vedicBookModal .zb-md-h3,
@@ -2196,10 +2205,12 @@ body.theme-pig .lb-ch-dot--pending {
   color: #dbeafe !important;
 }
 
+#ziweiBookModal .zb-md-p,
 #astroBookModal .zb-md-p,
 #vedicBookModal .zb-md-p,
 #sukuyoBookModal .zb-md-p,
 #lifeBookModal .lb-md-p,
+#ziweiBookModal .zb-md-li,
 #astroBookModal .zb-md-li,
 #vedicBookModal .zb-md-li,
 #sukuyoBookModal .zb-md-li,
@@ -2207,6 +2218,7 @@ body.theme-pig .lb-ch-dot--pending {
   color: #e9f1ff !important;
 }
 
+#ziweiBookModal .zb-md-blockquote,
 #astroBookModal .zb-md-blockquote,
 #vedicBookModal .zb-md-blockquote,
 #sukuyoBookModal .zb-md-blockquote,
@@ -2216,6 +2228,7 @@ body.theme-pig .lb-ch-dot--pending {
   border-left-color: rgba(125, 211, 252, 0.95) !important;
 }
 
+#ziweiBookModal .zb-chapter-body strong,
 #astroBookModal .zb-chapter-body strong,
 #vedicBookModal .zb-chapter-body strong,
 #sukuyoBookModal .zb-chapter-body strong,
@@ -2223,6 +2236,7 @@ body.theme-pig .lb-ch-dot--pending {
   color: #ffffff !important;
 }
 
+#ziweiBookModal .zb-chapter-body em,
 #astroBookModal .zb-chapter-body em,
 #vedicBookModal .zb-chapter-body em,
 #sukuyoBookModal .zb-chapter-body em,

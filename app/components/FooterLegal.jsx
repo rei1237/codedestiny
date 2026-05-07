@@ -1,4 +1,5 @@
 import AdminTrigger from "./AdminTrigger";
+import styles from "./LegalUi.module.css";
 
 /**
  * FooterLegal — 푸터 법적 고지 HTML 스니펫
@@ -11,8 +12,8 @@ import AdminTrigger from "./AdminTrigger";
 
 export default function FooterLegal() {
   return (
-    <div className="cd-footer-legal">
-      <p className="legal-highlight">
+    <div className={styles.footerLegal}>
+      <p className={styles.legalHighlight}>
         ⚠️ 면책 조항 (Disclaimer)
       </p>
       <p>

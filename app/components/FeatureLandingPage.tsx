@@ -443,7 +443,14 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             position:"relative", height:"220px",
           }}>
             <img
-              src={service.ogImage} alt={title} loading="lazy"
+              src={service.ogImage}
+              alt={title}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              width={1200}
+              height={630}
+              sizes="(max-width: 768px) 92vw, 760px"
               style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
             />
             <div style={{

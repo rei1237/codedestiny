@@ -46,6 +46,19 @@ function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string
   return headers;
 }
 
+function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
+  if (typeof window === "undefined") return "include";
+
+  const base = String(apiBase || "").trim();
+  if (!base) return "include";
+
+  try {
+    return new URL(base).origin === window.location.origin ? "include" : "omit";
+  } catch {
+    return "include";
+  }
+}
+
 const FILTER_OPTIONS: Array<{ key: FilterKey; label: string }> = [
   { key: "all", label: "전체" },
   { key: "draft", label: "임시저장" },
@@ -85,6 +98,7 @@ export default function AdminInsightsPage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const endpointBase = `${apiBase || ""}/api/admin/insights`;
+  const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const [filter, setFilter] = useState<FilterKey>("all");
   const [sort, setSort] = useState<SortKey>("latest");
@@ -108,7 +122,7 @@ export default function AdminInsightsPage() {
 
       const res = await fetch(url.toString(), {
         method: "GET",
-        credentials: "include",
+        credentials: requestCredentials,
         headers: buildAdminHeaders(),
       });
       const data = await res.json().catch(() => ({}));
@@ -138,7 +152,7 @@ export default function AdminInsightsPage() {
   useEffect(() => {
     loadList();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpointBase, filter, sort, query]);
+  }, [endpointBase, filter, sort, query, requestCredentials]);
 
   async function updateStatus(id: string, status: InsightStatus) {
     setBusyId(id);
@@ -146,7 +160,7 @@ export default function AdminInsightsPage() {
     try {
       const res = await fetch(`${endpointBase}/${id}`, {
         method: "PUT",
-        credentials: "include",
+        credentials: requestCredentials,
         headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ status }),
       });
@@ -167,7 +181,7 @@ export default function AdminInsightsPage() {
     try {
       const res = await fetch(`${endpointBase}/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        credentials: requestCredentials,
         headers: buildAdminHeaders(),
       });
       const data = await res.json().catch(() => ({}));

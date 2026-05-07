@@ -1,16 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MainHeroFortuneForm from "./MainHeroFortuneForm";
 import QuickServiceShortcuts from "./QuickServiceShortcuts";
-import PersonalizedServiceRecommendations from "./PersonalizedServiceRecommendations";
-import ServiceCollectionSection from "./ServiceCollectionSection";
 import type { ServiceCardModel } from "./ServiceCard";
-import FeatureUnlockShowcase from "./FeatureUnlockShowcase";
-import GlobalPricingCard from "./GlobalPricingCard";
-import GlobalTrustSection from "./GlobalTrustSection";
-import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 // AUXILIARY LANDING (React Home): 메인 서비스 기준 화면은 public/static/index.html 의 inputPage.
 
@@ -71,6 +66,76 @@ const premiumItems: ServiceCardModel[] = [
   { title: "포인트/코인 센터", description: "충전 및 사용 내역 관리", href: "/points", emoji: "💳", badges: [{ text: "관리", tone: "soft" }] },
 ];
 
+const DeferredPersonalizedServiceRecommendations = dynamic(() => import("./PersonalizedServiceRecommendations"), {
+  ssr: false,
+  loading: () => null,
+});
+const DeferredServiceCollectionSection = dynamic(() => import("./ServiceCollectionSection"), {
+  ssr: false,
+  loading: () => null,
+});
+const DeferredFeatureUnlockShowcase = dynamic(() => import("./FeatureUnlockShowcase"), {
+  ssr: false,
+  loading: () => null,
+});
+const DeferredGlobalPricingCard = dynamic(() => import("./GlobalPricingCard"), {
+  ssr: false,
+  loading: () => null,
+});
+const DeferredGlobalTrustSection = dynamic(() => import("./GlobalTrustSection"), {
+  ssr: false,
+  loading: () => null,
+});
+const DeferredEmailSubscriptionSection = dynamic(() => import("./EmailSubscriptionSection"), {
+  ssr: false,
+  loading: () => null,
+});
+
+type LazySectionProps = {
+  id?: string;
+  className?: string;
+  minHeight?: number;
+  rootMargin?: string;
+  children: React.ReactNode;
+};
+
+function LazySection({ id, className, minHeight = 260, rootMargin = "300px 0px", children }: LazySectionProps) {
+  const hostRef = useRef<HTMLElement | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (ready) return;
+    var host = hostRef.current;
+    if (!host) return;
+    if (typeof window === "undefined" || typeof window.IntersectionObserver !== "function") {
+      setReady(true);
+      return;
+    }
+    var observer = new IntersectionObserver(
+      function (entries) {
+        for (var i = 0; i < entries.length; i += 1) {
+          if (entries[i].isIntersecting) {
+            setReady(true);
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: rootMargin, threshold: 0.01 }
+    );
+    observer.observe(host);
+    return function () {
+      observer.disconnect();
+    };
+  }, [ready, rootMargin]);
+
+  return (
+    <section id={id} ref={hostRef} className={className} style={!ready ? { minHeight: `${minHeight}px` } : undefined}>
+      {ready ? children : null}
+    </section>
+  );
+}
+
 export default function MainLandingPage() {
   const [profile, setProfile] = useState<FormState | null>(null);
 
@@ -100,10 +165,15 @@ export default function MainLandingPage() {
             <div className="mx-auto mb-3 h-[94px] w-[94px] overflow-hidden rounded-full border-2 border-amber-200/60 shadow-[0_12px_28px_rgba(20,11,45,0.6)] md:h-[120px] md:w-[120px]">
               <img
                 src="/icons/honeypig-130.webp"
+                srcSet="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
+                sizes="(max-width: 768px) 94px, 120px"
                 alt="꿀꿀 연이 로고"
                 className="h-full w-full object-cover"
+                width={130}
+                height={130}
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
               />
             </div>
             <h1 className="text-[clamp(1.45rem,3.2vw,2.5rem)] font-black tracking-[-0.02em] text-violet-50">
@@ -150,21 +220,21 @@ export default function MainLandingPage() {
       <section className="cd-main-shell !py-4 md:!py-5">
         <QuickServiceShortcuts />
       </section>
-      
-      <section className="cd-main-shell !py-4 md:!py-5">
-        <EmailSubscriptionSection birthYear={profile?.birthDate ? parseInt(profile.birthDate.split("-")[0], 10) : undefined} />
-      </section>
 
-      <section className="cd-main-shell !py-4 md:!py-5">
-        <PersonalizedServiceRecommendations profile={profile} recommendations={recommendations} />
-      </section>
+      <LazySection className="cd-main-shell !py-4 md:!py-5" minHeight={220}>
+        <DeferredPersonalizedServiceRecommendations profile={profile} recommendations={recommendations} />
+      </LazySection>
 
-      <section className="cd-main-shell !py-4 md:!py-5">
-        <FeatureUnlockShowcase />
-      </section>
+      <LazySection className="cd-main-shell !py-4 md:!py-5" minHeight={220}>
+        <DeferredEmailSubscriptionSection birthYear={profile?.birthDate ? parseInt(profile.birthDate.split("-")[0], 10) : undefined} />
+      </LazySection>
 
-      <section className="cd-main-shell space-y-4 !pb-8 !pt-4">
-        <ServiceCollectionSection
+      <LazySection className="cd-main-shell !py-4 md:!py-5" minHeight={280}>
+        <DeferredFeatureUnlockShowcase />
+      </LazySection>
+
+      <LazySection className="cd-main-shell space-y-4 !pb-8 !pt-4" minHeight={680} rootMargin="420px 0px">
+        <DeferredServiceCollectionSection
           title="나에게 맞는 추천 운세"
           subtitle="입력 정보를 기준으로 우선순위가 높은 리딩"
           description="첫 진입에 적합한 서비스부터 시작해 오늘의 운세 흐름을 빠르게 확인하세요."
@@ -173,7 +243,7 @@ export default function MainLandingPage() {
           items={recommendations.length ? recommendations : [...oracleItems.slice(0, 3), ...cosmicItems.slice(0, 2), premiumItems[5]]}
         />
 
-        <ServiceCollectionSection
+        <DeferredServiceCollectionSection
           title="신탁 & 점술 컬렉션"
           subtitle="동서양 상징 기반 점술 리딩"
           description="화투, 찻잎, 주석, 지오맨시 등 상징 해석 중심의 점술 컬렉션입니다."
@@ -181,7 +251,7 @@ export default function MainLandingPage() {
           items={oracleItems}
         />
 
-        <ServiceCollectionSection
+        <DeferredServiceCollectionSection
           title="코즈믹 & 별자리 컬렉션"
           subtitle="별자리·자미두수·베다 기반 우주형 리딩"
           description="행성과 궁성 데이터를 통해 성향과 타이밍을 입체적으로 읽어냅니다."
@@ -189,7 +259,7 @@ export default function MainLandingPage() {
           items={cosmicItems}
         />
 
-        <ServiceCollectionSection
+        <DeferredServiceCollectionSection
           title="동물 & 관상 컬렉션"
           subtitle="본능 캐릭터와 관계 에너지 분석"
           description="동물 관상, 토템, 가디언 아트 등 직관형 체험 서비스를 모았습니다."
@@ -197,7 +267,7 @@ export default function MainLandingPage() {
           items={animalItems}
         />
 
-        <ServiceCollectionSection
+        <DeferredServiceCollectionSection
           title="명상 컬렉션"
           subtitle="내면 안정과 집중 회복을 위한 루틴"
           description="명상과 꿈 해석을 결합해 감정 흐름을 정리하고 실행력을 높입니다."
@@ -205,16 +275,16 @@ export default function MainLandingPage() {
           items={meditationItems}
         />
 
-        <ServiceCollectionSection
+        <DeferredServiceCollectionSection
           title="프리미엄/코인 서비스 안내"
           subtitle="소개 보기부터 PDF 생성까지 이어지는 VVIP 리포트"
           description="프리미엄 분석은 코인 기반으로 제공되며 결과 리포트는 PDF로 보관할 수 있습니다."
           icon="♛"
           items={premiumItems}
         />
-      </section>
+      </LazySection>
 
-      <section className="cd-main-shell !pb-10 !pt-2">
+      <LazySection className="cd-main-shell !pb-10 !pt-2" minHeight={420} rootMargin="460px 0px">
         <div className="cd-card mb-4">
           <h2 className="cd-main-title" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.7rem)" }}>
             Premium / Coin Information
@@ -223,9 +293,9 @@ export default function MainLandingPage() {
             하단에서 가격, 결제, 신뢰 정보를 한 번에 확인하고 필요할 때만 프리미엄 리포트를 시작할 수 있습니다.
           </p>
         </div>
-        <GlobalPricingCard locale="ko" />
-        <GlobalTrustSection compact showFooter={false} locale="ko" />
-      </section>
+        <DeferredGlobalPricingCard locale="ko" />
+        <DeferredGlobalTrustSection compact showFooter={false} locale="ko" />
+      </LazySection>
     </main>
   );
 }

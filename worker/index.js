@@ -93,6 +93,7 @@ function getCorsHeaders(request, env) {
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": request.headers.get("Access-Control-Request-Headers")
       || "Content-Type, Authorization, X-Admin-Token, X-Admin-Subscription-Tier",

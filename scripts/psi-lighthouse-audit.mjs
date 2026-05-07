@@ -1,0 +1,180 @@
+#!/usr/bin/env node
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { config as loadEnv } from 'dotenv';
+
+// Load local env files when running as a standalone Node script.
+loadEnv({ path: '.env.local' });
+loadEnv();
+
+const API_KEY = process.env.PAGESPEED_API_KEY || process.env.LIGHTHOUSE_KEY || process.env.lighthouse_key || process.env.PSI_KEY || process.env.psi_key || '';
+const TARGET_URL = process.env.PSI_URL || 'https://code-destiny.com';
+const OUT_DIR = process.env.PSI_OUT_DIR || 'reports';
+const ENFORCE = String(process.env.PSI_ENFORCE_THRESHOLDS || 'false').toLowerCase() === 'true';
+
+const thresholds = {
+  perfMin: Number(process.env.PSI_PERF_MIN || 80),
+  tbtMax: Number(process.env.PSI_TBT_MAX || 300),
+  clsMax: Number(process.env.PSI_CLS_MAX || 0.1),
+  lcpMax: Number(process.env.PSI_LCP_MAX || 2500),
+  fcpMax: Number(process.env.PSI_FCP_MAX || 1000),
+  seoMin: Number(process.env.PSI_SEO_MIN || 100),
+  a11yMin: Number(process.env.PSI_A11Y_MIN || 90),
+};
+
+if (!API_KEY) {
+  console.error('[psi-audit] Missing API key: set PAGESPEED_API_KEY, LIGHTHOUSE_KEY (or lighthouse_key), or PSI_KEY');
+  process.exit(1);
+}
+
+function toScore(v) {
+  return typeof v === 'number' ? Math.round(v * 100) : null;
+}
+
+function readMetric(audits, id) {
+  if (!audits || !audits[id]) return null;
+  const v = audits[id].numericValue;
+  return typeof v === 'number' ? v : null;
+}
+
+function readDisplay(audits, id) {
+  if (!audits || !audits[id]) return 'n/a';
+  return audits[id].displayValue || 'n/a';
+}
+
+async function fetchPsi(strategy) {
+  const qs = new URLSearchParams({
+    url: TARGET_URL,
+    strategy,
+    category: 'PERFORMANCE',
+    key: API_KEY,
+  });
+  qs.append('category', 'ACCESSIBILITY');
+  qs.append('category', 'SEO');
+
+  const url = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${qs.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      Referer: `${new URL(TARGET_URL).origin}/`,
+      Origin: new URL(TARGET_URL).origin,
+      'User-Agent': 'Code-Destiny-PSI-Audit',
+    },
+  });
+
+  const json = await res.json();
+  if (!res.ok || json.error) {
+    const msg = json?.error?.message || `HTTP ${res.status}`;
+    throw new Error(`[psi-audit] ${strategy} request failed: ${msg}`);
+  }
+  return json;
+}
+
+function evaluate(strategy, json) {
+  const lr = json.lighthouseResult || {};
+  const cats = lr.categories || {};
+  const audits = lr.audits || {};
+
+  const metrics = {
+    strategy,
+    performance: toScore(cats.performance?.score),
+    accessibility: toScore(cats.accessibility?.score),
+    seo: toScore(cats.seo?.score),
+    fcp: readMetric(audits, 'first-contentful-paint'),
+    lcp: readMetric(audits, 'largest-contentful-paint'),
+    cls: readMetric(audits, 'cumulative-layout-shift'),
+    tbt: readMetric(audits, 'total-blocking-time'),
+    mainThread: readMetric(audits, 'mainthread-work-breakdown'),
+    unusedCssDisplay: readDisplay(audits, 'unused-css-rules'),
+    unusedJsDisplay: readDisplay(audits, 'unused-javascript'),
+    renderBlockingDisplay: readDisplay(audits, 'render-blocking-resources'),
+  };
+
+  const violations = [];
+  if ((metrics.performance ?? -1) < thresholds.perfMin) violations.push(`Performance ${metrics.performance} < ${thresholds.perfMin}`);
+  if ((metrics.tbt ?? Number.POSITIVE_INFINITY) > thresholds.tbtMax) violations.push(`TBT ${Math.round(metrics.tbt)}ms > ${thresholds.tbtMax}ms`);
+  if ((metrics.cls ?? Number.POSITIVE_INFINITY) > thresholds.clsMax) violations.push(`CLS ${metrics.cls?.toFixed(3)} > ${thresholds.clsMax}`);
+  if ((metrics.lcp ?? Number.POSITIVE_INFINITY) > thresholds.lcpMax) violations.push(`LCP ${Math.round(metrics.lcp)}ms > ${thresholds.lcpMax}ms`);
+  if ((metrics.fcp ?? Number.POSITIVE_INFINITY) > thresholds.fcpMax) violations.push(`FCP ${Math.round(metrics.fcp)}ms > ${thresholds.fcpMax}ms`);
+  if ((metrics.seo ?? -1) < thresholds.seoMin) violations.push(`SEO ${metrics.seo} < ${thresholds.seoMin}`);
+  if ((metrics.accessibility ?? -1) < thresholds.a11yMin) violations.push(`Accessibility ${metrics.accessibility} < ${thresholds.a11yMin}`);
+
+  return { metrics, violations };
+}
+
+function toMdRow(label, mobile, desktop) {
+  return `| ${label} | ${mobile} | ${desktop} |`;
+}
+
+async function main() {
+  await fs.mkdir(OUT_DIR, { recursive: true });
+
+  const [mobileRaw, desktopRaw] = await Promise.all([fetchPsi('mobile'), fetchPsi('desktop')]);
+
+  const mobileOut = path.join(OUT_DIR, 'psi-mobile.json');
+  const desktopOut = path.join(OUT_DIR, 'psi-desktop.json');
+  await fs.writeFile(mobileOut, JSON.stringify(mobileRaw, null, 2), 'utf8');
+  await fs.writeFile(desktopOut, JSON.stringify(desktopRaw, null, 2), 'utf8');
+
+  const mobile = evaluate('mobile', mobileRaw);
+  const desktop = evaluate('desktop', desktopRaw);
+
+  const md = [
+    '# PSI Lighthouse Audit',
+    '',
+    `- URL: ${TARGET_URL}`,
+    `- Enforce Thresholds: ${ENFORCE}`,
+    '',
+    '## Metrics',
+    '',
+    '| Metric | Mobile | Desktop |',
+    '| --- | ---: | ---: |',
+    toMdRow('Performance', mobile.metrics.performance ?? 'n/a', desktop.metrics.performance ?? 'n/a'),
+    toMdRow('Accessibility', mobile.metrics.accessibility ?? 'n/a', desktop.metrics.accessibility ?? 'n/a'),
+    toMdRow('SEO', mobile.metrics.seo ?? 'n/a', desktop.metrics.seo ?? 'n/a'),
+    toMdRow('FCP (ms)', mobile.metrics.fcp ? Math.round(mobile.metrics.fcp) : 'n/a', desktop.metrics.fcp ? Math.round(desktop.metrics.fcp) : 'n/a'),
+    toMdRow('LCP (ms)', mobile.metrics.lcp ? Math.round(mobile.metrics.lcp) : 'n/a', desktop.metrics.lcp ? Math.round(desktop.metrics.lcp) : 'n/a'),
+    toMdRow('CLS', mobile.metrics.cls != null ? mobile.metrics.cls.toFixed(3) : 'n/a', desktop.metrics.cls != null ? desktop.metrics.cls.toFixed(3) : 'n/a'),
+    toMdRow('TBT (ms)', mobile.metrics.tbt != null ? Math.round(mobile.metrics.tbt) : 'n/a', desktop.metrics.tbt != null ? Math.round(desktop.metrics.tbt) : 'n/a'),
+    toMdRow('Main Thread (ms)', mobile.metrics.mainThread != null ? Math.round(mobile.metrics.mainThread) : 'n/a', desktop.metrics.mainThread != null ? Math.round(desktop.metrics.mainThread) : 'n/a'),
+    '',
+    '## Opportunity Summary',
+    '',
+    `- Mobile unused CSS: ${mobile.metrics.unusedCssDisplay}`,
+    `- Desktop unused CSS: ${desktop.metrics.unusedCssDisplay}`,
+    `- Mobile unused JS: ${mobile.metrics.unusedJsDisplay}`,
+    `- Desktop unused JS: ${desktop.metrics.unusedJsDisplay}`,
+    `- Mobile render blocking: ${mobile.metrics.renderBlockingDisplay}`,
+    `- Desktop render blocking: ${desktop.metrics.renderBlockingDisplay}`,
+    '',
+    '## Threshold Violations',
+    '',
+    ...((mobile.violations.length || desktop.violations.length)
+      ? [
+          '### Mobile',
+          ...(mobile.violations.length ? mobile.violations.map((v) => `- ${v}`) : ['- none']),
+          '',
+          '### Desktop',
+          ...(desktop.violations.length ? desktop.violations.map((v) => `- ${v}`) : ['- none']),
+        ]
+      : ['- none']),
+    '',
+    `Artifacts: ${mobileOut}, ${desktopOut}`,
+  ].join('\n');
+
+  const summaryPath = path.join(OUT_DIR, 'psi-summary.md');
+  await fs.writeFile(summaryPath, md, 'utf8');
+
+  console.log(`[psi-audit] wrote ${mobileOut}`);
+  console.log(`[psi-audit] wrote ${desktopOut}`);
+  console.log(`[psi-audit] wrote ${summaryPath}`);
+
+  if (ENFORCE && (mobile.violations.length || desktop.violations.length)) {
+    console.error('[psi-audit] Threshold check failed.');
+    process.exit(2);
+  }
+}
+
+main().catch((err) => {
+  console.error(err instanceof Error ? err.message : String(err));
+  process.exit(1);
+});

@@ -469,6 +469,37 @@ function toErrorMessage(error) {
   return String(error?.message || "").slice(0, 240);
 }
 
+function buildTokenFallbackUser(auth) {
+  return {
+    id: auth.userId,
+    name: auth.name || auth.email || "",
+    email: auth.email || "",
+    birthDate: auth.birthDate || "",
+    birthTime: auth.birthTime || "",
+    gender: auth.gender || "OTHER",
+    role: auth.role || "user",
+    points: Number.isFinite(Number(auth.points)) ? Number(auth.points) : 0,
+    joinedAt: auth.joinedAt || null,
+    hasLocalAuth: true,
+  };
+}
+
+function isAuthDbInfraError(error) {
+  const text = String(error?.message || "").toLowerCase();
+  if (!text) return false;
+  return (
+    text.includes("auth_me_connect_db")
+    || text.includes("auth_me_find_user")
+    || text.includes("timeout")
+    || text.includes("timed out")
+    || text.includes("mongo")
+    || text.includes("mongoose")
+    || text.includes("econn")
+    || text.includes("network")
+    || text.includes("server selection")
+  );
+}
+
 function logSignupFailure(request, env, errorCode, errorMessage) {
   const meta = getRequestMeta(request);
   console.error("[auth/signup]", JSON.stringify({
@@ -811,22 +842,11 @@ async function handleMe(request, env) {
       "auth_me_find_user",
     );
   } catch (error) {
-    const message = String(error?.message || "");
-    if (message.includes("auth_me_find_user_timeout") || message.includes("auth_me_connect_db")) {
+    if (isAuthDbInfraError(error)) {
+      console.warn("[auth/me] db degraded, fallback to token payload:", String(error?.message || "unknown"));
       return json({
         message: "Authenticated user loaded from token.",
-        user: {
-          id: auth.userId,
-          name: auth.name || auth.email,
-          email: auth.email,
-          birthDate: auth.birthDate || "",
-          birthTime: auth.birthTime || "",
-          gender: auth.gender || "OTHER",
-          role: auth.role || "user",
-          points: auth.points || 0,
-          joinedAt: auth.joinedAt,
-          hasLocalAuth: true,
-        },
+        user: buildTokenFallbackUser(auth),
         source: "token",
       });
     }

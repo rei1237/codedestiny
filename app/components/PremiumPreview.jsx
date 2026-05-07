@@ -8,6 +8,8 @@
  */
 "use client";
 
+import styles from "./LegalUi.module.css";
+
 export default function PremiumPreview({
   previewText = "",
   featureName = "전체 결과",
@@ -15,26 +17,26 @@ export default function PremiumPreview({
   onUnlock,
 }) {
   return (
-    <div className="cd-preview-container">
+    <div className={styles.previewContainer}>
       {/* 미리보기 본문 (300자+ 반드시 표시) */}
-      <div className="cd-preview-body">
+      <div className={styles.previewBody}>
         <p style={{ fontSize: "15px", lineHeight: "1.8", color: "#e2e0f5", padding: "0 0 60px" }}>
           {previewText}
         </p>
         {/* 페이드아웃 효과 */}
-        <div className="cd-preview-fade" />
+        <div className={styles.previewFade} />
       </div>
 
       {/* 잠금 언오버레이 */}
-      <div className="cd-lock-overlay">
-        <span className="cd-lock-icon">🔐</span>
-        <div className="cd-lock-title">{featureName} 전체 보기</div>
-        <div className="cd-lock-desc">
+      <div className={styles.lockOverlay}>
+        <span className={styles.lockIcon}>🔐</span>
+        <div className={styles.lockTitle}>{featureName} 전체 보기</div>
+        <div className={styles.lockDesc}>
           코인 {coinCost}개로 전체 내용을 잠금 해제하세요.<br />
           구매한 코인은 모든 분석 기능에 사용 가능합니다.
         </div>
         <button
-          className="cd-lock-btn"
+          className={styles.lockBtn}
           onClick={onUnlock}
           type="button"
         >

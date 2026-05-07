@@ -248,6 +248,65 @@
     return null;
   }
 
+  function _toFiniteNumber(v, fallback) {
+    var n = Number(v);
+    return isFinite(n) ? n : fallback;
+  }
+
+  function _buildZiweiBirthCacheKey(profile, birthForEngine) {
+    var p = profile || {};
+    var b = birthForEngine || p.birth || {};
+    var l = p.location || {};
+    return [
+      String(_toFiniteNumber(b.year, 0)),
+      String(_toFiniteNumber(b.month, 0)),
+      String(_toFiniteNumber(b.day, 0)),
+      String(_toFiniteNumber(b.hour, 12)),
+      String(_toFiniteNumber(b.minute, 0)),
+      String(_toFiniteNumber(l.lat, 37.6)),
+      String(_toFiniteNumber(l.lng, 127.0)),
+      String(_toFiniteNumber(l.baseTzOffset != null ? l.baseTzOffset : l.tzOffset, 9)),
+      String(p.gender || ''),
+      String((p.birth && p.birth.calType) || 'solar')
+    ].join('|');
+  }
+
+  function _ensureZiweiEngineData(profile, forceRecalc) {
+    if (!profile || !profile.birth || !profile.birth.year) return null;
+
+    try {
+      if (typeof window.computeProfileForModal === 'function') {
+        window.computeProfileForModal(profile);
+      }
+    } catch (_cpErr) {
+      _trace('ZIWEI_ENGINE_PROFILE_SYNC_FAILED', { message: String(_cpErr && _cpErr.message ? _cpErr.message : _cpErr) });
+    }
+
+    var engineBirth = (window._ziweiBirth && window._ziweiBirth.year) ? window._ziweiBirth : (profile.birth || {});
+    var cacheKey = _buildZiweiBirthCacheKey(profile, engineBirth);
+    var prevKey = String(window.__cdZiweiBirthCacheKey || '');
+    var shouldRecalc = !!forceRecalc || !window._currentZiweiData || (prevKey !== cacheKey);
+
+    if (shouldRecalc && typeof window.calcZiweiPalaces === 'function') {
+      var year = _toFiniteNumber(engineBirth.year, 0);
+      var month = _toFiniteNumber(engineBirth.month, 1);
+      var day = _toFiniteNumber(engineBirth.day, 1);
+      var hour = _toFiniteNumber(engineBirth.hour, 12);
+      var minute = _toFiniteNumber(engineBirth.minute, 0);
+      try {
+        if (year > 0) {
+          window._currentZiweiData = window.calcZiweiPalaces(year, month, day, hour, minute);
+          window.__cdZiweiBirthCacheKey = cacheKey;
+          _trace('ZIWEI_ENGINE_RECALCULATED', { year: year, month: month, day: day, hour: hour, minute: minute });
+        }
+      } catch (_zwCalcErr) {
+        _trace('ZIWEI_ENGINE_RECALC_FAILED', { message: String(_zwCalcErr && _zwCalcErr.message ? _zwCalcErr.message : _zwCalcErr) });
+      }
+    }
+
+    return window._currentZiweiData || null;
+  }
+
   function _collectZiweiData() {
     var profile = window.__cdActiveBirthProfile || {};
     var snap = window.__destinyFlowerSajuSnapshot || {};
@@ -267,14 +326,9 @@
       lines.push('출생지: ' + profile.location.label);
     }
 
-    // 자미두수 12궁 데이터 수집
-    var zd = window._currentZiweiData;
-    if (!zd && birth.year && typeof window.calcZiweiPalaces === 'function') {
-      try {
-        zd = window.calcZiweiPalaces(birth.year, birth.month, birth.day, birth.hour || 0, birth.minute || 0);
-        window._currentZiweiData = zd;
-      } catch (_zdE) {}
-    }
+    // 자미두수 12궁 데이터 수집(프로필 기준으로 엔진 재동기화)
+    var activeProfile = _getActiveBirthProfile() || profile || snap;
+    var zd = _ensureZiweiEngineData(activeProfile, false);
 
     if (zd) {
       lines.push('\n【자미두수 12궁 배치】');
@@ -514,19 +568,7 @@
 
     // 프로필 카드에서 진입했을 때 자미두수 계산 상태를 즉시 동기화
     try {
-      if (typeof window.computeProfileForModal === 'function') {
-        window.computeProfileForModal(profile);
-      }
-      var pb = (profile && profile.birth) || {};
-      if (!window._currentZiweiData && pb.year && typeof window.calcZiweiPalaces === 'function') {
-        window._currentZiweiData = window.calcZiweiPalaces(
-          Number(pb.year),
-          Number(pb.month || 1),
-          Number(pb.day || 1),
-          Number(pb.hour || 0),
-          Number(pb.minute || 0)
-        );
-      }
+      _ensureZiweiEngineData(profile, false);
     } catch (_) {}
 
     // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 5000자+, ⚠️ 없음)이어야 복원
@@ -716,23 +758,33 @@
 
     _generating = true;
     _chapters = Array(13).fill(null);
-    // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
-    if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
-      try { window.computeProfileForModal(profile); } catch (_cpE) {}
-    }
+    // 사주 분석 화면과 100% 일치하도록 전역/자미두수 엔진 동기화
+    _ensureZiweiEngineData(profile, true);
+
     var ziweiData = _collectZiweiData();
+
     // 서버 계산을 위한 생년월일 파라미터 추출
     var _zbProfile = (function () {
       var _p = window.__cdActiveBirthProfile || {};
       var _s = window.__destinyFlowerSajuSnapshot || {};
-      var _b = _p.birth || _s.birth || {};
+      var _rawBirth = _p.birth || _s.birth || {};
+      var _eb = (window._ziweiBirth && window._ziweiBirth.year) ? window._ziweiBirth : _rawBirth;
+      var _loc = _p.location || _s.location || {};
+      var _hour = _toFiniteNumber(_eb.hour, _toFiniteNumber(_rawBirth.hour, 12));
+      var _minute = _toFiniteNumber(_eb.minute, _toFiniteNumber(_rawBirth.minute, 0));
       return {
-        birthYear:  _b.year  || 0,
-        birthMonth: _b.month || 0,
-        birthDay:   _b.day   || 0,
-        birthHour:  (_b.hour !== undefined && _b.hour !== null) ? _b.hour : -1,
+        birthYear:  _toFiniteNumber(_eb.year, _toFiniteNumber(_rawBirth.year, 0)),
+        birthMonth: _toFiniteNumber(_eb.month, _toFiniteNumber(_rawBirth.month, 0)),
+        birthDay:   _toFiniteNumber(_eb.day, _toFiniteNumber(_rawBirth.day, 0)),
+        birthHour:  _hour,
+        birthMinute: _minute,
+        lat: _toFiniteNumber(_loc.lat, 37.6),
+        lon: _toFiniteNumber(_loc.lng, 127.0),
+        timezone: _toFiniteNumber((_loc.baseTzOffset != null ? _loc.baseTzOffset : _loc.tzOffset), 9),
+        birthPlace: _loc.label || '',
+        calendarType: (_rawBirth.calType || 'solar'),
         gender: _p.gender || _s.gender || '',
-        name:   _p.name   || _s.name   || '사용자',
+        name:   _p.name   || _s.name   || '사용자'
       };
     })();
 
@@ -929,12 +981,24 @@
             headers: _zbHeaders,
             body: JSON.stringify({
               sessionId:   idx + 1,
+              chapter:     idx + 1,
               ziweiData:   ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
+              year:        _zbProfile.birthYear,
+              month:       _zbProfile.birthMonth,
+              day:         _zbProfile.birthDay,
+              hour:        _zbProfile.birthHour,
+              minute:      _zbProfile.birthMinute,
               birthYear:   _zbProfile.birthYear,
               birthMonth:  _zbProfile.birthMonth,
               birthDay:    _zbProfile.birthDay,
               birthHour:   _zbProfile.birthHour,
+              birthMinute: _zbProfile.birthMinute,
+              lat:         _zbProfile.lat,
+              lon:         _zbProfile.lon,
+              timezone:    _zbProfile.timezone,
+              birthPlace:  _zbProfile.birthPlace,
+              calendarType:_zbProfile.calendarType,
               gender:      _zbProfile.gender,
               name:        _zbProfile.name,
             }),

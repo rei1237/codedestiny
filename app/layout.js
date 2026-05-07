@@ -1,5 +1,4 @@
 import "../styles/globals.css";
-import "../styles/disclaimer-banner.css";
 import { Noto_Sans_KR } from "next/font/google";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";

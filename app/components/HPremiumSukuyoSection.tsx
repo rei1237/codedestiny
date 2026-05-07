@@ -1004,7 +1004,7 @@ ${chaptersHtml}
         }}
       >
         <div style={{ borderRadius: 24, overflow: "hidden", border: "1px solid rgba(125,211,252,0.25)", background: "linear-gradient(145deg, rgba(2,8,23,0.96) 0%, rgba(15,23,42,0.86) 100%)" }}>
-          <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄 소개" style={{ width: "100%", maxHeight: 280, objectFit: "cover", opacity: 0.42 }} />
+          <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄 소개" width={1200} height={675} loading="lazy" decoding="async" style={{ width: "100%", maxHeight: 280, objectFit: "cover", opacity: 0.42 }} />
           <div style={{ padding: "18px 18px 22px" }}>
             <p style={{ color: "rgba(125,211,252,0.7)", fontSize: "0.66rem", letterSpacing: "0.28em", margin: 0 }}>MOONLIGHT STRATEGY · DETAIL INTRO</p>
             <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>숙요점 달빛 전략 리포트</h3>
@@ -1078,6 +1078,10 @@ ${chaptersHtml}
           <img
             src="/fuctionassets/sukyo_premium.webp"
             alt="숙요점 프리미엄"
+            width={960}
+            height={540}
+            loading="lazy"
+            decoding="async"
             style={{ width: "100%", display: "block" }}
           />
         </div>

@@ -52,6 +52,7 @@
     "smoke:oauth:worker": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny-web.bulegyung.workers.dev",
     "test:signup": "node scripts/test-signup.mjs",
     "perf:psi": "node scripts/measure-psi.mjs",
+    "perf:psi:audit": "node scripts/psi-lighthouse-audit.mjs",
     "perf:psi:before": "node scripts/measure-psi.mjs --out reports/psi-before.json",
     "perf:psi:after": "node scripts/measure-psi.mjs --out reports/psi-after.json",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",

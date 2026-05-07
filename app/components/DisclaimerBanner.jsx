@@ -10,6 +10,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import styles from "./LegalUi.module.css";
 
 const STORAGE_KEY = "cd_disclaimer_dismissed";
 const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -41,19 +42,19 @@ export default function DisclaimerBanner({ dismissible = true, className = "" })
 
   return (
     <div
-      className={`cd-disclaimer-bar ${className}`}
+      className={`${styles.disclaimerBar} ${className}`}
       role="note"
       aria-label="면책 조항 안내"
     >
-      <span className="cd-disclaimer-icon">⚠️</span>
-      <span className="cd-disclaimer-text">
+      <span className={styles.disclaimerIcon}>⚠️</span>
+      <span className={styles.disclaimerText}>
         본 서비스는 <strong>오락 및 참고 목적</strong>의 콘텐츠이며,
         실제 의료·법률·금융 상담을 대체하지 않습니다.
         중요한 결정은 반드시 전문가와 상담하세요.
       </span>
       {dismissible && (
         <button
-          className="cd-disclaimer-close"
+          className={styles.disclaimerClose}
           onClick={handleDismiss}
           aria-label="면책 조항 닫기"
         >

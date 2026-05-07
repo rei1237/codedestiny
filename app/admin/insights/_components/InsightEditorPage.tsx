@@ -52,6 +52,19 @@ function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string
   return headers;
 }
 
+function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
+  if (typeof window === "undefined") return "include";
+
+  const base = String(apiBase || "").trim();
+  if (!base) return "include";
+
+  try {
+    return new URL(base).origin === window.location.origin ? "include" : "omit";
+  } catch {
+    return "include";
+  }
+}
+
 function slugify(input: string): string {
   return String(input || "")
     .normalize("NFKD")
@@ -144,6 +157,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const endpointBase = `${apiBase || ""}/api/admin/insights`;
+  const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
   const isEditMode = mode === "edit";
 
   const [title, setTitle] = useState("");
@@ -270,7 +284,6 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         alt: uploaded.alt || alt,
         width: uploaded.width > 0 ? uploaded.width : undefined,
         height: uploaded.height > 0 ? uploaded.height : undefined,
-        loading: "lazy",
       }).run();
 
       setMessage("본문 이미지를 삽입했습니다.");
@@ -340,7 +353,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
 
       const res = await fetch(url.toString(), {
         method: "GET",
-        credentials: "include",
+        credentials: requestCredentials,
         headers: buildAdminHeaders(),
       });
       const data = await res.json().catch(() => ({}));
@@ -499,7 +512,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       try {
         const res = await fetch(`${endpointBase}/${insightId}`, {
           method: "GET",
-          credentials: "include",
+          credentials: requestCredentials,
           headers: buildAdminHeaders(),
         });
         const data = await res.json().catch(() => ({}));
@@ -559,7 +572,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
     return () => {
       cancelled = true;
     };
-  }, [editor, endpointBase, insightId, isEditMode, router]);
+  }, [editor, endpointBase, insightId, isEditMode, requestCredentials, router]);
 
   useEffect(() => {
     if (isEditMode) return;
@@ -637,7 +650,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
 
       const res = await fetch(targetUrl, {
         method,
-        credentials: "include",
+        credentials: requestCredentials,
         headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });

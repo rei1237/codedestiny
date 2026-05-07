@@ -70,7 +70,7 @@ export default function HPremiumZiweiBookSection({
   if (showIntro) {
     return (
       <section style={{ background:"linear-gradient(145deg,#07091a 0%,#0c0f24 50%,#070916 100%)", border:"1px solid rgba(167,139,250,0.20)", borderRadius:24, overflow:"hidden", boxShadow:"0 12px 50px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-        <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄 소개" style={{ width:"100%", maxHeight:280, objectFit:"cover", opacity:0.42 }} />
+        <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄 소개" width={1200} height={675} loading="lazy" decoding="async" style={{ width:"100%", maxHeight:280, objectFit:"cover", opacity:0.42 }} />
         <div style={{ padding:"18px 18px 22px" }}>
           <p style={{ color:"rgba(167,139,250,0.72)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>ZIWEI DOUSHU PREMIUM · DETAIL INTRO</p>
           <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>자미두수 인생 총람 PDF</h3>
@@ -152,7 +152,7 @@ export default function HPremiumZiweiBookSection({
   return (
     <section style={{ background:"linear-gradient(145deg,#07091a 0%,#0c0f24 50%,#070916 100%)", border:"1px solid rgba(167,139,250,0.20)", borderRadius:24, overflow:"hidden", boxShadow:"0 12px 50px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
       <div style={{ padding:"26px 22px 18px", background:"linear-gradient(135deg,rgba(139,92,246,0.12) 0%,rgba(99,102,241,0.08) 100%)", borderBottom:"1px solid rgba(167,139,250,0.16)", display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" }}>
-        <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄" style={{ width:70, height:70, borderRadius:16, objectFit:"cover", boxShadow:"0 4px 20px rgba(99,102,241,0.35)", flexShrink:0, border:"1.5px solid rgba(167,139,250,0.45)" }} />
+        <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄" width={70} height={70} loading="lazy" decoding="async" style={{ width:70, height:70, borderRadius:16, objectFit:"cover", boxShadow:"0 4px 20px rgba(99,102,241,0.35)", flexShrink:0, border:"1.5px solid rgba(167,139,250,0.45)" }} />
         <div>
           <p style={{ color:"rgba(167,139,250,0.70)", fontSize:"0.62rem", letterSpacing:"0.30em", fontWeight:700, textTransform:"uppercase", marginBottom:5 }}>CODE : DESTINY · ZIWEI MASTER</p>
           <h2 style={{ color:"#fff", fontWeight:900, fontSize:"clamp(1.2rem,3.5vw,1.65rem)", lineHeight:1.25, margin:0 }}>

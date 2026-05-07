@@ -59,7 +59,7 @@ const __lazyActionLoaders = {
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-resetfix2'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-sajuref1'),
   openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix')
 };
 
@@ -71,6 +71,7 @@ function __ensureSajuCoreScripts() {
 }
 
 const __lazyActionState = {};
+const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=20260504-tapguard1';
 
 /** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
 const __CD_DEFER_INP_ACTIONS = new Set([
@@ -142,6 +143,10 @@ function __loadScriptOnce(src) {
     s.onerror = () => reject(new Error('load failed: ' + src));
     document.head.appendChild(s);
   });
+}
+
+function __ensureIndexInlineRuntimeLoaded() {
+  return __loadScriptOnce(__INDEX_INLINE_RUNTIME_SRC);
 }
 
 function __resolveEventElement(event) {
@@ -288,10 +293,28 @@ function __invokeAction(action, actionEl, event) {
   const run = () => {
     const out = __callActionWithConfig(action, actionEl, event, args);
 
-    const loader = __lazyActionLoaders[action];
-    if (!loader) return;
-
     const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
+
+    const loader = __lazyActionLoaders[action];
+
+    // Legacy runtime is now delayed; if an action is missing, load once and retry.
+    if (!loader && !hadFunction && out === undefined) {
+      const fallbackKey = '__index_inline_runtime__';
+      if (!__lazyActionState[fallbackKey]) {
+        __lazyActionState[fallbackKey] = __ensureIndexInlineRuntimeLoaded().catch((err) => {
+          console.error('[uiBindings] index-inline-runtime lazy load failed:', err);
+        });
+      }
+
+      __lazyActionState[fallbackKey].then(() => {
+        if (typeof window[action] === 'function') {
+          __callActionWithConfig(action, actionEl, event, args);
+        }
+      });
+      return;
+    }
+
+    if (!loader) return;
 
     // If the function already exists, avoid redundant lazy-loading + retry loops.
     // Note: some actions (e.g. `openAnimalTotemModal`) might exist as stubs before

@@ -1,11 +1,4 @@
-/* ============================================================
-   DisclaimerBanner.css
-   저장 경로: styles/disclaimer-banner.css
-   글로벌 CSS에 @import 또는 app/layout.js에 import 추가
-   ============================================================ */
-
-/* ── 면책 조항 배너 (헤더 바로 아래 삽입) ── */
-.cd-disclaimer-bar {
+.disclaimerBar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -18,27 +11,26 @@
   color: #c4b5fd;
   position: relative;
   z-index: 900;
-  /* 신비로운 글로우 */
   box-shadow: 0 1px 12px rgba(124, 106, 247, 0.12);
 }
 
-.cd-disclaimer-icon {
+.disclaimerIcon {
   flex-shrink: 0;
   font-size: 15px;
   filter: drop-shadow(0 0 4px rgba(192, 132, 252, 0.6));
 }
 
-.cd-disclaimer-text {
+.disclaimerText {
   flex: 1;
   text-align: center;
 }
 
-.cd-disclaimer-text strong {
+.disclaimerText strong {
   color: #e9d5ff;
   font-weight: 600;
 }
 
-.cd-disclaimer-close {
+.disclaimerClose {
   flex-shrink: 0;
   background: transparent;
   border: 1px solid rgba(124, 106, 247, 0.4);
@@ -51,13 +43,12 @@
   line-height: 1.6;
 }
 
-.cd-disclaimer-close:hover {
+.disclaimerClose:hover {
   background: rgba(124, 106, 247, 0.2);
   color: #e9d5ff;
 }
 
-/* ── Footer 법적 고지 영역 ── */
-.cd-footer-legal {
+.footerLegal {
   border-top: 1px solid rgba(42, 42, 74, 0.8);
   margin-top: 32px;
   padding-top: 24px;
@@ -67,38 +58,35 @@
   text-align: center;
 }
 
-.cd-footer-legal p {
+.footerLegal p {
   margin: 0 0 8px;
 }
 
-.cd-footer-legal a {
+.footerLegal a {
   color: #6b7280;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.cd-footer-legal a:hover {
+.footerLegal a:hover {
   color: #a78bfa;
 }
 
-.cd-footer-legal .legal-highlight {
+.legalHighlight {
   color: #9ca3af;
   font-weight: 500;
 }
 
-/* ── 프리미엄 콘텐츠 미리보기 잠금 오버레이 ── */
-.cd-preview-container {
+.previewContainer {
   position: relative;
   overflow: hidden;
 }
 
-/* 미리보기 본문 영역 (300자+ 표시 보장) */
-.cd-preview-body {
+.previewBody {
   position: relative;
 }
 
-/* 페이드아웃 효과 */
-.cd-preview-fade {
+.previewFade {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -114,8 +102,7 @@
   pointer-events: none;
 }
 
-/* 잠금 오버레이 */
-.cd-lock-overlay {
+.lockOverlay {
   background: rgba(13, 13, 26, 0.96);
   border: 1px solid rgba(42, 42, 74, 0.8);
   border-radius: 0 0 14px 14px;
@@ -123,28 +110,28 @@
   text-align: center;
 }
 
-.cd-lock-icon {
+.lockIcon {
   font-size: 28px;
   margin-bottom: 10px;
   display: block;
   filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.5));
 }
 
-.cd-lock-title {
+.lockTitle {
   font-size: 16px;
   font-weight: 600;
   color: #e2e0f5;
   margin-bottom: 6px;
 }
 
-.cd-lock-desc {
+.lockDesc {
   font-size: 13px;
   color: #8884aa;
   margin-bottom: 16px;
   line-height: 1.6;
 }
 
-.cd-lock-btn {
+.lockBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -161,18 +148,18 @@
   box-shadow: 0 4px 14px rgba(124, 106, 247, 0.4);
 }
 
-.cd-lock-btn:hover {
+.lockBtn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
 
-/* 반응형 */
 @media (max-width: 640px) {
-  .cd-disclaimer-bar {
+  .disclaimerBar {
     padding: 8px 14px;
     font-size: 12px;
   }
-  .cd-disclaimer-text {
+
+  .disclaimerText {
     text-align: left;
   }
 }

@@ -451,7 +451,7 @@ function normalizeBody(body) {
     month: clampInt(body.month ?? body.birthMonth, 1, 1, 12),
     day: clampInt(body.day ?? body.birthDay, 1, 1, 31),
     hour: clampInt(body.hour ?? body.birthHour, 12, 0, 23),
-    minute: clampInt(body.minute, 0, 0, 59),
+    minute: clampInt(body.minute ?? body.birthMinute, 0, 0, 59),
     timezone: Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9,
     lat: Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665,
     lon: Number.isFinite(Number(body.lon ?? body.lng)) ? Number(body.lon ?? body.lng) : 126.978,

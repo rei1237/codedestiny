@@ -196,7 +196,16 @@ export default function InsightsCosmicClient() {
                 return (
                   <Link key={`recommend-${item.slug}`} href={`/insights/${item.slug}`} className="group rounded-2xl border border-amber-200/20 bg-amber-100/[0.05] overflow-hidden hover:border-amber-200/40 transition">
                     {image.url ? (
-                      <img src={image.url} alt={image.alt} loading="lazy" className="h-40 w-full object-cover" />
+                      <img
+                        src={image.url}
+                        alt={image.alt}
+                        loading="lazy"
+                        decoding="async"
+                        width={640}
+                        height={400}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="h-40 w-full object-cover"
+                      />
                     ) : (
                       <div className="h-40 w-full bg-gradient-to-br from-amber-300/15 to-pink-300/10" />
                     )}
@@ -239,7 +248,16 @@ export default function InsightsCosmicClient() {
                   return (
                     <Link key={item.slug} href={`/insights/${item.slug}`} className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden hover:border-amber-300/40 hover:bg-white/[0.05] transition">
                       {image.url ? (
-                        <img src={image.url} alt={image.alt} loading="lazy" className="h-44 w-full object-cover" />
+                        <img
+                          src={image.url}
+                          alt={image.alt}
+                          loading="lazy"
+                          decoding="async"
+                          width={704}
+                          height={440}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="h-44 w-full object-cover"
+                        />
                       ) : (
                         <div className="h-44 w-full bg-gradient-to-br from-indigo-300/10 to-sky-300/10" />
                       )}

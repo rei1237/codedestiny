@@ -1748,7 +1748,7 @@ var __cdLazyActionLoaders = {
   gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260503-premiumfix2'); },
   gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260507-resetfix2'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260507-sajuref1'); },
   openSibylModal: function() {
     return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
@@ -3898,6 +3898,57 @@ function _afEnsureCardOpen(card) {
   syncFeatureCardHeight(card);
 }
 
+function _dfReplayClassAnimation(el, className) {
+  if (!el || !className) return;
+  el.classList.remove(className);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      el.classList.add(className);
+    });
+  });
+}
+
+function _dfBindPointerCardEffect(card, onMove, onLeave) {
+  if (!card || typeof onMove !== 'function') return;
+  var rafId = 0;
+  var lastEvent = null;
+  var rect = null;
+  var rectTs = 0;
+
+  function resolveRect(force) {
+    var now = Date.now();
+    if (force || !rect || (now - rectTs) > 240) {
+      rect = card.getBoundingClientRect();
+      rectTs = now;
+    }
+    return rect;
+  }
+
+  function queueMove(event) {
+    lastEvent = event;
+    if (rafId) return;
+    rafId = requestAnimationFrame(function() {
+      rafId = 0;
+      if (!lastEvent) return;
+      var r = resolveRect(false);
+      if (!r || !r.width || !r.height) return;
+      onMove(lastEvent, r);
+    });
+  }
+
+  card.addEventListener('mouseenter', function() {
+    resolveRect(true);
+  }, { passive: true });
+  card.addEventListener('mousemove', queueMove, { passive: true });
+  window.addEventListener('resize', function() {
+    rect = null;
+  }, { passive: true });
+
+  if (typeof onLeave === 'function') {
+    card.addEventListener('mouseleave', onLeave);
+  }
+}
+
 function _afApplyCardVisual(card, selection) {
   if (!card || !selection) return;
   var matched = selection.matched || {};
@@ -3947,22 +3998,18 @@ function _afApplyCardVisual(card, selection) {
 
   if (!card.__afPointerBound) {
     card.__afPointerBound = true;
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
+    _dfBindPointerCardEffect(card, function(e, rect) {
       var x = ((e.clientX - rect.left) / rect.width) * 100;
       var y = ((e.clientY - rect.top) / rect.height) * 100;
       card.style.setProperty('--af-pointer-x', x.toFixed(2) + '%');
       card.style.setProperty('--af-pointer-y', y.toFixed(2) + '%');
-    });
-    card.addEventListener('mouseleave', function() {
+    }, function() {
       card.style.setProperty('--af-pointer-x', '50%');
       card.style.setProperty('--af-pointer-y', '42%');
     });
   }
 
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
+  _dfReplayClassAnimation(stage, 'is-bloomed');
 }
 
 function _jfResolveSelection() {
@@ -4195,9 +4242,7 @@ function _jfApplyCardVisual(card, selection) {
     });
   }
 
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
+  _dfReplayClassAnimation(stage, 'is-bloomed');
 }
 
 function _sfResolveSelection() {
@@ -4372,14 +4417,12 @@ function _sfApplyCardVisual(card, selection) {
   if (!card.__sfTiltBound) {
     card.__sfTiltBound = true;
     var image = card.querySelector('.sukuyo-flower-stage__image');
-    card.addEventListener('mousemove', function(e) {
+    _dfBindPointerCardEffect(card, function(e, rect) {
       if (!image) return;
-      var rect = card.getBoundingClientRect();
       var rx = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
       var ry = ((e.clientX - rect.left) / rect.width - 0.5) * 7;
       image.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(1.02)';
-    });
-    card.addEventListener('mouseleave', function() {
+    }, function() {
       if (image) image.style.transform = '';
     });
     card.addEventListener('touchmove', function() {
@@ -4390,8 +4433,7 @@ function _sfApplyCardVisual(card, selection) {
     }, { passive: true });
   }
 
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
+  _dfReplayClassAnimation(stage, 'is-bloomed');
 }
 
 function _dfApplyCardVisual(card, selection) {
@@ -4466,9 +4508,7 @@ function _dfApplyCardVisual(card, selection) {
   } else {
     stage.classList.add('is-motion-wood');
   }
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
+  _dfReplayClassAnimation(stage, 'is-bloomed');
 }
 
 function _dfSetBodyLock(locked) {
@@ -4814,9 +4854,7 @@ function _dfSyncSourceTabsLockState(options) {
     }
 
     if (highlightMap[src]) {
-      tab.classList.remove('is-unlock-reveal');
-      void tab.offsetWidth;
-      tab.classList.add('is-unlock-reveal');
+      _dfReplayClassAnimation(tab, 'is-unlock-reveal');
       if (tab.__dfUnlockRevealTimer) clearTimeout(tab.__dfUnlockRevealTimer);
       tab.__dfUnlockRevealTimer = setTimeout(function() {
         tab.classList.remove('is-unlock-reveal');
@@ -5255,8 +5293,7 @@ function _dfBindBloomingInteractions() {
   if (!card || card.__dfHoverBound) return;
   card.__dfHoverBound = true;
 
-  card.addEventListener('mousemove', function(e) {
-    var rect = card.getBoundingClientRect();
+  _dfBindPointerCardEffect(card, function(e, rect) {
     if (!rect.width || !rect.height) return;
     var nx = (e.clientX - rect.left) / rect.width;
     var ny = (e.clientY - rect.top) / rect.height;
@@ -5264,8 +5301,7 @@ function _dfBindBloomingInteractions() {
     var tiltX = ((0.5 - ny) * 4.6).toFixed(2) + 'deg';
     card.style.setProperty('--df-tilt-x', tiltX);
     card.style.setProperty('--df-tilt-y', tiltY);
-  });
-  card.addEventListener('mouseleave', function() {
+  }, function() {
     card.style.setProperty('--df-tilt-x', '0deg');
     card.style.setProperty('--df-tilt-y', '0deg');
   });
@@ -8216,6 +8252,13 @@ window.addEventListener('load', function() {
 // Auto-select language by IP/region on first visit (no saved preference)
 window.addEventListener('load', function() {
   setTimeout(function() {
+    // Perf/stability: auto translation can cause large CLS and long main-thread tasks, so keep this opt-in.
+    try {
+      if (localStorage.getItem('cd_auto_lang_opt_in') !== '1') return;
+    } catch (_) {
+      return;
+    }
+
     try {
       var saved = localStorage.getItem('cd_lang');
       if (saved) return;
@@ -8231,7 +8274,7 @@ window.addEventListener('load', function() {
         changeLanguage(nextLang);
       })
       .catch(function() {});
-  }, 1200);
+  }, 2200);
 });
 
 (function() {

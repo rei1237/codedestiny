@@ -336,7 +336,7 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#
     return (
       <section style={{ width:"100%", maxWidth:820, margin:"0 auto", padding:"0 0 24px", fontFamily:"'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif" }}>
         <div style={{ borderRadius:24, overflow:"hidden", border:"1px solid rgba(212,175,55,0.25)", background:"linear-gradient(145deg, rgba(2,8,23,0.96) 0%, rgba(15,23,42,0.86) 100%)" }}>
-          <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명" style={{ width:"100%", maxHeight:260, objectFit:"cover", opacity:0.42 }} />
+          <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명" width={1200} height={675} loading="lazy" decoding="async" style={{ width:"100%", maxHeight:260, objectFit:"cover", opacity:0.42 }} />
           <div style={{ padding:"20px 20px 24px" }}>
             <p style={{ color:"rgba(212,175,55,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>NAMING PREMIUM · 사주 작명</p>
             <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>명운(明運) 사주 프리미엄 작명</h3>

@@ -114,7 +114,7 @@
     setTimeout(function () {
       interactionCount = Math.max(interactionCount, 1);
       loadDeferredFeatureScripts();
-    }, isMobile() ? 18000 : 12000);
+    }, isMobile() ? 32000 : 24000);
 
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'hidden') {

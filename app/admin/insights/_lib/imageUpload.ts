@@ -20,6 +20,19 @@ const ALLOWED_MIME_TYPES = new Set([
 
 const MAX_UPLOAD_SIZE = 6 * 1024 * 1024;
 
+function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
+  if (typeof window === "undefined") return "include";
+
+  const base = String(apiBase || "").trim();
+  if (!base) return "include";
+
+  try {
+    return new URL(base).origin === window.location.origin ? "include" : "omit";
+  } catch {
+    return "include";
+  }
+}
+
 function validateClientFile(file: File): void {
   if (!file) throw new Error("이미지 파일을 선택해 주세요.");
   if (!ALLOWED_MIME_TYPES.has(String(file.type || "").toLowerCase())) {
@@ -129,7 +142,7 @@ export async function uploadInsightImage(params: {
   const endpoint = `${apiBase}/api/admin/insights/upload-image`;
   const response = await fetch(endpoint, {
     method: "POST",
-    credentials: "include",
+    credentials: resolveAdminRequestCredentials(apiBase),
     headers: FLOWER_ADMIN_TOKEN_RE.test(adminToken)
       ? { "x-admin-token": adminToken }
       : undefined,

@@ -647,7 +647,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/core-ui.css?v=20260504-tapguard1">
-  <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
+  <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=20260411-foucfix3" data-cd-mobile-delay="1">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3"></noscript>
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix" media="(max-width: 1024px)">
 
   <script src="/js/inline/api-base-init.js" defer></script>
@@ -5014,19 +5015,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             </div>
           </div>
           <div class="lb-loading__dots-wrap">
-            <span id="zbChDot0"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="1"  title="Ch.1 명궁"></span>
-            <span id="zbChDot1"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="2"  title="Ch.2 신궁"></span>
-            <span id="zbChDot2"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="3"  title="Ch.3 12궁 배치"></span>
-            <span id="zbChDot3"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="4"  title="Ch.4 주성 해독"></span>
-            <span id="zbChDot4"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="5"  title="Ch.5 관록궁"></span>
-            <span id="zbChDot5"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="6"  title="Ch.6 재백궁"></span>
-            <span id="zbChDot6"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="7"  title="Ch.7 부처궁"></span>
-            <span id="zbChDot7"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="8"  title="Ch.8 살성·화기"></span>
-            <span id="zbChDot8"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="9"  title="Ch.9 대한 분석"></span>
-            <span id="zbChDot9"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="10" title="Ch.10 천이궁·복덕궁"></span>
-            <span id="zbChDot10" class="lb-ch-dot lb-ch-dot--pending" data-zbch="11" title="Ch.11 2026 소한"></span>
-            <span id="zbChDot11" class="lb-ch-dot lb-ch-dot--pending" data-zbch="12" title="Ch.12 생애 마스터플랜"></span>
-            <span id="zbChDot12" class="lb-ch-dot lb-ch-dot--pending" data-zbch="13" title="Ch.13 천명 총결산"></span>
+            <span id="zbChDot0"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="1"  title="Ch.1 명궁"></span>
+            <span id="zbChDot1"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="2"  title="Ch.2 신궁"></span>
+            <span id="zbChDot2"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="3"  title="Ch.3 12궁 배치"></span>
+            <span id="zbChDot3"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="4"  title="Ch.4 주성 해독"></span>
+            <span id="zbChDot4"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="5"  title="Ch.5 관록궁"></span>
+            <span id="zbChDot5"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="6"  title="Ch.6 재백궁"></span>
+            <span id="zbChDot6"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="7"  title="Ch.7 부처궁"></span>
+            <span id="zbChDot7"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="8"  title="Ch.8 살성·화기"></span>
+            <span id="zbChDot8"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="9"  title="Ch.9 대한 분석"></span>
+            <span id="zbChDot9"  class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="10" title="Ch.10 천이궁·복덕궁"></span>
+            <span id="zbChDot10" class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="11" title="Ch.11 2026 소한"></span>
+            <span id="zbChDot11" class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="12" title="Ch.12 생애 마스터플랜"></span>
+            <span id="zbChDot12" class="lb-ch-dot zb-ch-dot lb-ch-dot--pending" data-zbch="13" title="Ch.13 천명 총결산"></span>
           </div>
           <blockquote class="lb-loading__mystic" id="zbMysticQuote">
             "명궁은 하늘이 이 생에 각인한 첫 번째 별빛이다."
@@ -6106,10 +6107,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
-<script src="/js/mobile-interaction-patch.js?v=20260503-premiumfix2" defer></script>
+<script data-cd-noncritical-src="/js/mobile-interaction-patch.js?v=20260503-premiumfix2" data-cd-mobile-delay="0"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260504-tapguard1"></script>
+<script>
+(function(){
+  var src='/js/core/index-inline-runtime.js?v=20260504-tapguard1';
+  if (window.__cdRuntimeLoaderInit===1) return;
+  window.__cdRuntimeLoaderInit=1;
+  var loaded=false;
+  function loadRuntime(){
+    if(loaded) return;
+    loaded=true;
+    if(document.querySelector('script[src="'+src+'"]')) return;
+    var s=document.createElement('script');
+    s.src=src;
+    s.defer=true;
+    s.async=false;
+    document.body.appendChild(s);
+  }
+  function schedule(){
+    if('requestIdleCallback' in window){
+      window.requestIdleCallback(loadRuntime,{timeout:2200});
+    } else {
+      setTimeout(loadRuntime,1200);
+    }
+  }
+  if (location.search.indexOf('action=')!==-1 || location.hash) {
+    loadRuntime();
+    return;
+  }
+  if (document.readyState==='complete') schedule();
+  else window.addEventListener('load', schedule, {once:true});
+  window.addEventListener('pointerdown', loadRuntime, {capture:true,passive:true,once:true});
+  window.addEventListener('keydown', loadRuntime, {capture:true,once:true});
+  window.addEventListener('touchstart', loadRuntime, {capture:true,passive:true,once:true});
+  window.addEventListener('focusin', loadRuntime, {capture:true,once:true});
+  document.addEventListener('submit', loadRuntime, {capture:true,once:true});
+})();
+</script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 

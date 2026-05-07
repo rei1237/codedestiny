@@ -78,6 +78,7 @@
   var _mysticTimer = null;
   var _activeRequestController = null;
   var _cancelGeneration = false;
+  var _cachedSajuData = '';
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
@@ -503,6 +504,61 @@
     return null;
   }
 
+  function _isSajuDataValid(sajuData) {
+    var s = String(sajuData || '');
+    if (!s || s.length < 120) return false;
+    return /사주\s*원국|년주\(年柱\)|월주\(月柱\)|일주\(日柱\)|오행\(五行\)|일간\(日干\)|용신\(用神\)|대운\(大運\)/.test(s);
+  }
+
+  function _buildFallbackSajuData(profile) {
+    var p = profile || {};
+    var b = p.birth || {};
+    return [
+      '【사주 엔진 보완 프로필】',
+      '이름: ' + String(p.name || '사용자'),
+      '성별: ' + String(p.gender || '미상'),
+      '생년월일: ' + String(b.year || 1990) + '-' + String(b.month || 1) + '-' + String(b.day || 1),
+      '출생 시각: ' + String((b.hour !== undefined ? b.hour : 12)) + ':' + String((b.minute !== undefined ? b.minute : 0)).padStart(2, '0'),
+      '- 오행 분포: 기존 계산 결과가 없어 중립 보완',
+      '- 일간/십성: 기존 계산 결과가 없어 보수적 해석',
+      '- 대운/세운: 기존 계산 결과가 없어 실행 전략 중심 보완'
+    ].join('\n');
+  }
+
+  function _ensureSajuDataForGeneration(profile) {
+    var existing = _cachedSajuData || _collectSajuData();
+    if (_isSajuDataValid(existing)) {
+      _cachedSajuData = existing;
+      return { sajuData: existing, usedFallbackData: false, source: 'existing-result' };
+    }
+
+    var snapshotJson = '';
+    try {
+      if (window.__destinyFlowerSajuSnapshot) {
+        snapshotJson = JSON.stringify(window.__destinyFlowerSajuSnapshot, null, 2);
+      }
+    } catch (_) {}
+    if (snapshotJson && snapshotJson.length > 120) {
+      var fromSnapshot = '【기존 사주 분석 스냅샷】\n' + snapshotJson;
+      _cachedSajuData = fromSnapshot;
+      return { sajuData: fromSnapshot, usedFallbackData: false, source: 'existing-snapshot' };
+    }
+
+    var hasExistingResult = !!(window.__destinyFlowerSajuSnapshot || window.G_PILLARS || window.G_NATAL || window.G_POWER || window.G_JOHU);
+    if (!hasExistingResult && typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
+      try { window.computeProfileForModal(profile); } catch (_) {}
+      var recomputed = _collectSajuData();
+      if (_isSajuDataValid(recomputed)) {
+        _cachedSajuData = recomputed;
+        return { sajuData: recomputed, usedFallbackData: false, source: 'recomputed-profile' };
+      }
+    }
+
+    var fallback = _buildFallbackSajuData(profile);
+    _cachedSajuData = fallback;
+    return { sajuData: fallback, usedFallbackData: true, source: 'fallback-profile' };
+  }
+
   /* ── localStorage 저장/복원 ── */
   var _LB_STORE_VER = 'lb_v1_';
 
@@ -570,6 +626,7 @@
 
     // 재진입 시 이전 결과가 남지 않도록 캐시를 즉시 비운다.
     _lbClearSaved(profile);
+    _cachedSajuData = '';
 
     _chapters = Array(13).fill(null);
     _currentChapter = 1;
@@ -600,6 +657,7 @@
     if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
     _chapters = Array(13).fill(null);
     _currentChapter = 1;
+    _cachedSajuData = '';
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
@@ -662,7 +720,7 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    /* 모달 출생지 선택기 값으로 위치 재설정 */
+    /* 모달 출생지 선택기 값 반영 (기존 사주 결과를 덮어쓰는 재계산은 하지 않음) */
     var lbCountrySel = document.getElementById('lbBirthCountry');
     if (lbCountrySel && lbCountrySel.selectedIndex >= 0) {
       var _selOpt = lbCountrySel.options[lbCountrySel.selectedIndex];
@@ -677,21 +735,17 @@
         };
         profile.location = _newLoc;
         if (window.__cdActiveBirthProfile) window.__cdActiveBirthProfile.location = _newLoc;
-        /* 선택된 위치로 사주 원국 재계산 */
-        if (typeof window.computeProfileForModal === 'function') {
-          window.computeProfileForModal(profile);
-        }
       }
     }
 
     _generating = true;
     _cancelGeneration = false;
     _chapters = Array(13).fill(null);
-    // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
-    if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
-      try { window.computeProfileForModal(profile); } catch (_cpE) {}
+    var sajuState = _ensureSajuDataForGeneration(profile);
+    var sajuData = sajuState.sajuData;
+    if (sajuState.usedFallbackData) {
+      console.warn('[인생의 책] 기존 사주 결과를 찾지 못해 보완 프로필로 생성합니다. source=' + sajuState.source);
     }
-    var sajuData = _collectSajuData();
 
     // 사주 데이터가 최소한으로 채워졌는지 확인
     if (!sajuData || sajuData.length < 30) {
@@ -808,7 +862,17 @@
           fetch(_plan.url, {
             method: 'POST',
             headers: _lbHeaders,
-            body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
+            body: JSON.stringify({
+              sessionId: idx + 1,
+              sajuData: sajuData,
+              name: String((profile && profile.name) || ''),
+              gender: String((profile && profile.gender) || ''),
+              year: Number((profile && profile.birth && profile.birth.year) || 0),
+              month: Number((profile && profile.birth && profile.birth.month) || 0),
+              day: Number((profile && profile.birth && profile.birth.day) || 0),
+              hour: Number((profile && profile.birth && profile.birth.hour) || 12),
+              minute: Number((profile && profile.birth && profile.birth.minute) || 0)
+            }),
             signal: _controller ? _controller.signal : undefined,
           })
             .then(function (res) {

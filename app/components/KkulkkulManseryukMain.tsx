@@ -967,6 +967,10 @@ export default function KkulkkulManseryukMain() {
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
               <img src="/fuctionassets/jamipremiun.webp" alt="H 프리미엄 자미두수"
+                width={520}
+                height={390}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(10,6,30))" }} />
               <span style={{
@@ -1023,6 +1027,10 @@ export default function KkulkkulManseryukMain() {
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
               <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                width={520}
+                height={390}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(7,4,25))" }} />
               <span style={{
@@ -1078,6 +1086,10 @@ export default function KkulkkulManseryukMain() {
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
               <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                width={520}
+                height={390}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(2,8,23))" }} />
               <span style={{
@@ -1133,6 +1145,10 @@ export default function KkulkkulManseryukMain() {
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
               <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
+                width={520}
+                height={390}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(15,10,3))" }} />
               <span style={{
@@ -1188,6 +1204,10 @@ export default function KkulkkulManseryukMain() {
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
               <img src="/fuctionassets/naming.webp" alt="명운 작명 프리미엄"
+                width={520}
+                height={390}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(8,12,24))" }} />
               <span style={{
@@ -1233,6 +1253,10 @@ export default function KkulkkulManseryukMain() {
               alt="LOVE CODE 사주 연애 시뮬레이션"
               width={1200}
               height={800}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              sizes="(max-width: 768px) 100vw, 1200px"
               className="w-full object-cover"
               style={{ display: 'block' }}
             />

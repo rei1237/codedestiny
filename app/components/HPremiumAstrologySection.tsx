@@ -628,7 +628,7 @@ ${chaptersHtml}
         boxShadow:"0 12px 50px rgba(251,191,36,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
       }}>
         <div style={{ position:"relative", overflow:"hidden", borderBottom:"1px solid rgba(251,191,36,0.12)" }}>
-          <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 소개" style={{ width:"100%", maxHeight:280, objectFit:"cover", opacity:0.36 }} />
+          <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 소개" width={1200} height={675} loading="lazy" decoding="async" style={{ width:"100%", maxHeight:280, objectFit:"cover", opacity:0.36 }} />
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(7,9,26,0.55) 0%, rgba(7,9,26,0.96) 100%)" }} />
           <div style={{ position:"absolute", left:20, right:20, bottom:20 }}>
             <p style={{ color:"rgba(251,191,36,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>ASTROLOGY PREMIUM · DETAIL INTRO</p>
@@ -692,7 +692,7 @@ ${chaptersHtml}
       <div style={{ position:"relative", overflow:"hidden", borderBottom:"1px solid rgba(251,191,36,0.12)" }}>
         {/* 뒤 배경 이미지 */}
         <div style={{ position:"absolute", inset:0, zIndex:0, pointerEvents:"none" }}>
-          <img src="/fuctionassets/premiumstar.webp" alt=""
+          <img src="/fuctionassets/premiumstar.webp" alt="" aria-hidden="true" width={1200} height={675} loading="lazy" decoding="async"
             style={{ width:"100%", height:"100%", objectFit:"cover", opacity:0.10, filter:"blur(3px)" }} />
           <div style={{ position:"absolute", inset:0,
             background:"linear-gradient(to right, rgba(7,9,26,0.98) 0%, rgba(7,9,26,0.80) 60%, rgba(7,9,26,0.65) 100%)" }} />

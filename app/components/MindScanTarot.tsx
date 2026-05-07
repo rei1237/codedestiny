@@ -212,7 +212,16 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           <div className="w-40 h-40 sm:w-52 sm:h-52 rounded-full overflow-hidden relative"
             style={{ boxShadow: "0 0 60px rgba(168,85,247,0.55), 0 0 120px rgba(168,85,247,0.22), 0 0 200px rgba(168,85,247,0.08)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/fuctionassets/mindscantaro.webp" alt="속마음 타로" className="w-full h-full object-cover" loading="eager" />
+            <img
+              src="/fuctionassets/mindscantaro.webp"
+              alt="속마음 타로"
+              className="w-full h-full object-cover"
+              width={520}
+              height={520}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-[#060918]/65 via-transparent to-transparent" />
           </div>
           <motion.div className="absolute inset-[-14px] rounded-full"

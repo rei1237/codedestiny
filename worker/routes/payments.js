@@ -1512,64 +1512,123 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
   };
 }
 
-async function handleMe(auth) {
-  const user = await findUserByIdRaw(auth.userId, {
-    name: 1,
-    email: 1,
-    points: 1,
-    unlockedFeatures: 1,
-    profileSubscription: 1,
-  });
-
-  const [recentPayments, pointHistories] = await Promise.all([
-    Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
-    PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
-  ]);
-
-  const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
-  if (!user) {
-    body.message = "User profile is missing. Returned safe defaults.";
-    body.userFound = false;
-  }
-
-  return json(body);
-}
-
-async function handlePointsMe(auth) {
-  const user = await findUserByIdRaw(auth.userId, {
-    name: 1,
-    email: 1,
-    points: 1,
-  });
-
-  const pointHistories = await PointHistory.find({ userId: auth.userId })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-
-  const transactions = Array.isArray(pointHistories)
-    ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
-    : [];
-  const balance = Number(user?.points || 0);
-
-  return json({
+function buildTokenFallbackPaymentsMe(auth, message) {
+  const balance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
+  return {
     success: true,
     ok: true,
+    message: message || "Payment data is temporarily unavailable. Loaded safe account data from token.",
+    userFound: false,
+    source: "token",
     data: {
       balance,
-      transactions,
+      transactions: [],
       payments: [],
       subscriptions: [],
     },
     user: {
-      id: String(auth.userId),
-      name: user?.name || "",
-      email: user?.email || "",
+      id: String(auth?.userId || ""),
+      name: String(auth?.name || ""),
+      email: String(auth?.email || ""),
       points: balance,
+      unlockedFeatures: [],
     },
-    pointHistories: transactions,
-    transactions,
-  });
+    unlockedFeatures: [],
+    unlockMap: {},
+    payments: [],
+    pointHistories: [],
+    subscriptions: [],
+  };
+}
+
+async function handleMe(auth) {
+  try {
+    const user = await findUserByIdRaw(auth.userId, {
+      name: 1,
+      email: 1,
+      points: 1,
+      unlockedFeatures: 1,
+      profileSubscription: 1,
+    });
+
+    const [recentPayments, pointHistories] = await Promise.all([
+      Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
+      PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
+    ]);
+
+    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
+    if (!user) {
+      body.message = "User profile is missing. Returned safe defaults.";
+      body.userFound = false;
+    }
+
+    return json(body);
+  } catch (error) {
+    console.warn("[payments/me] degraded fallback to token:", String(error?.message || "unknown"));
+    return json(buildTokenFallbackPaymentsMe(auth));
+  }
+}
+
+async function handlePointsMe(auth) {
+  try {
+    const user = await findUserByIdRaw(auth.userId, {
+      name: 1,
+      email: 1,
+      points: 1,
+    });
+
+    const pointHistories = await PointHistory.find({ userId: auth.userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const transactions = Array.isArray(pointHistories)
+      ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
+      : [];
+    const balance = Number(user?.points || 0);
+
+    return json({
+      success: true,
+      ok: true,
+      data: {
+        balance,
+        transactions,
+        payments: [],
+        subscriptions: [],
+      },
+      user: {
+        id: String(auth.userId),
+        name: user?.name || "",
+        email: user?.email || "",
+        points: balance,
+      },
+      pointHistories: transactions,
+      transactions,
+    });
+  } catch (error) {
+    console.warn("[payments/points-me] degraded fallback to token:", String(error?.message || "unknown"));
+    const fallbackBody = buildTokenFallbackPaymentsMe(auth, "Point history is temporarily unavailable. Loaded safe account data from token.");
+    return json({
+      success: true,
+      ok: true,
+      source: fallbackBody.source,
+      message: fallbackBody.message,
+      data: {
+        balance: fallbackBody.data.balance,
+        transactions: [],
+        payments: [],
+        subscriptions: [],
+      },
+      user: {
+        id: fallbackBody.user.id,
+        name: fallbackBody.user.name,
+        email: fallbackBody.user.email,
+        points: fallbackBody.user.points,
+      },
+      pointHistories: [],
+      transactions: [],
+    });
+  }
 }
 
 export async function handlePaymentRoutes(request, env) {
