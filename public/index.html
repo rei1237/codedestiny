@@ -1632,7 +1632,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               __cdRenderWithSub(p);
               __cdSyncSubscription(p);
 
-              fetch('/api/payments/me', {
+              fetch('/api/auth/me', {
                 method: 'GET',
                 headers: { Authorization: 'Bearer ' + t },
               })
@@ -6714,7 +6714,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   async function syncUnlocksFromServer() {
     if (!hasAuthToken()) return false;
     try {
-      var result = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
+      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
       if (!result.ok) return false;
       if (_cdApplyUnlocksFromPaymentPayload(result.payload)) {
         saveTileLocks();

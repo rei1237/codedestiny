@@ -213,6 +213,12 @@
     try { return localStorage.getItem('fortune_auth_token') || ''; } catch(e) { return ''; }
   }
 
+  function _dpHasLoginSession() {
+    var token = _dpGetAuthToken();
+    if (!token) return false;
+    return _dpGetProfileScope() !== 'guest';
+  }
+
   var _dpSyncTimer = null;
   function _dpSyncToServerDebounced() {
     if (_dpSyncTimer) clearTimeout(_dpSyncTimer);
@@ -224,7 +230,7 @@
 
   function _dpSyncToServer() {
     var token = _dpGetAuthToken();
-    if (!token) return;
+    if (!token || !_dpHasLoginSession()) return;
     var scope = _dpGetProfileScope();
     var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
     var currentId = '';
@@ -238,7 +244,7 @@
 
   function _dpLoadFromServer(callback) {
     var token = _dpGetAuthToken();
-    if (!token) { if (callback) callback(false); return; }
+    if (!token || !_dpHasLoginSession()) { if (callback) callback(false); return; }
     fetch('/api/user/destiny-profiles', {
       headers: { 'Authorization': 'Bearer ' + token }
     })
@@ -830,7 +836,7 @@
   /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
   function _fetchSubscription() {
     var token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
+    if (!token || !_dpHasLoginSession()) {
       _dpSubScope = _dpGetProfileScope();
       _dpSubTier = 'free';
       _dpSubIsActive = false;
@@ -873,6 +879,16 @@
   function _dpUpdateSaveBtn() {
     var btn = document.getElementById('dpSaveBtn');
     if (!btn) return;
+
+    if (!_dpHasLoginSession()) {
+      btn.disabled = true;
+      btn.textContent = '✦ 로그인 후 프로필 저장';
+      btn.style.opacity = '0.65';
+      btn.style.cursor = 'not-allowed';
+      btn.title = '프로필 카드는 로그인 후에만 생성할 수 있습니다.';
+      return;
+    }
+
     var count = DPStorage.list().length;
     var max   = _dpGetMaxProfiles();
     if (count < max) {
@@ -1656,6 +1672,13 @@
      8. 공개 API (window.dp*)
   ────────────────────────────────────────── */
   window.dpSaveProfile = function() {
+    if (!_dpHasLoginSession()) {
+      if (window.confirm('🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
+        window.location.href = '/login?next=%2F';
+      }
+      return;
+    }
+
     var data = readFormData();
     if (!data) {
       alert('이름과 생년월일을 입력해주세요.');
@@ -2379,7 +2402,7 @@
     renderMasterCard(DPStorage.current());
 
     /* 로그인 상태이면 서버에서 최신 프로필 동기화 */
-    if (_dpGetAuthToken()) {
+    if (_dpHasLoginSession()) {
       _dpLoadFromServer(function(loaded) {
         if (loaded) {
           renderMasterCard(DPStorage.current());

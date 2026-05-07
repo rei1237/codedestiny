@@ -1540,7 +1540,13 @@ var __cdTileLockServerSyncDone = false;
 
 function __cdGetAuthTokenForLockSync() {
   try {
-    return String(localStorage.getItem('fortune_auth_token') || '');
+    var token = String(localStorage.getItem('fortune_auth_token') || '').trim();
+    if (!token) return '';
+    var raw = localStorage.getItem('fortune_auth_user') || '';
+    var user = raw ? JSON.parse(raw) : null;
+    var scope = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim().toLowerCase();
+    if (!scope) return '';
+    return token;
   } catch (_) {}
   return '';
 }
