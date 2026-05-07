@@ -2151,7 +2151,12 @@ function __cdIsDesktopNoTouchEnvironment() {
       window.matchMedia('(hover:hover)').matches
     );
     var coarsePointer = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
-    return !!(finePointer && !coarsePointer);
+    var viewportWidth = Math.max(
+      window.innerWidth || 0,
+      (document.documentElement && document.documentElement.clientWidth) || 0
+    );
+    var wideViewport = viewportWidth >= 1024;
+    return !!((finePointer || wideViewport) && !coarsePointer);
   } catch (_) {
     return false;
   }
