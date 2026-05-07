@@ -1311,6 +1311,51 @@ const DASHA_NARRATIVE={
   Ketu:"케투 대운은 물질의 집착에서 자유로워지고 영적 깊이가 깊어지는 고독한 탐구의 시기입니다. 과거 업보의 흔적을 정리하고, 이번 생에서 버려야 할 것들을 놓아주는 영혼의 대청소가 이루어집니다. 의학·연구·신비학·영적 수련 분야에서 독보적인 통찰이 생겨나며, 내면 여정을 통해 진정한 자유의 씨앗이 심어집니다. 결과보다 과정과 의미에 집중하는 것이 이 시기의 지혜입니다."
 };
 
+const BHAVA_INFO={
+  1:{sa:"Tanu",kr:"자아·신체",easy:"성격, 외형, 삶의 기본 방향"},
+  2:{sa:"Dhana",kr:"재물·가족",easy:"돈, 말, 가족 기반"},
+  3:{sa:"Sahaja",kr:"용기·형제",easy:"도전정신, 형제자매, 실전 능력"},
+  4:{sa:"Sukha",kr:"가정·정서",easy:"집, 어머니, 마음의 안정"},
+  5:{sa:"Putra",kr:"창조·자녀",easy:"지성, 창의성, 자녀, 학습"},
+  6:{sa:"Ari",kr:"문제·봉사",easy:"질병, 경쟁, 일상 노동, 극복"},
+  7:{sa:"Yuvati",kr:"배우자·관계",easy:"결혼, 파트너십, 계약"},
+  8:{sa:"Randhra",kr:"변화·심층",easy:"위기, 변형, 비밀, 장수"},
+  9:{sa:"Dharma",kr:"법·행운",easy:"스승, 신앙, 철학, 큰 운"},
+  10:{sa:"Karma",kr:"직업·명예",easy:"커리어, 사회적 역할, 성취"},
+  11:{sa:"Labha",kr:"수익·네트워크",easy:"수입, 목표 달성, 인맥"},
+  12:{sa:"Vyaya",kr:"지출·해탈",easy:"소모, 해외, 고독, 영적 해방"}
+};
+
+function bhavaLabel(n){
+  var num=Number(n);
+  var info=BHAVA_INFO[num];
+  if(!info) return String(n)+"바바(Bhava)";
+  return String(num)+"바바(Bhava) "+info.sa;
+}
+
+function openBhavaMeaning(n){
+  var num=Number(n);
+  var info=BHAVA_INFO[num];
+  if(!info) return;
+  window.alert(num+"바바(Bhava) · "+info.sa+"\n"+info.kr+"\n\n쉽게 이해: "+info.easy);
+}
+
+function decorateBhavaTerms(html){
+  return String(html||"").replace(/(1[0-2]|[1-9])바바\(Bhava\)/g,function(_,n){
+    var num=Number(n);
+    var info=BHAVA_INFO[num];
+    if(!info) return n+"바바(Bhava)";
+    return '<button type="button" onclick="openBhavaMeaning('+num+')" style="display:inline-flex;align-items:center;gap:4px;vertical-align:baseline;margin:0 1px;padding:1px 8px;border-radius:999px;border:1px solid rgba(212,175,55,0.35);background:rgba(212,175,55,0.12);color:var(--gold);font-size:11px;line-height:1.5;cursor:pointer">'+num+'바바(Bhava) <span style="opacity:.92">'+info.sa+'</span></button>';
+  });
+}
+
+function renderBhavaGlossary(){
+  return '<div class="reveal reveal-delay-1" style="margin-top:12px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px"><div class="section-head" style="margin-bottom:8px">📚 12바바 전통명 (탭해서 의미 보기)</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+Array.from({length:12},function(_,i){
+    var n=i+1;var b=BHAVA_INFO[n];
+    return '<button type="button" onclick="openBhavaMeaning('+n+')" style="padding:4px 8px;border-radius:999px;border:1px solid rgba(139,92,246,0.35);background:rgba(139,92,246,0.12);color:var(--text2);font-size:11px;cursor:pointer">'+n+'. '+(b?b.sa:'Bhava')+'</button>';
+  }).join('')+'</div></div>';
+}
+
 // ─── ASTRONOMY ENGINE ─────────────────────────────────────
 const nd=d=>((d%360)+360)%360;
 const r2d=d=>d*Math.PI/180;
@@ -1468,7 +1513,7 @@ function analyze(chart){
   const llPos=rasi.planets[ll];const llHouse=planetHouse(rasi,ll);
   const personality={
     lagnaSign:lagna,lagnaSignKr:rasi.ascSignKr,lagnaLord:ll,
-    lagnaLordPos:`${PKR[ll]} in ${llPos.signName} (${llHouse}하우스, ${llPos.dignity})`,
+    lagnaLordPos:`${PKR[ll]}: ${llPos.signName} ${bhavaLabel(llHouse)}, ${llPos.dignity}`,
     moonNak:nak.name,moonNakSym:nktr.sym,moonNakLord:nak.lord,moonNakPada:nak.pada,
     coreTraits:[...tr.tr.slice(0,2),...nktr.tr.slice(0,2)],
     subconscious:nktr.sh,lifeTheme:`${tr.kw.join(" · ")} / ${nktr.pur}`,
@@ -1486,7 +1531,7 @@ function analyze(chart){
   ws=Math.min(100,Math.max(0,ws));
   const wealthYogas=[];
   const h2lh=planetHouse(rasi,h2.lord);const h11lh=planetHouse(rasi,h11.lord);
-  if(h2lh===h11lh)wealthYogas.push(`Dhana Yoga: ${PKR[h2.lord]}와 ${PKR[h11.lord]}가 ${h2lh}하우스에서 결합`);
+  if(h2lh===h11lh)wealthYogas.push(`Dhana Yoga: ${PKR[h2.lord]}와 ${PKR[h11.lord]}가 ${h2lh}바바(Bhava)에서 결합`);
   if(rasi.planets.Venus.dignity==="Exalted"||rasi.planets.Venus.dignity==="Own")wealthYogas.push("Lakshmi Yoga: 금성 강세 — 예술·미를 통한 재물 유입");
   const moonH=planetHouse(rasi,"Moon");const jupH=planetHouse(rasi,"Jupiter");
   if([1,4,7,10].includes(moonH)&&[1,4,7,10].includes(jupH))wealthYogas.push("Gaja Kesari Yoga: 달-목성 Kendra 배치 — 명성과 재물");
@@ -1494,7 +1539,7 @@ function analyze(chart){
   const wealthPeak=[];
   if(jupM)wealthPeak.push(`목성 대운 ${jupM.start.getFullYear()}–${jupM.end.getFullYear()}`);
   if(venM)wealthPeak.push(`금성 대운 ${venM.start.getFullYear()}–${venM.end.getFullYear()}`);
-  const wealth={score:ws,h2:`${h2.sign} — ${PKR[h2.lord]} 지배, ${h2d}`,h11:`${h11.sign} — ${PKR[h11.lord]} 지배, ${h11d}`,jupStr:jp,yogas:wealthYogas.length?wealthYogas:["특별 재물 요가 없음 — 꾸준한 노력으로 축적"],peak:wealthPeak,src:PSIG[h11.lord].car.slice(0,3).join(", "),advice:ws>=70?"재물 그릇이 크며 적극적 투자·확장 권장":ws>=50?"안정적 재물 흐름 — 저축과 계획적 지출 중요":"2·11하우스 강화 필요 — 기술 습득과 네트워크 확장에 집중"};
+  const wealth={score:ws,h2:`${h2.sign} — ${PKR[h2.lord]} 지배, ${h2d}`,h11:`${h11.sign} — ${PKR[h11.lord]} 지배, ${h11d}`,jupStr:jp,yogas:wealthYogas.length?wealthYogas:["특별 재물 요가 없음 — 꾸준한 노력으로 축적"],peak:wealthPeak,src:PSIG[h11.lord].car.slice(0,3).join(", "),advice:ws>=70?"재물 그릇이 크며 적극적 투자·확장 권장":ws>=50?"안정적 재물 흐름 — 저축과 계획적 지출 중요":"2·11바바(Bhava) 강화 필요 — 기술 습득과 네트워크 확장에 집중"};
 
   // 3. Career
   const h10=rasi.houses[9];const h10l=h10.lord;
@@ -1502,7 +1547,7 @@ function analyze(chart){
   const h1lh=planetHouse(rasi,rasi.houses[0].lord);const h9lh=planetHouse(rasi,rasi.houses[8].lord);
   if(h1lh===h9lh)carYogas.push(`Raja Yoga: ${PKR[rasi.houses[0].lord]}와 ${PKR[rasi.houses[8].lord]}의 결합 — 탁월한 리더십`);
   if(rasi.planets.Sun.dignity==="Exalted"||rasi.planets.Sun.dignity==="Own")carYogas.push("Surya Yoga: 태양 강세 — 정부·권위·리더십 분야 성공");
-  if(h10.planets.includes("Saturn"))carYogas.push("Shasha Yoga: 토성 10하우스 — 꾸준한 노력으로 장기 성공");
+  if(h10.planets.includes("Saturn"))carYogas.push("Shasha Yoga: 토성 10바바(Bhava) — 꾸준한 노력으로 장기 성공");
   const d10TenthSi=(Math.floor(nd(rasi.asc)/30)+9)%12;
   const d10P=Object.entries(d10).filter(([,v])=>v.sign===d10TenthSi).map(([k])=>PKR[k]);
   const bestM=dashas.find(d=>d.p===h10l);
@@ -1597,8 +1642,8 @@ function analyze(chart){
   const rChallenges=[];
   if(kp.retro)rChallenges.push(`${PKR[karaka]} 역행: 연애에서 과거 패턴 반복 주의`);
   if(kp.dignity==="Debilitated")rChallenges.push(`${PKR[karaka]} 약화: 이상형과 현실의 괴리`);
-  if(h7.planets.includes("Saturn"))rChallenges.push("토성의 7하우스: 결혼 지연 또는 책임감 있는 파트너");
-  if(h7.planets.includes("Rahu")||h7.planets.includes("Ketu"))rChallenges.push("Rahu/Ketu의 7하우스: 인연의 업보적 만남");
+  if(h7.planets.includes("Saturn"))rChallenges.push("토성의 7바바(Bhava): 결혼 지연 또는 책임감 있는 파트너");
+  if(h7.planets.includes("Rahu")||h7.planets.includes("Ketu"))rChallenges.push("Rahu/Ketu의 7바바(Bhava): 인연의 업보적 만남");
   const d9partner=d9[karaka];
   const romance={
     h7sign:h7.sign,h7lord:h7l,karakaSign:kp.signName,karaka,
@@ -2232,7 +2277,7 @@ function generateInsights(chart,report){
   const comboKey=`${rasi.ascSign}-${nak.name}`;
   const comboPhrase=comboPhraseMap[comboKey]||`${lagnaElKr} ${lagnaSignKr2} 라그나에, ${nakSymStr} ${nak.name} 낙샤트라가 결합되어 — 당신은 ${lagnaStr.kw[0]}을 통해 ${nakPurpose}을 이루는 독특한 영혼입니다`;
   const personalityInsight=`${comboPhrase}.<br><br>
-당신의 라그나(상승궁) <span class="keyword">${p.lagnaSignKr}</span>는 세상이 처음 마주치는 당신의 얼굴입니다. ${elDesc[lagnaEl]||''}. 이 별자리가 외적 페르소나의 언어를 결정하며, 사람들은 당신을 그렇게 경험합니다.<br><br>
+당신의 라그나(Lagna) <span class="keyword">${p.lagnaSignKr}</span>는 세상이 처음 마주치는 당신의 얼굴입니다. ${elDesc[lagnaEl]||''}. 이 별자리가 외적 페르소나의 언어를 결정하며, 사람들은 당신을 그렇게 경험합니다.<br><br>
 3대 핵심 운명 키워드: <span class="keyword">${(lagnaStr.kw||[]).join(' · ')}</span>. 천성적으로 ${(lagnaStr.tr||[]).slice(0,2).join(', ')}의 에너지가 당신을 둘러쌉니다.<br><br>
 달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>(${nktr.sym})은 잠재의식 깊숙한 곳의 언어입니다. 수호신 <span class="keyword">${deityInfo.deity}</span>의 에너지가 당신의 꿈·직관·감정 패턴을 조율합니다. ${deityInfo.role}.<br><br>
 파다(Pada) <span class="keyword">${nak.pada}</span> — <span class="keyword">${padaSign} 나밤샤 기질</span>: ${padaKw}. 이 파다는 낙샤트라 에너지가 물질 세계에서 구체적으로 표현되는 방식의 미세한 조율입니다.<br><br>
@@ -2253,7 +2298,7 @@ function generateInsights(chart,report){
 
   // ── 4. 천직 심층 분석 ─────────────────────────────────
   const amKarakaName=report.career.amatyakaraka||'Mercury';
-  const careerNarrative=`10하우스의 지배 행성 <span class="keyword">${PKR[c.h10lord]}</span>는 당신의 사회적 사명을 상징합니다. ${PSIG[c.h10lord]?PSIG[c.h10lord].kar.slice(0,2).join('과 '):'지혜와 행동'}의 카르마를 세상에 펼칠 때 진정한 직업적 성취가 찾아옵니다.<br><br>
+  const careerNarrative=`10바바(Bhava)의 지배 행성 <span class="keyword">${PKR[c.h10lord]}</span>는 당신의 사회적 사명을 상징합니다. ${PSIG[c.h10lord]?PSIG[c.h10lord].kar.slice(0,2).join('과 '):'지혜와 행동'}의 카르마를 세상에 펼칠 때 진정한 직업적 성취가 찾아옵니다.<br><br>
 추천 직군 <span class="keyword">${(c.primary||[]).join(' · ')}</span>은 단순한 직업 목록이 아니라, 당신의 영혼이 이번 생에서 가장 자연스럽게 기여할 수 있는 영역입니다.<br><br>
 아마탸카라카(Amatyakaraka) — 직업적 재능의 행성: <span class="keyword">${PKR[amKarakaName]} (${amKarakaName})</span>. 이 행성의 카르마 <span class="keyword">${PSIG[amKarakaName]?PSIG[amKarakaName].kar.slice(0,2).join('·'):'소통·분석'}</span>를 기반으로 한 직업에서 타고난 재능이 빛을 발합니다. 관련 분야: <span class="keyword">${PSIG[amKarakaName]?PSIG[amKarakaName].car.slice(0,3).join('·'):'다양한 분야'}</span>.<br><br>
 ${c.best?`<span class="keyword">${c.best}</span>이 커리어의 황금기가 될 것입니다.`:'현재 진행 중인 대운에서 커리어의 씨앗을 심을 때입니다.'}`;
@@ -2313,10 +2358,10 @@ ${c.best?`<span class="keyword">${c.best}</span>이 커리어의 황금기가 �
 
   // ── 7. 연애 심층 해석 ─────────────────────────────────
   const h7tr=STRN[rom.h7sign]||STRN.Aries;
-  const manglikInfo=report.romance.manglikDosha?`⚠️ <span class="keyword">망글릭 도샤(Manglik Dosha) ${report.romance.manglikLevel}</span> — 화성이 민감 하우스에 있어 연애/결혼 생활에서 갈등·에너지 충돌이 발생할 수 있습니다. 같은 망글릭 파트너나 화성 에너지가 강한 파트너와의 만남이 이를 균형 잡아줍니다.`:'✓ 망글릭 도샤 없음 — 연애·결혼 에너지가 자연스럽게 흐릅니다.';
+  const manglikInfo=report.romance.manglikDosha?`⚠️ <span class="keyword">망글릭 도샤(Manglik Dosha) ${report.romance.manglikLevel}</span> — 화성이 민감 바바(Bhava)에 있어 연애/결혼 생활에서 갈등·에너지 충돌이 발생할 수 있습니다. 같은 망글릭 파트너나 화성 에너지가 강한 파트너와의 만남이 이를 균형 잡아줍니다.`:'✓ 망글릭 도샤 없음 — 연애·결혼 에너지가 자연스럽게 흐릅니다.';
   const upapadaKr=report.romance.upapadaSignKr||'';
   const karakamsha=report.romance.karakamsha||{signKr:'미상'};
-  const romanceNarrative=`당신의 7하우스(배우자·파트너의 집)에는 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.h7sign)]||rom.h7sign}</span>의 에너지가 흐릅니다. 이상적인 파트너는 ${h7tr.tr.slice(0,2).join('·')}한 특질을 지닌 사람입니다.<br><br>
+  const romanceNarrative=`당신의 7바바(Bhava)(배우자·파트너의 집)에는 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.h7sign)]||rom.h7sign}</span>의 에너지가 흐릅니다. 이상적인 파트너는 ${h7tr.tr.slice(0,2).join('·')}한 특질을 지닌 사람입니다.<br><br>
 ${chart.f.gender==='M'?'금성(Venus)':'목성(Jupiter)'}이 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.karakaSign)]||rom.karakaSign}</span>에 위치해, ${(STRN[rom.karakaSign]||STRN.Aries).tr.slice(0,2).join('과 ')}의 에너지를 지닌 파트너와 깊은 영적 계약이 맺어져 있습니다.<br><br>
 우파파다 라그나(실제 배우자의 성격): <span class="keyword">${upapadaKr}</span> — 이 별자리의 특성을 지닌 파트너와 인연이 깊습니다.<br><br>
 카라카마샤(영혼이 원하는 배우자 이상향): <span class="keyword">${karakamsha.signKr||'미상'}</span> — D-9 차트에서 아트마카라카의 위치로 본 영혼 깊은 곳의 이상형입니다.<br><br>
@@ -2327,7 +2372,7 @@ ${manglikInfo}`;
   const rdana=report&&report.remedies&&report.remedies.dana||REMEDY_DANA[chart.maha&&chart.maha.p||'Saturn']||REMEDY_DANA.Saturn;
   const blkChIdx=ch&&ch.blocked?Object.keys(CHAKRA_EXTENDED).indexOf(ch.blocked):0;
   const manglikLevelStr=report.romance.manglikDosha?report.romance.manglikLevel||'약망글릭':'비망글릭';
-  const manglikDescStr=report.romance.manglikDosha?`화성이 민감 하우스(${report.romance.manglikHouse||''}하우스)에 위치해 관계 에너지의 긴장이 있습니다.`:'화성이 민감 하우스에 없어 연애·결혼 에너지가 자연스럽습니다.';
+  const manglikDescStr=report.romance.manglikDosha?`화성이 민감 바바(Bhava)(${report.romance.manglikHouse||''}바바(Bhava))에 위치해 관계 에너지의 긴장이 있습니다.`:'화성이 민감 바바(Bhava)에 없어 연애·결혼 에너지가 자연스럽습니다.';
   // 다샤 포맷 처리 (start/end은 ISO 문자열, display용 별도)
   const dashasFmt=(chart.dashas||[]).map(d=>({
     planet:d.p,
@@ -3035,7 +3080,7 @@ function renderSouthChart(rasi){
       <span style="position:absolute;top:2px;left:4px;font-size:8px;color:${cell.isLagna?'rgba(212,175,55,0.6)':'var(--text3)'}">${cell.hnum||''}</span>
       <span style="font-size:10px;color:${cell.isLagna?'var(--gold)':'rgba(212,175,55,0.75)'};margin-bottom:2px;font-weight:700;text-shadow:${cell.isLagna?'0 0 10px rgba(212,175,55,0.5)':'none'}">${SIGNSYM[cell.si]}${cell.signKr.replace('자리','')}</span>
       <div>${pSyms}</div>
-      ${cell.isLagna?'<span style="position:absolute;bottom:2px;right:3px;font-size:7px;color:var(--gold);font-weight:800;text-shadow:0 0 6px rgba(212,175,55,0.6)">Asc</span>':''}
+      ${cell.isLagna?'<span style="position:absolute;bottom:2px;right:3px;font-size:7px;color:var(--gold);font-weight:800;text-shadow:0 0 6px rgba(212,175,55,0.6)">Lg</span>':''}
     </div>`;
   }}
   html+='</div>';
@@ -3065,9 +3110,9 @@ function renderNorthChart(rasi){
     const ps=house.planets.slice(0,2);
     svg+=`<path d="${hp.d}" fill="${isLagna?'rgba(212,175,55,0.1)':'rgba(139,92,246,0.04)'}" stroke="${isLagna?'rgba(212,175,55,0.45)':'rgba(139,92,246,0.28)'}" stroke-width="${isLagna?1.2:0.6}" filter="${isLagna?'url(#goldGlow)':''}"/>`;
     svg+=`<text x="${hp.tx}" y="${hp.ty}" text-anchor="middle" font-size="10" fill="${isLagna?'rgba(212,175,55,0.9)':'rgba(212,175,55,0.65)'}" font-weight="${isLagna?'bold':'normal'}">${SIGNSYM[si]}</text>`;
-    svg+=`<text x="${hp.tx}" y="${hp.ty+12}" text-anchor="middle" font-size="7" fill="rgba(240,232,255,0.35)">${hi+1}H</text>`;
+    svg+=`<text x="${hp.tx}" y="${hp.ty+12}" text-anchor="middle" font-size="7" fill="rgba(240,232,255,0.35)">${hi+1}Bh</text>`;
     if(ps.length)svg+=`<text x="${hp.tx}" y="${hp.ty+23}" text-anchor="middle" font-size="8.5" fill="${PCOL[ps[0]]||'#06B6D4'}">${ps.map(p=>PSYM[p]).join(' ')}</text>`;
-    if(isLagna)svg+=`<text x="${hp.tx}" y="${hp.ty-11}" text-anchor="middle" font-size="7" fill="#D4AF37" font-weight="bold" filter="url(#goldGlow)">Asc</text>`;
+    if(isLagna)svg+=`<text x="${hp.tx}" y="${hp.ty-11}" text-anchor="middle" font-size="7" fill="#D4AF37" font-weight="bold" filter="url(#goldGlow)">Lg</text>`;
   }
   return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;border:1px solid rgba(212,175,55,0.2);border-radius:10px;background:radial-gradient(ellipse at 50% 50%,rgba(30,0,60,0.7),rgba(5,0,16,0.98));box-shadow:0 0 40px rgba(212,175,55,0.05),inset 0 0 60px rgba(124,58,237,0.06)">
   <defs>
@@ -3136,7 +3181,7 @@ function renderResult(){
 
   <div class="summary-grid reveal reveal-delay-1">
     <div class="sum-card" style="border-color:rgba(212,175,55,0.2)">
-      <div class="sum-card-label">라그나 (상승궁)</div>
+      <div class="sum-card-label">라그나 (Lagna)</div>
       <div class="sum-card-val" style="color:var(--gold)">${rasi.ascSignKr}</div>
       <div class="sum-card-sub">지배: ${PKR[rasi.houses[0].lord]}</div>
     </div>
@@ -3172,7 +3217,7 @@ function renderResult(){
     {id:'wealth',icon:'💰',col:'#22C55E',title:'재물운',score:report.wealth.score,sub:report.wealth.yogas&&!report.wealth.yogas[0].includes('없음')?report.wealth.yogas[0].split(':')[0]:'안정적 축적형'},
     {id:'career',icon:'⚡',col:'#06B6D4',title:'천직',score:null,sub:(report.career.primary||[]).slice(0,2).join(' · ')},
     {id:'chakra',icon:'🔮',col:'#A78BFA',title:'차크라 에너지',score:report.chakra.overall,sub:`${CHKINFO[report.chakra.dominant]?CHKINFO[report.chakra.dominant].kr:''} 주도`},
-    {id:'romance',icon:'💫',col:'#EC4899',title:'연애운',score:null,sub:`7H: ${SIGNKR[SIGNS.indexOf(report.romance.h7sign)]||report.romance.h7sign}`},
+    {id:'romance',icon:'💫',col:'#EC4899',title:'연애운',score:null,sub:`${bhavaLabel(7)}: ${SIGNKR[SIGNS.indexOf(report.romance.h7sign)]||report.romance.h7sign}`},
     {id:'compat',icon:'👫',col:'#F59E0B',title:'궁합 계산기',score:null,sub:'Ashtakoot Milan · 36점 만점'},
     {id:'yoga',icon:'🧘',col:'#34D399',title:'맞는 요가',score:null,sub:report.yoga.primary?report.yoga.primary.n:'Hatha Yoga 권장'},
     {id:'remedies',icon:'🕉️',col:'#F472B6',title:'치유 처방',score:null,sub:`도샤: ${report.remedies?report.remedies.dosha.type:'바타'} · 보석: ${report.remedies?report.remedies.gem:'상담 권장'}`},
@@ -3200,6 +3245,7 @@ function renderResult(){
     <div style="text-align:center;font-family:var(--font-display);font-size:10px;color:var(--gold);letter-spacing:0.12em;padding:8px 0;border-top:1px solid var(--bordergold);border-bottom:1px solid var(--bordergold);margin:10px 0">
       ↑ Lagna · ${rasi.ascSignKr} ${(nd(rasi.asc)%30).toFixed(2)}°
     </div>
+    ${renderBhavaGlossary()}
   </div>
   <div class="reveal reveal-delay-1">
     <div class="section-head" style="margin-bottom:10px">✨ 행성 위치 · Sidereal Lahiri</div>
@@ -3277,7 +3323,7 @@ function renderResult(){
   </div>`;
 
   // ── 최종 결과 페이지 HTML ─────────────────────────────
-  document.getElementById('result-content').innerHTML=`
+  document.getElementById('result-content').innerHTML=decorateBhavaTerms(`
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px">
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit">← 메인으로</a>
     <span style="font-size:10px;color:var(--text3);letter-spacing:0.1em">JYOTISH · 빛의 지식</span>
@@ -3312,7 +3358,7 @@ function renderResult(){
   <div id="tpanel-dasha" class="tab-panel">${tabDasha}</div>
   <div id="tpanel-antar" class="tab-panel">${tabAntar}</div>
 
-  <div style="height:36px"></div>`;
+  <div style="height:36px"></div>`);
 
   setTimeout(initReveal,100);
 }
@@ -3346,7 +3392,7 @@ function showDetail(id){
   else if(id==='yoga')html=renderYoga(r.yoga);
   else if(id==='remedies')html=renderRemedies(r.remedies,c,ins);
   else if(id==='vimshottari')html=renderVimshottari(c,ins);
-  document.getElementById('detail-content').innerHTML=html;
+  document.getElementById('detail-content').innerHTML=decorateBhavaTerms(html);
   showPage('detail');
 }
 
@@ -3513,17 +3559,17 @@ function renderWealth(w,ins){
   <div class="sage-text reveal reveal-delay-2" style="margin-top:10px">${ins.yogaText||''}</div>
   <div class="acc-item reveal reveal-delay-3">
     <div class="acc-header" onclick="toggleAcc('w1')">
-      <span style="font-size:16px">🏠</span><span class="acc-title">하우스 구조 분석</span>
+      <span style="font-size:16px">🏠</span><span class="acc-title">바바(Bhava) 구조 분석</span>
       <span class="acc-arrow" id="arr-w1">▾</span>
     </div>
     <div class="acc-body open" id="acc-w1">
       <div class="acc-inner">
         <div style="margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">2하우스 · 재물 축적</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">2바바(Bhava) · 재물 축적</div>
           <div class="body-text">${w.h2||''}</div>
         </div>
         <div style="margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">11하우스 · 수익·소득</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">11바바(Bhava) · 수익·소득</div>
           <div class="body-text">${w.h11||''}</div>
         </div>
         <div>
@@ -3589,9 +3635,9 @@ function renderWealth(w,ins){
           <span style="display:inline-block;padding:8px 20px;border-radius:20px;font-size:15px;font-weight:700;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(34,197,94,0.1));border:1px solid rgba(212,175,55,0.3);color:var(--gold)">${ins&&ins.wealthTypeLabel||'복합형'}</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-          ${[{type:'사업형',icon:'🏢',desc:'10하우스+화성이 강해 경영·창업으로 부 축적'},{type:'전문직형',icon:'🎓',desc:'수성+목성 강해 지식·기술 기반 안정 수입'},{type:'유산형',icon:'👑',desc:'2하우스+금성이 강해 가문·상속 에너지'}].map(t=>`<div style="background:${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'rgba(212,175,55,0.12)':'rgba(255,255,255,0.02)'};border:1px solid ${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'rgba(212,175,55,0.35)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:10px 8px;text-align:center"><div style="font-size:22px">${t.icon}</div><div style="font-size:11px;font-weight:700;color:${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'var(--gold)':'var(--text2)'};margin:4px 0">${t.type}</div><div style="font-size:9px;color:var(--text3);line-height:1.5">${t.desc}</div></div>`).join('')}
+          ${[{type:'사업형',icon:'🏢',desc:'10바바(Bhava)+화성이 강해 경영·창업으로 부 축적'},{type:'전문직형',icon:'🎓',desc:'수성+목성 강해 지식·기술 기반 안정 수입'},{type:'유산형',icon:'👑',desc:'2바바(Bhava)+금성이 강해 가문·상속 에너지'}].map(t=>`<div style="background:${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'rgba(212,175,55,0.12)':'rgba(255,255,255,0.02)'};border:1px solid ${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'rgba(212,175,55,0.35)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:10px 8px;text-align:center"><div style="font-size:22px">${t.icon}</div><div style="font-size:11px;font-weight:700;color:${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'var(--gold)':'var(--text2)'};margin:4px 0">${t.type}</div><div style="font-size:9px;color:var(--text3);line-height:1.5">${t.desc}</div></div>`).join('')}
         </div>
-        <div style="font-size:12px;color:var(--text3);line-height:1.7">재물 유형은 차트의 여러 행성 강도와 하우스 구조를 종합해 도출합니다. 하나의 유형이 강조된다고 해서 다른 유형을 통한 추가 소득이 불가능한 것은 아닙니다.</div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.7">재물 유형은 차트의 여러 행성 강도와 바바(Bhava) 구조를 종합해 도출합니다. 하나의 유형이 강조된다고 해서 다른 유형을 통한 추가 소득이 불가능한 것은 아닙니다.</div>
       </div>
     </div>
   </div>`;
@@ -3609,11 +3655,11 @@ function renderCareer(c,ins){
     <div class="acc-body open" id="acc-c1">
       <div class="acc-inner">
         <div style="margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">1순위 — 10하우스 지배 행성 기반</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">1순위 — 10바바(Bhava) 지배 행성 기반</div>
           <div style="display:flex;flex-wrap:wrap;gap:5px">${(c.primary||[]).map(j=>`<span class="tag tag-cyan">${j}</span>`).join('')}</div>
         </div>
         ${c.secondary&&c.secondary.length?`<div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">2순위 — 10하우스 내 행성 기반</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">2순위 — 10바바(Bhava) 내 행성 기반</div>
           <div style="display:flex;flex-wrap:wrap;gap:5px">${c.secondary.map(j=>`<span class="tag tag-purple">${j}</span>`).join('')}</div>
         </div>`:''}
       </div>
@@ -3741,7 +3787,7 @@ function renderRomance(r,chart,ins){
       <div class="acc-inner">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div style="background:rgba(236,72,153,0.07);border:1px solid rgba(236,72,153,0.2);border-radius:10px;padding:10px">
-            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">7하우스</div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">7바바(Bhava)</div>
             <div style="font-size:13px;font-weight:700;color:var(--pink)">${h7kr}</div>
             <div style="font-size:11px;color:var(--text3)">지배: ${PKR[r.h7lord]||''}</div>
           </div>
@@ -3807,7 +3853,7 @@ function renderRomance(r,chart,ins){
           </div>
         </div>
         <div style="background:rgba(236,72,153,0.05);border-left:2px solid var(--pink);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.7">
-          <strong style="color:var(--pink)">우파파다 라그나</strong>는 12하우스의 지배 행성으로부터 계산되며, 배우자의 성격·출신·특성을 나타냅니다. 이 사인과 그 지배 행성이 강할수록 결혼의 안정성과 파트너와의 조화가 높아집니다.
+          <strong style="color:var(--pink)">우파파다 라그나</strong>는 12바바(Bhava)의 지배 행성으로부터 계산되며, 배우자의 성격·출신·특성을 나타냅니다. 이 사인과 그 지배 행성이 강할수록 결혼의 안정성과 파트너와의 조화가 높아집니다.
         </div>
         <div style="background:rgba(139,92,246,0.05);border-left:2px solid var(--purple2);border-radius:0 10px 10px 0;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.7">
           <strong style="color:var(--purple2)">카라카마샤</strong>는 자이미니 아트마카라카가 D-9(나밤샤)에서 위치한 사인입니다. 이 자리는 영적 열망과 관계 속에서 가장 깊은 내면의 원형을 드러냅니다.
@@ -3828,10 +3874,10 @@ function renderRomance(r,chart,ins){
         <div style="text-align:center;margin-bottom:14px;padding:16px;background:${ins&&ins.manglikLevel==='강망글릭'?'rgba(239,68,68,0.08)':ins&&ins.manglikLevel==='약망글릭'?'rgba(245,158,11,0.08)':'rgba(34,197,94,0.06)'};border:1px solid ${ins&&ins.manglikLevel==='강망글릭'?'rgba(239,68,68,0.3)':ins&&ins.manglikLevel==='약망글릭'?'rgba(245,158,11,0.3)':'rgba(34,197,94,0.2)'};border-radius:14px">
           <div style="font-size:11px;color:var(--text3);margin-bottom:6px">도샤 수준</div>
           <div style="font-size:22px;font-weight:700;color:${ins&&ins.manglikLevel==='강망글릭'?'#EF4444':ins&&ins.manglikLevel==='약망글릭'?'#F59E0B':'#22C55E'}">${ins&&ins.manglikLevel||'비망글릭 ✓'}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:6px">${ins&&ins.manglikDesc||'화성이 민감 하우스에 없어 망글릭 도샤가 없거나 미약합니다.'}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px">${ins&&ins.manglikDesc||'화성이 민감 바바(Bhava)에 없어 망글릭 도샤가 없거나 미약합니다.'}</div>
         </div>
         <div style="font-size:13px;color:var(--text2);line-height:1.8">
-          망글릭 도샤는 화성이 <strong style="color:#EF4444">1·4·7·8·12하우스</strong>에 위치할 때 발생합니다. 현대 베다 점성술에서는 과거보다 완화된 시각으로 해석하며, 짝의 차트에도 유사한 도샤가 있으면 상호 상쇄됩니다.
+          망글릭 도샤는 화성이 <strong style="color:#EF4444">1·4·7·8·12바바(Bhava)</strong>에 위치할 때 발생합니다. 현대 베다 점성술에서는 과거보다 완화된 시각으로 해석하며, 짝의 차트에도 유사한 도샤가 있으면 상호 상쇄됩니다.
         </div>
         ${ins&&ins.manglikLevel&&ins.manglikLevel!=='비망글릭'?`<div style="margin-top:12px;padding:10px;background:rgba(245,158,11,0.07);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.7">
           <span style="color:var(--gold);font-weight:700">🕉 조화 방법:</span> 화성 얀트라 수행, 화요일 단식, 망갈 파트너와의 결합, 뱀·코끼리 신과 혼례 의식(Kumbha Vivah) 등 고전적 처방이 전해집니다.
