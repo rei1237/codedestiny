@@ -8149,6 +8149,54 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </section><!-- /fg-group--premium-vvip -->
 <script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'flex':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
 
+    <!-- GROUP: Psychotest Collection -->
+    <section class="fg-group fg-group--psychotest" aria-labelledby="fgTitlePsychotest">
+      <div class="fg-group__cards">
+        <div class="feat-collection feat-collection--psychotest" id="psychotestCollection" data-collection-open="false">
+          <div class="feat-collection__cosmos" aria-hidden="true">
+            <span class="fc-star fc-star--1"></span>
+            <span class="fc-star fc-star--2"></span>
+            <span class="fc-star fc-star--3"></span>
+            <span class="fc-star fc-star--4"></span>
+            <span class="fc-star fc-star--5"></span>
+            <span class="fc-star fc-star--6"></span>
+          </div>
+          <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="psychotestCollection" aria-expanded="false">
+            <div class="feat-collection__icon" aria-hidden="true">P</div>
+            <h3 class="feat-collection__title" id="fgTitlePsychotest">Psychotest Collection</h3>
+            <p class="feat-collection__subtitle">Find your personality in one tap</p>
+            <p class="feat-collection__lede">Psychotest feature is deployed as a static page and linked for production-safe routing.</p>
+            <p class="feat-collection__featureline">Personality · Relationship · Empathy · Work · Mental</p>
+            <div class="feat-collection__divider" aria-hidden="true">
+              <span class="fc-div-gem">*</span>
+              <span class="fc-div-line"></span>
+              <span class="fc-div-gem">o</span>
+              <span class="fc-div-line"></span>
+              <span class="fc-div-gem">*</span>
+            </div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">v</span><span class="fc-toggle-hint__text"></span></div>
+          </button>
+          <div class="fc-closed-peek" aria-hidden="true">
+            <span class="fc-closed-peek__gem">*</span><span class="fc-closed-peek__gem">o</span><span class="fc-closed-peek__gem">*</span>
+          </div>
+
+          <div class="feat-collection__grid feat-collection__grid--2col">
+            <a class="tarot-tile tarot-tile--psychotest" href="/psychotest.html" data-fallback-href="/psychotest.html" aria-label="Open psychotest collection">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp" data-img-alt="Psychotest collection preview image">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp" alt="Psychotest collection preview image">
+                <span class="tarot-tile__badge tarot-tile__badge--new">PSYCHOTEST</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">FREE</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">Psychotest</span>
+                <span class="tarot-tile__desc">Discover your personality style</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- 7. ��� -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
       <style>
