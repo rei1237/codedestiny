@@ -1748,7 +1748,7 @@ var __cdLazyActionLoaders = {
   gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260503-premiumfix2'); },
   gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260507-resetfix2'); },
   openSibylModal: function() {
     return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();

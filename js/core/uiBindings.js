@@ -59,7 +59,7 @@ const __lazyActionLoaders = {
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260410-v2'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-resetfix2'),
   openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix')
 };
 
