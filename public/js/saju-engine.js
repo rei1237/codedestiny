@@ -3372,6 +3372,13 @@ async function consumeFortunePointAfterCalculation(){
 }
 
 async function checkPrivacyAndCalculate() {
+  // 로그인 세션 확인 — 비로그인(게스트) 상태에서는 사주 계산 진입 차단
+  if (typeof window.__dpHasLoginSession === 'function' && !window.__dpHasLoginSession()) {
+    if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+      window.__cdOpenLoginRequiredModal({ reason: 'login_required', redirectTo: window.location.pathname });
+    }
+    return;
+  }
   sessionStorage.setItem('privacyAgreed', 'true');
   await startSajuCalculationFlow();
 }

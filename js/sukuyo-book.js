@@ -568,6 +568,13 @@
   }
 
   window.openSukuyoBookModal = function(profileArg){
+    // 로그인 세션 확인 — 비로그인(게스트) 상태에서는 서비스 진입 차단
+    if (typeof window.__dpHasLoginSession === 'function' && !window.__dpHasLoginSession()) {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({ reason: 'login_required', redirectTo: window.location.pathname });
+      }
+      return;
+    }
     var modal=_qs('sukuyoBookModal');
     if(!modal){console.error('[숙요점 프리미엄] sukuyoBookModal 요소를 찾을 수 없습니다.');return;}
     _applySukuyoTheme(modal);

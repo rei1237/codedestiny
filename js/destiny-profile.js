@@ -218,6 +218,8 @@
     if (!token) return false;
     return _dpGetProfileScope() !== 'guest';
   }
+  // 다른 JS 모듈에서도 사용할 수 있도록 전역 노출
+  window.__dpHasLoginSession = _dpHasLoginSession;
 
   var _dpSyncTimer = null;
   function _dpSyncToServerDebounced() {
