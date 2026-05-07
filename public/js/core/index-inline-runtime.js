@@ -1940,6 +1940,7 @@ var __cdLazyActionLoaders = {
   checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   calculate: function() { return __cdEnsureSajuCoreLoaded(); },
+  setGender: function() { return __cdEnsureSajuCoreLoaded(); },
   runCompat: function() { return __cdEnsureSajuCoreLoaded(); }
 };
 var __cdLazyActionState = {};
@@ -2525,6 +2526,7 @@ window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
 __cdInstallSajuActionStub('checkPrivacyAndCalculate');
 __cdInstallSajuActionStub('agreeAndCalculate');
 __cdInstallSajuActionStub('calculate');
+__cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('runCompat');
 window.openLuckSyncDiary = function() {
   return __cdLoadScriptOnce('/js/luck-sync-diary.js').then(function() {

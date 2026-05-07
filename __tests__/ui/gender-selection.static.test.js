@@ -30,3 +30,9 @@ test('saju engine normalizes gender and blocks empty submit', () => {
   assert.ok(engine.includes("alert('성별을 선택해 주세요.');"));
   assert.ok(engine.includes("console.debug('[saju] submit input'"));
 });
+
+test('index runtime lazy-loads setGender before saju core ready', () => {
+  const runtime = read('public/js/core/index-inline-runtime.js');
+  assert.ok(runtime.includes('setGender: function() { return __cdEnsureSajuCoreLoaded(); },'));
+  assert.ok(runtime.includes("__cdInstallSajuActionStub('setGender');"));
+});
