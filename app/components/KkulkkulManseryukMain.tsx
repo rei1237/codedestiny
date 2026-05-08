@@ -607,117 +607,108 @@ export default function KkulkkulManseryukMain() {
       setVedaFlowError('');
       setVedaFlowState('checking_access');
     }
-    const premiumLabel = PREMIUM_SERVICE_LABEL[service] ?? '프리미엄 리포트';
-    startPayment(`${premiumLabel} 결제를 확인 중입니다.`);
-
-    try {
-      const gate = await runPremiumIntroGate(service);
-      if (!gate.ok) {
-        if (gate.reason === 'payment-required') {
-          if (service === 'veda') {
-            setVedaFlowState('payment_required');
-            setVedaFlowError(gate.message || '코인이 부족합니다.');
-          } else {
-            setShowRechargeModal(true);
-          }
-        } else if (gate.reason === 'error') {
-          if (service === 'veda') {
-            setVedaFlowState('error');
-            setVedaFlowError(gate.message || '코인/권한 확인 중 오류가 발생했습니다.');
-          }
-        } else if (service === 'veda') {
-          setVedaFlowState('idle');
+    const gate = await runPremiumIntroGate(service);
+    if (!gate.ok) {
+      if (gate.reason === 'payment-required') {
+        if (service === 'veda') {
+          setVedaFlowState('payment_required');
+          setVedaFlowError(gate.message || '코인이 부족합니다.');
+        } else {
+          setShowRechargeModal(true);
         }
-        return;
+      } else if (gate.reason === 'error') {
+        if (service === 'veda') {
+          setVedaFlowState('error');
+          setVedaFlowError(gate.message || '코인/권한 확인 중 오류가 발생했습니다.');
+        }
+      } else if (service === 'veda') {
+        setVedaFlowState('idle');
       }
+      return;
+    }
 
+    if (service === 'veda') {
+      setVedaFlowState('access_granted');
+    }
+
+    if (unlockedFeatures.premiumDivinationPack) {
+      if (service === "ziwei") {
+        markZiweiPremiumUnlockedClient();
+      }
       if (service === 'veda') {
-        setVedaFlowState('access_granted');
+        setVedaFlowState('generating_pdf');
       }
+      setPremiumFlowStage('generate');
+      return;
+    }
 
-      if (unlockedFeatures.premiumDivinationPack) {
-        if (service === "ziwei") {
-          markZiweiPremiumUnlockedClient();
-        }
+    const token = localStorage.getItem('fortune_auth_token');
+    if (!token) return;
+    const adminToken = getFlowerAdminTokenClient();
+    const adminTestTier = getFlowerAdminTestTierClient();
+    const authHeaders = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+    };
+
+    const cost = PREMIUM_SERVICE_COST[service];
+    const productId = PREMIUM_PRODUCT_BY_SERVICE[service];
+    const requestId = `premium:${productId || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
+    setPremiumGateLoading(service);
+    try {
+      const { res, data } = await fetchJsonWithTimeout(productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(
+          productId
+            ? { productId, requestId }
+            : { cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId },
+        ),
+      });
+      if (res.status === 402) {
         if (service === 'veda') {
-          setVedaFlowState('generating_pdf');
+          setVedaFlowState('payment_required');
+          setVedaFlowError(data?.message || '코인이 부족합니다.');
+        } else {
+          setShowRechargeModal(true);
         }
-        setPremiumFlowStage('generate');
         return;
       }
-
-      const token = localStorage.getItem('fortune_auth_token');
-      if (!token) return;
-      const adminToken = getFlowerAdminTokenClient();
-      const adminTestTier = getFlowerAdminTestTierClient();
-      const authHeaders = {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-        ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-      };
-
-      const cost = PREMIUM_SERVICE_COST[service];
-      const productId = PREMIUM_PRODUCT_BY_SERVICE[service];
-      const requestId = `premium:${productId || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
-      setPaymentMessage(`${premiumLabel} 결제를 진행 중입니다.`);
-      setPremiumGateLoading(service);
-      try {
-        const { res, data } = await fetchJsonWithTimeout(productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders },
-          body: JSON.stringify(
-            productId
-              ? { productId, requestId }
-              : { cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId },
-          ),
-        });
-        if (res.status === 402) {
-          if (service === 'veda') {
-            setVedaFlowState('payment_required');
-            setVedaFlowError(data?.message || '코인이 부족합니다.');
-          } else {
-            setShowRechargeModal(true);
-          }
-          return;
-        }
-        if (!res.ok) {
-          const message = data?.message || '코인 차감 실패';
-          setPremiumGateError(message);
-          if (service === 'veda') {
-            setVedaFlowState('error');
-            setVedaFlowError(message);
-          }
-          return;
-        }
-        if (data?.transactionId) {
-          try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(data.transactionId)); } catch (_) {}
-        }
-        const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
-        setCurrentCoins(newPoints);
-        saveUserPoints(newPoints);
-        notifyCoinResult(data, cost, newPoints, `${service} 프리미엄`);
-        if (service === "ziwei") {
-          markZiweiPremiumUnlockedClient();
-        }
-        setPaymentMessage("✅ 해금이 완료되었습니다! 잠시 후 이동합니다.");
-        await new Promise(r => setTimeout(r, 800));
-        if (service === 'veda') {
-          setVedaFlowState('generating_pdf');
-        }
-        setPremiumFlowStage('generate');
-      } catch (e) {
-        console.error('[handleStartPremiumGeneration]', e);
-        const message = '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      if (!res.ok) {
+        const message = data?.message || '코인 차감 실패';
         setPremiumGateError(message);
         if (service === 'veda') {
           setVedaFlowState('error');
           setVedaFlowError(message);
         }
-      } finally {
-        setPremiumGateLoading(null);
+        return;
+      }
+      if (data?.transactionId) {
+        try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(data.transactionId)); } catch (_) {}
+      }
+      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      setCurrentCoins(newPoints);
+      saveUserPoints(newPoints);
+      notifyCoinResult(data, cost, newPoints, `${service} 프리미엄`);
+      if (service === "ziwei") {
+        markZiweiPremiumUnlockedClient();
+      }
+      await new Promise(r => setTimeout(r, 800));
+      if (service === 'veda') {
+        setVedaFlowState('generating_pdf');
+      }
+      setPremiumFlowStage('generate');
+    } catch (e) {
+      console.error('[handleStartPremiumGeneration]', e);
+      const message = '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      setPremiumGateError(message);
+      if (service === 'veda') {
+        setVedaFlowState('error');
+        setVedaFlowError(message);
       }
     } finally {
-      endPayment();
+      setPremiumGateLoading(null);
     }
   };
 

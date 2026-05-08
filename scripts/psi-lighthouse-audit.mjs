@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { config as loadEnv } from 'dotenv';
 
-// Load local env files when running as a standalone Node script.
+let loadEnv = () => {};
+try {
+  // Keep local DX for .env files, but do not hard-fail in minimal CI runners.
+  ({ config: loadEnv } = await import('dotenv'));
+} catch {
+  loadEnv = () => {};
+}
+
 loadEnv({ path: '.env.local' });
 loadEnv();
 
