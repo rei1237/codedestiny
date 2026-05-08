@@ -3699,10 +3699,18 @@ function _dfResolveBirthContext(payload) {
 }
 
 function _dfExtractAstroLiveData(birthCtx) {
-  if (!_dfHasBirthCore(birthCtx)) return null;
+  if (!_dfHasBirthCore(birthCtx)) {
+    console.log('[AstrologyFlower] birthCtx 정보 부족:', birthCtx);
+    return null;
+  }
 
   var chart = null;
   var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
+
+  console.log('[AstrologyFlower] calcAstroApiChartOrThrow 확인:', {
+    hasFn: typeof window.calcAstroApiChartOrThrow === 'function',
+    birthData: { year: birthCtx.year, month: birthCtx.month, day: birthCtx.day, hour: birthCtx.hour, lat: birthCtx.lat, lon: birthCtx.lon, tz: birthCtx.tz }
+  });
 
   if (typeof window.calcAstroApiChartOrThrow === 'function') {
     try {
@@ -3716,13 +3724,17 @@ function _dfExtractAstroLiveData(birthCtx) {
         Number(birthCtx.tz),
         window.ASTRO_HOUSE_SYSTEM || 'P'
       );
+      console.log('[AstrologyFlower] 천궁도 계산 완료:', chart);
     } catch (e) {
       console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
       return null;
     }
   }
 
-  if (!chart) return null;
+  if (!chart) {
+    console.warn('[AstrologyFlower] chart가 없음 - calcAstroApiChartOrThrow 미로드');
+    return null;
+  }
   return {
     sunSign: _dfAstroSignFromNode(chart && chart.sun),
     moonSign: _dfAstroSignFromNode(chart && chart.moon),
@@ -3834,6 +3846,11 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
   var applySukuyo = !sourceHint || sourceHint === 'sukuyo';
 
   var astro = applyAstro ? _dfExtractAstroLiveData(birthCtx) : null;
+  console.log('[AstrologyFlower] astro 데이터:', { 
+    haAstro: !!astro,
+    astroData: astro,
+    applyAstro
+  });
   if (astro && (astro.sunSign || astro.moonSign || astro.risingSign)) {
     payload.astrology = Object.assign({}, payload.astrology || {}, {
       sunSign: astro.sunSign,
@@ -3843,14 +3860,17 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
       risingSign: astro.risingSign,
       rising_sign: astro.risingSign
     });
-    if (payload.domains && payload.domains.astrology) {
-      payload.domains.astrology = Object.assign({}, payload.domains.astrology, {
-        enabled: true,
-        sun_sign: astro.sunSign || payload.domains.astrology.sun_sign || '',
-        moon_sign: astro.moonSign || payload.domains.astrology.moon_sign || '',
-        rising_sign: astro.risingSign || payload.domains.astrology.rising_sign || ''
-      });
-    }
+    if (!payload.domains) payload.domains = {};
+    if (!payload.domains.astrology) payload.domains.astrology = {};
+    payload.domains.astrology = Object.assign({}, payload.domains.astrology, {
+      enabled: true,
+      sun_sign: astro.sunSign || payload.domains.astrology.sun_sign || '',
+      moon_sign: astro.moonSign || payload.domains.astrology.moon_sign || '',
+      rising_sign: astro.risingSign || payload.domains.astrology.rising_sign || ''
+    });
+    console.log('[AstrologyFlower] payload.astrology 설정됨:', payload.astrology);
+  } else {
+    console.log('[AstrologyFlower] astro 계산 실패 또는 미적용');
   }
 
   var ziweiRaw = applyZiwei ? _dfExtractZiweiLiveRaw(birthCtx) : null;
@@ -3863,15 +3883,15 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
       brightness: ziwei.brightness,
       stars: ziwei.stars
     });
-    if (payload.domains && payload.domains.ziwei) {
-      payload.domains.ziwei = Object.assign({}, payload.domains.ziwei, {
-        enabled: true,
-        main_star: ziwei.mainStar || payload.domains.ziwei.main_star || '',
-        palace: ziwei.palace || payload.domains.ziwei.palace || '',
-        brightness: ziwei.brightness || payload.domains.ziwei.brightness || '',
-        stars: Array.isArray(ziwei.stars) ? ziwei.stars : (payload.domains.ziwei.stars || [])
-      });
-    }
+    if (!payload.domains) payload.domains = {};
+    if (!payload.domains.ziwei) payload.domains.ziwei = {};
+    payload.domains.ziwei = Object.assign({}, payload.domains.ziwei, {
+      enabled: true,
+      main_star: ziwei.mainStar || payload.domains.ziwei.main_star || '',
+      palace: ziwei.palace || payload.domains.ziwei.palace || '',
+      brightness: ziwei.brightness || payload.domains.ziwei.brightness || '',
+      stars: Array.isArray(ziwei.stars) ? ziwei.stars : (payload.domains.ziwei.stars || [])
+    });
   }
 
   var sukuyo = applySukuyo ? _dfExtractSukuyoLiveData(birthCtx) : null;
@@ -3883,16 +3903,16 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
       index: sukuyo.mansionIndex,
       phase: sukuyo.phase
     });
-    if (payload.domains && payload.domains.sukuyo) {
-      payload.domains.sukuyo = Object.assign({}, payload.domains.sukuyo, {
-        enabled: true,
-        mansion: sukuyo.mansion || payload.domains.sukuyo.mansion || '',
-        mansion_index: Number.isFinite(Number(sukuyo.mansionIndex))
-          ? Number(sukuyo.mansionIndex)
-          : Number(payload.domains.sukuyo.mansion_index || 0),
-        phase: sukuyo.phase || payload.domains.sukuyo.phase || ''
-      });
-    }
+    if (!payload.domains) payload.domains = {};
+    if (!payload.domains.sukuyo) payload.domains.sukuyo = {};
+    payload.domains.sukuyo = Object.assign({}, payload.domains.sukuyo, {
+      enabled: true,
+      mansion: sukuyo.mansion || payload.domains.sukuyo.mansion || '',
+      mansion_index: Number.isFinite(Number(sukuyo.mansionIndex))
+        ? Number(sukuyo.mansionIndex)
+        : Number(payload.domains.sukuyo.mansion_index || 0),
+      phase: sukuyo.phase || payload.domains.sukuyo.phase || ''
+    });
   }
 
   return payload;
@@ -4128,7 +4148,16 @@ function _dfResolveSelection() {
 
 function _afResolveSelection() {
   var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
-  if (!_dfHasReadySourceData('astrology', payload)) return null;
+  console.log('[AstrologyFlower] payload astrology data:', {
+    hasAstrology: !!(payload && payload.astrology),
+    astrologyData: payload && payload.astrology,
+    hasDomainAstrology: !!(payload && payload.domains && payload.domains.astrology),
+    domainAstrologyData: payload && payload.domains && payload.domains.astrology
+  });
+  if (!_dfHasReadySourceData('astrology', payload)) {
+    console.warn('[AstrologyFlower] 데이터 준비 안됨 - 생년월일 또는 천궁도 정보 필요');
+    return null;
+  }
   var matched = null;
 
   try {
