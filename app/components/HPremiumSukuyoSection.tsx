@@ -667,6 +667,7 @@ export default function HPremiumSukuyoSection({
 
   const pdfBtnRef = useRef<HTMLButtonElement>(null);
   const storageReadyRef = useRef(false);
+  const reportIdRef = useRef("");
 
   const parseNumberOr = useCallback((value: string, fallback: number, min?: number, max?: number) => {
     const n = Number(value);
@@ -694,6 +695,11 @@ export default function HPremiumSukuyoSection({
     (partnerBirthDate.year.length === 4 && partnerBirthDate.month !== "" && partnerBirthDate.day !== "");
 
   const buildSukuyoPayload = useCallback((chapter: number) => {
+    const previousChapterTexts = chapters
+      .filter((state, idx) => idx + 1 < chapter && state.step === "done" && !!state.result?.text)
+      .map((state) => String(state.result?.text || ""))
+      .filter((text) => text.trim().length > 0);
+
     const payload: Record<string, unknown> = {
       year: parseNumberOr(birthDate.year, 1990),
       month: parseNumberOr(birthDate.month, 1, 1, 12),
@@ -704,6 +710,8 @@ export default function HPremiumSukuyoSection({
       lat: Number.isFinite(Number(birthDate.lat)) ? Number(birthDate.lat) : 37.5665,
       lon: Number.isFinite(Number(birthDate.lon)) ? Number(birthDate.lon) : 126.9780,
       chapter,
+      reportId: reportIdRef.current || undefined,
+      previousChapterTexts,
     };
 
     if (isValidPartnerDate && partnerDateFilled) {
@@ -716,7 +724,7 @@ export default function HPremiumSukuyoSection({
     }
 
     return payload;
-  }, [birthDate, isValidPartnerDate, partnerDateFilled, partnerBirthDate, partnerName, partnerGender, parseHour, parseNumberOr]);
+  }, [birthDate, chapters, isValidPartnerDate, partnerDateFilled, partnerBirthDate, partnerName, partnerGender, parseHour, parseNumberOr]);
 
   useEffect(() => {
     if (showIntro) return;
@@ -775,6 +783,7 @@ export default function HPremiumSukuyoSection({
 
   useEffect(() => {
     if (showIntro) {
+      reportIdRef.current = "";
       setSukuyo(null);
       setChapters(CHAPTER_META.map(() => ({ step: "idle" as ChapterStep, result: null })));
       setInitError("");
@@ -822,6 +831,9 @@ export default function HPremiumSukuyoSection({
     setRequestError("");
     try {
       const data = await postSukuyoJson(buildSukuyoPayload(1));
+      if (typeof data?.reportId === "string" && data.reportId) {
+        reportIdRef.current = data.reportId;
+      }
       if (data.sukuyo) {
         setSukuyo(data.sukuyo);
         setChapters((prev) => {
@@ -867,6 +879,9 @@ export default function HPremiumSukuyoSection({
       });
       try {
         const data = await postSukuyoJson(buildSukuyoPayload(chapter));
+        if (typeof data?.reportId === "string" && data.reportId) {
+          reportIdRef.current = data.reportId;
+        }
         {
           setChapters((prev) => {
             const next = [...prev];
@@ -909,6 +924,9 @@ export default function HPremiumSukuyoSection({
       });
       try {
         const data = await postSukuyoJson(buildSukuyoPayload(ch));
+        if (typeof data?.reportId === "string" && data.reportId) {
+          reportIdRef.current = data.reportId;
+        }
         {
           setChapters((prev) => {
             const next = [...prev];
@@ -940,7 +958,10 @@ export default function HPremiumSukuyoSection({
   const handleDownloadPDF = useCallback(() => {
     if (!sukuyo) return;
     const doneChapters = chapters.filter((c) => c.step === "done" && c.result);
-    if (!doneChapters.length) return;
+    if (doneChapters.length !== CHAPTER_META.length) {
+      setRequestError(`전체 ${CHAPTER_META.length}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+      return;
+    }
     try {
       const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
@@ -1585,15 +1606,18 @@ ${chaptersHtml}
                   ref={pdfBtnRef}
                   type="button"
                   onClick={handleDownloadPDF}
+                  disabled={doneCount !== CHAPTER_META.length}
                   style={{
                     padding: "12px 24px",
                     borderRadius: 12,
                     border: "1px solid rgba(251,191,36,0.4)",
-                    background: "linear-gradient(135deg, rgba(120,53,15,0.5) 0%, rgba(30,27,75,0.5) 100%)",
-                    color: "rgba(251,191,36,0.9)",
+                    background: doneCount === CHAPTER_META.length
+                      ? "linear-gradient(135deg, rgba(120,53,15,0.5) 0%, rgba(30,27,75,0.5) 100%)"
+                      : "rgba(100,116,139,0.28)",
+                    color: doneCount === CHAPTER_META.length ? "rgba(251,191,36,0.9)" : "rgba(148,163,184,0.6)",
                     fontSize: "0.88rem",
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: doneCount === CHAPTER_META.length ? "pointer" : "not-allowed",
                     letterSpacing: "0.06em",
                   }}
                 >

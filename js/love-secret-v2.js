@@ -1141,7 +1141,22 @@
       if (_cancelGeneration) return;
       if (idx >= _totalChapters) {
         var totalChars = 0;
-        for (var ci = 0; ci < _chapters.length; ci++) totalChars += String(_chapters[ci] || '').length;
+        var validCount = 0;
+        for (var ci = 0; ci < _chapters.length; ci++) {
+          var chapterText = String(_chapters[ci] || '').trim();
+          totalChars += chapterText.length;
+          if (chapterText.length >= _chapterMinChars(ci + 1) && !/^⚠️/.test(chapterText)) {
+            validCount += 1;
+          }
+        }
+        if (validCount < _totalChapters) {
+          _generating = false;
+          _stopLoadingAnimation();
+          _showScreen('lsErrorScreen');
+          var validErr = _qs('lsErrorMessage');
+          if (validErr) validErr.textContent = '모든 챕터가 완성되지 않았습니다. 전체 챕터를 다시 생성해 주세요. (' + validCount + '/' + _totalChapters + ')';
+          return;
+        }
         var requiredTotal = Number(_getModeConfig(_currentMode).minTotalChars || 0);
         if (totalChars < requiredTotal) {
           _generating = false;

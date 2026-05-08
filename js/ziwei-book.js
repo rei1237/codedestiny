@@ -1039,7 +1039,7 @@
           return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
-        if (_validCount < 10) {
+        if (_validCount < 13) {
           var errEl = _qs('zbErrorMsg');
           if (errEl) errEl.textContent = _validCount === 0
             ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'

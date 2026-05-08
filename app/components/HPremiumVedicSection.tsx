@@ -277,7 +277,10 @@ function PDFDownloadButton({
   const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
 
   const handleDownload = useCallback(() => {
-    if (doneChapters.length === 0) { setError("먼저 챕터를 하나 이상 생성해 주세요."); return; }
+    if (doneChapters.length !== TOTAL_CHAPTERS) {
+      setError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+      return;
+    }
     setLoading(true); setError("");
     try {
       const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -366,15 +369,15 @@ ${chaptersHtml}
       <button
         ref={btnRef}
         onClick={handleDownload}
-        disabled={loading || doneChapters.length === 0}
+        disabled={loading || doneChapters.length !== TOTAL_CHAPTERS}
         style={{
           display:"inline-flex", alignItems:"center", gap:8,
           borderRadius:12, padding:"12px 28px", fontSize:"0.9rem", fontWeight:800,
-          background: doneChapters.length === 0 ? "rgba(100,116,139,0.3)" : loading ? "rgba(100,116,139,0.4)" : "linear-gradient(135deg,#d4a017,#8b6914)",
+          background: doneChapters.length !== TOTAL_CHAPTERS ? "rgba(100,116,139,0.3)" : loading ? "rgba(100,116,139,0.4)" : "linear-gradient(135deg,#d4a017,#8b6914)",
           border: "1px solid rgba(212,160,23,0.4)",
-          color: doneChapters.length === 0 ? "rgba(148,163,184,0.5)" : "#fff",
-          cursor: doneChapters.length === 0 || loading ? "not-allowed" : "pointer",
-          boxShadow: doneChapters.length > 0 && !loading ? "0 4px 20px rgba(212,160,23,0.25)" : "none",
+          color: doneChapters.length !== TOTAL_CHAPTERS ? "rgba(148,163,184,0.5)" : "#fff",
+          cursor: doneChapters.length !== TOTAL_CHAPTERS || loading ? "not-allowed" : "pointer",
+          boxShadow: doneChapters.length === TOTAL_CHAPTERS && !loading ? "0 4px 20px rgba(212,160,23,0.25)" : "none",
           transition:"all 0.2s",
         }}
       >
@@ -383,7 +386,7 @@ ${chaptersHtml}
       {error && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {error}</p>}
       {doneChapters.length > 0 && (
         <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>
-          완료된 {doneChapters.length}개 챕터를 포함한 카르마 청사진 PDF를 생성합니다
+          전체 {TOTAL_CHAPTERS}개 챕터 완료 후 카르마 청사진 PDF를 생성할 수 있습니다 ({doneChapters.length}/{TOTAL_CHAPTERS})
         </p>
       )}
     </div>
@@ -431,10 +434,12 @@ export default function HPremiumVedicSection({
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
   const storageReadyRef = useRef(false);
+  const reportIdRef = useRef("");
 
   const autoComputeRef = useRef(false);
 
   const resetVedicState = useCallback((resetInputs = false) => {
+    reportIdRef.current = "";
     setChart(null);
     setChapters(createEmptyChapters());
     setCalcError("");
@@ -668,6 +673,13 @@ export default function HPremiumVedicSection({
   }, []);
 
   const buildRequestPayload = useCallback((chapterNum: number) => {
+    const previousChapterTexts = CHAPTER_META
+      .map((meta) => chapters[meta.num]?.result)
+      .filter((result): result is ChapterResult => !!result && result.chapter < chapterNum)
+      .sort((a, b) => a.chapter - b.chapter)
+      .map((result) => result.text)
+      .filter((text) => typeof text === "string" && text.trim().length > 0);
+
     const payload: Record<string, unknown> = {
       year: parseInt(birthYear, 10),
       month: parseInt(birthMonth, 10),
@@ -680,6 +692,8 @@ export default function HPremiumVedicSection({
       birthPlace,
       chapter: chapterNum,
       reportType: reportMode,
+      reportId: reportIdRef.current || undefined,
+      previousChapterTexts,
     };
 
     if (reportMode === "compatibility") {
@@ -695,7 +709,7 @@ export default function HPremiumVedicSection({
       payload.partnerLon = parseFloat(partnerLon);
     }
     return payload;
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chapters]);
 
   const ensureCompatibilityAddonCharged = useCallback(async () => {
     if (reportMode !== "compatibility") return;
@@ -756,6 +770,9 @@ export default function HPremiumVedicSection({
     try {
       await ensureCompatibilityAddonCharged();
       const data = await postVedicJson(buildRequestPayload(1));
+      if (typeof data?.reportId === "string" && data.reportId) {
+        reportIdRef.current = data.reportId;
+      }
       setChart(data.chart);
       setChapters(prev => ({ ...prev, 1: { step:"done", result:{ chapter:1, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } } }));
       onPdfFlowStateChange?.("success");
@@ -788,6 +805,9 @@ export default function HPremiumVedicSection({
     try {
       await ensureCompatibilityAddonCharged();
       const data = await postVedicJson(buildRequestPayload(chNum));
+      if (typeof data?.reportId === "string" && data.reportId) {
+        reportIdRef.current = data.reportId;
+      }
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{chapter:chNum,chapterMeta:data.chapterMeta,text:data.text,sections:data.sections}}}));
       if (data.chart&&!chart) setChart(data.chart);
       onPdfFlowStateChange?.("success");

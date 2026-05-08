@@ -5176,20 +5176,7 @@ async function handleAstroLife(request, env) {
   }
 
   if (!chapterRequestProvided(body)) {
-    return json({
-      ok: true,
-      reportId,
-      reportType,
-      chart,
-      partnerChart,
-      synastry,
-      composite,
-      timingData,
-      chapterPlan,
-      totalChapters: chapterPlan.length,
-      canonicalAstroChart,
-      mode: "plan",
-    });
+    return json({ ok: false, message: "chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
 
   let meta = null;

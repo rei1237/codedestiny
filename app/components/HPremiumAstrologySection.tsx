@@ -342,11 +342,13 @@ export default function HPremiumAstrologySection({
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const storageReadyRef = useRef(false);
+  const reportIdRef = useRef("");
 
 
   const resetAstrologyState = useCallback((resetInputs = false) => {
     setChart(null);
     setChapters(createEmptyChapters());
+    reportIdRef.current = "";
     setCalcError("");
     setCalcLoading(false);
     setRequestError("");
@@ -439,7 +441,10 @@ export default function HPremiumAstrologySection({
 
   const handleDownloadAstroPDF = useCallback(() => {
     const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
-    if (doneChapters.length === 0) { setPdfError("먼저 챕터를 하나 이상 생성해 주세요."); return; }
+    if (doneChapters.length !== TOTAL_CHAPTERS) {
+      setPdfError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+      return;
+    }
     setPdfLoading(true); setPdfError("");
     try {
       const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -538,6 +543,7 @@ ${chaptersHtml}
     setCalcError("");
     setRequestError("");
     setCalcLoading(true);
+    reportIdRef.current = "";
     try {
       const data = await postAstroJson("/api/premium/astro-western", {
         year:y, month:m, day:d,
@@ -571,6 +577,13 @@ ${chaptersHtml}
     setRequestError("");
     setChapters(prev => ({ ...prev, [chNum]: { step:"loading", result:null } }));
     try {
+      const previousChapterTexts = CHAPTER_META
+        .map((meta) => chapters[meta.num]?.result)
+        .filter((result): result is ChapterResult => !!result && result.chapter < chNum)
+        .sort((a, b) => a.chapter - b.chapter)
+        .map((result) => result.text)
+        .filter((text) => typeof text === "string" && text.trim().length > 0);
+
       const data = await postAstroJson("/api/premium/astro-life", {
         year:   parseInt(birthYear,  10),
         month:  parseInt(birthMonth, 10),
@@ -579,8 +592,13 @@ ${chaptersHtml}
         minute: parseInt(birthMinute,10),
         timezone: parseFloat(timezone),
         chapter: chNum,
+        reportId: reportIdRef.current || undefined,
+        previousChapterTexts,
         chart,
       });
+      if (typeof data?.reportId === "string" && data.reportId) {
+        reportIdRef.current = data.reportId;
+      }
       setChapters(prev => ({
         ...prev,
         [chNum]: { step:"done", result: { chapter:chNum, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } },
@@ -591,7 +609,7 @@ ${chaptersHtml}
       setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev => ({ ...prev, [chNum]: { step:"error", result:null } }));
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, postAstroJson]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, chapters, postAstroJson]);
 
 
   // 전체 챕터 순차 생성
@@ -632,7 +650,6 @@ ${chaptersHtml}
             <p style={{ color:"rgba(203,213,225,0.75)", fontSize:"0.88rem", margin:0, lineHeight:1.8 }}>ASC/Sun/Moon 기반 {TOTAL_CHAPTERS}챕터 분석을 먼저 확인하고, 원할 때 PDF 생성 단계로 진입하세요.</p>
           </div>
         </div>
-
         <div style={{ padding:"18px 18px 22px" }}>
           <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.72rem", letterSpacing:"0.18em", margin:"0 0 10px" }}>리포트 목차 미리보기 ({TOTAL_CHAPTERS} CHAPTERS)</p>
           <div style={{ display:"grid", gap:8 }}>
@@ -861,22 +878,22 @@ ${chaptersHtml}
                 <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.68rem", letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>ASTROLOGY PREMIUM PDF</p>
                 <button
                   onClick={handleDownloadAstroPDF}
-                  disabled={pdfLoading}
+                  disabled={pdfLoading || doneCount !== TOTAL_CHAPTERS}
                   style={{
                     display:"inline-flex", alignItems:"center", gap:8,
                     borderRadius:12, padding:"12px 28px", fontSize:"0.9rem", fontWeight:800,
-                    background: pdfLoading ? "rgba(100,116,139,0.3)" : "linear-gradient(135deg,#f59e0b,#d97706)",
+                    background: (pdfLoading || doneCount !== TOTAL_CHAPTERS) ? "rgba(100,116,139,0.3)" : "linear-gradient(135deg,#f59e0b,#d97706)",
                     border:"1px solid rgba(251,191,36,0.4)",
-                    color: pdfLoading ? "rgba(148,163,184,0.5)" : "#fff",
-                    cursor: pdfLoading ? "not-allowed" : "pointer",
-                    boxShadow: !pdfLoading ? "0 4px 20px rgba(251,191,36,0.25)" : "none",
+                    color: (pdfLoading || doneCount !== TOTAL_CHAPTERS) ? "rgba(148,163,184,0.5)" : "#fff",
+                    cursor: (pdfLoading || doneCount !== TOTAL_CHAPTERS) ? "not-allowed" : "pointer",
+                    boxShadow: (!pdfLoading && doneCount === TOTAL_CHAPTERS) ? "0 4px 20px rgba(251,191,36,0.25)" : "none",
                     transition:"all 0.2s",
                   }}
                 >
                   {pdfLoading ? "\ud83d\udcc4 PDF 생성 중…" : `\ud83d\udce5 PDF 다운로드 (${doneCount}/${TOTAL_CHAPTERS}챕터)`}
                 </button>
                 {pdfError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {pdfError}</p>}
-                <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>\uc644\ub8cc\ub41c {doneCount}\uac1c \ucced\ud130\ub97c \ud3ec\ud568\ud55c \uc810\uc131\uc220 PDF \ub9ac\ud3ec\ud2b8\ub97c \uc0dd\uc131\ud569\ub2c8\ub2e4</p>
+                <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>전체 {TOTAL_CHAPTERS}개 챕터가 모두 완료되면 점성술 PDF 리포트를 생성할 수 있습니다 ({doneCount}/{TOTAL_CHAPTERS})</p>
               </div>
             )}          </>
         )}

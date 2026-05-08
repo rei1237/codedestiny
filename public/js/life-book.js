@@ -1300,12 +1300,18 @@
         _generating = false;
         _setFlowState('success');
 
-        // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 10개 미만이면 실패 처리
+        // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 13개(전체)여야 성공
         var _validCount = _chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length;
-        if (_validCount < 10) {
-          console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/13');
+        if (_validCount < 13) {
+          _generating = false;
+          _setFlowState('error');
+          _lastError = '모든 챕터 생성이 완료되지 않았습니다. 전체 13개 챕터를 다시 생성해 주세요. (성공 ' + _validCount + '/13)';
+          var lbErrFinal = _qs('lbErrorMessage');
+          if (lbErrFinal) lbErrFinal.textContent = _lastError;
+          _showScreen('lbErrorScreen');
+          return;
         }
 
         _showScreen('lbResultScreen');
