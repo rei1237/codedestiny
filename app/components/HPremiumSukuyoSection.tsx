@@ -790,9 +790,12 @@ export default function HPremiumSukuyoSection({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 65000);
       try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("fortune_auth_token") : "";
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch("/api/premium/sukuyo-life", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal,
         });

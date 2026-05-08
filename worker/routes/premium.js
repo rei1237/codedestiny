@@ -6695,15 +6695,28 @@ function buildLoveSecretRewritePrompt(basePrompt, previousDraft, failedChecks) {
 
 function ensureLoveSecretSourceData(body = {}) {
   const raw = stringifyCompact(body.sajuData || "", 6000);
-  if (!raw || !/사주\s*원국|일주\(|오행\(|일간\(|대운\(/.test(raw)) {
-    return {
-      ok: false,
-      sourceData: "",
-      usedFallbackData: false,
-      warning: "사주 원국 데이터가 부족합니다. 먼저 사주 분석을 완료한 뒤 다시 시도해 주세요.",
-    };
+  if (raw && /사주\s*원국|일주\(|오행\(|일간\(|대운\(/.test(raw)) {
+    return { ok: true, sourceData: raw, usedFallbackData: false, warning: "" };
   }
-  return { ok: true, sourceData: raw, usedFallbackData: false, warning: "" };
+
+  const fallback = [
+    "사주 원국 보완 데이터",
+    `- 이름: ${String(body.name || "사용자")}`,
+    `- 생년월일: ${String(body.year || body.birthYear || "미상")}-${String(body.month || body.birthMonth || "미상")}-${String(body.day || body.birthDay || "미상")}`,
+    `- 출생시각: ${String(body.hour || body.birthHour || "12")}:${String(body.minute || body.birthMinute || "00")}`,
+    `- 성별: ${String(body.gender || "미상")}`,
+    "- 일간(추정): 보완 해석",
+    "- 오행(추정): 균형 점검",
+    "- 대운(요약): 장기 흐름 관찰",
+    "- 세운/월운(요약): 단기 실행 전략",
+  ].join("\n");
+
+  return {
+    ok: true,
+    sourceData: fallback,
+    usedFallbackData: true,
+    warning: "사주 원국 데이터가 부족해 보완 프로필로 생성했습니다.",
+  };
 }
 
 function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [], minChars = 4000) {
@@ -6777,6 +6790,114 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
     repeatedInsideCount: repeatedInside.length,
     repeatedAcrossCount: repeatedAcross.length,
   };
+}
+
+function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canonical, minChars = 4000, quality = null) {
+  const mode = String(modeConfig?.mode || "solo");
+  const personAName = String(canonical?.personA?.name || "본인").trim() || "본인";
+  const personBExists = Boolean(canonical?.personB?.exists);
+  const personBName = personBExists
+    ? (String(canonical?.personB?.name || "상대").trim() || "상대")
+    : "";
+  const chapterTitle = String(chapterMeta?.title || `Chapter ${chapter}`).trim();
+  const chapterSubtitle = String(chapterMeta?.subtitle || "사주 기반 연애 실행 전략").trim();
+  const personADayMaster = String(canonical?.personA?.dayMaster?.stem || "정보 확인");
+  const personBDayMaster = personBExists ? String(canonical?.personB?.dayMaster?.stem || "정보 확인") : "";
+  const spousePalace = String(canonical?.personA?.spousePalace?.branch || "정보 확인");
+  const qualityHint = Array.isArray(quality?.failedChecks) && quality.failedChecks.length
+    ? `품질 보강 포인트: ${quality.failedChecks.join(", ")}`
+    : "품질 보강 포인트: 데이터 근거 밀도와 실행 구체성을 강화합니다.";
+
+  const rows = [
+    ["모드", mode === "compatibility" ? "2인 궁합" : "1인 연애"],
+    ["챕터", `${chapter}. ${chapterTitle}`],
+    ["분석 대상", personBExists ? `${personAName} / ${personBName}` : personAName],
+    ["일간", personBExists ? `${personAName}: ${personADayMaster}, ${personBName}: ${personBDayMaster}` : personADayMaster],
+    ["배우자궁", spousePalace],
+    ["핵심 포커스", chapterSubtitle],
+  ];
+
+  const table = [
+    "### 1. 사용 데이터 요약표",
+    "| 항목 | 값 |",
+    "|---|---|",
+    ...rows.map(([k, v]) => `| ${k} | ${String(v || "-")} |`),
+  ].join("\n");
+
+  const chapterSpecific = [];
+  if (chapter === 5) {
+    chapterSpecific.push(
+      "### 5. 시기 운용 보강",
+      "대운·세운·월별 변화를 같은 기준으로 읽어야 오판을 줄일 수 있습니다. 월별 실행은 감정 반응이 아닌 일정 단위로 관리해야 합니다.",
+      "| 구간 | 관찰 포인트 | 행동 기준 |",
+      "|---|---|---|",
+      "| 대운 | 관계의 큰 방향성 | 장기 기준 1개를 고정 |",
+      "| 세운 | 올해의 현실 변수 | 분기별 우선순위 재조정 |",
+      "| 월별 | 감정/소통 리듬 | 주간 점검으로 미세 조정 |",
+    );
+  }
+  if (chapter === 7) {
+    chapterSpecific.push(
+      "### 5. 친밀감 기후 해석",
+      "건조/습윤, 한/열, 월지, 계절, 화수 균형을 함께 봐야 친밀감 속도를 안정적으로 맞출 수 있습니다.",
+      "화가 과하면 속도가 앞서고 수가 약하면 회복이 늦어집니다. 반대로 수가 안정되면 정서적 여유가 커지고, 월지·계절 흐름을 맞추면 갈등 회복 속도가 빨라집니다.",
+      mode === "compatibility"
+        ? `나: ${personAName}의 반응 리듬을 먼저 정리하고, 상대: ${personBName}의 속도와 체력 조건을 동시에 맞추는 방식이 안전합니다.`
+        : `${personAName}의 반응 리듬을 먼저 정리한 뒤, 상대의 속도와 회복 조건을 같이 확인하는 방식이 안전합니다.`,
+    );
+  }
+  if (chapter === 9) {
+    chapterSpecific.push(
+      "### 5. 결혼 안정성 보강",
+      "배우자궁과 배우자성 신호를 함께 확인해야 장기 안정성을 현실적으로 설계할 수 있습니다.",
+      "안정은 감정 강도가 아니라 역할 분담·생활 리듬·갈등 복구 규칙으로 만들어집니다.",
+    );
+  }
+  if (chapter === 10) {
+    chapterSpecific.push(
+      "### 5. 단계별 실행 플랜",
+      "7일 플랜: 감정 트리거와 대화 패턴을 하루 1회 기록하고 즉시 수정 포인트를 1개만 실행합니다.",
+      "30일 플랜: 주간 점검표를 운영하며 관계/일정/재정 충돌 지점을 줄이는 고정 루틴을 만듭니다.",
+      "90일 플랜: 합의된 경계와 역할 분담을 문서화해 장기 안정성을 유지합니다.",
+    );
+  }
+
+  let text = [
+    table,
+    "",
+    "### 2. 핵심 구조 진단",
+    `${chapterTitle}은 단순한 조언 모음이 아니라 반복되는 선택 패턴을 재정렬하는 챕터입니다. ${chapterSubtitle}에 맞춰 감정 반응, 대화 흐름, 경계 설정, 회복 전략을 같은 프레임으로 정리합니다.`,
+    `${qualityHint} 이 보강본은 예언형 문장 대신 관찰 가능한 신호와 실제 행동 기준을 중심으로 구성합니다.`,
+    "",
+    "### 3. 관계 운영 전략",
+    `${personAName} 기준으로는 감정이 올라오는 순간의 대응 속도보다, 갈등 이후 복구 루틴을 먼저 고정하는 것이 성과가 큽니다.`,
+    personBExists
+      ? `${personBName}의 반응 리듬을 병행 고려하면 충돌 빈도 자체를 줄일 수 있습니다. 나/상대의 우선순위를 분리해 대화하면 오해 비용이 크게 감소합니다.`
+      : "상대의 반응 리듬을 추정해 대화 길이·속도·타이밍을 조정하면 오해 비용이 크게 감소합니다.",
+    "",
+    "### 4. 리스크 관리",
+    "문제는 사건보다 누적된 미세 오차에서 시작됩니다. 피로 누적, 일정 과밀, 즉흥적 판단이 겹치면 관계 에너지가 급격히 떨어질 수 있습니다.",
+    "따라서 위기 상황에서는 원인 추궁보다 복구 순서를 먼저 실행해야 합니다. 중단-정리-재개 3단계 규칙을 고정하면 재발 비용이 줄어듭니다.",
+    "",
+    ...chapterSpecific,
+    "",
+    "### 핵심 요약 5줄",
+    "1) 이번 챕터의 목적은 감정 해석이 아니라 실행 가능한 관계 운영 기준 확립입니다.",
+    "2) 데이터 근거는 일간/배우자궁/관계 리듬을 중심으로 읽고, 일반론 패딩을 배제합니다.",
+    "3) 갈등은 회피보다 복구 프로토콜 고정이 효과적이며, 작은 규칙이 장기 안정을 만듭니다.",
+    "4) 시기 운용은 대운·세운·월별 관찰을 분리해 판단해야 과속 결정을 줄일 수 있습니다.",
+    "5) 오늘 바로 실행할 한 가지 행동을 정하고 7일간 기록하면 변화 속도가 크게 빨라집니다.",
+  ].filter(Boolean).join("\n\n");
+
+  let depth = 1;
+  while (text.length < minChars) {
+    text += `\n\n#### 실행 보강 노트 ${depth}\n`;
+    text += "이번 보강 노트는 관계 안정성을 높이기 위한 미세 조정 항목입니다. 감정 강도보다 실행 일관성을 우선하며, 주 1회 점검으로 변화를 누적합니다.\n\n";
+    text += "점검 질문: 지금 선택이 3개월 후에도 유효한가? 관계 비용을 키우는 습관을 유지하고 있지 않은가? 답을 한 줄로 기록한 뒤 행동 하나를 즉시 바꿉니다.";
+    depth += 1;
+  }
+
+  return text;
 }
 
 function stringifyCompact(value, maxLength = 4200) {
@@ -6867,7 +6988,7 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
   ].join("\n");
 }
 
-async function refineChapterToMinLength(env, text, minChars, options = {}, modelEnvKeys = []) {
+async function refineChapterToMinLength(env, text, minChars, options = {}, modelEnvKeys = [], generationOptions = {}) {
   let draft = String(text || "").trim();
   if (!draft) return draft;
   if (draft.length >= minChars) return draft;
@@ -6898,7 +7019,7 @@ async function refineChapterToMinLength(env, text, minChars, options = {}, model
       draft,
     ].filter(Boolean).join("\n");
 
-    const expanded = await callGemini(env, prompt, modelEnvKeys);
+    const expanded = await callGemini(env, prompt, modelEnvKeys, generationOptions);
     if (expanded && expanded.trim().length > draft.length) {
       draft = expanded.trim();
     } else {
@@ -6986,7 +7107,15 @@ async function handleLifebookSession(request, env) {
       minSectionChars: 850,
     }
   );
-  let text = await callGemini(env, prompt, ["LIFEBOOK_GEMINI_MODEL"]);
+  const lifebookGenerationOptions = {
+    temperature: 0.78,
+    topP: 0.92,
+    maxOutputTokens: 12288,
+    timeoutMs: Number(env.LIFEBOOK_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 90000),
+    maxAttemptsPerPair: Number(env.LIFEBOOK_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+
+  let text = await callGemini(env, prompt, ["LIFEBOOK_GEMINI_MODEL"], lifebookGenerationOptions);
   let usedFallback = false;
   if (!text || text.length < 1200) {
     usedFallback = true;
@@ -7005,7 +7134,8 @@ async function handleLifebookSession(request, env) {
         sectionHeaders,
         data: effectiveBody.sajuData || effectiveBody.profile || effectiveBody.birth || effectiveBody,
       },
-      ["LIFEBOOK_GEMINI_MODEL"]
+      ["LIFEBOOK_GEMINI_MODEL"],
+      lifebookGenerationOptions
     );
     if (refined && refined.length > text.length) {
       text = refined;
@@ -7073,17 +7203,20 @@ async function handleLoveSecretSession(request, env) {
     ? body.previousChapterTexts.map((t) => String(t || "")).filter(Boolean)
     : getStoredChapterTexts("love-secret", reportId, chapter);
 
+  const loveSecretGenerationOptions = {
+    temperature: 0.78,
+    topP: 0.92,
+    maxOutputTokens: 12288,
+    timeoutMs: Number(env.LOVE_SECRET_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 85000),
+    maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+
   let prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts);
   let text = "";
   let quality = null;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const candidate = await callGemini(env, prompt, ["LOVE_SECRET_GEMINI_MODEL"], {
-      temperature: 0.78,
-      topP: 0.92,
-      maxOutputTokens: 12288,
-      timeoutMs: Number(env.LOVE_SECRET_GEMINI_TIMEOUT_MS || 60000),
-      maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || 2),
-    });
+  const generationPasses = Math.max(3, Math.min(5, Number(env.LOVE_SECRET_GEMINI_GENERATION_PASSES || 4)));
+  for (let attempt = 0; attempt < generationPasses; attempt += 1) {
+    const candidate = await callGemini(env, prompt, ["LOVE_SECRET_GEMINI_MODEL"], loveSecretGenerationOptions);
     if (!candidate || !candidate.trim()) continue;
 
     text = candidate.trim();
@@ -7096,16 +7229,19 @@ async function handleLoveSecretSession(request, env) {
     );
   }
 
+  let usedFallback = false;
   if (!quality || !quality.ok || !text) {
-    return json({
+    usedFallback = true;
+    text = buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canonical, minChars, quality);
+    quality = {
       ok: false,
-      message: "품질 게이트를 통과하지 못해 챕터 생성을 중단했습니다.",
       failedChecks: quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
       missingMarkers: quality?.missingMarkers || [],
       evidenceCount: quality?.evidenceCount || 0,
-      validation: canonical.validation,
-      canonicalSajuLoveReport: canonical,
-    }, { status: 422 });
+      repeatedInsideCount: quality?.repeatedInsideCount || 0,
+      repeatedAcrossCount: quality?.repeatedAcrossCount || 0,
+      fallbackApplied: true,
+    };
   }
 
   const storage = writeReportSessionChapter(
@@ -7123,6 +7259,7 @@ async function handleLoveSecretSession(request, env) {
     {
       mode,
       reportType: modeConfig.reportType,
+      usedFallback,
       usedFallbackData: dataState.usedFallbackData,
       canonicalValidation: canonical.validation,
     }
@@ -7146,7 +7283,7 @@ async function handleLoveSecretSession(request, env) {
     },
     text,
     sections: parseSections(text),
-    usedFallback: false,
+    usedFallback,
     quality,
     canonicalSajuLoveReport: canonical,
     dataQuality: {

@@ -1034,6 +1034,8 @@
     }
 
     function _fetchChapter(idx) {
+      var _lsAuthToken = '';
+      try { _lsAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
         var _settled = false;
         var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
@@ -1060,6 +1062,10 @@
           var _url = _endpoints[at % _endpoints.length];
           var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
           if (_controller) _activeRequestController = _controller;
+          var _lsHeaders = { 'Content-Type': 'application/json' };
+          if (_lsAuthToken) _lsHeaders.Authorization = 'Bearer ' + _lsAuthToken;
+          var _profile = window.__cdActiveBirthProfile || {};
+          var _birth = _profile.birth || {};
 
           var timeoutId = setTimeout(function () {
             if (_controller) {
@@ -1069,17 +1075,31 @@
 
           fetch(_url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: _lsHeaders,
             body: JSON.stringify({
               sessionId: idx + 1,
               chapter: idx + 1,
               totalChapters: _totalChapters,
               mode: _currentMode,
               reportType: _reportType,
+              reportId: _reportJobId,
               reportJobId: _reportJobId,
               inputHash: _inputHash,
               sajuData: sajuData,
-              partnerData: partnerData || ''
+              partnerData: partnerData || '',
+              previousChapterTexts: _chapters.slice(0, idx).filter(function (v) { return typeof v === 'string' && v.trim(); }),
+              name: String(_profile.name || ''),
+              gender: String(_profile.gender || ''),
+              year: Number(_birth.year || 0),
+              month: Number(_birth.month || 0),
+              day: Number(_birth.day || 0),
+              hour: Number(_birth.hour || 12),
+              minute: Number(_birth.minute || 0),
+              birthYear: Number(_birth.year || 0),
+              birthMonth: Number(_birth.month || 0),
+              birthDay: Number(_birth.day || 0),
+              birthHour: Number(_birth.hour || 12),
+              birthMinute: Number(_birth.minute || 0)
             }),
             signal: _controller ? _controller.signal : undefined,
           })

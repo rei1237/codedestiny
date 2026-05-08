@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { usePaymentProcessing } from "./PaymentProcessingContext";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -431,7 +430,6 @@ export default function HPremiumVedicSection({
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
-  const { startProcessing, stopProcessing } = usePaymentProcessing();
   const storageReadyRef = useRef(false);
 
   const autoComputeRef = useRef(false);
@@ -587,7 +585,6 @@ export default function HPremiumVedicSection({
       );
     } catch {
       // ignore storage quota errors
-    }
   }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chart, chapters, showIntro]);
 
   useEffect(() => {
@@ -622,9 +619,12 @@ export default function HPremiumVedicSection({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 65000);
       try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("fortune_auth_token") : "";
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch("/api/premium/vedic-life", {
           method:"POST",
-          headers:{"Content-Type":"application/json"},
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal,
         });
@@ -753,7 +753,6 @@ export default function HPremiumVedicSection({
     if (y<1900||y>2100||m<1||m>12||d<1||d>31){ setCalcError("올바른 날짜를 입력해 주세요."); return; }
     setCalcError(""); setRequestError(""); setCalcLoading(true);
     onPdfFlowStateChange?.("generating_pdf");
-    startProcessing("베다 점성술 차트를 계산하여 카르마 청사진을 작성하고 있습니다...");
     try {
       await ensureCompatibilityAddonCharged();
       const data = await postVedicJson(buildRequestPayload(1));
@@ -767,9 +766,8 @@ export default function HPremiumVedicSection({
       onPdfFlowStateChange?.("error", message);
     } finally {
       setCalcLoading(false);
-      stopProcessing();
     }
-  }, [birthYear,birthMonth,birthDay,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError]);
+  }, [birthYear,birthMonth,birthDay,postVedicJson,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError]);
 
   // 프로필에서 자동 로드된 경우 즉시 계산
   useEffect(() => {
@@ -787,7 +785,6 @@ export default function HPremiumVedicSection({
     setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
     onPdfFlowStateChange?.("generating_pdf");
-    startProcessing(`베다 챕터 ${chNum}의 에너지를 분석하여 리포트를 생성하고 있습니다...`);
     try {
       await ensureCompatibilityAddonCharged();
       const data = await postVedicJson(buildRequestPayload(chNum));
@@ -799,10 +796,8 @@ export default function HPremiumVedicSection({
       setRequestError(message);
       setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
       onPdfFlowStateChange?.("error", message);
-    } finally {
-      stopProcessing();
     }
-  }, [chart,postVedicJson,startProcessing,stopProcessing,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError]);
+  }, [chart,postVedicJson,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError]);
 
 
   const handleGenerateAll = useCallback(async () => {

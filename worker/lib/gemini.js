@@ -64,6 +64,12 @@ function rotate(values, seed = 0) {
   return [...values.slice(start), ...values.slice(0, start)];
 }
 
+function sleep(ms) {
+  const delay = Number(ms);
+  if (!Number.isFinite(delay) || delay <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
 function buildSignal(timeoutMs) {
   const ms = Number(timeoutMs);
   if (!Number.isFinite(ms) || ms <= 0) return undefined;
@@ -98,6 +104,32 @@ function isRetriableErrorMessage(message) {
   );
 }
 
+function parseRetryAfterMs(response) {
+  const header = clean(response?.headers?.get?.("Retry-After") || "");
+  if (!header) return 0;
+
+  const sec = Number(header);
+  if (Number.isFinite(sec) && sec > 0) {
+    return Math.max(250, Math.min(sec * 1000, 15000));
+  }
+
+  const targetTime = Date.parse(header);
+  if (!Number.isFinite(targetTime)) return 0;
+  const delta = targetTime - Date.now();
+  if (!Number.isFinite(delta) || delta <= 0) return 0;
+  return Math.max(250, Math.min(delta, 15000));
+}
+
+function computeRetryDelayMs(attempt, response, message = "") {
+  const retryAfter = parseRetryAfterMs(response);
+  if (retryAfter > 0) return retryAfter;
+
+  const base = Math.min(8000, 450 * (2 ** Math.max(0, attempt - 1)));
+  const bonus = isRetriableErrorMessage(message) ? 300 : 0;
+  const jitter = Math.floor(Math.random() * 220);
+  return base + bonus + jitter;
+}
+
 export async function callGeminiText(env, prompt, options = {}) {
   const textPrompt = clean(prompt);
   if (!textPrompt) {
@@ -121,7 +153,7 @@ export async function callGeminiText(env, prompt, options = {}) {
     maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
   };
 
-  const maxAttemptsPerPair = Math.max(1, Math.min(3, Number(options.maxAttemptsPerPair) || 2));
+  const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
@@ -142,6 +174,7 @@ export async function callGeminiText(env, prompt, options = {}) {
           if (!response.ok) {
             lastError = payload?.error?.message || `Gemini request failed (${response.status})`;
             if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
+              await sleep(computeRetryDelayMs(attempt, response, lastError));
               continue;
             }
             break;
@@ -154,12 +187,14 @@ export async function callGeminiText(env, prompt, options = {}) {
 
           lastError = "Gemini returned an empty response.";
           if (attempt < maxAttemptsPerPair) {
+            await sleep(computeRetryDelayMs(attempt, null, lastError));
             continue;
           }
           break;
         } catch (error) {
           lastError = error?.message || String(error);
           if (attempt < maxAttemptsPerPair && isRetriableErrorMessage(lastError)) {
+            await sleep(computeRetryDelayMs(attempt, null, lastError));
             continue;
           }
           break;
