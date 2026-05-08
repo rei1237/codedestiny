@@ -14,6 +14,7 @@ import PalmLineOverlay, {
   type OverlayPathMap,
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
+import { analyzePalmImageFile } from "@/lib/palm/palm-image-analysis-client";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -494,6 +495,15 @@ export default function PalmDestinyMain() {
       const leftPalmImage = leftHand.file ? await fileToDataUrl(leftHand.file) : null;
       const rightPalmImage = rightHand.file ? await fileToDataUrl(rightHand.file) : null;
 
+      const [leftVision, rightVision] = await Promise.all([
+        leftHand.file
+          ? analyzePalmImageFile(leftHand.file, { declaredHandSide: "left" }).catch(() => null)
+          : Promise.resolve(null),
+        rightHand.file
+          ? analyzePalmImageFile(rightHand.file, { declaredHandSide: "right" }).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
       const response = await fetch("/api/palm/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -501,6 +511,12 @@ export default function PalmDestinyMain() {
         body: JSON.stringify({
           leftPalmImage,
           rightPalmImage,
+          leftHandLandmarks: leftVision?.handLandmarks ?? null,
+          rightHandLandmarks: rightVision?.handLandmarks ?? null,
+          leftLineCandidates: leftVision?.lineCandidates ?? [],
+          rightLineCandidates: rightVision?.lineCandidates ?? [],
+          leftImageQuality: leftVision?.imageQuality ?? null,
+          rightImageQuality: rightVision?.imageQuality ?? null,
           dominantHand,
           analysisPurpose,
         }),
@@ -1172,13 +1188,17 @@ export default function PalmDestinyMain() {
                                 <div className="mt-2 grid gap-1 text-xs leading-6 text-[#f8eed2]/90 md:grid-cols-2 md:text-sm">
                                   <p>감지 상태: {String(line.detected ?? false)}</p>
                                   <p>신뢰도: {String(line.confidence ?? "unknown")}</p>
+                                  <p>normalizedLength: {String(line.normalizedLength ?? 0)}</p>
                                   <p>길이: {String(line.lengthLabel ?? "unknown")}</p>
+                                  <p>depthScore: {String(line.depthScore ?? 0)}</p>
                                   <p>선명도: {String(line.depthLabel ?? "unknown")}</p>
+                                  <p>curvatureScore: {String(line.curvatureScore ?? 0)}</p>
                                   <p>곡률: {String(line.curvatureLabel ?? "unknown")}</p>
                                   <p>끊김: {String(line.breaks ?? 0)}</p>
                                   <p>분기: {String(line.branches ?? 0)}</p>
                                   <p>시작 영역: {String(line.startZone ?? "unknown")}</p>
                                   <p>끝 영역: {String(line.endZone ?? "unknown")}</p>
+                                  <p>variant: {String(line.variant ?? "unknown")}</p>
                                 </div>
                                 <details className="mt-2 rounded-md border border-[#d8bf72]/18 bg-[#0c1523]/60 px-2 py-1">
                                   <summary className="cursor-pointer text-[11px] font-bold text-[#f7e5b4] md:text-xs">path 좌표 접기/펼치기</summary>
