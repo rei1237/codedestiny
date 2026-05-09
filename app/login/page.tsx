@@ -43,6 +43,10 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
+function resolveNextPathFromQuery(params: URLSearchParams): string {
+  return sanitizeNextPath(params.get("next")) || sanitizeNextPath(params.get("redirect")) || "/";
+}
+
 function buildSocialStartPath(provider: SocialProvider, flow: "login" | "signup", nextPath: string) {
   const safeNext = sanitizeNextPath(nextPath) || "/";
   return `/api/auth/oauth/${provider}/start?flow=${flow}&next=${encodeURIComponent(safeNext)}`;
@@ -278,7 +282,7 @@ export default function LoginPage() {
         }
 
         persistAuth(payload.user);
-        const nextFromQuery = sanitizeNextPath(params.get("next"));
+        const nextFromQuery = resolveNextPathFromQuery(params);
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
         redirectAfterAuth(nextPath, payload.user);
@@ -306,7 +310,7 @@ export default function LoginPage() {
 
     try {
       const params = new URLSearchParams(window.location.search);
-      const nextPath = sanitizeNextPath(params.get("next")) || "/";
+      const nextPath = resolveNextPathFromQuery(params);
 
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
@@ -371,7 +375,7 @@ export default function LoginPage() {
     setSocialLoading(provider);
 
     const params = new URLSearchParams(window.location.search);
-    const nextPath = sanitizeNextPath(params.get("next")) || "/";
+    const nextPath = resolveNextPathFromQuery(params);
     const startUrl = buildSocialStartUrl(authApiBase, provider, "login", nextPath);
     window.location.href = startUrl;
   };

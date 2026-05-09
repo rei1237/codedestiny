@@ -142,16 +142,51 @@ function buildMainRedirectUrl(request, paramsPatchFn) {
   return url;
 }
 
+function decodeJwtPayload(token) {
+  const raw = String(token || "").trim();
+  const parts = raw.split(".");
+  if (parts.length < 2) return null;
+
+  const base64Url = String(parts[1] || "").trim();
+  if (!base64Url) return null;
+
+  const normalized = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const paddingNeeded = normalized.length % 4;
+  const padded = `${normalized}${paddingNeeded ? "=".repeat(4 - paddingNeeded) : ""}`;
+
+  try {
+    if (typeof atob !== "function") return null;
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function isUsableAuthToken(token) {
+  const raw = String(token || "").trim();
+  if (!raw) return false;
+
+  const payload = decodeJwtPayload(raw);
+  if (!payload || typeof payload !== "object") return false;
+
+  const exp = Number(payload.exp);
+  if (!Number.isFinite(exp)) return true;
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  return exp > nowSec + 5;
+}
+
 function hasAuthSessionCookie(request) {
-  const token = String(request.cookies.get("fortune_auth_token")?.value || "").trim();
-  return Boolean(token);
+  const accessToken = String(request.cookies.get("fortune_auth_token")?.value || "").trim();
+  const refreshToken = String(request.cookies.get("fortune_auth_refresh")?.value || "").trim();
+  return isUsableAuthToken(accessToken) || isUsableAuthToken(refreshToken);
 }
 
 function buildLoginRedirectUrl(request) {
   const loginUrl = request.nextUrl.clone();
   const redirectTo = `${request.nextUrl.pathname}${request.nextUrl.search || ""}`;
   loginUrl.pathname = "/login";
-  loginUrl.search = `?redirect=${encodeURIComponent(redirectTo)}`;
+  loginUrl.search = `?next=${encodeURIComponent(redirectTo)}&redirect=${encodeURIComponent(redirectTo)}`;
   return loginUrl;
 }
 

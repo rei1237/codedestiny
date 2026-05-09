@@ -45,6 +45,10 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
+function resolveNextPathFromQuery(params: URLSearchParams): string {
+  return sanitizeNextPath(params.get("next")) || sanitizeNextPath(params.get("redirect")) || "/";
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -269,7 +273,7 @@ export default function SignupPage() {
 
         persistAuth(payload.user);
 
-        const nextFromQuery = sanitizeNextPath(params.get("next"));
+        const nextFromQuery = resolveNextPathFromQuery(params);
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
         redirectAfterAuth(nextPath, payload.user);
@@ -303,7 +307,7 @@ export default function SignupPage() {
 
     try {
       const params = new URLSearchParams(window.location.search);
-      const nextPath = sanitizeNextPath(params.get("next")) || "/";
+      const nextPath = resolveNextPathFromQuery(params);
 
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
@@ -378,7 +382,7 @@ export default function SignupPage() {
     setSocialLoading(provider);
 
     const params = new URLSearchParams(window.location.search);
-    const nextPath = sanitizeNextPath(params.get("next")) || "/";
+    const nextPath = resolveNextPathFromQuery(params);
     const startUrl = `${authApiBase}/api/auth/oauth/${provider}/start?flow=signup&next=${encodeURIComponent(nextPath)}`;
     window.location.href = startUrl;
   };
