@@ -78,6 +78,11 @@ function publishAuthSync(event: "login" | "logout") {
     at: Date.now(),
   };
   try {
+    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+  } catch {
+    // ignore
+  }
+  try {
     if (typeof BroadcastChannel !== "undefined") {
       const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
       channel.postMessage(payload);
@@ -148,12 +153,25 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
+  const authCommittedRef = useRef(false);
+  const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
+  const abortBootstrapAuthCheck = useCallback(() => {
+    const activeController = bootstrapAuthCheckControllerRef.current;
+    if (activeController) {
+      activeController.abort();
+      bootstrapAuthCheckControllerRef.current = null;
+    }
+  }, []);
+
   const persistAuth = (user?: SignupResult["user"], accessToken?: string) => {
+    if (user || accessToken) {
+      authCommittedRef.current = true;
+    }
     if (accessToken) {
       try {
         localStorage.setItem("fortune_auth_token", String(accessToken));
@@ -188,6 +206,7 @@ export default function SignupPage() {
     if (params.get("social_grant") || params.get("social_error")) return;
 
     const controller = new AbortController();
+    bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     authFetch(`${authApiBase}/api/auth/me`, {
@@ -210,10 +229,14 @@ export default function SignupPage() {
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
+        if (authCommittedRef.current) return;
         clearStoredAuth();
       });
 
     return () => {
+      if (bootstrapAuthCheckControllerRef.current === controller) {
+        bootstrapAuthCheckControllerRef.current = null;
+      }
       controller.abort();
       if (timer) clearTimeout(timer);
     };
@@ -236,6 +259,7 @@ export default function SignupPage() {
 
     if (!socialGrant) return;
 
+    abortBootstrapAuthCheck();
     socialCompleteOnceRef.current = true;
     setLoading(true);
 
@@ -294,13 +318,15 @@ export default function SignupPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [redirectAfterAuth, socialCompleteEndpoint]);
+  }, [abortBootstrapAuthCheck, redirectAfterAuth, socialCompleteEndpoint]);
 
   const hasRequiredConsents = agreePrivacy && agreeTerms;
 
   const handleLocalSignup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading || socialLoading !== null) return;
+
+    abortBootstrapAuthCheck();
 
     if (!hasRequiredConsents) {
       setError("개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.");
@@ -382,6 +408,8 @@ export default function SignupPage() {
 
   const startSocialSignup = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
+
+    abortBootstrapAuthCheck();
 
     if (!hasRequiredConsents) {
       setError("개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.");

@@ -1437,7 +1437,20 @@ function __cdHasAuthToken() {
     if (typeof window.hasAuthToken === 'function') return !!window.hasAuthToken();
   } catch (_) {}
   try {
-    return !!(localStorage.getItem('fortune_auth_token') || '');
+    if (localStorage.getItem('fortune_auth_token') || '') return true;
+  } catch (_) {}
+  try {
+    var state = __cdAuthSessionState;
+    var now = Date.now();
+    if (state && state.ok === true && state.checkedAt && (now - state.checkedAt < 300000)) {
+      return true;
+    }
+  } catch (_) {}
+  try {
+    var authRaw = localStorage.getItem('fortune_auth_user') || '';
+    var auth = authRaw ? JSON.parse(authRaw) : null;
+    var userId = String((auth && (auth.id || auth.userId || auth._id || auth.uid)) || '').trim();
+    if (userId) return true;
   } catch (_) {}
   return false;
 }
@@ -1819,14 +1832,6 @@ function __cdRequireTileLockGate(actionEl) {
 
   if (__cdIsAdminLikeUser()) return true;
 
-  if (!__cdHasAuthToken()) {
-    __cdOpenLoginRequiredModal({
-      reason: '로그인 후 이용할 수 있는 기능입니다.',
-      redirectTo: __cdBuildRedirectAfterLogin()
-    });
-    return false;
-  }
-
   if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
 
   if (typeof window._cdOpenTilePreview === 'function') {
@@ -1845,11 +1850,6 @@ var __cdTileLockServerSyncDone = false;
 function __cdGetAuthTokenForLockSync() {
   try {
     var token = String(localStorage.getItem('fortune_auth_token') || '').trim();
-    if (!token) return '';
-    var raw = localStorage.getItem('fortune_auth_user') || '';
-    var user = raw ? JSON.parse(raw) : null;
-    var scope = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim().toLowerCase();
-    if (!scope) return '';
     return token;
   } catch (_) {}
   return '';
@@ -1979,17 +1979,21 @@ function __cdMergeServerUnlockKeys(unlockKeys) {
 
 function __cdSyncTileLocksFromServer() {
   var token = __cdGetAuthTokenForLockSync();
-  if (!token || __cdTileLockServerSyncInFlight) return;
+  if (__cdTileLockServerSyncInFlight) return;
+  if (!token && !__cdHasAuthToken()) return;
 
   __cdTileLockServerSyncInFlight = true;
   var url = __cdResolveApiBaseForLockSync() + '/api/fortune/pig-coin/balance';
+  var headers = {
+    Accept: 'application/json'
+  };
+  if (token) headers.Authorization = 'Bearer ' + token;
 
   fetch(url, {
     method: 'GET',
-    headers: {
-      Authorization: 'Bearer ' + token,
-      Accept: 'application/json'
-    }
+    credentials: 'include',
+    cache: 'no-store',
+    headers: headers
   }).then(function(response) {
     return response.json().catch(function() { return {}; });
   }).then(function(payload) {
@@ -2024,10 +2028,35 @@ function __cdScheduleTileLockServerSync() {
 
 __cdScheduleTileLockServerSync();
 
-window.addEventListener('cd:auth-changed', function() {
+function __cdInvalidateAuthSessionCache() {
+  __cdAuthSessionState.checkedAt = 0;
+  __cdAuthSessionState.ok = false;
+  __cdAuthSessionState.userId = '';
+  __cdAuthSessionState.pending = null;
+}
+
+function __cdHandleAuthChangedSignal() {
+  __cdInvalidateAuthSessionCache();
   __cdTileLockServerSyncDone = false;
   __cdSyncTileLocksFromServer();
+}
+
+window.addEventListener('cd:auth-changed', __cdHandleAuthChangedSignal);
+
+window.addEventListener('storage', function(event) {
+  var key = String((event && event.key) || '').trim();
+  if (key && key !== 'fortune_auth_token' && key !== 'fortune_auth_user') return;
+  __cdHandleAuthChangedSignal();
 });
+
+try {
+  if (typeof BroadcastChannel !== 'undefined') {
+    var __cdAuthSyncChannel = new BroadcastChannel('code-destiny-auth-sync');
+    __cdAuthSyncChannel.onmessage = function() {
+      __cdHandleAuthChangedSignal();
+    };
+  }
+} catch (_) {}
 
 var __cdLazyActionLoaders = {
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
@@ -6959,14 +6988,6 @@ function _dfRequirePaidSourceUnlock(source) {
     try {
       if (window._cdOpenTilePreview(lockTile)) return false;
     } catch (_) {}
-  }
-
-  if (!__cdHasAuthToken()) {
-    __cdOpenLoginRequiredModal({
-      reason: '로그인 후 이용할 수 있는 기능입니다.',
-      redirectTo: __cdBuildRedirectAfterLogin()
-    });
-    return false;
   }
 
   window.alert(_dfGetSourceLabel(normalized) + ' 꽃은 해금 후 이용할 수 있습니다.');

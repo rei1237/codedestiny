@@ -90,6 +90,11 @@ function publishAuthSync(event: "login" | "logout") {
     at: Date.now(),
   };
   try {
+    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+  } catch {
+    // ignore
+  }
+  try {
     if (typeof BroadcastChannel !== "undefined") {
       const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
       channel.postMessage(payload);
@@ -155,12 +160,25 @@ export default function LoginPage() {
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
+  const authCommittedRef = useRef(false);
+  const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
+  const abortBootstrapAuthCheck = useCallback(() => {
+    const activeController = bootstrapAuthCheckControllerRef.current;
+    if (activeController) {
+      activeController.abort();
+      bootstrapAuthCheckControllerRef.current = null;
+    }
+  }, []);
+
   const persistAuth = (user?: LoginResult["user"], accessToken?: string) => {
+    if (user || accessToken) {
+      authCommittedRef.current = true;
+    }
     if (accessToken) {
       try {
         localStorage.setItem("fortune_auth_token", String(accessToken));
@@ -197,6 +215,7 @@ export default function LoginPage() {
     if (params.get("social_grant") || params.get("social_error")) return;
 
     const controller = new AbortController();
+    bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     authFetch(`${authApiBase}/api/auth/me`, {
@@ -219,10 +238,14 @@ export default function LoginPage() {
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
+        if (authCommittedRef.current) return;
         clearStoredAuth();
       });
 
     return () => {
+      if (bootstrapAuthCheckControllerRef.current === controller) {
+        bootstrapAuthCheckControllerRef.current = null;
+      }
       controller.abort();
       if (timer) clearTimeout(timer);
     };
@@ -246,6 +269,7 @@ export default function LoginPage() {
 
     if (!socialGrant) return;
 
+    abortBootstrapAuthCheck();
     socialCompleteOnceRef.current = true;
     setLoading(true);
 
@@ -303,11 +327,13 @@ export default function LoginPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [redirectAfterAuth, socialCompleteEndpoint]);
+  }, [abortBootstrapAuthCheck, redirectAfterAuth, socialCompleteEndpoint]);
 
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading || socialLoading !== null) return;
+
+    abortBootstrapAuthCheck();
 
     const normalizedId = loginId.trim();
     if (!normalizedId || password.length < 8) {
@@ -381,6 +407,7 @@ export default function LoginPage() {
 
   const startSocialLogin = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
+    abortBootstrapAuthCheck();
     setError("");
     setSocialLoading(provider);
 

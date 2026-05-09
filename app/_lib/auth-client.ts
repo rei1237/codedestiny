@@ -65,10 +65,18 @@ function shouldTryRefresh(url: string) {
 
 function publishAuthSync(event: "login" | "logout") {
   if (typeof window === "undefined") return;
+  const payload = { source: "auth-client", event, at: Date.now() };
+
+  try {
+    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+  } catch {
+    // best-effort
+  }
+
   try {
     if (typeof BroadcastChannel === "undefined") return;
     const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
-    channel.postMessage({ source: "auth-client", event, at: Date.now() });
+    channel.postMessage(payload);
     channel.close();
   } catch {
     // best-effort
