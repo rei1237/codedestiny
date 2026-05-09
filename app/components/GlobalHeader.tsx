@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import AuthWidget from "./AuthWidget";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
 const headerNavItems = [
   { href: "/index.html", label: "홈" },
@@ -51,6 +52,7 @@ export default function GlobalHeader() {
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
+            <LocaleSwitcher />
             <AuthWidget />
           </div>
 
@@ -83,7 +85,10 @@ export default function GlobalHeader() {
         <div className="sticky top-[58px] z-[65] border-b border-violet-200/20 bg-[rgba(11,8,26,0.95)] px-3 pb-4 pt-3 md:hidden">
           <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-violet-200/20 bg-[rgba(36,20,68,0.45)] p-2">
             <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">AUTH</span>
-            <AuthWidget />
+            <div className="flex items-center gap-2">
+              <LocaleSwitcher />
+              <AuthWidget />
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {headerNavItems.map((item) => {

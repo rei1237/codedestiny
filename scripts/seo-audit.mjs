@@ -21,6 +21,10 @@ const baseHostname = (() => {
   }
 })();
 const IS_LOCAL_BASE = /^(localhost|127\.0\.0\.1)$/i.test(baseHostname);
+const FETCH_RETRIES = Math.max(
+  0,
+  Number(readArg("--retries", process.env.SEO_AUDIT_RETRIES || (IS_LOCAL_BASE ? "0" : "2"))),
+);
 
 const REQUIRED_URLS = [
   "/",
@@ -119,26 +123,58 @@ function decodeEntities(value) {
 }
 
 async function fetchWithTimeout(url, init = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, {
-      redirect: "follow",
-      ...init,
-      signal: controller.signal,
-      headers: {
-        "user-agent": "CodeDestiny-SEO-Audit/1.0",
-        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        ...(init.headers || {}),
-      },
-    });
-    const text = await response.text();
-    return { ok: true, response, text };
-  } catch (error) {
-    return { ok: false, error };
-  } finally {
-    clearTimeout(timeout);
+  const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+  const isRetryableError = (error) => {
+    const bag = `${error?.name || ""} ${error?.message || ""}`.toLowerCase();
+    return /abort|timed?out|fetch failed|econnreset|eai_again|enotfound|socket hang up/.test(bag);
+  };
+
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  let lastNetworkError = null;
+  let lastHttpResult = null;
+
+  for (let attempt = 0; attempt <= FETCH_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(url, {
+        redirect: "follow",
+        ...init,
+        signal: controller.signal,
+        headers: {
+          "user-agent": "CodeDestiny-SEO-Audit/1.0",
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          ...(init.headers || {}),
+        },
+      });
+
+      const text = await response.text();
+      const current = { ok: true, response, text, attempts: attempt + 1 };
+      lastHttpResult = current;
+
+      if (RETRYABLE_STATUS.has(response.status) && attempt < FETCH_RETRIES) {
+        await wait(Math.min(2000, 250 * (attempt + 1)));
+        continue;
+      }
+
+      return current;
+    } catch (error) {
+      lastNetworkError = error;
+      if (attempt < FETCH_RETRIES && isRetryableError(error)) {
+        await wait(Math.min(2000, 250 * (attempt + 1)));
+        continue;
+      }
+      return { ok: false, error, attempts: attempt + 1 };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+
+  if (lastHttpResult) return lastHttpResult;
+  return { ok: false, error: lastNetworkError, attempts: FETCH_RETRIES + 1 };
 }
 
 function parseTitle(html) {

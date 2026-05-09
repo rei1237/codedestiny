@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { INSIGHT_SEED_ARTICLES } from "./insights/seed-articles";
-import { buildSeoMetadata } from "../lib/seo";
+import { createI18nMetadata } from "../lib/seo/createI18nMetadata";
+import { getAlternatesByRouteKey } from "../lib/i18n/routes";
 import { buildOrganizationJsonLd, buildWebPageJsonLd, buildWebsiteJsonLd } from "../lib/structured-data";
 
-export const metadata = buildSeoMetadata({
-  path: "/",
+export const metadata = createI18nMetadata({
+  locale: "ko",
+  routeByLocale: getAlternatesByRouteKey("home"),
   title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
   description:
     "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",

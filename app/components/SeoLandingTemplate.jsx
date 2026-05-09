@@ -59,6 +59,28 @@ function buildLearningPoints(page) {
 }
 
 export default function SeoLandingTemplate({ page }) {
+  const languageLinksByPath = {
+    "/ziwei": [
+      { href: "/ziwei", hrefLang: "ko", label: "한국어" },
+      { href: "/ja/ziwei", hrefLang: "ja", label: "日本語" },
+      { href: "/zh/ziwei", hrefLang: "zh", label: "中文" },
+      { href: "/en/ziwei", hrefLang: "en", label: "English" },
+    ],
+    "/sukuyo": [
+      { href: "/sukuyo", hrefLang: "ko", label: "한국어" },
+      { href: "/ja/sukuyo", hrefLang: "ja", label: "日本語" },
+      { href: "/zh/sukuyo", hrefLang: "zh", label: "中文" },
+      { href: "/en/sukuyo", hrefLang: "en", label: "English" },
+    ],
+    "/today": [
+      { href: "/today", hrefLang: "ko", label: "한국어" },
+      { href: "/ja/today", hrefLang: "ja", label: "日本語" },
+      { href: "/zh/today", hrefLang: "zh", label: "中文" },
+      { href: "/en/today", hrefLang: "en", label: "English" },
+    ],
+  };
+  const languageLinks = languageLinksByPath[page.path] || [];
+
   const breadcrumb = [
     { name: "홈", path: "/" },
     { name: "운세 서비스", path: "/insights" },
@@ -84,6 +106,22 @@ export default function SeoLandingTemplate({ page }) {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
+      {languageLinks.length > 0 ? (
+        <nav aria-label="Language Switch" className="mb-3 flex flex-wrap gap-2 text-xs text-slate-200">
+          {languageLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              hrefLang={item.hrefLang}
+              lang={item.hrefLang}
+              className={`rounded-full border px-3 py-1 ${item.href === page.path ? "border-amber-300/60 bg-amber-100/10 text-amber-100" : "border-white/20 bg-white/5 hover:bg-white/10"}`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
       <nav aria-label="Breadcrumb" className="mb-4 text-xs text-slate-300">
         {breadcrumb.map((item, idx) => (
           <span key={item.path}>

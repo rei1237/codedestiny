@@ -14,12 +14,6 @@ const targets = [
   { path: "/en-us", allowRedirect: false },
   { path: "/ja-jp", allowRedirect: false },
   { path: "/zh-cn", allowRedirect: false },
-  { path: "/hi-in", allowRedirect: false },
-  { path: "/es-es", allowRedirect: false },
-  { path: "/fr-fr", allowRedirect: false },
-  { path: "/de-de", allowRedirect: false },
-  { path: "/nl-nl", allowRedirect: false },
-  { path: "/ms-my", allowRedirect: false },
 ];
 
 async function check(url) {

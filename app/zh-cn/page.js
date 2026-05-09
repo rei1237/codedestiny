@@ -1,5 +1,12 @@
-import { createLocaleMetadata, createLocaleShellPage } from "../_locale/LocaleShellPage";
+import { redirect } from "next/navigation";
 
-export const metadata = createLocaleMetadata("zh-cn");
+export const metadata = {
+	robots: {
+		index: false,
+		follow: false,
+	},
+};
 
-export default createLocaleShellPage("zh-cn");
+export default function LegacyZhCnPage() {
+	redirect("/zh");
+}

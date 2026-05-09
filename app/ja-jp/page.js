@@ -1,5 +1,12 @@
-import { createLocaleMetadata, createLocaleShellPage } from "../_locale/LocaleShellPage";
+import { redirect } from "next/navigation";
 
-export const metadata = createLocaleMetadata("ja-jp");
+export const metadata = {
+	robots: {
+		index: false,
+		follow: false,
+	},
+};
 
-export default createLocaleShellPage("ja-jp");
+export default function LegacyJaJpPage() {
+	redirect("/ja");
+}

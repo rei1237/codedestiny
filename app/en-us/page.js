@@ -1,5 +1,12 @@
-import { createLocaleMetadata, createLocaleShellPage } from "../_locale/LocaleShellPage";
+import { redirect } from "next/navigation";
 
-export const metadata = createLocaleMetadata("en-us");
+export const metadata = {
+	robots: {
+		index: false,
+		follow: false,
+	},
+};
 
-export default createLocaleShellPage("en-us");
+export default function LegacyEnUsPage() {
+	redirect("/en");
+}

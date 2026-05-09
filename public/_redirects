@@ -3,10 +3,8 @@
 # ─────────────────────────────────────────────
 
 # canonical 경로 정규화
-/insights/                     /insights                 301
-/faq/                          /faq                      301
-/about/                        /about                    301
-/methodology/                  /methodology              301
+# Next.js trailingSlash=true 정책과 충돌하는 slash 제거 리다이렉트는 제거합니다.
+# (예: /about -> /about/ 과 /about/ -> /about 이 공존하면 무한 루프 발생)
 /sukyo                         /sukuyo                   301
 /sukyo/*                       /sukuyo/:splat            301
 /face-reading                  /physiognomy              301
@@ -26,13 +24,19 @@
 # (쿼리스트링 매칭 미지원: ?topic=XXX 전부 /insights로 인식 → 중복 오류)
 # 구형 클라이언트는 /insights 페이지 자체에서 JS로 처리
 
-# 로케일 루트는 Next 쉘 대신 메인 정적 서비스 화면에서 Google Translate로 처리
-/en-us/                        /en-us          301
-/en-us/index.html              /en-us          301
-/ja-jp/                        /ja-jp          301
-/ja-jp/index.html              /ja-jp          301
-/zh-cn/                        /zh-cn          301
-/zh-cn/index.html              /zh-cn          301
+# 로케일 루트는 trailing slash canonical을 유지합니다.
+# /{locale}/index.html 형태의 직접 접근만 /{locale}/로 정규화합니다.
+/en/index.html                 /en/            301
+/ja/index.html                 /ja/            301
+/zh/index.html                 /zh/            301
+
+# 레거시 locale slug -> 신규 locale slug
+/en-us                         /en             301
+/en-us/*                       /en/:splat      301
+/ja-jp                         /ja             301
+/ja-jp/*                       /ja/:splat      301
+/zh-cn                         /zh             301
+/zh-cn/*                       /zh/:splat      301
 
 # 구형 /blog/* → /insights/*
 /blog/saju-pallja               /insights/saju-pallja-basic-principles-complete-guide  301

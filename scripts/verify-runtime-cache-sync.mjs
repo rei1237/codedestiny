@@ -12,12 +12,6 @@ const htmlTargets = [
   'public/en-us/index.html',
   'public/ja-jp/index.html',
   'public/zh-cn/index.html',
-  'public/hi-in/index.html',
-  'public/es-es/index.html',
-  'public/fr-fr/index.html',
-  'public/de-de/index.html',
-  'public/nl-nl/index.html',
-  'public/ms-my/index.html',
 ];
 
 const runtimeFiles = [
@@ -42,12 +36,6 @@ const sibylHtmlTargets = new Set([
   'public/en-us/index.html',
   'public/ja-jp/index.html',
   'public/zh-cn/index.html',
-  'public/hi-in/index.html',
-  'public/es-es/index.html',
-  'public/fr-fr/index.html',
-  'public/de-de/index.html',
-  'public/nl-nl/index.html',
-  'public/ms-my/index.html',
 ]);
 
 let failed = false;

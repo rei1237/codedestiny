@@ -71,10 +71,11 @@ export const metadata = {
   alternates: {
     canonical: "/",
     languages: {
-      "ko-KR": "/",
-      "en-US": "/en-us",
-      "ja-JP": "/ja-jp",
-      "zh-CN": "/zh-cn",
+      ko: "/",
+      en: "/en",
+      ja: "/ja",
+      zh: "/zh",
+      "x-default": "/",
     },
   },
   openGraph: {
@@ -185,10 +186,10 @@ export default function RootLayout({ children }) {
     <html lang="ko" dir="ltr" className={notoSansKR.variable}>
       <head>
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
-        <link rel="alternate" hrefLang="ko-KR" href="https://code-destiny.com/" />
-        <link rel="alternate" hrefLang="en-US" href="https://code-destiny.com/en-us/" />
-        <link rel="alternate" hrefLang="ja-JP" href="https://code-destiny.com/ja-jp/" />
-        <link rel="alternate" hrefLang="zh-CN" href="https://code-destiny.com/zh-cn/" />
+        <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
+        <link rel="alternate" hrefLang="en" href="https://code-destiny.com/en/" />
+        <link rel="alternate" hrefLang="ja" href="https://code-destiny.com/ja/" />
+        <link rel="alternate" hrefLang="zh" href="https://code-destiny.com/zh/" />
         <link rel="alternate" hrefLang="x-default" href="https://code-destiny.com/" />
         <meta property="og:site_name" content="Code Destiny" />
         <meta property="og:locale" content="ko_KR" />

@@ -5,13 +5,6 @@ export const SEO_DEFAULT_OG_IMAGE = `${SEO_SITE_URL}/og/code-destiny-og.png`;
 export const SEO_HOME_TITLE = "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니";
 export const SEO_TITLE_TEMPLATE = "%s | 코드 데스티니";
 
-const DEFAULT_LANGUAGES: Record<string, string> = {
-  "ko-KR": "/",
-  "en-US": "/en-us",
-  "ja-JP": "/ja-jp",
-  "zh-CN": "/zh-cn",
-};
-
 function cleanPath(path: string): string {
   const raw = String(path || "/").trim();
   if (!raw) return "/";
@@ -58,10 +51,12 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
   const description = String(options.description || "").trim();
   const noindex = Boolean(options.noindex);
 
-  const languageMap = options.hreflang || DEFAULT_LANGUAGES;
+  const hasHreflang = Boolean(options.hreflang && Object.keys(options.hreflang).length > 0);
   const languages: Record<string, string> = {};
-  for (const [locale, localePath] of Object.entries(languageMap)) {
-    languages[locale] = toAbsoluteUrl(localePath);
+  if (hasHreflang) {
+    for (const [locale, localePath] of Object.entries(options.hreflang || {})) {
+      languages[locale] = toAbsoluteUrl(localePath);
+    }
   }
 
   const ogImage = toAbsoluteUrl(options.ogImage || SEO_DEFAULT_OG_IMAGE);
@@ -74,7 +69,7 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
     keywords: options.keywords || [],
     alternates: {
       canonical,
-      languages,
+      ...(hasHreflang ? { languages } : {}),
     },
     robots: noindex
       ? {

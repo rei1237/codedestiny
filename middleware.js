@@ -8,12 +8,18 @@ const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"
  * 브라우저 언어 감지 후 해당 경로로 자동 리다이렉트
  */
 const ACCEPT_LANG_MAP = [
-  { prefix: "ja", slug: "/ja-jp" },
-  { prefix: "zh", slug: "/zh-cn" },
-  { prefix: "en", slug: "/en-us" },
+  { prefix: "ja", slug: "/ja" },
+  { prefix: "zh", slug: "/zh" },
+  { prefix: "en", slug: "/en" },
 ];
 /** 이미 로케일 prefix 하에 있는 경로인지 확인 */
-const LOCALE_SLUGS = new Set(ACCEPT_LANG_MAP.map((l) => l.slug));
+const LEGACY_LOCALE_SLUGS = ["/en-us", "/ja-jp", "/zh-cn"];
+const LOCALE_SLUGS = new Set([...ACCEPT_LANG_MAP.map((l) => l.slug), ...LEGACY_LOCALE_SLUGS]);
+const LEGACY_LOCALE_REDIRECTS = new Map([
+  ["/en-us", "/en"],
+  ["/ja-jp", "/ja"],
+  ["/zh-cn", "/zh"],
+]);
 function getLocaleSlugFromAcceptLang(acceptLang) {
   if (!acceptLang) return null;
   // e.g. "ja-JP,ja;q=0.9,en;q=0.8" → ["ja-JP","ja","en"]
@@ -90,7 +96,6 @@ const SERVICE_ROUTE_PARAMS = new Map([
 const LANDING_ONLY_ROUTES = new Set([
   "/faq",
   "/high-value",
-  "/insights",
   "/methodology",
   "/landing",
 ]);
@@ -236,59 +241,59 @@ export function middleware(request) {
 
   try {
     if (pathname === "/secret-house-final.html") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/secret-house_real.html";
-    url.search = search;
-    return NextResponse.redirect(url, 308);
+      const url = request.nextUrl.clone();
+      url.pathname = "/secret-house_real.html";
+      url.search = search;
+      return NextResponse.redirect(url, 308);
     }
 
-  // SEO/public discovery files and static assets should always pass through unchanged.
-  if (SEO_PUBLIC_PATHS.has(pathname) || isStaticAssetPath(pathname)) {
-    return NextResponse.next();
-  }
-
-  // API routes and non-idempotent requests must not be canonical-redirected.
-  // Redirecting these can break POST flows and trigger cross-origin CORS failures.
-  if (pathname.startsWith("/api/") || !["GET", "HEAD", "OPTIONS"].includes(method)) {
-    return NextResponse.next();
-  }
-
-  /**
-   * Canonical entry path is "/".
-   * - "/" is served from the unified main shell (/index.html) via rewrite.
-   * - Legacy /static paths are normalized to "/".
-   */
-  if (pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/index.html";
-    url.search = search;
-    return NextResponse.rewrite(url);
-  }
-
-  if (pathname === "/static" || pathname === "/static/" || pathname === "/static/index.html") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    url.search = search;
-    return NextResponse.redirect(url, 308);
-  }
-
-  // Keep legacy/static pages referencing an icon path without 404ing.
-  if (pathname === "/icons/icon-192x192.png") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/icons/samba-mode-icon.png";
-    url.search = search;
-    return NextResponse.rewrite(url);
-  }
-
-  // Admin route protection: /admin/* (except /admin/login) requires flower_admin_token cookie
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const tokenCookie = request.cookies.get("flower_admin_token")?.value;
-    if (!tokenCookie) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = "/admin/login";
-      return NextResponse.redirect(loginUrl);
+    // SEO/public discovery files and static assets should always pass through unchanged.
+    if (SEO_PUBLIC_PATHS.has(pathname) || isStaticAssetPath(pathname)) {
+      return NextResponse.next();
     }
-  }
+
+    // API routes and non-idempotent requests must not be canonical-redirected.
+    // Redirecting these can break POST flows and trigger cross-origin CORS failures.
+    if (pathname.startsWith("/api/") || !["GET", "HEAD", "OPTIONS"].includes(method)) {
+      return NextResponse.next();
+    }
+
+    /**
+     * Canonical entry path is "/".
+     * - "/" is served from the unified main shell (/index.html) via rewrite.
+     * - Legacy /static paths are normalized to "/".
+     */
+    if (pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/index.html";
+      url.search = search;
+      return NextResponse.rewrite(url);
+    }
+
+    if (pathname === "/static" || pathname === "/static/" || pathname === "/static/index.html") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = search;
+      return NextResponse.redirect(url, 308);
+    }
+
+    // Keep legacy/static pages referencing an icon path without 404ing.
+    if (pathname === "/icons/icon-192x192.png") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/icons/samba-mode-icon.png";
+      url.search = search;
+      return NextResponse.rewrite(url);
+    }
+
+    // Admin route protection: /admin/* (except /admin/login) requires flower_admin_token cookie
+    if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+      const tokenCookie = request.cookies.get("flower_admin_token")?.value;
+      if (!tokenCookie) {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = "/admin/login";
+        return NextResponse.redirect(loginUrl);
+      }
+    }
 
   const rawHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
   const host = rawHost.toLowerCase().split(":")[0];
@@ -301,6 +306,16 @@ export function middleware(request) {
   }
 
   const normalizedPath = normalizePathname(pathname);
+  for (const [legacyPrefix, newPrefix] of LEGACY_LOCALE_REDIRECTS) {
+    if (normalizedPath === legacyPrefix || normalizedPath.startsWith(`${legacyPrefix}/`)) {
+      const redirectUrl = request.nextUrl.clone();
+      const suffix = normalizedPath.slice(legacyPrefix.length);
+      redirectUrl.pathname = `${newPrefix}${suffix || ""}` || newPrefix;
+      redirectUrl.search = search;
+      return NextResponse.redirect(redirectUrl, 308);
+    }
+  }
+
   const routePath = stripLocaleSlug(normalizedPath);
 
   const actionForRoute = SERVICE_ROUTE_ACTIONS.get(routePath);

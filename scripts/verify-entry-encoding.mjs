@@ -5,14 +5,8 @@ import path from 'node:path';
 const root = process.cwd();
 const strictCore = process.argv.includes('--strict-core');
 const localeEntryFiles = new Set([
-  'public/de-de/index.html',
   'public/en-us/index.html',
-  'public/es-es/index.html',
-  'public/fr-fr/index.html',
-  'public/hi-in/index.html',
   'public/ja-jp/index.html',
-  'public/ms-my/index.html',
-  'public/nl-nl/index.html',
   'public/zh-cn/index.html',
 ]);
 
@@ -22,14 +16,8 @@ const targetFiles = [
   'public/static/index.html',
   'fortune/index.html',
   'public/fortune/index.html',
-  'public/de-de/index.html',
   'public/en-us/index.html',
-  'public/es-es/index.html',
-  'public/fr-fr/index.html',
-  'public/hi-in/index.html',
   'public/ja-jp/index.html',
-  'public/ms-my/index.html',
-  'public/nl-nl/index.html',
   'public/zh-cn/index.html',
 ];
 

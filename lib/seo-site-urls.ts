@@ -24,13 +24,11 @@ export type SitemapRouteEntry = {
 export const ROUTES: SitemapRouteEntry[] = [
   // ── 홈 (최우선) ──────────────────────────────────────────────
   { path: "/", changeFrequency: "daily", priority: 1.0 },
-  { path: "/en-us", changeFrequency: "monthly", priority: 0.45, noLocale: true },
-  { path: "/ja-jp", changeFrequency: "monthly", priority: 0.45, noLocale: true },
-  { path: "/zh-cn", changeFrequency: "monthly", priority: 0.45, noLocale: true },
 
   // ── 핵심 SEO 랜딩 페이지 (브랜드/일반 키워드 타겟) ─────────────
   { path: "/saju",          changeFrequency: "daily", priority: 0.98 },
   { path: "/manse",         changeFrequency: "daily", priority: 0.98 },
+  { path: "/today",         changeFrequency: "daily", priority: 0.97 },
   { path: "/daily-fortune", changeFrequency: "daily", priority: 0.97 },
   { path: "/compatibility", changeFrequency: "weekly", priority: 0.96 },
   { path: "/tarot",         changeFrequency: "weekly", priority: 0.96 },

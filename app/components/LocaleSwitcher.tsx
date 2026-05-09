@@ -1,20 +1,25 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as React from "react";
+import { getRouteKeyByLocalizedPath, I18N_ROUTE_MAP } from "../../lib/i18n/routes";
 
-type LocaleItem = { key: string; slug: string; label: string; googleLang: string };
+type LocaleCode = "ko" | "en" | "ja" | "zh";
+type LocaleItem = { code: LocaleCode; slug: string; label: string; hrefLang: string };
 
 const LOCALES: LocaleItem[] = [
-  { key: "ko-KR", slug: "", label: "한국어", googleLang: "ko" },
-  { key: "en-US", slug: "/en-us", label: "English (US)", googleLang: "en" },
-  { key: "ja-JP", slug: "/ja-jp", label: "日本語 (日本)", googleLang: "ja" },
-  { key: "zh-CN", slug: "/zh-cn", label: "简体中文 (中国)", googleLang: "zh-CN" },
+  { code: "ko", slug: "", label: "한국어", hrefLang: "ko" },
+  { code: "en", slug: "/en", label: "English", hrefLang: "en" },
+  { code: "ja", slug: "/ja", label: "日本語", hrefLang: "ja" },
+  { code: "zh", slug: "/zh", label: "中文", hrefLang: "zh" },
 ];
 
 function normalizePathname(input: string | null | undefined) {
   if (!input) return "/";
-  return input.startsWith("/") ? input : `/${input}`;
+  const withSlash = input.startsWith("/") ? input : `/${input}`;
+  if (withSlash !== "/" && withSlash.endsWith("/")) return withSlash.slice(0, -1);
+  return withSlash;
 }
 
 function detectLocaleFromPath(pathname: string) {
@@ -35,105 +40,32 @@ function stripLocalePrefix(pathname: string) {
   return normalized || "/";
 }
 
-function setLocaleCookie(localeKey: string) {
+function setLocaleCookie(localeCode: LocaleCode) {
   const oneYear = 60 * 60 * 24 * 365;
-  document.cookie = `cd_locale=${encodeURIComponent(localeKey)}; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
+  document.cookie = `cd_locale=${encodeURIComponent(localeCode)}; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
+  document.cookie = `cd_locale_ack=1; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
 }
 
-function writeGoogleTranslateCookie(googleLang: string) {
-  const host = window.location.hostname;
-  const expires = "expires=Fri, 31 Dec 9999 23:59:59 GMT";
-  const value = `/ko/${googleLang}`;
-  const cookies = [
-    `googtrans=${value}; ${expires}; Path=/; SameSite=Lax`,
-    host ? `googtrans=${value}; ${expires}; Domain=${host}; Path=/; SameSite=Lax` : "",
-    host && host.includes(".") ? `googtrans=${value}; ${expires}; Domain=.${host}; Path=/; SameSite=Lax` : "",
-  ].filter(Boolean);
-
-  cookies.forEach((cookie) => {
-    document.cookie = cookie;
-  });
-}
-
-function clearGoogleTranslateCookie() {
-  const host = window.location.hostname;
-  const expired = "expires=Thu, 01 Jan 1970 00:00:00 UTC";
-  const cookies = [
-    `googtrans=; ${expired}; Path=/; SameSite=Lax`,
-    host ? `googtrans=; ${expired}; Domain=${host}; Path=/; SameSite=Lax` : "",
-    host && host.includes(".") ? `googtrans=; ${expired}; Domain=.${host}; Path=/; SameSite=Lax` : "",
-  ].filter(Boolean);
-
-  cookies.forEach((cookie) => {
-    document.cookie = cookie;
-  });
-}
-
-function applyGoogleTranslateIntent(locale: LocaleItem) {
-  try {
-    window.localStorage.setItem("cd_lang", locale.googleLang);
-  } catch {}
-
-  if (locale.googleLang === "ko") {
-    clearGoogleTranslateCookie();
-    return;
+function getLocalizedHref(pathname: string, targetLocale: LocaleCode) {
+  const normalized = normalizePathname(pathname);
+  const routeKey = getRouteKeyByLocalizedPath(normalized);
+  if (routeKey) {
+    return I18N_ROUTE_MAP[routeKey][targetLocale];
   }
 
-  writeGoogleTranslateCookie(locale.googleLang);
-}
-
-function buildMainServiceUrl(pathname: string, searchParams: { toString(): string } | null, locale: LocaleItem) {
-  const basePath = stripLocalePrefix(pathname);
-  const targetPath = basePath === "/" || basePath === "/index.html" ? "/" : basePath;
-  const params = new URLSearchParams(searchParams?.toString() || "");
-
-  if (locale.googleLang === "ko") {
-    params.delete("lang");
-  } else {
-    params.set("lang", locale.googleLang);
-  }
-
-  const qs = params.toString();
-  return qs ? `${targetPath}?${qs}` : targetPath;
+  const basePath = stripLocalePrefix(normalized);
+  if (targetLocale === "ko") return basePath;
+  const prefix = LOCALES.find((locale) => locale.code === targetLocale)?.slug || "";
+  if (!prefix) return basePath;
+  if (basePath === "/") return prefix;
+  return `${prefix}${basePath}`;
 }
 
 export function LocaleSwitcher() {
   const pathname = usePathname() || "/";
-  const searchParams = useSearchParams();
 
   const current = React.useMemo(() => detectLocaleFromPath(pathname), [pathname]);
   const [open, setOpen] = React.useState(false);
-
-  const goLocale = React.useCallback(
-    (localeKey: string) => {
-      const next = LOCALES.find((l) => l.key === localeKey);
-      if (!next) return;
-
-      setLocaleCookie(next.key);
-      applyGoogleTranslateIntent(next);
-      window.location.assign(buildMainServiceUrl(pathname, searchParams, next));
-    },
-    [pathname, searchParams],
-  );
-
-  // Auto-pick locale once by IP/country if cookie not set
-  React.useEffect(() => {
-    if (typeof document === "undefined") return;
-    if (document.cookie.includes("cd_locale=")) return;
-
-    fetch("/api/geo", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((p) => {
-        const locale = String(p?.locale || "");
-        if (!locale) return;
-        const exists = LOCALES.find((l) => l.key.toLowerCase() === locale.toLowerCase());
-        if (!exists) return;
-        goLocale(exists.key);
-      })
-      .catch(() => {});
-    // run once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const currentLabel = current.label;
 
@@ -184,28 +116,32 @@ export function LocaleSwitcher() {
       {open ? (
         <div role="menu" aria-label="언어 목록" style={MenuStyle} onMouseLeave={() => setOpen(false)}>
           {LOCALES.map((l) => (
-            <button
-              key={l.key}
+            <Link
+              key={l.code}
               role="menuitem"
-              type="button"
+              href={getLocalizedHref(pathname, l.code)}
+              hrefLang={l.hrefLang}
+              lang={l.hrefLang}
               onClick={() => {
                 setOpen(false);
-                goLocale(l.key);
+                setLocaleCookie(l.code);
               }}
               style={{
+                display: "block",
                 width: "100%",
                 textAlign: "left",
                 padding: "10px 10px",
                 borderRadius: "12px",
                 border: "1px solid transparent",
-                background: l.key === current.key ? "rgba(99, 102, 241, 0.18)" : "transparent",
+                background: l.code === current.code ? "rgba(99, 102, 241, 0.18)" : "transparent",
                 color: "#e2e8f0",
                 fontWeight: 800,
                 cursor: "pointer",
+                textDecoration: "none",
               }}
             >
               {l.label}
-            </button>
+            </Link>
           ))}
         </div>
       ) : null}

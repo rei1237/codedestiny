@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { BASE_URL, ROUTES } from "../lib/seo-site-urls";
 import { INSIGHT_SEED_ARTICLES } from "./insights/seed-articles";
+import { LOCALES } from "../lib/i18n/locales";
+import { I18N_ROUTE_MAP } from "../lib/i18n/routes";
+import { I18N_INSIGHT_ARTICLES } from "../lib/seo/i18nInsights";
 
 export const dynamic = "force-static";
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -41,6 +44,62 @@ function buildBaseEntries(): MetadataRoute.Sitemap {
     changeFrequency: "daily",
     priority: 0.2,
   });
+
+  return entries;
+}
+
+function buildLanguagesAlternates(routeByLocale: Record<"ko" | "ja" | "zh" | "en", string>) {
+  return {
+    languages: {
+      ko: new URL(routeByLocale.ko, BASE_URL).toString(),
+      ja: new URL(routeByLocale.ja, BASE_URL).toString(),
+      zh: new URL(routeByLocale.zh, BASE_URL).toString(),
+      en: new URL(routeByLocale.en, BASE_URL).toString(),
+      "x-default": new URL(routeByLocale.ko, BASE_URL).toString(),
+    },
+  };
+}
+
+function buildI18nEntries(): MetadataRoute.Sitemap {
+  const now = new Date();
+  const entries: MetadataRoute.Sitemap = [];
+
+  const keyMeta = [
+    { key: "home", changeFrequency: "daily", priority: 1.0 },
+    { key: "ziwei", changeFrequency: "weekly", priority: 0.95 },
+    { key: "sukuyo", changeFrequency: "weekly", priority: 0.94 },
+    { key: "today", changeFrequency: "daily", priority: 0.97 },
+    { key: "insights", changeFrequency: "weekly", priority: 0.9 },
+  ] as const;
+
+  for (const item of keyMeta) {
+    const routeByLocale = I18N_ROUTE_MAP[item.key];
+    const alternates = buildLanguagesAlternates(routeByLocale);
+
+    for (const locale of LOCALES) {
+      entries.push({
+        url: new URL(routeByLocale[locale], BASE_URL).toString(),
+        lastModified: now,
+        changeFrequency: item.changeFrequency,
+        priority: item.priority,
+        alternates,
+      });
+    }
+  }
+
+  for (const article of I18N_INSIGHT_ARTICLES) {
+    const routeByLocale = I18N_ROUTE_MAP[article.id];
+    const alternates = buildLanguagesAlternates(routeByLocale);
+    for (const locale of LOCALES) {
+      entries.push({
+        url: new URL(routeByLocale[locale], BASE_URL).toString(),
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.78,
+        alternates,
+      });
+    }
+  }
 
   return entries;
 }
@@ -104,10 +163,11 @@ async function fetchPublishedInsights(): Promise<MetadataRoute.Sitemap> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseEntries = buildBaseEntries();
+  const i18nEntries = buildI18nEntries();
   const seedEntries = buildSeedInsightEntries();
 
   if (!useInsightsApi) {
-    const merged = [...baseEntries, ...seedEntries];
+    const merged = [...baseEntries, ...i18nEntries, ...seedEntries];
     const uniq = new Map<string, MetadataRoute.Sitemap[number]>();
 
     for (const entry of merged) {
@@ -119,7 +179,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const insightsEntries = await fetchPublishedInsights();
-    const merged = [...baseEntries, ...seedEntries, ...insightsEntries];
+    const merged = [...baseEntries, ...i18nEntries, ...seedEntries, ...insightsEntries];
     const uniq = new Map<string, MetadataRoute.Sitemap[number]>();
 
     for (const entry of merged) {
@@ -128,7 +188,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return Array.from(uniq.values());
   } catch {
-    const merged = [...baseEntries, ...seedEntries];
+    const merged = [...baseEntries, ...i18nEntries, ...seedEntries];
     const uniq = new Map<string, MetadataRoute.Sitemap[number]>();
 
     for (const entry of merged) {

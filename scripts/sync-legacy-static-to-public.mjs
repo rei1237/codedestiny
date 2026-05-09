@@ -375,18 +375,12 @@ if (!existsSync(rootAdsTxt) && existsSync(buildAdsTxt)) {
   console.log("[sync-legacy-static-to-public] Fallback copied build/ads.txt -> public/ads.txt");
 }
 
-// Locale landing paths (same slugs as middleware.js LOCALE_SLUGS / app/layout.js).
-// Ensures Cloudflare Pages / asset-first hosts return 200 for /en-us etc., not 404.
+// Retained locale landing paths (ko is root '/', plus en/ja/zh locale slugs).
+// Ensures Cloudflare Pages / asset-first hosts return 200 for retained locale roots.
 const localeLandingDirs = [
   "en-us",
   "ja-jp",
   "zh-cn",
-  "hi-in",
-  "es-es",
-  "fr-fr",
-  "de-de",
-  "nl-nl",
-  "ms-my",
 ];
 const publicIndex = resolve(publicDir, "index.html");
 if (existsSync(publicIndex)) {

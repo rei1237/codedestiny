@@ -3,15 +3,12 @@
  * Must match LOCALE_PATH_SLUGS in next.config.mjs.
  */
 const LOCALE_PREFIXES = [
+  "/en",
+  "/ja",
+  "/zh",
   "/en-us",
   "/ja-jp",
   "/zh-cn",
-  "/hi-in",
-  "/es-es",
-  "/fr-fr",
-  "/de-de",
-  "/nl-nl",
-  "/ms-my",
 ];
 
 /**
