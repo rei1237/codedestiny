@@ -282,7 +282,7 @@
     Object.keys(counts).forEach(function(k) {
       if (counts[k] > bestN) { bestN = counts[k]; best = k; }
     });
-    return best;
+    return best || '데이터 부족';
   }
 
   /* 비겁 카운트 */
@@ -290,13 +290,458 @@
     return (counts['비견']||0) + (counts['겁재']||0);
   }
 
+  function _clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function _mean(nums) {
+    if (!Array.isArray(nums) || !nums.length) return 0;
+    return nums.reduce(function(sum, n) { return sum + Number(n || 0); }, 0) / nums.length;
+  }
+
+  function _stddev(nums) {
+    if (!Array.isArray(nums) || nums.length < 2) return 0;
+    var mu = _mean(nums);
+    var variance = nums.reduce(function(sum, n) {
+      var v = Number(n || 0) - mu;
+      return sum + (v * v);
+    }, 0) / nums.length;
+    return Math.sqrt(variance);
+  }
+
+  function _profileAge(profile) {
+    try {
+      var p = profile || _getCurrentProfile() || {};
+      var b = p.birth || {};
+      var y = Number(b.year || 0);
+      if (!Number.isFinite(y) || y < 1900) return 30;
+      var now = new Date();
+      var age = now.getFullYear() - y + 1;
+      return _clamp(Math.round(age), 1, 120);
+    } catch (_) {
+      return 30;
+    }
+  }
+
+  function _evalDaewunBridge(gan, zhi) {
+    try {
+      if (!gan || !zhi) throw new Error('invalid-ganzhi');
+      var fn = (typeof window.evalDaewun === 'function')
+        ? window.evalDaewun
+        : (typeof evalDaewun === 'function' ? evalDaewun : null);
+      if (!fn) throw new Error('evalDaewun-unavailable');
+      var ev = fn(gan, zhi) || {};
+      var score = Number(ev.score);
+      if (!Number.isFinite(score)) score = 50;
+      return {
+        score: _clamp(Math.round(score), 0, 100),
+        label: ev.label || '데이터 부족',
+        cls: ev.cls || 'neutral',
+        evalSummary: ev.evalSummary || '데이터 부족',
+        hasChungBonus: !!ev.hasChungBonus,
+        hasChungPenalty: !!ev.hasChungPenalty
+      };
+    } catch (err) {
+      console.warn('[Sibyl] evalDaewun bridge fallback:', err && err.message ? err.message : err);
+      return {
+        score: 50,
+        label: '데이터 부족',
+        cls: 'neutral',
+        evalSummary: '대운 평가 데이터를 불러오지 못했습니다.',
+        hasChungBonus: false,
+        hasChungPenalty: false
+      };
+    }
+  }
+
+  function _normalizeGanZhiPair(value) {
+    if (!value) return null;
+    if (typeof value === 'string') {
+      if (value.length >= 2) return { g: value.charAt(0), j: value.charAt(1) };
+      return null;
+    }
+    if (typeof value === 'object') {
+      var g = value.g || value.gan || value[0];
+      var j = value.j || value.zhi || value[1];
+      if (g && j) return { g: String(g), j: String(j) };
+    }
+    return null;
+  }
+
+  function _getMonthGanZhiFor(year, month) {
+    try {
+      if (typeof window.getMonthGanZhi === 'function') {
+        var fromFn = _normalizeGanZhiPair(window.getMonthGanZhi(year, month));
+        if (fromFn) return fromFn;
+      }
+    } catch (_) {}
+    try {
+      if (typeof Solar !== 'undefined' && Solar && typeof Solar.fromYmdHms === 'function') {
+        var s = Solar.fromYmdHms(year, month, 15, 12, 0, 0);
+        var ec = s.getLunar().getEightChar();
+        return { g: ec.getMonthGan(), j: ec.getMonthZhi() };
+      }
+    } catch (_) {}
+
+    var monthZhi = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+    var yz = monthZhi[(month - 1 + 12) % 12];
+    var ygz = _getYearGanZhi(year);
+    return { g: ygz.gan, j: yz };
+  }
+
+  function _analyzeFortuneBridge(gz, pillars, label) {
+    try {
+      var pair = _normalizeGanZhiPair(gz);
+      if (!pair) throw new Error('invalid-gz');
+      var fn = (typeof window.analyzeFortuneGZ === 'function')
+        ? window.analyzeFortuneGZ
+        : (typeof analyzeFortuneGZ === 'function' ? analyzeFortuneGZ : null);
+      if (!fn) throw new Error('analyzeFortuneGZ-unavailable');
+      var res = fn(pair, pillars, label || '시빌라 월운') || {};
+      return {
+        grade: res.grade || '무난',
+        icon: res.icon || '⛅',
+        batteryPercent: Number.isFinite(Number(res.batteryPercent)) ? _clamp(Math.round(Number(res.batteryPercent)), 0, 100) : 50,
+        adviceItems: Array.isArray(res.adviceItems) ? res.adviceItems : [],
+        luckyEl: res.luckyEl || null,
+        gGod: res.gGod || '데이터 부족',
+        jGod: res.jGod || '데이터 부족'
+      };
+    } catch (err) {
+      return {
+        grade: '데이터 부족',
+        icon: '⚠️',
+        batteryPercent: 50,
+        adviceItems: [{ type: 'warn', body: '월운 엔진 데이터가 아직 준비되지 않았습니다.' }],
+        luckyEl: null,
+        gGod: '데이터 부족',
+        jGod: '데이터 부족'
+      };
+    }
+  }
+
+  function _pickDaewunForAge(age, daewunList) {
+    if (!Array.isArray(daewunList) || !daewunList.length) return null;
+    var list = daewunList.slice().sort(function(a, b) { return a.age - b.age; });
+    var current = null;
+    for (var i = 0; i < list.length; i += 1) {
+      var st = Number(list[i].age || 0);
+      var next = (i < list.length - 1) ? Number(list[i + 1].age || 999) : 999;
+      if (age >= st && age < next) {
+        current = list[i];
+        break;
+      }
+    }
+    return current || list[list.length - 1];
+  }
+
+  function _collectCollisionSignals(pillars, year) {
+    var out = {
+      chungCount: 0,
+      hyungCount: 0,
+      paCount: 0,
+      haeCount: 0,
+      score: 0,
+      notes: []
+    };
+    if (!pillars || !pillars.d || !pillars.m) return out;
+
+    var yZhi = _getYearGanZhi(year).zhi;
+    var branches = [pillars.y && pillars.y.j, pillars.m && pillars.m.j, pillars.d && pillars.d.j, pillars.h && pillars.h.j].filter(Boolean);
+
+    var CHONG = { '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳' };
+    var PA = { '子':'酉','酉':'子','卯':'午','午':'卯','辰':'丑','丑':'辰','未':'戌','戌':'未','寅':'亥','亥':'寅','巳':'申','申':'巳' };
+    var HAE = { '子':'未','未':'子','丑':'午','午':'丑','寅':'巳','巳':'寅','卯':'辰','辰':'卯','申':'亥','亥':'申','酉':'戌','戌':'酉' };
+
+    branches.forEach(function(z) {
+      if (CHONG[z] === yZhi) {
+        out.chungCount += 1;
+        out.notes.push('연지(' + yZhi + ')가 원국 ' + z + '과 충(沖)');
+      }
+      if (PA[z] === yZhi) {
+        out.paCount += 1;
+        out.notes.push('연지(' + yZhi + ')가 원국 ' + z + '과 파(破)');
+      }
+      if (HAE[z] === yZhi) {
+        out.haeCount += 1;
+        out.notes.push('연지(' + yZhi + ')가 원국 ' + z + '과 해(害)');
+      }
+    });
+
+    var set = branches.concat([yZhi]);
+    var hasInSaShin = ['寅', '巳', '申'].every(function(z) { return set.indexOf(z) >= 0; });
+    var hasChukSulMi = ['丑', '戌', '未'].every(function(z) { return set.indexOf(z) >= 0; });
+    if (hasInSaShin) {
+      out.hyungCount += 2;
+      out.notes.push('인사신(寅巳申) 삼형 성립');
+    }
+    if (hasChukSulMi) {
+      out.hyungCount += 2;
+      out.notes.push('축술미(丑戌未) 삼형 성립');
+    }
+
+    out.score = _clamp(out.chungCount * 18 + out.hyungCount * 12 + out.paCount * 10 + out.haeCount * 8, 0, 100);
+    return out;
+  }
+
+  function _normalizeSibylInput(payload, analysisData) {
+    var profile = (payload && payload.profile) || _getCurrentProfile() || null;
+    var rawPillars = (payload && payload.pillars) || (analysisData && analysisData.pillars) || window.G_PILLARS || null;
+    var pillars = rawPillars;
+    if (pillars && pillars.year && !pillars.y) {
+      pillars = {
+        y: { g: pillars.year.g, j: pillars.year.j },
+        m: { g: pillars.month.g, j: pillars.month.j },
+        d: { g: pillars.day.g, j: pillars.day.j },
+        h: { g: pillars.hour.g, j: pillars.hour.j }
+      };
+    }
+
+    var integrity = { ok: true, messages: [] };
+    if (!pillars || !pillars.d || !pillars.d.g || !pillars.d.j) {
+      integrity.ok = false;
+      integrity.messages.push('사주 원국 일주 정보가 누락되었습니다.');
+    }
+
+    var dist = _ohaengDist(pillars);
+    if (!dist.total) {
+      integrity.ok = false;
+      integrity.messages.push('오행 분포 계산값이 비어 있습니다.');
+    }
+
+    var counts = _analyzeTenStars(pillars || window.G_PILLARS || {});
+    var dominantTenStar = _dominantTenStar(counts);
+    if (dominantTenStar === '데이터 부족') {
+      integrity.messages.push('주도 십성을 확정할 데이터가 부족합니다.');
+    }
+
+    var domEl = (payload && payload.dominantEl) || (analysisData && analysisData.domEl) || _dominantEl(dist);
+    var currentYear = _toInt((payload && payload.currentYear) || new Date().getFullYear(), new Date().getFullYear());
+    var currentAge = _profileAge(profile);
+
+    var daewunRaw = Array.isArray(window.G_DAEWUN) ? window.G_DAEWUN : [];
+    var daewunList = daewunRaw.map(function(item) {
+      var age = Number(item && item.age);
+      var g = item && item.g;
+      var j = item && item.j;
+      if (!Number.isFinite(age) || !g || !j) return null;
+      var ev = _evalDaewunBridge(g, j);
+      return {
+        age: age,
+        g: g,
+        j: j,
+        score: ev.score,
+        label: ev.label,
+        summary: ev.evalSummary,
+        hasChungBonus: ev.hasChungBonus,
+        hasChungPenalty: ev.hasChungPenalty
+      };
+    }).filter(Boolean).sort(function(a, b) { return a.age - b.age; });
+
+    if (!daewunList.length) {
+      integrity.messages.push('대운 배열(window.G_DAEWUN)이 비어 있어 연동 강도가 낮습니다.');
+    }
+
+    return {
+      profile: profile,
+      pillars: pillars,
+      dist: dist,
+      tenStarCounts: counts,
+      dominantTenStar: dominantTenStar,
+      dominantEl: domEl,
+      currentYear: currentYear,
+      currentAge: currentAge,
+      power: window.G_POWER || null,
+      jong: window.G_JONG || null,
+      johu: window.G_JOHU || null,
+      daewunList: daewunList,
+      integrity: integrity
+    };
+  }
+
+  function _riskElementImbalance(dist) {
+    if (!dist || !dist.total) return 55;
+    var ideal = dist.total / 5;
+    var absSum = EL_ORDER.reduce(function(sum, el) {
+      return sum + Math.abs((dist[el] || 0) - ideal);
+    }, 0);
+    var voidCount = EL_ORDER.filter(function(el) { return (dist[el] || 0) === 0; }).length;
+    var maxEl = _dominantEl(dist);
+    var concentration = (dist[maxEl] || 0) / dist.total;
+    var score = (absSum / (ideal * 5)) * 58 + (voidCount * 14) + (concentration >= 0.55 ? 10 : 0);
+    return _clamp(Math.round(score), 0, 100);
+  }
+
+  function _riskTenStarOverload(counts) {
+    var keys = Object.keys(counts || {});
+    if (!keys.length) return 48;
+    var values = keys.map(function(k) { return Number(counts[k] || 0); });
+    var maxV = Math.max.apply(null, values);
+    var minV = Math.min.apply(null, values);
+    var spread = maxV - minV;
+    var skew = _stddev(values);
+    var overloadStars = values.filter(function(v) { return v >= 3; }).length;
+    var score = spread * 13 + skew * 16 + overloadStars * 10;
+    return _clamp(Math.round(score), 0, 100);
+  }
+
+  function _riskCollision(conflict) {
+    if (!conflict) return 40;
+    var score = (conflict.chungCount || 0) * 20
+      + (conflict.hyungCount || 0) * 14
+      + (conflict.paCount || 0) * 10
+      + (conflict.haeCount || 0) * 8;
+    return _clamp(Math.round(score), 0, 100);
+  }
+
+  function _riskDaewunSeunConflict(annualPlan) {
+    if (!Array.isArray(annualPlan) || !annualPlan.length) return 52;
+    var risks = annualPlan.map(function(y) { return Number(y.risk || 0); });
+    var avg = _mean(risks);
+    var peak = Math.max.apply(null, risks);
+    var trough = Math.min.apply(null, risks);
+    var swing = peak - trough;
+    var shockYears = annualPlan.filter(function(y) { return Number(y.shock || 0) >= 1; }).length;
+    var score = avg * 0.55 + swing * 0.35 + shockYears * 6;
+    return _clamp(Math.round(score), 0, 100);
+  }
+
+  function _riskMonthlyVolatility(monthlyPlan) {
+    if (!Array.isArray(monthlyPlan) || !monthlyPlan.length) return 50;
+    var risks = monthlyPlan.map(function(m) { return Number(m.risk || 0); });
+    var sigma = _stddev(risks);
+    var swing = Math.max.apply(null, risks) - Math.min.apply(null, risks);
+    var highCount = monthlyPlan.filter(function(m) { return Number(m.risk || 0) >= 70; }).length;
+    var score = sigma * 3.2 + swing * 0.55 + highCount * 4.5;
+    return _clamp(Math.round(score), 0, 100);
+  }
+
+  function _riskJohuStress(johu, monthlyPlan) {
+    var base = 35;
+    if (johu && (johu.type === 'hot' || johu.type === 'cold')) base += 22;
+    if (johu && (johu.moistType === 'dry' || johu.moistType === 'wet')) base += 12;
+    if (Array.isArray(monthlyPlan) && monthlyPlan.length) {
+      var lowBattery = monthlyPlan.filter(function(m) { return Number(m.battery || 0) < 45; }).length;
+      base += lowBattery * 3;
+    }
+    return _clamp(Math.round(base), 0, 100);
+  }
+
+  function _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals) {
+    var partElement = _riskElementImbalance(normalized && normalized.dist);
+    var partTenStar = _riskTenStarOverload(normalized && normalized.tenStarCounts);
+    var partCollision = _riskCollision(conflictSignals || (normalized && normalized.collisionSignals));
+    var partDaewun = _riskDaewunSeunConflict(annualPlan || (normalized && normalized.annualPlan));
+    var partMonthly = _riskMonthlyVolatility(monthlyPlan || (normalized && normalized.monthlyPlan));
+    var partJohu = _riskJohuStress(normalized && normalized.johu, monthlyPlan || (normalized && normalized.monthlyPlan));
+
+    var total = Math.round(
+      partElement * 0.22
+      + partTenStar * 0.16
+      + partCollision * 0.18
+      + partDaewun * 0.20
+      + partMonthly * 0.14
+      + partJohu * 0.10
+    );
+
+    var label = total >= 75 ? '고위험' : total >= 55 ? '경계' : total >= 35 ? '중립' : '안정';
+    return {
+      total: _clamp(total, 5, 99),
+      label: label,
+      parts: {
+        elementImbalance: partElement,
+        tenStarOverload: partTenStar,
+        collision: partCollision,
+        daewunSeunConflict: partDaewun,
+        monthlyVolatility: partMonthly,
+        johuStress: partJohu
+      }
+    };
+  }
+
+  function _calcAptitudeComponents(normalized, riskBreakdown) {
+    var counts = (normalized && normalized.tenStarCounts) || {};
+    var dist = (normalized && normalized.dist) || { wood:0, fire:0, earth:0, metal:0, water:0, total:1 };
+    var total = Math.max(1, Number(dist.total || 1));
+    var power = normalized && normalized.power;
+    var jong = normalized && normalized.jong;
+    var riskParts = (riskBreakdown && riskBreakdown.parts) || {};
+
+    var career = 35
+      + (counts['정관'] || 0) * 8
+      + (counts['편관'] || 0) * 7
+      + (counts['식신'] || 0) * 5
+      + (power && power.isStrong ? 5 : 0)
+      - Math.round((riskParts.collision || 0) * 0.08);
+
+    var wealth = 32
+      + (counts['편재'] || 0) * 10
+      + (counts['정재'] || 0) * 9
+      + (counts['식신'] || 0) * 4
+      - (counts['겁재'] || 0) * 5
+      - Math.round((riskParts.monthlyVolatility || 0) * 0.06);
+
+    var execution = 34
+      + (counts['비견'] || 0) * 6
+      + (counts['정관'] || 0) * 5
+      + (counts['상관'] || 0) * 4
+      + (power && power.isStrong ? 6 : -2)
+      - Math.round((riskParts.tenStarOverload || 0) * 0.08);
+
+    var social = 33
+      + (counts['정인'] || 0) * 5
+      + (counts['식신'] || 0) * 5
+      + (counts['정재'] || 0) * 3
+      - (counts['편관'] || 0) * 2
+      - Math.round((riskParts.collision || 0) * 0.07);
+
+    var recovery = 30
+      + (counts['정인'] || 0) * 8
+      + (counts['편인'] || 0) * 6
+      + (johu && (johu.type === 'neutral' || johu.type === 'cool' || johu.type === 'warm') ? 6 : 0)
+      + (jong && jong.isJong ? 4 : 0)
+      - Math.round((riskParts.johuStress || 0) * 0.09);
+
+    var components = {
+      career: _clamp(Math.round(career), 5, 99),
+      wealth: _clamp(Math.round(wealth), 5, 99),
+      execution: _clamp(Math.round(execution), 5, 99),
+      social: _clamp(Math.round(social), 5, 99),
+      recovery: _clamp(Math.round(recovery), 5, 99)
+    };
+
+    var weighted = components.career * 0.26
+      + components.wealth * 0.22
+      + components.execution * 0.21
+      + components.social * 0.16
+      + components.recovery * 0.15;
+
+    var harmony = 100 - _stddev([
+      components.career,
+      components.wealth,
+      components.execution,
+      components.social,
+      components.recovery
+    ]);
+
+    var score = Math.round(120 + weighted * 8.4 + harmony * 1.6);
+    return {
+      score: _clamp(score, 100, 999),
+      components: components
+    };
+  }
+
   /* 적성 계수 (100~999 스케일) */
-  function _aptCoeff(dominant, counts) {
-    var base = 300;
-    var mapBonus = { '식신':150,'상관':140,'편재':130,'정재':120,'편관':110,'정관':100,'편인':90,'정인':80,'비견':60,'겁재':50 };
-    var bonus = (mapBonus[dominant] || 0);
-    var extra = Object.values(counts).reduce(function(s,v){return s+v;},0) * 10;
-    return Math.min(999, base + bonus + extra);
+  function _aptCoeff(dominant, counts, normalized, riskBreakdown) {
+    var norm = normalized || {
+      tenStarCounts: counts || {},
+      dist: _ohaengDist((normalized && normalized.pillars) || window.G_PILLARS || null),
+      power: window.G_POWER || null,
+      jong: window.G_JONG || null,
+      johu: window.G_JOHU || null
+    };
+    var apt = _calcAptitudeComponents(norm, riskBreakdown || null);
+    return apt.score;
   }
 
   /* 오행 분포 (G_NATAL or 직접 계산) */
@@ -337,37 +782,60 @@
     return 'clear';
   }
 
-  /* 현재 연도 기준 위험 계수 계산 */
-  function _calcRiskCoeff(p) {
-    var score = 30; // default
-    var year = new Date().getFullYear();
+  function _buildAnnualRiskPlan(normalized, year) {
+    var plan = [];
+    var baseYear = _toInt(year, new Date().getFullYear());
+    var currentAge = _toInt((normalized && normalized.currentAge) || 30, 30);
+    var daewunList = (normalized && normalized.daewunList) || [];
 
-    // 간단한 충·형 체크: 일지와 해당 연도 지지 충
-    var CHONG_PAIRS = {
-      '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅',
-      '卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳'
-    };
-    // 2024:甲辰, 2025:乙巳, 2026:丙午, 2027:丁未
-    var YEAR_ZHI = { 2024:'辰', 2025:'巳', 2026:'午', 2027:'未', 2028:'申', 2029:'酉', 2030:'戌', 2031:'亥', 2032:'子', 2033:'丑', 2034:'寅', 2035:'卯' };
-    var yZhi = YEAR_ZHI[year] || '午';
+    for (var i = 0; i < 10; i += 1) {
+      var y = baseYear + i;
+      var yz = _getYearGanZhi(y);
+      var yearEv = _evalDaewunBridge(yz.gan, yz.zhi);
+      var dw = _pickDaewunForAge(currentAge + i, daewunList);
+      var dwScore = dw ? Number(dw.score || 50) : 50;
+      var conflict = normalized && normalized.pillars ? _collectCollisionSignals(normalized.pillars, y) : { score: 0 };
+      var shock = (yearEv.hasChungPenalty ? 1 : 0) + ((conflict.chungCount || 0) >= 1 ? 1 : 0);
 
-    if (p && p.d) {
-      var dayZhi = p.d.j;
-      if (CHONG_PAIRS[dayZhi] === yZhi) score += 35;
-      var monthZhi = p.m.j;
-      if (CHONG_PAIRS[monthZhi] === yZhi) score += 20;
-      // 형(刑) — 인사신 삼형, 축술미 삼형
-      var XING_3 = [['寅','巳','申'],['丑','戌','未']];
-      XING_3.forEach(function(trio) {
-        if (trio.indexOf(yZhi) >= 0 && trio.indexOf(dayZhi) >= 0) score += 15;
+      var risk = Math.round(
+        (100 - yearEv.score) * 0.56
+        + (100 - dwScore) * 0.34
+        + Number(conflict.score || 0) * 0.10
+      );
+      risk = _clamp(risk + (shock * 4), 8, 96);
+
+      plan.push({
+        year: y,
+        ganZhi: yz.label,
+        yearScore: yearEv.score,
+        daewunScore: _clamp(Math.round(dwScore), 0, 100),
+        risk: risk,
+        score: 100 - risk,
+        shock: shock,
+        summary: yearEv.evalSummary || '데이터 부족',
+        daewunLabel: dw ? (dw.g + dw.j) : '데이터 부족',
+        conflictNotes: conflict.notes || []
       });
     }
 
-    // G_JONG 체크 — 종격이면 안정
-    var jong = window.G_JONG;
-    if (jong && jong.isJong) score = Math.max(10, score - 15);
+    return plan;
+  }
 
-    return Math.min(99, Math.max(5, score));
+  /* 현재 연도 기준 위험 계수 계산 */
+  function _calcRiskCoeff(p, normalizedOpt) {
+    var normalized = normalizedOpt || _normalizeSibylInput({ pillars: p }, { pillars: p });
+    var annualPlan = _buildAnnualRiskPlan(normalized, normalized.currentYear || new Date().getFullYear());
+    var monthlyPlan = _buildMonthlyRiskPlan(
+      normalized.pillars,
+      normalized.dominantEl,
+      normalized.dominantTenStar,
+      45,
+      normalized.currentYear || new Date().getFullYear(),
+      normalized
+    );
+    var conflict = _collectCollisionSignals(normalized.pillars, normalized.currentYear || new Date().getFullYear());
+    var breakdown = _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflict);
+    return breakdown.total;
   }
 
   /* 위험 계수 → Dominator 모드 */
@@ -390,55 +858,87 @@
     return { gan: g, zhi: z, label: g + z };
   }
 
-  function _buildMonthlyRiskPlan(pillars, dominantEl, dominantTenStar, baseRisk, year) {
-    var MONTH_ZHI = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
-    var ELEMENT_PRIORITY = {
-      wood: ['목(木) 과열', '화(火) 과열', '토(土) 고갈'],
-      fire: ['화(火) 과열', '토(土) 과다', '수(水) 고갈'],
-      earth: ['토(土) 정체', '금(金) 과다', '목(木) 제어 실패'],
-      metal: ['금(金) 과다', '수(水) 과다', '화(火) 압박'],
-      water: ['수(水) 과다', '목(木) 과성장', '토(土) 제어 부족']
-    };
-    var dayZhi = pillars && pillars.d ? pillars.d.j : '子';
-    var monthZhi = pillars && pillars.m ? pillars.m.j : '子';
-    var dayGan = pillars && pillars.d ? pillars.d.g : '';
-    var cautionPool = ELEMENT_PRIORITY[dominantEl] || ELEMENT_PRIORITY.water;
+  function _buildMonthlyRiskPlan(pillars, dominantEl, dominantTenStar, baseRisk, year, normalized) {
     var plan = [];
+    var p = pillars || (normalized && normalized.pillars) || window.G_PILLARS || null;
+    var y = _toInt(year, new Date().getFullYear());
+    var base = _toInt(baseRisk, 45);
+    var dayZhi = p && p.d ? p.d.j : null;
+    var monthZhi = p && p.m ? p.m.j : null;
+    var focusMap = {
+      1: '신호 수집', 2: '관계 조율', 3: '자금 통제', 4: '실행 속도 조절',
+      5: '권한 분배', 6: '중간 점검', 7: '리스크 절연', 8: '성과 확정',
+      9: '협업 재배치', 10: '중장기 설계', 11: '소진 방지', 12: '연말 정산'
+    };
+    var monthNarrative = [
+      '초기 조건을 정돈해야 이후 변동성을 흡수할 수 있습니다.',
+      '대인 의사결정에서 속도보다 합의 품질을 우선해야 합니다.',
+      '현금 흐름의 체온을 안정시키는 달입니다.',
+      '성과 욕심이 커지는 만큼 안전장치가 필요합니다.',
+      '권한과 책임의 경계를 명확히 해야 손실을 막습니다.',
+      '중간 점검을 통해 잘못된 가정을 조기에 수정해야 합니다.',
+      '외부 변수 유입이 많아 방어 전략이 핵심이 됩니다.',
+      '집중 실행으로 성과를 고정하기 좋은 구간입니다.',
+      '협업 구조를 재배치하면 마찰 비용이 크게 줄어듭니다.',
+      '내년을 위한 자원 재배분이 필요한 달입니다.',
+      '체력과 감정 회복 루틴을 먼저 확보해야 합니다.',
+      '연말 결산과 정리가 다음 사이클의 출발점을 만듭니다.'
+    ];
+
     var CHONG = { '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳' };
-    var HE6 = { '子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午' };
 
-    for (var i = 0; i < 12; i += 1) {
-      var z = MONTH_ZHI[i];
-      var risk = _toInt(baseRisk, 35) + ((i % 3) * 4);
-      if (CHONG[z] === dayZhi) risk += 19;
-      if (CHONG[z] === monthZhi) risk += 11;
-      if (HE6[z] === dayZhi) risk -= 10;
-      risk = Math.max(8, Math.min(95, risk));
+    for (var month = 1; month <= 12; month += 1) {
+      var gz = _getMonthGanZhiFor(y, month);
+      var ev = _evalDaewunBridge(gz.g, gz.j);
+      var fortune = _analyzeFortuneBridge(gz, p, y + '년 ' + month + '월');
+      var battery = Number(fortune.batteryPercent || 50);
 
-      var caution = cautionPool[i % cautionPool.length];
-      if (risk >= 70) caution = caution + ' + 대인 충돌';
-      if (dominantTenStar === '비견' || dominantTenStar === '겁재') caution += ' (독단 의사결정 주의)';
-      if (dominantTenStar === '편관' || dominantTenStar === '정관') caution += ' (권위 충돌 주의)';
+      var structural = 0;
+      if (dayZhi && CHONG[dayZhi] === gz.j) structural += 12;
+      if (monthZhi && CHONG[monthZhi] === gz.j) structural += 8;
+      if (ev.hasChungPenalty) structural += 10;
+      if (ev.hasChungBonus) structural -= 8;
 
-      var counter = risk >= 70
-        ? '중요 결정은 24시간 보류 후 실행하고, 금전/계약은 제3자 검토를 거치세요.'
-        : risk >= 50
-          ? '주간 우선순위를 3개 이하로 제한하고 관계 갈등은 즉시 문서화해 오해를 차단하세요.'
-          : '강점 실행 구간입니다. 핵심 프로젝트 1개 집중 + 체력 루틴 유지로 상승폭을 고정하세요.';
+      var risk = Math.round(
+        (100 - ev.score) * 0.56
+        + (100 - battery) * 0.24
+        + base * 0.20
+        + structural
+      );
+      risk = _clamp(risk, 8, 95);
+
+      var caution = (fortune.grade || '무난') + ' · ' + (fortune.gGod || '데이터 부족') + '/' + (fortune.jGod || '데이터 부족');
+      if (risk >= 70) caution += ' · 충돌 고조 구간';
+      if (dominantTenStar === '비견' || dominantTenStar === '겁재') caution += ' · 독단 경계';
+      if (dominantTenStar === '편관' || dominantTenStar === '정관') caution += ' · 권위 마찰 경계';
+
+      var countermeasure;
+      if (risk >= 75) {
+        countermeasure = '의사결정을 24시간 유예하고 계약/금전은 2중 검토. 핵심 관계는 문자 기록으로 분쟁 여지를 차단하세요.';
+      } else if (risk >= 55) {
+        countermeasure = '주간 목표를 3개로 제한하고, 일정·지출·대화를 같은 날 점검하세요. 실행보다 조정의 비중을 높이세요.';
+      } else {
+        countermeasure = '강점 실행 창입니다. ' + focusMap[month] + '에 집중하고 성과 로그를 남겨 다음 달 변동성 완충 자산으로 전환하세요.';
+      }
 
       plan.push({
-        month: i + 1,
-        year: year,
-        ganZhi: _getYearGanZhi(year).label,
-        monthZhi: z,
+        month: month,
+        year: y,
+        ganZhi: gz.g + gz.j,
+        monthZhi: gz.j,
         risk: risk,
+        engineScore: ev.score,
+        battery: battery,
         caution: caution,
-        countermeasure: counter,
+        countermeasure: countermeasure,
+        focus: focusMap[month],
+        summary: monthNarrative[month - 1],
         checkpoints: [
-          '의사결정 로그 주 1회 점검',
-          '지출/수입 밸런스 주 1회 확인',
-          '갈등 신호 발생 시 48시간 내 대화'
-        ]
+          month + '월 핵심 KPI 2개만 유지',
+          '관계 갈등 신호 48시간 이내 해소',
+          '주간 회복 루틴 최소 2회 고정'
+        ],
+        adviceItems: fortune.adviceItems || []
       });
     }
     return plan;
@@ -447,140 +947,255 @@
   function _buildLocalDominatorReport(payload, analysisData) {
     var profile = payload && payload.profile ? payload.profile : {};
     var b = profile.birth || {};
-    var year = _toInt(payload.currentYear, new Date().getFullYear());
-    var dominantTenStar = payload.dominantTenStar || analysisData.dominant || '편재';
-    var dominantEl = payload.dominantEl || analysisData.domEl || 'water';
-    var risk = _toInt(payload.riskScore, analysisData.risk || 35);
-    var coeff = _toInt(payload.aptCoeff, analysisData.coeff || 420);
-    var pillars = payload.pillars || analysisData.pillars || window.G_PILLARS || null;
-    var monthlyPlan = _buildMonthlyRiskPlan(pillars, dominantEl, dominantTenStar, risk, year);
-    var topRiskMonths = monthlyPlan.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
-    var lowRiskMonths = monthlyPlan.slice().sort(function(a, b) { return a.risk - b.risk; }).slice(0, 2);
+    var year = _toInt(payload && payload.currentYear, new Date().getFullYear());
 
-    var cautionGuide = topRiskMonths.map(function(item) {
-      return item.month + '월: ' + item.caution + ' / 대응: ' + item.countermeasure;
-    }).join('\n');
+    var normalized = _normalizeSibylInput(payload || {}, analysisData || {});
+    var dominantTenStar = normalized.dominantTenStar || '데이터 부족';
+    var dominantEl = normalized.dominantEl || 'water';
+
+    var monthlyPlan = _buildMonthlyRiskPlan(
+      normalized.pillars,
+      dominantEl,
+      dominantTenStar,
+      _toInt(payload && payload.riskScore, 45),
+      year,
+      normalized
+    );
+    var annualPlan = _buildAnnualRiskPlan(normalized, year);
+    var conflictSignals = _collectCollisionSignals(normalized.pillars, year);
+    var riskBreakdown = _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals);
+    var aptData = _calcAptitudeComponents(normalized, riskBreakdown);
+
+    var risk = riskBreakdown.total;
+    var coeff = aptData.score;
+
+    var topRiskMonths = monthlyPlan.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
+    var lowRiskMonths = monthlyPlan.slice().sort(function(a, b) { return a.risk - b.risk; }).slice(0, 3);
+    var topRiskYears = annualPlan.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
+    var lowRiskYears = annualPlan.slice().sort(function(a, b) { return a.risk - b.risk; }).slice(0, 3);
+
+    normalized.monthlyPlan = monthlyPlan;
+    normalized.annualPlan = annualPlan;
+    normalized.collisionSignals = conflictSignals;
+
+    var chapter1 = [
+      '## 핵심 진단 요약',
+      '- 입력 사주: ' + (b.year || '데이터 부족') + '.' + (b.month || '데이터 부족') + '.' + (b.day || '데이터 부족') + ' ' + (b.hour || '데이터 부족') + ':' + (b.minute || '데이터 부족'),
+      '- 지배 오행: ' + (EL_KR[dominantEl] || dominantEl),
+      '- 주도 십성: ' + dominantTenStar,
+      '- 적성 계수: ' + coeff + ' / 999',
+      '- 위험 계수: ' + risk + ' / 100 (' + riskBreakdown.label + ')',
+      '- 데이터 신뢰도: ' + (normalized.integrity.ok ? '양호' : '보강 필요'),
+      '',
+      '## 데이터 신뢰도 경고',
+      (normalized.integrity.messages.length
+        ? normalized.integrity.messages.map(function(msg) { return '- ' + msg; }).join('\n')
+        : '- 핵심 계산 필드가 정상적으로 연결되어 있습니다.'),
+      '',
+      '## 리스크 6분해 결과',
+      '- 오행 불균형: ' + riskBreakdown.parts.elementImbalance,
+      '- 십성과부하: ' + riskBreakdown.parts.tenStarOverload,
+      '- 충·형·파·해: ' + riskBreakdown.parts.collision,
+      '- 대운·세운 충돌: ' + riskBreakdown.parts.daewunSeunConflict,
+      '- 월별 변동성: ' + riskBreakdown.parts.monthlyVolatility,
+      '- 조후 스트레스: ' + riskBreakdown.parts.johuStress,
+      '',
+      '이 수치는 단일 점수 요약이 아니라, 실제 엔진 데이터(대운평가/월운평가)를 기반으로 위험의 출처를 분리한 결과입니다. 따라서 점수 변화가 생기면 어떤 하위 축이 움직였는지 즉시 추적할 수 있습니다.'
+    ].join('\n');
+
+    var chapter2 = [
+      '## 오행 불균형 상세',
+      '- 목(木): ' + (normalized.dist.wood || 0) + ' / 화(火): ' + (normalized.dist.fire || 0) + ' / 토(土): ' + (normalized.dist.earth || 0) + ' / 금(金): ' + (normalized.dist.metal || 0) + ' / 수(水): ' + (normalized.dist.water || 0),
+      '- 총합 기준 편차가 클수록 스트레스 사건이 특정 축으로 몰립니다.',
+      '- 결핍 오행은 대응 루틴을 만들어 보강하지 않으면, 세운 충격이 올 때 방어층이 급격히 얇아집니다.',
+      '',
+      '## 십성 구조와 직업적 긴장',
+      '- 비견/겁재 합: ' + _bijabCount(normalized.tenStarCounts),
+      '- 재성 합: ' + ((normalized.tenStarCounts['편재'] || 0) + (normalized.tenStarCounts['정재'] || 0)),
+      '- 관성 합: ' + ((normalized.tenStarCounts['편관'] || 0) + (normalized.tenStarCounts['정관'] || 0)),
+      '- 인성 합: ' + ((normalized.tenStarCounts['편인'] || 0) + (normalized.tenStarCounts['정인'] || 0)),
+      '',
+      '십성 과부하 구간은 장점이 아닌 병목으로 작동합니다. 예를 들어 비겁이 과하면 실행력이 높아도 협업 비용이 커지고, 관성이 과하면 안정성은 높아도 변화 대응 속도가 느려집니다. 이번 리포트는 이 병목을 월별/연별 타이밍과 연결해 언제 수비하고 언제 밀어야 하는지 제시합니다.'
+    ].join('\n');
+
+    var chapter3 = [
+      '## 적성 5요소 프로파일',
+      '- Career: ' + aptData.components.career,
+      '- Wealth: ' + aptData.components.wealth,
+      '- Execution: ' + aptData.components.execution,
+      '- Social: ' + aptData.components.social,
+      '- Recovery: ' + aptData.components.recovery,
+      '',
+      '## 실행 전략',
+      '- 커리어와 실행 점수가 높으면 프로젝트 주도권을 직접 가져가되, 사회 점수가 낮은 달에는 합의 지연 비용을 고려해야 합니다.',
+      '- 재물 점수는 기회 포착력보다 손실 회피력과 함께 읽어야 합니다. 고점 월에는 확대, 저점 월에는 유동성 확보를 우선하십시오.',
+      '- 회복 점수는 단순 휴식 지표가 아니라 성과 지속성 지표입니다. 회복이 낮은 구간에서 무리하면 다음 분기의 실행 점수까지 연쇄 하락합니다.',
+      '',
+      '즉, 적성 계수 999 스케일은 화려한 숫자보다 배분 전략에 의미가 있습니다. 같은 점수라도 구성요소가 다르면 처방이 완전히 달라집니다.'
+    ].join('\n');
+
+    var chapter4 = [
+      '## 충·형·파·해 핵심 경고',
+      '- 충(沖): ' + (conflictSignals.chungCount || 0) + '건',
+      '- 형(刑): ' + (conflictSignals.hyungCount || 0) + '건',
+      '- 파(破): ' + (conflictSignals.paCount || 0) + '건',
+      '- 해(害): ' + (conflictSignals.haeCount || 0) + '건',
+      '',
+      (conflictSignals.notes.length
+        ? conflictSignals.notes.map(function(msg) { return '- ' + msg; }).join('\n')
+        : '- 당해 연도 기준 직격 충형파해 신호는 낮은 편입니다.'),
+      '',
+      '관계 리스크는 사건이 생긴 뒤 수습하면 비용이 큽니다. 충/형이 겹치는 구간에서는 말의 속도를 늦추고, 계약·재무·인사 의사결정의 확인 단계를 늘리는 것이 손실을 크게 줄입니다.'
+    ].join('\n');
+
+    var annualNarrative = annualPlan.map(function(item, idx) {
+      var rank = idx + 1;
+      var riskBand = item.risk >= 75 ? '고위험' : item.risk >= 55 ? '경계' : item.risk >= 35 ? '중립' : '안정';
+      var playbook = item.risk >= 70
+        ? '수비 우선: 신규 확장보다 리스크 절연, 계약은 분할 체결.'
+        : item.risk >= 50
+          ? '균형 운용: 실행과 검증을 5:5로 배분.'
+          : '공격 운용: 핵심 과제 1개를 강하게 밀어 성과 고정.';
+      var note = item.conflictNotes && item.conflictNotes.length
+        ? item.conflictNotes.slice(0, 2).join(' / ')
+        : '직격 충형파해는 제한적.';
+      return [
+        '## Y' + rank + ' · ' + item.year + '년 (' + item.ganZhi + ')',
+        '- 통합 위험: ' + item.risk + ' (' + riskBand + ')',
+        '- 세운 점수: ' + item.yearScore + ' / 대운 점수: ' + item.daewunScore + ' [' + item.daewunLabel + ']',
+        '- 충격 신호: ' + item.shock + '단계',
+        '- 핵심 관찰: ' + note,
+        '- 실행 지침: ' + playbook,
+        '- 요약: ' + item.summary
+      ].join('\n');
+    }).join('\n\n');
+
+    var monthlyNarrative = monthlyPlan.map(function(item) {
+      var band = item.risk >= 75 ? '고위험' : item.risk >= 55 ? '경계' : item.risk >= 35 ? '중립' : '안정';
+      var tactical = item.risk >= 70
+        ? '중요 안건은 24시간 숙성 후 확정.'
+        : item.risk >= 50
+          ? '주간 우선순위 3개 이하 유지.'
+          : '확신 구간 과제를 전진 배치.';
+      var advice = (item.adviceItems && item.adviceItems.length)
+        ? String(item.adviceItems[0].body || '').replace(/\s+/g, ' ').trim()
+        : '월운 조언 데이터 없음';
+      return [
+        '## M' + String(item.month).padStart(2, '0') + ' · ' + item.month + '월 (' + item.ganZhi + ')',
+        '- 위험 ' + item.risk + ' / 엔진점수 ' + item.engineScore + ' / 배터리 ' + item.battery,
+        '- 리스크 밴드: ' + band,
+        '- 포커스: ' + item.focus,
+        '- 주의: ' + item.caution,
+        '- 대응: ' + item.countermeasure,
+        '- 전략 키워드: ' + tactical,
+        '- 월간 코멘트: ' + item.summary,
+        '- 엔진 조언: ' + advice
+      ].join('\n');
+    }).join('\n\n');
+
+    var chapter5 = [
+      '## 10년 리스크 맵 (실연동)',
+      annualNarrative,
+      '',
+      '## 최고 위험 3개 연도',
+      topRiskYears.map(function(yItem) { return '- ' + yItem.year + '년: 위험 ' + yItem.risk + ' (' + yItem.ganZhi + ')'; }).join('\n'),
+      '',
+      '## 안정 3개 연도',
+      lowRiskYears.map(function(yItem) { return '- ' + yItem.year + '년: 위험 ' + yItem.risk + ' (' + yItem.ganZhi + ')'; }).join('\n')
+    ].join('\n');
+
+    var chapter6 = [
+      '## 월별 리스크 플래너 (12개월)',
+      monthlyNarrative,
+      '',
+      '## 고위험 3개월',
+      topRiskMonths.map(function(mItem) { return '- ' + mItem.month + '월: 위험 ' + mItem.risk + ' · ' + mItem.focus; }).join('\n'),
+      '',
+      '## 안정 3개월',
+      lowRiskMonths.map(function(mItem) { return '- ' + mItem.month + '월: 위험 ' + mItem.risk + ' · ' + mItem.focus; }).join('\n')
+    ].join('\n');
+
+    var chapter7 = [
+      '## 분야별 실행 매뉴얼',
+      '- Career 전략: 분기 핵심 과제 1개를 정하고, 월별 위험 상위 구간에는 검증 단계를 추가하십시오.',
+      '- Wealth 전략: 고위험 월에는 현금흐름 방어(유동성/고정비 재조정), 안정 월에는 성장 자산 배분을 강화하십시오.',
+      '- Execution 전략: 실행 속도는 월별 배터리와 연동해 조절하십시오. 배터리 45 미만 구간은 품질 우선 운영이 유리합니다.',
+      '- Social 전략: 충형파해 신호가 강한 달에는 말의 속도를 늦추고 기록 기반 커뮤니케이션을 사용하십시오.',
+      '- Recovery 전략: 고위험 전후 월에 회복 루틴(수면, 운동, 일정 비우기)을 선배치해야 연간 성과가 무너지지 않습니다.',
+      '',
+      '## 30/90/180일 실행 프레임',
+      '- 30일: 손실 누수 차단(계약 검토 루틴, 관계 갈등 로그화).',
+      '- 90일: 성과 고정(프로젝트 1개 집중, 협업 규칙 명문화).',
+      '- 180일: 포트폴리오 재편(강점 영역 확장 + 고위험 영역 자동화).',
+      '',
+      '핵심은 점수 해석이 아니라 리듬 운영입니다. 같은 사주라도 운영 리듬이 다르면 결과는 완전히 달라집니다.'
+    ].join('\n');
+
+    var chapter8 = [
+      '## 최종 결론',
+      '- 현재 리스크 축의 1순위는 ' + (riskBreakdown.parts.daewunSeunConflict >= riskBreakdown.parts.elementImbalance ? '대운·세운 충돌' : '오행 불균형') + '입니다.',
+      '- 지금 당장 바꿔야 할 1가지는 "고위험 월에서의 의사결정 지연 규칙"입니다.',
+      '- 지금 당장 강화할 1가지는 "안정 월의 공격적 실행 창 활용"입니다.',
+      '- 관찰 지표 3개: 월별 위험, 실행률, 회복 점수.',
+      '',
+      '이 리포트는 단순 문장 생성이 아니라 엔진 신호를 결합한 운영 가이드입니다. 숫자가 바뀌면 문장도 함께 바뀌어야 하며, 현재 결과는 그 연결 원칙을 따릅니다.'
+    ].join('\n');
 
     var chapters = [
-      {
-        title: '사주 코어 매트릭스',
-        content: [
-          '## 핵심 진단',
-          '- 입력 사주: ' + (b.year || '?') + '.' + (b.month || '?') + '.' + (b.day || '?') + ' ' + (b.hour || '?') + ':' + (b.minute || '?'),
-          '- 지배 오행: ' + (EL_KR[dominantEl] || dominantEl),
-          '- 주도 십성: ' + dominantTenStar,
-          '- 적성 계수: ' + coeff,
-          '- 위험 계수: ' + risk,
-          '',
-          '## 해석 포인트',
-          '원국 오행 분포와 십성 주도 패턴을 기준으로 커리어·재물·관계 리스크를 행동 단위로 환산했습니다. 이 리포트는 외부 API 없이 현재 화면의 사주 엔진 결과를 그대로 사용합니다.'
-        ].join('\n')
-      },
-      {
-        title: '커리어 적합도와 실행 전략',
-        content: [
-          '## 강점 활용',
-          '- 강점은 단기 성과보다 반복 가능한 프로세스에서 크게 증폭됩니다.',
-          '- 주도 십성(' + dominantTenStar + ')은 의사결정 스타일을 고정하므로, 팀 역할을 먼저 명확히 해야 마찰이 줄어듭니다.',
-          '',
-          '## 주의할 점',
-          '- 과속 실행은 정확도 하락으로 연결됩니다.',
-          '- 의견 충돌 구간에서는 말보다 기록이 리스크를 줄입니다.',
-          '',
-          '## 30일 액션',
-          '- 핵심 목표 1개, 성과 지표 2개, 금지 행동 2개를 문서화하세요.',
-          '- 주간 회고에서 실행률 70% 미만 항목을 즉시 구조 수정하세요.'
-        ].join('\n')
-      },
-      {
-        title: '돈의 흐름과 손실 차단',
-        content: [
-          '## 자금 운영 원칙',
-          '- 수입 확장과 지출 통제를 같은 비중으로 관리해야 합니다.',
-          '- 감정 지출이 발생하는 요일/시간대를 추적하면 누수를 빠르게 줄일 수 있습니다.',
-          '',
-          '## 위험 신호',
-          '- 고위험 월에는 계약·투자 결정을 분할 실행하세요.',
-          '- 구두 합의는 반드시 체크리스트 문서로 전환하세요.',
-          '',
-          '## 이번 달 체크',
-          '- 필수지출/변동지출 비율 점검',
-          '- 월 1회 고정비 재협상',
-          '- 비상예산 최소 1개월치 유지'
-        ].join('\n')
-      },
-      {
-        title: '월별 위험 대책 리포트',
-        content: monthlyPlan.map(function(item) {
-          return (item.month < 10 ? '0' + item.month : String(item.month))
-            + '월 | 위험 ' + item.risk
-            + ' | 주의: ' + item.caution
-            + ' | 대책: ' + item.countermeasure;
-        }).join('\n')
-      },
-      {
-        title: '무엇을 주의해야 하는가',
-        content: [
-          '## 최우선 주의사항',
-          cautionGuide,
-          '',
-          '## 상대적으로 안정적인 구간',
-          lowRiskMonths.map(function(item) {
-            return '- ' + item.month + '월: 위험 ' + item.risk + ' (집중 추진 가능 구간)';
-          }).join('\n'),
-          '',
-          '## 운영 원칙',
-          '- 높은 리스크 달: 결정 보류 + 검토 강화',
-          '- 중간 리스크 달: 협업/커뮤니케이션 구조 정비',
-          '- 낮은 리스크 달: 실행량 확대 및 결과 고정'
-        ].join('\n')
-      }
+      { title: 'CH01 · 데이터 신뢰도와 코어 매트릭스', content: chapter1 },
+      { title: 'CH02 · 오행·십성 구조 진단', content: chapter2 },
+      { title: 'CH03 · 적성 5컴포넌트 해석', content: chapter3 },
+      { title: 'CH04 · 충·형·파·해 리스크 맵', content: chapter4 },
+      { title: 'CH05 · 10년 연도별 상세 해석', content: chapter5 },
+      { title: 'CH06 · 월별 12개 운영 리포트', content: chapter6 },
+      { title: 'CH07 · 분야별 실행 플랜', content: chapter7 },
+      { title: 'CH08 · 우선순위 결론', content: chapter8 }
     ];
 
     var totalChars = chapters.reduce(function(sum, ch) { return sum + String(ch.content || '').length; }, 0);
+
     return {
-      source: 'local-saju-engine',
+      source: 'local-saju-engine-bridge',
       model: 'local',
       totalChars: totalChars,
-      minTotalChars: 3500,
+      minTotalChars: 8000,
       generatedAt: Date.now(),
+      riskScore: risk,
+      aptCoeff: coeff,
+      dominantTenStar: dominantTenStar,
+      dominantEl: dominantEl,
       monthlyRiskPlan: monthlyPlan,
+      annualRiskPlan: annualPlan,
+      riskBreakdown: riskBreakdown,
+      aptitudeComponents: aptData.components,
+      integrity: normalized.integrity,
       chapters: chapters
     };
   }
 
   /* 10년 위험 그래프 데이터 */
-  function _buildRiskGraph(p) {
-    var curYear = new Date().getFullYear();
-    var YEAR_ZHI_MAP = {};
-    var ZHI_LIST = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-    // 2024 = 庚甲辰 → 辰 index=4
-    var base2024Idx = 4; // 辰
-    for (var i = -5; i <= 10; i++) {
-      var y = 2024 + i;
-      YEAR_ZHI_MAP[y] = ZHI_LIST[(base2024Idx + i + 600) % 12];
-    }
-
-    var CHONG_P = { '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳' };
-    var XING_3 = [['寅','巳','申'],['丑','戌','未']];
-    var dayZhi = p && p.d ? p.d.j : '子';
-    var monthZhi = p && p.m ? p.m.j : '子';
-
-    var data = [];
-    for (var yr = curYear; yr < curYear + 11; yr++) {
-      var yz = YEAR_ZHI_MAP[yr];
-      var s = 25;
-      if (CHONG_P[dayZhi] === yz) s += 35;
-      if (CHONG_P[monthZhi] === yz) s += 20;
-      XING_3.forEach(function(trio) {
-        if (trio.indexOf(yz) >= 0 && trio.indexOf(dayZhi) >= 0) s += 15;
+  function _buildRiskGraph(pOrNormalized, annualPlan) {
+    if (Array.isArray(annualPlan) && annualPlan.length) {
+      return annualPlan.map(function(item) {
+        return {
+          year: item.year,
+          zhi: (item.ganZhi || '').slice(1),
+          risk: _clamp(Math.round(item.risk), 8, 96)
+        };
       });
-      // 합 가산 — 일지와 해당 연지가 합이면 감소
-      var HE_6 = { '子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午' };
-      if (HE_6[dayZhi] === yz) s = Math.max(5, s - 15);
-      data.push({ year: yr, zhi: yz, risk: Math.min(95, Math.max(8, s)) });
     }
-    return data;
+
+    var normalized = (pOrNormalized && pOrNormalized.pillars)
+      ? pOrNormalized
+      : _normalizeSibylInput({ pillars: pOrNormalized }, { pillars: pOrNormalized });
+    var plan = _buildAnnualRiskPlan(normalized, normalized.currentYear || new Date().getFullYear());
+    return plan.map(function(item) {
+      return {
+        year: item.year,
+        zhi: (item.ganZhi || '').slice(1),
+        risk: _clamp(Math.round(item.risk), 8, 96)
+      };
+    });
   }
 
   /* SVG 그래프 렌더링 */
@@ -978,8 +1593,10 @@
 
   /* ── 무료 섹션 렌더링 ── */
   function _renderFreeSection(pillars, natal) {
-    var dist = _ohaengDist(pillars);
-    var domEl = _dominantEl(dist);
+    var normalized = _normalizeSibylInput({ pillars: pillars }, { pillars: pillars });
+    var corePillars = normalized.pillars || pillars || window.G_PILLARS;
+    var dist = normalized.dist || _ohaengDist(corePillars);
+    var domEl = normalized.dominantEl || _dominantEl(dist);
     var clarity = _hueClarityStatus(dist);
     var hueData = EL_DESTINY_HUE[domEl] || EL_DESTINY_HUE.water;
 
@@ -1004,31 +1621,76 @@
     }
 
     // Pillar display
-    if (pillars) {
+    if (corePillars) {
       var cols = [
-        { id:'sbPillarYanG', val:pillars.y.g }, { id:'sbPillarYanJ', val:pillars.y.j },
-        { id:'sbPillarMoG',  val:pillars.m.g }, { id:'sbPillarMoJ',  val:pillars.m.j },
-        { id:'sbPillarDaG',  val:pillars.d.g }, { id:'sbPillarDaJ',  val:pillars.d.j },
-        { id:'sbPillarSiG',  val:pillars.h.g }, { id:'sbPillarSiJ',  val:pillars.h.j }
+        { id:'sbPillarYanG', val:corePillars.y.g }, { id:'sbPillarYanJ', val:corePillars.y.j },
+        { id:'sbPillarMoG',  val:corePillars.m.g }, { id:'sbPillarMoJ',  val:corePillars.m.j },
+        { id:'sbPillarDaG',  val:corePillars.d.g }, { id:'sbPillarDaJ',  val:corePillars.d.j },
+        { id:'sbPillarSiG',  val:corePillars.h.g }, { id:'sbPillarSiJ',  val:corePillars.h.j }
       ];
-      cols.forEach(function(c){ _t(c.id, c.val||'?'); });
+      cols.forEach(function(c){ _t(c.id, c.val || '데이터 부족'); });
     }
 
-    // Aptitude analysis
-    var counts = {};
-    try { counts = _analyzeTenStars(pillars || window.G_PILLARS); } catch(e) {}
-    var dominant = _dominantTenStar(counts) || '편재';
+    var counts = normalized.tenStarCounts || {};
+    var dominant = normalized.dominantTenStar || '데이터 부족';
     var secData = TENSTAR_SECTOR[dominant] || TENSTAR_SECTOR['편재'];
-    var coeff = _aptCoeff(dominant, counts);
+    var annualPreview = _buildAnnualRiskPlan(normalized, normalized.currentYear || new Date().getFullYear());
+    var monthlyPreview = _buildMonthlyRiskPlan(
+      corePillars,
+      domEl,
+      dominant,
+      45,
+      normalized.currentYear || new Date().getFullYear(),
+      normalized
+    );
+    var conflictSignals = _collectCollisionSignals(corePillars, normalized.currentYear || new Date().getFullYear());
+    var riskBreakdown = _calcRiskBreakdown(normalized, monthlyPreview, annualPreview, conflictSignals);
+    var aptData = _calcAptitudeComponents(normalized, riskBreakdown);
+    var coeff = aptData.score;
+    var risk = riskBreakdown.total;
+
+    var metricsPreview = _q('sbFreeSection') && _q('sbFreeSection').querySelector('.sb-metrics-preview');
+    if (metricsPreview) {
+      metricsPreview.classList.add('sb-metrics-preview--expanded');
+      metricsPreview.innerHTML = ''
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">위험 계수</div>'
+        + '<div class="sb-metric-value" id="sbRiskBasicEl"><span id="sbRiskBasic">0</span></div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">적성 계수</div>'
+        + '<div class="sb-metric-value sb-metric-value--ok" id="sbAptMetric"><span id="sbAptCoeff">0</span></div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">Career</div>'
+        + '<div class="sb-metric-value" id="sbCareerComp">0</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">Wealth</div>'
+        + '<div class="sb-metric-value" id="sbWealthComp">0</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">충·형·파·해</div>'
+        + '<div class="sb-metric-value" id="sbRiskCollision">0</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">월 변동성</div>'
+        + '<div class="sb-metric-value" id="sbRiskVolatility">0</div>'
+        + '</div>';
+    }
 
     _t('sbAptCoeff', coeff);
     _t('sbAptMetric', coeff);
+    _t('sbCareerComp', aptData.components.career);
+    _t('sbWealthComp', aptData.components.wealth);
+    _t('sbRiskCollision', riskBreakdown.parts.collision);
+    _t('sbRiskVolatility', riskBreakdown.parts.monthlyVolatility);
     _t('sbSectorName', secData.sector);
     _t('sbSectorJobs', secData.jobs);
     _t('sbSectorTenstar', '주도 십성: ' + dominant);
 
     // Caution / Warning — G_POWER 기반 스마트 경보
-    var warn = _buildSmartWarning(pillars || window.G_PILLARS, dominant, counts, dist);
+    var warn = _buildSmartWarning(corePillars, dominant, counts, dist);
     var warnEl = _q('sbCautionArea');
     if (warnEl) {
       if (warn) {
@@ -1040,7 +1702,6 @@
     }
 
     // Risk gauge (basic)
-    var risk = _calcRiskCoeff(pillars || window.G_PILLARS);
     _t('sbRiskBasic', risk);
     var riskEl = _q('sbRiskBasicEl');
     if (riskEl) {
@@ -1049,15 +1710,21 @@
 
     // Save current analysis state
     window._sibylCurrentData = {
-      pillars: pillars || window.G_PILLARS,
+      pillars: corePillars,
       dist: dist, domEl: domEl, dominant: dominant, coeff: coeff,
-      risk: risk, counts: counts
+      risk: risk,
+      counts: counts,
+      riskBreakdown: riskBreakdown,
+      aptitudeComponents: aptData.components,
+      monthlyPreview: monthlyPreview,
+      annualPreview: annualPreview,
+      normalized: normalized
     };
 
     // Nature + Year Pulse + Inner Palace 전체 렌더
     var natSec = _q('sbNatureSection');
     if (natSec) {
-      var p0 = pillars || window.G_PILLARS;
+      var p0 = corePillars;
       natSec.innerHTML = _buildNatureAnalysis(p0, dist, dominant, counts)
         + _buildYearPulseHTML(p0)
         + _buildDayBranchScan(p0);
@@ -1218,6 +1885,99 @@
       + '</section>';
   }
 
+  function _renderDominatorInsightPanel(reportData) {
+    if (!reportData) return '';
+    var monthly = Array.isArray(reportData.monthlyRiskPlan) ? reportData.monthlyRiskPlan : [];
+    var annual = Array.isArray(reportData.annualRiskPlan) ? reportData.annualRiskPlan : [];
+    var parts = reportData.riskBreakdown && reportData.riskBreakdown.parts ? reportData.riskBreakdown.parts : {};
+    var apt = reportData.aptitudeComponents || {};
+
+    var topMonths = monthly.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
+    var stableMonths = monthly.slice().sort(function(a, b) { return a.risk - b.risk; }).slice(0, 3);
+    var topYears = annual.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
+
+    var strips = monthly.map(function(item) {
+      var tone = item.risk >= 70 ? 'danger' : item.risk >= 50 ? 'warn' : 'ok';
+      return '<div class="sb-risk-strip-item sb-risk-strip-item--' + tone + '">'
+        + '<span class="sb-risk-strip-month">' + String(item.month).padStart(2, '0') + '월</span>'
+        + '<span class="sb-risk-strip-bar"><i style="width:' + _clamp(item.risk, 5, 95) + '%"></i></span>'
+        + '<span class="sb-risk-strip-value">' + item.risk + '</span>'
+        + '</div>';
+    }).join('');
+
+    var radarRows = [
+      { k: 'Career', v: apt.career || 0 },
+      { k: 'Wealth', v: apt.wealth || 0 },
+      { k: 'Execution', v: apt.execution || 0 },
+      { k: 'Social', v: apt.social || 0 },
+      { k: 'Recovery', v: apt.recovery || 0 }
+    ].map(function(row) {
+      return '<div class="sb-radar-row">'
+        + '<span class="sb-radar-key">' + row.k + '</span>'
+        + '<span class="sb-radar-bar"><i style="width:' + _clamp(row.v, 4, 99) + '%"></i></span>'
+        + '<span class="sb-radar-value">' + row.v + '</span>'
+        + '</div>';
+    }).join('');
+
+    var accordion = topYears.map(function(item, idx) {
+      var notes = Array.isArray(item.conflictNotes) && item.conflictNotes.length
+        ? item.conflictNotes.join(' / ')
+        : '직격 충형파해 메모 없음';
+      return '<details class="sb-insight-acc" ' + (idx === 0 ? 'open' : '') + '>'
+        + '<summary>' + item.year + '년 · 위험 ' + item.risk + ' · ' + item.ganZhi + '</summary>'
+        + '<div class="sb-insight-acc-body">'
+        + '<p>세운 점수 ' + item.yearScore + ', 대운 점수 ' + item.daewunScore + ', 충격 단계 ' + item.shock + '.</p>'
+        + '<p>충돌 신호: ' + notes + '</p>'
+        + '<p>실행 요약: ' + (item.summary || '데이터 부족') + '</p>'
+        + '</div>'
+        + '</details>';
+    }).join('');
+
+    return '<section class="sb-insight-panel">'
+      + '<div class="sb-insight-head">RISK COMMAND CENTER</div>'
+      + '<div class="sb-insight-grid">'
+      + '<article class="sb-insight-box">'
+      + '<h4>월별 위험 스트립</h4>'
+      + '<div class="sb-risk-strip">' + strips + '</div>'
+      + '</article>'
+      + '<article class="sb-insight-box">'
+      + '<h4>적성 레이다(5축)</h4>'
+      + '<div class="sb-radar-wrap">' + radarRows + '</div>'
+      + '</article>'
+      + '</div>'
+      + '<div class="sb-insight-grid">'
+      + '<article class="sb-insight-box">'
+      + '<h4>상위 위험 월 TOP3</h4>'
+      + '<ul class="sb-insight-list">' + topMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + ' · ' + m.focus + '</li>'; }).join('') + '</ul>'
+      + '<h4>안정 월 TOP3</h4>'
+      + '<ul class="sb-insight-list">' + stableMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + ' · ' + m.focus + '</li>'; }).join('') + '</ul>'
+      + '</article>'
+      + '<article class="sb-insight-box">'
+      + '<h4>리스크 하위요인</h4>'
+      + '<ul class="sb-insight-list">'
+      + '<li>오행 불균형: ' + (parts.elementImbalance || 0) + '</li>'
+      + '<li>십성 과부하: ' + (parts.tenStarOverload || 0) + '</li>'
+      + '<li>충·형·파·해: ' + (parts.collision || 0) + '</li>'
+      + '<li>대운·세운 충돌: ' + (parts.daewunSeunConflict || 0) + '</li>'
+      + '<li>월 변동성: ' + (parts.monthlyVolatility || 0) + '</li>'
+      + '<li>조후 스트레스: ' + (parts.johuStress || 0) + '</li>'
+      + '</ul>'
+      + '</article>'
+      + '</div>'
+      + '<div class="sb-insight-grid sb-insight-grid--single">'
+      + '<article class="sb-insight-box">'
+      + '<h4>고위험 연도 상세 아코디언</h4>'
+      + accordion
+      + '</article>'
+      + '</div>'
+      + '<div class="sb-insight-grid">'
+      + '<article class="sb-insight-box sb-insight-box--warn"><h4>경고 박스</h4><p>고위험 월에는 결정 지연 규칙(24시간)과 문서 기반 합의 절차를 강제하세요.</p></article>'
+      + '<article class="sb-insight-box sb-insight-box--plan"><h4>전략 박스</h4><p>안정 월에는 핵심 과제 1개를 전진 배치해 성과를 고정하고, 경계 월에는 검증 단계 비중을 늘리세요.</p></article>'
+      + '<article class="sb-insight-box sb-insight-box--routine"><h4>루틴 박스</h4><p>주 2회 회복 루틴(수면/운동/비워두기)을 캘린더 고정하면 월 변동성 충격을 흡수할 수 있습니다.</p></article>'
+      + '</div>'
+      + '</section>';
+  }
+
   function _renderChapterBodyRich(text) {
     var src = String(text || '').replace(/\r/g, '');
     var lines = src.split('\n');
@@ -1265,7 +2025,12 @@
       domSec.classList.add('sb-fadein');
     }
 
-    var risk = analysisData.risk || 0;
+    var risk = (reportData && reportData.riskBreakdown && Number(reportData.riskBreakdown.total))
+      || Number(analysisData && analysisData.risk)
+      || 0;
+    var coeff = (reportData && Number(reportData.aptCoeff)) || Number(analysisData && analysisData.coeff) || 0;
+    var dominant = (reportData && reportData.dominantTenStar) || (analysisData && analysisData.dominant) || '데이터 부족';
+    var dominantEl = (reportData && reportData.dominantEl) || (analysisData && analysisData.domEl) || 'water';
     var mode = _dominatorMode(risk);
 
     // Dominator Mode Banner
@@ -1286,20 +2051,51 @@
 
     // 10-year Risk Graph
     var svgEl = _q('sbRiskGraphSVG');
-    if (svgEl && analysisData.pillars) {
-      var graphData = _buildRiskGraph(analysisData.pillars);
+    if (svgEl && (analysisData && analysisData.pillars)) {
+      var graphData = _buildRiskGraph(analysisData.pillars, reportData && reportData.annualRiskPlan);
       _renderRiskSVG(graphData, svgEl);
+    }
+
+    var metricsRow = domSec ? domSec.querySelector('.sb-metrics-row') : null;
+    if (metricsRow) {
+      metricsRow.classList.add('sb-metrics-row--expanded');
+      var parts = reportData && reportData.riskBreakdown ? reportData.riskBreakdown.parts : null;
+      metricsRow.innerHTML = ''
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">위험 계수</div>'
+        + '<div class="sb-metric-value" id="sbDomRiskEl"><span id="sbDomRisk">0</span></div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">적성 계수</div>'
+        + '<div class="sb-metric-value sb-metric-value--ok" id="sbDomCoeff">' + coeff + '</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">주도 십성</div>'
+        + '<div class="sb-metric-value" id="sbDomSector">' + dominant + '</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">충·형·파·해</div>'
+        + '<div class="sb-metric-value">' + (parts ? parts.collision : 0) + '</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">대운·세운 충돌</div>'
+        + '<div class="sb-metric-value">' + (parts ? parts.daewunSeunConflict : 0) + '</div>'
+        + '</div>'
+        + '<div class="sb-metric-card">'
+        + '<div class="sb-metric-label">월 변동성</div>'
+        + '<div class="sb-metric-value">' + (parts ? parts.monthlyVolatility : 0) + '</div>'
+        + '</div>';
     }
 
     // Metrics row
     _t('sbDomRisk', risk);
     var rEl = _q('sbDomRiskEl');
     if (rEl) rEl.className = 'sb-metric-value' + (risk >= 70 ? ' sb-metric-value--danger' : risk >= 45 ? ' sb-metric-value--warn' : ' sb-metric-value--ok');
-    _t('sbDomCoeff', analysisData.coeff || 0);
-    _t('sbDomSector', analysisData.dominant || '?');
+    _t('sbDomCoeff', coeff);
+    _t('sbDomSector', dominant);
 
     // Remedies
-    var remedies = _buildRemedies(analysisData.dominant || '편재', analysisData.domEl || 'water');
+    var remedies = _buildRemedies(dominant, dominantEl);
     var remedyEl = _q('sbRemedyList');
     if (remedyEl) {
       remedyEl.innerHTML = remedies.map(function(r){
@@ -1311,6 +2107,10 @@
     var chaptersEl = _q('sbReportChapters');
     if (chaptersEl && reportData && reportData.chapters) {
       chaptersEl.innerHTML = '';
+      var insightWrap = document.createElement('div');
+      insightWrap.className = 'sb-report-insight';
+      insightWrap.innerHTML = _renderDominatorInsightPanel(reportData);
+      chaptersEl.appendChild(insightWrap);
       if (Array.isArray(reportData.monthlyRiskPlan) && reportData.monthlyRiskPlan.length) {
         var monthlyWrap = document.createElement('div');
         monthlyWrap.className = 'sb-report-monthly';

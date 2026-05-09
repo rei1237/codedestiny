@@ -2115,3 +2115,220 @@
   border-top: 1px solid rgba(120,80,255,0.15);
   letter-spacing: 0.03em;
 }
+
+/* ─── Expanded Metrics + Insight Panel ─── */
+.sb-metrics-preview--expanded,
+.sb-metrics-row--expanded {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sb-report-insight {
+  margin-bottom: 14px;
+}
+
+.sb-insight-panel {
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  background: linear-gradient(135deg, rgba(0, 18, 40, 0.82), rgba(0, 10, 26, 0.94));
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.sb-insight-head {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: var(--sb-cyan);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.18);
+}
+
+.sb-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sb-insight-grid:last-child {
+  margin-bottom: 0;
+}
+
+.sb-insight-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.sb-insight-box {
+  border: 1px solid rgba(0, 200, 255, 0.18);
+  border-radius: 6px;
+  padding: 10px;
+  background: rgba(0, 20, 50, 0.5);
+}
+
+.sb-insight-box h4 {
+  margin: 0 0 8px;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 0.66rem;
+  color: #8fefff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sb-insight-box p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.7;
+  color: rgba(206, 228, 246, 0.9);
+}
+
+.sb-insight-box--warn {
+  border-color: rgba(255, 90, 120, 0.35);
+  background: rgba(70, 12, 28, 0.45);
+}
+
+.sb-insight-box--plan {
+  border-color: rgba(0, 220, 255, 0.35);
+}
+
+.sb-insight-box--routine {
+  border-color: rgba(120, 180, 255, 0.35);
+}
+
+.sb-insight-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: rgba(204, 228, 245, 0.9);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.sb-risk-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-risk-strip-item {
+  display: grid;
+  grid-template-columns: 40px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-risk-strip-month,
+.sb-risk-strip-value {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 0.64rem;
+  color: rgba(170, 210, 238, 0.9);
+}
+
+.sb-risk-strip-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(0, 40, 80, 0.65);
+  overflow: hidden;
+}
+
+.sb-risk-strip-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(to right, #00c8ff, #ffb800);
+}
+
+.sb-risk-strip-item--danger .sb-risk-strip-bar i {
+  background: linear-gradient(to right, #ff7c00, #ff2143);
+}
+
+.sb-risk-strip-item--ok .sb-risk-strip-bar i {
+  background: linear-gradient(to right, #00a8ff, #00f0ff);
+}
+
+.sb-radar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-radar-row {
+  display: grid;
+  grid-template-columns: 66px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-radar-key,
+.sb-radar-value {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 0.64rem;
+  color: rgba(175, 214, 240, 0.9);
+}
+
+.sb-radar-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(0, 40, 90, 0.7);
+  overflow: hidden;
+}
+
+.sb-radar-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(to right, #0066ff, #00f0ff);
+}
+
+.sb-insight-acc {
+  border: 1px solid rgba(0, 200, 255, 0.16);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: rgba(0, 14, 34, 0.65);
+}
+
+.sb-insight-acc:last-child {
+  margin-bottom: 0;
+}
+
+.sb-insight-acc summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 9px 10px;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 0.68rem;
+  color: #9beeff;
+}
+
+.sb-insight-acc summary::-webkit-details-marker {
+  display: none;
+}
+
+.sb-insight-acc-body {
+  border-top: 1px solid rgba(0, 200, 255, 0.14);
+  padding: 8px 10px 10px;
+}
+
+.sb-insight-acc-body p {
+  margin: 0 0 6px;
+  font-size: 0.74rem;
+  line-height: 1.65;
+  color: rgba(200, 224, 242, 0.9);
+}
+
+.sb-insight-acc-body p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .sb-metrics-preview--expanded,
+  .sb-metrics-row--expanded {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sb-insight-grid {
+    grid-template-columns: 1fr;
+  }
+}
