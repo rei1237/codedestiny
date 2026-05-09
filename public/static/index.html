@@ -985,27 +985,60 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script>
 (function(){
   var loaded = false;
+  var delayedTimer = 0;
+
   function injectAds(){
     if (loaded) return;
     loaded = true;
+    clearTimeout(delayedTimer);
+    delayedTimer = 0;
     var s = document.createElement('script');
     s.async = true;
     s.crossOrigin = 'anonymous';
     s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
     s.setAttribute('data-cd-adsense','1');
     document.head.appendChild(s);
-    window.removeEventListener('pointerdown', injectAds, true);
-    window.removeEventListener('touchstart', injectAds, true);
-    window.removeEventListener('keydown', injectAds, true);
-    window.removeEventListener('scroll', injectAds, true);
+    detachIntentListeners();
   }
-  window.addEventListener('pointerdown', injectAds, true);
-  window.addEventListener('touchstart', injectAds, true);
-  window.addEventListener('keydown', injectAds, true);
-  window.addEventListener('scroll', injectAds, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') injectAds();
-  }, { once: true });
+
+  function detachIntentListeners() {
+    window.removeEventListener('pointerdown', onIntent, true);
+    window.removeEventListener('touchstart', onIntent, true);
+    window.removeEventListener('keydown', onIntent, true);
+    window.removeEventListener('scroll', onIntent, true);
+  }
+
+  function scheduleInject(delayMs){
+    if (loaded || delayedTimer) return;
+    delayedTimer = window.setTimeout(function(){
+      delayedTimer = 0;
+      if (loaded) return;
+      var idle = window.requestIdleCallback;
+      if (typeof idle === 'function') {
+        idle(injectAds, { timeout: 1200 });
+      } else {
+        injectAds();
+      }
+    }, Math.max(0, Number(delayMs) || 0));
+  }
+
+  function onIntent(){
+    if (loaded) return;
+    scheduleInject(0);
+  }
+
+  window.addEventListener('pointerdown', onIntent, true);
+  window.addEventListener('touchstart', onIntent, true);
+  window.addEventListener('keydown', onIntent, true);
+  window.addEventListener('scroll', onIntent, true);
+
+  if (document.visibilityState === 'visible') {
+    scheduleInject(6500);
+  } else {
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState === 'visible') scheduleInject(1200);
+    }, { once: true });
+  }
 })();
 </script>
 <!-- PERF: reduced-motion detect -->
@@ -1477,16 +1510,20 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <script>
         (function () {
-          function __cdRenderAuthSummary(name, points, isAdmin, subscriptionLabel) {
+          function __cdRenderAuthSummary(name, email, points, isAdmin, subscriptionLabel, imageUrl) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
             var _esc = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
             var safeName = _esc(name || '사용자');
+            var safeEmail = _esc(email || '');
             var safeSubscription = subscriptionLabel ? _esc(subscriptionLabel) : '';
             var taglineText = safeSubscription
               ? (safeSubscription + ' · 오늘도 운명의 별자리를 탐험해 보세요')
               : '오늘도 운명의 별자리를 탐험해 보세요';
             var initial = String(name || '✦').trim().charAt(0) || '✦';
+            var avatarHtml = String(imageUrl || '').trim()
+              ? '<img src="' + _esc(String(imageUrl || '').trim()) + '" alt="' + safeName + ' 프로필" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+              : '<span class="cd-user-card__initial">' + initial + '</span>';
             var adminBadgeHtml = isAdmin
               ? '<span class="admin-badge" title="관리자 모드 활성화 — 코인 제한 없음">'
                 + '<i class="admin-badge__crown" aria-hidden="true">👑</i>'
@@ -1504,12 +1541,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '<span class="cd-user-star" style="width:2.5px;height:2.5px;top:48%;left:3%;--dur:1.9s;--delay:.6s"></span>' +
               '<span class="cd-user-star" style="width:2px;height:2px;top:28%;left:42%;--dur:3.1s;--delay:1s"></span>' +
               '<div class="cd-user-card__avatar" aria-hidden="true">' +
-              '<span class="cd-user-card__initial">' + initial + '</span>' +
+              avatarHtml +
               '<div class="cd-user-card__avatar-ring"></div>' +
               '</div>' +
               '<div class="cd-user-card__info">' +
               '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
               '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
+              (safeEmail ? '<span class="cd-user-card__tagline">' + safeEmail + '</span>' : '') +
               '<span class="cd-user-card__tagline">' + taglineText + '</span>' +
               '</div>' +
               '<div class="cd-user-card__actions">' +
@@ -1524,17 +1562,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
               btn.addEventListener('click', function () {
-                ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
-                  try { localStorage.removeItem(k); } catch (_) {}
-                });
-                document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
-                document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
-                // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
-                try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
-                try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
-                try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
-                try { window.__cdAdminBypass = false; } catch (_) {}
-                location.reload();
+                fetch('/api/auth/logout', {
+                  method: 'POST',
+                  credentials: 'include',
+                  cache: 'no-store'
+                })
+                  .catch(function () {})
+                  .finally(function () {
+                    ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+                      try { localStorage.removeItem(k); } catch (_) {}
+                    });
+                    document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+                    document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+                    // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
+                    try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
+                    try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
+                    try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
+                    try { window.__cdAdminBypass = false; } catch (_) {}
+                    location.reload();
+                  });
               });
             }
           }
@@ -1562,15 +1608,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             }
           }
 
+          function __cdRenderAuthLoggedOut() {
+            var el = document.getElementById('authQuickLinks');
+            if (!el) return;
+            el.innerHTML =
+              '<a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>' +
+              '<a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>';
+            console.log('[auth] render logged out');
+          }
+
           function __cdAuthState() {
             try {
+              console.log('[auth] refresh start');
               var t = localStorage.getItem('fortune_auth_token');
               var el = document.getElementById('authQuickLinks');
               if (!el) return;
               // flower_admin_token 포맷 검증 (서명 형식: payloadB64.hex64)
               var _adminTok = (function(){ try { return sessionStorage.getItem('flower_admin_token'); } catch(_){return null;} })();
               var _adminTokValid = !!(_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok));
-              // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 관리자 표시 + 나가기 버튼
+              // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 우선 관리자 카드 표시
               if (!t) {
                 if (_adminTokValid) {
                   el.innerHTML =
@@ -1609,22 +1665,36 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     });
                   }
                 }
-                return;
               }
               var us = localStorage.getItem('fortune_auth_user');
-              var n = '사용자', p = 0, r = 'user', u = {};
-              try { u = JSON.parse(us || '{}') || {}; n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) { u = {}; }
+              var n = '사용자', e = '', img = '', p = 0, r = 'user', u = {}, hasCachedUser = false;
+              try {
+                u = JSON.parse(us || '{}') || {};
+                n = u.name || n;
+                e = String(u.email || e || '');
+                img = String(u.image || u.profileImage || u.avatar || img || '');
+                p = Number(u.points || 0);
+                r = u.role || 'user';
+                hasCachedUser = !!(u && (u.id || u.userId || u._id || u.uid || u.email || u.name));
+              } catch (_) {
+                u = {};
+                hasCachedUser = false;
+              }
               var isAdm = r === 'admin' || _adminTokValid;
               var subLabel = __cdMakeSubscriptionLabel((u || {}).profileSubscription);
+              var authHeaders = { Accept: 'application/json' };
+              if (t) authHeaders.Authorization = 'Bearer ' + t;
               var __cdRenderWithSub = function (pointsValue, forcedLabel) {
                 var activeLabel = typeof forcedLabel === 'string' ? forcedLabel : subLabel;
-                __cdRenderAuthSummary(n, pointsValue, isAdm, activeLabel);
+                __cdRenderAuthSummary(n, e, pointsValue, isAdm, activeLabel, img);
               };
 
               var __cdSyncSubscription = function (pointsValue) {
                 fetch('/api/fortune/pig-coin/profile-subscription/status', {
                   method: 'GET',
-                  headers: { Authorization: 'Bearer ' + t },
+                  headers: authHeaders,
+                  credentials: 'include',
+                  cache: 'no-store',
                 })
                   .then(function (response) {
                     if (!response.ok) throw new Error('subscription_sync_failed');
@@ -1649,37 +1719,63 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   .catch(function () {});
               };
 
-              __cdRenderWithSub(p);
-              __cdSyncSubscription(p);
+              if (hasCachedUser) {
+                __cdRenderWithSub(p);
+                __cdSyncSubscription(p);
+              }
 
               fetch('/api/auth/me', {
                 method: 'GET',
-                headers: { Authorization: 'Bearer ' + t },
+                headers: authHeaders,
+                credentials: 'include',
+                cache: 'no-store',
               })
                 .then(function (response) {
+                  console.log('[auth] /api/auth/me status', response.status);
                   if (!response.ok) throw new Error('auth_sync_failed');
                   return response.json();
                 })
                 .then(function (payload) {
-                  var nextPoints = Number((((payload || {}).user || {}).points) || 0);
+                  var meUser = ((payload || {}).user || (payload || {}).profile || payload || {});
+                  var meId = String(meUser.id || meUser.userId || meUser._id || meUser.uid || '').trim();
+                  var meEmail = String(meUser.email || '').trim();
+                  var loggedIn = !!(meId || meEmail);
+                  console.log('[auth] logged in', loggedIn);
+                  if (!loggedIn) {
+                    __cdRenderAuthLoggedOut();
+                    return;
+                  }
+                  n = String(meUser.name || n || '사용자');
+                  e = String(meUser.email || e || '');
+                  img = String(meUser.image || meUser.profileImage || meUser.avatar || img || '');
+                  r = String(meUser.role || r || 'user');
+                  isAdm = r === 'admin' || _adminTokValid;
+                  var nextPoints = Number(meUser.points || 0);
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
                   try {
                     var raw = localStorage.getItem('fortune_auth_user');
                     var user = raw ? JSON.parse(raw) : {};
                     if (typeof user !== 'object' || user === null) user = {};
-                    user.name = user.name || n;
+                    user.id = user.id || meUser.id || meUser.userId || meUser._id || meUser.uid || '';
+                    user.name = n;
+                    user.email = String(meUser.email || user.email || '');
+                    user.image = String(meUser.image || meUser.profileImage || meUser.avatar || user.image || '');
+                    user.role = r;
                     user.points = nextPoints;
                     __cdWriteAuthUserCache(user);
                   } catch (_) {}
 
+                  console.log('[auth] render logged in');
                   __cdRenderWithSub(nextPoints);
                   __cdSyncSubscription(nextPoints);
                   if (typeof window.__cdSetGoldenBalance === 'function') {
                     window.__cdSetGoldenBalance(nextPoints);
                   }
                 })
-                .catch(function () {});
+                .catch(function () {
+                  __cdRenderAuthLoggedOut();
+                });
             } catch (_) {}
           }
           window.__cdUpdateAuthState = __cdAuthState;

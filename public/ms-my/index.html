@@ -8,10 +8,24 @@
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
 
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+<!-- ═══ Core Web Vitals & 성능 최적화 ═══ -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+
+<!-- ═══ 성능 및 캐싱 최적화 ═══ -->
+<meta http-equiv="Cache-Control" content="public, max-age=3600">
+<meta http-equiv="Expires" content="public">
+<meta name="apple-mobile-web-app-capable" content="true">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="코드 데스티니">
+
+<!-- ═══ DNS Prefetch 및 리소스 힌트 ═══ -->
+<link rel="dns-prefetch" href="https://cdn.example.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
 <title>무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력</title>
 
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
@@ -361,23 +375,22 @@
   function loadFonts() {
     if (loaded) return;
     loaded = true;
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
-    window.removeEventListener('pointerdown', loadFonts, true);
-    window.removeEventListener('touchstart', loadFonts, true);
-    window.removeEventListener('keydown', loadFonts, true);
-    window.removeEventListener('scroll', loadFonts, true);
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=optional');
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=optional');
+    window.removeEventListener('pointerdown', onIntent, true);
+    window.removeEventListener('touchstart', onIntent, true);
+    window.removeEventListener('keydown', onIntent, true);
   }
-  window.addEventListener('pointerdown', loadFonts, true);
-  window.addEventListener('touchstart', loadFonts, true);
-  window.addEventListener('keydown', loadFonts, true);
-  window.addEventListener('scroll', loadFonts, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') loadFonts();
-  }, { once: true });
+  function onIntent(ev){
+    if (ev && ev.isTrusted === false) return;
+    loadFonts();
+  }
+  window.addEventListener('pointerdown', onIntent, true);
+  window.addEventListener('touchstart', onIntent, true);
+  window.addEventListener('keydown', onIntent, true);
 })();
 </script>
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=optional" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
   <!-- ════════════════════════════════════════════════════════
@@ -605,6 +618,11 @@ body:not(.neo-mode) .logo-area{overflow:clip}
 body:not(.neo-mode) .logo-area::after{content:'';position:absolute;left:0;right:0;top:-100%;width:100%;height:300%;pointer-events:none;z-index:0;background-image:radial-gradient(1.5px 1.5px at 8% 2%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 22% 8%,rgba(255,230,250,0.85),transparent),radial-gradient(1.5px 1.5px at 38% 4%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 55% 12%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 72% 3%,rgba(255,220,245,0.9),transparent),radial-gradient(1px 1px at 88% 10%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 15% 18%,rgba(255,240,250,0.7),transparent),radial-gradient(1.5px 1.5px at 45% 22%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 68% 16%,rgba(255,228,248,0.75),transparent),radial-gradient(1.5px 1.5px at 92% 24%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 5% 28%,rgba(255,235,252,0.7),transparent),radial-gradient(1.5px 1.5px at 28% 32%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 58% 26%,rgba(255,230,250,0.8),transparent),radial-gradient(1px 1px at 82% 30%,rgba(255,245,255,0.75),transparent),radial-gradient(1.5px 1.5px at 12% 38%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 48% 42%,rgba(255,220,245,0.85),transparent),radial-gradient(1px 1px at 75% 36%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 35% 48%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 65% 52%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 18% 58%,rgba(255,230,250,0.7),transparent),radial-gradient(1.5px 1.5px at 52% 62%,rgba(255,245,255,0.8),transparent),radial-gradient(1px 1px at 85% 56%,rgba(255,255,255,0.75),transparent);background-size:100% 33.333%;background-repeat:repeat-y;will-change:transform;animation:starfall 12s linear infinite;-webkit-animation:starfall 12s linear infinite}
 body:not(.neo-mode) .logo-area .logo-cosmos,body:not(.neo-mode) .logo-area .normal-logo{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){body:not(.neo-mode) .logo-area::after{animation:none;opacity:.6}}
+@media(min-width:1025px){
+  body:not(.neo-mode) .logo-area::after{animation:none;-webkit-animation:none;opacity:.42}
+  .neo-logo-icon,.honeypig-logo-icon{animation:none;-webkit-animation:none}
+  .pig-svg-wrap::after{animation:none;-webkit-animation:none;opacity:.2}
+}
   </style>
   <!-- ─── PERF: 라이브러리 로딩 스켈레톤 + reduced-motion (TASK 2·5) ─── -->
   <style id="cd-perf">
@@ -647,7 +665,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/core-ui.css?v=20260504-tapguard1">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
-  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix">
+  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix" media="(max-width: 1024px)">
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
@@ -967,27 +985,60 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script>
 (function(){
   var loaded = false;
+  var delayedTimer = 0;
+
   function injectAds(){
     if (loaded) return;
     loaded = true;
+    clearTimeout(delayedTimer);
+    delayedTimer = 0;
     var s = document.createElement('script');
     s.async = true;
     s.crossOrigin = 'anonymous';
     s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
     s.setAttribute('data-cd-adsense','1');
     document.head.appendChild(s);
-    window.removeEventListener('pointerdown', injectAds, true);
-    window.removeEventListener('touchstart', injectAds, true);
-    window.removeEventListener('keydown', injectAds, true);
-    window.removeEventListener('scroll', injectAds, true);
+    detachIntentListeners();
   }
-  window.addEventListener('pointerdown', injectAds, true);
-  window.addEventListener('touchstart', injectAds, true);
-  window.addEventListener('keydown', injectAds, true);
-  window.addEventListener('scroll', injectAds, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') injectAds();
-  }, { once: true });
+
+  function detachIntentListeners() {
+    window.removeEventListener('pointerdown', onIntent, true);
+    window.removeEventListener('touchstart', onIntent, true);
+    window.removeEventListener('keydown', onIntent, true);
+    window.removeEventListener('scroll', onIntent, true);
+  }
+
+  function scheduleInject(delayMs){
+    if (loaded || delayedTimer) return;
+    delayedTimer = window.setTimeout(function(){
+      delayedTimer = 0;
+      if (loaded) return;
+      var idle = window.requestIdleCallback;
+      if (typeof idle === 'function') {
+        idle(injectAds, { timeout: 1200 });
+      } else {
+        injectAds();
+      }
+    }, Math.max(0, Number(delayMs) || 0));
+  }
+
+  function onIntent(){
+    if (loaded) return;
+    scheduleInject(0);
+  }
+
+  window.addEventListener('pointerdown', onIntent, true);
+  window.addEventListener('touchstart', onIntent, true);
+  window.addEventListener('keydown', onIntent, true);
+  window.addEventListener('scroll', onIntent, true);
+
+  if (document.visibilityState === 'visible') {
+    scheduleInject(6500);
+  } else {
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState === 'visible') scheduleInject(1200);
+    }, { once: true });
+  }
 })();
 </script>
 <!-- PERF: reduced-motion detect -->
@@ -1299,7 +1350,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- ══════════════════════════════════════
      초기 로딩 스플래시 오버레이
 ══════════════════════════════════════ -->
-<div id="codeSplash" class="code-splash">
+<div id="codeSplash" class="code-splash" style="display:none" aria-hidden="true">
   <!-- 별빛 캔버스 (트윙클 — 데스크탑 전용) -->
   <canvas id="splashCanvas" class="code-splash-canvas"></canvas>
 
@@ -1335,8 +1386,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   </div>
 </div>
-
-<script src="/js/splash.js" defer></script>
 
 <!-- 섹션 네비게이션 바 -->
 <div id="fsnNavBar" class="fsn-navbar fsn-pig" role="navigation" aria-label="현재 섹션">
@@ -1461,16 +1510,20 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <script>
         (function () {
-          function __cdRenderAuthSummary(name, points, isAdmin, subscriptionLabel) {
+          function __cdRenderAuthSummary(name, email, points, isAdmin, subscriptionLabel, imageUrl) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
             var _esc = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
             var safeName = _esc(name || '사용자');
+            var safeEmail = _esc(email || '');
             var safeSubscription = subscriptionLabel ? _esc(subscriptionLabel) : '';
             var taglineText = safeSubscription
               ? (safeSubscription + ' · 오늘도 운명의 별자리를 탐험해 보세요')
               : '오늘도 운명의 별자리를 탐험해 보세요';
             var initial = String(name || '✦').trim().charAt(0) || '✦';
+            var avatarHtml = String(imageUrl || '').trim()
+              ? '<img src="' + _esc(String(imageUrl || '').trim()) + '" alt="' + safeName + ' 프로필" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+              : '<span class="cd-user-card__initial">' + initial + '</span>';
             var adminBadgeHtml = isAdmin
               ? '<span class="admin-badge" title="관리자 모드 활성화 — 코인 제한 없음">'
                 + '<i class="admin-badge__crown" aria-hidden="true">👑</i>'
@@ -1488,12 +1541,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '<span class="cd-user-star" style="width:2.5px;height:2.5px;top:48%;left:3%;--dur:1.9s;--delay:.6s"></span>' +
               '<span class="cd-user-star" style="width:2px;height:2px;top:28%;left:42%;--dur:3.1s;--delay:1s"></span>' +
               '<div class="cd-user-card__avatar" aria-hidden="true">' +
-              '<span class="cd-user-card__initial">' + initial + '</span>' +
+              avatarHtml +
               '<div class="cd-user-card__avatar-ring"></div>' +
               '</div>' +
               '<div class="cd-user-card__info">' +
               '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
               '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
+              (safeEmail ? '<span class="cd-user-card__tagline">' + safeEmail + '</span>' : '') +
               '<span class="cd-user-card__tagline">' + taglineText + '</span>' +
               '</div>' +
               '<div class="cd-user-card__actions">' +
@@ -1508,17 +1562,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
               btn.addEventListener('click', function () {
-                ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
-                  try { localStorage.removeItem(k); } catch (_) {}
-                });
-                document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
-                document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
-                // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
-                try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
-                try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
-                try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
-                try { window.__cdAdminBypass = false; } catch (_) {}
-                location.reload();
+                fetch('/api/auth/logout', {
+                  method: 'POST',
+                  credentials: 'include',
+                  cache: 'no-store'
+                })
+                  .catch(function () {})
+                  .finally(function () {
+                    ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+                      try { localStorage.removeItem(k); } catch (_) {}
+                    });
+                    document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+                    document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+                    // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
+                    try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
+                    try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
+                    try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
+                    try { window.__cdAdminBypass = false; } catch (_) {}
+                    location.reload();
+                  });
               });
             }
           }
@@ -1546,15 +1608,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             }
           }
 
+          function __cdRenderAuthLoggedOut() {
+            var el = document.getElementById('authQuickLinks');
+            if (!el) return;
+            el.innerHTML =
+              '<a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>' +
+              '<a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>';
+            console.log('[auth] render logged out');
+          }
+
           function __cdAuthState() {
             try {
+              console.log('[auth] refresh start');
               var t = localStorage.getItem('fortune_auth_token');
               var el = document.getElementById('authQuickLinks');
               if (!el) return;
               // flower_admin_token 포맷 검증 (서명 형식: payloadB64.hex64)
               var _adminTok = (function(){ try { return sessionStorage.getItem('flower_admin_token'); } catch(_){return null;} })();
               var _adminTokValid = !!(_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok));
-              // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 관리자 표시 + 나가기 버튼
+              // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 우선 관리자 카드 표시
               if (!t) {
                 if (_adminTokValid) {
                   el.innerHTML =
@@ -1593,22 +1665,36 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     });
                   }
                 }
-                return;
               }
               var us = localStorage.getItem('fortune_auth_user');
-              var n = '사용자', p = 0, r = 'user', u = {};
-              try { u = JSON.parse(us || '{}') || {}; n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) { u = {}; }
+              var n = '사용자', e = '', img = '', p = 0, r = 'user', u = {}, hasCachedUser = false;
+              try {
+                u = JSON.parse(us || '{}') || {};
+                n = u.name || n;
+                e = String(u.email || e || '');
+                img = String(u.image || u.profileImage || u.avatar || img || '');
+                p = Number(u.points || 0);
+                r = u.role || 'user';
+                hasCachedUser = !!(u && (u.id || u.userId || u._id || u.uid || u.email || u.name));
+              } catch (_) {
+                u = {};
+                hasCachedUser = false;
+              }
               var isAdm = r === 'admin' || _adminTokValid;
               var subLabel = __cdMakeSubscriptionLabel((u || {}).profileSubscription);
+              var authHeaders = { Accept: 'application/json' };
+              if (t) authHeaders.Authorization = 'Bearer ' + t;
               var __cdRenderWithSub = function (pointsValue, forcedLabel) {
                 var activeLabel = typeof forcedLabel === 'string' ? forcedLabel : subLabel;
-                __cdRenderAuthSummary(n, pointsValue, isAdm, activeLabel);
+                __cdRenderAuthSummary(n, e, pointsValue, isAdm, activeLabel, img);
               };
 
               var __cdSyncSubscription = function (pointsValue) {
                 fetch('/api/fortune/pig-coin/profile-subscription/status', {
                   method: 'GET',
-                  headers: { Authorization: 'Bearer ' + t },
+                  headers: authHeaders,
+                  credentials: 'include',
+                  cache: 'no-store',
                 })
                   .then(function (response) {
                     if (!response.ok) throw new Error('subscription_sync_failed');
@@ -1633,37 +1719,63 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   .catch(function () {});
               };
 
-              __cdRenderWithSub(p);
-              __cdSyncSubscription(p);
+              if (hasCachedUser) {
+                __cdRenderWithSub(p);
+                __cdSyncSubscription(p);
+              }
 
               fetch('/api/auth/me', {
                 method: 'GET',
-                headers: { Authorization: 'Bearer ' + t },
+                headers: authHeaders,
+                credentials: 'include',
+                cache: 'no-store',
               })
                 .then(function (response) {
+                  console.log('[auth] /api/auth/me status', response.status);
                   if (!response.ok) throw new Error('auth_sync_failed');
                   return response.json();
                 })
                 .then(function (payload) {
-                  var nextPoints = Number((((payload || {}).user || {}).points) || 0);
+                  var meUser = ((payload || {}).user || (payload || {}).profile || payload || {});
+                  var meId = String(meUser.id || meUser.userId || meUser._id || meUser.uid || '').trim();
+                  var meEmail = String(meUser.email || '').trim();
+                  var loggedIn = !!(meId || meEmail);
+                  console.log('[auth] logged in', loggedIn);
+                  if (!loggedIn) {
+                    __cdRenderAuthLoggedOut();
+                    return;
+                  }
+                  n = String(meUser.name || n || '사용자');
+                  e = String(meUser.email || e || '');
+                  img = String(meUser.image || meUser.profileImage || meUser.avatar || img || '');
+                  r = String(meUser.role || r || 'user');
+                  isAdm = r === 'admin' || _adminTokValid;
+                  var nextPoints = Number(meUser.points || 0);
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
                   try {
                     var raw = localStorage.getItem('fortune_auth_user');
                     var user = raw ? JSON.parse(raw) : {};
                     if (typeof user !== 'object' || user === null) user = {};
-                    user.name = user.name || n;
+                    user.id = user.id || meUser.id || meUser.userId || meUser._id || meUser.uid || '';
+                    user.name = n;
+                    user.email = String(meUser.email || user.email || '');
+                    user.image = String(meUser.image || meUser.profileImage || meUser.avatar || user.image || '');
+                    user.role = r;
                     user.points = nextPoints;
                     __cdWriteAuthUserCache(user);
                   } catch (_) {}
 
+                  console.log('[auth] render logged in');
                   __cdRenderWithSub(nextPoints);
                   __cdSyncSubscription(nextPoints);
                   if (typeof window.__cdSetGoldenBalance === 'function') {
                     window.__cdSetGoldenBalance(nextPoints);
                   }
                 })
-                .catch(function () {});
+                .catch(function () {
+                  __cdRenderAuthLoggedOut();
+                });
             } catch (_) {}
           }
           window.__cdUpdateAuthState = __cdAuthState;
@@ -1889,6 +2001,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     <span class="tarot-tile__desc">손바닥 위 물고기의 운명 리딩</span>
                   </div>
                 </button>
+
+                <!-- 손금 지도 -->
+                <a class="tarot-tile tarot-tile--palm-destiny" href="/palm-reading" data-fallback-href="/palm-reading" aria-label="손금 지도 손바닥 보기">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/손금.webp" data-img-alt="손금 지도 - 손바닥 운명 패턴 분석">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🖐</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">손바닥 보기</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">AI 손금 · 동양 수상학 · 운명 지도</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🖐 손금 지도</span>
+                    <span class="tarot-tile__desc">손바닥에 새겨진 사랑, 재물, 직업의 흐름을 읽어보세요.</span>
+                  </div>
+                </a>
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
 
@@ -2229,7 +2354,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </button>
 
                 <!-- IFA 오라클 -->
-                 <a class="tarot-tile tarot-tile--ifa-fc" href="/ifa_oracle_v2_full_local.html"
+                 <a class="tarot-tile tarot-tile--ifa-fc" href="/ifa-oracle.html"
                    data-action="openIfaOracle"
                    aria-label="이파 오라클 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ifafortune.webp" data-img-alt="IFÀ 오라클 - 요루바 256 오두 신탁">
