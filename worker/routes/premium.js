@@ -1,6 +1,7 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { requireAuth } from "../lib/auth.js";
+import { requirePremiumReportAccess } from "../lib/access-control.js";
 import {
   getSwissWesternChart as getLocalSwissWesternChart,
   getSwissVedicPlanets as getLocalSwissVedicPlanets,
@@ -8849,6 +8850,17 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   }
 
   const requestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
+  const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, requestBody);
+  if (!access.ok) {
+    return json({
+      ok: false,
+      code: access.code || "PAYMENT_REQUIRED",
+      message: access.message || "프리미엄 결제가 필요합니다.",
+      reportType,
+      required: access.required || null,
+    }, { status: Number(access.status || 402) });
+  }
+
   const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, requestBody);
   if (!prepared.ok) {
     return json(prepared.data || { ok: false, code: "PREMIUM_REPORT_PREPARE_FAILED", message: "prepare 실패" }, { status: Number(prepared.status || 422) });
@@ -9189,8 +9201,31 @@ export async function handlePremiumReportRoutes(request, env) {
 export async function handlePremiumRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
-    await requireAuth(request, env);
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/premium");
+
+    const legacyReportType = (() => {
+      if (path === "/sukuyo-life") return "sookyoPremium";
+      if (path === "/astro-western" || path === "/astro-life") return "westernAstrologyPremium";
+      if (path === "/vedic-life") return "vedicPremium";
+      if (path === "/ziwei-life") return "ziweiPremium";
+      return "";
+    })();
+
+    if (legacyReportType) {
+      const rawBody = await readJson(request.clone());
+      const access = await requirePremiumReportAccess(env, authInfo.userId, legacyReportType, rawBody);
+      if (!access.ok) {
+        return json({
+          ok: false,
+          code: access.code || "PAYMENT_REQUIRED",
+          message: access.message || "프리미엄 결제가 필요합니다.",
+          reportType: legacyReportType,
+          required: access.required || null,
+        }, { status: Number(access.status || 402) });
+      }
+    }
+
     if (path === "/sukuyo-life") return await handleSukuyoLife(request, env);
     if (path === "/astro-western") return await handleAstroWestern(request, env);
     if (path === "/astro-life") return await handleAstroLife(request, env);

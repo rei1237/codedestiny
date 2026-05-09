@@ -5,9 +5,29 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
-const FORCE_PAID_TEST_ACCOUNT_EMAILS = new Set([
-  "test1234@example.com",
-]);
+
+const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
+  "애니멀 토템 리딩": 30,
+  "인생의 책 생성 (13챕터)": 490,
+  "시빌라 도미네이터 리포트": 100,
+  "점성술 셜럭 시나스트리 궁합": 50,
+  "점성술 직접 입력 시나스트리 궁합": 50,
+  "자미두수 궁합 분석": 50,
+  "사주 궁합 분석": 50,
+  "숙요점 유명인 궁합": 50,
+  "숙요점 궁합 분석": 50,
+});
+
+const FEATURE_KEY_PRICE_TABLE = Object.freeze({
+  "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
+  "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
+  "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
+  openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
+  openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
+  "premium-love-secret-solo": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
+  "premium-love-secret-couple": { cost: 500, reason: "사주 프리미엄 궁합 리포트 생성" },
+  "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
+});
 
 const PIG_COIN_PACKAGES = {
   sample: { name: "Sample Pack", coins: 30, bonus: 0 },
@@ -36,6 +56,126 @@ const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
   "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
 });
+
+const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
+  Object.values(PIG_COIN_UNLOCK_PRODUCTS).reduce((acc, spec) => {
+    const key = String(spec?.featureKey || "").trim();
+    if (key && !acc[key]) acc[key] = spec;
+    return acc;
+  }, Object.create(null)),
+);
+
+function isTruthyFlag(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function isProductionRuntime(env) {
+  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
+  if (nodeEnv === "production") return true;
+
+  const appEnv = String(env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "").trim().toLowerCase();
+  return appEnv === "prod" || appEnv === "production";
+}
+
+function isAdminPigCoinBypassEnabled(env) {
+  return !isProductionRuntime(env) && isTruthyFlag(env?.ALLOW_ADMIN_PIG_COIN_BYPASS);
+}
+
+function isDynamicCostFallbackEnabled(env) {
+  return !isProductionRuntime(env) && isTruthyFlag(env?.ALLOW_DYNAMIC_PIG_COIN_COST_FALLBACK);
+}
+
+function getForcePaidTestAccountEmails(env) {
+  if (isProductionRuntime(env)) return new Set();
+
+  const raw = String(env?.FORCE_PAID_TEST_ACCOUNT_EMAILS || "");
+  const values = raw
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  return new Set(values);
+}
+
+function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey, reason }) {
+  if (productSpec) {
+    return {
+      ok: true,
+      cost: Number(productSpec.cost),
+      reason: String(productSpec.reason || reason || "Paid feature unlock"),
+      pricingSource: "product-id",
+    };
+  }
+
+  const key = String(featureKey || "").trim();
+  const reasonText = String(reason || "").trim();
+  const requestCost = Number(requestedCost);
+
+  if (key === "coin-gate-per-use") {
+    const serverCost = Number(COIN_GATE_PER_USE_REASON_COSTS[reasonText]);
+    if (Number.isFinite(serverCost) && serverCost > 0) {
+      return {
+        ok: true,
+        cost: serverCost,
+        reason: reasonText,
+        pricingSource: "coin-gate-reason",
+      };
+    }
+
+    if (isDynamicCostFallbackEnabled(env) && Number.isFinite(requestCost) && requestCost > 0) {
+      return {
+        ok: true,
+        cost: requestCost,
+        reason: reasonText || "Coin gate per-use",
+        pricingSource: "dynamic-fallback",
+      };
+    }
+
+    return {
+      ok: false,
+      status: 403,
+      code: "SERVER_PRICE_REQUIRED",
+      message: "coin-gate-per-use 기능의 서버 가격표가 누락되었습니다.",
+    };
+  }
+
+  const featurePrice = FEATURE_KEY_PRICE_TABLE[key] || null;
+  if (featurePrice) {
+    return {
+      ok: true,
+      cost: Number(featurePrice.cost),
+      reason: String(featurePrice.reason || reasonText || "Paid feature unlock"),
+      pricingSource: "feature-key",
+    };
+  }
+
+  const unlockSpec = UNLOCK_PRODUCT_BY_FEATURE_KEY[key] || null;
+  if (unlockSpec) {
+    return {
+      ok: true,
+      cost: Number(unlockSpec.cost),
+      reason: String(unlockSpec.reason || reasonText || "Paid feature unlock"),
+      pricingSource: "unlock-feature",
+    };
+  }
+
+  if (isDynamicCostFallbackEnabled(env) && Number.isFinite(requestCost) && requestCost > 0) {
+    return {
+      ok: true,
+      cost: requestCost,
+      reason: reasonText || "Paid feature unlock",
+      pricingSource: "dynamic-fallback",
+    };
+  }
+
+  return {
+    ok: false,
+    status: 403,
+    code: "SERVER_PRICE_REQUIRED",
+    message: "서버 가격표가 정의되지 않은 featureKey입니다.",
+  };
+}
 
 function resolveUnlockProductSpec(productId) {
   const id = String(productId || "").trim().toLowerCase();
@@ -259,7 +399,9 @@ async function resolvePigCoinConsumeAuth(request, env) {
   }
 
   const adminToken = extractAdminTokenFromRequest(request);
-  const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
+  const adminMode = (adminToken && isAdminPigCoinBypassEnabled(env))
+    ? await verifyFlowerAdminToken(adminToken, env)
+    : false;
 
   if (!auth && !adminMode) {
     throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
@@ -490,6 +632,7 @@ async function handleChargeSimulate(request, env, auth) {
 }
 
 async function handlePigCoinConsume(request, auth, options = {}) {
+  const env = options?.env || {};
   const adminMode = Boolean(options?.adminMode);
   const body = await readJson(request);
   const productId = String(body?.productId || options?.productId || "").trim().toLowerCase();
@@ -502,24 +645,43 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 400 });
   }
 
+  const featureKey = String(productSpec?.featureKey || body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const requestReason = String(productSpec?.reason || body?.reason || "Paid feature unlock").trim().slice(0, 120);
   const requestedCost = Number(productSpec ? productSpec.cost : body?.cost);
-  const cost = Number.isFinite(requestedCost) && requestedCost > 0
-    ? Math.floor(requestedCost)
+  const pricing = resolveServerCoinPricing({
+    env,
+    productSpec,
+    requestedCost,
+    featureKey,
+    reason: requestReason,
+  });
+
+  if (!pricing.ok) {
+    return json({
+      message: pricing.message || "서버 가격 검증에 실패했습니다.",
+      code: pricing.code || "SERVER_PRICE_REQUIRED",
+      productId: productId || null,
+      featureKey,
+    }, { status: Number(pricing.status || 403) });
+  }
+
+  const cost = Number.isFinite(Number(pricing.cost)) && Number(pricing.cost) > 0
+    ? Math.floor(Number(pricing.cost))
     : PIG_COIN_DEFAULT_UNLOCK_COST;
 
   if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
     return json({ message: "Invalid coin deduction amount.", code: "INVALID_REQUEST" }, { status: 400 });
   }
 
-  const reason = String(productSpec?.reason || body?.reason || "Paid feature unlock").trim().slice(0, 120);
-  const featureKey = String(productSpec?.featureKey || body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
   const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
   const requestId = String(body?.requestId || "").trim().slice(0, 120);
   const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
   const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
   const forceDeductApplied = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
   const authEmail = String(auth?.email || "").trim().toLowerCase();
-  const forcePaidMode = Boolean(authEmail && FORCE_PAID_TEST_ACCOUNT_EMAILS.has(authEmail));
+  const forcePaidEmails = getForcePaidTestAccountEmails(env);
+  const forcePaidMode = Boolean(authEmail && forcePaidEmails.has(authEmail));
 
   if (adminMode && !forcePaidMode) {
     const adminTestTier = normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier"));
@@ -726,6 +888,7 @@ async function handlePigCoinUnlock(request, auth, options = {}) {
   return handlePigCoinConsume(delegatedRequest, auth, {
     ...options,
     productId,
+    env: options?.env,
   });
 }
 
@@ -1258,12 +1421,12 @@ export async function handleFortuneRoutes(request, env) {
 
     if (method === "POST" && path === "/pig-coin/unlock") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
-      return await handlePigCoinUnlock(request, authCtx.auth, { adminMode: authCtx.adminMode });
+      return await handlePigCoinUnlock(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
     }
 
     if (method === "POST" && path === "/pig-coin/consume") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
-      return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode });
+      return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
     }
 
     const auth = await requireAuth(request, env);
@@ -1288,3 +1451,10 @@ export async function handleFortuneRoutes(request, env) {
     return handleRouteError(error, { request, env, trace });
   }
 }
+
+export const __fortuneAccessTestUtils = {
+  resolveServerCoinPricing,
+  isAdminPigCoinBypassEnabled,
+  getForcePaidTestAccountEmails,
+  resolvePigCoinConsumeAuth,
+};

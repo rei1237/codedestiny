@@ -1349,6 +1349,21 @@ export async function POST(req) {
     }
 
     const body = await req.json().catch(() => ({}));
+    const directSessionEnabled = String(process.env.LIFEBOOK_DIRECT_SESSION_ENABLED || "")
+      .trim()
+      .toLowerCase() === "true";
+
+    if (!directSessionEnabled) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "FORBIDDEN",
+          message: "인생의 책 생성은 /api/premium-report/prepare 경유 요청만 허용됩니다.",
+        },
+        { status: 403 }
+      );
+    }
+
     const sessionId = Number(body?.sessionId || 0);
 
     if (sessionId < 1 || sessionId > 13) {
@@ -1366,13 +1381,6 @@ export async function POST(req) {
           code: "KASI_UNAVAILABLE",
         },
         { status: 503 }
-      );
-    }
-
-    if (body?.requireAccessCheck && body?.hasPremiumAccess === false) {
-      return NextResponse.json(
-        { ok: false, message: "프리미엄 결제 또는 포인트가 필요합니다.", code: "PAYMENT_REQUIRED" },
-        { status: 402 }
       );
     }
 
