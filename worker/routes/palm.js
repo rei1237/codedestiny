@@ -112,10 +112,10 @@ function buildCanonical(params) {
     canonical.imageQuality.isPalmDetected &&
     canonical.imageQuality.sharpness !== "blurry" &&
     canonical.imageQuality.brightness !== "dark" &&
-    canonical.imageQuality.palmCoverage >= 0.5;
+    canonical.imageQuality.palmCoverage >= 0.42;
 
   if (!canonical.imageQuality.isPalmDetected) missingFields.push("imageQuality.isPalmDetected");
-  if (canonical.imageQuality.palmCoverage < 0.5) missingFields.push("imageQuality.palmCoverage");
+  if (canonical.imageQuality.palmCoverage < 0.42) missingFields.push("imageQuality.palmCoverage");
 
   const hasLeftMajor =
     canonical.leftHandReading?.majorLines?.lifeLine?.detected ||

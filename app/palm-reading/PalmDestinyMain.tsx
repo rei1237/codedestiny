@@ -121,6 +121,15 @@ const PURPOSE_OPTIONS: Array<{ value: AnalysisPurpose; label: string }> = [
   { value: "relationship", label: "관계 패턴" },
 ];
 
+const PALM_COIN_PAYMENT_BY_PURPOSE: Record<AnalysisPurpose, { cost: number; featureKey: string; reason: string }> = {
+  general: { cost: 50, featureKey: "palm-reading-general", reason: "손금 전체운 분석" },
+  love: { cost: 30, featureKey: "palm-reading-love", reason: "손금 연애운 분석" },
+  wealth: { cost: 30, featureKey: "palm-reading-wealth", reason: "손금 재물운 분석" },
+  career: { cost: 30, featureKey: "palm-reading-career", reason: "손금 직업운 분석" },
+  personality: { cost: 30, featureKey: "palm-reading-personality", reason: "손금 성격 분석" },
+  relationship: { cost: 30, featureKey: "palm-reading-relationship", reason: "손금 관계 패턴 분석" },
+};
+
 const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
   { value: "right", label: "오른손" },
   { value: "left", label: "왼손" },
@@ -530,6 +539,61 @@ export default function PalmDestinyMain() {
     try {
       setIsSubmitting(true);
       setAnalysisResult(null);
+      const paymentSpec = PALM_COIN_PAYMENT_BY_PURPOSE[analysisPurpose as AnalysisPurpose] ?? PALM_COIN_PAYMENT_BY_PURPOSE.general;
+      setSubmitMessage(`결제를 확인 중입니다... (${paymentSpec.cost}코인)`);
+
+      const authToken = getClientAuthToken();
+      const consumeResponse = await fetch("/api/fortune/pig-coin/consume", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({
+          cost: paymentSpec.cost,
+          reason: paymentSpec.reason,
+          featureKey: paymentSpec.featureKey,
+          forceDeduct: true,
+          requestId: `palm-reading:${paymentSpec.featureKey}:${Date.now().toString()}-${Math.random().toString(36).slice(2, 10)}`,
+        }),
+      });
+
+      const consumeData = await consumeResponse.json().catch(() => ({}));
+      const consumeCode = String(consumeData?.code || consumeData?.error || "").toUpperCase();
+      if (
+        consumeResponse.status === 401 ||
+        consumeResponse.status === 403 ||
+        consumeCode === "LOGIN_REQUIRED" ||
+        consumeCode === "AUTH_REQUIRED" ||
+        consumeCode === "UNAUTHORIZED"
+      ) {
+        setSubmitMessage("로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요.");
+        if (typeof window !== "undefined") {
+          const next = encodeURIComponent(window.location.pathname + window.location.search);
+          window.setTimeout(() => {
+            window.location.href = `/login?next=${next}`;
+          }, 600);
+        }
+        return;
+      }
+
+      if (consumeResponse.status === 402) {
+        setSubmitMessage(`코인이 부족합니다. ${paymentSpec.cost}코인이 필요합니다.`);
+        return;
+      }
+
+      if (!consumeResponse.ok) {
+        const consumeErrorMessage =
+          typeof consumeData?.message === "string"
+            ? consumeData.message
+            : typeof consumeData?.error === "string"
+            ? consumeData.error
+            : "코인 차감에 실패했습니다.";
+        setSubmitMessage(consumeErrorMessage);
+        return;
+      }
+
       setSubmitMessage("손바닥의 금빛 선을 읽고 있습니다...");
 
       const leftPalmImage = leftHand.file ? await fileToDataUrl(leftHand.file) : null;
@@ -653,8 +717,11 @@ export default function PalmDestinyMain() {
         setOverlaySide("left");
       }
 
+      const qualityGuideText = canonical.validation.hasEnoughQuality
+        ? "분석이 완료되었습니다. 해석 결과를 확인해 주세요."
+        : "분석이 완료되었습니다. 이미지 품질로 인해 일부 항목은 보수적으로 해석될 수 있습니다.";
       setSubmitMessage(
-        `분석 완료: reportType=${canonical.reportType}, hasPalm=${String(canonical.validation.hasPalm)}, hasEnoughQuality=${String(canonical.validation.hasEnoughQuality)}, 보수적으로 해석합니다.`,
+        `분석 완료: reportType=${canonical.reportType}, hasPalm=${String(canonical.validation.hasPalm)}, hasEnoughQuality=${String(canonical.validation.hasEnoughQuality)}. ${qualityGuideText}`,
       );
     } catch (error) {
       if (requestIdRef.current !== requestId) {

@@ -123,6 +123,12 @@ function resolveFeatureName(featureKey?: string) {
   const map: Record<string, string> = {
     "pig-coin-charge": "포인트 충전",
     "pig-coin-unlock": "유료 콘텐츠 잠금 해제",
+    "palm-reading-general": "손금 전체운 분석",
+    "palm-reading-love": "손금 연애운 분석",
+    "palm-reading-wealth": "손금 재물운 분석",
+    "palm-reading-career": "손금 직업운 분석",
+    "palm-reading-personality": "손금 성격 분석",
+    "palm-reading-relationship": "손금 관계 패턴 분석",
     "profile-subscription": "프로필 구독 결제",
     "profile-subscription-auto-renew": "프로필 구독 자동 갱신",
     "profile-subscription-service-start": "멤버십 서비스 시작",
