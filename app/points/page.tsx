@@ -2244,7 +2244,7 @@ export default function PointsPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Image
-                  src="/icons/honeypig-96.webp"
+                  src="/icons/꿀꿀 운세 로고.webp"
                   sizes="72px"
                   width={72}
                   height={72}

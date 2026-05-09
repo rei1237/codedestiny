@@ -128,7 +128,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
 
-  const ogImage = image || `${SITE_ORIGIN}/icons/honeypig.webp`;
+  const ogImage = image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
 
   // hreflang 언어 대안 맵 (Next.js alternates.languages 형식)
   const languagesMap: Record<string, string> = {};
@@ -194,7 +194,7 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
   const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
-  const ogImage = image || `${SITE_ORIGIN}/icons/honeypig.webp`;
+  const ogImage = image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
   const now = new Date().toISOString();
 
   const data = {
@@ -270,7 +270,7 @@ export function withUniqueRouteMetadata(
   const imageCandidate =
     pickFirstImageUrl(openGraph?.images) ||
     pickFirstImageUrl(twitter?.images) ||
-    `${SITE_ORIGIN}/icons/honeypig.webp`;
+    `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
   const absoluteImage = toAbsoluteUrl(imageCandidate);
   const locale = languageHint.replace("-", "_");
 

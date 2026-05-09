@@ -34,7 +34,7 @@ Use browser DevTools or curl-like probes.
 curl -I https://code-destiny.com/
 curl -I https://code-destiny.com/version.json
 curl -I https://code-destiny.com/service-worker.js
-curl -I https://code-destiny.com/icons/honeypig.webp
+curl -I https://code-destiny.com/icons/꿀꿀 운세 로고.webp
 curl -I https://code-destiny.com/_next/static/chunks/<sample>.js
 ```
 
@@ -42,7 +42,7 @@ Expected:
 
 - `/`, `/index.html`, `/*.html`, `/version.json`, `/service-worker.js`: `Cache-Control: no-cache, no-store, must-revalidate`
 - `/_next/static/*`: `Cache-Control: public, max-age=31536000, immutable`
-- `/icons/honeypig*`: `Cache-Control: no-cache, no-store, must-revalidate`
+- `/icons/꿀꿀 운세 로고.webp`: `Cache-Control: no-cache, no-store, must-revalidate`
 
 ## Browser-side stale cleanup (when needed)
 
@@ -62,6 +62,6 @@ Expected:
 If latest logo/page still does not appear:
 
 1. Compare `/version.json` between domains.
-2. Compare response headers for `/` and `/icons/honeypig.webp`.
+2. Compare response headers for `/` and `/icons/꿀꿀 운세 로고.webp`.
 3. Verify deployed artifact commit from `dist/version.json` vs Git HEAD.
 4. Check browser extensions/private proxy/VPN cache layers.

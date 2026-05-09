@@ -97,7 +97,7 @@ export default function AdminCacheStatusPage() {
         "/index.html",
         "/version.json",
         "/service-worker.js",
-        "/icons/honeypig.webp",
+        "/icons/꿀꿀 운세 로고.webp",
         "/api/health",
       ];
 

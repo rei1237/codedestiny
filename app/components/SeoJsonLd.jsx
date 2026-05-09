@@ -45,7 +45,7 @@ function buildOrganization() {
     url: BRAND_URL,
     logo: {
       "@type": "ImageObject",
-      url: `${BRAND_URL}/icons/honeypig.webp`,
+      url: `${BRAND_URL}/icons/꿀꿀 운세 로고.webp`,
       width: 512,
       height: 512,
     },

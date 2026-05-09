@@ -28,7 +28,7 @@ html = html.replace(
   `<img id="dfStudioImage" src="${opt("/fuctionassets/flower.webp", 750)}"`
 );
 
-html = replaceSrc(html, "/icons/honeypig.webp", 256);
+html = replaceSrc(html, "/icons/꿀꿀 운세 로고.webp", 256);
 html = replaceSrc(html, "/icons/samba.webp", 256);
 
 const tile384 = [

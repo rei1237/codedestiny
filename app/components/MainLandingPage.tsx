@@ -164,8 +164,8 @@ export default function MainLandingPage() {
           <div className="relative z-10">
             <div className="mx-auto mb-3 h-[94px] w-[94px] overflow-hidden rounded-full border-2 border-amber-200/60 shadow-[0_12px_28px_rgba(20,11,45,0.6)] md:h-[120px] md:w-[120px]">
               <img
-                src="/icons/honeypig-130.webp"
-                srcSet="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
+                src="/icons/꿀꿀 운세 로고.webp"
+                srcSet="/icons/꿀꿀 운세 로고.webp 96w, /icons/꿀꿀 운세 로고.webp 130w, /icons/꿀꿀 운세 로고.webp 512w"
                 sizes="(max-width: 768px) 94px, 120px"
                 alt="꿀꿀 연이 로고"
                 className="h-full w-full object-cover"

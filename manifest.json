@@ -15,25 +15,25 @@
   ],
   "icons": [
     {
-      "src": "icons/honeypig-192.png",
+      "src": "icons/꿀꿀 운세 로고.webp",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/honeypig-512.png",
+      "src": "icons/꿀꿀 운세 로고.webp",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/honeypig-192.png",
+      "src": "icons/꿀꿀 운세 로고.webp",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icons/honeypig-512.png",
+      "src": "icons/꿀꿀 운세 로고.webp",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -48,7 +48,7 @@
       "url": "/#today",
       "icons": [
         {
-          "src": "icons/honeypig-192.png",
+          "src": "icons/꿀꿀 운세 로고.webp",
           "sizes": "192x192",
           "type": "image/png"
         }

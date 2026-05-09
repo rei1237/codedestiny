@@ -455,8 +455,8 @@ function applyPwaThemeAssets(isNeo) {
     if (faviconLink) { faviconLink.setAttribute('href', '/icons/samba.webp'); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
     if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
   } else {
-    if (faviconLink) { faviconLink.setAttribute('href', '/icons/honeypig-192.png'); faviconLink.setAttribute('type', 'image/png'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/honeypig-180.png');
+    if (faviconLink) { faviconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp'); faviconLink.setAttribute('type', 'image/png'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp');
   }
 }
 

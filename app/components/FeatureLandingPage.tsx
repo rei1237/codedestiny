@@ -597,7 +597,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               background:"#fff",
             }}>
               <img
-                src="https://code-destiny.com/icons/honeypig.webp"
+                src="https://code-destiny.com/icons/꿀꿀 운세 로고.webp"
                 alt="꿀꿀"
                 width={46} height={46}
                 style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}

@@ -432,7 +432,7 @@ export const SERVICE_MAP = {
       "핀란드 전통 주석점(낙점) 의식을 무료로 체험하세요. 낙이 물에서 굳는 형태로 미래를 읽는 5단게 인터랙티브 오라클.",
     seoText:
       "핀란드 주석점은 5단계 인터랙티브 의식으로 낙 형태 상징을 해석하고 Shadow Reading까지 제공합니다.",
-    ogImage: "https://code-destiny.com/icons/honeypig.webp",
+    ogImage: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
     landingPoints: ["5단계 인터랙티브 의식", "낙 형태 상징 해석", "Shadow Reading 제공"],
     keywords: [
       "핀란드 주석점",

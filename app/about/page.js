@@ -27,7 +27,7 @@ const ABOUT_JSON_LD = JSON.stringify({
       url: "https://code-destiny.com",
       logo: {
         "@type": "ImageObject",
-        url: "https://code-destiny.com/icons/honeypig.webp",
+        url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
         width: 512,
         height: 512,
       },
