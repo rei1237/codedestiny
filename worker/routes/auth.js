@@ -484,6 +484,7 @@ function mapSocialProfile(provider, payload) {
       providerId: String(payload?.sub || ""),
       email: payload?.email ? String(payload.email).toLowerCase() : "",
       name: String(payload?.name || payload?.given_name || "Google user"),
+      image: String(payload?.picture || ""),
     };
   }
 
@@ -493,6 +494,7 @@ function mapSocialProfile(provider, payload) {
       providerId: String(profile?.id || ""),
       email: profile?.email ? String(profile.email).toLowerCase() : "",
       name: String(profile?.name || profile?.nickname || "Naver user"),
+      image: String(profile?.profile_image || ""),
     };
   }
 
@@ -503,10 +505,11 @@ function mapSocialProfile(provider, payload) {
       providerId: String(payload?.id || ""),
       email: account?.email ? String(account.email).toLowerCase() : "",
       name: String(profile?.nickname || "Kakao user"),
+      image: String(profile?.profile_image_url || profile?.thumbnail_image_url || ""),
     };
   }
 
-  return { providerId: "", email: "", name: "" };
+  return { providerId: "", email: "", name: "", image: "" };
 }
 
 async function exchangeCodeForAccessToken(provider, code, request, env, stateToken, redirectUriOverride) {
@@ -578,6 +581,9 @@ async function findOrCreateSocialUser(provider, profile) {
     if (user) {
       user.set(socialField, profile.providerId);
       user.set(`socialAccounts.${provider}.connectedAt`, new Date());
+      if (!String(user.profileImage || "").trim() && String(profile.image || "").trim()) {
+        user.set("profileImage", String(profile.image || "").trim());
+      }
       await user.save();
       return user;
     }
@@ -587,6 +593,7 @@ async function findOrCreateSocialUser(provider, profile) {
   return User.create({
     name: profile.name || `${provider} user`,
     email: profile.email || fallbackEmail,
+    profileImage: String(profile.image || ""),
     passwordHash: "",
     birthDate: "1900-01-01",
     birthTime: "00:00",
@@ -804,6 +811,7 @@ function buildTokenFallbackUser(auth) {
     id: auth.userId,
     name: auth.name || auth.email || "",
     email: auth.email || "",
+    image: auth.image || "",
     birthDate: auth.birthDate || "",
     birthTime: auth.birthTime || "",
     gender: auth.gender || "OTHER",
@@ -844,6 +852,7 @@ function logSignupFailure(request, env, errorCode, errorMessage) {
 function signupErrorResponse(request, env, status, code, message, extra = {}) {
   logSignupFailure(request, env, code, message);
   return json({
+    ok: false,
     message,
     code,
     error: code,
@@ -1036,6 +1045,8 @@ async function handleLogin(request, env) {
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
     return json({
+      ok: false,
+      code: "invalid_request_body",
       message: "Login payload is invalid.",
       errors: validated.errors,
     }, { status: 400 });
@@ -1073,6 +1084,8 @@ async function handleLogin(request, env) {
       );
       if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
         return json({
+          ok: false,
+          code: "invalid_credentials",
           message: "Email or password is incorrect.",
         }, { status: 401 });
       }
@@ -1084,6 +1097,8 @@ async function handleLogin(request, env) {
       );
       if (!passwordOk) {
         return json({
+          ok: false,
+          code: "invalid_credentials",
           message: "Email or password is incorrect.",
         }, { status: 401 });
       }
@@ -1113,18 +1128,24 @@ async function handleLogin(request, env) {
       if (infraFailure) {
         console.error("[auth/login] infrastructure failure:", error);
         return json({
+          ok: false,
+          code: "login_service_unavailable",
           message: "Login service is temporarily unavailable. Please try again.",
         }, { status: 503 });
       }
 
       console.error("[auth/login] normalized auth failure:", error);
       return json({
+        ok: false,
+        code: "invalid_credentials",
         message: "Email or password is incorrect.",
       }, { status: 401 });
     }
   }
 
   return json({
+    ok: false,
+    code: "login_service_unavailable",
     message: "Login service is temporarily unavailable. Please try again.",
   }, { status: 503 });
 }
@@ -1137,7 +1158,7 @@ async function handleMe(request, env) {
 
     const userId = String(auth.userId || "");
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return json({ message: "Invalid authentication token." }, { status: 401 });
+      return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
     }
     const objectId = new mongoose.Types.ObjectId(userId);
 
@@ -1170,6 +1191,7 @@ async function handleMe(request, env) {
       if (isAuthDbInfraError(error)) {
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
         return json({
+          ok: true,
           message: "Authenticated user loaded from token.",
           user: buildTokenFallbackUser(auth),
           source: "token",
@@ -1177,7 +1199,9 @@ async function handleMe(request, env) {
       }
       throw error;
     }
-    if (!user) return json({ message: "User not found." }, { status: 404 });
+    if (!user) {
+      return json({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
+    }
 
     return json({
       ok: true,
@@ -1627,6 +1651,16 @@ export async function handleAuthRoutes(request, env) {
     const method = request.method.toUpperCase();
     path = getRoutePath(request, "/api/auth");
 
+    const providerAliasMatch = path.match(/^\/(google|naver|kakao)$/);
+    if (method === "GET" && providerAliasMatch) {
+      return await handleOAuthStart(request, env, String(providerAliasMatch[1] || "").toLowerCase());
+    }
+
+    const providerCallbackAliasMatch = path.match(/^\/(google|naver|kakao)\/callback$/);
+    if (method === "GET" && providerCallbackAliasMatch) {
+      return await handleOAuthCallback(request, env, String(providerCallbackAliasMatch[1] || "").toLowerCase());
+    }
+
     const legacySignInMatch = path.match(/^\/signin\/([^/]+)$/);
     if (method === "GET" && legacySignInMatch) {
       return await handleOAuthStart(request, env, String(legacySignInMatch[1] || "").toLowerCase());
@@ -1643,6 +1677,7 @@ export async function handleAuthRoutes(request, env) {
 
     if (
       path === "/register"
+      || path === "/signup"
       || path === "/login"
       || path === "/refresh"
       || path === "/me"
@@ -1661,6 +1696,7 @@ export async function handleAuthRoutes(request, env) {
     }
 
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
+    if (method === "POST" && path === "/signup") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);

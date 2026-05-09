@@ -1544,6 +1544,55 @@ function __cdClearStoredAuth() {
   try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
 }
 
+function __cdBuildLegacyAuthHeaders() {
+  var headers = new Headers();
+  try {
+    var token = String(localStorage.getItem('fortune_auth_token') || '').trim();
+    if (token) headers.set('Authorization', 'Bearer ' + token);
+  } catch (_) {}
+  return headers;
+}
+
+function __cdPersistAuthUserSnapshot(user) {
+  if (!user || typeof user !== 'object') return;
+  try {
+    var safe = {
+      id: String(user.id || user.userId || user._id || user.uid || '').trim(),
+      name: String(user.name || '').trim(),
+      email: String(user.email || '').trim(),
+      image: String(user.image || user.profileImage || user.avatar || '').trim(),
+      role: String(user.role || 'user').trim().toLowerCase() === 'admin' ? 'admin' : 'user',
+      points: Number(user.points || 0),
+    };
+    if (!safe.id) return;
+    if (!Number.isFinite(safe.points) || safe.points < 0) safe.points = 0;
+    localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
+  } catch (_) {}
+}
+
+async function __cdFetchAuthMeWithRetry(forceRefresh) {
+  var response = await fetch('/api/auth/me', {
+    method: 'GET',
+    headers: __cdBuildLegacyAuthHeaders(),
+    credentials: 'include',
+    cache: 'no-store'
+  });
+
+  if (response.status === 401 && !forceRefresh) {
+    var refreshed = await __cdRefreshAuthSessionSilently({ skipVerify: true });
+    if (refreshed) {
+      response = await fetch('/api/auth/me', {
+        method: 'GET',
+        headers: __cdBuildLegacyAuthHeaders(),
+        credentials: 'include',
+        cache: 'no-store'
+      });
+    }
+  }
+
+  return response;
+}
+
 async function __cdVerifyAuthSession(forceRefresh) {
   if (__cdIsAdminLikeUser()) {
     __cdAuthSessionState.ok = true;
@@ -1561,31 +1610,22 @@ async function __cdVerifyAuthSession(forceRefresh) {
     return __cdAuthSessionState.pending;
   }
 
-  var token = '';
-  try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) {}
-  if (!token) {
-    __cdAuthSessionState.checkedAt = now;
-    __cdAuthSessionState.ok = false;
-    __cdAuthSessionState.userId = '';
-    return false;
-  }
-
-  __cdAuthSessionState.pending = fetch('/api/auth/me', {
-    method: 'GET',
-    headers: { Authorization: 'Bearer ' + token },
-    credentials: 'include',
-    cache: 'no-store'
-  }).then(function(response) {
+  __cdAuthSessionState.pending = __cdFetchAuthMeWithRetry(forceRefresh).then(function(response) {
     if (!response.ok) return null;
     return response.json().catch(function() { return null; });
-  }).then(function(payload) {
+  }).then(function(response) {
+    var payload = response;
     var user = payload && payload.user ? payload.user : null;
     var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
     var ok = !!userId;
     __cdAuthSessionState.checkedAt = Date.now();
     __cdAuthSessionState.ok = ok;
     __cdAuthSessionState.userId = ok ? userId : '';
-    if (!ok) __cdClearStoredAuth();
+    if (ok) {
+      __cdPersistAuthUserSnapshot(user);
+    } else {
+      __cdClearStoredAuth();
+    }
     return ok;
   }).catch(function() {
     __cdAuthSessionState.checkedAt = Date.now();
@@ -1616,6 +1656,7 @@ async function requireLoginBeforeAction(action, options) {
 }
 
 async function __cdRefreshAuthSessionSilently() {
+  var options = arguments.length > 0 ? arguments[0] : {};
   try {
     var refreshRes = await fetch('/api/auth/refresh', {
       method: 'POST',
@@ -1625,7 +1666,9 @@ async function __cdRefreshAuthSessionSilently() {
     if (!refreshRes.ok) return false;
     var refreshData = await refreshRes.json().catch(function() { return null; });
     if (!refreshData || refreshData.ok !== true) return false;
-    await __cdVerifyAuthSession(true).catch(function() { return false; });
+    if (!options.skipVerify) {
+      await __cdVerifyAuthSession(true).catch(function() { return false; });
+    }
     return true;
   } catch (_) {
     return false;

@@ -4,6 +4,8 @@ export type ClientAuthUser = {
   _id?: string;
   uid?: string;
   name?: string;
+  email?: string;
+  image?: string;
   role?: string;
   points?: number;
   plan?: string;
@@ -35,6 +37,8 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
   copyString(source, "_id", safe);
   copyString(source, "uid", safe);
   copyString(source, "name", safe);
+  copyString(source, "email", safe);
+  copyString(source, "image", safe);
   copyString(source, "role", safe);
   copyString(source, "plan", safe);
 

@@ -480,6 +480,7 @@ function mapSocialProfile(provider, payload) {
       providerId: String(payload?.sub || ""),
       email: payload?.email ? String(payload.email).toLowerCase() : "",
       name: String(payload?.name || payload?.given_name || "Google 사용자"),
+      image: String(payload?.picture || ""),
     };
   }
 
@@ -489,6 +490,7 @@ function mapSocialProfile(provider, payload) {
       providerId: String(profile?.id || ""),
       email: profile?.email ? String(profile.email).toLowerCase() : "",
       name: String(profile?.name || profile?.nickname || "네이버 사용자"),
+      image: String(profile?.profile_image || ""),
     };
   }
 
@@ -499,10 +501,11 @@ function mapSocialProfile(provider, payload) {
       providerId: String(payload?.id || ""),
       email: account?.email ? String(account.email).toLowerCase() : "",
       name: String(profile?.nickname || "카카오 사용자"),
+      image: String(profile?.profile_image_url || profile?.thumbnail_image_url || ""),
     };
   }
 
-  return { providerId: "", email: "", name: "" };
+  return { providerId: "", email: "", name: "", image: "" };
 }
 
 function normalizeUserResponse(user) {
@@ -510,6 +513,7 @@ function normalizeUserResponse(user) {
     id: String(user._id),
     name: user.name,
     email: user.email,
+    image: user.profileImage || user.image || "",
     birthDate: user.birthDate,
     birthTime: user.birthTime,
     gender: user.gender,
@@ -620,6 +624,9 @@ async function findOrCreateSocialUser(provider, profile) {
     if (user) {
       user.set(socialField, profile.providerId);
       user.set(`socialAccounts.${provider}.connectedAt`, new Date());
+      if (!String(user.profileImage || "").trim() && String(profile.image || "").trim()) {
+        user.set("profileImage", String(profile.image || "").trim());
+      }
       await user.save();
       return user;
     }
@@ -630,6 +637,7 @@ async function findOrCreateSocialUser(provider, profile) {
   const created = await User.create({
     name: profile.name || `${provider} 사용자`,
     email: profile.email || fallbackEmail,
+    profileImage: String(profile.image || ""),
     passwordHash: "",
     birthDate: "1900-01-01",
     birthTime: "00:00",
@@ -673,6 +681,8 @@ router.post("/register", async (req, res, next) => {
     const validated = validateRegisterPayload(req.body);
     if (!validated.isValid) {
       return res.status(400).json({
+        ok: false,
+        code: "INVALID_REQUEST_BODY",
         message: "회원가입 요청값이 올바르지 않습니다.",
         errors: validated.errors,
       });
@@ -688,6 +698,7 @@ router.post("/register", async (req, res, next) => {
 
     if (existing) {
       return res.status(409).json({
+        ok: false,
         message: "이미 가입된 이메일입니다.",
         code: "EMAIL_ALREADY_REGISTERED",
       });
@@ -726,11 +737,18 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
+router.post("/signup", async (req, res, next) => {
+  req.url = "/register";
+  return router.handle(req, res, next);
+});
+
 router.post("/login", async (req, res, next) => {
   try {
     const validated = validateLoginPayload(req.body);
     if (!validated.isValid) {
       return res.status(400).json({
+        ok: false,
+        code: "INVALID_REQUEST_BODY",
         message: "로그인 요청값이 올바르지 않습니다.",
         errors: validated.errors,
       });
@@ -743,6 +761,8 @@ router.post("/login", async (req, res, next) => {
 
     if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
       return res.status(401).json({
+        ok: false,
+        code: "INVALID_CREDENTIALS",
         message: "아이디(이메일) 또는 비밀번호가 올바르지 않습니다.",
       });
     }
@@ -750,6 +770,8 @@ router.post("/login", async (req, res, next) => {
     const passwordOk = await verifyPassword(password, user.passwordHash);
     if (!passwordOk) {
       return res.status(401).json({
+        ok: false,
+        code: "INVALID_CREDENTIALS",
         message: "아이디(이메일) 또는 비밀번호가 올바르지 않습니다.",
       });
     }
@@ -811,7 +833,7 @@ router.post("/refresh", async (req, res, next) => {
     }
 
     const user = await User.findById(userId)
-      .select("_id name email birthDate birthTime gender role points joinedAt passwordHash localAuth")
+      .select("_id name email profileImage birthDate birthTime gender role points joinedAt passwordHash localAuth")
       .lean();
     if (!user) {
       await revokeAllUserRefreshSessions(userId);
@@ -842,13 +864,14 @@ router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
     if (!userId) {
-      return res.status(401).json({ message: "인증 정보가 없습니다." });
+      return res.status(401).json({ ok: false, code: "UNAUTHORIZED", message: "인증 정보가 없습니다." });
     }
 
     const user = await findUserByIdRaw(userId, {
       _id: 1,
       name: 1,
       email: 1,
+      profileImage: 1,
       birthDate: 1,
       birthTime: 1,
       gender: 1,
@@ -858,7 +881,7 @@ router.get("/me", requireAuth, async (req, res, next) => {
     });
     if (!user) {
       console.warn("[AUTH] User not found during /me check:", userId);
-      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+      return res.status(401).json({ ok: false, code: "UNAUTHORIZED", message: "사용자 정보를 찾을 수 없습니다." });
     }
 
     return res.status(200).json({
@@ -878,6 +901,18 @@ router.post("/logout", async (req, res) => {
   }
   clearAuthCookies(req, res);
   return res.status(200).json({ ok: true, message: "로그아웃되었습니다." });
+});
+
+router.get("/:provider(google|naver|kakao)", async (req, res) => {
+  const provider = String(req.params.provider || "").toLowerCase();
+  const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+  return res.redirect(`/api/auth/oauth/${provider}/start${query}`);
+});
+
+router.get("/:provider(google|naver|kakao)/callback", async (req, res) => {
+  const provider = String(req.params.provider || "").toLowerCase();
+  const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+  return res.redirect(`/api/auth/oauth/${provider}/callback${query}`);
 });
 
 router.get("/oauth/:provider/start", async (req, res) => {

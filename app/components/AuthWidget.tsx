@@ -11,6 +11,8 @@ type AuthUser = {
   _id?: string;
   uid?: string;
   name?: string;
+  email?: string;
+  image?: string;
   role: "user" | "admin";
   points?: number;
 };
@@ -111,11 +113,32 @@ export default function AuthWidget() {
   if (!mounted) return null;
 
   if (user) {
+    const displayName = String(user.name || "사용자");
+    const displayEmail = String(user.email || "");
+    const displayImage = String(user.image || "");
+    const initial = displayName.trim().charAt(0) || "사";
     const displayPoints = user.points ?? 0;
     return (
       <div className="flex items-center gap-2">
-        <span className="max-w-[120px] truncate text-sm text-violet-200/80">
-          {user.name}님
+        {displayImage ? (
+          <img
+            src={displayImage}
+            alt={`${displayName} 프로필`}
+            className="h-7 w-7 rounded-full border border-violet-300/40 object-cover"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-violet-300/40 bg-violet-500/20 text-xs font-semibold text-violet-100">
+            {initial}
+          </span>
+        )}
+        <span className="flex max-w-[180px] flex-col leading-tight">
+          <span className="truncate text-sm text-violet-200/90">{displayName}님</span>
+          {displayEmail ? (
+            <span className="truncate text-[11px] text-violet-200/60">{displayEmail}</span>
+          ) : null}
         </span>
         {user.role === "admin" && (
           <Link

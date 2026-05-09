@@ -20,6 +20,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: emailRegex,
   },
+  profileImage: {
+    type: String,
+    default: "",
+    trim: true,
+  },
   passwordHash: {
     type: String,
     required: false,
