@@ -3469,7 +3469,6 @@ function _cdEnsureMainScreenOnLoad() {
     var el = document.getElementById(ids[i]);
     if (el) el.style.display = 'none';
   }
-  window.scrollTo(0, 0);
 }
 
 function _cdInitAfterSplash() {
