@@ -1,16 +1,20 @@
 (function () {
   'use strict';
 
-  /* 모바???�치: ?��???미세 ?�직임 ?�용 (10px�?축소?�여 ?�크�??�동??방�?) */
-  var TAP_MAX_DX = 10;
-  var TAP_MAX_DY = 10;
+  /* 모바???�치: direct tap only (스크롤/이동/롱터치 차단) */
+  var TAP_MAX_DX = 8;
+  var TAP_MAX_DY = 8;
+  var TAP_MOVE_DETECT_PX = 2;
+  var TAP_VERTICAL_BLOCK_PX = 6;
+  var MAX_TAP_DURATION_MS = 500;
   var GHOST_CLICK_BLOCK_MS = 500;
   var ACTION_DEDUPE_MS = 650;
-  var SCROLL_BLOCK_MS = 400; // 스크롤 직후 클릭 차단 시간 (400ms로 증가)�간
+  var SCROLL_BLOCK_MS = 200;
   var suppressClickUntil = 0;
   var lastScrollAt = 0;
   var touchCtx = null;
   var lastTouchStart = null;
+  var lastTouchHadMove = false;
   var lastActionInvoke = { action: '', at: 0 };
 
   function isDesktopNoTouch() {
@@ -997,7 +1001,10 @@
 
     root.addEventListener('touchstart', function (event) {
       var pt = getPoint(event);
-      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
+      if (pt) {
+        lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
+        lastTouchHadMove = false;
+      }
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
@@ -1008,7 +1015,11 @@
         startX: pt.x,
         startY: pt.y,
         target: event.target,
-        moved: false
+        startedAt: Date.now(),
+        moved: false,
+        hadMoveEvent: false,
+        maxDx: 0,
+        maxDy: 0
       };
     }, { passive: true, capture: true });
 
@@ -1016,7 +1027,15 @@
       if (!touchCtx) return;
       var pt = getPoint(event);
       if (!pt) return;
-      if (Math.abs(pt.x - touchCtx.startX) > TAP_MAX_DX || Math.abs(pt.y - touchCtx.startY) > TAP_MAX_DY) {
+      var dx = Math.abs(pt.x - touchCtx.startX);
+      var dy = Math.abs(pt.y - touchCtx.startY);
+      if (dx > touchCtx.maxDx) touchCtx.maxDx = dx;
+      if (dy > touchCtx.maxDy) touchCtx.maxDy = dy;
+      if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
+        touchCtx.hadMoveEvent = true;
+        lastTouchHadMove = true;
+      }
+      if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
         touchCtx.moved = true;
       }
     }, { passive: true, capture: true });
@@ -1031,28 +1050,44 @@
       if (ctx) {
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
-        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          // ?�크�?중이 ?�닐 ?�만 ?�행
-          if (Date.now() - lastScrollAt > SCROLL_BLOCK_MS) {
-            var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-            if (handled) {
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-              return;
-            }
+        var now = Date.now();
+        var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
+        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx;
+        var shouldBlockTap = ctx.moved
+          || ctx.hadMoveEvent
+          || dx >= TAP_MAX_DX
+          || dy >= TAP_MAX_DY
+          || verticalDominant
+          || tapDuration > MAX_TAP_DURATION_MS
+          || (now - lastScrollAt) <= SCROLL_BLOCK_MS;
+
+        if (!shouldBlockTap) {
+          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          if (handled) {
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
           }
         } else {
-          // ?�직임??감�???(?�크�??�도) -> ?�속 ?�릭 차단
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
         }
       }
 
       /* 모바???�백: touchCtx ?�거??처리 ?�패 ??elementFromPoint�??�치 ?�치???�소�??�인 (?�니멀 ?�템 ?? */
       if (lastTouchStart) {
+        var touchAge = Date.now() - (lastTouchStart.at || 0);
+        if (touchAge > MAX_TAP_DURATION_MS || lastTouchHadMove) {
+          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+          return;
+        }
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
-        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
+        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
+          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
           __cdRafBatch(function () {
             var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);
@@ -1089,7 +1124,10 @@
     root.addEventListener('pointerdown', function (event) {
       if (event.pointerType !== 'touch') return;
       var pt = getPoint(event);
-      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
+      if (pt) {
+        lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
+        lastTouchHadMove = false;
+      }
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
@@ -1099,7 +1137,11 @@
         startX: pt.x,
         startY: pt.y,
         target: event.target,
-        moved: false
+        startedAt: Date.now(),
+        moved: false,
+        hadMoveEvent: false,
+        maxDx: 0,
+        maxDy: 0
       };
     }, { passive: true, capture: true });
 
@@ -1107,7 +1149,15 @@
       if (event.pointerType !== 'touch' || !touchCtx) return;
       var pt = getPoint(event);
       if (!pt) return;
-      if (Math.abs(pt.x - touchCtx.startX) > TAP_MAX_DX || Math.abs(pt.y - touchCtx.startY) > TAP_MAX_DY) {
+      var dx = Math.abs(pt.x - touchCtx.startX);
+      var dy = Math.abs(pt.y - touchCtx.startY);
+      if (dx > touchCtx.maxDx) touchCtx.maxDx = dx;
+      if (dy > touchCtx.maxDy) touchCtx.maxDy = dy;
+      if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
+        touchCtx.hadMoveEvent = true;
+        lastTouchHadMove = true;
+      }
+      if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
         touchCtx.moved = true;
       }
     }, { passive: true, capture: true });
@@ -1121,7 +1171,17 @@
       if (ctx) {
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
-        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
+        var now = Date.now();
+        var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
+        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx;
+        var shouldBlockTap = ctx.moved
+          || ctx.hadMoveEvent
+          || dx >= TAP_MAX_DX
+          || dy >= TAP_MAX_DY
+          || verticalDominant
+          || tapDuration > MAX_TAP_DURATION_MS
+          || (now - lastScrollAt) <= SCROLL_BLOCK_MS;
+        if (!shouldBlockTap) {
           var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
@@ -1129,12 +1189,23 @@
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             return;
           }
+        } else {
+          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
         }
       }
       if (lastTouchStart) {
+        var touchAge = Date.now() - (lastTouchStart.at || 0);
+        if (touchAge > MAX_TAP_DURATION_MS || lastTouchHadMove) {
+          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+          return;
+        }
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
-        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
+        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
+          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
           __cdRafBatch(function () {
             var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);

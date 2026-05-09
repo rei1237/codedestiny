@@ -1057,13 +1057,61 @@
         : '연애 비책을 집필하는 중입니다';
     }
 
+    var _premiumReportSessionId = '';
+
+    function _buildLoveSecretChapterPayload(idx) {
+      var _profile = window.__cdActiveBirthProfile || {};
+      var _birth = _profile.birth || {};
+      return {
+        sessionId: idx + 1,
+        chapter: idx + 1,
+        totalChapters: _totalChapters,
+        mode: _currentMode,
+        reportType: _reportType,
+        reportId: _reportJobId,
+        reportJobId: _reportJobId,
+        inputHash: _inputHash,
+        sajuData: sajuData,
+        partnerData: partnerData || '',
+        previousChapterTexts: _chapters.slice(0, idx).filter(function (v) { return typeof v === 'string' && v.trim(); }),
+        name: String(_profile.name || ''),
+        gender: String(_profile.gender || ''),
+        year: Number(_birth.year || 0),
+        month: Number(_birth.month || 0),
+        day: Number(_birth.day || 0),
+        hour: Number(_birth.hour || 12),
+        minute: Number(_birth.minute || 0),
+        birthYear: Number(_birth.year || 0),
+        birthMonth: Number(_birth.month || 0),
+        birthDay: Number(_birth.day || 0),
+        birthHour: Number(_birth.hour || 12),
+        birthMinute: Number(_birth.minute || 0)
+      };
+    }
+
+    function _ensurePremiumReportSession() {
+      if (_premiumReportSessionId) {
+        return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
+      }
+      if (typeof window.__cdPremiumAuthJson !== 'function') {
+        return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+      }
+      return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        reportType: 'loveSecret',
+        requestBody: _buildLoveSecretChapterPayload(0)
+      }).then(function(prepared) {
+        if (prepared && prepared.ok && prepared.reportSessionId) {
+          _premiumReportSessionId = String(prepared.reportSessionId);
+          return prepared;
+        }
+        return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
+      });
+    }
+
     function _fetchChapter(idx) {
-      var _lsAuthToken = '';
-      try { _lsAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
         var _settled = false;
         var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
-        var _endpoints = _buildApiCandidates('/api/love-secret/session');
         var _lastMsg = '';
         var _maxAttempts = 3;
 
@@ -1083,78 +1131,48 @@
             _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
             return;
           }
-          var _url = _endpoints[at % _endpoints.length];
-          var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
-          if (_controller) _activeRequestController = _controller;
-          var _lsHeaders = { 'Content-Type': 'application/json' };
-          if (_lsAuthToken) _lsHeaders.Authorization = 'Bearer ' + _lsAuthToken;
-          var _profile = window.__cdActiveBirthProfile || {};
-          var _birth = _profile.birth || {};
-
           var timeoutId = setTimeout(function () {
-            if (_controller) {
-              try { _controller.abort(); } catch (_) {}
-            }
+            _lastMsg = _abortMsg;
+            _runAttempt(at + 1);
           }, 45000);
 
-          fetch(_url, {
-            method: 'POST',
-            headers: _lsHeaders,
-            body: JSON.stringify({
-              sessionId: idx + 1,
-              chapter: idx + 1,
-              totalChapters: _totalChapters,
-              mode: _currentMode,
-              reportType: _reportType,
-              reportId: _reportJobId,
-              reportJobId: _reportJobId,
-              inputHash: _inputHash,
-              sajuData: sajuData,
-              partnerData: partnerData || '',
-              previousChapterTexts: _chapters.slice(0, idx).filter(function (v) { return typeof v === 'string' && v.trim(); }),
-              name: String(_profile.name || ''),
-              gender: String(_profile.gender || ''),
-              year: Number(_birth.year || 0),
-              month: Number(_birth.month || 0),
-              day: Number(_birth.day || 0),
-              hour: Number(_birth.hour || 12),
-              minute: Number(_birth.minute || 0),
-              birthYear: Number(_birth.year || 0),
-              birthMonth: Number(_birth.month || 0),
-              birthDay: Number(_birth.day || 0),
-              birthHour: Number(_birth.hour || 12),
-              birthMinute: Number(_birth.minute || 0)
-            }),
-            signal: _controller ? _controller.signal : undefined,
-          })
-            .then(function (res) {
-              if (!res.ok) {
-                return res.json().catch(function () { return {}; }).then(function (e) {
-                  return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
-                });
-              }
-              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
-            })
-            .then(function (data) {
+          _ensurePremiumReportSession().then(function(prepared) {
+            if (!prepared || !prepared.ok || !_premiumReportSessionId) {
               clearTimeout(timeoutId);
-              if (_activeRequestController === _controller) _activeRequestController = null;
+              _done(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              return;
+            }
+            if (typeof window.__cdPremiumAuthJson !== 'function') {
+              clearTimeout(timeoutId);
+              _done({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              return;
+            }
+
+            window.__cdPremiumAuthJson('/api/premium-report/chapter', {
+              reportSessionId: _premiumReportSessionId,
+              chapterId: idx + 1
+            }).then(function(data) {
+              clearTimeout(timeoutId);
               if (data && data.ok && String(data.text || '').length >= _chapterMinChars(idx + 1)) {
+                _done(data);
+                return;
+              }
+              if (data && Number(data.status || 0) === 401) {
                 _done(data);
                 return;
               }
               _lastMsg = (data && data.message) ? data.message : '분량 또는 응답 기준을 충족하지 못했습니다.';
               _runAttempt(at + 1);
-            })
-            .catch(function (err) {
+            }).catch(function(err) {
               clearTimeout(timeoutId);
-              if (_activeRequestController === _controller) _activeRequestController = null;
-              if (err && err.name === 'AbortError') {
-                _lastMsg = _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg;
-              } else {
-                _lastMsg = String(err && err.message ? err.message : err);
-              }
+              _lastMsg = String(err && err.message ? err.message : err);
               _runAttempt(at + 1);
             });
+          }).catch(function(err) {
+            clearTimeout(timeoutId);
+            _lastMsg = String(err && err.message ? err.message : err);
+            _runAttempt(at + 1);
+          });
         }
 
         _runAttempt(0);
@@ -1203,6 +1221,17 @@
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
+          if (data && Number(data.status || 0) === 401) {
+            _generating = false;
+            _stopLoadingAnimation();
+            _showScreen('lsErrorScreen');
+            var authErr = _qs('lsErrorMessage');
+            if (authErr) authErr.textContent = '로그인 세션이 만료되어 리포트 생성을 중단했습니다. 다시 로그인 후 재시도해 주세요.';
+            if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+              window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
+            }
+            return;
+          }
           if (_cancelGeneration) return;
           _chapters[idx] = (data && data.ok && data.text)
             ? data.text

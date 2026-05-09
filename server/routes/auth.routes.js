@@ -64,13 +64,21 @@ function getRefreshTokenExpiresIn() {
   return process.env.REFRESH_TOKEN_EXPIRES_IN || "14d";
 }
 
+function isLocalHostname(hostname) {
+  const normalized = String(hostname || "").trim().toLowerCase();
+  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "[::1]";
+}
+
 function resolveCookieSecure(req) {
+  const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "http").toLowerCase();
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(":")[0];
+  const localRequest = isLocalHostname(host);
+
   const forced = String(process.env.AUTH_COOKIE_SECURE || "").trim().toLowerCase();
-  if (forced === "true") return true;
+  // Keep production strict, but avoid dropping cookies on local HTTP during dev.
+  if (forced === "true") return localRequest && proto !== "https" ? false : true;
   if (forced === "false") return false;
   if (String(process.env.NODE_ENV || "").toLowerCase() === "production") return true;
-
-  const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "http").toLowerCase();
   return proto === "https";
 }
 

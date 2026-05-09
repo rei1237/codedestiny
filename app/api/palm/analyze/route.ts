@@ -38,6 +38,9 @@ function dataUrlToBase64(dataUrl: string): { mimeType: string; data: string } | 
 }
 
 const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금 전문가입니다. 업로드된 손바닥 사진을 보고 정밀하게 손금을 분석하세요.
+반드시 사진에 실제로 보이는 근거만 사용하고, 보이지 않는 정보는 추측하지 마세요.
+감지되지 않은 항목은 detected=false 또는 strength=none으로 두세요.
+건강/수명/사고/재난을 단정하지 말고, 조언은 현실적인 행동 지침 중심으로 작성하세요.
 반드시 아래 JSON 형식으로만 응답하세요. 설명 없이 JSON만 출력하세요.
 {
   "palmDetected": true,

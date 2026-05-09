@@ -81,6 +81,130 @@
   var PREMIUM_ZIWEI_COST = 590;
   var PREMIUM_ZIWEI_FEATURE_KEY = 'premium-ziwei';
   var PREMIUM_ZIWEI_TX_KEY = 'cd_premium_tx_ziwei';
+  var ZB_DIRECT_TAP_MOVE_THRESHOLD = 8;
+  var ZB_DIRECT_TAP_MOVE_DETECT_PX = 2;
+  var ZB_DIRECT_TAP_VERTICAL_BLOCK_PX = 6;
+  var ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS = 200;
+  var ZB_DIRECT_TAP_MAX_DURATION_MS = 500;
+  var _zbTapGuard = {
+    installed: false,
+    active: false,
+    startX: 0,
+    startY: 0,
+    startAt: 0,
+    hadMove: false,
+    moved: false,
+    lastScrollAt: 0,
+    suppressUntil: 0
+  };
+
+  function _zbResolveEventTarget(event) {
+    if (!event || !event.target) return null;
+    if (event.target instanceof Element) return event.target;
+    if (event.target.parentElement instanceof Element) return event.target.parentElement;
+    return null;
+  }
+
+  function _zbIsInputLike(target) {
+    if (!target || !target.closest) return false;
+    return !!target.closest('input, textarea, select, option, [contenteditable="true"], [contenteditable=""]');
+  }
+
+  function _zbIsTapGuardTarget(target) {
+    if (!target || !target.closest || _zbIsInputLike(target)) return false;
+    return !!target.closest('[data-action]');
+  }
+
+  function _zbConsumeBlockedEvent(event) {
+    if (!event) return;
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+    if (typeof event.stopImmediatePropagation === 'function') {
+      event.stopImmediatePropagation();
+    }
+  }
+
+  function _zbMarkTapGuardScroll() {
+    _zbTapGuard.lastScrollAt = Date.now();
+    var until = _zbTapGuard.lastScrollAt + ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS;
+    if (until > _zbTapGuard.suppressUntil) _zbTapGuard.suppressUntil = until;
+  }
+
+  function _zbInstallDirectTapGuard() {
+    if (_zbTapGuard.installed) return;
+    _zbTapGuard.installed = true;
+
+    document.addEventListener('touchstart', function(event){
+      var target = _zbResolveEventTarget(event);
+      if (!_zbIsTapGuardTarget(target)) {
+        _zbTapGuard.active = false;
+        return;
+      }
+      if (!event.touches || !event.touches.length) return;
+      var t = event.touches[0];
+      _zbTapGuard.active = true;
+      _zbTapGuard.startX = t.clientX;
+      _zbTapGuard.startY = t.clientY;
+      _zbTapGuard.startAt = Date.now();
+      _zbTapGuard.hadMove = false;
+      _zbTapGuard.moved = false;
+    }, { capture: true, passive: true });
+
+    document.addEventListener('touchmove', function(event){
+      if (!_zbTapGuard.active || !event.touches || !event.touches.length) return;
+      var t = event.touches[0];
+      var dx = Math.abs(t.clientX - _zbTapGuard.startX);
+      var dy = Math.abs(t.clientY - _zbTapGuard.startY);
+      if (dx > ZB_DIRECT_TAP_MOVE_DETECT_PX || dy > ZB_DIRECT_TAP_MOVE_DETECT_PX) {
+        _zbTapGuard.hadMove = true;
+      }
+      if (dx > ZB_DIRECT_TAP_MOVE_THRESHOLD || dy > ZB_DIRECT_TAP_MOVE_THRESHOLD || (dy >= ZB_DIRECT_TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
+        _zbTapGuard.moved = true;
+      }
+    }, { capture: true, passive: true });
+
+    document.addEventListener('touchend', function(){
+      if (!_zbTapGuard.active) return;
+      var now = Date.now();
+      var duration = _zbTapGuard.startAt ? (now - _zbTapGuard.startAt) : 0;
+      if (
+        _zbTapGuard.moved
+        || _zbTapGuard.hadMove
+        || duration > ZB_DIRECT_TAP_MAX_DURATION_MS
+        || (now - _zbTapGuard.lastScrollAt) < ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS
+      ) {
+        _zbTapGuard.suppressUntil = Math.max(_zbTapGuard.suppressUntil, now + ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS);
+      }
+      _zbTapGuard.active = false;
+    }, { capture: true, passive: true });
+
+    document.addEventListener('touchcancel', function(){
+      _zbTapGuard.active = false;
+      _zbTapGuard.suppressUntil = Math.max(_zbTapGuard.suppressUntil, Date.now() + ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS);
+    }, { capture: true, passive: true });
+
+    window.addEventListener('scroll', _zbMarkTapGuardScroll, { capture: true, passive: true });
+
+    document.addEventListener('click', function(event){
+      var target = _zbResolveEventTarget(event);
+      if (!_zbIsTapGuardTarget(target)) return;
+      if (typeof event.detail === 'number' && event.detail === 0) return;
+      var now = Date.now();
+      if (now < _zbTapGuard.suppressUntil || (now - _zbTapGuard.lastScrollAt) < ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS) {
+        _zbConsumeBlockedEvent(event);
+      }
+    }, { capture: true, passive: false });
+  }
+
+  function _zbShouldBlockTap(event, target) {
+    if (!event) return false;
+    if (event.type === 'click' && typeof event.detail === 'number' && event.detail === 0) return false;
+    if (!_zbIsTapGuardTarget(target || _zbResolveEventTarget(event))) return false;
+    var now = Date.now();
+    return now < _zbTapGuard.suppressUntil || (now - _zbTapGuard.lastScrollAt) < ZB_DIRECT_TAP_RECENT_SCROLL_BLOCK_MS;
+  }
+
+  _zbInstallDirectTapGuard();
 
   function _ensurePremiumModalScript(src, onLoaded) {
     var scriptSrc = String(src || '');
@@ -1001,55 +1125,92 @@
       }
     }
 
+    var _premiumReportSessionId = '';
+
+    function _buildZiweiChapterPayload(idx) {
+      return {
+        sessionId: idx + 1,
+        chapter: idx + 1,
+        ziweiData: ziweiData,
+        ziweiStructured: _collectZiweiStructuredData(),
+        year: _zbProfile.birthYear,
+        month: _zbProfile.birthMonth,
+        day: _zbProfile.birthDay,
+        hour: _zbProfile.birthHour,
+        minute: _zbProfile.birthMinute,
+        birthYear: _zbProfile.birthYear,
+        birthMonth: _zbProfile.birthMonth,
+        birthDay: _zbProfile.birthDay,
+        birthHour: _zbProfile.birthHour,
+        birthMinute: _zbProfile.birthMinute,
+        lat: _zbProfile.lat,
+        lon: _zbProfile.lon,
+        timezone: _zbProfile.timezone,
+        birthPlace: _zbProfile.birthPlace,
+        calendarType: _zbProfile.calendarType,
+        gender: _zbProfile.gender,
+        name: _zbProfile.name
+      };
+    }
+
+    function _ensurePremiumReportSession() {
+      if (_premiumReportSessionId) {
+        return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
+      }
+      if (typeof window.__cdPremiumAuthJson !== 'function') {
+        return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+      }
+      return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        reportType: 'ziweiPremium',
+        requestBody: _buildZiweiChapterPayload(0)
+      }).then(function (prepared) {
+        if (prepared && prepared.ok && prepared.reportSessionId) {
+          _premiumReportSessionId = String(prepared.reportSessionId);
+          return prepared;
+        }
+        return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
+      });
+    }
+
     function _fetchChapter(idx) {
-      var endpoints = _buildApiCandidates('/api/ziwei-book/session');
-      var _zbAuthToken = '';
-      try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       function _attempt(tryNo) {
         return new Promise(function (resolve) {
           var timeoutId = setTimeout(function () {
             resolve({ ok: false, message: '응답 시간 초과 (70초).' });
           }, 70000);
-          var _zbHeaders = { 'Content-Type': 'application/json' };
-          if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
-          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/ziwei-book/session';
-          fetch(endpoint, {
-            method: 'POST',
-            headers: _zbHeaders,
-            body: JSON.stringify({
-              sessionId:   idx + 1,
-              chapter:     idx + 1,
-              ziweiData:   ziweiData,
-              ziweiStructured: _collectZiweiStructuredData(),
-              year:        _zbProfile.birthYear,
-              month:       _zbProfile.birthMonth,
-              day:         _zbProfile.birthDay,
-              hour:        _zbProfile.birthHour,
-              minute:      _zbProfile.birthMinute,
-              birthYear:   _zbProfile.birthYear,
-              birthMonth:  _zbProfile.birthMonth,
-              birthDay:    _zbProfile.birthDay,
-              birthHour:   _zbProfile.birthHour,
-              birthMinute: _zbProfile.birthMinute,
-              lat:         _zbProfile.lat,
-              lon:         _zbProfile.lon,
-              timezone:    _zbProfile.timezone,
-              birthPlace:  _zbProfile.birthPlace,
-              calendarType:_zbProfile.calendarType,
-              gender:      _zbProfile.gender,
-              name:        _zbProfile.name,
-            }),
+          _ensurePremiumReportSession().then(function (prepared) {
+            if (!prepared || !prepared.ok || !_premiumReportSessionId) {
+              clearTimeout(timeoutId);
+              resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              return;
+            }
+            if (typeof window.__cdPremiumAuthJson !== 'function') {
+              clearTimeout(timeoutId);
+              resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              return;
+            }
+            window.__cdPremiumAuthJson('/api/premium-report/chapter', {
+              reportSessionId: _premiumReportSessionId,
+              chapterId: idx + 1
+            }).then(function (data) {
+              clearTimeout(timeoutId);
+              resolve(data);
+            }).catch(function (err) {
+              clearTimeout(timeoutId);
+              resolve({ ok: false, message: String(err && err.message ? err.message : err) });
+            });
           })
-            .then(function (res) {
-              if (!res.ok) return res.json().catch(function () { return {}; }).then(function (e) {
-                return { ok: false, message: (e && e.message) || 'HTTP ' + res.status };
-              });
-              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
-            })
-            .then(function (data) { clearTimeout(timeoutId); resolve(data); })
             .catch(function (err) { clearTimeout(timeoutId); resolve({ ok: false, message: String(err && err.message ? err.message : err) }); });
         }).then(function (data) {
-          var maxTry = Math.max(3, endpoints.length);
+          var code = String((data && data.code) || '').toUpperCase();
+          var status = Number((data && data.status) || 0);
+          if (status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED') {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'AUTH_REQUIRED';
+            return data;
+          }
+          var maxTry = 3;
           if (data && data.ok && data.text) return data;
           if (tryNo >= maxTry) return data;
           return _attempt(tryNo + 1);
@@ -1097,6 +1258,17 @@
       }
       if (loadingStatusEl) loadingStatusEl.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
+        if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var authErrEl = _qs('zbErrorMsg');
+          if (authErrEl) authErrEl.textContent = '로그인 세션이 만료되어 리포트 생성을 중단했습니다. 다시 로그인 후 이어서 시도해 주세요.';
+          _showScreen('zbErrorScreen');
+          if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+            window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
+          }
+          return;
+        }
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
       if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
           _chapters[idx] = data.text;
@@ -1317,6 +1489,10 @@
   document.addEventListener('click', function (e) {
     var target = e.target;
     if (!(target instanceof Element)) return;
+    if (_zbShouldBlockTap(e, target)) {
+      _zbConsumeBlockedEvent(e);
+      return;
+    }
     var btn = target.closest('[data-action]');
     if (!btn) return;
     var action = btn.getAttribute('data-action');
@@ -1436,6 +1612,10 @@
   document.addEventListener('click', function(e) {
     var target = e.target;
     if (!(target instanceof Element)) return;
+    if (_zbShouldBlockTap(e, target)) {
+      _zbConsumeBlockedEvent(e);
+      return;
+    }
     var node = target.closest('[data-action]');
     if (!node) return;
     var action = node.getAttribute('data-action') || '';

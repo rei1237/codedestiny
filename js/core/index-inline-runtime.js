@@ -1615,8 +1615,85 @@ async function requireLoginBeforeAction(action, options) {
   return true;
 }
 
+async function __cdRefreshAuthSessionSilently() {
+  try {
+    var refreshRes = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store'
+    });
+    if (!refreshRes.ok) return false;
+    var refreshData = await refreshRes.json().catch(function() { return null; });
+    if (!refreshData || refreshData.ok !== true) return false;
+    await __cdVerifyAuthSession(true).catch(function() { return false; });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function __cdPremiumAuthFetch(url, init, options) {
+  var reqInit = Object.assign({}, init || {});
+  var opts = options || {};
+  var headers = new Headers(reqInit.headers || {});
+
+  reqInit.credentials = 'include';
+  if (!reqInit.cache) reqInit.cache = 'no-store';
+
+  if (opts.includeBearer) {
+    var token = '';
+    try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) {}
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', 'Bearer ' + token);
+    }
+  }
+
+  if (reqInit.body && !(reqInit.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+  reqInit.headers = headers;
+
+  var response = await fetch(url, reqInit);
+  if (response.status === 401 && !opts.skipRefreshRetry) {
+    var refreshed = await __cdRefreshAuthSessionSilently();
+    if (refreshed) {
+      var retryInit = Object.assign({}, reqInit);
+      var retryHeaders = new Headers(retryInit.headers || {});
+      retryHeaders.delete('Authorization');
+      retryInit.headers = retryHeaders;
+      response = await fetch(url, retryInit);
+    }
+  }
+  return response;
+}
+
+async function __cdPremiumAuthJson(url, payload, options) {
+  var opts = options || {};
+  var reqInit = {
+    method: String(opts.method || 'POST').toUpperCase(),
+    headers: opts.headers || {},
+    body: payload == null ? undefined : JSON.stringify(payload)
+  };
+  var response = await __cdPremiumAuthFetch(url, reqInit, opts);
+  var data = await response.json().catch(function() { return {}; });
+
+  if (!response.ok || (data && data.ok === false)) {
+    return {
+      ok: false,
+      status: Number((data && data.status) || response.status || 0),
+      code: String((data && data.code) || (response.status === 401 ? 'UNAUTHORIZED' : '') || ''),
+      message: String((data && (data.message || data.error)) || ('HTTP ' + response.status)),
+      raw: data || {}
+    };
+  }
+
+  return data && typeof data === 'object' ? data : { ok: true };
+}
+
 window.__cdOpenLoginRequiredModal = __cdOpenLoginRequiredModal;
 window.requireLoginBeforeAction = requireLoginBeforeAction;
+window.__cdPremiumAuthFetch = __cdPremiumAuthFetch;
+window.__cdPremiumAuthJson = __cdPremiumAuthJson;
 
 function __cdResolveTileLockAliasKeys(lockKey) {
   var base = String(lockKey || '').trim();

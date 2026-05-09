@@ -157,14 +157,19 @@ function __resolveEventElement(event) {
 }
 
 const __CD_COLLECTION_TAP_GUARD = Object.freeze({
-  moveThresholdPx: 10,
-  dragSuppressMs: 140,
-  ghostClickLockMs: 180
+  moveThresholdPx: 8,
+  moveDetectPx: 2,
+  verticalBlockPx: 6,
+  recentScrollBlockMs: 200,
+  maxTapDurationMs: 500,
+  dragSuppressMs: 200,
+  ghostClickLockMs: 200
 });
 
 const __cdCollectionTapGuardState = {
   starts: new Map(),
-  suppressUntil: 0
+  suppressUntil: 0,
+  lastScrollAt: 0
 };
 
 function __cdIsCollectionTapGuardTarget(target) {
@@ -187,6 +192,9 @@ function __cdShouldSuppressCollectionTapEvent(event, target) {
   const resolvedTarget = target || __resolveEventElement(event);
   if (!__cdIsCollectionTapGuardTarget(resolvedTarget)) return false;
   if (event && event.type === 'click' && typeof event.detail === 'number' && event.detail === 0) return false;
+  if (Date.now() - __cdCollectionTapGuardState.lastScrollAt < __CD_COLLECTION_TAP_GUARD.recentScrollBlockMs) {
+    return true;
+  }
   return Date.now() < __cdCollectionTapGuardState.suppressUntil;
 }
 
@@ -204,7 +212,11 @@ function __cdBindCollectionTapGuard(root) {
       __cdCollectionTapGuardState.starts.set(t.identifier, {
         x: t.clientX,
         y: t.clientY,
-        moved: false
+        startedAt: Date.now(),
+        moved: false,
+        hadMoveEvent: false,
+        maxDx: 0,
+        maxDy: 0
       });
     }
   };
@@ -216,10 +228,20 @@ function __cdBindCollectionTapGuard(root) {
       const t = event.changedTouches[i];
       const start = __cdCollectionTapGuardState.starts.get(t.identifier);
       if (!start) continue;
-      if (start.moved) continue;
       const dx = Math.abs(t.clientX - start.x);
       const dy = Math.abs(t.clientY - start.y);
+      if (dx > start.maxDx) start.maxDx = dx;
+      if (dy > start.maxDy) start.maxDy = dy;
+      if (dx > __CD_COLLECTION_TAP_GUARD.moveDetectPx || dy > __CD_COLLECTION_TAP_GUARD.moveDetectPx) {
+        start.hadMoveEvent = true;
+      }
+      if (start.moved) continue;
       if (dx > __CD_COLLECTION_TAP_GUARD.moveThresholdPx || dy > __CD_COLLECTION_TAP_GUARD.moveThresholdPx) {
+        start.moved = true;
+        movedAny = true;
+        continue;
+      }
+      if (dy >= __CD_COLLECTION_TAP_GUARD.verticalBlockPx && dy >= dx) {
         start.moved = true;
         movedAny = true;
       }
@@ -232,10 +254,23 @@ function __cdBindCollectionTapGuard(root) {
   const handleTouchEndLike = (event) => {
     if (!event.changedTouches || !event.changedTouches.length) return;
     let movedAny = false;
+    const now = Date.now();
     for (let i = 0; i < event.changedTouches.length; i += 1) {
       const t = event.changedTouches[i];
       const start = __cdCollectionTapGuardState.starts.get(t.identifier);
-      if (start && start.moved) movedAny = true;
+      if (start) {
+        const duration = start.startedAt ? (now - start.startedAt) : 0;
+        const verticalDominant = start.maxDy >= __CD_COLLECTION_TAP_GUARD.verticalBlockPx && start.maxDy >= start.maxDx;
+        if (
+          start.moved
+          || start.hadMoveEvent
+          || verticalDominant
+          || duration > __CD_COLLECTION_TAP_GUARD.maxTapDurationMs
+          || (now - __cdCollectionTapGuardState.lastScrollAt) < __CD_COLLECTION_TAP_GUARD.recentScrollBlockMs
+        ) {
+          movedAny = true;
+        }
+      }
       __cdCollectionTapGuardState.starts.delete(t.identifier);
     }
     if (movedAny) {
@@ -243,10 +278,21 @@ function __cdBindCollectionTapGuard(root) {
     }
   };
 
+  const markScroll = () => {
+    __cdCollectionTapGuardState.lastScrollAt = Date.now();
+    __cdSetCollectionTapSuppressed(__CD_COLLECTION_TAP_GUARD.recentScrollBlockMs);
+  };
+
   root.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
   root.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
   root.addEventListener('touchend', handleTouchEndLike, { capture: true, passive: true });
   root.addEventListener('touchcancel', handleTouchEndLike, { capture: true, passive: true });
+  root.addEventListener('scroll', markScroll, { capture: true, passive: true });
+
+  if (typeof window !== 'undefined' && !window.__cdCollectionTapScrollGuardBound) {
+    window.__cdCollectionTapScrollGuardBound = true;
+    window.addEventListener('scroll', markScroll, { capture: true, passive: true });
+  }
 
   if (typeof window !== 'undefined' && !window.__cdCollectionTapClickGuardBound) {
     window.__cdCollectionTapClickGuardBound = true;

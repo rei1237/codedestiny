@@ -50,17 +50,28 @@ function parseDurationToSeconds(rawValue, fallbackSeconds) {
   return Math.floor(amount * multiplier);
 }
 
+function isLocalHostname(hostname) {
+  const normalized = String(hostname || "").trim().toLowerCase();
+  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "[::1]";
+}
+
 function resolveCookieSecure(request, env) {
+  const requestUrl = new URL(request.url);
+  const forwardedProto = String(request.headers.get("x-forwarded-proto") || "").trim().toLowerCase();
+  const proto = forwardedProto || requestUrl.protocol.replace(":", "");
+  const forwardedHost = String(request.headers.get("x-forwarded-host") || "").trim();
+  const host = String(forwardedHost || requestUrl.host || "").split(":")[0];
+  const localRequest = isLocalHostname(host);
+
   const forced = String(getEnv(env, "AUTH_COOKIE_SECURE", "")).trim().toLowerCase();
-  if (forced === "true") return true;
+  // Keep production strict, but avoid dropping cookies on local HTTP during dev.
+  if (forced === "true") return localRequest && proto !== "https" ? false : true;
   if (forced === "false") return false;
 
   const explicitProd = String(getEnv(env, "NODE_ENV", "")).trim().toLowerCase() === "production";
   if (explicitProd) return true;
 
-  const requestUrl = new URL(request.url);
-  const forwardedProto = String(request.headers.get("x-forwarded-proto") || "").trim().toLowerCase();
-  return forwardedProto === "https" || requestUrl.protocol === "https:";
+  return proto === "https";
 }
 
 function resolveCookieSameSite(env) {

@@ -167,6 +167,10 @@ function normalizeInterpretation(payload: unknown): PalmInterpretationPayload | 
       const row = item as Record<string, unknown>;
       const key = String(row.key || "") as PalmCardKey;
       if (!(key in CARD_KEY_TO_LABEL)) return null;
+      const emphasisScore =
+        typeof row.emphasisScore === "number" && Number.isFinite(row.emphasisScore)
+          ? row.emphasisScore
+          : undefined;
       return {
         key,
         title: String(row.title || CARD_KEY_TO_LABEL[key]),
@@ -176,10 +180,7 @@ function normalizeInterpretation(payload: unknown): PalmInterpretationPayload | 
         cautions: Array.isArray(row.cautions) ? row.cautions.map((x) => String(x)) : [],
         todayAdvice: String(row.todayAdvice || ""),
         sevenDayPractice: String(row.sevenDayPractice || ""),
-        emphasisScore:
-          typeof row.emphasisScore === "number" && Number.isFinite(row.emphasisScore)
-            ? row.emphasisScore
-            : undefined,
+        ...(typeof emphasisScore === "number" ? { emphasisScore } : {}),
       };
     })
     .filter((x): x is PalmInterpretationCard => Boolean(x));
@@ -291,6 +292,7 @@ export default function PalmDestinyMain() {
   const rightCameraInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
+  const previewUrlsRef = useRef<{ left: string | null; right: string | null }>({ left: null, right: null });
   const cardRefs = useRef<Record<PalmCardKey, HTMLDivElement | null>>({
     lifeLine: null,
     headLine: null,
@@ -341,14 +343,22 @@ export default function PalmDestinyMain() {
   const loadingPhaseText = LOADING_PHASES[loadingPhaseIndex] ?? LOADING_PHASES[0];
 
   useEffect(() => {
+    previewUrlsRef.current = {
+      left: leftHand.previewUrl,
+      right: rightHand.previewUrl,
+    };
+  }, [leftHand.previewUrl, rightHand.previewUrl]);
+
+  useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
       }
-      revokeObjectUrls([leftHand.previewUrl, rightHand.previewUrl]);
+      const { left, right } = previewUrlsRef.current;
+      revokeObjectUrls([left, right]);
     };
-  }, [leftHand.previewUrl, rightHand.previewUrl]);
+  }, []);
 
   useEffect(() => {
     if (!isSubmitting) {
@@ -430,14 +440,35 @@ export default function PalmDestinyMain() {
     setRightHand(nextState);
   };
 
+  const isLikelyImageFile = (file: File): boolean => {
+    const mime = String(file.type || "").toLowerCase();
+    if (mime.startsWith("image/")) return true;
+    return /\.(png|jpe?g|webp|gif|bmp|avif|heic|heif)$/i.test(String(file.name || ""));
+  };
+
+  const isHeicLikeFile = (file: File): boolean => {
+    const mime = String(file.type || "").toLowerCase();
+    const name = String(file.name || "").toLowerCase();
+    return mime.includes("heic") || mime.includes("heif") || name.endsWith(".heic") || name.endsWith(".heif");
+  };
+
   const handleFileChange = (side: HandSide, event: React.ChangeEvent<HTMLInputElement>) => {
     const picked = event.currentTarget.files?.[0] ?? null;
     event.currentTarget.value = "";
 
     if (!picked) return;
-    if (!picked.type.startsWith("image/")) return;
+
+    if (!isLikelyImageFile(picked)) {
+      setSubmitMessage("지원되지 않는 파일 형식입니다. JPG/PNG/WEBP 이미지로 다시 선택해 주세요.");
+      return;
+    }
+
+    const shouldShowHeicHint = isHeicLikeFile(picked);
 
     resetAnalysisState();
+    if (shouldShowHeicHint) {
+      setSubmitMessage("HEIC/HEIF 형식은 기기 브라우저에 따라 미리보기가 실패할 수 있습니다. JPG/PNG로 변환 후 다시 업로드해 주세요.");
+    }
     setHandImage(side, picked);
   };
 
@@ -478,6 +509,15 @@ export default function PalmDestinyMain() {
       reader.readAsDataURL(file);
     });
 
+  const getClientAuthToken = (): string => {
+    if (typeof window === "undefined") return "";
+    try {
+      return String(window.localStorage.getItem("fortune_auth_token") || "").trim();
+    } catch {
+      return "";
+    }
+  };
+
   const handleStartAnalysis = async () => {
     if (!canStartAnalysis) return;
 
@@ -504,23 +544,42 @@ export default function PalmDestinyMain() {
           : Promise.resolve(null),
       ]);
 
-      const response = await fetch("/api/palm/analyze", {
+      const requestBody = JSON.stringify({
+        leftPalmImage,
+        rightPalmImage,
+        leftHandLandmarks: leftVision?.handLandmarks ?? null,
+        rightHandLandmarks: rightVision?.handLandmarks ?? null,
+        leftLineCandidates: leftVision?.lineCandidates ?? [],
+        rightLineCandidates: rightVision?.lineCandidates ?? [],
+        leftImageQuality: leftVision?.imageQuality ?? null,
+        rightImageQuality: rightVision?.imageQuality ?? null,
+        dominantHand,
+        analysisPurpose,
+      });
+
+      let response = await fetch("/api/palm/analyze", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
-        body: JSON.stringify({
-          leftPalmImage,
-          rightPalmImage,
-          leftHandLandmarks: leftVision?.handLandmarks ?? null,
-          rightHandLandmarks: rightVision?.handLandmarks ?? null,
-          leftLineCandidates: leftVision?.lineCandidates ?? [],
-          rightLineCandidates: rightVision?.lineCandidates ?? [],
-          leftImageQuality: leftVision?.imageQuality ?? null,
-          rightImageQuality: rightVision?.imageQuality ?? null,
-          dominantHand,
-          analysisPurpose,
-        }),
+        body: requestBody,
       });
+
+      if (response.status === 401) {
+        const authToken = getClientAuthToken();
+        if (authToken) {
+          response = await fetch("/api/palm/analyze", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            signal: controller.signal,
+            body: requestBody,
+          });
+        }
+      }
 
       if (requestIdRef.current !== requestId) {
         return;
@@ -528,8 +587,18 @@ export default function PalmDestinyMain() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const code = typeof data?.code === "string" ? data.code : "UNKNOWN_ERROR";
-        const message = typeof data?.error === "string" ? data.error : "분석 중 오류가 발생했습니다.";
+        const code =
+          typeof data?.code === "string"
+            ? data.code
+            : typeof data?.error === "string"
+            ? data.error
+            : "UNKNOWN_ERROR";
+        const message =
+          typeof data?.message === "string"
+            ? data.message
+            : typeof data?.error === "string"
+            ? data.error
+            : "분석 중 오류가 발생했습니다.";
         setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, message }));
         return;
       }
@@ -786,6 +855,9 @@ export default function PalmDestinyMain() {
                 src={state.previewUrl ?? ""}
                 alt={`${title} 미리보기`}
                 className="max-h-[300px] w-full rounded-lg object-contain"
+                onError={() => {
+                  setSubmitMessage(`${handName} 미리보기를 불러오지 못했습니다. JPG/PNG/WEBP 형식으로 다시 업로드해 주세요.`);
+                }}
                 style={{ border: "1px solid rgba(200,168,75,0.4)", boxShadow: "0 0 20px rgba(0,0,0,0.5)" }}
               />
             ) : (

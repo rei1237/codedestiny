@@ -1193,22 +1193,67 @@
 
     _setProgress(0);
 
-    /** 챕터 fetch (다중 엔드포인트 + 재시도 + 타임아웃) */
+    var _premiumReportSessionId = '';
+
+    function _buildLifeBookChapterPayload(idx) {
+      return {
+        sessionId: idx + 1,
+        chapter: idx + 1,
+        sajuData: sajuData,
+        canonicalSajuChart: _canonicalSajuChart,
+        yongsin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.yongsin && _canonicalSajuChart.usefulGods.yongsin.element) || ''),
+        huisin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.huisin && _canonicalSajuChart.usefulGods.huisin.element) || ''),
+        gisin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.gisin && _canonicalSajuChart.usefulGods.gisin.element) || ''),
+        previousChapterTexts: _chapters.slice(0, idx).filter(function(v){ return typeof v === 'string' && v.trim(); }),
+        profile: {
+          name: String((profile && profile.name) || ''),
+          gender: String((profile && profile.gender) || ''),
+          birth: {
+            solarDate: _toSolarDateString(profile),
+            time: _toTimeString(profile),
+            timezone: String(((profile && profile.location && profile.location.tz) || 'Asia/Seoul')),
+            locationName: String(((profile && profile.location && profile.location.label) || '')),
+            isLeapMonth: null
+          }
+        },
+        requireAccessCheck: false,
+        hasPremiumAccess: true,
+        name: String((profile && profile.name) || ''),
+        gender: String((profile && profile.gender) || ''),
+        year: Number((profile && profile.birth && profile.birth.year) || 0),
+        month: Number((profile && profile.birth && profile.birth.month) || 0),
+        day: Number((profile && profile.birth && profile.birth.day) || 0),
+        hour: Number((profile && profile.birth && profile.birth.hour) || 12),
+        minute: Number((profile && profile.birth && profile.birth.minute) || 0)
+      };
+    }
+
+    function _ensurePremiumReportSession() {
+      if (_premiumReportSessionId) {
+        return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
+      }
+      if (typeof window.__cdPremiumAuthJson !== 'function') {
+        return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+      }
+      return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        reportType: 'lifeBook',
+        requestBody: _buildLifeBookChapterPayload(0)
+      }).then(function(prepared) {
+        if (prepared && prepared.ok && prepared.reportSessionId) {
+          _premiumReportSessionId = String(prepared.reportSessionId);
+          return prepared;
+        }
+        return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
+      });
+    }
+
+    /** 챕터 fetch (공통 premium-report + auth 복구) */
     function _fetchChapter(idx) {
-      var _lbAuthToken = '';
-      try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
         var _settled = false;
         var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
-        var _endpoints = _buildApiCandidates('/api/lifebook/session');
-        var _attemptPlan = [];
         var _lastMsg = '';
-
-        for (var _ei = 0; _ei < _endpoints.length; _ei++) {
-          for (var _ri = 0; _ri < 2; _ri++) {
-            _attemptPlan.push({ url: _endpoints[_ei], retry: _ri + 1 });
-          }
-        }
+        var _maxAttempts = 3;
 
         function _done(payload) {
           if (_settled) return;
@@ -1222,95 +1267,53 @@
             _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
             return;
           }
-          if (at >= _attemptPlan.length) {
+          if (at >= _maxAttempts) {
             _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
             return;
           }
 
-          var _plan = _attemptPlan[at];
-          var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
-          if (_controller) _activeRequestController = _controller;
-          var _lbHeaders = { 'Content-Type': 'application/json' };
-          if (_lbAuthToken) _lbHeaders['Authorization'] = 'Bearer ' + _lbAuthToken;
-
           var timeoutId = setTimeout(function () {
-            if (_controller) {
-              try { _controller.abort(); } catch (_) {}
-            }
+            _lastMsg = _abortMsg;
+            _runAttempt(at + 1);
           }, 45000);
 
-          fetch(_plan.url, {
-            method: 'POST',
-            headers: _lbHeaders,
-            body: JSON.stringify({
-              sessionId: idx + 1,
-              sajuData: sajuData,
-              canonicalSajuChart: _canonicalSajuChart,
-              yongsin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.yongsin && _canonicalSajuChart.usefulGods.yongsin.element) || ''),
-              huisin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.huisin && _canonicalSajuChart.usefulGods.huisin.element) || ''),
-              gisin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.gisin && _canonicalSajuChart.usefulGods.gisin.element) || ''),
-              previousChapterTexts: _chapters.slice(0, idx).filter(function(v){ return typeof v === 'string' && v.trim(); }),
-              profile: {
-                name: String((profile && profile.name) || ''),
-                gender: String((profile && profile.gender) || ''),
-                birth: {
-                  solarDate: _toSolarDateString(profile),
-                  time: _toTimeString(profile),
-                  timezone: String(((profile && profile.location && profile.location.tz) || 'Asia/Seoul')),
-                  locationName: String(((profile && profile.location && profile.location.label) || '')),
-                  isLeapMonth: null
-                }
-              },
-              requireAccessCheck: false,
-              hasPremiumAccess: true,
-              name: String((profile && profile.name) || ''),
-              gender: String((profile && profile.gender) || ''),
-              year: Number((profile && profile.birth && profile.birth.year) || 0),
-              month: Number((profile && profile.birth && profile.birth.month) || 0),
-              day: Number((profile && profile.birth && profile.birth.day) || 0),
-              hour: Number((profile && profile.birth && profile.birth.hour) || 12),
-              minute: Number((profile && profile.birth && profile.birth.minute) || 0)
-            }),
-            signal: _controller ? _controller.signal : undefined,
-          })
-            .then(function (res) {
-              if (!res.ok) {
-                return res.json().catch(function () { return {}; }).then(function (e) {
-                  return {
-                    ok: false,
-                    status: Number(res.status || 0),
-                    message: (e && e.message) || ('HTTP ' + res.status),
-                    code: (e && e.code) || '',
-                    missingFields: (e && e.missingFields) || []
-                  };
-                });
-              }
-              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
-            })
-            .then(function (data) {
+          _ensurePremiumReportSession().then(function(prepared) {
+            if (!prepared || !prepared.ok || !_premiumReportSessionId) {
               clearTimeout(timeoutId);
-              if (_activeRequestController === _controller) _activeRequestController = null;
+              _done(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              return;
+            }
+            if (typeof window.__cdPremiumAuthJson !== 'function') {
+              clearTimeout(timeoutId);
+              _done({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              return;
+            }
+
+            window.__cdPremiumAuthJson('/api/premium-report/chapter', {
+              reportSessionId: _premiumReportSessionId,
+              chapterId: idx + 1
+            }).then(function(data) {
+              clearTimeout(timeoutId);
               if (data && data.ok) {
                 _done(data);
                 return;
               }
-              if (data && [402,409,422,500,503].indexOf(Number(data.status || 0)) >= 0) {
+              if (data && [401,402,409,422,500,503].indexOf(Number(data.status || 0)) >= 0) {
                 _done(data);
                 return;
               }
               _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
               _runAttempt(at + 1);
-            })
-            .catch(function (err) {
+            }).catch(function(err) {
               clearTimeout(timeoutId);
-              if (_activeRequestController === _controller) _activeRequestController = null;
-              if (err && err.name === 'AbortError') {
-                _lastMsg = _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg;
-              } else {
-                _lastMsg = String(err && err.message ? err.message : err);
-              }
+              _lastMsg = String(err && err.message ? err.message : err);
               _runAttempt(at + 1);
             });
+          }).catch(function(err) {
+            clearTimeout(timeoutId);
+            _lastMsg = String(err && err.message ? err.message : err);
+            _runAttempt(at + 1);
+          });
         }
 
         _runAttempt(0);
@@ -1374,13 +1377,14 @@
         if (!data || !data.ok) {
           var status = Number((data && data.status) || 0);
           var msgByStatus = '';
+          if (status === 401) msgByStatus = '로그인 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.';
           if (status === 402) msgByStatus = '결제 또는 포인트가 필요합니다.';
           if (status === 409) msgByStatus = '이미 생성 중인 요청이 있어 잠시 후 다시 시도해 주세요.';
           if (status === 422) msgByStatus = '사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다.';
           if (status === 500) msgByStatus = '서버 오류로 챕터 생성에 실패했습니다.';
           if (status === 503) msgByStatus = '외부 음력/절기 API 장애로 생성할 수 없습니다.';
 
-          if (status === 402 || status === 409 || status === 422 || status === 500 || status === 503) {
+          if (status === 401 || status === 402 || status === 409 || status === 422 || status === 500 || status === 503) {
             _generating = false;
             _setFlowState('error');
             _lastError = msgByStatus || ((data && data.message) ? data.message : '챕터 생성 실패');
@@ -1388,6 +1392,9 @@
             var lbErr = _qs('lbErrorMessage');
             if (lbErr) lbErr.textContent = _lastError;
             _showScreen('lbErrorScreen');
+            if (status === 401 && typeof window.__cdOpenLoginRequiredModal === 'function') {
+              window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
+            }
             return;
           }
         }

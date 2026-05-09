@@ -822,41 +822,88 @@
 
     _setProgress(0);
 
-    function _fetchChapter(idx){
-      var endpoints = _buildApiCandidates('/api/premium/sukuyo-life');
+    var _premiumReportSessionId = '';
+
+    function _buildSukuyoChapterPayload(idx) {
       var lunarHint = _resolveExistingLunarHint(profile);
       var previousChapterTexts = _chapters.slice(0, idx).filter(function (t) { return typeof t === 'string' && t.trim(); });
+      return {
+        year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
+        name: profile.name || '사용자',
+        reportId:_reportId||undefined,
+        reportType:_reportMode,
+        reportMode:_reportMode,
+        includeCompatibility:_reportMode==='compatibility',
+        previousChapterTexts: previousChapterTexts,
+        lunarMonth:lunarHint?lunarHint.lunarMonth:undefined,
+        lunarDay:lunarHint?lunarHint.lunarDay:undefined,
+        isLeap:lunarHint?lunarHint.isLeap:undefined,
+        partnerName:partner.name||undefined,
+        partnerYear:partner.year||undefined,
+        partnerMonth:partner.month||undefined,
+        partnerDay:partner.day||undefined,
+        partnerHour:partner.hour!==null?partner.hour:undefined,
+        partnerMinute:partner.minute!==null?partner.minute:undefined,
+        partnerGender:partner.gender||undefined,
+        partnerCalType:partner.calType||undefined
+      };
+    }
+
+    function _ensurePremiumReportSession() {
+      if (_premiumReportSessionId) {
+        return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
+      }
+      if (typeof window.__cdPremiumAuthJson !== 'function') {
+        return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+      }
+      return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        reportType: 'sookyoPremium',
+        requestBody: _buildSukuyoChapterPayload(0)
+      }).then(function(prepared) {
+        if (prepared && prepared.ok && prepared.reportSessionId) {
+          _premiumReportSessionId = String(prepared.reportSessionId);
+          return prepared;
+        }
+        return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
+      });
+    }
+
+    function _fetchChapter(idx){
       function _attempt(tryNo){
         return new Promise(function(resolve){
           var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (120초).'});},120000);
-          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/premium/sukuyo-life';
-          fetch(endpoint,{
-            method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
-              name: profile.name || '사용자',
-              reportId:_reportId||undefined,
-              reportType:_reportMode,
-              reportMode:_reportMode,
-              includeCompatibility:_reportMode==='compatibility',
-              previousChapterTexts: previousChapterTexts,
-              lunarMonth:lunarHint?lunarHint.lunarMonth:undefined,
-              lunarDay:lunarHint?lunarHint.lunarDay:undefined,
-              isLeap:lunarHint?lunarHint.isLeap:undefined,
-              partnerName:partner.name||undefined,
-              partnerYear:partner.year||undefined,
-              partnerMonth:partner.month||undefined,
-              partnerDay:partner.day||undefined,
-              partnerHour:partner.hour!==null?partner.hour:undefined,
-              partnerMinute:partner.minute!==null?partner.minute:undefined,
-              partnerGender:partner.gender||undefined,
-              partnerCalType:partner.calType||undefined
-            })
-          })
-          .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
-          .then(function(data){clearTimeout(tid);resolve(data);})
-          .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
+          _ensurePremiumReportSession().then(function(prepared) {
+            if (!prepared || !prepared.ok || !_premiumReportSessionId) {
+              clearTimeout(tid);
+              resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              return;
+            }
+            if (typeof window.__cdPremiumAuthJson !== 'function') {
+              clearTimeout(tid);
+              resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              return;
+            }
+            window.__cdPremiumAuthJson('/api/premium-report/chapter', {
+              reportSessionId: _premiumReportSessionId,
+              chapterId: idx + 1
+            }).then(function(data) {
+              clearTimeout(tid);
+              resolve(data);
+            }).catch(function(err) {
+              clearTimeout(tid);
+              resolve({ok:false,message:String(err&&err.message?err.message:err)});
+            });
+          }).catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
         }).then(function(data){
-          var maxTry = Math.max(4, endpoints.length);
+          var code = String((data && data.code) || '').toUpperCase();
+          var status = Number((data && data.status) || 0);
+          if (status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED') {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'AUTH_REQUIRED';
+            return data;
+          }
+          var maxTry = 4;
           if(data&&data.ok&&data.text) return data;
           if(tryNo>=maxTry) return data;
           return _attempt(tryNo+1);
@@ -897,6 +944,17 @@
       }
       if(chapterMsg)chapterMsg.textContent=activeLoading[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
+        if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var authErrEl = _qs('skErrorMsg');
+          if (authErrEl) authErrEl.textContent = '로그인 세션이 만료되어 리포트 생성을 중단했습니다. 다시 로그인 후 재시도해 주세요.';
+          _showScreen('skErrorScreen');
+          if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+            window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
+          }
+          return;
+        }
         if(data&&data.ok&&data.text){
           _chapters[idx]=data.text;
           if(!_sukuyoChart&&data.chart) _sukuyoChart=data.chart;

@@ -17957,19 +17957,162 @@ function showDwDetail(age,gan,zhi,evaluation,score){
   }
   document.getElementById('yearList').innerHTML=yearHTML;
 
+  // 사주 결과 화면 공통 direct tap only 가드
+  (function(){
+    if (window.__cdSajuDirectTapGuardBound) return;
+    window.__cdSajuDirectTapGuardBound = true;
+
+    var MOVE_THRESHOLD = 8;
+    var MOVE_DETECT = 2;
+    var VERTICAL_BLOCK = 6;
+    var RECENT_SCROLL_BLOCK_MS = 200;
+    var MAX_TAP_DURATION_MS = 500;
+    var state = {
+      active: false,
+      startX: 0,
+      startY: 0,
+      startAt: 0,
+      hadMove: false,
+      moved: false,
+      lastScrollAt: 0,
+      suppressUntil: 0
+    };
+
+    function resolveTarget(event) {
+      if (!event || !event.target) return null;
+      if (event.target instanceof Element) return event.target;
+      if (event.target.parentElement instanceof Element) return event.target.parentElement;
+      return null;
+    }
+
+    function isInputLike(target) {
+      if (!target || !target.closest) return false;
+      return !!target.closest('input, textarea, select, option, [contenteditable="true"], [contenteditable=""]');
+    }
+
+    function isSajuInteractiveTarget(target) {
+      if (!target || !target.closest || isInputLike(target)) return false;
+      return !!target.closest('.year-row, .dw-item, .zw-cell, .zwp-cell, .zw-pivot-toggle, .zw-report-close-btn, .zw-summary-close-btn, .zw-cosmic-btn, .ts-card, .char-box, .btn-sub, [data-action]');
+    }
+
+    function blockEvent(event) {
+      if (!event) return;
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
+    }
+
+    function markScroll() {
+      state.lastScrollAt = Date.now();
+      var until = state.lastScrollAt + RECENT_SCROLL_BLOCK_MS;
+      if (until > state.suppressUntil) state.suppressUntil = until;
+    }
+
+    document.addEventListener('touchstart', function(event){
+      var target = resolveTarget(event);
+      if (!isSajuInteractiveTarget(target)) {
+        state.active = false;
+        return;
+      }
+      if (!event.touches || !event.touches.length) return;
+      var t = event.touches[0];
+      state.active = true;
+      state.startX = t.clientX;
+      state.startY = t.clientY;
+      state.startAt = Date.now();
+      state.hadMove = false;
+      state.moved = false;
+    }, { capture: true, passive: true });
+
+    document.addEventListener('touchmove', function(event){
+      if (!state.active || !event.touches || !event.touches.length) return;
+      var t = event.touches[0];
+      var dx = Math.abs(t.clientX - state.startX);
+      var dy = Math.abs(t.clientY - state.startY);
+      if (dx > MOVE_DETECT || dy > MOVE_DETECT) state.hadMove = true;
+      if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD || (dy >= VERTICAL_BLOCK && dy >= dx)) {
+        state.moved = true;
+      }
+    }, { capture: true, passive: true });
+
+    document.addEventListener('touchend', function(){
+      if (!state.active) return;
+      var now = Date.now();
+      var duration = state.startAt ? (now - state.startAt) : 0;
+      if (
+        state.moved
+        || state.hadMove
+        || duration > MAX_TAP_DURATION_MS
+        || (now - state.lastScrollAt) < RECENT_SCROLL_BLOCK_MS
+      ) {
+        state.suppressUntil = Math.max(state.suppressUntil, now + RECENT_SCROLL_BLOCK_MS);
+      }
+      state.active = false;
+    }, { capture: true, passive: true });
+
+    document.addEventListener('touchcancel', function(){
+      state.active = false;
+      state.suppressUntil = Math.max(state.suppressUntil, Date.now() + RECENT_SCROLL_BLOCK_MS);
+    }, { capture: true, passive: true });
+
+    window.addEventListener('scroll', markScroll, { capture: true, passive: true });
+
+    document.addEventListener('click', function(event){
+      var target = resolveTarget(event);
+      if (!isSajuInteractiveTarget(target)) return;
+      if (typeof event.detail === 'number' && event.detail === 0) return;
+      var now = Date.now();
+      if (now < state.suppressUntil || (now - state.lastScrollAt) < RECENT_SCROLL_BLOCK_MS) {
+        blockEvent(event);
+      }
+    }, { capture: true, passive: false });
+  })();
+
   // 모바일 드래그(스크롤) vs 탭 구별: touchstart/touchmove/touchend 위임
   (function(){
     var list = document.getElementById('yearList');
     if(!list || list._touchBound) return;
     list._touchBound = true;
+    var _startX = 0;
     var _startY = 0;
+    var _startedAt = 0;
+    var _lastScrollAt = 0;
+
+    var markYearScroll = function(){ _lastScrollAt = Date.now(); };
+    list.addEventListener('scroll', markYearScroll, { passive:true });
+    window.addEventListener('scroll', markYearScroll, { passive:true });
+
     list.addEventListener('touchstart', function(e){
       var row = e.target.closest('.year-row');
-      if(row){ row._touchMoved = false; _startY = e.touches[0].clientY; }
+      if(!row || !e.touches || !e.touches.length) return;
+      row._touchMoved = false;
+      row._touchBlocked = false;
+      row._touchHasMove = false;
+      row._touchStartAt = Date.now();
+      _startedAt = Date.now();
+      _startX = e.touches[0].clientX;
+      _startY = e.touches[0].clientY;
     }, {passive:true});
     list.addEventListener('touchmove', function(e){
       var row = e.target.closest('.year-row');
-      if(row && Math.abs(e.touches[0].clientY - _startY) > 8) row._touchMoved = true;
+      if(!row || !e.touches || !e.touches.length) return;
+      var dx = Math.abs(e.touches[0].clientX - _startX);
+      var dy = Math.abs(e.touches[0].clientY - _startY);
+      if(dx > 2 || dy > 2) row._touchHasMove = true;
+      if(dx > 8 || dy > 8 || (dy >= 6 && dy >= dx)) row._touchMoved = true;
+    }, {passive:true});
+    list.addEventListener('touchend', function(e){
+      var row = e.target.closest('.year-row');
+      if(!row) return;
+      var now = Date.now();
+      var duration = _startedAt ? (now - _startedAt) : 0;
+      var blocked = !!row._touchMoved || !!row._touchHasMove || duration > 500 || (now - _lastScrollAt) < 200;
+      row._touchBlocked = blocked;
+      if (blocked) {
+        setTimeout(function(){ row._touchBlocked = false; }, 220);
+      }
     }, {passive:true});
   })();
 }
@@ -17992,8 +18135,15 @@ function toggleYear(el, event){
   if(event) {
     // 모바일에서 스크롤 제스처와 충돌 방지
     if(event.target.closest('.year-sub')) return;
-    // 터치 시작 위치 기록이 있으면 드래그로 판단해 무시
-    if(el._touchMoved) { el._touchMoved = false; return; }
+    // 스크롤/이동/롱터치가 감지된 터치는 즉시 차단
+    var now = Date.now();
+    var duration = el._touchStartAt ? (now - el._touchStartAt) : 0;
+    if(el._touchBlocked || el._touchMoved || el._touchHasMove || duration > 500) {
+      el._touchMoved = false;
+      el._touchHasMove = false;
+      el._touchBlocked = false;
+      return;
+    }
   }
   var sub = el.querySelector('.year-sub');
   if(!sub) return;

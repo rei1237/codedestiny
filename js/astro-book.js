@@ -581,41 +581,86 @@
 
     _setProgress(0);
 
+    var _premiumReportSessionId = '';
+
+    function _buildAstroChapterPayload(idx) {
+      return {
+        year: b.year,
+        month: b.month,
+        day: b.day,
+        hour: b.hour !== undefined ? b.hour : 12,
+        minute: b.minute !== undefined ? b.minute : 0,
+        timezone: loc.tzOffset !== undefined ? loc.tzOffset : 9,
+        lat: loc.lat !== undefined ? loc.lat : 37.5665,
+        lon: loc.lng !== undefined ? loc.lng : 126.978,
+        chapter: idx + 1,
+        reportType: 'personal',
+        houseSystem: profile.houseSystem || 'placidus',
+        zodiacType: profile.zodiacType || 'tropical',
+        birthPlace: loc.label || '대한민국 (서울)',
+        timezoneName: loc.tz || 'Asia/Seoul',
+        birthTimeUnknown: !!(profile.birthTimeUnknown || b.birthTimeUnknown || b.timeUnknown),
+        includeMinorAspects: true
+      };
+    }
+
+    function _ensurePremiumReportSession() {
+      if (_premiumReportSessionId) {
+        return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
+      }
+      if (typeof window.__cdPremiumAuthJson !== 'function') {
+        return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+      }
+      return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        reportType: 'westernAstrologyPremium',
+        requestBody: _buildAstroChapterPayload(0)
+      }).then(function(prepared) {
+        if (prepared && prepared.ok && prepared.reportSessionId) {
+          _premiumReportSessionId = String(prepared.reportSessionId);
+          return prepared;
+        }
+        return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
+      });
+    }
+
     function _fetchChapter(idx) {
-      var endpoints = _buildApiCandidates('/api/premium/astro-life');
       function _attempt(tryNo) {
         return new Promise(function(resolve) {
           var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (70초).'}); },70000);
-          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/premium/astro-life';
-          fetch(endpoint, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({
-              year: b.year, month: b.month, day: b.day,
-              hour: b.hour !== undefined ? b.hour : 12,
-              minute: b.minute !== undefined ? b.minute : 0,
-              timezone: loc.tzOffset !== undefined ? loc.tzOffset : 9,
-              lat: loc.lat !== undefined ? loc.lat : 37.5665,
-              lon: loc.lng !== undefined ? loc.lng : 126.978,
-              chapter: idx+1,
-              reportType: 'personal',
-              houseSystem: profile.houseSystem || 'placidus',
-              zodiacType: profile.zodiacType || 'tropical',
-              birthPlace: loc.label || '대한민국 (서울)',
-              timezoneName: loc.tz || 'Asia/Seoul',
-              birthTimeUnknown: !!(profile.birthTimeUnknown || b.birthTimeUnknown || b.timeUnknown),
-              includeMinorAspects: true
-            })
-          })
-          .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.error)||(e&&e.message)||'HTTP '+res.status};}); })
-          .then(function(data){
-            clearTimeout(tid);
-            if (data && data.ok && Array.isArray(data.chapterPlan) && data.chapterPlan.length) {
-              _applyServerChapterPlan(data.chapterPlan);
+          _ensurePremiumReportSession().then(function(prepared) {
+            if (!prepared || !prepared.ok || !_premiumReportSessionId) {
+              clearTimeout(tid);
+              resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              return;
             }
-            resolve(data);
-          })
-          .catch(function(err){ clearTimeout(tid); resolve({ok:false,message:String(err&&err.message?err.message:err)}); });
+            if (typeof window.__cdPremiumAuthJson !== 'function') {
+              clearTimeout(tid);
+              resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              return;
+            }
+            window.__cdPremiumAuthJson('/api/premium-report/chapter', {
+              reportSessionId: _premiumReportSessionId,
+              chapterId: idx + 1
+            }).then(function(data) {
+              clearTimeout(tid);
+              if (data && data.ok && Array.isArray(data.chapterPlan) && data.chapterPlan.length) {
+                _applyServerChapterPlan(data.chapterPlan);
+              }
+              resolve(data);
+            }).catch(function(err) {
+              clearTimeout(tid);
+              resolve({ok:false,message:String(err&&err.message?err.message:err)});
+            });
+          }).catch(function(err){ clearTimeout(tid); resolve({ok:false,message:String(err&&err.message?err.message:err)}); });
         }).then(function(data) {
+          var code = String((data && data.code) || '').toUpperCase();
+          var status = Number((data && data.status) || 0);
+          if (status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED') {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'AUTH_REQUIRED';
+            return data;
+          }
           if (data && data.ok && data.text) return data;
           if (tryNo >= 3) return data;
           return _attempt(tryNo + 1);
@@ -650,6 +695,17 @@
       }
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data) {
+        if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var authErrEl = _qs('abErrorMsg');
+          if (authErrEl) authErrEl.textContent = '로그인 세션이 만료되어 리포트 생성을 중단했습니다. 다시 로그인 후 재시도해 주세요.';
+          _showScreen('abErrorScreen');
+          if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+            window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
+          }
+          return;
+        }
         if (data&&data.ok&&data.text) { _chapters[idx]=data.text; }
         else { _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.'; }
         _setProgress(idx+1);

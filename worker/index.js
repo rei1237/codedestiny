@@ -9,6 +9,7 @@ import {
   handleLifebookRoutes,
   handleLoveSecretRoutes,
   handlePremiumRoutes,
+  handlePremiumReportRoutes,
   handleZiweiBookRoutes,
 } from "./routes/premium.js";
 import { handleDreamRoutes } from "./routes/dream.js";
@@ -402,6 +403,10 @@ export default {
 
     if (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/")) {
       return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
+    }
+
+    if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
+      return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
     }
 
     if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
