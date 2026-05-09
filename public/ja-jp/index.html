@@ -635,7 +635,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <link rel="stylesheet" href="/styles/core-ui.css?v=20260504-tapguard1">
+  <link rel="stylesheet" href="/styles/core-ui.css?v=20260510-tapguard2">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix" media="(max-width: 1024px)">
 
@@ -6231,10 +6231,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
-<script src="/js/mobile-interaction-patch.js?v=20260503-premiumfix2" defer></script>
+<script src="/js/mobile-interaction-patch.js?v=20260510-premiumsync1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260504-tapguard1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260510-tapguard2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -6243,7 +6243,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
 <script data-cd-noncritical-src="/js/iching-engine.js"></script>
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=20260321-sukuyo-scroll2"></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=20260510-sukuyo-scroll3"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <script data-cd-noncritical-src="/js/cd-lang-native.js"></script>
@@ -6614,14 +6614,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function isAdminUser() {
     try {
-      // 1) fortune_auth_user.role 확인 (서버 발급 JWT 기반 — 신뢰)
-      var user = readAuthUser();
-      if (user && user.role === 'admin') return true;
-      // 2) flower_admin_token: 관리자 패널 로그인 (서명 포맷 검증 필수 — 단순 truthy 차단)
-      try {
-        var _tok = sessionStorage.getItem('flower_admin_token');
-        if (_tok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_tok)) return true;
-      } catch (_ss) {}
+      var _pwOk = String(sessionStorage.getItem('flower_admin_password_ok') || '') === '1';
+      if (!_pwOk) return false;
+      var _tok = sessionStorage.getItem('flower_admin_token');
+      if (_tok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_tok)) return true;
     } catch (_e) {}
     return false;
   }
@@ -6664,36 +6660,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!hasAuthToken()) return;
     clearLegacyUnlockStorage();
     var storageKey = getTileLocksStorageKey();
-    var hasScopedData = false;
+    if (!storageKey) return;
     try {
-      if (storageKey) {
-        var saved = localStorage.getItem(storageKey);
-        if (saved) {
-          hasScopedData = true;
-          var parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object') {
-            var keys = Object.keys(parsed);
-            for (var i = 0; i < keys.length; i += 1) {
-              if (parsed[keys[i]] === true) markUnlockKey(unlockedFeatureMap, keys[i]);
-            }
+      var saved = localStorage.getItem(storageKey);
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          var keys = Object.keys(parsed);
+          for (var i = 0; i < keys.length; i += 1) {
+            if (parsed[keys[i]] === true) markUnlockKey(unlockedFeatureMap, keys[i]);
           }
         }
       }
     } catch (_e) {}
-    try {
-      if (!storageKey || !hasScopedData) {
-        var legacySaved = localStorage.getItem('cd_tile_locks');
-        if (legacySaved) {
-          var legacyParsed = JSON.parse(legacySaved);
-          if (legacyParsed && typeof legacyParsed === 'object') {
-            var legacyKeys = Object.keys(legacyParsed);
-            for (var li = 0; li < legacyKeys.length; li += 1) {
-              if (legacyParsed[legacyKeys[li]] === true) markUnlockKey(unlockedFeatureMap, legacyKeys[li]);
-            }
-          }
-        }
-      }
-    } catch (_legacyErr) {}
     syncUnlockedFeatureMapGlobal();
   }
 
@@ -7354,7 +7333,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           return new Promise(function(res, rej) {
             var el = document.createElement('script');
-            el.src = '/js/ziwei-book.js?v=20260503-premiumfix2';
+            el.src = '/js/ziwei-book.js?v=20260510-premiumsync1';
             el.defer = true;
             el.onload = function() {
               el.dataset.loaded = '1';
@@ -7428,7 +7407,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         // astro-book.js lazy load ???ы샇異?        var _abScr = document.querySelector('script[src*="astro-book.js"]');
         if (!_abScr) {
           var _abEl2 = document.createElement('script');
-          _abEl2.src = '/js/astro-book.js?v=20260503-premiumfix2';
+          _abEl2.src = '/js/astro-book.js?v=20260510-premiumsync1';
           _abEl2.onload = function() {
             if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           };
@@ -7455,7 +7434,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _spLoadFn = function() {
             var s=document.querySelector('script[src*="sukuyo-book.js"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260503-premiumfix2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260510-premiumsync1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
             if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal(_profileCandidateSukuyo || null);_cdForcePremiumModalVisible('sukuyoBookModal');}
@@ -7478,7 +7457,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _vdLoadFn = function() {
             var s=document.querySelector('script[src*="vedic-book.js"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260503-premiumfix2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260510-premiumsync1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
             if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal(_profileCandidateVedic || null);_cdForcePremiumModalVisible('vedicBookModal');}
@@ -7744,7 +7723,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 Preview 패널 우선 시도
     if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
       // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 PDF 모달 경로로 이동
-      if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
+      if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()))) {
         _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
         return;
       }
@@ -7798,7 +7777,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         // Preview 미연동 시 코인게이트로 즉시 폴백
         if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
@@ -8088,10 +8067,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/astro-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/vedic-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260510-premiumsync1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/astro-book.js?v=20260510-premiumsync1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260510-premiumsync1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/vedic-book.js?v=20260510-premiumsync1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <!-- Feature Preview Panel v2 -->
@@ -8389,7 +8368,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
-    if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
+    if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()))) return;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
     if (lockKey && _pvwIsUnlocked(lockKey)) return;
     var action=tile.getAttribute('data-action');

@@ -15,7 +15,7 @@
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
-    "build": "npm run clean:build && node scripts/print-build-context.mjs && next build",
+    "build": "npm run clean:build && npm run sync:public && npm run verify:public-parity && npm run verify:locale-main-sync && npm run verify:runtime-cache-sync && node scripts/print-build-context.mjs && next build",
     "analyze": "cross-env ANALYZE=true next build",
     "postbuild": "node scripts/write-version-json.mjs && node scripts/promote-static-shell-to-root.mjs",
     "clean:build": "node scripts/clean-cloudflare-build.mjs",
