@@ -4,7 +4,7 @@ const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
 
 function getAccessTokenSecret() {
-  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || "dev-secret";
+  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret";
 }
 
 function getJwtIssuer() {

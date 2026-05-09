@@ -2,23 +2,23 @@ import { getEnv } from "./env.js";
 
 const FEATURE_KEY_GROUPS = {
   "auth-basic": [
-    ["JWT_SECRET", "AUTH_SECRET"],
+    ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI"],
   ],
   "auth-oauth-google": [
-    ["JWT_SECRET", "AUTH_SECRET"],
+    ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI"],
-    ["GOOGLE_OAUTH_CLIENT_ID"],
-    ["GOOGLE_OAUTH_CLIENT_SECRET"],
+    ["GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_CLIENT_ID"],
+    ["GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_CLIENT_SECRET"],
   ],
   "auth-oauth-naver": [
-    ["JWT_SECRET", "AUTH_SECRET"],
+    ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI"],
     ["NAVER_OAUTH_CLIENT_ID"],
     ["NAVER_OAUTH_CLIENT_SECRET"],
   ],
   "auth-oauth-kakao": [
-    ["JWT_SECRET", "AUTH_SECRET"],
+    ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI"],
     ["KAKAO_OAUTH_CLIENT_ID"],
     ["KAKAO_OAUTH_CLIENT_SECRET"],

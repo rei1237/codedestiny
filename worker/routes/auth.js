@@ -217,6 +217,79 @@ function isWorkersDevOrigin(origin) {
   }
 }
 
+function isTrueLike(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function getAuthEnvPresence(env) {
+  return {
+    hasAuthSecret: Boolean(getEnv(env, "AUTH_SECRET") || getEnv(env, "NEXTAUTH_SECRET")),
+    hasJwtSecret: Boolean(getEnv(env, "JWT_SECRET") || getEnv(env, "NEXTAUTH_SECRET")),
+    hasAuthUrl: Boolean(getEnv(env, "AUTH_URL") || getEnv(env, "NEXTAUTH_URL")),
+    hasAuthApiBaseUrl: Boolean(getEnv(env, "AUTH_API_BASE_URL")),
+    hasAuthTrustHost: Boolean(getEnv(env, "AUTH_TRUST_HOST") || getEnv(env, "NEXTAUTH_TRUST_HOST")),
+    hasGoogleClientId: Boolean(getEnv(env, "GOOGLE_OAUTH_CLIENT_ID") || getEnv(env, "GOOGLE_CLIENT_ID")),
+    hasGoogleClientSecret: Boolean(getEnv(env, "GOOGLE_OAUTH_CLIENT_SECRET") || getEnv(env, "GOOGLE_CLIENT_SECRET")),
+    hasMongoUri: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
+  };
+}
+
+function getRequestHost(request) {
+  try {
+    return String(new URL(request.url).host || "");
+  } catch {
+    return "";
+  }
+}
+
+function getStackSnippet(error) {
+  const stack = String(error?.stack || "");
+  if (!stack) return "";
+  return stack
+    .split("\n")
+    .slice(0, 4)
+    .map((line) => line.trim())
+    .join(" | ")
+    .slice(0, 600);
+}
+
+function logAuthDiagnostic(request, env, routePath, provider, marker, error) {
+  const payload = {
+    marker,
+    routePath,
+    provider: provider || "",
+    requestHost: getRequestHost(request),
+    errorName: String(error?.name || "Error"),
+    errorMessage: String(error?.message || "unknown_error").slice(0, 300),
+    stackSnippet: getStackSnippet(error),
+    env: getAuthEnvPresence(env),
+  };
+
+  try {
+    console.error("[auth-diagnostic]", JSON.stringify(payload));
+  } catch {
+    console.error("[auth-diagnostic]", payload);
+  }
+}
+
+function resolveAuthTrustHost(env) {
+  return isTrueLike(getEnv(env, "AUTH_TRUST_HOST") || getEnv(env, "NEXTAUTH_TRUST_HOST"));
+}
+
+function resolveCanonicalAuthOrigin(env) {
+  const configuredApiBase = normalizeOriginOnly(getEnv(env, "AUTH_API_BASE_URL"));
+  if (configuredApiBase && !isWorkersDevOrigin(configuredApiBase)) return configuredApiBase;
+
+  const configuredAuthUrl = normalizeOriginOnly(getEnv(env, "AUTH_URL") || getEnv(env, "NEXTAUTH_URL"));
+  if (configuredAuthUrl && !isWorkersDevOrigin(configuredAuthUrl)) return configuredAuthUrl;
+
+  const siteBase = normalizeOriginOnly(getEnv(env, "SITE_BASE_URL"));
+  if (siteBase && !isWorkersDevOrigin(siteBase)) return siteBase;
+
+  return "";
+}
+
 function getAuthOpTimeoutMs(env) {
   const raw = Number(getEnv(env, "AUTH_OPERATION_TIMEOUT_MS", "12000"));
   if (!Number.isFinite(raw) || raw < 1000) return 5000;
@@ -256,26 +329,37 @@ function getFrontendBaseUrl(env) {
   const configured = normalizeOriginOnly(getEnv(env, "AUTH_FRONTEND_BASE_URL"));
   if (configured && !isWorkersDevOrigin(configured)) return configured;
 
+  const canonicalAuthOrigin = resolveCanonicalAuthOrigin(env);
+  if (canonicalAuthOrigin) return canonicalAuthOrigin;
+
   const siteBase = normalizeOriginOnly(getEnv(env, "SITE_BASE_URL"));
-  if (siteBase) return siteBase;
+  if (siteBase && !isWorkersDevOrigin(siteBase)) return siteBase;
 
   const apiBase = normalizeOriginOnly(getEnv(env, "AUTH_API_BASE_URL"));
-  if (apiBase) return apiBase;
+  if (apiBase && !isWorkersDevOrigin(apiBase)) return apiBase;
 
-  const authUrl = normalizeOriginOnly(getEnv(env, "AUTH_URL"));
-  if (authUrl) return authUrl;
+  const authUrl = normalizeOriginOnly(getEnv(env, "AUTH_URL") || getEnv(env, "NEXTAUTH_URL"));
+  if (authUrl && !isWorkersDevOrigin(authUrl)) return authUrl;
 
   return "http://localhost:3000";
 }
 
 function getApiBaseUrl(request, env) {
-  const configured = normalizeOriginOnly(getEnv(env, "AUTH_API_BASE_URL"));
-  if (configured) return configured;
+  const canonicalAuthOrigin = resolveCanonicalAuthOrigin(env);
+  if (canonicalAuthOrigin) return canonicalAuthOrigin;
 
   const url = new URL(request.url);
   const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
-  return `${proto}://${host}`.replace(/\/+$/, "");
+  const requestOrigin = normalizeOriginOnly(`${proto}://${host}`);
+  const productionLike = String(getEnv(env, "NODE_ENV", "")).trim().toLowerCase() === "production";
+  const trustHost = resolveAuthTrustHost(env);
+
+  if (requestOrigin && (!productionLike || trustHost || !isWorkersDevOrigin(requestOrigin))) {
+    return requestOrigin;
+  }
+
+  return requestOrigin || "http://localhost:3000";
 }
 
 function getRequestOrigin(request) {
@@ -357,8 +441,8 @@ function buildProviderConfig(provider, request, env) {
 
   if (provider === "google") {
     return {
-      clientId: getEnv(env, "GOOGLE_OAUTH_CLIENT_ID"),
-      clientSecret: getEnv(env, "GOOGLE_OAUTH_CLIENT_SECRET"),
+      clientId: getEnv(env, "GOOGLE_OAUTH_CLIENT_ID") || getEnv(env, "GOOGLE_CLIENT_ID"),
+      clientSecret: getEnv(env, "GOOGLE_OAUTH_CLIENT_SECRET") || getEnv(env, "GOOGLE_CLIENT_SECRET"),
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenEndpoint: "https://oauth2.googleapis.com/token",
       userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
@@ -1046,62 +1130,67 @@ async function handleLogin(request, env) {
 }
 
 async function handleMe(request, env) {
-  const timeoutMs = getAuthOpTimeoutMs(env);
-  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const auth = await requireAuth(request, env);
-
-  const userId = String(auth.userId || "");
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return json({ message: "Invalid authentication token." }, { status: 401 });
-  }
-  const objectId = new mongoose.Types.ObjectId(userId);
-
-  let user;
   try {
-    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_me_connect_db");
-    const users = User.collection;
-    user = await withAuthOpTimeout(
-      users.findOne(
-        { _id: objectId },
-        {
-          projection: {
-            _id: 1,
-            name: 1,
-            email: 1,
-            birthDate: 1,
-            birthTime: 1,
-            gender: 1,
-            role: 1,
-            points: 1,
-            joinedAt: 1,
-          },
-          maxTimeMS: dbMaxTimeMs,
-        },
-      ),
-      timeoutMs,
-      "auth_me_find_user",
-    );
-  } catch (error) {
-    if (isAuthDbInfraError(error)) {
-      console.warn("[auth/me] db degraded, fallback to token payload:", String(error?.message || "unknown"));
-      return json({
-        message: "Authenticated user loaded from token.",
-        user: buildTokenFallbackUser(auth),
-        source: "token",
-      });
+    const timeoutMs = getAuthOpTimeoutMs(env);
+    const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+    const auth = await requireAuth(request, env);
+
+    const userId = String(auth.userId || "");
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return json({ message: "Invalid authentication token." }, { status: 401 });
     }
+    const objectId = new mongoose.Types.ObjectId(userId);
+
+    let user;
+    try {
+      await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_me_connect_db");
+      const users = User.collection;
+      user = await withAuthOpTimeout(
+        users.findOne(
+          { _id: objectId },
+          {
+            projection: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              birthDate: 1,
+              birthTime: 1,
+              gender: 1,
+              role: 1,
+              points: 1,
+              joinedAt: 1,
+            },
+            maxTimeMS: dbMaxTimeMs,
+          },
+        ),
+        timeoutMs,
+        "auth_me_find_user",
+      );
+    } catch (error) {
+      if (isAuthDbInfraError(error)) {
+        logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
+        return json({
+          message: "Authenticated user loaded from token.",
+          user: buildTokenFallbackUser(auth),
+          source: "token",
+        });
+      }
+      throw error;
+    }
+    if (!user) return json({ message: "User not found." }, { status: 404 });
+
+    return json({
+      ok: true,
+      message: "Authenticated user loaded.",
+      user: {
+        ...normalizeUserResponse(user),
+        hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+      },
+    });
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_failed", error);
     throw error;
   }
-  if (!user) return json({ message: "User not found." }, { status: 404 });
-
-  return json({
-    ok: true,
-    message: "Authenticated user loaded.",
-    user: {
-      ...normalizeUserResponse(user),
-      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
-    },
-  });
 }
 
 async function handleRefresh(request, env) {
@@ -1406,40 +1495,48 @@ async function handleOAuthStart(request, env, provider) {
     return json({ message: "Unsupported social login provider." }, { status: 400 });
   }
 
-  const cfg = buildProviderConfig(provider, request, env);
-  if (!cfg.clientId || ((provider === "google" || provider === "naver") && !cfg.clientSecret)) {
-    return json({ message: "Social login is not configured on the server." }, { status: 500 });
+  try {
+    const cfg = buildProviderConfig(provider, request, env);
+    if (!cfg.clientId || ((provider === "google" || provider === "naver") && !cfg.clientSecret)) {
+      return json({ message: "Social login is not configured on the server." }, { status: 500 });
+    }
+
+    const url = new URL(request.url);
+    const nextPath = sanitizeNextPath(url.searchParams.get("next") || "") || "/";
+    const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
+    const requestOrigin = getRequestOrigin(request);
+    const frontendBase = requestOrigin && !isWorkersDevOrigin(requestOrigin)
+      ? requestOrigin
+      : getFrontendBaseUrl(env);
+    const stateToken = await signSocialState({
+      provider,
+      nextPath,
+      frontendBase,
+      flow,
+      redirectUri: cfg.redirectUri,
+    }, env);
+
+    const params = new URLSearchParams({
+      client_id: cfg.clientId,
+      redirect_uri: cfg.redirectUri,
+      response_type: "code",
+      scope: cfg.scope,
+      state: stateToken,
+    });
+
+    return redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/start", provider, "oauth_start_failed", error);
+    return json({
+      ok: false,
+      message: "Social login start failed.",
+      code: "oauth_start_failed",
+    }, { status: 500 });
   }
-
-  const url = new URL(request.url);
-  const nextPath = sanitizeNextPath(url.searchParams.get("next") || "") || "/";
-  const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
-  const requestOrigin = getRequestOrigin(request);
-  const frontendBase = requestOrigin && !isWorkersDevOrigin(requestOrigin)
-    ? requestOrigin
-    : getFrontendBaseUrl(env);
-  const stateToken = await signSocialState({
-    provider,
-    nextPath,
-    frontendBase,
-    flow,
-    redirectUri: cfg.redirectUri,
-  }, env);
-
-  const params = new URLSearchParams({
-    client_id: cfg.clientId,
-    redirect_uri: cfg.redirectUri,
-    response_type: "code",
-    scope: cfg.scope,
-    state: stateToken,
-  });
-
-  return redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
 }
 
 async function handleOAuthCallback(request, env, provider) {
   const frontendBase = getFrontendBaseUrl(env);
-  const fallbackRedirect = `${frontendBase}/login?social_error=oauth_callback_failed`;
 
   if (!OAUTH_PROVIDERS.includes(provider)) {
     return redirect(`${frontendBase}/login?social_error=unsupported_provider`);
@@ -1485,44 +1582,64 @@ async function handleOAuthCallback(request, env, provider) {
     const safeFrontendBase = String(statePayload.frontendBase || frontendBase).replace(/\/+$/, "");
     return redirect(`${safeFrontendBase}${redirectPath}?${redirectParams.toString()}`);
   } catch (error) {
-    console.error(error);
+    logAuthDiagnostic(request, env, "/api/auth/oauth/callback", provider, "oauth_callback_failed", error);
     const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
     return redirect(`${frontendBase}/login?social_error=${encodeURIComponent(reason)}`);
   }
 }
 
 async function handleOAuthComplete(request, env) {
-  const body = await readJson(request);
-  const socialGrant = String(body?.socialGrant || "");
-  if (!socialGrant) {
-    return json({ message: "Social authentication grant is missing." }, { status: 400 });
+  try {
+    const body = await readJson(request);
+    const socialGrant = String(body?.socialGrant || "");
+    if (!socialGrant) {
+      return json({ message: "Social authentication grant is missing." }, { status: 400 });
+    }
+
+    const payload = await verifySocialGrant(socialGrant, env);
+    await connectDb(env);
+
+    const user = await User.findById(payload.userId).lean();
+    if (!user) return json({ message: "User not found." }, { status: 404 });
+
+    const accessToken = await signAuthToken(user, env);
+    const nextRefresh = await issueRefreshTokenForUser(user._id, env);
+    await createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt);
+
+    const response = json({
+      ok: true,
+      message: "Social login completed.",
+      user: normalizeUserResponse(user),
+      nextPath: sanitizeNextPath(payload.nextPath) || "/",
+      provider: payload.provider,
+    });
+    appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
+    return response;
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/complete", "", "oauth_complete_failed", error);
+    throw error;
   }
-
-  const payload = await verifySocialGrant(socialGrant, env);
-  await connectDb(env);
-
-  const user = await User.findById(payload.userId).lean();
-  if (!user) return json({ message: "User not found." }, { status: 404 });
-
-  const accessToken = await signAuthToken(user, env);
-  const nextRefresh = await issueRefreshTokenForUser(user._id, env);
-  await createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt);
-
-  const response = json({
-    ok: true,
-    message: "Social login completed.",
-    user: normalizeUserResponse(user),
-    nextPath: sanitizeNextPath(payload.nextPath) || "/",
-    provider: payload.provider,
-  });
-  appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
-  return response;
 }
 
 export async function handleAuthRoutes(request, env) {
+  let path = "";
   try {
     const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/auth");
+    path = getRoutePath(request, "/api/auth");
+
+    const legacySignInMatch = path.match(/^\/signin\/([^/]+)$/);
+    if (method === "GET" && legacySignInMatch) {
+      return await handleOAuthStart(request, env, String(legacySignInMatch[1] || "").toLowerCase());
+    }
+
+    const legacyCallbackMatch = path.match(/^\/callback\/([^/]+)$/);
+    if (method === "GET" && legacyCallbackMatch) {
+      return await handleOAuthCallback(request, env, String(legacyCallbackMatch[1] || "").toLowerCase());
+    }
+
+    if (method === "GET" && path === "/session") {
+      return await handleMe(request, env);
+    }
 
     if (
       path === "/register"
@@ -1565,6 +1682,9 @@ export async function handleAuthRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    const providerMatch = path.match(/^\/oauth\/([^/]+)/);
+    const provider = providerMatch ? String(providerMatch[1] || "") : "";
+    logAuthDiagnostic(request, env, `/api/auth${path || ""}`, provider, "auth_route_failed", error);
     if (error && error.code === 11000) {
       return json({
         message: "This email is already registered.",
@@ -1572,6 +1692,14 @@ export async function handleAuthRoutes(request, env) {
         error: "duplicate_email",
       }, { status: 409 });
     }
-    return handleRouteError(error);
+    return handleRouteError(error, {
+      request,
+      env,
+      trace: {
+        route: "auth",
+        requestPath: `/api/auth${path || ""}`,
+        method: request?.method || "",
+      },
+    });
   }
 }

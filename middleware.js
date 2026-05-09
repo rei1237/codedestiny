@@ -155,17 +155,56 @@ function buildLoginRedirectUrl(request) {
   return loginUrl;
 }
 
+function middlewareStackSnippet(error) {
+  const stack = String(error?.stack || "");
+  if (!stack) return "";
+  return stack
+    .split("\n")
+    .slice(0, 4)
+    .map((line) => line.trim())
+    .join(" | ")
+    .slice(0, 600);
+}
+
+function logMiddlewareError(request, error) {
+  const payload = {
+    routePath: String(request?.nextUrl?.pathname || ""),
+    provider: "",
+    requestHost: String(request?.nextUrl?.host || ""),
+    errorName: String(error?.name || "Error"),
+    errorMessage: String(error?.message || "middleware_error").slice(0, 300),
+    stackSnippet: middlewareStackSnippet(error),
+    env: {
+      hasAuthSecret: Boolean(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
+      hasJwtSecret: Boolean(process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET),
+      hasAuthUrl: Boolean(process.env.AUTH_URL || process.env.NEXTAUTH_URL),
+      hasAuthApiBaseUrl: Boolean(process.env.AUTH_API_BASE_URL),
+      hasAuthTrustHost: Boolean(process.env.AUTH_TRUST_HOST || process.env.NEXTAUTH_TRUST_HOST),
+      hasGoogleClientId: Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID || process.env.GOOGLE_CLIENT_ID),
+      hasGoogleClientSecret: Boolean(process.env.GOOGLE_OAUTH_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET),
+      hasMongoUri: Boolean(process.env.MONGO_URI || process.env.MONGODB_URI),
+    },
+  };
+
+  try {
+    console.error("[middleware-auth-diagnostic]", JSON.stringify(payload));
+  } catch {
+    console.error("[middleware-auth-diagnostic]", payload);
+  }
+}
+
 export function middleware(request) {
   const { pathname, search } = request.nextUrl;
   const ua = request.headers.get("user-agent") || "";
   const method = (request.method || "GET").toUpperCase();
 
-  if (pathname === "/secret-house-final.html") {
+  try {
+    if (pathname === "/secret-house-final.html") {
     const url = request.nextUrl.clone();
     url.pathname = "/secret-house_real.html";
     url.search = search;
     return NextResponse.redirect(url, 308);
-  }
+    }
 
   // SEO/public discovery files and static assets should always pass through unchanged.
   if (SEO_PUBLIC_PATHS.has(pathname) || isStaticAssetPath(pathname)) {
@@ -292,11 +331,16 @@ export function middleware(request) {
     requestHeaders.set("x-pathname", pathForLocale);
   }
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  } catch (error) {
+    logMiddlewareError(request, error);
+    // Fail-open for auth middleware errors so OAuth/login pages remain reachable.
+    return NextResponse.next();
+  }
 }
 
 export const config = {

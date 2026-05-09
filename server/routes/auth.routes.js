@@ -40,12 +40,63 @@ function parseDurationToSeconds(rawValue, fallbackSeconds) {
   return Math.floor(amount * multiplier);
 }
 
+function readEnv(...keys) {
+  for (const key of keys) {
+    const value = String(process.env[key] || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
+function serverAuthStackSnippet(error) {
+  const stack = String(error?.stack || "");
+  if (!stack) return "";
+  return stack
+    .split("\n")
+    .slice(0, 4)
+    .map((line) => line.trim())
+    .join(" | ")
+    .slice(0, 600);
+}
+
+function serverAuthEnvPresence() {
+  return {
+    hasAuthSecret: Boolean(readEnv("AUTH_SECRET", "NEXTAUTH_SECRET")),
+    hasJwtSecret: Boolean(readEnv("JWT_SECRET", "NEXTAUTH_SECRET")),
+    hasAuthUrl: Boolean(readEnv("AUTH_URL", "NEXTAUTH_URL")),
+    hasAuthApiBaseUrl: Boolean(readEnv("AUTH_API_BASE_URL")),
+    hasAuthTrustHost: Boolean(readEnv("AUTH_TRUST_HOST", "NEXTAUTH_TRUST_HOST")),
+    hasGoogleClientId: Boolean(readEnv("GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_CLIENT_ID")),
+    hasGoogleClientSecret: Boolean(readEnv("GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_CLIENT_SECRET")),
+    hasMongoUri: Boolean(readEnv("MONGO_URI", "MONGODB_URI")),
+  };
+}
+
+function logServerAuthDiagnostic(req, routePath, provider, marker, error) {
+  const payload = {
+    marker,
+    routePath,
+    provider: provider || "",
+    requestHost: String(req?.headers?.host || ""),
+    errorName: String(error?.name || "Error"),
+    errorMessage: String(error?.message || "server_auth_error").slice(0, 300),
+    stackSnippet: serverAuthStackSnippet(error),
+    env: serverAuthEnvPresence(),
+  };
+
+  try {
+    console.error("[server-auth-diagnostic]", JSON.stringify(payload));
+  } catch {
+    console.error("[server-auth-diagnostic]", payload);
+  }
+}
+
 function getAccessTokenSecret() {
-  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || "dev-secret";
+  return readEnv("JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET") || "dev-secret";
 }
 
 function getRefreshTokenSecret() {
-  return process.env.JWT_REFRESH_SECRET || process.env.AUTH_SECRET || getAccessTokenSecret();
+  return readEnv("JWT_REFRESH_SECRET", "AUTH_SECRET", "JWT_SECRET", "NEXTAUTH_SECRET") || getAccessTokenSecret();
 }
 
 function getJwtIssuer() {
@@ -270,18 +321,18 @@ function isWorkersDevOrigin(origin) {
 function getFrontendBaseUrl() {
   return (
     (() => {
-      const configured = normalizeOriginOnly(process.env.AUTH_FRONTEND_BASE_URL);
+      const configured = normalizeOriginOnly(readEnv("AUTH_FRONTEND_BASE_URL", "SITE_BASE_URL", "AUTH_URL", "NEXTAUTH_URL"));
       return configured && !isWorkersDevOrigin(configured) ? configured : "";
     })()
-    || normalizeOriginOnly(process.env.SITE_BASE_URL)
-    || normalizeOriginOnly(process.env.AUTH_API_BASE_URL)
+    || normalizeOriginOnly(readEnv("SITE_BASE_URL", "AUTH_URL", "NEXTAUTH_URL"))
+    || normalizeOriginOnly(readEnv("AUTH_API_BASE_URL", "AUTH_URL", "NEXTAUTH_URL"))
     || "http://localhost:3000"
   );
 }
 
 function getApiBaseUrl(req) {
-  if (normalizeOriginOnly(process.env.AUTH_API_BASE_URL)) {
-    return normalizeOriginOnly(process.env.AUTH_API_BASE_URL);
+  if (normalizeOriginOnly(readEnv("AUTH_API_BASE_URL", "AUTH_URL", "NEXTAUTH_URL"))) {
+    return normalizeOriginOnly(readEnv("AUTH_API_BASE_URL", "AUTH_URL", "NEXTAUTH_URL"));
   }
   const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
   const host = req.headers["x-forwarded-host"] || req.get("host");
@@ -386,8 +437,8 @@ function buildProviderConfig(provider, req) {
 
   if (provider === "google") {
     return {
-      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+      clientId: readEnv("GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_CLIENT_ID"),
+      clientSecret: readEnv("GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_CLIENT_SECRET"),
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenEndpoint: "https://oauth2.googleapis.com/token",
       userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
@@ -865,7 +916,8 @@ router.get("/oauth/:provider/start", async (req, res) => {
 
     const authUrl = `${cfg.authorizationEndpoint}?${params.toString()}`;
     return res.redirect(authUrl);
-  } catch {
+  } catch (error) {
+    logServerAuthDiagnostic(req, "/api/auth/oauth/start", provider, "oauth_start_failed", error);
     return res.status(500).json({ message: "소셜 로그인 시작 중 오류가 발생했습니다." });
   }
 });
@@ -921,6 +973,7 @@ router.get("/oauth/:provider/callback", async (req, res) => {
 
     return res.redirect(`${frontendBase}${redirectPath}?${redirectParams.toString()}`);
   } catch (error) {
+    logServerAuthDiagnostic(req, "/api/auth/oauth/callback", provider, "oauth_callback_failed", error);
     const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
     return res.redirect(`${frontendBase}/login?social_error=${encodeURIComponent(reason)}`);
   }
@@ -952,6 +1005,7 @@ router.post("/oauth/complete", async (req, res, next) => {
       provider: payload.provider,
     });
   } catch (error) {
+    logServerAuthDiagnostic(req, "/api/auth/oauth/complete", "", "oauth_complete_failed", error);
     if (error && error.name === "TokenExpiredError") {
       return res.status(401).json({ message: "소셜 인증이 만료되었습니다. 다시 시도해 주세요." });
     }

@@ -122,6 +122,64 @@ function resolveHealthBool(env, keys = []) {
   return keys.some((key) => Boolean(getEnv(env, key)));
 }
 
+function stackSnippet(error) {
+  const stack = String(error?.stack || "");
+  if (!stack) return "";
+  return stack
+    .split("\n")
+    .slice(0, 4)
+    .map((line) => line.trim())
+    .join(" | ")
+    .slice(0, 600);
+}
+
+function parseProviderFromPath(pathname = "") {
+  const match = String(pathname).match(/\/api\/auth\/oauth\/([^/]+)\//i);
+  return match ? String(match[1] || "").toLowerCase() : "";
+}
+
+function getWorkerEnvPresence(env) {
+  return {
+    hasAuthSecret: Boolean(getEnv(env, "AUTH_SECRET") || getEnv(env, "NEXTAUTH_SECRET")),
+    hasJwtSecret: Boolean(getEnv(env, "JWT_SECRET") || getEnv(env, "NEXTAUTH_SECRET")),
+    hasAuthUrl: Boolean(getEnv(env, "AUTH_URL") || getEnv(env, "NEXTAUTH_URL")),
+    hasAuthApiBaseUrl: Boolean(getEnv(env, "AUTH_API_BASE_URL")),
+    hasAuthTrustHost: Boolean(getEnv(env, "AUTH_TRUST_HOST") || getEnv(env, "NEXTAUTH_TRUST_HOST")),
+    hasGoogleClientId: Boolean(getEnv(env, "GOOGLE_OAUTH_CLIENT_ID") || getEnv(env, "GOOGLE_CLIENT_ID")),
+    hasGoogleClientSecret: Boolean(getEnv(env, "GOOGLE_OAUTH_CLIENT_SECRET") || getEnv(env, "GOOGLE_CLIENT_SECRET")),
+    hasMongoUri: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
+  };
+}
+
+function logWorkerUnhandledError(request, env, error) {
+  let pathname = "";
+  let host = "";
+
+  try {
+    const parsed = new URL(request.url);
+    pathname = parsed.pathname || "";
+    host = parsed.host || "";
+  } catch {
+    // ignore parse failure
+  }
+
+  const payload = {
+    routePath: pathname || "unknown",
+    provider: parseProviderFromPath(pathname),
+    requestHost: host,
+    errorName: String(error?.name || "Error"),
+    errorMessage: String(error?.message || "Internal server error").slice(0, 300),
+    stackSnippet: stackSnippet(error),
+    env: getWorkerEnvPresence(env),
+  };
+
+  try {
+    console.error("[worker-unhandled]", JSON.stringify(payload));
+  } catch {
+    console.error("[worker-unhandled]", payload);
+  }
+}
+
 function withCorsHeaders(request, env, response) {
   for (const [key, value] of Object.entries(getCorsHeaders(request, env))) {
     response.headers.set(key, value);
@@ -293,179 +351,198 @@ async function proxyApiRequest(request, env) {
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
+    try {
+      const url = new URL(request.url);
 
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: getCorsHeaders(request, env),
-      });
-    }
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: getCorsHeaders(request, env),
+        });
+      }
 
-    if (url.pathname === "/api/health") {
-      const upstreamOrigin = getUpstreamOrigin(env);
-      const keyMatrix = buildRuntimeKeyMatrix(env);
-      const brokenFeatures = keyMatrix
-        .filter((item) => !item.ok)
-        .map((item) => item.feature);
+      if (url.pathname === "/api/health") {
+        const upstreamOrigin = getUpstreamOrigin(env);
+        const keyMatrix = buildRuntimeKeyMatrix(env);
+        const brokenFeatures = keyMatrix
+          .filter((item) => !item.ok)
+          .map((item) => item.feature);
+        return jsonResponse(request, env, {
+          ok: true,
+          service: "code-destiny-api-worker",
+          mode: "worker-native",
+          backendOnly: true,
+          nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "astro", "vedic", "palm", "geo"],
+          fallbackProxyMode: upstreamOrigin
+            ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
+            : "disabled",
+          upstreamConfigured: Boolean(upstreamOrigin),
+          keyHealth: {
+            ok: brokenFeatures.length === 0,
+            brokenFeatures,
+            checkEndpoint: "/api/admin/keys",
+          },
+          legacyMode:
+            upstreamOrigin
+              ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "proxy")
+              : "not_configured",
+        });
+      }
+
+      if (url.pathname === "/api/health/auth-env") {
+        const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
+        const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
+        const jwtSecretConfigured = resolveHealthBool(env, ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"]);
+
+        return jsonResponse(request, env, {
+          ok: true,
+          service: "code-destiny-api-worker",
+          authEnv: {
+            mongoUriConfigured,
+            mongoDbNameConfigured,
+            jwtSecretConfigured,
+          },
+        });
+      }
+
+      if (url.pathname === "/api/geo") {
+        const country = detectCountry(request);
+        return jsonResponse(request, env, {
+          ok: true,
+          country,
+          locale: detectLocale(country),
+        });
+      }
+
+      if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
+        return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/session") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/auth/session");
+        return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
+        return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/insights" || url.pathname.startsWith("/api/insights/")) {
+        return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/palm" || url.pathname.startsWith("/api/palm/")) {
+        return withCorsHeaders(request, env, await handlePalmRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
+        return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/points/me") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/points/me");
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
+        return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/subscription/status") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {
+        return withCorsHeaders(request, env, await handleTarotRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/youtube" || url.pathname.startsWith("/api/youtube/")) {
+        return withCorsHeaders(request, env, await handleYoutubeRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/celestial-harmony" || url.pathname.startsWith("/api/celestial-harmony/")) {
+        return withCorsHeaders(request, env, await handleCelestialHarmonyRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/")) {
+        return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
+        return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
+        return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/lifebook" || url.pathname.startsWith("/api/lifebook/")) {
+        return withCorsHeaders(request, env, await handleLifebookRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
+        return withCorsHeaders(request, env, await handleLoveSecretRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
+        return withCorsHeaders(request, env, await handleDreamRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/yoga-guru" || url.pathname.startsWith("/api/yoga-guru/")) {
+        return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/sibyl" || url.pathname.startsWith("/api/sibyl/")) {
+        return withCorsHeaders(request, env, await handleSibylRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/oracle" || url.pathname.startsWith("/api/oracle/")) {
+        return withCorsHeaders(request, env, await handleOracleRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {
+        return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/vedic" || url.pathname.startsWith("/api/vedic/")) {
+        return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {
+        return withCorsHeaders(request, env, await handleDebugRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/user" || url.pathname.startsWith("/api/user/")) {
+        return withCorsHeaders(request, env, await handleUserRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/subscriptions" || url.pathname.startsWith("/api/subscriptions/")) {
+        return withCorsHeaders(request, env, await handleSubscriptionRoutes(request, env));
+      }
+
+      if (url.pathname.startsWith("/api/")) {
+        return proxyApiRequest(request, env);
+      }
+
       return jsonResponse(request, env, {
-        ok: true,
-        service: "code-destiny-api-worker",
-        mode: "worker-native",
-        backendOnly: true,
-        nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "astro", "vedic", "palm", "geo"],
-        fallbackProxyMode: upstreamOrigin
-          ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
-          : "disabled",
-        upstreamConfigured: Boolean(upstreamOrigin),
-        keyHealth: {
-          ok: brokenFeatures.length === 0,
-          brokenFeatures,
-          checkEndpoint: "/api/admin/keys",
+        ok: false,
+        error: "backend_only",
+        message: "This Worker only serves backend API routes under /api/*.",
+      }, { status: 404, headers: { "X-CF-Worker-Error": "backend_only" } });
+    } catch (error) {
+      logWorkerUnhandledError(request, env, error);
+      return jsonResponse(request, env, {
+        ok: false,
+        error: "worker_unhandled_exception",
+        message: "Authentication service error. Please retry login.",
+      }, {
+        status: 500,
+        headers: {
+          "X-CF-Worker-Error": "worker_unhandled_exception",
         },
-        legacyMode:
-          upstreamOrigin
-            ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "proxy")
-            : "not_configured",
       });
     }
-
-    if (url.pathname === "/api/health/auth-env") {
-      const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
-      const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
-      const jwtSecretConfigured = resolveHealthBool(env, ["JWT_SECRET", "AUTH_SECRET"]);
-
-      return jsonResponse(request, env, {
-        ok: true,
-        service: "code-destiny-api-worker",
-        authEnv: {
-          mongoUriConfigured,
-          mongoDbNameConfigured,
-          jwtSecretConfigured,
-        },
-      });
-    }
-
-    if (url.pathname === "/api/geo") {
-      const country = detectCountry(request);
-      return jsonResponse(request, env, {
-        ok: true,
-        country,
-        locale: detectLocale(country),
-      });
-    }
-
-    if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
-      return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
-      return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/insights" || url.pathname.startsWith("/api/insights/")) {
-      return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/palm" || url.pathname.startsWith("/api/palm/")) {
-      return withCorsHeaders(request, env, await handlePalmRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
-      return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/points/me") {
-      const rewrittenRequest = rewriteRequestPath(request, "/api/payments/points/me");
-      return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
-    }
-
-    if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
-      return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/subscription/status") {
-      const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
-      return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-    }
-
-    if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {
-      return withCorsHeaders(request, env, await handleTarotRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/youtube" || url.pathname.startsWith("/api/youtube/")) {
-      return withCorsHeaders(request, env, await handleYoutubeRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/celestial-harmony" || url.pathname.startsWith("/api/celestial-harmony/")) {
-      return withCorsHeaders(request, env, await handleCelestialHarmonyRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/")) {
-      return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
-      return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
-      return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/lifebook" || url.pathname.startsWith("/api/lifebook/")) {
-      return withCorsHeaders(request, env, await handleLifebookRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
-      return withCorsHeaders(request, env, await handleLoveSecretRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
-      return withCorsHeaders(request, env, await handleDreamRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/yoga-guru" || url.pathname.startsWith("/api/yoga-guru/")) {
-      return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/sibyl" || url.pathname.startsWith("/api/sibyl/")) {
-      return withCorsHeaders(request, env, await handleSibylRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/oracle" || url.pathname.startsWith("/api/oracle/")) {
-      return withCorsHeaders(request, env, await handleOracleRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {
-      return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/vedic" || url.pathname.startsWith("/api/vedic/")) {
-      return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {
-      return withCorsHeaders(request, env, await handleDebugRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/user" || url.pathname.startsWith("/api/user/")) {
-      return withCorsHeaders(request, env, await handleUserRoutes(request, env));
-    }
-
-    if (url.pathname === "/api/subscriptions" || url.pathname.startsWith("/api/subscriptions/")) {
-      return withCorsHeaders(request, env, await handleSubscriptionRoutes(request, env));
-    }
-
-    if (url.pathname.startsWith("/api/")) {
-      return proxyApiRequest(request, env);
-    }
-
-    return jsonResponse(request, env, {
-      ok: false,
-      error: "backend_only",
-      message: "This Worker only serves backend API routes under /api/*.",
-    }, { status: 404, headers: { "X-CF-Worker-Error": "backend_only" } });
   },
 
   async scheduled(event, env, ctx) {

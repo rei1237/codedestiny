@@ -42,6 +42,18 @@ function isLocalBaseUrl(baseUrl?: string | null): boolean {
   }
 }
 
+function isWorkersDevBaseUrl(baseUrl?: string | null): boolean {
+  const value = String(baseUrl || "").trim();
+  if (!value) return false;
+
+  try {
+    const hostname = new URL(value).hostname.toLowerCase();
+    return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
+  } catch {
+    return /workers\.dev/i.test(value);
+  }
+}
+
 function pickPreferredLocalBase(candidates: Array<string>): string {
   for (const candidate of candidates) {
     if (isLocalBaseUrl(candidate)) return candidate;
@@ -56,6 +68,10 @@ export function getApiBaseUrl(): string {
   if (typeof window !== "undefined") {
     const runtimeBase = normalizeBaseUrl((window as any).CODE_DESTINY_API_BASE_URL);
     const isLocalDev = isLocalHostname(window.location.hostname);
+    const sameOriginBase = normalizeBaseUrl(window.location.origin);
+    const currentHostIsWorkersDev = isWorkersDevBaseUrl(sameOriginBase);
+    const runtimeIsWorkersDev = isWorkersDevBaseUrl(runtimeBase);
+    const configuredIsWorkersDev = isWorkersDevBaseUrl(configuredBase) || isWorkersDevBaseUrl(configuredAuthBase);
 
     if (isLocalDev) {
       const localBase = pickPreferredLocalBase([
@@ -66,11 +82,20 @@ export function getApiBaseUrl(): string {
       return localBase || FALLBACK_LOCAL_API_BASE_URL;
     }
 
-    if (runtimeBase) return runtimeBase;
+    if (runtimeBase && (!runtimeIsWorkersDev || currentHostIsWorkersDev)) {
+      return runtimeBase;
+    }
+
+    // In production custom domain, keep auth/API same-origin for stable secure cookies.
+    if (!currentHostIsWorkersDev) {
+      if (configuredBase && !isWorkersDevBaseUrl(configuredBase)) return configuredBase;
+      if (configuredAuthBase && !isWorkersDevBaseUrl(configuredAuthBase)) return configuredAuthBase;
+      return sameOriginBase;
+    }
 
     // In production/previews, prefer same-origin /api via Pages routing first.
     // If routing is unavailable, configure NEXT_PUBLIC_AUTH_API_BASE_URL.
-    return configuredBase || configuredAuthBase || "";
+    return configuredBase || configuredAuthBase || (configuredIsWorkersDev ? sameOriginBase : "");
   }
 
   return configuredBase || configuredAuthBase;
