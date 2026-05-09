@@ -590,6 +590,7 @@ export default function HPremiumVedicSection({
       );
     } catch {
       // ignore storage quota errors
+    }
   }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chart, chapters, showIntro]);
 
   useEffect(() => {

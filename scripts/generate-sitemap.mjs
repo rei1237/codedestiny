@@ -5,20 +5,52 @@ const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
+const insightsSeoGrowthSourcePath = resolve(rootDir, "app", "insights", "seo-growth-articles.js");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
+const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+const excludedInsightCategories = new Set([
+  "상담 윤리",
+  "콘텐츠 운영",
+  "사용자 가이드",
+  "기술 SEO",
+  "운영 체크리스트",
+  "법률/운영",
+]);
 
 const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
+  { path: "/saju", changefreq: "daily", priority: 0.98 },
+  { path: "/manse", changefreq: "daily", priority: 0.98 },
+  { path: "/daily-fortune", changefreq: "daily", priority: 0.97 },
+  { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
+  { path: "/tarot", changefreq: "weekly", priority: 0.96 },
+  { path: "/ziwei", changefreq: "weekly", priority: 0.95 },
+  { path: "/ziwei/chart", changefreq: "weekly", priority: 0.92 },
+  { path: "/astrology", changefreq: "weekly", priority: 0.95 },
+  { path: "/sukuyo", changefreq: "weekly", priority: 0.94 },
+  { path: "/sukuyo/compatibility", changefreq: "weekly", priority: 0.93 },
+  { path: "/vedic", changefreq: "weekly", priority: 0.94 },
+  { path: "/dream", changefreq: "weekly", priority: 0.94 },
+  { path: "/physiognomy", changefreq: "weekly", priority: 0.93 },
+  { path: "/premium", changefreq: "weekly", priority: 0.93 },
   { path: "/about", changefreq: "monthly", priority: 0.9 },
   { path: "/faq", changefreq: "monthly", priority: 0.88 },
   { path: "/methodology", changefreq: "monthly", priority: 0.86 },
-  { path: "/contact-us", changefreq: "yearly", priority: 0.6 },
-  { path: "/privacy-policy", changefreq: "yearly", priority: 0.55 },
-  { path: "/terms-of-service", changefreq: "yearly", priority: 0.55 },
+  { path: "/contact", changefreq: "yearly", priority: 0.6 },
+  { path: "/privacy", changefreq: "yearly", priority: 0.55 },
+  { path: "/terms", changefreq: "yearly", priority: 0.55 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
+  { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
+  { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
+  { path: "/insights/sukuyo", changefreq: "weekly", priority: 0.88 },
+  { path: "/insights/tarot", changefreq: "weekly", priority: 0.83 },
+  { path: "/insights/astrology", changefreq: "weekly", priority: 0.83 },
+  { path: "/insights/vedic", changefreq: "weekly", priority: 0.83 },
+  { path: "/insights/dream", changefreq: "weekly", priority: 0.82 },
+  { path: "/insights/compatibility", changefreq: "weekly", priority: 0.82 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/rss.xml", changefreq: "daily", priority: 0.2 },
   { path: "/insights/rss.xml", changefreq: "daily", priority: 0.2 },
@@ -31,19 +63,20 @@ function normalizeDate(dateLike) {
 }
 
 function extractInsightRoutes() {
-  const source = readFileSync(insightsSourcePath, "utf8");
-  const articleRegex =
-    /{\s*slug:\s*"([^"]+)"[\s\S]*?updatedAt:\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-
   const routes = [];
   const seen = new Set();
 
-  let match;
-  while ((match = articleRegex.exec(source)) !== null) {
-    const slug = String(match[1] || "").trim();
-    const updatedAt = String(match[2] || "").trim();
+  const legacySource = readFileSync(insightsSourcePath, "utf8");
+  const legacyArticleRegex =
+    /{\s*slug:\s*"([^"]+)"[\s\S]*?category:\s*"([^"]+)"[\s\S]*?updatedAt:\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
 
-    if (!slug || seen.has(slug)) continue;
+  let match;
+  while ((match = legacyArticleRegex.exec(legacySource)) !== null) {
+    const slug = String(match[1] || "").trim();
+    const category = String(match[2] || "").trim();
+    const updatedAt = String(match[3] || "").trim();
+
+    if (!slug || seen.has(slug) || excludedInsightCategories.has(category)) continue;
 
     seen.add(slug);
     routes.push({
@@ -51,6 +84,22 @@ function extractInsightRoutes() {
       changefreq: "monthly",
       priority: 0.74,
       lastmod: normalizeDate(updatedAt),
+    });
+  }
+
+  const growthSource = readFileSync(insightsSeoGrowthSourcePath, "utf8");
+  const growthSlugRegex = /slug:\s*"([^"]+)"/g;
+
+  while ((match = growthSlugRegex.exec(growthSource)) !== null) {
+    const slug = String(match[1] || "").trim();
+    if (!slug || seen.has(slug)) continue;
+
+    seen.add(slug);
+    routes.push({
+      path: `/insights/${slug}`,
+      changefreq: "monthly",
+      priority: 0.74,
+      lastmod: today,
     });
   }
 
@@ -147,12 +196,12 @@ async function fetchPublishedInsightsFromApi() {
 }
 
 async function main() {
-  const dynamicInsights = await fetchPublishedInsightsFromApi().catch(() => []);
-  const fallbackInsights = dynamicInsights.length > 0 ? [] : extractInsightRoutes();
+  const dynamicInsights = useInsightsApi ? await fetchPublishedInsightsFromApi().catch(() => []) : [];
+  const localInsights = extractInsightRoutes();
 
   const routeEntries = [
     ...coreRoutes,
-    ...fallbackInsights,
+    ...localInsights,
     ...dynamicInsights,
     ...extractHighValueRoutes(),
   ];

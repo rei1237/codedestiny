@@ -23,7 +23,7 @@ const ABOUT_JSON_LD = JSON.stringify({
       "@type": "Organization",
       "@id": "https://code-destiny.com/#organization",
       name: "Code Destiny",
-      alternateName: "꿀꿀 만세력",
+      alternateName: ["코드 데스티니", "꿀꿀 만세력", "Ggulggul Manseryeok", "codedestiny"],
       url: "https://code-destiny.com",
       logo: {
         "@type": "ImageObject",
@@ -37,7 +37,12 @@ const ABOUT_JSON_LD = JSON.stringify({
         contactType: "customer support",
         availableLanguage: ["Korean", "English"],
       },
-      sameAs: ["https://code-destiny.com"],
+      sameAs: [
+        "https://code-destiny.com",
+        "https://code-destiny.com/insights",
+        "https://blog.naver.com/codedestiny",
+        "https://www.instagram.com/code_destiny_official/",
+      ],
     },
     {
       "@type": "WebPage",
@@ -67,6 +72,18 @@ export default function AboutPage() {
         <h1 className="cd-main-title">{ABOUT_PAGE_COPY.heading}</h1>
         <p className="cd-main-intro">{ABOUT_PAGE_COPY.intro}</p>
       </header>
+
+      <section className="cd-card">
+        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
+          브랜드 및 공식명
+        </h2>
+        <ul style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.85, color: "#dbe5ff" }}>
+          <li>Code Destiny</li>
+          <li>코드 데스티니</li>
+          <li>꿀꿀 만세력</li>
+          <li>code-destiny.com / codedestiny</li>
+        </ul>
+      </section>
 
       <section className="cd-card">
         <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
@@ -106,7 +123,17 @@ export default function AboutPage() {
 
       <section className="cd-card">
         <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
-          관련 링크
+          운영 원칙 및 면책
+        </h2>
+        <p style={{ margin: 0, color: "#dbe5ff", lineHeight: 1.85 }}>
+          본 서비스는 사주·타로·자미두수·점성술 해석을 자기이해와 선택 정리의 참고 정보로 제공합니다.
+          의료, 법률, 투자 판단을 대체하지 않으며 최종 의사결정 책임은 사용자에게 있습니다.
+        </p>
+      </section>
+
+      <section className="cd-card">
+        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
+          공식 채널 및 관련 링크
         </h2>
         <div className="cd-chip-wrap">
           {ABOUT_PAGE_COPY.relatedLinks.map(([href, label]) => (
@@ -114,6 +141,12 @@ export default function AboutPage() {
               {label}
             </a>
           ))}
+          <a href="https://blog.naver.com/codedestiny" className="cd-chip" target="_blank" rel="noreferrer noopener">
+            네이버 블로그
+          </a>
+          <a href="https://www.instagram.com/code_destiny_official/" className="cd-chip" target="_blank" rel="noreferrer noopener">
+            인스타그램
+          </a>
         </div>
       </section>
     </main>

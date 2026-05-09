@@ -4,7 +4,7 @@ import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/ziwei/chart",
-    title: "자미두수 명반 심화 · 12궁 인터랙티브 14섹션 | Code Destiny",
+    title: "자미두수 명반 보기 · 명궁·재백궁·관록궁 해석 | Code Destiny",
     description:
       "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 로컬 계산과 템플릿으로 생성하는 인터랙티브 심화 리포트입니다.",
     keywords: [
@@ -96,7 +96,7 @@ export default function ZiweiChartPage() {
           border: 0,
         }}
       >
-        자미두수 명반 심화 해석
+        자미두수 명반으로 보는 내 인생의 12궁
       </h1>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ZIWEI_FAQ_JSON_LD }} />
       <ZiweiChartClientLoader />

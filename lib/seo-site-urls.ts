@@ -28,7 +28,22 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/ja-jp", changeFrequency: "monthly", priority: 0.45, noLocale: true },
   { path: "/zh-cn", changeFrequency: "monthly", priority: 0.45, noLocale: true },
 
-  // ── 핵심 서비스 (직접 사용자 inflow) ─────────────────────────
+  // ── 핵심 SEO 랜딩 페이지 (브랜드/일반 키워드 타겟) ─────────────
+  { path: "/saju",          changeFrequency: "daily", priority: 0.98 },
+  { path: "/manse",         changeFrequency: "daily", priority: 0.98 },
+  { path: "/daily-fortune", changeFrequency: "daily", priority: 0.97 },
+  { path: "/compatibility", changeFrequency: "weekly", priority: 0.96 },
+  { path: "/tarot",         changeFrequency: "weekly", priority: 0.96 },
+  { path: "/ziwei",         changeFrequency: "weekly", priority: 0.95 },
+  { path: "/astrology",     changeFrequency: "weekly", priority: 0.95 },
+  { path: "/sukuyo",        changeFrequency: "weekly", priority: 0.94 },
+  { path: "/sukuyo/compatibility", changeFrequency: "weekly", priority: 0.93 },
+  { path: "/vedic",         changeFrequency: "weekly", priority: 0.94 },
+  { path: "/dream",         changeFrequency: "weekly", priority: 0.94 },
+  { path: "/physiognomy",   changeFrequency: "weekly", priority: 0.93 },
+  { path: "/premium",       changeFrequency: "weekly", priority: 0.93 },
+
+  // ── 기존 핵심 서비스 (직접 사용자 inflow) ─────────────────────
   { path: "/saju/basic",       changeFrequency: "weekly", priority: 0.95 },
   { path: "/tarot/mingri",     changeFrequency: "weekly", priority: 0.93 },
   { path: "/ziwei/chart",      changeFrequency: "weekly", priority: 0.92 },
@@ -41,6 +56,14 @@ export const ROUTES: SitemapRouteEntry[] = [
 
   // ── 콘텐츠 허브 ───────────────────────────────────────────────
   { path: "/insights",    changeFrequency: "weekly", priority: 0.90 },
+  { path: "/insights/saju", changeFrequency: "weekly", priority: 0.86 },
+  { path: "/insights/ziwei", changeFrequency: "weekly", priority: 0.89 },
+  { path: "/insights/sukuyo", changeFrequency: "weekly", priority: 0.89 },
+  { path: "/insights/tarot", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/insights/astrology", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/insights/vedic", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/insights/dream", changeFrequency: "weekly", priority: 0.84 },
+  { path: "/insights/compatibility", changeFrequency: "weekly", priority: 0.84 },
   { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
 
   // ── High-Value 개별 문서 ──────────────────────────────────────

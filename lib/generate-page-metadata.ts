@@ -52,17 +52,13 @@ function buildRouteMetaCode(path: string, variantKey?: string, inLanguage?: stri
 }
 
 function appendUniqueTitle(title: string, routeCode: string): string {
-  const marker = `[route:${routeCode}]`;
-  if (title.includes(marker)) return title;
-  return `${title} ${marker}`;
+  void routeCode;
+  return String(title || "").trim();
 }
 
 function appendUniqueDescription(description: string, routeCode: string): string {
-  const marker = `경로코드:${routeCode}`;
-  if (description.includes(marker)) return description;
-  const normalized = description.trim();
-  const separator = normalized.endsWith(".") ? " " : ". ";
-  return `${normalized}${separator}${marker}.`;
+  void routeCode;
+  return String(description || "").trim();
 }
 
 function normalizeMetaText(value: unknown): string {

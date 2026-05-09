@@ -23,13 +23,13 @@ const CANONICAL_ORIGIN = "https://code-destiny.com";
 export const metadata = {
   charset: "utf-8",
   metadataBase: new URL("https://code-destiny.com"),
-  applicationName: "꿀꿀 만세력",
+  applicationName: "Code Destiny",
   title: {
-    default: "무료 사주팔자 · 자미두수 운세 분석 · AI 타로 | 코드 데스티니",
+    default: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
     template: "%s | 코드 데스티니",
   },
   description:
-    "생년월일 기반 무료 사주팔자, 자미두수 운세 분석, AI 타로, 점성술, 궁합을 한곳에서 제공하는 통합 운세 문서 플랫폼입니다.",
+    "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
   keywords: SEO_CORE_KEYWORDS,
   creator: "Code Destiny",
   publisher: "Code Destiny",
@@ -82,10 +82,10 @@ export const metadata = {
     locale: "ko_KR",
     alternateLocale: ["en_US", "ja_JP", "zh_CN"],
     url: "https://code-destiny.com",
-    siteName: "꿀꿀 만세력",
-    title: "무료 사주팔자 · 자미두수 운세 분석 · AI 타로 | 코드 데스티니",
+    siteName: "Code Destiny",
+    title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
     description:
-      "생년월일 기반 무료 사주팔자, 자미두수 운세 분석, AI 타로, 점성술, 궁합을 한곳에서 제공하는 통합 운세 문서 플랫폼입니다.",
+      "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
     images: [
       {
         url: "https://code-destiny.com/icons/og-image.png",
@@ -97,9 +97,9 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "무료 사주팔자 · 자미두수 운세 분석 · AI 타로 | 코드 데스티니",
+    title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
     description:
-      "생년월일 기반 무료 사주팔자, 자미두수 운세 분석, AI 타로, 점성술, 궁합을 한곳에서 제공하는 통합 운세 문서 플랫폼입니다.",
+      "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
     images: ["https://code-destiny.com/icons/og-image.png"],
     creator: "@codedestiny",
   },
@@ -130,8 +130,9 @@ const jsonLd = JSON.stringify({
       "@type": "WebSite",
       "@id": "https://code-destiny.com/#website",
       url: "https://code-destiny.com",
-      name: "꿀꿀 만세력 (Code Destiny)",
-      description: "생년월일 기반 무료 사주팔자, 자미두수 운세 분석, AI 타로",
+      name: "Code Destiny",
+      alternateName: ["코드 데스티니", "꿀꿀 만세력", "codedestiny"],
+      description: "사주·타로·자미두수·점성술을 연결해 해석하는 무료 운세 플랫폼",
       publisher: { "@type": "Organization", "@id": "https://code-destiny.com/#organization" },
       potentialAction: {
         "@type": "SearchAction",
@@ -143,7 +144,8 @@ const jsonLd = JSON.stringify({
     {
       "@type": "Organization",
       "@id": "https://code-destiny.com/#organization",
-      name: "Code Destiny (꿀꿀 만세력)",
+      name: "Code Destiny",
+      alternateName: ["코드 데스티니", "꿀꿀 만세력", "Ggulggul Manseryeok", "codedestiny"],
       url: "https://code-destiny.com",
       logo: {
         "@type": "ImageObject",
@@ -160,14 +162,14 @@ const jsonLd = JSON.stringify({
       "@type": "WebPage",
       "@id": "https://code-destiny.com/#webpage",
       url: "https://code-destiny.com",
-      name: "무료 사주팔자 · 자미두수 운세 분석 · AI 타로 | 코드 데스티니",
+      name: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
       isPartOf: { "@id": "https://code-destiny.com/#website" },
       about: { "@id": "https://code-destiny.com/#organization" },
       primaryImageOfPage: { "@id": "https://code-destiny.com/icons/og-image.png" },
       datePublished: "2024-01-01T00:00:00+09:00",
       dateModified: new Date().toISOString(),
       description:
-        "생년월일 기반 무료 사주팔자, 자미두수 운세 분석, AI 타로, 점성술, 궁합을 한곳에서 제공하는 통합 운세 문서 플랫폼입니다.",
+        "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
       inLanguage: "ko",
       potentialAction: {
         "@type": "ReadAction",

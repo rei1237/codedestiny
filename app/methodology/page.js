@@ -73,7 +73,7 @@ export default function MethodologyPage() {
             확인 후 필요한 경우 수정 이력을 반영합니다.
           </p>
           <p className={`${styles.methodCopy} ${styles.methodCopyCompact}`}>
-            문의: <a className={styles.methodLink} href="/contact-us">/contact-us</a>
+            문의: <a className={styles.methodLink} href="/contact">/contact</a>
           </p>
         </article>
       </section>

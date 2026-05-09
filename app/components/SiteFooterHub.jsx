@@ -17,6 +17,11 @@ const SEO_LINK_GROUPS = [
   {
     title: "핵심 운세",
     links: [
+      { href: "/saju", text: "무료 사주풀이 보기" },
+      { href: "/manse", text: "꿀꿀 만세력 확인하기" },
+      { href: "/daily-fortune", text: "오늘의 운세 확인하기" },
+      { href: "/compatibility", text: "사주 궁합 분석하기" },
+      { href: "/premium", text: "프리미엄 운세 리포트" },
       { href: "/saju/basic", text: "사주 만세력 기본 해석" },
       { href: "/ziwei/chart", text: "자미두수 12궁 명반" },
       { href: "/astrology/cosmic", text: "점성술 코즈믹 차트" },
@@ -28,6 +33,8 @@ const SEO_LINK_GROUPS = [
   {
     title: "타로 컬렉션",
     links: [
+      { href: "/tarot", text: "AI 타로 리딩 시작하기" },
+      { href: "/physiognomy", text: "동물관상 분석하기" },
       { href: "/tarot/mingri", text: "명리학 AI 타로" },
       { href: "/tarot/love", text: "우리는 무슨 사이" },
       { href: "/tarot/healing", text: "따뜻한 태양 회복 타로" },
@@ -39,6 +46,11 @@ const SEO_LINK_GROUPS = [
   {
     title: "신탁 & 특화",
     links: [
+      { href: "/ziwei", text: "자미두수 명반 보기" },
+      { href: "/astrology", text: "점성술 출생차트 보기" },
+      { href: "/sukuyo", text: "숙요점 27숙 분석" },
+      { href: "/vedic", text: "베다점성술 운세 분석" },
+      { href: "/dream", text: "꿈해몽 무료 해석" },
       { href: "/oracle/hwatu-life", text: "화투 인생 패 테스트" },
       { href: "/oracle/ifa", text: "IFA 오라클" },
       { href: "/oracle/royal-tea", text: "로열 티 오라클" },
@@ -101,7 +113,7 @@ export default function SiteFooterHub() {
         </nav>
 
         <p className={styles.sfhCopyright}>
-          © 2026 Code Destiny. All rights reserved.
+          © 2026 Code Destiny. 코드 데스티니 · 꿀꿀 만세력
         </p>
       </div>
     </footer>

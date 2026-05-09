@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 
 const PAGE_SIZE = 12;
@@ -30,13 +30,20 @@ function sortTagLabel(sort) {
   return sort === "popular" ? "인기 글" : "최신 글";
 }
 
-export default function InsightsCosmicClient() {
+export default function InsightsCosmicClient({
+  initialItems = [],
+  initialRecommended = [],
+  initialCategories = [],
+  initialTags = [],
+  initialTotalCount = 0,
+}) {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+  const skipFirstLiveFetchRef = useRef(true);
 
-  const [items, setItems] = useState([]);
-  const [recommended, setRecommended] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [tags, setTags] = useState([]);
+  const [items, setItems] = useState(initialItems);
+  const [recommended, setRecommended] = useState(initialRecommended);
+  const [categories, setCategories] = useState(initialCategories);
+  const [tags, setTags] = useState(initialTags);
 
   const [category, setCategory] = useState("");
   const [tag, setTag] = useState("");
@@ -45,8 +52,8 @@ export default function InsightsCosmicClient() {
   const [query, setQuery] = useState("");
 
   const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(Math.max(initialTotalCount, initialItems.length));
+  const [hasMore, setHasMore] = useState(initialItems.length < initialTotalCount);
 
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -87,6 +94,23 @@ export default function InsightsCosmicClient() {
   useEffect(() => {
     let cancelled = false;
 
+    const shouldSkipFirstFetch =
+      skipFirstLiveFetchRef.current
+      && initialItems.length >= PAGE_SIZE
+      && !query
+      && !category
+      && !tag
+      && sort === "latest";
+
+    if (shouldSkipFirstFetch) {
+      skipFirstLiveFetchRef.current = false;
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    skipFirstLiveFetchRef.current = false;
+
     async function run() {
       setLoading(true);
       setError("");
@@ -94,9 +118,6 @@ export default function InsightsCosmicClient() {
         await fetchList(1, false);
       } catch (fetchError) {
         if (!cancelled) {
-          setItems([]);
-          setRecommended([]);
-          setHasMore(false);
           setError(String(fetchError?.message || "인사이트 목록을 불러오지 못했습니다."));
         }
       } finally {
@@ -109,7 +130,7 @@ export default function InsightsCosmicClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, query, category, tag, sort]);
+  }, [apiBase, query, category, initialItems.length, sort, tag]);
 
   async function onLoadMore() {
     if (loadingMore || !hasMore) return;
@@ -130,10 +151,10 @@ export default function InsightsCosmicClient() {
       <section className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-10 space-y-6">
         <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7 backdrop-blur">
           <p className="text-xs tracking-[0.18em] text-amber-200/80">FORTUNE INSIGHTS</p>
-          <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 아카이브</h1>
+          <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 허브</h1>
           <p className="mt-3 text-sm md:text-base text-slate-300 leading-7">
-            관리자에서 발행된 인사이트를 최신 흐름과 인기 흐름으로 탐색하세요.
-            사주, 타로, 점성술 콘텐츠를 카테고리/태그/검색으로 빠르게 찾을 수 있습니다.
+            사주, 자미두수, 숙요점, 타로, 점성술 인사이트를 카테고리별로 탐색하고
+            실제 기능 페이지로 바로 이동할 수 있는 검색 친화형 허브입니다.
           </p>
           <p className="mt-3 text-xs text-slate-400">총 {totalCount.toLocaleString("ko-KR")}개 글</p>
         </header>

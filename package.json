@@ -11,6 +11,7 @@
     "guard:privacy": "node scripts/guard-blocked-keywords.mjs",
     "cron:daily-content": "node server/jobs/daily-content-cron.js",
     "seo:check": "node scripts/check-seo-health.mjs",
+    "seo:audit": "node scripts/seo-audit.mjs",
     "adsense:audit": "node scripts/adsense-crawl-audit.mjs https://code-destiny.com 250",
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
@@ -72,7 +73,8 @@
     "preview:worker": "npx wrangler dev --config worker/wrangler.toml",
     "deploy": "npm run deploy:cf",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google-cloud/vertexai": "^1.11.0",

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { sanitizePublicInsightHtml, stripHtmlText } from "../_lib/sanitizePublicHtml";
+import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 function upsertMetaTag(selector, attrs, content) {
   if (typeof document === "undefined") return;
@@ -182,21 +183,72 @@ function buildShareUrl(rawShareUrl, slug) {
   return `/insights/${encodeURIComponent(String(slug || ""))}`;
 }
 
-export default function InsightArticleCosmicClient({ slug }) {
+function normalizeLinkItems(items) {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item) => {
+      if (!item) return null;
+      if (typeof item === "string") {
+        const href = String(item || "").trim();
+        if (!href) return null;
+        return { href, label: href };
+      }
+
+      const href = String(item?.href || "").trim();
+      const label = String(item?.label || "").trim();
+      if (!href || !label) return null;
+      return { href, label };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeFaqItems(items) {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item) => {
+      const question = String(item?.question || "").trim();
+      const answer = String(item?.answer || "").trim();
+      if (!question || !answer) return null;
+      return { question, answer };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+export default function InsightArticleCosmicClient({
+  slug,
+  initialItem = null,
+  initialRelated = [],
+  initialPrevious = null,
+  initialNext = null,
+}) {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+  const skipFirstLiveFetchRef = useRef(true);
 
-  const [item, setItem] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [previous, setPrevious] = useState(null);
-  const [next, setNext] = useState(null);
+  const [item, setItem] = useState(initialItem);
+  const [related, setRelated] = useState(initialRelated);
+  const [previous, setPrevious] = useState(initialPrevious);
+  const [next, setNext] = useState(initialNext);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialItem);
   const [error, setError] = useState("");
   const [shareMessage, setShareMessage] = useState("");
   const [tocOpen, setTocOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (skipFirstLiveFetchRef.current && initialItem) {
+      skipFirstLiveFetchRef.current = false;
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    skipFirstLiveFetchRef.current = false;
 
     async function loadDetail() {
       setLoading(true);
@@ -223,10 +275,12 @@ export default function InsightArticleCosmicClient({ slug }) {
         setNext(data?.next || null);
       } catch (fetchError) {
         if (!cancelled) {
-          setItem(null);
-          setRelated([]);
-          setPrevious(null);
-          setNext(null);
+          if (!initialItem) {
+            setItem(null);
+            setRelated([]);
+            setPrevious(null);
+            setNext(null);
+          }
           setError(String(fetchError?.message || "글을 불러오지 못했습니다."));
         }
       } finally {
@@ -238,16 +292,45 @@ export default function InsightArticleCosmicClient({ slug }) {
     return () => {
       cancelled = true;
     };
-  }, [apiBase, slug]);
+  }, [apiBase, initialItem, slug]);
 
   const safeHtml = useMemo(() => sanitizePublicInsightHtml(String(item?.contentHtml || "")), [item?.contentHtml]);
   const tocBundle = useMemo(() => enrichHtmlWithToc(safeHtml), [safeHtml]);
   const renderedHtml = tocBundle.html;
   const tocItems = tocBundle.toc;
-  const faqItems = useMemo(() => extractFaqItemsFromHtml(renderedHtml), [renderedHtml]);
+  const htmlFaqItems = useMemo(() => extractFaqItemsFromHtml(renderedHtml), [renderedHtml]);
+  const dataFaqItems = useMemo(() => normalizeFaqItems(item?.faq), [item?.faq]);
+  const faqItems = useMemo(() => {
+    const merged = [];
+    const seen = new Set();
+
+    for (const faq of [...dataFaqItems, ...htmlFaqItems]) {
+      const key = `${faq.question}::${faq.answer}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(faq);
+      if (merged.length >= 8) break;
+    }
+
+    return merged;
+  }, [dataFaqItems, htmlFaqItems]);
+  const ctaLinks = useMemo(() => {
+    const fromCta = normalizeLinkItems(item?.cta?.links);
+    if (fromCta.length > 0) return fromCta;
+    return normalizeLinkItems(item?.internalLinks);
+  }, [item?.cta?.links, item?.internalLinks]);
   const readingTime = Math.max(1, Number(item?.readingTime || 0) || 1);
   const shareUrl = buildShareUrl(item?.shareUrl, item?.slug || slug);
   const seo = useMemo(() => resolveSeo(item, shareUrl), [item, shareUrl]);
+  const breadcrumbJsonLd = useMemo(
+    () =>
+      buildBreadcrumbJsonLd([
+        { name: "홈", path: "/" },
+        { name: "운세 인사이트 허브", path: "/insights" },
+        { name: String(item?.title || "인사이트 상세"), path: `/insights/${encodeURIComponent(String(item?.slug || slug || ""))}` },
+      ]),
+    [item?.slug, item?.title, slug],
+  );
 
   const blogPostingSchema = useMemo(() => {
     if (!item) return null;
@@ -277,18 +360,7 @@ export default function InsightArticleCosmicClient({ slug }) {
 
   const faqSchema = useMemo(() => {
     if (!Array.isArray(faqItems) || faqItems.length === 0) return null;
-    return {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqItems.map((item) => ({
-        "@type": "Question",
-        name: item.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: item.answer,
-        },
-      })),
-    };
+    return buildFaqPageJsonLd(faqItems);
   }, [faqItems]);
 
   useEffect(() => {
@@ -352,6 +424,14 @@ export default function InsightArticleCosmicClient({ slug }) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#2a1a47_0%,#100a1f_45%,#090612_100%)] text-slate-100">
       <section className="mx-auto w-full max-w-4xl px-4 py-8 md:py-10 space-y-6">
+        <nav aria-label="Breadcrumb" className="text-xs text-slate-300">
+          <Link href="/" className="hover:text-amber-100">홈</Link>
+          <span>{" > "}</span>
+          <Link href="/insights" className="hover:text-amber-100">운세 인사이트 허브</Link>
+          <span>{" > "}</span>
+          <span className="text-slate-100">{item.title}</span>
+        </nav>
+
         <Link href="/insights" className="inline-flex rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10">목록으로 돌아가기</Link>
 
         <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">
@@ -458,6 +538,43 @@ export default function InsightArticleCosmicClient({ slug }) {
           <div className="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-headings:text-amber-50 prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:leading-8 prose-li:leading-8 prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-blockquote:border-amber-300/40 prose-blockquote:text-slate-200" dangerouslySetInnerHTML={{ __html: renderedHtml }} />
         </article>
 
+        {ctaLinks.length > 0 ? (
+          <section className="rounded-3xl border border-white/10 bg-white/[0.03] px-5 py-6 md:px-8 md:py-8">
+            <h2 className="text-xl font-semibold text-amber-100">관련 서비스 바로가기</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              검색으로 들어온 내용을 기능 실행으로 이어가야 해석의 가치가 커집니다. 아래 키워드 앵커로 바로 이동해 보세요.
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+              {ctaLinks.map((linkItem) => (
+                <Link
+                  key={`${item.slug}-${linkItem.href}-${linkItem.label}`}
+                  href={linkItem.href}
+                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm hover:bg-white/10"
+                >
+                  {linkItem.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {faqItems.length > 0 ? (
+          <section className="rounded-3xl border border-white/10 bg-white/[0.03] px-5 py-6 md:px-8 md:py-8">
+            <h2 className="text-xl font-semibold text-amber-100">자주 묻는 질문</h2>
+            <div className="mt-4 space-y-3">
+              {faqItems.map((faq) => (
+                <article key={`${faq.question}-${faq.answer.slice(0, 20)}`} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3">
+                  <h3 className="text-sm font-semibold text-slate-100">{faq.question}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-300">{faq.answer}</p>
+                </article>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-6 text-slate-400">
+              본 콘텐츠는 오락 및 자기이해를 돕는 참고 정보이며, 의료·법률·투자 판단을 대체하지 않습니다.
+            </p>
+          </section>
+        ) : null}
+
         {(previous || next) ? (
           <section className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -496,6 +613,7 @@ export default function InsightArticleCosmicClient({ slug }) {
         {blogPostingSchema ? (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }} />
         ) : null}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         {faqSchema ? (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
         ) : null}

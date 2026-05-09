@@ -5,44 +5,23 @@
 
 User-agent: *
 Allow: /
-Allow: /insights
-Allow: /insights/
 
-Disallow: /admin
-Disallow: /_admin
-Disallow: /api
-Disallow: /auth
-Disallow: /dev-status
-Disallow: /test
-Disallow: /debug
-Disallow: /payment
-Disallow: /payment/callback
-Disallow: /payments
-Disallow: /payments/callback
-Disallow: /blog
-Disallow: /fortune
-Disallow: /famous
-Disallow: /sample
-Disallow: /static
-Disallow: /404
-Disallow: /404.html
-Disallow: /contact-us
-Disallow: /privacy-policy
-Disallow: /terms-of-service
-Disallow: /_lib
-Disallow: /_locale
-Disallow: /login
-Disallow: /signup
+Disallow: /api/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /checkout/
+Disallow: /result/private/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
 Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
-Disallow: /*.json$
-
-User-agent: GPTBot
-Disallow: /
 
 Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
-Sitemap: https://code-destiny.com/rss.xml
-Sitemap: https://code-destiny.com/insights/rss.xml

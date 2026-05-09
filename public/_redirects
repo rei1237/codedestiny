@@ -2,6 +2,23 @@
 # 저장 경로: public/_redirects
 # ─────────────────────────────────────────────
 
+# canonical 경로 정규화
+/insights/                     /insights                 301
+/faq/                          /faq                      301
+/about/                        /about                    301
+/methodology/                  /methodology              301
+/sukyo                         /sukuyo                   301
+/sukyo/*                       /sukuyo/:splat            301
+/face-reading                  /physiognomy              301
+
+# 브랜드/핵심 서비스 별칭
+/ggulggul                      /manse                    301
+/ggulggul-manse                /manse                    301
+/code-destiny                  /                         301
+/codedestiny                   /                         301
+/fortune                       /daily-fortune            301
+/saju-free                     /saju                     301
+
 # 쿼리스트링 → 클린 URL 리다이렉트 (301 영구)
 # 구형 /insights?topic=XXX 구조를 새 /insights/XXX 경로로 리다이렉트
 

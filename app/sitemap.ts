@@ -3,6 +3,7 @@ import { BASE_URL, ROUTES } from "../lib/seo-site-urls";
 import { INSIGHT_SEED_ARTICLES } from "./insights/seed-articles";
 
 export const dynamic = "force-static";
+const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 
 type InsightListItem = {
   slug?: string;
@@ -104,6 +105,17 @@ async function fetchPublishedInsights(): Promise<MetadataRoute.Sitemap> {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseEntries = buildBaseEntries();
   const seedEntries = buildSeedInsightEntries();
+
+  if (!useInsightsApi) {
+    const merged = [...baseEntries, ...seedEntries];
+    const uniq = new Map<string, MetadataRoute.Sitemap[number]>();
+
+    for (const entry of merged) {
+      uniq.set(String(entry.url), entry);
+    }
+
+    return Array.from(uniq.values());
+  }
 
   try {
     const insightsEntries = await fetchPublishedInsights();
