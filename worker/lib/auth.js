@@ -1,6 +1,9 @@
 import { getEnv } from "./env.js";
 import { cookieValue, createHttpError } from "./http.js";
 import { signJwt, verifyJwt } from "./jwt.js";
+import { createHash } from "node:crypto";
+import { connectDb, mongoose } from "./db.js";
+import { RefreshTokenSession, User } from "./models.js";
 
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
@@ -46,27 +49,24 @@ export function getBearerToken(request) {
   return bearer || cookieValue(request, ACCESS_COOKIE_NAME);
 }
 
-function extractTokenUserId(payload) {
-  const userId = String(payload?.userId || payload?.id || "").trim();
-  if (!/^[a-f0-9]{24}$/i.test(userId)) return "";
+function getHeaderBearerToken(request) {
+  const authorization = request.headers.get("Authorization") || "";
+  return authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
+}
+
+function hashRefreshToken(rawToken, env) {
+  const pepper = getEnv(env, "AUTH_SECRET") || getAccessTokenSecret(env);
+  return createHash("sha256").update(`${String(rawToken || "")}|${pepper}`).digest("hex");
+}
+
+function extractRefreshUserId(payload) {
+  const userId = String(payload?.userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(userId)) return "";
+  if (String(payload?.typ || "") !== "refresh") return "";
   return userId;
 }
 
-export async function requireAuth(request, env) {
-  const token = getBearerToken(request);
-  if (!token) {
-    throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
-  }
-
-  const payload = await verifyJwt(token, getAccessTokenSecret(env), {
-    issuer: getJwtIssuer(env),
-    audience: getJwtAudience(env),
-  });
-  const userId = extractTokenUserId(payload);
-  if (!userId) {
-    throw createHttpError(401, "Invalid authentication token.", { code: "UNAUTHORIZED" });
-  }
-
+function normalizeAuthResultFromPayload(payload, userId) {
   return {
     userId,
     email: payload.email ? String(payload.email) : "",
@@ -79,6 +79,107 @@ export async function requireAuth(request, env) {
     points: Number.isFinite(Number(payload.points)) ? Number(payload.points) : 0,
     joinedAt: payload.joinedAt || null,
   };
+}
+
+function normalizeAuthResultFromUser(user) {
+  return {
+    userId: String(user?._id || ""),
+    email: user?.email ? String(user.email) : "",
+    role: user?.role ? String(user.role) : "user",
+    name: user?.name ? String(user.name) : "",
+    image: user?.profileImage ? String(user.profileImage) : (user?.image ? String(user.image) : ""),
+    birthDate: user?.birthDate ? String(user.birthDate) : "",
+    birthTime: user?.birthTime ? String(user.birthTime) : "",
+    gender: user?.gender ? String(user.gender) : "OTHER",
+    points: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
+    joinedAt: user?.joinedAt || null,
+  };
+}
+
+async function verifyAccessTokenToAuth(token, env) {
+  if (!token) return null;
+  try {
+    const payload = await verifyJwt(token, getAccessTokenSecret(env), {
+      issuer: getJwtIssuer(env),
+      audience: getJwtAudience(env),
+    });
+    const userId = extractTokenUserId(payload);
+    if (!userId) return null;
+    return normalizeAuthResultFromPayload(payload, userId);
+  } catch {
+    return null;
+  }
+}
+
+async function verifyRefreshSessionToAuth(request, env) {
+  const refreshToken = cookieValue(request, REFRESH_COOKIE_NAME);
+  if (!refreshToken) return null;
+
+  try {
+    const payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
+      issuer: getJwtIssuer(env),
+      audience: getJwtAudience(env),
+    });
+    const userId = extractRefreshUserId(payload);
+    if (!userId) return null;
+
+    await connectDb(env);
+
+    const tokenHash = hashRefreshToken(refreshToken, env);
+    const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
+    if (!session || session.revokedAt) return null;
+
+    const expiresAt = new Date(session.expiresAt || 0).getTime();
+    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
+
+    const user = await User.collection.findOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      {
+        projection: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          birthDate: 1,
+          birthTime: 1,
+          gender: 1,
+          role: 1,
+          points: 1,
+          joinedAt: 1,
+          image: 1,
+          profileImage: 1,
+        },
+      },
+    );
+    if (!user) return null;
+
+    return normalizeAuthResultFromUser(user);
+  } catch {
+    return null;
+  }
+}
+
+function extractTokenUserId(payload) {
+  const userId = String(payload?.userId || payload?.id || "").trim();
+  if (!/^[a-f0-9]{24}$/i.test(userId)) return "";
+  return userId;
+}
+
+export async function requireAuth(request, env) {
+  const bearerToken = getHeaderBearerToken(request);
+  const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
+
+  const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
+  if (bearerAuth) return bearerAuth;
+
+  if (accessCookieToken && accessCookieToken !== bearerToken) {
+    const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env);
+    if (cookieAuth) return cookieAuth;
+  }
+
+  const refreshAuth = await verifyRefreshSessionToAuth(request, env);
+  if (refreshAuth) return refreshAuth;
+
+  throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
 }
 
 export async function signAuthToken(user, env) {

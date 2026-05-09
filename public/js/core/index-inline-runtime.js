@@ -1666,6 +1666,13 @@ async function __cdRefreshAuthSessionSilently() {
     if (!refreshRes.ok) return false;
     var refreshData = await refreshRes.json().catch(function() { return null; });
     if (!refreshData || refreshData.ok !== true) return false;
+    var refreshedAccessToken = String((refreshData && refreshData.accessToken) || '').trim();
+    if (refreshedAccessToken) {
+      try { localStorage.setItem('fortune_auth_token', refreshedAccessToken); } catch (_) {}
+    }
+    if (refreshData && refreshData.user) {
+      __cdPersistAuthUserSnapshot(refreshData.user);
+    }
     if (!options.skipVerify) {
       await __cdVerifyAuthSession(true).catch(function() { return false; });
     }

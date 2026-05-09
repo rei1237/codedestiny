@@ -26,6 +26,8 @@ const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
 const CSRF_COOKIE_NAME = "cd_csrf_token";
 const CSRF_HEADER_NAME = "x-csrf-token";
+const REFRESH_COOKIE_PRIMARY_PATH = "/";
+const REFRESH_COOKIE_LEGACY_PATH = "/api/auth/refresh";
 const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 const WITHDRAW_RATE_LIMIT_MAX = 3;
 const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -115,7 +117,7 @@ function appendAuthCookies(response, request, env, accessToken, refreshToken) {
     sameSite: cookieOptions.sameSite,
   }));
   response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, refreshToken, {
-    path: "/api/auth/refresh",
+    path: REFRESH_COOKIE_PRIMARY_PATH,
     maxAge: cookieOptions.refreshMaxAgeSec,
     httpOnly: true,
     secure: cookieOptions.secure,
@@ -133,7 +135,14 @@ function appendClearAuthCookies(response, request, env) {
     sameSite: cookieOptions.sameSite,
   }));
   response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, "", {
-    path: "/api/auth/refresh",
+    path: REFRESH_COOKIE_PRIMARY_PATH,
+    maxAge: 0,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+  response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, "", {
+    path: REFRESH_COOKIE_LEGACY_PATH,
     maxAge: 0,
     httpOnly: true,
     secure: cookieOptions.secure,
