@@ -6442,14 +6442,49 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return goldenPackages[0];
   }
 
-  function getApiBaseUrl() {
-    if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+  function _cdNormalizeApiBase(raw) {
+    var value = String(raw || '').trim();
+    if (!value) return '';
+    return value.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+  }
+
+  function _cdIsLocalHostName(hostname) {
+    var h = String(hostname || '').trim().toLowerCase();
+    return h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
+  }
+
+  function _cdIsSameOriginBase(base) {
+    if (!base) return false;
     try {
-      var custom = localStorage.getItem('fortune_api_base_url');
-      if (custom) return String(custom).replace(/\/+$/, '');
+      return new URL(base).origin === location.origin;
+    } catch (_e) {
+      return false;
+    }
+  }
+
+  function _cdAllowApiBase(base) {
+    if (!base) return false;
+    if (_cdIsSameOriginBase(base)) return true;
+    if (_cdIsLocalHostName(location.hostname)) return true;
+    try {
+      return _cdIsLocalHostName(new URL(base).hostname);
+    } catch (_e) {
+      return false;
+    }
+  }
+
+  function getApiBaseUrl() {
+    var sameOriginBase = _cdNormalizeApiBase(location.origin);
+    var runtimeBase = _cdNormalizeApiBase(window.CODE_DESTINY_API_BASE_URL);
+    if (_cdAllowApiBase(runtimeBase)) return runtimeBase;
+
+    try {
+      var custom = _cdNormalizeApiBase(localStorage.getItem('fortune_api_base_url'));
+      if (_cdAllowApiBase(custom)) return custom;
     } catch (_e) {}
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return 'http://localhost:4000';
-    return location.origin;
+
+    if (_cdIsLocalHostName(location.hostname)) return 'http://localhost:4000';
+    return sameOriginBase;
   }
 
   async function requestAdminFlowerEntry() {
@@ -6881,12 +6916,61 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return changed;
   }
 
+  function _cdReconcileSectionUnlocksFromServerPayload(payload) {
+    var serverUnlockMap = Object.create(null);
+
+    function collect(rawKey) {
+      var key = String(rawKey || '').trim();
+      if (!key) return;
+      var aliases = resolveTileLockAliasKeys(key);
+      for (var i = 0; i < aliases.length; i += 1) {
+        serverUnlockMap[aliases[i]] = true;
+      }
+    }
+
+    var directUnlocks = (payload && Array.isArray(payload.unlockedFeatures)) ? payload.unlockedFeatures : [];
+    for (var du = 0; du < directUnlocks.length; du += 1) collect(directUnlocks[du]);
+
+    var userUnlocks = (payload && payload.user && Array.isArray(payload.user.unlockedFeatures)) ? payload.user.unlockedFeatures : [];
+    for (var uu = 0; uu < userUnlocks.length; uu += 1) collect(userUnlocks[uu]);
+
+    var unlockMap = (payload && payload.unlockMap && typeof payload.unlockMap === 'object') ? payload.unlockMap : null;
+    if (unlockMap) {
+      var unlockKeys = Object.keys(unlockMap);
+      for (var uk = 0; uk < unlockKeys.length; uk += 1) {
+        if (unlockMap[unlockKeys[uk]] === true) collect(unlockKeys[uk]);
+      }
+    }
+
+    var changed = false;
+    for (var si = 0; si < SECTION_GATE_KEYS.length; si += 1) {
+      var sectionKey = SECTION_GATE_KEYS[si].unlockKey;
+      if (serverUnlockMap[sectionKey] === true) {
+        if (unlockedFeatureMap[sectionKey] !== true) {
+          markUnlockKey(unlockedFeatureMap, sectionKey);
+          changed = true;
+        }
+      } else if (unlockedFeatureMap[sectionKey] === true) {
+        delete unlockedFeatureMap[sectionKey];
+        changed = true;
+      }
+    }
+
+    return changed;
+  }
+
   async function syncUnlocksFromServer() {
-    if (!hasAuthToken()) return false;
+    if (!hasAuthToken()) {
+      var syncToken = await ensureAuthToken(false);
+      if (!syncToken) return false;
+    }
     try {
       var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
       if (!result.ok) return false;
-      if (_cdApplyUnlocksFromPaymentPayload(result.payload)) {
+      var changed = false;
+      if (_cdApplyUnlocksFromPaymentPayload(result.payload)) changed = true;
+      if (_cdReconcileSectionUnlocksFromServerPayload(result.payload)) changed = true;
+      if (changed) {
         saveTileLocks();
         applyTileLockVisuals();
         refreshUnlockButtons();

@@ -276,8 +276,9 @@ export default function LoginPage() {
     (async () => {
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
+      const maxAttempts = 3;
 
-      for (let attempt = 0; attempt < 2; attempt += 1) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         try {
           const nextResponse = await fetch(socialCompleteEndpoint, {
             method: "POST",
@@ -286,8 +287,8 @@ export default function LoginPage() {
             body: JSON.stringify({ socialGrant }),
           });
 
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
+          if (nextResponse.status >= 500 && attempt < maxAttempts - 1) {
+            await sleep(250 * (attempt + 1));
             continue;
           }
 
@@ -295,8 +296,8 @@ export default function LoginPage() {
           break;
         } catch (err) {
           lastFetchError = err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
+          if (attempt < maxAttempts - 1) {
+            await sleep(250 * (attempt + 1));
             continue;
           }
         }
@@ -350,8 +351,9 @@ export default function LoginPage() {
 
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
+      const maxAttempts = 3;
 
-      for (let attempt = 0; attempt < 2; attempt += 1) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         try {
           const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/login`, {
             method: "POST",
@@ -364,8 +366,8 @@ export default function LoginPage() {
             }),
           });
 
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
+          if (nextResponse.status >= 500 && attempt < maxAttempts - 1) {
+            await sleep(250 * (attempt + 1));
             continue;
           }
 
@@ -373,8 +375,8 @@ export default function LoginPage() {
           break;
         } catch (error) {
           lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
+          if (attempt < maxAttempts - 1) {
+            await sleep(250 * (attempt + 1));
             continue;
           }
         }
