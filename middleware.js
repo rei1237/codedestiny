@@ -167,7 +167,9 @@ function isUsableAuthToken(token) {
   if (!raw) return false;
 
   const payload = decodeJwtPayload(raw);
-  if (!payload || typeof payload !== "object") return false;
+  // Fail-open on decode mismatch so middleware does not block login flow unexpectedly.
+  // Actual authentication validity is enforced by /api/auth/me and protected APIs.
+  if (!payload || typeof payload !== "object") return true;
 
   const exp = Number(payload.exp);
   if (!Number.isFinite(exp)) return true;
@@ -178,8 +180,7 @@ function isUsableAuthToken(token) {
 
 function hasAuthSessionCookie(request) {
   const accessToken = String(request.cookies.get("fortune_auth_token")?.value || "").trim();
-  const refreshToken = String(request.cookies.get("fortune_auth_refresh")?.value || "").trim();
-  return isUsableAuthToken(accessToken) || isUsableAuthToken(refreshToken);
+  return isUsableAuthToken(accessToken);
 }
 
 function buildLoginRedirectUrl(request) {
