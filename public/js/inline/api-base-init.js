@@ -9,6 +9,7 @@
       var normalized = String(explicit).replace(/\/+$/, "");
       window.CODE_DESTINY_API_BASE_URL = normalized;
       window.__CF_PAGES_API_BASE_URL = normalized;
+      window.__CD_API_BASE_URL = normalized;
       return;
     }
 
@@ -17,11 +18,13 @@
       var fromMeta = String(meta.content).replace(/\/+$/, "");
       window.CODE_DESTINY_API_BASE_URL = fromMeta;
       window.__CF_PAGES_API_BASE_URL = fromMeta;
+      window.__CD_API_BASE_URL = fromMeta;
       return;
     }
 
     // Default to current origin so frontend always uses same-origin /api.
     window.CODE_DESTINY_API_BASE_URL = location.origin;
     window.__CF_PAGES_API_BASE_URL = location.origin;
+    window.__CD_API_BASE_URL = location.origin;
   } catch (e) {}
 })();

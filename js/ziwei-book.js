@@ -110,6 +110,30 @@
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
 
+  function _buildApiCandidates(pathname) {
+    var p = String(pathname || '');
+    if (p.charAt(0) !== '/') p = '/' + p;
+    var seen = {};
+    var out = [];
+
+    function pushBase(raw) {
+      var b = String(raw || '').trim();
+      var u = b ? (b.replace(/\/+$/, '') + p) : p;
+      if (!u || seen[u]) return;
+      seen[u] = true;
+      out.push(u);
+    }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+
+    return out.length ? out : [p];
+  }
+
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
@@ -978,6 +1002,7 @@
     }
 
     function _fetchChapter(idx) {
+      var endpoints = _buildApiCandidates('/api/ziwei-book/session');
       var _zbAuthToken = '';
       try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       function _attempt(tryNo) {
@@ -987,7 +1012,8 @@
           }, 70000);
           var _zbHeaders = { 'Content-Type': 'application/json' };
           if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
-          fetch('/api/ziwei-book/session', {
+          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/ziwei-book/session';
+          fetch(endpoint, {
             method: 'POST',
             headers: _zbHeaders,
             body: JSON.stringify({
@@ -1023,8 +1049,9 @@
             .then(function (data) { clearTimeout(timeoutId); resolve(data); })
             .catch(function (err) { clearTimeout(timeoutId); resolve({ ok: false, message: String(err && err.message ? err.message : err) }); });
         }).then(function (data) {
+          var maxTry = Math.max(3, endpoints.length);
           if (data && data.ok && data.text) return data;
-          if (tryNo >= 3) return data;
+          if (tryNo >= maxTry) return data;
           return _attempt(tryNo + 1);
         });
       }
@@ -1350,7 +1377,7 @@
         window.openAstroBookModal(p || null);
         return;
       }
-      _ensurePremiumModalScript('/js/astro-book.js?v=20260503-premiumfix2', function() {
+      _ensurePremiumModalScript('/js/astro-book.js?v=20260509-premiumapifix1', function() {
         if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal(p || null);
       });
       return;
@@ -1360,7 +1387,7 @@
         window.openSukuyoBookModal(p || null);
         return;
       }
-      _ensurePremiumModalScript('/js/sukuyo-book.js?v=20260503-premiumfix2', function() {
+      _ensurePremiumModalScript('/js/sukuyo-book.js?v=20260509-premiumapifix1', function() {
         if (typeof window.openSukuyoBookModal === 'function') window.openSukuyoBookModal(p || null);
       });
       return;
@@ -1370,7 +1397,7 @@
         window.openVedicBookModal(p || null);
         return;
       }
-      _ensurePremiumModalScript('/js/vedic-book.js?v=20260503-premiumfix2', function() {
+      _ensurePremiumModalScript('/js/vedic-book.js?v=20260509-premiumapifix1', function() {
         if (typeof window.openVedicBookModal === 'function') window.openVedicBookModal(p || null);
       });
     }

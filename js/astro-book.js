@@ -138,6 +138,18 @@
       if (base) push(base.replace(/\/+$/, '') + normalizedPath);
     } catch (_) {}
     try {
+      var explicitBase = (window && window.CODE_DESTINY_API_BASE_URL) ? String(window.CODE_DESTINY_API_BASE_URL).trim() : '';
+      if (explicitBase) push(explicitBase.replace(/\/+$/, '') + normalizedPath);
+    } catch (_) {}
+    try {
+      var pagesBase = (window && window.__CF_PAGES_API_BASE_URL) ? String(window.__CF_PAGES_API_BASE_URL).trim() : '';
+      if (pagesBase) push(pagesBase.replace(/\/+$/, '') + normalizedPath);
+    } catch (_) {}
+    try {
+      var customBase = localStorage.getItem('fortune_api_base_url');
+      if (customBase) push(String(customBase).trim().replace(/\/+$/, '') + normalizedPath);
+    } catch (_) {}
+    try {
       var origin = (window && window.location && window.location.origin) ? String(window.location.origin).trim() : '';
       if (origin) push(origin.replace(/\/+$/, '') + normalizedPath);
     } catch (_) {}

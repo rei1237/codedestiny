@@ -133,16 +133,24 @@
   function _buildApiCandidates(pathname) {
     var p = String(pathname || '');
     if (p.charAt(0) !== '/') p = '/' + p;
-    var bases = ['', (window && window.__CD_API_BASE_URL) || '', (window && window.location && window.location.origin) || ''];
     var seen = {};
     var out = [];
-    for (var i = 0; i < bases.length; i++) {
-      var b = String(bases[i] || '').trim();
+
+    function pushBase(raw) {
+      var b = String(raw || '').trim();
       var u = b ? (b.replace(/\/+$/, '') + p) : p;
-      if (seen[u]) continue;
+      if (!u || seen[u]) return;
       seen[u] = true;
       out.push(u);
     }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+
     return out.length ? out : [p];
   }
 
@@ -815,12 +823,14 @@
     _setProgress(0);
 
     function _fetchChapter(idx){
+      var endpoints = _buildApiCandidates('/api/premium/sukuyo-life');
       var lunarHint = _resolveExistingLunarHint(profile);
       var previousChapterTexts = _chapters.slice(0, idx).filter(function (t) { return typeof t === 'string' && t.trim(); });
       function _attempt(tryNo){
         return new Promise(function(resolve){
           var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (120초).'});},120000);
-          fetch('/api/premium/sukuyo-life',{
+          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/premium/sukuyo-life';
+          fetch(endpoint,{
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
               name: profile.name || '사용자',
@@ -846,8 +856,9 @@
           .then(function(data){clearTimeout(tid);resolve(data);})
           .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
         }).then(function(data){
+          var maxTry = Math.max(4, endpoints.length);
           if(data&&data.ok&&data.text) return data;
-          if(tryNo>=4) return data;
+          if(tryNo>=maxTry) return data;
           return _attempt(tryNo+1);
         });
       }

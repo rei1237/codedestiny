@@ -657,10 +657,10 @@
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     openLoveSecretModal: ['js/love-secret-v2.js?v=20260503-portraitfix1'],
     openLifeBookModal: ['js/life-book.js?v=20260507-sajuref1'],
-    gotoZiweiPremium: ['js/ziwei-book.js?v=20260503-premiumfix2'],
-    gotoAstrologyPremium: ['js/astro-book.js?v=20260503-premiumfix2'],
-    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260503-premiumfix2'],
-    gotoVedicPremium: ['js/vedic-book.js?v=20260503-premiumfix2'],
+    gotoZiweiPremium: ['js/ziwei-book.js?v=20260509-premiumapifix1'],
+    gotoAstrologyPremium: ['js/astro-book.js?v=20260509-premiumapifix1'],
+    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260509-premiumapifix1'],
+    gotoVedicPremium: ['js/vedic-book.js?v=20260509-premiumapifix1'],
     gotoNamingPremium: [],
     openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
   };

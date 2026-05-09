@@ -165,6 +165,53 @@ function normalizeSajuSourceData(body = {}) {
   };
 }
 
+const USEFUL_GOD_ELEMENT_MAP = {
+  wood: "wood",
+  fire: "fire",
+  earth: "earth",
+  metal: "metal",
+  water: "water",
+  목: "목",
+  화: "화",
+  토: "토",
+  금: "금",
+  수: "수",
+};
+
+function normalizeUsefulGodElementToken(token) {
+  const raw = String(token || "").trim().toLowerCase();
+  return USEFUL_GOD_ELEMENT_MAP[raw] || "";
+}
+
+function extractElementsFromUsefulGodLine(lineText) {
+  const matches = String(lineText || "").match(/wood|fire|earth|metal|water|목|화|토|금|수/gi) || [];
+  const normalized = matches
+    .map((token) => normalizeUsefulGodElementToken(token))
+    .filter(Boolean);
+  return unique(normalized);
+}
+
+function extractUsefulGodTripletFromSajuData(sajuData) {
+  const text = String(sajuData || "");
+  if (!text.trim()) {
+    return { yongsin: "", huisin: "", gisin: "" };
+  }
+
+  const yongMatches = [...text.matchAll(/용신(?:\(用神\))?\s*:\s*([^\n]+)/gi)];
+  const heeMatches = [...text.matchAll(/희신(?:\(喜神\))?\s*:\s*([^\n]+)/gi)];
+  const giMatches = [...text.matchAll(/기신(?:\(忌神\))?\s*:\s*([^\n]+)/gi)];
+
+  const yongList = unique(yongMatches.flatMap((m) => extractElementsFromUsefulGodLine(m[1])));
+  const heeList = unique(heeMatches.flatMap((m) => extractElementsFromUsefulGodLine(m[1])));
+  const giList = unique(giMatches.flatMap((m) => extractElementsFromUsefulGodLine(m[1])));
+
+  return {
+    yongsin: yongList[0] || "",
+    huisin: heeList[0] || yongList[1] || "",
+    gisin: giList[0] || "",
+  };
+}
+
 const SYSTEM_PROMPT = `당신은 수십 년의 실전 내공을 가진 최고의 명리학 거장이다. 동양 철학의 정수를 꿰뚫었으며, 사주의 이치를 날카롭고 정확하게 간파한다. 말은 적을지언정 한 마디 한 마디가 비수처럼 핵심을 찌른다.
 
 당신의 문체는 다음과 같다:
@@ -1338,8 +1385,10 @@ export async function POST(req) {
     }
     LIFEBOOK_IN_FLIGHT.set(inFlightKey, Date.now());
 
+    const parsedUsefulGods = extractUsefulGodTripletFromSajuData(body?.sajuData);
     const canonicalSajuChart = buildCanonicalSajuChart({
       canonicalSajuChart: body?.canonicalSajuChart,
+      engineData: body?.engineData,
       profile: body?.profile,
       name: body?.name,
       gender: body?.gender,
@@ -1351,6 +1400,9 @@ export async function POST(req) {
       timezone: body?.timezone,
       locationName: body?.locationName,
       isLeapMonth: body?.isLeapMonth,
+      yongsin: body?.yongsin || parsedUsefulGods.yongsin,
+      huisin: body?.huisin || parsedUsefulGods.huisin,
+      gisin: body?.gisin || parsedUsefulGods.gisin,
     });
 
     const canonicalValidation = validateCanonicalSajuChart(canonicalSajuChart);

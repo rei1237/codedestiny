@@ -80,6 +80,30 @@
 
   function _qs(id){return document.getElementById(id);}
 
+  function _buildApiCandidates(pathname) {
+    var p = String(pathname || '');
+    if (p.charAt(0) !== '/') p = '/' + p;
+    var seen = {};
+    var out = [];
+
+    function pushBase(raw) {
+      var b = String(raw || '').trim();
+      var u = b ? (b.replace(/\/+$/, '') + p) : p;
+      if (!u || seen[u]) return;
+      seen[u] = true;
+      out.push(u);
+    }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+
+    return out.length ? out : [p];
+  }
+
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
@@ -475,10 +499,12 @@
     _setProgress(0);
 
     function _fetchChapter(idx){
+      var endpoints = _buildApiCandidates('/api/premium/vedic-life');
       function _attempt(tryNo){
         return new Promise(function(resolve){
           var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (70초).'});},70000);
-          fetch('/api/premium/vedic-life',{
+          var endpoint = endpoints[(tryNo - 1) % endpoints.length] || '/api/premium/vedic-life';
+          fetch(endpoint,{
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
               year:b.year,month:b.month,day:b.day,
@@ -500,8 +526,9 @@
           .then(function(data){clearTimeout(tid);resolve(data);})
           .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
         }).then(function(data){
+          var maxTry = Math.max(3, endpoints.length);
           if(data&&data.ok&&data.text) return data;
-          if(tryNo>=3) return data;
+          if(tryNo>=maxTry) return data;
           return _attempt(tryNo+1);
         });
       }

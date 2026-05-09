@@ -657,9 +657,37 @@
       }
     }
 
-    var yong = (analysis.yongshin_elements && analysis.yongshin_elements[0]) || (Array.isArray(pw.yongshin) && pw.yongshin[0]) || '';
-    var hui = (analysis.huisin_elements && analysis.huisin_elements[0]) || '';
-    var gi = (analysis.kishin_elements && analysis.kishin_elements[0]) || (Array.isArray(pw.kijishin) && pw.kijishin[0]) || '';
+    var yongCandidates = [];
+    var huiCandidates = [];
+    var giCandidates = [];
+
+    function _pushElements(target, source) {
+      if (!Array.isArray(source)) return;
+      for (var si = 0; si < source.length; si++) {
+        var sv = _elementKo(source[si]);
+        if (!sv || target.indexOf(sv) >= 0) continue;
+        target.push(sv);
+      }
+    }
+
+    _pushElements(yongCandidates, analysis.yongshin_elements);
+    _pushElements(yongCandidates, analysis.yongshinElements);
+    _pushElements(yongCandidates, snap && snap.saju && snap.saju.yongshin_elements);
+    _pushElements(yongCandidates, pw && pw.yongshin);
+
+    _pushElements(huiCandidates, analysis.huisin_elements);
+    _pushElements(huiCandidates, analysis.huisinElements);
+    _pushElements(huiCandidates, analysis.heesin_elements);
+    _pushElements(huiCandidates, analysis.heesinElements);
+
+    _pushElements(giCandidates, analysis.kishin_elements);
+    _pushElements(giCandidates, analysis.kishinElements);
+    _pushElements(giCandidates, snap && snap.saju && snap.saju.kishin_elements);
+    _pushElements(giCandidates, pw && pw.kijishin);
+
+    var yong = yongCandidates[0] || '';
+    var hui = huiCandidates[0] || yongCandidates[1] || '';
+    var gi = giCandidates[0] || '';
 
     var chart = {
       reportType: 'saju-life-book',
@@ -1218,6 +1246,9 @@
               sessionId: idx + 1,
               sajuData: sajuData,
               canonicalSajuChart: _canonicalSajuChart,
+              yongsin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.yongsin && _canonicalSajuChart.usefulGods.yongsin.element) || ''),
+              huisin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.huisin && _canonicalSajuChart.usefulGods.huisin.element) || ''),
+              gisin: ((_canonicalSajuChart && _canonicalSajuChart.usefulGods && _canonicalSajuChart.usefulGods.gisin && _canonicalSajuChart.usefulGods.gisin.element) || ''),
               previousChapterTexts: _chapters.slice(0, idx).filter(function(v){ return typeof v === 'string' && v.trim(); }),
               profile: {
                 name: String((profile && profile.name) || ''),

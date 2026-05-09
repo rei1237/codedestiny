@@ -187,8 +187,32 @@
   function _ensureSajuDataForGeneration() {
     var data = _cachedSajuData || _collectSajuData();
     if (_isSajuDataValid(data)) {
-      return { sajuData: data, usedFallbackData: false };
+      _cachedSajuData = data;
+      return { sajuData: data, usedFallbackData: false, source: 'existing-result' };
     }
+
+    var profile = window.__cdActiveBirthProfile || {};
+    if (typeof window.computeProfileForModal === 'function' && profile && profile.birth && profile.birth.year) {
+      try { window.computeProfileForModal(profile); } catch (_) {}
+      var recomputed = _collectSajuData();
+      if (_isSajuDataValid(recomputed)) {
+        _cachedSajuData = recomputed;
+        return { sajuData: recomputed, usedFallbackData: false, source: 'recomputed-profile' };
+      }
+    }
+
+    var snapshotJson = '';
+    try {
+      if (window.__destinyFlowerSajuSnapshot) {
+        snapshotJson = JSON.stringify(window.__destinyFlowerSajuSnapshot, null, 2);
+      }
+    } catch (_) {}
+    if (snapshotJson && snapshotJson.length > 120) {
+      var fromSnapshot = '【기존 사주 분석 스냅샷】\n' + snapshotJson;
+      _cachedSajuData = fromSnapshot;
+      return { sajuData: fromSnapshot, usedFallbackData: false, source: 'existing-snapshot' };
+    }
+
     return {
       sajuData: '',
       usedFallbackData: true,
