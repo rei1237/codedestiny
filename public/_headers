@@ -102,52 +102,52 @@
   CDN-Cache-Control: no-cache, no-store, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
 
-# ── 고정 파일명 JS/CSS (해시 없음): 단기 캐시 + 재검증 ───────────
+# ── 고정 파일명 JS/CSS (해시 없음): 항상 재검증 ────────────────
 /*.js
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /*.css
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /js/*.js
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /lib/*.js
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /styles/*.css
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /css/*.css
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
-# ── 고정 파일명 assets: 단기 캐시 + 재검증 ───────────────────────
+# ── 고정 파일명 assets: 항상 재검증 (동일 파일명 교체 대응) ──────
 /icons/*
-  Cache-Control: public, max-age=31536000, immutable
-  CDN-Cache-Control: public, max-age=31536000, immutable
-  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /fuctionassets/*
-  Cache-Control: public, max-age=31536000, immutable
-  CDN-Cache-Control: public, max-age=31536000, immutable
-  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /tarot-cards/*
-  Cache-Control: public, max-age=31536000, immutable
-  CDN-Cache-Control: public, max-age=31536000, immutable
-  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 # ── AdSense 및 광고 관련 설정 파일 ─────────────────────────────
 /ads.txt
@@ -163,19 +163,19 @@
   Cloudflare-CDN-Cache-Control: public, max-age=86400
 
 /fonts/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=604800
-  CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=604800
-  Cloudflare-CDN-Cache-Control: public, max-age=604800, stale-while-revalidate=604800
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
-  CDN-Cache-Control: public, max-age=31536000, immutable
-  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /images/*
-  Cache-Control: public, max-age=31536000, immutable
-  CDN-Cache-Control: public, max-age=31536000, immutable
-  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  CDN-Cache-Control: no-cache, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 # ── Next.js 해시 기반 빌드 assets: 장기 캐시 허용 ───────────────
 # _next/static/ 하위 파일은 content hash가 파일명에 포함됨
