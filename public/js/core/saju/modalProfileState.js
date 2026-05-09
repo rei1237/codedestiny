@@ -150,40 +150,8 @@ function _resolveSukuyoLunarObj(profile) {
 }
 
 function _fetchSukuyoBasicCanonical(profile) {
-  if (!profile || !profile.birth || typeof fetch !== 'function') return Promise.resolve(null);
-  var b = profile.birth;
-  var l = profile.location || {};
-
-  return fetch('/api/sukuyo-basic', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: profile.name || '사용자',
-      gender: profile.gender || 'OTHER',
-      birth: {
-        year: Number(b.year),
-        month: Number(b.month),
-        day: Number(b.day),
-        hour: b.hour != null ? Number(b.hour) : 12,
-        minute: b.minute != null ? Number(b.minute) : 0
-      },
-      location: {
-        lat: l.lat != null ? Number(l.lat) : 37.5665,
-        lon: l.lng != null ? Number(l.lng) : 126.978,
-        timezone: l.tzOffset != null ? Number(l.tzOffset) : 9
-      }
-    })
-  })
-    .then(function (res) {
-      return res.json().catch(function () { return null; }).then(function (data) {
-        if (!res.ok || !data || !data.ok || !data.canonical) return null;
-        return data;
-      });
-    })
-    .catch(function (e) {
-      console.warn('[Sukuyo] 기본 canonical 조회 실패:', e);
-      return null;
-    });
+  // 기본 숙요점은 API를 추가 호출하지 않고 로컬 렌더 엔진에서 canonical을 계산한다.
+  return Promise.resolve(null);
 }
 
 function _renderSukuyoSection(profile) {
@@ -201,14 +169,11 @@ function _renderSukuyoSection(profile) {
   setTimeout(function () {
     _resolveSukuyoLunarObj(profile)
       .then(function (lunarObj) {
-        return _fetchSukuyoBasicCanonical(profile)
-          .then(function (canonicalPayload) {
-            if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj, canonicalPayload);
-          });
+        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj, null, profile);
       })
       .catch(function (e) {
         console.warn('[Sukuyo] 렌더 준비 실패:', e);
-        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, null);
+        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, null, null, profile);
       })
       .finally(function () {
         _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');

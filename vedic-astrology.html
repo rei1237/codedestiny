@@ -3195,6 +3195,53 @@ function renderResult(){
   const allPlanets=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Rahu","Ketu"];
   const dataSnapshot=buildCurrentVedicDataSnapshot(chart,report);
   const snapshotText=dataSnapshot?JSON.stringify(dataSnapshot,null,2):"";
+  const bhavaFocusRows=(dataSnapshot&&Array.isArray(dataSnapshot.bhavas)?dataSnapshot.bhavas:[])
+    .map(function(h){ return { num:h.number, sign:h.rashiKo||h.rashi||'-', count:Array.isArray(h.planets)?h.planets.length:0 }; })
+    .sort(function(a,b){ return b.count-a.count; })
+    .filter(function(h){ return h.count>0; })
+    .slice(0,3);
+  const bhavaFocusText=bhavaFocusRows.length
+    ? bhavaFocusRows.map(function(h){ return h.num+'H '+h.sign+' ('+h.count+'성)'; }).join(' · ')
+    : '행성 분포가 분산되어 있어 한 축에 과집중되지 않습니다.';
+  const yogaFocusText=(dataSnapshot&&Array.isArray(dataSnapshot.yogas)&&dataSnapshot.yogas.length)
+    ? dataSnapshot.yogas.slice(0,2).join(' · ')
+    : '핵심 요가 신호는 약하지만 루틴형 축적에 유리합니다.';
+  const vedicRiskText=(report&&report.chakra&&report.chakra.blocked)
+    ? (CHKINFO[report.chakra.blocked]?CHKINFO[report.chakra.blocked].kr:report.chakra.blocked)+' 정체 + '+(report.remedies&&report.remedies.dosha?report.remedies.dosha.type:'도샤 밸런스')+' 점검'
+    : ((report.remedies&&report.remedies.dosha?report.remedies.dosha.type:'도샤 밸런스')+' 중심 관리');
+  const vedicRoutineText=(insights&&insights.remedyDay?insights.remedyDay:'주간 루틴')+' · '+(insights&&insights.remedyItem?insights.remedyItem:'정화 루틴')+' · 만트라 '+(insights&&insights.remedyMantra?insights.remedyMantra:'옴 샨티');
+  const vedicCanonicalCardsHtml=`
+  <div class="reveal reveal-delay-2" style="margin:12px 0 16px">
+    <div class="section-head section-head-kr" style="margin-bottom:10px">🪷 기본 운세 확장 카테고리</div>
+    <div class="summary-grid">
+      <div class="sum-card" style="border-color:rgba(212,175,55,0.2)">
+        <div class="sum-card-label">성향 코어</div>
+        <div class="sum-card-val" style="color:var(--gold)">${rasi.ascSignKr} · ${nkData.sym} ${nak.name}</div>
+        <div class="sum-card-sub">라그나 + 문낙샤트라 기반 성향축</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(236,72,153,0.2)">
+        <div class="sum-card-label">관계/연애</div>
+        <div class="sum-card-val" style="color:var(--pink)">${SIGNKR[SIGNS.indexOf(report.romance.h7sign)]||report.romance.h7sign}</div>
+        <div class="sum-card-sub">7바바 + 카라카 ${PKR[chart.f.gender==='M'?'Venus':'Jupiter']}</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(34,197,94,0.25)">
+        <div class="sum-card-label">커리어/재물</div>
+        <div class="sum-card-val" style="color:#22C55E">${PKR[maha.p]} 대운</div>
+        <div class="sum-card-sub">${bhavaFocusText}</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(245,158,11,0.25)">
+        <div class="sum-card-label">리스크/정화</div>
+        <div class="sum-card-val" style="color:#F59E0B">${PKR[anta.p]} 세운</div>
+        <div class="sum-card-sub">${vedicRiskText}</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(167,139,250,0.25)">
+        <div class="sum-card-label">실행 루틴</div>
+        <div class="sum-card-val" style="color:var(--purple2)">Daily Sadhana</div>
+        <div class="sum-card-sub">${vedicRoutineText}</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.65">요가 포인트: ${yogaFocusText}</div>
+  </div>`;
 
   // ── 탭 1: 개요 (Overview) ─────────────────────────────
   const tabOverview=`
@@ -3224,6 +3271,8 @@ function renderResult(){
       <div class="sum-card-sub">${fmtDate(anta.end)}까지</div>
     </div>
   </div>
+
+  ${vedicCanonicalCardsHtml}
 
   <div class="reveal reveal-delay-2" style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:16px;margin-bottom:14px">
     <div class="section-head section-head-kr" style="margin-bottom:10px">☽ 타고난 성향 · 핵심 키워드</div>

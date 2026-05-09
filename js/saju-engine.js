@@ -6998,6 +6998,42 @@ function renderAstroInsight() {
       + '</div>'
       + '</div>';
 
+    var astroCanonicalSectionHtml = ''
+      + '<div class="astro-section astro-life-area" id="astroCanonicalSection">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">🧩 기본 운세 확장 카테고리</div>'
+      + '<p class="astro-birth-lead">프리미엄 리포트의 챕터 구조를 기본 운세에 맞게 압축해, 핵심 주제를 바로 확인할 수 있게 재배치했습니다.</p>'
+      + '<div class="astro-life-grid">'
+      + '<details class="astro-life-card" open>'
+      + '<summary><span>성향 코어 · Identity</span><span class="astro-birth-open">핵심</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>태양 <b>'+sunSign+'</b> · 달 <b>'+moonSign+'</b> · 상승궁 <b>'+ascSign+'</b> 조합은 지금 <b>'+(topHouseMetaQuick.title || '핵심 하우스')+'</b> 축에서 가장 강하게 체감됩니다.</p>'
+      + '<p class="astro-life-evidence"><b>근거:</b> <span class="astro-life-chip">☀️ '+sunHousePair+'</span><span class="astro-life-chip">🌙 '+moonHousePair+'</span><span class="astro-life-chip">⬆️ '+ascHousePair+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '<details class="astro-life-card">'
+      + '<summary><span>관계/연애 · Bond</span><span class="astro-birth-open">리듬</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>'+(vmAspect || vmCalcFallback)+'</p>'
+      + '<p class="astro-life-evidence"><b>관계 키워드:</b> <span class="astro-life-chip">금성 '+venusHousePair+'</span><span class="astro-life-chip">화성 '+marsHousePair+'</span><span class="astro-life-chip">보완 원소 '+elemShortNames[elemWeakest]+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '<details class="astro-life-card">'
+      + '<summary><span>커리어/재물 · Growth</span><span class="astro-birth-open">확장</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>MC <b>'+mcSign+'</b> 방향성과 토성 <b>'+saturnHousePair+'</b> 루틴을 고정하면, 목성 <b>'+jupiterHousePair+'</b> 영역에서 확장 속도가 빨라집니다.</p>'
+      + '<p class="astro-life-evidence"><b>올해 프로펙션:</b> <span class="astro-life-chip">'+profHouse+'</span><span class="astro-life-chip">지배별자리 '+profSign+'</span><span class="astro-life-chip">지배행성 '+profRuler+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '<details class="astro-life-card">'
+      + '<summary><span>리스크/루틴 · Stability</span><span class="astro-birth-open">가드</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>지배 원소는 <b>'+elemDomNames[elemDominant]+'</b>입니다. 역행 행성 '+(retroPlanets.length ? retroPlanets.join(', ') : '없음')+' 구간에서는 결론을 늦추고 기록 기반 의사결정이 유리합니다.</p>'
+      + '<p class="astro-life-evidence"><b>실행 팁:</b> <span class="astro-life-chip">'+modalityNames[modalityDominant]+'</span><span class="astro-life-chip">'+modalityAdvice[modalityDominant]+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '</div>'
+      + '</div>';
+
     var mobileScenarioSectionHtml = ''
       + '<div class="astro-section astro-mobile-scenario" id="astroMobileScenarioSection">'
       + '<div class="astro-subhead" style="margin-bottom:8px;">📱 모바일 탐험 시나리오</div>'
@@ -7395,6 +7431,7 @@ function renderAstroInsight() {
       + lifeAreaSectionHtml
       + aspectStorySectionHtml
       + personalGuidanceSectionHtml
+      + astroCanonicalSectionHtml
       + mobileScenarioSectionHtml
 
         +'<div class="astro-section">'
@@ -12017,6 +12054,441 @@ function renderZiwei(p, natal, targetId) {
     };
   }
 
+  function _zwBuildBasicCanonicalCards(pd) {
+    if (!pd || !Array.isArray(pd.palaceStarData) || !pd.palaceStarData.length) return '';
+
+    var palaceMap = {};
+    pd.palaceStarData.forEach(function(row){
+      if (row && row.palace) palaceMap[row.palace] = row;
+    });
+
+    function _zwBasicStars(row) {
+      if (!row) return '데이터 없음';
+      var mains = _zwPortfolioExtractStars(row.stars || []).slice(0, 2);
+      if (!mains.length) mains = _zwPortfolioExtractStars(row.auxStars || []).slice(0, 2);
+      return mains.length ? mains.join(' · ') : '공궁(空宮)';
+    }
+
+    var sihuaCount = { '화록': 0, '화권': 0, '화과': 0, '화기': 0 };
+    pd.palaceStarData.forEach(function(row){
+      var merged = [].concat((row && row.stars) || [], (row && row.auxStars) || [], (row && row.badStars) || []);
+      merged.forEach(function(raw){
+        var hit = String(raw || '').match(/화록|화권|화과|화기/);
+        if (hit && Object.prototype.hasOwnProperty.call(sihuaCount, hit[0])) sihuaCount[hit[0]] += 1;
+      });
+    });
+
+    var sihuaTop = Object.keys(sihuaCount).sort(function(a, b){ return sihuaCount[b] - sihuaCount[a]; })[0] || '화록';
+    var sihuaGuide = {
+      '화록': '기회 유입이 빠른 구간입니다. 들어오는 제안 중 반복 가능한 구조를 먼저 선택하세요.',
+      '화권': '주도권이 강해지는 시기입니다. 역할·책임 경계를 먼저 합의하면 성과가 큽니다.',
+      '화과': '평판과 전문성 자산이 커집니다. 공개 기록과 포트폴리오 업데이트가 유리합니다.',
+      '화기': '마찰 신호를 먼저 감지해야 합니다. 일정·관계·재정에서 완충 규칙을 설정하세요.'
+    };
+
+    var keyPalaces = ['명궁', '관록궁', '재백궁', '부부궁', '복덕궁'];
+    var keyRowsHtml = keyPalaces.map(function(name){
+      var row = palaceMap[name];
+      if (!row) return '';
+      var stars = _zwBasicStars(row);
+      var profile = _zwPortfolioProfileFromStars(_zwPortfolioExtractStars((row.stars || []).concat(row.auxStars || [])));
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(148,163,184,0.12)">'
+        + '<span style="color:#c4b5fd;font-size:0.79rem;white-space:nowrap">'+_zwPortfolioEscapeHtml(name)+'</span>'
+        + '<span style="color:#f8fafc;font-size:0.8rem;text-align:right">'+_zwPortfolioEscapeHtml(stars)+'<br><span style="color:#93c5fd;font-size:0.72rem">'+_zwPortfolioEscapeHtml(profile.persona)+'</span></span>'
+        + '</div>';
+    }).join('');
+
+    var baseMeta = pd.calcMeta
+      ? ('음력 ' + pd.calcMeta.lunarMonth + '월 ' + pd.calcMeta.lunarDay + '일 · 시지 ' + pd.calcMeta.hourBranch)
+      : '명반 기준 정보 없음';
+
+    return ''
+      + '<div class="zw-detail-panel" id="zwBasicCanonicalPanel">'
+      + '  <div class="zw-dp-header">'
+      + '    <div class="zw-dp-title">🧩 기본 운세 확장 카드</div>'
+      + '    <div class="zw-dp-subtitle">프리미엄 리포트용 구조를 기본 명반 요약으로 재배치 · '+_zwPortfolioEscapeHtml(baseMeta)+'</div>'
+      + '  </div>'
+      + '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">'
+      + '    <div class="zw-report-section" style="border-left-color:#f59e0b">'
+      + '      <div class="zw-rtitle">🌕 명주 코어</div>'
+      + '      <div class="zw-rdesc">명궁 <b>'+_zwPortfolioEscapeHtml(String(pd.meng || '-'))+'</b> · 신궁 <b>'+_zwPortfolioEscapeHtml(String(pd.shen || '-'))+'</b> · 오행국 <b>'+_zwPortfolioEscapeHtml(String(pd.juInfo || '-'))+'</b> 조합은 기본 성향 축을 형성합니다.</div>'
+      + '    </div>'
+      + '    <div class="zw-report-section" style="border-left-color:#38bdf8">'
+      + '      <div class="zw-rtitle">🏛 핵심 궁 포트폴리오</div>'
+      + '      <div class="zw-rdesc">'+(keyRowsHtml || '핵심 궁 데이터를 불러오는 중입니다.')+'</div>'
+      + '    </div>'
+      + '    <div class="zw-report-section" style="border-left-color:#a78bfa">'
+      + '      <div class="zw-rtitle">⚡ 사화(四化) 신호</div>'
+      + '      <div class="zw-rdesc">화록 '+sihuaCount['화록']+' · 화권 '+sihuaCount['화권']+' · 화과 '+sihuaCount['화과']+' · 화기 '+sihuaCount['화기']+'<br>현재 최다 신호는 <b>'+_zwPortfolioEscapeHtml(sihuaTop)+'</b>이며, '+_zwPortfolioEscapeHtml(sihuaGuide[sihuaTop] || sihuaGuide['화록'])+'</div>'
+      + '    </div>'
+      + '    <div class="zw-report-section" style="border-left-color:#34d399">'
+      + '      <div class="zw-rtitle">🧭 실행 가이드</div>'
+      + '      <div class="zw-rdesc">관록궁·재백궁 카드에서 반복 키워드를 우선 실행하고, 부부궁·복덕궁 신호로 관계·정서 리듬을 보정하면 기본 운세 체감이 크게 안정됩니다.</div>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function _zwBuildDeepCanonicalPayload(pd) {
+    if (!pd || !Array.isArray(pd.palaceStarData) || !pd.palaceStarData.length) return null;
+
+    var rows = pd.palaceStarData.map(function(row, idx) {
+      var mainStars = _zwPortfolioExtractStars((row && row.stars) || []);
+      var auxStars = _zwPortfolioExtractStars((row && row.auxStars) || []);
+      var badStars = _zwPortfolioExtractStars((row && row.badStars) || []);
+      var mergedRaw = [].concat((row && row.stars) || [], (row && row.auxStars) || [], (row && row.badStars) || []);
+      var sihua = '';
+      for (var i = 0; i < mergedRaw.length; i += 1) {
+        var hit = String(mergedRaw[i] || '').match(/화록|화권|화과|화기/);
+        if (hit) {
+          sihua = hit[0];
+          break;
+        }
+      }
+      var borrowed = ((row && row.stars) || []).some(function(raw) {
+        return /\(차성\)|\b차성\b/.test(String(raw || ''));
+      });
+      var profile = _zwPortfolioProfileFromStars(mainStars.concat(auxStars));
+      var score = Math.round(
+        mainStars.length * 18
+        + auxStars.length * 7
+        - badStars.length * 9
+        + (sihua === '화록' ? 8 : sihua === '화권' ? 6 : sihua === '화과' ? 5 : sihua === '화기' ? -10 : 0)
+        + (borrowed ? -3 : 0)
+      );
+      return {
+        idx: idx,
+        palace: (row && row.palace) || ((pd.palacesByIndex && pd.palacesByIndex[idx]) || ('제' + (idx + 1) + '궁')),
+        branch: (row && row.branch) || (ZHI_LIST[idx] || ''),
+        dahan: (row && row.dahan) || ((pd.daHanList && pd.daHanList[idx]) || ''),
+        mainStars: mainStars,
+        auxStars: auxStars,
+        badStars: badStars,
+        sihua: sihua,
+        borrowed: borrowed,
+        profile: profile,
+        score: score,
+        riskScore: Math.round(badStars.length * 12 + (sihua === '화기' ? 10 : 0) + (borrowed ? 3 : 0) - mainStars.length * 2)
+      };
+    });
+
+    var topPalaces = rows.slice().sort(function(a, b) {
+      return b.score - a.score;
+    }).slice(0, 4);
+
+    var riskPalaces = rows.slice().sort(function(a, b) {
+      return b.riskScore - a.riskScore;
+    }).slice(0, 4);
+
+    var sihuaCount = { '화록': 0, '화권': 0, '화과': 0, '화기': 0 };
+    rows.forEach(function(row) {
+      if (row.sihua && Object.prototype.hasOwnProperty.call(sihuaCount, row.sihua)) {
+        sihuaCount[row.sihua] += 1;
+      }
+    });
+
+    var dominantSihua = Object.keys(sihuaCount).sort(function(a, b) {
+      return sihuaCount[b] - sihuaCount[a];
+    })[0] || '화록';
+
+    var decadeFlow = (Array.isArray(pd.daHanList) ? pd.daHanList : []).slice(0, 8).map(function(period, idx) {
+      var row = rows[idx % rows.length];
+      return {
+        period: period,
+        palace: row ? row.palace : '',
+        profile: row && row.profile ? row.profile.persona : '',
+        mainStars: row && row.mainStars ? row.mainStars.slice(0, 2) : [],
+        focus: row && row.mainStars && row.mainStars.length
+          ? row.mainStars[0] + ' 중심 실행'
+          : '관찰 기반 조정'
+      };
+    });
+
+    var keywords = [];
+    topPalaces.forEach(function(row) {
+      (row.profile && row.profile.keywords ? row.profile.keywords : []).forEach(function(k) {
+        if (k && keywords.indexOf(k) < 0) keywords.push(k);
+      });
+    });
+
+    return {
+      core: {
+        meng: pd.meng || '',
+        shen: pd.shen || '',
+        juInfo: pd.juInfo || '',
+        calcMeta: pd.calcMeta || null
+      },
+      topPalaces: topPalaces,
+      riskPalaces: riskPalaces,
+      sihua: {
+        count: sihuaCount,
+        dominant: dominantSihua
+      },
+      decadeFlow: decadeFlow,
+      keywords: keywords.slice(0, 8)
+    };
+  }
+
+  function _zwBuildDeepCanonicalCards(pd) {
+    var payload = _zwBuildDeepCanonicalPayload(pd);
+    if (!payload) return '';
+
+    var topHtml = payload.topPalaces.map(function(row, idx) {
+      var stars = row.mainStars.length ? row.mainStars.slice(0, 2).join(' · ') : '공궁(空宮)';
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(148,163,184,0.12)">'
+        + '<span style="color:#a5b4fc;font-size:0.79rem;white-space:nowrap">TOP ' + (idx + 1) + ' · ' + _zwPortfolioEscapeHtml(String(row.palace || '-')) + '</span>'
+        + '<span style="color:#f8fafc;font-size:0.8rem;text-align:right">' + _zwPortfolioEscapeHtml(stars) + '<br><span style="color:#93c5fd;font-size:0.72rem">' + _zwPortfolioEscapeHtml(String(row.profile.persona || '')) + '</span></span>'
+        + '</div>';
+    }).join('');
+
+    var riskHtml = payload.riskPalaces.map(function(row, idx) {
+      var flags = [];
+      if (row.sihua) flags.push(row.sihua);
+      if (row.badStars.length) flags.push('흉성 ' + row.badStars.length);
+      if (row.borrowed) flags.push('차성');
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(248,113,113,0.14)">'
+        + '<span style="color:#fda4af;font-size:0.79rem;white-space:nowrap">주의 ' + (idx + 1) + ' · ' + _zwPortfolioEscapeHtml(String(row.palace || '-')) + '</span>'
+        + '<span style="color:#fecaca;font-size:0.77rem;text-align:right">' + _zwPortfolioEscapeHtml(flags.join(' · ') || '기초 점검') + '</span>'
+        + '</div>';
+    }).join('');
+
+    var decadeHtml = payload.decadeFlow.slice(0, 5).map(function(row) {
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(147,197,253,0.14)">'
+        + '<span style="color:#bae6fd;font-size:0.78rem;white-space:nowrap">' + _zwPortfolioEscapeHtml(String(row.period || '-')) + '</span>'
+        + '<span style="color:#e2e8f0;font-size:0.77rem;text-align:right">' + _zwPortfolioEscapeHtml(String(row.palace || '-')) + ' · ' + _zwPortfolioEscapeHtml(String(row.focus || '')) + '</span>'
+        + '</div>';
+    }).join('');
+
+    var keywordText = payload.keywords.length ? payload.keywords.join(' · ') : '균형 · 실행 · 리스크 관리';
+
+    return ''
+      + '<div class="zw-detail-panel" id="zwDeepCanonicalPanel">'
+      + '  <div class="zw-dp-header">'
+      + '    <div class="zw-dp-title">🛰 자미두수 심화 해석 레이어</div>'
+      + '    <div class="zw-dp-subtitle">궁별 점수·사화·대운 흐름을 합성한 심화 데이터</div>'
+      + '  </div>'
+      + '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">'
+      + '    <div class="zw-report-section" style="border-left-color:#60a5fa">'
+      + '      <div class="zw-rtitle">🏆 고신뢰 궁 TOP</div>'
+      + '      <div class="zw-rdesc">' + (topHtml || '데이터 없음') + '</div>'
+      + '    </div>'
+      + '    <div class="zw-report-section" style="border-left-color:#fb7185">'
+      + '      <div class="zw-rtitle">🛑 리스크 경계 궁</div>'
+      + '      <div class="zw-rdesc">' + (riskHtml || '리스크 신호 없음') + '</div>'
+      + '    </div>'
+      + '    <div class="zw-report-section" style="border-left-color:#22d3ee">'
+      + '      <div class="zw-rtitle">⏳ 대운 핵심 리듬</div>'
+      + '      <div class="zw-rdesc">' + (decadeHtml || '대운 정보 없음') + '</div>'
+      + '    </div>'
+      + '    <div class="zw-report-section" style="border-left-color:#a78bfa">'
+      + '      <div class="zw-rtitle">🎯 정밀 키워드 & 사화축</div>'
+      + '      <div class="zw-rdesc">핵심 키워드: <b>' + _zwPortfolioEscapeHtml(keywordText) + '</b><br>사화 분포: 화록 ' + payload.sihua.count['화록'] + ' · 화권 ' + payload.sihua.count['화권'] + ' · 화과 ' + payload.sihua.count['화과'] + ' · 화기 ' + payload.sihua.count['화기'] + '<br>현재 주축: <b>' + _zwPortfolioEscapeHtml(payload.sihua.dominant) + '</b></div>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+  }
+
+  function _zwBuildDeepAiPromptSet(payload) {
+    if (!payload) {
+      return {
+        master: '자미두수 심화 데이터를 불러오지 못했습니다. 명반 계산 후 다시 시도하세요.',
+        career: '',
+        relation: '',
+        strategy: ''
+      };
+    }
+
+    var topLines = payload.topPalaces.map(function(row, idx) {
+      return (idx + 1) + ') ' + row.palace + ' [' + (row.mainStars[0] || '공궁') + '] / 점수 ' + row.score;
+    }).join('\n');
+    var riskLines = payload.riskPalaces.map(function(row, idx) {
+      return (idx + 1) + ') ' + row.palace + ' / 리스크 ' + row.riskScore + (row.sihua ? ' / ' + row.sihua : '');
+    }).join('\n');
+    var decadeLines = payload.decadeFlow.slice(0, 6).map(function(row) {
+      return '- ' + row.period + ' : ' + row.palace + ' / ' + row.focus;
+    }).join('\n');
+    var dataBlock = ''
+      + '[자미두수 심화 데이터]\n'
+      + '명궁=' + payload.core.meng + ', 신궁=' + payload.core.shen + ', 오행국=' + payload.core.juInfo + '\n'
+      + '사화=' + '화록 ' + payload.sihua.count['화록'] + ', 화권 ' + payload.sihua.count['화권'] + ', 화과 ' + payload.sihua.count['화과'] + ', 화기 ' + payload.sihua.count['화기'] + ', 주축 ' + payload.sihua.dominant + '\n'
+      + '핵심궁 TOP\n' + topLines + '\n'
+      + '리스크궁\n' + riskLines + '\n'
+      + '대운리듬\n' + decadeLines + '\n'
+      + '키워드=' + (payload.keywords || []).join(', ');
+
+    var guard = ''
+      + '[해석 규칙]\n'
+      + '1) 데이터에 없는 항목은 추정하지 말 것\n'
+      + '2) 각 결론마다 근거 궁/별/사화 2개 이상 제시\n'
+      + '3) 확률형 문장으로 표현하고 단정 금지\n'
+      + '4) 의료/법률/투자 결과 보장 금지\n';
+
+    var outputMaster = ''
+      + '[출력 형식]\n'
+      + '- 총평 5줄\n'
+      + '- 강점 3개(근거 포함)\n'
+      + '- 리스크 3개(회피 액션 포함)\n'
+      + '- 90일 실행계획(매월 3개)\n'
+      + '- 한 줄 결론\n';
+
+    var outputCareer = ''
+      + '[출력 형식]\n'
+      + '- 커리어 확장 타이밍 3구간\n'
+      + '- 재물 운영 원칙 5개\n'
+      + '- 피해야 할 의사결정 3개\n'
+      + '- 이번 달/다음 달 액션 5개\n';
+
+    var outputRelation = ''
+      + '[출력 형식]\n'
+      + '- 관계 패턴 진단 4줄\n'
+      + '- 연애/배우자 궁 해석 6줄\n'
+      + '- 갈등 방지 대화 프레임 5개\n'
+      + '- 관계 회복 루틴 14일 플랜\n';
+
+    var outputStrategy = ''
+      + '[출력 형식]\n'
+      + '- 12개월 월별 핵심 포커스(표)\n'
+      + '- 분기별 목표 KPI(행동지표)\n'
+      + '- 리스크 이벤트 대응 체크리스트\n';
+
+    return {
+      master: '너는 자미두수 실전 통변가다. 아래 심화 데이터를 기반으로 정밀 운세 리포트를 작성하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputMaster,
+      career: '너는 자미두수 커리어·재물 전문 분석가다. 아래 데이터로 직업/사업/재무 전략만 집중 분석하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputCareer,
+      relation: '너는 자미두수 관계 통변 전문가다. 아래 데이터로 연애·배우자·관계 회복 전략을 상세히 작성하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputRelation,
+      strategy: '너는 자미두수 연간 코치다. 아래 데이터로 12개월 실행 로드맵을 현실적으로 작성하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputStrategy
+    };
+  }
+
+  function _zwCopyTextSafe(text) {
+    var str = String(text || '');
+    if (!str) return Promise.reject(new Error('empty'));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(str);
+    }
+    return new Promise(function(resolve, reject) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = str;
+        ta.setAttribute('readonly', 'readonly');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) resolve();
+        else reject(new Error('copy-failed'));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  function _zwOpenAiChatPrompt(promptText, statusEl) {
+    var text = String(promptText || '').trim();
+    if (!text) {
+      if (statusEl) statusEl.textContent = '프롬프트가 비어 있습니다.';
+      return;
+    }
+    _zwCopyTextSafe(text).then(function() {
+      if (statusEl) statusEl.textContent = '프롬프트를 복사했고 AI 채팅을 엽니다.';
+      var chatUrl = 'https://chat.openai.com/?q=' + encodeURIComponent(text);
+      window.open(chatUrl, '_blank', 'noopener,noreferrer');
+    }).catch(function() {
+      if (statusEl) statusEl.textContent = '자동 복사에 실패했습니다. 텍스트를 직접 복사한 뒤 AI 채팅에 붙여 넣어 주세요.';
+      window.open('https://chat.openai.com/', '_blank', 'noopener,noreferrer');
+    });
+  }
+
+  function _zwBuildDeepAiPromptPanel() {
+    return ''
+      + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel">'
+      + '  <div class="zw-dp-header">'
+      + '    <div class="zw-dp-title">🧠 자미두수 심화 AI 프롬프트</div>'
+      + '    <div class="zw-dp-subtitle">심화 명반 데이터를 근거로 프롬프트 4종을 즉시 생성합니다.</div>'
+      + '  </div>'
+      + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+      + '    <button type="button" data-zw-prompt-key="master" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(196,181,253,0.5);background:rgba(76,29,149,0.38);color:#ede9fe;font-size:0.76rem;font-weight:800;cursor:pointer">정밀 종합</button>'
+      + '    <button type="button" data-zw-prompt-key="career" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(147,197,253,0.48);background:rgba(30,64,175,0.3);color:#dbeafe;font-size:0.76rem;font-weight:800;cursor:pointer">커리어·재물</button>'
+      + '    <button type="button" data-zw-prompt-key="relation" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(251,191,36,0.45);background:rgba(120,53,15,0.3);color:#fef3c7;font-size:0.76rem;font-weight:800;cursor:pointer">연애·관계</button>'
+      + '    <button type="button" data-zw-prompt-key="strategy" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(52,211,153,0.45);background:rgba(6,78,59,0.35);color:#d1fae5;font-size:0.76rem;font-weight:800;cursor:pointer">12개월 전략</button>'
+      + '  </div>'
+      + '  <textarea id="zwDeepAiPromptText" readonly style="width:100%;min-height:250px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
+      + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="background:#7c3aed;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+      + '    <button id="zwDeepAiPromptOpenBtn" type="button" style="background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">AI 채팅 열기</button>'
+      + '  </div>'
+      + '  <div id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>'
+      + '</div>';
+  }
+
+  function _zwInitDeepAiPromptPanel(panelId, pd) {
+    var panel = document.getElementById(panelId);
+    if (!panel || !pd) return;
+
+    var payload = _zwBuildDeepCanonicalPayload(pd);
+    var promptSet = _zwBuildDeepAiPromptSet(payload);
+    var box = panel.querySelector('#zwDeepAiPromptText');
+    var status = panel.querySelector('#zwDeepAiPromptStatus');
+    var copyBtn = panel.querySelector('#zwDeepAiPromptCopyBtn');
+    var openBtn = panel.querySelector('#zwDeepAiPromptOpenBtn');
+    var tabBtns = panel.querySelectorAll('[data-zw-prompt-key]');
+    var activeKey = 'master';
+
+    function paintActiveTab(key) {
+      tabBtns.forEach(function(btn) {
+        var on = btn.getAttribute('data-zw-prompt-key') === key;
+        btn.style.filter = on ? 'brightness(1.2)' : 'brightness(1)';
+        btn.style.outline = on ? '1px solid rgba(255,255,255,0.5)' : 'none';
+      });
+    }
+
+    function applyPrompt(key) {
+      activeKey = key;
+      var nextText = promptSet[key] || promptSet.master || '';
+      if (box) {
+        box.value = nextText;
+        box.scrollTop = 0;
+      }
+      if (status) {
+        var labelMap = {
+          master: '정밀 종합 프롬프트',
+          career: '커리어·재물 프롬프트',
+          relation: '연애·관계 프롬프트',
+          strategy: '12개월 전략 프롬프트'
+        };
+        status.textContent = (labelMap[key] || '프롬프트') + '가 준비되었습니다.';
+      }
+      paintActiveTab(key);
+    }
+
+    tabBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        applyPrompt(btn.getAttribute('data-zw-prompt-key') || 'master');
+      });
+    });
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var text = box ? box.value : (promptSet[activeKey] || promptSet.master || '');
+        _zwCopyTextSafe(text).then(function() {
+          if (status) status.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 해석을 받으세요.';
+        }).catch(function() {
+          if (status) status.textContent = '복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.';
+        });
+      });
+    }
+
+    if (openBtn) {
+      openBtn.addEventListener('click', function() {
+        var text = box ? box.value : (promptSet[activeKey] || promptSet.master || '');
+        _zwOpenAiChatPrompt(text, status);
+      });
+    }
+
+    applyPrompt('master');
+  }
+
   function _zwPortfolioBuildModalHtml(row, summary) {
     var mainText = row.mainStars.length ? row.mainStars.join(' · ') : '공궁(空宮)';
     var auxText = row.auxStars.length ? row.auxStars.join(' · ') : '보조성 없음';
@@ -12125,6 +12597,9 @@ function renderZiwei(p, natal, targetId) {
   html += '</div>';
   html += '</div>';
   html += '</div></div>';
+  html += _zwBuildBasicCanonicalCards(palace);
+  html += _zwBuildDeepCanonicalCards(palace);
+  html += _zwBuildDeepAiPromptPanel();
 
   html += `
     <div class="zw-detail-panel" id="zwDetailPanel">
@@ -12144,6 +12619,7 @@ function renderZiwei(p, natal, targetId) {
 
   var sec = document.getElementById(targetId || 'ziweiSection');
   if(sec) sec.innerHTML = html;
+  _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
 
   if (!window._renderZwDestinyPortfolio) {
     window._zwPortfolioStore = window._zwPortfolioStore || {};

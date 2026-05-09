@@ -3465,6 +3465,113 @@ function syCanonicalList(value, fallbackText) {
   return [fallbackText || '정보 없음'];
 }
 
+function syCanonicalDirectionByIndex(index) {
+  var idx = Number(index);
+  if (!Number.isFinite(idx)) return '미확인';
+  var ring = ['동', '동북', '북', '북서', '서', '서남', '남', '남동'];
+  var slot = Math.floor((((idx % 27) + 27) % 27) / (27 / ring.length));
+  return ring[Math.max(0, Math.min(ring.length - 1, slot))] || '미확인';
+}
+
+function syCanonicalElementByIndex(index) {
+  var idx = Number(index);
+  if (!Number.isFinite(idx)) return '미확인';
+  var cycle = ['목', '화', '토', '금', '수'];
+  return cycle[((idx % cycle.length) + cycle.length) % cycle.length] || '미확인';
+}
+
+function syCanonicalTokenize(text, fallbackText) {
+  var src = String(text == null ? '' : text)
+    .replace(/\s+/g, ' ')
+    .replace(/[\r\n]+/g, ' ')
+    .trim();
+  if (!src) return [fallbackText || '정보 없음'];
+  var tokens = src
+    .split(/[.!?。！？,·]/)
+    .map(function (part) { return part.trim(); })
+    .filter(function (part) { return part.length >= 2; });
+  return tokens.length ? tokens.slice(0, 3) : [src.slice(0, 60)];
+}
+
+function syCanonicalPhaseApproxFromDaily(dailyMoon) {
+  var label = dailyMoon && dailyMoon.label ? String(dailyMoon.label) : '';
+  if (label.indexOf('보름') >= 0) {
+    return { phaseName: label, illumination: 96, elongationAngle: 180, waxingOrWaning: '절정' };
+  }
+  if (label.indexOf('상현') >= 0) {
+    return { phaseName: label, illumination: 74, elongationAngle: 120, waxingOrWaning: '차오름' };
+  }
+  if (label.indexOf('반달') >= 0) {
+    return { phaseName: label, illumination: 50, elongationAngle: 90, waxingOrWaning: '균형' };
+  }
+  if (label.indexOf('초승') >= 0) {
+    return { phaseName: label, illumination: 22, elongationAngle: 45, waxingOrWaning: '차오름' };
+  }
+  if (label.indexOf('그믐') >= 0) {
+    return { phaseName: label, illumination: 6, elongationAngle: 18, waxingOrWaning: '기울음' };
+  }
+  return { phaseName: label || '미확인', illumination: null, elongationAngle: null, waxingOrWaning: '미확인' };
+}
+
+function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
+  if (!sData) return null;
+
+  var profileBirth = sourceProfile && sourceProfile.birth ? sourceProfile.birth : sourceProfile;
+  var mansionRaw = String(sData.mansion || '');
+  var mansionMatch = mansionRaw.match(/^([^()]+)\(([^()]+)\)$/);
+  var koName = mansionMatch ? mansionMatch[1] : (mansionRaw || '미상');
+  var hanName = mansionMatch ? mansionMatch[2] : '?';
+
+  var birthYear = profileBirth && profileBirth.year != null ? Number(profileBirth.year) : null;
+  var birthMonth = profileBirth && profileBirth.month != null ? Number(profileBirth.month) : null;
+  var birthDay = profileBirth && profileBirth.day != null ? Number(profileBirth.day) : null;
+  var birthHour = profileBirth && profileBirth.hour != null ? Number(profileBirth.hour) : null;
+  var birthMinute = profileBirth && profileBirth.minute != null ? Number(profileBirth.minute) : null;
+
+  var lunarDate = '미확인';
+  if (lunarObj && lunarObj.year && lunarObj.month && lunarObj.day) {
+    var leapSuffix = lunarObj.isLeap ? ' (윤달)' : '';
+    lunarDate = String(lunarObj.year) + '-' + String(lunarObj.month) + '-' + String(lunarObj.day) + leapSuffix;
+  }
+
+  var phase = syCanonicalPhaseApproxFromDaily(daily && daily.moon);
+  var traits = sData.traits || {};
+  var missing = [];
+  if (!lunarObj || !lunarObj.year || !lunarObj.month || !lunarObj.day) missing.push('음력 생년월일');
+  if (!daily) missing.push('일일 리듬');
+
+  return {
+    profile: {
+      birth: {
+        year: birthYear,
+        month: birthMonth,
+        day: birthDay,
+        hour: birthHour,
+        minute: birthMinute,
+        lunarDate: lunarDate
+      }
+    },
+    natalSukuyo: {
+      nameKo: koName,
+      nameHan: hanName,
+      index: sData.mansionIdx,
+      direction: syCanonicalDirectionByIndex(sData.mansionIdx),
+      element: syCanonicalElementByIndex(sData.mansionIdx)
+    },
+    lunarPhase: phase,
+    sukuyoAttributes: {
+      temperament: syCanonicalTokenize(traits.desc || traits.core, '기질 정보 없음'),
+      relationshipStyle: syCanonicalTokenize((traits.love || '') + '. ' + (traits.karma || ''), '관계 리듬 정보 없음'),
+      careerStyle: syCanonicalTokenize(traits.work, '커리어 리듬 정보 없음'),
+      wealthStyle: syCanonicalTokenize(traits.wealth, '재물 리듬 정보 없음'),
+      recoveryPattern: syCanonicalTokenize((daily && daily.insight ? daily.insight : '') + '. ' + (daily && daily.ritual && daily.ritual.action ? daily.ritual.action : ''), '회복 리듬 정보 없음')
+    },
+    validation: {
+      missingFields: missing
+    }
+  };
+}
+
 function syRenderCanonicalDashboard(canonicalPayload) {
   var canonical = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
   if (!canonical || !canonical.natalSukuyo) return '';
@@ -3542,7 +3649,7 @@ function syRenderCanonicalDashboard(canonicalPayload) {
     + '</div>';
 }
 
-function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload) {
+function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile) {
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
     if (!area || !card) return;
@@ -3672,11 +3779,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload) {
     html += `<div class="sy-container" id="lunarNexusApp">`;
     html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
 
-    var canonicalData = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
-    if (canonicalData) {
-      html += syRenderCanonicalDashboard(canonicalData);
-    }
-
     if (!lunarObj) {
         try {
             const b = window._ziweiBirth;
@@ -3685,6 +3787,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload) {
             }
         } catch (e) {}
     }
+
+    let sData = lunarObj ? calcSukuyoData(lunarObj) : null;
+    let dailyFlow = sData ? getDailyKarmicGuidance(lunarObj, sData.mansion) : null;
+
+    var canonicalData = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
+    if (!canonicalData) {
+      canonicalData = syBuildLocalCanonicalData(lunarObj, sData, dailyFlow, sourceProfile || window._ziweiBirth || null);
+    }
+    if (canonicalData) {
+      html += syRenderCanonicalDashboard(canonicalData);
+    }
+
     if (!lunarObj) {
         html += `<div class="sy-card" style="border-left-color:#f59e0b; background:rgba(245,158,11,0.08);">
           <h4 style="margin:0 0 6px 0; color:#fcd34d;">⚠️ 숙요 본성 데이터 임시 지연</h4>
@@ -3692,7 +3806,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload) {
         </div>`;
     }
 
-    let sData = lunarObj ? calcSukuyoData(lunarObj) : null;
     if (!sData) {
       window._syWheelState = null;
     }
@@ -3760,7 +3873,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload) {
             <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #818cf8;">
                 <h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 흐름 (Daily Flow)</h4>
         `;
-        const daily = getDailyKarmicGuidance(lunarObj, sData.mansion);
+        const daily = dailyFlow || getDailyKarmicGuidance(lunarObj, sData.mansion);
         
         const renderGauge = (lbl, val, color) => `
             <div class="daily-flow-row">
