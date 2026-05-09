@@ -4,7 +4,7 @@
  *   npm run deploy:cf:worker
  */
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import dotenv from "dotenv";
 
@@ -63,6 +63,7 @@ if (!isGitHubActions) {
 const isWindows = process.platform === "win32";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const outputDir = resolve(process.cwd(), "dist");
+const versionJsonPath = resolve(outputDir, "version.json");
 const args = [
   "wrangler",
   "pages",
@@ -75,6 +76,57 @@ const args = [
 ];
 
 console.log(`[deploy-pages] project=${projectName} branch=${branch}`);
+
+function runGit(args) {
+  const result = spawnSync("git", args, {
+    stdio: ["ignore", "pipe", "pipe"],
+    encoding: "utf8",
+    shell: false,
+  });
+
+  if (result.status !== 0) return "";
+  return String(result.stdout || "").trim();
+}
+
+function normalizeCommitSha(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-f0-9]/g, "");
+}
+
+function verifyDistVersionMatchesHead() {
+  if (!existsSync(versionJsonPath)) {
+    console.error("[deploy-pages] dist/version.json not found. Fresh build verification failed.");
+    return false;
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(readFileSync(versionJsonPath, "utf8"));
+  } catch (error) {
+    console.error("[deploy-pages] Failed to parse dist/version.json:", error instanceof Error ? error.message : error);
+    return false;
+  }
+
+  const distCommit = normalizeCommitSha(payload?.commit || payload?.commitShort || "");
+  const headCommit = normalizeCommitSha(runGit(["rev-parse", "HEAD"]));
+
+  if (!distCommit || !headCommit) {
+    console.error("[deploy-pages] Could not resolve commit for deploy verification.");
+    return false;
+  }
+
+  const distShort = distCommit.slice(0, 12);
+  const headShort = headCommit.slice(0, 12);
+  if (distShort !== headShort) {
+    console.error(`[deploy-pages] Stale dist detected: dist/version=${distShort} git/head=${headShort}`);
+    return false;
+  }
+
+  console.log(`[deploy-pages] Verified dist/version commit=${distShort}`);
+  return true;
+}
 
 function runDeploy(env) {
   const result = isWindows
@@ -96,12 +148,8 @@ function runDeploy(env) {
   return result;
 }
 
-function runBuildIfMissingOutput() {
-  if (existsSync(outputDir)) {
-    return true;
-  }
-
-  console.log("[deploy-pages] dist not found. Running `npm run build:cf`...");
+function runBuildFresh() {
+  console.log("[deploy-pages] Running fresh build: npm run build:cf");
   const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
     stdio: "inherit",
     shell: false,
@@ -112,7 +160,11 @@ function runBuildIfMissingOutput() {
     return false;
   }
 
-  return existsSync(outputDir);
+  if (!existsSync(outputDir)) {
+    return false;
+  }
+
+  return verifyDistVersionMatchesHead();
 }
 
 if (!process.env.CLOUDFLARE_API_TOKEN) {
@@ -120,8 +172,8 @@ if (!process.env.CLOUDFLARE_API_TOKEN) {
   process.exit(1);
 }
 
-if (!runBuildIfMissingOutput()) {
-  console.error("[deploy-pages] Build output missing after build:cf. Cannot continue.");
+if (!runBuildFresh()) {
+  console.error("[deploy-pages] Fresh build verification failed. Cannot continue.");
   process.exit(1);
 }
 

@@ -78,6 +78,34 @@ export function PaymentProcessingProvider({
   }, [startProcessing, stopProcessing]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const runtimeWindow = window as unknown as Record<string, unknown>;
+    runtimeWindow.__CD_PAYMENT_PROCESSING__ = isProcessing;
+
+    if (document?.body) {
+      if (isProcessing) {
+        document.body.dataset.cdVersionGuardBusy = "1";
+      } else {
+        delete document.body.dataset.cdVersionGuardBusy;
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent("cd:critical-operation-state", {
+      detail: {
+        isPaymentProcessing: isProcessing,
+      },
+    }));
+
+    return () => {
+      runtimeWindow.__CD_PAYMENT_PROCESSING__ = false;
+      if (document?.body) {
+        delete document.body.dataset.cdVersionGuardBusy;
+      }
+    };
+  }, [isProcessing]);
+
+  useEffect(() => {
     if (!isProcessing || typeof window === "undefined") return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {

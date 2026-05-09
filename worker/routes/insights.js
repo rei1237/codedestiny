@@ -39,6 +39,9 @@ function stripHtml(value) {
 }
 
 function buildExcerpt(item) {
+  const fromSummary = normalizeText(item?.summary, 400);
+  if (fromSummary) return fromSummary;
+
   const fromExcerpt = normalizeText(item?.excerpt, 400);
   if (fromExcerpt) return fromExcerpt;
 
@@ -176,7 +179,11 @@ function buildListQuery(request) {
   const featuredOnly = String(params.get("featured") || "") === "1";
   const excludeNoIndex = String(params.get("excludeNoIndex") || "") === "1";
 
-  const query = { status: "published" };
+  const typeFilter = { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] };
+  const query = {
+    status: "published",
+    ...typeFilter,
+  };
   if (category) query.category = category;
   if (tag) query.tags = { $in: [tag] };
   if (excludeNoIndex) query.noIndex = { $ne: true };
@@ -184,12 +191,17 @@ function buildListQuery(request) {
 
   if (q) {
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    query.$or = [
-      { title: { $regex: escaped, $options: "i" } },
-      { subtitle: { $regex: escaped, $options: "i" } },
-      { excerpt: { $regex: escaped, $options: "i" } },
-      { category: { $regex: escaped, $options: "i" } },
-      { tags: { $elemMatch: { $regex: escaped, $options: "i" } } },
+    query.$and = [
+      {
+        $or: [
+          { title: { $regex: escaped, $options: "i" } },
+          { subtitle: { $regex: escaped, $options: "i" } },
+          { summary: { $regex: escaped, $options: "i" } },
+          { excerpt: { $regex: escaped, $options: "i" } },
+          { category: { $regex: escaped, $options: "i" } },
+          { tags: { $elemMatch: { $regex: escaped, $options: "i" } } },
+        ],
+      },
     ];
   }
 
@@ -219,12 +231,12 @@ function serializeInsightCard(item) {
     category: normalizeText(item?.category, 120),
     tags: Array.isArray(item?.tags) ? item.tags.map((tag) => normalizeText(tag, 80)).filter(Boolean) : [],
     featuredImage: {
-      url: normalizeText(item?.featuredImage?.url, 1000),
+      url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
       alt: normalizeText(item?.featuredImage?.alt, 300),
       width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
       height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
     },
-    canonicalUrl: normalizeText(item?.canonicalUrl, 1000),
+    canonicalUrl: normalizeText(item?.seo?.canonicalUrl || item?.canonicalUrl, 1000),
     isFeatured: Boolean(item?.isFeatured),
     noIndex: Boolean(item?.noIndex),
     viewCount: Math.max(0, Number(item?.viewCount || 0) || 0),
@@ -249,16 +261,27 @@ async function handleInsightsList(request, env) {
       .sort(sortSpec)
       .skip((page - 1) * pageSize)
       .limit(pageSize)
-      .select("slug title subtitle excerpt category tags featuredImage canonicalUrl isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt")
+      .select("slug title subtitle summary excerpt category tags featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt")
       .lean(),
     Insight.countDocuments(query),
-    Insight.find({ status: "published", isFeatured: true })
+    Insight.find({
+      status: "published",
+      isFeatured: true,
+      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+    })
       .sort({ publishedAt: -1, updatedAt: -1 })
       .limit(6)
-      .select("slug title subtitle excerpt category tags featuredImage canonicalUrl isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt")
+      .select("slug title subtitle summary excerpt category tags featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt")
       .lean(),
-    Insight.distinct("category", { status: "published", category: { $ne: "" } }),
-    Insight.distinct("tags", { status: "published" }),
+    Insight.distinct("category", {
+      status: "published",
+      category: { $ne: "" },
+      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+    }),
+    Insight.distinct("tags", {
+      status: "published",
+      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+    }),
   ]);
 
   return json({
@@ -318,7 +341,7 @@ function serializeLinkItem(item) {
     category: normalizeText(item?.category, 120),
     publishedAt: item?.publishedAt || null,
     featuredImage: {
-      url: normalizeText(item?.featuredImage?.url, 1000),
+      url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
       alt: normalizeText(item?.featuredImage?.alt, 300),
       width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
       height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
@@ -327,9 +350,12 @@ function serializeLinkItem(item) {
 }
 
 async function findPrevNextInsight(currentId) {
-  const ordered = await Insight.find({ status: "published" })
+  const ordered = await Insight.find({
+    status: "published",
+    $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+  })
     .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
-    .select("_id slug title category publishedAt featuredImage")
+    .select("_id slug title category publishedAt featuredImage thumbnailUrl")
     .limit(5000)
     .lean();
 
@@ -349,25 +375,34 @@ async function handleInsightDetail(path, request, env) {
   if (!slug) return notFound();
 
   const item = await Insight.findOneAndUpdate(
-    { status: "published", slug },
+    {
+      status: "published",
+      slug,
+      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+    },
     { $inc: { viewCount: 1 } },
     { new: true },
   ).lean();
 
   if (!item) return notFound();
 
+  const relatedConditions = [
+    item.category ? { category: item.category } : null,
+    Array.isArray(item.tags) && item.tags.length > 0 ? { tags: { $in: item.tags.slice(0, 8) } } : null,
+  ].filter(Boolean);
+
   const [related, prevNext] = await Promise.all([
     Insight.find({
       status: "published",
       _id: { $ne: item._id },
-      $or: [
-        item.category ? { category: item.category } : null,
-        Array.isArray(item.tags) && item.tags.length > 0 ? { tags: { $in: item.tags.slice(0, 8) } } : null,
-      ].filter(Boolean),
+      $and: [
+        { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] },
+        { $or: relatedConditions.length ? relatedConditions : [{ _id: item._id }] },
+      ],
     })
       .sort({ publishedAt: -1, viewCount: -1, updatedAt: -1 })
       .limit(6)
-      .select("slug title category publishedAt featuredImage")
+      .select("slug title category publishedAt featuredImage thumbnailUrl")
       .lean(),
     findPrevNextInsight(item._id),
   ]);
@@ -386,17 +421,17 @@ async function handleInsightDetail(path, request, env) {
       category: normalizeText(item.category, 120),
       tags: Array.isArray(item.tags) ? item.tags.map((tag) => normalizeText(tag, 80)).filter(Boolean) : [],
       featuredImage: {
-        url: normalizeText(item?.featuredImage?.url, 1000),
+        url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
         alt: normalizeText(item?.featuredImage?.alt, 300),
         width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
         height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
       },
-      metaTitle: normalizeText(item.metaTitle, 240),
-      metaDescription: normalizeText(item.metaDescription, 600),
-      canonicalUrl: normalizeText(item.canonicalUrl, 1000),
-      ogTitle: normalizeText(item.ogTitle, 240),
-      ogDescription: normalizeText(item.ogDescription, 600),
-      ogImage: normalizeText(item.ogImage, 1000),
+      metaTitle: normalizeText(item?.seo?.metaTitle || item.metaTitle, 240),
+      metaDescription: normalizeText(item?.seo?.metaDescription || item.metaDescription, 600),
+      canonicalUrl: normalizeText(item?.seo?.canonicalUrl || item.canonicalUrl, 1000),
+      ogTitle: normalizeText(item?.seo?.ogTitle || item.ogTitle, 240),
+      ogDescription: normalizeText(item?.seo?.ogDescription || item.ogDescription, 600),
+      ogImage: normalizeText(item?.seo?.ogImage || item.ogImage, 1000),
       twitterTitle: normalizeText(item.twitterTitle, 240),
       twitterDescription: normalizeText(item.twitterDescription, 600),
       twitterImage: normalizeText(item.twitterImage, 1000),

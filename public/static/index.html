@@ -6453,7 +6453,47 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function requestAdminFlowerEntry() {
-    window.location.href = '/admin/login';
+    var password = null;
+    try {
+      password = window.prompt('관리자 비밀번호를 입력하세요.', '');
+    } catch (_e) {
+      password = null;
+    }
+
+    if (password == null) return;
+
+    var trimmedPassword = String(password || '').trim();
+    if (!trimmedPassword) {
+      try { window.alert('비밀번호를 입력해야 합니다.'); } catch (_e) {}
+      return;
+    }
+
+    try {
+      var response = await fetch('/api/admin/entry/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: trimmedPassword }),
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      var payload = await response.json().catch(function(){ return {}; });
+      if (!response.ok) {
+        try { window.alert('비밀번호가 올바르지 않습니다.'); } catch (_e) {}
+        return;
+      }
+
+      var adminToken = String((payload && payload.adminToken) || '').trim();
+      if (adminToken) {
+        try { sessionStorage.setItem('flower_admin_token', adminToken); } catch (_e) {}
+        try { sessionStorage.setItem('flower_admin_password_ok', '1'); } catch (_e) {}
+        try { localStorage.removeItem('flower_admin_token'); } catch (_e) {}
+      }
+
+      window.location.href = '/admin/content';
+    } catch (error) {
+      console.error('[admin-flower] requestAdminFlowerEntry failed:', error);
+      try { window.alert('관리자 인증 중 오류가 발생했습니다.'); } catch (_e) {}
+    }
   }
 
   function getAuthToken() {

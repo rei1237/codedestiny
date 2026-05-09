@@ -5,14 +5,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 
-type InsightStatus = "draft" | "published" | "private" | "trash";
+type InsightStatus = "draft" | "published" | "archived" | "private" | "trash";
 type FilterKey = "all" | InsightStatus;
 type SortKey = "latest" | "updated" | "views";
+type ContentType = "all" | "fortune_insight" | "saju" | "tarot" | "astrology" | "jamidusu" | "sookyo" | "vedic" | "palmistry" | "physiognomy" | "notice" | "landing" | "seo_page" | "general";
 
 type InsightItem = {
+  id?: string;
   _id: string;
+  type?: string;
   title: string;
   slug: string;
+  summary?: string;
   category?: string;
   status: InsightStatus;
   viewCount?: number;
@@ -63,8 +67,26 @@ const FILTER_OPTIONS: Array<{ key: FilterKey; label: string }> = [
   { key: "all", label: "전체" },
   { key: "draft", label: "임시저장" },
   { key: "published", label: "발행됨" },
-  { key: "private", label: "비공개" },
-  { key: "trash", label: "휴지통" },
+  { key: "archived", label: "보관" },
+  { key: "private", label: "비공개(레거시)" },
+  { key: "trash", label: "휴지통(레거시)" },
+];
+
+const TYPE_OPTIONS: Array<{ key: ContentType; label: string }> = [
+  { key: "all", label: "전체 타입" },
+  { key: "fortune_insight", label: "운세 인사이트" },
+  { key: "saju", label: "사주" },
+  { key: "tarot", label: "타로" },
+  { key: "astrology", label: "점성술" },
+  { key: "jamidusu", label: "자미두수" },
+  { key: "sookyo", label: "숙요" },
+  { key: "vedic", label: "베다" },
+  { key: "palmistry", label: "손금" },
+  { key: "physiognomy", label: "관상" },
+  { key: "notice", label: "공지" },
+  { key: "landing", label: "랜딩" },
+  { key: "seo_page", label: "SEO 페이지" },
+  { key: "general", label: "일반" },
 ];
 
 function formatDate(value?: string | null) {
@@ -83,12 +105,14 @@ function formatDate(value?: string | null) {
 function statusLabel(status: InsightStatus) {
   if (status === "draft") return "임시저장";
   if (status === "published") return "발행됨";
+  if (status === "archived") return "보관됨";
   if (status === "private") return "비공개";
   return "휴지통";
 }
 
 function statusBadgeClass(status: InsightStatus) {
   if (status === "published") return "bg-emerald-900/50 text-emerald-200 border-emerald-700";
+  if (status === "archived") return "bg-orange-900/40 text-orange-200 border-orange-700";
   if (status === "private") return "bg-amber-900/40 text-amber-200 border-amber-700";
   if (status === "trash") return "bg-rose-900/40 text-rose-200 border-rose-700";
   return "bg-slate-800 text-slate-200 border-slate-700";
@@ -97,10 +121,11 @@ function statusBadgeClass(status: InsightStatus) {
 export default function AdminInsightsPage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
-  const endpointBase = `${apiBase || ""}/api/admin/insights`;
+  const endpointBase = `${apiBase || ""}/api/admin/content`;
   const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [typeFilter, setTypeFilter] = useState<ContentType>("all");
   const [sort, setSort] = useState<SortKey>("latest");
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
@@ -117,7 +142,8 @@ export default function AdminInsightsPage() {
     try {
       const url = new URL(endpointBase, window.location.origin);
       if (filter !== "all") url.searchParams.set("status", filter);
-      if (query.trim()) url.searchParams.set("q", query.trim());
+      if (typeFilter !== "all") url.searchParams.set("type", typeFilter);
+      if (query.trim()) url.searchParams.set("keyword", query.trim());
       url.searchParams.set("sort", sort);
 
       const res = await fetch(url.toString(), {
@@ -152,14 +178,14 @@ export default function AdminInsightsPage() {
   useEffect(() => {
     loadList();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpointBase, filter, sort, query, requestCredentials]);
+  }, [endpointBase, filter, typeFilter, sort, query, requestCredentials]);
 
   async function updateStatus(id: string, status: InsightStatus) {
     setBusyId(id);
     setError("");
     try {
       const res = await fetch(`${endpointBase}/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         credentials: requestCredentials,
         headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ status }),
@@ -201,7 +227,7 @@ export default function AdminInsightsPage() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl md:text-2xl font-bold">관리자 콘텐츠 센터</h1>
-            <p className="text-sm text-slate-400 mt-1">운세 인사이트 글 목록 관리</p>
+            <p className="text-sm text-slate-400 mt-1">사이트 전체 글/콘텐츠 목록 관리</p>
           </div>
           <button
             type="button"
@@ -217,10 +243,16 @@ export default function AdminInsightsPage() {
             <p className="text-xs uppercase tracking-wider text-slate-500 px-2 py-1">관리자 메뉴</p>
             <nav className="mt-2 space-y-1">
               <Link
-                href="/admin/insights"
+                href="/admin/content"
                 className="block rounded-lg px-3 py-2 text-sm bg-violet-900/40 border border-violet-700 text-violet-100"
               >
-                운세 인사이트 관리
+                콘텐츠 관리
+              </Link>
+              <Link
+                href="/admin/insights"
+                className="block rounded-lg px-3 py-2 text-sm bg-slate-800 border border-slate-700 text-slate-200"
+              >
+                인사이트 전용 보기
               </Link>
             </nav>
           </aside>
@@ -251,8 +283,17 @@ export default function AdminInsightsPage() {
                   if (e.key === "Enter") setQuery(searchInput.trim());
                 }}
                 placeholder="제목 또는 slug 검색"
-                className="md:col-span-7 rounded-lg bg-[#1e1e2e] border border-[#313145] px-3 py-2 text-sm"
+                className="md:col-span-5 rounded-lg bg-[#1e1e2e] border border-[#313145] px-3 py-2 text-sm"
               />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as ContentType)}
+                className="md:col-span-2 rounded-lg bg-[#1e1e2e] border border-[#313145] px-3 py-2 text-sm"
+              >
+                {TYPE_OPTIONS.map((option) => (
+                  <option key={option.key} value={option.key}>{option.label}</option>
+                ))}
+              </select>
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
@@ -313,6 +354,7 @@ export default function AdminInsightsPage() {
                         <th className="text-left px-3 py-2">제목</th>
                         <th className="text-left px-3 py-2">slug</th>
                         <th className="text-left px-3 py-2">카테고리</th>
+                        <th className="text-left px-3 py-2">타입</th>
                         <th className="text-left px-3 py-2">상태</th>
                         <th className="text-right px-3 py-2">조회수</th>
                         <th className="text-left px-3 py-2">작성일</th>
@@ -327,6 +369,7 @@ export default function AdminInsightsPage() {
                           <td className="px-3 py-2 max-w-[220px] truncate">{item.title || "(제목 없음)"}</td>
                           <td className="px-3 py-2 text-slate-400">/{item.slug}</td>
                           <td className="px-3 py-2">{item.category || "-"}</td>
+                          <td className="px-3 py-2 text-slate-300">{item.type || "fortune_insight"}</td>
                           <td className="px-3 py-2">
                             <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs ${statusBadgeClass(item.status)}`}>
                               {statusLabel(item.status)}
@@ -340,8 +383,9 @@ export default function AdminInsightsPage() {
                             <div className="flex flex-wrap gap-1.5">
                               <button type="button" className="rounded bg-slate-700 hover:bg-slate-600 px-2 py-1 text-xs" onClick={() => router.push(`/admin/insights/edit?id=${encodeURIComponent(item._id)}`)}>수정</button>
                               <button type="button" className="rounded bg-blue-700 hover:bg-blue-600 px-2 py-1 text-xs" onClick={() => window.open(`/insights/${item.slug}`, "_blank", "noopener,noreferrer")}>미리보기</button>
-                              <button type="button" disabled={busyId === item._id || item.status === "private"} className="rounded bg-amber-700 hover:bg-amber-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "private")}>비공개 전환</button>
-                              <button type="button" disabled={busyId === item._id || item.status === "trash"} className="rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => moveToTrash(item._id)}>휴지통</button>
+                              <button type="button" disabled={busyId === item._id || item.status === "draft"} className="rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "draft")}>임시저장</button>
+                              <button type="button" disabled={busyId === item._id || item.status === "published"} className="rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "published")}>발행</button>
+                              <button type="button" disabled={busyId === item._id || item.status === "trash"} className="rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => moveToTrash(item._id)}>보관</button>
                             </div>
                           </td>
                         </tr>
@@ -362,6 +406,7 @@ export default function AdminInsightsPage() {
                       <p className="text-xs text-slate-400 break-all">/{item.slug}</p>
                       <div className="grid grid-cols-2 gap-2 text-xs text-slate-300">
                         <p>카테고리: {item.category || "-"}</p>
+                        <p>타입: {item.type || "fortune_insight"}</p>
                         <p>조회수: {Number(item.viewCount || 0).toLocaleString("ko-KR")}</p>
                         <p>작성일: {formatDate(item.createdAt)}</p>
                         <p>수정일: {formatDate(item.updatedAt)}</p>
@@ -370,8 +415,9 @@ export default function AdminInsightsPage() {
                       <div className="flex flex-wrap gap-1.5">
                         <button type="button" className="rounded bg-slate-700 hover:bg-slate-600 px-2 py-1 text-xs" onClick={() => router.push(`/admin/insights/edit?id=${encodeURIComponent(item._id)}`)}>수정</button>
                         <button type="button" className="rounded bg-blue-700 hover:bg-blue-600 px-2 py-1 text-xs" onClick={() => window.open(`/insights/${item.slug}`, "_blank", "noopener,noreferrer")}>미리보기</button>
-                        <button type="button" disabled={busyId === item._id || item.status === "private"} className="rounded bg-amber-700 hover:bg-amber-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "private")}>비공개 전환</button>
-                        <button type="button" disabled={busyId === item._id || item.status === "trash"} className="rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => moveToTrash(item._id)}>휴지통</button>
+                        <button type="button" disabled={busyId === item._id || item.status === "draft"} className="rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "draft")}>임시저장</button>
+                        <button type="button" disabled={busyId === item._id || item.status === "published"} className="rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "published")}>발행</button>
+                        <button type="button" disabled={busyId === item._id || item.status === "trash"} className="rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => moveToTrash(item._id)}>보관</button>
                       </div>
                     </article>
                   ))}

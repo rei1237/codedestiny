@@ -30,12 +30,18 @@ export function pickGeminiKeys(env, preferredEnvKeys = []) {
   const preferred = preferredEnvKeys.map((key) => env?.[key]);
   return unique([
     ...preferred,
+    env.PREMIUM_GEMINI_API_KEY1,
+    env.PREMIUM_GEMINI_API_KEY2,
+    env.PREMIUM_GEMINI_API_KEY3,
+    env.PREMIUM_GEMINI_API_KEY4,
     env.GEMINIF_API_KEY1,
     env.GEMINIF_API_KEY2,
     env.GEMINIF_API_KEY3,
     env.GEMINIF_API_KEY4,
     env.GEMINI_API_KEY,
     env.GOOGLE_GEMINI_API_KEY,
+    env.GOOGLE_GENERATIVE_AI_API_KEY,
+    env.GOOGLE_AI_API_KEY,
     env.GOOGLE_API_KEY,
   ].filter(isUsable));
 }
@@ -141,7 +147,7 @@ export async function callGeminiText(env, prompt, options = {}) {
     return {
       ok: false,
       error: "gemini_keys_missing",
-      message: "GEMINIF_API_KEY1~4 Worker secrets are not configured.",
+      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~4 또는 GEMINI_API_KEY를 설정하세요.",
     };
   }
 

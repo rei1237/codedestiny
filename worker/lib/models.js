@@ -184,18 +184,34 @@ const insightFeaturedImageSchema = new mongoose.Schema({
   height: { type: Number, default: 0, min: 0 },
 }, { _id: false });
 
+const contentSeoSchema = new mongoose.Schema({
+  metaTitle: { type: String, default: "", trim: true },
+  metaDescription: { type: String, default: "", trim: true },
+  ogTitle: { type: String, default: "", trim: true },
+  ogDescription: { type: String, default: "", trim: true },
+  ogImage: { type: String, default: "", trim: true },
+  canonicalUrl: { type: String, default: "", trim: true },
+}, { _id: false });
+
 const insightSchema = new mongoose.Schema({
+  type: { type: String, default: "fortune_insight", trim: true, index: true },
   title: { type: String, required: true, trim: true },
+  summary: { type: String, default: "", trim: true },
   subtitle: { type: String, default: "", trim: true },
   slug: { type: String, required: true, unique: true, index: true, trim: true, lowercase: true },
   excerpt: { type: String, default: "", trim: true },
+  content: { type: String, default: "" },
+  contentFormat: { type: String, default: "html", trim: true },
   contentHtml: { type: String, default: "" },
   contentJson: { type: mongoose.Schema.Types.Mixed, default: {} },
 
   featuredImage: { type: insightFeaturedImageSchema, default: () => ({}) },
+  thumbnailUrl: { type: String, default: "", trim: true },
 
   category: { type: String, default: "", trim: true },
   tags: { type: [String], default: [] },
+
+  seo: { type: contentSeoSchema, default: () => ({}) },
 
   metaTitle: { type: String, default: "", trim: true },
   metaDescription: { type: String, default: "", trim: true },
@@ -210,11 +226,13 @@ const insightSchema = new mongoose.Schema({
   twitterDescription: { type: String, default: "", trim: true },
   twitterImage: { type: String, default: "", trim: true },
 
+  authorId: { type: String, default: "", trim: true },
+  authorName: { type: String, default: "", trim: true },
   author: { type: String, default: "", trim: true },
 
   status: {
     type: String,
-    enum: ["draft", "published", "private", "trash"],
+    enum: ["draft", "published", "archived", "private", "trash"],
     default: "draft",
     required: true,
   },
@@ -229,6 +247,7 @@ const insightSchema = new mongoose.Schema({
   publishedAt: { type: Date, default: null },
 }, { timestamps: true });
 
+insightSchema.index({ type: 1, status: 1, updatedAt: -1 });
 insightSchema.index({ status: 1, updatedAt: -1 });
 insightSchema.index({ category: 1, updatedAt: -1 });
 insightSchema.index({ isFeatured: 1, updatedAt: -1 });

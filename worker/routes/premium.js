@@ -1,7 +1,14 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { generateWithGemini } from "../lib/gemini-client.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import {
+  FEATURE_TYPE_TO_REPORT_TYPE,
+  REPORT_TYPE_TO_FEATURE_TYPE,
+  getPremiumSpecByFeatureType,
+  getPremiumSpecByReportType,
+} from "../lib/premium-pdf-specs.js";
 import {
   getSwissWesternChart as getLocalSwissWesternChart,
   getSwissVedicPlanets as getLocalSwissVedicPlanets,
@@ -1113,18 +1120,26 @@ const PREMIUM_REPORT_CONTEXT_TTL_MS = REPORT_SESSION_TTL_MS;
 const PREMIUM_REPORT_TYPE_MAP = {
   ziweipremium: "ziweiPremium",
   ziwei: "ziweiPremium",
+  jamidusu: "ziweiPremium",
+  jamidusupremium: "ziweiPremium",
   sookyopremium: "sookyoPremium",
   sukuyopremium: "sookyoPremium",
   sukuyo: "sookyoPremium",
+  sookyopremiumreport: "sookyoPremium",
   westernastrologypremium: "westernAstrologyPremium",
   astro: "westernAstrologyPremium",
   astropremium: "westernAstrologyPremium",
+  astrologypremium: "westernAstrologyPremium",
   vedicpremium: "vedicPremium",
   vedic: "vedicPremium",
   lifebook: "lifeBook",
   lifebookpremium: "lifeBook",
+  sajulifebook: "lifeBook",
+  sajulifebookpremium: "lifeBook",
   lovesecret: "loveSecret",
   lovesecretpremium: "loveSecret",
+  sajulovesecret: "loveSecret",
+  sajulovesecretpremium: "loveSecret",
 };
 
 const PREMIUM_REPORT_KIND_MAP = {
@@ -1140,10 +1155,65 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 13,
   sookyoPremium: 13,
   westernAstrologyPremium: 13,
-  vedicPremium: 13,
+  vedicPremium: 14,
   lifeBook: 13,
   loveSecret: 10,
 };
+
+const FEATURE_TYPE_MAP = {
+  sajulifebook: "saju_life_book",
+  sajulovesecret: "saju_love_secret",
+  jamidusupremium: "jamidusu_premium",
+  sookyopremium: "sookyo_premium",
+  vedicpremium: "vedic_premium",
+  astrologypremium: "astrology_premium",
+};
+
+const PREMIUM_SUPPLEMENTAL_TYPES_BY_REPORT = {
+  lifeBook: ["ziweiPremium", "westernAstrologyPremium", "vedicPremium", "sookyoPremium"],
+  loveSecret: ["ziweiPremium", "westernAstrologyPremium", "vedicPremium", "sookyoPremium"],
+};
+
+function normalizePremiumFeatureType(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const normalized = raw.toLowerCase();
+  if (FEATURE_TYPE_TO_REPORT_TYPE[normalized]) return normalized;
+  const compact = normalized.replace(/[^a-z0-9]/gi, "");
+  return FEATURE_TYPE_MAP[compact] || "";
+}
+
+function resolvePremiumTypePair(reportTypeInput, featureTypeInput) {
+  const normalizedFeatureType = normalizePremiumFeatureType(featureTypeInput);
+  const normalizedReportType = normalizePremiumReportType(reportTypeInput);
+  const reportType = FEATURE_TYPE_TO_REPORT_TYPE[normalizedFeatureType] || normalizedReportType || "";
+  const featureType = normalizedFeatureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "";
+  return {
+    reportType,
+    featureType,
+  };
+}
+
+function modeKeyFromInput(input = {}) {
+  const raw = String(input?.mode || input?.reportMode || "").trim().toLowerCase();
+  if (!raw) return "default";
+  return raw.replace(/[^a-z0-9_-]/g, "") || "default";
+}
+
+function createPremiumRequestId(seed = "") {
+  const ts = Date.now().toString(36);
+  const rand = Math.random().toString(36).slice(2, 8);
+  const suffix = stableHash(`${seed}|${ts}|${rand}`).slice(0, 8);
+  return `prq_${ts}_${suffix}`;
+}
+
+function getPremiumRequiredChapters(reportType, mode = "") {
+  const spec = getPremiumSpecByReportType(reportType, mode);
+  if (spec && Number(spec.chapterCount || 0) > 0) {
+    return Number(spec.chapterCount);
+  }
+  return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
+}
 
 function normalizePremiumReportType(value) {
   const raw = String(value || "").trim();
@@ -1170,8 +1240,8 @@ function stablePayloadHash(value) {
   }
 }
 
-function getPremiumCacheKey(reportType, userId, inputHash, calculationVersion) {
-  return `${reportType}:${String(userId || "anonymous")}:${String(inputHash || "none")}:${String(calculationVersion || "v1")}`;
+function getPremiumCacheKey(reportType, userId, inputHash, calculationVersion, modeKey = "default") {
+  return `${reportType}:${String(userId || "anonymous")}:${String(modeKey || "default")}:${String(inputHash || "none")}:${String(calculationVersion || "v1")}`;
 }
 
 function getPremiumCanonicalFromPrepare(reportType, prepareData) {
@@ -1226,19 +1296,22 @@ function buildPremiumSourceMap(reportType, requestBody, prepareData) {
 }
 
 function buildPremiumContextSummary(context) {
-  const chapterEntries = Object.values(context?.chapterData || {});
-  const validChapters = chapterEntries.filter((entry) => entry && entry.ok).length;
+  const validChapters = countPremiumValidChapters(context);
   return {
     reportSessionId: context.reportSessionId,
     reportId: context.reportId,
     reportType: context.reportType,
+    featureType: context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "",
     userId: context.userId,
+    requestId: context.requestId || "",
+    idempotencyKey: context.idempotencyKey || "",
     inputHash: context.inputHash,
     calculationVersion: context.calculationVersion,
     sourceMap: context.sourceMap,
     missingData: context.missingData,
     warnings: context.warnings,
     totalChapters: context.totalChapters,
+    requiredChapters: context.requiredChapters,
     validChapters,
     isCompleteForPdf: context.isCompleteForPdf,
     status: context.status,
@@ -1253,6 +1326,423 @@ function logPremiumPipeline(entry) {
   } catch {
     console.info("[PremiumPDF]", entry);
   }
+}
+
+function countKoreanLikeChars(text = "") {
+  const normalized = String(text || "").trim();
+  if (!normalized) return 0;
+  return normalized.replace(/\s+/g, "").length;
+}
+
+function resolveChapterSpec(reportType, featureType, mode, chapterId) {
+  const spec = getPremiumSpecByFeatureType(featureType, mode) || getPremiumSpecByReportType(reportType, mode);
+  if (!spec || !Array.isArray(spec.chapters)) {
+    return {
+      featureType,
+      chapterCount: Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13),
+      minTotalChars: 0,
+      targetTotalChars: 0,
+      chapterSpec: null,
+    };
+  }
+  const idx = Math.max(0, Number(chapterId || 1) - 1);
+  return {
+    featureType: spec.featureType || featureType,
+    chapterCount: Number(spec.chapterCount || spec.chapters.length || 0),
+    minTotalChars: Number(spec.minTotalChars || 0),
+    targetTotalChars: Number(spec.targetTotalChars || 0),
+    chapterSpec: spec.chapters[idx] || null,
+  };
+}
+
+function validateChapterLength({ reportType, featureType, mode, chapterId, text }) {
+  const resolved = resolveChapterSpec(reportType, featureType, mode, chapterId);
+  const noSpaceLength = countKoreanLikeChars(text);
+  const chapterMin = Number(resolved?.chapterSpec?.minChars || 0);
+  const chapterTarget = Number(resolved?.chapterSpec?.targetChars || 0);
+  const warnings = [];
+  if (chapterMin > 0 && noSpaceLength < chapterMin) warnings.push("CHAPTER_TOO_SHORT");
+  if (chapterTarget > 0 && noSpaceLength < chapterTarget) warnings.push("CHAPTER_BELOW_TARGET");
+
+  return {
+    ok: warnings.indexOf("CHAPTER_TOO_SHORT") < 0,
+    warnings,
+    noSpaceLength,
+    chapterMin,
+    chapterTarget,
+    chapterSpec: resolved.chapterSpec,
+    chapterCount: resolved.chapterCount,
+    minTotalChars: resolved.minTotalChars,
+    targetTotalChars: resolved.targetTotalChars,
+  };
+}
+
+function validateFullReportLength({ reportType, featureType, mode, chapterTextList }) {
+  const resolved = resolveChapterSpec(reportType, featureType, mode, 1);
+  const combined = (Array.isArray(chapterTextList) ? chapterTextList : []).join("\n\n");
+  const totalLength = countKoreanLikeChars(combined);
+  const minTotalChars = Number(resolved.minTotalChars || 0);
+  const targetTotalChars = Number(resolved.targetTotalChars || 0);
+  const warnings = [];
+  if (minTotalChars > 0 && totalLength < minTotalChars) warnings.push("TOTAL_TOO_SHORT");
+  if (targetTotalChars > 0 && totalLength < targetTotalChars) warnings.push("TOTAL_BELOW_TARGET");
+  return {
+    ok: warnings.indexOf("TOTAL_TOO_SHORT") < 0,
+    warnings,
+    totalLength,
+    minTotalChars,
+    targetTotalChars,
+    chapterCount: resolved.chapterCount,
+  };
+}
+
+function getPremiumChapterMaxAttempts(env, fallback = 3) {
+  const raw = Number(env?.PREMIUM_CHAPTER_MAX_ATTEMPTS || fallback || 3);
+  if (!Number.isFinite(raw)) return 3;
+  return Math.max(1, Math.min(6, Math.floor(raw)));
+}
+
+function isPremiumChapterEntryReadyForPdf(entry) {
+  if (!entry || !entry.ok) return false;
+  if (Number(entry.textLength || 0) < 300) return false;
+  if (entry.lengthValidation && entry.lengthValidation.ok === false) return false;
+  return true;
+}
+
+function countPremiumValidChapters(context) {
+  return Object.values(context?.chapterData || {}).filter((entry) => isPremiumChapterEntryReadyForPdf(entry)).length;
+}
+
+function buildInternalPremiumJsonRequest(sourceRequest, body) {
+  const sourceHeaders = sourceRequest?.headers || new Headers();
+  const headers = new Headers();
+  headers.set("content-type", "application/json");
+  const authHeader = sourceHeaders.get("authorization");
+  const cookieHeader = sourceHeaders.get("cookie");
+  if (authHeader) headers.set("authorization", authHeader);
+  if (cookieHeader) headers.set("cookie", cookieHeader);
+  return new Request(sourceRequest.url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body || {}),
+  });
+}
+
+function getPremiumPrepareMaxAttempts(env) {
+  const raw = Number(env?.PREMIUM_PREPARE_MAX_ATTEMPTS || env?.PREMIUM_CANONICAL_RETRY_MAX || 3);
+  if (!Number.isFinite(raw)) return 3;
+  return Math.max(1, Math.min(5, Math.floor(raw)));
+}
+
+function getPremiumSupplementalMaxAttempts(env) {
+  const raw = Number(env?.PREMIUM_SUPPLEMENTAL_MAX_ATTEMPTS || 2);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.max(1, Math.min(4, Math.floor(raw)));
+}
+
+function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId = 1, requestId = "", attempt = 1) {
+  const base = {
+    ...(sourceInput && typeof sourceInput === "object" ? sourceInput : {}),
+    requestId: requestId || createPremiumRequestId(`${reportType}|prepare`),
+    prepareOnly: true,
+    chapter: Number(chapterId || 1),
+    sessionId: Number(chapterId || 1),
+    forceRecalculate: attempt > 1,
+    _premiumReportPrepare: true,
+    _premiumCanonicalHydration: true,
+    _premiumHydrationAttempt: Number(attempt || 1),
+  };
+
+  if (reportType === "westernAstrologyPremium") {
+    if (!hasMeaningfulValue(base.timezoneName)) base.timezoneName = "Asia/Seoul";
+    if (!hasMeaningfulValue(base.birthPlace)) base.birthPlace = "Seoul";
+    if (!hasMeaningfulValue(base.houseSystem)) base.houseSystem = "placidus";
+    if (!hasMeaningfulValue(base.zodiacType)) base.zodiacType = "tropical";
+    if (!hasMeaningfulValue(base.lat)) base.lat = 37.5665;
+    if (!hasMeaningfulValue(base.lon)) base.lon = 126.978;
+    if (!hasMeaningfulValue(base.timezone)) base.timezone = 9;
+  }
+
+  if (reportType === "vedicPremium") {
+    if (!hasMeaningfulValue(base.ayanamsa)) base.ayanamsa = "lahiri";
+    if (!hasMeaningfulValue(base.mode)) base.mode = "personal";
+  }
+
+  if (reportType === "sookyoPremium") {
+    if (!hasMeaningfulValue(base.mode)) base.mode = "personal";
+  }
+
+  if (reportType === "loveSecret") {
+    if (!hasMeaningfulValue(base.mode)) base.mode = "solo";
+    if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = 10;
+  }
+
+  if (reportType === "lifeBook") {
+    if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = 13;
+  }
+
+  return base;
+}
+
+function scoreCanonicalValidation(validation) {
+  const required = Array.isArray(validation?.requiredMissing) ? validation.requiredMissing.length : 999;
+  const optional = Array.isArray(validation?.optionalMissing) ? validation.optionalMissing.length : 999;
+  const passBonus = validation?.canGeneratePdf ? -1000 : 0;
+  return required * 100 + optional + passBonus;
+}
+
+function buildFeatureDataJson(reportType, canonicalJson = {}) {
+  const calculatedData = canonicalJson?.calculatedData || {};
+  if (reportType === "lifeBook") {
+    return {
+      type: reportType,
+      identity: calculatedData?.integratedThemes?.coreIdentity || [],
+      mission: calculatedData?.integratedThemes?.lifeMission || [],
+      timeline: calculatedData?.timeline || {},
+      saju: calculatedData?.saju || {},
+      crossSystems: {
+        ziwei: calculatedData?.ziwei || {},
+        westernAstrology: calculatedData?.westernAstrology || {},
+        vedic: calculatedData?.vedic || {},
+        sookyo: calculatedData?.sookyo || {},
+      },
+    };
+  }
+  if (reportType === "loveSecret") {
+    return {
+      type: reportType,
+      self: calculatedData?.self || {},
+      compatibility: calculatedData?.compatibility || {},
+      optionalCrossSystems: calculatedData?.optionalCrossSystems || {},
+    };
+  }
+  if (reportType === "westernAstrologyPremium") {
+    return {
+      type: reportType,
+      birthInfo: calculatedData?.birthInfo || {},
+      angles: calculatedData?.angles || {},
+      planets: calculatedData?.planets || {},
+      houses: calculatedData?.houses || [],
+      aspects: calculatedData?.aspects || [],
+    };
+  }
+  if (reportType === "vedicPremium") {
+    return {
+      type: reportType,
+      birthInfo: calculatedData?.birthInfo || {},
+      lagna: calculatedData?.lagna || {},
+      planets: calculatedData?.planets || {},
+      dashas: calculatedData?.dashas || {},
+      karakas: calculatedData?.karakas || {},
+    };
+  }
+  if (reportType === "ziweiPremium") {
+    return {
+      type: reportType,
+      coreChart: calculatedData?.coreChart || {},
+      palaces: calculatedData?.palaces || {},
+      cycles: calculatedData?.cycles || {},
+      relationshipData: calculatedData?.relationshipData || {},
+    };
+  }
+  if (reportType === "sookyoPremium") {
+    return {
+      type: reportType,
+      birthInfo: calculatedData?.birthInfo || {},
+      nativeSook: calculatedData?.nativeSook || {},
+      compatibility: calculatedData?.compatibility || {},
+      cycleData: calculatedData?.cycleData || {},
+    };
+  }
+  return {
+    type: reportType,
+    calculatedData,
+  };
+}
+
+async function collectSupplementalCalculatedByType({
+  request,
+  env,
+  authInfo,
+  reportType,
+  requestBody,
+  requestId,
+  reportId,
+  inputHash,
+  calculationVersion,
+  createdAt,
+}) {
+  const targets = Array.isArray(PREMIUM_SUPPLEMENTAL_TYPES_BY_REPORT[reportType])
+    ? PREMIUM_SUPPLEMENTAL_TYPES_BY_REPORT[reportType]
+    : [];
+  const supplementalCalculatedByType = {};
+  const diagnostics = [];
+  const maxAttempts = getPremiumSupplementalMaxAttempts(env);
+
+  for (const targetType of targets) {
+    if (!targetType || targetType === reportType) continue;
+    const targetHandler = getPremiumHandlerByType(targetType);
+    if (!targetHandler) continue;
+
+    let success = false;
+    let finalStatus = 0;
+    let finalCode = "";
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const targetRequest = buildPremiumPrepareRequestBody(
+        targetType,
+        requestBody,
+        1,
+        `${requestId || createPremiumRequestId("supplemental")}_${targetType}_${attempt}`,
+        attempt,
+      );
+      const { response, data } = await invokePremiumLegacyHandler(targetHandler, request, env, targetRequest);
+      finalStatus = Number(response?.status || 0);
+      finalCode = String(data?.code || "");
+
+      if (response.ok && data?.ok) {
+        const supplementalBuild = buildCanonicalJsonForReport(targetType, data, requestBody, authInfo, {
+          reportId: `${reportId}_supp_${targetType}`,
+          inputHash,
+          calculationVersion,
+          createdAt,
+          sourceMap: buildPremiumSourceMap(targetType, requestBody, data),
+          supplementalCanonicalByType: {},
+        });
+        supplementalCalculatedByType[targetType] = {
+          calculatedData: supplementalBuild?.canonicalJson?.calculatedData || {},
+          validation: supplementalBuild?.validation || null,
+          featureDataJson: buildFeatureDataJson(targetType, supplementalBuild?.canonicalJson || {}),
+        };
+        success = true;
+        diagnostics.push({ targetType, attempt, status: finalStatus, ok: true, requiredMissing: supplementalBuild?.validation?.requiredMissing?.length || 0 });
+        break;
+      }
+    }
+
+    if (!success) {
+      diagnostics.push({ targetType, attempt: maxAttempts, status: finalStatus, ok: false, code: finalCode || "SUPPLEMENTAL_FAILED" });
+    }
+  }
+
+  return {
+    supplementalCalculatedByType,
+    diagnostics,
+  };
+}
+
+async function hydratePremiumCanonicalData({
+  request,
+  env,
+  authInfo,
+  reportType,
+  requestBody,
+  requestId,
+  reportId,
+  inputHash,
+  calculationVersion,
+  createdAt,
+  basePrepareData,
+}) {
+  const handler = getPremiumHandlerByType(reportType);
+  const maxAttempts = getPremiumPrepareMaxAttempts(env);
+  const hydrationAttempts = [];
+  let supplementalCalculatedByType = {};
+
+  let bestPrepareData = basePrepareData;
+  let bestBuild = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let prepareData = null;
+    let status = 0;
+    let code = "";
+
+    if (attempt === 1 && basePrepareData && typeof basePrepareData === "object") {
+      prepareData = basePrepareData;
+      status = 200;
+    } else if (handler) {
+      const prepareRequestBody = buildPremiumPrepareRequestBody(reportType, requestBody, 1, requestId, attempt);
+      const { response, data } = await invokePremiumLegacyHandler(handler, request, env, prepareRequestBody);
+      status = Number(response?.status || 0);
+      code = String(data?.code || "");
+      if (response.ok && data?.ok) {
+        prepareData = data;
+      }
+    }
+
+    if (!prepareData) {
+      hydrationAttempts.push({ attempt, ok: false, status, code: code || "PREPARE_FAILED" });
+      continue;
+    }
+
+    const collected = await collectSupplementalCalculatedByType({
+      request,
+      env,
+      authInfo,
+      reportType,
+      requestBody,
+      requestId,
+      reportId,
+      inputHash,
+      calculationVersion,
+      createdAt,
+    });
+    supplementalCalculatedByType = {
+      ...supplementalCalculatedByType,
+      ...(collected?.supplementalCalculatedByType || {}),
+    };
+
+    const built = buildCanonicalJsonForReport(reportType, prepareData, requestBody, authInfo, {
+      reportId,
+      inputHash,
+      calculationVersion,
+      createdAt,
+      sourceMap: buildPremiumSourceMap(reportType, requestBody, prepareData),
+      supplementalCanonicalByType: supplementalCalculatedByType,
+    });
+
+    const score = scoreCanonicalValidation(built?.validation);
+    hydrationAttempts.push({
+      attempt,
+      ok: Boolean(built?.validation?.canGeneratePdf),
+      status,
+      requiredMissing: Array.isArray(built?.validation?.requiredMissing) ? built.validation.requiredMissing.length : 0,
+      optionalMissing: Array.isArray(built?.validation?.optionalMissing) ? built.validation.optionalMissing.length : 0,
+      supplementalCount: Object.keys(supplementalCalculatedByType).length,
+      supplementalDiagnostics: collected?.diagnostics || [],
+    });
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestPrepareData = prepareData;
+      bestBuild = built;
+    }
+
+    if (built?.validation?.canGeneratePdf) break;
+  }
+
+  if (!bestBuild && bestPrepareData) {
+    bestBuild = buildCanonicalJsonForReport(reportType, bestPrepareData, requestBody, authInfo, {
+      reportId,
+      inputHash,
+      calculationVersion,
+      createdAt,
+      sourceMap: buildPremiumSourceMap(reportType, requestBody, bestPrepareData),
+      supplementalCanonicalByType: supplementalCalculatedByType,
+    });
+  }
+
+  return {
+    prepareData: bestPrepareData,
+    canonicalBuild: bestBuild,
+    supplementalCalculatedByType,
+    hydration: {
+      maxAttempts,
+      attempts: hydrationAttempts,
+      supplementalTypes: Object.keys(supplementalCalculatedByType),
+      succeeded: Boolean(bestBuild?.validation?.canGeneratePdf),
+    },
+  };
 }
 
 async function invokePremiumLegacyHandler(handler, request, env, requestBody) {
@@ -3652,28 +4142,14 @@ ${guard}
 }
 
 async function callGemini(env, prompt, modelEnvKeys = [], options = {}) {
-  const temperature = Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86;
-  const topP = Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95;
-  const maxOutputTokens = Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192;
-  const timeoutMs = Number.isFinite(Number(options.timeoutMs))
-    ? Number(options.timeoutMs)
-    : Number(env.PREMIUM_GEMINI_TIMEOUT_MS || 45000);
-  const maxAttemptsPerPair = Number.isFinite(Number(options.maxAttemptsPerPair))
-    ? Number(options.maxAttemptsPerPair)
-    : Number(env.PREMIUM_GEMINI_RETRIES || 2);
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: [
-      "PREMIUM_GEMINI_API_KEY1",
-      "PREMIUM_GEMINI_API_KEY2",
-      "PREMIUM_GEMINI_API_KEY3",
-      "PREMIUM_GEMINI_API_KEY4",
-    ],
-    modelEnvKeys: ["PREMIUM_GEMINI_MODEL", ...modelEnvKeys],
-    temperature,
-    topP,
-    maxOutputTokens,
-    timeoutMs,
-    maxAttemptsPerPair,
+  const result = await generateWithGemini(env, prompt, {
+    modelEnvKeys,
+    temperature: options.temperature,
+    topP: options.topP,
+    maxOutputTokens: options.maxOutputTokens,
+    timeoutMs: options.timeoutMs,
+    maxAttemptsPerPair: options.maxAttemptsPerPair,
+    requestId: options.requestId,
   });
   return result.ok ? result.text : "";
 }
@@ -8699,18 +9175,23 @@ async function handleZiweiBookSession(request, env) {
   });
 }
 
-async function createOrReusePremiumReportContext(request, env, authInfo, reportType, requestBody) {
+async function createOrReusePremiumReportContext(request, env, authInfo, reportType, featureType, requestBody, requestId) {
   prunePremiumReportContexts();
 
   const calculationVersion = String(env.PREMIUM_CALCULATION_VERSION || "premium-report-v1");
   const inputHash = stablePayloadHash(requestBody || {});
-  const cacheKey = getPremiumCacheKey(reportType, authInfo.userId, inputHash, calculationVersion);
+  const modeKey = modeKeyFromInput(requestBody || {});
+  const cacheKey = getPremiumCacheKey(reportType, authInfo.userId, inputHash, calculationVersion, modeKey);
+  const idempotencyKey = `${String(authInfo.userId || "anonymous")}:${String(featureType || reportType || "")}:${modeKey}:${inputHash}`;
   const existingSessionId = PREMIUM_REPORT_CONTEXT_INDEX.get(cacheKey);
   const now = Date.now();
 
   if (existingSessionId) {
     const existing = PREMIUM_REPORT_CONTEXT_STORE.get(existingSessionId);
     if (existing && Number(existing.expiresAt || 0) > now) {
+      existing.requestId = String(requestId || existing.requestId || "");
+      existing.featureType = existing.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "";
+      existing.idempotencyKey = existing.idempotencyKey || idempotencyKey;
       existing.updatedAt = new Date(now).toISOString();
       existing.expiresAt = now + PREMIUM_REPORT_CONTEXT_TTL_MS;
       PREMIUM_REPORT_CONTEXT_STORE.set(existingSessionId, existing);
@@ -8732,16 +9213,30 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     };
   }
 
-  const prepareRequestBody = {
-    ...(requestBody && typeof requestBody === "object" ? requestBody : {}),
-    prepareOnly: true,
-    chapter: 1,
-    sessionId: 1,
-    _premiumReportPrepare: true,
-  };
+  const initialPrepareRequestBody = buildPremiumPrepareRequestBody(reportType, requestBody, 1, requestId, 1);
+  const { response, data } = await invokePremiumLegacyHandler(handler, request, env, initialPrepareRequestBody);
+  const initialPrepareData = response.ok && data?.ok ? data : null;
 
-  const { response, data } = await invokePremiumLegacyHandler(handler, request, env, prepareRequestBody);
-  if (!response.ok || !data?.ok) {
+  const reportId = String((initialPrepareData?.reportId || data?.reportId) || `${PREMIUM_REPORT_KIND_MAP[reportType] || "premium"}_${stableHash(`${cacheKey}|report`)}`);
+  const reportSessionId = `prs_${stableHash(`${cacheKey}|${reportId}`)}`;
+  const specChapters = getPremiumRequiredChapters(reportType, modeKey);
+  const totalChapters = Number((initialPrepareData?.totalChapters || data?.totalChapters) || specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
+
+  const hydrated = await hydratePremiumCanonicalData({
+    request,
+    env,
+    authInfo,
+    reportType,
+    requestBody,
+    requestId,
+    reportId,
+    inputHash,
+    calculationVersion,
+    createdAt: new Date(now).toISOString(),
+    basePrepareData: initialPrepareData,
+  });
+
+  if (!hydrated?.prepareData || !hydrated?.canonicalBuild) {
     return {
       ok: false,
       status: Number(response.status || 422),
@@ -8750,25 +9245,17 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
         code: data?.code || "PREMIUM_REPORT_PREPARE_FAILED",
         message: data?.message || "prepare 단계에서 실패했습니다.",
         missingFields: Array.isArray(data?.missingFields) ? data.missingFields : [],
+        hydration: hydrated?.hydration || null,
       },
     };
   }
 
-  const reportId = String(data.reportId || `${PREMIUM_REPORT_KIND_MAP[reportType] || "premium"}_${stableHash(`${cacheKey}|report`)}`);
-  const reportSessionId = `prs_${stableHash(`${cacheKey}|${reportId}`)}`;
-  const totalChapters = Number(data.totalChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
-  const sourceMap = buildPremiumSourceMap(reportType, requestBody, data);
-  const canonicalBuild = buildCanonicalJsonForReport(reportType, data, requestBody, authInfo, {
-    reportId,
-    inputHash,
-    calculationVersion,
-    createdAt: new Date(now).toISOString(),
-    sourceMap,
-    supplementalCanonicalByType: {},
-  });
+  const prepareData = hydrated.prepareData;
+  const canonicalBuild = hydrated.canonicalBuild;
+  const sourceMap = buildPremiumSourceMap(reportType, requestBody, prepareData);
 
-  const baseMissing = getPremiumMissingData(data);
-  const baseWarnings = getPremiumWarnings(data);
+  const baseMissing = getPremiumMissingData(prepareData);
+  const baseWarnings = getPremiumWarnings(prepareData);
   const missingData = Array.from(new Set([
     ...baseMissing,
     ...(canonicalBuild.validation?.requiredMissing || []),
@@ -8783,7 +9270,11 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     reportSessionId,
     reportId,
     reportType,
+    featureType: featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "",
     userId: authInfo.userId,
+    requestId: String(requestId || ""),
+    idempotencyKey,
+    modeKey,
     inputHash,
     calculationVersion,
     cacheKey,
@@ -8795,9 +9286,20 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
       reportId,
     },
     derivedData: {
-      chapterPlan: Array.isArray(data.chapterPlan) ? data.chapterPlan : [],
-      validation: canonicalBuild.validation || data.validation || null,
-      quality: data.quality || null,
+      chapterPlan: Array.isArray(prepareData.chapterPlan) ? prepareData.chapterPlan : [],
+      validation: canonicalBuild.validation || prepareData.validation || null,
+      quality: prepareData.quality || null,
+      canonicalHydration: hydrated.hydration || null,
+      supplementalCalculatedByType: hydrated.supplementalCalculatedByType || {},
+      canonicalSnapshotsByFeatureType: {
+        [featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType]: {
+          reportType,
+          featureType: featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType,
+          featureDataJson: buildFeatureDataJson(reportType, canonicalBuild.canonicalJson),
+          validation: canonicalBuild.validation || null,
+          hydratedAt: new Date(now).toISOString(),
+        },
+      },
       chapterJsonById: Object.fromEntries(
         Array.from({ length: totalChapters }, (_, idx) => idx + 1).map((chapterId) => [
           String(chapterId),
@@ -8806,10 +9308,12 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
       ),
     },
     chapterData: {},
+    chapterTextById: {},
+    chapterRequestIndex: {},
     missingData,
     warnings,
     totalChapters,
-    requiredChapters: Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || totalChapters),
+    requiredChapters: Number(specChapters || totalChapters),
     isCompleteForPdf: missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf),
     status,
     createdAt: new Date(now).toISOString(),
@@ -8825,11 +9329,15 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     stage: "prepare",
     status,
     reportType,
+    featureType: featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "",
     reportSessionId,
     reportId,
+    requestId: String(requestId || ""),
+    idempotencyKey,
     hasCanonicalJson: Boolean(canonicalBuild.canonicalJson),
     missingDataCount: missingData.length,
     warningCount: warnings.length,
+    hydrationAttempts: Array.isArray(hydrated?.hydration?.attempts) ? hydrated.hydration.attempts.length : 0,
     totalChapters,
     validChapters: 0,
     cacheHit: false,
@@ -8840,12 +9348,19 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
 
 async function handlePremiumReportPrepare(request, env, authInfo) {
   const body = await readJson(request);
-  const reportType = normalizePremiumReportType(body.reportType || body.type);
+  const requestedRequestId = String(body.requestId || "").trim();
+  const requestId = requestedRequestId || createPremiumRequestId(`${authInfo.userId}|prepare`);
+  const typePair = resolvePremiumTypePair(body.reportType || body.type, body.featureType || body.feature || body.kind);
+  const reportType = typePair.reportType;
+  const featureType = typePair.featureType;
   if (!reportType) {
     return json({
       ok: false,
       code: "PREMIUM_REPORT_TYPE_INVALID",
-      message: "reportType은 필수이며 ziweiPremium/sookyoPremium/westernAstrologyPremium/vedicPremium/lifeBook/loveSecret 중 하나여야 합니다.",
+      message: "featureType 또는 reportType이 유효하지 않습니다.",
+      supportedFeatureTypes: Object.keys(FEATURE_TYPE_TO_REPORT_TYPE),
+      supportedReportTypes: Object.values(FEATURE_TYPE_TO_REPORT_TYPE),
+      requestId,
     }, { status: 400 });
   }
 
@@ -8857,20 +9372,29 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       code: access.code || "PAYMENT_REQUIRED",
       message: access.message || "프리미엄 결제가 필요합니다.",
       reportType,
+      featureType,
+      requestId,
       required: access.required || null,
     }, { status: Number(access.status || 402) });
   }
 
-  const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, requestBody);
+  const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, featureType, requestBody, requestId);
   if (!prepared.ok) {
-    return json(prepared.data || { ok: false, code: "PREMIUM_REPORT_PREPARE_FAILED", message: "prepare 실패" }, { status: Number(prepared.status || 422) });
+    return json({
+      ...(prepared.data || { ok: false, code: "PREMIUM_REPORT_PREPARE_FAILED", message: "prepare 실패" }),
+      requestId,
+    }, { status: Number(prepared.status || 422) });
   }
 
   const context = prepared.context;
+  context.requestId = requestId;
+  context.featureType = context.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "";
   const summary = buildPremiumContextSummary(context);
   return json({
     ok: true,
     cacheHit: Boolean(prepared.cacheHit),
+    requestId,
+    featureType: context.featureType,
     ...summary,
     input: context.input,
     coreData: context.coreData,
@@ -8902,33 +9426,119 @@ async function handlePremiumReportSessionRead(request, env, authInfo, reportSess
 
 async function handlePremiumReportChapter(request, env, authInfo) {
   const body = await readJson(request);
+  const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|chapter`);
   const reportSessionId = String(body.reportSessionId || "").trim();
   if (!reportSessionId) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다." }, { status: 400 });
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
   }
 
   prunePremiumReportContexts();
   const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
   if (!context) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
   }
   if (String(context.userId) !== String(authInfo.userId)) {
-    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다." }, { status: 401 });
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
+  context.requestId = requestId;
+
+  const applyHydrationToContext = (hydrated) => {
+    if (!hydrated?.canonicalBuild || !hydrated?.prepareData) return false;
+    const canonicalBuild = hydrated.canonicalBuild;
+    const featureKey = context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || context.reportType;
+
+    context.sourceMap = buildPremiumSourceMap(context.reportType, context.input, hydrated.prepareData);
+    context.coreData = context.coreData || {};
+    context.coreData.canonicalJson = canonicalBuild.canonicalJson;
+
+    context.derivedData = context.derivedData || {};
+    context.derivedData.validation = canonicalBuild.validation || null;
+    context.derivedData.canonicalHydration = hydrated.hydration || null;
+    context.derivedData.supplementalCalculatedByType = hydrated.supplementalCalculatedByType || {};
+    context.derivedData.canonicalSnapshotsByFeatureType = {
+      ...(context.derivedData.canonicalSnapshotsByFeatureType || {}),
+      [featureKey]: {
+        reportType: context.reportType,
+        featureType: featureKey,
+        featureDataJson: buildFeatureDataJson(context.reportType, canonicalBuild.canonicalJson),
+        validation: canonicalBuild.validation || null,
+        hydratedAt: new Date().toISOString(),
+      },
+    };
+
+    context.derivedData.chapterJsonById = Object.fromEntries(
+      Array.from({ length: Number(context.totalChapters || 13) }, (_, idx) => idx + 1).map((cid) => [
+        String(cid),
+        buildChapterJsonPacks(context.reportType, cid, canonicalBuild.canonicalJson),
+      ]),
+    );
+
+    const missingData = Array.from(new Set(canonicalBuild.validation?.requiredMissing || []));
+    const warnings = Array.from(new Set(canonicalBuild.validation?.optionalMissing || []));
+    context.missingData = missingData;
+    context.warnings = warnings;
+    context.isCompleteForPdf = missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf);
+    context.status = context.isCompleteForPdf ? "ready" : "needs-data";
+    return true;
+  };
+
   if (!context.isCompleteForPdf) {
-    return json({
-      ok: false,
-      code: "PREMIUM_REPORT_DATA_INCOMPLETE",
-      message: "필수 계산 데이터가 부족해 챕터를 생성할 수 없습니다.",
-      missingData: context.missingData,
-      warnings: context.warnings,
-    }, { status: 422 });
+    const hydrated = await hydratePremiumCanonicalData({
+      request,
+      env,
+      authInfo,
+      reportType: context.reportType,
+      requestBody: context.input || {},
+      requestId,
+      reportId: context.reportId,
+      inputHash: context.inputHash,
+      calculationVersion: context.calculationVersion,
+      createdAt: context.createdAt,
+      basePrepareData: null,
+    });
+
+    applyHydrationToContext(hydrated);
+    context.updatedAt = new Date().toISOString();
+    context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+
+    if (!context.isCompleteForPdf) {
+      return json({
+        ok: false,
+        code: "PREMIUM_REPORT_DATA_INCOMPLETE",
+        message: "필수 계산 데이터가 부족해 챕터를 생성할 수 없습니다.",
+        requestId,
+        missingData: context.missingData,
+        warnings: context.warnings,
+        hydration: hydrated?.hydration || null,
+      }, { status: 422 });
+    }
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
+  const maxChapterAttempts = clampInt(
+    body.maxAttempts ?? body.maxChapterAttempts ?? getPremiumChapterMaxAttempts(env),
+    getPremiumChapterMaxAttempts(env),
+    1,
+    6,
+  );
+  const chapterRequestKey = `${chapterId}:${requestId}`;
+  if (context.chapterRequestIndex && context.chapterRequestIndex[chapterRequestKey]) {
+    const cachedText = String(context?.chapterTextById?.[String(chapterId)] || "").trim();
+    if (cachedText) {
+      return json({
+        ok: true,
+        requestId,
+        reportSessionId,
+        chapterId,
+        cached: true,
+        text: cachedText,
+      });
+    }
+  }
   const handler = getPremiumHandlerByType(context.reportType);
   if (!handler) {
-    return json({ ok: false, code: "PREMIUM_REPORT_TYPE_INVALID", message: "지원하지 않는 reportType 입니다." }, { status: 400 });
+    return json({ ok: false, code: "PREMIUM_REPORT_TYPE_INVALID", message: "지원하지 않는 reportType 입니다.", requestId }, { status: 400 });
   }
 
   const chapterKey = `ch${chapterId}`;
@@ -8938,33 +9548,28 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   let chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
 
   if (chapterMissing.length > 0) {
-    const refillRequestBody = {
-      ...(context.input || {}),
-      prepareOnly: true,
-      forceRecalculate: true,
-      chapter: chapterId,
-      sessionId: chapterId,
-    };
-    const { response: refillRes, data: refillData } = await invokePremiumLegacyHandler(handler, request, env, refillRequestBody);
-    if (refillRes.ok && refillData?.ok) {
-      const rebuilt = buildCanonicalJsonForReport(context.reportType, refillData, context.input, authInfo, {
-        reportId: context.reportId,
-        inputHash: context.inputHash,
-        calculationVersion: context.calculationVersion,
-        createdAt: context.createdAt,
-        sourceMap: context.sourceMap,
-        supplementalCanonicalByType: {},
-      });
-      context.coreData.canonicalJson = rebuilt.canonicalJson;
-      context.derivedData.validation = rebuilt.validation;
-      context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
-      context.derivedData.chapterJsonById[String(chapterId)] = buildChapterJsonPacks(
-        context.reportType,
-        chapterId,
-        rebuilt.canonicalJson,
-      );
-      chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
-    }
+    const hydrated = await hydratePremiumCanonicalData({
+      request,
+      env,
+      authInfo,
+      reportType: context.reportType,
+      requestBody: {
+        ...(context.input || {}),
+        chapter: chapterId,
+        sessionId: chapterId,
+      },
+      requestId,
+      reportId: context.reportId,
+      inputHash: context.inputHash,
+      calculationVersion: context.calculationVersion,
+      createdAt: context.createdAt,
+      basePrepareData: null,
+    });
+    applyHydrationToContext(hydrated);
+    context.updatedAt = new Date().toISOString();
+    context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+    chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
   }
 
   if (chapterMissing.length > 0) {
@@ -8972,6 +9577,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       ok: false,
       code: "PREMIUM_REPORT_CHAPTER_DATA_MISSING",
       message: "해당 챕터 생성에 필요한 계산 데이터가 부족합니다.",
+      requestId,
       chapterId,
       missingData: chapterMissing,
     }, { status: 422 });
@@ -8982,32 +9588,88 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
   context.derivedData.chapterJsonById[String(chapterId)] = chapterJsonPacks;
 
-  const chapterRequestBody = {
-    ...(context.input || {}),
-    chapter: chapterId,
-    sessionId: chapterId,
-    reportId: context.reportId,
-    _premiumReportSessionId: reportSessionId,
-    _premiumLlmInput: buildLlmPromptInput(
-      context.reportType,
-      chapterId,
-      context?.coreData?.canonicalJson || {},
-      chapterJsonPacks,
-    ),
-    _premiumChapterJsonPacks: chapterJsonPacks,
+  let successResponse = null;
+  let successData = null;
+  let successLengthCheck = null;
+  let successAttempt = 0;
+  let lastFailure = {
+    status: 422,
+    code: "PREMIUM_REPORT_CHAPTER_FAILED",
+    message: "챕터 생성 실패",
+    lengthValidation: null,
   };
 
-  const { response, data } = await invokePremiumLegacyHandler(handler, request, env, chapterRequestBody);
-  if (!response.ok || !data?.ok) {
-    const status = Number(response.status || 422);
-    const code = String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED");
-    const message = String(data?.message || "챕터 생성 실패");
+  for (let attempt = 1; attempt <= maxChapterAttempts; attempt += 1) {
+    const attemptRequestId = attempt === 1 ? requestId : `${requestId}_a${attempt}`;
+    const chapterRequestBody = {
+      ...(context.input || {}),
+      chapter: chapterId,
+      sessionId: chapterId,
+      requestId: attemptRequestId,
+      reportId: context.reportId,
+      _premiumReportSessionId: reportSessionId,
+      _premiumRequestId: requestId,
+      _premiumChapterAttempt: attempt,
+      _premiumLlmInput: buildLlmPromptInput(
+        context.reportType,
+        chapterId,
+        context?.coreData?.canonicalJson || {},
+        chapterJsonPacks,
+      ),
+      _premiumChapterJsonPacks: chapterJsonPacks,
+    };
+
+    const { response, data } = await invokePremiumLegacyHandler(handler, request, env, chapterRequestBody);
+    if (!response.ok || !data?.ok) {
+      lastFailure = {
+        status: Number(response.status || 422),
+        code: String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
+        message: String(data?.message || "챕터 생성 실패"),
+        lengthValidation: null,
+      };
+      continue;
+    }
+
+    const chapterText = String(data.text || "").trim();
+    const lengthCheck = validateChapterLength({
+      reportType: context.reportType,
+      featureType: context.featureType,
+      mode: context.modeKey,
+      chapterId,
+      text: chapterText,
+    });
+
+    if (!lengthCheck.ok) {
+      lastFailure = {
+        status: 422,
+        code: "PREMIUM_REPORT_CHAPTER_TOO_SHORT",
+        message: "챕터 길이가 최소 기준 미만입니다.",
+        lengthValidation: lengthCheck,
+      };
+      continue;
+    }
+
+    successResponse = response;
+    successData = data;
+    successLengthCheck = lengthCheck;
+    successAttempt = attempt;
+    break;
+  }
+
+  if (!successResponse || !successData) {
+    const status = Number(lastFailure.status || 422);
+    const code = String(lastFailure.code || "PREMIUM_REPORT_CHAPTER_FAILED");
+    const message = String(lastFailure.message || "챕터 생성 실패");
     context.chapterData[String(chapterId)] = {
       chapterId,
       ok: false,
       status,
       code,
       message,
+      requestId,
+      attemptsUsed: maxChapterAttempts,
+      maxChapterAttempts,
+      lengthValidation: lastFailure.lengthValidation || null,
       jsonPackKeys: Object.keys(chapterJsonPacks || {}),
       updatedAt: new Date().toISOString(),
     };
@@ -9023,25 +9685,52 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       stage: "chapter",
       chapter: chapterId,
       status: "failed",
+      requestId,
       errorCode: code,
       hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
-      validChapters: Object.values(context.chapterData || {}).filter((item) => item && item.ok).length,
+      validChapters: countPremiumValidChapters(context),
       totalChapters: context.totalChapters,
     });
 
-    return json({ ok: false, code, message, status, reportSessionId, chapterId }, { status });
+    return json({
+      ok: false,
+      code,
+      message,
+      status,
+      requestId,
+      reportSessionId,
+      chapterId,
+      attemptsUsed: maxChapterAttempts,
+      maxChapterAttempts,
+      lengthValidation: lastFailure.lengthValidation || null,
+    }, { status });
   }
 
-  const chapterText = String(data.text || "").trim();
+  const chapterText = String(successData.text || "").trim();
+  const lengthCheck = successLengthCheck;
   context.chapterData[String(chapterId)] = {
     chapterId,
     ok: true,
-    status: Number(response.status || 200),
+    status: Number(successResponse.status || 200),
     code: "OK",
     textLength: chapterText.length,
+    noSpaceLength: lengthCheck.noSpaceLength,
+    lengthValidation: {
+      ok: lengthCheck.ok,
+      warnings: lengthCheck.warnings,
+      chapterMin: lengthCheck.chapterMin,
+      chapterTarget: lengthCheck.chapterTarget,
+    },
+    requestId,
+    attemptsUsed: successAttempt,
+    maxChapterAttempts,
     jsonPackKeys: Object.keys(chapterJsonPacks || {}),
     updatedAt: new Date().toISOString(),
   };
+  context.chapterTextById = context.chapterTextById || {};
+  context.chapterTextById[String(chapterId)] = chapterText;
+  context.chapterRequestIndex = context.chapterRequestIndex || {};
+  context.chapterRequestIndex[chapterRequestKey] = true;
   context.updatedAt = new Date().toISOString();
   context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
   PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
@@ -9054,38 +9743,200 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     stage: "chapter",
     chapter: chapterId,
     status: "ok",
+    requestId,
     errorCode: "",
     hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
-    validChapters: Object.values(context.chapterData || {}).filter((item) => item && item.ok).length,
+    validChapters: countPremiumValidChapters(context),
     totalChapters: context.totalChapters,
   });
 
   return json({
     ok: true,
+    requestId,
     reportSessionId,
     chapterId,
-    ...data,
+    featureType: context.featureType,
+    attemptsUsed: successAttempt,
+    maxChapterAttempts,
+    lengthValidation: lengthCheck,
+    ...successData,
   });
+}
+
+async function handlePremiumReportRun(request, env, authInfo) {
+  const body = await readJson(request);
+  const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|run`);
+  const reportSessionId = String(body.reportSessionId || "").trim();
+  if (!reportSessionId) {
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
+  }
+
+  prunePremiumReportContexts();
+  let context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
+  if (!context) {
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
+  }
+  if (String(context.userId) !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
+  }
+
+  const requiredChapters = Number(context.requiredChapters || context.totalChapters || 13);
+  const startChapter = clampInt(body.startChapter ?? body.fromChapter, 1, 1, requiredChapters);
+  const endChapter = clampInt(body.endChapter ?? body.toChapter, requiredChapters, startChapter, requiredChapters);
+  const maxAttemptsPerChapter = clampInt(
+    body.maxAttemptsPerChapter ?? body.maxChapterRetries ?? getPremiumChapterMaxAttempts(env),
+    getPremiumChapterMaxAttempts(env),
+    1,
+    6,
+  );
+  const stopOnFailure = body.stopOnFailure !== false;
+
+  const generated = [];
+  const skipped = [];
+  const failed = [];
+
+  for (let chapterId = startChapter; chapterId <= endChapter; chapterId += 1) {
+    const existingEntry = context?.chapterData?.[String(chapterId)];
+    if (isPremiumChapterEntryReadyForPdf(existingEntry)) {
+      skipped.push({ chapterId, reason: "already-generated" });
+      continue;
+    }
+
+    let chapterDone = false;
+    let lastError = {
+      chapterId,
+      attempt: 0,
+      status: 422,
+      code: "PREMIUM_REPORT_CHAPTER_FAILED",
+      message: "챕터 생성 실패",
+    };
+
+    for (let attempt = 1; attempt <= maxAttemptsPerChapter; attempt += 1) {
+      const chapterRequestId = `${requestId}_ch${chapterId}_r${attempt}`;
+      const chapterRequest = buildInternalPremiumJsonRequest(request, {
+        reportSessionId,
+        chapterId,
+        requestId: chapterRequestId,
+        maxAttempts: 1,
+      });
+      const chapterResponse = await handlePremiumReportChapter(chapterRequest, env, authInfo);
+      const chapterPayload = await chapterResponse.json().catch(() => ({}));
+      if (chapterResponse.ok && chapterPayload?.ok) {
+        generated.push({
+          chapterId,
+          attempt,
+          requestId: chapterRequestId,
+          lengthValidation: chapterPayload?.lengthValidation || null,
+        });
+        chapterDone = true;
+        break;
+      }
+
+      lastError = {
+        chapterId,
+        attempt,
+        status: Number(chapterResponse.status || 422),
+        code: String(chapterPayload?.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
+        message: String(chapterPayload?.message || "챕터 생성 실패"),
+      };
+    }
+
+    context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || context;
+
+    if (!chapterDone) {
+      failed.push(lastError);
+      if (stopOnFailure) break;
+    }
+  }
+
+  context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || context;
+  const validChapters = countPremiumValidChapters(context);
+  const missingChapterIds = [];
+  for (let chapterId = 1; chapterId <= requiredChapters; chapterId += 1) {
+    const entry = context?.chapterData?.[String(chapterId)];
+    if (!isPremiumChapterEntryReadyForPdf(entry)) missingChapterIds.push(chapterId);
+  }
+  const chapterReady = missingChapterIds.length === 0;
+
+  let pdf = null;
+  if (chapterReady && failed.length === 0) {
+    const pdfRequest = buildInternalPremiumJsonRequest(request, {
+      reportSessionId,
+      requestId: `${requestId}_pdf`,
+    });
+    const pdfResponse = await handlePremiumReportPdf(pdfRequest, env, authInfo);
+    const pdfPayload = await pdfResponse.json().catch(() => ({}));
+    pdf = {
+      ok: pdfResponse.ok && pdfPayload?.ok,
+      status: Number(pdfResponse.status || 200),
+      code: String(pdfPayload?.code || ""),
+      message: String(pdfPayload?.message || ""),
+      data: pdfPayload,
+    };
+  }
+
+  logPremiumPipeline({
+    scope: "PremiumPDF",
+    reportType: context.reportType,
+    reportSessionId,
+    reportId: context.reportId,
+    stage: "run",
+    chapter: 0,
+    status: failed.length === 0 ? "ok" : "partial",
+    requestId,
+    errorCode: failed.length === 0 ? "" : failed[0]?.code || "PREMIUM_REPORT_RUN_FAILED",
+    hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
+    validChapters,
+    totalChapters: context.totalChapters,
+  });
+
+  return json({
+    ok: failed.length === 0,
+    requestId,
+    reportSessionId,
+    reportType: context.reportType,
+    featureType: context.featureType,
+    range: {
+      startChapter,
+      endChapter,
+      requiredChapters,
+      totalChapters: context.totalChapters,
+      maxAttemptsPerChapter,
+    },
+    generated,
+    skipped,
+    failed,
+    progress: {
+      validChapters,
+      requiredChapters,
+      missingChapterIds,
+      chapterReady,
+    },
+    pdf,
+    contextSummary: buildPremiumContextSummary(context),
+  }, { status: failed.length === 0 ? 200 : 207 });
 }
 
 async function handlePremiumReportPdf(request, env, authInfo) {
   const body = await readJson(request);
+  const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|pdf`);
   const reportSessionId = String(body.reportSessionId || "").trim();
   if (!reportSessionId) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다." }, { status: 400 });
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
   }
 
   prunePremiumReportContexts();
   const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
   if (!context) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
   }
   if (String(context.userId) !== String(authInfo.userId)) {
-    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다." }, { status: 401 });
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
+  context.requestId = requestId;
 
   const chapterEntries = Object.values(context.chapterData || {});
-  const validEntries = chapterEntries.filter((entry) => entry && entry.ok && Number(entry.textLength || 0) >= 300);
+  const validEntries = chapterEntries.filter((entry) => isPremiumChapterEntryReadyForPdf(entry));
   const validChapters = validEntries.length;
   const requiredChapters = Number(context.requiredChapters || context.totalChapters || 13);
   const completedSet = new Set(validEntries.map((entry) => Number(entry.chapterId || 0)).filter((v) => Number.isFinite(v) && v > 0));
@@ -9103,6 +9954,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       stage: "pdf",
       chapter: 0,
       status: "blocked",
+      requestId,
       errorCode: "PREMIUM_REPORT_NO_VALID_CHAPTERS",
       hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
       validChapters,
@@ -9112,6 +9964,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       ok: false,
       code: "PREMIUM_REPORT_NO_VALID_CHAPTERS",
       message: "유효한 챕터가 0개이므로 PDF 생성을 중단합니다.",
+      requestId,
       validChapters,
       totalChapters: context.totalChapters,
     }, { status: 422 });
@@ -9126,6 +9979,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       stage: "pdf",
       chapter: 0,
       status: "blocked",
+      requestId,
       errorCode: "PREMIUM_REPORT_REQUIRED_CHAPTERS_MISSING",
       hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
       validChapters,
@@ -9135,10 +9989,49 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       ok: false,
       code: "PREMIUM_REPORT_REQUIRED_CHAPTERS_MISSING",
       message: "필수 챕터가 완료되지 않아 PDF 생성이 차단되었습니다.",
+      requestId,
       validChapters,
       requiredChapters,
       totalChapters: context.totalChapters,
       missingChapterIds,
+    }, { status: 422 });
+  }
+
+  const chapterTextList = validEntries
+    .sort((a, b) => Number(a.chapterId || 0) - Number(b.chapterId || 0))
+    .map((entry) => String(context?.chapterTextById?.[String(entry.chapterId)] || ""));
+  const totalLengthValidation = validateFullReportLength({
+    reportType: context.reportType,
+    featureType: context.featureType,
+    mode: context.modeKey,
+    chapterTextList,
+  });
+
+  if (!totalLengthValidation.ok) {
+    logPremiumPipeline({
+      scope: "PremiumPDF",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      reportSessionId,
+      reportId: context.reportId,
+      stage: "pdf",
+      chapter: 0,
+      status: "blocked",
+      requestId,
+      errorCode: "PREMIUM_REPORT_TOTAL_LENGTH_SHORT",
+      hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
+      validChapters,
+      totalChapters: context.totalChapters,
+    });
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_TOTAL_LENGTH_SHORT",
+      message: "전체 리포트 길이가 최소 기준에 미달하여 PDF 생성이 차단되었습니다.",
+      requestId,
+      lengthValidation: totalLengthValidation,
+      validChapters,
+      requiredChapters,
+      totalChapters: context.totalChapters,
     }, { status: 422 });
   }
 
@@ -9155,6 +10048,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
     stage: "pdf",
     chapter: 0,
     status: "ready",
+    requestId,
     errorCode: "",
     hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
     validChapters,
@@ -9164,9 +10058,12 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   return json({
     ok: true,
     ready: true,
+    requestId,
     reportSessionId,
     reportId: context.reportId,
     reportType: context.reportType,
+    featureType: context.featureType,
+    lengthValidation: totalLengthValidation,
     validChapters,
     requiredChapters,
     totalChapters: context.totalChapters,
@@ -9188,6 +10085,9 @@ export async function handlePremiumReportRoutes(request, env) {
     }
     if (method === "POST" && url.pathname === "/api/premium-report/chapter") {
       return await handlePremiumReportChapter(request, env, authInfo);
+    }
+    if (method === "POST" && url.pathname === "/api/premium-report/run") {
+      return await handlePremiumReportRun(request, env, authInfo);
     }
     if (method === "POST" && url.pathname === "/api/premium-report/pdf") {
       return await handlePremiumReportPdf(request, env, authInfo);
@@ -9304,7 +10204,12 @@ export const __sukuyoTestUtils = {
 };
 
 export const __premiumReportTestUtils = {
+  normalizePremiumFeatureType,
   normalizePremiumReportType,
+  resolvePremiumTypePair,
+  getPremiumRequiredChapters,
+  validateChapterLength,
+  validateFullReportLength,
   buildCanonicalJsonForReport,
   validateCanonicalJson,
   buildChapterDataMap,

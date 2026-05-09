@@ -1,5 +1,7 @@
 # Cloudflare Pages Deployment Checklist
 
+Detailed cache/version runbook: [docs/deploy-cache.md](docs/deploy-cache.md)
+
 ## 1) Build and artifact validation
 
 1. Run `npm run build`.

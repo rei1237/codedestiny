@@ -1,16 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
 
 const APP_VERSION = "dev";
 const VERSION_KEY = "app_version";
 // 무한 reload 방지: sessionStorage에 이미 reload한 버전을 기록
 const RELOAD_GUARD_KEY = "app_version_reload_guard";
 const SW_PURGED_VERSION_KEY = "app_sw_purged_version";
+const DEFER_GUARD_KEY = "app_version_defer_guard";
+const VERSION_CHECK_INTERVAL_MS = 45_000;
 
-function pickRuntimeVersion(payload: any): string {
+type RuntimeWindow = Window & Record<string, unknown>;
+
+type PendingUpdateState = {
+  version: string;
+  reason: string;
+};
+
+function pickRuntimeVersion(payload: unknown): string {
   if (!payload || typeof payload !== "object") return APP_VERSION;
-  const candidate = [payload.commitShort, payload.commit, payload.builtAt]
+  const value = payload as Record<string, unknown>;
+  const candidate = [value.commitShort, value.commit, value.builtAt]
     .map((value) => String(value || "").trim())
     .find(Boolean);
   return candidate || APP_VERSION;
@@ -69,81 +80,220 @@ async function purgeIfNeeded(version: string): Promise<void> {
   }
 }
 
+function getWindowBooleanFlag(flagName: string): boolean {
+  try {
+    return Boolean((window as RuntimeWindow)[flagName]);
+  } catch {
+    return false;
+  }
+}
+
+function getBlockingReason(isPaymentProcessing: boolean): string {
+  if (isPaymentProcessing || getWindowBooleanFlag("__CD_PAYMENT_PROCESSING__")) {
+    return "결제 처리 중";
+  }
+
+  if (getWindowBooleanFlag("__CD_PDF_EXPORT_IN_PROGRESS__")) {
+    return "PDF 생성/다운로드 중";
+  }
+
+  if (getWindowBooleanFlag("__CD_VERSION_GUARD_BLOCK__")) {
+    return "중요 입력 작업 진행 중";
+  }
+
+  if (document?.body?.dataset?.cdVersionGuardBusy === "1") {
+    return "핵심 작업 진행 중";
+  }
+
+  const active = document.activeElement as
+    | (HTMLElement & { value?: string })
+    | null;
+
+  if (active) {
+    const tagName = String(active.tagName || "").toLowerCase();
+    const isEditable = active.isContentEditable
+      || tagName === "input"
+      || tagName === "textarea"
+      || tagName === "select";
+
+    if (isEditable) {
+      const value = String(active.value || "").trim();
+      const text = String(active.textContent || "").trim();
+      if (value || text) {
+        return "입력 중";
+      }
+    }
+  }
+
+  return "";
+}
+
 export default function AppVersionGuard() {
+  const { isPaymentLoading } = usePaymentProcessing();
+  const paymentLoadingRef = useRef(isPaymentLoading);
+  const checkInFlightRef = useRef(false);
+  const [pendingUpdate, setPendingUpdate] = useState<PendingUpdateState | null>(null);
+
+  useEffect(() => {
+    paymentLoadingRef.current = isPaymentLoading;
+  }, [isPaymentLoading]);
+
+  const applyUpdate = useCallback(async (version: string) => {
+    await nukeAllCaches();
+
+    try {
+      window.localStorage.setItem(VERSION_KEY, version);
+      window.localStorage.setItem(SW_PURGED_VERSION_KEY, version);
+    } catch {
+      // ignore
+    }
+
+    try {
+      window.sessionStorage.setItem(RELOAD_GUARD_KEY, version);
+      window.sessionStorage.removeItem(DEFER_GUARD_KEY);
+    } catch {
+      // ignore
+    }
+
+    window.location.reload();
+  }, []);
+
+  const runVersionCheck = useCallback(async () => {
+    const serverVersion = await resolveRuntimeVersion();
+    if (!serverVersion || serverVersion === APP_VERSION) return;
+
+    let savedVersion = "";
+    try {
+      savedVersion = window.localStorage.getItem(VERSION_KEY) || "";
+    } catch {
+      savedVersion = "";
+    }
+
+    const versionChanged = savedVersion !== serverVersion;
+    if (!versionChanged) {
+      await purgeIfNeeded(serverVersion);
+      setPendingUpdate(null);
+      return;
+    }
+
+    let reloadedVersion = "";
+    try {
+      reloadedVersion = window.sessionStorage.getItem(RELOAD_GUARD_KEY) || "";
+    } catch {
+      reloadedVersion = "";
+    }
+
+    if (reloadedVersion === serverVersion) {
+      try {
+        window.localStorage.setItem(VERSION_KEY, serverVersion);
+      } catch {
+        // ignore
+      }
+      await purgeIfNeeded(serverVersion);
+      setPendingUpdate(null);
+      return;
+    }
+
+    let deferredVersion = "";
+    try {
+      deferredVersion = window.sessionStorage.getItem(DEFER_GUARD_KEY) || "";
+    } catch {
+      deferredVersion = "";
+    }
+
+    const blockingReason = getBlockingReason(paymentLoadingRef.current);
+    if (blockingReason || deferredVersion === serverVersion) {
+      if (deferredVersion === serverVersion) {
+        setPendingUpdate(null);
+      } else {
+        setPendingUpdate({
+          version: serverVersion,
+          reason: blockingReason,
+        });
+      }
+      return;
+    }
+
+    setPendingUpdate(null);
+    await applyUpdate(serverVersion);
+  }, [applyUpdate]);
+
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
-      // version.json을 no-store로 fetch해 서버 최신 버전 확인
-      const serverVersion = await resolveRuntimeVersion();
-      if (cancelled) return;
+    const runSafe = async () => {
+      if (cancelled || checkInFlightRef.current) return;
 
-      // dev 버전 또는 fetch 실패 시 아무 작업도 하지 않음
-      if (!serverVersion || serverVersion === APP_VERSION) return;
-
-      let savedVersion = "";
+      checkInFlightRef.current = true;
       try {
-        savedVersion = window.localStorage.getItem(VERSION_KEY) || "";
-      } catch {
-        savedVersion = "";
+        await runVersionCheck();
+      } finally {
+        checkInFlightRef.current = false;
       }
+    };
 
-      const versionChanged = savedVersion !== serverVersion;
+    void runSafe();
 
-      if (versionChanged) {
-        // ── 무한 reload 방지 guard ──
-        // sessionStorage는 탭 닫힘 시 초기화 → 새 탭/재시작 시 다시 동작
-        let reloadedVersion = "";
-        try {
-          reloadedVersion = window.sessionStorage.getItem(RELOAD_GUARD_KEY) || "";
-        } catch {
-          reloadedVersion = "";
-        }
+    const timer = window.setInterval(() => {
+      void runSafe();
+    }, VERSION_CHECK_INTERVAL_MS);
 
-        if (reloadedVersion === serverVersion) {
-          // 이미 이 버전으로 reload 했음 → 무한 루프 방지, 버전만 저장
-          try {
-            window.localStorage.setItem(VERSION_KEY, serverVersion);
-          } catch {
-            // ignore
-          }
-          await purgeIfNeeded(serverVersion);
-          return;
-        }
-
-        // 1. 모든 SW 해제 + Cache Storage 삭제
-        await nukeAllCaches();
-
-        // 2. localStorage 버전 업데이트
-        try {
-          window.localStorage.setItem(VERSION_KEY, serverVersion);
-          window.localStorage.setItem(SW_PURGED_VERSION_KEY, serverVersion);
-        } catch {
-          // ignore
-        }
-
-        // 3. reload guard 기록 (sessionStorage — 탭당 1회)
-        try {
-          window.sessionStorage.setItem(RELOAD_GUARD_KEY, serverVersion);
-        } catch {
-          // ignore
-        }
-
-        if (cancelled) return;
-
-        // 4. 강제 새로고침 (최신 index.html 강제 fetch)
-        window.location.reload();
-        return;
+    const onWake = () => {
+      if (document.visibilityState === "visible") {
+        void runSafe();
       }
+    };
 
-      // 버전이 같아도 SW/캐시가 남아있을 수 있으므로 purge 체크
-      await purgeIfNeeded(serverVersion);
-    })();
+    document.addEventListener("visibilitychange", onWake);
+    window.addEventListener("focus", onWake);
+    window.addEventListener("cd:critical-operation-state", onWake as EventListener);
 
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onWake);
+      window.removeEventListener("focus", onWake);
+      window.removeEventListener("cd:critical-operation-state", onWake as EventListener);
     };
-  }, []);
+  }, [runVersionCheck]);
 
-  return null;
+  if (!pendingUpdate) return null;
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-[2147483647] px-3 pb-3 sm:px-4 sm:pb-4">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-xl border border-amber-300/45 bg-amber-50 px-4 py-3 text-amber-950 shadow-[0_10px_30px_rgba(0,0,0,0.15)] sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold">새 버전이 배포되었습니다.</p>
+          <p className="text-xs text-amber-900/90">
+            현재 {pendingUpdate.reason} 상태여서 자동 새로고침을 보류했습니다.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            className="rounded-md border border-amber-900/15 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+            onClick={() => {
+              try {
+                window.sessionStorage.setItem(DEFER_GUARD_KEY, pendingUpdate.version);
+              } catch {
+                // ignore
+              }
+              setPendingUpdate(null);
+            }}
+          >
+            나중에
+          </button>
+          <button
+            type="button"
+            className="rounded-md bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800"
+            onClick={() => {
+              void applyUpdate(pendingUpdate.version);
+            }}
+          >
+            지금 새로고침
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

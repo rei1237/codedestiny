@@ -12,6 +12,9 @@
 2. Do not run Pages deploy from GitHub Actions.
 3. Use a single manual Pages deployment path.
 4. Keep Worker deployment separated from Pages deployment.
+5. If direct Pages deploy script is used for emergency, always rebuild immediately before deploy.
+6. Emergency direct deploy must pass `dist/version.json` commit == current Git HEAD commit.
+7. Cache validation must follow [docs/deploy-cache.md](docs/deploy-cache.md) after each production release.
 
 ## Required after each deployment
 

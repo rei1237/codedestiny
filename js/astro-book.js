@@ -612,6 +612,7 @@
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        featureType: 'astrology_premium',
         reportType: 'westernAstrologyPremium',
         requestBody: _buildAstroChapterPayload(0)
       }).then(function(prepared) {

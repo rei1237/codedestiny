@@ -2,7 +2,9 @@ import { getEnv } from "../lib/env.js";
 import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb } from "../lib/db.js";
 import { requireAuth } from "../lib/auth.js";
+import { callGeminiText } from "../lib/gemini.js";
 import { Insight } from "../lib/models.js";
+import { PREMIUM_PDF_SPECS } from "../lib/premium-pdf-specs.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
@@ -11,7 +13,25 @@ const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
 ];
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
-const INSIGHT_STATUS_SET = new Set(["draft", "published", "private", "trash"]);
+const INSIGHT_STATUS_SET = new Set(["draft", "published", "archived", "private", "trash"]);
+const CONTENT_STATUS_SET = new Set(["draft", "published", "archived", "private", "trash"]);
+const CONTENT_PUBLIC_STATUS = "published";
+const CONTENT_FORMAT_SET = new Set(["html", "markdown", "blocks"]);
+const CONTENT_TYPE_SET = new Set([
+  "fortune_insight",
+  "saju",
+  "tarot",
+  "astrology",
+  "jamidusu",
+  "sookyo",
+  "vedic",
+  "palmistry",
+  "physiognomy",
+  "notice",
+  "landing",
+  "seo_page",
+  "general",
+]);
 const INSIGHT_ALLOWED_HTML_TAGS = new Set([
   "h1",
   "h2",
@@ -93,6 +113,38 @@ function slugify(value) {
     .replace(/-{2,}/g, "-");
 
   return normalized;
+}
+
+function normalizeType(value, fallback = "general") {
+  const type = String(value || fallback).trim().toLowerCase();
+  return CONTENT_TYPE_SET.has(type) ? type : fallback;
+}
+
+function normalizeContentFormat(value, fallback = "html") {
+  const contentFormat = String(value || fallback).trim().toLowerCase();
+  return CONTENT_FORMAT_SET.has(contentFormat) ? contentFormat : fallback;
+}
+
+function sanitizeHttpUrl(value, maxLen = 2000) {
+  const url = normalizeText(value, maxLen);
+  if (!url) return "";
+  if (url.startsWith("/")) return url;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function normalizeContentStatus(value, fallback = "draft") {
+  const status = String(value || fallback).trim().toLowerCase();
+  return CONTENT_STATUS_SET.has(status) ? status : fallback;
 }
 
 function ensureStatus(value, fallback = "draft") {
@@ -223,6 +275,220 @@ function sanitizeInsightHtml(rawHtml) {
   });
 
   return html.trim();
+}
+
+function normalizeSeoInput(body = {}) {
+  const seoBody = isObjectLike(body?.seo) ? body.seo : {};
+  const metaTitle = normalizeText(seoBody.metaTitle ?? body.metaTitle, 240);
+  const metaDescription = normalizeText(seoBody.metaDescription ?? body.metaDescription, 600);
+  const ogTitle = normalizeText(seoBody.ogTitle ?? body.ogTitle, 240);
+  const ogDescription = normalizeText(seoBody.ogDescription ?? body.ogDescription, 600);
+  const ogImage = sanitizeHttpUrl(seoBody.ogImage ?? body.ogImage, 1000);
+  const canonicalUrl = sanitizeHttpUrl(seoBody.canonicalUrl ?? body.canonicalUrl, 1000);
+
+  return {
+    metaTitle,
+    metaDescription,
+    ogTitle,
+    ogDescription,
+    ogImage,
+    canonicalUrl,
+  };
+}
+
+function parseContentPublishedAt(value, status, existingPublishedAt = null) {
+  if (value === null) return null;
+  if (value !== undefined) {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  if (status === "published") {
+    if (existingPublishedAt) return existingPublishedAt;
+    return new Date();
+  }
+  return null;
+}
+
+function toContentItem(item) {
+  const contentFormat = normalizeContentFormat(item?.contentFormat, "html");
+  const contentHtml = sanitizeInsightHtml(
+    String(item?.contentHtml || (contentFormat === "html" ? item?.content : "") || ""),
+  );
+  const thumbnailUrl = sanitizeHttpUrl(item?.thumbnailUrl || item?.featuredImage?.url, 1000);
+  const seo = {
+    metaTitle: normalizeText(item?.seo?.metaTitle || item?.metaTitle, 240),
+    metaDescription: normalizeText(item?.seo?.metaDescription || item?.metaDescription, 600),
+    ogTitle: normalizeText(item?.seo?.ogTitle || item?.ogTitle, 240),
+    ogDescription: normalizeText(item?.seo?.ogDescription || item?.ogDescription, 600),
+    ogImage: sanitizeHttpUrl(item?.seo?.ogImage || item?.ogImage, 1000),
+    canonicalUrl: sanitizeHttpUrl(item?.seo?.canonicalUrl || item?.canonicalUrl, 1000),
+  };
+  const status = normalizeContentStatus(item?.status, "draft");
+
+  return {
+    id: String(item?._id || ""),
+    _id: String(item?._id || ""),
+    type: normalizeType(item?.type, "fortune_insight"),
+    title: normalizeText(item?.title, 240),
+    slug: normalizeText(item?.slug, 240),
+    summary: normalizeText(item?.summary || item?.excerpt, 2000),
+    excerpt: normalizeText(item?.excerpt || item?.summary, 2000),
+    content: String(item?.content || contentHtml || ""),
+    contentFormat,
+    contentHtml,
+    contentJson: isObjectLike(item?.contentJson) ? item.contentJson : {},
+    thumbnailUrl,
+    featuredImage: {
+      url: thumbnailUrl,
+      alt: normalizeText(item?.featuredImage?.alt, 300),
+      width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
+      height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
+    },
+    category: normalizeText(item?.category, 120),
+    tags: normalizeStringArray(item?.tags, 60, 80),
+    status,
+    seo,
+    authorId: normalizeText(item?.authorId, 120),
+    authorName: normalizeText(item?.authorName || item?.author, 120),
+    publishedAt: item?.publishedAt || null,
+    createdAt: item?.createdAt || null,
+    updatedAt: item?.updatedAt || null,
+    isPublished: status === CONTENT_PUBLIC_STATUS,
+    isFeatured: Boolean(item?.isFeatured),
+    noIndex: Boolean(item?.noIndex),
+    viewCount: Math.max(0, Number(item?.viewCount || 0) || 0),
+    readingTime: Math.max(0, Number(item?.readingTime || 0) || 0),
+    keywords: normalizeStringArray(item?.keywords, 80, 80),
+    metaTitle: seo.metaTitle,
+    metaDescription: seo.metaDescription,
+    canonicalUrl: seo.canonicalUrl,
+    ogTitle: seo.ogTitle,
+    ogDescription: seo.ogDescription,
+    ogImage: seo.ogImage,
+    twitterTitle: normalizeText(item?.twitterTitle, 240),
+    twitterDescription: normalizeText(item?.twitterDescription, 600),
+    twitterImage: sanitizeHttpUrl(item?.twitterImage, 1000),
+  };
+}
+
+function normalizeContentPayload(body = {}, mode = "create", existing = null) {
+  if (!isObjectLike(body)) {
+    throw createHttpError(400, "Request body must be an object.", { code: "VALIDATION_ERROR" });
+  }
+
+  const title = normalizeText(body.title, 240);
+  const providedSlugRaw = normalizeText(body.slug, 240);
+  const slug = slugify(providedSlugRaw);
+  if (body.slug !== undefined && providedSlugRaw && !slug) {
+    throw createHttpError(400, "slug format is invalid.", { code: "VALIDATION_ERROR" });
+  }
+
+  const type = normalizeType(body.type, existing?.type || "general");
+  const status = normalizeContentStatus(body.status, existing?.status || (mode === "create" ? "draft" : "draft"));
+  const contentFormat = normalizeContentFormat(
+    body.contentFormat,
+    existing?.contentFormat || (isObjectLike(body.contentJson) ? "blocks" : "html"),
+  );
+
+  if (mode === "create" && !title) {
+    throw createHttpError(400, "title is required.", { code: "VALIDATION_ERROR" });
+  }
+
+  const contentHtmlInput = body.contentHtml !== undefined
+    ? body.contentHtml
+    : (contentFormat === "html" ? body.content : existing?.contentHtml || "");
+
+  const seo = normalizeSeoInput(body);
+  const nextSummary = normalizeText(body.summary ?? body.excerpt, 2000);
+  const thumbnailUrl = sanitizeHttpUrl(
+    body.thumbnailUrl ?? body.featuredImage?.url ?? existing?.thumbnailUrl,
+    1000,
+  );
+
+  const featuredImage = buildFeaturedImage({
+    ...(isObjectLike(existing?.featuredImage) ? existing.featuredImage : {}),
+    ...(isObjectLike(body.featuredImage) ? body.featuredImage : {}),
+    url: thumbnailUrl,
+  });
+
+  const nextPublishedAt = parseContentPublishedAt(
+    body.publishedAt,
+    status,
+    existing?.publishedAt || null,
+  );
+
+  const payload = {
+    type,
+    title,
+    summary: nextSummary,
+    subtitle: normalizeText(body.subtitle ?? existing?.subtitle, 240),
+    slug,
+    excerpt: nextSummary,
+    content: String(body.content ?? existing?.content ?? ""),
+    contentFormat,
+    contentHtml: sanitizeInsightHtml(contentHtmlInput),
+    contentJson: isObjectLike(body.contentJson) ? body.contentJson : (existing?.contentJson || {}),
+    thumbnailUrl,
+    featuredImage,
+    category: normalizeText(body.category ?? existing?.category, 120),
+    tags: normalizeStringArray(body.tags ?? existing?.tags, 60, 40),
+    seo,
+    metaTitle: seo.metaTitle,
+    metaDescription: seo.metaDescription,
+    canonicalUrl: seo.canonicalUrl,
+    ogTitle: seo.ogTitle,
+    ogDescription: seo.ogDescription,
+    ogImage: seo.ogImage,
+    twitterTitle: normalizeText(body.twitterTitle ?? existing?.twitterTitle, 240),
+    twitterDescription: normalizeText(body.twitterDescription ?? existing?.twitterDescription, 600),
+    twitterImage: sanitizeHttpUrl(body.twitterImage ?? existing?.twitterImage, 1000),
+    keywords: normalizeStringArray(body.keywords ?? existing?.keywords, 80, 50),
+    authorId: normalizeText(body.authorId ?? existing?.authorId, 120),
+    authorName: normalizeText(body.authorName ?? body.author ?? existing?.authorName ?? existing?.author, 120),
+    author: normalizeText(body.author ?? body.authorName ?? existing?.author ?? existing?.authorName, 120),
+    status,
+    isPublished: status === CONTENT_PUBLIC_STATUS,
+    isFeatured: body.isFeatured !== undefined ? Boolean(body.isFeatured) : Boolean(existing?.isFeatured),
+    noIndex: body.noIndex !== undefined ? Boolean(body.noIndex) : Boolean(existing?.noIndex),
+    viewCount: Math.max(0, Number(body.viewCount ?? existing?.viewCount ?? 0) || 0),
+    readingTime: Math.max(0, Number(body.readingTime ?? existing?.readingTime ?? 0) || 0),
+    publishedAt: nextPublishedAt,
+  };
+
+  if (mode === "update") {
+    Object.keys(payload).forEach((key) => {
+      if (body[key] === undefined && key !== "isPublished" && key !== "publishedAt") {
+        delete payload[key];
+      }
+    });
+
+    if (body.slug === undefined) delete payload.slug;
+    if (body.status === undefined && body.publishedAt === undefined) {
+      delete payload.isPublished;
+      delete payload.publishedAt;
+    }
+  }
+
+  return {
+    payload,
+    title,
+    providedSlug: providedSlugRaw,
+  };
+}
+
+function logAdminContent(event, details = {}) {
+  const payload = {
+    scope: "admin-content",
+    event,
+    timestamp: new Date().toISOString(),
+    ...details,
+  };
+
+  try {
+    console.log("[admin-content]", JSON.stringify(payload));
+  } catch {
+    console.log("[admin-content]", payload);
+  }
 }
 
 function normalizeInsightPayload(body = {}, mode = "create") {
@@ -546,16 +812,55 @@ async function verifyFlowerAdminToken(request, env) {
 }
 
 async function authorizeAdminRequest(request, env) {
-  if (await verifyFlowerAdminToken(request, env)) {
-    return { mode: "flower" };
+  const authHeader = String(request.headers.get("authorization") || "").trim();
+  const cookieHeader = String(request.headers.get("cookie") || "");
+  const hasSessionCookie = /(?:^|;\s*)(cd_access_token|cd_refresh_token)=/i.test(cookieHeader);
+  const hasFlowerCredential = Boolean(extractFlowerAdminToken(request));
+  const hasAnyCredential = Boolean(authHeader) || hasSessionCookie || hasFlowerCredential;
+
+  if (!hasAnyCredential) {
+    throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
   }
 
-  const auth = await requireAuth(request, env).catch(() => null);
-  if (auth && String(auth.role || "").toLowerCase() === "admin") {
-    return { mode: "jwt", auth };
+  const flowerTokenGranted = await verifyFlowerAdminToken(request, env);
+
+  let auth = null;
+  let authError = null;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    authError = error;
   }
 
-  throw createHttpError(403, "Admin access is required.", { code: "FORBIDDEN" });
+  if (auth) {
+    const role = String(auth.role || "user").toLowerCase();
+    const isAdmin = role === "admin" || auth.isAdmin === true;
+    if (!isAdmin) {
+      throw createHttpError(403, "관리자 권한이 필요합니다.", { code: "FORBIDDEN" });
+    }
+
+    return {
+      mode: "jwt",
+      auth,
+      userId: String(auth.userId || ""),
+      isAdmin: true,
+    };
+  }
+
+  if (flowerTokenGranted) {
+    return {
+      mode: "flower",
+      auth: { userId: "flower-admin", role: "admin", isAdmin: true },
+      userId: "flower-admin",
+      isAdmin: true,
+    };
+  }
+
+  if (authError && Number(authError?.status || 0) === 401) {
+    throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
+  }
+
+  throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
 }
 
 function parseQuery(urlString) {
@@ -732,6 +1037,411 @@ async function handleInsightsDelete(path, request, env) {
   return json({ ok: true, item: updated });
 }
 
+function parseAdminContentId(path) {
+  const matched = String(path || "").match(/^\/content\/([^/]+)$/i);
+  if (!matched) return "";
+
+  let token = "";
+  try {
+    token = decodeURIComponent(String(matched[1] || "").trim());
+  } catch {
+    return "";
+  }
+
+  if (!token) return "";
+  if (token.startsWith("insight:")) token = token.slice("insight:".length);
+  if (!/^[a-f0-9]{24}$/i.test(token)) return "";
+  return token;
+}
+
+function parseAdminContentSlug(path) {
+  const matched = String(path || "").match(/^\/content\/by-slug\/([^/]+)$/i);
+  if (!matched) return "";
+
+  try {
+    const decoded = decodeURIComponent(String(matched[1] || "")).trim().toLowerCase();
+    if (!decoded || decoded.length > 240) return "";
+    if (!/^[a-z0-9-]+$/.test(decoded)) return "";
+    return decoded;
+  } catch {
+    return "";
+  }
+}
+
+function parseContentListQuery(urlString) {
+  const url = new URL(urlString);
+  const q = url.searchParams;
+
+  const type = normalizeType(q.get("type"), "");
+  const statusRaw = normalizeText(q.get("status"), 24).toLowerCase();
+  const status = statusRaw && CONTENT_STATUS_SET.has(statusRaw) ? statusRaw : "";
+  const category = normalizeText(q.get("category"), 120);
+  const keyword = normalizeText(q.get("keyword") || q.get("q"), 120);
+  const sort = normalizeText(q.get("sort"), 32).toLowerCase();
+  const page = Math.max(1, Number(q.get("page") || 1) || 1);
+  const limit = Math.min(100, Math.max(1, Number(q.get("limit") || q.get("pageSize") || 20) || 20));
+
+  return {
+    type,
+    status,
+    category,
+    keyword,
+    sort,
+    page,
+    limit,
+  };
+}
+
+function resolveContentSort(sort) {
+  if (sort === "updated") return { updatedAt: -1, createdAt: -1 };
+  if (sort === "published") return { publishedAt: -1, updatedAt: -1, createdAt: -1 };
+  if (sort === "title") return { title: 1, updatedAt: -1 };
+  if (sort === "views") return { viewCount: -1, updatedAt: -1 };
+  return { updatedAt: -1, createdAt: -1 };
+}
+
+function buildContentListQuery(filters) {
+  const query = {};
+
+  if (filters.type) {
+    if (filters.type === "fortune_insight") {
+      query.$or = [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }];
+    } else {
+      query.type = filters.type;
+    }
+  }
+
+  if (filters.status) {
+    query.status = filters.status;
+  }
+
+  if (filters.category) {
+    query.category = filters.category;
+  }
+
+  if (filters.keyword) {
+    const escaped = filters.keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    query.$and = [
+      ...(Array.isArray(query.$and) ? query.$and : []),
+      {
+        $or: [
+          { title: { $regex: escaped, $options: "i" } },
+          { slug: { $regex: escaped, $options: "i" } },
+          { summary: { $regex: escaped, $options: "i" } },
+          { excerpt: { $regex: escaped, $options: "i" } },
+          { category: { $regex: escaped, $options: "i" } },
+          { tags: { $elemMatch: { $regex: escaped, $options: "i" } } },
+        ],
+      },
+    ];
+  }
+
+  return query;
+}
+
+async function handleContentList(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const filters = parseContentListQuery(request.url);
+  const query = buildContentListQuery(filters);
+  const sort = resolveContentSort(filters.sort);
+
+  logAdminContent("list_start", {
+    endpoint: "/api/admin/content",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    filters,
+  });
+
+  const [items, total] = await Promise.all([
+    Insight.find(query)
+      .sort(sort)
+      .skip((filters.page - 1) * filters.limit)
+      .limit(filters.limit)
+      .lean(),
+    Insight.countDocuments(query),
+  ]);
+
+  const mappedItems = items.map((item) => toContentItem(item));
+  const totalPages = Math.max(1, Math.ceil(total / filters.limit));
+
+  logAdminContent("list_success", {
+    endpoint: "/api/admin/content",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    resultCount: mappedItems.length,
+    total,
+  });
+
+  return json({
+    ok: true,
+    items: mappedItems,
+    pagination: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      totalPages,
+    },
+  });
+}
+
+async function findDuplicateContentSlug(slug, excludeId = "") {
+  const query = { slug };
+  if (excludeId) query._id = { $ne: excludeId };
+  return Insight.findOne(query).select("_id slug").lean();
+}
+
+async function buildUniqueContentSlug(baseInput, excludeId = "") {
+  const base = slugify(baseInput) || `content-${Date.now()}`;
+  let candidate = base;
+  let seq = 2;
+
+  while (await findDuplicateContentSlug(candidate, excludeId)) {
+    candidate = `${base}-${seq}`;
+    seq += 1;
+    if (seq > 500) {
+      candidate = `${base}-${Date.now()}`;
+      break;
+    }
+  }
+
+  return candidate;
+}
+
+async function handleContentCreate(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const body = await readJson(request);
+  const { payload, title, providedSlug } = normalizeContentPayload(body, "create", null);
+
+  if (!title) {
+    throw createHttpError(400, "title is required.", { code: "VALIDATION_ERROR" });
+  }
+
+  if (providedSlug) {
+    const duplicate = await findDuplicateContentSlug(payload.slug);
+    if (duplicate) {
+      throw createHttpError(409, "slug already exists.", { code: "DUPLICATE_SLUG" });
+    }
+  } else {
+    payload.slug = await buildUniqueContentSlug(title);
+  }
+
+  if (!payload.slug) {
+    payload.slug = await buildUniqueContentSlug(`content-${Date.now()}`);
+  }
+
+  const created = await Insight.create(payload);
+  const item = toContentItem(created.toObject());
+
+  logAdminContent("create_success", {
+    endpoint: "/api/admin/content",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+    type: item.type,
+  });
+
+  return json({ ok: true, item }, { status: 201 });
+}
+
+async function handleContentGetById(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseAdminContentId(path);
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const found = await Insight.findById(id).lean();
+  if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const item = toContentItem(found);
+  logAdminContent("get_success", {
+    endpoint: "/api/admin/content/:id",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+  });
+
+  return json({ ok: true, item });
+}
+
+async function handleContentGetBySlug(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const slug = parseAdminContentSlug(path);
+  if (!slug) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const found = await Insight.findOne({ slug }).lean();
+  if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const item = toContentItem(found);
+  logAdminContent("get_by_slug_success", {
+    endpoint: "/api/admin/content/by-slug/:slug",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+  });
+
+  return json({ ok: true, item });
+}
+
+async function handleContentPatch(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseAdminContentId(path);
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const existing = await Insight.findById(id).lean();
+  if (!existing) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const body = await readJson(request);
+  const { payload, title, providedSlug } = normalizeContentPayload(body, "update", existing);
+
+  if (body.title !== undefined && !title) {
+    throw createHttpError(400, "title is required.", { code: "VALIDATION_ERROR" });
+  }
+
+  if (body.slug !== undefined) {
+    if (!providedSlug) {
+      payload.slug = await buildUniqueContentSlug(title || existing.title || `content-${Date.now()}`, id);
+    } else {
+      const duplicate = await findDuplicateContentSlug(payload.slug, id);
+      if (duplicate) {
+        throw createHttpError(409, "slug already exists.", { code: "DUPLICATE_SLUG" });
+      }
+    }
+  }
+
+  const updateResult = await Insight.updateOne({ _id: id }, { $set: payload });
+  if (!Number(updateResult.matchedCount || 0)) {
+    throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  }
+
+  const updated = await Insight.findById(id).lean();
+  const item = toContentItem(updated);
+
+  logAdminContent("patch_success", {
+    endpoint: "/api/admin/content/:id",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+    matchedCount: Number(updateResult.matchedCount || 0),
+    modifiedCount: Number(updateResult.modifiedCount || 0),
+  });
+
+  return json({
+    ok: true,
+    item,
+    db: {
+      matchedCount: Number(updateResult.matchedCount || 0),
+      modifiedCount: Number(updateResult.modifiedCount || 0),
+    },
+  });
+}
+
+async function handleContentDelete(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseAdminContentId(path);
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const updateResult = await Insight.updateOne(
+    { _id: id },
+    {
+      $set: {
+        status: "archived",
+        isPublished: false,
+      },
+    },
+  );
+
+  if (!Number(updateResult.matchedCount || 0)) {
+    throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  }
+
+  const updated = await Insight.findById(id).lean();
+  const item = toContentItem(updated);
+
+  logAdminContent("delete_soft_success", {
+    endpoint: "/api/admin/content/:id",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+    matchedCount: Number(updateResult.matchedCount || 0),
+    modifiedCount: Number(updateResult.modifiedCount || 0),
+  });
+
+  return json({
+    ok: true,
+    item,
+    db: {
+      matchedCount: Number(updateResult.matchedCount || 0),
+      modifiedCount: Number(updateResult.modifiedCount || 0),
+    },
+  });
+}
+
+async function handleContentDiag(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  const dbConn = await connectDb(env);
+
+  const collections = await dbConn.db.listCollections({}, { nameOnly: true }).toArray();
+  const names = new Set(collections.map((item) => String(item?.name || "")));
+
+  const [allContent, fortuneInsights, published, draft, archived] = await Promise.all([
+    Insight.countDocuments({}),
+    Insight.countDocuments({
+      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+    }),
+    Insight.countDocuments({ status: "published" }),
+    Insight.countDocuments({ status: "draft" }),
+    Insight.countDocuments({ status: { $in: ["archived", "private", "trash"] } }),
+  ]);
+
+  logAdminContent("diag_success", {
+    endpoint: "/api/admin/content/diag",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    dbConnected: dbConn.readyState === 1,
+  });
+
+  return json({
+    ok: true,
+    dbConnected: dbConn.readyState === 1,
+    collections: {
+      content: names.has("insights") || names.has("Insights"),
+      insights: names.has("insights") || names.has("Insights"),
+    },
+    adminAuth: true,
+    counts: {
+      allContent,
+      fortuneInsights,
+      published,
+      draft,
+      archived,
+    },
+  });
+}
+
 async function sha256Hex(text) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
   return bytesToHex(new Uint8Array(digest));
@@ -813,34 +1523,220 @@ function handleKeyHealth(env) {
   }, { status: 200 });
 }
 
+function listGeminiKeyStatus(env) {
+  const keyNames = [
+    "PREMIUM_GEMINI_API_KEY1",
+    "PREMIUM_GEMINI_API_KEY2",
+    "PREMIUM_GEMINI_API_KEY3",
+    "PREMIUM_GEMINI_API_KEY4",
+    "GEMINI_API_KEY",
+    "GOOGLE_GEMINI_API_KEY",
+    "GOOGLE_GENERATIVE_AI_API_KEY",
+    "GOOGLE_AI_API_KEY",
+    "GOOGLE_API_KEY",
+    "GEMINIF_API_KEY1",
+    "GEMINIF_API_KEY2",
+    "GEMINIF_API_KEY3",
+    "GEMINIF_API_KEY4",
+  ];
+  const status = {};
+  let enabledCount = 0;
+  for (const name of keyNames) {
+    const usable = String(env?.[name] || "").trim().length > 0;
+    status[name] = usable;
+    if (usable) enabledCount += 1;
+  }
+  return {
+    enabledCount,
+    keyStatus: status,
+  };
+}
+
+async function runGeminiSmoke(env, requestId) {
+  const prompt = `healthcheck:${requestId}`;
+  const result = await callGeminiText(env, prompt, {
+    keyEnvKeys: [
+      "PREMIUM_GEMINI_API_KEY1",
+      "PREMIUM_GEMINI_API_KEY2",
+      "PREMIUM_GEMINI_API_KEY3",
+      "PREMIUM_GEMINI_API_KEY4",
+      "GEMINI_API_KEY",
+      "GOOGLE_GEMINI_API_KEY",
+      "GOOGLE_GENERATIVE_AI_API_KEY",
+      "GOOGLE_AI_API_KEY",
+      "GOOGLE_API_KEY",
+    ],
+    modelEnvKeys: ["PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
+    temperature: 0,
+    topP: 0.9,
+    maxOutputTokens: 80,
+    timeoutMs: 12000,
+    maxAttemptsPerPair: 1,
+  });
+
+  return {
+    ok: Boolean(result?.ok),
+    model: String(result?.model || ""),
+    message: String(result?.message || ""),
+    outputLength: result?.ok ? String(result?.text || "").length : 0,
+  };
+}
+
+async function handleAdminGeminiHealth(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  const requestId = `agh_${Date.now().toString(36)}`;
+  const url = new URL(request.url);
+  const smoke = String(url.searchParams.get("smoke") || "") === "1";
+  const keyStatus = listGeminiKeyStatus(env);
+  const smokeResult = smoke ? await runGeminiSmoke(env, requestId) : null;
+
+  return json({
+    ok: true,
+    requestId,
+    adminAuth: true,
+    userId: adminContext.userId,
+    gemini: {
+      ...keyStatus,
+      smokeRequested: smoke,
+      smokeResult,
+    },
+  });
+}
+
+async function handleAdminPdfHealth(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  const requestId = `aph_${Date.now().toString(36)}`;
+
+  const pdfPayload = [
+    "%PDF-1.4",
+    "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj",
+    "2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj",
+    "3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj",
+    "xref",
+    "0 4",
+    "0000000000 65535 f ",
+    "trailer<</Size 4/Root 1 0 R>>",
+    "startxref",
+    "0",
+    "%%EOF",
+  ].join("\n");
+  const byteLength = new TextEncoder().encode(pdfPayload).length;
+
+  return json({
+    ok: true,
+    requestId,
+    adminAuth: true,
+    userId: adminContext.userId,
+    pdf: {
+      renderer: "simulated",
+      healthy: byteLength > 120,
+      byteLength,
+    },
+  });
+}
+
+async function handleAdminPremiumPdfHealth(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  const requestId = `apph_${Date.now().toString(36)}`;
+  const url = new URL(request.url);
+  const smoke = String(url.searchParams.get("smoke") || "") === "1";
+  const keyStatus = listGeminiKeyStatus(env);
+  const smokeResult = smoke ? await runGeminiSmoke(env, requestId) : null;
+
+  const features = Object.entries(PREMIUM_PDF_SPECS).map(([featureType, spec]) => {
+    const chapters = Array.isArray(spec?.chapters)
+      ? spec.chapters
+      : (Array.isArray(spec?.chaptersByMode?.solo) ? spec.chaptersByMode.solo : []);
+    return {
+      featureType,
+      legacyReportType: String(spec?.legacyReportType || ""),
+      chapterCount: chapters.length,
+      minTotalChars: Number(spec?.minTotalChars || 0),
+      targetTotalChars: Number(spec?.targetTotalChars || 0),
+    };
+  });
+
+  return json({
+    ok: true,
+    requestId,
+    adminAuth: true,
+    userId: adminContext.userId,
+    premiumPdf: {
+      featureCount: features.length,
+      features,
+      gemini: {
+        ...keyStatus,
+        smokeRequested: smoke,
+        smokeResult,
+      },
+    },
+  });
+}
+
 export async function handleAdminRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/admin");
 
     if (method === "POST" && path === "/entry/password") {
-      return handleEntryPassword(request, env);
+      return await handleEntryPassword(request, env);
     }
 
     if (method === "GET" && path === "/keys") {
       return handleKeyHealth(env);
     }
 
+    if (method === "GET" && path === "/gemini-health") {
+      return await handleAdminGeminiHealth(request, env);
+    }
+
+    if (method === "GET" && path === "/pdf-health") {
+      return await handleAdminPdfHealth(request, env);
+    }
+
+    if (method === "GET" && path === "/premium-pdf-health") {
+      return await handleAdminPremiumPdfHealth(request, env);
+    }
+
+    if (path === "/content") {
+      if (method === "GET") return await handleContentList(request, env);
+      if (method === "POST") return await handleContentCreate(request, env);
+      return methodNotAllowed();
+    }
+
+    if (path === "/content/diag") {
+      if (method === "GET") return await handleContentDiag(request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/content\/by-slug\/[^/]+$/i.test(path)) {
+      if (method === "GET") return await handleContentGetBySlug(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/content\/[^/]+$/i.test(path)) {
+      if (method === "GET") return await handleContentGetById(path, request, env);
+      if (method === "PATCH") return await handleContentPatch(path, request, env);
+      if (method === "DELETE") return await handleContentDelete(path, request, env);
+      return methodNotAllowed();
+    }
+
     if (path === "/insights") {
-      if (method === "GET") return handleInsightsList(request, env);
-      if (method === "POST") return handleInsightsCreate(request, env);
+      if (method === "GET") return await handleInsightsList(request, env);
+      if (method === "POST") return await handleInsightsCreate(request, env);
       return methodNotAllowed();
     }
 
     if (path === "/insights/upload-image") {
-      if (method === "POST") return handleInsightsUploadImage(request, env);
+      if (method === "POST") return await handleInsightsUploadImage(request, env);
       return methodNotAllowed();
     }
 
     if (/^\/insights\/[a-f0-9]{24}$/i.test(path)) {
-      if (method === "GET") return handleInsightsGetById(path, request, env);
-      if (method === "PUT") return handleInsightsUpdate(path, request, env);
-      if (method === "DELETE") return handleInsightsDelete(path, request, env);
+      if (method === "GET") return await handleInsightsGetById(path, request, env);
+      if (method === "PUT") return await handleInsightsUpdate(path, request, env);
+      if (method === "PATCH") return await handleInsightsUpdate(path, request, env);
+      if (method === "DELETE") return await handleInsightsDelete(path, request, env);
       return methodNotAllowed();
     }
 

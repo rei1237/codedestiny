@@ -12,7 +12,9 @@ import { uploadInsightImage } from "../_lib/imageUpload";
 import { sanitizeInsightHtml } from "../_lib/sanitizeContent";
 
 type EditorMode = "create" | "edit";
-type SaveStatus = "draft" | "published" | "private";
+type SaveStatus = "draft" | "published" | "archived" | "private";
+type ContentType = "fortune_insight" | "saju" | "tarot" | "astrology" | "jamidusu" | "sookyo" | "vedic" | "palmistry" | "physiognomy" | "notice" | "landing" | "seo_page" | "general";
+type ContentFormat = "html" | "markdown" | "blocks";
 type SeoCheckLevel = "pass" | "warn" | "error";
 
 type SeoCheckItem = {
@@ -104,23 +106,29 @@ function getLevelText(level: SeoCheckLevel): string {
   return "양호";
 }
 
-function extractHeadingAndImageStats(node: any, stats = { h1: 0, h2: 0, imageCount: 0, imageMissingAlt: 0 }) {
+function extractHeadingAndImageStats(node: unknown, stats = { h1: 0, h2: 0, imageCount: 0, imageMissingAlt: 0 }) {
   if (!node || typeof node !== "object") return stats;
 
-  if (node.type === "heading") {
-    const level = Number(node?.attrs?.level || 0);
+  const typedNode = node as {
+    type?: unknown;
+    attrs?: { level?: unknown; alt?: unknown };
+    content?: unknown;
+  };
+
+  if (typedNode.type === "heading") {
+    const level = Number(typedNode.attrs?.level || 0);
     if (level === 1) stats.h1 += 1;
     if (level === 2) stats.h2 += 1;
   }
 
-  if (node.type === "image") {
+  if (typedNode.type === "image") {
     stats.imageCount += 1;
-    const alt = String(node?.attrs?.alt || "").trim();
+    const alt = String(typedNode.attrs?.alt || "").trim();
     if (!alt) stats.imageMissingAlt += 1;
   }
 
-  if (Array.isArray(node.content)) {
-    for (const child of node.content) {
+  if (Array.isArray(typedNode.content)) {
+    for (const child of typedNode.content) {
       extractHeadingAndImageStats(child, stats);
     }
   }
@@ -156,10 +164,12 @@ const InsightImage = ImageExtension.extend({
 export default function InsightEditorPage({ mode, insightId = "" }: InsightEditorPageProps) {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
-  const endpointBase = `${apiBase || ""}/api/admin/insights`;
+  const endpointBase = `${apiBase || ""}/api/admin/content`;
   const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
   const isEditMode = mode === "edit";
 
+  const [contentType, setContentType] = useState<ContentType>("fortune_insight");
+  const [contentFormat, setContentFormat] = useState<ContentFormat>("html");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -361,9 +371,10 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       if (!res.ok) return { duplicated: false, checkFailed: true };
 
       const items = Array.isArray(data?.items) ? data.items : [];
-      const duplicated = items.some((item: any) => {
-        const slugValue = String(item?.slug || "").trim().toLowerCase();
-        const idValue = String(item?._id || "");
+      const duplicated = items.some((item: unknown) => {
+        const typedItem = item as { slug?: unknown; _id?: unknown };
+        const slugValue = String(typedItem.slug || "").trim().toLowerCase();
+        const idValue = String(typedItem._id || "");
         if (isEditMode && insightId && idValue === insightId) return false;
         return slugValue === candidateSlug.toLowerCase();
       });
@@ -528,26 +539,29 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         const item = data?.item || {};
         if (cancelled) return;
 
+        setContentType((String(item.type || "fortune_insight").trim().toLowerCase() as ContentType) || "fortune_insight");
+        setContentFormat((String(item.contentFormat || "html").trim().toLowerCase() as ContentFormat) || "html");
+
         setTitle(String(item.title || ""));
         setSubtitle(String(item.subtitle || ""));
         setSlug(String(item.slug || ""));
         setSlugEdited(Boolean(item.slug));
-        setExcerpt(String(item.excerpt || ""));
+        setExcerpt(String(item.summary || item.excerpt || ""));
         setCategory(String(item.category || ""));
         setTagsText(Array.isArray(item.tags) ? item.tags.map((tag: unknown) => String(tag)).join(", ") : "");
-        setMetaTitle(String(item.metaTitle || ""));
-        setMetaDescription(String(item.metaDescription || ""));
+        setMetaTitle(String(item?.seo?.metaTitle || item.metaTitle || ""));
+        setMetaDescription(String(item?.seo?.metaDescription || item.metaDescription || ""));
         setKeywordsText(Array.isArray(item.keywords) ? item.keywords.map((tag: unknown) => String(tag)).join(", ") : "");
-        setCanonicalUrl(String(item.canonicalUrl || ""));
-        setOgTitle(String(item.ogTitle || ""));
-        setOgDescription(String(item.ogDescription || ""));
-        setOgImage(String(item.ogImage || ""));
+        setCanonicalUrl(String(item?.seo?.canonicalUrl || item.canonicalUrl || ""));
+        setOgTitle(String(item?.seo?.ogTitle || item.ogTitle || ""));
+        setOgDescription(String(item?.seo?.ogDescription || item.ogDescription || ""));
+        setOgImage(String(item?.seo?.ogImage || item.ogImage || ""));
         setTwitterTitle(String(item.twitterTitle || ""));
         setTwitterDescription(String(item.twitterDescription || ""));
         setTwitterImage(String(item.twitterImage || ""));
         setNoIndex(Boolean(item.noIndex));
         setIsFeatured(Boolean(item.isFeatured));
-        setFeaturedImageUrl(String(item?.featuredImage?.url || ""));
+        setFeaturedImageUrl(String(item?.thumbnailUrl || item?.featuredImage?.url || ""));
         setFeaturedImageAlt(String(item?.featuredImage?.alt || ""));
         setFeaturedImageWidth(Math.max(0, Number(item?.featuredImage?.width || 0) || 0));
         setFeaturedImageHeight(Math.max(0, Number(item?.featuredImage?.height || 0) || 0));
@@ -616,12 +630,25 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       const html = sanitizeInsightHtml(editor.getHTML());
       const seo = resolveSeoFields();
       const payload = {
+        type: contentType,
         title: title.trim(),
         subtitle: subtitle.trim(),
         slug: seo.safeSlug,
+        summary: excerpt.trim(),
         excerpt: excerpt.trim(),
         category: category.trim(),
         tags: parseTags(tagsText),
+        content: html,
+        contentFormat,
+        thumbnailUrl: featuredImageUrl.trim(),
+        seo: {
+          metaTitle: seo.resolvedMetaTitle,
+          metaDescription: seo.resolvedMetaDescription,
+          ogTitle: seo.resolvedOgTitle,
+          ogDescription: seo.resolvedOgDescription,
+          ogImage: seo.resolvedOgImage,
+          canonicalUrl: seo.resolvedCanonicalUrl,
+        },
         metaTitle: seo.resolvedMetaTitle,
         metaDescription: seo.resolvedMetaDescription,
         keywords: seo.resolvedKeywords,
@@ -646,7 +673,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       };
 
       const targetUrl = isEditMode ? `${endpointBase}/${insightId}` : endpointBase;
-      const method = isEditMode ? "PUT" : "POST";
+      const method = isEditMode ? "PATCH" : "POST";
 
       const res = await fetch(targetUrl, {
         method,
@@ -673,7 +700,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         }
       }
 
-      setMessage(status === "published" ? "발행 저장 완료" : status === "private" ? "비공개 저장 완료" : "임시저장 완료");
+      setMessage(status === "published" ? "발행 저장 완료" : status === "archived" ? "보관 저장 완료" : status === "private" ? "비공개 저장 완료" : "임시저장 완료");
     } catch {
       setError("네트워크 오류로 저장하지 못했습니다.");
     } finally {
@@ -687,7 +714,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         <div className="sticky top-0 z-30 rounded-2xl border border-[#2a2a3e] bg-[#13131f]/95 px-3 py-3 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h1 className="text-lg md:text-xl font-bold">{isEditMode ? "인사이트 글 수정" : "인사이트 글 작성"}</h1>
+              <h1 className="text-lg md:text-xl font-bold">{isEditMode ? "콘텐츠 글 수정" : "콘텐츠 글 작성"}</h1>
               <p className="text-xs text-slate-400 mt-0.5">대표/본문 이미지 업로드 + 기본 SEO 이미지 메타</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -701,11 +728,11 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
               </button>
               <button
                 type="button"
-                onClick={() => saveWithStatus("private")}
+                onClick={() => saveWithStatus("archived")}
                 disabled={Boolean(savingStatus)}
                 className="rounded-lg bg-amber-700 hover:bg-amber-600 disabled:opacity-60 px-3 py-2 text-sm"
               >
-                {savingStatus === "private" ? "저장 중..." : "비공개 저장"}
+                {savingStatus === "archived" ? "저장 중..." : "보관 저장"}
               </button>
               <button
                 type="button"
@@ -724,6 +751,34 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
 
         <div className="rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-4 md:p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <select
+              value={contentType}
+              onChange={(e) => setContentType(e.target.value as ContentType)}
+              className="rounded-lg bg-[#1e1e2e] border border-[#313145] px-3 py-2.5 text-sm"
+            >
+              <option value="fortune_insight">운세 인사이트</option>
+              <option value="saju">사주</option>
+              <option value="tarot">타로</option>
+              <option value="astrology">점성술</option>
+              <option value="jamidusu">자미두수</option>
+              <option value="sookyo">숙요</option>
+              <option value="vedic">베다</option>
+              <option value="palmistry">손금</option>
+              <option value="physiognomy">관상</option>
+              <option value="notice">공지</option>
+              <option value="landing">랜딩</option>
+              <option value="seo_page">SEO 페이지</option>
+              <option value="general">일반</option>
+            </select>
+            <select
+              value={contentFormat}
+              onChange={(e) => setContentFormat(e.target.value as ContentFormat)}
+              className="rounded-lg bg-[#1e1e2e] border border-[#313145] px-3 py-2.5 text-sm"
+            >
+              <option value="html">HTML</option>
+              <option value="markdown">Markdown</option>
+              <option value="blocks">Blocks(JSON)</option>
+            </select>
             <input
               type="text"
               value={title}

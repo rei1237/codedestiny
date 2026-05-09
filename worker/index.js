@@ -21,6 +21,7 @@ import { handleUserRoutes } from "./routes/user.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
 import { handleAstroRoutes } from "./routes/astro.js";
 import { handleInsightsRoutes } from "./routes/insights.js";
+import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
@@ -429,6 +430,10 @@ export default {
 
       if (url.pathname === "/api/insights" || url.pathname.startsWith("/api/insights/")) {
         return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/content" || url.pathname.startsWith("/api/content/")) {
+        return withCorsHeaders(request, env, await handleContentRoutes(request, env));
       }
 
       if (url.pathname === "/api/palm" || url.pathname.startsWith("/api/palm/")) {

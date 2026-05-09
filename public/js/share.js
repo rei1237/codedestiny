@@ -2,7 +2,10 @@
 var APP_VERSION = 'dev';
 var APP_VERSION_KEY = 'app_version';
 var APP_VERSION_RELOAD_GUARD = 'app_version_reload_guard';  // 무한 reload 방지
+var APP_VERSION_DEFER_GUARD = 'app_version_defer_guard';
 var SW_PURGED_VERSION_KEY = 'app_sw_purged_version';
+var VERSION_GUARD_BANNER_ID = 'cd-version-update-banner';
+var VERSION_CHECK_INTERVAL_MS = 45000;
 
 function pickRuntimeVersion(payload) {
   if (!payload || typeof payload !== 'object') return APP_VERSION;
@@ -49,6 +52,135 @@ function nukeAllCachesLegacy() {
   return Promise.all(tasks).catch(function() {});
 }
 
+function isCriticalOperationInProgress() {
+  try {
+    if (window.__CD_PAYMENT_PROCESSING__) return '결제 처리 중';
+    if (window.__CD_PDF_EXPORT_IN_PROGRESS__) return 'PDF 생성/다운로드 중';
+    if (window.__CD_VERSION_GUARD_BLOCK__) return '중요 입력 작업 진행 중';
+    if (document && document.body && document.body.dataset && document.body.dataset.cdVersionGuardBusy === '1') {
+      return '핵심 작업 진행 중';
+    }
+
+    var active = document.activeElement;
+    if (active) {
+      var tagName = String(active.tagName || '').toLowerCase();
+      var isEditable = !!active.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+      if (isEditable) {
+        var value = String(active.value || '').trim();
+        var text = String(active.textContent || '').trim();
+        if (value || text) return '입력 중';
+      }
+    }
+  } catch (e) {}
+
+  return '';
+}
+
+function removeVersionUpdateBanner() {
+  var existing = document.getElementById(VERSION_GUARD_BANNER_ID);
+  if (existing && existing.parentNode) {
+    existing.parentNode.removeChild(existing);
+  }
+}
+
+function applyVersionRefresh(version) {
+  return nukeAllCachesLegacy().then(function() {
+    try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
+    try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
+    try {
+      sessionStorage.setItem(APP_VERSION_RELOAD_GUARD, version);
+      sessionStorage.removeItem(APP_VERSION_DEFER_GUARD);
+    } catch (e) {}
+    window.location.reload();
+    return version;
+  });
+}
+
+function showVersionUpdateBanner(version, reason) {
+  if (!document || !document.body) return;
+
+  var existing = document.getElementById(VERSION_GUARD_BANNER_ID);
+  if (existing) {
+    var messageNode = existing.querySelector('[data-cd-version-message]');
+    if (messageNode) {
+      messageNode.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
+    }
+    existing.setAttribute('data-version', version);
+    return;
+  }
+
+  var banner = document.createElement('div');
+  banner.id = VERSION_GUARD_BANNER_ID;
+  banner.setAttribute('data-version', version);
+  banner.style.position = 'fixed';
+  banner.style.left = '12px';
+  banner.style.right = '12px';
+  banner.style.bottom = '12px';
+  banner.style.zIndex = '2147483647';
+  banner.style.background = '#fffbeb';
+  banner.style.border = '1px solid rgba(217,119,6,0.35)';
+  banner.style.borderRadius = '12px';
+  banner.style.padding = '12px 14px';
+  banner.style.boxShadow = '0 12px 30px rgba(0,0,0,0.18)';
+  banner.style.color = '#7c2d12';
+  banner.style.fontFamily = 'Pretendard, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+
+  var title = document.createElement('div');
+  title.textContent = '새 버전이 배포되었습니다.';
+  title.style.fontSize = '14px';
+  title.style.fontWeight = '700';
+  title.style.marginBottom = '4px';
+
+  var message = document.createElement('div');
+  message.setAttribute('data-cd-version-message', '1');
+  message.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
+  message.style.fontSize = '12px';
+  message.style.opacity = '0.92';
+
+  var actions = document.createElement('div');
+  actions.style.display = 'flex';
+  actions.style.gap = '8px';
+  actions.style.justifyContent = 'flex-end';
+  actions.style.marginTop = '10px';
+
+  var laterButton = document.createElement('button');
+  laterButton.type = 'button';
+  laterButton.textContent = '나중에';
+  laterButton.style.border = '1px solid rgba(120,53,15,0.2)';
+  laterButton.style.background = '#ffffff';
+  laterButton.style.color = '#7c2d12';
+  laterButton.style.borderRadius = '8px';
+  laterButton.style.padding = '6px 10px';
+  laterButton.style.fontSize = '12px';
+  laterButton.style.fontWeight = '700';
+  laterButton.addEventListener('click', function() {
+    try { sessionStorage.setItem(APP_VERSION_DEFER_GUARD, version); } catch (e) {}
+    removeVersionUpdateBanner();
+  });
+
+  var refreshButton = document.createElement('button');
+  refreshButton.type = 'button';
+  refreshButton.textContent = '지금 새로고침';
+  refreshButton.style.border = '0';
+  refreshButton.style.background = '#b45309';
+  refreshButton.style.color = '#ffffff';
+  refreshButton.style.borderRadius = '8px';
+  refreshButton.style.padding = '6px 10px';
+  refreshButton.style.fontSize = '12px';
+  refreshButton.style.fontWeight = '700';
+  refreshButton.addEventListener('click', function() {
+    applyVersionRefresh(version);
+  });
+
+  actions.appendChild(laterButton);
+  actions.appendChild(refreshButton);
+
+  banner.appendChild(title);
+  banner.appendChild(message);
+  banner.appendChild(actions);
+  document.body.appendChild(banner);
+}
+
 function runNuclearVersionGuard() {
   return resolveRuntimeVersion().then(function(version) {
     // dev 버전 또는 fetch 실패 시 아무 작업 안 함
@@ -58,6 +190,7 @@ function runNuclearVersionGuard() {
     try { saved = localStorage.getItem(APP_VERSION_KEY) || ''; } catch (e) { saved = ''; }
 
     if (saved === version) {
+      removeVersionUpdateBanner();
       // 버전 동일: SW/캐시만 정리 (이미 정리된 버전이면 skip)
       var purged = '';
       try { purged = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
@@ -79,18 +212,47 @@ function runNuclearVersionGuard() {
       return version;
     }
 
-    // SW 전체 해제 + Cache Storage 전부 삭제 후 reload
-    return nukeAllCachesLegacy().then(function() {
-      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-      try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-      try { sessionStorage.setItem(APP_VERSION_RELOAD_GUARD, version); } catch (e) {}
-      window.location.reload();
+    var deferred = '';
+    try { deferred = sessionStorage.getItem(APP_VERSION_DEFER_GUARD) || ''; } catch (e) { deferred = ''; }
+    if (deferred === version) {
+      removeVersionUpdateBanner();
       return version;
-    });
+    }
+
+    var blockingReason = isCriticalOperationInProgress();
+    if (blockingReason) {
+      showVersionUpdateBanner(version, blockingReason);
+      return version;
+    }
+
+    removeVersionUpdateBanner();
+
+    // SW 전체 해제 + Cache Storage 전부 삭제 후 reload
+    return applyVersionRefresh(version);
   });
 }
 
 runNuclearVersionGuard();
+
+if (typeof window !== 'undefined') {
+  setInterval(function() {
+    runNuclearVersionGuard();
+  }, VERSION_CHECK_INTERVAL_MS);
+
+  window.addEventListener('focus', function() {
+    runNuclearVersionGuard();
+  });
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      runNuclearVersionGuard();
+    }
+  });
+
+  window.addEventListener('cd:critical-operation-state', function() {
+    runNuclearVersionGuard();
+  });
+}
 
 function getShareText(){
   var name=USER_NAME||'사용자';

@@ -1236,6 +1236,7 @@
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+        featureType: 'saju_life_book',
         reportType: 'lifeBook',
         requestBody: _buildLifeBookChapterPayload(0)
       }).then(function(prepared) {
