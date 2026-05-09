@@ -108,6 +108,30 @@
     nextIdle(function () { loadStylesSequentially(nodes, idx + 1, done); });
   }
 
+  function hydrateStylesEagerly(level) {
+    if (typeof level === 'number') {
+      MOBILE_DELAY_LEVEL = Math.max(MOBILE_DELAY_LEVEL, level);
+    }
+
+    var styleNodes = document.querySelectorAll('link[data-cd-noncritical-style-src]');
+    for (var i = 0; i < styleNodes.length; i += 1) {
+      var tag = styleNodes[i];
+      var href = tag.getAttribute('data-cd-noncritical-style-src') || tag.getAttribute('href');
+      if (!href || shouldSkip(tag)) continue;
+
+      var existing = document.querySelector('link[rel="stylesheet"][href="' + href + '"]');
+      if (!existing || existing === tag) {
+        if (tag.getAttribute('rel') !== 'stylesheet') {
+          tag.setAttribute('rel', 'stylesheet');
+        }
+        if (!tag.getAttribute('href')) {
+          tag.setAttribute('href', href);
+        }
+        tag.media = 'all';
+      }
+    }
+  }
+
   function start(level) {
     if (typeof level === 'number') {
       MOBILE_DELAY_LEVEL = Math.max(MOBILE_DELAY_LEVEL, level);
@@ -137,6 +161,9 @@
   function boot() {
     var mobile = isMobile();
     MOBILE_DELAY_LEVEL = 0;
+
+    // 스타일 지연 적용으로 초기 화면이 깨지는 문제를 막기 위해 CSS는 즉시 연결한다.
+    hydrateStylesEagerly(1);
 
     var events = mobile
       ? ['pointerdown', 'touchstart', 'keydown']
