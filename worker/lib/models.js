@@ -115,6 +115,19 @@ const pointHistorySchema = new mongoose.Schema({
 
 pointHistorySchema.index({ userId: 1, createdAt: -1 });
 
+const refreshTokenSessionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  tokenHash: { type: String, required: true, unique: true, index: true },
+  userAgent: { type: String, default: "", trim: true, maxlength: 300 },
+  ip: { type: String, default: "", trim: true, maxlength: 120 },
+  expiresAt: { type: Date, required: true, index: true },
+  revokedAt: { type: Date, default: null, index: true },
+  replacedByTokenHash: { type: String, default: "", trim: true },
+}, { timestamps: true, collection: "refresh_tokens" });
+
+refreshTokenSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+refreshTokenSessionSchema.index({ userId: 1, revokedAt: 1, expiresAt: -1 });
+
 const paymentFailureLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
   impUid: { type: String, trim: true, index: true },
@@ -144,6 +157,7 @@ export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
 export const PointHistory = mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema);
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
+export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 
 const dailyFortuneSubscriptionSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },

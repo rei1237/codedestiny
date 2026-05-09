@@ -1,13 +1,26 @@
 import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName } from "../lib/db.js";
-import { User } from "../lib/models.js";
+import { RefreshTokenSession, User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
-import { requireAuth, normalizeUserResponse, signAuthToken, getJwtSecret, JWT_ISSUER } from "../lib/auth.js";
+import {
+  ACCESS_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  getAccessTokenExpiresIn,
+  getAccessTokenSecret,
+  getJwtAudience,
+  getJwtIssuer,
+  getRefreshTokenExpiresIn,
+  getRefreshTokenSecret,
+  requireAuth,
+  normalizeUserResponse,
+  signAuthToken,
+  JWT_ISSUER,
+} from "../lib/auth.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
-import { createHmac, createHash, timingSafeEqual } from "node:crypto";
+import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
@@ -17,6 +30,147 @@ const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 const WITHDRAW_RATE_LIMIT_MAX = 3;
 const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const withdrawRateLimitMap = new Map();
+
+function parseDurationToSeconds(rawValue, fallbackSeconds) {
+  const raw = String(rawValue || "").trim();
+  if (!raw) return fallbackSeconds;
+
+  if (/^\d+$/.test(raw)) {
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallbackSeconds;
+  }
+
+  const match = raw.match(/^(\d+)\s*([smhd])$/i);
+  if (!match) return fallbackSeconds;
+
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount) || amount <= 0) return fallbackSeconds;
+  const unit = String(match[2] || "s").toLowerCase();
+  const multiplier = unit === "d" ? 86400 : unit === "h" ? 3600 : unit === "m" ? 60 : 1;
+  return Math.floor(amount * multiplier);
+}
+
+function resolveCookieSecure(request, env) {
+  const forced = String(getEnv(env, "AUTH_COOKIE_SECURE", "")).trim().toLowerCase();
+  if (forced === "true") return true;
+  if (forced === "false") return false;
+
+  const explicitProd = String(getEnv(env, "NODE_ENV", "")).trim().toLowerCase() === "production";
+  if (explicitProd) return true;
+
+  const requestUrl = new URL(request.url);
+  const forwardedProto = String(request.headers.get("x-forwarded-proto") || "").trim().toLowerCase();
+  return forwardedProto === "https" || requestUrl.protocol === "https:";
+}
+
+function resolveCookieSameSite(env) {
+  const raw = String(getEnv(env, "AUTH_COOKIE_SAMESITE", "lax")).trim().toLowerCase();
+  if (raw === "strict") return "Strict";
+  if (raw === "none") return "None";
+  return "Lax";
+}
+
+function buildCookieValue(name, value, options = {}) {
+  const pieces = [`${name}=${encodeURIComponent(String(value || ""))}`];
+  pieces.push(`Path=${options.path || "/"}`);
+  if (typeof options.maxAge === "number") pieces.push(`Max-Age=${Math.max(0, Math.floor(options.maxAge))}`);
+  if (options.httpOnly) pieces.push("HttpOnly");
+  if (options.secure) pieces.push("Secure");
+  if (options.sameSite) pieces.push(`SameSite=${options.sameSite}`);
+  return pieces.join("; ");
+}
+
+function buildAuthCookieOptions(request, env) {
+  const secure = resolveCookieSecure(request, env);
+  const sameSite = resolveCookieSameSite(env);
+  const accessMaxAgeSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
+  const refreshMaxAgeSec = parseDurationToSeconds(getRefreshTokenExpiresIn(env), 14 * 24 * 60 * 60);
+
+  return {
+    secure,
+    sameSite,
+    accessMaxAgeSec,
+    refreshMaxAgeSec,
+  };
+}
+
+function appendAuthCookies(response, request, env, accessToken, refreshToken) {
+  const cookieOptions = buildAuthCookieOptions(request, env);
+  response.headers.append("Set-Cookie", buildCookieValue(ACCESS_COOKIE_NAME, accessToken, {
+    path: "/",
+    maxAge: cookieOptions.accessMaxAgeSec,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+  response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, refreshToken, {
+    path: "/api/auth/refresh",
+    maxAge: cookieOptions.refreshMaxAgeSec,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+}
+
+function appendClearAuthCookies(response, request, env) {
+  const cookieOptions = buildAuthCookieOptions(request, env);
+  response.headers.append("Set-Cookie", buildCookieValue(ACCESS_COOKIE_NAME, "", {
+    path: "/",
+    maxAge: 0,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+  response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, "", {
+    path: "/api/auth/refresh",
+    maxAge: 0,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+}
+
+function hashRefreshToken(rawToken, env) {
+  const pepper = getEnv(env, "AUTH_SECRET") || getAccessTokenSecret(env);
+  return createHash("sha256").update(`${String(rawToken || "")}|${pepper}`).digest("hex");
+}
+
+function buildRefreshSessionFromRequest(request, env, userId) {
+  const cookieOptions = buildAuthCookieOptions(request, env);
+  const expiresAt = new Date(Date.now() + cookieOptions.refreshMaxAgeSec * 1000);
+  const meta = getRequestMeta(request);
+
+  return {
+    userId: new mongoose.Types.ObjectId(String(userId)),
+    userAgent: String(meta.userAgent || ""),
+    ip: String(meta.ip || ""),
+    expiresAt,
+  };
+}
+
+async function issueRefreshTokenForUser(userId, env) {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const refreshTtlSec = parseDurationToSeconds(getRefreshTokenExpiresIn(env), 14 * 24 * 60 * 60);
+  const payload = {
+    userId: String(userId),
+    sid: randomBytes(16).toString("hex"),
+    typ: "refresh",
+    iat: nowSec,
+    exp: nowSec + refreshTtlSec,
+  };
+
+  const refreshToken = await signJwt(payload, getRefreshTokenSecret(env), {
+    expiresIn: getRefreshTokenExpiresIn(env),
+    issuer: getJwtIssuer(env),
+    audience: getJwtAudience(env),
+  });
+
+  return {
+    refreshToken,
+    tokenHash: hashRefreshToken(refreshToken, env),
+    expiresAt: new Date((payload.exp || nowSec + refreshTtlSec) * 1000),
+  };
+}
 
 function normalizeOriginOnly(rawValue) {
   const value = String(rawValue || "").trim();
@@ -154,13 +308,13 @@ async function signSocialState(payload, env) {
       purpose: "social-oauth-state",
       ...payload,
     },
-    getJwtSecret(env),
+    getAccessTokenSecret(env),
     { expiresIn: "10m", issuer: JWT_ISSUER },
   );
 }
 
 async function verifySocialState(token, env) {
-  const payload = await verifyJwt(token, getJwtSecret(env), { issuer: JWT_ISSUER });
+  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER });
   if (!payload || payload.purpose !== "social-oauth-state") {
     throw new Error("invalid_oauth_state");
   }
@@ -174,13 +328,13 @@ async function signSocialGrant(payload, env) {
       ...payload,
       jti: crypto.randomUUID(),
     },
-    getJwtSecret(env),
+    getAccessTokenSecret(env),
     { expiresIn: `${SOCIAL_GRANT_EXPIRES_IN_SEC}s`, issuer: JWT_ISSUER },
   );
 }
 
 async function verifySocialGrant(token, env) {
-  const payload = await verifyJwt(token, getJwtSecret(env), { issuer: JWT_ISSUER });
+  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER });
   if (!payload || payload.purpose !== "social-oauth-grant") {
     throw new Error("invalid_social_grant");
   }
@@ -363,7 +517,7 @@ function isLocalAuthEnabled(user) {
 }
 
 function getCsrfSecret(env) {
-  return getEnv(env, "CSRF_SECRET") || getJwtSecret(env) || "dev-csrf-secret";
+  return getEnv(env, "CSRF_SECRET") || getAccessTokenSecret(env) || "dev-csrf-secret";
 }
 
 function generateCsrfToken(env) {
@@ -426,14 +580,25 @@ function validateCsrfFromRequest(request, env) {
   return verifyCsrfToken(cookieToken, env);
 }
 
-function setCsrfCookie(response, token) {
-  response.headers.append("Set-Cookie", `${CSRF_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; Max-Age=7200; SameSite=Strict; Secure`);
+function setCsrfCookie(response, request, env, token) {
+  response.headers.append("Set-Cookie", buildCookieValue(CSRF_COOKIE_NAME, token, {
+    path: "/",
+    maxAge: 7200,
+    httpOnly: true,
+    secure: resolveCookieSecure(request, env),
+    sameSite: "Strict",
+  }));
 }
 
-function clearAuthCookies(response) {
-  response.headers.append("Set-Cookie", "fortune_auth_token=; Path=/; Max-Age=0; SameSite=Lax");
-  response.headers.append("Set-Cookie", "fortune_auth_role=; Path=/; Max-Age=0; SameSite=Lax");
-  response.headers.append("Set-Cookie", `${CSRF_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Strict; Secure`);
+function clearAuthCookies(response, request, env) {
+  appendClearAuthCookies(response, request, env);
+  response.headers.append("Set-Cookie", buildCookieValue(CSRF_COOKIE_NAME, "", {
+    path: "/",
+    maxAge: 0,
+    httpOnly: true,
+    secure: resolveCookieSecure(request, env),
+    sameSite: "Strict",
+  }));
 }
 
 function isWithdrawRateLimited(request) {
@@ -457,7 +622,7 @@ function isWithdrawRateLimited(request) {
 
 function hashEmailForAudit(email, env) {
   const normalized = String(email || "").trim().toLowerCase();
-  const salt = getJwtSecret(env);
+  const salt = getAccessTokenSecret(env);
   return createHash("sha256").update(`${normalized}|${salt}`).digest("hex");
 }
 
@@ -467,6 +632,76 @@ function resolveAuthDbName(env) {
 
 function toErrorMessage(error) {
   return String(error?.message || "").slice(0, 240);
+}
+
+function readCookieFromRequest(request, key) {
+  const cookieHeader = String(request.headers.get("cookie") || "");
+  if (!cookieHeader) return "";
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${key}=([^;]+)`));
+  if (!match) return "";
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return String(match[1] || "");
+  }
+}
+
+function readRefreshTokenFromRequest(request) {
+  return readCookieFromRequest(request, REFRESH_COOKIE_NAME);
+}
+
+function extractRefreshUserId(payload) {
+  const userId = String(payload?.userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(userId)) return "";
+  if (String(payload?.typ || "") !== "refresh") return "";
+  return userId;
+}
+
+async function createRefreshSession(request, env, userId, tokenHash, expiresAt) {
+  const base = buildRefreshSessionFromRequest(request, env, userId);
+  return RefreshTokenSession.create({
+    ...base,
+    tokenHash,
+    expiresAt,
+    revokedAt: null,
+    replacedByTokenHash: "",
+  });
+}
+
+async function markSessionRevoked(tokenHash, patch = {}) {
+  if (!tokenHash) return;
+  await RefreshTokenSession.updateOne(
+    { tokenHash },
+    {
+      $set: {
+        revokedAt: patch.revokedAt || new Date(),
+        ...(patch.replacedByTokenHash ? { replacedByTokenHash: patch.replacedByTokenHash } : {}),
+      },
+    },
+  ).catch(() => {});
+}
+
+async function revokeAllUserRefreshSessions(userId) {
+  if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return;
+  await RefreshTokenSession.updateMany(
+    { userId: new mongoose.Types.ObjectId(String(userId)), revokedAt: null },
+    { $set: { revokedAt: new Date() } },
+  ).catch(() => {});
+}
+
+async function createAuthSuccessResponse(request, env, user, status = 200, nextPath = "/") {
+  const accessToken = await signAuthToken(user, env);
+  const { refreshToken, tokenHash, expiresAt } = await issueRefreshTokenForUser(user._id, env);
+  await createRefreshSession(request, env, user._id, tokenHash, expiresAt);
+
+  const response = json({
+    ok: true,
+    message: status === 201 ? "Registration completed." : "Login completed.",
+    user: normalizeUserResponse(user),
+    nextPath: sanitizeNextPath(nextPath) || "/",
+  }, { status });
+  appendAuthCookies(response, request, env, accessToken, refreshToken);
+  return response;
 }
 
 function buildTokenFallbackUser(auth) {
@@ -682,25 +917,21 @@ async function handleRegister(request, env) {
     );
   }
 
-  let token = "";
   try {
-    token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_register_sign_token");
+    return await withAuthOpTimeout(
+      createAuthSuccessResponse(request, env, user, 201, body?.nextPath),
+      timeoutMs,
+      "auth_register_issue_session",
+    );
   } catch (error) {
     return signupErrorResponse(
       request,
       env,
       500,
       "unknown_error",
-      toErrorMessage(error) || "Token signing failed.",
+      toErrorMessage(error) || "Session issuance failed.",
     );
   }
-
-  return json({
-    message: "Registration completed.",
-    token,
-    user: normalizeUserResponse(user),
-    nextPath: sanitizeNextPath(body?.nextPath) || "/",
-  }, { status: 201 });
 }
 
 async function handleLogin(request, env) {
@@ -762,13 +993,11 @@ async function handleLogin(request, env) {
         }, { status: 401 });
       }
 
-      const token = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_login_sign_token");
-      return json({
-        message: "Login completed.",
-        token,
-        user: normalizeUserResponse(user),
-        nextPath: sanitizeNextPath(body?.nextPath) || "/",
-      });
+      return await withAuthOpTimeout(
+        createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
+        timeoutMs,
+        "auth_login_issue_session",
+      );
     } catch (error) {
       const message = String(error?.message || "");
       const infraFailure = (
@@ -855,6 +1084,7 @@ async function handleMe(request, env) {
   if (!user) return json({ message: "User not found." }, { status: 404 });
 
   return json({
+    ok: true,
     message: "Authenticated user loaded.",
     user: {
       ...normalizeUserResponse(user),
@@ -863,9 +1093,115 @@ async function handleMe(request, env) {
   });
 }
 
-async function handleLogout() {
-  const response = json({ message: "Logged out." });
-  clearAuthCookies(response);
+async function handleRefresh(request, env) {
+  const refreshToken = readRefreshTokenFromRequest(request);
+  if (!refreshToken) {
+    const response = json({ ok: false, message: "Refresh token is missing." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  let payload;
+  try {
+    payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
+      issuer: getJwtIssuer(env),
+      audience: getJwtAudience(env),
+    });
+  } catch {
+    const response = json({ ok: false, message: "Refresh token is invalid or expired." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  const userId = extractRefreshUserId(payload);
+  if (!userId) {
+    const response = json({ ok: false, message: "Refresh token is invalid." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  await connectDb(env);
+
+  const tokenHash = hashRefreshToken(refreshToken, env);
+  const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
+  if (!session) {
+    await revokeAllUserRefreshSessions(userId);
+    const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  if (session.revokedAt) {
+    await revokeAllUserRefreshSessions(userId);
+    const response = json({ ok: false, message: "Session expired. Please sign in again." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  const now = Date.now();
+  const sessionExpiresAt = new Date(session.expiresAt || 0).getTime();
+  if (!Number.isFinite(sessionExpiresAt) || sessionExpiresAt <= now) {
+    await markSessionRevoked(tokenHash, { revokedAt: new Date() });
+    const response = json({ ok: false, message: "Refresh token expired. Please sign in again." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  const user = await User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(userId) },
+    {
+      projection: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        birthDate: 1,
+        birthTime: 1,
+        gender: 1,
+        role: 1,
+        points: 1,
+        joinedAt: 1,
+        passwordHash: 1,
+        localAuth: 1,
+      },
+    },
+  );
+
+  if (!user) {
+    await revokeAllUserRefreshSessions(userId);
+    const response = json({ ok: false, message: "User not found." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
+  const accessToken = await signAuthToken(user, env);
+  const nextRefresh = await issueRefreshTokenForUser(userId, env);
+  await createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt);
+  await markSessionRevoked(tokenHash, {
+    revokedAt: new Date(),
+    replacedByTokenHash: nextRefresh.tokenHash,
+  });
+
+  const response = json({
+    ok: true,
+    message: "Token refreshed.",
+    user: {
+      ...normalizeUserResponse(user),
+      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+    },
+  });
+  appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
+  return response;
+}
+
+async function handleLogout(request, env) {
+  const refreshToken = readRefreshTokenFromRequest(request);
+  if (refreshToken) {
+    const tokenHash = hashRefreshToken(refreshToken, env);
+    await markSessionRevoked(tokenHash, { revokedAt: new Date() });
+  }
+
+  const response = json({ ok: true, message: "Logged out." });
+  clearAuthCookies(response, request, env);
   return response;
 }
 
@@ -873,7 +1209,7 @@ async function handleWithdrawCsrfIssue(request, env) {
   await requireAuth(request, env);
   const csrfToken = generateCsrfToken(env);
   const response = json({ csrfToken });
-  setCsrfCookie(response, csrfToken);
+  setCsrfCookie(response, request, env, csrfToken);
   return response;
 }
 
@@ -1049,7 +1385,8 @@ async function handleWithdraw(request, env) {
     message: "Account withdrawal completed.",
     partialFailure,
   });
-  clearAuthCookies(response);
+  await revokeAllUserRefreshSessions(userId);
+  clearAuthCookies(response, request, env);
   return response;
 }
 
@@ -1156,14 +1493,19 @@ async function handleOAuthComplete(request, env) {
   const user = await User.findById(payload.userId).lean();
   if (!user) return json({ message: "User not found." }, { status: 404 });
 
-  const token = await signAuthToken(user, env);
-  return json({
+  const accessToken = await signAuthToken(user, env);
+  const nextRefresh = await issueRefreshTokenForUser(user._id, env);
+  await createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt);
+
+  const response = json({
+    ok: true,
     message: "Social login completed.",
-    token,
     user: normalizeUserResponse(user),
     nextPath: sanitizeNextPath(payload.nextPath) || "/",
     provider: payload.provider,
   });
+  appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
+  return response;
 }
 
 export async function handleAuthRoutes(request, env) {
@@ -1174,6 +1516,7 @@ export async function handleAuthRoutes(request, env) {
     if (
       path === "/register"
       || path === "/login"
+      || path === "/refresh"
       || path === "/me"
       || path === "/withdraw"
       || path === "/oauth/complete"
@@ -1191,10 +1534,11 @@ export async function handleAuthRoutes(request, env) {
 
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
+    if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);
     if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
-    if (method === "POST" && path === "/logout") return await handleLogout();
+    if (method === "POST" && path === "/logout") return await handleLogout(request, env);
     if (method === "POST" && path === "/oauth/complete") return await handleOAuthComplete(request, env);
 
     const startMatch = path.match(/^\/oauth\/([^/]+)\/start$/);

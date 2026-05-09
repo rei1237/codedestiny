@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { authFetch, clearClientAuthState, logoutWithServer } from "../_lib/auth-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 
 type AuthUser = {
@@ -16,18 +17,8 @@ type AuthUser = {
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 
-function readAuthToken() {
-  try {
-    return localStorage.getItem("fortune_auth_token") || "";
-  } catch {
-    return "";
-  }
-}
-
 function readAuthUser(): AuthUser | null {
   try {
-    const token = readAuthToken();
-    if (!token) return null;
     return readSanitizedAuthUser() as AuthUser | null;
   } catch {
     return null;
@@ -41,36 +32,15 @@ function persistAuthUser(user: AuthUser) {
 }
 
 function clearAuth() {
-  localStorage.removeItem("fortune_auth_token");
-  localStorage.removeItem("fortune_auth_user");
-  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
-  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
-}
-
-function publishAuthSync(event: "login" | "logout") {
-  try {
-    if (typeof BroadcastChannel === "undefined") return;
-    const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
-    channel.postMessage({ source: "auth-widget", event, at: Date.now() });
-    channel.close();
-  } catch {
-    // Cross-tab sync is best-effort only.
-  }
+  clearClientAuthState();
 }
 
 async function refreshCurrentUser(signal?: AbortSignal) {
-  const token = readAuthToken();
-  if (!token) {
-    clearAuth();
-    return null;
-  }
-
-  const response = await fetch("/api/auth/me", {
+  const response = await authFetch("/api/auth/me", {
     method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
     signal,
-  });
+  }, { retryOn401: true });
 
   if (!response.ok) {
     if ([401, 403, 404].includes(response.status)) {
@@ -101,11 +71,6 @@ export default function AuthWidget() {
     const syncUser = () => {
       const cachedUser = readAuthUser();
       setUser(cachedUser);
-
-      if (!readAuthToken()) {
-        setUser(null);
-        return;
-      }
 
       refreshCurrentUser(controller.signal)
         .then((nextUser) => setUser(nextUser))
@@ -138,17 +103,7 @@ export default function AuthWidget() {
   }, []);
 
   const handleLogout = async () => {
-    const token = readAuthToken();
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-    } catch {
-      // Local cleanup still needs to happen if the network request fails.
-    }
-    clearAuth();
-    publishAuthSync("logout");
+    await logoutWithServer();
     setUser(null);
     window.location.assign("/");
   };

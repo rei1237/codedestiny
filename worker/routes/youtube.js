@@ -52,14 +52,19 @@ function mapYoutubeItems(data) {
         thumb: String(thumb?.url || ""),
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((item) => {
+      // Exclude 24/7 live/radio style results for stable meditation playback cards.
+      const title = String(item.title || "");
+      return !/(24\/?7|live\s*radio|livestream|\blive\b)/i.test(title);
+    });
 }
 
 function buildQuery(mode) {
   const queryMap = {
-    lofi: "copyright free lofi playlist beats to study and relax no copyright",
-    theta: "theta binaural beats meditation no copyright creative commons",
-    ambient: "ambient meditation music no copyright free to use",
+    lofi: "creative commons lofi instrumental meditation no copyright claim -live -radio",
+    theta: "creative commons theta binaural meditation no copyright -live -radio",
+    ambient: "creative commons ambient meditation music no copyright -live -radio",
   };
   return queryMap[mode] || queryMap.lofi;
 }
@@ -69,7 +74,9 @@ function buildSearchUrl(mode, apiKey, strictMode = true) {
   searchUrl.searchParams.set("part", "snippet");
   searchUrl.searchParams.set("type", "video");
   searchUrl.searchParams.set("videoEmbeddable", "true");
+  searchUrl.searchParams.set("videoCategoryId", "10");
   searchUrl.searchParams.set("maxResults", strictMode ? "8" : "10");
+  searchUrl.searchParams.set("order", "relevance");
   searchUrl.searchParams.set("safeSearch", strictMode ? "strict" : "moderate");
   if (strictMode) {
     searchUrl.searchParams.set("videoLicense", "creativeCommon");
@@ -100,8 +107,10 @@ async function handleSearch(request, env) {
       ok: true,
       mode,
       source: "fallback",
+      licensePolicy: "creative-commons-priority",
       items: getFallbackItems(mode),
-      message: "YouTube API 키가 없어 기본 무료 플레이리스트를 제공합니다.",
+      message:
+        "YouTube API 키가 없어 크리에이티브 커먼즈 필터 검색을 수행하지 못했습니다. 임시 샘플 트랙을 제공하므로 사용 전 라이선스를 확인해 주세요.",
     });
   }
 
@@ -122,8 +131,10 @@ async function handleSearch(request, env) {
       ok: true,
       mode,
       source: "fallback",
+      licensePolicy: "creative-commons-priority",
       items: getFallbackItems(mode),
-      message: "YouTube API 결과가 비어 기본 무료 플레이리스트를 제공합니다.",
+      message:
+        "크리에이티브 커먼즈 조건 결과가 없어 임시 샘플 트랙을 제공합니다. 사용 전 라이선스를 확인해 주세요.",
     });
   }
 
@@ -131,6 +142,7 @@ async function handleSearch(request, env) {
     ok: true,
     mode,
     source: "youtube-api",
+    licensePolicy: "creative-commons-priority",
     items,
   });
 }

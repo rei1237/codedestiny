@@ -3,15 +3,47 @@ import { cookieValue, createHttpError } from "./http.js";
 import { signJwt, verifyJwt } from "./jwt.js";
 
 export const JWT_ISSUER = "code-destiny-api";
+export const ACCESS_COOKIE_NAME = "fortune_auth_token";
+export const REFRESH_COOKIE_NAME = "fortune_auth_refresh";
 
-export function getJwtSecret(env) {
-  return getEnv(env, "JWT_SECRET") || getEnv(env, "AUTH_SECRET") || "dev-secret";
+export function getJwtIssuer(env) {
+  return getEnv(env, "JWT_ISSUER") || JWT_ISSUER;
+}
+
+export function getJwtAudience(env) {
+  return getEnv(env, "JWT_AUDIENCE") || getEnv(env, "AUTH_AUDIENCE") || "code-destiny-web";
+}
+
+export function getAccessTokenSecret(env) {
+  return (
+    getEnv(env, "JWT_ACCESS_SECRET")
+    || getEnv(env, "JWT_SECRET")
+    || getEnv(env, "AUTH_SECRET")
+    || "dev-secret"
+  );
+}
+
+export function getRefreshTokenSecret(env) {
+  return (
+    getEnv(env, "JWT_REFRESH_SECRET")
+    || getEnv(env, "JWT_SECRET")
+    || getEnv(env, "AUTH_SECRET")
+    || "dev-secret"
+  );
+}
+
+export function getAccessTokenExpiresIn(env) {
+  return getEnv(env, "ACCESS_TOKEN_EXPIRES_IN") || getEnv(env, "JWT_EXPIRES_IN", "30m");
+}
+
+export function getRefreshTokenExpiresIn(env) {
+  return getEnv(env, "REFRESH_TOKEN_EXPIRES_IN", "14d");
 }
 
 export function getBearerToken(request) {
   const authorization = request.headers.get("Authorization") || "";
   const bearer = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
-  return bearer || cookieValue(request, "fortune_auth_token");
+  return bearer || cookieValue(request, ACCESS_COOKIE_NAME);
 }
 
 function extractTokenUserId(payload) {
@@ -26,7 +58,10 @@ export async function requireAuth(request, env) {
     throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
   }
 
-  const payload = await verifyJwt(token, getJwtSecret(env), { issuer: JWT_ISSUER });
+  const payload = await verifyJwt(token, getAccessTokenSecret(env), {
+    issuer: getJwtIssuer(env),
+    audience: getJwtAudience(env),
+  });
   const userId = extractTokenUserId(payload);
   if (!userId) {
     throw createHttpError(401, "Invalid authentication token.", { code: "UNAUTHORIZED" });
@@ -58,10 +93,11 @@ export async function signAuthToken(user, env) {
       points: user.points,
       joinedAt: user.joinedAt,
     },
-    getJwtSecret(env),
+    getAccessTokenSecret(env),
     {
-      expiresIn: getEnv(env, "JWT_EXPIRES_IN", "7d"),
-      issuer: JWT_ISSUER,
+      expiresIn: getAccessTokenExpiresIn(env),
+      issuer: getJwtIssuer(env),
+      audience: getJwtAudience(env),
     },
   );
 }

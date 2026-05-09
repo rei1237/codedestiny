@@ -207,7 +207,18 @@
 
   /* ─── LocalStorage 헬퍼 ──────────────────────────────────────── */
   var LS_KEY = 'luck_sync_diary_v2';
-  var _lsdCtx = { dEl: 'earth', luckyEl: 'earth', todayGZ: null, scores: null, mainTenStar: null, morningMsg: '' };
+  var _lsdCtx = {
+    dEl: 'earth',
+    luckyEl: 'earth',
+    todayGZ: null,
+    scores: null,
+    mainTenStar: null,
+    morningMsg: '',
+    pillars: null,
+    power: null,
+    jong: null
+  };
+  var _lsdMonthCalendarState = { year: 0, month: 0, selectedKey: '' };
 
   function ensureEntryShape(entry) {
     if (!entry || typeof entry !== 'object') return;
@@ -325,7 +336,24 @@
       '.lsd-share-btn{border:none;border-radius:10px;padding:10px 12px;background:linear-gradient(135deg,#f43f5e,#ec4899);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,.3)}',
       '.lsd-plain-btn{border:1.5px solid #d1d5db;border-radius:10px;padding:8px 10px;background:#fff;color:#374151;font-size:.73rem;font-weight:700;cursor:pointer}',
       '.lsd-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:.68rem;font-weight:800;margin:0 6px 6px 0}',
-      '.lsd-theme-fx{transition:all .28s ease}'
+      '.lsd-theme-fx{transition:all .28s ease}',
+      '.lsd-saju-tab-row{display:flex;gap:7px;overflow:auto;padding:8px 0 2px;scrollbar-width:none;-ms-overflow-style:none}',
+      '.lsd-saju-tab-row::-webkit-scrollbar{display:none}',
+      '.lsd-saju-subtab{border:1px solid #cfe8f3;background:#effaff;color:#0891b2;border-radius:999px;padding:8px 14px;font-size:.76rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .2s}',
+      '.lsd-saju-subtab.is-on{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(14,165,233,.25)}',
+      '.lsd-saju-card{margin-top:8px;border:1px solid #e5e7eb;background:#fff;border-radius:16px;padding:12px 12px 14px}',
+      '.lsd-saju-headline{display:flex;align-items:center;gap:8px;font-size:1.02rem;font-weight:900;color:#0f172a;margin:0 0 8px;line-height:1.35}',
+      '.lsd-saju-headline:before{content:"";display:inline-block;width:6px;height:28px;border-radius:999px;background:#22d3ee;flex-shrink:0}',
+      '.lsd-saju-lead{font-size:.82rem;line-height:1.68;color:#334155;margin:0 0 10px}',
+      '.lsd-saju-chart-wrap{display:flex;justify-content:center;align-items:center;padding:6px 0 4px}',
+      '.lsd-saju-bullet-box{margin-top:8px;border:1px solid #e5e7eb;background:#f8fafc;border-radius:14px;padding:10px 12px;display:grid;gap:8px}',
+      '.lsd-saju-bullet{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;font-weight:700;color:#111827;line-height:1.5}',
+      '.lsd-saju-bullet-no{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:999px;background:#94a3b8;color:#fff;font-size:.7rem;font-weight:900;line-height:1}',
+      '.lsd-saju-hashes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0 2px}',
+      '.lsd-saju-hash{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 11px;background:#e5e7eb;color:#4b5563;font-size:.72rem;font-weight:800}',
+      '.lsd-saju-legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:.74rem;color:#334155;margin:2px 0 9px}',
+      '.lsd-saju-dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:4px;vertical-align:middle}',
+      '.lsd-saju-balance-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 12px;background:#e5e7eb;color:#4b5563;font-size:.85rem;font-weight:900}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -484,9 +512,348 @@
     return map[Math.abs(y) % 5];
   }
 
+  var _lsdSajuInsightTab = 'dna';
+  var LSD_SAJU_TABS = [
+    { id: 'dna', label: '기질 DNA' },
+    { id: 'basic', label: '기본분석' },
+    { id: 'competency', label: '역량분석' },
+    { id: 'balance', label: '라이프 밸런스' }
+  ];
+  var LSD_TRAIT_BY_ELEM = {
+    wood: {
+      type: '성장형',
+      summary: '확장성과 시작 에너지가 강해 새로운 시도와 실행 속도에서 장점이 나타납니다.',
+      points: ['새로운 환경 적응력', '아이디어를 행동으로 전환', '장기 성장형 루틴에 강함'],
+      hash: '#성장형'
+    },
+    fire: {
+      type: '관계형',
+      summary: '표현력과 공감력이 살아 있어 대인관계, 소통, 협업 상황에서 성과가 좋습니다.',
+      points: ['감정 전달/공감 능력', '사람을 연결하는 추진력', '분위기 전환과 동기 부여'],
+      hash: '#관계형'
+    },
+    earth: {
+      type: '정보수집형',
+      summary: '데이터를 정리하고 축적하는 능력이 좋아 분석, 관리, 품질 중심 업무와 잘 맞습니다.',
+      points: ['체계적 분석과 계획', '과거 데이터 활용 능력', '정보 분별과 보관'],
+      hash: '#정보수집형'
+    },
+    metal: {
+      type: '완성형',
+      summary: '결과물의 완성도와 정확성을 중시하며, 끝까지 마무리하는 집중력이 강합니다.',
+      points: ['구체적인 성과 지향', '정밀한 검토/검증 루틴', '완결성 높은 실행력'],
+      hash: '#완성형'
+    },
+    water: {
+      type: '인지형',
+      summary: '학습 흡수력과 직관적 판단이 뛰어나 지식 기반 업무와 전략 설계에 강점을 보입니다.',
+      points: ['지식 흡수와 연결', '직감 기반 판단력', '유연한 관점 전환'],
+      hash: '#인지형'
+    }
+  };
+
+  function _degToRad(deg) {
+    return (deg * Math.PI) / 180;
+  }
+
+  function _polarPoint(cx, cy, r, deg) {
+    var rad = _degToRad(deg);
+    return {
+      x: cx + r * Math.cos(rad),
+      y: cy + r * Math.sin(rad)
+    };
+  }
+
+  function _wedgePath(cx, cy, r, startDeg, endDeg) {
+    var p1 = _polarPoint(cx, cy, r, startDeg);
+    var p2 = _polarPoint(cx, cy, r, endDeg);
+    var largeArc = (endDeg - startDeg) > 180 ? 1 : 0;
+    return 'M ' + cx + ' ' + cy + ' L ' + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2)
+      + ' A ' + r.toFixed(2) + ' ' + r.toFixed(2) + ' 0 ' + largeArc + ' 1 ' + p2.x.toFixed(2) + ' ' + p2.y.toFixed(2) + ' Z';
+  }
+
+  function _elementCountsFromPillars(pillars) {
+    var counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+    if (!pillars) return counts;
+    var chars = [
+      pillars.y && pillars.y.g, pillars.y && pillars.y.j,
+      pillars.m && pillars.m.g, pillars.m && pillars.m.j,
+      pillars.d && pillars.d.g, pillars.d && pillars.d.j,
+      pillars.h && pillars.h.g, pillars.h && pillars.h.j
+    ].filter(Boolean);
+    chars.forEach(function (c) {
+      var el = GAN_ELEM[c] || JI_ELEM[c];
+      if (el && Object.prototype.hasOwnProperty.call(counts, el)) counts[el] += 1;
+    });
+    return counts;
+  }
+
+  function _sortedElements(counts) {
+    return Object.keys(counts || {}).map(function (k) {
+      return { key: k, value: Number(counts[k] || 0) };
+    }).sort(function (a, b) { return b.value - a.value; });
+  }
+
+  function _normalizeSlices(values, minPct) {
+    var nums = (values || []).map(function (v) { return Math.max(0, Number(v) || 0); });
+    var sum = nums.reduce(function (a, b) { return a + b; }, 0);
+    if (!sum) {
+      return nums.map(function () { return 100 / (nums.length || 1); });
+    }
+    var out = nums.map(function (v) { return (v / sum) * 100; });
+    var min = Number(minPct || 0);
+    if (min > 0) {
+      out = out.map(function (v) { return v < min ? min : v; });
+      var again = out.reduce(function (a, b) { return a + b; }, 0);
+      out = out.map(function (v) { return (v / again) * 100; });
+    }
+    return out;
+  }
+
+  function _buildConicGradient(values, colors) {
+    var parts = [];
+    var acc = 0;
+    for (var i = 0; i < values.length; i++) {
+      var pct = values[i];
+      var c = colors[i] || '#cbd5e1';
+      var next = acc + pct;
+      parts.push(c + ' ' + acc.toFixed(2) + '% ' + next.toFixed(2) + '%');
+      acc = next;
+    }
+    return 'conic-gradient(' + parts.join(',') + ')';
+  }
+
+  function _buildDnaWheelSvg(stems, values, dayStem) {
+    var size = 248;
+    var cx = 124;
+    var cy = 124;
+    var rings = [36, 62, 88, 108];
+    var colors = ['#0f172a', '#1e3a8a', '#2563eb', '#1d4ed8', '#0ea5e9', '#38bdf8', '#3b82f6', '#1e40af'];
+    var html = '';
+    html += '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="248" aria-label="기질 DNA 차트">';
+    rings.forEach(function (r) {
+      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e5e7eb" stroke-width="1.4"></circle>';
+    });
+
+    for (var i = 0; i < stems.length; i++) {
+      var start = -90 + (i * 45) + 2;
+      var end = start + 40;
+      var v = Math.max(0, Math.min(100, Number(values[i] || 0)));
+      var radius = 24 + (v * 0.84);
+      html += '<path d="' + _wedgePath(cx, cy, radius, start, end) + '" fill="' + colors[i % colors.length] + '" opacity="0.92"></path>';
+
+      var labelPos = _polarPoint(cx, cy, 118, start + 20);
+      var isDay = stems[i] === dayStem;
+      html += '<g>';
+      html += '<circle cx="' + labelPos.x.toFixed(2) + '" cy="' + labelPos.y.toFixed(2) + '" r="13" fill="' + (isDay ? '#111827' : '#ffffff') + '" stroke="#d1d5db" stroke-width="1.2"></circle>';
+      html += '<text x="' + labelPos.x.toFixed(2) + '" y="' + (labelPos.y + 4).toFixed(2) + '" text-anchor="middle" font-size="13" font-weight="900" fill="' + (isDay ? '#ffffff' : '#111827') + '">' + stems[i] + '</text>';
+      html += '</g>';
+    }
+
+    html += '<circle cx="' + cx + '" cy="' + cy + '" r="14" fill="#ffffff" stroke="#d1d5db" stroke-width="1.2"></circle>';
+    html += '</svg>';
+    return html;
+  }
+
+  function _buildCompetencyWheelSvg(values, labels) {
+    var size = 248;
+    var cx = 124;
+    var cy = 124;
+    var rings = [36, 62, 88, 108];
+    var colors = ['#23479a', '#0f62ae', '#74c9a6', '#7f8cc8'];
+    var html = '';
+    html += '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="248" aria-label="역량 분석 차트">';
+    rings.forEach(function (r) {
+      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e5e7eb" stroke-width="1.4"></circle>';
+    });
+
+    for (var i = 0; i < values.length; i++) {
+      var start = -90 + (i * 90) + 2;
+      var end = start + 86;
+      var v = Math.max(10, Math.min(100, Number(values[i] || 0)));
+      var radius = 28 + (v * 0.78);
+      html += '<path d="' + _wedgePath(cx, cy, radius, start, end) + '" fill="' + colors[i % colors.length] + '" opacity="0.95"></path>';
+
+      var mid = start + 43;
+      var lp = _polarPoint(cx, cy, 122, mid);
+      html += '<text x="' + lp.x.toFixed(2) + '" y="' + (lp.y + 4).toFixed(2) + '" text-anchor="middle" font-size="11" font-weight="800" fill="#1f2937">' + labels[i] + '</text>';
+    }
+
+    html += '<line x1="' + cx + '" y1="18" x2="' + cx + '" y2="230" stroke="#e5e7eb" stroke-width="1"></line>';
+    html += '<line x1="18" y1="' + cy + '" x2="230" y2="' + cy + '" stroke="#e5e7eb" stroke-width="1"></line>';
+    html += '</svg>';
+    return html;
+  }
+
+  function _buildSajuInsightModel(pillars, power, todayGZ, scores, mainTenStar, luckyEl) {
+    var dayStem = pillars && pillars.d && pillars.d.g ? pillars.d.g : '甲';
+    var dayElem = GAN_ELEM[dayStem] || luckyEl || 'earth';
+    var trait = LSD_TRAIT_BY_ELEM[dayElem] || LSD_TRAIT_BY_ELEM.earth;
+    var counts = _elementCountsFromPillars(pillars);
+    var sorted = _sortedElements(counts);
+    var strongest = sorted[0] && sorted[0].key ? sorted[0].key : dayElem;
+    var weakest = sorted[sorted.length - 1] && sorted[sorted.length - 1].key ? sorted[sorted.length - 1].key : dayElem;
+
+    var tenGuide = TENSTAR_GUIDE[mainTenStar] || null;
+    var tenLine = tenGuide ? (mainTenStar + ' 흐름으로 ' + tenGuide.vibe + '이 활성화된 날입니다.') : '일간과 오행 균형을 기반으로 기본 흐름을 해석했습니다.';
+
+    var stems = ['壬', '癸', '甲', '乙', '丙', '丁', '庚', '辛'];
+    var stemValues = stems.map(function (stem) {
+      var score = 20;
+      var chars = [
+        pillars && pillars.y && pillars.y.g,
+        pillars && pillars.m && pillars.m.g,
+        pillars && pillars.d && pillars.d.g,
+        pillars && pillars.h && pillars.h.g,
+        todayGZ && todayGZ.g
+      ];
+      chars.forEach(function (c) {
+        if (c === stem) score += 22;
+      });
+      if (stem === dayStem) score += 16;
+      return Math.max(12, Math.min(95, score));
+    });
+
+    var basicValues = _normalizeSlices([
+      Number(scores && scores.study) || 52,
+      Number(scores && scores.fame) || 49,
+      Number(scores && scores.love) || 50,
+      Number(scores && scores.health) || 50
+    ], 10);
+    var basicPie = _buildConicGradient(basicValues, ['#2f7be8', '#c2cedc', '#73d0ab', '#dbeafe']);
+
+    var competencyLabels = ['정보수집형', '지식습득형', '관계형성형', '성과집중형'];
+    var competencyValues = [
+      Math.min(100, 26 + (counts.earth * 11) + ((scores && scores.study) ? Math.round(scores.study * 0.18) : 8)),
+      Math.min(100, 24 + (counts.water * 12) + ((scores && scores.health) ? Math.round(scores.health * 0.14) : 8)),
+      Math.min(100, 24 + (counts.fire * 12) + ((scores && scores.love) ? Math.round(scores.love * 0.14) : 8)),
+      Math.min(100, 24 + (counts.metal * 12) + ((scores && scores.fame) ? Math.round(scores.fame * 0.14) : 8))
+    ];
+
+    var balanceLabels = ['중립', '완성', '성장', '시작', '준비'];
+    var balanceRaw = [
+      Number(scores && scores.health) || 50,
+      Number(scores && scores.fame) || 50,
+      Number(scores && scores.love) || 50,
+      Number(scores && scores.wealth) || 50,
+      Number(scores && scores.study) || 50
+    ];
+    var balanceValues = _normalizeSlices(balanceRaw, 10);
+    var balanceColors = ['#f2c94c', '#d1d5db', '#e74c3c', '#34c759', '#111827'];
+    var balancePie = _buildConicGradient(balanceValues, balanceColors);
+
+    var maxIdx = 0;
+    for (var bi = 1; bi < balanceRaw.length; bi++) {
+      if (balanceRaw[bi] > balanceRaw[maxIdx]) maxIdx = bi;
+    }
+    var balanceKeyword = ['중립형', '완성형', '성장형', '시작형', '준비형'][maxIdx];
+
+    return {
+      tabBar: LSD_SAJU_TABS,
+      tabs: {
+        dna: {
+          title: '핵심 선천성 간(' + dayStem + ')-인지',
+          lead: (GAN_KO[dayStem] || dayStem) + ' 일간 기준으로 지식/학습/실행 패턴을 분석했습니다. ' + tenLine,
+          tags: ['#실천', '#성찰', '#완성'],
+          points: [
+            '강점 오행: ' + ((ELEM[strongest] && ELEM[strongest].cn) || strongest) + ' · 약점 보완 오행: ' + ((ELEM[weakest] && ELEM[weakest].cn) || weakest),
+            '오늘의 럭키 오행(' + ((ELEM[luckyEl] && ELEM[luckyEl].cn) || luckyEl || '토(土)') + ')을 루틴에 반영하면 집중 유지에 유리합니다.',
+            '핵심 지표는 “작게 시작-빠르게 검증-한 번 더 정리” 순으로 실행할 때 가장 안정적으로 올라갑니다.'
+          ],
+          chartHtml: _buildDnaWheelSvg(stems, stemValues, dayStem)
+        },
+        basic: {
+          title: (trait.type || '기본형') + ' 기본분석',
+          lead: trait.summary,
+          points: trait.points,
+          chartHtml: '<div class="lsd-saju-chart-wrap"><div style="width:220px;height:220px;border-radius:50%;background:' + basicPie + ';border:1px solid #e5e7eb;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)"></div></div>'
+        },
+        competency: {
+          title: (LSD_TRAIT_BY_ELEM[strongest] ? LSD_TRAIT_BY_ELEM[strongest].hash.replace('#', '') : '정보수집형'),
+          lead: '당신의 역량을 구성하는 4가지 요소(정보·지식·관계·성과)를 사주 오행과 오늘 점수로 재배치했습니다.',
+          points: [
+            '가장 높은 축: ' + competencyLabels[competencyValues.indexOf(Math.max.apply(null, competencyValues))],
+            '낮은 축은 루틴 예약(시간 고정) 방식으로 보완할 때 상승 속도가 가장 빠릅니다.',
+            '주 1회 회고 시, 낮은 축 1개만 집중 보완하면 전체 균형 점수가 안정됩니다.'
+          ],
+          chartHtml: _buildCompetencyWheelSvg(competencyValues, competencyLabels)
+        },
+        balance: {
+          title: '라이프 밸런스 분석',
+          lead: '삶의 다섯 축(중립·완성·성장·시작·준비) 균형을 계산해 현재 중심 유형을 보여줍니다.',
+          chip: '#' + balanceKeyword,
+          points: [
+            '현재 중심 유형은 ' + balanceKeyword + '입니다. 높은 축은 유지하고 낮은 축은 1개만 보강하세요.',
+            '완성/성장/시작 축은 실행 템포를, 준비/중립 축은 회복과 안정성을 담당합니다.',
+            '체감이 떨어질수록 “수면-정리-기록” 3루틴을 먼저 고정하면 균형 회복이 빨라집니다.'
+          ],
+          legend: balanceLabels.map(function (name, i) {
+            return { name: name, color: balanceColors[i], value: Math.round(balanceValues[i]) };
+          }),
+          chartHtml: '<div class="lsd-saju-chart-wrap"><div style="width:220px;height:220px;border-radius:50%;background:' + balancePie + ';border:1px solid #e5e7eb;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)"></div></div>'
+        }
+      }
+    };
+  }
+
+  function renderSajuInsightPanel(model) {
+    var tabBar = document.getElementById('lsdSajuInsightTabBar');
+    var body = document.getElementById('lsdSajuInsightBody');
+    if (!tabBar || !body) return;
+
+    if (!model || !model.tabs) {
+      tabBar.innerHTML = '';
+      body.innerHTML = '<p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 분석을 완료하면 기본 풀이 결과가 표시됩니다.</p>';
+      return;
+    }
+
+    var tabIds = model.tabBar.map(function (x) { return x.id; });
+    if (tabIds.indexOf(_lsdSajuInsightTab) < 0) _lsdSajuInsightTab = 'dna';
+
+    tabBar.innerHTML = model.tabBar.map(function (tab) {
+      var on = tab.id === _lsdSajuInsightTab;
+      return '<button type="button" class="lsd-saju-subtab' + (on ? ' is-on' : '') + '" data-saju-tab="' + tab.id + '">' + tab.label + '</button>';
+    }).join('');
+
+    var current = model.tabs[_lsdSajuInsightTab] || model.tabs.dna;
+    var legendHtml = '';
+    if (Array.isArray(current.legend) && current.legend.length) {
+      legendHtml = '<div class="lsd-saju-legend">' + current.legend.map(function (item) {
+        return '<span><i class="lsd-saju-dot" style="background:' + item.color + '"></i>' + item.name + ' ' + item.value + '%</span>';
+      }).join('') + '</div>';
+    }
+
+    var chipHtml = current.chip ? ('<div style="text-align:center"><span class="lsd-saju-balance-chip">' + escHtml(current.chip) + '</span></div>') : '';
+    var tagsHtml = Array.isArray(current.tags)
+      ? ('<div class="lsd-saju-hashes">' + current.tags.map(function (tag) { return '<span class="lsd-saju-hash">' + escHtml(tag) + '</span>'; }).join('') + '</div>')
+      : '';
+
+    body.innerHTML = ''
+      + '<h4 class="lsd-saju-headline">' + escHtml(current.title || '사주 분석') + '</h4>'
+      + '<p class="lsd-saju-lead">' + escHtml(current.lead || '') + '</p>'
+      + legendHtml
+      + chipHtml
+      + (current.chartHtml || '')
+      + tagsHtml
+      + '<div class="lsd-saju-bullet-box">'
+      + (Array.isArray(current.points) ? current.points.map(function (line, idx) {
+        return '<div class="lsd-saju-bullet"><span class="lsd-saju-bullet-no">' + (idx + 1) + '</span><span>' + escHtml(line) + '</span></div>';
+      }).join('') : '')
+      + '</div>';
+
+    tabBar.querySelectorAll('[data-saju-tab]').forEach(function (btn) {
+      btn.onclick = function () {
+        _lsdSajuInsightTab = btn.getAttribute('data-saju-tab') || 'dna';
+        renderSajuInsightPanel(model);
+      };
+    });
+  }
+
   function renderMzSections(pillars, power, todayGZ, scores, mainTenStar, luckyEl, entry, diary) {
     ensureMzBlocks();
     applyElementTheme(luckyEl);
+
+    renderSajuInsightPanel(_buildSajuInsightModel(pillars, power, todayGZ, scores, mainTenStar, luckyEl));
 
     var dEl = (pillars && pillars.d && pillars.d.g) ? (GAN_ELEM[pillars.d.g] || 'earth') : 'earth';
     _lsdCtx = {
@@ -495,7 +862,10 @@
       todayGZ: todayGZ,
       scores: scores,
       mainTenStar: mainTenStar,
-      morningMsg: (document.getElementById('lsdEnergyGuide') || {}).textContent || ''
+      morningMsg: (document.getElementById('lsdEnergyGuide') || {}).textContent || '',
+      pillars: pillars || null,
+      power: power || null,
+      jong: jong || null
     };
 
     renderEnergyFlowGraph(scores, GAN_ELEM[(todayGZ && todayGZ.g) || '戊'] || 'earth');
@@ -1128,10 +1498,11 @@
 
   var _lsdMeditationTimer = null;
   var _lsdSatsYouTubeCache = { lofi: null, theta: null };
+  var _lsdSatsPlaylistMeta = { lofi: null, theta: null };
   var _lsdSatsNowPlaying = { mode: '', videoId: '' };
   var LSD_SATS_SOURCE_META = {
-    lofi: { label: 'LoFi', query: 'copyright free lofi playlist beats to study and relax' },
-    theta: { label: 'Theta', query: 'theta binaural beats no copyright meditation playlist' }
+    lofi: { label: 'LoFi 명상', query: 'creative commons lofi instrumental no copyright claim meditation' },
+    theta: { label: 'Theta 명상', query: 'creative commons theta binaural meditation no copyright' }
   };
 
   function getTomorrowLuckKeyword(entry) {
@@ -1326,19 +1697,35 @@
           }
           var items = normalizePlaylistItems(json.items);
           if (!items.length) throw new Error('조건에 맞는 재생 목록을 찾지 못했습니다.');
-          return items;
+          return {
+            items: items,
+            message: String(json.message || ''),
+            source: String(json.source || 'youtube-api'),
+            licensePolicy: String(json.licensePolicy || '')
+          };
         });
       });
   }
 
   function fetchSatsPlaylist(mode, force) {
     if (!force && Array.isArray(_lsdSatsYouTubeCache[mode]) && _lsdSatsYouTubeCache[mode].length) {
-      return Promise.resolve(_lsdSatsYouTubeCache[mode]);
+      return Promise.resolve({
+        items: _lsdSatsYouTubeCache[mode],
+        meta: _lsdSatsPlaylistMeta[mode] || null,
+      });
     }
     return fetchSatsPlaylistViaProxy(mode, force)
-      .then(function (items) {
-        _lsdSatsYouTubeCache[mode] = items;
-        return items;
+      .then(function (payload) {
+        _lsdSatsYouTubeCache[mode] = payload.items;
+        _lsdSatsPlaylistMeta[mode] = {
+          message: payload.message || '',
+          source: payload.source || 'youtube-api',
+          licensePolicy: payload.licensePolicy || ''
+        };
+        return {
+          items: payload.items,
+          meta: _lsdSatsPlaylistMeta[mode]
+        };
       });
   }
 
@@ -1352,7 +1739,7 @@
       status.textContent = message || (modeMeta.label + ' 플레이리스트를 불러오지 못했습니다.');
       return;
     }
-    status.textContent = message || (modeMeta.label + ' 저작권 프리 플레이리스트 ' + items.length + '곡 준비됨');
+    status.textContent = message || (modeMeta.label + ' 크리에이티브 커먼즈 우선 플레이리스트 ' + items.length + '곡 준비됨');
     list.innerHTML = items.map(function (item, idx) {
       var active = _lsdSatsNowPlaying.videoId === item.videoId ? ' is-playing' : '';
       var thumbHtml = item.thumb
@@ -1412,11 +1799,17 @@
   function loadSatsPlaylist(mode, force) {
     var status = document.getElementById('lsdSatsPlaylistStatus');
     var list = document.getElementById('lsdSatsPlaylist');
-    if (status) status.textContent = 'YouTube에서 ' + ((LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi).label) + ' 플레이리스트를 불러오는 중...';
+    if (status) status.textContent = 'YouTube에서 ' + ((LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi).label) + ' (크리에이티브 커먼즈 우선) 플레이리스트를 불러오는 중...';
     if (list) list.innerHTML = '<div class="lsd-sats-empty">잠시만요, 트랙을 수집 중입니다...</div>';
     return fetchSatsPlaylist(mode, !!force)
-      .then(function (items) {
-        renderSatsPlaylist(mode, items);
+      .then(function (payload) {
+        var meta = payload && payload.meta ? payload.meta : null;
+        var items = payload && Array.isArray(payload.items) ? payload.items : [];
+        var message = '';
+        if (meta && meta.source === 'fallback' && meta.message) {
+          message = meta.message;
+        }
+        renderSatsPlaylist(mode, items, message);
       })
       .catch(function (err) {
         renderSatsPlaylist(mode, [], (err && err.message) ? err.message : '플레이리스트 로드 실패');
@@ -1511,14 +1904,189 @@
     });
   }
 
+  function _pad2(n) {
+    return String(Number(n) || 0).padStart(2, '0');
+  }
+
+  function _dateKeyFromDate(dt) {
+    return dt.getFullYear() + '-' + _pad2(dt.getMonth() + 1) + '-' + _pad2(dt.getDate());
+  }
+
+  function _hasDiaryRecord(entry) {
+    if (!entry || typeof entry !== 'object') return false;
+    if ((entry.practiceNote || '').trim()) return true;
+    if ((entry.nightLog || '').trim()) return true;
+    if ((entry.memoNote || '').trim()) return true;
+    if (Array.isArray(entry.challenges) && entry.challenges.length > 0) return true;
+    if (Array.isArray(entry.meditationLogs) && entry.meditationLogs.length > 0) return true;
+    return false;
+  }
+
+  function _clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function _classifyDayFromSaju(dateObj, pillars, power, jong) {
+    var gz = getGanZhiByDate(dateObj);
+    var scores = calcGodlifeScores(pillars, power, jong, gz);
+    var avg = Math.round((
+      Number(scores.wealth || 50)
+      + Number(scores.love || 50)
+      + Number(scores.fame || 50)
+      + Number(scores.health || 50)
+      + Number(scores.study || 50)
+    ) / 5);
+
+    var todayEl = (gz && gz.g) ? (GAN_ELEM[gz.g] || 'earth') : 'earth';
+    var yons = (power && Array.isArray(power.yongshin)) ? power.yongshin : [];
+    var kis = (power && Array.isArray(power.kijishin)) ? power.kijishin : [];
+    var tune = 0;
+    if (yons.indexOf(todayEl) >= 0) tune += 10;
+    if (kis.indexOf(todayEl) >= 0) tune -= 12;
+    if (todayEl === (_lsdCtx && _lsdCtx.luckyEl)) tune += 5;
+
+    var goodness = _clamp(Math.round(avg + tune), 10, 95);
+    var badness = _clamp(100 - goodness, 5, 90);
+    var tone = 'normal';
+    var label = '보통';
+    if (goodness >= 80) {
+      tone = 'very-good';
+      label = '좋은 날';
+    } else if (goodness >= 66) {
+      tone = 'good';
+      label = '양호';
+    } else if (goodness >= 52) {
+      tone = 'normal';
+      label = '보통';
+    } else if (goodness >= 40) {
+      tone = 'bad';
+      label = '주의';
+    } else {
+      tone = 'very-bad';
+      label = '아주강함';
+    }
+    return {
+      tone: tone,
+      label: label,
+      goodness: goodness,
+      badness: badness,
+      scores: scores,
+      gz: gz,
+    };
+  }
+
+  function _buildMonthCells(year, month) {
+    var firstDay = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var prevMonthDays = new Date(year, month, 0).getDate();
+    var cells = [];
+    for (var i = 0; i < 42; i++) {
+      var dayNum;
+      var cellDate;
+      var inMonth = true;
+      if (i < firstDay) {
+        dayNum = (prevMonthDays - firstDay + 1) + i;
+        cellDate = new Date(year, month - 1, dayNum, 12);
+        inMonth = false;
+      } else if (i >= firstDay + daysInMonth) {
+        dayNum = (i - (firstDay + daysInMonth)) + 1;
+        cellDate = new Date(year, month + 1, dayNum, 12);
+        inMonth = false;
+      } else {
+        dayNum = (i - firstDay) + 1;
+        cellDate = new Date(year, month, dayNum, 12);
+      }
+      cells.push({
+        inMonth: inMonth,
+        day: dayNum,
+        date: cellDate,
+        key: _dateKeyFromDate(cellDate)
+      });
+    }
+    return cells;
+  }
+
+  function _ensureMonthCalendarState() {
+    if (_lsdMonthCalendarState.year && (_lsdMonthCalendarState.month >= 0)) return;
+    var now = new Date();
+    _lsdMonthCalendarState.year = now.getFullYear();
+    _lsdMonthCalendarState.month = now.getMonth();
+    _lsdMonthCalendarState.selectedKey = getTodayKey();
+  }
+
+  function renderMonthCalendar(diary) {
+    _ensureMonthCalendarState();
+    var label = document.getElementById('lsdMonthLabel');
+    var grid = document.getElementById('lsdMonthCalendarGrid');
+    var hint = document.getElementById('lsdMonthSelectedHint');
+    var histTitle = document.getElementById('lsdHistoryMonthTitle');
+    if (!grid) return;
+
+    var y = Number(_lsdMonthCalendarState.year);
+    var m = Number(_lsdMonthCalendarState.month);
+    var monthPrefix = y + '-' + _pad2(m + 1);
+    var todayKey = getTodayKey();
+
+    if (label) label.textContent = String(y).slice(2) + '년 ' + (m + 1) + '월';
+    if (histTitle) histTitle.textContent = (m + 1) + '월 운세 기록';
+
+    var selectedKey = _lsdMonthCalendarState.selectedKey || '';
+    if (!selectedKey || selectedKey.indexOf(monthPrefix + '-') !== 0) {
+      selectedKey = monthPrefix + '-' + _pad2(1);
+      if (todayKey.indexOf(monthPrefix + '-') === 0) selectedKey = todayKey;
+      _lsdMonthCalendarState.selectedKey = selectedKey;
+    }
+
+    var pillars = _lsdCtx && _lsdCtx.pillars;
+    var power = _lsdCtx && _lsdCtx.power;
+    var jong = _lsdCtx && _lsdCtx.jong;
+    var cells = _buildMonthCells(y, m);
+    grid.innerHTML = cells.map(function (cell) {
+      var classes = ['lsd-month-cell'];
+      var title = '';
+      if (!cell.inMonth) {
+        classes.push('is-muted');
+      } else {
+        var snap = _classifyDayFromSaju(cell.date, pillars, power, jong);
+        classes.push('is-' + snap.tone);
+        title = snap.label + ' · 안정도 ' + snap.goodness + '점';
+        if (_hasDiaryRecord(diary[cell.key])) classes.push('is-recorded');
+      }
+      if (cell.key === selectedKey) classes.push('is-selected');
+      if (cell.key === todayKey) classes.push('is-today');
+      return ''
+        + '<button type="button" class="' + classes.join(' ') + '" data-month-day="' + cell.key + '" data-in-month="' + (cell.inMonth ? '1' : '0') + '"'
+        + (title ? (' title="' + escHtml(title) + '"') : '') + '>'
+        + '  <span class="lsd-month-day-no">' + cell.day + '</span>'
+        + '  <span class="lsd-month-record-dot"></span>'
+        + '</button>';
+    }).join('');
+
+    if (hint) {
+      var selectedDate = new Date(selectedKey + 'T12:00:00');
+      var selectedSnap = _classifyDayFromSaju(selectedDate, pillars, power, jong);
+      var selectedEntry = diary[selectedKey] || null;
+      var memo = selectedEntry ? (selectedEntry.practiceNote || selectedEntry.nightLog || selectedEntry.memoNote || '') : '';
+      hint.innerHTML = ''
+        + '<strong>' + escHtml(selectedKey) + '</strong> · '
+        + '<span style="font-weight:800">' + escHtml(selectedSnap.label) + '</span>'
+        + ' · 안정도 ' + selectedSnap.goodness + '점'
+        + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '');
+    }
+  }
+
   /* ─── 기록 렌더링 ─────────────────────────────────────────────── */
   function renderHistory() {
     var diary = loadDiary();
     var list = document.getElementById('lsdHistoryList');
     if (!list) return;
+    renderMonthCalendar(diary);
     var keys = Object.keys(diary).sort().reverse();
-    if (keys.length === 0) {
-      list.innerHTML = '<p class="lsd-empty">아직 기록이 없어요~ 오늘부터 시작해봐!</p>';
+    _ensureMonthCalendarState();
+    var monthPrefix = _lsdMonthCalendarState.year + '-' + _pad2(_lsdMonthCalendarState.month + 1) + '-';
+    var monthKeys = keys.filter(function (k) { return k.indexOf(monthPrefix) === 0; });
+    if (monthKeys.length === 0) {
+      list.innerHTML = '<p class="lsd-empty">선택한 달에는 기록이 아직 없어요. 좋은 날/주의 날을 참고해 미리 기록해보세요.</p>';
       return;
     }
     var blueprintMap = {
@@ -1527,7 +2095,7 @@
       health: '🫀 회복',
       focus: '🎯 집중'
     };
-    list.innerHTML = keys.slice(0, 30).map(function (k) {
+    list.innerHTML = monthKeys.slice(0, 31).map(function (k) {
       var e = diary[k];
       var mood = e.moodEmoji || '';
       var lotto = e.lotto ? (e.lotto.emoji + ' ' + e.lotto.name) : '';
@@ -1924,6 +2492,39 @@
         '.lsd-history-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}',
         '.lsd-history-tag{font-size:.65rem;padding:2px 8px;border-radius:999px;background:rgba(124,58,237,.1);color:#7c3aed;font-weight:600}',
         '.lsd-history-log{font-size:.78rem;color:#4b5563;line-height:1.5;font-style:italic}',
+        '.lsd-month-card{background:#fff;border-radius:18px;padding:14px 14px 12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f1f5f9;margin-bottom:12px}',
+        '.lsd-month-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
+        '.lsd-month-title{font-size:1.05rem;font-weight:900;color:#111827;letter-spacing:-.01em}',
+        '.lsd-month-nav{width:28px;height:28px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#64748b;font-size:.95rem;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}',
+        '.lsd-month-guide{margin:10px 0 10px;font-size:.83rem;color:#1f2937;line-height:1.5}',
+        '.lsd-month-guide strong{font-weight:900}',
+        '.lsd-month-legend{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}',
+        '.lsd-month-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:7px 12px;font-size:.68rem;font-weight:800;line-height:1}',
+        '.lsd-month-pill.record{background:#e9e9ff;color:#545496}',
+        '.lsd-month-pill.vg{background:#dcfce7;color:#166534}',
+        '.lsd-month-pill.g{background:#dbeafe;color:#1d4ed8}',
+        '.lsd-month-pill.n{background:#fde047;color:#854d0e}',
+        '.lsd-month-pill.b{background:#fb923c;color:#fff}',
+        '.lsd-month-pill.vb{background:#ef4444;color:#fff}',
+        '.lsd-month-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:8px}',
+        '.lsd-month-week span{text-align:center;font-size:.78rem;font-weight:800;color:#374151;padding:4px 0}',
+        '.lsd-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}',
+        '.lsd-month-cell{position:relative;height:44px;border-radius:12px;border:1px solid transparent;background:#f8fafc;color:#0f172a;font-size:.98rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s ease,box-shadow .2s ease}',
+        '.lsd-month-cell:hover{transform:translateY(-1px)}',
+        '.lsd-month-cell.is-muted{background:transparent;color:#d1d5db;border-color:transparent;cursor:default}',
+        '.lsd-month-cell.is-very-good{background:#22c55e;color:#fff}',
+        '.lsd-month-cell.is-good{background:#3b82f6;color:#fff}',
+        '.lsd-month-cell.is-normal{background:#facc15;color:#3f3f46}',
+        '.lsd-month-cell.is-bad{background:#fb923c;color:#fff}',
+        '.lsd-month-cell.is-very-bad{background:#ef4444;color:#fff}',
+        '.lsd-month-cell.is-selected{box-shadow:0 0 0 3px #22d3ee}',
+        '.lsd-month-cell.is-today{border-color:#0ea5e9}',
+        '.lsd-month-cell.is-recorded .lsd-month-record-dot{opacity:1}',
+        '.lsd-month-day-no{line-height:1}',
+        '.lsd-month-record-dot{position:absolute;right:6px;bottom:6px;width:6px;height:6px;border-radius:999px;background:#a78bfa;opacity:0}',
+        '.lsd-month-hint{margin-top:10px;padding:8px 10px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;font-size:.72rem;color:#334155;line-height:1.5}',
+        '.lsd-month-cta{margin-top:10px;width:100%;border:none;border-radius:999px;padding:11px 14px;background:#6b7280;color:#fff;font-size:.9rem;font-weight:900;cursor:pointer;box-shadow:0 8px 16px rgba(15,23,42,.15)}',
+        '.lsd-history-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}',
         '.lsd-empty{text-align:center;color:#9ca3af;font-size:.85rem;padding:32px 0}',
         '.lsd-elem-badge{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;font-size:.72rem;font-weight:700;border:1.5px solid}',
         '.lsd-badge-tag{font-size:.58rem;background:rgba(255,255,255,.3);border-radius:4px;padding:1px 4px;margin-left:2px}',
@@ -2017,9 +2618,12 @@
       '<div style="flex:1;overflow-y:auto;background:#f9fafb;scrollbar-width:thin">',
       '<section class="lsd-panel" id="lsdPanelDashboard" role="tabpanel" style="padding:14px;display:block">',
       '<div id="lsdSajuWidget" style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<p style="font-size:.6rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.16em;margin:0 0 8px">❆ 나의 일간(日干) 오행</p>',
+      '<p style="font-size:.6rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.16em;margin:0 0 8px">❆ 운구기일 사주 분석</p>',
       '<div id="lsdDayMaster" style="font-size:1.4rem;font-weight:900;color:#111827;margin-bottom:8px">—</div>',
-      '<div id="lsdElemBadges" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>',
+      '<div id="lsdElemBadges" style="display:flex;flex-wrap:wrap;gap:6px"></div>',
+      '<div id="lsdSajuInsightTabBar" class="lsd-saju-tab-row"></div>',
+      '<div id="lsdSajuInsightBody" class="lsd-saju-card"><p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 데이터 분석 중입니다.</p></div>',
+      '</div>',
       '<div id="lsdEnergyCard" style="background:linear-gradient(135deg,#6d28d9,#4f46e5);border-radius:20px;padding:16px 18px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 28px rgba(109,40,217,.28)">',
       '<div style="position:absolute;top:-16px;right:-16px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.07)"></div>',
       '<p style="font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.65);margin:0 0 8px">⚡ 오늘의 에너지</p>',
@@ -2143,7 +2747,7 @@
       '<button id="lsdRefreshSatsPlaylist" type="button" class="lsd-plain-btn">🔄 새로고침</button>',
       '<button id="lsdStopSatsMode" type="button" class="lsd-plain-btn">⏹️ 정지</button>',
       '</div>',
-      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">플레이리스트 불러오기를 누르면 저작권 프리 트랙 목록이 준비됩니다.</div>',
+      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">플레이리스트 불러오기를 누르면 크리에이티브 커먼즈 우선 트랙 목록이 준비됩니다.</div>',
       '<div class="lsd-sats-player" style="margin-top:8px">',
       '<div id="lsdSatsPlayerPlaceholder" class="lsd-sats-player-placeholder">재생 버튼을 누르기 전까지 소리는 나오지 않습니다.<br>목록에서 원하는 트랙의 ▶ 재생을 눌러주세요.</div>',
       '<iframe id="lsdSatsYoutubeFrame" title="SATS YouTube Player" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
@@ -2178,8 +2782,28 @@
       '</div>',
       '</section>',
       '<section class="lsd-panel" id="lsdPanelHistory" role="tabpanel" style="padding:14px;display:none">',
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
-      '<div><h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">📅 나의 운구 기일 기록</h3><p style="font-size:.7rem;color:#9ca3af;margin:0">날짜별로 저장된 다이어리 기록이어요~</p></div>',
+      '<div class="lsd-month-card">',
+      '<div class="lsd-month-head">',
+      '<button id="lsdPrevMonthBtn" type="button" class="lsd-month-nav" aria-label="이전 달">‹</button>',
+      '<div class="lsd-month-title" id="lsdMonthLabel">26년 5월</div>',
+      '<button id="lsdNextMonthBtn" type="button" class="lsd-month-nav" aria-label="다음 달">›</button>',
+      '</div>',
+      '<p class="lsd-month-guide">아래의 <strong>좋은 날/주의 날</strong>을 미리 확인해 일정 리듬을 준비하세요.</p>',
+      '<div class="lsd-month-legend">',
+      '<span class="lsd-month-pill record">운세기록</span>',
+      '<span class="lsd-month-pill vg">좋은 날</span>',
+      '<span class="lsd-month-pill g">양호</span>',
+      '<span class="lsd-month-pill n">보통</span>',
+      '<span class="lsd-month-pill b">강함</span>',
+      '<span class="lsd-month-pill vb">아주강함</span>',
+      '</div>',
+      '<div class="lsd-month-week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>',
+      '<div id="lsdMonthCalendarGrid" class="lsd-month-grid"></div>',
+      '<div id="lsdMonthSelectedHint" class="lsd-month-hint"></div>',
+      '<button id="lsdPredictFromCalendarBtn" type="button" class="lsd-month-cta">+ 나의 운세 예측하기</button>',
+      '</div>',
+      '<div class="lsd-history-head">',
+      '<div><h3 id="lsdHistoryMonthTitle" style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">이번 달 운세 기록</h3><p style="font-size:.7rem;color:#9ca3af;margin:0">선택한 달의 저장 기록을 확인할 수 있어요.</p></div>',
       '<button id="lsdClearBtn" type="button" style="padding:6px 12px;border:1.5px solid #fca5a5;border-radius:999px;background:transparent;font-size:.7rem;font-weight:700;color:#f87171;cursor:pointer;transition:all .2s;flex-shrink:0;margin-left:8px;white-space:nowrap" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'transparent\'">🗑️ 전체 삭제</button>',
       '</div>',
       '<div id="lsdHistoryList" style="display:flex;flex-direction:column;gap:8px"></div>',
@@ -2206,6 +2830,9 @@
     /* 오늘 날짜 */
     var now  = new Date();
     var days = ['일','월','화','수','목','금','토'];
+    _lsdMonthCalendarState.year = now.getFullYear();
+    _lsdMonthCalendarState.month = now.getMonth();
+    _lsdMonthCalendarState.selectedKey = getTodayKey();
     var dateEl = document.getElementById('lsdTodayDate');
     if (dateEl) {
       dateEl.textContent = now.getFullYear() + '년 ' + (now.getMonth()+1) + '월 ' + now.getDate() + '일 (' + days[now.getDay()] + ')';
@@ -2546,6 +3173,56 @@
         if (host && host.requestFullscreen) host.requestFullscreen();
       } catch (e) {}
       alert('몰입 모드 제안: 방해 금지 모드(알림 차단)를 켜고 이어폰을 착용하면 SATS 집중도가 더 높아집니다.');
+    };
+
+    var prevMonthBtn = document.getElementById('lsdPrevMonthBtn');
+    if (prevMonthBtn) prevMonthBtn.onclick = function () {
+      _ensureMonthCalendarState();
+      _lsdMonthCalendarState.month -= 1;
+      if (_lsdMonthCalendarState.month < 0) {
+        _lsdMonthCalendarState.month = 11;
+        _lsdMonthCalendarState.year -= 1;
+      }
+      _lsdMonthCalendarState.selectedKey = _lsdMonthCalendarState.year + '-' + _pad2(_lsdMonthCalendarState.month + 1) + '-01';
+      renderHistory();
+    };
+
+    var nextMonthBtn = document.getElementById('lsdNextMonthBtn');
+    if (nextMonthBtn) nextMonthBtn.onclick = function () {
+      _ensureMonthCalendarState();
+      _lsdMonthCalendarState.month += 1;
+      if (_lsdMonthCalendarState.month > 11) {
+        _lsdMonthCalendarState.month = 0;
+        _lsdMonthCalendarState.year += 1;
+      }
+      _lsdMonthCalendarState.selectedKey = _lsdMonthCalendarState.year + '-' + _pad2(_lsdMonthCalendarState.month + 1) + '-01';
+      renderHistory();
+    };
+
+    var monthGrid = document.getElementById('lsdMonthCalendarGrid');
+    if (monthGrid) monthGrid.onclick = function (ev) {
+      var btn = ev.target && ev.target.closest('[data-month-day]');
+      if (!btn) return;
+      var key = btn.getAttribute('data-month-day') || '';
+      if (!key) return;
+      var inMonth = btn.getAttribute('data-in-month') === '1';
+      _lsdMonthCalendarState.selectedKey = key;
+      if (!inMonth) {
+        var parts = key.split('-');
+        _lsdMonthCalendarState.year = Number(parts[0]) || _lsdMonthCalendarState.year;
+        _lsdMonthCalendarState.month = Math.max(0, (Number(parts[1]) || 1) - 1);
+      }
+      renderHistory();
+    };
+
+    var predictBtn = document.getElementById('lsdPredictFromCalendarBtn');
+    if (predictBtn) predictBtn.onclick = function () {
+      _ensureMonthCalendarState();
+      var key = _lsdMonthCalendarState.selectedKey || getTodayKey();
+      var dt = new Date(key + 'T12:00:00');
+      var snap = _classifyDayFromSaju(dt, _lsdCtx.pillars, _lsdCtx.power, _lsdCtx.jong);
+      alert(key + ' 예상 흐름: ' + snap.label + ' · 안정도 ' + snap.goodness + '점');
+      switchTab('dashboard');
     };
 
     /* 전체 삭제 버튼 */

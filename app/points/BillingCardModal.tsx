@@ -14,7 +14,6 @@ type Props = {
   onSuccess: (billingKey: string, cardInfo: RegisteredCard) => void;
   onClose: () => void;
   apiBase: string;
-  token: string;
 };
 
 export type RegisteredCard = {
@@ -26,7 +25,7 @@ export type RegisteredCard = {
 
 type Step = "input" | "auth" | "confirm" | "done";
 
-export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess, onClose, apiBase, token }: Props) {
+export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess, onClose, apiBase }: Props) {
   const [step, setStep] = useState<Step>("input");
 
   /* ── 카드 정보 입력 */
@@ -93,7 +92,8 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
     try {
       const res = await fetch(`${apiBase}/api/payments/billing/send-otp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ phone: phone.replace(/\D/g, ""), carrier }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "인증번호 발송에 실패했습니다."); }
@@ -104,7 +104,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
     } finally {
       setIsLoading(false);
     }
-  }, [apiBase, carrier, phone, token]);
+  }, [apiBase, carrier, phone]);
 
   /* STEP 2 → 3 */
   const handleAuthNext = () => {
@@ -122,7 +122,8 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
     try {
       const res = await fetch(`${apiBase}/api/payments/billing/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           cardNumber: [cardNum1, cardNum2, cardNum3, cardNum4].join(""),
           expMonth: expMM,
@@ -150,7 +151,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
     } finally {
       setIsLoading(false);
     }
-  }, [apiBase, authName, birthDate, cardNum1, cardNum2, cardNum3, cardNum4, carrier, expMM, expYY, onSuccess, otp, phone, token]);
+  }, [apiBase, authName, birthDate, cardNum1, cardNum2, cardNum3, cardNum4, carrier, expMM, expYY, onSuccess, otp, phone]);
 
   return (
     <div

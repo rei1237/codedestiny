@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
@@ -16,7 +17,6 @@ type LoginResult = {
   message?: string;
   code?: string;
   error?: string;
-  token?: string;
   nextPath?: string;
   provider?: "google" | "naver" | "kakao";
   user?: {
@@ -36,12 +36,6 @@ type SocialProvider = "google" | "naver" | "kakao";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const LOCAL_AUTH_TIMEOUT_MS = 20000;
-
-function normalizeApiBase(rawBase: string | undefined | null) {
-  const value = String(rawBase || "").trim();
-  if (!value) return "";
-  return value.replace(/\/+$/, "");
-}
 
 function sanitizeNextPath(rawNext: string | null) {
   if (!rawNext) return null;
@@ -81,12 +75,11 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, tim
   }
 }
 
-function publishAuthSync(event: "login" | "logout", token?: string) {
+function publishAuthSync(event: "login" | "logout") {
   if (typeof window === "undefined") return;
   const payload = {
     source: "login",
     event,
-    token: token ? "updated" : "none",
     at: Date.now(),
   };
   try {
@@ -101,14 +94,7 @@ function publishAuthSync(event: "login" | "logout", token?: string) {
 }
 
 function clearStoredAuth() {
-  try {
-    localStorage.removeItem("fortune_auth_token");
-    localStorage.removeItem("fortune_auth_user");
-  } catch {
-    // ignore
-  }
-  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
-  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
+  clearClientAuthState();
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -167,21 +153,16 @@ export default function LoginPage() {
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
-  const persistAuth = (token?: string, user?: LoginResult["user"]) => {
-    if (token) {
-      localStorage.setItem("fortune_auth_token", token);
-      document.cookie = `fortune_auth_token=${encodeURIComponent(token)}; path=/; max-age=604800; samesite=lax`;
-      publishAuthSync("login", token);
-    }
-
+  const persistAuth = (user?: LoginResult["user"]) => {
     if (user) {
       const safeUser = persistSanitizedAuthUser(user);
       const role = String((safeUser && safeUser.role) || user.role || "user");
       document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
+      publishAuthSync("login");
     }
   };
 
-  const redirectAfterAuth = (nextPath: string, user?: LoginResult["user"]) => {
+  const redirectAfterAuth = useCallback((nextPath: string, user?: LoginResult["user"]) => {
     if (user?.role === "admin" && nextPath === "/") {
       router.replace("/admin");
       return;
@@ -193,7 +174,7 @@ export default function LoginPage() {
     }
 
     router.replace(nextPath);
-  };
+  }, [router]);
 
   // 마운트 직후: 이미 로그인된 사용자 → 홈으로 리다이렉트
   // 소셜 그랜트가 있는 URL의 경우는 이 effect에서 처리하지 않음 (socialEffect가 담당)
@@ -201,30 +182,24 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("social_grant") || params.get("social_error")) return;
 
-    let token = "";
-    try {
-      token = localStorage.getItem("fortune_auth_token") || "";
-    } catch {
-      // localStorage 접근 실패 시 무시 (부라우저링 등 예외 케이스)
-    }
-
-    if (!token) return;
-
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    fetch(`${authApiBase}/api/auth/me`, {
+    authFetch(`${authApiBase}/api/auth/me`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
       signal: controller.signal,
+    }, {
+      retryOn401: true,
+      apiBase: authApiBase,
     })
       .then(async (response) => {
         if (!response.ok) throw new Error("auth_invalid");
         return parseJsonResponse<LoginResult>(response);
       })
       .then((payload) => {
-        persistAuth(token, payload.user);
+        if (!payload.user) throw new Error("auth_invalid");
+        persistAuth(payload.user);
         setIsRedirecting(true);
         timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
       })
@@ -237,7 +212,7 @@ export default function LoginPage() {
       controller.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [authApiBase, router]);
+  }, [authApiBase, redirectAfterAuth]);
 
   // 소셜 OAuth 그랜트 처리 (네트워크 호출 중복 방지: socialCompleteOnceRef)
   useEffect(() => {
@@ -269,6 +244,7 @@ export default function LoginPage() {
           const nextResponse = await fetch(socialCompleteEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ socialGrant }),
           });
 
@@ -301,7 +277,7 @@ export default function LoginPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 로그인 처리에 실패했습니다."));
         }
 
-        persistAuth(payload.token, payload.user);
+        persistAuth(payload.user);
         const nextFromQuery = sanitizeNextPath(params.get("next"));
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
@@ -313,7 +289,7 @@ export default function LoginPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [router, socialCompleteEndpoint]);
+  }, [redirectAfterAuth, socialCompleteEndpoint]);
 
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -340,6 +316,7 @@ export default function LoginPage() {
           const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
               email: normalizedId,
               password,
@@ -372,7 +349,7 @@ export default function LoginPage() {
         throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
       }
 
-      persistAuth(payload.token, payload.user);
+      persistAuth(payload.user);
       const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
 
       redirectAfterAuth(resolvedNextPath, payload.user);

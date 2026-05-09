@@ -3,6 +3,18 @@ const User = require("../models/User");
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
 
+function getAccessTokenSecret() {
+  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || "dev-secret";
+}
+
+function getJwtIssuer() {
+  return process.env.JWT_ISSUER || "code-destiny-api";
+}
+
+function getJwtAudience() {
+  return String(process.env.JWT_AUDIENCE || "code-destiny-web").trim();
+}
+
 function getCookieValue(req, cookieName) {
   const raw = req.headers.cookie || "";
   if (!raw) return null;
@@ -21,14 +33,13 @@ function getTokenFromHeader(req) {
 }
 
 function getTokenFromRequest(req) {
-  // 1) 기존 동작: Authorization Bearer 토큰
-  const fromHeader = getTokenFromHeader(req);
-  if (fromHeader) return fromHeader;
-
-  // 2) 관리자/웹 세션: HttpOnly 쿠키(fortune_auth_token)
-  // - cookie-parser 미사용: 직접 쿠키 파싱
+  // 기본 경로: HttpOnly access 쿠키(fortune_auth_token)
   const fromCookie = getCookieValue(req, "fortune_auth_token");
-  return fromCookie || null;
+  if (fromCookie) return fromCookie;
+
+  // 레거시 호환: Bearer 헤더는 점진 제거 전까지 허용
+  const fromHeader = getTokenFromHeader(req);
+  return fromHeader || null;
 }
 
 function requireAuth(req, res, next) {
@@ -39,7 +50,10 @@ function requireAuth(req, res, next) {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
+    const payload = jwt.verify(token, getAccessTokenSecret(), {
+      issuer: getJwtIssuer(),
+      audience: getJwtAudience(),
+    });
     
     // Support both 'userId' and 'id' (legacy) and ensure it's a string
     const userId = String(payload.userId || payload.id || "");

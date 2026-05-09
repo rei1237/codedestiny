@@ -57,6 +57,7 @@ export async function signJwt(payload, secret, options = {}) {
   };
 
   if (options.issuer) body.iss = options.issuer;
+  if (options.audience) body.aud = options.audience;
 
   const ttl = parseExpiresIn(options.expiresIn);
   if (ttl) body.exp = now + ttl;
@@ -128,6 +129,19 @@ export async function verifyJwt(token, secret, options = {}) {
     const error = new Error("jwt issuer invalid");
     error.name = "JsonWebTokenError";
     throw error;
+  }
+
+  if (options.audience) {
+    const aud = payload.aud;
+    const validAudience = Array.isArray(aud)
+      ? aud.map((value) => String(value)).includes(String(options.audience))
+      : String(aud || "") === String(options.audience);
+
+    if (!validAudience) {
+      const error = new Error("jwt audience invalid");
+      error.name = "JsonWebTokenError";
+      throw error;
+    }
   }
 
   return payload;

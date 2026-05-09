@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authFetch, clearClientAuthState, logoutWithServer } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import WithdrawModal from "../components/WithdrawModal";
@@ -54,14 +55,6 @@ type SubscriptionStatus = {
 
 const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
-
-function readToken() {
-  try {
-    return localStorage.getItem("fortune_auth_token") || "";
-  } catch {
-    return "";
-  }
-}
 
 function readCachedUser(): AuthUser | null {
   return readSanitizedAuthUser() as AuthUser | null;
@@ -118,10 +111,7 @@ function writeProfiles(scope: string, profiles: DestinyProfile[], currentId: str
 }
 
 function clearAuth() {
-  localStorage.removeItem("fortune_auth_token");
-  localStorage.removeItem("fortune_auth_user");
-  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
-  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
+  clearClientAuthState();
 }
 
 function publishLogout() {
@@ -158,7 +148,6 @@ function sourceLabel(source?: SubscriptionStatus["source"]) {
 export default function MePage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
-  const [token, setToken] = useState("");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [profiles, setProfiles] = useState<DestinyProfile[]>([]);
   const [currentId, setCurrentId] = useState("");
@@ -187,21 +176,17 @@ export default function MePage() {
   }, []);
 
   useEffect(() => {
-    const savedToken = readToken();
     const cachedUser = readCachedUser();
-    if (!savedToken) {
-      router.replace("/login?next=%2Fme");
-      return;
-    }
-
-    setToken(savedToken);
     setUser(cachedUser);
     setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
     reloadProfiles(cachedUser);
 
-    fetch(`${apiBase}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${savedToken}` },
+    authFetch(`${apiBase}/api/auth/me`, {
+      method: "GET",
       cache: "no-store",
+    }, {
+      retryOn401: true,
+      apiBase,
     })
       .then(async (response) => {
         if (response.status === 401 || response.status === 403) throw new Error("auth_invalid");
@@ -224,10 +209,13 @@ export default function MePage() {
   }, [apiBase, reloadProfiles, router]);
 
   useEffect(() => {
-    if (!token) return;
-    fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/status`, {
-      headers: { Authorization: `Bearer ${token}` },
+    if (!user) return;
+    authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/status`, {
+      method: "GET",
       cache: "no-store",
+    }, {
+      retryOn401: true,
+      apiBase,
     })
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
@@ -241,7 +229,7 @@ export default function MePage() {
         });
       })
       .catch(() => {});
-  }, [apiBase, token]);
+  }, [apiBase, user]);
 
   const activateProfile = (profileId: string) => {
     writeProfiles(scope, profiles, profileId);
@@ -259,15 +247,7 @@ export default function MePage() {
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch(`${apiBase}/api/auth/logout`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-    } catch {
-      // local cleanup still follows
-    }
-    clearAuth();
+    await logoutWithServer(apiBase);
     publishLogout();
     window.location.assign("/");
   };

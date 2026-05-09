@@ -31,9 +31,11 @@ PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
 # - /api/fortune/*
 # - /api/subscription/status (alias)
 #
-# Required secrets include JWT_SECRET, MONGO_URI, OAuth provider credentials,
-# and PortOne credentials. API_UPSTREAM_ORIGIN is now optional and only used as
-# a fallback for API groups that have not been ported to this Worker yet.
+# Required secrets include JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
+# ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN, MONGO_URI,
+# OAuth provider credentials, and PortOne credentials.
+# API_UPSTREAM_ORIGIN is optional and only used as a fallback for API groups
+# that have not been ported to this Worker yet.
 
 [triggers]
 crons = ["0 22 * * *"] # 7:00 AM KST

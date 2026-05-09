@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +9,7 @@ import WithdrawModal from "../components/WithdrawModal";
 import type { GalaxiaPayResult } from "./GalaxiaPayModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
+import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 
@@ -537,19 +539,6 @@ function SubscriptionSection({
   adminTestTier: AdminTestTier;
   onChangeAdminTestTier: (tier: AdminTestTier) => void;
 }) {
-  const tierLabel: Record<SubscriptionTier, string> = {
-    free:     "무료 플랜",
-    standard: "스탠다드 꿀",
-    premium:  "프리미엄 꿀",
-    vvip:     "VVIP 꿀단지",
-  };
-  const tierColor: Record<SubscriptionTier, string> = {
-    free:     "text-neutral-500",
-    standard: "text-amber-700",
-    premium:  "text-rose-600",
-    vvip:     "text-purple-700",
-  };
-
   type PlanThemeKey = "amber" | "rose" | "purple";
   const planThemeMap: Record<PlanThemeKey, {
     card: string; label: string; badge: string; freeTag: string; btn: string; icon: string;
@@ -582,10 +571,6 @@ function SubscriptionSection({
 
   const expires = subscription.expiresAt
     ? new Date(subscription.expiresAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
-    : null;
-
-  const daysLeft = subscription.expiresAt
-    ? Math.max(0, Math.ceil((new Date(subscription.expiresAt).getTime() - Date.now()) / 86_400_000))
     : null;
 
   const adminTierPlan = adminTestTier !== "off"
@@ -1152,7 +1137,6 @@ export default function PointsPage() {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   /* ── 상태 ──────────────────────────────────────────────────────── */
-  const [token, setToken] = useState("");
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [currentPoints, setCurrentPoints] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<PointPackage>(POINT_PACKAGES[1]);
@@ -1249,18 +1233,21 @@ export default function PointsPage() {
 
   /* ── 서버에서 포인트 상태 조회 ─────────────────────────────────── */
   const fetchMyPointState = useCallback(
-    async (authToken: string) => {
-      const response = await fetch(`${apiBase}/api/payments/me`, {
+    async () => {
+      const response = await authFetch(`${apiBase}/api/payments/me`, {
+        method: "GET",
         credentials: "include",
-        headers: { Authorization: `Bearer ${authToken}` },
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
       });
       if (!response.ok && response.status !== 401 && response.status !== 403) {
         console.warn("[points-page] API error", { path: "/api/payments/me", status: response.status });
       }
 
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem("fortune_auth_token");
-        localStorage.removeItem("fortune_auth_user");
+        clearClientAuthState();
         router.replace("/login?next=%2Fpoints");
         return;
       }
@@ -1299,15 +1286,7 @@ export default function PointsPage() {
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
-    const savedToken = localStorage.getItem("fortune_auth_token");
     const parsedUser = readSanitizedAuthUser() as AuthUser | null;
-
-    if (!savedToken) {
-      router.replace("/login?next=%2Fpoints");
-      return;
-    }
-
-    setToken(savedToken);
 
     if (parsedUser) {
       setAuthUser(parsedUser);
@@ -1329,25 +1308,30 @@ export default function PointsPage() {
 
   /* ── 부팅 후 포인트 로드 ───────────────────────────────────────── */
   useEffect(() => {
-    if (isBooting || !token) return;
+    if (isBooting) return;
 
-    fetchMyPointState(token).catch((error) => {
+    fetchMyPointState().catch((error) => {
       pushToast("error", getErrorMessage(error, "포인트 정보를 불러오지 못했습니다."));
     });
-  }, [fetchMyPointState, isBooting, token, pushToast]);
+  }, [fetchMyPointState, isBooting, pushToast]);
 
   /* ── 구독 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
-    if (isBooting || !token) return;
+    if (isBooting) return;
     const isAdminSession = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = isAdminSession ? getFlowerAdminTokenClient() : "";
     const adminHeaders = flowerAdminToken ? {
       "x-admin-token": flowerAdminToken,
       ...(adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
     } : {};
-    fetch(`${apiBase}/api/subscription/status`, {
+    authFetch(`${apiBase}/api/subscription/status`, {
+      method: "GET",
       credentials: "include",
-      headers: { Authorization: `Bearer ${token}`, ...adminHeaders },
+      headers: adminHeaders,
+      cache: "no-store",
+    }, {
+      retryOn401: true,
+      apiBase,
     })
       .then((r) => {
         if (!r.ok && r.status !== 401 && r.status !== 403) {
@@ -1370,7 +1354,7 @@ export default function PointsPage() {
         });
       })
       .catch(() => {});
-  }, [isBooting, token, apiBase, adminTestTier, authUser]);
+  }, [isBooting, apiBase, adminTestTier, authUser]);
 
   /* ── 서버 결제 검증 ────────────────────────────────────────────── */
   const confirmPaymentWithServer = useCallback(
@@ -1389,13 +1373,16 @@ export default function PointsPage() {
       if (Number.isInteger(params.paymentAmount)) body.paymentAmount = params.paymentAmount;
       if (Number.isInteger(params.chargePoints)) body.chargePoints = params.chargePoints;
 
-      const response = await fetch(`${apiBase}/api/payments/confirm`, {
+      const response = await authFetch(`${apiBase}/api/payments/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify(body),
+      }, {
+        retryOn401: true,
+        apiBase,
       });
 
       // Content-Type 검증 후 JSON 파싱
@@ -1407,26 +1394,28 @@ export default function PointsPage() {
 
       return payload;
     },
-    [apiBase, token],
+    [apiBase],
   );
 
   const reportPaymentFailureToServer = useCallback(
     async (payload: PaymentFailureReportPayload) => {
-      if (!token) return;
       try {
-        await fetch(`${apiBase}/api/payments/report-failure`, {
+        await authFetch(`${apiBase}/api/payments/report-failure`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
           body: JSON.stringify(payload),
+        }, {
+          retryOn401: true,
+          apiBase,
         });
       } catch {
         // 실패 보고는 보조 경로이므로 UI 흐름을 막지 않는다.
       }
     },
-    [apiBase, token],
+    [apiBase],
   );
 
   /* ── 결제 성공 후 처리 ─────────────────────────────────────────── */
@@ -1442,15 +1431,13 @@ export default function PointsPage() {
       );
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
-      await fetchMyPointState(token);
+      await fetchMyPointState();
     },
-    [fetchMyPointState, persistUserPoints, pushToast, token],
+    [fetchMyPointState, persistUserPoints, pushToast],
   );
 
   const requestCancelPayment = useCallback(
     async (payment: PaymentHistoryItem) => {
-      if (!token) return;
-
       const ok = window.confirm(
         `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 코인이 있으면 취소가 제한될 수 있습니다.`,
       );
@@ -1458,17 +1445,20 @@ export default function PointsPage() {
 
       setCancelingPaymentId(payment.id);
       try {
-        const response = await fetch(`${apiBase}/api/payments/cancel`, {
+        const response = await authFetch(`${apiBase}/api/payments/cancel`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
           body: JSON.stringify({
             impUid: payment.impUid,
             merchantUid: payment.merchantUid,
             reason: "사용자 취소 요청",
           }),
+        }, {
+          retryOn401: true,
+          apiBase,
         });
 
         const payload = await safeParseJson<{
@@ -1485,7 +1475,7 @@ export default function PointsPage() {
           persistUserPoints(Number(payload.user.points));
         }
 
-        await fetchMyPointState(token);
+        await fetchMyPointState();
         pushToast("success", payload.message || "결제가 취소되었습니다.");
       } catch (error: unknown) {
         pushToast("error", getErrorMessage(error, "결제 취소 처리 중 오류가 발생했습니다."));
@@ -1493,12 +1483,12 @@ export default function PointsPage() {
         setCancelingPaymentId(null);
       }
     },
-    [apiBase, fetchMyPointState, persistUserPoints, pushToast, token],
+    [apiBase, fetchMyPointState, persistUserPoints, pushToast],
   );
 
   /* ── 모바일 결제 리디렉션 복귀 처리 ───────────────────────────── */
   useEffect(() => {
-    if (isBooting || !token || redirectHandledRef.current) return;
+    if (isBooting || redirectHandledRef.current) return;
     if (typeof window === "undefined") return;
 
     const query = new URLSearchParams(window.location.search);
@@ -1560,12 +1550,12 @@ export default function PointsPage() {
         return;
       }
 
-      fetch(`${apiBase}/api/payments/subscription/confirm`, {
+      authFetch(`${apiBase}/api/payments/subscription/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           impUid,
           merchantUid,
@@ -1573,6 +1563,9 @@ export default function PointsPage() {
           customerUid: pendingSub.customerUid,
           paymentMethod: pendingSub.paymentMethod,
         }),
+      }, {
+        retryOn401: true,
+        apiBase,
       })
         .then(async (response) => {
           const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
@@ -1662,14 +1655,14 @@ export default function PointsPage() {
     handleConfirmSuccess,
     isBooting,
     persistUserPoints,
+    persistSubscriptionCache,
     pushToast,
     reportPaymentFailureToServer,
-    token,
   ]);
 
   /* ── 결제 시작 ─────────────────────────────────────────────────── */
   const startPayment = async () => {
-    if (!token || !authUser) {
+    if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
     }
@@ -1678,18 +1671,21 @@ export default function PointsPage() {
     setProcessingText("신비로운 기운으로 결제를 연결 중입니다...");
 
     try {
-      const prepareResponse = await fetch(`${apiBase}/api/payments/prepare`, {
+      const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           paymentAmount: selectedPackage.amount,
           chargePoints: selectedPackage.points,
           paymentMethod: selectedMethod,
           productName: `${selectedPackage.title} (${formatPoints(selectedPackage.points)})`,
         }),
+      }, {
+        retryOn401: true,
+        apiBase,
       });
 
       // Content-Type 검증 후 JSON 파싱
@@ -1864,7 +1860,7 @@ export default function PointsPage() {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
 
-    if ((!token && !isFlowerAdmin) || !authUser) {
+    if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
     }
@@ -1875,15 +1871,18 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingText(`${plan.title} 구독을 활성화하는 중입니다...`);
     try {
-      const res = await fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/subscribe`, {
+      const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/subscribe`, {
         method:  "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
           ...(isFlowerAdmin && adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
         },
+        credentials: "include",
         body:    JSON.stringify({ tier: plan.id }),
+      }, {
+        retryOn401: true,
+        apiBase,
       });
       const data = await safeParseJson<{
         message?: string;
@@ -1925,10 +1924,9 @@ export default function PointsPage() {
   };
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
-    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
 
-    if ((!token && !isFlowerAdmin) || !authUser) {
+    if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
     }
@@ -1937,14 +1935,17 @@ export default function PointsPage() {
     setProcessingText(`${plan.title} 카드 정기결제를 준비하고 있습니다...`);
 
     try {
-      const prepareRes = await fetch(`${apiBase}/api/payments/subscription/prepare`, {
+      const prepareRes = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ tier: plan.id, paymentMethod: selectedMethod || "card_general" }),
+      }, {
+        retryOn401: true,
+        apiBase,
       });
 
       if (prepareRes.status === 404 || prepareRes.status === 405 || prepareRes.status === 501) {
@@ -2027,12 +2028,12 @@ export default function PointsPage() {
 
           try {
             setProcessingText("구독 결제 검증 및 활성화를 진행하고 있습니다...");
-            const confirmRes = await fetch(`${apiBase}/api/payments/subscription/confirm`, {
+            const confirmRes = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
               },
+              credentials: "include",
               body: JSON.stringify({
                 impUid: rsp.imp_uid,
                 merchantUid: order.merchantUid,
@@ -2040,6 +2041,9 @@ export default function PointsPage() {
                 customerUid: order.customerUid,
                 paymentMethod: selectedMethod || "card_general",
               }),
+            }, {
+              retryOn401: true,
+              apiBase,
             });
 
             const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
@@ -2110,7 +2114,7 @@ export default function PointsPage() {
   const handleSubscriptionCancel = async (resume: boolean) => {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
-    if ((!token && !isFlowerAdmin) || !authUser) {
+    if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
     }
@@ -2123,15 +2127,18 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingText(resume ? "자동 갱신을 다시 설정하는 중입니다..." : "구독 해지를 예약하는 중입니다...");
     try {
-      const res = await fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
+      const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
           ...(isFlowerAdmin && adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ resume }),
+      }, {
+        retryOn401: true,
+        apiBase,
       });
       const data = await safeParseJson<{ message?: string; subscription?: SubscriptionStatus }>(res);
       if (!res.ok) {
@@ -2236,14 +2243,14 @@ export default function PointsPage() {
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src="/icons/honeypig-96.webp"
-                  srcSet="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
                   sizes="72px"
                   width={72}
                   height={72}
                   alt="황금 돼지"
                   className="rounded-2xl shadow-[0_6px_20px_rgba(150,76,11,0.26)]"
+                  priority
                 />
                 <div>
                   <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">

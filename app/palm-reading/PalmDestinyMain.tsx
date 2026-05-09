@@ -646,32 +646,41 @@ export default function PalmDestinyMain() {
         key={card.key}
         id={cardId}
         ref={setCardRef(card.key)}
-        className={`cd-ink-card cd-hanji cd-seal cd-fade-in rounded-2xl border p-4 md:p-5 ${
+        className={`cd-oriental-card cd-fade-in rounded-2xl border p-4 md:p-5 ${
           active
-            ? "border-[#e2c97e]/60 bg-[linear-gradient(145deg,rgba(28,21,17,0.9),rgba(15,23,35,0.9))]"
-            : "border-[#d8bf72]/30 bg-[linear-gradient(145deg,rgba(13,21,34,0.86),rgba(23,18,16,0.84))]"
+            ? "border-[#c8a84b]/65"
+            : "border-[#c8a84b]/25"
         }`}
+        style={active ? {
+          background: "linear-gradient(145deg, rgba(10,5,5,0.98), rgba(20,8,8,0.97))",
+          boxShadow: "0 0 0 1px rgba(180,130,40,0.2), 0 0 28px rgba(139,0,0,0.2), inset 0 0 30px rgba(120,15,15,0.18)",
+        } : {
+          background: "linear-gradient(145deg, rgba(8,4,4,0.96), rgba(15,7,7,0.95))",
+          boxShadow: "0 0 0 1px rgba(180,130,40,0.08)",
+        }}
       >
-        <header className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-black text-[#f5dfa4] md:text-base">{card.title}</h4>
+        <header className="flex items-center justify-between gap-2 border-b border-[#c8a84b]/20 pb-3">
+          <h4 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>{card.title}</h4>
           <button
             type="button"
             onClick={() => setActiveCardKey(card.key)}
-            className="cd-gold-btn rounded-md border border-[#d8bf72]/35 bg-[#132033] px-2 py-1 text-[11px] font-bold text-[#f8e8bf]"
+            className="cd-ghost-btn rounded-sm border border-[#c8a84b]/40 bg-[#0d0808] px-2 py-1 text-[11px] font-bold text-[#e8d090]"
           >
             선택
           </button>
         </header>
 
-        <p className="mt-2 rounded-lg border border-[#b73232]/35 bg-[#2f1313]/55 px-3 py-2 text-sm font-semibold leading-6 text-[#ffe3c5]">
+        <p className="mt-3 rounded-lg border border-[#9b1a1a]/40 bg-[#1a0808]/70 px-3 py-2 text-sm font-semibold leading-6 text-[#ffd8d0]">
           {card.oneLiner}
         </p>
 
         <section className="mt-3">
-          <h5 className="text-xs font-black tracking-[0.08em] text-[#e8d498] md:text-sm">상세 해석</h5>
-          <ul className="mt-2 space-y-2 text-xs leading-6 text-[#f7edd0]/90 md:text-sm">
+          <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+            <span aria-hidden className="text-[8px]">◆</span>상세 해석
+          </h5>
+          <ul className="mt-2 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
             {card.details.slice(0, 8).map((line, index) => (
-              <li key={`${card.key}-detail-${index}`} className="rounded-lg border border-[#d8bf72]/22 bg-[#101a28]/60 px-3 py-2">
+              <li key={`${card.key}-detail-${index}`} className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/65 px-3 py-2">
                 {line}
               </li>
             ))}
@@ -680,10 +689,12 @@ export default function PalmDestinyMain() {
 
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <section>
-            <h5 className="text-xs font-black tracking-[0.08em] text-[#e8d498] md:text-sm">장점 3개</h5>
-            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#f7edd0]/90 md:text-sm">
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+              <span aria-hidden className="text-[8px] text-green-400/70">◆</span>장점 3개
+            </h5>
+            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
               {card.strengths.slice(0, 3).map((line, index) => (
-                <li key={`${card.key}-strength-${index}`} className="rounded-lg border border-[#8aa84f]/25 bg-[#132412]/55 px-3 py-2">
+                <li key={`${card.key}-strength-${index}`} className="rounded-lg border border-[#4a7a30]/30 bg-[#0a1206]/60 px-3 py-2">
                   {line}
                 </li>
               ))}
@@ -691,10 +702,12 @@ export default function PalmDestinyMain() {
           </section>
 
           <section>
-            <h5 className="text-xs font-black tracking-[0.08em] text-[#e8d498] md:text-sm">주의점 3개</h5>
-            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#f7edd0]/90 md:text-sm">
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+              <span aria-hidden className="text-[8px] text-red-400/70">◆</span>주의점 3개
+            </h5>
+            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
               {card.cautions.slice(0, 3).map((line, index) => (
-                <li key={`${card.key}-caution-${index}`} className="rounded-lg border border-[#bf6f6f]/25 bg-[#2a1414]/55 px-3 py-2">
+                <li key={`${card.key}-caution-${index}`} className="rounded-lg border border-[#8b1a1a]/35 bg-[#140808]/60 px-3 py-2">
                   {line}
                 </li>
               ))}
@@ -703,18 +716,22 @@ export default function PalmDestinyMain() {
         </div>
 
         <section className="mt-3 space-y-2">
-          <div className="rounded-lg border border-[#d8bf72]/25 bg-[#141e2d]/65 px-3 py-2">
-            <h5 className="text-xs font-black tracking-[0.08em] text-[#efdca5] md:text-sm">오늘의 조언</h5>
-            <p className="mt-1 text-xs leading-6 text-[#f8eed1]/90 md:text-sm">{card.todayAdvice}</p>
+          <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+              <span aria-hidden className="text-[8px]">◆</span>오늘의 조언
+            </h5>
+            <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.todayAdvice}</p>
           </div>
-          <div className="rounded-lg border border-[#d8bf72]/25 bg-[#1c1727]/65 px-3 py-2">
-            <h5 className="text-xs font-black tracking-[0.08em] text-[#efdca5] md:text-sm">7일 실천법</h5>
-            <p className="mt-1 text-xs leading-6 text-[#f8eed1]/90 md:text-sm">{card.sevenDayPractice}</p>
+          <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+              <span aria-hidden className="text-[8px]">◆</span>7일 실천법
+            </h5>
+            <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.sevenDayPractice}</p>
           </div>
         </section>
 
         {compactMobile ? null : (
-          <p className="mt-3 text-[11px] text-[#f6ebc7]/70 md:text-xs">카드 키: {card.key}</p>
+          <p className="mt-3 text-[11px] text-[#c8a84b]/55 md:text-xs">카드 키: {card.key}</p>
         )}
       </article>
     );
@@ -733,40 +750,49 @@ export default function PalmDestinyMain() {
     const roleMeta = HAND_ROLE_META[role];
 
     return (
-      <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(11,16,26,0.92),rgba(22,16,17,0.9))] p-4 md:p-5">
+      <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/45 bg-[linear-gradient(145deg,rgba(8,4,4,0.97),rgba(18,8,8,0.97))] p-4 md:p-5" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.14)" }}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-[#f4de9f] md:text-lg">{title}</h2>
-          <span className="rounded-full border border-[#a71b1b]/65 bg-[#4a1212]/70 px-2 py-1 text-[11px] font-bold text-[#ffd8d8]">
+          <h2 className="text-base font-extrabold text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>{title}</h2>
+          <span className="rounded-sm border border-[#9b1a1a]/75 bg-[#4a0808]/80 px-2 py-1 text-[11px] font-bold tracking-[0.1em] text-[#ffc8c8]">
             손바닥 입력
           </span>
         </div>
 
-        <p className="mt-2 text-xs leading-6 text-[#f8efcf]/80 md:text-sm">
+        <p className="mt-2 text-xs leading-6 text-[#d8c090]/80 md:text-sm">
           손바닥이 선명하게 보이는 사진을 업로드하거나 촬영해 주세요.
         </p>
 
         {hasPreview ? (
-          <div className="mt-3 rounded-lg border border-[#d9c27d]/45 bg-[#101a28]/80 px-3 py-2">
-            <p className="text-xs font-bold text-[#ffe3ab] md:text-sm">
+          <div className="mt-3 rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/80 px-3 py-2">
+            <p className="text-xs font-bold text-[#f5d987] md:text-sm">
               {handName} · {roleMeta.label}
             </p>
-            <p className="mt-1 text-xs text-[#f7edcd]/80">{roleMeta.description}</p>
+            <p className="mt-1 text-xs text-[#d8c090]/80">{roleMeta.description}</p>
           </div>
         ) : null}
 
-        <div className="mt-4 overflow-hidden rounded-xl border border-[#d8bf72]/45 bg-[#080d16]">
-          <div className="relative flex min-h-[220px] items-center justify-center bg-[radial-gradient(circle_at_72%_16%,rgba(239,219,154,0.18),transparent_38%),radial-gradient(circle_at_24%_84%,rgba(160,22,22,0.2),transparent_42%),linear-gradient(140deg,#05080f_0%,#0d1522_58%,#1f110f_100%)] px-4 py-6">
+        {/* 액자형 업로드 영역 */}
+        <div className="mt-4 overflow-hidden rounded-xl border-2 border-[#c8a84b]/50" style={{ background: "linear-gradient(140deg, #07040a 0%, #0d0606 60%, #100408 100%)", boxShadow: "inset 0 0 30px rgba(100,10,10,0.25), 0 0 0 1px rgba(180,130,40,0.08)" }}>
+          {/* 코너 장식 */}
+          <div className="relative">
+            <span aria-hidden className="absolute left-2 top-2 text-[#c8a84b]/60 text-xs leading-none">╔</span>
+            <span aria-hidden className="absolute right-2 top-2 text-[#c8a84b]/60 text-xs leading-none">╗</span>
+            <span aria-hidden className="absolute left-2 bottom-2 text-[#c8a84b]/60 text-xs leading-none">╚</span>
+            <span aria-hidden className="absolute right-2 bottom-2 text-[#c8a84b]/60 text-xs leading-none">╝</span>
+          </div>
+          <div className="relative flex min-h-[220px] items-center justify-center px-6 py-6">
             {hasPreview ? (
               <img
                 src={state.previewUrl ?? ""}
                 alt={`${title} 미리보기`}
-                className="max-h-[300px] w-full rounded-lg border border-[#e5cc8a]/45 object-contain"
+                className="max-h-[300px] w-full rounded-lg object-contain"
+                style={{ border: "1px solid rgba(200,168,75,0.4)", boxShadow: "0 0 20px rgba(0,0,0,0.5)" }}
               />
             ) : (
-              <div className="text-center text-[#f4dfaa]">
-                <p className="text-4xl">🖐</p>
-                <p className="mt-2 text-sm font-bold md:text-base">{title} 이미지 미리보기</p>
-                <p className="mt-1 text-xs text-[#f4dfaa]/80 md:text-sm">업로드 후 이 영역에 표시됩니다.</p>
+              <div className="text-center text-[#c8a84b]">
+                <p className="text-5xl opacity-60">🖐</p>
+                <p className="mt-3 text-sm font-bold text-[#e8d090] md:text-base">{title} 이미지 미리보기</p>
+                <p className="mt-1 text-xs text-[#c8a84b]/70 md:text-sm">업로드 후 이 영역에 표시됩니다.</p>
               </div>
             )}
           </div>
@@ -776,28 +802,29 @@ export default function PalmDestinyMain() {
           <button
             type="button"
             onClick={() => uploadRef.current?.click()}
-            className="cd-gold-btn min-h-[44px] rounded-lg border border-[#d9c27d]/45 bg-[#1a2231] px-3 py-2 text-sm font-bold text-[#f5e2ad] transition"
+            className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090] transition"
           >
             이미지 업로드
           </button>
           <button
             type="button"
             onClick={() => cameraRef.current?.click()}
-            className="cd-gold-btn min-h-[44px] rounded-lg border border-[#d9c27d]/45 bg-[#2b1c1b] px-3 py-2 text-sm font-bold text-[#ffdfb2] transition"
+            className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0e0608] px-3 py-2 text-sm font-bold text-[#e8d090] transition"
           >
             실시간 촬영
           </button>
           <button
             type="button"
             onClick={() => clearHandImage(side)}
-            className="cd-cta-btn min-h-[44px] rounded-lg border border-[#c6975e]/70 bg-[linear-gradient(136deg,rgba(126,25,25,0.94),rgba(92,47,23,0.92))] px-3 py-2 text-sm font-bold text-[#ffe2ce] transition"
+            className="cd-red-btn min-h-[44px] rounded-lg border border-[#9b1a1a]/65 px-3 py-2 text-sm font-bold text-[#ffd8d8] transition"
+            style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
           >
             이미지 삭제
           </button>
           <button
             type="button"
             onClick={() => uploadRef.current?.click()}
-            className="cd-gold-btn min-h-[44px] rounded-lg border border-[#c0a45f]/55 bg-[#2e2618] px-3 py-2 text-sm font-bold text-[#ffe7b7] transition"
+            className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#100a06] px-3 py-2 text-sm font-bold text-[#e8d090] transition"
           >
             다시 선택
           </button>
@@ -823,88 +850,127 @@ export default function PalmDestinyMain() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#06080f] text-[#f8edc8]">
+    <main className="relative min-h-screen overflow-hidden bg-[#03040a] text-[#f8edc8]">
+      {/* 심홍색+금색 배경 분위기 */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 78% 18%, rgba(245, 231, 169, 0.23), transparent 28%), radial-gradient(circle at 18% 82%, rgba(126, 34, 34, 0.2), transparent 34%), linear-gradient(150deg, #05070d 0%, #07101a 52%, #05070d 100%)",
+            "radial-gradient(ellipse at 75% 10%, rgba(180, 28, 28, 0.28), transparent 36%), radial-gradient(ellipse at 20% 85%, rgba(145, 20, 20, 0.22), transparent 40%), radial-gradient(ellipse at 50% 50%, rgba(8, 5, 2, 0.9), transparent 70%), linear-gradient(165deg, #030409 0%, #060c14 45%, #09040a 100%)",
         }}
       />
-
+      {/* 비단 격자 — 조금 더 촘촘 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-35"
+        className="pointer-events-none absolute inset-0 opacity-[0.12]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 14% 26%, rgba(236, 214, 140, 0.38) 0 1px, transparent 2px), radial-gradient(circle at 77% 31%, rgba(236, 214, 140, 0.26) 0 1px, transparent 2px), radial-gradient(circle at 52% 72%, rgba(236, 214, 140, 0.24) 0 1px, transparent 2px), radial-gradient(circle at 34% 58%, rgba(236, 214, 140, 0.2) 0 1px, transparent 2px)",
+            "repeating-linear-gradient(0deg, rgba(212, 176, 92, 0.55) 0, rgba(212, 176, 92, 0.55) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, rgba(212, 176, 92, 0.35) 0, rgba(212, 176, 92, 0.35) 1px, transparent 1px, transparent 40px)",
         }}
       />
-
+      {/* 사선 비단 문양 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        className="pointer-events-none absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(112deg, rgba(230, 212, 148, 0.24) 0, rgba(230, 212, 148, 0.24) 1px, transparent 1px, transparent 24px), repeating-linear-gradient(22deg, rgba(190, 24, 24, 0.24) 0, rgba(190, 24, 24, 0.24) 1px, transparent 1px, transparent 30px)",
+            "repeating-linear-gradient(45deg, rgba(190, 24, 24, 0.5) 0, rgba(190, 24, 24, 0.5) 1px, transparent 1px, transparent 28px), repeating-linear-gradient(-45deg, rgba(212, 176, 92, 0.4) 0, rgba(212, 176, 92, 0.4) 1px, transparent 1px, transparent 28px)",
         }}
       />
-
+      {/* 별빛 점 장식 */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-40"
         style={{
-          background:
-            "radial-gradient(circle at 84% 16%, rgba(255, 246, 214, 0.22), rgba(239, 222, 154, 0.09) 20%, transparent 35%), radial-gradient(circle at 84% 16%, rgba(241, 223, 164, 0.16) 0, transparent 24%), radial-gradient(circle at 78% 23%, rgba(225, 214, 182, 0.1) 0, transparent 42%)",
-          filter: "blur(2px)",
+          backgroundImage:
+            "radial-gradient(circle at 14% 26%, rgba(255, 225, 140, 0.55) 0 1px, transparent 2px), radial-gradient(circle at 77% 31%, rgba(255, 225, 140, 0.42) 0 1px, transparent 2px), radial-gradient(circle at 52% 72%, rgba(255, 225, 140, 0.38) 0 1px, transparent 2px), radial-gradient(circle at 34% 58%, rgba(255, 225, 140, 0.32) 0 1px, transparent 2px), radial-gradient(circle at 88% 62%, rgba(255, 180, 140, 0.3) 0 1px, transparent 2px), radial-gradient(circle at 6% 48%, rgba(255, 200, 140, 0.28) 0 1px, transparent 2px)",
         }}
       />
-
+      {/* 우상단 금빛 원형 후광 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.11]"
+        className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 opacity-30"
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 72% 18%, rgba(238, 220, 158, 0.45) 0 1px, transparent 1.5px), radial-gradient(circle at 66% 24%, rgba(238, 220, 158, 0.36) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 20%, rgba(238, 220, 158, 0.25) 0 1px, transparent 2px), linear-gradient(115deg, transparent 0%, rgba(232, 206, 128, 0.2) 49.7%, transparent 50.3%, transparent 100%), linear-gradient(25deg, transparent 0%, rgba(232, 206, 128, 0.15) 49.7%, transparent 50.3%, transparent 100%)",
+          background: "radial-gradient(circle, rgba(212,176,92,0.55) 0%, rgba(175,28,28,0.22) 45%, transparent 70%)",
+          filter: "blur(12px)",
+        }}
+      />
+      {/* 좌하단 홍색 후광 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 opacity-25"
+        style={{
+          background: "radial-gradient(circle, rgba(160,20,20,0.6) 0%, transparent 70%)",
+          filter: "blur(18px)",
         }}
       />
 
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-5xl items-center px-4 py-10 md:px-8">
-        <article className="cd-ink-card cd-hanji relative w-full overflow-hidden rounded-[28px] border border-[#d7bc69]/45 bg-[linear-gradient(148deg,rgba(15,22,34,0.9),rgba(18,18,17,0.92)_40%,rgba(27,17,14,0.9)_100%)] shadow-[0_28px_72px_rgba(0,0,0,0.55)]">
-          <div className="relative border-b border-[#d7bc69]/30 px-5 py-8 md:px-10 md:py-10">
+        <article className="cd-ink-card cd-hanji relative w-full overflow-hidden rounded-[28px] border-2 border-[#c8a84b]/55 bg-[linear-gradient(148deg,rgba(8,6,12,0.97),rgba(14,9,9,0.97)_50%,rgba(10,5,8,0.97)_100%)] shadow-[0_0_0_1px_rgba(180,130,40,0.2),0_32px_80px_rgba(0,0,0,0.75),inset_0_0_60px_rgba(140,20,20,0.08)]">
+          {/* 카드 상단 금빛 장식선 */}
+          <div aria-hidden className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 20%, #f5d987 50%, #c8a84b 80%, transparent)" }} />
+
+          <div className="relative border-b border-[#c8a84b]/25 px-5 py-8 md:px-10 md:py-12" style={{ background: "linear-gradient(180deg, rgba(120,15,15,0.18) 0%, transparent 60%)" }}>
+            {/* 우상단 팔각 문양 */}
             <div
               aria-hidden
-              className="absolute -right-8 -top-8 h-28 w-28 rounded-full border border-[#dbc16f]/35 bg-[radial-gradient(circle,rgba(248,233,176,0.3)_0%,rgba(248,233,176,0.05)_54%,transparent_72%)]"
+              className="absolute right-6 top-6 h-20 w-20 opacity-30"
+              style={{
+                background: "conic-gradient(from 22.5deg, rgba(212,176,92,0.8) 0deg 45deg, transparent 45deg 90deg, rgba(212,176,92,0.8) 90deg 135deg, transparent 135deg 180deg, rgba(212,176,92,0.8) 180deg 225deg, transparent 225deg 270deg, rgba(212,176,92,0.8) 270deg 315deg, transparent 315deg 360deg)",
+                clipPath: "circle(50%)",
+              }}
             />
-            <span className="inline-flex items-center rounded-full border border-[#a11717]/70 bg-[#3f0d0d]/70 px-3 py-1 text-xs font-bold tracking-[0.18em] text-[#ffdbdb]">
-              PALM DESTINY
-            </span>
+            <div
+              aria-hidden
+              className="absolute right-6 top-6 h-20 w-20 rounded-full opacity-20"
+              style={{ border: "1.5px solid #d4b45c", boxShadow: "0 0 16px rgba(212,176,92,0.5)" }}
+            />
+
+            <div className="flex items-center gap-3">
+              <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, transparent, #c8a84b)" }} />
+              <span className="cd-badge inline-flex items-center rounded-sm border border-[#9b1a1a]/80 bg-[#5a0a0a]/80 px-4 py-1.5 text-[11px] font-bold tracking-[0.22em] text-[#ffc8c8]">
+                掌 紋 運 命　PALM DESTINY
+              </span>
+              <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, #c8a84b, transparent)" }} />
+            </div>
+
             <h1
-              className="mt-4 text-4xl font-black leading-tight md:text-5xl"
+              className="cd-title mt-6 text-center text-5xl font-black leading-tight md:text-6xl"
               style={{
                 fontFamily: "'Noto Serif KR', 'Nanum Myeongjo', serif",
-                textShadow: "0 0 18px rgba(212, 181, 92, 0.24)",
+                background: "linear-gradient(175deg, #fff5d0 0%, #f5d987 35%, #c8a84b 65%, #8b6914 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                textShadow: "none",
+                filter: "drop-shadow(0 0 12px rgba(212,176,92,0.4))",
               }}
             >
               손금 지도
             </h1>
-            <p className="mt-3 text-sm font-semibold tracking-[0.03em] text-[#f5df9f] md:text-base">선천의 결, 후천의 흐름</p>
-            <p className="mt-3 text-base font-semibold text-[#edd99a] md:text-lg">
-              손바닥에 새겨진 사랑, 재물, 직업, 마음의 흐름을 읽다
+            <p className="mt-3 text-center text-sm font-semibold tracking-[0.22em] text-[#d4b45c] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+              先天의 結 · 後天의 流
             </p>
-            <p className="mt-5 max-w-3xl text-sm leading-7 text-[#f7efd8]/90 md:text-base">
+            <div aria-hidden className="mx-auto mt-4 h-px max-w-xs" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 30%, #f5d987 50%, #c8a84b 70%, transparent)" }} />
+            <p className="mt-4 text-center text-base font-semibold text-[#eedad0] md:text-lg">
+              손바닥에 새겨진 사랑 · 재물 · 직업 · 마음의 흐름을 읽다
+            </p>
+            <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-7 text-[#f0e4cc]/85 md:text-base">
               손금은 수명이나 질병을 단정하는 도구가 아니라, 성향·관계·재물·직업 흐름을 상징적으로 읽는 지도입니다.
             </p>
-            <p className="mt-2 max-w-3xl text-xs leading-6 text-[#f8eed1]/85 md:text-sm">
+            <p className="mx-auto mt-2 max-w-3xl text-center text-xs leading-6 text-[#e8d8b8]/75 md:text-sm">
               타고난 손과 살아온 손을 함께 읽습니다. 손바닥에는 본래의 기질과 지금의 발자취가 함께 새겨집니다.
             </p>
           </div>
 
           <div className="relative space-y-5 px-5 py-7 md:px-10 md:py-9">
-            <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(12,19,30,0.92),rgba(30,18,16,0.9))] p-4 md:p-6">
-              <h2 className="text-base font-black text-[#f4de9f] md:text-lg">업로드 안내</h2>
-              <p className="mt-2 text-sm leading-7 text-[#f6ecc8]/90">
+            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(22,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
+              <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
+                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>업로드 안내</h2>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-[#f0dfc0]/90">
                 왼손, 오른손 또는 양손 손바닥 이미지를 업로드하거나 카메라로 촬영해 주세요.
               </p>
             </section>
@@ -914,19 +980,25 @@ export default function PalmDestinyMain() {
               {renderHandUploader("right", rightHand, rightUploadInputRef, rightCameraInputRef, "오른손 이미지 업로드")}
             </div>
 
-            <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(13,19,30,0.94),rgba(27,16,15,0.93))] p-4 md:p-6">
-              <h2 className="text-base font-black text-[#f4de9f] md:text-lg">선천/후천 설명</h2>
-              <div className="mt-3 rounded-xl border border-[#b52a2a]/50 bg-[#2f1111]/70 p-4 text-sm leading-7 text-[#ffe9cc]">
-                <p>손금에서는 자주 쓰는 손을 후천적 손, 자주 쓰지 않는 손을 선천적 손으로 읽습니다.</p>
+            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(20,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
+              <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
+                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>선천 · 후천 설명</h2>
+              </div>
+              <div className="mt-3 rounded-xl border border-[#9b1a1a]/60 bg-[#1e0808]/80 p-4 text-sm leading-7 text-[#ffe5c8]" style={{ boxShadow: "inset 0 0 20px rgba(100,10,10,0.3)" }}>
+                <p>손금에서는 자주 쓰는 손을 <span className="font-bold text-[#f5d987]">후천적 손</span>, 자주 쓰지 않는 손을 <span className="font-bold text-[#f5d987]">선천적 손</span>으로 읽습니다.</p>
                 <p className="mt-2">후천적 손은 현재의 성향과 삶의 흐름을, 선천적 손은 타고난 기질과 잠재력을 보여줍니다.</p>
-                <p className="mt-2 text-[#fff0d4]">선천의 결, 후천의 흐름을 함께 읽어 현실적인 방향을 제안합니다.</p>
+                <p className="mt-2 font-semibold text-[#fde8c8]">선천의 결, 후천의 흐름을 함께 읽어 현실적인 방향을 제안합니다.</p>
               </div>
             </section>
 
-            <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(13,20,31,0.94),rgba(23,18,15,0.94))] p-4 md:p-6">
+            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(18,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <fieldset>
-                <legend className="text-base font-black text-[#f4de9f] md:text-lg">주로 쓰는 손 선택</legend>
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
+                  <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                  <legend className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>주로 쓰는 손 선택</legend>
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {DOMINANT_HAND_OPTIONS.map((option) => {
                     const active = dominantHand === option.value;
                     return (
@@ -937,11 +1009,12 @@ export default function PalmDestinyMain() {
                           setDominantHand(option.value);
                           setSubmitMessage("");
                         }}
-                        className={`cd-gold-btn min-h-[44px] rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
+                        className={`cd-select-btn min-h-[48px] rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
                           active
-                            ? "border-[#f1d282] bg-[#4d3418] text-[#ffe8b8] shadow-[inset_0_-2px_0_rgba(250,224,140,0.7)]"
-                            : "border-[#d8bf72]/45 bg-[#121b2a] text-[#f4e6bf]"
+                            ? "cd-select-btn--active border-[#f5d987]/80 text-[#fff5c8]"
+                            : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
                         }`}
+                        style={active ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         aria-pressed={active}
                       >
                         {option.label}
@@ -951,9 +1024,12 @@ export default function PalmDestinyMain() {
                 </div>
               </fieldset>
 
-              <fieldset className="mt-5">
-                <legend className="text-base font-black text-[#f4de9f] md:text-lg">분석 목적 선택</legend>
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <fieldset className="mt-6">
+                <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
+                  <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                  <legend className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>분석 목적 선택</legend>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {PURPOSE_OPTIONS.map((option) => {
                     const active = analysisPurpose === option.value;
                     return (
@@ -964,11 +1040,12 @@ export default function PalmDestinyMain() {
                           setAnalysisPurpose(option.value);
                           setSubmitMessage("");
                         }}
-                        className={`cd-gold-btn min-h-[44px] rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
+                        className={`cd-select-btn min-h-[48px] rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
                           active
-                            ? "border-[#f1d282] bg-[#5a1f1f] text-[#ffe6c8] shadow-[inset_0_-2px_0_rgba(250,224,140,0.7)]"
-                            : "border-[#d8bf72]/45 bg-[#141d2c] text-[#f4e6bf]"
+                            ? "cd-select-btn--active border-[#f5d987]/80 text-[#fff5c8]"
+                            : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
                         }`}
+                        style={active ? { background: "linear-gradient(135deg, #4d0f0f 0%, #370a0a 50%, #4d1f1f 100%)", boxShadow: "0 0 18px rgba(180,30,30,0.4), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         aria-pressed={active}
                       >
                         {option.label}
@@ -979,53 +1056,73 @@ export default function PalmDestinyMain() {
               </fieldset>
             </section>
 
-            <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(12,18,30,0.94),rgba(23,16,14,0.94))] p-4 md:p-6">
-              <h2 className="text-base font-black text-[#f4de9f] md:text-lg">촬영 가이드</h2>
-              <ul className="mt-3 space-y-2 text-sm leading-7 text-[#f7edcd]/90">
+            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(18,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
+              <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
+                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>촬영 가이드</h2>
+              </div>
+              <ul className="mt-3 space-y-2 text-sm leading-7 text-[#f0dfc0]/90">
                 {SHOOTING_GUIDES.map((guide) => (
-                  <li key={guide} className="rounded-lg border border-[#d8bf72]/25 bg-[#0f1624]/70 px-3 py-2">
-                    {guide}
+                  <li key={guide} className="flex items-start gap-3 rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
+                    <span className="mt-0.5 shrink-0 text-[10px] font-black text-[#d4b45c]">◆</span>
+                    <span>{guide}</span>
                   </li>
                 ))}
               </ul>
             </section>
 
-            <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(12,18,30,0.92),rgba(28,18,15,0.92))] p-4 md:p-6">
+            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(20,8,8,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <button
                 type="button"
                 onClick={handleStartAnalysis}
                 disabled={!canStartAnalysis}
                 aria-disabled={!canStartAnalysis}
-                className={`cd-cta-btn inline-flex min-h-[50px] w-full items-center justify-center rounded-xl border px-4 py-3 text-sm font-black md:text-base ${
+                className={`cd-main-cta inline-flex min-h-[56px] w-full items-center justify-center rounded-xl border px-4 py-3 text-sm font-black tracking-[0.08em] md:text-base ${
                   canStartAnalysis
-                    ? "border-[#e0c774]/75 bg-[linear-gradient(136deg,rgba(125,24,24,0.96),rgba(111,67,28,0.94)_46%,rgba(86,40,21,0.96))] text-[#fff1c9] shadow-[0_10px_26px_rgba(0,0,0,0.35)]"
-                    : "cursor-not-allowed border-[#d0b465]/35 bg-[linear-gradient(135deg,rgba(118,93,33,0.5),rgba(60,47,22,0.62))] text-[#f8e8b5] opacity-65"
+                    ? "border-[#d4af37]/70 text-[#fff8e0]"
+                    : "cursor-not-allowed border-[#7a6020]/40 text-[#c8b070] opacity-60"
                 }`}
+                style={canStartAnalysis ? {
+                  background: "linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%)",
+                  boxShadow: "0 0 0 1px rgba(212,176,92,0.25), 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(139,0,0,0.4)",
+                } : {
+                  background: "linear-gradient(140deg, rgba(80,60,20,0.5), rgba(40,30,10,0.6))",
+                }}
               >
-                {isSubmitting ? "손금 분석 진행 중..." : "손바닥 운명 지도 열기"}
+                {isSubmitting ? (
+                  <span className="flex items-center gap-3">
+                    <span aria-hidden className="cd-spinner inline-block h-5 w-5 rounded-full border-2 border-[#f5d987]/30 border-t-[#f5d987]" />
+                    손금 분석 진행 중...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden style={{ fontFamily: "serif" }}>☰</span>
+                    손바닥 운명 지도 열기
+                  </span>
+                )}
               </button>
 
-              <p className="mt-3 text-xs leading-6 text-[#f7edcd]/75 md:text-sm">
+              <p className="mt-3 text-xs leading-6 text-[#d4b45c]/75 md:text-sm">
                 활성 조건: 왼손 또는 오른손 이미지 1개 이상 + 주로 쓰는 손 선택 + 분석 목적 선택
               </p>
 
               {(leftHand.file || rightHand.file) && dominantHand ? (
-                <div className="mt-3 rounded-lg border border-[#d9c27d]/40 bg-[#101a29]/70 px-3 py-2 text-xs text-[#f7edcd]/90 md:text-sm">
-                  <p>왼손 역할: {HAND_ROLE_META[handRoles.leftHandRole].label}</p>
-                  <p className="mt-1">오른손 역할: {HAND_ROLE_META[handRoles.rightHandRole].label}</p>
+                <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs text-[#e8d090]/90 md:text-sm">
+                  <p>왼손 역할: <span className="font-bold text-[#f5d987]">{HAND_ROLE_META[handRoles.leftHandRole].label}</span></p>
+                  <p className="mt-1">오른손 역할: <span className="font-bold text-[#f5d987]">{HAND_ROLE_META[handRoles.rightHandRole].label}</span></p>
                 </div>
               ) : null}
 
               {submitMessage ? (
-                <p className="mt-3 rounded-lg border border-[#b52a2a]/55 bg-[#351515]/70 px-3 py-2 text-xs leading-6 text-[#ffdede] md:text-sm">
+                <p className="mt-3 rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/80 px-3 py-2 text-xs leading-6 text-[#ffd8d8] md:text-sm">
                   {submitMessage}
                 </p>
               ) : null}
 
               {isSubmitting ? (
-                <div className="mt-3 rounded-lg border border-[#d9c27d]/40 bg-[#101a29]/75 px-3 py-3 text-xs text-[#f7edcd]/92 md:text-sm">
-                  <p className="font-bold text-[#ffe6b5]">손바닥의 금빛 선을 읽고 있습니다...</p>
-                  <p className="mt-1 text-[#f9efcf]">{loadingPhaseText}</p>
+                <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/80 px-3 py-3 text-xs text-[#e8d090]/92 md:text-sm">
+                  <p className="font-bold text-[#f5d987]">손바닥의 금빛 선을 읽고 있습니다...</p>
+                  <p className="mt-1 text-[#e8d090]">{loadingPhaseText}</p>
                 </div>
               ) : null}
 
@@ -1033,14 +1130,14 @@ export default function PalmDestinyMain() {
                 <button
                   type="button"
                   onClick={handlePhotoReselect}
-                  className="cd-gold-btn min-h-[44px] rounded-lg border border-[#d9c27d]/45 bg-[#1a2231] px-3 py-2 text-sm font-bold text-[#f5e2ad]"
+                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
                 >
                   사진 다시 선택
                 </button>
                 <button
                   type="button"
                   onClick={handleResetOnlyResult}
-                  className="cd-gold-btn min-h-[44px] rounded-lg border border-[#d9c27d]/45 bg-[#171f2e] px-3 py-2 text-sm font-bold text-[#f5e2ad]"
+                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
                 >
                   다시 분석
                 </button>
@@ -1048,27 +1145,31 @@ export default function PalmDestinyMain() {
             </section>
 
             {analysisResult ? (
-              <section className="cd-ink-card cd-hanji cd-seal rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(12,19,31,0.95),rgba(26,17,15,0.93))] p-4 md:p-6">
-                <div className="mb-4 flex flex-col gap-3 border-b border-[#d8bf72]/25 pb-3 md:flex-row md:items-center md:justify-between">
+              <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.98),rgba(20,8,8,0.97))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 40px rgba(120,15,15,0.14)" }}>
+                <div className="mb-4 flex flex-col gap-3 border-b border-[#c8a84b]/25 pb-4 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h2 className="text-base font-black text-[#f4de9f] md:text-lg">손금 결과 오버레이</h2>
-                    <p className="mt-1 text-xs text-[#f9edcb]/85">선천의 결, 후천의 흐름을 한 화면에서 비교합니다.</p>
+                    <div className="flex items-center gap-3">
+                      <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                      <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>손금 결과 오버레이</h2>
+                    </div>
+                    <p className="mt-1 text-xs text-[#d4b45c]/85">선천의 결, 후천의 흐름을 한 화면에서 비교합니다.</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-[#d8bf72]/35 bg-[#101a2b]/75 px-2 py-1 text-[11px] font-bold text-[#ffe7b3]">
+                    <span className="rounded-full border border-[#c8a84b]/35 bg-[#0d0808]/80 px-2 py-1 text-[11px] font-bold text-[#e8d090]">
                       {hasCoordinatePaths ? "좌표 기반 + 일부 보정" : "상징적 안내 오버레이"}
                     </span>
                     <button
                       type="button"
                       onClick={handleRetryWithOtherHand}
-                      className="cd-gold-btn min-h-[40px] rounded-lg border border-[#d9c27d]/45 bg-[#1a2231] px-3 py-2 text-xs font-bold text-[#f5e2ad]"
+                      className="cd-ghost-btn min-h-[40px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#e8d090]"
                     >
                       다른 손으로 다시 보기
                     </button>
                     <button
                       type="button"
                       onClick={handleBackToMain}
-                      className="cd-cta-btn min-h-[40px] rounded-lg border border-[#c6975e]/70 bg-[linear-gradient(136deg,rgba(126,25,25,0.94),rgba(92,47,23,0.92))] px-3 py-2 text-xs font-bold text-[#ffe2ce]"
+                      className="cd-red-btn min-h-[40px] rounded-lg border border-[#9b1a1a]/70 px-3 py-2 text-xs font-bold text-[#ffd8d8]"
+                      style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
                     >
                       메인으로 돌아가기
                     </button>
@@ -1082,22 +1183,24 @@ export default function PalmDestinyMain() {
                         <button
                           type="button"
                           onClick={() => setOverlaySide("left")}
-                          className={`cd-gold-btn min-h-[44px] rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
+                          className={`cd-select-btn min-h-[44px] rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
                             overlaySide === "left"
-                              ? "border-[#e5cb80]/65 bg-[#3b2a1d] text-[#ffe8bc] shadow-[inset_0_-2px_0_rgba(250,224,140,0.65)]"
-                              : "border-[#d8bf72]/30 bg-[#111b2a] text-[#f4e6bf]"
+                              ? "border-[#f5d987]/70 text-[#fff5c8]"
+                              : "border-[#c8a84b]/30 bg-[#0d0808] text-[#e8d090]"
                           }`}
+                          style={overlaySide === "left" ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         >
                           왼손 보기
                         </button>
                         <button
                           type="button"
                           onClick={() => setOverlaySide("right")}
-                          className={`cd-gold-btn min-h-[44px] rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
+                          className={`cd-select-btn min-h-[44px] rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
                             overlaySide === "right"
-                              ? "border-[#e5cb80]/65 bg-[#3b2a1d] text-[#ffe8bc] shadow-[inset_0_-2px_0_rgba(250,224,140,0.65)]"
-                              : "border-[#d8bf72]/30 bg-[#111b2a] text-[#f4e6bf]"
+                              ? "border-[#f5d987]/70 text-[#fff5c8]"
+                              : "border-[#c8a84b]/30 bg-[#0d0808] text-[#e8d090]"
                           }`}
+                          style={overlaySide === "right" ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         >
                           오른손 보기
                         </button>
@@ -1115,39 +1218,39 @@ export default function PalmDestinyMain() {
 
                   <div className="space-y-4">
                     {analysisResult.interpretation?.focusSummary ? (
-                      <section className="cd-ink-card cd-hanji rounded-xl border border-[#d8bf72]/30 bg-[#111b2a]/70 px-4 py-3">
-                        <h3 className="text-sm font-black text-[#f3de9f] md:text-base">해석 중심</h3>
-                        <p className="mt-2 text-xs leading-6 text-[#f8eed2]/90 md:text-sm">
+                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 px-4 py-3">
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>해석 중심</h3>
+                        <p className="mt-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                           {analysisResult.interpretation.focusSummary}
                         </p>
                       </section>
                     ) : null}
 
                     {bothHandsComparison ? (
-                      <section className="cd-ink-card cd-hanji rounded-xl border border-[#d8bf72]/30 bg-[#151422]/75 p-4">
-                        <h3 className="text-sm font-black text-[#f3de9f] md:text-base">선천/후천 비교 요약</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#f9efcf]/85 md:text-sm">타고난 손과 살아온 손을 함께 읽습니다.</p>
-                        <div className="mt-3 space-y-2 text-xs leading-6 text-[#f8eed2]/90 md:text-sm">
-                          <p className="rounded-lg border border-[#d8bf72]/20 bg-[#101b2b]/60 px-3 py-2">{bothHandsComparison.innateSummary}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/20 bg-[#101b2b]/60 px-3 py-2">{bothHandsComparison.acquiredSummary}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/20 bg-[#101b2b]/60 px-3 py-2">{bothHandsComparison.differenceSummary}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/20 bg-[#101b2b]/60 px-3 py-2">{bothHandsComparison.growthSummary}</p>
+                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>선천 · 후천 비교 요약</h3>
+                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">타고난 손과 살아온 손을 함께 읽습니다.</p>
+                        <div className="mt-3 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.innateSummary}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.acquiredSummary}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.differenceSummary}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.growthSummary}</p>
                         </div>
                       </section>
                     ) : null}
 
                     {analysisResult.resultSections.length > 0 ? (
-                      <section className="cd-ink-card cd-hanji rounded-xl border border-[#d8bf72]/30 bg-[#111726]/75 p-4">
-                        <h3 className="text-sm font-black text-[#f3de9f] md:text-base">해석 섹션 아코디언</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#f9efcf]/85 md:text-sm">카드/탭과 별개로 전체 14개 구조 리딩을 접기/펼치기로 확인할 수 있습니다.</p>
+                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>해석 섹션 아코디언</h3>
+                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">카드/탭과 별개로 전체 14개 구조 리딩을 접기/펼치기로 확인할 수 있습니다.</p>
                         <div className="mt-3 space-y-2">
                           {analysisResult.resultSections.map((section) => (
                             <details
                               key={`section-${section.key}`}
-                              className="rounded-lg border border-[#d8bf72]/25 bg-[#0f1a2a]/70 px-3 py-2"
+                              className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2"
                             >
-                              <summary className="cursor-pointer text-xs font-black text-[#ffe6b7] md:text-sm">{section.title}</summary>
-                              <p className="mt-2 whitespace-pre-wrap text-xs leading-6 text-[#f8eed2]/90 md:text-sm">{section.content}</p>
+                              <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">{section.title}</summary>
+                              <p className="mt-2 whitespace-pre-wrap text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{section.content}</p>
                             </details>
                           ))}
                         </div>
@@ -1155,18 +1258,18 @@ export default function PalmDestinyMain() {
                     ) : null}
 
                     {activeRecognition ? (
-                      <section className="cd-ink-card cd-hanji rounded-xl border border-[#d8bf72]/30 bg-[#12182a]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f3de9f] md:text-base">실제 인식 데이터 보기</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#f9efcf]/85 md:text-sm">감지된 값만 보여주며, 미감지 항목은 감지되지 않음/unknown으로 유지합니다.</p>
+                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>실제 인식 데이터 보기</h3>
+                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">감지된 값만 보여주며, 미감지 항목은 감지되지 않음/unknown으로 유지합니다.</p>
 
-                        <div className="mt-3 grid gap-2 text-xs leading-6 text-[#f8eed2]/90 md:grid-cols-2 md:text-sm">
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">손바닥 감지 여부: {String(activeRecognition.palmDetected ?? false)}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">왼손/오른손 판별: {String(activeRecognition.handSide ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">선천적/후천적 손 여부: {String(activeRecognition.handRoleLabel ?? "미확정")}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">이미지 밝기: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.brightness ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">이미지 선명도: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.sharpness ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">손바닥 점유율: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.palmCoverage ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#d8bf72]/22 bg-[#0f1a2a]/65 px-3 py-2">손형 판별값: {String((activeRecognition.handShape as Record<string, unknown> | undefined)?.type ?? "unknown")} / palmRatio={String((activeRecognition.handShape as Record<string, unknown> | undefined)?.palmRatio ?? "unknown")} / fingerRatio={String((activeRecognition.handShape as Record<string, unknown> | undefined)?.fingerRatio ?? "unknown")}</p>
+                        <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">손바닥 감지 여부: {String(activeRecognition.palmDetected ?? false)}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">왼손/오른손 판별: {String(activeRecognition.handSide ?? "unknown")}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">선천적/후천적 손 여부: {String(activeRecognition.handRoleLabel ?? "미확정")}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">이미지 밝기: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.brightness ?? "unknown")}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">이미지 선명도: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.sharpness ?? "unknown")}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">손바닥 점유율: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.palmCoverage ?? "unknown")}</p>
+                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">손형 판별값: {String((activeRecognition.handShape as Record<string, unknown> | undefined)?.type ?? "unknown")} / palmRatio={String((activeRecognition.handShape as Record<string, unknown> | undefined)?.palmRatio ?? "unknown")} / fingerRatio={String((activeRecognition.handShape as Record<string, unknown> | undefined)?.fingerRatio ?? "unknown")}</p>
                         </div>
 
                         <div className="mt-3 space-y-2">
@@ -1183,9 +1286,9 @@ export default function PalmDestinyMain() {
                             const line = ((activeRecognition.lines as Record<string, unknown> | undefined)?.[key] || {}) as Record<string, unknown>;
                             const path = Array.isArray(line.path) ? (line.path as Array<unknown>) : [];
                             return (
-                              <details key={`line-${key}`} className="rounded-lg border border-[#d8bf72]/25 bg-[#0f1a2a]/70 px-3 py-2">
-                                <summary className="cursor-pointer text-xs font-black text-[#ffe6b7] md:text-sm">{label} 측정값</summary>
-                                <div className="mt-2 grid gap-1 text-xs leading-6 text-[#f8eed2]/90 md:grid-cols-2 md:text-sm">
+                              <details key={`line-${key}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2">
+                                <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">{label} 측정값</summary>
+                                <div className="mt-2 grid gap-1 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
                                   <p>감지 상태: {String(line.detected ?? false)}</p>
                                   <p>신뢰도: {String(line.confidence ?? "unknown")}</p>
                                   <p>normalizedLength: {String(line.normalizedLength ?? 0)}</p>
@@ -1200,9 +1303,9 @@ export default function PalmDestinyMain() {
                                   <p>끝 영역: {String(line.endZone ?? "unknown")}</p>
                                   <p>variant: {String(line.variant ?? "unknown")}</p>
                                 </div>
-                                <details className="mt-2 rounded-md border border-[#d8bf72]/18 bg-[#0c1523]/60 px-2 py-1">
-                                  <summary className="cursor-pointer text-[11px] font-bold text-[#f7e5b4] md:text-xs">path 좌표 접기/펼치기</summary>
-                                  <pre className="mt-1 max-h-36 overflow-auto whitespace-pre-wrap break-all text-[10px] text-[#f5ebcc]/85 md:text-[11px]">
+                                <details className="mt-2 rounded-md border border-[#c8a84b]/18 bg-[#0d0606]/60 px-2 py-1">
+                                  <summary className="cursor-pointer text-[11px] font-bold text-[#d4b45c] md:text-xs">path 좌표 접기/펼치기</summary>
+                                  <pre className="mt-1 max-h-36 overflow-auto whitespace-pre-wrap break-all text-[10px] text-[#d8c89a]/85 md:text-[11px]">
                                     {path.length > 0 ? JSON.stringify(path, null, 2) : "[]"}
                                   </pre>
                                 </details>
@@ -1211,9 +1314,9 @@ export default function PalmDestinyMain() {
                           })}
                         </div>
 
-                        <details className="mt-3 rounded-lg border border-[#d8bf72]/25 bg-[#0f1a2a]/70 px-3 py-2">
-                          <summary className="cursor-pointer text-xs font-black text-[#ffe6b7] md:text-sm">구丘 분석값</summary>
-                          <div className="mt-2 grid gap-1 text-xs leading-6 text-[#f8eed2]/90 md:text-sm">
+                        <details className="mt-3 rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2">
+                          <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">구丘 분석값</summary>
+                          <div className="mt-2 grid gap-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                             {[
                               ["금성구", "venus"],
                               ["월구", "moon"],
@@ -1244,11 +1347,12 @@ export default function PalmDestinyMain() {
                               key={`mobile-tab-${card.key}`}
                               type="button"
                               onClick={() => setActiveCardKey(card.key)}
-                              className={`cd-soft-tab min-h-[46px] shrink-0 rounded-lg border px-3 py-2 text-[12px] font-bold transition-all duration-200 ${
+                              className={`cd-select-btn min-h-[46px] shrink-0 rounded-lg border px-3 py-2 text-[12px] font-bold transition-all duration-200 ${
                                 active
-                                  ? "border-[#e4ca7d]/65 bg-[#38261f] text-[#ffe7b8] shadow-[inset_0_-2px_0_rgba(250,224,140,0.8)]"
-                                  : "border-[#d8bf72]/30 bg-[#111b2a] text-[#f4e6bf]"
+                                  ? "border-[#f5d987]/70 text-[#fff5c8]"
+                                  : "border-[#c8a84b]/30 bg-[#0d0808] text-[#e8d090]"
                               }`}
+                              style={active ? { background: "linear-gradient(135deg, #4d0f0f 0%, #370a0a 50%, #4d1f1f 100%)", boxShadow: "0 0 14px rgba(180,30,30,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                             >
                               {CARD_KEY_TO_LABEL[card.key]}
                             </button>
@@ -1270,96 +1374,166 @@ export default function PalmDestinyMain() {
       </section>
 
       <style jsx global>{`
-        .cd-ink-card {
-          backdrop-filter: blur(2px);
-        }
-
-        .cd-hanji {
+        /* ──────────── 동양 명품 카드 ──────────── */
+        .cd-oriental-card {
+          backdrop-filter: blur(4px);
           position: relative;
         }
 
-        .cd-hanji::before {
+        /* 한지 질감 오버레이 */
+        .cd-oriental-card::before {
           content: "";
           position: absolute;
           inset: 0;
           pointer-events: none;
+          border-radius: inherit;
           background-image:
-            radial-gradient(circle at 16% 24%, rgba(245, 227, 177, 0.08) 0 1px, transparent 2px),
-            radial-gradient(circle at 74% 66%, rgba(245, 227, 177, 0.07) 0 1px, transparent 2px),
-            repeating-linear-gradient(0deg, rgba(250, 238, 205, 0.03) 0, rgba(250, 238, 205, 0.03) 1px, transparent 1px, transparent 7px);
-          opacity: 0.35;
+            radial-gradient(circle at 12% 20%, rgba(212, 176, 92, 0.09) 0 1px, transparent 2px),
+            radial-gradient(circle at 78% 72%, rgba(212, 176, 92, 0.07) 0 1px, transparent 2px),
+            repeating-linear-gradient(0deg, rgba(212, 176, 92, 0.025) 0, rgba(212, 176, 92, 0.025) 1px, transparent 1px, transparent 6px);
+          opacity: 1;
         }
 
-        .cd-seal::after {
+        /* 우상단 작은 금빛 도장 */
+        .cd-oriental-card::after {
+          content: "◈";
+          position: absolute;
+          right: 14px;
+          top: 10px;
+          font-size: 10px;
+          color: rgba(200, 168, 75, 0.7);
+          text-shadow: 0 0 6px rgba(200, 168, 75, 0.5);
+          pointer-events: none;
+          line-height: 1;
+        }
+
+        /* ──────────── 제목 금빛 광채 ──────────── */
+        .cd-title {
+          animation: cdTitleGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes cdTitleGlow {
+          from { filter: drop-shadow(0 0 8px rgba(212, 176, 92, 0.3)); }
+          to   { filter: drop-shadow(0 0 22px rgba(212, 176, 92, 0.6)); }
+        }
+
+        /* ──────────── 배지 ──────────── */
+        .cd-badge {
+          letter-spacing: 0.22em;
+          position: relative;
+        }
+
+        /* ──────────── 선택 버튼 ──────────── */
+        .cd-select-btn {
+          transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+        }
+
+        .cd-select-btn:hover {
+          box-shadow: 0 0 16px rgba(200, 168, 75, 0.35);
+          border-color: rgba(212, 176, 92, 0.65);
+          transform: translateY(-1px);
+        }
+
+        .cd-select-btn--active {
+          animation: cdSelectPulse 2.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes cdSelectPulse {
+          from { box-shadow: 0 0 14px rgba(200, 168, 75, 0.3), inset 0 -2px 0 rgba(245, 217, 135, 0.7); }
+          to   { box-shadow: 0 0 26px rgba(200, 168, 75, 0.55), inset 0 -2px 0 rgba(245, 217, 135, 0.9); }
+        }
+
+        /* ──────────── 고스트 버튼 ──────────── */
+        .cd-ghost-btn {
+          transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .cd-ghost-btn:hover {
+          box-shadow: 0 0 14px rgba(200, 168, 75, 0.28);
+          border-color: rgba(212, 176, 92, 0.6);
+          background: rgba(30, 15, 8, 0.9) !important;
+          transform: translateY(-1px);
+        }
+
+        /* ──────────── 붉은 버튼 ──────────── */
+        .cd-red-btn {
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .cd-red-btn:hover {
+          box-shadow: 0 0 18px rgba(155, 26, 26, 0.55);
+          transform: translateY(-1px);
+        }
+
+        /* ──────────── 메인 CTA 버튼 ──────────── */
+        .cd-main-cta {
+          transition: box-shadow 0.28s ease, transform 0.28s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .cd-main-cta::after {
           content: "";
           position: absolute;
-          right: 12px;
-          top: 12px;
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(245, 217, 138, 0.75);
-          background: rgba(150, 23, 23, 0.82);
-          box-shadow: 0 0 8px rgba(176, 34, 34, 0.35);
+          inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
           pointer-events: none;
         }
 
-        .cd-gold-btn {
-          transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        .cd-main-cta:hover:not(:disabled) {
+          box-shadow:
+            0 0 0 1px rgba(212, 176, 92, 0.4),
+            0 16px 36px rgba(0, 0, 0, 0.55),
+            0 0 32px rgba(139, 0, 0, 0.5);
+          transform: translateY(-2px);
         }
 
-        .cd-gold-btn:hover {
-          box-shadow: 0 0 14px rgba(227, 193, 112, 0.28);
-          border-color: rgba(236, 205, 127, 0.65);
-          transform: translateY(-1px);
+        .cd-main-cta:active:not(:disabled) {
+          transform: translateY(0);
         }
 
-        .cd-cta-btn {
-          transition: box-shadow 0.24s ease, transform 0.24s ease;
+        /* ──────────── 스피너 ──────────── */
+        .cd-spinner {
+          animation: cdSpin 0.9s linear infinite;
         }
 
-        .cd-cta-btn:hover:enabled {
-          box-shadow: 0 0 16px rgba(231, 193, 102, 0.32), 0 10px 24px rgba(0, 0, 0, 0.28);
-          transform: translateY(-1px);
+        @keyframes cdSpin {
+          to { transform: rotate(360deg); }
         }
 
+        /* ──────────── 카드 페이드인 ──────────── */
         .cd-fade-in {
-          animation: cdFadeIn 0.32s ease both;
-        }
-
-        .cd-soft-tab {
-          border-bottom-width: 1px;
-        }
-
-        .cd-soft-tab:hover {
-          box-shadow: 0 0 10px rgba(227, 193, 112, 0.22);
+          animation: cdFadeIn 0.36s ease both;
         }
 
         @keyframes cdFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(6px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ──────────── 레거시 호환 ──────────── */
+        .cd-ink-card { backdrop-filter: blur(2px); }
+        .cd-gold-btn { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .cd-gold-btn:hover { box-shadow: 0 0 14px rgba(200,168,75,0.28); transform: translateY(-1px); }
+        .cd-cta-btn { transition: box-shadow 0.24s ease, transform 0.24s ease; }
+        .cd-cta-btn:hover:enabled { box-shadow: 0 0 16px rgba(212,176,92,0.32), 0 10px 24px rgba(0,0,0,0.28); transform: translateY(-1px); }
+        .cd-soft-tab:hover { box-shadow: 0 0 10px rgba(200,168,75,0.22); }
+
         @media (prefers-reduced-motion: reduce) {
+          .cd-select-btn,
+          .cd-ghost-btn,
+          .cd-red-btn,
+          .cd-main-cta,
+          .cd-spinner,
+          .cd-fade-in,
+          .cd-title,
+          .cd-select-btn--active,
           .cd-gold-btn,
           .cd-cta-btn,
-          .cd-fade-in,
           .cd-soft-tab {
             transition: none !important;
             animation: none !important;
             transform: none !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .cd-hanji::before {
-            opacity: 0.25;
           }
         }
       `}</style>

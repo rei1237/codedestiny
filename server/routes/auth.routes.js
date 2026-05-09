@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 
 const User = require("../models/User");
+const RefreshTokenSession = require("../models/RefreshTokenSession");
 const { requireAuth } = require("../middleware/auth.middleware");
 const { validateRegisterPayload, validateLoginPayload } = require("../utils/validation");
 
@@ -12,6 +13,207 @@ const router = express.Router();
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
+const ACCESS_COOKIE_NAME = "fortune_auth_token";
+const REFRESH_COOKIE_NAME = "fortune_auth_refresh";
+
+router.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  next();
+});
+
+function parseDurationToSeconds(rawValue, fallbackSeconds) {
+  const raw = String(rawValue || "").trim();
+  if (!raw) return fallbackSeconds;
+
+  if (/^\d+$/.test(raw)) {
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallbackSeconds;
+  }
+
+  const match = raw.match(/^(\d+)\s*([smhd])$/i);
+  if (!match) return fallbackSeconds;
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount) || amount <= 0) return fallbackSeconds;
+  const unit = String(match[2] || "s").toLowerCase();
+  const multiplier = unit === "d" ? 86400 : unit === "h" ? 3600 : unit === "m" ? 60 : 1;
+  return Math.floor(amount * multiplier);
+}
+
+function getAccessTokenSecret() {
+  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || "dev-secret";
+}
+
+function getRefreshTokenSecret() {
+  return process.env.JWT_REFRESH_SECRET || process.env.AUTH_SECRET || getAccessTokenSecret();
+}
+
+function getJwtIssuer() {
+  return process.env.JWT_ISSUER || "code-destiny-api";
+}
+
+function getJwtAudience() {
+  return String(process.env.JWT_AUDIENCE || "code-destiny-web").trim();
+}
+
+function getAccessTokenExpiresIn() {
+  return process.env.ACCESS_TOKEN_EXPIRES_IN || process.env.JWT_EXPIRES_IN || "30m";
+}
+
+function getRefreshTokenExpiresIn() {
+  return process.env.REFRESH_TOKEN_EXPIRES_IN || "14d";
+}
+
+function resolveCookieSecure(req) {
+  const forced = String(process.env.AUTH_COOKIE_SECURE || "").trim().toLowerCase();
+  if (forced === "true") return true;
+  if (forced === "false") return false;
+  if (String(process.env.NODE_ENV || "").toLowerCase() === "production") return true;
+
+  const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "http").toLowerCase();
+  return proto === "https";
+}
+
+function resolveCookieSameSite() {
+  const raw = String(process.env.AUTH_COOKIE_SAMESITE || "lax").trim().toLowerCase();
+  if (raw === "strict") return "strict";
+  if (raw === "none") return "none";
+  return "lax";
+}
+
+function buildCookieOptions(req, maxAgeSec, path) {
+  return {
+    httpOnly: true,
+    secure: resolveCookieSecure(req),
+    sameSite: resolveCookieSameSite(),
+    path,
+    maxAge: Math.max(0, Math.floor(maxAgeSec * 1000)),
+  };
+}
+
+function getCookieValue(req, cookieName) {
+  const raw = String(req.headers.cookie || "");
+  if (!raw) return "";
+  const parts = raw.split(";").map((v) => v.trim());
+  for (const part of parts) {
+    const [k, ...rest] = part.split("=");
+    if (k === cookieName) {
+      try {
+        return decodeURIComponent(rest.join("="));
+      } catch {
+        return rest.join("=");
+      }
+    }
+  }
+  return "";
+}
+
+function hashRefreshToken(rawToken) {
+  const pepper = process.env.AUTH_SECRET || getAccessTokenSecret();
+  return crypto.createHash("sha256").update(`${String(rawToken || "")}|${pepper}`).digest("hex");
+}
+
+function buildRefreshSessionFromRequest(req, userId) {
+  const refreshMaxAgeSec = parseDurationToSeconds(getRefreshTokenExpiresIn(), 14 * 24 * 60 * 60);
+  const ip = String(req.headers["x-forwarded-for"] || req.ip || "").split(",")[0].trim();
+  const userAgent = String(req.headers["user-agent"] || "");
+  return {
+    userId: new mongoose.Types.ObjectId(String(userId)),
+    ip,
+    userAgent,
+    expiresAt: new Date(Date.now() + refreshMaxAgeSec * 1000),
+  };
+}
+
+function signAccessToken(user) {
+  return jwt.sign(
+    {
+      userId: String(user._id),
+      email: user.email,
+      role: user.role,
+    },
+    getAccessTokenSecret(),
+    {
+      expiresIn: getAccessTokenExpiresIn(),
+      issuer: getJwtIssuer(),
+      audience: getJwtAudience(),
+    },
+  );
+}
+
+function signRefreshToken(userId) {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const expiresIn = getRefreshTokenExpiresIn();
+  const refreshToken = jwt.sign(
+    {
+      userId: String(userId),
+      sid: crypto.randomBytes(16).toString("hex"),
+      typ: "refresh",
+      iat: nowSec,
+    },
+    getRefreshTokenSecret(),
+    {
+      expiresIn,
+      issuer: getJwtIssuer(),
+      audience: getJwtAudience(),
+    },
+  );
+
+  const decoded = jwt.decode(refreshToken) || {};
+  const expSec = Number(decoded.exp || nowSec + parseDurationToSeconds(expiresIn, 14 * 24 * 60 * 60));
+  return {
+    refreshToken,
+    tokenHash: hashRefreshToken(refreshToken),
+    expiresAt: new Date(expSec * 1000),
+  };
+}
+
+async function createRefreshSession(req, userId, tokenHash, expiresAt) {
+  const base = buildRefreshSessionFromRequest(req, userId);
+  return RefreshTokenSession.create({
+    ...base,
+    tokenHash,
+    expiresAt,
+    revokedAt: null,
+    replacedByTokenHash: "",
+  });
+}
+
+async function revokeRefreshSessionByHash(tokenHash, replacedByTokenHash = "") {
+  if (!tokenHash) return;
+  await RefreshTokenSession.updateOne(
+    { tokenHash },
+    {
+      $set: {
+        revokedAt: new Date(),
+        ...(replacedByTokenHash ? { replacedByTokenHash } : {}),
+      },
+    },
+  ).catch(() => {});
+}
+
+async function revokeAllUserRefreshSessions(userId) {
+  if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return;
+  await RefreshTokenSession.updateMany(
+    { userId: new mongoose.Types.ObjectId(String(userId)), revokedAt: null },
+    { $set: { revokedAt: new Date() } },
+  ).catch(() => {});
+}
+
+function setAuthCookies(req, res, accessToken, refreshToken) {
+  const accessMaxAgeSec = parseDurationToSeconds(getAccessTokenExpiresIn(), 30 * 60);
+  const refreshMaxAgeSec = parseDurationToSeconds(getRefreshTokenExpiresIn(), 14 * 24 * 60 * 60);
+  res.cookie(ACCESS_COOKIE_NAME, accessToken, buildCookieOptions(req, accessMaxAgeSec, "/"));
+  res.cookie(REFRESH_COOKIE_NAME, refreshToken, buildCookieOptions(req, refreshMaxAgeSec, "/api/auth/refresh"));
+}
+
+function clearAuthCookies(req, res) {
+  const accessClear = buildCookieOptions(req, 0, "/");
+  const refreshClear = buildCookieOptions(req, 0, "/api/auth/refresh");
+  res.cookie(ACCESS_COOKIE_NAME, "", accessClear);
+  res.cookie(REFRESH_COOKIE_NAME, "", refreshClear);
+  res.clearCookie("fortune_auth_role", { path: "/" });
+}
 
 async function findUserByIdRaw(userId, projection = {}) {
   const normalizedId = String(userId || "").trim();
@@ -128,17 +330,17 @@ function signSocialState(payload) {
       purpose: "social-oauth-state",
       ...payload,
     },
-    process.env.JWT_SECRET || "dev-secret",
+    getAccessTokenSecret(),
     {
       expiresIn: "10m",
-      issuer: "code-destiny-api",
+      issuer: getJwtIssuer(),
     },
   );
 }
 
 function verifySocialState(token) {
-  const payload = jwt.verify(token, process.env.JWT_SECRET || "dev-secret", {
-    issuer: "code-destiny-api",
+  const payload = jwt.verify(token, getAccessTokenSecret(), {
+    issuer: getJwtIssuer(),
   });
   if (!payload || payload.purpose !== "social-oauth-state") {
     throw new Error("invalid_oauth_state");
@@ -153,17 +355,17 @@ function signSocialGrant(payload) {
       ...payload,
       jti: crypto.randomUUID(),
     },
-    process.env.JWT_SECRET || "dev-secret",
+    getAccessTokenSecret(),
     {
       expiresIn: `${SOCIAL_GRANT_EXPIRES_IN_SEC}s`,
-      issuer: "code-destiny-api",
+      issuer: getJwtIssuer(),
     },
   );
 }
 
 function verifySocialGrant(token) {
-  const payload = jwt.verify(token, process.env.JWT_SECRET || "dev-secret", {
-    issuer: "code-destiny-api",
+  const payload = jwt.verify(token, getAccessTokenSecret(), {
+    issuer: getJwtIssuer(),
   });
   if (!payload || payload.purpose !== "social-oauth-grant") {
     throw new Error("invalid_social_grant");
@@ -392,18 +594,7 @@ async function findOrCreateSocialUser(provider, profile) {
 }
 
 function signToken(user) {
-  return jwt.sign(
-    {
-      userId: String(user._id),
-      email: user.email,
-      role: user.role,
-    },
-    process.env.JWT_SECRET || "dev-secret",
-    {
-      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-      issuer: "code-destiny-api",
-    },
-  );
+  return signAccessToken(user);
 }
 
 async function hashPassword(rawPassword) {
@@ -460,10 +651,14 @@ router.post("/register", async (req, res, next) => {
       },
     });
 
-    const token = signToken(user);
+    const accessToken = signToken(user);
+    const refreshIssue = signRefreshToken(user._id);
+    await createRefreshSession(req, user._id, refreshIssue.tokenHash, refreshIssue.expiresAt);
+    setAuthCookies(req, res, accessToken, refreshIssue.refreshToken);
+
     return res.status(201).json({
+      ok: true,
       message: "회원가입이 완료되었습니다.",
-      token,
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(req.body?.nextPath) || "/",
     });
@@ -500,12 +695,84 @@ router.post("/login", async (req, res, next) => {
       });
     }
 
-    const token = signToken(user);
+    const accessToken = signToken(user);
+    const refreshIssue = signRefreshToken(user._id);
+    await createRefreshSession(req, user._id, refreshIssue.tokenHash, refreshIssue.expiresAt);
+    setAuthCookies(req, res, accessToken, refreshIssue.refreshToken);
+
     return res.status(200).json({
+      ok: true,
       message: "로그인에 성공했습니다.",
-      token,
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(req.body?.nextPath) || "/",
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/refresh", async (req, res, next) => {
+  try {
+    const refreshToken = getCookieValue(req, REFRESH_COOKIE_NAME);
+    if (!refreshToken) {
+      clearAuthCookies(req, res);
+      return res.status(401).json({ ok: false, message: "리프레시 토큰이 없습니다." });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(refreshToken, getRefreshTokenSecret(), {
+        issuer: getJwtIssuer(),
+        audience: getJwtAudience(),
+      });
+    } catch {
+      clearAuthCookies(req, res);
+      return res.status(401).json({ ok: false, message: "리프레시 토큰이 유효하지 않습니다." });
+    }
+
+    const userId = String(payload?.userId || "");
+    if (!mongoose.Types.ObjectId.isValid(userId) || String(payload?.typ || "") !== "refresh") {
+      clearAuthCookies(req, res);
+      return res.status(401).json({ ok: false, message: "리프레시 토큰 형식이 올바르지 않습니다." });
+    }
+
+    const tokenHash = hashRefreshToken(refreshToken);
+    const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
+    if (!session || session.revokedAt) {
+      await revokeAllUserRefreshSessions(userId);
+      clearAuthCookies(req, res);
+      return res.status(401).json({ ok: false, message: "세션이 만료되었습니다. 다시 로그인해 주세요." });
+    }
+
+    const expiresAt = new Date(session.expiresAt || 0).getTime();
+    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+      await revokeRefreshSessionByHash(tokenHash);
+      clearAuthCookies(req, res);
+      return res.status(401).json({ ok: false, message: "리프레시 토큰이 만료되었습니다." });
+    }
+
+    const user = await User.findById(userId)
+      .select("_id name email birthDate birthTime gender role points joinedAt passwordHash localAuth")
+      .lean();
+    if (!user) {
+      await revokeAllUserRefreshSessions(userId);
+      clearAuthCookies(req, res);
+      return res.status(401).json({ ok: false, message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    const accessToken = signToken(user);
+    const refreshIssue = signRefreshToken(user._id);
+    await createRefreshSession(req, user._id, refreshIssue.tokenHash, refreshIssue.expiresAt);
+    await revokeRefreshSessionByHash(tokenHash, refreshIssue.tokenHash);
+    setAuthCookies(req, res, accessToken, refreshIssue.refreshToken);
+
+    return res.status(200).json({
+      ok: true,
+      message: "세션이 갱신되었습니다.",
+      user: {
+        ...normalizeUserResponse(user),
+        hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+      },
     });
   } catch (error) {
     return next(error);
@@ -536,6 +803,7 @@ router.get("/me", requireAuth, async (req, res, next) => {
     }
 
     return res.status(200).json({
+      ok: true,
       message: "인증 사용자 조회에 성공했습니다.",
       user: normalizeUserResponse(user),
     });
@@ -545,10 +813,12 @@ router.get("/me", requireAuth, async (req, res, next) => {
 });
 
 router.post("/logout", async (req, res) => {
-  // JWT stateless 구조이므로 서버 세션 제거는 없고, 클라이언트 쿠키 정리를 위한 응답만 반환한다.
-  res.clearCookie("fortune_auth_token", { path: "/" });
-  res.clearCookie("fortune_auth_role", { path: "/" });
-  return res.status(200).json({ message: "로그아웃되었습니다." });
+  const refreshToken = getCookieValue(req, REFRESH_COOKIE_NAME);
+  if (refreshToken) {
+    await revokeRefreshSessionByHash(hashRefreshToken(refreshToken));
+  }
+  clearAuthCookies(req, res);
+  return res.status(200).json({ ok: true, message: "로그아웃되었습니다." });
 });
 
 router.get("/oauth/:provider/start", async (req, res) => {
@@ -661,10 +931,14 @@ router.post("/oauth/complete", async (req, res, next) => {
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
 
-    const token = signToken(user);
+    const accessToken = signToken(user);
+    const refreshIssue = signRefreshToken(user._id);
+    await createRefreshSession(req, user._id, refreshIssue.tokenHash, refreshIssue.expiresAt);
+    setAuthCookies(req, res, accessToken, refreshIssue.refreshToken);
+
     return res.status(200).json({
+      ok: true,
       message: "소셜 로그인에 성공했습니다.",
-      token,
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(payload.nextPath) || "/",
       provider: payload.provider,

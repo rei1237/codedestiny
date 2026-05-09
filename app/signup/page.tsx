@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
+import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
@@ -18,7 +19,6 @@ type SignupResult = {
   message?: string;
   code?: string;
   error?: string;
-  token?: string;
   nextPath?: string;
   provider?: "google" | "naver" | "kakao";
   user?: {
@@ -38,12 +38,6 @@ type SocialProvider = "google" | "naver" | "kakao";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const LOCAL_AUTH_TIMEOUT_MS = 20000;
-
-function normalizeApiBase(rawBase: string | undefined | null) {
-  const value = String(rawBase || "").trim();
-  if (!value) return "";
-  return value.replace(/\/+$/, "");
-}
 
 function sanitizeNextPath(rawNext: string | null) {
   if (!rawNext) return null;
@@ -69,12 +63,11 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, tim
   }
 }
 
-function publishAuthSync(event: "login" | "logout", token?: string) {
+function publishAuthSync(event: "login" | "logout") {
   if (typeof window === "undefined") return;
   const payload = {
     source: "signup",
     event,
-    token: token ? "updated" : "none",
     at: Date.now(),
   };
   try {
@@ -89,14 +82,7 @@ function publishAuthSync(event: "login" | "logout", token?: string) {
 }
 
 function clearStoredAuth() {
-  try {
-    localStorage.removeItem("fortune_auth_token");
-    localStorage.removeItem("fortune_auth_user");
-  } catch {
-    // ignore
-  }
-  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
-  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
+  clearClientAuthState();
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -160,21 +146,16 @@ export default function SignupPage() {
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
-  const persistAuth = (token?: string, user?: SignupResult["user"]) => {
-    if (token) {
-      localStorage.setItem("fortune_auth_token", token);
-      document.cookie = `fortune_auth_token=${encodeURIComponent(token)}; path=/; max-age=604800; samesite=lax`;
-      publishAuthSync("login", token);
-    }
-
+  const persistAuth = (user?: SignupResult["user"]) => {
     if (user) {
       const safeUser = persistSanitizedAuthUser(user);
       const role = String((safeUser && safeUser.role) || user.role || "user");
       document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
+      publishAuthSync("login");
     }
   };
 
-  const redirectAfterAuth = (nextPath: string, user?: SignupResult["user"]) => {
+  const redirectAfterAuth = useCallback((nextPath: string, user?: SignupResult["user"]) => {
     if (user?.role === "admin" && nextPath === "/") {
       router.replace("/admin");
       return;
@@ -186,36 +167,30 @@ export default function SignupPage() {
     }
 
     router.replace(nextPath);
-  };
+  }, [router]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("social_grant") || params.get("social_error")) return;
 
-    let token = "";
-    try {
-      token = localStorage.getItem("fortune_auth_token") || "";
-    } catch {
-      // no-op
-    }
-
-    if (!token) return;
-
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    fetch(`${authApiBase}/api/auth/me`, {
+    authFetch(`${authApiBase}/api/auth/me`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
       signal: controller.signal,
+    }, {
+      retryOn401: true,
+      apiBase: authApiBase,
     })
       .then(async (response) => {
         if (!response.ok) throw new Error("auth_invalid");
         return parseJsonResponse<SignupResult>(response);
       })
       .then((payload) => {
-        persistAuth(token, payload.user);
+        if (!payload.user) throw new Error("auth_invalid");
+        persistAuth(payload.user);
         setIsRedirecting(true);
         timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
       })
@@ -228,7 +203,7 @@ export default function SignupPage() {
       controller.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [authApiBase, router]);
+  }, [authApiBase, redirectAfterAuth]);
 
   useEffect(() => {
     if (socialCompleteOnceRef.current) return;
@@ -259,6 +234,7 @@ export default function SignupPage() {
           const nextResponse = await fetch(socialCompleteEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ socialGrant }),
           });
 
@@ -291,7 +267,7 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        persistAuth(payload.token, payload.user);
+        persistAuth(payload.user);
 
         const nextFromQuery = sanitizeNextPath(params.get("next"));
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
@@ -304,7 +280,7 @@ export default function SignupPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [router, socialCompleteEndpoint]);
+  }, [redirectAfterAuth, socialCompleteEndpoint]);
 
   const hasRequiredConsents = agreePrivacy && agreeTerms;
 
@@ -337,6 +313,7 @@ export default function SignupPage() {
           const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
               name: name.trim(),
               email: loginId.trim(),
@@ -373,7 +350,7 @@ export default function SignupPage() {
         throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
       }
 
-      persistAuth(payload.token, payload.user);
+      persistAuth(payload.user);
       const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
 
       redirectAfterAuth(resolvedNextPath, payload.user);

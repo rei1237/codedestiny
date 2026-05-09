@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
 import { getApiBaseUrl } from "../../_lib/api-config";
 
 /* ══════════════════════════════════════════════════════════════════
@@ -208,17 +209,21 @@ export default function PointHistoryPage() {
 
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
-  const fetchPointsSection = useCallback(async (token: string) => {
+  const fetchPointsSection = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/points/me`, {
+      const res = await authFetch(`${apiBase}/api/points/me`, {
+        method: "GET",
         credentials: "include",
-        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
       });
       if (!res.ok && res.status !== 401 && res.status !== 403) {
         console.warn("[points-history] API error", { path: "/api/points/me", status: res.status });
       }
       if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem("fortune_auth_token");
+        clearClientAuthState();
         router.replace("/login?next=%2Fpoints%2Fhistory");
         return;
       }
@@ -244,17 +249,21 @@ export default function PointHistoryPage() {
     }
   }, [apiBase, router]);
 
-  const fetchPaymentsSection = useCallback(async (token: string) => {
+  const fetchPaymentsSection = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/payments/me`, {
+      const res = await authFetch(`${apiBase}/api/payments/me`, {
+        method: "GET",
         credentials: "include",
-        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
       });
       if (!res.ok && res.status !== 401 && res.status !== 403) {
         console.warn("[points-history] API error", { path: "/api/payments/me", status: res.status });
       }
       if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem("fortune_auth_token");
+        clearClientAuthState();
         router.replace("/login?next=%2Fpoints%2Fhistory");
         return;
       }
@@ -277,11 +286,15 @@ export default function PointHistoryPage() {
     }
   }, [apiBase, router]);
 
-  const fetchSubscriptionSection = useCallback(async (token: string) => {
+  const fetchSubscriptionSection = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/subscription/status`, {
+      const res = await authFetch(`${apiBase}/api/subscription/status`, {
+        method: "GET",
         credentials: "include",
-        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
       });
       if (!res.ok && res.status !== 401 && res.status !== 403) {
         console.warn("[points-history] API error", { path: "/api/subscription/status", status: res.status });
@@ -310,32 +323,24 @@ export default function PointHistoryPage() {
     }
   }, [apiBase]);
 
-  const fetchData = useCallback(async (token: string) => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     await Promise.allSettled([
-      fetchPointsSection(token),
-      fetchPaymentsSection(token),
-      fetchSubscriptionSection(token),
+      fetchPointsSection(),
+      fetchPaymentsSection(),
+      fetchSubscriptionSection(),
     ]);
     setIsLoading(false);
   }, [fetchPaymentsSection, fetchPointsSection, fetchSubscriptionSection]);
 
   useEffect(() => {
-    const token = localStorage.getItem("fortune_auth_token");
-    if (!token) {
-      router.replace("/login?next=%2Fpoints%2Fhistory");
-      return;
-    }
+    if (!router) return;
     setIsBooting(false);
   }, [router]);
 
-  const tokenRef = useRef<string | null>(null);
   useEffect(() => {
     if (isBooting) return;
-    const token = localStorage.getItem("fortune_auth_token");
-    if (!token) return;
-    tokenRef.current = token;
-    fetchData(token);
+    fetchData();
   }, [isBooting, fetchData]);
 
   /* ── 탭 필터링 ─────────────────────────────────────────────── */
@@ -449,7 +454,7 @@ export default function PointHistoryPage() {
                 <p className="text-[11px] font-bold text-rose-700">잔액 조회 실패: {pointsError}</p>
                 <button
                   type="button"
-                  onClick={() => { if (tokenRef.current) fetchPointsSection(tokenRef.current); }}
+                  onClick={() => { fetchPointsSection(); }}
                   className="mt-1 text-[11px] font-bold text-rose-600 underline"
                 >
                   잔액 다시 조회
@@ -472,7 +477,7 @@ export default function PointHistoryPage() {
           {subscriptionError && (
             <button
               type="button"
-              onClick={() => { if (tokenRef.current) fetchSubscriptionSection(tokenRef.current); }}
+              onClick={() => { fetchSubscriptionSection(); }}
               className="mt-1 text-[12px] font-bold text-rose-600 underline"
             >
               구독 상태 다시 조회
@@ -549,7 +554,7 @@ export default function PointHistoryPage() {
                 <p className="text-sm font-semibold text-rose-700">⚠️ {pointsError}</p>
                 <button
                   type="button"
-                  onClick={() => { if (tokenRef.current) fetchPointsSection(tokenRef.current); }}
+                  onClick={() => { fetchPointsSection(); }}
                   className="mt-2 text-[12px] font-bold text-rose-600 underline"
                 >
                   다시 시도
@@ -628,7 +633,7 @@ export default function PointHistoryPage() {
               <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
               <button
                 type="button"
-                onClick={() => { if (tokenRef.current) fetchPaymentsSection(tokenRef.current); }}
+                onClick={() => { fetchPaymentsSection(); }}
                 className="mt-2 text-[12px] font-bold text-rose-600 underline"
               >
                 결제 내역 다시 조회
