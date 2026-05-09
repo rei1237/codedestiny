@@ -630,6 +630,7 @@ export default function HPremiumVedicSection({
         const res = await fetch("/api/premium/vedic-life", {
           method:"POST",
           headers,
+          credentials: "include",
           body: JSON.stringify(payload),
           signal: controller.signal,
         });
@@ -727,14 +728,14 @@ export default function HPremiumVedicSection({
     }
 
     const token = localStorage.getItem("fortune_auth_token");
-    if (!token) throw new Error("로그인 후 궁합 리포트를 생성해 주세요.");
 
     const requestId = `premium:veda:compat-addon:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const res = await fetch("/api/fortune/pig-coin/consume", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         cost: VEDIC_COMPAT_ADDON_COST,
@@ -747,6 +748,9 @@ export default function HPremiumVedicSection({
     const data = await res.json().catch(() => ({}));
     if (res.status === 402) {
       throw new Error("코인이 부족합니다. 궁합 모드는 300코인이 추가됩니다.");
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("로그인이 필요합니다. 로그인 후 궁합 리포트를 생성해 주세요.");
     }
     if (!res.ok) {
       throw new Error(data?.message || "궁합 모드 추가 코인 차감에 실패했습니다.");

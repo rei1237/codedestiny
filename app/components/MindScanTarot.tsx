@@ -999,17 +999,6 @@ export default function MindScanTarot() {
         ? String(flowerAdminToken)
         : "";
 
-      if (!authToken && !isFlowerAdminMode) {
-        setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
-        if (typeof window !== "undefined") {
-          const next = encodeURIComponent(window.location.pathname + window.location.search);
-          window.setTimeout(() => {
-            window.location.href = `/login?next=${next}`;
-          }, 600);
-        }
-        return;
-      }
-
       if (!isFlowerAdminMode) {
         paymentOverlayActive = true;
         startPayment("결제를 확인 중입니다...");
@@ -1023,6 +1012,7 @@ export default function MindScanTarot() {
         };
         const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
           method: "POST",
+          credentials: "include",
           headers: consumeRequestHeaders,
           body: JSON.stringify({
             cost: MINDSCAN_COIN_COST,
@@ -1033,6 +1023,17 @@ export default function MindScanTarot() {
           }),
         });
         const consumeData = await consumeRes.json().catch(() => ({}));
+        const consumeCode = String(consumeData?.code || consumeData?.error || "").toUpperCase();
+        if (consumeRes.status === 401 || consumeRes.status === 403 || consumeCode === "LOGIN_REQUIRED" || consumeCode === "AUTH_REQUIRED" || consumeCode === "UNAUTHORIZED") {
+          setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+          if (typeof window !== "undefined") {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.setTimeout(() => {
+              window.location.href = `/login?next=${next}`;
+            }, 600);
+          }
+          return;
+        }
         if (consumeRes.status === 402) {
           setReadingError(`코인이 부족합니다. ${MINDSCAN_COIN_COST}코인이 필요합니다.`);
           return;
@@ -1060,6 +1061,7 @@ export default function MindScanTarot() {
 
       const res = await fetch("/api/tarot/mindscan", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pairs }),
       });
@@ -1075,6 +1077,7 @@ export default function MindScanTarot() {
         try {
           const refundRes = await fetch("/api/fortune/pig-coin/refund", {
             method: "POST",
+            credentials: "include",
             headers: refundHeaders,
             body: JSON.stringify({
               cost: MINDSCAN_COIN_COST,

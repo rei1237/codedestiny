@@ -173,17 +173,6 @@ export default function LoveRelationshipTarot() {
         ? String(flowerAdminToken)
         : "";
 
-      if (!authToken && !isFlowerAdminMode) {
-        setError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
-        if (typeof window !== "undefined") {
-          const next = encodeURIComponent(window.location.pathname + window.location.search);
-          window.setTimeout(() => {
-            window.location.href = `/login?next=${next}`;
-          }, 600);
-        }
-        return;
-      }
-
       if (!isFlowerAdminMode) {
         paymentOverlayActive = true;
         startPayment("결제를 확인 중입니다...");
@@ -197,6 +186,7 @@ export default function LoveRelationshipTarot() {
         };
         const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
           method: "POST",
+          credentials: "include",
           headers: consumeRequestHeaders,
           body: JSON.stringify({
             cost: LOVE_RELATIONSHIP_COIN_COST,
@@ -207,6 +197,17 @@ export default function LoveRelationshipTarot() {
           }),
         });
         const consumeData = await consumeRes.json().catch(() => ({}));
+        const consumeCode = String(consumeData?.code || consumeData?.error || "").toUpperCase();
+        if (consumeRes.status === 401 || consumeRes.status === 403 || consumeCode === "LOGIN_REQUIRED" || consumeCode === "AUTH_REQUIRED" || consumeCode === "UNAUTHORIZED") {
+          setError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+          if (typeof window !== "undefined") {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.setTimeout(() => {
+              window.location.href = `/login?next=${next}`;
+            }, 600);
+          }
+          return;
+        }
         if (consumeRes.status === 402) {
           setError(`코인이 부족합니다. ${LOVE_RELATIONSHIP_COIN_COST}코인이 필요합니다.`);
           return;
@@ -239,6 +240,7 @@ export default function LoveRelationshipTarot() {
       }));
       const res = await fetch("/api/tarot/love-reading", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cards: payloadCards,
@@ -254,6 +256,7 @@ export default function LoveRelationshipTarot() {
         try {
           const refundRes = await fetch("/api/fortune/pig-coin/refund", {
             method: "POST",
+            credentials: "include",
             headers: refundHeaders,
             body: JSON.stringify({
               cost: LOVE_RELATIONSHIP_COIN_COST,

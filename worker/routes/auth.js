@@ -795,12 +795,16 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   const accessToken = await signAuthToken(user, env);
   const { refreshToken, tokenHash, expiresAt } = await issueRefreshTokenForUser(user._id, env);
   await createRefreshSession(request, env, user._id, tokenHash, expiresAt);
+  const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
 
   const response = json({
     ok: true,
     message: status === 201 ? "Registration completed." : "Login completed.",
     user: normalizeUserResponse(user),
     nextPath: sanitizeNextPath(nextPath) || "/",
+    accessToken,
+    tokenType: "Bearer",
+    accessTokenExpiresInSec: accessExpiresInSec,
   }, { status });
   appendAuthCookies(response, request, env, accessToken, refreshToken);
   return response;
@@ -1304,10 +1308,14 @@ async function handleRefresh(request, env) {
     revokedAt: new Date(),
     replacedByTokenHash: nextRefresh.tokenHash,
   });
+  const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
 
   const response = json({
     ok: true,
     message: "Token refreshed.",
+    accessToken,
+    tokenType: "Bearer",
+    accessTokenExpiresInSec: accessExpiresInSec,
     user: {
       ...normalizeUserResponse(user),
       hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
@@ -1636,6 +1644,9 @@ async function handleOAuthComplete(request, env) {
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(payload.nextPath) || "/",
       provider: payload.provider,
+      accessToken,
+      tokenType: "Bearer",
+      accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
     });
     appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
     return response;

@@ -805,6 +805,7 @@ export default function HPremiumSukuyoSection({
         const res = await fetch("/api/premium/sukuyo-life", {
           method: "POST",
           headers,
+          credentials: "include",
           body: JSON.stringify(payload),
           signal: controller.signal,
         });

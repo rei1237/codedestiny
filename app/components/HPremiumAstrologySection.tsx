@@ -513,6 +513,7 @@ ${chaptersHtml}
         const res = await fetch(path, {
           method: "POST",
           headers,
+          credentials: "include",
           body: JSON.stringify(payload),
           signal: controller.signal,
         });

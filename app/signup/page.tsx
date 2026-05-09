@@ -20,6 +20,9 @@ type SignupResult = {
   code?: string;
   error?: string;
   nextPath?: string;
+  accessToken?: string;
+  tokenType?: string;
+  accessTokenExpiresInSec?: number;
   provider?: "google" | "naver" | "kakao";
   user?: {
     id: string;
@@ -150,7 +153,14 @@ export default function SignupPage() {
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
-  const persistAuth = (user?: SignupResult["user"]) => {
+  const persistAuth = (user?: SignupResult["user"], accessToken?: string) => {
+    if (accessToken) {
+      try {
+        localStorage.setItem("fortune_auth_token", String(accessToken));
+      } catch {
+        // ignore storage failures
+      }
+    }
     if (user) {
       const safeUser = persistSanitizedAuthUser(user);
       const role = String((safeUser && safeUser.role) || user.role || "user");
@@ -194,7 +204,7 @@ export default function SignupPage() {
       })
       .then((payload) => {
         if (!payload.user) throw new Error("auth_invalid");
-        persistAuth(payload.user);
+        persistAuth(payload.user, payload.accessToken);
         setIsRedirecting(true);
         timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
       })
@@ -271,7 +281,7 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        persistAuth(payload.user);
+        persistAuth(payload.user, payload.accessToken);
 
         const nextFromQuery = resolveNextPathFromQuery(params);
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
@@ -354,7 +364,7 @@ export default function SignupPage() {
         throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
       }
 
-      persistAuth(payload.user);
+      persistAuth(payload.user, payload.accessToken);
       const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
 
       redirectAfterAuth(resolvedNextPath, payload.user);

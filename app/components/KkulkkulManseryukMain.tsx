@@ -280,6 +280,67 @@ function getFlowerAdminTestTierClient(): '' | 'standard' | 'premium' | 'vvip' {
   return '';
 }
 
+function getClientAuthToken(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return String(localStorage.getItem('fortune_auth_token') || '').trim();
+  } catch (_) {
+    return '';
+  }
+}
+
+function hasCachedAuthIdentity(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = localStorage.getItem('fortune_auth_user');
+    if (!raw) return false;
+    const user = JSON.parse(raw);
+    const id = String(user?.id || user?.userId || user?._id || user?.uid || '').trim();
+    const email = String(user?.email || '').trim();
+    return !!(id || email);
+  } catch (_) {
+    return false;
+  }
+}
+
+function hasAuthRoleCookie(): boolean {
+  if (typeof document === 'undefined') return false;
+  try {
+    return /(?:^|;\s*)fortune_auth_role=/.test(document.cookie || '');
+  } catch (_) {
+    return false;
+  }
+}
+
+function hasClientAuthSessionHint(): boolean {
+  if (isAdminSessionClient()) return true;
+  if (getClientAuthToken()) return true;
+  if (hasCachedAuthIdentity()) return true;
+  if (hasAuthRoleCookie()) return true;
+  return false;
+}
+
+function buildClientAuthHeaders(): Record<string, string> {
+  const token = getClientAuthToken();
+  const adminToken = getFlowerAdminTokenClient();
+  const adminTestTier = getFlowerAdminTestTierClient();
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+    ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+  };
+}
+
+function isLoginRequiredResponse(status: number, payload: any): boolean {
+  const code = String(payload?.code || payload?.error || '').trim().toUpperCase();
+  return status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED';
+}
+
+function redirectToLoginWithNext(nextPath: string = '/'): void {
+  if (typeof window === 'undefined') return;
+  window.location.href = `/login?next=${encodeURIComponent(nextPath)}`;
+}
+
 function saveUserPoints(points: number) {
   try {
     const raw = localStorage.getItem('fortune_auth_user');
@@ -413,7 +474,11 @@ export default function KkulkkulManseryukMain() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(url, { ...init, signal: controller.signal });
+      const res = await fetch(url, {
+        ...init,
+        credentials: init.credentials || 'include',
+        signal: controller.signal,
+      });
       const data = await res.json().catch(() => ({}));
       return { res, data };
     } finally {
@@ -423,19 +488,7 @@ export default function KkulkkulManseryukMain() {
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      window.location.href = '/login?next=%2F';
-      return;
-    }
-    const adminToken = getFlowerAdminTokenClient();
-    const adminTestTier = getFlowerAdminTestTierClient();
-    const authHeaders = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-    };
+    const authHeaders = buildClientAuthHeaders();
     
     startPayment(`결제를 진행 중입니다.`);
     try {
@@ -451,6 +504,11 @@ export default function KkulkkulManseryukMain() {
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(payload),
       });
+      if (isLoginRequiredResponse(res.status, data)) {
+        alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
+        redirectToLoginWithNext('/');
+        return;
+      }
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
@@ -488,19 +546,7 @@ export default function KkulkkulManseryukMain() {
   };
 
   const runPaidFeatureOnce = async (key: PerUseKey, cost: number) => {
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      window.location.href = '/login?next=%2F';
-      return;
-    }
-    const adminToken = getFlowerAdminTokenClient();
-    const adminTestTier = getFlowerAdminTestTierClient();
-    const authHeaders = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-    };
+    const authHeaders = buildClientAuthHeaders();
     
     startPayment(`결제를 진행 중입니다.`);
     try {
@@ -509,6 +555,11 @@ export default function KkulkkulManseryukMain() {
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ cost, reason: `${key} 이용`, featureKey: key, forceDeduct: true, requestId: `use:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
       });
+      if (isLoginRequiredResponse(res.status, data)) {
+        alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
+        redirectToLoginWithNext('/');
+        return;
+      }
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
@@ -531,29 +582,18 @@ export default function KkulkkulManseryukMain() {
   };
 
   const runPremiumIntroGate = async (service: PremiumServiceKey): Promise<PremiumGateResult> => {
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      window.location.href = '/login?next=%2F';
-      return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
-    }
-
     if (unlockedFeatures.premiumDivinationPack) {
       return { ok: true };
     }
-
-    const adminToken = getFlowerAdminTokenClient();
-    const adminTestTier = getFlowerAdminTestTierClient();
-    const authHeaders = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-    };
+    const authHeaders = buildClientAuthHeaders();
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/balance', {
         method: 'GET',
         headers: { ...authHeaders },
       });
+      if (isLoginRequiredResponse(res.status, data)) {
+        return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
+      }
       if (!res.ok) {
         throw new Error(data?.message || '잔액 확인에 실패했습니다.');
       }
@@ -642,15 +682,7 @@ export default function KkulkkulManseryukMain() {
       return;
     }
 
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token) return;
-    const adminToken = getFlowerAdminTokenClient();
-    const adminTestTier = getFlowerAdminTestTierClient();
-    const authHeaders = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-    };
+    const authHeaders = buildClientAuthHeaders();
 
     const cost = PREMIUM_SERVICE_COST[service];
     const productId = PREMIUM_PRODUCT_BY_SERVICE[service];
@@ -666,6 +698,14 @@ export default function KkulkkulManseryukMain() {
             : { cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId },
         ),
       });
+      if (isLoginRequiredResponse(res.status, data)) {
+        if (service === 'veda') {
+          setVedaFlowState('idle');
+        }
+        alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
+        redirectToLoginWithNext('/');
+        return;
+      }
       if (res.status === 402) {
         if (service === 'veda') {
           setVedaFlowState('payment_required');
@@ -763,16 +803,10 @@ export default function KkulkkulManseryukMain() {
       }
     } catch (_) {}
     // 2) API로 실제 잔액 동기화
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !isAdminSessionClient()) return;
-    const adminToken = getFlowerAdminTokenClient();
-    const adminTestTier = getFlowerAdminTestTierClient();
-    const authHeaders = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-    };
+    if (!hasClientAuthSessionHint() && !isAdminSessionClient()) return;
+    const authHeaders = buildClientAuthHeaders();
     fetch('/api/fortune/pig-coin/balance', {
+      credentials: 'include',
       headers: { ...authHeaders },
     })
       .then((r) => r.json())

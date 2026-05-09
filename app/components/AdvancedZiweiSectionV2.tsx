@@ -233,16 +233,17 @@ export default function AdvancedZiweiSectionV2({
       try {
         const token = localStorage.getItem("fortune_auth_token");
         const adminToken = getFlowerAdminTokenClient();
-        if (!token && !adminToken) {
-          return false;
-        }
 
         const response = await fetch("/api/user/destiny-profiles", {
+          credentials: "include",
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...(adminToken ? { "x-admin-token": adminToken } : {}),
           },
         });
+        if (response.status === 401 || response.status === 403) {
+          return false;
+        }
         const payload = await response.json();
         if (response.ok && payloadHasPremiumUnlock(payload)) {
           setResolvedUnlocked(true);

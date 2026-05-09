@@ -6486,7 +6486,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function getAuthToken() {
     try {
-      return localStorage.getItem('fortune_auth_token') || '';
+      return String(localStorage.getItem('fortune_auth_token') || '').trim();
     } catch (_e) {
       return '';
     }
@@ -6509,6 +6509,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function hasAuthToken() {
     return !!getAuthToken();
+  }
+
+  async function ensureAuthToken(forceRefresh) {
+    var existing = getAuthToken();
+    if (existing && !forceRefresh) return existing;
+
+    try {
+      var refreshRes = await fetch(getApiBaseUrl() + '/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      if (!refreshRes.ok) return '';
+      var refreshPayload = await refreshRes.json().catch(function(){ return {}; });
+      var nextToken = String((refreshPayload && refreshPayload.accessToken) || '').trim();
+      if (!nextToken) return '';
+      try { localStorage.setItem('fortune_auth_token', nextToken); } catch (_e) {}
+      if (refreshPayload && refreshPayload.user) {
+        __cdWriteAuthUserCache(refreshPayload.user);
+      }
+      return nextToken;
+    } catch (_e) {
+      return '';
+    }
   }
 
   function readAuthUser() {
@@ -6884,26 +6908,52 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function fetchJsonWithAuth(path, init) {
-    var token = getAuthToken();
+    var token = await ensureAuthToken(false);
     if (!token) {
-      return { ok: false, status: 401, payload: { message: '로그인이 필요합니다.' } };
+      return { ok: false, status: 401, payload: { message: '로그인이 필요합니다.', code: 'LOGIN_REQUIRED' } };
     }
-
-    var headers = Object.assign({}, (init && init.headers) || {}, {
-      Authorization: 'Bearer ' + token,
-    });
+    var headers = Object.assign({}, (init && init.headers) || {});
+    headers.Authorization = 'Bearer ' + token;
     if (init && init.body && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
     }
 
-    var response = await fetch(getApiBaseUrl() + path, Object.assign({}, init || {}, { headers: headers }));
+    var requestInit = Object.assign({}, init || {}, {
+      credentials: (init && init.credentials) || 'include',
+      headers: headers,
+    });
+
+    var response = await fetch(getApiBaseUrl() + path, requestInit);
     var payload = {};
     try { payload = await response.json(); } catch (_e) {}
+
+    if (response.status === 401) {
+      var refreshedToken = await ensureAuthToken(true);
+      if (refreshedToken) {
+        var retryHeaders = Object.assign({}, (init && init.headers) || {});
+        retryHeaders.Authorization = 'Bearer ' + refreshedToken;
+        if (init && init.body && !retryHeaders['Content-Type']) {
+          retryHeaders['Content-Type'] = 'application/json';
+        }
+        var retryResponse = await fetch(getApiBaseUrl() + path, Object.assign({}, init || {}, {
+          credentials: (init && init.credentials) || 'include',
+          headers: retryHeaders,
+        }));
+        response = retryResponse;
+        payload = {};
+        try { payload = await retryResponse.json(); } catch (_retryParseErr) {}
+      }
+    }
+
     return { ok: response.ok, status: response.status, payload: payload };
   }
 
   async function syncBalanceFromServer() {
-    if (!hasAuthToken() || syncInFlight) return;
+    if (syncInFlight) return;
+    if (!hasAuthToken()) {
+      var bootToken = await ensureAuthToken(false);
+      if (!bootToken) return;
+    }
     syncInFlight = true;
     try {
       var primary = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
@@ -6955,6 +7005,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   async function applyCharge() {
     if (!hasAuthToken()) {
+      var token = await ensureAuthToken(false);
+      if (token) {
+        closeChargeModal();
+        window.location.href = '/points';
+        return;
+      }
       window.alert('로그인이 필요합니다. 로그인 후 공식 포인트 충전소에서 결제를 진행해 주세요.');
       window.location.href = '/login?next=%2Fpoints';
       return;
@@ -6999,9 +7055,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
 
     if (!hasAuthToken()) {
+      var unlockedToken = await ensureAuthToken(false);
+      if (!unlockedToken) {
       window.alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
       window.location.href = '/login?next=%2F';
       return;
+      }
     }
     if (isTileKeyUnlocked(featureKey)) {
       UnlockButton(button);
@@ -7553,10 +7612,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return true;
       }
       if (!hasAuthToken()) {
+        var perUseToken = await ensureAuthToken(false);
+        if (!perUseToken) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
         return false;
+        }
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
@@ -7759,10 +7821,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       _cdSafeBlockEvent(event);
       (async function () {
         if (!hasAuthToken()) {
+          var lockGateToken = await ensureAuthToken(false);
+          if (!lockGateToken) {
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
           return;
+          }
         }
         if (isTileKeyUnlocked(tileLockKey)) {
           applyTileLockVisuals();

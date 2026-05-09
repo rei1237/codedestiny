@@ -731,6 +731,9 @@ router.post("/register", async (req, res, next) => {
       message: "회원가입이 완료되었습니다.",
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(req.body?.nextPath) || "/",
+      accessToken,
+      tokenType: "Bearer",
+      accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(), 30 * 60),
     });
   } catch (error) {
     return next(error);
@@ -786,6 +789,9 @@ router.post("/login", async (req, res, next) => {
       message: "로그인에 성공했습니다.",
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(req.body?.nextPath) || "/",
+      accessToken,
+      tokenType: "Bearer",
+      accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(), 30 * 60),
     });
   } catch (error) {
     return next(error);
@@ -850,6 +856,9 @@ router.post("/refresh", async (req, res, next) => {
     return res.status(200).json({
       ok: true,
       message: "세션이 갱신되었습니다.",
+      accessToken,
+      tokenType: "Bearer",
+      accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(), 30 * 60),
       user: {
         ...normalizeUserResponse(user),
         hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
@@ -903,14 +912,14 @@ router.post("/logout", async (req, res) => {
   return res.status(200).json({ ok: true, message: "로그아웃되었습니다." });
 });
 
-router.get("/:provider(google|naver|kakao)", async (req, res) => {
-  const provider = String(req.params.provider || "").toLowerCase();
+router.get(["/google", "/naver", "/kakao"], async (req, res) => {
+  const provider = String(req.path || "").replace(/^\//, "").toLowerCase();
   const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
   return res.redirect(`/api/auth/oauth/${provider}/start${query}`);
 });
 
-router.get("/:provider(google|naver|kakao)/callback", async (req, res) => {
-  const provider = String(req.params.provider || "").toLowerCase();
+router.get(["/google/callback", "/naver/callback", "/kakao/callback"], async (req, res) => {
+  const provider = String(req.path || "").split("/")[1] || "";
   const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
   return res.redirect(`/api/auth/oauth/${provider}/callback${query}`);
 });
@@ -1038,6 +1047,9 @@ router.post("/oauth/complete", async (req, res, next) => {
       user: normalizeUserResponse(user),
       nextPath: sanitizeNextPath(payload.nextPath) || "/",
       provider: payload.provider,
+      accessToken,
+      tokenType: "Bearer",
+      accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(), 30 * 60),
     });
   } catch (error) {
     logServerAuthDiagnostic(req, "/api/auth/oauth/complete", "", "oauth_complete_failed", error);

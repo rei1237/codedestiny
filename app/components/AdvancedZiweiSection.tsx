@@ -111,14 +111,6 @@ function resolveAuthScope() {
   }
 }
 
-function hasAuthToken() {
-  try {
-    return !!localStorage.getItem("fortune_auth_token");
-  } catch (_) {
-    return false;
-  }
-}
-
 function readObjectStorage(storageKey: string): Record<string, boolean> {
   try {
     const raw = localStorage.getItem(storageKey);
@@ -300,18 +292,17 @@ export default function AdvancedZiweiSection({
     try {
       const token = localStorage.getItem('fortune_auth_token');
       const adminToken = getFlowerAdminTokenClient();
-      if (!token && !adminToken) {
-        setUnlockSyncing(false);
-        endPayment();
-        return false;
-      }
 
       const response = await fetch('/api/user/destiny-profiles', {
+        credentials: 'include',
         headers: {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           ...(adminToken ? { 'x-admin-token': adminToken } : {}),
         }
       });
+      if (response.status === 401 || response.status === 403) {
+        return false;
+      }
       const payload = await response.json();
       if (response.ok && payloadHasPremiumUnlock(payload)) {
         setResolvedUnlocked(true);

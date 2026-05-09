@@ -5,6 +5,41 @@ const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 
 let refreshInFlight: Promise<boolean> | null = null;
 
+function readClientAccessToken() {
+  if (typeof window === "undefined") return "";
+  try {
+    return String(localStorage.getItem("fortune_auth_token") || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function persistClientAccessToken(token: unknown) {
+  if (typeof window === "undefined") return;
+  const normalized = String(token || "").trim();
+  if (!normalized) return;
+  try {
+    localStorage.setItem("fortune_auth_token", normalized);
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers || {});
+  const token = readClientAccessToken();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  return new Request(targetUrl, {
+    ...init,
+    headers,
+    credentials: "include",
+    cache: init.cache || "no-store",
+  });
+}
+
 function toAbsoluteApiUrl(pathOrUrl: string, apiBase: string) {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   const normalizedBase = String(apiBase || "").replace(/\/+$/, "");
@@ -70,7 +105,8 @@ async function refreshSession(apiBase: string) {
         }
 
         try {
-          const payload = (await response.json()) as { user?: unknown };
+          const payload = (await response.json()) as { user?: unknown; accessToken?: string };
+          persistClientAccessToken(payload?.accessToken);
           if (payload?.user) {
             persistSanitizedAuthUser(payload.user);
             publishAuthSync("login");
@@ -97,12 +133,7 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
   const targetUrl = toAbsoluteApiUrl(input, apiBase);
   const retryOn401 = options.retryOn401 !== false;
 
-  const request = new Request(targetUrl, {
-    ...init,
-    credentials: "include",
-    cache: init.cache || "no-store",
-  });
-
+  let request = buildAuthRequest(targetUrl, init);
   let response = await fetch(request.clone());
   if (
     response.status === 401
@@ -111,6 +142,7 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
   ) {
     const refreshed = await refreshSession(apiBase);
     if (refreshed) {
+      request = buildAuthRequest(targetUrl, init);
       response = await fetch(request.clone());
     }
   }
