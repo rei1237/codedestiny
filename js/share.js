@@ -455,7 +455,7 @@ function applyPwaThemeAssets(isNeo) {
     if (faviconLink) { faviconLink.setAttribute('href', '/icons/samba.webp'); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
     if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
   } else {
-    if (faviconLink) { faviconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp'); faviconLink.setAttribute('type', 'image/png'); }
+    if (faviconLink) { faviconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp'); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
     if (appleIconLink) appleIconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp');
   }
 }
@@ -1144,9 +1144,13 @@ function enforceThemeToggleSticky() {
 
 window.addEventListener('load',function(){
   ensureThemeToggleCriticalStyles();
-  var bootThemeNeo = (typeof window.__INITIAL_THEME_NEO__ === 'boolean')
-    ? window.__INITIAL_THEME_NEO__
-    : readThemeModeState();
+  var bootThemeNeo;
+  var bootThemeCheckbox = document.getElementById('themeCheckbox');
+  if (bootThemeCheckbox) {
+    bootThemeNeo = !!bootThemeCheckbox.checked;
+  } else {
+    bootThemeNeo = readThemeModeState();
+  }
   NEO_MODE = !!bootThemeNeo;
 
   if(typeof window.calculate==='function'){

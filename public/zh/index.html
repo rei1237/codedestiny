@@ -626,6 +626,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
+  <link rel="preload" as="style" href="/styles/core-ui.css?v=20260504-tapguard1">
+  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260411-foucfix3">
   <link rel="stylesheet" href="/styles/core-ui.css?v=20260504-tapguard1">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix" media="(max-width: 1024px)">
@@ -636,41 +638,41 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260413">
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260413" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260413"></noscript>
 
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
+  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1">
+  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
+  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
+  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
+  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
+  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
+  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
+  <link rel="preload" as="style" href="/styles/life-book.css?v=20260411-foucfix2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2"></noscript>
-  <link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415">
+  <link rel="preload" as="style" href="/styles/sibyl-system.css?v=20260415" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415"></noscript>
-  <link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue">
+  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260405-epilogue" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue"></noscript>
 
-  <link rel="stylesheet" href="/css/entertain-system.css">
+  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
