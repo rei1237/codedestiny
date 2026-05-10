@@ -160,12 +160,14 @@ export async function handleRouteError(error, context = {}) {
     console.error("[worker-route-error]", logPayload);
   }
 
+  const isConfigError = /mongo_uri|mongodb_uri|required for worker-native|connection timed out/i.test(errorText);
+
   return json({
     ok: false,
     success: false,
     code: "INTERNAL_SERVER_ERROR",
-    message: exposeMessage && errorText ? errorText : "Internal server error.",
-    requestPath: exposeMessage ? requestPath : undefined,
+    message: (exposeMessage || isConfigError) && errorText ? errorText : "Internal server error.",
+    requestPath: (exposeMessage || isConfigError) ? requestPath : undefined,
   }, {
     status: 500,
     headers: {

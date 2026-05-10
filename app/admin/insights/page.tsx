@@ -150,6 +150,7 @@ export default function AdminInsightsPage() {
         method: "GET",
         credentials: requestCredentials,
         headers: buildAdminHeaders(),
+        cache: "no-store",
       });
       const data = await res.json().catch(() => ({}));
 
@@ -189,6 +190,7 @@ export default function AdminInsightsPage() {
         credentials: requestCredentials,
         headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ status }),
+        cache: "no-store",
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -209,6 +211,7 @@ export default function AdminInsightsPage() {
         method: "DELETE",
         credentials: requestCredentials,
         headers: buildAdminHeaders(),
+        cache: "no-store",
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

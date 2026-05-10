@@ -365,6 +365,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         method: "GET",
         credentials: requestCredentials,
         headers: buildAdminHeaders(),
+        cache: "no-store",
       });
       const data = await res.json().catch(() => ({}));
 
@@ -525,6 +526,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
           method: "GET",
           credentials: requestCredentials,
           headers: buildAdminHeaders(),
+          cache: "no-store",
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -680,6 +682,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         credentials: requestCredentials,
         headers: buildAdminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
+        cache: "no-store",
       });
 
       const data = await res.json().catch(() => ({}));

@@ -84,6 +84,7 @@ export async function connectDb(env = {}) {
   }
 
   if (!connectPromise) {
+    console.log("[db-connect] starting connection to mongodb...");
     const connectTask = mongoose.connect(uri, {
       dbName: resolveMongoDbName(env) || undefined,
       maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
@@ -95,13 +96,18 @@ export async function connectDb(env = {}) {
       autoIndex: false,
     });
 
-    connectTask.catch(() => {});
+    connectTask
+      .then(() => console.log("[db-connect] mongodb connected successfully."))
+      .catch((err) => {
+        console.error("[db-connect-error] mongodb connection failed:", err.message);
+      });
 
     connectPromise = withTimeout(
       connectTask,
       guardTimeoutMS,
       "MongoDB connection timed out in Worker.",
     ).catch((error) => {
+      console.error("[db-connect-error] connection promise failed:", error.message);
       // Do not block request completion on disconnect path.
       resetMongooseConnection().catch(() => {});
       throw error;
