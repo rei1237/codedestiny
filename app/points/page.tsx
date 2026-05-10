@@ -378,6 +378,10 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function mapAuthRefreshTemporaryFailureMessage() {
+  return "로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
+}
+
 function mapPaymentErrorMessage(rawMessage: string) {
   const text = String(rawMessage || "").toLowerCase();
   if (text.includes("취소") || text.includes("cancel"))
@@ -1254,8 +1258,12 @@ export default function PointsPage() {
 
       // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
       const payload = await safeParseJson<MeResponse>(response);
+      const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
 
       if (!response.ok) {
+        if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
+          throw new Error(mapAuthRefreshTemporaryFailureMessage());
+        }
         throw new Error(payload.message || "포인트 정보를 불러오지 못했습니다.");
       }
 

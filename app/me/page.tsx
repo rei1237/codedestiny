@@ -149,6 +149,7 @@ export default function MePage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [authNotice, setAuthNotice] = useState("");
   const [profiles, setProfiles] = useState<DestinyProfile[]>([]);
   const [currentId, setCurrentId] = useState("");
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
@@ -189,11 +190,21 @@ export default function MePage() {
       apiBase,
     })
       .then(async (response) => {
-        if (response.status === 401 || response.status === 403) throw new Error("auth_invalid");
-        return response.json();
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          const code = String(payload?.code || payload?.error || "").toUpperCase();
+          if (code === "AUTH_REFRESH_TEMPORARY_FAILURE") {
+            setAuthNotice("로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 자동으로 복구됩니다.");
+            return null;
+          }
+          if (response.status === 401 || response.status === 403) throw new Error("auth_invalid");
+          throw new Error("auth_check_failed");
+        }
+        return payload;
       })
       .then((payload) => {
         if (!payload?.user) return;
+        setAuthNotice("");
         persistSanitizedAuthUser(payload.user);
         setUser(payload.user);
         setHasLocalAuth(payload.user?.hasLocalAuth !== false);
@@ -203,7 +214,9 @@ export default function MePage() {
         if (error instanceof Error && error.message === "auth_invalid") {
           clearAuth();
           router.replace("/login?next=%2Fme");
+          return;
         }
+        setAuthNotice("일시적인 네트워크 지연으로 계정 동기화가 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
       })
       .finally(() => setLoading(false));
   }, [apiBase, reloadProfiles, router]);
@@ -287,6 +300,12 @@ export default function MePage() {
             </button>
           </div>
         </header>
+
+        {authNotice ? (
+          <div className="rounded-lg border border-amber-300/45 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            {authNotice}
+          </div>
+        ) : null}
 
         <section className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">

@@ -218,7 +218,12 @@ export default function SignupPage() {
       apiBase: authApiBase,
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error("auth_invalid");
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            throw new Error("auth_invalid");
+          }
+          throw new Error("auth_check_failed");
+        }
         return parseJsonResponse<SignupResult>(response);
       })
       .then((payload) => {
@@ -230,7 +235,9 @@ export default function SignupPage() {
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
         if (authCommittedRef.current) return;
-        clearStoredAuth();
+        if (error instanceof Error && error.message === "auth_invalid") {
+          clearStoredAuth();
+        }
       });
 
     return () => {

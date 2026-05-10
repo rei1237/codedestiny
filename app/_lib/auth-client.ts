@@ -3,7 +3,27 @@ import { persistSanitizedAuthUser } from "./auth-storage";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 
-let refreshInFlight: Promise<boolean> | null = null;
+type RefreshSessionState = "success" | "invalid" | "transient";
+
+let refreshInFlight: Promise<RefreshSessionState> | null = null;
+
+function buildRefreshTransientResponse(originalStatus: number) {
+  return new Response(
+    JSON.stringify({
+      ok: false,
+      code: "AUTH_REFRESH_TEMPORARY_FAILURE",
+      message: "Authentication refresh is temporarily unavailable. Please retry.",
+      originalStatus,
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
+    },
+  );
+}
 
 function readClientAccessToken() {
   if (typeof window === "undefined") return "";
@@ -107,9 +127,13 @@ async function refreshSession(apiBase: string) {
         });
 
         if (!response.ok) {
-          clearClientAuthState();
-          publishAuthSync("logout");
-          return false;
+          // Only clear local auth state for explicit auth invalid responses.
+          if (response.status === 401 || response.status === 403) {
+            clearClientAuthState();
+            publishAuthSync("logout");
+            return "invalid";
+          }
+          return "transient";
         }
 
         try {
@@ -122,11 +146,9 @@ async function refreshSession(apiBase: string) {
         } catch {
           // non-json responses are ignored here
         }
-        return true;
+        return "success";
       } catch {
-        clearClientAuthState();
-        publishAuthSync("logout");
-        return false;
+        return "transient";
       } finally {
         refreshInFlight = null;
       }
@@ -148,10 +170,12 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
     && retryOn401
     && shouldTryRefresh(targetUrl)
   ) {
-    const refreshed = await refreshSession(apiBase);
-    if (refreshed) {
+    const refreshState = await refreshSession(apiBase);
+    if (refreshState === "success") {
       request = buildAuthRequest(targetUrl, init);
       response = await fetch(request.clone());
+    } else if (refreshState === "transient") {
+      return buildRefreshTransientResponse(response.status);
     }
   }
 
