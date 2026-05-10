@@ -55,10 +55,11 @@ function getLocalizedHref(pathname: string, targetLocale: LocaleCode) {
 
   const basePath = stripLocalePrefix(normalized);
   if (targetLocale === "ko") return basePath;
-  const prefix = LOCALES.find((locale) => locale.code === targetLocale)?.slug || "";
-  if (!prefix) return basePath;
-  if (basePath === "/") return prefix;
-  return `${prefix}${basePath}`;
+
+  // Unknown routes often do not have localized static exports.
+  // Fall back to locale landing root to avoid 404 on language switch.
+  const localeRoot = LOCALES.find((locale) => locale.code === targetLocale)?.slug || "";
+  return localeRoot || "/";
 }
 
 export function LocaleSwitcher() {
