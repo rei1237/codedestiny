@@ -427,6 +427,11 @@ var _pwaPrompt = null;
 var _pwaInstalled = false;
 var FAVORITE_MODE_KEY = 'fortuneFavoriteModeStateV1';
 var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
+var THEME_LOGO_REV = '20260511-mobile-logo-fix1';
+var PIG_LOGO_URL = '/icons/꿀꿀 운세 로고.webp?v=' + THEME_LOGO_REV;
+var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
+var SAMBA_LOGO_URL = '/icons/samba.webp?v=' + THEME_LOGO_REV;
+var SAMBA_LOGO_SRCSET = '/icons/samba-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/samba-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + SAMBA_LOGO_URL + ' 512w';
 
 function readThemeModeState() {
   try {
@@ -452,11 +457,34 @@ function applyPwaThemeAssets(isNeo) {
   var faviconLink = document.getElementById('pwa-favicon');
   var appleIconLink = document.getElementById('pwa-apple-icon');
   if (isNeo) {
-    if (faviconLink) { faviconLink.setAttribute('href', '/icons/samba.webp'); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
+    if (faviconLink) { faviconLink.setAttribute('href', SAMBA_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', SAMBA_LOGO_URL);
   } else {
-    if (faviconLink) { faviconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp'); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp');
+    if (faviconLink) { faviconLink.setAttribute('href', PIG_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', PIG_LOGO_URL);
+  }
+}
+
+function syncThemeLogoSources() {
+  var pigLogo = document.getElementById('honeypigLogo');
+  if (pigLogo) {
+    pigLogo.setAttribute('src', PIG_LOGO_URL);
+    pigLogo.setAttribute('srcset', PIG_LOGO_SRCSET);
+    pigLogo.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
+  }
+
+  var pigSource = document.querySelector('.normal-logo picture source[type="image/webp"]');
+  if (pigSource) {
+    pigSource.setAttribute('srcset', PIG_LOGO_SRCSET);
+    pigSource.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
+    pigSource.setAttribute('type', 'image/webp');
+  }
+
+  var neoLogo = document.getElementById('neoLogo');
+  if (neoLogo) {
+    neoLogo.setAttribute('src', SAMBA_LOGO_URL);
+    neoLogo.setAttribute('srcset', SAMBA_LOGO_SRCSET);
+    neoLogo.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
   }
 }
 
@@ -1042,6 +1070,8 @@ function toggleNeoMode(nextMode){
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '꽃돼지 운세 서비스 앱 설치하기';
     updateFavoriteButtonThemeText(false);
   }
+  syncThemeLogoSources();
+  setTimeout(syncThemeLogoSources, 160);
   if(_themeToggleApplyTextRaf) cancelAnimationFrame(_themeToggleApplyTextRaf);
   _themeToggleApplyTextRaf = requestAnimationFrame(function(){
     applyNeoTexts();
@@ -1177,6 +1207,8 @@ window.addEventListener('load',function(){
     themeCb.setAttribute('aria-checked', NEO_MODE ? 'true' : 'false');
   }
   applyPwaThemeAssets(NEO_MODE);
+  syncThemeLogoSources();
+  setTimeout(syncThemeLogoSources, 900);
   var pwaLabel = document.getElementById('pwaInstallLabel');
   var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
   var tLabel = document.getElementById('themeToggleLabel');

@@ -14,11 +14,11 @@
   var LQIP_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%223%22 viewBox=%220 0 4 3%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 x2=%221%22 y1=%220%22 y2=%221%22%3E%3Cstop stop-color=%22%231a1630%22/%3E%3Cstop offset=%221%22 stop-color=%22%23272545%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%224%22 height=%223%22 fill=%22url(%23g)%22/%3E%3C/svg%3E';
   var SRCSET_HINTS = {
     '/icons/꿀꿀 운세 로고.webp': {
-      srcset: '/icons/꿀꿀 운세 로고.webp 96w, /icons/꿀꿀 운세 로고.webp 130w, /icons/꿀꿀 운세 로고.webp 512w',
+      srcset: '/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 512w',
       sizes: '(max-width: 768px) 88px, 130px'
     },
     '/icons/samba.webp': {
-      srcset: '/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w',
+      srcset: '/icons/samba-96.webp?v=20260511-mobile-logo-fix1 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix1 130w, /icons/samba.webp?v=20260511-mobile-logo-fix1 512w',
       sizes: '(max-width: 768px) 88px, 130px'
     },
     '/fuctionassets/flower.webp': {
