@@ -1,0 +1,11 @@
+title = "Code Destiny Gitleaks Config"
+
+[[allowlists]]
+description = "Ignore public naver verification meta tags in locale index files"
+condition = "AND"
+paths = [
+  '''^public/(en|ja|zh)/index\.html$''',
+]
+regexes = [
+  '''<meta\s+name="naver-site-verification"\s+content="[a-f0-9]{40}"\s*/?>''',
+]
