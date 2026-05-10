@@ -1577,7 +1577,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               var _adminTok = (function(){ try { return sessionStorage.getItem('flower_admin_token'); } catch(_){return null;} })();
               var _adminTokValid = !!(_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok));
               // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 관리자 표시 + 나가기 버튼
-              if (!t) {
+              if (!t && !us) {
                 if (_adminTokValid) {
                   el.innerHTML =
                     '<div class="cd-user-card">' +
@@ -1628,9 +1628,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               };
 
               var __cdSyncSubscription = function (pointsValue) {
+                var subscriptionHeaders = {};
+                if (t) subscriptionHeaders.Authorization = 'Bearer ' + t;
                 fetch('/api/fortune/pig-coin/profile-subscription/status', {
                   method: 'GET',
-                  headers: { Authorization: 'Bearer ' + t },
+                  credentials: 'include',
+                  headers: subscriptionHeaders,
                 })
                   .then(function (response) {
                     if (!response.ok) throw new Error('subscription_sync_failed');
@@ -1658,9 +1661,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               __cdRenderWithSub(p);
               __cdSyncSubscription(p);
 
+              var authMeHeaders = {};
+              if (t) authMeHeaders.Authorization = 'Bearer ' + t;
               fetch('/api/auth/me', {
                 method: 'GET',
-                headers: { Authorization: 'Bearer ' + t },
+                credentials: 'include',
+                headers: authMeHeaders,
               })
                 .then(function (response) {
                   if (!response.ok) throw new Error('auth_sync_failed');
