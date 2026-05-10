@@ -1,5 +1,16 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
+import { buildFortuneJsonLd } from "../../../lib/generate-page-metadata";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
+
+const JSON_LD = buildFortuneJsonLd({
+  path: "/oracle/hwatu-life",
+  title: "화투 인생 패 테스트 | Code Destiny",
+  description: "7문항 선택으로 나를 상징하는 화투 인생 패 아키타입을 찾아주는 무료 테스트.",
+  keywords: ["화투 인생 패", "심리테스트", "아키타입 테스트", "hwatu life test"],
+  image: "https://code-destiny.com/fuctionassets/tazza.webp",
+  featureList: ["7문항 심리테스트", "화투 인생 패 아키타입", "선택 패턴 분석"],
+  applicationCategory: "LifestyleApplication",
+});
 
 const SERVICE = {
   h1: "화투 인생 패 테스트",
@@ -51,5 +62,10 @@ export const metadata = withUniqueRouteMetadata("/oracle/hwatu-life", {
 });
 
 export default function HwatuLifeLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
+      <FeatureLandingPage service={SERVICE} />
+    </>
+  );
 }

@@ -1,5 +1,5 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
-import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/dream/psycho",
@@ -14,6 +14,8 @@ const META = {
 export function generateMetadata() {
   return generatePageMetadata(META);
 }
+
+const JSON_LD = buildFortuneJsonLd(META);
 
 const SERVICE = {
   h1: "정신분석 해몽",
@@ -57,5 +59,10 @@ const SERVICE = {
 };
 
 export default function DreamPsychoLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
+      <FeatureLandingPage service={SERVICE} />
+    </>
+  );
 }

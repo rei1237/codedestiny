@@ -41,7 +41,7 @@ const cosmicItems: ServiceCardModel[] = [
 
 const animalItems: ServiceCardModel[] = [
   { title: "AI 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-picture", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
-  { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/static/index.html?action=openMbtiModal", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
+  { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/animal/mbti", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
   { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/static/index.html?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "무료", tone: "free" }] },
   { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", emoji: "🥚", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "포춘텔러 물고기", description: "상징 움직임 운세 리딩", href: "/fortune-teller-fish.html", emoji: "🐟", badges: [{ text: "무료", tone: "free" }] },
@@ -52,8 +52,8 @@ const meditationItems: ServiceCardModel[] = [
   { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", emoji: "🧘", badges: [{ text: "30~50코인", tone: "coin" }] },
   { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "30~50코인", tone: "coin" }] },
   { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "50~100코인", tone: "coin" }] },
-  { title: "드림 타로", description: "꿈 해석 리포트", href: "/static/index.html?action=openDreamModal", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/static/index.html?action=openPsychoDreamModal", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
+  { title: "드림 타로", description: "꿈 해석 리포트", href: "/dream/tarot", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
+  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
   { title: "힐링 타로 시작", description: "즉시 감정 안정 리딩", href: "/tarot/healing", emoji: "💛", badges: [{ text: "무료", tone: "free" }] },
 ];
 
