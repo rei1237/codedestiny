@@ -1260,7 +1260,10 @@ const SCENARIO_DB = [
     situationDescription: '봄바람이 스치는 공원, 벚꽃 잎이 흩날린다. 나란히 걷다가 벤치 앞에 멈춰 섰다.',
     npcDialogue: (name) => `"여기 앉을까? 좀 쉬고 싶어서— ${name}는 걷는 거 괜찮아?"`,
     choices: [
-      { id:'c1', text:'나야 좋지. 이 경치 그냥 지나치기 아깝잖아.', element:'목', risk:'LOW', reaction: (name) => `"맞아, 이런 순간이 좋아. ${name}랑 같이 보니까 더 예쁘다."`, score:+7 },  /* ── 신규: 늦은 밤 산책 ── */
+      { id:'c1', text:'나야 좋지. 이 경치 그냥 지나치기 아깝잖아.', element:'목', risk:'LOW', reaction: (name) => `"맞아, 이런 순간이 좋아. ${name}랑 같이 보니까 더 예쁘다."`, score:+7 },
+    ],
+  },
+  /* ── 신규: 늦은 밤 산책 ── */
   {
     backgroundEmoji: '🌙🌃',
     type: '늦은 밤 산책',
@@ -1326,8 +1329,13 @@ const SCENARIO_DB = [
       { id:'c3', text:'나를 웃게 만드는 유일한 사람.', element:'목', risk:'LOW', trustDelta: 8, tensionDelta: 12, reaction: (name) => `"…기쁘다. 네 웃음 내가 지켜주고 싶어."`, score:+12 },
     ],
   },
-];
-라. 고마워, 그냥 이렇게 맞춰주는 사람이 편해. ${name} 좋다."`, score:+8 },
+  {
+    backgroundEmoji: '🍱🥢',
+    type: '저녁 식사',
+    situationDescription: '함께 식당에 들어왔다. 메뉴판을 보며 상대방이 묻는다.',
+    npcDialogue: (name) => `"뭐 먹을래? 여기 매운 거 잘한다는데, ${name}는 매운 거 잘 먹어?"`,
+    choices: [
+      { id:'c1', text:'응, 완전 좋아해! 너랑 같이 먹으면 더 맛있을 것 같아.', element:'화', risk:'LOW', reaction: (name) => `"오, 다행이다. 고마워, 그냥 이렇게 맞춰주는 사람이 편해. ${name} 좋다."`, score:+8 },
       { id:'c2', text:'나 매운 거 잘 못 먹는데, 왜 물어보는 건지 알아?', element:'금', risk:'MEDIUM', reaction: (name) => `"아, 미안. 그런 거 미리 얘기해줘야지— 그럼 메뉴 바꾸자."`, score:+1 },
       { id:'c3', text:'일단 반반씩 시키면 되지 않아? 효율적이잖아.', element:'금', risk:'MEDIUM', reaction: (name) => `"효율적이네 ㅋㅋ 뭔가 로맨틱한 상황인데 현실적으로 대처하는 거 웃겨."`, score:+3 },
     ],
