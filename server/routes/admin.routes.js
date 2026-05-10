@@ -24,6 +24,7 @@ try {
 const router = express.Router();
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
+const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
   // 현재 운영 비밀번호: kangta!7989
   "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e",
@@ -47,6 +48,27 @@ function verifyAdminEntryPassword(rawInput) {
     if (crypto.timingSafeEqual(expectedBuf, inputBuf)) return true;
   }
   return false;
+}
+
+function base64urlEncode(input) {
+  return Buffer.from(String(input || ""), "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function signFlowerToken(payloadB64) {
+  const secret = String(process.env.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
+  return crypto.createHmac("sha256", secret).update(payloadB64, "utf8").digest("hex");
+}
+
+function issueFlowerAdminToken() {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = JSON.stringify({ v: 1, issued: now, exp: now + FLOWER_TOKEN_TTL_SEC });
+  const payloadB64 = base64urlEncode(payload);
+  const signature = signFlowerToken(payloadB64);
+  return `${payloadB64}.${signature}`;
 }
 
 function getCookieValue(req, cookieName) {
@@ -308,8 +330,15 @@ router.post("/entry/password", async (req, res) => {
     const password = String(req.body?.password || "");
     if (!verifyAdminEntryPassword(password)) return denyNotFound(res);
 
+    const adminToken = issueFlowerAdminToken();
+    setCookie(res, "flower_admin_token", adminToken, {
+      maxAge: FLOWER_TOKEN_TTL_SEC * 1000,
+      httpOnly: true,
+    });
+
     return res.status(200).json({
       ok: true,
+      adminToken,
       nextUrl: expected ? `/${expected}/login` : "/admin",
     });
   } catch {

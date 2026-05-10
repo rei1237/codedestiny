@@ -2716,53 +2716,9 @@ window.openYogaGuru = function() {
   }
 };
 window.openAdminFlowerGate = function() {
-  var promptPassword = function() {
-    try {
-      return window.prompt('관리자 비밀번호를 입력하세요.', '');
-    } catch (_) {
-      return null;
-    }
-  };
-
-  var saveAdminSession = function(token) {
-    if (!token) return;
-    try { sessionStorage.setItem('flower_admin_token', String(token)); } catch (_) {}
-    try { sessionStorage.setItem('flower_admin_password_ok', '1'); } catch (_) {}
-    try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
-  };
-
   try {
-    var password = promptPassword();
-    if (password == null) return undefined;
-
-    var trimmedPassword = String(password || '').trim();
-    if (!trimmedPassword) {
-      try { window.alert('비밀번호를 입력해야 합니다.'); } catch (_) {}
-      return undefined;
-    }
-
-    return fetch('/api/admin/entry/password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: trimmedPassword }),
-      credentials: 'include',
-      cache: 'no-store'
-    }).then(function(res) {
-      return res.json().catch(function() { return {}; }).then(function(data) {
-        if (!res.ok) {
-          try { window.alert('비밀번호가 올바르지 않습니다.'); } catch (_) {}
-          return undefined;
-        }
-
-        saveAdminSession(data && data.adminToken ? String(data.adminToken) : '');
-        window.location.href = '/admin/content';
-        return undefined;
-      });
-    }).catch(function(err) {
-      console.error('[index-inline-runtime] openAdminFlowerGate auth failed:', err);
-      try { window.alert('관리자 인증 중 오류가 발생했습니다.'); } catch (_) {}
-      return undefined;
-    });
+    window.location.assign('/admin/login');
+    return undefined;
   } catch (err) {
     console.error('[index-inline-runtime] openAdminFlowerGate failed:', err);
     try { window.location.assign('/admin/login'); } catch (_) {}
