@@ -1,5 +1,7 @@
 /** Shared with app/sitemap.ts — single source for public indexable URLs. */
 
+import { PSYCHOTESTS } from "./psychotest-catalog";
+
 export const BASE_URL = "https://code-destiny.com";
 
 export const LOCALE_PREFIXES = [
@@ -20,6 +22,15 @@ export type SitemapRouteEntry = {
   /** true면 locale prefix를 붙이지 않음 (정적 HTML 파일 등 단일 언어 전용 경로) */
   noLocale?: boolean;
 };
+
+const PSYCHOTEST_ROUTE_ENTRIES: SitemapRouteEntry[] = [
+  { path: "/psychotest", changeFrequency: "weekly", priority: 0.89 },
+  ...PSYCHOTESTS.map((item) => ({
+    path: `/psychotest/${item.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.84,
+  })),
+];
 
 export const ROUTES: SitemapRouteEntry[] = [
   // ── 홈 (최우선) ──────────────────────────────────────────────
@@ -52,6 +63,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/dream/tarot",            changeFrequency: "weekly", priority: 0.88 },
   { path: "/dream/psycho",           changeFrequency: "weekly", priority: 0.88 },
   { path: "/animal/mbti",            changeFrequency: "weekly", priority: 0.87 },
+  ...PSYCHOTEST_ROUTE_ENTRIES,
   { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.87 },
   { path: "/saju-picture",           changeFrequency: "weekly", priority: 0.86 },
 
