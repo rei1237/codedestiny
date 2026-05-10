@@ -19,7 +19,7 @@ const FLOWER_END_MARKER = `          </div><!-- /fg-group__cards --></section><!
 const GODLIFE_GROUP = `          </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
 
         <!-- ══════════════════════════════════════
-             GROUP: 갓생 운구기일 다이어리
+             GROUP: 운기·기일 다이어리
         ══════════════════════════════════════ -->
         <section class="fg-group fg-group--godlife" aria-labelledby="fgTitleGodlife">
           <div class="fg-group__cards">
@@ -40,29 +40,29 @@ const GODLIFE_GROUP = `          </div><!-- /fg-group__cards --></section><!-- /
                     <img src="/fuctionassets/godlife.webp" alt="" class="godlife-header-img" width="72" height="72" loading="lazy" decoding="async">
                   </div>
                   <div class="godlife-header-text">
-                    <h3 class="godlife-title" id="fgTitleGodlife">✨ 갓생 운구기일 다이어리</h3>
-                    <p class="godlife-subtitle">사주 에너지와 동기화되는 나만의 Luck-Sync 다이어리</p>
+                    <h3 class="godlife-title" id="fgTitleGodlife">✨ 운기·기일 다이어리</h3>
+                    <p class="godlife-subtitle">오늘의 운기 흐름을 기록하고 내일의 리듬을 설계하는 Luck-Sync 다이어리</p>
                   </div>
                 </div>
 
                 <div class="godlife-features">
-                  <span class="godlife-feat-chip">📊 갓생 지수</span>
-                  <span class="godlife-feat-chip">🎰 럭키 아이템 가챠</span>
-                  <span class="godlife-feat-chip">✅ 오운완 챌린지</span>
-                  <span class="godlife-feat-chip">🌙 사주 야간 회고</span>
+                  <span class="godlife-feat-chip">📊 오늘의 운기 요약</span>
+                  <span class="godlife-feat-chip">🎰 행운 아이템 리딩</span>
+                  <span class="godlife-feat-chip">✅ 오운완 루틴</span>
+                  <span class="godlife-feat-chip">🌙 밤 리플렉션</span>
                   <span class="godlife-feat-chip">📅 날짜별 저장</span>
                 </div>
 
                 <button class="godlife-open-btn" type="button"
                         data-action="openLuckSyncDiary"
-                        aria-label="갓생 운구기일 다이어리 열기">
+                        aria-label="운기 기일 다이어리 열기">
                   <div class="godlife-btn-inner">
                     <div class="godlife-btn-img-wrap" aria-hidden="true">
                       <img src="/fuctionassets/godlife.webp" alt="" width="56" height="56" loading="lazy" decoding="async">
                     </div>
                     <div class="godlife-btn-text">
                       <span class="godlife-btn-title">📔 다이어리 열기</span>
-                      <span class="godlife-btn-desc">오늘의 사주 기운과 싱크해봐~!</span>
+                      <span class="godlife-btn-desc">오늘의 흐름을 확인하고 하루 리듬을 정리해보세요.</span>
                     </div>
                     <span class="godlife-btn-arrow">▶</span>
                   </div>
@@ -110,7 +110,7 @@ const CSS_MARKER = `  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260
 const LSD_CSS = `  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
 <style id="lsd-styles">
 /* ════════════════════════════════════════════════════════════
-   Luck-Sync Diary — 갓생 운구기일 다이어리
+  Luck-Sync Diary — 운기·기일 다이어리
    ════════════════════════════════════════════════════════════ */
 
 /* ── 랜딩 카드 그룹 ── */

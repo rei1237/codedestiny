@@ -1,40 +1,40 @@
 {
-  "generatedAt": "2026-05-05T14:26:46.159Z",
+  "generatedAt": "2026-05-10T00:29:23.511Z",
   "mode": "dry-run",
   "groups": [
     {
-      "hash": "280323b64caa162eeb280b75bb3cfeae807ab7373fb42b98436fbe982ef95a08",
-      "size": 1230321,
-      "sizeHuman": "1.17 MB",
+      "hash": "deff2eec0cf80b277b0ba98bb3492b325107cd32695882ea2295494324dcec09",
+      "size": 1299680,
+      "sizeHuman": "1.24 MB",
       "copies": 2,
       "files": [
         {
           "path": "js/saju-engine.js",
-          "size": 1230321,
-          "sizeHuman": "1.17 MB"
+          "size": 1299680,
+          "sizeHuman": "1.24 MB"
         },
         {
           "path": "public/js/saju-engine.js",
-          "size": 1230321,
-          "sizeHuman": "1.17 MB"
+          "size": 1299680,
+          "sizeHuman": "1.24 MB"
         }
       ]
     },
     {
-      "hash": "c87fe9e4626a619fde79acf994bdd8fbc639ead8d2f9443917d6b1fbc2262a6b",
-      "size": 652261,
-      "sizeHuman": "637.0 KB",
+      "hash": "6ace2e5b7fcf15a9a89ce7b9f78e6633ad1b8cdb6183e8100bbc8f173dc04a7e",
+      "size": 657976,
+      "sizeHuman": "642.6 KB",
       "copies": 2,
       "files": [
         {
-          "path": "public/index.html",
-          "size": 652261,
-          "sizeHuman": "637.0 KB"
+          "path": "index.html",
+          "size": 657976,
+          "sizeHuman": "642.6 KB"
         },
         {
-          "path": "public/static/index.html",
-          "size": 652261,
-          "sizeHuman": "637.0 KB"
+          "path": "public/index.html",
+          "size": 657976,
+          "sizeHuman": "642.6 KB"
         }
       ]
     },
@@ -57,20 +57,20 @@
       ]
     },
     {
-      "hash": "20c1883636e29ef6b5a2a154a59df4ac5a26f209ea605e570e99ecb25006987c",
-      "size": 499369,
-      "sizeHuman": "487.7 KB",
+      "hash": "334ba8fb7869b00c3b3f9397f3510272c824295e8308ec9682b5c4fbcb143d3e",
+      "size": 499505,
+      "sizeHuman": "487.8 KB",
       "copies": 2,
       "files": [
         {
           "path": "public/styles/fortune-ui.css",
-          "size": 499369,
-          "sizeHuman": "487.7 KB"
+          "size": 499505,
+          "sizeHuman": "487.8 KB"
         },
         {
           "path": "styles/fortune-ui.css",
-          "size": 499369,
-          "sizeHuman": "487.7 KB"
+          "size": 499505,
+          "sizeHuman": "487.8 KB"
         }
       ]
     },
@@ -142,6 +142,24 @@
         {
           "path": "public/fortune/data/daily-2026-04-21.json",
           "size": 469568,
+          "sizeHuman": "458.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "1068a991fdbea7aa3fd0af1020d6e981744cc55bd7bb08f887a488feb767bb00",
+      "size": 469567,
+      "sizeHuman": "458.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fortune/data/daily-2026-05-10.json",
+          "size": 469567,
+          "sizeHuman": "458.6 KB"
+        },
+        {
+          "path": "public/fortune/data/daily-2026-05-10.json",
+          "size": 469567,
           "sizeHuman": "458.6 KB"
         }
       ]
@@ -723,43 +741,20 @@
       ]
     },
     {
-      "hash": "9d3b40e122da86368cc46ac4a080a8b54c2b36f9016d0f3ef95d817e4f55d6a7",
-      "size": 437164,
-      "sizeHuman": "426.9 KB",
+      "hash": "9dee036ed194843e15120e8f932178ac40b998d034a732f25bab09fcfa4d10b1",
+      "size": 450694,
+      "sizeHuman": "440.1 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/saju-engine-tarot-sukuyo-quantum.js",
-          "size": 437164,
-          "sizeHuman": "426.9 KB"
+          "size": 450694,
+          "sizeHuman": "440.1 KB"
         },
         {
           "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
-          "size": 437164,
-          "sizeHuman": "426.9 KB"
-        }
-      ]
-    },
-    {
-      "hash": "8a2abd394deb9e6b4ea611d181df025b068e6429b9cc8442325e7cd79b9d2646",
-      "size": 400553,
-      "sizeHuman": "391.2 KB",
-      "copies": 3,
-      "files": [
-        {
-          "path": "icons/honeypig-512.png",
-          "size": 400553,
-          "sizeHuman": "391.2 KB"
-        },
-        {
-          "path": "public/icons/android-chrome-512x512.png",
-          "size": 400553,
-          "sizeHuman": "391.2 KB"
-        },
-        {
-          "path": "public/icons/honeypig-512.png",
-          "size": 400553,
-          "sizeHuman": "391.2 KB"
+          "size": 450694,
+          "sizeHuman": "440.1 KB"
         }
       ]
     },
@@ -778,6 +773,24 @@
           "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 쥐.png",
           "size": 399211,
           "sizeHuman": "389.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "ae7837d572396a0d2df0a687a6634bc911b43e4db81d5ffebb8dd7b0e5fa3fb9",
+      "size": 392674,
+      "sizeHuman": "383.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/심리테스트.webp",
+          "size": 392674,
+          "sizeHuman": "383.5 KB"
+        },
+        {
+          "path": "public/fuctionassets/심리테스트.webp",
+          "size": 392674,
+          "sizeHuman": "383.5 KB"
         }
       ]
     },
@@ -962,6 +975,24 @@
       ]
     },
     {
+      "hash": "980afdf334d368d6ec716cda993521143d3117c8c790c537fcf35d926fe8a98b",
+      "size": 353271,
+      "sizeHuman": "345.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/index-inline-runtime.js",
+          "size": 353271,
+          "sizeHuman": "345.0 KB"
+        },
+        {
+          "path": "public/js/core/index-inline-runtime.js",
+          "size": 353271,
+          "sizeHuman": "345.0 KB"
+        }
+      ]
+    },
+    {
       "hash": "8703ee352546a4a4f7c92e2d238baaf34053c3ab0beb6ff8c6c4a2efc2e7e4bf",
       "size": 349713,
       "sizeHuman": "341.5 KB",
@@ -1048,24 +1079,6 @@
           "path": "public/fuctionassets/info.webp",
           "size": 336464,
           "sizeHuman": "328.6 KB"
-        }
-      ]
-    },
-    {
-      "hash": "c11d09b4db63b15fc76bb3d7b0ce89525e3d1665efbe4fb7d04d1071496046e8",
-      "size": 331166,
-      "sizeHuman": "323.4 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/core/index-inline-runtime.js",
-          "size": 331166,
-          "sizeHuman": "323.4 KB"
-        },
-        {
-          "path": "public/js/core/index-inline-runtime.js",
-          "size": 331166,
-          "sizeHuman": "323.4 KB"
         }
       ]
     },
@@ -1525,6 +1538,24 @@
       ]
     },
     {
+      "hash": "25d7767756dc50aff8247f6462f0a6a3d5e1ae7606de53d39b083c4b5a92e3ed",
+      "size": 193759,
+      "sizeHuman": "189.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/luck-sync-diary.js",
+          "size": 193759,
+          "sizeHuman": "189.2 KB"
+        },
+        {
+          "path": "public/js/luck-sync-diary.js",
+          "size": 193759,
+          "sizeHuman": "189.2 KB"
+        }
+      ]
+    },
+    {
       "hash": "a317e8c484f2274c137449784417a3c591d8d13ffa37ed8112c7f93b137f58cb",
       "size": 192309,
       "sizeHuman": "187.8 KB",
@@ -1593,6 +1624,24 @@
           "path": "public/fuctionassets/destinyporker/pokergod.webp",
           "size": 187194,
           "sizeHuman": "182.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "9a920f8bf1dea183f8b949b2ac3d0e68638b8de3c2758e51dbbae0e53c11b68b",
+      "size": 185712,
+      "sizeHuman": "181.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/손금.webp",
+          "size": 185712,
+          "sizeHuman": "181.4 KB"
+        },
+        {
+          "path": "public/fuctionassets/손금.webp",
+          "size": 185712,
+          "sizeHuman": "181.4 KB"
         }
       ]
     },
@@ -1719,24 +1768,6 @@
           "path": "public/fuctionassets/lovesimulation.webp",
           "size": 160848,
           "sizeHuman": "157.1 KB"
-        }
-      ]
-    },
-    {
-      "hash": "456d558134dfd556c7fc20758e3344535223e4b82bb304a4fbdddbbeb4c74e5c",
-      "size": 159753,
-      "sizeHuman": "156.0 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/luck-sync-diary.js",
-          "size": 159753,
-          "sizeHuman": "156.0 KB"
-        },
-        {
-          "path": "public/js/luck-sync-diary.js",
-          "size": 159753,
-          "sizeHuman": "156.0 KB"
         }
       ]
     },
@@ -2119,6 +2150,24 @@
       ]
     },
     {
+      "hash": "480a5cdc1569637a21facf02709b733804b18443cc6e3118b17bbee1edc95927",
+      "size": 128872,
+      "sizeHuman": "125.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/sibyl-system.js",
+          "size": 128872,
+          "sizeHuman": "125.9 KB"
+        },
+        {
+          "path": "public/js/sibyl-system.js",
+          "size": 128872,
+          "sizeHuman": "125.9 KB"
+        }
+      ]
+    },
+    {
       "hash": "9e9d3fb292c058985f5954c49027d29ad9ddc655fd7f7c7428138b9ee615dcf7",
       "size": 127156,
       "sizeHuman": "124.2 KB",
@@ -2155,20 +2204,20 @@
       ]
     },
     {
-      "hash": "4e954fc47cbd95dd0ad307956fe656938f153f8813769c9101b04c62806d4590",
-      "size": 125490,
-      "sizeHuman": "122.5 KB",
+      "hash": "0d8e819bb731c67bcfa3268adbfe4474c9699bbba793cb31274b5df038f9df1b",
+      "size": 125503,
+      "sizeHuman": "122.6 KB",
       "copies": 2,
       "files": [
         {
           "path": "HwatuFortune.js",
-          "size": 125490,
-          "sizeHuman": "122.5 KB"
+          "size": 125503,
+          "sizeHuman": "122.6 KB"
         },
         {
           "path": "public/HwatuFortune.js",
-          "size": 125490,
-          "sizeHuman": "122.5 KB"
+          "size": 125503,
+          "sizeHuman": "122.6 KB"
         }
       ]
     },
@@ -2281,20 +2330,20 @@
       ]
     },
     {
-      "hash": "1128a8cce14c15ecde3352556cde1f7214371d7388177e867d385eaf44d6c2bb",
-      "size": 114583,
-      "sizeHuman": "111.9 KB",
+      "hash": "7091fa7a2b18951579b4360c84d60f24f5f25e312aca318c3697145909caecb2",
+      "size": 116000,
+      "sizeHuman": "113.3 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/destiny-profile.js",
-          "size": 114583,
-          "sizeHuman": "111.9 KB"
+          "size": 116000,
+          "sizeHuman": "113.3 KB"
         },
         {
           "path": "public/js/destiny-profile.js",
-          "size": 114583,
-          "sizeHuman": "111.9 KB"
+          "size": 116000,
+          "sizeHuman": "113.3 KB"
         }
       ]
     },
@@ -2785,24 +2834,6 @@
       ]
     },
     {
-      "hash": "9edd1bcd62301c70fa5fd526e48f7a0f050a5a098a630984af5452b97250c9d3",
-      "size": 83417,
-      "sizeHuman": "81.5 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/sibyl-system.js",
-          "size": 83417,
-          "sizeHuman": "81.5 KB"
-        },
-        {
-          "path": "public/js/sibyl-system.js",
-          "size": 83417,
-          "sizeHuman": "81.5 KB"
-        }
-      ]
-    },
-    {
       "hash": "5608c9736bbe3e6af1912ac386d06c63aa369c544197a1bd6699726618c1db55",
       "size": 81742,
       "sizeHuman": "79.8 KB",
@@ -2842,13 +2873,8 @@
       "hash": "08c3e6a7675cbf4992a6157b03e43b2a7f4241e63895cd4d427723a5c4105e8a",
       "size": 78142,
       "sizeHuman": "76.3 KB",
-      "copies": 7,
+      "copies": 5,
       "files": [
-        {
-          "path": "icons/honeypig-192.png",
-          "size": 78142,
-          "sizeHuman": "76.3 KB"
-        },
         {
           "path": "public/icons/android-chrome-192x192.png",
           "size": 78142,
@@ -2873,11 +2899,60 @@
           "path": "public/icons/favicon.ico",
           "size": 78142,
           "sizeHuman": "76.3 KB"
+        }
+      ]
+    },
+    {
+      "hash": "26baf950692599a0458e384385075104a7b7f811450c87f43a5c176104be7cae",
+      "size": 77944,
+      "sizeHuman": "76.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "icons/꿀꿀 운세 로고.webp",
+          "size": 77944,
+          "sizeHuman": "76.1 KB"
         },
         {
-          "path": "public/icons/honeypig-192.png",
-          "size": 78142,
-          "sizeHuman": "76.3 KB"
+          "path": "public/icons/꿀꿀 운세 로고.webp",
+          "size": 77944,
+          "sizeHuman": "76.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "d47a71fd9471ae3bf7506a500d1183bae7bb04d776b6056b65d4b2799f429eed",
+      "size": 76744,
+      "sizeHuman": "74.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/ziwei-book.js",
+          "size": 76744,
+          "sizeHuman": "74.9 KB"
+        },
+        {
+          "path": "public/js/ziwei-book.js",
+          "size": 76744,
+          "sizeHuman": "74.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "467d460ccac69a65b3ba2a0daecd435e5e59096aabf538eec2a53af2ef1e4476",
+      "size": 76703,
+      "sizeHuman": "74.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/life-book.js",
+          "size": 76703,
+          "sizeHuman": "74.9 KB"
+        },
+        {
+          "path": "public/js/life-book.js",
+          "size": 76703,
+          "sizeHuman": "74.9 KB"
         }
       ]
     },
@@ -2968,24 +3043,6 @@
           "path": "sudda/hwatu/4_2.webp",
           "size": 70446,
           "sizeHuman": "68.8 KB"
-        }
-      ]
-    },
-    {
-      "hash": "46008f6d85c6e97af9ab60915029fd609e0d8dd57d5c3e0c2db1eeac8a847f95",
-      "size": 69903,
-      "sizeHuman": "68.3 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "icons/honeypig-180.png",
-          "size": 69903,
-          "sizeHuman": "68.3 KB"
-        },
-        {
-          "path": "public/icons/honeypig-180.png",
-          "size": 69903,
-          "sizeHuman": "68.3 KB"
         }
       ]
     },
@@ -3314,6 +3371,24 @@
       ]
     },
     {
+      "hash": "a2022ad3ec2da15b08b167549f659aafa99d2425256842e2e0964a35d628a97c",
+      "size": 63829,
+      "sizeHuman": "62.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/love-secret-v2.js",
+          "size": 63829,
+          "sizeHuman": "62.3 KB"
+        },
+        {
+          "path": "public/js/love-secret-v2.js",
+          "size": 63829,
+          "sizeHuman": "62.3 KB"
+        }
+      ]
+    },
+    {
       "hash": "abb74ad5be11f192a1ea1956f830bab617d5af6dd5013b42c8b82272b021ee4d",
       "size": 63610,
       "sizeHuman": "62.1 KB",
@@ -3363,24 +3438,6 @@
         {
           "path": "sudda/hwatu/7_2.webp",
           "size": 63294,
-          "sizeHuman": "61.8 KB"
-        }
-      ]
-    },
-    {
-      "hash": "ce735aa4a4f63918de01b40a45265ba9cb819a9efe37aed36aa123e33b1186ee",
-      "size": 63280,
-      "sizeHuman": "61.8 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/ziwei-book.js",
-          "size": 63280,
-          "sizeHuman": "61.8 KB"
-        },
-        {
-          "path": "public/js/ziwei-book.js",
-          "size": 63280,
           "sizeHuman": "61.8 KB"
         }
       ]
@@ -3454,6 +3511,42 @@
           "path": "sudda/hwatu/8_4.webp",
           "size": 60296,
           "sizeHuman": "58.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a3eb83124653b752b34ef0de44b30ae4e743f6c3a73b5267017a2cd7bd2a905f",
+      "size": 59528,
+      "sizeHuman": "58.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/mobile-interaction-patch.js",
+          "size": 59528,
+          "sizeHuman": "58.1 KB"
+        },
+        {
+          "path": "public/js/mobile-interaction-patch.js",
+          "size": 59528,
+          "sizeHuman": "58.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "cf1cbfe5cb70c975b35a9aa9de41ec06edfb146fcc9d3fec44ba4cf2848d5080",
+      "size": 58509,
+      "sizeHuman": "57.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/sukuyo-book.js",
+          "size": 58509,
+          "sizeHuman": "57.1 KB"
+        },
+        {
+          "path": "public/js/sukuyo-book.js",
+          "size": 58509,
+          "sizeHuman": "57.1 KB"
         }
       ]
     },
@@ -3548,38 +3641,38 @@
       ]
     },
     {
-      "hash": "21962d454478784927d31c0a7512b00819a40edda818f5d79c0972c7119a821c",
-      "size": 56079,
-      "sizeHuman": "54.8 KB",
+      "hash": "07fb229f33fc8fc4bd32d796fcc3463ed090c4a8e01f04add4f61336f6f936c3",
+      "size": 56043,
+      "sizeHuman": "54.7 KB",
       "copies": 2,
       "files": [
         {
-          "path": "js/mobile-interaction-patch.js",
-          "size": 56079,
-          "sizeHuman": "54.8 KB"
+          "path": "public/styles/life-book.css",
+          "size": 56043,
+          "sizeHuman": "54.7 KB"
         },
         {
-          "path": "public/js/mobile-interaction-patch.js",
-          "size": 56079,
-          "sizeHuman": "54.8 KB"
+          "path": "styles/life-book.css",
+          "size": 56043,
+          "sizeHuman": "54.7 KB"
         }
       ]
     },
     {
-      "hash": "e1d1c6cb133afdd729d53eef5651eeefeb21cca1061385bf893080aed268b2a4",
-      "size": 55828,
-      "sizeHuman": "54.5 KB",
+      "hash": "17fa2a0722851c247ecff03146617fb47f59dcc8d93a725ded819d50405f92cc",
+      "size": 55106,
+      "sizeHuman": "53.8 KB",
       "copies": 2,
       "files": [
         {
-          "path": "js/life-book.js",
-          "size": 55828,
-          "sizeHuman": "54.5 KB"
+          "path": "public/styles/sibyl-system.css",
+          "size": 55106,
+          "sizeHuman": "53.8 KB"
         },
         {
-          "path": "public/js/life-book.js",
-          "size": 55828,
-          "sizeHuman": "54.5 KB"
+          "path": "styles/sibyl-system.css",
+          "size": 55106,
+          "sizeHuman": "53.8 KB"
         }
       ]
     },
@@ -3598,6 +3691,24 @@
           "path": "sudda/hwatu/7_3.webp",
           "size": 54926,
           "sizeHuman": "53.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "0bbd3eae1b15669ae9e09b486443af1582fa7b2d27ca5067329013fcbd4318bc",
+      "size": 54048,
+      "sizeHuman": "52.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/share.js",
+          "size": 54048,
+          "sizeHuman": "52.8 KB"
+        },
+        {
+          "path": "public/js/share.js",
+          "size": 54048,
+          "sizeHuman": "52.8 KB"
         }
       ]
     },
@@ -3638,20 +3749,20 @@
       ]
     },
     {
-      "hash": "b0a8c23b853a8981339cddb60922c1292b2d5c65570e123c1a18f2aabca501d8",
-      "size": 52627,
-      "sizeHuman": "51.4 KB",
+      "hash": "4d066a2cd110f610a62a6f318fc836459833628f821e9ce1683b1c55328c41d4",
+      "size": 52110,
+      "sizeHuman": "50.9 KB",
       "copies": 2,
       "files": [
         {
-          "path": "public/styles/life-book.css",
-          "size": 52627,
-          "sizeHuman": "51.4 KB"
+          "path": "PhysiognomyUI.js",
+          "size": 52110,
+          "sizeHuman": "50.9 KB"
         },
         {
-          "path": "styles/life-book.css",
-          "size": 52627,
-          "sizeHuman": "51.4 KB"
+          "path": "public/PhysiognomyUI.js",
+          "size": 52110,
+          "sizeHuman": "50.9 KB"
         }
       ]
     },
@@ -3746,42 +3857,6 @@
       ]
     },
     {
-      "hash": "7ee6daa24b0db1cc28362aff20e3df9506e9bb0e6ad2bfb907f8a0fd9f2d0b92",
-      "size": 48862,
-      "sizeHuman": "47.7 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/love-secret-v2.js",
-          "size": 48862,
-          "sizeHuman": "47.7 KB"
-        },
-        {
-          "path": "public/js/love-secret-v2.js",
-          "size": 48862,
-          "sizeHuman": "47.7 KB"
-        }
-      ]
-    },
-    {
-      "hash": "3c70226d76c21ec1a12625ff735715584d885635d70626a41fedd4f10e40ec35",
-      "size": 48788,
-      "sizeHuman": "47.6 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "public/styles/sibyl-system.css",
-          "size": 48788,
-          "sizeHuman": "47.6 KB"
-        },
-        {
-          "path": "styles/sibyl-system.css",
-          "size": 48788,
-          "sizeHuman": "47.6 KB"
-        }
-      ]
-    },
-    {
       "hash": "1429548ccfaae0932972e7e620d2f29c8957fb93a2a84be2fc43492cf87c45ed",
       "size": 48704,
       "sizeHuman": "47.6 KB",
@@ -3850,24 +3925,6 @@
           "path": "public/js/tarot-self-esteem-experience.js",
           "size": 47386,
           "sizeHuman": "46.3 KB"
-        }
-      ]
-    },
-    {
-      "hash": "d61218efaf15b470186bf65835c92ce8049d8da1579a452384d734174f9bc69e",
-      "size": 46699,
-      "sizeHuman": "45.6 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/share.js",
-          "size": 46699,
-          "sizeHuman": "45.6 KB"
-        },
-        {
-          "path": "public/js/share.js",
-          "size": 46699,
-          "sizeHuman": "45.6 KB"
         }
       ]
     },
@@ -3962,20 +4019,20 @@
       ]
     },
     {
-      "hash": "534f36591c3a2b8072d83b628e8767cd49829b33cea388c5cb58935b5a8323db",
-      "size": 42910,
-      "sizeHuman": "41.9 KB",
+      "hash": "ecbc083f15fa3d384d9dcca73b7f51292b10ab815149e4c5ebb1cb477bbfd66e",
+      "size": 42632,
+      "sizeHuman": "41.6 KB",
       "copies": 2,
       "files": [
         {
-          "path": "icons/honeypig.webp",
-          "size": 42910,
-          "sizeHuman": "41.9 KB"
+          "path": "js/astro-book.js",
+          "size": 42632,
+          "sizeHuman": "41.6 KB"
         },
         {
-          "path": "public/icons/honeypig.webp",
-          "size": 42910,
-          "sizeHuman": "41.9 KB"
+          "path": "public/js/astro-book.js",
+          "size": 42632,
+          "sizeHuman": "41.6 KB"
         }
       ]
     },
@@ -4052,25 +4109,43 @@
       ]
     },
     {
-      "hash": "e4d30548fcdb0ff3a36d621f92f81208a116b94811d06a8817028795c92b8d2f",
-      "size": 37965,
+      "hash": "7c462666a469d11ca7db87de6890b9ddbb7f190796d4e96a2c1cb1e474a419a9",
+      "size": 37957,
       "sizeHuman": "37.1 KB",
       "copies": 2,
       "files": [
         {
-          "path": "js/sukuyo-book.js",
-          "size": 37965,
+          "path": "js/vedic-book.js",
+          "size": 37957,
           "sizeHuman": "37.1 KB"
         },
         {
-          "path": "public/js/sukuyo-book.js",
-          "size": 37965,
+          "path": "public/js/vedic-book.js",
+          "size": 37957,
           "sizeHuman": "37.1 KB"
         }
       ]
     },
     {
-      "hash": "167e22929d4b67d23d3420d97efb140a2e7dbfe4cb96bd2517367c360be3f92d",
+      "hash": "7adeee81f11f76e6be19571f240dd7fcf923e08a369dd4c46f1c53ac4b58d65a",
+      "size": 37482,
+      "sizeHuman": "36.6 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "insights/rss.xml",
+          "size": 37482,
+          "sizeHuman": "36.6 KB"
+        },
+        {
+          "path": "public/insights/rss.xml",
+          "size": 37482,
+          "sizeHuman": "36.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "a687e43180f0bfe6c0b720d6a0322cc88aa14e1f67445c6d20d6b88261254a36",
       "size": 37473,
       "sizeHuman": "36.6 KB",
       "copies": 2,
@@ -4099,7 +4174,7 @@
           "sizeHuman": "36.6 KB"
         },
         {
-          "path": "public/ifa_oracle_v2_full_local.html",
+          "path": "public/ifa-oracle.html",
           "size": 37441,
           "sizeHuman": "36.6 KB"
         }
@@ -4160,24 +4235,6 @@
       ]
     },
     {
-      "hash": "6c5be9f263dc3a30d9f8b508f92208731ce05c67a57ec347f36c5edb53d0785d",
-      "size": 36293,
-      "sizeHuman": "35.4 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/astro-book.js",
-          "size": 36293,
-          "sizeHuman": "35.4 KB"
-        },
-        {
-          "path": "public/js/astro-book.js",
-          "size": 36293,
-          "sizeHuman": "35.4 KB"
-        }
-      ]
-    },
-    {
       "hash": "eca12dd74903179105e270a9d2719b274cdcf94fcbfe270a2f7c96c759da3eb3",
       "size": 35630,
       "sizeHuman": "34.8 KB",
@@ -4192,24 +4249,6 @@
           "path": "sudda/hwatu/6_4.webp",
           "size": 35630,
           "sizeHuman": "34.8 KB"
-        }
-      ]
-    },
-    {
-      "hash": "d5db6f5c4345bc820d345110b1ae30d327ed70ca2cab26aa7dbc0753acd5f5b9",
-      "size": 34042,
-      "sizeHuman": "33.2 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/vedic-book.js",
-          "size": 34042,
-          "sizeHuman": "33.2 KB"
-        },
-        {
-          "path": "public/js/vedic-book.js",
-          "size": 34042,
-          "sizeHuman": "33.2 KB"
         }
       ]
     },
@@ -4232,24 +4271,6 @@
       ]
     },
     {
-      "hash": "71f12b9ad2c124926b03a48aaf427a1eb5fe4549fa64ef94ad4d570f1f4fd02e",
-      "size": 30625,
-      "sizeHuman": "29.9 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "PhysiognomyUI.js",
-          "size": 30625,
-          "sizeHuman": "29.9 KB"
-        },
-        {
-          "path": "public/PhysiognomyUI.js",
-          "size": 30625,
-          "sizeHuman": "29.9 KB"
-        }
-      ]
-    },
-    {
       "hash": "e251b8fd16ce919e1b4b4615180052a094c0852b03ce2bbd11fc47815b3d61fe",
       "size": 30178,
       "sizeHuman": "29.5 KB",
@@ -4264,6 +4285,24 @@
           "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 알-Photoroom.webp",
           "size": 30178,
           "sizeHuman": "29.5 KB"
+        }
+      ]
+    },
+    {
+      "hash": "f8cd9acd50c077a13defa9a1a866bfd398471d3162275738c099c7c594785868",
+      "size": 30121,
+      "sizeHuman": "29.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/sitemap.xml",
+          "size": 30121,
+          "sizeHuman": "29.4 KB"
+        },
+        {
+          "path": "sitemap.xml",
+          "size": 30121,
+          "sizeHuman": "29.4 KB"
         }
       ]
     },
@@ -4304,20 +4343,38 @@
       ]
     },
     {
-      "hash": "1e803812019509bdfac07a69e37788b2495d8b7879cd094efde0bb6bb8354c06",
-      "size": 26426,
-      "sizeHuman": "25.8 KB",
+      "hash": "b55126eac28d5f380058591789ce0b833394ddcc9fd6bf43a3e6c848d7d86030",
+      "size": 26503,
+      "sizeHuman": "25.9 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/mobile-performance-bootstrap.js",
-          "size": 26426,
-          "sizeHuman": "25.8 KB"
+          "size": 26503,
+          "sizeHuman": "25.9 KB"
         },
         {
           "path": "public/js/mobile-performance-bootstrap.js",
-          "size": 26426,
-          "sizeHuman": "25.8 KB"
+          "size": 26503,
+          "sizeHuman": "25.9 KB"
+        }
+      ]
+    },
+    {
+      "hash": "372dc53dbaa10f14162fc07b67e8b20e02b4375e8d68ac6f4cee024ef3a2563b",
+      "size": 25711,
+      "sizeHuman": "25.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/uiBindings.js",
+          "size": 25711,
+          "sizeHuman": "25.1 KB"
+        },
+        {
+          "path": "public/js/core/uiBindings.js",
+          "size": 25711,
+          "sizeHuman": "25.1 KB"
         }
       ]
     },
@@ -4354,24 +4411,6 @@
           "path": "public/js/inline/planet-widget-cosmic.js",
           "size": 25351,
           "sizeHuman": "24.8 KB"
-        }
-      ]
-    },
-    {
-      "hash": "13f73161ce2c1fb93f23ce9d67227acd4f4ef991b090633f7aada3c4892db4b2",
-      "size": 23122,
-      "sizeHuman": "22.6 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/core/uiBindings.js",
-          "size": 23122,
-          "sizeHuman": "22.6 KB"
-        },
-        {
-          "path": "public/js/core/uiBindings.js",
-          "size": 23122,
-          "sizeHuman": "22.6 KB"
         }
       ]
     },
@@ -4570,24 +4609,6 @@
           "path": "sudda/madam.webp",
           "size": 11440,
           "sizeHuman": "11.2 KB"
-        }
-      ]
-    },
-    {
-      "hash": "fbbae06412c63c7b5fcd9b4c81bb239ce22337fbcddb94c8b0482391e1b9470d",
-      "size": 11225,
-      "sizeHuman": "11.0 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/olympus-oracle.js",
-          "size": 11225,
-          "sizeHuman": "11.0 KB"
-        },
-        {
-          "path": "public/js/olympus-oracle.js",
-          "size": 11225,
-          "sizeHuman": "11.0 KB"
         }
       ]
     },
@@ -4831,6 +4852,24 @@
       ]
     },
     {
+      "hash": "fd52e51716068e9c49aa3185e0a80cf4bd474f2af0d45902590b0f8ea4aff3a5",
+      "size": 8643,
+      "sizeHuman": "8.4 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/olympus-oracle.js",
+          "size": 8643,
+          "sizeHuman": "8.4 KB"
+        },
+        {
+          "path": "public/js/olympus-oracle.js",
+          "size": 8643,
+          "sizeHuman": "8.4 KB"
+        }
+      ]
+    },
+    {
       "hash": "bcbe73e9de10af6d3c135fd3ccb5131610167c39b11aacb70255593924a98ac3",
       "size": 8591,
       "sizeHuman": "8.4 KB",
@@ -4845,6 +4884,24 @@
           "path": "public/js/web-vitals-console.js",
           "size": 8591,
           "sizeHuman": "8.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "927ac8edd28f67f8573aca959df367c7137898805f2a1931e9abe3bf2eb8dbbb",
+      "size": 7971,
+      "sizeHuman": "7.8 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/core/saju/modalProfileState.js",
+          "size": 7971,
+          "sizeHuman": "7.8 KB"
+        },
+        {
+          "path": "public/js/core/saju/modalProfileState.js",
+          "size": 7971,
+          "sizeHuman": "7.8 KB"
         }
       ]
     },
@@ -4867,42 +4924,6 @@
       ]
     },
     {
-      "hash": "14343d72fb2c30fb0177aa6aa88478431c86d2a962ade33885393aa50e3f18b3",
-      "size": 7746,
-      "sizeHuman": "7.6 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/core/saju/modalProfileState.js",
-          "size": 7746,
-          "sizeHuman": "7.6 KB"
-        },
-        {
-          "path": "public/js/core/saju/modalProfileState.js",
-          "size": 7746,
-          "sizeHuman": "7.6 KB"
-        }
-      ]
-    },
-    {
-      "hash": "98b0c8c06c6f08a6c031badaccfd452ffbfceb9a5d24765116c52c8eb5dc015e",
-      "size": 6923,
-      "sizeHuman": "6.8 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "public/service-worker.js",
-          "size": 6923,
-          "sizeHuman": "6.8 KB"
-        },
-        {
-          "path": "service-worker.js",
-          "size": 6923,
-          "sizeHuman": "6.8 KB"
-        }
-      ]
-    },
-    {
       "hash": "3559b8bc34f511320a8a3321f58faa7b8ebc585cf7bc74ea837b6f22ceb393fa",
       "size": 6752,
       "sizeHuman": "6.6 KB",
@@ -4917,6 +4938,24 @@
           "path": "public/js/kill-switch.js",
           "size": 6752,
           "sizeHuman": "6.6 KB"
+        }
+      ]
+    },
+    {
+      "hash": "72628ae946cc92489fd3bf594a5093f2eb27ebd8b4e203c9746083c4e63d2ebc",
+      "size": 6438,
+      "sizeHuman": "6.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/service-worker.js",
+          "size": 6438,
+          "sizeHuman": "6.3 KB"
+        },
+        {
+          "path": "service-worker.js",
+          "size": 6438,
+          "sizeHuman": "6.3 KB"
         }
       ]
     },
@@ -4939,6 +4978,24 @@
       ]
     },
     {
+      "hash": "6f8893cf62ae74d8a1fa4a42a67e8c79db3aa8fc0200e6f2c99f58b614b9b5cd",
+      "size": 6286,
+      "sizeHuman": "6.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/noncritical-defer-loader.js",
+          "size": 6286,
+          "sizeHuman": "6.1 KB"
+        },
+        {
+          "path": "public/js/noncritical-defer-loader.js",
+          "size": 6286,
+          "sizeHuman": "6.1 KB"
+        }
+      ]
+    },
+    {
       "hash": "9cc69a128fce13e088def432ff2242f130a036c37de2807500c864d7845f796c",
       "size": 5929,
       "sizeHuman": "5.8 KB",
@@ -4953,24 +5010,6 @@
           "path": "styles/README.md",
           "size": 5929,
           "sizeHuman": "5.8 KB"
-        }
-      ]
-    },
-    {
-      "hash": "4bfce2b88eb75f4a0ce15c0fba865ef1d64417e20721bf7e2e2f516149138b2b",
-      "size": 5391,
-      "sizeHuman": "5.3 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/noncritical-defer-loader.js",
-          "size": 5391,
-          "sizeHuman": "5.3 KB"
-        },
-        {
-          "path": "public/js/noncritical-defer-loader.js",
-          "size": 5391,
-          "sizeHuman": "5.3 KB"
         }
       ]
     },
@@ -5047,37 +5086,19 @@
       ]
     },
     {
-      "hash": "e3a3d79dd42f82324e74050020f27a05de159112dbf2d58d00ee7cd6e59c0e03",
-      "size": 4704,
-      "sizeHuman": "4.6 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "icons/honeypig-130.webp",
-          "size": 4704,
-          "sizeHuman": "4.6 KB"
-        },
-        {
-          "path": "public/icons/honeypig-130.webp",
-          "size": 4704,
-          "sizeHuman": "4.6 KB"
-        }
-      ]
-    },
-    {
-      "hash": "666fac09388cb20a4e0de289aee22a7a4a7d369a1e54a62a1c36d916b90526f8",
-      "size": 4556,
+      "hash": "d65e010033b6b09eacb42657772fa164c2c83b3fddc783fb95fd200365099c18",
+      "size": 4542,
       "sizeHuman": "4.4 KB",
       "copies": 2,
       "files": [
         {
           "path": "ifa-oracle-about.html",
-          "size": 4556,
+          "size": 4542,
           "sizeHuman": "4.4 KB"
         },
         {
           "path": "public/ifa-oracle-about.html",
-          "size": 4556,
+          "size": 4542,
           "sizeHuman": "4.4 KB"
         }
       ]
@@ -5137,20 +5158,20 @@
       ]
     },
     {
-      "hash": "3eb7fd9cb4d5b1a232c0544443e7400f1318c20b588421b98a2b3c2f6fd9fa85",
-      "size": 4001,
-      "sizeHuman": "3.9 KB",
+      "hash": "da51717ff5ae49a56d0728bda47201b4ec07f9ead520bee950f80cd3ce9d65e5",
+      "size": 4057,
+      "sizeHuman": "4.0 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/cd-lazy-feature-loader.js",
-          "size": 4001,
-          "sizeHuman": "3.9 KB"
+          "size": 4057,
+          "sizeHuman": "4.0 KB"
         },
         {
           "path": "public/js/cd-lazy-feature-loader.js",
-          "size": 4001,
-          "sizeHuman": "3.9 KB"
+          "size": 4057,
+          "sizeHuman": "4.0 KB"
         }
       ]
     },
@@ -5209,6 +5230,24 @@
       ]
     },
     {
+      "hash": "1bcc016fc3f0e84eca7fa0256b3fdce4a9511d3d2be00c9e365284ec6485d494",
+      "size": 3612,
+      "sizeHuman": "3.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/swisseph-loader.js",
+          "size": 3612,
+          "sizeHuman": "3.5 KB"
+        },
+        {
+          "path": "public/js/swisseph-loader.js",
+          "size": 3612,
+          "sizeHuman": "3.5 KB"
+        }
+      ]
+    },
+    {
       "hash": "d7f345cf3f295099b4021888da06cd476c6f92e09cf3f5ea653594463d14e7d3",
       "size": 3264,
       "sizeHuman": "3.2 KB",
@@ -5223,24 +5262,6 @@
           "path": "public/icons/samba-96.webp",
           "size": 3264,
           "sizeHuman": "3.2 KB"
-        }
-      ]
-    },
-    {
-      "hash": "b154efa8b7f4e310667d258f0d40910861ee061e0df1fc899e66a3f02fa3e42a",
-      "size": 3030,
-      "sizeHuman": "3.0 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "icons/honeypig-96.webp",
-          "size": 3030,
-          "sizeHuman": "3.0 KB"
-        },
-        {
-          "path": "public/icons/honeypig-96.webp",
-          "size": 3030,
-          "sizeHuman": "3.0 KB"
         }
       ]
     },
@@ -5313,24 +5334,6 @@
           "path": "public/js/services/fortuneService.js",
           "size": 2659,
           "sizeHuman": "2.6 KB"
-        }
-      ]
-    },
-    {
-      "hash": "78f0f85d009db888f71e8a5377abe892e9499ca6186a225e95a4b3ff2c5a2552",
-      "size": 2504,
-      "sizeHuman": "2.4 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/swisseph-loader.js",
-          "size": 2504,
-          "sizeHuman": "2.4 KB"
-        },
-        {
-          "path": "public/js/swisseph-loader.js",
-          "size": 2504,
-          "sizeHuman": "2.4 KB"
         }
       ]
     },
@@ -5461,19 +5464,19 @@
       ]
     },
     {
-      "hash": "8452f62bb7ba9dc55ec17b54bf85d43640906f098ab2c4d7b2201634d9debace",
-      "size": 1301,
+      "hash": "297277f861c926679f7a2a17e570357f2c25bde2511e99974b276863180ce8c2",
+      "size": 1346,
       "sizeHuman": "1.3 KB",
       "copies": 2,
       "files": [
         {
           "path": "manifest.json",
-          "size": 1301,
+          "size": 1346,
           "sizeHuman": "1.3 KB"
         },
         {
           "path": "public/manifest.json",
-          "size": 1301,
+          "size": 1346,
           "sizeHuman": "1.3 KB"
         }
       ]
@@ -5551,6 +5554,24 @@
       ]
     },
     {
+      "hash": "9248b4b5cd6df725dd3b99233639df94ffa1ff2630d60c1eea4ec1b02ad87a09",
+      "size": 1100,
+      "sizeHuman": "1.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/inline/api-base-init.js",
+          "size": 1100,
+          "sizeHuman": "1.1 KB"
+        },
+        {
+          "path": "public/js/inline/api-base-init.js",
+          "size": 1100,
+          "sizeHuman": "1.1 KB"
+        }
+      ]
+    },
+    {
       "hash": "aedd02647a367a75b508840f34824fb243da5c5db6dce7e1fd8bc152d598f401",
       "size": 1035,
       "sizeHuman": "1.0 KB",
@@ -5565,24 +5586,6 @@
           "path": "public/js/chunks/extra-fortune.chunk.js",
           "size": 1035,
           "sizeHuman": "1.0 KB"
-        }
-      ]
-    },
-    {
-      "hash": "96936e3f8ec614b3a4c46c8dcc5b3934defe281dc1e9e593c39032a561b2001e",
-      "size": 964,
-      "sizeHuman": "964 B",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/inline/api-base-init.js",
-          "size": 964,
-          "sizeHuman": "964 B"
-        },
-        {
-          "path": "public/js/inline/api-base-init.js",
-          "size": 964,
-          "sizeHuman": "964 B"
         }
       ]
     },
@@ -5812,6 +5815,6 @@
       ]
     }
   ],
-  "groupCount": 318,
-  "fileCountInGroups": 653
+  "groupCount": 319,
+  "fileCountInGroups": 652
 }

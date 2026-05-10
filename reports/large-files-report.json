@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-05T14:26:45.376Z",
+  "generatedAt": "2026-05-10T00:29:22.728Z",
   "mode": "dry-run",
   "thresholdBytes": 524288,
   "thresholdHuman": "512.0 KB",
@@ -30,14 +30,14 @@
     },
     {
       "path": "js/saju-engine.js",
-      "size": 1230321,
-      "sizeHuman": "1.17 MB",
+      "size": 1299680,
+      "sizeHuman": "1.24 MB",
       "extension": ".js"
     },
     {
       "path": "public/js/saju-engine.js",
-      "size": 1230321,
-      "sizeHuman": "1.17 MB",
+      "size": 1299680,
+      "sizeHuman": "1.24 MB",
       "extension": ".js"
     },
     {
@@ -47,87 +47,57 @@
       "extension": ".png"
     },
     {
-      "path": "index.html",
-      "size": 935244,
-      "sizeHuman": "913.3 KB",
-      "extension": ".html"
-    },
-    {
       "path": "_tmp_ppt_review/unzipped/ppt/media/image4.png",
       "size": 835384,
       "sizeHuman": "815.8 KB",
       "extension": ".png"
     },
     {
-      "path": "public/de-de/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
+      "path": "_tmp_live_index.html",
+      "size": 659421,
+      "sizeHuman": "644.0 KB",
       "extension": ".html"
     },
     {
-      "path": "public/en-us/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
+      "path": "public/en/index.html",
+      "size": 659303,
+      "sizeHuman": "643.9 KB",
       "extension": ".html"
     },
     {
-      "path": "public/es-es/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
+      "path": "public/ja/index.html",
+      "size": 659303,
+      "sizeHuman": "643.9 KB",
       "extension": ".html"
     },
     {
-      "path": "public/fr-fr/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/hi-in/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/ja-jp/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/ms-my/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/nl-nl/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/zh-cn/index.html",
-      "size": 652271,
-      "sizeHuman": "637.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/index.html",
-      "size": 652261,
-      "sizeHuman": "637.0 KB",
+      "path": "public/zh/index.html",
+      "size": 659303,
+      "sizeHuman": "643.9 KB",
       "extension": ".html"
     },
     {
       "path": "public/static/index.html",
-      "size": 652261,
-      "sizeHuman": "637.0 KB",
+      "size": 659299,
+      "sizeHuman": "643.8 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "index.html",
+      "size": 657976,
+      "sizeHuman": "642.6 KB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/index.html",
+      "size": 657976,
+      "sizeHuman": "642.6 KB",
       "extension": ".html"
     },
     {
       "path": "package-lock.json",
-      "size": 597643,
-      "sizeHuman": "583.6 KB",
+      "size": 629265,
+      "sizeHuman": "614.5 KB",
       "extension": ".json"
     },
     {
@@ -199,19 +169,7 @@
       "suggestion": "Consider WebP/AVIF conversion"
     },
     {
-      "path": "icons/honeypig-512.png",
-      "size": 400553,
-      "sizeHuman": "391.2 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
       "path": "public/icons/android-chrome-512x512.png",
-      "size": 400553,
-      "sizeHuman": "391.2 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "public/icons/honeypig-512.png",
       "size": 400553,
       "sizeHuman": "391.2 KB",
       "suggestion": "Consider WebP/AVIF conversion"

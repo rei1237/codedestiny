@@ -350,38 +350,10 @@
 <!-- ═══ LCP + Resource Hints (PERF-TASK17) ═══ -->
 <link rel="preload" as="image" href="/icons/꿀꿀 운세 로고.webp">
 <link rel="preload" as="image" href="/icons/samba.webp">
-<!-- 폰트 CSS: 초기 렌더 이후(상호작용/유휴) 지연 로드 -->
-<script>
-(function(){
-  var loaded = false;
-  function injectFont(href) {
-    if (!href) return;
-    if (document.querySelector('link[data-cd-font-src="' + href + '"]')) return;
-    var ln = document.createElement('link');
-    ln.rel = 'stylesheet';
-    ln.href = href;
-    ln.setAttribute('data-cd-font-src', href);
-    document.head.appendChild(ln);
-  }
-  function loadFonts() {
-    if (loaded) return;
-    loaded = true;
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=optional');
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=optional');
-    window.removeEventListener('pointerdown', onIntent, true);
-    window.removeEventListener('touchstart', onIntent, true);
-    window.removeEventListener('keydown', onIntent, true);
-  }
-  function onIntent(ev){
-    if (ev && ev.isTrusted === false) return;
-    loadFonts();
-  }
-  window.addEventListener('pointerdown', onIntent, true);
-  window.addEventListener('touchstart', onIntent, true);
-  window.addEventListener('keydown', onIntent, true);
-})();
-</script>
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=optional" rel="stylesheet"></noscript>
+<!-- 폰트 CSS: UX 우선 즉시 로드 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
   <!-- ════════════════════════════════════════════════════════
@@ -664,41 +636,41 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link data-cd-noncritical-style-src="/styles/cosmic-main.css?v=20260413" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260413">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260413"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=20260317" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=20260411-foucfix2" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
   <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2"></noscript>
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=20260415" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415"></noscript>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=20260405-epilogue" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue">
   <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue"></noscript>
 
-  <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/css/entertain-system.css">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
@@ -7933,7 +7905,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
 <script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js" data-cd-mobile-delay="1"></script>
 <script src="/js/io-image-lazy-loader.js" defer></script>
-<script src="/js/noncritical-defer-loader.js" defer></script>
+<script src="/js/noncritical-defer-loader.js?v=20260510-ux2" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/runtime-stability.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
