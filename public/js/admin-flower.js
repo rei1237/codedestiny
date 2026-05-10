@@ -5,8 +5,33 @@
 */
 
 (function () {
+  function redirectToAdminLogin(event) {
+    if (event) {
+      try { event.preventDefault(); } catch (_) {}
+      try { event.stopImmediatePropagation(); } catch (_) {}
+      try { event.stopPropagation(); } catch (_) {}
+    }
+    try {
+      window.location.assign("/admin/login");
+    } catch (_) {
+      window.location.href = "/admin/login";
+    }
+  }
+
+  function bindDirectGate(btn) {
+    if (!btn || btn.dataset.cdAdminGateBound === "1") return;
+    btn.dataset.cdAdminGateBound = "1";
+    // 캡처 단계에서 먼저 가로채 기존 openAdminFlowerGate 프롬프트 경로를 차단한다.
+    btn.addEventListener("click", redirectToAdminLogin, true);
+  }
+
   function injectButton() {
-    if (document.getElementById("cdAdminFlowerBtn")) return;
+    const existingBtn = document.getElementById("cdAdminFlowerBtn");
+    if (existingBtn) {
+      bindDirectGate(existingBtn);
+      return;
+    }
+
     const footer =
       document.querySelector('footer[role="contentinfo"]') ||
       document.querySelector("footer");
@@ -29,6 +54,7 @@
     btn.innerHTML = "\uD83C\uDF38";
     btn.addEventListener("mouseover", function () { btn.style.opacity = "0.9"; btn.style.transform = "translateY(-1px)"; });
     btn.addEventListener("mouseout", function () { btn.style.opacity = "0.55"; btn.style.transform = "translateY(0)"; });
+    bindDirectGate(btn);
     btnWrap.appendChild(btn);
     footer.appendChild(btnWrap);
   }
