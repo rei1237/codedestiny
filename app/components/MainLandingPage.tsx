@@ -21,6 +21,14 @@ type FormState = {
 };
 
 const oracleItems: ServiceCardModel[] = [
+  { 
+    title: "AI 이모이 오미쿠지", 
+    description: "내 마음과 궁금한 주제를 읽어주는 감성 신탁", 
+    href: "/emoi_omikuji_v2.html", 
+    emoji: "🤖",
+    image: "/fuctionassets/오미쿠지.webp",
+    badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] 
+  },
   { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", emoji: "🎴", badges: [{ text: "무료", tone: "free" }] },
   { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "30코인", tone: "coin" }] },
   { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },

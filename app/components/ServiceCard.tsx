@@ -11,6 +11,7 @@ export type ServiceCardModel = {
   description: string;
   href: string;
   emoji?: string;
+  image?: string; // 신규: 카드 꾸미기용 이미지
   badges?: Badge[];
   cta?: string;
 };
@@ -59,6 +60,12 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
           {item.title}
         </h3>
       </div>
+
+      {item.image && (
+        <div className="mb-3 overflow-hidden rounded-xl">
+          <img src={item.image} alt={item.title} className="w-full h-24 object-cover" />
+        </div>
+      )}
 
       <p className="mb-3 min-h-[44px] text-xs leading-5 text-violet-100/80">{item.description}</p>
 
