@@ -427,7 +427,7 @@ var _pwaPrompt = null;
 var _pwaInstalled = false;
 var FAVORITE_MODE_KEY = 'fortuneFavoriteModeStateV1';
 var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
-var THEME_LOGO_REV = '20260511-mobile-logo-fix1';
+var THEME_LOGO_REV = '20260511-mobile-logo-fix2';
 var PIG_LOGO_URL = '/icons/꿀꿀 운세 로고.webp?v=' + THEME_LOGO_REV;
 var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
 var SAMBA_LOGO_URL = '/icons/samba.webp?v=' + THEME_LOGO_REV;

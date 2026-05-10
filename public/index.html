@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
-  <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
+  <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix2"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
@@ -333,12 +333,12 @@
 }
 </script>
 <!-- PWA 설정 -->
-<link id="pwa-manifest" rel="manifest" href="/manifest.json?v=20260511-mobile-logo-fix1" crossorigin="anonymous">
-<link id="pwa-favicon" rel="icon" type="image/webp" sizes="192x192" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
-<link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
+<link id="pwa-manifest" rel="manifest" href="/manifest.json?v=20260511-mobile-logo-fix2" crossorigin="anonymous">
+<link id="pwa-favicon" rel="icon" type="image/webp" sizes="192x192" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2">
+<link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2">
 <!-- PWA 테마 초기화: 인라인으로 처리 (HTTP 요청 1건 제거) -->
 <script>
-(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=20260511-mobile-logo-fix1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix1');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix1');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
+(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=20260511-mobile-logo-fix2');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix2');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix2');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
 </script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
@@ -348,8 +348,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- ═══ LCP + Resource Hints (PERF-TASK17) ═══ -->
-<link rel="preload" as="image" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
-<link rel="preload" as="image" href="/icons/samba.webp?v=20260511-mobile-logo-fix1">
+<link rel="preload" as="image" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2">
+<link rel="preload" as="image" href="/icons/samba.webp?v=20260511-mobile-logo-fix2">
 <!-- 폰트 CSS: UX 우선 즉시 로드 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap">
@@ -1456,10 +1456,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <div class="pig-svg-wrap">
           <picture>
             <source
-              srcset="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 512w"
+              srcset="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2 512w"
               sizes="(max-width: 768px) 88px, 130px"
               type="image/webp">
-            <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1"
+            <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2"
               width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
           </picture>
         </div>
@@ -1469,8 +1469,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp?v=20260511-mobile-logo-fix1"
-            srcset="/icons/samba-96.webp?v=20260511-mobile-logo-fix1 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix1 130w, /icons/samba.webp?v=20260511-mobile-logo-fix1 512w" sizes="(max-width: 768px) 88px, 130px"
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp?v=20260511-mobile-logo-fix2"
+            srcset="/icons/samba-96.webp?v=20260511-mobile-logo-fix2 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix2 130w, /icons/samba.webp?v=20260511-mobile-logo-fix2 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
@@ -6252,7 +6252,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260503-qualityfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260503-qualityfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -6703,7 +6703,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       '  <div class="golden-grain-modal__card">',
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
       '    <div class="golden-grain-modal__head">',
-      '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1" srcset="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 512w" sizes="84px" width="84" height="84" alt=""></div>',
+      '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2" srcset="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix2 512w" sizes="84px" width="84" height="84" alt=""></div>',
       '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title">✨ 황금 돼지 저금통 충전소</h3>',
       '      <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
       '    </div>',
@@ -7143,7 +7143,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var _olympusScript = document.querySelector('script[src*="olympus-oracle.js"]');
       if (!_olympusScript) {
         var _olympusEl = document.createElement('script');
-        _olympusEl.src = '/js/olympus-oracle.js?v=20260505-hotfix1';
+        _olympusEl.src = '/js/olympus-oracle.js?v=20260505-hotfix2';
         _olympusEl.defer = true;
         _olympusEl.onload = function() {
           var _loadedState = _openOlympus();
@@ -7940,8 +7940,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/ziwei-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/astro-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260503-premiumfix2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
