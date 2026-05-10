@@ -1155,6 +1155,7 @@ const SCENE_ATMOSPHERE = {
     visual: '노을 카페 · 창가 잔광',
     sound: 'vinyl_jazz, cup_clink, soft_chatter',
     bg: 'linear-gradient(160deg, rgba(52,24,66,0.92), rgba(30,14,42,0.9))',
+  },
   '공원 산책': {
     visual: '벚꽃 산책로 · 저녁 바람',
     sound: 'petal_wind, footstep_gravel, dusk_birds',
