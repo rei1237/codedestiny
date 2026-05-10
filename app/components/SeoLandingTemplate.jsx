@@ -114,7 +114,7 @@ export default function SeoLandingTemplate({ page }) {
               href={item.href}
               hrefLang={item.hrefLang}
               lang={item.hrefLang}
-              className={`rounded-full border px-3 py-1 ${item.href === page.path ? "border-amber-300/60 bg-amber-100/10 text-amber-100" : "border-white/20 bg-white/5 hover:bg-white/10"}`}
+              className={`rounded-full border px-3 py-1 transition ${item.href === page.path ? "border-sky-300/60 bg-sky-200/10 text-sky-100" : "border-slate-300/25 bg-slate-900/45 hover:bg-slate-800/65"}`}
             >
               {item.label}
             </Link>
@@ -126,16 +126,16 @@ export default function SeoLandingTemplate({ page }) {
         {breadcrumb.map((item, idx) => (
           <span key={item.path}>
             {idx > 0 ? " > " : ""}
-            <Link href={item.path} className="hover:text-amber-200">{item.name}</Link>
+            <Link href={item.path} className="hover:text-sky-200">{item.name}</Link>
           </span>
         ))}
       </nav>
 
-      <header className="rounded-3xl border border-white/10 bg-[#0f1327] px-5 py-6 md:px-8 md:py-8">
-        <p className="text-[11px] tracking-[0.15em] text-amber-200/80">CODE DESTINY SERVICE LANDING</p>
-        <h1 className="mt-2 text-2xl font-semibold leading-tight text-amber-50 md:text-4xl">{page.h1}</h1>
-        <p className="mt-4 text-sm leading-7 text-slate-200 md:text-base">{page.intro}</p>
-        <p className="mt-4 text-sm leading-7 text-slate-300">
+      <header className="rounded-3xl border border-slate-300/25 bg-[linear-gradient(145deg,rgba(8,15,31,0.95),rgba(17,31,58,0.92))] px-5 py-6 md:px-8 md:py-8">
+        <p className="text-[11px] tracking-[0.15em] text-sky-200/80">CODE DESTINY SERVICE LANDING</p>
+        <h1 className="mt-2 text-2xl font-semibold leading-tight text-slate-50 md:text-4xl">{page.h1}</h1>
+        <p className="mt-4 text-sm leading-7 text-slate-100 md:text-base">{page.intro}</p>
+        <p className="mt-4 text-sm leading-7 text-slate-200">
           Code Destiny(코드 데스티니)는 사주·타로·자미두수·점성술·숙요점·베다점을 연결해 해석하는 통합 운세 플랫폼입니다.
           이 페이지는 검색 사용자가 바로 실행할 수 있도록 핵심 개념, 사용 흐름, 자주 묻는 질문을 한 번에 제공합니다.
         </p>
@@ -144,51 +144,51 @@ export default function SeoLandingTemplate({ page }) {
         </p>
       </header>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#10172c] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">이 페이지에서 알 수 있는 것</h2>
-        <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-300">
+      <section className="mt-6 rounded-3xl border border-slate-300/20 bg-slate-900/70 px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-sky-100">이 페이지에서 알 수 있는 것</h2>
+        <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
           {learningPoints.map((point) => (
             <li key={point}>- {point}</li>
           ))}
         </ul>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#10172c] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">초보자용 설명</h2>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
+      <section className="mt-6 rounded-3xl border border-slate-300/20 bg-slate-900/70 px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-sky-100">초보자용 설명</h2>
+        <p className="mt-3 text-sm leading-7 text-slate-200">
           1단계는 질문을 구체화하는 것입니다. 예를 들어 &quot;내 운세&quot; 대신 &quot;이번 달 직장 관계에서 주의할 점&quot;처럼 기간과 영역을 명확히 하면 결과 품질이 올라갑니다.
           2단계는 결과에서 공통 반복 신호를 찾는 것입니다. 3단계는 오늘 실행할 행동 한 줄로 마무리해 실제 변화로 연결합니다.
         </p>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#10172c] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">고급 해석 포인트</h2>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
+      <section className="mt-6 rounded-3xl border border-slate-300/20 bg-slate-900/70 px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-sky-100">고급 해석 포인트</h2>
+        <p className="mt-3 text-sm leading-7 text-slate-200">
           검색엔진과 사용자 모두에게 유익한 페이지는 단순 키워드 나열이 아니라 맥락과 행동 제안을 함께 제공합니다.
           Code Destiny는 무료 운세 서비스 허브와 장문 인사이트를 연결해 한 번의 방문이 학습과 실행으로 이어지도록 설계했습니다.
         </p>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
+        <p className="mt-3 text-sm leading-7 text-slate-200">
           브랜드 검색어인 Code Destiny, 코드 데스티니, 꿀꿀 만세력, codedestiny, 꿀꿀 운세, 꿀꿀 사주를 포함한 사용자 의도를 반영해
           관련 랜딩과 인사이트를 내부 링크로 촘촘히 연결했습니다.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-2">
           {page.keywords.map((keyword) => (
-            <span key={keyword} className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs text-slate-200">
+            <span key={keyword} className="rounded-full border border-slate-300/25 bg-slate-800/60 px-3 py-1 text-xs text-slate-100">
               #{keyword}
             </span>
           ))}
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#111a2f] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">관련 기능 바로가기</h2>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
+      <section className="mt-6 rounded-3xl border border-slate-300/20 bg-slate-900/75 px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-sky-100">관련 기능 바로가기</h2>
+        <p className="mt-3 text-sm leading-7 text-slate-200">
           서비스 조합을 통해 해석 정확도를 높일 수 있습니다. 무료 기능을 먼저 활용한 뒤 필요 시 프리미엄 리포트로 확장하세요.
         </p>
         <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
           {page.relatedServices.map((href) => (
-            <Link key={href} href={href} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm hover:bg-white/10">
+            <Link key={href} href={href} className="rounded-xl border border-slate-300/20 bg-slate-800/55 px-4 py-3 text-sm text-slate-100 transition hover:bg-slate-700/65">
               {href === "/saju" ? "무료 사주풀이 보기" : ""}
               {href === "/manse" ? "꿀꿀 만세력 확인하기" : ""}
               {href === "/daily-fortune" ? "오늘의 운세 확인하기" : ""}
@@ -208,30 +208,30 @@ export default function SeoLandingTemplate({ page }) {
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#101728] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">관련 인사이트</h2>
+      <section className="mt-6 rounded-3xl border border-slate-300/20 bg-slate-900/75 px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-sky-100">관련 인사이트</h2>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
           {relatedInsights.map((article) => (
             <Link
               key={article.slug}
               href={`/insights/${article.slug}`}
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10"
+              className="rounded-xl border border-slate-300/20 bg-slate-800/55 px-4 py-3 transition hover:bg-slate-700/65"
             >
-              <p className="text-xs text-slate-400">{article.category}</p>
-              <h3 className="mt-1 text-sm font-semibold leading-6 text-slate-100">{article.title}</h3>
-              <p className="mt-2 text-xs leading-6 text-slate-300 line-clamp-2">{article.excerpt}</p>
+              <p className="text-xs text-slate-300">{article.category}</p>
+              <h3 className="mt-1 text-sm font-semibold leading-6 text-slate-50">{article.title}</h3>
+              <p className="mt-2 text-xs leading-6 text-slate-200 line-clamp-2">{article.excerpt}</p>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">자주 묻는 질문</h2>
+      <section className="mt-6 rounded-3xl border border-slate-300/20 bg-slate-900/75 px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-sky-100">자주 묻는 질문</h2>
         <div className="mt-4 space-y-3">
           {faqs.map((faq) => (
-            <article key={faq.question} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3">
-              <h3 className="text-sm font-semibold text-slate-100">{faq.question}</h3>
-              <p className="mt-2 text-sm leading-7 text-slate-300">{faq.answer}</p>
+            <article key={faq.question} className="rounded-xl border border-slate-300/20 bg-slate-800/50 px-4 py-3">
+              <h3 className="text-sm font-semibold text-slate-50">{faq.question}</h3>
+              <p className="mt-2 text-sm leading-7 text-slate-200">{faq.answer}</p>
             </article>
           ))}
         </div>

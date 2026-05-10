@@ -30,10 +30,10 @@ export default function HomeClient() {
         <div className="cd-card-grid">
           {HOME_FAQ_ITEMS.map((item, index) => (
             <article key={item.question} className="cd-card">
-              <h3 style={{ margin: "0 0 8px", color: "#352062", fontSize: "1.03rem", lineHeight: 1.5 }}>
+              <h3 style={{ margin: "0 0 8px", color: "#f3f8ff", fontSize: "1.03rem", lineHeight: 1.5 }}>
                 Q{index + 1}. {item.question}
               </h3>
-              <p style={{ margin: 0, color: "#523983", lineHeight: 1.95, fontSize: "0.95rem", wordBreak: "keep-all" }}>
+              <p style={{ margin: 0, color: "#c7d5f3", lineHeight: 1.95, fontSize: "0.95rem", wordBreak: "keep-all" }}>
                 {item.answer}
               </p>
             </article>

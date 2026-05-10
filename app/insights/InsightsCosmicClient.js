@@ -152,9 +152,13 @@ export default function InsightsCosmicClient({
         <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7 backdrop-blur">
           <p className="text-xs tracking-[0.18em] text-amber-200/80">FORTUNE INSIGHTS</p>
           <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 허브</h1>
-          <p className="mt-3 text-sm md:text-base text-slate-300 leading-7">
-            사주, 자미두수, 숙요점, 타로, 점성술 인사이트를 카테고리별로 탐색하고
-            실제 기능 페이지로 바로 이동할 수 있는 검색 친화형 허브입니다.
+          <p className="mt-3 text-sm md:text-base text-slate-200 leading-7">
+            막연하게 "운세가 궁금하다"에서 끝나지 않도록,
+            실제 질문 장면에서 바로 써먹을 수 있는 해석 포인트와 읽는 순서를 차근히 모았습니다.
+          </p>
+          <p className="mt-2 text-sm text-slate-300 leading-7">
+            사주, 자미두수, 숙요점, 타로, 점성술까지 한 흐름으로 연결해 보세요.
+            글을 읽다가 바로 관련 기능으로 넘어가 실전 적용까지 이어갈 수 있습니다.
           </p>
           <p className="mt-3 text-xs text-slate-400">총 {totalCount.toLocaleString("ko-KR")}개 글</p>
         </header>

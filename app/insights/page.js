@@ -7,7 +7,7 @@ export const metadata = buildSeoMetadata({
   path: "/insights",
   title: "운세 인사이트 허브 · 사주·자미두수·숙요점·타로 가이드 | Code Destiny",
   description:
-    "사주 공부, 자미두수 보는 법, 숙요점 보는 법, 타로 해석, 점성술 가이드를 실제 서비스와 연결한 운세 인사이트 허브입니다.",
+    "사주, 자미두수, 숙요점, 타로, 점성술을 처음 공부하는 분도 흐름을 잡을 수 있도록 실제 사례와 함께 풀어쓴 운세 인사이트 허브입니다.",
   keywords: ["운세 인사이트", "사주 공부", "자미두수 보는 법", "숙요점 보는 법", "타로 해석", "점성술 가이드"],
 });
 
@@ -18,7 +18,7 @@ export default function InsightsPage() {
   const webPage = buildWebPageJsonLd({
     title: "운세 인사이트 허브 · 사주·자미두수·숙요점·타로 가이드 | Code Destiny",
     description:
-      "사주 공부, 자미두수 보는 법, 숙요점 보는 법, 타로 해석, 점성술 가이드를 실제 서비스와 연결한 운세 인사이트 허브입니다.",
+      "사주, 자미두수, 숙요점, 타로, 점성술을 처음 공부하는 분도 흐름을 잡을 수 있도록 실제 사례와 함께 풀어쓴 운세 인사이트 허브입니다.",
     path: "/insights",
   });
   const breadcrumb = buildBreadcrumbJsonLd([
