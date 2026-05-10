@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import ServiceCard, { type ServiceCardModel } from "./ServiceCard";
 
 type Props = {
@@ -23,6 +23,31 @@ export default function ServiceCollectionSection({
   const [open, setOpen] = useState(defaultOpen);
   const [expandedMobile, setExpandedMobile] = useState(false);
 
+  const [isScrolling, setIsScrolling] = useState(false);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    setIsScrolling(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - touchStartPos.current.x;
+    const dy = e.touches[0].clientY - touchStartPos.current.y;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      setIsScrolling(true);
+    }
+  };
+
+  const wrapClick = (cb: () => void) => (e: React.MouseEvent) => {
+    if (isScrolling) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    cb();
+  };
+
   const visibleItems = useMemo(() => {
     if (!open) return [];
     if (expandedMobile) return items;
@@ -35,7 +60,9 @@ export default function ServiceCollectionSection({
     <section className="rounded-[22px] border border-violet-300/30 bg-[linear-gradient(145deg,rgba(29,15,63,0.9),rgba(41,23,84,0.84))] p-4 shadow-[0_14px_32px_rgba(27,14,59,0.3)] md:p-5">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onClick={wrapClick(() => setOpen((v) => !v))}
         aria-expanded={open}
         className="w-full text-left"
       >
@@ -62,7 +89,9 @@ export default function ServiceCollectionSection({
             <div className="mt-4 flex justify-center md:hidden">
               <button
                 type="button"
-                onClick={() => setExpandedMobile((v) => !v)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onClick={wrapClick(() => setExpandedMobile((v) => !v))}
                 className="rounded-full border border-violet-200/45 bg-[rgba(75,48,136,0.62)] px-4 py-1.5 text-xs font-semibold text-violet-50"
               >
                 {expandedMobile ? "핵심 카드만 보기" : "더 보기"}

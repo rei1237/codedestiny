@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
 import HPremiumAstrologySection from "./HPremiumAstrologySection";
 import HPremiumVedicSection from "./HPremiumVedicSection";
@@ -31,9 +31,38 @@ function LockedSection({
   buttonLabel = "꽃돼지 코인으로 운명 확인하기",
   children,
 }: LockedSectionProps) {
+  const [isScrolling, setIsScrolling] = useState(false);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    setIsScrolling(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - touchStartPos.current.x;
+    const dy = e.touches[0].clientY - touchStartPos.current.y;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      setIsScrolling(true);
+    }
+  };
+
+  const wrapClick = (cb: () => void) => (e: React.MouseEvent) => {
+    if (isScrolling) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    cb();
+  };
+
   if (isUnlocked) {
     return (
-      <section className="relative overflow-hidden rounded-3xl border border-amber-400 bg-gradient-to-br from-white to-amber-50 p-5 shadow-xl shadow-amber-100/50">
+      <section
+        className="relative overflow-hidden rounded-3xl border border-amber-400 bg-gradient-to-br from-white to-amber-50 p-5 shadow-xl shadow-amber-100/50"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
         <div className="absolute -right-8 -top-8 h-20 w-20 rotate-12 bg-amber-400/20" />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -57,7 +86,11 @@ function LockedSection({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-amber-300/60 bg-white/80 p-5 shadow-lg shadow-rose-100">
+    <section
+      className="relative overflow-hidden rounded-3xl border border-amber-300/60 bg-white/80 p-5 shadow-lg shadow-rose-100"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+    >
       <h3 className="text-lg font-extrabold text-neutral-900">{title}</h3>
       <p className="mt-1 text-sm text-neutral-600">{description}</p>
 
@@ -84,7 +117,7 @@ function LockedSection({
           <p className="mb-3 text-xs font-bold text-amber-700">소모 코인: {cost}</p>
           <button
             type="button"
-            onClick={onUnlock}
+            onClick={wrapClick(onUnlock)}
             className="rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95"
           >
             {buttonLabel}
@@ -616,6 +649,31 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
+  const [isScrolling, setIsScrolling] = useState(false);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    setIsScrolling(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - touchStartPos.current.x;
+    const dy = e.touches[0].clientY - touchStartPos.current.y;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      setIsScrolling(true);
+    }
+  };
+
+  const wrapClick = (cb: () => void) => (e: React.MouseEvent) => {
+    if (isScrolling) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    cb();
+  };
+
   const handleOpenPremSection = (key: PremiumServiceKey) => {
     if (openPremSection === key) {
       setOpenPremSection(null);
@@ -974,7 +1032,9 @@ export default function KkulkkulManseryukMain() {
 
                 <button
                   type="button"
-                  onClick={() => runPaidFeatureOnce(item.key, 50)}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onClick={wrapClick(() => runPaidFeatureOnce(item.key, 50))}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
                   꽃꽃돼지 코인으로 운명 확인하기
@@ -1015,7 +1075,9 @@ export default function KkulkkulManseryukMain() {
         >
           <button
             type="button"
-            onClick={() => setPremiumCollectionOpen((prev) => !prev)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onClick={wrapClick(() => setPremiumCollectionOpen((prev) => !prev))}
             style={{
               width: "100%",
               textAlign: "left",
@@ -1063,7 +1125,9 @@ export default function KkulkkulManseryukMain() {
         }}>
           <button
             type="button"
-            onClick={() => handleOpenPremSection('ziwei')}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onClick={wrapClick(() => handleOpenPremSection('ziwei'))}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -1123,7 +1187,9 @@ export default function KkulkkulManseryukMain() {
         }}>
           <button
             type="button"
-            onClick={() => handleOpenPremSection('astrology')}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onClick={wrapClick(() => handleOpenPremSection('astrology'))}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -1182,7 +1248,9 @@ export default function KkulkkulManseryukMain() {
         }}>
           <button
             type="button"
-            onClick={() => handleOpenPremSection('sukuyo')}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onClick={wrapClick(() => handleOpenPremSection('sukuyo'))}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -1241,7 +1309,9 @@ export default function KkulkkulManseryukMain() {
         }}>
           <button
             type="button"
-            onClick={() => handleOpenPremSection('veda')}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onClick={wrapClick(() => handleOpenPremSection('veda'))}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -1306,7 +1376,9 @@ export default function KkulkkulManseryukMain() {
         }}>
           <button
             type="button"
-            onClick={() => handleOpenPremSection('naming')}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onClick={wrapClick(() => handleOpenPremSection('naming'))}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -1414,7 +1486,9 @@ export default function KkulkkulManseryukMain() {
               </div>
               <button
                 type="button"
-                onClick={() => runPaidFeatureOnce('loveSimulation', 100)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onClick={wrapClick(() => runPaidFeatureOnce('loveSimulation', 100))}
                 className="rounded-xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-rose-800/40 transition-transform duration-200 hover:scale-105 active:scale-95"
               >
                 💕 시뮬레이션 시작

@@ -155,7 +155,10 @@ export default function AppVersionGuard() {
       // ignore
     }
 
-    window.location.reload();
+    // 모바일 환경 등에서 캐시 고착을 방지하기 위해 쿼리 파라미터를 추가하여 강제 새로고침
+    const url = new URL(window.location.href);
+    url.searchParams.set("v", version);
+    window.location.replace(url.toString());
   }, []);
 
   const runVersionCheck = useCallback(async () => {

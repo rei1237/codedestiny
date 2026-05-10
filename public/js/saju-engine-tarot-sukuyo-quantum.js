@@ -3649,68 +3649,6 @@ function syRenderCanonicalDashboard(canonicalPayload) {
     + '</div>';
 }
 
-function syRenderThematicSections(canonical) {
-  if (!canonical || !canonical.natalSukuyo) return '';
-  var natal = canonical.natalSukuyo;
-  var attrs = canonical.sukuyoAttributes || {};
-  var mansion = natal.nameKo || '미상';
-  
-  var sections = [
-    {
-      id: 'soul_archetype',
-      title: '영혼의 원형 · Soul Archetype',
-      icon: '🌟',
-      content: '당신의 본명숙 <b>' + mansion + '</b>은 영혼이 처음 마주하는 고유의 주파수입니다. ' + (attrs.temperament ? attrs.temperament.join(' ') : '기질 데이터를 분석 중입니다.'),
-      evidence: ['27숙 Index: ' + (natal.index || '분석중'), '속성: ' + (natal.element || '분석중')]
-    },
-    {
-      id: 'wealth_gravity',
-      title: '자산의 중력 · Wealth Gravity',
-      icon: '💰',
-      content: mansion + '숙의 에너지가 재물과 만날 때 발생하는 고유한 인력입니다. ' + (attrs.wealthStyle ? attrs.wealthStyle.join(' ') : '재물 리듬 데이터를 분석 중입니다.'),
-      evidence: ['재물 성향: ' + (attrs.wealthStyle && attrs.wealthStyle[0] ? attrs.wealthStyle[0] : '분석중')]
-    },
-    {
-      id: 'career_dynamics',
-      title: '협력 역학 · Career Dynamics',
-      icon: '🚀',
-      content: '사회적 성취를 향한 ' + mansion + '숙의 엔진 작동 방식입니다. ' + (attrs.careerStyle ? attrs.careerStyle.join(' ') : '커리어 리듬 데이터를 분석 중입니다.'),
-      evidence: ['커리어 코드: ' + (attrs.careerStyle && attrs.careerStyle[0] ? attrs.careerStyle[0] : '분석중')]
-    },
-    {
-      id: 'relationship_radar',
-      title: '관계 정밀 레이더 · Relationship Radar',
-      icon: '📡',
-      content: '타인과의 카르마적 거리를 조절하는 당신만의 감각입니다. ' + (attrs.relationshipStyle ? attrs.relationshipStyle.join(' ') : '관계 리듬 데이터를 분석 중입니다.'),
-      evidence: ['관계 패턴: ' + (attrs.relationshipStyle && attrs.relationshipStyle[0] ? attrs.relationshipStyle[0] : '분석중')]
-    }
-  ];
-
-  var html = '<div class="sy-thematic-area" style="margin-top:20px; margin-bottom:20px;">'
-    + '<div class="sy-subhead" style="margin-bottom:12px; color:#c4b5fd; font-weight:800; font-size:1.1rem; padding-left:4px;">🧩 프리미엄 테마 정밀 분석</div>'
-    + '<p style="font-size:0.88rem; color:#9ca3af; margin:0 0 16px 4px; line-height:1.6;">프리미엄 리포트의 챕터 구조를 기본 운세에 맞게 재구성하여, 당신의 핵심 동력을 4가지 테마로 요약했습니다.</p>';
-  
-  sections.forEach(function(s) {
-    html += '<details class="sy-theme-card" style="margin-bottom:10px; background:rgba(30,32,55,0.6); border:1px solid rgba(167,139,250,0.2); border-radius:12px; overflow:hidden;">'
-      + '<summary style="padding:14px 16px; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; color:#e2d9ff; font-weight:700;">'
-      + '<span>' + s.icon + ' ' + s.title + '</span>'
-      + '<span style="font-size:0.75rem; color:#a78bfa; background:rgba(167,139,250,0.15); padding:2px 8px; border-radius:999px;">상세보기</span>'
-      + '</summary>'
-      + '<div style="padding:0 16px 16px 16px; font-size:0.95rem; line-height:1.75; color:#d8d0ee;">'
-      + '<p style="margin:0 0 12px 0; word-break:keep-all;">' + s.content + '</p>'
-      + '<div style="display:flex; flex-wrap:wrap; gap:6px;">'
-      + s.evidence.map(function(ev) {
-          return '<span style="padding:3px 8px; border-radius:999px; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); font-size:0.72rem; color:#c4b5fd;">' + ev + '</span>';
-        }).join('')
-      + '</div>'
-      + '</div>'
-      + '</details>';
-  });
-  
-  html += '</div>';
-  return html;
-}
-
 function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile) {
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
@@ -3859,7 +3797,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     if (canonicalData) {
       html += syRenderCanonicalDashboard(canonicalData);
-      html += syRenderThematicSections(canonicalData);
     }
 
     if (!lunarObj) {

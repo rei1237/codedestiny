@@ -6202,65 +6202,7 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
   return { cardHtml: cardHtml };
 }
 
-function renderAstroThematicSections(data) {
-  var sections = [
-    {
-      id: 'identity',
-      title: '성향 코어 · Identity',
-      icon: '🌟',
-      content: '태양 <b>'+data.sunSign+'</b> · 달 <b>'+data.moonSign+'</b> · 상승궁 <b>'+data.ascSign+'</b> 조합은 지금 <b>'+(data.topHouseTitle || '핵심 하우스')+'</b> 축에서 가장 강하게 체감됩니다. ' + (data.sunCoreInterpretation || ''),
-      evidence: ['☀️ '+data.sunHousePair, '🌙 '+data.moonHousePair, '⬆️ '+data.ascHousePair]
-    },
-    {
-      id: 'bond',
-      title: '관계/연애 · Bond',
-      icon: '💘',
-      content: data.vmAspect || data.vmCalcFallback,
-      evidence: ['금성 '+data.venusHousePair, '화성 '+data.marsHousePair, '보완 원소 '+(data.weakElemName || '분석중')]
-    },
-    {
-      id: 'growth',
-      title: '커리어/재물 · Growth',
-      icon: '🚀',
-      content: 'MC <b>'+data.mcSign+'</b> 방향성과 토성 <b>'+data.saturnHousePair+'</b> 루틴을 고정하면, 목성 <b>'+data.jupiterHousePair+'</b> 영역에서 확장 속도가 빨라집니다. ' + (data.careerAdvice || ''),
-      evidence: ['프로펙션 '+(data.profHouse || '분석중'), '지배행성 '+(data.profRuler || '분석중')]
-    },
-    {
-      id: 'stability',
-      title: '리스크/루틴 · Stability',
-      icon: '🛡️',
-      content: '지배 원소는 <b>'+(data.domElemName || '분석중')+'</b>입니다. 역행 행성 '+(data.retroPlanets && data.retroPlanets.length ? data.retroPlanets.join(', ') : '없음')+' 구간에서는 결론을 늦추고 기록 기반 의사결정이 유리합니다.',
-      evidence: [data.modalityName || '분석중', data.modalityAdvice || '분석중']
-    }
-  ];
-
-  var html = '<div class="astro-thematic-area" style="margin-top:20px; margin-bottom:20px;">'
-    + '<div class="astro-subhead" style="margin-bottom:12px; color:#c4b5fd; font-weight:800; font-size:1.1rem; padding-left:4px;">🧩 프리미엄 테마 정밀 분석</div>'
-    + '<p style="font-size:0.88rem; color:#9ca3af; margin:0 0 16px 4px; line-height:1.6;">프리미엄 리포트의 챕터 구조를 기본 운세에 맞게 재구성하여, 당신의 핵심 동력을 4가지 테마로 요약했습니다.</p>';
-
-  sections.forEach(function(s) {
-    html += '<details class="astro-theme-card" style="margin-bottom:10px; background:rgba(30,32,55,0.6); border:1px solid rgba(167,139,250,0.2); border-radius:12px; overflow:hidden;">'
-      + '<summary style="padding:14px 16px; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; color:#e2d9ff; font-weight:700;">'
-      + '<span>' + s.icon + ' ' + s.title + '</span>'
-      + '<span style="font-size:0.75rem; color:#a78bfa; background:rgba(167,139,250,0.15); padding:2px 8px; border-radius:999px;">상세보기</span>'
-      + '</summary>'
-      + '<div style="padding:0 16px 16px 16px; font-size:0.95rem; line-height:1.75; color:#d8d0ee;">'
-      + '<p style="margin:0 0 12px 0; word-break:keep-all;">' + s.content + '</p>'
-      + '<div style="display:flex; flex-wrap:wrap; gap:6px;">'
-      + s.evidence.map(function(ev) {
-          return '<span style="padding:3px 8px; border-radius:999px; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); font-size:0.72rem; color:#c4b5fd;">' + ev + '</span>';
-        }).join('')
-      + '</div>'
-      + '</div>'
-      + '</details>';
-  });
-
-  html += '</div>';
-  return html;
-}
-
 function renderAstroInsight() {
-
   var birth = window._astroBirth || window._ziweiBirth || { year:2000, month:1, day:1, hour:12, minute:0, lat:37.6, lon:127.0, tz:9 };
     var y = birth.year, m = birth.month, d = birth.day;
     var h = (birth.hour != null ? birth.hour : 12);
@@ -6601,13 +6543,13 @@ function renderAstroInsight() {
             theme:'해외·학업·종교가 새로운 지평을 열어주는 자유의 해.',
             detail:'올해는 기존의 세계관과 경계를 넘어 더 넓은 지평으로 확장되는 자유의 해입니다. 해외여행·유학·이민·고등 교육·철학·종교·출판이 핵심 키워드입니다. 당신의 믿음 체계와 인생의 의미를 재정립하는 해로, 낯선 것과 만남이 가장 큰 운을 불러옵니다.',
             career:'지배 행성 목성이 모든 확장 영역에 날개를 달아줍니다. 해외 비즈니스, 외국어 습득, 학위 과정, 글로벌 플랫폼 진출에 가장 유리한 타이밍입니다. 출판·강연·컨설팅이 예상 이상의 성과를 냅니다.',
-            love:'다른 문화·종교·배경을 가진 사람과의 인연이 생깁니다. 기존 파트너와 함께 해외여행이나 학습 경험을 공유하면 관계가 크게 성장합니다.',
+            love:'다른 문화·종교·배경을 가진 사람과의 인연이 生깁니다. 기존 파트너와 함께 해외여행이나 학습 경험을 공유하면 관계가 크게 성장합니다.',
             advice:'1년 안에 반드시 한 번은 낯선 공간(국외 여행 또는 처음 가는 지역)에 다녀오세요. 글쓰기·강의·팟캐스트 등 나의 이야기를 세상에 전달하는 작업을 시작하는 것이 운을 엽니다.'
         },
         {
             theme:'커리어의 정점을 향해 달리는 성과의 해. 사회적 타이틀 획득 집중.',
             detail:'올해는 사회적 명성·커리어·공적 성취가 최전면에 나서는 해입니다. 10년 중 가장 주목받는 시간으로, 지금껏 쌓아온 모든 것이 대외적으로 인정받을 기회가 열립니다. 상사나 권위자의 눈에 띄고, 공식적인 타이틀과 지위가 업그레이드됩니다.',
-            career:'지배 행성 토성이 확고한 실력 증명을 요구하지만, 그만큼 결과도 견고합니다. 이력서 정비·포트폴리오 공개·인사 면담 요청·업계 행사 참가를 적극적으로 추진하세요. 지금이 커리어 피크를 찍을 타이밍입니다.',
+            career:'지배 행성 토성이 확고한 실력 증명을 요구하지만, 그만큼 결과도 견고합니다. 이력서 정비·포트폴리오 공개·인사 면담 요청·업계 행사 참가를 적극적으로 추진하세요. 지금이 커리어 픽을 찍을 타이밍입니다.',
             love:'사회적 지위나 공적 성공을 공유할 수 있는 파트너를 원하게 됩니다. 연인에게 나의 목표와 꿈을 솔직히 공유하고, 그것을 지지하는 관계인지 확인하는 해입니다.',
             advice:'명함을 새로 만들고, 링크드인·전문 SNS 프로필을 최신화하세요. 업계에서 알려지는 것, 행사에서 발표하는 것 하나하나가 운을 열어줍니다.'
         },
@@ -6984,38 +6926,113 @@ function renderAstroInsight() {
       + '<p class="astro-birth-foot">특수 포인트: 포르투나 '+fortunaSign+' ('+fortunaHousePair+') · 스피릿 '+spiritSign+' ('+spiritHousePair+'). 값이 없으면 현재 결과에는 포함되지 않았을 수 있어요.</p>'
       + '</div>';
 
-    var lifeAreaSectionHtml = '';
-    var aspectStorySectionHtml = '';
-    var personalGuidanceSectionHtml = '';
+    var lifeAreaSectionHtml = ''
+      + '<div class="astro-section astro-life-area" id="astroLifeAreaSection">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">🧭 Life Area Reading</div>'
+      + '<p class="astro-birth-lead">한 문장을 반복하기보다, 각 영역에서 어떤 차트 근거가 작동하는지 간단히 연결해드릴게요.</p>'
+      + '<div class="astro-life-grid">'
+      + LIFE_AREA_MAPPINGS.map(function(area){
+          var areaStory = (function(){
+            if(area.key === 'identity'){
+              return '태양 '+sunHousePair+'와 수성 '+mercuryHousePair+' 조합은 "생각한 것을 실제 행동으로 옮길 때" 존재감이 커지는 흐름입니다. 쉽게 말하면, 고민만 오래할수록 에너지가 빠지고 작은 실행을 시작하면 운이 붙는 타입에 가까워요.';
+            }
+            if(area.key === 'emotion'){
+              return '달 '+moonHousePair+'의 안정 루틴이 핵심입니다. 감정이 올라오는 날에는 문제를 빨리 해결하려 하기보다, 먼저 회복 루틴(휴식/산책/정리)부터 적용하면 관계와 일 모두 훨씬 부드럽게 풀립니다.';
+            }
+            if(area.key === 'love'){
+              return '금성 '+venusHousePair+'과 화성 '+marsHousePair+'의 리듬을 맞추는 것이 포인트예요. 끌림 자체보다 "표현 속도"를 조율하면 오해가 줄고 케미가 오래갑니다.';
+            }
+            if(area.key === 'career'){
+              return '토성 '+saturnHousePair+'은 느리지만 오래가는 결과를, 목성 '+jupiterHousePair+'은 확장 기회를 보여줍니다. 그래서 단기 성과 1개 + 장기 루틴 1개를 같이 운영하면 가장 안정적으로 성장합니다.';
+            }
+            if(area.key === 'money'){
+              return '2H/8H 축이 건드려질 때 재정 체감이 커집니다. 지출을 줄이는 방식보다 내 재능의 단가를 올리는 방식이 더 잘 맞는 차트 구조일 수 있어요.';
+            }
+            if(area.key === 'growth'){
+              return '성장 구간은 보통 불편함과 같이 옵니다. 처음에는 부담처럼 느껴져도, 반복해서 다룬 주제는 나중에 가장 강한 전문성으로 바뀌는 흐름이 있습니다.';
+            }
+            if(area.key === 'healing'){
+              return '회복은 게으름이 아니라 성능 최적화에 가깝습니다. 특히 12H/4H 테마가 강조될 때는 혼자 정리하는 시간이 오히려 다음 실행력을 끌어올려 줍니다.';
+            }
+            return area.fallback;
+          })();
+          var evidence = area.planets.map(function(pk){
+            var pm = _planetMeta(pk);
+            return '<span class="astro-life-chip">'+pm.icon+' '+pm.label+' '+_planetPairByKey(pk)+'</span>';
+          }).join('');
+          var houseEvidence = area.houses.map(function(h){
+            var hm = _houseMeta(h);
+            return '<span class="astro-life-chip">'+hm.label+' '+hm.title+'</span>';
+          }).join('');
+          return ''
+            + '<details class="astro-life-card">'
+            + '<summary><span>'+area.title+'</span><span class="astro-birth-open">자세히 보기</span></summary>'
+            + '<div class="astro-life-body">'
+            + '<p>'+areaStory+'</p>'
+            + '<p class="astro-life-evidence"><b>근거:</b> '+evidence+' '+houseEvidence+'</p>'
+            + '</div>'
+            + '</details>';
+        }).join('')
+      + '</div>'
+      + '</div>';
 
-    var sunCoreInterpretation = '당신의 핵심 아키타입은 <b>' + sunArchetypeByIdx[sunIndex] + '</b>입니다. ' + sunStrategyByIdx[sunIndex];
-    var thematicData = {
-      sunSign: sunSign,
-      moonSign: moonSign,
-      ascSign: ascSign,
-      topHouseTitle: topHouseMetaQuick.title,
-      sunCoreInterpretation: sunCoreInterpretation,
-      sunHousePair: sunHousePair,
-      moonHousePair: moonHousePair,
-      ascHousePair: ascHousePair,
-      vmAspect: vmAspect,
-      vmCalcFallback: vmCalcFallback,
-      venusHousePair: venusHousePair,
-      marsHousePair: marsHousePair,
-      weakElemName: elemShortNames[elemWeakest],
-      mcSign: mcSign,
-      saturnHousePair: saturnHousePair,
-      jupiterHousePair: jupiterHousePair,
-      careerAdvice: '목성 '+jupiterHousePair+' 영역에서 기회가 확장됩니다. ' + (curProfData ? curProfData.career : ''),
-      profHouse: profHouse,
-      profRuler: profRuler,
-      domElemName: elemDomNames[elemDominant],
-      retroPlanets: retroPlanets,
-      modalityName: modalityNames[modalityDominant],
-      modalityAdvice: modalityAdvice[modalityDominant]
-    };
-    var astroCanonicalSectionHtml = renderAstroThematicSections(thematicData);
+    var aspectStorySectionHtml = ''
+      + '<div class="astro-section astro-birth-map" id="astroAspectStorySection">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">⚡ Aspect Story</div>'
+      + '<p class="astro-birth-lead">주요 어스펙트를 단순 나열하지 않고, 내 안의 에너지 관계로 읽어드립니다.</p>'
+      + '<div class="astro-birth-aspects-wrap">'
+      + '<div class="astro-birth-aspects-title">주요 행성 각 (가까운 orb 우선)</div>'
+      + birthMapAspectsHtml
+      + '</div>'
+      + '</div>';
 
+    var personalGuidanceSectionHtml = ''
+      + '<div class="astro-section astro-personal-guidance" id="astroPersonalGuidanceSection">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">🪄 Personal Guidance</div>'
+      + '<div class="astro-desc">'
+      + '<p><b>오늘부터 활용할 강점:</b> '+(topHouseMetaQuick.title || '현재 강조되는 하우스')+' 영역에서 작은 실행을 먼저 시작해보세요.</p>'
+      + '<p><b>조심하면 좋은 패턴:</b> 감정이 커질수록 바로 결론 내리기보다 하루 정도 간격을 두면 판단 정확도가 높아집니다.</p>'
+      + '<p><b>관계에서 기억할 것:</b> '+(vmAspect || vmCalcFallback)+'</p>'
+      + '<p><b>일과 목표에서 기억할 것:</b> MC '+mcSign+' 방향성과 토성 '+saturnHousePair+' 루틴을 함께 관리하면 성과가 안정적으로 누적됩니다.</p>'
+      + '<p><b>회복을 위해 필요한 것:</b> 달 '+moonHousePair+' 리듬을 기준으로 휴식 타이밍을 먼저 확보해 주세요.</p>'
+      + '</div>'
+      + '</div>';
+
+    var astroCanonicalSectionHtml = ''
+      + '<div class="astro-section astro-life-area" id="astroCanonicalSection">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">🧩 기본 운세 확장 카테고리</div>'
+      + '<p class="astro-birth-lead">프리미엄 리포트의 챕터 구조를 기본 운세에 맞게 압축해, 핵심 주제를 바로 확인할 수 있게 재배치했습니다.</p>'
+      + '<div class="astro-life-grid">'
+      + '<details class="astro-life-card" open>'
+      + '<summary><span>성향 코어 · Identity</span><span class="astro-birth-open">핵심</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>태양 <b>'+sunSign+'</b> · 달 <b>'+moonSign+'</b> · 상승궁 <b>'+ascSign+'</b> 조합은 지금 <b>'+(topHouseMetaQuick.title || '핵심 하우스')+'</b> 축에서 가장 강하게 체감됩니다.</p>'
+      + '<p class="astro-life-evidence"><b>근거:</b> <span class="astro-life-chip">☀️ '+sunHousePair+'</span><span class="astro-life-chip">🌙 '+moonHousePair+'</span><span class="astro-life-chip">⬆️ '+ascHousePair+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '<details class="astro-life-card">'
+      + '<summary><span>관계/연애 · Bond</span><span class="astro-birth-open">리듬</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>'+(vmAspect || vmCalcFallback)+'</p>'
+      + '<p class="astro-life-evidence"><b>관계 키워드:</b> <span class="astro-life-chip">금성 '+venusHousePair+'</span><span class="astro-life-chip">화성 '+marsHousePair+'</span><span class="astro-life-chip">보완 원소 '+elemShortNames[elemWeakest]+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '<details class="astro-life-card">'
+      + '<summary><span>커리어/재물 · Growth</span><span class="astro-birth-open">확장</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>MC <b>'+mcSign+'</b> 방향성과 토성 <b>'+saturnHousePair+'</b> 루틴을 고정하면, 목성 <b>'+jupiterHousePair+'</b> 영역에서 확장 속도가 빨라집니다.</p>'
+      + '<p class="astro-life-evidence"><b>올해 프로펙션:</b> <span class="astro-life-chip">'+profHouse+'</span><span class="astro-life-chip">지배별자리 '+profSign+'</span><span class="astro-life-chip">지배행성 '+profRuler+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '<details class="astro-life-card">'
+      + '<summary><span>리스크/루틴 · Stability</span><span class="astro-birth-open">가드</span></summary>'
+      + '<div class="astro-life-body">'
+      + '<p>지배 원소는 <b>'+elemDomNames[elemDominant]+'</b>입니다. 역행 행성 '+(retroPlanets.length ? retroPlanets.join(', ') : '없음')+' 구간에서는 결론을 늦추고 기록 기반 의사결정이 유리합니다.</p>'
+      + '<p class="astro-life-evidence"><b>실행 팁:</b> <span class="astro-life-chip">'+modalityNames[modalityDominant]+'</span><span class="astro-life-chip">'+modalityAdvice[modalityDominant]+'</span></p>'
+      + '</div>'
+      + '</details>'
+      + '</div>'
+      + '</div>';
 
     var mobileScenarioSectionHtml = ''
       + '<div class="astro-section astro-mobile-scenario" id="astroMobileScenarioSection">'
@@ -7073,199 +7090,6 @@ function renderAstroInsight() {
     var axisGap = (sunIndex - moonIndex + 12) % 12;
     var axisGapDesc = (axisGap === 0) ? '의식-정서 일치형' : (axisGap === 6 ? '의식-정서 대칭형(긴장/보완)' : '의식-정서 혼합형');
     var relationAxisText = '지금 관계 키워드는 "내 페이스 지키기"와 "상대 템포 존중하기"의 밸런스예요. 한쪽으로만 몰아붙이면 감정 체력이 먼저 소모됩니다.';
-
-    var elementalBalanceHtml = '<div class="astro-section">'
-        +'<div class="astro-subhead">🜂 4원소 균형 (Elemental Balance)</div>'
-        +'<div class="astro-desc">'
-        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">'
-        +['fire','earth','air','water'].map(function(el){
-            var cfg={fire:['#f87171','🔥','불(Fire)'],earth:['#fde68a','🌿','흙(Earth)'],air:['#93c5fd','💨','공기(Air)'],water:['#34d399','💧','물(Water)']};
-            var c=cfg[el]; var pct=elemPct[el];
-            return '<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.07);">'
-                +'<div style="font-size:0.82rem; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
-                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:0.75rem; color:#94a3b8; font-weight:400;">%</span></div>'
-                +'<div style="height:4px; background:#1e293b; border-radius:2px; margin-top:8px; overflow:hidden;"><div style="height:100%; width:'+pct+'%; background:'+c[0]+'; border-radius:2px;"></div></div>'
-                +'</div>';
-        }).join('')
-        +'</div>'
-        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:0.88rem;">'
-        +'<span style="color:#fbbf24; font-weight:700;">지배 원소: '+elemDomNames[elemDominant]+'</span>'
-        +'<p style="margin:6px 0 0 0; color:#cbd5e1; line-height:1.5;">'+elemDomDesc[elemDominant]+'</p>'
-        +'</div>'
-        +'</div>'
-        +'</div>';
-
-    var firdariaSectionHtml = '<div class="astro-section astro-neon-accent astro-neon-accent-violet">'
-        +'<div class="astro-subhead" style="color:#a78bfa;">🪐 피르다리아 (Firdaria — 고전 시간 통치자)</div>'
-        +'<div class="astro-desc">'
-        +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
-        +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.12); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.3); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
-        +'<div style="font-size:1.15rem; font-weight:900; color:#ddd6fe;">'+firdariaMain.planet+'</div>'
-        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
-        +'</div>'
-        +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.06); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.15); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
-        +'<div style="font-size:1.15rem; font-weight:900; color:#c4b5fd;">'+firdariaSubPlanet+'</div>'
-        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">조율 에너지</div>'
-        +'</div>'
-        +'</div>'
-        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(firdariaDynamic.theme || firdariaMain.theme)+'</p>'
-        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+firdariaPrecisionNote+'</p>'
-        +'<div style="background:rgba(167,139,250,0.07); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(167,139,250,0.12);">'
-        +'<div style="color:#c4b5fd; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 심층 해석</div>'
-        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(firdariaDynamic.detail || firdariaMain.detail)+'</p>'
-        +'</div>'
-        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
-        +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
-        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 천기</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.career || firdariaMain.career)+'</p>'
-        +'</div>'
-        +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
-        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 관계</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.love || firdariaMain.love)+'</p>'
-        +'</div>'
-        +'</div>'
-        +'<div style="background:rgba(239,68,68,0.07); border-radius:10px; padding:12px; margin-bottom:10px; border:1px solid rgba(239,68,68,0.15);">'
-        +'<div style="color:#fca5a5; font-weight:700; font-size:0.8rem; margin-bottom:5px;">⚠️ 주의 및 건강</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.caution || firdariaMain.caution)+'</p>'
-        +'</div>'
-        +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
-        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 핵심 행동 조언</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.advice || firdariaMain.advice)+'</p>'
-        +'</div>'
-        +(function(){
-            var comboKey = firdariaMain.kr+'_'+firdariaSubPlanet;
-            var comboMsg = FIRDARIA_COMBO[comboKey];
-            if(!comboMsg) return '';
-            return '<div style="margin-top:10px; background:rgba(139,92,246,0.1); border-radius:10px; padding:12px; border:1px solid rgba(139,92,246,0.3);">'
-                +'<div style="color:#a78bfa; font-weight:700; font-size:0.8rem; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">✦ '+firdariaMain.kr+' × '+firdariaSubPlanet+' 콤보 에너지</div>'
-                +'<p style="color:#e2e8f0; font-size:0.85rem; line-height:1.65; margin:0;">'+comboMsg+'</p>'
-                +'</div>';
-        })()
-        +'</div>'
-        +'</div>';
-
-    var profectionSectionHtml = '<div class="astro-section astro-neon-accent astro-neon-accent-cyan">'
-        +'<div class="astro-subhead" style="color:#22d3ee;">🌀 연간 프로펙션 (Annual Profection — '+now.getFullYear()+'년)</div>'
-        +'<div class="astro-desc">'
-        +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
-        +'<div style="flex:1; min-width:110px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
-        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
-        +'</div>'
-        +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
-        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
-        +'</div>'
-        +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
-        +'<div style="font-size:1.1rem; font-weight:900; color:#67e8f9;">'+profRuler+'</div>'
-        +'</div>'
-        +'</div>'
-        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(profectionDynamic.theme || curProfData.theme)+'</p>'
-        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+profectionPrecisionNote+'</p>'
-        +'<div style="background:rgba(34,211,238,0.06); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(34,211,238,0.12);">'
-        +'<div style="color:#67e8f9; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 올해의 메시지</div>'
-        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(profectionDynamic.detail || curProfData.detail)+'<br><br>'
-        +'지배 별자리 <b style="color:#a5f3fc">'+profSign+'</b>의 에너지가 이 하우스 주제를 채색하며, 올해 지배 행성 <b style="color:#67e8f9">'+profRuler+'</b>의 트랜짓 상태가 이 한 해의 실제 흐름을 결정합니다.</p>'
-        +'</div>'
-        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
-        +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
-        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 & 재물</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.career || curProfData.career)+'</p>'
-        +'</div>'
-        +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
-        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 인간관계</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.love || curProfData.love)+'</p>'
-        +'</div>'
-        +'</div>'
-        +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
-        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 이 해를 최대한 활용하는 법</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.advice || curProfData.advice)+'</p>'
-        +'</div>'
-        +'</div>'
-        +'</div>';
-
-    var expertCounselingHtml = '<div class="astro-expert">'
-        +'<div class="expert-title">🗣️ 쌈바 & 연이의 코즈믹 카운슬링 (요약 팩폭)</div>'
-        +'<div class="expert-msg">'
-        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "오늘 승부처는 분명합니다. 태양 '+sunHousePair+'와 MC '+mcSign+' 축에서 이름을 드러내고, 토성 '+saturnHousePair+'에서 기본기를 고정하세요. 타이트 각 '+tightAspectText+'은 타이밍 신호예요. <b>'+profHouse+'</b> 프로펙션과 <b>'+firdariaMain.kr+'</b> 타임로드가 겹치는 지금, 준비된 사람만 결과를 크게 가져갑니다."</div>'
-        +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "달 <b>'+moonSign+'</b>('+moonHousePair+')은 네 마음 배터리 충전소예요. 불안할수록 여기부터 챙기면 멘탈이 빨리 돌아옵니다. 금성 <b>'+venusSign+'</b>('+venusHousePair+')의 사랑 언어를 솔직하게 말하면 연애 오해가 크게 줄어요. 그리고 <b>'+elemShortNames[elemWeakest]+'</b> 기운을 채워주는 사람/취미를 곁에 두면 하루 체감이 훨씬 좋아져요. 가보자고! 🌸"</div>'
-        +'</div>'
-        +'</div>';
-
-    var synastryFormHtml = '<div class="astro-section astro-neon-accent astro-neon-accent-amber">'
-        +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대 직접 입력</div>'
-        +'<div class="astro-desc">'
-        +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
-        +'상대 정보만 넣으면 두 사람의 케미 지도가 즉시 오픈됩니다. 시간 미상이면 12:00(정오)로도 OK, 대화 템포 힌트까지 뽑아드려요.'
-        +'</p>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
-        +'<div style="flex:1;min-width:130px;">'
-        +'<label class="astro-label">상대방 이름 (선택)</label>'
-        +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off">'
-        +'</div>'
-        +'<div style="flex:1;min-width:130px;">'
-        +'<label class="astro-label">상대방 생년월일</label>'
-        +'<input type="date" class="astro-neon-input" id="asDirect_birth" value="1995-01-01">'
-        +'</div>'
-        +'</div>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
-        +'<div style="flex:1;min-width:110px;">'
-        +'<label class="astro-label">출생 시간</label>'
-        +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00">'
-        +'</div>'
-        +'<div style="flex:1;min-width:110px;">'
-        +'<label class="astro-label">궁합 성격</label>'
-        +'<select class="astro-neon-select" id="asDirect_type">'
-        +'<option value="love">💕 연애 & 설렘</option>'
-        +'<option value="work">🤝 비즈니스 & 협업</option>'
-        +'<option value="friend">✨ 친구 & 소통</option>'
-        +'</select>'
-        +'</div>'
-        +'</div>'
-        +'<button type="button" class="astro-neon-cta" id="asDirectBtn">코즈믹 케미 분석하기</button>'
-        +'<div id="asDirectLoading" style="display:none;text-align:center;padding:15px;color:#fbbf24;font-style:italic;">별의 궤적을 겹쳐보는 중...</div>'
-        +'</div>'
-        +'</div>'
-        +'<div id="astroSyResult" style="display:none;"></div>';
-
-    var celebritySectionHtml = '<div class="astro-section">'
-        +'<div class="astro-subhead">🫶 인연과 시너지 (Celebrity Synergy)</div>'
-        +'<div class="astro-desc">'
-        +'<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:14px;">'
-        +'<div style="background:rgba(244,114,182,0.1); border-radius:9px; padding:10px; text-align:center; border:1px solid rgba(244,114,182,0.2);">'
-        +'<div style="font-size:0.65rem; color:#f472b6; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.7px;">♀ 금성</div>'
-        +'<div style="font-size:0.85rem; font-weight:800; color:#fbcfe8; line-height:1.2;">'+venusSign+'</div>'
-        +'<div style="font-size:0.65rem; color:#94a3b8; margin-top:3px;">사랑의 언어</div>'
-        +'</div>'
-        +'<div style="background:rgba(239,68,68,0.1); border-radius:9px; padding:10px; text-align:center; border:1px solid rgba(239,68,68,0.2);">'
-        +'<div style="font-size:0.65rem; color:#f87171; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.7px;">♂ 화성</div>'
-        +'<div style="font-size:0.85rem; font-weight:800; color:#fca5a5; line-height:1.2;">'+marsSign+'</div>'
-        +'<div style="font-size:0.65rem; color:#94a3b8; margin-top:3px;">욕망의 동력</div>'
-        +'</div>'
-        +'</div>'
-        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(52,211,153,0.25) !important;background:rgba(16,185,129,.08) !important;">'
-        +'<div style="font-size:0.78rem;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
-        +'<div id="astroCosmicTwins" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;">'
-        +'<span style="color:#666;font-size:0.8rem;">✦ 분석 중...</span>'
-        +'</div>'
-        +'</div>'
-        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(244,114,182,0.25) !important;background:rgba(244,114,182,.08) !important;">'
-        +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요.</p>'
-        +'<div id="astroCtryTabs" class="astro-neon-tab-row"></div>'
-        +'<div id="astroCatTabs" class="astro-neon-tab-row"></div>'
-        +'<div style="position:relative;margin-bottom:8px;">'
-        +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="이름 검색 (예: 테일러 스위프트, 아이유...)" autocomplete="off" style="padding-right:34px;">'
-        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
-        +'</div>'
-        +'<div id="astroSyCelebs" class="astro-neon-scroll"></div>'
-        +'</div>'
-        +'</div>'
-        +'</div>';
     var transitExecutionText = '지금 목성 흐름은 '+jupiterHousePair+' 영역에서 특히 체감이 커요. 이 주제에 에너지를 주면 성과가 빨리 붙습니다.';
     var houseTopicMap = {
       1:'자기정체성/신체/개인 브랜딩', 2:'재정/자원/가치체계', 3:'학습/콘텐츠/소통',
@@ -7609,13 +7433,356 @@ function renderAstroInsight() {
       + personalGuidanceSectionHtml
       + astroCanonicalSectionHtml
       + mobileScenarioSectionHtml
-      + elementalBalanceHtml
-      + firdariaSectionHtml
-      + profectionSectionHtml
-      + expertCounselingHtml
-      + synastryFormHtml
-      + celebritySectionHtml;
-  
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">🌟 심화 1. 성향 근거 자세히 (태양·달·상승궁)</div>'
+        +'<div class="astro-tags">'
+        +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
+        +' <span class="astro-tag">☽ 달</span> <span class="astro-planet">'+moonSign+'</span>'+moonDeg
+        +' <span class="astro-tag">↑ Asc 상승궁</span> <span class="astro-planet">'+ascSign+'</span>'
+        +'</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>☀️ 태양 — 나의 진짜 빛</b><br>'+sunCoreInterpretation+'</p>'
+        +'<p><b>🌙 달 — 감정 배터리의 진짜 코드</b><br>'+moonSign+' 달은 지치거나 예민할 때 자동으로 튀어나오는 모드예요. '+moonHousePair+' 영역에서 회복이 빠르고, 같은 구간에서 상처도 깊게 남아요. 이 포인트를 알아주는 사람은 관계 만족도가 확 올라갑니다.</p>'
+        +'<p><b>⬆ 상승궁 — 첫인상 캐릭터</b><br>상승궁 <b>'+ascSign+'</b>은 첫 만남에서 보이는 "프리뷰 버전"이에요. 친해질수록 태양 본캐가 드러나서, 초반 이미지와 후반 매력이 다르게 느껴질 수 있어요.</p>'
+        +'<p style="margin-top:8px;color:#cbd5e1;">'+imbalanceText+' '+precisionComment+'</p>'
+        +'</div>'
+        +'<div class="astro-core">"오늘의 본캐 행성은 <strong>'+chartRuler+'</strong>. 이 축을 살리면 일도 관계도 도파민이 붙어요."</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">🧠 심화 1.5 말투·성장버프·인생변수 (수성·목성·외행성)</div>'
+        +'<div class="astro-tags">'
+        +'<span class="astro-tag">☿ 수성</span> <span class="astro-planet">'+mercurySign+(chart.planets.Mercury&&chart.planets.Mercury.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">♃ 목성</span> <span class="astro-planet">'+jupiterSign+(chart.planets.Jupiter&&chart.planets.Jupiter.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">♄ 토성</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +'</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>💬 수성 — 말빨과 사고방식</b><br>수성 <b>'+mercurySign+'</b>('+mercuryHousePair+')은 네가 말하고 배우는 템포를 보여줘요. 이 방식대로 커뮤니케이션하면 오해는 줄고 성과는 빨라집니다.</p>'
+        +'<p><b>🍀 목성 — 럭키비키 포인트</b><br>목성 <b>'+jupiterSign+'</b>('+jupiterHousePair+')은 "왜인지 잘 풀리는 길"이에요. 여기로 힘을 실으면 과한 억지 없이도 확장운이 붙습니다.</p>'
+        +'<p><b>🌀 외행성 3총사 — 판 바꾸는 변수</b><br>천왕성('+uranusSign+', '+uranusHousePair+')은 급전환, 해왕성('+neptuneSign+', '+neptuneHousePair+')은 감성·영감 버프, 명왕성('+plutoSign+', '+plutoHousePair+')은 체질 개선 구간입니다. 흔들릴 땐 빡세지만, 지나면 확실히 레벨업됩니다.</p>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">🏆 심화 2. 커리어에서 어디에 꽂아야 뜨는가?</div>'
+        +'<div class="astro-tags">'
+        +'<span class="astro-tag">MC 천정(10H)</span> <span class="astro-planet">'+mcSign+'</span>'
+        +' <span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
+        +' <span class="astro-tag">6H</span> <span class="astro-house">'+h6Sign+'</span>'
+        +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +'</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>🎯 MC(<b>'+mcSign+'</b>) — 세상이 기억하는 내 브랜드</b><br>MC는 공적 무대에서 네가 빛나는 캐릭터예요. 이 코드로 포지셔닝하면 "이 분야는 저 사람" 인식이 빨리 생깁니다.</p>'
+        +'<p><b>🔨 6하우스(<b>'+h6Sign+'</b>) — 실전 운영법</b><br>여긴 업무 습관과 체력 운용의 핵심 구간입니다. 나한테 맞는 루틴만 고정해도 효율이 올라가고 번아웃이 줄어요.</p>'
+        +'<p><b>🏗️ 토성(<b>'+saturnSign+'</b>, '+saturnHousePair+') — 느리지만 크게 남는 구간</b><br>초반엔 답답할 수 있어도, 여기서 쌓은 기본기는 오래 갑니다. 한마디로 "빡세지만 배신 안 하는 영역"이에요.</p>'
+        +'<p style="margin-top:8px;color:#cbd5e1;">실전 공식: MC로 브랜딩하고 → 6하우스로 실행 템포 맞추고 → 토성 구간에서 꾸준함으로 승부. 갓생은 이 조합이 먹힙니다.</p>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">💘 심화 3. 연애할 때 내 설렘 스위치는?</div>'
+        +'<div class="astro-tags">'
+        +'<span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
+        +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +'</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>😍 하강궁(Desc) — 자꾸 끌리는 타입의 비밀</b><br>하강궁 <b>'+descSign+'</b>은 네가 무의식적으로 끌리는 관계 코드예요. "왜 나는 늘 비슷한 타입에 빠지지?" 싶었다면 여기가 정답입니다.</p>'
+        +'<p><b>💕 금성(<b>'+venusSign+'</b>, '+venusHousePair+') × 화성(<b>'+marsSign+'</b>, '+marsHousePair+')</b><br>금성은 내가 사랑을 표현하는 방식, 화성은 먼저 다가가게 만드는 본능입니다. '+(vmAspect || vmCalcFallback)+'</p>'
+        +'<p><b>🌙 달 — 연인이 알아줘야 할 진짜 니즈</b><br>달(<b>'+moonSign+'</b>, '+moonHousePair+') 니즈가 채워지면 관계 만족도가 급상승해요. 여기 맞는 사람이면 과몰입이 건강하게 오래갑니다.</p>'
+        +'<p style="margin-top:8px;color:#cbd5e1;">'+relationAxisText+'</p>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">🍀 심화 4. 지금 운이 몰리는 방향 (목성 트랜짓)</div>'
+        +'<div class="astro-tags">'
+        +'<span class="astro-tag">Jupiter ♃ Transit</span> <span class="astro-planet">'+jupiterTransit+'</span>'
+        +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
+        +'</div>'
+        +'<div class="astro-desc">'
+        +'<p>지금 목성은 <b>'+jupiterTransit+'</b>을 지나고 있어요. 올해 확장운이 붙는 메인 트랙이란 뜻입니다. 큰 결정은 이 방향에 맞추면 성공 확률이 올라갑니다.</p>'
+        +'<div class="astro-core" style="font-size:1.05rem;margin-top:20px;font-weight:bold">"👉 '+transitMsg[jupiterIndex]+'"</div>'
+        +'<p>'+transitExecutionText+'</p>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">⚡ 4.5 오늘 집중하면 터지는 포인트</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>🔥 나의 에너지 구성:</b> '+imbalanceText+'</p>'
+        +'<p><b>🎯 행동 스타일:</b> '+modalityNames[modalityDominant]+' 위주입니다. '+modalityAdvice[modalityDominant]+'</p>'
+        +'<p><b>🏠 인생 무게중심:</b> '+focusHouseText+'. 오늘은 특히 <b>'+topHouseTopic+'</b>에서 성과 체감이 빨라요.</p>'
+        +'<p><b>⚠️ 조심할 포인트:</b> '+precisionComment+'</p>'
+        +'<p><b>↩ 역행 중인 행성:</b> '+retroFocusText+'</p>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">🫶 5. 누구랑 붙을 때 시너지가 터지나?</div>'
+        +'<div class="astro-desc">'
+        +'<p>내 차트를 알면 궁합이 훨씬 현실적으로 보여요. 누가 잘 맞고 어디서 부딪히는지, 태양·달·금성·화성으로 쉽게 읽어드립니다.</p>'
+        +'<p style="color:#cbd5e1;">핵심 포인트: 감정 안정은 달('+moonHousePair+'), 끌림과 표현은 금성('+venusHousePair+')·화성('+marsHousePair+'), 가장 강하게 작동하는 각도는 '+tightAspectText+'입니다.</p>'
+        +'<div class="astro-core" style="font-size:0.95rem;line-height:1.6;font-weight:normal">'
+        +'<ul style="padding-left:20px;margin-bottom:0;">'
+        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (마음이 편한 관계)</b><br>감정 안정 포인트는 <b>'+moonSign+'</b>('+moonHousePair+')입니다. 초반에 안심감을 먼저 만들면 오래가요. 내 약점 원소 <b>'+elemShortNames[elemWeakest]+'</b>를 채워주는 사람이 특히 찰떡입니다.</li>'
+        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (끌림과 템포)</b><br><b>'+venusSign+'</b> 금성('+venusHousePair+')은 사랑 표현법, <b>'+marsSign+'</b> 화성('+marsHousePair+')은 행동 타이밍이에요. "표현 맞추기 → 속도 맞추기" 순서가 제일 자연스럽습니다.</li>'
+        +'<li><b>🤝 일 궁합 (함께 잘 일하는 조합)</b><br>업무 축은 MC <b>'+mcSign+'</b>와 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')입니다. 감정보다 일정·품질·약속을 같이 지키는 파트너가 더 오래 갑니다.</li>'
+        +'</ul>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+
+        /* ── 통합 인연 리포트 (Synastry & Bond) ── */
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-pink">'
+        +'<div class="astro-subhead" style="color:#f472b6;">💞 궁합 한눈에 리포트 (팩트 버전)</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>[하강궁 — 자꾸 끌리는 타입]</b> 당신의 하강궁(7H)은 <b>'+descSign+'</b>입니다. 그래서 이 성향을 가진 사람에게 "이유 없이 끌리는 느낌"이 자주 생길 수 있어요.</p>'
+        +'<p><b>[Venus ♀ × Mars ♂ — 설렘 스위치]</b> 금성(<b>'+venusSign+'</b>)과 화성(<b>'+marsSign+'</b>)의 조합은 이렇게 읽혀요: '+(vmAspect||vmCalcFallback)+'</p>'
+        +'<p><b>[궁합 체크 포인트]</b> 같은 별자리라고 자동 찰떡은 아니에요. 태양·달·금성·화성의 실제 각도가 맞을수록 관계 유지력이 높아집니다. 한마디로 케미는 별자리 + 운영력의 합입니다.</p>'
+        +'<div class="astro-neon-soft-block" style="margin-top:12px;">'
+        +'<div style="color:#f9a8d4; font-weight:700; margin-bottom:8px; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">✦ Bond Compatibility Map</div>'
+        +'<ul style="padding-left:18px; margin:0; color:#e2e8f0; line-height:1.85; font-size:0.9rem;">'
+        +'<li><b>💕 연애 궁합</b> — 달 <b>'+moonSign+'</b>('+moonHousePair+')의 감정 리듬을 직관적으로 알아봐 주는 사람. '+relationComplementElement+' 기질로 내 에너지의 빈틈을 채워주는 상대일수록 오래갑니다.</li>'
+        +'<li><b>✨ 속 궁합</b> — 금성 <b>'+venusSign+'</b>('+venusHousePair+')의 사랑 언어가 통하고, 화성 <b>'+marsSign+'</b>('+marsHousePair+')의 타이밍이 맞는 사람일 때 "이 사람이다" 싶은 느낌이 확 옵니다.</li>'
+        +'<li><b>🤝 일 궁합</b> — MC <b>'+mcSign+'</b>의 방향성을 응원하고, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')의 규율을 함께 지켜줄 수 있는 파트너. 역할 분담만 잘 해도 마찰이 크게 줄어듭니다.</li>'
+        +'</ul>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+
+        /* ── ★ 직접 입력 시나스트리 궁합 ── */
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-amber">'
+        +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대 직접 입력</div>'
+        +'<div class="astro-desc">'
+        +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
+        +'상대 정보만 넣으면 두 사람의 케미 지도가 즉시 오픈됩니다. 시간 미상이면 12:00(정오)로도 OK, 대화 템포 힌트까지 뽑아드려요.'
+        +'</p>'
+        /* 입력 폼 */
+        +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
+        +'<div style="flex:1;min-width:130px;">'
+        +'<label class="astro-label">상대방 이름 (선택)</label>'
+        +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off">'
+        +'</div>'
+        +'<div style="flex:1;min-width:130px;">'
+        +'<label class="astro-label">생년월일</label>'
+        +'<input type="date" class="astro-neon-input" id="asDirect_date" required>'
+        +'</div>'
+        +'<div style="flex:0 0 auto;">'
+        +'<label class="astro-label">태어난 시각</label>'
+        +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:120px;">'
+        +'</div>'
+        +'<div style="flex:0 0 auto;">'
+        +'<label class="astro-label">상대 성별</label>'
+        +'<select id="asDirect_gender" class="astro-neon-select" style="width:120px;">'
+        +'<option value="F">여성</option>'
+        +'<option value="M">남성</option>'
+        +'<option value="OTHER">기타</option>'
+        +'</select>'
+        +'</div>'
+        +'<div style="flex:0 0 auto;">'
+        +'<label class="astro-label">도시(시/군)</label>'
+        +'<select id="asDirect_city" class="astro-neon-select" style="width:240px;">'
+        +'<option value="">도시 선택(시/군 단위)</option>'
+        +'</select>'
+        +'</div>'
+        +'</div>'
+        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 시나스트리 분석하기</button>'
+        +'<div id="asDirectResult" style="margin-top:14px;"></div>'
+        +'</div>'
+        +'</div>'
+
+        /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo" id="astroSynastrySection">'
+        +'<div class="astro-subhead" style="color:#818cf8;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div>'
+        +'<div class="astro-desc">'
+
+        /* ── [✨ 천상의 지도: 당신의 성좌] ── */
+        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;">'
+        +'<div style="font-size:0.78rem;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;">'
+        +'<div style="background:rgba(251,191,36,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(251,191,36,0.25);">'
+        +'<div style="font-size:0.65rem;color:#fbbf24;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☀ 태양</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#fde68a;line-height:1.2;">'+sunSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">핵심 자아</div>'
+        +'</div>'
+        +'<div style="background:rgba(148,163,184,0.12);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(148,163,184,0.2);">'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☽ 달</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#e2e8f0;line-height:1.2;">'+moonSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">감정 패턴</div>'
+        +'</div>'
+        +'<div style="background:rgba(244,114,182,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(244,114,182,0.2);">'
+        +'<div style="font-size:0.65rem;color:#f472b6;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♀ 금성</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#fbcfe8;line-height:1.2;">'+venusSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">사랑의 언어</div>'
+        +'</div>'
+        +'<div style="background:rgba(239,68,68,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(239,68,68,0.2);">'
+        +'<div style="font-size:0.65rem;color:#f87171;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♂ 화성</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#fca5a5;line-height:1.2;">'+marsSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">욕망의 동력</div>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+
+        /* ── [🎭 영혼의 쌍둥이: 나와 닮은 별의 인물] — 동적 렌더 컨테이너 ── */
+        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(52,211,153,0.25) !important;background:rgba(16,185,129,.08) !important;">'
+        +'<div style="font-size:0.78rem;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
+        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
+        +'<div id="astroCosmicTwins" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;">'
+        +'<span style="color:#666;font-size:0.8rem;">✦ 분석 중...</span>'
+        +'</div>'
+        +'</div>'
+
+        /* ── [💍 운명의 시나스트리] — 유명인 선택 UI ── */
+        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(244,114,182,0.25) !important;background:rgba(244,114,182,.08) !important;">'
+        +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
+        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 보고, 실제 성향은 대화 템포로 최종 체크해요.</p>'
+        /* 국가 탭 */
+        +'<div id="astroCtryTabs" class="astro-neon-tab-row"></div>'
+        /* 카테고리 탭 */
+        +'<div id="astroCatTabs" class="astro-neon-tab-row"></div>'
+        /* 검색 */
+        +'<div style="position:relative;margin-bottom:8px;">'
+        +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="이름 검색 (예: 테일러 스위프트, 아이유...)" autocomplete="off" style="padding-right:34px;">'
+        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
+        +'</div>'
+        /* 유명인 버튼 목록 */
+        +'<div id="astroSyCelebs" class="astro-neon-scroll"></div>'
+        +'</div>'
+
+        /* ── [시나스트리 결과판] ── */
+        +'<div id="astroSyResult" style="display:none;"></div>'
+
+        +'</div>'
+        +'</div>'
+
+        /* ── 4원소 균형 (실시간) ── */
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">🜂 4원소 균형 (Elemental Balance)</div>'
+        +'<div class="astro-desc">'
+        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">'
+        +['fire','earth','air','water'].map(function(el){
+            var cfg={fire:['#f87171','🔥','불(Fire)'],earth:['#fde68a','🌿','흙(Earth)'],air:['#93c5fd','💨','공기(Air)'],water:['#34d399','💧','물(Water)']};
+            var c=cfg[el]; var pct=elemPct[el];
+            return '<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.07);">'
+                +'<div style="font-size:0.82rem; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
+                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:0.75rem; color:#94a3b8; font-weight:400;">%</span></div>'
+                +'<div style="height:4px; background:#1e293b; border-radius:2px; margin-top:8px; overflow:hidden;"><div style="height:100%; width:'+pct+'%; background:'+c[0]+'; border-radius:2px;"></div></div>'
+                +'</div>';
+        }).join('')
+        +'</div>'
+        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:0.88rem;">'
+        +'<span style="color:#fbbf24; font-weight:700;">지배 원소: '+elemDomNames[elemDominant]+'</span>'
+        +'<p style="margin:6px 0 0 0; color:#cbd5e1; line-height:1.5;">'+elemDomDesc[elemDominant]+'</p>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+
+        /* ── 피르다리아 (실시간) ── */
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-violet">'
+        +'<div class="astro-subhead" style="color:#a78bfa;">🪐 피르다리아 (Firdaria — 고전 시간 통치자)</div>'
+        +'<div class="astro-desc">'
+        +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
+        +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.12); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.3); text-align:center;">'
+        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
+        +'<div style="font-size:1.15rem; font-weight:900; color:#ddd6fe;">'+firdariaMain.planet+'</div>'
+        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
+        +'</div>'
+        +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.06); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.15); text-align:center;">'
+        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
+        +'<div style="font-size:1.15rem; font-weight:900; color:#c4b5fd;">'+firdariaSubPlanet+'</div>'
+        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">조율 에너지</div>'
+        +'</div>'
+        +'</div>'
+        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(firdariaDynamic.theme || firdariaMain.theme)+'</p>'
+        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+firdariaPrecisionNote+'</p>'
+        +'<div style="background:rgba(167,139,250,0.07); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(167,139,250,0.12);">'
+        +'<div style="color:#c4b5fd; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 심층 해석</div>'
+        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(firdariaDynamic.detail || firdariaMain.detail)+'</p>'
+        +'</div>'
+        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
+        +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
+        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 천기</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.career || firdariaMain.career)+'</p>'
+        +'</div>'
+        +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
+        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 관계</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.love || firdariaMain.love)+'</p>'
+        +'</div>'
+        +'</div>'
+        +'<div style="background:rgba(239,68,68,0.07); border-radius:10px; padding:12px; margin-bottom:10px; border:1px solid rgba(239,68,68,0.15);">'
+        +'<div style="color:#fca5a5; font-weight:700; font-size:0.8rem; margin-bottom:5px;">⚠️ 주의 및 건강</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.caution || firdariaMain.caution)+'</p>'
+        +'</div>'
+        +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
+        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 핵심 행동 조언</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.advice || firdariaMain.advice)+'</p>'
+        +'</div>'
+        +(function(){
+            var comboKey = firdariaMain.kr+'_'+firdariaSubPlanet;
+            var comboMsg = FIRDARIA_COMBO[comboKey];
+            if(!comboMsg) return '';
+            return '<div style="margin-top:10px; background:rgba(139,92,246,0.1); border-radius:10px; padding:12px; border:1px solid rgba(139,92,246,0.3);">'
+                +'<div style="color:#a78bfa; font-weight:700; font-size:0.8rem; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">✦ '+firdariaMain.kr+' × '+firdariaSubPlanet+' 콤보 에너지</div>'
+                +'<p style="color:#e2e8f0; font-size:0.85rem; line-height:1.65; margin:0;">'+comboMsg+'</p>'
+                +'</div>';
+        })()
+        +'</div>'
+        +'</div>'
+
+        /* ── 연간 프로펙션 (실시간) ── */
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-cyan">'
+        +'<div class="astro-subhead" style="color:#22d3ee;">🌀 연간 프로펙션 (Annual Profection — '+now.getFullYear()+'년)</div>'
+        +'<div class="astro-desc">'
+        +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
+        +'<div style="flex:1; min-width:110px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
+        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
+        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
+        +'</div>'
+        +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
+        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
+        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
+        +'</div>'
+        +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
+        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
+        +'<div style="font-size:1.1rem; font-weight:900; color:#67e8f9;">'+profRuler+'</div>'
+        +'</div>'
+        +'</div>'
+        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(profectionDynamic.theme || curProfData.theme)+'</p>'
+        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+profectionPrecisionNote+'</p>'
+        +'<div style="background:rgba(34,211,238,0.06); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(34,211,238,0.12);">'
+        +'<div style="color:#67e8f9; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 올해의 메시지</div>'
+        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(profectionDynamic.detail || curProfData.detail)+'<br><br>'
+        +'지배 별자리 <b style="color:#a5f3fc">'+profSign+'</b>의 에너지가 이 하우스 주제를 채색하며, 올해 지배 행성 <b style="color:#67e8f9">'+profRuler+'</b>의 트랜짓 상태가 이 한 해의 실제 흐름을 결정합니다.</p>'
+        +'</div>'
+        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
+        +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
+        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 & 재물</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.career || curProfData.career)+'</p>'
+        +'</div>'
+        +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
+        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 인간관계</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.love || curProfData.love)+'</p>'
+        +'</div>'
+        +'</div>'
+        +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
+        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 이 해를 최대한 활용하는 법</div>'
+        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.advice || curProfData.advice)+'</p>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-expert">'
+        +'<div class="expert-title">🗣️ 쌈바 & 연이의 코즈믹 카운슬링 (요약 팩폭)</div>'
+        +'<div class="expert-msg">'
+        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "오늘 승부처는 분명합니다. 태양 '+sunHousePair+'와 MC '+mcSign+' 축에서 이름을 드러내고, 토성 '+saturnHousePair+'에서 기본기를 고정하세요. 타이트 각 '+tightAspectText+'은 타이밍 신호예요. <b>'+profHouse+'</b> 프로펙션과 <b>'+firdariaMain.kr+'</b> 타임로드가 겹치는 지금, 준비된 사람만 결과를 크게 가져갑니다."</div>'
+        +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "달 <b>'+moonSign+'</b>('+moonHousePair+')은 네 마음 배터리 충전소예요. 불안할수록 여기부터 챙기면 멘탈이 빨리 돌아옵니다. 금성 <b>'+venusSign+'</b>('+venusHousePair+')의 사랑 언어를 솔직하게 말하면 연애 오해가 크게 줄어요. 그리고 <b>'+elemShortNames[elemWeakest]+'</b> 기운을 채워주는 사람/취미를 곁에 두면 하루 체감이 훨씬 좋아져요. 가보자고! 🌸"</div>'
+        +'</div>'
+        +'</div>'
+
+        +'</div>';
+
     document.getElementById('astroResult').innerHTML = html;
 
     function _astroInitBirthMapSection(){

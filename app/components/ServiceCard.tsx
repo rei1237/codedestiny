@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useState, useRef } from "react";
 
 type Badge = {
   text: string;
@@ -22,8 +23,36 @@ function badgeClass(tone: Badge["tone"]) {
 }
 
 export default function ServiceCard({ item }: { item: ServiceCardModel }) {
+  const [isScrolling, setIsScrolling] = useState(false);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    setIsScrolling(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - touchStartPos.current.x;
+    const dy = e.touches[0].clientY - touchStartPos.current.y;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      setIsScrolling(true);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // 스크롤 중에는 클릭(이동)이 발생하지 않도록 방어
+    if (isScrolling) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   return (
-    <article className="group flex h-full flex-col rounded-[18px] border border-violet-200/25 bg-[linear-gradient(145deg,rgba(22,10,46,0.92),rgba(37,18,72,0.86))] p-4 shadow-[0_12px_28px_rgba(26,13,57,0.35)] transition hover:-translate-y-0.5 hover:border-violet-200/55 hover:shadow-[0_18px_40px_rgba(55,28,109,0.36)]">
+    <article
+      className="group flex h-full flex-col rounded-[18px] border border-violet-200/25 bg-[linear-gradient(145deg,rgba(22,10,46,0.92),rgba(37,18,72,0.86))] p-4 shadow-[0_12px_28px_rgba(26,13,57,0.35)] transition hover:-translate-y-0.5 hover:border-violet-200/55 hover:shadow-[0_18px_40px_rgba(55,28,109,0.36)]"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+    >
       <div className="mb-2 flex items-start justify-between gap-2">
         <h3 className="text-sm font-bold leading-6 text-violet-50">
           {item.emoji ? <span className="mr-1">{item.emoji}</span> : null}
@@ -47,6 +76,7 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
       <div className="mt-auto">
         <Link
           href={item.href}
+          onClick={handleClick}
           className="inline-flex w-full items-center justify-center rounded-xl border border-violet-200/45 bg-[linear-gradient(135deg,rgba(102,63,195,0.9),rgba(84,115,221,0.88))] px-3 py-2 text-xs font-semibold text-white transition group-hover:brightness-110"
         >
           {item.cta || "바로가기"}

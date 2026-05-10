@@ -1,10 +1,11 @@
-// ============================================
+﻿// ============================================
 // Face Analysis Engine (Vanilla JS 포팅 버전)
 // AI 동물 관상 맞춤형 DB 포함 (15종) + 전문가 삼정 정밀 분석
 // ============================================
 
 class AnalysisEngine {
   constructor() {
+    this.faceApiModelsLoaded = false; // face-api.js 모델 로드 완료 여부
     this.animalDb = {
       animals: [
     {
@@ -1096,6 +1097,52 @@ class AnalysisEngine {
     };
   }
 
+  // ─────────────────────────────────────────────
+  // face-api.js 모델 로드 (CDN 기반, 최초 1회)
+  // ─────────────────────────────────────────────
+  async loadFaceApiModels() {
+    if (this.faceApiModelsLoaded) return;
+    try {
+      // face-api.js 스크립트 동적 로드
+      if (!window.faceapi) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+      const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+      ]);
+      this.faceApiModelsLoaded = true;
+      
+    } catch(e) {
+      console.warn('[AnalysisEngine] face-api.js 로드 실패 (표정 분석 비활성화):', e);
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // face-api.js 표정 감지 (이미지 또는 비디오 엘리먼트)
+  // 반환: { happy, sad, angry, fearful, disgusted, surprised, neutral } (합계 ≈ 1)
+  // ─────────────────────────────────────────────
+  async detectExpressions(mediaEl) {
+    if (!this.faceApiModelsLoaded || !window.faceapi) return null;
+    try {
+      const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 });
+      const detection = await faceapi
+        .detectSingleFace(mediaEl, options)
+        .withFaceExpressions();
+      if (!detection) return null;
+      return detection.expressions; // faceapi.FaceExpressions 객체
+    } catch(e) {
+      console.warn('[AnalysisEngine] 표정 감지 실패:', e);
+      return null;
+    }
+  }
 
 async analyze(landmarksData, expressionData) {
     const features = this.extractGeometricFeatures(landmarksData);
@@ -1196,9 +1243,18 @@ async analyze(landmarksData, expressionData) {
         sad:       { dog:30, deer:35, bear:20, rabbit:15, camel:25, giraffe:20, horse:15, alpaca:10, pig:10 }
       };
 
+      // 표정 점수 보정 및 최종 totalScore 산출 (기하 60% + 표정 40%)
       candidates.forEach(c => {
-        // 기하학적 점수(geoScore) 기반
-        c.totalScore = c.geoScore;
+        let exprScore = 0;
+        if (expressionData && typeof expressionData === 'object') {
+          Object.keys(EXPR_BOOST).forEach(expr => {
+            const prob = expressionData[expr] || 0; // 0~1
+            const boost = (EXPR_BOOST[expr][c.animal.id] || 0);
+            exprScore += prob * boost * 20;
+          });
+        }
+        c.exprScore = exprScore;
+        c.totalScore = Math.max(0, c.geoScore * 0.60 + exprScore * 0.40);
       });
 
       // 특수 조건 보정 반영 (기존 penalty 조정 → totalScore 직접 가감)

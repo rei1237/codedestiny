@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // Face Analysis UI Controller (Vanilla JS)
 // 초상권 안내 문구 추가 & 동물 뱃지 미출력 오류 수정
 // 초정밀 안면 / 귀 관상 분석 프롬프트 고도화 적용
@@ -1025,6 +1025,8 @@ window.openPhysiognomyApp = async function() {
     await startMediaPipe();
     if (window.faceAnalysisEngine) {
       await window.faceAnalysisEngine.loadDatabase();
+      // face-api.js 표정 분석 모델 비동기 로드 (실패해도 기본 분석은 동작)
+      window.faceAnalysisEngine.loadFaceApiModels().catch(() => {});
     }
   } catch (e) {
     updateStatus('로딩 중 오류 발생. 새로고침 후 다시 시도해주세요.');
@@ -1206,7 +1208,17 @@ window.startCapture = async function() {
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
     if (!window.faceAnalysisEngine) throw new Error('분석 엔진 부재');
 
-    let expressionData = null; // face-api.js 의존성 제거로 인한 멈춤 해결
+    let expressionData = null;
+    try {
+      const mediaSource = (typeof currentMode !== 'undefined' && currentMode === 'file')
+        ? (_phyAnalysisSourceEl || document.getElementById('phyImage'))
+        : document.getElementById('phyVideo');
+      if (mediaSource && window.faceAnalysisEngine.faceApiModelsLoaded) {
+        expressionData = await window.faceAnalysisEngine.detectExpressions(mediaSource);
+      }
+    } catch (exErr) {
+      console.warn('표정 감지 실패(무시):', exErr);
+    }
 
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
     const result = await window.faceAnalysisEngine.analyze(landmarksData, expressionData);
