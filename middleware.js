@@ -192,7 +192,7 @@ function buildLoginRedirectUrl(request) {
   const loginUrl = request.nextUrl.clone();
   const redirectTo = `${request.nextUrl.pathname}${request.nextUrl.search || ""}`;
   loginUrl.pathname = "/login";
-  loginUrl.search = `?next=${encodeURIComponent(redirectTo)}&redirect=${encodeURIComponent(redirectTo)}`;
+  loginUrl.search = `?returnTo=${encodeURIComponent(redirectTo)}&next=${encodeURIComponent(redirectTo)}&redirect=${encodeURIComponent(redirectTo)}`;
   return loginUrl;
 }
 

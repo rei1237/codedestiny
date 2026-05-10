@@ -1600,7 +1600,7 @@ async function handleOAuthCallback(request, env, provider) {
     await connectDb(env);
 
     const flow = sanitizeAuthFlow(statePayload.flow);
-    const redirectPath = flow === "signup" ? "/signup" : "/login";
+    const redirectPath = `/auth/${provider}/callback`;
     const accessToken = await exchangeCodeForAccessToken(
       provider,
       code,
@@ -1617,7 +1617,7 @@ async function handleOAuthCallback(request, env, provider) {
       nextPath: sanitizeNextPath(statePayload.nextPath) || "/",
     }, env);
 
-    const redirectParams = new URLSearchParams({ social_grant: grant });
+    const redirectParams = new URLSearchParams({ social_grant: grant, flow });
     if (statePayload.nextPath) redirectParams.set("next", statePayload.nextPath);
 
     const safeFrontendBase = String(statePayload.frontendBase || frontendBase).replace(/\/+$/, "");

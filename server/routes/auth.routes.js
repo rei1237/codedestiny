@@ -993,7 +993,7 @@ router.get("/oauth/:provider/callback", async (req, res) => {
     }
 
     const flow = sanitizeAuthFlow(statePayload.flow);
-    const redirectPath = flow === "signup" ? "/signup" : "/login";
+    const redirectPath = `/auth/${provider}/callback`;
 
     const accessToken = await exchangeCodeForAccessToken(
       provider,
@@ -1010,7 +1010,7 @@ router.get("/oauth/:provider/callback", async (req, res) => {
       nextPath: sanitizeNextPath(statePayload.nextPath) || "/",
     });
 
-    const redirectParams = new URLSearchParams({ social_grant: grant });
+    const redirectParams = new URLSearchParams({ social_grant: grant, flow });
     if (statePayload.nextPath) {
       redirectParams.set("next", statePayload.nextPath);
     }

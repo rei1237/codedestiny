@@ -38,6 +38,17 @@ type SocialProvider = "google" | "naver" | "kakao";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const LOCAL_AUTH_TIMEOUT_MS = 20000;
+const IS_DEV = process.env.NODE_ENV !== "production";
+
+function authInfo(...args: unknown[]) {
+  if (!IS_DEV) return;
+  console.info(...args);
+}
+
+function authWarn(...args: unknown[]) {
+  if (!IS_DEV) return;
+  console.warn(...args);
+}
 
 function sanitizeNextPath(rawNext: string | null) {
   if (!rawNext) return null;
@@ -46,7 +57,7 @@ function sanitizeNextPath(rawNext: string | null) {
 }
 
 function resolveNextPathFromQuery(params: URLSearchParams): string {
-  return sanitizeNextPath(params.get("next")) || sanitizeNextPath(params.get("redirect")) || "/";
+  return sanitizeNextPath(params.get("returnTo")) || sanitizeNextPath(params.get("next")) || sanitizeNextPath(params.get("redirect")) || "/";
 }
 
 function buildSocialStartPath(provider: SocialProvider, flow: "login" | "signup", nextPath: string) {
@@ -125,6 +136,8 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 function normalizeSocialAuthError(rawReason: string | null): string {
   const reason = String(rawReason || "").trim().toLowerCase();
   if (!reason) return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+  if (reason === "oauth_failed") return "소셜 로그인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.";
+  if (reason === "missing_oauth_params") return "소셜 인증 정보가 누락되었습니다. 다시 로그인해 주세요.";
   if (reason.includes("token_exchange_failed")) return "소셜 인증 토큰 교환에 실패했습니다. 잠시 후 다시 시도해 주세요.";
   if (reason === "oauth_not_configured") return "소셜 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
   if (reason === "invalid_callback" || reason === "provider_mismatch") return "소셜 인증 콜백이 유효하지 않습니다. 다시 시도해 주세요.";
@@ -147,20 +160,18 @@ function normalizeAuthApiError(payload: LoginResult & { errors?: string[] }, fal
 export default function LoginPage() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(true);
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const [oauthRedirecting, setOauthRedirecting] = useState<SocialProvider | null>(null);
+  const [callbackProcessing] = useState(false);
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
-  const socialCompleteOnceRef = useRef(false);
-  const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
-
-  const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
   const abortBootstrapAuthCheck = useCallback(() => {
     const activeController = bootstrapAuthCheckControllerRef.current;
@@ -171,9 +182,6 @@ export default function LoginPage() {
   }, []);
 
   const persistAuth = (user?: LoginResult["user"], accessToken?: string) => {
-    if (user || accessToken) {
-      authCommittedRef.current = true;
-    }
     if (accessToken) {
       try {
         localStorage.setItem("fortune_auth_token", String(accessToken));
@@ -203,39 +211,49 @@ export default function LoginPage() {
     router.replace(nextPath);
   }, [router]);
 
-  // 마운트 직후: 이미 로그인된 사용자 → 홈으로 리다이렉트
-  // 소셜 그랜트가 있는 URL의 경우는 이 effect에서 처리하지 않음 (socialEffect가 담당)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant") || params.get("social_error")) return;
 
     const controller = new AbortController();
     bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let alive = true;
 
-    fetch(`${authApiBase}/api/auth/me`, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return parseJsonResponse<LoginResult>(response);
-      })
-      .then((payload) => {
+    (async () => {
+      authInfo("[AUTH] session check start");
+
+      try {
+        const response = await fetch(`${authApiBase}/api/auth/me`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          authInfo("[AUTH] session check result", "guest");
+          return;
+        }
+
+        const payload = await parseJsonResponse<LoginResult>(response);
+        const authenticated = Boolean(payload?.user);
+        authInfo("[AUTH] session check result", authenticated ? "authenticated" : "guest");
         if (!payload?.user) return;
+
         persistAuth(payload.user, payload.accessToken);
         const nextPath = resolveNextPathFromQuery(params);
+        authInfo("[AUTH] redirect target", nextPath);
         setIsRedirecting(true);
-        timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 400);
-      })
-      .catch((error) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        // Ignore bootstrap auth-check failures to avoid login-page redirect loops.
-      });
+        timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 240);
+      } catch (fetchError) {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+      } finally {
+        if (alive) setSessionChecking(false);
+      }
+    })();
 
     return () => {
+      alive = false;
       if (bootstrapAuthCheckControllerRef.current === controller) {
         bootstrapAuthCheckControllerRef.current = null;
       }
@@ -244,87 +262,22 @@ export default function LoginPage() {
     };
   }, [authApiBase, redirectAfterAuth]);
 
-  // 소셜 OAuth 그랜트 처리 (네트워크 호출 중복 방지: socialCompleteOnceRef)
   useEffect(() => {
-    if (socialCompleteOnceRef.current) return;
-
     const params = new URLSearchParams(window.location.search);
-    const socialGrant = params.get("social_grant");
-    const socialError = params.get("social_error");
-
-    if (!socialGrant && !socialError) return;
-
-    if (socialError) {
-      socialCompleteOnceRef.current = true;
-      setError(normalizeSocialAuthError(socialError));
-      return;
+    const oauthError = params.get("error") || params.get("social_error");
+    if (oauthError) {
+      setError(normalizeSocialAuthError(oauthError));
+      authWarn("[AUTH] oauth callback failed", oauthError);
     }
 
-    if (!socialGrant) return;
-
-    abortBootstrapAuthCheck();
-    socialCompleteOnceRef.current = true;
-    setLoading(true);
-
-    (async () => {
-      let response: Response | null = null;
-      let lastFetchError: Error | null = null;
-
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const nextResponse = await fetch(socialCompleteEndpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ socialGrant }),
-          });
-
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-
-          response = nextResponse;
-          break;
-        } catch (err) {
-          lastFetchError = err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-        }
-      }
-
-      if (!response) {
-        throw (lastFetchError || new Error("소셜 로그인 처리 중 오류가 발생했습니다."));
-      }
-
-      return response;
-    })()
-      .then(async (response) => {
-        const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
-
-        if (!response.ok) {
-          throw new Error(normalizeAuthApiError(payload, "소셜 로그인 처리에 실패했습니다."));
-        }
-
-        persistAuth(payload.user, payload.accessToken);
-        const nextFromQuery = resolveNextPathFromQuery(params);
-        const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
-
-        redirectAfterAuth(nextPath, payload.user);
-      })
-      .catch((e: Error) => {
-        setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [abortBootstrapAuthCheck, redirectAfterAuth, socialCompleteEndpoint]);
+    if (params.get("social_grant")) {
+      setError("소셜 로그인 콜백이 만료되었거나 경로가 올바르지 않습니다. 소셜 로그인을 다시 시도해 주세요.");
+    }
+  }, []);
 
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (loading || socialLoading !== null) return;
+    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
 
     abortBootstrapAuthCheck();
 
@@ -335,7 +288,8 @@ export default function LoginPage() {
     }
 
     setError("");
-    setLoading(true);
+    setLoginSubmitting(true);
+    authInfo("[AUTH] email login submit");
 
     try {
       const params = new URLSearchParams(window.location.search);
@@ -382,38 +336,74 @@ export default function LoginPage() {
         throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
       }
 
-      persistAuth(payload.user, payload.accessToken);
-      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
+      let verifiedUser = payload.user;
 
-      redirectAfterAuth(resolvedNextPath, payload.user);
+      const meResponse = await fetch(`${authApiBase}/api/auth/me`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (meResponse.ok) {
+        const mePayload = await parseJsonResponse<LoginResult>(meResponse);
+        if (mePayload?.user) {
+          verifiedUser = mePayload.user;
+          persistAuth(mePayload.user, payload.accessToken);
+        }
+      }
+
+      if (!verifiedUser) {
+        throw new Error("로그인 세션 검증에 실패했습니다. 다시 시도해 주세요.");
+      }
+
+      persistAuth(verifiedUser, payload.accessToken);
+      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
+      authInfo("[AUTH] email login success");
+      authInfo("[AUTH] redirect target", resolvedNextPath);
+
+      redirectAfterAuth(resolvedNextPath, verifiedUser);
     } catch (e) {
       const message = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
+      authWarn("[AUTH] email login failed", message);
       if (message === "Failed to fetch") {
         setError("로그인 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.");
         return;
       }
       setError(message);
     } finally {
-      setLoading(false);
+      setLoginSubmitting(false);
     }
   };
 
   const startSocialLogin = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
+    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing || isRedirecting) return;
+
     abortBootstrapAuthCheck();
     setError("");
-    setSocialLoading(provider);
+    setOauthRedirecting(provider);
+    authInfo("[AUTH] oauth redirect start");
+
+    try {
+      sessionStorage.setItem("cd_oauth_intent", JSON.stringify({ provider, flow: "login", at: Date.now() }));
+    } catch {
+      // ignore storage failures
+    }
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = resolveNextPathFromQuery(params);
+    authInfo("[AUTH] redirect target", nextPath);
     const startUrl = buildSocialStartUrl(authApiBase, provider, "login", nextPath);
     window.location.href = startUrl;
   };
 
+  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing || isRedirecting;
+  const formDisabled = isBusy;
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0b1225] via-[#1b1745] to-[#2f0a4f] px-4 py-10 text-slate-100">
       {/* 코즈믹 로딩 오버레이 — API 처리 중 또는 리다이렉트 중 */}
-      {(loading || isRedirecting) && (
+      {isBusy && (
         <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #0b1225 0%, #1b1745 50%, #2f0a4f 100%)' }}>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:60px_60px] opacity-35" />
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -429,7 +419,13 @@ export default function LoginPage() {
             </div>
             <div className="text-center">
               <p className="text-base font-bold tracking-wide text-white">
-                {isRedirecting ? '별빛 여정으로 이동 중...' : '별빛 로그인 포털을 열고 있습니다'}
+                {isRedirecting
+                  ? '이미 로그인되어 이동 중입니다'
+                  : (callbackProcessing
+                    ? '소셜 로그인 마무리 중입니다'
+                    : (oauthRedirecting
+                      ? '소셜 인증 페이지로 이동 중입니다'
+                      : '별빛 여정 중'))}
               </p>
               <p className="mt-1 text-sm text-indigo-200/60">잠시만 기다려 주세요...</p>
             </div>
@@ -450,6 +446,9 @@ export default function LoginPage() {
               <p className="mt-2 text-sm leading-6 text-violet-100/80">
                 아이디(이메일)/비밀번호 또는 소셜 계정으로 로그인할 수 있습니다.
               </p>
+              {sessionChecking ? (
+                <p className="mt-2 text-xs text-violet-100/70">세션 확인 중입니다...</p>
+              ) : null}
               <div className="mt-4 inline-flex rounded-full border border-violet-200/25 bg-slate-950/30 p-1">
                 <span className="min-h-0 min-w-0 rounded-full bg-violet-400/20 px-3 py-1.5 text-xs font-semibold text-violet-100">
                   로그인
@@ -476,7 +475,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={loginId}
                   onChange={(event) => setLoginId(event.target.value)}
-                  disabled={loading || socialLoading !== null}
+                  disabled={formDisabled}
                   placeholder="name@example.com"
                   className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                 />
@@ -491,14 +490,14 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    disabled={loading || socialLoading !== null}
+                    disabled={formDisabled}
                     placeholder="비밀번호 입력"
                     className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 pr-14 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    disabled={loading || socialLoading !== null}
+                    disabled={formDisabled}
                     className="absolute right-2 top-1/2 h-8 min-h-0 min-w-0 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                   >
@@ -517,10 +516,10 @@ export default function LoginPage() {
               </div>
               <button
                 type="submit"
-                disabled={loading || socialLoading !== null}
+                disabled={formDisabled}
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "로그인 중..." : "아이디/비밀번호로 로그인"}
+                {loginSubmitting ? "로그인 중..." : "아이디/비밀번호로 로그인"}
               </button>
             </form>
 
@@ -534,52 +533,52 @@ export default function LoginPage() {
               <a
                 href={buildSocialStartPath("google", "login", "/")}
                 onClick={(event) => {
-                  if (loading || socialLoading !== null) {
+                  if (formDisabled) {
                     event.preventDefault();
                     return;
                   }
                   event.preventDefault();
                   startSocialLogin("google");
                 }}
-                aria-disabled={loading || socialLoading !== null}
-                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] ${(loading || socialLoading !== null) ? "pointer-events-none opacity-60" : ""}`}
+                aria-disabled={formDisabled}
+                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] ${formDisabled ? "pointer-events-none opacity-60" : ""}`}
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
-                {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 계속하기"}
+                {oauthRedirecting === "google" ? "Google 인증으로 이동 중..." : "Google로 계속하기"}
               </a>
 
               <a
                 href={buildSocialStartPath("naver", "login", "/")}
                 onClick={(event) => {
-                  if (loading || socialLoading !== null) {
+                  if (formDisabled) {
                     event.preventDefault();
                     return;
                   }
                   event.preventDefault();
                   startSocialLogin("naver");
                 }}
-                aria-disabled={loading || socialLoading !== null}
-                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] ${(loading || socialLoading !== null) ? "pointer-events-none opacity-60" : ""}`}
+                aria-disabled={formDisabled}
+                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] ${formDisabled ? "pointer-events-none opacity-60" : ""}`}
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
-                {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 계속하기"}
+                {oauthRedirecting === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 계속하기"}
               </a>
 
               <a
                 href={buildSocialStartPath("kakao", "login", "/")}
                 onClick={(event) => {
-                  if (loading || socialLoading !== null) {
+                  if (formDisabled) {
                     event.preventDefault();
                     return;
                   }
                   event.preventDefault();
                   startSocialLogin("kakao");
                 }}
-                aria-disabled={loading || socialLoading !== null}
-                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] ${(loading || socialLoading !== null) ? "pointer-events-none opacity-60" : ""}`}
+                aria-disabled={formDisabled}
+                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] ${formDisabled ? "pointer-events-none opacity-60" : ""}`}
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
-                {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 계속하기"}
+                {oauthRedirecting === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 계속하기"}
               </a>
             </div>
 
