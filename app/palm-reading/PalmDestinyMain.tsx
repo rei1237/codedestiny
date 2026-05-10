@@ -15,7 +15,6 @@ import PalmLineOverlay, {
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
-import { analyzePalmImageFile } from "@/lib/palm/palm-image-analysis-client";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
 type HandSide = "left" | "right";
@@ -800,24 +799,10 @@ export default function PalmDestinyMain() {
       const leftPalmImage = leftHand.file ? await fileToDataUrl(leftHand.file) : null;
       const rightPalmImage = rightHand.file ? await fileToDataUrl(rightHand.file) : null;
 
-      const [leftVision, rightVision] = await Promise.all([
-        leftHand.file
-          ? analyzePalmImageFile(leftHand.file, { declaredHandSide: "left" }).catch(() => null)
-          : Promise.resolve(null),
-        rightHand.file
-          ? analyzePalmImageFile(rightHand.file, { declaredHandSide: "right" }).catch(() => null)
-          : Promise.resolve(null),
-      ]);
-
       const requestBody = JSON.stringify({
         leftPalmImage,
         rightPalmImage,
-        leftHandLandmarks: leftVision?.handLandmarks ?? null,
-        rightHandLandmarks: rightVision?.handLandmarks ?? null,
-        leftLineCandidates: leftVision?.lineCandidates ?? [],
-        rightLineCandidates: rightVision?.lineCandidates ?? [],
-        leftImageQuality: leftVision?.imageQuality ?? null,
-        rightImageQuality: rightVision?.imageQuality ?? null,
+        uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
         dominantHand,
         analysisPurpose,
       });
