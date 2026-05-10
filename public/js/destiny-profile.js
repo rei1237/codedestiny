@@ -954,6 +954,84 @@
     return target.parentElement || null;
   }
 
+  var _DP_TOUCH_STABILITY = {
+    moveX: 12,
+    moveY: 16,
+    maxDurationMs: 520,
+    recentScrollBlockMs: 220
+  };
+
+  var _dpLastTouchScrollAt = 0;
+  var _dpTouchScrollMarkBound = false;
+
+  function _dpResetTouchTapState(state) {
+    if (!state) return;
+    state.active = false;
+    state.x = 0;
+    state.y = 0;
+    state.startedAt = 0;
+  }
+
+  function _dpReadTouchPoint(event, useChangedTouches) {
+    if (!event) return null;
+    var touches = useChangedTouches ? event.changedTouches : event.touches;
+    if (touches && touches.length) return touches[0];
+    return event;
+  }
+
+  function _dpRecordTouchTapStart(state, event) {
+    var point = _dpReadTouchPoint(event, false);
+    if (!point || typeof point.clientX !== 'number' || typeof point.clientY !== 'number') {
+      _dpResetTouchTapState(state);
+      return;
+    }
+    state.active = true;
+    state.x = point.clientX;
+    state.y = point.clientY;
+    state.startedAt = Date.now();
+  }
+
+  function _dpIsStableTouchTap(state, event, opts) {
+    if (!state || !state.active) {
+      _dpResetTouchTapState(state);
+      return false;
+    }
+
+    var point = _dpReadTouchPoint(event, true);
+    var now = Date.now();
+    var options = opts || {};
+    var moveX = (typeof options.moveX === 'number') ? options.moveX : _DP_TOUCH_STABILITY.moveX;
+    var moveY = (typeof options.moveY === 'number') ? options.moveY : _DP_TOUCH_STABILITY.moveY;
+    var maxDurationMs = (typeof options.maxDurationMs === 'number') ? options.maxDurationMs : _DP_TOUCH_STABILITY.maxDurationMs;
+    var recentScrollBlockMs = (typeof options.recentScrollBlockMs === 'number') ? options.recentScrollBlockMs : _DP_TOUCH_STABILITY.recentScrollBlockMs;
+
+    var stable = false;
+    if (point && typeof point.clientX === 'number' && typeof point.clientY === 'number') {
+      var dx = Math.abs(point.clientX - state.x);
+      var dy = Math.abs(point.clientY - state.y);
+      var duration = state.startedAt ? (now - state.startedAt) : Number.MAX_SAFE_INTEGER;
+      stable = dx < moveX
+        && dy < moveY
+        && duration <= maxDurationMs
+        && (now - _dpLastTouchScrollAt) >= recentScrollBlockMs;
+    }
+
+    _dpResetTouchTapState(state);
+    return stable;
+  }
+
+  function _dpBindTouchScrollMark() {
+    if (_dpTouchScrollMarkBound) return;
+    _dpTouchScrollMarkBound = true;
+
+    var markScroll = function() {
+      _dpLastTouchScrollAt = Date.now();
+    };
+
+    window.addEventListener('scroll', markScroll, { passive: true, capture: true });
+    document.addEventListener('scroll', markScroll, { passive: true, capture: true });
+  }
+
   /* ──────────────────────────────────────────
      2. 진태양시(True Solar Time) 보정
         KST 기준: 표준 자오선 135도
@@ -2150,16 +2228,24 @@
     };
     var closeBtnEl = ov.querySelector('.dp-fsel-close-btn');
     if (closeBtnEl) {
+      var closeBtnTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
       closeBtnEl.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         doClose(e);
       });
+      closeBtnEl.addEventListener('touchstart', function(e) {
+        _dpRecordTouchTapStart(closeBtnTouchState, e);
+      }, { passive: true });
       closeBtnEl.addEventListener('touchend', function(e) {
+        if (!_dpIsStableTouchTap(closeBtnTouchState, e, { moveX: 24, moveY: 24 })) return;
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         doClose(e);
       }, { passive: false });
+      closeBtnEl.addEventListener('touchcancel', function() {
+        _dpResetTouchTapState(closeBtnTouchState);
+      }, { passive: true });
     }
     ov.addEventListener('click', function(e) {
       if (e.target === ov) doClose(e);
@@ -2430,6 +2516,8 @@
     /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
     dpCloseList();
 
+    _dpBindTouchScrollMark();
+
     _dpEnsureScopedStorageReady();
 
     renderMasterCard(DPStorage.current());
@@ -2459,6 +2547,7 @@
     if (overlay) overlay.addEventListener('click', dpCloseList);
     var sheet = document.getElementById('dpListSheet');
     if (sheet) {
+      var sheetCloseTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
       /* 시트 내부 클릭: data-action 요소는 버블링 허용, 나머지는 stopPropagation */
       sheet.addEventListener('click', function(e) {
         var targetEl = _resolveEventElement(e.target);
@@ -2474,39 +2563,60 @@
           dpCloseList();
         }
       }, true);
+      sheet.addEventListener('touchstart', function(e) {
+        var targetEl = _resolveEventElement(e.target);
+        if (targetEl && targetEl.closest && targetEl.closest('.dp-sheet-close')) {
+          _dpRecordTouchTapStart(sheetCloseTouchState, e);
+          return;
+        }
+        _dpResetTouchTapState(sheetCloseTouchState);
+      }, { capture: true, passive: true });
       sheet.addEventListener('touchend', function(e) {
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl || !targetEl.closest) return;
         if (targetEl.closest('.dp-sheet-close')) {
+          if (!_dpIsStableTouchTap(sheetCloseTouchState, e, { moveX: 36, moveY: 36 })) return;
           if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           dpCloseList();
         }
       }, { capture: true, passive: false });
+      sheet.addEventListener('touchcancel', function() {
+        _dpResetTouchTapState(sheetCloseTouchState);
+      }, { capture: true, passive: true });
     }
 
     var closeBtn = document.querySelector('#dpListSheet .dp-sheet-close');
     if (closeBtn) {
+      var closeBtnTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
       closeBtn.addEventListener('click', function(e) {
         e.preventDefault();
         dpCloseList();
       });
+      closeBtn.addEventListener('touchstart', function(e) {
+        _dpRecordTouchTapStart(closeBtnTouchState, e);
+      }, { passive: true });
       closeBtn.addEventListener('touchend', function(e) {
+        if (!_dpIsStableTouchTap(closeBtnTouchState, e, { moveX: 36, moveY: 36 })) return;
         if (e.cancelable) e.preventDefault();
         dpCloseList();
       }, { passive: false });
+      closeBtn.addEventListener('touchcancel', function() {
+        _dpResetTouchTapState(closeBtnTouchState);
+      }, { passive: true });
     }
 
     /* 모바일: document 터치 위임 — dp-sheet 닫기 버튼 (iOS Safari onclick 유실 방지) */
-    var _dpSheetTouchX = 0, _dpSheetTouchY = 0;
+    var dpSheetDocTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
     document.addEventListener('touchstart', function(e) {
       if (e.touches && e.touches[0]) {
         var t = _resolveEventElement(e.target);
         if (t && t.closest && t.closest('#dpListSheet .dp-sheet-close')) {
-          _dpSheetTouchX = e.touches[0].clientX;
-          _dpSheetTouchY = e.touches[0].clientY;
+          _dpRecordTouchTapStart(dpSheetDocTouchState, e);
+          return;
         }
       }
+      _dpResetTouchTapState(dpSheetDocTouchState);
     }, { passive: true });
     document.addEventListener('touchend', function(e) {
       var targetEl = _resolveEventElement(e.target);
@@ -2515,19 +2625,24 @@
       if (!closeBtnEl) return;
       var sheetEl = document.getElementById('dpListSheet');
       if (!sheetEl || !sheetEl.classList.contains('dp-sheet--open')) return;
-      var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
-      var dx = Math.abs(pt.clientX - _dpSheetTouchX);
-      var dy = Math.abs(pt.clientY - _dpSheetTouchY);
-      if (dx < 36 && dy < 36) {
+      if (_dpIsStableTouchTap(dpSheetDocTouchState, e, { moveX: 36, moveY: 36, recentScrollBlockMs: 240 })) {
         if (e.cancelable) e.preventDefault();
         dpCloseList();
       }
     }, { passive: false });
+    document.addEventListener('touchcancel', function() {
+      _dpResetTouchTapState(dpSheetDocTouchState);
+    }, { passive: true });
 
     var card = document.getElementById('dpMasterCard');
     if (card) {
+      var cardTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
       /* 모바일에서 onclick 유실되는 경우를 대비해 터치 핸들러를 추가한다. */
+      card.addEventListener('touchstart', function(e) {
+        _dpRecordTouchTapStart(cardTouchState, e);
+      }, { passive: true });
       card.addEventListener('touchend', function(e) {
+        if (!_dpIsStableTouchTap(cardTouchState, e, { moveX: 14, moveY: 20, recentScrollBlockMs: 260 })) return;
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
         var menuBtn = targetEl.closest('.dp-mc-list-btn');
@@ -2549,28 +2664,29 @@
           return;
         }
       }, { passive: false });
+      card.addEventListener('touchcancel', function() {
+        _dpResetTouchTapState(cardTouchState);
+      }, { passive: true });
     }
 
     /* 운세 유형 선택 모달(dp-fsel) — 모바일 터치 위임 (onclick 유실 방지) */
-    var _dpFselTouchX = 0, _dpFselTouchY = 0;
+    var fselTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
     document.addEventListener('touchstart', function(e) {
       if (e.touches && e.touches[0]) {
         var t = _resolveEventElement(e.target);
         if (t && t.closest && t.closest('.dp-fsel-overlay')) {
-          _dpFselTouchX = e.touches[0].clientX;
-          _dpFselTouchY = e.touches[0].clientY;
+          _dpRecordTouchTapStart(fselTouchState, e);
+          return;
         }
       }
+      _dpResetTouchTapState(fselTouchState);
     }, { passive: true });
     document.addEventListener('touchend', function(e) {
       var targetEl = _resolveEventElement(e.target);
       if (!targetEl || !targetEl.closest) return;
       var closeBtn = targetEl.closest('.dp-fsel-overlay .dp-fsel-close-btn');
       if (closeBtn) {
-        var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
-        var dx = Math.abs(pt.clientX - _dpFselTouchX);
-        var dy = Math.abs(pt.clientY - _dpFselTouchY);
-        if (dx < 24 && dy < 24 && typeof window._dpCloseFortuneSel === 'function') {
+        if (_dpIsStableTouchTap(fselTouchState, e, { moveX: 24, moveY: 24 }) && typeof window._dpCloseFortuneSel === 'function') {
           if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           window._dpCloseFortuneSel();
@@ -2579,10 +2695,7 @@
       }
       var btn = targetEl.closest('.dp-fsel-overlay .dp-fsel-btn');
       if (!btn) return;
-      var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
-      var dx = Math.abs(pt.clientX - _dpFselTouchX);
-      var dy = Math.abs(pt.clientY - _dpFselTouchY);
-      if (dx >= 10 || dy >= 16) return; /* 스크롤로 간주 */
+      if (!_dpIsStableTouchTap(fselTouchState, e, { moveX: 10, moveY: 16 })) return; /* 스크롤로 간주 */
       if (e.cancelable) e.preventDefault();
       var type = '';
       if (btn.classList.contains('dp-fsel-btn--saju')) type = 'saju';
@@ -2597,40 +2710,42 @@
         window._dpOpenFortuneType(type);
       }
     }, { passive: false });
+    document.addEventListener('touchcancel', function() {
+      _dpResetTouchTapState(fselTouchState);
+    }, { passive: true });
 
     /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
     var listInner = document.getElementById('dpListInner');
     if (listInner) {
-      var _tX = 0, _tY = 0;
+      var listTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
       listInner.addEventListener('touchstart', function(e) {
-        _tX = e.touches[0].clientX;
-        _tY = e.touches[0].clientY;
+        _dpRecordTouchTapStart(listTouchState, e);
       }, { passive: true });
       listInner.addEventListener('touchend', function(e) {
-        var dx = Math.abs(e.changedTouches[0].clientX - _tX);
-        var dy = Math.abs(e.changedTouches[0].clientY - _tY);
         /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
-        if (dx < 10 && dy < 16) {
-          var targetEl = _resolveEventElement(e.target);
-          if (!targetEl) return;
-          var delBtn = targetEl.closest('.dp-li-del');
-          if (delBtn) {
-            var delItem = targetEl.closest('[data-profile-id]');
-            var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
-            if (delPid) {
-              if (e.cancelable) e.preventDefault();
-              e.stopPropagation();
-              dpDeleteProfile(delPid);
-            }
-            return;
+        if (!_dpIsStableTouchTap(listTouchState, e, { moveX: 10, moveY: 16 })) return;
+        var targetEl = _resolveEventElement(e.target);
+        if (!targetEl) return;
+        var delBtn = targetEl.closest('.dp-li-del');
+        if (delBtn) {
+          var delItem = targetEl.closest('[data-profile-id]');
+          var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
+          if (delPid) {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            dpDeleteProfile(delPid);
           }
-          var item = targetEl.closest('[data-profile-id]');
-          if (item && !targetEl.closest('.dp-li-del')) {
-            var pid = item.getAttribute('data-profile-id');
-            if (pid) { if (e.cancelable) e.preventDefault(); dpSelectProfile(pid); }
-          }
+          return;
+        }
+        var item = targetEl.closest('[data-profile-id]');
+        if (item && !targetEl.closest('.dp-li-del')) {
+          var pid = item.getAttribute('data-profile-id');
+          if (pid) { if (e.cancelable) e.preventDefault(); dpSelectProfile(pid); }
         }
       }, { passive: false });
+      listInner.addEventListener('touchcancel', function() {
+        _dpResetTouchTapState(listTouchState);
+      }, { passive: true });
     }
 
     /* 폼 변경 시 카드 자동 갱신 (저장 전이라도 장소는 반영) */
