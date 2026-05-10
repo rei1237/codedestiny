@@ -11,12 +11,12 @@
     if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json?v=20260511-mobile-logo-fix1');
     var faviconLink = document.getElementById('pwa-favicon');
     if (faviconLink) {
-      faviconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1');
+      faviconLink.setAttribute('href', '/icons/samba.webp?v=20260511-mobile-logo-fix1');
       faviconLink.setAttribute('type', 'image/webp');
       faviconLink.setAttribute('sizes', '192x192');
     }
     var appleIconLink = document.getElementById('pwa-apple-icon');
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1');
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp?v=20260511-mobile-logo-fix1');
   } catch (_) {
     window.__INITIAL_THEME_NEO__ = false;
   }
