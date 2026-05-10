@@ -9,37 +9,32 @@ import { useState, useEffect, useRef } from "react";
 ═══════════════════════════════════════════════ */
 
 const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel+Decorative:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600&display=swap');
 
 :root {
-  --void: #050108;
-  --deep: #0d0518;
-  --surface: #1a0828;
-  --glass: rgba(255,255,255,0.04);
-  --gold: #f0bbd8;
-  --gold-bright: #fce7f3;
-  --gold-dim: rgba(240,187,216,0.4);
-  --rose: #f9a8d4;
-  --rose-dim: rgba(249,168,212,0.3);
-  --crimson: #be185d;
-  --crimson-dim: rgba(190,24,93,0.22);
-  --water-c: #93c5fd;
-  --wood-c: #86efac;
-  --fire-c: #fca5a5;
-  --earth-c: #fcd34d;
-  --metal-c: #e2e8f0;
-  --text: #fdf2f8;
-  --text-dim: #c4a0bf;
-  --border: rgba(249,168,212,0.18);
-  --border-hover: rgba(249,168,212,0.45);
+  --pink-soft: #fff1f2;
+  --pink-light: #ffe4e6;
+  --pink-medium: #fecdd3;
+  --pink-accent: #fb7185;
+  --rose: #e11d48;
+  --lavender: #f5f3ff;
+  --lavender-accent: #8b5cf6;
+  --cream: #fffdfa;
+  --peach: #fff7ed;
+  --text-main: #4c0519;
+  --text-dim: #881337;
+  --glass: rgba(255, 255, 255, 0.65);
+  --glass-dark: rgba(255, 255, 255, 0.85);
+  --border: rgba(251, 113, 133, 0.2);
+  --shadow: 0 12px 40px rgba(225, 29, 72, 0.1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: linear-gradient(160deg, #050108 0%, #1a0030 55%, #050108 100%);
-  color: var(--text);
-  font-family: 'Noto Serif KR', serif;
+  background: linear-gradient(135deg, #fff1f2 0%, #fff7ed 50%, #f5f3ff 100%);
+  color: var(--text-main);
+  font-family: 'Outfit', 'Noto Serif KR', serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -48,7 +43,7 @@ body {
 
 .cd-stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 .cd-star {
-  position: absolute; border-radius: 50%; background: #fff;
+  position: absolute; border-radius: 50%; background: #fb7185;
   animation: twinkle var(--d) var(--dl) ease-in-out infinite alternate;
 }
 @keyframes twinkle {
@@ -72,161 +67,160 @@ body {
 .cd-portal-logo {
   font-size: 56px; margin-bottom: 16px;
   animation: float 4s ease-in-out infinite;
-  filter: drop-shadow(0 0 30px rgba(232,160,191,0.7));
+  filter: drop-shadow(0 0 20px rgba(251,113,133,0.3));
 }
 @keyframes float {
   0%,100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
 }
 .cd-portal-title {
-  font-family: 'Cinzel Decorative', cursive;
-  font-size: clamp(22px, 5vw, 46px);
-  color: var(--gold);
-  letter-spacing: 0.25em;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 6vw, 52px);
+  color: var(--rose);
+  letter-spacing: 0.1em;
   text-align: center;
   margin-bottom: 6px;
-  text-shadow: 0 0 60px rgba(200,169,110,0.4);
+  text-shadow: 0 4px 12px rgba(225,29,72,0.1);
 }
 .cd-portal-sub {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(13px, 2vw, 16px);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
   color: var(--text-dim);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.05em;
   text-align: center;
   margin-bottom: 36px;
-  font-style: italic;
 }
 
 /* ── 프리셋 카드 그리드 ── */
 .lc-preset-grid {
   width: 100%; max-width: 900px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
   margin-bottom: 40px;
 }
 .lc-preset-card {
   background: var(--glass);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  padding: 24px 20px;
   cursor: pointer;
-  transition: all 0.28s;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 .lc-preset-card::before {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(200,169,110,0.06), transparent 60%, rgba(232,160,191,0.04));
-  opacity: 0; transition: opacity 0.28s;
+  background: linear-gradient(135deg, rgba(251,113,133,0.1), transparent);
+  opacity: 0; transition: opacity 0.3s;
 }
-.lc-preset-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 8px 40px rgba(249,168,212,0.22), 0 0 0 1px rgba(249,168,212,0.15); }
+.lc-preset-card:hover { 
+  border-color: var(--pink-accent); 
+  transform: translateY(-8px) scale(1.02); 
+  box-shadow: 0 20px 40px rgba(225, 29, 72, 0.15); 
+}
 .lc-preset-card:hover::before { opacity: 1; }
-.lc-preset-emoji { font-size: 36px; margin-bottom: 10px; }
-.lc-preset-name { font-size: 15px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+.lc-preset-emoji { font-size: 48px; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
+.lc-preset-name { font-size: 18px; font-weight: 700; color: var(--rose); margin-bottom: 4px; }
 .lc-preset-tag {
   display: inline-block;
   font-size: 11px; color: var(--text-dim);
-  background: rgba(255,255,255,0.04);
+  background: var(--pink-soft);
   border: 1px solid var(--border);
-  border-radius: 12px; padding: 2px 8px;
-  margin: 2px 2px 0 0;
+  border-radius: 12px; padding: 4px 10px;
+  margin: 4px 4px 0 0;
+  font-weight: 600;
 }
-.lc-preset-dm { font-size: 12px; color: var(--rose); margin-top: 8px; }
+.lc-preset-dm { font-size: 13px; color: var(--text-dim); margin-top: 10px; font-weight: 600; opacity: 0.8; }
 
 /* ── 직접 입력 폼 ── */
 .cd-form-card {
-  width: 100%; max-width: 460px;
-  background: var(--glass);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 36px 32px;
-  backdrop-filter: blur(20px);
+  width: 100%; max-width: 480px;
+  background: var(--glass-dark);
+  border: 1.5px solid var(--border);
+  border-radius: 32px;
+  padding: 40px 32px;
+  backdrop-filter: blur(24px);
   position: relative;
+  box-shadow: 0 24px 80px rgba(225, 29, 72, 0.12);
 }
-.cd-form-card::before {
-  content: '';
-  position: absolute; inset: 0; border-radius: 20px;
-  background: linear-gradient(135deg, rgba(200,169,110,0.06) 0%, transparent 50%, rgba(232,160,191,0.04) 100%);
-  pointer-events: none;
-}
-.cd-form-group { margin-bottom: 20px; }
+.cd-form-group { margin-bottom: 24px; }
 .cd-form-label {
-  display: block; font-size: 11px; color: var(--gold);
-  letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px;
+  display: block; font-size: 12px; color: var(--rose);
+  letter-spacing: 0.05em; font-weight: 700; margin-bottom: 10px;
 }
 .cd-input {
   width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 15px;
-  color: var(--text);
-  font-family: 'Noto Serif KR', serif;
-  font-size: 15px; outline: none; transition: all 0.3s; appearance: none;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 18px;
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px; outline: none; transition: all 0.3s; appearance: none;
 }
 .cd-input:focus {
-  border-color: rgba(200,169,110,0.5);
-  background: rgba(255,255,255,0.07);
-  box-shadow: 0 0 0 3px rgba(200,169,110,0.08);
+  border-color: var(--pink-accent);
+  box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.1);
 }
-.cd-input option { background: #0C0C22; }
-.cd-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cd-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .cd-check-label {
-  display: flex; align-items: center; gap: 9px;
-  margin-top: 10px; cursor: pointer;
-  font-size: 13px; color: var(--text-dim);
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px; cursor: pointer;
+  font-size: 14px; color: var(--text-dim);
+  font-weight: 500;
 }
-.cd-check-label input[type=checkbox] { accentColor: var(--gold); width: 14px; height: 14px; }
+.cd-check-label input[type=checkbox] { accent-color: var(--rose); width: 18px; height: 18px; }
 
 .cd-fate-btn {
-  width: 100%; padding: 15px;
-  background: linear-gradient(135deg, #831843, #be185d, #a21caf);
-  background-size: 200%;
-  border: none; border-radius: 10px;
-  color: var(--text);
-  font-family: 'Noto Serif KR', serif;
-  font-size: 15px; letter-spacing: 0.2em;
-  cursor: pointer; margin-top: 6px;
-  position: relative; overflow: hidden;
+  width: 100%; padding: 18px;
+  background: linear-gradient(135deg, #fb7185, #e11d48);
+  border: none; border-radius: 18px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 17px; letter-spacing: 0.05em;
+  cursor: pointer; margin-top: 12px;
   transition: all 0.3s;
-  animation: gradShift 4s ease-in-out infinite;
+  box-shadow: 0 10px 25px rgba(225, 29, 72, 0.25);
 }
-@keyframes gradShift {
-  0%,100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+.cd-fate-btn:hover { 
+  transform: translateY(-4px) scale(1.02); 
+  box-shadow: 0 15px 35px rgba(225, 29, 72, 0.35); 
 }
-.cd-fate-btn:hover { box-shadow: 0 0 40px rgba(192,50,74,0.5); transform: translateY(-2px); }
-.cd-fate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.cd-fate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ── AWAKENING ── */
 .cd-awakening {
-  width: 100%; max-width: 540px;
-  animation: awaken 0.9s cubic-bezier(0.16,1,0.3,1) both;
+  width: 100%; max-width: 580px;
+  animation: awaken 1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes awaken {
   from { opacity: 0; transform: translateY(40px) scale(0.95); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.cd-avatar-wrap { position: relative; width: 130px; height: 130px; margin: 0 auto 24px; }
+.cd-avatar-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 32px; }
 .cd-avatar {
-  width: 130px; height: 130px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #1A1A40, #04040F);
-  border: 2px solid var(--gold);
+  width: 160px; height: 160px; border-radius: 50%;
+  background: linear-gradient(135deg, #fff, #ffe4e6);
+  border: 4px solid #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 64px;
-  box-shadow: 0 0 60px rgba(200,169,110,0.25), inset 0 0 40px rgba(0,0,0,0.5);
+  font-size: 84px;
+  box-shadow: 0 20px 50px rgba(225, 29, 72, 0.2), inset 0 4px 12px rgba(0,0,0,0.05);
 }
 .cd-avatar-ring {
-  position: absolute; inset: -8px; border-radius: 50%;
-  border: 1px solid rgba(200,169,110,0.2);
-  animation: spin 10s linear infinite;
+  position: absolute; inset: -12px; border-radius: 50%;
+  border: 2px dashed rgba(225, 29, 72, 0.3);
+  animation: spin 12s linear infinite;
 }
 .cd-avatar-ring2 {
-  position: absolute; inset: -16px; border-radius: 50%;
-  border: 1px solid rgba(232,160,191,0.15);
-  animation: spin 15s linear infinite reverse;
+  position: absolute; inset: -24px; border-radius: 50%;
+  border: 1px dashed rgba(225, 29, 72, 0.15);
+  animation: spin 20s linear infinite reverse;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .cd-score-badge {
@@ -238,289 +232,203 @@ body {
   box-shadow: 0 0 20px rgba(192,50,74,0.5);
 }
 .cd-char-name {
-  font-family: 'Cinzel Decorative', cursive;
-  font-size: clamp(18px, 5vw, 28px);
-  color: var(--gold-bright); text-align: center;
-  letter-spacing: 0.15em; margin-bottom: 6px;
-  text-shadow: 0 0 30px rgba(200,169,110,0.4);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: clamp(24px, 6vw, 36px);
+  color: var(--rose); text-align: center;
+  letter-spacing: 0.05em; margin-bottom: 8px;
 }
 .cd-char-sub {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 15px; color: var(--rose);
-  text-align: center; font-style: italic; margin-bottom: 22px;
+  font-size: 16px; color: var(--text-dim);
+  text-align: center; font-weight: 500; margin-bottom: 24px;
 }
 .cd-traits {
-  display: flex; flex-wrap: wrap; gap: 7px;
-  justify-content: center; margin-bottom: 24px;
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-bottom: 32px;
 }
 .cd-trait {
-  padding: 5px 14px;
-  border: 1px solid var(--border); border-radius: 20px;
-  font-size: 12px; color: var(--text-dim); background: var(--glass);
+  padding: 6px 18px;
+  border: 1.5px solid var(--border); border-radius: 20px;
+  font-size: 13px; color: var(--rose); background: #fff;
+  font-weight: 600;
   animation: awaken 0.5s ease-out both;
 }
 .cd-stats-card {
-  background: var(--glass); border: 1px solid var(--border);
-  border-radius: 14px; padding: 20px; margin-bottom: 14px;
+  background: var(--glass); border: 1.5px solid var(--border);
+  border-radius: 24px; padding: 24px; margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 .cd-stats-title {
-  font-size: 11px; color: var(--text-dim);
-  letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px;
+  font-size: 12px; color: var(--rose);
+  letter-spacing: 0.1em; font-weight: 700; text-transform: uppercase; margin-bottom: 20px;
 }
-.cd-stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.cd-stat-label { width: 55px; font-size: 13px; color: var(--text-dim); }
-.cd-stat-track { flex: 1; height: 5px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
-.cd-stat-fill { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(0.16,1,0.3,1) 0.3s; }
-.cd-stat-num { width: 28px; font-size: 12px; color: var(--gold); text-align: right; }
+.cd-stat-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.cd-stat-label { width: 60px; font-size: 14px; color: var(--text-dim); font-weight: 600; }
+.cd-stat-track { flex: 1; height: 8px; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.cd-stat-fill { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.16,1,0.3,1) 0.3s; }
+.cd-stat-num { width: 32px; font-size: 14px; color: var(--rose); text-align: right; font-weight: 700; }
 
 .cd-synastry {
-  background: linear-gradient(135deg, rgba(192,50,74,0.07), rgba(200,169,110,0.05));
-  border: 1px solid rgba(192,50,74,0.25);
-  border-radius: 14px; padding: 18px;
-  text-align: center; margin-bottom: 22px;
+  background: linear-gradient(135deg, var(--pink-soft), var(--peach));
+  border: 1.5px solid var(--border);
+  border-radius: 24px; padding: 24px;
+  text-align: center; margin-bottom: 24px;
+  box-shadow: var(--shadow);
 }
-.cd-synastry-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.1em; }
+.cd-synastry-label { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
 .cd-synastry-score {
-  font-family: 'Cinzel Decorative', cursive;
-  font-size: 40px; color: var(--crimson);
-  text-shadow: 0 0 30px rgba(192,50,74,0.6); line-height: 1;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 48px; color: var(--rose);
+  line-height: 1;
 }
-.cd-synastry-detail { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.cd-synastry-detail { font-size: 13px; color: var(--text-dim); margin-top: 10px; font-weight: 500; }
 
 .cd-start-btn {
-  width: 100%; padding: 15px;
-  background: transparent; border: 1px solid var(--gold-dim);
-  border-radius: 10px; color: var(--gold);
-  font-family: 'Noto Serif KR', serif;
-  font-size: 15px; letter-spacing: 0.15em; cursor: pointer;
-  transition: all 0.3s; position: relative; overflow: hidden;
+  width: 100%; padding: 18px;
+  background: #fff; border: 2px solid var(--rose);
+  border-radius: 18px; color: var(--rose);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 17px; letter-spacing: 0.05em; cursor: pointer;
+  transition: all 0.3s;
 }
-.cd-start-btn:hover { border-color: var(--gold); box-shadow: 0 0 30px rgba(200,169,110,0.15); }
+.cd-start-btn:hover { background: var(--rose); color: #fff; box-shadow: 0 10px 25px rgba(225, 29, 72, 0.2); }
 
 /* ── CHAT ── */
 .cd-chat-wrap {
   width: 100%; max-width: 620px;
-  /* 100dvh: 모바일 소프트 키보드가 올라와도 정확한 화면 높이 */
-  height: 100dvh; height: 100vh;
+  height: 100dvh;
   display: flex; flex-direction: column;
   margin: 0 auto;
+  background: #fff;
 }
 
-.cd-cursor {
-  display: inline-block;
-  color: var(--gold);
-  animation: cursorBlink 0.55s step-end infinite;
-}
-@keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
 .cd-chat-header {
-  padding: 13px 18px;
-  background: rgba(7,7,26,0.88); backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  padding: 16px 20px;
+  background: #fff; border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; gap: 14px; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 .cd-hdr-avatar {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: var(--surface); border: 1px solid var(--gold-dim);
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--pink-soft); border: 2px solid var(--pink-medium);
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; flex-shrink: 0;
+  font-size: 28px; flex-shrink: 0;
 }
-.cd-hdr-info { flex: 1; }
-.cd-hdr-name { font-size: 15px; color: var(--gold); font-weight: 700; }
-.cd-hdr-mood { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.cd-hdr-name { font-size: 17px; color: var(--text-main); font-weight: 700; }
+.cd-hdr-mood { font-size: 13px; color: var(--text-dim); margin-top: 2px; font-weight: 500; }
 .cd-event-btn {
-  padding: 6px 13px;
-  background: rgba(74,127,165,0.1);
-  border: 1px solid rgba(74,127,165,0.3);
-  border-radius: 8px; color: var(--water-c);
-  font-family: 'Noto Serif KR', serif;
-  font-size: 12px; cursor: pointer; transition: all 0.3s; white-space: nowrap;
+  padding: 8px 16px;
+  background: var(--pink-soft);
+  border: 1.5px solid var(--pink-medium);
+  border-radius: 12px; color: var(--rose);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
 }
-.cd-event-btn:hover { background: rgba(74,127,165,0.2); }
-.cd-event-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.cd-event-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(225,29,72,0.1); }
 
 .cd-affinity-bar {
-  padding: 8px 18px 11px;
-  background: rgba(7,7,26,0.88); backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  padding: 12px 20px 16px;
+  background: var(--cream); border-bottom: 1.5px solid var(--border); flex-shrink: 0;
 }
 .cd-aff-top {
   display: flex; justify-content: space-between;
-  font-size: 11px; color: var(--text-dim); margin-bottom: 6px;
+  font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-weight: 700;
 }
-.cd-aff-num { color: var(--gold); font-weight: 700; }
-.cd-aff-track { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+.cd-aff-num { color: var(--rose); }
+.cd-aff-track { height: 8px; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
 .cd-aff-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--crimson) 0%, var(--rose) 60%, var(--gold) 100%);
-  border-radius: 2px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  background: linear-gradient(90deg, #fb7185, #e11d48);
+  border-radius: 4px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
 }
 
-/* ── 사주 에너지 & 상태 표시줄 ── */
 .cd-status-bar {
-  padding: 7px 18px 9px;
-  background: rgba(7,7,26,0.88); backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border); flex-shrink: 0;
-  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px 14px;
+  background: var(--cream); border-bottom: 1.5px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; gap: 16px;
 }
-.cd-status-item {
-  flex: 1; display: flex; flex-direction: column; gap: 2px;
-}
-.cd-status-label {
-  font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;
-  display: flex; justify-content: space-between;
-}
-.cd-status-track { height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
-.cd-status-fill { height: 100%; border-radius: 2px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
-.cd-aff-stage {
-  font-size: 10px; color: var(--rose); text-align: right;
-  letter-spacing: 0.05em;
-}
-
-/* ── 지문(내레이션) 박스 ── */
-.cd-narrative {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 14px; color: rgba(200,190,220,0.75);
-  line-height: 1.9; margin-bottom: 12px; font-style: italic;
-  padding: 10px 14px;
-  background: rgba(100,60,120,0.08);
-  border-radius: 8px;
-  border: 1px solid rgba(200,169,110,0.08);
-}
-
+.cd-status-item { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.cd-status-label { font-size: 11px; color: var(--text-dim); font-weight: 700; display: flex; justify-content: space-between; }
+.cd-status-track { height: 6px; background: #fff; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+.cd-status-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
 
 .cd-messages {
-  flex: 1;
-  /* min-height:0 없으면 flex item이 컨텐츠 높이를 유지하려 해서 overflow scroll 미동작 */
-  min-height: 0;
-  overflow-y: auto; padding: 20px 18px;
-  display: flex; flex-direction: column; gap: 16px;
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
+  flex: 1; min-height: 0;
+  overflow-y: auto; padding: 24px 20px;
+  display: flex; flex-direction: column; gap: 20px;
+  background: var(--peach);
 }
-.cd-msg { max-width: 78%; animation: msgIn 0.35s cubic-bezier(0.16,1,0.3,1) both; }
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.cd-msg.npc { align-self: flex-start; }
-.cd-msg.user { align-self: flex-end; }
-.cd-msg-sender { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+.cd-msg { max-width: 85%; animation: msgIn 0.4s cubic-bezier(0.16,1,0.3,1) both; }
 .cd-bubble {
-  padding: 12px 16px; border-radius: 4px 16px 16px 16px;
-  font-size: 14px; line-height: 1.7;
+  padding: 14px 18px; border-radius: 20px;
+  font-size: 15px; line-height: 1.6;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.04);
 }
-.cd-msg.npc .cd-bubble { background: rgba(200,169,110,0.07); border: 1px solid var(--border); }
+.cd-msg.npc .cd-bubble { 
+  background: #fff; border: 1.5px solid var(--border); 
+  color: var(--text-main); border-bottom-left-radius: 4px;
+}
 .cd-msg.user .cd-bubble {
-  background: rgba(192,50,74,0.13); border: 1px solid rgba(192,50,74,0.25);
-  border-radius: 16px 4px 16px 16px;
-}
-.cd-msg-meta { font-size: 11px; color: var(--text-dim); margin-top: 4px; padding: 0 2px; }
-.cd-aff-delta { font-size: 11px; margin-left: 6px; }
-.cd-aff-delta.pos { color: #5BA87A; }
-.cd-aff-delta.neg { color: var(--crimson); }
-
-.cd-typing {
-  display: flex; gap: 5px; padding: 12px 16px;
-  background: rgba(200,169,110,0.07); border: 1px solid var(--border);
-  border-radius: 4px 16px 16px 16px;
-  width: fit-content; align-self: flex-start;
-}
-.cd-dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
-  animation: dotBounce 1.4s ease-in-out infinite;
-}
-.cd-dot:nth-child(2) { animation-delay: 0.2s; }
-.cd-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dotBounce {
-  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-7px); opacity: 1; }
+  background: var(--rose); color: #fff; 
+  border-bottom-right-radius: 4px;
 }
 
 .cd-input-area {
-  padding: 13px 18px;
-  background: rgba(7,7,26,0.94); backdrop-filter: blur(24px);
-  border-top: 1px solid var(--border);
-  display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0;
+  padding: 16px 20px;
+  background: #fff; border-top: 1.5px solid var(--border);
+  display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0;
 }
 .cd-textarea {
-  flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-  border-radius: 12px; padding: 11px 15px; color: var(--text);
-  font-family: 'Noto Serif KR', serif; font-size: 14px; resize: none;
-  min-height: 44px; max-height: 120px; outline: none; transition: border-color 0.3s; line-height: 1.5;
+  flex: 1; background: var(--pink-soft); border: 1.5px solid var(--border);
+  border-radius: 16px; padding: 12px 18px; color: var(--text-main);
+  font-family: 'Outfit', sans-serif; font-size: 15px; resize: none;
+  min-height: 48px; max-height: 140px; outline: none; transition: all 0.2s;
 }
-.cd-textarea:focus { border-color: rgba(200,169,110,0.4); }
+.cd-textarea:focus { background: #fff; border-color: var(--pink-accent); }
 .cd-send-btn {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #8B1929, var(--crimson));
-  border: none; color: #fff; font-size: 18px; cursor: pointer;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--rose); border: none; color: #fff; font-size: 20px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(225,29,72,0.25);
 }
-.cd-send-btn:hover { transform: scale(1.08); box-shadow: 0 0 20px rgba(192,50,74,0.5); }
-.cd-send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
-/* ── SCENARIO OVERLAY ── */
 .cd-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
-  backdrop-filter: blur(16px); z-index: 200;
+  position: fixed; inset: 0; background: rgba(76, 5, 25, 0.4);
+  backdrop-filter: blur(12px); z-index: 200;
   display: flex; align-items: center; justify-content: center;
-  padding: 20px; animation: fadein 0.4s ease-out;
+  padding: 20px;
 }
-@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 .cd-scenario-card {
-  width: 100%; max-width: 500px;
-  /* 작은 화면에서 카드가 잘리지 않도록 최대 높이 + 내부 스크롤 */
-  max-height: calc(100dvh - 48px); max-height: calc(100vh - 48px);
+  width: 100%; max-width: 520px;
+  max-height: 90vh;
+  background: #fff; border-radius: 32px; overflow: hidden;
+  box-shadow: 0 32px 100px rgba(0,0,0,0.15);
   display: flex; flex-direction: column;
-  background: linear-gradient(160deg, rgba(10,10,30,0.98), rgba(6,6,20,0.98));
-  border: 1px solid var(--border); border-radius: 22px; overflow: hidden;
-  animation: slideup 0.45s cubic-bezier(0.16,1,0.3,1) both;
-}
-@keyframes slideup {
-  from { transform: translateY(50px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
 }
 .cd-scene-bg {
-  height: 140px; display: flex; align-items: center; justify-content: center;
-  font-size: 68px; position: relative; overflow: hidden;
-  background: linear-gradient(160deg, rgba(10,5,20,0.9), rgba(20,10,30,0.9));
+  height: 180px; display: flex; align-items: center; justify-content: center;
+  font-size: 84px; position: relative;
+  background: linear-gradient(135deg, var(--pink-light), var(--peach));
 }
-.cd-scene-glow {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 60%, rgba(200,169,110,0.12), transparent 70%);
-}
-.cd-scene-body {
-  padding: 20px 22px;
-  /* 선택지가 많을 때 시나리오 카드 내부 스크롤 */
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-.cd-scene-type { font-size: 10px; color: var(--gold); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 10px; }
-.cd-scene-desc {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 15px; color: var(--text-dim);
-  line-height: 1.8; margin-bottom: 14px; font-style: italic;
-}
+.cd-scene-body { padding: 32px; overflow-y: auto; }
+.cd-scene-type { font-size: 12px; color: var(--rose); font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; text-align: center; }
+.cd-scene-desc { font-size: 16px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; font-weight: 500; }
 .cd-scene-dialogue {
-  font-size: 14px; color: var(--text); line-height: 1.75;
-  padding: 13px 15px;
-  background: rgba(200,169,110,0.04);
-  border-left: 2px solid var(--gold-dim);
-  border-radius: 0 8px 8px 0; margin-bottom: 18px;
+  background: var(--pink-soft); border-radius: 20px; padding: 20px;
+  font-size: 16px; color: var(--text-main); line-height: 1.6; margin-bottom: 24px;
+  border: 1.5px solid var(--border);
 }
-.cd-scene-who { font-size: 11px; color: var(--gold); margin-right: 8px; letter-spacing: 0.1em; }
-.cd-choices { display: flex; flex-direction: column; gap: 8px; }
+.cd-choices { display: flex; flex-direction: column; gap: 12px; }
 .cd-choice {
-  padding: 12px 15px; border-radius: 11px; border: 1px solid;
-  cursor: pointer; background: transparent; color: var(--text);
-  font-family: 'Noto Serif KR', serif; font-size: 13px;
-  line-height: 1.5; text-align: left; transition: all 0.25s;
+  padding: 16px 20px; border-radius: 16px; border: 2px solid var(--border);
+  background: #fff; color: var(--text-main); font-weight: 600;
+  font-size: 15px; text-align: left; transition: all 0.2s;
 }
+.cd-choice:hover { border-color: var(--rose); background: var(--pink-soft); transform: translateX(8px); }
 .cd-choice.wood { border-color: rgba(74,140,92,0.35); }
 .cd-choice.wood:hover { background: rgba(74,140,92,0.12); border-color: rgba(74,140,92,0.6); }
 .cd-choice.fire { border-color: rgba(200,75,42,0.35); }
@@ -1247,7 +1155,6 @@ const SCENE_ATMOSPHERE = {
     visual: '노을 카페 · 창가 잔광',
     sound: 'vinyl_jazz, cup_clink, soft_chatter',
     bg: 'linear-gradient(160deg, rgba(52,24,66,0.92), rgba(30,14,42,0.9))',
-  },
   '공원 산책': {
     visual: '벚꽃 산책로 · 저녁 바람',
     sound: 'petal_wind, footstep_gravel, dusk_birds',
@@ -1352,18 +1259,74 @@ const SCENARIO_DB = [
     situationDescription: '봄바람이 스치는 공원, 벚꽃 잎이 흩날린다. 나란히 걷다가 벤치 앞에 멈춰 섰다.',
     npcDialogue: (name) => `"여기 앉을까? 좀 쉬고 싶어서— ${name}는 걷는 거 괜찮아?"`,
     choices: [
-      { id:'c1', text:'나야 좋지. 이 경치 그냥 지나치기 아깝잖아.', element:'목', risk:'LOW', reaction: (name) => `"맞아, 이런 순간이 좋아. ${name}랑 같이 보니까 더 예쁘다."`, score:+7 },
-      { id:'c2', text:'잠깐 눈 감아봐. 바람 소리 들려?', element:'수', risk:'MEDIUM', reaction: (name) => `"…진짜네. 이런 거 알려준 사람 처음이야. ${name} 좀 독특하다."`, score:+5 },
-      { id:'c3', text:'나 좀 더 가고 싶은데. 저기 카페도 가봐야 하잖아.', element:'화', risk:'HIGH', reaction: (name) => `"아… 그래? 나는 여기가 좋았는데. 뭐, 갈까."`, score:-2 },
+      { id:'c1', text:'나야 좋지. 이 경치 그냥 지나치기 아깝잖아.', element:'목', risk:'LOW', reaction: (name) => `"맞아, 이런 순간이 좋아. ${name}랑 같이 보니까 더 예쁘다."`, score:+7 },  /* ── 신규: 늦은 밤 산책 ── */
+  {
+    backgroundEmoji: '🌙🌃',
+    type: '늦은 밤 산책',
+    narrative: '가로등 불빛만 남은 조용한 거리. 차가운 밤공기가 두 사람 사이를 감싸지만, 맞잡은 온기가 느껴질 것만 같다.',
+    situationDescription: '밤이 깊었습니다. 집으로 돌아가는 길, 상대방이 조금 느리게 걷기 시작합니다.',
+    npcDialogue: (name) => `"벌써 이렇게 됐네. 시간 진짜 빠르다. (${name}을 힐끗 보며) 오늘 하루 어땠어?"`,
+    choices: [
+      { id:'c1', text:'아쉬워. 조금 더 걷고 싶을 정도로.', element:'수', risk:'LOW', trustDelta: 3, tensionDelta: 8, reaction: (name) => `"(살짝 웃으며) 나도. 그럼 한 바퀴만 더 돌까?"`, score:+9 },
+      { id:'c2', text:'피곤하긴 한데, 네 목소리 들으니까 괜찮아.', element:'화', risk:'MEDIUM', trustDelta: 2, tensionDelta: 10, reaction: (name) => `"…그런 말 어디서 배워와? 사람 당황스럽게."`, score:+8 },
+      { id:'c3', text:'응, 재밌었어. 내일 출근 잘해.', element:'금', risk:'HIGH', trustDelta: 1, tensionDelta: -5, reaction: (name) => `"…그래, 현실적이네. 너도 잘 가."`, score:-2 },
+      { id:'c4', text:'말없이 웃으며 고개를 끄덕인다.', element:'토', risk:'LOW', trustDelta: 5, tensionDelta: 5, reaction: (name) => `"(함께 미소 지으며) 나도 그래. 말 안 해도 알 것 같아."`, score:+7 },
     ],
   },
+  /* ── 신규: 사소한 오해 ── */
   {
-    backgroundEmoji: '🍜🌆',
-    type: '저녁 식사',
-    situationDescription: '해가 지고 조명이 켜진 식당. 메뉴판을 들고 고민하던 그가 네 쪽을 힐끗 쳐다본다.',
-    npcDialogue: (name) => `"뭐 먹고 싶어? 사실 나는 이미 먹고 싶은 거 있는데 네가 정해도 돼— ${name}가 고르면 따라갈게."`,
+    backgroundEmoji: '🗯️😕',
+    type: '사소한 오해',
+    narrative: '농담처럼 던진 한마디가 상대방의 표정을 굳게 만들었다. 공기가 순식간에 서늘해진다.',
+    situationDescription: '방금 한 농담이 상대방의 아픈 곳을 건드린 모양입니다. 분위기가 급격히 가라앉습니다.',
+    npcDialogue: (name) => `"…방금 그 말, 무슨 뜻으로 한 거야? 나한테는 좀 그렇게 들리는데."`,
     choices: [
-      { id:'c1', text:'그럼 네가 먹고 싶다는 거로 시키자. 네 표정 봤거든.', element:'토', risk:'LOW', reaction: (name) => `"어— 눈치 빨라. 고마워, 그냥 이렇게 맞춰주는 사람이 편해. ${name} 좋다."`, score:+8 },
+      { id:'c1', text:'미안해. 그런 뜻 아니었어. 내가 생각이 짧았네.', element:'토', risk:'LOW', trustDelta: 8, tensionDelta: -5, reaction: (name) => `"…솔직하게 사과하니까 화도 못 내겠네. 다음엔 조심해줘."`, score:+6 },
+      { id:'c2', text:'(당황해서 웃으며) 아니, 왜 그렇게 진지하게 받아들여?', element:'화', risk:'HIGH', trustDelta: -5, tensionDelta: 12, reaction: (name) => `"진지하게 들리니까 그렇지. (고개를 돌리며) 좀 실망이야."`, score:-8 },
+      { id:'c3', text:'(잠시 침묵하다가) 네 기분을 상하게 하려던 건 절대 아니야.', element:'금', risk:'MEDIUM', trustDelta: 4, tensionDelta: 2, reaction: (name) => `"…알겠어. 무슨 마음인지. 그냥 내가 좀 예민했나 봐."`, score:+3 },
+    ],
+  },
+  /* ── 신규: 과거의 상처 ── */
+  {
+    backgroundEmoji: '🤕🍂',
+    type: '과거의 상처 고백',
+    narrative: '조용한 분위기 속에서 상대방이 평소보다 낮은 목소리로 자신의 옛 이야기를 꺼내기 시작한다.',
+    situationDescription: '상대방이 평소의 밝은 모습 뒤에 숨겨왔던 아픈 기억을 조심스럽게 털어놓습니다.',
+    npcDialogue: (name) => `"나 사실… 예전에 사람한테 크게 데인 적이 있거든. 그래서 누굴 믿는 게 좀 겁나."`,
+    choices: [
+      { id:'c1', text:'말해줘서 고마워. 내가 네 편이 되어줄게.', element:'목', risk:'LOW', trustDelta: 12, tensionDelta: 3, reaction: (name) => `"(울컥한 듯 고개를 숙였다가) …그 말, 기억해둘게."`, score:+10 },
+      { id:'c2', text:'다 지난 일이잖아. 이제 행복한 생각만 해.', element:'화', risk:'MEDIUM', trustDelta: -2, tensionDelta: -4, reaction: (name) => `"그게 말처럼 쉬우면 얼마나 좋을까. (씁쓸한 미소)"`, score:-2 },
+      { id:'c3', text:'그 사람이 나빴네. 네 잘못이 아니야.', element:'토', risk:'LOW', trustDelta: 7, tensionDelta: 0, reaction: (name) => `"…응. 고마워. 그렇게 말해주니까 좀 낫네."`, score:+7 },
+    ],
+  },
+  /* ── 신규: 손이 스칠 듯 말 듯 ── */
+  {
+    backgroundEmoji: '🤝💓',
+    type: '손이 스칠 듯 말 듯',
+    narrative: '나란히 걷는 사이, 손끝이 가끔씩 닿았다 떨어진다. 묘한 긴장감이 온몸을 타고 흐른다.',
+    situationDescription: '가까운 거리에서 걷다 보니 자꾸만 손이 스칩니다. 공기마저 달콤하고 아찔하게 느껴지는 순간입니다.',
+    npcDialogue: (name) => `"(부끄러운 듯 시선을 창밖으로 던지며) …오늘 공기 진짜 달다, 그치?"`,
+    choices: [
+      { id:'c1', text:'(살짝 손가락을 걸며) 응. 너랑 있어서 그런가 봐.', element:'수', risk:'MEDIUM', trustDelta: 3, tensionDelta: 15, reaction: (name) => `"(움찔하다가 놓지 않고) …심장 소리 들릴 것 같아."`, score:+11 },
+      { id:'c2', text:'(손을 주머니에 넣으며) 그러게. 이제 좀 쌀쌀해지네.', element:'금', risk:'HIGH', trustDelta: 0, tensionDelta: -10, reaction: (name) => `"…어? 어, 그렇네. (어색해진 분위기)"`, score:-5 },
+      { id:'c3', text:'(장난스럽게 손을 툭 치며) 야, 너 손 왜 이렇게 커?', element:'목', risk:'LOW', trustDelta: 2, tensionDelta: 5, reaction: (name) => `"ㅋㅋ 뭐야 갑자기. (웃으며 긴장이 풀린 듯)"`, score:+6 },
+    ],
+  },
+  /* ── 신규: 갑작스러운 고백 ── */
+  {
+    backgroundEmoji: '💘🎬',
+    type: '갑작스러운 고백 분위기',
+    narrative: '시선이 마주쳤다. 평소보다 긴 호흡이 이어지고, 세상의 모든 소음이 사라진 것 같은 기분이 든다.',
+    situationDescription: '상대방이 당신을 빤히 바라봅니다. 금방이라도 무슨 말이 튀어나올 것만 같은, 긴장감 넘치는 정적입니다.',
+    npcDialogue: (name) => `"나 더 이상 숨기기 싫어. 너한테 나… 어떤 사람이야?"`,
+    choices: [
+      { id:'c1', text:'없어서는 안 될, 가장 소중한 사람.', element:'수', risk:'MEDIUM', trustDelta: 10, tensionDelta: 18, reaction: (name) => `"(눈이 커지며) …나도. 내가 하고 싶던 말이었어."`, score:+15 },
+      { id:'c2', text:'글쎄, 좀 더 알아가야 할 사이?', element:'토', risk:'HIGH', trustDelta: -3, tensionDelta: -12, reaction: (name) => `"아… 그래. 내가 너무 성급했나 보다. (씁쓸)"`, score:-10 },
+      { id:'c3', text:'나를 웃게 만드는 유일한 사람.', element:'목', risk:'LOW', trustDelta: 8, tensionDelta: 12, reaction: (name) => `"…기쁘다. 네 웃음 내가 지켜주고 싶어."`, score:+12 },
+    ],
+  },
+];
+라. 고마워, 그냥 이렇게 맞춰주는 사람이 편해. ${name} 좋다."`, score:+8 },
       { id:'c2', text:'나 매운 거 잘 못 먹는데, 왜 물어보는 건지 알아?', element:'금', risk:'MEDIUM', reaction: (name) => `"아, 미안. 그런 거 미리 얘기해줘야지— 그럼 메뉴 바꾸자."`, score:+1 },
       { id:'c3', text:'일단 반반씩 시키면 되지 않아? 효율적이잖아.', element:'금', risk:'MEDIUM', reaction: (name) => `"효율적이네 ㅋㅋ 뭔가 로맨틱한 상황인데 현실적으로 대처하는 거 웃겨."`, score:+3 },
     ],
@@ -1769,14 +1732,34 @@ function computeRealSynastry(myP, npcP) {
   return { pct, label, desc, myEl, npcEl };
 }
 
-function computeInitialAffinityFromSyn(myPersona, npcPersona) {
+function computeInitialScoresFromSyn(myPersona, npcPersona) {
   const syn = computeRealSynastry(myPersona, npcPersona);
-  if (!syn) return null;
-  const base = Math.round((npcPersona.initialAffinity * 0.2) + (syn.pct * 0.65) + (syn.pct >= 80 ? 5 : 0));
-  return {
-    syn,
-    base: Math.max(10, Math.min(72, base)),
-  };
+  if (!syn) return { affinity: 30, trust: 30, tension: 15, curiosity: 40 };
+
+  // 호감도 (Affinity): 기본 오행 궁합 기반
+  const affinity = Math.max(10, Math.min(85, Math.round(syn.pct * 0.8 + 10)));
+  
+  // 신뢰도 (Trust): 토/금 기운이나 상생 관계에서 높음
+  const isSaeng = ['Wood','Fire','Earth','Metal','Water'].some((el, i, arr) => {
+    const next = arr[(i + 1) % 5];
+    return (myPersona.dayMasterElement === el && npcPersona.dayMasterElement === next);
+  });
+  const trust = isSaeng ? 45 : 30;
+
+  // 긴장감 (Tension): 상극 관계나 특정 십신(편관, 겁재) 발달 시 높음
+  const isGuk = ['Wood','Earth','Water','Fire','Metal'].some((el, i, arr) => {
+    const next = arr[(i + 1) % 5];
+    return (myPersona.dayMasterElement === el && npcPersona.dayMasterElement === next);
+  });
+  const tension = isGuk ? 35 : 15;
+
+  // 호기심 (Curiosity): 서로 없는 오행을 가졌을 때 높음
+  const myEls = Object.keys(myPersona.fiveElements || {}).filter(k => (myPersona.fiveElements[k] || 0) > 0);
+  const npcEls = Object.keys(npcPersona.fiveElements || {}).filter(k => (npcPersona.fiveElements[k] || 0) > 0);
+  const diffCount = npcEls.filter(e => !myEls.includes(e)).length;
+  const curiosity = 30 + (diffCount * 12);
+
+  return { affinity, trust, tension: Math.min(60, tension), curiosity: Math.min(80, curiosity), syn };
 }
 
 function computeImmersiveDelta({ rawDelta, text, mood, affinity, synPct, comboStreak }) {
@@ -1817,7 +1800,11 @@ export default function LoveSimulation() {
   const [matchForm, setMatchForm] = useState({ year:'', month:'', day:'' });
   const [matchResults, setMatchResults] = useState(null);
   const [persona, setPersona] = useState(null);
-  const [affinity, setAffinity] = useState(10);
+  const [affinity, setAffinity] = useState(30); // affection
+  const [trust, setTrust] = useState(30);
+  const [tension, setTension] = useState(10);
+  const [curiosity, setCuriosity] = useState(20);
+  const [relationshipStage, setRelationshipStage] = useState('first_meeting');
   const [mood, setMood] = useState('설렘');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -1988,15 +1975,16 @@ export default function LoveSimulation() {
       ensureMyPersonaReady();
       return;
     }
-    const opening = computeInitialAffinityFromSyn(myPersona, p);
-    if (!opening) {
-      showToast('궁합 계산 정보가 부족해요. 내 사주를 다시 분석해 주세요.');
-      setScreen('self');
-      return;
-    }
+    const scores = computeInitialScoresFromSyn(myPersona, p);
+    
     setPersona(p);
-    setLiveSynastry(opening.syn);
-    setAffinity(opening.base);
+    setLiveSynastry(scores.syn);
+    setAffinity(scores.affinity);
+    setTrust(scores.trust);
+    setTension(scores.tension);
+    setCuriosity(scores.curiosity);
+    
+    setRelationshipStage('first_meeting');
     setComboStreak(0);
     setMood('설렘');
     setMessages([]);
@@ -2075,6 +2063,16 @@ export default function LoveSimulation() {
     });
     const newAff = Math.max(0, Math.min(100, affinity + baseScore));
     setAffinity(newAff);
+    
+    // 신규 지표 업데이트
+    const tDelta = choice.trustDelta || (baseScore > 0 ? 2 : baseScore < 0 ? -1 : 0);
+    const tenDelta = choice.tensionDelta || (choice.risk === 'HIGH' ? 5 : 1);
+    const curDelta = choice.curiosityDelta || (baseScore > 5 ? 3 : 1);
+    
+    setTrust(prev => Math.max(0, Math.min(100, prev + tDelta)));
+    setTension(prev => Math.max(0, Math.min(100, prev + tenDelta)));
+    setCuriosity(prev => Math.max(0, Math.min(100, prev + curDelta)));
+
     setComboStreak((prev) => (baseScore > 0 ? prev + 1 : baseScore < 0 ? 0 : prev));
 
     let newMood = mood;
@@ -2145,9 +2143,9 @@ export default function LoveSimulation() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="cd-app fixed inset-0 z-[60] h-screen w-screen bg-[#050108]" style={{overflow:'hidden'}}>
+      <div className="cd-app fixed inset-0 z-[60] h-screen w-screen overflow-hidden">
 
-        {/* 별 배경 */}
+        {/* 별 배경 (Pink/Rose) */}
         <div className="cd-stars">
           {STARS.map(s => (
             <div key={s.id} className="cd-star" style={{
@@ -2159,7 +2157,7 @@ export default function LoveSimulation() {
         </div>
         {NEBULAE.map((n, i) => (
           <div key={i} className="cd-nebula" style={{
-            left:n.x, top:n.y, width:n.size, height:n.size, background:n.color,
+            left:n.x, top:n.y, width:n.size, height:n.size, background: 'rgba(251, 113, 133, 0.05)',
           }} />
         ))}
 
@@ -2170,26 +2168,24 @@ export default function LoveSimulation() {
         {screen === 'self' && (
           <div className="cd-screen px-4 py-10 md:px-8">
             {/* 별빛 아이콘 */}
-            <div style={{ fontSize:52, marginBottom:12, animation:'float 4s ease-in-out infinite',
-              filter:'drop-shadow(0 0 28px rgba(100,180,255,0.6))' }}>🌟</div>
-            <h1 className="lc-self-header">나의 사주 입력</h1>
-            <p className="lc-self-sub">
-              내 생년월일로 사주를 분석해 상대방과의 <strong style={{color:'#93c5fd'}}>궁합 점수</strong>를 계산합니다<br/>
-              <span style={{fontSize:11, opacity:0.7}}>오행 궁합이 높을수록 초기 호감도가 높게 시작됩니다</span><br/>
-              <span style={{fontSize:10, opacity:0.5}}>미입력 시 기본 초기 점수가 적용됩니다</span>
+            <div style={{ fontSize:64, marginBottom:16, animation:'float 4s ease-in-out infinite' }}>💌</div>
+            <h1 className="cd-portal-title">나의 연애 기질 분석</h1>
+            <p className="cd-portal-sub">
+              당신의 사주에 새겨진 <strong style={{color:'var(--rose)'}}>연애 기질</strong>을 먼저 분석합니다.<br/>
+              이 정보를 바탕으로 당신과 특별한 이야기를 만들어갈 상대방이 결정됩니다.
             </p>
 
             {/* 자동 로딩 중 표시 */}
             {autoLoadingMyPersona && (
               <div style={{
                 width:'100%', maxWidth:460, textAlign:'center',
-                padding:'28px 20px', background:'rgba(100,180,255,0.06)',
-                border:'1px solid rgba(100,180,255,0.22)', borderRadius:16,
-                marginBottom:16,
+                padding:'40px 20px', background:'var(--glass-dark)',
+                border:'1.5px solid var(--border)', borderRadius:32,
+                marginBottom:24, boxShadow: 'var(--shadow)'
               }}>
-                <div style={{fontSize:32, marginBottom:12, animation:'float 4s ease-in-out infinite'}}>🌟</div>
-                <p style={{color:'#93c5fd', fontSize:14, letterSpacing:'0.1em'}}>프로필 카드에서 사주 자동 계산 중…</p>
-                <p style={{color:'var(--text-dim)', fontSize:11, marginTop:6}}>잠시만 기다려 주세요</p>
+                <div style={{fontSize:40, marginBottom:16, animation:'float 3s ease-in-out infinite'}}>✨</div>
+                <p style={{color:'var(--rose)', fontWeight:700, fontSize:15, letterSpacing:'0.05em'}}>연애 프로필 연동 중…</p>
+                <p style={{color:'var(--text-dim)', fontSize:12, marginTop:8}}>당신의 운명적 기질을 읽어오고 있습니다</p>
               </div>
             )}
 
@@ -2243,12 +2239,11 @@ export default function LoveSimulation() {
 
               {/* 분석 버튼 */}
               <button className="cd-fate-btn"
-                style={{background:'linear-gradient(135deg, rgba(50,80,180,0.8), rgba(100,50,160,0.8))'}}
                 disabled={!myForm.name || !myForm.year || !myForm.month || !myForm.day || myLoadingPersona}
                 onClick={async () => {
                   await loadMyPersonaData();
                 }}>
-                {myLoadingPersona ? '✦ 내 사주 분석 중…' : '🌟 내 사주 아바타 생성'}
+                {myLoadingPersona ? '✦ 연애 기질 분석 중…' : '💕 나의 연애 성향 분석하기'}
               </button>
 
               {/* 생성 완료 미리보기 */}
@@ -2305,7 +2300,7 @@ export default function LoveSimulation() {
               <button className="lc-continue-btn"
                 disabled={myLoadingPersona}
                 onClick={() => setScreen('portal')}>
-                {myPersona ? `✦ ${myPersona.name}의 운명 탐색하기 →` : '상대방 선택하러 가기 →'}
+                {myPersona ? `✦ 상대방 캐릭터 생성하기 →` : '상대방 찾으러 가기 →'}
               </button>
               {!myPersona && (
                 <button className="lc-skip-btn" onClick={() => setScreen('portal')}>
@@ -2326,8 +2321,9 @@ export default function LoveSimulation() {
             <div className="cd-portal-logo">💕</div>
             <h1 className="cd-portal-title">LOVE CODE</h1>
             <p className="cd-portal-sub max-w-2xl rounded-2xl border border-rose-200/10 bg-black/20 px-4 py-3 backdrop-blur-sm">
-              상대방의 생년월일로 성격 · 연애 패턴을 분석해 가상 연애를 시작합니다<br/>
-              <span style={{ fontSize:'12px', opacity: 0.7 }}>상대방 오행 · 십신 기반 AI 캐릭터 생성</span>
+              당신의 사주 명리학적 연애 기질을 바탕으로,<br/>
+              가상의 상대방 캐릭터를 생성하고 실제 데이트처럼 대화와 선택을 이어가는 연애 시뮬레이션입니다.<br/>
+              <span style={{ fontSize:'12px', opacity: 0.7 }}>이곳에서 생성되는 아바타는 당신과 특별한 감정선을 만들 가상의 연애 상대입니다.</span>
               {myPersona && (
                 <span style={{ display:'block', fontSize:'11px', color:'#93c5fd', marginTop:4, opacity:0.85 }}>
                   ✦ 내 사주 연동됨 — 오행 궁합으로 초기 호감도가 결정됩니다
@@ -2341,33 +2337,50 @@ export default function LoveSimulation() {
               )}
             </p>
 
-            {/* ── 내 사주 배너 (myPersona가 있을 때) ── */}
+            {/* ── 내 사주 배너 ── */}
             {myPersona && (
-              <div className="lc-my-banner w-full max-w-[560px]">
-                <div style={{fontSize:28}}>{DM_EMOJI[myPersona.dayMasterKan] || '🌟'}</div>
+              <div className="lc-my-banner w-full max-w-[560px]" style={{
+                background: 'var(--glass-dark)', border: '1.5px solid var(--border)',
+                borderRadius: 20, padding: '16px 20px', display: 'flex', alignItems: 'center',
+                gap: 16, marginBottom: 24, boxShadow: 'var(--shadow)'
+              }}>
+                <div style={{fontSize:32}}>{DM_EMOJI[myPersona.dayMasterKan] || '🌟'}</div>
                 <div style={{flex:1}}>
-                  <p style={{fontSize:12, color:'#93c5fd', fontWeight:700, marginBottom:2}}>{myPersona.name}</p>
-                  <p style={{fontSize:11, color:'var(--text-dim)'}}>
+                  <p style={{fontSize:14, color:'var(--rose)', fontWeight:700}}>{myPersona.name}님 (나)</p>
+                  <p style={{fontSize:12, color:'var(--text-dim)'}}>
                     {myPersona.dayMaster} · {myPersona.mbti}
-                    {myPersona.mainSipsin && <span style={{color:'var(--rose)'}}> · {myPersona.mainSipsin}</span>}
-                    <span style={{marginLeft:6, color:'rgba(100,180,255,0.5)'}}>✦ 프로필 자동 연동</span>
                   </p>
                 </div>
-                <button className="lc-my-banner-edit" onClick={() => setScreen('self')}>수정</button>
+                <button className="lc-my-banner-edit" onClick={() => setScreen('self')} style={{
+                  background: 'var(--pink-soft)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: '6px 12px', fontSize: 12, color: 'var(--rose)', fontWeight: 600
+                }}>수정</button>
               </div>
             )}
 
             {/* 탭 */}
-            <div className="lc-tabs w-full max-w-[560px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
-              <button className={`lc-tab${tab==='preset'?' active':''}`} onClick={() => setTab('preset')}>
-                💕 운명 캐릭터
-              </button>
-              <button className={`lc-tab${tab==='match'?' active':''}`} onClick={() => { setTab('match'); setMatchResults(null); }}>
-                🔮 궁합별 추천
-              </button>
-              <button className={`lc-tab${tab==='custom'?' active':''}`} onClick={() => setTab('custom')}>
-                ✦ 상대방 직접 입력
-              </button>
+            <div className="lc-tabs w-full max-w-[560px]" style={{
+              display: 'flex', background: 'var(--glass)', borderRadius: 20,
+              padding: 6, marginBottom: 32, border: '1.5px solid var(--border)'
+            }}>
+              <button className={`lc-tab${tab==='preset'?' active':''}`} onClick={() => setTab('preset')} style={{
+                flex: 1, padding: '12px', borderRadius: 16, border: 'none',
+                background: tab === 'preset' ? 'var(--rose)' : 'transparent',
+                color: tab === 'preset' ? '#fff' : 'var(--text-dim)',
+                fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s'
+              }}>💕 운명 캐릭터</button>
+              <button className={`lc-tab${tab==='match'?' active':''}`} onClick={() => { setTab('match'); setMatchResults(null); }} style={{
+                flex: 1, padding: '12px', borderRadius: 16, border: 'none',
+                background: tab === 'match' ? 'var(--rose)' : 'transparent',
+                color: tab === 'match' ? '#fff' : 'var(--text-dim)',
+                fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s'
+              }}>🔮 궁합 추천</button>
+              <button className={`lc-tab${tab==='custom'?' active':''}`} onClick={() => setTab('custom')} style={{
+                flex: 1, padding: '12px', borderRadius: 16, border: 'none',
+                background: tab === 'custom' ? 'var(--rose)' : 'transparent',
+                color: tab === 'custom' ? '#fff' : 'var(--text-dim)',
+                fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s'
+              }}>✦ 직접 입력</button>
             </div>
 
             {/* ── 케이스 선택 탭 ── */}
@@ -2417,13 +2430,17 @@ export default function LoveSimulation() {
                 <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
                   ✦ 나의 생년월일로 충합도가 가장 높은 시뮬레이션 상대를 추천해 드립니다 ✦
                 </p>
-                <div className="lc-gender-toggle" style={{ marginBottom:16 }}>
-                  <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')}>
-                    💙 남성 시뮬레이션 상대
-                  </button>
-                  <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')}>
-                    💕 여성 시뮬레이션 상대
-                  </button>
+                <div className="lc-gender-toggle" style={{ marginBottom:16, display:'flex', gap:8 }}>
+                  <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')} style={{
+                    flex:1, padding:'10px', borderRadius:12, border:'1.5px solid var(--border)',
+                    background: npcGender === '남' ? 'var(--rose)' : '#fff',
+                    color: npcGender === '남' ? '#fff' : 'var(--text-dim)', fontWeight:700
+                  }}>💙 남성 캐릭터</button>
+                  <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')} style={{
+                    flex:1, padding:'10px', borderRadius:12, border:'1.5px solid var(--border)',
+                    background: npcGender === '여' ? 'var(--rose)' : '#fff',
+                    color: npcGender === '여' ? '#fff' : 'var(--text-dim)', fontWeight:700
+                  }}>💕 여성 캐릭터</button>
                 </div>
                 <div className="cd-form-group">
                   <label className="cd-form-label">나의 생년월일</label>
@@ -2483,17 +2500,21 @@ export default function LoveSimulation() {
 
             {/* ── 직접 입력 탭 ── */}
             {tab === 'custom' && (
-              <div className="cd-form-card w-full max-w-[560px] rounded-3xl border border-rose-200/15 bg-black/30 shadow-[0_24px_80px_rgba(236,72,153,0.12)]">
-                <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
-                  ✦ 상대방의 생년월일을 입력해 사주 페르소나를 분석합니다 ✦
+              <div className="cd-form-card">
+                <p style={{ fontSize:14, color:'var(--rose)', marginBottom:20, textAlign:'center', fontWeight:700 }}>
+                  ✦ 상대방의 정보를 입력해 궁합을 분석합니다 ✦
                 </p>
-                <div className="lc-gender-toggle" style={{ marginBottom:16 }}>
-                  <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')}>
-                    💙 남성 분석
-                  </button>
-                  <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')}>
-                    💕 여성 분석
-                  </button>
+                <div className="lc-gender-toggle" style={{ marginBottom:20, display:'flex', gap:8 }}>
+                  <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')} style={{
+                    flex:1, padding:'12px', borderRadius:14, border:'1.5px solid var(--border)',
+                    background: npcGender === '남' ? 'var(--rose)' : '#fff',
+                    color: npcGender === '남' ? '#fff' : 'var(--text-dim)', fontWeight:700
+                  }}>💙 남성 분석</button>
+                  <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')} style={{
+                    flex:1, padding:'12px', borderRadius:14, border:'1.5px solid var(--border)',
+                    background: npcGender === '여' ? 'var(--rose)' : '#fff',
+                    color: npcGender === '여' ? '#fff' : 'var(--text-dim)', fontWeight:700
+                  }}>💕 여성 분석</button>
                 </div>
                 <div className="cd-form-group">
                   <label className="cd-form-label">상대방 이름</label>
@@ -2502,7 +2523,7 @@ export default function LoveSimulation() {
                 </div>
                 <div className="cd-form-group">
                   <label className="cd-form-label">생년월일</label>
-                  <div className="cd-input-row" style={{ marginBottom: 10 }}>
+                  <div className="cd-input-row" style={{ marginBottom: 12 }}>
                     <input className="cd-input" placeholder="년도 (예: 1996)"
                       value={form.year} onChange={e => setForm({...form, year:e.target.value})} />
                     <input className="cd-input" placeholder="월 (1-12)"
@@ -2530,7 +2551,7 @@ export default function LoveSimulation() {
                 <button className="cd-fate-btn"
                   onClick={submitCustom}
                   disabled={!myPersona || !form.name || !form.year || !form.month || !form.day || loadingPersona}>
-                  {loadingPersona ? '✦ 사주 분석 중…' : !myPersona ? '✦ 내 사주 먼저 분석 필요 ✦' : '✦ 사주 페르소나 깨우기 ✦'}
+                  {loadingPersona ? '✦ 사주 페르소나 분석 중…' : !myPersona ? '✦ 내 사주 먼저 분석 필요 ✦' : '💕 사주 페르소나 깨우기'}
                 </button>
               </div>
             )}
@@ -2540,50 +2561,39 @@ export default function LoveSimulation() {
         {/* ══ AWAKENING ══ */}
         {screen === 'awakening' && persona && (
           <div className="cd-screen px-4 py-10 md:px-8">
-            <div className="cd-awakening w-full max-w-[760px] rounded-3xl border border-rose-200/10 bg-black/25 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.45)] backdrop-blur-md md:p-8">
-              <p style={{ fontSize:11, color:'var(--gold)', letterSpacing:'0.25em', textAlign:'center', marginBottom:24 }}>
-                {persona.gender === '여' ? '✦ 사주 페르소나 분석 완료 ✦' : '✦ 사주 캐릭터 깨어남 ✦'}
+            <div className="cd-awakening">
+              <p style={{ fontSize:14, color:'var(--rose)', letterSpacing:'0.1em', textAlign:'center', marginBottom:32, fontWeight:700 }}>
+                {persona.gender === '여' ? '✦ 그녀의 사주 페르소나가 깨어났습니다 ✦' : '✦ 그의 사주 페르소나가 깨어났습니다 ✦'}
               </p>
 
-              {myPersona ? (() => {
-                const syn = computeRealSynastry(myPersona, persona);
-                return (
-                  <>
-                    <div className="lc-versus-wrap">
-                      <div className="lc-versus-side">
-                        <div className="lc-versus-avatar mine">{DM_EMOJI[myPersona.dayMasterKan] || '🌟'}</div>
-                        <p className="lc-versus-name mine">{myPersona.name}</p>
-                        <p className="lc-versus-dm">{myPersona.dayMaster} · {myPersona.mainSipsin || '나'}</p>
+              {myPersona && (
+                <>
+                  <div className="lc-versus-wrap" style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, marginBottom: 40
+                  }}>
+                    <div className="lc-versus-side" style={{textAlign:'center'}}>
+                      <div className="cd-avatar" style={{width:100, height:100, fontSize:48, border:'3px solid var(--rose)'}}>
+                        {DM_EMOJI[myPersona.dayMasterKan] || '🌟'}
                       </div>
-                      <div className="lc-vs-sep">
-                        <span>VS</span>
-                        <span style={{fontSize:18, color:'rgba(200,169,110,0.45)'}}>✦</span>
-                      </div>
-                      <div className="lc-versus-side">
-                        <div className="lc-versus-avatar npc">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
-                        <p className="lc-versus-name npc">{persona.name}</p>
-                        <p className="lc-versus-dm">{persona.dayMaster} · {persona.mainSipsin || '상대'}</p>
-                      </div>
+                      <p style={{marginTop:12, fontWeight:700, color:'var(--text-main)'}}>{myPersona.name}</p>
                     </div>
-
-                    {syn && (
-                      <div className="lc-compat-block">
-                        <p className="lc-compat-num">{syn.pct}%</p>
-                        <p className="lc-compat-label">실시간 오행 궁합 · {syn.label}</p>
-                        <p className="lc-compat-desc">{syn.myEl} ↔ {syn.npcEl} · {syn.desc}</p>
+                    <div className="lc-vs-sep" style={{fontSize:24, fontWeight:900, color:'var(--pink-accent)', opacity:0.6}}>VS</div>
+                    <div className="lc-versus-side" style={{textAlign:'center'}}>
+                      <div className="cd-avatar" style={{width:100, height:100, fontSize:48, border:'3px solid var(--rose)'}}>
+                        {DM_EMOJI[persona.dayMasterKan] || '✨'}
                       </div>
-                    )}
-                  </>
-                );
-              })() : (
-                <div className="cd-avatar-wrap">
-                  <div className="cd-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
-                  <div className="cd-avatar-ring" />
-                  <div className="cd-avatar-ring2" />
-                  {persona.specialStars?.length > 0 && (
-                    <div className="cd-score-badge">도화살</div>
+                      <p style={{marginTop:12, fontWeight:700, color:'var(--text-main)'}}>{persona.name}</p>
+                    </div>
+                  </div>
+
+                  {liveSynastry && (
+                    <div className="cd-synastry">
+                      <p className="cd-synastry-score">{liveSynastry.pct}%</p>
+                      <p className="cd-synastry-label">종합 인연 지수 · {liveSynastry.label}</p>
+                      <p className="cd-synastry-detail">{liveSynastry.desc}</p>
+                    </div>
                   )}
-                </div>
+                </>
               )}
 
               <h2 className="cd-char-name">{persona.name}</h2>
@@ -2689,38 +2699,44 @@ export default function LoveSimulation() {
 
         {/* ══ CHAT ══ */}
         {screen === 'chat' && persona && (
-          <div className="cd-chat-wrap w-full max-w-none" style={{height:'100dvh'}}>
-            <div className="cd-chat-header border-b border-rose-200/10 bg-black/35">
+          <div className="cd-chat-wrap">
+            <div className="cd-chat-header">
               {myPersona && (
-                <div className="lc-my-mini" title={`${myPersona.name} · 나`}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%', background: 'var(--pink-soft)',
+                  border: '1.5px solid var(--border)', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', fontSize: 20
+                }} title={`${myPersona.name} (나)`}>
                   {DM_EMOJI[myPersona.dayMasterKan] || '🌟'}
                 </div>
               )}
               <div className="cd-hdr-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
-              <div className="cd-hdr-info">
+              <div style={{flex: 1}}>
                 <p className="cd-hdr-name">{persona.name}</p>
-                <p className="cd-hdr-mood">{MOOD_EMOJI[mood] || ''} {mood} · {persona.dayMaster}{persona.mainSipsin ? ` · ${persona.mainSipsin}형` : ''}</p>
+                <p className="cd-hdr-mood">{MOOD_EMOJI[mood] || ''} {mood} · {persona.dayMaster}</p>
               </div>
-              <button className="cd-event-btn" onClick={triggerScenario} disabled={busy}>
-                🎲 데이트 이벤트
-              </button>
-              <button
-                className="cd-event-btn"
-                onClick={openEndingReport}
-                disabled={scenarioHistory.length < 4}
-                title={scenarioHistory.length < 4 ? '이벤트 4개 이상 진행 후 확인 가능' : '최종 결말 확인'}
-              >
-                📖 결말 보기
-              </button>
+              <div style={{display:'flex', gap:8}}>
+                <button className="cd-event-btn" onClick={triggerScenario} disabled={busy}>
+                  🎲 이벤트
+                </button>
+                <button
+                  className="cd-event-btn"
+                  onClick={openEndingReport}
+                  disabled={scenarioHistory.length < 4}
+                  style={{background: 'var(--rose)', color: '#fff', borderColor: 'var(--rose)'}}
+                >
+                  📖 결말
+                </button>
+              </div>
             </div>
 
             {/* ── 호감도 바 ── */}
-            <div className="cd-affinity-bar border-b border-rose-200/10 bg-black/35">
+            <div className="cd-affinity-bar">
               <div className="cd-aff-top">
                 <span>💕 호감도</span>
                 <span className="cd-aff-num" style={{
                   transition:'color 0.3s',
-                  color: affinityAnim ? 'var(--gold-bright)' : 'var(--gold)',
+                  color: affinityAnim ? 'var(--pink-accent)' : 'var(--rose)',
                 }}>
                   {affinity} / 100
                 </span>
@@ -2728,77 +2744,83 @@ export default function LoveSimulation() {
               <div className="cd-aff-track">
                 <div className="cd-aff-fill" style={{ width:`${affinity}%` }} />
               </div>
-              <div className="cd-aff-stage flex items-center justify-between">
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: 'var(--text-dim)', fontWeight: 600 }}>
                 <span>{affinityLabel(affinity)}</span>
-                <span>챕터 {scenarioHistory.length} / 8</span>
+                <span>에피소드 {scenarioHistory.length} / 8</span>
               </div>
             </div>
 
-            {/* ── 사주 에너지 상태 바 ── */}
-            <div className="cd-status-bar border-b border-rose-200/10 bg-black/35">
+            {/* ── 상세 관계 지표 ── */}
+            <div className="cd-status-bar">
               <div className="cd-status-item">
                 <div className="cd-status-label">
-                  <span>⚡ 사주 에너지</span>
-                  <span style={{ color:`var(--${EL_CLASS[persona.yongshin] || 'water'}-c)` }}>{persona.yongshin}({persona.fiveElements?.[persona.yongshin] || 0}%)</span>
+                  <span>🤝 신뢰</span>
+                  <span>{trust}%</span>
                 </div>
                 <div className="cd-status-track">
-                  <div className="cd-status-fill" style={{
-                    width:`${persona.fiveElements?.[persona.yongshin] || 0}%`,
-                    background:`var(--${EL_CLASS[persona.yongshin] || 'water'}-c)`,
-                  }} />
+                  <div className="cd-status-fill" style={{ width:`${trust}%`, background:'#4ade80' }} />
                 </div>
               </div>
               <div className="cd-status-item">
                 <div className="cd-status-label">
-                  <span>🌙 기분 게이지</span>
-                  <span>{MOOD_EMOJI[mood] || ''} {mood}</span>
+                  <span>⚡ 긴장</span>
+                  <span>{tension}%</span>
                 </div>
                 <div className="cd-status-track">
-                  <div className="cd-status-fill" style={{
-                    width: mood==='기쁨'?'90%': mood==='설렘'?'70%': mood==='슬픔'?'40%': mood==='화남'?'20%': '50%',
-                    background: mood==='기쁨'?'#5BA87A': mood==='설렘'?'#f9a8d4': mood==='화남'?'#C84B2A': mood==='슬픔'?'#8CA0B8': 'rgba(255,255,255,0.3)',
-                  }} />
+                  <div className="cd-status-fill" style={{ width:`${tension}%`, background:'#f87171' }} />
+                </div>
+              </div>
+              <div className="cd-status-item">
+                <div className="cd-status-label">
+                  <span>💎 호기심</span>
+                  <span>{curiosity}%</span>
+                </div>
+                <div className="cd-status-track">
+                  <div className="cd-status-fill" style={{ width:`${curiosity}%`, background:'#60a5fa' }} />
                 </div>
               </div>
             </div>
 
-            <div className="cd-messages bg-gradient-to-b from-black/10 via-black/20 to-black/50">
-              <p className="mx-auto mb-1 w-fit rounded-full border border-rose-200/10 bg-black/30 px-4 py-1 text-xs tracking-[0.18em] text-rose-100/70">
-                CHAPTER LOG · 선택이 인연의 결말을 바꿉니다
+            <div className="cd-messages">
+              <p style={{
+                margin: '0 auto 12px', width: 'fit-content', borderRadius: '20px',
+                background: 'rgba(251, 113, 133, 0.08)', border: '1px solid var(--border)',
+                padding: '4px 16px', fontSize: 11, color: 'var(--rose)', fontWeight: 700, letterSpacing: '0.05em'
+              }}>
+                RELATIONSHIP LOG · 선택이 인연을 바꿉니다
               </p>
               {messages.map((m, i) => (
-                <div key={m.msgId ?? i} className={`cd-msg ${m.role}`}>
-                  {m.role === 'npc' && <p className="cd-msg-sender">{persona.name}</p>}
+                <div key={m.msgId ?? i} className={`cd-msg ${m.role}`} style={{
+                  alignSelf: m.role === 'npc' ? 'flex-start' : 'flex-end'
+                }}>
+                  {m.role === 'npc' && <p style={{fontSize:11, color:'var(--text-dim)', marginBottom:4, marginLeft:4}}>{persona.name}</p>}
                   <div className="cd-bubble">
                     {m.typedLen !== undefined
-                      ? <>
-                          {m.text.slice(0, m.typedLen)}
-                          {m.typedLen < m.text.length && <span className="cd-cursor">▋</span>}
-                        </>
+                      ? m.text.slice(0, m.typedLen)
                       : m.text
                     }
                   </div>
                   {m.role === 'npc' && m.affinityChange !== 0 && m.typedLen === m.text?.length && (
-                    <p className="cd-msg-meta">
-                      <span className={`cd-aff-delta ${m.affinityChange > 0 ? 'pos' : 'neg'}`}>
-                        {m.affinityChange > 0 ? '+' : ''}{m.affinityChange} 호감도
-                      </span>
+                    <p style={{fontSize:11, marginTop:4, marginLeft:4, fontWeight:700, color: m.affinityChange > 0 ? '#10b981' : '#ef4444'}}>
+                      {m.affinityChange > 0 ? '↑' : '↓'} 호감도 {Math.abs(m.affinityChange)}
                     </p>
                   )}
                 </div>
               ))}
               {busy && (
-                <div className="cd-typing">
-                  <div className="cd-dot" /><div className="cd-dot" /><div className="cd-dot" />
+                <div style={{ display:'flex', gap:4, padding:'12px 16px', background:'#fff', border:'1.5px solid var(--border)', borderRadius:'20px 20px 20px 4px', width:'fit-content' }}>
+                  <div className="cd-dot" style={{width:6, height:6, borderRadius:'50%', background:'var(--rose)', opacity:0.4}}></div>
+                  <div className="cd-dot" style={{width:6, height:6, borderRadius:'50%', background:'var(--rose)', opacity:0.6}}></div>
+                  <div className="cd-dot" style={{width:6, height:6, borderRadius:'50%', background:'var(--rose)', opacity:0.8}}></div>
                 </div>
               )}
               <div ref={msgEnd} />
             </div>
 
-            <div className="cd-input-area border-t border-rose-200/10 bg-black/40">
+            <div className="cd-input-area">
               <textarea
                 className="cd-textarea"
-                placeholder={`${persona.name}에게 말을 건네보세요...`}
+                placeholder={`${persona.name}에게 전하고 싶은 말...`}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
@@ -2886,73 +2908,65 @@ export default function LoveSimulation() {
         {/* ══ ENDING REPORT OVERLAY ══ */}
         {endingOpen && endingResult && (
           <div className="cd-overlay">
-            <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-rose-200/20 bg-gradient-to-b from-[#150918]/95 via-[#0d0518]/95 to-[#050108]/95 shadow-[0_30px_120px_rgba(244,114,182,0.2)]">
-              <div className="border-b border-rose-200/15 bg-black/25 px-6 py-5">
-                <p className="text-xs tracking-[0.24em] text-rose-100/70">LOVE NOVEL ENDING REPORT</p>
-                <h3 className={`mt-2 text-2xl font-semibold tracking-[0.06em] ${endingResult.color}`}>
+            <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-rose-200/20 bg-white shadow-[0_30px_120px_rgba(225,29,72,0.15)]">
+              <div className="border-b border-rose-200/15 bg-var(--pink-soft) px-6 py-5">
+                <p className="text-xs font-bold tracking-[0.2em] text-rose-500">LOVE STORY ENDING REPORT</p>
+                <h3 className={`mt-2 text-2xl font-bold tracking-[0.06em] ${endingResult.color || 'text-rose-600'}`}>
                   {endingResult.title}
                 </h3>
-                <p className="mt-3 text-sm leading-7 text-rose-50/85">{endingResult.line}</p>
+                <p className="mt-3 text-base leading-7 text-var(--text-main) font-medium">{endingResult.line}</p>
               </div>
 
               <div className="grid gap-4 px-6 py-5 md:grid-cols-5">
-                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
-                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">서사 점수</p>
-                  <p className="mt-2 text-3xl font-semibold text-fuchsia-200">{endingResult.arcScore}</p>
-                </div>
-                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
-                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">최종 호감도</p>
-                  <p className="mt-2 text-3xl font-semibold text-rose-200">{endingResult.score}</p>
-                </div>
-                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
-                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">크리티컬 히트</p>
-                  <p className="mt-2 text-3xl font-semibold text-amber-200">{endingResult.hitCount}</p>
-                </div>
-                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
-                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">고위험 선택</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-200">{endingResult.highRiskCount}</p>
-                </div>
-                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
-                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">데이트 장소</p>
-                  <p className="mt-2 text-3xl font-semibold text-emerald-200">{endingResult.placeCount}</p>
-                </div>
+                {[
+                  { label: '서사 점수', val: endingResult.arcScore, color: 'text-rose-500' },
+                  { label: '최종 호감도', val: endingResult.score, color: 'text-rose-600' },
+                  { label: '크리티컬', val: endingResult.hitCount, color: 'text-amber-500' },
+                  { label: '리스크 선택', val: endingResult.highRiskCount, color: 'text-slate-500' },
+                  { label: '데이트 수', val: endingResult.placeCount, color: 'text-emerald-500' },
+                ].map(s => (
+                  <div key={s.label} className="rounded-2xl border border-rose-100 bg-var(--pink-soft)/30 p-4 text-center">
+                    <p className="text-[11px] font-bold text-var(--text-dim) opacity-70">{s.label}</p>
+                    <p className={`mt-1 text-2xl font-bold ${s.color}`}>{s.val}</p>
+                  </div>
+                ))}
               </div>
 
               <div className="px-6 pb-4">
-                <p className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-sm leading-7 text-rose-50/80">
+                <p className="rounded-2xl border border-rose-100 bg-var(--peach)/50 p-5 text-sm leading-7 text-var(--text-main) font-medium italic shadow-sm">
                   {endingResult.fate}
                 </p>
               </div>
 
-              <div className="max-h-64 overflow-y-auto border-t border-rose-200/10 px-6 py-4">
-                <p className="mb-3 text-xs tracking-[0.16em] text-rose-100/60">선택 로그</p>
+              <div className="max-h-64 overflow-y-auto border-t border-rose-100 px-6 py-4 bg-var(--cream)">
+                <p className="mb-3 text-xs font-bold tracking-[0.1em] text-var(--text-dim)">EPISODE LOG</p>
                 <div className="space-y-2">
                   {scenarioHistory.slice(-8).map((item, idx) => (
-                    <div key={`${item.type}_${idx}`} className="rounded-lg border border-rose-200/10 bg-black/20 px-3 py-2 text-sm">
-                      <p className="text-rose-100/85">[{item.type}] {item.choiceText}</p>
-                      <p className="mt-1 text-xs text-rose-100/60">
-                        {item.element} · {item.risk} · {item.isHit ? '용신 공명' : '일반 반응'} · {item.delta > 0 ? '+' : ''}{item.delta}
+                    <div key={`${item.type}_${idx}`} className="rounded-xl border border-rose-100 bg-white px-4 py-3 text-sm shadow-sm">
+                      <p className="font-bold text-var(--text-main)">[{item.type}] {item.choiceText}</p>
+                      <p className="mt-1 text-xs text-var(--text-dim) font-medium">
+                        {item.element} 성향 · {item.risk} 리스크 · {item.isHit ? '✨ 용신 공명' : '일반 선택'}
                       </p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 border-t border-rose-200/10 px-6 py-4">
+              <div className="flex items-center justify-end gap-3 border-t border-rose-100 px-6 py-5 bg-white">
                 <button
-                  className="rounded-lg border border-rose-200/20 px-4 py-2 text-sm text-rose-100/80 transition hover:bg-rose-300/10"
+                  className="rounded-xl border border-rose-200 px-6 py-2.5 text-sm font-bold text-var(--text-dim) transition hover:bg-rose-50"
                   onClick={() => setEndingOpen(false)}
                 >
-                  채팅으로 돌아가기
+                  기록 닫기
                 </button>
                 <button
-                  className="rounded-lg bg-rose-500/80 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-400"
+                  className="rounded-xl bg-rose-500 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 shadow-lg shadow-rose-200"
                   onClick={() => {
                     setEndingOpen(false);
                     setScreen('portal');
                   }}
                 >
-                  새 인연 시작하기
+                  새로운 인연 시작하기
                 </button>
               </div>
             </div>
