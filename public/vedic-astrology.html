@@ -3446,16 +3446,18 @@ function renderResult(){
 
   ${vedicCanonicalCardsHtml}
 
-  <div class="reveal reveal-delay-2" style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:16px;margin-bottom:14px">
-    <div class="section-head section-head-kr" style="margin-bottom:10px">☽ 타고난 성향 · 핵심 키워드</div>
-    <div class="body-text" style="margin-bottom:10px">${insights.personalityInsight}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
-      ${(report.personality.coreTraits||[]).map(t=>`<span class="tag tag-gold">${t}</span>`).join('')}
-      ${(report.personality.subconscious||[]).map(t=>`<span class="tag tag-purple">${t}</span>`).join('')}
-    </div>
+  <!-- 인젝션: 상세 테마 섹션 -->
+  <div id="vedic-thematic-sections">
+    ${renderPersonality(report.personality, chart, insights)}
+    ${renderWealth(report.wealth, insights)}
+    ${renderCareer(report.career, insights)}
+    ${renderRomance(report.romance, chart, insights)}
+    ${renderChakra(report.chakra, insights)}
+    ${renderRemedies(report.remedies, chart, insights)}
+    ${renderVimshottari(chart, insights)}
   </div>
 
-  <div class="section-head section-head-kr reveal reveal-delay-3" style="margin-bottom:10px">✦ 7대 운명 분석</div>
+  <div class="section-head section-head-kr reveal" style="margin-bottom:10px;margin-top:20px;">✦ 운명 분석 요약</div>
   ${[
     {id:'personality',icon:'🌟',col:'#FFD700',title:'타고난 성향',score:null,sub:`${rasi.ascSignKr} · ${nak.name}`},
     {id:'wealth',icon:'💰',col:'#22C55E',title:'재물운',score:report.wealth.score,sub:report.wealth.yogas&&!report.wealth.yogas[0].includes('없음')?report.wealth.yogas[0].split(':')[0]:'안정적 축적형'},
@@ -3751,6 +3753,20 @@ function renderResult(){
   <div style="height:36px"></div>`);
 
   setTimeout(initReveal,100);
+}
+
+function renderThematicSections(report, chart, insights) {
+  // This helper isn't strictly necessary if we call the renderers directly in tabOverview,
+  // but it helps organize the "Injected" cards if we want to separate them.
+  return `
+    ${renderPersonality(report.personality, chart, insights)}
+    ${renderWealth(report.wealth, insights)}
+    ${renderCareer(report.career, insights)}
+    ${renderRomance(report.romance, chart, insights)}
+    ${renderChakra(report.chakra, insights)}
+    ${renderRemedies(report.remedies, chart, insights)}
+    ${renderVimshottari(chart, insights)}
+  `;
 }
 
 // ─── DETAIL HEADER ────────────────────────────────────────
