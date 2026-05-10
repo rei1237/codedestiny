@@ -19,6 +19,8 @@
     { title: '🧭 인생 방향성', subtitle: '나에게 맞는 길의 형태' },
     { title: '📅 달빛 실천 캘린더', subtitle: '4주 루틴' },
     { title: '🌕 숙요점 인생 총결산', subtitle: '나의 달빛 사용법' },
+    { title: '💎 선천적 재능과 사회적 성공', subtitle: '내가 가진 가장 강력한 도구' },
+    { title: '🌊 감정의 밀물과 썰물', subtitle: '12달 감정 주기 해독' },
   ];
 
   var COMPAT_CHAPTER_META = [
@@ -35,6 +37,8 @@
     { title: '📅 30일 관계 운영 로드맵', subtitle: '관계 유형/거리별 실행 설계' },
     { title: '🕯️ 관계를 살리는 문장과 피해야 할 문장', subtitle: '갈등·화해 문장 실전' },
     { title: '🌕 최종 궁합 총평', subtitle: '점수표·장점·위험·원칙' },
+    { title: '🔮 전생의 인연과 카르믹 결합', subtitle: '우리가 다시 만난 이유' },
+    { title: '⏳ 시간의 흐름과 관계의 변화', subtitle: '1년/5년/10년 뒤의 우리' },
   ];
 
   var PERSONAL_LOADING_MSGS = [
@@ -51,6 +55,8 @@
     '인생 방향성과 성장 축을 정리하는 중...',
     '달빛 실천 캘린더를 작성하는 중...',
     '숙요점 인생 총결산을 완성하는 중...',
+    '선천적 재능과 성공 코드를 추출하는 중...',
+    '감정의 밀물과 썰물 주기를 계산하는 중...',
   ];
 
   var COMPAT_LOADING_MSGS = [
@@ -67,6 +73,8 @@
     '30일 관계 운영 로드맵을 설계하는 중...',
     '관계를 살리는 문장과 금지 문장을 정리하는 중...',
     '최종 궁합 총평과 원칙을 완성하는 중...',
+    '전생의 인연과 카르믹 결합을 해독하는 중...',
+    '시간에 따른 관계 변화 시나리오를 생성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -82,7 +90,7 @@
     '만트라는 영혼이 스스로에게 보내는 진동 코드입니다.',
   ];
 
-  var _chapters = Array(13).fill(null);
+  var _chapters = Array(15).fill(null);
   var _sukuyoChart = null;
   var _generating = false;
   var _currentChapter = 1;
@@ -94,7 +102,7 @@
   var PREMIUM_SUKUYO_TX_KEY = 'cd_premium_tx_sukuyo';
   var PREMIUM_SUKUYO_COMPAT_TX_KEY = 'cd_premium_tx_sukuyo_compat_extra';
   var _reportMode = 'personal';
-  var _totalChapters = 13;
+  var _totalChapters = 15;
   var _reportId = '';
   var _canonicalSukuyoCompatibility = null;
   var _chapterMetaRuntime = Array(_totalChapters).fill(null);
@@ -116,7 +124,7 @@
   }
 
   function _resetChapterState() {
-    _totalChapters = 13;
+    _totalChapters = 15;
     _chapters = Array(_totalChapters).fill(null);
     _chapterMetaRuntime = Array(_totalChapters).fill(null);
     _reportId = '';
@@ -178,7 +186,7 @@
     var mode = _getReportMode();
     var previousMode = _reportMode;
     _reportMode = mode;
-    _totalChapters = 13;
+    _totalChapters = 15;
     if (partnerBox) partnerBox.style.display = mode === 'compatibility' ? '' : 'none';
     if (startBtn) {
       startBtn.textContent = mode === 'compatibility'
@@ -483,7 +491,7 @@
     list.innerHTML=html;
   }
 
-  var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
+  var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
 
   function _renderToc(){
     var nav=document.getElementById('skToc');
@@ -605,7 +613,7 @@
       _reportMode = saved.reportMode === 'compatibility' ? 'compatibility' : 'personal';
       _syncReportModeSelector(_reportMode);
       _applyReportModeUi();
-      _totalChapters = Number(saved.totalChapters) || 13;
+      _totalChapters = Number(saved.totalChapters) || 15;
       _chapters=saved.chapters;
       if (_chapters.length !== _totalChapters) {
         _chapters = _chapters.slice(0, _totalChapters);

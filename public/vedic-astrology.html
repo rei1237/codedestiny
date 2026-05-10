@@ -3500,12 +3500,6 @@ function renderResult(){
     </svg>
     ${renderPlanetGrid(rasi)}
   </div>
-  <div class="reveal reveal-delay-2" style="margin-top:14px">
-    <div class="section-head" style="margin-bottom:10px">4원소 분포</div>
-    ${renderElementBars(report.personality.elementBalance)}
-    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6">
-      주도 원소 <span class="keyword">${report.personality.dominantEl||''}</span> · 보완 필요 <span class="keyword">${report.personality.deficientEl||''}</span>
-    </div>
   </div>`;
 
   // ── 탭 3: 다샤 타임라인 ───────────────────────────────
@@ -3580,56 +3574,6 @@ function renderResult(){
       <span class="tag tag-pink">현재 대운: ${PKR[maha.p]}</span>
     </div>
     <button class="btn-sm" onclick="copyCurrentVedicDataSnapshot()" style="margin-bottom:14px">JSON 복사</button>
-  </div>
-
-  <div class="acc-item reveal reveal-delay-1">
-    <div class="acc-header" onclick="toggleAcc('data-planets')">
-      <span style="font-size:16px">🪐</span>
-      <span class="acc-title">그라하 원본표 (라시/바바/낙샤트라/나밤샤)</span>
-      <span class="acc-arrow" id="arr-data-planets">▾</span>
-    </div>
-    <div class="acc-body open" id="acc-data-planets">
-      <div class="acc-inner" style="overflow:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:11px;min-width:760px">
-          <thead>
-            <tr style="color:var(--text3)">
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Graha</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Rashi</th>
-              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Lon</th>
-              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Bhava</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Nakshatra</th>
-              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Pada</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">D9</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">D10</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${allPlanets.map(function(name){
-              var p=rasi.planets[name]||{};
-              var lon=Number(p.lon);
-              var span=360/27;
-              var idx=Number.isFinite(lon)?Math.floor(nd(lon)/span):-1;
-              var nk=idx>=0&&NAKS[idx]?NAKS[idx]:null;
-              var din=Number.isFinite(lon)?(nd(lon)-idx*span):NaN;
-              var pada=Number.isFinite(din)?Math.floor(din/(span/4))+1:'-';
-              var house=planetHouse(rasi,name)||'-';
-              var d9Sign=(chart.d9&&chart.d9[name]&&chart.d9[name].signName)||'-';
-              var d10Sign=(chart.d10&&chart.d10[name]&&chart.d10[name].signName)||'-';
-              return '<tr>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((PSYM[name]||'')+' '+(PKR[name]||name))+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((SIGNKR[p.sign]||p.signName||'-')+' '+(Number.isFinite(p.deg)?p.deg.toFixed(2):'-')+'°')+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(Number.isFinite(lon)?lon.toFixed(2):'-')+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(house)+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(nk?nk.n+' ('+(PKR[nk.l]||nk.l)+')':'-')+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(pada)+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(d9Sign)+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(d10Sign)+'</td>'+
-              '</tr>';
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
   <div class="acc-item reveal reveal-delay-2">
@@ -3708,7 +3652,7 @@ function renderResult(){
   </div>
 
   <details class="reveal reveal-delay-4" style="margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;background:rgba(255,255,255,0.02)">
-    <summary style="cursor:pointer;color:var(--text2);font-size:12px">분석 데이터 JSON 펼치기</summary>
+    <summary style="cursor:pointer;color:var(--text2);font-size:12px;list-style:none">분석 데이터 JSON 펼치기</summary>
     <pre style="margin-top:8px;white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.55;color:var(--text3)">${hEsc(snapshotText)}</pre>
   </details>`;
 
