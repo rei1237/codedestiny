@@ -127,13 +127,28 @@ const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금 전문가입니다. �
     "brightness": "good|normal|dark",
     "sharpness": "good|normal|blurry",
     "palmCoverage": 0.75
+  },
+  "purposeAnalysis": {
+    "summary": "핵심 요약 (3~5문장)",
+    "evidence": [
+      { "label": "생명선", "text": "관련 근거" },
+      { "label": "기타", "text": "관련 근거" }
+    ],
+    "details": "상세 해석 (충분히 긴 상담형 문장)",
+    "cautions": ["주의할 점 1", "주의할 점 2"],
+    "actions": ["실천 가능한 행동 가이드 1", "실천 가능한 행동 가이드 2"],
+    "sections": [
+      { "title": "카테고리 맞춤 섹션 1", "content": "상세 내용" },
+      { "title": "카테고리 맞춤 섹션 2", "content": "상세 내용" }
+    ]
   }
 }`;
 
 async function analyzeHandWithGeminiVision(
   imageDataUrl: string,
   declaredSide: "left" | "right",
-): Promise<{ handReading: PalmHandReading; palmDetected: boolean; imageQuality: Record<string, unknown>; raw: unknown } | null> {
+  analysisPurpose: string,
+): Promise<{ handReading: PalmHandReading; palmDetected: boolean; imageQuality: Record<string, unknown>; purposeAnalysis: any; raw: unknown } | null> {
   const key = pickVisionKey();
   if (!key) return null;
 
@@ -143,7 +158,17 @@ async function analyzeHandWithGeminiVision(
   const model = "gemini-2.0-flash";
   const endpoint = GEMINI_VISION_ENDPOINT.replace("{model}", model);
 
-  const userPrompt = `이 사진은 ${declaredSide === "right" ? "오른손" : "왼손"} 바닥입니다. 손금을 정밀 분석하여 JSON으로만 응답하세요.`;
+  const purposeKo: Record<string, string> = {
+    general: "전체 운세",
+    love: "연애운",
+    wealth: "재물운",
+    career: "직업운",
+    personality: "성격분석",
+    relationship: "관계 패턴",
+  };
+  const purposeText = purposeKo[analysisPurpose] || "전체 운세";
+
+  const userPrompt = `이 사진은 ${declaredSide === "right" ? "오른손" : "왼손"} 바닥입니다. 사용자의 분석 목적은 '${purposeText}'입니다. 이 목적에 맞춰 각 선의 특징과 조언을 구체적으로 분석하여 JSON으로만 응답하세요.`;
 
   let payload: unknown;
   try {
@@ -190,6 +215,7 @@ async function analyzeHandWithGeminiVision(
   }
 
   const handReading = geminiResultToHandReading(parsed);
+  const purposeAnalysis = asObj(parsed.purposeAnalysis);
   const iq = parsed.imageQuality as Record<string, unknown> | undefined;
   return {
     handReading,
@@ -203,6 +229,7 @@ async function analyzeHandWithGeminiVision(
       rotation: 0,
       warnings: [],
     },
+    purposeAnalysis: Object.keys(purposeAnalysis).length > 0 ? purposeAnalysis : null,
     raw: parsed,
   };
 }
@@ -552,10 +579,10 @@ export async function POST(req: NextRequest) {
     // ─── Gemini Vision으로 이미지 직접 분석 (클라이언트 CV 분석과 병렬 실행) ───
     const [visionLeft, visionRight] = await Promise.all([
       hasLeftImage
-        ? analyzeHandWithGeminiVision(payload.leftPalmImage as string, "left").catch(() => null)
+        ? analyzeHandWithGeminiVision(payload.leftPalmImage as string, "left", analysisPurpose).catch(() => null)
         : Promise.resolve(null),
       hasRightImage
-        ? analyzeHandWithGeminiVision(payload.rightPalmImage as string, "right").catch(() => null)
+        ? analyzeHandWithGeminiVision(payload.rightPalmImage as string, "right", analysisPurpose).catch(() => null)
         : Promise.resolve(null),
     ]);
 
@@ -566,6 +593,7 @@ export async function POST(req: NextRequest) {
       overlayPaths: any;
       hasMajorDetected: boolean;
       handRole: string;
+      purposeAnalysis: any;
     }> = [];
 
     const processedSides = new Set<"left" | "right">();
@@ -593,6 +621,7 @@ export async function POST(req: NextRequest) {
         overlayPaths: left.overlayPaths,
         hasMajorDetected: true,
         handRole: left.handRole,
+        purposeAnalysis: visionLeft.purposeAnalysis,
       });
       processedSides.add("left");
     }
@@ -619,6 +648,7 @@ export async function POST(req: NextRequest) {
         overlayPaths: right.overlayPaths,
         hasMajorDetected: true,
         handRole: right.handRole,
+        purposeAnalysis: visionRight.purposeAnalysis,
       });
       processedSides.add("right");
     }
@@ -641,6 +671,7 @@ export async function POST(req: NextRequest) {
         overlayPaths: left.overlayPaths,
         hasMajorDetected: left.hasMajorDetected,
         handRole: left.handRole,
+        purposeAnalysis: null,
       });
     }
 
@@ -661,6 +692,7 @@ export async function POST(req: NextRequest) {
         overlayPaths: right.overlayPaths,
         hasMajorDetected: right.hasMajorDetected,
         handRole: right.handRole,
+        purposeAnalysis: null,
       });
     }
 
@@ -685,6 +717,7 @@ export async function POST(req: NextRequest) {
           overlayPaths: fb.overlayPaths,
           hasMajorDetected: true,
           handRole: fb.handRole,
+          purposeAnalysis: fallbackVision.purposeAnalysis,
         });
       }
     }
@@ -706,25 +739,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const hasEnoughQualityAny = analyses.some((a) => isEnoughQuality(a.recognitionData) || a?.recognitionData?.visionSource === "gemini");
-    const hasLineEvidenceAny = analyses.some((a) => a.hasMajorDetected);
-    if (!hasEnoughQualityAny && !hasLineEvidenceAny) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "IMAGE_QUALITY_LOW",
-          error: "이미지 품질이 부족합니다.",
-          checks: analyses.map((item) => ({
-            side: item.side,
-            brightness: item?.recognitionData?.imageQuality?.brightness,
-            sharpness: item?.recognitionData?.imageQuality?.sharpness,
-            palmCoverage: item?.recognitionData?.imageQuality?.palmCoverage,
-            warnings: item?.recognitionData?.extraction?.warnings || [],
-          })),
-        },
-        { status: 423 },
-      );
-    }
+    // Quality check no longer rejects - it will be set as estimated mode in canonical validation
+    // Removing the 423 IMAGE_QUALITY_LOW response to allow partial success
 
     const uploadedHands = analyses.map((a) => a.side) as Array<"left" | "right">;
     const leftAnalysis = analyses.find((a) => a.side === "left") || null;
@@ -761,6 +777,7 @@ export async function POST(req: NextRequest) {
       leftHandReading,
       rightHandReading,
       comparison: bothHandsComparison,
+      purposeAnalysis: leftAnalysis?.purposeAnalysis || rightAnalysis?.purposeAnalysis || null,
     });
 
     const interpretation = buildPalmInterpretationReport(canonical);

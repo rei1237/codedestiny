@@ -164,6 +164,16 @@ export type CanonicalPalmReading = {
     hasEnoughQuality: boolean;
     hasMajorLines: boolean;
     missingFields: string[];
+    analysisMode: "failed" | "estimated" | "detailed";
+    qualityWarning: string | null;
+  };
+  purposeAnalysis?: {
+    summary: string;
+    evidence: { label: string; text: string }[];
+    details: string;
+    cautions: string[];
+    actions: string[];
+    sections: { title: string; content: string }[];
   };
 };
 
@@ -179,6 +189,7 @@ export type CreateCanonicalPalmReadingParams = {
   leftHandReading?: PalmHandReading | null;
   rightHandReading?: PalmHandReading | null;
   comparison?: Partial<CanonicalPalmReading["bothHandsComparison"]>;
+  purposeAnalysis?: CanonicalPalmReading["purposeAnalysis"];
 };
 
 function createEmptyMinorLineReading(): PalmMinorLineReading {
@@ -324,7 +335,10 @@ export function createDefaultCanonicalPalmReading(
       hasEnoughQuality: false,
       hasMajorLines: false,
       missingFields: [],
+      analysisMode: "failed",
+      qualityWarning: null,
     },
+    purposeAnalysis: params.purposeAnalysis,
   };
 
   return updateCanonicalPalmReadingValidation(canonical);
@@ -347,19 +361,6 @@ export function updateCanonicalPalmReadingValidation(
     missingFields.push("profile.analysisPurpose");
   }
 
-  const hasEnoughQuality =
-    canonical.imageQuality.isPalmDetected &&
-    canonical.imageQuality.sharpness !== "blurry" &&
-    canonical.imageQuality.brightness !== "dark" &&
-    canonical.imageQuality.palmCoverage >= 0.42;
-
-  if (!canonical.imageQuality.isPalmDetected) {
-    missingFields.push("imageQuality.isPalmDetected");
-  }
-  if (canonical.imageQuality.palmCoverage < 0.42) {
-    missingFields.push("imageQuality.palmCoverage");
-  }
-
   const hasLeftMajor =
     canonical.leftHandReading?.majorLines.lifeLine.detected ||
     canonical.leftHandReading?.majorLines.headLine.detected ||
@@ -379,6 +380,26 @@ export function updateCanonicalPalmReadingValidation(
     missingFields.push("majorLines");
   }
 
+  const qualityByImage =
+    canonical.imageQuality.isPalmDetected &&
+    canonical.imageQuality.sharpness !== "blurry" &&
+    canonical.imageQuality.brightness !== "dark" &&
+    canonical.imageQuality.palmCoverage >= 0.42;
+
+  const hasEnoughQuality = qualityByImage || hasMajorLines;
+
+  if (!canonical.imageQuality.isPalmDetected) {
+    missingFields.push("imageQuality.isPalmDetected");
+  }
+  if (!hasMajorLines && canonical.imageQuality.palmCoverage < 0.42) {
+    missingFields.push("imageQuality.palmCoverage");
+  }
+
+  const analysisMode = !hasPalm ? "failed" : hasEnoughQuality ? "detailed" : "estimated";
+  const qualityWarning = analysisMode === "estimated" 
+    ? "이미지 품질이 다소 낮아 일부 손금은 추정 기반으로 분석되었습니다. 더 밝고 선명한 손바닥 사진을 올리면 정밀 분석이 가능합니다."
+    : null;
+
   return {
     ...canonical,
     validation: {
@@ -386,6 +407,8 @@ export function updateCanonicalPalmReadingValidation(
       hasEnoughQuality,
       hasMajorLines,
       missingFields,
+      analysisMode,
+      qualityWarning,
     },
   };
 }

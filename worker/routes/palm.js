@@ -108,15 +108,6 @@ function buildCanonical(params) {
   const hasPalm = canonical.handContext.uploadedHands.length > 0;
   if (!hasPalm) missingFields.push("handContext.uploadedHands");
 
-  const hasEnoughQuality =
-    canonical.imageQuality.isPalmDetected &&
-    canonical.imageQuality.sharpness !== "blurry" &&
-    canonical.imageQuality.brightness !== "dark" &&
-    canonical.imageQuality.palmCoverage >= 0.42;
-
-  if (!canonical.imageQuality.isPalmDetected) missingFields.push("imageQuality.isPalmDetected");
-  if (canonical.imageQuality.palmCoverage < 0.42) missingFields.push("imageQuality.palmCoverage");
-
   const hasLeftMajor =
     canonical.leftHandReading?.majorLines?.lifeLine?.detected ||
     canonical.leftHandReading?.majorLines?.headLine?.detected ||
@@ -133,6 +124,19 @@ function buildCanonical(params) {
 
   const hasMajorLines = hasLeftMajor || hasRightMajor;
   if (!hasMajorLines) missingFields.push("majorLines");
+
+  const qualityByImage =
+    canonical.imageQuality.isPalmDetected &&
+    canonical.imageQuality.sharpness !== "blurry" &&
+    canonical.imageQuality.brightness !== "dark" &&
+    canonical.imageQuality.palmCoverage >= 0.42;
+
+  const hasEnoughQuality = qualityByImage || hasMajorLines;
+
+  if (!canonical.imageQuality.isPalmDetected) missingFields.push("imageQuality.isPalmDetected");
+  if (!hasMajorLines && canonical.imageQuality.palmCoverage < 0.42) {
+    missingFields.push("imageQuality.palmCoverage");
+  }
 
   canonical.validation = {
     hasPalm,

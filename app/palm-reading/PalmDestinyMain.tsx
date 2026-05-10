@@ -14,7 +14,9 @@ import PalmLineOverlay, {
   type OverlayPathMap,
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
+import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { analyzePalmImageFile } from "@/lib/palm/palm-image-analysis-client";
+import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -58,6 +60,15 @@ type PalmInterpretationPayload = {
   tone: string;
   focusSummary: string;
   cards: PalmInterpretationCard[];
+};
+
+type CategoryConsultation = {
+  key: AnalysisPurpose;
+  title: string;
+  summary: string;
+  details: string[];
+  actions: string[];
+  confidence: "높음" | "중간" | "보수";
 };
 
 type AnalysisResultState = {
@@ -282,6 +293,192 @@ function normalizeResultSections(payload: unknown): Array<{ key: string; title: 
     .filter((x): x is { key: string; title: string; content: string } => Boolean(x));
 }
 
+function uniqText(list: Array<string | null | undefined>, max = 6): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of list) {
+    const text = String(item || "").trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(text);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+function scoreToNarrative(score: number | null | undefined, label: string): string {
+  if (!Number.isFinite(Number(score))) return `${label} 점수 근거는 아직 보수적으로 유지됩니다.`;
+  const value = Number(score);
+  if (value >= 78) return `${label} 지표(${value})가 높아 강점을 바로 활용하기 좋은 구간입니다.`;
+  if (value >= 60) return `${label} 지표(${value})가 안정권이며 루틴 유지 시 상승 여지가 큽니다.`;
+  if (value >= 45) return `${label} 지표(${value})가 전환 구간이라 작은 습관 조정이 중요합니다.`;
+  return `${label} 지표(${value})가 낮게 관찰되어 보수적 접근과 점진적 보완이 필요합니다.`;
+}
+
+function buildInterpretationWithFallback(
+  canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
+  payload: unknown,
+): PalmInterpretationPayload | null {
+  const normalized = normalizeInterpretation(payload);
+  if (normalized?.cards?.length) return normalized;
+  return normalizeInterpretation(buildPalmInterpretationReport(canonical));
+}
+
+function buildCategoryConsultations(
+  canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
+): CategoryConsultation[] {
+  const readings = [canonical.leftHandReading, canonical.rightHandReading].filter(
+    (x): x is NonNullable<typeof canonical.leftHandReading> => Boolean(x),
+  );
+
+  const dominant = canonical.profile.dominantHand;
+  const primaryReading =
+    dominant === "left"
+      ? canonical.leftHandReading || canonical.rightHandReading
+      : dominant === "right"
+      ? canonical.rightHandReading || canonical.leftHandReading
+      : canonical.rightHandReading || canonical.leftHandReading;
+
+  const scores = primaryReading?.scores || {
+    love: null,
+    career: null,
+    wealth: null,
+    vitality: null,
+    creativity: null,
+    communication: null,
+  };
+
+  const confidence: CategoryConsultation["confidence"] = canonical.validation.hasEnoughQuality
+    ? "높음"
+    : canonical.validation.hasMajorLines
+    ? "중간"
+    : "보수";
+
+  const overallSummary =
+    primaryReading?.overall.summary ||
+    canonical.bothHandsComparison.growthSummary ||
+    "손형·주요선·보조선 조합에서 읽힌 현재 습관 흐름을 중심으로 해석합니다.";
+
+  const loveDetails = uniqText([
+    canonical.bothHandsComparison.loveSummary,
+    primaryReading?.majorLines.heartLine.summary,
+    primaryReading?.minorLines.marriageLine.summary,
+    scoreToNarrative(scores.love, "연애"),
+  ]);
+
+  const wealthDetails = uniqText([
+    canonical.bothHandsComparison.wealthSummary,
+    primaryReading?.minorLines.moneyLine.summary,
+    primaryReading?.minorLines.sunLine.summary,
+    scoreToNarrative(scores.wealth, "재물"),
+  ]);
+
+  const careerDetails = uniqText([
+    canonical.bothHandsComparison.careerSummary,
+    primaryReading?.majorLines.fateLine.summary,
+    primaryReading?.majorLines.headLine.summary,
+    scoreToNarrative(scores.career, "직업"),
+  ]);
+
+  const personalityDetails = uniqText([
+    primaryReading?.handShape.summary,
+    primaryReading?.majorLines.headLine.summary,
+    primaryReading?.majorLines.heartLine.summary,
+    scoreToNarrative(scores.creativity, "창의"),
+    scoreToNarrative(scores.communication, "소통"),
+  ]);
+
+  const relationshipDetails = uniqText([
+    canonical.bothHandsComparison.differenceSummary,
+    canonical.bothHandsComparison.growthSummary,
+    primaryReading?.majorLines.heartLine.advice,
+    primaryReading?.minorLines.marriageLine.summary,
+    scoreToNarrative(scores.communication, "관계 소통"),
+  ]);
+
+  const baseActions = uniqText([
+    ...(primaryReading?.overall.recommendedActions || []),
+    "오늘의 관찰 1줄과 손바닥 사진 1장을 같은 시간에 기록해 패턴을 누적하세요.",
+    "선택 기준을 문장으로 먼저 고정한 뒤 행동하면 해석 정확도가 올라갑니다.",
+  ], 4);
+
+  return [
+    {
+      key: "general",
+      title: "전체 운세",
+      summary: overallSummary,
+      details: uniqText([
+        scoreToNarrative(scores.vitality, "에너지"),
+        scoreToNarrative(scores.love, "연애"),
+        scoreToNarrative(scores.career, "직업"),
+        scoreToNarrative(scores.wealth, "재물"),
+      ]),
+      actions: baseActions,
+      confidence,
+    },
+    {
+      key: "love",
+      title: "연애운",
+      summary: loveDetails[0] || "감정선과 관계선을 중심으로 현재 연애 패턴을 읽었습니다.",
+      details: loveDetails,
+      actions: uniqText([
+        primaryReading?.majorLines.heartLine.advice,
+        "기대치를 추측하지 말고 요청 문장으로 전달해 오해를 줄이세요.",
+        "관계 대화 직후 감정 온도를 3단계로 기록해 반복 패턴을 파악하세요.",
+      ], 3),
+      confidence,
+    },
+    {
+      key: "wealth",
+      title: "재물운",
+      summary: wealthDetails[0] || "재물선과 수성구 신호를 기준으로 돈 흐름 습관을 해석했습니다.",
+      details: wealthDetails,
+      actions: uniqText([
+        "지출을 필수/성장/위안 3분류로 나누어 기록하세요.",
+        "결제 전 목적 문장 1개를 먼저 쓰면 충동 소비를 줄일 수 있습니다.",
+        "소액이라도 주 1회 가치 창출 활동을 고정하세요.",
+      ], 3),
+      confidence,
+    },
+    {
+      key: "career",
+      title: "직업운",
+      summary: careerDetails[0] || "운명선과 두뇌선 근거로 직업 방향성의 안정도를 읽었습니다.",
+      details: careerDetails,
+      actions: uniqText([
+        primaryReading?.majorLines.fateLine.advice,
+        "2주 단위 목표-실행-회고 루틴을 캘린더에 고정하세요.",
+        "중요 과제는 시작 전 성공 기준 1문장을 먼저 정의하세요.",
+      ], 3),
+      confidence,
+    },
+    {
+      key: "personality",
+      title: "성격 분석",
+      summary: personalityDetails[0] || "손형과 두뇌선·감정선 조합으로 기본 성향을 해석했습니다.",
+      details: personalityDetails,
+      actions: uniqText([
+        "결정 직전 망설임 포인트를 하루 1회 기록해 자기 패턴을 선명하게 보세요.",
+        "집중 블록과 휴식 블록을 번갈아 고정해 사고 피로를 줄이세요.",
+        "감정이 큰 날에는 결정을 하루 미루고 기준 문장을 다시 확인하세요.",
+      ], 3),
+      confidence,
+    },
+    {
+      key: "relationship",
+      title: "관계 패턴",
+      summary: relationshipDetails[0] || "감정선·결혼선·양손 비교를 바탕으로 관계 리듬을 정리했습니다.",
+      details: relationshipDetails,
+      actions: uniqText([
+        "갈등 상황에서는 해석보다 확인 질문을 먼저 던지세요.",
+        "관계에서 지키고 싶은 약속 1개를 문장으로 합의하세요.",
+        "불편했던 장면을 주 3회 기록해 반복 트리거를 줄이세요.",
+      ], 3),
+      confidence,
+    },
+  ];
+}
+
 export default function PalmDestinyMain() {
   const router = useRouter();
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
@@ -294,6 +491,7 @@ export default function PalmDestinyMain() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultState | null>(null);
   const [activeCardKey, setActiveCardKey] = useState<PalmCardKey>("lifeLine");
   const [overlaySide, setOverlaySide] = useState<HandSide>("right");
+  const [activeConsultationKey, setActiveConsultationKey] = useState<AnalysisPurpose>("general");
 
   const leftUploadInputRef = useRef<HTMLInputElement>(null);
   const leftCameraInputRef = useRef<HTMLInputElement>(null);
@@ -324,6 +522,9 @@ export default function PalmDestinyMain() {
 
   const interpretationCards = analysisResult?.interpretation?.cards ?? [];
   const mobileFocusedCard = interpretationCards.find((item) => item.key === activeCardKey) ?? interpretationCards[0] ?? null;
+  const categoryConsultations = analysisResult ? buildCategoryConsultations(analysisResult.canonical) : [];
+  const mobileFocusedConsultation =
+    categoryConsultations.find((item) => item.key === activeConsultationKey) || categoryConsultations[0] || null;
   const bothHandsComparison = analysisResult?.canonical.bothHandsComparison;
   const recognitionPrimary = (analysisResult?.recognitionData?.primary as Record<string, unknown> | undefined) || null;
   const recognitionBySide = (analysisResult?.recognitionData?.bySide as Record<string, unknown> | undefined) || null;
@@ -717,12 +918,11 @@ export default function PalmDestinyMain() {
         setOverlaySide("left");
       }
 
-      const qualityGuideText = canonical.validation.hasEnoughQuality
-        ? "분석이 완료되었습니다. 해석 결과를 확인해 주세요."
-        : "분석이 완료되었습니다. 이미지 품질로 인해 일부 항목은 보수적으로 해석될 수 있습니다.";
-      setSubmitMessage(
-        `분석 완료: reportType=${canonical.reportType}, hasPalm=${String(canonical.validation.hasPalm)}, hasEnoughQuality=${String(canonical.validation.hasEnoughQuality)}. ${qualityGuideText}`,
-      );
+      const mode = canonical.validation.analysisMode;
+      const qualityMessage = mode === "estimated"
+        ? "손바닥 인식이 완료되었습니다. 이미지 품질이 다소 낮아 일부 손금은 추정 기반으로 분석되었습니다."
+        : "손바닥 인식이 완료되었습니다. 정밀 분석 결과가 생성되었습니다.";
+      setSubmitMessage(qualityMessage);
     } catch (error) {
       if (requestIdRef.current !== requestId) {
         return;
@@ -1315,8 +1515,8 @@ export default function PalmDestinyMain() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-[minmax(300px,420px)_1fr] md:gap-6">
-                  <aside className="md:sticky md:top-6 md:self-start">
+                <div className="grid w-full max-w-full gap-4 overflow-hidden md:grid-cols-[minmax(300px,420px)_1fr] md:gap-6">
+                  <aside className="w-full overflow-hidden md:sticky md:top-6 md:self-start">
                     {leftHand.previewUrl && rightHand.previewUrl ? (
                       <div className="mb-3 grid grid-cols-2 gap-2">
                         <button
@@ -1355,7 +1555,77 @@ export default function PalmDestinyMain() {
                     />
                   </aside>
 
-                  <div className="space-y-4">
+                  <div className="w-full max-w-full space-y-4 overflow-hidden">
+                    {analysisResult.canonical.validation.qualityWarning ? (
+                      <div className="rounded-lg border border-[#b8860b]/60 bg-[#3a2800]/90 p-3 text-sm leading-6 text-[#ffd700] shadow-md">
+                        ⚠️ {analysisResult.canonical.validation.qualityWarning}
+                      </div>
+                    ) : null}
+
+                    {analysisResult.canonical.purposeAnalysis ? (
+                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/60 bg-[linear-gradient(145deg,rgba(15,8,8,0.98),rgba(25,10,10,0.97))] p-4 md:p-6 shadow-lg">
+                        <div className="flex items-center gap-3 border-b border-[#c8a84b]/30 pb-4">
+                          <div aria-hidden className="h-6 w-1.5 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
+                          <h2 className="text-lg font-black text-[#f5d987] md:text-xl" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                            {PURPOSE_OPTIONS.find(o => o.value === analysisPurpose)?.label || "선택된 목적"} 맞춤 정밀 분석
+                          </h2>
+                        </div>
+                        
+                        <div className="mt-5 space-y-6">
+                          <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
+                            <h3 className="text-sm font-bold text-[#d4b45c]">핵심 요약</h3>
+                            <p className="mt-2 text-sm leading-7 text-[#e8d8b0]/90">{analysisResult.canonical.purposeAnalysis.summary}</p>
+                          </div>
+                          
+                          {analysisResult.canonical.purposeAnalysis.sections?.map((sec: any, i: number) => (
+                            <div key={`pa-sec-${i}`} className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
+                              <h3 className="text-sm font-bold text-[#d4b45c]">{sec.title}</h3>
+                              <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#e8d8b0]/90">{sec.content}</p>
+                            </div>
+                          ))}
+
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
+                              <h3 className="text-sm font-bold text-[#f5d987]">손금 데이터 근거</h3>
+                              <ul className="mt-2 space-y-2">
+                                {analysisResult.canonical.purposeAnalysis.evidence?.map((ev: any, i: number) => (
+                                  <li key={`ev-${i}`} className="text-sm leading-6 text-[#e8d8b0]/90">
+                                    <span className="font-bold text-[#d4b45c]">[{ev.label}]</span> {ev.text}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            
+                            <div className="rounded-lg border border-[#8b1a1a]/35 bg-[#140808]/60 p-4">
+                              <h3 className="text-sm font-bold text-[#ff7b7b]">주의할 점</h3>
+                              <ul className="mt-2 space-y-2">
+                                {analysisResult.canonical.purposeAnalysis.cautions?.map((c: string, i: number) => (
+                                  <li key={`cau-${i}`} className="text-sm leading-6 text-[#e8d8b0]/90 list-disc ml-4">{c}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
+                            <h3 className="text-sm font-bold text-[#d4b45c]">상세 해석</h3>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#e8d8b0]/90">{analysisResult.canonical.purposeAnalysis.details}</p>
+                          </div>
+
+                          <div className="rounded-lg border border-[#4a7a30]/30 bg-[#0a1206]/60 p-4">
+                            <h3 className="text-sm font-bold text-[#8ade5f]">앞으로의 활용법 & 실천 가이드</h3>
+                            <div className="mt-3 space-y-3">
+                              {analysisResult.canonical.purposeAnalysis.actions?.map((act: string, i: number) => (
+                                <div key={`act-${i}`} className="flex gap-3">
+                                  <span className="text-[#8ade5f]">◆</span>
+                                  <p className="text-sm leading-7 text-[#e8d8b0]/90">{act}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+                    ) : null}
+
                     {analysisResult.interpretation?.focusSummary ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 px-4 py-3">
                         <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>해석 중심</h3>
