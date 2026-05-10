@@ -333,12 +333,12 @@
 }
 </script>
 <!-- PWA 설정 -->
-<link id="pwa-manifest" rel="manifest" href="/manifest.json?v=1.0.1" crossorigin="anonymous">
+<link id="pwa-manifest" rel="manifest" href="/manifest.json?v=20260511-mobile-logo-fix1" crossorigin="anonymous">
 <link id="pwa-favicon" rel="icon" type="image/webp" sizes="192x192" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
 <!-- PWA 테마 초기화: 인라인으로 처리 (HTTP 요청 1건 제거) -->
 <script>
-(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=1.0.1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix1');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix1');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
+(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=20260511-mobile-logo-fix1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
 </script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
@@ -349,7 +349,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- ═══ LCP + Resource Hints (PERF-TASK17) ═══ -->
 <link rel="preload" as="image" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
-<link rel="preload" as="image" href="/icons/samba.webp?v=20260511-mobile-logo-fix1">
+<link rel="preload" as="image" href="/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1">
 <!-- 폰트 CSS: UX 우선 즉시 로드 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap">
@@ -2240,6 +2240,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
 
               <div class="feat-collection__grid feat-collection__grid--2col">
+
+                <!-- AI Emoi Omikuji -->
+                <a class="tarot-tile tarot-tile--omikuji" href="/emoi_omikuji_v2.html"
+                        data-action="openEmoiOmikujiModal"
+                        aria-label="Start AI Emoi Omikuji">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/오미쿠지.webp" data-img-alt="AI Emoi Omikuji — Sensitive oracle that reads your heart and curious topics">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🤖</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">FREE</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🤖 AI Emoi Omikuji</span>
+                    <span class="tarot-tile__desc">Emotional Oracle & Fortune</span>
+                  </div>
+                </a>
 
                 <!-- 화투점 -->
                 <button class="tarot-tile tarot-tile--hwatu" type="button"
@@ -7984,6 +7999,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
     openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
     openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'숙요 27수(숙명)와 월상 정보를 바탕으로 달빛 테마 운명꽃을 생성합니다.',feats:['숙요 27수 인덱스/별칭 기반 꽃 매칭','월상(달 위상) 보정 테마 반영','숙요 그룹·수호 키워드 해석 제공','결과 요약·저장·공유·프롬프트 도구 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/sukyo.webp'},
+    openEmoiOmikujiModal:{cat:'AI Oracle · Omikuji',title:'🤖 AI Emoi Omikuji',tagline:'Sensitive oracle that reads your heart and curious topics — AI reads your energy vibes and delivers today\'s fortune.',feats:['🤖 AI-based emotional vibration analysis & oracle reading','✨ Curated lucky colors, numbers, and items','📝 Personalized advice panel for peace of mind','100% Free — Check your destiny now'],cost:'✨ Free',ct:'free',img:'/fuctionassets/오미쿠지.webp'},
     openDreamModal:{cat:'드림 타로 · 해몽',title:'🌙 드림 타로',tagline:'어젯밤 꿈이 찜찜하다면 — 그 꿈이 진짜로 무엇을 예고하는지 타로가 바로 해독합니다',feats:['꿈 속 이미지를 타로 카드와 직접 연결 분석','불길한 꿈과 좋은 꿈의 정확한 의미 즉시 해독','꿈이 예고하는 미래 상황 & 운명 메시지 리딩','완전 무료 — 지금 바로 결과 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/heamong.webp'},
     openPsychoDreamModal:{cat:'정신분석 · 해몽',title:'🕯️ 정신분석 해몽',tagline:'당신이 꾼 꿈, 사실 무의식이 보내는 경고신호일 수 있습니다 — 프로이트가 그 꿈을 분석합니다',feats:['프로이트 & 현대 임상심리학 교차 분석','꿈이 드러내는 숨겨진 욕구·불안·트라우마 해독','지금 내 심리 상태를 꿈을 통해 정확히 파악','완전 무료 전문가 수준 심리 리포트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/phydream.webp'},
     openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장이면 됩니다 — 이 얼굴이 돈 버는 관상인지 사랑받는 관상인지 AI가 즉시 판독합니다',feats:['AI가 내 얼굴에서 관상 포인트 정밀 분석','내 얼굴이 닮은 동물 토템 & 숨겨진 성격 파악','재물운·연애운·귀인운 얼굴에서 직접 분석','셀카 업로드 1번으로 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20animal.webp'},

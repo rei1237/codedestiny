@@ -430,8 +430,8 @@ var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
 var THEME_LOGO_REV = '20260511-mobile-logo-fix1';
 var PIG_LOGO_URL = '/icons/꿀꿀 운세 로고.webp?v=' + THEME_LOGO_REV;
 var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
-var SAMBA_LOGO_URL = '/icons/samba.webp?v=' + THEME_LOGO_REV;
-var SAMBA_LOGO_SRCSET = '/icons/samba-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/samba-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + SAMBA_LOGO_URL + ' 512w';
+var SAMBA_LOGO_URL = '/icons/꿀꿀 운세 로고.webp?v=' + THEME_LOGO_REV;
+var SAMBA_LOGO_SRCSET = PIG_LOGO_SRCSET;
 
 function readThemeModeState() {
   try {
@@ -450,7 +450,7 @@ function writeThemeModeState(isNeo) {
 function applyPwaThemeAssets(isNeo) {
   var manifestLink = document.querySelector('link[rel="manifest"]');
   if (manifestLink) {
-    var manifestHref = (isNeo ? '/manifest-samba.json' : '/manifest.json') + '?v=1.0.1';
+    var manifestHref = (isNeo ? '/manifest-samba.json' : '/manifest.json') + '?v=' + THEME_LOGO_REV;
     manifestLink.setAttribute('href', manifestHref);
   }
 
