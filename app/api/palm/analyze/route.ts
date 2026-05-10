@@ -168,7 +168,8 @@ async function analyzeHandWithGeminiVision(
   };
   const purposeText = purposeKo[analysisPurpose] || "전체 운세";
 
-  const userPrompt = `이 사진은 ${declaredSide === "right" ? "오른손" : "왼손"} 바닥입니다. 사용자의 분석 목적은 '${purposeText}'입니다. 이 목적에 맞춰 각 선의 특징과 조언을 구체적으로 분석하여 JSON으로만 응답하세요.`;
+  const userPrompt = `이 사진은 ${declaredSide === "right" ? "오른손" : "왼손"} 바닥입니다. 사용자의 분석 목적은 '${purposeText}'입니다. 이 목적에 맞춰 생명선, 두뇌선, 감정선, 운명선, 재물선, 그리고 손바닥 구(Mount) 등 각 손금 영역을 하나하나 깊이 있게 풀이하세요. 결과는 단순한 키워드 나열이 아니라, 전문가가 직접 대면 상담하듯 매우 길고 구체적이며 심층적인 문장으로 작성해야 합니다.
+반드시 purposeAnalysis의 'sections' 배열 안에 각 손금 선별(예: '생명선으로 보는 기초 체력과 흐름', '감정선으로 보는 연애 성향' 등)로 구체적인 풀이를 독립된 항목으로 나누어 JSON으로만 응답하세요.`;
 
   let payload: unknown;
   try {

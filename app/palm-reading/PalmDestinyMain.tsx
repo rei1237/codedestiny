@@ -1577,14 +1577,20 @@ export default function PalmDestinyMain() {
                             <p className="mt-2 text-sm leading-7 text-[#e8d8b0]/90">{analysisResult.canonical.purposeAnalysis.summary}</p>
                           </div>
                           
-                          {analysisResult.canonical.purposeAnalysis.sections?.map((sec: any, i: number) => (
-                            <div key={`pa-sec-${i}`} className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
-                              <h3 className="text-sm font-bold text-[#d4b45c]">{sec.title}</h3>
-                              <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#e8d8b0]/90">{sec.content}</p>
-                            </div>
-                          ))}
+                          <div className="space-y-4">
+                            {analysisResult.canonical.purposeAnalysis.sections?.map((sec: any, i: number) => (
+                              <div key={`pa-sec-${i}`} className="overflow-hidden rounded-xl border border-[#c8a84b]/30 bg-[linear-gradient(180deg,rgba(20,8,8,0.9),rgba(13,6,6,0.95))] shadow-md">
+                                <div className="border-b border-[#c8a84b]/20 bg-[#1a0a0a]/90 px-4 py-3">
+                                  <h3 className="text-[15px] font-bold tracking-wide text-[#f5d987] md:text-base">{sec.title}</h3>
+                                </div>
+                                <div className="p-4 md:p-5">
+                                  <p className="whitespace-pre-wrap text-[14px] leading-[1.8] text-[#e8d8b0]/95 md:text-[15px]">{sec.content}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
 
-                          <div className="grid gap-4 md:grid-cols-2">
+                          <div className="grid gap-4 sm:grid-cols-2">
                             <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
                               <h3 className="text-sm font-bold text-[#f5d987]">손금 데이터 근거</h3>
                               <ul className="mt-2 space-y-2">
@@ -1606,12 +1612,16 @@ export default function PalmDestinyMain() {
                             </div>
                           </div>
 
-                          <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
-                            <h3 className="text-sm font-bold text-[#d4b45c]">상세 해석</h3>
-                            <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#e8d8b0]/90">{analysisResult.canonical.purposeAnalysis.details}</p>
+                          <div className="overflow-hidden rounded-xl border border-[#c8a84b]/30 bg-[#0d0606]/80">
+                            <div className="border-b border-[#c8a84b]/20 bg-[#1a0a0a]/90 px-4 py-3">
+                              <h3 className="text-[15px] font-bold text-[#d4b45c]">종합 상세 해석</h3>
+                            </div>
+                            <div className="p-4 md:p-5">
+                              <p className="whitespace-pre-wrap text-[14px] leading-[1.8] text-[#e8d8b0]/95 md:text-[15px]">{analysisResult.canonical.purposeAnalysis.details}</p>
+                            </div>
                           </div>
 
-                          <div className="rounded-lg border border-[#4a7a30]/30 bg-[#0a1206]/60 p-4">
+                          <div className="rounded-xl border border-[#4a7a30]/30 bg-[linear-gradient(145deg,rgba(10,18,6,0.9),rgba(15,25,10,0.8))] p-4 shadow-md md:p-5">
                             <h3 className="text-sm font-bold text-[#8ade5f]">앞으로의 활용법 & 실천 가이드</h3>
                             <div className="mt-3 space-y-3">
                               {analysisResult.canonical.purposeAnalysis.actions?.map((act: string, i: number) => (
