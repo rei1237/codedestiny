@@ -5,7 +5,6 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
-import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
@@ -91,10 +90,6 @@ function publishAuthSync(event: "login" | "logout") {
   } catch {
     // ignore
   }
-}
-
-function clearStoredAuth() {
-  clearClientAuthState();
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -209,28 +204,26 @@ export default function SignupPage() {
     bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    authFetch(`${authApiBase}/api/auth/me`, {
+    fetch(`${authApiBase}/api/auth/me`, {
       method: "GET",
+      credentials: "include",
       cache: "no-store",
       signal: controller.signal,
-    }, {
-      retryOn401: true,
-      apiBase: authApiBase,
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error("auth_invalid");
+        if (!response.ok) return null;
         return parseJsonResponse<SignupResult>(response);
       })
       .then((payload) => {
-        if (!payload.user) throw new Error("auth_invalid");
+        if (!payload?.user) return;
         persistAuth(payload.user, payload.accessToken);
+        const nextPath = resolveNextPathFromQuery(params);
         setIsRedirecting(true);
-        timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
+        timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 400);
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        if (authCommittedRef.current) return;
-        clearStoredAuth();
+        // Ignore bootstrap auth-check failures to avoid signup-page redirect loops.
       });
 
     return () => {

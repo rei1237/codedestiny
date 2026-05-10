@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
@@ -103,10 +102,6 @@ function publishAuthSync(event: "login" | "logout") {
   } catch {
     // ignore
   }
-}
-
-function clearStoredAuth() {
-  clearClientAuthState();
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -218,28 +213,26 @@ export default function LoginPage() {
     bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    authFetch(`${authApiBase}/api/auth/me`, {
+    fetch(`${authApiBase}/api/auth/me`, {
       method: "GET",
+      credentials: "include",
       cache: "no-store",
       signal: controller.signal,
-    }, {
-      retryOn401: true,
-      apiBase: authApiBase,
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error("auth_invalid");
+        if (!response.ok) return null;
         return parseJsonResponse<LoginResult>(response);
       })
       .then((payload) => {
-        if (!payload.user) throw new Error("auth_invalid");
+        if (!payload?.user) return;
         persistAuth(payload.user, payload.accessToken);
+        const nextPath = resolveNextPathFromQuery(params);
         setIsRedirecting(true);
-        timer = setTimeout(() => redirectAfterAuth("/", payload.user), 400);
+        timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 400);
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        if (authCommittedRef.current) return;
-        clearStoredAuth();
+        // Ignore bootstrap auth-check failures to avoid login-page redirect loops.
       });
 
     return () => {
