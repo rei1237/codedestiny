@@ -4,7 +4,7 @@
  *
  * 역할:
  *  1. process.env.NEXT_PUBLIC_SITE_URL 기반 canonical URL 자동 생성 (슬래시 정규화 포함)
- *  2. hreflang 언어 대안 자동 구성
+ *  2. hreflang 언어 대안 구성 (명시된 경우만)
  *  3. OpenGraph / Twitter Card 기본값 병합
  *  4. SoftwareApplication JSON-LD 데이터 반환 (page.tsx에서 <script> 삽입용)
  *
@@ -75,12 +75,13 @@ function pickFirstImageUrl(value: unknown): string {
   return "";
 }
 
-const LOCALE_PREFIXES: Array<{ prefix: string; hrefLang: string }> = [
-  { prefix: "", hrefLang: "ko" },
-  { prefix: "/en-us", hrefLang: "en" },
-  { prefix: "/ja-jp", hrefLang: "ja" },
-  { prefix: "/zh-cn", hrefLang: "zh-Hans" },
-];
+type HreflangPathMap = Partial<{
+  ko: string;
+  ja: string;
+  zh: string;
+  en: string;
+  "x-default": string;
+}>;
 
 export interface FortunePageMeta {
   /** 루트 기준 경로. 예: "/saju/basic" */
@@ -102,6 +103,11 @@ export interface FortunePageMeta {
   inLanguage?: string;
   /** 같은 path 내 query/topic 등 변형 페이지를 구분하는 키 */
   variantKey?: string;
+  /**
+   * 번역이 실제 존재하는 경우에만 전달한다.
+   * 미전역 페이지에서 가짜 alternates를 생성하지 않기 위해 기본값은 undefined.
+   */
+  hreflangPaths?: HreflangPathMap;
 }
 
 /** Next.js generateMetadata()에서 반환할 수 있는 메타데이터 객체를 만든다 */
@@ -116,6 +122,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
     updatedAt,
     inLanguage = "ko-KR",
     variantKey,
+    hreflangPaths,
   } = opts;
 
   const canonicalPath = normalizeCanonicalPath(path);
@@ -126,15 +133,15 @@ export function generatePageMetadata(opts: FortunePageMeta) {
 
   const ogImage = image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
 
-  // hreflang 언어 대안 맵 (Next.js alternates.languages 형식)
   const languagesMap: Record<string, string> = {};
-  for (const locale of LOCALE_PREFIXES) {
-    const localizedPath = locale.prefix
-      ? `${locale.prefix}${canonicalPath === "/" ? "" : canonicalPath}`
-      : canonicalPath;
-    languagesMap[locale.hrefLang] = `${SITE_ORIGIN}${localizedPath}`;
+  if (hreflangPaths) {
+    for (const [lang, localizedPath] of Object.entries(hreflangPaths)) {
+      if (!localizedPath) continue;
+      const normalizedPath = normalizeCanonicalPath(String(localizedPath));
+      languagesMap[lang] = `${SITE_ORIGIN}${normalizedPath === "/" ? "" : normalizedPath}`;
+    }
   }
-  languagesMap["x-default"] = canonicalUrl;
+  const hasLanguages = Object.keys(languagesMap).length > 0;
 
   return {
     title: uniqueTitle,
@@ -142,7 +149,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
     keywords: mergeKeywords([...(keywords ?? [])], SEO_CORE_KEYWORDS),
     alternates: {
       canonical: canonicalUrl,
-      languages: languagesMap,
+      ...(hasLanguages ? { languages: languagesMap } : {}),
     },
     openGraph: {
       type: "website" as const,

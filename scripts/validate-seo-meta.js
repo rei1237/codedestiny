@@ -116,7 +116,7 @@ try {
   // 테스트 4: hreflang 다국어 메타 검증
   console.log('✅ 4. hreflang 다국어 메타 검증\n');
 
-  const languages = ['en-US', 'ko-KR', 'zh-CN', 'ja-JP', 'hi-IN', 'es-ES', 'fr-FR', 'de-DE', 'ms-MY', 'nl-NL'];
+  const languages = ['ko', 'en', 'ja', 'zh', 'x-default'];
   let hrefOk = true;
 
   languages.forEach((lang) => {

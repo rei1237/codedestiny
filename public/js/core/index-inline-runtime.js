@@ -650,15 +650,9 @@ function cdApplyCollectionToggleHintTexts(langCode) {
 window.cdApplyCollectionToggleHintTexts = cdApplyCollectionToggleHintTexts;
 
 var __cdLocalePrefixMap = {
-  en: '/en-us',
-  ja: '/ja-jp',
-  'zh-CN': '/zh-cn',
-  hi: '/hi-in',
-  es: '/es-es',
-  fr: '/fr-fr',
-  de: '/de-de',
-  nl: '/nl-nl',
-  ms: '/ms-my'
+  en: '/en',
+  ja: '/ja',
+  'zh-CN': '/zh'
 };
 
 function cdStripLocalePrefix(pathname) {
@@ -8674,7 +8668,7 @@ window.googleTranslateElementInit = window.googleTranslateElementInit || functio
   window.__cdGoogleTranslateInited = true;
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
-    includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
+    includedLanguages: 'ko,en,ja,zh-CN',
     autoDisplay: false
   }, 'google_translate_element');
 };
@@ -8690,7 +8684,7 @@ var _langWrapFeatureOverlayIds = [
   'astralModal'
 ];
 
-var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
+var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN' };
 
 // 언어 선택(구글 번역 서비스 사용) 후 일정 시간 뒤 위젯 자동 숨김
 var __cdLangWrapHideTimer = null;

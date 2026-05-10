@@ -2,7 +2,7 @@
  * Copies root static assets → public/ (Cloudflare / static hosting).
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const rootDir = process.cwd();
@@ -378,10 +378,11 @@ if (!existsSync(rootAdsTxt) && existsSync(buildAdsTxt)) {
 // Retained locale landing paths (ko is root '/', plus en/ja/zh locale slugs).
 // Ensures Cloudflare Pages / asset-first hosts return 200 for retained locale roots.
 const localeLandingDirs = [
-  "en-us",
-  "ja-jp",
-  "zh-cn",
+  "en",
+  "ja",
+  "zh",
 ];
+const legacyLocaleLandingDirs = ["en-us", "ja-jp", "zh-cn"];
 const publicIndex = resolve(publicDir, "index.html");
 if (existsSync(publicIndex)) {
   // Strip all leading UTF-8 BOMs (EF BB BF) to prevent double-BOM quirks-mode regression.
@@ -468,6 +469,14 @@ if (existsSync(publicIndex)) {
     assertEntryHtmlHealthy(localeIndexHtml, `public/${loc}/index.html`);
     writeFileSync(resolve(locDir, "index.html"), Buffer.from(localeIndexHtml, "utf8"));
   }
+
+  for (const legacyLoc of legacyLocaleLandingDirs) {
+    const legacyDir = resolve(publicDir, legacyLoc);
+    if (existsSync(legacyDir)) {
+      rmSync(legacyDir, { recursive: true, force: true });
+    }
+  }
+
   console.log(
     `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,
   );

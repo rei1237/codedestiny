@@ -21,19 +21,19 @@ export const LOCALE_CONFIG: Record<Locale, {
   },
   ja: {
     label: "日本語",
-    htmlLang: "ja",
+    htmlLang: "ja-JP",
     pathPrefix: "/ja",
     siteName: "Code Destiny Japan",
     ogLocale: "ja_JP",
     hrefLang: "ja",
   },
   zh: {
-    label: "中文",
-    htmlLang: "zh",
+    label: "简体中文",
+    htmlLang: "zh-CN",
     pathPrefix: "/zh",
     siteName: "Code Destiny 中文",
     ogLocale: "zh_CN",
-    hrefLang: "zh",
+    hrefLang: "zh-CN",
   },
   en: {
     label: "English",

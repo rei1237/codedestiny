@@ -18,7 +18,7 @@
  *    - window.formatWon 오버라이드  ChargeModal 동적 가격 변환
  *    - MutationObserver  이후 동적 추가 요소도 자동 변환
  *
- * 지원 언어 (10개): ko, en, ja, zh-CN, hi, es, fr, de, nl, ms
+ * 지원 언어 (4개): ko, en, ja, zh-CN
  * 
  */
 (function () {
@@ -26,11 +26,10 @@
 
   /*  1. 매핑 테이블  */
   var LANG_TO_SLUG = {
-    'ko': '', 'en': 'en-us', 'ja': 'ja-jp', 'zh-CN': 'zh-cn',
-    'zh-TW': 'zh-tw', 'it': 'it-it', 'hu': 'hu-hu',
-    'hi': 'hi-in', 'es': 'es-es', 'fr': 'fr-fr',
-    'de': 'de-de', 'nl': 'nl-nl', 'ms': 'ms-my',
-    'th': 'th-th', 'vi': 'vi-vn'
+    'ko': '',
+    'en': 'en-us',
+    'ja': 'ja-jp',
+    'zh-CN': 'zh-cn'
   };
 
   var SLUG_TO_LANG = {};
@@ -39,22 +38,23 @@
   });
 
   var LABEL_MAP = {
-    'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN',
-    'zh-TW': 'TW', 'hi': 'HI', 'es': 'ES', 'fr': 'FR',
-    'de': 'DE', 'it': 'IT', 'hu': 'HU', 'nl': 'NL', 'ms': 'MS',
-    'th': 'TH', 'vi': 'VI'
+    'ko': 'KR',
+    'en': 'EN',
+    'ja': 'JP',
+    'zh-CN': 'CN'
   };
 
   var LANG_TO_GT = {
-    'ko': 'ko', 'en': 'en', 'ja': 'ja', 'zh-CN': 'zh-CN',
-    'zh-TW': 'zh-TW', 'hi': 'hi', 'es': 'es', 'fr': 'fr',
-    'de': 'de', 'it': 'it', 'hu': 'hu', 'nl': 'nl', 'ms': 'ms',
-    'th': 'th', 'vi': 'vi'
+    'ko': 'ko',
+    'en': 'en',
+    'ja': 'ja',
+    'zh-CN': 'zh-CN'
   };
 
   var LANG_TO_I18N = {
-    'en': 'en', 'ja': 'ja', 'zh-CN': 'zh-cn',
-    'hi': 'hi', 'es': 'es', 'fr': 'fr', 'de': 'de', 'nl': 'nl', 'ms': 'ms'
+    'en': 'en',
+    'ja': 'ja',
+    'zh-CN': 'zh-cn'
   };
 
   /*  2. 국가별 통화  */
@@ -93,20 +93,10 @@
     if (!raw) return 'ko';
     var low = raw.toLowerCase();
     if (low === 'jp') return 'ja';
-    if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
-    if (low === 'zh-tw') return 'zh-TW';
+    if (low === 'zh' || low === 'zh-cn' || low === 'zh-tw') return 'zh-CN';
+    if (low.indexOf('zh-') === 0) return 'zh-CN';
     if (low.indexOf('en-') === 0) return 'en';
-    if (low.indexOf('fr-') === 0) return 'fr';
-    if (low.indexOf('es-') === 0) return 'es';
-    if (low.indexOf('de-') === 0) return 'de';
-    if (low.indexOf('it-') === 0) return 'it';
-    if (low.indexOf('hu-') === 0) return 'hu';
-    if (low.indexOf('nl-') === 0) return 'nl';
     if (low.indexOf('ja-') === 0) return 'ja';
-    if (low.indexOf('hi-') === 0) return 'hi';
-    if (low.indexOf('ms-') === 0) return 'ms';
-    if (low.indexOf('th-') === 0) return 'th';
-    if (low.indexOf('vi-') === 0) return 'vi';
     if (LANG_TO_GT[raw]) return raw;
     if (LANG_TO_GT[low]) return low;
     return 'ko';
@@ -131,6 +121,79 @@
     } catch (_) {}
 
     return 'ko';
+  }
+
+  function hasExplicitLanguagePreference() {
+    try {
+      var q = new URLSearchParams(window.location.search || '');
+      if (q.get('lang')) return true;
+    } catch (_) {}
+
+    var path = (window.location.pathname || '/').toLowerCase().replace(/^\//, '');
+    var topSlug = path.split('/')[0] || '';
+    if (SLUG_TO_LANG[topSlug]) return true;
+
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved && String(saved).trim()) return true;
+    } catch (_) {}
+
+    try {
+      var gt = document.cookie.match(/(?:^|;\s*)googtrans=\/ko\/([^;]+)/i);
+      if (gt && gt[1]) return true;
+    } catch (_) {}
+
+    return false;
+  }
+
+  function detectAutoLangFromNavigator() {
+    try {
+      var preferred = [];
+      if (Array.isArray(navigator.languages)) preferred = preferred.concat(navigator.languages);
+      if (navigator.language) preferred.push(navigator.language);
+
+      for (var i = 0; i < preferred.length; i++) {
+        var normalized = normalizeLangCode(preferred[i]);
+        if (normalized === 'ja' || normalized === 'en' || normalized === 'zh-CN') return normalized;
+      }
+    } catch (_) {}
+
+    try {
+      var tz = String((Intl.DateTimeFormat().resolvedOptions() || {}).timeZone || '');
+      if (/Tokyo/i.test(tz)) return 'ja';
+      if (/(Shanghai|Chongqing|Harbin|Urumqi|Hong_Kong|Taipei|Macau)/i.test(tz)) return 'zh-CN';
+    } catch (_) {}
+
+    return null;
+  }
+
+  function mapGeoCountryToLang(countryCode) {
+    var c = String(countryCode || '').toUpperCase();
+    if (!c) return null;
+    if (c === 'JP') return 'ja';
+    if (c === 'CN' || c === 'HK' || c === 'MO' || c === 'TW') return 'zh-CN';
+    if (c === 'US' || c === 'GB' || c === 'AU' || c === 'CA' || c === 'NZ' || c === 'IE' || c === 'SG') return 'en';
+    return null;
+  }
+
+  function detectAutoLangByGeo() {
+    return fetch('/api/geo', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (p) {
+        return mapGeoCountryToLang((p && p.country) || '');
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
+  function hideLanguageWidget() {
+    var wrap = document.getElementById('langWrap');
+    if (wrap) {
+      wrap.classList.add('lang-wrap--hidden');
+      wrap.style.display = 'none';
+      wrap.setAttribute('aria-hidden', 'true');
+    }
   }
 
   /*  4. 쿠키 유틸  */
@@ -208,7 +271,7 @@
       window.__cdGTInited = true;
       new window.google.translate.TranslateElement({
         pageLanguage: 'ko',
-        includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,it,hu,nl,ms,th,vi',
+        includedLanguages: 'ko,en,ja,zh-CN',
         autoDisplay: false
       }, 'google_translate_element');
     };
@@ -449,6 +512,8 @@
 
   /*  11. 초기화  */
   function init() {
+    hideLanguageWidget();
+
     var lang = detectCurrentLang();
     updateUI(lang);
 
@@ -477,6 +542,22 @@
       waitForGTThenOverride(lang);
       // Step 3: 통화 변환 (GT와 독립적으로 실행)
       setTimeout(applyCurrencyConversion, 1000);
+      return;
+    }
+
+    if (!hasExplicitLanguagePreference()) {
+      var detected = detectAutoLangFromNavigator();
+      if (detected) {
+        nativeChangeLanguage(detected);
+        return;
+      }
+
+      detectAutoLangByGeo().then(function (geoLang) {
+        if (!geoLang) return;
+        if (hasExplicitLanguagePreference()) return;
+        if (detectCurrentLang() !== 'ko') return;
+        nativeChangeLanguage(geoLang);
+      });
     }
   }
 

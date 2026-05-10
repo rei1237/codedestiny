@@ -22,7 +22,7 @@
     "clean:build": "node scripts/clean-cloudflare-build.mjs",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
-    "fortune:generate": "node scripts/gen-daily.mjs && node scripts/gen-fortune-system-pages.mjs",
+    "fortune:generate": "node scripts/gen-daily.mjs",
     "fortune:generate:daily": "node scripts/gen-daily.mjs",
     "fortune:generate:system-pages": "node scripts/gen-fortune-system-pages.mjs",
     "fortune:generate:once": "node scripts/fortune-daily-once.mjs",

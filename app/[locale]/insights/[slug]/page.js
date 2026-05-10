@@ -6,6 +6,36 @@ import { getLocaleLinksForRoute, I18N_ROUTE_MAP } from "../../../../lib/i18n/rou
 import { I18N_INSIGHT_ARTICLES, getLocalizedInsightBySlug } from "../../../../lib/seo/i18nInsights";
 import { resolveLocale } from "../../_lib";
 
+const INSIGHT_UI_COPY = {
+  ko: {
+    relatedService: "관련 서비스",
+    moreInsights: "인사이트 더 보기",
+    faq: "자주 묻는 질문",
+  },
+  ja: {
+    relatedService: "関連サービス",
+    moreInsights: "記事一覧へ",
+    faq: "よくある質問",
+  },
+  zh: {
+    relatedService: "相关服务",
+    moreInsights: "查看更多文章",
+    faq: "常见问题",
+  },
+  en: {
+    relatedService: "Related Service",
+    moreInsights: "More Insights",
+    faq: "FAQ",
+  },
+};
+
+const INSIGHT_SEO_KEYWORDS = {
+  ko: ["운세 인사이트", "자미두수", "숙요점", "무료 운세"],
+  ja: ["占い 解説", "紫微斗数", "宿曜", "無料占い"],
+  zh: ["占卜文章", "紫微斗数", "宿曜", "免费算命"],
+  en: ["fortune insights", "zi wei dou shu", "sukuyo", "free fortune reading"],
+};
+
 function getRouteByLocaleForInsight(articleId) {
   if (articleId !== "insightZiweiBasics" && articleId !== "insightSukuyoBasics") return null;
   return I18N_ROUTE_MAP[articleId];
@@ -43,7 +73,7 @@ export async function generateMetadata({ params }) {
     routeByLocale,
     title: article.titleByLocale[locale],
     description: article.descriptionByLocale[locale],
-    keywords: [article.titleByLocale[locale], "insights"],
+    keywords: [article.titleByLocale[locale], ...INSIGHT_SEO_KEYWORDS[locale]],
     type: "article",
   });
 }
@@ -65,6 +95,7 @@ export default async function LocalizedInsightArticlePage({ params }) {
   const relatedRouteKey = article.id === "insightZiweiBasics" ? "ziwei" : "sukuyo";
   const serviceLink = I18N_ROUTE_MAP[relatedRouteKey][locale];
   const insightHubLink = I18N_ROUTE_MAP.insights[locale];
+  const ui = INSIGHT_UI_COPY[locale] || INSIGHT_UI_COPY.en;
 
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -93,7 +124,7 @@ export default async function LocalizedInsightArticlePage({ params }) {
   };
 
   return (
-    <main lang={locale} className="mx-auto w-full max-w-4xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
+    <main lang={LOCALE_CONFIG[locale].htmlLang} className="mx-auto w-full max-w-4xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
       <div className="rounded-3xl border border-white/10 bg-[#10182c] px-5 py-6 md:px-8 md:py-8">
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-slate-300">
           {getLocaleLinksForRoute(article.id).map((item) => {
@@ -129,16 +160,16 @@ export default async function LocalizedInsightArticlePage({ params }) {
 
         <div className="mt-5 flex flex-wrap gap-2">
           <Link href={serviceLink} className="rounded-xl border border-cyan-300/35 bg-cyan-700/25 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-600/35">
-            Related Service
+            {ui.relatedService}
           </Link>
           <Link href={insightHubLink} className="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-100 hover:bg-white/10">
-            More Insights
+            {ui.moreInsights}
           </Link>
         </div>
       </article>
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#11192f] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">FAQ</h2>
+        <h2 className="text-xl font-semibold text-amber-100">{ui.faq}</h2>
         <div className="mt-4 space-y-3">
           {article.faqByLocale[locale].map((item) => (
             <details key={item.question} className="rounded-xl border border-white/15 bg-white/5 p-3">

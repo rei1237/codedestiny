@@ -9,9 +9,9 @@ const htmlTargets = [
   'index.html',
   'public/index.html',
   'public/static/index.html',
-  'public/en-us/index.html',
-  'public/ja-jp/index.html',
-  'public/zh-cn/index.html',
+  'public/en/index.html',
+  'public/ja/index.html',
+  'public/zh/index.html',
 ];
 
 const runtimeFiles = [
@@ -33,9 +33,9 @@ const sibylMarkers = [
 const sibylHtmlTargets = new Set([
   'index.html',
   'public/static/index.html',
-  'public/en-us/index.html',
-  'public/ja-jp/index.html',
-  'public/zh-cn/index.html',
+  'public/en/index.html',
+  'public/ja/index.html',
+  'public/zh/index.html',
 ]);
 
 let failed = false;

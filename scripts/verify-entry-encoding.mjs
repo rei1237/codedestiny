@@ -5,9 +5,9 @@ import path from 'node:path';
 const root = process.cwd();
 const strictCore = process.argv.includes('--strict-core');
 const localeEntryFiles = new Set([
-  'public/en-us/index.html',
-  'public/ja-jp/index.html',
-  'public/zh-cn/index.html',
+  'public/en/index.html',
+  'public/ja/index.html',
+  'public/zh/index.html',
 ]);
 
 const targetFiles = [
@@ -16,9 +16,9 @@ const targetFiles = [
   'public/static/index.html',
   'fortune/index.html',
   'public/fortune/index.html',
-  'public/en-us/index.html',
-  'public/ja-jp/index.html',
-  'public/zh-cn/index.html',
+  'public/en/index.html',
+  'public/ja/index.html',
+  'public/zh/index.html',
 ];
 
 const suspiciousPatterns = [

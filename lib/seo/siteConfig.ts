@@ -11,9 +11,10 @@ export const SEO_SITE_CONFIG = {
   defaultDescription:
     "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
   defaultLanguages: {
-    "ko-KR": "/",
-    "en-US": "/en-us",
-    "ja-JP": "/ja-jp",
-    "zh-CN": "/zh-cn",
+    ko: "/",
+    en: "/en",
+    ja: "/ja",
+    zh: "/zh",
+    "x-default": "/",
   } as Record<string, string>,
 };

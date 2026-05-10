@@ -1,6 +1,29 @@
 import Link from "next/link";
 import { SEO_SITE_CONFIG } from "../../lib/seo/siteConfig";
 
+const TEMPLATE_UI_COPY = {
+  ko: {
+    keyPoints: "핵심 포인트",
+    relatedLinks: "관련 링크",
+    faq: "자주 묻는 질문",
+  },
+  ja: {
+    keyPoints: "要点",
+    relatedLinks: "関連リンク",
+    faq: "よくある質問",
+  },
+  zh: {
+    keyPoints: "核心要点",
+    relatedLinks: "相关链接",
+    faq: "常见问题",
+  },
+  en: {
+    keyPoints: "Key Points",
+    relatedLinks: "Related Links",
+    faq: "FAQ",
+  },
+};
+
 function toAbsolute(path) {
   return new URL(path, SEO_SITE_CONFIG.siteUrl).toString();
 }
@@ -13,6 +36,8 @@ export default function I18nSeoPageTemplate({
   currentPath,
   inLanguage,
 }) {
+  const ui = TEMPLATE_UI_COPY[locale] || TEMPLATE_UI_COPY.en;
+
   const webPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -43,7 +68,7 @@ export default function I18nSeoPageTemplate({
   };
 
   return (
-    <main lang={locale} className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
+    <main lang={inLanguage || locale} className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
       <section className="rounded-3xl border border-white/10 bg-[#111827] px-5 py-6 md:px-8 md:py-8">
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-slate-300">
           {languageLinks.map((item) => {
@@ -82,7 +107,8 @@ export default function I18nSeoPageTemplate({
       </section>
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">{localeLabel}</h2>
+        <h2 className="text-xl font-semibold text-amber-100">{ui.keyPoints}</h2>
+        <p className="mt-2 text-xs text-slate-400">{localeLabel}</p>
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-200 md:text-base">
           {content.valuePoints.map((item) => (
             <li key={item}>{item}</li>
@@ -91,7 +117,7 @@ export default function I18nSeoPageTemplate({
       </section>
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#11192f] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">Related Links</h2>
+        <h2 className="text-xl font-semibold text-amber-100">{ui.relatedLinks}</h2>
         <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
           {content.internalLinks.map((item) => (
             <Link key={item.href} href={item.href} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm hover:bg-white/10">
@@ -102,7 +128,7 @@ export default function I18nSeoPageTemplate({
       </section>
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1628] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">FAQ</h2>
+        <h2 className="text-xl font-semibold text-amber-100">{ui.faq}</h2>
         <div className="mt-4 space-y-3">
           {content.faq.map((item) => (
             <details key={item.question} className="rounded-xl border border-white/15 bg-white/5 p-3">

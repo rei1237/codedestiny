@@ -11,18 +11,21 @@ const INSIGHTS_COPY = {
     description: "紫微斗数と宿曜の基礎を日本語でわかりやすく解説するインサイト一覧です。",
     h1: "占いインサイト記事",
     intro: "実践で使える短い解説記事を優先して掲載しています。",
+    keywords: ["占い", "紫微斗数", "宿曜", "無料占い", "運勢"]
   },
   zh: {
     title: "占卜洞察文章 | Code Destiny",
     description: "聚焦紫微斗数与宿曜的入门与实战应用，提供简洁可执行的文章。",
     h1: "占卜洞察文章",
     intro: "优先提供短而实用的内容，方便快速阅读与落地。",
+    keywords: ["占卜", "紫微斗数", "宿曜", "免费算命", "运势"]
   },
   en: {
     title: "Fortune Insights | Code Destiny",
     description: "Read practical beginner insights on Zi Wei Dou Shu and Sukuyo in English.",
     h1: "Fortune Insights",
     intro: "Short and actionable articles focused on practical interpretation.",
+    keywords: ["fortune insights", "zi wei dou shu", "sukuyo", "daily fortune", "free fortune reading"]
   },
 };
 
@@ -38,7 +41,7 @@ export async function generateMetadata({ params }) {
     routeByLocale: getAlternatesByRouteKey("insights"),
     title: copy.title,
     description: copy.description,
-    keywords: ["insights", "zi wei", "sukuyo"],
+    keywords: copy.keywords,
   });
 }
 

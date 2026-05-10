@@ -4232,6 +4232,11 @@ body.neo-mode .lang-btn:hover:not(.active) {
   margin: 0;
 }
 
+/* Main landing keeps language widget hidden; locale is auto-detected in runtime. */
+.lang-toggle-wrap {
+  display: none !important;
+}
+
 /* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
 .lang-toggle-wrap.lang-wrap--hidden {
   visibility: hidden;
