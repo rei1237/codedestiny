@@ -40,6 +40,7 @@ const oracleItems: ServiceCardModel[] = [
 
 const cosmicItems: ServiceCardModel[] = [
   { title: "점성술 코즈믹", description: "태양·달·상승궁 분석", href: "/astrology/cosmic", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "기본 숙요점", description: "27수 궁합과 달의 리듬", href: "/oracle/sukuyo", emoji: "💫", badges: [{ text: "무료", tone: "free" }] },
   { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 50", tone: "coin" }] },
   { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", emoji: "🪐", badges: [{ text: "기본 무료", tone: "free" }] },
   { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 100", tone: "coin" }, { text: "NEW", tone: "new" }] },
