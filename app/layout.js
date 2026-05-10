@@ -89,7 +89,7 @@ export const metadata = {
       "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
     images: [
       {
-        url: "https://code-destiny.com/icons/og-image.png",
+        url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
         width: 1200,
         height: 630,
         alt: "코드 데스티니 - 무료 사주팔자, 자미두수 운세 분석",
@@ -101,7 +101,7 @@ export const metadata = {
     title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
     description:
       "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
-    images: ["https://code-destiny.com/icons/og-image.png"],
+    images: ["https://code-destiny.com/icons/꿀꿀 운세 로고.webp"],
     creator: "@codedestiny",
   },
   verification: {
@@ -150,14 +150,14 @@ const jsonLd = JSON.stringify({
       url: "https://code-destiny.com",
       logo: {
         "@type": "ImageObject",
-        "@id": "https://code-destiny.com/icons/og-image.png",
-        url: "https://code-destiny.com/icons/og-image.png",
-        contentUrl: "https://code-destiny.com/icons/og-image.png",
+        "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
+        url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
+        contentUrl: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
         width: 1200,
         height: 630,
         caption: "Code Destiny - Free Saju & Fortune Platform",
       },
-      image: { "@id": "https://code-destiny.com/icons/og-image.png" },
+      image: { "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp" },
     },
     {
       "@type": "WebPage",
@@ -166,7 +166,7 @@ const jsonLd = JSON.stringify({
       name: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
       isPartOf: { "@id": "https://code-destiny.com/#website" },
       about: { "@id": "https://code-destiny.com/#organization" },
-      primaryImageOfPage: { "@id": "https://code-destiny.com/icons/og-image.png" },
+      primaryImageOfPage: { "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp" },
       datePublished: "2024-01-01T00:00:00+09:00",
       dateModified: new Date().toISOString(),
       description:

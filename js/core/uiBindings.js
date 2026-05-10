@@ -71,7 +71,7 @@ function __ensureSajuCoreScripts() {
 }
 
 const __lazyActionState = {};
-const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=20260504-tapguard1';
+const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=20260510-logohotfix1';
 
 /** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
 const __CD_DEFER_INP_ACTIONS = new Set([

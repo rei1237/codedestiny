@@ -349,7 +349,7 @@ export default function InsightArticleCosmicClient({
         name: "Code Destiny",
         logo: {
           "@type": "ImageObject",
-          url: "https://code-destiny.com/icons/og-image.png",
+          url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
         },
       },
       datePublished: item?.publishedAt || item?.createdAt || undefined,

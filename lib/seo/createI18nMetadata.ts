@@ -20,7 +20,7 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
     title,
     description,
     keywords = [],
-    image = "/icons/og-image.png",
+    image = "/icons/꿀꿀 운세 로고.webp",
     noindex = false,
     type = "website",
   } = input;
