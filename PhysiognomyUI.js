@@ -25,6 +25,7 @@ let _phyPendingAnalysisBlob = null;
 let _phyAnalysisSourceEl = null;
 let _phyScrollSuppressUntil = 0;
 let _phySectionRenderTimers = [];
+let _phyMediaPipeReadyPromise = null;
 
 const PHY_IMAGE_RECOMPRESS_BYTES = 5 * 1024 * 1024;
 const PHY_IMAGE_SOFT_LIMIT_BYTES = 10 * 1024 * 1024;
@@ -489,6 +490,56 @@ function waitForUiFrame() {
       setTimeout(resolve, 0);
     });
   });
+}
+
+function withTimeout(promise, timeoutMs, timeoutCode) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(timeoutCode || 'TIMEOUT'));
+    }, Math.max(1, Number(timeoutMs) || 1));
+
+    Promise.resolve(promise).then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function ensureFaceMeshReady(timeoutMs) {
+  const limitMs = Math.max(1000, Number(timeoutMs) || 12000);
+  const deadline = Date.now() + limitMs;
+
+  while (!faceMesh && Date.now() < deadline) {
+    await sleepMs(90);
+  }
+  if (faceMesh) return true;
+
+  if (!_phyMediaPipeReadyPromise) {
+    _phyMediaPipeReadyPromise = (async () => {
+      await loadMediaPipeScripts();
+      await startMediaPipe();
+    })();
+    _phyMediaPipeReadyPromise.finally(() => {
+      _phyMediaPipeReadyPromise = null;
+    });
+  }
+
+  try {
+    await _phyMediaPipeReadyPromise;
+  } catch (err) {
+    console.error('FaceMesh 초기화 실패:', err);
+  }
+  return !!faceMesh;
 }
 
 function clearSectionRenderTimers() {
@@ -1021,8 +1072,21 @@ window.openPhysiognomyApp = async function() {
   updateStatus('AI 데이터 기반 관상 모델 로딩 중...');
   resetPhysiognomyApp();
   try {
-    await loadMediaPipeScripts();
-    await startMediaPipe();
+    if (!faceMesh) {
+      if (!_phyMediaPipeReadyPromise) {
+        _phyMediaPipeReadyPromise = (async () => {
+          await loadMediaPipeScripts();
+          await startMediaPipe();
+        })();
+        _phyMediaPipeReadyPromise.finally(() => {
+          _phyMediaPipeReadyPromise = null;
+        });
+      }
+      await _phyMediaPipeReadyPromise;
+    } else if (currentMode === 'camera' && camera) {
+      await camera.start();
+    }
+
     if (window.faceAnalysisEngine) {
       await window.faceAnalysisEngine.loadDatabase();
       // face-api.js 표정 분석 모델 비동기 로드 (실패해도 기본 분석은 동작)
@@ -1150,7 +1214,17 @@ window.handleFileUpload = async function(event) {
 
       updateStatus('귀와 이목구비의 468개 랜드마크를 추출 중입니다...');
 
-      if (!faceMesh) return;
+      if (!faceMesh) {
+        updateStatus('관상 엔진을 준비하는 중입니다. 잠시만 기다려 주세요...');
+        const ready = await ensureFaceMeshReady(12000);
+        if (!ready) {
+          showPreviewSkeleton(false);
+          updateStatus('관상 엔진 로딩이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
+          return;
+        }
+        updateStatus('귀와 이목구비의 468개 랜드마크를 추출 중입니다...');
+      }
+
       try {
         if (typeof faceMesh.reset === 'function') {
           faceMesh.reset();
@@ -1221,7 +1295,11 @@ window.startCapture = async function() {
     }
 
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
-    const result = await window.faceAnalysisEngine.analyze(landmarksData, expressionData);
+    const result = await withTimeout(
+      window.faceAnalysisEngine.analyze(landmarksData, expressionData),
+      45000,
+      'ANALYSIS_TIMEOUT'
+    );
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
 
     analysisComplete = true;
@@ -1263,11 +1341,17 @@ window.startCapture = async function() {
     console.error('관상 분석 실패:', error);
     stopAnalysisStepFlow();
     showAnalysisStage(true);
-    setAnalysisStageMessage('분석 중 문제가 발생했습니다.');
-    setAnalysisStageSub('이미지를 다시 선택하거나 새로고침 후 재시도해 주세요.');
+    if (error && error.message === 'ANALYSIS_TIMEOUT') {
+      setAnalysisStageMessage('분석 시간이 길어져 자동으로 중단되었습니다.');
+      setAnalysisStageSub('네트워크 또는 기기 상태를 확인한 뒤 재시도해 주세요.');
+      updateStatus('분석 시간이 초과되어 자동 중단되었습니다. 다시 시도해 주세요.');
+    } else {
+      setAnalysisStageMessage('분석 중 문제가 발생했습니다.');
+      setAnalysisStageSub('이미지를 다시 선택하거나 새로고침 후 재시도해 주세요.');
+      updateStatus('분석 실패: ' + (error && error.message ? error.message : error));
+    }
     const retryBtn = getEl('analysisRetryBtn');
     if (retryBtn) retryBtn.style.display = 'inline-flex';
-    updateStatus('분석 실패: ' + (error && error.message ? error.message : error));
 
     if (captureBtn) {
       captureBtn.style.display = landmarksData ? 'block' : 'none';
