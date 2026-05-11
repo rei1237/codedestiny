@@ -19,21 +19,12 @@ let _phyAnalysisAbortController = null;
 let _phyLoadingTicker = null;
 let _phyLongWaitTimer = null;
 let _phyVeryLongWaitTimer = null;
-let _phyCurrentPreviewUrl = '';
-let _phyCurrentAnalysisUrl = '';
-let _phyPendingAnalysisBlob = null;
 let _phyAnalysisSourceEl = null;
 let _phyScrollSuppressUntil = 0;
 let _phySectionRenderTimers = [];
 let _phyMediaPipeReadyPromise = null;
 
-const PHY_IMAGE_RECOMPRESS_BYTES = 5 * 1024 * 1024;
-const PHY_IMAGE_SOFT_LIMIT_BYTES = 10 * 1024 * 1024;
-const PHY_IMAGE_HARD_LIMIT_BYTES = 20 * 1024 * 1024;
-const PHY_PREVIEW_MAX_SIDE = 720;
-const PHY_ANALYSIS_MAX_SIDE = 1024;
-const PHY_PREVIEW_QUALITY = 0.8;
-const PHY_ANALYSIS_QUALITY = 0.82;
+const PHY_FILE_HARD_LIMIT_BYTES = 20 * 1024 * 1024;
 const PHY_LOADING_STEPS = [
   '이미지의 윤곽을 정리하는 중입니다.',
   '이목구비의 균형을 읽고 있습니다.',
@@ -619,21 +610,7 @@ function setReducedEffects(enabled) {
   else appEl.classList.remove('phy-reduced-effects');
 }
 
-function revokeObjectUrlSafe(url) {
-  if (!url) return;
-  try {
-    URL.revokeObjectURL(url);
-  } catch (_err) {
-    // noop
-  }
-}
-
 function clearPreparedImageResources() {
-  revokeObjectUrlSafe(_phyCurrentPreviewUrl);
-  revokeObjectUrlSafe(_phyCurrentAnalysisUrl);
-  _phyCurrentPreviewUrl = '';
-  _phyCurrentAnalysisUrl = '';
-  _phyPendingAnalysisBlob = null;
   _phyAnalysisSourceEl = null;
 }
 
@@ -658,78 +635,13 @@ function abortRunningAnalysis(opts) {
   }
 }
 
-function canvasToBlobAsync(canvas, mimeType, quality) {
+function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
-    if (!canvas || typeof canvas.toBlob !== 'function') {
-      reject(new Error('CANVAS_BLOB_UNSUPPORTED'));
-      return;
-    }
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error('IMAGE_BLOB_EMPTY'));
-        return;
-      }
-      resolve(blob);
-    }, mimeType || 'image/jpeg', quality);
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(String(e && e.target && e.target.result ? e.target.result : ''));
+    reader.onerror = () => reject(new Error('IMAGE_READ_FAILED'));
+    reader.readAsDataURL(file);
   });
-}
-
-function loadImageFromUrl(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('IMAGE_DECODE_FAILED'));
-    img.src = url;
-  });
-}
-
-async function downscaleImageToBlob(img, maxSide, quality) {
-  const srcW = img.naturalWidth || img.width;
-  const srcH = img.naturalHeight || img.height;
-  const longest = Math.max(srcW, srcH);
-  const scale = longest > maxSide ? (maxSide / longest) : 1;
-  const targetW = Math.max(1, Math.round(srcW * scale));
-  const targetH = Math.max(1, Math.round(srcH * scale));
-
-  const canvas = document.createElement('canvas');
-  canvas.width = targetW;
-  canvas.height = targetH;
-  const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-  if (!ctx) throw new Error('CANVAS_CONTEXT_UNAVAILABLE');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, 0, 0, targetW, targetH);
-
-  return canvasToBlobAsync(canvas, 'image/jpeg', quality);
-}
-
-async function prepareImageVariants(file) {
-  if (!file || !/^image\//i.test(file.type || '')) {
-    throw new Error('지원하지 않는 파일 형식입니다.');
-  }
-  if (file.size > PHY_IMAGE_HARD_LIMIT_BYTES) {
-    throw new Error('20MB 초과 이미지는 지원하지 않습니다. 다른 이미지를 선택해 주세요.');
-  }
-
-  const sourceUrl = URL.createObjectURL(file);
-  try {
-    const sourceImage = await loadImageFromUrl(sourceUrl);
-    const analysisQuality = file.size > PHY_IMAGE_RECOMPRESS_BYTES ? 0.78 : PHY_ANALYSIS_QUALITY;
-
-    const previewBlob = await downscaleImageToBlob(sourceImage, PHY_PREVIEW_MAX_SIDE, PHY_PREVIEW_QUALITY);
-    const analysisBlob = await downscaleImageToBlob(sourceImage, PHY_ANALYSIS_MAX_SIDE, analysisQuality);
-
-    return {
-      previewUrl: URL.createObjectURL(previewBlob),
-      analysisUrl: URL.createObjectURL(analysisBlob),
-      analysisBlob,
-      sourceWidth: sourceImage.naturalWidth || sourceImage.width,
-      sourceHeight: sourceImage.naturalHeight || sourceImage.height
-    };
-  } finally {
-    revokeObjectUrlSafe(sourceUrl);
-  }
 }
 
 function extractDescriptionSection(descriptionHtml, sectionLabel) {
@@ -1173,6 +1085,14 @@ window.switchMode = async function(mode) {
 window.handleFileUpload = async function(event) {
   const file = event && event.target && event.target.files ? event.target.files[0] : null;
   if (!file) return;
+  if (!/^image\//i.test(file.type || '')) {
+    updateStatus('지원하지 않는 파일 형식입니다. 이미지 파일을 선택해 주세요.');
+    return;
+  }
+  if (file.size > PHY_FILE_HARD_LIMIT_BYTES) {
+    updateStatus('20MB 초과 이미지는 지원하지 않습니다. 다른 이미지를 선택해 주세요.');
+    return;
+  }
 
   const fileInput = document.getElementById('phyFileInput');
   if (fileInput) fileInput.value = '';
@@ -1182,23 +1102,12 @@ window.handleFileUpload = async function(event) {
   const uploadToken = _phyUploadToken;
   showPreviewSkeleton(true);
 
-  if (file.size > PHY_IMAGE_SOFT_LIMIT_BYTES) {
-    updateStatus('10MB 이상 이미지입니다. 자동 압축 후 분석 준비를 진행합니다.');
-  } else if (isInCompatMode) {
-    updateStatus('상대방 이미지 최적화 중... (기기 내 보안 처리)');
-  } else {
-    updateStatus('이미지 최적화 중... (기기 내 보안 처리)');
-  }
+  updateStatus(isInCompatMode ? '상대방 이미지를 불러오는 중입니다...' : '이미지를 불러오는 중입니다...');
 
   try {
     await waitForUiFrame();
-    const prepared = await prepareImageVariants(file);
+    const imageDataUrl = await readFileAsDataUrl(file);
     if (uploadToken !== _phyUploadToken) return;
-
-    clearPreparedImageResources();
-    _phyCurrentPreviewUrl = prepared.previewUrl;
-    _phyCurrentAnalysisUrl = prepared.analysisUrl;
-    _phyPendingAnalysisBlob = prepared.analysisBlob;
 
     const imgEl = document.getElementById('phyImage');
     if (!imgEl) return;
@@ -1230,23 +1139,35 @@ window.handleFileUpload = async function(event) {
           faceMesh.reset();
         }
 
-        const analysisImg = await loadImageFromUrl(_phyCurrentAnalysisUrl || _phyCurrentPreviewUrl);
-        _phyAnalysisSourceEl = analysisImg;
+        _phyAnalysisSourceEl = imgEl;
 
         await waitForUiFrame();
         if (uploadToken !== _phyUploadToken) return;
-        await faceMesh.send({ image: analysisImg });
+        await withTimeout(faceMesh.send({ image: imgEl }), 15000, 'LANDMARK_TIMEOUT');
       } catch (err) {
         console.error('이미지 랜드마크 추출 실패:', err);
-        updateStatus('이미지 분석 중 오류가 발생했습니다. 다른 이미지를 선택해 주세요.');
+        if (err && err.message === 'LANDMARK_TIMEOUT') {
+          updateStatus('랜드마크 추출 시간이 초과되었습니다. 다른 이미지를 선택해 주세요.');
+        } else {
+          updateStatus('이미지 분석 중 오류가 발생했습니다. 다른 이미지를 선택해 주세요.');
+        }
       }
     };
 
-    imgEl.src = _phyCurrentPreviewUrl;
+    imgEl.onerror = () => {
+      showPreviewSkeleton(false);
+      updateStatus('이미지를 불러오지 못했습니다. 다른 파일로 다시 시도해 주세요.');
+    };
+
+    imgEl.src = imageDataUrl;
   } catch (err) {
-    console.error('이미지 전처리 실패:', err);
+    console.error('이미지 로드 실패:', err);
     showPreviewSkeleton(false);
-    updateStatus(err && err.message ? err.message : '이미지를 처리하지 못했습니다. 다른 파일로 다시 시도해 주세요.');
+    if (err && err.message === 'IMAGE_READ_FAILED') {
+      updateStatus('이미지를 읽는 중 오류가 발생했습니다. 다른 파일로 다시 시도해 주세요.');
+    } else {
+      updateStatus('이미지를 처리하지 못했습니다. 다른 파일로 다시 시도해 주세요.');
+    }
   }
 }
 
