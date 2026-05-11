@@ -12011,6 +12011,528 @@ function renderZiwei(p, natal, targetId) {
     return { anchor: picked, type: base.type, persona: base.persona, keywords: base.keywords || [], evidence: base.evidence || '' };
   }
 
+  var ZW_LIFE_ANIMAL_MAP = {
+    '紫微': {
+      hanjaName: '紫微',
+      koreanName: '자미성',
+      animal: '용',
+      archetype: '통치형',
+      keywords: ['존귀', '위엄', '중심성', '리더십', '품격'],
+      emoji: '🐉',
+      summary: '스스로 중심을 잡고 사람과 상황을 이끄는 왕의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'dragon'
+    },
+    '天機': {
+      hanjaName: '天機',
+      koreanName: '천기성',
+      animal: '원숭이',
+      archetype: '비밀형',
+      keywords: ['지혜', '계산', '전략', '변화', '기민함'],
+      emoji: '🐒',
+      summary: '빠른 판단력과 지적인 순발력으로 상황을 읽는 책사의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'monkey'
+    },
+    '太陽': {
+      hanjaName: '太陽',
+      koreanName: '태양성',
+      animal: '독수리',
+      archetype: '열정형',
+      keywords: ['고귀', '박애', '명예', '개방성', '활동성'],
+      emoji: '🦅',
+      summary: '높은 곳에서 넓게 바라보고 타인을 비추는 태양의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'eagle'
+    },
+    '武曲': {
+      hanjaName: '武曲',
+      koreanName: '무곡성',
+      animal: '멧돼지',
+      archetype: '성취형',
+      keywords: ['재물', '실행력', '근성', '승부', '현실감각'],
+      emoji: '🐗',
+      summary: '목표를 향해 돌파하고 결과를 만들어내는 성취의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'boar'
+    },
+    '天同': {
+      hanjaName: '天同',
+      koreanName: '천동성',
+      animal: '강아지',
+      archetype: '친밀형',
+      keywords: ['안락', '친화력', '순수함', '정서', '휴식'],
+      emoji: '🐶',
+      summary: '편안함과 따뜻한 정서로 사람을 끌어당기는 다정한 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'dog'
+    },
+    '廉貞': {
+      hanjaName: '廉貞',
+      koreanName: '염정성',
+      animal: '곰',
+      archetype: '야생형',
+      keywords: ['권위', '욕망', '통제', '규율', '강한 자존심'],
+      emoji: '🐻',
+      summary: '강한 내면의 욕망과 자기 통제력을 함께 가진 야성의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'bear'
+    },
+    '天府': {
+      hanjaName: '天府',
+      koreanName: '천부성',
+      animal: '코끼리',
+      archetype: '관리형',
+      keywords: ['안정', '축적', '관리', '보호', '포용력'],
+      emoji: '🐘',
+      summary: '자원을 모으고 사람을 품으며 질서를 세우는 관리자의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'elephant'
+    },
+    '太陰': {
+      hanjaName: '太陰',
+      koreanName: '태음성',
+      animal: '공작',
+      archetype: '감성형',
+      keywords: ['감성', '부유', '섬세함', '미감', '내면세계'],
+      emoji: '🦚',
+      summary: '섬세한 감성과 아름다움, 내면의 풍요를 상징하는 달의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'peacock'
+    },
+    '貪狼': {
+      hanjaName: '貪狼',
+      koreanName: '탐랑성',
+      animal: '여우',
+      archetype: '수완형',
+      keywords: ['도화', '매력', '욕망', '사교성', '재치'],
+      emoji: '🦊',
+      summary: '매력과 수완으로 기회를 만들고 사람을 끌어당기는 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'fox'
+    },
+    '巨門': {
+      hanjaName: '巨門',
+      koreanName: '거문성',
+      animal: '올빼미',
+      archetype: '논리형',
+      keywords: ['말', '분석', '시비', '의심', '통찰'],
+      emoji: '🦉',
+      summary: '어둠 속의 진실을 파고들고 말과 논리로 길을 여는 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'owl'
+    },
+    '天相': {
+      hanjaName: '天相',
+      koreanName: '천상성',
+      animal: '말',
+      archetype: '헌신형',
+      keywords: ['보좌', '균형', '품위', '협력', '책임감'],
+      emoji: '🐎',
+      summary: '사람과 조직을 연결하고 안정적으로 보좌하는 균형의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'horse'
+    },
+    '天梁': {
+      hanjaName: '天梁',
+      koreanName: '천량성',
+      animal: '황소',
+      archetype: '노련형',
+      keywords: ['음덕', '고결', '보호', '원칙', '어른스러움'],
+      emoji: '🐂',
+      summary: '원칙과 보호 본능으로 사람을 지키는 노련한 어른의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'ox'
+    },
+    '七殺': {
+      hanjaName: '七殺',
+      koreanName: '칠살성',
+      animal: '호랑이',
+      archetype: '개척형',
+      keywords: ['도전', '결단', '전투력', '독립성', '개척'],
+      emoji: '🐯',
+      summary: '두려움 없이 판을 바꾸고 새로운 길을 여는 개척자의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'tiger'
+    },
+    '破軍': {
+      hanjaName: '破軍',
+      koreanName: '파군성',
+      animal: '악어',
+      archetype: '혁신형',
+      keywords: ['파괴', '혁신', '변동', '반전', '재탄생'],
+      emoji: '🐊',
+      summary: '낡은 구조를 깨고 완전히 새로운 흐름을 만드는 변혁의 별입니다.',
+      assetPath: null,
+      silhouetteKey: 'crocodile'
+    }
+  };
+
+  var ZW_LIFE_ANIMAL_ORDER = ['紫微', '天機', '太陽', '武曲', '天同', '廉貞', '天府', '太陰', '貪狼', '巨門', '天相', '天梁', '七殺', '破軍'];
+
+  var ZW_LIFE_ANIMAL_ALIAS_TO_HAN = {
+    '紫微': '紫微', '자미': '紫微', '자미성': '紫微',
+    '天機': '天機', '천기': '天機', '천기성': '天機',
+    '太陽': '太陽', '태양': '太陽', '태양성': '太陽',
+    '武曲': '武曲', '무곡': '武曲', '무곡성': '武曲',
+    '天同': '天同', '천동': '天同', '천동성': '天同',
+    '廉貞': '廉貞', '염정': '廉貞', '염정성': '廉貞',
+    '天府': '天府', '천부': '天府', '천부성': '天府',
+    '太陰': '太陰', '태음': '太陰', '태음성': '太陰',
+    '貪狼': '貪狼', '탐랑': '貪狼', '탐랑성': '貪狼',
+    '巨門': '巨門', '거문': '巨門', '거문성': '巨門',
+    '天相': '天相', '천상': '天相', '천상성': '天相',
+    '天梁': '天梁', '천량': '天梁', '천량성': '天梁',
+    '七殺': '七殺', '칠살': '七殺', '칠살성': '七殺',
+    '破軍': '破軍', '파군': '破軍', '파군성': '破軍'
+  };
+
+  var ZW_LIFE_ANIMAL_COMBO_TEXT = {
+    '紫微|天府': '왕의 리더십과 관리자의 안정감이 결합된 타입',
+    '武曲|七殺': '성과를 위해 과감하게 돌파하는 승부사 타입',
+    '貪狼|廉貞': '매력과 욕망, 통제력이 함께 강한 카리스마 타입',
+    '太陽|巨門': '밝은 이상과 날카로운 언어 분석력이 공존하는 타입',
+    '天同|太陰': '감성적이고 다정하며 아름다운 안정감을 추구하는 타입'
+  };
+
+  function _zwNormalizeLifeAnimalStar(raw) {
+    var cleaned = _zwPortfolioCleanStar(raw).replace(/\s+/g, '');
+    if (!cleaned) return '';
+    if (ZW_LIFE_ANIMAL_ALIAS_TO_HAN[cleaned]) return ZW_LIFE_ANIMAL_ALIAS_TO_HAN[cleaned];
+    var noSuffix = cleaned.replace(/성$/, '');
+    if (ZW_LIFE_ANIMAL_ALIAS_TO_HAN[noSuffix]) return ZW_LIFE_ANIMAL_ALIAS_TO_HAN[noSuffix];
+    return '';
+  }
+
+  function _zwFindPalaceRowByName(pd, palaceName) {
+    if (!pd || !Array.isArray(pd.palaceStarData)) return null;
+    for (var i = 0; i < pd.palaceStarData.length; i += 1) {
+      var row = pd.palaceStarData[i];
+      if (row && row.palace === palaceName) return row;
+    }
+    return null;
+  }
+
+  function _zwFindMingRow(pd) {
+    var row = _zwFindPalaceRowByName(pd, '명궁');
+    if (row) return row;
+    if (!pd || !Array.isArray(pd.palaceStarData) || !Array.isArray(pd.palacesByIndex)) return null;
+    var idx = pd.palacesByIndex.indexOf('명궁');
+    return idx >= 0 ? pd.palaceStarData[idx] : null;
+  }
+
+  function _zwLifeAnimalStrengthScore(starName, branch, isBorrowed) {
+    var scoreMap = { '묘': 5, '왕': 4, '평': 3, '리': 2, '함': 1 };
+    var br = zwComputeStarStrength(starName, branch || '', !!isBorrowed) || '평';
+    var norm = zwNormalizeStrength(br);
+    return scoreMap[norm] || 3;
+  }
+
+  function _zwExtractLifeMainEntries(row) {
+    if (!row || !Array.isArray(row.stars)) return [];
+    var entries = [];
+    row.stars.forEach(function(raw, idx) {
+      var parsed = _zwParseMainRaw(raw);
+      if (!parsed || !parsed.name) return;
+      var han = _zwNormalizeLifeAnimalStar(parsed.name);
+      if (!han || !ZW_LIFE_ANIMAL_MAP[han]) return;
+      entries.push({
+        han: han,
+        name: parsed.name,
+        borrowed: !!parsed.borrowed,
+        fromAux: false,
+        index: idx,
+        branch: row.branch || ''
+      });
+    });
+    return entries;
+  }
+
+  function _zwExtractLifeAuxEntries(row) {
+    if (!row || !Array.isArray(row.auxStars)) return [];
+    var entries = [];
+    row.auxStars.forEach(function(raw, idx) {
+      var name = _zwPortfolioCleanStar(raw);
+      if (!name) return;
+      var han = _zwNormalizeLifeAnimalStar(name);
+      if (!han || !ZW_LIFE_ANIMAL_MAP[han]) return;
+      entries.push({
+        han: han,
+        name: name,
+        borrowed: false,
+        fromAux: true,
+        index: idx,
+        branch: row.branch || ''
+      });
+    });
+    return entries;
+  }
+
+  function _zwDedupLifeEntries(entries) {
+    var seen = {};
+    var out = [];
+    (entries || []).forEach(function(entry) {
+      if (!entry || !entry.han || seen[entry.han]) return;
+      seen[entry.han] = true;
+      out.push(entry);
+    });
+    return out;
+  }
+
+  function _zwBuildLifeAnimalCombo(primaryKey, secondaryKey) {
+    if (!primaryKey || !secondaryKey) return '';
+    var direct = ZW_LIFE_ANIMAL_COMBO_TEXT[primaryKey + '|' + secondaryKey];
+    if (direct) return direct;
+    var reverse = ZW_LIFE_ANIMAL_COMBO_TEXT[secondaryKey + '|' + primaryKey];
+    if (reverse) return reverse;
+    var p = ZW_LIFE_ANIMAL_MAP[primaryKey];
+    var s = ZW_LIFE_ANIMAL_MAP[secondaryKey];
+    if (!p || !s) return '';
+    return p.archetype + ' ' + p.animal + '의 ' + (p.keywords[0] || '핵심성')
+      + '과 ' + s.archetype + ' ' + s.animal + '의 ' + (s.keywords[0] || '보조성')
+      + '이 결합되어, 상황 판단의 깊이와 실행 방식의 폭이 함께 커지는 타입입니다.';
+  }
+
+  function _zwResolveLifeAnimal(pd) {
+    var mingRow = _zwFindMingRow(pd);
+    var directEntries = _zwDedupLifeEntries(_zwExtractLifeMainEntries(mingRow));
+    var sourceMode = 'ming';
+    var sourcePalaces = ['명궁'];
+    var fallbackNote = '';
+
+    if (!directEntries.length) {
+      var fallbackRows = ['재백궁', '관록궁', '천이궁'];
+      var ranked = [];
+
+      fallbackRows.forEach(function(name, palaceOrder) {
+        var row = _zwFindPalaceRowByName(pd, name);
+        if (!row) return;
+        sourcePalaces.push(name);
+
+        var candidates = _zwDedupLifeEntries(_zwExtractLifeMainEntries(row));
+        if (!candidates.length) {
+          candidates = _zwDedupLifeEntries(_zwExtractLifeAuxEntries(row));
+        }
+
+        candidates.forEach(function(entry, starOrder) {
+          var strength = _zwLifeAnimalStrengthScore(entry.name, entry.branch, entry.borrowed);
+          var weighted = strength * 10
+            + (entry.fromAux ? -2 : 0)
+            + (3 - palaceOrder)
+            - (starOrder * 0.1);
+          ranked.push({
+            han: entry.han,
+            name: entry.name,
+            fromAux: !!entry.fromAux,
+            score: weighted,
+            palace: name
+          });
+        });
+      });
+
+      ranked.sort(function(a, b) {
+        return b.score - a.score;
+      });
+
+      if (ranked.length) {
+        var picked = [];
+        var seen = {};
+        ranked.forEach(function(item) {
+          if (picked.length >= 2) return;
+          if (seen[item.han]) return;
+          seen[item.han] = true;
+          picked.push({
+            han: item.han,
+            name: item.name,
+            borrowed: false,
+            fromAux: !!item.fromAux,
+            index: picked.length,
+            branch: '',
+            viaPalace: item.palace
+          });
+        });
+        directEntries = picked;
+        sourceMode = 'sanbang';
+        fallbackNote = '명궁에 직접 들어온 주성이 약하거나 비어 있어, 삼방사정에서 들어오는 별의 기운을 통해 상징 동물을 보조 판정했습니다.';
+      } else {
+        sourceMode = 'hidden';
+      }
+    }
+
+    var primaryKey = directEntries[0] ? directEntries[0].han : '';
+    var secondaryKey = directEntries[1] ? directEntries[1].han : '';
+    var primary = primaryKey ? ZW_LIFE_ANIMAL_MAP[primaryKey] : null;
+    var secondary = secondaryKey ? ZW_LIFE_ANIMAL_MAP[secondaryKey] : null;
+
+    return {
+      sourceMode: sourceMode,
+      sourcePalaces: sourcePalaces.filter(function(v, idx, arr){ return arr.indexOf(v) === idx; }),
+      fallbackNote: fallbackNote,
+      primaryKey: primaryKey,
+      secondaryKey: secondaryKey,
+      primary: primary,
+      secondary: secondary,
+      comboText: _zwBuildLifeAnimalCombo(primaryKey, secondaryKey),
+      mainStars: directEntries.map(function(entry) { return entry.han; }),
+      lifePalace: mingRow || null
+    };
+  }
+
+  function _zwBuildLifeAnimalInsight(primary, secondary, resolved) {
+    var kw = (primary && primary.keywords) ? primary.keywords.slice(0, 5) : [];
+    var kwLine = kw.length ? kw.join(', ') : '핵심 성향 데이터 없음';
+    var secLine = '';
+    if (secondary) {
+      secLine = secondary.koreanName + '의 ' + (secondary.keywords || []).slice(0, 2).join('·') + ' 기질이 숨은 결로 작동합니다.';
+    }
+    var sourceBridge = (resolved && resolved.sourceMode === 'sanbang')
+      ? '이번 판정은 삼방사정 흐름을 함께 반영한 보조 판정입니다. '
+      : '';
+    var longNarrative = '당신의 명궁 중심 주성은 ' + primary.koreanName + '이며, 상징 동물로는 ' + primary.animal + '이 대응됩니다. '
+      + primary.summary + ' 이 기질은 단순한 성격 라벨이 아니라, 위기에서 무엇을 먼저 붙잡고 어떤 기준으로 결정을 내리는지를 보여주는 운영 원리입니다. '
+      + '특히 ' + kwLine + '의 축이 강할수록 대인관계와 커리어에서 역할의 무게중심을 스스로 설정하려는 경향이 선명해집니다. '
+      + sourceBridge
+      + (secLine ? (secLine + ' ') : '')
+      + '명궁 동물 해석은 명궁·신궁·재백궁·부처궁·관록궁·복덕궁 해석을 대체하지 않으며, 각 궁에서 드러난 데이터에 일관된 방향성을 부여하는 보조 지침으로 읽을 때 실전 활용도가 가장 높습니다.';
+
+    return {
+      keywordLine: kwLine,
+      oneLine: primary.summary,
+      personalityCore: primary.koreanName + '의 핵심은 ' + kw.slice(0, 3).join('·') + '입니다. 상황의 중심축을 빠르게 읽고, 자신의 기준선이 흔들리지 않도록 구조를 세우는 경향이 강합니다.',
+      strengths: '강점은 ' + (primary.keywords || []).slice(0, 2).join('·') + '을 실전 행동으로 연결하는 힘입니다. 명확한 기준과 실행 타이밍을 확보하면 성과가 누적되는 패턴이 강합니다.',
+      weaknesses: '약점은 강한 자기 기준이 과도할 때 유연성이 낮아질 수 있다는 점입니다. 방어적 태도가 길어지면 협업 리듬이 느려질 수 있어 피드백 창구를 의식적으로 열어두는 것이 좋습니다.',
+      relationStyle: primary.animal + '형 관계 스타일은 호감보다 신뢰를 먼저 쌓는 편에 가깝습니다. 가까워질수록 책임을 크게 지는 경향이 있어, 관계의 기대치와 역할을 초기에 합의하면 갈등이 줄어듭니다.',
+      workMoneyStyle: '일·재물에서는 ' + primary.archetype + ' 성향이 강하게 작동합니다. 단기 변동에 흔들리기보다 구조와 권한, 지속 가능한 수익 모델을 중시하면 장기적으로 안정적인 누적 성과를 얻기 쉽습니다.',
+      todayTip: '오늘의 활용법은 중요한 선택에서 감정의 즉흥 반응보다 기준 문장 1개를 먼저 세우는 것입니다. 기준이 선명할수록 판단 피로가 줄고 결과의 일관성이 높아집니다.',
+      caution: '주의할 점은 과도한 단독 판단입니다. 검증 파트너 1명을 지정해 관점 교차를 습관화하면 강점은 유지하면서 리스크를 크게 줄일 수 있습니다.',
+      tamagotchiLine: '오늘은 네 안의 ' + primary.animal + '이 길을 안내해. 기준을 잃지 않되, 따뜻한 한 문장으로 사람을 먼저 안심시켜 줘.',
+      longNarrative: longNarrative
+    };
+  }
+
+  function _zwBuildLifeAnimalCodex(primaryKey) {
+    return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px">'
+      + ZW_LIFE_ANIMAL_ORDER.map(function(hanKey) {
+        var item = ZW_LIFE_ANIMAL_MAP[hanKey];
+        if (!item) return '';
+        var selected = primaryKey === hanKey;
+        var border = selected ? '1.5px solid rgba(250,204,21,0.72)' : '1px solid rgba(148,163,184,0.24)';
+        var glow = selected ? 'box-shadow:0 0 18px rgba(250,204,21,0.25)' : '';
+        return ''
+          + '<details style="border:' + border + ';' + glow + ';border-radius:10px;background:rgba(15,23,42,0.52);padding:8px">'
+          + '<summary style="cursor:pointer;list-style:none;font-size:0.8rem;color:#f8fafc;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+          + '<span>' + item.emoji + ' ' + _zwPortfolioEscapeHtml(item.animal) + ' · ' + _zwPortfolioEscapeHtml(item.koreanName) + '</span>'
+          + '<span style="font-size:0.68rem;color:#c4b5fd">' + _zwPortfolioEscapeHtml(item.archetype) + '</span>'
+          + '</summary>'
+          + '<div style="margin-top:7px;font-size:0.75rem;color:#cbd5e1;line-height:1.55">'
+          + '<div style="color:#fcd34d;font-weight:700">키워드: ' + _zwPortfolioEscapeHtml((item.keywords || []).slice(0, 4).join(' · ')) + '</div>'
+          + '<div style="margin-top:5px">' + _zwPortfolioEscapeHtml(item.summary) + '</div>'
+          + '</div>'
+          + '</details>';
+      }).join('')
+      + '</div>';
+  }
+
+  function _zwBuildLifeAnimalCards(pd) {
+    var resolved = _zwResolveLifeAnimal(pd);
+    var titleLine = '명궁의 주성은 당신이 세상을 대하는 기본 자세를 보여줍니다.';
+    var bridgeLine = '명궁 동물 해석은 명궁·신궁·재백궁·부처궁·관록궁·복덕궁을 함께 읽을 때 가장 정확하게 작동하는 보조 해석입니다.';
+
+    if (!resolved || !resolved.primary) {
+      return ''
+        + '<div class="zw-detail-panel" id="zwLifeAnimalPanel">'
+        + '  <div class="zw-dp-header">'
+        + '    <div class="zw-dp-title">🌠 나의 명궁 동물</div>'
+        + '    <div class="zw-dp-subtitle">명궁 주성으로 보는 나의 상징 동물</div>'
+        + '  </div>'
+        + '  <div class="zw-report-section" style="border-left-color:#64748b">'
+        + '    <div class="zw-rtitle">🌫️ 숨은 동물 카드</div>'
+        + '    <div class="zw-rdesc">명궁 주성을 확인할 수 없어 동물 상징을 계산하지 못했습니다. 공궁(空宮)인 경우에는 삼방사정에서 들어오는 별의 기운을 함께 확인해 주세요.</div>'
+        + '  </div>'
+        + '  <div style="margin-top:8px;font-size:0.79rem;color:#cbd5e1;line-height:1.65">'
+        + _zwPortfolioEscapeHtml(titleLine + ' 명반에서 주성이 확인되면 자동으로 동물 프로필을 연결합니다. ' + bridgeLine)
+        + '  </div>'
+        + '  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
+        + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(250,204,21,0.55);background:rgba(120,53,15,0.3);color:#fef3c7;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">14주성 동물 도감 보기</button>'
+        + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(125,211,252,0.45);background:rgba(12,74,110,0.28);color:#dbeafe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">다른 동물 보기</button>'
+        + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(196,181,253,0.45);background:rgba(76,29,149,0.32);color:#ede9fe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">내 안의 별동물 도감</button>'
+        + '  </div>'
+        + '  <details id="zwLifeAnimalCodex" style="margin-top:10px;border:1px solid rgba(196,181,253,0.3);border-radius:11px;background:rgba(15,23,42,0.42);padding:10px">'
+        + '    <summary style="cursor:pointer;color:#fcd34d;font-size:0.82rem;font-weight:800">14주성 동물 도감 보기</summary>'
+        + '    <div style="margin-top:9px">' + _zwBuildLifeAnimalCodex('') + '</div>'
+        + '  </details>'
+        + '</div>';
+    }
+
+    var primary = resolved.primary;
+    var secondary = resolved.secondary;
+    var insight = _zwBuildLifeAnimalInsight(primary, secondary, resolved);
+    var pairLine = secondary
+      ? ('대표 동물: ' + primary.emoji + ' ' + primary.animal + ' · 보조 동물: ' + secondary.emoji + ' ' + secondary.animal)
+      : ('대표 동물: ' + primary.emoji + ' ' + primary.animal);
+    var comboLine = secondary && resolved.comboText
+      ? ('<div style="margin-top:8px;padding:8px;border-radius:9px;border:1px solid rgba(52,211,153,0.35);background:rgba(6,78,59,0.22);font-size:0.78rem;color:#d1fae5">'
+        + '<b>주성 조합 해석</b>: ' + _zwPortfolioEscapeHtml(resolved.comboText)
+        + '</div>')
+      : '';
+    var fallbackLine = resolved.fallbackNote
+      ? ('<div style="margin-top:8px;padding:8px;border-radius:9px;border:1px solid rgba(251,191,36,0.38);background:rgba(120,53,15,0.24);font-size:0.77rem;color:#fde68a">'
+        + _zwPortfolioEscapeHtml(resolved.fallbackNote)
+        + '</div>')
+      : '';
+
+    return ''
+      + '<div class="zw-detail-panel" id="zwLifeAnimalPanel">'
+      + '  <div class="zw-dp-header">'
+      + '    <div class="zw-dp-title">' + primary.emoji + ' 내 영혼을 상징하는 자미두수 동물</div>'
+      + '    <div class="zw-dp-subtitle">명궁 주성으로 보는 나의 상징 동물 · 14주성 동물 프로필</div>'
+      + '  </div>'
+      + '  <div style="border:1px solid rgba(250,204,21,0.42);background:linear-gradient(145deg,rgba(24,24,62,0.92),rgba(12,26,58,0.92));border-radius:14px;padding:12px">'
+      + '    <div style="font-size:0.95rem;color:#fef3c7;font-weight:900">' + primary.emoji + ' 나의 명궁 동물</div>'
+      + '    <div style="margin-top:4px;font-size:0.88rem;color:#f8fafc;font-weight:800">' + _zwPortfolioEscapeHtml(primary.animal) + ' · ' + _zwPortfolioEscapeHtml(primary.koreanName) + '</div>'
+      + '    <div style="margin-top:3px;font-size:0.76rem;color:#c4b5fd">' + _zwPortfolioEscapeHtml(primary.archetype) + ' / ' + _zwPortfolioEscapeHtml((primary.keywords || []).slice(0, 5).join(' · ')) + '</div>'
+      + '    <div style="margin-top:7px;font-size:0.79rem;color:#dbeafe;line-height:1.6">당신의 명궁 동물은 ' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '입니다. ' + _zwPortfolioEscapeHtml(primary.summary) + '</div>'
+      + '    <div style="margin-top:7px;font-size:0.74rem;color:#fcd34d">주성: ' + _zwPortfolioEscapeHtml(primary.koreanName) + (secondary ? (' + ' + _zwPortfolioEscapeHtml(secondary.koreanName)) : '') + '</div>'
+      + '    <div style="margin-top:6px;font-size:0.75rem;color:#e2e8f0">' + _zwPortfolioEscapeHtml(pairLine) + '</div>'
+      + comboLine
+      + fallbackLine
+      + '    <details style="margin-top:9px;border:1px solid rgba(196,181,253,0.32);border-radius:10px;background:rgba(15,23,42,0.55);padding:9px">'
+      + '      <summary style="cursor:pointer;color:#bae6fd;font-size:0.8rem;font-weight:800">자세히 보기</summary>'
+      + '      <div style="margin-top:9px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px">'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">대표 동물</b><br>' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">명궁 주성</b><br>' + _zwPortfolioEscapeHtml(primary.koreanName + (secondary ? (' + ' + secondary.koreanName) : '')) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">한 줄 요약</b><br>' + _zwPortfolioEscapeHtml(insight.oneLine) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">성격 핵심</b><br>' + _zwPortfolioEscapeHtml(insight.personalityCore) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">강점</b><br>' + _zwPortfolioEscapeHtml(insight.strengths) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">약점</b><br>' + _zwPortfolioEscapeHtml(insight.weaknesses) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">관계 스타일</b><br>' + _zwPortfolioEscapeHtml(insight.relationStyle) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">일/재물 스타일</b><br>' + _zwPortfolioEscapeHtml(insight.workMoneyStyle) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">오늘의 활용법</b><br>' + _zwPortfolioEscapeHtml(insight.todayTip) + '</div>'
+      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">주의할 점</b><br>' + _zwPortfolioEscapeHtml(insight.caution) + '</div>'
+      + '      </div>'
+      + '      <div style="margin-top:10px;padding:9px;border-radius:9px;border:1px solid rgba(125,211,252,0.32);background:rgba(12,74,110,0.2);font-size:0.79rem;line-height:1.68;color:#e0f2fe">'
+      + _zwPortfolioEscapeHtml(insight.longNarrative)
+      + '      </div>'
+      + '      <div style="margin-top:8px;padding:8px;border-radius:9px;background:rgba(76,29,149,0.26);border:1px solid rgba(196,181,253,0.35);font-size:0.78rem;color:#ede9fe">'
+      + '다마고치식 한마디: “' + _zwPortfolioEscapeHtml(insight.tamagotchiLine) + '”'
+      + '      </div>'
+      + '    </details>'
+      + '  </div>'
+      + '  <div style="margin-top:9px;font-size:0.79rem;color:#cbd5e1;line-height:1.7">'
+      + _zwPortfolioEscapeHtml(titleLine + ' 이 별을 동물 상징으로 바꾸면, 당신의 자미두수 동물은 ' + primary.animal + '입니다. ' + bridgeLine)
+      + '  </div>'
+      + '  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
+      + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(250,204,21,0.55);background:rgba(120,53,15,0.3);color:#fef3c7;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">14주성 동물 도감 보기</button>'
+      + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(125,211,252,0.45);background:rgba(12,74,110,0.28);color:#dbeafe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">다른 동물 보기</button>'
+      + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(196,181,253,0.45);background:rgba(76,29,149,0.32);color:#ede9fe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">내 안의 별동물 도감</button>'
+      + '  </div>'
+      + '  <details id="zwLifeAnimalCodex" style="margin-top:10px;border:1px solid rgba(196,181,253,0.3);border-radius:11px;background:rgba(15,23,42,0.42);padding:10px">'
+      + '    <summary style="cursor:pointer;color:#fcd34d;font-size:0.82rem;font-weight:800">14주성 동물 도감 보기</summary>'
+      + '    <div style="margin-top:9px">' + _zwBuildLifeAnimalCodex(resolved.primaryKey) + '</div>'
+      + '  </details>'
+      + '</div>';
+  }
+
   function _zwPortfolioBuildRows(pd) {
     var rows = [];
     for (var i = 0; i < 12; i += 1) {
@@ -12598,6 +13120,7 @@ function renderZiwei(p, natal, targetId) {
   html += '</div>';
   html += '</div></div>';
   html += _zwBuildBasicCanonicalCards(palace);
+  html += _zwBuildLifeAnimalCards(palace);
   html += _zwBuildDeepCanonicalCards(palace);
   html += _zwBuildDeepAiPromptPanel();
 
@@ -12619,6 +13142,21 @@ function renderZiwei(p, natal, targetId) {
 
   var sec = document.getElementById(targetId || 'ziweiSection');
   if(sec) sec.innerHTML = html;
+  if (!window._zwToggleAnimalCodex) {
+    window._zwToggleAnimalCodex = function(detailsId) {
+      var detailsEl = document.getElementById(detailsId || 'zwLifeAnimalCodex');
+      if (!detailsEl) return;
+      var isOpen = !!detailsEl.open;
+      detailsEl.open = !isOpen;
+      if (!isOpen) {
+        setTimeout(function() {
+          if (detailsEl && typeof detailsEl.scrollIntoView === 'function') {
+            detailsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 50);
+      }
+    };
+  }
   _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
 
   if (!window._renderZwDestinyPortfolio) {
