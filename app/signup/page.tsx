@@ -113,6 +113,8 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 function normalizeSocialAuthError(rawReason: string | null): string {
   const reason = String(rawReason || "").trim().toLowerCase();
   if (!reason) return "소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+  if (reason === "oauth_service_unavailable") return "소셜 회원가입 서버가 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.";
+  if (reason === "response_is_html") return "인증 서버 응답이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.";
   if (reason.includes("token_exchange_failed")) return "소셜 인증 토큰 교환에 실패했습니다. 잠시 후 다시 시도해 주세요.";
   if (reason === "oauth_not_configured") return "소셜 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
   if (reason === "invalid_callback" || reason === "provider_mismatch") return "소셜 인증 콜백이 유효하지 않습니다. 다시 시도해 주세요.";

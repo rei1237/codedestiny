@@ -84,6 +84,24 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       }
     }
 
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function fetchWithTimeout(url, init, timeoutMs) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        return await fetch(url, {
+          ...init,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
     function publishAuthSync(event) {
       const payload = { source: "oauth-callback", event, at: Date.now() };
       try {
@@ -204,33 +222,97 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       }
 
       setStatus("소셜 로그인 완료를 처리하고 있습니다...");
-      fetch(apiBase + "/api/auth/oauth/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ socialGrant }),
-      })
-        .then(async (response) => {
-          const payload = await parseJsonResponse(response);
-          if (!response.ok || !payload || !payload.user || !payload.user.id) {
-            throw new Error((payload && payload.message) || "oauth_complete_failed");
+
+      const completeUrl = apiBase + "/api/auth/oauth/complete";
+      const meUrl = apiBase + "/api/auth/me";
+      const MAX_RETRIES = 3;
+      const RETRY_BASE_DELAY_MS = 250;
+      const REQUEST_TIMEOUT_MS = 12000;
+
+      (async () => {
+        let payload = null;
+        let lastError = null;
+
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+          try {
+            const response = await fetchWithTimeout(completeUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ socialGrant }),
+            }, REQUEST_TIMEOUT_MS);
+
+            const parsed = await parseJsonResponse(response);
+            if (!response.ok || !parsed || !parsed.user || !parsed.user.id) {
+              const retryable = response.status >= 500;
+              if (retryable && attempt < MAX_RETRIES - 1) {
+                await sleep(RETRY_BASE_DELAY_MS * (attempt + 1));
+                continue;
+              }
+              throw new Error((parsed && parsed.message) || "oauth_complete_failed");
+            }
+
+            payload = parsed;
+            break;
+          } catch (error) {
+            lastError = error;
+            const message = String(error && error.message ? error.message : "");
+            const retryable = (
+              message === "response_is_html"
+              || message.includes("network")
+              || message.includes("timeout")
+              || message.includes("abort")
+              || message.includes("Failed to fetch")
+              || message.includes("oauth_service_unavailable")
+            );
+
+            if (retryable && attempt < MAX_RETRIES - 1) {
+              await sleep(RETRY_BASE_DELAY_MS * (attempt + 1));
+              continue;
+            }
           }
+        }
 
-          persistAuthFromCallback(payload);
-          const nextPath = sanitizeNextPath(payload.nextPath || null) || resolveNextPathFromQuery(params);
-          clearIntent();
+        if (!payload || !payload.user || !payload.user.id) {
+          try {
+            const meResponse = await fetchWithTimeout(meUrl, {
+              method: "GET",
+              credentials: "include",
+              cache: "no-store",
+            }, REQUEST_TIMEOUT_MS);
 
-          if (nextPath === "/" || nextPath === "/index.html") {
-            window.location.replace("/");
-            return;
+            if (meResponse.ok) {
+              const mePayload = await parseJsonResponse(meResponse);
+              if (mePayload && mePayload.user && mePayload.user.id) {
+                payload = {
+                  ...mePayload,
+                  nextPath: resolveNextPathFromQuery(params),
+                };
+              }
+            }
+          } catch {
+            // ignore fallback errors
           }
+        }
 
-          window.location.replace(nextPath);
-        })
-        .catch(() => {
+        if (!payload || !payload.user || !payload.user.id) {
           clearIntent();
-          window.location.replace("/login?error=oauth_failed");
-        });
+          const reason = encodeURIComponent(String((lastError && lastError.message) || "oauth_failed"));
+          window.location.replace("/login?error=" + reason);
+          return;
+        }
+
+        persistAuthFromCallback(payload);
+        const nextPath = sanitizeNextPath(payload.nextPath || null) || resolveNextPathFromQuery(params);
+        clearIntent();
+
+        if (nextPath === "/" || nextPath === "/index.html") {
+          window.location.replace("/");
+          return;
+        }
+
+        window.location.replace(nextPath);
+      })();
       return;
     }
 

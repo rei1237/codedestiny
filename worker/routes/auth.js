@@ -745,6 +745,30 @@ function toErrorMessage(error) {
   return String(error?.message || "").slice(0, 240);
 }
 
+function isAuthInfraFailure(error, markers = []) {
+  const message = String(error?.message || "");
+  if (!message) return false;
+
+  const infraHint = (
+    message.includes("Mongo")
+    || message.includes("timed out")
+    || message.includes("timeout")
+    || message.includes("ECONN")
+    || message.includes("network")
+    || message.includes("connect")
+    || message.includes("server selection")
+  );
+
+  if (infraHint) return true;
+  return markers.some((marker) => message.includes(marker));
+}
+
+async function sleep(ms) {
+  const delay = Number(ms);
+  if (!Number.isFinite(delay) || delay <= 0) return;
+  await new Promise((resolve) => setTimeout(resolve, Math.floor(delay)));
+}
+
 function readCookieFromRequest(request, key) {
   const cookieHeader = String(request.headers.get("cookie") || "");
   if (!cookieHeader) return "";
@@ -1122,19 +1146,16 @@ async function handleLogin(request, env) {
         "auth_login_issue_session",
       );
     } catch (error) {
-      const message = String(error?.message || "");
-      const infraFailure = (
-        message.includes("auth_login_connect_db")
-        || message.includes("auth_login_find_user")
-        || message.includes("auth_login_verify_password_timeout")
-        || message.includes("Mongo")
-        || message.includes("timed out")
-        || message.includes("ECONN")
-      );
+      const infraFailure = isAuthInfraFailure(error, [
+        "auth_login_connect_db",
+        "auth_login_find_user",
+        "auth_login_verify_password_timeout",
+      ]);
 
       if (infraFailure && attempt < 3) {
         console.warn("[auth/login] transient infra failure, retrying:", error);
         resetMongooseConnection().catch(() => {});
+        await sleep(150 * attempt);
         continue;
       }
 
@@ -1630,6 +1651,9 @@ async function handleOAuthCallback(request, env, provider) {
 }
 
 async function handleOAuthComplete(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+
   try {
     const body = await readJson(request);
     const socialGrant = String(body?.socialGrant || "");
@@ -1638,27 +1662,91 @@ async function handleOAuthComplete(request, env) {
     }
 
     const payload = await verifySocialGrant(socialGrant, env);
-    await connectDb(env);
 
-    const user = await User.findById(payload.userId).lean();
-    if (!user) return json({ message: "User not found." }, { status: 404 });
+    if (!mongoose.Types.ObjectId.isValid(String(payload?.userId || ""))) {
+      return json({ message: "Invalid social authentication grant." }, { status: 400 });
+    }
 
-    const accessToken = await signAuthToken(user, env);
-    const nextRefresh = await issueRefreshTokenForUser(user._id, env);
-    await createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt);
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_oauth_complete_connect_db");
 
-    const response = json({
-      ok: true,
-      message: "Social login completed.",
-      user: normalizeUserResponse(user),
-      nextPath: sanitizeNextPath(payload.nextPath) || "/",
-      provider: payload.provider,
-      accessToken,
-      tokenType: "Bearer",
-      accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
-    });
-    appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
-    return response;
+        const user = await withAuthOpTimeout(
+          User.collection.findOne(
+            { _id: new mongoose.Types.ObjectId(String(payload.userId)) },
+            {
+              projection: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                birthDate: 1,
+                birthTime: 1,
+                gender: 1,
+                role: 1,
+                points: 1,
+                joinedAt: 1,
+              },
+              maxTimeMS: dbMaxTimeMs,
+            },
+          ),
+          timeoutMs,
+          "auth_oauth_complete_find_user",
+        );
+
+        if (!user) return json({ message: "User not found." }, { status: 404 });
+
+        const accessToken = await signAuthToken(user, env);
+        const nextRefresh = await issueRefreshTokenForUser(user._id, env);
+        await withAuthOpTimeout(
+          createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt),
+          timeoutMs,
+          "auth_oauth_complete_issue_session",
+        );
+
+        const response = json({
+          ok: true,
+          message: "Social login completed.",
+          user: normalizeUserResponse(user),
+          nextPath: sanitizeNextPath(payload.nextPath) || "/",
+          provider: payload.provider,
+          accessToken,
+          tokenType: "Bearer",
+          accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
+        });
+        appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
+        return response;
+      } catch (error) {
+        const infraFailure = isAuthInfraFailure(error, [
+          "auth_oauth_complete_connect_db",
+          "auth_oauth_complete_find_user",
+          "auth_oauth_complete_issue_session",
+        ]);
+
+        if (infraFailure && attempt < 3) {
+          console.warn("[auth/oauth-complete] transient infra failure, retrying:", error);
+          resetMongooseConnection().catch(() => {});
+          await sleep(150 * attempt);
+          continue;
+        }
+
+        if (infraFailure) {
+          console.error("[auth/oauth-complete] infrastructure failure:", error);
+          return json({
+            ok: false,
+            code: "oauth_service_unavailable",
+            message: "Social login service is temporarily unavailable. Please try again.",
+          }, { status: 503 });
+        }
+
+        throw error;
+      }
+    }
+
+    return json({
+      ok: false,
+      code: "oauth_service_unavailable",
+      message: "Social login service is temporarily unavailable. Please try again.",
+    }, { status: 503 });
   } catch (error) {
     logAuthDiagnostic(request, env, "/api/auth/oauth/complete", "", "oauth_complete_failed", error);
     throw error;

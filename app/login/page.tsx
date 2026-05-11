@@ -137,6 +137,8 @@ function normalizeSocialAuthError(rawReason: string | null): string {
   const reason = String(rawReason || "").trim().toLowerCase();
   if (!reason) return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
   if (reason === "oauth_failed") return "소셜 로그인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.";
+  if (reason === "oauth_service_unavailable") return "소셜 로그인 서버가 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.";
+  if (reason === "response_is_html") return "인증 서버 응답이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.";
   if (reason === "missing_oauth_params") return "소셜 인증 정보가 누락되었습니다. 다시 로그인해 주세요.";
   if (reason.includes("token_exchange_failed")) return "소셜 인증 토큰 교환에 실패했습니다. 잠시 후 다시 시도해 주세요.";
   if (reason === "oauth_not_configured") return "소셜 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
@@ -233,8 +235,9 @@ export default function LoginPage() {
 
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
+      const maxAttempts = 3;
 
-      for (let attempt = 0; attempt < 2; attempt += 1) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         try {
           const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/login`, {
             method: "POST",
@@ -247,8 +250,8 @@ export default function LoginPage() {
             }),
           });
 
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
+          if (nextResponse.status >= 500 && attempt < maxAttempts - 1) {
+            await sleep(250 * (attempt + 1));
             continue;
           }
 
@@ -256,8 +259,8 @@ export default function LoginPage() {
           break;
         } catch (error) {
           lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
+          if (attempt < maxAttempts - 1) {
+            await sleep(250 * (attempt + 1));
             continue;
           }
         }
