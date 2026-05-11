@@ -29,7 +29,7 @@ const __lazyActionLoaders = {
   agreeAndCalculate: () => __ensureSajuCoreScripts(),
   calculate: () => __ensureSajuCoreScripts(),
   runCompat: () => __ensureSajuCoreScripts(),
-  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
+  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260511-physio-stallfix1').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260511-physio-stallfix1')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openJuyukModal: () => __loadScriptOnce('/js/iching-modal.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
