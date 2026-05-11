@@ -666,7 +666,7 @@
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260509-premiumapifix1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260509-premiumapifix1'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
+    openSibylModal: ['js/sibyl-system.js?v=20260512-quantum-v4']
   };
 
   function normalizeScriptSrc(src) {

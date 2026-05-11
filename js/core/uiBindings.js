@@ -56,7 +56,7 @@ const __lazyActionLoaders = {
   gotoNamingPremium: () => Promise.resolve().then(() => {
     window.location.href = '/myungwun_final.html';
   }),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260512-quantum-v4').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-sajuref1'),

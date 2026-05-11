@@ -8,7 +8,7 @@
 
   /* ── 상수 ── */
   var NS = 'FORTUNE_APP_USER_PROFILES';
-  var SIBYL_REPORT_CACHE_VERSION = '20260506-local-v2';
+  var SIBYL_REPORT_CACHE_VERSION = '20260512-quantum-v3';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
 
   /* 십성 → 섹터 매핑 */
@@ -170,6 +170,61 @@
     } catch(e) { return null; }
   }
 
+  function _normalizePillarsShape(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    var src = raw;
+    if (src.year && !src.y) {
+      src = {
+        y: { g: src.year && src.year.g, j: src.year && src.year.j },
+        m: { g: src.month && src.month.g, j: src.month && src.month.j },
+        d: { g: src.day && src.day.g, j: src.day && src.day.j },
+        h: { g: src.hour && src.hour.g, j: src.hour && src.hour.j }
+      };
+    }
+
+    var out = {
+      y: Object.assign({}, src.y || {}),
+      m: Object.assign({}, src.m || {}),
+      d: Object.assign({}, src.d || {}),
+      h: Object.assign({}, src.h || {})
+    };
+
+    var hasAny = !!(
+      out.y.g || out.y.j || out.m.g || out.m.j || out.d.g || out.d.j || out.h.g || out.h.j
+    );
+    return hasAny ? out : null;
+  }
+
+  function _ensurePillarsWithProfileFallback(rawPillars, profile) {
+    var normalized = _normalizePillarsShape(rawPillars) || _normalizePillarsShape(window.G_PILLARS || null);
+
+    var hasCore = !!(normalized && normalized.y && normalized.y.g && normalized.y.j && normalized.m && normalized.m.g && normalized.m.j && normalized.d && normalized.d.g && normalized.d.j);
+    var hasHour = !!(normalized && normalized.h && normalized.h.g && normalized.h.j);
+    if (hasCore && hasHour) return normalized;
+
+    if (profile && profile.birth && typeof window.computeProfileForModal === 'function') {
+      try {
+        var computed = window.computeProfileForModal(profile);
+        var recomputed = _normalizePillarsShape((computed && computed.p) || window.G_PILLARS || null);
+        if (recomputed && recomputed.d && recomputed.d.g && recomputed.d.j) {
+          return recomputed;
+        }
+      } catch (_) {}
+    }
+
+    return normalized;
+  }
+
+  function _pillarChars(p) {
+    var pp = _normalizePillarsShape(p) || { y: {}, m: {}, d: {}, h: {} };
+    return {
+      y: pp.y || {},
+      m: pp.m || {},
+      d: pp.d || {},
+      h: pp.h || {}
+    };
+  }
+
   function _sibylHash(text) {
     var src = String(text || '');
     var hash = 2166136261;
@@ -264,9 +319,10 @@
 
   /* G_PILLARS → 십성 카운트 */
   function _analyzeTenStars(p) {
-    if (!p || !p.d || !p.d.g) return {};
-    var dayGan = p.d.g;
-    var chars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j];
+    var ps = _pillarChars(p);
+    if (!ps.d || !ps.d.g) return {};
+    var dayGan = ps.d.g;
+    var chars = [ps.y.g, ps.y.j, ps.m.g, ps.m.j, ps.d.j, ps.h.g, ps.h.j];
     // 일지(日支)도 포함, 월지 지장간은 단순화 — 지지 자체만 사용
     var counts = {};
     chars.forEach(function(c) {
@@ -487,20 +543,19 @@
   function _normalizeSibylInput(payload, analysisData) {
     var profile = (payload && payload.profile) || _getCurrentProfile() || null;
     var rawPillars = (payload && payload.pillars) || (analysisData && analysisData.pillars) || window.G_PILLARS || null;
-    var pillars = rawPillars;
-    if (pillars && pillars.year && !pillars.y) {
-      pillars = {
-        y: { g: pillars.year.g, j: pillars.year.j },
-        m: { g: pillars.month.g, j: pillars.month.j },
-        d: { g: pillars.day.g, j: pillars.day.j },
-        h: { g: pillars.hour.g, j: pillars.hour.j }
-      };
-    }
+    var pillars = _ensurePillarsWithProfileFallback(rawPillars, profile);
 
     var integrity = { ok: true, messages: [] };
     if (!pillars || !pillars.d || !pillars.d.g || !pillars.d.j) {
       integrity.ok = false;
       integrity.messages.push('사주 원국 일주 정보가 누락되었습니다.');
+    }
+    if (!pillars || !pillars.y || !pillars.y.g || !pillars.y.j || !pillars.m || !pillars.m.g || !pillars.m.j) {
+      integrity.ok = false;
+      integrity.messages.push('연주/월주 데이터가 불완전하여 일부 해석은 보수적으로 처리됩니다.');
+    }
+    if (!pillars || !pillars.h || !pillars.h.g || !pillars.h.j) {
+      integrity.messages.push('출생 시각 데이터가 불완전하여 시주 기반 정밀도가 낮아졌습니다.');
     }
 
     var dist = _ohaengDist(pillars);
@@ -731,6 +786,120 @@
     };
   }
 
+  function _toRiskBand(score) {
+    var n = Number(score || 0);
+    if (n >= 75) return '고위험';
+    if (n >= 55) return '경계';
+    if (n >= 35) return '중립';
+    return '안정';
+  }
+
+  function _collectQuantumDiagnostics(normalized) {
+    var pillars = normalized && normalized.pillars;
+    var jg = normalized && normalized.jong;
+    var pw = normalized && normalized.power;
+    var jh = normalized && normalized.johu;
+    var quantumFn = (typeof window.getQuantumElType === 'function')
+      ? window.getQuantumElType
+      : (typeof getQuantumElType === 'function' ? getQuantumElType : null);
+
+    var roles = EL_ORDER.map(function(el) {
+      var raw = 'neutral';
+      if (quantumFn && pillars) {
+        try {
+          raw = quantumFn(el, pillars, jg, pw, jh) || 'neutral';
+        } catch (_) {
+          raw = 'neutral';
+        }
+      }
+      var roleLabel = raw === 'good' ? '유리' : raw === 'bad' ? '주의' : '중립';
+      return {
+        el: el,
+        label: EL_KR[el] || el,
+        role: raw,
+        roleLabel: roleLabel
+      };
+    });
+
+    var favorable = roles.filter(function(item) { return item.role === 'good'; }).map(function(item) { return item.label; });
+    var caution = roles.filter(function(item) { return item.role === 'bad'; }).map(function(item) { return item.label; });
+
+    return {
+      mode: jg && jg.isJong ? (jg.name || '종격') : '억부+조후',
+      johuType: (jh && jh.type) || 'neutral',
+      yongshin: (pw && Array.isArray(pw.yongshin)) ? pw.yongshin.slice() : [],
+      kishin: (pw && Array.isArray(pw.kijishin)) ? pw.kijishin.slice() : [],
+      roles: roles,
+      favorableElements: favorable,
+      cautionElements: caution
+    };
+  }
+
+  function _buildCategoryMatrix(riskBreakdown, aptData, quantumDiagnostics, annualPlan, monthlyPlan) {
+    var parts = (riskBreakdown && riskBreakdown.parts) || {};
+    var apt = (aptData && aptData.components) || {};
+    var annual = Array.isArray(annualPlan) ? annualPlan : [];
+    var monthly = Array.isArray(monthlyPlan) ? monthlyPlan : [];
+
+    var annualPeak = annual.length ? Math.max.apply(null, annual.map(function(item) { return Number(item.risk || 0); })) : 50;
+    var annualLow = annual.length ? Math.min.apply(null, annual.map(function(item) { return Number(item.risk || 0); })) : 50;
+    var monthlyPeak = monthly.length ? Math.max.apply(null, monthly.map(function(item) { return Number(item.risk || 0); })) : 50;
+    var quantumGood = quantumDiagnostics && Array.isArray(quantumDiagnostics.roles)
+      ? quantumDiagnostics.roles.filter(function(item) { return item.role === 'good'; }).length
+      : 0;
+    var quantumBad = quantumDiagnostics && Array.isArray(quantumDiagnostics.roles)
+      ? quantumDiagnostics.roles.filter(function(item) { return item.role === 'bad'; }).length
+      : 0;
+    var quantumScore = _clamp(55 + (quantumGood * 12) - (quantumBad * 14), 5, 99);
+
+    return [
+      {
+        key: 'core',
+        title: '코어 안정도',
+        score: _clamp(100 - ((parts.elementImbalance || 50) * 0.45 + (parts.tenStarOverload || 50) * 0.55), 5, 99),
+        summary: '오행 편차와 십성 과부하를 합쳐 기본 체질의 흔들림 강도를 산출합니다.',
+        action: '고위험 월에는 의사결정 지연 규칙을 강제하고, 안정 월에 성장 과제를 배치하세요.'
+      },
+      {
+        key: 'career',
+        title: '커리어 실행력',
+        score: _clamp((apt.career || 0) * 0.6 + (apt.execution || 0) * 0.4, 5, 99),
+        summary: '커리어/실행 축을 결합해 실제 성과 전환 가능성을 봅니다.',
+        action: '연간 피크 리스크(' + annualPeak + ') 전후에는 확장보다 검증 중심으로 운용하세요.'
+      },
+      {
+        key: 'money',
+        title: '재정 운용력',
+        score: _clamp((apt.wealth || 0) - (parts.monthlyVolatility || 0) * 0.22, 5, 99),
+        summary: '재물 포착력에서 월 변동성을 차감해 실수익 지속성을 계산합니다.',
+        action: '월간 최고 리스크(' + monthlyPeak + ') 구간은 방어, 저점 구간은 확장으로 분리하세요.'
+      },
+      {
+        key: 'relationship',
+        title: '관계/협업',
+        score: _clamp((apt.social || 0) - (parts.collision || 0) * 0.25, 5, 99),
+        summary: '사회성 점수에서 충형파해 충돌 강도를 보정한 협업 신뢰 지표입니다.',
+        action: '갈등 고조 구간에는 문자 기록 기반 합의로 오해 비용을 줄이세요.'
+      },
+      {
+        key: 'recovery',
+        title: '회복 탄성',
+        score: _clamp((apt.recovery || 0) - (parts.johuStress || 0) * 0.22, 5, 99),
+        summary: '회복력과 조후 스트레스를 합쳐 번아웃 위험을 계량화합니다.',
+        action: '연간 저점(' + annualLow + ') 시기 전에 회복 루틴을 선배치하세요.'
+      },
+      {
+        key: 'quantum',
+        title: '퀀텀 명리 정합',
+        score: quantumScore,
+        summary: '조후/종격/억부를 통합한 오행 유불리를 5원소 단위로 압축한 지표입니다.',
+        action: '유리 오행(' + ((quantumDiagnostics && quantumDiagnostics.favorableElements || []).join(', ') || '없음') + ') 중심으로 환경과 일정 리듬을 맞추세요.'
+      }
+    ].map(function(item) {
+      return Object.assign({}, item, { band: _toRiskBand(100 - item.score) });
+    });
+  }
+
   /* 적성 계수 (100~999 스케일) */
   function _aptCoeff(dominant, counts, normalized, riskBreakdown) {
     var norm = normalized || {
@@ -755,7 +924,8 @@
     // 직접 계산 fallback
     var dist = { wood:0, fire:0, earth:0, metal:0, water:0, total:0 };
     if (!p) return dist;
-    var chars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.g, p.d.j, p.h.g, p.h.j];
+    var ps = _pillarChars(p);
+    var chars = [ps.y.g, ps.y.j, ps.m.g, ps.m.j, ps.d.g, ps.d.j, ps.h.g, ps.h.j];
     chars.forEach(function(c) {
       var el = GAN_EL[c] || JI_EL[c];
       if (el) { dist[el]++; dist.total++; }
@@ -968,6 +1138,8 @@
 
     var risk = riskBreakdown.total;
     var coeff = aptData.score;
+    var quantumDiagnostics = _collectQuantumDiagnostics(normalized);
+    var categoryMatrix = _buildCategoryMatrix(riskBreakdown, aptData, quantumDiagnostics, annualPlan, monthlyPlan);
 
     var topRiskMonths = monthlyPlan.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
     var lowRiskMonths = monthlyPlan.slice().sort(function(a, b) { return a.risk - b.risk; }).slice(0, 3);
@@ -1141,6 +1313,31 @@
       '이 리포트는 단순 문장 생성이 아니라 엔진 신호를 결합한 운영 가이드입니다. 숫자가 바뀌면 문장도 함께 바뀌어야 하며, 현재 결과는 그 연결 원칙을 따릅니다.'
     ].join('\n');
 
+    var chapter9 = [
+      '## 퀀텀 명리 엔진 카테고리 매트릭스',
+      categoryMatrix.map(function(item, idx) {
+        return [
+          '- [' + String(idx + 1).padStart(2, '0') + '] ' + item.title + ' · 점수 ' + item.score + ' · 리스크밴드 ' + item.band,
+          '  · 해석: ' + item.summary,
+          '  · 액션: ' + item.action
+        ].join('\n');
+      }).join('\n'),
+      '',
+      '## 퀀텀 오행 유불리',
+      '- 모드: ' + (quantumDiagnostics.mode || '억부+조후'),
+      '- 조후 타입: ' + (quantumDiagnostics.johuType || 'neutral'),
+      '- 유리 오행: ' + ((quantumDiagnostics.favorableElements || []).join(', ') || '데이터 부족'),
+      '- 주의 오행: ' + ((quantumDiagnostics.cautionElements || []).join(', ') || '데이터 부족'),
+      '- 용신 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '데이터 부족'),
+      '- 기신 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '데이터 부족'),
+      '',
+      (quantumDiagnostics.roles || []).map(function(role) {
+        return '- ' + role.label + ' → ' + role.roleLabel;
+      }).join('\n'),
+      '',
+      '퀀텀 명리 엔진은 점수 하나를 만드는 도구가 아니라, 어떤 오행/환경/행동이 지금 나에게 유리한지를 실행 단위로 분해하는 지침입니다. 월별 운영에서 유리 오행과 충돌 오행을 분리해 쓰면 리스크 체감이 눈에 띄게 낮아집니다.'
+    ].join('\n');
+
     var chapters = [
       { title: 'CH01 · 데이터 신뢰도와 코어 매트릭스', content: chapter1 },
       { title: 'CH02 · 오행·십성 구조 진단', content: chapter2 },
@@ -1149,7 +1346,8 @@
       { title: 'CH05 · 10년 연도별 상세 해석', content: chapter5 },
       { title: 'CH06 · 월별 12개 운영 리포트', content: chapter6 },
       { title: 'CH07 · 분야별 실행 플랜', content: chapter7 },
-      { title: 'CH08 · 우선순위 결론', content: chapter8 }
+      { title: 'CH08 · 우선순위 결론', content: chapter8 },
+      { title: 'CH09 · 퀀텀 카테고리 매트릭스', content: chapter9 }
     ];
 
     var totalChars = chapters.reduce(function(sum, ch) { return sum + String(ch.content || '').length; }, 0);
@@ -1168,6 +1366,8 @@
       annualRiskPlan: annualPlan,
       riskBreakdown: riskBreakdown,
       aptitudeComponents: aptData.components,
+      quantumDiagnostics: quantumDiagnostics,
+      categoryMatrix: categoryMatrix,
       integrity: normalized.integrity,
       chapters: chapters
     };
@@ -1622,11 +1822,12 @@
 
     // Pillar display
     if (corePillars) {
+      var cp = _pillarChars(corePillars);
       var cols = [
-        { id:'sbPillarYanG', val:corePillars.y.g }, { id:'sbPillarYanJ', val:corePillars.y.j },
-        { id:'sbPillarMoG',  val:corePillars.m.g }, { id:'sbPillarMoJ',  val:corePillars.m.j },
-        { id:'sbPillarDaG',  val:corePillars.d.g }, { id:'sbPillarDaJ',  val:corePillars.d.j },
-        { id:'sbPillarSiG',  val:corePillars.h.g }, { id:'sbPillarSiJ',  val:corePillars.h.j }
+        { id:'sbPillarYanG', val:cp.y.g }, { id:'sbPillarYanJ', val:cp.y.j },
+        { id:'sbPillarMoG',  val:cp.m.g }, { id:'sbPillarMoJ',  val:cp.m.j },
+        { id:'sbPillarDaG',  val:cp.d.g }, { id:'sbPillarDaJ',  val:cp.d.j },
+        { id:'sbPillarSiG',  val:cp.h.g }, { id:'sbPillarSiJ',  val:cp.h.j }
       ];
       cols.forEach(function(c){ _t(c.id, c.val || '데이터 부족'); });
     }
@@ -1801,16 +2002,17 @@
   async function _generateDominatorReport() {
     var data = window._sibylCurrentData || {};
     var profile = _getCurrentProfile();
-    var pillars = data.pillars || window.G_PILLARS;
+    var pillars = _ensurePillarsWithProfileFallback(data.pillars || window.G_PILLARS, profile);
+    var ps = _pillarChars(pillars);
 
     // Build local payload
     var payload = {
       profile: profile,
       pillars: pillars ? {
-        year:  { g: pillars.y.g, j: pillars.y.j },
-        month: { g: pillars.m.g, j: pillars.m.j },
-        day:   { g: pillars.d.g, j: pillars.d.j },
-        hour:  { g: pillars.h.g, j: pillars.h.j }
+        year:  { g: ps.y.g || '', j: ps.y.j || '' },
+        month: { g: ps.m.g || '', j: ps.m.j || '' },
+        day:   { g: ps.d.g || '', j: ps.d.j || '' },
+        hour:  { g: ps.h.g || '', j: ps.h.j || '' }
       } : null,
       natal: data.dist || null,
       dominantEl: data.domEl || null,
@@ -1889,6 +2091,8 @@
     if (!reportData) return '';
     var monthly = Array.isArray(reportData.monthlyRiskPlan) ? reportData.monthlyRiskPlan : [];
     var annual = Array.isArray(reportData.annualRiskPlan) ? reportData.annualRiskPlan : [];
+    var categoryMatrix = Array.isArray(reportData.categoryMatrix) ? reportData.categoryMatrix : [];
+    var quantum = reportData.quantumDiagnostics || {};
     var parts = reportData.riskBreakdown && reportData.riskBreakdown.parts ? reportData.riskBreakdown.parts : {};
     var apt = reportData.aptitudeComponents || {};
 
@@ -1933,6 +2137,25 @@
         + '</details>';
     }).join('');
 
+    var categoryCards = categoryMatrix.map(function(item) {
+      var tone = item.score >= 75 ? 'ok' : item.score >= 55 ? 'warn' : 'danger';
+      return '<article class="sb-cat-card sb-cat-card--' + tone + '">'
+        + '<div class="sb-cat-card-head">'
+        + '<h5>' + item.title + '</h5>'
+        + '<span class="sb-cat-score">' + item.score + '</span>'
+        + '</div>'
+        + '<p class="sb-cat-summary">' + item.summary + '</p>'
+        + '<p class="sb-cat-action">' + item.action + '</p>'
+        + '</article>';
+    }).join('');
+
+    var quantumRows = Array.isArray(quantum.roles)
+      ? quantum.roles.map(function(role) {
+          var tone = role.role === 'good' ? 'ok' : role.role === 'bad' ? 'danger' : 'neutral';
+          return '<span class="sb-quantum-chip sb-quantum-chip--' + tone + '">' + role.label + ' · ' + role.roleLabel + '</span>';
+        }).join('')
+      : '';
+
     return '<section class="sb-insight-panel">'
       + '<div class="sb-insight-head">RISK COMMAND CENTER</div>'
       + '<div class="sb-insight-grid">'
@@ -1953,6 +2176,12 @@
       + '<ul class="sb-insight-list">' + stableMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + ' · ' + m.focus + '</li>'; }).join('') + '</ul>'
       + '</article>'
       + '<article class="sb-insight-box">'
+      + '<h4>카테고리 매트릭스</h4>'
+      + '<div class="sb-cat-grid">' + categoryCards + '</div>'
+      + '</article>'
+      + '</div>'
+      + '<div class="sb-insight-grid">'
+      + '<article class="sb-insight-box">'
       + '<h4>리스크 하위요인</h4>'
       + '<ul class="sb-insight-list">'
       + '<li>오행 불균형: ' + (parts.elementImbalance || 0) + '</li>'
@@ -1962,6 +2191,16 @@
       + '<li>월 변동성: ' + (parts.monthlyVolatility || 0) + '</li>'
       + '<li>조후 스트레스: ' + (parts.johuStress || 0) + '</li>'
       + '</ul>'
+      + '</article>'
+      + '<article class="sb-insight-box">'
+      + '<h4>퀀텀 오행 진단</h4>'
+      + '<ul class="sb-insight-list">'
+      + '<li>모드: ' + (quantum.mode || '억부+조후') + '</li>'
+      + '<li>조후 타입: ' + (quantum.johuType || 'neutral') + '</li>'
+      + '<li>유리 오행: ' + ((quantum.favorableElements || []).join(', ') || '데이터 부족') + '</li>'
+      + '<li>주의 오행: ' + ((quantum.cautionElements || []).join(', ') || '데이터 부족') + '</li>'
+      + '</ul>'
+      + '<div class="sb-quantum-chip-wrap">' + quantumRows + '</div>'
       + '</article>'
       + '</div>'
       + '<div class="sb-insight-grid sb-insight-grid--single">'
@@ -2117,9 +2356,33 @@
         monthlyWrap.innerHTML = _renderMonthlyRiskPanel(reportData.monthlyRiskPlan);
         chaptersEl.appendChild(monthlyWrap);
       }
+      if (Array.isArray(reportData.chapters) && reportData.chapters.length) {
+        var jumpNav = document.createElement('nav');
+        jumpNav.className = 'sb-chapter-jump';
+        jumpNav.innerHTML = reportData.chapters.map(function(ch, i) {
+          var shortTitle = String(ch.title || ('CH' + String(i + 1))).replace(/^CH\d+\s*[·-]\s*/, '');
+          return '<button type="button" class="sb-chapter-jump-btn" data-target="sbChapter_' + i + '">CH' + String(i + 1).padStart(2, '0') + ' · ' + shortTitle + '</button>';
+        }).join('');
+        chaptersEl.appendChild(jumpNav);
+
+        if (!chaptersEl.__sbJumpBound) {
+          chaptersEl.addEventListener('click', function(ev) {
+            var btn = ev.target && ev.target.closest ? ev.target.closest('.sb-chapter-jump-btn') : null;
+            if (!btn) return;
+            var targetId = btn.getAttribute('data-target');
+            if (!targetId) return;
+            var target = document.getElementById(targetId);
+            if (target && typeof target.scrollIntoView === 'function') {
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+          chaptersEl.__sbJumpBound = true;
+        }
+      }
       reportData.chapters.forEach(function(ch, i) {
         var div = document.createElement('div');
         div.className = 'sb-report-chapter';
+        div.id = 'sbChapter_' + i;
         div.innerHTML = '<div class="sb-chapter-header">'
           + '<span class="sb-chapter-num">CH.' + String(i+1).padStart(2,'0') + '</span>'
           + '<span class="sb-chapter-title">' + (ch.title || '') + '</span>'
