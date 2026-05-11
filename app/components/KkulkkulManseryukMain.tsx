@@ -374,6 +374,7 @@ function hasClientAuthSessionHint(): boolean {
   if (isAdminSessionClient()) return true;
   if (getUsableClientAuthToken()) return true;
   if (hasAuthRoleCookie()) return true;
+  if (hasCachedAuthIdentity()) return true;
   return false;
 }
 
@@ -507,6 +508,8 @@ export default function KkulkkulManseryukMain() {
   const [vedaFlowState, setVedaFlowState] = useState<VedaPaymentFlowState>("idle");
   const [vedaFlowError, setVedaFlowError] = useState("");
   const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({ ...EMPTY_UNLOCK_STATE });
+  const bootstrapBalanceSyncInFlight = useRef(false);
+  const bootstrapBalanceAbortRef = useRef<AbortController | null>(null);
   const rechargeModalVisible = showRechargeModal || (openPremSection === 'veda' && vedaFlowState === 'payment_required');
 
   const [perUseCount, setPerUseCount] = useState<Record<PerUseKey, number>>({
@@ -867,43 +870,69 @@ export default function KkulkkulManseryukMain() {
   }, []);
 
   useEffect(() => {
-    // 1) localStorage에서 즉시 표시
-    try {
-      const raw = localStorage.getItem('fortune_auth_user');
-      const user = raw ? JSON.parse(raw) : {};
-      const admin = isAdminSessionClient();
-      setIsAdminUser(admin);
-      if (typeof user?.points === 'number') {
-        setCurrentCoins(user.points);
-      }
-    } catch (_) {}
-    // 2) API로 실제 잔액 동기화
-    if (!hasClientAuthSessionHint() && !isAdminSessionClient()) return;
-    if (bootstrapBalanceSyncInFlight.current) return;
-    bootstrapBalanceSyncInFlight.current = true;
-    const authHeaders = buildClientAuthHeaders();
-    fetch('/api/fortune/pig-coin/balance', {
-      credentials: 'include',
-      cache: 'no-store',
-      headers: { ...authHeaders },
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.user?.points !== undefined) {
-          const pts = Number(d.user.points);
-          setCurrentCoins(pts);
-          saveUserPoints(pts);
+    const syncBalanceFromSession = () => {
+      try {
+        const raw = localStorage.getItem('fortune_auth_user');
+        const user = raw ? JSON.parse(raw) : {};
+        const admin = isAdminSessionClient();
+        setIsAdminUser(admin);
+        if (typeof user?.points === 'number') {
+          setCurrentCoins(user.points);
         }
-        const restored = buildUnlockStateFromPayload(d);
-        setUnlockedFeatures((prev) => ({
-          ...prev,
-          ...restored,
-        }));
+      } catch (_) {}
+
+      if (!hasClientAuthSessionHint() && !isAdminSessionClient()) return;
+      if (bootstrapBalanceSyncInFlight.current) return;
+
+      const controller = new AbortController();
+      bootstrapBalanceAbortRef.current?.abort();
+      bootstrapBalanceAbortRef.current = controller;
+      bootstrapBalanceSyncInFlight.current = true;
+
+      const authHeaders = buildClientAuthHeaders();
+      fetch('/api/fortune/pig-coin/balance', {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { ...authHeaders },
+        signal: controller.signal,
       })
-      .catch(() => {})
-      .finally(() => {
-        bootstrapBalanceSyncInFlight.current = false;
-      });
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.user?.points !== undefined) {
+            const pts = Number(d.user.points);
+            if (Number.isFinite(pts)) {
+              setCurrentCoins(pts);
+              saveUserPoints(pts);
+            }
+          }
+          const restored = buildUnlockStateFromPayload(d);
+          setUnlockedFeatures((prev) => ({
+            ...prev,
+            ...restored,
+          }));
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (bootstrapBalanceAbortRef.current === controller) {
+            bootstrapBalanceAbortRef.current = null;
+          }
+          bootstrapBalanceSyncInFlight.current = false;
+        });
+    };
+
+    syncBalanceFromSession();
+
+    const onAuthChanged = () => {
+      syncBalanceFromSession();
+    };
+    window.addEventListener('cd:auth-changed', onAuthChanged as EventListener);
+    window.addEventListener('storage', onAuthChanged);
+
+    return () => {
+      window.removeEventListener('cd:auth-changed', onAuthChanged as EventListener);
+      window.removeEventListener('storage', onAuthChanged);
+      bootstrapBalanceAbortRef.current?.abort();
+    };
   }, []);
 
   return (

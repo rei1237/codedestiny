@@ -6,6 +6,7 @@ const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 type RefreshSessionState = "success" | "invalid" | "transient";
 
 let refreshInFlight: Promise<RefreshSessionState> | null = null;
+let meRequestInFlight: Promise<Response> | null = null;
 
 function buildRefreshTransientResponse(originalStatus: number) {
   return new Response(
@@ -158,11 +159,18 @@ async function refreshSession(apiBase: string) {
   return refreshInFlight;
 }
 
-export async function authFetch(input: string, init: RequestInit = {}, options: { retryOn401?: boolean; apiBase?: string } = {}) {
-  const apiBase = String(options.apiBase || getApiBaseUrl() || "").trim();
-  const targetUrl = toAbsoluteApiUrl(input, apiBase);
-  const retryOn401 = options.retryOn401 !== false;
+function isMeRequest(url: string, init: RequestInit = {}) {
+  const method = String(init.method || "GET").trim().toUpperCase();
+  if (method !== "GET") return false;
+  try {
+    const parsed = new URL(url, "http://localhost");
+    return parsed.pathname === "/api/auth/me";
+  } catch {
+    return false;
+  }
+}
 
+async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string) {
   let request = buildAuthRequest(targetUrl, init);
   let response = await fetch(request.clone());
   if (
@@ -180,6 +188,25 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
   }
 
   return response;
+}
+
+export async function authFetch(input: string, init: RequestInit = {}, options: { retryOn401?: boolean; apiBase?: string } = {}) {
+  const apiBase = String(options.apiBase || getApiBaseUrl() || "").trim();
+  const targetUrl = toAbsoluteApiUrl(input, apiBase);
+  const retryOn401 = options.retryOn401 !== false;
+
+  if (isMeRequest(targetUrl, init)) {
+    if (!meRequestInFlight) {
+      meRequestInFlight = performAuthFetch(targetUrl, init, retryOn401, apiBase)
+        .finally(() => {
+          meRequestInFlight = null;
+        });
+    }
+    const sharedResponse = await meRequestInFlight;
+    return sharedResponse.clone();
+  }
+
+  return performAuthFetch(targetUrl, init, retryOn401, apiBase);
 }
 
 export async function logoutWithServer(apiBase?: string) {

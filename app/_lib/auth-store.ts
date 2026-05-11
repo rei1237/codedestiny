@@ -1,0 +1,454 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { getApiBaseUrl } from "./api-config";
+import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
+import { persistSanitizedAuthUser, readSanitizedAuthUser, type ClientAuthUser } from "./auth-storage";
+
+export type AuthUser = ClientAuthUser & {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  points?: number;
+};
+
+export type AuthState = {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  isLoggingIn: boolean;
+  authReady: boolean;
+  error: string | null;
+};
+
+type LoginCredentials = {
+  email: string;
+  password: string;
+  nextPath?: string;
+  apiBase?: string;
+};
+
+type LoginApiPayload = {
+  ok?: boolean;
+  message?: string;
+  code?: string;
+  error?: string;
+  nextPath?: string;
+  accessToken?: string;
+  user?: AuthUser;
+  errors?: string[];
+};
+
+const IS_DEV = process.env.NODE_ENV !== "production";
+
+const state: AuthState = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  isLoggingIn: false,
+  authReady: false,
+  error: null,
+};
+
+const subscribers = new Set<() => void>();
+let refreshInFlight: Promise<AuthUser | null> | null = null;
+let meRequestSeq = 0;
+let latestAppliedMeSeq = 0;
+
+function debugAuth(...args: unknown[]) {
+  if (!IS_DEV) return;
+  console.debug(...args);
+}
+
+function snapshot(): AuthState {
+  return { ...state };
+}
+
+function emitChange() {
+  subscribers.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      // ignore listener failures
+    }
+  });
+}
+
+function setState(partial: Partial<AuthState>) {
+  Object.assign(state, partial);
+  emitChange();
+}
+
+function publishAuthSync(event: "login" | "logout") {
+  if (typeof window === "undefined") return;
+  const payload = {
+    source: "auth-store",
+    event,
+    at: Date.now(),
+  };
+  try {
+    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+  } catch {
+    // best-effort
+  }
+  try {
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel("code-destiny-auth-sync");
+      channel.postMessage(payload);
+      channel.close();
+    }
+  } catch {
+    // best-effort
+  }
+}
+
+function resolveSafeUser(user: unknown): AuthUser | null {
+  const safe = persistSanitizedAuthUser(user) as AuthUser | null;
+  if (!safe) return null;
+  const role = String(safe.role || "user");
+  if (typeof document !== "undefined") {
+    document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
+  }
+  return safe;
+}
+
+function normalizeAuthApiError(payload: LoginApiPayload, fallbackMessage: string): string {
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+    return payload.errors.join(" ");
+  }
+
+  const code = String(payload.code || payload.error || "").trim().toUpperCase();
+  if (code === "EMAIL_ALREADY_REGISTERED" || code === "DUPLICATE_EMAIL") {
+    return "이미 가입된 이메일입니다. 로그인 페이지에서 로그인해 주세요.";
+  }
+  if (code === "INVALID_CREDENTIALS") {
+    return "이메일 또는 비밀번호를 다시 확인해 주세요.";
+  }
+
+  return payload.message || fallbackMessage;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const rawText = await response.text();
+  if (!rawText) return {} as T;
+
+  try {
+    return JSON.parse(rawText) as T;
+  } catch {
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
+    if (looksLikeHtml) {
+      throw new Error("서버가 JSON 대신 HTML을 반환했습니다. 배포/캐시 상태를 확인해 주세요.");
+    }
+    throw new Error("서버 응답 파싱 중 오류가 발생했습니다.");
+  }
+}
+
+function clearStaleGuestCache() {
+  if (typeof window === "undefined") return;
+  const staleKeys = [
+    "fortune_auth_user",
+    "fortune_profile_subscription",
+    "fortune_profile_subscription_owner",
+    "fortune_user_points",
+  ];
+  staleKeys.forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore storage failures
+    }
+  });
+}
+
+async function refreshCoinBalanceFromServer() {
+  const response = await authFetch("/api/fortune/pig-coin/balance", {
+    method: "GET",
+    cache: "no-store",
+  });
+  if (!response.ok) return;
+  const payload = (await response.json().catch(() => null)) as { user?: { points?: number } } | null;
+  const points = Number(payload?.user?.points);
+  if (!Number.isFinite(points)) return;
+
+  const base = readSanitizedAuthUser() as AuthUser | null;
+  const merged = {
+    ...(base || {}),
+    points,
+  };
+  resolveSafeUser(merged);
+  debugAuth("[auth] coin refreshed");
+}
+
+async function refreshProfileSubscriptionCache() {
+  const response = await authFetch("/api/fortune/pig-coin/profile-subscription/status", {
+    method: "GET",
+    cache: "no-store",
+  });
+  if (!response.ok) return;
+  const statusPayload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!statusPayload) return;
+
+  const base = (readSanitizedAuthUser() || {}) as Record<string, unknown>;
+  const merged = {
+    ...base,
+    profileSubscription: {
+      tier: String(statusPayload.tier || "free"),
+      isActive: !!statusPayload.isActive,
+      expiresAt: typeof statusPayload.expiresAt === "string" ? statusPayload.expiresAt : null,
+      profileLimit: Number.isFinite(Number(statusPayload.profileLimit)) ? Number(statusPayload.profileLimit) : undefined,
+    },
+  };
+  resolveSafeUser(merged);
+}
+
+async function refreshEntitlements() {
+  await authFetch("/api/billing/balance", {
+    method: "GET",
+    cache: "no-store",
+  });
+}
+
+export async function syncPostLoginData() {
+  await Promise.allSettled([
+    refreshCoinBalanceFromServer(),
+    refreshProfileSubscriptionCache(),
+    refreshEntitlements(),
+  ]);
+}
+
+function applyResolvedUser(user: AuthUser | null) {
+  if (!user) {
+    setState({
+      user: null,
+      isAuthenticated: false,
+    });
+    return;
+  }
+
+  setState({
+    user,
+    isAuthenticated: true,
+  });
+}
+
+function clearAuthStateHard() {
+  clearClientAuthState();
+  setState({
+    user: null,
+    isAuthenticated: false,
+  });
+}
+
+async function loadMeFromServer() {
+  const requestSeq = ++meRequestSeq;
+  const response = await authFetch("/api/auth/me", {
+    method: "GET",
+    cache: "no-store",
+  }, { retryOn401: true });
+
+  if (requestSeq < latestAppliedMeSeq) {
+    return state.user;
+  }
+
+  if (!response.ok) {
+    if ([401, 403].includes(response.status)) {
+      latestAppliedMeSeq = requestSeq;
+      clearAuthStateHard();
+      publishAuthSync("logout");
+      return null;
+    }
+    throw new Error("auth_refresh_failed");
+  }
+
+  const payload = (await response.json()) as { user?: AuthUser };
+  const user = resolveSafeUser(payload?.user) as AuthUser | null;
+  latestAppliedMeSeq = requestSeq;
+
+  if (!user) {
+    clearAuthStateHard();
+    publishAuthSync("logout");
+    return null;
+  }
+
+  applyResolvedUser(user);
+  return user;
+}
+
+export async function refreshAuth(options: { force?: boolean; silent?: boolean } = {}) {
+  const { force = false, silent = false } = options;
+  if (!force && refreshInFlight) return refreshInFlight;
+
+  if (!silent) {
+    setState({ isLoading: true });
+  }
+
+  refreshInFlight = (async () => {
+    try {
+      const user = await loadMeFromServer();
+      setState({
+        authReady: true,
+        isLoading: false,
+      });
+      if (user) {
+        setState({ error: null });
+      }
+      return user;
+    } catch (error) {
+      setState({
+        authReady: true,
+        isLoading: false,
+      });
+      throw error;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
+}
+
+export async function login(credentials: LoginCredentials) {
+  if (state.isLoggingIn) {
+    throw new Error("로그인이 이미 진행 중입니다. 잠시만 기다려 주세요.");
+  }
+
+  const apiBase = String(credentials.apiBase || getApiBaseUrl() || "").trim();
+  const email = String(credentials.email || "").trim();
+  const password = String(credentials.password || "");
+  const nextPath = String(credentials.nextPath || "/");
+
+  if (!email || password.length < 8) {
+    throw new Error("아이디(이메일)와 비밀번호를 확인해 주세요.");
+  }
+
+  setState({
+    isLoggingIn: true,
+    error: null,
+  });
+
+  clearStaleGuestCache();
+  debugAuth("[auth] login started");
+
+  try {
+    let response: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const nextResponse = await fetch(`${apiBase}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email,
+            password,
+            nextPath,
+          }),
+        });
+
+        if (nextResponse.status >= 500 && attempt < 2) {
+          await sleep(250 * (attempt + 1));
+          continue;
+        }
+
+        response = nextResponse;
+        break;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
+        if (attempt < 2) {
+          await sleep(250 * (attempt + 1));
+          continue;
+        }
+      }
+    }
+
+    if (!response) {
+      throw (lastError || new Error("로그인 처리 중 오류가 발생했습니다."));
+    }
+
+    const payload = await parseJsonResponse<LoginApiPayload>(response);
+    if (!response.ok) {
+      throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
+    }
+
+    if (payload.accessToken) {
+      try {
+        localStorage.setItem("fortune_auth_token", String(payload.accessToken));
+      } catch {
+        // ignore storage failures
+      }
+    }
+
+    debugAuth("[auth] login api success");
+    const meUser = await refreshAuth({ force: true });
+    if (!meUser) {
+      throw new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다.");
+    }
+    debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
+
+    await syncPostLoginData();
+    applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
+    debugAuth("[auth] auth store updated");
+    publishAuthSync("login");
+
+    setState({ error: null });
+    return {
+      user: state.user,
+      nextPath: String(payload.nextPath || nextPath || "/"),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "로그인 처리 중 오류가 발생했습니다.";
+    setState({ error: message });
+    throw error;
+  } finally {
+    setState({
+      isLoggingIn: false,
+      authReady: true,
+      isLoading: false,
+    });
+  }
+}
+
+export async function logout(apiBase?: string) {
+  await logoutWithServer(apiBase);
+  clearAuthStateHard();
+  publishAuthSync("logout");
+}
+
+export function clearAuthError() {
+  setState({ error: null });
+}
+
+export function setUser(user: AuthUser | null) {
+  const safeUser = user ? resolveSafeUser(user) : null;
+  applyResolvedUser(safeUser);
+}
+
+export function primeAuthFromCache() {
+  if (typeof window === "undefined") return;
+  const cached = readSanitizedAuthUser() as AuthUser | null;
+  if (cached) {
+    applyResolvedUser(cached);
+  }
+}
+
+export function subscribeAuth(listener: () => void) {
+  subscribers.add(listener);
+  return () => {
+    subscribers.delete(listener);
+  };
+}
+
+export function getAuthState() {
+  return snapshot();
+}
+
+export function useAuthStore() {
+  return useSyncExternalStore(subscribeAuth, getAuthState, getAuthState);
+}

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import { clearAuthError, login as loginWithStore } from "../_lib/auth-store";
+import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
 
 declare global {
   interface Window {
@@ -36,8 +37,6 @@ type LoginResult = {
 
 type SocialProvider = "google" | "naver" | "kakao";
 
-const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
-const LOCAL_AUTH_TIMEOUT_MS = 20000;
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 function authInfo(...args: unknown[]) {
@@ -74,65 +73,6 @@ function buildSocialStartUrl(
   return `${authApiBase}${buildSocialStartPath(provider, flow, nextPath)}`;
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = LOCAL_AUTH_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(input, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-function publishAuthSync(event: "login" | "logout") {
-  if (typeof window === "undefined") return;
-  const payload = {
-    source: "login",
-    event,
-    at: Date.now(),
-  };
-  try {
-    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-  } catch {
-    // ignore
-  }
-  try {
-    if (typeof BroadcastChannel !== "undefined") {
-      const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
-      channel.postMessage(payload);
-      channel.close();
-    }
-  } catch {
-    // ignore
-  }
-}
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const rawText = await response.text();
-  if (!rawText) return {} as T;
-
-  try {
-    return JSON.parse(rawText) as T;
-  } catch {
-    const contentType = (response.headers.get("content-type") || "").toLowerCase();
-    const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
-
-    if (looksLikeHtml) {
-      throw new Error("서버가 JSON 대신 HTML을 반환했습니다. 배포/캐시 상태를 확인해 주세요.");
-    }
-
-    throw new Error("서버 응답 파싱 중 오류가 발생했습니다.");
-  }
-}
-
 function normalizeSocialAuthError(rawReason: string | null): string {
   const reason = String(rawReason || "").trim().toLowerCase();
   if (!reason) return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
@@ -146,47 +86,20 @@ function normalizeSocialAuthError(rawReason: string | null): string {
   return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
-function normalizeAuthApiError(payload: LoginResult & { errors?: string[] }, fallbackMessage: string): string {
-  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
-    return payload.errors.join(" ");
-  }
-
-  const code = String(payload.code || payload.error || "").trim().toUpperCase();
-  if (code === "EMAIL_ALREADY_REGISTERED" || code === "DUPLICATE_EMAIL") {
-    return "이미 가입된 이메일입니다. 회원가입 대신 로그인해 주세요.";
-  }
-
-  return payload.message || fallbackMessage;
-}
-
 export default function LoginPage() {
   const router = useRouter();
 
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [oauthRedirecting, setOauthRedirecting] = useState<SocialProvider | null>(null);
   const [callbackProcessing] = useState(false);
+  const [loginStatus, setLoginStatus] = useState<LoginStatus>("idle");
+  const [portalMessage, setPortalMessage] = useState("");
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>("");
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
-
-  const persistAuth = (user?: LoginResult["user"], accessToken?: string) => {
-    if (accessToken) {
-      try {
-        localStorage.setItem("fortune_auth_token", String(accessToken));
-      } catch {
-        // ignore storage failures
-      }
-    }
-    if (user) {
-      const safeUser = persistSanitizedAuthUser(user);
-      const role = String((safeUser && safeUser.role) || user.role || "user");
-      document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
-      publishAuthSync("login");
-    }
-  };
 
   const redirectAfterAuth = useCallback((nextPath: string, user?: LoginResult["user"]) => {
     if (user?.role === "admin" && nextPath === "/") {
@@ -207,13 +120,21 @@ export default function LoginPage() {
     const oauthError = params.get("error") || params.get("social_error");
     if (oauthError) {
       setError(normalizeSocialAuthError(oauthError));
+      setLoginStatus("error");
       authWarn("[AUTH] oauth callback failed", oauthError);
     }
 
     if (params.get("social_grant")) {
       setError("소셜 로그인 콜백이 만료되었거나 경로가 올바르지 않습니다. 소셜 로그인을 다시 시도해 주세요.");
+      setLoginStatus("error");
     }
   }, []);
+
+  useEffect(() => {
+    if (loginStatus !== "error") return;
+    const timer = window.setTimeout(() => setLoginStatus("idle"), 1400);
+    return () => window.clearTimeout(timer);
+  }, [loginStatus]);
 
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -226,92 +147,36 @@ export default function LoginPage() {
     }
 
     setError("");
+    clearAuthError();
     setLoginSubmitting(true);
-    authInfo("[AUTH] email login submit");
+    setLoginStatus("loading");
+    setPortalMessage("당신의 운명 데이터를 안전하게 불러오고 있습니다.");
 
     try {
       const params = new URLSearchParams(window.location.search);
       const nextPath = resolveNextPathFromQuery(params);
+      const loginResult = await loginWithStore({
+        email: normalizedId,
+        password,
+        nextPath,
+        apiBase: authApiBase,
+      });
 
-      let response: Response | null = null;
-      let lastFetchError: Error | null = null;
-      const maxAttempts = 3;
-
-      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-        try {
-          const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              email: normalizedId,
-              password,
-              nextPath,
-            }),
-          });
-
-          if (nextResponse.status >= 500 && attempt < maxAttempts - 1) {
-            await sleep(250 * (attempt + 1));
-            continue;
-          }
-
-          response = nextResponse;
-          break;
-        } catch (error) {
-          lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt < maxAttempts - 1) {
-            await sleep(250 * (attempt + 1));
-            continue;
-          }
-        }
-      }
-
-      if (!response) {
-        throw (lastFetchError || new Error("로그인 처리 중 오류가 발생했습니다."));
-      }
-
-      const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
-      if (!response.ok) {
-        throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
-      }
-
-      let verifiedUser = payload.user;
-
-      // Fast path: most successful login responses already include a user payload.
-      // Only call /me when user is missing to avoid an extra network round trip.
-      if (!verifiedUser) {
-        const meResponse = await fetch(`${authApiBase}/api/auth/me`, {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        });
-
-        if (meResponse.ok) {
-          const mePayload = await parseJsonResponse<LoginResult>(meResponse);
-          if (mePayload?.user) {
-            verifiedUser = mePayload.user;
-          }
-        }
-      }
-
-      if (!verifiedUser) {
-        throw new Error("로그인 세션 검증에 실패했습니다. 다시 시도해 주세요.");
-      }
-
-      persistAuth(verifiedUser, payload.accessToken);
-      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
-      authInfo("[AUTH] email login success");
-      authInfo("[AUTH] redirect target", resolvedNextPath);
-
-      redirectAfterAuth(resolvedNextPath, verifiedUser);
+      setLoginStatus("success");
+      setPortalMessage("별빛 여정이 시작되었습니다.");
+      const resolvedNextPath = sanitizeNextPath(loginResult.nextPath || null) || nextPath;
+      if (IS_DEV) console.debug("[auth] redirect to home");
+      redirectAfterAuth(resolvedNextPath, loginResult.user as LoginResult["user"]);
     } catch (e) {
       const message = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
       authWarn("[AUTH] email login failed", message);
       if (message === "Failed to fetch") {
         setError("로그인 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.");
+        setLoginStatus("error");
         return;
       }
       setError(message);
+      setLoginStatus("error");
     } finally {
       setLoginSubmitting(false);
     }
@@ -322,8 +187,11 @@ export default function LoginPage() {
     if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
 
     setError("");
+  clearAuthError();
     setOauthRedirecting(provider);
-    authInfo("[AUTH] oauth redirect start");
+  setLoginStatus("loading");
+  setPortalMessage("우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
+  authInfo("[AUTH] oauth redirect start");
 
     try {
       sessionStorage.setItem("cd_oauth_intent", JSON.stringify({ provider, flow: "login", at: Date.now() }));
@@ -338,39 +206,12 @@ export default function LoginPage() {
     window.location.href = startUrl;
   };
 
-  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing;
+  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing || loginStatus === "success";
   const formDisabled = isBusy;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0b1225] via-[#1b1745] to-[#2f0a4f] px-4 py-10 text-slate-100">
-      {/* 코즈믹 로딩 오버레이 — API 처리 중 또는 리다이렉트 중 */}
-      {isBusy && (
-        <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #0b1225 0%, #1b1745 50%, #2f0a4f 100%)' }}>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:60px_60px] opacity-35" />
-          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute top-1/3 left-1/4 h-56 w-56 rounded-full bg-indigo-600/20 blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/3 right-1/4 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl animate-pulse" style={{ animationDelay: '0.9s' }} />
-          </div>
-          <div className="relative z-10 flex flex-col items-center gap-6">
-            <div className="relative h-20 w-20">
-              <div className="absolute inset-0 rounded-full border border-indigo-500/20" />
-              <div className="absolute inset-0 rounded-full border-t-2 border-indigo-400 animate-spin" />
-              <div className="absolute inset-[5px] rounded-full border-t-2 border-violet-400/70 animate-spin" style={{ animationDuration: '1.4s', animationDirection: 'reverse' }} />
-              <div className="absolute inset-0 flex items-center justify-center text-2xl text-indigo-300 animate-pulse">✶</div>
-            </div>
-            <div className="text-center">
-              <p className="text-base font-bold tracking-wide text-white">
-                {callbackProcessing
-                  ? '소셜 로그인 마무리 중입니다'
-                  : (oauthRedirecting
-                    ? '소셜 인증 페이지로 이동 중입니다'
-                    : '별빛 여정 중')}
-              </p>
-              <p className="mt-1 text-sm text-indigo-200/60">잠시만 기다려 주세요...</p>
-            </div>
-          </div>
-        </div>
-      )}
+      <StarlightLoginPortal status={loginStatus} message={portalMessage} error={error} />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:64px_64px] opacity-40 animate-twinkle" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(168,85,247,0.30),transparent_28%),radial-gradient(circle_at_15%_80%,rgba(99,102,241,0.22),transparent_33%)]" />
 

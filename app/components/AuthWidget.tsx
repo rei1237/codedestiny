@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { authFetch, clearClientAuthState, logoutWithServer } from "../_lib/auth-client";
-import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
+import { logout, primeAuthFromCache, refreshAuth, useAuthStore } from "../_lib/auth-store";
 
 type AuthUser = {
   id?: string;
@@ -19,73 +18,32 @@ type AuthUser = {
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 
-function readAuthUser(): AuthUser | null {
-  try {
-    return readSanitizedAuthUser() as AuthUser | null;
-  } catch {
-    return null;
-  }
-}
-
-function persistAuthUser(user: AuthUser) {
-  const safeUser = persistSanitizedAuthUser(user);
-  const role = String((safeUser && safeUser.role) || user.role || "user");
-  document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
-}
-
-function clearAuth() {
-  clearClientAuthState();
-}
-
-async function refreshCurrentUser(signal?: AbortSignal) {
-  const response = await authFetch("/api/auth/me", {
-    method: "GET",
-    cache: "no-store",
-    signal,
-  }, { retryOn401: true });
-
-  if (!response.ok) {
-    if ([401, 403, 404].includes(response.status)) {
-      clearAuth();
-      return null;
-    }
-    throw new Error("auth_refresh_failed");
-  }
-
-  const payload = (await response.json()) as { user?: AuthUser };
-  if (!payload.user?.id) {
-    clearAuth();
-    return null;
-  }
-
-  persistAuthUser(payload.user);
-  return payload.user;
-}
-
 export default function AuthWidget() {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const auth = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const user = (auth.user as AuthUser | null) || null;
 
   useEffect(() => {
     setMounted(true);
+    primeAuthFromCache();
+    refreshAuth({ silent: false }).catch(() => {
+      // best-effort bootstrap sync
+    });
 
-    const controller = new AbortController();
     const syncUser = () => {
-      const cachedUser = readAuthUser();
-      setUser(cachedUser);
-
-      refreshCurrentUser(controller.signal)
-        .then((nextUser) => setUser(nextUser))
-        .catch((error) => {
-          if (error instanceof DOMException && error.name === "AbortError") return;
-          setUser(readAuthUser());
-        });
+      refreshAuth({ silent: true }).catch(() => {
+        // transient failures should not break header rendering
+      });
     };
 
-    syncUser();
-
-    const onStorage = () => syncUser();
+    const onStorage = () => {
+      syncUser();
+    };
+    const onAuthChanged = () => {
+      syncUser();
+    };
     window.addEventListener("storage", onStorage);
+    window.addEventListener("cd:auth-changed", onAuthChanged as EventListener);
 
     let channel: BroadcastChannel | null = null;
     try {
@@ -98,15 +56,14 @@ export default function AuthWidget() {
     }
 
     return () => {
-      controller.abort();
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("cd:auth-changed", onAuthChanged as EventListener);
       channel?.close();
     };
   }, []);
 
   const handleLogout = async () => {
-    await logoutWithServer();
-    setUser(null);
+    await logout();
     window.location.assign("/");
   };
 
