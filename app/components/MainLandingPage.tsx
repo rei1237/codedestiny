@@ -231,6 +231,58 @@ export default function MainLandingPage() {
         <QuickServiceShortcuts />
       </section>
 
+      <section className="cd-main-shell !py-4 md:!py-5" aria-label="심리테스트 및 최애운명 추천">
+        <div className="rounded-[22px] border border-violet-300/30 bg-[linear-gradient(145deg,rgba(29,15,63,0.9),rgba(41,23,84,0.84))] p-4 shadow-[0_14px_32px_rgba(27,14,59,0.3)] md:p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-xl">🧩</span>
+            <h2 className="text-lg font-extrabold tracking-tight text-violet-50">심리테스트 다음 추천</h2>
+          </div>
+          <p className="mb-4 text-sm leading-6 text-violet-100/80">심리테스트를 먼저 진행하고, 바로 아래 최애운명으로 사주 기반 공명 분석까지 이어서 확인해보세요.</p>
+
+          <div className="space-y-3">
+            <Link
+              href="/psychotest"
+              className="block overflow-hidden rounded-[18px] border border-violet-200/30 bg-[linear-gradient(160deg,rgba(31,16,66,0.92),rgba(47,20,94,0.86))] shadow-[0_10px_24px_rgba(26,13,57,0.35)] transition hover:-translate-y-0.5 hover:border-violet-200/55"
+            >
+              <img
+                src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp"
+                alt="심리테스트 대표 이미지"
+                className="h-40 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <strong className="text-sm font-bold leading-6 text-violet-50">🧠 심리테스트</strong>
+                  <span className="inline-flex rounded-full border border-emerald-300/50 bg-emerald-500/18 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
+                </div>
+                <p className="text-xs leading-5 text-violet-100/85">성격 유형·관계 심리·감정 패턴 등 다양한 테마를 빠르게 확인할 수 있는 심리테스트 허브입니다.</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/saju/destiny-bias"
+              className="block overflow-hidden rounded-[18px] border border-amber-300/40 bg-[linear-gradient(160deg,rgba(44,20,54,0.9),rgba(24,34,64,0.88))] shadow-[0_10px_24px_rgba(44,19,38,0.35)] transition hover:-translate-y-0.5 hover:border-amber-200/60"
+            >
+              <img
+                src="/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"
+                alt="최애운명 대표 이미지"
+                className="h-40 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <strong className="text-sm font-bold leading-6 text-amber-50">✨ 최애운명</strong>
+                  <span className="inline-flex rounded-full border border-amber-300/55 bg-amber-500/25 px-2 py-0.5 text-[10px] font-semibold text-amber-50">1회 50코인</span>
+                </div>
+                <p className="text-xs leading-5 text-amber-50/90">내 사주와 최애의 공명 점수를 계산하고, 오늘의 덕질 액션 카드까지 받는 사주 기반 분석 서비스입니다.</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <LazySection className="cd-main-shell !py-4 md:!py-5" minHeight={220}>
         <DeferredPersonalizedServiceRecommendations profile={profile} recommendations={recommendations} />
       </LazySection>

@@ -3766,27 +3766,41 @@ function syRenderCanonicalDashboard(canonicalPayload) {
   var natalInfo = canonical.natalSukuyo || {};
   var phase = canonical.lunarPhase || {};
   var attrs = canonical.sukuyoAttributes || {};
+  var calcMeta = canonical.calculationMeta || {};
   var validation = canonical.validation || {};
 
   var mansionLabel = (natalInfo.nameKo || '미상') + '宿(' + (natalInfo.nameHan || '?') + ')';
   var lunarDate = birth.lunarDate || '미확인';
-  var indexText = natalInfo.index == null ? '미확인' : String(natalInfo.index + 1) + '번째 별자리';
+  var indexText = natalInfo.index == null ? '미확인' : String(natalInfo.index);
   var directionText = natalInfo.direction || '미확인';
   var elementText = natalInfo.element || '미확인';
   var phaseLabel = phase.phaseName || '미확인';
   var illum = phase.illumination == null ? '미확인' : String(phase.illumination) + '%';
   var angle = phase.elongationAngle == null ? '미확인' : String(phase.elongationAngle) + '도';
+  var waxing = phase.waxingOrWaning || '미확인';
+  var phaseCycle = phase.cycle || '미확인';
+  var yinYangFlow = phase.yinYangFlow || '미확인';
+  var interpretationKey = phase.interpretationKey || '미확인';
+  var calcSource = calcMeta.calendarSource || canonical.calendarSource || '미확인';
+  var methodVersion = calcMeta.methodVersion || canonical.methodVersion || '미확인';
 
   var relationshipRhythm = syCanonicalList(attrs.relationshipStyle, '관계 리듬 정보 없음');
   var careerRhythm = syCanonicalList(attrs.careerStyle, '커리어 리듬 정보 없음');
   var wealthRhythm = syCanonicalList(attrs.wealthStyle, '재물 리듬 정보 없음');
   var recoveryRhythm = syCanonicalList(attrs.recoveryPattern, '회복 리듬 정보 없음');
   var temperament = syCanonicalList(attrs.temperament, '기질 정보 없음');
+  var keywords = syCanonicalList(natalInfo.keywords, '핵심 키워드 정보 없음');
 
   var renderTagList = function (items) {
     return items.map(function (item) {
       return '<span class="sy-canon-chip">' + syCanonicalEsc(item) + '</span>';
     }).join('');
+  };
+
+  var renderBulletList = function (items) {
+    return '<ul class="sy-canon-list">' + items.map(function (item) {
+      return '<li>' + syCanonicalEsc(item) + '</li>';
+    }).join('') + '</ul>';
   };
 
   var validationMsg = '';
@@ -3797,31 +3811,37 @@ function syRenderCanonicalDashboard(canonicalPayload) {
   return ''
     + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard">'
     + '<div class="sy-canon-hero">'
-    + '<div class="sy-canon-overline">MOONLIGHT SUKUYO</div>'
-    + '<h4>🌕 달의 별 운세 핵심 지도</h4>'
-    + '<p>당신의 별자리 좌표와 달빛 흐름을 한 화면에서 간결하게 읽어보세요.</p>'
+    + '<div class="sy-canon-overline">MAIN SUKUYO · CANONICAL</div>'
+    + '<h4>🌕 기본 숙요점 핵심 대시보드</h4>'
+    + '<div class="sy-canon-hero-row">'
+    + '<span class="sy-canon-pill">본명숙 ' + syCanonicalEsc(mansionLabel) + '</span>'
+    + '<span class="sy-canon-pill">27수 INDEX ' + syCanonicalEsc(indexText) + '</span>'
+    + '<span class="sy-canon-pill">월상 ' + syCanonicalEsc(phaseLabel) + '</span>'
+    + '</div>'
     + '</div>'
     + validationMsg
     + '<div class="sy-canon-tabs">'
-    + '<button type="button" class="sy-canon-tab active" data-sycanon="overview">별자리 좌표</button>'
-    + '<button type="button" class="sy-canon-tab" data-sycanon="rhythm">관계·일·재물·회복</button>'
+    + '<button type="button" class="sy-canon-tab active" data-sycanon="overview">핵심 좌표</button>'
+    + '<button type="button" class="sy-canon-tab" data-sycanon="rhythm">관계·커리어·재물·회복</button>'
     + '<button type="button" class="sy-canon-tab" data-sycanon="moon">달 리듬</button>'
     + '</div>'
     + '<div class="sy-canon-panel active" data-sycanon-panel="overview">'
     + '<div class="sy-canon-grid">'
     + '<div class="sy-canon-kv"><span>본명숙</span><strong>' + syCanonicalEsc(mansionLabel) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>별자리 위치</span><strong>' + syCanonicalEsc(indexText) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>27수 INDEX</span><strong>' + syCanonicalEsc(indexText) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>음력 생일</span><strong>' + syCanonicalEsc(lunarDate) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>방향 / 속성</span><strong>' + syCanonicalEsc(directionText + ' / ' + elementText) + '</strong></div>'
     + '</div>'
     + '<div class="sy-canon-chip-row">' + renderTagList(temperament) + '</div>'
+    + '<div class="sy-canon-chip-row">' + renderTagList(keywords) + '</div>'
+    + '<p class="sy-canon-footnote">계산 소스: ' + syCanonicalEsc(calcSource) + ' · 버전: ' + syCanonicalEsc(methodVersion) + '</p>'
     + '</div>'
     + '<div class="sy-canon-panel" data-sycanon-panel="rhythm">'
     + '<div class="sy-canon-rhythm-grid">'
-    + '<article><h5>관계 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(relationshipRhythm) + '</div></article>'
-    + '<article><h5>커리어 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(careerRhythm) + '</div></article>'
-    + '<article><h5>재물 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(wealthRhythm) + '</div></article>'
-    + '<article><h5>회복 리듬</h5><div class="sy-canon-chip-row">' + renderTagList(recoveryRhythm) + '</div></article>'
+    + '<article><h5>관계 리듬</h5>' + renderBulletList(relationshipRhythm) + '</article>'
+    + '<article><h5>커리어 리듬</h5>' + renderBulletList(careerRhythm) + '</article>'
+    + '<article><h5>재물 리듬</h5>' + renderBulletList(wealthRhythm) + '</article>'
+    + '<article><h5>회복 리듬</h5>' + renderBulletList(recoveryRhythm) + '</article>'
     + '</div>'
     + '</div>'
     + '<div class="sy-canon-panel" data-sycanon-panel="moon">'
@@ -3829,7 +3849,10 @@ function syRenderCanonicalDashboard(canonicalPayload) {
     + '<div class="sy-canon-kv"><span>월상</span><strong>' + syCanonicalEsc(phaseLabel) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>조도</span><strong>' + syCanonicalEsc(illum) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>삭망각</span><strong>' + syCanonicalEsc(angle) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>월상 흐름</span><strong>' + syCanonicalEsc(phase.waxingOrWaning || '미확인') + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>월상 흐름</span><strong>' + syCanonicalEsc(waxing) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>주기 해석</span><strong>' + syCanonicalEsc(phaseCycle) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>음양 흐름</span><strong>' + syCanonicalEsc(yinYangFlow) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>운용 키</span><strong>' + syCanonicalEsc(interpretationKey) + '</strong></div>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -3928,6 +3951,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-overline { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:#fde68a; margin-bottom:4px; }
         .sy-canon-hero h4 { margin:0 0 6px 0; color:#fef3c7; font-size:1.05rem; }
         .sy-canon-hero p { margin:0; color:#d8d0ee; font-size:0.88rem; line-height:1.7; }
+        .sy-canon-hero-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .sy-canon-pill { display:inline-flex; align-items:center; border-radius:999px; border:1px solid rgba(251,191,36,0.4); background:rgba(120,53,15,0.32); color:#fde68a; font-size:0.72rem; font-weight:700; padding:4px 10px; }
         .sy-canon-validation { margin-bottom:10px; font-size:0.78rem; color:#fca5a5; background:rgba(127,29,29,0.25); border:1px solid rgba(252,165,165,0.4); border-radius:8px; padding:8px 10px; }
         .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
         .sy-canon-tab { padding:7px 12px; border-radius:999px; border:1px solid rgba(251,191,36,0.35); background:rgba(251,191,36,0.1); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:38px; }
@@ -3940,9 +3965,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-kv strong { color:#f8fafc; font-size:0.92rem; line-height:1.45; }
         .sy-canon-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
         .sy-canon-chip { display:inline-flex; align-items:center; border-radius:999px; padding:4px 10px; font-size:0.74rem; color:#e2e8f0; background:rgba(15,23,42,0.75); border:1px solid rgba(148,163,184,0.3); }
+        .sy-canon-footnote { margin:10px 0 0; color:#cbd5e1; font-size:0.76rem; line-height:1.6; }
         .sy-canon-rhythm-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
         .sy-canon-rhythm-grid article { border:1px solid rgba(167,139,250,0.32); background:rgba(76,29,149,0.16); border-radius:10px; padding:10px; }
         .sy-canon-rhythm-grid h5 { margin:0; font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:#c4b5fd; }
+        .sy-canon-list { margin:8px 0 0; padding-left:16px; }
+        .sy-canon-list li { margin:0 0 4px; color:#e2e8f0; font-size:0.82rem; line-height:1.55; }
         .sy-hero-card { border-left-color:#f9a8d4; background:linear-gradient(145deg, rgba(60,26,68,0.94) 0%, rgba(24,25,46,0.95) 55%, rgba(17,30,52,0.96) 100%); }
         .sy-hero-title { margin:0 0 8px 0; font-size:1.22rem; line-height:1.35; color:#fde68a; text-shadow:0 0 18px rgba(251,191,36,0.18); }
         .sy-hero-sub { margin:0; color:#e9d5ff; font-size:0.9rem; line-height:1.8; }
