@@ -100,7 +100,11 @@ function isAllowedOrigin(origin, env) {
 
 function getCorsHeaders(request, env) {
   const origin = request.headers.get("Origin") || "";
-  const allowOrigin = isAllowedOrigin(origin, env) ? (origin || "*") : "https://code-destiny.com";
+  const fallbackOrigin = normalizeOrigin(env.AUTH_FRONTEND_BASE_URL)
+    || normalizeOrigin(env.SITE_BASE_URL)
+    || normalizeOrigin(env.AUTH_URL)
+    || "https://code-destiny.com";
+  const allowOrigin = origin && isAllowedOrigin(origin, env) ? origin : fallbackOrigin;
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,
@@ -453,6 +457,18 @@ export default {
 
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
+      }
+
+      // Legacy compatibility: singular payment namespace.
+      if (url.pathname === "/api/payment" || url.pathname.startsWith("/api/payment/")) {
+        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/payment", "/api/payments"));
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
+      // Legacy compatibility: checkout namespace mapped to payments handlers.
+      if (url.pathname === "/api/checkout" || url.pathname.startsWith("/api/checkout/")) {
+        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/checkout", "/api/payments"));
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
       }
 
       if (url.pathname === "/api/points/me") {

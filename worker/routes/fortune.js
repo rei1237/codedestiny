@@ -465,9 +465,13 @@ async function verifyFlowerAdminToken(token, env) {
 async function resolvePigCoinConsumeAuth(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
-  } catch (_) {
-    auth = null;
+    auth = await requireUserFromRequest(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      auth = null;
+    } else {
+      throw error;
+    }
   }
 
   const adminToken = extractAdminTokenFromRequest(request);
@@ -799,7 +803,12 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
   const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
-  const requestId = String(body?.requestId || "").trim().slice(0, 120);
+  const requestId = String(
+    body?.requestId
+      || request.headers.get("idempotency-key")
+      || request.headers.get("x-idempotency-key")
+      || "",
+  ).trim().slice(0, 120);
   const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
   const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
   const forceDeductApplied = Boolean(forceDeduct && unlockKeysToPersist.length > 0);

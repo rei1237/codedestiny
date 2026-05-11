@@ -21,6 +21,12 @@ const paymentSchema = new mongoose.Schema({
     index: true,
     trim: true,
   },
+  idempotencyKey: {
+    type: String,
+    trim: true,
+    default: "",
+    index: true,
+  },
   paymentAmount: {
     type: Number,
     required: true,
@@ -98,5 +104,14 @@ const paymentSchema = new mongoose.Schema({
 });
 
 paymentSchema.index({ userId: 1, createdAt: -1 });
+paymentSchema.index(
+  { userId: 1, idempotencyKey: 1, paymentType: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      idempotencyKey: { $exists: true, $type: "string", $gt: "" },
+    },
+  },
+);
 
 module.exports = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);

@@ -1,0 +1,196 @@
+/**
+ * @jest-environment node
+ */
+
+let testUtils;
+let Payment;
+let User;
+
+let originalPaymentFindOne;
+let originalPaymentCreate;
+let originalUserFindById;
+
+function mockPaymentFindOne(result) {
+  const lean = jest.fn().mockResolvedValue(result);
+  const sort = jest.fn().mockReturnValue({ lean });
+  Payment.findOne = jest.fn().mockReturnValue({ sort });
+  return { lean, sort };
+}
+
+function mockUserFindById(result) {
+  const lean = jest.fn().mockResolvedValue(result);
+  const select = jest.fn().mockReturnValue({ lean });
+  User.findById = jest.fn().mockReturnValue({ select });
+  return { lean, select };
+}
+
+async function readResponse(response) {
+  const payload = await response.json();
+  return { status: response.status, payload };
+}
+
+beforeAll(async () => {
+  const paymentsMod = await import("../../worker/routes/payments.js");
+  const modelsMod = await import("../../worker/lib/models.js");
+
+  testUtils = paymentsMod.__paymentsTestUtils;
+  Payment = modelsMod.Payment;
+  User = modelsMod.User;
+
+  originalPaymentFindOne = Payment.findOne;
+  originalPaymentCreate = Payment.create;
+  originalUserFindById = User.findById;
+});
+
+afterEach(() => {
+  Payment.findOne = originalPaymentFindOne;
+  Payment.create = originalPaymentCreate;
+  User.findById = originalUserFindById;
+});
+
+describe("Payments prepare idempotency", () => {
+  const auth = { userId: "64f0a1b2c3d4e5f678901234" };
+
+  test("point prepare: 동일 idempotency key + 동일 payload는 idempotent=true를 반환해야 한다", async () => {
+    mockPaymentFindOne({
+      merchantUid: "md_existing_001",
+      paymentAmount: 3300,
+      expectedChargedPoints: 30,
+    });
+    Payment.create = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "idem-point-001",
+      },
+      body: JSON.stringify({ paymentAmount: 3300, chargePoints: 30 }),
+    });
+
+    const response = await testUtils.handlePrepare(req, {}, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload.idempotent).toBe(true);
+    expect(payload.order.merchantUid).toBe("md_existing_001");
+    expect(payload.order.paymentAmount).toBe(3300);
+    expect(payload.order.chargePoints).toBe(30);
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
+
+  test("point prepare: 동일 idempotency key + 상이 payload는 409 IDEMPOTENCY_CONFLICT여야 한다", async () => {
+    mockPaymentFindOne({
+      merchantUid: "md_existing_002",
+      paymentAmount: 3300,
+      expectedChargedPoints: 30,
+    });
+    Payment.create = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-idempotency-key": "idem-point-002",
+      },
+      body: JSON.stringify({ paymentAmount: 9900, chargePoints: 115 }),
+    });
+
+    const response = await testUtils.handlePrepare(req, {}, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(409);
+    expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
+
+  test("point prepare: create race duplicate key(11000)에서도 동일 payload면 idempotent=true여야 한다", async () => {
+    const lean = jest
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        merchantUid: "md_existing_003",
+        paymentAmount: 3300,
+        expectedChargedPoints: 30,
+      });
+    const sort = jest.fn().mockReturnValue({ lean });
+    Payment.findOne = jest.fn().mockReturnValue({ sort });
+    Payment.create = jest.fn().mockRejectedValue({ code: 11000 });
+
+    const req = new Request("https://example.com/api/payments/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "idem-point-003",
+      },
+      body: JSON.stringify({ paymentAmount: 3300, chargePoints: 30 }),
+    });
+
+    const response = await testUtils.handlePrepare(req, {}, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload.idempotent).toBe(true);
+    expect(payload.order.merchantUid).toBe("md_existing_003");
+    expect(Payment.create).toHaveBeenCalledTimes(1);
+    expect(Payment.findOne).toHaveBeenCalledTimes(2);
+  });
+
+  test("subscription prepare: 동일 idempotency key + 동일 plan이면 idempotent=true를 반환해야 한다", async () => {
+    mockUserFindById({
+      profileSubscription: { tier: "free", expiresAt: null },
+    });
+    mockPaymentFindOne({
+      merchantUid: "sub_existing_001",
+      paymentAmount: 9900,
+      subscriptionTier: "standard",
+    });
+    Payment.create = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/subscription/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "idem-sub-001",
+      },
+      body: JSON.stringify({ tier: "standard", paymentMethod: "card_general" }),
+    });
+
+    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload.idempotent).toBe(true);
+    expect(payload.order.merchantUid).toBe("sub_existing_001");
+    expect(payload.order.paymentAmount).toBe(9900);
+    expect(payload.order.tier).toBe("standard");
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
+
+  test("subscription prepare: 동일 idempotency key + 상이 plan이면 409 IDEMPOTENCY_CONFLICT여야 한다", async () => {
+    mockUserFindById({
+      profileSubscription: { tier: "free", expiresAt: null },
+    });
+    mockPaymentFindOne({
+      merchantUid: "sub_existing_002",
+      paymentAmount: 29900,
+      subscriptionTier: "premium",
+    });
+    Payment.create = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/subscription/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ tier: "standard", idempotencyKey: "idem-sub-002", paymentMethod: "card_general" }),
+    });
+
+    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(409);
+    expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
+});

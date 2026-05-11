@@ -18,6 +18,21 @@ function normalizePaymentMethod(value) {
   return method ? method.slice(0, 32) : "unknown";
 }
 
+function normalizeIdempotencyKey(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized) return "";
+  return normalized.slice(0, 120);
+}
+
+function resolveIdempotencyKey(request, body) {
+  return normalizeIdempotencyKey(
+    body?.idempotencyKey
+      || request.headers.get("idempotency-key")
+      || request.headers.get("x-idempotency-key")
+      || "",
+  );
+}
+
 function buildMerchantUid(userId) {
   const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
   const randomTag = Math.random().toString(36).slice(2, 8);
@@ -845,23 +860,89 @@ async function handlePrepare(request, env, auth) {
   const paymentMethod = normalizePaymentMethod(body?.paymentMethod);
   const rawProductName = String(body?.productName || `${chargedPoints.toLocaleString("ko-KR")} point charge`).trim();
   const productName = rawProductName.slice(0, 80) || `${chargedPoints.toLocaleString("ko-KR")} point charge`;
+  const idempotencyKey = resolveIdempotencyKey(request, body);
+
+  if (idempotencyKey) {
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      idempotencyKey,
+      paymentType: "point_charge",
+    }).sort({ createdAt: -1 }).lean();
+
+    if (existing) {
+      const existingAmount = Number(existing.paymentAmount || 0);
+      const existingPoints = Number(existing.expectedChargedPoints || 0);
+      if (existingAmount !== paymentAmount || existingPoints !== chargedPoints) {
+        return json({
+          message: "Idempotency key conflict. Request payload does not match existing payment preparation.",
+          code: "IDEMPOTENCY_CONFLICT",
+        }, { status: 409 });
+      }
+
+      return json({
+        message: "Payment preparation already completed.",
+        idempotent: true,
+        order: {
+          merchantUid: String(existing.merchantUid || ""),
+          paymentAmount: existingAmount,
+          chargePoints: existingPoints,
+          productName,
+        },
+      });
+    }
+  }
+
   const merchantUid = buildMerchantUid(auth.userId);
 
-  await Payment.create({
-    userId: auth.userId,
-    merchantUid,
-    paymentAmount,
-    expectedChargedPoints: chargedPoints,
-    chargedPoints: 0,
-    paymentMethod,
-    status: "pending",
-    source: "prepare",
-    paymentType: "point_charge",
-    subscriptionTier: "",
-  });
+  try {
+    await Payment.create({
+      userId: auth.userId,
+      merchantUid,
+      idempotencyKey,
+      paymentAmount,
+      expectedChargedPoints: chargedPoints,
+      chargedPoints: 0,
+      paymentMethod,
+      status: "pending",
+      source: "prepare",
+      paymentType: "point_charge",
+      subscriptionTier: "",
+    });
+  } catch (error) {
+    if (Number(error?.code) !== 11000 || !idempotencyKey) throw error;
+
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      idempotencyKey,
+      paymentType: "point_charge",
+    }).sort({ createdAt: -1 }).lean();
+
+    if (!existing) throw error;
+
+    const existingAmount = Number(existing.paymentAmount || 0);
+    const existingPoints = Number(existing.expectedChargedPoints || 0);
+    if (existingAmount !== paymentAmount || existingPoints !== chargedPoints) {
+      return json({
+        message: "Idempotency key conflict. Request payload does not match existing payment preparation.",
+        code: "IDEMPOTENCY_CONFLICT",
+      }, { status: 409 });
+    }
+
+    return json({
+      message: "Payment preparation already completed.",
+      idempotent: true,
+      order: {
+        merchantUid: String(existing.merchantUid || ""),
+        paymentAmount: existingAmount,
+        chargePoints: existingPoints,
+        productName,
+      },
+    });
+  }
 
   return json({
     message: "Payment preparation completed.",
+    idempotent: false,
     order: {
       merchantUid,
       paymentAmount,
@@ -892,24 +973,95 @@ async function handleSubscriptionPrepare(request, auth) {
     }, { status: 409 });
   }
 
+  const idempotencyKey = resolveIdempotencyKey(request, body);
+  if (idempotencyKey) {
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      idempotencyKey,
+      paymentType: "subscription_initial",
+    }).sort({ createdAt: -1 }).lean();
+
+    if (existing) {
+      const existingAmount = Number(existing.paymentAmount || 0);
+      const existingTier = String(existing.subscriptionTier || "").trim().toLowerCase();
+      if (existingAmount !== plan.wonPrice || existingTier !== tier) {
+        return json({
+          message: "Idempotency key conflict. Request payload does not match existing subscription preparation.",
+          code: "IDEMPOTENCY_CONFLICT",
+        }, { status: 409 });
+      }
+
+      return json({
+        message: "Subscription payment preparation already completed.",
+        idempotent: true,
+        order: {
+          merchantUid: String(existing.merchantUid || ""),
+          customerUid: buildSubscriptionCustomerUid(auth.userId),
+          tier,
+          paymentAmount: existingAmount,
+          productName: `${plan.name} 정기결제`,
+          profileLimit: plan.profileLimit,
+          durationDays: plan.durationDays,
+        },
+      });
+    }
+  }
+
   const merchantUid = buildSubscriptionMerchantUid(auth.userId, tier);
   const customerUid = buildSubscriptionCustomerUid(auth.userId);
 
-  await Payment.create({
-    userId: auth.userId,
-    merchantUid,
-    paymentAmount: plan.wonPrice,
-    expectedChargedPoints: 0,
-    chargedPoints: 0,
-    paymentMethod,
-    status: "pending",
-    source: "prepare",
-    paymentType: "subscription_initial",
-    subscriptionTier: tier,
-  });
+  try {
+    await Payment.create({
+      userId: auth.userId,
+      merchantUid,
+      idempotencyKey,
+      paymentAmount: plan.wonPrice,
+      expectedChargedPoints: 0,
+      chargedPoints: 0,
+      paymentMethod,
+      status: "pending",
+      source: "prepare",
+      paymentType: "subscription_initial",
+      subscriptionTier: tier,
+    });
+  } catch (error) {
+    if (Number(error?.code) !== 11000 || !idempotencyKey) throw error;
+
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      idempotencyKey,
+      paymentType: "subscription_initial",
+    }).sort({ createdAt: -1 }).lean();
+
+    if (!existing) throw error;
+
+    const existingAmount = Number(existing.paymentAmount || 0);
+    const existingTier = String(existing.subscriptionTier || "").trim().toLowerCase();
+    if (existingAmount !== plan.wonPrice || existingTier !== tier) {
+      return json({
+        message: "Idempotency key conflict. Request payload does not match existing subscription preparation.",
+        code: "IDEMPOTENCY_CONFLICT",
+      }, { status: 409 });
+    }
+
+    return json({
+      message: "Subscription payment preparation already completed.",
+      idempotent: true,
+      order: {
+        merchantUid: String(existing.merchantUid || ""),
+        customerUid,
+        tier,
+        paymentAmount: existingAmount,
+        productName: `${plan.name} 정기결제`,
+        profileLimit: plan.profileLimit,
+        durationDays: plan.durationDays,
+      },
+    });
+  }
 
   return json({
     message: "Subscription payment preparation completed.",
+    idempotent: false,
     order: {
       merchantUid,
       customerUid,
@@ -1692,3 +1844,10 @@ export async function handlePaymentRoutes(request, env) {
     return handleRouteError(error, { request, env, trace });
   }
 }
+
+export const __paymentsTestUtils = {
+  handlePrepare,
+  handleSubscriptionPrepare,
+  resolveIdempotencyKey,
+  normalizeIdempotencyKey,
+};

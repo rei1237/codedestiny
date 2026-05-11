@@ -1,0 +1,66 @@
+name: Paid Flow Gates
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - "__tests__/worker/**"
+      - "index.html"
+      - "public/index.html"
+      - "public/en/index.html"
+      - "public/ja/index.html"
+      - "public/zh/index.html"
+      - "public/static/index.html"
+      - "scripts/verify-runtime-cache-sync.mjs"
+      - "package.json"
+      - ".github/workflows/paid-flow-gates.yml"
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - "__tests__/worker/**"
+      - "index.html"
+      - "public/index.html"
+      - "public/en/index.html"
+      - "public/ja/index.html"
+      - "public/zh/index.html"
+      - "public/static/index.html"
+      - "scripts/verify-runtime-cache-sync.mjs"
+      - "package.json"
+      - ".github/workflows/paid-flow-gates.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  paid-flow-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify runtime cache sync
+        run: npm run verify:runtime-cache-sync
+
+      - name: Run paid flow regression gates
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+        run: >-
+          npx jest
+          __tests__/worker/auth.require-auth.fallback.test.js
+          __tests__/worker/coin-access.guard.test.js
+          __tests__/worker/paid-feature-registry.integrity.test.js
+          __tests__/worker/paid-feature-registry.legacy-65de451.test.js
+          __tests__/worker/payments.prepare-idempotency.test.js
+          --runInBand

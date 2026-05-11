@@ -432,12 +432,56 @@ function getAuthToken() {
   return localStorage.getItem('fortune_auth_token') || null;
 }
 
-async function syncPigCoinBalance() {
+function buildAuthHeaders(baseHeaders) {
+  const headers = new Headers(baseHeaders || {});
   const token = getAuthToken();
-  if (!token) return;
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', 'Bearer ' + token);
+  }
+  return headers;
+}
+
+async function refreshAuthSessionOnce() {
   try {
-    const res = await fetch('/api/fortune/pig-coin/balance', {
-      headers: { 'Authorization': 'Bearer ' + token }
+    const refreshRes = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!refreshRes.ok) return false;
+    const payload = await refreshRes.json().catch(() => null);
+    const accessToken = String((payload && payload.accessToken) || '').trim();
+    if (accessToken) {
+      try { localStorage.setItem('fortune_auth_token', accessToken); } catch (e) {}
+    }
+    return !!(payload && payload.ok);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function authFetchWithRefresh(url, init) {
+  const requestInit = Object.assign({}, init || {});
+  requestInit.headers = buildAuthHeaders(requestInit.headers);
+  requestInit.credentials = 'include';
+  if (!requestInit.cache) requestInit.cache = 'no-store';
+
+  let response = await fetch(url, requestInit);
+  if (response.status === 401) {
+    const refreshed = await refreshAuthSessionOnce();
+    if (refreshed) {
+      const retryInit = Object.assign({}, requestInit);
+      retryInit.headers = buildAuthHeaders(requestInit.headers);
+      response = await fetch(url, retryInit);
+    }
+  }
+  return response;
+}
+
+async function syncPigCoinBalance() {
+  try {
+    const res = await authFetchWithRefresh('/api/fortune/pig-coin/balance', {
+      method: 'GET',
     });
     if (!res.ok) return;
     const d = await res.json();
@@ -449,12 +493,10 @@ async function syncPigCoinBalance() {
 }
 
 async function earnCheckinCoinsServer() {
-  const token = getAuthToken();
-  if (!token) return false;
   try {
-    const res = await fetch('/api/fortune/pig-coin/earn', {
+    const res = await authFetchWithRefresh('/api/fortune/pig-coin/earn', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason: '포춘텔러 피쉬 일일 출석' })
     });
     const d = await res.json();
@@ -787,14 +829,14 @@ async function doGachaRoll() {
     return;
   }
 
-  const token = getAuthToken();
-  if (token && STATE.serverCoins !== null && STATE.serverCoins >= GACHA_COST) {
+  if (STATE.serverCoins !== null && STATE.serverCoins >= GACHA_COST) {
     // 서버(꽃돼지) 코인 차감
     try {
-      const res = await fetch('/api/fortune/pig-coin/consume', {
+      const requestId = 'fortune-fish-gacha:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 10);
+      const res = await authFetchWithRefresh('/api/fortune/pig-coin/consume', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ cost: GACHA_COST, reason: '포춘텔러 피쉬 행운 가챠', featureKey: 'fortune-fish-gacha' })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cost: GACHA_COST, reason: '포춘텔러 피쉬 행운 가챠', featureKey: 'fortune-fish-gacha', requestId })
       });
       const d = await res.json();
       if (!d.ok) { showToast(d.message || '코인 차감 실패'); return; }

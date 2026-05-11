@@ -263,14 +263,16 @@ function setAuthCookies(req, res, accessToken, refreshToken) {
   const accessMaxAgeSec = parseDurationToSeconds(getAccessTokenExpiresIn(), 30 * 60);
   const refreshMaxAgeSec = parseDurationToSeconds(getRefreshTokenExpiresIn(), 14 * 24 * 60 * 60);
   res.cookie(ACCESS_COOKIE_NAME, accessToken, buildCookieOptions(req, accessMaxAgeSec, "/"));
-  res.cookie(REFRESH_COOKIE_NAME, refreshToken, buildCookieOptions(req, refreshMaxAgeSec, "/api/auth/refresh"));
+  res.cookie(REFRESH_COOKIE_NAME, refreshToken, buildCookieOptions(req, refreshMaxAgeSec, "/"));
 }
 
 function clearAuthCookies(req, res) {
   const accessClear = buildCookieOptions(req, 0, "/");
-  const refreshClear = buildCookieOptions(req, 0, "/api/auth/refresh");
+  const refreshClear = buildCookieOptions(req, 0, "/");
+  const refreshLegacyClear = buildCookieOptions(req, 0, "/api/auth/refresh");
   res.cookie(ACCESS_COOKIE_NAME, "", accessClear);
   res.cookie(REFRESH_COOKIE_NAME, "", refreshClear);
+  res.cookie(REFRESH_COOKIE_NAME, "", refreshLegacyClear);
   res.clearCookie("fortune_auth_role", { path: "/" });
 }
 

@@ -73,6 +73,7 @@ const paymentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   impUid: { type: String, unique: true, sparse: true, index: true, trim: true },
   merchantUid: { type: String, unique: true, sparse: true, index: true, trim: true },
+  idempotencyKey: { type: String, trim: true, default: "", index: true },
   paymentAmount: { type: Number, required: true, min: 0 },
   expectedChargedPoints: { type: Number, min: 0, default: 0 },
   chargedPoints: { type: Number, required: true, min: 0, default: 0 },
@@ -100,6 +101,15 @@ const paymentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 paymentSchema.index({ userId: 1, createdAt: -1 });
+paymentSchema.index(
+  { userId: 1, idempotencyKey: 1, paymentType: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      idempotencyKey: { $exists: true, $type: "string", $gt: "" },
+    },
+  },
+);
 
 const pointHistorySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },

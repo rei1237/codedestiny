@@ -3,10 +3,13 @@
  */
 
 let utils;
+let signJwt;
 
 beforeAll(async () => {
   const mod = await import("../../worker/routes/fortune.js");
+  const jwtMod = await import("../../worker/lib/jwt.js");
   utils = mod.__fortuneAccessTestUtils;
+  signJwt = jwtMod.signJwt;
 });
 
 describe("Fortune coin access guard", () => {
@@ -21,6 +24,41 @@ describe("Fortune coin access guard", () => {
       status: 401,
       payload: { code: "UNAUTHORIZED" },
     });
+  });
+
+  test("유효한 access 쿠키가 있으면 consume 인증 컨텍스트를 반환해야 한다", async () => {
+    const env = {
+      JWT_ACCESS_SECRET: "test-access-secret",
+      JWT_ISSUER: "code-destiny-api",
+      JWT_AUDIENCE: "code-destiny-web",
+      NODE_ENV: "production",
+    };
+
+    const accessToken = await signJwt(
+      {
+        userId: "64f0a1b2c3d4e5f678901234",
+        email: "coin-user@example.com",
+        role: "user",
+      },
+      env.JWT_ACCESS_SECRET,
+      {
+        expiresIn: "10m",
+        issuer: env.JWT_ISSUER,
+        audience: env.JWT_AUDIENCE,
+      },
+    );
+
+    const req = new Request("https://example.com/api/fortune/pig-coin/consume", {
+      method: "POST",
+      headers: {
+        Cookie: `fortune_auth_token=${accessToken}`,
+      },
+    });
+
+    const authCtx = await utils.resolvePigCoinConsumeAuth(req, env);
+    expect(authCtx.adminMode).toBe(false);
+    expect(authCtx.auth.userId).toBe("64f0a1b2c3d4e5f678901234");
+    expect(authCtx.auth.email).toBe("coin-user@example.com");
   });
 
   test("coin-gate-per-use는 클라이언트 cost가 아닌 서버 가격표를 사용해야 한다", () => {

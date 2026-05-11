@@ -319,8 +319,10 @@
   }
 
   function _dpHasAuthToken() {
-    try { return !!(localStorage.getItem('fortune_auth_token') || ''); } catch (e) {}
-    return false;
+    try {
+      if (localStorage.getItem('fortune_auth_token')) return true;
+    } catch (e) {}
+    return _dpHasSessionHint();
   }
 
   function _dpResolveUnlockAliasKeys(lockKey) {

@@ -6484,8 +6484,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
   window._cdSetCoinGateOverlay = _cdSetCoinGateOverlay;
 
+  function hasAuthSessionHint() {
+    if (getAuthToken()) return true;
+    try {
+      if (document.cookie.indexOf('fortune_auth_role=') >= 0) return true;
+    } catch (_e) {}
+    return false;
+  }
+
   function hasAuthToken() {
-    return !!getAuthToken();
+    return hasAuthSessionHint();
   }
 
   function readAuthUser() {
@@ -6861,19 +6869,57 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function fetchJsonWithAuth(path, init) {
-    var token = getAuthToken();
-    if (!token) {
-      return { ok: false, status: 401, payload: { message: '로그인이 필요합니다.' } };
+    async function refreshAuthSessionForCoinApi() {
+      try {
+        var refreshRes = await fetch(getApiBaseUrl() + '/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        if (!refreshRes.ok) return false;
+        var refreshData = await refreshRes.json().catch(function() { return null; });
+        if (!refreshData || refreshData.ok !== true) return false;
+        var refreshedAccessToken = String((refreshData && refreshData.accessToken) || '').trim();
+        if (refreshedAccessToken) {
+          try { localStorage.setItem('fortune_auth_token', refreshedAccessToken); } catch (_e) {}
+        }
+        if (refreshData && refreshData.user && typeof __cdPersistAuthUserSnapshot === 'function') {
+          __cdPersistAuthUserSnapshot(refreshData.user);
+        }
+        return true;
+      } catch (_e) {
+        return false;
+      }
     }
 
-    var headers = Object.assign({}, (init && init.headers) || {}, {
-      Authorization: 'Bearer ' + token,
-    });
-    if (init && init.body && !headers['Content-Type']) {
-      headers['Content-Type'] = 'application/json';
+    function buildHeaders(baseHeaders) {
+      var headers = new Headers(baseHeaders || {});
+      var token = getAuthToken();
+      if (token && !headers.has('Authorization')) {
+        headers.set('Authorization', 'Bearer ' + token);
+      }
+      return headers;
     }
 
-    var response = await fetch(getApiBaseUrl() + path, Object.assign({}, init || {}, { headers: headers }));
+    var requestInit = Object.assign({}, init || {});
+    var headers = buildHeaders(requestInit.headers);
+    if (requestInit.body && !headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+    requestInit.headers = headers;
+    requestInit.credentials = 'include';
+    if (!requestInit.cache) requestInit.cache = 'no-store';
+
+    var response = await fetch(getApiBaseUrl() + path, requestInit);
+    if (response.status === 401) {
+      var refreshed = await refreshAuthSessionForCoinApi();
+      if (refreshed) {
+        var retryInit = Object.assign({}, requestInit);
+        retryInit.headers = buildHeaders(requestInit.headers);
+        response = await fetch(getApiBaseUrl() + path, retryInit);
+      }
+    }
+
     var payload = {};
     try { payload = await response.json(); } catch (_e) {}
     return { ok: response.ok, status: response.status, payload: payload };
