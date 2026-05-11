@@ -1,0 +1,115 @@
+.destinyBiasBg {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 80, 200, 0.35), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(120, 90, 255, 0.35), transparent 30%),
+    radial-gradient(circle at 50% 90%, rgba(0, 220, 255, 0.18), transparent 35%),
+    linear-gradient(180deg, #10051f 0%, #090316 48%, #05020d 100%);
+}
+
+.stageDots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.14;
+}
+
+.spotlight {
+  background: conic-gradient(from 210deg at 50% 0%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+  filter: blur(2px);
+  opacity: 0.3;
+}
+
+.glass {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(26px);
+}
+
+.chromeBorder {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(12, 8, 30, 0.92), rgba(12, 8, 30, 0.92)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(253, 186, 255, 0.9), rgba(147, 197, 253, 0.9), rgba(255, 255, 255, 0.9)) border-box;
+}
+
+.neonButton {
+  position: relative;
+  overflow: hidden;
+}
+
+.neonButton::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  transform: translateX(-120%);
+  animation: shimmer 2.8s linear infinite;
+  pointer-events: none;
+}
+
+.floatParticle {
+  animation: floatUp 4.8s ease-in-out infinite;
+}
+
+.heroGlow {
+  animation: heroPulse 4s ease-in-out infinite;
+}
+
+.loadingSegment {
+  overflow: hidden;
+}
+
+.loadingSegment::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+  animation: shimmer 1.8s linear infinite;
+}
+
+.photocardHolo {
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0)),
+    repeating-linear-gradient(110deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12) 3px, rgba(34, 211, 238, 0.06) 6px, rgba(236, 72, 153, 0.07) 9px);
+}
+
+.stickyCtaSafe {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes floatUp {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes heroPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neonButton::before,
+  .floatParticle,
+  .heroGlow,
+  .loadingSegment::after {
+    animation: none !important;
+  }
+}

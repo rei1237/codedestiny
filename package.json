@@ -47,6 +47,7 @@
     "verify:inicis-local-auth": "node scripts/verify-inicis-local-auth.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
+    "qa:destiny-bias-touch": "node scripts/qa-destiny-bias-touch-check.mjs",
     "audit:files": "node scripts/audit-unused-files.mjs",
     "audit:duplicates": "node scripts/audit-unused-files.mjs --duplicates",
     "audit:cleanup": "node scripts/audit-unused-files.mjs --all",

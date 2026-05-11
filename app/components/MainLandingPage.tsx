@@ -254,8 +254,9 @@ export default function MainLandingPage() {
 
             <Link
               href="/saju/destiny-bias"
-              className="block overflow-hidden rounded-[18px] border border-amber-300/40 bg-[linear-gradient(160deg,rgba(44,20,54,0.9),rgba(24,34,64,0.88))] shadow-[0_10px_24px_rgba(44,19,38,0.35)] transition hover:-translate-y-0.5 hover:border-amber-200/60"
+              className="group relative block overflow-hidden rounded-[20px] border border-fuchsia-200/45 bg-[radial-gradient(circle_at_20%_12%,rgba(255,79,216,0.32),transparent_30%),radial-gradient(circle_at_82%_24%,rgba(34,211,238,0.2),transparent_34%),linear-gradient(160deg,rgba(30,8,48,0.95),rgba(19,14,55,0.92)_52%,rgba(10,16,44,0.92))] shadow-[0_14px_34px_rgba(32,9,56,0.4)] transition hover:-translate-y-0.5 hover:border-cyan-200/70"
             >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.2),transparent_38%)] opacity-70" aria-hidden />
               <img
                 src="/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"
                 alt="최애운명 대표 이미지"
@@ -263,12 +264,17 @@ export default function MainLandingPage() {
                 loading="lazy"
                 decoding="async"
               />
-              <div className="p-4">
+              <div className="relative p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <strong className="text-sm font-bold leading-6 text-amber-50">✨ 최애운명</strong>
-                  <span className="inline-flex rounded-full border border-amber-300/55 bg-amber-500/25 px-2 py-0.5 text-[10px] font-semibold text-amber-50">1회 50코인</span>
+                  <strong className="text-sm font-bold leading-6 text-fuchsia-50">✨ 최애운명</strong>
+                  <span className="inline-flex rounded-full border border-cyan-200/60 bg-cyan-300/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-50">✨ 1회 50코인 · 포토카드 포함</span>
                 </div>
-                <p className="text-xs leading-5 text-amber-50/90">내 사주와 최애의 공명 점수를 계산하고, 오늘의 덕질 액션 카드까지 받는 사주 기반 분석 서비스입니다.</p>
+                <p className="text-xs leading-5 text-fuchsia-50/90">내 사주 에너지가 최애에게 닿는 방식. K-POP 포토카드 무드로 오늘의 덕질 액션을 완성해보세요.</p>
+                <div className="mt-2 flex items-center gap-2 text-[11px] font-semibold text-cyan-100/90">
+                  <span>⭐ 탑꾸 에디터</span>
+                  <span>•</span>
+                  <span>🎤 운명 포토카드</span>
+                </div>
               </div>
             </Link>
 
