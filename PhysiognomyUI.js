@@ -1113,9 +1113,9 @@ window.handleFileUpload = async function(event) {
   const fileInput = document.getElementById('phyFileInput');
   if (fileInput) fileInput.value = '';
 
-  const uploadToken = ++_phyUploadToken;
   const isInCompatMode = compatMode && firstAnalysisResult;
   resetPhysiognomyApp(isInCompatMode);
+  const uploadToken = _phyUploadToken;
   showPreviewSkeleton(true);
 
   if (file.size > PHY_IMAGE_SOFT_LIMIT_BYTES) {
