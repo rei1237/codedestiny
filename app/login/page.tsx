@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
@@ -160,26 +160,15 @@ function normalizeAuthApiError(payload: LoginResult & { errors?: string[] }, fal
 export default function LoginPage() {
   const router = useRouter();
 
-  const [sessionChecking, setSessionChecking] = useState(true);
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [oauthRedirecting, setOauthRedirecting] = useState<SocialProvider | null>(null);
   const [callbackProcessing] = useState(false);
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string>("");
-  const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
-
-  const abortBootstrapAuthCheck = useCallback(() => {
-    const activeController = bootstrapAuthCheckControllerRef.current;
-    if (activeController) {
-      activeController.abort();
-      bootstrapAuthCheckControllerRef.current = null;
-    }
-  }, []);
 
   const persistAuth = (user?: LoginResult["user"], accessToken?: string) => {
     if (accessToken) {
@@ -213,57 +202,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-
-    const controller = new AbortController();
-    bootstrapAuthCheckControllerRef.current = controller;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let alive = true;
-
-    (async () => {
-      authInfo("[AUTH] session check start");
-
-      try {
-        const response = await fetch(`${authApiBase}/api/auth/me`, {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          authInfo("[AUTH] session check result", "guest");
-          return;
-        }
-
-        const payload = await parseJsonResponse<LoginResult>(response);
-        const authenticated = Boolean(payload?.user);
-        authInfo("[AUTH] session check result", authenticated ? "authenticated" : "guest");
-        if (!payload?.user) return;
-
-        persistAuth(payload.user, payload.accessToken);
-        const nextPath = resolveNextPathFromQuery(params);
-        authInfo("[AUTH] redirect target", nextPath);
-        setIsRedirecting(true);
-        timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 240);
-      } catch (fetchError) {
-        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
-      } finally {
-        if (alive) setSessionChecking(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-      if (bootstrapAuthCheckControllerRef.current === controller) {
-        bootstrapAuthCheckControllerRef.current = null;
-      }
-      controller.abort();
-      if (timer) clearTimeout(timer);
-    };
-  }, [authApiBase, redirectAfterAuth]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("error") || params.get("social_error");
     if (oauthError) {
       setError(normalizeSocialAuthError(oauthError));
@@ -278,8 +216,6 @@ export default function LoginPage() {
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
-
-    abortBootstrapAuthCheck();
 
     const normalizedId = loginId.trim();
     if (!normalizedId || password.length < 8) {
@@ -377,9 +313,8 @@ export default function LoginPage() {
 
   const startSocialLogin = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
-    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing || isRedirecting) return;
+    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
 
-    abortBootstrapAuthCheck();
     setError("");
     setOauthRedirecting(provider);
     authInfo("[AUTH] oauth redirect start");
@@ -397,7 +332,7 @@ export default function LoginPage() {
     window.location.href = startUrl;
   };
 
-  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing || isRedirecting;
+  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing;
   const formDisabled = isBusy;
 
   return (
@@ -419,13 +354,11 @@ export default function LoginPage() {
             </div>
             <div className="text-center">
               <p className="text-base font-bold tracking-wide text-white">
-                {isRedirecting
-                  ? '이미 로그인되어 이동 중입니다'
-                  : (callbackProcessing
-                    ? '소셜 로그인 마무리 중입니다'
-                    : (oauthRedirecting
-                      ? '소셜 인증 페이지로 이동 중입니다'
-                      : '별빛 여정 중'))}
+                {callbackProcessing
+                  ? '소셜 로그인 마무리 중입니다'
+                  : (oauthRedirecting
+                    ? '소셜 인증 페이지로 이동 중입니다'
+                    : '별빛 여정 중')}
               </p>
               <p className="mt-1 text-sm text-indigo-200/60">잠시만 기다려 주세요...</p>
             </div>
@@ -446,9 +379,6 @@ export default function LoginPage() {
               <p className="mt-2 text-sm leading-6 text-violet-100/80">
                 아이디(이메일)/비밀번호 또는 소셜 계정으로 로그인할 수 있습니다.
               </p>
-              {sessionChecking ? (
-                <p className="mt-2 text-xs text-violet-100/70">세션 확인 중입니다...</p>
-              ) : null}
               <div className="mt-4 inline-flex rounded-full border border-violet-200/25 bg-slate-950/30 p-1">
                 <span className="min-h-0 min-w-0 rounded-full bg-violet-400/20 px-3 py-1.5 text-xs font-semibold text-violet-100">
                   로그인
