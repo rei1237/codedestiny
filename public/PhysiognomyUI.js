@@ -22,6 +22,7 @@ let _phyVeryLongWaitTimer = null;
 let _phyAnalysisSourceEl = null;
 let _phyScrollSuppressUntil = 0;
 let _phySectionRenderTimers = [];
+let _phyActiveSectionIndex = 0;
 let _phyMediaPipeReadyPromise = null;
 
 const PHY_FILE_HARD_LIMIT_BYTES = 20 * 1024 * 1024;
@@ -301,8 +302,60 @@ styleLink.textContent = `
     touch-action: manipulation;
   }
 
+  .phy-result-meta {
+    margin-bottom: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(132deg, #0f172a 0%, #1e293b 52%, #334155 100%);
+    border: 1px solid rgba(148,163,184,0.42);
+    color: #e2e8f0;
+    box-shadow: 0 10px 28px rgba(15,23,42,0.22);
+  }
+  .phy-result-kicker {
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    color: #cbd5e1;
+    font-weight: 800;
+  }
+  .phy-result-title {
+    margin: 6px 0 0;
+    font-size: 1.06rem;
+    color: #f8fafc;
+    font-weight: 900;
+    line-height: 1.35;
+  }
+  .phy-result-summary {
+    margin: 7px 0 0;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    line-height: 1.55;
+  }
+  .phy-category-nav {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .phy-category-chip {
+    border: 1px solid rgba(148,163,184,0.42);
+    background: rgba(255,255,255,0.05);
+    color: #e2e8f0;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .phy-category-chip.is-active {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: #fff;
+    border-color: #f59e0b;
+    box-shadow: 0 6px 14px rgba(249,115,22,0.28);
+  }
   .phy-section-card {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     opacity: 0;
     transform: translateY(8px);
     transition: opacity .24s ease, transform .24s ease;
@@ -312,10 +365,15 @@ styleLink.textContent = `
     transform: translateY(0);
   }
   .phy-section-details {
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    background: #f8fafc;
+    border: 1px solid #dbe4ef;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     overflow: hidden;
+    box-shadow: 0 9px 20px rgba(148,163,184,0.16);
+  }
+  .phy-section-details[open] {
+    border-color: #cbd5e1;
+    box-shadow: 0 12px 28px rgba(148,163,184,0.2);
   }
   .phy-section-summary {
     list-style: none;
@@ -327,10 +385,33 @@ styleLink.textContent = `
     gap: 10px;
     font-size: 0.93rem;
     font-weight: 800;
-    color: #1e293b;
-    background: #fff;
+    color: #0f172a;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   }
   .phy-section-summary::-webkit-details-marker { display: none; }
+  .phy-section-title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .phy-section-index {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 900;
+    color: #fff;
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+    flex-shrink: 0;
+  }
+  .phy-section-title {
+    font-size: 0.9rem;
+    color: #0f172a;
+    font-weight: 800;
+  }
   .phy-section-hint {
     font-size: 0.72rem;
     color: #64748b;
@@ -338,7 +419,7 @@ styleLink.textContent = `
     white-space: nowrap;
   }
   .phy-section-body {
-    padding: 0 14px 12px;
+    padding: 3px 14px 14px;
     font-size: 0.88rem;
     color: #334155;
     line-height: 1.65;
@@ -448,6 +529,13 @@ const appHtml = `
       <div class="result-card" id="phyResult">
         <!-- 메인 이모지 뱃지 -->
         <div class="animal-badge" id="resEmoji"></div>
+
+        <div class="phy-result-meta">
+          <p class="phy-result-kicker">AI PHYSIOGNOMY DOSSIER</p>
+          <p class="phy-result-title" id="phyResultTitle"></p>
+          <p class="phy-result-summary" id="phyResultSummary"></p>
+          <div class="phy-category-nav" id="phyCategoryNav"></div>
+        </div>
         
         <!-- 고도화된 Expert Report 컨테이너 -->
         <div id="expertReportContainer"></div>
@@ -745,10 +833,157 @@ function createResultSections(result) {
   ];
 }
 
+function toPlainText(text) {
+  return String(text || '').replace(/\s+/g, ' ').trim();
+}
+
+function normalizeSectionTitle(rawTitle, index) {
+  const clean = toPlainText(rawTitle).replace(/^[^\u3131-\uD79DA-Za-z0-9]+/, '');
+  if (!clean) return `카테고리 ${index + 1}`;
+  if (clean.length <= 36) return clean;
+  return `${clean.slice(0, 36)}...`;
+}
+
+function findSectionBlockFromHeading(node, root) {
+  let current = node;
+  while (current && current !== root) {
+    const styleText = String(current.getAttribute && current.getAttribute('style') || '');
+    if (/margin-bottom\s*:\s*(10|12|14|15|18)px/i.test(styleText) && /padding\s*:/i.test(styleText)) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
+}
+
+function createExpertReportSections(result) {
+  const reportHtml = String(result && result.expertReportHtml || '').trim();
+  if (!reportHtml) return [];
+
+  const host = document.createElement('div');
+  host.innerHTML = reportHtml;
+
+  const headingKeywords = [
+    '관상 총평',
+    '오관(五官)',
+    '영혼의 그림자',
+    '안좋은 관상 정밀 분석',
+    '점(痣) 위치별 관상 해석',
+    '삶의 지혜',
+    '동물상 매칭'
+  ];
+
+  const headingNodes = Array.from(host.querySelectorAll('div, strong, h1, h2, h3, h4')).filter((node) => {
+    const text = toPlainText(node.textContent);
+    return headingKeywords.some((keyword) => text.includes(keyword));
+  });
+
+  const sections = [];
+  const seen = new Set();
+
+  headingNodes.forEach((headingNode) => {
+    const sectionNode = findSectionBlockFromHeading(headingNode, host) || headingNode.parentElement;
+    if (!sectionNode || seen.has(sectionNode)) return;
+
+    seen.add(sectionNode);
+    sections.push({
+      title: normalizeSectionTitle(headingNode.textContent, sections.length),
+      body: sectionNode.innerHTML
+    });
+  });
+
+  if (sections.length >= 3) return sections;
+
+  const genericBlocks = Array.from(host.querySelectorAll('div[style*="margin-bottom"]')).filter((node) => {
+    return toPlainText(node.textContent).length > 28;
+  });
+
+  genericBlocks.forEach((node) => {
+    if (seen.has(node)) return;
+    seen.add(node);
+    const headingNode = node.querySelector('div, strong, h1, h2, h3, h4');
+    sections.push({
+      title: normalizeSectionTitle(headingNode && headingNode.textContent ? headingNode.textContent : '', sections.length),
+      body: node.innerHTML
+    });
+  });
+
+  return sections.slice(0, 12);
+}
+
+function clearResultMeta() {
+  const titleEl = getEl('phyResultTitle');
+  const summaryEl = getEl('phyResultSummary');
+  const categoryNavEl = getEl('phyCategoryNav');
+  if (titleEl) titleEl.innerText = '';
+  if (summaryEl) summaryEl.innerText = '';
+  if (categoryNavEl) {
+    categoryNavEl.innerHTML = '';
+    categoryNavEl.style.display = 'none';
+  }
+  _phyActiveSectionIndex = 0;
+}
+
+function setResultMeta(result, sections) {
+  const titleEl = getEl('phyResultTitle');
+  const summaryEl = getEl('phyResultSummary');
+  const top3 = Array.isArray(result && result.top3) ? result.top3 : [];
+
+  const titleText = `${result && result.emoji ? `${result.emoji} ` : ''}${result && result.primaryAnimal ? `${result.primaryAnimal} 관상 리포트` : '관상 리포트'}`;
+  const top3Text = top3.length
+    ? top3.slice(0, 3).map((item, index) => `${index + 1}위 ${item && item.animal && item.animal.name ? item.animal.name : '-'}`).join(' · ')
+    : '카테고리별 세부 해석을 펼쳐서 확인할 수 있습니다.';
+  const summaryText = `${sections.length}개 카테고리 분석 · ${top3Text}`;
+
+  if (titleEl) titleEl.innerText = titleText;
+  if (summaryEl) summaryEl.innerText = summaryText;
+}
+
+function setActiveSectionChip(index) {
+  const categoryNavEl = getEl('phyCategoryNav');
+  if (!categoryNavEl) return;
+  _phyActiveSectionIndex = index;
+
+  Array.from(categoryNavEl.querySelectorAll('.phy-category-chip')).forEach((chipEl, chipIndex) => {
+    if (chipIndex === index) chipEl.classList.add('is-active');
+    else chipEl.classList.remove('is-active');
+  });
+}
+
+function renderCategoryNav(sections) {
+  const categoryNavEl = getEl('phyCategoryNav');
+  if (!categoryNavEl) return;
+  categoryNavEl.innerHTML = '';
+
+  if (!sections || !sections.length) {
+    categoryNavEl.style.display = 'none';
+    return;
+  }
+
+  categoryNavEl.style.display = 'flex';
+  sections.forEach((section, index) => {
+    const chipButton = document.createElement('button');
+    chipButton.type = 'button';
+    chipButton.className = 'phy-category-chip';
+    chipButton.innerText = section.title;
+    chipButton.addEventListener('click', () => {
+      const detailsEl = getEl(`phySectionDetails-${index}`);
+      if (!detailsEl) return;
+      detailsEl.open = true;
+      detailsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setActiveSectionChip(index);
+    });
+    categoryNavEl.appendChild(chipButton);
+  });
+
+  setActiveSectionChip(0);
+}
+
 function renderSectionCards(container, sections) {
   if (!container) return;
   clearSectionRenderTimers();
   container.innerHTML = '';
+  renderCategoryNav(sections);
 
   sections.forEach((section, index) => {
     const timerId = setTimeout(() => {
@@ -757,11 +992,15 @@ function renderSectionCards(container, sections) {
 
       const details = document.createElement('details');
       details.className = 'phy-section-details';
+      details.id = `phySectionDetails-${index}`;
       if (index < 3) details.open = true;
+      details.addEventListener('toggle', () => {
+        if (details.open) setActiveSectionChip(index);
+      });
 
       const summary = document.createElement('summary');
       summary.className = 'phy-section-summary';
-      summary.innerHTML = `<span>${index + 1}. ${section.title}</span><span class="phy-section-hint">${index < 3 ? '핵심' : '자세히 보기'}</span>`;
+      summary.innerHTML = `<span class="phy-section-title-wrap"><span class="phy-section-index">${index + 1}</span><span class="phy-section-title">${section.title}</span></span><span class="phy-section-hint">${index < 3 ? '핵심' : '자세히 보기'}</span>`;
 
       const body = document.createElement('div');
       body.className = 'phy-section-body';
@@ -1036,6 +1275,7 @@ window.resetPhysiognomyApp = function(preserveCompat) {
   document.getElementById('captureBtn').disabled = false;
   document.getElementById('compatStartBtn').style.display = "none";
   document.getElementById('expertReportContainer').innerHTML = "";
+  clearResultMeta();
   showAnalysisStage(false);
   showPreviewSkeleton(false);
   clearPreparedImageResources();
@@ -1242,6 +1482,15 @@ window.startCapture = async function() {
         }
       } catch (compatErr) {
         console.error('궁합 분석 오류:', compatErr);
+        const titleEl = getEl('phyResultTitle');
+        const summaryEl = getEl('phyResultSummary');
+        const categoryNavEl = getEl('phyCategoryNav');
+        if (titleEl) titleEl.innerText = '💕 관상 궁합 리포트';
+        if (summaryEl) summaryEl.innerText = '궁합 상세 분석 중 오류가 발생해 요약 결과를 표시합니다.';
+        if (categoryNavEl) {
+          categoryNavEl.innerHTML = '';
+          categoryNavEl.style.display = 'none';
+        }
         document.getElementById('expertReportContainer').innerHTML = `
           <div style="padding:20px; text-align:center; color:#e11d48;">
             <div style="font-size:2rem; margin-bottom:10px;">💕</div>
@@ -1295,10 +1544,13 @@ function renderResult(result) {
 
   const reportContainer = document.getElementById('expertReportContainer');
   if (reportContainer) {
-    if (result && result.expertReportHtml) {
-      const sections = createResultSections(result);
+    const expertSections = createExpertReportSections(result);
+    const sections = expertSections.length ? expertSections : createResultSections(result);
+    if (sections.length) {
+      setResultMeta(result, sections);
       renderSectionCards(reportContainer, sections);
     } else {
+      clearResultMeta();
       reportContainer.innerHTML = "<div style='padding:20px;'>분석 결과를 불러올 수 없습니다.</div>";
     }
   }
@@ -1354,6 +1606,7 @@ function renderResult(result) {
         document.getElementById('scanOverlay').style.display = 'none';
         document.getElementById('captureBtn').style.display = 'none';
         document.getElementById('expertReportContainer').innerHTML = '';
+        clearResultMeta();
         showAnalysisStage(false);
         showPreviewSkeleton(false);
         clearPreparedImageResources();
@@ -1389,6 +1642,16 @@ function renderResult(result) {
     clearSectionRenderTimers();
     let emojiNode = document.getElementById('resEmoji');
     emojiNode.innerText = '💕';
+
+    const titleEl = getEl('phyResultTitle');
+    const summaryEl = getEl('phyResultSummary');
+    const categoryNavEl = getEl('phyCategoryNav');
+    if (titleEl) titleEl.innerText = '💕 관상 궁합 리포트';
+    if (summaryEl) summaryEl.innerText = '두 사람의 관상 에너지를 교차 분석한 결과입니다.';
+    if (categoryNavEl) {
+      categoryNavEl.innerHTML = '';
+      categoryNavEl.style.display = 'none';
+    }
 
     document.getElementById('expertReportContainer').innerHTML = compatResult.compatHtml;
     document.getElementById('compatStartBtn').style.display = 'none';
