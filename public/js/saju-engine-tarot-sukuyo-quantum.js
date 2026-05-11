@@ -1516,6 +1516,36 @@ function analyzeFortuneGZ(gz, p, label){
 
   var gGod=getTenGod(p.d.g,gz.g);
   var jGod=getTenGod(p.d.g,gz.j);
+  var EL_K_LOCAL={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
+
+  var incomingEls=[];
+  [gEl,jEl].forEach(function(e){
+    if(!e) return;
+    if(incomingEls.indexOf(e)===-1) incomingEls.push(e);
+  });
+
+  var baseGiEls=[];
+  if(jg && jg.isJong){
+    var _ctrl = whoControls(jg.dominant);
+    if(_ctrl) baseGiEls.push(_ctrl);
+    if(jg.name && jg.name.indexOf('종재격') >= 0 && jg.dayEl) {
+      var _inseongEl = parentOf(jg.dayEl);
+      if(_inseongEl) baseGiEls.push(_inseongEl);
+    }
+  } else if(pw && pw.kijishin && pw.kijishin.length){
+    baseGiEls = pw.kijishin.slice();
+  }
+  baseGiEls = baseGiEls.filter(function(e,idx,arr){ return !!e && arr.indexOf(e)===idx; });
+
+  var overlappedGiEls = incomingEls.filter(function(e){ return baseGiEls.indexOf(e)>=0; });
+  var incomingElText = incomingEls.length
+    ? incomingEls.map(function(e){ return EL_K_LOCAL[e] || e; }).join('·')
+    : '미상';
+  var overlappedGiText = overlappedGiEls.length
+    ? overlappedGiEls.map(function(e){ return EL_K_LOCAL[e] || e; }).join(', ')
+    : (baseGiEls.length
+      ? baseGiEls.map(function(e){ return EL_K_LOCAL[e] || e; }).join(', ')
+      : '산출값 없음');
 
   var els=['wood','fire','earth','metal','water'];
   var counts=G_NATAL?G_NATAL.counts:{wood:0,fire:0,earth:0,metal:0,water:0};
@@ -1544,7 +1574,11 @@ function analyzeFortuneGZ(gz, p, label){
     adviceItems.push({type:'good',title:'⚡ 극대 극의 발복 조화',body:b});
   });
   if(isGi && chungBonusAlerts.length===0){
-    adviceItems.push({type:'warn',title:'⚡ 과유불급 경고',body:'오늘 들어오는 기운('+gGod+'·'+jGod+')이 원국의 기신(忌神)과 겹칩니다. 고집·손재수·충돌로 이어질 수 있으니 큰 결정을 미루세요.'});
+    adviceItems.push({
+      type:'warn',
+      title:'⚡ 과유불급 경고',
+      body:'오늘 들어오는 기운('+incomingElText+')이 원국의 기신(忌神) '+overlappedGiText+'와(과) 겹칩니다. 고집·손재수·충돌로 이어질 수 있으니 큰 결정을 미루세요.'
+    });
   }else if(isYong){
     adviceItems.push({type:'good',title:'✨ 용신 충전',body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 당신에게 필요한 용신과 맞아떨어집니다. 도전·협상·투자에 길한 날입니다.'});
   }
@@ -1703,8 +1737,8 @@ async function renderDailyMonthlyFortune(p){
     if (todayCtx && todayCtx.ganji) {
       var dayPair = parseKasiGanjiPair(todayCtx.ganji.day);
       var monthPair = parseKasiGanjiPair(todayCtx.ganji.month);
-      if (dayPair) dayGZ = dayPair.g + dayPair.j;
-      if (monthPair) monGZ = monthPair.g + monthPair.j;
+      if (dayPair) dayGZ = dayPair;
+      if (monthPair) monGZ = monthPair;
     }
   } catch (e) {
     console.warn('[Fortune] KASI day/month context fallback:', e);
