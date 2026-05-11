@@ -226,6 +226,14 @@ function extractFirst(html, re) {
   return m ? m[0] : "";
 }
 
+const LEGACY_OMIKUJI_HERO_IMG = "/fuctionassets/오미쿠지.webp";
+const SHRINE_OMIKUJI_HERO_IMG = "/fuctionassets/emoi-shrine-robot.svg";
+
+function normalizeOmikujiHeroImageRefs(html) {
+  if (!html || !html.includes(LEGACY_OMIKUJI_HERO_IMG)) return html;
+  return html.split(LEGACY_OMIKUJI_HERO_IMG).join(SHRINE_OMIKUJI_HERO_IMG);
+}
+
 function syncCriticalShellBlocks(rootHtml, targetHtml) {
   let html = targetHtml;
   let changed = false;
@@ -424,6 +432,14 @@ if (existsSync(publicIndex)) {
     console.log("[sync-legacy-static-to-public] Removed startup splash script/overlay from public/index.html");
   }
 
+  const normalizedOmikujiHeroIndexHtml = normalizeOmikujiHeroImageRefs(baseIndexHtml);
+  if (normalizedOmikujiHeroIndexHtml !== baseIndexHtml) {
+    baseIndexHtml = normalizedOmikujiHeroIndexHtml;
+    indexBuf = Buffer.from(baseIndexHtml, "utf8");
+    writeFileSync(publicIndex, indexBuf);
+    console.log("[sync-legacy-static-to-public] Canonicalized omikuji hero image to emoi-shrine-robot.svg in public/index.html");
+  }
+
   const baseIssues = collectEntryIssues(baseIndexHtml);
   if (baseIssues.length > 0) {
     if (existsSync(rootIndexPath)) {
@@ -454,6 +470,14 @@ if (existsSync(publicIndex)) {
         }
       }
     }
+  }
+
+  const finalizedOmikujiHeroIndexHtml = normalizeOmikujiHeroImageRefs(baseIndexHtml);
+  if (finalizedOmikujiHeroIndexHtml !== baseIndexHtml) {
+    baseIndexHtml = finalizedOmikujiHeroIndexHtml;
+    indexBuf = Buffer.from(baseIndexHtml, "utf8");
+    writeFileSync(publicIndex, indexBuf);
+    console.log("[sync-legacy-static-to-public] Finalized omikuji hero image canonical path in public/index.html");
   }
 
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
