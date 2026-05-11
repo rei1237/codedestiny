@@ -80,25 +80,38 @@ label{
 }
 button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .btn-primary{
-  background:linear-gradient(135deg,var(--purple),#4C1D95);color:#fff;
-  padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;
-  border:1px solid rgba(167,139,250,0.4);transition:all 0.2s;width:100%;
-  text-align:center;
+  background:linear-gradient(135deg,var(--purple) 0%,#4C1D95 60%,#3B0764 100%);color:#fff;
+  padding:13px 24px;border-radius:14px;font-size:14px;font-weight:700;
+  border:1px solid rgba(167,139,250,0.4);transition:all 0.25s cubic-bezier(.22,1,.36,1);width:100%;
+  text-align:center;position:relative;overflow:hidden;letter-spacing:.02em;
 }
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,0,0,0.35),0 0 0 1px rgba(212,175,55,0.15),0 0 24px rgba(245,208,106,0.14)}
+.btn-primary::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.12) 50%,transparent 100%);
+  transform:translateX(-100%);transition:transform .5s;
+}
+.btn-primary:hover::before{transform:translateX(100%)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(212,175,55,0.2),0 0 30px rgba(167,139,250,0.2)}
 .btn-primary:active{transform:scale(0.97)}
 .btn-sm{padding:7px 16px;border-radius:8px;font-size:12px;background:rgba(139,92,246,0.2);color:var(--purple2);border:1px solid var(--border);transition:all 0.2s}
 .btn-sm:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(0,0,0,0.3),0 0 18px rgba(245,208,106,0.12);border-color:rgba(245,208,106,0.22)}
 .btn-sm:active{transform:scale(0.95)}
 .glass{
   background:var(--glass);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
   border:1px solid rgba(245,208,106,0.22);
   border-radius:16px;
-  box-shadow:0 18px 60px rgba(0,0,0,0.34);
+  box-shadow:0 18px 60px rgba(0,0,0,0.34),inset 0 1px 0 rgba(255,255,255,0.06);
+  position:relative;overflow:hidden;
 }
-.glass:hover{box-shadow:0 20px 70px rgba(0,0,0,0.40),0 0 0 1px rgba(245,208,106,0.16),0 0 28px rgba(245,208,106,0.12)}
+.glass::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(600px 300px at 50% -30%,rgba(245,208,106,0.04),transparent 60%);
+  opacity:0;transition:opacity .35s;
+}
+.glass:hover::before{opacity:1}
+.glass:hover{box-shadow:0 24px 80px rgba(0,0,0,0.44),0 0 0 1px rgba(245,208,106,0.18),0 0 38px rgba(245,208,106,0.08),inset 0 1px 0 rgba(255,255,255,0.09)}
 .card-gold{background:rgba(212,175,55,0.06);border:1px solid var(--bordergold);border-radius:16px;padding:16px}
 .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;gap:4px}
 .tag-purple{background:rgba(139,92,246,0.2);color:var(--purple2);border:1px solid rgba(139,92,246,0.3)}
@@ -201,12 +214,12 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 /* ── 개편 추가 스타일 ───────────────────────────────────── */
 
 /* 스크롤 페이드인 */
-.reveal{opacity:0;transform:translateY(22px);transition:opacity 0.55s ease,transform 0.55s ease}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity 0.6s ease,transform 0.6s cubic-bezier(.22,1,.36,1)}
 .reveal.visible{opacity:1;transform:translateY(0)}
-.reveal-delay-1{transition-delay:0.08s}
-.reveal-delay-2{transition-delay:0.16s}
-.reveal-delay-3{transition-delay:0.24s}
-.reveal-delay-4{transition-delay:0.32s}
+.reveal-delay-1{transition-delay:0.09s}
+.reveal-delay-2{transition-delay:0.18s}
+.reveal-delay-3{transition-delay:0.27s}
+.reveal-delay-4{transition-delay:0.36s}
 
 /* 반응형 타이포 */
 .hero-name{font-family:var(--font-display);font-size:clamp(20px,5vw,28px);color:var(--gold);line-height:1.2}
@@ -249,9 +262,9 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .keyword{display:inline;background:rgba(212,175,55,0.15);color:var(--gold2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;padding:1px 6px;font-size:0.92em;font-weight:500}
 
 /* 탭 시스템 */
-.tab-bar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:16px;-webkit-overflow-scrolling:touch}
+.tab-bar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px 0 4px;margin-bottom:16px;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:12;background:linear-gradient(180deg,rgba(5,6,10,0.9),rgba(5,6,10,0.72));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.06)}
 .tab-bar::-webkit-scrollbar{display:none}
-.tab-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.tab-btn{flex-shrink:0;padding:8px 14px;min-height:40px;border-radius:20px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;white-space:nowrap}
 .tab-btn.active{background:rgba(139,92,246,0.25);color:#fff;border-color:rgba(139,92,246,0.5)}
 .tab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(0,0,0,0.28),0 0 18px rgba(245,208,106,0.10);border-color:rgba(245,208,106,0.20)}
 .tab-btn:active{transform:scale(0.95)}
@@ -260,12 +273,12 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 
 /* 아코디언 */
 .acc-item{border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:8px;overflow:hidden}
-.acc-header{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:background 0.2s}
+.acc-header{display:flex;align-items:center;gap:10px;padding:13px 14px;min-height:48px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:background 0.2s}
 .acc-header:active{background:rgba(255,255,255,0.04)}
 .acc-title{font-size:13px;font-weight:600;flex:1}
 .acc-arrow{font-size:12px;color:var(--text3);transition:transform 0.25s;flex-shrink:0}
 .acc-body{max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(.4,0,.2,1)}
-.acc-body.open{max-height:600px}
+.acc-body.open{max-height:2800px}
 .acc-inner{padding:0 14px 14px}
 
 /* 행성 테이블 개편 */
@@ -279,14 +292,18 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 
 /* 요약 카드 그리드 */
 .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
-.sum-card{background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.07);position:relative;overflow:hidden}
+.sum-card{background:rgba(255,255,255,0.04);border-radius:14px;padding:13px;border:1px solid rgba(255,255,255,0.07);position:relative;overflow:hidden;transition:all .25s;backdrop-filter:blur(4px);}
+.sum-card::after{content:"";position:absolute;top:-30%;left:-10%;width:120%;height:60%;background:radial-gradient(ellipse,rgba(245,208,106,0.04),transparent 70%);pointer-events:none}
+.sum-card:hover{border-color:rgba(245,208,106,0.18);box-shadow:0 10px 28px rgba(0,0,0,0.3)}
 .sum-card-label{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
 .sum-card-val{font-size:clamp(12px,3vw,14px);font-weight:700;line-height:1.3}
 .sum-card-sub{font-size:10px;color:var(--text3);margin-top:2px}
 
 /* 모듈 카드 (개편) */
-.mod-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.22s;user-select:none;display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.mod-card:hover{transform:translateY(-2px);box-shadow:0 16px 44px rgba(0,0,0,0.38),0 0 24px rgba(245,208,106,0.12);border-color:rgba(245,208,106,0.22)}
+.mod-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.25s cubic-bezier(.22,1,.36,1);user-select:none;display:flex;align-items:center;gap:12px;margin-bottom:8px;position:relative;overflow:hidden;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.mod-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(500px 200px at 50% 120%,rgba(245,208,106,0.05),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none;}
+.mod-card:hover{transform:translateY(-3px);box-shadow:0 20px 50px rgba(0,0,0,0.42),0 0 0 1px rgba(245,208,106,0.24),0 0 32px rgba(245,208,106,0.1);border-color:rgba(245,208,106,0.28);}
+.mod-card:hover::after{opacity:1}
 .mod-card:active{transform:scale(0.97)}
 .mod-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .mod-texts{flex:1;min-width:0}
@@ -392,8 +409,8 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
   border-bottom:1px solid rgba(245,208,106,0.12);
   background:
     linear-gradient(180deg, rgba(3,2,8,0.85) 0%, rgba(3,2,8,0.55) 100%);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
 }
 .detail-topbar::before{
   content:"";
@@ -428,6 +445,10 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .detail-sub{font-size:11px;color:rgba(240,232,255,0.5);letter-spacing:0.08em;text-align:center}
 .detail-spacer{width:84px}
 
+.tab-panel .detail-topbar .back-btn,
+.tab-panel .detail-topbar .detail-spacer{display:none}
+.tab-panel .detail-topbar .detail-topbar-inner{grid-template-columns:1fr}
+
 /* 뒤로 버튼: 우주 컨셉 글래스 칩 */
 .back-btn{
   position:relative;
@@ -455,10 +476,13 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 
 /* 디테일 카드 공통: 더 깔끔한 글래스 */
 .acc-item{
-  background:rgba(255,255,255,0.04);
+  background:rgba(255,255,255,0.038);
   border:1px solid rgba(245,208,106,0.14);
-  box-shadow:0 16px 50px rgba(0,0,0,0.30);
+  box-shadow:0 16px 50px rgba(0,0,0,0.28);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  transition:border-color .25s,box-shadow .25s;
 }
+.acc-item:hover{border-color:rgba(245,208,106,0.22);box-shadow:0 18px 55px rgba(0,0,0,0.32),0 0 24px rgba(245,208,106,0.05)}
 .acc-header{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00))}
 .acc-header:hover{background:rgba(255,255,255,0.04)}
 
@@ -473,6 +497,13 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .yoga-method{background:rgba(255,255,255,0.04);border:1px solid rgba(245,208,106,0.14);border-radius:14px;padding:14px;box-shadow:0 14px 40px rgba(0,0,0,0.22)}
 .yoga-steps{margin:10px 0 0;padding-left:16px;color:rgba(240,232,255,0.72);line-height:1.75}
 .yoga-steps li{margin:6px 0}
+
+@media (max-width:430px){
+  .summary-grid{grid-template-columns:1fr}
+  .tab-btn{font-size:11px;padding:8px 12px}
+  .acc-title{font-size:12px}
+  .detail-topbar{padding:10px 8px;margin:0 -8px 14px}
+}
 </style>
 </head>
 <body>
@@ -482,10 +513,16 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 <div id="app" style="position:relative;z-index:1">
   <!-- PAGE: INPUT (프로필 없이 직접 입력) -->
   <div id="page-input" class="page active">
-    <div style="padding-top:40px;text-align:center;margin-bottom:18px">
-      <div style="font-size:40px;margin-bottom:8px">🪐</div>
-      <h1 style="font-size:22px;color:var(--gold);margin-bottom:6px">베다 점성술</h1>
-      <p style="font-size:12px;color:var(--text3)">Jyotish · 별들의 지혜</p>
+    <div style="padding-top:52px;text-align:center;margin-bottom:24px;position:relative">
+      <div style="position:relative;display:inline-block;margin-bottom:14px">
+        <div style="font-size:52px;filter:drop-shadow(0 0 24px rgba(212,175,55,0.5)) drop-shadow(0 0 8px rgba(124,58,237,0.6))">🪐</div>
+        <div style="position:absolute;inset:-18px;border-radius:50%;border:1px solid rgba(245,208,106,0.18);animation:spinRing 18s linear infinite;pointer-events:none"></div>
+        <div style="position:absolute;inset:-28px;border-radius:50%;border:1px solid rgba(124,58,237,0.12);animation:spinRing 28s linear infinite reverse;pointer-events:none"></div>
+      </div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(22px,5vw,28px);color:var(--gold);margin-bottom:6px;letter-spacing:.08em;text-shadow:0 0 28px rgba(212,175,55,0.4)">베다 점성술</h1>
+      <p style="font-size:12px;color:var(--text3);letter-spacing:.18em">JYOTISH · 별들의 지혜 · 빛의 지식</p>
+      <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto"></div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.8;max-width:320px;margin:0 auto">당신이 태어난 순간, 하늘의 별들은 어떤 배열을 이루고 있었습니까?<br>그 신성한 지도를 해독해드립니다.</p>
     </div>
     <div class="glass" style="padding:18px 16px;margin-bottom:12px">
       <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
@@ -629,9 +666,14 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 
   <!-- PAGE: LOADING -->
   <div id="page-loading" class="page">
-    <div class="loading" style="padding-top:80px">
-      <div class="loading-ring"></div>
-      <div class="loading-text">우주의 기운을 읽는 중…</div>
+    <div class="loading" style="padding-top:90px">
+      <div style="position:relative;width:80px;height:80px;margin:0 auto 20px">
+        <div style="position:absolute;inset:0;border:2px solid rgba(139,92,246,0.15);border-top-color:var(--purple2);border-radius:50%;animation:spinRing 0.9s linear infinite"></div>
+        <div style="position:absolute;inset:10px;border:1px solid rgba(212,175,55,0.1);border-top-color:rgba(212,175,55,0.5);border-radius:50%;animation:spinRing 1.4s linear infinite reverse"></div>
+        <div style="position:absolute;inset:22px;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,0.15),transparent);display:flex;align-items:center;justify-content:center;font-size:18px">🪐</div>
+      </div>
+      <div class="loading-text" style="font-family:var(--font-display);letter-spacing:.1em;color:var(--gold)"><span id="loading-name"></span> 별자리를 계산 중…</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;animation:pulse 2s ease-in-out infinite">우주의 지도를 펼치고 있습니다</div>
     </div>
   </div>
 
@@ -966,14 +1008,95 @@ function vedicApplySelectedPlace(){
   }
 }
 
-// ─── STAR CANVAS ───────────────────────────────────────────
+// ─── ENHANCED DEEP-SPACE CANVAS ────────────────────────────
 (function(){
-  const c=document.getElementById('starCanvas'),ctx=c.getContext('2d'),stars=[];
-  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;stars.length=0;
-    for(let i=0;i<150;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+.3,t:Math.random()*6.28,s:Math.random()*.04+.005});}
-  window.addEventListener('resize',resize);resize();
-  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(s=>{s.t+=s.s;const a=0.4+0.5*Math.sin(s.t);ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.28);ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill();});requestAnimationFrame(draw);}
-  draw();
+  const c=document.getElementById('starCanvas'),ctx=c.getContext('2d');
+  let stars=[],meteors=[],nebDots=[],W,H;
+
+  function resize(){
+    W=c.width=window.innerWidth;H=c.height=window.innerHeight;
+    stars=[];nebDots=[];meteors=[];
+    // Layer 1: tiny distant stars
+    for(let i=0;i<180;i++){
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*0.7+0.2,t:Math.random()*6.28,s:Math.random()*.018+.004,col:[255,255,255]});
+    }
+    // Layer 2: mid-size blue-white stars
+    for(let i=0;i<60;i++){
+      const g=Math.random()<.4?[180,220,255]:[255,240,200];
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+0.5,t:Math.random()*6.28,s:Math.random()*.025+.006,col:g});
+    }
+    // Layer 3: prominent bright stars with 6-point sparkle
+    for(let i=0;i<18;i++){
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2.2+1.2,t:Math.random()*6.28,s:Math.random()*.012+.003,col:[255,248,210],sparkle:true});
+    }
+    // Nebula dust particles (very faint)
+    for(let i=0;i<40;i++){
+      nebDots.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*28+10,
+        col:Math.random()<.4?[124,58,237]:Math.random()<.5?[6,182,212]:[236,72,153],
+        a:Math.random()*.022+.005,t:Math.random()*6.28,s:Math.random()*.003+.001});
+    }
+  }
+
+  function spawnMeteor(){
+    if(meteors.length<3&&Math.random()<.004){
+      const sx=Math.random()*W,sy=Math.random()*(H*.3);
+      const len=Math.random()*120+80,angle=Math.PI/4+Math.random()*.3;
+      meteors.push({sx,sy,len,angle,progress:0,speed:Math.random()*.028+.016,alpha:0.9});
+    }
+  }
+
+  function drawSparkle(x,y,r,a){
+    const arms=6,outer=r*2.4,inner=r*0.6;
+    ctx.save();ctx.translate(x,y);ctx.globalAlpha=a*.6;
+    ctx.strokeStyle=`rgba(255,248,220,${a*.5})`;ctx.lineWidth=0.5;
+    for(let i=0;i<arms;i++){
+      const ang=i*(Math.PI*2/arms);
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(ang)*outer,Math.sin(ang)*outer);ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Nebula soft glows
+    nebDots.forEach(n=>{
+      n.t+=n.s;
+      const na=n.a*(0.5+0.5*Math.sin(n.t));
+      const g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+      g.addColorStop(0,`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${na})`);
+      g.addColorStop(1,`rgba(${n.col[0]},${n.col[1]},${n.col[2]},0)`);
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,6.28);ctx.fill();
+    });
+    // Stars
+    stars.forEach(s=>{
+      s.t+=s.s;const a=0.35+0.6*Math.sin(s.t);
+      ctx.globalAlpha=a;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.28);
+      ctx.fillStyle=`rgb(${s.col[0]},${s.col[1]},${s.col[2]})`;ctx.fill();
+      if(s.sparkle&&a>.5)drawSparkle(s.x,s.y,s.r,a);
+      ctx.globalAlpha=1;
+    });
+    // Meteors
+    spawnMeteor();
+    meteors=meteors.filter(m=>{
+      m.progress+=m.speed;
+      if(m.progress>1)return false;
+      const ex=m.sx+Math.cos(m.angle)*m.len*m.progress;
+      const ey=m.sy+Math.sin(m.angle)*m.len*m.progress;
+      const sx=m.sx+Math.cos(m.angle)*m.len*Math.max(0,m.progress-.18);
+      const sy=m.sy+Math.sin(m.angle)*m.len*Math.max(0,m.progress-.18);
+      const g=ctx.createLinearGradient(sx,sy,ex,ey);
+      const fa=m.progress<.5?m.progress*2:1-(m.progress-.5)*2;
+      g.addColorStop(0,`rgba(255,255,255,0)`);
+      g.addColorStop(1,`rgba(255,248,220,${m.alpha*fa})`);
+      ctx.save();ctx.strokeStyle=g;ctx.lineWidth=1.5;
+      ctx.shadowBlur=6;ctx.shadowColor='rgba(255,248,200,0.6)';
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+      ctx.restore();return true;
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);resize();draw();
 })();
 
 // ─── CONSTANTS ────────────────────────────────────────────
@@ -1729,7 +1852,7 @@ function calcCompatibility(nak1,nak2){
       : `Bhakoot 0점: Bhakoot Dosha 가능성 — 관계의 ‘번영/재정/가정 운영’에서 마찰이 생기기 쉽습니다. 돈·가족·거주 같은 현실 의제를 초기에 합의하면 완화됩니다.`,
     nadi: nadi===8
       ? `Nadi 8점: Nadi(체질/혈통) 타입이 달라 건강·자녀운 측면에서 유리한 조합으로 봅니다.`
-      : `Nadi 0점: Nadi Dosha 가능성 — 체질/건강·자녀 이슈를 더 신중히 보라는 신호입니다. 생활 습관/건강검진/출산 계획을 현실적으로 잡는 것이 좋아요.`
+      : `Nadi 0점: Nadi Dosha — 체질·건강·자녀 이슈를 신중히 살펴야 합니다. 해결책: ① 임신 전 양쪽 건강검진 ② 각자 도샤(Vata/Pitta/Kapha)에 맞는 라이프스타일 존중 ③ 마하므리탸운자야 만트라 108회 공동 수련이 고전적 처방입니다.`
   };
   const breakdown=[
     {n:"Varna (카스트 호환성)",max:1,sc:Math.round(varna),desc:"사회적 적합성",why:why.varna},
@@ -2141,12 +2264,32 @@ function initReveal(){
 }
 
 // ─── ACCORDION ────────────────────────────────────────────
+function syncOpenAccordions(root){
+  const host=root&&root.querySelectorAll?root:document;
+  host.querySelectorAll('.acc-body').forEach(function(body){
+    if(body.classList.contains('open')){
+      body.style.maxHeight=(body.scrollHeight+24)+'px';
+    }else if(!body.style.maxHeight){
+      body.style.maxHeight='0px';
+    }
+  });
+}
+
 function toggleAcc(id){
-  const body=document.getElementById('acc-'+id);
-  const arrow=document.getElementById('arr-'+id);
+  const activePage=document.querySelector('.page.active');
+  const scopedRoot=activePage||document;
+  let body=scopedRoot.querySelector('[id="acc-'+id+'"]');
+  let arrow=scopedRoot.querySelector('[id="arr-'+id+'"]');
+  if(!body)body=document.getElementById('acc-'+id);
+  if(!arrow)arrow=document.getElementById('arr-'+id);
   if(!body)return;
   const isOpen=body.classList.contains('open');
   body.classList.toggle('open',!isOpen);
+  if(!isOpen){
+    body.style.maxHeight=(body.scrollHeight+24)+'px';
+  }else{
+    body.style.maxHeight='0px';
+  }
   if(arrow)arrow.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
 }
 
@@ -2157,7 +2300,13 @@ function switchTab(id){
   const btn=document.getElementById('tbtn-'+id);
   const panel=document.getElementById('tpanel-'+id);
   if(btn)btn.classList.add('active');
-  if(panel){panel.classList.add('active');setTimeout(initReveal,60);}
+  if(panel){
+    panel.classList.add('active');
+    setTimeout(function(){
+      initReveal();
+      syncOpenAccordions(panel);
+    },60);
+  }
   G.activeTab=id;
 }
 
@@ -2317,13 +2466,15 @@ function generateInsights(chart,report){
   const dashaPower=PSIG[maha.p]?PSIG[maha.p].kar[0]:'변화';
   const antaPower=PSIG[anta.p]?PSIG[anta.p].kar[0]:'흐름';
   const mahaQuality=rasi.planets[maha.p]?rasi.planets[maha.p].dignity:'Neutral';
+  const dashaQualEmoji={Exalted:'✦ 황금기',Own:'◆ 안정기',Debilitated:'▲ 정화기',Neutral:'● 성장기'}[mahaQuality]||'● 성장기';
+  const dashaStarMap={Sun:'태양은 왕좌에서 명령합니다 — 권위·리더십·자아 발현의 에너지가 당신의 삶 전면에 들어옵니다',Moon:'달은 조수를 움직입니다 — 감정의 깊이를 탐험하고, 직관과 내면의 목소리가 가장 강력한 나침반이 됩니다',Mars:'화성의 검이 빛납니다 — 용기·행동·개척의 불꽃이 활활 타오르며, 주저함을 태워버리는 시기입니다',Mercury:'헤르메스가 속삭입니다 — 지성·소통·상업의 날카로운 도구가 손에 들어오는 시기입니다',Jupiter:'목성은 은총의 비를 내립니다 — 지혜·확장·번영의 물결이 가장 광대하게 펼쳐지는 성장의 계절입니다',Venus:'금성이 세상에 마법을 겁니다 — 예술·사랑·아름다움·풍요의 황금빛이 삶의 결을 바꿔놓습니다',Saturn:'토성은 시간의 연금술사입니다 — 도전과 단련을 통해 불순물을 제거하고 영혼의 순금을 빚어내는 시기입니다',Rahu:'라후는 새로운 차원의 문을 엽니다 — 익숙함의 경계를 허물고 전혀 다른 삶의 영토로 당신을 이끕니다',Ketu:'케투는 하늘의 지우개입니다 — 집착과 세속적 욕망을 놓아버릴수록 영적 자유와 깊은 지혜가 넘쳐납니다'};
   const mahaInsightMap={
-    Exalted:`${PKR[maha.p]} 대운이 최고 강세(항진)로 작동 중입니다. 이 시기는 당신 생애에서 가장 강력한 상승 에너지가 흐르는 황금기입니다.`,
-    Own:`${PKR[maha.p]} 대운이 자기 별자리에서 운행됩니다. 안정된 토대 위에서 내면의 힘이 자연스럽게 발현되는 시기입니다.`,
-    Debilitated:`${PKR[maha.p]} 대운이 약화 상태로 운행됩니다. 성급한 확장보다 내면 정화와 지혜 축적에 집중할 시기입니다.`,
-    Neutral:`${PKR[maha.p]} 대운이 균형 상태로 흐릅니다. ${dashaPower}의 카르마를 의식적으로 실천할 때 풍성한 결실을 맺습니다.`
+    Exalted:`<span class="keyword">${PKR[maha.p]} 대운</span>이 <strong style="color:var(--gold)">항진(最高位)</strong>으로 운행됩니다. 이 행성이 하늘에서 가장 강렬하게 빛나는 황금 좌표에 있습니다. 당신 생애에서 가장 강력한 우주의 지원이 흐르는 시기 — 지금 뿌린 씨앗은 열 배의 결실로 돌아옵니다.`,
+    Own:`<span class="keyword">${PKR[maha.p]} 대운</span>이 <strong style="color:#22C55E">자기 궁(自宮)</strong>에서 운행됩니다. 물고기가 자신의 강으로 돌아온 것처럼, 이 에너지는 가장 자연스럽고 안정된 힘으로 발현됩니다.`,
+    Debilitated:`<span class="keyword">${PKR[maha.p]} 대운</span>이 <strong style="color:#FF9500">약화(伏位)</strong> 상태입니다. 물질적 확장보다 내면의 그림자를 마주하고 영적 성장을 이뤄내야 하는 정화의 시기 — 이 연단은 영혼의 가장 값진 금을 빚어냅니다.`,
+    Neutral:`<span class="keyword">${PKR[maha.p]} 대운</span>이 균형 상태로 흐릅니다. ${dashaStarMap[maha.p]||dashaPower+'의 카르마를 의식적으로 실천할 때 풍성한 결실을 맺습니다.'}`
   };
-  const todayVibe=`현재 당신은 <span class="keyword">${PKR[maha.p]} 대운</span> / <span class="keyword">${PKR[anta.p]} 세운</span>의 교차점에 서 있습니다. ${mahaInsightMap[mahaQuality]||mahaInsightMap.Neutral} 세운 ${PKR[anta.p]}는 ${antaPower}의 에너지를 주입하며, 앞으로 약 ${antaRem}개월간 이 파동이 지속됩니다.`;
+  const todayVibe=`현재 당신은 <span class="keyword">${PKR[maha.p]} 대운 (${dashaQualEmoji})</span> 안의 <span class="keyword">${PKR[anta.p]} 세운</span> 교차점에 서 있습니다.<br><br>${mahaInsightMap[mahaQuality]||mahaInsightMap.Neutral}<br><br>${dashaStarMap[maha.p]||''}. 세운 <span class="keyword">${PKR[anta.p]}</span>는 ${antaPower}의 에너지를 주입하며, 앞으로 약 <strong>${antaRem}개월</strong>간 이 미세한 파동이 지속됩니다. 두 행성의 상호작용이 지금 이 순간 당신 삶의 질감을 결정짓습니다.`;
 
   // ── 2. 라그나 + 낙샤트라 심층 성향 ──────────────────────
   const lagnaEl=(STRN[p.lagnaSign]||STRN.Aries).el;
@@ -2331,17 +2482,33 @@ function generateInsights(chart,report){
   const elDesc={Fire:"불꽃처럼 타오르는 영혼으로, 한번 정한 방향을 향해 강렬하게 돌진하는 선천적 에너지를 지닙니다",Earth:"대지처럼 묵직하고 신뢰할 수 있는 토대를 구축하며, 현실에 뿌리내린 지혜로 주변을 안정시킵니다",Air:"바람처럼 자유롭고 지적인 영혼으로, 정보와 아이디어를 연결하며 세상을 변화시키는 소통의 달인입니다",Water:"깊은 바다처럼 감성과 직관이 풍부하며, 타인의 마음을 읽어내는 탁월한 공감 능력을 타고났습니다"};
   const deityInfo=NAKDEITY_DATA[nak.name]||{deity:"우주신",role:"신성한 에너지",kw:["지혜"],motive:"Dharma"};
   const padaSign=NAKPADA_SIGNS[nak.name]?NAKPADA_SIGNS[nak.name][Math.max(0,nak.pada-1)]:"Aries";
+  const padaSignKr=SIGNKR[SIGNS.indexOf(padaSign)]||padaSign;
   const padaKw=PADA_SIGN_KW[padaSign]||'';
   const ganaKR={Deva:"데바(Deva) — 신성한 기질로 영성·덕망·조화를 추구합니다",Manushya:"마누샤(Manushya) — 인간적 기질로 현실과 이상 사이에서 균형을 찾습니다",Rakshasa:"락샤사(Rakshasa) — 강렬한 기질로 한 번 목표를 정하면 끝까지 밀어붙이는 집중력이 있습니다"}[NKGANA[nak.name]||'Manushya'];
   const motiveKr=MOTIVES_KR[deityInfo.motive]||deityInfo.motive;
   const motiveDesc=MOTIVES_DESC[deityInfo.motive]||'';
-  const personalityInsight=`당신의 라그나(Lagna) <span class="keyword">${p.lagnaSignKr}</span>는 ${elDesc[lagnaEl]||''}.<br><br>
-3대 핵심 운명 키워드: <span class="keyword">${(lagnaStr.kw||[]).join(' · ')}</span>. 천성적으로 ${(lagnaStr.tr||[]).slice(0,2).join(', ')}의 에너지가 외적 페르소나를 형성하며, 세상은 당신을 그렇게 봅니다.<br><br>
-달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>(${nktr.sym})은 잠재의식의 언어입니다. 이 낙샤트라는 <span class="keyword">${deityInfo.deity}</span>의 수호를 받습니다. ${deityInfo.role}.<br><br>
-파다(Pada) <span class="keyword">${nak.pada}</span> — <span class="keyword">${padaSign} 나밤샤 기질</span>: ${padaKw}<br><br>
-기질(Gana): <span class="keyword">${ganaKR}</span><br><br>
-인생 동기(Motivation): <span class="keyword">${motiveKr}</span>. ${motiveDesc}<br><br>
-그림자 속에는 <span class="keyword">${(nktr.sh||[]).join('과 ')}</span>의 패턴이 숨어 있습니다. 이것은 결함이 아닌, 당신이 이번 생에서 통합해야 할 카르마의 씨앗입니다.`;
+  // 라그나 × 낙샤트라 조합 심층 문구
+  const lagnaElKr={Fire:"불의 자리",Earth:"땅의 자리",Air:"바람의 자리",Water:"물의 자리"}[lagnaEl]||"";
+  const lagnaSignKr2=p.lagnaSignKr||lagna;
+  const nakSymStr=nktr.sym||"⭐";
+  const nakPurpose=nktr.pur||"성장";
+  // 라그나 + 낙샤트라 조합 문장
+  const comboPhraseMap={
+    "Leo-Ashwini":`${lagnaElKr} ${lagnaSignKr2} 라그나에, 치유의 별 ${nak.name} 낙샤트라 — 당신은 상처받은 리더십을 치유하는 개척자입니다`,
+    "Leo-Magha":`불의 왕좌 ${lagnaSignKr2}와 왕족의 별 ${nak.name}의 결합 — 당신은 타고난 왕의 기질로 세상에 위엄을 새기러 왔습니다`,
+    "Aries-Ashwini":`두 불꽃이 하나로 합쳐졌습니다 — ${lagnaSignKr2} 라그나와 ${nak.name}의 이중 개척 에너지가 당신을 시대의 선구자로 빚었습니다`,
+    "Scorpio-Jyeshtha":`심연의 두 별자리 — ${lagnaSignKr2}와 ${nak.name}의 강렬한 결합, 당신은 불가사의한 변혁의 힘을 세상에 가져왔습니다`,
+    "Pisces-Revati":`영적 우주의 끝에서 시작되는 영혼 — ${lagnaSignKr2}와 ${nak.name}의 조합, 당신은 경계 너머를 꿈꾸는 신비로운 안내자입니다`
+  };
+  const comboKey=`${rasi.ascSign}-${nak.name}`;
+  const comboPhrase=comboPhraseMap[comboKey]||`${lagnaElKr} ${lagnaSignKr2} 라그나에, ${nakSymStr} ${nak.name} 낙샤트라가 결합되어 — 당신은 ${lagnaStr.kw[0]}을 통해 ${nakPurpose}을 이루는 독특한 영혼입니다`;
+  const personalityInsight=`${comboPhrase}.<br><br>
+당신의 라그나(Lagna) <span class="keyword">${p.lagnaSignKr}</span>는 세상이 처음 마주치는 당신의 얼굴입니다. ${elDesc[lagnaEl]||''}. 이 별자리가 외적 페르소나의 언어를 결정하며, 사람들은 당신을 그렇게 경험합니다.<br><br>
+3대 핵심 운명 키워드: <span class="keyword">${(lagnaStr.kw||[]).join(' · ')}</span>. 천성적으로 ${(lagnaStr.tr||[]).slice(0,2).join(', ')}의 에너지가 당신을 둘러쌉니다.<br><br>
+달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>(${nktr.sym})은 잠재의식 깊숙한 곳의 언어입니다. 수호신 <span class="keyword">${deityInfo.deity}</span>의 에너지가 당신의 꿈·직관·감정 패턴을 조율합니다. ${deityInfo.role}.<br><br>
+파다(Pada) <span class="keyword">${nak.pada}</span> — <span class="keyword">${padaSignKr} 나밤샤</span>: ${padaKw}. 이 파다는 낙샤트라 에너지가 물질 세계에서 구체적으로 표현되는 방식의 미세한 조율입니다.<br><br>
+기질(Gana): <span class="keyword">${ganaKR}</span><br>인생 동기(Motivation): <span class="keyword">${motiveKr}</span>. ${motiveDesc}<br><br>
+그림자의 씨앗: <span class="keyword">${(nktr.sh||[]).join('과 ')}</span>. 이것은 결함이 아니라 당신이 이번 생에서 통합해야 할 카르마의 원소입니다. 이 그림자를 직면할 때 비로소 빛이 완성됩니다.`;
 
 
   // ── 3. 재물 심층 분석 ─────────────────────────────────
@@ -2364,25 +2531,56 @@ ${c.best?`<span class="keyword">${c.best}</span>이 커리어의 황금기가 �
 
 
   // ── 5. 다샤 심층 해석 ─────────────────────────────────
+  const DASHA_DIGNITY_EXALTED={
+    Sun:"태양 대운이 항진(最高位)으로 운행됩니다. 폭발적인 성장과 거부할 수 없는 우주의 지원을 받는 황금기 — 왕좌가 당신을 기다립니다. 권위와 명예의 문이 활짝 열리며, 이 시기의 모든 노력은 역사에 새겨집니다.",
+    Moon:"달 대운이 고조(最高位)에서 흐릅니다. 감성과 직관이 폭발적으로 깨어나는 시기 — 내면의 바다가 가장 충만하게 차오릅니다. 창의성·공감·예술에서 전례 없는 꽃이 피어납니다.",
+    Mars:"화성 대운이 항진 상태입니다. 전쟁터의 신이 최강의 갑옷을 입은 것처럼, 용기와 행동력이 불꽃처럼 타오릅니다. 어떤 장벽도 이 에너지를 막지 못합니다.",
+    Mercury:"수성 대운이 항진으로 빛납니다. 지성·소통·정보 처리 능력이 절정에 달합니다. 비즈니스·학문·예술 어느 분야에서든 탁월한 성과가 따릅니다.",
+    Jupiter:"목성 대운이 황금 좌표에 있습니다. 지혜의 신이 가장 강력하게 삶을 축복하는 시기 — 번영·지식·영적 성장이 동시에 폭발합니다. 멘토·스승·기회가 사방에서 찾아옵니다.",
+    Venus:"금성 대운이 항진입니다. 사랑·미·풍요의 여신이 가장 화려하게 세상을 물들이는 시기 — 예술, 관계, 재물 모두에서 찬란한 개화가 일어납니다.",
+    Saturn:"토성 대운이 항진 상태입니다. 인내와 규율의 대가가 가장 공정하게 노력에 보상을 주는 시기 — 꾸준히 심은 씨앗이 가장 견고한 구조물로 자랍니다.",
+    Rahu:"라후 대운이 항진으로 운행됩니다. 변혁·혁신·세속적 성공에서 예외적인 도약이 일어납니다. 비전통적 경로가 빛을 발하며 세상을 놀라게 할 성취가 따릅니다.",
+    Ketu:"케투 대운이 항진 상태입니다. 영적 통찰과 신비로운 능력이 절정에 달합니다. 세속의 집착을 내려놓을수록 더 큰 차원의 선물이 쏟아집니다."
+  };
+  const DASHA_DIGNITY_DEBIL={
+    Sun:"태양 대운이 약화(伏位)로 운행됩니다. 자아와 권위에 도전이 찾아오지만, 이 어둠은 더 겸손하고 단단한 리더십을 빚어내는 연금술입니다. 겸허하게 내면을 들여다볼 시기입니다.",
+    Moon:"달 대운이 약화 상태입니다. 감정의 불안정과 의심이 찾아올 수 있습니다. 하지만 이 정서적 도전은 공감 능력과 감성 지능을 더 깊은 수준으로 단련시키는 과정입니다.",
+    Mars:"화성 대운이 약화로 흐릅니다. 행동력이 분산되고 의지에 시험이 찾아옵니다. 물질적 확장보다 내면의 그림자를 마주하고 진정한 용기가 무엇인지 배워가는 정화의 시기입니다.",
+    Mercury:"수성 대운이 약화 상태입니다. 소통과 판단에 혼선이 올 수 있습니다. 이 시기는 침묵 속에서 더 깊은 지혜를 발굴하고, 말의 힘을 신중하게 연습하는 내면 수련의 계절입니다.",
+    Jupiter:"목성 대운이 약화로 운행됩니다. 낙관주의와 팽창 에너지가 축소될 수 있습니다. 물질적 확장보다는 영적 성장을 이뤄내야 하는 정화의 시기 — 진정한 지혜가 역경 속에서 탄생합니다.",
+    Venus:"금성 대운이 약화 상태입니다. 관계와 물질적 풍요에서 실망이 찾아올 수 있습니다. 하지만 이 시련은 진정한 사랑과 진짜 아름다움이 무엇인지를 가르쳐주는 깊은 교사입니다.",
+    Saturn:"토성 대운이 약화로 흐릅니다. 제약과 지연이 심해질 수 있습니다. 이것은 카르마적 정산의 시기 — 과거의 것들을 내려놓고 더 가볍게, 더 본질적으로 사는 법을 배우는 심오한 계절입니다.",
+    Rahu:"라후 대운이 약화 상태입니다. 집착과 환상이 강해지고 방향을 잃기 쉽습니다. 이 혼란의 시기는 진정 원하는 것과 두려움으로 원하는 것을 구분하는 영혼의 시험입니다.",
+    Ketu:"케투 대운이 약화로 운행됩니다. 영적 에너지가 뒤틀리거나 세속 세계에서 고립감이 심해질 수 있습니다. 이 단절의 시기에 진정한 내면의 해방구를 찾으면 비범한 통찰이 기다립니다."
+  };
   const dashaInsights={};
   for(const d of dashas){
     const dp=rasi.planets[d.p];
     const dq=dp?dp.dignity:'Neutral';
     const baseNarrative=DASHA_NARRATIVE[d.p]||`${PKR[d.p]}의 카르마적 에너지가 삶에 스며드는 시기입니다.`;
-    const qualSuffix={
-      Exalted:`특히 이번 ${PKR[d.p]} 대운은 <span class="keyword">항진(Exalted)</span> 상태로 — 생애 최고의 에너지로 운행됩니다. 이 시기의 모든 노력은 배로 돌아옵니다.`,
-      Own:`${PKR[d.p]}이 자기 별자리에서 안정적으로 운행하여, 에너지의 흐름이 자연스럽고 일관됩니다.`,
-      Debilitated:`이번 ${PKR[d.p]} 대운은 <span class="keyword">약화(Debilitated)</span> 상태로 — 도전과 시련이 찾아오지만, 이는 영혼 성장의 귀중한 토양이 됩니다. 과욕을 낮추고 내면 작업에 집중하세요.`,
-      Neutral:`${PKR[d.p]}의 에너지가 균형 상태로 흐릅니다. 의식적인 실천과 규율이 이 시기의 잠재력을 온전히 열어냅니다.`
-    }[dq]||'';
-    dashaInsights[d.p]=baseNarrative+(qualSuffix?'<br><br>'+qualSuffix:'');
+    let qualSuffix='';
+    if(dq==='Exalted'){
+      qualSuffix=`<br><br>${DASHA_DIGNITY_EXALTED[d.p]||`이번 ${PKR[d.p]} 대운은 <span class="keyword">폭발적인 성장과 거부할 수 없는 우주의 지원을 받는 황금기</span>입니다. 이 시기의 모든 노력은 배로 돌아옵니다.`}`;
+    }else if(dq==='Own'){
+      qualSuffix=`<br><br>${PKR[d.p]}이 자기 별자리에서 <span class="keyword">가장 자연스럽고 안정된 힘</span>으로 운행됩니다. 에너지의 흐름이 일관되며, 꾸준한 실천이 가장 강력한 도구입니다.`;
+    }else if(dq==='Debilitated'){
+      qualSuffix=`<br><br>${DASHA_DIGNITY_DEBIL[d.p]||`이번 ${PKR[d.p]} 대운은 <span class="keyword">물질적 확장보다는 내면의 그림자를 마주하고 영적 성장을 이뤄내야 하는 정화의 시기</span>입니다. 과욕을 내려놓고 내면 작업에 집중하세요.`}`;
+    }else{
+      qualSuffix=`<br><br>${PKR[d.p]}의 에너지가 균형 상태로 흐릅니다. <span class="keyword">의식적인 실천과 규율</span>이 이 시기의 잠재력을 온전히 열어냅니다.`;
+    }
+    dashaInsights[d.p]=baseNarrative+qualSuffix;
   }
 
   // ── 6. 차크라 심층 해석 ───────────────────────────────
   const blkCh=ch.blocked||'Muladhara';
   const blkInfo=CHKINFO[blkCh]||{kr:'뿌리 차크라',seed:'LAM',col:'#DC2626'};
-  const chakraNarrative=`에너지체를 살펴보면, <span class="keyword">${CHKINFO[ch.dominant]?CHKINFO[ch.dominant].kr:ch.dominant}</span>가 가장 강렬하게 빛나고 있습니다. 이 에너지는 삶의 원동력이 되지만, 과잉 활성 시 소진을 유발할 수 있습니다.
-반면 <span class="keyword">${blkInfo.kr}</span>는 현재 에너지 흐름이 제한되어 있습니다. 이 차크라에 의식을 집중하고, 씨드 만트라 "<span class="keyword">${blkInfo.seed}</span>"를 일상 명상에 통합하는 것이 에너지 균형 회복의 핵심 열쇠입니다.`;
+  const chakraNarrative=`에너지체를 살펴보면, <span class="keyword">${CHKINFO[ch.dominant]?CHKINFO[ch.dominant].kr:ch.dominant} (${ch.dominant})</span>가 가장 강렬하게 빛나고 있습니다. 이 차크라의 프라나(생명 에너지)가 삶의 원동력이 되지만, 과활성 시 에너지 소진과 집착으로 이어질 수 있습니다 — 의식적 조절이 중요합니다.<br><br>
+<span class="keyword">${blkInfo.kr} (${blkCh})</span>는 현재 에너지 흐름이 막혀있습니다. 이 차크라에 해당하는 행성 <span class="keyword">${PKR[CHKMAP[blkCh]||'Saturn']}</span>이 약화되어 있어 에너지 순환이 제한됩니다. 구체적 처방:<br>
+✦ 씨드 만트라 "<span class="keyword">${blkInfo.seed}</span>"를 매일 아침 108회 반복 명상<br>
+✦ ${CHKINFO[blkCh]?CHKINFO[blkCh].col||'보라':'#8B5CF6'} 계열 색상의 의복·환경 활용<br>
+✦ 이 차크라 영역에 특화된 요가 아사나(자세) 통합<br>
+✦ 해당 행성의 보석을 착용하여 에너지 주파수를 높임<br><br>
+차크라 균형 지수 <span class="keyword">${ch.overall}점/100</span> — ${ch.overall>=70?'전체적으로 에너지 흐름이 양호합니다. 약한 부분을 보강하면 더 큰 시너지가 납니다.':ch.overall>=50?'에너지가 불균등하게 분포되어 있습니다. 균형 회복에 집중하면 삶의 모든 영역이 안정됩니다.':'에너지 재조정이 필요합니다. 꾸준한 명상·요가 수련이 가장 강력한 치유 도구입니다.'}`;
 
   // ── 7. 연애 심층 해석 ─────────────────────────────────
   const h7tr=STRN[rom.h7sign]||STRN.Aries;
@@ -3099,17 +3297,20 @@ function renderSouthChart(rasi){
     const house=rasi.houses.find(h=>h.si===si);
     grid[r][c]={si,signKr:SIGNKR[si],hnum:house?house.num:null,isLagna:si===lagnaSign,planets:house?house.planets:[]};
   }
-  let html='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;border:1px solid rgba(139,92,246,0.3);border-radius:8px;overflow:hidden;background:rgba(5,0,16,0.6)">';
+  let html='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid rgba(212,175,55,0.25);border-radius:10px;overflow:hidden;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(5,0,16,0.95));box-shadow:0 0 40px rgba(212,175,55,0.06),inset 0 0 30px rgba(0,0,0,0.5)">';
   for(let r=0;r<4;r++){for(let c=0;c<4;c++){
-    if((r===0||r===3)&&(c===0||c===3)){html+='<div style="background:#050010;min-height:60px"></div>';continue;}
+    if((r===0||r===3)&&(c===0||c===3)){
+      html+=`<div style="background:radial-gradient(circle at 50% 50%,rgba(30,0,60,0.8),rgba(5,0,16,0.95));min-height:62px;display:flex;align-items:center;justify-content:center"><span style="color:rgba(212,175,55,0.12);font-size:20px">✦</span></div>`;
+      continue;
+    }
     const cell=grid[r][c];
     if(!cell){html+='<div></div>';continue;}
-    const pSyms=cell.planets.slice(0,3).map(p=>`<div style="color:${PCOL[p]};font-size:9px;line-height:1.4">${PSYM[p]}<span style="color:rgba(255,255,255,0.6)">${PKR[p]}</span></div>`).join('');
-    html+=`<div style="min-height:60px;padding:5px 4px;position:relative;border:1px solid ${cell.isLagna?'rgba(212,175,55,0.5)':'rgba(139,92,246,0.15)'};background:${cell.isLagna?'rgba(212,175,55,0.07)':'rgba(139,92,246,0.04)'};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
-      <span style="position:absolute;top:2px;left:3px;font-size:8px;color:var(--text3)">${cell.hnum||''}</span>
-      <span style="font-size:9px;color:var(--gold);margin-bottom:2px">${SIGNSYM[cell.si]}${cell.signKr.replace('자리','')}</span>
+    const pSyms=cell.planets.slice(0,3).map(p=>`<div style="color:${PCOL[p]};font-size:9.5px;line-height:1.4;font-weight:600;text-shadow:0 0 6px ${PCOL[p]}88">${PSYM[p]}<span style="color:rgba(255,255,255,0.55);font-size:8.5px">${PKR[p]}</span></div>`).join('');
+    html+=`<div style="min-height:62px;padding:5px 4px;position:relative;border:1px solid ${cell.isLagna?'rgba(212,175,55,0.45)':'rgba(139,92,246,0.18)'};background:${cell.isLagna?'linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04))':'rgba(139,92,246,0.03)'};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:background .2s;">
+      <span style="position:absolute;top:2px;left:4px;font-size:8px;color:${cell.isLagna?'rgba(212,175,55,0.6)':'var(--text3)'}">${cell.hnum||''}</span>
+      <span style="font-size:10px;color:${cell.isLagna?'var(--gold)':'rgba(212,175,55,0.75)'};margin-bottom:2px;font-weight:700;text-shadow:${cell.isLagna?'0 0 10px rgba(212,175,55,0.5)':'none'}">${SIGNSYM[cell.si]}${cell.signKr.replace('자리','')}</span>
       <div>${pSyms}</div>
-      ${cell.isLagna?'<span style="position:absolute;bottom:2px;right:3px;font-size:7px;color:var(--gold);font-weight:700">Lg</span>':''}
+      ${cell.isLagna?'<span style="position:absolute;bottom:2px;right:3px;font-size:7px;color:var(--gold);font-weight:800;text-shadow:0 0 6px rgba(212,175,55,0.6)">Lg</span>':''}
     </div>`;
   }}
   html+='</div>';
@@ -3137,13 +3338,22 @@ function renderNorthChart(rasi){
     const hp=HP[hi];const house=rasi.houses[hi];
     const si=house.si;const isLagna=si===lagnaSign;
     const ps=house.planets.slice(0,2);
-    svg+=`<path d="${hp.d}" fill="${isLagna?'rgba(212,175,55,0.1)':'rgba(139,92,246,0.04)'}" stroke="rgba(139,92,246,0.35)" stroke-width="0.8"/>`;
-    svg+=`<text x="${hp.tx}" y="${hp.ty}" text-anchor="middle" font-size="9" fill="rgba(212,175,55,0.8)">${SIGNSYM[si]}</text>`;
-    svg+=`<text x="${hp.tx}" y="${hp.ty+11}" text-anchor="middle" font-size="7" fill="rgba(240,232,255,0.4)">${hi+1}Bh</text>`;
-    if(ps.length)svg+=`<text x="${hp.tx}" y="${hp.ty+22}" text-anchor="middle" font-size="8" fill="#06B6D4">${ps.map(p=>PSYM[p]).join(' ')}</text>`;
-    if(isLagna)svg+=`<text x="${hp.tx}" y="${hp.ty-10}" text-anchor="middle" font-size="7" fill="#D4AF37" font-weight="bold">Lg</text>`;
+    svg+=`<path d="${hp.d}" fill="${isLagna?'rgba(212,175,55,0.1)':'rgba(139,92,246,0.04)'}" stroke="${isLagna?'rgba(212,175,55,0.45)':'rgba(139,92,246,0.28)'}" stroke-width="${isLagna?1.2:0.6}" filter="${isLagna?'url(#goldGlow)':''}"/>`;
+    svg+=`<text x="${hp.tx}" y="${hp.ty}" text-anchor="middle" font-size="10" fill="${isLagna?'rgba(212,175,55,0.9)':'rgba(212,175,55,0.65)'}" font-weight="${isLagna?'bold':'normal'}">${SIGNSYM[si]}</text>`;
+    svg+=`<text x="${hp.tx}" y="${hp.ty+12}" text-anchor="middle" font-size="7" fill="rgba(240,232,255,0.35)">${hi+1}Bh</text>`;
+    if(ps.length)svg+=`<text x="${hp.tx}" y="${hp.ty+23}" text-anchor="middle" font-size="8.5" fill="${PCOL[ps[0]]||'#06B6D4'}">${ps.map(p=>PSYM[p]).join(' ')}</text>`;
+    if(isLagna)svg+=`<text x="${hp.tx}" y="${hp.ty-11}" text-anchor="middle" font-size="7" fill="#D4AF37" font-weight="bold" filter="url(#goldGlow)">Lg</text>`;
   }
-  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;border:1px solid rgba(139,92,246,0.2);border-radius:8px;background:rgba(5,0,16,0.6)">${svg}</svg>`;
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;border:1px solid rgba(212,175,55,0.2);border-radius:10px;background:radial-gradient(ellipse at 50% 50%,rgba(30,0,60,0.7),rgba(5,0,16,0.98));box-shadow:0 0 40px rgba(212,175,55,0.05),inset 0 0 60px rgba(124,58,237,0.06)">
+  <defs>
+    <filter id="goldGlow"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  ${svg}
+  <!-- center mandala -->
+  <circle cx="${cx}" cy="${cy}" r="22" fill="none" stroke="rgba(212,175,55,0.15)" stroke-width="0.6"/>
+  <circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(212,175,55,0.1)" stroke-width="0.4"/>
+  <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="10" fill="rgba(212,175,55,0.4)" font-weight="bold">☉</text>
+  </svg>`;
 }
 function toggleChart(style){
   G.chartStyle=style;
@@ -3191,7 +3401,6 @@ function renderResult(){
   const now=new Date();
   const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
   const nkData=NAKTR[nak.name]||{sym:"⭐"};
-  const scoreColor=s=>s>=70?"#22C55E":s>=50?"#F59E0B":"#FF5555";
   const allPlanets=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Rahu","Ketu"];
   const dataSnapshot=buildCurrentVedicDataSnapshot(chart,report);
   const snapshotText=dataSnapshot?JSON.stringify(dataSnapshot,null,2):"";
@@ -3243,7 +3452,7 @@ function renderResult(){
     <div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.65">요가 포인트: ${yogaFocusText}</div>
   </div>`;
 
-  // ── 탭 1: 개요 (Overview) ─────────────────────────────
+  // ── 탭 1: 종합 (Overview) ─────────────────────────────
   const tabOverview=`
   <div class="reveal">
     <div class="sage-text">${insights.todayVibe}</div>
@@ -3274,34 +3483,36 @@ function renderResult(){
 
   ${vedicCanonicalCardsHtml}
 
-  <div class="reveal reveal-delay-2" style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:16px;margin-bottom:14px">
-    <div class="section-head section-head-kr" style="margin-bottom:10px">☽ 타고난 성향 · 핵심 키워드</div>
-    <div class="body-text" style="margin-bottom:10px">${insights.personalityInsight}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
-      ${(report.personality.coreTraits||[]).map(t=>`<span class="tag tag-gold">${t}</span>`).join('')}
-      ${(report.personality.subconscious||[]).map(t=>`<span class="tag tag-purple">${t}</span>`).join('')}
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('ov-basic')">
+      <span style="font-size:16px">🪷</span>
+      <span class="acc-title">처음 보는 분을 위한 핵심 용어</span>
+      <span class="acc-arrow" id="arr-ov-basic">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-ov-basic">
+      <div class="acc-inner" style="display:grid;gap:8px">
+        <div class="info-box"><strong>라그나(Lagna)</strong>: 세상이 나를 처음 인식하는 외적 성향입니다.</div>
+        <div class="info-box"><strong>낙샤트라(Nakshatra)</strong>: 달이 머무는 별자리로, 감정·무의식·습관을 보여줍니다.</div>
+        <div class="info-box"><strong>바바(Bhava)</strong>: 삶의 영역(돈/관계/직업 등)을 뜻하는 12하우스입니다.</div>
+        <div class="info-box"><strong>다샤(Dasha)</strong>: 삶의 시간대별 테마(언제 무엇이 강해지는지)를 읽는 체계입니다.</div>
+      </div>
     </div>
   </div>
 
-  <div class="section-head section-head-kr reveal reveal-delay-3" style="margin-bottom:10px">✦ 7대 운명 분석</div>
-  ${[
-    {id:'personality',icon:'🌟',col:'#FFD700',title:'타고난 성향',score:null,sub:`${rasi.ascSignKr} · ${nak.name}`},
-    {id:'wealth',icon:'💰',col:'#22C55E',title:'재물운',score:report.wealth.score,sub:report.wealth.yogas&&!report.wealth.yogas[0].includes('없음')?report.wealth.yogas[0].split(':')[0]:'안정적 축적형'},
-    {id:'career',icon:'⚡',col:'#06B6D4',title:'천직',score:null,sub:(report.career.primary||[]).slice(0,2).join(' · ')},
-    {id:'chakra',icon:'🔮',col:'#A78BFA',title:'차크라 에너지',score:report.chakra.overall,sub:`${CHKINFO[report.chakra.dominant]?CHKINFO[report.chakra.dominant].kr:''} 주도`},
-    {id:'romance',icon:'💫',col:'#EC4899',title:'연애운',score:null,sub:`${bhavaLabel(7)}: ${SIGNKR[SIGNS.indexOf(report.romance.h7sign)]||report.romance.h7sign}`},
-    {id:'compat',icon:'👫',col:'#F59E0B',title:'궁합 계산기',score:null,sub:'Ashtakoot Milan · 36점 만점'},
-    {id:'yoga',icon:'🧘',col:'#34D399',title:'맞는 요가',score:null,sub:report.yoga.primary?report.yoga.primary.n:'Hatha Yoga 권장'},
-    {id:'remedies',icon:'🕉️',col:'#F472B6',title:'치유 처방',score:null,sub:`도샤: ${report.remedies?report.remedies.dosha.type:'바타'} · 보석: ${report.remedies?report.remedies.gem:'상담 권장'}`},
-    {id:'vimshottari',icon:'🌌',col:'#818CF8',title:'빔쇼타리 다샤',score:null,sub:`현재: ${PKR[maha.p]} 대운 → ${PKR[anta.p]} 세운`}
-  ].map((m,i)=>`<div class="mod-card reveal reveal-delay-${Math.min(i+1,4)}" onclick="showDetail('${m.id}')">
-    <div class="mod-icon" style="background:${m.col}18;border:1px solid ${m.col}33">${m.icon}</div>
-    <div class="mod-texts">
-      <div class="mod-title">${m.title}</div>
-      <div class="mod-preview">${m.sub||''}</div>
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('ov-focus')">
+      <span style="font-size:16px">🧭</span>
+      <span class="acc-title">지금 집중하면 좋은 축</span>
+      <span class="acc-arrow" id="arr-ov-focus">▾</span>
     </div>
-    ${m.score!=null?`<div class="mod-score" style="color:${scoreColor(m.score)}">${m.score}</div>`:'<div style="color:var(--text3);font-size:18px">›</div>'}
-  </div>`).join('')}`;
+    <div class="acc-body" id="acc-ov-focus">
+      <div class="acc-inner">
+        <div class="body-text" style="margin-bottom:8px">행성 집중 바바: <span class="keyword">${bhavaFocusText}</span></div>
+        <div class="body-text" style="margin-bottom:8px">요가 포인트: <span class="keyword">${yogaFocusText}</span></div>
+        <div class="body-text">실행 루틴: <span class="keyword">${vedicRoutineText}</span></div>
+      </div>
+    </div>
+  </div>`;
 
   // ── 탭 2: 출생 차트 ───────────────────────────────────
   const southHTML=renderSouthChart(rasi);
@@ -3326,12 +3537,6 @@ function renderResult(){
     </svg>
     ${renderPlanetGrid(rasi)}
   </div>
-  <div class="reveal reveal-delay-2" style="margin-top:14px">
-    <div class="section-head" style="margin-bottom:10px">4원소 분포</div>
-    ${renderElementBars(report.personality.elementBalance)}
-    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6">
-      주도 원소 <span class="keyword">${report.personality.dominantEl||''}</span> · 보완 필요 <span class="keyword">${report.personality.deficientEl||''}</span>
-    </div>
   </div>`;
 
   // ── 탭 3: 다샤 타임라인 ───────────────────────────────
@@ -3406,56 +3611,6 @@ function renderResult(){
       <span class="tag tag-pink">현재 대운: ${PKR[maha.p]}</span>
     </div>
     <button class="btn-sm" onclick="copyCurrentVedicDataSnapshot()" style="margin-bottom:14px">JSON 복사</button>
-  </div>
-
-  <div class="acc-item reveal reveal-delay-1">
-    <div class="acc-header" onclick="toggleAcc('data-planets')">
-      <span style="font-size:16px">🪐</span>
-      <span class="acc-title">그라하 원본표 (라시/바바/낙샤트라/나밤샤)</span>
-      <span class="acc-arrow" id="arr-data-planets">▾</span>
-    </div>
-    <div class="acc-body open" id="acc-data-planets">
-      <div class="acc-inner" style="overflow:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:11px;min-width:760px">
-          <thead>
-            <tr style="color:var(--text3)">
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Graha</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Rashi</th>
-              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Lon</th>
-              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Bhava</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">Nakshatra</th>
-              <th style="text-align:right;padding:6px;border-bottom:1px solid var(--border)">Pada</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">D9</th>
-              <th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">D10</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${allPlanets.map(function(name){
-              var p=rasi.planets[name]||{};
-              var lon=Number(p.lon);
-              var span=360/27;
-              var idx=Number.isFinite(lon)?Math.floor(nd(lon)/span):-1;
-              var nk=idx>=0&&NAKS[idx]?NAKS[idx]:null;
-              var din=Number.isFinite(lon)?(nd(lon)-idx*span):NaN;
-              var pada=Number.isFinite(din)?Math.floor(din/(span/4))+1:'-';
-              var house=planetHouse(rasi,name)||'-';
-              var d9Sign=(chart.d9&&chart.d9[name]&&chart.d9[name].signName)||'-';
-              var d10Sign=(chart.d10&&chart.d10[name]&&chart.d10[name].signName)||'-';
-              return '<tr>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((PSYM[name]||'')+' '+(PKR[name]||name))+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc((SIGNKR[p.sign]||p.signName||'-')+' '+(Number.isFinite(p.deg)?p.deg.toFixed(2):'-')+'°')+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(Number.isFinite(lon)?lon.toFixed(2):'-')+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(house)+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(nk?nk.n+' ('+(PKR[nk.l]||nk.l)+')':'-')+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right">'+hEsc(pada)+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(d9Sign)+'</td>'+
-                '<td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05)">'+hEsc(d10Sign)+'</td>'+
-              '</tr>';
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
   <div class="acc-item reveal reveal-delay-2">
@@ -3534,9 +3689,16 @@ function renderResult(){
   </div>
 
   <details class="reveal reveal-delay-4" style="margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;background:rgba(255,255,255,0.02)">
-    <summary style="cursor:pointer;color:var(--text2);font-size:12px">분석 데이터 JSON 펼치기</summary>
+    <summary style="cursor:pointer;color:var(--text2);font-size:12px;list-style:none">분석 데이터 JSON 펼치기</summary>
     <pre style="margin-top:8px;white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.55;color:var(--text3)">${hEsc(snapshotText)}</pre>
   </details>`;
+
+  const tabPersonality=renderPersonality(report.personality, chart, insights);
+  const tabRelation=renderRomance(report.romance, chart, insights);
+  const tabMoneyWork=renderWealth(report.wealth, insights)+renderCareer(report.career, insights);
+  const tabDashaFocus=tabDasha+renderVimshottari(chart, insights)+tabAntar;
+  const tabEnergy=renderChakra(report.chakra, insights)+renderRemedies(report.remedies, chart, insights);
+  const tabDeep=tabChart+tabData;
 
   // ── 최종 결과 페이지 HTML ─────────────────────────────
   document.getElementById('result-content').innerHTML=decorateBhavaTerms(`
@@ -3563,22 +3725,43 @@ function renderResult(){
 
   <!-- TABS -->
   <div class="tab-bar">
-    <button class="tab-btn active" id="tbtn-overview" onclick="switchTab('overview')">🌌 종합운</button>
-    <button class="tab-btn" id="tbtn-chart" onclick="switchTab('chart')">🗺️ 차트</button>
-    <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰️ 대운</button>
-    <button class="tab-btn" id="tbtn-antar" onclick="switchTab('antar')">✨ 세운</button>
-    <button class="tab-btn" id="tbtn-data" onclick="switchTab('data')">📚 심층데이터</button>
+    <button class="tab-btn active" id="tbtn-overview" onclick="switchTab('overview')">🌌 종합</button>
+    <button class="tab-btn" id="tbtn-personality" onclick="switchTab('personality')">🌟 성향</button>
+    <button class="tab-btn" id="tbtn-relation" onclick="switchTab('relation')">💞 관계</button>
+    <button class="tab-btn" id="tbtn-moneywork" onclick="switchTab('moneywork')">💼 재물·일</button>
+    <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰️ 다샤</button>
+    <button class="tab-btn" id="tbtn-energy" onclick="switchTab('energy')">🧘 에너지</button>
+    <button class="tab-btn" id="tbtn-deep" onclick="switchTab('deep')">📚 심화</button>
   </div>
 
   <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
-  <div id="tpanel-chart" class="tab-panel">${tabChart}</div>
-  <div id="tpanel-dasha" class="tab-panel">${tabDasha}</div>
-  <div id="tpanel-antar" class="tab-panel">${tabAntar}</div>
-  <div id="tpanel-data" class="tab-panel">${tabData}</div>
+  <div id="tpanel-personality" class="tab-panel">${tabPersonality}</div>
+  <div id="tpanel-relation" class="tab-panel">${tabRelation}</div>
+  <div id="tpanel-moneywork" class="tab-panel">${tabMoneyWork}</div>
+  <div id="tpanel-dasha" class="tab-panel">${tabDashaFocus}</div>
+  <div id="tpanel-energy" class="tab-panel">${tabEnergy}</div>
+  <div id="tpanel-deep" class="tab-panel">${tabDeep}</div>
 
   <div style="height:36px"></div>`);
 
-  setTimeout(initReveal,100);
+  setTimeout(function(){
+    initReveal();
+    syncOpenAccordions(document.getElementById('result-content'));
+  },100);
+}
+
+function renderThematicSections(report, chart, insights) {
+  // This helper isn't strictly necessary if we call the renderers directly in tabOverview,
+  // but it helps organize the "Injected" cards if we want to separate them.
+  return `
+    ${renderPersonality(report.personality, chart, insights)}
+    ${renderWealth(report.wealth, insights)}
+    ${renderCareer(report.career, insights)}
+    ${renderRomance(report.romance, chart, insights)}
+    ${renderChakra(report.chakra, insights)}
+    ${renderRemedies(report.remedies, chart, insights)}
+    ${renderVimshottari(chart, insights)}
+  `;
 }
 
 // ─── DETAIL HEADER ────────────────────────────────────────
@@ -3611,6 +3794,7 @@ function showDetail(id){
   else if(id==='remedies')html=renderRemedies(r.remedies,c,ins);
   else if(id==='vimshottari')html=renderVimshottari(c,ins);
   document.getElementById('detail-content').innerHTML=decorateBhavaTerms(html);
+  syncOpenAccordions(document.getElementById('detail-content'));
   showPage('detail');
 }
 
@@ -3620,6 +3804,7 @@ function renderPersonality(p,chart,ins){
   const deityData=NAKDEITY_DATA[p.moonNak]||{deity:"우주신",role:"신성한 에너지",kw:["지혜"],motive:"Dharma"};
   const padaSignsList=NAKPADA_SIGNS[p.moonNak]||["Aries","Taurus","Gemini","Cancer"];
   const padaSignName=padaSignsList[Math.max(0,(chart.nak.pada||1)-1)];
+  const padaSignKr=SIGNKR[SIGNS.indexOf(padaSignName)]||padaSignName;
   const padaDetail=PADA_SIGN_KW[padaSignName]||'파다 에너지';
   const ganaName=NKGANA[p.moonNak]||'Manushya';
   const ganaKR={Deva:"데바(Deva) — 신성·영성·조화를 추구",Manushya:"마누샤(Manushya) — 현실과 이상의 균형",Rakshasa:"락샤사(Rakshasa) — 강렬·집중·목표 지향"}[ganaName]||ganaName;
@@ -3634,7 +3819,7 @@ function renderPersonality(p,chart,ins){
       <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:10px">
         <span class="tag tag-gold">🕉 ${ganaName}</span>
         <span class="tag tag-purple">${motiveKr.split('—')[0].trim()}</span>
-        <span class="tag tag-cyan">Pada ${chart.nak.pada}: ${padaSignName}</span>
+        <span class="tag tag-cyan">Pada ${chart.nak.pada}: ${padaSignKr}</span>
       </div>
     </div>
   </div>
@@ -3666,7 +3851,7 @@ function renderPersonality(p,chart,ins){
   <div class="acc-item reveal reveal-delay-2">
     <div class="acc-header" onclick="toggleAcc('pers-pada')">
       <span style="font-size:16px">🎯</span>
-      <span class="acc-title">파다 (Pada) ${chart.nak.pada} — ${padaSignName} 나밤샤</span>
+      <span class="acc-title">파다(Pada) ${chart.nak.pada} — ${padaSignKr} 나밤샤</span>
       <span class="acc-arrow" id="arr-pers-pada">▾</span>
     </div>
     <div class="acc-body open" id="acc-pers-pada">
@@ -3679,7 +3864,7 @@ function renderPersonality(p,chart,ins){
         </div>
         <div class="body-text">${padaDetail}</div>
         <div style="margin-top:10px;padding:10px;background:rgba(167,139,250,0.07);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.7">
-          현재 파다 ${chart.nak.pada}는 <strong style="color:var(--purple2)">${padaSignName}</strong> 나밤샤에서 운행됩니다. D-9 차트의 이 위치는 <span class="keyword">${(STRN[padaSignName]||STRN.Aries).tr.slice(0,2).join('·')}</span>의 성숙한 잠재력이 이번 생에서 어떻게 꽃피는지를 나타냅니다.
+          현재 파다 ${chart.nak.pada}는 <strong style="color:var(--purple2)">${padaSignKr}</strong> 나밤샤에서 운행됩니다. D-9 차트의 이 위치는 <span class="keyword">${(STRN[padaSignName]||STRN.Aries).tr.slice(0,2).join('·')}</span>의 성숙한 잠재력이 이번 생에서 어떻게 꽃피는지를 나타냅니다.
         </div>
       </div>
     </div>
@@ -3689,7 +3874,7 @@ function renderPersonality(p,chart,ins){
   <div class="acc-item reveal reveal-delay-2">
     <div class="acc-header" onclick="toggleAcc('pers-gana')">
       <span style="font-size:16px">⚡</span>
-      <span class="acc-title">기질(Gana) & 인생 동기(Motivation)</span>
+      <span class="acc-title">가나(Gana)와 삶의 다르마 동기</span>
       <span class="acc-arrow" id="arr-pers-gana">▾</span>
     </div>
     <div class="acc-body" id="acc-pers-gana">
@@ -3713,7 +3898,7 @@ function renderPersonality(p,chart,ins){
   <div class="acc-item reveal reveal-delay-3">
     <div class="acc-header" onclick="toggleAcc('pers1')">
       <span style="font-size:16px">✦</span>
-      <span class="acc-title">핵심 자질 & 그림자</span>
+      <span class="acc-title">핵심 성향과 카르마 과제</span>
       <span class="acc-arrow" id="arr-pers1">▾</span>
     </div>
     <div class="acc-body" id="acc-pers1">
@@ -3733,7 +3918,7 @@ function renderPersonality(p,chart,ins){
   <div class="acc-item reveal reveal-delay-4">
     <div class="acc-header" onclick="toggleAcc('pers2')">
       <span style="font-size:16px">⚡</span>
-      <span class="acc-title">원소 & 양식 분포</span>
+      <span class="acc-title">판차마하부타(원소) 균형</span>
       <span class="acc-arrow" id="arr-pers2">▾</span>
     </div>
     <div class="acc-body" id="acc-pers2">
@@ -3752,7 +3937,7 @@ function renderPersonality(p,chart,ins){
   <div class="acc-item reveal reveal-delay-4">
     <div class="acc-header" onclick="toggleAcc('pers3')">
       <span style="font-size:16px">☽</span>
-      <span class="acc-title">라그나 지배 행성 위치</span>
+      <span class="acc-title">라그네샤(라그나 지배행성) 위치</span>
       <span class="acc-arrow" id="arr-pers3">▾</span>
     </div>
     <div class="acc-body" id="acc-pers3">
@@ -3799,7 +3984,7 @@ function renderWealth(w,ins){
   </div>
   <div class="acc-item reveal reveal-delay-4">
     <div class="acc-header" onclick="toggleAcc('w2')">
-      <span style="font-size:16px">✦</span><span class="acc-title">재물 요가 & 절정 기간</span>
+      <span style="font-size:16px">✦</span><span class="acc-title">다나 요가와 유리한 시기</span>
       <span class="acc-arrow" id="arr-w2">▾</span>
     </div>
     <div class="acc-body" id="acc-w2">
@@ -4629,7 +4814,7 @@ function renderVimshottari(chart,ins){
   <div class="acc-item reveal reveal-delay-3">
     <div class="acc-header" onclick="toggleAcc('vims-detail')">
       <span style="font-size:16px">📖</span>
-      <span class="acc-title">각 대운의 의미 — 행성별 가이드</span>
+      <span class="acc-title">마하다샤 행성별 해석 가이드</span>
       <span class="acc-arrow" id="arr-vims-detail">▾</span>
     </div>
     <div class="acc-body" id="acc-vims-detail">
@@ -4650,7 +4835,7 @@ function renderVimshottari(chart,ins){
   <div class="acc-item reveal reveal-delay-4">
     <div class="acc-header" onclick="toggleAcc('vims-guide')">
       <span style="font-size:16px">🌠</span>
-      <span class="acc-title">다샤 시스템 활용 가이드</span>
+      <span class="acc-title">다샤 실전 활용법</span>
       <span class="acc-arrow" id="arr-vims-guide">▾</span>
     </div>
     <div class="acc-body" id="acc-vims-guide">
