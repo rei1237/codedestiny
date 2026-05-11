@@ -33,6 +33,7 @@ function LockedSection({
 }: LockedSectionProps) {
   const [isScrolling, setIsScrolling] = useState(false);
   const touchStartPos = useRef({ x: 0, y: 0 });
+  const bootstrapBalanceSyncInFlight = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -886,9 +887,12 @@ export default function KkulkkulManseryukMain() {
     } catch (_) {}
     // 2) API로 실제 잔액 동기화
     if (!hasClientAuthSessionHint() && !isAdminSessionClient()) return;
+    if (bootstrapBalanceSyncInFlight.current) return;
+    bootstrapBalanceSyncInFlight.current = true;
     const authHeaders = buildClientAuthHeaders();
     fetch('/api/fortune/pig-coin/balance', {
       credentials: 'include',
+      cache: 'no-store',
       headers: { ...authHeaders },
     })
       .then((r) => r.json())
@@ -904,7 +908,10 @@ export default function KkulkkulManseryukMain() {
           ...restored,
         }));
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        bootstrapBalanceSyncInFlight.current = false;
+      });
   }, []);
 
   return (

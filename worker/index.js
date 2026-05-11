@@ -45,6 +45,13 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://codedestiny.pages.dev",
 ];
 
+const NO_CACHE_CONTROL = "no-store, no-cache, must-revalidate";
+
+function applyNoCacheHeaders(headers) {
+  headers.set("Cache-Control", NO_CACHE_CONTROL);
+  headers.set("Pragma", "no-cache");
+}
+
 function normalizeOrigin(rawValue) {
   const value = String(rawValue || "").trim().replace(/\/+$/, "");
   if (!value) return "";
@@ -109,7 +116,7 @@ function getCorsHeaders(request, env) {
 function jsonResponse(request, env, body, init = {}) {
   const headers = new Headers(init.headers || {});
   headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store");
+  applyNoCacheHeaders(headers);
   for (const [key, value] of Object.entries(getCorsHeaders(request, env))) {
     headers.set(key, value);
   }
@@ -186,9 +193,8 @@ function withCorsHeaders(request, env, response) {
   for (const [key, value] of Object.entries(getCorsHeaders(request, env))) {
     response.headers.set(key, value);
   }
-  if (!response.headers.has("Cache-Control")) {
-    response.headers.set("Cache-Control", "no-store");
-  }
+  if (!response.headers.has("Cache-Control")) applyNoCacheHeaders(response.headers);
+  if (!response.headers.has("Pragma")) response.headers.set("Pragma", "no-cache");
   return response;
 }
 
@@ -339,7 +345,7 @@ async function proxyApiRequest(request, env) {
 
   const response = await fetch(upstreamUrl.toString(), init);
   const responseHeaders = new Headers(response.headers);
-  responseHeaders.set("Cache-Control", "no-store");
+  applyNoCacheHeaders(responseHeaders);
   for (const [key, value] of Object.entries(getCorsHeaders(request, env))) {
     responseHeaders.set(key, value);
   }

@@ -165,8 +165,13 @@ function extractTokenUserId(payload) {
 }
 
 export async function requireAuth(request, env) {
+  return requireUserFromRequest(request, env);
+}
+
+export async function getOptionalUserFromRequest(request, env) {
   const bearerToken = getHeaderBearerToken(request);
   const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
+  const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
 
   const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
   if (bearerAuth) return bearerAuth;
@@ -176,9 +181,17 @@ export async function requireAuth(request, env) {
     if (cookieAuth) return cookieAuth;
   }
 
-  const refreshAuth = await verifyRefreshSessionToAuth(request, env);
-  if (refreshAuth) return refreshAuth;
+  if (refreshCookieToken) {
+    const refreshAuth = await verifyRefreshSessionToAuth(request, env);
+    if (refreshAuth) return refreshAuth;
+  }
 
+  return null;
+}
+
+export async function requireUserFromRequest(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (auth) return auth;
   throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
 }
 

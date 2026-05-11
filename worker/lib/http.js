@@ -14,7 +14,8 @@ export function createHttpError(status, message, payload = {}) {
 export function json(body, init = {}) {
   const headers = new Headers(init.headers || {});
   headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store");
+  headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  headers.set("Pragma", "no-cache");
 
   return new Response(JSON.stringify(body), {
     ...init,
@@ -27,7 +28,8 @@ export function redirect(location, status = 302) {
     status,
     headers: {
       Location: location,
-      "Cache-Control": "no-store",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
     },
   });
 }
@@ -161,6 +163,22 @@ export async function handleRouteError(error, context = {}) {
   }
 
   const isConfigError = /mongo_uri|mongodb_uri|required for worker-native|connection timed out/i.test(errorText);
+  const isDbUnavailable = /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText);
+
+  if (isDbUnavailable || isConfigError) {
+    return json({
+      ok: false,
+      success: false,
+      code: "SERVICE_UNAVAILABLE",
+      message: (exposeMessage || isConfigError) && errorText ? errorText : "Database is temporarily unavailable.",
+      requestPath: (exposeMessage || isConfigError) ? requestPath : undefined,
+    }, {
+      status: 503,
+      headers: {
+        "X-Error-Code": "SERVICE_UNAVAILABLE",
+      },
+    });
+  }
 
   return json({
     ok: false,

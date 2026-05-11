@@ -213,10 +213,25 @@
     try { return localStorage.getItem('fortune_auth_token') || ''; } catch(e) { return ''; }
   }
 
-  function _dpHasLoginSession() {
+  function _dpBuildAuthHeaders(baseHeaders) {
+    var headers = Object.assign({}, baseHeaders || {});
     var token = _dpGetAuthToken();
-    if (!token) return false;
-    return _dpGetProfileScope() !== 'guest';
+    if (token) headers.Authorization = 'Bearer ' + token;
+    return headers;
+  }
+
+  function _dpHasSessionHint() {
+    try {
+      if (_dpGetProfileScope() !== 'guest') return true;
+    } catch (e) {}
+    try {
+      return document.cookie.indexOf('fortune_auth_role=') >= 0;
+    } catch (e) {}
+    return false;
+  }
+
+  function _dpHasLoginSession() {
+    return _dpHasSessionHint();
   }
   // 다른 JS 모듈에서도 사용할 수 있도록 전역 노출
   window.__dpHasLoginSession = _dpHasLoginSession;
@@ -231,24 +246,26 @@
   }
 
   function _dpSyncToServer() {
-    var token = _dpGetAuthToken();
-    if (!token || !_dpHasLoginSession()) return;
+    if (!_dpHasLoginSession()) return;
     var scope = _dpGetProfileScope();
     var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
     var currentId = '';
     try { currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || ''; } catch(e) {}
     fetch('/api/user/destiny-profiles', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ action: 'sync', profiles: profiles, currentId: currentId })
     }).catch(function() {});
   }
 
   function _dpLoadFromServer(callback) {
-    var token = _dpGetAuthToken();
-    if (!token || !_dpHasLoginSession()) { if (callback) callback(false); return; }
+    if (!_dpHasLoginSession()) { if (callback) callback(false); return; }
     fetch('/api/user/destiny-profiles', {
-      headers: { 'Authorization': 'Bearer ' + token }
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders()
     })
     .then(function(res) { return res.ok ? res.json() : null; })
     .then(function(data) {
@@ -868,8 +885,7 @@
 
   /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
   function _fetchSubscription() {
-    var token = localStorage.getItem('fortune_auth_token');
-    if (!token || !_dpHasLoginSession()) {
+    if (!_dpHasLoginSession()) {
       _dpSubScope = _dpGetProfileScope();
       _dpSubTier = 'free';
       _dpSubIsActive = false;
@@ -878,7 +894,9 @@
       return;
     }
     fetch('/api/fortune/pig-coin/profile-subscription/status', {
-      headers: { 'Authorization': 'Bearer ' + token }
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders()
     })
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(d) {

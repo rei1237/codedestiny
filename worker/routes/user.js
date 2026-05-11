@@ -1,6 +1,6 @@
 import { connectDb } from "../lib/db.js";
 import { User } from "../lib/models.js";
-import { requireAuth } from "../lib/auth.js";
+import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 const MAX_DESTINY_PROFILES = 30;
@@ -51,16 +51,22 @@ function resolveCurrentId(rawCurrentId, profiles) {
 }
 
 async function handleGetDestinyProfiles(auth) {
+  if (!auth?.userId) {
+    return json({ ok: true, authenticated: false, profiles: [], currentId: "" });
+  }
+
   const user = await User.findById(auth.userId)
     .select("destinyProfiles destinyProfilesCurrentId")
     .lean();
 
-  if (!user) return json({ ok: false, message: "User not found." }, { status: 404 });
+  if (!user) {
+    return json({ ok: true, authenticated: true, profiles: [], currentId: "" });
+  }
 
   const profiles = sanitizeDestinyProfiles(user.destinyProfiles || []);
   const currentId = resolveCurrentId(user.destinyProfilesCurrentId, profiles);
 
-  return json({ ok: true, profiles, currentId });
+  return json({ ok: true, authenticated: true, profiles, currentId });
 }
 
 async function handleSyncDestinyProfiles(request, auth) {
@@ -103,14 +109,16 @@ export async function handleUserRoutes(request, env) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/user");
 
-    const auth = await requireAuth(request, env);
-    await connectDb(env);
-
     if (method === "GET" && path === "/destiny-profiles") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) return handleGetDestinyProfiles(null);
+      await connectDb(env);
       return await handleGetDestinyProfiles(auth);
     }
 
     if (method === "POST" && path === "/destiny-profiles") {
+      const auth = await requireUserFromRequest(request, env);
+      await connectDb(env);
       return await handleSyncDestinyProfiles(request, auth);
     }
 

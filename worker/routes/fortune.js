@@ -1,6 +1,6 @@
 import { connectDb, mongoose } from "../lib/db.js";
 import { User, PointHistory } from "../lib/models.js";
-import { requireAuth } from "../lib/auth.js";
+import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   COIN_GATE_PER_USE_REASON_COSTS,
@@ -336,6 +336,26 @@ function toUnlockMap(unlockedFeatures) {
   return map;
 }
 
+function normalizeStringArray(values, maxLength = 200) {
+  if (!Array.isArray(values)) return [];
+  const out = [];
+  for (let i = 0; i < values.length; i += 1) {
+    const value = String(values[i] || "").trim();
+    if (!value) continue;
+    out.push(value);
+    if (out.length >= maxLength) break;
+  }
+  return out;
+}
+
+function isRepairableConsumeArrayShapeError(error) {
+  const message = String(error?.message || "");
+  if (!message) return false;
+  const hasArrayOp = /\$push|\$addToSet|must be an array|non-array field/i.test(message);
+  if (!hasArrayOp) return false;
+  return /recentConsumeRequestIds|unlockedFeatures/i.test(message);
+}
+
 async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
   const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
   if (fromUser.length || !userId) return fromUser;
@@ -617,15 +637,45 @@ async function handleConsume(auth) {
 
 async function handleBalance(auth) {
   const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
-  if (!user) return json({ message: "User not found." }, { status: 404 });
+  if (!user) {
+    return json({
+      ok: true,
+      authenticated: true,
+      balance: 0,
+      message: "Coin balance initialized with safe default.",
+      user: userPayload(auth, 0, []),
+      unlockedFeatures: [],
+      unlockMap: {},
+    });
+  }
 
   const unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+  const points = Number(user.points || 0);
 
   return json({
+    ok: true,
+    authenticated: true,
+    balance: points,
     message: "Coin balance loaded.",
-    user: userPayload(auth, user.points, unlockedFeatures),
+    user: userPayload(auth, points, unlockedFeatures),
     unlockedFeatures,
     unlockMap: toUnlockMap(unlockedFeatures),
+  });
+}
+
+function handleGuestBalance() {
+  return json({
+    ok: true,
+    authenticated: false,
+    balance: 0,
+    message: "Guest balance loaded.",
+    user: {
+      id: "guest",
+      points: 0,
+      unlockedFeatures: [],
+    },
+    unlockedFeatures: [],
+    unlockMap: {},
   });
 }
 
@@ -852,15 +902,40 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
   }
 
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: auth.userId,
-      points: { $gte: cost },
-      ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
-    },
-    updatePayload,
-    { new: true, projection: { points: 1, unlockedFeatures: 1 } },
-  ).lean();
+  const consumeFilter = {
+    _id: auth.userId,
+    points: { $gte: cost },
+    ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
+  };
+  const consumeOptions = { new: true, projection: { points: 1, unlockedFeatures: 1 } };
+
+  let updatedUser = null;
+  try {
+    updatedUser = await User.findOneAndUpdate(
+      consumeFilter,
+      updatePayload,
+      consumeOptions,
+    ).lean();
+  } catch (error) {
+    if (!isRepairableConsumeArrayShapeError(error)) throw error;
+
+    const repairSet = {};
+    if (requestId) {
+      repairSet.recentConsumeRequestIds = normalizeStringArray(runtimeUser?.recentConsumeRequestIds, 200);
+    }
+    if (unlockKeysToPersist.length) {
+      repairSet.unlockedFeatures = normalizeStringArray(runtimeUser?.unlockedFeatures, 500);
+    }
+    if (Object.keys(repairSet).length) {
+      await User.updateOne({ _id: auth.userId }, { $set: repairSet });
+    }
+
+    updatedUser = await User.findOneAndUpdate(
+      consumeFilter,
+      updatePayload,
+      consumeOptions,
+    ).lean();
+  }
 
   if (!updatedUser) {
     if (requestId) {
@@ -1108,7 +1183,37 @@ async function handleSubscriptionStatus(request, env, auth) {
     first_service_access_date: 1,
   });
 
-  if (!user) return json({ message: "User not found." }, { status: 404 });
+  if (!user) {
+    const policy = getPlanPolicy(null);
+    return json({
+      ok: true,
+      authenticated: true,
+      subscription: {
+        isSubscribed: false,
+        plan: "free",
+        expiresAt: null,
+      },
+      isSubscribed: false,
+      plan: "free",
+      tier: "free",
+      source: "coin",
+      isActive: false,
+      expiresAt: null,
+      profileLimit: 1,
+      points: 0,
+      lowBalanceWarning: false,
+      autoRenewed: false,
+      cancelAtPeriodEnd: false,
+      cancelRequestedAt: null,
+      hasStartedPaidService: false,
+      firstServiceAccessDate: null,
+      adminMode: false,
+      simulated: false,
+      adminTestTier: null,
+      freeLimit: policy.freeLimit,
+      recommendedCoins: policy.recommendedCoins,
+    });
+  }
 
   const sub = user.profileSubscription || {};
   const tier = sub.tier || "free";
@@ -1171,6 +1276,15 @@ async function handleSubscriptionStatus(request, env, auth) {
   if (adminMode && adminTestTier) {
     const simulatedPolicy = getPlanPolicy(adminTestTier);
     return json({
+      ok: true,
+      authenticated: true,
+      subscription: {
+        isSubscribed: true,
+        plan: adminTestTier,
+        expiresAt: toIsoOrNull(effectiveExpAt),
+      },
+      isSubscribed: true,
+      plan: adminTestTier,
       tier: adminTestTier,
       isActive: true,
       expiresAt: toIsoOrNull(effectiveExpAt),
@@ -1191,6 +1305,15 @@ async function handleSubscriptionStatus(request, env, auth) {
   }
 
   return json({
+    ok: true,
+    authenticated: true,
+    subscription: {
+      isSubscribed: Boolean(isActive),
+      plan: effectiveTier,
+      expiresAt: toIsoOrNull(effectiveExpAt),
+    },
+    isSubscribed: Boolean(isActive),
+    plan: effectiveTier,
     tier: effectiveTier,
     source: effectiveTier === "free" ? "coin" : source,
     isActive: Boolean(isActive),
@@ -1208,6 +1331,33 @@ async function handleSubscriptionStatus(request, env, auth) {
     adminTestTier: null,
     freeLimit: policy.freeLimit,
     recommendedCoins: policy.recommendedCoins,
+  });
+}
+
+function handleGuestSubscriptionStatus() {
+  return json({
+    ok: true,
+    authenticated: false,
+    subscription: null,
+    isSubscribed: false,
+    plan: "guest",
+    tier: "free",
+    source: "coin",
+    isActive: false,
+    expiresAt: null,
+    profileLimit: 1,
+    points: 0,
+    lowBalanceWarning: false,
+    autoRenewed: false,
+    cancelAtPeriodEnd: false,
+    cancelRequestedAt: null,
+    hasStartedPaidService: false,
+    firstServiceAccessDate: null,
+    adminMode: false,
+    simulated: false,
+    adminTestTier: null,
+    freeLimit: getPlanPolicy(null).freeLimit,
+    recommendedCoins: getPlanPolicy(null).recommendedCoins,
   });
 }
 
@@ -1492,6 +1642,21 @@ export async function handleFortuneRoutes(request, env) {
   try {
     if (method === "GET" && path === "/check") return await handleCheck();
 
+    if (method === "GET" && (path === "/pig-coin/balance" || path === "/pig-coin/profile-subscription/status" || path === "/pig-coin/subscription/status")) {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        if (path === "/pig-coin/balance") return handleGuestBalance();
+        return handleGuestSubscriptionStatus();
+      }
+
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+
+      if (path === "/pig-coin/balance") return await handleBalance(auth);
+      return await handleSubscriptionStatus(request, env, auth);
+    }
+
     if (method === "POST" && path === "/pig-coin/unlock") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
       trace.authVerified = true;
@@ -1508,7 +1673,7 @@ export async function handleFortuneRoutes(request, env) {
       return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
     }
 
-    const auth = await requireAuth(request, env);
+    const auth = await requireUserFromRequest(request, env);
     trace.authVerified = true;
 
     await connectDb(env);
@@ -1516,9 +1681,7 @@ export async function handleFortuneRoutes(request, env) {
 
     if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
     if (method === "POST" && path === "/consume") return await handleConsume(auth);
-    if (method === "GET" && path === "/pig-coin/balance") return await handleBalance(auth);
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
-    if (method === "GET" && path === "/pig-coin/profile-subscription/status") return await handleSubscriptionStatus(request, env, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/subscribe") return await handleSubscribe(request, auth);
