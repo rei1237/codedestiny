@@ -506,16 +506,19 @@ function consumeKemetPerUseCoin() {
     }
 
     var token = '';
-    try { token = String(localStorage.getItem('fortune_auth_token') || localStorage.getItem('cdToken') || ''); } catch (_e) {}
-    var headers = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = 'Bearer ' + token;
+    try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
+    var consumeHeaders = {
+      'Content-Type': 'application/json'
+    };
+    if (token) consumeHeaders.Authorization = 'Bearer ' + token;
 
     if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
 
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
+      headers: consumeHeaders,
       credentials: 'include',
-      headers: headers,
+      cache: 'no-store',
       body: JSON.stringify({
         cost: COST,
         reason: '이집트 신탁 리딩',
@@ -529,6 +532,13 @@ function consumeKemetPerUseCoin() {
       });
     }).then(function(payload) {
       var res = payload.data || {};
+      if (payload.status === 401) {
+        if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+          window.location.href = '/login?next=%2F';
+        }
+        resolve(false);
+        return;
+      }
       if (payload.ok || res.ok === true) {
         var remaining = null;
         if (typeof res.remainingPoints === 'number') remaining = res.remainingPoints;
@@ -548,12 +558,7 @@ function consumeKemetPerUseCoin() {
       }
 
       var code = String((res && res.code) || '').toUpperCase();
-      if (payload.status === 401 || payload.status === 403 || code === 'UNAUTHORIZED') {
-        if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
-          var next = encodeURIComponent((location && location.pathname ? location.pathname : '/') + (location && location.search ? location.search : ''));
-          window.location.href = '/login?next=' + next;
-        }
-      } else if (payload.status === 402 || code === 'INSUFFICIENT_POINTS') {
+      if (payload.status === 402 || code === 'INSUFFICIENT_POINTS') {
         alert('코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.');
       } else {
         alert((res && (res.message || res.error)) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');

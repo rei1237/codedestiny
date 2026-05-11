@@ -549,21 +549,16 @@
 
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-    if (!token) {
-      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
-        window.__cdOpenLoginRequiredModal({
-          reason: '로그인 후 이용할 수 있는 기능입니다.',
-          redirectTo: window.location.pathname + window.location.search + window.location.hash,
-        });
-      } else {
-        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-      }
-      if (typeof onCancel === 'function') onCancel();
-      return;
-    }
     var balance = 0;
-    try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); balance = Number(_u2 && _u2.points) || 0; } catch(_) {}
-    if (balance < cost) {
+    var hasBalanceSnapshot = false;
+    try {
+      var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
+      if (_u2 && typeof _u2.points === 'number') {
+        balance = Number(_u2.points) || 0;
+        hasBalanceSnapshot = true;
+      }
+    } catch(_) {}
+    if (hasBalanceSnapshot && balance < cost) {
       if (typeof onCancel === 'function') onCancel();
       var shortageNow = Date.now();
       var shortageLastGlobal = Number(window.__cdCoinGateShortagePromptLastAt || 0);
@@ -580,15 +575,20 @@
       }
       return;
     }
-    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
+    var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
+    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + balanceLabel + '\n\n진행하시겠습니까?')) {
       if (typeof onCancel === 'function') onCancel();
       return;
     }
     var requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    var consumeHeaders = { 'Content-Type': 'application/json' };
+    if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      headers: consumeHeaders,
+      credentials: 'include',
+      cache: 'no-store',
       body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'coin-gate-per-use', forceDeduct: true, requestId: requestId })
     })
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
@@ -611,7 +611,11 @@
         if (typeof onCancel === 'function') onCancel();
         return;
       }
-      var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
+      var nb = null;
+      if (res.data && res.data.user && typeof res.data.user.points === 'number') nb = res.data.user.points;
+      else if (res.data && typeof res.data.remainingPoints === 'number') nb = res.data.remainingPoints;
+      else if (hasBalanceSnapshot) nb = Math.max(0, balance - cost);
+      if (!Number.isFinite(Number(nb))) nb = _dpGetUserBalance();
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; _dpWriteAuthUser(_u3); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
       var chargedCoins = Number((res.data && res.data.chargedCoins) || 0);
@@ -707,20 +711,13 @@
     if (_cdIsAdminLikeUser()) { cb(); return; }
 
     var token = _dpGetAuthToken();
-    if (!token) {
-      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
-        window.__cdOpenLoginRequiredModal({
-          reason: '로그인 후 이용할 수 있는 기능입니다.',
-          redirectTo: window.location.pathname + window.location.search + window.location.hash,
-        });
-      } else {
-        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-      }
-      return;
-    }
-
     var balance = _dpGetUserBalance();
-    var balanceLabel = Number(balance).toLocaleString('ko-KR');
+    var hasBalanceSnapshot = false;
+    try {
+      var _uLock = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
+      hasBalanceSnapshot = !!(_uLock && typeof _uLock.points === 'number');
+    } catch (_) {}
+    var balanceLabel = hasBalanceSnapshot ? Number(balance).toLocaleString('ko-KR') : '알 수 없음';
 
     if (!window.confirm(
       '🪙 ' + info.name + ' 영구 해금\n\n' +
@@ -746,12 +743,15 @@
           forceDeduct: true,
           requestId: requestId
         };
+      var unlockHeaders = {
+        'Content-Type': 'application/json'
+      };
+      if (token) unlockHeaders.Authorization = 'Bearer ' + token;
       fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
+        headers: unlockHeaders,
+        credentials: 'include',
+        cache: 'no-store',
         body: JSON.stringify(payload)
       })
       .then(function (r) {
@@ -783,7 +783,7 @@
         }
         var newBalance = (res.data && res.data.user && typeof res.data.user.points === 'number')
           ? res.data.user.points
-          : Math.max(0, balance - info.cost);
+          : (hasBalanceSnapshot ? Math.max(0, balance - info.cost) : _dpGetUserBalance());
         _dpSaveUserBalance(newBalance);
         if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newBalance);
         var chargedCoins = Number((res.data && res.data.chargedCoins) || info.cost);

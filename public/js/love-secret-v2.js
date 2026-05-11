@@ -886,6 +886,10 @@
     var cfg = _getModeConfig(mode);
     var requestId = 'love-secret:' + mode + ':' + inputHash;
     var featureKey = 'premium-love-secret-' + mode;
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var consumeHeaders = { 'Content-Type': 'application/json' };
+    if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     var endpoints = _buildApiCandidates('/api/fortune/pig-coin/consume');
 
     return new Promise(function (resolve) {
@@ -896,7 +900,9 @@
         }
         fetch(endpoints[at], {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: consumeHeaders,
+          credentials: 'include',
+          cache: 'no-store',
           body: JSON.stringify({
             cost: cfg.price,
             reason: mode === 'couple' ? '사주 프리미엄 궁합 리포트 생성' : '사주 프리미엄 연애운 리포트 생성',

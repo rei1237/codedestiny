@@ -160,7 +160,10 @@
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-    if (!token) return Promise.resolve(false);
+    var refundHeaders = {
+      'Content-Type': 'application/json',
+    };
+    if (token) refundHeaders.Authorization = 'Bearer ' + token;
 
     var sourceTransactionId = '';
     try { sourceTransactionId = sessionStorage.getItem(txStorageKey) || ''; } catch (_) {}
@@ -168,10 +171,9 @@
 
     return fetch('/api/fortune/pig-coin/refund', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-      },
+      headers: refundHeaders,
+      credentials: 'include',
+      cache: 'no-store',
       body: JSON.stringify({
         cost: cost,
         featureKey: featureKey,

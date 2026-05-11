@@ -326,21 +326,17 @@
 
   function consumeCoinDirect(cost, reason, featureKey) {
     var token = getAuthToken();
-    if (!token) {
-      if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-        var next = encodeURIComponent(location.pathname + location.search);
-        window.location.href = "/login?next=" + next;
-      }
-      return Promise.resolve(false);
-    }
+    var consumeHeaders = {
+      "Content-Type": "application/json",
+    };
+    if (token) consumeHeaders.Authorization = "Bearer " + token;
 
     if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
     return fetch("/api/fortune/pig-coin/consume", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
+      headers: consumeHeaders,
+      credentials: "include",
+      cache: "no-store",
       body: JSON.stringify({
         cost: cost,
         reason: reason,
@@ -351,6 +347,13 @@
     })
       .then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (data) {
+          if (res.status === 401) {
+            if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+              var next = encodeURIComponent(location.pathname + location.search);
+              window.location.href = "/login?next=" + next;
+            }
+            return false;
+          }
           if (res.status === 402) {
             showCoinShortage(cost, reason);
             return false;
@@ -373,13 +376,15 @@
 
   function rollbackCoinBestEffort(cost, reason, featureKey) {
     var token = getAuthToken();
-    if (!token) return Promise.resolve(false);
+    var rollbackHeaders = {
+      "Content-Type": "application/json",
+    };
+    if (token) rollbackHeaders.Authorization = "Bearer " + token;
     return fetch("/api/fortune/pig-coin/earn", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
+      headers: rollbackHeaders,
+      credentials: "include",
+      cache: "no-store",
       body: JSON.stringify({
         amount: cost,
         reason: "자동 복구: " + reason,

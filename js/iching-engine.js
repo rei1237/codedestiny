@@ -266,23 +266,19 @@
 
       var token = '';
       try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
-      if (!token) {
-        if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
-          window.location.href = '/login?next=%2F';
-        }
-        resolve(false);
-        return;
-      }
+      var consumeHeaders = {
+        'Content-Type': 'application/json'
+      };
+      if (token) consumeHeaders.Authorization = 'Bearer ' + token;
 
       var requestId = 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
 
       fetch('/api/fortune/pig-coin/consume', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
+        headers: consumeHeaders,
+        credentials: 'include',
+        cache: 'no-store',
         body: JSON.stringify({
           cost: _TC_COIN_COST,
           reason: '주역 거북점 리딩',
@@ -296,6 +292,13 @@
         });
       }).then(function(payload) {
         var res = payload.data || {};
+        if (payload.status === 401) {
+          if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+            window.location.href = '/login?next=%2F';
+          }
+          resolve(false);
+          return;
+        }
         if (payload.ok || res.ok === true) {
           var remaining = null;
           if (typeof res.remainingPoints === 'number') remaining = res.remainingPoints;

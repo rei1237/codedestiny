@@ -18,6 +18,8 @@ for (const fileName of [".env.local", ".env"]) {
 const TEST_LOGIN_ID = "test1234@example.com";
 const TEST_POINTS = 9999;
 const VERIFY_COST = 50;
+const VERIFY_FEATURE_KEY = "tarot-love-relationship";
+const VERIFY_REASON = "우리는 무슨 사이? 타로 리딩";
 
 const currentMongoUri = String(process.env.MONGO_URI || "").trim();
 const fallbackMongoUri = String(process.env.MONGODB_URI || "").trim();
@@ -86,8 +88,8 @@ async function main() {
       },
       body: JSON.stringify({
         cost: VERIFY_COST,
-        reason: "QA test account paid-flow verification",
-        featureKey: "qa-test-account-paid-flow",
+        reason: VERIFY_REASON,
+        featureKey: VERIFY_FEATURE_KEY,
       }),
     }),
     env,
@@ -111,7 +113,7 @@ async function main() {
   const latestDeduct = await PointHistory.findOne({
     userId: user._id,
     kind: "deduct",
-    featureKey: "qa-test-account-paid-flow",
+    featureKey: VERIFY_FEATURE_KEY,
   }).sort({ createdAt: -1 }).lean();
 
   if (!latestDeduct || Number(latestDeduct.delta) !== -VERIFY_COST) {

@@ -232,6 +232,10 @@
       (profile && profile.birth ? [profile.birth.year, profile.birth.month, profile.birth.day].join('-') : 'na'),
       [partner.year, partner.month, partner.day].join('-')
     ].join(':');
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var consumeHeaders = { 'Content-Type': 'application/json' };
+    if (token) consumeHeaders.Authorization = 'Bearer ' + token;
 
     var endpoints = _buildApiCandidates('/api/fortune/pig-coin/consume');
     return new Promise(function (resolve) {
@@ -242,7 +246,9 @@
         }
         fetch(endpoints[at], {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: consumeHeaders,
+          credentials: 'include',
+          cache: 'no-store',
           body: JSON.stringify({
             cost: PREMIUM_SUKUYO_COMPAT_EXTRA_COST,
             reason: '숙요점 궁합 확장 분석 추가',
@@ -275,7 +281,10 @@
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-    if (!token) return Promise.resolve(false);
+    var refundHeaders = {
+      'Content-Type': 'application/json',
+    };
+    if (token) refundHeaders.Authorization = 'Bearer ' + token;
 
     var sourceTransactionId = '';
     try { sourceTransactionId = sessionStorage.getItem(txStorageKey) || ''; } catch (_) {}
@@ -283,10 +292,9 @@
 
     return fetch('/api/fortune/pig-coin/refund', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-      },
+      headers: refundHeaders,
+      credentials: 'include',
+      cache: 'no-store',
       body: JSON.stringify({
         cost: cost,
         featureKey: featureKey,

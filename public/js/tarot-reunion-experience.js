@@ -359,15 +359,16 @@
   function consumeCoinDirect(cost, reason, featureKey) {
     if (isReunionAdminLikeUser()) return Promise.resolve(true);
     var token = getAuthToken();
-    var headers = {
+    var consumeHeaders = {
       "Content-Type": "application/json",
     };
-    if (token) headers.Authorization = "Bearer " + token;
+    if (token) consumeHeaders.Authorization = "Bearer " + token;
     if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
     return fetch("/api/fortune/pig-coin/consume", {
       method: "POST",
+      headers: consumeHeaders,
       credentials: "include",
-      headers: headers,
+      cache: "no-store",
       body: JSON.stringify({
         cost: cost,
         reason: reason,
@@ -378,7 +379,7 @@
     })
       .then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (data) {
-          if (res.status === 401 || res.status === 403) {
+          if (res.status === 401) {
             if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
               var next = encodeURIComponent(location.pathname + location.search);
               window.location.href = "/login?next=" + next;
@@ -407,13 +408,15 @@
 
   function rollbackCoinBestEffort(cost, reason, featureKey) {
     var token = getAuthToken();
-    if (!token) return Promise.resolve(false);
+    var rollbackHeaders = {
+      "Content-Type": "application/json",
+    };
+    if (token) rollbackHeaders.Authorization = "Bearer " + token;
     return fetch("/api/fortune/pig-coin/earn", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
+      headers: rollbackHeaders,
+      credentials: "include",
+      cache: "no-store",
       body: JSON.stringify({
         amount: cost,
         reason: "자동 복구: " + reason,
