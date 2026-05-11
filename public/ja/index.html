@@ -7618,28 +7618,41 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       try {
         var perUseRequestId = 'peruse:' + action + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
         var perUseFeatureKey = String(action || 'coin-gate-per-use').trim().slice(0, 60) || 'coin-gate-per-use';
-        var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+        var r = await fetchJsonWithAuth('/api/billing/coin-gate', {
           method: 'POST',
           body: JSON.stringify({
-            cost: tileCoinCost,
-            amount: tileCoinCost,
+            categoryKey: 'main-tile',
+            subFeatureKey: perUseFeatureKey,
             reason: fname + ' 이용',
             featureKey: perUseFeatureKey,
             forceDeduct: true,
             requestId: perUseRequestId,
           }),
         });
-        if (r.status === 404 || r.status >= 500) {
-          window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
+        var rCode = String((((r.payload && r.payload.error) ? r.payload.error.code : '') || (r.payload && r.payload.code) || '')).toUpperCase();
+        var rMessage = ((r.payload && r.payload.error) ? r.payload.error.message : '') || (r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.';
+        if (r.status === 401 || r.status === 403 || rCode === 'AUTH_REQUIRED') {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?')) {
+            window.location.href = '/login?next=%2F';
+          }
           return false;
         }
-        if (r.status === 402) { openChargeModal(); return false; }
+        if (r.status === 402 || rCode === 'INSUFFICIENT_COINS') { openChargeModal(); return false; }
+        if (rCode === 'PRICE_NOT_FOUND') {
+          window.alert('해당 기능의 서버 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.');
+          return false;
+        }
         if (!r.ok) {
-          window.alert((r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
+          window.alert(rMessage);
           return false;
         }
-        if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
-          userBalance = r.payload.user.points;
+        var billedData = (r.payload && r.payload.data) || {};
+        var billedConsume = billedData.consume || {};
+        var billedUser = billedData.user || billedConsume.user || null;
+        if (billedUser && typeof billedUser.points === 'number') {
+          userBalance = billedUser.points;
+        } else if (typeof billedData.balance === 'number') {
+          userBalance = billedData.balance;
         } else {
           userBalance = Math.max(0, userBalance - tileCoinCost);
         }

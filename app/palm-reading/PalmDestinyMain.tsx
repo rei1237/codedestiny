@@ -14,6 +14,7 @@ import PalmLineOverlay, {
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
+import { fetchBillingFeaturePricing, runBillingCoinGate } from "@/app/_lib/billing-client";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -155,13 +156,13 @@ const PURPOSE_OPTIONS: Array<{ value: AnalysisPurpose; label: string }> = [
   { value: "relationship", label: "관계 패턴" },
 ];
 
-const PALM_COIN_PAYMENT_BY_PURPOSE: Record<AnalysisPurpose, { cost: number; featureKey: string; reason: string }> = {
-  general: { cost: 50, featureKey: "palm-reading-general", reason: "손금 전체운 분석" },
-  love: { cost: 30, featureKey: "palm-reading-love", reason: "손금 연애운 분석" },
-  wealth: { cost: 30, featureKey: "palm-reading-wealth", reason: "손금 재물운 분석" },
-  career: { cost: 30, featureKey: "palm-reading-career", reason: "손금 직업운 분석" },
-  personality: { cost: 30, featureKey: "palm-reading-personality", reason: "손금 성격 분석" },
-  relationship: { cost: 30, featureKey: "palm-reading-relationship", reason: "손금 관계 패턴 분석" },
+const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
+  general: "general",
+  love: "love",
+  wealth: "wealth",
+  career: "career",
+  personality: "personality",
+  relationship: "relationship",
 };
 
 const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
@@ -1066,63 +1067,7 @@ export default function PalmDestinyMain() {
     try {
       setIsSubmitting(true);
       setAnalysisResult(null);
-      const paymentSpec = PALM_COIN_PAYMENT_BY_PURPOSE[analysisPurpose as AnalysisPurpose] ?? PALM_COIN_PAYMENT_BY_PURPOSE.general;
-      setSubmitMessage(`결제를 확인 중입니다... (${paymentSpec.cost}코인)`);
-
-      const authToken = getClientAuthToken();
-      const consumeResponse = await fetch("/api/fortune/pig-coin/consume", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        },
-        body: JSON.stringify({
-          cost: paymentSpec.cost,
-          reason: paymentSpec.reason,
-          featureKey: paymentSpec.featureKey,
-          forceDeduct: true,
-          requestId: `palm-reading:${paymentSpec.featureKey}:${Date.now().toString()}-${Math.random().toString(36).slice(2, 10)}`,
-        }),
-      });
-
-      const consumeData = await consumeResponse.json().catch(() => ({}));
-      const consumeCode = String(consumeData?.code || consumeData?.error || "").toUpperCase();
-      if (
-        consumeResponse.status === 401 ||
-        consumeResponse.status === 403 ||
-        consumeCode === "LOGIN_REQUIRED" ||
-        consumeCode === "AUTH_REQUIRED" ||
-        consumeCode === "UNAUTHORIZED"
-      ) {
-        setSubmitMessage("로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요.");
-        if (typeof window !== "undefined") {
-          const next = encodeURIComponent(window.location.pathname + window.location.search);
-          window.setTimeout(() => {
-            window.location.href = `/login?next=${next}`;
-          }, 600);
-        }
-        return;
-      }
-
-      if (consumeResponse.status === 402) {
-        setSubmitMessage(`코인이 부족합니다. ${paymentSpec.cost}코인이 필요합니다.`);
-        return;
-      }
-
-      if (!consumeResponse.ok) {
-        const consumeErrorMessage =
-          typeof consumeData?.message === "string"
-            ? consumeData.message
-            : typeof consumeData?.error === "string"
-            ? consumeData.error
-            : "코인 차감에 실패했습니다.";
-        setSubmitMessage(consumeErrorMessage);
-        return;
-      }
-
-      setSubmitMessage("손바닥의 금빛 선을 읽고 있습니다...");
-
+      setSubmitMessage("손바닥 이미지 품질을 확인하고 있습니다...");
       const leftPalmImage = leftHand.file ? await fileToDataUrl(leftHand.file) : null;
       const rightPalmImage = rightHand.file ? await fileToDataUrl(rightHand.file) : null;
 
@@ -1133,6 +1078,8 @@ export default function PalmDestinyMain() {
         dominantHand,
         analysisPurpose,
       });
+
+      setSubmitMessage("손바닥의 금빛 선을 읽고 있습니다...");
 
       let response = await fetch("/api/palm/analyze", {
         method: "POST",
@@ -1247,6 +1194,77 @@ export default function PalmDestinyMain() {
         setAnalysisResult(null);
         setSubmitMessage("손바닥 전체가 화면에 들어오지 않았습니다. 손목부터 손가락 끝까지 보이게 다시 촬영해 주세요.");
         return;
+      }
+
+      const selectedPurpose = purposeForCanonical || "general";
+      const subFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[selectedPurpose] || "general";
+      const pricingResult = await fetchBillingFeaturePricing({
+        categoryKey: "palm-reading",
+        subFeatureKey,
+      });
+
+      if (!pricingResult.ok || !pricingResult.data?.pricing) {
+        const pricingCode = String(pricingResult.error?.code || "").toUpperCase();
+        if (pricingCode === "PRICE_NOT_FOUND") {
+          setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+        setSubmitMessage(pricingResult.error?.message || "결제 가격표 조회에 실패했습니다.");
+        return;
+      }
+
+      const serverCost = Number(pricingResult.data.pricing.cost || 0);
+      setSubmitMessage(`결제를 확인 중입니다... (${serverCost}코인)`);
+
+      const coinGateResult = await runBillingCoinGate({
+        categoryKey: "palm-reading",
+        subFeatureKey,
+        requestId: `palm-reading:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+        forceDeduct: true,
+      });
+
+      if (!coinGateResult.ok) {
+        const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
+        if (coinGateCode === "AUTH_REQUIRED") {
+          setSubmitMessage("로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요.");
+          if (typeof window !== "undefined") {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.setTimeout(() => {
+              window.location.href = `/login?next=${next}`;
+            }, 600);
+          }
+          return;
+        }
+
+        if (coinGateCode === "INSUFFICIENT_COINS") {
+          setSubmitMessage(`코인이 부족합니다. ${serverCost}코인이 필요합니다.`);
+          return;
+        }
+
+        if (coinGateCode === "PRICE_NOT_FOUND") {
+          setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+
+        setSubmitMessage(coinGateResult.error?.message || "코인 결제에 실패했습니다.");
+        return;
+      }
+
+      try {
+        const nextPoints = Number(
+          coinGateResult.data?.balance
+            ?? (coinGateResult.data?.user && (coinGateResult.data.user as Record<string, unknown>).points)
+            ?? NaN,
+        );
+        if (typeof window !== "undefined" && Number.isFinite(nextPoints)) {
+          window.localStorage.setItem("fortune_user_points", String(nextPoints));
+          const rawUser = window.localStorage.getItem("fortune_auth_user") || "";
+          const parsedUser = rawUser ? JSON.parse(rawUser) : {};
+          parsedUser.points = nextPoints;
+          window.localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
+        }
+      } catch {
+        // ignore client-side storage failures
       }
 
       setAnalysisResult({

@@ -24,6 +24,7 @@ import { handleInsightsRoutes } from "./routes/insights.js";
 import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
 import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
+import { handleBillingRoutes } from "./routes/billing.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -457,6 +458,10 @@ export default {
 
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
+        return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
       }
 
       // Legacy compatibility: singular payment namespace.

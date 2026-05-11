@@ -802,6 +802,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   }
 
   const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
+  const categoryKey = String(body?.categoryKey || "").trim().slice(0, 60);
+  const subFeatureKey = String(body?.subFeatureKey || "").trim().slice(0, 60);
+  const payloadHash = String(body?.payloadHash || "").trim().slice(0, 120);
   const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
   const requestId = String(
     body?.requestId
@@ -993,6 +996,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     metadata: {
       source: "fortune.pig-coin.consume",
       ...(requestId ? { requestId } : {}),
+      ...(categoryKey ? { categoryKey } : {}),
+      ...(subFeatureKey ? { subFeatureKey } : {}),
+      ...(payloadHash ? { payloadHash } : {}),
       subscriptionTierAtConsume: effectiveTier || "free",
     },
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { fetchBillingFeaturePricing, runBillingCoinGate } from "@/app/_lib/billing-client";
 
 const GOOGLE_FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap');`;
 
@@ -94,8 +95,20 @@ const SPREAD_LABELS = {
   ],
 };
 
-const RUNE_COIN_COST = 50;
-const RUNE_FEATURE_KEY = "openRuneOracle";
+const RUNE_BILLING_SUB_FEATURE_BY_SPREAD = Object.freeze({
+  1: "spread-1",
+  3: "spread-3",
+  5: "spread-5",
+  12: "spread-12",
+});
+
+const RUNE_FALLBACK_FEATURE_BY_SPREAD = Object.freeze({
+  1: "stonehenge-runes-single",
+  3: "stonehenge-runes-triad",
+  5: "stonehenge-runes-deep",
+  12: "stonehenge-runes-yearly",
+});
+
 const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
 const RUNE_PREPAID_MARKER_TTL_MS = 10 * 60 * 1000;
 
@@ -116,97 +129,88 @@ function consumeRunePrepaidMarker() {
   }
 }
 
-function consumeRunePerUseCoin() {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined") {
-      resolve(false);
-      return;
-    }
-    if (RUNE_COIN_COST <= 0) {
-      resolve(true);
-      return;
-    }
-    if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) {
-      resolve(true);
-      return;
-    }
-    if (consumeRunePrepaidMarker()) {
-      resolve(true);
-      return;
-    }
+async function consumeRunePerUseCoin(spreadCount) {
+  if (typeof window === "undefined") return false;
+  if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) return true;
+  if (consumeRunePrepaidMarker()) return true;
 
-    let token = "";
-    try {
-      token = String(localStorage.getItem("fortune_auth_token") || "");
-    } catch (_e) {}
+  const subFeatureKey = RUNE_BILLING_SUB_FEATURE_BY_SPREAD[spreadCount] || "spread-3";
+  const fallbackFeatureKey = RUNE_FALLBACK_FEATURE_BY_SPREAD[spreadCount] || "stonehenge-runes-triad";
 
-    if (!token) {
+  let requiredCoins = 0;
+  try {
+    const pricingResult = await fetchBillingFeaturePricing({
+      categoryKey: "stonehenge-runes",
+      subFeatureKey,
+    });
+    if (pricingResult.ok && pricingResult.data?.pricing) {
+      requiredCoins = Number(pricingResult.data.pricing.cost || 0);
+    }
+  } catch (_e) {
+    requiredCoins = 0;
+  }
+
+  let token = "";
+  try {
+    token = String(localStorage.getItem("fortune_auth_token") || "");
+  } catch (_e) {}
+
+  if (!token) {
+    if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+      window.location.href = "/login?next=%2Foracle%2Frune";
+    }
+    return false;
+  }
+
+  const coinGateResult = await runBillingCoinGate({
+    categoryKey: "stonehenge-runes",
+    subFeatureKey,
+    featureKey: fallbackFeatureKey,
+    requestId: `rune:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+    forceDeduct: true,
+  });
+
+  if (!coinGateResult.ok) {
+    const code = String(coinGateResult.error?.code || "").toUpperCase();
+    if (code === "AUTH_REQUIRED") {
       if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
         window.location.href = "/login?next=%2Foracle%2Frune";
       }
-      resolve(false);
-      return;
+      return false;
     }
+    if (code === "INSUFFICIENT_COINS") {
+      const costMessage = requiredCoins > 0 ? ` (필요 코인: ${requiredCoins})` : "";
+      window.alert(`코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.${costMessage}`);
+      return false;
+    }
+    if (code === "PRICE_NOT_FOUND") {
+      window.alert("룬점 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      return false;
+    }
+    window.alert(coinGateResult.error?.message || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    return false;
+  }
 
-    const requestId = `rune:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+  const remainingPoints = Number(
+    coinGateResult.data?.balance
+      ?? coinGateResult.data?.user?.points
+      ?? NaN,
+  );
 
-    fetch("/api/fortune/pig-coin/consume", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        cost: RUNE_COIN_COST,
-        reason: "스톤헨지 룬 리딩",
-        featureKey: RUNE_FEATURE_KEY,
-        requestId,
-        forceDeduct: true,
-      }),
-    })
-      .then((resp) =>
-        resp.json().catch(() => ({})).then((data) => ({
-          ok: resp.ok,
-          status: resp.status,
-          data: data || {},
-        }))
-      )
-      .then((payload) => {
-        const res = payload?.data || {};
-        if (payload.ok || res.ok === true) {
-          const remainingPoints =
-            typeof res.remainingPoints === "number"
-              ? res.remainingPoints
-              : Number(res?.user?.points);
-          try {
-            if (Number.isFinite(remainingPoints)) {
-              localStorage.setItem("fortune_user_points", String(remainingPoints));
-              const authRaw = localStorage.getItem("fortune_auth_user") || "";
-              const authUser = authRaw ? JSON.parse(authRaw) : {};
-              authUser.points = remainingPoints;
-              localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
-              if (typeof window.__cdSetGoldenBalance === "function") {
-                window.__cdSetGoldenBalance(remainingPoints);
-              }
-            }
-          } catch (_e2) {}
-          resolve(true);
-          return;
-        }
+  try {
+    if (Number.isFinite(remainingPoints)) {
+      localStorage.setItem("fortune_user_points", String(remainingPoints));
+      const authRaw = localStorage.getItem("fortune_auth_user") || "";
+      const authUser = authRaw ? JSON.parse(authRaw) : {};
+      authUser.points = remainingPoints;
+      localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
+      if (typeof window.__cdSetGoldenBalance === "function") {
+        window.__cdSetGoldenBalance(remainingPoints);
+      }
+    }
+  } catch (_e2) {}
 
-        const code = String((res && res.code) || "").toUpperCase();
-        if (payload.status === 402 || code === "INSUFFICIENT_POINTS") {
-          window.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
-        } else {
-          window.alert((res && (res.message || res.error)) || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-        }
-        resolve(false);
-      })
-      .catch(() => {
-        window.alert("코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-        resolve(false);
-      });
-  });
+  return true;
 }
 
 const RUNE_GUIDE = {
@@ -644,7 +648,7 @@ export default function StonehengeRune() {
   const handleDraw = async () => {
     if (!spread || isDrawing || isPaying) return;
     setIsPaying(true);
-    const paid = await consumeRunePerUseCoin();
+    const paid = await consumeRunePerUseCoin(spread);
     setIsPaying(false);
     if (!paid) return;
     setSelectedRune(null);
