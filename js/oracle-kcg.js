@@ -495,81 +495,26 @@ function closeKemetModal() {
 
 function consumeKemetPerUseCoin() {
   var COST = 30;
-  var FEATURE_KEY = 'openKemetModal';
-  var REQUEST_ID = 'kemet:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  var REASON = '이집트 신탁 리딩';
 
   return new Promise(function(resolve) {
-    if (COST <= 0) { resolve(true); return; }
-    if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
-      resolve(true);
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
+      resolve(false);
       return;
     }
 
-    var token = '';
-    try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
-    var consumeHeaders = {
-      'Content-Type': 'application/json'
-    };
-    if (token) consumeHeaders.Authorization = 'Bearer ' + token;
-
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
-
-    fetch('/api/fortune/pig-coin/consume', {
-      method: 'POST',
-      headers: consumeHeaders,
-      credentials: 'include',
-      cache: 'no-store',
-      body: JSON.stringify({
-        cost: COST,
-        reason: '이집트 신탁 리딩',
-        featureKey: FEATURE_KEY,
-        requestId: REQUEST_ID,
-        forceDeduct: true
-      })
-    }).then(function(resp) {
-      return resp.json().catch(function() { return {}; }).then(function(data) {
-        return { ok: !!resp.ok, status: resp.status, data: data || {} };
-      });
-    }).then(function(payload) {
-      var res = payload.data || {};
-      if (payload.status === 401) {
-        if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
-          window.location.href = '/login?next=%2F';
-        }
-        resolve(false);
-        return;
-      }
-      if (payload.ok || res.ok === true) {
-        var remaining = null;
-        if (typeof res.remainingPoints === 'number') remaining = res.remainingPoints;
-        else if (res.user && typeof res.user.points === 'number') remaining = res.user.points;
-        try {
-          if (typeof remaining === 'number') {
-            localStorage.setItem('fortune_user_points', String(remaining));
-            var authRaw = localStorage.getItem('fortune_auth_user') || '';
-            var authUser = authRaw ? JSON.parse(authRaw) : {};
-            authUser.points = remaining;
-            localStorage.setItem('fortune_auth_user', JSON.stringify(authUser));
-            if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(remaining);
-          }
-        } catch (_e2) {}
-        resolve(true);
-        return;
-      }
-
-      var code = String((res && res.code) || '').toUpperCase();
-      if (payload.status === 402 || code === 'INSUFFICIENT_POINTS') {
-        alert('코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.');
-      } else {
-        alert((res && (res.message || res.error)) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-      }
+    try {
+      window._cdCoinGatePerUse(
+        COST,
+        REASON,
+        function() { resolve(true); },
+        function() { resolve(false); }
+      );
+    } catch (_err) {
+      alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       resolve(false);
-    }).catch(function() {
-      alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-      resolve(false);
-    }).finally(function() {
-      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
-    });
+    }
   });
 }
 
