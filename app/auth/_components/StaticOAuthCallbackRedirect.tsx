@@ -1,201 +1,234 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { getApiBaseUrl } from "../../_lib/api-config";
-import { persistSanitizedAuthUser } from "../../_lib/auth-storage";
-
 type StaticOAuthCallbackRedirectProps = {
   provider: "google" | "naver" | "kakao";
 };
 
-type OAuthCompletePayload = {
-  ok?: boolean;
-  message?: string;
-  nextPath?: string;
-  accessToken?: string;
-  user?: {
-    id?: string;
-    role?: string;
-  };
-};
-
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
-const IS_DEV = process.env.NODE_ENV !== "production";
+const CONFIGURED_API_BASE = process.env.NEXT_PUBLIC_AUTH_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
-function authInfo(...args: unknown[]) {
-  if (!IS_DEV) return;
-  console.info(...args);
-}
+function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"]) {
+  const providerLiteral = JSON.stringify(provider);
+  const configuredApiBaseLiteral = JSON.stringify(String(CONFIGURED_API_BASE || ""));
+  const fallbackCallbackPathLiteral = JSON.stringify(`/api/auth/oauth/${provider}/callback`);
 
-function authWarn(...args: unknown[]) {
-  if (!IS_DEV) return;
-  console.warn(...args);
-}
+  return `(() => {
+    const provider = ${providerLiteral};
+    const configuredApiBase = ${configuredApiBaseLiteral};
+    const fallbackCallbackPath = ${fallbackCallbackPathLiteral};
+    const statusNode = document.getElementById("oauth-callback-status");
+    const fallbackLinkNode = document.getElementById("oauth-callback-fallback-link");
 
-function sanitizeNextPath(rawNext: string | null) {
-  if (!rawNext) return null;
-  if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
-  return rawNext;
-}
-
-function resolveNextPathFromQuery(params: URLSearchParams) {
-  return sanitizeNextPath(params.get("returnTo")) || sanitizeNextPath(params.get("next")) || sanitizeNextPath(params.get("redirect")) || "/";
-}
-
-function parseOAuthError(rawReason: string | null): string {
-  const reason = String(rawReason || "").trim().toLowerCase();
-  if (!reason) return "oauth_failed";
-  if (reason === "invalid_callback" || reason === "provider_mismatch") return reason;
-  if (reason === "missing_oauth_params") return reason;
-  return "oauth_failed";
-}
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const rawText = await response.text();
-  if (!rawText) return {} as T;
-
-  try {
-    return JSON.parse(rawText) as T;
-  } catch {
-    const contentType = (response.headers.get("content-type") || "").toLowerCase();
-    const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
-
-    if (looksLikeHtml) {
-      throw new Error("서버가 JSON 대신 HTML을 반환했습니다. 배포/캐시 상태를 확인해 주세요.");
+    function setStatus(text) {
+      if (statusNode) statusNode.textContent = String(text || "");
     }
 
-    throw new Error("서버 응답 파싱 중 오류가 발생했습니다.");
-  }
-}
-
-function publishAuthSync(event: "login" | "logout") {
-  if (typeof window === "undefined") return;
-  const payload = { source: "oauth-callback", event, at: Date.now() };
-
-  try {
-    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-  } catch {
-    // ignore
-  }
-
-  try {
-    if (typeof BroadcastChannel !== "undefined") {
-      const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
-      channel.postMessage(payload);
-      channel.close();
+    function normalizeBaseUrl(rawValue) {
+      const value = String(rawValue || "").trim();
+      if (!value) return "";
+      try {
+        const parsed = new URL(value);
+        parsed.pathname = parsed.pathname.replace(/\\/api\\/?$/, "");
+        parsed.search = "";
+        parsed.hash = "";
+        return parsed.toString().replace(/\\/$/, "");
+      } catch {
+        return value.replace(/\\/api\\/?$/, "").replace(/\\/$/, "");
+      }
     }
-  } catch {
-    // ignore
-  }
-}
 
-function persistAuthFromCallback(payload: OAuthCompletePayload) {
-  if (typeof window === "undefined") return;
+    function resolveApiBase() {
+      let runtimeBase = "";
+      try {
+        runtimeBase = normalizeBaseUrl(window.CODE_DESTINY_API_BASE_URL);
+      } catch {
+        runtimeBase = "";
+      }
 
-  if (payload.accessToken) {
-    try {
-      localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-    } catch {
-      // ignore storage failures
+      if (runtimeBase) return runtimeBase;
+
+      const configured = normalizeBaseUrl(configuredApiBase);
+      if (configured) return configured;
+
+      return window.location.origin;
     }
-  }
 
-  if (payload.user) {
-    const safeUser = persistSanitizedAuthUser(payload.user);
-    const role = String((safeUser && safeUser.role) || payload.user.role || "user");
-    document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
-    publishAuthSync("login");
-  }
-}
+    function sanitizeNextPath(rawNext) {
+      if (!rawNext) return null;
+      const value = String(rawNext);
+      if (!value.startsWith("/") || value.startsWith("//")) return null;
+      return value;
+    }
 
-export default function StaticOAuthCallbackRedirect({ provider }: StaticOAuthCallbackRedirectProps) {
-  const apiBase = useMemo(() => getApiBaseUrl(), []);
-  const baseTarget = `${apiBase}/api/auth/oauth/${provider}/callback`;
-  const [statusText, setStatusText] = useState("콜백 상태를 확인하고 있습니다...");
+    function resolveNextPathFromQuery(params) {
+      return sanitizeNextPath(params.get("returnTo")) || sanitizeNextPath(params.get("next")) || sanitizeNextPath(params.get("redirect")) || "/";
+    }
 
-  useEffect(() => {
+    function parseOAuthError(rawReason) {
+      const reason = String(rawReason || "").trim().toLowerCase();
+      if (!reason) return "oauth_failed";
+      if (reason === "invalid_callback" || reason === "provider_mismatch") return reason;
+      if (reason === "missing_oauth_params") return reason;
+      return "oauth_failed";
+    }
+
+    async function parseJsonResponse(response) {
+      const rawText = await response.text();
+      if (!rawText) return {};
+
+      try {
+        return JSON.parse(rawText);
+      } catch {
+        const contentType = (response.headers.get("content-type") || "").toLowerCase();
+        const looksLikeHtml = contentType.includes("text/html") || /^\\s*</.test(rawText);
+        if (looksLikeHtml) throw new Error("response_is_html");
+        throw new Error("response_parse_error");
+      }
+    }
+
+    function publishAuthSync(event) {
+      const payload = { source: "oauth-callback", event, at: Date.now() };
+      try {
+        window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+      } catch {}
+      try {
+        if (typeof BroadcastChannel !== "undefined") {
+          const channel = new BroadcastChannel(${JSON.stringify(AUTH_SYNC_CHANNEL)});
+          channel.postMessage(payload);
+          channel.close();
+        }
+      } catch {}
+    }
+
+    function sanitizeAndPersistAuthUser(input) {
+      if (!input || typeof input !== "object") return null;
+      const source = input;
+      const safe = {};
+
+      const copyString = (key) => {
+        const value = source[key];
+        if (typeof value === "string") {
+          const trimmed = value.trim();
+          if (trimmed) safe[key] = trimmed;
+        }
+      };
+
+      copyString("id");
+      copyString("userId");
+      copyString("_id");
+      copyString("uid");
+      copyString("name");
+      copyString("email");
+      copyString("image");
+      copyString("role");
+      copyString("plan");
+
+      if (typeof source.hasLocalAuth === "boolean") safe.hasLocalAuth = source.hasLocalAuth;
+
+      const points = Number(source.points);
+      if (Number.isFinite(points) && points >= 0) safe.points = points;
+
+      const profileSubscription = source.profileSubscription;
+      if (profileSubscription && typeof profileSubscription === "object") {
+        const sub = profileSubscription;
+        safe.profileSubscription = {
+          tier: typeof sub.tier === "string" ? sub.tier : "free",
+          isActive: !!sub.isActive,
+          expiresAt: typeof sub.expiresAt === "string" ? sub.expiresAt : null,
+          profileLimit: Number.isFinite(Number(sub.profileLimit)) ? Number(sub.profileLimit) : undefined,
+        };
+      }
+
+      if (!Object.keys(safe).length) {
+        try { localStorage.removeItem("fortune_auth_user"); } catch {}
+        return null;
+      }
+
+      try {
+        localStorage.setItem("fortune_auth_user", JSON.stringify(safe));
+      } catch {}
+
+      return safe;
+    }
+
+    function persistAuthFromCallback(payload) {
+      if (payload && payload.accessToken) {
+        try {
+          localStorage.setItem("fortune_auth_token", String(payload.accessToken));
+        } catch {}
+      }
+
+      if (payload && payload.user) {
+        const safeUser = sanitizeAndPersistAuthUser(payload.user);
+        const role = String((safeUser && safeUser.role) || payload.user.role || "user");
+        document.cookie = "fortune_auth_role=" + encodeURIComponent(role) + "; path=/; max-age=604800; samesite=lax";
+        publishAuthSync("login");
+      }
+    }
+
+    function clearIntent() {
+      try {
+        sessionStorage.removeItem("cd_oauth_intent");
+      } catch {}
+    }
+
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("error") || params.get("social_error");
     const socialGrant = params.get("social_grant");
     const code = params.get("code");
     const state = params.get("state");
 
-    const storedIntentRaw = (() => {
-      try {
-        return sessionStorage.getItem("cd_oauth_intent");
-      } catch {
-        return "";
-      }
-    })();
+    const apiBase = resolveApiBase();
+    const baseTarget = apiBase + fallbackCallbackPath;
+    if (fallbackLinkNode && baseTarget) fallbackLinkNode.setAttribute("href", baseTarget);
 
     if (oauthError) {
-      authWarn("[AUTH] oauth callback failed", oauthError);
-      const reason = parseOAuthError(oauthError);
-      window.location.replace(`/login?error=${encodeURIComponent(reason)}`);
+      window.location.replace("/login?error=" + encodeURIComponent(parseOAuthError(oauthError)));
       return;
     }
 
     if (socialGrant) {
       let intentProvider = "";
-      if (storedIntentRaw) {
-        try {
-          const parsed = JSON.parse(storedIntentRaw) as { provider?: string };
-          intentProvider = String(parsed?.provider || "").trim().toLowerCase();
-        } catch {
-          intentProvider = "";
+      try {
+        const rawIntent = sessionStorage.getItem("cd_oauth_intent");
+        if (rawIntent) {
+          const parsed = JSON.parse(rawIntent);
+          intentProvider = String((parsed && parsed.provider) || "").trim().toLowerCase();
         }
+      } catch {
+        intentProvider = "";
       }
 
       if (intentProvider && intentProvider !== provider) {
-        try {
-          sessionStorage.removeItem("cd_oauth_intent");
-        } catch {
-          // ignore
-        }
-        authWarn("[AUTH] oauth callback failed", "provider_mismatch");
+        clearIntent();
         window.location.replace("/login?error=provider_mismatch");
         return;
       }
 
-      setStatusText("소셜 로그인 완료를 처리하고 있습니다...");
-      authInfo("[AUTH] oauth callback processing");
-
-      fetch(`${apiBase}/api/auth/oauth/complete`, {
+      setStatus("소셜 로그인 완료를 처리하고 있습니다...");
+      fetch(apiBase + "/api/auth/oauth/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ socialGrant }),
       })
         .then(async (response) => {
-          const payload = await parseJsonResponse<OAuthCompletePayload>(response);
-          if (!response.ok || !payload?.user?.id) {
-            throw new Error(payload?.message || "oauth_complete_failed");
+          const payload = await parseJsonResponse(response);
+          if (!response.ok || !payload || !payload.user || !payload.user.id) {
+            throw new Error((payload && payload.message) || "oauth_complete_failed");
           }
 
           persistAuthFromCallback(payload);
           const nextPath = sanitizeNextPath(payload.nextPath || null) || resolveNextPathFromQuery(params);
-          authInfo("[AUTH] oauth callback success");
-          authInfo("[AUTH] redirect target", nextPath);
-
-          try {
-            sessionStorage.removeItem("cd_oauth_intent");
-          } catch {
-            // ignore
-          }
+          clearIntent();
 
           if (nextPath === "/" || nextPath === "/index.html") {
             window.location.replace("/");
             return;
           }
+
           window.location.replace(nextPath);
         })
-        .catch((error) => {
-          authWarn("[AUTH] oauth callback failed", error instanceof Error ? error.message : error);
-          try {
-            sessionStorage.removeItem("cd_oauth_intent");
-          } catch {
-            // ignore
-          }
+        .catch(() => {
+          clearIntent();
           window.location.replace("/login?error=oauth_failed");
         });
       return;
@@ -206,18 +239,37 @@ export default function StaticOAuthCallbackRedirect({ provider }: StaticOAuthCal
       return;
     }
 
-    setStatusText("인증 서버로 콜백을 전달하고 있습니다...");
-    authInfo("[AUTH] oauth callback processing");
+    setStatus("인증 서버로 콜백을 전달하고 있습니다...");
     const query = window.location.search || "";
-    window.location.replace(`${baseTarget}${query}`);
-  }, [baseTarget]);
+    window.location.replace(baseTarget + query);
+  })();`;
+}
+
+export default function StaticOAuthCallbackRedirect({ provider }: StaticOAuthCallbackRedirectProps) {
+  const callbackPath = `/api/auth/oauth/${provider}/callback`;
 
   return (
-    <main style={{ padding: "24px", fontFamily: "sans-serif" }}>
-      <p>{statusText}</p>
-      <p>
-        If you are not redirected, continue to <a href={baseTarget}>callback</a>.
-      </p>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "24px",
+        color: "#f8fafc",
+        background: "radial-gradient(120% 90% at 20% 10%, #1f2a44 0%, #0f172a 45%, #020617 100%)",
+        fontFamily: "Pretendard, Noto Sans KR, Segoe UI, sans-serif",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "460px", textAlign: "center", lineHeight: 1.6 }}>
+        <p id="oauth-callback-status" style={{ fontSize: "18px", fontWeight: 600, margin: "0 0 10px" }}>
+          소셜 로그인 연결 중입니다...
+        </p>
+        <p style={{ opacity: 0.85, margin: 0 }}>잠시만 기다려 주세요. 자동으로 이동합니다.</p>
+        <p style={{ marginTop: "16px", fontSize: "14px", opacity: 0.9 }}>
+          자동 이동이 되지 않으면 <a id="oauth-callback-fallback-link" href={callbackPath} style={{ textDecoration: "underline" }}>콜백 계속</a>
+        </p>
+      </div>
+      <script dangerouslySetInnerHTML={{ __html: buildInlineScript(provider) }} />
     </main>
   );
 }

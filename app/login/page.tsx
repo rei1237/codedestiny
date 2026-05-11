@@ -274,17 +274,20 @@ export default function LoginPage() {
 
       let verifiedUser = payload.user;
 
-      const meResponse = await fetch(`${authApiBase}/api/auth/me`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      });
+      // Fast path: most successful login responses already include a user payload.
+      // Only call /me when user is missing to avoid an extra network round trip.
+      if (!verifiedUser) {
+        const meResponse = await fetch(`${authApiBase}/api/auth/me`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
 
-      if (meResponse.ok) {
-        const mePayload = await parseJsonResponse<LoginResult>(meResponse);
-        if (mePayload?.user) {
-          verifiedUser = mePayload.user;
-          persistAuth(mePayload.user, payload.accessToken);
+        if (meResponse.ok) {
+          const mePayload = await parseJsonResponse<LoginResult>(meResponse);
+          if (mePayload?.user) {
+            verifiedUser = mePayload.user;
+          }
         }
       }
 
