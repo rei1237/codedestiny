@@ -174,8 +174,8 @@ export default function MainLandingPage() {
           <div className="relative z-10">
             <div className="mx-auto mb-3 h-[94px] w-[94px] overflow-hidden rounded-full border-2 border-amber-200/60 shadow-[0_12px_28px_rgba(20,11,45,0.6)] md:h-[120px] md:w-[120px]">
               <img
-                src="/icons/꿀꿀 운세 로고.webp"
-                srcSet="/icons/꿀꿀 운세 로고.webp 96w, /icons/꿀꿀 운세 로고.webp 130w, /icons/꿀꿀 운세 로고.webp 512w"
+                src="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp"
+                srcSet="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp 96w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp 130w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp 512w"
                 sizes="(max-width: 768px) 94px, 120px"
                 alt="꿀꿀 연이 로고"
                 className="h-full w-full object-cover"

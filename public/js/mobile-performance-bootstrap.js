@@ -217,8 +217,8 @@ function __applyResponsiveSrcsetHints(img) {
   if (!img || img.dataset.responsiveHintReady === '1') return;
 
   var srcsetHints = {
-    '/icons/꿀꿀 운세 로고.webp': {
-      srcset: '/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix4 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix4 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix4 512w',
+    '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp': {
+      srcset: '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4 96w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4 130w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4 512w',
       sizes: '(max-width: 768px) 88px, 130px',
       width: 130,
       height: 130
@@ -258,9 +258,9 @@ function __applyResponsiveSrcsetHints(img) {
   }
 
   if ((cls.indexOf('honeypig-logo-icon') !== -1 || id === 'honeypigLogo') && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', srcsetHints['/icons/꿀꿀 운세 로고.webp'].srcset);
-    img.setAttribute('sizes', srcsetHints['/icons/꿀꿀 운세 로고.webp'].sizes);
-    byPath = srcsetHints['/icons/꿀꿀 운세 로고.webp'];
+    img.setAttribute('srcset', srcsetHints['/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp'].srcset);
+    img.setAttribute('sizes', srcsetHints['/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp'].sizes);
+    byPath = srcsetHints['/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp'];
   }
 
   if ((cls.indexOf('neo-logo-icon') !== -1 || id === 'neoLogo') && !img.getAttribute('srcset')) {
