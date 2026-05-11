@@ -6552,6 +6552,27 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return String(scopeRaw || '').trim().toLowerCase();
   }
 
+  function hasActivePremiumSubscriptionFromCache() {
+    try {
+      var user = readAuthUser();
+      var sub = user && user.profileSubscription;
+      if (!sub || typeof sub !== 'object') return false;
+
+      var tier = String(sub.tier || '').trim().toLowerCase();
+      if (tier !== 'standard' && tier !== 'premium' && tier !== 'vvip') return false;
+      if (!sub.isActive) return false;
+
+      var expiresAtRaw = sub.expiresAt;
+      if (!expiresAtRaw) return false;
+      var expiresAt = new Date(expiresAtRaw);
+      if (!isFinite(expiresAt.getTime())) return false;
+
+      return expiresAt.getTime() > Date.now();
+    } catch (_e) {
+      return false;
+    }
+  }
+
   function syncAuthUserPoints(points) {
     try {
       var user = readAuthUser() || {};
@@ -6629,17 +6650,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
     } catch (_e) {}
     try {
-      if (!storageKey || !hasScopedData) {
-        var legacySaved = localStorage.getItem('cd_tile_locks');
-        if (legacySaved) {
-          var legacyParsed = JSON.parse(legacySaved);
-          if (legacyParsed && typeof legacyParsed === 'object') {
-            var legacyKeys = Object.keys(legacyParsed);
-            for (var li = 0; li < legacyKeys.length; li += 1) {
-              if (legacyParsed[legacyKeys[li]] === true) markUnlockKey(unlockedFeatureMap, legacyKeys[li]);
-            }
-          }
-        }
+      if (hasScopedData) {
+        try { localStorage.removeItem('cd_tile_locks'); } catch (_legacyCleanupErr) {}
       }
     } catch (_legacyErr) {}
     syncUnlockedFeatureMapGlobal();
@@ -6850,12 +6862,93 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return changed;
   }
 
+  function _cdBuildUnlockMapFromServerPayload(payload) {
+    var known = _cdCollectKnownUnlockKeys();
+    var next = Object.create(null);
+
+    function collectKey(rawKey) {
+      var k = String(rawKey || '').trim();
+      if (!k || k === 'pig-coin-unlock') return;
+      var aliases = resolveTileLockAliasKeys(k);
+      for (var ai = 0; ai < aliases.length; ai += 1) {
+        var ak = aliases[ai];
+        if (known[ak]) next[ak] = true;
+      }
+    }
+
+    var directUnlocks = (payload && Array.isArray(payload.unlockedFeatures)) ? payload.unlockedFeatures : [];
+    for (var du = 0; du < directUnlocks.length; du += 1) collectKey(directUnlocks[du]);
+
+    var userUnlocks = (payload && payload.user && Array.isArray(payload.user.unlockedFeatures)) ? payload.user.unlockedFeatures : [];
+    for (var uu = 0; uu < userUnlocks.length; uu += 1) collectKey(userUnlocks[uu]);
+
+    var unlockMap = (payload && payload.unlockMap && typeof payload.unlockMap === 'object') ? payload.unlockMap : null;
+    if (unlockMap) {
+      var unlockMapKeys = Object.keys(unlockMap);
+      for (var um = 0; um < unlockMapKeys.length; um += 1) {
+        var mapKey = unlockMapKeys[um];
+        if (unlockMap[mapKey] === true) collectKey(mapKey);
+      }
+    }
+
+    return next;
+  }
+
+  function _cdReconcileUnlocksWithServer(payload) {
+    var known = _cdCollectKnownUnlockKeys();
+    var knownKeys = Object.keys(known);
+    var next = _cdBuildUnlockMapFromServerPayload(payload);
+    var changed = false;
+
+    for (var i = 0; i < knownKeys.length; i += 1) {
+      var key = knownKeys[i];
+      var shouldUnlock = next[key] === true;
+      var isUnlocked = unlockedFeatureMap[key] === true;
+
+      if (shouldUnlock && !isUnlocked) {
+        markUnlockKey(unlockedFeatureMap, key);
+        changed = true;
+      } else if (!shouldUnlock && isUnlocked) {
+        delete unlockedFeatureMap[key];
+        changed = true;
+      }
+    }
+
+    if (changed) syncUnlockedFeatureMapGlobal();
+    return changed;
+  }
+
+  function _cdClearKnownUnlocks() {
+    var known = _cdCollectKnownUnlockKeys();
+    var keys = Object.keys(known);
+    var changed = false;
+    for (var i = 0; i < keys.length; i += 1) {
+      var key = keys[i];
+      if (unlockedFeatureMap[key] === true) {
+        delete unlockedFeatureMap[key];
+        changed = true;
+      }
+    }
+    if (changed) syncUnlockedFeatureMapGlobal();
+    return changed;
+  }
+
   async function syncUnlocksFromServer() {
     if (!hasAuthToken()) return false;
     try {
       var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
-      if (!result.ok) return false;
-      if (_cdApplyUnlocksFromPaymentPayload(result.payload)) {
+      if (!result.ok) {
+        if (result.status === 401 || result.status === 403) {
+          if (_cdClearKnownUnlocks()) {
+            saveTileLocks();
+            applyTileLockVisuals();
+            refreshUnlockButtons();
+            if (typeof applySectionGates === 'function') applySectionGates();
+          }
+        }
+        return false;
+      }
+      if (_cdReconcileUnlocksWithServer(result.payload)) {
         saveTileLocks();
         applyTileLockVisuals();
         refreshUnlockButtons();
@@ -7582,9 +7675,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
-        var _subUser = readAuthUser();
-        var _subPlan = (_subUser && _subUser.plan) ? String(_subUser.plan) : '';
-        if (_subPlan === 'unlimited' || _subPlan === 'premium') {
+        if (hasActivePremiumSubscriptionFromCache()) {
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return true;
@@ -7818,9 +7909,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         } catch (_adminLockErr) {}
         // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
         try {
-          var _lockSubUser = readAuthUser();
-          var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
-          if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
+          if (hasActivePremiumSubscriptionFromCache()) {
             var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
             var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
             var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
@@ -8242,9 +8331,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
     if(_paywallEl){
       // 구독 플랜 체크
-      var _pvwUserPlan='';
-      try{var _pvwU=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');_pvwUserPlan=(_pvwU&&_pvwU.plan)?String(_pvwU.plan):'';}catch(_){}
-      var _pvwHasSub=(_pvwUserPlan==='unlimited'||_pvwUserPlan==='premium');
+      var _pvwHasSub = hasActivePremiumSubscriptionFromCache();
       if(coinCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall';
