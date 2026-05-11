@@ -30,13 +30,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "premium-lifebook-report",
         reason: "인생의 책 생성 (13챕터)",
-        minCost: 490,
+        minCost: 500,
         windowMinutes: 30,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "인생의 책 생성 (13챕터)",
-        minCost: 490,
+        minCost: 500,
         windowMinutes: 30,
       },
     ];
@@ -48,7 +48,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [{
       featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
       reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
-      minCost: isCouple ? 500 : 300,
+      minCost: isCouple ? 400 : 300,
       windowMinutes: 45,
     }];
   }

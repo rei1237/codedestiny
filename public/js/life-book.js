@@ -1194,6 +1194,14 @@
     _setProgress(0);
 
     var _premiumReportSessionId = '';
+    var _chapterTimeoutMs = 115000;
+    var _maxChapterAttempts = 4;
+    var _recoveryPasses = 0;
+
+    function _isValidChapterText(text) {
+      var raw = String(text || '').trim();
+      return raw.length >= 500 && !/^⚠️/.test(raw);
+    }
 
     function _buildLifeBookChapterPayload(idx) {
       return {
@@ -1252,9 +1260,9 @@
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
         var _settled = false;
-        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
+        var _abortMsg = '응답 시간 초과 (115초). 네트워크 상태를 확인해 주세요.';
         var _lastMsg = '';
-        var _maxAttempts = 3;
+        var _maxAttempts = _maxChapterAttempts;
 
         function _done(payload) {
           if (_settled) return;
@@ -1276,7 +1284,7 @@
           var timeoutId = setTimeout(function () {
             _lastMsg = _abortMsg;
             _runAttempt(at + 1);
-          }, 45000);
+          }, _chapterTimeoutMs);
 
           _ensurePremiumReportSession().then(function(prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
@@ -1299,21 +1307,28 @@
                 _done(data);
                 return;
               }
-              if (data && [401,402,409,422,500,503].indexOf(Number(data.status || 0)) >= 0) {
+              var status = Number(data && data.status || 0);
+              if (status === 401 || status === 402 || status === 422) {
                 _done(data);
                 return;
               }
               _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
-              _runAttempt(at + 1);
+              setTimeout(function () {
+                _runAttempt(at + 1);
+              }, Math.min(800 * (at + 1), 2500));
             }).catch(function(err) {
               clearTimeout(timeoutId);
               _lastMsg = String(err && err.message ? err.message : err);
-              _runAttempt(at + 1);
+              setTimeout(function () {
+                _runAttempt(at + 1);
+              }, Math.min(800 * (at + 1), 2500));
             });
           }).catch(function(err) {
             clearTimeout(timeoutId);
             _lastMsg = String(err && err.message ? err.message : err);
-            _runAttempt(at + 1);
+            setTimeout(function () {
+              _runAttempt(at + 1);
+            }, Math.min(800 * (at + 1), 2500));
           });
         }
 
@@ -1330,15 +1345,44 @@
         return;
       }
       if (idx >= 13) {
+        if (_recoveryPasses < 1) {
+          var _missing = [];
+          for (var _mi = 0; _mi < 13; _mi++) {
+            if (!_isValidChapterText(_chapters[_mi])) _missing.push(_mi);
+          }
+          if (_missing.length) {
+            _recoveryPasses += 1;
+            if (chapterMsg) chapterMsg.textContent = '누락된 챕터를 복구하는 중...';
+            (function recoverMissing(pos) {
+              if (_cancelGeneration) return;
+              if (pos >= _missing.length) {
+                generateNext(13);
+                return;
+              }
+              var targetIdx = _missing[pos];
+              _fetchChapter(targetIdx).then(function (data) {
+                if (_cancelGeneration) return;
+                var _retryText = data && typeof data.text === 'string' ? data.text.trim() : '';
+                if (data && data.ok && _retryText.length >= 500) {
+                  _chapters[targetIdx] = data.text;
+                }
+                _setProgress(_chapters.filter(_isValidChapterText).length);
+                recoverMissing(pos + 1);
+              }).catch(function () {
+                recoverMissing(pos + 1);
+              });
+            })(0);
+            return;
+          }
+        }
+
         clearInterval(_mysticTimer);
         _mysticTimer = null;
         _generating = false;
         _setFlowState('success');
 
         // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 13개(전체)여야 성공
-        var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
-        }).length;
+        var _validCount = _chapters.filter(_isValidChapterText).length;
         if (_validCount < 13) {
           _generating = false;
           _setFlowState('error');
@@ -1385,7 +1429,7 @@
           if (status === 500) msgByStatus = '서버 오류로 챕터 생성에 실패했습니다.';
           if (status === 503) msgByStatus = '외부 음력/절기 API 장애로 생성할 수 없습니다.';
 
-          if (status === 401 || status === 402 || status === 409 || status === 422 || status === 500 || status === 503) {
+          if (status === 401 || status === 402 || status === 422) {
             _generating = false;
             _setFlowState('error');
             _lastError = msgByStatus || ((data && data.message) ? data.message : '챕터 생성 실패');
@@ -1603,7 +1647,7 @@
         return;
       }
 
-      var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
+      var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 500);
       if (typeof window._cdCoinGatePerUse === 'function') {
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;

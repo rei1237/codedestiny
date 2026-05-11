@@ -968,9 +968,9 @@ export default function KkulkkulManseryukMain() {
           <LockedSection
             title="RPG 캐릭터 리포트"
             description="사주 기반 능력치/직업/성장 루트를 RPG 캐릭터처럼 분석합니다."
-            cost={50}
+            cost={30}
             isUnlocked={unlockedFeatures.rpgCharacter || unlockedFeatures.allPaidSaju}
-            onUnlock={() => unlockByCoins("rpgCharacter", 50)}
+            onUnlock={() => unlockByCoins("rpgCharacter", 30)}
           >
             <p className="text-sm text-neutral-700">전투 타입, 성장 타입, 파티 궁합이 공개되었습니다.</p>
           </LockedSection>
@@ -978,9 +978,9 @@ export default function KkulkkulManseryukMain() {
           <LockedSection
             title="사주로 보는 여행지"
             description="사주 에너지와 시기 흐름을 기준으로 운이 맞는 여행지와 피해야 할 타이밍을 제안합니다."
-            cost={100}
+            cost={50}
             isUnlocked={unlockedFeatures.travelDestiny || unlockedFeatures.allPaidSaju}
-            onUnlock={() => unlockByCoins("travelDestiny", 100)}
+            onUnlock={() => unlockByCoins("travelDestiny", 50)}
           >
             <p className="text-sm text-neutral-700">당신의 운을 살리는 여행지 3곳과 피해야 할 시즌이 열렸습니다.</p>
           </LockedSection>
@@ -988,9 +988,9 @@ export default function KkulkkulManseryukMain() {
           <LockedSection
             title="명리 헬스 리포트"
             description="오행 균형과 생활 패턴을 바탕으로 건강 리스크와 관리 루틴을 안내합니다."
-            cost={100}
+            cost={50}
             isUnlocked={unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
-            onUnlock={() => unlockByCoins("healthReport", 100)}
+            onUnlock={() => unlockByCoins("healthReport", 50)}
           >
             <p className="text-sm text-neutral-700">체질 관리 포인트와 일상 루틴 추천이 활성화되었습니다.</p>
           </LockedSection>
@@ -998,9 +998,9 @@ export default function KkulkkulManseryukMain() {
           <LockedSection
             title="사주 다이어리"
             description="운세 흐름 기록 템플릿과 월간 회고를 통해 내 패턴을 추적하는 다이어리 기능입니다."
-            cost={200}
+            cost={100}
             isUnlocked={unlockedFeatures.sajuDiary || unlockedFeatures.allPaidSaju}
-            onUnlock={() => unlockByCoins("sajuDiary", 200)}
+            onUnlock={() => unlockByCoins("sajuDiary", 100)}
           >
             <p className="text-sm text-neutral-700">오늘 기록 템플릿과 월간 리포트 생성이 열렸습니다.</p>
           </LockedSection>
@@ -1008,9 +1008,9 @@ export default function KkulkkulManseryukMain() {
           <LockedSection
             title="시크릿 하우스 전체 에피소드"
             description="잠금된 스토리 루트, 멀티 엔딩, 확장 에피소드를 전체 해금합니다."
-            cost={100}
+            cost={50}
             isUnlocked={unlockedFeatures.secretHouseEpisodes || unlockedFeatures.allPaidSaju}
-            onUnlock={() => unlockByCoins("secretHouseEpisodes", 100)}
+            onUnlock={() => unlockByCoins("secretHouseEpisodes", 50)}
           >
             <p className="text-sm text-neutral-700">모든 에피소드/멀티 엔딩/숨겨진 루트가 열렸습니다.</p>
           </LockedSection>

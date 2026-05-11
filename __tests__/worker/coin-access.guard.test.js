@@ -71,7 +71,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(490);
+    expect(priced.cost).toBe(500);
     expect(priced.pricingSource).toBe("coin-gate-reason");
   });
 
@@ -85,7 +85,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(500);
+    expect(priced.cost).toBe(400);
     expect(priced.pricingSource).toBe("feature-key");
   });
 

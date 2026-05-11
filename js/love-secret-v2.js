@@ -37,7 +37,7 @@
       minTotalChars: 60000,
       chapterMinDefault: 5500,
       chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 5500, 8: 5500, 9: 6500, 10: 6000 },
-      price: 500,
+      price: 400,
       chapters: [
         { title: '💗 본연의 연애 자아', subtitle: '두 사람의 연애 자아와 수용 방식 비교' },
         { title: '🌹 치명적 매력과 페로몬', subtitle: '도화/홍염/화개/역마의 상호작용' },
@@ -1064,6 +1064,14 @@
     }
 
     var _premiumReportSessionId = '';
+    var _chapterTimeoutMs = 115000;
+    var _maxChapterAttempts = 4;
+    var _recoveryPasses = 0;
+
+    function _isValidChapterTextAt(idx) {
+      var raw = String(_chapters[idx] || '').trim();
+      return raw.length >= _chapterMinChars(idx + 1) && !/^⚠️/.test(raw);
+    }
 
     function _buildLoveSecretChapterPayload(idx) {
       var _profile = window.__cdActiveBirthProfile || {};
@@ -1118,9 +1126,9 @@
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
         var _settled = false;
-        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
+        var _abortMsg = '응답 시간 초과 (115초). 네트워크 상태를 확인해 주세요.';
         var _lastMsg = '';
-        var _maxAttempts = 3;
+        var _maxAttempts = _maxChapterAttempts;
 
         function _done(payload) {
           if (_settled) return;
@@ -1141,7 +1149,7 @@
           var timeoutId = setTimeout(function () {
             _lastMsg = _abortMsg;
             _runAttempt(at + 1);
-          }, 45000);
+          }, _chapterTimeoutMs);
 
           _ensurePremiumReportSession().then(function(prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
@@ -1169,16 +1177,22 @@
                 return;
               }
               _lastMsg = (data && data.message) ? data.message : '분량 또는 응답 기준을 충족하지 못했습니다.';
-              _runAttempt(at + 1);
+              setTimeout(function () {
+                _runAttempt(at + 1);
+              }, Math.min(900 * (at + 1), 2800));
             }).catch(function(err) {
               clearTimeout(timeoutId);
               _lastMsg = String(err && err.message ? err.message : err);
-              _runAttempt(at + 1);
+              setTimeout(function () {
+                _runAttempt(at + 1);
+              }, Math.min(900 * (at + 1), 2800));
             });
           }).catch(function(err) {
             clearTimeout(timeoutId);
             _lastMsg = String(err && err.message ? err.message : err);
-            _runAttempt(at + 1);
+            setTimeout(function () {
+              _runAttempt(at + 1);
+            }, Math.min(900 * (at + 1), 2800));
           });
         }
 
@@ -1189,12 +1203,42 @@
     (function generateNext(idx) {
       if (_cancelGeneration) return;
       if (idx >= _totalChapters) {
+        if (_recoveryPasses < 1) {
+          var _missing = [];
+          for (var _ri = 0; _ri < _totalChapters; _ri++) {
+            if (!_isValidChapterTextAt(_ri)) _missing.push(_ri);
+          }
+          if (_missing.length) {
+            _recoveryPasses += 1;
+            if (chapterMsg) chapterMsg.textContent = '누락된 챕터를 복구하는 중...';
+            (function recoverMissing(pos) {
+              if (_cancelGeneration) return;
+              if (pos >= _missing.length) {
+                generateNext(_totalChapters);
+                return;
+              }
+              var targetIdx = _missing[pos];
+              _fetchChapter(targetIdx).then(function (data) {
+                if (_cancelGeneration) return;
+                if (data && data.ok && data.text) {
+                  _chapters[targetIdx] = data.text;
+                }
+                _setProgress(_chapters.filter(function(_, i){ return _isValidChapterTextAt(i); }).length);
+                recoverMissing(pos + 1);
+              }).catch(function () {
+                recoverMissing(pos + 1);
+              });
+            })(0);
+            return;
+          }
+        }
+
         var totalChars = 0;
         var validCount = 0;
         for (var ci = 0; ci < _chapters.length; ci++) {
           var chapterText = String(_chapters[ci] || '').trim();
           totalChars += chapterText.length;
-          if (chapterText.length >= _chapterMinChars(ci + 1) && !/^⚠️/.test(chapterText)) {
+          if (_isValidChapterTextAt(ci)) {
             validCount += 1;
           }
         }
