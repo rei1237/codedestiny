@@ -3173,35 +3173,7 @@ function __cdBindAnimalTotemTileDirect() {
     try {
       var overlay = document.getElementById('animalTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-      // ── 코인 게이트 체크 ──
-      var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
-      var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
-      if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
-        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
-        if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
-          return;
-        }
-        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
-        var token = '';
-        if (__cdIsAdminLikeUser()) {
-          _doOpenTotem();
-          return;
-        }
-        var token = '';
-        try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-        if (!token) {
-          __cdOpenLoginRequiredModal({
-            reason: '로그인 후 이용할 수 있는 기능입니다.',
-            redirectTo: __cdBuildRedirectAfterLogin()
-          });
-          return;
-        }
-        // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
-        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        return;
-      }
-      // ── 코인 게이트 통과 ──
+      // 토템은 모달 진입 시점이 아닌 drawAnimalTotemSpread 단계에서 결제한다.
       _doOpenTotem();
     } catch (err) { console.error('[totem] openTotemModal error:', err); }
     function _doOpenTotem() {
