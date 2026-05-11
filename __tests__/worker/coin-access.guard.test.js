@@ -93,6 +93,34 @@ describe("Fortune coin access guard", () => {
     expect(priced.code).toBe("UNKNOWN_FEATURE_KEY");
   });
 
+  test("featureKey가 드리프트되어도 reason이 등록되어 있으면 서버 가격표로 처리해야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "drifted-feature-key",
+      reason: "이집트 신탁 리딩",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(30);
+    expect(priced.pricingSource).toBe("feature-reason-fallback");
+  });
+
+  test("legacy alias featureKey는 정규화하여 unlock 가격을 찾아야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "premium-sukyo",
+      reason: "Premium sukuyo unlock",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(390);
+    expect(priced.pricingSource).toBe("unlock-feature");
+  });
+
   test("관리자 bypass는 운영환경에서 강제 비활성화되어야 한다", () => {
     expect(utils.isAdminPigCoinBypassEnabled({ NODE_ENV: "production", ALLOW_ADMIN_PIG_COIN_BYPASS: "true" })).toBe(false);
     expect(utils.isAdminPigCoinBypassEnabled({ NODE_ENV: "development", ALLOW_ADMIN_PIG_COIN_BYPASS: "true" })).toBe(true);

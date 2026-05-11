@@ -55,6 +55,58 @@ function getForcePaidTestAccountEmails(env) {
   return new Set(values);
 }
 
+const FEATURE_KEY_ALIAS_MAP = Object.freeze({
+  "premium-sukyo": "premium-sukuyo",
+  "openjuyuk": "openJuyukModal",
+  "openkemet": "openKemetModal",
+  "opengeomancy": "openGeomancyOracle",
+  "turtle-iching": "turtleIChing",
+  "egypt-oracle": "egyptOracle",
+});
+
+function normalizeFeatureKey(rawKey) {
+  const key = String(rawKey || "").trim();
+  if (!key) return "";
+
+  const direct = FEATURE_KEY_ALIAS_MAP[key] || null;
+  if (direct) return direct;
+
+  const lowered = key.toLowerCase();
+  return FEATURE_KEY_ALIAS_MAP[lowered] || key;
+}
+
+function buildReasonPricingMap(pricingEntries) {
+  const table = Object.create(null);
+
+  for (let i = 0; i < pricingEntries.length; i += 1) {
+    const item = pricingEntries[i] || null;
+    const reason = String(item?.reason || "").trim();
+    const cost = Number(item?.cost);
+    if (!reason || !Number.isFinite(cost) || cost <= 0) continue;
+
+    // Keep the first mapping for stable behavior when legacy keys share the same reason.
+    if (!table[reason]) table[reason] = { ...item, reason, cost };
+  }
+
+  return Object.freeze(table);
+}
+
+const FEATURE_REASON_PRICING_MAP = buildReasonPricingMap(
+  Object.entries(FEATURE_KEY_PRICE_TABLE).map(([mappedFeatureKey, spec]) => ({
+    featureKey: mappedFeatureKey,
+    reason: spec?.reason,
+    cost: spec?.cost,
+  })),
+);
+
+const UNLOCK_REASON_PRICING_MAP = buildReasonPricingMap(
+  Object.values(UNLOCK_PRODUCT_BY_FEATURE_KEY).map((spec) => ({
+    featureKey: spec?.featureKey,
+    reason: spec?.reason,
+    cost: spec?.cost,
+  })),
+);
+
 function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey, reason }) {
   if (productSpec) {
     return {
@@ -65,7 +117,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
     };
   }
 
-  const key = String(featureKey || "").trim();
+  const key = normalizeFeatureKey(featureKey);
   const reasonText = String(reason || "").trim();
   const requestCost = Number(requestedCost);
 
@@ -125,6 +177,38 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       reason: String(unlockSpec.reason || reasonText || "Paid feature unlock"),
       pricingSource: "unlock-feature",
     };
+  }
+
+  if (reasonText) {
+    const coinGateReasonCost = Number(COIN_GATE_PER_USE_REASON_COSTS[reasonText]);
+    if (Number.isFinite(coinGateReasonCost) && coinGateReasonCost > 0) {
+      return {
+        ok: true,
+        cost: coinGateReasonCost,
+        reason: reasonText,
+        pricingSource: "coin-gate-reason-fallback",
+      };
+    }
+
+    const featureReasonPricing = FEATURE_REASON_PRICING_MAP[reasonText] || null;
+    if (featureReasonPricing) {
+      return {
+        ok: true,
+        cost: Number(featureReasonPricing.cost),
+        reason: reasonText,
+        pricingSource: "feature-reason-fallback",
+      };
+    }
+
+    const unlockReasonPricing = UNLOCK_REASON_PRICING_MAP[reasonText] || null;
+    if (unlockReasonPricing) {
+      return {
+        ok: true,
+        cost: Number(unlockReasonPricing.cost),
+        reason: reasonText,
+        pricingSource: "unlock-reason-fallback",
+      };
+    }
   }
 
   if (isDynamicCostFallbackEnabled(env) && Number.isFinite(requestCost) && requestCost > 0) {
