@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 360" role="img" aria-label="행운 잉어 번영 부적">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#133349"/>
+      <stop offset="1" stop-color="#0b1d2b"/>
+    </linearGradient>
+    <linearGradient id="koi" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9e5c"/>
+      <stop offset="1" stop-color="#e15031"/>
+    </linearGradient>
+  </defs>
+  <rect width="260" height="360" rx="24" fill="url(#bg)"/>
+  <rect x="12" y="12" width="236" height="336" rx="18" fill="none" stroke="#e0b266" stroke-opacity="0.9" stroke-width="2"/>
+
+  <g transform="translate(0 8)">
+    <path d="M52 224C84 164 140 152 188 178C204 186 216 202 214 218C212 236 198 250 182 256C134 274 84 260 52 224Z" fill="url(#koi)"/>
+    <path d="M188 178C200 162 214 154 228 154C222 170 222 188 230 202C216 204 202 196 188 178Z" fill="#f4c06e"/>
+    <circle cx="182" cy="210" r="5" fill="#1e1f23"/>
+    <path d="M72 226C84 218 96 218 108 226" fill="none" stroke="#ffe7bf" stroke-width="3" stroke-linecap="round"/>
+    <path d="M102 242C112 236 122 236 132 242" fill="none" stroke="#ffe7bf" stroke-width="3" stroke-linecap="round"/>
+    <path d="M132 254C142 248 152 248 162 254" fill="none" stroke="#ffe7bf" stroke-width="3" stroke-linecap="round"/>
+    <path d="M44 170C72 156 98 164 114 184" fill="none" stroke="#91c9ea" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <path d="M58 148C88 138 114 148 130 170" fill="none" stroke="#91c9ea" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="64" cy="102" r="16" fill="#f6d18a" fill-opacity="0.82"/>
+    <text x="64" y="108" text-anchor="middle" font-size="14" fill="#8b4a19" font-family="serif">福</text>
+  </g>
+
+  <text x="130" y="316" text-anchor="middle" font-size="23" fill="#fee7bf" font-family="Noto Sans KR, sans-serif" font-weight="700">행운 잉어 번영</text>
+  <text x="130" y="340" text-anchor="middle" font-size="13" fill="#f2c381" font-family="Noto Sans KR, sans-serif">재물 상승과 흐름의 상징</text>
+</svg>

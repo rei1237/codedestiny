@@ -966,14 +966,65 @@
       letter-spacing: 0.02em;
     }
 
+    .charm-sub {
+      margin: 0 0 10px;
+      color: rgba(255, 236, 204, 0.88);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .charm-gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .charm-card {
+      margin: 0;
+      border-radius: 12px;
+      border: 1px solid rgba(244, 203, 136, 0.5);
+      background: rgba(66, 18, 16, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 235, 201, 0.22);
+      overflow: hidden;
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    .charm-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 220, 167, 0.84);
+    }
+
+    .charm-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      background: rgba(20, 10, 14, 0.35);
+    }
+
+    .charm-card figcaption {
+      padding: 7px 8px 8px;
+      font-size: 11px;
+      color: #ffe9c6;
+      line-height: 1.5;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
     .charm-text {
       margin: 0 0 10px;
-      font-size: 33px;
-      line-height: 1.36;
-      letter-spacing: 0.08em;
+      font-size: 12px;
+      line-height: 1.7;
+      letter-spacing: 0.01em;
       color: #fff8ea;
-      word-break: break-all;
+      word-break: keep-all;
       text-shadow: 0 2px 8px rgba(54, 17, 16, 0.36);
+      background: rgba(66, 18, 16, 0.24);
+      border: 1px dashed rgba(244, 203, 136, 0.52);
+      border-radius: 10px;
+      padding: 8px 9px;
     }
 
     .action-stack {
@@ -1072,7 +1123,11 @@
       }
 
       .charm-text {
-        font-size: 29px;
+        font-size: 11px;
+      }
+
+      .charm-gallery {
+        gap: 7px;
       }
     }
 
@@ -1331,12 +1386,15 @@
             </div>
 
             <div class="charm-wrap">
-              <h3>🧿 오늘의 이모지 부적</h3>
-              <p class="charm-text" id="result-charm">🌸💌🫶✨</p>
-              <button class="btn btn-gold" id="btn-copy-charm" aria-label="오늘의 이모지 부적 복사하기">부적 복사하기 🧿</button>
+              <h3>🧿 오늘의 오미쿠지 부적</h3>
+              <p class="charm-sub">일본 행운 상징을 담은 신사 부적 4장을 오늘의 흐름에 맞춰 드립니다.</p>
+              <div class="charm-gallery" id="result-charm-gallery" aria-label="오늘의 오미쿠지 부적 이미지"></div>
+              <p class="charm-text" id="result-charm">도리이 개운문 | 오마모리 매듭 | 벚꽃 문장 인연 | 행운 잉어 번영</p>
+              <button class="btn btn-gold" id="btn-copy-charm" aria-label="오늘의 오미쿠지 부적 설명 복사하기">부적 설명 복사하기 🧿</button>
             </div>
 
             <div class="action-stack">
+              <button class="btn btn-gold" id="btn-share-kakao" aria-label="카카오톡으로 오미쿠지 공유하기">카카오톡 공유하기 💬</button>
               <button class="btn btn-main" id="btn-copy-result" aria-label="오미쿠지 결과 문구 복사하기">결과 복사하기 📜</button>
               <div class="action-double">
                 <button class="btn btn-sub" id="btn-reroll" aria-label="같은 입력으로 오미쿠지 다시 뽑기">다시 뽑기 🌸</button>
@@ -1399,6 +1457,79 @@
       '불꽃': ['🔥', '⚡', '🌋', '🧭', '🏮'],
       '달': ['🌙', '☁️', '🤍', '🫧', '🧸'],
       '로봇': ['🤖', '⛩️', '🏮', '🎐', '🌸']
+    };
+
+    const CHARM_LIBRARY = [
+      {
+        id: 'torii-sun',
+        glyph: '⛩️',
+        name: '도리이 개운문',
+        src: '/fuctionassets/omikuji-charms/torii-sun.svg',
+        themes: ['벚꽃', '별빛', '달'],
+        categories: ['오늘의 운세', '연애', '고민 상담']
+      },
+      {
+        id: 'omamori-knot',
+        glyph: '🧿',
+        name: '오마모리 매듭',
+        src: '/fuctionassets/omikuji-charms/omamori-knot.svg',
+        themes: ['하트', '벚꽃', '달'],
+        categories: ['연애', '멘탈/감정', '고민 상담']
+      },
+      {
+        id: 'daruma-luck',
+        glyph: '🎎',
+        name: '다루마 결의',
+        src: '/fuctionassets/omikuji-charms/daruma-luck.svg',
+        themes: ['불꽃', '돈', '별빛'],
+        categories: ['직장/학업', '재물', '고민 상담']
+      },
+      {
+        id: 'kitsune-mask',
+        glyph: '🦊',
+        name: '여우 가면 직관',
+        src: '/fuctionassets/omikuji-charms/kitsune-mask.svg',
+        themes: ['별빛', '달', '로봇'],
+        categories: ['고민 상담', '인간관계', '오늘의 운세']
+      },
+      {
+        id: 'tsuru-origami',
+        glyph: '🕊️',
+        name: '학 종이접기 장수',
+        src: '/fuctionassets/omikuji-charms/tsuru-origami.svg',
+        themes: ['벚꽃', '달', '별빛'],
+        categories: ['인간관계', '멘탈/감정', '연애']
+      },
+      {
+        id: 'sensu-fan',
+        glyph: '🎐',
+        name: '센스 부채 확장',
+        src: '/fuctionassets/omikuji-charms/sensu-fan.svg',
+        themes: ['불꽃', '별빛', '로봇'],
+        categories: ['직장/학업', '오늘의 운세', '재물']
+      },
+      {
+        id: 'sakura-crest',
+        glyph: '🌸',
+        name: '벚꽃 문장 인연',
+        src: '/fuctionassets/omikuji-charms/sakura-crest.svg',
+        themes: ['벚꽃', '하트', '달'],
+        categories: ['연애', '인간관계', '멘탈/감정']
+      },
+      {
+        id: 'lucky-koi',
+        glyph: '🐟',
+        name: '행운 잉어 번영',
+        src: '/fuctionassets/omikuji-charms/lucky-koi.svg',
+        themes: ['돈', '불꽃', '로봇'],
+        categories: ['재물', '오늘의 운세', '직장/학업']
+      }
+    ];
+
+    const CHARM_GRADE_PRIORITY = {
+      high: ['torii-sun', 'lucky-koi', 'sakura-crest', 'sensu-fan'],
+      mid: ['omamori-knot', 'tsuru-origami', 'torii-sun', 'kitsune-mask'],
+      caution: ['daruma-luck', 'omamori-knot', 'kitsune-mask', 'torii-sun']
     };
 
     const AI_TEXT_EMOJI_POOLS = {
@@ -1964,21 +2095,30 @@
       return `입력한 질문 "${q}"은 ${intentLabel} 방향으로 읽혔습니다. 오늘은 감정(${emotion})과 응답 톤(${tone})을 고려해 작은 실행부터 시작하는 편이 흐름을 안정시킵니다.`;
     }
 
-    function buildLuckyEmoji(category, theme, grade, seed) {
-      const categorySet = CATEGORY_LABEL_EMOJI[category] || CATEGORY_LABEL_EMOJI['오늘의 운세'];
-      const themeSet = getEmojiThemeSet(theme);
-      const gradeSet = grade.includes('흉') ? ['⚠️', '🌀', '🫥'] : ['🍀', '🌟', '🎁'];
-      const merged = [...categorySet, ...themeSet, ...gradeSet];
+    function buildLuckyCharms(category, theme, grade, seed) {
+      const level = grade.includes('대길') || grade.includes('중길') || grade.includes('소길')
+        ? 'high'
+        : (grade.includes('흉') ? 'caution' : 'mid');
+
+      const pool = [];
+      const byTheme = CHARM_LIBRARY.filter((item) => item.themes.includes(theme));
+      const byCategory = CHARM_LIBRARY.filter((item) => item.categories.includes(category));
+      const byGrade = CHARM_GRADE_PRIORITY[level]
+        .map((id) => CHARM_LIBRARY.find((item) => item.id === id))
+        .filter(Boolean);
+
+      pool.push(...byTheme, ...byCategory, ...byGrade, ...CHARM_LIBRARY);
+
       const unique = [];
-      for (const emoji of merged) {
-        if (!unique.includes(emoji)) unique.push(emoji);
+      for (const item of pool) {
+        if (!unique.find((saved) => saved.id === item.id)) {
+          unique.push(item);
+        }
       }
 
-      const lucky = [];
-      for (let i = 0; i < 4; i += 1) {
-        lucky.push(unique[(seed + i * 3) % unique.length]);
-      }
-      return lucky;
+      const offset = unique.length ? seed % unique.length : 0;
+      const rotated = unique.slice(offset).concat(unique.slice(0, offset));
+      return rotated.slice(0, 4);
     }
 
     function buildAiTextEmojiSet(category, emotion, tone, seed) {
@@ -2032,8 +2172,9 @@
       const mantra = `${pickBySeed(categoryTemplate.mantra, baseSeed, 11)} ${aiTextEmojiSet[8]}`;
       const categoryAnchor = buildCategoryAnchor(input.category, input.question, intent.intentLabel, input.emotion, input.tone);
 
-      const luckyEmoji = buildLuckyEmoji(input.category, input.emojiTheme, grade, baseSeed);
-      const charmText = luckyEmoji.join('');
+      const luckyCharms = buildLuckyCharms(input.category, input.emojiTheme, grade, baseSeed);
+      const luckyEmoji = luckyCharms.map((item) => item.glyph);
+      const charmText = luckyCharms.map((item) => `${item.glyph} ${item.name}`).join(' | ');
 
       const keywordText = intent.keywords.join(', ');
       const questionEcho = input.question
@@ -2076,6 +2217,7 @@
         detailedReading,
         advice,
         luckyAction: mission,
+        luckyCharms,
         luckyEmoji,
         caution,
         todayMantra: mantra,
@@ -2204,6 +2346,31 @@
       });
     }
 
+    function renderCharmGallery(luckyCharms) {
+      const gallery = document.getElementById('result-charm-gallery');
+      if (!gallery) return;
+      gallery.innerHTML = '';
+
+      const charms = Array.isArray(luckyCharms) ? luckyCharms : [];
+      charms.forEach((charm) => {
+        const card = document.createElement('figure');
+        card.className = 'charm-card';
+
+        const image = document.createElement('img');
+        image.src = charm.src;
+        image.alt = `${charm.name} 부적 이미지`;
+        image.loading = 'lazy';
+        image.decoding = 'async';
+
+        const caption = document.createElement('figcaption');
+        caption.textContent = `${charm.glyph} ${charm.name}`;
+
+        card.appendChild(image);
+        card.appendChild(caption);
+        gallery.appendChild(card);
+      });
+    }
+
     const GRADE_DISPLAY_MAP = {
       '대길': '大吉 대길 🌸',
       '중길': '中吉 중길 ✨',
@@ -2232,6 +2399,7 @@
       document.getElementById('result-advice').textContent = result.advice;
       document.getElementById('result-mantra').textContent = result.todayMantra;
       document.getElementById('result-charm').textContent = result.charmText;
+      renderCharmGallery(result.luckyCharms);
       renderSections(result.sectionCards);
     }
 
@@ -2267,6 +2435,76 @@
         showCopyToast(successMessage);
       } else {
         showCopyToast('복사 권한을 확인해 주세요.');
+      }
+    }
+
+    let kakaoSdkPromise = null;
+
+    function getKakaoAppKey() {
+      const fromWindow = window.KAKAO_JS_KEY || window.__KAKAO_JS_KEY__ || window.KAKAO_JAVASCRIPT_KEY;
+      const fromMeta = document.querySelector('meta[name="kakao-javascript-key"]')?.content;
+      const fromDataset = document.documentElement.getAttribute('data-kakao-js-key');
+      return String(fromWindow || fromMeta || fromDataset || '').trim();
+    }
+
+    function loadKakaoSdk() {
+      if (window.Kakao) return Promise.resolve(window.Kakao);
+      if (kakaoSdkPromise) return kakaoSdkPromise;
+
+      kakaoSdkPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js';
+        script.async = true;
+        script.onload = () => resolve(window.Kakao);
+        script.onerror = () => reject(new Error('Kakao SDK load failed'));
+        document.head.appendChild(script);
+      });
+
+      return kakaoSdkPromise;
+    }
+
+    async function shareToKakao(result) {
+      const shareUrl = new URL('/emoi_omikuji_v2.html', window.location.origin).toString();
+      const fallbackMessage = `🤖 이모이 오미쿠지\n${result.title}\n${result.shortMessage}\n\n오늘의 부적: ${result.charmText}\n${shareUrl}`;
+
+      try {
+        const Kakao = await loadKakaoSdk();
+        const appKey = getKakaoAppKey();
+
+        if (!Kakao || !appKey) {
+          copyText(fallbackMessage, '카카오 설정이 없어 공유 문구를 복사했어요 📋');
+          return;
+        }
+
+        if (!Kakao.isInitialized()) {
+          Kakao.init(appKey);
+        }
+
+        const imageUrl = new URL(result?.luckyCharms?.[0]?.src || '/fuctionassets/오미쿠지.webp', window.location.origin).toString();
+
+        Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: `🧿 ${result.title}`,
+            description: `${result.shortMessage}\n오늘의 부적: ${result.charmText}`,
+            imageUrl,
+            link: {
+              mobileWebUrl: shareUrl,
+              webUrl: shareUrl,
+            },
+          },
+          buttons: [
+            {
+              title: '나도 오미쿠지 뽑기',
+              link: {
+                mobileWebUrl: shareUrl,
+                webUrl: shareUrl,
+              },
+            },
+          ],
+        });
+      } catch (error) {
+        copyText(fallbackMessage, '카카오 공유 실패로 문구를 복사했어요 📋');
       }
     }
 
@@ -2372,9 +2610,14 @@
       });
     });
 
+    document.getElementById('btn-share-kakao').addEventListener('click', () => {
+      if (!state.lastResult) return;
+      shareToKakao(state.lastResult);
+    });
+
     document.getElementById('btn-copy-charm').addEventListener('click', () => {
       if (!state.lastResult) return;
-      copyText(state.lastResult.charmText, '이모지 부적을 복사했어요 🌸');
+      copyText(state.lastResult.charmText, '오미쿠지 부적 설명을 복사했어요 🧿');
     });
 
     document.getElementById('btn-copy-result').addEventListener('click', () => {

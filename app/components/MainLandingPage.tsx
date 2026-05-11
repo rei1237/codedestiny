@@ -283,7 +283,7 @@ export default function MainLandingPage() {
               className="block overflow-hidden rounded-[18px] border border-cyan-300/40 bg-[linear-gradient(160deg,rgba(18,56,74,0.9),rgba(18,34,64,0.88))] shadow-[0_10px_24px_rgba(14,45,66,0.35)] transition hover:-translate-y-0.5 hover:border-cyan-200/60"
             >
               <img
-                src="/fuctionassets/emoi-shrine-robot.svg"
+                src="/fuctionassets/오미쿠지.webp"
                 alt="AI 이모이 오미쿠지 대표 이미지"
                 className="h-40 w-full object-cover"
                 loading="lazy"

@@ -226,8 +226,8 @@ function extractFirst(html, re) {
   return m ? m[0] : "";
 }
 
-const LEGACY_OMIKUJI_HERO_IMG = "/fuctionassets/오미쿠지.webp";
-const SHRINE_OMIKUJI_HERO_IMG = "/fuctionassets/emoi-shrine-robot.svg";
+const LEGACY_OMIKUJI_HERO_IMG = "/fuctionassets/emoi-shrine-robot.svg";
+const SHRINE_OMIKUJI_HERO_IMG = "/fuctionassets/오미쿠지.webp";
 
 function normalizeOmikujiHeroImageRefs(html) {
   if (!html || !html.includes(LEGACY_OMIKUJI_HERO_IMG)) return html;
@@ -437,7 +437,7 @@ if (existsSync(publicIndex)) {
     baseIndexHtml = normalizedOmikujiHeroIndexHtml;
     indexBuf = Buffer.from(baseIndexHtml, "utf8");
     writeFileSync(publicIndex, indexBuf);
-    console.log("[sync-legacy-static-to-public] Canonicalized omikuji hero image to emoi-shrine-robot.svg in public/index.html");
+    console.log("[sync-legacy-static-to-public] Canonicalized omikuji hero image to 오미쿠지.webp in public/index.html");
   }
 
   const baseIssues = collectEntryIssues(baseIndexHtml);
