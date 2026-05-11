@@ -246,6 +246,7 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
   const rootFlower = extractFirst(rootHtml, flowerRe);
   const rootFooter = extractFirst(rootHtml, footerRe);
   const rootMainGlassRef = extractFirst(rootHtml, /\/styles\/main-glass\.css\?v=[^"']+/);
+  const rootSibylRef = extractFirst(rootHtml, /\/js\/sibyl-system\.js\?v=[^"']+/);
 
   if (rootFlower && flowerRe.test(html)) {
     const next = html.replace(flowerRe, rootFlower);
@@ -265,6 +266,14 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
 
   if (rootMainGlassRef) {
     const next = html.replace(/\/styles\/main-glass\.css\?v=[^"']+/g, rootMainGlassRef);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  if (rootSibylRef) {
+    const next = html.replace(/\/js\/sibyl-system\.js\?v=[^"']+/g, rootSibylRef);
     if (next !== html) {
       html = next;
       changed = true;

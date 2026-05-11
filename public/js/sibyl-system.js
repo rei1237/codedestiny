@@ -1793,147 +1793,169 @@
 
   /* ── 무료 섹션 렌더링 ── */
   function _renderFreeSection(pillars, natal) {
-    var normalized = _normalizeSibylInput({ pillars: pillars }, { pillars: pillars });
-    var corePillars = normalized.pillars || pillars || window.G_PILLARS;
-    var dist = normalized.dist || _ohaengDist(corePillars);
-    var domEl = normalized.dominantEl || _dominantEl(dist);
-    var clarity = _hueClarityStatus(dist);
-    var hueData = EL_DESTINY_HUE[domEl] || EL_DESTINY_HUE.water;
+    try {
+      var normalized = _normalizeSibylInput({ pillars: pillars }, { pillars: pillars });
+      var corePillars = normalized.pillars || pillars || window.G_PILLARS;
+      var dist = normalized.dist || _ohaengDist(corePillars);
+      var domEl = normalized.dominantEl || _dominantEl(dist);
+      var clarity = _hueClarityStatus(dist);
+      var hueData = EL_DESTINY_HUE[domEl] || EL_DESTINY_HUE.water;
 
-    // Ohaeng bars
-    EL_ORDER.forEach(function(el) {
-      var pct = dist.total > 0 ? Math.round((dist[el]||0) / dist.total * 100) : 0;
-      var fill = _q('sbOhaengFill_' + el);
-      var pctEl = _q('sbOhaengPct_' + el);
-      if (fill) setTimeout(function(){ fill.style.width = pct + '%'; }, 100);
-      if (pctEl) pctEl.textContent = pct + '%';
-    });
+      // Ohaeng bars
+      EL_ORDER.forEach(function(el) {
+        var pct = dist.total > 0 ? Math.round((dist[el]||0) / dist.total * 100) : 0;
+        var fill = _q('sbOhaengFill_' + el);
+        var pctEl = _q('sbOhaengPct_' + el);
+        if (fill) setTimeout(function(){ fill.style.width = pct + '%'; }, 100);
+        if (pctEl) pctEl.textContent = pct + '%';
+      });
 
-    // Destiny Hue swatch
-    var swatch = _q('sbHueSwatch');
-    if (swatch) swatch.style.background = hueData.hex;
+      // Destiny Hue swatch
+      var swatch = _q('sbHueSwatch');
+      if (swatch) swatch.style.background = hueData.hex;
 
-    _t('sbHueName', hueData.name + ' · ' + EL_KR[domEl]);
-    var statusEl = _q('sbHueStatus');
-    if (statusEl) {
-      statusEl.textContent = clarity === 'clear' ? '▶ 클리어(Clear) — 오행 균형도 양호' : '▶ 탁함(Cloudy) — 오행 편중 또는 결핍 감지';
-      statusEl.className = 'sb-hue-status sb-hue-status--' + (clarity === 'clear' ? 'clear' : 'cloudy');
-    }
+      _t('sbHueName', hueData.name + ' · ' + EL_KR[domEl]);
+      var statusEl = _q('sbHueStatus');
+      if (statusEl) {
+        statusEl.textContent = clarity === 'clear' ? '▶ 클리어(Clear) — 오행 균형도 양호' : '▶ 탁함(Cloudy) — 오행 편중 또는 결핍 감지';
+        statusEl.className = 'sb-hue-status sb-hue-status--' + (clarity === 'clear' ? 'clear' : 'cloudy');
+      }
 
-    // Pillar display
-    if (corePillars) {
-      var cp = _pillarChars(corePillars);
-      var cols = [
-        { id:'sbPillarYanG', val:cp.y.g }, { id:'sbPillarYanJ', val:cp.y.j },
-        { id:'sbPillarMoG',  val:cp.m.g }, { id:'sbPillarMoJ',  val:cp.m.j },
-        { id:'sbPillarDaG',  val:cp.d.g }, { id:'sbPillarDaJ',  val:cp.d.j },
-        { id:'sbPillarSiG',  val:cp.h.g }, { id:'sbPillarSiJ',  val:cp.h.j }
-      ];
-      cols.forEach(function(c){ _t(c.id, c.val || '데이터 부족'); });
-    }
+      // Pillar display
+      if (corePillars) {
+        var cp = _pillarChars(corePillars);
+        var cols = [
+          { id:'sbPillarYanG', val:cp.y.g }, { id:'sbPillarYanJ', val:cp.y.j },
+          { id:'sbPillarMoG',  val:cp.m.g }, { id:'sbPillarMoJ',  val:cp.m.j },
+          { id:'sbPillarDaG',  val:cp.d.g }, { id:'sbPillarDaJ',  val:cp.d.j },
+          { id:'sbPillarSiG',  val:cp.h.g }, { id:'sbPillarSiJ',  val:cp.h.j }
+        ];
+        cols.forEach(function(c){ _t(c.id, c.val || '데이터 부족'); });
+      }
 
-    var counts = normalized.tenStarCounts || {};
-    var dominant = normalized.dominantTenStar || '데이터 부족';
-    var secData = TENSTAR_SECTOR[dominant] || TENSTAR_SECTOR['편재'];
-    var annualPreview = _buildAnnualRiskPlan(normalized, normalized.currentYear || new Date().getFullYear());
-    var monthlyPreview = _buildMonthlyRiskPlan(
-      corePillars,
-      domEl,
-      dominant,
-      45,
-      normalized.currentYear || new Date().getFullYear(),
-      normalized
-    );
-    var conflictSignals = _collectCollisionSignals(corePillars, normalized.currentYear || new Date().getFullYear());
-    var riskBreakdown = _calcRiskBreakdown(normalized, monthlyPreview, annualPreview, conflictSignals);
-    var aptData = _calcAptitudeComponents(normalized, riskBreakdown);
-    var coeff = aptData.score;
-    var risk = riskBreakdown.total;
+      var counts = normalized.tenStarCounts || {};
+      var dominant = normalized.dominantTenStar || '데이터 부족';
+      var secData = TENSTAR_SECTOR[dominant] || TENSTAR_SECTOR['편재'];
+      var annualPreview = _buildAnnualRiskPlan(normalized, normalized.currentYear || new Date().getFullYear());
+      var monthlyPreview = _buildMonthlyRiskPlan(
+        corePillars,
+        domEl,
+        dominant,
+        45,
+        normalized.currentYear || new Date().getFullYear(),
+        normalized
+      );
+      var conflictSignals = _collectCollisionSignals(corePillars, normalized.currentYear || new Date().getFullYear());
+      var riskBreakdown = _calcRiskBreakdown(normalized, monthlyPreview, annualPreview, conflictSignals);
+      var aptData = _calcAptitudeComponents(normalized, riskBreakdown);
+      var coeff = aptData.score;
+      var risk = riskBreakdown.total;
 
-    var metricsPreview = _q('sbFreeSection') && _q('sbFreeSection').querySelector('.sb-metrics-preview');
-    if (metricsPreview) {
-      metricsPreview.classList.add('sb-metrics-preview--expanded');
-      metricsPreview.innerHTML = ''
-        + '<div class="sb-metric-card">'
-        + '<div class="sb-metric-label">위험 계수</div>'
-        + '<div class="sb-metric-value" id="sbRiskBasicEl"><span id="sbRiskBasic">0</span></div>'
-        + '</div>'
-        + '<div class="sb-metric-card">'
-        + '<div class="sb-metric-label">적성 계수</div>'
-        + '<div class="sb-metric-value sb-metric-value--ok" id="sbAptMetric"><span id="sbAptCoeff">0</span></div>'
-        + '</div>'
-        + '<div class="sb-metric-card">'
-        + '<div class="sb-metric-label">Career</div>'
-        + '<div class="sb-metric-value" id="sbCareerComp">0</div>'
-        + '</div>'
-        + '<div class="sb-metric-card">'
-        + '<div class="sb-metric-label">Wealth</div>'
-        + '<div class="sb-metric-value" id="sbWealthComp">0</div>'
-        + '</div>'
-        + '<div class="sb-metric-card">'
-        + '<div class="sb-metric-label">충·형·파·해</div>'
-        + '<div class="sb-metric-value" id="sbRiskCollision">0</div>'
-        + '</div>'
-        + '<div class="sb-metric-card">'
-        + '<div class="sb-metric-label">월 변동성</div>'
-        + '<div class="sb-metric-value" id="sbRiskVolatility">0</div>'
-        + '</div>';
-    }
+      var metricsPreview = _q('sbFreeSection') && _q('sbFreeSection').querySelector('.sb-metrics-preview');
+      if (metricsPreview) {
+        metricsPreview.classList.add('sb-metrics-preview--expanded');
+        metricsPreview.innerHTML = ''
+          + '<div class="sb-metric-card">'
+          + '<div class="sb-metric-label">위험 계수</div>'
+          + '<div class="sb-metric-value" id="sbRiskBasicEl"><span id="sbRiskBasic">0</span></div>'
+          + '</div>'
+          + '<div class="sb-metric-card">'
+          + '<div class="sb-metric-label">적성 계수</div>'
+          + '<div class="sb-metric-value sb-metric-value--ok" id="sbAptMetric"><span id="sbAptCoeff">0</span></div>'
+          + '</div>'
+          + '<div class="sb-metric-card">'
+          + '<div class="sb-metric-label">Career</div>'
+          + '<div class="sb-metric-value" id="sbCareerComp">0</div>'
+          + '</div>'
+          + '<div class="sb-metric-card">'
+          + '<div class="sb-metric-label">Wealth</div>'
+          + '<div class="sb-metric-value" id="sbWealthComp">0</div>'
+          + '</div>'
+          + '<div class="sb-metric-card">'
+          + '<div class="sb-metric-label">충·형·파·해</div>'
+          + '<div class="sb-metric-value" id="sbRiskCollision">0</div>'
+          + '</div>'
+          + '<div class="sb-metric-card">'
+          + '<div class="sb-metric-label">월 변동성</div>'
+          + '<div class="sb-metric-value" id="sbRiskVolatility">0</div>'
+          + '</div>';
+      }
 
-    _t('sbAptCoeff', coeff);
-    _t('sbAptMetric', coeff);
-    _t('sbCareerComp', aptData.components.career);
-    _t('sbWealthComp', aptData.components.wealth);
-    _t('sbRiskCollision', riskBreakdown.parts.collision);
-    _t('sbRiskVolatility', riskBreakdown.parts.monthlyVolatility);
-    _t('sbSectorName', secData.sector);
-    _t('sbSectorJobs', secData.jobs);
-    _t('sbSectorTenstar', '주도 십성: ' + dominant);
+      _t('sbAptCoeff', coeff);
+      _t('sbAptMetric', coeff);
+      _t('sbCareerComp', aptData.components.career);
+      _t('sbWealthComp', aptData.components.wealth);
+      _t('sbRiskCollision', riskBreakdown.parts.collision);
+      _t('sbRiskVolatility', riskBreakdown.parts.monthlyVolatility);
+      _t('sbSectorName', secData.sector);
+      _t('sbSectorJobs', secData.jobs);
+      _t('sbSectorTenstar', '주도 십성: ' + dominant);
 
-    // Caution / Warning — G_POWER 기반 스마트 경보
-    var warn = _buildSmartWarning(corePillars, dominant, counts, dist);
-    var warnEl = _q('sbCautionArea');
-    if (warnEl) {
-      if (warn) {
-        warnEl.classList.remove('sb-hidden');
-        _t('sbCautionText', '⚠ ALERT: ' + warn);
-      } else {
-        warnEl.classList.add('sb-hidden');
+      // Caution / Warning — G_POWER 기반 스마트 경보
+      var warn = _buildSmartWarning(corePillars, dominant, counts, dist);
+      var warnEl = _q('sbCautionArea');
+      if (warnEl) {
+        if (warn) {
+          warnEl.classList.remove('sb-hidden');
+          _t('sbCautionText', '⚠ ALERT: ' + warn);
+        } else {
+          warnEl.classList.add('sb-hidden');
+        }
+      }
+
+      // Risk gauge (basic)
+      _t('sbRiskBasic', risk);
+      var riskEl = _q('sbRiskBasicEl');
+      if (riskEl) {
+        riskEl.className = 'sb-metric-value' + (risk >= 70 ? ' sb-metric-value--danger' : risk >= 45 ? ' sb-metric-value--warn' : ' sb-metric-value--ok');
+      }
+
+      // Save current analysis state
+      window._sibylCurrentData = {
+        pillars: corePillars,
+        dist: dist, domEl: domEl, dominant: dominant, coeff: coeff,
+        risk: risk,
+        counts: counts,
+        riskBreakdown: riskBreakdown,
+        aptitudeComponents: aptData.components,
+        monthlyPreview: monthlyPreview,
+        annualPreview: annualPreview,
+        normalized: normalized
+      };
+
+      // Nature + Year Pulse + Inner Palace 전체 렌더
+      var natSec = _q('sbNatureSection');
+      if (natSec) {
+        var p0 = corePillars;
+        natSec.innerHTML = _buildNatureAnalysis(p0, dist, dominant, counts)
+          + _buildYearPulseHTML(p0)
+          + _buildDayBranchScan(p0);
+      }
+
+      var freeSec = _q('sbFreeSection');
+      if (freeSec) freeSec.classList.remove('sb-hidden');
+      freeSec && freeSec.classList.add('sb-fadein');
+    } catch (err) {
+      console.error('[SibylSystem] free section render failed:', err);
+      // Fail-open: 무료 결과 텍스트는 최소한 항상 노출되도록 보장한다.
+      var freeSecFallback = _q('sbFreeSection');
+      if (freeSecFallback) {
+        freeSecFallback.classList.remove('sb-hidden');
+        freeSecFallback.classList.add('sb-fadein');
+      }
+      _t('sbSectorName', 'ANALYSIS RECOVERY MODE');
+      _t('sbSectorJobs', '기본 분석 텍스트를 복구했습니다. 잠시 후 다시 열면 상세 계산이 자동 재시도됩니다.');
+      _t('sbSectorTenstar', '주도 십성: 데이터 복구 중');
+
+      var natSecFallback = _q('sbNatureSection');
+      if (natSecFallback) {
+        natSecFallback.innerHTML = ''
+          + '<div class="sb-nature-block">'
+          + '<div class="sb-nature-tag">■ BASIC RESULT RECOVERY</div>'
+          + '<p class="sb-nature-body">일시적인 데이터 연결 지연이 감지되어 무료 기본 결과를 우선 표시합니다. 결제 없이도 기본 해석은 계속 확인할 수 있습니다.</p>'
+          + '</div>';
       }
     }
-
-    // Risk gauge (basic)
-    _t('sbRiskBasic', risk);
-    var riskEl = _q('sbRiskBasicEl');
-    if (riskEl) {
-      riskEl.className = 'sb-metric-value' + (risk >= 70 ? ' sb-metric-value--danger' : risk >= 45 ? ' sb-metric-value--warn' : ' sb-metric-value--ok');
-    }
-
-    // Save current analysis state
-    window._sibylCurrentData = {
-      pillars: corePillars,
-      dist: dist, domEl: domEl, dominant: dominant, coeff: coeff,
-      risk: risk,
-      counts: counts,
-      riskBreakdown: riskBreakdown,
-      aptitudeComponents: aptData.components,
-      monthlyPreview: monthlyPreview,
-      annualPreview: annualPreview,
-      normalized: normalized
-    };
-
-    // Nature + Year Pulse + Inner Palace 전체 렌더
-    var natSec = _q('sbNatureSection');
-    if (natSec) {
-      var p0 = corePillars;
-      natSec.innerHTML = _buildNatureAnalysis(p0, dist, dominant, counts)
-        + _buildYearPulseHTML(p0)
-        + _buildDayBranchScan(p0);
-    }
-
-    var freeSec = _q('sbFreeSection');
-    if (freeSec) freeSec.classList.remove('sb-hidden');
-    freeSec && freeSec.classList.add('sb-fadein');
   }
 
   // 시빌라 전용 결제 UI를 제거하고, 일반 코인 게이트(_cdCoinGatePerUse)만 사용한다.

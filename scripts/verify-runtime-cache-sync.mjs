@@ -25,6 +25,7 @@ const syncPairs = [
 
 const runtimeTagRe = /index-inline-runtime\.js\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
+const sibylScriptTagRe = /\/js\/sibyl-system\.js\?v=([^"'\s>]+)/;
 const sibylMarkers = [
   /id=["']sibylSystemSection["']/,
   /data-action=["']openSibylModal["']/,
@@ -51,6 +52,7 @@ function read(rel) {
 }
 
 const htmlVersions = new Map();
+const sibylScriptVersions = new Map();
 for (const rel of htmlTargets) {
   const txt = read(rel);
   if (!txt) continue;
@@ -71,6 +73,16 @@ for (const rel of htmlTargets) {
     continue;
   }
   htmlVersions.set(rel, m[1]);
+
+  if (sibylHtmlTargets.has(rel)) {
+    const sm = txt.match(sibylScriptTagRe);
+    if (!sm) {
+      console.error(`[runtime-cache-sync] sibyl script tag version not found: ${rel}`);
+      failed = true;
+    } else {
+      sibylScriptVersions.set(rel, sm[1]);
+    }
+  }
 }
 
 if (htmlVersions.size > 0) {
@@ -106,6 +118,16 @@ if (sajuVersions.size > 0) {
   }
 }
 
+if (sibylScriptVersions.size > 0) {
+  const expected = sibylScriptVersions.get('public/static/index.html') || sibylScriptVersions.values().next().value;
+  for (const [rel, v] of sibylScriptVersions.entries()) {
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] sibyl script version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
 for (const [left, right] of syncPairs) {
   const leftTxt = read(left);
   const rightTxt = read(right);
@@ -123,4 +145,5 @@ if (failed) {
 
 const runtimeVer = htmlVersions.get('public/index.html') || 'unknown';
 const sajuVer = sajuVersions.get('public/js/core/index-inline-runtime.js') || sajuVersions.values().next().value || 'unknown';
-console.log(`[runtime-cache-sync] OK: runtime=${runtimeVer}, saju-engine=${sajuVer}`);
+const sibylVer = sibylScriptVersions.get('public/static/index.html') || sibylScriptVersions.values().next().value || 'unknown';
+console.log(`[runtime-cache-sync] OK: runtime=${runtimeVer}, saju-engine=${sajuVer}, sibyl=${sibylVer}`);
