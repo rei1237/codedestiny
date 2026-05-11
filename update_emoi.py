@@ -1,5 +1,9 @@
 import re
 import json
+import sys
+
+print("[DEPRECATED] update_emoi.py is disabled. Edit root emoi_omikuji_v2.html and run npm run sync:public instead.")
+sys.exit(0)
 
 file_path = r"c:\Users\Neo\Desktop\Code Destiny Main\emoi_omikuji_v2.html"
 

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Code Destiny shrine robot mascot">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131B32"/>
+      <stop offset="1" stop-color="#1F294C"/>
+    </linearGradient>
+    <radialGradient id="moon" cx="0.86" cy="0.18" r="0.28">
+      <stop offset="0" stop-color="#FFF4D0" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFF4D0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF7E6"/>
+      <stop offset="1" stop-color="#F2E1BE"/>
+    </linearGradient>
+    <linearGradient id="torii" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D6453B"/>
+      <stop offset="1" stop-color="#A42722"/>
+    </linearGradient>
+    <linearGradient id="robe" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D84A3D"/>
+      <stop offset="1" stop-color="#A92925"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7FCFF"/>
+      <stop offset="1" stop-color="#DCE9F6"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#night)"/>
+  <rect width="1200" height="675" fill="url(#moon)"/>
+
+  <g opacity="0.28">
+    <rect x="140" y="188" width="920" height="30" rx="10" fill="url(#torii)"/>
+    <rect x="180" y="220" width="840" height="18" rx="8" fill="url(#torii)"/>
+    <rect x="248" y="238" width="44" height="250" rx="12" fill="url(#torii)"/>
+    <rect x="908" y="238" width="44" height="250" rx="12" fill="url(#torii)"/>
+    <rect x="462" y="246" width="276" height="18" rx="8" fill="url(#torii)"/>
+  </g>
+
+  <g filter="url(#glow)">
+    <ellipse cx="188" cy="214" rx="46" ry="60" fill="#FFD48F" fill-opacity="0.55"/>
+    <ellipse cx="1012" cy="214" rx="46" ry="60" fill="#FFD48F" fill-opacity="0.55"/>
+  </g>
+
+  <g transform="translate(0 18)">
+    <ellipse cx="600" cy="528" rx="210" ry="54" fill="#10192F" fill-opacity="0.55"/>
+    <path d="M438 516C456 432 526 382 600 382C674 382 744 432 762 516H438Z" fill="url(#robe)"/>
+    <path d="M528 430L600 516L672 430" fill="none" stroke="#EAC687" stroke-width="10" stroke-linecap="round"/>
+    <rect x="514" y="238" width="172" height="182" rx="44" fill="url(#face)" stroke="#AFC4D8" stroke-width="8"/>
+    <rect x="542" y="274" width="116" height="64" rx="20" fill="#1A2546"/>
+    <circle cx="578" cy="306" r="14" fill="#3EE0FF"/>
+    <circle cx="622" cy="306" r="14" fill="#3EE0FF"/>
+    <rect x="590" y="344" width="20" height="10" rx="5" fill="#1A2546"/>
+    <rect x="562" y="214" width="76" height="30" rx="14" fill="#E4B15B" stroke="#B58436" stroke-width="4"/>
+    <path d="M544 236H656" stroke="#EFD6A5" stroke-width="4"/>
+    <path d="M568 196C582 166 618 166 632 196" fill="none" stroke="#D84A3D" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="572" cy="194" r="7" fill="#D84A3D"/>
+    <circle cx="628" cy="194" r="7" fill="#D84A3D"/>
+
+    <g transform="translate(710 346)">
+      <rect width="126" height="158" rx="16" fill="url(#paper)" stroke="#D8A84E" stroke-width="4"/>
+      <path d="M14 34H112M14 58H112M14 82H96M14 106H104" stroke="#A1402C" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>
+      <text x="63" y="138" text-anchor="middle" font-size="30" fill="#C7352E">御守</text>
+    </g>
+
+    <g transform="translate(360 354)">
+      <rect width="116" height="150" rx="18" fill="url(#paper)" stroke="#D8A84E" stroke-width="4"/>
+      <text x="58" y="58" text-anchor="middle" font-size="34">🌸</text>
+      <text x="58" y="98" text-anchor="middle" font-size="34">⛩️</text>
+      <text x="58" y="138" text-anchor="middle" font-size="34">🧿</text>
+    </g>
+  </g>
+
+  <text x="70" y="88" fill="#FFE8BE" font-size="36" font-family="Noto Sans KR, sans-serif" font-weight="700">Code:Destiny</text>
+  <text x="70" y="130" fill="#FFDFA4" font-size="24" font-family="Noto Sans KR, sans-serif">EMO-i Shrine Omikuji</text>
+</svg>

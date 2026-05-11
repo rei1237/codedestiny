@@ -9,6 +9,7 @@ const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
 
 const staticTargets = [
+  "emoi_omikuji_v2.html",
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
   "HwatuFortune.js",
