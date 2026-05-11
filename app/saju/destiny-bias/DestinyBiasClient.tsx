@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { getApiBaseUrl } from "@/app/_lib/api-config";
-import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
+import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
 import DestinyBiasLoading from "./components/DestinyBiasLoading";
 import DestinyBiasPhotocard from "./components/DestinyBiasPhotocard";
@@ -19,6 +19,7 @@ import type { DestinyBiasApiResult, DestinyBiasResultViewModel, PersonInputState
 
 const DESTINY_BIAS_ART = "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp";
 const DEFAULT_ANALYZE_COST = 50;
+const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 
 const ELEMENT_LABELS: Record<string, string> = {
   wood: "목",
@@ -58,6 +59,24 @@ const INITIAL_BIAS: PersonInputState = {
   hour: 19,
   minute: 30,
   unknownTime: false,
+};
+
+type StoredProfileBirth = {
+  year?: unknown;
+  month?: unknown;
+  day?: unknown;
+  hour?: unknown;
+  minute?: unknown;
+  calType?: unknown;
+  calendarType?: unknown;
+  unknownTime?: unknown;
+};
+
+type StoredDestinyProfile = {
+  id?: unknown;
+  name?: unknown;
+  gender?: unknown;
+  birth?: StoredProfileBirth | null;
 };
 
 const SAMPLE_RESULT: DestinyBiasResultViewModel = {
@@ -139,6 +158,89 @@ function toBirthPayload(input: PersonInputState) {
 function clampInt(value: number, min: number, max: number) {
   if (!Number.isFinite(value)) return min;
   return Math.max(min, Math.min(max, Math.floor(value)));
+}
+
+function toOptionalClampedInt(value: unknown, min: number, max: number) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return undefined;
+  return clampInt(num, min, max);
+}
+
+function parseStoredProfiles(raw: string | null) {
+  if (!raw) return [] as StoredDestinyProfile[];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as StoredDestinyProfile[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function toStoredCalendarType(raw: unknown, fallback: PersonInputState["calendarType"]) {
+  const value = String(raw || "").trim().toLowerCase();
+  if (value === "solar" || value === "lunar" || value === "lunar_leap") return value;
+  return fallback;
+}
+
+function toStoredGender(raw: unknown, fallback: PersonInputState["gender"]) {
+  const value = String(raw || "").trim().toUpperCase();
+  if (value === "M" || value === "F" || value === "OTHER") return value;
+  return fallback;
+}
+
+function readActiveDestinyProfileFromStorage() {
+  if (typeof window === "undefined") return null;
+
+  const authUser = readSanitizedAuthUser();
+  const scope = resolveAuthScopeFromUser(authUser);
+  const listKeys = scope
+    ? [`${PROFILE_NS}.list::${scope}`, `${PROFILE_NS}.list`]
+    : [`${PROFILE_NS}.list`];
+  const currentKeys = scope
+    ? [`${PROFILE_NS}.current::${scope}`, `${PROFILE_NS}.current`]
+    : [`${PROFILE_NS}.current`];
+
+  let profiles: StoredDestinyProfile[] = [];
+  for (const key of listKeys) {
+    profiles = parseStoredProfiles(localStorage.getItem(key));
+    if (profiles.length) break;
+  }
+  if (!profiles.length) return null;
+
+  let currentId = "";
+  for (const key of currentKeys) {
+    const value = String(localStorage.getItem(key) || "").trim();
+    if (value) {
+      currentId = value;
+      break;
+    }
+  }
+
+  const active = currentId
+    ? profiles.find((profile) => String(profile?.id || "") === currentId)
+    : null;
+
+  return active || profiles[0] || null;
+}
+
+function applyStoredProfileToPersonInput(profile: StoredDestinyProfile, previous: PersonInputState): PersonInputState {
+  const birth = (profile?.birth || {}) as StoredProfileBirth;
+  const nextName = typeof profile?.name === "string" && profile.name.trim()
+    ? profile.name.trim().slice(0, 24)
+    : previous.name;
+
+  return {
+    ...previous,
+    name: nextName,
+    gender: toStoredGender(profile?.gender, previous.gender),
+    calendarType: toStoredCalendarType(birth.calType ?? birth.calendarType, previous.calendarType),
+    year: toOptionalClampedInt(birth.year, 1900, 2100) ?? previous.year,
+    month: toOptionalClampedInt(birth.month, 1, 12) ?? previous.month,
+    day: toOptionalClampedInt(birth.day, 1, 31) ?? previous.day,
+    hour: toOptionalClampedInt(birth.hour, 0, 23) ?? previous.hour,
+    minute: toOptionalClampedInt(birth.minute, 0, 59) ?? previous.minute,
+    unknownTime: typeof birth.unknownTime === "boolean" ? birth.unknownTime : previous.unknownTime,
+  };
 }
 
 function formatKoreanDate(value?: string) {
@@ -441,6 +543,29 @@ export default function DestinyBiasClient() {
     const user = readSanitizedAuthUser();
     setToken(localToken);
     setIsLoggedIn(Boolean(localToken || user?.id || user?.userId));
+  }, []);
+
+  useEffect(() => {
+    const syncFromStoredProfile = (profile?: StoredDestinyProfile | null) => {
+      const activeProfile = profile || readActiveDestinyProfileFromStorage();
+      if (!activeProfile) return;
+      setMeInput((previous) => applyStoredProfileToPersonInput(activeProfile, previous));
+    };
+
+    syncFromStoredProfile();
+
+    const onProfileChanged = (event: Event) => {
+      const custom = event as CustomEvent<StoredDestinyProfile | null>;
+      const detail = custom?.detail && typeof custom.detail === "object"
+        ? (custom.detail as StoredDestinyProfile)
+        : null;
+      syncFromStoredProfile(detail);
+    };
+
+    document.addEventListener("destinyProfileChanged", onProfileChanged as EventListener);
+    return () => {
+      document.removeEventListener("destinyProfileChanged", onProfileChanged as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -899,6 +1024,7 @@ export default function DestinyBiasClient() {
                 <p className="mt-2 text-sm leading-7 text-white/80">
                   사주의 중심인 일간과 오행을 계산해서 내가 최애에게 어떤 응원 에너지를 주는지 분석해요.
                 </p>
+                <p className="mt-1 text-xs text-cyan-100/85">저장된 프로필 카드가 있으면 내 정보가 자동으로 채워집니다.</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <TextInput label="닉네임" value={meInput.name} placeholder="응원 닉네임" onChange={(name) => setMeInput({ ...meInput, name })} />
