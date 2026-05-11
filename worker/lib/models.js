@@ -253,3 +253,22 @@ insightSchema.index({ category: 1, updatedAt: -1 });
 insightSchema.index({ isFeatured: 1, updatedAt: -1 });
 
 export const Insight = mongoose.models.Insight || mongoose.model("Insight", insightSchema);
+
+const destinyBiasCardSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  title: { type: String, default: "", trim: true, maxlength: 160 },
+  headline: { type: String, default: "", trim: true, maxlength: 240 },
+  summary: { type: String, default: "", trim: true, maxlength: 1200 },
+  themeKey: { type: String, default: "moonlight_neon", trim: true, maxlength: 40 },
+  score: { type: Number, default: 0, min: 0, max: 100 },
+  grade: { type: String, default: "", trim: true, maxlength: 8 },
+  reportText: { type: String, default: "" },
+  canonical: { type: mongoose.Schema.Types.Mixed, default: null },
+  sharePayload: { type: mongoose.Schema.Types.Mixed, default: null },
+  source: { type: String, default: "destiny-bias", trim: true, maxlength: 80 },
+}, { timestamps: true });
+
+destinyBiasCardSchema.index({ userId: 1, createdAt: -1 });
+
+export const DestinyBiasCard = mongoose.models.DestinyBiasCard
+  || mongoose.model("DestinyBiasCard", destinyBiasCardSchema);

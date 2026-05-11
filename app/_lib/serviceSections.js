@@ -8,6 +8,7 @@ export const SERVICE_SECTIONS = [
       { href: "/saju/lifebook", title: "📜 인생의 책", desc: "프리미엄 사주 심층 분석 · 490코인" },
       { href: "/saju/love-secret", title: "💕 연애 비책", desc: "사주 기반 연애 전략 · 1인 300코인 / 2인 500코인" },
       { href: "/saju/love-simulation", title: "💕 LOVE CODE", desc: "사주 연애 시뮬레이션 · 무료" },
+      { href: "/saju/destiny-bias", title: "✨ 최애운명", desc: "사주 기반 팬덤 공명 분석 · 1회 50코인" },
     ],
   },
   {

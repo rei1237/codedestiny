@@ -79,6 +79,25 @@ export const SERVICE_MAP = {
     ogImage: "/fuctionassets/saju.webp",
     landingPoints: ["사주팔자 명식 생성", "오행 균형 분석", "십성 흐름 해석"],
   },
+  "saju/destiny-bias": {
+    component: FeatureLandingPage,
+    title: "최애운명 - 사주 기반 팬덤 공명 분석",
+    h1: "최애운명",
+    description:
+      "내 사주와 최애 사주를 내부 명식 엔진으로 계산해 공명 점수, 오행 보완, 오늘의 액션을 카드로 보여주는 팬덤 특화 사주 분석.",
+    seoText:
+      "최애운명은 AI가 계산하지 않고 내부 사주 엔진의 canonical JSON을 기반으로 해석만 생성합니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+    landingPoints: ["내 사주 × 최애 사주 공명 점수", "오행 보완/십성 역할 제안", "1회 50코인 분석 카드"],
+    keywords: [
+      "최애운명",
+      "팬덤 사주",
+      "사주 공명",
+      "덕질 운세",
+      "bias destiny",
+      "k-fandom saju",
+    ],
+  },
   "astrology/cosmic": {
     component: FeatureLandingPage,
     title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석",

@@ -5,6 +5,7 @@ import {
   PSYCHOTEST_HUB_KEYWORDS,
   buildPsychotestExternalUrl,
 } from "../../lib/psychotest-catalog";
+import DestinyBiasPromoSection from "./_components/DestinyBiasPromoSection";
 
 const META = {
   path: "/psychotest",
@@ -91,6 +92,8 @@ export default function PsychotestHubPage() {
           </article>
         ))}
       </section>
+
+      <DestinyBiasPromoSection />
     </main>
   );
 }

@@ -30,6 +30,10 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "premium-love-secret-couple",
   "premium-sukuyo-compat-extra",
   "premium-veda-compatibility-addon",
+  "destiny-bias-analyze",
+  "destiny-bias-theme-premium",
+  "destiny-bias-collection-save",
+  "destiny-bias-deep-profile",
 ];
 
 export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
@@ -82,6 +86,10 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-love-secret-couple": { cost: 500, reason: "사주 프리미엄 궁합 리포트 생성" },
   "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
   "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
+  "destiny-bias-analyze": { cost: 50, reason: "최애운명 심화 분석" },
+  "destiny-bias-theme-premium": { cost: 120, reason: "최애운명 프리미엄 테마 해금" },
+  "destiny-bias-collection-save": { cost: 150, reason: "최애운명 컬렉션 저장 확장" },
+  "destiny-bias-deep-profile": { cost: 90, reason: "최애운명 심층 프로필 확장" },
 });
 
 export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
@@ -102,6 +110,9 @@ export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
   "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
   "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
+  "unlock.destiny_bias_theme_premium": { featureKey: "destiny-bias-theme-premium", cost: 120, reason: "Destiny bias premium theme unlock", forceDeduct: true },
+  "unlock.destiny_bias_collection_save": { featureKey: "destiny-bias-collection-save", cost: 150, reason: "Destiny bias collection save unlock", forceDeduct: true },
+  "unlock.destiny_bias_deep_profile": { featureKey: "destiny-bias-deep-profile", cost: 90, reason: "Destiny bias deep profile unlock", forceDeduct: true },
 });
 
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({

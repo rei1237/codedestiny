@@ -6,6 +6,7 @@ import {
   buildPsychotestExternalUrl,
   getPsychotestBySlug,
 } from "../../../lib/psychotest-catalog";
+import DestinyBiasPromoSection from "../_components/DestinyBiasPromoSection";
 
 type PageProps = {
   params: {
@@ -187,6 +188,8 @@ export default function PsychotestDetailPage({ params }: PageProps) {
           ))}
         </div>
       </section>
+
+      <DestinyBiasPromoSection />
     </main>
   );
 }

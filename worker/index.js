@@ -23,6 +23,7 @@ import { handleAstroRoutes } from "./routes/astro.js";
 import { handleInsightsRoutes } from "./routes/insights.js";
 import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
+import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -373,7 +374,7 @@ export default {
           service: "code-destiny-api-worker",
           mode: "worker-native",
           backendOnly: true,
-          nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "astro", "vedic", "palm", "geo"],
+          nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "astro", "vedic", "palm", "destiny-bias", "geo"],
           fallbackProxyMode: upstreamOrigin
             ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
             : "disabled",
@@ -438,6 +439,10 @@ export default {
 
       if (url.pathname === "/api/palm" || url.pathname.startsWith("/api/palm/")) {
         return withCorsHeaders(request, env, await handlePalmRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/destiny-bias" || url.pathname.startsWith("/api/destiny-bias/")) {
+        return withCorsHeaders(request, env, await handleDestinyBiasRoutes(request, env));
       }
 
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
