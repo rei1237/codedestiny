@@ -346,6 +346,26 @@ function toUnlockMap(unlockedFeatures) {
   return map;
 }
 
+function normalizeStringArray(values, maxLength = 200) {
+  if (!Array.isArray(values)) return [];
+  const out = [];
+  for (let i = 0; i < values.length; i += 1) {
+    const value = String(values[i] || "").trim();
+    if (!value) continue;
+    out.push(value);
+    if (out.length >= maxLength) break;
+  }
+  return out;
+}
+
+function isRepairableConsumeArrayShapeError(error) {
+  const message = String(error?.message || "");
+  if (!message) return false;
+  const hasArrayOp = /\$push|\$addToSet|must be an array|non-array field/i.test(message);
+  if (!hasArrayOp) return false;
+  return /recentConsumeRequestIds|unlockedFeatures/i.test(message);
+}
+
 async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
   const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
   if (fromUser.length || !userId) return fromUser;
@@ -786,18 +806,43 @@ async function handlePigCoinConsumeRoute(req, res, next) {
       updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
     }
 
-    const updatedUser = await User.findOneAndUpdate(
-      {
-        _id: req.auth.userId,
-        points: { $gte: cost },
-        ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
-      },
-      updatePayload,
-      {
-        new: true,
-        projection: { points: 1, unlockedFeatures: 1 },
-      },
-    ).lean();
+    const consumeFilter = {
+      _id: req.auth.userId,
+      points: { $gte: cost },
+      ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
+    };
+    const consumeOptions = {
+      new: true,
+      projection: { points: 1, unlockedFeatures: 1 },
+    };
+
+    let updatedUser = null;
+    try {
+      updatedUser = await User.findOneAndUpdate(
+        consumeFilter,
+        updatePayload,
+        consumeOptions,
+      ).lean();
+    } catch (error) {
+      if (!isRepairableConsumeArrayShapeError(error)) throw error;
+
+      const repairSet = {};
+      if (requestId) {
+        repairSet.recentConsumeRequestIds = normalizeStringArray(runtimeUser?.recentConsumeRequestIds, 200);
+      }
+      if (unlockKeysToPersist.length) {
+        repairSet.unlockedFeatures = normalizeStringArray(runtimeUser?.unlockedFeatures, 500);
+      }
+      if (Object.keys(repairSet).length) {
+        await User.updateOne({ _id: req.auth.userId }, { $set: repairSet });
+      }
+
+      updatedUser = await User.findOneAndUpdate(
+        consumeFilter,
+        updatePayload,
+        consumeOptions,
+      ).lean();
+    }
 
     if (!updatedUser) {
       if (requestId) {

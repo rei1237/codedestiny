@@ -4067,10 +4067,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var _reading = syBuildBasicReading(canonicalData, sData, dailyFlow, _selfGuardian);
     var _dailySectionHtml = '';
 
-    if (canonicalData) {
-      html += syRenderCanonicalDashboard(canonicalData);
-    }
-
     if (!lunarObj) {
         html += `<div class="sy-card" style="border-left-color:#f59e0b; background:rgba(245,158,11,0.08);">
           <h4 style="margin:0 0 6px 0; color:#fcd34d;">⚠️ 숙요 본성 데이터 임시 지연</h4>
