@@ -7,6 +7,7 @@ import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import DeferredAdsense from "./components/DeferredAdsense";
 import GlobalHeader from "./components/GlobalHeader";
+import NavigationProvider from "./providers/NavigationProvider";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const notoSansKR = Noto_Sans_KR({
@@ -201,13 +202,15 @@ export default function RootLayout({ children }) {
       </head>
       <body className={notoSansKR.variable}>
         <PaymentProcessingProvider>
-          <DeferredAdsense />
-          <AppVersionGuard />
-          <ToastProvider />
-          <GlobalHeader />
-          <div>{children}</div>
-          <DisclaimerBanner />
-          <SiteFooterHub />
+          <NavigationProvider>
+            <DeferredAdsense />
+            <AppVersionGuard />
+            <ToastProvider />
+            <GlobalHeader />
+            <div>{children}</div>
+            <DisclaimerBanner />
+            <SiteFooterHub />
+          </NavigationProvider>
         </PaymentProcessingProvider>
       </body>
     </html>

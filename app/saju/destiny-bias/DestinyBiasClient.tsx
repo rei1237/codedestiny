@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
 import DestinyBiasLoadingScreen from "./components/DestinyBiasLoadingScreen";
 import DestinyBiasPhotocard from "./components/DestinyBiasPhotocard";
@@ -323,12 +324,46 @@ export default function DestinyBiasClient() {
     };
   }, [shouldBlockClick]);
 
-  const goBackToMain = useCallback(() => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
+  const handleAnalysisBack = useCallback(() => {
+    if (coinModal.open) {
+      setCoinModal((prev) => ({ ...prev, open: false }));
+      return true;
     }
-    router.push("/");
+
+    if (analyzing && uiStep === 4) {
+      return false;
+    }
+
+    if (uiStep <= 0) {
+      return false;
+    }
+
+    if (uiStep === 5) {
+      setUiStep(3);
+      setError("");
+      return true;
+    }
+
+    setUiStep((prev) => {
+      if (prev <= 0) return 0;
+      return (prev - 1) as 0 | 1 | 2 | 3 | 4;
+    });
+    setError("");
+    return true;
+  }, [analyzing, coinModal.open, uiStep]);
+
+  useBackNavigation({
+    scope: "analysis",
+    priority: 50,
+    maxInternalBackSteps: 1,
+    enabled: true,
+    isLocked: () => analyzing && uiStep === 4,
+    canGoBack: () => coinModal.open || uiStep > 0,
+    onBack: handleAnalysisBack,
+  });
+
+  const goBackToMain = useCallback(() => {
+    router.replace("/");
   }, [router]);
 
   const validateBirthInput = useCallback((value: string, target: "me" | "bias") => {
