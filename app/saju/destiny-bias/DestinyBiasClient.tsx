@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
-import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
+import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
 import DestinyBiasLoadingScreen from "./components/DestinyBiasLoadingScreen";
 import DestinyBiasPhotocard from "./components/DestinyBiasPhotocard";
@@ -22,6 +22,7 @@ import { downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 
 const DESTINY_BIAS_ART = "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp";
 const DEFAULT_ANALYZE_COST = 50;
+const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 
 const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
 const RELATION_MOODS = ["응원형", "성장형", "설렘형", "위로형", "운명형"] as const;
@@ -37,6 +38,30 @@ const INITIAL_BIAS: PersonInputState = {
   birthDateInput: "",
   birthTimeInput: "",
 };
+
+type StoredProfile = {
+  id?: string;
+  name?: string;
+};
+
+function readCurrentProfileName() {
+  if (typeof window === "undefined") return "";
+  try {
+    const user = readSanitizedAuthUser();
+    const scope = resolveAuthScopeFromUser(user) || "guest";
+    const listRaw = localStorage.getItem(`${PROFILE_NS}.list::${scope}`) || localStorage.getItem(`${PROFILE_NS}.list`) || "[]";
+    const currentId =
+      localStorage.getItem(`${PROFILE_NS}.current::${scope}`) ||
+      localStorage.getItem(`${PROFILE_NS}.current`) ||
+      "";
+    const list = JSON.parse(listRaw) as StoredProfile[];
+    if (!Array.isArray(list) || list.length === 0) return "";
+    const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0];
+    return String(profile?.name || "").trim();
+  } catch {
+    return "";
+  }
+}
 
 function readLocalToken() {
   if (typeof window === "undefined") return "";
@@ -149,6 +174,24 @@ export default function DestinyBiasClient() {
       .catch(() => {
         setCanUsePremiumTheme(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const applyProfileName = () => {
+      const profileName = readCurrentProfileName();
+      if (!profileName) return;
+      setMeInput((prev) => {
+        if (prev.name.trim()) return prev;
+        return { ...prev, name: profileName };
+      });
+    };
+
+    applyProfileName();
+    if (typeof window === "undefined") return;
+    window.addEventListener("destinyProfileChanged", applyProfileName);
+    return () => {
+      window.removeEventListener("destinyProfileChanged", applyProfileName);
+    };
   }, []);
 
   useEffect(() => {
