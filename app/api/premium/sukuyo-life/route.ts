@@ -530,6 +530,7 @@ export async function POST(req: NextRequest) {
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
+    const hour = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
     const chapterRaw = Number(body.chapter ?? 1);
     const chapter = Number.isFinite(chapterRaw)
       ? Math.max(1, Math.min(13, Math.floor(chapterRaw)))
@@ -593,33 +594,19 @@ export async function POST(req: NextRequest) {
     const compatibilityScores = buildCompatibilityScores(sukuyo, partner, rel);
     const prompt = buildPrompt(chapter, sukuyo, reportMode, partner, chart, compatibilityScores);
     const minChars = reportMode === "compatibility" ? 5000 : 2800;
+    const warnings: string[] = [];
+    let usedFallback = false;
     let text = await generateText(prompt, minChars);
     if (!text) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "SUKUYO_TEXT_GENERATION_FAILED",
-          error: "AI text generation returned empty output",
-          chapter,
-          reportMode,
-        },
-        { status: 502 },
-      );
+      usedFallback = true;
+      warnings.push("AI text unavailable, fallback chapter text used");
+      text = fallbackText(chapter, sukuyo, rel, reportMode);
     }
 
     if (text.length < minChars) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "SUKUYO_TEXT_TOO_SHORT",
-          error: "Generated text did not meet minimum length",
-          chapter,
-          reportMode,
-          minimum: minChars,
-          actual: text.length,
-        },
-        { status: 502 },
-      );
+      usedFallback = true;
+      warnings.push(`Generated text below minimum length (${text.length}/${minChars}), fallback supplement appended`);
+      text = `${text}\n\n${fallbackText(chapter, sukuyo, rel, reportMode)}`.trim();
     }
 
     const chapterMetaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
@@ -636,6 +623,8 @@ export async function POST(req: NextRequest) {
       chapterMeta: chapterMetaList[chapter - 1],
       text,
       sections: parseSections(text),
+      usedFallback,
+      warnings,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

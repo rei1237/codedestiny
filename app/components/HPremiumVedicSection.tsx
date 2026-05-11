@@ -621,7 +621,7 @@ export default function HPremiumVedicSection({
 
   const postVedicJson = useCallback(async (payload: unknown) => {
     let lastError: unknown = null;
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 65000);
       try {
@@ -664,9 +664,10 @@ export default function HPremiumVedicSection({
       } catch (e) {
         lastError = e;
         const status = Number((e as VedicApiError)?.status || 0);
-        const retryableStatus = [408, 429, 500, 502, 503, 504];
-        const retryable = !status || retryableStatus.includes(status);
-        if (attempt === 2 || !retryable) break;
+        const retryableStatus = [408, 409, 429, 500, 502, 503, 504];
+        const retryable = (e instanceof Error && e.name === "AbortError") || !status || retryableStatus.includes(status);
+        if (attempt === 4 || !retryable) break;
+        await new Promise((resolve) => setTimeout(resolve, Math.min(700 * (2 ** (attempt - 1)), 2600)));
       } finally {
         clearTimeout(timeoutId);
       }

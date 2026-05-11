@@ -795,7 +795,7 @@ export default function HPremiumSukuyoSection({
 
   const postSukuyoJson = useCallback(async (payload: unknown) => {
     let lastError: unknown = null;
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 65000);
       try {
@@ -811,12 +811,18 @@ export default function HPremiumSukuyoSection({
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data?.ok) {
-          throw new Error(data?.error || "숙요 요청 처리 중 오류가 발생했습니다.");
+          const err = new Error(data?.error || data?.message || "숙요 요청 처리 중 오류가 발생했습니다.") as Error & { status?: number };
+          err.status = Number(res.status || 500);
+          throw err;
         }
         return data;
       } catch (e) {
         lastError = e;
-        if (attempt === 2) break;
+        const status = Number((e as { status?: number })?.status || 0);
+        const retryableStatus = [0, 408, 409, 425, 429, 500, 502, 503, 504];
+        const retryable = (e instanceof Error && e.name === "AbortError") || retryableStatus.includes(status);
+        if (attempt === 4 || !retryable) break;
+        await new Promise((resolve) => setTimeout(resolve, Math.min(600 * (2 ** (attempt - 1)), 2200)));
       } finally {
         clearTimeout(timeoutId);
       }

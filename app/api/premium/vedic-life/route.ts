@@ -536,18 +536,28 @@ async function callGemini(prompt: string): Promise<string> {
   if (!keys.length) return "";
   const distributedKeys = rotateGeminiKeys(keys, prompt.length);
   let attempts = 0;
-  const maxAttempts = 4;
+  const maxAttempts = 8;
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   for (const model of models) {
     if (attempts >= maxAttempts) break;
     for (const key of distributedKeys) {
       if (attempts >= maxAttempts) break;
       attempts += 1;
     try {
-      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:16384,topK:40,topP:0.95} }), signal:AbortSignal.timeout(20_000) });
-      if (!res.ok) continue;
+      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:16384,topK:40,topP:0.95} }), signal:AbortSignal.timeout(45_000) });
+      if (!res.ok) {
+        const retriableStatus = [408, 429, 500, 502, 503, 504];
+        if (retriableStatus.includes(Number(res.status))) {
+          await wait(Math.min(1000 * attempts, 4000));
+        }
+        continue;
+      }
       const data = await res.json(); const text = parseText(data);
       if (text) return text;
-    } catch { /* next */ }
+    } catch {
+      await wait(Math.min(1000 * attempts, 4000));
+      /* next */
+    }
     }
   }
   return "";
@@ -1077,51 +1087,46 @@ export async function POST(req: NextRequest) {
     } catch (swissErr: unknown) {
       swissWarning = swissErr instanceof Error ? swissErr.message : "Swiss API call failed";
     }
-
-    if (!swissData) {
-      return NextResponse.json({
-        ok: false,
-        code: "VEDIC_SWISS_DATA_UNAVAILABLE",
-        message: "베다 계산 데이터가 부족하여 PDF를 생성할 수 없습니다.",
-        warnings: swissWarning ? [swissWarning] : [],
-      }, { status: 503 });
-    }
+    const warnings: string[] = [];
+    if (swissWarning) warnings.push(swissWarning);
+    if (!swissData) warnings.push("Swiss API unavailable, using local vedic chart fallback");
 
     // 1) 베다 차트 계산 (Swiss API core 값 강제 반영)
-    const chart = applySwissCoreToChart(
-      buildVedicChart(year, month, day, hour, minute, tz, lat, lon),
-      swissData
-        ? {
-            planets: swissData.planets,
-            ascendantSidereal: swissData.ascendantSidereal,
-            ayanamsa: swissData.ayanamsa,
-          }
-        : {}
-    );
+    const baseChart = buildVedicChart(year, month, day, hour, minute, tz, lat, lon);
+    const chart = swissData
+      ? applySwissCoreToChart(baseChart, {
+          planets: swissData.planets,
+          ascendantSidereal: swissData.ascendantSidereal,
+          ayanamsa: swissData.ayanamsa,
+        })
+      : baseChart;
 
     // 2) AI 텍스트 생성
     const prompt = buildPrompt(chapter, chart, reportType, body as unknown as Record<string, unknown>);
     let text = "";
     let sections: { title:string; body:string }[] = [];
+    let usedFallback = false;
 
     try {
       text = await callGemini(prompt);
+      if (!text || !text.trim()) {
+        usedFallback = true;
+        warnings.push("AI text unavailable, fallback chapter text used");
+        text = buildFallbackChapterText(chapter, chart, "AI empty output");
+      }
       sections = parseSections(text);
       if (!sections.length) {
-        return NextResponse.json({
-          ok: false,
-          code: "VEDIC_CHAPTER_VALIDATION_FAILED",
-          message: "AI 응답이 구조 요건을 충족하지 않아 PDF를 생성할 수 없습니다.",
-        }, { status: 422 });
+        usedFallback = true;
+        warnings.push("AI response format invalid, fallback chapter text used");
+        text = buildFallbackChapterText(chapter, chart, "Section parse failed");
+        sections = parseSections(text);
       }
     } catch (aiErr: unknown) {
       const reason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
-      return NextResponse.json({
-        ok: false,
-        code: "VEDIC_CHAPTER_GENERATION_FAILED",
-        message: "AI 생성 실패로 PDF를 생성할 수 없습니다.",
-        details: [reason],
-      }, { status: 422 });
+      usedFallback = true;
+      warnings.push(`AI generation failed, fallback chapter text used: ${reason}`);
+      text = buildFallbackChapterText(chapter, chart, reason);
+      sections = parseSections(text);
     }
 
     return NextResponse.json({
@@ -1132,8 +1137,8 @@ export async function POST(req: NextRequest) {
       chapterMeta: VEDIC_CHAPTER_META[chapter - 1],
       text,
       sections,
-      usedFallback: false,
-      warnings: swissWarning ? [swissWarning] : [],
+      usedFallback,
+      warnings,
     });
 
   } catch (err: unknown) {

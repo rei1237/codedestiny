@@ -6,7 +6,7 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 
 <title>Fortune Tama - 운세 다마고치</title>
 
@@ -133,7 +133,7 @@ tailwind.config={theme:{extend:{
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-body{min-height:100vh;touch-action:manipulation;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .6s;position:relative;overflow:hidden}
+body{min-height:100vh;min-height:100dvh;touch-action:manipulation;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .6s;position:relative;overflow:hidden;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 
 :root{--c1:#ddd6fe;--c2:#a78bfa;--c3:#7c3aed;--bg1:#fff;--bg2:#fff;--cb:#e9d5ff;--acc:#7c3aed;--al:#a78bfa;--adim:#f5f3ff;--text:#4c1d95}
 
@@ -151,7 +151,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 #particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
 
-.card{width:min(400px,100vw);height:min(780px,100vh);background:#fff;border-radius:32px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb);backdrop-filter:blur(12px);z-index:1;transition:box-shadow .4s}
+.card{width:min(400px,100vw);height:min(780px,calc(var(--app-vh,1dvh)*100));background:#fff;border-radius:32px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb);backdrop-filter:blur(12px);z-index:1;transition:box-shadow .4s}
 
 .top-strip{position:absolute;top:0;left:0;right:0;height:3.5px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));background-size:200%;animation:bar 2.5s linear infinite;z-index:100}
 
@@ -241,7 +241,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .chat-bubble.bot{background:rgba(255,255,255,.94);border:1.5px solid var(--cb);color:var(--text);border-radius:18px 18px 18px 4px;box-shadow:0 3px 10px rgba(22,16,60,.05)}
 
-.chat-input-wrap{border-top:1.5px solid var(--cb);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:10px 12px 12px}
+.chat-input-wrap{border-top:1.5px solid var(--cb);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
 
 .chat-input{flex:1;min-width:0;border:1.5px solid var(--cb);border-radius:99px;padding:11px 16px;font-family:'Noto Sans KR';font-size:14px;line-height:1.35;background:var(--adim);outline:none;transition:border .2s,box-shadow .2s;color:#2f2b45}
 
@@ -252,6 +252,50 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 .chat-help{font-size:11px;color:var(--acc);opacity:.62;line-height:1.45;letter-spacing:-.01em}
 
 .cat-btn.is-active{background:var(--acc)!important;border-color:transparent!important;color:#fff!important;box-shadow:0 4px 12px var(--al),0 0 0 1.5px var(--acc)}
+
+.fortune-wrap{display:flex;flex-direction:column;gap:10px;width:100%}
+
+.fortune-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--acc);font-weight:700}
+
+.fortune-meta{display:flex;flex-wrap:wrap;gap:6px}
+
+.fortune-pill{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.85);border:1px solid var(--cb);font-size:10px;line-height:1.25;color:var(--acc);font-weight:700}
+
+.fortune-title{font-size:12px;font-weight:800;color:var(--text);line-height:1.45;letter-spacing:-.01em}
+
+.fortune-summary{border-radius:12px;background:rgba(255,255,255,.86);border:1px solid var(--cb);padding:9px 11px;font-size:12px;line-height:1.62;color:var(--text)}
+
+.fortune-lucky{border-radius:10px;background:rgba(255,255,255,.8);border:1px dashed var(--cb);padding:7px 9px;font-size:10.5px;line-height:1.5;color:var(--acc);font-weight:700}
+
+.fortune-petmsg{border-radius:10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.22);padding:8px 10px;font-size:11px;line-height:1.55;color:var(--text)}
+
+.fortune-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.fortune-grid.compact{grid-template-columns:1fr}
+
+.fortune-card{border-radius:12px;border:1px solid var(--cb);background:linear-gradient(170deg,rgba(255,255,255,.95),rgba(255,255,255,.82));padding:9px 10px;box-shadow:0 1px 5px rgba(0,0,0,.04)}
+
+.fortune-card-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+
+.fortune-card-emoji{font-size:13px;line-height:1;flex-shrink:0}
+
+.fortune-card h4{font-size:11px;color:var(--acc);font-weight:800;line-height:1.35;margin:0 0 4px}
+
+.fortune-card-score{margin-left:auto;font-size:10px;font-weight:800;color:var(--acc);opacity:.9}
+
+.fortune-detail{font-size:11.5px;line-height:1.55;color:var(--text);margin:0 0 4px;white-space:pre-wrap}
+
+.fortune-advice{font-size:10.5px;line-height:1.45;color:var(--acc);opacity:.88;margin:0}
+
+.fortune-card p{font-size:11.5px;line-height:1.55;color:var(--text);margin:0;white-space:pre-wrap}
+
+.fortune-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+
+.fortune-tabs::-webkit-scrollbar{display:none}
+
+.fortune-tab-btn{padding:5px 11px;border-radius:999px;border:1px solid var(--cb);background:transparent;color:#777;font-size:11px;font-weight:700;white-space:nowrap;transition:all .15s}
+
+.fortune-tab-btn.on{border-color:var(--acc);background:var(--adim);color:var(--acc)}
 
 @keyframes chat-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
@@ -333,7 +377,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 <div class="top-strip"></div>
 
-<button class="dl-btn" id="dl-btn" style="display:none" onclick="downloadMe()"><span class="dl-icon">📸</span><span>카드 저장</span></button>
+<button class="dl-btn" id="dl-btn" style="display:none" onclick="downloadMe()"><span class="dl-icon">📲</span><span>앱으로 설치하기</span></button>
 <button id="reset-btn" style="display:none;position:absolute;top:14px;left:14px;z-index:50;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);font-size:11px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;backdrop-filter:blur(8px)" onclick="resetPet()">🔄 다시 시작</button>
 
 
@@ -396,8 +440,9 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
       <div id="ios-pwa-tip" class="hidden w-52 rounded-2xl px-4 py-3 font-n text-xs text-center leading-relaxed"
         style="background:rgba(30,20,84,0.07);border:1.5px solid rgba(251,191,36,0.22);color:var(--text)">
-        Safari 하단 <strong>공유 버튼(⎙)</strong> 탭 →<br>
-        <strong>"홈 화면에 추가"</strong> 선택 🏠
+        1) Safari 하단 <strong>공유 버튼(⎙)</strong> 탭<br>
+        2) <strong>"홈 화면에 추가"</strong> 선택<br>
+        3) 홈 화면에서 열면 앱처럼 실행돼요 📲
       </div>
 
     </div>
@@ -587,7 +632,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   <div class="flex items-center gap-3 px-4 shrink-0">
 
-    <span class="font-n text-[11px] whitespace-nowrap" style="color:var(--acc);opacity:.38">🔮 오늘 운세</span>
+    <span class="font-n text-[11px] whitespace-nowrap" style="color:var(--acc);opacity:.38">🔮 다마 운세 게이지</span>
 
     <div class="sbar flex-1"><div id="fb" class="sfil" style="width:50%;background:linear-gradient(90deg,var(--c1),var(--c2))"></div></div>
 
@@ -670,7 +715,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="abtn" id="asleep" onclick="act('sleep')"><span class="ai" id="slp-em">😴</span><span class="al" id="slp-lb">재우기</span></div>
 
-    <div class="abtn" onclick="act('chat')"    ><span class="ai">💬</span><span class="al">일일 운세 보기</span></div>
+    <div class="abtn" onclick="act('chat')"    ><span class="ai">💬</span><span class="al">점보기</span></div>
 
     <div class="abtn" onclick="act('talisman')"><span class="ai">🧧</span><span class="al">부적</span></div>
 
@@ -714,7 +759,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex gap-2 justify-center">
 
-      <button class="btn-gold text-sm px-5 py-2" onclick="downloadTali()">📸 저장하기</button>
+      <button class="btn-gold text-sm px-5 py-2" onclick="downloadTali()">📸 부적 저장</button>
 
       <button class="btn-acc text-sm rounded-2xl" style="padding:8px 20px;font-size:14px" onclick="closeTaliBtn()">닫기</button>
 
@@ -738,7 +783,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex-1 min-w-0">
 
-      <div class="font-g text-base font-bold truncate" id="chat-title" style="color:var(--acc)">일일 운세 상담</div>
+      <div class="font-g text-base font-bold truncate" id="chat-title" style="color:var(--acc)">운세 상담</div>
 
       <div class="font-n text-[11px]" style="color:var(--acc);opacity:.5">오늘 남은 운세 <span id="chat-remain" class="font-black">5</span>회</div>
 
@@ -766,7 +811,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex gap-2 items-center">
 
-      <input id="chat-inp" class="chat-input" placeholder="오늘의 일일 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
+      <input id="chat-inp" class="chat-input" placeholder="선택한 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
 
       <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
 
@@ -985,7 +1030,86 @@ EGG.cherry = '/fuctionassets/tadagochi/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%
 EGG.star = '/fuctionassets/tadagochi/%EA%B2%80%EC%9D%80%20%EB%B3%84%20%EC%BB%A8%EC%85%89/%EA%B2%80%EC%9D%80%EB%B3%84%20%EC%95%8C-Photoroom.png';
 EGG.angel = '/fuctionassets/tadagochi/%EC%B2%9C%EC%82%AC%20%EC%BB%A8%EC%85%89/%EC%B2%9C%EC%82%AC%20%EC%95%8C-Photoroom.webp';
 
+var _touchGuardInited=false;
+var _touchMoved=false;
+var _touchLastMoveTs=0;
+
+function syncAppViewportHeight(){
+  var vv=window.visualViewport;
+  var h=vv&&vv.height?vv.height:window.innerHeight;
+  document.documentElement.style.setProperty('--app-vh',(h*0.01)+'px');
+}
+
+function initTouchScrollGuard(){
+  if(_touchGuardInited) return;
+  _touchGuardInited=true;
+  var sx=0,sy=0,tracking=false;
+
+  function onStart(e){
+    var t=e.touches&&e.touches[0];
+    if(!t) return;
+    sx=t.clientX; sy=t.clientY;
+    tracking=true;
+    _touchMoved=false;
+  }
+
+  function onMove(e){
+    if(!tracking) return;
+    var t=e.touches&&e.touches[0];
+    if(!t) return;
+    if(Math.abs(t.clientX-sx)+Math.abs(t.clientY-sy)>10){
+      _touchMoved=true;
+      _touchLastMoveTs=Date.now();
+    }
+  }
+
+  function onEnd(){
+    tracking=false;
+  }
+
+  ['.chat-log','.chat-cat-row'].forEach(function(sel){
+    var el=document.querySelector(sel);
+    if(!el) return;
+    el.addEventListener('touchstart',onStart,{passive:true});
+    el.addEventListener('touchmove',onMove,{passive:true});
+    el.addEventListener('touchend',onEnd,{passive:true});
+    el.addEventListener('touchcancel',onEnd,{passive:true});
+  });
+
+  document.addEventListener('click',function(e){
+    if(!_touchMoved) return;
+    if(Date.now()-_touchLastMoveTs>240) return;
+    var trg=e.target;
+    if(trg&&trg.closest('.cat-btn,.fortune-tab-btn,.abtn,[data-tab-btn]')){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  },true);
+}
+
+function initChatInputFocusGuard(){
+  var input=document.getElementById('chat-inp');
+  if(!input||input.dataset.focusGuard==='1') return;
+  input.dataset.focusGuard='1';
+  input.addEventListener('focus',function(){
+    setTimeout(function(){
+      var wrap=document.getElementById('chat-modal');
+      if(wrap&&wrap.classList.contains('on')){
+        input.scrollIntoView({behavior:'smooth',block:'nearest'});
+      }
+    },120);
+  });
+}
+
 function initUI(){
+  syncAppViewportHeight();
+  window.addEventListener('resize',syncAppViewportHeight,{passive:true});
+  if(window.visualViewport&&window.visualViewport.addEventListener){
+    window.visualViewport.addEventListener('resize',syncAppViewportHeight,{passive:true});
+  }
+  initTouchScrollGuard();
+  initChatInputFocusGuard();
+  if(typeof updateInstallButtons==='function') updateInstallButtons();
   const gj=todayGanji();
   const el=document.getElementById('today-ganji'); if(el) el.textContent=gj.label;
   ['moon','strawberry','cherry','star','angel'].forEach(function(t){
@@ -1292,6 +1416,7 @@ function openMain(){
 
   var dlBtn=document.getElementById('dl-btn'); if(dlBtn) dlBtn.style.display='flex';
   var rb=document.getElementById('reset-btn');if(rb)rb.style.display='';
+  if(typeof updateInstallButtons==='function') updateInstallButtons();
 
   show('s-main'); setState('idle'); updateUI(); saveState();
 
@@ -1700,7 +1825,7 @@ function openTali(){
   var scoreLabel={great:'대길(大吉)',good:'길(吉)',mid:'평(平)',bad:'소흉',worst:'대흉'}[key];
   document.getElementById('tali-svg-wrap').innerHTML=_makeLuckySvg(score,elem);
   document.getElementById('tali-item-name').textContent=_LUCK_ITEMS[key];
-  document.getElementById('tali-subtitle').textContent='오늘 운세 '+score+'점 · '+scoreLabel;
+  document.getElementById('tali-subtitle').textContent='다마 운세 게이지 '+score+'점 · '+scoreLabel;
   document.getElementById('tali-desc').textContent=_LUCK_DESCS[key];
   var today=new Date(); document.getElementById('tali-date').textContent=today.getFullYear()+'.'+(today.getMonth()+1)+'.'+today.getDate()+' '+todayGanji().label;
   document.getElementById('tali-modal').classList.add('on');
@@ -1735,22 +1860,7 @@ function downloadTali(){
 
 // DOWNLOAD
 function downloadMe(){
-  if(typeof html2canvas==='undefined'){toast('저장 기능 로딩 중... 잠시 후 다시 눌러줘 📸');return;}
-  var gc=document.getElementById('gc');if(!gc){toast('잠시 후 다시 눌러줘 📸');return;}
-  toast('카드 저장 중... 📸');
-  html2canvas(gc,{scale:2,useCORS:true,logging:false,backgroundColor:null,removeContainer:true}).then(function(cv){
-    var d=new Date();
-    var fname=(G.petName||'운세다마')+'_'+d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0')+'.png';
-    cv.toBlob(function(blob){
-      var url=URL.createObjectURL(blob);
-      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],fname,{type:'image/png'})]})){
-        navigator.share({title:(G.petName||'운세다마')+' 운세카드',files:[new File([blob],fname,{type:'image/png'})]}).catch(function(){download(url,fname);});
-      } else download(url,fname);
-      setTimeout(function(){URL.revokeObjectURL(url);},6000);
-      toast('저장 완료 🌸 '+G.petName+'의 운세카드!');
-    },'image/png');
-  }).catch(function(){toast('저장 실패 — 화면을 길게 눌러 저장해줘 📸');});
-  function download(url,fname){var a=document.createElement('a');a.download=fname;a.href=url;a.click();}
+  installPWA(true);
 }
 
 
@@ -1767,21 +1877,14 @@ function updateChatRemain(){var el=document.getElementById('chat-remain');if(el)
 var _reqId=0; // 중복 응답 방지용 요청 ID
 
 function askCategoryQuestion(cat){
-  var catLabel={general:'종합',saju:'사주',ziwei:'자미두수',astrology:'점성술',tarot:'타로'}[cat]||'운세';
-  var suggest={
-    general:'예: 오늘 전체 흐름을 종합으로 자세히 알려줘',
-    saju:'예: 오늘 이직운이 어떤지 사주로 봐줘',
-    ziwei:'예: 오늘 인간관계 흐름을 자미두수로 알려줘',
-    astrology:'예: 오늘 연애 흐름을 점성술로 자세히 알려줘',
-    tarot:'예: 오늘 중요한 선택을 타로로 봐줘'
+  var greet={
+    general:'🔮 종합 모드야! 사주·자미두수·점성술·타로를 각각 분석해서 한 번에 탭으로 보여줄게.',
+    saju:'📿 사주 모드야! 사주 기반으로 오늘 운세를 자세히 풀어줄게.',
+    ziwei:'🌌 자미두수 모드야! 명반 흐름으로 오늘 에너지를 분석해줄게.',
+    astrology:'⭐ 점성술 모드야! 행성 배치로 오늘 운세 흐름을 읽어줄게.',
+    tarot:'🃏 타로 모드야! 오늘의 카드를 뽑아 운세를 풀어줄게.'
   };
-  if(cat==='general') addBotMsg('종합으로 뭘 물어볼거야? 🔮 사주·자미두수·점성술·타로를 각각 로컬 계산으로 분석해서 탭으로 정리해줄게.');
-  else addBotMsg(catLabel+'로 뭘 물어볼거야? 🔮 원하는 내용을 구체적으로 말해주면 정확히 봐줄게.');
-  var inp=document.getElementById('chat-inp');
-  if(inp){
-    inp.placeholder=suggest[cat]||'궁금한 내용을 입력해줘...';
-    inp.focus();
-  }
+  addBotMsg(greet[cat]||'🔮 궁금한 내용을 입력해줘!');
 }
 
 function setcat(btn,cat,silent){
@@ -1833,45 +1936,341 @@ function addLoadingMsg(text){
   log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
 }
 
-function requestFortuneApi(category, question, usedToday){
-  var score=calcFortuneScore(G.birthYear||2000,G.element||'water');
-  var fortune=score>=75?'대길':score>=55?'길':score>=40?'평':score>=25?'소흉':'흉';
-  var zName=G.zodiac||'dragon';
-  var todayLabel=todayGanji().label;
-  var answer=buildLocalAnswer(category,score,fortune,G.petName,zName,todayLabel,question);
-  return Promise.resolve({
-    category:category,
-    usedToday:usedToday,
-    score:score,
-    answer:answer,
-    source:'local'
+function clampScore(v){
+  return Math.max(5,Math.min(98,Math.round(v||0)));
+}
+
+function scoreToFortune(score){
+  return score>=75?'대길':score>=55?'길':score>=40?'평':score>=25?'소흉':'흉';
+}
+
+function scoreToState(score){
+  return score>=75?'상승':score>=55?'안정':score>=40?'보합':score>=25?'주의':'방어';
+}
+
+function buildSeededValue(input){
+  var s=String(input||'');
+  var h=2166136261;
+  for(var i=0;i<s.length;i+=1){
+    h^=s.charCodeAt(i);
+    h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);
+  }
+  return (h>>>0);
+}
+
+function pickBySeed(list,seed,offset){
+  if(!Array.isArray(list)||!list.length) return '';
+  var i=Math.abs((seed+(offset||0))%list.length);
+  return list[i];
+}
+
+// ── 클라이언트 로컬 운세 엔진 (시스템별 완전 분리) ───────────────────────
+function detectFortuneFocus(question){
+  var q=(question||'');
+  if(/재물|돈|수입|지출|투자|금전|저축|대출|연봉|월급|수익|매출|주식|코인|부동산|부업/.test(q)) return 'money';
+  if(/연애|사랑|인연|이별|재회|썸|결혼|고백|소개팅|데이트|연락|커플|솔로/.test(q)) return 'love';
+  if(/직장|직업|회사|이직|면접|합격|업무|커리어|사업|시험|학업|공부|취업|승진|평가|프로젝트/.test(q)) return 'career';
+  if(/관계|인간관계|친구|가족|동료|상사|부하|협업|갈등|소통|평판|네트워킹/.test(q)) return 'relationship';
+  if(/건강|몸|체력|수면|피로|운동|식습관|멘탈|마음|우울|스트레스|컨디션|병원/.test(q)) return 'health';
+  return 'general';
+}
+
+function prioritizeFortuneCategories(cards,focus){
+  var priority={money:'money',love:'love',career:'career',relationship:'relationship',health:'health',general:'today'}[focus]||'today';
+  var order={today:0,money:1,love:2,career:3,relationship:4,health:5,signal:6,warning:7,action:8};
+  return cards.slice().sort(function(a,b){
+    var pa=(a.key==='today')?-3:(a.key===priority?-2:(order[a.key]||99));
+    var pb=(b.key==='today')?-3:(b.key===priority?-2:(order[b.key]||99));
+    return pa-pb;
   });
 }
 
-function addCategoryTabsMsg(tabItems){
+function getFortuneDateLabel(){
+  var d=new Date();
+  return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' · '+(todayGanji().label||'오늘');
+}
+
+function scoreShift(meta,step,bias){
+  var seed=((meta.seed||0)+((step||0)*97))>>>0;
+  var spread=((seed>>>3)%19)-9;
+  return clampScore((meta.score||50)+spread+(bias||0));
+}
+
+function buildCategory(meta,key,emoji,title,detail,advice,step,bias){
+  var focusBonus=(key===meta.focus)?6:0;
+  if(key==='today') focusBonus+=4;
+  if(key==='action') focusBonus+=2;
+  return {
+    key:key,
+    emoji:emoji,
+    title:title,
+    score:scoreShift(meta,step,(bias||0)+focusBonus),
+    detail:detail,
+    advice:advice
+  };
+}
+
+function buildPetMessage(system,meta){
+  var name=meta.petName||'운세다마';
+  var pool={
+    saju:['일간 흐름이 좋아질 때는 작은 루틴부터 지켜봐!','오행 균형을 맞추면 운이 훨씬 부드럽게 흘러.','사주는 준비된 행동을 가장 크게 도와줘.'],
+    ziwei:['명궁 축이 잡히면 하루 전체가 단단해져.','궁위 우선순위만 정해도 혼란이 크게 줄어들어.','자미두수는 중심을 지킨 사람 편이야.'],
+    astrology:['시간대를 나누면 같은 에너지로 더 멀리 가.','행성 흐름은 타이밍에 반응해. 서두르지 말자!','오전 정리, 오후 실행 리듬이 특히 좋아 보여.'],
+    tarot:['질문이 구체적일수록 카드도 정확해져.','오늘 카드는 즉답보다 점검을 권하고 있어.','첫 행동을 잘 고르면 다음 카드는 더 밝아져.'],
+    general:['공통으로 반복되는 조언 하나를 꼭 실행해줘!','정리 후 실행 패턴을 지키면 오늘 운이 살아나.','너의 선택 품질이 오늘 결과를 크게 바꿔.']
+  };
+  return name+' 한마디 · '+pickBySeed(pool[system]||pool.general,meta.seed,17);
+}
+
+function createLuckyPick(meta,system){
+  var pools={
+    saju:{items:['오행 팔찌','청색 메모카드','작은 향주머니'],colors:['청록','황금빛','짙은 남색'],times:['오전 07:00~09:00','오후 13:00~15:00','저녁 20:00~21:00'],keywords:['균형','정리','기준']},
+    ziwei:{items:['별자리 북마크','흰색 펜','작은 노트'],colors:['은백','남보라','청회색'],times:['오전 09:00~11:00','오후 16:00~18:00','저녁 21:00~22:00'],keywords:['축','궁위','연결']},
+    astrology:{items:['미니 캘린더','푸른 텀블러','루틴 스티커'],colors:['코발트 블루','라벤더','아이보리'],times:['오전 10:00~11:30','오후 14:00~16:00','저녁 22:00 전'],keywords:['타이밍','리듬','분할']},
+    tarot:{items:['카드 파우치','검은 잉크펜','질문 카드'],colors:['버건디','딥 블루','샴페인 골드'],times:['오후 15:00~17:00','저녁 19:00~20:30','밤 22:00 전'],keywords:['질문','점검','선택']},
+    general:{items:['행운 메모','따뜻한 차','체크리스트'],colors:['골드','스카이','로즈 베이지'],times:['오전 08:00~09:30','오후 12:00~14:00','저녁 19:00~20:00'],keywords:['실행','정돈','집중']}
+  };
+  var p=pools[system]||pools.general;
+  return {
+    item:pickBySeed(p.items,meta.seed,1),
+    color:pickBySeed(p.colors,meta.seed,2),
+    time:pickBySeed(p.times,meta.seed,3),
+    keyword:pickBySeed(p.keywords,meta.seed,4)
+  };
+}
+
+function createFortuneMeta(cat,score,fortune,petName,zName,todayLabel,question){
+  var focus=detectFortuneFocus(question);
+  var labels={money:'재물',love:'연애',career:'직업/학업',relationship:'인간관계',health:'건강',general:'전반'};
+  var catLabels={general:'종합',saju:'사주',ziwei:'자미두수',astrology:'점성술',tarot:'타로'};
+  var seed=buildSeededValue([cat,question,todayLabel,zName,score,petName].join('|'));
+  return {
+    cat:cat,
+    catLabel:catLabels[cat]||'종합',
+    score:clampScore(score),
+    fortune:fortune||scoreToFortune(score),
+    state:scoreToState(score),
+    petName:petName||'운세다마',
+    zName:zName||'dragon',
+    todayLabel:todayLabel||'오늘',
+    question:question||'',
+    focus:focus,
+    focusLabel:labels[focus]||labels.general,
+    seed:seed
+  };
+}
+
+function shiftedMeta(baseMeta,scoreDelta,seedDelta){
+  var score=clampScore(baseMeta.score+(scoreDelta||0));
+  return Object.assign({},baseMeta,{
+    score:score,
+    fortune:scoreToFortune(score),
+    state:scoreToState(score),
+    seed:((baseMeta.seed||0)+(seedDelta||0))>>>0
+  });
+}
+
+function makeFortuneResult(system,meta,headline,summary,categories){
+  var labels={saju:'📿 사주',ziwei:'🌌 자미두수',astrology:'⭐ 점성술',tarot:'🃏 타로',general:'🔮 종합'};
+  var ordered=prioritizeFortuneCategories(categories||[],meta.focus);
+  var lucky=createLuckyPick(meta,system);
+  return {
+    system:system,
+    systemLabel:labels[system]||labels.general,
+    date:getFortuneDateLabel(),
+    score:meta.score,
+    fortune:meta.fortune,
+    state:meta.state,
+    focus:meta.focus,
+    focusLabel:meta.focusLabel,
+    headline:headline,
+    summary:summary,
+    lucky:lucky,
+    petMessage:buildPetMessage(system,meta),
+    categories:ordered,
+    cards:ordered.map(function(c){
+      return {key:c.key,title:(c.emoji||'🔹')+' '+(c.title||'포인트'),text:(c.detail||'')+(c.advice?'\n조언: '+c.advice:'')};
+    })
+  };
+}
+
+function buildTamaSajuResult(meta){
+  var dayMaster=GAN[(meta.seed+3)%GAN.length];
+  var harmony=pickBySeed(['목화 순환이 앞서는 날','토금 균형이 살아나는 날','수기운이 정돈되는 날'],meta.seed,1);
+  var action=pickBySeed(['우선순위 3개를 적고 순서대로 끝내기','오전 결정을 오후에 한 번 더 검토하기','지출/시간 로그를 짧게 남기기'],meta.seed,7);
+  return makeFortuneResult('saju',meta,
+    meta.todayLabel+' 사주는 '+meta.state+' 흐름',
+    '일간 '+dayMaster+' 기준으로 '+harmony+'야. '+meta.focusLabel+' 질문은 오행의 균형을 먼저 맞출수록 체감 정확도가 올라가.',
+    [
+      buildCategory(meta,'today','☯️','일간·오행 중심 흐름','오늘은 일간 '+dayMaster+'의 기세가 먼저 움직여. 무리한 확장보다 기본 루틴을 단단히 잡으면 사주 흐름이 안정적으로 따라와.','핵심 하나를 먼저 끝낸 뒤 확장해.',1,3),
+      buildCategory(meta,'money','💰','재성 기반 재물운','재성 기운은 "들어오는 돈"보다 "새는 돈"을 먼저 보라고 말해. 자동결제와 고정지출을 점검하면 흐름이 빠르게 정돈돼.','고정비 1개만 줄여도 체감이 커져.',2,1),
+      buildCategory(meta,'love','💕','식상·관성 연애운','연애운은 식상-관성 균형이 핵심이야. 감정을 한 번에 쏟기보다 짧고 분명한 표현을 두 번 나눠 전달하면 오해를 줄일 수 있어.','감정 표현은 짧고 정확하게 두 번.',3,0),
+      buildCategory(meta,'career','📚','관성 중심 직업/학업운','관성 자리가 열려 있어 마감·평가·시험 대응이 중요해. 시작 전에 기준을 명확히 써두면 실수 확률이 크게 떨어져.','기준 문장 1개를 작성하고 시작해.',4,2),
+      buildCategory(meta,'relationship','🤝','비견 흐름 인간관계운','비견 기운이 강해지면 말투가 직선적으로 보일 수 있어. 결론 전에 상대 입장을 한 줄 확인하면 관계운이 부드럽게 이어져.','결론 전에 상대 입장 확인 문장을 넣어줘.',5,0),
+      buildCategory(meta,'health','🫧','수화 균형 건강운','수화 밸런스가 흔들리기 쉬운 날이라 수면과 수분을 먼저 챙기는 게 좋아. 짧은 스트레칭을 끼워 넣으면 피로 누적을 막을 수 있어.','물 한 컵과 3분 스트레칭을 루틴화해.',6,-1),
+      buildCategory(meta,'action','✅','실전 행동 지침',action+'를 오늘 바로 실행해. 사주 흐름은 준비된 행동을 가장 크게 보상해.','체크리스트로 완료 여부를 남겨봐.',7,2)
+    ]
+  );
+}
+
+function buildTamaZiweiResult(meta){
+  var ming=pickBySeed(['명궁 안정성','명궁 확장성','명궁 균형감'],meta.seed,2);
+  var assist=pickBySeed(['보좌성이 살아나 주변 협력이 쉬워','천이궁 자극으로 외부 연결이 빨라','관록궁 압력이 높아 구조화가 필요해'],meta.seed,9);
+  return makeFortuneResult('ziwei',meta,
+    meta.todayLabel+' 자미두수는 '+meta.state+' 단계',
+    ming+'과 '+assist+'가 동시에 들어와. '+meta.focusLabel+' 이슈는 궁위별 우선순위를 나누면 해석이 선명해져.',
+    [
+      buildCategory(meta,'today','🌌','명궁·신궁 메인 흐름','명궁 기준으로 중심축을 먼저 고정하는 날이야. 오늘 해야 할 핵심 하나를 정하고 나머지를 붙이면 전체 운세가 흔들리지 않아.','핵심 하나를 먼저 확정하고 파생 일을 붙여줘.',1,3),
+      buildCategory(meta,'money','💠','재백궁 재물운','재백궁은 "빠른 수익"보다 "현금흐름 관리"를 권장해. 수입 일정과 지출 일정 간격을 맞추면 손실 구간을 줄일 수 있어.','수입일과 지출일을 같은 표에 정리해.',2,1),
+      buildCategory(meta,'love','💞','부부궁 감정운','부부궁 흐름상 감정의 높낮이가 생길 수 있어. 감정 결론을 서두르기보다 대화 맥락을 먼저 맞추면 관계운이 살아나.','대화 시작 문장을 부드럽게 고쳐봐.',3,0),
+      buildCategory(meta,'career','📈','관록궁 성과운','관록궁 압력이 강해 책임 이슈가 부각돼. 진행 상황을 중간 공유하면 평가 손실을 줄이고 성과 전환 속도를 높일 수 있어.','중간 공유 시점을 미리 캘린더에 넣어.',4,2),
+      buildCategory(meta,'relationship','🧭','교우궁 관계운','교우궁은 연결은 넓지만 오해도 빨리 번질 수 있음을 보여줘. 중요한 메시지는 문장 길이를 줄여 핵심만 전달하는 게 좋아.','핵심 1문장 + 보조 1문장으로 전달해.',5,0),
+      buildCategory(meta,'health','🌿','복덕궁 회복운','복덕궁 관점에선 머리를 쉬게 하는 짧은 휴식이 필요해. 과한 입력을 줄이고 리듬을 고르면 컨디션이 안정돼.','15분 휴식 블록을 강제로 확보해.',6,-1),
+      buildCategory(meta,'action','✅','실전 행동 지침','명궁-관록궁 순서로 우선순위를 적고 가장 중요한 일 하나를 먼저 끝내. 자미두수는 중심축 정렬을 크게 보상해.','우선순위 목록을 화면에 고정해.',7,2)
+    ]
+  );
+}
+
+function buildTamaAstrologyResult(meta){
+  var asc=pickBySeed(['상승궁 집중력이 높아지는 구간','달의 위상이 감정 결을 흔드는 구간','트랜짓 변동성이 커지는 구간'],meta.seed,4);
+  return makeFortuneResult('astrology',meta,
+    meta.todayLabel+' 점성술은 '+meta.state+' 리듬',
+    asc+'이야. '+meta.focusLabel+' 질문은 시간대 분할 전략을 쓰면 오차가 크게 줄어.',
+    [
+      buildCategory(meta,'today','⭐','상승궁·트랜짓 흐름','오전엔 계획 확정, 오후엔 소통과 조율이 유리해. 타이밍을 나눠 움직이면 같은 에너지로 결과를 더 크게 만들 수 있어.','오전/오후 핵심 작업을 분리 배치해.',1,3),
+      buildCategory(meta,'money','💸','금성 기반 재정 감각','금성 흐름상 소비 만족도보다 필요성이 중요해. 장바구니를 하루 보류한 뒤 확정하면 지출 효율이 올라가.','큰 결제는 하루 보류 후 승인해.',2,1),
+      buildCategory(meta,'love','🌙','달·금성 연애운','달의 파동이 커 반응이 과해질 수 있어. 감정 표현은 짧고 따뜻하게, 결론은 천천히 정하면 관계가 안정돼.','답장 전에 핵심 감정 한 줄만 남겨.',3,0),
+      buildCategory(meta,'career','🛰️','수성·토성 업무운','수성은 커뮤니케이션, 토성은 구조를 요구해. 업무·학업 메시지를 문장 3개 이내로 정리하면 전달력이 크게 좋아져.','보고 문장을 세 줄 구조로 맞춰봐.',4,2),
+      buildCategory(meta,'relationship','🫶','대인관계 조율운','화성 자극으로 말의 강도가 세질 수 있어. 질문형 문장으로 시작하면 협업 분위기를 지키면서 핵심을 전달할 수 있어.','첫 문장을 질문형으로 바꿔 전달해.',5,0),
+      buildCategory(meta,'health','🛌','컨디션·수면 리듬','저녁 자극이 누적되면 다음날 집중력이 떨어져. 취침 1시간 전 화면 밝기와 카페인을 줄이면 회복이 빨라져.','취침 전 1시간 디지털 디톡스를 해봐.',6,-1),
+      buildCategory(meta,'action','✅','실전 행동 지침','오전-오후 할 일을 분리해서 캘린더에 고정해. 점성술 흐름은 시간대 전략에 가장 잘 반응해.','타임블록을 실제 시간으로 박아 넣어.',7,2)
+    ]
+  );
+}
+
+function buildTamaTarotResult(meta){
+  var major=pickBySeed(['은둔자','힘','정의','절제','별'],meta.seed,5);
+  var stance=pickBySeed(['정위치', '역위치'],meta.seed,8);
+  return makeFortuneResult('tarot',meta,
+    meta.todayLabel+' 타로는 '+meta.state+' 신호',
+    '메인 카드 '+major+'('+stance+') 메시지는 "성급한 확정보다 준비된 한 걸음"이야. '+meta.focusLabel+' 질문일수록 카드 질문을 구체화할수록 선명해져.',
+    [
+      buildCategory(meta,'today','🃏','오늘의 카드 메시지','메인 카드 '+major+'('+stance+')는 과정의 정렬을 먼저 요구해. 결과를 서두르기보다 첫 행동을 정확히 고르면 다음 카드가 부드럽게 열려.','첫 행동을 정한 뒤 다음 행동을 뽑아봐.',1,3),
+      buildCategory(meta,'money','💵','재물 카드 해석','재물 카드는 충동 결제보다 계획 결제를 권해. 결제 전 "필수/선택" 두 칸으로 나누면 카드 흐름과 맞아.','결제 전 30초 체크리스트를 써.',2,1),
+      buildCategory(meta,'love','💗','연애 카드 해석','연애 카드는 감정 진정 후 대화를 권장해. 답장을 보내기 전 핵심 문장 하나만 남기면 오해를 줄일 수 있어.','핵심 문장 1개만 남기고 전송해.',3,0),
+      buildCategory(meta,'career','🧩','직업/학업 카드 해석','업무 카드는 "한 번에 하나"를 강조해. 우선순위 1개를 완수하면 다음 과제가 예상보다 쉽게 연결돼.','첫 태스크만 완료 목표로 설정해.',4,2),
+      buildCategory(meta,'relationship','👂','관계 카드 해석','관계 카드는 경청 포인트를 보여줘. 상대 문장을 요약해 되물으면 신뢰 점수가 빠르게 올라가.','요약 후 확인 질문을 한 번 넣어봐.',5,0),
+      buildCategory(meta,'health','🌙','건강 카드 해석','건강 카드는 리듬 회복을 먼저 말해. 짧은 산책과 수면 준비 루틴을 고정하면 피로가 눈에 띄게 줄어.','잠들기 전 루틴을 한 가지 고정해.',6,-1),
+      buildCategory(meta,'action','✅','실전 행동 지침','질문을 한 단계 더 구체화해 다시 뽑아봐. 타로는 질문의 정밀도만큼 정확하게 답해줘.','질문에 시간·대상·목표를 넣어봐.',7,2)
+    ]
+  );
+}
+
+function buildTamaGeneralResult(meta){
+  return makeFortuneResult('general',meta,
+    meta.todayLabel+' 종합 흐름은 '+meta.state+' 구간',
+    meta.focusLabel+' 질문 기준으로 오늘은 "먼저 정리, 다음 실행" 패턴이 강해. 시스템별 탭에서 사주·자미두수·점성술·타로를 분리해서 확인해.',
+    [
+      buildCategory(meta,'today','🔮','종합 중심 흐름','오늘은 선택 품질이 결과를 크게 가르는 날이야. 해야 할 일과 하지 않을 일을 분리하면 체감 운세가 즉시 좋아져.','선택과 제외 목록을 동시에 적어봐.',1,3),
+      buildCategory(meta,'signal','🧠','공통 신호 요약',meta.focusLabel+' 이슈가 핵심 포인트로 반복돼. 시스템별 탭에서 겹치는 키워드를 우선 실행하면 효율이 높아져.','반복되는 키워드 하나를 오늘 기준으로 삼아.',2,1),
+      buildCategory(meta,'action','✅','실전 행동 지침','시스템별 탭에서 공통으로 반복되는 조언 1개를 골라 오늘 일정에 바로 반영해.','적용한 조언을 하루 끝에 체크해.',3,2)
+    ]
+  );
+}
+
+function buildFortuneResultByCategory(cat,meta){
+  if(cat==='saju') return buildTamaSajuResult(meta);
+  if(cat==='ziwei') return buildTamaZiweiResult(meta);
+  if(cat==='astrology') return buildTamaAstrologyResult(meta);
+  if(cat==='tarot') return buildTamaTarotResult(meta);
+  return buildTamaGeneralResult(meta);
+}
+
+function renderFortuneCardsHtml(result,compact){
+  var categories=(result.categories||[]);
+  if(!categories.length && Array.isArray(result.cards)){
+    categories=result.cards.map(function(card){
+      return {
+        key:card.key||'point',
+        emoji:'🔹',
+        title:card.title||'포인트',
+        score:clampScore(result.score||50),
+        detail:card.text||'',
+        advice:''
+      };
+    });
+  }
+  var cards=categories.map(function(card){
+    var advice=card.advice?'<p class="fortune-advice">조언 · '+escHtml(card.advice)+'</p>':'';
+    return ''
+      +'<article class="fortune-card">'
+        +'<div class="fortune-card-head">'
+          +'<span class="fortune-card-emoji">'+escHtml(card.emoji||'🔹')+'</span>'
+          +'<h4>'+(escHtml(card.title||'포인트'))+'</h4>'
+          +'<span class="fortune-card-score">'+escHtml(String(card.score||0))+'점</span>'
+        +'</div>'
+        +'<p class="fortune-detail">'+escHtml(card.detail||card.text||'')+'</p>'
+        +advice
+      +'</article>';
+  }).join('');
+  var lucky=result.lucky||{};
+  var luckyHtml=(lucky.item||lucky.color||lucky.time||lucky.keyword)
+    ?'<div class="fortune-lucky">🍀 행운 아이템 '+escHtml(lucky.item||'-')+' · 컬러 '+escHtml(lucky.color||'-')+' · 시간 '+escHtml(lucky.time||'-')+' · 키워드 '+escHtml(lucky.keyword||'-')+'</div>'
+    :'';
+  var petHtml=result.petMessage?'<div class="fortune-petmsg">'+escHtml(result.petMessage)+'</div>':'';
+  return ''
+    +'<div class="fortune-wrap">'
+      +'<div class="fortune-head"><span>'+escHtml(result.systemLabel||'🔮 종합')+'</span><span>'+escHtml(String(result.score||0))+'점 · '+escHtml(result.fortune||'평')+'</span></div>'
+      +'<div class="fortune-meta">'
+        +(result.date?'<span class="fortune-pill">'+escHtml(result.date)+'</span>':'')
+        +'<span class="fortune-pill">'+escHtml(result.focusLabel||'전반')+' 포커스</span>'
+        +'<span class="fortune-pill">'+escHtml(result.state||'안정')+' 흐름</span>'
+      +'</div>'
+      +'<div class="fortune-title">'+escHtml(result.headline||'오늘 운세 분석')+'</div>'
+      +'<div class="fortune-summary">'+escHtml(result.summary||'')+'</div>'
+      +luckyHtml
+      +petHtml
+      +'<div class="fortune-grid'+(compact?' compact':'')+'">'+cards+'</div>'
+    +'</div>';
+}
+
+function addFortuneResultMsg(result){
   var log=document.getElementById('chat-log');
   var icoSrc=document.getElementById('chat-pet-ico').src||'';
   var wrap=document.createElement('div');
   wrap.className='flex gap-2 items-start';
-  var tabs=tabItems.filter(function(t){return t&&t.answer;});
-  if(!tabs.length){
-    addBotMsg('종합 결과를 가져오지 못했어. 잠시 후 다시 시도해줘 💧');
-    return;
-  }
-  var tabId='fort_tabs_'+Date.now();
-  var btns=tabs.map(function(t,idx){
-    var isOn=idx===0;
-    return '<button data-tab-btn="'+tabId+'" data-key="'+t.key+'" onclick="switchFortuneTab(\''+tabId+'\',\''+t.key+'\')" style="padding:5px 10px;border-radius:999px;border:1px solid '+(isOn?'var(--acc)':'var(--cb)')+';background:'+(isOn?'var(--adim)':'transparent')+';color:'+(isOn?'var(--acc)':'#777')+';font-size:11px;font-weight:700;white-space:nowrap">'+t.label+'</button>';
-  }).join('');
-  var panes=tabs.map(function(t,idx){
-    return '<div data-tab-pane="'+tabId+'" data-key="'+t.key+'" style="display:'+(idx===0?'block':'none')+';border-radius:12px;border:1px solid var(--cb);background:#fff;padding:10px 12px;line-height:1.65;font-size:12.5px;color:var(--fg)">'+escHtml(t.answer)+'</div>';
-  }).join('');
   wrap.innerHTML=''
     +'<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
-    +'<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:8px">'
-    +'<div style="font-size:11px;color:var(--acc);font-weight:700">종합 로컬 분석 결과</div>'
-    +'<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">'+btns+'</div>'
-    +panes
+    +'<div class="font-n" style="flex:1">'+renderFortuneCardsHtml(result,false)+'</div>';
+  log.appendChild(wrap);
+  log.scrollTop=log.scrollHeight;
+}
+
+function addGeneralFortuneMsg(bundle){
+  var log=document.getElementById('chat-log');
+  var icoSrc=document.getElementById('chat-pet-ico').src||'';
+  var tabs=(bundle.tabs||[]).filter(function(t){return t&&t.result;});
+  if(!tabs.length){
+    addBotMsg('종합 결과를 정리하지 못했어. 잠시 후 다시 시도해줘 💧');
+    return;
+  }
+  var tabId='fortune_tabs_'+Date.now();
+  var summaryHtml=renderFortuneCardsHtml(bundle.summary||buildTamaGeneralResult(createFortuneMeta('general',bundle.score||50,bundle.fortune||'평',G.petName,G.zodiac,todayGanji().label,'')),true);
+  var btns=tabs.map(function(t,idx){
+    var cls='fortune-tab-btn'+(idx===0?' on':'');
+    return '<button class="'+cls+'" data-tab-btn="'+tabId+'" data-key="'+t.key+'" onclick="switchFortuneTab(\''+tabId+'\',\''+t.key+'\')">'+escHtml(t.label)+'</button>';
+  }).join('');
+  var panes=tabs.map(function(t,idx){
+    return '<div data-tab-pane="'+tabId+'" data-key="'+t.key+'" style="display:'+(idx===0?'block':'none')+'">'+renderFortuneCardsHtml(t.result,true)+'</div>';
+  }).join('');
+  var wrap=document.createElement('div');
+  wrap.className='flex gap-2 items-start';
+  wrap.innerHTML=''
+    +'<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+    +'<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:10px">'
+      +summaryHtml
+      +'<div class="fortune-tabs">'+btns+'</div>'
+      +panes
     +'</div>';
   log.appendChild(wrap);
   log.scrollTop=log.scrollHeight;
@@ -1880,13 +2279,12 @@ function addCategoryTabsMsg(tabItems){
 function switchFortuneTab(tabId,key){
   var btns=document.querySelectorAll('[data-tab-btn="'+tabId+'"]');
   btns.forEach(function(b){
-    var on=b.getAttribute('data-key')===key;
-    b.style.borderColor=on?'var(--acc)':'var(--cb)';
-    b.style.background=on?'var(--adim)':'transparent';
-    b.style.color=on?'var(--acc)':'#777';
+    b.classList.toggle('on',b.getAttribute('data-key')===key);
   });
   var panes=document.querySelectorAll('[data-tab-pane="'+tabId+'"]');
-  panes.forEach(function(p){p.style.display=p.getAttribute('data-key')===key?'block':'none';});
+  panes.forEach(function(p){
+    p.style.display=p.getAttribute('data-key')===key?'block':'none';
+  });
 }
 
 function openChat(){
@@ -1908,7 +2306,7 @@ function openChat(){
   var log=document.getElementById('chat-log');
 
   if(log.children.length===0){
-    addBotMsg('안녕! 나 '+G.petName+'야 🔮 상단 탭에서 종합/사주/자미두수/점성술/타로를 고르면 먼저 질문을 물어볼게 ✨');
+    addBotMsg('안녕! 나 '+G.petName+'야 🔮 질문을 입력하면 시스템별 카드로 정확히 나눠서 보여줄게.');
     setcat(document.querySelector('.cat-btn[data-cat="general"]'),'general',true);
   }
 
@@ -1918,64 +2316,6 @@ function closeChat(){document.getElementById('chat-modal').classList.remove('on'
 
 function quickAsk(q){document.getElementById('chat-inp').value=q; sendChat();}
 function quickCat(cat,q){document.getElementById('chat-inp').value=q; sendChat(cat);}
-
-// ── 클라이언트 로컬 운세 응답 (완전 로컬 계산) ───────────────────────────
-function detectFortuneFocus(question){
-  var q=(question||'');
-  if(/재물|돈|수입|지출|투자|금전|저축|대출/.test(q)) return 'money';
-  if(/연애|사랑|인연|이별|재회|썸|결혼|고백/.test(q)) return 'love';
-  if(/직장|직업|회사|이직|면접|합격|업무|커리어|사업|시험|학업/.test(q)) return 'work';
-  if(/건강|몸|체력|수면|피로|운동|식습관|멘탈|마음|우울/.test(q)) return 'health';
-  return 'general';
-}
-
-function ensureFortuneLength(text,minLen,petName,focus){
-  if(text.length>=minLen) return text;
-  var n=petName||'운세다마';
-  var tailMap={
-    money:'마지막으로 재물운은 속도보다 지속성이 중요해. 오늘 바로 큰 결과가 나오지 않아도 지출 기록, 자동이체 점검, 결제일 정리 같은 기본기를 잡으면 한 달 후 체감이 크게 달라진다.',
-    love:'관계운은 한 번의 이벤트보다 반복되는 태도에서 결정된다. 답장을 빨리 하는 것, 약속 시간을 지키는 것, 불편한 감정을 미루지 않고 말하는 것처럼 작은 신뢰 행동을 오늘부터 쌓아가면 좋다.',
-    work:'직업운은 완벽한 계획보다 실행 로그를 남기는 습관에서 강해진다. 해야 할 일을 세 줄로 쪼개고, 끝낸 항목을 눈에 보이게 체크하면 집중력이 살아나며 실수도 빠르게 줄어든다.',
-    health:'건강운은 강한 의지보다 리듬 회복이 핵심이다. 수면 시간 고정, 카페인 컷오프, 가벼운 스트레칭 같은 반복 가능한 루틴을 만들면 컨디션 변동 폭이 줄고 감정 에너지까지 안정된다.',
-    general:'종합운은 오늘의 선택 밀도를 높일 때 좋아진다. 해야 할 일 한 가지를 확실히 끝내고, 미루던 연락 하나를 처리하고, 휴식 시간을 지키는 세 가지만 해도 하루의 흐름이 분명히 달라진다.'
-  };
-  var out=text;
-  while(out.length<minLen){
-    out+='\n\n'+tailMap[focus];
-  }
-  return out+'\n\n'+n+'가 오늘 일정 끝날 때까지 옆에서 응원 신호를 계속 보낼게. 불안한 순간이 오면 질문을 더 세분화해서 다시 물어줘. 같은 운세라도 질문을 구체화하면 해석의 정확도가 올라간다.';
-}
-
-function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel,question){
-  var n=petName||'운세다마';
-  var td=todayLabel||'오늘';
-  var focus=detectFortuneFocus(question);
-  var state=score>=75?'상승':score>=55?'안정':score>=40?'보합':score>=25?'주의':'방어';
-  var catLabel={general:'종합',saju:'사주',ziwei:'자미두수',astrology:'점성술',tarot:'타로'}[cat]||'종합';
-  var focusLabel={money:'재물',love:'연애',work:'직업/학업',health:'건강',general:'전반'}[focus];
-
-  var open='['+catLabel+' 로컬 리포트] '+zName+'띠 기준 '+td+' 운세 점수는 '+score+'점('+fortune+')이고, 흐름 단계는 '+state+' 구간으로 판정돼. '+focusLabel+' 질문을 중심으로 보면 오늘은 감정 반응보다 실행 우선순위를 먼저 세울수록 결과가 좋아지는 패턴이야. 특히 오전에는 판단의 정확도가, 오후에는 관계 조율 능력이 올라오는 구조라서 시간대별 전략을 분리하면 체감이 크게 좋아질 가능성이 높아.';
-
-  var coreByFocus={
-    money:'재물 관점에서는 크게 벌기보다 새는 돈을 막는 쪽이 승률이 높아. 당장 할 일은 구독 결제 정리, 이번 주 고정 지출 재확인, 충동 구매 트리거 차단이야. 투자나 큰 소비를 해야 한다면 오늘 결정만 하고 실제 집행은 하루 뒤에 실행하는 방식이 안전하다. 이렇게 템포를 한 박자 늦추면 실수 확률이 줄고 만족도가 올라간다.',
-    love:'연애 관점에서는 감정 표현의 강도보다 타이밍이 중요해. 상대가 바쁜 시간대를 피해서 짧고 명확하게 의사를 전달하면 오해를 줄일 수 있어. 이미 관계가 있는 경우엔 해결되지 않은 작은 불편을 부드럽게 정리하는 대화가 효과적이고, 새 인연을 찾는 경우엔 이상형 검증보다 대화 리듬이 맞는지부터 확인하는 것이 유리해.',
-    work:'직업/학업 관점에서는 멀티태스킹을 줄일수록 성과가 올라가. 오늘은 핵심 과업 하나를 먼저 완료하고, 나머지는 보조 목표로 분리해. 문서/코드/과제는 제출 전 마지막 15분 검토 시간을 반드시 남겨두면 치명적인 누락을 막을 수 있어. 협업 상황이라면 중간 공유 한 번만 해도 피드백 품질이 올라가서 전체 리드타임이 단축된다.',
-    health:'건강 관점에서는 에너지 회복 루틴이 최우선이야. 수면, 수분, 움직임 세 요소를 동시에 챙기면 컨디션이 빠르게 안정돼. 아침에는 물 섭취와 가벼운 스트레칭, 저녁에는 과한 자극 줄이기와 수면 준비를 추천해. 감정적으로 예민해질 때는 즉시 결정을 내리기보다 10분 산책이나 호흡 정리를 먼저 하면 판단 오류를 줄일 수 있다.',
-    general:'전반 관점에서는 오늘 해야 할 핵심 세 가지를 먼저 확정하는 것이 중요해. 목표가 많아 보일수록 우선순위를 숫자로 고정해야 흔들림이 줄어든다. 또한 사람과의 약속, 금전 결정, 건강 루틴을 각각 한 번씩만 점검해도 하루 체감이 크게 좋아진다. 작은 성공을 빠르게 쌓는 전략이 오늘 운세와 가장 잘 맞는다.'
-  };
-
-  var methodByCat={
-    general:'종합 해석은 사주의 기운 흐름, 자미두수의 궁위 성향, 점성술의 시간대 변동, 타로의 선택 메시지를 공통 분모로 압축해 실행형 조언으로 정리했어. 네 가지 시스템이 오늘 날짜에 겹치는 에너지 포인트를 추출해서 핵심 방향으로 요약했으니, 이 방향을 기준으로 오늘 일정의 우선순위를 재정렬하면 효율이 눈에 띄게 올라갈 거야. 각 분야에서 같은 신호가 겹칠수록 신뢰도가 높아지므로, 여러 채널에서 동일한 방향이 반복되면 망설임 없이 움직여도 좋아.',
-    saju:'사주 해석은 일간 강약과 오행 균형 관점에서 오늘의 추진력과 소진 리스크를 함께 본 결과야. 무리해서 한 번에 끝내기보다 순서를 맞춰 가는 쪽이 길하게 작동해. 오늘처럼 일간이 활성화된 날은 에너지가 앞으로 쏠리기 쉬운데, 막힌 구간에서 억지로 밀기보다 방향을 살짝 틀어 흐름을 타는 쪽이 같은 에너지로 훨씬 좋은 결과를 내. 오행상 오늘 지지하는 사람과의 협력이 빠른 돌파구가 될 수 있으니, 가까운 조력자에게 한 번 먼저 연락해봐.',
-    ziwei:'자미두수 해석은 명궁 중심 안정성, 관록 흐름, 관계 영역의 마찰 가능성을 함께 봤어. 오늘은 큰 확장보다 중심축을 단단히 잡는 선택이 성과로 이어진다. 명궁의 보좌성 영향으로 주변 조력이 활성화된 구간이라, 혼자 처리하기 어려운 과제는 오늘 도움을 요청하기 좋은 타이밍이야. 관록궁이 열린 경우 업무 관련 대화는 선제적으로 먼저 꺼내는 쪽이 유리하고, 네트워킹 행동이 예상보다 큰 결과를 가져올 수 있어.',
-    astrology:'점성술 해석은 시간대별 집중력 변화와 감정 파동을 기준으로 읽었어. 오전에는 계획 확정, 오후에는 조율과 소통 중심으로 운영하면 효율이 좋다. 달의 위상이 집중력과 감정 안정성에 영향을 주는 시기라, 중요 결정 전에 1-2분 조용히 정리하는 시간을 갖는 것이 실수를 줄이는 핵심이야. 저녁 시간대에는 자극적인 콘텐츠와 큰 감정 소모를 줄이는 것이 다음날 컨디션에 확실한 차이를 만들어.',
-    tarot:'타로 해석은 현재 카드의 메시지를 행동 지침으로 변환한 결과야. 결론은 성급함을 줄이고, 명확한 한 걸음을 먼저 내딛을 때 다음 카드가 유리하게 열린다는 점이야. 오늘 뽑힌 카드의 위치 에너지는 "준비된 움직임"을 권장하는 패턴이야. 이미 알고 있는 할 일을 미루지 않고 실행하면 카드가 제시한 흐름에 올라타는 가장 빠른 경로가 되고, 역방향 에너지가 있다면 내면 점검 후 재시도가 효과적이야.'
-  };
-
-  var close='정리하면 오늘 '+zName+'띠의 '+catLabel+' 운세는 "크게 흔들리지 않되, 선택 품질에 따라 결과 차이가 커지는 날"이야. 질문해 준 '+focusLabel+' 주제는 충분히 개선 여지가 있으니, 지금 바로 실행 가능한 한 가지를 정하고 체크해봐. 완료 후 다시 물어보면 다음 단계까지 이어서 코칭해줄게. '+n+'는 단순 위로보다 실제로 도움이 되는 방식으로 끝까지 같이 갈게.';
-
-  return ensureFortuneLength(open+'\n\n'+coreByFocus[focus]+'\n\n'+methodByCat[cat]+'\n\n'+close,500,n,focus);
-}
 
 // ── 일반 대화 로컬 응답 ───────────────────────────────────────────────────
 function buildChatReply(q,petName,el){
@@ -2016,82 +2356,52 @@ function sendChat(forceCat){
   if(isFortune){G.chatCount++; updateChatRemain();}
 
   var thisReq = ++_reqId;
+  var baseScore=G.fortune||calcFortuneScore(G.birthYear||2000,G.element||'water');
+  var baseFortune=scoreToFortune(baseScore);
+  var zName=G.zodiac||'dragon';
+  var todayLabel=todayGanji().label;
+  var baseMeta=createFortuneMeta(cat,baseScore,baseFortune,G.petName,zName,todayLabel,q);
 
   if(cat==='general'){
-    var generalLoading=addLoadingMsg('종합 운세 분석 중... 사주·자미두수·점성술·타로 로컬 결과를 정리하고 있어 🔮');
-    var bundle=[
-      {key:'saju',label:'📿 사주',question:q+' (사주 관점으로 상세 풀이)'},
-      {key:'ziwei',label:'🌌 자미두수',question:q+' (자미두수 관점으로 상세 풀이)'},
-      {key:'astrology',label:'⭐ 점성술',question:q+' (점성술 관점으로 상세 풀이)'},
-      {key:'tarot',label:'🃏 타로',question:q+' (타로 관점으로 상세 풀이)'}
-    ];
-    Promise.allSettled(bundle.map(function(it){
-      return requestFortuneApi(it.key,it.question,G.chatCount-1).then(function(d){
-        return {key:it.key,label:it.label,data:d};
-      });
-    })).then(function(results){
+    var generalLoading=addLoadingMsg('종합 운세 분석 중... 시스템별 결과를 분리 카드로 정리하고 있어 🔮');
+    setTimeout(function(){
       if(thisReq!==_reqId) return;
       if(generalLoading&&generalLoading.parentNode){generalLoading.remove();}
-      var tabItems=[];
-      var scores=[];
-      results.forEach(function(r){
-        if(r.status!=='fulfilled') return;
-        var p=r.value;
-        var ans=p.data&&p.data.answer;
-        if(ans) tabItems.push({key:p.key,label:p.label,answer:ans});
-        if(p.data&&typeof p.data.score==='number') scores.push(p.data.score);
+      var tabs=[
+        {key:'saju',label:'📿 사주',result:buildTamaSajuResult(shiftedMeta(baseMeta,2,13))},
+        {key:'ziwei',label:'🌌 자미두수',result:buildTamaZiweiResult(shiftedMeta(baseMeta,-1,29))},
+        {key:'astrology',label:'⭐ 점성술',result:buildTamaAstrologyResult(shiftedMeta(baseMeta,1,47))},
+        {key:'tarot',label:'🃏 타로',result:buildTamaTarotResult(shiftedMeta(baseMeta,0,71))}
+      ];
+      var scores=tabs.map(function(t){return t.result.score;});
+      var avg=Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length);
+      G.fortune=avg;
+      updateUI();
+      addGeneralFortuneMsg({
+        score:avg,
+        fortune:scoreToFortune(avg),
+        summary:buildTamaGeneralResult(shiftedMeta(baseMeta,avg-baseMeta.score,97)),
+        tabs:tabs
       });
-      if(scores.length){
-        G.fortune=Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length);
-        updateUI();
-      }
-      addCategoryTabsMsg(tabItems);
-    }).catch(function(){
-      if(thisReq!==_reqId) return;
-      if(generalLoading&&generalLoading.parentNode){generalLoading.remove();}
-      addBotMsg('종합 로컬 계산 중 오류가 발생했어. 잠시 후 다시 시도해줘 💧');
-    });
+    },680);
     return;
   }
 
-  var score=G.fortune||calcFortuneScore(G.birthYear||2000,G.element||'water');
-  var fortune=score>=75?'대길':score>=55?'길':score>=40?'평':score>=25?'소흉':'흉';
-  var zName=G.zodiac||'dragon';
-  var todayLabel=todayGanji().label;
-  var localAns=buildLocalAnswer(cat,score,fortune,G.petName,zName,todayLabel,q);
-
-  // 로딩 메시지 표시
   var LOAD_TEXT={
     saju:'사주팔자 깊이 분석 중 📿 잠시만 기다려줘!',
     ziwei:'자미두수 궁위 배치 계산 중 🌌 잠시만 기다려줘!',
     astrology:'행성·트랜짓 분석 중 ⭐ 잠시만 기다려줘!',
     tarot:'타로 카드 3장 배열 중 🃏 잠시만 기다려줘!'
   };
-  var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addBotMsg('...',true);
-
-  // 로컬 분석 체감 연출
-  var lt = setTimeout(function(){
+  var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addLoadingMsg('운세를 정리하는 중이야...');
+  setTimeout(function(){
     if(thisReq!==_reqId) return;
     if(botEl&&botEl.parentNode){botEl.remove();}
-    addBotMsgTyped(localAns);
-  }, 420);
-
-  requestFortuneApi(cat,q,G.chatCount-1).then(function(d){
-    if(thisReq!==_reqId) return; // stale 응답 무시
-    if(lt) clearTimeout(lt);
-    if(botEl&&botEl.parentNode){botEl.remove();}
-    if(d&&d.answer){
-      addBotMsgTyped(d.answer);
-      if(d.score){G.fortune=d.score;updateUI();}
-    } else {
-      addBotMsgTyped(localAns);
-    }
-  }).catch(function(){
-    if(thisReq!==_reqId) return;
-    if(lt) clearTimeout(lt);
-    if(botEl&&botEl.parentNode){botEl.remove();}
-    addBotMsgTyped(localAns);
-  });
+    var result=buildFortuneResultByCategory(cat,baseMeta);
+    addFortuneResultMsg(result);
+    G.fortune=clampScore((G.fortune*2+result.score)/3);
+    updateUI();
+  },620);
 }
 
 function addUserMsg(text){
@@ -2122,7 +2432,7 @@ function addBotMsg(text,isTyping){
 
 }
 
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function addFullReportMsg(fullText){
   var log=document.getElementById('chat-log');
@@ -2191,68 +2501,111 @@ document.addEventListener('visibilitychange',function(){
 
 window.addEventListener('pagehide',function(){saveState();});
 
-// ── PWA 설치 로직 ──
+// ── PWA 설치/상태/서비스워커 로직 ──
 var _pwaPrompt = null;
+var _PWA_INSTALLED_KEY='tama_pwa_installed_v1';
 
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  _pwaPrompt = e;
-  var btn = document.getElementById('pwa-btn');
-  if (btn) btn.classList.remove('hidden');
-});
-
-window.addEventListener('appinstalled', function() {
-  var btn = document.getElementById('pwa-btn');
-  if (btn) btn.style.display = 'none';
-  _pwaPrompt = null;
-});
-
-function installPWA() {
-  if (!_pwaPrompt) return;
-  _pwaPrompt.prompt();
-  _pwaPrompt.userChoice.then(function(r) {
-    if (r.outcome === 'accepted') {
-      var btn = document.getElementById('pwa-btn');
-      if (btn) btn.style.display = 'none';
-    }
-    _pwaPrompt = null;
-  });
+function isStandaloneMode(){
+  var mm=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
+  return !!mm || window.navigator.standalone===true;
 }
 
-// iOS Safari 힌트
-(function() {
-  var isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
-  var isStandalone = navigator.standalone === true;
-  if (isIOS && !isStandalone) {
-    var b = document.getElementById('ios-pwa-btn');
-    if (b) { b.style.display = 'flex'; }
+function isIOSDevice(){
+  return /ipad|iphone|ipod/i.test(navigator.userAgent||'') && !window.MSStream;
+}
+
+function isIOSSafari(){
+  var ua=(navigator.userAgent||'').toLowerCase();
+  var isSafari=ua.indexOf('safari')>-1 && ua.indexOf('crios')===-1 && ua.indexOf('fxios')===-1 && ua.indexOf('edgios')===-1;
+  return isIOSDevice() && isSafari;
+}
+
+function markPWAInstalledFlag(){
+  try{localStorage.setItem(_PWA_INSTALLED_KEY,'1');}catch(e){}
+}
+
+function hasPWAInstalledFlag(){
+  try{return localStorage.getItem(_PWA_INSTALLED_KEY)==='1';}catch(e){return false;}
+}
+
+function updateInstallButtons(){
+  var installed=isStandaloneMode()||hasPWAInstalledFlag();
+  var pwaBtn=document.getElementById('pwa-btn');
+  var iosBtn=document.getElementById('ios-pwa-btn');
+  var iosTip=document.getElementById('ios-pwa-tip');
+  var dlBtn=document.getElementById('dl-btn');
+  var showPromptBtn=!installed&&!!_pwaPrompt;
+  var showIOSHint=!installed&&isIOSSafari();
+
+  if(pwaBtn){
+    pwaBtn.classList.toggle('hidden',!showPromptBtn);
+    pwaBtn.style.display=showPromptBtn?'block':'none';
   }
-})();
-
-// Service Worker 무효화: 구버전 PWA 캐시 고착 방지
-if ('serviceWorker' in navigator || 'caches' in window) {
-  window.addEventListener('load', function() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations()
-        .then(function(regs) {
-          return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
-        })
-        .catch(function() {});
-    }
-
-    if ('caches' in window) {
-      caches.keys()
-        .then(function(keys) {
-          return Promise.all(
-            keys
-              .filter(function(key) { return key.indexOf('fortune-tama-') === 0; })
-              .map(function(key) { return caches.delete(key); })
-          );
-        })
-        .catch(function() {});
-    }
-  });
+  if(iosBtn){
+    iosBtn.classList.toggle('hidden',!showIOSHint);
+    iosBtn.style.display=showIOSHint?'flex':'none';
+  }
+  if(iosTip&&(installed||!showIOSHint)) iosTip.classList.add('hidden');
+  if(dlBtn) dlBtn.style.display=installed?'none':'flex';
 }
+
+function installPWA(forceGuide){
+  if(_pwaPrompt){
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(function(r){
+      if(r&&r.outcome==='accepted'){
+        markPWAInstalledFlag();
+        _pwaPrompt=null;
+        toast('설치가 완료되면 앱처럼 실행할 수 있어 📲');
+      }else{
+        toast('설치를 닫았어. 원하면 다시 눌러줘 📲');
+      }
+      updateInstallButtons();
+    }).catch(function(){
+      updateInstallButtons();
+    });
+    return;
+  }
+
+  if(forceGuide){
+    if(isIOSSafari()&&!isStandaloneMode()){
+      var tip=document.getElementById('ios-pwa-tip');
+      if(tip) tip.classList.remove('hidden');
+      toast('Safari 공유 버튼에서 홈 화면에 추가를 선택해줘 📲');
+    }else{
+      toast('브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택해줘 📲');
+    }
+  }
+  updateInstallButtons();
+}
+
+function registerTamaServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/tadagochi-sw.js?v=20260511',{scope:'/'})
+    .then(function(){})
+    .catch(function(){});
+}
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  _pwaPrompt=e;
+  updateInstallButtons();
+});
+
+window.addEventListener('appinstalled',function(){
+  markPWAInstalledFlag();
+  _pwaPrompt=null;
+  updateInstallButtons();
+});
+
+window.addEventListener('load',function(){
+  updateInstallButtons();
+  registerTamaServiceWorker();
+});
+
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden) updateInstallButtons();
+});
 
 </script>
 
