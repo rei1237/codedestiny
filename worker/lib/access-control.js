@@ -1,7 +1,7 @@
 import { connectDb } from "./db.js";
 import { User, PointHistory } from "./models.js";
 
-const PREMIUM_UNLOCK_POLICY = Object.freeze({
+export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   lifeBook: ["premiumDivinationPack"],
   loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
@@ -24,7 +24,7 @@ function normalizeModeToken(requestBody = {}) {
   return `${mode} ${reportMode}`.trim();
 }
 
-function buildAlternativePaymentRules(reportType, requestBody = {}) {
+export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "lifeBook") {
     return [{
       featureKey: "coin-gate-per-use",
@@ -48,13 +48,25 @@ function buildAlternativePaymentRules(reportType, requestBody = {}) {
   return [];
 }
 
-function buildRequiredPaymentRules(reportType, requestBody = {}) {
+export function buildRequiredPaymentRules(reportType, requestBody = {}) {
   if (reportType === "sookyoPremium") {
     const modeToken = normalizeModeToken(requestBody);
     if (modeToken.includes("compat")) {
       return [{
         featureKey: "premium-sukuyo-compat-extra",
         reason: "숙요점 궁합 확장 분석 추가",
+        minCost: 300,
+        windowMinutes: 120,
+      }];
+    }
+  }
+
+  if (reportType === "vedicPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    if (modeToken.includes("compat")) {
+      return [{
+        featureKey: "premium-veda-compatibility-addon",
+        reason: "프리미엄 베다점 궁합 확장 분석 추가",
         minCost: 300,
         windowMinutes: 120,
       }];

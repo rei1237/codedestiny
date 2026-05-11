@@ -37,4 +37,13 @@ describe("Premium access-control rules", () => {
       minCost: 300,
     });
   });
+
+  test("vedicPremium compat 모드는 추가 결제 증빙 규칙을 강제해야 한다", () => {
+    const rules = utils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });
+    expect(rules).toHaveLength(1);
+    expect(rules[0]).toMatchObject({
+      featureKey: "premium-veda-compatibility-addon",
+      minCost: 300,
+    });
+  });
 });

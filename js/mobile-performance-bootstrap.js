@@ -218,13 +218,13 @@ function __applyResponsiveSrcsetHints(img) {
 
   var srcsetHints = {
     '/icons/꿀꿀 운세 로고.webp': {
-      srcset: '/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix1 512w',
+      srcset: '/icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix4 96w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix4 130w, /icons/꿀꿀 운세 로고.webp?v=20260511-mobile-logo-fix4 512w',
       sizes: '(max-width: 768px) 88px, 130px',
       width: 130,
       height: 130
     },
     '/icons/samba.webp': {
-      srcset: '/icons/samba-96.webp?v=20260511-mobile-logo-fix1 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix1 130w, /icons/samba.webp?v=20260511-mobile-logo-fix1 512w',
+      srcset: '/icons/samba-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/samba.webp?v=20260511-mobile-logo-fix4 512w',
       sizes: '(max-width: 768px) 88px, 130px',
       width: 130,
       height: 130

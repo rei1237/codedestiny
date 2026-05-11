@@ -427,11 +427,90 @@ var _pwaPrompt = null;
 var _pwaInstalled = false;
 var FAVORITE_MODE_KEY = 'fortuneFavoriteModeStateV1';
 var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
-var THEME_LOGO_REV = '20260511-mobile-logo-fix3';
+var THEME_MODE_STATE_META_KEY = 'fortuneThemeModeStateMetaV1';
+var THEME_MODE_STATE_SCHEMA = '20260511-theme-state-v2';
+var THEME_LOGO_REV = '20260511-mobile-logo-fix4';
 var PIG_LOGO_URL = '/icons/꿀꿀 운세 로고.webp?v=' + THEME_LOGO_REV;
 var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
 var SAMBA_LOGO_URL = '/icons/samba.webp?v=' + THEME_LOGO_REV;
 var SAMBA_LOGO_SRCSET = '/icons/samba-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/samba-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + SAMBA_LOGO_URL + ' 512w';
+
+function ensureThemeModeStateSchema() {
+  try {
+    var stateSchema = localStorage.getItem(THEME_MODE_STATE_META_KEY);
+    if (stateSchema === THEME_MODE_STATE_SCHEMA) return;
+
+    var rawMode = localStorage.getItem(THEME_MODE_KEY);
+    if (rawMode !== 'neo' && rawMode !== 'pig') {
+      localStorage.removeItem(THEME_MODE_KEY);
+    }
+    localStorage.setItem(THEME_MODE_STATE_META_KEY, THEME_MODE_STATE_SCHEMA);
+  } catch (_) {}
+}
+
+ensureThemeModeStateSchema();
+
+function isThemeLogoDebugEnabled() {
+  try {
+    if (window.__cdDebugThemeLogoSync === true || window.__cdDebugThemeLogoSync === false) {
+      return window.__cdDebugThemeLogoSync;
+    }
+    var q = new URLSearchParams(window.location.search || '');
+    var enabled = q.get('debugLogoSync') === '1' || localStorage.getItem('__cd_debug_logo_sync__') === '1';
+    window.__cdDebugThemeLogoSync = !!enabled;
+    return !!enabled;
+  } catch (_) {
+    return false;
+  }
+}
+
+function logThemeLogoSync(reason, phase, pigLogo, neoLogo) {
+  if (!isThemeLogoDebugEnabled() || typeof console === 'undefined' || typeof console.info !== 'function') return;
+
+  var payload = {
+    reason: reason || 'unspecified',
+    phase: phase || 'after',
+    pigSrc: pigLogo ? (pigLogo.getAttribute('src') || '') : '',
+    pigSrcset: pigLogo ? (pigLogo.getAttribute('srcset') || '') : '',
+    neoSrc: neoLogo ? (neoLogo.getAttribute('src') || '') : '',
+    neoSrcset: neoLogo ? (neoLogo.getAttribute('srcset') || '') : '',
+    isMobile: !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches),
+    at: new Date().toISOString()
+  };
+
+  console.info('[DEBUG][logo-sync]', payload);
+}
+
+function installLogoMutationDebug() {
+  if (!isThemeLogoDebugEnabled() || window.__cdLogoMutationDebugInstalled) return;
+  window.__cdLogoMutationDebugInstalled = true;
+
+  function watchById(id) {
+    var target = document.getElementById(id);
+    if (!target || typeof MutationObserver === 'undefined') return;
+
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (!mutation || mutation.type !== 'attributes') return;
+        if (mutation.attributeName !== 'src' && mutation.attributeName !== 'srcset') return;
+        var src = target.getAttribute('src') || '';
+        var srcset = target.getAttribute('srcset') || '';
+        console.info('[DEBUG][logo-mutation]', {
+          id: id,
+          attr: mutation.attributeName,
+          src: src,
+          srcset: srcset,
+          at: new Date().toISOString()
+        });
+      });
+    });
+
+    observer.observe(target, { attributes: true, attributeFilter: ['src', 'srcset'] });
+  }
+
+  watchById('honeypigLogo');
+  watchById('neoLogo');
+}
 
 function readThemeModeState() {
   try {
@@ -465,8 +544,11 @@ function applyPwaThemeAssets(isNeo) {
   }
 }
 
-function syncThemeLogoSources() {
+function syncThemeLogoSources(reason) {
   var pigLogo = document.getElementById('honeypigLogo');
+  var neoLogo = document.getElementById('neoLogo');
+  logThemeLogoSync(reason, 'before', pigLogo, neoLogo);
+
   if (pigLogo) {
     pigLogo.setAttribute('src', PIG_LOGO_URL);
     pigLogo.setAttribute('srcset', PIG_LOGO_SRCSET);
@@ -480,12 +562,13 @@ function syncThemeLogoSources() {
     pigSource.setAttribute('type', 'image/webp');
   }
 
-  var neoLogo = document.getElementById('neoLogo');
   if (neoLogo) {
     neoLogo.setAttribute('src', SAMBA_LOGO_URL);
     neoLogo.setAttribute('srcset', SAMBA_LOGO_SRCSET);
     neoLogo.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
   }
+
+  logThemeLogoSync(reason, 'after', pigLogo, neoLogo);
 }
 
 function getFavoriteModeLabels() {
@@ -1070,8 +1153,8 @@ function toggleNeoMode(nextMode){
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '꽃돼지 운세 서비스 앱 설치하기';
     updateFavoriteButtonThemeText(false);
   }
-  syncThemeLogoSources();
-  setTimeout(syncThemeLogoSources, 160);
+  syncThemeLogoSources('toggle');
+  setTimeout(function(){ syncThemeLogoSources('toggle:timeout160'); }, 160);
   if(_themeToggleApplyTextRaf) cancelAnimationFrame(_themeToggleApplyTextRaf);
   _themeToggleApplyTextRaf = requestAnimationFrame(function(){
     applyNeoTexts();
@@ -1173,6 +1256,7 @@ function enforceThemeToggleSticky() {
 }
 
 window.addEventListener('load',function(){
+  installLogoMutationDebug();
   ensureThemeToggleCriticalStyles();
   var bootThemeNeo;
   var bootThemeCheckbox = document.getElementById('themeCheckbox');
@@ -1207,8 +1291,8 @@ window.addEventListener('load',function(){
     themeCb.setAttribute('aria-checked', NEO_MODE ? 'true' : 'false');
   }
   applyPwaThemeAssets(NEO_MODE);
-  syncThemeLogoSources();
-  setTimeout(syncThemeLogoSources, 900);
+  syncThemeLogoSources('boot');
+  setTimeout(function(){ syncThemeLogoSources('boot:timeout900'); }, 900);
   var pwaLabel = document.getElementById('pwaInstallLabel');
   var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
   var tLabel = document.getElementById('themeToggleLabel');

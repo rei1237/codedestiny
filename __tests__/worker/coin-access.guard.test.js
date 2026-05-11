@@ -51,7 +51,35 @@ describe("Fortune coin access guard", () => {
     expect(priced.pricingSource).toBe("feature-key");
   });
 
-  test("가격표 없는 featureKey는 운영환경에서 403으로 차단해야 한다", () => {
+  test("베다 궁합 addon featureKey는 서버 가격 300으로 고정되어야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "premium-veda-compatibility-addon",
+      reason: "프리미엄 베다점 궁합 확장 분석 추가",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(300);
+    expect(priced.pricingSource).toBe("feature-key");
+  });
+
+  test("요가 구루는 reason 기반 서버 가격을 적용해야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 999,
+      featureKey: "yoga-guru-per-use",
+      reason: "openYogaGuru 60분 코스",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(50);
+    expect(priced.pricingSource).toBe("feature-reason");
+  });
+
+  test("가격표 없는 featureKey는 운영환경에서 400으로 차단해야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },
       productSpec: null,
@@ -61,8 +89,8 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(false);
-    expect(priced.status).toBe(403);
-    expect(priced.code).toBe("SERVER_PRICE_REQUIRED");
+    expect(priced.status).toBe(400);
+    expect(priced.code).toBe("UNKNOWN_FEATURE_KEY");
   });
 
   test("관리자 bypass는 운영환경에서 강제 비활성화되어야 한다", () => {

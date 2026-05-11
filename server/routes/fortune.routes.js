@@ -10,6 +10,58 @@ const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
 const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
 
+const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
+  "애니멀 토템 리딩": 30,
+  "인생의 책 생성 (13챕터)": 490,
+  "시빌라 도미네이터 리포트": 100,
+  "점성술 셜럭 시나스트리 궁합": 50,
+  "점성술 직접 입력 시나스트리 궁합": 50,
+  "자미두수 궁합 분석": 50,
+  "사주 궁합 분석": 50,
+  "숙요점 유명인 궁합": 50,
+  "숙요점 궁합 분석": 50,
+});
+
+const FEATURE_KEY_REASON_COSTS = Object.freeze({
+  "yoga-guru-per-use": Object.freeze({
+    "openYogaGuru 30분 코스": 30,
+    "openYogaGuru 60분 코스": 50,
+  }),
+});
+
+const FEATURE_KEY_PRICE_TABLE = Object.freeze({
+  "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
+  "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
+  "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
+  "tarot-mindscan": { cost: 50, reason: "마인드 스캔 타로 리딩" },
+  "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
+  "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
+  "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
+  "fortune-fish-gacha": { cost: 5, reason: "포춘텔러 피쉬 행운 가챠" },
+  "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
+  "yoga-guru-per-use": { cost: 30, reason: "요가 구루 30분 코스" },
+  "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
+  openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
+  openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
+  openGeomancyOracle: { cost: 50, reason: "지오맨시 오라클 리딩" },
+  loveSimulation: { cost: 100, reason: "LOVE CODE 사주 연애 시뮬레이션" },
+  turtleIChing: { cost: 30, reason: "주역 거북점 리딩" },
+  egyptOracle: { cost: 30, reason: "이집트 신탁 리딩" },
+  geomancy: { cost: 50, reason: "지오맨시 오라클 리딩" },
+  stonehengeRunes: { cost: 50, reason: "스톤헨지 룬 리딩" },
+  premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
+  "palm-reading-general": { cost: 50, reason: "손금 전체운 분석" },
+  "palm-reading-love": { cost: 30, reason: "손금 연애운 분석" },
+  "palm-reading-wealth": { cost: 30, reason: "손금 재물운 분석" },
+  "palm-reading-career": { cost: 30, reason: "손금 직업운 분석" },
+  "palm-reading-personality": { cost: 30, reason: "손금 성격 분석" },
+  "palm-reading-relationship": { cost: 30, reason: "손금 관계 패턴 분석" },
+  "premium-love-secret-solo": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
+  "premium-love-secret-couple": { cost: 500, reason: "사주 프리미엄 궁합 리포트 생성" },
+  "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
+  "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
+});
+
 const PIG_COIN_PACKAGES = {
   sample: {
     name: "맛보기 한 줌",
@@ -62,6 +114,143 @@ function resolveUnlockProductSpec(productId) {
   const id = String(productId || "").trim().toLowerCase();
   if (!id) return null;
   return PIG_COIN_UNLOCK_PRODUCTS[id] || null;
+}
+
+const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
+  Object.values(PIG_COIN_UNLOCK_PRODUCTS).reduce((acc, spec) => {
+    const key = String(spec?.featureKey || "").trim();
+    if (key && !acc[key]) acc[key] = spec;
+    return acc;
+  }, Object.create(null)),
+);
+
+function isTruthyFlag(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function isProductionRuntime() {
+  const nodeEnv = String(process.env.NODE_ENV || "").trim().toLowerCase();
+  if (nodeEnv === "production") return true;
+
+  const appEnv = String(process.env.APP_ENV || process.env.DEPLOY_ENV || process.env.ENVIRONMENT || "").trim().toLowerCase();
+  return appEnv === "prod" || appEnv === "production";
+}
+
+function isDynamicCostFallbackEnabled() {
+  return !isProductionRuntime() && isTruthyFlag(process.env.ALLOW_DYNAMIC_PIG_COIN_COST_FALLBACK);
+}
+
+function listServerPricedFeatureKeys() {
+  const keys = new Set([
+    "coin-gate-per-use",
+    ...Object.keys(FEATURE_KEY_PRICE_TABLE),
+    ...Object.keys(UNLOCK_PRODUCT_BY_FEATURE_KEY),
+  ]);
+  return Array.from(keys).sort();
+}
+
+function resolveFeatureReasonCost(featureKey, reason) {
+  const key = String(featureKey || "").trim();
+  const reasonText = String(reason || "").trim();
+  if (!key || !reasonText) return null;
+
+  const table = FEATURE_KEY_REASON_COSTS[key] || null;
+  if (!table) return null;
+
+  const matched = Number(table[reasonText]);
+  if (!Number.isFinite(matched) || matched <= 0) return null;
+  return matched;
+}
+
+function resolveServerCoinPricing({ productSpec, requestedCost, featureKey, reason }) {
+  if (productSpec) {
+    return {
+      ok: true,
+      cost: Number(productSpec.cost),
+      reason: String(productSpec.reason || reason || "유료 기능 잠금 해제"),
+      pricingSource: "product-id",
+    };
+  }
+
+  const key = String(featureKey || "").trim();
+  const reasonText = String(reason || "").trim();
+  const requestCost = Number(requestedCost);
+
+  if (key === "coin-gate-per-use") {
+    const serverCost = Number(COIN_GATE_PER_USE_REASON_COSTS[reasonText]);
+    if (Number.isFinite(serverCost) && serverCost > 0) {
+      return {
+        ok: true,
+        cost: serverCost,
+        reason: reasonText,
+        pricingSource: "coin-gate-reason",
+      };
+    }
+
+    if (isDynamicCostFallbackEnabled() && Number.isFinite(requestCost) && requestCost > 0) {
+      return {
+        ok: true,
+        cost: requestCost,
+        reason: reasonText || "Coin gate per-use",
+        pricingSource: "dynamic-fallback",
+      };
+    }
+
+    return {
+      ok: false,
+      status: 403,
+      code: "SERVER_PRICE_REQUIRED",
+      message: "coin-gate-per-use 기능의 서버 가격표가 누락되었습니다.",
+    };
+  }
+
+  const reasonCost = resolveFeatureReasonCost(key, reasonText);
+  if (Number.isFinite(reasonCost) && reasonCost > 0) {
+    return {
+      ok: true,
+      cost: reasonCost,
+      reason: reasonText,
+      pricingSource: "feature-reason",
+    };
+  }
+
+  const featurePrice = FEATURE_KEY_PRICE_TABLE[key] || null;
+  if (featurePrice) {
+    return {
+      ok: true,
+      cost: Number(featurePrice.cost),
+      reason: String(featurePrice.reason || reasonText || "유료 기능 잠금 해제"),
+      pricingSource: "feature-key",
+    };
+  }
+
+  const unlockSpec = UNLOCK_PRODUCT_BY_FEATURE_KEY[key] || null;
+  if (unlockSpec) {
+    return {
+      ok: true,
+      cost: Number(unlockSpec.cost),
+      reason: String(unlockSpec.reason || reasonText || "유료 기능 잠금 해제"),
+      pricingSource: "unlock-feature",
+    };
+  }
+
+  if (isDynamicCostFallbackEnabled() && Number.isFinite(requestCost) && requestCost > 0) {
+    return {
+      ok: true,
+      cost: requestCost,
+      reason: reasonText || "유료 기능 잠금 해제",
+      pricingSource: "dynamic-fallback",
+    };
+  }
+
+  return {
+    ok: false,
+    status: 400,
+    code: "UNKNOWN_FEATURE_KEY",
+    message: "결제 상품 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    availableFeatureKeys: listServerPricedFeatureKeys(),
+  };
 }
 
 const PROFILE_SUB_PLANS = {
@@ -440,21 +629,60 @@ async function handlePigCoinConsumeRoute(req, res, next) {
       });
     }
 
+    const featureKey = String(productSpec?.featureKey || req.body?.featureKey || "pig-coin-unlock")
+      .trim()
+      .slice(0, 60);
+    const requestReason = String(productSpec?.reason || req.body?.reason || "유료 섹션 잠금 해제")
+      .trim()
+      .slice(0, 120);
     const requestedCost = Number(productSpec ? productSpec.cost : req.body?.cost);
-    const cost = Number.isFinite(requestedCost) && requestedCost > 0
-      ? Math.floor(requestedCost)
+    const pricing = resolveServerCoinPricing({
+      productSpec,
+      requestedCost,
+      featureKey,
+      reason: requestReason,
+    });
+
+    if (!pricing.ok) {
+      if (pricing.code === "UNKNOWN_FEATURE_KEY") {
+        try {
+          console.error("[fortune][pricing][unknown-feature]", JSON.stringify({
+            featureKey,
+            requestReason,
+            productId: productId || null,
+            route: "/api/fortune/pig-coin/consume",
+          }));
+        } catch {
+          console.error("[fortune][pricing][unknown-feature]", { featureKey, requestReason, productId: productId || null });
+        }
+      }
+
+      const payload = {
+        message: pricing.message || "서버 가격 검증에 실패했습니다.",
+        code: pricing.code || "SERVER_PRICE_REQUIRED",
+        productId: productId || null,
+        featureKey,
+      };
+
+      if (!isProductionRuntime() && pricing.code === "UNKNOWN_FEATURE_KEY") {
+        payload.availableFeatureKeys = Array.isArray(pricing.availableFeatureKeys) ? pricing.availableFeatureKeys : [];
+        payload.requestReason = requestReason;
+      }
+
+      return res.status(Number(pricing.status || 403)).json(payload);
+    }
+
+    const cost = Number.isFinite(Number(pricing.cost)) && Number(pricing.cost) > 0
+      ? Math.floor(Number(pricing.cost))
       : PIG_COIN_DEFAULT_UNLOCK_COST;
 
     if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
       return res.status(400).json({ message: "유효하지 않은 코인 차감 수량입니다.", code: "INVALID_REQUEST" });
     }
 
-    const reason = String(productSpec?.reason || req.body?.reason || "유료 섹션 잠금 해제")
+    const reason = String(pricing.reason || requestReason || "유료 섹션 잠금 해제")
       .trim()
       .slice(0, 120);
-    const featureKey = String(productSpec?.featureKey || req.body?.featureKey || "pig-coin-unlock")
-      .trim()
-      .slice(0, 60);
     const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
     const requestId = String(req.body?.requestId || "")
       .trim()

@@ -2,38 +2,17 @@ import { connectDb, mongoose } from "../lib/db.js";
 import { User, PointHistory } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import {
+  COIN_GATE_PER_USE_REASON_COSTS,
+  FEATURE_KEY_PRICE_TABLE,
+  PIG_COIN_UNLOCK_PRODUCTS,
+  UNLOCK_PRODUCT_BY_FEATURE_KEY,
+  listServerPricedFeatureKeys,
+  resolveFeatureReasonCost,
+} from "../lib/paid-feature-registry.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
-
-const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
-  "애니멀 토템 리딩": 30,
-  "인생의 책 생성 (13챕터)": 490,
-  "시빌라 도미네이터 리포트": 100,
-  "점성술 셜럭 시나스트리 궁합": 50,
-  "점성술 직접 입력 시나스트리 궁합": 50,
-  "자미두수 궁합 분석": 50,
-  "사주 궁합 분석": 50,
-  "숙요점 유명인 궁합": 50,
-  "숙요점 궁합 분석": 50,
-});
-
-const FEATURE_KEY_PRICE_TABLE = Object.freeze({
-  "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
-  "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
-  "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
-  "palm-reading-general": { cost: 50, reason: "손금 전체운 분석" },
-  "palm-reading-love": { cost: 30, reason: "손금 연애운 분석" },
-  "palm-reading-wealth": { cost: 30, reason: "손금 재물운 분석" },
-  "palm-reading-career": { cost: 30, reason: "손금 직업운 분석" },
-  "palm-reading-personality": { cost: 30, reason: "손금 성격 분석" },
-  "palm-reading-relationship": { cost: 30, reason: "손금 관계 패턴 분석" },
-  openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
-  openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
-  "premium-love-secret-solo": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
-  "premium-love-secret-couple": { cost: 500, reason: "사주 프리미엄 궁합 리포트 생성" },
-  "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
-});
 
 const PIG_COIN_PACKAGES = {
   sample: { name: "Sample Pack", coins: 30, bonus: 0 },
@@ -42,34 +21,6 @@ const PIG_COIN_PACKAGES = {
   goldVault: { name: "Gold Vault", coins: 700, bonus: 180 },
   emperorReserve: { name: "Emperor Reserve", coins: 1500, bonus: 500 },
 };
-
-const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
-  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock", forceDeduct: true },
-  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
-  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG character unlock", forceDeduct: true },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 100, reason: "Travel destiny unlock", forceDeduct: true },
-  "unlock.health_report": { featureKey: "healthReport", cost: 100, reason: "Health report unlock", forceDeduct: true },
-  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 200, reason: "Saju diary unlock", forceDeduct: true },
-  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 100, reason: "Secret house episodes unlock", forceDeduct: true },
-  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 500, reason: "Premium ziwei unlock", forceDeduct: true },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock", forceDeduct: true },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
-});
-
-const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
-  Object.values(PIG_COIN_UNLOCK_PRODUCTS).reduce((acc, spec) => {
-    const key = String(spec?.featureKey || "").trim();
-    if (key && !acc[key]) acc[key] = spec;
-    return acc;
-  }, Object.create(null)),
-);
 
 function isTruthyFlag(value) {
   const normalized = String(value || "").trim().toLowerCase();
@@ -146,6 +97,16 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
     };
   }
 
+  const featureReasonCost = resolveFeatureReasonCost(key, reasonText);
+  if (Number.isFinite(featureReasonCost) && featureReasonCost > 0) {
+    return {
+      ok: true,
+      cost: featureReasonCost,
+      reason: reasonText,
+      pricingSource: "feature-reason",
+    };
+  }
+
   const featurePrice = FEATURE_KEY_PRICE_TABLE[key] || null;
   if (featurePrice) {
     return {
@@ -177,9 +138,10 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
 
   return {
     ok: false,
-    status: 403,
-    code: "SERVER_PRICE_REQUIRED",
-    message: "서버 가격표가 정의되지 않은 featureKey입니다.",
+    status: 400,
+    code: "UNKNOWN_FEATURE_KEY",
+    message: "결제 상품 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    availableFeatureKeys: listServerPricedFeatureKeys(),
   };
 }
 
@@ -663,11 +625,33 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   });
 
   if (!pricing.ok) {
-    return json({
+    if (pricing.code === "UNKNOWN_FEATURE_KEY") {
+      try {
+        console.error("[fortune][pricing][unknown-feature]", JSON.stringify({
+          featureKey,
+          requestReason,
+          productId: productId || null,
+          route: "/api/fortune/pig-coin/consume",
+        }));
+      } catch {
+        console.error("[fortune][pricing][unknown-feature]", { featureKey, requestReason, productId: productId || null });
+      }
+    }
+
+    const payload = {
       message: pricing.message || "서버 가격 검증에 실패했습니다.",
       code: pricing.code || "SERVER_PRICE_REQUIRED",
       productId: productId || null,
       featureKey,
+    };
+
+    if (!isProductionRuntime(env) && pricing.code === "UNKNOWN_FEATURE_KEY") {
+      payload.availableFeatureKeys = Array.isArray(pricing.availableFeatureKeys) ? pricing.availableFeatureKeys : [];
+      payload.requestReason = requestReason;
+    }
+
+    return json({
+      ...payload,
     }, { status: Number(pricing.status || 403) });
   }
 

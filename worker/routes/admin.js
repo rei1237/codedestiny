@@ -3,8 +3,19 @@ import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb } from "../lib/db.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { Insight } from "../lib/models.js";
-import { PREMIUM_PDF_SPECS } from "../lib/premium-pdf-specs.js";
+import { Insight, PointHistory } from "../lib/models.js";
+import { PREMIUM_PDF_SPECS, REPORT_TYPE_TO_FEATURE_TYPE } from "../lib/premium-pdf-specs.js";
+import {
+  FEATURE_KEY_PRICE_TABLE,
+  FRONTEND_PAID_FEATURE_KEYS,
+  PIG_COIN_UNLOCK_PRODUCTS,
+  listServerPricedFeatureKeys,
+} from "../lib/paid-feature-registry.js";
+import {
+  PREMIUM_UNLOCK_POLICY,
+  buildAlternativePaymentRules,
+  buildRequiredPaymentRules,
+} from "../lib/access-control.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
@@ -1682,6 +1693,84 @@ async function handleAdminPremiumPdfHealth(request, env) {
   });
 }
 
+async function handleAdminPaymentDiagnostics(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const requestId = `apd_${Date.now().toString(36)}`;
+  const serverFeatureKeys = listServerPricedFeatureKeys();
+  const frontendFeatureKeys = Array.from(FRONTEND_PAID_FEATURE_KEYS);
+  const serverKeySet = new Set(serverFeatureKeys);
+
+  const missingInServer = frontendFeatureKeys.filter((key) => !serverKeySet.has(key));
+  const frontendSeen = new Set();
+  const duplicatedInFrontend = frontendFeatureKeys.filter((key) => {
+    if (frontendSeen.has(key)) return true;
+    frontendSeen.add(key);
+    return false;
+  });
+
+  const invalidPriceRows = Object.entries(FEATURE_KEY_PRICE_TABLE)
+    .filter(([, spec]) => !Number.isFinite(Number(spec?.cost)) || Number(spec?.cost) <= 0)
+    .map(([featureKey]) => featureKey)
+    .sort();
+
+  const invalidUnlockRows = Object.entries(PIG_COIN_UNLOCK_PRODUCTS)
+    .filter(([, spec]) => !Number.isFinite(Number(spec?.cost)) || Number(spec?.cost) <= 0)
+    .map(([productId]) => productId)
+    .sort();
+
+  const reportTypeRules = Object.keys(REPORT_TYPE_TO_FEATURE_TYPE)
+    .sort()
+    .map((reportType) => {
+      const unlockKeys = Array.isArray(PREMIUM_UNLOCK_POLICY[reportType])
+        ? PREMIUM_UNLOCK_POLICY[reportType]
+        : [];
+      const alternativeRules = buildAlternativePaymentRules(reportType, {});
+      const requiredRules = buildRequiredPaymentRules(reportType, { mode: "compatibility", reportMode: "compatibility" });
+
+      return {
+        reportType,
+        featureType: REPORT_TYPE_TO_FEATURE_TYPE[reportType],
+        unlockKeys,
+        alternativeRules,
+        requiredRules,
+      };
+    });
+
+  const dbOrphanRaw = await PointHistory.distinct("featureKey", {
+    kind: "deduct",
+    featureKey: { $nin: serverFeatureKeys },
+  });
+
+  const dbOrphanFeatureKeys = Array.from(new Set(
+    (Array.isArray(dbOrphanRaw) ? dbOrphanRaw : [])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean),
+  )).sort();
+
+  return json({
+    ok: true,
+    requestId,
+    adminAuth: true,
+    userId: adminContext.userId,
+    diagnostics: {
+      serverFeatureKeyCount: serverFeatureKeys.length,
+      frontendFeatureKeyCount: frontendFeatureKeys.length,
+      premiumFeatureTypeCount: Object.keys(PREMIUM_PDF_SPECS).length,
+      reportTypeRuleCount: reportTypeRules.length,
+      missingInServer,
+      duplicatedInFrontend,
+      invalidPriceRows,
+      invalidUnlockRows,
+      dbOrphanFeatureKeys,
+      serverFeatureKeys,
+      frontendFeatureKeys,
+      reportTypeRules,
+    },
+  });
+}
+
 export async function handleAdminRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -1705,6 +1794,10 @@ export async function handleAdminRoutes(request, env) {
 
     if (method === "GET" && path === "/premium-pdf-health") {
       return await handleAdminPremiumPdfHealth(request, env);
+    }
+
+    if (method === "GET" && path === "/payment-diagnostics") {
+      return await handleAdminPaymentDiagnostics(request, env);
     }
 
     if (path === "/content") {

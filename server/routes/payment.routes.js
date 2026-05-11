@@ -211,6 +211,40 @@ async function markPaymentFailure(paymentRecord, patch = {}) {
   }).catch(() => {});
 }
 
+async function enforcePaymentOwnerMatch({
+  req,
+  payment,
+  requestUserId,
+  impUid,
+  merchantUid,
+  source,
+  stage,
+  message,
+}) {
+  if (!payment) return { ok: true };
+  if (String(payment.userId) === String(requestUserId)) return { ok: true };
+
+  const deniedMessage = message || "본인 결제 건만 처리할 수 있습니다.";
+  await writeFailureLog({
+    req,
+    userId: requestUserId,
+    impUid,
+    merchantUid,
+    source,
+    stage,
+    code: "forbidden_owner_mismatch",
+    message: deniedMessage,
+    status: 403,
+    payload: req?.body,
+  });
+
+  return {
+    ok: false,
+    status: 403,
+    message: deniedMessage,
+  };
+}
+
 async function findPaymentRecord(impUid, merchantUid) {
   if (impUid) {
     const byImp = await Payment.findOne({ impUid }).lean();
@@ -1341,20 +1375,18 @@ router.post("/cancel", async (req, res, next) => {
       return res.status(404).json({ message: "결제 정보를 찾을 수 없습니다." });
     }
 
-    if (String(paymentRecord.userId) !== String(req.auth.userId)) {
-      await writeFailureLog({
-        req,
-        userId: req.auth.userId,
-        impUid,
-        merchantUid,
-        source: "confirm",
-        stage: "cancel_owner",
-        code: "forbidden_owner_mismatch",
-        message: "본인 결제 건만 취소할 수 있습니다.",
-        status: 403,
-        payload: req.body,
-      });
-      return res.status(403).json({ message: "본인 결제 건만 취소할 수 있습니다." });
+    const ownerGuard = await enforcePaymentOwnerMatch({
+      req,
+      payment: paymentRecord,
+      requestUserId: req.auth.userId,
+      impUid,
+      merchantUid,
+      source: "confirm",
+      stage: "cancel_owner",
+      message: "본인 결제 건만 취소할 수 있습니다.",
+    });
+    if (!ownerGuard.ok) {
+      return res.status(ownerGuard.status).json({ message: ownerGuard.message });
     }
 
     if (paymentRecord.status === "cancelled") {
@@ -1544,20 +1576,18 @@ router.post("/report-failure", async (req, res) => {
   const reasonMessage = String(req.body?.reasonMessage || "결제가 사용자 측에서 완료되지 않았습니다.").trim().slice(0, 500);
 
   const payment = await findPaymentRecord(impUid, merchantUid);
-  if (payment && String(payment.userId) !== String(req.auth.userId)) {
-    await writeFailureLog({
-      req,
-      userId: req.auth.userId,
-      impUid,
-      merchantUid,
-      source: "client",
-      stage: "report_failure",
-      code: "forbidden_owner_mismatch",
-      message: "본인 결제 건만 실패 보고할 수 있습니다.",
-      status: 403,
-      payload: req.body,
-    });
-    return res.status(403).json({ message: "본인 결제 건만 실패 보고할 수 있습니다." });
+  const ownerGuard = await enforcePaymentOwnerMatch({
+    req,
+    payment,
+    requestUserId: req.auth.userId,
+    impUid,
+    merchantUid,
+    source: "client",
+    stage: "report_failure",
+    message: "본인 결제 건만 실패 보고할 수 있습니다.",
+  });
+  if (!ownerGuard.ok) {
+    return res.status(ownerGuard.status).json({ message: ownerGuard.message });
   }
 
   if (payment && payment.status !== "success") {

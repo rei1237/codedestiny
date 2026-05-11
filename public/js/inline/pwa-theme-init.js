@@ -8,15 +8,15 @@
     window.__INITIAL_THEME_NEO__ = isNeo;
     if (!isNeo) return;
     var manifestLink = document.getElementById('pwa-manifest');
-    if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json?v=20260511-mobile-logo-fix3');
+    if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json?v=1.0.1');
     var faviconLink = document.getElementById('pwa-favicon');
     if (faviconLink) {
-      faviconLink.setAttribute('href', '/icons/samba.webp?v=20260511-mobile-logo-fix3');
+      faviconLink.setAttribute('href', '/icons/samba.webp');
       faviconLink.setAttribute('type', 'image/webp');
       faviconLink.setAttribute('sizes', '192x192');
     }
     var appleIconLink = document.getElementById('pwa-apple-icon');
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp?v=20260511-mobile-logo-fix3');
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
   } catch (_) {
     window.__INITIAL_THEME_NEO__ = false;
   }
