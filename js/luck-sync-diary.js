@@ -849,7 +849,7 @@
     });
   }
 
-  function renderMzSections(pillars, power, todayGZ, scores, mainTenStar, luckyEl, entry, diary) {
+  function renderMzSections(pillars, power, todayGZ, scores, mainTenStar, luckyEl, entry, diary, jongData) {
     ensureMzBlocks();
     applyElementTheme(luckyEl);
 
@@ -865,7 +865,7 @@
       morningMsg: (document.getElementById('lsdEnergyGuide') || {}).textContent || '',
       pillars: pillars || null,
       power: power || null,
-      jong: jong || null
+      jong: jongData || null
     };
 
     renderEnergyFlowGraph(scores, GAN_ELEM[(todayGZ && todayGZ.g) || '戊'] || 'earth');
@@ -2984,8 +2984,16 @@
       });
     }
 
-    renderMzSections(pillars, power, todayGZ, scores, mainTenStar, _luckyEl, entry, diary);
-    renderMeditationBoard(entry, diary);
+    try {
+      renderMzSections(pillars, power, todayGZ, scores, mainTenStar, _luckyEl, entry, diary, jong);
+    } catch (err) {
+      console.warn('[LuckSyncDiary] renderMzSections failed:', err);
+    }
+    try {
+      renderMeditationBoard(entry, diary);
+    } catch (err) {
+      console.warn('[LuckSyncDiary] renderMeditationBoard failed:', err);
+    }
 
     /* 이벤트 바인딩 (각 오픈마다 재바인딩 방지: once) */
     bindModalEvents(modal);
@@ -3347,7 +3355,7 @@
           e.stickers.push(name);
         }
         saveDiary(d);
-        renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d);
+        renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d, _lsdCtx.jong || null);
       };
     });
 
@@ -3365,7 +3373,7 @@
           e.emotionTags.push(tag);
         }
         saveDiary(d);
-        renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d);
+        renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d, _lsdCtx.jong || null);
       };
     });
 
