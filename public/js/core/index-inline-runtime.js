@@ -2077,7 +2077,7 @@ var __cdLazyActionLoaders = {
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260507-sajuref1'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260512-quantum-v4').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -3823,15 +3823,25 @@ function _dfExtractAstroLiveData(birthCtx) {
 
   var chart = null;
   var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
+  var legacySwissFn = (typeof calcAstroSwissChartOrThrow === 'function') ? calcAstroSwissChartOrThrow : null;
+  var calcAstroFn =
+    (typeof window.calcAstroApiChartOrThrow === 'function' && window.calcAstroApiChartOrThrow)
+    || (typeof window.calcAstroSwissChartOrThrow === 'function' && window.calcAstroSwissChartOrThrow)
+    || legacySwissFn
+    || null;
 
   console.log('[AstrologyFlower] calcAstroApiChartOrThrow 확인:', {
-    hasFn: typeof window.calcAstroApiChartOrThrow === 'function',
+    hasApiFn: typeof window.calcAstroApiChartOrThrow === 'function',
+    hasSwissFn: typeof window.calcAstroSwissChartOrThrow === 'function' || !!legacySwissFn,
+    selectedFn: calcAstroFn
+      ? (calcAstroFn === window.calcAstroApiChartOrThrow ? 'calcAstroApiChartOrThrow' : 'calcAstroSwissChartOrThrow')
+      : 'none',
     birthData: { year: birthCtx.year, month: birthCtx.month, day: birthCtx.day, hour: birthCtx.hour, lat: birthCtx.lat, lon: birthCtx.lon, tz: birthCtx.tz }
   });
 
-  if (typeof window.calcAstroApiChartOrThrow === 'function') {
+  if (typeof calcAstroFn === 'function') {
     try {
-      chart = window.calcAstroApiChartOrThrow(
+      chart = calcAstroFn(
         Number(birthCtx.year),
         Number(birthCtx.month),
         Number(birthCtx.day),
@@ -3849,7 +3859,7 @@ function _dfExtractAstroLiveData(birthCtx) {
   }
 
   if (!chart) {
-    console.warn('[AstrologyFlower] chart가 없음 - calcAstroApiChartOrThrow 미로드');
+    console.warn('[AstrologyFlower] chart가 없음 - astrology chart 함수 미로드/연결 실패');
     return null;
   }
   return {
