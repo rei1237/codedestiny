@@ -156,6 +156,15 @@ const PURPOSE_OPTIONS: Array<{ value: AnalysisPurpose; label: string }> = [
   { value: "relationship", label: "관계 패턴" },
 ];
 
+const PALM_PURPOSE_COIN_LABEL: Record<AnalysisPurpose, string> = {
+  general: "50코인",
+  love: "30코인",
+  wealth: "30코인",
+  career: "30코인",
+  personality: "30코인",
+  relationship: "30코인",
+};
+
 const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
   general: "general",
   love: "love",
@@ -1907,7 +1916,8 @@ export default function PalmDestinyMain() {
                         style={active ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         aria-pressed={active}
                       >
-                        {option.label}
+                        <span className="block">{option.label}</span>
+                        <span className="mt-0.5 block text-[11px] opacity-80">{PALM_PURPOSE_COIN_LABEL[option.value]}</span>
                       </button>
                     );
                   })}

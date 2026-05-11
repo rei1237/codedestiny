@@ -8,6 +8,7 @@ import {
   PIG_COIN_UNLOCK_PRODUCTS,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
   listServerPricedFeatureKeys,
+  normalizePaidFeatureKey,
   resolveFeatureReasonCost,
 } from "../lib/paid-feature-registry.js";
 
@@ -55,24 +56,8 @@ function getForcePaidTestAccountEmails(env) {
   return new Set(values);
 }
 
-const FEATURE_KEY_ALIAS_MAP = Object.freeze({
-  "premium-sukyo": "premium-sukuyo",
-  "openjuyuk": "openJuyukModal",
-  "openkemet": "openKemetModal",
-  "opengeomancy": "openGeomancyOracle",
-  "turtle-iching": "turtleIChing",
-  "egypt-oracle": "egyptOracle",
-});
-
 function normalizeFeatureKey(rawKey) {
-  const key = String(rawKey || "").trim();
-  if (!key) return "";
-
-  const direct = FEATURE_KEY_ALIAS_MAP[key] || null;
-  if (direct) return direct;
-
-  const lowered = key.toLowerCase();
-  return FEATURE_KEY_ALIAS_MAP[lowered] || key;
+  return normalizePaidFeatureKey(rawKey);
 }
 
 function buildReasonPricingMap(pricingEntries) {
@@ -113,6 +98,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: Number(productSpec.cost),
       reason: String(productSpec.reason || reason || "Paid feature unlock"),
+      featureKey: normalizeFeatureKey(productSpec.featureKey || featureKey),
       pricingSource: "product-id",
     };
   }
@@ -128,7 +114,30 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
         ok: true,
         cost: serverCost,
         reason: reasonText,
+        featureKey: "coin-gate-per-use",
         pricingSource: "coin-gate-reason",
+      };
+    }
+
+    const featureReasonPricing = FEATURE_REASON_PRICING_MAP[reasonText] || null;
+    if (featureReasonPricing) {
+      return {
+        ok: true,
+        cost: Number(featureReasonPricing.cost),
+        reason: String(featureReasonPricing.reason || reasonText),
+        featureKey: String(featureReasonPricing.featureKey || key),
+        pricingSource: "feature-reason-fallback",
+      };
+    }
+
+    const unlockReasonPricing = UNLOCK_REASON_PRICING_MAP[reasonText] || null;
+    if (unlockReasonPricing) {
+      return {
+        ok: true,
+        cost: Number(unlockReasonPricing.cost),
+        reason: String(unlockReasonPricing.reason || reasonText),
+        featureKey: String(unlockReasonPricing.featureKey || key),
+        pricingSource: "unlock-reason-fallback",
       };
     }
 
@@ -137,6 +146,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
         ok: true,
         cost: requestCost,
         reason: reasonText || "Coin gate per-use",
+        featureKey: key,
         pricingSource: "dynamic-fallback",
       };
     }
@@ -155,6 +165,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: featureReasonCost,
       reason: reasonText,
+      featureKey: key,
       pricingSource: "feature-reason",
     };
   }
@@ -165,6 +176,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: Number(featurePrice.cost),
       reason: String(featurePrice.reason || reasonText || "Paid feature unlock"),
+      featureKey: key,
       pricingSource: "feature-key",
     };
   }
@@ -175,6 +187,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: Number(unlockSpec.cost),
       reason: String(unlockSpec.reason || reasonText || "Paid feature unlock"),
+      featureKey: key,
       pricingSource: "unlock-feature",
     };
   }
@@ -186,6 +199,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
         ok: true,
         cost: coinGateReasonCost,
         reason: reasonText,
+        featureKey: "coin-gate-per-use",
         pricingSource: "coin-gate-reason-fallback",
       };
     }
@@ -196,6 +210,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
         ok: true,
         cost: Number(featureReasonPricing.cost),
         reason: reasonText,
+        featureKey: String(featureReasonPricing.featureKey || key),
         pricingSource: "feature-reason-fallback",
       };
     }
@@ -206,6 +221,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
         ok: true,
         cost: Number(unlockReasonPricing.cost),
         reason: reasonText,
+        featureKey: String(unlockReasonPricing.featureKey || key),
         pricingSource: "unlock-reason-fallback",
       };
     }
@@ -216,6 +232,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: requestCost,
       reason: reasonText || "Paid feature unlock",
+      featureKey: key,
       pricingSource: "dynamic-fallback",
     };
   }
@@ -751,7 +768,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 400 });
   }
 
-  const featureKey = String(productSpec?.featureKey || body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const requestedFeatureKey = String(productSpec?.featureKey || body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  let featureKey = normalizeFeatureKey(requestedFeatureKey).slice(0, 60);
   const requestReason = String(productSpec?.reason || body?.reason || "Paid feature unlock").trim().slice(0, 120);
   const requestedCost = Number(productSpec ? productSpec.cost : body?.cost);
   const pricing = resolveServerCoinPricing({
@@ -767,12 +785,18 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       try {
         console.error("[fortune][pricing][unknown-feature]", JSON.stringify({
           featureKey,
+          requestedFeatureKey: requestedFeatureKey !== featureKey ? requestedFeatureKey : undefined,
           requestReason,
           productId: productId || null,
           route: "/api/fortune/pig-coin/consume",
         }));
       } catch {
-        console.error("[fortune][pricing][unknown-feature]", { featureKey, requestReason, productId: productId || null });
+        console.error("[fortune][pricing][unknown-feature]", {
+          featureKey,
+          requestedFeatureKey: requestedFeatureKey !== featureKey ? requestedFeatureKey : undefined,
+          requestReason,
+          productId: productId || null,
+        });
       }
     }
 
@@ -781,6 +805,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       code: pricing.code || "SERVER_PRICE_REQUIRED",
       productId: productId || null,
       featureKey,
+      requestedFeatureKey: requestedFeatureKey !== featureKey ? requestedFeatureKey : undefined,
     };
 
     if (!isProductionRuntime(env) && pricing.code === "UNKNOWN_FEATURE_KEY") {
@@ -792,6 +817,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       ...payload,
     }, { status: Number(pricing.status || 403) });
   }
+
+  const pricingFeatureKey = normalizeFeatureKey(pricing.featureKey || featureKey).slice(0, 60);
+  if (pricingFeatureKey) featureKey = pricingFeatureKey;
 
   const cost = Number.isFinite(Number(pricing.cost)) && Number(pricing.cost) > 0
     ? Math.floor(Number(pricing.cost))
@@ -999,6 +1027,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       ...(categoryKey ? { categoryKey } : {}),
       ...(subFeatureKey ? { subFeatureKey } : {}),
       ...(payloadHash ? { payloadHash } : {}),
+      ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
       subscriptionTierAtConsume: effectiveTier || "free",
     },
   });

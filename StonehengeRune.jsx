@@ -80,10 +80,10 @@ function useRuneDraw() {
 
 // ─── SPREAD LABELS ────────────────────────────────────────────────────────────
 const SPREAD_OPTIONS = [
-  { count: 1, rune: "ᚢ", name: "1-룬", desc: "오늘의 조언" },
-  { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래" },
-  { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함" },
-  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름" },
+  { count: 1, rune: "ᚢ", name: "1-룬", desc: "오늘의 조언", cost: "30코인" },
+  { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래", cost: "50코인" },
+  { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함", cost: "70코인" },
+  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", cost: "120코인" },
 ];
 
 const SPREAD_LABELS = {
@@ -1791,6 +1791,7 @@ export default function StonehengeRune() {
                 <span className="sr-spread-btn-rune">{option.rune}</span>
                 <span className="sr-spread-btn-name">{option.name}</span>
                 <span className="sr-spread-btn-desc">{option.desc}</span>
+                <span className="sr-spread-btn-desc">{option.cost}</span>
               </button>
             ))}
           </div>

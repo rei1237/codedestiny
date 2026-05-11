@@ -18,6 +18,9 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "tarot-ijik",
   "fortune-fish-gacha",
   "royal-tea-oracle",
+  "ifa-oracle",
+  "neville-meditation",
+  "cosmic-soul-meditation",
   "yoga-guru-per-use",
   "vedic-compatibility-per-use",
   "stonehenge-runes-single",
@@ -34,6 +37,12 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "palm-reading-relationship",
   "premium-love-secret-solo",
   "premium-love-secret-couple",
+  "premium-lifebook-report",
+  "premium-ziwei-report",
+  "premium-astrology-report",
+  "premium-sukuyo-report",
+  "premium-vedic-report",
+  "premium-naming-report",
   "premium-sukuyo-compat-extra",
   "premium-veda-compatibility-addon",
   "destiny-bias-analyze",
@@ -71,6 +80,9 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "fortune-fish-gacha": { cost: 5, reason: "포춘텔러 피쉬 행운 가챠" },
   "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
+  "ifa-oracle": { cost: 30, reason: "IFÀ 오라클 리딩" },
+  "neville-meditation": { cost: 30, reason: "네빌 명상 실습" },
+  "cosmic-soul-meditation": { cost: 200, reason: "코스믹 소울 명상" },
   "yoga-guru-per-use": { cost: 30, reason: "요가 구루 30분 코스" },
   "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
@@ -96,6 +108,12 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "palm-reading-relationship": { cost: 30, reason: "손금 관계 패턴 분석" },
   "premium-love-secret-solo": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
   "premium-love-secret-couple": { cost: 500, reason: "사주 프리미엄 궁합 리포트 생성" },
+  "premium-lifebook-report": { cost: 490, reason: "인생의 책 생성 (13챕터)" },
+  "premium-ziwei-report": { cost: 590, reason: "자미두수 프리미엄 PDF 리포트 생성" },
+  "premium-astrology-report": { cost: 390, reason: "점성술 프리미엄 PDF 리포트 생성" },
+  "premium-sukuyo-report": { cost: 390, reason: "숙요점 프리미엄 PDF 리포트 생성" },
+  "premium-vedic-report": { cost: 390, reason: "베다 점성술 프리미엄 PDF 리포트 생성" },
+  "premium-naming-report": { cost: 700, reason: "명운 프리미엄 작명 리포트 생성" },
   "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
   "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
   "destiny-bias-analyze": { cost: 50, reason: "최애운명 심화 분석" },
@@ -155,8 +173,62 @@ export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
   }, Object.create(null)),
 );
 
+export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
+  "premium-sukyo": "premium-sukuyo",
+  "openjuyuk": "openJuyukModal",
+  "openkemet": "openKemetModal",
+  "opengeomancy": "openGeomancyOracle",
+  "turtle-iching": "turtleIChing",
+  "egypt-oracle": "egyptOracle",
+  openRuneOracle: "stonehengeRunes",
+  openAnimalTotemModal: "animal-totem-basic",
+  openTarotLoveModal: "tarot-love-relationship",
+  openTarotReunionModal: "tarot-reunion-reading",
+  openTarotYearFortuneModal: "tarot-year-fortune",
+  startMindScanTarot: "tarot-mindscan",
+  openMindScanTarot: "tarot-mindscan",
+  openTarotMindScanModal: "tarot-mindscan",
+  openCelestialHarmony: "tarot-celestial-harmony",
+  openLoveSimulation: "loveSimulation",
+  startCrystalSoulTarot: "tarot-crystal-soul-reading",
+  openCrystalSoulTarot: "tarot-crystal-soul-reading",
+  openTarotCrystalSoulModal: "tarot-crystal-soul-reading",
+  startIjikTarot: "tarot-ijik",
+  openIjikTarot: "tarot-ijik",
+  openRoyalTeaOracle: "royal-tea-oracle",
+  openIfaOracle: "ifa-oracle",
+  openNevilleMeditationPage: "neville-meditation",
+  openCosmicSoulMeditation: "cosmic-soul-meditation",
+  openYogaGuru: "yoga-guru-per-use",
+  generateLifeBook: "premium-lifebook-report",
+  gotoZiweiPremium: "premium-ziwei-report",
+  gotoAstrologyPremium: "premium-astrology-report",
+  gotoSukuyoPremium: "premium-sukuyo-report",
+  gotoVedicPremium: "premium-vedic-report",
+  gotoNamingPremium: "premium-naming-report",
+});
+
+const PAID_FEATURE_KEY_ALIAS_LOOKUP = Object.freeze(
+  Object.entries(PAID_FEATURE_KEY_ALIASES).reduce((acc, [alias, canonical]) => {
+    const direct = String(alias || "").trim();
+    const target = String(canonical || "").trim();
+    if (direct && target) {
+      acc[direct] = target;
+      acc[direct.toLowerCase()] = target;
+    }
+    return acc;
+  }, Object.create(null)),
+);
+
+export function normalizePaidFeatureKey(rawKey) {
+  const key = String(rawKey || "").trim();
+  if (!key) return "";
+
+  return PAID_FEATURE_KEY_ALIAS_LOOKUP[key] || PAID_FEATURE_KEY_ALIAS_LOOKUP[key.toLowerCase()] || key;
+}
+
 export function resolveFeatureReasonCost(featureKey, reason) {
-  const key = String(featureKey || "").trim();
+  const key = normalizePaidFeatureKey(featureKey);
   const reasonText = String(reason || "").trim();
   if (!key || !reasonText) return null;
 
@@ -218,6 +290,7 @@ export function listServerPricedFeatureKeys() {
     "coin-gate-per-use",
     ...Object.keys(FEATURE_KEY_PRICE_TABLE),
     ...Object.keys(UNLOCK_PRODUCT_BY_FEATURE_KEY),
+    ...Object.keys(PAID_FEATURE_KEY_ALIASES),
   ]);
   return Array.from(keys).sort();
 }

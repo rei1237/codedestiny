@@ -191,7 +191,6 @@ const PER_USE_DESTINATION: Partial<Record<PerUseKey, string>> = {
   loveSimulation: "/saju/love-simulation",
 };
 
-const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
 const PREMIUM_ZIWEI_UNLOCK_MARKER_KEY = "premium:ziwei:unlock:v1";
 const LEGACY_TILE_LOCK_KEY = "cd_tile_locks";
 const TILE_LOCK_PREFIX = "cd_tile_locks_v2::";
@@ -487,15 +486,6 @@ function notifyCoinResult(data: any, fallbackCost: number, points: number, label
   }
 }
 
-function markRunePrepaidOnce() {
-  try {
-    sessionStorage.setItem(
-      RUNE_PREPAID_MARKER_KEY,
-      JSON.stringify({ at: Date.now() }),
-    );
-  } catch (_) {}
-}
-
 function redirectPerUseFeature(key: PerUseKey) {
   const destination = PER_USE_DESTINATION[key];
   if (!destination) return;
@@ -604,6 +594,11 @@ export default function KkulkkulManseryukMain() {
   };
 
   const runPaidFeatureOnce = async (key: PerUseKey, cost: number) => {
+    if (key === "stonehengeRunes") {
+      redirectPerUseFeature(key);
+      return;
+    }
+
     const authHeaders = buildClientAuthHeaders();
     
     startPayment(`결제를 진행 중입니다.`);
@@ -627,9 +622,6 @@ export default function KkulkkulManseryukMain() {
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
       showToast(`✨ 운명 확인을 위해 코인이 사용되었습니다. 잠시 후 결과가 열립니다.`, "success");
-      if (key === "stonehengeRunes") {
-        markRunePrepaidOnce();
-      }
       redirectPerUseFeature(key);
     } catch (e) {
       console.error('[runPaidFeatureOnce]', e);
@@ -1041,34 +1033,35 @@ export default function KkulkkulManseryukMain() {
 
         {/* PAID 회당 과금 섹션 */}
         <section className="rounded-3xl border border-rose-200 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-xl font-black text-rose-800">회당 과금 점술 (1회당 50코인)</h2>
+          <h2 className="text-xl font-black text-rose-800">회당 과금 점술 (서버 가격표 기준)</h2>
           <p className="mt-1 text-sm text-neutral-600">
-            주역 거북점, 이집트 신탁, 지오멘시 흙점, 스톤헨지 룬점, 행복한 회복 타로를 제외한 타로 기능은 1회 이용마다 코인이 차감됩니다.
+            주역·이집트·지오맨시는 이용할 때마다 차감되고, 스톤헨지 룬점은 배열 선택 후 1룬/3룬/5룬/12룬 단계별 코인이 차감됩니다.
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { key: "turtleIChing" as const, title: "주역 거북점" },
-              { key: "egyptOracle" as const, title: "이집트 신탁" },
-              { key: "geomancy" as const, title: "지오멘시 흙점" },
-              { key: "stonehengeRunes" as const, title: "스톤헨지 룬점" },
-              { key: "premiumTarot" as const, title: "프리미엄 타로(회복 타로 제외)" },
+              { key: "turtleIChing" as const, title: "주역 거북점", cost: 30, note: "1회 30코인" },
+              { key: "egyptOracle" as const, title: "이집트 신탁", cost: 30, note: "1회 30코인" },
+              { key: "geomancy" as const, title: "지오맨시 흙점", cost: 50, note: "1회 50코인" },
+              { key: "stonehengeRunes" as const, title: "스톤헨지 룬점", cost: 0, note: "배열별 30/50/70/120코인" },
+              { key: "premiumTarot" as const, title: "프리미엄 타로(회복 타로 제외)", cost: 100, note: "1회 100코인" },
             ].map((item) => (
               <article
                 key={item.key}
                 className="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-rose-50 to-amber-50 p-4"
               >
                 <h3 className="font-bold text-neutral-900">{item.title}</h3>
+                <p className="mt-1 text-xs font-bold text-rose-700">{item.note}</p>
                 <p className="mt-1 text-xs text-neutral-600">이용 횟수: {perUseCount[item.key]}회</p>
 
                 <button
                   type="button"
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
-                  onClick={wrapClick(() => runPaidFeatureOnce(item.key, 50))}
+                  onClick={wrapClick(() => runPaidFeatureOnce(item.key, item.cost))}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
-                  꽃꽃돼지 코인으로 운명 확인하기
+                  {item.key === "stonehengeRunes" ? "배열 고르고 코인 결제하기" : "꽃꽃돼지 코인으로 운명 확인하기"}
                 </button>
 
                 {perUseCount[item.key] > 0 ? (

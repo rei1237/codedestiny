@@ -11,8 +11,10 @@ import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   FEATURE_KEY_REASON_COSTS,
+  PAID_FEATURE_KEY_ALIASES,
   PIG_COIN_UNLOCK_PRODUCTS,
   listServerPricedFeatureKeys,
+  normalizePaidFeatureKey,
 } from "../worker/lib/paid-feature-registry.js";
 
 function parseArgs(argv) {
@@ -128,6 +130,22 @@ function buildConsumeCases() {
       featureKey,
       reason,
       expectedCost: Number(spec?.cost || 0),
+    });
+  }
+
+  for (const [aliasKey, canonicalKeyRaw] of Object.entries(PAID_FEATURE_KEY_ALIASES)) {
+    const canonicalKey = normalizePaidFeatureKey(canonicalKeyRaw);
+    const featureSpec = FEATURE_KEY_PRICE_TABLE[canonicalKey] || unlockByFeatureKey.get(canonicalKey) || null;
+    if (!featureSpec) continue;
+    const reason = String(featureSpec?.reason || "").trim();
+    const dedupeKey = `${aliasKey}::${reason}`;
+    if (seenKeyReason.has(dedupeKey)) continue;
+    seenKeyReason.add(dedupeKey);
+    cases.push({
+      id: `alias:${aliasKey}->${canonicalKey}`,
+      featureKey: aliasKey,
+      reason,
+      expectedCost: Number(featureSpec?.cost || 0),
     });
   }
 

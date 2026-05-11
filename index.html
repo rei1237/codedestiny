@@ -1877,12 +1877,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 애니멀 토템 리딩 -->
                 <button class="tarot-tile tarot-tile--animal-totem" type="button"
                         data-action="openAnimalTotemModal"
-                        data-coin-cost="30"
                         aria-label="애니멀 토템 리딩 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/animaltotem.webp" data-img-alt="애니멀 토템 리딩 — 수호 동물 메시지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐯</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--totem">토템 리딩</span>
-                        <span class="tarot-tile__coin-badge">30코인</span>
+                        <span class="tarot-tile__coin-badge">30~60코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
@@ -2292,6 +2291,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- IFA 오라클 -->
                  <a class="tarot-tile tarot-tile--ifa-fc" href="/ifa-oracle.html"
                    data-action="openIfaOracle"
+                   data-coin-cost="30"
                    aria-label="이파 오라클 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ifafortune.webp" data-img-alt="IFÀ 오라클 - 요루바 256 오두 신탁">
                     <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/ifafortune.webp" alt="IFÀ 오라클 - 요루바 256 오두 신탁" onerror="this.onerror=null;this.src='/fuctionassets/egypt.webp';">
@@ -3812,15 +3812,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <div class="totem-mode-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <button type="button" class="totem-mode-btn" data-mode="one" data-action="setAnimalTotemSpreadMode" data-action-args="one">
                   <span class="totem-mode-icon">🌙</span>
-                  <span class="totem-mode-content"><b>달빛 한 장</b><br><small>한 장의 수호 동물로 받는 오늘의 핵심 안내</small></span>
+                  <span class="totem-mode-content"><b>달빛 한 장</b><br><small>한 장의 수호 동물로 받는 오늘의 핵심 안내 · 30코인</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
                   <span class="totem-mode-icon">🌿</span>
-                  <span class="totem-mode-content"><b>숲의 세 길</b><br><small>과거 · 현재 · 통합의 흐름을 부드럽게 읽기</small></span>
+                  <span class="totem-mode-content"><b>숲의 세 길</b><br><small>과거 · 현재 · 통합의 흐름을 부드럽게 읽기 · 30코인</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn" data-mode="five" data-action="setAnimalTotemSpreadMode" data-action-args="five">
                   <span class="totem-mode-icon">⭐</span>
-                  <span class="totem-mode-content"><b>별자리 다섯 동물</b><br><small>감정, 그림자, 선물, 행동까지 깊이 탐색</small></span>
+                  <span class="totem-mode-content"><b>별자리 다섯 동물</b><br><small>감정, 그림자, 선물, 행동까지 깊이 탐색 · 60코인</small></span>
                 </button>
               </div>
               <div class="totem-result-actions totem-mode-actions flex flex-wrap justify-center gap-3 mt-6">
@@ -4740,7 +4740,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="fg-group__cards">
         <button class="lovebible-tile" type="button"
                 data-action="openLoveSecretModal"
-                data-coin-cost="290"
                 aria-label="연애 비책 — 운명이 설계한 사랑의 지도">
           <span class="tarot-tile__title" style="display:none;">💕 연애 비책</span>
           <div class="lovebible-tile__bg" aria-hidden="true"></div>
@@ -4756,8 +4755,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lovebible-tile__label-row">
               <span class="lovebible-tile__label-badge">PREMIUM</span>
               <div class="lovebible-tile__coin-group">
-                <span class="lovebible-tile__coin-badge">1회 290코인</span>
-                <span class="lovebible-tile__compat-badge">💑 궁합 포함 <b>+100코인</b></span>
+                <span class="lovebible-tile__coin-badge">1회 300코인</span>
+                <span class="lovebible-tile__compat-badge">💑 궁합 리포트 <b>500코인</b></span>
               </div>
             </div>
             <div class="lovebible-tile__body">
@@ -4790,7 +4789,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="fg-group__cards">
         <a class="lovesim-tile tarot-tile" href="/saju/love-simulation"
            data-action="openLoveSimulation"
-           data-coin-cost="0"
+            data-coin-cost="100"
            aria-label="LOVE CODE 사주 연애 시뮬레이션 시작하기">
           <span class="tarot-tile__title" style="display:none;">💕 LOVE CODE</span>
           <div class="lovesim-tile__bg" aria-hidden="true"></div>
@@ -4805,7 +4804,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="lovesim-tile__inner">
             <div class="lovesim-tile__label-row">
               <span class="lovesim-tile__label-badge">사주 연애 시뮬레이션</span>
-              <span class="lovesim-tile__coin-badge">완전 무료</span>
+              <span class="lovesim-tile__coin-badge">1회 100코인</span>
             </div>
             <div class="lovesim-tile__body">
               <h2 class="lovesim-tile__title">💕 LOVE CODE</h2>
@@ -5882,7 +5881,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <span class="ls-trust-badge">🔮 일주·일지 심층 해독</span>
             </div>
             <p class="ls-marketing-headline">당신이 연애에서 항상 같은 패턴을 반복하는 이유, 사주 <strong>8글자가 이미 알고 있습니다</strong></p>
-            <p class="ls-marketing-sub">반복되는 연애 실패, 잘못된 이상형 선택, 끊어지지 않는 집착 — 그 패턴을 일주·관성·도화살로 근본부터 해독합니다.<br>최소 22,000자 · 11챕터 완전 분析, 상대방 사주 궁합 추가(+100코인) 선택 가능.</p>
+            <p class="ls-marketing-sub">반복되는 연애 실패, 잘못된 이상형 선택, 끊어지지 않는 집착 — 그 패턴을 일주·관성·도화살로 근본부터 해독합니다.<br>최소 22,000자 · 11챕터 완전 분析, 상대방 사주 궁합 리포트(총 500코인) 선택 가능.</p>
           </div>
 
           <!-- ★ 왜 연애 비책인가 ★ -->
@@ -5947,7 +5946,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               생년월일시를 입력하면 두 사람의 오행 충합·일주 상성·연애 케미·밀당 전략을<br class="ls-pscreen__br">
               실제 사주 데이터 기반으로 훨씬 정밀하게 분석합니다.
             </p>
-            <p class="ls-pscreen__coin-notice">🪙 궁합 분석은 <strong>추가 100코인</strong>이 필요합니다. 코인이 부족하면 나 혼자만의 연애 분석으로 진행하세요.</p>
+            <p class="ls-pscreen__coin-notice">🪙 궁합 리포트는 <strong>총 500코인</strong>이 필요합니다. 코인이 부족하면 나 혼자만의 연애 분석으로 진행하세요.</p>
           </div>
 
           <!-- 실시간 사주 원국 미리보기 -->
@@ -6004,7 +6003,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button" id="lsPsStartBtn" class="ls-pscreen__btn-start" data-action="lsStartWithPartner">
               <span class="ls-pscreen__btn-icon">💑</span>
               두 사람의 궁합 포함 분석 시작하기
-              <span class="ls-pscreen__coin-tag">+100코인</span>
+              <span class="ls-pscreen__coin-tag">500코인</span>
             </button>
             <button type="button" class="ls-pscreen__btn-solo" data-action="lsSkipPartner">
               나 혼자만의 연애 분석으로 진행하기 (추가 코인 없음) →
@@ -8108,7 +8107,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openPsychoDreamModal:{cat:'정신분석 · 해몽',title:'🕯️ 정신분석 해몽',tagline:'당신이 꾼 꿈, 사실 무의식이 보내는 경고신호일 수 있습니다 — 프로이트가 그 꿈을 분석합니다',feats:['프로이트 & 현대 임상심리학 교차 분석','꿈이 드러내는 숨겨진 욕구·불안·트라우마 해독','지금 내 심리 상태를 꿈을 통해 정확히 파악','완전 무료 전문가 수준 심리 리포트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/phydream.webp'},
     openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장이면 됩니다 — 이 얼굴이 돈 버는 관상인지 사랑받는 관상인지 AI가 즉시 판독합니다',feats:['AI가 내 얼굴에서 관상 포인트 정밀 분석','내 얼굴이 닮은 동물 토템 & 숨겨진 성격 파악','재물운·연애운·귀인운 얼굴에서 직접 분석','셀카 업로드 1번으로 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20animal.webp'},
     openMbtiModal:{cat:'MBTI · 연애 궁합',title:'🦁 MBTI 동물 궁합',tagline:'내 MBTI와 가장 잘 맞는 사람이 누구인지 — 이 조합이 실제로 결혼까지 가는지 지금 바로 확인하세요',feats:['MBTI 16유형 연애 궁합 완전 분석','왜 저 MBTI에 끌리면서도 싸우게 되는지 설명','내 연애 패턴의 진짜 문제점 & 해결책 제시','완전 무료 — 즉시 결과 제공'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20face.webp'},
-    openAnimalTotemModal:{cat:'토템 · 수호 동물',title:'🧸 애니멀 토템',tagline:'지금 이 순간 나에게 가장 필요한 메시지를 수호 동물이 보내고 있습니다 — 당신은 아직 못 들었을 뿐',feats:['샤머닉 전통 수호 동물 카드 정밀 리딩','오늘 반드시 들어야 할 경고 & 행운 메시지','지금 내가 해야 할 것과 피해야 할 것 분석','고화질 수호 동물 카드 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/animaltotem.webp'},
+    openAnimalTotemModal:{cat:'토템 · 수호 동물',title:'🧸 애니멀 토템',tagline:'지금 이 순간 나에게 가장 필요한 메시지를 수호 동물이 보내고 있습니다 — 당신은 아직 못 들었을 뿐',feats:['샤머닉 전통 수호 동물 카드 정밀 리딩','오늘 반드시 들어야 할 경고 & 행운 메시지','지금 내가 해야 할 것과 피해야 할 것 분석','고화질 수호 동물 카드 비주얼'],cost:'🪙 30~60코인',ct:'paid',img:'/fuctionassets/animaltotem.webp'},
     openDestinyEggPage:{cat:'다마고치 · 운명의 알',title:'🥚 운명의 알',tagline:'내 사주에서 나온 수호 동물이 알에서 깨어납니다 — 매일 돌봐주면 특별한 운세 메시지를 전해드려요',feats:['사주 기반 나만의 고유 수호 캐릭터 생성','매일 체크인하면 행운 메시지 & 아이템','5가지 테마(벚꽃/마카롱/딸기/우주/검은별)','완전 무료 — 지금 바로 알 부화 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/UNSETAMA2.webp'},
     openFortuneTellerFishPage:{cat:'포춘텔러 · 물고기 점술',title:'🐟 포춘텔러 물고기',tagline:'손바닥 위 붉은 셀로판 물고기가 움직이는 방향으로 오늘의 운명을 예언합니다 — 당신의 기운은 어느 쪽인가요?',feats:['포춘텔러 물고기 7가지 움직임 정밀 리딩','오늘의 기운·애정·재물·건강 종합 운세 해석','움직임 패턴 기반 오늘 해야 할 것&피해야 할 것','완전 무료 — 즉시 물고기 반응 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/fortuneteller%20fish.webp'},
     openSajuAnimalPage:{cat:'사주 · 수호 동물 아트',title:'🐲 사주 가디언 아트',tagline:'내 생년월일로 찾는 수호 동물 — 12지신 중 누가 지금 나를 지키고 있는지 알고 계세요?',feats:['사주 8글자 기반 나만의 수호 동물 정확하게 매핑','12지신 + 천간으로 만드는 나만의 캐릭터','AI 생성 나만의 가디언 아트 즉시 제공','완전 무료 — 고화질 결과 이미지 저장 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/Who%20am%20I%20with%20saju.webp'},
@@ -8133,8 +8132,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석을 물에 던지는 순간 올해 운명이 보입니다 — 핀란드 전통 새해 점술을 지금 체험하세요',feats:['핀란드 정통 주석점 의식 시뮬레이션 완전 구현','주석 형태 상징 20가지 즉석 해석','돼지 마스코트 연이와 함께하는 귀여운 운세 리딩','행운·사랑·재물 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fortune/sikojen-povailu/images/piggyfortune.webp'},
     '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLifeBookModal:{cat:'프리미엄 · 사주 심층 분석',title:'📜 인생의 책',tagline:'10년 후 내 인생이 어떻게 될지 지금 미리 볼 수 있습니다 — 돈이 들어오는 해와 조심해야 할 해를 미리 아는 것',feats:['사주 팔자 8글자로 평생 운세 흐름 완전 분석','대운 10년 단위로 기회의 해 & 위기의 해 미리 파악','재물이 크게 들어오는 시기 & 피해야 할 시기 정확히 계산','평생 간직할 PDF 저장 가능 프리미엄 리포트'],cost:'🪙 490코인',ct:'paid',img:'/fuctionassets/lifebook.webp'},
-    openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 290코인',ct:'paid',img:'/fuctionassets/lovebible.webp'},
-    openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/lovesimulation.webp'},
+    openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 300코인부터',ct:'paid',img:'/fuctionassets/lovebible.webp'},
+    openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🪙 100코인',ct:'paid',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
     navigateToZiweiChart:{cat:'자미두수 심화 · 16챕터 인생 전략',title:'🌟 자미두수 심화',tagline:'자미두수 12궁 완전 해독 — 명궁부터 마스터플랜까지 16챕터로 당신의 운명 전략을 완성합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 완전 분析','관록궁·재백궁·부처궁 총망라 인생 전략','대한·유년 타이밍 분析으로 기회의 시기 파악','프로필 카드 연동 자동 계산으로 즉시 분析'],cost:'🔒 영구 해금 500코인',ct:'paid',img:'/fuctionassets/jamigod.webp'},
@@ -8260,7 +8259,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if(_paywallTitle)_paywallTitle.textContent='1회 '+coinCost+'코인 · 지금 바로 결과 확인';
           var _premDesc='';
           if(action==='openLifeBookModal')_premDesc='490코인으로 평생 보관할 나만의 운명 전서를 완성하세요. 대운 흐름·재물 시기·대인 관계 전략이 13챕터에 걸쳐 펼쳐집니다.';
-          else if(action==='openLoveSecretModal')_premDesc='290코인으로 내 사주에 숨겨진 연애 코드를 해독하세요. 내 진짜 이상형·매력 포인트·피해야 할 관계 유형까지 모두 담겨 있습니다.';
+          else if(action==='openLoveSecretModal')_premDesc='300코인으로 내 사주에 숨겨진 연애 코드를 해독하세요. 궁합 리포트는 500코인으로 확장됩니다.';
           else if(action==='gotoZiweiPremium')_premDesc='590코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분析 PDF를 완성합니다.';
           else if(action==='gotoAstrologyPremium')_premDesc='390코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
           else if(action==='gotoSukuyoPremium')_premDesc='390코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
@@ -9485,4 +9484,3 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f92846abf292efd',t:'MTc3ODM0ODcxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 
 </html>
-

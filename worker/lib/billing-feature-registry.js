@@ -1,4 +1,9 @@
-import { COIN_GATE_PER_USE_REASON_COSTS, FEATURE_KEY_PRICE_TABLE } from "./paid-feature-registry.js";
+import {
+  COIN_GATE_PER_USE_REASON_COSTS,
+  FEATURE_KEY_PRICE_TABLE,
+  UNLOCK_PRODUCT_BY_FEATURE_KEY,
+  normalizePaidFeatureKey,
+} from "./paid-feature-registry.js";
 
 const BILLING_FEATURE_CATEGORIES = Object.freeze({
   "palm-reading": Object.freeze({
@@ -68,6 +73,36 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+function buildReasonPricingMap(pricingEntries) {
+  const table = Object.create(null);
+
+  for (let i = 0; i < pricingEntries.length; i += 1) {
+    const item = pricingEntries[i] || null;
+    const reason = String(item?.reason || "").trim();
+    const cost = Number(item?.cost);
+    if (!reason || !Number.isFinite(cost) || cost <= 0) continue;
+    if (!table[reason]) table[reason] = { ...item, reason, cost };
+  }
+
+  return Object.freeze(table);
+}
+
+const FEATURE_REASON_PRICING_MAP = buildReasonPricingMap(
+  Object.entries(FEATURE_KEY_PRICE_TABLE).map(([featureKey, spec]) => ({
+    featureKey,
+    reason: spec?.reason,
+    cost: spec?.cost,
+  })),
+);
+
+const UNLOCK_REASON_PRICING_MAP = buildReasonPricingMap(
+  Object.values(UNLOCK_PRODUCT_BY_FEATURE_KEY).map((spec) => ({
+    featureKey: spec?.featureKey,
+    reason: spec?.reason,
+    cost: spec?.cost,
+  })),
+);
+
 function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey, cost, reason }) {
   return {
     categoryKey,
@@ -103,25 +138,40 @@ function resolveCategorySubFeature(categoryKey, subFeatureKey) {
 }
 
 function resolveByFeatureKey(featureKey) {
-  const normalizedFeatureKey = normalizeText(featureKey);
-  if (!normalizedFeatureKey) return null;
+  const requestedFeatureKey = normalizeText(featureKey);
+  if (!requestedFeatureKey) return null;
+  const normalizedFeatureKey = normalizePaidFeatureKey(requestedFeatureKey);
 
-  const alias = LEGACY_FEATURE_ALIAS_MAP[normalizeKey(normalizedFeatureKey)] || null;
+  const alias = LEGACY_FEATURE_ALIAS_MAP[normalizeKey(requestedFeatureKey)]
+    || LEGACY_FEATURE_ALIAS_MAP[normalizeKey(normalizedFeatureKey)]
+    || null;
   if (alias) {
     const aliased = resolveCategorySubFeature(alias.categoryKey, alias.subFeatureKey);
     if (aliased) return aliased;
   }
 
   const featureSpec = FEATURE_KEY_PRICE_TABLE[normalizedFeatureKey] || null;
-  if (!featureSpec) return null;
+  if (featureSpec) {
+    return toPricingShape({
+      categoryKey: "legacy-feature",
+      categoryLabel: "레거시 기능",
+      subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
+      featureKey: normalizedFeatureKey,
+      cost: Number(featureSpec.cost),
+      reason: String(featureSpec.reason || "Paid feature unlock"),
+    });
+  }
+
+  const unlockSpec = UNLOCK_PRODUCT_BY_FEATURE_KEY[normalizedFeatureKey] || null;
+  if (!unlockSpec) return null;
 
   return toPricingShape({
-    categoryKey: "legacy-feature",
-    categoryLabel: "레거시 기능",
+    categoryKey: "unlock-feature",
+    categoryLabel: "영구 해금",
     subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
     featureKey: normalizedFeatureKey,
-    cost: Number(featureSpec.cost),
-    reason: String(featureSpec.reason || "Paid feature unlock"),
+    cost: Number(unlockSpec.cost),
+    reason: String(unlockSpec.reason || "Paid feature unlock"),
   });
 }
 
@@ -130,16 +180,42 @@ function resolveByReason(reason) {
   if (!normalizedReason) return null;
 
   const cost = Number(COIN_GATE_PER_USE_REASON_COSTS[normalizedReason]);
-  if (!Number.isFinite(cost) || cost <= 0) return null;
+  if (Number.isFinite(cost) && cost > 0) {
+    return toPricingShape({
+      categoryKey: "coin-gate-per-use",
+      categoryLabel: "회당 결제",
+      subFeatureKey: "reason-mapped",
+      featureKey: "coin-gate-per-use",
+      cost,
+      reason: normalizedReason,
+    });
+  }
 
-  return toPricingShape({
-    categoryKey: "coin-gate-per-use",
-    categoryLabel: "회당 결제",
-    subFeatureKey: "reason-mapped",
-    featureKey: "coin-gate-per-use",
-    cost,
-    reason: normalizedReason,
-  });
+  const featureReasonPricing = FEATURE_REASON_PRICING_MAP[normalizedReason] || null;
+  if (featureReasonPricing) {
+    return toPricingShape({
+      categoryKey: "legacy-feature",
+      categoryLabel: "레거시 기능",
+      subFeatureKey: normalizeKey(featureReasonPricing.featureKey) || "default",
+      featureKey: String(featureReasonPricing.featureKey),
+      cost: Number(featureReasonPricing.cost),
+      reason: normalizedReason,
+    });
+  }
+
+  const unlockReasonPricing = UNLOCK_REASON_PRICING_MAP[normalizedReason] || null;
+  if (unlockReasonPricing) {
+    return toPricingShape({
+      categoryKey: "unlock-feature",
+      categoryLabel: "영구 해금",
+      subFeatureKey: normalizeKey(unlockReasonPricing.featureKey) || "default",
+      featureKey: String(unlockReasonPricing.featureKey),
+      cost: Number(unlockReasonPricing.cost),
+      reason: normalizedReason,
+    });
+  }
+
+  return null;
 }
 
 export function normalizeBillingFeatureRequest(input = {}) {

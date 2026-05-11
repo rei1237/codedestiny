@@ -15,6 +15,29 @@
 
   var refs = {};
   var TAP_THRESHOLD = 12;
+  var ANIMAL_TOTEM_BILLING_BY_MODE = {
+    one: {
+      subFeatureKey: "basic",
+      featureKey: "animal-totem-basic",
+      cost: 30,
+      reason: "애니멀 토템 리딩",
+      label: "달빛 한 장"
+    },
+    three: {
+      subFeatureKey: "basic",
+      featureKey: "animal-totem-basic",
+      cost: 30,
+      reason: "애니멀 토템 리딩",
+      label: "숲의 세 길"
+    },
+    five: {
+      subFeatureKey: "deep",
+      featureKey: "animal-totem-deep",
+      cost: 60,
+      reason: "애니멀 토템 심화 리딩",
+      label: "별자리 다섯 동물"
+    }
+  };
 
   function byId(id) { return document.getElementById(id); }
   var bodyLockState = {
@@ -22,6 +45,122 @@
     bodyOverflow: "",
     htmlOverflow: ""
   };
+
+  function getBillingSpec(mode) {
+    return ANIMAL_TOTEM_BILLING_BY_MODE[mode] || ANIMAL_TOTEM_BILLING_BY_MODE.three;
+  }
+
+  function syncUserPointsFromBilling(payload) {
+    try {
+      var data = payload && payload.data ? payload.data : payload;
+      var consume = data && data.consume ? data.consume : null;
+      var user = data && data.user ? data.user : (consume && consume.user ? consume.user : null);
+      var candidates = [
+        data && data.balance,
+        user && user.points,
+        consume && consume.remainingPoints
+      ];
+      var remaining = NaN;
+      for (var i = 0; i < candidates.length; i += 1) {
+        var candidate = Number(candidates[i]);
+        if (Number.isFinite(candidate)) {
+          remaining = candidate;
+          break;
+        }
+      }
+      if (!Number.isFinite(remaining)) return;
+      localStorage.setItem("fortune_user_points", String(remaining));
+      var authRaw = localStorage.getItem("fortune_auth_user") || "";
+      var authUser = authRaw ? JSON.parse(authRaw) : {};
+      authUser.points = remaining;
+      localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
+      if (typeof global.__cdSetGoldenBalance === "function") global.__cdSetGoldenBalance(remaining);
+    } catch (_) {}
+  }
+
+  async function consumeAnimalTotemPerUse(mode) {
+    var spec = getBillingSpec(mode);
+    if (!spec || !(spec.cost > 0)) return true;
+    if (typeof global.__cdIsAdminLikeUser === "function" && global.__cdIsAdminLikeUser()) return true;
+
+    if (!global.confirm("🪙 " + spec.label + "\n이용에 " + spec.cost + "코인이 필요합니다.\n진행하시겠습니까?")) {
+      return false;
+    }
+
+    var token = "";
+    try { token = String(localStorage.getItem("fortune_auth_token") || ""); } catch (_) {}
+    var headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = "Bearer " + token;
+    if (typeof global._cdSetCoinGateOverlay === "function") {
+      global._cdSetCoinGateOverlay(true, "결제를 확인 중입니다...");
+    }
+
+    try {
+      var response = await fetch("/api/billing/coin-gate", {
+        method: "POST",
+        headers: headers,
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify({
+          categoryKey: "animal-totem",
+          subFeatureKey: spec.subFeatureKey,
+          featureKey: spec.featureKey,
+          reason: spec.reason,
+          forceDeduct: true,
+          requestId: "animal-totem:" + spec.subFeatureKey + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9)
+        })
+      });
+      var payload = await response.json().catch(function() { return {}; });
+      var code = String(
+        (payload && payload.error && payload.error.code)
+        || (payload && payload.code)
+        || ""
+      ).toUpperCase();
+
+      if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") {
+        if (typeof global.__cdOpenLoginRequiredModal === "function") {
+          global.__cdOpenLoginRequiredModal({
+            reason: "로그인 후 이용할 수 있는 기능입니다.",
+            redirectTo: global.location.pathname + global.location.search + global.location.hash
+          });
+        } else if (global.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+          global.location.href = "/login?next=" + encodeURIComponent(global.location.pathname + global.location.search);
+        }
+        return false;
+      }
+
+      if (response.status === 402 || code === "INSUFFICIENT_COINS") {
+        if (typeof global.__cdOpenChargeModal === "function") {
+          global.alert("코인이 부족합니다. 코인 충전 창을 열겠습니다.");
+          global.__cdOpenChargeModal();
+        } else {
+          global.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
+        }
+        return false;
+      }
+
+      if (!response.ok || payload.ok === false) {
+        var message = String(
+          (payload && payload.error && payload.error.message)
+          || (payload && payload.message)
+          || "코인 결제에 실패했습니다."
+        );
+        global.alert(message);
+        return false;
+      }
+
+      syncUserPointsFromBilling(payload);
+      return true;
+    } catch (error) {
+      console.error("[animal-totem][billing]", error);
+      global.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      return false;
+    } finally {
+      if (typeof global._cdSetCoinGateOverlay === "function") {
+        global._cdSetCoinGateOverlay(false);
+      }
+    }
+  }
 
   function useSoftBodyLock() {
     var mq = global.matchMedia ? global.matchMedia("(max-width: 900px)") : null;
@@ -624,19 +763,30 @@
 
   function drawAnimalTotemSpread() {
     ensureRefs();
+    if (state.isFlowBusy) return;
     if (!global.AnimalTotemContentEngine) {
       alert("애니멀 토템 엔진을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
       return;
     }
-    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
-    state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
     setFlowBusy(true);
-    renderDeck();
-    applyAmbientClass();
-    activateStage(refs.drawStage);
-    setFlowBusy(false);
-    var firstCard = refs.cardRail && refs.cardRail.children && refs.cardRail.children[0];
-    focusWithoutJump(firstCard);
+    consumeAnimalTotemPerUse(state.mode).then(function(ok) {
+      if (!ok) {
+        setFlowBusy(false);
+        return;
+      }
+      state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
+      state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
+      renderDeck();
+      applyAmbientClass();
+      activateStage(refs.drawStage);
+      setFlowBusy(false);
+      var firstCard = refs.cardRail && refs.cardRail.children && refs.cardRail.children[0];
+      focusWithoutJump(firstCard);
+    }).catch(function(error) {
+      console.error("[animal-totem][draw]", error);
+      setFlowBusy(false);
+      alert("카드 소환 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    });
   }
 
   function revealAnimalTotemCard(btn, idxRaw) {
