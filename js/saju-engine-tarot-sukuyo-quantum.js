@@ -4041,7 +4041,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 별 파티클 헤더
     const starsHtml = '<span class="sy-star">✦</span> <span class="sy-star">✧</span> <span class="sy-star">✦</span> <span class="sy-star">✧</span>';
     html += `<div class="sy-container" id="lunarNexusApp">`;
-    html += `<div class="sy-header"><h3>☽ 달의 별 운세 · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0.06em;">${starsHtml} &nbsp; 나의 성향과 인연 리듬을 읽는 시간 &nbsp; ${starsHtml}</p></div>`;
+    html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
 
     if (!lunarObj) {
         try {
@@ -4066,6 +4066,81 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     })();
     var _reading = syBuildBasicReading(canonicalData, sData, dailyFlow, _selfGuardian);
     var _dailySectionHtml = '';
+    var _legacyNexusHtml = '';
+
+    if (sData) {
+      var tr = sData.traits || {};
+      var legacyDaily = dailyFlow || (lunarObj ? getDailyKarmicGuidance(lunarObj, sData.mansion) : null);
+      var renderLegacyGauge = function(lbl, val, color) {
+        return '<div class="daily-flow-row">'
+          + '<div class="daily-flow-label">' + syCanonicalEsc(lbl) + '</div>'
+          + '<div class="daily-flow-gauge"><div class="sy-gauge-bg"><div class="sy-gauge-fill" style="width:0%; background:' + color + ';" data-target="' + syCanonicalEsc(val) + '%"></div></div></div>'
+          + '<div class="daily-flow-val">' + syCanonicalEsc(val) + '점</div>'
+          + '</div>';
+      };
+
+      var legacyDailyCard = '';
+      if (legacyDaily) {
+        legacyDailyCard = `
+          <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #818cf8;">
+            <h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 흐름 (Daily Flow)</h4>
+            <div class="sy-moon-display"><span class="sy-moon-emoji">${syCanonicalEsc(legacyDaily.moon.emoji)}</span><span class="sy-moon-label">${syCanonicalEsc(legacyDaily.moon.label)} — ${syCanonicalEsc(legacyDaily.moon.desc)}</span></div>
+            ${renderLegacyGauge('전체 운세', legacyDaily.overall, 'linear-gradient(90deg,#818cf8,#c4b5fd)')}
+            ${renderLegacyGauge('인간관계', legacyDaily.relations, 'linear-gradient(90deg,#fb7185,#fda4af)')}
+            ${renderLegacyGauge('연애 운', legacyDaily.love, 'linear-gradient(90deg,#f43f5e,#fb923c)')}
+            ${renderLegacyGauge('재물 운', legacyDaily.wealth, 'linear-gradient(90deg,#eab308,#fde68a)')}
+            <div class="sy-insight">${syCanonicalEsc(legacyDaily.insight)}</div>
+            <div style="font-size:0.78rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em; margin-top:14px; margin-bottom:6px;">오늘의 의식 (Daily Ritual)</div>
+            <div class="sy-ritual-grid">
+              <div class="sy-ritual-box"><span class="sy-ritual-icon">🎨</span><span class="sy-ritual-label">행운 컬러</span><span class="sy-ritual-val" style="display:flex;align-items:center;justify-content:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:${syCanonicalEsc(legacyDaily.ritual.color)};display:inline-block;flex-shrink:0;"></span>${syCanonicalEsc(legacyDaily.ritual.color)}</span></div>
+              <div class="sy-ritual-box"><span class="sy-ritual-icon">🍃</span><span class="sy-ritual-label">추천 음식</span><span class="sy-ritual-val">${syCanonicalEsc(legacyDaily.ritual.food)}</span></div>
+              <div class="sy-ritual-box"><span class="sy-ritual-icon">✨</span><span class="sy-ritual-label">오늘의 의식</span><span class="sy-ritual-val">${syCanonicalEsc(legacyDaily.ritual.action)}</span></div>
+            </div>
+          </div>`;
+      }
+
+      _legacyNexusHtml = `
+        <div class="sy-grid">
+          <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #a78bfa;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <h4 style="margin: 0; color: #c4b5fd; font-size: 1.15rem;">${syCanonicalEsc(sData.icon)} 본성 (Natal Star) — 당신의 별: <span class="sy-glow-text">${syCanonicalEsc(sData.mansion)}</span></h4>
+              <div style="font-size: 0.82rem; color:#9ca3af;">대표 위인: <span style="color:#e2d9ff;">${syCanonicalEsc(sData.celebs || '-')}</span></div>
+            </div>
+            <div class="sy-talent-bar" style="margin-bottom:14px;">
+              <span style="font-size:0.78rem; color:#9ca3af; white-space:nowrap;">잠재 재능 지수</span>
+              <div class="sy-talent-track"><div class="sy-talent-fill" style="width:0%" data-target="${syCanonicalEsc(sData.talent)}%"></div></div>
+              <strong style="color:#ffd700; font-size:0.95rem; white-space:nowrap;">${syCanonicalEsc(sData.talent)}%</strong>
+            </div>
+            <div class="sy-natal-tab-bar">
+              <button class="sy-ntab active" data-ntab="core">🌟 천성의 빛</button>
+              <button class="sy-ntab" data-ntab="hidden">🌑 달의 이면</button>
+              <button class="sy-ntab" data-ntab="karma">💫 인연의 궤도</button>
+              <button class="sy-ntab" data-ntab="mantra">✨ 수호의 문장</button>
+              <button class="sy-ntab" data-ntab="daily">📋 일상 적용</button>
+            </div>
+            <div class="sy-natal-panel active" id="sy-panel-core"><p class="sy-natal-text">${syCanonicalEsc(tr.core || tr.desc || '')}</p></div>
+            <div class="sy-natal-panel" id="sy-panel-hidden"><p class="sy-natal-text">${syCanonicalEsc(tr.hidden || tr.desc || '')}</p></div>
+            <div class="sy-natal-panel" id="sy-panel-karma"><p class="sy-natal-text">${syCanonicalEsc(tr.karma || tr.love || '')}</p></div>
+            <div class="sy-natal-panel" id="sy-panel-mantra"><p class="sy-mantra">${syCanonicalEsc(tr.mantra || '"나답게 사는 것이 가장 위대한 일이다."')}</p></div>
+            <div class="sy-natal-panel" id="sy-panel-daily">
+              <div style="display:grid; gap:8px;">
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(167,139,250,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">💼 일 / 사회성</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(tr.work || '')}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,139,160,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">❤️ 연애 / 관계</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(tr.love || '')}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,191,36,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">💰 재물 / 현실</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(tr.wealth || '')}</p></div>
+              </div>
+            </div>
+          </div>
+          ${legacyDailyCard}
+        </div>`;
+    }
+
+    if (_legacyNexusHtml) {
+      html += _legacyNexusHtml;
+    }
+
+    if (canonicalData) {
+      html += syRenderCanonicalDashboard(canonicalData);
+    }
 
     if (!lunarObj) {
         html += `<div class="sy-card" style="border-left-color:#f59e0b; background:rgba(245,158,11,0.08);">
@@ -4202,7 +4277,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           };
 
           _dailySectionHtml = '<div class="sy-card" style="margin-top:15px; border-left-color:#818cf8;">'
-            + '<h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 달빛 처방</h4>'
+            + '<h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 달빛 처방 (심화)</h4>'
             + '<div class="sy-moon-display"><span class="sy-moon-emoji">' + syCanonicalEsc(daily.moon.emoji) + '</span><span class="sy-moon-label">' + syCanonicalEsc(daily.moon.label) + ' — ' + syCanonicalEsc(daily.moon.desc) + '</span></div>'
             + renderGauge('전체 흐름', daily.overall, 'linear-gradient(90deg,#818cf8,#c4b5fd)')
             + renderGauge('관계 리듬', daily.relations, 'linear-gradient(90deg,#fb7185,#fda4af)')
@@ -4402,6 +4477,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 const panel = document.querySelector('[data-rel-panel="' + tabKey + '"]');
                 if (panel) panel.classList.add('active');
             });
+        });
+        // 본성 탭 클릭 이벤트 (레거시 UI 복원)
+        document.querySelectorAll('.sy-ntab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const tabKey = btn.getAttribute('data-ntab');
+            const panelRoot = btn.closest('.sy-card');
+            if (!panelRoot) return;
+            panelRoot.querySelectorAll('.sy-ntab').forEach(b => b.classList.remove('active'));
+            panelRoot.querySelectorAll('.sy-natal-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const panel = panelRoot.querySelector('#sy-panel-' + tabKey);
+            if (panel) panel.classList.add('active');
+          });
         });
         // 모바일 필터 아코디언
         const filterToggle = document.getElementById('szFilterToggle');
