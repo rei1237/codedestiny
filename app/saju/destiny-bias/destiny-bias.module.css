@@ -1,36 +1,42 @@
 .destinyBiasBg {
+  font-family: "SUIT Variable", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   background:
-    radial-gradient(circle at 20% 10%, rgba(255, 80, 200, 0.35), transparent 28%),
-    radial-gradient(circle at 80% 20%, rgba(120, 90, 255, 0.35), transparent 30%),
-    radial-gradient(circle at 50% 90%, rgba(0, 220, 255, 0.18), transparent 35%),
-    linear-gradient(180deg, #10051f 0%, #090316 48%, #05020d 100%);
+    radial-gradient(circle at 12% 8%, rgba(255, 125, 226, 0.44), transparent 30%),
+    radial-gradient(circle at 88% 16%, rgba(96, 118, 255, 0.42), transparent 32%),
+    radial-gradient(circle at 50% 100%, rgba(35, 220, 255, 0.2), transparent 38%),
+    linear-gradient(180deg, #11052a 0%, #09031c 48%, #04010f 100%);
 }
 
 .stageDots {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 16px 16px;
-  opacity: 0.14;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    radial-gradient(rgba(255, 155, 244, 0.2) 1px, transparent 1px);
+  background-size: 22px 22px, 38px 38px;
+  background-position: 0 0, 9px 14px;
+  opacity: 0.16;
 }
 
 .spotlight {
-  background: conic-gradient(from 210deg at 50% 0%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-  filter: blur(2px);
-  opacity: 0.3;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.26), transparent 62%),
+    conic-gradient(from 210deg at 50% 0%, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+  filter: blur(1px);
+  opacity: 0.42;
 }
 
 .glass {
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(26px);
+  background: linear-gradient(145deg, rgba(38, 21, 78, 0.5), rgba(11, 9, 38, 0.6));
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(24px);
 }
 
 .chromeBorder {
   position: relative;
   border: 1px solid transparent;
   background:
-    linear-gradient(rgba(12, 8, 30, 0.92), rgba(12, 8, 30, 0.92)) padding-box,
-    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(253, 186, 255, 0.9), rgba(147, 197, 253, 0.9), rgba(255, 255, 255, 0.9)) border-box;
+    linear-gradient(rgba(16, 10, 43, 0.94), rgba(11, 7, 32, 0.94)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 182, 242, 0.9), rgba(124, 221, 255, 0.92), rgba(255, 245, 182, 0.9)) border-box;
 }
 
 .neonButton {
@@ -54,6 +60,60 @@
 
 .heroGlow {
   animation: heroPulse 4s ease-in-out infinite;
+}
+
+.loadingConcertWrap {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255, 163, 236, 0.2), transparent 36%),
+    radial-gradient(circle at 84% 18%, rgba(120, 193, 255, 0.22), transparent 34%),
+    linear-gradient(180deg, rgba(21, 10, 54, 0.76), rgba(8, 6, 28, 0.84));
+}
+
+.loadingSpotA {
+  position: absolute;
+  left: -12%;
+  top: -18%;
+  width: 52%;
+  height: 72%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 125, 232, 0.65) 0%, rgba(255, 125, 232, 0.04) 68%, transparent 74%);
+  filter: blur(22px);
+}
+
+.loadingSpotB {
+  position: absolute;
+  right: -14%;
+  top: -10%;
+  width: 50%;
+  height: 68%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(126, 211, 255, 0.56) 0%, rgba(126, 211, 255, 0.05) 66%, transparent 72%);
+  filter: blur(20px);
+}
+
+.loadingSparkleField {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+    radial-gradient(rgba(255, 190, 251, 0.36) 1px, transparent 1px),
+    radial-gradient(rgba(147, 227, 255, 0.36) 1px, transparent 1px);
+  background-size: 16px 16px, 23px 23px, 31px 31px;
+  background-position: 0 0, 7px 11px, 13px 5px;
+  opacity: 0.22;
+}
+
+.loadingGlassCard {
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: linear-gradient(180deg, rgba(110, 73, 190, 0.3), rgba(61, 38, 135, 0.18));
+  box-shadow: 0 18px 60px rgba(5, 2, 21, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.svgPreviewWrap :global(svg) {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .loadingSegment {

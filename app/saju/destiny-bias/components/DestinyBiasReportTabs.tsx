@@ -19,45 +19,27 @@ export default function DestinyBiasReportTabs({
   const sections = useMemo<SectionItem[]>(() => {
     return [
       {
-        key: "synergy",
+        key: "personality",
         icon: "✨",
-        title: "오행 시너지",
-        body: `${vm.synergy.title}\n${vm.synergy.description}`,
+        title: "최애 성향 분석",
+        body: vm.biasPersonalityReport,
       },
       {
-        key: "yongshin",
+        key: "compatibility",
         icon: "💎",
-        title: "용신 매칭",
-        body: `${vm.yongshinMatch.title}\n${vm.yongshinMatch.description}`,
+        title: "최애와의 궁합",
+        body: vm.compatibilityReport,
       },
       {
-        key: "position",
-        icon: "🪄",
-        title: "팬덤 포지션",
-        body: `${vm.userEnergy.fandomPosition}\n${vm.userEnergy.description}`,
-      },
-      {
-        key: "action",
-        icon: "🎤",
-        title: "오늘의 덕질 액션",
-        body: vm.todayAction.actions.join("\n"),
-      },
-      {
-        key: "warning",
+        key: "connection",
         icon: "🌙",
-        title: "과몰입 방지",
-        body: vm.todayAction.warning,
-      },
-      {
-        key: "sats",
-        icon: "🫧",
-        title: "10초 SATS 응원 명상",
-        body: vm.sats.script,
+        title: "에너지 연결 리포트",
+        body: `${vm.energyConnectionReport}\n\n최애운명 한 줄 메시지: ${vm.oneLineDestinyMessage}\n오늘의 응원 미션: ${vm.todayMission}`,
       },
     ];
   }, [vm]);
 
-  const [activeKey, setActiveKey] = useState(sections[0]?.key || "synergy");
+  const [activeKey, setActiveKey] = useState(sections[0]?.key || "personality");
   const active = sections.find((item) => item.key === activeKey) || sections[0];
 
   return (
