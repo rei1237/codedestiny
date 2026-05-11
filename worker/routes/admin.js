@@ -9,6 +9,7 @@ import {
   FEATURE_KEY_PRICE_TABLE,
   FRONTEND_PAID_FEATURE_KEYS,
   PIG_COIN_UNLOCK_PRODUCTS,
+  listLegacyUnlockBaselineMismatches,
   listServerPricedFeatureKeys,
 } from "../lib/paid-feature-registry.js";
 import {
@@ -1720,6 +1721,8 @@ async function handleAdminPaymentDiagnostics(request, env) {
     .map(([productId]) => productId)
     .sort();
 
+  const legacyUnlockBaselineMismatches = listLegacyUnlockBaselineMismatches();
+
   const reportTypeRules = Object.keys(REPORT_TYPE_TO_FEATURE_TYPE)
     .sort()
     .map((reportType) => {
@@ -1763,6 +1766,7 @@ async function handleAdminPaymentDiagnostics(request, env) {
       duplicatedInFrontend,
       invalidPriceRows,
       invalidUnlockRows,
+      legacyUnlockBaselineMismatches,
       dbOrphanFeatureKeys,
       serverFeatureKeys,
       frontendFeatureKeys,

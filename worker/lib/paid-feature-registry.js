@@ -104,6 +104,26 @@ export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
 });
 
+const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock", forceDeduct: true },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
+  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
+  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG character unlock", forceDeduct: true },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 100, reason: "Travel destiny unlock", forceDeduct: true },
+  "unlock.health_report": { featureKey: "healthReport", cost: 100, reason: "Health report unlock", forceDeduct: true },
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 200, reason: "Saju diary unlock", forceDeduct: true },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 100, reason: "Secret house episodes unlock", forceDeduct: true },
+  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
+  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 500, reason: "Premium ziwei unlock", forceDeduct: true },
+  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock", forceDeduct: true },
+  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
+  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
+  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
+});
+
 export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
   Object.values(PIG_COIN_UNLOCK_PRODUCTS).reduce((acc, spec) => {
     const key = String(spec?.featureKey || "").trim();
@@ -123,6 +143,51 @@ export function resolveFeatureReasonCost(featureKey, reason) {
   const matched = Number(table[reasonText]);
   if (!Number.isFinite(matched) || matched <= 0) return null;
   return matched;
+}
+
+export function listLegacyUnlockBaselineMismatches() {
+  return Object.entries(LEGACY_UNLOCK_PRODUCTS_65DE451)
+    .map(([productId, expected]) => {
+      const actual = PIG_COIN_UNLOCK_PRODUCTS[productId] || null;
+      if (!actual) {
+        return {
+          productId,
+          issue: "missing",
+          expected,
+        };
+      }
+
+      const expectedCost = Number(expected.cost);
+      const actualCost = Number(actual.cost);
+      const expectedForceDeduct = Boolean(expected.forceDeduct);
+      const actualForceDeduct = Boolean(actual.forceDeduct);
+      const expectedFeatureKey = String(expected.featureKey || "").trim();
+      const actualFeatureKey = String(actual.featureKey || "").trim();
+      const expectedReason = String(expected.reason || "").trim();
+      const actualReason = String(actual.reason || "").trim();
+
+      const isDifferent = (
+        expectedCost !== actualCost
+        || expectedForceDeduct !== actualForceDeduct
+        || expectedFeatureKey !== actualFeatureKey
+        || expectedReason !== actualReason
+      );
+
+      if (!isDifferent) return null;
+
+      return {
+        productId,
+        issue: "changed",
+        expected,
+        actual: {
+          featureKey: actualFeatureKey,
+          cost: actualCost,
+          reason: actualReason,
+          forceDeduct: actualForceDeduct,
+        },
+      };
+    })
+    .filter(Boolean);
 }
 
 export function listServerPricedFeatureKeys() {
