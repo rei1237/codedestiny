@@ -21,14 +21,6 @@ type FormState = {
 };
 
 const oracleItems: ServiceCardModel[] = [
-  { 
-    title: "AI 이모이 오미쿠지", 
-    description: "내 마음과 궁금한 주제를 읽어주는 감성 신탁", 
-    href: "/emoi_omikuji_v2.html", 
-    emoji: "🤖",
-    image: "/fuctionassets/오미쿠지.webp",
-    badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] 
-  },
   { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", emoji: "🎴", badges: [{ text: "무료", tone: "free" }] },
   { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "30코인", tone: "coin" }] },
   { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
@@ -237,7 +229,7 @@ export default function MainLandingPage() {
             <span className="text-xl">🧩</span>
             <h2 className="text-lg font-extrabold tracking-tight text-violet-50">심리테스트 다음 추천</h2>
           </div>
-          <p className="mb-4 text-sm leading-6 text-violet-100/80">심리테스트를 먼저 진행하고, 바로 아래 최애운명으로 사주 기반 공명 분석까지 이어서 확인해보세요.</p>
+          <p className="mb-4 text-sm leading-6 text-violet-100/80">심리테스트 이후 최애운명, AI 이모이 오미쿠지까지 순서대로 이어서 확인해보세요.</p>
 
           <div className="space-y-3">
             <Link
@@ -277,6 +269,26 @@ export default function MainLandingPage() {
                   <span className="inline-flex rounded-full border border-amber-300/55 bg-amber-500/25 px-2 py-0.5 text-[10px] font-semibold text-amber-50">1회 50코인</span>
                 </div>
                 <p className="text-xs leading-5 text-amber-50/90">내 사주와 최애의 공명 점수를 계산하고, 오늘의 덕질 액션 카드까지 받는 사주 기반 분석 서비스입니다.</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/emoi_omikuji_v2.html"
+              className="block overflow-hidden rounded-[18px] border border-cyan-300/40 bg-[linear-gradient(160deg,rgba(18,56,74,0.9),rgba(18,34,64,0.88))] shadow-[0_10px_24px_rgba(14,45,66,0.35)] transition hover:-translate-y-0.5 hover:border-cyan-200/60"
+            >
+              <img
+                src="/fuctionassets/오미쿠지.webp"
+                alt="AI 이모이 오미쿠지 대표 이미지"
+                className="h-40 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <strong className="text-sm font-bold leading-6 text-cyan-50">🤖 AI 이모이 오미쿠지</strong>
+                  <span className="inline-flex rounded-full border border-emerald-300/55 bg-emerald-500/22 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
+                </div>
+                <p className="text-xs leading-5 text-cyan-50/90">내 마음과 궁금한 주제를 읽어주는 감성 신탁으로, 오늘의 행운 흐름과 행동 힌트를 빠르게 확인할 수 있습니다.</p>
               </div>
             </Link>
           </div>
