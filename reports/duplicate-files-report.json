@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-10T00:29:23.511Z",
+  "generatedAt": "2026-05-11T14:44:09.249Z",
   "mode": "dry-run",
   "groups": [
     {
@@ -21,20 +21,20 @@
       ]
     },
     {
-      "hash": "6ace2e5b7fcf15a9a89ce7b9f78e6633ad1b8cdb6183e8100bbc8f173dc04a7e",
-      "size": 657976,
-      "sizeHuman": "642.6 KB",
+      "hash": "7e7717d4564bcc6a3fac7e8fcc688011d556538ea70b5df776532f901958d6ce",
+      "size": 661535,
+      "sizeHuman": "646.0 KB",
       "copies": 2,
       "files": [
         {
-          "path": "index.html",
-          "size": 657976,
-          "sizeHuman": "642.6 KB"
+          "path": "public/index.html",
+          "size": 661535,
+          "sizeHuman": "646.0 KB"
         },
         {
-          "path": "public/index.html",
-          "size": 657976,
-          "sizeHuman": "642.6 KB"
+          "path": "public/static/index.html",
+          "size": 661535,
+          "sizeHuman": "646.0 KB"
         }
       ]
     },
@@ -71,6 +71,24 @@
           "path": "styles/fortune-ui.css",
           "size": 499505,
           "sizeHuman": "487.8 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b0868ba2f6f97cd9a6d8bf4da87c19ae445b1b44d0ca4a9e9ab459f50b04e474",
+      "size": 480790,
+      "sizeHuman": "469.5 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "size": 480790,
+          "sizeHuman": "469.5 KB"
+        },
+        {
+          "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
+          "size": 480790,
+          "sizeHuman": "469.5 KB"
         }
       ]
     },
@@ -741,24 +759,6 @@
       ]
     },
     {
-      "hash": "9dee036ed194843e15120e8f932178ac40b998d034a732f25bab09fcfa4d10b1",
-      "size": 450694,
-      "sizeHuman": "440.1 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/saju-engine-tarot-sukuyo-quantum.js",
-          "size": 450694,
-          "sizeHuman": "440.1 KB"
-        },
-        {
-          "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
-          "size": 450694,
-          "sizeHuman": "440.1 KB"
-        }
-      ]
-    },
-    {
       "hash": "3851bccf2fbf69edcb6699f090982a917a15bc6592d11229c19c8a245c44de30",
       "size": 399211,
       "sizeHuman": "389.9 KB",
@@ -975,20 +975,20 @@
       ]
     },
     {
-      "hash": "980afdf334d368d6ec716cda993521143d3117c8c790c537fcf35d926fe8a98b",
-      "size": 353271,
-      "sizeHuman": "345.0 KB",
+      "hash": "111b974bd960a85ad048aba273307fcf14e0b67732d6fd0e69d61b3098173dd1",
+      "size": 351686,
+      "sizeHuman": "343.4 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/core/index-inline-runtime.js",
-          "size": 353271,
-          "sizeHuman": "345.0 KB"
+          "size": 351686,
+          "sizeHuman": "343.4 KB"
         },
         {
           "path": "public/js/core/index-inline-runtime.js",
-          "size": 353271,
-          "sizeHuman": "345.0 KB"
+          "size": 351686,
+          "sizeHuman": "343.4 KB"
         }
       ]
     },
@@ -1115,6 +1115,24 @@
           "path": "public/fuctionassets/sajuhealth.webp",
           "size": 318636,
           "sizeHuman": "311.2 KB"
+        }
+      ]
+    },
+    {
+      "hash": "2bde97b5e445f7416a0504e414286c4fd903d5adfaa3b33b8a7ce2508a2a0d13",
+      "size": 316268,
+      "sizeHuman": "308.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "public/vedic-astrology.html",
+          "size": 316268,
+          "sizeHuman": "308.9 KB"
+        },
+        {
+          "path": "vedic-astrology.html",
+          "size": 316268,
+          "sizeHuman": "308.9 KB"
         }
       ]
     },
@@ -1466,6 +1484,24 @@
       ]
     },
     {
+      "hash": "f0ecaa74e6a3b02e08ab67011c94e4baa3d085e5e0a4c0875d728204b897842d",
+      "size": 209922,
+      "sizeHuman": "205.0 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/최애운명.webp",
+          "size": 209922,
+          "sizeHuman": "205.0 KB"
+        },
+        {
+          "path": "public/fuctionassets/최애운명.webp",
+          "size": 209922,
+          "sizeHuman": "205.0 KB"
+        }
+      ]
+    },
+    {
       "hash": "6b843dd9644a06963bd8749bc6f685247eb55ef633a524617be23622326981a3",
       "size": 204172,
       "sizeHuman": "199.4 KB",
@@ -1480,6 +1516,24 @@
           "path": "public/fuctionassets/india.webp",
           "size": 204172,
           "sizeHuman": "199.4 KB"
+        }
+      ]
+    },
+    {
+      "hash": "b21adb1a298e3eda46c5d6cb51e42498b475aace418701000736da2079f55d32",
+      "size": 197741,
+      "sizeHuman": "193.1 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/luck-sync-diary.js",
+          "size": 197741,
+          "sizeHuman": "193.1 KB"
+        },
+        {
+          "path": "public/js/luck-sync-diary.js",
+          "size": 197741,
+          "sizeHuman": "193.1 KB"
         }
       ]
     },
@@ -1534,24 +1588,6 @@
           "path": "public/fuctionassets/geomancy.webp",
           "size": 195702,
           "sizeHuman": "191.1 KB"
-        }
-      ]
-    },
-    {
-      "hash": "25d7767756dc50aff8247f6462f0a6a3d5e1ae7606de53d39b083c4b5a92e3ed",
-      "size": 193759,
-      "sizeHuman": "189.2 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/luck-sync-diary.js",
-          "size": 193759,
-          "sizeHuman": "189.2 KB"
-        },
-        {
-          "path": "public/js/luck-sync-diary.js",
-          "size": 193759,
-          "sizeHuman": "189.2 KB"
         }
       ]
     },
@@ -1970,6 +2006,24 @@
       ]
     },
     {
+      "hash": "56cb96edbb7dc20d0bbdd8faa952edd57e11b2437b44b4fea43d8cd119cefae9",
+      "size": 142666,
+      "sizeHuman": "139.3 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "fuctionassets/오미쿠지.webp",
+          "size": 142666,
+          "sizeHuman": "139.3 KB"
+        },
+        {
+          "path": "public/fuctionassets/오미쿠지.webp",
+          "size": 142666,
+          "sizeHuman": "139.3 KB"
+        }
+      ]
+    },
+    {
       "hash": "434189ed74721a338439fe47cc9aa8ffb56b3f4e4c2cf8bb16f05661634adc18",
       "size": 142472,
       "sizeHuman": "139.1 KB",
@@ -2276,6 +2330,24 @@
       ]
     },
     {
+      "hash": "e831af7f1adad2166dc06df86b95a7e8ce7f5b175ab6d346bc5903cc07764ad9",
+      "size": 120680,
+      "sizeHuman": "117.9 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/destiny-profile.js",
+          "size": 120680,
+          "sizeHuman": "117.9 KB"
+        },
+        {
+          "path": "public/js/destiny-profile.js",
+          "size": 120680,
+          "sizeHuman": "117.9 KB"
+        }
+      ]
+    },
+    {
       "hash": "c1433213d251789480842c36a7d9ad4b6dccffd1db5138e227b1c7af04e8bf3e",
       "size": 120014,
       "sizeHuman": "117.2 KB",
@@ -2326,24 +2398,6 @@
           "path": "sudda/hwatu/5_1.webp",
           "size": 116618,
           "sizeHuman": "113.9 KB"
-        }
-      ]
-    },
-    {
-      "hash": "7091fa7a2b18951579b4360c84d60f24f5f25e312aca318c3697145909caecb2",
-      "size": 116000,
-      "sizeHuman": "113.3 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/destiny-profile.js",
-          "size": 116000,
-          "sizeHuman": "113.3 KB"
-        },
-        {
-          "path": "public/js/destiny-profile.js",
-          "size": 116000,
-          "sizeHuman": "113.3 KB"
         }
       ]
     },
@@ -3443,24 +3497,6 @@
       ]
     },
     {
-      "hash": "94e3a9730061ecc7faaf4e099ff324758ca43839b38c76c77adaf898a309c556",
-      "size": 62805,
-      "sizeHuman": "61.3 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/tarot-year-fortune-experience.js",
-          "size": 62805,
-          "sizeHuman": "61.3 KB"
-        },
-        {
-          "path": "public/js/tarot-year-fortune-experience.js",
-          "size": 62805,
-          "sizeHuman": "61.3 KB"
-        }
-      ]
-    },
-    {
       "hash": "57194c9c927f0e265eeb2832a6b3d1559aa9427d19e538d2f549621e0f9768bd",
       "size": 60410,
       "sizeHuman": "59.0 KB",
@@ -3529,6 +3565,24 @@
           "path": "public/js/mobile-interaction-patch.js",
           "size": 59528,
           "sizeHuman": "58.1 KB"
+        }
+      ]
+    },
+    {
+      "hash": "c77c33978a04fc11fec4eeaae6753abcce0c7d8a13af147874af4bf872dbd861",
+      "size": 58589,
+      "sizeHuman": "57.2 KB",
+      "copies": 2,
+      "files": [
+        {
+          "path": "js/share.js",
+          "size": 58589,
+          "sizeHuman": "57.2 KB"
+        },
+        {
+          "path": "public/js/share.js",
+          "size": 58589,
+          "sizeHuman": "57.2 KB"
         }
       ]
     },
@@ -3605,24 +3659,6 @@
       ]
     },
     {
-      "hash": "5c233496ff818cc0804dd8a5883bf28b75f6d952fbb1cab43fdf4ea6c523cb07",
-      "size": 57592,
-      "sizeHuman": "56.2 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/tarot-reunion-experience.js",
-          "size": 57592,
-          "sizeHuman": "56.2 KB"
-        },
-        {
-          "path": "public/js/tarot-reunion-experience.js",
-          "size": 57592,
-          "sizeHuman": "56.2 KB"
-        }
-      ]
-    },
-    {
       "hash": "c5f2e6c070be0fef838d8db3d5bc77fba7722f40a6982fbbf25d0e5515209e70",
       "size": 56324,
       "sizeHuman": "55.0 KB",
@@ -3695,24 +3731,6 @@
       ]
     },
     {
-      "hash": "0bbd3eae1b15669ae9e09b486443af1582fa7b2d27ca5067329013fcbd4318bc",
-      "size": 54048,
-      "sizeHuman": "52.8 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/share.js",
-          "size": 54048,
-          "sizeHuman": "52.8 KB"
-        },
-        {
-          "path": "public/js/share.js",
-          "size": 54048,
-          "sizeHuman": "52.8 KB"
-        }
-      ]
-    },
-    {
       "hash": "c5d6c70fe5e09e35ac55d3bc1adc06b3055be334d2c5563957a1e46f228f9207",
       "size": 53532,
       "sizeHuman": "52.3 KB",
@@ -3749,19 +3767,19 @@
       ]
     },
     {
-      "hash": "4d066a2cd110f610a62a6f318fc836459833628f821e9ce1683b1c55328c41d4",
-      "size": 52110,
+      "hash": "2e9c728c16e8da7d10e5857af5ada894f6a392dbd630a5fb347c7633585215f2",
+      "size": 52101,
       "sizeHuman": "50.9 KB",
       "copies": 2,
       "files": [
         {
           "path": "PhysiognomyUI.js",
-          "size": 52110,
+          "size": 52101,
           "sizeHuman": "50.9 KB"
         },
         {
           "path": "public/PhysiognomyUI.js",
-          "size": 52110,
+          "size": 52101,
           "sizeHuman": "50.9 KB"
         }
       ]
@@ -3799,24 +3817,6 @@
           "path": "sudda/hwatu/5_4.webp",
           "size": 51610,
           "sizeHuman": "50.4 KB"
-        }
-      ]
-    },
-    {
-      "hash": "49afd66aa0344244be9e8e742b4f31ba968ca84c2a88c3f912170d87f962f9e3",
-      "size": 50590,
-      "sizeHuman": "49.4 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/oracle-kcg.js",
-          "size": 50590,
-          "sizeHuman": "49.4 KB"
-        },
-        {
-          "path": "public/js/oracle-kcg.js",
-          "size": 50590,
-          "sizeHuman": "49.4 KB"
         }
       ]
     },
@@ -3929,24 +3929,6 @@
       ]
     },
     {
-      "hash": "8756fe42e81818247c503624f80ea76d3a969baacdfdb7b92a49b2a435eebd8d",
-      "size": 46686,
-      "sizeHuman": "45.6 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/tarot-love-experience.js",
-          "size": 46686,
-          "sizeHuman": "45.6 KB"
-        },
-        {
-          "path": "public/js/tarot-love-experience.js",
-          "size": 46686,
-          "sizeHuman": "45.6 KB"
-        }
-      ]
-    },
-    {
       "hash": "ce0ec7d80fc91a3bd7bb3edf1c555407d59a4fe47cd45597829e2e2f2eb1f903",
       "size": 45719,
       "sizeHuman": "44.6 KB",
@@ -3961,24 +3943,6 @@
           "path": "styles/tarot-healing-dawn.css",
           "size": 45719,
           "sizeHuman": "44.6 KB"
-        }
-      ]
-    },
-    {
-      "hash": "c7ecd6be1341157a34a754c8376300aafc00a604c32df210ea182af68bc59a86",
-      "size": 45284,
-      "sizeHuman": "44.2 KB",
-      "copies": 2,
-      "files": [
-        {
-          "path": "js/iching-engine.js",
-          "size": 45284,
-          "sizeHuman": "44.2 KB"
-        },
-        {
-          "path": "public/js/iching-engine.js",
-          "size": 45284,
-          "sizeHuman": "44.2 KB"
         }
       ]
     },
@@ -4343,38 +4307,38 @@
       ]
     },
     {
-      "hash": "b55126eac28d5f380058591789ce0b833394ddcc9fd6bf43a3e6c848d7d86030",
-      "size": 26503,
-      "sizeHuman": "25.9 KB",
+      "hash": "7ae7faa989dbe6e15c1384b394413abefce832e18fb06687bc362b2d26187f18",
+      "size": 26727,
+      "sizeHuman": "26.1 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/mobile-performance-bootstrap.js",
-          "size": 26503,
-          "sizeHuman": "25.9 KB"
+          "size": 26727,
+          "sizeHuman": "26.1 KB"
         },
         {
           "path": "public/js/mobile-performance-bootstrap.js",
-          "size": 26503,
-          "sizeHuman": "25.9 KB"
+          "size": 26727,
+          "sizeHuman": "26.1 KB"
         }
       ]
     },
     {
-      "hash": "372dc53dbaa10f14162fc07b67e8b20e02b4375e8d68ac6f4cee024ef3a2563b",
-      "size": 25711,
-      "sizeHuman": "25.1 KB",
+      "hash": "226c1ed7a190df2ce4c5a778ee950988ebd036377be065a53a1ab7f65c8f157d",
+      "size": 25767,
+      "sizeHuman": "25.2 KB",
       "copies": 2,
       "files": [
         {
           "path": "js/core/uiBindings.js",
-          "size": 25711,
-          "sizeHuman": "25.1 KB"
+          "size": 25767,
+          "sizeHuman": "25.2 KB"
         },
         {
           "path": "public/js/core/uiBindings.js",
-          "size": 25711,
-          "sizeHuman": "25.1 KB"
+          "size": 25767,
+          "sizeHuman": "25.2 KB"
         }
       ]
     },
@@ -5464,19 +5428,19 @@
       ]
     },
     {
-      "hash": "297277f861c926679f7a2a17e570357f2c25bde2511e99974b276863180ce8c2",
-      "size": 1346,
+      "hash": "1dbf0d61e2b6745303ac2a74bfef6a3adf9861932d6ca321bf1b17d8ddd57ede",
+      "size": 1351,
       "sizeHuman": "1.3 KB",
       "copies": 2,
       "files": [
         {
           "path": "manifest.json",
-          "size": 1346,
+          "size": 1351,
           "sizeHuman": "1.3 KB"
         },
         {
           "path": "public/manifest.json",
-          "size": 1346,
+          "size": 1351,
           "sizeHuman": "1.3 KB"
         }
       ]
@@ -5815,6 +5779,6 @@
       ]
     }
   ],
-  "groupCount": 319,
-  "fileCountInGroups": 652
+  "groupCount": 317,
+  "fileCountInGroups": 648
 }

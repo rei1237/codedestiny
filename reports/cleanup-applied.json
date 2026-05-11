@@ -1,154 +1,59 @@
 {
-  "generatedAt": "2026-05-05T14:26:00.787Z",
+  "generatedAt": "2026-05-11T14:46:57.703Z",
   "mode": "apply",
-  "attemptedCount": 33,
-  "deletedCount": 33,
+  "attemptedCount": 13,
+  "deletedCount": 13,
   "failedCount": 0,
   "deleted": [
     {
-      "path": "_build_cf_cmd.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": "_build_cf_fix.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": "_build_cf_latest.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": "_tmp_4a5465f_index.html",
+      "path": "_tmp_cleanup_psychotest_and_splash_comment.mjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_51a_index_utf8.html",
+      "path": "_tmp_fix_saveTileLocks_dup.cjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_51a_index.html",
+      "path": "_tmp_palm_attached_smoke_with_clientlike_data.mjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_51a_public_index_utf8.html",
+      "path": "_tmp_palm_attached_smoke.mjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_51a_public_index.html",
+      "path": "_tmp_patch_auth_lock_indexes.cjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_51a_public_static_index_utf8.html",
+      "path": "_tmp_patch_splash_indexes.mjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_7a_index.html",
+      "path": "_tmp_premium_pdf_api_smoke_love.mjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_7e4fd22_main-glass.css",
+      "path": "_tmp_premium_pdf_api_smoke.mjs",
       "type": "file",
       "reason": "temporary-artifact"
     },
     {
-      "path": "_tmp_7e4fd22_public_main-glass.css",
+      "path": "_tmp_scan_charset.mjs",
       "type": "file",
       "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_animal_totem_scan.txt",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_buildcf.log",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_chunk.txt",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_live_astro_context.html",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_live_snippet.html",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_public_saju_6f02552.js",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_run_24673404984_logs.zip",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_saju_6f02552.js",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "_tmp_vedic_inline_public.js",
-      "type": "file",
-      "reason": "temporary-artifact"
-    },
-    {
-      "path": "._e2e_auth_payment_check.cjs",
-      "type": "file",
-      "reason": "os-artifact"
-    },
-    {
-      "path": ".cloudflare",
-      "type": "directory",
-      "reason": "build-or-cache-directory"
     },
     {
       "path": ".next",
       "type": "directory",
       "reason": "build-or-cache-directory"
-    },
-    {
-      "path": ".playwright-mcp/console-2026-04-14T19-22-31-831Z.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": ".playwright-mcp/console-2026-04-14T19-26-55-437Z.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": ".playwright-mcp/console-2026-04-14T19-27-09-643Z.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": ".playwright-mcp/console-2026-04-14T19-30-14-429Z.log",
-      "type": "file",
-      "reason": "log-file"
-    },
-    {
-      "path": ".playwright-mcp/console-2026-04-16T00-26-39-396Z.log",
-      "type": "file",
-      "reason": "log-file"
     },
     {
       "path": ".wrangler",
@@ -164,11 +69,6 @@
       "path": "tsconfig.tsbuildinfo",
       "type": "file",
       "reason": "typescript-buildinfo"
-    },
-    {
-      "path": "wrangler-tail-auth.log",
-      "type": "file",
-      "reason": "log-file"
     }
   ],
   "failed": []

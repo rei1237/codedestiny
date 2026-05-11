@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-10T00:29:22.609Z",
+  "generatedAt": "2026-05-11T14:44:08.234Z",
   "mode": "dry-run",
-  "totalFilesScanned": 1961,
-  "entryPointCount": 487,
-  "reachableCount": 898,
-  "unreachableCount": 1063,
+  "totalFilesScanned": 1969,
+  "entryPointCount": 490,
+  "reachableCount": 908,
+  "unreachableCount": 1061,
   "entryPoints": [
     "app/AnimalTotem.tsx",
     "app/HomeClient.js",
@@ -107,7 +107,6 @@
     "app/components/FeatureUnlockShowcase.tsx",
     "app/components/FlowerUnlockGate.jsx",
     "app/components/FooterLegal.jsx",
-    "app/components/FortunePageSEO.tsx",
     "app/components/GlobalHeader.tsx",
     "app/components/GlobalPricingCard.jsx",
     "app/components/GlobalTrustSection.jsx",
@@ -251,6 +250,8 @@
     "app/privacy-policy/PrivacyPolicyContent.jsx",
     "app/privacy-policy/page.js",
     "app/privacy/page.js",
+    "app/psychotest/[slug]/page.tsx",
+    "app/psychotest/page.tsx",
     "app/robots.ts",
     "app/saju-picture/layout.js",
     "app/saju-picture/page.tsx",
@@ -322,6 +323,7 @@
     "public/celestial-harmony.html",
     "public/cosmic-soul-meditation.html",
     "public/destiny-poker.html",
+    "public/emoi_omikuji_v2.html",
     "public/en/index.html",
     "public/famous/index.html",
     "public/fortune-teller-fish.html",
@@ -470,6 +472,7 @@
     "scripts/sync-cloudflare-worker-secrets.mjs",
     "scripts/sync-legacy-static-to-public.mjs",
     "scripts/test-signup.mjs",
+    "scripts/verify-all-paid-services-payment-flow.mjs",
     "scripts/verify-cloudflare-migration-readiness.mjs",
     "scripts/verify-entry-encoding.mjs",
     "scripts/verify-inicis-local-auth.mjs",
@@ -494,7 +497,7 @@
     "wrangler.toml",
     "yoga-guru.html"
   ],
-  "graphNodeCount": 760,
+  "graphNodeCount": 764,
   "unusedCandidates": [
     {
       "path": "_tmp_ppt_review/source.zip",
@@ -527,15 +530,9 @@
       "extension": ".png"
     },
     {
-      "path": "_tmp_live_index.html",
-      "size": 659421,
-      "sizeHuman": "644.0 KB",
-      "extension": ".html"
-    },
-    {
       "path": "js/saju-engine-tarot-sukuyo-quantum.js",
-      "size": 450694,
-      "sizeHuman": "440.1 KB",
+      "size": 480790,
+      "sizeHuman": "469.5 KB",
       "extension": ".js"
     },
     {
@@ -548,12 +545,6 @@
       "path": "fuctionassets/심리테스트.webp",
       "size": 392674,
       "sizeHuman": "383.5 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/jami2.webp",
-      "size": 356406,
-      "sizeHuman": "348.1 KB",
       "extension": ".webp"
     },
     {
@@ -587,6 +578,12 @@
       "extension": ".png"
     },
     {
+      "path": "tsconfig.tsbuildinfo",
+      "size": 217721,
+      "sizeHuman": "212.6 KB",
+      "extension": ".tsbuildinfo"
+    },
+    {
       "path": "fuctionassets/destiny pocker.webp",
       "size": 217426,
       "sizeHuman": "212.3 KB",
@@ -599,15 +596,15 @@
       "extension": ".webp"
     },
     {
-      "path": "tsconfig.tsbuildinfo",
-      "size": 216823,
-      "sizeHuman": "211.7 KB",
-      "extension": ".tsbuildinfo"
-    },
-    {
       "path": "fuctionassets/imsolo.webp",
       "size": 216214,
       "sizeHuman": "211.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "fuctionassets/최애운명.webp",
+      "size": 209922,
+      "sizeHuman": "205.0 KB",
       "extension": ".webp"
     },
     {
@@ -639,6 +636,12 @@
       "size": 181084,
       "sizeHuman": "176.8 KB",
       "extension": ".webp"
+    },
+    {
+      "path": "all_webp_files.txt",
+      "size": 178992,
+      "sizeHuman": "174.8 KB",
+      "extension": ".txt"
     },
     {
       "path": "fuctionassets/meryok.webp",
@@ -1050,7 +1053,7 @@
     },
     {
       "path": "scripts/inject-godlife.mjs",
-      "size": 21977,
+      "size": 22013,
       "sizeHuman": "21.5 KB",
       "extension": ".mjs"
     },
@@ -1059,6 +1062,12 @@
       "size": 20857,
       "sizeHuman": "20.4 KB",
       "extension": ".js"
+    },
+    {
+      "path": "update_emoi.py",
+      "size": 18144,
+      "sizeHuman": "17.7 KB",
+      "extension": ".py"
     },
     {
       "path": "fuctionassets/flower-320.webp",
@@ -1397,6 +1406,12 @@
       "extension": ".local"
     },
     {
+      "path": "__tests__/worker/coin-access.guard.test.js",
+      "size": 4541,
+      "sizeHuman": "4.4 KB",
+      "extension": ".js"
+    },
+    {
       "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout1.xml",
       "size": 4524,
       "sizeHuman": "4.4 KB",
@@ -1443,6 +1458,12 @@
       "size": 4310,
       "sizeHuman": "4.2 KB",
       "extension": ".md"
+    },
+    {
+      "path": "update_emoi2.py",
+      "size": 4177,
+      "sizeHuman": "4.1 KB",
+      "extension": ".py"
     },
     {
       "path": "_tmp_ppt_review/unzipped/ppt/slides/slide10.xml",
@@ -1553,16 +1574,16 @@
       "extension": ".mjs"
     },
     {
+      "path": "__tests__/worker/paid-feature-registry.legacy-65de451.test.js",
+      "size": 3355,
+      "sizeHuman": "3.3 KB",
+      "extension": ".js"
+    },
+    {
       "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout10.xml",
       "size": 3275,
       "sizeHuman": "3.2 KB",
       "extension": ".xml"
-    },
-    {
-      "path": "icons/samba-96.webp",
-      "size": 3264,
-      "sizeHuman": "3.2 KB",
-      "extension": ".webp"
     },
     {
       "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout2.xml",
@@ -1635,12 +1656,6 @@
       "size": 2795,
       "sizeHuman": "2.7 KB",
       "extension": ".md"
-    },
-    {
-      "path": "__tests__/worker/coin-access.guard.test.js",
-      "size": 2586,
-      "sizeHuman": "2.5 KB",
-      "extension": ".js"
     },
     {
       "path": "scripts/optimize-static-thirdparty-loading.cjs",
@@ -1817,6 +1832,12 @@
       "extension": ".cjs"
     },
     {
+      "path": "__tests__/worker/premium-access-control.rules.test.js",
+      "size": 1694,
+      "sizeHuman": "1.7 KB",
+      "extension": ".js"
+    },
+    {
       "path": "__tests__/ui/gender-selection.static.test.js",
       "size": 1643,
       "sizeHuman": "1.6 KB",
@@ -1859,12 +1880,6 @@
       "extension": ".mjs"
     },
     {
-      "path": "__tests__/worker/premium-access-control.rules.test.js",
-      "size": 1325,
-      "sizeHuman": "1.3 KB",
-      "extension": ".js"
-    },
-    {
       "path": "_tmp_scan_charset.mjs",
       "size": 1277,
       "sizeHuman": "1.2 KB",
@@ -1881,6 +1896,12 @@
       "size": 1264,
       "sizeHuman": "1.2 KB",
       "extension": ".cjs"
+    },
+    {
+      "path": "__tests__/worker/paid-feature-registry.integrity.test.js",
+      "size": 1254,
+      "sizeHuman": "1.2 KB",
+      "extension": ".js"
     },
     {
       "path": "scripts/auth-wrong-password-smoke.mjs",
@@ -1985,12 +2006,6 @@
       "extension": ".ts"
     },
     {
-      "path": "components/seo/FaqBlock.tsx",
-      "size": 727,
-      "sizeHuman": "727 B",
-      "extension": ".tsx"
-    },
-    {
       "path": "scripts/rm-godlife.mjs",
       "size": 719,
       "sizeHuman": "719 B",
@@ -2001,12 +2016,6 @@
       "size": 679,
       "sizeHuman": "679 B",
       "extension": ".xml"
-    },
-    {
-      "path": "components/seo/RelatedLinks.tsx",
-      "size": 670,
-      "sizeHuman": "670 B",
-      "extension": ".tsx"
     },
     {
       "path": "_tmp_ppt_review/unzipped/ppt/presProps.xml",
@@ -2049,12 +2058,6 @@
       "size": 483,
       "sizeHuman": "483 B",
       "extension": ".ts"
-    },
-    {
-      "path": "components/seo/Breadcrumbs.tsx",
-      "size": 481,
-      "sizeHuman": "481 B",
-      "extension": ".tsx"
     },
     {
       "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide11.xml.rels",
@@ -2153,12 +2156,6 @@
       "extension": ".yml"
     },
     {
-      "path": "components/seo/SeoCta.tsx",
-      "size": 323,
-      "sizeHuman": "323 B",
-      "extension": ".tsx"
-    },
-    {
       "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout1.xml.rels",
       "size": 311,
       "sizeHuman": "311 B",
@@ -2231,6 +2228,12 @@
       "extension": ".rels"
     },
     {
+      "path": ".gitleaks.toml",
+      "size": 309,
+      "sizeHuman": "309 B",
+      "extension": ".toml"
+    },
+    {
       "path": ".github/workflows/cloudflare-pages-deploy.yml",
       "size": 292,
       "sizeHuman": "292 B",
@@ -2259,12 +2262,6 @@
       "size": 213,
       "sizeHuman": "213 B",
       "extension": "(none)"
-    },
-    {
-      "path": "components/seo/JsonLd.tsx",
-      "size": 174,
-      "sizeHuman": "174 B",
-      "extension": ".tsx"
     },
     {
       "path": ".secret.example",
@@ -2966,8 +2963,8 @@
     },
     {
       "path": "public/_headers",
-      "size": 9883,
-      "sizeHuman": "9.7 KB",
+      "size": 10939,
+      "sizeHuman": "10.7 KB",
       "extension": "(none)"
     },
     {
@@ -3631,6 +3628,12 @@
       "extension": ".webp"
     },
     {
+      "path": "public/fuctionassets/최애운명.webp",
+      "size": 209922,
+      "sizeHuman": "205.0 KB",
+      "extension": ".webp"
+    },
+    {
       "path": "public/fuctionassets/ai animal.webp",
       "size": 90180,
       "sizeHuman": "88.1 KB",
@@ -3694,12 +3697,6 @@
       "path": "public/fuctionassets/imsolo.webp",
       "size": 216214,
       "sizeHuman": "211.1 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "public/fuctionassets/jami2.webp",
-      "size": 356406,
-      "sizeHuman": "348.1 KB",
       "extension": ".webp"
     },
     {
@@ -5077,12 +5074,6 @@
       "extension": ".webp"
     },
     {
-      "path": "public/icons/samba-96.webp",
-      "size": 3264,
-      "sizeHuman": "3.2 KB",
-      "extension": ".webp"
-    },
-    {
       "path": "public/images/Celestial Harmony.webp",
       "size": 220114,
       "sizeHuman": "215.0 KB",
@@ -5222,8 +5213,8 @@
     },
     {
       "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
-      "size": 450694,
-      "sizeHuman": "440.1 KB",
+      "size": 480790,
+      "sizeHuman": "469.5 KB",
       "extension": ".js"
     },
     {
@@ -5306,8 +5297,8 @@
     },
     {
       "path": "public/js/tarot-love-experience.js",
-      "size": 46686,
-      "sizeHuman": "45.6 KB",
+      "size": 46814,
+      "sizeHuman": "45.7 KB",
       "extension": ".js"
     },
     {
@@ -6698,8 +6689,8 @@
     },
     {
       "path": "server/routes/admin.routes.js",
-      "size": 40349,
-      "sizeHuman": "39.4 KB",
+      "size": 41316,
+      "sizeHuman": "40.3 KB",
       "extension": ".js"
     },
     {
@@ -6710,14 +6701,14 @@
     },
     {
       "path": "server/routes/auth.routes.js",
-      "size": 33919,
+      "size": 33913,
       "sizeHuman": "33.1 KB",
       "extension": ".js"
     },
     {
       "path": "server/routes/fortune.routes.js",
-      "size": 43064,
-      "sizeHuman": "42.1 KB",
+      "size": 51569,
+      "sizeHuman": "50.4 KB",
       "extension": ".js"
     },
     {
@@ -6734,8 +6725,8 @@
     },
     {
       "path": "server/routes/payment.routes.js",
-      "size": 54649,
-      "sizeHuman": "53.4 KB",
+      "size": 55066,
+      "sizeHuman": "53.8 KB",
       "extension": ".js"
     },
     {
