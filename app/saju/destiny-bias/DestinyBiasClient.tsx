@@ -42,10 +42,44 @@ const INITIAL_BIAS: PersonInputState = {
 type StoredProfile = {
   id?: string;
   name?: string;
+  birth?: {
+    year?: number;
+    month?: number;
+    day?: number;
+    hour?: number;
+    minute?: number;
+  };
 };
 
-function readCurrentProfileName() {
-  if (typeof window === "undefined") return "";
+function toPaddedNumber(value: unknown, length: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return "";
+  return String(Math.trunc(parsed)).padStart(length, "0");
+}
+
+function buildBirthDateInput(birth: StoredProfile["birth"]) {
+  const year = toPaddedNumber(birth?.year, 4);
+  const month = toPaddedNumber(birth?.month, 2);
+  const day = toPaddedNumber(birth?.day, 2);
+  if (!year || !month || !day) return "";
+  return `${year}${month}${day}`;
+}
+
+function buildBirthTimeInput(birth: StoredProfile["birth"]) {
+  const hour = toPaddedNumber(birth?.hour, 2);
+  const minute = toPaddedNumber(birth?.minute, 2);
+  if (!hour || !minute) return "";
+  return `${hour}${minute}`;
+}
+
+function readCurrentProfileSeed() {
+  if (typeof window === "undefined") {
+    return {
+      name: "",
+      birthDateInput: "",
+      birthTimeInput: "",
+    };
+  }
   try {
     const user = readSanitizedAuthUser();
     const scope = resolveAuthScopeFromUser(user) || "guest";
@@ -55,11 +89,25 @@ function readCurrentProfileName() {
       localStorage.getItem(`${PROFILE_NS}.current`) ||
       "";
     const list = JSON.parse(listRaw) as StoredProfile[];
-    if (!Array.isArray(list) || list.length === 0) return "";
+    if (!Array.isArray(list) || list.length === 0) {
+      return {
+        name: "",
+        birthDateInput: "",
+        birthTimeInput: "",
+      };
+    }
     const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0];
-    return String(profile?.name || "").trim();
+    return {
+      name: String(profile?.name || "").trim(),
+      birthDateInput: buildBirthDateInput(profile?.birth),
+      birthTimeInput: buildBirthTimeInput(profile?.birth),
+    };
   } catch {
-    return "";
+    return {
+      name: "",
+      birthDateInput: "",
+      birthTimeInput: "",
+    };
   }
 }
 
@@ -177,20 +225,31 @@ export default function DestinyBiasClient() {
   }, []);
 
   useEffect(() => {
-    const applyProfileName = () => {
-      const profileName = readCurrentProfileName();
-      if (!profileName) return;
+    const applyProfileData = () => {
+      const profileSeed = readCurrentProfileSeed();
       setMeInput((prev) => {
-        if (prev.name.trim()) return prev;
-        return { ...prev, name: profileName };
+        const nextName = prev.name.trim() ? prev.name : profileSeed.name;
+        const nextBirthDate = prev.birthDateInput.trim() ? prev.birthDateInput : profileSeed.birthDateInput;
+        const nextBirthTime = prev.birthTimeInput.trim() ? prev.birthTimeInput : profileSeed.birthTimeInput;
+
+        if (nextName === prev.name && nextBirthDate === prev.birthDateInput && nextBirthTime === prev.birthTimeInput) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          name: nextName,
+          birthDateInput: nextBirthDate,
+          birthTimeInput: nextBirthTime,
+        };
       });
     };
 
-    applyProfileName();
+    applyProfileData();
     if (typeof window === "undefined") return;
-    window.addEventListener("destinyProfileChanged", applyProfileName);
+    window.addEventListener("destinyProfileChanged", applyProfileData);
     return () => {
-      window.removeEventListener("destinyProfileChanged", applyProfileName);
+      window.removeEventListener("destinyProfileChanged", applyProfileData);
     };
   }, []);
 
