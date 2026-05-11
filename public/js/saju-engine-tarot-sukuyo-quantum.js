@@ -3444,7 +3444,7 @@ function syRenderWheelCard(wheelState, compatInfo) {
   var legend = [];
   legend.push('<span class="sy-wheel-chip sy-wheel-chip-my">금색: 본명숙</span>');
   if (hasPartner) legend.push('<span class="sy-wheel-chip sy-wheel-chip-partner">은빛: 상대숙</span>');
-  legend.push('<span class="sy-wheel-chip sy-wheel-chip-rel">내부 링: 본명숙 기준 관계(명/업/태/안/괴/성/위/영/친/우/쇠)</span>');
+  legend.push('<span class="sy-wheel-chip sy-wheel-chip-rel">안쪽 원: 본명숙 기준 관계(명/업/태/안/괴/성/위/영/친/우/쇠)</span>');
 
   var infoRows = [];
   infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">나의 본명숙</div><div class="sy-wheel-meta-value">' + syWheelEsc(myM.ko + '(' + myM.han + ')') + '</div></div>');
