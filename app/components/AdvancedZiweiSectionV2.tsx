@@ -219,6 +219,20 @@ export default function AdvancedZiweiSectionV2({
   const activeChapter = chapters[activeSection];
   const canReadCurrent = resolvedUnlocked || FREE_SECTIONS.has(activeSection);
 
+  const activePalace = useMemo(() => {
+    if (!chart) return null;
+    if (activeSection === "overview" || activeSection === "master") return null;
+    return chart.palaces.find((p) => p.id === activeSection) || null;
+  }, [activeSection, chart]);
+
+  const strengthBadgeClass = useCallback((symbol: string) => {
+    if (symbol === "◎") return "border-emerald-300/60 bg-emerald-200/15 text-emerald-100";
+    if (symbol === "○") return "border-cyan-300/60 bg-cyan-200/15 text-cyan-100";
+    if (symbol === "△") return "border-amber-300/60 bg-amber-200/15 text-amber-100";
+    if (symbol === "×") return "border-rose-300/60 bg-rose-200/15 text-rose-100";
+    return "border-white/30 bg-white/10 text-slate-200";
+  }, []);
+
   const syncUnlockState = useCallback(
     async (checkServer: boolean) => {
       if (resolvedUnlocked) return true;
@@ -694,7 +708,110 @@ export default function AdvancedZiweiSectionV2({
 
           <main>
             {canReadCurrent ? (
-              <ZiweiDeepChapterView chapter={activeChapter} />
+              <div className="space-y-4">
+                <section className="rounded-2xl border border-white/15 bg-slate-950/55 p-4 backdrop-blur-xl">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-sm font-black text-amber-100">핵심 구조 카드</h3>
+                    <div className="flex flex-wrap gap-2 text-[11px]">
+                      <span className="rounded-full border border-emerald-300/60 bg-emerald-200/15 px-2 py-1 font-semibold text-emerald-100">◎ 매우 강함</span>
+                      <span className="rounded-full border border-cyan-300/60 bg-cyan-200/15 px-2 py-1 font-semibold text-cyan-100">○ 안정 작동</span>
+                      <span className="rounded-full border border-amber-300/60 bg-amber-200/15 px-2 py-1 font-semibold text-amber-100">△ 보완 필요</span>
+                      <span className="rounded-full border border-rose-300/60 bg-rose-200/15 px-2 py-1 font-semibold text-rose-100">× 충돌 강함</span>
+                    </div>
+                  </div>
+
+                  {activePalace ? (
+                    <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <p className="text-xs font-bold text-slate-200">{activePalace.name} 별 배치</p>
+                        <p className="mt-2 text-[11px] text-slate-400">주성</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {activePalace.mainStars.map((star) => {
+                            const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
+                            return (
+                              <span key={`main-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
+                                {star.name} {symbol}
+                              </span>
+                            );
+                          })}
+                        </div>
+
+                        <p className="mt-3 text-[11px] text-slate-400">보조성</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {activePalace.auxiliaryStars.length ? activePalace.auxiliaryStars.map((star) => {
+                            const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
+                            return (
+                              <span key={`aux-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
+                                {star.name} {symbol}
+                              </span>
+                            );
+                          }) : <span className="text-[11px] text-slate-400">없음</span>}
+                        </div>
+
+                        <p className="mt-3 text-[11px] text-slate-400">살성</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {activePalace.maleficStars.length ? activePalace.maleficStars.map((star) => {
+                            const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
+                            return (
+                              <span key={`bad-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
+                                {star.name} {symbol}
+                              </span>
+                            );
+                          }) : <span className="text-[11px] text-slate-400">없음</span>}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <p className="text-xs font-bold text-slate-200">사화·삼방사정 연결</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {activePalace.sihua.length ? activePalace.sihua.map((key) => (
+                            <span key={`sihua-${key}`} className="rounded-full border border-violet-300/50 bg-violet-200/15 px-2 py-0.5 text-[11px] font-semibold text-violet-100">
+                              {key}
+                            </span>
+                          )) : <span className="text-[11px] text-slate-400">사화 없음</span>}
+                        </div>
+
+                        <p className="mt-3 text-[11px] text-slate-400">대궁</p>
+                        <p className="mt-1 text-sm font-bold text-slate-100">{chart.palaces.find((p) => p.id === activePalace.oppositePalaceId)?.name || activePalace.oppositePalaceId}</p>
+
+                        <p className="mt-3 text-[11px] text-slate-400">삼방사정</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {activePalace.triadPalaceIds.map((id) => (
+                            <span key={`triad-${id}`} className="rounded-full border border-sky-300/50 bg-sky-200/15 px-2 py-0.5 text-[11px] font-semibold text-sky-100">
+                              {chart.palaces.find((p) => p.id === id)?.name || id}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <p className="text-[11px] text-slate-400">현재 강한 궁</p>
+                        <p className="mt-1 text-sm font-bold text-slate-100">{chart.palaces.slice().sort((a, b) => b.score - a.score)[0]?.name || "정보 없음"}</p>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <p className="text-[11px] text-slate-400">사화 기준</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {[chart.sihua.hualu && `화록 ${chart.sihua.hualu}`, chart.sihua.huaquan && `화권 ${chart.sihua.huaquan}`, chart.sihua.huake && `화과 ${chart.sihua.huake}`, chart.sihua.huaji && `화기 ${chart.sihua.huaji}`]
+                            .filter(Boolean)
+                            .map((label) => (
+                              <span key={String(label)} className="rounded-full border border-violet-300/50 bg-violet-200/15 px-2 py-0.5 text-[11px] font-semibold text-violet-100">
+                                {label}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <p className="text-[11px] text-slate-400">핵심 성공 공식</p>
+                        <p className="mt-1 text-sm font-bold text-slate-100">{chart.summary.direction}</p>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <ZiweiDeepChapterView chapter={activeChapter} />
+              </div>
             ) : (
               <PremiumBlurGate
                 lockedTitle={activeChapter.title}

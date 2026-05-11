@@ -1,6 +1,17 @@
 import { Solar } from "lunar-javascript";
 import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
 import {
+  getZiweiClassicalStrength,
+  normalizeZiweiClassicStrength,
+  ziweiClassicStrengthFromSymbol,
+  ziweiClassicStrengthToSymbol,
+  type ZiweiClassicStrength,
+  type ZiweiStrengthSymbol,
+} from "./ziwei-strength";
+import {
+  ZiweiCanonicalPalace,
+  ZiweiCanonicalStar,
+  ZiweiDeepAnalysisInput,
   ZiweiDeepChart,
   ZiweiPalace,
   ZiweiPalaceId,
@@ -25,7 +36,8 @@ const HAN_TO_KR_ZHI: Record<string, string> = {
 
 export interface ZiweiStar {
   name: string;
-  symbol: string; // 묘왕평리함
+  symbol: string;
+  strength?: string;
 }
 
 export interface ZiweiPalaceData {
@@ -45,6 +57,32 @@ export interface ZiweiChartData {
   juInfo: string;
   palaceStarData: ZiweiPalaceData[];
   sihua: { luk: string; quan: string; ke: string; ji: string };
+}
+
+function normalizeStrengthLabel(raw: string | undefined): string {
+  return normalizeZiweiClassicStrength(raw);
+}
+
+function normalizeStrengthSymbol(raw: string | undefined): ZiweiStrengthSymbol {
+  return ziweiClassicStrengthToSymbol(ziweiClassicStrengthFromSymbol(raw));
+}
+
+function symbolFromStrength(strength: string | undefined): ZiweiStrengthSymbol {
+  return ziweiClassicStrengthToSymbol(normalizeStrengthLabel(strength));
+}
+
+function normalizeStarStrength(strength: string | undefined, symbol: string | undefined): { strength: string; symbol: ZiweiStrengthSymbol } {
+  const normalizedStrength = normalizeStrengthLabel(strength) as ZiweiClassicStrength;
+  const normalizedSymbol = normalizeStrengthSymbol(symbol);
+  const symbolStrength = ziweiClassicStrengthFromSymbol(normalizedSymbol || symbol);
+  const resolvedStrength = normalizedStrength || symbolStrength;
+  const resolvedSymbol = normalizedSymbol || symbolFromStrength(resolvedStrength);
+
+  if (!resolvedStrength || !resolvedSymbol) {
+    return { strength: "", symbol: "" };
+  }
+
+  return { strength: resolvedStrength, symbol: resolvedSymbol };
 }
 
 /** 
@@ -128,7 +166,9 @@ export function calcZiweiPalaces(
 
   const addStar = (pIdx: number, name: string, type: "main" | "aux" | "bad") => {
     const target = palaceStarData[pIdx % 12];
-    const star = { name, symbol: getBrightness(name, pIdx % 12) };
+    const profile = getBrightness(name, pIdx % 12, type);
+    const normalized = normalizeStarStrength(profile.strength, profile.symbol);
+    const star = { name, symbol: normalized.symbol, strength: normalized.strength };
     if (type === "main") target.stars.push(star);
     else if (type === "aux") target.auxStars.push(star);
     else target.badStars.push(star);
@@ -205,13 +245,29 @@ export function calcZiweiPalaces(
 }
 
 /** 묘왕평리함 간략화 로직 */
-function getBrightness(star: string, branch: number): string {
-  // 실제로는 정밀한 테이블이 필요하지만, 여기서는 시각적 효과를 위해 일부만 구현
+function getBrightness(star: string, branch: number, starType: "main" | "aux" | "bad"): { strength: string; symbol: ZiweiStrengthSymbol } {
+  const zhiHan = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"][(branch % 12 + 12) % 12];
+  const classical = getZiweiClassicalStrength(star, zhiHan);
+  if (classical) {
+    return normalizeStarStrength(classical, symbolFromStrength(classical));
+  }
+
+  // 고전표에 없는 별은 기존 branch 기반 프로파일을 보수적으로 사용한다.
   const miao = [0, 4, 8];
-  const xian = [2, 6, 10];
-  if (miao.includes(branch)) return "◎";
-  if (xian.includes(branch)) return "X";
-  return "○";
+  const li = [1, 5, 9];
+  const weak = [2, 6, 10];
+
+  if (starType === "bad") {
+    if (miao.includes(branch)) return normalizeStarStrength("묘", "◎");
+    if (li.includes(branch)) return normalizeStarStrength("왕", "○");
+    if (weak.includes(branch)) return normalizeStarStrength("함", "×");
+    return normalizeStarStrength("평", "△");
+  }
+
+  if (miao.includes(branch)) return normalizeStarStrength("묘", "◎");
+  if (li.includes(branch)) return normalizeStarStrength("왕", "○");
+  if (weak.includes(branch)) return normalizeStarStrength("평", "△");
+  return normalizeStarStrength("리", "△");
 }
 
 const PALACE_LABEL_TO_ID: Record<string, ZiweiPalaceId> = {
@@ -264,8 +320,22 @@ const STAR_KEYWORD_MAP: Record<string, string[]> = {
   파군: ["전환", "혁신", "개척"],
 };
 
-function toStarMeta(stars: ZiweiStar[]): ZiweiStarMeta[] {
-  return stars.map((s) => ({ name: s.name, symbol: s.symbol }));
+function toStarMeta(
+  stars: ZiweiStar[],
+  starType: ZiweiStarMeta["starType"],
+  transformMap: Map<string, "화록" | "화권" | "화과" | "화기">,
+): ZiweiStarMeta[] {
+  return stars.map((s) => {
+    const normalized = normalizeStarStrength(s.strength, s.symbol);
+    return {
+      name: s.name,
+      symbol: normalized.symbol,
+      strength: normalized.strength,
+      strengthSymbol: normalized.symbol,
+      starType,
+      transformation: transformMap.get(s.name) || null,
+    };
+  });
 }
 
 function findSihuaInPalace(stars: ZiweiStarMeta[], sihua: ZiweiChartData["sihua"]): string[] {
@@ -305,14 +375,20 @@ function palaceScore(main: ZiweiStarMeta[], aux: ZiweiStarMeta[], bad: ZiweiStar
 }
 
 function buildPalaces(chart: ZiweiChartData): ZiweiPalace[] {
+  const transformMap = new Map<string, "화록" | "화권" | "화과" | "화기">();
+  if (chart.sihua.luk) transformMap.set(chart.sihua.luk, "화록");
+  if (chart.sihua.quan) transformMap.set(chart.sihua.quan, "화권");
+  if (chart.sihua.ke) transformMap.set(chart.sihua.ke, "화과");
+  if (chart.sihua.ji) transformMap.set(chart.sihua.ji, "화기");
+
   const converted = chart.palaceStarData
     .map((palaceData) => {
       const id = PALACE_LABEL_TO_ID[palaceData.palace];
       if (!id) return null;
 
-      const mainStars = toStarMeta(palaceData.stars);
-      const auxiliaryStars = toStarMeta(palaceData.auxStars);
-      const maleficStars = toStarMeta(palaceData.badStars);
+      const mainStars = toStarMeta(palaceData.stars, "main", transformMap);
+      const auxiliaryStars = toStarMeta(palaceData.auxStars, "assistant", transformMap);
+      const maleficStars = toStarMeta(palaceData.badStars, "malefic", transformMap);
       const luckyStars = auxiliaryStars.filter((s) => LUCKY_STAR_SET.has(s.name));
       const sihua = findSihuaInPalace([...mainStars, ...auxiliaryStars], chart.sihua);
       const keywords = buildPalaceKeywords(mainStars, sihua);
@@ -344,6 +420,89 @@ function buildPalaces(chart: ZiweiChartData): ZiweiPalace[] {
   });
 
   return PALACE_ID_ORDER.map((id) => converted.find((p) => p.id === id)).filter(Boolean) as ZiweiPalace[];
+}
+
+const PALACE_ID_TO_CANONICAL_KEY: Record<ZiweiPalaceId, ZiweiCanonicalPalace["key"]> = {
+  ming: "life",
+  siblings: "siblings",
+  spouse: "spouse",
+  children: "children",
+  wealth: "wealth",
+  health: "health",
+  travel: "travel",
+  friends: "friends",
+  career: "career",
+  property: "property",
+  fortune: "fortune",
+  parents: "parents",
+};
+
+const PALACE_MEANING: Record<ZiweiPalaceId, string> = {
+  ming: "타고난 정체성과 핵심 의사결정 패턴",
+  siblings: "형제·동료·가까운 협력 구조",
+  spouse: "연애·결혼·파트너십 운영 방식",
+  children: "자녀·후배·프로젝트 결실 에너지",
+  wealth: "수익 구조와 재물 운영 방식",
+  health: "컨디션·회복·에너지 관리 방향",
+  travel: "외부 활동·사회 인터페이스·확장성",
+  friends: "네트워크·협업·귀인/소인 패턴",
+  career: "직업 구조·역할·비즈니스 로직",
+  property: "공간·기반·자산 축적 방식",
+  fortune: "내면 행복·정신 에너지·회복력",
+  parents: "부모·권위자·후원 인연 구조",
+};
+
+function toCanonicalStar(meta: ZiweiStarMeta, type: ZiweiCanonicalStar["type"]): ZiweiCanonicalStar {
+  const normalized = normalizeStarStrength(meta.strength, meta.strengthSymbol || meta.symbol);
+  return {
+    name: meta.name,
+    type,
+    strength: normalized.strength,
+    strengthSymbol: normalized.symbol,
+    transformation: meta.transformation || null,
+    description: "",
+  };
+}
+
+function buildCanonicalInput(chart: ZiweiDeepChart): ZiweiDeepAnalysisInput {
+  const palaces: ZiweiCanonicalPalace[] = chart.palaces.map((p) => {
+    const transformations = [...p.mainStars, ...p.auxiliaryStars, ...p.maleficStars]
+      .filter((s) => Boolean(s.transformation))
+      .map((s) => toCanonicalStar(s, "transform"));
+    return {
+      key: PALACE_ID_TO_CANONICAL_KEY[p.id],
+      name: p.name,
+      meaning: PALACE_MEANING[p.id],
+      mainStars: p.mainStars.map((s) => toCanonicalStar(s, "main")),
+      assistantStars: p.auxiliaryStars.map((s) => toCanonicalStar(s, "assistant")),
+      maleficStars: p.maleficStars.map((s) => toCanonicalStar(s, "malefic")),
+      transformations,
+      oppositePalace: p.oppositePalaceId,
+      triadPalaces: p.triadPalaceIds,
+    };
+  });
+
+  const lifePalace = palaces.find((p) => p.key === "life") || palaces[0];
+  const bodySource = chart.palaces.find((p) => p.earthlyBranch === chart.shenGong);
+  const bodyPalace = bodySource
+    ? palaces.find((p) => PALACE_ID_TO_CANONICAL_KEY[bodySource.id] === p.key)
+    : undefined;
+  const allStars = palaces.flatMap((p) => [...p.mainStars, ...p.assistantStars, ...p.maleficStars]);
+  const byTransform = (type: ZiweiCanonicalStar["transformation"]) => allStars.find((s) => s.transformation === type);
+
+  return {
+    palaces,
+    lifePalace,
+    bodyPalace,
+    fourTransformations: {
+      hualu: byTransform("화록"),
+      huaquan: byTransform("화권"),
+      huake: byTransform("화과"),
+      huaji: byTransform("화기"),
+    },
+    majorLuck: chart.majorPeriods,
+    yearlyLuck: chart.annualFlow,
+  };
 }
 
 export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
@@ -387,8 +546,11 @@ export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
     },
   };
 
-  return {
+  const chartWithSummary: ZiweiDeepChart = {
     ...withoutSummary,
     summary: generateZiweiDeepSummary(withoutSummary),
   };
+
+  chartWithSummary.canonicalInput = buildCanonicalInput(chartWithSummary);
+  return chartWithSummary;
 }

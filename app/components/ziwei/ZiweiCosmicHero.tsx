@@ -37,6 +37,27 @@ export default function ZiweiCosmicHero({ chart }: ZiweiCosmicHeroProps) {
         </div>
       </div>
 
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl border border-white/15 bg-slate-950/30 px-4 py-3">
+          <p className="text-xs font-bold text-slate-300">강약 기호 기준</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+            <span className="rounded-full border border-emerald-300/60 bg-emerald-200/15 px-2 py-1 text-emerald-100">◎ 묘왕지</span>
+            <span className="rounded-full border border-cyan-300/60 bg-cyan-200/15 px-2 py-1 text-cyan-100">○ 득지·리지</span>
+            <span className="rounded-full border border-amber-300/60 bg-amber-200/15 px-2 py-1 text-amber-100">△ 평지·함지</span>
+            <span className="rounded-full border border-rose-300/60 bg-rose-200/15 px-2 py-1 text-rose-100">× 극함·충돌</span>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-white/15 bg-slate-950/30 px-4 py-3">
+          <p className="text-xs font-bold text-slate-300">사화 뱃지</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+            {chart.sihua.hualu ? <span className="rounded-full border border-lime-300/50 bg-lime-200/15 px-2 py-1 text-lime-100">化祿 {chart.sihua.hualu}</span> : null}
+            {chart.sihua.huaquan ? <span className="rounded-full border border-orange-300/50 bg-orange-200/15 px-2 py-1 text-orange-100">化權 {chart.sihua.huaquan}</span> : null}
+            {chart.sihua.huake ? <span className="rounded-full border border-sky-300/50 bg-sky-200/15 px-2 py-1 text-sky-100">化科 {chart.sihua.huake}</span> : null}
+            {chart.sihua.huaji ? <span className="rounded-full border border-rose-300/50 bg-rose-200/15 px-2 py-1 text-rose-100">化忌 {chart.sihua.huaji}</span> : null}
+          </div>
+        </div>
+      </div>
+
       <div className="mt-5 flex flex-wrap gap-2">
         {chart.summary.keywords.map((keyword) => (
           <span key={keyword} className="rounded-full border border-amber-300/30 bg-amber-200/10 px-3 py-1 text-xs text-amber-100">

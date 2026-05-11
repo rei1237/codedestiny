@@ -4286,7 +4286,7 @@ function hasRequiredZiweiSpecificCoverage(text) {
   const source = String(text || "");
   const requiredAnchors = ["명궁", "신궁", "삼방사정", "사화"];
   if (!requiredAnchors.every((token) => source.includes(token))) return false;
-  const evidenceTokens = ["명궁", "신궁", "궁", "주성", "보성", "살성", "사화", "대궁", "삼방사정", "대한", "유년", "유월", "◎", "○", "▲", "△", "X"];
+  const evidenceTokens = ["명궁", "신궁", "궁", "주성", "보성", "살성", "사화", "대궁", "삼방사정", "대한", "유년", "유월", "◎", "○", "△", "×", "▲", "X"];
   const matched = evidenceTokens.filter((token) => source.includes(token));
   return matched.length >= 5;
 }
@@ -4842,25 +4842,47 @@ const ZIWEI_SYMBOL_TO_STRENGTH = {
   "○": "왕",
   "▲": "리",
   "△": "평",
+  "×": "함",
   "X": "함",
 };
 
 const ZIWEI_STRENGTH_TO_SYMBOL = {
   "묘": "◎",
   "왕": "○",
-  "리": "▲",
+  "리": "△",
   "평": "△",
-  "함": "X",
+  "함": "×",
+  "묘왕": "◎",
+  "묘왕지": "◎",
+  "득": "△",
+  "득지": "△",
+  "리지": "△",
+  "평지": "△",
+  "함지": "△",
+  "극함": "×",
+  "심한함": "×",
+  "불": "×",
+  "불리": "×",
+  "충돌": "×",
 };
+
+function normalizeZiweiStrengthSymbol(raw) {
+  const v = String(raw || "").trim();
+  if (v === "◎") return "◎";
+  if (v === "○") return "○";
+  if (v === "▲" || v === "△") return "△";
+  if (v === "×" || /^x$/i.test(v)) return "×";
+  return "";
+}
 
 function normalizeZiweiStrengthLabel(raw) {
   const v = String(raw || "").trim();
   if (!v) return "";
-  if (v === "묘" || v === "廟") return "묘";
-  if (v === "왕" || v === "旺" || /^O$/i.test(v) || v === "○") return "왕";
-  if (v === "리" || v === "利" || v === "▲") return "리";
-  if (v === "평" || v === "平" || v === "△") return "평";
-  if (v === "함" || v === "陷" || /^x$/i.test(v) || v === "X") return "함";
+  if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || v === "◎") return "묘";
+  if (["왕", "旺"].includes(v) || v === "○") return "왕";
+  if (["득", "리", "득지", "리지", "得", "利", "약"].includes(v) || v === "▲") return "리";
+  if (["평", "평지", "함지", "平", "陷", "한", "이"].includes(v) || v === "△") return "평";
+  if (/^x$/i.test(v) || v === "X" || ["함", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×") return "함";
   return "";
 }
 
@@ -4897,7 +4919,7 @@ function normalizeZiweiStarRecord(star, fieldPath, dataQuality) {
     pushUnique(dataQuality?.missingFields, `${fieldPath}.name`);
   }
 
-  let symbol = String(src.symbol || "").trim();
+  let symbol = normalizeZiweiStrengthSymbol(src.symbol);
   let strength = normalizeZiweiStrengthLabel(src.strength || src.brightness || src.brightnessKo);
 
   if (!strength && symbol) {
@@ -4905,7 +4927,7 @@ function normalizeZiweiStarRecord(star, fieldPath, dataQuality) {
     if (strength) pushUnique(dataQuality?.supplementedFields, `${fieldPath}.strength`);
   }
   if (!symbol && strength) {
-    symbol = ZIWEI_STRENGTH_TO_SYMBOL[strength] || "";
+    symbol = normalizeZiweiStrengthSymbol(ZIWEI_STRENGTH_TO_SYMBOL[strength] || "");
     if (symbol) pushUnique(dataQuality?.supplementedFields, `${fieldPath}.symbol`);
   }
 
@@ -4917,7 +4939,7 @@ function normalizeZiweiStarRecord(star, fieldPath, dataQuality) {
   }
 
   const normalizedStrength = normalizeZiweiStrengthLabel(strength);
-  const normalizedSymbol = String(symbol || "").trim();
+  const normalizedSymbol = normalizeZiweiStrengthSymbol(symbol);
 
   return {
     name,
@@ -5314,7 +5336,7 @@ function ziweiStrengthFromStar(star) {
 }
 
 function ziweiStrengthSymbolFromStar(star) {
-  const symbol = String(star?.symbol || "").trim();
+  const symbol = normalizeZiweiStrengthSymbol(star?.symbol);
   if (symbol && ZIWEI_SYMBOL_TO_STRENGTH[symbol]) return symbol;
   const strength = ziweiStrengthFromStar(star);
   if (ZIWEI_STRENGTH_TO_SYMBOL[strength]) return ZIWEI_STRENGTH_TO_SYMBOL[strength];
@@ -5322,12 +5344,12 @@ function ziweiStrengthSymbolFromStar(star) {
 }
 
 function ziweiStrengthMeaning(strength) {
-  const s = String(strength || "").trim();
-  if (s === "묘") return "별 기운이 최대로 발현되는 구간";
-  if (s === "왕") return "강한 추진력으로 현실 성과를 만들기 쉬운 구간";
-  if (s === "리") return "기복이 있으나 조건이 맞으면 성과가 나는 구간";
-  if (s === "평") return "안정적이지만 의식적 실행이 필요한 구간";
-  if (s === "함") return "별 기운이 눌려 관리와 보완이 필요한 구간";
+  const s = normalizeZiweiStrengthLabel(strength);
+  if (s === "묘") return "별 기운이 최상 발현되어 핵심 성과를 크게 확장하기 쉬운 구간";
+  if (s === "왕") return "강하고 안정적인 작동으로 재현 가능한 성과를 만들기 좋은 구간";
+  if (s === "리") return "실무적으로 유리한 흐름이지만 운영 품질에 따라 편차가 생길 수 있는 구간";
+  if (s === "평") return "평균 작동 구간으로 루틴·환경 보정 시 성과 품질이 올라가는 구간";
+  if (s === "함") return "취약·충돌 구간으로 방어 전략과 손실 상한선 관리가 우선인 구간";
   return "해석 보정이 필요한 구간";
 }
 
@@ -5378,7 +5400,7 @@ function buildZiweiDataContext(body, input, canonicalZiweiChart, reportType, par
     `- 명궁 지지: ${normalizeZiweiField(chartMeta?.mingGong || "", "미상")}`,
     `- 신궁 지지: ${normalizeZiweiField(chartMeta?.shenGong || "", "미상")}`,
     `- 오행국: ${normalizeZiweiField(chartMeta?.fiveElementBureau || "", "미상")}`,
-    `- 강약 기호 기준(묘왕리평함): ◎=묘, ○=왕, ▲=리, △=평, X=함`,
+    `- 강약 기호 기준(묘/왕/리/평/함): ◎=묘, ○=왕, △=리·평, ×=함`,
   ];
 
   if (reportType === "compatibility") {
@@ -5539,13 +5561,18 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
     "별 하나만 단편 해석하지 말고 궁위·삼방사정·대운·세운·사화를 종합하라.",
-    "입력 원자료의 궁별 별 목록과 강약(묘왕리평함)은 기호(◎/○/▲/△/X) 중심으로 해석 근거에 직접 반영하라.",
+    "입력 원자료의 궁별 별 목록과 강약(묘/왕/리/평/함)은 기호(◎/○/△/×) 중심으로 해석 근거에 직접 반영하라.",
     "자미두수 별의 해석은 별 이름만 나열하지 말고 반드시 묘(廟)/왕(旺)/리(利)/평(平)/함(陷) 세기 상태를 함께 반영하라.",
     "묘·왕은 강점과 활용 전략 중심, 리는 균형/실용성 중심, 평은 환경·습관 중심, 함은 단정이 아닌 보완·회복 전략 중심으로 작성하라.",
+    "천동이 △ 또는 ×이면 편안함 결핍/정서 예민/과각성 패턴을 근거로 설명하고, 안락함보다 성취감 중심 운영 전략을 제시하라.",
+    "천동 약세는 감수성을 감정 소모로 쓰지 말고 UI/UX, 콘텐츠 로직, 서비스 디테일 설계로 전환하는 전략을 포함하라.",
+    "경양은 흉으로 단정하지 말고 분리·절단·돌파 에너지로 해석하라. 경양이 ◎이면 기술력/집념/핵심 절단 역량으로 승화된다는 점을 명시하라.",
+    "경양·살성의 에너지는 업상대체(코드·디버깅·아키텍처·분석 설계) 전략으로 제시하고 인간관계 충돌 소모를 줄이는 실천안을 포함하라.",
+    "우필이 ◎ 또는 ○이면 사람/도구/AI 활용 시너지를 통해 지휘자형 성과 모델이 강화된다는 점을 반영하라.",
     "명궁과 신궁은 반드시 별도 소제목(명궁·신궁 집중 해석)에서 별명+강약기호+실전 의미를 분리 설명하라.",
     "심화 보충 노트라는 이름의 섹션을 만들지 마라. 대신 챕터 주제에 맞는 카테고리 섹션을 만들고, 카테고리 간 문장을 중복하지 마라.",
     "이전 챕터에서 사용한 핵심 문장과 동일한 문장을 반복하지 마라.",
-    "12궁 각각에 대해 반드시 실제 별 이름, 강약(묘왕리평함), 강약이 의미하는 해석을 빠짐없이 작성하라.",
+    "12궁 각각에 대해 반드시 실제 별 이름, 강약(묘/왕/리/평/함), 강약이 의미하는 해석을 빠짐없이 작성하라.",
     "아래 [정확 목차 강제]의 제목/항목을 누락 없이 반영하라. 항목명은 문장 속에 그대로 드러나야 한다.",
     cautionRule ? `주의사항(강제): ${cautionRule}.` : "",
     "절대로 '데이터 단서 요약', '[구조화된 12궁 요약]' 같은 메타 요약 문구를 출력하지 마라.",
@@ -5707,7 +5734,7 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
   const chapterCategories = chapterCategoryMap[chapter] || ["핵심 카테고리 1", "핵심 카테고리 2", "핵심 카테고리 3", "핵심 카테고리 4"];
   const palaceDetailText = extractZiweiPalaceDetailFromDataText(dataText);
   const categoryBlocks = chapterCategories
-    .map((cat) => `### 카테고리: ${cat}\n이 카테고리에서는 궁위와 별 조합의 실제 작동을 해석합니다. 명반의 강약 기호(묘왕리평함: ◎/○/▲/△/X)를 행동 우선순위로 번역해, 지금 당장 적용 가능한 선택 기준과 중장기 운영 원칙을 분리해 제시합니다.\n\n실전 적용: 이번 주 핵심 행동 1개와 중단할 행동 1개를 동시에 확정해 실행 피로를 줄이세요.`)
+    .map((cat) => `### 카테고리: ${cat}\n이 카테고리에서는 궁위와 별 조합의 실제 작동을 해석합니다. 명반의 강약 기호(묘/왕/리/평/함: ◎/○/△/×)를 행동 우선순위로 번역해, 지금 당장 적용 가능한 선택 기준과 중장기 운영 원칙을 분리해 제시합니다.\n\n실전 적용: 이번 주 핵심 행동 1개와 중단할 행동 1개를 동시에 확정해 실행 피로를 줄이세요.`)
     .join("\n\n");
 
   let text = [
@@ -5729,11 +5756,14 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     summaryList,
     "## 2. 별의 구조와 세기 분석",
     `${missingNotice ? "명반 데이터가 부족해 일반론으로 보완한다. " : ""}입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
-    `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘왕리평함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
+    `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘/왕/리/평/함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
     "### 12궁 별·강약 상세 해석",
     palaceDetailText,
+    "### 강약 해석 보정 규칙",
+    "천동이 △/×이면 편안함 결핍과 예민함이 커질 수 있으므로, 휴식 강요보다 성취 중심 몰입 과제와 회복 루틴(명상·시각화·수면 고정)을 함께 제시해야 합니다.",
+    "경양은 흉으로 단정하지 않고 분리·절단·돌파의 기술 에너지로 해석합니다. 경양이 강할수록 인간관계 충돌 대신 업상대체(코드·분석·디버깅·설계)로 전환해야 길성화됩니다.",
     "## 3. 별의 밝기로 본 강점과 약점",
-    "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/▲/△/X)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
+    "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/△/×)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
     "신궁은 실제 행동과 외부 환경에서 발현되는 패턴입니다. 신궁 별 조합을 명궁과 비교해 보면 내부 의도와 외부 실행의 불일치 구간을 찾을 수 있으며, 이 구간을 조정하면 관계·커리어·재정 성과가 동시에 개선됩니다.",
     categoryBlocks,
     "## 4. 심리적 의미",
