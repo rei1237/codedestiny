@@ -4361,7 +4361,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     html += `<div class="sy-card sy-cta-card">
       <div class="sy-cta-row">
         <p>오늘의 달빛 리딩이 마음에 들었다면, 더 깊은 리딩으로 인연·직업·감정 주기를 길게 확인해보세요.</p>
-        <a class="sy-cta-link" href="/premium" target="_self" rel="noopener">심화 리딩 보기</a>
       </div>
     </div>`;
 
