@@ -1659,13 +1659,17 @@ export async function handlePaymentRoutes(request, env) {
       return json(buildConfigErrorBody(keyFeature, keyHealth), { status: 503 });
     }
 
-    await connectDb(env);
-    trace.dbConnected = true;
-
-    if (method === "POST" && path === "/webhook") return await handleWebhook(request, env);
+    if (method === "POST" && path === "/webhook") {
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleWebhook(request, env);
+    }
 
     const auth = await requireAuth(request, env);
     trace.authVerified = true;
+
+    await connectDb(env);
+    trace.dbConnected = true;
 
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
     if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, auth);

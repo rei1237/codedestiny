@@ -103,8 +103,8 @@ export async function handleUserRoutes(request, env) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/user");
 
-    await connectDb(env);
     const auth = await requireAuth(request, env);
+    await connectDb(env);
 
     if (method === "GET" && path === "/destiny-profiles") {
       return await handleGetDestinyProfiles(auth);

@@ -454,6 +454,12 @@ export default {
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
       }
 
+      // Legacy compatibility: old clients may still request /api/points/balance.
+      if (url.pathname === "/api/points/balance") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/points/me");
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
       }
@@ -461,6 +467,12 @@ export default {
       if (url.pathname === "/api/subscription/status") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
         return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      // Legacy compatibility: singular endpoint used by older destiny-profile bundles.
+      if (url.pathname === "/api/user/destiny-profile") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/user/destiny-profiles");
+        return withCorsHeaders(request, env, await handleUserRoutes(rewrittenRequest, env));
       }
 
       if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {

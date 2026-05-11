@@ -322,6 +322,31 @@ function getClientAuthToken(): string {
   }
 }
 
+function isLikelyUsableJwt(token: string): boolean {
+  const raw = String(token || '').trim();
+  if (!raw) return false;
+  const parts = raw.split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const exp = Number(payload?.exp);
+    if (Number.isFinite(exp) && exp > 0 && (Date.now() + 15_000) >= exp * 1000) return false;
+  } catch (_) {
+    return false;
+  }
+  return true;
+}
+
+function getUsableClientAuthToken(): string {
+  const token = getClientAuthToken();
+  if (!token) return '';
+  if (isLikelyUsableJwt(token)) return token;
+  try {
+    localStorage.removeItem('fortune_auth_token');
+  } catch (_) {}
+  return '';
+}
+
 function hasCachedAuthIdentity(): boolean {
   if (typeof window === 'undefined') return false;
   try {
@@ -347,14 +372,13 @@ function hasAuthRoleCookie(): boolean {
 
 function hasClientAuthSessionHint(): boolean {
   if (isAdminSessionClient()) return true;
-  if (getClientAuthToken()) return true;
-  if (hasCachedAuthIdentity()) return true;
+  if (getUsableClientAuthToken()) return true;
   if (hasAuthRoleCookie()) return true;
   return false;
 }
 
 function buildClientAuthHeaders(): Record<string, string> {
-  const token = getClientAuthToken();
+  const token = getUsableClientAuthToken();
   const adminToken = getFlowerAdminTokenClient();
   const adminTestTier = getFlowerAdminTestTierClient();
   return {

@@ -1490,25 +1490,31 @@ export async function handleFortuneRoutes(request, env) {
   };
 
   try {
-    await connectDb(env);
-    trace.dbConnected = true;
+    if (method === "GET" && path === "/check") return await handleCheck();
 
     if (method === "POST" && path === "/pig-coin/unlock") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
       return await handlePigCoinUnlock(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
     }
 
     if (method === "POST" && path === "/pig-coin/consume") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
       return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
     }
 
     const auth = await requireAuth(request, env);
     trace.authVerified = true;
 
-    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
+    await connectDb(env);
+    trace.dbConnected = true;
 
-    if (method === "GET" && path === "/check") return await handleCheck();
+    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
     if (method === "POST" && path === "/consume") return await handleConsume(auth);
     if (method === "GET" && path === "/pig-coin/balance") return await handleBalance(auth);
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
