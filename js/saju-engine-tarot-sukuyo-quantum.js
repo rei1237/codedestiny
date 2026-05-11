@@ -3333,6 +3333,20 @@ function syRenderWheelCard(wheelState, compatInfo) {
     ? (compatInfo && compatInfo.relationType ? String(compatInfo.relationType) : relCore.label)
     : '단독 숙요점';
 
+  var wheelCache = window._syWheelRenderCache;
+  if (!wheelCache || typeof wheelCache.get !== 'function') {
+    wheelCache = new Map();
+    window._syWheelRenderCache = wheelCache;
+  }
+  var cacheKey = [
+    myIdx,
+    hasPartner ? partnerIdx : 'solo',
+    relationLabel,
+    hasPartner && compatInfo && compatInfo.partnerMansion ? String(compatInfo.partnerMansion) : ''
+  ].join('|');
+  var cachedWheel = wheelCache.get(cacheKey);
+  if (cachedWheel) return cachedWheel;
+
   var cx = 210;
   var cy = 210;
   var outerOuterR = 198;
@@ -3438,17 +3452,24 @@ function syRenderWheelCard(wheelState, compatInfo) {
     infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">상대방 숙</div><div class="sy-wheel-meta-value">' + syWheelEsc(partnerM.ko + '(' + partnerM.han + ')') + '</div></div>');
     infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">관계 요약</div><div class="sy-wheel-meta-value">' + syWheelEsc(relationLabel) + '</div></div>');
   } else {
-    infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">궁합 표시</div><div class="sy-wheel-meta-value">상대 생년월일 입력 후 자동 연결</div></div>');
+    infoRows.push('<div class="sy-wheel-meta-box"><div class="sy-wheel-meta-label">궁합 표시</div><div class="sy-wheel-meta-value">상대 생년월일을 입력하면 인연선이 열립니다</div></div>');
   }
 
-  return ''
+  var rendered = ''
     + '<div class="sy-card sy-wheel-card" id="syWheelCardHost">'
-    + '<div class="sy-wheel-title">🪐 27숙 네이탈 명반 (동적 SVG)</div>'
-    + '<p class="sy-wheel-caption">12시 방향부터 시계 방향으로 27숙을 균등 배치했습니다. 내부 링은 본명숙 기준 관계 구간이 실시간으로 반영됩니다.</p>'
+    + '<div class="sy-wheel-title">🪐 27숙 달빛 명반</div>'
+    + '<p class="sy-wheel-caption">12시 방향에서 시작해 시계 방향으로 별자리를 배치했습니다. 안쪽 원은 내 별을 기준으로 인연 흐름을 보여줍니다.</p>'
     + '<div class="sy-wheel-svg-wrap">' + svg.join('') + '</div>'
     + '<div class="sy-wheel-legend">' + legend.join('') + '</div>'
     + '<div class="sy-wheel-meta-grid">' + infoRows.join('') + '</div>'
     + '</div>';
+
+  wheelCache.set(cacheKey, rendered);
+  if (wheelCache.size > 24) {
+    var firstKey = wheelCache.keys().next().value;
+    wheelCache.delete(firstKey);
+  }
+  return rendered;
 }
 
 function syCanonicalEsc(value) {
@@ -3572,6 +3593,171 @@ function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
   };
 }
 
+function syScoreBand(score) {
+  var n = Number(score);
+  if (!Number.isFinite(n)) return '잔잔함';
+  if (n >= 90) return '절정';
+  if (n >= 80) return '강한 상승';
+  if (n >= 70) return '안정 상승';
+  if (n >= 60) return '균형 조율';
+  return '회복 집중';
+}
+
+function syComposeFromTokens(tokens, fallbackText) {
+  if (!Array.isArray(tokens) || !tokens.length) return fallbackText;
+  return tokens.slice(0, 2).join(' · ');
+}
+
+function syFirstToken(tokens, fallbackText) {
+  if (!Array.isArray(tokens) || !tokens.length) return fallbackText;
+  return String(tokens[0] || fallbackText || '').trim() || fallbackText;
+}
+
+function syGuardianColorByIndex(index) {
+  var palette = ['은빛 달무리', '황금 달빛', '푸른 새벽빛', '장미빛 노을', '비취빛 바람'];
+  var n = Number(index);
+  if (!Number.isFinite(n)) return palette[0];
+  return palette[((Math.floor(n) % palette.length) + palette.length) % palette.length];
+}
+
+function syGuardianPlaceByIndex(index) {
+  var places = ['고요한 호숫가', '달빛 정원', '별빛 서재', '새벽 산책길', '따뜻한 창가'];
+  var n = Number(index);
+  if (!Number.isFinite(n)) return places[0];
+  return places[((Math.floor(n) % places.length) + places.length) % places.length];
+}
+
+/**
+ * @typedef {Object} SukuyoBasicReading
+ * @property {{title:string,subtitle:string,mansionLabel:string,moonLabel:string}} hero
+ * @property {Array<{label:string,value:string,tone:string,note:string}>} summaryCards
+ * @property {{firstImpression:string,innerRhythm:string,emotionalPattern:string,stressPattern:string,recoveryPattern:string}} moonProfile
+ * @property {Array<{key:string,label:string,title:string,body:string}>} relationshipTabs
+ * @property {Array<{label:string,value:number,description:string}>} relationMiniMap
+ * @property {{attractionType:string,loveStyle:string,deepeningMoment:string,anxietyPoint:string,longTermAdvice:string,avoidPattern:string}} loveProfile
+ * @property {{moneyFlow:string,spendingHabit:string,savingPoint:string,workStrength:string,workCaution:string,collaborationTip:string,talent:number}} workMoney
+ * @property {{morning:string,day:string,night:string,trigger:string,balance:string}} emotionRhythm
+ * @property {{moon:any,insight:string,ritual:any,overall:number,relations:number,love:number,wealth:number,message:string,action:string,avoid:string,luckyColor:string,luckyPlace:string}} dailyPrescription
+ * @property {{name:string,emoji:string,color:string,place:string,action:string,mantra:string}} guardian
+ */
+
+/**
+ * @param {any} canonicalData
+ * @param {any} sData
+ * @param {any} daily
+ * @param {{name?:string,emoji?:string}=} guardian
+ * @returns {SukuyoBasicReading|null}
+ */
+function syBuildBasicReading(canonicalData, sData, daily, guardian) {
+  if (!sData || !daily) return null;
+
+  var natal = canonicalData && canonicalData.natalSukuyo ? canonicalData.natalSukuyo : {};
+  var traits = sData.traits || {};
+  var moon = daily.moon || { emoji: '🌙', label: '달빛 흐름', desc: '' };
+  var coreTokens = syCanonicalTokenize(traits.core || traits.desc, '고요하지만 오래가는 빛을 가진 별입니다.');
+  var hiddenTokens = syCanonicalTokenize(traits.hidden || traits.desc, '조용한 시간에 감정 리듬이 더 또렷해집니다.');
+  var karmaTokens = syCanonicalTokenize(traits.karma || traits.love, '좋은 인연은 작은 배려에서 자라납니다.');
+  var loveTokens = syCanonicalTokenize(traits.love, '감정의 속도를 맞추는 대화가 중요합니다.');
+  var workTokens = syCanonicalTokenize(traits.work, '역할을 분명히 하면 성과가 안정됩니다.');
+  var wealthTokens = syCanonicalTokenize(traits.wealth, '작은 절약과 큰 집중이 재물 흐름을 지켜줍니다.');
+  var relationTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.relationshipStyle, []);
+  var recoveryTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.recoveryPattern, []);
+  var emotionTokens = syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), '감정 파도를 미리 알아차리면 하루가 부드러워집니다.');
+  var ritual = daily.ritual || { color: '#c0a060', food: '따뜻한 차', action: '심호흡 10번' };
+  var mansionLabel = sData.mansion || ((natal.nameKo || '미상') + '宿(' + (natal.nameHan || '?') + ')');
+  var relationDirection = syComposeFromTokens(relationTokens.length ? relationTokens : karmaTokens, '배려와 경계를 함께 지킬수록 인연이 깊어집니다.');
+  var recoveryKeyword = syFirstToken(recoveryTokens, syFirstToken(syCanonicalTokenize(ritual.action, '호흡'), '호흡'));
+  var guardianName = guardian && guardian.name ? guardian.name : '달빛 수호령';
+  var guardianEmoji = guardian && guardian.emoji ? guardian.emoji : '✨';
+  var guardianColor = syGuardianColorByIndex(sData.mansionIdx);
+  var guardianPlace = syGuardianPlaceByIndex(sData.mansionIdx);
+  var morningScore = Math.max(50, Math.min(100, Math.round((daily.overall + daily.relations) / 2)));
+  var dayScore = Math.max(50, Math.min(100, Math.round((daily.overall + daily.wealth) / 2)));
+  var nightScore = Math.max(50, Math.min(100, Math.round((daily.love + daily.relations) / 2)));
+
+  return {
+    hero: {
+      title: '🌙 나의 달의 별 · 숙요점',
+      subtitle: '태어난 날의 달빛으로 본 성향, 인연, 감정 리듬을 읽어드립니다.',
+      mansionLabel: mansionLabel,
+      moonLabel: (moon.emoji || '🌙') + ' ' + (moon.label || '달빛 흐름')
+    },
+    summaryCards: [
+      { label: '나의 본명숙', value: mansionLabel, tone: '타고난 별', note: syComposeFromTokens(coreTokens, '당신의 중심성이 오늘의 방향을 정합니다.') },
+      { label: '달의 기질', value: syFirstToken(coreTokens, '고요한 집중형'), tone: syScoreBand(daily.overall), note: syComposeFromTokens(hiddenTokens, '내면의 리듬을 지키면 안정이 커집니다.') },
+      { label: '인연의 방향', value: relationDirection, tone: syScoreBand(daily.relations), note: syComposeFromTokens(karmaTokens, '가까운 관계에서 따뜻한 말 한마디가 큰 힘이 됩니다.') },
+      { label: '오늘의 회복 키워드', value: recoveryKeyword, tone: syScoreBand(daily.love), note: syComposeFromTokens(recoveryTokens, '무리하지 않는 회복 루틴이 감정 균형을 지켜줍니다.') }
+    ],
+    moonProfile: {
+      firstImpression: syComposeFromTokens(coreTokens, '첫인상에서 고요한 신뢰를 남기는 별입니다.'),
+      innerRhythm: syComposeFromTokens(hiddenTokens, '혼자 정리하는 시간이 길수록 중심이 단단해집니다.'),
+      emotionalPattern: syComposeFromTokens(emotionTokens, '감정 파고를 빠르게 읽고 균형을 회복하는 타입입니다.'),
+      stressPattern: syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + (traits.hidden || ''), '관계 피로가 쌓이면 말수를 줄이는 경향이 있습니다.'), '관계 피로가 쌓이면 말수를 줄이는 경향이 있습니다.'),
+      recoveryPattern: syComposeFromTokens(recoveryTokens, '짧은 휴식과 호흡 루틴이 회복 속도를 높입니다.')
+    },
+    relationshipTabs: [
+      { key: 'love', label: '연인', title: '사랑의 온도', body: traits.love || '느린 신뢰와 따뜻한 표현이 사랑을 자라게 합니다.' },
+      { key: 'friend', label: '친구', title: '우정의 결', body: traits.karma || '서로의 결을 존중할수록 관계가 깊어집니다.' },
+      { key: 'work', label: '동료', title: '함께 일할 때', body: traits.work || '역할이 분명할수록 힘이 모입니다.' },
+      { key: 'family', label: '가족', title: '가까운 관계', body: syComposeFromTokens(hiddenTokens.concat(recoveryTokens), '가족과의 관계는 회복 리듬을 함께 맞출 때 안정됩니다.') },
+      { key: 'care', label: '주의', title: '지켜볼 포인트', body: syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), '지친 날에는 결론보다 휴식을 먼저 선택하세요.'), '지친 날에는 결론보다 휴식을 먼저 선택하세요.') }
+    ],
+    relationMiniMap: [
+      { label: '영친', value: daily.relations, description: daily.relations >= 78 ? '정서적 교감이 빠르게 이어지는 구간' : '천천히 마음을 맞춰 갈수록 안정되는 구간' },
+      { label: '업태', value: daily.overall, description: daily.overall >= 78 ? '함께 성장 과제를 완수하기 좋은 흐름' : '내 속도를 지키며 과제를 정리하는 흐름' },
+      { label: '성위', value: Math.round((daily.wealth + daily.overall) / 2), description: daily.wealth >= 75 ? '목표를 실무로 연결하기 좋은 타이밍' : '우선순위를 정돈하면 성과가 커지는 타이밍' },
+      { label: '안괴', value: daily.love, description: daily.love >= 80 ? '강렬한 감정이 오면 경계와 대화를 함께 세울 때' : '감정 파고를 낮추고 차분히 이해를 쌓을 때' },
+      { label: '명쇠', value: Math.max(50, Math.min(100, daily.overall - 5 + Math.floor(daily.relations / 10))), description: moon.label && moon.label.indexOf('보름') >= 0 ? '강한 발산기, 결정을 미루지 말기' : '리듬 조율기, 회복과 정리를 우선하기' }
+    ],
+    loveProfile: {
+      attractionType: syFirstToken(loveTokens, '따뜻한 공감형'),
+      loveStyle: syComposeFromTokens(loveTokens, '서두르지 않는 진심이 사랑의 중심입니다.'),
+      deepeningMoment: syComposeFromTokens(syCanonicalTokenize(daily.insight, '짧고 솔직한 표현이 관계를 가깝게 합니다.'), '짧고 솔직한 표현이 관계를 가깝게 합니다.'),
+      anxietyPoint: syComposeFromTokens(syCanonicalTokenize(traits.hidden, '감정이 올라올 때는 한 템포 쉬어가는 것이 좋습니다.'), '감정이 올라올 때는 한 템포 쉬어가는 것이 좋습니다.'),
+      longTermAdvice: syComposeFromTokens(karmaTokens, '서로의 속도를 존중하는 대화 루틴이 장기 안정의 핵심입니다.'),
+      avoidPattern: '감정이 격해진 직후 결론 내리기'
+    },
+    workMoney: {
+      moneyFlow: syComposeFromTokens(wealthTokens, '현금 흐름을 가볍게 분산하면 안정이 빨라집니다.'),
+      spendingHabit: syFirstToken(syCanonicalTokenize((traits.wealth || '') + '. ' + (daily.insight || ''), '의미 있는 지출에는 과감하고 충동 지출은 줄이는 타입입니다.'), '의미 있는 지출에는 과감하고 충동 지출은 줄이는 타입입니다.'),
+      savingPoint: syComposeFromTokens(syCanonicalTokenize((ritual.action || '') + '. ' + (traits.work || ''), '고정 지출을 먼저 정리하면 저축 속도가 빨라집니다.'), '고정 지출을 먼저 정리하면 저축 속도가 빨라집니다.'),
+      workStrength: syComposeFromTokens(workTokens, '역할을 분명히 하면 성과가 안정됩니다.'),
+      workCaution: syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (traits.work || ''), '과몰입으로 체력을 소진하지 않도록 휴식 타이밍을 먼저 확보하세요.'), '과몰입으로 체력을 소진하지 않도록 휴식 타이밍을 먼저 확보하세요.'),
+      collaborationTip: syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + (traits.work || ''), '역할과 마감 기준을 먼저 합의하면 협업 품질이 높아집니다.'), '역할과 마감 기준을 먼저 합의하면 협업 품질이 높아집니다.'),
+      talent: Number(sData.talent) || 80
+    },
+    emotionRhythm: {
+      morning: '아침 ' + morningScore + '점 · ' + (morningScore >= 75 ? '차분한 집중이 잘 붙는 시간' : '속도를 낮추고 몸을 깨우는 시간이 필요'),
+      day: '낮 ' + dayScore + '점 · ' + (dayScore >= 75 ? '실행력과 판단력이 안정되는 구간' : '우선순위 한 가지에 집중하면 효율 회복'),
+      night: '밤 ' + nightScore + '점 · ' + (nightScore >= 75 ? '감정 공감과 대화가 부드럽게 열리는 시간' : '정리 루틴으로 감정 파도를 낮추는 시간'),
+      trigger: syFirstToken(syCanonicalTokenize((traits.hidden || '') + '. ' + (traits.karma || ''), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'),
+      balance: syFirstToken(recoveryTokens, '짧은 호흡 루틴으로 균형 회복')
+    },
+    dailyPrescription: {
+      moon: moon,
+      insight: daily.insight || '',
+      ritual: ritual,
+      overall: daily.overall,
+      relations: daily.relations,
+      love: daily.love,
+      wealth: daily.wealth,
+      message: syComposeFromTokens(syCanonicalTokenize(daily.insight, '오늘은 감정의 속도를 한 템포 낮추면 흐름이 좋아집니다.'), '오늘은 감정의 속도를 한 템포 낮추면 흐름이 좋아집니다.'),
+      action: ritual.action || '심호흡 10번',
+      avoid: syFirstToken(syCanonicalTokenize(traits.hidden, '서둘러 결론 내리기'), '서둘러 결론 내리기'),
+      luckyColor: ritual.color || '#c0a060',
+      luckyPlace: syGuardianPlaceByIndex(sData.mansionIdx)
+    },
+    guardian: {
+      name: guardianName,
+      emoji: guardianEmoji,
+      color: guardianColor,
+      place: guardianPlace,
+      action: ritual.action || '심호흡 10번',
+      mantra: traits.mantra || '오늘의 한 걸음이 내일의 별빛이 됩니다.'
+    }
+  };
+}
+
 function syRenderCanonicalDashboard(canonicalPayload) {
   var canonical = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
   if (!canonical || !canonical.natalSukuyo) return '';
@@ -3584,7 +3770,7 @@ function syRenderCanonicalDashboard(canonicalPayload) {
 
   var mansionLabel = (natalInfo.nameKo || '미상') + '宿(' + (natalInfo.nameHan || '?') + ')';
   var lunarDate = birth.lunarDate || '미확인';
-  var indexText = natalInfo.index == null ? '미확인' : String(natalInfo.index);
+  var indexText = natalInfo.index == null ? '미확인' : String(natalInfo.index + 1) + '번째 별자리';
   var directionText = natalInfo.direction || '미확인';
   var elementText = natalInfo.element || '미확인';
   var phaseLabel = phase.phaseName || '미확인';
@@ -3611,20 +3797,20 @@ function syRenderCanonicalDashboard(canonicalPayload) {
   return ''
     + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard">'
     + '<div class="sy-canon-hero">'
-    + '<div class="sy-canon-overline">MAIN SUKUYO · CANONICAL</div>'
-    + '<h4>🌕 기본 숙요점 핵심 대시보드</h4>'
-    + '<p>PDF와 동일한 canonical 기준으로 본명숙, 달 위상, 생활 리듬을 한 화면에서 확인합니다.</p>'
+    + '<div class="sy-canon-overline">MOONLIGHT SUKUYO</div>'
+    + '<h4>🌕 달의 별 운세 핵심 지도</h4>'
+    + '<p>당신의 별자리 좌표와 달빛 흐름을 한 화면에서 간결하게 읽어보세요.</p>'
     + '</div>'
     + validationMsg
     + '<div class="sy-canon-tabs">'
-    + '<button type="button" class="sy-canon-tab active" data-sycanon="overview">핵심 좌표</button>'
-    + '<button type="button" class="sy-canon-tab" data-sycanon="rhythm">관계·커리어·재물·회복</button>'
+    + '<button type="button" class="sy-canon-tab active" data-sycanon="overview">별자리 좌표</button>'
+    + '<button type="button" class="sy-canon-tab" data-sycanon="rhythm">관계·일·재물·회복</button>'
     + '<button type="button" class="sy-canon-tab" data-sycanon="moon">달 리듬</button>'
     + '</div>'
     + '<div class="sy-canon-panel active" data-sycanon-panel="overview">'
     + '<div class="sy-canon-grid">'
     + '<div class="sy-canon-kv"><span>본명숙</span><strong>' + syCanonicalEsc(mansionLabel) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>27숙 Index</span><strong>' + syCanonicalEsc(indexText) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>별자리 위치</span><strong>' + syCanonicalEsc(indexText) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>음력 생일</span><strong>' + syCanonicalEsc(lunarDate) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>방향 / 속성</span><strong>' + syCanonicalEsc(directionText + ' / ' + elementText) + '</strong></div>'
     + '</div>'
@@ -3757,16 +3943,66 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-rhythm-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
         .sy-canon-rhythm-grid article { border:1px solid rgba(167,139,250,0.32); background:rgba(76,29,149,0.16); border-radius:10px; padding:10px; }
         .sy-canon-rhythm-grid h5 { margin:0; font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:#c4b5fd; }
+        .sy-hero-card { border-left-color:#f9a8d4; background:linear-gradient(145deg, rgba(60,26,68,0.94) 0%, rgba(24,25,46,0.95) 55%, rgba(17,30,52,0.96) 100%); }
+        .sy-hero-title { margin:0 0 8px 0; font-size:1.22rem; line-height:1.35; color:#fde68a; text-shadow:0 0 18px rgba(251,191,36,0.18); }
+        .sy-hero-sub { margin:0; color:#e9d5ff; font-size:0.9rem; line-height:1.8; }
+        .sy-hero-meta { margin-top:12px; display:flex; flex-wrap:wrap; gap:7px; }
+        .sy-pill { display:inline-flex; align-items:center; border-radius:999px; border:1px solid rgba(196,181,253,0.42); padding:5px 11px; font-size:0.75rem; color:#e9d5ff; background:rgba(30,41,59,0.72); }
+        .sy-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:10px; }
+        .sy-summary-item { border:1px solid rgba(148,163,184,0.28); border-radius:12px; padding:11px 10px; background:rgba(15,23,42,0.62); }
+        .sy-summary-label { color:#94a3b8; font-size:0.72rem; letter-spacing:0.04em; }
+        .sy-summary-score { margin-top:3px; color:#fef3c7; font-size:1.15rem; font-weight:900; }
+        .sy-summary-tone { color:#c4b5fd; font-size:0.71rem; }
+        .sy-summary-note { margin-top:5px; color:#dbeafe; font-size:0.78rem; line-height:1.55; }
+        .sy-profile-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-profile-box { border:1px solid rgba(129,140,248,0.28); border-radius:10px; padding:10px; background:rgba(15,23,42,0.58); }
+        .sy-profile-box h5 { margin:0 0 5px 0; font-size:0.73rem; letter-spacing:0.08em; text-transform:uppercase; color:#a5b4fc; }
+        .sy-profile-box p { margin:0; font-size:0.86rem; color:#dbeafe; line-height:1.72; }
+        .sy-rel-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+        .sy-rel-tab { padding:7px 12px; border-radius:999px; border:1px solid rgba(244,114,182,0.35); background:rgba(244,114,182,0.08); color:#f9a8d4; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:36px; }
+        .sy-rel-tab.active { background:rgba(244,114,182,0.22); border-color:rgba(244,114,182,0.7); color:#ffe4e6; }
+        .sy-rel-panel { display:none; border:1px solid rgba(244,114,182,0.25); border-radius:12px; background:rgba(30,41,59,0.5); padding:12px; }
+        .sy-rel-panel.active { display:block; }
+        .sy-rel-panel h5 { margin:0 0 6px 0; color:#fecdd3; font-size:0.9rem; }
+        .sy-rel-panel p { margin:0; color:#e2e8f0; font-size:0.88rem; line-height:1.8; }
+        .sy-mini-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+        .sy-mini-node { border:1px solid rgba(148,163,184,0.25); border-radius:12px; background:rgba(15,23,42,0.6); padding:10px 8px; text-align:center; }
+        .sy-mini-node strong { display:block; color:#f8fafc; font-size:0.88rem; margin-bottom:4px; }
+        .sy-mini-node .v { color:#fef08a; font-weight:900; font-size:1.05rem; }
+        .sy-mini-node p { margin:4px 0 0; font-size:0.72rem; color:#cbd5e1; line-height:1.5; }
+        .sy-dual-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-dual-card { border:1px solid rgba(167,139,250,0.28); border-radius:10px; padding:11px; background:rgba(17,24,39,0.6); }
+        .sy-dual-card h5 { margin:0 0 5px 0; color:#ddd6fe; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; }
+        .sy-dual-card p { margin:0; color:#e2e8f0; font-size:0.87rem; line-height:1.78; }
+        .sy-filter-toggle { width:100%; margin:0 0 9px 0; border-radius:10px; border:1px solid rgba(147,197,253,0.35); background:rgba(30,58,138,0.16); color:#bfdbfe; font-size:0.8rem; font-weight:700; padding:9px 11px; cursor:pointer; min-height:40px; }
+        .sy-filter-body.collapsed { display:none; }
+        .sy-load-more-btn { margin-top:8px; width:100%; border-radius:10px; border:1px solid rgba(125,211,252,0.45); background:rgba(14,116,144,0.15); color:#bae6fd; font-size:0.8rem; font-weight:700; padding:8px 10px; cursor:pointer; min-height:38px; }
+        .sy-cta-card { border-left-color:#22d3ee; background:linear-gradient(135deg, rgba(6,78,59,0.36), rgba(15,23,42,0.92)); }
+        .sy-cta-row { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+        .sy-cta-row p { margin:0; color:#ccfbf1; font-size:0.88rem; line-height:1.7; }
+        .sy-cta-link { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 15px; border-radius:999px; text-decoration:none; color:#ecfeff; background:rgba(6,182,212,0.24); border:1px solid rgba(103,232,249,0.55); font-size:0.84rem; font-weight:800; }
         @media (max-width: 768px) {
           .sy-container { padding:22px 16px; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
           .sy-header h3 { font-size:1.35rem; }
           .sy-natal-text,.sy-mantra,.sy-insight,.sy-guardian-main-desc,.sy-guardian-detail-item p { font-size:0.92rem; line-height:1.82; }
           .sy-ritual-grid { grid-template-columns:1fr; }
+          .sy-summary-grid { grid-template-columns:1fr 1fr; }
+          .sy-profile-grid { grid-template-columns:1fr; }
+          .sy-mini-grid { grid-template-columns:1fr 1fr; }
+          .sy-dual-grid { grid-template-columns:1fr; }
           .sy-wheel-title { font-size:0.92rem; }
           .sy-wheel-caption { font-size:0.82rem; }
           .sy-wheel-meta-grid { grid-template-columns:1fr; }
           .sy-canon-grid { grid-template-columns:1fr; }
           .sy-canon-rhythm-grid { grid-template-columns:1fr; }
+        }
+        @media (max-width: 430px) {
+          .sy-container { padding:18px 12px; }
+          .sy-header h3 { font-size:1.22rem; }
+          .sy-hero-title { font-size:1.08rem; }
+          .sy-summary-grid { grid-template-columns:1fr; }
+          .sy-mini-grid { grid-template-columns:1fr; }
+          .sy-ntab, .sy-rel-tab, .sy-canon-tab { min-height:44px; }
         }
         `;
         document.head.appendChild(_sySt);
@@ -3777,7 +4013,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 별 파티클 헤더
     const starsHtml = '<span class="sy-star">✦</span> <span class="sy-star">✧</span> <span class="sy-star">✦</span> <span class="sy-star">✧</span>';
     html += `<div class="sy-container" id="lunarNexusApp">`;
-    html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
+    html += `<div class="sy-header"><h3>☽ 달의 별 운세 · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0.06em;">${starsHtml} &nbsp; 나의 성향과 인연 리듬을 읽는 시간 &nbsp; ${starsHtml}</p></div>`;
 
     if (!lunarObj) {
         try {
@@ -3795,6 +4031,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (!canonicalData) {
       canonicalData = syBuildLocalCanonicalData(lunarObj, sData, dailyFlow, sourceProfile || window._ziweiBirth || null);
     }
+    var _selfGuardian = (function() {
+      if (!sData || typeof syResolveMansionGuardian !== 'function') return { name: '성운 고양이', emoji: '🐈' };
+      try { return syResolveMansionGuardian(sData.mansion, sData.mansionIdx); }
+      catch (_e) { return { name: '성운 고양이', emoji: '🐈' }; }
+    })();
+    var _reading = syBuildBasicReading(canonicalData, sData, dailyFlow, _selfGuardian);
+    var _dailySectionHtml = '';
+
     if (canonicalData) {
       html += syRenderCanonicalDashboard(canonicalData);
     }
@@ -3819,112 +4063,147 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           mansion: sData.mansion
         };
 
-        let tr = sData.traits;
-        html += `
-        ${syRenderWheelCard(window._syWheelState, window._syLastCompat)}
-        <div class="sy-grid">
-            <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #a78bfa;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <h4 style="margin: 0; color: #c4b5fd; font-size: 1.15rem;">${sData.icon} 본성 (Natal Star) — 당신의 별: <span class="sy-glow-text">${sData.mansion}</span></h4>
-                    <div style="font-size: 0.82rem; color:#9ca3af;">대표 위인: <span style="color:#e2d9ff;">${sData.celebs}</span></div>
-                </div>
-                <div class="sy-talent-bar" style="margin-bottom:14px;">
-                    <span style="font-size:0.78rem; color:#9ca3af; white-space:nowrap;">잠재 재능 지수</span>
-                    <div class="sy-talent-track"><div class="sy-talent-fill" style="width:0%" data-target="${sData.talent}%"></div></div>
-                    <strong style="color:#ffd700; font-size:0.95rem; white-space:nowrap;">${sData.talent}%</strong>
-                </div>
-                <div class="sy-natal-tab-bar">
-                    <button class="sy-ntab active" data-ntab="core">🌟 천성의 빛</button>
-                    <button class="sy-ntab" data-ntab="hidden">🌑 달의 이면</button>
-                    <button class="sy-ntab" data-ntab="karma">💫 인연의 궤도</button>
-                    <button class="sy-ntab" data-ntab="mantra">✨ 수호의 문장</button>
-                    <button class="sy-ntab" data-ntab="daily">📋 일상 적용</button>
-                </div>
-                <div class="sy-natal-panel active" id="sy-panel-core">
-                    <p class="sy-natal-text">${tr.core || tr.desc}</p>
-                </div>
-                <div class="sy-natal-panel" id="sy-panel-hidden">
-                    <p class="sy-natal-text">${tr.hidden || tr.desc}</p>
-                </div>
-                <div class="sy-natal-panel" id="sy-panel-karma">
-                    <p class="sy-natal-text">${tr.karma || tr.love}</p>
-                </div>
-                <div class="sy-natal-panel" id="sy-panel-mantra">
-                    <p class="sy-mantra">${tr.mantra || '"나답게 사는 것이 가장 위대한 일이다."'}</p>
-                </div>
-                <div class="sy-natal-panel" id="sy-panel-daily">
-                    <div style="display:grid; gap:8px;">
-                        <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(167,139,250,0.4);">
-                            <span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">💼 일 / 사회성</span>
-                            <p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${tr.work}</p>
-                        </div>
-                        <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,139,160,0.4);">
-                            <span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">❤️ 연애 / 관계</span>
-                            <p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${tr.love}</p>
-                        </div>
-                        <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,191,36,0.4);">
-                            <span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">💰 재물 / 현실</span>
-                            <p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${tr.wealth}</p>
-                        </div>
-                    </div>
-                </div>
+        var reading = _reading || syBuildBasicReading(canonicalData, sData, (dailyFlow || getDailyKarmicGuidance(lunarObj, sData.mansion)), _selfGuardian);
+        if (reading) {
+          html += `<div class="sy-card sy-hero-card">
+            <h4 class="sy-hero-title">${syCanonicalEsc(reading.hero.title)}</h4>
+            <p class="sy-hero-sub">${syCanonicalEsc(reading.hero.subtitle)}</p>
+            <div class="sy-hero-meta">
+              <span class="sy-pill">${syCanonicalEsc(reading.hero.mansionLabel)}</span>
+              <span class="sy-pill">${syCanonicalEsc(reading.hero.moonLabel)}</span>
+              <span class="sy-pill">수호 상징 ${syCanonicalEsc(reading.guardian.emoji + ' ' + reading.guardian.name)}</span>
             </div>
-
-            <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #818cf8;">
-                <h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 흐름 (Daily Flow)</h4>
-        `;
-        const daily = dailyFlow || getDailyKarmicGuidance(lunarObj, sData.mansion);
-        
-        const renderGauge = (lbl, val, color) => `
-            <div class="daily-flow-row">
-                <div class="daily-flow-label">${lbl}</div>
-                <div class="daily-flow-gauge">
-                    <div class="sy-gauge-bg"><div class="sy-gauge-fill" style="width: 0%; background: ${color};" data-target="${val}%"></div></div>
-                </div>
-                <div class="daily-flow-val">${val}점</div>
+            <div class="sy-summary-grid">
+              ${reading.summaryCards.map(function(cardItem) {
+                return '<article class="sy-summary-item">'
+                  + '<div class="sy-summary-label">' + syCanonicalEsc(cardItem.label) + '</div>'
+                  + '<div class="sy-summary-score" style="font-size:1rem;line-height:1.45;">' + syCanonicalEsc(cardItem.value) + '</div>'
+                  + '<div class="sy-summary-tone">' + syCanonicalEsc(cardItem.tone) + '</div>'
+                  + '<div class="sy-summary-note">' + syCanonicalEsc(cardItem.note) + '</div>'
+                  + '</article>';
+              }).join('')}
             </div>
-        `;
+          </div>`;
+        }
 
-        html += `
-                <div class="sy-moon-display">
-                    <span class="sy-moon-emoji">${daily.moon.emoji}</span>
-                    <span class="sy-moon-label">${daily.moon.label} &nbsp;—&nbsp; ${daily.moon.desc}</span>
-                </div>
-        `;
+        html += `${syRenderWheelCard(window._syWheelState, window._syLastCompat)}`;
 
-        html += renderGauge('전체 운세', daily.overall, 'linear-gradient(90deg,#818cf8,#c4b5fd)');
-        html += renderGauge('인간관계', daily.relations, 'linear-gradient(90deg,#fb7185,#fda4af)');
-        html += renderGauge('연애 운', daily.love, 'linear-gradient(90deg,#f43f5e,#fb923c)');
-        html += renderGauge('재물 운', daily.wealth, 'linear-gradient(90deg,#eab308,#fde68a)');
-
-        html += `
-                <div class="sy-insight">${daily.insight}</div>
-                <div style="font-size:0.78rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em; margin-top:14px; margin-bottom:6px;">오늘의 의식 (Daily Ritual)</div>
-                <div class="sy-ritual-grid">
-                    <div class="sy-ritual-box">
-                        <span class="sy-ritual-icon">🎨</span>
-                        <span class="sy-ritual-label">행운 컬러</span>
-                        <span class="sy-ritual-val" style="display:flex;align-items:center;justify-content:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:${daily.ritual.color};display:inline-block;flex-shrink:0;"></span>${daily.ritual.color}</span>
-                    </div>
-                    <div class="sy-ritual-box">
-                        <span class="sy-ritual-icon">🍃</span>
-                        <span class="sy-ritual-label">추천 음식</span>
-                        <span class="sy-ritual-val">${daily.ritual.food}</span>
-                    </div>
-                    <div class="sy-ritual-box">
-                        <span class="sy-ritual-icon">✨</span>
-                        <span class="sy-ritual-label">오늘의 의식</span>
-                        <span class="sy-ritual-val">${daily.ritual.action}</span>
-                    </div>
-                </div>
+        if (reading) {
+          html += `<div class="sy-card" style="border-left-color:#a5b4fc;">
+            <h4 style="margin:0 0 10px 0; color:#c7d2fe;">🌙 달빛 성향 카드</h4>
+            <div class="sy-profile-grid">
+              <article class="sy-profile-box"><h5>첫인상</h5><p>${syCanonicalEsc(reading.moonProfile.firstImpression)}</p></article>
+              <article class="sy-profile-box"><h5>내면 리듬</h5><p>${syCanonicalEsc(reading.moonProfile.innerRhythm)}</p></article>
+              <article class="sy-profile-box"><h5>감정 패턴</h5><p>${syCanonicalEsc(reading.moonProfile.emotionalPattern)}</p></article>
+              <article class="sy-profile-box"><h5>스트레스 패턴</h5><p>${syCanonicalEsc(reading.moonProfile.stressPattern)}</p></article>
+              <article class="sy-profile-box"><h5>회복 패턴</h5><p>${syCanonicalEsc(reading.moonProfile.recoveryPattern)}</p></article>
             </div>
-        </div>
-        `;
+          </div>`;
+
+          html += `<div class="sy-card" style="border-left-color:#fb7185;">
+            <h4 style="margin:0 0 8px 0; color:#fda4af;">💞 관계 탭</h4>
+            <div class="sy-rel-tabs">
+              ${reading.relationshipTabs.map(function(tab, idx) {
+                return '<button type="button" class="sy-rel-tab' + (idx === 0 ? ' active' : '') + '" data-rel-tab="' + syCanonicalEsc(tab.key) + '">' + syCanonicalEsc(tab.label) + '</button>';
+              }).join('')}
+            </div>
+            ${reading.relationshipTabs.map(function(tab, idx) {
+              return '<div class="sy-rel-panel' + (idx === 0 ? ' active' : '') + '" data-rel-panel="' + syCanonicalEsc(tab.key) + '">'
+                + '<h5>' + syCanonicalEsc(tab.title) + '</h5>'
+                + '<p>' + syCanonicalEsc(tab.body) + '</p>'
+                + '</div>';
+            }).join('')}
+          </div>`;
+
+          html += `<div class="sy-card" style="border-left-color:#f472b6;">
+            <h4 style="margin:0 0 8px 0; color:#fbcfe8;">❤️ 연애 프로필</h4>
+            <div class="sy-dual-grid">
+              <article class="sy-dual-card"><h5>끌림 유형</h5><p>${syCanonicalEsc(reading.loveProfile.attractionType)}</p></article>
+              <article class="sy-dual-card"><h5>사랑 방식</h5><p>${syCanonicalEsc(reading.loveProfile.loveStyle)}</p></article>
+              <article class="sy-dual-card"><h5>관계가 깊어지는 순간</h5><p>${syCanonicalEsc(reading.loveProfile.deepeningMoment)}</p></article>
+              <article class="sy-dual-card"><h5>불안 포인트</h5><p>${syCanonicalEsc(reading.loveProfile.anxietyPoint)}</p></article>
+            </div>
+            <div class="sy-dual-card" style="margin-top:8px;"><h5>장기 조언</h5><p>${syCanonicalEsc(reading.loveProfile.longTermAdvice)}</p></div>
+            <div class="sy-dual-card" style="margin-top:8px;"><h5>피하면 좋은 패턴</h5><p>${syCanonicalEsc(reading.loveProfile.avoidPattern)}</p></div>
+          </div>`;
+
+          html += `<div class="sy-card" style="border-left-color:#facc15;">
+            <h4 style="margin:0 0 8px 0; color:#fde68a;">💼 재물 · 일 흐름</h4>
+            <div class="sy-dual-grid">
+              <article class="sy-dual-card"><h5>재물 흐름</h5><p>${syCanonicalEsc(reading.workMoney.moneyFlow)}</p></article>
+              <article class="sy-dual-card"><h5>소비 습관</h5><p>${syCanonicalEsc(reading.workMoney.spendingHabit)}</p></article>
+              <article class="sy-dual-card"><h5>저축 포인트</h5><p>${syCanonicalEsc(reading.workMoney.savingPoint)}</p></article>
+              <article class="sy-dual-card"><h5>일 강점</h5><p>${syCanonicalEsc(reading.workMoney.workStrength)}</p></article>
+              <article class="sy-dual-card"><h5>일 주의점</h5><p>${syCanonicalEsc(reading.workMoney.workCaution)}</p></article>
+              <article class="sy-dual-card"><h5>협업 키워드</h5><p>${syCanonicalEsc(reading.workMoney.collaborationTip)}</p></article>
+            </div>
+            <div class="sy-talent-bar" style="margin-top:11px;">
+              <span style="font-size:0.78rem; color:#fef3c7; white-space:nowrap;">잠재 재능 지수</span>
+              <div class="sy-talent-track"><div class="sy-talent-fill" style="width:0%" data-target="${reading.workMoney.talent}%"></div></div>
+              <strong style="color:#fde047; font-size:0.95rem; white-space:nowrap;">${reading.workMoney.talent}%</strong>
+            </div>
+          </div>`;
+
+          html += `<div class="sy-card" style="border-left-color:#38bdf8;">
+            <h4 style="margin:0 0 8px 0; color:#7dd3fc;">🫧 나의 감정 리듬</h4>
+            <div class="sy-dual-grid">
+              <article class="sy-dual-card"><h5>아침</h5><p>${syCanonicalEsc(reading.emotionRhythm.morning)}</p></article>
+              <article class="sy-dual-card"><h5>낮</h5><p>${syCanonicalEsc(reading.emotionRhythm.day)}</p></article>
+              <article class="sy-dual-card"><h5>밤</h5><p>${syCanonicalEsc(reading.emotionRhythm.night)}</p></article>
+              <article class="sy-dual-card"><h5>감정 방아쇠</h5><p>${syCanonicalEsc(reading.emotionRhythm.trigger)}</p></article>
+            </div>
+            <div class="sy-dual-card" style="margin-top:8px;"><h5>균형 회복 포인트</h5><p>${syCanonicalEsc(reading.emotionRhythm.balance)}</p></div>
+          </div>`;
+
+          html += `<div class="sy-card" style="border-left-color:#60a5fa;">
+            <h4 style="margin:0 0 8px 0; color:#93c5fd;">🧭 인연 미니맵</h4>
+            <div class="sy-mini-grid">
+              ${reading.relationMiniMap.map(function(node) {
+                return '<article class="sy-mini-node">'
+                  + '<strong>' + syCanonicalEsc(node.label) + '</strong>'
+                  + '<div class="v">' + syCanonicalEsc(node.value) + '</div>'
+                  + '<p>' + syCanonicalEsc(node.description) + '</p>'
+                  + '</article>';
+              }).join('')}
+            </div>
+          </div>`;
+
+          var daily = reading.dailyPrescription;
+          var renderGauge = function(lbl, val, color) {
+            return '<div class="daily-flow-row">'
+              + '<div class="daily-flow-label">' + syCanonicalEsc(lbl) + '</div>'
+              + '<div class="daily-flow-gauge"><div class="sy-gauge-bg"><div class="sy-gauge-fill" style="width:0%; background:' + color + ';" data-target="' + syCanonicalEsc(val) + '%"></div></div></div>'
+              + '<div class="daily-flow-val">' + syCanonicalEsc(val) + '점</div>'
+              + '</div>';
+          };
+
+          _dailySectionHtml = '<div class="sy-card" style="margin-top:15px; border-left-color:#818cf8;">'
+            + '<h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 달빛 처방</h4>'
+            + '<div class="sy-moon-display"><span class="sy-moon-emoji">' + syCanonicalEsc(daily.moon.emoji) + '</span><span class="sy-moon-label">' + syCanonicalEsc(daily.moon.label) + ' — ' + syCanonicalEsc(daily.moon.desc) + '</span></div>'
+            + renderGauge('전체 흐름', daily.overall, 'linear-gradient(90deg,#818cf8,#c4b5fd)')
+            + renderGauge('관계 리듬', daily.relations, 'linear-gradient(90deg,#fb7185,#fda4af)')
+            + renderGauge('연애 리듬', daily.love, 'linear-gradient(90deg,#f43f5e,#fb923c)')
+            + renderGauge('재물 리듬', daily.wealth, 'linear-gradient(90deg,#eab308,#fde68a)')
+            + '<div class="sy-insight">' + syCanonicalEsc(daily.insight) + '</div>'
+            + '<div class="sy-dual-grid" style="margin-top:8px;">'
+            + '<article class="sy-dual-card"><h5>오늘의 한 문장</h5><p>' + syCanonicalEsc(daily.message) + '</p></article>'
+            + '<article class="sy-dual-card"><h5>바로 할 한 가지</h5><p>' + syCanonicalEsc(daily.action) + '</p></article>'
+            + '<article class="sy-dual-card"><h5>피하면 좋은 행동</h5><p>' + syCanonicalEsc(daily.avoid) + '</p></article>'
+            + '<article class="sy-dual-card"><h5>행운 장소</h5><p>' + syCanonicalEsc(daily.luckyPlace) + '</p></article>'
+            + '</div>'
+            + '<div style="font-size:0.78rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em; margin-top:14px; margin-bottom:6px;">달빛 실천 루틴</div>'
+            + '<div class="sy-ritual-grid">'
+            + '<div class="sy-ritual-box"><span class="sy-ritual-icon">🎨</span><span class="sy-ritual-label">행운 컬러</span><span class="sy-ritual-val" style="display:flex;align-items:center;justify-content:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:' + syCanonicalEsc(daily.ritual.color) + ';display:inline-block;flex-shrink:0;"></span>' + syCanonicalEsc(daily.ritual.color) + '</span></div>'
+            + '<div class="sy-ritual-box"><span class="sy-ritual-icon">🍃</span><span class="sy-ritual-label">추천 음식</span><span class="sy-ritual-val">' + syCanonicalEsc(daily.ritual.food) + '</span></div>'
+            + '<div class="sy-ritual-box"><span class="sy-ritual-icon">✨</span><span class="sy-ritual-label">오늘의 실천</span><span class="sy-ritual-val">' + syCanonicalEsc(daily.ritual.action) + '</span></div>'
+            + '</div>'
+            + '</div>';
+        }
     }
 
     html += `<div class="sy-card" style="margin-top: 15px; border-left-color: #ff6b81;">
-        <h4 style="margin: 0 0 10px 0; color: #ff6b81;">인연의 끈 (Karma Synergy)</h4>
-        <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px;">상대방의 생년월일을 입력하여 카르마 궁합(숙요점) 지수와 관계 유형을 확인하세요.</p>
+        <h4 style="margin: 0 0 10px 0; color: #ff6b81;">인연의 끈 궁합</h4>
+        <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px;">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
                               
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -3965,21 +4244,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
     </div>`;
 
-    // ── 유명인 숙요 궁합 섹션 (사주 DB 브릿지) ──
+    // ── 유명인 숙요 궁합 섹션 ──
     const _mIdxForCeleb = sData ? sData.mansionIdx : 0;
     html += `<div class="sy-card" style="margin-top:15px; border-left-color:#a29bfe;">
         <h4 style="margin:0 0 8px 0; color:#a29bfe;">⭐ 유명인 숙요 궁합</h4>
         <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-            사주 데이터베이스의 유명인을 선택하면 숙요 알고리즘으로 두 사람의 카르마 궁합을 즉시 분석합니다.
+        인물 아카이브에서 유명인을 선택하면 두 사람의 인연 리듬을 즉시 확인할 수 있습니다.
         </p>
+      <button type="button" id="szFilterToggle" class="sy-filter-toggle">필터 열기</button>
+      <div id="szFilterBody" class="sy-filter-body collapsed">
         <div style="position:relative;margin-bottom:8px;">
-            <input type="text" id="szCelebQ" placeholder="이름으로 검색 (예: 아이유, 이재용, Taylor Swift...)" autocomplete="off"
-                style="width:100%;box-sizing:border-box;padding:8px 36px 8px 10px;border-radius:5px;background:rgba(20,25,35,0.8);color:#fff;border:1px solid rgba(162,155,254,0.5);font-size:0.88rem;">
-            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;">🔍</span>
+          <input type="text" id="szCelebQ" placeholder="이름으로 검색 (예: 아이유, 이재용, Taylor Swift...)" autocomplete="off"
+            style="width:100%;box-sizing:border-box;padding:8px 36px 8px 10px;border-radius:5px;background:rgba(20,25,35,0.8);color:#fff;border:1px solid rgba(162,155,254,0.5);font-size:0.88rem;">
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;">🔍</span>
         </div>
         <div id="szCountryCats" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
         <div id="szCelebCats" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;"></div>
+        </div>
         <div id="szCelebBtns" style="display:flex;flex-wrap:wrap;gap:5px;max-height:150px;overflow-y:auto;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;background:rgba(0,0,0,0.15);min-height:44px;box-sizing:border-box;"></div>
+      <div id="szCelebMoreWrap"></div>
         <div id="szCelebBadge" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(162,155,254,0.1);border:1px solid rgba(162,155,254,0.3);border-radius:8px;font-size:0.85rem;color:#c792ea;word-break:keep-all;line-height:1.6;"></div>
     </div>`;
 
@@ -3987,18 +4270,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     html += `<div class="sy-card" style="margin-top:15px; border-left-color:#ffd700;">
         <h4 style="margin:0 0 8px 0; color:#ffd700;">🌠 같은 별을 타고난 유명인</h4>
         <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-            사주 DB를 실시간으로 조회하여 <strong style="color:#ffd700;">${sData ? sData.mansion : '당신의 숙요'}</strong>의 기운을 공유하는 유명인을 찾습니다.
+            <strong style="color:#ffd700;">${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 별 결을 지닌 유명인을 찾아 보여드립니다.
         </p>
         <div id="szSameMansion" style="display:flex;flex-wrap:wrap;gap:8px;min-height:44px;">
             <div style="color:#888;font-size:0.85rem;padding:8px 0;">✦ 계산 중...</div>
         </div>
     </div>`;
 
-      const _selfGuardian = (function() {
-        if (!sData || typeof syResolveMansionGuardian !== 'function') return { name: '성운 고양이', emoji: '🐈' };
-        try { return syResolveMansionGuardian(sData.mansion, sData.mansionIdx); }
-        catch (_e) { return { name: '성운 고양이', emoji: '🐈' }; }
-      })();
+    if (_dailySectionHtml) {
+      html += _dailySectionHtml;
+    }
+
+      var _guardianView = (_reading && _reading.guardian) ? _reading.guardian : {
+        name: _selfGuardian.name,
+        emoji: _selfGuardian.emoji,
+        color: '은빛 달무리',
+        place: '고요한 호숫가',
+        action: '심호흡 10번',
+        mantra: '오늘의 한 걸음이 내일의 별빛이 됩니다.'
+      };
       const _guardianStory = (function() {
         if (typeof syBuildGuardianStory !== 'function') {
           return {
@@ -4015,8 +4305,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-guardian-head">🌙 월하의 수호령</div>
         <div class="sy-guardian-stage">
           <div class="sy-guardian-stage-stars"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
-          <div class="sy-guardian-main-emoji">${_selfGuardian.emoji}</div>
-          <div class="sy-guardian-main-name">${_selfGuardian.name}</div>
+          <div class="sy-guardian-main-emoji">${_guardianView.emoji}</div>
+          <div class="sy-guardian-main-name">${_guardianView.name}</div>
           <p class="sy-guardian-main-desc">${_guardianStory.overview}</p>
           <div class="sy-guardian-detail-list">
             <div class="sy-guardian-detail-item">
@@ -4035,10 +4325,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <h5>기운을 받는 방법</h5>
               <p>${_guardianStory.ritual}</p>
             </div>
+            <div class="sy-guardian-detail-item">
+              <h5>나의 수호 상징</h5>
+              <p>상징 색: ${_guardianView.color} · 상징 장소: ${_guardianView.place}<br>오늘의 행동: ${_guardianView.action}<br>수호 문장: ${_guardianView.mantra}</p>
+            </div>
           </div>
         </div>
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
+
+    html += `<div class="sy-card sy-cta-card">
+      <div class="sy-cta-row">
+        <p>오늘의 달빛 리딩이 마음에 들었다면, 더 깊은 리딩으로 인연·직업·감정 주기를 길게 확인해보세요.</p>
+        <a class="sy-cta-link" href="/premium" target="_self" rel="noopener">심화 리딩 보기</a>
+      </div>
+    </div>`;
 
     html += `</div>`;
     area.innerHTML = html;
@@ -4068,17 +4369,31 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             });
           });
         }
-        // 본성 탭 클릭 이벤트
-        document.querySelectorAll('.sy-ntab').forEach(btn => {
+        // 관계 탭 클릭 이벤트
+        document.querySelectorAll('.sy-rel-tab').forEach(btn => {
             btn.addEventListener('click', () => {
-                const tabKey = btn.getAttribute('data-ntab');
-                document.querySelectorAll('.sy-ntab').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.sy-natal-panel').forEach(p => p.classList.remove('active'));
+                const tabKey = btn.getAttribute('data-rel-tab');
+                document.querySelectorAll('.sy-rel-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.sy-rel-panel').forEach(p => p.classList.remove('active'));
                 btn.classList.add('active');
-                const panel = document.getElementById('sy-panel-' + tabKey);
+                const panel = document.querySelector('[data-rel-panel="' + tabKey + '"]');
                 if (panel) panel.classList.add('active');
             });
         });
+        // 모바일 필터 아코디언
+        const filterToggle = document.getElementById('szFilterToggle');
+        const filterBody = document.getElementById('szFilterBody');
+        if (filterToggle && filterBody) {
+          const _isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+          if (!_isMobile) {
+            filterBody.classList.remove('collapsed');
+            filterToggle.textContent = '필터 접기';
+          }
+          filterToggle.addEventListener('click', () => {
+            filterBody.classList.toggle('collapsed');
+            filterToggle.textContent = filterBody.classList.contains('collapsed') ? '필터 열기' : '필터 접기';
+          });
+        }
         // 인라인 onclick 의존을 제거해 CSP/브라우저별 클릭 누락을 방지
         const syAnalyzeBtn = document.getElementById('sy3AnalyzeBtn');
         if (syAnalyzeBtn) {
@@ -4406,6 +4721,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   // ══════════════════════════════════════════════════════════════════
   var CelebrityService = (function() {
     var _cache = {}; // mansionIdx → [celeb, ...]
+    var _filterCache = new Map(); // "query|cat|country" → celeb[]
 
     // YYYY-MM-DD 문자열 → 숙요 mansionIdx (실패 시 null)
     function _celebToMansion(birth, hour) {
@@ -4455,12 +4771,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     function filter(query, cat, country) {
       if (typeof CELEBS === 'undefined') return [];
       var q = (query || '').trim().toLowerCase();
-      return CELEBS.filter(function(c) {
+      var key = [q, cat || '', country || ''].join('|');
+      var cached = _filterCache.get(key);
+      if (cached) return cached;
+      var filtered = CELEBS.filter(function(c) {
         var catOk = !cat || c.cat === cat;
         var nameOk = !q || c.name.toLowerCase().indexOf(q) > -1;
         var countryOk = !country || (c.nationality || 'KR') === country;
         return catOk && nameOk && countryOk;
       });
+      _filterCache.set(key, filtered);
+      if (_filterCache.size > 120) {
+        var firstKey = _filterCache.keys().next().value;
+        _filterCache.delete(firstKey);
+      }
+      return filtered;
     }
 
     return { getSameMansion: getSameMansion, getMansionOf: getMansionOf, filter: filter, _celebToMansion: _celebToMansion };
@@ -4469,6 +4794,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   // ── 유명인 탭/검색 필터 렌더러 ──────────────────────────────────
   window._szCelebFilter = function(myIdx, cat, query, clickedTab) {
     var btnsDiv = document.getElementById('szCelebBtns');
+    var moreWrap = document.getElementById('szCelebMoreWrap');
     if (!btnsDiv) return;
 
     // 탭 active 상태 업데이트
@@ -4482,17 +4808,26 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       });
     }
 
-    var list = CelebrityService.filter(query, cat, window._szActiveCountry || '');
+    var normQuery = (query || '').trim();
+    var filterKey = [cat || '', window._szActiveCountry || '', normQuery.toLowerCase()].join('|');
+    if (window._szFilterKey !== filterKey) {
+      window._szFilterKey = filterKey;
+      window._szVisibleCount = 40;
+    }
+
+    var list = CelebrityService.filter(normQuery, cat, window._szActiveCountry || '');
+    var visibleCount = Math.max(20, Number(window._szVisibleCount) || 40);
     btnsDiv.innerHTML = '';
+    if (moreWrap) moreWrap.innerHTML = '';
 
     if (list.length === 0) {
       btnsDiv.innerHTML = '<span style="color:#666;font-size:0.82rem;padding:6px;">검색 결과가 없습니다.</span>';
       return;
     }
 
-    // DocumentFragment로 일괄 삽입 — 개별 appendChild×80 대신 단 1회 DOM 변경
+    // DocumentFragment로 일괄 삽입 — 개별 appendChild 다중 호출 대신 단 1회 DOM 변경
     var frag = document.createDocumentFragment();
-    list.slice(0, 80).forEach(function(c) {
+    list.slice(0, visibleCount).forEach(function(c) {
       var btn = document.createElement('button');
       btn.type = 'button';
       var _flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
@@ -4508,13 +4843,26 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       };
       frag.appendChild(btn);
     });
-    if (list.length > 80) {
-      var note = document.createElement('span');
-      note.style.cssText = 'color:#666;font-size:0.75rem;padding:6px 4px;align-self:center;';
-      note.textContent = '... 외 ' + (list.length - 80) + '명 (검색으로 좁혀보세요)';
-      frag.appendChild(note);
-    }
     btnsDiv.appendChild(frag); // 단 1회 DOM 삽입
+
+    if (list.length > visibleCount && moreWrap) {
+      var moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'sy-load-more-btn';
+      moreBtn.textContent = '더보기 (' + (list.length - visibleCount) + '명 남음)';
+      moreBtn.onclick = function() {
+        window._szVisibleCount = visibleCount + 40;
+        var activeCat = (document.querySelector('#szCelebCats .sy-ctab.active') || { dataset: {} }).dataset.cat || '';
+        var qValue = (document.getElementById('szCelebQ') || {}).value || '';
+        window._szCelebFilter(myIdx, activeCat, qValue, null);
+      };
+      moreWrap.appendChild(moreBtn);
+    } else if (list.length > visibleCount) {
+      var note = document.createElement('div');
+      note.style.cssText = 'color:#666;font-size:0.75rem;padding:6px 4px;';
+      note.textContent = '... 외 ' + (list.length - visibleCount) + '명';
+      btnsDiv.appendChild(note);
+    }
   };
 
   // ── 유명인 선택 → 숙요 궁합 계산 및 배지 표시 ──────────────────
@@ -4556,6 +4904,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var D = (tIdx - myIdx + 27) % 27;
     var distInfo = SukuyoCompatEngine.calcDistance(D);
     var rel = SukuyoCompatEngine.resolve(D, distInfo);
+    var relationStory = null;
+    try {
+      relationStory = buildSukuyoRelationStory(rel, distInfo);
+    } catch (_) {
+      relationStory = null;
+    }
+    var relationOneLine = relationStory && relationStory.lead
+      ? String(relationStory.lead).split('.')[0] + '.'
+      : ((rel.advantages && rel.advantages[0] && rel.advantages[0].text) ? rel.advantages[0].text : '서로의 리듬을 맞추면 인연의 결이 더 또렷해집니다.');
     var tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
     var scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
 
@@ -4600,6 +4957,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       + '</div>'
       + '<div style="font-size:0.82rem;color:#dfe6e9;line-height:1.7;background:rgba(0,0,0,0.15);padding:10px 12px;border-radius:8px;word-break:keep-all;">'
         + '<strong style="color:#a29bfe;">📜 ' + rel.stamp + '</strong><br>'
+        + '<strong style="color:#f5d0fe;">관계 한 줄:</strong> ' + relationOneLine + '<br>'
         + (rel.advantages && rel.advantages[0] ? rel.advantages[0].icon + ' ' + rel.advantages[0].text : '')
       + '</div>';
   };
@@ -4611,18 +4969,42 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var list = CelebrityService.getSameMansion(mansionIdx);
     if (list.length === 0) {
-      div.innerHTML = '<p style="color:#888;font-size:0.85rem;word-break:keep-all;margin:0;">당신의 숙요와 동일한 별을 가진 유명인이 사주 DB에서 발견되지 않았습니다. 당신은 독보적인 별의 기운을 지녔습니다 ✨</p>';
+      div.innerHTML = '<p style="color:#888;font-size:0.85rem;word-break:keep-all;margin:0;">당신의 별과 같은 결을 가진 유명인을 아직 찾지 못했습니다. 당신만의 독보적인 별빛이 강하게 작동 중입니다 ✨</p>';
       return;
     }
 
     var ICONS = ['⭐','🌟','✨','💫','🏅','🎖️','👑','🔥','💎','🌙','🪐','🌈'];
+    var profileByCat = {
+      actor: { vibe: '몰입감 있는 감정선', talent: '표현력과 집중력', charm: '장면을 장악하는 존재감' },
+      '배우': { vibe: '몰입감 있는 감정선', talent: '표현력과 집중력', charm: '장면을 장악하는 존재감' },
+      singer: { vibe: '감성 전달력이 좋은 무드', talent: '리듬·호흡 감각', charm: '목소리와 분위기의 흡인력' },
+      '가수': { vibe: '감성 전달력이 좋은 무드', talent: '리듬·호흡 감각', charm: '목소리와 분위기의 흡인력' },
+      idol: { vibe: '밝고 세련된 에너지', talent: '무대 퍼포먼스와 팀워크', charm: '팬심을 끌어당기는 친화력' },
+      '아이돌': { vibe: '밝고 세련된 에너지', talent: '무대 퍼포먼스와 팀워크', charm: '팬심을 끌어당기는 친화력' },
+      sports: { vibe: '승부욕과 추진력의 결', talent: '집중력과 체력 관리', charm: '강단 있는 에너지' },
+      '운동선수': { vibe: '승부욕과 추진력의 결', talent: '집중력과 체력 관리', charm: '강단 있는 에너지' },
+      entrepreneur: { vibe: '실행 중심의 현실 감각', talent: '문제 해결과 리더십', charm: '결단력에서 나오는 신뢰' },
+      '기업가': { vibe: '실행 중심의 현실 감각', talent: '문제 해결과 리더십', charm: '결단력에서 나오는 신뢰' },
+      scholar: { vibe: '차분하고 깊은 사고', talent: '분석력과 구조화', charm: '지적인 안정감' },
+      '학자': { vibe: '차분하고 깊은 사고', talent: '분석력과 구조화', charm: '지적인 안정감' },
+      creator: { vibe: '독창적 상상력의 결', talent: '기획력과 표현 확장', charm: '새로운 시각을 여는 감각' },
+      '크리에이터': { vibe: '독창적 상상력의 결', talent: '기획력과 표현 확장', charm: '새로운 시각을 여는 감각' },
+      default: { vibe: '균형 잡힌 별빛 무드', talent: '꾸준함과 성장성', charm: '편안한 신뢰감' }
+    };
     div.innerHTML = list.slice(0, 20).map(function(c, i) {
+      var catKey = String(c.cat || '').toLowerCase();
+      var meta = profileByCat[catKey] || profileByCat.default;
       return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
         + 'background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.22);border-radius:12px;'
-        + 'padding:10px 8px;min-width:72px;flex:0 0 auto;text-align:center;">'
+        + 'padding:11px 10px;min-width:170px;max-width:220px;flex:1 1 170px;text-align:left;">'
         + '<div style="font-size:1.4rem;margin-bottom:4px;">' + ICONS[i % ICONS.length] + '</div>'
-        + '<div style="font-size:0.75rem;color:#ffd700;font-weight:700;word-break:keep-all;line-height:1.3;">' + c.name + '</div>'
-        + '<div style="font-size:0.65rem;color:#888;margin-top:2px;">' + c.cat + '</div>'
+        + '<div style="font-size:0.78rem;color:#ffd700;font-weight:700;word-break:keep-all;line-height:1.3;">' + c.name + '</div>'
+        + '<div style="font-size:0.66rem;color:#888;margin-top:2px;">' + c.cat + '</div>'
+        + '<div style="font-size:0.7rem;color:#d1d5db;margin-top:6px;line-height:1.6;">'
+          + '분위기: ' + meta.vibe + '<br>'
+          + '재능 포인트: ' + meta.talent + '<br>'
+          + '매력 포인트: ' + meta.charm
+        + '</div>'
         + '</div>';
     }).join('');
 
