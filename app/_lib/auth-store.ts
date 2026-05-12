@@ -42,7 +42,7 @@ type LoginApiPayload = {
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
-const state: AuthState = {
+let state: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
@@ -62,7 +62,7 @@ function debugAuth(...args: unknown[]) {
 }
 
 function snapshot(): AuthState {
-  return { ...state };
+  return state;
 }
 
 function emitChange() {
@@ -76,7 +76,19 @@ function emitChange() {
 }
 
 function setState(partial: Partial<AuthState>) {
-  Object.assign(state, partial);
+  const keys = Object.keys(partial) as Array<keyof AuthState>;
+  if (keys.length === 0) return;
+
+  let changed = false;
+  for (const key of keys) {
+    if (state[key] !== partial[key]) {
+      changed = true;
+      break;
+    }
+  }
+
+  if (!changed) return;
+  state = { ...state, ...partial };
   emitChange();
 }
 
