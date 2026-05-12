@@ -96,6 +96,11 @@ type CategoryConsultation = {
 };
 
 type AnalysisResultState = {
+  mode: "full" | "partial" | "fallback";
+  qualityScore: number;
+  missingData: string[];
+  warnings: string[];
+  report: Record<string, unknown> | null;
   canonical: ReturnType<typeof createDefaultCanonicalPalmReading>;
   interpretation: PalmInterpretationPayload | null;
   overlayPaths: OverlayPathMap;
@@ -123,7 +128,7 @@ const {
     analysisPurpose: AnalysisPurpose | "";
     isSubmitting: boolean;
   }) => boolean;
-  mapPalmAnalyzeError: (input: { status: number; code: string; message: string }) => string;
+  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string }) => string;
   shouldShowPalmResult: (canonicalPalmReading: unknown) => boolean;
   revokeObjectUrls: (urls: Array<string | null | undefined>, revokeFn?: (url: string) => void) => number;
 };
@@ -284,24 +289,63 @@ async function loadImageForValidation(file: File): Promise<{ image: HTMLImageEle
   return { image, objectUrl };
 }
 
-async function resizeImageIfNeeded(file: File): Promise<File> {
-  if (isHeicLikeFile(file)) return file;
+type ImageRenderer = {
+  width: number;
+  height: number;
+  draw: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+  cleanup: () => void;
+};
+
+async function createImageRenderer(file: File): Promise<ImageRenderer> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" } as ImageBitmapOptions);
+      return {
+        width: bitmap.width,
+        height: bitmap.height,
+        draw: (ctx, width, height) => {
+          ctx.drawImage(bitmap, 0, 0, width, height);
+        },
+        cleanup: () => {
+          bitmap.close();
+        },
+      };
+    } catch {
+      // fallback to Image element path
+    }
+  }
 
   const { image, objectUrl } = await loadImageForValidation(file);
+  return {
+    width: image.naturalWidth || image.width,
+    height: image.naturalHeight || image.height,
+    draw: (ctx, width, height) => {
+      ctx.drawImage(image, 0, 0, width, height);
+    },
+    cleanup: () => {
+      URL.revokeObjectURL(objectUrl);
+    },
+  };
+}
+
+async function resizeImageIfNeeded(file: File): Promise<File> {
+  const renderer = await createImageRenderer(file);
 
   try {
-    const width = image.naturalWidth || image.width;
-    const height = image.naturalHeight || image.height;
+    const width = renderer.width;
+    const height = renderer.height;
     if (!width || !height) {
       throw new Error("IMAGE_SIZE_INVALID");
     }
 
     const longest = Math.max(width, height);
-    if (longest <= MAX_IMAGE_DIMENSION) {
+    const shouldTranscodeHeic = isHeicLikeFile(file);
+
+    if (longest <= MAX_IMAGE_DIMENSION && !shouldTranscodeHeic) {
       return file;
     }
 
-    const ratio = MAX_IMAGE_DIMENSION / longest;
+    const ratio = longest > MAX_IMAGE_DIMENSION ? MAX_IMAGE_DIMENSION / longest : 1;
     const nextWidth = Math.max(1, Math.round(width * ratio));
     const nextHeight = Math.max(1, Math.round(height * ratio));
 
@@ -313,7 +357,7 @@ async function resizeImageIfNeeded(file: File): Promise<File> {
       throw new Error("CANVAS_CONTEXT_UNAVAILABLE");
     }
 
-    ctx.drawImage(image, 0, 0, nextWidth, nextHeight);
+    renderer.draw(ctx, nextWidth, nextHeight);
 
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob((value) => resolve(value), "image/jpeg", 0.9);
@@ -330,17 +374,15 @@ async function resizeImageIfNeeded(file: File): Promise<File> {
       lastModified: Date.now(),
     });
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    renderer.cleanup();
   }
 }
 
 async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback | null> {
-  if (isHeicLikeFile(file)) return null;
-
-  const { image, objectUrl } = await loadImageForValidation(file);
+  const renderer = await createImageRenderer(file);
   try {
-    const width = image.naturalWidth || image.width;
-    const height = image.naturalHeight || image.height;
+    const width = renderer.width;
+    const height = renderer.height;
     if (!width || !height) return null;
 
     const sampleWidth = 144;
@@ -350,7 +392,7 @@ async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback
     canvas.height = sampleHeight;
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return null;
-    ctx.drawImage(image, 0, 0, sampleWidth, sampleHeight);
+    renderer.draw(ctx, sampleWidth, sampleHeight);
 
     const imageData = ctx.getImageData(0, 0, sampleWidth, sampleHeight).data;
     let luminanceSum = 0;
@@ -424,8 +466,48 @@ async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback
       },
     };
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    renderer.cleanup();
   }
+}
+
+function toApiImageQuality(quality: PalmImageQualityFeedback | null): Record<string, unknown> | null {
+  if (!quality) return null;
+  const brightness = quality.checks.brightness
+    ? quality.metrics.brightnessMean > 160
+      ? "good"
+      : "normal"
+    : "dark";
+  const sharpness = quality.checks.sharpness
+    ? quality.metrics.edgeStrength > 18
+      ? "good"
+      : "normal"
+    : "blurry";
+  const contrast = quality.checks.glareLow ? "normal" : "low";
+  const palmCoverage = quality.checks.fullPalmLikely ? 0.72 : quality.checks.palmLikely ? 0.52 : 0.32;
+
+  return {
+    brightness,
+    sharpness,
+    contrast,
+    palmCoverage,
+  };
+}
+
+async function computeFileSignature(file: File): Promise<string> {
+  const base = [file.name, file.size, file.lastModified, file.type].join("|");
+  try {
+    if (typeof crypto !== "undefined" && crypto.subtle) {
+      const chunk = await file.slice(0, 64 * 1024).arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", chunk);
+      const short = Array.from(new Uint8Array(digest).slice(0, 8))
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+      return `${base}|${short}`;
+    }
+  } catch {
+    // fall back to metadata-based signature
+  }
+  return base;
 }
 
 const CARD_KEY_TO_LABEL: Record<PalmCardKey, string> = {
@@ -764,6 +846,10 @@ export default function PalmDestinyMain() {
     left: null,
     right: null,
   });
+  const [fileSignatureBySide, setFileSignatureBySide] = useState<Record<HandSide, string | null>>({
+    left: null,
+    right: null,
+  });
 
   const leftUploadInputRef = useRef<HTMLInputElement>(null);
   const leftCameraInputRef = useRef<HTMLInputElement>(null);
@@ -772,6 +858,9 @@ export default function PalmDestinyMain() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const submitLockedRef = useRef(false);
   const requestIdRef = useRef(0);
+  const inFlightSignatureRef = useRef<string | null>(null);
+  const lastCompletedSignatureRef = useRef<string | null>(null);
+  const lastCompletedAtRef = useRef(0);
   const previewUrlsRef = useRef<{ left: string | null; right: string | null }>({ left: null, right: null });
   const cardRefs = useRef<Record<PalmCardKey, HTMLDivElement | null>>({
     lifeLine: null,
@@ -898,11 +987,16 @@ export default function PalmDestinyMain() {
     const clearImages = Boolean(options?.clearImages);
     const resetSelections = Boolean(options?.resetSelections);
 
+    inFlightSignatureRef.current = null;
+    lastCompletedSignatureRef.current = null;
+    lastCompletedAtRef.current = 0;
+
     if (clearImages) {
       revokeObjectUrls([leftHand.previewUrl, rightHand.previewUrl]);
       setLeftHand({ file: null, previewUrl: null });
       setRightHand({ file: null, previewUrl: null });
       setQualityFeedbackBySide({ left: null, right: null });
+      setFileSignatureBySide({ left: null, right: null });
       setLastSelectedSide("right");
     }
 
@@ -958,19 +1052,18 @@ export default function PalmDestinyMain() {
       return;
     }
 
-    if (isHeicLikeFile(file)) {
-      setSubmitMessage(
-        "사진을 불러오지 못했습니다. iPhone 고효율 사진(HEIC/HEIF)은 브라우저에서 바로 분석이 어려울 수 있습니다. JPG/PNG로 저장한 뒤 다시 선택해 주세요.",
-      );
-      return;
-    }
-
     resetAnalysisState();
 
     let normalizedFile = file;
     try {
       normalizedFile = await resizeImageIfNeeded(file);
+      const signature = await computeFileSignature(normalizedFile);
+
       setHandImage(side, normalizedFile);
+      setFileSignatureBySide((prev) => ({
+        ...prev,
+        [side]: signature,
+      }));
       setOverlaySide(side);
       setLastSelectedSide(side);
 
@@ -992,10 +1085,17 @@ export default function PalmDestinyMain() {
       }
 
       const sourceLabel = source === "camera" ? "카메라 촬영" : "앨범 선택";
+      if (isHeicLikeFile(file) && normalizedFile.type === "image/jpeg") {
+        setSubmitMessage(`${sourceLabel} HEIC 이미지를 분석용 JPEG로 변환했습니다. 미리보기 확인 후 분석을 시작해 주세요.`);
+        return;
+      }
+
       setSubmitMessage(`${sourceLabel} 이미지를 불러왔습니다. 미리보기 확인 후 분석을 시작해 주세요.`);
     } catch (error) {
       setSubmitMessage(
-        `이미지 로딩 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}. 다른 사진으로 다시 시도해 주세요.`,
+        isHeicLikeFile(file)
+          ? "HEIC/HEIF 이미지를 브라우저에서 해석하지 못했습니다. iPhone에서 JPG로 촬영하거나 변환 후 다시 선택해 주세요."
+          : `이미지 로딩 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}. 다른 사진으로 다시 시도해 주세요.`,
       );
     }
   };
@@ -1016,6 +1116,10 @@ export default function PalmDestinyMain() {
     resetAnalysisState();
     setHandImage(side, null);
     setQualityFeedbackBySide((prev) => ({
+      ...prev,
+      [side]: null,
+    }));
+    setFileSignatureBySide((prev) => ({
       ...prev,
       [side]: null,
     }));
@@ -1065,7 +1169,33 @@ export default function PalmDestinyMain() {
   const handleStartAnalysis = async () => {
     if (!canStartAnalysis || submitLockedRef.current) return;
 
+    const leftSig =
+      fileSignatureBySide.left ||
+      (leftHand.file
+        ? `${leftHand.file.name}|${leftHand.file.size}|${leftHand.file.lastModified}|${leftHand.file.type}`
+        : "none");
+    const rightSig =
+      fileSignatureBySide.right ||
+      (rightHand.file
+        ? `${rightHand.file.name}|${rightHand.file.size}|${rightHand.file.lastModified}|${rightHand.file.type}`
+        : "none");
+    const requestSignature = [dominantHand || "none", analysisPurpose || "none", leftSig, rightSig].join("::");
+
+    if (inFlightSignatureRef.current === requestSignature) {
+      setSubmitMessage("동일 이미지 분석이 이미 진행 중입니다. 잠시만 기다려 주세요.");
+      return;
+    }
+
+    if (
+      lastCompletedSignatureRef.current === requestSignature &&
+      Date.now() - Number(lastCompletedAtRef.current || 0) < 1500
+    ) {
+      setSubmitMessage("같은 이미지 요청이 방금 처리되었습니다. 잠시 후 다시 시도하거나 사진을 변경해 주세요.");
+      return;
+    }
+
     submitLockedRef.current = true;
+    inFlightSignatureRef.current = requestSignature;
 
     cancelInFlightRequest();
     const controller = new AbortController();
@@ -1083,6 +1213,8 @@ export default function PalmDestinyMain() {
       const requestBody = JSON.stringify({
         leftPalmImage,
         rightPalmImage,
+        leftImageQuality: toApiImageQuality(qualityFeedbackBySide.left),
+        rightImageQuality: toApiImageQuality(qualityFeedbackBySide.right),
         uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
         dominantHand,
         analysisPurpose,
@@ -1131,13 +1263,19 @@ export default function PalmDestinyMain() {
             : typeof data?.error === "string"
             ? data.error
             : "UNKNOWN_ERROR";
+        const reasonCode =
+          typeof data?.reasonCode === "string"
+            ? data.reasonCode
+            : typeof data?.data?.reasonCode === "string"
+            ? data.data.reasonCode
+            : "";
         const message =
           typeof data?.message === "string"
             ? data.message
             : typeof data?.error === "string"
             ? data.error
             : "분석 중 오류가 발생했습니다.";
-        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, message }));
+        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }));
         return;
       }
 
@@ -1198,6 +1336,24 @@ export default function PalmDestinyMain() {
           ? (payloadRoot.recognitionData as Record<string, unknown>)
           : null;
       const resultSections = normalizeResultSections(payloadRoot?.resultSections);
+      const modeFromPayload =
+        payloadRoot?.mode === "full" || payloadRoot?.mode === "partial" || payloadRoot?.mode === "fallback"
+          ? (payloadRoot.mode as "full" | "partial" | "fallback")
+          : canonical.validation.analysisMode === "detailed"
+          ? "full"
+          : "partial";
+      const qualityScore = Number(payloadRoot?.qualityScore ?? NaN);
+      const safeQualityScore = Number.isFinite(qualityScore) ? qualityScore : 0;
+      const missingData = Array.isArray(payloadRoot?.missingData)
+        ? payloadRoot.missingData.map((item) => String(item))
+        : [];
+      const warnings = Array.isArray(payloadRoot?.warnings)
+        ? payloadRoot.warnings.map((item) => String(item))
+        : [];
+      const reportPayload =
+        payloadRoot?.report && typeof payloadRoot.report === "object"
+          ? (payloadRoot.report as Record<string, unknown>)
+          : null;
 
       if (!shouldShowPalmResult(canonical)) {
         setAnalysisResult(null);
@@ -1277,6 +1433,11 @@ export default function PalmDestinyMain() {
       }
 
       setAnalysisResult({
+        mode: modeFromPayload,
+        qualityScore: safeQualityScore,
+        missingData,
+        warnings,
+        report: reportPayload,
         canonical,
         interpretation,
         overlayPaths,
@@ -1299,10 +1460,12 @@ export default function PalmDestinyMain() {
         setOverlaySide("left");
       }
 
-      const mode = canonical.validation.analysisMode;
-      const qualityMessage = mode === "estimated"
-        ? "손바닥 인식이 완료되었습니다. 이미지 품질이 다소 낮아 일부 손금은 추정 기반으로 분석되었습니다."
-        : "손바닥 인식이 완료되었습니다. 정밀 분석 결과가 생성되었습니다.";
+      const qualityMessage =
+        modeFromPayload === "full"
+          ? "손바닥 인식이 완료되었습니다. 정밀 분석 결과가 생성되었습니다."
+          : modeFromPayload === "partial"
+          ? "손바닥은 감지되었고 부분 분석 결과가 생성되었습니다. 더 선명한 사진을 올리면 정확도가 올라갑니다."
+          : "손바닥은 감지되었지만 선명도가 낮아 기본/보수 해석으로 결과를 생성했습니다.";
       setSubmitMessage(qualityMessage);
       setActiveConsultationKey((analysisPurpose as AnalysisPurpose) || "general");
     } catch (error) {
@@ -1324,9 +1487,14 @@ export default function PalmDestinyMain() {
     } finally {
       if (requestIdRef.current === requestId) {
         setIsSubmitting(false);
+        lastCompletedSignatureRef.current = requestSignature;
+        lastCompletedAtRef.current = Date.now();
       }
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
+      }
+      if (inFlightSignatureRef.current === requestSignature) {
+        inFlightSignatureRef.current = null;
       }
       submitLockedRef.current = false;
     }
@@ -2117,6 +2285,39 @@ export default function PalmDestinyMain() {
                   </aside>
 
                   <div className="w-full max-w-full space-y-4 overflow-hidden">
+                    <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-xs font-bold text-[#f5d987]">
+                          분석 모드: {analysisResult.mode === "full" ? "정밀" : analysisResult.mode === "partial" ? "부분" : "기본"}
+                        </span>
+                        <span className="rounded-full border border-[#c8a84b]/30 bg-[#0d0606] px-3 py-1 text-xs font-bold text-[#e8d090]">
+                          품질 점수: {(analysisResult.qualityScore * 100).toFixed(0)}점
+                        </span>
+                        {analysisResult.mode !== "full" ? (
+                          <span className="rounded-full border border-[#b8860b]/55 bg-[#3a2800]/80 px-3 py-1 text-xs font-bold text-[#ffd98a]">
+                            부분 분석 모드
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {analysisResult.warnings.length > 0 ? (
+                        <ul className="mt-3 space-y-1 text-xs leading-6 text-[#ffd9c9] md:text-sm">
+                          {analysisResult.warnings.map((warning) => (
+                            <li key={`warn-${warning}`}>• {warning}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+
+                      {analysisResult.missingData.length > 0 ? (
+                        <div className="mt-3 rounded-lg border border-[#c8a84b]/20 bg-[#120909]/70 px-3 py-2">
+                          <p className="text-xs font-bold text-[#f5d987] md:text-sm">판독 보류 항목</p>
+                          <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                            {analysisResult.missingData.join(", ")} (이미지 선명도 부족으로 판독 보류)
+                          </p>
+                        </div>
+                      ) : null}
+                    </section>
+
                     {analysisResult.canonical.validation.qualityWarning ? (
                       <div className="rounded-lg border border-[#b8860b]/60 bg-[#3a2800]/90 p-3 text-sm leading-6 text-[#ffd700] shadow-md">
                         ⚠️ {analysisResult.canonical.validation.qualityWarning}
@@ -2280,6 +2481,30 @@ export default function PalmDestinyMain() {
                             </div>
                           </div>
                         ) : null}
+                      </section>
+                    ) : null}
+
+                    {analysisResult.report ? (
+                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>표준 리포트 요약</h3>
+                        <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
+                          {[
+                            ["전체 운세", String(analysisResult.report.summary || "이미지 선명도 부족으로 판독 보류")],
+                            ["성격 분석", String(analysisResult.report.personality || "이미지 선명도 부족으로 판독 보류")],
+                            ["연애운", String(analysisResult.report.love || "이미지 선명도 부족으로 판독 보류")],
+                            ["재물운", String(analysisResult.report.wealth || "이미지 선명도 부족으로 판독 보류")],
+                            ["직업운", String(analysisResult.report.career || "이미지 선명도 부족으로 판독 보류")],
+                            ["인간관계", String(analysisResult.report.relationship || "이미지 선명도 부족으로 판독 보류")],
+                            ["건강/에너지 경향", String(analysisResult.report.healthEnergy || "이미지 선명도 부족으로 판독 보류")],
+                            ["현재 시기 조언", String(analysisResult.report.advice || "더 선명한 사진을 올리면 세부 정확도가 올라갑니다.")],
+                            ["주의할 점", String(analysisResult.report.warnings || "이미지 선명도 부족으로 일부 항목은 추정 기반입니다.")],
+                          ].map(([label, text]) => (
+                            <div key={`std-report-${label}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
+                              <p className="text-xs font-black text-[#f5d987] md:text-sm">{label}</p>
+                              <p className="mt-1 whitespace-pre-wrap text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{text}</p>
+                            </div>
+                          ))}
+                        </div>
                       </section>
                     ) : null}
 

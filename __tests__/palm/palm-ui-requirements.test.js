@@ -146,6 +146,28 @@ describe("Palm UI requirements", () => {
     expect(msg).toContain("선명하게");
   });
 
+  test("Test E-1: reasonCode=LOW_CONFIDENCE면 부분 분석 안내 문구가 나온다", () => {
+    const msg = mapPalmAnalyzeError({
+      status: 422,
+      code: "PALM_DETECTION_FAILED",
+      reasonCode: "LOW_CONFIDENCE",
+      message: "손바닥은 감지되었지만 선명도가 낮습니다.",
+    });
+
+    expect(msg).toContain("부분 분석");
+    expect(msg).toContain("선명도");
+  });
+
+  test("Test E-2: status=415면 지원 형식 안내 문구가 나온다", () => {
+    const msg = mapPalmAnalyzeError({
+      status: 415,
+      code: "UNSUPPORTED_IMAGE_TYPE",
+      message: "지원하지 않는 형식입니다.",
+    });
+
+    expect(msg).toContain("지원하지 않는 이미지 형식");
+  });
+
   test("Test F: hasPalm=false면 결과 표시 조건이 false다", () => {
     expect(shouldShowPalmResult({ validation: { hasPalm: false } })).toBe(false);
     expect(shouldShowPalmResult({ validation: { hasPalm: true } })).toBe(true);
