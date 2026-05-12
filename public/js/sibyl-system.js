@@ -10,6 +10,31 @@
   var NS = 'FORTUNE_APP_USER_PROFILES';
   var SIBYL_REPORT_CACHE_VERSION = '20260512-quantum-v3';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
+  var SIBYL_FEATURE_KEY = 'premium-sibyl-dominator';
+  var SIBYL_FEATURE_REASON = '시빌라 도미네이터 리포트';
+  var SIBYL_MIN_PREMIUM_CHAPTER_CHARS = 300;
+  var SIBYL_PREMIUM_CHAPTER_META = [
+    { key: 'coreMatrix', title: 'CH.01 시빌라 코어 매트릭스', focus: '입력 사주·일간·지배 오행·주도 십성·핵심 점수 종합' },
+    { key: 'riskAnalysis', title: 'CH.02 위험 계수 정밀 분석', focus: '위험 점수 산출 근거와 충돌·변동성 분해' },
+    { key: 'aptitudeAnalysis', title: 'CH.03 적성 계수 정밀 분석', focus: '적성 요소와 성장·수익화 전략' },
+    { key: 'tenGodPattern', title: 'CH.04 주도 십성과 행동 패턴', focus: '주도 십성 기반 행동·관계·의사결정 패턴' },
+    { key: 'elementBalance', title: 'CH.05 오행 밸런스와 에너지 설계', focus: '오행 과부족, 보완 루틴, 환경 설계' },
+    { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', focus: '연도별 위험/기회 흐름과 실행 타이밍' },
+    { key: 'relationship', title: 'CH.07 관계와 애정 패턴', focus: '관계 충돌 패턴과 파트너십 운영' },
+    { key: 'moneyCareer', title: 'CH.08 재물과 직업 전략', focus: '재정 운용·직업 선택·리스크 대응' },
+    { key: 'systemWarning', title: 'CH.09 시스템 경고문', focus: '반복 실패 패턴과 금지 규칙' },
+    { key: 'finalMessage', title: 'CH.10 최종 시빌라 메시지', focus: '핵심 결론과 실행 선언문' }
+  ];
+  var SIBYL_PREMIUM_CHAPTER_KEYS = SIBYL_PREMIUM_CHAPTER_META.map(function(item) { return item.key; });
+  var SibylState = Object.freeze({
+    LOADING: 'LOADING',
+    READY: 'READY',
+    PROCESSING_PAYMENT: 'PROCESSING_PAYMENT',
+    GENERATING_REPORT: 'GENERATING_REPORT',
+    ERROR: 'ERROR'
+  });
+  var _sibylUiState = SibylState.LOADING;
+  var _sibylLastPaidContext = null;
 
   /* 십성 → 섹터 매핑 */
   var TENSTAR_SECTOR = {
@@ -272,7 +297,9 @@
         model: reportData.model || '',
         totalChars: Number(reportData.totalChars || 0),
         minTotalChars: Number(reportData.minTotalChars || 0),
-        chapters: reportData.chapters
+        chapterMap: reportData.chapterMap && typeof reportData.chapterMap === 'object' ? reportData.chapterMap : null,
+        chapters: reportData.chapters,
+        canonicalData: reportData.canonicalData || null
       },
       analysisData: {
         pillars: analysisData && analysisData.pillars ? analysisData.pillars : null,
@@ -348,6 +375,176 @@
 
   function _clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
+  }
+
+  function _createRequestId(prefix) {
+    return String(prefix || 'sibyl') + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function _buildApiCandidates(path) {
+    var normalizedPath = String(path || '/').trim();
+    if (normalizedPath.charAt(0) !== '/') normalizedPath = '/' + normalizedPath;
+
+    var seen = Object.create(null);
+    var out = [];
+    function push(raw) {
+      var value = String(raw || '').trim();
+      if (!value || seen[value]) return;
+      seen[value] = true;
+      out.push(value);
+    }
+
+    push(normalizedPath);
+    try {
+      if (window && window.__CD_API_BASE_URL) {
+        push(String(window.__CD_API_BASE_URL).replace(/\/+$/, '') + normalizedPath);
+      }
+    } catch (_) {}
+    try {
+      if (window && window.CODE_DESTINY_API_BASE_URL) {
+        push(String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '') + normalizedPath);
+      }
+    } catch (_) {}
+    try {
+      if (window && window.__CF_PAGES_API_BASE_URL) {
+        push(String(window.__CF_PAGES_API_BASE_URL).replace(/\/+$/, '') + normalizedPath);
+      }
+    } catch (_) {}
+    try {
+      var customBase = localStorage.getItem('fortune_api_base_url');
+      if (customBase) push(String(customBase).replace(/\/+$/, '') + normalizedPath);
+    } catch (_) {}
+    try {
+      if (window && window.location && window.location.origin) {
+        push(String(window.location.origin).replace(/\/+$/, '') + normalizedPath);
+      }
+    } catch (_) {}
+    return out;
+  }
+
+  async function _fetchApiJson(path, options) {
+    var candidates = _buildApiCandidates(path);
+    var init = Object.assign({
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: {}
+    }, options || {});
+    init.headers = Object.assign({}, init.headers || {});
+
+    if (init.body && !init.headers['Content-Type']) {
+      init.headers['Content-Type'] = 'application/json';
+    }
+
+    var lastResult = null;
+    for (var i = 0; i < candidates.length; i += 1) {
+      var url = candidates[i];
+      try {
+        var res = await fetch(url, init);
+        var payload = {};
+        try { payload = await res.clone().json(); } catch (_) { payload = {}; }
+        var result = {
+          ok: res.ok,
+          status: res.status,
+          payload: payload,
+          url: url
+        };
+        if (res.ok) return result;
+        lastResult = result;
+        if (res.status !== 404) return result;
+      } catch (error) {
+        lastResult = {
+          ok: false,
+          status: 0,
+          payload: { error: { code: 'NETWORK_ERROR', message: String(error && error.message || 'network-error') } },
+          url: url
+        };
+      }
+    }
+
+    return lastResult || {
+      ok: false,
+      status: 0,
+      payload: { error: { code: 'NETWORK_ERROR', message: 'API 요청에 실패했습니다.' } },
+      url: String(path || '')
+    };
+  }
+
+  function _extractApiData(payload) {
+    if (!payload || typeof payload !== 'object') return {};
+    if (payload.data && typeof payload.data === 'object') return payload.data;
+    return payload;
+  }
+
+  function _safeErrorMessage(responseLike) {
+    var payload = responseLike && responseLike.payload;
+    if (!payload || typeof payload !== 'object') return '';
+    if (payload.error && typeof payload.error.message === 'string') return payload.error.message.trim();
+    if (typeof payload.message === 'string') return payload.message.trim();
+    return '';
+  }
+
+  function _toFriendlySibylErrorMessage(error, fallback) {
+    var code = String(error && error.code || '').toUpperCase();
+    var status = Number(error && error.status || 0);
+    var msg = String(error && error.message || '').toLowerCase();
+
+    if (code === 'AUTH_REQUIRED' || code === 'UNAUTHORIZED' || status === 401 || status === 403) {
+      return '로그인이 필요합니다. 로그인 후 다시 시도해 주세요.';
+    }
+    if (code === 'INSUFFICIENT_BALANCE' || msg.indexOf('insufficient') >= 0) {
+      return '코인이 부족합니다. 코인 충전 후 다시 시도해 주세요.';
+    }
+    if (code === 'PRICE_NOT_FOUND' || code === 'UNKNOWN_FEATURE_KEY') {
+      return '결제 가격 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code === 'NETWORK_ERROR' || status === 0) {
+      return '네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return fallback || '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
+  function _setSibylErrorMessage(text) {
+    var errMsg = _q('sbErrorMsg');
+    if (!errMsg) return;
+    errMsg.textContent = text || '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
+  function _setSibylState(nextState, message) {
+    _sibylUiState = nextState;
+    var genEl = _q('sbGenerating');
+    var errEl = _q('sbErrorState');
+    var statusEl = _q('sbGenStatus');
+
+    if (nextState === SibylState.ERROR) {
+      if (genEl) genEl.classList.add('sb-hidden');
+      if (errEl) errEl.classList.remove('sb-hidden');
+      _setSibylErrorMessage(message || '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+
+    if (errEl) errEl.classList.add('sb-hidden');
+
+    if (nextState === SibylState.GENERATING_REPORT) {
+      if (genEl) genEl.classList.remove('sb-hidden');
+      if (statusEl) statusEl.textContent = message || '>> 시빌라 리포트를 생성하는 중입니다…';
+      return;
+    }
+
+    if (nextState === SibylState.PROCESSING_PAYMENT) {
+      if (genEl) genEl.classList.add('sb-hidden');
+      if (statusEl) statusEl.textContent = message || '>> 결제 상태를 확인하는 중입니다…';
+      return;
+    }
+
+    if (nextState === SibylState.READY) {
+      if (genEl) genEl.classList.add('sb-hidden');
+      return;
+    }
+
+    if (nextState === SibylState.LOADING) {
+      if (genEl) genEl.classList.add('sb-hidden');
+    }
   }
 
   function _mean(nums) {
@@ -612,6 +809,171 @@
       daewunList: daewunList,
       integrity: integrity
     };
+  }
+
+  function _safePillarLabel(pair) {
+    if (!pair || typeof pair !== 'object') return '미상';
+    var g = String(pair.g || '').trim();
+    var j = String(pair.j || '').trim();
+    if (g && j) return g + j;
+    return '미상';
+  }
+
+  function _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan) {
+    var norm = normalized || {};
+    var profile = norm.profile || _getCurrentProfile() || {};
+    var birth = profile.birth || {};
+    var pillars = _pillarChars(norm.pillars || window.G_PILLARS || {});
+    var risk = Number(riskBreakdown && riskBreakdown.total || 35);
+    var apt = Number(aptData && aptData.score || 420);
+    var dominantTenStar = String(norm.dominantTenStar || '데이터 부족');
+    var dominantEl = String(norm.dominantEl || 'water');
+
+    var yearlySource = Array.isArray(annualPlan) ? annualPlan : [];
+    var yearlyFlow = yearlySource.slice(0, 10).map(function(item, index) {
+      var riskScore = _clamp(Number(item && item.risk || 40), 5, 99);
+      return {
+        year: Number(item && item.year || (new Date().getFullYear() + index)),
+        pillar: String(item && item.ganZhi || '').trim() || '미상',
+        riskScore: riskScore,
+        opportunityScore: _clamp(100 - riskScore, 5, 95),
+        warning: String(item && item.summary || '').trim() || '리스크 고조 구간은 확장보다 방어를 우선하세요.',
+        advice: String(item && item.playbook || '').trim() || '고위험은 수비, 저위험은 실행 강화 전략을 유지하세요.'
+      };
+    });
+
+    return {
+      input: {
+        birthDate: [birth.year || '', birth.month || '', birth.day || ''].filter(Boolean).join('-') || '미상',
+        birthTime: (String(birth.hour || '').trim() !== '' ? String(birth.hour).padStart(2, '0') : '??') + ':' + (String(birth.minute || '').trim() !== '' ? String(birth.minute).padStart(2, '0') : '??'),
+        gender: String(profile.gender || '미상'),
+        calendarType: String(profile.calendarType || 'solar')
+      },
+      saju: {
+        yearPillar: _safePillarLabel(pillars.y),
+        monthPillar: _safePillarLabel(pillars.m),
+        dayPillar: _safePillarLabel(pillars.d),
+        hourPillar: _safePillarLabel(pillars.h),
+        dayMaster: String((pillars.d && pillars.d.g) || '미상'),
+        dominantElement: dominantEl,
+        weakElement: EL_ORDER.slice().sort(function(a, b) { return (norm.dist && norm.dist[a] || 0) - (norm.dist && norm.dist[b] || 0); })[0] || 'water',
+        favorableElements: ((norm && norm.power && Array.isArray(norm.power.yongshin)) ? norm.power.yongshin : []).slice(0, 3),
+        unfavorableElements: ((norm && norm.power && Array.isArray(norm.power.kijishin)) ? norm.power.kijishin : []).slice(0, 3),
+        tenGodSummary: {
+          dominantTenGod: dominantTenStar,
+          supportingTenGods: Object.keys(norm.tenStarCounts || {}).filter(function(k) { return Number(norm.tenStarCounts[k] || 0) >= 2 && k !== dominantTenStar; }).slice(0, 3),
+          lackingTenGods: Object.keys(TENSTAR_SECTOR).filter(function(k) { return !norm.tenStarCounts || !norm.tenStarCounts[k]; }).slice(0, 3)
+        }
+      },
+      sibyl: {
+        mode: risk >= 70 ? 'dd' : risk >= 45 ? 'le' : 'nle',
+        modeTitle: risk >= 70 ? '완전 해체 모드' : risk >= 45 ? '위험 제거 모드' : '안정 유지 모드',
+        modeDescription: risk >= 70 ? '충돌 신호가 강합니다. 우선순위를 줄이고 손실 차단 규칙을 먼저 고정하세요.' : risk >= 45 ? '위험과 기회가 교차합니다. 검증 루프를 짧게 유지하세요.' : '기본 구조가 안정적입니다. 핵심 과제를 꾸준히 전진시키세요.',
+        riskScore: _clamp(risk, 5, 99),
+        aptitudeScore: _clamp(apt, 100, 999),
+        dominantTenGod: dominantTenStar,
+        dominantElement: dominantEl,
+        warningKeywords: (riskBreakdown && riskBreakdown.parts)
+          ? Object.keys(riskBreakdown.parts).sort(function(a, b) { return (riskBreakdown.parts[b] || 0) - (riskBreakdown.parts[a] || 0); }).slice(0, 3)
+          : [],
+        strengthKeywords: (aptData && aptData.components)
+          ? Object.keys(aptData.components).sort(function(a, b) { return (aptData.components[b] || 0) - (aptData.components[a] || 0); }).slice(0, 3)
+          : [],
+        coreMessage: '위험과 적성 점수는 행동 루틴으로 전환될 때 의미가 있습니다. 같은 점수라도 운영 방식이 다르면 결과가 달라집니다.',
+        lifeStrategy: '고위험 구간은 수비, 저위험 구간은 실행을 강화하는 이중 리듬 전략을 유지하세요.'
+      },
+      yearlyFlow: yearlyFlow,
+      monthlyFlow: Array.isArray(monthlyPlan) ? monthlyPlan.slice(0, 12) : []
+    };
+  }
+
+  function _buildCanonicalFallbackChapter(chapterMeta, canonicalData, index) {
+    var sibyl = canonicalData && canonicalData.sibyl ? canonicalData.sibyl : {};
+    var saju = canonicalData && canonicalData.saju ? canonicalData.saju : {};
+    var yearly = canonicalData && Array.isArray(canonicalData.yearlyFlow) ? canonicalData.yearlyFlow : [];
+    var yearPreview = yearly.slice(0, 3).map(function(item) {
+      return String(item.year) + '년 위험 ' + item.riskScore + ' / 기회 ' + item.opportunityScore;
+    }).join(' · ');
+
+    var text = [
+      chapterMeta.title,
+      chapterMeta.focus,
+      '일간 ' + (saju.dayMaster || '미상') + ', 지배 오행 ' + (sibyl.dominantElement || '미상') + ', 주도 십성 ' + (sibyl.dominantTenGod || '미상') + '을 중심으로 분석합니다.',
+      '위험 계수 ' + _clamp(Number(sibyl.riskScore || 35), 5, 99) + ' / 적성 계수 ' + _clamp(Number(sibyl.aptitudeScore || 420), 100, 999) + ' 기준으로 조건-행동-결과 프레임을 적용합니다.',
+      '연간 흐름 요약: ' + (yearPreview || '연간 흐름 데이터 점검 필요') + '.',
+      '실행 규칙: 고위험에서는 손실 차단, 저위험에서는 집중 실행, 중립 구간에서는 검증 루프를 짧게 유지하세요.',
+      '실패 방지 체크리스트: 1) 의사결정 전제 기록 2) 7일 점검 3) 30일 보정 4) 90일 리밸런싱.'
+    ].join('\n\n');
+
+    var guard = 0;
+    while (text.length < SIBYL_MIN_PREMIUM_CHAPTER_CHARS && guard < 4) {
+      text += '\n\n' + '추가 해설 ' + (guard + 1) + ': 점수 해석보다 실행 순서를 먼저 고정하고, 지표를 매주 갱신하세요. 동일한 사주 구조에서도 실행 루틴이 달라지면 위험 체감이 크게 달라집니다.';
+      guard += 1;
+    }
+
+    return text;
+  }
+
+  function _chapterMapFromReport(reportData) {
+    var map = Object.create(null);
+    if (reportData && reportData.chapterMap && typeof reportData.chapterMap === 'object') {
+      SIBYL_PREMIUM_CHAPTER_KEYS.forEach(function(key) {
+        map[key] = String(reportData.chapterMap[key] || '').trim();
+      });
+      return map;
+    }
+    if (reportData && Array.isArray(reportData.chapters)) {
+      SIBYL_PREMIUM_CHAPTER_META.forEach(function(meta, idx) {
+        var ch = reportData.chapters[idx] || {};
+        map[meta.key] = String(ch.content || ch.text || '').trim();
+      });
+    }
+    return map;
+  }
+
+  function _validateSibylPremiumChapterMap(chapterMap) {
+    for (var i = 0; i < SIBYL_PREMIUM_CHAPTER_KEYS.length; i += 1) {
+      var key = SIBYL_PREMIUM_CHAPTER_KEYS[i];
+      var content = String(chapterMap && chapterMap[key] || '').trim();
+      if (content.length < SIBYL_MIN_PREMIUM_CHAPTER_CHARS) {
+        return { ok: false, key: key };
+      }
+    }
+    return { ok: true };
+  }
+
+  function _shapeSibylPremiumReport(reportData, canonicalData) {
+    var source = reportData && typeof reportData === 'object' ? Object.assign({}, reportData) : {};
+    var map = _chapterMapFromReport(source);
+
+    SIBYL_PREMIUM_CHAPTER_META.forEach(function(meta, idx) {
+      var current = String(map[meta.key] || '').trim();
+      if (current.length < SIBYL_MIN_PREMIUM_CHAPTER_CHARS) {
+        var fallbackText = _buildCanonicalFallbackChapter(meta, canonicalData, idx);
+        map[meta.key] = current ? (current + '\n\n' + fallbackText) : fallbackText;
+      }
+      if (String(map[meta.key] || '').trim().length < SIBYL_MIN_PREMIUM_CHAPTER_CHARS) {
+        map[meta.key] = _buildCanonicalFallbackChapter(meta, canonicalData, idx + 20);
+      }
+    });
+
+    var chapters = SIBYL_PREMIUM_CHAPTER_META.map(function(meta) {
+      return {
+        key: meta.key,
+        title: meta.title,
+        content: String(map[meta.key] || '').trim()
+      };
+    });
+
+    source.chapterMap = map;
+    source.chapters = chapters;
+    source.categoryCount = chapters.length;
+    source.categories = SIBYL_PREMIUM_CHAPTER_META.map(function(item) { return item.title; });
+    source.totalChars = chapters.reduce(function(sum, chapter) { return sum + String(chapter.content || '').length; }, 0);
+    source.minTotalChars = Number(source.minTotalChars || 0) > 0 ? Number(source.minTotalChars) : 6000;
+    source.canonicalData = canonicalData || source.canonicalData || null;
+
+    return source;
   }
 
   function _riskElementImbalance(dist) {
@@ -1338,17 +1700,35 @@
       '퀀텀 명리 엔진은 점수 하나를 만드는 도구가 아니라, 어떤 오행/환경/행동이 지금 나에게 유리한지를 실행 단위로 분해하는 지침입니다. 월별 운영에서 유리 오행과 충돌 오행을 분리해 쓰면 리스크 체감이 눈에 띄게 낮아집니다.'
     ].join('\n');
 
+    var chapter10 = [
+      '## 최종 시빌라 메시지',
+      '당신의 명식은 "점수"보다 "운영 리듬"이 결과를 좌우하는 구조입니다.',
+      '- 위험 계수 ' + risk + ' 구간에서는 빠른 확장보다 손실 차단 규칙이 우선입니다.',
+      '- 적성 계수 ' + coeff + '는 충분히 높은 편이며, 강점 축(' + Object.keys(aptData.components || {}).sort(function(a, b) { return (aptData.components[b] || 0) - (aptData.components[a] || 0); }).slice(0, 2).join(', ') + ')을 중심으로 성과를 고정해야 합니다.',
+      '- 주도 십성 ' + dominantTenStar + '의 장점은 분명하지만, 과잉 작동 시 리스크가 확대되므로 경계 규칙을 반드시 병행해야 합니다.',
+      '',
+      '실전 선언문: "고위험 구간에는 방어를 우선하고, 저위험 구간에는 집중 실행한다. 점수 해석을 행동 루틴으로 바꿔 결과를 만든다."'
+    ].join('\n');
+
+    var canonicalData = _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+
     var chapters = [
-      { title: 'CH01 · 데이터 신뢰도와 코어 매트릭스', content: chapter1 },
-      { title: 'CH02 · 오행·십성 구조 진단', content: chapter2 },
-      { title: 'CH03 · 적성 5컴포넌트 해석', content: chapter3 },
-      { title: 'CH04 · 충·형·파·해 리스크 맵', content: chapter4 },
-      { title: 'CH05 · 10년 연도별 상세 해석', content: chapter5 },
-      { title: 'CH06 · 월별 12개 운영 리포트', content: chapter6 },
-      { title: 'CH07 · 분야별 실행 플랜', content: chapter7 },
-      { title: 'CH08 · 우선순위 결론', content: chapter8 },
-      { title: 'CH09 · 퀀텀 카테고리 매트릭스', content: chapter9 }
+      { key: 'coreMatrix', title: 'CH.01 시빌라 코어 매트릭스', content: chapter1 },
+      { key: 'riskAnalysis', title: 'CH.02 위험 계수 정밀 분석', content: chapter2 },
+      { key: 'aptitudeAnalysis', title: 'CH.03 적성 계수 정밀 분석', content: chapter3 },
+      { key: 'tenGodPattern', title: 'CH.04 주도 십성과 행동 패턴', content: chapter4 },
+      { key: 'elementBalance', title: 'CH.05 오행 밸런스와 에너지 설계', content: chapter5 },
+      { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', content: chapter6 },
+      { key: 'relationship', title: 'CH.07 관계와 애정 패턴', content: chapter7 },
+      { key: 'moneyCareer', title: 'CH.08 재물과 직업 전략', content: chapter8 },
+      { key: 'systemWarning', title: 'CH.09 시스템 경고문', content: chapter9 },
+      { key: 'finalMessage', title: 'CH.10 최종 시빌라 메시지', content: chapter10 }
     ];
+
+    var chapterMap = {};
+    chapters.forEach(function(ch) {
+      chapterMap[ch.key] = String(ch.content || '').trim();
+    });
 
     var totalChars = chapters.reduce(function(sum, ch) { return sum + String(ch.content || '').length; }, 0);
 
@@ -1369,6 +1749,8 @@
       quantumDiagnostics: quantumDiagnostics,
       categoryMatrix: categoryMatrix,
       integrity: normalized.integrity,
+      chapterMap: chapterMap,
+      canonicalData: canonicalData,
       chapters: chapters
     };
   }
@@ -1857,27 +2239,27 @@
         metricsPreview.innerHTML = ''
           + '<div class="sb-metric-card">'
           + '<div class="sb-metric-label">위험 계수</div>'
-          + '<div class="sb-metric-value" id="sbRiskBasicEl"><span id="sbRiskBasic">0</span></div>'
+          + '<div class="sb-metric-value" id="sbRiskBasicEl"><span id="sbRiskBasic">--</span></div>'
           + '</div>'
           + '<div class="sb-metric-card">'
           + '<div class="sb-metric-label">적성 계수</div>'
-          + '<div class="sb-metric-value sb-metric-value--ok" id="sbAptMetric"><span id="sbAptCoeff">0</span></div>'
+          + '<div class="sb-metric-value sb-metric-value--ok" id="sbAptMetric"><span id="sbAptCoeff">--</span></div>'
           + '</div>'
           + '<div class="sb-metric-card">'
           + '<div class="sb-metric-label">Career</div>'
-          + '<div class="sb-metric-value" id="sbCareerComp">0</div>'
+          + '<div class="sb-metric-value" id="sbCareerComp">--</div>'
           + '</div>'
           + '<div class="sb-metric-card">'
           + '<div class="sb-metric-label">Wealth</div>'
-          + '<div class="sb-metric-value" id="sbWealthComp">0</div>'
+          + '<div class="sb-metric-value" id="sbWealthComp">--</div>'
           + '</div>'
           + '<div class="sb-metric-card">'
           + '<div class="sb-metric-label">충·형·파·해</div>'
-          + '<div class="sb-metric-value" id="sbRiskCollision">0</div>'
+          + '<div class="sb-metric-value" id="sbRiskCollision">--</div>'
           + '</div>'
           + '<div class="sb-metric-card">'
           + '<div class="sb-metric-label">월 변동성</div>'
-          + '<div class="sb-metric-value" id="sbRiskVolatility">0</div>'
+          + '<div class="sb-metric-value" id="sbRiskVolatility">--</div>'
           + '</div>';
       }
 
@@ -1911,6 +2293,7 @@
       }
 
       // Save current analysis state
+      var canonicalData = _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPreview, monthlyPreview);
       window._sibylCurrentData = {
         pillars: corePillars,
         dist: dist, domEl: domEl, dominant: dominant, coeff: coeff,
@@ -1920,7 +2303,8 @@
         aptitudeComponents: aptData.components,
         monthlyPreview: monthlyPreview,
         annualPreview: annualPreview,
-        normalized: normalized
+        normalized: normalized,
+        canonicalData: canonicalData
       };
 
       // Nature + Year Pulse + Inner Palace 전체 렌더
@@ -1935,6 +2319,7 @@
       var freeSec = _q('sbFreeSection');
       if (freeSec) freeSec.classList.remove('sb-hidden');
       freeSec && freeSec.classList.add('sb-fadein');
+      _setSibylState(SibylState.READY);
     } catch (err) {
       console.error('[SibylSystem] free section render failed:', err);
       // Fail-open: 무료 결과 텍스트는 최소한 항상 노출되도록 보장한다.
@@ -1955,10 +2340,121 @@
           + '<p class="sb-nature-body">일시적인 데이터 연결 지연이 감지되어 무료 기본 결과를 우선 표시합니다. 결제 없이도 기본 해석은 계속 확인할 수 있습니다.</p>'
           + '</div>';
       }
+      _setSibylState(SibylState.ERROR, '기본 분석 데이터를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 열어 주세요.');
     }
   }
 
-  // 시빌라 전용 결제 UI를 제거하고, 일반 코인 게이트(_cdCoinGatePerUse)만 사용한다.
+  function _isAdminBypassUser() {
+    try {
+      if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) return true;
+    } catch (_) {}
+    try {
+      if (window.__cdAdminBypass === true) return true;
+    } catch (_) {}
+    try {
+      if (typeof window.isAdminUser === 'function' && window.isAdminUser()) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  function _toApiError(result, fallbackMessage) {
+    var payload = result && result.payload ? result.payload : {};
+    return {
+      status: Number(result && result.status || 0),
+      code: String(payload && payload.error && payload.error.code || '').trim() || 'SERVER_ERROR',
+      message: _safeErrorMessage(result) || fallbackMessage || '요청 처리 중 오류가 발생했습니다.'
+    };
+  }
+
+  async function _resolveSibylPricing() {
+    var featureRes = await _fetchApiJson('/api/billing/features?featureKey=' + encodeURIComponent(SIBYL_FEATURE_KEY));
+    if (!featureRes.ok) {
+      throw _toApiError(featureRes, '결제 가격 정보를 불러오지 못했습니다.');
+    }
+    var featureData = _extractApiData(featureRes.payload);
+    var pricing = featureData && featureData.pricing ? featureData.pricing : null;
+    var cost = Number(pricing && pricing.cost || 0);
+    var reason = String(pricing && pricing.reason || SIBYL_FEATURE_REASON).trim();
+    if (!Number.isFinite(cost) || cost <= 0 || !reason) {
+      throw { status: 422, code: 'PRICE_NOT_FOUND', message: '결제 가격 정보가 올바르지 않습니다.' };
+    }
+    return {
+      featureKey: String(pricing.featureKey || SIBYL_FEATURE_KEY),
+      cost: Math.floor(cost),
+      reason: reason
+    };
+  }
+
+  async function _resolveSibylBalance() {
+    var balanceRes = await _fetchApiJson('/api/billing/balance');
+    if (!balanceRes.ok) {
+      throw _toApiError(balanceRes, '코인 잔액을 확인하지 못했습니다.');
+    }
+    var balanceData = _extractApiData(balanceRes.payload);
+    var balance = Number(balanceData && balanceData.balance || 0);
+    return Number.isFinite(balance) ? balance : 0;
+  }
+
+  async function _runSibylCoinGate(payloadHash) {
+    var pricing = await _resolveSibylPricing();
+    var balance = await _resolveSibylBalance();
+
+    if (balance < pricing.cost) {
+      throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: '코인이 부족합니다.' };
+    }
+
+    var requestId = _createRequestId('sibyl-coin-gate');
+    var gateRes = await _fetchApiJson('/api/billing/coin-gate', {
+      method: 'POST',
+      body: JSON.stringify({
+        featureKey: pricing.featureKey,
+        reason: pricing.reason,
+        requestId: requestId,
+        payloadHash: String(payloadHash || '').slice(0, 120),
+        forceDeduct: true
+      })
+    });
+
+    if (!gateRes.ok) {
+      throw _toApiError(gateRes, '코인 결제가 완료되지 않았습니다.');
+    }
+
+    return {
+      requestId: requestId,
+      pricing: pricing,
+      consumePayload: gateRes.payload
+    };
+  }
+
+  async function _requestSibylRefund(paymentContext, failReason) {
+    if (!paymentContext || paymentContext.bypass || paymentContext.refundAttempted) {
+      return { ok: false, skipped: true };
+    }
+    paymentContext.refundAttempted = true;
+
+    var pricing = paymentContext.pricing || {};
+    var consumeData = _extractApiData(paymentContext.consumePayload || {});
+    var consumePayload = consumeData && consumeData.consume ? consumeData.consume : {};
+    var txId = String(
+      consumePayload.transactionId
+      || consumePayload.pointHistoryId
+      || consumePayload._id
+      || ''
+    ).trim();
+
+    var refundRes = await _fetchApiJson('/api/fortune/pig-coin/refund', {
+      method: 'POST',
+      body: JSON.stringify({
+        cost: Number(pricing.cost || 100),
+        featureKey: String(pricing.featureKey || SIBYL_FEATURE_KEY),
+        sourceTransactionId: txId || undefined,
+        requestId: _createRequestId((paymentContext.requestId || 'sibyl') + '-refund'),
+        reason: String(failReason || '시빌라 리포트 생성 실패 자동 환급').slice(0, 120)
+      })
+    });
+
+    return refundRes;
+  }
 
   /* ── 코인 차감 후 도미네이터 리포트 호출 ── */
   async function _unlockDominator() {
@@ -1966,19 +2462,7 @@
 
     function _restoreUnlockBtn() {
       _syncSibylUnlockButton(_getCurrentProfile());
-    }
-
-    function _isAdminBypassUser() {
-      try {
-        if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) return true;
-      } catch (_) {}
-      try {
-        if (window.__cdAdminBypass === true) return true;
-      } catch (_) {}
-      try {
-        if (typeof window.isAdminUser === 'function' && window.isAdminUser()) return true;
-      } catch (_) {}
-      return false;
+      _setSibylState(SibylState.READY);
     }
 
     if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
@@ -1990,38 +2474,60 @@
       return;
     }
 
-    function _afterPaid() {
-      var lockEl = _q('sbLockOverlay');
-      if (lockEl) lockEl.classList.add('sb-hidden');
-      var genEl = _q('sbGenerating');
-      if (genEl) genEl.classList.remove('sb-hidden');
+    var lockEl = _q('sbLockOverlay');
+    if (lockEl) lockEl.classList.add('sb-hidden');
 
-      _generateDominatorReport().catch(function(e) {
-        console.error('[SibylSystem] Report generation error:', e);
-        var errState = _q('sbErrorState');
-        if (errState) errState.classList.remove('sb-hidden');
-        var genEl2 = _q('sbGenerating');
-        if (genEl2) genEl2.classList.add('sb-hidden');
-      });
-    }
+    var payloadHash = _sibylHash(JSON.stringify({
+      profileId: currentProfile && currentProfile.id,
+      birth: currentProfile && currentProfile.birth,
+      dominant: currentData && currentData.dominant,
+      domEl: currentData && currentData.domEl,
+      risk: currentData && currentData.risk,
+      coeff: currentData && currentData.coeff
+    }));
 
-    if (_isAdminBypassUser()) {
-      if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
-      _afterPaid();
-      return;
-    }
+    var paymentContext = null;
 
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(100, '시빌라 도미네이터 리포트', _afterPaid, _restoreUnlockBtn);
-      return;
+    try {
+      if (_isAdminBypassUser()) {
+        paymentContext = {
+          bypass: true,
+          requestId: _createRequestId('sibyl-admin-bypass'),
+          pricing: {
+            featureKey: SIBYL_FEATURE_KEY,
+            cost: 100,
+            reason: SIBYL_FEATURE_REASON
+          },
+          consumePayload: {}
+        };
+      } else {
+        _setSibylState(SibylState.PROCESSING_PAYMENT, '>> 결제 상태를 확인하는 중입니다…');
+        paymentContext = await _runSibylCoinGate(payloadHash);
+      }
+
+      _sibylLastPaidContext = paymentContext;
+      _setSibylState(SibylState.GENERATING_REPORT, '>> 도미네이터 리포트를 생성하는 중입니다…');
+      await _generateDominatorReport(paymentContext);
+      _restoreUnlockBtn();
+    } catch (error) {
+      console.error('[SibylSystem] unlock/generate failed:', error);
+
+      if (paymentContext && !paymentContext.bypass) {
+        try {
+          await _requestSibylRefund(paymentContext, '시빌라 리포트 생성 실패 자동 환급');
+        } catch (refundErr) {
+          console.error('[SibylSystem] refund failed:', refundErr);
+        }
+      }
+
+      var userMessage = _toFriendlySibylErrorMessage(error, '시빌라 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      _setSibylState(SibylState.ERROR, userMessage);
+      _restoreUnlockBtn();
     }
-    _restoreUnlockBtn();
-    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
-    return;
   }
 
-  /* ── 도미네이터 리포트 생성 (순수 로컬 계산) ── */
-  async function _generateDominatorReport() {
+  /* ── 도미네이터 리포트 생성 (서버 우선 + 로컬 fallback) ── */
+  async function _generateDominatorReport(paymentContext) {
     var data = window._sibylCurrentData || {};
     var profile = _getCurrentProfile();
     var pillars = _ensurePillarsWithProfileFallback(data.pillars || window.G_PILLARS, profile);
@@ -2042,8 +2548,23 @@
       aptCoeff: data.coeff || 0,
       riskScore: data.risk || 0,
       gender: (profile && profile.gender) || 'F',
-      currentYear: new Date().getFullYear()
+      currentYear: new Date().getFullYear(),
+      requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : ''
     };
+
+    var normalized = data.normalized || _normalizeSibylInput(payload, data);
+    var annualPlan = Array.isArray(data.annualPreview) ? data.annualPreview : _buildAnnualRiskPlan(normalized, payload.currentYear);
+    var monthlyPlan = Array.isArray(data.monthlyPreview) ? data.monthlyPreview : _buildMonthlyRiskPlan(pillars, payload.dominantEl || normalized.dominantEl, payload.dominantTenStar || normalized.dominantTenStar, payload.riskScore || 45, payload.currentYear, normalized);
+    var conflictSignals = _collectCollisionSignals(pillars, payload.currentYear);
+    var riskBreakdown = data.riskBreakdown || _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals);
+    var aptData = { score: payload.aptCoeff || 0, components: data.aptitudeComponents || null };
+    if (!aptData.components) {
+      aptData = _calcAptitudeComponents(normalized, riskBreakdown);
+      payload.aptCoeff = aptData.score;
+    }
+
+    var canonicalData = data.canonicalData || _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+    payload.canonicalData = canonicalData;
 
     // Progress animation
     var genBar = _q('sbGenBarFill');
@@ -2074,13 +2595,42 @@
       }
 
       await new Promise(function (r) { setTimeout(r, 240); });
-      var reportData = _buildLocalDominatorReport(payload, data);
+      var reportData = null;
+
+      var apiRes = await _fetchApiJson('/api/sibyl/report', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (apiRes.ok) {
+        reportData = _shapeSibylPremiumReport(_extractApiData(apiRes.payload), canonicalData);
+        var validation = _validateSibylPremiumChapterMap(reportData.chapterMap);
+        if (!validation.ok) {
+          reportData = null;
+        }
+      } else if (Number(apiRes.status || 0) === 401 || Number(apiRes.status || 0) === 403) {
+        throw _toApiError(apiRes, '로그인이 필요합니다.');
+      }
+
+      if (!reportData) {
+        reportData = _shapeSibylPremiumReport(_buildLocalDominatorReport(payload, data), canonicalData);
+      }
+
+      var finalValidation = _validateSibylPremiumChapterMap(reportData.chapterMap);
+      if (!finalValidation.ok) {
+        throw {
+          status: 422,
+          code: 'SIBYL_REPORT_INVALID',
+          message: '리포트 생성 결과가 기준을 충족하지 못했습니다.'
+        };
+      }
 
       _saveSibylCachedReport(profile, reportData, data);
 
       clearInterval(stageTimer);
       if (genBar) genBar.style.width = '100%';
       _renderDominatorReport(reportData, data);
+      _setSibylState(SibylState.READY);
 
     } catch(e) {
       clearInterval(stageTimer);
@@ -2442,6 +2992,8 @@
   window.openSibylModal = function() {
     var modal = _q('sibylModal');
     if (!modal) return;
+    _setSibylState(SibylState.LOADING);
+    _sibylLastPaidContext = null;
 
     // Reset state
     var scanSec = _q('sb-scan-section');
@@ -2488,7 +3040,7 @@
       var profileChip = _q('sbProfileChip');
       if (profileChip && profile && profile.birth) {
         var b = profile.birth;
-        profileChip.textContent = '대상: ' + (b.year||'?') + '.' + (b.month||'?') + '.' + (b.day||'?') + ' · ' + ((profile.gender||'F') === 'M' ? '남성' : '여성');
+        profileChip.textContent = '대상: ' + (b.year || '--') + '.' + (b.month || '--') + '.' + (b.day || '--') + ' · ' + ((profile.gender || 'F') === 'M' ? '남성' : '여성');
       }
 
       // Run scan animation then render free section
@@ -2514,27 +3066,22 @@
   window._sibylUnlockDominator = function() {
     _unlockDominator().catch(function(e) {
       console.error('[Sibyl] unlock error:', e);
-      var errState = _q('sbErrorState');
-      var errMsg = _q('sbErrorMsg');
-      if (errState) errState.classList.remove('sb-hidden');
-      if (errMsg) errMsg.textContent = '❌ 오류: ' + (e.message || '알 수 없는 오류가 발생했습니다.');
+      _setSibylState(SibylState.ERROR, _toFriendlySibylErrorMessage(e, '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
       var genEl = _q('sbGenerating');
       if (genEl) genEl.classList.add('sb-hidden');
     });
   };
 
   window._sibylRetryDominator = function() {
-    var errState = _q('sbErrorState');
-    if (errState) errState.classList.add('sb-hidden');
-    var genEl = _q('sbGenerating');
-    if (genEl) genEl.classList.remove('sb-hidden');
-    _generateDominatorReport().catch(function(e) {
-      var errState2 = _q('sbErrorState');
-      var errMsg = _q('sbErrorMsg');
-      if (errState2) errState2.classList.remove('sb-hidden');
-      if (errMsg) errMsg.textContent = '❌ 재시도 실패: ' + (e.message || '알 수 없는 오류');
-      var genEl2 = _q('sbGenerating');
-      if (genEl2) genEl2.classList.add('sb-hidden');
+    if (!_sibylLastPaidContext && !_isAdminBypassUser()) {
+      _setSibylState(SibylState.ERROR, '재시도 전에 결제를 다시 진행해 주세요.');
+      return;
+    }
+
+    _setSibylState(SibylState.GENERATING_REPORT, '>> 리포트 생성을 재시도하는 중입니다…');
+    _generateDominatorReport(_sibylLastPaidContext).catch(function(e) {
+      console.error('[Sibyl] retry failed:', e);
+      _setSibylState(SibylState.ERROR, _toFriendlySibylErrorMessage(e, '재시도에 실패했습니다. 잠시 후 다시 시도해 주세요.'));
     });
   };
 

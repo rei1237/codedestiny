@@ -1529,11 +1529,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
-              btn.addEventListener('click', function () {
+              btn.addEventListener('click', async function () {
+                try {
+                  await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    cache: 'no-store'
+                  });
+                } catch (_) {}
                 ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
                   try { localStorage.removeItem(k); } catch (_) {}
                 });
                 document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+                document.cookie = 'fortune_auth_refresh=;max-age=0;path=/;SameSite=Lax';
                 document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
                 // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
                 try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
@@ -1628,6 +1636,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   var _abtn = document.getElementById('cdAuthLogoutBtn');
                   if (_abtn) {
                     _abtn.addEventListener('click', function () {
+                      try {
+                        fetch('/api/auth/logout', {
+                          method: 'POST',
+                          credentials: 'include',
+                          cache: 'no-store'
+                        });
+                      } catch (_) {}
                       try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
                       try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
                       try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
@@ -1636,6 +1651,28 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     });
                   }
                 }
+                fetch('/api/auth/me', {
+                  method: 'GET',
+                  credentials: 'include',
+                  cache: 'no-store',
+                })
+                  .then(function (response) {
+                    if (!response.ok) return null;
+                    return response.json();
+                  })
+                  .then(function (payload) {
+                    if (!payload || !payload.user) return;
+                    if (payload.accessToken) {
+                      try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
+                    }
+                    try {
+                      var safe = __cdWriteAuthUserCache(payload.user);
+                      var role = String((safe && safe.role) || payload.user.role || 'user');
+                      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=604800; SameSite=Lax';
+                    } catch (_) {}
+                    __cdAuthState();
+                  })
+                  .catch(function () {});
                 return;
               }
               var n = '사용자', p = 0, r = 'user', u = {};
@@ -1653,6 +1690,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 fetch('/api/fortune/pig-coin/profile-subscription/status', {
                   method: 'GET',
                   credentials: 'include',
+                  cache: 'no-store',
                   headers: subscriptionHeaders,
                 })
                   .then(function (response) {
@@ -1686,6 +1724,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               fetch('/api/auth/me', {
                 method: 'GET',
                 credentials: 'include',
+                cache: 'no-store',
                 headers: authMeHeaders,
               })
                 .then(function (response) {
@@ -1693,16 +1732,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   return response.json();
                 })
                 .then(function (payload) {
-                  var nextPoints = Number((((payload || {}).user || {}).points) || 0);
+                  var nextUser = ((payload || {}).user) || null;
+                  if (!nextUser) return;
+                  var nextPoints = Number(nextUser.points || 0);
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
                   try {
                     var raw = localStorage.getItem('fortune_auth_user');
                     var user = raw ? JSON.parse(raw) : {};
                     if (typeof user !== 'object' || user === null) user = {};
-                    user.name = user.name || n;
+                    user.id = nextUser.id || user.id;
+                    user.userId = nextUser.userId || user.userId;
+                    user._id = nextUser._id || user._id;
+                    user.uid = nextUser.uid || user.uid;
+                    user.name = nextUser.name || user.name || n;
+                    user.role = nextUser.role || user.role || 'user';
                     user.points = nextPoints;
                     __cdWriteAuthUserCache(user);
+                    var role = String(user.role || 'user');
+                    document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=604800; SameSite=Lax';
                   } catch (_) {}
 
                   __cdRenderWithSub(nextPoints);
@@ -4918,23 +4966,23 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <div class="sb-pillars-grid">
                 <div class="sb-pillar-item">
                   <div class="sb-pillar-label">연주</div>
-                  <div id="sbPillarYanG" class="sb-pillar-gan">?</div>
-                  <div id="sbPillarYanJ" class="sb-pillar-ji">?</div>
+                  <div id="sbPillarYanG" class="sb-pillar-gan">·</div>
+                  <div id="sbPillarYanJ" class="sb-pillar-ji">·</div>
                 </div>
                 <div class="sb-pillar-item">
                   <div class="sb-pillar-label">월주</div>
-                  <div id="sbPillarMoG" class="sb-pillar-gan">?</div>
-                  <div id="sbPillarMoJ" class="sb-pillar-ji">?</div>
+                  <div id="sbPillarMoG" class="sb-pillar-gan">·</div>
+                  <div id="sbPillarMoJ" class="sb-pillar-ji">·</div>
                 </div>
                 <div class="sb-pillar-item sb-pillar-item--day">
                   <div class="sb-pillar-label">일주</div>
-                  <div id="sbPillarDaG" class="sb-pillar-gan">?</div>
-                  <div id="sbPillarDaJ" class="sb-pillar-ji">?</div>
+                  <div id="sbPillarDaG" class="sb-pillar-gan">·</div>
+                  <div id="sbPillarDaJ" class="sb-pillar-ji">·</div>
                 </div>
                 <div class="sb-pillar-item">
                   <div class="sb-pillar-label">시주</div>
-                  <div id="sbPillarSiG" class="sb-pillar-gan">?</div>
-                  <div id="sbPillarSiJ" class="sb-pillar-ji">?</div>
+                  <div id="sbPillarSiG" class="sb-pillar-gan">·</div>
+                  <div id="sbPillarSiJ" class="sb-pillar-ji">·</div>
                 </div>
               </div>
             </div>
@@ -4972,7 +5020,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div id="sbHueSwatch" class="sb-hue-swatch" style="background:#00bfff"></div>
                   <div>
                     <div class="sb-hue-name" id="sbHueName">딥 오션 블루 (Deep Ocean Blue) · 수(水)</div>
-                    <div id="sbHueStatus" class="sb-hue-status">▶ 분석 중…</div>
+                    <div id="sbHueStatus" class="sb-hue-status">▶ 시빌라 스캔 준비 중…</div>
                   </div>
                 </div>
               </div>
@@ -4982,12 +5030,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <div class="sb-apt-card">
                 <div class="sb-apt-coeff-row">
                   <span class="sb-apt-coeff-label">APTITUDE COEFFICIENT</span>
-                  <span class="sb-apt-coeff-value" id="sbAptCoeff">0</span>
+                  <span class="sb-apt-coeff-value" id="sbAptCoeff">--</span>
                   <span class="sb-apt-coeff-max">/999</span>
                 </div>
-                <div class="sb-apt-sector-badge" id="sbSectorName">LOADING…</div>
-                <div class="sb-apt-jobs" id="sbSectorJobs">분석 중…</div>
-                <div class="sb-apt-tenstar" id="sbSectorTenstar">주도 십성: ?</div>
+                <div class="sb-apt-sector-badge" id="sbSectorName">ANALYSIS PREPARING</div>
+                <div class="sb-apt-jobs" id="sbSectorJobs">데이터 동기화 중입니다.</div>
+                <div class="sb-apt-tenstar" id="sbSectorTenstar">주도 십성: 준비 중</div>
               </div>
             </div>
             <div id="sbNatureSection" class="sb-nature-section"></div>
@@ -5018,12 +5066,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div id="sbGenerating" class="sb-generating sb-hidden">
               <div class="sb-gen-spinner"></div>
               <div class="sb-gen-title">DOMINATOR EXECUTING…</div>
-              <div class="sb-gen-status" id="sbGenStatus">>> 시스템 초기화 중…</div>
+              <div class="sb-gen-status" id="sbGenStatus">>> 결제 및 생성 준비 중…</div>
               <div class="sb-gen-bar"><div id="sbGenBarFill" class="sb-gen-bar-fill" style="width:0%"></div></div>
             </div>
             <div id="sbErrorState" class="sb-error-state sb-hidden">
               <div class="sb-error-icon">⚠</div>
-              <div id="sbErrorMsg" class="sb-error-msg">오류가 발생했습니다.</div>
+              <div id="sbErrorMsg" class="sb-error-msg">요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>
               <button class="sb-retry-btn" onclick="window._sibylRetryDominator()">재시도</button>
             </div>
             <div id="sbDominatorSection" class="sb-dominator-section sb-hidden">
@@ -6471,6 +6519,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function hasAuthSessionHint() {
     if (getAuthToken()) return true;
     try {
+      var cachedUser = readAuthUser();
+      var cachedId = String((cachedUser && (cachedUser.id || cachedUser.userId || cachedUser._id || cachedUser.uid || cachedUser.email)) || '').trim();
+      if (cachedId) return true;
+    } catch (_e) {}
+    try {
       if (document.cookie.indexOf('fortune_auth_role=') >= 0) return true;
     } catch (_e) {}
     return false;
@@ -6545,6 +6598,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (_e) {
       return null;
     }
+  }
+
+  function __cdPersistAuthUserSnapshot(user) {
+    var safe = __cdWriteAuthUserCache(user || {});
+    if (!safe) return null;
+    try {
+      var role = String((safe && safe.role) || (user && user.role) || 'user');
+      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=604800; SameSite=Lax';
+    } catch (_) {}
+    return safe;
   }
 
   function __cdResolveAuthScopeId(user) {
