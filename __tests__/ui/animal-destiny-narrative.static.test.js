@@ -19,12 +19,11 @@ test("analysis narrative module includes stage-based evidence builders", () => {
 test("result screen wires dynamic insights into all major panels", () => {
   const src = read("app/saju/animal-destiny/components/AnimalResultScreen.tsx");
   assert.ok(src.includes("buildAnimalNarrativeInsights"));
+  assert.ok(src.includes("네 기둥 십이운성 카드"));
+  assert.ok(src.includes("오늘의 대표 동물 프로필"));
+  assert.ok(src.includes("TAB_LABELS"));
+  assert.ok(src.includes("buildDetailedInterpretation"));
   assert.ok(src.includes("사주 근거 요약"));
-  assert.ok(src.includes("insight={insights.statsLine}"));
-  assert.ok(src.includes("insight={insights.personalityLine}"));
-  assert.ok(src.includes("insight={insights.loveLine}"));
-  assert.ok(src.includes("insight={insights.careerLine}"));
-  assert.ok(src.includes("insight={insights.luckLine}"));
 });
 
 test("compatibility grid uses Korean animal display and stage evidence", () => {
@@ -33,4 +32,16 @@ test("compatibility grid uses Korean animal display and stage evidence", () => {
   assert.ok(src.includes("partner.primaryStage"));
   assert.ok(src.includes("partner.stageEvidence"));
   assert.ok(src.includes("사주 근거:"));
+});
+
+test("share card is 9:16 hologram style and includes four pillar summary", () => {
+  const src = read("app/saju/animal-destiny/components/AnimalShareCard.tsx");
+  assert.ok(src.includes("aspect-[9/16]"));
+  assert.ok(src.includes("십이운성 동물점"));
+  assert.ok(src.includes("row(\"연주\""));
+  assert.ok(src.includes("row(\"월주\""));
+  assert.ok(src.includes("row(\"일주\""));
+  assert.ok(src.includes("row(\"시주\""));
+  assert.ok(src.includes("LOVE"));
+  assert.ok(src.includes("CAREER"));
 });

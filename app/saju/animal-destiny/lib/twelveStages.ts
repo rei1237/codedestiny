@@ -198,6 +198,67 @@ export function getNormalizedSajuCore(sajuResult: SajuEngineResult) {
   };
 }
 
+type PillarKey = "year" | "month" | "day" | "hour";
+
+export interface FourPillarStageItem {
+  pillar: PillarKey;
+  stem: StemKo | null;
+  branch: BranchKo | null;
+  stage?: TwelveStage;
+}
+
+export function getFourPillarStageItems(sajuResult: SajuEngineResult): Record<PillarKey, FourPillarStageItem> {
+  const source = toRecord(sajuResult);
+  const dayStem = extractDayStem(source);
+
+  const yearPillar = pickPillar(source, "year");
+  const monthPillar = pickPillar(source, "month");
+  const dayPillar = pickPillar(source, "day");
+  const hourPillar = pickPillar(source, "hour");
+
+  const yearStem = extractStemFromPillar(yearPillar);
+  const monthStem = extractStemFromPillar(monthPillar);
+  const dayPillarStem = extractStemFromPillar(dayPillar);
+  const hourStem = extractStemFromPillar(hourPillar);
+
+  const yearBranch = extractBranchFromPillar(yearPillar);
+  const monthBranch = extractBranchFromPillar(monthPillar);
+  const dayBranch = extractBranchFromPillar(dayPillar);
+  const hourBranch = extractBranchFromPillar(hourPillar);
+
+  const calc = (branch: BranchKo | null): TwelveStage | undefined => {
+    if (!dayStem || !branch) return undefined;
+    return getTwelveStage(dayStem, branch) || undefined;
+  };
+
+  return {
+    year: {
+      pillar: "year",
+      stem: yearStem,
+      branch: yearBranch,
+      stage: calc(yearBranch),
+    },
+    month: {
+      pillar: "month",
+      stem: monthStem,
+      branch: monthBranch,
+      stage: calc(monthBranch),
+    },
+    day: {
+      pillar: "day",
+      stem: dayPillarStem || dayStem,
+      branch: dayBranch,
+      stage: calc(dayBranch),
+    },
+    hour: {
+      pillar: "hour",
+      stem: hourStem,
+      branch: hourBranch,
+      stage: calc(hourBranch),
+    },
+  };
+}
+
 export const __TWELVE_STAGE_TESTING__ = {
   STEM_KO_LIST,
   BRANCH_KO_LIST,

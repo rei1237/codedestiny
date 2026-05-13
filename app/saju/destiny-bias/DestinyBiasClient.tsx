@@ -852,88 +852,78 @@ export default function DestinyBiasClient() {
             ) : null}
 
           {uiStep === 5 && resultVm ? (
-            <section className="space-y-4">
-              <article className={`rounded-[30px] p-5 md:p-6 ${styles.glass}`}>
-                <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">STARLIGHT BACKSTAGE PASS</p>
-                <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와 연결된 한정판 팬싸인 포토카드</h2>
-                <p className="mt-2 text-sm leading-7 text-white/85">{resultVm.oneLineDestinyMessage}</p>
-                <p className="mt-1 text-xs text-fuchsia-100/90">내 사주 에너지와 최애 무대 아우라가 동기화된 결과입니다.</p>
-
-                <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
-                  <div className={styles.scoreCell}>
-                    <p className="text-[11px] text-white/70">궁합 점수</p>
-                    <p className="mt-1 text-lg font-black text-white">{resultVm.totalScore}</p>
-                  </div>
-                  <div className={styles.scoreCell}>
-                    <p className="text-[11px] text-white/70">감정 리듬</p>
-                    <p className="mt-1 text-lg font-black text-white">{resultVm.emotionalScore}</p>
-                  </div>
-                  <div className={styles.scoreCell}>
-                    <p className="text-[11px] text-white/70">팬심 공명</p>
-                    <p className="mt-1 text-lg font-black text-white">{resultVm.fandomScore}</p>
-                  </div>
-                  <div className={styles.scoreCell}>
-                    <p className="text-[11px] text-white/70">장기 연결</p>
-                    <p className="mt-1 text-lg font-black text-white">{resultVm.longTermScore}</p>
-                  </div>
-                  <div className={styles.scoreCell}>
-                    <p className="text-[11px] text-white/70">운명 등급</p>
-                    <p className="mt-1 text-lg font-black text-white">{resultVm.destinyGrade}</p>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className={styles.blueBadge}>
-                    에너지 타입: {resultVm.auraType}
-                  </span>
-                  <span className={styles.blueBadge}>
-                    오라 재질: {resultVm.auraMaterial}
-                  </span>
-                  <span className={styles.blueBadge}>
-                    페어링: {resultVm.pairingAlias}
-                  </span>
-                </div>
-
-                <div className="mt-3">
+            <section className="mx-auto w-full max-w-5xl space-y-5">
+              <article className={`rounded-[30px] p-5 md:p-7 ${styles.glass}`}>
+                <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">FAN CONCERT DESTINY REPORT</p>
+                <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와의 최애운명 메인 리포트</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-white/88">
+                  오늘 당신과 최애 사이에는 은은하지만 선명한 공명이 흐르고 있어요.
+                  무대 위의 반짝임처럼, 이 인연은 보는 순간 마음을 흔드는 힘이 있어요.
+                </p>
+                <div className="mt-3 inline-flex">
                   <FansignEditionBadge editionLabel={resultVm.editionLabel} destinyGrade={resultVm.destinyGrade} />
                 </div>
               </article>
 
-              <section className="grid gap-4 lg:grid-cols-[1.02fr_0.98fr] lg:items-start">
-                <div className="space-y-4">
-                  <DestinyBiasPhotocard vm={resultVm} cardSvg={resultVm.cardSvg} />
-                  <DestinyBiasActionBar
-                    onDownloadSvg={handleDownloadSvg}
-                    onDownloadPng={() => {
-                      handleDownloadPng().catch(() => null);
-                    }}
-                    onShare={() => {
-                      handleShareResult().catch(() => null);
-                    }}
-                    onCopy={() => {
-                      handleCopyResult().catch(() => null);
-                    }}
-                    onRetry={handleRetry}
-                    onTryAnother={handleTryAnotherBias}
-                  />
+              <section className="space-y-3">
+                <div className="text-center">
+                  <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">REPRESENTATIVE PHOTOCARD</p>
+                  <h3 className="mt-1 text-xl font-black text-white">소장용 한정 포토카드</h3>
                 </div>
+                <DestinyBiasPhotocard vm={resultVm} />
+              </section>
 
-                <div className="space-y-4">
-                  <DestinyBiasDetailSections vm={resultVm} />
-
-                  <article className={`rounded-[28px] p-5 ${styles.glass}`}>
-                    <p className="text-[11px] font-semibold tracking-[0.14em] text-cyan-100/85">STAGE CHEMISTRY</p>
-                    <h3 className="mt-2 text-base font-bold text-white">무대 케미 키워드</h3>
-                    <div className="mt-3 flex flex-wrap gap-2">
+              <section className="space-y-3">
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">KEY SUMMARY</p>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  <article className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">궁합 점수</p>
+                    <p className="mt-1 text-2xl font-black text-white">{resultVm.totalScore}</p>
+                  </article>
+                  <article className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">에너지 타입</p>
+                    <p className="mt-1 text-base font-black text-white">{resultVm.auraType}</p>
+                    <p className="text-xs text-white/65">{resultVm.auraMaterial}</p>
+                  </article>
+                  <article className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">관계 무드</p>
+                    <p className="mt-1 text-base font-black text-white">{resultVm.relationMood}</p>
+                    <p className="text-xs text-white/65">{resultVm.pairingAlias}</p>
+                  </article>
+                  <article className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">시너지 키워드</p>
+                    <div className="mt-2 flex flex-wrap justify-center gap-1">
                       {resultVm.stageChemistryKeywords.slice(0, 3).map((keyword) => (
-                        <span key={keyword} className={styles.blueBadge}>
+                        <span key={keyword} className="rounded-full border border-cyan-200/25 bg-cyan-300/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-100/90">
                           #{keyword}
                         </span>
                       ))}
                     </div>
-                    <p className="mt-4 text-sm leading-7 text-white/85">운명 시그널: {resultVm.destinySignal}</p>
                   </article>
                 </div>
+              </section>
+
+              <section className="space-y-3">
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">DETAIL ANALYSIS</p>
+                <DestinyBiasDetailSections vm={resultVm} />
+              </section>
+
+              <section className="space-y-3">
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">SAVE / SHARE</p>
+                <DestinyBiasActionBar
+                  onDownloadSvg={handleDownloadSvg}
+                  onDownloadPng={() => {
+                    handleDownloadPng().catch(() => null);
+                  }}
+                  onShare={() => {
+                    handleShareResult().catch(() => null);
+                  }}
+                  onCopy={() => {
+                    handleCopyResult().catch(() => null);
+                  }}
+                  onRetry={handleRetry}
+                  onTryAnother={handleTryAnotherBias}
+                />
               </section>
             </section>
           ) : null}

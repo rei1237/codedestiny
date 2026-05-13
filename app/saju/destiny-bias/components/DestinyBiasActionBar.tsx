@@ -21,20 +21,20 @@ export default function DestinyBiasActionBar({
 }: Props) {
   return (
     <article className={styles.actionBar}>
-      <p className="mb-3 text-[10px] font-semibold tracking-[0.16em] text-white/55">COLLECTIBLE ACTIONS</p>
+      <p className="text-[10px] font-semibold tracking-[0.16em] text-white/55">SAVE & SHARE BOOTH</p>
+      <h3 className="mt-1 text-base font-extrabold text-white">오늘의 최애운명을 소장해 보세요</h3>
+      <p className="mt-1 text-sm text-white/75">가장 먼저 보이는 버튼으로 바로 저장하고, 공유는 그 다음에 간단하게 이어집니다.</p>
 
-      {/* Primary actions */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <button type="button" onClick={onDownloadPng} className={styles.actionPrimary}>
-          🖼 포토카드 저장
+          포토카드 저장하기
         </button>
         <button type="button" onClick={onShare} className={styles.actionPrimary}>
-          ✦ 최애운명 공유
+          인스타 스토리 공유
         </button>
       </div>
 
-      {/* Secondary actions */}
-      <div className="mt-2 grid grid-cols-3 gap-2">
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <button type="button" onClick={onDownloadSvg} className={styles.actionSecondary}>
           SVG 저장
         </button>
@@ -49,9 +49,9 @@ export default function DestinyBiasActionBar({
       <button
         type="button"
         onClick={onTryAnother}
-        className="mt-2 w-full rounded-2xl border border-dashed border-white/20 py-3 text-sm font-semibold text-white/70 transition hover:border-white/35 hover:text-white/90"
+        className="mt-2 min-h-11 w-full rounded-full border border-dashed border-white/22 bg-white/5 px-4 py-3 text-sm font-semibold text-white/78 transition hover:border-white/38 hover:text-white"
       >
-        ↩ 다른 최애로 해보기
+        다른 최애와 다시 해보기
       </button>
     </article>
   );

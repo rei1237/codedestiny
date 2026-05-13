@@ -35,7 +35,7 @@ export default function AnimalDestinyPage() {
     reset,
   } = useAnimalDestinyStore();
 
-  const { isExporting, exportCard } = useAnimalCardExport();
+  const { isExporting, exportCard, shareCard } = useAnimalCardExport();
 
   const canSubmit = useMemo(() => Boolean(input.birthDate), [input.birthDate]);
 
@@ -116,6 +116,10 @@ export default function AnimalDestinyPage() {
     await exportCard(shareCardRef.current, `animal-destiny-${Date.now()}`);
   }, [exportCard]);
 
+  const handleShareCard = useCallback(async () => {
+    await shareCard(shareCardRef.current, `animal-destiny-${Date.now()}`);
+  }, [shareCard]);
+
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#ffe7c2_0%,#ffe8ef_35%,#d3f6ee_100%)] px-4 py-6">
       <Toaster position="top-center" richColors />
@@ -147,11 +151,13 @@ export default function AnimalDestinyPage() {
             <AnimalResultScreen
               animal={animalData}
               twelveStages={twelveStages}
+              sajuResult={sajuResult}
               timeUnknown={Boolean((sajuResult as Record<string, unknown> | null)?.timeUnknown)}
               partner={partner}
               shareCardRef={shareCardRef}
               onSubmitPartner={handlePartnerSubmit}
               onSaveCard={handleSaveCard}
+              onShareCard={handleShareCard}
               isExporting={isExporting}
             />
           ) : null}

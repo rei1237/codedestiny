@@ -3,33 +3,36 @@
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import styles from "../destiny-bias.module.css";
 
-const SECTION_ICONS: Record<string, string> = {
-  "AURA PROFILE": "✦",
-  "RHYTHM MATCH": "♬",
-  "ENERGY LINK": "⚡",
-  "ENERGY SIGNATURE": "◎",
-  "FANSIGN MOMENT": "💌",
-};
+function compactText(value: string, maxLength: number) {
+  const normalized = String(value || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength).trim()}...`;
+}
 
-function ProgramSection({
-  label,
+function DetailCard({
+  icon,
+  kicker,
   title,
-  body,
+  summary,
+  description,
 }: {
-  label: string;
+  icon: string;
+  kicker: string;
   title: string;
-  body: string;
+  summary: string;
+  description: string;
 }) {
-  const icon = SECTION_ICONS[label] ?? "·";
   return (
-    <article className={styles.programCard}>
+    <article className={styles.detailFlowCard}>
       <div className="flex items-center gap-2">
         <span className="text-sm" aria-hidden>{icon}</span>
-        <p className="text-[10px] font-semibold tracking-[0.16em] text-cyan-100/80">{label}</p>
+        <p className="text-[10px] font-semibold tracking-[0.15em] text-cyan-100/80">{kicker}</p>
       </div>
       <div className={styles.auroraDiv} style={{ marginTop: 8, marginBottom: 10 }} aria-hidden />
       <h3 className="text-sm font-extrabold leading-snug text-white">{title}</h3>
-      <p className="mt-3 whitespace-pre-line text-sm leading-[1.75] text-white/82">{body}</p>
+      <p className="mt-2 text-sm font-semibold leading-6 text-pink-100/90">{summary}</p>
+      <p className="mt-2 text-sm leading-7 text-white/82">{description}</p>
     </article>
   );
 }
@@ -37,60 +40,75 @@ function ProgramSection({
 export default function DestinyBiasDetailSections({ vm }: { vm: DestinyBiasResultViewModel }) {
   const energySvgMarkup = vm.biasEnergySvg.replace(/^<\?xml[^>]*>\s*/i, "");
 
-  const profileBody = [
-    vm.biasPersonalityReport,
-    `에너지 기질: ${vm.biasEnergyType}`,
-    `무대 아우라: ${vm.stageAuraComment}`,
-  ].join("\n\n");
+  const profileSummary = `최애의 무드 중심은 ${vm.biasEnergyType}이고, 무대 위 아우라는 ${vm.stageAuraComment}`;
+  const profileDesc = compactText(vm.biasPersonalityReport, 180);
 
-  const compatibilityBody = [
-    vm.compatibilityDetail,
-    `케미 요약: ${vm.chemistrySummary}`,
-    `페어링 별칭: ${vm.pairingAlias}`,
-  ].join("\n\n");
+  const chemistrySummary = `당신과 최애의 기본 결은 ${vm.chemistrySummary}`;
+  const chemistryDesc = compactText(`${vm.compatibilityDetail} 페어링 별칭은 ${vm.pairingAlias}입니다.`, 180);
 
-  const connectionBody = [
-    vm.energyConnectionDetail,
-    `운명 시그널: ${vm.destinySignal}`,
-    `이번 달 응원 포인트: ${vm.cheerPoint}`,
-    `오늘의 응원 미션: ${vm.todayMission}`,
-  ].join("\n\n");
+  const flowSummary = `지금의 에너지 흐름은 ${vm.destinySignal} 쪽으로 선명하게 기울고 있어요.`;
+  const flowDesc = compactText(`${vm.energyConnectionDetail} 오늘의 미션은 ${vm.todayMission}`, 180);
 
-  const energySignatureBody = [
-    vm.biasEnergySummary,
-    `연결 키워드: ${vm.connectionKeyword.join(", ")}`,
-    `공명 색상: ${vm.energyColor}`,
-  ].join("\n\n");
+  const supportSummary = `응원 포인트는 ${vm.cheerPoint}이고, 관계 무드는 ${vm.relationMood}입니다.`;
+  const supportDesc = compactText(
+    `추천 키워드는 ${vm.moodKeywords.slice(0, 3).join(", ")}이며, 매칭 태그는 ${vm.matchingTags.slice(0, 3).join(", ")}입니다.`,
+    180,
+  );
 
-  const fansignBody = [
-    `팬싸인 감성 메시지: ${vm.fansignMessage}`,
-    `한 줄 운명 메시지: ${vm.oneLineDestinyMessage}`,
-    `추천 덕질 무드: ${vm.moodKeywords.join(", ")}`,
-    `매칭 태그: ${vm.matchingTags.join(", ")}`,
-  ].join("\n\n");
+  const destinySummary = vm.oneLineDestinyMessage;
+  const destinyDesc = compactText(vm.fansignMessage, 160);
 
   return (
-    <section className="space-y-2">
-      <ProgramSection label="AURA PROFILE" title="무대 위 최애의 아우라" body={profileBody} />
-      <ProgramSection label="RHYTHM MATCH" title="당신과 최애의 리듬이 만나는 방식" body={compatibilityBody} />
-      <ProgramSection label="ENERGY LINK" title="내 사주 에너지가 최애에게 닿는 방식" body={connectionBody} />
-      <article className={styles.programCard}>
+    <section className="space-y-3">
+      <DetailCard
+        icon="✦"
+        kicker="BIAS PROFILE"
+        title="최애 성향 분석"
+        summary={profileSummary}
+        description={profileDesc}
+      />
+
+      <DetailCard
+        icon="♬"
+        kicker="CHEMISTRY MATCH"
+        title="나와 최애의 궁합 포인트"
+        summary={chemistrySummary}
+        description={chemistryDesc}
+      />
+
+      <DetailCard
+        icon="⚡"
+        kicker="EMOTION FLOW"
+        title="감정 온도 / 에너지 흐름"
+        summary={flowSummary}
+        description={flowDesc}
+      />
+
+      <article className={styles.detailFlowCard}>
         <div className="flex items-center gap-2">
           <span className="text-sm" aria-hidden>◎</span>
-          <p className="text-[10px] font-semibold tracking-[0.16em] text-cyan-100/80">ENERGY SIGNATURE</p>
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-cyan-100/80">ENERGY SIGNATURE</p>
         </div>
         <div className={styles.auroraDiv} style={{ marginTop: 8, marginBottom: 10 }} aria-hidden />
-        <h3 className="text-sm font-extrabold leading-snug text-white">상대방 에너지 시그니처 SVG</h3>
-        <div className="mt-3 overflow-hidden rounded-2xl border border-white/15 bg-black/30">
+        <h3 className="text-sm font-extrabold leading-snug text-white">응원 타입 / 관계 무드</h3>
+        <p className="mt-2 text-sm font-semibold leading-6 text-pink-100/90">{supportSummary}</p>
+        <div className="mt-3 overflow-hidden rounded-2xl border border-white/15 bg-black/30 p-1">
           <div
             aria-label="상대방 에너지 시그니처 SVG"
             className={styles.svgPreviewWrap}
             dangerouslySetInnerHTML={{ __html: energySvgMarkup }}
           />
         </div>
-        <p className="mt-3 whitespace-pre-line text-sm leading-[1.75] text-white/82">{energySignatureBody}</p>
+        <p className="mt-3 text-sm leading-7 text-white/82">{supportDesc}</p>
       </article>
-      <ProgramSection label="FANSIGN MOMENT" title="오늘의 덕질 포인트와 팬싸인 메시지" body={fansignBody} />
+
+      <DetailCard
+        icon="💌"
+        kicker="DESTINY LINE"
+        title="한 줄 운명 해석"
+        summary={destinySummary}
+        description={destinyDesc}
+      />
     </section>
   );
 }
