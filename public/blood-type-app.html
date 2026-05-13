@@ -130,6 +130,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 .score-ring svg{transform:rotate(-90deg);}
 .score-ring .score-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Black Han Sans',sans-serif;font-size:18px;}
 .compat-row{display:flex;gap:14px;align-items:center;}
+.summary-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;border:2px solid var(--black);border-radius:50px;padding:4px 10px;background:#fff;margin-bottom:10px;}
+.scoreboard-wrap{border:2.5px solid var(--black);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-lg);margin-top:14px;}
+.scoreboard-top{font-size:13px;font-weight:900;color:var(--black);line-height:1.45;margin-bottom:12px;word-break:keep-all;}
+.score-item{border:2px solid var(--black);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff;}
+.score-item:last-child{margin-bottom:0;}
+.score-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.score-type{font-family:'Black Han Sans',sans-serif;font-size:22px;line-height:1;}
+.score-value{font-family:'Black Han Sans',sans-serif;font-size:22px;line-height:1;}
+.score-track{height:12px;border:1.5px solid var(--black);border-radius:999px;background:#f0f0f0;overflow:hidden;}
+.score-fill{height:100%;border-radius:999px;transition:width .35s ease;}
+.score-meta{font-size:11px;color:#555;font-weight:700;margin-top:6px;line-height:1.4;}
+.retry-btn{width:100%;margin-top:12px;border:2.5px solid var(--black);border-radius:12px;padding:12px;font-size:13px;font-weight:900;background:var(--white);cursor:pointer;box-shadow:var(--shadow);}
 /* LIFESTYLE */
 .life-tabs{display:flex;overflow-x:auto;gap:8px;margin-bottom:20px;padding-bottom:4px;scrollbar-width:none;}
 .life-tabs::-webkit-scrollbar{display:none;}
@@ -655,6 +667,7 @@ let state = {
   lifeTab: 'diet',
   swipeIndex: 0,
   swipeDeck: [],
+  compatSession: null,
   shareType: 'dashboard',
   balanceChoicesByBlood: {},
   openWhatifByBlood: {}
@@ -662,10 +675,53 @@ let state = {
 const TYPES = ['A','B','O','AB'];
 
 const LOVE_CHECK_PROMPTS = [
-  '첫 만남에서 대화 템포가 잘 맞을까?',
-  '갈등이 생겼을 때 화해 속도는 어떨까?',
-  '장기 연애에서 루틴 궁합은 잘 맞을까?'
+  { key:'tempo', question:'첫 만남에서 대화 템포가 자연스럽게 맞을까?', weight:8, positive:'대화 리듬이 잘 맞을 확률이 올라갔어.', negative:'대화 속도 조율이 먼저 필요해 보여.' },
+  { key:'conflict', question:'갈등이 생겼을 때 회복 속도가 비슷할까?', weight:10, positive:'화해 루틴이 빠르게 잡힐 가능성이 커졌어.', negative:'갈등 후 회복 방식이 달라 조율이 필요해.' },
+  { key:'routine', question:'장기 연애에서 생활 루틴이 맞을까?', weight:9, positive:'일상 궁합 점수가 탄탄해졌어.', negative:'생활 패턴 맞추는 합의가 중요해 보여.' },
+  { key:'trust', question:'서로의 경계를 존중하며 신뢰를 쌓기 쉬울까?', weight:11, positive:'신뢰 기반 관계 운영이 유리해졌어.', negative:'경계 설정과 약속 기준을 먼저 정하면 좋아.' },
+  { key:'communication', question:'감정 표현 방식이 서로 이해되기 쉬울까?', weight:10, positive:'감정 번역력이 높은 조합으로 강화됐어.', negative:'표현 방식이 달라 오해 관리가 필요해.' },
+  { key:'future', question:'미래 계획(돈/시간/우선순위) 합의가 쉬울까?', weight:12, positive:'현실 운영 궁합이 크게 상승했어.', negative:'가치관 합의 대화가 선행되면 안정도가 올라가.' }
 ];
+
+const LOVE_SCORE_MIN = 40;
+const LOVE_SCORE_MAX = 99;
+
+function clampLoveScore(value) {
+  return Math.max(LOVE_SCORE_MIN, Math.min(LOVE_SCORE_MAX, Math.round(Number(value) || LOVE_SCORE_MIN)));
+}
+
+function getCompatBase(d, type) {
+  const entry = d.compat && d.compat[type] ? d.compat[type] : null;
+  return {
+    score: clampLoveScore(entry?.score || 72),
+    emoji: entry?.emoji || '✨',
+    title: entry?.title || '균형 케미',
+    desc: entry?.desc || '응답 기반으로 궁합 점수가 계속 업데이트됩니다.',
+  };
+}
+
+function createCompatSession(d, candidates) {
+  const scoresByType = {};
+  const baseByType = {};
+  candidates.forEach((type) => {
+    const base = getCompatBase(d, type);
+    scoresByType[type] = base.score;
+    baseByType[type] = base.score;
+  });
+  return {
+    responses: [],
+    scoresByType,
+    baseByType,
+  };
+}
+
+function getScoreBadge(score) {
+  if (score >= 90) return { label:'운명급 케미', icon:'💞' };
+  if (score >= 82) return { label:'상위 케미', icon:'✨' };
+  if (score >= 74) return { label:'안정 케미', icon:'🤝' };
+  if (score >= 65) return { label:'조율형 케미', icon:'🛠️' };
+  return { label:'노력형 케미', icon:'🌱' };
+}
 
 const WHATIF_EXTRA = {
   A: [
@@ -975,8 +1031,9 @@ function renderCompatibility(d) {
 function renderSwipeCards(d) {
   state.swipeIndex = 0;
   const area = document.getElementById('swipe-area');
-  const others = TYPES.filter(t => t !== state.blood);
-  const deck = others.flatMap((t) =>
+  const candidates = TYPES.slice();
+  state.compatSession = createCompatSession(d, candidates);
+  const deck = candidates.flatMap((t) =>
     LOVE_CHECK_PROMPTS.map((prompt, roundIdx) => ({ type: t, prompt, round: roundIdx + 1 }))
   );
   state.swipeDeck = deck;
@@ -989,21 +1046,55 @@ function renderSwipeCards(d) {
 
   area.innerHTML = deck.map((item, i) => {
     const od = DATA[item.type];
-    const compat = d.compat[item.type];
+    const compat = getCompatBase(d, item.type);
     return `<div class="swipe-card ${i===0 ? 'is-active' : ''}" id="swipe-${i}" style="background:${od.color};z-index:${deck.length-i};transform:${cardTransform(i)}" data-type="${item.type}">
       <div class="swipe-type">${od.emoji}</div>
       <div style="font-family:'Black Han Sans',sans-serif;font-size:36px;line-height:1;text-align:center;margin-bottom:6px;">${item.type}형</div>
       <div class="swipe-name">${od.tagline}</div>
       <div class="swipe-insight">
-        <div class="swipe-insight-title">❓ ${item.prompt}</div>
-        <div class="swipe-insight-desc">${compat.emoji} ${compat.title} · ${compat.score}점</div>
+        <div class="swipe-insight-title">❓ ${item.prompt.question}</div>
+        <div class="swipe-insight-desc">${compat.emoji} 기본 ${compat.score}점 · 가중치 ±${item.prompt.weight}</div>
       </div>
       <div class="swipe-hint">← 별로 &nbsp;&nbsp;&nbsp; 좋아 →</div>
     </div>`;
   }).join('');
 
-  document.getElementById('love-result').innerHTML = `<div class="balance-divider" style="padding:10px 0 0;color:#777;">총 ${deck.length}개 궁합 체크 질문</div>`;
+  document.getElementById('love-result').innerHTML = `<div class="balance-divider" style="padding:10px 0 0;color:#777;">총 ${deck.length}개 궁합 문답 · 같은 혈액형 포함</div>`;
   initSwipeDrag(deck.length, cardTransform);
+}
+
+function applyLoveDecision(card, dir) {
+  const session = state.compatSession;
+  if (!session) return null;
+
+  const type = card.type;
+  const weight = Number(card.prompt?.weight || 8);
+  const delta = dir === 'right' ? weight : -Math.round(weight * 0.75);
+  const current = Number(session.scoresByType[type] || LOVE_SCORE_MIN);
+  const updated = clampLoveScore(current + delta);
+  session.scoresByType[type] = updated;
+
+  session.responses.push({
+    type,
+    promptKey: card.prompt?.key || '',
+    question: card.prompt?.question || '',
+    decision: dir,
+    delta,
+    updated,
+  });
+
+  const typeResponses = session.responses.filter((r) => r.type === type);
+  const yesCount = typeResponses.filter((r) => r.decision === 'right').length;
+  const noCount = typeResponses.length - yesCount;
+
+  return {
+    type,
+    decision: dir,
+    delta,
+    updated,
+    yesCount,
+    noCount,
+  };
 }
 
 function initSwipeDrag(cardCount, cardTransform) {
@@ -1055,34 +1146,39 @@ function swipeCard(dir) {
 
   const picked = deck[idx];
   const type = picked.type;
-  const prompt = picked.prompt;
+  const decisionResult = applyLoveDecision(picked, dir);
   state.swipeIndex++;
-  const compat = DATA[state.blood].compat[type];
+  const compat = getCompatBase(DATA[state.blood], type);
 
   setTimeout(() => {
-    if (dir === 'right') {
-      if (compat.score >= 85) {
-        triggerConfetti();
-      }
-      showLoveResult(type, compat, DATA[state.blood], prompt, idx + 1, deck.length);
+    if (decisionResult?.updated >= 90 && dir === 'right') {
+      triggerConfetti();
     }
+    showLoveResult(type, compat, DATA[state.blood], picked.prompt, idx + 1, deck.length, decisionResult);
     const nextCard = document.getElementById('swipe-' + state.swipeIndex);
     if (nextCard) nextCard.classList.add('is-active');
 
     if (state.swipeIndex >= deck.length) {
-      setTimeout(() => renderSwipeCards(DATA[state.blood]), 400);
+      setTimeout(() => renderLoveSummary(DATA[state.blood]), 450);
     }
   }, 400);
 }
 
-function showLoveResult(type, compat, d, prompt, progress, total) {
+function showLoveResult(type, compat, d, prompt, progress, total, decisionResult) {
   const od = DATA[type];
-  const pct = compat.score;
+  const pct = clampLoveScore(decisionResult?.updated ?? compat.score);
+  const badge = getScoreBadge(pct);
+  const delta = Number(decisionResult?.delta || 0);
+  const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
+  const decisionText = decisionResult?.decision === 'right'
+    ? (prompt?.positive || '긍정 선택이 반영됐어.')
+    : (prompt?.negative || '신중 선택이 반영됐어.');
   const circumference = 2 * Math.PI * 28;
   const dash = (pct/100) * circumference;
   document.getElementById('love-result').innerHTML = `
     <div class="result-card" style="background:${od.bg}">
-      <div style="font-size:11px;color:#666;font-weight:700;margin-bottom:10px;">질문 ${progress}/${total} · ${prompt}</div>
+      <div class="summary-badge">${badge.icon} ${badge.label}</div>
+      <div style="font-size:11px;color:#666;font-weight:700;margin-bottom:10px;">질문 ${progress}/${total} · ${prompt?.question || ''}</div>
       <div class="compat-row">
         <div class="score-ring">
           <svg viewBox="0 0 64 64" width="72" height="72">
@@ -1094,12 +1190,58 @@ function showLoveResult(type, compat, d, prompt, progress, total) {
         </div>
         <div style="flex:1">
           <div style="font-size:18px;font-weight:900;color:var(--black);margin-bottom:4px;">${d.label} ♥ ${type}형</div>
-          <div style="font-size:15px;font-weight:700;color:${od.dark}">${compat.emoji} ${compat.title}</div>
-          <div style="font-size:12px;color:#555;margin-top:6px;">${compat.desc}</div>
+          <div style="font-size:15px;font-weight:700;color:${od.dark}">${compat.emoji} ${compat.title} · ${deltaLabel}점 반영</div>
+          <div style="font-size:12px;color:#555;margin-top:6px;">${decisionText}</div>
+          <div style="font-size:11px;color:#777;margin-top:5px;">기본 ${compat.score}점 → 현재 ${pct}점</div>
         </div>
       </div>
     </div>
   `;
+}
+
+function renderLoveSummary(d) {
+  const session = state.compatSession;
+  if (!session) {
+    renderSwipeCards(d);
+    return;
+  }
+
+  const entries = TYPES.map((type) => {
+    const score = clampLoveScore(session.scoresByType[type]);
+    const base = clampLoveScore(session.baseByType[type]);
+    const answers = session.responses.filter((r) => r.type === type);
+    const yes = answers.filter((r) => r.decision === 'right').length;
+    const no = answers.length - yes;
+    return { type, score, base, yes, no, meta: DATA[type] };
+  }).sort((a, b) => b.score - a.score);
+
+  const top = entries[0];
+  const topBadge = getScoreBadge(top.score);
+  const positiveCount = session.responses.filter((r) => r.decision === 'right').length;
+
+  document.getElementById('love-result').innerHTML = `
+    <div class="scoreboard-wrap" style="background:${d.bg}">
+      <div class="scoreboard-top">🏁 문답 완료! ${d.label} 기준 최상위 궁합은 <strong>${top.meta.label}</strong> (${top.score}점) · ${topBadge.icon} ${topBadge.label}</div>
+      <div class="score-meta" style="margin:0 0 10px 0;">총 ${session.responses.length}문항 중 긍정 선택 ${positiveCount}회</div>
+      ${entries.map((entry, idx) => {
+        const rankBg = idx === 0 ? '#fff3d6' : '#ffffff';
+        const badge = getScoreBadge(entry.score);
+        const diff = entry.score - entry.base;
+        const diffLabel = diff > 0 ? `+${diff}` : `${diff}`;
+        return `<div class="score-item" style="background:${rankBg};border-color:${entry.meta.dark};">
+          <div class="score-row">
+            <div class="score-type" style="color:${entry.meta.dark};">${idx + 1}위 · ${entry.meta.label}</div>
+            <div class="score-value" style="color:${entry.meta.dark};">${entry.score}</div>
+          </div>
+          <div class="score-track"><div class="score-fill" style="width:${entry.score}%;background:${entry.meta.dark};"></div></div>
+          <div class="score-meta">${badge.icon} ${badge.label} · 기본 ${entry.base}점 / 응답 반영 ${diffLabel}점 · 호감 ${entry.yes}회 · 신중 ${entry.no}회</div>
+        </div>`;
+      }).join('')}
+      <button class="retry-btn bouncy" onclick="renderSwipeCards(DATA[state.blood])">다시 문답하기 🔁</button>
+    </div>
+  `;
+
+  if (top.score >= 90) triggerConfetti();
 }
 
 function renderSocialCompat(d) {
