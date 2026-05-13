@@ -1247,6 +1247,9 @@
     _setProgress(0);
 
     var _premiumReportSessionId = '';
+    var _premiumReportType = 'lifeBook';
+    var _premiumFeatureType = 'saju_life_book';
+    var _premiumPreparePayload = null;
     var _chapterTimeoutMs = 115000;
     var _maxChapterAttempts = 4;
     var _recoveryPasses = 0;
@@ -1289,6 +1292,12 @@
       };
     }
 
+    function _getLifeBookPreparePayload() {
+      if (_premiumPreparePayload) return _premiumPreparePayload;
+      _premiumPreparePayload = _buildLifeBookChapterPayload(0);
+      return _premiumPreparePayload;
+    }
+
     function _ensurePremiumReportSession() {
       if (_premiumReportSessionId) {
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
@@ -1297,9 +1306,9 @@
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
-        featureType: 'saju_life_book',
-        reportType: 'lifeBook',
-        requestBody: _buildLifeBookChapterPayload(0)
+        featureType: _premiumFeatureType,
+        reportType: _premiumReportType,
+        requestBody: _getLifeBookPreparePayload()
       }).then(function(prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
           _premiumReportSessionId = String(prepared.reportSessionId);
@@ -1311,82 +1320,68 @@
 
     /** 챕터 fetch (공통 premium-report + auth 복구) */
     function _fetchChapter(idx) {
-      return new Promise(function (resolve) {
-        var _settled = false;
-        var _abortMsg = '응답 시간 초과 (115초). 네트워크 상태를 확인해 주세요.';
-        var _lastMsg = '';
-        var _maxAttempts = _maxChapterAttempts;
-
-        function _done(payload) {
-          if (_settled) return;
-          _settled = true;
-          _abortActiveRequest();
-          resolve(payload);
-        }
-
-        function _runAttempt(at) {
-          if (_cancelGeneration) {
-            _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
-            return;
-          }
-          if (at >= _maxAttempts) {
-            _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
-            return;
-          }
-
+      function _attempt(tryNo) {
+        return new Promise(function (resolve) {
           var timeoutId = setTimeout(function () {
-            _lastMsg = _abortMsg;
-            _runAttempt(at + 1);
+            resolve({ ok: false, message: '응답 시간 초과 (115초). 네트워크 상태를 확인해 주세요.' });
           }, _chapterTimeoutMs);
 
           _ensurePremiumReportSession().then(function(prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
               clearTimeout(timeoutId);
-              _done(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
               return;
             }
+
             if (typeof window.__cdPremiumAuthJson !== 'function') {
               clearTimeout(timeoutId);
-              _done({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
               return;
             }
 
             window.__cdPremiumAuthJson('/api/premium-report/chapter', {
               reportSessionId: _premiumReportSessionId,
-              chapterId: idx + 1
+              chapterId: idx + 1,
+              reportType: _premiumReportType,
+              featureType: _premiumFeatureType,
+              requestBody: _getLifeBookPreparePayload(),
+              requestId: 'lifebook:chapter:' + (idx + 1) + ':' + Date.now().toString(36) + ':' + tryNo,
+            }, {
+              maxAttempts: 2,
             }).then(function(data) {
               clearTimeout(timeoutId);
-              if (data && data.ok) {
-                _done(data);
-                return;
-              }
-              var status = Number(data && data.status || 0);
-              if (status === 401 || status === 402 || status === 422) {
-                _done(data);
-                return;
-              }
-              _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
-              setTimeout(function () {
-                _runAttempt(at + 1);
-              }, Math.min(800 * (at + 1), 2500));
+              resolve(data);
             }).catch(function(err) {
               clearTimeout(timeoutId);
-              _lastMsg = String(err && err.message ? err.message : err);
-              setTimeout(function () {
-                _runAttempt(at + 1);
-              }, Math.min(800 * (at + 1), 2500));
+              resolve({ ok: false, message: String(err && err.message ? err.message : err) });
             });
           }).catch(function(err) {
             clearTimeout(timeoutId);
-            _lastMsg = String(err && err.message ? err.message : err);
-            setTimeout(function () {
-              _runAttempt(at + 1);
-            }, Math.min(800 * (at + 1), 2500));
+            resolve({ ok: false, message: String(err && err.message ? err.message : err) });
           });
-        }
+        }).then(function(data) {
+          if (data && data.reportSessionId) {
+            _premiumReportSessionId = String(data.reportSessionId);
+          }
 
-        _runAttempt(0);
-      });
+          var code = String((data && data.code) || '').toUpperCase();
+          var status = Number((data && data.status) || 0);
+          var isBlocked = status === 401 || status === 402 || status === 422;
+          if (isBlocked) return data;
+
+          if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
+            _premiumReportSessionId = '';
+            if (tryNo < _maxChapterAttempts) return _attempt(tryNo + 1);
+            return data;
+          }
+
+          if (data && data.ok && data.text) return data;
+          if (tryNo >= _maxChapterAttempts) return data;
+          return _attempt(tryNo + 1);
+        });
+      }
+
+      return _attempt(1);
     }
 
     var _failCount = 0;
@@ -1471,24 +1466,29 @@
 
       _fetchChapter(idx).then(function (data) {
         if (_cancelGeneration) return;
+        if (data && data.reportSessionId) _premiumReportSessionId = String(data.reportSessionId);
         if (data && data.ok && data.canonicalSajuChart) _canonicalSajuChart = data.canonicalSajuChart;
         if (data && data.ok && Array.isArray(data.chapterPlan)) _chapterPlan = data.chapterPlan;
 
         if (!data || !data.ok) {
           var status = Number((data && data.status) || 0);
+          var code = String((data && data.code) || '').toUpperCase();
+          var isSessionMissing = (status === 404) || (code === 'PREMIUM_REPORT_SESSION_NOT_FOUND');
           var msgByStatus = '';
           if (status === 401) msgByStatus = '로그인 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.';
           if (status === 402) msgByStatus = '결제 또는 포인트가 필요합니다.';
+          if (isSessionMissing) msgByStatus = '리포트 세션이 만료되어 챕터 생성을 이어갈 수 없습니다. 생성을 다시 시작해 주세요.';
           if (status === 409) msgByStatus = '이미 생성 중인 요청이 있어 잠시 후 다시 시도해 주세요.';
           if (status === 422) msgByStatus = '사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다.';
           if (status === 500) msgByStatus = '서버 오류로 챕터 생성에 실패했습니다.';
           if (status === 503) msgByStatus = '외부 음력/절기 API 장애로 생성할 수 없습니다.';
 
-          if (status === 401 || status === 402 || status === 422) {
+          if (status === 401 || status === 402 || status === 422 || status === 503 || isSessionMissing) {
             console.error('[인생의 책 프리미엄 PDF][BLOCKED]', {
               chapter: idx + 1,
               status: status,
-              code: String((data && data.code) || ''),
+              code: code,
+              isSessionMissing: isSessionMissing,
               chapterStatus: String((data && data.chapterStatus) || ''),
               message: String((data && data.message) || ''),
               normalizedMessage: msgByStatus || '',
@@ -1504,7 +1504,7 @@
             });
           }
 
-          if (status === 401 || status === 402 || status === 422) {
+          if (status === 401 || status === 402 || status === 422 || status === 503 || isSessionMissing) {
             _generating = false;
             _setFlowState('error');
             _lastError = msgByStatus || ((data && data.message) ? data.message : '챕터 생성 실패');
@@ -1515,7 +1515,7 @@
             if (status === 401 && typeof window.__cdOpenLoginRequiredModal === 'function') {
               window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
             }
-            if (status === 422 || status === 402) {
+            if (status === 422 || status === 402 || status === 503 || isSessionMissing) {
               _autoRefundPremium('인생의 책 생성 실패 자동 환급')
                 .then(function (refunded) { if (refunded) window.alert('인생의 책 결제가 자동 환급되었습니다.'); });
             }
