@@ -8,12 +8,19 @@ export default function AnimalDestinyIntro() {
         <div className="absolute -right-10 bottom-2 h-24 w-24 rounded-full bg-[#99f6e4]/70 blur-xl" />
         <div className="grid gap-4 md:grid-cols-[1fr_220px] md:items-center">
           <div className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#8a4f36]">Animal Destiny Lab</p>
-            <h1 className="text-3xl font-black leading-tight text-[#2d3e2c]">나의 수호 동물 소환하기</h1>
-            <p className="text-sm text-[#304533]">사주 속 십이운성으로 깨어나는 나만의 동물 캐릭터</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#8a4f36]">사주 동물 상담소</p>
+            <h1 className="text-2xl font-black leading-tight text-[#2d3e2c]">
+              사주 십이운성 동물점
+            </h1>
+            <p className="text-sm text-[#304533]">
+              태어난 순간의 일간·지지 기반으로 찾는 나의 귀여운 동물 타입
+            </p>
+            <p className="text-xs text-[#5a7060]">
+              랜덤 테스트가 아니에요. 기존 명리학 로컬 엔진으로 계산한 십이운성 기반 분석입니다.
+            </p>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-white/70 px-3 py-1 font-semibold text-[#5f3b2a]">다마고치 프레임</span>
-              <span className="rounded-full bg-white/70 px-3 py-1 font-semibold text-[#5f3b2a]">수집형 카드</span>
+              <span className="rounded-full bg-white/70 px-3 py-1 font-semibold text-[#5f3b2a]">십이운성 기반</span>
+              <span className="rounded-full bg-white/70 px-3 py-1 font-semibold text-[#5f3b2a]">동물 상담 카드</span>
               <span className="rounded-full bg-white/70 px-3 py-1 font-semibold text-[#5f3b2a]">궁합 모드</span>
             </div>
           </div>
@@ -32,3 +39,4 @@ export default function AnimalDestinyIntro() {
     </section>
   );
 }
+

@@ -1,3 +1,4 @@
+import { calculateLocalSaju } from "../engine/localSajuCalculator";
 import type { AnimalDestinyInput, SajuEngineResult } from "./types";
 
 function parseBirthDate(input: string) {
@@ -18,74 +19,56 @@ function parseBirthTime(input?: string) {
   const raw = String(input || "").trim();
   if (!raw) {
     return {
-      hour: 12,
-      minute: 0,
+      hour: undefined as number | undefined,
       hasTime: false,
     };
   }
 
   const match = raw.match(/^(\d{2}):(\d{2})$/);
   if (!match) {
-    throw new Error("태어난 시간 형식이 올바르지 않습니다. (HH:mm)");
+    // 시간 형식 불일치 시 시간 미상 처리 (에러 대신 graceful 처리)
+    return {
+      hour: undefined as number | undefined,
+      hasTime: false,
+    };
   }
 
   return {
     hour: Number(match[1]),
-    minute: Number(match[2]),
     hasTime: true,
   };
 }
 
-function toLegacyGender(value: AnimalDestinyInput["gender"]) {
-  if (value === "male") return "남";
-  if (value === "female") return "여";
-  return "미상";
-}
-
-function normalizePillarsShape(source: Record<string, unknown>) {
-  const pillars = (source.pillars && typeof source.pillars === "object")
-    ? (source.pillars as Record<string, unknown>)
-    : {};
-
-  if (pillars.year || pillars.month || pillars.day || pillars.hour) return;
-
-  source.pillars = {
-    year: pillars.y || source.yearPillar || null,
-    month: pillars.m || source.monthPillar || null,
-    day: pillars.d || source.dayPillar || source.dayStemBranch || null,
-    hour: pillars.h || source.hourPillar || null,
-  };
-}
-
+/**
+ * 사주 십이운성 동물점 계산에 필요한 사주 엔진 결과를 반환합니다.
+ *
+ * 외부 API(/api/love-saju-pillar)를 제거하고 로컬 deterministic 계산으로 대체합니다.
+ * 동일 입력값 → 항상 동일 결과 (503 오류 없음).
+ */
 export async function fetchSajuEngineResult(input: AnimalDestinyInput): Promise<SajuEngineResult> {
   const { year, month, day } = parseBirthDate(input.birthDate);
-  const { hour, minute, hasTime } = parseBirthTime(input.birthTime);
+  const { hour, hasTime } = parseBirthTime(input.birthTime);
 
-  const body = {
-    name: String(input.name || "사용자").trim() || "사용자",
-    gender: toLegacyGender(input.gender),
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    calendarType: input.calendarType || "solar",
+  // 로컬 계산 — 외부 API 호출 없음
+  const localResult = calculateLocalSaju({ year, month, day, hour, hasTime });
+
+  // SajuEngineResult (Record<string, unknown>) 로 변환
+  // twelveStages.ts 의 extractDayStem / extractBranchFromPillar 가 읽을 수 있는 구조
+  const result: SajuEngineResult = {
+    dayStem: localResult.dayStem,
+    pillars: {
+      year: localResult.pillars.year,
+      month: localResult.pillars.month,
+      day: localResult.pillars.day,
+      hour: localResult.pillars.hour,
+    },
+    timeUnknown: localResult.timeUnknown,
+    // 하위 호환용 별칭 필드
+    yearPillar: localResult.pillars.year,
+    monthPillar: localResult.pillars.month,
+    dayPillar: localResult.pillars.day,
+    hourPillar: localResult.pillars.hour,
   };
 
-  const response = await fetch("/api/love-saju-pillar", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    throw new Error(`기존 사주 엔진 API 호출 실패 (${response.status})`);
-  }
-
-  const payload = (await response.json()) as Record<string, unknown>;
-  payload.timeUnknown = !hasTime;
-  normalizePillarsShape(payload);
-  return payload;
+  return result;
 }
