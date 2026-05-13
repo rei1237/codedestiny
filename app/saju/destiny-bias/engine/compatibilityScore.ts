@@ -21,7 +21,7 @@ export type CompatibilityResult = {
 };
 
 function clampScore(score: number) {
-  return Math.max(60, Math.min(99, Math.round(score)));
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 function mix(base: number, spread: number, seed: number) {
@@ -64,10 +64,10 @@ export function calculateBiasCompatibility(input: CompatibilityInput): Compatibi
     ? 3
     : 0;
 
-  const emotionalScore = mix(72 + seasonBonus, 18, baseSeed + 3.1);
-  const fandomScore = mix(74 + complementBonus, 17, baseSeed + 7.3);
-  const longTermScore = mix(70 + Math.max(0, 6 - Math.floor(yearGap / 2)), 16, baseSeed + 11.9);
-  const supportStyleScore = mix(73 + Math.max(0, 8 - dayDiff), 15, baseSeed + 19.4);
+  const emotionalScore = mix(56 + seasonBonus * 2, 32, baseSeed + 3.1);
+  const fandomScore = mix(58 + complementBonus * 2, 30, baseSeed + 7.3);
+  const longTermScore = mix(52 + Math.max(0, 10 - Math.floor(yearGap / 3)), 33, baseSeed + 11.9);
+  const supportStyleScore = mix(55 + Math.max(0, 12 - dayDiff), 28, baseSeed + 19.4);
 
   const totalScore = clampScore(
     emotionalScore * 0.34

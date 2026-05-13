@@ -20,6 +20,7 @@ export type ThemePreset = {
 export type DestinyBiasResultViewModel = {
   userName: string;
   biasName: string;
+  linkedArtist: string;
   userBirthDate: string;
   biasBirthDate: string;
   totalScore: number;
@@ -29,12 +30,29 @@ export type DestinyBiasResultViewModel = {
   supportStyleScore: number;
   userEnergyType: string;
   biasEnergyType: string;
+  auraType: string;
+  auraMaterial: string;
+  destinyGrade: string;
+  gradeTitle: string;
+  pairingAlias: string;
+  energyColor: string;
+  editionLabel: string;
+  moodKeywords: string[];
+  matchingTags: string[];
   connectionKeyword: string[];
+  chemistrySummary: string;
+  compatibilityDetail: string;
+  energyConnectionDetail: string;
   biasPersonalityReport: string;
   compatibilityReport: string;
   energyConnectionReport: string;
   oneLineDestinyMessage: string;
+  stageAuraComment: string;
+  destinySignal: string;
+  fansignMessage: string;
+  stageChemistryKeywords: string[];
   todayMission: string;
+  cheerPoint: string;
   destinyId: string;
   issuedAt: string;
   cardSvg: string;

@@ -7,10 +7,13 @@ import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-clie
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
+import DestinyBiasDetailSections from "./components/DestinyBiasDetailSections";
 import DestinyBiasLoadingScreen from "./components/DestinyBiasLoadingScreen";
 import DestinyBiasPhotocard from "./components/DestinyBiasPhotocard";
 import DestinyBiasProgress from "./components/DestinyBiasProgress";
-import DestinyBiasReportTabs from "./components/DestinyBiasReportTabs";
+import DestinyBiasActionBar from "./components/DestinyBiasActionBar";
+import FansignEditionBadge from "./components/FansignEditionBadge";
+import MyDestinyBiasHero from "./components/MyDestinyBiasHero";
 import styles from "./destiny-bias.module.css";
 import { destinyBiasIntroCopy, destinyBiasLoadingMessages } from "./lib/destinyBiasCopy";
 import { destinyBiasThemeChoices } from "./lib/destinyBiasTheme";
@@ -21,7 +24,6 @@ import { normalizeBirthDateInput } from "./engine/birthEnergy";
 import { downloadSvg } from "./utils/downloadSvg";
 import { downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 
-const DESTINY_BIAS_ART = "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp";
 const DEFAULT_ANALYZE_COST = 50;
 const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 
@@ -165,7 +167,7 @@ export default function DestinyBiasClient() {
   const reduceMotion = useReducedMotion();
   const { guardHandlers, shouldBlockClick } = useDestinyBiasTouchGuard();
 
-  const [uiStep, setUiStep] = useState<0 | 1 | 2 | 3 | 4 | 5>(0);
+  const [uiStep, setUiStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [meInput, setMeInput] = useState<PersonInputState>(INITIAL_ME);
   const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
 
@@ -334,7 +336,7 @@ export default function DestinyBiasClient() {
       return false;
     }
 
-    if (uiStep <= 0) {
+    if (uiStep <= 1) {
       return false;
     }
 
@@ -345,8 +347,8 @@ export default function DestinyBiasClient() {
     }
 
     setUiStep((prev) => {
-      if (prev <= 0) return 0;
-      return (prev - 1) as 0 | 1 | 2 | 3 | 4;
+      if (prev <= 1) return 1;
+      return (prev - 1) as 1 | 2 | 3 | 4;
     });
     setError("");
     return true;
@@ -358,7 +360,7 @@ export default function DestinyBiasClient() {
     maxInternalBackSteps: 1,
     enabled: true,
     isLocked: () => analyzing && uiStep === 4,
-    canGoBack: () => coinModal.open || uiStep > 0,
+    canGoBack: () => coinModal.open || uiStep > 1,
     onBack: handleAnalysisBack,
   });
 
@@ -524,6 +526,67 @@ export default function DestinyBiasClient() {
     }
   }, [resultVm]);
 
+  const handleCopyResult = useCallback(async () => {
+    if (!resultVm || typeof navigator === "undefined" || !navigator.clipboard) return;
+    const summary = [
+      `[My Destiny Bias] ${resultVm.biasName}`,
+      `점수 ${resultVm.totalScore} · ${resultVm.destinyGrade} (${resultVm.gradeTitle})`,
+      `에너지 ${resultVm.auraType} / ${resultVm.auraMaterial}`,
+      `페어링 ${resultVm.pairingAlias}`,
+      `운명 메시지 ${resultVm.oneLineDestinyMessage}`,
+      `팬싸인 감성 메시지 ${resultVm.fansignMessage}`,
+      `Destiny ID ${resultVm.destinyId}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      setToast("결과 요약을 복사했어요.");
+    } catch {
+      setError("결과 복사에 실패했습니다.");
+    }
+  }, [resultVm]);
+
+  const handleShareResult = useCallback(async () => {
+    if (!resultVm || typeof navigator === "undefined") return;
+
+    const text = `${resultVm.biasName}와의 궁합 ${resultVm.totalScore}점 · ${resultVm.destinyGrade}\n${resultVm.oneLineDestinyMessage}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "My Destiny Bias",
+          text,
+          url: window.location.href,
+        });
+        setToast("결과를 공유했어요.");
+        return;
+      } catch {
+        // 사용자가 공유 창을 닫은 경우는 조용히 처리
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      setToast("공유용 텍스트를 복사했어요.");
+    } catch {
+      setError("공유 텍스트 복사에 실패했습니다.");
+    }
+  }, [resultVm]);
+
+  const handleRetry = useCallback(() => {
+    setUiStep(1);
+    setResultVm(null);
+    setError("");
+  }, []);
+
+  const handleTryAnotherBias = useCallback(() => {
+    setUiStep(2);
+    setResultVm(null);
+    setBiasInput(INITIAL_BIAS);
+    setError("");
+    setToast("다른 최애 정보를 입력해 주세요.");
+  }, []);
+
   const particleCount = reduceMotion || isLowSpec ? 5 : 12;
 
   return (
@@ -531,7 +594,9 @@ export default function DestinyBiasClient() {
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className={`absolute inset-0 ${styles.stageDots}`} />
         <div className={`absolute left-1/2 top-0 h-[68vh] w-[125vw] -translate-x-1/2 ${styles.spotlight}`} />
-        <img src={DESTINY_BIAS_ART} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25 blur-[1.5px]" loading="lazy" />
+        <div className={`absolute inset-0 ${styles.concertBeamLeft}`} />
+        <div className={`absolute inset-0 ${styles.concertBeamRight}`} />
+        <div className={`absolute inset-0 ${styles.auraMist}`} />
       </div>
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -577,58 +642,9 @@ export default function DestinyBiasClient() {
           ) : null}
         </AnimatePresence>
 
-        {uiStep === 0 ? (
-          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid gap-5 md:grid-cols-2 md:items-center">
-            <div className="relative">
-              <div className={`pointer-events-none absolute -inset-5 rounded-[36px] bg-fuchsia-400/25 blur-3xl ${styles.heroGlow}`} aria-hidden />
-              <div className={`relative overflow-hidden rounded-[32px] p-3 ${styles.chromeBorder}`}>
-                <img src={DESTINY_BIAS_ART} alt="최애운명 대표 아트" className="h-[45vh] min-h-[340px] w-full rounded-[24px] object-cover md:h-[72vh]" />
-                <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/25 bg-black/40 px-4 py-4 backdrop-blur-xl">
-                  <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/90">CONCERT DESTINY STAGE</p>
-                  <p className="mt-2 text-sm leading-6 text-white/95">
-                    {destinyBiasIntroCopy.lead}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <article className={`rounded-[30px] p-6 md:p-7 ${styles.glass}`}>
-              <p className="text-xs font-semibold tracking-[0.14em] text-fuchsia-100/90">MY DESTINY BIAS</p>
-              <h1 className="mt-3 text-4xl font-black leading-tight md:text-5xl">{destinyBiasIntroCopy.title}</h1>
-              <p className="mt-1 text-lg font-semibold text-cyan-100/95">{destinyBiasIntroCopy.subtitle}</p>
-              <p className="mt-4 text-base leading-7 text-white/90">{destinyBiasIntroCopy.description}</p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => {
-                    setUiStep(1);
-                    setError("");
-                  }}
-                  className={`min-h-11 rounded-full border border-pink-300/60 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-6 text-base font-bold text-white ${styles.neonButton}`}
-                >
-                  {destinyBiasIntroCopy.ctaPrimary}
-                </motion.button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUiStep(1);
-                    setToast("입력 후 분석을 시작해 주세요.");
-                  }}
-                  className="min-h-11 rounded-full border border-white/35 bg-white/10 px-5 text-sm font-semibold text-white/90"
-                >
-                  {destinyBiasIntroCopy.ctaSecondary}
-                </button>
-              </div>
-            </article>
-          </motion.section>
-        ) : null}
-
-        {uiStep > 0 ? (
-          <div className="space-y-4">
-            <DestinyBiasProgress current={uiStep === 5 ? 5 : uiStep} />
+        <div className="space-y-4 md:space-y-5">
+          <MyDestinyBiasHero subtitle={destinyBiasIntroCopy.lead} />
+          <DestinyBiasProgress current={uiStep === 5 ? 5 : uiStep} />
 
             {uiStep === 1 ? (
               <section className={`rounded-[28px] p-5 md:p-7 ${styles.glass}`}>
@@ -784,94 +800,85 @@ export default function DestinyBiasClient() {
               />
             ) : null}
 
-            {uiStep === 5 && resultVm ? (
-              <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+          {uiStep === 5 && resultVm ? (
+            <section className="space-y-4">
+              <article className={`rounded-[30px] p-5 md:p-6 ${styles.glass}`}>
+                <p className="text-xs font-semibold tracking-[0.15em] text-cyan-100/90">RESULT SHOWCASE</p>
+                <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와 연결된 한정판 팬싸인 포토카드</h2>
+                <p className="mt-2 text-sm leading-7 text-white/85">{resultVm.oneLineDestinyMessage}</p>
+
+                <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
+                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
+                    <p className="text-[11px] text-white/70">전체</p>
+                    <p className="mt-1 text-lg font-black text-white">{resultVm.totalScore}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
+                    <p className="text-[11px] text-white/70">감정</p>
+                    <p className="mt-1 text-lg font-black text-white">{resultVm.emotionalScore}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
+                    <p className="text-[11px] text-white/70">팬심</p>
+                    <p className="mt-1 text-lg font-black text-white">{resultVm.fandomScore}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
+                    <p className="text-[11px] text-white/70">장기</p>
+                    <p className="mt-1 text-lg font-black text-white">{resultVm.longTermScore}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
+                    <p className="text-[11px] text-white/70">등급</p>
+                    <p className="mt-1 text-lg font-black text-white">{resultVm.destinyGrade}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <FansignEditionBadge editionLabel={resultVm.editionLabel} destinyGrade={resultVm.destinyGrade} />
+                </div>
+              </article>
+
+              <section className="grid gap-4 lg:grid-cols-[1.02fr_0.98fr] lg:items-start">
                 <div className="space-y-4">
-                  <article className={`rounded-[28px] p-5 ${styles.glass}`}>
-                    <p className="text-xs font-semibold tracking-[0.14em] text-cyan-100/90">RESULT</p>
-                    <h2 className="mt-2 text-2xl font-black">{resultVm.biasName}와의 최애운명 리포트</h2>
-                    <p className="mt-2 text-sm leading-7 text-white/85">{resultVm.oneLineDestinyMessage}</p>
-
-                    <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-                      <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                        <p className="text-[11px] text-white/70">전체</p>
-                        <p className="mt-1 text-lg font-black text-white">{resultVm.totalScore}</p>
-                      </div>
-                      <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                        <p className="text-[11px] text-white/70">감정</p>
-                        <p className="mt-1 text-lg font-black text-white">{resultVm.emotionalScore}</p>
-                      </div>
-                      <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                        <p className="text-[11px] text-white/70">팬심</p>
-                        <p className="mt-1 text-lg font-black text-white">{resultVm.fandomScore}</p>
-                      </div>
-                      <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                        <p className="text-[11px] text-white/70">장기</p>
-                        <p className="mt-1 text-lg font-black text-white">{resultVm.longTermScore}</p>
-                      </div>
-                    </div>
-                  </article>
-
-                  <DestinyBiasPhotocard vm={resultVm} themeLabel={resultVm.themeLabel} cardSvg={resultVm.cardSvg} />
-
-                  <article className={`rounded-[28px] p-4 ${styles.glass}`}>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={handleDownloadSvg}
-                        className="min-h-11 rounded-full border border-cyan-200/70 bg-cyan-300/20 px-4 text-sm font-bold text-cyan-50"
-                      >
-                        SVG 다운로드
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleDownloadPng().catch(() => null);
-                        }}
-                        className="min-h-11 rounded-full border border-fuchsia-200/70 bg-fuchsia-300/20 px-4 text-sm font-bold text-fuchsia-50"
-                      >
-                        PNG 저장
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUiStep(1);
-                          setResultVm(null);
-                          setError("");
-                        }}
-                        className="min-h-11 rounded-full border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white"
-                      >
-                        다시 분석하기
-                      </button>
-                    </div>
-                  </article>
+                  <DestinyBiasPhotocard vm={resultVm} cardSvg={resultVm.cardSvg} />
+                  <DestinyBiasActionBar
+                    onDownloadSvg={handleDownloadSvg}
+                    onDownloadPng={() => {
+                      handleDownloadPng().catch(() => null);
+                    }}
+                    onShare={() => {
+                      handleShareResult().catch(() => null);
+                    }}
+                    onCopy={() => {
+                      handleCopyResult().catch(() => null);
+                    }}
+                    onRetry={handleRetry}
+                    onTryAnother={handleTryAnotherBias}
+                  />
                 </div>
 
                 <div className="space-y-4">
-                  <DestinyBiasReportTabs vm={resultVm} />
+                  <DestinyBiasDetailSections vm={resultVm} />
 
                   <article className={`rounded-[28px] p-5 ${styles.glass}`}>
-                    <h3 className="text-base font-bold text-white">에너지 키워드</h3>
+                    <h3 className="text-base font-bold text-white">무대 케미 키워드</h3>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {resultVm.connectionKeyword.map((keyword) => (
+                      {resultVm.stageChemistryKeywords.map((keyword) => (
                         <span key={keyword} className="rounded-full border border-white/25 bg-black/25 px-3 py-1 text-xs font-semibold text-white/85">
                           #{keyword}
                         </span>
                       ))}
                     </div>
-                    <p className="mt-4 text-sm leading-7 text-white/85">오늘의 응원 미션: {resultVm.todayMission}</p>
+                    <p className="mt-4 text-sm leading-7 text-white/85">운명 시그널: {resultVm.destinySignal}</p>
                   </article>
                 </div>
               </section>
-            ) : null}
+            </section>
+          ) : null}
 
-            {error ? (
-              <p className="rounded-xl border border-rose-200/45 bg-rose-300/15 px-4 py-3 text-sm text-rose-50">
-                {error}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
+          {error ? (
+            <p className="rounded-xl border border-rose-200/45 bg-rose-300/15 px-4 py-3 text-sm text-rose-50">
+              {error}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {uiStep > 0 && uiStep < 4 ? (

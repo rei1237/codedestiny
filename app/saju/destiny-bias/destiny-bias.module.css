@@ -1,10 +1,15 @@
 .destinyBiasBg {
+  --db-bg-deep: #060313;
+  --db-bg-mid: #17083a;
+  --db-bg-highlight-a: rgba(255, 125, 226, 0.44);
+  --db-bg-highlight-b: rgba(96, 118, 255, 0.42);
+  --db-bg-highlight-c: rgba(35, 220, 255, 0.2);
   font-family: "SUIT Variable", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   background:
-    radial-gradient(circle at 12% 8%, rgba(255, 125, 226, 0.44), transparent 30%),
-    radial-gradient(circle at 88% 16%, rgba(96, 118, 255, 0.42), transparent 32%),
-    radial-gradient(circle at 50% 100%, rgba(35, 220, 255, 0.2), transparent 38%),
-    linear-gradient(180deg, #11052a 0%, #09031c 48%, #04010f 100%);
+    radial-gradient(circle at 12% 8%, var(--db-bg-highlight-a), transparent 30%),
+    radial-gradient(circle at 88% 16%, var(--db-bg-highlight-b), transparent 32%),
+    radial-gradient(circle at 50% 100%, var(--db-bg-highlight-c), transparent 38%),
+    linear-gradient(180deg, var(--db-bg-mid) 0%, #09031c 48%, var(--db-bg-deep) 100%);
 }
 
 .stageDots {
@@ -22,6 +27,25 @@
     conic-gradient(from 210deg at 50% 0%, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
   filter: blur(1px);
   opacity: 0.42;
+}
+
+.concertBeamLeft {
+  background: linear-gradient(116deg, rgba(255, 206, 244, 0.16), rgba(255, 206, 244, 0));
+  clip-path: polygon(0 0, 25% 0, 54% 100%, 0 100%);
+  opacity: 0.8;
+}
+
+.concertBeamRight {
+  background: linear-gradient(245deg, rgba(164, 236, 255, 0.17), rgba(164, 236, 255, 0));
+  clip-path: polygon(75% 0, 100% 0, 100% 100%, 48% 100%);
+  opacity: 0.78;
+}
+
+.auraMist {
+  background:
+    radial-gradient(circle at 20% 72%, rgba(255, 173, 236, 0.22), transparent 34%),
+    radial-gradient(circle at 82% 64%, rgba(125, 229, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 50% 120%, rgba(250, 225, 255, 0.16), transparent 42%);
 }
 
 .glass {

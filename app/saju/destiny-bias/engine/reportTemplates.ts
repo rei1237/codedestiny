@@ -35,6 +35,14 @@ const MISSION_POOL = [
   "과몰입 신호가 오면 10초 호흡 후 응원 템포 다시 맞추기",
 ];
 
+const SIGNAL_POOL = [
+  "응원봉의 리듬과 심장 박자가 같은 템포로 맞물리는 밤",
+  "무대 조명이 번질 때 감정선이 가장 선명해지는 연결",
+  "낮에는 차분하고 밤에는 강해지는 이중 공명",
+  "별빛이 잔광처럼 남아 하루를 버티게 하는 운명 신호",
+  "짧은 눈맞춤 한 번으로 서사가 완성되는 스테이지 결",
+];
+
 export function generateBiasPersonalityReport(args: ReportArgs) {
   const stageImage = STAGE_IMAGES[args.totalScore % STAGE_IMAGES.length];
   const hiddenCharm = HIDDEN_CHARMS[(args.totalScore + args.fandomScore) % HIDDEN_CHARMS.length];
@@ -45,6 +53,7 @@ export function generateBiasPersonalityReport(args: ReportArgs) {
     `관계에서 보이는 매력 포인트는 팬의 리듬을 읽고 텐션을 맞춰주는 공감력입니다. 특히 ${args.relationMood} 감성의 팬에게 안정감과 몰입감을 동시에 주는 경향이 강합니다.`,
     `숨겨진 반전 매력은 ${hiddenCharm}이며, 그래서 오래 덕질할수록 새로운 결이 계속 보입니다.`,
     `상징 키워드: ${args.connectionKeyword.join(", ")}`,
+    `무대 위 아우라 포인트: 카메라가 가까워질수록 표정 디테일이 살아나며, 팬의 감정선과 박자를 맞추는 미세한 템포 조절이 강점입니다.`,
   ].join("\n\n");
 }
 
@@ -59,6 +68,7 @@ export function generateCompatibilityReport(args: ReportArgs) {
     `서로에게 끌리는 포인트는 "감정 회복"과 "무대 몰입"의 교차에 있습니다. 사용자는 최애의 톤에서 정서적 회복감을 얻고, 최애는 사용자의 응원 리듬과 잘 맞는 흐름을 만듭니다.`,
     `조심해야 할 과몰입 포인트는 컨디션이 낮은 날에도 텐션을 동일하게 유지하려는 패턴입니다. ${caution}`,
     `잘 맞는 덕질 방식 추천: 주 2~3회 집중 응원 + 짧은 기록 루틴 + 감정 과열 시 10초 리셋 호흡.`,
+    `감정/에너지/서사 궁합 해설: 감정선은 빠르게 점화되고, 에너지는 장기적으로 안정화되며, 서사는 기록할수록 깊어지는 타입입니다.`,
   ].join("\n\n");
 }
 
@@ -72,6 +82,7 @@ export function generateEnergyConnectionReport(args: ReportArgs) {
     `최애를 볼 때 회복되는 감정은 "다시 시작해도 괜찮다"는 감각이며, 이는 일상 동기부여에도 연결됩니다.`,
     `${args.biasName}의 에너지는 오늘 ${args.userName}님에게 작은 실행력을 부여합니다. 거창한 목표보다 짧고 정확한 응원 루틴이 더 큰 만족을 만듭니다.`,
     `소장용 포토카드는 "나의 감정 리듬을 돌려주는 상징 오브젝트"로 해석할 수 있습니다.`,
+    `덕질하면 더 행복한 포인트: 감정이 솟을 때 바로 소비하기보다, 3줄 기록 후 액션하면 만족도와 지속력이 함께 올라갑니다.`,
   ].join("\n\n");
 
   return {
@@ -79,4 +90,14 @@ export function generateEnergyConnectionReport(args: ReportArgs) {
     mission,
     report,
   };
+}
+
+export function generateChemistrySummary(args: ReportArgs) {
+  const first = args.connectionKeyword[0] || "네온 공명";
+  const second = args.connectionKeyword[1] || "무대 몰입";
+  return `${args.userName}님과 ${args.biasName}의 연결축은 ${first} · ${second}입니다. 설렘이 빠르게 올라오지만 루틴으로 잡아주면 오래 반짝이는 페어링입니다.`;
+}
+
+export function generateDestinySignal(args: ReportArgs) {
+  return SIGNAL_POOL[(args.totalScore + args.supportStyleScore + args.fandomScore) % SIGNAL_POOL.length];
 }

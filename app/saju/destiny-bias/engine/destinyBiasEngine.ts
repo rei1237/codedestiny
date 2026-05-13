@@ -1,7 +1,22 @@
 import { calculateBiasCompatibility } from "./compatibilityScore";
 import { normalizeBirthDateInput } from "./birthEnergy";
-import { generateBiasPersonalityReport, generateCompatibilityReport, generateEnergyConnectionReport } from "./reportTemplates";
+import {
+  generateBiasPersonalityReport,
+  generateChemistrySummary,
+  generateCompatibilityReport,
+  generateDestinySignal,
+  generateEnergyConnectionReport,
+} from "./reportTemplates";
 import { createDestinyBiasCardSvg } from "../utils/createDestinyBiasSvg";
+import {
+  getAuraTheme,
+  getCheerPoint,
+  getDestinyGrade,
+  getFansignMessage,
+  getMoodKeywords,
+  getPairingAlias,
+  getStageAuraComment,
+} from "./destinyBiasMeta";
 
 export type DestinyBiasAnalyzeInput = {
   userName: string;
@@ -16,6 +31,7 @@ export type DestinyBiasAnalyzeInput = {
 export type DestinyBiasAnalyzeResult = {
   userName: string;
   biasName: string;
+  linkedArtist: string;
   userBirthDate: string;
   biasBirthDate: string;
   totalScore: number;
@@ -25,12 +41,29 @@ export type DestinyBiasAnalyzeResult = {
   supportStyleScore: number;
   userEnergyType: string;
   biasEnergyType: string;
+  auraType: string;
+  auraMaterial: string;
+  destinyGrade: string;
+  gradeTitle: string;
+  pairingAlias: string;
+  energyColor: string;
+  editionLabel: string;
+  moodKeywords: string[];
+  matchingTags: string[];
   connectionKeyword: string[];
+  chemistrySummary: string;
+  compatibilityDetail: string;
+  energyConnectionDetail: string;
   biasPersonalityReport: string;
   compatibilityReport: string;
   energyConnectionReport: string;
   oneLineDestinyMessage: string;
+  stageAuraComment: string;
+  destinySignal: string;
+  fansignMessage: string;
+  stageChemistryKeywords: string[];
   todayMission: string;
+  cheerPoint: string;
   destinyId: string;
   issuedAt: string;
   cardSvg: string;
@@ -102,6 +135,23 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const biasPersonalityReport = generateBiasPersonalityReport(reportArgs);
   const compatibilityReport = generateCompatibilityReport(reportArgs);
   const energyReport = generateEnergyConnectionReport(reportArgs);
+  const chemistrySummary = generateChemistrySummary(reportArgs);
+  const destinySignal = generateDestinySignal(reportArgs);
+
+  const gradeMeta = getDestinyGrade(compatibility.totalScore);
+  const auraMeta = getAuraTheme(`${userName}:${biasName}:${compatibility.biasEnergyType}`, compatibility.totalScore);
+  const pairingAlias = getPairingAlias(userName, biasName, compatibility.totalScore);
+  const fansignMessage = getFansignMessage(`${userName}:${biasName}:${input.relationMood}`, compatibility.totalScore);
+  const stageAuraComment = getStageAuraComment(compatibility.totalScore, auraMeta.auraType);
+  const cheerPoint = getCheerPoint(compatibility.totalScore, input.relationMood);
+  const moodKeywords = getMoodKeywords(`${userName}:${biasName}:${input.biasMood}:${input.relationMood}`, 3);
+  const matchingTags = [...moodKeywords, ...compatibility.connectionKeyword].slice(0, 6);
+  const linkedArtist = `${biasName} Stage Line`;
+  const stageChemistryKeywords = [
+    compatibility.connectionKeyword[0] || "Neon",
+    compatibility.connectionKeyword[1] || "Rhythm",
+    moodKeywords[0] || "Spark",
+  ].slice(0, 3);
 
   const seed = [
     userName,
@@ -119,17 +169,27 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const cardSvg = createDestinyBiasCardSvg({
     userName,
     biasName,
+    linkedArtist,
     compatibilityScore: compatibility.totalScore,
-    energyType: compatibility.biasEnergyType,
+    auraType: auraMeta.auraType,
+    auraMaterial: auraMeta.auraMaterial,
+    destinyGrade: gradeMeta.destinyGrade,
     destinyMessage: energyReport.oneLine,
+    destinySignal,
+    fansignMessage,
     destinyId,
     issuedAt,
+    energyColor: auraMeta.energyColor,
+    pairingAlias,
+    editionLabel: auraMeta.editionLabel,
+    stageChemistryKeywords,
     themeLabel: input.themeLabel,
   });
 
   return {
     userName,
     biasName,
+    linkedArtist,
     userBirthDate: normalizedUserBirth.value,
     biasBirthDate: normalizedBiasBirth.value,
     totalScore: compatibility.totalScore,
@@ -139,12 +199,29 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     supportStyleScore: compatibility.supportStyleScore,
     userEnergyType: compatibility.userEnergyType,
     biasEnergyType: compatibility.biasEnergyType,
+    auraType: auraMeta.auraType,
+    auraMaterial: auraMeta.auraMaterial,
+    destinyGrade: gradeMeta.destinyGrade,
+    gradeTitle: gradeMeta.gradeTitle,
+    pairingAlias,
+    energyColor: auraMeta.energyColor,
+    editionLabel: auraMeta.editionLabel,
+    moodKeywords,
+    matchingTags,
     connectionKeyword: compatibility.connectionKeyword,
+    chemistrySummary,
+    compatibilityDetail: compatibilityReport,
+    energyConnectionDetail: energyReport.report,
     biasPersonalityReport,
     compatibilityReport,
     energyConnectionReport: energyReport.report,
     oneLineDestinyMessage: energyReport.oneLine,
+    stageAuraComment,
+    destinySignal,
+    fansignMessage,
+    stageChemistryKeywords,
     todayMission: energyReport.mission,
+    cheerPoint,
     destinyId,
     issuedAt,
     cardSvg,
