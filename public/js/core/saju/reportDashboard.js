@@ -15,13 +15,14 @@ var REPORT_CARDS = [
   { id:'trip',       label:'사주로 보는 여행지',     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:'🗺️ 여행지 리포트 보기',         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
   { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
+  { id:'animaldestiny', thumb:'동물점 테스트.webp', label:'십이운성 동물점', desc:'사주 속 십이운성으로 깨어나는 나만의 수호 동물을 확인해보세요.', note:'열두 운성 흐름으로 지금의 성향과 상성을 읽고, 동물 아키타입 리포트까지 바로 확인할 수 있습니다.', cta:'🦊 십이운성 동물점 열기', accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target:'animalDestinyEntryCard', action:'openAnimalDestinyRoute', lockKey:'animal-destiny-unlock', coinCost:100 },
   { id:'godlife',    label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
   { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 }
 ];
 
 function _rptIsDirectAction(actionName) {
-  return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute';
+  return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute';
 }
 
 window.openSecretHouseRoute = function() {
@@ -40,6 +41,15 @@ window.openSecretHouseRoute = function() {
   if (/^[甲乙丙丁戊己庚辛壬癸]$/.test(stem)) {
     target += '?dayStem=' + encodeURIComponent(stem);
   }
+  try {
+    window.location.assign(target);
+  } catch (e) {
+    window.open(target, '_blank');
+  }
+};
+
+window.openAnimalDestinyRoute = function() {
+  var target = '/saju/animal-destiny';
   try {
     window.location.assign(target);
   } catch (e) {
@@ -811,6 +821,7 @@ function renderReportDashboard() {
         cta: c.cta,
         accent: c.accent,
         glow: c.glow,
+        lockKey: c.lockKey || '',
         coinCost: Number(c.coinCost || 0)
       };
       blocks.push(seenTargets[c.target]);
@@ -844,13 +855,10 @@ function renderReportDashboard() {
     gridHtml += '<h3 id="' + titleId + '" class="sec-title rpt-v2-title">' + b.title + '</h3>';
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
-    var coinAttrs = (b.coinCost > 0) ? (' data-tile-lock-key="rpt_' + b.target + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
-    if (b.action === 'openLuckSyncDiary') {
-      gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openLuckSyncDiary"' + coinAttrs + ' aria-label="' + b.cta + '">';
-      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
-      gridHtml += '</button>';
-    } else if (b.action === 'openSecretHouseRoute') {
-      gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openSecretHouseRoute"' + coinAttrs + ' aria-label="' + b.cta + '">';
+    var lockKey = b.lockKey || ('rpt_' + b.target);
+    var coinAttrs = (b.coinCost > 0) ? (' data-tile-lock-key="' + lockKey + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
+    if (_rptIsDirectAction(b.action)) {
+      gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="' + b.action + '"' + coinAttrs + ' aria-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '</button>';
     } else {
