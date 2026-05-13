@@ -382,7 +382,15 @@
     if (genEl) genEl.classList.add('sb-hidden');
 
     var analysis = cached.analysisData || fallbackAnalysis || {};
-    _renderDominatorReport(cached.reportData, analysis);
+    var canonicalData = (cached.reportData && cached.reportData.canonicalData)
+      || (analysis && analysis.canonicalData)
+      || null;
+    var shaped = _shapeSibylPremiumReport(cached.reportData, canonicalData);
+    var validation = _validateSibylPremiumChapterMap(shaped && shaped.chapterMap);
+    if (!validation.ok) return false;
+
+    _renderDominatorReport(shaped, analysis);
+    _saveSibylCachedReport(profile, shaped, analysis);
     return true;
   }
 
@@ -2448,6 +2456,81 @@
     return html;
   }
 
+  function _buildSibylRecoveryOverview(pillars, knownRisk, knownCoeff) {
+    var core = pillars || window.G_PILLARS || null;
+    var dist;
+    var counts;
+    var domEl;
+    var dominant;
+    var risk = _safeScore(knownRisk, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+    var coeff = _safeScore(knownCoeff, SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999);
+
+    try { dist = _ohaengDist(core); } catch (_) { dist = { wood: 1, fire: 1, earth: 1, metal: 1, water: 1, total: 5 }; }
+    try { counts = _analyzeTenStars(core); } catch (_) { counts = {}; }
+    try { domEl = _dominantEl(dist); } catch (_) { domEl = 'water'; }
+    dominant = _safeText(_dominantTenStar(counts), SIBYL_PRIMARY_TENGOD_FALLBACK);
+
+    var monthly = [];
+    try {
+      monthly = _buildMonthlyRiskPlan(core, domEl, dominant, risk, new Date().getFullYear(), {
+        pillars: core,
+        dominantEl: domEl,
+        dominantTenStar: dominant
+      }) || [];
+    } catch (_) {
+      monthly = [];
+    }
+
+    if (!Array.isArray(monthly) || !monthly.length) {
+      monthly = [
+        { month: 1, risk: risk, focus: '기본 루틴 고정', caution: '의사결정 속도 과열 주의' },
+        { month: 2, risk: _clamp(risk + 6, 0, 100), focus: '관계 커뮤니케이션 점검', caution: '감정 반응 누적 주의' },
+        { month: 3, risk: _clamp(risk - 4, 0, 100), focus: '성과 정리/확장', caution: '무리한 확장 주의' }
+      ];
+    }
+
+    var ordered = monthly.slice().sort(function(a, b) { return b.risk - a.risk; }).slice(0, 3);
+    var action = dominant === '편관' || dominant === '정관'
+      ? '규칙·검증 기반 실행을 유지하고, 관계 대화는 결론보다 맥락 설명을 먼저 배치하세요.'
+      : dominant === '편재' || dominant === '정재'
+        ? '재정·일정 로그를 같은 주기에 묶어 누수부터 차단하고, 안정 월에만 확장하세요.'
+        : '강점 축을 한 번에 하나만 밀고, 주간 회복 루틴을 고정해 변동성을 먼저 줄이세요.';
+
+    return {
+      risk: risk,
+      coeff: coeff,
+      dominant: dominant,
+      domEl: domEl,
+      topMonths: ordered,
+      action: action,
+    };
+  }
+
+  function _buildSibylRecoveryHtml(overview) {
+    var topLines = (overview.topMonths || []).map(function(item) {
+      return '- ' + String(item.month).padStart(2, '0') + '월 · 위험 ' + item.risk + ' · ' + (item.focus || '핵심 루틴 유지');
+    }).join('<br>');
+
+    return ''
+      + '<div class="sb-nature-block">'
+      + '<div class="sb-nature-tag">■ CORE MATRIX — 무료 기본 결과</div>'
+      + '<p class="sb-nature-body">기본 계산 엔진을 복구 모드로 전환해 무료 결과를 우선 제공합니다. 유료 도미네이터 리포트와 별개로 핵심 지표는 계속 확인할 수 있습니다.</p>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">위험 계수</span><span class="sb-nature-val sb-nature-val--warn">' + overview.risk + ' / 100</span></div>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">적성 계수</span><span class="sb-nature-val">' + overview.coeff + ' / 999</span></div>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">주도 십성</span><span class="sb-nature-val">' + overview.dominant + '</span></div>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">지배 오행</span><span class="sb-nature-val">' + (EL_KR[overview.domEl] || overview.domEl) + '</span></div>'
+      + '</div>'
+      + '<div class="sb-nature-block">'
+      + '<div class="sb-nature-tag">■ TIMING SNAPSHOT — 월별 위험 상위 구간</div>'
+      + '<p class="sb-nature-body">' + (topLines || '- 월별 위험 데이터를 계산 중입니다.') + '</p>'
+      + '</div>'
+      + '<div class="sb-nature-block">'
+      + '<div class="sb-nature-tag">■ ACTION GUIDE — 무료 실행 가이드</div>'
+      + '<p class="sb-nature-body">' + overview.action + '</p>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 100코인은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
+      + '</div>';
+  }
+
   /* ── 개운법 생성 (용신 기반) ── */
   function _buildRemedies(dominant, dominantEl) {
     var remedyMap = {
@@ -2671,25 +2754,56 @@
       _setSibylState(SibylState.READY);
     } catch (err) {
       console.error('[SibylSystem] free section render failed:', err);
-      // Fail-open: 무료 결과 텍스트는 최소한 항상 노출되도록 보장한다.
+      // Fail-open: 무료 결과는 항상 카테고리형으로 노출하고, 에러 오버레이로 가리지 않는다.
+      var recovery = _buildSibylRecoveryOverview(pillars, window._sibylCurrentData && window._sibylCurrentData.risk, window._sibylCurrentData && window._sibylCurrentData.coeff);
+
       var freeSecFallback = _q('sbFreeSection');
       if (freeSecFallback) {
         freeSecFallback.classList.remove('sb-hidden');
         freeSecFallback.classList.add('sb-fadein');
       }
-      _t('sbSectorName', 'ANALYSIS RECOVERY MODE');
-      _t('sbSectorJobs', '기본 분석 텍스트를 복구했습니다. 잠시 후 다시 열면 상세 계산이 자동 재시도됩니다.');
-      _t('sbSectorTenstar', '주도 십성: 데이터 복구 중');
+      _t('sbSectorName', 'FREE BASIC RESULT MODE');
+      _t('sbSectorJobs', '기본 카테고리 결과를 복구 모드로 제공합니다. 유료 잠금 해제 리포트는 별도입니다.');
+      _t('sbSectorTenstar', '주도 십성: ' + recovery.dominant);
+      _t('sbRiskBasic', recovery.risk);
+      _t('sbAptCoeff', recovery.coeff);
+      _t('sbAptMetric', recovery.coeff);
+
+      var riskElFallback = _q('sbRiskBasicEl');
+      if (riskElFallback) {
+        riskElFallback.className = 'sb-metric-value' + (recovery.risk >= 70 ? ' sb-metric-value--danger' : recovery.risk >= 45 ? ' sb-metric-value--warn' : ' sb-metric-value--ok');
+      }
 
       var natSecFallback = _q('sbNatureSection');
       if (natSecFallback) {
-        natSecFallback.innerHTML = ''
-          + '<div class="sb-nature-block">'
-          + '<div class="sb-nature-tag">■ BASIC RESULT RECOVERY</div>'
-          + '<p class="sb-nature-body">일시적인 데이터 연결 지연이 감지되어 무료 기본 결과를 우선 표시합니다. 결제 없이도 기본 해석은 계속 확인할 수 있습니다.</p>'
-          + '</div>';
+        natSecFallback.innerHTML = _buildSibylRecoveryHtml(recovery);
       }
-      _setSibylState(SibylState.ERROR, '기본 분석 데이터를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 열어 주세요.');
+
+      var cautionFallback = _q('sbCautionArea');
+      if (cautionFallback) {
+        cautionFallback.classList.remove('sb-hidden');
+      }
+      _t('sbCautionText', '⚠ 일부 계산 데이터가 지연되어 복구 모드로 표시 중입니다. 무료 기본 결과는 유지되며 유료 잠금 해제와 별도로 동작합니다.');
+
+      window._sibylCurrentData = Object.assign({}, window._sibylCurrentData || {}, {
+        pillars: pillars || (window._sibylCurrentData && window._sibylCurrentData.pillars) || window.G_PILLARS || null,
+        risk: recovery.risk,
+        coeff: recovery.coeff,
+        dominant: recovery.dominant,
+        domEl: recovery.domEl,
+        recoveryMode: true,
+        recoveryReason: String(err && err.message || 'FREE_SECTION_RENDER_ERROR')
+      });
+
+      if (_isSibylDevMode()) {
+        _sibylDevWarn('[SIBYL] free-recovery-fail-open', {
+          reason: String(err && err.message || ''),
+          risk: recovery.risk,
+          coeff: recovery.coeff,
+          dominant: recovery.dominant,
+        });
+      }
+      _setSibylState(SibylState.READY);
     }
   }
 
