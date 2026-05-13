@@ -2399,7 +2399,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/saju-engine.js?v=20260502-saju-nullstyle-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260512-sukuyo-natal-ui-restore1',
     '/js/core/saju/modalProfileState.js?v=20260326-modaldeps1',
-    '/js/core/saju/reportDashboard.js?v=20260414-saju-rpt4',
+    '/js/core/saju/reportDashboard.js?v=20260513-saju-animal-hotfix1',
     '/js/saju-engine-continuation.js?v=20260329-saju-rpt3',
     '/js/entertain-engine.js'
   ];
