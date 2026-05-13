@@ -23,9 +23,9 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
       <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-pink-300/25 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute -right-20 top-8 h-52 w-52 rounded-full bg-cyan-300/18 blur-3xl" aria-hidden />
 
-      <div className={`${styles.entryPassLabel} mb-3`}>★ COSMIC FAN CONCERT</div>
+      <div className={`${styles.entryPassLabel} mb-2`}>✦ COSMIC FANLIGHT STAGE ✦</div>
 
-      <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white md:text-4xl">
+      <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_20px_rgba(255,95,210,0.45)] md:text-4xl">
         MY DESTINY BIAS
       </h1>
 

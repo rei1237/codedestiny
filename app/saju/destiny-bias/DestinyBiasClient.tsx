@@ -134,6 +134,7 @@ function sleep(ms: number) {
 
 function InputField({
   label,
+  subLabel,
   value,
   onChange,
   placeholder,
@@ -142,6 +143,7 @@ function InputField({
   error,
 }: {
   label: string;
+  subLabel?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -150,7 +152,8 @@ function InputField({
   error?: string;
 }) {
   return (
-    <label className="grid gap-1 text-sm text-white/90">
+    <label className="grid gap-0.5 text-sm text-white/90">
+      {subLabel ? <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">{subLabel}</span> : null}
       <span className="font-semibold text-white/95">{label}</span>
       <input
         type="text"
@@ -160,7 +163,7 @@ function InputField({
         placeholder={placeholder}
         className={styles.premiumInput}
       />
-      {error ? <span className="text-xs text-rose-200">{error}</span> : null}
+      {error ? <span className="text-xs text-[#FF9AD8]">{error}</span> : null}
     </label>
   );
 }
@@ -641,12 +644,13 @@ export default function DestinyBiasClient() {
 
             {uiStep === 1 ? (
               <section className={styles.inputPanel}>
-                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">DESTINY TICKET BOOTH</p>
+                <p className="text-xs font-semibold tracking-[0.16em] text-[#FFD98A]/90">COSMIC ENTRY PASS</p>
                 <h2 className="mt-2 text-2xl font-black">우주 콘서트 입장 정보</h2>
                 <p className="mt-2 text-sm leading-7 text-white/80">당신의 생일이 최애의 무대와 연결되는 순간을 위해 기본 운명 정보를 입력해 주세요.</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <InputField
+                    subLabel="NAME / 이름"
                     label="나의 이름/닉네임"
                     value={meInput.name}
                     onChange={(value) => setMeInput((prev) => ({ ...prev, name: value }))}
@@ -655,6 +659,7 @@ export default function DestinyBiasClient() {
                   />
 
                   <InputField
+                    subLabel="BIRTH DATE / 생년월일"
                     label="나의 생년월일"
                     value={meInput.birthDateInput}
                     onChange={(value) => {
@@ -671,6 +676,7 @@ export default function DestinyBiasClient() {
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <InputField
+                    subLabel="BIRTH TIME / 태어난 시간"
                     label="태어난 시간은 선택 입력"
                     value={meInput.birthTimeInput}
                     onChange={(value) => setMeInput((prev) => ({ ...prev, birthTimeInput: value }))}
@@ -679,7 +685,8 @@ export default function DestinyBiasClient() {
                     maxLength={4}
                   />
 
-                  <label className="grid gap-1 text-sm text-white/90">
+                  <label className="grid gap-0.5 text-sm text-white/90">
+                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">GENDER / 성별</span>
                     <span className="font-semibold text-white/95">성별</span>
                     <select
                       value={meGender}
@@ -705,6 +712,7 @@ export default function DestinyBiasClient() {
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <InputField
+                    subLabel="BIAS NAME / 최애 이름"
                     label="최애 이름"
                     value={biasInput.name}
                     onChange={(value) => setBiasInput((prev) => ({ ...prev, name: value }))}
@@ -713,6 +721,7 @@ export default function DestinyBiasClient() {
                   />
 
                   <InputField
+                    subLabel="BIRTH DATE / 생년월일"
                     label="최애의 생년월일"
                     value={biasInput.birthDateInput}
                     onChange={(value) => {
@@ -729,6 +738,7 @@ export default function DestinyBiasClient() {
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <InputField
+                    subLabel="ARTIST / 그룹 또는 아티스트"
                     label="연결 아티스트/그룹"
                     value={biasArtistInput}
                     onChange={setBiasArtistInput}
@@ -737,6 +747,7 @@ export default function DestinyBiasClient() {
                   />
 
                   <InputField
+                    subLabel="BIRTH TIME / 태어난 시간"
                     label="태어난 시간은 선택 입력"
                     value={biasInput.birthTimeInput}
                     onChange={(value) => setBiasInput((prev) => ({ ...prev, birthTimeInput: value }))}
@@ -747,7 +758,8 @@ export default function DestinyBiasClient() {
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <label className="grid gap-1 text-sm text-white/90">
+                  <label className="grid gap-0.5 text-sm text-white/90">
+                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">BIAS MOOD / 최애 분위기</span>
                     <span className="font-semibold text-white/95">최애 분위기</span>
                     <select
                       value={biasMood}
@@ -762,7 +774,8 @@ export default function DestinyBiasClient() {
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <label className="grid gap-1 text-sm text-white/90">
+                  <label className="grid gap-0.5 text-sm text-white/90">
+                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">CHEMISTRY / 관계 감성</span>
                     <span className="font-semibold text-white/95">관계 감성</span>
                     <select
                       value={relationMood}
@@ -820,7 +833,7 @@ export default function DestinyBiasClient() {
           {uiStep === 5 && resultVm ? (
             <section className="space-y-4">
               <article className={`rounded-[30px] p-5 md:p-6 ${styles.glass}`}>
-                <p className="text-xs font-semibold tracking-[0.15em] text-cyan-100/90">STARLIGHT BACKSTAGE PASS</p>
+                <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">STARLIGHT BACKSTAGE PASS</p>
                 <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와 연결된 한정판 팬싸인 포토카드</h2>
                 <p className="mt-2 text-sm leading-7 text-white/85">{resultVm.oneLineDestinyMessage}</p>
                 <p className="mt-1 text-xs text-fuchsia-100/90">내 사주 에너지와 최애 무대 아우라가 동기화된 결과입니다.</p>
@@ -892,7 +905,7 @@ export default function DestinyBiasClient() {
                     <h3 className="mt-2 text-base font-bold text-white">무대 케미 키워드</h3>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {resultVm.stageChemistryKeywords.slice(0, 3).map((keyword) => (
-                        <span key={keyword} className="rounded-full border border-white/25 bg-black/25 px-3 py-1 text-xs font-semibold text-white/85">
+                        <span key={keyword} className={styles.blueBadge}>
                           #{keyword}
                         </span>
                       ))}
@@ -941,7 +954,6 @@ export default function DestinyBiasClient() {
                 })}
                 disabled={analyzing}
                 className={`flex-1 ${styles.primaryCta}`}
-                disabled={analyzing}
               >
                 {analyzing ? "운명 연결 중..." : "운명 연결 시작하기"}
               </button>
@@ -977,7 +989,6 @@ export default function DestinyBiasClient() {
                 onClick={() => analyze().catch(() => null)}
                 disabled={analyzing}
                 className={`px-8 ${styles.primaryCta}`}
-                disabled={analyzing}
               >
                 {analyzing ? "운명 연결 중..." : "운명 연결 시작하기"}
               </button>
