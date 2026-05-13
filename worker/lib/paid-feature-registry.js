@@ -50,6 +50,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "destiny-bias-theme-premium",
   "destiny-bias-collection-save",
   "destiny-bias-deep-profile",
+  "animal-destiny-unlock",
   "rpt_specialCharmCard",
   "rpt_quantumCard",
   "rpt_healthReportCard",
@@ -130,6 +131,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "destiny-bias-theme-premium": { cost: 120, reason: "최애운명 프리미엄 테마 해금" },
   "destiny-bias-collection-save": { cost: 150, reason: "최애운명 컬렉션 저장 확장" },
   "destiny-bias-deep-profile": { cost: 90, reason: "최애운명 심층 프로필 확장" },
+  "animal-destiny-unlock": { cost: 100, reason: "십이운성 동물점 해금" },
   rpt_specialCharmCard: { cost: 30, reason: "나의 매력 클래스 영구 해금" },
   rpt_quantumCard: { cost: 50, reason: "퀀텀 명리 엔진 영구 해금" },
   rpt_healthReportCard: { cost: 50, reason: "명리 헬스 리포트 영구 해금" },
@@ -161,6 +163,7 @@ export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.destiny_bias_theme_premium": { featureKey: "destiny-bias-theme-premium", cost: 120, reason: "Destiny bias premium theme unlock", forceDeduct: true },
   "unlock.destiny_bias_collection_save": { featureKey: "destiny-bias-collection-save", cost: 150, reason: "Destiny bias collection save unlock", forceDeduct: true },
   "unlock.destiny_bias_deep_profile": { featureKey: "destiny-bias-deep-profile", cost: 90, reason: "Destiny bias deep profile unlock", forceDeduct: true },
+  "unlock.animal_destiny": { featureKey: "animal-destiny-unlock", cost: 100, reason: "Animal destiny unlock", forceDeduct: true },
 });
 
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
