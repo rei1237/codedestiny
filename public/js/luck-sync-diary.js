@@ -394,8 +394,8 @@
       dash.appendChild(wrap);
     }
 
-    var challenge = document.getElementById('lsdPanelChallenge');
-    if (challenge && !document.getElementById('lsdEmotionCard')) {
+    var historyPanel = document.getElementById('lsdPanelHistory');
+    if (historyPanel && !document.getElementById('lsdEmotionCard')) {
       var c = document.createElement('div');
       c.id = 'lsdEmotionCard';
       c.className = 'lsd-mz-card';
@@ -405,7 +405,7 @@
         + '<div id="lsdEmotionTags"></div>'
         + '<div class="lsd-mini-box" id="lsdEmotionStats" style="margin-top:8px"></div>'
         + '<div style="margin-top:8px" id="lsdBadgeShelf"></div>';
-      challenge.appendChild(c);
+      historyPanel.insertBefore(c, historyPanel.firstChild || null);
     }
 
     var night = document.getElementById('lsdPanelNight');
@@ -420,8 +420,7 @@
       night.appendChild(n);
     }
 
-    var history = document.getElementById('lsdPanelHistory');
-    if (history && !document.getElementById('lsdMemoCard')) {
+    if (historyPanel && !document.getElementById('lsdMemoCard')) {
       var h = document.createElement('div');
       h.id = 'lsdMemoCard';
       h.className = 'lsd-mz-card';
@@ -447,7 +446,7 @@
         + '  <button id="lsdCompatBtn" type="button" class="lsd-plain-btn">궁합 연동 보기</button>'
         + '</div>'
         + '<div id="lsdCompatResult" class="lsd-mini-box" style="margin-top:8px">상대 정보를 입력하면 기존 궁합 엔진 + 다이어리 흐름을 함께 보여줄게.</div>';
-      history.appendChild(h);
+      historyPanel.appendChild(h);
     }
   }
 
@@ -999,6 +998,15 @@
     var shareCaption = (entry && entry.shareCaption) ? String(entry.shareCaption).trim() : '';
     var useSticker = !entry || entry.shareUseSticker !== false;
     var useBadge = !entry || entry.shareUseBadge !== false;
+    var scoreMap = (_lsdCtx && _lsdCtx.scores) || {};
+    var scoreRows = [
+      { label: '재물', value: Number(scoreMap.wealth) || 0 },
+      { label: '애정', value: Number(scoreMap.love) || 0 },
+      { label: '명예', value: Number(scoreMap.fame) || 0 },
+      { label: '건강', value: Number(scoreMap.health) || 0 },
+      { label: '학습', value: Number(scoreMap.study) || 0 },
+    ];
+    var scoreAvg = Math.round(scoreRows.reduce(function (sum, row) { return sum + row.value; }, 0) / scoreRows.length);
 
     var g = ctx.createLinearGradient(0, 0, 1080, 1920);
     if (theme === 'soft') {
@@ -1021,7 +1029,9 @@
     ctx.beginPath(); ctx.arc(880, 190, 210, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(220, 1720, 240, 0, Math.PI * 2); ctx.fill();
 
-    ctx.fillStyle = theme === 'soft' ? '#312e81' : '#fff';
+    var primaryText = theme === 'soft' ? '#1f2937' : '#fff';
+    var subText = theme === 'soft' ? '#334155' : 'rgba(255,255,255,.92)';
+    ctx.fillStyle = primaryText;
     ctx.font = '900 66px "Noto Sans KR", sans-serif';
     ctx.fillText('오늘의 사주 다이어리', 88, 180);
     ctx.font = '700 42px "Noto Sans KR", sans-serif';
@@ -1031,20 +1041,43 @@
     ctx.font = '800 52px "Noto Sans KR", sans-serif';
     ctx.fillText('일진 ' + iljin + ' · ' + (e.cn || ''), 88, 350);
 
+    ctx.fillStyle = theme === 'night' ? 'rgba(15,23,42,.5)' : 'rgba(255,255,255,.2)';
+    ctx.fillRect(88, 410, 904, 330);
+    ctx.strokeStyle = theme === 'night' ? 'rgba(125,211,252,.35)' : 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(88, 410, 904, 330);
+
+    ctx.fillStyle = primaryText;
+    ctx.font = '800 42px "Noto Sans KR", sans-serif';
+    ctx.fillText('오늘의 운기 점수', 116, 472);
+    ctx.font = '700 30px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = subText;
+    ctx.fillText('평균 ' + scoreAvg + '점 · 십성 ' + (_lsdCtx.mainTenStar || '리딩중'), 116, 518);
+
+    ctx.font = '700 34px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = primaryText;
+    scoreRows.forEach(function (row, idx) {
+      var col = idx % 2;
+      var line = Math.floor(idx / 2);
+      var x = col ? 540 : 116;
+      var y = 576 + (line * 70);
+      ctx.fillText(row.label + ' ' + row.value + '점', x, y);
+    });
+
     ctx.font = '700 38px "Noto Sans KR", sans-serif';
-    ctx.fillText('오늘 미션', 88, 470);
+    ctx.fillText('오늘 미션', 88, 830);
     ctx.font = '600 34px "Noto Sans KR", sans-serif';
-    ctx.fillText('1) 핵심 1개 먼저 끝내기', 100, 540);
-    ctx.fillText('2) ' + (e.badge || '✨') + ' 기운 아이템 챙기기', 100, 600);
-    ctx.fillText('3) 저녁에 운세 복기 3줄 남기기', 100, 660);
+    ctx.fillText('1) 핵심 1개 먼저 끝내기', 100, 900);
+    ctx.fillText('2) ' + (e.badge || '✨') + ' 기운 아이템 챙기기', 100, 960);
+    ctx.fillText('3) 저녁에 운세 복기 3줄 남기기', 100, 1020);
 
     if (useSticker && entry && Array.isArray(entry.stickers) && entry.stickers.length) {
       ctx.font = '700 32px "Noto Sans KR", sans-serif';
-      ctx.fillText('스티커: ' + entry.stickers.slice(0, 2).join(' · '), 88, 760);
+      ctx.fillText('스티커: ' + entry.stickers.slice(0, 2).join(' · '), 88, 1120);
     }
     if (useBadge && entry && Array.isArray(entry.badges) && entry.badges.length) {
       ctx.font = '700 30px "Noto Sans KR", sans-serif';
-      ctx.fillText('배지: ' + entry.badges.slice(-1)[0], 88, 815);
+      ctx.fillText('배지: ' + entry.badges.slice(-1)[0], 88, 1175);
     }
     if (shareNick) {
       ctx.font = '800 34px "Noto Sans KR", sans-serif';
@@ -1806,7 +1839,7 @@
         var meta = payload && payload.meta ? payload.meta : null;
         var items = payload && Array.isArray(payload.items) ? payload.items : [];
         var message = '';
-        if (meta && meta.source === 'fallback' && meta.message) {
+        if (meta && /^fallback/.test(String(meta.source || '')) && meta.message) {
           message = meta.message;
         }
         renderSatsPlaylist(mode, items, message);
@@ -2626,10 +2659,10 @@
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-label', '운기 기일 다이어리');
-    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:10px;box-sizing:border-box;overflow-y:auto';
 
     modal.innerHTML = [
-      '<div style="position:relative;width:100%;max-width:600px;background:#fff;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 8px 24px rgba(124,58,237,.1);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;margin:0 auto">',
+      '<div style="position:relative;width:100%;max-width:920px;background:#fff;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 8px 24px rgba(124,58,237,.1);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;margin:0 auto">',
       '<div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.1)"></div></div>',
       '<button style="position:absolute;top:12px;right:14px;z-index:20;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.06);color:#6b7280;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.background=\'rgba(239,68,68,.15)\';this.style.color=\'#ef4444\';this.style.transform=\'rotate(90deg)\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\';this.style.transform=\'rotate(0deg)\'" data-action="closeLuckSyncDiary" aria-label="닫기">✕</button>',
       '<header style="padding:12px 20px 14px;background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 45%,#4f46e5 100%);position:relative;overflow:hidden;flex-shrink:0">',
@@ -3341,41 +3374,43 @@
       }
     };
 
-    /* 스티커 선택 */
-    modal.querySelectorAll('[data-sticker]').forEach(function (btn) {
-      btn.onclick = function () {
-        var name = btn.getAttribute('data-sticker') || '';
-        var d = loadDiary();
-        var e = getTodayEntry(d);
-        var idx = e.stickers.indexOf(name);
-        if (idx >= 0) {
-          e.stickers.splice(idx, 1);
-        } else {
-          if (e.stickers.length >= 3) e.stickers.shift();
-          e.stickers.push(name);
+    if (!modal.__lsdMzSelectionDelegated) {
+      modal.__lsdMzSelectionDelegated = true;
+      modal.addEventListener('click', function (ev) {
+        var stickerBtn = ev.target && ev.target.closest('[data-sticker]');
+        if (stickerBtn) {
+          var name = stickerBtn.getAttribute('data-sticker') || '';
+          var d1 = loadDiary();
+          var e1 = getTodayEntry(d1);
+          var stickerIdx = e1.stickers.indexOf(name);
+          if (stickerIdx >= 0) {
+            e1.stickers.splice(stickerIdx, 1);
+          } else {
+            if (e1.stickers.length >= 3) e1.stickers.shift();
+            e1.stickers.push(name);
+          }
+          saveDiary(d1);
+          renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e1, d1, _lsdCtx.jong || null);
+          return;
         }
-        saveDiary(d);
-        renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d, _lsdCtx.jong || null);
-      };
-    });
 
-    /* 감정 태그 */
-    modal.querySelectorAll('[data-emotion]').forEach(function (btn) {
-      btn.onclick = function () {
-        var tag = btn.getAttribute('data-emotion') || '';
-        var d = loadDiary();
-        var e = getTodayEntry(d);
-        var idx = e.emotionTags.indexOf(tag);
-        if (idx >= 0) {
-          e.emotionTags.splice(idx, 1);
-        } else {
-          if (e.emotionTags.length >= 5) e.emotionTags.shift();
-          e.emotionTags.push(tag);
+        var emotionBtn = ev.target && ev.target.closest('[data-emotion]');
+        if (emotionBtn) {
+          var tag = emotionBtn.getAttribute('data-emotion') || '';
+          var d2 = loadDiary();
+          var e2 = getTodayEntry(d2);
+          var emotionIdx = e2.emotionTags.indexOf(tag);
+          if (emotionIdx >= 0) {
+            e2.emotionTags.splice(emotionIdx, 1);
+          } else {
+            if (e2.emotionTags.length >= 5) e2.emotionTags.shift();
+            e2.emotionTags.push(tag);
+          }
+          saveDiary(d2);
+          renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e2, d2, _lsdCtx.jong || null);
         }
-        saveDiary(d);
-        renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d, _lsdCtx.jong || null);
-      };
-    });
+      });
+    }
 
     var saveMemoBtn = document.getElementById('lsdSaveMemoBtn');
     if (saveMemoBtn) saveMemoBtn.onclick = function () {
