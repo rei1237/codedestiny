@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
+import CosmicConcertBackground from "./components/CosmicConcertBackground";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
 import DestinyBiasDetailSections from "./components/DestinyBiasDetailSections";
 import DestinyBiasLoadingScreen from "./components/DestinyBiasLoadingScreen";
@@ -14,6 +15,7 @@ import DestinyBiasProgress from "./components/DestinyBiasProgress";
 import DestinyBiasActionBar from "./components/DestinyBiasActionBar";
 import FansignEditionBadge from "./components/FansignEditionBadge";
 import MyDestinyBiasHero from "./components/MyDestinyBiasHero";
+import DestinyBiasHeader from "./components/DestinyBiasHeader";
 import styles from "./destiny-bias.module.css";
 import { destinyBiasIntroCopy, destinyBiasLoadingMessages } from "./lib/destinyBiasCopy";
 import { destinyBiasThemeChoices } from "./lib/destinyBiasTheme";
@@ -29,6 +31,7 @@ const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 
 const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
 const RELATION_MOODS = ["응원형", "성장형", "설렘형", "위로형", "운명형"] as const;
+const GENDER_OPTIONS = ["여성", "남성", "기타"] as const;
 
 const INITIAL_ME: PersonInputState = {
   name: "",
@@ -155,7 +158,7 @@ function InputField({
         value={value}
         onChange={(event) => onChange(maxLength ? event.target.value.slice(0, maxLength) : event.target.value)}
         placeholder={placeholder}
-        className="min-h-12 rounded-xl border border-white/20 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-fuchsia-200/80"
+        className={styles.premiumInput}
       />
       {error ? <span className="text-xs text-rose-200">{error}</span> : null}
     </label>
@@ -170,6 +173,8 @@ export default function DestinyBiasClient() {
   const [uiStep, setUiStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [meInput, setMeInput] = useState<PersonInputState>(INITIAL_ME);
   const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
+  const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>("여성");
+  const [biasArtistInput, setBiasArtistInput] = useState("");
 
   const [biasMood, setBiasMood] = useState<(typeof BIAS_MOODS)[number]>("청량");
   const [relationMood, setRelationMood] = useState<(typeof RELATION_MOODS)[number]>("응원형");
@@ -465,6 +470,7 @@ export default function DestinyBiasClient() {
         userBirthDateInput: meInput.birthDateInput,
         biasName: biasInput.name,
         biasBirthDateInput: biasInput.birthDateInput,
+        linkedArtistName: biasArtistInput,
         biasMood,
         relationMood,
         themeLabel: selectedTheme.name,
@@ -500,6 +506,7 @@ export default function DestinyBiasClient() {
     analyzing,
     biasInput.birthDateInput,
     biasInput.name,
+    biasArtistInput,
     biasMood,
     isLoggedIn,
     meInput.birthDateInput,
@@ -576,6 +583,7 @@ export default function DestinyBiasClient() {
   const handleRetry = useCallback(() => {
     setUiStep(1);
     setResultVm(null);
+    setBiasArtistInput("");
     setError("");
   }, []);
 
@@ -583,6 +591,7 @@ export default function DestinyBiasClient() {
     setUiStep(2);
     setResultVm(null);
     setBiasInput(INITIAL_BIAS);
+    setBiasArtistInput("");
     setError("");
     setToast("다른 최애 정보를 입력해 주세요.");
   }, []);
@@ -590,14 +599,8 @@ export default function DestinyBiasClient() {
   const particleCount = reduceMotion || isLowSpec ? 5 : 12;
 
   return (
-    <section className={`relative min-h-[100dvh] w-screen overflow-x-hidden text-white ${styles.destinyBiasBg}`}>
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className={`absolute inset-0 ${styles.stageDots}`} />
-        <div className={`absolute left-1/2 top-0 h-[68vh] w-[125vw] -translate-x-1/2 ${styles.spotlight}`} />
-        <div className={`absolute inset-0 ${styles.concertBeamLeft}`} />
-        <div className={`absolute inset-0 ${styles.concertBeamRight}`} />
-        <div className={`absolute inset-0 ${styles.auraMist}`} />
-      </div>
+    <section className={`relative min-h-[100svh] w-screen overflow-x-hidden text-white ${styles.destinyBiasBg}`}>
+      <CosmicConcertBackground isLowSpec={isLowSpec} reduceMotion={Boolean(reduceMotion)} />
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         {Array.from({ length: particleCount }).map((_, index) => (
@@ -615,19 +618,9 @@ export default function DestinyBiasClient() {
         ))}
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-28 pt-5 md:px-6 md:pb-14 md:pt-8">
-        <div className="mb-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={goBackToMain}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-black/25 px-4 text-sm font-semibold text-white/90 backdrop-blur-xl"
-          >
-            ← 돌아가기
-          </button>
-          <span className="rounded-full border border-fuchsia-200/40 bg-fuchsia-300/15 px-3 py-1 text-xs font-semibold text-fuchsia-50">
-            {destinyBiasIntroCopy.coinBadge}
-          </span>
-        </div>
+      <DestinyBiasHeader onBack={goBackToMain} coinBadgeText={destinyBiasIntroCopy.coinBadge} />
+
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-28 pt-4 md:px-6 md:pb-14 md:pt-6">
 
         <AnimatePresence>
           {toast ? (
@@ -635,7 +628,7 @@ export default function DestinyBiasClient() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="mb-3 inline-flex rounded-full border border-cyan-200/45 bg-cyan-300/15 px-4 py-2 text-xs font-semibold text-cyan-50"
+              className={`mb-3 ${styles.toastPill}`}
             >
               {toast}
             </motion.p>
@@ -647,9 +640,10 @@ export default function DestinyBiasClient() {
           <DestinyBiasProgress current={uiStep === 5 ? 5 : uiStep} />
 
             {uiStep === 1 ? (
-              <section className={`rounded-[28px] p-5 md:p-7 ${styles.glass}`}>
-                <h2 className="text-2xl font-black">나의 에너지 입력</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">텍스트 입력 방식으로 생년월일을 입력하면 자동 정규화됩니다.</p>
+              <section className={styles.inputPanel}>
+                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">DESTINY TICKET BOOTH</p>
+                <h2 className="mt-2 text-2xl font-black">우주 콘서트 입장 정보</h2>
+                <p className="mt-2 text-sm leading-7 text-white/80">당신의 생일이 최애의 무대와 연결되는 순간을 위해 기본 운명 정보를 입력해 주세요.</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <InputField
@@ -684,14 +678,30 @@ export default function DestinyBiasClient() {
                     inputMode="numeric"
                     maxLength={4}
                   />
+
+                  <label className="grid gap-1 text-sm text-white/90">
+                    <span className="font-semibold text-white/95">성별</span>
+                    <select
+                      value={meGender}
+                      onChange={(event) => setMeGender(event.target.value as (typeof GENDER_OPTIONS)[number])}
+                      className={styles.cosmicSelect}
+                    >
+                      {GENDER_OPTIONS.map((item) => (
+                        <option key={item} value={item}>{item}</option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
+
+                <p className="mt-4 text-xs text-white/70">입력 정보는 최애운명 분석 목적의 계산에만 사용됩니다.</p>
               </section>
             ) : null}
 
             {uiStep === 2 ? (
-              <section className={`rounded-[28px] p-5 md:p-7 ${styles.glass}`}>
-                <h2 className="text-2xl font-black">최애 프로필 입력</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">최애 성향과 관계 감성을 선택하면 팬덤형 분석이 더 풍부해집니다.</p>
+              <section className={styles.inputPanel}>
+                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">FANLIGHT CHECK-IN</p>
+                <h2 className="mt-2 text-2xl font-black">최애 연결 프로필 입력</h2>
+                <p className="mt-2 text-sm leading-7 text-white/80">최애 이름, 아티스트/그룹 라인, 무드 정보를 입력하면 포토카드 문구가 더 자연스럽게 완성됩니다.</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <InputField
@@ -719,6 +729,14 @@ export default function DestinyBiasClient() {
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <InputField
+                    label="연결 아티스트/그룹"
+                    value={biasArtistInput}
+                    onChange={setBiasArtistInput}
+                    placeholder="예: STARLIGHT UNIT"
+                    maxLength={36}
+                  />
+
+                  <InputField
                     label="태어난 시간은 선택 입력"
                     value={biasInput.birthTimeInput}
                     onChange={(value) => setBiasInput((prev) => ({ ...prev, birthTimeInput: value }))}
@@ -726,13 +744,15 @@ export default function DestinyBiasClient() {
                     inputMode="numeric"
                     maxLength={4}
                   />
+                </div>
 
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <label className="grid gap-1 text-sm text-white/90">
                     <span className="font-semibold text-white/95">최애 분위기</span>
                     <select
                       value={biasMood}
                       onChange={(event) => setBiasMood(event.target.value as (typeof BIAS_MOODS)[number])}
-                      className="min-h-12 rounded-xl border border-white/20 bg-black/30 px-3 text-sm text-white outline-none focus:border-fuchsia-200/80"
+                      className={styles.cosmicSelect}
                     >
                       {BIAS_MOODS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -747,7 +767,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={relationMood}
                       onChange={(event) => setRelationMood(event.target.value as (typeof RELATION_MOODS)[number])}
-                      className="min-h-12 rounded-xl border border-white/20 bg-black/30 px-3 text-sm text-white outline-none focus:border-fuchsia-200/80"
+                      className={styles.cosmicSelect}
                     >
                       {RELATION_MOODS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -759,9 +779,10 @@ export default function DestinyBiasClient() {
             ) : null}
 
             {uiStep === 3 ? (
-              <section className={`rounded-[28px] p-5 md:p-7 ${styles.glass}`}>
-                <h2 className="text-2xl font-black">콘서트 포토카드 테마</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">최애운명.webp의 무드와 맞는 네온 포토카드 톤을 선택하세요.</p>
+              <section className={styles.inputPanel}>
+                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">HOLOGRAM PHOTOCARD BOOTH</p>
+                <h2 className="mt-2 text-2xl font-black">콘서트 무드 테마 선택</h2>
+                <p className="mt-2 text-sm leading-7 text-white/80">핑크/보라/블루 네온 스테이지 중 오늘의 운명 무드를 고르면 결과 카드와 해설 톤이 맞춰집니다.</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {destinyBiasThemeChoices.map((theme) => {
@@ -774,11 +795,7 @@ export default function DestinyBiasClient() {
                         onClick={() => {
                           if (!locked) setActiveThemeKey(theme.key);
                         }}
-                        className={`overflow-hidden rounded-2xl border text-left transition ${
-                          active
-                            ? "border-fuchsia-200/85 bg-fuchsia-300/15"
-                            : "border-white/20 bg-black/25"
-                        } ${locked ? "opacity-50" : "hover:border-cyan-200/80"}`}
+                        className={`${styles.themeCard} ${active ? styles.themeCardActive : ""} ${locked ? "opacity-50 cursor-not-allowed" : ""} text-left`}
                       >
                         <div className="h-24" style={{ background: theme.preview }} />
                         <div className="p-3">
@@ -803,31 +820,44 @@ export default function DestinyBiasClient() {
           {uiStep === 5 && resultVm ? (
             <section className="space-y-4">
               <article className={`rounded-[30px] p-5 md:p-6 ${styles.glass}`}>
-                <p className="text-xs font-semibold tracking-[0.15em] text-cyan-100/90">RESULT SHOWCASE</p>
+                <p className="text-xs font-semibold tracking-[0.15em] text-cyan-100/90">STARLIGHT BACKSTAGE PASS</p>
                 <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와 연결된 한정판 팬싸인 포토카드</h2>
                 <p className="mt-2 text-sm leading-7 text-white/85">{resultVm.oneLineDestinyMessage}</p>
+                <p className="mt-1 text-xs text-fuchsia-100/90">내 사주 에너지와 최애 무대 아우라가 동기화된 결과입니다.</p>
 
                 <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
-                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                    <p className="text-[11px] text-white/70">전체</p>
+                  <div className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">궁합 점수</p>
                     <p className="mt-1 text-lg font-black text-white">{resultVm.totalScore}</p>
                   </div>
-                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                    <p className="text-[11px] text-white/70">감정</p>
+                  <div className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">감정 리듬</p>
                     <p className="mt-1 text-lg font-black text-white">{resultVm.emotionalScore}</p>
                   </div>
-                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                    <p className="text-[11px] text-white/70">팬심</p>
+                  <div className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">팬심 공명</p>
                     <p className="mt-1 text-lg font-black text-white">{resultVm.fandomScore}</p>
                   </div>
-                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                    <p className="text-[11px] text-white/70">장기</p>
+                  <div className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">장기 연결</p>
                     <p className="mt-1 text-lg font-black text-white">{resultVm.longTermScore}</p>
                   </div>
-                  <div className="rounded-xl border border-white/20 bg-black/25 p-3 text-center">
-                    <p className="text-[11px] text-white/70">등급</p>
+                  <div className={styles.scoreCell}>
+                    <p className="text-[11px] text-white/70">운명 등급</p>
                     <p className="mt-1 text-lg font-black text-white">{resultVm.destinyGrade}</p>
                   </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className={styles.blueBadge}>
+                    에너지 타입: {resultVm.auraType}
+                  </span>
+                  <span className={styles.blueBadge}>
+                    오라 재질: {resultVm.auraMaterial}
+                  </span>
+                  <span className={styles.blueBadge}>
+                    페어링: {resultVm.pairingAlias}
+                  </span>
                 </div>
 
                 <div className="mt-3">
@@ -858,9 +888,10 @@ export default function DestinyBiasClient() {
                   <DestinyBiasDetailSections vm={resultVm} />
 
                   <article className={`rounded-[28px] p-5 ${styles.glass}`}>
-                    <h3 className="text-base font-bold text-white">무대 케미 키워드</h3>
+                    <p className="text-[11px] font-semibold tracking-[0.14em] text-cyan-100/85">STAGE CHEMISTRY</p>
+                    <h3 className="mt-2 text-base font-bold text-white">무대 케미 키워드</h3>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {resultVm.stageChemistryKeywords.map((keyword) => (
+                      {resultVm.stageChemistryKeywords.slice(0, 3).map((keyword) => (
                         <span key={keyword} className="rounded-full border border-white/25 bg-black/25 px-3 py-1 text-xs font-semibold text-white/85">
                           #{keyword}
                         </span>
@@ -874,7 +905,7 @@ export default function DestinyBiasClient() {
           ) : null}
 
           {error ? (
-            <p className="rounded-xl border border-rose-200/45 bg-rose-300/15 px-4 py-3 text-sm text-rose-50">
+            <p className={styles.warnMsg}>
               {error}
             </p>
           ) : null}
@@ -882,7 +913,7 @@ export default function DestinyBiasClient() {
       </div>
 
       {uiStep > 0 && uiStep < 4 ? (
-        <div className={`fixed inset-x-0 bottom-0 z-40 border-t border-white/15 bg-black/50 px-4 py-3 backdrop-blur-xl md:hidden ${styles.stickyCtaSafe}`} {...guardHandlers}>
+        <div className={`md:hidden ${styles.stickyCtaBar}`} {...guardHandlers}>
           <div className="mx-auto flex w-full max-w-7xl gap-2">
             {uiStep > 1 ? (
               <button
@@ -898,9 +929,9 @@ export default function DestinyBiasClient() {
               <button
                 type="button"
                 onClick={onSafeClick(() => nextStep(uiStep as 1 | 2 | 3))}
-                className="min-h-11 flex-1 rounded-full border border-fuchsia-200/70 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 text-sm font-bold text-white"
+                className={`flex-1 ${styles.primaryCta}`}
               >
-                다음
+                Cosmic Stage 입장
               </button>
             ) : (
               <button
@@ -909,9 +940,10 @@ export default function DestinyBiasClient() {
                   analyze().catch(() => null);
                 })}
                 disabled={analyzing}
-                className="min-h-11 flex-1 rounded-full border border-fuchsia-200/70 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 text-sm font-bold text-white disabled:opacity-60"
+                className={`flex-1 ${styles.primaryCta}`}
+                disabled={analyzing}
               >
-                {analyzing ? "분석 중..." : "내 최애운명 분석하기"}
+                {analyzing ? "운명 연결 중..." : "운명 연결 시작하기"}
               </button>
             )}
           </div>
@@ -935,18 +967,19 @@ export default function DestinyBiasClient() {
               <button
                 type="button"
                 onClick={() => nextStep(uiStep as 1 | 2 | 3)}
-                className="min-h-11 rounded-full border border-fuchsia-200/70 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-6 text-sm font-bold text-white"
+                className={`px-8 ${styles.primaryCta}`}
               >
-                다음 단계
+                Cosmic Stage 입장
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => analyze().catch(() => null)}
                 disabled={analyzing}
-                className="min-h-11 rounded-full border border-fuchsia-200/70 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-6 text-sm font-bold text-white disabled:opacity-60"
+                className={`px-8 ${styles.primaryCta}`}
+                disabled={analyzing}
               >
-                {analyzing ? "운명 분석 중..." : "내 최애운명 분석하기"}
+                {analyzing ? "운명 연결 중..." : "운명 연결 시작하기"}
               </button>
             )}
           </div>

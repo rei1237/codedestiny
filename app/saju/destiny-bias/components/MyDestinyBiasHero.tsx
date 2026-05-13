@@ -1,22 +1,53 @@
 "use client";
 
-export default function MyDestinyBiasHero({
-  subtitle,
-}: {
-  subtitle?: string;
-}) {
-  return (
-    <section className="relative overflow-hidden rounded-[30px] border border-white/20 bg-[linear-gradient(130deg,rgba(255,255,255,0.12),rgba(255,255,255,0.03))] p-5 shadow-[0_24px_70px_rgba(3,2,14,0.45)] backdrop-blur-2xl md:p-7">
-      <div className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full bg-pink-300/35 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -right-20 top-8 h-48 w-48 rounded-full bg-cyan-300/25 blur-3xl" aria-hidden />
+import { motion, useReducedMotion } from "framer-motion";
+import styles from "../destiny-bias.module.css";
 
-      <p className="text-xs font-semibold tracking-[0.22em] text-fuchsia-100/90">MY DESTINY BIAS</p>
-      <h1 className="mt-2 text-3xl font-black leading-tight text-white md:text-5xl">THE CONCERT AURA PHOTOCARD</h1>
-      <p className="mt-3 max-w-3xl text-sm leading-7 text-white/85 md:text-base">
-        오늘, 당신의 운명이 최애의 무대와 연결되었습니다. 응원봉의 빛과 별빛 오라가 겹치는 순간을
-        한정판 팬싸인 포토카드로 기록해 보세요.
+export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <motion.section
+      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="relative overflow-hidden rounded-[28px] p-5 md:p-7"
+      style={{
+        background: "radial-gradient(ellipse at 10% 10%, rgba(255,95,210,0.14) 0%, transparent 50%), radial-gradient(ellipse at 90% 80%, rgba(64,200,255,0.1) 0%, transparent 50%), rgba(255,255,255,0.07)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        backdropFilter: "blur(20px)",
+        boxShadow: "0 24px 70px rgba(3,2,14,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
+      }}
+    >
+      {/* Pink glow blob */}
+      <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-pink-300/25 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-20 top-8 h-52 w-52 rounded-full bg-cyan-300/18 blur-3xl" aria-hidden />
+
+      <div className={`${styles.entryPassLabel} mb-3`}>★ COSMIC FAN CONCERT</div>
+
+      <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white md:text-4xl">
+        MY DESTINY BIAS
+      </h1>
+
+      <p className="mt-3 max-w-xl text-sm leading-7 text-white/80 md:text-base">
+        우주 한가운데 펼쳐진 프라이빗 콘서트장에서,{" "}
+        <span className="font-semibold text-fuchsia-200/90">당신의 사주 에너지</span>가{" "}
+        <span className="font-semibold text-cyan-200/90">최애의 무대 아우라</span>와 연결됩니다.
       </p>
-      {subtitle ? <p className="mt-3 text-sm font-semibold text-cyan-100/90">{subtitle}</p> : null}
-    </section>
+
+      {subtitle ? (
+        <p className="mt-3 text-sm font-semibold text-cyan-100/85">{subtitle}</p>
+      ) : null}
+
+      {/* Aurora bottom glow */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
+        aria-hidden
+        style={{
+          background: "linear-gradient(90deg, transparent, rgba(255,95,210,0.5) 30%, rgba(64,200,255,0.5) 70%, transparent)",
+        }}
+      />
+    </motion.section>
   );
 }
+

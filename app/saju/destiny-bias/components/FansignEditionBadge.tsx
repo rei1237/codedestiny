@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "../destiny-bias.module.css";
+
 export default function FansignEditionBadge({
   editionLabel,
   destinyGrade,
@@ -9,15 +11,10 @@ export default function FansignEditionBadge({
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <span className="rounded-full border border-fuchsia-200/60 bg-fuchsia-300/20 px-3 py-1 text-xs font-bold text-fuchsia-50">
-        {editionLabel}
-      </span>
-      <span className="rounded-full border border-cyan-200/60 bg-cyan-300/20 px-3 py-1 text-xs font-bold text-cyan-50">
-        FANSIGN EDITION
-      </span>
-      <span className="rounded-full border border-amber-200/60 bg-amber-300/20 px-3 py-1 text-xs font-bold text-amber-50">
-        {destinyGrade}
-      </span>
+      <span className={styles.goldBadge}>★ DESTINY VERIFIED</span>
+      <span className={styles.pinkBadge}>✦ FANSIGN EDITION</span>
+      <span className={`${styles.goldBadge} opacity-90`}>{editionLabel}</span>
+      <span className={styles.blueBadge}>{destinyGrade}</span>
     </div>
   );
 }

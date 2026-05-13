@@ -1,13 +1,11 @@
 import "../styles/globals.css";
 import { Noto_Sans_KR } from "next/font/google";
 import AppVersionGuard from "./components/AppVersionGuard";
-import SiteFooterHub from "./components/SiteFooterHub";
-import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import DeferredAdsense from "./components/DeferredAdsense";
-import GlobalHeader from "./components/GlobalHeader";
 import NavigationProvider from "./providers/NavigationProvider";
+import AppChrome from "./components/AppChrome";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const notoSansKR = Noto_Sans_KR({
@@ -206,10 +204,9 @@ export default function RootLayout({ children }) {
             <DeferredAdsense />
             <AppVersionGuard />
             <ToastProvider />
-            <GlobalHeader />
-            <div>{children}</div>
-            <DisclaimerBanner />
-            <SiteFooterHub />
+            <AppChrome>
+              {children}
+            </AppChrome>
           </NavigationProvider>
         </PaymentProcessingProvider>
       </body>

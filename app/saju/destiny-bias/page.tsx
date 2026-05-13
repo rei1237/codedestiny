@@ -1,4 +1,5 @@
 import DestinyBiasClient from "./DestinyBiasClient";
+import MyDestinyBiasShell from "./components/MyDestinyBiasShell";
 
 export const metadata = {
   title: "최애운명 - 사주 기반 덕질 운명 분석 | Code Destiny",
@@ -24,5 +25,9 @@ export const metadata = {
 };
 
 export default function DestinyBiasPage() {
-  return <DestinyBiasClient />;
+  return (
+    <MyDestinyBiasShell>
+      <DestinyBiasClient />
+    </MyDestinyBiasShell>
+  );
 }
