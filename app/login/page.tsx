@@ -148,8 +148,19 @@ export default function LoginPage() {
     event.preventDefault();
     if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
 
-    const normalizedId = loginId.trim();
-    if (!normalizedId || password.length < 8) {
+    const form = event.currentTarget;
+    const submittedLoginId = String(
+      ((form.elements.namedItem("login-id") as HTMLInputElement | null)?.value || loginId),
+    ).trim();
+    const submittedPassword = String(
+      ((form.elements.namedItem("login-password") as HTMLInputElement | null)?.value || password),
+    );
+
+    if (submittedLoginId !== loginId) setLoginId(submittedLoginId);
+    if (submittedPassword !== password) setPassword(submittedPassword);
+
+    const normalizedId = submittedLoginId;
+    if (!normalizedId || submittedPassword.length < 8) {
       setError("아이디(이메일)와 비밀번호를 확인해 주세요.");
       return;
     }
@@ -167,7 +178,7 @@ export default function LoginPage() {
       const nextPath = resolveNextPathFromQuery(params);
       const loginResult = await loginWithStore({
         email: normalizedId,
-        password,
+        password: submittedPassword,
         nextPath,
         apiBase: authApiBase,
       });
@@ -270,6 +281,7 @@ export default function LoginPage() {
                 <label htmlFor="login-id" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/80">이메일 주소</label>
                 <input
                   id="login-id"
+                  name="login-id"
                   type="email"
                   autoComplete="email"
                   value={loginId}
@@ -285,6 +297,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <input
                     id="login-password"
+                    name="login-password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     value={password}
