@@ -59,6 +59,45 @@ const meditationItems: ServiceCardModel[] = [
   { title: "힐링 타로 시작", description: "즉시 감정 안정 리딩", href: "/tarot/healing", emoji: "💛", badges: [{ text: "무료", tone: "free" }] },
 ];
 
+const miscDivinationItems: ServiceCardModel[] = [
+  {
+    title: "심리테스트 허브",
+    description: "성격 유형, 관계 심리, 감정 패턴까지 14종 테스트를 한 번에 탐색",
+    href: "/psychotest",
+    emoji: "🧠",
+    image: "/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
+    badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }],
+    cta: "심리테스트 열기",
+  },
+  {
+    title: "AI 이모이 오미쿠지",
+    description: "오늘의 기분과 고민을 바탕으로 행운 흐름과 행동 힌트를 확인",
+    href: "/emoi_omikuji_v2.html",
+    emoji: "🤖",
+    image: "/fuctionassets/오미쿠지.webp",
+    badges: [{ text: "무료", tone: "free" }, { text: "AI", tone: "soft" }],
+    cta: "오미쿠지 보기",
+  },
+  {
+    title: "혈액형 테스트",
+    description: "혈액형 성향, 라이프 코칭, 궁합, 밸런스 게임까지 가볍게 체험",
+    href: "/blood-type-app.html",
+    emoji: "🩸",
+    image: "/fuctionassets/혈액형.webp",
+    badges: [{ text: "무료", tone: "free" }, { text: "인기", tone: "new" }],
+    cta: "혈액형 테스트",
+  },
+  {
+    title: "최애운명",
+    description: "K-POP 포토카드 무드로 사주 공명 포인트를 읽는 몰입형 리딩",
+    href: "/saju/destiny-bias",
+    emoji: "✨",
+    image: "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+    badges: [{ text: "1회 50코인", tone: "coin" }, { text: "포토카드", tone: "new" }],
+    cta: "최애운명 시작",
+  },
+];
+
 const premiumItems: ServiceCardModel[] = [
   { title: "자미두수 프리미엄 PDF", description: "13챕터 심층 리포트", href: "/static/index.html?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
   { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/static/index.html?action=gotoAstrologyPremium", emoji: "🌟", badges: [{ text: "390코인", tone: "coin" }] },
@@ -223,102 +262,15 @@ export default function MainLandingPage() {
         <QuickServiceShortcuts />
       </section>
 
-      <section className="cd-main-shell !py-4 md:!py-5" aria-label="심리테스트 및 최애운명 추천">
-        <div className="rounded-[22px] border border-violet-300/30 bg-[linear-gradient(145deg,rgba(29,15,63,0.9),rgba(41,23,84,0.84))] p-4 shadow-[0_14px_32px_rgba(27,14,59,0.3)] md:p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="text-xl">🧩</span>
-            <h2 className="text-lg font-extrabold tracking-tight text-violet-50">심리테스트 다음 추천</h2>
-          </div>
-          <p className="mb-4 text-sm leading-6 text-violet-100/80">심리테스트 이후 최애운명, AI 이모이 오미쿠지, 혈액형 테스트까지 순서대로 이어서 확인해보세요.</p>
-
-          <div className="space-y-3">
-            <Link
-              href="/psychotest"
-              className="block overflow-hidden rounded-[18px] border border-violet-200/30 bg-[linear-gradient(160deg,rgba(31,16,66,0.92),rgba(47,20,94,0.86))] shadow-[0_10px_24px_rgba(26,13,57,0.35)] transition hover:-translate-y-0.5 hover:border-violet-200/55"
-            >
-              <img
-                src="/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp"
-                alt="심리테스트 대표 이미지"
-                className="h-40 w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <strong className="text-sm font-bold leading-6 text-violet-50">🧠 심리테스트</strong>
-                  <span className="inline-flex rounded-full border border-emerald-300/50 bg-emerald-500/18 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
-                </div>
-                <p className="text-xs leading-5 text-violet-100/85">성격 유형·관계 심리·감정 패턴 등 다양한 테마를 빠르게 확인할 수 있는 심리테스트 허브입니다.</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/saju/destiny-bias"
-              className="group relative block overflow-hidden rounded-[20px] border border-fuchsia-200/45 bg-[radial-gradient(circle_at_20%_12%,rgba(255,79,216,0.32),transparent_30%),radial-gradient(circle_at_82%_24%,rgba(34,211,238,0.2),transparent_34%),linear-gradient(160deg,rgba(30,8,48,0.95),rgba(19,14,55,0.92)_52%,rgba(10,16,44,0.92))] shadow-[0_14px_34px_rgba(32,9,56,0.4)] transition hover:-translate-y-0.5 hover:border-cyan-200/70"
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.2),transparent_38%)] opacity-70" aria-hidden />
-              <img
-                src="/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"
-                alt="최애운명 대표 이미지"
-                className="h-40 w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="relative p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <strong className="text-sm font-bold leading-6 text-fuchsia-50">✨ 최애운명</strong>
-                  <span className="inline-flex rounded-full border border-cyan-200/60 bg-cyan-300/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-50">✨ 1회 50코인 · 포토카드 포함</span>
-                </div>
-                <p className="text-xs leading-5 text-fuchsia-50/90">내 사주 에너지가 최애에게 닿는 방식. K-POP 포토카드 무드로 오늘의 덕질 액션을 완성해보세요.</p>
-                <div className="mt-2 flex items-center gap-2 text-[11px] font-semibold text-cyan-100/90">
-                  <span>⭐ 탑꾸 에디터</span>
-                  <span>•</span>
-                  <span>🎤 운명 포토카드</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/emoi_omikuji_v2.html"
-              className="block overflow-hidden rounded-[18px] border border-cyan-300/40 bg-[linear-gradient(160deg,rgba(18,56,74,0.9),rgba(18,34,64,0.88))] shadow-[0_10px_24px_rgba(14,45,66,0.35)] transition hover:-translate-y-0.5 hover:border-cyan-200/60"
-            >
-              <img
-                src="/fuctionassets/오미쿠지.webp"
-                alt="AI 이모이 오미쿠지 대표 이미지"
-                className="h-40 w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <strong className="text-sm font-bold leading-6 text-cyan-50">🤖 AI 이모이 오미쿠지</strong>
-                  <span className="inline-flex rounded-full border border-emerald-300/55 bg-emerald-500/22 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
-                </div>
-                <p className="text-xs leading-5 text-cyan-50/90">내 마음과 궁금한 주제를 읽어주는 감성 신탁으로, 오늘의 행운 흐름과 행동 힌트를 빠르게 확인할 수 있습니다.</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/blood-type-app.html"
-              className="block overflow-hidden rounded-[18px] border border-rose-300/45 bg-[linear-gradient(160deg,rgba(68,24,42,0.92),rgba(36,18,44,0.9))] shadow-[0_10px_24px_rgba(102,31,53,0.34)] transition hover:-translate-y-0.5 hover:border-rose-200/65"
-            >
-              <img
-                src="/fuctionassets/혈액형.webp"
-                alt="혈액형 테스트 대표 이미지"
-                className="h-40 w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <strong className="text-sm font-bold leading-6 text-rose-50">🩸 혈액형 테스트</strong>
-                  <span className="inline-flex rounded-full border border-emerald-300/55 bg-emerald-500/22 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
-                </div>
-                <p className="text-xs leading-5 text-rose-50/90">혈액형별 성향, 라이프 코칭, 궁합, 밸런스 게임까지 한 번에 확인하고 나에게 맞는 실전 팁을 받아보세요.</p>
-              </div>
-            </Link>
-          </div>
-        </div>
+      <section className="cd-main-shell !py-4 md:!py-5" aria-label="기타 점술 컬렉션">
+        <DeferredServiceCollectionSection
+          title="기타 점술 컬렉션"
+          subtitle="심리테스트부터 혈액형 테스트까지"
+          description="심리테스트에서 시작해 AI 오미쿠지, 혈액형 테스트를 거쳐 최애운명까지 자연스럽게 이어지는 탐색 흐름입니다."
+          icon="🧩"
+          defaultOpen
+          items={miscDivinationItems}
+        />
       </section>
 
       <LazySection className="cd-main-shell !py-4 md:!py-5" minHeight={220}>

@@ -57,29 +57,37 @@ export default function ServiceCollectionSection({
   const hasMore = items.length > 6;
 
   return (
-    <section className="rounded-[22px] border border-violet-300/30 bg-[linear-gradient(145deg,rgba(29,15,63,0.9),rgba(41,23,84,0.84))] p-4 shadow-[0_14px_32px_rgba(27,14,59,0.3)] md:p-5">
+    <section className="relative overflow-hidden rounded-[26px] border border-sky-100/20 bg-[radial-gradient(circle_at_14%_12%,rgba(251,191,36,0.2),transparent_28%),radial-gradient(circle_at_86%_22%,rgba(125,211,252,0.16),transparent_34%),linear-gradient(158deg,rgba(6,18,44,0.96),rgba(17,36,74,0.94)_55%,rgba(27,33,73,0.95))] p-4 shadow-[0_24px_56px_rgba(4,10,29,0.52)] md:p-6">
+      <div className="pointer-events-none absolute -left-16 top-6 h-40 w-40 rounded-full bg-amber-200/15 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-14 bottom-4 h-44 w-44 rounded-full bg-sky-300/15 blur-3xl" aria-hidden />
+
       <button
         type="button"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onClick={wrapClick(() => setOpen((v) => !v))}
         aria-expanded={open}
-        className="w-full text-left"
+        className="relative z-10 w-full text-left"
       >
-        <div className="mb-1 flex items-center gap-2">
-          {icon ? <span className="text-xl">{icon}</span> : null}
-          <h2 className="text-lg font-extrabold tracking-tight text-violet-50">{title}</h2>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {icon ? <span className="text-xl">{icon}</span> : null}
+            <h2 className="text-[1.06rem] font-black tracking-tight text-slate-50 md:text-lg">{title}</h2>
+          </div>
+          <span className="inline-flex shrink-0 items-center rounded-full border border-sky-100/35 bg-slate-900/45 px-2.5 py-1 text-[10px] font-semibold text-sky-100/90">
+            {items.length} cards
+          </span>
         </div>
-        <p className="text-sm font-semibold text-violet-200">{subtitle}</p>
-        <p className="mt-1 text-sm leading-6 text-violet-100/80">{description}</p>
-        <div className="mt-3 inline-flex items-center rounded-full border border-violet-200/45 bg-[rgba(77,50,140,0.5)] px-3 py-1 text-xs font-semibold text-violet-100">
+        <p className="text-sm font-semibold text-sky-100/95">{subtitle}</p>
+        <p className="mt-1 text-sm leading-6 text-slate-100/80">{description}</p>
+        <div className="mt-4 inline-flex items-center rounded-full border border-slate-100/20 bg-slate-950/35 px-3 py-1 text-xs font-semibold text-slate-100/90">
           {open ? "접기" : "열기"}
         </div>
       </button>
 
       {open ? (
         <>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="relative z-10 mt-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {visibleItems.map((item) => (
               <ServiceCard key={`${title}-${item.title}`} item={item} />
             ))}
@@ -92,7 +100,7 @@ export default function ServiceCollectionSection({
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onClick={wrapClick(() => setExpandedMobile((v) => !v))}
-                className="rounded-full border border-violet-200/45 bg-[rgba(75,48,136,0.62)] px-4 py-1.5 text-xs font-semibold text-violet-50"
+                className="rounded-full border border-sky-100/40 bg-slate-900/55 px-4 py-1.5 text-xs font-semibold text-sky-50"
               >
                 {expandedMobile ? "핵심 카드만 보기" : "더 보기"}
               </button>
