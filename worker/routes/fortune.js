@@ -1446,6 +1446,51 @@ async function handleSubscriptionStatus(request, env, auth) {
   });
 }
 
+function buildTokenFallbackSubscriptionStatus(auth) {
+  const hintedTier = normalizeSubscriptionTier(
+    auth?.subscriptionTier
+    || auth?.profileSubscription?.tier
+    || auth?.tier,
+  );
+  const tier = hintedTier || "free";
+  const isActive = tier !== "free";
+  const policy = getPlanPolicy(isActive ? tier : null);
+  const plan = PROFILE_SUB_PLANS[tier] || null;
+  const points = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
+
+  return {
+    ok: true,
+    authenticated: true,
+    degraded: true,
+    source: "token",
+    code: "SUBSCRIPTION_STORAGE_UNAVAILABLE",
+    message: "구독 정보를 임시 데이터로 표시합니다.",
+    subscription: {
+      isSubscribed: isActive,
+      plan: tier,
+      expiresAt: null,
+    },
+    isSubscribed: isActive,
+    plan: tier,
+    tier,
+    isActive,
+    expiresAt: null,
+    profileLimit: isActive ? Number(plan?.profileLimit || 1) : 1,
+    points,
+    lowBalanceWarning: false,
+    autoRenewed: false,
+    cancelAtPeriodEnd: false,
+    cancelRequestedAt: null,
+    hasStartedPaidService: false,
+    firstServiceAccessDate: null,
+    adminMode: false,
+    simulated: false,
+    adminTestTier: null,
+    freeLimit: policy.freeLimit,
+    recommendedCoins: policy.recommendedCoins,
+  };
+}
+
 function handleGuestSubscriptionStatus() {
   return json({
     ok: false,
@@ -1748,12 +1793,15 @@ export async function handleFortuneRoutes(request, env) {
         await connectDb(env);
       } catch (error) {
         const isBalanceRoute = path === "/pig-coin/balance";
-        return json({
-          ok: false,
-          authenticated: true,
-          code: isBalanceRoute ? "COIN_STORAGE_UNAVAILABLE" : "SUBSCRIPTION_STORAGE_UNAVAILABLE",
-          message: isBalanceRoute ? "코인 정보를 불러올 수 없습니다." : "구독 정보를 불러올 수 없습니다.",
-        }, { status: 503 });
+        if (isBalanceRoute) {
+          return json({
+            ok: false,
+            authenticated: true,
+            code: "COIN_STORAGE_UNAVAILABLE",
+            message: "코인 정보를 불러올 수 없습니다.",
+          }, { status: 503 });
+        }
+        return json(buildTokenFallbackSubscriptionStatus(auth));
       }
       trace.dbConnected = true;
 
