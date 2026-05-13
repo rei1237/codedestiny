@@ -575,11 +575,13 @@
         var ch=Number(d.getAttribute('data-abch'));
         var isDone=ch<=done;
         var isActive=ch===done+1&&done<ASTRO_TOTAL_CHAPTERS;
+        var isPending=!isDone&&!isActive;
         var wasDone=d.classList.contains('zb-ch-dot--done')||d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done', isDone);
         d.classList.toggle('zb-ch-dot--active', isActive);
         d.classList.toggle('lb-ch-dot--done', isDone);
         d.classList.toggle('lb-ch-dot--active', isActive);
+        d.classList.toggle('lb-ch-dot--pending', isPending);
         if (!wasDone&&isDone){
           d.classList.add('lb-ch-dot--just-done');
           setTimeout(function(){ d.classList.remove('lb-ch-dot--just-done'); }, 760);
