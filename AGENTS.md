@@ -47,3 +47,13 @@
 - Reflection verification before reporting "done":
 	- Confirm changed marker text/attribute exists in root `index.html` and mirrored `public/static/index.html` after sync.
 	- Include the exact changed marker in commit message/body or report so production verification is immediate.
+
+## 8) Login UI Regression Guard (Must Follow)
+- For logged-in main-shell card changes, treat `index.html` auth hero/card block as a protected block.
+- After any `index.html` or `scripts/sync-legacy-static-to-public.mjs` edits, verify these markers exist in root + mirrors:
+	- `id="authQuickLinks"`
+	- `.cd-user-card__avatar-ring::before`
+	- `animation:cdPlanetRingDrift 5.4s ease-in-out infinite`
+	- `id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout"`
+- Mandatory check command before commit:
+	- `npm run verify:locale-main-sync`
