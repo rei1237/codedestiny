@@ -116,6 +116,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 .partner-chip.active{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--black);}
 .swipe-area{position:relative;min-height:240px;height:auto;margin-bottom:14px;}
 .compat-qa-card{border:2.5px solid var(--black);border-radius:16px;padding:16px;box-shadow:var(--shadow-lg);}
+.compat-qa-card{position:relative;cursor:grab;user-select:none;touch-action:pan-y;transition:transform .2s ease, opacity .2s ease;}
+.compat-qa-card.is-dragging{cursor:grabbing;transition:none;}
+.compat-qa-card.fly-good{transform:translateX(115%) rotate(14deg)!important;opacity:0;}
+.compat-qa-card.fly-bad{transform:translateX(-115%) rotate(-14deg)!important;opacity:0;}
+.compat-qa-badge{position:absolute;top:12px;padding:4px 10px;border:2px solid var(--black);border-radius:999px;font-size:11px;font-weight:900;background:#fff;opacity:.18;transition:opacity .12s ease;pointer-events:none;}
+.compat-qa-badge.bad{left:12px;}
+.compat-qa-badge.good{right:12px;}
 .compat-qa-progress{font-size:11px;font-weight:800;color:#666;margin-bottom:8px;}
 .compat-qa-title{font-size:16px;font-weight:900;line-height:1.45;color:var(--black);word-break:keep-all;}
 .compat-qa-trait{font-size:12px;color:#555;line-height:1.5;margin-top:10px;}
@@ -323,12 +330,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
       <button class="tab-btn" id="tab-social" onclick="switchCompatTab('social')">💼 사회생활</button>
     </div>
     <div id="compat-love">
-      <div style="font-size:13px;font-weight:700;color:#888;margin-bottom:12px;text-align:center;">상대 혈액형 성향 기반 질문에 답하면 마지막에 한 번에 궁합 점수를 계산해줘</div>
+      <div style="font-size:13px;font-weight:700;color:#888;margin-bottom:12px;text-align:center;">질문 카드를 왼쪽/오른쪽으로 스와이프해서 답하면 마지막에 한 번에 궁합 점수를 계산해줘</div>
       <div id="compat-partner-picker" class="compat-partner-picker"></div>
       <div class="swipe-area" id="swipe-area"></div>
       <div class="swipe-btns">
-        <button class="swipe-btn bouncy" id="compat-bad-btn" onclick="answerCompat('bad')" title="나쁘다">👎 나쁘다</button>
-        <button class="swipe-btn bouncy" id="compat-good-btn" onclick="answerCompat('good')" title="좋다">👍 좋다</button>
+        <button class="swipe-btn bouncy" id="compat-bad-btn" onclick="answerCompat('bad')" title="나쁘다">⬅️ 👎 나쁘다</button>
+        <button class="swipe-btn bouncy" id="compat-good-btn" onclick="answerCompat('good')" title="좋다">👍 좋다 ➡️</button>
       </div>
       <div id="love-result"></div>
     </div>
@@ -674,6 +681,7 @@ let state = {
   isSpicy: false,
   compatTab: 'love',
   selectedPartnerType: null,
+  compatSwipeLocked: false,
   lifeTab: 'diet',
   swipeIndex: 0,
   swipeDeck: [],
@@ -1128,6 +1136,7 @@ function renderCompatQuestionCard(d) {
   const partner = DATA[session.partnerType];
 
   if (session.result) {
+    state.compatSwipeLocked = false;
     area.innerHTML = `
       <div class="compat-qa-card" style="background:${partner.bg};border-color:${partner.dark}">
         <div class="compat-qa-progress">질문 ${total}/${total} 완료</div>
@@ -1142,21 +1151,92 @@ function renderCompatQuestionCard(d) {
 
   const q = session.questions[progress];
   area.innerHTML = `
-    <div class="compat-qa-card" style="background:${partner.bg};border-color:${partner.dark}">
+    <div class="compat-qa-card" id="compat-qa-card" style="background:${partner.bg};border-color:${partner.dark}">
+      <div class="compat-qa-badge bad">👎 나쁘다</div>
+      <div class="compat-qa-badge good">👍 좋다</div>
       <div class="compat-qa-progress">질문 ${progress + 1}/${total} · 상대 ${partner.label} 성향 반영</div>
       <div class="compat-qa-title">${q.question}</div>
       <div class="compat-qa-trait">${q.trait ? `성향 포인트: ${q.trait}` : '성향 포인트: 상대 성격 특징을 기준으로 평가해 주세요.'}</div>
-      <div class="compat-qa-hint">각 문항은 가중치 ${q.weight}점으로 최종 점수에 반영됩니다.</div>
+      <div class="compat-qa-hint">각 문항은 가중치 ${q.weight}점으로 최종 점수에 반영됩니다. 카드를 왼쪽(나쁘다)/오른쪽(좋다)으로 밀어보세요.</div>
     </div>
   `;
   if (badBtn) badBtn.disabled = false;
   if (goodBtn) goodBtn.disabled = false;
+  initCompatSwipeCard();
+}
+
+function initCompatSwipeCard() {
+  const card = document.getElementById('compat-qa-card');
+  if (!card) return;
+
+  const badBadge = card.querySelector('.compat-qa-badge.bad');
+  const goodBadge = card.querySelector('.compat-qa-badge.good');
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let dx = 0;
+
+  const getPoint = (e) => (e.touches?.[0] || e.changedTouches?.[0] || e);
+
+  const onStart = (e) => {
+    if (state.compatSwipeLocked || state.compatSession?.result) return;
+    const p = getPoint(e);
+    startX = p.clientX;
+    startY = p.clientY;
+    dx = 0;
+    dragging = true;
+    card.classList.add('is-dragging');
+  };
+
+  const onMove = (e) => {
+    if (!dragging) return;
+    const p = getPoint(e);
+    dx = p.clientX - startX;
+    const dy = p.clientY - startY;
+    card.style.transform = `translateX(${dx}px) rotate(${dx * 0.08}deg) translateY(${dy * 0.08}px)`;
+    const badgeOpacity = Math.min(1, 0.2 + Math.abs(dx) / 80);
+    if (badBadge) badBadge.style.opacity = dx < 0 ? String(badgeOpacity) : '0.18';
+    if (goodBadge) goodBadge.style.opacity = dx > 0 ? String(badgeOpacity) : '0.18';
+  };
+
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.classList.remove('is-dragging');
+
+    if (Math.abs(dx) >= 70) {
+      triggerCompatSwipe(dx > 0 ? 'good' : 'bad', card);
+      return;
+    }
+
+    card.style.transform = '';
+    if (badBadge) badBadge.style.opacity = '0.18';
+    if (goodBadge) goodBadge.style.opacity = '0.18';
+  };
+
+  card.addEventListener('mousedown', onStart);
+  card.addEventListener('mousemove', onMove);
+  card.addEventListener('mouseup', onEnd);
+  card.addEventListener('mouseleave', onEnd);
+  card.addEventListener('touchstart', onStart, { passive: true });
+  card.addEventListener('touchmove', onMove, { passive: true });
+  card.addEventListener('touchend', onEnd);
+}
+
+function triggerCompatSwipe(choice, card) {
+  if (!card || state.compatSwipeLocked) return;
+  state.compatSwipeLocked = true;
+  card.classList.add(choice === 'good' ? 'fly-good' : 'fly-bad');
+  setTimeout(() => {
+    state.compatSwipeLocked = false;
+    answerCompat(choice);
+  }, 210);
 }
 
 function answerCompat(choice) {
   const d = DATA[state.blood];
   const session = state.compatSession;
-  if (!d || !session || session.result) return;
+  if (!d || !session || session.result || state.compatSwipeLocked) return;
   if (choice !== 'good' && choice !== 'bad') return;
 
   const idx = session.answers.length;
