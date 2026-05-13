@@ -18,7 +18,7 @@ var SAJU_ANIMAL_TEST_FEATURE = {
   enabled: true,
   requiresLogin: false,
   requiresProfile: false,
-  cta: '나의 수호 동물 뽑기',
+  cta: '🐾 나의 수호 동물 소환',
   lockKey: 'animal-destiny-unlock',
   coinCost: 100,
   thumb: '동물점테스트.webp',
@@ -29,7 +29,6 @@ var SAJU_ANIMAL_TEST_FEATURE = {
 var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기',     accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
   { id:'quantum',    thumb:'quntum.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'지금 밀어붙일 타이밍인지, 숨을 고를 타이밍인지 천기적으로 짚어드립니다.', cta:'⚡ 천기 리포트 보기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        coinCost:50  },
-  { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
   { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타/초상화 제작용 프롬프트를 받아보세요.',         note:'내 사주 분위기를 AI 이미지로 구현할 문장까지 바로 가져갈 수 있습니다.', cta:'🤖 사주 프롬프트 보기',        accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0   },
   { id:'sajurpg',    label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:30  },
@@ -40,8 +39,61 @@ var REPORT_CARDS = [
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
   { id:'godlife',    label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
   { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
-  { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 }
+  { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
+  { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group }
 ];
+
+(function ensureSajuAnimalCardOrder() {
+  var animalCard = null;
+  var normalized = [];
+
+  for (var i = 0; i < REPORT_CARDS.length; i += 1) {
+    var item = REPORT_CARDS[i];
+    if (!item) continue;
+    if (item.id === SAJU_ANIMAL_TEST_FEATURE.id) {
+      animalCard = item;
+      continue;
+    }
+    normalized.push(item);
+  }
+
+  if (!animalCard) {
+    animalCard = {
+      id: SAJU_ANIMAL_TEST_FEATURE.id,
+      thumb: SAJU_ANIMAL_TEST_FEATURE.thumb,
+      label: SAJU_ANIMAL_TEST_FEATURE.title,
+      shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle,
+      desc: SAJU_ANIMAL_TEST_FEATURE.description,
+      note: '열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.',
+      cta: SAJU_ANIMAL_TEST_FEATURE.cta,
+      accent: '#f59e0b',
+      glow: 'rgba(245,158,11,.45)',
+      target: SAJU_ANIMAL_TEST_FEATURE.target,
+      action: SAJU_ANIMAL_TEST_FEATURE.action,
+      lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey,
+      coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost,
+      badge: SAJU_ANIMAL_TEST_FEATURE.badge,
+      tags: SAJU_ANIMAL_TEST_FEATURE.tags,
+      group: SAJU_ANIMAL_TEST_FEATURE.group
+    };
+  }
+
+  var secretIdx = -1;
+  for (var j = 0; j < normalized.length; j += 1) {
+    if (normalized[j] && normalized[j].id === 'secretHouse') {
+      secretIdx = j;
+      break;
+    }
+  }
+
+  if (secretIdx >= 0) {
+    normalized.splice(secretIdx + 1, 0, animalCard);
+  } else {
+    normalized.push(animalCard);
+  }
+
+  REPORT_CARDS = normalized;
+})();
 
 (function ensureSajuAnimalCardRegistered() {
   var isLocalDebug = false;
