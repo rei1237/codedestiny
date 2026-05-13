@@ -34,29 +34,29 @@ function stageTone(stage: TwelveStage) {
   if (["장생", "목욕", "관대", "건록", "제왕"].includes(stage)) {
     return {
       axis: "확장",
-      personality: "바깥으로 뻗는 성장 에너지가 강해, 기회 포착과 실행의 리듬이 빠릅니다.",
-      love: "감정 표현이 비교적 선명해 관계의 시작과 밀도 형성이 빠른 편입니다.",
-      career: "런칭/확장/성과 가시화 구간에서 강점을 크게 발휘합니다.",
-      luck: "사람과 기회가 붙는 시기라, 약속/협업/제안 운을 활용하면 효율이 좋습니다.",
+      personality: "바깥으로 뻗는 별빛이 강하게 올라와 기회를 감지하면 즉시 움직이는 결단력이 살아납니다.",
+      love: "감정의 불꽃이 분명해 첫 만남의 온도를 빠르게 끌어올리는 힘이 큽니다.",
+      career: "런칭, 확장, 공개 성과가 필요한 장면에서 존재감이 가장 선명하게 드러납니다.",
+      luck: "사람과 제안이 한 번에 엮이는 운이므로 약속과 협업을 닫지 말고 열어두는 편이 유리합니다.",
     };
   }
 
   if (["쇠", "병", "사", "묘"].includes(stage)) {
     return {
       axis: "정비",
-      personality: "내부 정리와 감정 소모 관리가 중요해, 선택과 집중에서 실력이 드러납니다.",
-      love: "관계에서 속도보다 신뢰와 회복 루틴을 만들 때 안정감이 커집니다.",
-      career: "운영/리스크관리/디테일 점검 업무에서 성과가 탄탄하게 쌓입니다.",
-      luck: "과한 확장보다 정리·정돈·백업 루틴이 실질적 행운을 만듭니다.",
+      personality: "내부 궁전을 다듬는 시기라 감정의 낭비를 줄일수록 내공이 단단하게 축적됩니다.",
+      love: "빠른 진전보다 신뢰의 리듬을 맞추는 대화가 관계의 수명을 길게 만듭니다.",
+      career: "운영, 리스크 관리, 디테일 감리가 필요한 영역에서 오차 없는 실력이 빛납니다.",
+      luck: "큰 승부보다 정리와 백업의 습관이 보이지 않는 손실을 막아 실질 운을 키워줍니다.",
     };
   }
 
   return {
     axis: "전환",
-    personality: "재시작과 준비 에너지가 강한 구간이라, 다음 사이클 설계 능력이 뛰어납니다.",
-    love: "관계 템포를 맞추는 대화가 핵심이며, 확인 질문이 오해를 크게 줄입니다.",
-    career: "리브랜딩/리빌드/신규 학습의 효율이 높아 커리어 체질 개선에 유리합니다.",
-    luck: "작은 습관 교체가 큰 흐름 변화를 만드는 타이밍입니다.",
+    personality: "낡은 궤도를 벗어나 새 항로를 여는 문턱이라 재시작 설계력이 강하게 발현됩니다.",
+    love: "관계 속도보다 호흡을 맞추는 확인 질문이 오해를 정화하고 깊이를 만듭니다.",
+    career: "리빌드와 재학습의 효율이 높아 커리어 체질을 바꾸기 좋은 국면입니다.",
+    luck: "작은 습관 하나를 바꾸는 선택이 다음 시즌의 운세 구조를 바꿉니다.",
   };
 }
 
@@ -91,17 +91,17 @@ export function buildAnimalNarrativeInsights(args: {
       : "현재 흐름은 전환 우세";
 
   const hourLine = timeUnknown
-    ? "시주 미입력으로 시지 해석은 제외하고 년·월·일 축 중심으로 판정했습니다."
-    : `시지 ${stageLabel(pillars.hour)}까지 반영해 행동 후반 템포를 함께 계산했습니다.`;
+    ? "시주가 비어 있어 년·월·일 세 축으로만 핵심 운의 흐름을 판정했습니다."
+    : `시지 ${stageLabel(pillars.hour)}까지 포함해 후반 운의 추진력과 회수력을 함께 반영했습니다.`;
 
   return {
-    heroLine: `${animal.animal_ko} 타입의 중심축은 ${stageLabel(primary)}이며, ${tone.axis} 에너지로 읽힙니다.`,
-    stageEvidence: `일지 ${stageLabel(pillars.day || primary)} / 월지 ${stageLabel(pillars.month)} / 년지 ${stageLabel(pillars.year)} 기반 분석입니다. ${hourLine}`,
-    statsLine: `${balanceLine} (${growthCount}:${maintenanceCount}:${transitionCount})라서 현재 스탯은 ${animal.game_stats.power >= animal.game_stats.logic ? "실행/추진" : "전략/정밀"} 쪽 체감이 크게 나타납니다.`,
+    heroLine: `${animal.animal_ko}의 중심 별은 ${stageLabel(primary)}에 놓여 있으며, 지금의 운은 ${tone.axis}의 문을 열고 있습니다.`,
+    stageEvidence: `일지 ${stageLabel(pillars.day || primary)}를 주축으로 월지 ${stageLabel(pillars.month)}, 년지 ${stageLabel(pillars.year)}를 교차 검증했습니다. ${hourLine}`,
+    statsLine: `${balanceLine} (${growthCount}:${maintenanceCount}:${transitionCount})의 분포로 읽히며, 현재 체감 스탯은 ${animal.game_stats.power >= animal.game_stats.logic ? "실행/추진" : "전략/정밀"} 축이 우세합니다.`,
     personalityLine: `${tone.personality} ${animal.personality.summary}`,
-    loveLine: `${tone.love} 연애 축은 ${animal.love.style}로 발현될 가능성이 높습니다.`,
-    careerLine: `${tone.career} 직업 포지션은 ${animal.career.talent} 계열에서 특히 효율이 높습니다.`,
-    luckLine: `${tone.luck} 오늘의 트리거는 ${animal.luck_essentials.color} 컬러와 ${animal.luck_essentials.item} 아이템입니다.`,
+    loveLine: `${tone.love} 연애의 발현 방식은 ${animal.love.style} 결로 나타날 가능성이 큽니다.`,
+    careerLine: `${tone.career} 직업적 파동은 ${animal.career.talent} 계열에서 특히 선명합니다.`,
+    luckLine: `${tone.luck} 오늘의 개운 키는 ${animal.luck_essentials.color} 컬러와 ${animal.luck_essentials.item}입니다.`,
   };
 }
 
@@ -114,16 +114,16 @@ export function buildCompatibilityStageEvidence(myStage: TwelveStage | null, par
   const circularDiff = Math.min(diff, 12 - diff);
 
   if (circularDiff <= 1) {
-    return `두 사람의 핵심 십이운성(${myStage}/${partnerStage}) 간 거리가 가깝습니다. 감정 템포가 비슷해 빠르게 호흡이 맞을 확률이 높습니다.`;
+    return `두 사람의 핵심 십이운성(${myStage}/${partnerStage})이 거의 맞닿아 있어 감정의 박자가 자연스럽게 동기화됩니다.`;
   }
 
   if (circularDiff <= 3) {
-    return `핵심 십이운성(${myStage}/${partnerStage})이 보완 구간에 있어, 역할 분담을 명확히 하면 시너지가 커집니다.`;
+    return `핵심 십이운성(${myStage}/${partnerStage})이 보완 축에 위치해 역할을 선명히 나누면 큰 시너지가 납니다.`;
   }
 
   if (circularDiff <= 5) {
-    return `핵심 십이운성(${myStage}/${partnerStage})이 중간 거리라, 결정 속도와 표현 방식 조율이 궁합 점수를 좌우합니다.`;
+    return `핵심 십이운성(${myStage}/${partnerStage})의 거리가 중간권이라 결정 속도와 표현 방식 조율이 궁합 점수를 좌우합니다.`;
   }
 
-  return `핵심 십이운성(${myStage}/${partnerStage})의 간격이 커 템포 충돌이 생기기 쉬운 조합입니다. 규칙을 먼저 합의하면 안정성이 올라갑니다.`;
+  return `핵심 십이운성(${myStage}/${partnerStage}) 간격이 커 충돌이 생기기 쉬운 조합입니다. 경계선과 약속을 먼저 합의하면 안정도가 빠르게 올라갑니다.`;
 }

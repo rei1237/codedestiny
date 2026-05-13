@@ -10,11 +10,11 @@ interface Props {
 
 export default function AnimalRevealAnimation({ mode }: Props) {
   return (
-    <section className="space-y-4 rounded-2xl border border-[#dbe7cf] bg-white/70 p-4">
-      <div className="space-y-1 text-sm font-semibold text-[#3d5a3d]">
-        <p>🔍 사주 엔진으로 십이운성을 계산하고 있어요</p>
-        <p className="text-xs font-normal text-[#5a7060]">
-          태어난 순간의 기운을 분석해 당신의 동물 타입을 찾고 있습니다
+    <section className="space-y-4 rounded-2xl border border-cyan-100/20 bg-[linear-gradient(160deg,rgba(9,27,55,0.74),rgba(10,16,40,0.7))] p-4">
+      <div className="space-y-1 text-sm font-semibold text-cyan-50">
+        <p>사주 천문반에서 십이운성 좌표를 추출하고 있습니다.</p>
+        <p className="text-xs font-normal text-cyan-100/78">
+          입력한 출생 정보를 기준으로 수호 동물의 인장을 호출 중입니다.
         </p>
       </div>
 
@@ -25,7 +25,7 @@ export default function AnimalRevealAnimation({ mode }: Props) {
           </motion.div>
         ) : (
           <motion.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <FlipCardReveal title="분석 완료" subtitle="십이운성 기반 동물 타입이 준비됐어요" />
+            <FlipCardReveal title="별자리 해독 완료" subtitle="당신의 십이운성 수호 동물이 모습을 드러냅니다" />
           </motion.div>
         )}
       </AnimatePresence>

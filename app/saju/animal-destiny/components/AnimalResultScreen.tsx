@@ -11,6 +11,7 @@ import type { FourPillarStageItem } from "../lib/twelveStages";
 import AnimalShareCard from "./AnimalShareCard";
 import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
+import CosmicSigil from "./CosmicSigil";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
 
 type TabKey = "personality" | "love" | "career" | "relationship" | "growth";
@@ -117,64 +118,68 @@ export default function AnimalResultScreen({
 
   return (
     <section className="space-y-5">
-      <div className="rounded-[2rem] border border-white/70 bg-gradient-to-br from-lime-50 via-emerald-50 to-sky-50 p-5 shadow-xl shadow-emerald-900/10 ring-1 ring-white/60 backdrop-blur-xl">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">오늘의 대표 동물 프로필</p>
+      <div className="relative overflow-hidden rounded-[2rem] border border-cyan-100/25 bg-[linear-gradient(140deg,rgba(7,26,56,0.76),rgba(10,20,44,0.82))] p-5 shadow-[0_22px_54px_rgba(4,12,34,0.54)]">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 opacity-55">
+          <CosmicSigil className="h-full w-full" />
+        </div>
+        <p className="relative text-xs font-black uppercase tracking-[0.2em] text-cyan-100/85">오늘의 대표 동물 프로필</p>
         <div className="mt-3 flex items-start gap-4">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border border-white/70 bg-white/70 text-5xl shadow-md">
-            <AnimalSymbol name={stageAnimalSymbol(twelveStages.day || twelveStages.primary)} size={68} className="text-emerald-700" />
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border border-cyan-100/35 bg-cyan-50/10 text-5xl shadow-[0_10px_30px_rgba(29,136,183,0.3)]">
+            <AnimalSymbol name={stageAnimalSymbol(twelveStages.day || twelveStages.primary)} size={68} className="text-cyan-50" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-2xl font-black text-emerald-950">{animal.animal_ko}</h3>
-            <p className="text-sm font-semibold text-emerald-700">{animal.saju_stage} · {animal.stage_hanja}</p>
-            <p className="mt-2 text-sm leading-relaxed text-emerald-900">{animal.short_copy}</p>
-            <p className="mt-2 text-xs font-medium text-emerald-700">{insights.heroLine}</p>
+            <h3 className="text-2xl font-black text-white">{animal.animal_ko}</h3>
+            <p className="text-sm font-semibold text-cyan-100">{animal.saju_stage} · {animal.stage_hanja}</p>
+            <p className="mt-2 text-sm leading-relaxed text-cyan-50/92">{animal.short_copy}</p>
+            <p className="mt-2 text-xs font-medium text-amber-100/90">{insights.heroLine}</p>
           </div>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/70 bg-white/65 p-3 text-xs font-bold text-emerald-900">
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-cyan-100/30 bg-slate-950/25 p-3 text-xs font-bold text-cyan-50">
           <p>LOVE {score.love}</p>
           <p>CAREER {score.career}</p>
           <p>SOCIAL {score.social}</p>
           <p>LUCK {score.luck}</p>
         </div>
-        <p className="mt-2 text-[11px] text-emerald-700">점수는 절대적 운명 판정이 아니라 재미 기반 보조 지표입니다.</p>
+        <p className="mt-2 text-[11px] text-cyan-100/72">점수는 확정 운명 판정이 아닌 현재 흐름을 읽기 위한 보조 지표입니다.</p>
       </div>
 
-      <div className="rounded-[2rem] border border-white/70 bg-gradient-to-br from-emerald-50 via-lime-50 to-cyan-50 p-4 shadow-xl shadow-emerald-900/10 ring-1 ring-white/60 backdrop-blur-xl">
-        <h3 className="text-lg font-black text-emerald-950">네 기둥 십이운성 카드</h3>
+      <div className="rounded-[2rem] border border-cyan-100/22 bg-[linear-gradient(150deg,rgba(8,28,58,0.7),rgba(11,21,46,0.74))] p-4 shadow-[0_20px_46px_rgba(4,13,36,0.45)]">
+        <h3 className="text-lg font-black text-cyan-50">네 기둥 십이운성 카드</h3>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {PILLAR_ORDER.map((pillarKey) => {
             const item = pillarItems[pillarKey];
             const info = PILLAR_INFO[pillarKey];
             const keywords = keywordsByStage(item.stage);
             return (
-              <article key={pillarKey} className="rounded-2xl border border-white/70 bg-white/75 p-3">
-                <p className="text-xs font-black text-emerald-700">{info.label}</p>
+              <article key={pillarKey} className="rounded-2xl border border-cyan-100/25 bg-cyan-50/10 p-3">
+                <p className="text-xs font-black text-cyan-100">{info.label}</p>
                 <p className="mt-1 text-lg">
-                  <AnimalSymbol name={stageAnimalSymbol(item.stage)} size={30} className="text-emerald-700" />
+                  <AnimalSymbol name={stageAnimalSymbol(item.stage)} size={30} className="text-cyan-50" />
                 </p>
-                <p className="text-sm font-bold text-emerald-950">{(item.stem || "-") + (item.branch || "-")}</p>
-                <p className="text-sm font-semibold text-emerald-700">{item.stage || "시간 미입력"}</p>
-                <p className="mt-1 text-[11px] text-emerald-700">{keywords.join(" · ")}</p>
+                <p className="text-sm font-bold text-white">{(item.stem || "-") + (item.branch || "-")}</p>
+                <p className="text-sm font-semibold text-cyan-100">{item.stage || "시간 미입력"}</p>
+                <p className="mt-1 text-[11px] text-cyan-100/75">{keywords.join(" · ")}</p>
+                <p className="mt-1 text-[10px] text-cyan-50/55">{info.meaning}</p>
               </article>
             );
           })}
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-white/70 bg-white/75 p-4 shadow-xl shadow-emerald-900/10 ring-1 ring-white/60">
+      <div className="rounded-[2rem] border border-cyan-100/22 bg-[linear-gradient(150deg,rgba(8,28,58,0.7),rgba(11,21,46,0.74))] p-4 shadow-[0_20px_46px_rgba(4,13,36,0.45)]">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {(Object.keys(TAB_LABELS) as TabKey[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`min-h-12 shrink-0 rounded-full px-4 text-sm font-bold ${activeTab === tab ? "bg-emerald-500 text-white" : "bg-emerald-50 text-emerald-800"}`}
+              className={`min-h-12 shrink-0 rounded-full px-4 text-sm font-bold ${activeTab === tab ? "bg-[linear-gradient(120deg,#27d9f5,#7488ff)] text-[#071228]" : "bg-cyan-100/12 text-cyan-50"}`}
             >
               {TAB_LABELS[tab]}
             </button>
           ))}
         </div>
 
-        <div className="mt-3 rounded-2xl border border-emerald-100 bg-white p-4 text-sm leading-7 text-emerald-950 motion-safe:animate-in motion-safe:fade-in">
+        <div className="mt-3 rounded-2xl border border-cyan-100/25 bg-slate-950/30 p-4 text-sm leading-7 text-cyan-50 motion-safe:animate-in motion-safe:fade-in">
           {activeTab === "personality" ? <p>{detail.personality}</p> : null}
           {activeTab === "love" ? <p>{detail.love}</p> : null}
           {activeTab === "career" ? <p>{detail.career}</p> : null}
@@ -182,8 +187,8 @@ export default function AnimalResultScreen({
           {activeTab === "growth" ? (
             <ul className="space-y-2">
               {detail.growthMissions.map((mission) => (
-                <li key={mission} className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3">
-                  <DestinyIcon name="animalPaw" size={15} className="text-emerald-700" variant="soft" />
+                <li key={mission} className="flex items-center gap-2 rounded-xl bg-cyan-100/12 p-3">
+                  <DestinyIcon name="animalPaw" size={15} className="text-cyan-100" variant="soft" />
                   {mission}
                 </li>
               ))}
@@ -192,8 +197,8 @@ export default function AnimalResultScreen({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#d8e3cf] bg-white/70 p-3 text-xs text-[#4a5f4d]">
-        <p className="font-semibold text-[#35503a]">사주 근거 요약</p>
+      <div className="rounded-2xl border border-cyan-100/22 bg-cyan-100/10 p-3 text-xs text-cyan-50/90">
+        <p className="font-semibold text-cyan-50">사주 근거 요약</p>
         <p className="mt-1">{insights.stageEvidence}</p>
         <p className="mt-1">일지 중심축: {twelveStages.primary || "-"} / 월지 보정: {twelveStages.month || "-"} / 년지 배경: {twelveStages.year || "-"}</p>
         <p className="mt-1">시지: {twelveStages.hour || "(시간 미상)"}</p>
@@ -201,33 +206,33 @@ export default function AnimalResultScreen({
 
       <AnimalCompatibilityGrid animal={animal} partner={partner} onSubmitPartner={onSubmitPartner} />
 
-      <div className="space-y-3 rounded-[2rem] border border-white/70 bg-gradient-to-br from-lime-50 via-emerald-50 to-sky-50 p-4 shadow-xl shadow-emerald-900/10 ring-1 ring-white/60">
-        <h3 className="text-lg font-black text-[#2d3f2f]">사주 동물점 홀로그램 카드</h3>
+      <div className="space-y-3 rounded-[2rem] border border-cyan-100/22 bg-[linear-gradient(150deg,rgba(8,28,58,0.7),rgba(11,21,46,0.74))] p-4 shadow-[0_20px_46px_rgba(4,13,36,0.45)]">
+        <h3 className="text-lg font-black text-cyan-50">사주 동물점 홀로그램 카드</h3>
         <AnimalShareCard ref={shareCardRef} animal={animal} pillars={pillarItems} score={score} oneLine={oneLine} />
         <div className="flex flex-wrap gap-2">
           <button
             onClick={onSaveCard}
             disabled={isExporting}
-            className="min-h-12 rounded-full bg-[#ff8a65] px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+            className="min-h-12 rounded-full bg-[linear-gradient(120deg,#2be2ff,#6f8dff)] px-4 py-2 text-sm font-bold text-[#071228] disabled:opacity-60"
           >
             카드 저장하기
           </button>
           <button
             onClick={onSaveCard}
             disabled={isExporting}
-            className="min-h-12 rounded-full bg-[#4db6ac] px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+            className="min-h-12 rounded-full bg-[linear-gradient(120deg,#ffd67b,#ffb36b)] px-4 py-2 text-sm font-bold text-[#3f2600] disabled:opacity-60"
           >
             인스타 스토리용 저장
           </button>
           <button
             onClick={onShareCard}
             disabled={isExporting}
-            className="min-h-12 rounded-full bg-[#607d8b] px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+            className="min-h-12 rounded-full bg-cyan-100/15 px-4 py-2 text-sm font-bold text-cyan-50 disabled:opacity-60"
           >
             결과 공유하기
           </button>
         </div>
-        <p className="text-xs text-[#547060]">브라우저 환경에 따라 인스타 직접 업로드는 제한될 수 있으며, PNG 저장 후 업로드를 권장합니다.</p>
+        <p className="text-xs text-cyan-100/72">브라우저 환경에 따라 인스타 직접 업로드는 제한될 수 있으며, PNG 저장 후 업로드를 권장합니다.</p>
       </div>
     </section>
   );

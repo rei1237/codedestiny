@@ -111,6 +111,7 @@ export interface AnimalDestinyInput {
   birthTime?: string;
   gender: "male" | "female" | "unknown";
   calendarType?: "solar" | "lunar";
+  lunarLeap?: boolean;
 }
 
 export interface TwelveStagePillars {

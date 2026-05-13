@@ -33,6 +33,7 @@ const INITIAL_INPUT: AnimalDestinyInput = {
   birthTime: "",
   gender: "unknown",
   calendarType: "solar",
+  lunarLeap: false,
 };
 
 const INITIAL_PARTNER: PartnerResult = {

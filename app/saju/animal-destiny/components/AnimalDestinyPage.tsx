@@ -121,17 +121,17 @@ export default function AnimalDestinyPage() {
   }, [shareCard]);
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(135deg,#ffe7c2_0%,#ffe8ef_35%,#d3f6ee_100%)] px-4 py-6">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,#203f73_0%,transparent_38%),radial-gradient(circle_at_88%_10%,#5a2a6d_0%,transparent_32%),linear-gradient(160deg,#020711_0%,#081a3c_40%,#07142f_100%)] px-4 py-6 md:py-8">
       <Toaster position="top-center" richColors />
       <TamagotchiDeviceFrame>
         <div className="space-y-4">
           <AnimalDestinyIntro />
 
-          <div className="rounded-xl border border-[#dce8d4] bg-white/70 px-3 py-2 text-xs font-semibold text-[#3a4f3d]">
+          <div className="rounded-xl border border-cyan-100/25 bg-cyan-100/10 px-3 py-2 text-xs font-semibold text-cyan-100">
             {isUnlocked
               ? "해금 상태: 사용 가능"
-              : `해금 상태: 잠금 (100코인)`}
-            {isLoggedIn ? " · 로그인됨" : " · 로그인 필요"}
+              : "해금 상태: 잠금 (100코인)"}
+            {isLoggedIn ? " · 로그인 인증됨" : " · 로그인 필요"}
           </div>
 
           {(status === "idle" || status === "input" || status === "error") ? (
@@ -163,7 +163,7 @@ export default function AnimalDestinyPage() {
           ) : null}
 
           {error ? (
-            <div className="rounded-xl border border-[#efb4ab] bg-[#fff0ee] p-3 text-sm text-[#8a4338]">
+            <div className="rounded-xl border border-rose-200/35 bg-rose-200/10 p-3 text-sm text-rose-100">
               {error}
             </div>
           ) : null}
@@ -171,13 +171,13 @@ export default function AnimalDestinyPage() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={reset}
-              className="rounded-full bg-[#607d8b] px-4 py-2 text-xs font-bold text-white"
+              className="rounded-full bg-cyan-100/15 px-4 py-2 text-xs font-bold text-cyan-50"
             >
               다시 시작
             </button>
             <a
               href="/saju"
-              className="rounded-full bg-white/80 px-4 py-2 text-xs font-bold text-[#425247]"
+              className="rounded-full border border-cyan-100/30 bg-white/10 px-4 py-2 text-xs font-bold text-cyan-50"
             >
               사주 메인으로 복귀
             </a>

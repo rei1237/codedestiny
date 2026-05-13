@@ -5,6 +5,7 @@ import type { AnimalDestinyData, TwelveStage } from "../lib/types";
 import type { FourPillarStageItem } from "../lib/twelveStages";
 import type { StageScore } from "../lib/stageScore";
 import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
+import CosmicSigil from "./CosmicSigil";
 
 interface Props {
   animal: AnimalDestinyData;
@@ -58,48 +59,54 @@ const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCa
   return (
     <div
       ref={ref}
-      className="relative mx-auto aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-[2rem] border border-white/70 bg-gradient-to-br from-emerald-200 via-cyan-100 to-violet-200 p-5 shadow-2xl shadow-emerald-900/20"
+      className="relative mx-auto aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-[2rem] border border-cyan-100/35 bg-[radial-gradient(circle_at_10%_12%,rgba(125,228,255,0.35),transparent_34%),radial-gradient(circle_at_82%_6%,rgba(255,191,116,0.28),transparent_30%),linear-gradient(160deg,#071331_0%,#12245b_48%,#0e1c46_100%)] p-5 shadow-[0_28px_56px_rgba(3,13,38,0.6)]"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.8),transparent_30%),radial-gradient(circle_at_80%_30%,rgba(168,85,247,0.25),transparent_35%),radial-gradient(circle_at_40%_90%,rgba(45,212,191,0.35),transparent_35%)]" />
-      <div className="absolute inset-0 opacity-30 mix-blend-screen bg-[linear-gradient(115deg,transparent_0%,rgba(255,255,255,0.7)_20%,transparent_40%,rgba(255,255,255,0.45)_60%,transparent_80%)]" />
+      <div className="pointer-events-none absolute -right-16 -top-12 h-44 w-44 opacity-70">
+        <CosmicSigil className="h-full w-full" />
+      </div>
+      <div className="pointer-events-none absolute -bottom-16 -left-12 h-44 w-44 rotate-12 opacity-45">
+        <CosmicSigil className="h-full w-full" />
+      </div>
+      <div className="absolute inset-0 opacity-45 mix-blend-screen bg-[linear-gradient(112deg,transparent_0%,rgba(255,255,255,0.72)_24%,transparent_43%,rgba(255,255,255,0.32)_63%,transparent_100%)]" />
+      <div className="absolute inset-0 opacity-35 mix-blend-plus-lighter bg-[repeating-linear-gradient(165deg,rgba(255,255,255,0.09)_0px,rgba(255,255,255,0.09)_1px,transparent_1px,transparent_7px)]" />
 
-      <div className="relative z-10 flex h-full flex-col justify-between rounded-[1.5rem] border border-white/60 bg-white/35 p-5 backdrop-blur-md text-[#12363a]">
+      <div className="relative z-10 flex h-full flex-col justify-between rounded-[1.5rem] border border-cyan-100/35 bg-white/10 p-5 backdrop-blur-md text-cyan-50">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0f4c5a]">Code:Destiny</p>
-          <p className="mt-1 text-xs font-semibold text-[#24626d]">십이운성 동물점</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-100/85">Code Destiny</p>
+          <p className="mt-1 text-xs font-semibold text-cyan-100">Celestial Animal Destiny</p>
 
-          <div className="mt-4 rounded-2xl border border-white/70 bg-white/55 p-3 text-center">
+          <div className="mt-4 rounded-2xl border border-cyan-100/30 bg-slate-950/22 p-3 text-center">
             <p className="text-5xl inline-flex items-center justify-center">
-              <AnimalSymbol name={symbolName} size={52} className="text-[#24626d]" />
+              <AnimalSymbol name={symbolName} size={54} className="text-cyan-50" />
             </p>
-            <h4 className="mt-1 text-xl font-black">대표 동물: {animal.animal_ko}</h4>
-            <p className="text-sm font-semibold text-[#14525b]">십이운성: {animal.saju_stage}</p>
-            <p className="mt-2 text-xs font-medium text-[#285d63]">{oneLine}</p>
+            <h4 className="mt-1 text-xl font-black text-white">대표 동물: {animal.animal_ko}</h4>
+            <p className="text-sm font-semibold text-cyan-100">십이운성: {animal.saju_stage}</p>
+            <p className="mt-2 text-xs font-medium leading-relaxed text-cyan-50/90">{oneLine}</p>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-white/70 bg-white/55 p-3 text-xs">
+          <div className="mt-3 rounded-2xl border border-cyan-100/30 bg-slate-950/24 p-3 text-xs text-cyan-50/92">
             <p>{row("연주", pillars.year)}</p>
             <p className="mt-1">{row("월주", pillars.month)}</p>
             <p className="mt-1">{row("일주", pillars.day)}</p>
             <p className="mt-1">{row("시주", pillars.hour)}</p>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/70 bg-white/55 p-3 text-xs font-bold text-[#114b53]">
+          <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-cyan-100/30 bg-slate-950/24 p-3 text-xs font-bold text-cyan-50">
             <p>LOVE {score.love}</p>
             <p>CAREER {score.career}</p>
             <p>SOCIAL {score.social}</p>
             <p>LUCK {score.luck}</p>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-white/70 bg-white/55 p-3 text-xs text-[#1f545a]">
+          <div className="mt-3 rounded-2xl border border-cyan-100/30 bg-slate-950/24 p-3 text-xs text-cyan-50">
             <p><span className="font-bold">행운 컬러:</span> {animal.luck_essentials.color}</p>
             <p className="mt-1"><span className="font-bold">행운 아이템:</span> {animal.luck_essentials.item}</p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/70 bg-white/45 p-3">
-          <p className="text-xs font-semibold text-[#1f5960]">카드 문구</p>
-          <p className="mt-1 text-sm font-semibold text-[#163f44]">“{animal.share_card.quote}”</p>
+        <div className="rounded-xl border border-amber-100/40 bg-amber-50/10 p-3">
+          <p className="text-xs font-semibold text-amber-100/90">Oracle Whisper</p>
+          <p className="mt-1 text-sm font-semibold leading-relaxed text-amber-50">"{animal.share_card.quote}"</p>
         </div>
       </div>
     </div>
