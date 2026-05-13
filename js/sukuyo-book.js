@@ -675,16 +675,15 @@
     var hourSel=document.getElementById('skPartnerHour');
     var minSel=document.getElementById('skPartnerMinute');
     if(hourSel&&hourSel.options.length<=1){
-      var hourLabels=['자시(0시)','축시(1시)','인시(2시)','묘시(3시)','진시(4시)','사시(5시)','오시(6시)','미시(7시)','신시(8시)','유시(9시)','술시(10시)','해시(11시)'];
       for(var h=0;h<24;h++){
         var opt=document.createElement('option');
         opt.value=String(h);
-        opt.textContent=h+'시'+(h<12?'  ('+hourLabels[h]+')':'');
+        opt.textContent=(h<10?'0':'')+h+'시';
         hourSel.appendChild(opt);
       }
     }
     if(minSel&&minSel.options.length<=1){
-      for(var m=0;m<60;m+=5){
+      for(var m=0;m<60;m++){
         var mopt=document.createElement('option');
         mopt.value=String(m);
         mopt.textContent=(m<10?'0':'')+m+'분';
