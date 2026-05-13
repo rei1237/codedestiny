@@ -6330,6 +6330,21 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
 
 async function generateZiweiPremiumChapter(env, body, input, chapter, meta, canonicalZiweiChart, reportType, partnerOverview, dataQuality, previousChapterTexts = []) {
   const premiumFailOpen = isPremiumFailOpenPayload(body);
+  const isPremiumReportFlow = Boolean(body?._premiumReportSessionId || body?._premiumRequestId || body?._premiumChapterAttempt);
+  const toBoundedInt = (value, fallback, min, max) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(min, Math.min(max, Math.floor(parsed)));
+  };
+  const chapterBudgetMs = isPremiumReportFlow
+    ? toBoundedInt(env.PREMIUM_ZIWEI_CHAPTER_BUDGET_MS, 55000, 15000, 90000)
+    : 0;
+  const chapterStartedAt = Date.now();
+  const isBudgetExceeded = () => chapterBudgetMs > 0 && (Date.now() - chapterStartedAt) >= chapterBudgetMs;
+  const getRemainingBudgetMs = () => {
+    if (chapterBudgetMs <= 0) return 0;
+    return Math.max(1000, chapterBudgetMs - (Date.now() - chapterStartedAt));
+  };
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const { dataText, missingNotice, hasStructured, structuredPayload: normalizedPayload } = buildZiweiDataContext(
     body,
@@ -6353,12 +6368,31 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     focusKeywords,
     previousSentenceBanList,
   );
-  const genOptions = {
+  const ziweiGeminiTimeoutMs = isPremiumReportFlow
+    ? toBoundedInt(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS_CHAPTER, 22000, 6000, 45000)
+    : toBoundedInt(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS, 70000, 6000, 120000);
+  const ziweiRetriesPerPair = isPremiumReportFlow
+    ? toBoundedInt(env.PREMIUM_ZIWEI_GEMINI_RETRIES_CHAPTER, 1, 1, 3)
+    : toBoundedInt(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES, 3, 1, 5);
+  const ziweiMaxTotalRequests = isPremiumReportFlow
+    ? toBoundedInt(env.PREMIUM_ZIWEI_GEMINI_TOTAL_REQUESTS_CHAPTER, 1, 1, 8)
+    : toBoundedInt(env.PREMIUM_ZIWEI_GEMINI_TOTAL_REQUESTS, 6, 1, 16);
+  const baseGenOptions = {
     temperature: 0.72,
     topP: 0.92,
     maxOutputTokens: 16384,
-    timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 70000),
-    maxAttemptsPerPair: Number(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+    timeoutMs: ziweiGeminiTimeoutMs,
+    maxAttemptsPerPair: ziweiRetriesPerPair,
+    maxTotalRequests: ziweiMaxTotalRequests,
+  };
+  const buildGenOptions = () => {
+    if (chapterBudgetMs <= 0) return { ...baseGenOptions };
+    const remaining = getRemainingBudgetMs();
+    return {
+      ...baseGenOptions,
+      timeoutMs: Math.max(6000, Math.min(baseGenOptions.timeoutMs, remaining)),
+      maxTotalMs: remaining,
+    };
   };
 
   if (!hasStructured && !premiumFailOpen) {
@@ -6375,14 +6409,31 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     return { ok: true, text: fallbackText, sections: parseSections(fallbackText), usedFallback: true, normalizedPayload };
   }
 
-  let text = await generateChapterContents(env, prompt, genOptions);
+  let text = "";
+  if (!isBudgetExceeded()) {
+    text = await generateChapterContents(env, prompt, buildGenOptions());
+  }
   text = String(text || "").trim();
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  if ((!text || text.length < 900) && premiumFailOpen && isPremiumReportFlow) {
+    const fallbackText = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
+    return { ok: true, text: fallbackText, sections: parseSections(fallbackText), usedFallback: true, normalizedPayload };
+  }
+
+  const maxRefineAttempts = isPremiumReportFlow
+    ? toBoundedInt(env.PREMIUM_ZIWEI_REFINE_ATTEMPTS_CHAPTER, 1, 0, 3)
+    : 3;
+
+  for (let attempt = 0; attempt < maxRefineAttempts; attempt += 1) {
+    if (isBudgetExceeded()) break;
     const chapterValidation = validateGeneratedChapters(chapter, text);
     const repeatedSentences = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 30);
     const { missing, tooShort, truncated, banned, invalidSummaryTable } = chapterValidation;
     if (!tooShort && missing.length === 0 && !truncated && !banned && !invalidSummaryTable && repeatedSentences.length === 0) break;
+    if (isPremiumReportFlow && premiumFailOpen) {
+      const fallbackText = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
+      return { ok: true, text: fallbackText, sections: parseSections(fallbackText), usedFallback: true, normalizedPayload };
+    }
 
     const refinePrompt = [
       "아래 자미두수 챕터 초안을 고품질로 보강하세요.",
@@ -6403,7 +6454,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       text,
     ].join("\n");
 
-    const refined = await generateChapterContents(env, refinePrompt, genOptions);
+    const refined = await generateChapterContents(env, refinePrompt, buildGenOptions());
     if (!refined || !refined.trim()) break;
     const candidate = refined.trim();
     if (candidate.length >= Math.floor(text.length * 0.8)) {
@@ -6411,6 +6462,11 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     } else {
       text = `${text}\n\n${candidate}`;
     }
+  }
+
+  if (isBudgetExceeded() && premiumFailOpen) {
+    const fallbackText = buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice);
+    return { ok: true, text: fallbackText, sections: parseSections(fallbackText), usedFallback: true, normalizedPayload };
   }
 
   const finalValidation = validateGeneratedChapters(chapter, text);
@@ -6425,6 +6481,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       error: "ziwei_chapter_quality_failed",
       message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
       details: [
+        ...(isBudgetExceeded() ? ["챕터 생성 시간 초과"] : []),
         ...(finalValidation.tooShort ? ["분량 부족"] : []),
         ...(finalValidation.truncated ? ["문장 절단 의심"] : []),
         ...(finalValidation.banned ? ["금지 문장 포함"] : []),
@@ -10278,9 +10335,12 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapterNo ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
+  const chapterAttemptDefault = context.reportType === "ziweiPremium"
+    ? 1
+    : getPremiumChapterMaxAttempts(env);
   const maxChapterAttempts = clampInt(
-    body.maxAttempts ?? body.maxChapterAttempts ?? getPremiumChapterMaxAttempts(env),
-    getPremiumChapterMaxAttempts(env),
+    body.maxAttempts ?? body.maxChapterAttempts ?? chapterAttemptDefault,
+    chapterAttemptDefault,
     1,
     6,
   );

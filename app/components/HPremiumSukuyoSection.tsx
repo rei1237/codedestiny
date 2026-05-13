@@ -813,6 +813,13 @@ export default function HPremiumSukuyoSection({
         if (!res.ok || !data?.ok) {
           const err = new Error(data?.error || data?.message || "숙요 요청 처리 중 오류가 발생했습니다.") as Error & { status?: number };
           err.status = Number(res.status || 500);
+          console.error("[SukuyoPremiumPDF][API_ERROR]", {
+            attempt,
+            status: Number(res.status || 0),
+            code: String(data?.code || ""),
+            message: String(data?.message || data?.error || ""),
+            response: data || null,
+          });
           throw err;
         }
         return data;
@@ -821,6 +828,15 @@ export default function HPremiumSukuyoSection({
         const status = Number((e as { status?: number })?.status || 0);
         const retryableStatus = [0, 408, 409, 425, 429, 500, 502, 503, 504];
         const retryable = (e instanceof Error && e.name === "AbortError") || retryableStatus.includes(status);
+        if (attempt === 4 || !retryable) {
+          console.error("[SukuyoPremiumPDF][REQUEST_FAILED]", {
+            attempt,
+            status,
+            retryable,
+            name: e instanceof Error ? e.name : "",
+            message: e instanceof Error ? e.message : String(e),
+          });
+        }
         if (attempt === 4 || !retryable) break;
         await new Promise((resolve) => setTimeout(resolve, Math.min(600 * (2 ** (attempt - 1)), 2200)));
       } finally {
@@ -862,9 +878,15 @@ export default function HPremiumSukuyoSection({
       }
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") {
+        console.error("[SukuyoPremiumPDF][INIT_ABORTED]", { message: e.message });
         setInitError("요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
       } else {
         const message = e instanceof Error ? e.message : "네트워크 오류가 발생했습니다.";
+        console.error("[SukuyoPremiumPDF][INIT_FAILED]", {
+          status: Number((e as { status?: number })?.status || 0),
+          name: e instanceof Error ? e.name : "",
+          message,
+        });
         setInitError(message);
         setRequestError(message);
       }
@@ -905,6 +927,12 @@ export default function HPremiumSukuyoSection({
           });
         }
       } catch (e: unknown) {
+        console.error("[SukuyoPremiumPDF][CHAPTER_FAILED]", {
+          chapter,
+          status: Number((e as { status?: number })?.status || 0),
+          name: e instanceof Error ? e.name : "",
+          message: e instanceof Error ? e.message : String(e),
+        });
         setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
         setChapters((prev) => {
           const next = [...prev];
@@ -950,6 +978,12 @@ export default function HPremiumSukuyoSection({
           });
         }
       } catch (e: unknown) {
+        console.error("[SukuyoPremiumPDF][GENERATE_ALL_FAILED]", {
+          chapter: ch,
+          status: Number((e as { status?: number })?.status || 0),
+          name: e instanceof Error ? e.name : "",
+          message: e instanceof Error ? e.message : String(e),
+        });
         setRequestError(e instanceof Error ? e.message : "전체 생성 중 오류가 발생했습니다.");
         setChapters((prev) => {
           const next = [...prev];

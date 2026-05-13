@@ -153,6 +153,16 @@ export async function callGeminiText(env, prompt, options = {}) {
 
   const models = pickGeminiModels(env, options.modelEnvKeys || []);
   const rotatedKeys = rotate(keys, textPrompt.length);
+  const maxTotalRequestsRaw = Number(options.maxTotalRequests);
+  const hasTotalRequestLimit = Number.isFinite(maxTotalRequestsRaw) && maxTotalRequestsRaw > 0;
+  const maxTotalRequests = hasTotalRequestLimit
+    ? Math.max(1, Math.min(50, Math.floor(maxTotalRequestsRaw)))
+    : Infinity;
+  const maxTotalMsRaw = Number(options.maxTotalMs);
+  const hasTimeLimit = Number.isFinite(maxTotalMsRaw) && maxTotalMsRaw > 0;
+  const maxTotalMs = hasTimeLimit ? Math.max(1000, Math.min(120000, Math.floor(maxTotalMsRaw))) : 0;
+  const startedAt = Date.now();
+  let totalRequests = 0;
   const generationConfig = {
     temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
     topP: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
@@ -161,11 +171,21 @@ export async function callGeminiText(env, prompt, options = {}) {
 
   const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
+  outer:
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     for (const key of rotatedKeys) {
       for (let attempt = 1; attempt <= maxAttemptsPerPair; attempt += 1) {
+        if (hasTotalRequestLimit && totalRequests >= maxTotalRequests) {
+          lastError = lastError || `Gemini request budget exhausted (${maxTotalRequests} requests).`;
+          break outer;
+        }
+        if (hasTimeLimit && (Date.now() - startedAt) >= maxTotalMs) {
+          lastError = lastError || `Gemini request budget exhausted (${maxTotalMs}ms).`;
+          break outer;
+        }
         try {
+          totalRequests += 1;
           const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

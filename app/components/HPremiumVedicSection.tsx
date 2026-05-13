@@ -658,6 +658,14 @@ export default function HPremiumVedicSection({
           err.status = status;
           err.code = code;
           err.details = data?.details || data?.missingFields || null;
+          console.error("[VedicPremiumPDF][API_ERROR]", {
+            attempt,
+            status,
+            code,
+            message: mappedMessage,
+            details: err.details,
+            response: data || null,
+          });
           throw err;
         }
         return data;
@@ -666,6 +674,17 @@ export default function HPremiumVedicSection({
         const status = Number((e as VedicApiError)?.status || 0);
         const retryableStatus = [408, 409, 429, 500, 502, 503, 504];
         const retryable = (e instanceof Error && e.name === "AbortError") || !status || retryableStatus.includes(status);
+        if (attempt === 4 || !retryable) {
+          console.error("[VedicPremiumPDF][REQUEST_FAILED]", {
+            attempt,
+            status,
+            retryable,
+            code: String((e as VedicApiError)?.code || ""),
+            name: e instanceof Error ? e.name : "",
+            message: e instanceof Error ? e.message : String(e),
+            details: (e as VedicApiError)?.details || null,
+          });
+        }
         if (attempt === 4 || !retryable) break;
         await new Promise((resolve) => setTimeout(resolve, Math.min(700 * (2 ** (attempt - 1)), 2600)));
       } finally {
@@ -784,6 +803,12 @@ export default function HPremiumVedicSection({
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
       const message = toVedicUiError(e);
+      console.error("[VedicPremiumPDF][CALC_FAILED]", {
+        status: Number((e as VedicApiError)?.status || 0),
+        code: String((e as VedicApiError)?.code || ""),
+        message,
+        details: (e as VedicApiError)?.details || null,
+      });
       setCalcError(message);
       setRequestError(message);
       onPdfFlowStateChange?.("error", message);
@@ -819,6 +844,13 @@ export default function HPremiumVedicSection({
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
       const message = toVedicUiError(e);
+      console.error("[VedicPremiumPDF][CHAPTER_FAILED]", {
+        chapter: chNum,
+        status: Number((e as VedicApiError)?.status || 0),
+        code: String((e as VedicApiError)?.code || ""),
+        message,
+        details: (e as VedicApiError)?.details || null,
+      });
       setRequestError(message);
       setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
       onPdfFlowStateChange?.("error", message);

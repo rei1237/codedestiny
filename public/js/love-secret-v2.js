@@ -1358,6 +1358,15 @@
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
           if (data && Number(data.status || 0) === 401) {
+            console.error('[연애 비책 프리미엄 PDF][AUTH_REQUIRED]', {
+              chapter: idx + 1,
+              status: Number((data && data.status) || 0),
+              code: String((data && data.code) || ''),
+              message: String((data && data.message) || ''),
+              requestId: String((data && data.requestId) || ''),
+              reportSessionId: String((data && data.reportSessionId) || ''),
+              raw: data || null,
+            });
             _generating = false;
             _stopLoadingAnimation();
             _showScreen('lsErrorScreen');
@@ -1370,6 +1379,17 @@
             return;
           }
           if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+            console.error('[연애 비책 프리미엄 PDF][DATA_INCOMPLETE]', {
+              chapter: idx + 1,
+              status: Number((data && data.status) || 0),
+              code: String((data && data.code) || ''),
+              message: String((data && data.message) || ''),
+              missingData: Array.isArray(data && data.missingData) ? data.missingData : [],
+              missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+              requestId: String((data && data.requestId) || ''),
+              reportSessionId: String((data && data.reportSessionId) || ''),
+              raw: data || null,
+            });
             _generating = false;
             _stopLoadingAnimation();
             _showScreen('lsErrorScreen');
@@ -1379,6 +1399,25 @@
             return;
           }
           if (_cancelGeneration) return;
+          var chapterText = (data && data.ok && data.text) ? data.text : '';
+          if (!(data && data.ok && chapterText)) {
+            console.error('[연애 비책 프리미엄 PDF][CHAPTER_FAILED]', {
+              chapter: idx + 1,
+              status: Number((data && data.status) || 0),
+              code: String((data && data.code) || ''),
+              chapterStatus: String((data && data.chapterStatus) || ''),
+              retryable: Boolean(data && data.retryable),
+              attemptsUsed: Number((data && data.attemptsUsed) || 0),
+              maxChapterAttempts: Number((data && data.maxChapterAttempts) || 0),
+              lengthValidation: data && data.lengthValidation ? data.lengthValidation : null,
+              missingData: Array.isArray(data && data.missingData) ? data.missingData : [],
+              missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+              requestId: String((data && data.requestId) || ''),
+              reportSessionId: String((data && data.reportSessionId) || ''),
+              message: String((data && data.message) || ''),
+              raw: data || null,
+            });
+          }
           _chapters[idx] = (data && data.ok && data.text)
             ? data.text
             : '⚠️ 이 챕터의 분석을 불러오는 데 실패했습니다.\n\n' + (data && data.message ? data.message : '알 수 없는 오류');
@@ -1391,6 +1430,11 @@
           generateNext(idx + 1);
         })
         .catch(function (err) {
+          console.error('[연애 비책 프리미엄 PDF][NETWORK_ERROR]', {
+            chapter: idx + 1,
+            message: String(err && err.message ? err.message : err),
+            raw: err || null,
+          });
           _chapters[idx] = '⚠️ 네트워크 오류로 이 챕터를 불러오지 못했습니다.\n' + String(err && err.message ? err.message : err);
           _setProgress(idx + 1);
           generateNext(idx + 1);

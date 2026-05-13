@@ -521,6 +521,14 @@ ${chaptersHtml}
         if (!res.ok || !data?.ok) {
           const err = new Error(data?.error || data?.message || "요청 처리 중 오류가 발생했습니다.") as Error & { status?: number };
           err.status = Number(res.status || 500);
+          console.error("[AstrologyPremiumPDF][API_ERROR]", {
+            path,
+            attempt,
+            status: Number(res.status || 0),
+            code: String(data?.code || ""),
+            message: String(data?.message || data?.error || ""),
+            response: data || null,
+          });
           throw err;
         }
         return data;
@@ -529,6 +537,16 @@ ${chaptersHtml}
         const status = Number((e as { status?: number })?.status || 0);
         const retryableStatus = [0, 408, 409, 425, 429, 500, 502, 503, 504];
         const retryable = (e instanceof Error && e.name === "AbortError") || retryableStatus.includes(status);
+        if (attempt === 4 || !retryable) {
+          console.error("[AstrologyPremiumPDF][REQUEST_FAILED]", {
+            path,
+            attempt,
+            status,
+            retryable,
+            name: e instanceof Error ? e.name : "",
+            message: e instanceof Error ? e.message : String(e),
+          });
+        }
         if (attempt === 4 || !retryable) break;
         await new Promise((resolve) => setTimeout(resolve, Math.min(700 * (2 ** (attempt - 1)), 2800)));
       } finally {
@@ -570,6 +588,11 @@ ${chaptersHtml}
       setChapters(createEmptyChapters());
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "차트 계산 중 오류";
+      console.error("[AstrologyPremiumPDF][CALC_FAILED]", {
+        status: Number((e as { status?: number })?.status || 0),
+        name: e instanceof Error ? e.name : "",
+        message,
+      });
       setCalcError(message);
       setRequestError(message);
     } finally {
@@ -613,6 +636,12 @@ ${chaptersHtml}
       // 차트 최신화 (astro-life에서도 계산 결과가 옴)
       if (data.chart && !chart) setChart(data.chart);
     } catch (e: unknown) {
+      console.error("[AstrologyPremiumPDF][CHAPTER_FAILED]", {
+        chapter: chNum,
+        status: Number((e as { status?: number })?.status || 0),
+        name: e instanceof Error ? e.name : "",
+        message: e instanceof Error ? e.message : String(e),
+      });
       setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev => ({ ...prev, [chNum]: { step:"error", result:null } }));
     }

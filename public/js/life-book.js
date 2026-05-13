@@ -1485,6 +1485,26 @@
           if (status === 503) msgByStatus = '외부 음력/절기 API 장애로 생성할 수 없습니다.';
 
           if (status === 401 || status === 402 || status === 422) {
+            console.error('[인생의 책 프리미엄 PDF][BLOCKED]', {
+              chapter: idx + 1,
+              status: status,
+              code: String((data && data.code) || ''),
+              chapterStatus: String((data && data.chapterStatus) || ''),
+              message: String((data && data.message) || ''),
+              normalizedMessage: msgByStatus || '',
+              retryable: Boolean(data && data.retryable),
+              attemptsUsed: Number((data && data.attemptsUsed) || 0),
+              maxChapterAttempts: Number((data && data.maxChapterAttempts) || 0),
+              lengthValidation: data && data.lengthValidation ? data.lengthValidation : null,
+              missingData: Array.isArray(data && data.missingData) ? data.missingData : [],
+              missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+              requestId: String((data && data.requestId) || ''),
+              reportSessionId: String((data && data.reportSessionId) || ''),
+              raw: data || null,
+            });
+          }
+
+          if (status === 401 || status === 402 || status === 422) {
             _generating = false;
             _setFlowState('error');
             _lastError = msgByStatus || ((data && data.message) ? data.message : '챕터 생성 실패');
@@ -1521,6 +1541,23 @@
           } else {
             msg = (data && data.message) ? data.message : '알 수 없는 오류';
           }
+          console.error('[인생의 책 프리미엄 PDF][CHAPTER_FAILED]', {
+            chapter: idx + 1,
+            status: Number((data && data.status) || 0),
+            code: String((data && data.code) || ''),
+            chapterStatus: String((data && data.chapterStatus) || ''),
+            retryable: Boolean(data && data.retryable),
+            attemptsUsed: Number((data && data.attemptsUsed) || 0),
+            maxChapterAttempts: Number((data && data.maxChapterAttempts) || 0),
+            textLength: _text.length,
+            lengthValidation: data && data.lengthValidation ? data.lengthValidation : null,
+            missingData: Array.isArray(data && data.missingData) ? data.missingData : [],
+            missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+            requestId: String((data && data.requestId) || ''),
+            reportSessionId: String((data && data.reportSessionId) || ''),
+            message: msg,
+            raw: data || null,
+          });
           console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
           _chapters[idx] = '⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: ' + msg + '\n\n잠시 후 해당 챕터를 개별적으로 재시도하거나, 처음부터 다시 생성해 주세요.';
         }

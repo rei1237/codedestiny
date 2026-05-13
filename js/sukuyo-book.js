@@ -974,6 +974,14 @@
       if(chapterMsg)chapterMsg.textContent=activeLoading[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
         if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
+          console.error('[숙요 프리미엄 PDF][AUTH_REQUIRED]', {
+            chapter: idx + 1,
+            code: String((data && data.code) || ''),
+            status: Number((data && data.status) || 0),
+            message: String((data && data.message) || ''),
+            requestId: String((data && data.requestId) || ''),
+            reportSessionId: String((data && data.reportSessionId) || ''),
+          });
           _generating = false;
           if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
           var authErrEl = _qs('skErrorMsg');
@@ -985,6 +993,16 @@
           return;
         }
         if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+          console.error('[숙요 프리미엄 PDF][DATA_INCOMPLETE]', {
+            chapter: idx + 1,
+            code: String((data && data.code) || ''),
+            status: Number((data && data.status) || 0),
+            message: String((data && data.message) || ''),
+            missingData: Array.isArray(data && data.missingData) ? data.missingData : [],
+            missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+            requestId: String((data && data.requestId) || ''),
+            reportSessionId: String((data && data.reportSessionId) || ''),
+          });
           _generating = false;
           if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
           var dataErrEl = _qs('skErrorMsg');
@@ -1007,7 +1025,27 @@
           if(data.reportId) _reportId=String(data.reportId);
           if(data.canonicalSukuyoCompatibility) _canonicalSukuyoCompatibility=data.canonicalSukuyoCompatibility;
         }
-        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);_chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';}
+        else{
+          _failCount++;
+          var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
+          console.error('[숙요 프리미엄 PDF][CHAPTER_FAILED]', {
+            chapter: idx + 1,
+            status: Number((data && data.status) || 0),
+            code: String((data && data.code) || ''),
+            chapterStatus: String((data && data.chapterStatus) || ''),
+            retryable: Boolean(data && data.retryable),
+            attemptsUsed: Number((data && data.attemptsUsed) || 0),
+            maxChapterAttempts: Number((data && data.maxChapterAttempts) || 0),
+            lengthValidation: data && data.lengthValidation ? data.lengthValidation : null,
+            missingData: Array.isArray(data && data.missingData) ? data.missingData : [],
+            missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+            requestId: String((data && data.requestId) || ''),
+            reportSessionId: String((data && data.reportSessionId) || ''),
+            raw: data || null,
+          });
+          console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);
+          _chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';
+        }
         _setProgress(idx+1);
         generateNext(idx+1);
       });
