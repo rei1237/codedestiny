@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
+import { installPdfExportFetchGuard } from "../_lib/pdf-export-guard";
 
 const APP_VERSION = "dev";
 const VERSION_KEY = "app_version";
@@ -133,6 +134,10 @@ export default function AppVersionGuard() {
   const paymentLoadingRef = useRef(isPaymentLoading);
   const checkInFlightRef = useRef(false);
   const [pendingUpdate, setPendingUpdate] = useState<PendingUpdateState | null>(null);
+
+  useEffect(() => {
+    installPdfExportFetchGuard();
+  }, []);
 
   useEffect(() => {
     paymentLoadingRef.current = isPaymentLoading;

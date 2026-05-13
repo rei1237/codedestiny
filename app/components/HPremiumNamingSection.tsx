@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
+import { wrapPdfExportTask } from "../_lib/pdf-export-guard";
 
 
 type PremiumSectionProps = {
@@ -286,20 +287,21 @@ export default function HPremiumNamingSection({
 
   const handlePrintNames = () => {
     if (names.length === 0) return;
-    const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const cardsHtml = names.map((n, i) => {
-      const c1color = n.c1.o === "목" ? "#4ade80" : n.c1.o === "화" ? "#f87171" : n.c1.o === "토" ? "#fbbf24" : n.c1.o === "금" ? "#c8a85e" : "#60a5fa";
-      const c2color = n.c2.o === "목" ? "#4ade80" : n.c2.o === "화" ? "#f87171" : n.c2.o === "토" ? "#fbbf24" : n.c2.o === "금" ? "#c8a85e" : "#60a5fa";
-      return `<div class="card" style="page-break-inside:avoid">
+    void wrapPdfExportTask(async () => {
+      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const cardsHtml = names.map((n, i) => {
+        const c1color = n.c1.o === "목" ? "#4ade80" : n.c1.o === "화" ? "#f87171" : n.c1.o === "토" ? "#fbbf24" : n.c1.o === "금" ? "#c8a85e" : "#60a5fa";
+        const c2color = n.c2.o === "목" ? "#4ade80" : n.c2.o === "화" ? "#f87171" : n.c2.o === "토" ? "#fbbf24" : n.c2.o === "금" ? "#c8a85e" : "#60a5fa";
+        return `<div class="card" style="page-break-inside:avoid">
   <div class="rank">${i + 1}위</div>
   <div class="name">${escH(n.name)}</div>
   <div class="hanja">${escH(n.c1.c)}(${escH(n.c1.m)}) · ${escH(n.c2.c)}(${escH(n.c2.m)})</div>
   <div class="badges"><span style="color:${c1color};border-color:${c1color}55">${escH(n.c1.o)}</span><span style="color:${c2color};border-color:${c2color}55">${escH(n.c2.o)}</span></div>
   <div class="meta">원격 ${n.won} · 형격 ${n.hyeong} · 점수 ${n.score}</div>
 </div>`;
-    }).join("");
-    const pillarsLine = analysis ? `년주 ${escH(analysis.pillars.year.gan)}${escH(analysis.pillars.year.zhi)} · 월주 ${escH(analysis.pillars.month.gan)}${escH(analysis.pillars.month.zhi)} · 일주 ${escH(analysis.pillars.day.gan)}${escH(analysis.pillars.day.zhi)} · 시주 ${escH(analysis.pillars.hour.gan)}${escH(analysis.pillars.hour.zhi)}` : "";
-    const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>명운 프리미엄 작명 추천</title><style>
+      }).join("");
+      const pillarsLine = analysis ? `년주 ${escH(analysis.pillars.year.gan)}${escH(analysis.pillars.year.zhi)} · 월주 ${escH(analysis.pillars.month.gan)}${escH(analysis.pillars.month.zhi)} · 일주 ${escH(analysis.pillars.day.gan)}${escH(analysis.pillars.day.zhi)} · 시주 ${escH(analysis.pillars.hour.gan)}${escH(analysis.pillars.hour.zhi)}` : "";
+      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>명운 프리미엄 작명 추천</title><style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0;padding:32px}
@@ -325,11 +327,13 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#
 </div>
 <div class="grid">${cardsHtml}</div>
 </body></html>`;
-    const win = window.open("", "_blank", "width=900,height=700");
-    if (!win) { alert("팝업이 차단됐습니다. 허용 후 재시도해 주세요."); return; }
-    win.document.open(); win.document.write(fullHtml); win.document.close();
-    win.focus();
-    setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) { alert("팝업이 차단됐습니다. 허용 후 재시도해 주세요."); return; }
+      win.document.open(); win.document.write(fullHtml); win.document.close();
+      win.focus();
+      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+      await new Promise((resolve) => setTimeout(resolve, 1800));
+    }, 2000);
   };
 
   if (showIntro) {

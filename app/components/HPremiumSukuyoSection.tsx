@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
+import { wrapPdfExportTask } from "../_lib/pdf-export-guard";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -997,24 +998,25 @@ export default function HPremiumSukuyoSection({
 
   // PDF 다운로드 (인쇄 창 방식)
   const handleDownloadPDF = useCallback(() => {
-    if (!sukuyo) return;
-    const doneChapters = chapters.filter((c) => c.step === "done" && c.result);
-    if (doneChapters.length !== CHAPTER_META.length) {
-      setRequestError(`전체 ${CHAPTER_META.length}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
-      return;
-    }
-    try {
-      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
-      const chaptersHtml = doneChapters.map((cs, i) => {
-        const r = cs.result!;
-        const meta = CHAPTER_META[r.chapter - 1];
-        const secHtml = r.sections.length > 0
-          ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
-          : `<div class="sec">${nl2p(r.text)}</div>`;
-        return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(meta.icon)} CHAPTER ${r.chapter}</span><h2 class="ct">${escH(meta.title)}</h2><p class="cs">${escH(meta.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
-      }).join("");
-      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>숙요점 달빛 전략 리포트</title><style>
+    void wrapPdfExportTask(async () => {
+      if (!sukuyo) return;
+      const doneChapters = chapters.filter((c) => c.step === "done" && c.result);
+      if (doneChapters.length !== CHAPTER_META.length) {
+        setRequestError(`전체 ${CHAPTER_META.length}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+        return;
+      }
+      try {
+        const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
+        const chaptersHtml = doneChapters.map((cs, i) => {
+          const r = cs.result!;
+          const meta = CHAPTER_META[r.chapter - 1];
+          const secHtml = r.sections.length > 0
+            ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
+            : `<div class="sec">${nl2p(r.text)}</div>`;
+          return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(meta.icon)} CHAPTER ${r.chapter}</span><h2 class="ct">${escH(meta.title)}</h2><p class="cs">${escH(meta.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
+        }).join("");
+        const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>숙요점 달빛 전략 리포트</title><style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#060d1e;color:#e2e8f0}
@@ -1045,14 +1047,16 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#060d1e;color:#
 </div>
 ${chaptersHtml}
 </body></html>`;
-      const win = window.open("", "_blank", "width=900,height=700");
-      if (!win) { alert("팝업이 차단됐습니다. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
-      win.document.open(); win.document.write(fullHtml); win.document.close();
-      win.focus();
-      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
-    } catch (e) {
-      console.error("PDF 생성 오류", e);
-    }
+        const win = window.open("", "_blank", "width=900,height=700");
+        if (!win) { alert("팝업이 차단됐습니다. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
+        win.document.open(); win.document.write(fullHtml); win.document.close();
+        win.focus();
+        setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+      } catch (e) {
+        console.error("PDF 생성 오류", e);
+      }
+    }, 2000);
   }, [sukuyo, chapters, birthDate]);
 
   const doneCount = chapters.filter((c) => c.step === "done").length;
