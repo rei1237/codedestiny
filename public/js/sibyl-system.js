@@ -3025,54 +3025,64 @@
         reason: String(err && err.message || 'FREE_SECTION_RENDER_ERROR')
       });
       // Fail-open: 무료 결과는 항상 카테고리형으로 노출하고, 에러 오버레이로 가리지 않는다.
-      var recovery = _buildSibylRecoveryOverview(pillars, window._sibylCurrentData && window._sibylCurrentData.risk, window._sibylCurrentData && window._sibylCurrentData.coeff);
-
+      // 복구 모드 자체도 예외가 나면 섹션을 반드시 노출
       var freeSecFallback = _q('sbFreeSection');
       if (freeSecFallback) {
         freeSecFallback.classList.remove('sb-hidden');
         freeSecFallback.classList.add('sb-fadein');
       }
-      _t('sbSectorName', 'FREE BASIC RESULT MODE');
-      _t('sbSectorJobs', '복구 모드로 무료 핵심 결과를 우선 제공합니다. 유료 잠금 해제 리포트와 분리되어 동작합니다.');
-      _t('sbSectorTenstar', '주도 십성: ' + recovery.dominant);
-      _t('sbHueStatus', '▶ 복구 모드(Recovery) — 무료 기본 지표를 우선 제공합니다.');
-      _t('sbRiskBasic', recovery.risk);
-      _t('sbAptCoeff', recovery.coeff);
-      _t('sbAptMetric', recovery.coeff);
+      try {
+        var recovery = _buildSibylRecoveryOverview(pillars, window._sibylCurrentData && window._sibylCurrentData.risk, window._sibylCurrentData && window._sibylCurrentData.coeff);
 
-      var riskElFallback = _q('sbRiskBasicEl');
-      if (riskElFallback) {
-        riskElFallback.className = 'sb-metric-value' + (recovery.risk >= 70 ? ' sb-metric-value--danger' : recovery.risk >= 45 ? ' sb-metric-value--warn' : ' sb-metric-value--ok');
-      }
+        _t('sbSectorName', 'FREE BASIC RESULT MODE');
+        _t('sbSectorJobs', '복구 모드로 무료 핵심 결과를 우선 제공합니다. 유료 잠금 해제 리포트와 분리되어 동작합니다.');
+        _t('sbSectorTenstar', '주도 십성: ' + recovery.dominant);
+        _t('sbHueStatus', '▶ 복구 모드(Recovery) — 무료 기본 지표를 우선 제공합니다.');
+        _t('sbRiskBasic', recovery.risk);
+        _t('sbAptCoeff', recovery.coeff);
+        _t('sbAptMetric', recovery.coeff);
 
-      var natSecFallback = _q('sbNatureSection');
-      if (natSecFallback) {
-        natSecFallback.innerHTML = _buildSibylRecoveryHtml(recovery);
-      }
+        var riskElFallback = _q('sbRiskBasicEl');
+        if (riskElFallback) {
+          riskElFallback.className = 'sb-metric-value' + (recovery.risk >= 70 ? ' sb-metric-value--danger' : recovery.risk >= 45 ? ' sb-metric-value--warn' : ' sb-metric-value--ok');
+        }
 
-      var cautionFallback = _q('sbCautionArea');
-      if (cautionFallback) {
-        cautionFallback.classList.remove('sb-hidden');
-      }
-      _t('sbCautionText', '⚠ 일부 계산 데이터가 지연되어 복구 모드로 표시 중입니다. 무료 기본 결과는 유지되며 유료 잠금 해제 흐름과 분리됩니다.');
+        var natSecFallback = _q('sbNatureSection');
+        if (natSecFallback) {
+          natSecFallback.innerHTML = _buildSibylRecoveryHtml(recovery);
+        }
 
-      window._sibylCurrentData = Object.assign({}, window._sibylCurrentData || {}, {
-        pillars: pillars || (window._sibylCurrentData && window._sibylCurrentData.pillars) || window.G_PILLARS || null,
-        risk: recovery.risk,
-        coeff: recovery.coeff,
-        dominant: recovery.dominant,
-        domEl: recovery.domEl,
-        recoveryMode: true,
-        recoveryReason: String(err && err.message || 'FREE_SECTION_RENDER_ERROR')
-      });
+        var cautionFallback = _q('sbCautionArea');
+        if (cautionFallback) {
+          cautionFallback.classList.remove('sb-hidden');
+        }
+        _t('sbCautionText', '⚠ 일부 계산 데이터가 지연되어 복구 모드로 표시 중입니다. 무료 기본 결과는 유지되며 유료 잠금 해제 흐름과 분리됩니다.');
 
-      if (_isSibylDevMode()) {
-        _sibylDevWarn('[SIBYL] free-recovery-fail-open', {
-          reason: String(err && err.message || ''),
+        window._sibylCurrentData = Object.assign({}, window._sibylCurrentData || {}, {
+          pillars: pillars || (window._sibylCurrentData && window._sibylCurrentData.pillars) || window.G_PILLARS || null,
           risk: recovery.risk,
           coeff: recovery.coeff,
           dominant: recovery.dominant,
+          domEl: recovery.domEl,
+          recoveryMode: true,
+          recoveryReason: String(err && err.message || 'FREE_SECTION_RENDER_ERROR')
         });
+
+        if (_isSibylDevMode()) {
+          _sibylDevWarn('[SIBYL] free-recovery-fail-open', {
+            reason: String(err && err.message || ''),
+            risk: recovery.risk,
+            coeff: recovery.coeff,
+            dominant: recovery.dominant,
+          });
+        }
+      } catch (recoveryErr) {
+        // 복구 모드 자체도 실패한 경우 - sbFreeSection만 확실히 노출하고 기본 메시지 표시
+        _sibylLogWarn('[SIBYL] recovery mode also failed', { reason: String(recoveryErr && recoveryErr.message || '') });
+        _t('sbSectorName', '기본 운세 분석');
+        _t('sbSectorJobs', '데이터를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        _t('sbRiskBasic', '—');
+        _t('sbAptCoeff', '—');
       }
       _setSibylState(SibylState.READY);
     }

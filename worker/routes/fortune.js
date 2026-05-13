@@ -683,7 +683,24 @@ async function handleConsume(auth) {
 }
 
 async function handleBalance(auth) {
-  const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
+  let user;
+  try {
+    user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
+  } catch (dbErr) {
+    // MongoDB 일시적 장애 시 graceful fallback - 500 대신 빈 잔액으로 응답
+    console.error("[fortune:handleBalance] DB error:", dbErr?.message || dbErr);
+    return json({
+      ok: true,
+      authenticated: true,
+      balance: 0,
+      walletCreated: false,
+      message: "Coin balance temporarily unavailable. Defaulting to 0.",
+      user: userPayload(auth, 0, []),
+      unlockedFeatures: [],
+      unlockMap: {},
+      _dbError: true,
+    });
+  }
   if (!user) {
     return json({
       ok: true,

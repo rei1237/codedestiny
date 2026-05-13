@@ -132,11 +132,15 @@ export async function handleKasiRoutes(request, env = {}) {
     }
 
     if (Number(error?.status) >= 500) {
+      const isKeyMissing = error?.code === "KASI_KEY_MISSING";
       return json({
         ok: false,
         maintenance: true,
         fallbackRecommended: true,
-        message: "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요.",
+        code: isKeyMissing ? "KASI_KEY_MISSING" : "KASI_UPSTREAM_ERROR",
+        message: isKeyMissing
+          ? "한국천문연 API 키가 설정되지 않아 로컬 엔진으로 전환합니다."
+          : "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요.",
         detail: error?.message || null,
       }, { status: 503 });
     }

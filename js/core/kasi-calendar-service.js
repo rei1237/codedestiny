@@ -17,6 +17,17 @@
   var _subscribers = [];
   var _lastProxyFailure = null;
   var _lastNoticeAt = 0;
+  var _maintenanceUntil = 0; // circuit breaker: skip KASI calls until this timestamp
+  var _MAINTENANCE_CIRCUIT_MS = 5 * 60 * 1000; // 5 minutes
+
+  function _isMaintenanceCircuitOpen() {
+    return Date.now() < _maintenanceUntil;
+  }
+
+  function _tripMaintenanceCircuit(message) {
+    _maintenanceUntil = Date.now() + _MAINTENANCE_CIRCUIT_MS;
+    _lastProxyFailure = { at: Date.now(), message: message || _config.maintenanceMessage };
+  }
 
   var _IPCHUN_KEYS = [
     'ipchun',
@@ -389,12 +400,11 @@
         var error = new Error((payload && payload.message) || ('HTTP ' + res.status + ' for ' + method));
         error.status = res.status;
         error.maintenance = !!(payload && payload.maintenance);
-        if (error.maintenance) {
-          _lastProxyFailure = {
-            at: Date.now(),
-            message: (payload && payload.message) || _config.maintenanceMessage
-          };
-          _notifyMaintenance(_lastProxyFailure.message);
+        error.code = (payload && payload.code) || null;
+        if (error.maintenance || res.status === 503) {
+          var failMsg = (payload && payload.message) || _config.maintenanceMessage;
+          _tripMaintenanceCircuit(failMsg);
+          _notifyMaintenance(failMsg);
         }
         console.error('[KASI] proxy failure:', method, params || {}, error.message);
         throw error;
@@ -406,6 +416,7 @@
   }
 
   async function _fetchSolarFromLunar(norm) {
+    if (_isMaintenanceCircuitOpen()) return null;
     var leapMark = norm.calendarType === 'lunar_leap' ? '\uc724' : '\ud3c9';
     var variants = [
       { lunYear: norm.year, lunMonth: _pad2(norm.month), lunDay: _pad2(norm.day), lunLeapmonth: leapMark },
@@ -433,6 +444,7 @@
   }
 
   async function _fetchLunarFromSolar(solarDate) {
+    if (_isMaintenanceCircuitOpen()) return null;
     var variants = [
       { solYear: solarDate.getFullYear(), solMonth: _pad2(solarDate.getMonth() + 1), solDay: _pad2(solarDate.getDate()) },
       { solYear: solarDate.getFullYear(), solMonth: solarDate.getMonth() + 1, solDay: solarDate.getDate() }
@@ -469,6 +481,7 @@
   }
 
   async function _fetchSolarTerms(year, month, day) {
+    if (_isMaintenanceCircuitOpen()) return [];
     // 연도 전체 절기 조회 우선 시도 (월주 계산에 12개 중절 모두 필요)
     var yearVariants = [
       { solYear: year, numOfRows: 30 },
@@ -1029,6 +1042,19 @@
         }
         keys.forEach(function (k) { localStorage.removeItem(k); });
       } catch (e) {}
+    },
+
+    // circuit breaker: saju-engine 등 외부 모듈이 KASI 유지보수 상태를 확인할 수 있도록 노출
+    _isMaintenanceCircuitOpen: function () {
+      return _isMaintenanceCircuitOpen();
+    },
+
+    getMaintenanceStatus: function () {
+      if (!_isMaintenanceCircuitOpen()) return null;
+      return {
+        until: _maintenanceUntil,
+        message: _lastProxyFailure && _lastProxyFailure.message ? _lastProxyFailure.message : _config.maintenanceMessage
+      };
     }
   };
 

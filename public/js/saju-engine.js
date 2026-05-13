@@ -606,6 +606,14 @@ async function resolvePrimaryCalendarContext(input, options) {
   };
 
   var localOnly = (options.localOnly === true);
+
+  // KASI 회로 차단기: KasiCalendarService가 이미 유지보수 모드이면 로컬 전용으로 즉시 전환
+  if (!localOnly && window.KasiCalendarService && typeof window.KasiCalendarService._isMaintenanceCircuitOpen === 'function') {
+    if (window.KasiCalendarService._isMaintenanceCircuitOpen()) {
+      localOnly = true;
+    }
+  }
+
   var localCtx = buildFallbackDateContext(norm, localOnly ? 'local-only mode' : 'kasi fallback');
 
   if (localOnly && hasCompleteCalendar(localCtx)) {

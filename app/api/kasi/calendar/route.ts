@@ -122,8 +122,11 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     const status = Number(error?.status) >= 400 ? Number(error.status) : 503;
     const isUpstreamIssue = status >= 500;
+    const isKeyMissing = error?.code === "KASI_KEY_MISSING" || error?.message?.includes("KASI_SERVICE_KEY");
     const message = isUpstreamIssue
-      ? "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요."
+      ? (isKeyMissing
+          ? "한국천문연 API 키가 설정되지 않아 로컬 엔진으로 전환합니다."
+          : "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요.")
       : (error?.message || "KASI 요청 파라미터를 확인해 주세요.");
 
     return NextResponse.json(
@@ -131,6 +134,7 @@ export async function POST(req: NextRequest) {
         ok: false,
         maintenance: isUpstreamIssue,
         fallbackRecommended: isUpstreamIssue,
+        code: isKeyMissing ? "KASI_KEY_MISSING" : (isUpstreamIssue ? "KASI_UPSTREAM_ERROR" : "KASI_BAD_REQUEST"),
         message,
         detail: error?.message || null,
       },
