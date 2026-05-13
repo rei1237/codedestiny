@@ -240,11 +240,13 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
   let changed = false;
 
   const flowerRe = /<section class="fg-group fg-group--flower"[\s\S]*?<\/section><!-- \/fg-group--flower -->/;
+  const psychotestVisualRe = /<!-- psychotest-visual-entry -->[\s\S]*?<!-- \/psychotest-visual-entry -->/;
   const footerRe = /<footer[^>]*role="contentinfo"[\s\S]*?<\/footer>/;
   const flowerHideRe = /\.fg-group--flower\{display:none !important\}/g;
   const overlayHideRe = /#destinyFlowerStudioOverlay,.df-studio-overlay\{display:none !important\}/g;
 
   const rootFlower = extractFirst(rootHtml, flowerRe);
+  const rootPsychotestVisual = extractFirst(rootHtml, psychotestVisualRe);
   const rootFooter = extractFirst(rootHtml, footerRe);
   const rootMainGlassRef = extractFirst(rootHtml, /\/styles\/main-glass\.css\?v=[^"']+/);
   const rootRuntimeRef = extractFirst(rootHtml, /\/js\/core\/index-inline-runtime\.js\?v=[^"']+/);
@@ -252,6 +254,14 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
 
   if (rootFlower && flowerRe.test(html)) {
     const next = html.replace(flowerRe, rootFlower);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  if (rootPsychotestVisual && psychotestVisualRe.test(html)) {
+    const next = html.replace(psychotestVisualRe, rootPsychotestVisual);
     if (next !== html) {
       html = next;
       changed = true;

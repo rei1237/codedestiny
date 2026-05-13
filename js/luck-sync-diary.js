@@ -1533,6 +1533,7 @@
   var _lsdSatsYouTubeCache = { lofi: null, theta: null };
   var _lsdSatsPlaylistMeta = { lofi: null, theta: null };
   var _lsdSatsNowPlaying = { mode: '', videoId: '' };
+  var _lsdSatsLoadPending = { lofi: null, theta: null };
   var LSD_SATS_SOURCE_META = {
     lofi: { label: 'LoFi 명상', query: 'creative commons lofi instrumental no copyright claim meditation' },
     theta: { label: 'Theta 명상', query: 'creative commons theta binaural meditation no copyright' }
@@ -1847,6 +1848,28 @@
       .catch(function (err) {
         renderSatsPlaylist(mode, [], (err && err.message) ? err.message : '플레이리스트 로드 실패');
       });
+  }
+
+  function ensureSatsPlaylistReady(mode, force) {
+    var normalized = mode === 'theta' ? 'theta' : 'lofi';
+    if (!force && Array.isArray(_lsdSatsYouTubeCache[normalized]) && _lsdSatsYouTubeCache[normalized].length) {
+      renderSatsPlaylist(normalized, _lsdSatsYouTubeCache[normalized], '이미 불러온 트랙입니다. 바로 재생할 수 있어요.');
+      return Promise.resolve();
+    }
+    if (!force && _lsdSatsLoadPending[normalized]) {
+      return _lsdSatsLoadPending[normalized];
+    }
+    var pending = loadSatsPlaylist(normalized, !!force);
+    if (!force) {
+      _lsdSatsLoadPending[normalized] = pending;
+    }
+    return pending.then(function (value) {
+      if (!force) _lsdSatsLoadPending[normalized] = null;
+      return value;
+    }, function (error) {
+      if (!force) _lsdSatsLoadPending[normalized] = null;
+      throw error;
+    });
   }
 
   function buildChallenges(luckyEl, mainTenStar, todayGZ) {
@@ -2209,6 +2232,9 @@
       var d = loadDiary();
       var e = getTodayEntry(d);
       renderMeditationBoard(e, d);
+      var satsModeEl = document.getElementById('lsdSatsAudioMode');
+      var satsMode = satsModeEl ? satsModeEl.value : 'lofi';
+      ensureSatsPlaylistReady(satsMode, false);
     }
   }
 
@@ -3240,7 +3266,7 @@
       var modeEl = document.getElementById('lsdSatsAudioMode');
       var mode = modeEl ? modeEl.value : 'lofi';
       if (zone) zone.classList.add('is-dark');
-      loadSatsPlaylist(mode, false);
+      ensureSatsPlaylistReady(mode, false);
     };
 
     var refreshSatsBtn = document.getElementById('lsdRefreshSatsPlaylist');
@@ -3255,7 +3281,7 @@
       var zone = document.getElementById('lsdSatsZone');
       if (zone) zone.classList.remove('is-dark');
       stopSatsAudio();
-      renderSatsPlaylist(satsModeSelect.value, _lsdSatsYouTubeCache[satsModeSelect.value], '모드를 변경했습니다. 재생할 트랙을 선택하세요.');
+      ensureSatsPlaylistReady(satsModeSelect.value, false);
     };
 
     var satsPlaylist = document.getElementById('lsdSatsPlaylist');

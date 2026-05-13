@@ -16,6 +16,8 @@ const targetFiles = [
 
 const requiredMarkers = [
   '.prem-card>div:first-child *{pointer-events:none}',
+  'href="/blood-type-app.html"',
+  'alt="혈액형 테스트 대표 이미지"',
   'data-action="gotoZiweiPremium"',
   'data-action="gotoAstrologyPremium"',
   'data-action="gotoSukuyoPremium"',

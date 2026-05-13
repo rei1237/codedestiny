@@ -229,7 +229,7 @@ export default function MainLandingPage() {
             <span className="text-xl">🧩</span>
             <h2 className="text-lg font-extrabold tracking-tight text-violet-50">심리테스트 다음 추천</h2>
           </div>
-          <p className="mb-4 text-sm leading-6 text-violet-100/80">심리테스트 이후 최애운명, AI 이모이 오미쿠지까지 순서대로 이어서 확인해보세요.</p>
+          <p className="mb-4 text-sm leading-6 text-violet-100/80">심리테스트 이후 최애운명, AI 이모이 오미쿠지, 혈액형 테스트까지 순서대로 이어서 확인해보세요.</p>
 
           <div className="space-y-3">
             <Link
@@ -295,6 +295,26 @@ export default function MainLandingPage() {
                   <span className="inline-flex rounded-full border border-emerald-300/55 bg-emerald-500/22 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
                 </div>
                 <p className="text-xs leading-5 text-cyan-50/90">내 마음과 궁금한 주제를 읽어주는 감성 신탁으로, 오늘의 행운 흐름과 행동 힌트를 빠르게 확인할 수 있습니다.</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/blood-type-app.html"
+              className="block overflow-hidden rounded-[18px] border border-rose-300/45 bg-[linear-gradient(160deg,rgba(68,24,42,0.92),rgba(36,18,44,0.9))] shadow-[0_10px_24px_rgba(102,31,53,0.34)] transition hover:-translate-y-0.5 hover:border-rose-200/65"
+            >
+              <img
+                src="/fuctionassets/혈액형.webp"
+                alt="혈액형 테스트 대표 이미지"
+                className="h-40 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <strong className="text-sm font-bold leading-6 text-rose-50">🩸 혈액형 테스트</strong>
+                  <span className="inline-flex rounded-full border border-emerald-300/55 bg-emerald-500/22 px-2 py-0.5 text-[10px] font-semibold text-emerald-100">무료 시작</span>
+                </div>
+                <p className="text-xs leading-5 text-rose-50/90">혈액형별 성향, 라이프 코칭, 궁합, 밸런스 게임까지 한 번에 확인하고 나에게 맞는 실전 팁을 받아보세요.</p>
               </div>
             </Link>
           </div>

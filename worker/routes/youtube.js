@@ -1,26 +1,6 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 
-const FALLBACK_PLAYLISTS = {
-  lofi: [
-    { videoId: "jfKfPfyJRdk", title: "Lofi Hip Hop Radio", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/mqdefault.jpg" },
-    { videoId: "4xDzrJKXOOY", title: "Chillhop Radio", channel: "Chillhop Music", thumb: "https://i.ytimg.com/vi/4xDzrJKXOOY/mqdefault.jpg" },
-    { videoId: "5qap5aO4i9A", title: "LoFi Beats to Relax/Study", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/5qap5aO4i9A/mqdefault.jpg" },
-  ],
-  theta: [
-    { videoId: "lE6RYpe9IT0", title: "Theta Binaural Beats Meditation", channel: "Greenred Productions", thumb: "https://i.ytimg.com/vi/lE6RYpe9IT0/mqdefault.jpg" },
-    { videoId: "EEObuDrwGW4", title: "Deep Theta Waves for Focus", channel: "Meditative Mind", thumb: "https://i.ytimg.com/vi/EEObuDrwGW4/mqdefault.jpg" },
-    { videoId: "ygEzI7nfRgE", title: "Theta Healing Meditation Music", channel: "Yellow Brick Cinema", thumb: "https://i.ytimg.com/vi/ygEzI7nfRgE/mqdefault.jpg" },
-  ],
-  ambient: [
-    { videoId: "IRzBQl_QDXM", title: "Space Ambient Meditation", channel: "Ambient Worlds", thumb: "https://i.ytimg.com/vi/IRzBQl_QDXM/mqdefault.jpg" },
-    { videoId: "n61ULEU7CO0", title: "Calm Ambient Focus Music", channel: "Soothing Relaxation", thumb: "https://i.ytimg.com/vi/n61ULEU7CO0/mqdefault.jpg" },
-    { videoId: "hHW1oY26kxQ", title: "Deep Ambient Relax Session", channel: "The Guild of Ambience", thumb: "https://i.ytimg.com/vi/hHW1oY26kxQ/mqdefault.jpg" },
-  ],
-};
-
-function getFallbackItems(mode) {
-  return FALLBACK_PLAYLISTS[mode] || FALLBACK_PLAYLISTS.lofi;
-}
+const SUPPORTED_MODES = new Set(["lofi", "theta", "ambient"]);
 
 function pickYoutubeApiKey(env) {
   return [
@@ -35,7 +15,7 @@ function pickYoutubeApiKey(env) {
 
 function normalizeMode(value) {
   const mode = String(value || "lofi").trim().toLowerCase();
-  return FALLBACK_PLAYLISTS[mode] ? mode : "lofi";
+  return SUPPORTED_MODES.has(mode) ? mode : "lofi";
 }
 
 function mapYoutubeItems(data) {
@@ -104,38 +84,38 @@ async function handleSearch(request, env) {
 
   if (!apiKey) {
     return json({
-      ok: true,
+      ok: false,
       mode,
-      source: "fallback",
-      licensePolicy: "creative-commons-priority",
-      items: getFallbackItems(mode),
-      message:
-        "YouTube API 키가 없어 크리에이티브 커먼즈 필터 검색을 수행하지 못했습니다. 임시 샘플 트랙을 제공하므로 사용 전 라이선스를 확인해 주세요.",
-    });
+      message: "YouTube API 키가 설정되지 않아 플레이리스트를 불러올 수 없습니다.",
+    }, { status: 503 });
   }
 
   const strictSearchUrl = buildSearchUrl(mode, apiKey, true);
   const strictResponse = await fetchYoutubeSearch(strictSearchUrl, force);
-  const strictData = strictResponse.ok ? await strictResponse.json().catch(() => ({})) : {};
-  let items = mapYoutubeItems(strictData);
+  const strictData = await strictResponse.json().catch(() => ({}));
+  let items = strictResponse.ok ? mapYoutubeItems(strictData) : [];
+  let lastError = "";
+
+  if (!strictResponse.ok) {
+    lastError = String(strictData?.error?.message || `YouTube API 요청 실패 (${strictResponse.status})`);
+  }
 
   if (!items.length) {
     const relaxedSearchUrl = buildSearchUrl(mode, apiKey, false);
     const relaxedResponse = await fetchYoutubeSearch(relaxedSearchUrl, force);
-    const relaxedData = relaxedResponse.ok ? await relaxedResponse.json().catch(() => ({})) : {};
-    items = mapYoutubeItems(relaxedData);
+    const relaxedData = await relaxedResponse.json().catch(() => ({}));
+    items = relaxedResponse.ok ? mapYoutubeItems(relaxedData) : [];
+    if (!relaxedResponse.ok) {
+      lastError = String(relaxedData?.error?.message || `YouTube API 요청 실패 (${relaxedResponse.status})`);
+    }
   }
 
   if (!items.length) {
     return json({
-      ok: true,
+      ok: false,
       mode,
-      source: "fallback",
-      licensePolicy: "creative-commons-priority",
-      items: getFallbackItems(mode),
-      message:
-        "크리에이티브 커먼즈 조건 결과가 없어 임시 샘플 트랙을 제공합니다. 사용 전 라이선스를 확인해 주세요.",
-    });
+      message: lastError || "조건에 맞는 무료 플레이리스트를 찾지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    }, { status: 404 });
   }
 
   return json({
