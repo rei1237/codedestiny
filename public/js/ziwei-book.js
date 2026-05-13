@@ -1280,6 +1280,7 @@
     _setProgress(0);
 
     var _premiumReportSessionId = '';
+    var _premiumPreparePayload = null;
 
     function _buildZiweiChapterPayload(idx) {
       return {
@@ -1307,6 +1308,12 @@
       };
     }
 
+    function _getZiweiPreparePayload() {
+      if (_premiumPreparePayload) return _premiumPreparePayload;
+      _premiumPreparePayload = _buildZiweiChapterPayload(0);
+      return _premiumPreparePayload;
+    }
+
     function _ensurePremiumReportSession() {
       if (_premiumReportSessionId) {
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
@@ -1317,7 +1324,7 @@
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
         featureType: 'jamidusu_premium',
         reportType: 'ziweiPremium',
-        requestBody: _buildZiweiChapterPayload(0)
+        requestBody: _getZiweiPreparePayload()
       }).then(function (prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
           _premiumReportSessionId = String(prepared.reportSessionId);
@@ -1346,7 +1353,10 @@
             }
             window.__cdPremiumAuthJson('/api/premium-report/chapter', {
               reportSessionId: _premiumReportSessionId,
-              chapterId: idx + 1
+              chapterId: idx + 1,
+              reportType: 'ziweiPremium',
+              featureType: 'jamidusu_premium',
+              requestBody: _getZiweiPreparePayload()
             }).then(function (data) {
               clearTimeout(timeoutId);
               resolve(data);
@@ -1376,6 +1386,10 @@
             data.errorCode = 'DATA_INCOMPLETE';
             data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
             return data;
+          }
+          if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
+            _premiumReportSessionId = '';
+            if (tryNo < 2) return _attempt(tryNo + 1);
           }
           // 서버(워커)에서 이미 시간/재시도 제어를 수행하므로, 프론트 중복 재시도는 최소화
           var maxTry = 1;

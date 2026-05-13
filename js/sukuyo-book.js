@@ -839,6 +839,9 @@
     _setProgress(0);
 
     var _premiumReportSessionId = '';
+    var _premiumReportType = 'sookyoPremium';
+    var _premiumFeatureType = 'sookyo_premium';
+    var _premiumPreparePayload = null;
 
     function _buildSukuyoChapterPayload(idx) {
       var lunarHint = _resolveExistingLunarHint(profile);
@@ -865,6 +868,12 @@
       };
     }
 
+    function _getSukuyoPreparePayload() {
+      if (_premiumPreparePayload) return _premiumPreparePayload;
+      _premiumPreparePayload = _buildSukuyoChapterPayload(0);
+      return _premiumPreparePayload;
+    }
+
     function _ensurePremiumReportSession() {
       if (_premiumReportSessionId) {
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
@@ -873,9 +882,9 @@
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
-        featureType: 'sookyo_premium',
-        reportType: 'sookyoPremium',
-        requestBody: _buildSukuyoChapterPayload(0)
+        featureType: _premiumFeatureType,
+        reportType: _premiumReportType,
+        requestBody: _getSukuyoPreparePayload()
       }).then(function(prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
           _premiumReportSessionId = String(prepared.reportSessionId);
@@ -902,7 +911,13 @@
             }
             window.__cdPremiumAuthJson('/api/premium-report/chapter', {
               reportSessionId: _premiumReportSessionId,
-              chapterId: idx + 1
+              chapterId: idx + 1,
+              reportType: _premiumReportType,
+              featureType: _premiumFeatureType,
+              requestBody: _getSukuyoPreparePayload(),
+              requestId: 'sukuyo:chapter:' + (idx + 1) + ':' + Date.now().toString(36) + ':' + tryNo,
+            }, {
+              maxAttempts: 2,
             }).then(function(data) {
               clearTimeout(tid);
               resolve(data);
@@ -914,11 +929,15 @@
         }).then(function(data){
           var code = String((data && data.code) || '').toUpperCase();
           var status = Number((data && data.status) || 0);
+          var maxTry = 4;
           if (status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED') {
             data = data || { ok: false };
             data.fatal = true;
             data.errorCode = 'AUTH_REQUIRED';
             return data;
+          }
+          if (data && data.reportSessionId) {
+            _premiumReportSessionId = String(data.reportSessionId);
           }
           if (
             status === 422
@@ -932,7 +951,11 @@
             data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
             return data;
           }
-          var maxTry = 4;
+          if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
+            _premiumReportSessionId = '';
+            if (tryNo < maxTry) return _attempt(tryNo + 1);
+            return data;
+          }
           if(data&&data.ok&&data.text) return data;
           if(tryNo>=maxTry) return data;
           return _attempt(tryNo+1);
@@ -973,6 +996,10 @@
       }
       if(chapterMsg)chapterMsg.textContent=activeLoading[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
+        var statusCode = Number((data && data.status) || 0);
+        var errorCode = String((data && data.code) || '').toUpperCase();
+        var isSessionMissing = statusCode === 404 || errorCode === 'PREMIUM_REPORT_SESSION_NOT_FOUND';
+        if (data && data.reportSessionId) _premiumReportSessionId = String(data.reportSessionId);
         if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
           console.error('[숙요 프리미엄 PDF][AUTH_REQUIRED]', {
             chapter: idx + 1,
@@ -1007,6 +1034,37 @@
           if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
           var dataErrEl = _qs('skErrorMsg');
           if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
+          _showScreen('skErrorScreen');
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+            .then(function(){
+              if (_reportMode === 'compatibility') {
+                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
+              }
+              return false;
+            })
+            .then(function(refunded){ if(refunded) window.alert('숙요 프리미엄 결제가 자동 환급되었습니다.'); });
+          return;
+        }
+        if (isSessionMissing || statusCode === 402 || statusCode === 503) {
+          console.error('[숙요 프리미엄 PDF][BLOCKED]', {
+            chapter: idx + 1,
+            code: errorCode,
+            status: statusCode,
+            isSessionMissing: isSessionMissing,
+            message: String((data && data.message) || ''),
+            requestId: String((data && data.requestId) || ''),
+            reportSessionId: String((data && data.reportSessionId) || ''),
+          });
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var blockedErrEl = _qs('skErrorMsg');
+          if (blockedErrEl) {
+            blockedErrEl.textContent = isSessionMissing
+              ? '리포트 세션이 만료되어 리포트 생성을 이어갈 수 없습니다. 다시 생성해 주세요.'
+              : (statusCode === 402
+                ? '결제 상태 확인에 실패해 리포트 생성을 중단했습니다. 잠시 후 다시 시도해 주세요.'
+                : '외부 API 응답 지연으로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+          }
           _showScreen('skErrorScreen');
           _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
