@@ -81,6 +81,7 @@
   var PREMIUM_ZIWEI_COST = 590;
   var PREMIUM_ZIWEI_FEATURE_KEY = 'premium-ziwei';
   var PREMIUM_ZIWEI_TX_KEY = 'cd_premium_tx_ziwei';
+  var ADVANCED_ZIWEI_CACHE_KEYS = ['premium:ziwei:result:v6', 'premium:ziwei:result:v5'];
   var ZB_DIRECT_TAP_MOVE_THRESHOLD = 8;
   var ZB_DIRECT_TAP_MOVE_DETECT_PX = 2;
   var ZB_DIRECT_TAP_VERTICAL_BLOCK_PX = 6;
@@ -309,6 +310,15 @@
     } catch (_) {}
   }
 
+  function _formatPremiumFailureMessage(data, fallback) {
+    var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
+    var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
+    if (missing.length) {
+      base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
+    }
+    return base;
+  }
+
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -401,6 +411,220 @@
   function _toFiniteNumber(v, fallback) {
     var n = Number(v);
     return isFinite(n) ? n : fallback;
+  }
+
+  function _normalizeZiweiStrengthLabel(value) {
+    var v = String(value || '').trim();
+    if (!v) return '';
+    if (v === '◎' || v === '廟' || v === '묘' || v === '묘왕' || v === '묘왕지') return '묘';
+    if (v === '○' || v === '旺' || v === '왕') return '왕';
+    if (v === '▲' || v === '利' || v === '득' || v === '득지' || v === '리' || v === '리지') return '리';
+    if (v === '△' || v === '平' || v === '평' || v === '평지') return '평';
+    if (v === '×' || /^x$/i.test(v) || v === '함' || v === '극함' || v === '심한함' || v === '불' || v === '불리') return '함';
+    return '';
+  }
+
+  function _normalizeZiweiStrengthSymbol(value) {
+    var v = String(value || '').trim();
+    if (v === '◎') return '◎';
+    if (v === '○') return '○';
+    if (v === '▲' || v === '△') return '△';
+    if (v === '×' || /^x$/i.test(v)) return '×';
+    var strength = _normalizeZiweiStrengthLabel(v);
+    if (strength === '묘') return '◎';
+    if (strength === '왕') return '○';
+    if (strength === '리' || strength === '평') return '△';
+    if (strength === '함') return '×';
+    return '';
+  }
+
+  function _brightnessFromStrength(strength) {
+    if (strength === '묘') return '廟';
+    if (strength === '왕') return '旺';
+    if (strength === '리') return '利';
+    if (strength === '평') return '平';
+    if (strength === '함') return '陷';
+    return '';
+  }
+
+  function _mapZiweiStarsForStructured(list) {
+    if (!Array.isArray(list)) return [];
+    return list.map(function (star) {
+      var name = String((star && (star.name || star.nameKo)) || '').trim();
+      var strength = _normalizeZiweiStrengthLabel(star && (star.strength || star.brightness || star.brightnessKo || star.strengthSymbol || star.symbol));
+      var symbol = _normalizeZiweiStrengthSymbol(star && (star.symbol || star.strengthSymbol || star.strength || star.brightness || star.brightnessKo));
+      if (name && !strength && symbol) {
+        strength = _normalizeZiweiStrengthLabel(symbol);
+      }
+      if (name && strength && !symbol) {
+        symbol = _normalizeZiweiStrengthSymbol(strength);
+      }
+      if (name && !strength) {
+        strength = '평';
+      }
+      if (name && !symbol) {
+        symbol = '△';
+      }
+      return {
+        name: name,
+        nameKo: name,
+        strength: strength,
+        brightness: _brightnessFromStrength(strength),
+        brightnessKo: strength,
+        symbol: symbol,
+        borrowed: !!(star && star.borrowed)
+      };
+    }).filter(function (star) {
+      return !!(star && star.name);
+    });
+  }
+
+  function _mergeZiweiStarArrays(primary, fallback) {
+    var p = Array.isArray(primary) ? primary.filter(function (s) { return s && s.name; }) : [];
+    var f = Array.isArray(fallback) ? fallback.filter(function (s) { return s && s.name; }) : [];
+    return p.length ? p : f;
+  }
+
+  function _mergeZiweiStructuredData(primary, fallback) {
+    if (!primary) return fallback || null;
+    if (!fallback) return primary;
+
+    var pRows = Array.isArray(primary.palaceStarData) ? primary.palaceStarData : [];
+    var fRows = Array.isArray(fallback.palaceStarData) ? fallback.palaceStarData : [];
+    if (!pRows.length) return fallback;
+    if (!fRows.length) return primary;
+
+    var fByPalace = {};
+    for (var i = 0; i < fRows.length; i++) {
+      var fk = String((fRows[i] && fRows[i].palace) || '').trim();
+      if (fk && !fByPalace[fk]) fByPalace[fk] = fRows[i];
+    }
+
+    var mergedRows = pRows.map(function (pRow, idx) {
+      var byName = fByPalace[String((pRow && pRow.palace) || '').trim()];
+      var fRow = byName || fRows[idx] || {};
+      return {
+        palace: String((pRow && pRow.palace) || (fRow && fRow.palace) || '').trim(),
+        branch: String((pRow && pRow.branch) || (fRow && fRow.branch) || '').trim(),
+        dahan: String((pRow && pRow.dahan) || (fRow && fRow.dahan) || '').trim(),
+        stars: _mergeZiweiStarArrays(pRow && pRow.stars, fRow && fRow.stars),
+        auxStars: _mergeZiweiStarArrays(pRow && pRow.auxStars, fRow && fRow.auxStars),
+        badStars: _mergeZiweiStarArrays(pRow && pRow.badStars, fRow && fRow.badStars)
+      };
+    });
+
+    return {
+      yearGan: primary.yearGan || fallback.yearGan || '',
+      yearZhi: primary.yearZhi || fallback.yearZhi || '',
+      meng: primary.meng || fallback.meng || '',
+      shen: primary.shen || fallback.shen || '',
+      juInfo: primary.juInfo || fallback.juInfo || '',
+      isLeap: !!(primary.isLeap || fallback.isLeap),
+      daHanList: (Array.isArray(primary.daHanList) && primary.daHanList.length) ? primary.daHanList : (Array.isArray(fallback.daHanList) ? fallback.daHanList : []),
+      sihuaData: (primary.sihuaData && typeof primary.sihuaData === 'object' && Object.keys(primary.sihuaData).length)
+        ? primary.sihuaData
+        : ((fallback.sihuaData && typeof fallback.sihuaData === 'object') ? fallback.sihuaData : {}),
+      calcMeta: (primary.calcMeta && typeof primary.calcMeta === 'object' && Object.keys(primary.calcMeta).length)
+        ? primary.calcMeta
+        : ((fallback.calcMeta && typeof fallback.calcMeta === 'object') ? fallback.calcMeta : {}),
+      palaceStarData: mergedRows
+    };
+  }
+
+  function _collectStructuredFromCurrentZiweiData(zd) {
+    if (!zd || !Array.isArray(zd.palaceStarData)) return null;
+    return {
+      yearGan: zd.yearGan || '',
+      yearZhi: zd.yearZhi || '',
+      meng: zd.meng || '',
+      shen: zd.shen || '',
+      juInfo: zd.juInfo || '',
+      isLeap: !!zd.isLeap,
+      daHanList: Array.isArray(zd.daHanList) ? zd.daHanList : [],
+      sihuaData: (zd.sihuaData && typeof zd.sihuaData === 'object') ? zd.sihuaData : {},
+      calcMeta: (zd.calcMeta && typeof zd.calcMeta === 'object') ? zd.calcMeta : {},
+      palaceStarData: zd.palaceStarData.map(function (row) {
+        return {
+          palace: row && row.palace ? String(row.palace) : '',
+          branch: row && row.branch ? String(row.branch) : '',
+          dahan: row && row.dahan ? String(row.dahan) : '',
+          stars: _mapZiweiStarsForStructured(row && row.stars),
+          auxStars: _mapZiweiStarsForStructured(row && row.auxStars),
+          badStars: _mapZiweiStarsForStructured(row && row.badStars)
+        };
+      })
+    };
+  }
+
+  function _buildStructuredFromAdvancedChart(chart) {
+    if (!chart || !Array.isArray(chart.palaces) || !chart.palaces.length) return null;
+
+    var sihuaData = {};
+    try {
+      if (chart.sihua && chart.sihua.hualu) sihuaData[String(chart.sihua.hualu)] = { type: '화록' };
+      if (chart.sihua && chart.sihua.huaquan) sihuaData[String(chart.sihua.huaquan)] = { type: '화권' };
+      if (chart.sihua && chart.sihua.huake) sihuaData[String(chart.sihua.huake)] = { type: '화과' };
+      if (chart.sihua && chart.sihua.huaji) sihuaData[String(chart.sihua.huaji)] = { type: '화기' };
+    } catch (_) {}
+
+    return {
+      yearGan: chart.yearGan || '',
+      yearZhi: chart.yearZhi || '',
+      meng: chart.mingGong || '',
+      shen: chart.shenGong || '',
+      juInfo: chart.juInfo || '',
+      isLeap: false,
+      daHanList: Array.isArray(chart.majorPeriods)
+        ? chart.majorPeriods.map(function (period) {
+          return String(period && period.range ? period.range : '').trim();
+        }).filter(Boolean)
+        : [],
+      sihuaData: sihuaData,
+      calcMeta: {},
+      palaceStarData: chart.palaces.map(function (palace) {
+        var mergedAux = [];
+        if (Array.isArray(palace && palace.auxiliaryStars)) mergedAux = mergedAux.concat(palace.auxiliaryStars);
+        if (Array.isArray(palace && palace.luckyStars)) mergedAux = mergedAux.concat(palace.luckyStars);
+        return {
+          palace: String((palace && palace.name) || '').trim(),
+          branch: String((palace && palace.earthlyBranch) || '').trim(),
+          dahan: String((palace && palace.dahan) || '').trim(),
+          stars: _mapZiweiStarsForStructured(palace && palace.mainStars),
+          auxStars: _mapZiweiStarsForStructured(mergedAux),
+          badStars: _mapZiweiStarsForStructured(palace && palace.maleficStars)
+        };
+      })
+    };
+  }
+
+  function _collectStructuredFromAdvancedCache() {
+    for (var i = 0; i < ADVANCED_ZIWEI_CACHE_KEYS.length; i++) {
+      var key = ADVANCED_ZIWEI_CACHE_KEYS[i];
+      try {
+        var raw = sessionStorage.getItem(key);
+        if (!raw) continue;
+        var parsed = JSON.parse(raw);
+        var structured = _buildStructuredFromAdvancedChart(parsed && parsed.chart);
+        if (structured && Array.isArray(structured.palaceStarData) && structured.palaceStarData.length) {
+          _trace('ZIWEI_STRUCTURED_FROM_CACHE', { cacheKey: key, palaceCount: structured.palaceStarData.length });
+          return structured;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  function _collectZiweiStructuredData() {
+    var fromCurrent = _collectStructuredFromCurrentZiweiData(window._currentZiweiData || null);
+    var fromCache = _collectStructuredFromAdvancedCache();
+
+    if (fromCurrent && Array.isArray(fromCurrent.palaceStarData) && fromCurrent.palaceStarData.length) {
+      return _mergeZiweiStructuredData(fromCurrent, fromCache);
+    }
+    if (fromCache && Array.isArray(fromCache.palaceStarData) && fromCache.palaceStarData.length) {
+      return fromCache;
+    }
+    return null;
   }
 
   function _buildZiweiBirthCacheKey(profile, birthForEngine) {
@@ -916,7 +1140,7 @@
     _generating = true;
     _chapters = Array(13).fill(null);
     // 사주 분석 화면과 100% 일치하도록 전역/자미두수 엔진 동기화
-    _ensureZiweiEngineData(profile, true);
+    _ensureZiweiEngineData(profile, false);
 
     var ziweiData = _collectZiweiData();
 
@@ -1055,81 +1279,6 @@
 
     _setProgress(0);
 
-    function _collectZiweiStructuredData() {
-      try {
-        var zd = window._currentZiweiData || null;
-        if (!zd || !Array.isArray(zd.palaceStarData)) return null;
-
-        function _strengthFromSymbol(sym) {
-          if (sym === '◎') return '묘';
-          if (sym === '○') return '왕';
-          if (sym === '▲') return '리';
-          if (sym === '△') return '평';
-          if (sym === 'X') return '함';
-          return '';
-        }
-
-        function _symbolFromStrength(strength) {
-          if (strength === '묘') return '◎';
-          if (strength === '왕') return '○';
-          if (strength === '리') return '▲';
-          if (strength === '평') return '△';
-          if (strength === '함') return 'X';
-          return '';
-        }
-
-        function _brightnessFromStrength(strength) {
-          if (strength === '묘') return '廟';
-          if (strength === '왕') return '旺';
-          if (strength === '리') return '利';
-          if (strength === '평') return '平';
-          if (strength === '함') return '陷';
-          return '';
-        }
-
-        function _mapStars(list) {
-          return Array.isArray(list) ? list.map(function (s) {
-            var symbol = s && s.symbol ? String(s.symbol) : '';
-            var strength = s && s.strength ? String(s.strength) : _strengthFromSymbol(symbol);
-            if (!symbol && strength) symbol = _symbolFromStrength(strength);
-            return {
-              name: s && s.name ? String(s.name) : '',
-              nameKo: s && s.nameKo ? String(s.nameKo) : (s && s.name ? String(s.name) : ''),
-              strength: strength,
-              brightness: _brightnessFromStrength(strength),
-              brightnessKo: strength,
-              symbol: symbol,
-              borrowed: !!(s && s.borrowed)
-            };
-          }) : [];
-        }
-
-        return {
-          yearGan: zd.yearGan || '',
-          yearZhi: zd.yearZhi || '',
-          meng: zd.meng || '',
-          shen: zd.shen || '',
-          juInfo: zd.juInfo || '',
-          isLeap: !!zd.isLeap,
-          daHanList: Array.isArray(zd.daHanList) ? zd.daHanList : [],
-          sihuaData: (zd.sihuaData && typeof zd.sihuaData === 'object') ? zd.sihuaData : {},
-          calcMeta: (zd.calcMeta && typeof zd.calcMeta === 'object') ? zd.calcMeta : {},
-          palaceStarData: zd.palaceStarData.map(function (row) {
-            return {
-              palace: row && row.palace ? String(row.palace) : '',
-              branch: row && row.branch ? String(row.branch) : '',
-              dahan: row && row.dahan ? String(row.dahan) : '',
-              stars: _mapStars(row && row.stars),
-              auxStars: _mapStars(row && row.auxStars),
-              badStars: _mapStars(row && row.badStars)
-            };
-          })
-        };
-      } catch (_) {
-        return null;
-      }
-    }
-
     var _premiumReportSessionId = '';
 
     function _buildZiweiChapterPayload(idx) {
@@ -1216,6 +1365,18 @@
             data.errorCode = 'AUTH_REQUIRED';
             return data;
           }
+          if (
+            status === 422
+            || code === 'MISSING_CALCULATION_DATA'
+            || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
+            || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
+          ) {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'DATA_INCOMPLETE';
+            data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+            return data;
+          }
           var maxTry = 3;
           if (data && data.ok && data.text) return data;
           if (tryNo >= maxTry) return data;
@@ -1232,11 +1393,11 @@
         var _validCount = _chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length;
-        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         if (_validCount < 13) {
+          _trace('GENERATION_FAILED', { validChapters: _validCount, totalChapters: 13, reason: 'CHAPTERS_INCOMPLETE' });
           var errEl = _qs('zbErrorMsg');
           if (errEl) errEl.textContent = _validCount === 0
-            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
+            ? '모든 챕터 생성에 실패했습니다. 명반 계산 데이터 누락 또는 서버 응답 지연이 원인일 수 있습니다. 계산 데이터를 다시 확인한 뒤 재시도해 주세요.'
             : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
@@ -1244,6 +1405,7 @@
             .then(function (refunded) { if (refunded) window.alert('자미두수 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
+        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         try { sessionStorage.removeItem(PREMIUM_ZIWEI_TX_KEY); } catch (_) {}
         _showScreen('zbResultScreen');
         _updateTocState();
@@ -1273,6 +1435,22 @@
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
           }
+          return;
+        }
+        if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var dataErrEl = _qs('zbErrorMsg');
+          if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 명반 데이터가 누락되었습니다. 계산 후 다시 시도해 주세요.');
+          _showScreen('zbErrorScreen');
+          _trace('GENERATION_FAILED', {
+            chapter: idx + 1,
+            reason: 'DATA_INCOMPLETE',
+            code: String((data && data.code) || ''),
+            missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+          });
+          _autoRefundPremium(PREMIUM_ZIWEI_COST, PREMIUM_ZIWEI_FEATURE_KEY, '자미두수 프리미엄 PDF', PREMIUM_ZIWEI_TX_KEY)
+            .then(function (refunded) { if (refunded) window.alert('자미두수 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';

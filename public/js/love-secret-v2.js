@@ -934,6 +934,57 @@
     });
   }
 
+  function _autoRefundPremium(mode, label) {
+    var cfg = _getModeConfig(mode);
+    var featureKey = 'premium-love-secret-' + mode;
+    var txStorageKey = 'cd_premium_tx_love-secret-' + mode;
+    var sourceTransactionId = '';
+    try { sourceTransactionId = sessionStorage.getItem(txStorageKey) || ''; } catch (_) {}
+
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var refundHeaders = { 'Content-Type': 'application/json' };
+    if (token) refundHeaders.Authorization = 'Bearer ' + token;
+
+    var requestId = 'premium-refund:' + featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    var endpoints = _buildApiCandidates('/api/fortune/pig-coin/refund');
+
+    return new Promise(function(resolve) {
+      function run(at) {
+        if (at >= endpoints.length) {
+          resolve(false);
+          return;
+        }
+        fetch(endpoints[at], {
+          method: 'POST',
+          headers: refundHeaders,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify({
+            cost: cfg.price,
+            featureKey: featureKey,
+            sourceTransactionId: sourceTransactionId || undefined,
+            requestId: requestId,
+            reason: String(label || '연애 비책 생성 실패 자동 환급'),
+          }),
+        }).then(function(res) {
+          return res.json().catch(function () { return {}; }).then(function(data) {
+            if (!res.ok && !(data && data.alreadyRefunded)) {
+              run(at + 1);
+              return;
+            }
+            _syncUserPoints(data);
+            try { sessionStorage.removeItem(txStorageKey); } catch (_) {}
+            resolve(true);
+          });
+        }).catch(function() {
+          run(at + 1);
+        });
+      }
+      run(0);
+    });
+  }
+
   function _prepareJob(mode, sajuData, partnerData) {
     var inputHash = _buildInputHash(sajuData, partnerData, mode);
     var state = _loadJobState(mode, inputHash);
@@ -1017,6 +1068,13 @@
     });
   };
 
+  function _formatPremiumFailureMessage(data, fallback) {
+    var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
+    var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
+    if (missing.length) base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
+    return base;
+  }
+
   function _startGeneration(partnerData, jobState) {
     _generating = true;
     _cancelGeneration = false;
@@ -1067,6 +1125,16 @@
     var _chapterTimeoutMs = 115000;
     var _maxChapterAttempts = 4;
     var _recoveryPasses = 0;
+    var _refundRequested = false;
+
+    function _attemptAutoRefundOnce(reason) {
+      if (_refundRequested) return;
+      _refundRequested = true;
+      _autoRefundPremium(_currentMode, reason || '연애 비책 생성 실패 자동 환급')
+        .then(function(refunded) {
+          if (refunded) window.alert('연애 비책 프리미엄 결제가 자동 환급되었습니다.');
+        });
+    }
 
     function _isValidChapterTextAt(idx) {
       var raw = String(_chapters[idx] || '').trim();
@@ -1176,6 +1244,21 @@
                 _done(data);
                 return;
               }
+              var status = Number((data && data.status) || 0);
+              var code = String((data && data.code) || '').toUpperCase();
+              if (
+                status === 422
+                || code === 'MISSING_CALCULATION_DATA'
+                || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
+                || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
+              ) {
+                data = data || { ok: false };
+                data.fatal = true;
+                data.errorCode = 'DATA_INCOMPLETE';
+                data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+                _done(data);
+                return;
+              }
               _lastMsg = (data && data.message) ? data.message : '분량 또는 응답 기준을 충족하지 못했습니다.';
               setTimeout(function () {
                 _runAttempt(at + 1);
@@ -1248,6 +1331,7 @@
           _showScreen('lsErrorScreen');
           var validErr = _qs('lsErrorMessage');
           if (validErr) validErr.textContent = '모든 챕터가 완성되지 않았습니다. 전체 챕터를 다시 생성해 주세요. (' + validCount + '/' + _totalChapters + ')';
+          _attemptAutoRefundOnce('연애 비책 챕터 생성 실패 자동 환급');
           return;
         }
         var requiredTotal = Number(_getModeConfig(_currentMode).minTotalChars || 0);
@@ -1257,6 +1341,7 @@
           _showScreen('lsErrorScreen');
           var err = _qs('lsErrorMessage');
           if (err) err.textContent = '최소 분량 기준을 충족하지 못했습니다. 다시 시도해 주세요. (' + totalChars + '/' + requiredTotal + ')';
+          _attemptAutoRefundOnce('연애 비책 분량 기준 미달 자동 환급');
           return;
         }
         _generating = false;
@@ -1281,6 +1366,16 @@
             if (typeof window.__cdOpenLoginRequiredModal === 'function') {
               window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
             }
+            _attemptAutoRefundOnce('연애 비책 인증 만료 자동 환급');
+            return;
+          }
+          if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+            _generating = false;
+            _stopLoadingAnimation();
+            _showScreen('lsErrorScreen');
+            var dataErr = _qs('lsErrorMessage');
+            if (dataErr) dataErr.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
+            _attemptAutoRefundOnce('연애 비책 계산 데이터 누락 자동 환급');
             return;
           }
           if (_cancelGeneration) return;

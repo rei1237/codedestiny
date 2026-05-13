@@ -321,6 +321,13 @@
     .catch(function () { return false; });
   }
 
+  function _formatPremiumFailureMessage(data, fallback) {
+    var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
+    var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
+    if (missing.length) base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
+    return base;
+  }
+
   function _applySukuyoTheme(modal) {
     if (!modal || !modal.style) return;
     modal.style.setProperty('--lb-void', '#020b16');
@@ -668,16 +675,15 @@
     var hourSel=document.getElementById('skPartnerHour');
     var minSel=document.getElementById('skPartnerMinute');
     if(hourSel&&hourSel.options.length<=1){
-      var hourLabels=['자시(0시)','축시(1시)','인시(2시)','묘시(3시)','진시(4시)','사시(5시)','오시(6시)','미시(7시)','신시(8시)','유시(9시)','술시(10시)','해시(11시)'];
       for(var h=0;h<24;h++){
         var opt=document.createElement('option');
         opt.value=String(h);
-        opt.textContent=h+'시'+(h<12?'  ('+hourLabels[h]+')':'');
+        opt.textContent=(h<10?'0':'')+h+'시';
         hourSel.appendChild(opt);
       }
     }
     if(minSel&&minSel.options.length<=1){
-      for(var m=0;m<60;m+=5){
+      for(var m=0;m<60;m++){
         var mopt=document.createElement('option');
         mopt.value=String(m);
         mopt.textContent=(m<10?'0':'')+m+'분';
@@ -815,11 +821,13 @@
         var ch=Number(d.getAttribute('data-skch'));
         var isDone=ch<=done;
         var isActive=ch===done+1&&done<_totalChapters;
+        var isPending=!isDone&&!isActive;
         var wasDone=d.classList.contains('zb-ch-dot--done')||d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done',isDone);
         d.classList.toggle('zb-ch-dot--active',isActive);
         d.classList.toggle('lb-ch-dot--done',isDone);
         d.classList.toggle('lb-ch-dot--active',isActive);
+        d.classList.toggle('lb-ch-dot--pending',isPending);
         if(!wasDone&&isDone){
           d.classList.add('lb-ch-dot--just-done');
           setTimeout(function(){ d.classList.remove('lb-ch-dot--just-done'); }, 760);
@@ -912,6 +920,18 @@
             data.errorCode = 'AUTH_REQUIRED';
             return data;
           }
+          if (
+            status === 422
+            || code === 'MISSING_CALCULATION_DATA'
+            || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
+            || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
+          ) {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'DATA_INCOMPLETE';
+            data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+            return data;
+          }
           var maxTry = 4;
           if(data&&data.ok&&data.text) return data;
           if(tryNo>=maxTry) return data;
@@ -962,6 +982,22 @@
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
           }
+          return;
+        }
+        if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var dataErrEl = _qs('skErrorMsg');
+          if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
+          _showScreen('skErrorScreen');
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+            .then(function(){
+              if (_reportMode === 'compatibility') {
+                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
+              }
+              return false;
+            })
+            .then(function(refunded){ if(refunded) window.alert('숙요 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
         if(data&&data.ok&&data.text){

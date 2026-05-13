@@ -29,13 +29,13 @@ describe("Premium access-control rules", () => {
     );
   });
 
-  test("ziweiPremium은 500 코인 결제 증빙 규칙이어야 한다", () => {
+  test("ziweiPremium은 590 코인 결제 증빙 규칙이어야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("ziweiPremium", {});
     expect(rules).toHaveLength(1);
     expect(rules[0]).toMatchObject({
       featureKey: "premium-ziwei-report",
       reason: "자미두수 프리미엄 PDF 리포트 생성",
-      minCost: 500,
+      minCost: 590,
     });
   });
 

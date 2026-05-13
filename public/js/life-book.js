@@ -86,12 +86,16 @@
   var _generatedPdfObjectUrl = '';
   var _lastError = null;
   var _chapterPlan = [];
+  var _lbPaidCost = 0;
   var _premiumAccessState = {
     productId: 'saju-life-book',
     isUnlocked: false,
     pointBalance: null,
     paymentStatus: 'idle'
   };
+
+  var _LIFEBOOK_TX_STORAGE_KEY = 'cd_premium_tx_lifebook';
+  var _lbAutoRefundInFlight = false;
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
@@ -162,6 +166,55 @@
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
+
+  function _autoRefundPremium(label) {
+    if (_lbAutoRefundInFlight) return Promise.resolve(false);
+    _lbAutoRefundInFlight = true;
+    var cost = _lbPaidCost || 500;
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var refundHeaders = { 'Content-Type': 'application/json' };
+    if (token) refundHeaders.Authorization = 'Bearer ' + token;
+    var sourceTransactionId = '';
+    try { sourceTransactionId = sessionStorage.getItem(_LIFEBOOK_TX_STORAGE_KEY) || ''; } catch (_) {}
+    var requestId = 'premium-refund:coin-gate-per-use:lifebook:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    var endpoints = _buildApiCandidates('/api/fortune/pig-coin/refund');
+    return new Promise(function (resolve) {
+      function run(at) {
+        if (at >= endpoints.length) { _lbAutoRefundInFlight = false; resolve(false); return; }
+        fetch(endpoints[at], {
+          method: 'POST',
+          headers: refundHeaders,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify({
+            cost: cost,
+            featureKey: 'coin-gate-per-use',
+            sourceTransactionId: sourceTransactionId || undefined,
+            requestId: requestId,
+            reason: String(label || '인생의 책 생성 실패 자동 환급'),
+          }),
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            _lbAutoRefundInFlight = false;
+            if (!res.ok && !(data && data.alreadyRefunded)) { run(at + 1); return; }
+            var pts = Number(data && data.user && data.user.points);
+            if (isFinite(pts)) {
+              try {
+                var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+                user.points = pts;
+                localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+              } catch (_) {}
+              if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(pts);
+            }
+            try { sessionStorage.removeItem(_LIFEBOOK_TX_STORAGE_KEY); } catch (_) {}
+            resolve(true);
+          });
+        }).catch(function () { run(at + 1); });
+      }
+      run(0);
+    });
+  }
 
   function _buildApiCandidates(pathname) {
     var _path = String(pathname || '');
@@ -1390,6 +1443,8 @@
           var lbErrFinal = _qs('lbErrorMessage');
           if (lbErrFinal) lbErrFinal.textContent = _lastError;
           _showScreen('lbErrorScreen');
+          _autoRefundPremium('인생의 책 챕터 생성 불완전 자동 환급')
+            .then(function (refunded) { if (refunded) window.alert('인생의 책 결제가 자동 환급되었습니다.'); });
           return;
         }
 
@@ -1439,6 +1494,10 @@
             _showScreen('lbErrorScreen');
             if (status === 401 && typeof window.__cdOpenLoginRequiredModal === 'function') {
               window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
+            }
+            if (status === 422 || status === 402) {
+              _autoRefundPremium('인생의 책 생성 실패 자동 환급')
+                .then(function (refunded) { if (refunded) window.alert('인생의 책 결제가 자동 환급되었습니다.'); });
             }
             return;
           }
@@ -1651,7 +1710,9 @@
       if (typeof window._cdCoinGatePerUse === 'function') {
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
-        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
+        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function (txId) {
+          _lbPaidCost = _lbCoinCost;
+          try { if (txId) sessionStorage.setItem(_LIFEBOOK_TX_STORAGE_KEY, String(txId)); } catch (_) {}
           btn.disabled = false;
           window.generateLifeBook(_prepared);
         }, function () {

@@ -58,7 +58,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [{
       featureKey: "premium-ziwei-report",
       reason: "자미두수 프리미엄 PDF 리포트 생성",
-      minCost: 500,
+      minCost: 590,
       windowMinutes: 120,
     }];
   }

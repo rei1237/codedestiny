@@ -23,6 +23,7 @@ export type DestinyBiasAnalyzeInput = {
   userBirthDateInput: string;
   biasName: string;
   biasBirthDateInput: string;
+  linkedArtistName?: string;
   biasMood: string;
   relationMood: string;
   themeLabel: string;
@@ -146,7 +147,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const cheerPoint = getCheerPoint(compatibility.totalScore, input.relationMood);
   const moodKeywords = getMoodKeywords(`${userName}:${biasName}:${input.biasMood}:${input.relationMood}`, 3);
   const matchingTags = [...moodKeywords, ...compatibility.connectionKeyword].slice(0, 6);
-  const linkedArtist = `${biasName} Stage Line`;
+  const linkedArtist = normalizeName(input.linkedArtistName || "", `${biasName} Stage Line`);
   const stageChemistryKeywords = [
     compatibility.connectionKeyword[0] || "Neon",
     compatibility.connectionKeyword[1] || "Rhythm",

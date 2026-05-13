@@ -1,17 +1,17 @@
 export const destinyBiasLoadingMessages = [
-  "별자리 신호를 맞추는 중...",
-  "최애의 에너지 코드를 읽는 중...",
-  "당신과 최애의 궁합을 연결하는 중...",
-  "디지털 포토카드를 완성하는 중...",
+  "사주 에너지를 스캔하는 중...",
+  "최애의 무대 아우라와 동기화하는 중...",
+  "팬라이트 시그널을 연결하는 중...",
+  "한정판 운명 포토카드를 발급하는 중...",
 ] as const;
 
 export const destinyBiasIntroCopy = {
   title: "최애운명",
   subtitle: "My Destiny Bias",
-  lead: "당신의 사주 에너지와 최애의 빛이 만나는 순간",
+  lead: "당신의 생일이 최애의 무대와 연결되는 순간",
   description:
-    "외부 AI 호출 없이 입력값 기반 로컬 분석으로 최애 성향, 궁합, 에너지 연결 리포트와 프리미엄 디지털 포토카드를 완성합니다.",
-  ctaPrimary: "내 최애운명 분석하기",
-  ctaSecondary: "입력 폼 바로 시작",
+    "우주 콘서트 입장부터 운명 연결, 한정판 포토카드 수령까지 하나의 몰입형 경험으로 완성되는 팬덤 운세 리포트입니다.",
+  ctaPrimary: "운명 연결 시작하기",
+  ctaSecondary: "Cosmic Stage 입장",
   coinBadge: "✨ 1회 50코인 · 포토카드 포함",
 } as const;

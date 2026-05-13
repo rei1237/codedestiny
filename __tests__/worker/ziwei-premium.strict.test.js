@@ -123,7 +123,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(result.isValid).toBe(true);
   });
 
-  test("B. 주성 강약/기호 누락 시 strict validation은 실패해야 한다", () => {
+  test("B. 주성 강약/기호 누락 입력은 canonical builder에서 자동 보강되어야 한다", () => {
     const payload = makeStructuredPayload();
     payload.palaceStarData[0].stars = [{ name: "자미" }];
 
@@ -131,9 +131,11 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     const chart = buildCanonicalZiweiChart(makeBody(), makeInput(), payload, "personal", "", q);
     const result = validateCanonicalZiweiChartStrict(chart, q);
 
-    expect(result.isValid).toBe(false);
-    expect(result.missingFields.some((f) => f.includes("mainStars[0].brightness"))).toBe(true);
-    expect(result.missingFields.some((f) => f.includes("mainStars[0].symbol"))).toBe(true);
+    expect(result.isValid).toBe(true);
+    expect(chart.palaces[0].mainStars[0].brightness).toBeTruthy();
+    expect(chart.palaces[0].mainStars[0].symbol).toBeTruthy();
+    expect(q.supplementedFields.some((f) => f.includes("mainStars[0].brightness"))).toBe(true);
+    expect(q.supplementedFields.some((f) => f.includes("mainStars[0].symbol"))).toBe(true);
   });
 
   test("C. 요약표에 '-' 결측 셀이 있으면 invalid table로 감지해야 한다", () => {
@@ -167,7 +169,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(hasRequiredZiweiSpecificCoverage(denseText)).toBe(true);
   });
 
-  test("G. canonical 필수값 누락이면 /api/ziwei-book/session은 422를 반환해야 한다", async () => {
+  test("G. strict 모드에서 canonical 필수값 누락이면 /api/ziwei-book/session은 422를 반환해야 한다", async () => {
     const authToken = await signJwt({
       userId: "507f1f77bcf86cd799439011",
       email: "strict-test@example.com",
@@ -185,6 +187,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
         authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({
+        _premiumStrictValidation: true,
         sessionId: 1,
         chapter: 1,
         name: "테스터",
@@ -218,5 +221,55 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(data.code).toBe("ZIWEI_CANONICAL_VALIDATION_FAILED");
     expect(Array.isArray(data.missingFields)).toBe(true);
     expect(data.message).toMatch(/계산 데이터 누락/);
+  });
+
+  test("H. ziweiStructured가 없어도 ziweiData 원문으로 canonical 복구가 가능해야 한다", async () => {
+    const authToken = await signJwt({
+      userId: "507f1f77bcf86cd799439011",
+      email: "strict-test@example.com",
+      role: "user",
+    }, "dev-secret", {
+      issuer: "code-destiny-api",
+      audience: "code-destiny-web",
+      expiresIn: "30m",
+    });
+
+    const ziweiLines = [
+      "【자미두수 12궁 배치】",
+      ...PALACES.map((palace, idx) => `${palace} [${BRANCHES[idx]}] → 주성: 자미·무곡 | 보성: 문창 | 살성: 경양`),
+      "명궁(命宮) 지지: 자",
+      "신궁(身宮) 지지: 오",
+    ].join("\n");
+
+    const req = new Request("https://example.com/api/ziwei-book/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        prepareOnly: true,
+        _premiumStrictValidation: true,
+        name: "테스터",
+        gender: "F",
+        year: 1992,
+        month: 6,
+        day: 15,
+        hour: 12,
+        minute: 30,
+        targetYear: 2026,
+        ziweiData: ziweiLines,
+      }),
+    });
+
+    const res = await handleZiweiBookRoutes(req, {});
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.prepared).toBe(true);
+    expect(Array.isArray(data.canonicalZiweiChart?.palaces)).toBe(true);
+    expect(data.canonicalZiweiChart.palaces).toHaveLength(12);
+    expect(data.validation?.isValid).toBe(true);
   });
 });
