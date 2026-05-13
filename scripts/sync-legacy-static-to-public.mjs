@@ -243,12 +243,16 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
   const flowerRe = /<section class="fg-group fg-group--flower"[\s\S]*?<\/section><!-- \/fg-group--flower -->/;
   const psychotestVisualRe = /<!-- psychotest-visual-entry -->[\s\S]*?<!-- \/psychotest-visual-entry -->/;
   const footerRe = /<footer[^>]*role="contentinfo"[\s\S]*?<\/footer>/;
+  const authHeroRe = /<div class="auth-quick-links" id="authQuickLinks">[\s\S]*?<div id="goldenGrainBadgeRoot"><\/div>/;
+  const authCardCssRe = /\.auth-btn--signup\{[\s\S]*?\.cd-user-card__actions\{[^}]*\}/;
   const flowerHideRe = /\.fg-group--flower\{display:none !important\}/g;
   const overlayHideRe = /#destinyFlowerStudioOverlay,.df-studio-overlay\{display:none !important\}/g;
 
   const rootFlower = extractFirst(rootHtml, flowerRe);
   const rootPsychotestVisual = extractFirst(rootHtml, psychotestVisualRe);
   const rootFooter = extractFirst(rootHtml, footerRe);
+  const rootAuthHero = extractFirst(rootHtml, authHeroRe);
+  const rootAuthCardCss = extractFirst(rootHtml, authCardCssRe);
   const rootCanonicalRedirectRef = extractFirst(rootHtml, /\/js\/inline\/canonical-redirect\.js\?v=[^"']+/);
   const rootMainGlassRef = extractFirst(rootHtml, /\/styles\/main-glass\.css\?v=[^"']+/);
   const rootRuntimeRef = extractFirst(rootHtml, /\/js\/core\/index-inline-runtime\.js\?v=[^"']+/);
@@ -276,6 +280,22 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
 
   if (rootFooter && footerRe.test(html)) {
     const next = html.replace(footerRe, rootFooter);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  if (rootAuthHero && authHeroRe.test(html)) {
+    const next = html.replace(authHeroRe, rootAuthHero);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  if (rootAuthCardCss && authCardCssRe.test(html)) {
+    const next = html.replace(authCardCssRe, rootAuthCardCss);
     if (next !== html) {
       html = next;
       changed = true;

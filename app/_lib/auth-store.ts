@@ -145,6 +145,42 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const LOGIN_ME_RETRY_DELAYS_MS = [180, 320, 520] as const;
+
+function isRetryableLoginSyncError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return message === "auth_refresh_failed" || message === "AUTH_REFRESH_TEMPORARY_FAILURE";
+}
+
+async function resolveUserAfterLogin(fallbackUser: AuthUser | null) {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= LOGIN_ME_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      const meUser = await refreshAuth({ force: true, silent: attempt > 0 });
+      if (meUser) return meUser;
+      lastError = new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다.");
+    } catch (error) {
+      const resolved = error instanceof Error ? error : new Error("로그인 인증 동기화 중 오류가 발생했습니다.");
+      lastError = resolved;
+      if (!isRetryableLoginSyncError(resolved) && attempt > 0) {
+        break;
+      }
+    }
+
+    if (attempt < LOGIN_ME_RETRY_DELAYS_MS.length) {
+      await sleep(LOGIN_ME_RETRY_DELAYS_MS[attempt]);
+    }
+  }
+
+  if (fallbackUser) {
+    applyResolvedUser(fallbackUser);
+    return fallbackUser;
+  }
+
+  throw (lastError || new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다."));
+}
+
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   const rawText = await response.text();
   if (!rawText) return {} as T;
@@ -398,10 +434,8 @@ export async function login(credentials: LoginCredentials) {
     }
 
     debugAuth("[auth] login api success");
-    const meUser = await refreshAuth({ force: true });
-    if (!meUser) {
-      throw new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다.");
-    }
+    const fallbackUser = resolveSafeUser(payload.user) as AuthUser | null;
+    const meUser = await resolveUserAfterLogin(fallbackUser);
     debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
 
     await syncPostLoginData();

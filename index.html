@@ -427,8 +427,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cd-user-card__avatar{position:relative;width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 28% 25%,#f6eaff 0%,#ad87ff 36%,#6032c5 70%,#2c125f 100%);border:2px solid rgba(218,188,255,0.68);box-shadow:0 0 28px rgba(173,109,255,0.6),0 0 50px rgba(111,54,214,0.32),inset 0 3px 11px rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3.2s ease-in-out infinite;-webkit-animation:cdAvatarGlow 3.2s ease-in-out infinite;will-change:box-shadow;transform:translateZ(0);-webkit-transform:translateZ(0)}@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 24px rgba(163,95,255,0.5),0 0 44px rgba(88,40,182,0.25),inset 0 2px 8px rgba(255,255,255,0.22)}50%{box-shadow:0 0 38px rgba(183,120,255,0.9),0 0 66px rgba(124,69,236,0.35),inset 0 2px 10px rgba(255,255,255,0.28)}}@-webkit-keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 24px rgba(163,95,255,0.5),0 0 44px rgba(88,40,182,0.25),inset 0 2px 8px rgba(255,255,255,0.22)}50%{box-shadow:0 0 38px rgba(183,120,255,0.9),0 0 66px rgba(124,69,236,0.35),inset 0 2px 10px rgba(255,255,255,0.28)}}
 .cd-user-card__avatar-ring{position:absolute;inset:-12px;border-radius:50%;pointer-events:none;background:conic-gradient(from 0deg,rgba(255,240,255,0.95) 0 12%,rgba(196,156,255,0.06) 12% 24%,rgba(213,179,255,0.92) 24% 34%,rgba(170,118,255,0.08) 34% 49%,rgba(246,222,255,0.9) 49% 63%,rgba(170,118,255,0.06) 63% 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));box-shadow:0 0 14px rgba(196,146,255,0.62);animation:cdAvatarSpin 2.4s linear infinite;-webkit-animation:cdAvatarSpin 2.4s linear infinite;will-change:transform;transform:translateZ(0) rotate(0deg);-webkit-transform:translateZ(0) rotate(0deg)}
 @keyframes cdAvatarSpin{from{transform:translateZ(0) rotate(0deg)}to{transform:translateZ(0) rotate(360deg)}}@-webkit-keyframes cdAvatarSpin{from{-webkit-transform:translateZ(0) rotate(0deg)}to{-webkit-transform:translateZ(0) rotate(360deg)}}
+.cd-user-card__orbital-track{position:absolute;inset:-18px;border-radius:50%;pointer-events:none;border:1.5px dashed rgba(196,163,255,0.52);opacity:.78;animation:cdAvatarSpin 5.8s linear infinite reverse;-webkit-animation:cdAvatarSpin 5.8s linear infinite reverse;box-shadow:0 0 12px rgba(122,86,213,0.3)}
 .cd-user-card__initial{font-size:1.7rem;font-weight:900;color:#fff;text-shadow:0 0 14px rgba(255,255,255,0.72);line-height:1;letter-spacing:.01em}
 .cd-user-card__info{display:flex;flex-direction:column;gap:3px;align-items:center;position:relative;z-index:2;padding:0 8px}
+.cd-user-card__name-wrap{position:relative;z-index:2;width:min(100%,430px);padding:10px 16px 11px;border-radius:16px;border:1px solid rgba(182,145,255,0.32);background:linear-gradient(140deg,rgba(54,30,104,0.34),rgba(23,13,60,0.22));box-shadow:inset 0 1px 0 rgba(255,255,255,0.09),0 10px 26px rgba(8,2,31,0.32)}
+.cd-user-card__name-wrap::before{content:'';position:absolute;left:12px;right:12px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(233,214,255,0.62),transparent)}
 .cd-user-card__greeting{font-size:.75rem;color:rgba(201,174,255,0.9);font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 .cd-user-card__welcome-chip{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:999px;border:1px solid rgba(198,156,255,0.45);background:linear-gradient(135deg,rgba(93,53,181,0.56),rgba(51,95,194,0.4));color:#ead9ff;font-size:.62rem;font-weight:800;letter-spacing:.12em;box-shadow:0 0 18px rgba(131,90,236,0.28)}
 .cd-user-card__name{font-size:1.38rem;font-weight:900;background:linear-gradient(92deg,#f3e8ff 0%,#d8b4fe 33%,#fbcfe8 72%,#e9d5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.01em;line-height:1.22;text-shadow:0 0 20px rgba(199,141,255,0.28)}
@@ -1598,16 +1601,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '<div class="cd-user-card__avatar" aria-hidden="true">' +
               '<span class="cd-user-card__initial">' + initial + '</span>' +
               '<div class="cd-user-card__avatar-ring"></div>' +
+              '<div class="cd-user-card__orbital-track"></div>' +
               '</div>' +
+              '<div class="cd-user-card__name-wrap">' +
               '<div class="cd-user-card__info">' +
-              '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
+              '<span class="cd-user-card__greeting">WELCOME BACK</span>' +
               '<span class="cd-user-card__welcome-chip">STELLAR MEMBER</span>' +
               '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
               '<span class="cd-user-card__tagline">' + taglineText + '</span>' +
               '</div>' +
+              '</div>' +
               '<div class="cd-user-card__actions">' +
               adminBadgeHtml +
-              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0로그아웃</button>' +
+              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">⦿\u00a0세션 종료</button>' +
               '</div>' +
               '</div>';
 
@@ -1704,19 +1710,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     '<div class="cd-user-card__avatar" aria-hidden="true">' +
                     '<span class="cd-user-card__initial">👑</span>' +
                     '<div class="cd-user-card__avatar-ring"></div>' +
+                    '<div class="cd-user-card__orbital-track"></div>' +
                     '</div>' +
+                    '<div class="cd-user-card__name-wrap">' +
                     '<div class="cd-user-card__info">' +
-                    '<span class="cd-user-card__greeting">✦ 관리자 세션</span>' +
+                    '<span class="cd-user-card__greeting">ADMIN CONTROL</span>' +
                     '<span class="cd-user-card__welcome-chip">ADMIN ACCESS</span>' +
                     '<span class="cd-user-card__name">ADMIN 님</span>' +
                     '<span class="cd-user-card__tagline">코인 제한 없음 · 관리자 패널 활성화</span>' +
+                    '</div>' +
                     '</div>' +
                     '<div class="cd-user-card__actions">' +
                     '<span class="admin-badge" title="관리자 패널 세션 — 코인 제한 없음">' +
                     '<i class="admin-badge__crown" aria-hidden="true">👑</i>' +
                     '<span class="admin-badge__text">ADMIN</span>' +
                     '</span>' +
-                    '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0나가기</button>' +
+                    '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">⦿\u00a0세션 종료</button>' +
                     '</div>' +
                     '</div>';
                   /* restart CSS animations after admin card injection */
