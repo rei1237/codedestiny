@@ -423,25 +423,19 @@ if (existsSync(rootIndexPath)) {
     console.warn(
       `[sync-legacy-static-to-public] Skip root index as healing source due to issues: ${rootIndexIssues.join(", ")}`,
     );
-  }
+  } else {
+    // Deployment reflection guard:
+    // Always derive public/index.html from root/index.html when root is healthy.
+    // This prevents stale legacy blocks in public shell (for example psychotest legacy cards)
+    // and guarantees static/locale mirrors follow root source edits.
+    const normalizedPublicHtml = makePublicShellFromRoot(rootIndexHtml);
+    const currentPublicHtml = existsSync(publicIndexPath)
+      ? stripLeadingBom(readFileSync(publicIndexPath)).toString("utf8")
+      : "";
 
-  if (rootIndexIssues.length === 0 && !existsSync(publicIndexPath)) {
-    const healedHtml = makePublicShellFromRoot(rootIndexHtml);
-    writeFileSync(publicIndexPath, Buffer.from(healedHtml, "utf8"));
-    console.log("[sync-legacy-static-to-public] Seeded missing public/index.html from root/index.html (normalized)");
-  } else if (rootIndexIssues.length === 0) {
-    const publicIndexBuf = stripLeadingBom(readFileSync(publicIndexPath));
-    const publicIndexHtml = publicIndexBuf.toString("utf8");
-    const patched = syncCriticalShellBlocks(rootIndexHtml, publicIndexHtml);
-    if (patched.changed) {
-      writeFileSync(publicIndexPath, Buffer.from(patched.html, "utf8"));
-      console.log(
-        "[sync-legacy-static-to-public] Patched public/index.html with extracted shell blocks (flower/footer/main-glass) from root/index.html.",
-      );
-    } else if (hasSevereMojibake(publicIndexHtml)) {
-      console.warn(
-        "[sync-legacy-static-to-public] Detected severe mojibake in public/index.html but skipped full overwrite; apply targeted fixes manually.",
-      );
+    if (currentPublicHtml !== normalizedPublicHtml) {
+      writeFileSync(publicIndexPath, Buffer.from(normalizedPublicHtml, "utf8"));
+      console.log("[sync-legacy-static-to-public] Synced public/index.html from root/index.html (normalized shell)");
     }
   }
 }
