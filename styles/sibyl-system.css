@@ -2052,6 +2052,130 @@
   letter-spacing: 0.04em;
 }
 
+.sb-free-recovery-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.sb-free-recovery-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+}
+
+.sb-free-recovery-chip--mode {
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.35);
+}
+
+.sb-free-recovery-chip--risk-high {
+  color: #ffb0b8;
+  background: rgba(255, 55, 90, 0.08);
+  border-color: rgba(255, 95, 120, 0.35);
+}
+
+.sb-free-recovery-chip--risk-medium {
+  color: #ffd58a;
+  background: rgba(255, 185, 0, 0.08);
+  border-color: rgba(255, 190, 45, 0.35);
+}
+
+.sb-free-recovery-chip--risk-low {
+  color: #8fffd2;
+  background: rgba(0, 210, 130, 0.08);
+  border-color: rgba(0, 220, 150, 0.35);
+}
+
+.sb-free-recovery-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sb-free-recovery-month-card {
+  background: rgba(0, 12, 26, 0.76);
+  border: 1px solid rgba(0, 200, 255, 0.15);
+  border-radius: 6px;
+  padding: 9px 10px;
+}
+
+.sb-free-recovery-month-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.sb-free-recovery-month-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  color: rgba(0, 220, 255, 0.88);
+}
+
+.sb-free-recovery-month-risk {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem;
+  color: rgba(255, 200, 130, 0.95);
+}
+
+.sb-free-recovery-month-focus,
+.sb-free-recovery-month-caution {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.sb-free-recovery-month-focus {
+  color: rgba(215, 235, 248, 0.92);
+}
+
+.sb-free-recovery-month-caution {
+  margin-top: 4px;
+  color: rgba(255, 175, 165, 0.9);
+}
+
+.sb-free-recovery-month-empty {
+  grid-column: 1 / -1;
+  font-size: 0.76rem;
+  color: rgba(190, 220, 238, 0.75);
+  padding: 8px;
+  border: 1px dashed rgba(0, 180, 220, 0.25);
+  border-radius: 6px;
+}
+
+.sb-free-recovery-checklist {
+  margin: 10px 0 0 17px;
+  padding: 0;
+}
+
+.sb-free-recovery-checklist li {
+  margin-bottom: 4px;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: rgba(205, 230, 245, 0.88);
+}
+
+@media (max-width: 720px) {
+  .sb-free-recovery-month-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .sb-free-recovery-month-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─── YEAR PULSE 섹션 ─── */
 .sb-ypulse-block {
   border-color: rgba(255,200,50,0.2);
