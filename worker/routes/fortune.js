@@ -1795,11 +1795,17 @@ export async function handleFortuneRoutes(request, env) {
         const isBalanceRoute = path === "/pig-coin/balance";
         if (isBalanceRoute) {
           return json({
-            ok: false,
+            ok: true,
             authenticated: true,
+            balance: Number(auth?.points || 0),
+            walletCreated: false,
             code: "COIN_STORAGE_UNAVAILABLE",
-            message: "코인 정보를 불러올 수 없습니다.",
-          }, { status: 503 });
+            message: "코인 저장소가 일시적으로 불안정하여 임시 잔액으로 표시합니다.",
+            user: userPayload(auth, Number(auth?.points || 0), []),
+            unlockedFeatures: [],
+            unlockMap: {},
+            _dbError: true,
+          });
         }
         return json(buildTokenFallbackSubscriptionStatus(auth));
       }

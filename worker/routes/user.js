@@ -65,6 +65,21 @@ async function handleGetDestinyProfiles(auth) {
   return json({ ok: true, profiles, currentId });
 }
 
+function handleDestinyProfilesDbFallback(auth) {
+  return json({
+    ok: true,
+    profiles: [],
+    currentId: "",
+    degraded: true,
+    code: "DESTINY_PROFILE_STORAGE_UNAVAILABLE",
+    message: "프로필 저장소가 일시적으로 불안정하여 로컬 데이터로 동작합니다.",
+    user: {
+      id: String(auth?.userId || ""),
+      points: Number(auth?.points || 0),
+    },
+  });
+}
+
 async function handleSyncDestinyProfiles(request, auth) {
   const body = await readJson(request);
   const action = String(body?.action || "").trim().toLowerCase();
@@ -110,7 +125,12 @@ export async function handleUserRoutes(request, env) {
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }
-      await connectDb(env);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        console.error("[user:destiny-profiles] DB unavailable:", error?.message || error);
+        return handleDestinyProfilesDbFallback(auth);
+      }
       return await handleGetDestinyProfiles(auth);
     }
 
