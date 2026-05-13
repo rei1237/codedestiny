@@ -316,6 +316,7 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "rpt_luckSyncDiaryEntryCard",
   "rpt_secretHouseEntryCard",
   "animal-destiny-unlock",
+  "premium-sibyl-dominator",
   "premium-ziwei",
   "premium-astrology",
   "premium-sukuyo",

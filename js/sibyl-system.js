@@ -22,8 +22,8 @@
     { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', focus: '연도별 위험/기회 흐름과 실행 타이밍' },
     { key: 'relationship', title: 'CH.07 관계와 애정 패턴', focus: '관계 충돌 패턴과 파트너십 운영' },
     { key: 'moneyCareer', title: 'CH.08 재물과 직업 전략', focus: '재정 운용·직업 선택·리스크 대응' },
-    { key: 'systemWarning', title: 'CH.09 시스템 경고문', focus: '반복 실패 패턴과 금지 규칙' },
-    { key: 'finalMessage', title: 'CH.10 최종 시빌라 메시지', focus: '핵심 결론과 실행 선언문' }
+    { key: 'systemWarning', title: 'CH.09 시스템 리스크 가이드', focus: '반복 실패 패턴과 예방 규칙' },
+    { key: 'finalMessage', title: 'CH.10 최종 실행 가이드', focus: '핵심 결론과 90일 실행 원칙' }
   ];
   var SIBYL_PREMIUM_CHAPTER_KEYS = SIBYL_PREMIUM_CHAPTER_META.map(function(item) { return item.key; });
   var SibylState = Object.freeze({
@@ -90,6 +90,21 @@
   function _sibylDevWarn(label, payload) {
     if (!_isSibylDevMode() || typeof console === 'undefined' || typeof console.warn !== 'function') return;
     console.warn(label, payload);
+  }
+
+  function _sibylLogInfo(label, payload) {
+    if (typeof console === 'undefined' || typeof console.info !== 'function') return;
+    console.info(label, payload);
+  }
+
+  function _sibylLogWarn(label, payload) {
+    if (typeof console === 'undefined' || typeof console.warn !== 'function') return;
+    console.warn(label, payload);
+  }
+
+  function _sibylLogError(label, error) {
+    if (typeof console === 'undefined' || typeof console.error !== 'function') return;
+    console.error(label, error);
   }
 
   function _safeText(value, fallback) {
@@ -787,6 +802,144 @@
     return out;
   }
 
+  function _resolveSeasonFromMonthBranch(monthBranch) {
+    var branch = String(monthBranch || '').trim();
+    if (branch === '寅' || branch === '卯' || branch === '辰') return 'spring';
+    if (branch === '巳' || branch === '午' || branch === '未') return 'summer';
+    if (branch === '申' || branch === '酉' || branch === '戌') return 'autumn';
+    if (branch === '亥' || branch === '子' || branch === '丑') return 'winter';
+    return 'unknown';
+  }
+
+  function _normalizeJohuType(typeRaw, climateType, season) {
+    var typeText = String(typeRaw || '').trim().toLowerCase();
+    if (typeText === 'hot' || typeText === 'warm' || typeText === 'neutral' || typeText === 'cool' || typeText === 'cold') {
+      return typeText;
+    }
+
+    var climate = String(climateType || '').trim().toLowerCase();
+    if (climate.indexOf('hot') >= 0) return 'hot';
+    if (climate.indexOf('cold') >= 0) return 'cold';
+    if (climate.indexOf('warm') >= 0) return 'warm';
+    if (climate.indexOf('cool') >= 0) return 'cool';
+    if (climate.indexOf('balanced') >= 0 || climate.indexOf('neutral') >= 0) return 'neutral';
+
+    if (season === 'summer') return 'warm';
+    if (season === 'winter') return 'cool';
+    return 'neutral';
+  }
+
+  function _normalizeJohuMoistType(moistTypeRaw, moistureProfile, climateType) {
+    var moistText = String(moistTypeRaw || '').trim().toLowerCase();
+    if (moistText === 'dry' || moistText === 'wet' || moistText === 'balanced') {
+      return moistText;
+    }
+
+    var profile = (moistureProfile && typeof moistureProfile === 'object') ? moistureProfile : null;
+    var dryness = Number(profile && profile.dryness || 0);
+    var moisture = Number(profile && profile.moisture || 0);
+    if (Number.isFinite(dryness) && Number.isFinite(moisture)) {
+      if (dryness - moisture >= 4) return 'dry';
+      if (moisture - dryness >= 4) return 'wet';
+    }
+
+    var climate = String(climateType || '').trim().toLowerCase();
+    if (climate.indexOf('dry') >= 0) return 'dry';
+    if (climate.indexOf('wet') >= 0 || climate.indexOf('moist') >= 0) return 'wet';
+    return 'balanced';
+  }
+
+  function _createFallbackJohu(normalized) {
+    var pillars = normalized && normalized.pillars;
+    var dist = normalized && normalized.dist;
+    var monthBranch = String(pillars && pillars.m && pillars.m.j || '').trim();
+    var season = _resolveSeasonFromMonthBranch(monthBranch);
+
+    var fire = Number(dist && dist.fire || 0);
+    var water = Number(dist && dist.water || 0);
+    var wood = Number(dist && dist.wood || 0);
+    var metal = Number(dist && dist.metal || 0);
+
+    var seasonalOffset = 0;
+    if (season === 'summer') seasonalOffset = 2;
+    else if (season === 'winter') seasonalOffset = -2;
+    else if (season === 'spring') seasonalOffset = 1;
+    else if (season === 'autumn') seasonalOffset = -1;
+
+    var heatDelta = (fire - water) + seasonalOffset;
+    var type = 'neutral';
+    if (heatDelta >= 3) type = 'hot';
+    else if (heatDelta >= 1) type = 'warm';
+    else if (heatDelta <= -3) type = 'cold';
+    else if (heatDelta <= -1) type = 'cool';
+
+    var moistDelta = (water + wood) - (fire + metal);
+    var moistType = 'balanced';
+    if (moistDelta >= 2) moistType = 'wet';
+    else if (moistDelta <= -2) moistType = 'dry';
+
+    var climateType = type + '-' + moistType;
+    var advice;
+    if (type === 'hot' || type === 'warm') {
+      advice = '열기 완화를 위해 수(水)·금(金) 보완 루틴이 필요합니다.';
+    } else if (type === 'cold' || type === 'cool') {
+      advice = '한기 완화를 위해 화(火)·목(木) 보완 루틴이 필요합니다.';
+    } else {
+      advice = '한난 균형은 중립이나 월별 변동성 관리가 필요합니다.';
+    }
+
+    return {
+      score: Math.round(heatDelta * 1.8),
+      type: type,
+      moistType: moistType,
+      climateType: climateType,
+      season: season,
+      birthSeason: season,
+      monthBranch: monthBranch,
+      advice: advice,
+      source: 'fallback-derived',
+      hasFallback: true,
+      confidence: 'low'
+    };
+  }
+
+  function _normalizeJohu(rawJohu, normalized) {
+    var raw = (rawJohu && typeof rawJohu === 'object') ? rawJohu : null;
+    if (!raw) return _createFallbackJohu(normalized);
+
+    var monthBranch = String(raw.monthBranch || (normalized && normalized.pillars && normalized.pillars.m && normalized.pillars.m.j) || '').trim();
+    var season = _safeText(raw.season || raw.birthSeason, _resolveSeasonFromMonthBranch(monthBranch));
+    var climateType = _safeText(raw.climateType, '');
+    var type = _normalizeJohuType(raw.type, climateType, season);
+    var moistType = _normalizeJohuMoistType(raw.moistType, raw.moistureProfile, climateType);
+
+    var normalizedJohu = {
+      score: Number.isFinite(Number(raw.score)) ? Number(raw.score) : Math.round(((type === 'hot' || type === 'warm') ? 3 : (type === 'cold' || type === 'cool') ? -3 : 0)),
+      type: type,
+      moistType: moistType,
+      climateType: climateType || (type + '-' + moistType),
+      season: season,
+      birthSeason: _safeText(raw.birthSeason, season),
+      monthBranch: monthBranch,
+      advice: _safeText(raw.advice, '조후 데이터 일부가 부족하여 보수적으로 해석합니다.'),
+      source: _safeText(raw.source, 'provided'),
+      hasFallback: false,
+      confidence: _safeText(raw.confidence, 'high')
+    };
+
+    if (!raw.type && !raw.climateType && !raw.moistType) {
+      var fallback = _createFallbackJohu(normalized);
+      normalizedJohu.type = fallback.type;
+      normalizedJohu.moistType = fallback.moistType;
+      normalizedJohu.climateType = fallback.climateType;
+      normalizedJohu.hasFallback = true;
+      normalizedJohu.confidence = 'low';
+      normalizedJohu.source = 'fallback-derived';
+    }
+
+    return normalizedJohu;
+  }
+
   function _normalizeSibylInput(payload, analysisData) {
     var profile = (payload && payload.profile) || _getCurrentProfile() || null;
     var rawPillars = (payload && payload.pillars) || (analysisData && analysisData.pillars) || window.G_PILLARS || null;
@@ -818,6 +971,12 @@
     }
 
     var domEl = (payload && payload.dominantEl) || (analysisData && analysisData.domEl) || _dominantEl(dist);
+    var dayMaster = String(pillars && pillars.d && pillars.d.g || '').trim();
+    var rawJohu = (payload && payload.johu) || (analysisData && analysisData.johu) || window.G_JOHU || null;
+    var johu = _normalizeJohu(rawJohu, { pillars: pillars, dist: dist, dominantEl: domEl });
+    if (johu && johu.hasFallback) {
+      integrity.messages.push('조후 데이터가 일부 부족하여 계절/오행 기반 추정치를 사용했습니다.');
+    }
     var currentYear = _toInt((payload && payload.currentYear) || new Date().getFullYear(), new Date().getFullYear());
     var currentAge = _profileAge(profile);
 
@@ -844,9 +1003,12 @@
       integrity.messages.push('대운 배열(window.G_DAEWUN)이 비어 있어 연동 강도가 낮습니다.');
     }
 
+    var rawSourceStatus = (payload && payload.sourceStatus) || (analysisData && analysisData.sourceStatus) || {};
+
     return {
       profile: profile,
       pillars: pillars,
+      dayMaster: dayMaster,
       dist: dist,
       tenStarCounts: counts,
       dominantTenStar: dominantTenStar,
@@ -855,8 +1017,14 @@
       currentAge: currentAge,
       power: window.G_POWER || null,
       jong: window.G_JONG || null,
-      johu: window.G_JOHU || null,
+      johu: johu,
       daewunList: daewunList,
+      sourceStatus: {
+        hasKasi: Boolean(rawSourceStatus && rawSourceStatus.hasKasi),
+        hasSolarTerms: Boolean(rawSourceStatus && rawSourceStatus.hasSolarTerms),
+        hasLunar: Boolean(rawSourceStatus && rawSourceStatus.hasLunar),
+        fallbackUsed: Boolean((rawSourceStatus && rawSourceStatus.fallbackUsed) || (johu && johu.hasFallback))
+      },
       integrity: integrity
     };
   }
@@ -1423,6 +1591,7 @@
     var total = Math.max(1, Number(dist.total || 1));
     var power = normalized && normalized.power;
     var jong = normalized && normalized.jong;
+    var johu = (normalized && normalized.johu) || _createFallbackJohu(normalized || null);
     var riskParts = (riskBreakdown && riskBreakdown.parts) || {};
 
     var career = 35
@@ -2643,6 +2812,13 @@
   function _renderFreeSection(pillars, natal) {
     try {
       var normalized = _normalizeSibylInput({ pillars: pillars }, { pillars: pillars });
+      _sibylLogInfo('[SIBYL] normalized input', normalized);
+      if (normalized && normalized.sourceStatus && normalized.sourceStatus.fallbackUsed) {
+        _sibylLogWarn('[SIBYL] KASI fallback used', {
+          reason: 'normalized.sourceStatus.fallbackUsed',
+          sourceStatus: normalized.sourceStatus
+        });
+      }
       var corePillars = normalized.pillars || pillars || window.G_PILLARS;
       var dist = normalized.dist || _ohaengDist(corePillars);
       var domEl = normalized.dominantEl || _dominantEl(dist);
@@ -2796,7 +2972,9 @@
       freeSec && freeSec.classList.add('sb-fadein');
       _setSibylState(SibylState.READY);
     } catch (err) {
-      console.error('[SibylSystem] free section render failed:', err);
+      _sibylLogWarn('[SIBYL] KASI fallback used', {
+        reason: String(err && err.message || 'FREE_SECTION_RENDER_ERROR')
+      });
       // Fail-open: 무료 결과는 항상 카테고리형으로 노출하고, 에러 오버레이로 가리지 않는다.
       var recovery = _buildSibylRecoveryOverview(pillars, window._sibylCurrentData && window._sibylCurrentData.risk, window._sibylCurrentData && window._sibylCurrentData.coeff);
 
@@ -2900,6 +3078,25 @@
     var balanceData = _extractApiData(balanceRes.payload);
     var balance = Number(balanceData && balanceData.balance || 0);
     return Number.isFinite(balance) ? balance : 0;
+  }
+
+  async function _resolveSibylUnlockStatus() {
+    var statusRes = await _fetchApiJson('/api/billing/unlock-status?featureKey=' + encodeURIComponent(SIBYL_FEATURE_KEY));
+    if (!statusRes.ok) {
+      return {
+        ok: false,
+        status: Number(statusRes.status || 0),
+        error: _toApiError(statusRes, '잠금 해제 상태를 확인하지 못했습니다.')
+      };
+    }
+
+    var statusData = _extractApiData(statusRes.payload);
+    return {
+      ok: true,
+      unlocked: Boolean(statusData && statusData.unlocked),
+      pricing: statusData && statusData.pricing ? statusData.pricing : null,
+      currentBalance: Number(statusData && statusData.currentBalance || 0)
+    };
   }
 
   async function _runSibylCoinGate(payloadHash) {
@@ -3009,7 +3206,22 @@
         };
       } else {
         _setSibylState(SibylState.PROCESSING_PAYMENT, '>> 결제 상태를 확인하는 중입니다…');
-        paymentContext = await _runSibylCoinGate(payloadHash);
+        var unlockStatus = await _resolveSibylUnlockStatus();
+        if (unlockStatus && unlockStatus.ok && unlockStatus.unlocked) {
+          paymentContext = {
+            bypass: true,
+            unlocked: true,
+            requestId: _createRequestId('sibyl-unlocked-reopen'),
+            pricing: {
+              featureKey: String((unlockStatus.pricing && unlockStatus.pricing.featureKey) || SIBYL_FEATURE_KEY),
+              cost: Number((unlockStatus.pricing && unlockStatus.pricing.cost) || 100),
+              reason: String((unlockStatus.pricing && unlockStatus.pricing.reason) || SIBYL_FEATURE_REASON)
+            },
+            consumePayload: {}
+          };
+        } else {
+          paymentContext = await _runSibylCoinGate(payloadHash);
+        }
       }
 
       _sibylLastPaidContext = paymentContext;
@@ -3017,13 +3229,13 @@
       await _generateDominatorReport(paymentContext);
       _restoreUnlockBtn();
     } catch (error) {
-      console.error('[SibylSystem] unlock/generate failed:', error);
+      _sibylLogError('[SIBYL] premium unlock failed', error);
 
       if (paymentContext && !paymentContext.bypass) {
         try {
           await _requestSibylRefund(paymentContext, '시빌라 리포트 생성 실패 자동 환급');
         } catch (refundErr) {
-          console.error('[SibylSystem] refund failed:', refundErr);
+          _sibylLogError('[SIBYL] premium unlock failed', refundErr);
         }
       }
 
@@ -3389,9 +3601,9 @@
 
     // Dominator Mode Banner
     var modeMeta = {
-      nle: { cls:'nle', tag:'MODE: NON-LETHAL PARALYZER', title:'안정 유지 모드 — 현 궤도 지속', desc:'시스템 분석 결과: 현재 운의 흐름이 안정 궤도에 있습니다. 지금 위치를 유지하면서 내실을 다지십시오. 시스템은 당신의 안정성을 승인합니다.' },
-      le:  { cls:'le',  tag:'MODE: LETHAL ELIMINATOR', title:'위험 제거 모드 — 즉각 변화 필요', desc:'경고: 현재의 방식과 고집은 위험합니다. 충(衝) 에너지가 일상을 교란하고 있습니다. 즉각적인 변화와 쇄신이 필요합니다. 지금 결정이 향후 3년을 결정합니다.' },
-      dd:  { cls:'dd',  tag:'MODE: DESTROY DECOMPOSER', title:'완전 해체 모드 — 재구성 긴급', desc:'!!긴급 경보!! 과거의 모든 관습과 패턴을 즉시 파괴하십시오. 현 운대는 최악의 구간입니다. 새로운 운명으로의 완전한 재구성이 시급합니다. 기존 방식 고수 시 손실이 배가됩니다.' }
+      nle: { cls:'nle', tag:'MODE: STABLE GROWTH TRACK', title:'안정 성장 모드 — 현 궤도 정밀 유지', desc:'현재 흐름은 안정 구간입니다. 성과를 키우기보다 재현 가능한 루틴을 고정해 변동성을 낮추는 것이 가장 효과적입니다.' },
+      le:  { cls:'le',  tag:'MODE: RISK ADJUSTMENT TRACK', title:'위험 조정 모드 — 실행 순서 재배치', desc:'경계 신호가 감지된 구간입니다. 중요한 결정은 검증 단계를 먼저 두고, 실행 강도를 조절해 손실 구간을 짧게 관리하세요.' },
+      dd:  { cls:'dd',  tag:'MODE: INTENSIVE RESET TRACK', title:'집중 재정비 모드 — 구조 리셋 필요', desc:'고위험 변동 구간입니다. 기존 방식의 전면 중단이 아니라 핵심 프로세스를 재정렬해 리스크를 줄이고 회복력을 우선 확보하세요.' }
     };
     var mm = modeMeta[mode];
     var modeBanner = _q('sbDominatorModeBanner');
@@ -3608,7 +3820,7 @@
   /* ── Unlock dominator (exposed) ── */
   window._sibylUnlockDominator = function() {
     _unlockDominator().catch(function(e) {
-      console.error('[Sibyl] unlock error:', e);
+      _sibylLogError('[SIBYL] premium unlock failed', e);
       _setSibylState(SibylState.ERROR, _toFriendlySibylErrorMessage(e, '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
       var genEl = _q('sbGenerating');
       if (genEl) genEl.classList.add('sb-hidden');
@@ -3623,7 +3835,7 @@
 
     _setSibylState(SibylState.GENERATING_REPORT, '>> 리포트 생성을 재시도하는 중입니다…');
     _generateDominatorReport(_sibylLastPaidContext).catch(function(e) {
-      console.error('[Sibyl] retry failed:', e);
+      _sibylLogError('[SIBYL] premium unlock failed', e);
       _setSibylState(SibylState.ERROR, _toFriendlySibylErrorMessage(e, '재시도에 실패했습니다. 잠시 후 다시 시도해 주세요.'));
     });
   };

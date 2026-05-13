@@ -16,6 +16,7 @@ import { handleDreamRoutes } from "./routes/dream.js";
 import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
 import { handleSibylRoutes } from "./routes/sibyl.js";
+import { handleKasiRoutes } from "./routes/kasi.js";
 import { handleOracleRoutes } from "./routes/oracle.js";
 import { handleUserRoutes } from "./routes/user.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
@@ -489,6 +490,10 @@ export default {
 
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/kasi" || url.pathname.startsWith("/api/kasi/")) {
+        return withCorsHeaders(request, env, await handleKasiRoutes(request, env));
       }
 
       if (url.pathname === "/api/subscription/status") {

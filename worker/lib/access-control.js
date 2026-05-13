@@ -8,6 +8,7 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
+  sibylDominator: ["premium-sibyl-dominator"],
 });
 
 function uniqueStrings(values) {
@@ -57,7 +58,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [{
       featureKey: "premium-ziwei-report",
       reason: "자미두수 프리미엄 PDF 리포트 생성",
-      minCost: 590,
+      minCost: 500,
       windowMinutes: 120,
     }];
   }
@@ -85,6 +86,15 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       featureKey: "premium-vedic-report",
       reason: "베다 점성술 프리미엄 PDF 리포트 생성",
       minCost: 390,
+      windowMinutes: 120,
+    }];
+  }
+
+  if (reportType === "sibylDominator") {
+    return [{
+      featureKey: "premium-sibyl-dominator",
+      reason: "시빌라 도미네이터 리포트",
+      minCost: 100,
       windowMinutes: 120,
     }];
   }

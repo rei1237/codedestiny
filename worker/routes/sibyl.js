@@ -1,4 +1,5 @@
 ﻿import { requireAuth } from "../lib/auth.js";
+import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
@@ -27,8 +28,8 @@ const SIBYL_PREMIUM_CHAPTERS = [
   { key: "yearlyFlow", title: "CH.06 10년 위험 계수 그래프 해설", focus: "연도별 위험/기회 흐름, 확장·수비 타이밍, 10년 로드맵" },
   { key: "relationship", title: "CH.07 관계와 애정 패턴", focus: "끌리는 사람, 충돌 패턴, 연애·결혼 리스크 관리" },
   { key: "moneyCareer", title: "CH.08 재물과 직업 전략", focus: "돈 버는 방식, 손실 패턴, 직업 선택 기준, 장기 커리어" },
-  { key: "systemWarning", title: "CH.09 시스템 경고문", focus: "반복 실패 패턴, 오판 방지 규칙, 현실 행동 지침" },
-  { key: "finalMessage", title: "CH.10 최종 시빌라 메시지", focus: "사주 구조 기반 최종 선언문과 운명 전략 문장" },
+  { key: "systemWarning", title: "CH.09 시스템 리스크 가이드", focus: "반복 실패 패턴, 오판 방지 규칙, 현실 행동 지침" },
+  { key: "finalMessage", title: "CH.10 최종 실행 가이드", focus: "사주 구조 기반 실행 원칙과 90일 전략 문장" },
 ];
 
 function clean(value) {
@@ -186,7 +187,7 @@ function normalizeCanonicalSibylData(body = {}) {
     classification: {
       mode: clean(profileClassification?.mode || sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
       riskLevel: clean(profileClassification?.riskLevel || (riskScore >= 75 ? "critical" : riskScore >= 55 ? "high" : riskScore >= 30 ? "medium" : "low")),
-      title: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
+      title: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "집중 재정비 모드" : riskScore >= 45 ? "위험 조정 모드" : "안정 성장 모드")),
       subtitle: clean(profileClassification?.subtitle || sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
       coreMessage: clean(profileClassification?.coreMessage || sibylNode?.coreMessage || "핵심 성향은 명확하며, 리스크 관리 루틴을 먼저 고정하면 성과 변동성이 크게 줄어듭니다."),
       warningMessage: clean(profileClassification?.warningMessage || "고위험 구간은 결정을 지연하고 검증 루프를 짧게 유지하세요."),
@@ -210,7 +211,7 @@ function normalizeCanonicalSibylData(body = {}) {
     },
     sibyl: {
       mode: clean(profileClassification?.mode || sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
-      modeTitle: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
+      modeTitle: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "집중 재정비 모드" : riskScore >= 45 ? "위험 조정 모드" : "안정 성장 모드")),
       modeDescription: clean(profileClassification?.subtitle || sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
       riskScore,
       aptitudeScore,
@@ -556,6 +557,17 @@ export async function handleSibylRoutes(request, env = {}) {
 
     const auth = await requireAuth(request, env);
     const body = await readJson(request);
+    const access = await requirePremiumReportAccess(env, auth.userId, "sibylDominator", body || {});
+    if (!access.ok) {
+      return json({
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        reportType: "sibylDominator",
+        required: access.required || null,
+      }, { status: Number(access.status || 402) });
+    }
+
     const canonical = normalizeCanonicalSibylData(body);
     const requestId = clean(body?.requestId || body?.paymentContext?.requestId || "").slice(0, 120) || `sibyl_${stableHash(JSON.stringify(body?.pillars || {})).slice(0, 8)}`;
     const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "premium-sibyl-dominator");

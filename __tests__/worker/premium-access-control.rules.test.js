@@ -29,6 +29,16 @@ describe("Premium access-control rules", () => {
     );
   });
 
+  test("ziweiPremium은 500 코인 결제 증빙 규칙이어야 한다", () => {
+    const rules = utils.buildAlternativePaymentRules("ziweiPremium", {});
+    expect(rules).toHaveLength(1);
+    expect(rules[0]).toMatchObject({
+      featureKey: "premium-ziwei-report",
+      reason: "자미두수 프리미엄 PDF 리포트 생성",
+      minCost: 500,
+    });
+  });
+
   test("loveSecret couple은 400 코인 규칙으로 결제 증빙을 요구해야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("loveSecret", { mode: "couple" });
     expect(rules).toHaveLength(1);
@@ -53,6 +63,16 @@ describe("Premium access-control rules", () => {
     expect(rules[0]).toMatchObject({
       featureKey: "premium-veda-compatibility-addon",
       minCost: 300,
+    });
+  });
+
+  test("sibylDominator는 100코인 최근 결제 증빙 규칙을 가져야 한다", () => {
+    const rules = utils.buildAlternativePaymentRules("sibylDominator", {});
+    expect(rules).toHaveLength(1);
+    expect(rules[0]).toMatchObject({
+      featureKey: "premium-sibyl-dominator",
+      reason: "시빌라 도미네이터 리포트",
+      minCost: 100,
     });
   });
 });
