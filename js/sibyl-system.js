@@ -8,7 +8,7 @@
 
   /* ── 상수 ── */
   var NS = 'FORTUNE_APP_USER_PROFILES';
-  var SIBYL_REPORT_CACHE_VERSION = '20260512-quantum-v3';
+  var SIBYL_REPORT_CACHE_VERSION = '20260513-quantum-v4-hotfix1';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
   var SIBYL_FEATURE_KEY = 'premium-sibyl-dominator';
   var SIBYL_FEATURE_REASON = '시빌라 도미네이터 리포트';
@@ -430,7 +430,7 @@
     Object.keys(counts).forEach(function(k) {
       if (counts[k] > bestN) { bestN = counts[k]; best = k; }
     });
-    return best || '데이터 부족';
+    return best || '중립';
   }
 
   /* 비겁 카운트 */
@@ -495,6 +495,8 @@
       cache: 'no-store',
       headers: {}
     }, options || {});
+    var timeoutMs = Math.max(1000, Number(init && init.timeoutMs || 12000));
+    delete init.timeoutMs;
     init.headers = Object.assign({}, init.headers || {});
 
     if (init.body && !init.headers['Content-Type']) {
@@ -504,6 +506,13 @@
     var lastResult = null;
     for (var i = 0; i < candidates.length; i += 1) {
       var url = candidates[i];
+      var controller = typeof AbortController === 'function' ? new AbortController() : null;
+      var timer = setTimeout(function() {
+        if (controller) {
+          try { controller.abort(); } catch (_) {}
+        }
+      }, timeoutMs);
+      if (controller) init.signal = controller.signal;
       try {
         var res = await fetch(url, init);
         var payload = {};
@@ -518,12 +527,16 @@
         lastResult = result;
         if (res.status !== 404) return result;
       } catch (error) {
+        var message = String(error && error.message || 'network-error');
+        var isAbort = String(error && error.name || '').toLowerCase() === 'aborterror';
         lastResult = {
           ok: false,
           status: 0,
-          payload: { error: { code: 'NETWORK_ERROR', message: String(error && error.message || 'network-error') } },
+          payload: { error: { code: isAbort ? 'TIMEOUT' : 'NETWORK_ERROR', message: isAbort ? ('request-timeout-' + timeoutMs + 'ms') : message } },
           url: url
         };
+      } finally {
+        clearTimeout(timer);
       }
     }
 
@@ -651,11 +664,12 @@
       var ev = fn(gan, zhi) || {};
       var score = Number(ev.score);
       if (!Number.isFinite(score)) score = 50;
+      var normalizedScore = _clamp(Math.round(score), 0, 100);
       return {
-        score: _clamp(Math.round(score), 0, 100),
-        label: ev.label || '데이터 부족',
+        score: normalizedScore,
+        label: ev.label || (normalizedScore >= 70 ? '호조' : normalizedScore >= 45 ? '무난' : '경계'),
         cls: ev.cls || 'neutral',
-        evalSummary: ev.evalSummary || '데이터 부족',
+        evalSummary: ev.evalSummary || (gan + zhi + ' 기운을 기본 리스크 스코어로 반영했습니다.'),
         hasChungBonus: !!ev.hasChungBonus,
         hasChungPenalty: !!ev.hasChungPenalty
       };
@@ -663,9 +677,9 @@
       console.warn('[Sibyl] evalDaewun bridge fallback:', err && err.message ? err.message : err);
       return {
         score: 50,
-        label: '데이터 부족',
+        label: '중립',
         cls: 'neutral',
-        evalSummary: '대운 평가 데이터를 불러오지 못했습니다.',
+        evalSummary: String(gan || '') + String(zhi || '') + ' 기준 기본 스코어(50)로 보정했습니다.',
         hasChungBonus: false,
         hasChungPenalty: false
       };
@@ -708,32 +722,43 @@
   }
 
   function _analyzeFortuneBridge(gz, pillars, label) {
+    var pair = _normalizeGanZhiPair(gz) || { g: '', j: '' };
+    var pillarChars = _pillarChars(pillars);
+    var dayGan = pillarChars && pillarChars.d && pillarChars.d.g;
+    var fallbackGGod = (dayGan && pair.g) ? (_calcTenStar(dayGan, pair.g) || '중립') : '중립';
+    var fallbackJGod = (dayGan && pair.j) ? (_calcTenStar(dayGan, pair.j) || '중립') : '중립';
+
     try {
-      var pair = _normalizeGanZhiPair(gz);
       if (!pair) throw new Error('invalid-gz');
       var fn = (typeof window.analyzeFortuneGZ === 'function')
         ? window.analyzeFortuneGZ
         : (typeof analyzeFortuneGZ === 'function' ? analyzeFortuneGZ : null);
       if (!fn) throw new Error('analyzeFortuneGZ-unavailable');
       var res = fn(pair, pillars, label || '시빌라 월운') || {};
+      var battery = Number.isFinite(Number(res.batteryPercent)) ? _clamp(Math.round(Number(res.batteryPercent)), 0, 100) : 50;
       return {
-        grade: res.grade || '무난',
+        grade: res.grade || (battery >= 70 ? '호조' : battery >= 45 ? '무난' : '경계'),
         icon: res.icon || '⛅',
-        batteryPercent: Number.isFinite(Number(res.batteryPercent)) ? _clamp(Math.round(Number(res.batteryPercent)), 0, 100) : 50,
+        batteryPercent: battery,
         adviceItems: Array.isArray(res.adviceItems) ? res.adviceItems : [],
         luckyEl: res.luckyEl || null,
-        gGod: res.gGod || '데이터 부족',
-        jGod: res.jGod || '데이터 부족'
+        gGod: res.gGod || fallbackGGod,
+        jGod: res.jGod || fallbackJGod
       };
     } catch (err) {
+      var ev = _evalDaewunBridge(pair.g, pair.j);
+      var fallbackBattery = _clamp(Math.round(Number(ev && ev.score || 50)), 0, 100);
       return {
-        grade: '데이터 부족',
+        grade: fallbackBattery >= 70 ? '호조' : fallbackBattery >= 45 ? '무난' : '경계',
         icon: '⚠️',
-        batteryPercent: 50,
-        adviceItems: [{ type: 'warn', body: '월운 엔진 데이터가 아직 준비되지 않았습니다.' }],
+        batteryPercent: fallbackBattery,
+        adviceItems: [{
+          type: 'guide',
+          body: (label || '월운') + '은 ' + fallbackGGod + '/' + fallbackJGod + ' 축으로 기본 보정해 반영했습니다.'
+        }],
         luckyEl: null,
-        gGod: '데이터 부족',
-        jGod: '데이터 부족'
+        gGod: fallbackGGod,
+        jGod: fallbackJGod
       };
     }
   }
@@ -966,7 +991,8 @@
 
     var counts = _analyzeTenStars(pillars || window.G_PILLARS || {});
     var dominantTenStar = _dominantTenStar(counts);
-    if (dominantTenStar === '데이터 부족') {
+    var hasTenStarSignal = Object.keys(counts || {}).some(function(k) { return Number(counts[k] || 0) > 0; });
+    if (!hasTenStarSignal) {
       integrity.messages.push('주도 십성을 확정할 데이터가 부족합니다.');
     }
 
@@ -1674,6 +1700,12 @@
     var quantumFn = (typeof window.getQuantumElType === 'function')
       ? window.getQuantumElType
       : (typeof getQuantumElType === 'function' ? getQuantumElType : null);
+    var dist = normalized && normalized.dist ? normalized.dist : null;
+    var ranked = EL_ORDER.map(function(el) {
+      return { el: el, value: Number(dist && dist[el] || 0) };
+    }).sort(function(a, b) { return a.value - b.value; });
+    var fallbackGoodEls = ranked.slice(0, 2).map(function(item) { return item.el; });
+    var fallbackBadEls = ranked.slice(-2).map(function(item) { return item.el; });
 
     var roles = EL_ORDER.map(function(el) {
       var raw = 'neutral';
@@ -1683,6 +1715,10 @@
         } catch (_) {
           raw = 'neutral';
         }
+      }
+      if (raw === 'neutral' && dist && Number(dist.total || 0) > 0) {
+        if (fallbackGoodEls.indexOf(el) >= 0) raw = 'good';
+        else if (fallbackBadEls.indexOf(el) >= 0) raw = 'bad';
       }
       var roleLabel = raw === 'good' ? '유리' : raw === 'bad' ? '주의' : '중립';
       return {
@@ -1695,12 +1731,18 @@
 
     var favorable = roles.filter(function(item) { return item.role === 'good'; }).map(function(item) { return item.label; });
     var caution = roles.filter(function(item) { return item.role === 'bad'; }).map(function(item) { return item.label; });
+    var yongshin = (pw && Array.isArray(pw.yongshin) && pw.yongshin.length)
+      ? pw.yongshin.slice()
+      : favorable.slice();
+    var kishin = (pw && Array.isArray(pw.kijishin) && pw.kijishin.length)
+      ? pw.kijishin.slice()
+      : caution.slice();
 
     return {
       mode: jg && jg.isJong ? (jg.name || '종격') : '억부+조후',
       johuType: (jh && jh.type) || 'neutral',
-      yongshin: (pw && Array.isArray(pw.yongshin)) ? pw.yongshin.slice() : [],
-      kishin: (pw && Array.isArray(pw.kijishin)) ? pw.kijishin.slice() : [],
+      yongshin: yongshin,
+      kishin: kishin,
       roles: roles,
       favorableElements: favorable,
       cautionElements: caution
@@ -1854,8 +1896,15 @@
         risk: risk,
         score: 100 - risk,
         shock: shock,
-        summary: yearEv.evalSummary || '데이터 부족',
-        daewunLabel: dw ? (dw.g + dw.j) : '데이터 부족',
+        summary: (function() {
+          var base = String(yearEv.evalSummary || '').trim();
+          if (base && base.indexOf('데이터 부족') < 0) return base;
+          var dayGan = normalized && normalized.pillars && normalized.pillars.d && normalized.pillars.d.g;
+          var ganGod = (dayGan && _calcTenStar(dayGan, yz.gan)) || '중립';
+          var zhiGod = (dayGan && _calcTenStar(dayGan, yz.zhi)) || '중립';
+          return yz.label + '년은 ' + ganGod + '/' + zhiGod + ' 축 중심의 기본 운용 구간입니다.';
+        })(),
+        daewunLabel: dw ? (dw.g + dw.j) : (yz.label + ' 기준'),
         conflictNotes: conflict.notes || []
       });
     }
@@ -1949,7 +1998,7 @@
       );
       risk = _clamp(risk, 8, 95);
 
-      var caution = (fortune.grade || '무난') + ' · ' + (fortune.gGod || '데이터 부족') + '/' + (fortune.jGod || '데이터 부족');
+      var caution = (fortune.grade || '무난') + ' · ' + (fortune.gGod || '중립') + '/' + (fortune.jGod || '중립');
       if (risk >= 70) caution += ' · 충돌 고조 구간';
       if (dominantTenStar === '비견' || dominantTenStar === '겁재') caution += ' · 독단 경계';
       if (dominantTenStar === '편관' || dominantTenStar === '정관') caution += ' · 권위 마찰 경계';
@@ -2205,10 +2254,10 @@
       '## 퀀텀 오행 유불리',
       '- 모드: ' + (quantumDiagnostics.mode || '억부+조후'),
       '- 조후 타입: ' + (quantumDiagnostics.johuType || 'neutral'),
-      '- 유리 오행: ' + ((quantumDiagnostics.favorableElements || []).join(', ') || '데이터 부족'),
-      '- 주의 오행: ' + ((quantumDiagnostics.cautionElements || []).join(', ') || '데이터 부족'),
-      '- 용신 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '데이터 부족'),
-      '- 기신 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '데이터 부족'),
+      '- 유리 오행: ' + ((quantumDiagnostics.favorableElements || []).join(', ') || '중립(추정)'),
+      '- 주의 오행: ' + ((quantumDiagnostics.cautionElements || []).join(', ') || '중립(추정)'),
+      '- 용신 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '중립(추정)'),
+      '- 기신 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '중립(추정)'),
       '',
       (quantumDiagnostics.roles || []).map(function(role) {
         return '- ' + role.label + ' → ' + role.roleLabel;
@@ -2854,7 +2903,7 @@
           { id:'sbPillarDaG',  val:cp.d.g }, { id:'sbPillarDaJ',  val:cp.d.j },
           { id:'sbPillarSiG',  val:cp.h.g }, { id:'sbPillarSiJ',  val:cp.h.j }
         ];
-        cols.forEach(function(c){ _t(c.id, c.val || '데이터 부족'); });
+        cols.forEach(function(c){ _t(c.id, c.val || '미정'); });
       }
 
       var counts = normalized.tenStarCounts || {};
@@ -3327,7 +3376,8 @@
 
       var apiRes = await _fetchApiJson('/api/sibyl/report', {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        timeoutMs: Number(window && window.__SIBYL_REPORT_TIMEOUT_MS || 25000)
       });
 
       if (apiRes.ok) {
@@ -3432,7 +3482,7 @@
         + '<div class="sb-insight-acc-body">'
         + '<p>세운 점수 ' + item.yearScore + ', 대운 점수 ' + item.daewunScore + ', 충격 단계 ' + item.shock + '.</p>'
         + '<p>충돌 신호: ' + notes + '</p>'
-        + '<p>실행 요약: ' + (item.summary || '데이터 부족') + '</p>'
+        + '<p>실행 요약: ' + (item.summary || '기본 리스크 기준 운용 권장') + '</p>'
         + '</div>'
         + '</details>';
     }).join('');
@@ -3497,8 +3547,8 @@
       + '<ul class="sb-insight-list">'
       + '<li>모드: ' + (quantum.mode || '억부+조후') + '</li>'
       + '<li>조후 타입: ' + (quantum.johuType || 'neutral') + '</li>'
-      + '<li>유리 오행: ' + ((quantum.favorableElements || []).join(', ') || '데이터 부족') + '</li>'
-      + '<li>주의 오행: ' + ((quantum.cautionElements || []).join(', ') || '데이터 부족') + '</li>'
+      + '<li>유리 오행: ' + ((quantum.favorableElements || []).join(', ') || '중립(추정)') + '</li>'
+      + '<li>주의 오행: ' + ((quantum.cautionElements || []).join(', ') || '중립(추정)') + '</li>'
       + '</ul>'
       + '<div class="sb-quantum-chip-wrap">' + quantumRows + '</div>'
       + '</article>'

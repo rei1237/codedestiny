@@ -55,6 +55,28 @@ describe("Sibyl flow and KASI smoke", () => {
     expect(() => sibylUtils.validateSibylPremiumReport(mapped.chapterMap)).not.toThrow();
   });
 
+  test("핵심 사주값이 누락되어도 기둥 기반 계산으로 canonical 필드를 보강한다", () => {
+    const canonical = sibylUtils.normalizeCanonicalSibylData({
+      riskScore: 63,
+      profile: {
+        gender: "F",
+        birth: { year: 1994, month: 11, day: 4, hour: 8, minute: 15 },
+      },
+      pillars: {
+        year: { g: "갑", j: "술" },
+        month: { g: "병", j: "자" },
+        day: { g: "을", j: "묘" },
+        hour: { g: "경", j: "진" },
+      },
+    });
+
+    expect(canonical.saju.dayMaster).toBe("을");
+    expect(canonical.saju.dominantElement).toMatch(/wood|fire|earth|metal|water/);
+    expect(canonical.saju.tenGodSummary.dominantTenGod).not.toBe("미상");
+    expect(canonical.sibyl.dominantTenGod).not.toBe("미상");
+    expect(canonical.yearlyFlow[0].pillar).toBeTruthy();
+  });
+
   test("KASI 업스트림 장애 시 maintenance/fallbackRecommended 응답을 반환한다", async () => {
     const originalFetch = global.fetch;
     global.fetch = jest.fn(async () => {
