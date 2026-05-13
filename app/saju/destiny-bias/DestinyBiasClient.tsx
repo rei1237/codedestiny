@@ -436,13 +436,45 @@ export default function DestinyBiasClient() {
     setUiStep(4);
 
     try {
-      const coinGateResult = await runBillingCoinGate({
+      const localResult = analyzeDestinyBias({
+        userName: meInput.name,
+        userBirthDateInput: meInput.birthDateInput,
+        biasName: biasInput.name,
+        biasBirthDateInput: biasInput.birthDateInput,
+        linkedArtistName: biasArtistInput,
+        biasMood,
+        relationMood,
+        themeLabel: selectedTheme.name,
+      });
+
+      const requestId = `destiny-bias:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+
+      let coinGateResult = await runBillingCoinGate({
         categoryKey: "destiny-bias",
         featureKey: "destiny-bias-analyze",
         reason: "최애운명 분석",
-        requestId: `destiny-bias:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+        requestId,
         forceDeduct: true,
       });
+
+      if (!coinGateResult.ok) {
+        const firstCode = String(coinGateResult.error?.code || "").toUpperCase();
+        const shouldRetryOnce =
+          coinGateResult.status >= 500
+          || firstCode === "SERVER_ERROR"
+          || firstCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
+
+        if (shouldRetryOnce) {
+          await sleep(450);
+          coinGateResult = await runBillingCoinGate({
+            categoryKey: "destiny-bias",
+            featureKey: "destiny-bias-analyze",
+            reason: "최애운명 분석",
+            requestId,
+            forceDeduct: true,
+          });
+        }
+      }
 
       if (!coinGateResult.ok) {
         const code = String(coinGateResult.error?.code || "").toUpperCase();
@@ -467,17 +499,6 @@ export default function DestinyBiasClient() {
 
         throw new Error(coinGateResult.error?.message || "코인 결제 확인에 실패했습니다.");
       }
-
-      const localResult = analyzeDestinyBias({
-        userName: meInput.name,
-        userBirthDateInput: meInput.birthDateInput,
-        biasName: biasInput.name,
-        biasBirthDateInput: biasInput.birthDateInput,
-        linkedArtistName: biasArtistInput,
-        biasMood,
-        relationMood,
-        themeLabel: selectedTheme.name,
-      });
 
       await sleep(1100);
       setLoadingProgress(1);

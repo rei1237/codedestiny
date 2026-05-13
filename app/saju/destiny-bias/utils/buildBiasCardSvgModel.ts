@@ -105,16 +105,16 @@ export function buildBiasCardSvgModel(input: DestinyBiasCardSvgInput): DestinyBi
     destinySignal: fitTextToBox(trimText(input.destinySignal, "Signal synchronized."), {
       maxWidth: 706,
       maxLines: 2,
-      fontSize: 20,
+      fontSize: 18,
       minFontSize: 13,
-      lineHeight: 25,
+      lineHeight: 23,
     }),
     fansignMessage: fitTextToBox(trimText(input.fansignMessage, "Keep your glow."), {
       maxWidth: 700,
       maxLines: 2,
-      fontSize: 44,
+      fontSize: 34,
       minFontSize: 17,
-      lineHeight: 46,
+      lineHeight: 38,
     }),
     userName: fitTextToBox(`For ${trimText(input.userName, "you")}`, {
       maxWidth: 240,

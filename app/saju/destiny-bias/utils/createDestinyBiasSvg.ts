@@ -78,7 +78,6 @@ function buildBarcode(seed: string) {
 export function createDestinyBiasCardSvg(input: SvgInput) {
   const model = buildBiasCardSvgModel(input);
   const fontFamily = "Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif";
-  const scriptFamily = "Segoe Script, Apple Chancery, cursive";
 
   const profileNameY = 468;
   const profileLinkedY = profileNameY + blockHeight(model.biasName.lines, model.biasName.lineHeight) + 56;
@@ -178,18 +177,18 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   const fansignText = renderTextLines({
     x: 178,
-    y: 1414,
+    y: 1438,
     lines: model.fansignMessage.lines,
     fontSize: model.fansignMessage.fontSize,
     lineHeight: model.fansignMessage.lineHeight,
-    fontFamily: scriptFamily,
+    fontFamily,
     fill: "#FFE6F8",
     fontWeight: 700,
   });
 
   const userTagText = renderTextLines({
     x: 178,
-    y: 1472,
+    y: 1496,
     lines: model.userName.lines,
     fontSize: model.userName.fontSize,
     lineHeight: model.userName.lineHeight,
@@ -239,6 +238,11 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
       <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
+    <radialGradient id="energyOrb">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.84"/>
+      <stop offset="46%" stop-color="${escapeXml(model.meta.energyColor)}" stop-opacity="0.78"/>
+      <stop offset="100%" stop-color="${escapeXml(model.meta.energyColor)}" stop-opacity="0"/>
+    </radialGradient>
     <filter id="panelShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="28" stdDeviation="26" flood-color="#01030f" flood-opacity="0.54"/>
     </filter>
@@ -251,7 +255,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
     <clipPath id="clipAura"><rect x="560" y="742" width="340" height="158" rx="18"/></clipPath>
     <clipPath id="clipMessage"><rect x="176" y="1000" width="730" height="98" rx="14"/></clipPath>
     <clipPath id="clipSignal"><rect x="176" y="1210" width="730" height="76" rx="14"/></clipPath>
-    <clipPath id="clipFansign"><rect x="176" y="1378" width="730" height="108" rx="14"/></clipPath>
+    <clipPath id="clipFansign"><rect x="176" y="1408" width="730" height="112" rx="14"/></clipPath>
   </defs>
 
   <rect width="1080" height="1680" fill="url(#stageBg)"/>
@@ -305,6 +309,8 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   <rect x="548" y="682" width="374" height="244" rx="30" fill="rgba(8,15,40,0.66)" stroke="rgba(255,255,255,0.24)"/>
   <text x="574" y="724" fill="#E9F7FF" font-family="${fontFamily}" font-size="22" font-weight="700">에너지 타입 / 재질</text>
+  <circle cx="856" cy="792" r="62" fill="url(#energyOrb)" opacity="0.9"/>
+  <circle cx="856" cy="792" r="46" fill="none" stroke="rgba(255,255,255,0.36)" stroke-width="1.6"/>
   <g clip-path="url(#clipAura)">
     ${auraTypeText}
     ${auraMaterialText}

@@ -13,6 +13,34 @@ type ReportArgs = {
   connectionKeyword: string[];
 };
 
+function hasFinalConsonant(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return false;
+
+  const chars = Array.from(text);
+  const last = chars[chars.length - 1];
+  if (!last) return false;
+
+  const code = last.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    return (code - 0xac00) % 28 !== 0;
+  }
+
+  if (/[0-9]/.test(last)) {
+    return /[013678]/.test(last);
+  }
+
+  if (/[a-z]/i.test(last)) {
+    return /[bcdfghjklmnpqrstvwxyz]$/i.test(last);
+  }
+
+  return false;
+}
+
+function withParticle(value: string, consonant: string, vowel: string) {
+  return `${String(value || "").trim()}${hasFinalConsonant(value) ? consonant : vowel}`;
+}
+
 const STAGE_IMAGES = [
   "무대 위에서는 스포트라이트를 자연스럽게 끌어당기는 중심축",
   "카메라가 스쳐도 서사가 남는 표정 연출형",
@@ -73,7 +101,7 @@ export function generateCompatibilityReport(args: ReportArgs) {
 }
 
 export function generateEnergyConnectionReport(args: ReportArgs) {
-  const oneLine = `${args.userName}님의 ${args.userEnergyType}와 ${args.biasName}의 ${args.biasEnergyType}가 만나, 오늘은 ${args.connectionKeyword[0] || "네온 공명"}이 특히 선명합니다.`;
+  const oneLine = `${withParticle(`${args.userName}님`, "은", "는")} ${withParticle(args.userEnergyType, "과", "와")} ${args.biasName}의 ${withParticle(args.biasEnergyType, "이", "가")} 만나, 오늘은 ${withParticle(args.connectionKeyword[0] || "네온 공명", "이", "가")} 특히 선명합니다.`;
   const mission = MISSION_POOL[(args.totalScore + args.supportStyleScore) % MISSION_POOL.length];
 
   const report = [
@@ -90,6 +118,15 @@ export function generateEnergyConnectionReport(args: ReportArgs) {
     mission,
     report,
   };
+}
+
+export function generateBiasEnergySummary(args: ReportArgs) {
+  const energySignal = args.connectionKeyword[1] || "무대 몰입";
+  return [
+    `${withParticle(args.biasName, "은", "는")} ${args.biasEnergyType} 성향으로, 강하게 밀어붙이기보다 리듬을 맞춰 에너지를 증폭하는 타입입니다.`,
+    `핵심 공명은 ${energySignal}이며, ${withParticle(args.userName, "이", "가")} 보낸 응원의 템포가 안정적일수록 반응 에너지가 더 깨끗하게 올라옵니다.`,
+    `오늘 추천 포인트: 짧고 명확한 메시지 + 간격 있는 응원 루틴으로 과열 없이 선명도를 유지하세요.`,
+  ].join("\n\n");
 }
 
 export function generateChemistrySummary(args: ReportArgs) {

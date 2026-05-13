@@ -2,12 +2,14 @@ import { calculateBiasCompatibility } from "./compatibilityScore";
 import { normalizeBirthDateInput } from "./birthEnergy";
 import {
   generateBiasPersonalityReport,
+  generateBiasEnergySummary,
   generateChemistrySummary,
   generateCompatibilityReport,
   generateDestinySignal,
   generateEnergyConnectionReport,
 } from "./reportTemplates";
 import { createDestinyBiasCardSvg } from "../utils/createDestinyBiasSvg";
+import { createBiasEnergySvg } from "../utils/createBiasEnergySvg";
 import {
   getAuraTheme,
   getCheerPoint,
@@ -65,6 +67,8 @@ export type DestinyBiasAnalyzeResult = {
   stageChemistryKeywords: string[];
   todayMission: string;
   cheerPoint: string;
+  biasEnergySvg: string;
+  biasEnergySummary: string;
   destinyId: string;
   issuedAt: string;
   cardSvg: string;
@@ -138,6 +142,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const energyReport = generateEnergyConnectionReport(reportArgs);
   const chemistrySummary = generateChemistrySummary(reportArgs);
   const destinySignal = generateDestinySignal(reportArgs);
+  const biasEnergySummary = generateBiasEnergySummary(reportArgs);
 
   const gradeMeta = getDestinyGrade(compatibility.totalScore);
   const auraMeta = getAuraTheme(`${userName}:${biasName}:${compatibility.biasEnergyType}`, compatibility.totalScore);
@@ -187,6 +192,16 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     themeLabel: input.themeLabel,
   });
 
+  const biasEnergySvg = createBiasEnergySvg({
+    biasName,
+    biasEnergyType: compatibility.biasEnergyType,
+    auraType: auraMeta.auraType,
+    auraMaterial: auraMeta.auraMaterial,
+    energyColor: auraMeta.energyColor,
+    totalScore: compatibility.totalScore,
+    connectionKeywords: compatibility.connectionKeyword,
+  });
+
   return {
     userName,
     biasName,
@@ -223,6 +238,8 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     stageChemistryKeywords,
     todayMission: energyReport.mission,
     cheerPoint,
+    biasEnergySvg,
+    biasEnergySummary,
     destinyId,
     issuedAt,
     cardSvg,

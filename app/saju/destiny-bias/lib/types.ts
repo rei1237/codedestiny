@@ -53,6 +53,8 @@ export type DestinyBiasResultViewModel = {
   stageChemistryKeywords: string[];
   todayMission: string;
   cheerPoint: string;
+  biasEnergySvg: string;
+  biasEnergySummary: string;
   destinyId: string;
   issuedAt: string;
   cardSvg: string;
