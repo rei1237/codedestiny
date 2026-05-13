@@ -1,6 +1,6 @@
 "use client";
 
-const STEP_LABELS = ["01\n입장", "02\n운명", "03\n세팅", "04\n동기화", "05\n카드"] as const;
+const STEP_LABELS = ["01\n입장", "02\n연결", "03\n테마", "04\n분석중", "05\n완성!"] as const;
 
 export default function DestinyBiasProgress({ current }: { current: number }) {
   return (

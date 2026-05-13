@@ -675,9 +675,9 @@ export default function DestinyBiasClient() {
 
             {uiStep === 1 ? (
               <section className={styles.inputPanel}>
-                <p className="text-xs font-semibold tracking-[0.16em] text-[#FFD98A]/90">COSMIC ENTRY PASS</p>
-                <h2 className="mt-2 text-2xl font-black">우주 콘서트 입장 정보</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">당신의 생일이 최애의 무대와 연결되는 순간을 위해 기본 운명 정보를 입력해 주세요.</p>
+                <p className="text-xs font-semibold tracking-[0.16em] text-[#FFD98A]/90">STEP 01 · MY ENERGY</p>
+                <h2 className="mt-2 text-2xl font-black">내 정보 먼저 넣을게요</h2>
+                <p className="mt-2 text-sm leading-7 text-white/80">이름이랑 생년월일만 있으면 돼요! 내 사주 에너지가 분석의 기반이 돼요 ✨</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <InputField
@@ -737,9 +737,9 @@ export default function DestinyBiasClient() {
 
             {uiStep === 2 ? (
               <section className={styles.inputPanel}>
-                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">FANLIGHT CHECK-IN</p>
-                <h2 className="mt-2 text-2xl font-black">최애 연결 프로필 입력</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">최애 이름, 아티스트/그룹 라인, 무드 정보를 입력하면 포토카드 문구가 더 자연스럽게 완성됩니다.</p>
+                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">STEP 02 · BIAS LINK</p>
+                <h2 className="mt-2 text-2xl font-black">최애 에너지 연결하기</h2>
+                <p className="mt-2 text-sm leading-7 text-white/80">최애 이름이랑 생년월일을 넣으면 두 사람의 에너지 궁합을 계산해드려요 ✨</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <InputField
@@ -826,9 +826,9 @@ export default function DestinyBiasClient() {
               <section className="relative overflow-hidden rounded-[28px] border border-white/15 bg-[linear-gradient(150deg,rgba(8,18,42,0.8),rgba(26,20,68,0.55))] p-5 shadow-[0_20px_54px_rgba(2,6,23,0.42)]">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_14%,rgba(244,114,182,0.2),transparent_30%),radial-gradient(circle_at_85%_82%,rgba(34,211,238,0.18),transparent_35%)]" aria-hidden />
                 <div className="relative z-10">
-                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">HOLOGRAM PHOTOCARD BOOTH</p>
-                <h2 className="mt-2 text-2xl font-black">콘서트 무드 테마 선택</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">오늘의 우주 콘서트 톤을 고르면 포토카드와 해설의 공기감이 같은 무드로 맞춰집니다.</p>
+                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">STEP 03 · MOOD THEME</p>
+                <h2 className="mt-2 text-2xl font-black">나만의 포토카드 무드 고르기</h2>
+                <p className="mt-2 text-sm leading-7 text-white/80">오늘 기분에 맞는 테마를 고르면 포토카드 색감이랑 분위기도 같이 맞춰져요 💜 말 그대로 나만의 진짜 한정판이에요!</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {destinyBiasThemeChoices.map((theme) => {
@@ -900,17 +900,17 @@ export default function DestinyBiasClient() {
 
               <section className="space-y-3">
                 <div className="text-center">
-                  <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">REPRESENTATIVE PHOTOCARD</p>
-                  <h3 className="mt-1 text-xl font-black text-white">소장용 한정 포토카드</h3>
+                  <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">REPRESENTATIVE PHOTOCARD ✨</p>
+                  <h3 className="mt-1 text-xl font-black text-white">나만의 한정판 포토카드</h3>
                 </div>
                 <DestinyBiasPhotocard vm={resultVm} />
               </section>
 
               <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">KEY SUMMARY</p>
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">ENERGY HIGHLIGHTS ✦</p>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                   <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
-                    <p className="text-[11px] text-white/70">궁합 점수</p>
+                    <p className="text-[11px] text-white/70">공명 점수</p>
                     <p className="mt-1 text-2xl font-black text-white">{resultVm.totalScore}</p>
                   </article>
                   <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
@@ -937,12 +937,12 @@ export default function DestinyBiasClient() {
               </section>
 
               <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">DETAIL ANALYSIS</p>
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">DETAIL REPORT ✦</p>
                 <DestinyBiasDetailSections vm={resultVm} />
               </section>
 
               <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">SAVE / SHARE</p>
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">저장 · 공유 SAVE &amp; SHARE</p>
                 <DestinyBiasActionBar
                   onDownloadSvg={handleDownloadSvg}
                   onDownloadPng={() => {

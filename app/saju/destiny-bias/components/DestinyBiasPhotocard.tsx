@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
+import styles from "../destiny-bias.module.css";
 
 export default function DestinyBiasPhotocard({
   vm,
@@ -23,9 +24,25 @@ export default function DestinyBiasPhotocard({
       whileHover={reduceMotion ? undefined : { scale: 1.02, y: -4 }}
       transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <div className="overflow-hidden rounded-[30px] border border-cyan-200/35 bg-[linear-gradient(155deg,rgba(5,13,35,0.95)_0%,rgba(20,13,56,0.9)_38%,rgba(11,34,66,0.9)_100%)] shadow-[0_28px_80px_rgba(2,6,23,0.65)]">
+      {/* rainbow holo border */}
+      <div className={styles.biasCardOuter}>
+      <div className={styles.biasCardInner}>
         <div className="relative aspect-[9/16] p-4 md:p-5">
+          {/* holographic shimmer + glitter */}
+          <div className={`pointer-events-none absolute inset-0 ${styles.photocardHolo}`} aria-hidden />
+          <div className={`pointer-events-none absolute inset-0 ${styles.biasGlitterLayer}`} aria-hidden />
+          {/* ambient glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(251,113,229,0.3),transparent_38%),radial-gradient(circle_at_84%_20%,rgba(96,165,250,0.24),transparent_38%),radial-gradient(circle_at_50%_92%,rgba(34,211,238,0.2),transparent_40%)]" aria-hidden />
+          {/* spotlight — main center cone */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[72%] bg-[conic-gradient(from_90deg_at_50%_0%,transparent_29%,rgba(255,255,255,0.06)_40%,rgba(201,167,255,0.13)_50%,rgba(255,255,255,0.06)_60%,transparent_71%)]" aria-hidden />
+          {/* spotlight — left pink beam */}
+          <div className="pointer-events-none absolute left-[6%] top-0 h-[58%] w-[28%] bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,95,210,0.22),transparent_76%)] blur-sm" aria-hidden />
+          {/* spotlight — right cyan beam */}
+          <div className="pointer-events-none absolute right-[5%] top-0 h-[52%] w-[25%] bg-[radial-gradient(ellipse_at_50%_0%,rgba(64,200,255,0.18),transparent_76%)] blur-sm" aria-hidden />
+          {/* stage floor reflection */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[28%] bg-[radial-gradient(ellipse_88%_56%_at_50%_100%,rgba(109,59,255,0.3),transparent)]" aria-hidden />
+          {/* lens flare source point */}
+          <div className="pointer-events-none absolute left-1/2 top-0 h-3 w-3 -translate-x-1/2 rounded-full bg-white/60 shadow-[0_0_10px_5px_rgba(255,255,255,0.25),0_0_24px_12px_rgba(201,167,255,0.22),0_0_52px_22px_rgba(109,59,255,0.14)]" aria-hidden />
           <div className="pointer-events-none absolute inset-0 opacity-60" aria-hidden>
             <div className="absolute left-8 top-8 h-1 w-1 rounded-full bg-white/70" />
             <div className="absolute right-12 top-16 h-1.5 w-1.5 rounded-full bg-cyan-200/70" />
@@ -49,8 +66,11 @@ export default function DestinyBiasPhotocard({
                 <h3 className="mt-1 text-2xl font-black leading-tight text-white">{vm.biasName}</h3>
                 <p className="mt-1 text-xs text-white/75">{vm.relationMood} 공명 모드</p>
               </div>
-              <div className="grid h-16 w-16 place-items-center rounded-full border border-cyan-100/60 bg-[radial-gradient(circle,rgba(56,189,248,0.45)_0%,rgba(22,78,99,0.15)_72%,transparent_100%)] shadow-[0_0_20px_rgba(56,189,248,0.4)]">
-                <span className="text-lg font-black text-white">{vm.totalScore}%</span>
+              <div className="relative grid h-16 w-16 place-items-center">
+                <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.22),transparent_68%)] blur-md" aria-hidden />
+                <div className="relative grid h-16 w-16 place-items-center rounded-full border border-cyan-100/65 bg-[radial-gradient(circle,rgba(56,189,248,0.48)_0%,rgba(22,78,99,0.18)_70%,transparent_100%)] shadow-[0_0_20px_rgba(56,189,248,0.55),0_0_44px_rgba(56,189,248,0.28),inset_0_1px_0_rgba(255,255,255,0.22)]">
+                  <span className="text-lg font-black text-white drop-shadow-[0_0_7px_rgba(200,240,255,0.9)]">{vm.totalScore}%</span>
+                </div>
               </div>
             </div>
 
@@ -76,13 +96,14 @@ export default function DestinyBiasPhotocard({
           </div>
         </div>
       </div>
+      </div>
 
-      <p className="mt-3 text-center text-xs text-white/60">
-        포토카드는 팬-최애 에너지 관계 요약 중심으로 저장됩니다.
+      <p className="mt-3 text-center text-xs text-white/55">
+        ✦ 이 카드엔 두 사람의 에너지 공명이 담겨 있어요
       </p>
 
       <div
-        className="pointer-events-none absolute -bottom-9 left-1/2 h-20 w-4/5 -translate-x-1/2 rounded-full bg-fuchsia-400/25 blur-3xl"
+        className="pointer-events-none absolute -bottom-10 left-1/2 h-24 w-[90%] -translate-x-1/2 rounded-full bg-fuchsia-400/30 blur-3xl"
         aria-hidden
       />
     </motion.div>

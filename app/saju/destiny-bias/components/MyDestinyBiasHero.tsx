@@ -21,16 +21,18 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
       </div>
 
       <div className="relative z-10">
-        <div className="mb-2 inline-flex rounded-full border border-pink-200/45 bg-pink-300/12 px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-pink-100/90">COSMIC FANLIGHT STAGE</div>
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-pink-200/50 bg-pink-300/12 px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-pink-100/90">
+          <span aria-hidden>✦</span> COSMIC FANLIGHT STAGE
+        </div>
 
-        <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_20px_rgba(255,95,210,0.45)] md:text-4xl">
+        <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_24px_rgba(255,95,210,0.55)] md:text-4xl">
           MY DESTINY BIAS
         </h1>
 
-        <p className="mt-3 max-w-xl text-sm leading-7 text-white/80 md:text-base">
-          우주 한가운데 펼쳐진 프라이빗 콘서트장에서,{" "}
-          <span className="font-semibold text-fuchsia-200/90">당신의 사주 에너지</span>가{" "}
-          <span className="font-semibold text-cyan-200/90">최애의 무대 아우라</span>와 연결됩니다.
+        <p className="mt-3 max-w-xl text-sm leading-7 text-white/82 md:text-base">
+          <span className="font-semibold text-fuchsia-200">내 생일 에너지</span>가{" "}
+          <span className="font-semibold text-cyan-200">최애의 무대 아우라</span>와{" "}
+          만나는 우주적인 순간을 포토카드로 담아드려요 ✨
         </p>
 
         {subtitle ? (
