@@ -36,15 +36,25 @@ function renderTextLines(params: RenderLineParams) {
   return `<text x="${params.x}" y="${params.y}" fill="${params.fill}" font-family="${params.fontFamily}" font-size="${params.fontSize}" font-weight="${weight}"${spacing}>${first}${rest}</text>`;
 }
 
+function blockHeight(lines: string[], lineHeight: number) {
+  if (!lines.length) return 0;
+  return (lines.length - 1) * lineHeight;
+}
+
 function buildKeywordPills(keywords: string[]) {
-  const safe = keywords.slice(0, 3).map((item) => escapeXml(item));
+  const safe = keywords
+    .slice(0, 3)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .map((item) => (Array.from(item).length > 12 ? `${Array.from(item).slice(0, 11).join("")}…` : item))
+    .map((item) => escapeXml(item));
   const startX = 178;
   return safe
     .map((keyword, index) => {
-      const x = startX + index * 248;
+      const x = startX + index * 246;
       return `
-        <rect x="${x}" y="1042" width="226" height="56" rx="28" fill="rgba(13,20,46,0.62)" stroke="rgba(255,255,255,0.28)"/>
-        <text x="${x + 22}" y="1079" fill="#DAF6FF" font-size="24" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-weight="700">#${keyword}</text>
+        <rect x="${x}" y="1112" width="220" height="52" rx="26" fill="rgba(10,18,42,0.74)" stroke="rgba(255,255,255,0.26)"/>
+        <text x="${x + 18}" y="1146" fill="#DAF6FF" font-size="20" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-weight="700">#${keyword}</text>
       `;
     })
     .join("");
@@ -56,7 +66,7 @@ function buildBarcode(seed: string) {
     const code = values[index % values.length] || 48;
     const x = 742 + index * 5;
     const height = 18 + (code % 34);
-    const y = 1528 - height;
+    const y = 1638 - height;
     const width = index % 3 === 0 ? 3 : 2;
     const opacity = 0.5 + (code % 4) * 0.1;
     return `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="rgba(231,246,255,${opacity.toFixed(2)})"/>`;
@@ -70,9 +80,17 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   const fontFamily = "Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif";
   const scriptFamily = "Segoe Script, Apple Chancery, cursive";
 
+  const profileNameY = 468;
+  const profileLinkedY = profileNameY + blockHeight(model.biasName.lines, model.biasName.lineHeight) + 56;
+  const profileStageY = profileLinkedY + blockHeight(model.linkedArtist.lines, model.linkedArtist.lineHeight) + 40;
+  const profileSparkY = profileStageY + blockHeight(model.stageLine.lines, model.stageLine.lineHeight) + 34;
+
+  const auraTypeY = 764;
+  const auraMaterialY = auraTypeY + blockHeight(model.auraType.lines, model.auraType.lineHeight) + 38;
+
   const nameText = renderTextLines({
     x: 178,
-    y: 468,
+    y: profileNameY,
     lines: model.biasName.lines,
     fontSize: model.biasName.fontSize,
     lineHeight: model.biasName.lineHeight,
@@ -83,7 +101,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   const linkedText = renderTextLines({
     x: 178,
-    y: 564,
+    y: profileLinkedY,
     lines: model.linkedArtist.lines,
     fontSize: model.linkedArtist.fontSize,
     lineHeight: model.linkedArtist.lineHeight,
@@ -92,20 +110,31 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
     fontWeight: 700,
   });
 
-  const aliasText = renderTextLines({
+  const stageLineText = renderTextLines({
     x: 178,
-    y: 632,
-    lines: model.pairingAlias.lines,
-    fontSize: model.pairingAlias.fontSize,
-    lineHeight: model.pairingAlias.lineHeight,
+    y: profileStageY,
+    lines: model.stageLine.lines,
+    fontSize: model.stageLine.fontSize,
+    lineHeight: model.stageLine.lineHeight,
     fontFamily,
-    fill: "#F6E2FF",
+    fill: "#EFE9FF",
+    fontWeight: 700,
+  });
+
+  const sparkUnitText = renderTextLines({
+    x: 178,
+    y: profileSparkY,
+    lines: model.sparkUnit.lines,
+    fontSize: model.sparkUnit.fontSize,
+    lineHeight: model.sparkUnit.lineHeight,
+    fontFamily,
+    fill: "#D7F7FF",
     fontWeight: 700,
   });
 
   const auraTypeText = renderTextLines({
-    x: 574,
-    y: 742,
+    x: 560,
+    y: auraTypeY,
     lines: model.auraType.lines,
     fontSize: model.auraType.fontSize,
     lineHeight: model.auraType.lineHeight,
@@ -115,8 +144,8 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   });
 
   const auraMaterialText = renderTextLines({
-    x: 574,
-    y: 832,
+    x: 560,
+    y: auraMaterialY,
     lines: model.auraMaterial.lines,
     fontSize: model.auraMaterial.fontSize,
     lineHeight: model.auraMaterial.lineHeight,
@@ -127,7 +156,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   const messageText = renderTextLines({
     x: 178,
-    y: 940,
+    y: 1028,
     lines: model.destinyMessage.lines,
     fontSize: model.destinyMessage.fontSize,
     lineHeight: model.destinyMessage.lineHeight,
@@ -138,7 +167,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   const signalText = renderTextLines({
     x: 178,
-    y: 1156,
+    y: 1236,
     lines: model.destinySignal.lines,
     fontSize: model.destinySignal.fontSize,
     lineHeight: model.destinySignal.lineHeight,
@@ -149,7 +178,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   const fansignText = renderTextLines({
     x: 178,
-    y: 1436,
+    y: 1414,
     lines: model.fansignMessage.lines,
     fontSize: model.fansignMessage.fontSize,
     lineHeight: model.fansignMessage.lineHeight,
@@ -160,7 +189,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 
   const userTagText = renderTextLines({
     x: 178,
-    y: 1498,
+    y: 1472,
     lines: model.userName.lines,
     fontSize: model.userName.fontSize,
     lineHeight: model.userName.lineHeight,
@@ -177,28 +206,34 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1680" viewBox="0 0 1080 1680" role="img" aria-label="My Destiny Bias Premium Photocard">
   <defs>
     <linearGradient id="stageBg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#07061B"/>
-      <stop offset="38%" stop-color="#1A1150"/>
-      <stop offset="68%" stop-color="#7C2BB5"/>
-      <stop offset="100%" stop-color="#1F9ED8"/>
+      <stop offset="0%" stop-color="#09051F"/>
+      <stop offset="44%" stop-color="#1A0B3F"/>
+      <stop offset="70%" stop-color="#6D3BFF"/>
+      <stop offset="100%" stop-color="#40C8FF"/>
     </linearGradient>
     <radialGradient id="lightA" cx="0.12" cy="0.08" r="0.45">
-      <stop offset="0%" stop-color="#FFE8FA" stop-opacity="0.56"/>
+      <stop offset="0%" stop-color="#FF5FD2" stop-opacity="0.56"/>
       <stop offset="100%" stop-color="#FFE8FA" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="lightB" cx="0.86" cy="0.11" r="0.42">
-      <stop offset="0%" stop-color="#CCF8FF" stop-opacity="0.52"/>
+      <stop offset="0%" stop-color="#40C8FF" stop-opacity="0.52"/>
       <stop offset="100%" stop-color="#CCF8FF" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="holoStroke" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FDEBFF"/>
-      <stop offset="30%" stop-color="#FFC9EC"/>
-      <stop offset="62%" stop-color="#A7E9FF"/>
-      <stop offset="100%" stop-color="#FFF6C8"/>
+      <stop offset="0%" stop-color="#F8F3FF"/>
+      <stop offset="28%" stop-color="#FF9AD8"/>
+      <stop offset="58%" stop-color="#C9A7FF"/>
+      <stop offset="78%" stop-color="#80FFE7"/>
+      <stop offset="100%" stop-color="#FFD98A"/>
     </linearGradient>
     <linearGradient id="glassPanel" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.06)"/>
+    </linearGradient>
+    <linearGradient id="panelStroke" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,95,210,0.65)"/>
+      <stop offset="50%" stop-color="rgba(201,167,255,0.58)"/>
+      <stop offset="100%" stop-color="rgba(64,200,255,0.65)"/>
     </linearGradient>
     <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
@@ -212,6 +247,11 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
       <circle cx="30" cy="21" r="1.2" fill="rgba(255,223,248,0.4)"/>
       <circle cx="16" cy="33" r="1.4" fill="rgba(168,237,255,0.36)"/>
     </pattern>
+    <clipPath id="clipProfile"><rect x="174" y="430" width="730" height="228" rx="22"/></clipPath>
+    <clipPath id="clipAura"><rect x="560" y="742" width="340" height="158" rx="18"/></clipPath>
+    <clipPath id="clipMessage"><rect x="176" y="1000" width="730" height="98" rx="14"/></clipPath>
+    <clipPath id="clipSignal"><rect x="176" y="1210" width="730" height="76" rx="14"/></clipPath>
+    <clipPath id="clipFansign"><rect x="176" y="1378" width="730" height="108" rx="14"/></clipPath>
   </defs>
 
   <rect width="1080" height="1680" fill="url(#stageBg)"/>
@@ -221,6 +261,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   <ellipse cx="540" cy="-60" rx="380" ry="260" fill="url(#beam)" opacity="0.38"/>
   <ellipse cx="222" cy="120" rx="180" ry="480" fill="url(#beam)" opacity="0.2" transform="rotate(-18 222 120)"/>
   <ellipse cx="868" cy="120" rx="180" ry="480" fill="url(#beam)" opacity="0.2" transform="rotate(18 868 120)"/>
+  <ellipse cx="540" cy="1688" rx="320" ry="120" fill="rgba(255,255,255,0.14)"/>
 
   <g fill="rgba(255,205,244,0.74)">
     <path d="M146 214c20-28 58-8 58 21 0 30-38 52-58 74-20-22-58-44-58-74 0-29 38-49 58-21z"/>
@@ -234,53 +275,67 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
     <rect x="124" y="132" width="832" height="1418" rx="52" fill="url(#glassPanel)" stroke="rgba(255,255,255,0.3)" stroke-width="1.8"/>
   </g>
 
-  <rect x="158" y="170" width="276" height="46" rx="23" fill="rgba(13,22,52,0.62)" stroke="rgba(255,255,255,0.32)"/>
-  <text x="182" y="201" fill="#EAF7FF" font-family="${fontFamily}" font-size="20" font-weight="700" letter-spacing="1.2">${escapeXml(model.meta.editionLabel)}</text>
+  <rect x="158" y="170" width="298" height="46" rx="23" fill="rgba(13,22,52,0.62)" stroke="rgba(255,255,255,0.32)"/>
+  <text x="182" y="201" fill="#EAF7FF" font-family="${fontFamily}" font-size="19" font-weight="700" letter-spacing="1.1">DESTINY VERIFIED</text>
 
-  <rect x="452" y="170" width="192" height="46" rx="23" fill="rgba(13,22,52,0.62)" stroke="rgba(255,255,255,0.32)"/>
+  <rect x="472" y="170" width="196" height="46" rx="23" fill="rgba(13,22,52,0.62)" stroke="rgba(255,255,255,0.32)"/>
   <text x="476" y="201" fill="#FFEFFF" font-family="${fontFamily}" font-size="20" font-weight="700" letter-spacing="1">FANSIGN EDITION</text>
 
-  <rect x="664" y="170" width="258" height="46" rx="23" fill="rgba(13,22,52,0.62)" stroke="rgba(255,255,255,0.32)"/>
-  <text x="688" y="201" fill="#DDF8FF" font-family="${fontFamily}" font-size="20" font-weight="700" letter-spacing="1">${escapeXml(model.meta.destinyGrade)}</text>
+  <rect x="684" y="170" width="238" height="46" rx="23" fill="rgba(13,22,52,0.62)" stroke="rgba(255,255,255,0.32)"/>
+  <text x="708" y="201" fill="#FFD98A" font-family="${fontFamily}" font-size="20" font-weight="800" letter-spacing="1">${escapeXml(model.meta.destinyGrade)}</text>
 
-  <text x="168" y="274" fill="#F8E6FF" font-family="${fontFamily}" font-size="28" font-weight="700" letter-spacing="3.2">Code:Destiny</text>
-  <text x="168" y="318" fill="#E5F7FF" font-family="${fontFamily}" font-size="48" font-weight="900">My Destiny Bias</text>
-  <text x="168" y="358" fill="#FCE4FF" font-family="${fontFamily}" font-size="23" font-weight="600" letter-spacing="1.2">THE CONCERT AURA PHOTOCARD</text>
+  <text x="168" y="266" fill="#F8E6FF" font-family="${fontFamily}" font-size="28" font-weight="700" letter-spacing="3.2">Code:Destiny</text>
+  <text x="168" y="310" fill="#E5F7FF" font-family="${fontFamily}" font-size="48" font-weight="900">My Destiny Bias</text>
+  <text x="168" y="346" fill="#FCE4FF" font-family="${fontFamily}" font-size="22" font-weight="600" letter-spacing="1.1">THE COSMIC AURA PHOTOCARD</text>
 
-  <rect x="158" y="392" width="764" height="278" rx="32" fill="rgba(7,11,35,0.62)" stroke="rgba(255,255,255,0.28)"/>
-  <text x="178" y="426" fill="#FEE9FF" font-family="${fontFamily}" font-size="24" font-weight="700">LIMITED AURA PROFILE</text>
-  ${nameText}
-  ${linkedText}
-  ${aliasText}
+  <rect x="158" y="372" width="764" height="304" rx="32" fill="rgba(7,11,35,0.62)" stroke="url(#panelStroke)"/>
+  <text x="178" y="406" fill="#FEE9FF" font-family="${fontFamily}" font-size="22" font-weight="700">LIMITED FANLIGHT PROFILE</text>
+  <g clip-path="url(#clipProfile)">
+    ${nameText}
+    ${linkedText}
+    ${stageLineText}
+    ${sparkUnitText}
+  </g>
 
-  <rect x="158" y="702" width="374" height="238" rx="30" fill="rgba(8,15,40,0.62)" stroke="rgba(255,255,255,0.24)"/>
-  <text x="184" y="742" fill="#E9F7FF" font-family="${fontFamily}" font-size="24" font-weight="700">궁합 점수</text>
-  <text x="184" y="848" fill="#FFFFFF" font-family="${fontFamily}" font-size="104" font-weight="900">${score}</text>
-  <text x="308" y="848" fill="#E4F7FF" font-family="${fontFamily}" font-size="34" font-weight="700">/ 100</text>
-  <text x="184" y="900" fill="#FEEBFF" font-family="${fontFamily}" font-size="24" font-weight="700">${escapeXml(model.meta.themeLabel)}</text>
+  <rect x="158" y="682" width="374" height="244" rx="30" fill="rgba(8,15,40,0.66)" stroke="rgba(255,255,255,0.24)"/>
+  <text x="184" y="724" fill="#E9F7FF" font-family="${fontFamily}" font-size="22" font-weight="700">궁합 점수</text>
+  <text x="184" y="832" fill="#FFFFFF" font-family="${fontFamily}" font-size="100" font-weight="900">${score}</text>
+  <text x="300" y="832" fill="#E4F7FF" font-family="${fontFamily}" font-size="32" font-weight="700">/ 100</text>
+  <text x="184" y="882" fill="#FFD98A" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(model.meta.themeLabel)}</text>
 
-  <rect x="548" y="702" width="374" height="238" rx="30" fill="rgba(8,15,40,0.62)" stroke="rgba(255,255,255,0.24)"/>
-  <text x="574" y="742" fill="#E9F7FF" font-family="${fontFamily}" font-size="24" font-weight="700">에너지 타입 / 재질</text>
-  ${auraTypeText}
-  ${auraMaterialText}
+  <rect x="548" y="682" width="374" height="244" rx="30" fill="rgba(8,15,40,0.66)" stroke="rgba(255,255,255,0.24)"/>
+  <text x="574" y="724" fill="#E9F7FF" font-family="${fontFamily}" font-size="22" font-weight="700">에너지 타입 / 재질</text>
+  <g clip-path="url(#clipAura)">
+    ${auraTypeText}
+    ${auraMaterialText}
+  </g>
 
-  <rect x="158" y="972" width="764" height="220" rx="30" fill="rgba(8,13,36,0.68)" stroke="rgba(255,255,255,0.26)"/>
-  ${messageText}
+  <rect x="158" y="952" width="764" height="232" rx="30" fill="rgba(8,13,36,0.7)" stroke="rgba(255,255,255,0.26)"/>
+  <text x="178" y="988" fill="#FCEBFF" font-family="${fontFamily}" font-size="22" font-weight="700">DESTINY MESSAGE</text>
+  <g clip-path="url(#clipMessage)">
+    ${messageText}
+  </g>
   ${keywordSvg}
 
-  <rect x="158" y="1218" width="764" height="194" rx="30" fill="rgba(8,13,36,0.64)" stroke="rgba(255,255,255,0.24)"/>
-  <text x="178" y="1260" fill="#FCEBFF" font-family="${fontFamily}" font-size="24" font-weight="700">DESTINY SIGNAL</text>
-  ${signalText}
+  <rect x="158" y="1198" width="764" height="154" rx="30" fill="rgba(8,13,36,0.64)" stroke="rgba(255,255,255,0.24)"/>
+  <text x="178" y="1232" fill="#FCEBFF" font-family="${fontFamily}" font-size="22" font-weight="700">DESTINY SIGNAL</text>
+  <g clip-path="url(#clipSignal)">
+    ${signalText}
+  </g>
 
-  <rect x="158" y="1432" width="764" height="110" rx="24" fill="rgba(15,10,44,0.7)" stroke="rgba(255,255,255,0.26)"/>
-  ${fansignText}
-  ${userTagText}
+  <rect x="158" y="1368" width="764" height="170" rx="24" fill="rgba(15,10,44,0.74)" stroke="rgba(255,255,255,0.26)"/>
+  <text x="178" y="1400" fill="#FFDBF2" font-family="${fontFamily}" font-size="20" font-weight="700">FANSIGN MESSAGE</text>
+  <g clip-path="url(#clipFansign)">
+    ${fansignText}
+    ${userTagText}
+  </g>
 
-  <rect x="158" y="1558" width="764" height="70" rx="18" fill="rgba(4,8,24,0.72)" stroke="rgba(255,255,255,0.24)"/>
-  <text x="178" y="1603" fill="#E6F7FF" font-family="${fontFamily}" font-size="20" font-weight="700">Destiny ID ${escapeXml(model.meta.destinyId)}</text>
-  <text x="492" y="1603" fill="#FDE7FF" font-family="${fontFamily}" font-size="20" font-weight="700">Issued ${escapeXml(model.meta.issuedAt)}</text>
-  <circle cx="690" cy="1593" r="9" fill="${escapeXml(model.meta.energyColor)}" stroke="rgba(255,255,255,0.68)" stroke-width="2"/>
-  <text x="708" y="1603" fill="#DDF7FF" font-family="${fontFamily}" font-size="19" font-weight="700">Energy</text>
+  <rect x="158" y="1554" width="764" height="98" rx="22" fill="rgba(4,8,24,0.74)" stroke="rgba(255,255,255,0.24)"/>
+  <text x="178" y="1592" fill="#E6F7FF" font-family="${fontFamily}" font-size="20" font-weight="700">Destiny ID ${escapeXml(model.meta.destinyId)}</text>
+  <text x="178" y="1622" fill="#FDE7FF" font-family="${fontFamily}" font-size="19" font-weight="700">Issued ${escapeXml(model.meta.issuedAt)}</text>
+  <text x="512" y="1592" fill="#DDF7FF" font-family="${fontFamily}" font-size="19" font-weight="700">Energy</text>
+  <circle cx="622" cy="1584" r="11" fill="${escapeXml(model.meta.energyColor)}" stroke="rgba(255,255,255,0.68)" stroke-width="2"/>
+  <text x="644" y="1622" fill="#FFD98A" font-family="${fontFamily}" font-size="18" font-weight="700">${escapeXml(model.meta.editionLabel)}</text>
 
   <g>${barcode}</g>
 </svg>`;

@@ -19,25 +19,29 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
         boxShadow: "0 24px 70px rgba(3,2,14,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
       }}
     >
+      <div className={styles.heroArtworkLayer} aria-hidden />
+
       {/* Pink glow blob */}
       <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-pink-300/25 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute -right-20 top-8 h-52 w-52 rounded-full bg-cyan-300/18 blur-3xl" aria-hidden />
 
-      <div className={`${styles.entryPassLabel} mb-2`}>✦ COSMIC FANLIGHT STAGE ✦</div>
+      <div className="relative z-10">
+        <div className={`${styles.entryPassLabel} mb-2`}>✦ COSMIC FANLIGHT STAGE ✦</div>
 
-      <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_20px_rgba(255,95,210,0.45)] md:text-4xl">
-        MY DESTINY BIAS
-      </h1>
+        <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_20px_rgba(255,95,210,0.45)] md:text-4xl">
+          MY DESTINY BIAS
+        </h1>
 
-      <p className="mt-3 max-w-xl text-sm leading-7 text-white/80 md:text-base">
-        우주 한가운데 펼쳐진 프라이빗 콘서트장에서,{" "}
-        <span className="font-semibold text-fuchsia-200/90">당신의 사주 에너지</span>가{" "}
-        <span className="font-semibold text-cyan-200/90">최애의 무대 아우라</span>와 연결됩니다.
-      </p>
+        <p className="mt-3 max-w-xl text-sm leading-7 text-white/80 md:text-base">
+          우주 한가운데 펼쳐진 프라이빗 콘서트장에서,{" "}
+          <span className="font-semibold text-fuchsia-200/90">당신의 사주 에너지</span>가{" "}
+          <span className="font-semibold text-cyan-200/90">최애의 무대 아우라</span>와 연결됩니다.
+        </p>
 
-      {subtitle ? (
-        <p className="mt-3 text-sm font-semibold text-cyan-100/85">{subtitle}</p>
-      ) : null}
+        {subtitle ? (
+          <p className="mt-3 text-sm font-semibold text-cyan-100/85">{subtitle}</p>
+        ) : null}
+      </div>
 
       {/* Aurora bottom glow */}
       <div

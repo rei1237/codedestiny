@@ -25,6 +25,8 @@ export default function DestinyBiasPhotocard({
       {/* Hologram outer frame */}
       <div className={styles.biasCardOuter}>
         <div className={styles.biasCardInner}>
+          <div className={styles.biasArtworkLayer} aria-hidden />
+
           {/* Gloss + glitter overlays */}
           <div className={styles.biasGlitterLayer} aria-hidden />
           <div className={styles.biasGlossLayer} aria-hidden />

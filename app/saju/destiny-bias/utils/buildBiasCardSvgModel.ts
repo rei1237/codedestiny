@@ -23,7 +23,8 @@ export type DestinyBiasCardSvgInput = {
 export type DestinyBiasCardSvgModel = {
   biasName: ReturnType<typeof fitTextToBox>;
   linkedArtist: ReturnType<typeof fitTextToBox>;
-  pairingAlias: ReturnType<typeof fitTextToBox>;
+  stageLine: ReturnType<typeof fitTextToBox>;
+  sparkUnit: ReturnType<typeof fitTextToBox>;
   auraType: ReturnType<typeof fitTextToBox>;
   auraMaterial: ReturnType<typeof fitTextToBox>;
   destinyMessage: ReturnType<typeof fitTextToBox>;
@@ -48,69 +49,79 @@ function trimText(value: string, fallback = "") {
 }
 
 export function buildBiasCardSvgModel(input: DestinyBiasCardSvgInput): DestinyBiasCardSvgModel {
+  const compactAlias = trimText(input.pairingAlias, "Destiny Pairing");
+  const stageLine = compactAlias.replace(/\s*unit\s*$/i, "").trim() || compactAlias;
+
   return {
     biasName: fitTextToBox(trimText(input.biasName, "MY BIAS"), {
-      maxWidth: 590,
-      maxLines: 2,
-      fontSize: 68,
-      minFontSize: 38,
-      lineHeight: 74,
+      maxWidth: 548,
+      maxLines: 1,
+      fontSize: 58,
+      minFontSize: 24,
+      lineHeight: 62,
     }),
     linkedArtist: fitTextToBox(`Linked Artist: ${trimText(input.linkedArtist, input.biasName)}`, {
-      maxWidth: 590,
-      maxLines: 2,
+      maxWidth: 700,
+      maxLines: 1,
       fontSize: 28,
-      minFontSize: 18,
-      lineHeight: 36,
-    }),
-    pairingAlias: fitTextToBox(trimText(input.pairingAlias, "Destiny Pairing"), {
-      maxWidth: 590,
-      maxLines: 2,
-      fontSize: 24,
-      minFontSize: 16,
-      lineHeight: 30,
-    }),
-    auraType: fitTextToBox(trimText(input.auraType, "Aura Type"), {
-      maxWidth: 268,
-      maxLines: 2,
-      fontSize: 34,
-      minFontSize: 20,
-      lineHeight: 38,
-    }),
-    auraMaterial: fitTextToBox(trimText(input.auraMaterial, "Aura Material"), {
-      maxWidth: 268,
-      maxLines: 2,
-      fontSize: 28,
-      minFontSize: 16,
+      minFontSize: 14,
       lineHeight: 32,
     }),
+    stageLine: fitTextToBox(`Stage Line: ${stageLine}`, {
+      maxWidth: 700,
+      maxLines: 1,
+      fontSize: 20,
+      minFontSize: 13,
+      lineHeight: 24,
+    }),
+    sparkUnit: fitTextToBox(`Spark Unit: ${compactAlias}`, {
+      maxWidth: 700,
+      maxLines: 1,
+      fontSize: 20,
+      minFontSize: 13,
+      lineHeight: 24,
+    }),
+    auraType: fitTextToBox(trimText(input.auraType, "Aura Type"), {
+      maxWidth: 318,
+      maxLines: 2,
+      fontSize: 27,
+      minFontSize: 14,
+      lineHeight: 31,
+    }),
+    auraMaterial: fitTextToBox(trimText(input.auraMaterial, "Aura Material"), {
+      maxWidth: 318,
+      maxLines: 2,
+      fontSize: 22,
+      minFontSize: 13,
+      lineHeight: 26,
+    }),
     destinyMessage: fitTextToBox(trimText(input.destinyMessage, "Tonight your destiny sparkles."), {
-      maxWidth: 740,
+      maxWidth: 706,
       maxLines: 3,
-      fontSize: 36,
-      minFontSize: 20,
-      lineHeight: 44,
+      fontSize: 26,
+      minFontSize: 14,
+      lineHeight: 31,
     }),
     destinySignal: fitTextToBox(trimText(input.destinySignal, "Signal synchronized."), {
-      maxWidth: 740,
+      maxWidth: 706,
       maxLines: 2,
-      fontSize: 24,
-      minFontSize: 15,
-      lineHeight: 30,
+      fontSize: 20,
+      minFontSize: 13,
+      lineHeight: 25,
     }),
     fansignMessage: fitTextToBox(trimText(input.fansignMessage, "Keep your glow."), {
-      maxWidth: 600,
+      maxWidth: 700,
       maxLines: 2,
-      fontSize: 40,
-      minFontSize: 22,
-      lineHeight: 44,
+      fontSize: 44,
+      minFontSize: 17,
+      lineHeight: 46,
     }),
     userName: fitTextToBox(`For ${trimText(input.userName, "you")}`, {
-      maxWidth: 200,
+      maxWidth: 240,
       maxLines: 1,
-      fontSize: 22,
+      fontSize: 20,
       minFontSize: 16,
-      lineHeight: 26,
+      lineHeight: 24,
     }),
     meta: {
       score: Math.max(0, Math.min(100, Math.round(Number(input.compatibilityScore) || 0))),

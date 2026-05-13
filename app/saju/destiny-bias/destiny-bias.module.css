@@ -465,6 +465,38 @@
   position: relative;
 }
 
+.biasArtworkLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 35%, rgba(8, 4, 22, 0.5)),
+    url("/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp");
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: screen;
+  opacity: 0.24;
+  filter: saturate(1.08) contrast(1.04);
+  z-index: 0;
+}
+
+.heroArtworkLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.14), transparent 42%),
+    linear-gradient(155deg, rgba(14, 8, 32, 0.12), rgba(14, 8, 32, 0.6)),
+    url("/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp");
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: screen;
+  opacity: 0.2;
+}
+
 .biasGlossLayer {
   position: absolute;
   inset: 0;
