@@ -38,6 +38,13 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "premium-love-secret-solo",
   "premium-love-secret-couple",
   "premium-lifebook-report",
+  "premium_pdf_saju_life_book",
+  "premium_pdf_saju_love_secret",
+  "premium_pdf_saju_love_secret_compat",
+  "premium_pdf_sukyo",
+  "premium_pdf_vedic",
+  "premium_pdf_western_astrology",
+  "premium_pdf_ziwei",
   "premium-sibyl-dominator",
   "premium-ziwei-report",
   "premium-astrology-report",
@@ -119,6 +126,13 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-love-secret-solo": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
   "premium-love-secret-couple": { cost: 400, reason: "사주 프리미엄 궁합 리포트 생성" },
   "premium-lifebook-report": { cost: 500, reason: "인생의 책 생성 (13챕터)" },
+  "premium_pdf_saju_life_book": { cost: 500, reason: "사주 인생의 책 PDF" },
+  "premium_pdf_saju_love_secret": { cost: 300, reason: "사주 연애 비책 PDF" },
+  "premium_pdf_saju_love_secret_compat": { cost: 400, reason: "사주 연애 궁합 PDF" },
+  "premium_pdf_sukyo": { cost: 390, reason: "숙요점 프리미엄 PDF" },
+  "premium_pdf_vedic": { cost: 390, reason: "베다점 프리미엄 PDF" },
+  "premium_pdf_western_astrology": { cost: 390, reason: "점성술 프리미엄 PDF" },
+  "premium_pdf_ziwei": { cost: 590, reason: "자미두수 프리미엄 PDF" },
   "premium-sibyl-dominator": { cost: 100, reason: "시빌라 도미네이터 리포트" },
   "premium-ziwei-report": { cost: 590, reason: "자미두수 프리미엄 PDF 리포트 생성" },
   "premium-astrology-report": { cost: 390, reason: "점성술 프리미엄 PDF 리포트 생성" },
@@ -222,6 +236,12 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   openCosmicSoulMeditation: "cosmic-soul-meditation",
   openYogaGuru: "yoga-guru-per-use",
   generateLifeBook: "premium-lifebook-report",
+  premium_pdf_lifebook: "premium_pdf_saju_life_book",
+  premium_pdf_love_secret: "premium_pdf_saju_love_secret",
+  premium_pdf_sukuyo: "premium_pdf_sukyo",
+  premium_pdf_astrology: "premium_pdf_western_astrology",
+  premium_pdf_western: "premium_pdf_western_astrology",
+  premium_pdf_jamidusu: "premium_pdf_ziwei",
   generateSibylDominatorReport: "premium-sibyl-dominator",
   openSibylDominator: "premium-sibyl-dominator",
   "sibyl-dominator": "premium-sibyl-dominator",
@@ -233,6 +253,123 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   gotoVedicPremium: "premium-vedic-report",
   gotoNamingPremium: "premium-naming-report",
 });
+
+export const PREMIUM_REPORT_PRICES = Object.freeze({
+  "saju-life-book": Object.freeze({
+    reportKind: "saju-life-book",
+    legacyReportType: "lifeBook",
+    featureType: "saju_life_book",
+    featureKey: "premium_pdf_saju_life_book",
+    legacyFeatureKeys: Object.freeze(["premium-lifebook-report", "coin-gate-per-use"]),
+    priceCoins: 500,
+    label: "사주 인생의 책 PDF",
+  }),
+  "saju-love-secret": Object.freeze({
+    reportKind: "saju-love-secret",
+    legacyReportType: "loveSecret",
+    featureType: "saju_love_secret",
+    featureKey: "premium_pdf_saju_love_secret",
+    compatibilityFeatureKey: "premium_pdf_saju_love_secret_compat",
+    legacyFeatureKeys: Object.freeze(["premium-love-secret-solo", "premium-love-secret-couple"]),
+    priceCoins: 300,
+    compatibilityPriceCoins: 400,
+    label: "사주 연애 비책 PDF",
+  }),
+  "sukyo-premium": Object.freeze({
+    reportKind: "sukyo-premium",
+    legacyReportType: "sookyoPremium",
+    featureType: "sookyo_premium",
+    featureKey: "premium_pdf_sukyo",
+    legacyFeatureKeys: Object.freeze(["premium-sukuyo-report"]),
+    priceCoins: 390,
+    label: "숙요점 프리미엄 PDF",
+  }),
+  "vedic-premium": Object.freeze({
+    reportKind: "vedic-premium",
+    legacyReportType: "vedicPremium",
+    featureType: "vedic_premium",
+    featureKey: "premium_pdf_vedic",
+    legacyFeatureKeys: Object.freeze(["premium-vedic-report"]),
+    priceCoins: 390,
+    label: "베다점 프리미엄 PDF",
+  }),
+  "western-astrology-premium": Object.freeze({
+    reportKind: "western-astrology-premium",
+    legacyReportType: "westernAstrologyPremium",
+    featureType: "astrology_premium",
+    featureKey: "premium_pdf_western_astrology",
+    legacyFeatureKeys: Object.freeze(["premium-astrology-report"]),
+    priceCoins: 390,
+    label: "점성술 프리미엄 PDF",
+  }),
+  "ziwei-premium": Object.freeze({
+    reportKind: "ziwei-premium",
+    legacyReportType: "ziweiPremium",
+    featureType: "jamidusu_premium",
+    featureKey: "premium_pdf_ziwei",
+    legacyFeatureKeys: Object.freeze(["premium-ziwei-report"]),
+    priceCoins: 590,
+    label: "자미두수 프리미엄 PDF",
+  }),
+});
+
+const PREMIUM_REPORT_PRICE_BY_REPORT_TYPE = Object.freeze(
+  Object.values(PREMIUM_REPORT_PRICES).reduce((acc, spec) => {
+    acc[spec.legacyReportType] = spec;
+    return acc;
+  }, Object.create(null)),
+);
+
+const PREMIUM_REPORT_KIND_ALIASES = Object.freeze({
+  lifebook: "saju-life-book",
+  "saju_life_book": "saju-life-book",
+  "saju-life-book": "saju-life-book",
+  lovesecret: "saju-love-secret",
+  "saju_love_secret": "saju-love-secret",
+  "saju-love-secret": "saju-love-secret",
+  sukuyo: "sukyo-premium",
+  sukyo: "sukyo-premium",
+  "sookyo_premium": "sukyo-premium",
+  "sukyo-premium": "sukyo-premium",
+  "sukuyo-premium": "sukyo-premium",
+  vedic: "vedic-premium",
+  "vedic_premium": "vedic-premium",
+  "vedic-premium": "vedic-premium",
+  astro: "western-astrology-premium",
+  astrology: "western-astrology-premium",
+  "astrology_premium": "western-astrology-premium",
+  "western-astrology-premium": "western-astrology-premium",
+  ziwei: "ziwei-premium",
+  jamidusu: "ziwei-premium",
+  "jamidusu_premium": "ziwei-premium",
+  "ziwei-premium": "ziwei-premium",
+});
+
+export function normalizePremiumReportKind(rawKind) {
+  const key = String(rawKind || "").trim().replace(/[^a-zA-Z0-9_-]/g, "").toLowerCase();
+  return PREMIUM_REPORT_KIND_ALIASES[key] || "";
+}
+
+export function getPremiumReportPriceByKind(rawKind, mode = "") {
+  const reportKind = normalizePremiumReportKind(rawKind);
+  const spec = PREMIUM_REPORT_PRICES[reportKind] || null;
+  if (!spec) return null;
+  const modeToken = String(mode || "").trim().toLowerCase();
+  if (reportKind === "saju-love-secret" && (modeToken.includes("compat") || modeToken.includes("couple"))) {
+    return {
+      ...spec,
+      featureKey: spec.compatibilityFeatureKey,
+      priceCoins: Number(spec.compatibilityPriceCoins || spec.priceCoins),
+      label: "사주 연애 궁합 PDF",
+    };
+  }
+  return { ...spec };
+}
+
+export function getPremiumReportPriceByReportType(reportType, mode = "") {
+  const spec = PREMIUM_REPORT_PRICE_BY_REPORT_TYPE[String(reportType || "").trim()] || null;
+  return spec ? getPremiumReportPriceByKind(spec.reportKind, mode) : null;
+}
 
 const PAID_FEATURE_KEY_ALIAS_LOOKUP = Object.freeze(
   Object.entries(PAID_FEATURE_KEY_ALIASES).reduce((acc, [alias, canonical]) => {

@@ -248,9 +248,14 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
   const rootFlower = extractFirst(rootHtml, flowerRe);
   const rootPsychotestVisual = extractFirst(rootHtml, psychotestVisualRe);
   const rootFooter = extractFirst(rootHtml, footerRe);
+  const rootCanonicalRedirectRef = extractFirst(rootHtml, /\/js\/inline\/canonical-redirect\.js\?v=[^"']+/);
   const rootMainGlassRef = extractFirst(rootHtml, /\/styles\/main-glass\.css\?v=[^"']+/);
   const rootRuntimeRef = extractFirst(rootHtml, /\/js\/core\/index-inline-runtime\.js\?v=[^"']+/);
   const rootSibylRef = extractFirst(rootHtml, /\/js\/sibyl-system\.js\?v=[^"']+/);
+  const premiumRuntimeRefs = ["ziwei-book", "astro-book", "sukuyo-book", "vedic-book"].map((name) => ({
+    name,
+    rootRef: extractFirst(rootHtml, new RegExp(`/js/${name}\\.js\\?v=[^"']+`)),
+  }));
 
   if (rootFlower && flowerRe.test(html)) {
     const next = html.replace(flowerRe, rootFlower);
@@ -284,6 +289,14 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
     }
   }
 
+  if (rootCanonicalRedirectRef) {
+    const next = html.replace(/\/js\/inline\/canonical-redirect\.js\?v=[^"']+/g, rootCanonicalRedirectRef);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
   if (rootRuntimeRef) {
     const next = html.replace(/\/js\/core\/index-inline-runtime\.js\?v=[^"']+/g, rootRuntimeRef);
     if (next !== html) {
@@ -294,6 +307,15 @@ function syncCriticalShellBlocks(rootHtml, targetHtml) {
 
   if (rootSibylRef) {
     const next = html.replace(/\/js\/sibyl-system\.js\?v=[^"']+/g, rootSibylRef);
+    if (next !== html) {
+      html = next;
+      changed = true;
+    }
+  }
+
+  for (const { name, rootRef } of premiumRuntimeRefs) {
+    if (!rootRef) continue;
+    const next = html.replace(new RegExp(`/js/${name}\\.js\\?v=[^"']+`, "g"), rootRef);
     if (next !== html) {
       html = next;
       changed = true;

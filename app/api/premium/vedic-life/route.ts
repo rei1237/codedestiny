@@ -1044,7 +1044,7 @@ ${saturn?.nameKo ?? "토성"}이 관여하는 책임/지연 이슈는 과로 또
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (!auth.ok) return auth.response;
+    if (auth.ok === false) return auth.response;
 
     const body = await req.json() as {
       year:number; month:number; day:number;
@@ -1095,9 +1095,9 @@ export async function POST(req: NextRequest) {
     const baseChart = buildVedicChart(year, month, day, hour, minute, tz, lat, lon);
     const chart = swissData
       ? applySwissCoreToChart(baseChart, {
-          planets: swissData.planets,
-          ascendantSidereal: swissData.ascendantSidereal,
-          ayanamsa: swissData.ayanamsa,
+          planets: swissData.planets as Record<string, number> | undefined,
+          ascendantSidereal: Number.isFinite(Number(swissData.ascendantSidereal)) ? Number(swissData.ascendantSidereal) : null,
+          ayanamsa: Number.isFinite(Number(swissData.ayanamsa)) ? Number(swissData.ayanamsa) : null,
         })
       : baseChart;
 

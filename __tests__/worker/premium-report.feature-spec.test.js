@@ -34,6 +34,32 @@ describe("Premium Report Feature Spec", () => {
     expect(resolvePremiumTypePair("saju-love-book", "").reportType).toBe("loveSecret");
     expect(resolvePremiumTypePair("western-astrology-premium", "").reportType).toBe("westernAstrologyPremium");
     expect(resolvePremiumTypePair("", "ziwei-life-book").featureType).toBe("jamidusu_premium");
+    expect(resolvePremiumTypePair("sukyo-premium", "").reportType).toBe("sookyoPremium");
+  });
+
+  test("/api/premium-report/start 입력을 기존 Worker 파이프라인 입력으로 정규화", () => {
+    const { normalizePremiumStartRequestBody, getPremiumRoutePriceMeta } = __premiumReportTestUtils;
+    const normalized = normalizePremiumStartRequestBody({
+      reportKind: "ziwei-premium",
+      userInput: { year: 1992, month: 6, day: 15 },
+    });
+
+    expect(normalized.reportType).toBe("ziweiPremium");
+    expect(normalized.featureType).toBe("jamidusu_premium");
+    expect(normalized.requestBody.year).toBe(1992);
+
+    const price = getPremiumRoutePriceMeta(normalized.reportType, normalized.requestBody);
+    expect(price).toMatchObject({
+      reportKind: "ziwei-premium",
+      featureKey: "premium_pdf_ziwei",
+      priceCoins: 590,
+    });
+  });
+
+  test("Gemini timeout 계열 챕터 실패는 524 retryable 상태로 정규화", () => {
+    const { normalizePremiumChapterFailureStatus } = __premiumReportTestUtils;
+    expect(normalizePremiumChapterFailureStatus(500, "GEMINI_TIMEOUT", "응답 시간 초과")).toBe(524);
+    expect(normalizePremiumChapterFailureStatus(500, "RATE_LIMIT", "quota exceeded")).toBe(429);
   });
 
   test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {

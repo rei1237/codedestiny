@@ -145,7 +145,7 @@ async function fetchSwissSukuyoBasis(
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (!auth.ok) return auth.response;
+    if (auth.ok === false) return auth.response;
 
     const body = await req.json().catch(() => ({}));
 
@@ -232,7 +232,12 @@ export async function POST(req: NextRequest) {
       methodVersion: "sukuyo-basic-v1",
     });
 
-    const validation = canonical?.validation || {};
+    const validation = (canonical?.validation || {}) as {
+      hasNatalSukuyo?: boolean;
+      hasIndex?: boolean;
+      hasLunarDate?: boolean;
+      missingFields?: string[];
+    };
     if (!validation?.hasNatalSukuyo || !validation?.hasIndex || !validation?.hasLunarDate) {
       return NextResponse.json(
         {

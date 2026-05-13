@@ -24,8 +24,15 @@ const syncPairs = [
 ];
 
 const runtimeTagRe = /index-inline-runtime\.js\?v=([^"'\s>]+)/;
+const canonicalRedirectTagRe = /canonical-redirect\.js\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
 const sibylScriptTagRe = /\/js\/sibyl-system\.js\?v=([^"'\s>]+)/;
+const premiumReportScripts = [
+  'ziwei-book',
+  'astro-book',
+  'sukuyo-book',
+  'vedic-book',
+];
 const sibylMarkers = [
   /id=["']sibylSystemSection["']/,
   /data-action=["']openSibylModal["']/,
@@ -52,6 +59,8 @@ function read(rel) {
 }
 
 const htmlVersions = new Map();
+const canonicalRedirectVersions = new Map();
+const premiumReportVersions = new Map();
 const sibylScriptVersions = new Map();
 for (const rel of htmlTargets) {
   const txt = read(rel);
@@ -74,6 +83,29 @@ for (const rel of htmlTargets) {
   }
   htmlVersions.set(rel, m[1]);
 
+  const cm = txt.match(canonicalRedirectTagRe);
+  if (!cm) {
+    console.error(`[runtime-cache-sync] canonical redirect script tag version not found: ${rel}`);
+    failed = true;
+  } else {
+    canonicalRedirectVersions.set(rel, cm[1]);
+  }
+
+  for (const scriptName of premiumReportScripts) {
+    const matches = Array.from(txt.matchAll(new RegExp(`/js/${scriptName}\\.js\\?v=([^"'\\s>]+)`, 'g')));
+    if (matches.length === 0) {
+      console.error(`[runtime-cache-sync] premium report script version not found: ${scriptName} in ${rel}`);
+      failed = true;
+      continue;
+    }
+    const versions = new Set(matches.map((match) => match[1]));
+    if (versions.size !== 1) {
+      console.error(`[runtime-cache-sync] premium report duplicate version mismatch: ${scriptName} in ${rel} has ${Array.from(versions).join(', ')}`);
+      failed = true;
+    }
+    premiumReportVersions.set(`${rel}:${scriptName}`, matches[0][1]);
+  }
+
   if (sibylHtmlTargets.has(rel)) {
     const sm = txt.match(sibylScriptTagRe);
     if (!sm) {
@@ -90,6 +122,29 @@ if (htmlVersions.size > 0) {
   for (const [rel, v] of htmlVersions.entries()) {
     if (v !== expected) {
       console.error(`[runtime-cache-sync] runtime version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
+if (canonicalRedirectVersions.size > 0) {
+  const expected = canonicalRedirectVersions.get('index.html') || canonicalRedirectVersions.values().next().value;
+  for (const [rel, v] of canonicalRedirectVersions.entries()) {
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] canonical redirect version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
+for (const scriptName of premiumReportScripts) {
+  const rootVersion = premiumReportVersions.get(`index.html:${scriptName}`);
+  const expected = rootVersion || premiumReportVersions.values().next().value;
+  for (const rel of htmlTargets) {
+    const v = premiumReportVersions.get(`${rel}:${scriptName}`);
+    if (!v) continue;
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] premium report script version mismatch: ${scriptName} in ${rel} has ${v}, expected ${expected}`);
       failed = true;
     }
   }

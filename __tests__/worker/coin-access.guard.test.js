@@ -103,6 +103,21 @@ describe("Fortune coin access guard", () => {
     expect(priced.pricingSource).toBe("feature-key");
   });
 
+  test("premium_pdf_ziwei는 서버 가격 590으로 고정되어야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "premium_pdf_ziwei",
+      reason: "자미두수 프리미엄 PDF",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(590);
+    expect(priced.featureKey).toBe("premium_pdf_ziwei");
+    expect(priced.pricingSource).toBe("feature-key");
+  });
+
   test("베다 궁합 addon featureKey는 서버 가격 300으로 고정되어야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },

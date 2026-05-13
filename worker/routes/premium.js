@@ -4,6 +4,11 @@ import { generateWithGemini } from "../lib/gemini-client.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import {
+  getPremiumReportPriceByKind,
+  getPremiumReportPriceByReportType,
+  normalizePremiumReportKind,
+} from "../lib/paid-feature-registry.js";
+import {
   FEATURE_TYPE_TO_REPORT_TYPE,
   REPORT_TYPE_TO_FEATURE_TYPE,
   getPremiumSpecByFeatureType,
@@ -1135,6 +1140,7 @@ const PREMIUM_REPORT_TYPE_MAP = {
   jamidusu: "ziweiPremium",
   jamidusupremium: "ziweiPremium",
   sookyopremium: "sookyoPremium",
+  sukyopremium: "sookyoPremium",
   sukuyopremium: "sookyoPremium",
   sukuyolifebook: "sookyoPremium",
   sukuyo: "sookyoPremium",
@@ -1183,6 +1189,7 @@ const FEATURE_TYPE_MAP = {
   ziweilifebook: "jamidusu_premium",
   ziweideepreport: "jamidusu_premium",
   sukuyopremium: "sookyo_premium",
+  sukyopremium: "sookyo_premium",
   jamidusupremium: "jamidusu_premium",
   sookyopremium: "sookyo_premium",
   vedicpremium: "vedic_premium",
@@ -1221,6 +1228,40 @@ function modeKeyFromInput(input = {}) {
   return raw.replace(/[^a-z0-9_-]/g, "") || "default";
 }
 
+function normalizePremiumStartRequestBody(body = {}) {
+  const source = body && typeof body === "object" ? body : {};
+  const reportKind = normalizePremiumReportKind(source.reportKind || source.kind || source.featureType || source.feature || source.reportType || source.type);
+  const priceSpec = reportKind ? getPremiumReportPriceByKind(reportKind, source.mode || source.reportMode || source?.userInput?.mode) : null;
+  const userInput = source.userInput && typeof source.userInput === "object" ? source.userInput : null;
+  const requestBodySource = source.requestBody && typeof source.requestBody === "object" ? source.requestBody : {};
+  const requestBody = userInput ? { ...userInput } : { ...requestBodySource };
+
+  if (source.partnerInput && typeof source.partnerInput === "object") requestBody.partnerInput = source.partnerInput;
+  if (source.existingBasicResultId) requestBody.existingBasicResultId = source.existingBasicResultId;
+  if (source.mode && requestBody.mode == null) requestBody.mode = source.mode;
+  if (source.reportMode && requestBody.reportMode == null) requestBody.reportMode = source.reportMode;
+
+  return {
+    ...source,
+    reportKind: reportKind || source.reportKind || "",
+    reportType: source.reportType || source.type || priceSpec?.legacyReportType || "",
+    featureType: source.featureType || source.feature || source.kind || priceSpec?.featureType || "",
+    requestBody,
+  };
+}
+
+function getPremiumRoutePriceMeta(reportType, requestBody = {}) {
+  const modeKey = modeKeyFromInput(requestBody || {});
+  const spec = getPremiumReportPriceByReportType(reportType, modeKey);
+  if (!spec) return null;
+  return {
+    reportKind: spec.reportKind,
+    featureKey: spec.featureKey,
+    priceCoins: Number(spec.priceCoins || 0),
+    label: spec.label,
+  };
+}
+
 function createPremiumRequestId(seed = "") {
   const ts = Date.now().toString(36);
   const rand = Math.random().toString(36).slice(2, 8);
@@ -1251,6 +1292,39 @@ function prunePremiumReportContexts() {
       if (ctx?.cacheKey) PREMIUM_REPORT_CONTEXT_INDEX.delete(ctx.cacheKey);
     }
   }
+}
+
+function getPremiumReportSessionKv(env) {
+  const binding = env?.PREMIUM_REPORT_SESSIONS || env?.PREMIUM_REPORT_KV || env?.REPORT_SESSION_KV || null;
+  return binding && typeof binding.get === "function" && typeof binding.put === "function" ? binding : null;
+}
+
+async function loadPremiumReportContext(env, reportSessionId) {
+  const sessionId = String(reportSessionId || "").trim();
+  if (!sessionId) return null;
+  const cached = PREMIUM_REPORT_CONTEXT_STORE.get(sessionId);
+  if (cached && Number(cached.expiresAt || 0) > Date.now()) return cached;
+
+  const kv = getPremiumReportSessionKv(env);
+  if (!kv) return cached || null;
+  const stored = await kv.get(`premium-report:${sessionId}`, { type: "json" }).catch(() => null);
+  if (!stored || typeof stored !== "object") return cached || null;
+  if (Number(stored.expiresAt || 0) <= Date.now()) return null;
+  PREMIUM_REPORT_CONTEXT_STORE.set(sessionId, stored);
+  if (stored.cacheKey) PREMIUM_REPORT_CONTEXT_INDEX.set(stored.cacheKey, sessionId);
+  return stored;
+}
+
+async function savePremiumReportContext(env, context) {
+  if (!context?.reportSessionId) return context;
+  PREMIUM_REPORT_CONTEXT_STORE.set(context.reportSessionId, context);
+  if (context.cacheKey) PREMIUM_REPORT_CONTEXT_INDEX.set(context.cacheKey, context.reportSessionId);
+  const kv = getPremiumReportSessionKv(env);
+  if (kv) {
+    const ttl = Math.max(60, Math.ceil((Number(context.expiresAt || 0) - Date.now()) / 1000));
+    await kv.put(`premium-report:${context.reportSessionId}`, JSON.stringify(context), { expirationTtl: ttl }).catch(() => null);
+  }
+  return context;
 }
 
 function stablePayloadHash(value) {
@@ -1322,6 +1396,9 @@ function buildPremiumContextSummary(context) {
     reportSessionId: context.reportSessionId,
     reportId: context.reportId,
     reportType: context.reportType,
+    reportKind: context.reportKind || getPremiumRoutePriceMeta(context.reportType, context.input || {})?.reportKind || "",
+    featureKey: context.featureKey || getPremiumRoutePriceMeta(context.reportType, context.input || {})?.featureKey || "",
+    priceCoins: Number(context.priceCoins || getPremiumRoutePriceMeta(context.reportType, context.input || {})?.priceCoins || 0),
     featureType: context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "",
     userId: context.userId,
     requestId: context.requestId || "",
@@ -1331,6 +1408,7 @@ function buildPremiumContextSummary(context) {
     sourceMap: context.sourceMap,
     missingData: context.missingData,
     warnings: context.warnings,
+    payment: context.payment || null,
     totalChapters: context.totalChapters,
     requiredChapters: context.requiredChapters,
     validChapters,
@@ -1584,6 +1662,14 @@ function getPremiumChapterMaxAttempts(env, fallback = 3) {
   const raw = Number(env?.PREMIUM_CHAPTER_MAX_ATTEMPTS || fallback || 3);
   if (!Number.isFinite(raw)) return 3;
   return Math.max(1, Math.min(6, Math.floor(raw)));
+}
+
+function normalizePremiumChapterFailureStatus(status, code, message) {
+  const text = `${code || ""} ${message || ""}`.toLowerCase();
+  if (Number(status) === 429 || text.includes("rate") || text.includes("quota")) return 429;
+  if (Number(status) === 524 || text.includes("timeout") || text.includes("time out") || text.includes("시간 초과")) return 524;
+  if (Number(status) === 503 || text.includes("unavailable") || text.includes("overloaded")) return 503;
+  return Number(status || 422);
 }
 
 function isPremiumChapterEntryReadyForPdf(entry) {
@@ -5121,12 +5207,13 @@ function normalizeZiweiStrengthSymbol(raw) {
 
 function normalizeZiweiStrengthLabel(raw) {
   const v = String(raw || "").trim();
+  const lower = v.toLowerCase();
   if (!v) return "";
-  if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || v === "◎") return "묘";
-  if (["왕", "旺"].includes(v) || v === "○") return "왕";
-  if (["득", "리", "득지", "리지", "得", "利", "약"].includes(v) || v === "▲") return "리";
-  if (["평", "평지", "함지", "平", "陷", "한", "이"].includes(v) || v === "△") return "평";
-  if (/^x$/i.test(v) || v === "X" || ["함", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×") return "함";
+  if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || lower === "miao" || v === "◎") return "묘";
+  if (["왕", "旺"].includes(v) || lower === "wang" || v === "○") return "왕";
+  if (["득", "리", "득지", "리지", "得", "利", "약"].includes(v) || lower === "li" || v === "▲") return "리";
+  if (["평", "평지", "平", "한", "이"].includes(v) || lower === "ping" || v === "△") return "평";
+  if (/^x$/i.test(v) || v === "X" || ["함", "함지", "陷", "극함", "심한함", "불", "불리", "충돌"].includes(v) || lower === "xian" || v === "×") return "함";
   return "";
 }
 
@@ -9735,20 +9822,29 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const calculationVersion = String(env.PREMIUM_CALCULATION_VERSION || "premium-report-v1");
   const inputHash = stablePayloadHash(requestBody || {});
   const modeKey = modeKeyFromInput(requestBody || {});
+  const priceMeta = getPremiumRoutePriceMeta(reportType, requestBody || {});
   const cacheKey = getPremiumCacheKey(reportType, authInfo.userId, inputHash, calculationVersion, modeKey);
   const idempotencyKey = `${String(authInfo.userId || "anonymous")}:${String(featureType || reportType || "")}:${modeKey}:${inputHash}`;
   const existingSessionId = PREMIUM_REPORT_CONTEXT_INDEX.get(cacheKey);
   const now = Date.now();
 
   if (existingSessionId) {
-    const existing = PREMIUM_REPORT_CONTEXT_STORE.get(existingSessionId);
+    const existing = await loadPremiumReportContext(env, existingSessionId);
     if (existing && Number(existing.expiresAt || 0) > now) {
       existing.requestId = String(requestId || existing.requestId || "");
       existing.featureType = existing.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "";
+      existing.reportKind = existing.reportKind || priceMeta?.reportKind || "";
+      existing.featureKey = existing.featureKey || priceMeta?.featureKey || "";
+      existing.priceCoins = Number(existing.priceCoins || priceMeta?.priceCoins || 0);
+      existing.payment = existing.payment || {
+        coinCharged: false,
+        chargedAmount: Number(existing.priceCoins || 0),
+        refundable: true,
+      };
       existing.idempotencyKey = existing.idempotencyKey || idempotencyKey;
       existing.updatedAt = new Date(now).toISOString();
       existing.expiresAt = now + PREMIUM_REPORT_CONTEXT_TTL_MS;
-      PREMIUM_REPORT_CONTEXT_STORE.set(existingSessionId, existing);
+      await savePremiumReportContext(env, existing);
       return { ok: true, context: existing, cacheHit: true };
     }
     PREMIUM_REPORT_CONTEXT_INDEX.delete(cacheKey);
@@ -9847,7 +9943,10 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     reportSessionId,
     reportId,
     reportType,
+    reportKind: priceMeta?.reportKind || "",
     featureType: featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "",
+    featureKey: priceMeta?.featureKey || "",
+    priceCoins: Number(priceMeta?.priceCoins || 0),
     userId: authInfo.userId,
     requestId: String(requestId || ""),
     idempotencyKey,
@@ -9889,6 +9988,12 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     chapterRequestIndex: {},
     missingData,
     warnings,
+    payment: {
+      coinCharged: false,
+      chargedAmount: Number(priceMeta?.priceCoins || 0),
+      transactionId: "",
+      refundable: true,
+    },
     totalChapters,
     requiredChapters: Number(specChapters || totalChapters),
     isCompleteForPdf: missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf),
@@ -9898,8 +10003,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     expiresAt: now + PREMIUM_REPORT_CONTEXT_TTL_MS,
   };
 
-  PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
-  PREMIUM_REPORT_CONTEXT_INDEX.set(cacheKey, reportSessionId);
+  await savePremiumReportContext(env, context);
 
   logPremiumPipeline({
     scope: "PremiumPDF",
@@ -9924,12 +10028,13 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
 }
 
 async function handlePremiumReportPrepare(request, env, authInfo) {
-  const body = await readJson(request);
+  const body = normalizePremiumStartRequestBody(await readJson(request));
   const requestedRequestId = String(body.requestId || "").trim();
   const requestId = requestedRequestId || createPremiumRequestId(`${authInfo.userId}|prepare`);
   const typePair = resolvePremiumTypePair(body.reportType || body.type, body.featureType || body.feature || body.kind);
   const reportType = typePair.reportType;
   const featureType = typePair.featureType;
+  const priceMeta = getPremiumRoutePriceMeta(reportType, body.requestBody || body || {});
   if (!reportType) {
     return json({
       ok: false,
@@ -9937,6 +10042,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       message: "featureType 또는 reportType이 유효하지 않습니다.",
       supportedFeatureTypes: Object.keys(FEATURE_TYPE_TO_REPORT_TYPE),
       supportedReportTypes: Object.values(FEATURE_TYPE_TO_REPORT_TYPE),
+      supportedReportKinds: ["saju-life-book", "saju-love-secret", "sukyo-premium", "vedic-premium", "western-astrology-premium", "ziwei-premium"],
       requestId,
     }, { status: 400 });
   }
@@ -10004,7 +10110,22 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     }, { status: 422 });
   }
 
-  const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, requestBody);
+  let access;
+  try {
+    access = await requirePremiumReportAccess(env, authInfo.userId, reportType, requestBody);
+  } catch (error) {
+    return json({
+      ok: false,
+      code: "PAYMENT_SERVICE_UNAVAILABLE",
+      status: 503,
+      message: "코인/결제 서버 연결이 불안정합니다. 코인은 차감되지 않았습니다.",
+      reportType,
+      featureType,
+      ...(priceMeta || {}),
+      requestId,
+      errorMessage: String(error?.message || error || ""),
+    }, { status: 503 });
+  }
   if (!access.ok) {
     return json({
       ok: false,
@@ -10012,6 +10133,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       message: access.message || "프리미엄 결제가 필요합니다.",
       reportType,
       featureType,
+      ...(priceMeta || {}),
       requestId,
       required: access.required || null,
       generationId: summary.reportSessionId,
@@ -10027,8 +10149,12 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     cacheHit: Boolean(prepared.cacheHit),
     requestId,
     generationId: summary.reportSessionId,
+    reportKind: priceMeta?.reportKind || body.reportKind || "",
+    featureKey: priceMeta?.featureKey || "",
+    priceCoins: Number(priceMeta?.priceCoins || 0),
     featureType: context.featureType,
     ...summary,
+    status: context.status === "needs-data" ? "partial_failed" : "ready",
     chapterPlan,
     normalizedDataSummary,
     input: context.input,
@@ -10040,7 +10166,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
 
 async function handlePremiumReportSessionRead(request, env, authInfo, reportSessionId) {
   prunePremiumReportContexts();
-  const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
+  const context = await loadPremiumReportContext(env, reportSessionId);
   if (!context) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다." }, { status: 404 });
   }
@@ -10068,7 +10194,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   prunePremiumReportContexts();
-  const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
+  const context = await loadPremiumReportContext(env, reportSessionId);
   if (!context) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
   }
@@ -10136,7 +10262,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     applyHydrationToContext(hydrated);
     context.updatedAt = new Date().toISOString();
     context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
-    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+    await savePremiumReportContext(env, context);
 
     if (!context.isCompleteForPdf && !failOpen) {
       return json({
@@ -10151,7 +10277,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     }
   }
 
-  const chapterId = clampInt(body.chapterId ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
+  const chapterId = clampInt(body.chapterId ?? body.chapterNo ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
   const maxChapterAttempts = clampInt(
     body.maxAttempts ?? body.maxChapterAttempts ?? getPremiumChapterMaxAttempts(env),
     getPremiumChapterMaxAttempts(env),
@@ -10159,6 +10285,22 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     6,
   );
   const chapterRequestKey = `${chapterId}:${requestId}`;
+  const existingChapterEntry = context?.chapterData?.[String(chapterId)];
+  const existingChapterText = String(context?.chapterTextById?.[String(chapterId)] || "").trim();
+  if (isPremiumChapterEntryReadyForPdf(existingChapterEntry) && existingChapterText) {
+    return json({
+      ok: true,
+      requestId,
+      reportSessionId,
+      chapterId,
+      chapterNo: chapterId,
+      status: "completed",
+      cached: true,
+      text: existingChapterText,
+      usedDataKeys: Array.isArray(existingChapterEntry?.jsonPackKeys) ? existingChapterEntry.jsonPackKeys : [],
+      warnings: [],
+    });
+  }
   if (context.chapterRequestIndex && context.chapterRequestIndex[chapterRequestKey]) {
     const cachedText = String(context?.chapterTextById?.[String(chapterId)] || "").trim();
     if (cachedText) {
@@ -10167,6 +10309,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         requestId,
         reportSessionId,
         chapterId,
+        chapterNo: chapterId,
+        status: "completed",
         cached: true,
         text: cachedText,
       });
@@ -10204,7 +10348,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     applyHydrationToContext(hydrated);
     context.updatedAt = new Date().toISOString();
     context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
-    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+    await savePremiumReportContext(env, context);
     chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
   }
 
@@ -10334,7 +10478,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       successLengthCheck = fallbackLength;
       successAttempt = maxChapterAttempts;
     } else {
-    const status = Number(lastFailure.status || 422);
+    const status = normalizePremiumChapterFailureStatus(lastFailure.status || 422, lastFailure.code, lastFailure.message);
     const code = String(lastFailure.code || "PREMIUM_REPORT_CHAPTER_FAILED");
     const message = String(lastFailure.message || "챕터 생성 실패");
     context.chapterData[String(chapterId)] = {
@@ -10352,7 +10496,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     };
     context.updatedAt = new Date().toISOString();
     context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
-    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+    await savePremiumReportContext(env, context);
 
     logPremiumPipeline({
       scope: "PremiumPDF",
@@ -10374,9 +10518,12 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       code,
       message,
       status,
+      retryable: status === 429 || status === 503 || status === 524,
       requestId,
       reportSessionId,
       chapterId,
+      chapterNo: chapterId,
+      chapterStatus: status === 429 || status === 503 || status === 524 ? "retryable" : "failed",
       attemptsUsed: maxChapterAttempts,
       maxChapterAttempts,
       lengthValidation: lastFailure.lengthValidation || null,
@@ -10411,7 +10558,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   context.chapterRequestIndex[chapterRequestKey] = true;
   context.updatedAt = new Date().toISOString();
   context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
-  PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+  await savePremiumReportContext(env, context);
 
   logPremiumPipeline({
     scope: "PremiumPDF",
@@ -10433,6 +10580,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     requestId,
     reportSessionId,
     chapterId,
+    chapterNo: chapterId,
+    status: "completed",
     featureType: context.featureType,
     attemptsUsed: successAttempt,
     maxChapterAttempts,
@@ -10441,6 +10590,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       missingPaths: chapterMissing,
       failOpenApplied: Boolean(failOpen),
     } : null,
+    usedDataKeys: Object.keys(chapterJsonPacks || {}),
+    warnings: Array.isArray(context.warnings) ? context.warnings : [],
     ...successData,
   });
 }
@@ -10454,7 +10605,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
   }
 
   prunePremiumReportContexts();
-  let context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
+  let context = await loadPremiumReportContext(env, reportSessionId);
   if (!context) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
   }
@@ -10524,7 +10675,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
       };
     }
 
-    context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || context;
+    context = await loadPremiumReportContext(env, reportSessionId) || context;
 
     if (!chapterDone) {
       failed.push(lastError);
@@ -10532,7 +10683,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
     }
   }
 
-  context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || context;
+  context = await loadPremiumReportContext(env, reportSessionId) || context;
   const validChapters = countPremiumValidChapters(context);
   const missingChapterIds = [];
   for (let chapterId = 1; chapterId <= requiredChapters; chapterId += 1) {
@@ -10604,13 +10755,14 @@ async function handlePremiumReportRun(request, env, authInfo) {
 async function handlePremiumReportPdf(request, env, authInfo) {
   const body = await readJson(request);
   const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|pdf`);
+  const isFinalize = body.finalize === true || body._premiumFinalize === true;
   const reportSessionId = String(body.reportSessionId || "").trim();
   if (!reportSessionId) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
   }
 
   prunePremiumReportContexts();
-  const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
+  const context = await loadPremiumReportContext(env, reportSessionId);
   if (!context) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
   }
@@ -10651,7 +10803,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       requestId,
       validChapters,
       totalChapters: context.totalChapters,
-    }, { status: 422 });
+    }, { status: isFinalize ? 409 : 422 });
   }
 
   if (validChapters < requiredChapters) {
@@ -10678,7 +10830,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       requiredChapters,
       totalChapters: context.totalChapters,
       missingChapterIds,
-    }, { status: 422 });
+    }, { status: isFinalize ? 409 : 422 });
   }
 
   const chapterTextList = validEntries
@@ -10722,7 +10874,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   context.status = "pdf-ready";
   context.updatedAt = new Date().toISOString();
   context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
-  PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+  await savePremiumReportContext(env, context);
 
   logPremiumPipeline({
     scope: "PremiumPDF",
@@ -10742,6 +10894,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   return json({
     ok: true,
     ready: true,
+    status: "completed",
     requestId,
     reportSessionId,
     reportId: context.reportId,
@@ -10754,6 +10907,16 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   });
 }
 
+async function handlePremiumReportFinalize(request, env, authInfo) {
+  const body = await readJson(request);
+  const finalizeRequest = buildInternalPremiumJsonRequest(request, {
+    ...body,
+    _premiumFinalize: true,
+    requestId: String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|finalize`),
+  });
+  return handlePremiumReportPdf(finalizeRequest, env, authInfo);
+}
+
 export async function handlePremiumReportRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -10761,7 +10924,7 @@ export async function handlePremiumReportRoutes(request, env) {
     const url = new URL(request.url);
     const sessionId = extractPremiumSessionId(url.pathname);
 
-    if (method === "POST" && url.pathname === "/api/premium-report/prepare") {
+    if (method === "POST" && (url.pathname === "/api/premium-report/prepare" || url.pathname === "/api/premium-report/start")) {
       return await handlePremiumReportPrepare(request, env, authInfo);
     }
     if (method === "GET" && sessionId) {
@@ -10775,6 +10938,9 @@ export async function handlePremiumReportRoutes(request, env) {
     }
     if (method === "POST" && url.pathname === "/api/premium-report/pdf") {
       return await handlePremiumReportPdf(request, env, authInfo);
+    }
+    if (method === "POST" && url.pathname === "/api/premium-report/finalize") {
+      return await handlePremiumReportFinalize(request, env, authInfo);
     }
     return notFound();
   } catch (error) {
@@ -10890,6 +11056,9 @@ export const __sukuyoTestUtils = {
 export const __premiumReportTestUtils = {
   normalizePremiumFeatureType,
   normalizePremiumReportType,
+  normalizePremiumStartRequestBody,
+  getPremiumRoutePriceMeta,
+  normalizePremiumChapterFailureStatus,
   resolvePremiumTypePair,
   getPremiumExpectedSchema,
   getPremiumNormalizedDataSummary,

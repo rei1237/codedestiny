@@ -18,7 +18,9 @@ export type ClientAuthUser = {
   };
 };
 
-function copyString(source: Record<string, unknown>, key: keyof ClientAuthUser, target: ClientAuthUser) {
+type ClientAuthStringKey = "id" | "userId" | "_id" | "uid" | "name" | "email" | "image" | "role" | "plan";
+
+function copyString(source: Record<string, unknown>, key: ClientAuthStringKey, target: ClientAuthUser) {
   const value = source[key as string];
   if (typeof value === "string") {
     const trimmed = value.trim();

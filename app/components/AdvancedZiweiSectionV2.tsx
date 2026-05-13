@@ -350,7 +350,7 @@ export default function AdvancedZiweiSectionV2({
           return;
         }
 
-        nextChart.warnings = [...nextChart.warnings, ...validation.warnings.map((w) => ({ code: "INVALID_DATE", message: w }))];
+        nextChart.warnings = [...nextChart.warnings, ...validation.warnings.map((w) => ({ code: "INVALID_DATE" as const, message: w }))];
 
         primeZiweiDeepRuntime(nextChart, ["overview", "ming"]);
         const overview = getZiweiDeepChapter(nextChart, "overview");

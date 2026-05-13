@@ -276,6 +276,17 @@ export function withUniqueRouteMetadata(
     `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
   const absoluteImage = toAbsoluteUrl(imageCandidate);
   const locale = languageHint.replace("-", "_");
+  const openGraphImages = Array.isArray(openGraph?.images)
+    ? openGraph.images
+    : [
+        {
+          url: absoluteImage,
+          width: 1200,
+          height: 630,
+          alt: mergedTitle,
+        },
+      ];
+  const twitterImages = Array.isArray(twitter?.images) ? twitter.images : [absoluteImage];
 
   return {
     ...metadata,
@@ -292,16 +303,7 @@ export function withUniqueRouteMetadata(
         normalizeMetaText(openGraph?.description) || mergedDescription,
         routeMetaCode,
       ),
-      images:
-        openGraph?.images ||
-        [
-          {
-            url: absoluteImage,
-            width: 1200,
-            height: 630,
-            alt: mergedTitle,
-          },
-        ],
+      images: openGraphImages,
     },
     twitter: {
       ...(twitter || {}),
@@ -311,7 +313,7 @@ export function withUniqueRouteMetadata(
         normalizeMetaText(twitter?.description) || mergedDescription,
         routeMetaCode,
       ),
-      images: (twitter?.images as unknown) || [absoluteImage],
+      images: twitterImages,
     },
     alternates: {
       ...(alternates || {}),

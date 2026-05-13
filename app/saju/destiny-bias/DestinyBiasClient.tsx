@@ -380,7 +380,7 @@ export default function DestinyBiasClient() {
     const result = normalizeBirthDateInput(value);
     setBirthInputErrors((prev) => ({
       ...prev,
-      [target]: result.ok ? "" : result.reason,
+      [target]: result.ok === true ? "" : result.reason,
     }));
     return result;
   }, []);
@@ -389,13 +389,13 @@ export default function DestinyBiasClient() {
     if (step === 1) {
       if (!meInput.name.trim()) return "나의 이름/닉네임을 입력해 주세요.";
       const meBirth = validateBirthInput(meInput.birthDateInput, "me");
-      if (!meBirth.ok) return `나의 생년월일: ${meBirth.reason}`;
+      if (meBirth.ok === false) return `나의 생년월일: ${meBirth.reason}`;
     }
 
     if (step === 2) {
       if (!biasInput.name.trim()) return "최애 이름을 입력해 주세요.";
       const biasBirth = validateBirthInput(biasInput.birthDateInput, "bias");
-      if (!biasBirth.ok) return `최애의 생년월일: ${biasBirth.reason}`;
+      if (biasBirth.ok === false) return `최애의 생년월일: ${biasBirth.reason}`;
     }
 
     return "";

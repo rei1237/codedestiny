@@ -82,7 +82,7 @@ async function purgeIfNeeded(version: string): Promise<void> {
 
 function getWindowBooleanFlag(flagName: string): boolean {
   try {
-    return Boolean((window as RuntimeWindow)[flagName]);
+    return Boolean((window as unknown as RuntimeWindow)[flagName]);
   } catch {
     return false;
   }

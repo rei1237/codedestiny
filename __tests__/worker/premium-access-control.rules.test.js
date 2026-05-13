@@ -12,9 +12,13 @@ beforeAll(async () => {
 describe("Premium access-control rules", () => {
   test("lifeBook은 최근 per-use 결제 증빙 규칙이 있어야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("lifeBook", {});
-    expect(rules).toHaveLength(2);
+    expect(rules.length).toBeGreaterThanOrEqual(3);
     expect(rules).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          featureKey: "premium_pdf_saju_life_book",
+          minCost: 500,
+        }),
         expect.objectContaining({
           featureKey: "premium-lifebook-report",
           reason: "인생의 책 생성 (13챕터)",
@@ -31,21 +35,32 @@ describe("Premium access-control rules", () => {
 
   test("ziweiPremium은 590 코인 결제 증빙 규칙이어야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("ziweiPremium", {});
-    expect(rules).toHaveLength(1);
-    expect(rules[0]).toMatchObject({
-      featureKey: "premium-ziwei-report",
-      reason: "자미두수 프리미엄 PDF 리포트 생성",
-      minCost: 590,
-    });
+    expect(rules.length).toBeGreaterThanOrEqual(2);
+    expect(rules).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        featureKey: "premium_pdf_ziwei",
+        minCost: 590,
+      }),
+      expect.objectContaining({
+        featureKey: "premium-ziwei-report",
+        reason: "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: 590,
+      }),
+    ]));
   });
 
   test("loveSecret couple은 400 코인 규칙으로 결제 증빙을 요구해야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("loveSecret", { mode: "couple" });
-    expect(rules).toHaveLength(1);
-    expect(rules[0]).toMatchObject({
-      featureKey: "premium-love-secret-couple",
-      minCost: 400,
-    });
+    expect(rules).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        featureKey: "premium_pdf_saju_love_secret_compat",
+        minCost: 400,
+      }),
+      expect.objectContaining({
+        featureKey: "premium-love-secret-couple",
+        minCost: 400,
+      }),
+    ]));
   });
 
   test("sookyoPremium compat 모드는 추가 결제 증빙 규칙을 강제해야 한다", () => {
