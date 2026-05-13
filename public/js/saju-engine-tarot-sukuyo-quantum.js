@@ -1831,7 +1831,7 @@ function renderLetter(p){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = NEO_MODE ? '🦁 네오의 팩폭!' : '💖 연이의 편지';
+    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
   }
 
   if(NEO_MODE){
@@ -1844,7 +1844,7 @@ function renderLetter(p){
       '<p class="letter-para">운이 나쁘다고 징징대지 마라. 겨울이 왔다고 죽는 게 아니라, 겨울에 반팔 입고 돌아다니니까 얼어 죽는 거다. 지금 당장 당신의 기신(忌神) 짓을 멈추고, 용신(用神)의 방향으로 움직여라. 사주는 당신이 어떤 옷을 입어야 가장 잘 어울리는지 알려주는 거다. 여름 사주가 겨울옷을 입고 땀 흘리면서 "왜 나만 힘들어"라고 하면 누가 동정하겠어?</p>'+
       '<p class="letter-para">그리고 주변 관계도 점검해라. 당신의 용신에 해당하는 사람이 곁에 있으면 삶이 풀리고, 기신에 해당하는 인간이 옆에 붙어있으면 아무리 뛰어도 제자리다. 냉정하게 잘라낼 건 자르고, 소중한 건 목숨 걸고 지켜라. 인간관계도 천기가다.</p>'+
       '<p class="letter-para">하지만 명심해라. 사주가 아무리 엉망이어도, 결국 그 패를 쥐고 게임을 하는 건 당신이다. <b>당신은 생각보다 강하고, 당신의 인생은 아직 끝나지 않았다.</b> 지금까지 살아남은 것 자체가 증거다. 당신은 여태 수많은 힘든 순간을 이겨냈잖아. 그때마다 "이번엔 진짜 안 될 것 같다"고 생각했을 거다. 근데 어? 여기까지 왔잖아. 이번에도 될 거다. 핑계는 여기까지다. 이제 당신의 진짜 패를 보여줄 차례다. 일어나라.</p>'+
-      '<p style="text-align:right;font-style:italic;color:#FFD700;font-weight:700;font-size:.82rem">— 팩폭 사자 네오 🦁</p>';
+      '<p style="text-align:right;font-style:italic;color:#FFD700;font-weight:700;font-size:.82rem">— 팩폭 사자 쌈바 🦁</p>';
   } else {
     document.getElementById('letterContent').innerHTML=
       '<p class="letter-para">사랑하는 <b>'+USER_NAME+'</b>님,</p>'+
@@ -4148,37 +4148,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       };
 
       var legacyDailyCard = '';
-      if (legacyDaily) {
-        legacyDailyCard = `
-          <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #818cf8;">
-            <h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 흐름 (Daily Flow)</h4>
-            <div class="sy-moon-display"><span class="sy-moon-emoji">${syCanonicalEsc(legacyDaily.moon.emoji)}</span><span class="sy-moon-label">${syCanonicalEsc(legacyDaily.moon.label)} — ${syCanonicalEsc(legacyDaily.moon.desc)}</span></div>
-            ${renderLegacyGauge('전체 운세', legacyDaily.overall, 'linear-gradient(90deg,#818cf8,#c4b5fd)')}
-            ${renderLegacyGauge('인간관계', legacyDaily.relations, 'linear-gradient(90deg,#fb7185,#fda4af)')}
-            ${renderLegacyGauge('연애 운', legacyDaily.love, 'linear-gradient(90deg,#f43f5e,#fb923c)')}
-            ${renderLegacyGauge('재물 운', legacyDaily.wealth, 'linear-gradient(90deg,#eab308,#fde68a)')}
-            <div class="sy-insight">${syCanonicalEsc(legacyDaily.insight)}</div>
-            <div style="font-size:0.78rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em; margin-top:14px; margin-bottom:6px;">오늘의 의식 (Daily Ritual)</div>
-            <div class="sy-ritual-grid">
-              <div class="sy-ritual-box"><span class="sy-ritual-icon">🎨</span><span class="sy-ritual-label">행운 컬러</span><span class="sy-ritual-val" style="display:flex;align-items:center;justify-content:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:${syCanonicalEsc(legacyDaily.ritual.color)};display:inline-block;flex-shrink:0;"></span>${syCanonicalEsc(legacyDaily.ritual.color)}</span></div>
-              <div class="sy-ritual-box"><span class="sy-ritual-icon">🍃</span><span class="sy-ritual-label">추천 음식</span><span class="sy-ritual-val">${syCanonicalEsc(legacyDaily.ritual.food)}</span></div>
-              <div class="sy-ritual-box"><span class="sy-ritual-icon">✨</span><span class="sy-ritual-label">오늘의 의식</span><span class="sy-ritual-val">${syCanonicalEsc(legacyDaily.ritual.action)}</span></div>
-            </div>
-          </div>`;
-      }
 
       _legacyNexusHtml = `
         <div class="sy-grid">
           <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #a78bfa;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-              <h4 style="margin: 0; color: #c4b5fd; font-size: 1.15rem;">${syCanonicalEsc(sData.icon)} 본성 (Natal Star) — 당신의 별: <span class="sy-glow-text">${syCanonicalEsc(sData.mansion)}</span></h4>
-              <div style="font-size: 0.82rem; color:#9ca3af;">대표 위인: <span style="color:#e2d9ff;">${syCanonicalEsc(sData.celebs || '-')}</span></div>
-            </div>
-            <div class="sy-talent-bar" style="margin-bottom:14px;">
-              <span style="font-size:0.78rem; color:#9ca3af; white-space:nowrap;">잠재 재능 지수</span>
-              <div class="sy-talent-track"><div class="sy-talent-fill" style="width:0%" data-target="${syCanonicalEsc(sData.talent)}%"></div></div>
-              <strong style="color:#ffd700; font-size:0.95rem; white-space:nowrap;">${syCanonicalEsc(sData.talent)}%</strong>
-            </div>
+            <h4 style="margin: 0 0 6px 0; color: #c4b5fd; font-size: 1.05rem;">🪷 본성 심화 해석</h4>
+            <p style="margin:0 0 10px 0; font-size:0.86rem; color:#cbd5e1; line-height:1.7;">통합 대시보드의 핵심 좌표를 바탕으로, 성향과 관계 리듬을 문맥형으로 더 깊게 풀이합니다.</p>
             <div class="sy-natal-tab-bar">
               <button class="sy-ntab active" data-ntab="core">🌟 천성의 빛</button>
               <button class="sy-ntab" data-ntab="hidden">🌑 달의 이면</button>
@@ -4217,12 +4192,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       html += `${syRenderWheelCard(window._syWheelState, window._syLastCompat)}`;
     }
 
-    if (_legacyNexusHtml) {
-      html += _legacyNexusHtml;
-    }
-
     if (canonicalData) {
       html += syRenderCanonicalDashboard(canonicalData, _reading);
+    }
+
+    if (_legacyNexusHtml) {
+      html += _legacyNexusHtml;
     }
 
     if (!lunarObj) {
