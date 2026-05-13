@@ -10,6 +10,7 @@ const publicDir = resolve(rootDir, "public");
 
 const staticTargets = [
   "emoi_omikuji_v2.html",
+  "blood-type-app.html",
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
   "HwatuFortune.js",
