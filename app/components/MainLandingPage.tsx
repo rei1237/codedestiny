@@ -22,42 +22,42 @@ type FormState = {
 };
 
 const oracleItems: ServiceCardModel[] = [
-  { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", iconName: "scroll", badges: [{ text: "무료", tone: "free" }] },
-  { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", iconName: "lotus", badges: [{ text: "30코인", tone: "coin" }] },
-  { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", iconName: "coin", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", iconName: "rune", badges: [{ text: "30~120코인", tone: "coin" }, { text: "NEW", tone: "new" }] },
-  { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", iconName: "compass", badges: [{ text: "50코인", tone: "coin" }] },
-  { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", iconName: "tarot", badges: [{ text: "무료", tone: "free" }] },
-  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/oracle/ifa", iconName: "seal", badges: [{ text: "30코인", tone: "coin" }] },
+  { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", emoji: "🎴", badges: [{ text: "무료", tone: "free" }] },
+  { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "30코인", tone: "coin" }] },
+  { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
+  { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", emoji: "ᚱ", badges: [{ text: "30~120코인", tone: "coin" }, { text: "NEW", tone: "new" }] },
+  { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "50코인", tone: "coin" }] },
+  { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", emoji: "🃏", badges: [{ text: "무료", tone: "free" }] },
+  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/oracle/ifa", emoji: "🪬", badges: [{ text: "30코인", tone: "coin" }] },
 ];
 
 const cosmicItems: ServiceCardModel[] = [
-  { title: "점성술 코즈믹", description: "태양·달·상승궁 분석", href: "/astrology/cosmic", iconName: "zodiac", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "기본 숙요점", description: "27수 궁합과 달의 리듬", href: "/oracle/sukuyo", iconName: "moon", badges: [{ text: "무료", tone: "free" }] },
-  { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", iconName: "palace", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 50", tone: "coin" }] },
-  { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", iconName: "compass", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", iconName: "stageLight", badges: [{ text: "해금 100", tone: "coin" }, { text: "NEW", tone: "new" }] },
-  { title: "명리학 인사이트", description: "해석 가이드 콘텐츠", href: "/insights", iconName: "scroll", badges: [{ text: "가이드", tone: "soft" }] },
-  { title: "하이밸류 아카이브", description: "심층 운세 콘텐츠 모음", href: "/high-value", iconName: "crystal", badges: [{ text: "읽기", tone: "soft" }] },
+  { title: "점성술 코즈믹", description: "태양·달·상승궁 분석", href: "/astrology/cosmic", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "기본 숙요점", description: "27수 궁합과 달의 리듬", href: "/oracle/sukuyo", emoji: "💫", badges: [{ text: "무료", tone: "free" }] },
+  { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 50", tone: "coin" }] },
+  { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", emoji: "🪐", badges: [{ text: "기본 무료", tone: "free" }] },
+  { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 100", tone: "coin" }, { text: "NEW", tone: "new" }] },
+  { title: "명리학 인사이트", description: "해석 가이드 콘텐츠", href: "/insights", emoji: "📚", badges: [{ text: "가이드", tone: "soft" }] },
+  { title: "하이밸류 아카이브", description: "심층 운세 콘텐츠 모음", href: "/high-value", emoji: "🧭", badges: [{ text: "읽기", tone: "soft" }] },
 ];
 
 const animalItems: ServiceCardModel[] = [
-  { title: "AI 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-picture", iconName: "seal", badges: [{ text: "무료", tone: "free" }] },
-  { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/animal/mbti", iconName: "animalPaw", badges: [{ text: "무료", tone: "free" }] },
-  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/static/index.html?action=openAnimalTotemModal", iconName: "animalPaw", badges: [{ text: "30~60코인", tone: "coin" }] },
-  { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", iconName: "crystal", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "포춘텔러 물고기", description: "상징 움직임 운세 리딩", href: "/fortune-teller-fish.html", iconName: "moon", badges: [{ text: "무료", tone: "free" }] },
-  { title: "사주 가디언 아트", description: "수호 동물 아트 생성", href: "/saju-picture", iconName: "photocard", badges: [{ text: "무료", tone: "free" }] },
+  { title: "AI 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-picture", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
+  { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/animal/mbti", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
+  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/static/index.html?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "30~60코인", tone: "coin" }] },
+  { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", emoji: "🥚", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
+  { title: "포춘텔러 물고기", description: "상징 움직임 운세 리딩", href: "/fortune-teller-fish.html", emoji: "🐟", badges: [{ text: "무료", tone: "free" }] },
+  { title: "사주 가디언 아트", description: "수호 동물 아트 생성", href: "/saju-picture", emoji: "🐲", badges: [{ text: "무료", tone: "free" }] },
 ];
 
 const meditationItems: ServiceCardModel[] = [
-  { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", iconName: "lotus", badges: [{ text: "30~50코인", tone: "coin" }] },
-  { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", iconName: "lotus", badges: [{ text: "30~50코인", tone: "coin" }] },
-  { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", iconName: "sparkleLine", badges: [{ text: "50~100코인", tone: "coin" }] },
-  { title: "드림 타로", description: "꿈 해석 리포트", href: "/dream/tarot", iconName: "moon", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", iconName: "scroll", badges: [{ text: "무료", tone: "free" }] },
-  { title: "심리테스트 허브", description: "성격·연애·직장 14종 모음", href: "/psychotest", iconName: "seal", badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }] },
-  { title: "힐링 타로 시작", description: "즉시 감정 안정 리딩", href: "/tarot/healing", iconName: "heartGlow", badges: [{ text: "무료", tone: "free" }] },
+  { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", emoji: "🧘", badges: [{ text: "30~50코인", tone: "coin" }] },
+  { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "30~50코인", tone: "coin" }] },
+  { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "50~100코인", tone: "coin" }] },
+  { title: "드림 타로", description: "꿈 해석 리포트", href: "/dream/tarot", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
+  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
+  { title: "심리테스트 허브", description: "성격·연애·직장 14종 모음", href: "/psychotest", emoji: "🧩", badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }] },
+  { title: "힐링 타로 시작", description: "즉시 감정 안정 리딩", href: "/tarot/healing", emoji: "💛", badges: [{ text: "무료", tone: "free" }] },
 ];
 
 const miscDivinationItems: ServiceCardModel[] = [
@@ -65,7 +65,7 @@ const miscDivinationItems: ServiceCardModel[] = [
     title: "심리테스트 허브",
     description: "성격 유형, 관계 심리, 감정 패턴까지 14종 테스트를 한 번에 탐색",
     href: "/psychotest",
-    iconName: "seal",
+    emoji: "🧠",
     image: "/fuctionassets/%EC%8B%AC%EB%A6%AC%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
     badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }],
     cta: "심리테스트 열기",
@@ -74,7 +74,7 @@ const miscDivinationItems: ServiceCardModel[] = [
     title: "AI 이모이 오미쿠지",
     description: "오늘의 기분과 고민을 바탕으로 행운 흐름과 행동 힌트를 확인",
     href: "/emoi_omikuji_v2.html",
-    iconName: "torii",
+    emoji: "🤖",
     image: "/fuctionassets/오미쿠지.webp",
     badges: [{ text: "무료", tone: "free" }, { text: "AI", tone: "soft" }],
     cta: "오미쿠지 보기",
@@ -83,7 +83,7 @@ const miscDivinationItems: ServiceCardModel[] = [
     title: "혈액형 테스트",
     description: "혈액형 성향, 라이프 코칭, 궁합, 밸런스 게임까지 가볍게 체험",
     href: "/blood-type-app.html",
-    iconName: "crystal",
+    emoji: "🩸",
     image: "/fuctionassets/혈액형.webp",
     badges: [{ text: "무료", tone: "free" }, { text: "인기", tone: "new" }],
     cta: "혈액형 테스트",
@@ -92,7 +92,7 @@ const miscDivinationItems: ServiceCardModel[] = [
     title: "최애운명",
     description: "K-POP 포토카드 무드로 사주 공명 포인트를 읽는 몰입형 리딩",
     href: "/saju/destiny-bias",
-    iconName: "photocard",
+    emoji: "✨",
     image: "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
     badges: [{ text: "1회 50코인", tone: "coin" }, { text: "포토카드", tone: "new" }],
     cta: "최애운명 시작",
@@ -100,12 +100,12 @@ const miscDivinationItems: ServiceCardModel[] = [
 ];
 
 const premiumItems: ServiceCardModel[] = [
-  { title: "자미두수 프리미엄 PDF", description: "13챕터 심층 리포트", href: "/static/index.html?action=gotoZiweiPremium", iconName: "palace", badges: [{ text: "590코인", tone: "coin" }] },
-  { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/static/index.html?action=gotoAstrologyPremium", iconName: "zodiac", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "숙요점 프리미엄 PDF", description: "27수 관계/카르마 분석", href: "/static/index.html?action=gotoSukuyoPremium", iconName: "moon", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "베다 프리미엄 PDF", description: "다샤·카르마 로드맵", href: "/static/index.html?action=gotoVedicPremium", iconName: "compass", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", iconName: "scroll", badges: [{ text: "700코인", tone: "coin" }] },
-  { title: "포인트/코인 센터", description: "충전 및 사용 내역 관리", href: "/points", iconName: "coin", badges: [{ text: "관리", tone: "soft" }] },
+  { title: "자미두수 프리미엄 PDF", description: "13챕터 심층 리포트", href: "/static/index.html?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
+  { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/static/index.html?action=gotoAstrologyPremium", emoji: "🌟", badges: [{ text: "390코인", tone: "coin" }] },
+  { title: "숙요점 프리미엄 PDF", description: "27수 관계/카르마 분석", href: "/static/index.html?action=gotoSukuyoPremium", emoji: "💫", badges: [{ text: "390코인", tone: "coin" }] },
+  { title: "베다 프리미엄 PDF", description: "다샤·카르마 로드맵", href: "/static/index.html?action=gotoVedicPremium", emoji: "🪷", badges: [{ text: "390코인", tone: "coin" }] },
+  { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "700코인", tone: "coin" }] },
+  { title: "포인트/코인 센터", description: "충전 및 사용 내역 관리", href: "/points", emoji: "💳", badges: [{ text: "관리", tone: "soft" }] },
 ];
 
 const DeferredPersonalizedServiceRecommendations = dynamic(() => import("./PersonalizedServiceRecommendations"), {
@@ -147,15 +147,15 @@ function LazySection({ id, className, minHeight = 260, rootMargin = "300px 0px",
 
   useEffect(() => {
     if (ready) return;
-    const host = hostRef.current;
+    var host = hostRef.current;
     if (!host) return;
     if (typeof window === "undefined" || typeof window.IntersectionObserver !== "function") {
       setReady(true);
       return;
     }
-    const observer = new IntersectionObserver(
+    var observer = new IntersectionObserver(
       function (entries) {
-        for (let i = 0; i < entries.length; i += 1) {
+        for (var i = 0; i < entries.length; i += 1) {
           if (entries[i].isIntersecting) {
             setReady(true);
             observer.disconnect();
