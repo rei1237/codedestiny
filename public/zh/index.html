@@ -8724,7 +8724,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!_ov) _init();
       if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
       _open(tile, href, D[key]);
-      return !!(_ov && _ov.classList && _ov.classList.contains('pvw-open'));
+      // _open adds pvw-open on the next animation frame; treat this as handled immediately.
+      return true;
     } catch (err) {
       console.error('[tile-preview] open failed:', err);
       return false;
