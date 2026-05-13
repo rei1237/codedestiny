@@ -1281,6 +1281,13 @@
 
     var _premiumReportSessionId = '';
     var _premiumPreparePayload = null;
+    var _chapterTimeoutMs = 115000;
+    var _maxChapterAttempts = 4;
+    var _recoveryPasses = 0;
+
+    function _isValidChapterText(txt) {
+      return typeof txt === 'string' && txt.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(txt.trim());
+    }
 
     function _buildZiweiChapterPayload(idx) {
       return {
@@ -1304,7 +1311,8 @@
         birthPlace: _zbProfile.birthPlace,
         calendarType: _zbProfile.calendarType,
         gender: _zbProfile.gender,
-        name: _zbProfile.name
+        name: _zbProfile.name,
+        _premiumFailOpen: true
       };
     }
 
@@ -1338,8 +1346,8 @@
       function _attempt(tryNo) {
         return new Promise(function (resolve) {
           var timeoutId = setTimeout(function () {
-            resolve({ ok: false, message: '응답 시간 초과 (70초).' });
-          }, 70000);
+            resolve({ ok: false, message: '응답 시간 초과 (115초).' });
+          }, _chapterTimeoutMs);
           _ensurePremiumReportSession().then(function (prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
               clearTimeout(timeoutId);
@@ -1356,7 +1364,10 @@
               chapterId: idx + 1,
               reportType: 'ziweiPremium',
               featureType: 'jamidusu_premium',
-              requestBody: _getZiweiPreparePayload()
+              requestBody: _getZiweiPreparePayload(),
+              requestId: 'ziwei:chapter:' + (idx + 1) + ':' + Date.now().toString(36) + ':' + tryNo,
+            }, {
+              maxAttempts: 2,
             }).then(function (data) {
               clearTimeout(timeoutId);
               resolve(data);
@@ -1367,6 +1378,9 @@
           })
             .catch(function (err) { clearTimeout(timeoutId); resolve({ ok: false, message: String(err && err.message ? err.message : err) }); });
         }).then(function (data) {
+          if (data && data.reportSessionId) {
+            _premiumReportSessionId = String(data.reportSessionId);
+          }
           var code = String((data && data.code) || '').toUpperCase();
           var status = Number((data && data.status) || 0);
           if (status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED') {
@@ -1389,12 +1403,11 @@
           }
           if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
             _premiumReportSessionId = '';
-            if (tryNo < 2) return _attempt(tryNo + 1);
+            if (tryNo < _maxChapterAttempts) return _attempt(tryNo + 1);
+            return data;
           }
-          // 서버(워커)에서 이미 시간/재시도 제어를 수행하므로, 프론트 중복 재시도는 최소화
-          var maxTry = 1;
-          if (data && data.ok && data.text) return data;
-          if (tryNo >= maxTry) return data;
+          if (data && data.ok && String(data.text || '').trim().length >= MIN_CHAPTER_CHARS) return data;
+          if (tryNo >= _maxChapterAttempts) return data;
           return _attempt(tryNo + 1);
         });
       }
@@ -1404,10 +1417,37 @@
     var _failCount = 0;
     (function generateNext(idx) {
       if (idx >= 13) {
+        if (_recoveryPasses < 1) {
+          var _missing = [];
+          for (var _mi = 0; _mi < 13; _mi++) {
+            if (!_isValidChapterText(_chapters[_mi])) _missing.push(_mi);
+          }
+          if (_missing.length) {
+            _recoveryPasses += 1;
+            if (loadingStatusEl) loadingStatusEl.textContent = '누락된 챕터를 복구하는 중...';
+            (function recoverMissing(pos) {
+              if (pos >= _missing.length) {
+                generateNext(13);
+                return;
+              }
+              var targetIdx = _missing[pos];
+              _fetchChapter(targetIdx).then(function (data) {
+                var _retryText = data && typeof data.text === 'string' ? data.text.trim() : '';
+                if (data && data.ok && _retryText.length >= MIN_CHAPTER_CHARS) {
+                  _chapters[targetIdx] = data.text;
+                }
+                _setProgress(_chapters.filter(_isValidChapterText).length);
+                recoverMissing(pos + 1);
+              }).catch(function () {
+                recoverMissing(pos + 1);
+              });
+            })(0);
+            return;
+          }
+        }
+
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
-        var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
-        }).length;
+        var _validCount = _chapters.filter(_isValidChapterText).length;
         if (_validCount < 13) {
           _trace('GENERATION_FAILED', { validChapters: _validCount, totalChapters: 13, reason: 'CHAPTERS_INCOMPLETE' });
           var errEl = _qs('zbErrorMsg');
@@ -1441,6 +1481,11 @@
       }
       if (loadingStatusEl) loadingStatusEl.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
+        var statusCode = Number((data && data.status) || 0);
+        var errorCode = String((data && data.code) || '').toUpperCase();
+        var isSessionMissing = statusCode === 404 || errorCode === 'PREMIUM_REPORT_SESSION_NOT_FOUND';
+        if (data && data.reportSessionId) _premiumReportSessionId = String(data.reportSessionId);
+
         if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
           console.error('[자미두수 인생 총람][AUTH_REQUIRED]', {
             chapter: idx + 1,
@@ -1482,6 +1527,31 @@
             code: String((data && data.code) || ''),
             missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
           });
+          _autoRefundPremium(PREMIUM_ZIWEI_COST, PREMIUM_ZIWEI_FEATURE_KEY, '자미두수 프리미엄 PDF', PREMIUM_ZIWEI_TX_KEY)
+            .then(function (refunded) { if (refunded) window.alert('자미두수 프리미엄 결제가 자동 환급되었습니다.'); });
+          return;
+        }
+        if (isSessionMissing || statusCode === 402 || statusCode === 503) {
+          console.error('[자미두수 인생 총람][BLOCKED]', {
+            chapter: idx + 1,
+            code: errorCode,
+            status: statusCode,
+            isSessionMissing: isSessionMissing,
+            message: String((data && data.message) || ''),
+            requestId: String((data && data.requestId) || ''),
+            reportSessionId: String((data && data.reportSessionId) || ''),
+          });
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var blockedErrEl = _qs('zbErrorMsg');
+          if (blockedErrEl) {
+            blockedErrEl.textContent = isSessionMissing
+              ? '리포트 세션이 만료되어 리포트 생성을 이어갈 수 없습니다. 다시 생성해 주세요.'
+              : (statusCode === 402
+                ? '결제 상태 확인에 실패해 리포트 생성을 중단했습니다. 잠시 후 다시 시도해 주세요.'
+                : '외부 API 응답 지연으로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+          }
+          _showScreen('zbErrorScreen');
           _autoRefundPremium(PREMIUM_ZIWEI_COST, PREMIUM_ZIWEI_FEATURE_KEY, '자미두수 프리미엄 PDF', PREMIUM_ZIWEI_TX_KEY)
             .then(function (refunded) { if (refunded) window.alert('자미두수 프리미엄 결제가 자동 환급되었습니다.'); });
           return;

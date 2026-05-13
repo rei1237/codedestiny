@@ -1371,6 +1371,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </div>
 </div>
 
+<script src="/js/splash.js" defer></script>
+
 <!-- 섹션 네비게이션 바 -->
 <div id="fsnNavBar" class="fsn-navbar fsn-pig" role="navigation" aria-label="현재 섹션">
   <span class="fsn-deco" id="fsnDecoL">🌸</span>
@@ -6380,7 +6382,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260503-qualityfix3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -6657,79 +6659,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var txt = document.getElementById('sajuLoadingTxt');
     if (!overlay) return;
     if (isOpen) {
-      overlay.dataset.cdLoaderMode = 'coin';
       if (txt && message) txt.textContent = message;
       overlay.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     } else {
-      if (overlay.dataset.cdLoaderMode === 'boot') return;
       overlay.style.display = 'none';
-      delete overlay.dataset.cdLoaderMode;
       document.body.style.overflow = '';
     }
   }
   window._cdSetCoinGateOverlay = _cdSetCoinGateOverlay;
-
-  function _cdWaitImageReady(img, timeoutMs) {
-    if (!img || typeof img !== 'object') return Promise.resolve();
-    if (img.complete) return Promise.resolve();
-    return new Promise(function (resolve) {
-      var done = false;
-      var timer = null;
-      function finish() {
-        if (done) return;
-        done = true;
-        if (timer) clearTimeout(timer);
-        img.removeEventListener('load', finish);
-        img.removeEventListener('error', finish);
-        resolve();
-      }
-      timer = setTimeout(finish, Number(timeoutMs) > 0 ? timeoutMs : 1200);
-      img.addEventListener('load', finish, { once: true });
-      img.addEventListener('error', finish, { once: true });
-    });
-  }
-
-  function _cdRunInitialShellLoader() {
-    if (window.__cdBootLoaderDone) return;
-    var overlay = document.getElementById('sajuLoaderOverlay');
-    var txt = document.getElementById('sajuLoadingTxt');
-    if (!overlay) return;
-
-    window.__cdBootLoaderDone = true;
-    overlay.dataset.cdLoaderMode = 'boot';
-    if (txt) txt.textContent = '컬렉션/프로필 카드를 준비하는 중...';
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-
-    var startAt = Date.now();
-    var minVisibleMs = 420;
-    var cardImgs = Array.prototype.slice.call(
-      document.querySelectorAll(
-        '#premiumVvipCollection img, #resultPage .lifebook-tile img, #resultPage .lovebible-tile img, #resultPage .lovesim-tile img, .sibyl-entry-img, #authQuickLinks .cd-user-card__avatar img'
-      )
-    ).filter(function (img) {
-      return !!(img && (img.getAttribute('src') || img.getAttribute('data-lazy-src')));
-    }).slice(0, 18);
-
-    Promise.all(cardImgs.map(function (img) { return _cdWaitImageReady(img, 1300); }))
-      .catch(function () {})
-      .finally(function () {
-        var wait = Math.max(0, minVisibleMs - (Date.now() - startAt));
-        setTimeout(function () {
-          if (overlay.dataset.cdLoaderMode !== 'boot') return;
-          overlay.style.display = 'none';
-          delete overlay.dataset.cdLoaderMode;
-          document.body.style.overflow = '';
-        }, wait);
-      });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _cdRunInitialShellLoader, { once: true });
-  } else {
-    _cdRunInitialShellLoader();
-  }
 
   function hasAuthToken() {
     return hasAuthSessionHint();
@@ -7661,14 +7599,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       (function() {
         var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
         var _zbLoadFn = function() {
-          var s = document.querySelector('script[src*="ziwei-book.js"]');
+          var _zbExpected = 'v=20260514-premium-report-engine3';
+          var s = document.querySelector('script[src*="ziwei-book.js"][src*="' + _zbExpected + '"]');
           if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
             _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
             return Promise.resolve();
           }
           return new Promise(function(res, rej) {
             var el = document.createElement('script');
-            el.src = '/js/ziwei-book.js?v=20260514-premium-report-engine1';
+            el.src = '/js/ziwei-book.js?' + _zbExpected;
             el.defer = true;
             el.onload = function() {
               el.dataset.loaded = '1';
@@ -7739,10 +7678,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
-        // astro-book.js lazy load ???ы샇異?        var _abScr = document.querySelector('script[src*="astro-book.js"]');
+        // astro-book.js lazy load ???ы샇異?        var _abExpected = 'v=20260514-premium-report-engine3';
+        var _abScr = document.querySelector('script[src*="astro-book.js"][src*="' + _abExpected + '"]');
         if (!_abScr) {
           var _abEl2 = document.createElement('script');
-          _abEl2.src = '/js/astro-book.js?v=20260514-premium-report-engine2';
+          _abEl2.src = '/js/astro-book.js?' + _abExpected;
           _abEl2.onload = function() {
             if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(_profileCandidateAstro || null); _cdForcePremiumModalVisible('astroBookModal'); }
           };
@@ -7767,9 +7707,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         (function() {
           var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
           var _spLoadFn = function() {
-            var s=document.querySelector('script[src*="sukuyo-book.js"]');
+            var _spExpected='v=20260514-premium-report-engine3';
+            var s=document.querySelector('script[src*="sukuyo-book.js"][src*="'+_spExpected+'"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260514-premium-report-engine2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?'+_spExpected;el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
             if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal(_profileCandidateSukuyo || null);_cdForcePremiumModalVisible('sukuyoBookModal');}
@@ -7790,9 +7731,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         (function() {
           var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
           var _vdLoadFn = function() {
-            var s=document.querySelector('script[src*="vedic-book.js"]');
+            var _vdExpected='v=20260514-premium-report-engine3';
+            var s=document.querySelector('script[src*="vedic-book.js"][src*="'+_vdExpected+'"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260514-premium-report-engine2';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?'+_vdExpected;el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
             if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal(_profileCandidateVedic || null);_cdForcePremiumModalVisible('vedicBookModal');}
@@ -8471,12 +8413,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/life-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=20260513-quantum-v5" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260514-premium-report-engine1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/astro-book.js?v=20260514-premium-report-engine2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260514-premium-report-engine2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/vedic-book.js?v=20260514-premium-report-engine2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/astro-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/vedic-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <!-- Feature Preview Panel v2 -->

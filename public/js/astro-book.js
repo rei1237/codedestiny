@@ -596,6 +596,13 @@
     var _premiumReportType = 'westernAstrologyPremium';
     var _premiumFeatureType = 'astrology_premium';
     var _premiumPreparePayload = null;
+    var _chapterTimeoutMs = 115000;
+    var _maxChapterAttempts = 4;
+    var _recoveryPasses = 0;
+
+    function _isValidChapterText(txt) {
+      return typeof txt === 'string' && txt.trim().length >= 900 && !/^⚠️/.test(txt.trim());
+    }
 
     function _buildAstroChapterPayload(idx) {
       return {
@@ -614,7 +621,8 @@
         birthPlace: loc.label || '대한민국 (서울)',
         timezoneName: loc.tz || 'Asia/Seoul',
         birthTimeUnknown: !!(profile.birthTimeUnknown || b.birthTimeUnknown || b.timeUnknown),
-        includeMinorAspects: true
+        includeMinorAspects: true,
+        _premiumFailOpen: true
       };
     }
 
@@ -647,7 +655,7 @@
     function _fetchChapter(idx) {
       function _attempt(tryNo) {
         return new Promise(function(resolve) {
-          var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (70초).'}); },70000);
+          var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (115초).'}); },_chapterTimeoutMs);
           _ensurePremiumReportSession().then(function(prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
               clearTimeout(tid);
@@ -705,11 +713,11 @@
           }
           if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
             _premiumReportSessionId = '';
-            if (tryNo < 3) return _attempt(tryNo + 1);
+            if (tryNo < _maxChapterAttempts) return _attempt(tryNo + 1);
             return data;
           }
           if (data && data.ok && data.text) return data;
-          if (tryNo >= 3) return data;
+          if (tryNo >= _maxChapterAttempts) return data;
           return _attempt(tryNo + 1);
         });
       }
@@ -719,10 +727,38 @@
     var _failCount=0;
     (function generateNext(idx) {
       if (idx>=ASTRO_TOTAL_CHAPTERS) {
+        if (_recoveryPasses < 1) {
+          var _missing = [];
+          for (var _ri = 0; _ri < ASTRO_TOTAL_CHAPTERS; _ri++) {
+            if (!_isValidChapterText(_chapters[_ri])) _missing.push(_ri);
+          }
+          if (_missing.length) {
+            _recoveryPasses += 1;
+            if (chapterMsg) chapterMsg.textContent = '누락된 챕터를 복구하는 중...';
+            (function recoverMissing(pos) {
+              if (pos >= _missing.length) {
+                generateNext(ASTRO_TOTAL_CHAPTERS);
+                return;
+              }
+              var targetIdx = _missing[pos];
+              _fetchChapter(targetIdx).then(function (data) {
+                var _retryText = data && typeof data.text === 'string' ? data.text.trim() : '';
+                if (data && data.ok && _retryText.length >= 900) {
+                  _chapters[targetIdx] = data.text;
+                }
+                _setProgress(_chapters.filter(_isValidChapterText).length);
+                recoverMissing(pos + 1);
+              }).catch(function () {
+                recoverMissing(pos + 1);
+              });
+            })(0);
+            return;
+          }
+        }
+
         clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
-        var validCount = _chapters.filter(function(c){ return typeof c === 'string' && c.trim().length >= 900 && !/^⚠️/.test(c.trim()); }).length;
-        var minValid = Math.max(10, ASTRO_TOTAL_CHAPTERS - 3);
-        if (validCount < minValid) {
+        var validCount = _chapters.filter(_isValidChapterText).length;
+        if (validCount < ASTRO_TOTAL_CHAPTERS) {
           var errEl=_qs('abErrorMsg');
           if(errEl) errEl.textContent='챕터 생성이 불완전합니다 (' + validCount + '/'+ASTRO_TOTAL_CHAPTERS+'). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _showScreen('abErrorScreen');

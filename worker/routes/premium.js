@@ -1296,7 +1296,16 @@ function prunePremiumReportContexts() {
 
 function getPremiumReportSessionKv(env) {
   const binding = env?.PREMIUM_REPORT_SESSIONS || env?.PREMIUM_REPORT_KV || env?.REPORT_SESSION_KV || null;
-  return binding && typeof binding.get === "function" && typeof binding.put === "function" ? binding : null;
+  if (!binding || typeof binding.get !== "function" || typeof binding.put !== "function") {
+    const now = Date.now();
+    const lastWarnAt = Number(globalThis.__cdPremiumReportKvWarnAt || 0);
+    if (!lastWarnAt || now - lastWarnAt > 5 * 60 * 1000) {
+      globalThis.__cdPremiumReportKvWarnAt = now;
+      console.warn("[premium-report] PREMIUM_REPORT_SESSIONS KV binding is missing or invalid; session durability is limited to in-memory isolate cache.");
+    }
+    return null;
+  }
+  return binding;
 }
 
 async function loadPremiumReportContext(env, reportSessionId) {
@@ -1698,6 +1707,34 @@ function buildInternalPremiumJsonRequest(sourceRequest, body) {
   });
 }
 
+function derivePremiumRecoverRequestBody(body = {}) {
+  if (body && typeof body.requestBody === "object" && body.requestBody !== null) {
+    return body.requestBody;
+  }
+  if (!body || typeof body !== "object") return null;
+  const fallback = { ...body };
+  const reservedKeys = [
+    "reportSessionId",
+    "chapterId",
+    "chapterNo",
+    "chapter",
+    "requestId",
+    "reportType",
+    "type",
+    "featureType",
+    "feature",
+    "kind",
+    "maxAttempts",
+    "maxChapterAttempts",
+    "_premiumRequestId",
+    "_premiumChapterAttempt",
+  ];
+  for (const key of reservedKeys) {
+    if (Object.prototype.hasOwnProperty.call(fallback, key)) delete fallback[key];
+  }
+  return Object.keys(fallback).length ? fallback : null;
+}
+
 function getPremiumPrepareMaxAttempts(env) {
   const raw = Number(env?.PREMIUM_PREPARE_MAX_ATTEMPTS || env?.PREMIUM_CANONICAL_RETRY_MAX || 3);
   if (!Number.isFinite(raw)) return 3;
@@ -1727,6 +1764,25 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
     base._premiumFailOpen = true;
   }
 
+  if (!hasMeaningfulValue(base.year) && hasMeaningfulValue(base.birthYear)) base.year = Number(base.birthYear);
+  if (!hasMeaningfulValue(base.month) && hasMeaningfulValue(base.birthMonth)) base.month = Number(base.birthMonth);
+  if (!hasMeaningfulValue(base.day) && hasMeaningfulValue(base.birthDay)) base.day = Number(base.birthDay);
+  if (!hasMeaningfulValue(base.hour) && hasMeaningfulValue(base.birthHour)) base.hour = Number(base.birthHour);
+  if (!hasMeaningfulValue(base.minute) && hasMeaningfulValue(base.birthMinute)) base.minute = Number(base.birthMinute);
+  if (!hasMeaningfulValue(base.birthYear) && hasMeaningfulValue(base.year)) base.birthYear = Number(base.year);
+  if (!hasMeaningfulValue(base.birthMonth) && hasMeaningfulValue(base.month)) base.birthMonth = Number(base.month);
+  if (!hasMeaningfulValue(base.birthDay) && hasMeaningfulValue(base.day)) base.birthDay = Number(base.day);
+  if (!hasMeaningfulValue(base.birthHour) && hasMeaningfulValue(base.hour)) base.birthHour = Number(base.hour);
+  if (!hasMeaningfulValue(base.birthMinute) && hasMeaningfulValue(base.minute)) base.birthMinute = Number(base.minute);
+
+  if (!hasMeaningfulValue(base.timezone)) base.timezone = 9;
+  if (!hasMeaningfulValue(base.timezoneName)) base.timezoneName = "Asia/Seoul";
+  if (!hasMeaningfulValue(base.birthPlace)) base.birthPlace = "Seoul";
+  if (!hasMeaningfulValue(base.lat)) base.lat = 37.5665;
+  if (!hasMeaningfulValue(base.lon)) base.lon = 126.978;
+  if (!hasMeaningfulValue(base.calendarType)) base.calendarType = "solar";
+  if (!hasMeaningfulValue(base.gender)) base.gender = "unknown";
+
   if (reportType === "westernAstrologyPremium") {
     if (!hasMeaningfulValue(base.timezoneName)) base.timezoneName = "Asia/Seoul";
     if (!hasMeaningfulValue(base.birthPlace)) base.birthPlace = "Seoul";
@@ -1749,6 +1805,11 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
   if (reportType === "loveSecret") {
     if (!hasMeaningfulValue(base.mode)) base.mode = "solo";
     if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = 10;
+  }
+
+  if (reportType === "ziweiPremium") {
+    if (!hasMeaningfulValue(base.mode)) base.mode = "personal";
+    if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = 13;
   }
 
   if (reportType === "lifeBook") {
@@ -10251,13 +10312,38 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   prunePremiumReportContexts();
-  const context = await loadPremiumReportContext(env, reportSessionId);
+  let context = await loadPremiumReportContext(env, reportSessionId);
+  if (!context) {
+    const recoverTypePair = resolvePremiumTypePair(
+      body.reportType || body.type,
+      body.featureType || body.feature || body.kind,
+    );
+    const recoverReportType = recoverTypePair.reportType;
+    const recoverFeatureType = recoverTypePair.featureType;
+    const recoverRequestBody = derivePremiumRecoverRequestBody(body);
+
+    if (recoverReportType && recoverRequestBody) {
+      const recovered = await createOrReusePremiumReportContext(
+        request,
+        env,
+        authInfo,
+        recoverReportType,
+        recoverFeatureType,
+        recoverRequestBody,
+        requestId,
+      );
+      if (recovered?.ok && recovered.context) {
+        context = recovered.context;
+      }
+    }
+  }
   if (!context) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
   }
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
+  const activeReportSessionId = String(context.reportSessionId || reportSessionId);
   context.requestId = requestId;
   const failOpen = isPremiumFailOpenPayload(context.input || body || {});
 
@@ -10351,7 +10437,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     return json({
       ok: true,
       requestId,
-      reportSessionId,
+      reportSessionId: activeReportSessionId,
       chapterId,
       chapterNo: chapterId,
       status: "completed",
@@ -10367,7 +10453,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       return json({
         ok: true,
         requestId,
-        reportSessionId,
+        reportSessionId: activeReportSessionId,
         chapterId,
         chapterNo: chapterId,
         status: "completed",
@@ -10447,7 +10533,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       sessionId: chapterId,
       requestId: attemptRequestId,
       reportId: context.reportId,
-      _premiumReportSessionId: reportSessionId,
+      _premiumReportSessionId: activeReportSessionId,
       _premiumRequestId: requestId,
       _premiumChapterAttempt: attempt,
       _premiumLlmInput: buildLlmPromptInput(
@@ -10561,7 +10647,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     logPremiumPipeline({
       scope: "PremiumPDF",
       reportType: context.reportType,
-      reportSessionId,
+      reportSessionId: activeReportSessionId,
       reportId: context.reportId,
       stage: "chapter",
       chapter: chapterId,
@@ -10580,7 +10666,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       status,
       retryable: status === 429 || status === 503 || status === 524,
       requestId,
-      reportSessionId,
+      reportSessionId: activeReportSessionId,
       chapterId,
       chapterNo: chapterId,
       chapterStatus: status === 429 || status === 503 || status === 524 ? "retryable" : "failed",
@@ -10623,7 +10709,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   logPremiumPipeline({
     scope: "PremiumPDF",
     reportType: context.reportType,
-    reportSessionId,
+    reportSessionId: activeReportSessionId,
     reportId: context.reportId,
     stage: "chapter",
     chapter: chapterId,
@@ -10638,7 +10724,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   return json({
     ok: true,
     requestId,
-    reportSessionId,
+    reportSessionId: activeReportSessionId,
     chapterId,
     chapterNo: chapterId,
     status: "completed",

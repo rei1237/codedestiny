@@ -842,6 +842,11 @@
     var _premiumReportType = 'sookyoPremium';
     var _premiumFeatureType = 'sookyo_premium';
     var _premiumPreparePayload = null;
+    var _recoveryPasses = 0;
+
+    function _isValidChapterText(txt) {
+      return typeof txt === 'string' && txt.trim().length >= 900 && !/^⚠️/.test(txt.trim());
+    }
 
     function _buildSukuyoChapterPayload(idx) {
       var lunarHint = _resolveExistingLunarHint(profile);
@@ -864,7 +869,8 @@
         partnerHour:partner.hour!==null?partner.hour:undefined,
         partnerMinute:partner.minute!==null?partner.minute:undefined,
         partnerGender:partner.gender||undefined,
-        partnerCalType:partner.calType||undefined
+        partnerCalType:partner.calType||undefined,
+        _premiumFailOpen: true
       };
     }
 
@@ -967,8 +973,37 @@
     var _failCount=0;
     (function generateNext(idx){
       if(idx>=_totalChapters){
+        if (_recoveryPasses < 1) {
+          var _missing = [];
+          for (var _ri = 0; _ri < _totalChapters; _ri++) {
+            if (!_isValidChapterText(_chapters[_ri])) _missing.push(_ri);
+          }
+          if (_missing.length) {
+            _recoveryPasses += 1;
+            if (chapterMsg) chapterMsg.textContent = '누락된 챕터를 복구하는 중...';
+            (function recoverMissing(pos) {
+              if (pos >= _missing.length) {
+                generateNext(_totalChapters);
+                return;
+              }
+              var targetIdx = _missing[pos];
+              _fetchChapter(targetIdx).then(function (data) {
+                var _retryText = data && typeof data.text === 'string' ? data.text.trim() : '';
+                if (data && data.ok && _retryText.length >= 900) {
+                  _chapters[targetIdx] = data.text;
+                }
+                _setProgress(_chapters.filter(_isValidChapterText).length);
+                recoverMissing(pos + 1);
+              }).catch(function () {
+                recoverMissing(pos + 1);
+              });
+            })(0);
+            return;
+          }
+        }
+
         clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-        var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>=900&&!/^⚠️/.test(c.trim());}).length;
+        var validCount=_chapters.filter(_isValidChapterText).length;
         if(validCount<_totalChapters){
           var errEl=_qs('skErrorMsg');
           if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/'+_totalChapters+'). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
