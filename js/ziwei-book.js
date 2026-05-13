@@ -1377,7 +1377,8 @@
             data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
             return data;
           }
-          var maxTry = 3;
+          // 서버(워커)에서 이미 시간/재시도 제어를 수행하므로, 프론트 중복 재시도는 최소화
+          var maxTry = 1;
           if (data && data.ok && data.text) return data;
           if (tryNo >= maxTry) return data;
           return _attempt(tryNo + 1);

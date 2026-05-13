@@ -6759,6 +6759,18 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  // 스크립트 경계(모듈/일반 스크립트)에서도 안전하게 접근되도록 전역에 명시 바인딩
+  window.hasActivePremiumSubscriptionFromCache = hasActivePremiumSubscriptionFromCache;
+
+  function _cdHasActivePremiumSubscriptionSafe() {
+    try {
+      var fn = window.hasActivePremiumSubscriptionFromCache;
+      return (typeof fn === 'function') && !!fn();
+    } catch (_e) {
+      return false;
+    }
+  }
+
   function syncAuthUserPoints(points) {
     try {
       var user = readAuthUser() || {};
@@ -7604,7 +7616,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           return new Promise(function(res, rej) {
             var el = document.createElement('script');
-            el.src = '/js/ziwei-book.js?v=20260514-premium-report-engine1';
+            el.src = '/js/ziwei-book.js?v=20260514-premium-report-engine2';
             el.defer = true;
             el.onload = function() {
               el.dataset.loaded = '1';
@@ -7896,7 +7908,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
-        if (hasActivePremiumSubscriptionFromCache()) {
+        if (_cdHasActivePremiumSubscriptionSafe()) {
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return true;
@@ -8138,7 +8150,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         } catch (_adminLockErr) {}
         // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
         try {
-          if (hasActivePremiumSubscriptionFromCache()) {
+          if (_cdHasActivePremiumSubscriptionSafe()) {
             var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
             var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
             var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
@@ -8372,7 +8384,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/life-book.js?v=20260503-resetfix3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=20260513-quantum-v5" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260514-premium-report-engine1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260514-premium-report-engine2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/astro-book.js?v=20260514-premium-report-engine1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260514-premium-report-engine1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/vedic-book.js?v=20260514-premium-report-engine1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -8580,7 +8592,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       // 구독 플랜 체크
       var _pvwHasSub = false;
       try {
-        _pvwHasSub = (typeof hasActivePremiumSubscriptionFromCache === 'function') && !!hasActivePremiumSubscriptionFromCache();
+        _pvwHasSub = _cdHasActivePremiumSubscriptionSafe();
       } catch (_pvwSubErr) {
         _pvwHasSub = false;
       }
