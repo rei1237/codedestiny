@@ -230,7 +230,89 @@
     return false;
   }
 
+  var _dpSessionVerify = {
+    checkedAt: 0,
+    ok: false,
+    userId: '',
+    pending: null
+  };
+
+  function _dpPersistSessionUser(user) {
+    if (!user || typeof user !== 'object') return;
+    try {
+      var merged = _dpReadAuthUser() || {};
+      if (typeof merged !== 'object' || merged === null) merged = {};
+      merged.id = user.id || merged.id;
+      merged.userId = user.userId || merged.userId;
+      merged._id = user._id || merged._id;
+      merged.uid = user.uid || merged.uid;
+      merged.name = user.name || merged.name;
+      merged.role = user.role || merged.role || 'user';
+      var points = Number(user.points);
+      if (isFinite(points) && points >= 0) merged.points = points;
+      _dpWriteAuthUser(merged);
+    } catch (e) {}
+  }
+
+  function _dpMarkSessionVerify(ok, userId) {
+    _dpSessionVerify.checkedAt = Date.now();
+    _dpSessionVerify.ok = !!ok;
+    _dpSessionVerify.userId = ok ? String(userId || '') : '';
+  }
+
+  function _dpVerifyLoginSession(forceRefresh) {
+    var force = !!forceRefresh;
+    var now = Date.now();
+    if (!force && _dpSessionVerify.checkedAt && (now - _dpSessionVerify.checkedAt < 30000)) {
+      return Promise.resolve(!!_dpSessionVerify.ok);
+    }
+    if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
+    if (!_dpHasSessionHint()) {
+      _dpMarkSessionVerify(false, '');
+      return Promise.resolve(false);
+    }
+
+    _dpSessionVerify.pending = fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders()
+    }).then(function(res) {
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+          try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
+        }
+        return null;
+      }
+      return res.json().catch(function() { return null; });
+    }).then(function(payload) {
+      var user = payload && payload.user ? payload.user : null;
+      var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
+      var ok = !!userId;
+      _dpMarkSessionVerify(ok, userId);
+      if (ok) {
+        if (payload && payload.accessToken) {
+          try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
+        }
+        _dpPersistSessionUser(user);
+      }
+      return ok;
+    }).catch(function() {
+      _dpMarkSessionVerify(false, '');
+      return false;
+    }).finally(function() {
+      _dpSessionVerify.pending = null;
+    });
+
+    return _dpSessionVerify.pending;
+  }
+
   function _dpHasLoginSession() {
+    var now = Date.now();
+    if (_dpSessionVerify.ok && _dpSessionVerify.checkedAt && (now - _dpSessionVerify.checkedAt < 30000)) {
+      return true;
+    }
     return _dpHasSessionHint();
   }
   // 다른 JS 모듈에서도 사용할 수 있도록 전역 노출
@@ -246,41 +328,55 @@
   }
 
   function _dpSyncToServer() {
-    if (!_dpHasLoginSession()) return;
-    var scope = _dpGetProfileScope();
-    var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
-    var currentId = '';
-    try { currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || ''; } catch(e) {}
-    fetch('/api/user/destiny-profiles', {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ action: 'sync', profiles: profiles, currentId: currentId })
+    if (!_dpHasSessionHint()) return;
+    _dpVerifyLoginSession(false).then(function(ok) {
+      if (!ok) return;
+      var scope = _dpGetProfileScope();
+      var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
+      var currentId = '';
+      try { currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || ''; } catch(e) {}
+      fetch('/api/user/destiny-profiles', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ action: 'sync', profiles: profiles, currentId: currentId })
+      }).catch(function() {});
     }).catch(function() {});
   }
 
   function _dpLoadFromServer(callback) {
-    if (!_dpHasLoginSession()) { if (callback) callback(false); return; }
-    fetch('/api/user/destiny-profiles', {
-      credentials: 'include',
-      cache: 'no-store',
-      headers: _dpBuildAuthHeaders()
-    })
-    .then(function(res) { return res.ok ? res.json() : null; })
-    .then(function(data) {
-      if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
-      var scope = _dpGetProfileScope();
-      var listKey = _dpGetScopedListKey(scope);
-      var currKey = _dpGetScopedCurrentKey(scope);
-      try {
-        localStorage.setItem(listKey, JSON.stringify(data.profiles));
-        if (data.currentId) localStorage.setItem(currKey, data.currentId);
-        _dpMirrorScopedToLegacy(scope);
-      } catch(e) {}
-      if (callback) callback(true);
-    })
-    .catch(function() { if (callback) callback(false); });
+    if (!_dpHasSessionHint()) { if (callback) callback(false); return; }
+    _dpVerifyLoginSession(false).then(function(ok) {
+      if (!ok) {
+        if (callback) callback(false);
+        return;
+      }
+      fetch('/api/user/destiny-profiles', {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: _dpBuildAuthHeaders()
+      })
+      .then(function(res) {
+        if (res.status === 401 || res.status === 403) return null;
+        return res.ok ? res.json() : null;
+      })
+      .then(function(data) {
+        if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
+        var scope = _dpGetProfileScope();
+        var listKey = _dpGetScopedListKey(scope);
+        var currKey = _dpGetScopedCurrentKey(scope);
+        try {
+          localStorage.setItem(listKey, JSON.stringify(data.profiles));
+          if (data.currentId) localStorage.setItem(currKey, data.currentId);
+          _dpMirrorScopedToLegacy(scope);
+        } catch(e) {}
+        if (callback) callback(true);
+      })
+      .catch(function() { if (callback) callback(false); });
+    }).catch(function() {
+      if (callback) callback(false);
+    });
   }
 
   function _isMobileViewport() {
@@ -887,7 +983,7 @@
 
   /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
   function _fetchSubscription() {
-    if (!_dpHasLoginSession()) {
+    if (!_dpHasSessionHint()) {
       _dpSubScope = _dpGetProfileScope();
       _dpSubTier = 'free';
       _dpSubIsActive = false;
@@ -895,29 +991,49 @@
       _dpUpdateSaveBtn();
       return;
     }
-    fetch('/api/fortune/pig-coin/profile-subscription/status', {
-      credentials: 'include',
-      cache: 'no-store',
-      headers: _dpBuildAuthHeaders()
-    })
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(d) {
-      if (!d) return;
-      var tier = _dpNormalizeTier(d.tier);
-      var active = !!d.isActive && tier !== 'free';
-      var rawLimit = Number(d.profileLimit);
-      var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+    _dpVerifyLoginSession(false).then(function(ok) {
+      if (!ok) {
+        _dpSubScope = _dpGetProfileScope();
+        _dpSubTier = 'free';
+        _dpSubIsActive = false;
+        _dpSubProfileLimit = 1;
+        _dpUpdateSaveBtn();
+        return;
+      }
 
-      _dpSubTier         = tier;
-      _dpSubIsActive     = active;
-      _dpSubProfileLimit = active ? resolvedLimit : 1;
-      _dpSubScope        = _dpGetProfileScope();
+      fetch('/api/fortune/pig-coin/profile-subscription/status', {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: _dpBuildAuthHeaders()
+      })
+      .then(function(r) {
+        if (r.status === 401 || r.status === 403) return null;
+        return r.ok ? r.json() : null;
+      })
+      .then(function(d) {
+        if (!d) return;
+        var tier = _dpNormalizeTier(d.tier);
+        var active = !!d.isActive && tier !== 'free';
+        var rawLimit = Number(d.profileLimit);
+        var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
 
-      _dpWriteSubCache(tier, active, resolvedLimit, d.expiresAt || null);
+        _dpSubTier         = tier;
+        _dpSubIsActive     = active;
+        _dpSubProfileLimit = active ? resolvedLimit : 1;
+        _dpSubScope        = _dpGetProfileScope();
+
+        _dpWriteSubCache(tier, active, resolvedLimit, d.expiresAt || null);
+        _dpUpdateSaveBtn();
+        renderProfileList();
+      })
+      .catch(function() {});
+    }).catch(function() {
+      _dpSubScope = _dpGetProfileScope();
+      _dpSubTier = 'free';
+      _dpSubIsActive = false;
+      _dpSubProfileLimit = 1;
       _dpUpdateSaveBtn();
-      renderProfileList();
-    })
-    .catch(function() {});
+    });
   }
 
   /** 현재 플랜에 따른 최대 프로필 수 반환 */

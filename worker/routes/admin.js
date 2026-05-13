@@ -1544,6 +1544,63 @@ function handleKeyHealth(env) {
   }, { status: 200 });
 }
 
+function hasAnyRuntimeKey(env, keys = []) {
+  for (let i = 0; i < keys.length; i += 1) {
+    if (String(getEnv(env, keys[i]) || "").trim()) return true;
+  }
+  return false;
+}
+
+async function handleAdminDiag(request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  const requestId = `adiag_${Date.now().toString(36)}`;
+
+  const bindings = {
+    DB: hasAnyRuntimeKey(env, ["MONGO_URI", "MONGODB_URI"]),
+    COIN_KV: hasAnyRuntimeKey(env, ["COIN_KV", "PIG_COIN_KV", "COIN_LEDGER_KV"]),
+    AUTH_SECRET: hasAnyRuntimeKey(env, ["AUTH_SECRET", "JWT_SECRET", "JWT_ACCESS_SECRET"]),
+    R2: hasAnyRuntimeKey(env, ["R2", "R2_BUCKET", "CONTENT_R2", "UPLOADS_R2"]),
+  };
+
+  let dbReady = false;
+  try {
+    await connectDb(env);
+    dbReady = true;
+  } catch {
+    dbReady = false;
+  }
+
+  const runtime = String(
+    getEnv(env, "NODE_ENV")
+    || getEnv(env, "APP_ENV")
+    || getEnv(env, "ENV")
+    || "unknown"
+  ).trim();
+  const version = String(
+    getEnv(env, "APP_VERSION")
+    || getEnv(env, "BUILD_ID")
+    || getEnv(env, "COMMIT_SHA")
+    || getEnv(env, "CF_PAGES_COMMIT_SHA")
+    || "unknown"
+  ).trim().slice(0, 120) || "unknown";
+
+  return json({
+    ok: true,
+    requestId,
+    adminAuth: true,
+    userId: adminContext.userId,
+    version,
+    runtime,
+    bindings,
+    services: {
+      auth: bindings.AUTH_SECRET ? "ok" : "degraded",
+      coin: (bindings.DB && dbReady) ? "ok" : "degraded",
+      subscription: (bindings.DB && dbReady) ? "ok" : "degraded",
+      destinyProfiles: (bindings.DB && dbReady) ? "ok" : "degraded",
+    },
+  }, { status: 200 });
+}
+
 function listGeminiKeyStatus(env) {
   const keyNames = [
     "PREMIUM_GEMINI_API_KEY1",
@@ -1786,6 +1843,10 @@ export async function handleAdminRoutes(request, env) {
 
     if (method === "GET" && path === "/keys") {
       return handleKeyHealth(env);
+    }
+
+    if (method === "GET" && path === "/diag") {
+      return await handleAdminDiag(request, env);
     }
 
     if (method === "GET" && path === "/gemini-health") {

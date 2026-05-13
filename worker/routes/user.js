@@ -51,22 +51,18 @@ function resolveCurrentId(rawCurrentId, profiles) {
 }
 
 async function handleGetDestinyProfiles(auth) {
-  if (!auth?.userId) {
-    return json({ ok: true, authenticated: false, profiles: [], currentId: "" });
-  }
-
   const user = await User.findById(auth.userId)
     .select("destinyProfiles destinyProfilesCurrentId")
     .lean();
 
   if (!user) {
-    return json({ ok: true, authenticated: true, profiles: [], currentId: "" });
+    return json({ ok: true, profiles: [], currentId: "" });
   }
 
   const profiles = sanitizeDestinyProfiles(user.destinyProfiles || []);
   const currentId = resolveCurrentId(user.destinyProfilesCurrentId, profiles);
 
-  return json({ ok: true, authenticated: true, profiles, currentId });
+  return json({ ok: true, profiles, currentId });
 }
 
 async function handleSyncDestinyProfiles(request, auth) {
@@ -111,7 +107,9 @@ export async function handleUserRoutes(request, env) {
 
     if (method === "GET" && path === "/destiny-profiles") {
       const auth = await getOptionalUserFromRequest(request, env);
-      if (!auth) return handleGetDestinyProfiles(null);
+      if (!auth) {
+        return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
+      }
       await connectDb(env);
       return await handleGetDestinyProfiles(auth);
     }

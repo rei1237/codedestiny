@@ -246,7 +246,12 @@ export default function AdvancedZiweiSectionV2({
       startPayment("프리미엄 해금 정보를 확인하고 있습니다...");
       try {
         const token = localStorage.getItem("fortune_auth_token");
+        const userCache = localStorage.getItem("fortune_auth_user");
         const adminToken = getFlowerAdminTokenClient();
+        const hasSessionHint = Boolean(token) || Boolean(userCache);
+        if (!hasSessionHint && !adminToken) {
+          return false;
+        }
 
         const response = await fetch("/api/user/destiny-profiles", {
           credentials: "include",

@@ -1685,6 +1685,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               };
 
               var __cdSyncSubscription = function (pointsValue) {
+                if (!t) return;
                 var subscriptionHeaders = {};
                 if (t) subscriptionHeaders.Authorization = 'Bearer ' + t;
                 fetch('/api/fortune/pig-coin/profile-subscription/status', {
@@ -1694,10 +1695,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   headers: subscriptionHeaders,
                 })
                   .then(function (response) {
-                    if (!response.ok) throw new Error('subscription_sync_failed');
+                    if (!response.ok) {
+                      if (response.status === 401 || response.status === 403) return null;
+                      throw new Error('subscription_sync_failed');
+                    }
                     return response.json();
                   })
                   .then(function (statusPayload) {
+                    if (!statusPayload) return;
                     var label = __cdMakeSubscriptionLabel(statusPayload || {});
                     subLabel = label;
                     try {
@@ -1717,7 +1722,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               };
 
               __cdRenderWithSub(p);
-              __cdSyncSubscription(p);
 
               var authMeHeaders = {};
               if (t) authMeHeaders.Authorization = 'Bearer ' + t;
@@ -1728,7 +1732,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 headers: authMeHeaders,
               })
                 .then(function (response) {
-                  if (!response.ok) throw new Error('auth_sync_failed');
+                  if (!response.ok) return null;
                   return response.json();
                 })
                 .then(function (payload) {
@@ -6286,7 +6290,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260503-premiumfix3" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260512-adminfix4"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260513-authgate1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -6527,6 +6531,94 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (document.cookie.indexOf('fortune_auth_role=') >= 0) return true;
     } catch (_e) {}
     return false;
+  }
+
+  var _cdCoinApiAuthState = {
+    checkedAt: 0,
+    ok: false,
+    userId: '',
+    pending: null
+  };
+
+  function _cdPersistCoinApiUser(user) {
+    if (!user || typeof user !== 'object') return;
+    try {
+      var merged = readAuthUser() || {};
+      if (typeof merged !== 'object' || merged === null) merged = {};
+      merged.id = user.id || merged.id;
+      merged.userId = user.userId || merged.userId;
+      merged._id = user._id || merged._id;
+      merged.uid = user.uid || merged.uid;
+      merged.name = user.name || merged.name;
+      merged.role = user.role || merged.role || 'user';
+      var nextPoints = Number(user.points);
+      if (Number.isFinite(nextPoints) && nextPoints >= 0) merged.points = nextPoints;
+
+      var safe = __cdSanitizeAuthUserCache(merged) || merged;
+      localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
+      document.cookie = 'fortune_auth_role=' + encodeURIComponent(String(safe.role || 'user')) + '; path=/; max-age=604800; SameSite=Lax';
+    } catch (_e) {}
+  }
+
+  async function verifyAuthSessionForCoinApi(forceRefresh) {
+    var force = !!forceRefresh;
+    var now = Date.now();
+    if (!force && _cdCoinApiAuthState.checkedAt && (now - _cdCoinApiAuthState.checkedAt < 30000)) {
+      return !!_cdCoinApiAuthState.ok;
+    }
+
+    if (_cdCoinApiAuthState.pending) return _cdCoinApiAuthState.pending;
+    if (!hasAuthSessionHint()) {
+      _cdCoinApiAuthState.checkedAt = now;
+      _cdCoinApiAuthState.ok = false;
+      _cdCoinApiAuthState.userId = '';
+      return false;
+    }
+
+    _cdCoinApiAuthState.pending = fetch(getApiBaseUrl() + '/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: (function() {
+        var headers = {};
+        var token = getAuthToken();
+        if (token) headers.Authorization = 'Bearer ' + token;
+        return headers;
+      })(),
+    }).then(function(response) {
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+          try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
+        }
+        return null;
+      }
+      return response.json().catch(function() { return null; });
+    }).then(function(payload) {
+      var user = payload && payload.user ? payload.user : null;
+      var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
+      var ok = !!userId;
+      _cdCoinApiAuthState.checkedAt = Date.now();
+      _cdCoinApiAuthState.ok = ok;
+      _cdCoinApiAuthState.userId = ok ? userId : '';
+
+      if (ok) {
+        if (payload && payload.accessToken) {
+          try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
+        }
+        _cdPersistCoinApiUser(user);
+      }
+      return ok;
+    }).catch(function() {
+      _cdCoinApiAuthState.checkedAt = Date.now();
+      _cdCoinApiAuthState.ok = false;
+      _cdCoinApiAuthState.userId = '';
+      return false;
+    }).finally(function() {
+      _cdCoinApiAuthState.pending = null;
+    });
+
+    return _cdCoinApiAuthState.pending;
   }
 
   function _cdSetCoinGateOverlay(isOpen, message) {
@@ -6998,6 +7090,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   async function syncUnlocksFromServer() {
     if (!hasAuthToken()) return false;
+    var authOk = await verifyAuthSessionForCoinApi(false);
+    if (!authOk) {
+      if (_cdClearKnownUnlocks()) {
+        saveTileLocks();
+        applyTileLockVisuals();
+        refreshUnlockButtons();
+        if (typeof applySectionGates === 'function') applySectionGates();
+      }
+      return false;
+    }
     try {
       var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
       if (!result.ok) {
@@ -7082,6 +7184,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   async function syncBalanceFromServer() {
     if (!hasAuthToken() || syncInFlight) return;
+    var authOk = await verifyAuthSessionForCoinApi(false);
+    if (!authOk) return;
     syncInFlight = true;
     try {
       var primary = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
