@@ -27,6 +27,43 @@ describe("Premium Report Feature Spec", () => {
     expect(mapped.featureType).toBe("astrology_premium");
   });
 
+  test("신규 별칭 입력도 정규 reportType/featureType으로 정규화", () => {
+    const { resolvePremiumTypePair } = __premiumReportTestUtils;
+
+    expect(resolvePremiumTypePair("ziwei-deep-report", "").reportType).toBe("ziweiPremium");
+    expect(resolvePremiumTypePair("saju-love-book", "").reportType).toBe("loveSecret");
+    expect(resolvePremiumTypePair("western-astrology-premium", "").reportType).toBe("westernAstrologyPremium");
+    expect(resolvePremiumTypePair("", "ziwei-life-book").featureType).toBe("jamidusu_premium");
+  });
+
+  test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {
+    const { getPremiumExpectedSchema } = __premiumReportTestUtils;
+    const ziwei = getPremiumExpectedSchema("ziweiPremium");
+
+    expect(Array.isArray(ziwei.requestKeys)).toBe(true);
+    expect(ziwei.requestKeys).toContain("normalizedData");
+    expect(ziwei.requiredNormalizedKeys).toContain("normalizedData.ziwei.palaces");
+  });
+
+  test("정규화 데이터 요약 헬퍼가 ziwei 핵심 통계를 계산", () => {
+    const { getPremiumNormalizedDataSummary } = __premiumReportTestUtils;
+    const summary = getPremiumNormalizedDataSummary("ziweiPremium", {
+      input: { year: 1991, month: 7, day: 11 },
+      calculatedData: {
+        chartMeta: { mingGong: "명궁" },
+        palaces: {
+          life: { mainStars: ["자미"] },
+          sibling: { mainStars: [] },
+        },
+      },
+    });
+
+    expect(summary.hasBirthInfo).toBe(true);
+    expect(summary.hasZiweiChart).toBe(true);
+    expect(summary.palaceCount).toBe(2);
+    expect(summary.majorStarCount).toBe(1);
+  });
+
   test("chapter 길이 검증: 최소 미달이면 CHAPTER_TOO_SHORT", () => {
     const { validateChapterLength } = __premiumReportTestUtils;
     const result = validateChapterLength({

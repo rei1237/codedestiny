@@ -14,6 +14,7 @@ let hasZiweiBannedSummaryExpression;
 let hasInvalidZiweiSummaryTable;
 let detectCrossChapterRepeatedSentences;
 let hasRequiredZiweiSpecificCoverage;
+let signJwt;
 
 const PALACES = [
   "명궁",
@@ -95,8 +96,10 @@ function makeQuality() {
 
 beforeAll(async () => {
   const mod = await import("../../worker/routes/premium.js");
+  const jwtMod = await import("../../worker/lib/jwt.js");
   __ziweiTestUtils = mod.__ziweiTestUtils;
   handleZiweiBookRoutes = mod.handleZiweiBookRoutes;
+  signJwt = jwtMod.signJwt;
 
   ({
     buildCanonicalZiweiChart,
@@ -165,9 +168,22 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
   });
 
   test("G. canonical 필수값 누락이면 /api/ziwei-book/session은 422를 반환해야 한다", async () => {
+    const authToken = await signJwt({
+      userId: "507f1f77bcf86cd799439011",
+      email: "strict-test@example.com",
+      role: "user",
+    }, "dev-secret", {
+      issuer: "code-destiny-api",
+      audience: "code-destiny-web",
+      expiresIn: "30m",
+    });
+
     const req = new Request("https://example.com/api/ziwei-book/session", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
       body: JSON.stringify({
         sessionId: 1,
         chapter: 1,

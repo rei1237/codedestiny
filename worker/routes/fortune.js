@@ -687,6 +687,7 @@ async function handleBalance(auth) {
       ok: true,
       authenticated: true,
       balance: 0,
+      walletCreated: false,
       message: "Coin balance initialized with safe default.",
       user: userPayload(auth, 0, []),
       unlockedFeatures: [],
@@ -701,6 +702,7 @@ async function handleBalance(auth) {
     ok: true,
     authenticated: true,
     balance: points,
+    walletCreated: true,
     message: "Coin balance loaded.",
     user: userPayload(auth, points, unlockedFeatures),
     unlockedFeatures,
@@ -710,18 +712,11 @@ async function handleBalance(auth) {
 
 function handleGuestBalance() {
   return json({
-    ok: true,
+    ok: false,
     authenticated: false,
-    balance: 0,
-    message: "Guest balance loaded.",
-    user: {
-      id: "guest",
-      points: 0,
-      unlockedFeatures: [],
-    },
-    unlockedFeatures: [],
-    unlockMap: {},
-  });
+    code: "AUTH_REQUIRED",
+    message: "로그인이 필요합니다.",
+  }, { status: 401 });
 }
 
 async function handleChargeSimulate(request, env, auth) {
@@ -1163,6 +1158,7 @@ async function handlePigCoinRefund(request, auth) {
       const user = await User.findById(auth.userId).select("points").lean();
       return json({
         message: "Refund already processed.",
+        code: "REFUND_ALREADY_PROCESSED",
         alreadyRefunded: true,
         refundTransactionId: String(alreadyByRequest._id || ""),
         user: userPayload(auth, Number(user?.points || 0)),
@@ -1182,11 +1178,39 @@ async function handlePigCoinRefund(request, auth) {
     deductQuery._id = sourceTransactionId;
   }
 
-  const deducted = await PointHistory.findOne(deductQuery)
+  let deducted = await PointHistory.findOne(deductQuery)
     .sort({ createdAt: -1 })
     .lean();
 
+  if (!deducted && isObjectIdLike(sourceTransactionId)) {
+    deducted = await PointHistory.findOne({
+      userId: auth.userId,
+      kind: "deduct",
+      _id: sourceTransactionId,
+    }).lean();
+  }
+
   if (!deducted) {
+    if (isObjectIdLike(sourceTransactionId)) {
+      const refundedBySource = await PointHistory.findOne({
+        userId: auth.userId,
+        kind: "refund",
+        "metadata.refundForPointHistoryId": sourceTransactionId,
+      }).lean();
+
+      if (refundedBySource) {
+        const user = await User.findById(auth.userId).select("points").lean();
+        return json({
+          message: "Refund already processed.",
+          code: "REFUND_ALREADY_PROCESSED",
+          alreadyRefunded: true,
+          sourceTransactionId,
+          refundTransactionId: String(refundedBySource._id || ""),
+          user: userPayload(auth, Number(user?.points || 0)),
+        });
+      }
+    }
+
     return json({
       message: "No refundable deduction found.",
       code: "NO_REFUNDABLE_DEDUCTION",
@@ -1203,6 +1227,7 @@ async function handlePigCoinRefund(request, auth) {
     const user = await User.findById(auth.userId).select("points").lean();
     return json({
       message: "Refund already processed.",
+      code: "REFUND_ALREADY_PROCESSED",
       alreadyRefunded: true,
       refundTransactionId: String(alreadyRefunded._id || ""),
       user: userPayload(auth, Number(user?.points || 0)),
@@ -1404,29 +1429,11 @@ async function handleSubscriptionStatus(request, env, auth) {
 
 function handleGuestSubscriptionStatus() {
   return json({
-    ok: true,
+    ok: false,
     authenticated: false,
-    subscription: null,
-    isSubscribed: false,
-    plan: "guest",
-    tier: "free",
-    source: "coin",
-    isActive: false,
-    expiresAt: null,
-    profileLimit: 1,
-    points: 0,
-    lowBalanceWarning: false,
-    autoRenewed: false,
-    cancelAtPeriodEnd: false,
-    cancelRequestedAt: null,
-    hasStartedPaidService: false,
-    firstServiceAccessDate: null,
-    adminMode: false,
-    simulated: false,
-    adminTestTier: null,
-    freeLimit: getPlanPolicy(null).freeLimit,
-    recommendedCoins: getPlanPolicy(null).recommendedCoins,
-  });
+    code: "AUTH_REQUIRED",
+    message: "로그인이 필요합니다.",
+  }, { status: 401 });
 }
 
 async function handleStartService(request, auth) {
@@ -1718,7 +1725,17 @@ export async function handleFortuneRoutes(request, env) {
       }
 
       trace.authVerified = true;
-      await connectDb(env);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        const isBalanceRoute = path === "/pig-coin/balance";
+        return json({
+          ok: false,
+          authenticated: true,
+          code: isBalanceRoute ? "COIN_STORAGE_UNAVAILABLE" : "SUBSCRIPTION_STORAGE_UNAVAILABLE",
+          message: isBalanceRoute ? "코인 정보를 불러올 수 없습니다." : "구독 정보를 불러올 수 없습니다.",
+        }, { status: 503 });
+      }
       trace.dbConnected = true;
 
       if (path === "/pig-coin/balance") return await handleBalance(auth);

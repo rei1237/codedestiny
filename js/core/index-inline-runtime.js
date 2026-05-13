@@ -1724,27 +1724,91 @@ async function __cdPremiumAuthFetch(url, init, options) {
   return response;
 }
 
+function __cdIsPremiumRetriableStatus(status) {
+  var code = Number(status || 0);
+  return code === 408 || code === 429 || code === 503 || code === 524;
+}
+
+function __cdWaitMs(delayMs) {
+  var ms = Number(delayMs || 0);
+  if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
+  return new Promise(function(resolve) {
+    setTimeout(resolve, ms);
+  });
+}
+
 async function __cdPremiumAuthJson(url, payload, options) {
   var opts = options || {};
+  var targetUrl = String(url || '');
+  var defaultAttempts = /^\/api\/premium-report\//.test(targetUrl) ? 3 : 1;
+  var maxAttempts = Number(opts.maxAttempts || defaultAttempts);
+  if (!Number.isFinite(maxAttempts) || maxAttempts < 1) maxAttempts = defaultAttempts;
+
   var reqInit = {
     method: String(opts.method || 'POST').toUpperCase(),
     headers: opts.headers || {},
     body: payload == null ? undefined : JSON.stringify(payload)
   };
-  var response = await __cdPremiumAuthFetch(url, reqInit, opts);
-  var data = await response.json().catch(function() { return {}; });
 
-  if (!response.ok || (data && data.ok === false)) {
-    return {
-      ok: false,
-      status: Number((data && data.status) || response.status || 0),
-      code: String((data && data.code) || (response.status === 401 ? 'UNAUTHORIZED' : '') || ''),
-      message: String((data && (data.message || data.error)) || ('HTTP ' + response.status)),
-      raw: data || {}
-    };
+  var response = null;
+  var data = {};
+  for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
+    response = await __cdPremiumAuthFetch(url, reqInit, opts);
+    data = await response.json().catch(function() { return {}; });
+
+    if (response.ok && (!data || data.ok !== false)) {
+      return data && typeof data === 'object' ? data : { ok: true };
+    }
+
+    var statusCode = Number((data && data.status) || response.status || 0);
+    var canRetry = __cdIsPremiumRetriableStatus(statusCode) && attempt < (maxAttempts - 1);
+    if (!canRetry) break;
+
+    var retryAfterRaw = '';
+    try {
+      retryAfterRaw = String(response.headers.get('retry-after') || '').trim();
+    } catch (_) {
+      retryAfterRaw = '';
+    }
+    var retryAfterSeconds = Number(retryAfterRaw);
+    var retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+      ? Math.min(10000, Math.floor(retryAfterSeconds * 1000))
+      : 0;
+    var backoffMs = Math.min(4500, 450 * Math.pow(2, attempt)) + Math.floor(Math.random() * 120);
+    await __cdWaitMs(retryAfterMs > 0 ? retryAfterMs : backoffMs);
   }
 
-  return data && typeof data === 'object' ? data : { ok: true };
+  var raw = data && typeof data === 'object' ? data : {};
+  var status = Number((raw && raw.status) || (response && response.status) || 0);
+  var code = String((raw && raw.code) || (status === 401 ? 'UNAUTHORIZED' : '') || '');
+  var missingFields = Array.isArray(raw.missingFields) ? raw.missingFields : [];
+  var invalidFields = Array.isArray(raw.invalidFields) ? raw.invalidFields : [];
+  var expectedSchema = raw.expectedSchema && typeof raw.expectedSchema === 'object' ? raw.expectedSchema : null;
+  var receivedKeys = Array.isArray(raw.receivedKeys) ? raw.receivedKeys : [];
+  var warnings = Array.isArray(raw.warnings) ? raw.warnings : [];
+
+  var fallbackMessage = 'HTTP ' + String(status || 0);
+  var message = String((raw && (raw.message || raw.error)) || fallbackMessage);
+  if (status === 422 && missingFields.length > 0) {
+    message = 'PDF 생성에 필요한 명반 데이터가 누락되었습니다. 누락 항목: ' + missingFields.slice(0, 4).join(', ');
+  } else if (status === 503 || status === 524) {
+    message = '서버 응답이 지연되었습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
+  return {
+    ok: false,
+    status: status,
+    code: code,
+    message: message,
+    missingFields: missingFields,
+    invalidFields: invalidFields,
+    expectedSchema: expectedSchema,
+    receivedKeys: receivedKeys,
+    recoverable: raw && raw.recoverable === true,
+    recommendedAction: String((raw && raw.recommendedAction) || ''),
+    warnings: warnings,
+    raw: raw,
+  };
 }
 
 window.__cdOpenLoginRequiredModal = __cdOpenLoginRequiredModal;
@@ -1971,26 +2035,40 @@ function __cdMergeServerUnlockKeys(unlockKeys) {
   return true;
 }
 
-function __cdSyncTileLocksFromServer() {
-  var token = __cdGetAuthTokenForLockSync();
+async function __cdSyncTileLocksFromServer() {
   if (__cdTileLockServerSyncInFlight) return;
-  if (!token && !__cdHasAuthToken()) return;
-
   __cdTileLockServerSyncInFlight = true;
-  var url = __cdResolveApiBaseForLockSync() + '/api/fortune/pig-coin/balance';
-  var headers = {
-    Accept: 'application/json'
-  };
-  if (token) headers.Authorization = 'Bearer ' + token;
 
-  fetch(url, {
-    method: 'GET',
-    credentials: 'include',
-    cache: 'no-store',
-    headers: headers
-  }).then(function(response) {
-    return response.json().catch(function() { return {}; });
-  }).then(function(payload) {
+  try {
+    var authOk = false;
+    try {
+      authOk = await __cdVerifyAuthSession(false);
+    } catch (_) {
+      authOk = false;
+    }
+    if (!authOk) return;
+
+    var token = __cdGetAuthTokenForLockSync();
+    var url = __cdResolveApiBaseForLockSync() + '/api/fortune/pig-coin/balance';
+    var headers = {
+      Accept: 'application/json'
+    };
+    if (token) headers.Authorization = 'Bearer ' + token;
+
+    var response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: headers
+    });
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        __cdInvalidateAuthSessionCache();
+      }
+      return;
+    }
+
+    var payload = await response.json().catch(function() { return {}; });
     var keys = [];
     if (payload && Array.isArray(payload.unlockedFeatures)) keys = payload.unlockedFeatures;
     if (payload && payload.unlockMap && typeof payload.unlockMap === 'object') {
@@ -2003,12 +2081,12 @@ function __cdSyncTileLocksFromServer() {
     if (__cdMergeServerUnlockKeys(keys)) {
       __cdDispatchTileLockSyncEvent();
     }
-  }).catch(function() {
+  } catch (_) {
     // ignore sync failures
-  }).finally(function() {
+  } finally {
     __cdTileLockServerSyncInFlight = false;
     __cdTileLockServerSyncDone = true;
-  });
+  }
 }
 
 function __cdScheduleTileLockServerSync() {

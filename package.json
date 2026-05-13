@@ -55,6 +55,7 @@
     "clean:repo:apply": "node scripts/safe-clean-repo.mjs --apply",
     "smoke:oauth:prod": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny.com",
     "smoke:oauth:worker": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny-web.bulegyung.workers.dev",
+    "smoke:premium-pdf": "node scripts/premium-pdf-smoke.mjs",
     "test:signup": "node scripts/test-signup.mjs",
     "perf:psi": "node scripts/measure-psi.mjs",
     "perf:psi:audit": "node scripts/psi-lighthouse-audit.mjs",

@@ -309,6 +309,15 @@
     } catch (_) {}
   }
 
+  function _formatPremiumFailureMessage(data, fallback) {
+    var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
+    var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
+    if (missing.length) {
+      base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
+    }
+    return base;
+  }
+
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -1216,6 +1225,18 @@
             data.errorCode = 'AUTH_REQUIRED';
             return data;
           }
+          if (
+            status === 422
+            || code === 'MISSING_CALCULATION_DATA'
+            || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
+            || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
+          ) {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'DATA_INCOMPLETE';
+            data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+            return data;
+          }
           var maxTry = 3;
           if (data && data.ok && data.text) return data;
           if (tryNo >= maxTry) return data;
@@ -1232,11 +1253,11 @@
         var _validCount = _chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length;
-        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         if (_validCount < 13) {
+          _trace('GENERATION_FAILED', { validChapters: _validCount, totalChapters: 13, reason: 'CHAPTERS_INCOMPLETE' });
           var errEl = _qs('zbErrorMsg');
           if (errEl) errEl.textContent = _validCount === 0
-            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
+            ? '모든 챕터 생성에 실패했습니다. 명반 계산 데이터 누락 또는 서버 응답 지연이 원인일 수 있습니다. 계산 데이터를 다시 확인한 뒤 재시도해 주세요.'
             : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
@@ -1244,6 +1265,7 @@
             .then(function (refunded) { if (refunded) window.alert('자미두수 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
+        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         try { sessionStorage.removeItem(PREMIUM_ZIWEI_TX_KEY); } catch (_) {}
         _showScreen('zbResultScreen');
         _updateTocState();
@@ -1273,6 +1295,22 @@
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
           }
+          return;
+        }
+        if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var dataErrEl = _qs('zbErrorMsg');
+          if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 명반 데이터가 누락되었습니다. 계산 후 다시 시도해 주세요.');
+          _showScreen('zbErrorScreen');
+          _trace('GENERATION_FAILED', {
+            chapter: idx + 1,
+            reason: 'DATA_INCOMPLETE',
+            code: String((data && data.code) || ''),
+            missingFields: Array.isArray(data && data.missingFields) ? data.missingFields : [],
+          });
+          _autoRefundPremium(PREMIUM_ZIWEI_COST, PREMIUM_ZIWEI_FEATURE_KEY, '자미두수 프리미엄 PDF', PREMIUM_ZIWEI_TX_KEY)
+            .then(function (refunded) { if (refunded) window.alert('자미두수 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';

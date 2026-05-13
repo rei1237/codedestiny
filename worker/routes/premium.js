@@ -1120,22 +1120,28 @@ const PREMIUM_REPORT_CONTEXT_TTL_MS = REPORT_SESSION_TTL_MS;
 const PREMIUM_REPORT_TYPE_MAP = {
   ziweipremium: "ziweiPremium",
   ziwei: "ziweiPremium",
+  ziweilifebook: "ziweiPremium",
+  ziweideepreport: "ziweiPremium",
   jamidusu: "ziweiPremium",
   jamidusupremium: "ziweiPremium",
   sookyopremium: "sookyoPremium",
   sukuyopremium: "sookyoPremium",
+  sukuyolifebook: "sookyoPremium",
   sukuyo: "sookyoPremium",
   sookyopremiumreport: "sookyoPremium",
   westernastrologypremium: "westernAstrologyPremium",
+  westernastrology: "westernAstrologyPremium",
   astro: "westernAstrologyPremium",
   astropremium: "westernAstrologyPremium",
   astrologypremium: "westernAstrologyPremium",
   vedicpremium: "vedicPremium",
+  vediclifebook: "vedicPremium",
   vedic: "vedicPremium",
   lifebook: "lifeBook",
   lifebookpremium: "lifeBook",
   sajulifebook: "lifeBook",
   sajulifebookpremium: "lifeBook",
+  sajulovebook: "loveSecret",
   lovesecret: "loveSecret",
   lovesecretpremium: "loveSecret",
   sajulovesecret: "loveSecret",
@@ -1163,9 +1169,14 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
 const FEATURE_TYPE_MAP = {
   sajulifebook: "saju_life_book",
   sajulovesecret: "saju_love_secret",
+  sajulovebook: "saju_love_secret",
+  ziweilifebook: "jamidusu_premium",
+  ziweideepreport: "jamidusu_premium",
+  sukuyopremium: "sookyo_premium",
   jamidusupremium: "jamidusu_premium",
   sookyopremium: "sookyo_premium",
   vedicpremium: "vedic_premium",
+  westernastrologypremium: "astrology_premium",
   astrologypremium: "astrology_premium",
 };
 
@@ -1317,6 +1328,169 @@ function buildPremiumContextSummary(context) {
     status: context.status,
     createdAt: context.createdAt,
     updatedAt: context.updatedAt,
+  };
+}
+
+function collectReceivedKeys(value, prefix = "", depth = 0, max = 160, out = []) {
+  if (!value || typeof value !== "object" || depth > 3 || out.length >= max) return out;
+  const keys = Object.keys(value);
+  for (let i = 0; i < keys.length; i += 1) {
+    if (out.length >= max) break;
+    const key = String(keys[i] || "").trim();
+    if (!key) continue;
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    out.push(fullKey);
+    const child = value[key];
+    if (child && typeof child === "object" && !Array.isArray(child)) {
+      collectReceivedKeys(child, fullKey, depth + 1, max, out);
+    }
+  }
+  return out;
+}
+
+function getPremiumExpectedSchema(reportType) {
+  const base = {
+    requestKeys: [
+      "requestId",
+      "generationId",
+      "featureKey",
+      "reportType",
+      "birthInfo",
+      "normalizedData",
+      "chapters",
+      "payment",
+      "options",
+    ],
+  };
+
+  const byType = {
+    ziweiPremium: {
+      requiredNormalizedKeys: [
+        "normalizedData.meta",
+        "normalizedData.userProfile",
+        "normalizedData.ziwei.chart.mingGong",
+        "normalizedData.ziwei.palaces",
+        "normalizedData.ziwei.stars.major",
+      ],
+    },
+    lifeBook: {
+      requiredNormalizedKeys: [
+        "normalizedData.meta",
+        "normalizedData.userProfile",
+        "normalizedData.saju.pillars",
+        "normalizedData.saju.dayMaster",
+        "normalizedData.saju.fiveElements",
+      ],
+    },
+    loveSecret: {
+      requiredNormalizedKeys: [
+        "normalizedData.meta",
+        "normalizedData.userProfile",
+        "normalizedData.saju.pillars",
+        "normalizedData.saju.interpretation.relationship",
+      ],
+    },
+    sookyoPremium: {
+      requiredNormalizedKeys: [
+        "normalizedData.meta",
+        "normalizedData.userProfile",
+        "normalizedData.sukuyo.birthStar",
+        "normalizedData.sukuyo.interpretation",
+      ],
+    },
+    vedicPremium: {
+      requiredNormalizedKeys: [
+        "normalizedData.meta",
+        "normalizedData.userProfile",
+        "normalizedData.vedic.chart.lagna",
+        "normalizedData.vedic.planets",
+        "normalizedData.vedic.houses",
+      ],
+    },
+    westernAstrologyPremium: {
+      requiredNormalizedKeys: [
+        "normalizedData.meta",
+        "normalizedData.userProfile",
+        "normalizedData.westernAstrology.chart.sunSign",
+        "normalizedData.westernAstrology.planets",
+        "normalizedData.westernAstrology.houses",
+        "normalizedData.westernAstrology.aspects",
+      ],
+    },
+  };
+
+  return {
+    ...base,
+    ...(byType[reportType] || { requiredNormalizedKeys: [] }),
+  };
+}
+
+function getPremiumRecommendedAction(reportType) {
+  if (reportType === "ziweiPremium") return "rebuild-normalized-ziwei-data";
+  if (reportType === "lifeBook" || reportType === "loveSecret") return "rebuild-normalized-saju-data";
+  if (reportType === "sookyoPremium") return "rebuild-normalized-sukuyo-data";
+  if (reportType === "vedicPremium") return "rebuild-normalized-vedic-data";
+  if (reportType === "westernAstrologyPremium") return "rebuild-normalized-western-astrology-data";
+  return "rebuild-normalized-data";
+}
+
+function getPremiumNormalizedDataSummary(reportType, canonicalJson) {
+  const input = canonicalJson?.input || {};
+  const calculated = canonicalJson?.calculatedData || {};
+  const hasBirthInfo = hasMeaningfulValue(input.year) && hasMeaningfulValue(input.month) && hasMeaningfulValue(input.day);
+
+  if (reportType === "ziweiPremium") {
+    const palaces = calculated?.palaces && typeof calculated.palaces === "object" ? Object.values(calculated.palaces) : [];
+    const palaceCount = Array.isArray(palaces) ? palaces.length : 0;
+    let majorStarCount = 0;
+    for (let i = 0; i < palaces.length; i += 1) {
+      majorStarCount += Array.isArray(palaces[i]?.mainStars) ? palaces[i].mainStars.length : 0;
+    }
+    return {
+      hasBirthInfo,
+      hasZiweiChart: hasMeaningfulValue(calculated?.chartMeta?.mingGong),
+      palaceCount,
+      majorStarCount,
+    };
+  }
+
+  if (reportType === "lifeBook" || reportType === "loveSecret") {
+    return {
+      hasBirthInfo,
+      hasSaju: hasMeaningfulValue(calculated?.saju?.fourPillars?.year) || hasMeaningfulValue(calculated?.saju?.dayMaster),
+      hasUsefulGods: hasMeaningfulValue(calculated?.saju?.usefulGods?.yongsin?.element),
+    };
+  }
+
+  if (reportType === "sookyoPremium") {
+    return {
+      hasBirthInfo,
+      hasSukuyo: hasMeaningfulValue(calculated?.nativeSook?.nameKo) || hasMeaningfulValue(calculated?.compatibility?.relationType),
+      hasCompatibility: hasMeaningfulValue(calculated?.compatibility?.relationType),
+    };
+  }
+
+  if (reportType === "vedicPremium") {
+    return {
+      hasBirthInfo,
+      hasVedicChart: hasMeaningfulValue(calculated?.lagna?.name),
+      planetCount: calculated?.planets && typeof calculated.planets === "object" ? Object.keys(calculated.planets).length : 0,
+      houseCount: Array.isArray(calculated?.houses) ? calculated.houses.length : 0,
+    };
+  }
+
+  if (reportType === "westernAstrologyPremium") {
+    return {
+      hasBirthInfo,
+      hasAstroChart: hasMeaningfulValue(calculated?.angles?.ascendant?.sign) || hasMeaningfulValue(calculated?.planets?.sun?.sign),
+      planetCount: calculated?.planets && typeof calculated.planets === "object" ? Object.keys(calculated.planets).length : 0,
+      houseCount: Array.isArray(calculated?.houses) ? calculated.houses.length : 0,
+      aspectCount: Array.isArray(calculated?.aspects) ? calculated.aspects.length : 0,
+    };
+  }
+
+  return {
+    hasBirthInfo,
   };
 }
 
@@ -9420,12 +9594,45 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   context.requestId = requestId;
   context.featureType = context.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "";
   const summary = buildPremiumContextSummary(context);
+  const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) && context.derivedData.chapterPlan.length
+    ? context.derivedData.chapterPlan
+    : (getPremiumSpecByReportType(context.reportType, context.modeKey)?.chapters || []);
+  const receivedKeys = collectReceivedKeys(requestBody);
+  const expectedSchema = getPremiumExpectedSchema(context.reportType);
+  const normalizedDataSummary = getPremiumNormalizedDataSummary(context.reportType, context?.coreData?.canonicalJson || {});
+
+  if (!context.isCompleteForPdf) {
+    return json({
+      ok: false,
+      code: "MISSING_CALCULATION_DATA",
+      message: "PDF 생성에 필요한 계산 데이터가 누락되었습니다.",
+      requestId,
+      reportType: context.reportType,
+      featureType: context.featureType,
+      generationId: summary.reportSessionId,
+      reportSessionId: summary.reportSessionId,
+      chapterPlan,
+      normalizedDataSummary,
+      missingFields: Array.isArray(summary.missingData) ? summary.missingData : [],
+      invalidFields: [],
+      expectedSchema,
+      receivedKeys,
+      recoverable: true,
+      recommendedAction: getPremiumRecommendedAction(context.reportType),
+      warnings: Array.isArray(summary.warnings) ? summary.warnings : [],
+      contextSummary: summary,
+    }, { status: 422 });
+  }
+
   return json({
     ok: true,
     cacheHit: Boolean(prepared.cacheHit),
     requestId,
+    generationId: summary.reportSessionId,
     featureType: context.featureType,
     ...summary,
+    chapterPlan,
+    normalizedDataSummary,
     input: context.input,
     coreData: context.coreData,
     derivedData: context.derivedData,
@@ -10237,6 +10444,8 @@ export const __premiumReportTestUtils = {
   normalizePremiumFeatureType,
   normalizePremiumReportType,
   resolvePremiumTypePair,
+  getPremiumExpectedSchema,
+  getPremiumNormalizedDataSummary,
   getPremiumRequiredChapters,
   validateChapterLength,
   validateFullReportLength,

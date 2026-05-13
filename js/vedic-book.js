@@ -147,6 +147,13 @@
     .catch(function () { return false; });
   }
 
+  function _formatPremiumFailureMessage(data, fallback) {
+    var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
+    var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
+    if (missing.length) base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
+    return base;
+  }
+
   function _applyVedicTheme(modal){
     if(!modal||!modal.style)return;
     modal.style.setProperty('--lb-void','#120904');
@@ -575,6 +582,18 @@
             data.errorCode = 'AUTH_REQUIRED';
             return data;
           }
+          if (
+            status === 422
+            || code === 'MISSING_CALCULATION_DATA'
+            || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
+            || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
+          ) {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'DATA_INCOMPLETE';
+            data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+            return data;
+          }
           var maxTry = 3;
           if(data&&data.ok&&data.text) return data;
           if(tryNo>=maxTry) return data;
@@ -619,6 +638,16 @@
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
           }
+          return;
+        }
+        if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
+          _generating = false;
+          if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+          var dataErrEl = _qs('vdErrorMsg');
+          if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
+          _showScreen('vdErrorScreen');
+          _autoRefundPremium(PREMIUM_VEDIC_COST, PREMIUM_VEDIC_FEATURE_KEY, '베다 프리미엄 PDF', PREMIUM_VEDIC_TX_KEY)
+            .then(function(refunded){ if(refunded) window.alert('베다 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
         if(data&&data.ok&&data.text){_chapters[idx]=data.text;}
