@@ -1,6 +1,7 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
-const DEFAULT_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
+const DEFAULT_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService";
+const LEGACY_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
 const ALLOWED_METHODS = new Set(["getLunCalInfo", "getSolCalInfo", "get24DivisionsInfo"]);
 
 function decodeServiceKeyCandidate(rawKey) {
@@ -31,10 +32,19 @@ function normalizeRows(payload) {
   return [];
 }
 
+function buildBaseUrlCandidates(env) {
+  const configured = String(env.KASI_API_BASE_URL || "").trim();
+  return Array.from(new Set([
+    configured,
+    DEFAULT_KASI_BASE_URL,
+    LEGACY_KASI_BASE_URL,
+  ].map((value) => String(value || "").trim().replace(/\/+$/, "")).filter(Boolean)));
+}
+
 async function requestCalendar(env, methodRaw, paramsRaw) {
   const method = normalizeMethod(methodRaw);
   const params = (paramsRaw && typeof paramsRaw === "object") ? paramsRaw : {};
-  const kasiBaseUrl = String(env.KASI_API_BASE_URL || DEFAULT_KASI_BASE_URL).replace(/\/+$/, "");
+  const kasiBaseUrls = buildBaseUrlCandidates(env);
   const timeoutMs = Math.max(1000, Number(env.KASI_PROXY_TIMEOUT_MS || 3000));
 
   const decoded = decodeServiceKeyCandidate(env.KASI_SERVICE_KEY);
@@ -44,52 +54,62 @@ async function requestCalendar(env, methodRaw, paramsRaw) {
   }
 
   let lastError = null;
-  for (const serviceKey of candidates) {
-    const query = new URLSearchParams({
-      ...params,
-      serviceKey,
-      _type: "json",
-    });
-
-    const url = `${kasiBaseUrl}/${method}?${query.toString()}`;
-    const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = setTimeout(() => {
-      if (controller) {
-        try {
-          controller.abort();
-        } catch (_) {}
-      }
-    }, timeoutMs);
-
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-        signal: controller ? controller.signal : undefined,
+  for (const kasiBaseUrl of kasiBaseUrls) {
+    for (const serviceKey of candidates) {
+      const query = new URLSearchParams({
+        ...params,
+        serviceKey,
+        _type: "json",
       });
 
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload) {
-        throw createHttpError(503, `KASI 응답 오류: HTTP ${response.status}`, { code: "KASI_UPSTREAM_ERROR" });
-      }
+      const url = `${kasiBaseUrl}/${method}?${query.toString()}`;
+      const controller = typeof AbortController === "function" ? new AbortController() : null;
+      const timer = setTimeout(() => {
+        if (controller) {
+          try {
+            controller.abort();
+          } catch (_) {}
+        }
+      }, timeoutMs);
 
-      const resultCode = String(payload?.response?.header?.resultCode || "");
-      if (resultCode && resultCode !== "00") {
-        throw createHttpError(503, payload?.response?.header?.resultMsg || "KASI API 오류", { code: "KASI_UPSTREAM_ERROR" });
-      }
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          signal: controller ? controller.signal : undefined,
+        });
 
-      return {
-        rows: normalizeRows(payload),
-        cache: "miss",
-      };
-    } catch (error) {
-      if (error?.name === "AbortError") {
-        lastError = createHttpError(503, "KASI API 타임아웃", { code: "KASI_TIMEOUT" });
-      } else {
-        lastError = error;
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !payload) {
+          throw createHttpError(503, `KASI 응답 오류: HTTP ${response.status}`, {
+            code: "KASI_UPSTREAM_ERROR",
+            upstreamStatus: response.status,
+            upstreamBase: kasiBaseUrl,
+          });
+        }
+
+        const resultCode = String(payload?.response?.header?.resultCode || "");
+        if (resultCode && resultCode !== "00") {
+          throw createHttpError(503, payload?.response?.header?.resultMsg || "KASI API 오류", {
+            code: "KASI_UPSTREAM_ERROR",
+            resultCode,
+            upstreamBase: kasiBaseUrl,
+          });
+        }
+
+        return {
+          rows: normalizeRows(payload),
+          cache: "miss",
+        };
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          lastError = createHttpError(503, "KASI API 타임아웃", { code: "KASI_TIMEOUT", upstreamBase: kasiBaseUrl });
+        } else {
+          lastError = error;
+        }
+      } finally {
+        clearTimeout(timer);
       }
-    } finally {
-      clearTimeout(timer);
     }
   }
 

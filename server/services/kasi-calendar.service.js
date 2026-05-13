@@ -1,6 +1,6 @@
 const KASI_BASE_URL = String(
   process.env.KASI_API_BASE_URL ||
-  "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService",
+  "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService",
 ).replace(/\/+$/, "");
 
 const KASI_SERVICE_KEY = String(process.env.KASI_SERVICE_KEY || "").trim();
