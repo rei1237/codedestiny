@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { DestinyBiasResultViewModel } from "../lib/types";
-import styles from "../destiny-bias.module.css";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
 export default function DestinyBiasPhotocard({
@@ -11,7 +10,9 @@ export default function DestinyBiasPhotocard({
   vm: DestinyBiasResultViewModel;
 }) {
   const reduceMotion = useReducedMotion();
-  const photocardTags = vm.stageChemistryKeywords.slice(0, 3);
+  const relationHeadline = `${vm.userName} x ${vm.biasName}`;
+  const relationSignal = `${vm.userEnergyType} ↔ ${vm.biasEnergyType}`;
+  const oneLine = String(vm.chemistrySummary || vm.oneLineDestinyMessage || "").replace(/\s+/g, " ").trim();
 
   return (
     <motion.div
@@ -22,65 +23,53 @@ export default function DestinyBiasPhotocard({
       whileHover={reduceMotion ? undefined : { scale: 1.02, y: -4 }}
       transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <div className={styles.biasCardOuter}>
-        <div className={`${styles.biasCardInner} aspect-[3/4]`}>
-          <div className={styles.biasArtworkLayer} aria-hidden />
-          <div className={styles.biasGlitterLayer} aria-hidden />
-          <div className={styles.biasGlossLayer} aria-hidden />
-          <div className={styles.biasRibbon} aria-hidden />
+      <div className="overflow-hidden rounded-[30px] border border-cyan-200/35 bg-[linear-gradient(155deg,rgba(5,13,35,0.95)_0%,rgba(20,13,56,0.9)_38%,rgba(11,34,66,0.9)_100%)] shadow-[0_28px_80px_rgba(2,6,23,0.65)]">
+        <div className="relative aspect-[9/16] p-4 md:p-5">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(251,113,229,0.3),transparent_38%),radial-gradient(circle_at_84%_20%,rgba(96,165,250,0.24),transparent_38%),radial-gradient(circle_at_50%_92%,rgba(34,211,238,0.2),transparent_40%)]" aria-hidden />
+          <div className="pointer-events-none absolute inset-0 opacity-60" aria-hidden>
+            <div className="absolute left-8 top-8 h-1 w-1 rounded-full bg-white/70" />
+            <div className="absolute right-12 top-16 h-1.5 w-1.5 rounded-full bg-cyan-200/70" />
+            <div className="absolute left-16 top-36 h-1 w-1 rounded-full bg-pink-200/70" />
+            <div className="absolute right-20 top-52 h-1 w-1 rounded-full bg-white/60" />
+            <div className="absolute left-10 bottom-36 h-1.5 w-1.5 rounded-full bg-cyan-100/75" />
+            <div className="absolute right-10 bottom-28 h-1 w-1 rounded-full bg-pink-100/75" />
+          </div>
 
-          <div className="relative z-10 flex h-full flex-col p-4 md:p-5">
+          <div className="relative z-10 flex h-full flex-col">
             <div className="flex items-start justify-between">
-              <span className={styles.pinkBadge}>Fan Edition</span>
-              <span className={styles.iconBubble} aria-label="heart glow">
-                <DestinyIcon name="heartGlow" size={16} className="text-pink-100" variant="glow" />
+              <span className="rounded-full border border-pink-200/50 bg-pink-300/15 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-pink-100">FAN x BIAS LINK</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-cyan-200/45 bg-cyan-300/10">
+                <DestinyIcon name="star" size={14} className="text-cyan-100" variant="glow" />
               </span>
             </div>
 
             <div className="mt-5 flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">My Destiny Bias</p>
-                <h3 className={`mt-1 text-2xl font-black text-white md:text-[2rem] ${styles.cardClamp1}`}>
-                  {vm.biasName || "꽃돼지"}
-                </h3>
-                <p className={`text-xs text-white/72 ${styles.cardClamp1}`}>{vm.gradeTitle}</p>
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/80">ENERGY RELATION</p>
+                <h3 className="mt-1 text-2xl font-black leading-tight text-white">{vm.biasName}</h3>
+                <p className="mt-1 text-xs text-white/75">{vm.relationMood} 공명 모드</p>
               </div>
-
-              <div className={styles.scoreGem}>
-                <span className={styles.scoreGemText}>{vm.totalScore}%</span>
+              <div className="grid h-16 w-16 place-items-center rounded-full border border-cyan-100/60 bg-[radial-gradient(circle,rgba(56,189,248,0.45)_0%,rgba(22,78,99,0.15)_72%,transparent_100%)] shadow-[0_0_20px_rgba(56,189,248,0.4)]">
+                <span className="text-lg font-black text-white">{vm.totalScore}%</span>
               </div>
             </div>
 
-            <div className="relative mt-4 flex flex-1 items-center justify-center overflow-hidden rounded-[24px] border border-white/15 bg-[radial-gradient(circle_at_50%_35%,rgba(255,174,229,0.35),transparent_52%),radial-gradient(circle_at_65%_70%,rgba(103,189,255,0.28),transparent_48%),rgba(10,7,30,0.58)]">
-              <div className={styles.auraOrb} aria-hidden />
-              <div className="relative text-center">
-                <p className="text-[10px] font-semibold tracking-[0.2em] text-white/75">{vm.auraType}</p>
-                <p className="mt-2 text-lg font-black text-pink-50">{vm.energyColor}</p>
-                <p className="mt-1 text-xs text-cyan-100/85">{vm.auraMaterial}</p>
+            <div className="relative mt-5 flex-1 overflow-hidden rounded-[24px] border border-white/20 bg-[linear-gradient(160deg,rgba(7,22,45,0.74)_0%,rgba(25,19,63,0.62)_50%,rgba(8,30,55,0.72)_100%)] p-4">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_38%,rgba(191,219,254,0.56),transparent_30%),radial-gradient(circle_at_72%_66%,rgba(34,211,238,0.32),transparent_28%)]" aria-hidden />
+              <div className="pointer-events-none absolute left-1/2 top-[48%] h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/35" aria-hidden />
+              <div className="pointer-events-none absolute left-1/2 top-[48%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-pink-100/30" aria-hidden />
+
+              <div className="relative z-10 space-y-3">
+                <p className="text-xs font-semibold tracking-[0.04em] text-white/90">{relationHeadline}</p>
+                <p className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm font-semibold text-cyan-50">{relationSignal}</p>
+                <div className="rounded-xl border border-pink-100/20 bg-pink-300/10 px-3 py-2">
+                  <p className="text-[10px] font-semibold tracking-[0.15em] text-pink-100/85">ONE LINE LINK</p>
+                  <p className="mt-1 text-sm leading-6 text-white/92">{oneLine}</p>
+                </div>
               </div>
-              <span className="absolute left-4 top-4 text-xs text-white/70">
-                <DestinyIcon name="sparkle" size={13} className="text-white/75" variant="glow" />
-              </span>
-              <span className="absolute right-5 top-8 text-sm text-pink-100/70">
-                <DestinyIcon name="star" size={15} className="text-pink-100/75" variant="soft" />
-              </span>
-              <span className="absolute bottom-6 left-6 text-[11px] text-cyan-100/75">
-                <DestinyIcon name="ribbon" size={13} className="text-cyan-100/80" variant="soft" />
-              </span>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {photocardTags.map((tag) => (
-                <span key={tag} className={styles.keywordChip}>#{tag}</span>
-              ))}
-            </div>
-
-            <p className={`mt-3 text-sm leading-6 text-white/92 ${styles.cardClamp2}`}>
-              "{vm.oneLineDestinyMessage}"
-            </p>
-
-            <div className={styles.serialStrip}>
-              <span>{vm.editionLabel || "Aura Rare"}</span>
+            <div className="mt-4 flex items-center justify-between rounded-full border border-white/15 bg-white/5 px-3 py-2 text-[11px] font-semibold text-white/70">
               <span>{vm.destinyId}</span>
               <span>{vm.issuedAt}</span>
             </div>
@@ -89,7 +78,7 @@ export default function DestinyBiasPhotocard({
       </div>
 
       <p className="mt-3 text-center text-xs text-white/60">
-        PNG 저장은 스토리 비율(9:16)로 제공됩니다.
+        포토카드는 팬-최애 에너지 관계 요약 중심으로 저장됩니다.
       </p>
 
       <div

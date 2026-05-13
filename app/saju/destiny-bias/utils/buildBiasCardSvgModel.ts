@@ -3,6 +3,9 @@ import { fitTextToBox } from "./svgText";
 export type DestinyBiasCardSvgInput = {
   userName: string;
   biasName: string;
+  userEnergyType: string;
+  biasEnergyType: string;
+  relationMood: string;
   linkedArtist: string;
   compatibilityScore: number;
   auraType: string;
@@ -23,6 +26,10 @@ export type DestinyBiasCardSvgInput = {
 
 export type DestinyBiasCardSvgModel = {
   biasName: ReturnType<typeof fitTextToBox>;
+  relationPair: ReturnType<typeof fitTextToBox>;
+  userEnergyType: ReturnType<typeof fitTextToBox>;
+  biasEnergyType: ReturnType<typeof fitTextToBox>;
+  relationMood: ReturnType<typeof fitTextToBox>;
   linkedArtist: ReturnType<typeof fitTextToBox>;
   stageLine: ReturnType<typeof fitTextToBox>;
   sparkUnit: ReturnType<typeof fitTextToBox>;
@@ -61,6 +68,34 @@ export function buildBiasCardSvgModel(input: DestinyBiasCardSvgInput): DestinyBi
       fontSize: 58,
       minFontSize: 24,
       lineHeight: 62,
+    }),
+    relationPair: fitTextToBox(`${trimText(input.userName, "YOU")} x ${trimText(input.biasName, "BIAS")}`, {
+      maxWidth: 720,
+      maxLines: 1,
+      fontSize: 42,
+      minFontSize: 21,
+      lineHeight: 48,
+    }),
+    userEnergyType: fitTextToBox(trimText(input.userEnergyType, "팬 에너지"), {
+      maxWidth: 670,
+      maxLines: 1,
+      fontSize: 26,
+      minFontSize: 14,
+      lineHeight: 30,
+    }),
+    biasEnergyType: fitTextToBox(trimText(input.biasEnergyType, "최애 에너지"), {
+      maxWidth: 670,
+      maxLines: 1,
+      fontSize: 26,
+      minFontSize: 14,
+      lineHeight: 30,
+    }),
+    relationMood: fitTextToBox(trimText(input.relationMood, "응원형"), {
+      maxWidth: 670,
+      maxLines: 1,
+      fontSize: 28,
+      minFontSize: 14,
+      lineHeight: 32,
     }),
     linkedArtist: fitTextToBox(`Linked Artist: ${trimText(input.linkedArtist, input.biasName)}`, {
       maxWidth: 700,

@@ -823,10 +823,12 @@ export default function DestinyBiasClient() {
             ) : null}
 
             {uiStep === 3 ? (
-              <section className={styles.inputPanel}>
+              <section className="relative overflow-hidden rounded-[28px] border border-white/15 bg-[linear-gradient(150deg,rgba(8,18,42,0.8),rgba(26,20,68,0.55))] p-5 shadow-[0_20px_54px_rgba(2,6,23,0.42)]">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_14%,rgba(244,114,182,0.2),transparent_30%),radial-gradient(circle_at_85%_82%,rgba(34,211,238,0.18),transparent_35%)]" aria-hidden />
+                <div className="relative z-10">
                 <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">HOLOGRAM PHOTOCARD BOOTH</p>
                 <h2 className="mt-2 text-2xl font-black">콘서트 무드 테마 선택</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">핑크/보라/블루 네온 스테이지 중 오늘의 운명 무드를 고르면 결과 카드와 해설 톤이 맞춰집니다.</p>
+                <p className="mt-2 text-sm leading-7 text-white/80">오늘의 우주 콘서트 톤을 고르면 포토카드와 해설의 공기감이 같은 무드로 맞춰집니다.</p>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {destinyBiasThemeChoices.map((theme) => {
@@ -845,7 +847,11 @@ export default function DestinyBiasClient() {
                           }
                           setActiveThemeKey(theme.key);
                         }}
-                        className={`${styles.themeCard} ${active ? styles.themeCardActive : ""} ${locked ? "opacity-50 cursor-not-allowed" : ""} text-left`}
+                        className={`group overflow-hidden rounded-2xl border bg-white/5 text-left transition ${
+                          active
+                            ? "border-pink-200/80 shadow-[0_0_0_1px_rgba(251,113,229,0.45),0_10px_28px_rgba(251,113,229,0.28)]"
+                            : "border-white/20 hover:border-cyan-200/60 hover:bg-cyan-300/10"
+                        } ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         <div className="h-24" style={{ background: theme.preview }} />
                         <div className="p-3">
@@ -864,6 +870,7 @@ export default function DestinyBiasClient() {
                     );
                   })}
                 </div>
+                </div>
               </section>
             ) : null}
 
@@ -876,15 +883,18 @@ export default function DestinyBiasClient() {
 
           {uiStep === 5 && resultVm ? (
             <section className="mx-auto w-full max-w-5xl space-y-5">
-              <article className={`rounded-[30px] p-5 md:p-7 ${styles.glass}`}>
-                <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">FAN CONCERT DESTINY REPORT</p>
-                <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와의 최애운명 메인 리포트</h2>
-                <p className="mt-2 max-w-3xl text-sm leading-7 text-white/88">
-                  오늘 당신과 최애 사이에는 은은하지만 선명한 공명이 흐르고 있어요.
-                  무대 위의 반짝임처럼, 이 인연은 보는 순간 마음을 흔드는 힘이 있어요.
-                </p>
-                <div className="mt-3 inline-flex">
-                  <FansignEditionBadge editionLabel={resultVm.editionLabel} destinyGrade={resultVm.destinyGrade} />
+              <article className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(8,18,44,0.8),rgba(25,20,70,0.54))] p-5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] md:p-7">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(244,114,182,0.26),transparent_38%),radial-gradient(circle_at_88%_88%,rgba(34,211,238,0.2),transparent_35%)]" aria-hidden />
+                <div className="relative z-10">
+                  <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">FAN CONCERT DESTINY REPORT</p>
+                  <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와의 최애운명 메인 리포트</h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-7 text-white/88">
+                    오늘 당신과 최애 사이에는 은은하지만 선명한 공명이 흐르고 있어요.
+                    무대 위의 잔광처럼, 이 인연은 시간이 지날수록 더 깊게 울립니다.
+                  </p>
+                  <div className="mt-3 inline-flex">
+                    <FansignEditionBadge editionLabel={resultVm.editionLabel} destinyGrade={resultVm.destinyGrade} />
+                  </div>
                 </div>
               </article>
 
@@ -899,21 +909,21 @@ export default function DestinyBiasClient() {
               <section className="space-y-3">
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">KEY SUMMARY</p>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <article className={styles.scoreCell}>
+                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
                     <p className="text-[11px] text-white/70">궁합 점수</p>
                     <p className="mt-1 text-2xl font-black text-white">{resultVm.totalScore}</p>
                   </article>
-                  <article className={styles.scoreCell}>
+                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
                     <p className="text-[11px] text-white/70">에너지 타입</p>
                     <p className="mt-1 text-base font-black text-white">{resultVm.auraType}</p>
                     <p className="text-xs text-white/65">{resultVm.auraMaterial}</p>
                   </article>
-                  <article className={styles.scoreCell}>
+                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
                     <p className="text-[11px] text-white/70">관계 무드</p>
                     <p className="mt-1 text-base font-black text-white">{resultVm.relationMood}</p>
                     <p className="text-xs text-white/65">{resultVm.pairingAlias}</p>
                   </article>
-                  <article className={styles.scoreCell}>
+                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
                     <p className="text-[11px] text-white/70">시너지 키워드</p>
                     <div className="mt-2 flex flex-wrap justify-center gap-1">
                       {resultVm.stageChemistryKeywords.slice(0, 3).map((keyword) => (

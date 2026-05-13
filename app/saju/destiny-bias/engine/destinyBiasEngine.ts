@@ -176,6 +176,9 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const cardSvg = createDestinyBiasCardSvg({
     userName,
     biasName,
+    userEnergyType: compatibility.userEnergyType,
+    biasEnergyType: compatibility.biasEnergyType,
+    relationMood: input.relationMood,
     linkedArtist,
     compatibilityScore: compatibility.totalScore,
     auraType: auraMeta.auraType,

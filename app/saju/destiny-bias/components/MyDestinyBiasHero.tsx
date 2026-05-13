@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import styles from "../destiny-bias.module.css";
 
 export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
   const reduceMotion = useReducedMotion();
@@ -11,22 +10,18 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-[28px] p-5 md:p-7"
-      style={{
-        background: "radial-gradient(ellipse at 10% 10%, rgba(255,95,210,0.14) 0%, transparent 50%), radial-gradient(ellipse at 90% 80%, rgba(64,200,255,0.1) 0%, transparent 50%), rgba(255,255,255,0.07)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        backdropFilter: "blur(20px)",
-        boxShadow: "0 24px 70px rgba(3,2,14,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
-      }}
+      className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(9,18,45,0.82),rgba(28,24,74,0.58))] p-6 shadow-[0_28px_80px_rgba(2,6,23,0.5)] md:p-7"
     >
-      <div className={styles.heroArtworkLayer} aria-hidden />
-
-      {/* Pink glow blob */}
-      <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-pink-300/25 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -right-20 top-8 h-52 w-52 rounded-full bg-cyan-300/18 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(244,114,182,0.3),transparent_38%),radial-gradient(circle_at_88%_80%,rgba(34,211,238,0.24),transparent_42%),radial-gradient(circle_at_52%_100%,rgba(99,102,241,0.18),transparent_45%)]" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 opacity-55" aria-hidden>
+        <div className="absolute left-16 top-9 h-1 w-1 rounded-full bg-white/70" />
+        <div className="absolute left-28 top-20 h-1.5 w-1.5 rounded-full bg-cyan-100/70" />
+        <div className="absolute right-20 top-14 h-1.5 w-1.5 rounded-full bg-pink-100/75" />
+        <div className="absolute right-28 top-28 h-1 w-1 rounded-full bg-white/65" />
+      </div>
 
       <div className="relative z-10">
-        <div className={`${styles.entryPassLabel} mb-2`}>✦ COSMIC FANLIGHT STAGE ✦</div>
+        <div className="mb-2 inline-flex rounded-full border border-pink-200/45 bg-pink-300/12 px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-pink-100/90">COSMIC FANLIGHT STAGE</div>
 
         <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_20px_rgba(255,95,210,0.45)] md:text-4xl">
           MY DESTINY BIAS
@@ -43,7 +38,6 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
         ) : null}
       </div>
 
-      {/* Aurora bottom glow */}
       <div
         className="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
         aria-hidden
