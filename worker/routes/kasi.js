@@ -54,6 +54,7 @@ async function requestCalendar(env, methodRaw, paramsRaw) {
   }
 
   let lastError = null;
+  let lastNon404Error = null;
   for (const kasiBaseUrl of kasiBaseUrls) {
     for (const serviceKey of candidates) {
       const query = new URLSearchParams({
@@ -102,10 +103,25 @@ async function requestCalendar(env, methodRaw, paramsRaw) {
           cache: "miss",
         };
       } catch (error) {
+        const upstreamStatus = Number(
+          error?.payload?.upstreamStatus
+          || error?.upstreamStatus
+          || error?.status
+          || 0,
+        );
+
         if (error?.name === "AbortError") {
           lastError = createHttpError(503, "KASI API 타임아웃", { code: "KASI_TIMEOUT", upstreamBase: kasiBaseUrl });
         } else {
           lastError = error;
+        }
+
+        if (upstreamStatus && upstreamStatus !== 404 && !lastNon404Error) {
+          lastNon404Error = lastError;
+        }
+
+        if (upstreamStatus === 401 || upstreamStatus === 403) {
+          throw lastError;
         }
       } finally {
         clearTimeout(timer);
@@ -113,7 +129,7 @@ async function requestCalendar(env, methodRaw, paramsRaw) {
     }
   }
 
-  throw lastError || createHttpError(503, "KASI API 요청 실패", { code: "KASI_REQUEST_FAILED" });
+  throw lastNon404Error || lastError || createHttpError(503, "KASI API 요청 실패", { code: "KASI_REQUEST_FAILED" });
 }
 
 export async function handleKasiRoutes(request, env = {}) {
@@ -153,15 +169,24 @@ export async function handleKasiRoutes(request, env = {}) {
 
     if (Number(error?.status) >= 500) {
       const isKeyMissing = error?.code === "KASI_KEY_MISSING";
+      const upstreamStatus = Number(error?.payload?.upstreamStatus || 0);
+      const isKeyForbidden = upstreamStatus === 401 || upstreamStatus === 403;
       return json({
         ok: false,
         maintenance: true,
         fallbackRecommended: true,
-        code: isKeyMissing ? "KASI_KEY_MISSING" : "KASI_UPSTREAM_ERROR",
+        code: isKeyMissing
+          ? "KASI_KEY_MISSING"
+          : (isKeyForbidden ? "KASI_KEY_FORBIDDEN" : "KASI_UPSTREAM_ERROR"),
         message: isKeyMissing
           ? "한국천문연 API 키가 설정되지 않아 로컬 엔진으로 전환합니다."
-          : "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요.",
-        detail: error?.message || null,
+          : (isKeyForbidden
+            ? "한국천문연 API 인증 또는 권한 오류로 로컬 엔진으로 전환합니다."
+            : "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요."),
+        detail: isKeyForbidden
+          ? `KASI 응답 오류: HTTP ${upstreamStatus}`
+          : (error?.message || null),
+        upstreamStatus: upstreamStatus || null,
       }, { status: 503 });
     }
 
