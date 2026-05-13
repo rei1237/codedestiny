@@ -1956,13 +1956,35 @@ export default function PointsPage() {
         apiBase,
       });
 
-      if (prepareRes.status === 404 || prepareRes.status === 405 || prepareRes.status === 501) {
+      if (
+        prepareRes.status === 404
+        || prepareRes.status === 405
+        || prepareRes.status === 501
+        || prepareRes.status === 502
+        || prepareRes.status === 503
+        || prepareRes.status === 504
+        || prepareRes.status >= 520
+      ) {
         await handleSubscribeLegacy(plan);
         return;
       }
 
-      const prepareData = await safeParseJson<PrepareSubscriptionOrderResponse>(prepareRes);
+      let prepareData: PrepareSubscriptionOrderResponse;
+      try {
+        prepareData = await safeParseJson<PrepareSubscriptionOrderResponse>(prepareRes);
+      } catch (parseError) {
+        if (prepareRes.status >= 500) {
+          await handleSubscribeLegacy(plan);
+          return;
+        }
+        throw parseError;
+      }
+
       if (!prepareRes.ok || !prepareData.order) {
+        if (prepareRes.status >= 500) {
+          await handleSubscribeLegacy(plan);
+          return;
+        }
         if (prepareRes.status === 409) {
           pushToast("error", prepareData.message || "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.");
           return;

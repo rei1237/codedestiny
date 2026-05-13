@@ -1764,9 +1764,26 @@ async function handleSubscriptionCancel(request, auth) {
   });
 }
 
+function normalizeLegacyFortunePath(rawPath) {
+  const path = String(rawPath || "").trim();
+  if (!path) return path;
+
+  // Legacy clients may still call /pig-coin-subscription/*.
+  if (path.startsWith("/pig-coin-subscription/")) {
+    return path.replace("/pig-coin-subscription/", "/pig-coin/profile-subscription/");
+  }
+
+  // Legacy variant used in older bundles.
+  if (path.startsWith("/pig-coin/subscription/")) {
+    return path.replace("/pig-coin/subscription/", "/pig-coin/profile-subscription/");
+  }
+
+  return path;
+}
+
 export async function handleFortuneRoutes(request, env) {
   const method = request.method.toUpperCase();
-  const path = getRoutePath(request, "/api/fortune");
+  const path = normalizeLegacyFortunePath(getRoutePath(request, "/api/fortune"));
   const trace = {
     route: "fortune",
     requestPath: new URL(request.url).pathname,

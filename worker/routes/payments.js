@@ -7,6 +7,9 @@ import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 
+const PAYMENTS_READ_QUERY_TIMEOUT_MS = 6000;
+let readIndexesEnsurePromise = null;
+
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
   if (!Number.isFinite(unixSeconds) || unixSeconds <= 0) return new Date();
@@ -71,13 +74,72 @@ function toIsoOrNull(value) {
   return date ? date.toISOString() : null;
 }
 
-async function findUserByIdRaw(userId, projection = {}) {
+function resolveReadQueryTimeoutMs(env = {}) {
+  const parsed = Number(getEnv(env, "PAYMENTS_READ_QUERY_TIMEOUT_MS", String(PAYMENTS_READ_QUERY_TIMEOUT_MS)));
+  if (!Number.isFinite(parsed) || parsed < 1500) return PAYMENTS_READ_QUERY_TIMEOUT_MS;
+  return Math.min(Math.floor(parsed), 20000);
+}
+
+function buildReadDbEnv(env = {}, queryTimeoutMs = PAYMENTS_READ_QUERY_TIMEOUT_MS) {
+  const clamp = (value, fallback, floor, ceil) => {
+    const raw = Number(value);
+    if (!Number.isFinite(raw)) return fallback;
+    return Math.max(floor, Math.min(Math.floor(raw), ceil));
+  };
+
+  const fastTimeout = clamp(queryTimeoutMs, PAYMENTS_READ_QUERY_TIMEOUT_MS, 2500, 9000);
+  const serverSelection = clamp(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", String(fastTimeout)), fastTimeout, 2500, 9000);
+  const connectTimeout = clamp(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", String(fastTimeout)), fastTimeout, 2500, 9000);
+  const guardTimeout = clamp(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", String(fastTimeout + 1000)), fastTimeout + 1000, 3000, 11000);
+
+  return {
+    ...env,
+    MONGO_SERVER_SELECTION_TIMEOUT_MS: String(serverSelection),
+    MONGO_CONNECT_TIMEOUT_MS: String(connectTimeout),
+    MONGO_WORKER_CONNECT_GUARD_MS: String(guardTimeout),
+  };
+}
+
+function isLikelyQueryTimeoutError(error) {
+  const text = String(error?.message || "").toLowerCase();
+  return text.includes("maxtimems")
+    || text.includes("operation exceeded time limit")
+    || text.includes("query exceeded")
+    || text.includes("execution time limit")
+    || text.includes("timed out");
+}
+
+function ensureReadIndexesInBackground() {
+  if (readIndexesEnsurePromise) return readIndexesEnsurePromise;
+
+  readIndexesEnsurePromise = (async () => {
+    const tasks = [
+      Payment.collection.createIndex({ userId: 1, createdAt: -1 }, { background: true }),
+      PointHistory.collection.createIndex({ userId: 1, createdAt: -1 }, { background: true }),
+      PointHistory.collection.createIndex({ userId: 1, kind: 1, createdAt: -1 }, { background: true }),
+    ];
+
+    const settled = await Promise.allSettled(tasks);
+    const failed = settled.filter((entry) => entry.status === "rejected");
+    if (failed.length > 0) {
+      console.warn("[payments/read-indexes] 일부 인덱스 보장 실패:", failed.map((entry) => String(entry.reason?.message || entry.reason || "unknown")));
+    }
+    return failed.length === 0;
+  })().catch((error) => {
+    console.warn("[payments/read-indexes] 인덱스 보장 실패:", String(error?.message || "unknown"));
+    return false;
+  });
+
+  return readIndexesEnsurePromise;
+}
+
+async function findUserByIdRaw(userId, projection = {}, maxTimeMS = PAYMENTS_READ_QUERY_TIMEOUT_MS) {
   const normalizedId = String(userId || "").trim();
   if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
 
   return User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(normalizedId) },
-    { projection },
+    { projection, maxTimeMS },
   );
 }
 
@@ -1693,19 +1755,33 @@ function buildTokenFallbackPaymentsMe(auth, message) {
   };
 }
 
-async function handleMe(auth) {
+async function handleMe(auth, env) {
+  const queryTimeoutMS = resolveReadQueryTimeoutMs(env);
+  const readDbEnv = buildReadDbEnv(env, queryTimeoutMS);
+
   try {
+    await connectDb(readDbEnv);
+    traceReadIndexWarmup();
+
     const user = await findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
       points: 1,
       unlockedFeatures: 1,
       profileSubscription: 1,
-    });
+    }, queryTimeoutMS);
 
     const [recentPayments, pointHistories] = await Promise.all([
-      Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
-      PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
+      Payment.find({ userId: auth.userId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .maxTimeMS(queryTimeoutMS)
+        .lean(),
+      PointHistory.find({ userId: auth.userId })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .maxTimeMS(queryTimeoutMS)
+        .lean(),
     ]);
 
     const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
@@ -1716,22 +1792,35 @@ async function handleMe(auth) {
 
     return json(body);
   } catch (error) {
+    const isTimeout = isLikelyQueryTimeoutError(error);
     console.warn("[payments/me] degraded fallback to token:", String(error?.message || "unknown"));
-    return json(buildTokenFallbackPaymentsMe(auth));
+    return json(buildTokenFallbackPaymentsMe(
+      auth,
+      isTimeout
+        ? "Payment data query timed out. Loaded safe account data from token."
+        : undefined,
+    ));
   }
 }
 
-async function handlePointsMe(auth) {
+async function handlePointsMe(auth, env) {
+  const queryTimeoutMS = resolveReadQueryTimeoutMs(env);
+  const readDbEnv = buildReadDbEnv(env, queryTimeoutMS);
+
   try {
+    await connectDb(readDbEnv);
+    traceReadIndexWarmup();
+
     const user = await findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
       points: 1,
-    });
+    }, queryTimeoutMS);
 
     const pointHistories = await PointHistory.find({ userId: auth.userId })
       .sort({ createdAt: -1 })
       .limit(20)
+      .maxTimeMS(queryTimeoutMS)
       .lean();
 
     const transactions = Array.isArray(pointHistories)
@@ -1758,8 +1847,14 @@ async function handlePointsMe(auth) {
       transactions,
     });
   } catch (error) {
+    const isTimeout = isLikelyQueryTimeoutError(error);
     console.warn("[payments/points-me] degraded fallback to token:", String(error?.message || "unknown"));
-    const fallbackBody = buildTokenFallbackPaymentsMe(auth, "Point history is temporarily unavailable. Loaded safe account data from token.");
+    const fallbackBody = buildTokenFallbackPaymentsMe(
+      auth,
+      isTimeout
+        ? "Point history query timed out. Loaded safe account data from token."
+        : "Point history is temporarily unavailable. Loaded safe account data from token.",
+    );
     return json({
       success: true,
       ok: true,
@@ -1781,6 +1876,11 @@ async function handlePointsMe(auth) {
       transactions: [],
     });
   }
+}
+
+function traceReadIndexWarmup() {
+  // Fire-and-forget warmup: build critical read indexes when missing.
+  void ensureReadIndexesInBackground();
 }
 
 export async function handlePaymentRoutes(request, env) {
@@ -1820,6 +1920,9 @@ export async function handlePaymentRoutes(request, env) {
     const auth = await requireAuth(request, env);
     trace.authVerified = true;
 
+    if (method === "GET" && path === "/me") return await handleMe(auth, env);
+    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
+
     await connectDb(env);
     trace.dbConnected = true;
 
@@ -1829,8 +1932,6 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
     if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
-    if (method === "GET" && path === "/me") return await handleMe(auth);
-    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth);
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
