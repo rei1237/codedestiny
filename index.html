@@ -7445,6 +7445,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       document.body.classList.remove('lb-modal-open');
     } catch (_) {}
     if(action==='toggleRptCard'){if(typeof window.toggleReportFeatureCard==='function')window.toggleReportFeatureCard(actionEl);return;}
+    if (action === 'openAnimalDestinyRoute') {
+      if (typeof window.openAnimalDestinyRoute === 'function') {
+        window.openAnimalDestinyRoute();
+      } else {
+        window.location.assign('/saju/animal-destiny');
+      }
+      return;
+    }
     // 관리자 우회 경로에서도 룬 오라클은 href 대신 라우터 액션을 우선 실행
     if (action === 'openRuneOracle') {
       if (typeof window.openRuneOracle === 'function') {
@@ -8177,6 +8185,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     // 잠금 해제 후 직접 실행 (버블 핸들러를 거치지 않는 섹션)
     if (action === 'openSecretHouseRoute') {
       if (typeof window.openSecretHouseRoute === 'function') window.openSecretHouseRoute();
+      return;
+    }
+    if (action === 'openAnimalDestinyRoute') {
+      if (typeof window.openAnimalDestinyRoute === 'function') {
+        window.openAnimalDestinyRoute();
+      } else {
+        window.location.assign('/saju/animal-destiny');
+      }
       return;
     }
 
