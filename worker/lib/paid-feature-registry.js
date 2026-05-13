@@ -236,6 +236,8 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   openCosmicSoulMeditation: "cosmic-soul-meditation",
   openYogaGuru: "yoga-guru-per-use",
   generateLifeBook: "premium-lifebook-report",
+  openLifeBookModal: "premium-lifebook-report",
+  openLoveSecretModal: "premium-love-secret-solo",
   premium_pdf_lifebook: "premium_pdf_saju_life_book",
   premium_pdf_love_secret: "premium_pdf_saju_love_secret",
   premium_pdf_sukuyo: "premium_pdf_sukyo",

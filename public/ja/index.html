@@ -6761,6 +6761,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  // Expose this checker for other script blocks (e.g. tile preview IIFE).
+  window.hasActivePremiumSubscriptionFromCache = hasActivePremiumSubscriptionFromCache;
+
   function syncAuthUserPoints(points) {
     try {
       var user = readAuthUser() || {};
@@ -8611,7 +8614,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
     if(_paywallEl){
       // 구독 플랜 체크
-      var _pvwHasSub = hasActivePremiumSubscriptionFromCache();
+      var _pvwHasSub = (typeof window.hasActivePremiumSubscriptionFromCache === 'function')
+        ? !!window.hasActivePremiumSubscriptionFromCache()
+        : false;
       if(coinCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall';
