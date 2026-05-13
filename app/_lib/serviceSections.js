@@ -9,7 +9,7 @@ export const SERVICE_SECTIONS = [
       { href: "/saju/love-secret", title: "💕 연애 비책", desc: "사주 기반 연애 전략 · 1인 300코인 / 궁합 +100코인 (총 400코인)" },
       { href: "/saju/love-simulation", title: "💕 LOVE CODE", desc: "사주 연애 시뮬레이션 · 무료" },
       { href: "/saju/destiny-bias", title: "✨ 최애운명", desc: "사주 기반 팬덤 공명 분석 · 1회 50코인" },
-      { href: "/saju/animal-destiny", title: "🦊 십이운성 동물점", desc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 100코인" },
+      { href: "/saju/animal-test", title: "🦊 십이운성 동물점", desc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 100코인" },
     ],
   },
   {

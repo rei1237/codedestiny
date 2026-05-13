@@ -19,7 +19,7 @@ export default function AnimalDestinyIntro() {
           </div>
           <div className="relative mx-auto h-44 w-44 overflow-hidden rounded-2xl border-2 border-white/70 shadow-md">
             <Image
-              src="/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%20%ED%85%8C%EC%8A%A4%ED%8A%B8.webp"
+              src="/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp"
               alt="십이운성 동물점"
               fill
               priority

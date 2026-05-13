@@ -72,13 +72,16 @@ test("unlock pricing is registered as 100 coins in worker registry", () => {
 
 test("service exposure and hero image wiring are present", () => {
   const sections = read("app/_lib/serviceSections.js");
-  assert.ok(sections.includes('href: "/saju/animal-destiny"'));
+  assert.ok(sections.includes('href: "/saju/animal-test"'));
+
+  const aliasRoute = read("app/saju/animal-test/page.tsx");
+  assert.ok(aliasRoute.includes('/saju/animal-destiny'));
 
   const intro = read("app/saju/animal-destiny/components/AnimalDestinyIntro.tsx");
-  const encodedAsset = "/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%20%ED%85%8C%EC%8A%A4%ED%8A%B8.webp";
+  const encodedAsset = "/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp";
   assert.ok(intro.includes(encodedAsset));
 
-  const imageFileName = decodeURIComponent("%EB%8F%99%EB%AC%BC%EC%A0%90%20%ED%85%8C%EC%8A%A4%ED%8A%B8.webp");
+  const imageFileName = decodeURIComponent("%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp");
   const imagePath = path.join(process.cwd(), "public", "fuctionassets", imageFileName);
   assert.ok(fs.existsSync(imagePath), "Expected hero image file to exist in public assets");
 });

@@ -4,9 +4,32 @@
 /* ══════════════════════════════════════════════
    리포트 대시보드 — 10개 분석 기능 카드 UI
    ══════════════════════════════════════════════ */
+var SAJU_ANIMAL_TEST_FEATURE = {
+  id: 'saju-animal-test',
+  title: '사주 십이운성 동물 테스트',
+  shortTitle: '사주 동물 테스트',
+  description: '내 사주의 십이운성 에너지를 귀여운 동물 캐릭터로 분석하고, 성격·연애·진로·궁합까지 재미있게 확인해보세요.',
+  category: 'fun-saju',
+  group: '재미있는 사주 콘텐츠',
+  href: '/saju/animal-test',
+  emoji: '🐷🐱🦁',
+  tags: ['십이운성', '동물점', '성격분석', '연애궁합', '진로성향'],
+  badge: 'NEW',
+  enabled: true,
+  requiresLogin: false,
+  requiresProfile: false,
+  cta: '테스트 시작하기',
+  lockKey: 'animal-destiny-unlock',
+  coinCost: 100,
+  thumb: '동물점테스트.webp',
+  action: 'openAnimalDestinyRoute',
+  target: 'animalDestinyEntryCard'
+};
+
 var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기',     accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
   { id:'quantum',    thumb:'quntum.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'지금 밀어붙일 타이밍인지, 숨을 고를 타이밍인지 천기적으로 짚어드립니다.', cta:'⚡ 천기 리포트 보기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        coinCost:50  },
+  { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성 흐름으로 지금의 성향과 상성을 읽고, 동물 아키타입 리포트까지 바로 확인할 수 있습니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
   { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타/초상화 제작용 프롬프트를 받아보세요.',         note:'내 사주 분위기를 AI 이미지로 구현할 문장까지 바로 가져갈 수 있습니다.', cta:'🤖 사주 프롬프트 보기',        accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0   },
   { id:'sajurpg',    label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:30  },
@@ -15,11 +38,30 @@ var REPORT_CARDS = [
   { id:'trip',       label:'사주로 보는 여행지',     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:'🗺️ 여행지 리포트 보기',         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
   { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
-  { id:'animaldestiny', thumb:'동물점 테스트.webp', label:'십이운성 동물점', desc:'사주 속 십이운성으로 깨어나는 나만의 수호 동물을 확인해보세요.', note:'열두 운성 흐름으로 지금의 성향과 상성을 읽고, 동물 아키타입 리포트까지 바로 확인할 수 있습니다.', cta:'🦊 십이운성 동물점 열기', accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target:'animalDestinyEntryCard', action:'openAnimalDestinyRoute', lockKey:'animal-destiny-unlock', coinCost:100 },
   { id:'godlife',    label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
   { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 }
 ];
+
+(function ensureSajuAnimalCardRegistered() {
+  var isLocalDebug = false;
+  try {
+    var host = String((window.location && window.location.hostname) || '');
+    isLocalDebug = host === 'localhost' || host === '127.0.0.1';
+  } catch (_) {
+    isLocalDebug = false;
+  }
+
+  if (!isLocalDebug) return;
+
+  var hasAnimalTest = REPORT_CARDS.some(function(item) {
+    return item.id === SAJU_ANIMAL_TEST_FEATURE.id;
+  });
+
+  if (!hasAnimalTest && typeof console !== 'undefined' && typeof console.warn === 'function') {
+    console.warn('[FeatureRegistry] 사주 동물 테스트 카드가 재미있는 사주 콘텐츠에 등록되지 않았습니다.');
+  }
+})();
 
 function _rptIsDirectAction(actionName) {
   return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute';
@@ -49,7 +91,7 @@ window.openSecretHouseRoute = function() {
 };
 
 window.openAnimalDestinyRoute = function() {
-  var target = '/saju/animal-destiny';
+  var target = SAJU_ANIMAL_TEST_FEATURE.href || '/saju/animal-test';
   try {
     window.location.assign(target);
   } catch (e) {
@@ -821,6 +863,9 @@ function renderReportDashboard() {
         cta: c.cta,
         accent: c.accent,
         glow: c.glow,
+        shortTitle: c.shortTitle || '',
+        badge: c.badge || '',
+        tags: Array.isArray(c.tags) ? c.tags.slice(0, 5) : [],
         lockKey: c.lockKey || '',
         coinCost: Number(c.coinCost || 0)
       };
@@ -852,8 +897,16 @@ function renderReportDashboard() {
 
     /* 카드 헤더 + CTA */
     gridHtml += '<div class="rpt-v2-head">';
-    gridHtml += '<h3 id="' + titleId + '" class="sec-title rpt-v2-title">' + b.title + '</h3>';
+    gridHtml += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">';
+    gridHtml += '<h3 id="' + titleId + '" class="sec-title rpt-v2-title">' + (b.shortTitle || b.title) + '</h3>';
+    if (b.badge) {
+      gridHtml += '<span style="display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:999px;font-size:.68rem;font-weight:900;letter-spacing:.02em;color:#fff;background:linear-gradient(135deg,#22c55e 0%,#0ea5e9 100%);box-shadow:0 8px 16px rgba(14,165,233,.26);">' + b.badge + '</span>';
+    }
+    gridHtml += '</div>';
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
+    if (b.tags && b.tags.length) {
+      gridHtml += '<p style="margin:2px 0 0;color:#f8d67f;font-size:.73rem;line-height:1.45;">' + b.tags.map(function(tag) { return '#' + tag; }).join(' · ') + '</p>';
+    }
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     var lockKey = b.lockKey || ('rpt_' + b.target);
     var coinAttrs = (b.coinCost > 0) ? (' data-tile-lock-key="' + lockKey + '" data-tile-lock-cost="' + b.coinCost + '"') : '';

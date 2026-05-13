@@ -106,7 +106,25 @@ export const SERVICE_MAP = {
       "일간과 일지를 기준으로 십이운성을 계산해 12동물 캐릭터, 성격·연애·진로·궁합을 게임형 UI로 제공하는 사주 콘텐츠.",
     seoText:
       "십이운성 동물점은 기존 사주 엔진 값을 우선 활용하며 일간 대비 일지의 십이운성으로 대표 동물을 산출합니다.",
-    ogImage: "https://code-destiny.com/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%20%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
+    ogImage: "https://code-destiny.com/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
+    landingPoints: ["일간·지지 기반 십이운성 계산", "수집형 동물 캐릭터 리빌", "공유 카드 저장 + 궁합 모드", "해금 100코인"],
+    keywords: [
+      "십이운성 동물점",
+      "수호 동물",
+      "사주 동물 테스트",
+      "animal destiny",
+      "twelve stage saju",
+    ],
+  },
+  "saju/animal-test": {
+    component: FeatureLandingPage,
+    title: "십이운성 동물점 - 나의 수호 동물 소환",
+    h1: "십이운성 동물점",
+    description:
+      "일간과 일지를 기준으로 십이운성을 계산해 12동물 캐릭터, 성격·연애·진로·궁합을 게임형 UI로 제공하는 사주 콘텐츠.",
+    seoText:
+      "십이운성 동물점은 기존 사주 엔진 값을 우선 활용하며 일간 대비 일지의 십이운성으로 대표 동물을 산출합니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
     landingPoints: ["일간·지지 기반 십이운성 계산", "수집형 동물 캐릭터 리빌", "공유 카드 저장 + 궁합 모드", "해금 100코인"],
     keywords: [
       "십이운성 동물점",
