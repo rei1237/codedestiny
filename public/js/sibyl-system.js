@@ -35,6 +35,14 @@
   });
   var _sibylUiState = SibylState.LOADING;
   var _sibylLastPaidContext = null;
+  var SIBYL_DEFAULT_RISK_SCORE = 45;
+  var SIBYL_DEFAULT_APTITUDE_SCORE = 520;
+  var SIBYL_DEFAULT_STABILITY_SCORE = 55;
+  var SIBYL_DEFAULT_RELATIONSHIP_SCORE = 58;
+  var SIBYL_DEFAULT_WEALTH_SCORE = 56;
+  var SIBYL_DEFAULT_CAREER_SCORE = 60;
+  var SIBYL_PRIMARY_TENGOD_FALLBACK = '중심 기질 분석 중';
+  var SIBYL_CORE_MATRIX_FALLBACK = '사주 코어 매트릭스 데이터를 보강해 기본 분석을 재구성했습니다. 핵심 축은 유지되며, 누락 필드는 안전한 기준값으로 보정됩니다.';
 
   /* 십성 → 섹터 매핑 */
   var TENSTAR_SECTOR = {
@@ -53,6 +61,7 @@
   /* 오행 인덱스 */
   var EL_ORDER = ['wood','fire','earth','metal','water'];
   var EL_KR = { wood:'목(木)', fire:'화(火)', earth:'토(土)', metal:'금(金)', water:'수(水)' };
+  var EL_BALANCE_LABEL = { wood:'목', fire:'화', earth:'토', metal:'금', water:'수' };
   var EL_COLOR = { wood:'#39ff14', fire:'#ff6a00', earth:'#ffd700', metal:'#c8e0ff', water:'#00bfff' };
   var EL_DESTINY_HUE = {
     wood:  { name:'제이드 그린 (Jade Green)',   hex:'#39ff14', status:'clear' },
@@ -61,6 +70,39 @@
     metal: { name:'아크틱 실버 (Arctic Silver)', hex:'#b0c8e0', status:'clear' },
     water: { name:'딥 오션 블루 (Deep Ocean Blue)', hex:'#00bfff', status:'clear' }
   };
+
+  function _isSibylDevMode() {
+    try {
+      if (window && window.__CD_ENV && String(window.__CD_ENV).toLowerCase() === 'development') return true;
+    } catch (_) {}
+    try {
+      var host = String(window.location && window.location.hostname || '').toLowerCase();
+      if (host === 'localhost' || host === '127.0.0.1' || host === '::1') return true;
+    } catch (_) {}
+    return false;
+  }
+
+  function _sibylDevDebug(label, payload) {
+    if (!_isSibylDevMode() || typeof console === 'undefined' || typeof console.debug !== 'function') return;
+    console.debug(label, payload);
+  }
+
+  function _sibylDevWarn(label, payload) {
+    if (!_isSibylDevMode() || typeof console === 'undefined' || typeof console.warn !== 'function') return;
+    console.warn(label, payload);
+  }
+
+  function _safeText(value, fallback) {
+    var text = String(value == null ? '' : value).trim();
+    return text || String(fallback || '').trim();
+  }
+
+  function _safeScore(value, fallback, min, max) {
+    var num = Number(value);
+    if (!Number.isFinite(num)) num = Number(fallback);
+    if (!Number.isFinite(num)) num = 0;
+    return _clamp(Math.round(num), Number(min), Number(max));
+  }
 
   /* 비겁 과다 임계 */
   var BIJAB_WARN_THRESHOLD = 3;
@@ -811,6 +853,309 @@
     };
   }
 
+  function normalizeSibylInput(rawInput) {
+    var input = rawInput || {};
+    var genderRaw = String(input.gender || '').trim().toLowerCase();
+    var gender = 'unknown';
+    if (genderRaw === 'm' || genderRaw === 'male' || genderRaw === 'man' || genderRaw === '남' || genderRaw === '남성') gender = 'male';
+    if (genderRaw === 'f' || genderRaw === 'female' || genderRaw === 'woman' || genderRaw === '여' || genderRaw === '여성') gender = 'female';
+
+    var birthDate = _safeText(input.birthDate, '입력값 확인 필요');
+    var birthTime = _safeText(input.birthTime, '시간 미상');
+    var calendarType = String(input.calendarType || 'solar').toLowerCase() === 'lunar' ? 'lunar' : 'solar';
+
+    return {
+      birthDate: birthDate,
+      birthTime: birthTime,
+      gender: gender,
+      calendarType: calendarType
+    };
+  }
+
+  function classifySibylMode(scores, context) {
+    var riskScore = _safeScore(scores && scores.riskScore, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+    var stabilityScore = _safeScore(scores && scores.stabilityScore, SIBYL_DEFAULT_STABILITY_SCORE, 0, 100);
+    var dominantElement = _safeText(context && context.dominantElement, 'water');
+    var primaryTenGod = _safeText(context && context.primaryTenGod, SIBYL_PRIMARY_TENGOD_FALLBACK);
+
+    var mode = 'growth';
+    if (riskScore < 30) mode = 'stability';
+    else if (riskScore < 55) mode = 'growth';
+    else if (riskScore < 75) mode = 'warning';
+    else mode = stabilityScore >= 46 ? 'breakthrough' : 'dominator';
+
+    var riskLevel = 'medium';
+    if (riskScore < 30) riskLevel = 'low';
+    else if (riskScore < 55) riskLevel = 'medium';
+    else if (riskScore < 75) riskLevel = 'high';
+    else riskLevel = 'critical';
+
+    var modeTitleMap = {
+      stability: '안정 유지 모드',
+      growth: '성장 가속 모드',
+      warning: '리스크 경계 모드',
+      breakthrough: '돌파 재편 모드',
+      dominator: '도미네이터 모드'
+    };
+
+    var subtitle = (EL_KR[dominantElement] || dominantElement) + ' 중심 축 · ' + primaryTenGod + ' 패턴';
+    var coreMessage = '핵심 축은 ' + (EL_KR[dominantElement] || dominantElement) + '이며, ' + primaryTenGod + ' 성향을 실행 루틴으로 연결할 때 점수 대비 성과가 안정됩니다.';
+    var warningMessage = riskScore >= 65
+      ? '고위험 구간은 결정 지연 규칙과 손실 차단 체크리스트를 먼저 적용하세요.'
+      : '중립~경계 구간에서는 확장보다 검증 루프를 짧게 유지하세요.';
+    var opportunityMessage = riskScore < 45
+      ? '안정 구간에서 핵심 과제 1개를 집중 실행하면 성장 효율이 큽니다.'
+      : '저위험 월을 선별해 공격 실행, 고위험 월은 방어 운용으로 분리하세요.';
+
+    return {
+      mode: mode,
+      riskLevel: riskLevel,
+      title: modeTitleMap[mode] || '성장 가속 모드',
+      subtitle: subtitle,
+      coreMessage: coreMessage,
+      warningMessage: warningMessage,
+      opportunityMessage: opportunityMessage
+    };
+  }
+
+  function calculateSibylScores(normalized, riskBreakdown, aptData) {
+    var riskScore = _safeScore(riskBreakdown && riskBreakdown.total, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+    var aptitudeScore = _safeScore(aptData && aptData.score, SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999);
+    var components = (aptData && aptData.components) || {};
+    var careerScore = _safeScore(components.career, SIBYL_DEFAULT_CAREER_SCORE, 0, 100);
+    var wealthScore = _safeScore(components.wealth, SIBYL_DEFAULT_WEALTH_SCORE, 0, 100);
+    var relationshipScore = _safeScore(components.social, SIBYL_DEFAULT_RELATIONSHIP_SCORE, 0, 100);
+    var stabilityScore = _safeScore(100 - riskScore + Math.round((components.recovery || 50) * 0.2), SIBYL_DEFAULT_STABILITY_SCORE, 0, 100);
+
+    return {
+      riskScore: riskScore,
+      aptitudeScore: aptitudeScore,
+      stabilityScore: stabilityScore,
+      relationshipScore: relationshipScore,
+      wealthScore: wealthScore,
+      careerScore: careerScore
+    };
+  }
+
+  function buildSibylReportSeed(profile) {
+    var p = profile || {};
+    var classification = p.classification || {};
+    var saju = p.saju || {};
+    var scores = p.scores || {};
+    var keyRisk = _safeScore(scores.riskScore, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+
+    var keywords = [
+      _safeText(classification.mode, 'growth'),
+      _safeText(saju.dominantElement, 'water'),
+      _safeText(saju.tenGods && saju.tenGods.primary, SIBYL_PRIMARY_TENGOD_FALLBACK)
+    ];
+
+    return {
+      keywords: keywords,
+      strengths: [
+        '핵심 오행 축이 명확하여 의사결정 기준을 세우기 쉽습니다.',
+        '적성 계수를 실전 루틴으로 전환하면 성과 재현성이 높아집니다.'
+      ],
+      weaknesses: [
+        keyRisk >= 65 ? '리스크 신호가 높은 달에는 과속 판단으로 손실이 확대될 수 있습니다.' : '중립 구간에서 우선순위 분산 시 성과 집중도가 낮아질 수 있습니다.',
+        '관계/협업 규칙이 모호하면 십성 강점이 갈등으로 전환될 수 있습니다.'
+      ],
+      cautionPeriods: [
+        '리스크 상위 월',
+        '충형파해 충돌 신호가 겹치는 구간'
+      ],
+      recommendedActions: [
+        '30일 단위로 실행 KPI 1개와 방어 규칙 2개를 고정하세요.',
+        '고위험 구간에는 결정 지연(24시간)과 문서 합의 절차를 적용하세요.',
+        '안정 구간에는 핵심 과제를 단일 트랙으로 밀어 성과를 고정하세요.'
+      ]
+    };
+  }
+
+  function mapSajuToSibylProfile(normalized, scores, classification, yearlyFlow, monthlyPlan) {
+    var norm = normalized || {};
+    var profile = norm.profile || {};
+    var birth = profile.birth || {};
+    var pillars = _pillarChars(norm.pillars || window.G_PILLARS || {});
+    var dist = norm.dist || { wood:0, fire:0, earth:0, metal:0, water:0, total:0 };
+    var tenStarCounts = norm.tenStarCounts || {};
+
+    var weakElement = EL_ORDER.slice().sort(function(a, b) {
+      return Number(dist[a] || 0) - Number(dist[b] || 0);
+    })[0] || _safeText(norm.dominantEl, 'water');
+
+    var input = normalizeSibylInput({
+      birthDate: [birth.year || '', birth.month || '', birth.day || ''].filter(Boolean).join('-') || '입력값 확인 필요',
+      birthTime: (String(birth.hour || '').trim() !== '' ? String(birth.hour).padStart(2, '0') : '??') + ':' + (String(birth.minute || '').trim() !== '' ? String(birth.minute).padStart(2, '0') : '??'),
+      gender: profile.gender || 'unknown',
+      calendarType: profile.calendarType || 'solar'
+    });
+
+    var base = {
+      input: input,
+      saju: {
+        yearPillar: _safePillarLabel(pillars.y),
+        monthPillar: _safePillarLabel(pillars.m),
+        dayPillar: _safePillarLabel(pillars.d),
+        hourPillar: _safePillarLabel(pillars.h),
+        dayMaster: _safeText(pillars.d && pillars.d.g, '미상'),
+        dayMasterElement: _safeText(GAN_EL[pillars.d && pillars.d.g], _safeText(norm.dominantEl, 'water')),
+        dominantElement: _safeText(norm.dominantEl, _dominantEl(dist)),
+        weakElement: _safeText(weakElement, _safeText(norm.dominantEl, 'water')),
+        tenGods: {
+          primary: _safeText(norm.dominantTenStar, SIBYL_PRIMARY_TENGOD_FALLBACK),
+          secondary: Object.keys(tenStarCounts).sort(function(a, b) {
+            return Number(tenStarCounts[b] || 0) - Number(tenStarCounts[a] || 0);
+          }).filter(function(key) { return key !== norm.dominantTenStar; })[0] || '',
+          distribution: Object.assign({}, tenStarCounts)
+        },
+        fiveElements: {
+          wood: _safeScore(dist.wood, 0, 0, 99),
+          fire: _safeScore(dist.fire, 0, 0, 99),
+          earth: _safeScore(dist.earth, 0, 0, 99),
+          metal: _safeScore(dist.metal, 0, 0, 99),
+          water: _safeScore(dist.water, 0, 0, 99)
+        }
+      },
+      scores: Object.assign({}, scores),
+      classification: Object.assign({}, classification),
+      basicSections: {
+        coreMatrix: '일간 ' + _safeText(pillars.d && pillars.d.g, '미상') + ', 지배 오행 ' + (_safeText(EL_KR[norm.dominantEl], _safeText(norm.dominantEl, 'water'))) + ', 주도 십성 ' + _safeText(norm.dominantTenStar, SIBYL_PRIMARY_TENGOD_FALLBACK) + '을 중심축으로 현재 운세 구조를 해석합니다.',
+        riskPattern: '위험 계수는 오행 편중, 십성 과부하, 충형파해, 대운·세운 충돌, 월 변동성을 결합해 산출했습니다.',
+        aptitudePattern: '적성 계수는 career·wealth·execution·social·recovery 5축을 합산한 0~999 스케일입니다.',
+        relationshipPattern: '관계 패턴은 주도 십성의 장점/그림자를 분리해 갈등 유발 조건과 회복 루틴을 제시합니다.',
+        wealthPattern: '재물 패턴은 수익 기회와 손실 방어를 분리해 월별 운용 우선순위를 안내합니다.',
+        careerPattern: '직업/진로 패턴은 지배 오행과 십성 조합에 맞춘 실행 창을 제안합니다.',
+        timingAdvice: '고위험 구간은 수비, 저위험 구간은 실행 강화라는 이중 리듬 전략을 유지하세요.'
+      },
+      reportSeed: {},
+      yearlyFlow: Array.isArray(yearlyFlow) ? yearlyFlow.slice(0, 10) : [],
+      monthlyFlow: Array.isArray(monthlyPlan) ? monthlyPlan.slice(0, 12) : [],
+      debug: {
+        source: norm.integrity && norm.integrity.ok ? 'local-engine' : 'fallback',
+        missingFields: [],
+        warnings: (norm.integrity && Array.isArray(norm.integrity.messages)) ? norm.integrity.messages.slice(0, 10) : []
+      }
+    };
+
+    base.reportSeed = buildSibylReportSeed(base);
+    return base;
+  }
+
+  function sanitizeSibylProfile(profile) {
+    var src = profile || {};
+    var out = JSON.parse(JSON.stringify(src || {}));
+    out.input = normalizeSibylInput(out.input || {});
+    out.saju = out.saju || {};
+    out.saju.tenGods = out.saju.tenGods || {};
+    out.saju.fiveElements = out.saju.fiveElements || {};
+    out.scores = out.scores || {};
+    out.classification = out.classification || {};
+    out.basicSections = out.basicSections || {};
+    out.reportSeed = out.reportSeed || buildSibylReportSeed(out);
+    out.debug = out.debug || { source: 'fallback', missingFields: [], warnings: [] };
+
+    out.saju.dominantElement = _safeText(out.saju.dominantElement, _safeText(out.saju.dayMasterElement, 'water'));
+    out.saju.weakElement = _safeText(out.saju.weakElement, out.saju.dominantElement);
+    out.saju.tenGods.primary = _safeText(out.saju.tenGods.primary, SIBYL_PRIMARY_TENGOD_FALLBACK);
+    out.saju.tenGods.secondary = _safeText(out.saju.tenGods.secondary, '');
+    out.saju.tenGods.distribution = out.saju.tenGods.distribution && typeof out.saju.tenGods.distribution === 'object'
+      ? out.saju.tenGods.distribution
+      : {};
+
+    out.scores.riskScore = _safeScore(out.scores.riskScore, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+    out.scores.aptitudeScore = _safeScore(out.scores.aptitudeScore, SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999);
+    out.scores.stabilityScore = _safeScore(out.scores.stabilityScore, SIBYL_DEFAULT_STABILITY_SCORE, 0, 100);
+    out.scores.relationshipScore = _safeScore(out.scores.relationshipScore, SIBYL_DEFAULT_RELATIONSHIP_SCORE, 0, 100);
+    out.scores.wealthScore = _safeScore(out.scores.wealthScore, SIBYL_DEFAULT_WEALTH_SCORE, 0, 100);
+    out.scores.careerScore = _safeScore(out.scores.careerScore, SIBYL_DEFAULT_CAREER_SCORE, 0, 100);
+
+    out.classification.mode = _safeText(out.classification.mode, 'growth');
+    out.classification.riskLevel = _safeText(out.classification.riskLevel, 'medium');
+    out.classification.title = _safeText(out.classification.title, '성장 가속 모드');
+    out.classification.subtitle = _safeText(out.classification.subtitle, '핵심 축 정렬 중');
+    out.classification.coreMessage = _safeText(out.classification.coreMessage, '핵심 점수를 실행 루틴으로 연결하면 변동성이 줄어듭니다.');
+    out.classification.warningMessage = _safeText(out.classification.warningMessage, '고위험 구간은 방어 규칙을 먼저 적용하세요.');
+    out.classification.opportunityMessage = _safeText(out.classification.opportunityMessage, '저위험 구간은 핵심 과제를 전진 배치하세요.');
+
+    out.basicSections.coreMatrix = _safeText(out.basicSections.coreMatrix, SIBYL_CORE_MATRIX_FALLBACK);
+    out.basicSections.riskPattern = _safeText(out.basicSections.riskPattern, '위험 패턴 데이터를 점검 중입니다. 현재 보수적 분석값으로 표시합니다.');
+    out.basicSections.aptitudePattern = _safeText(out.basicSections.aptitudePattern, '적성 패턴 데이터를 점검 중입니다.');
+    out.basicSections.relationshipPattern = _safeText(out.basicSections.relationshipPattern, '관계 패턴은 주도 십성 기준으로 보정했습니다.');
+    out.basicSections.wealthPattern = _safeText(out.basicSections.wealthPattern, '재물 패턴은 방어 우선 기준으로 보정했습니다.');
+    out.basicSections.careerPattern = _safeText(out.basicSections.careerPattern, '진로 패턴은 지배 오행 기준으로 보정했습니다.');
+    out.basicSections.timingAdvice = _safeText(out.basicSections.timingAdvice, '고위험 수비 / 저위험 실행 이중 리듬을 유지하세요.');
+
+    if (!Array.isArray(out.reportSeed.keywords)) out.reportSeed.keywords = [];
+    if (!Array.isArray(out.reportSeed.strengths)) out.reportSeed.strengths = [];
+    if (!Array.isArray(out.reportSeed.weaknesses)) out.reportSeed.weaknesses = [];
+    if (!Array.isArray(out.reportSeed.cautionPeriods)) out.reportSeed.cautionPeriods = [];
+    if (!Array.isArray(out.reportSeed.recommendedActions)) out.reportSeed.recommendedActions = [];
+
+    if (!Array.isArray(out.debug.missingFields)) out.debug.missingFields = [];
+    if (!Array.isArray(out.debug.warnings)) out.debug.warnings = [];
+    return out;
+  }
+
+  function validateSibylProfile(profile) {
+    var p = profile || {};
+    var missingFields = [];
+
+    function ensure(condition, key) {
+      if (!condition) missingFields.push(key);
+    }
+
+    ensure(_safeText(p.input && p.input.birthDate, '') !== '', 'input.birthDate');
+    ensure(_safeText(p.input && p.input.gender, '') !== '', 'input.gender');
+    ensure(_safeText(p.saju && p.saju.dominantElement, '') !== '', 'saju.dominantElement');
+    ensure(_safeText(p.saju && p.saju.tenGods && p.saju.tenGods.primary, '') !== '', 'saju.tenGods.primary');
+    ensure(Number.isFinite(Number(p.scores && p.scores.riskScore)), 'scores.riskScore');
+    ensure(Number.isFinite(Number(p.scores && p.scores.aptitudeScore)), 'scores.aptitudeScore');
+    ensure(_safeText(p.classification && p.classification.mode, '') !== '', 'classification.mode');
+    ensure(_safeText(p.classification && p.classification.title, '') !== '', 'classification.title');
+    ensure(_safeText(p.basicSections && p.basicSections.coreMatrix, '') !== '', 'basicSections.coreMatrix');
+
+    return {
+      ok: missingFields.length === 0,
+      missingFields: missingFields,
+      warnings: missingFields.map(function(key) { return key + ' 누락'; })
+    };
+  }
+
+  function buildNormalizedSibylProfile(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan) {
+    var scores = calculateSibylScores(normalized, riskBreakdown, aptData);
+    var classification = classifySibylMode(scores, {
+      dominantElement: normalized && normalized.dominantEl,
+      primaryTenGod: normalized && normalized.dominantTenStar
+    });
+
+    var yearlyFlow = Array.isArray(annualPlan) ? annualPlan.slice(0, 10).map(function(item, index) {
+      var rs = _safeScore(item && item.risk, 42 + index * 2, 0, 100);
+      return {
+        year: Number(item && item.year || (new Date().getFullYear() + index)),
+        pillar: _safeText(item && item.ganZhi, '미상'),
+        riskScore: rs,
+        opportunityScore: _safeScore(100 - rs, 50, 0, 100),
+        warning: _safeText(item && item.summary, classification.warningMessage),
+        advice: _safeText(item && item.playbook, classification.opportunityMessage)
+      };
+    }) : [];
+
+    var mapped = mapSajuToSibylProfile(normalized, scores, classification, yearlyFlow, monthlyPlan);
+    var sanitized = sanitizeSibylProfile(mapped);
+    var validation = validateSibylProfile(sanitized);
+    sanitized.debug.missingFields = validation.missingFields.slice();
+    sanitized.debug.warnings = sanitized.debug.warnings.concat(validation.warnings);
+
+    _sibylDevDebug('[SIBYL] input', sanitized.input);
+    _sibylDevDebug('[SIBYL] normalizedProfile', sanitized);
+    if (validation.missingFields.length) {
+      _sibylDevWarn('[SIBYL] missingFields', validation.missingFields);
+    }
+
+    return sanitized;
+  }
+
   function _safePillarLabel(pair) {
     if (!pair || typeof pair !== 'object') return '미상';
     var g = String(pair.g || '').trim();
@@ -820,70 +1165,58 @@
   }
 
   function _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan) {
-    var norm = normalized || {};
-    var profile = norm.profile || _getCurrentProfile() || {};
-    var birth = profile.birth || {};
-    var pillars = _pillarChars(norm.pillars || window.G_PILLARS || {});
-    var risk = Number(riskBreakdown && riskBreakdown.total || 35);
-    var apt = Number(aptData && aptData.score || 420);
-    var dominantTenStar = String(norm.dominantTenStar || '데이터 부족');
-    var dominantEl = String(norm.dominantEl || 'water');
-
-    var yearlySource = Array.isArray(annualPlan) ? annualPlan : [];
-    var yearlyFlow = yearlySource.slice(0, 10).map(function(item, index) {
-      var riskScore = _clamp(Number(item && item.risk || 40), 5, 99);
-      return {
-        year: Number(item && item.year || (new Date().getFullYear() + index)),
-        pillar: String(item && item.ganZhi || '').trim() || '미상',
-        riskScore: riskScore,
-        opportunityScore: _clamp(100 - riskScore, 5, 95),
-        warning: String(item && item.summary || '').trim() || '리스크 고조 구간은 확장보다 방어를 우선하세요.',
-        advice: String(item && item.playbook || '').trim() || '고위험은 수비, 저위험은 실행 강화 전략을 유지하세요.'
-      };
-    });
+    var profile = buildNormalizedSibylProfile(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+    var riskParts = riskBreakdown && riskBreakdown.parts ? riskBreakdown.parts : {};
+    var aptitudeComponents = aptData && aptData.components ? aptData.components : {};
+    var supporting = Object.keys(profile.saju.tenGods.distribution || {}).filter(function(key) {
+      return key !== profile.saju.tenGods.primary && Number(profile.saju.tenGods.distribution[key] || 0) >= 2;
+    }).slice(0, 3);
+    var lacking = Object.keys(TENSTAR_SECTOR).filter(function(key) {
+      return Number(profile.saju.tenGods.distribution[key] || 0) <= 0;
+    }).slice(0, 3);
 
     return {
-      input: {
-        birthDate: [birth.year || '', birth.month || '', birth.day || ''].filter(Boolean).join('-') || '미상',
-        birthTime: (String(birth.hour || '').trim() !== '' ? String(birth.hour).padStart(2, '0') : '??') + ':' + (String(birth.minute || '').trim() !== '' ? String(birth.minute).padStart(2, '0') : '??'),
-        gender: String(profile.gender || '미상'),
-        calendarType: String(profile.calendarType || 'solar')
-      },
+      input: profile.input,
       saju: {
-        yearPillar: _safePillarLabel(pillars.y),
-        monthPillar: _safePillarLabel(pillars.m),
-        dayPillar: _safePillarLabel(pillars.d),
-        hourPillar: _safePillarLabel(pillars.h),
-        dayMaster: String((pillars.d && pillars.d.g) || '미상'),
-        dominantElement: dominantEl,
-        weakElement: EL_ORDER.slice().sort(function(a, b) { return (norm.dist && norm.dist[a] || 0) - (norm.dist && norm.dist[b] || 0); })[0] || 'water',
-        favorableElements: ((norm && norm.power && Array.isArray(norm.power.yongshin)) ? norm.power.yongshin : []).slice(0, 3),
-        unfavorableElements: ((norm && norm.power && Array.isArray(norm.power.kijishin)) ? norm.power.kijishin : []).slice(0, 3),
+        yearPillar: profile.saju.yearPillar,
+        monthPillar: profile.saju.monthPillar,
+        dayPillar: profile.saju.dayPillar,
+        hourPillar: profile.saju.hourPillar,
+        dayMaster: profile.saju.dayMaster,
+        dayMasterElement: profile.saju.dayMasterElement,
+        dominantElement: profile.saju.dominantElement,
+        weakElement: profile.saju.weakElement,
+        favorableElements: ((normalized && normalized.power && Array.isArray(normalized.power.yongshin)) ? normalized.power.yongshin : []).slice(0, 3),
+        unfavorableElements: ((normalized && normalized.power && Array.isArray(normalized.power.kijishin)) ? normalized.power.kijishin : []).slice(0, 3),
+        tenGods: profile.saju.tenGods,
         tenGodSummary: {
-          dominantTenGod: dominantTenStar,
-          supportingTenGods: Object.keys(norm.tenStarCounts || {}).filter(function(k) { return Number(norm.tenStarCounts[k] || 0) >= 2 && k !== dominantTenStar; }).slice(0, 3),
-          lackingTenGods: Object.keys(TENSTAR_SECTOR).filter(function(k) { return !norm.tenStarCounts || !norm.tenStarCounts[k]; }).slice(0, 3)
-        }
+          dominantTenGod: profile.saju.tenGods.primary,
+          supportingTenGods: supporting,
+          lackingTenGods: lacking
+        },
+        fiveElements: profile.saju.fiveElements
       },
+      scores: profile.scores,
+      classification: profile.classification,
+      basicSections: profile.basicSections,
+      reportSeed: profile.reportSeed,
       sibyl: {
-        mode: risk >= 70 ? 'dd' : risk >= 45 ? 'le' : 'nle',
-        modeTitle: risk >= 70 ? '완전 해체 모드' : risk >= 45 ? '위험 제거 모드' : '안정 유지 모드',
-        modeDescription: risk >= 70 ? '충돌 신호가 강합니다. 우선순위를 줄이고 손실 차단 규칙을 먼저 고정하세요.' : risk >= 45 ? '위험과 기회가 교차합니다. 검증 루프를 짧게 유지하세요.' : '기본 구조가 안정적입니다. 핵심 과제를 꾸준히 전진시키세요.',
-        riskScore: _clamp(risk, 5, 99),
-        aptitudeScore: _clamp(apt, 100, 999),
-        dominantTenGod: dominantTenStar,
-        dominantElement: dominantEl,
-        warningKeywords: (riskBreakdown && riskBreakdown.parts)
-          ? Object.keys(riskBreakdown.parts).sort(function(a, b) { return (riskBreakdown.parts[b] || 0) - (riskBreakdown.parts[a] || 0); }).slice(0, 3)
-          : [],
-        strengthKeywords: (aptData && aptData.components)
-          ? Object.keys(aptData.components).sort(function(a, b) { return (aptData.components[b] || 0) - (aptData.components[a] || 0); }).slice(0, 3)
-          : [],
-        coreMessage: '위험과 적성 점수는 행동 루틴으로 전환될 때 의미가 있습니다. 같은 점수라도 운영 방식이 다르면 결과가 달라집니다.',
-        lifeStrategy: '고위험 구간은 수비, 저위험 구간은 실행을 강화하는 이중 리듬 전략을 유지하세요.'
+        mode: profile.classification.mode,
+        modeTitle: profile.classification.title,
+        modeDescription: profile.classification.subtitle,
+        riskScore: profile.scores.riskScore,
+        aptitudeScore: profile.scores.aptitudeScore,
+        dominantTenGod: profile.saju.tenGods.primary,
+        dominantElement: profile.saju.dominantElement,
+        warningKeywords: Object.keys(riskParts).sort(function(a, b) { return Number(riskParts[b] || 0) - Number(riskParts[a] || 0); }).slice(0, 3),
+        strengthKeywords: Object.keys(aptitudeComponents).sort(function(a, b) { return Number(aptitudeComponents[b] || 0) - Number(aptitudeComponents[a] || 0); }).slice(0, 3),
+        coreMessage: profile.classification.coreMessage,
+        lifeStrategy: profile.basicSections.timingAdvice
       },
-      yearlyFlow: yearlyFlow,
-      monthlyFlow: Array.isArray(monthlyPlan) ? monthlyPlan.slice(0, 12) : []
+      yearlyFlow: Array.isArray(profile.yearlyFlow) ? profile.yearlyFlow.slice(0, 10) : [],
+      monthlyFlow: Array.isArray(profile.monthlyFlow) ? profile.monthlyFlow.slice(0, 12) : [],
+      debug: profile.debug,
+      normalizedProfile: profile
     };
   }
 
@@ -1478,11 +1811,10 @@
 
   function _buildLocalDominatorReport(payload, analysisData) {
     var profile = payload && payload.profile ? payload.profile : {};
-    var b = profile.birth || {};
     var year = _toInt(payload && payload.currentYear, new Date().getFullYear());
 
     var normalized = _normalizeSibylInput(payload || {}, analysisData || {});
-    var dominantTenStar = normalized.dominantTenStar || '데이터 부족';
+    var dominantTenStar = normalized.dominantTenStar || SIBYL_PRIMARY_TENGOD_FALLBACK;
     var dominantEl = normalized.dominantEl || 'water';
 
     var monthlyPlan = _buildMonthlyRiskPlan(
@@ -1497,9 +1829,13 @@
     var conflictSignals = _collectCollisionSignals(normalized.pillars, year);
     var riskBreakdown = _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals);
     var aptData = _calcAptitudeComponents(normalized, riskBreakdown);
+    var normalizedProfile = buildNormalizedSibylProfile(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+    var validation = validateSibylProfile(normalizedProfile);
 
-    var risk = riskBreakdown.total;
-    var coeff = aptData.score;
+    var risk = _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.riskScore, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+    var coeff = _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.aptitudeScore, SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999);
+    dominantTenStar = _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.tenGods && normalizedProfile.saju.tenGods.primary, dominantTenStar);
+    dominantEl = _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.dominantElement, dominantEl);
     var quantumDiagnostics = _collectQuantumDiagnostics(normalized);
     var categoryMatrix = _buildCategoryMatrix(riskBreakdown, aptData, quantumDiagnostics, annualPlan, monthlyPlan);
 
@@ -1514,16 +1850,20 @@
 
     var chapter1 = [
       '## 핵심 진단 요약',
-      '- 입력 사주: ' + (b.year || '데이터 부족') + '.' + (b.month || '데이터 부족') + '.' + (b.day || '데이터 부족') + ' ' + (b.hour || '데이터 부족') + ':' + (b.minute || '데이터 부족'),
+      '- 입력 사주: ' + _safeText(normalizedProfile && normalizedProfile.input && normalizedProfile.input.birthDate, '입력값 확인 필요') + ' ' + _safeText(normalizedProfile && normalizedProfile.input && normalizedProfile.input.birthTime, '시간 미상') + ' / ' + _safeText(normalizedProfile && normalizedProfile.input && normalizedProfile.input.gender, 'unknown'),
       '- 지배 오행: ' + (EL_KR[dominantEl] || dominantEl),
       '- 주도 십성: ' + dominantTenStar,
       '- 적성 계수: ' + coeff + ' / 999',
       '- 위험 계수: ' + risk + ' / 100 (' + riskBreakdown.label + ')',
-      '- 데이터 신뢰도: ' + (normalized.integrity.ok ? '양호' : '보강 필요'),
+      '- 데이터 신뢰도: ' + (validation.ok ? '양호' : '보강 필요'),
       '',
       '## 데이터 신뢰도 경고',
-      (normalized.integrity.messages.length
-        ? normalized.integrity.messages.map(function(msg) { return '- ' + msg; }).join('\n')
+      ((validation.missingFields.length || (normalizedProfile.debug && normalizedProfile.debug.warnings && normalizedProfile.debug.warnings.length))
+        ? ([]
+          .concat(validation.missingFields.map(function(msg) { return msg + ' 누락'; }))
+          .concat(normalizedProfile.debug && normalizedProfile.debug.warnings ? normalizedProfile.debug.warnings : [])
+          .slice(0, 8)
+          .map(function(msg) { return '- ' + msg; }).join('\n'))
         : '- 핵심 계산 필드가 정상적으로 연결되어 있습니다.'),
       '',
       '## 리스크 6분해 결과',
@@ -2216,7 +2556,7 @@
       }
 
       var counts = normalized.tenStarCounts || {};
-      var dominant = normalized.dominantTenStar || '데이터 부족';
+      var dominant = normalized.dominantTenStar || SIBYL_PRIMARY_TENGOD_FALLBACK;
       var secData = TENSTAR_SECTOR[dominant] || TENSTAR_SECTOR['편재'];
       var annualPreview = _buildAnnualRiskPlan(normalized, normalized.currentYear || new Date().getFullYear());
       var monthlyPreview = _buildMonthlyRiskPlan(
@@ -2230,8 +2570,13 @@
       var conflictSignals = _collectCollisionSignals(corePillars, normalized.currentYear || new Date().getFullYear());
       var riskBreakdown = _calcRiskBreakdown(normalized, monthlyPreview, annualPreview, conflictSignals);
       var aptData = _calcAptitudeComponents(normalized, riskBreakdown);
-      var coeff = aptData.score;
-      var risk = riskBreakdown.total;
+      var canonicalData = _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPreview, monthlyPreview);
+      var normalizedProfile = sanitizeSibylProfile((canonicalData && canonicalData.normalizedProfile) || canonicalData || {});
+      var coeff = _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.aptitudeScore, SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999);
+      var risk = _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.riskScore, SIBYL_DEFAULT_RISK_SCORE, 0, 100);
+      var profileDominant = _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.tenGods && normalizedProfile.saju.tenGods.primary, dominant);
+      var profileDominantEl = _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.dominantElement, domEl);
+      dominant = profileDominant;
 
       var metricsPreview = _q('sbFreeSection') && _q('sbFreeSection').querySelector('.sb-metrics-preview');
       if (metricsPreview) {
@@ -2271,7 +2616,7 @@
       _t('sbRiskVolatility', riskBreakdown.parts.monthlyVolatility);
       _t('sbSectorName', secData.sector);
       _t('sbSectorJobs', secData.jobs);
-      _t('sbSectorTenstar', '주도 십성: ' + dominant);
+      _t('sbSectorTenstar', '주도 십성: ' + profileDominant);
 
       // Caution / Warning — G_POWER 기반 스마트 경보
       var warn = _buildSmartWarning(corePillars, dominant, counts, dist);
@@ -2293,10 +2638,9 @@
       }
 
       // Save current analysis state
-      var canonicalData = _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPreview, monthlyPreview);
       window._sibylCurrentData = {
         pillars: corePillars,
-        dist: dist, domEl: domEl, dominant: dominant, coeff: coeff,
+        dist: dist, domEl: profileDominantEl, dominant: profileDominant, coeff: coeff,
         risk: risk,
         counts: counts,
         riskBreakdown: riskBreakdown,
@@ -2304,8 +2648,13 @@
         monthlyPreview: monthlyPreview,
         annualPreview: annualPreview,
         normalized: normalized,
-        canonicalData: canonicalData
+        canonicalData: canonicalData,
+        normalizedProfile: normalizedProfile
       };
+
+      if (normalizedProfile && normalizedProfile.debug && Array.isArray(normalizedProfile.debug.missingFields) && normalizedProfile.debug.missingFields.length) {
+        _sibylDevWarn('[SIBYL] missingFields', normalizedProfile.debug.missingFields);
+      }
 
       // Nature + Year Pulse + Inner Palace 전체 렌더
       var natSec = _q('sbNatureSection');
@@ -2532,6 +2881,11 @@
     var profile = _getCurrentProfile();
     var pillars = _ensurePillarsWithProfileFallback(data.pillars || window.G_PILLARS, profile);
     var ps = _pillarChars(pillars);
+    var normalizedProfile = sanitizeSibylProfile(
+      data.normalizedProfile
+      || (data.canonicalData && data.canonicalData.normalizedProfile)
+      || {}
+    );
 
     // Build local payload
     var payload = {
@@ -2543,10 +2897,10 @@
         hour:  { g: ps.h.g || '', j: ps.h.j || '' }
       } : null,
       natal: data.dist || null,
-      dominantEl: data.domEl || null,
-      dominantTenStar: data.dominant || null,
-      aptCoeff: data.coeff || 0,
-      riskScore: data.risk || 0,
+      dominantEl: _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.dominantElement, data.domEl || null),
+      dominantTenStar: _safeText(normalizedProfile && normalizedProfile.saju && normalizedProfile.saju.tenGods && normalizedProfile.saju.tenGods.primary, data.dominant || null),
+      aptCoeff: _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.aptitudeScore, data.coeff || SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999),
+      riskScore: _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.riskScore, data.risk || SIBYL_DEFAULT_RISK_SCORE, 0, 100),
       gender: (profile && profile.gender) || 'F',
       currentYear: new Date().getFullYear(),
       requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : ''
@@ -2564,6 +2918,10 @@
     }
 
     var canonicalData = data.canonicalData || _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+    if (!canonicalData.normalizedProfile || !canonicalData.normalizedProfile.scores) {
+      canonicalData.normalizedProfile = buildNormalizedSibylProfile(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
+    }
+    payload.normalizedProfile = canonicalData.normalizedProfile;
     payload.canonicalData = canonicalData;
 
     // Progress animation
@@ -2836,12 +3194,39 @@
       domSec.classList.add('sb-fadein');
     }
 
-    var risk = (reportData && reportData.riskBreakdown && Number(reportData.riskBreakdown.total))
-      || Number(analysisData && analysisData.risk)
-      || 0;
-    var coeff = (reportData && Number(reportData.aptCoeff)) || Number(analysisData && analysisData.coeff) || 0;
-    var dominant = (reportData && reportData.dominantTenStar) || (analysisData && analysisData.dominant) || '데이터 부족';
-    var dominantEl = (reportData && reportData.dominantEl) || (analysisData && analysisData.domEl) || 'water';
+    var reportProfile = sanitizeSibylProfile(
+      (reportData && reportData.canonicalData && reportData.canonicalData.normalizedProfile)
+      || (analysisData && analysisData.normalizedProfile)
+      || {}
+    );
+    var risk = _safeScore(
+      (reportData && reportData.riskBreakdown && Number(reportData.riskBreakdown.total))
+      || (reportProfile && reportProfile.scores && reportProfile.scores.riskScore)
+      || Number(analysisData && analysisData.risk),
+      SIBYL_DEFAULT_RISK_SCORE,
+      0,
+      100
+    );
+    var coeff = _safeScore(
+      (reportData && Number(reportData.aptCoeff))
+      || (reportProfile && reportProfile.scores && reportProfile.scores.aptitudeScore)
+      || Number(analysisData && analysisData.coeff),
+      SIBYL_DEFAULT_APTITUDE_SCORE,
+      0,
+      999
+    );
+    var dominant = _safeText(
+      (reportData && reportData.dominantTenStar)
+      || (reportProfile && reportProfile.saju && reportProfile.saju.tenGods && reportProfile.saju.tenGods.primary)
+      || (analysisData && analysisData.dominant),
+      SIBYL_PRIMARY_TENGOD_FALLBACK
+    );
+    var dominantEl = _safeText(
+      (reportData && reportData.dominantEl)
+      || (reportProfile && reportProfile.saju && reportProfile.saju.dominantElement)
+      || (analysisData && analysisData.domEl),
+      'water'
+    );
     var mode = _dominatorMode(risk);
 
     // Dominator Mode Banner

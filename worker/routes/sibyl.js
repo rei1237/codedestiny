@@ -107,43 +107,59 @@ function buildSibylFingerprint(body = {}) {
 
 function normalizeCanonicalSibylData(body = {}) {
   const canonical = body?.canonicalData && typeof body.canonicalData === "object" ? body.canonicalData : {};
+  const normalizedProfile = body?.normalizedProfile && typeof body.normalizedProfile === "object"
+    ? body.normalizedProfile
+    : (canonical?.normalizedProfile && typeof canonical.normalizedProfile === "object" ? canonical.normalizedProfile : {});
   const profile = body?.profile || {};
   const birth = profile?.birth || {};
   const sibylNode = canonical?.sibyl || {};
   const sajuNode = canonical?.saju || {};
+  const profileInput = normalizedProfile?.input || {};
+  const profileSaju = normalizedProfile?.saju || {};
+  const profileScores = normalizedProfile?.scores || {};
+  const profileClassification = normalizedProfile?.classification || {};
+  const profileBasicSections = normalizedProfile?.basicSections || {};
+  const profileReportSeed = normalizedProfile?.reportSeed || {};
+  const profileDebug = normalizedProfile?.debug || {};
 
   const input = {
-    birthDate: clean(canonical?.input?.birthDate)
+    birthDate: clean(profileInput?.birthDate)
+      || clean(canonical?.input?.birthDate)
       || [toNumber(birth?.year, ""), toNumber(birth?.month, ""), toNumber(birth?.day, "")].filter(Boolean).join("-")
       || "입력값 확인 필요",
-    birthTime: clean(canonical?.input?.birthTime)
+    birthTime: clean(profileInput?.birthTime)
+      || clean(canonical?.input?.birthTime)
       || (Number.isFinite(Number(birth?.hour)) ? `${String(toNumber(birth?.hour, 0)).padStart(2, "0")}:${String(toNumber(birth?.minute, 0)).padStart(2, "0")}` : "미상"),
-    gender: clean(canonical?.input?.gender || profile?.gender || body?.gender || "미상"),
-    calendarType: clean(canonical?.input?.calendarType || "solar") || "solar",
+    gender: clean(profileInput?.gender || canonical?.input?.gender || profile?.gender || body?.gender || "미상"),
+    calendarType: clean(profileInput?.calendarType || canonical?.input?.calendarType || "solar") || "solar",
   };
 
   const saju = {
-    yearPillar: clean(sajuNode?.yearPillar || ((body?.pillars?.year?.g && body?.pillars?.year?.j) ? `${body.pillars.year.g}${body.pillars.year.j}` : "미상")),
-    monthPillar: clean(sajuNode?.monthPillar || ((body?.pillars?.month?.g && body?.pillars?.month?.j) ? `${body.pillars.month.g}${body.pillars.month.j}` : "미상")),
-    dayPillar: clean(sajuNode?.dayPillar || ((body?.pillars?.day?.g && body?.pillars?.day?.j) ? `${body.pillars.day.g}${body.pillars.day.j}` : "미상")),
-    hourPillar: clean(sajuNode?.hourPillar || ((body?.pillars?.hour?.g && body?.pillars?.hour?.j) ? `${body.pillars.hour.g}${body.pillars.hour.j}` : "미상")),
-    dayMaster: clean(sajuNode?.dayMaster || body?.pillars?.day?.g || "미상"),
-    dominantElement: clean(sajuNode?.dominantElement || sibylNode?.dominantElement || body?.dominantEl || "미상"),
-    weakElement: clean(sajuNode?.weakElement || "미상"),
+    yearPillar: clean(profileSaju?.yearPillar || sajuNode?.yearPillar || ((body?.pillars?.year?.g && body?.pillars?.year?.j) ? `${body.pillars.year.g}${body.pillars.year.j}` : "미상")),
+    monthPillar: clean(profileSaju?.monthPillar || sajuNode?.monthPillar || ((body?.pillars?.month?.g && body?.pillars?.month?.j) ? `${body.pillars.month.g}${body.pillars.month.j}` : "미상")),
+    dayPillar: clean(profileSaju?.dayPillar || sajuNode?.dayPillar || ((body?.pillars?.day?.g && body?.pillars?.day?.j) ? `${body.pillars.day.g}${body.pillars.day.j}` : "미상")),
+    hourPillar: clean(profileSaju?.hourPillar || sajuNode?.hourPillar || ((body?.pillars?.hour?.g && body?.pillars?.hour?.j) ? `${body.pillars.hour.g}${body.pillars.hour.j}` : "미상")),
+    dayMaster: clean(profileSaju?.dayMaster || sajuNode?.dayMaster || body?.pillars?.day?.g || "미상"),
+    dominantElement: clean(profileSaju?.dominantElement || sajuNode?.dominantElement || sibylNode?.dominantElement || body?.dominantEl || "미상"),
+    weakElement: clean(profileSaju?.weakElement || sajuNode?.weakElement || "미상"),
     favorableElements: Array.isArray(sajuNode?.favorableElements) ? sajuNode.favorableElements.map(clean).filter(Boolean) : [],
     unfavorableElements: Array.isArray(sajuNode?.unfavorableElements) ? sajuNode.unfavorableElements.map(clean).filter(Boolean) : [],
     tenGodSummary: {
-      dominantTenGod: clean(sajuNode?.tenGodSummary?.dominantTenGod || sibylNode?.dominantTenGod || body?.dominantTenStar || "미상"),
+      dominantTenGod: clean(profileSaju?.tenGods?.primary || sajuNode?.tenGodSummary?.dominantTenGod || sibylNode?.dominantTenGod || body?.dominantTenStar || "미상"),
       supportingTenGods: Array.isArray(sajuNode?.tenGodSummary?.supportingTenGods) ? sajuNode.tenGodSummary.supportingTenGods.map(clean).filter(Boolean) : [],
       lackingTenGods: Array.isArray(sajuNode?.tenGodSummary?.lackingTenGods) ? sajuNode.tenGodSummary.lackingTenGods.map(clean).filter(Boolean) : [],
     },
   };
 
-  const riskScore = clamp(toNumber(sibylNode?.riskScore, body?.riskScore || 35), 5, 100);
-  const aptitudeScore = clamp(toNumber(sibylNode?.aptitudeScore, body?.aptCoeff || 420), 80, 999);
+  const riskScore = clamp(toNumber(profileScores?.riskScore, sibylNode?.riskScore ?? body?.riskScore ?? 35), 5, 100);
+  const aptitudeScore = clamp(toNumber(profileScores?.aptitudeScore, sibylNode?.aptitudeScore ?? body?.aptCoeff ?? 420), 80, 999);
 
-  const yearlyFlow = Array.isArray(canonical?.yearlyFlow)
-    ? canonical.yearlyFlow.map((item, index) => {
+  const yearlySource = Array.isArray(normalizedProfile?.yearlyFlow) && normalizedProfile.yearlyFlow.length
+    ? normalizedProfile.yearlyFlow
+    : (Array.isArray(canonical?.yearlyFlow) ? canonical.yearlyFlow : []);
+
+  const yearlyFlow = Array.isArray(yearlySource)
+    ? yearlySource.map((item, index) => {
         const risk = clamp(toNumber(item?.riskScore, 35 + index * 2), 5, 100);
         return {
           year: toNumber(item?.year, new Date().getFullYear() + index),
@@ -159,20 +175,67 @@ function normalizeCanonicalSibylData(body = {}) {
   return {
     input,
     saju,
-    sibyl: {
-      mode: clean(sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
-      modeTitle: clean(sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
-      modeDescription: clean(sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
+    scores: {
       riskScore,
       aptitudeScore,
-      dominantTenGod: clean(sibylNode?.dominantTenGod || saju.tenGodSummary.dominantTenGod || body?.dominantTenStar || "미상"),
-      dominantElement: clean(sibylNode?.dominantElement || saju.dominantElement || body?.dominantEl || "미상"),
+      stabilityScore: clamp(toNumber(profileScores?.stabilityScore, 46), 10, 100),
+      relationshipScore: clamp(toNumber(profileScores?.relationshipScore, 52), 10, 100),
+      wealthScore: clamp(toNumber(profileScores?.wealthScore, 48), 10, 100),
+      careerScore: clamp(toNumber(profileScores?.careerScore, 50), 10, 100),
+    },
+    classification: {
+      mode: clean(profileClassification?.mode || sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
+      riskLevel: clean(profileClassification?.riskLevel || (riskScore >= 75 ? "critical" : riskScore >= 55 ? "high" : riskScore >= 30 ? "medium" : "low")),
+      title: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
+      subtitle: clean(profileClassification?.subtitle || sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
+      coreMessage: clean(profileClassification?.coreMessage || sibylNode?.coreMessage || "핵심 성향은 명확하며, 리스크 관리 루틴을 먼저 고정하면 성과 변동성이 크게 줄어듭니다."),
+      warningMessage: clean(profileClassification?.warningMessage || "고위험 구간은 결정을 지연하고 검증 루프를 짧게 유지하세요."),
+      opportunityMessage: clean(profileClassification?.opportunityMessage || "저위험 구간은 핵심 과제를 단일 트랙으로 실행하세요."),
+    },
+    basicSections: {
+      coreMatrix: clean(profileBasicSections?.coreMatrix || "핵심 축을 기준으로 기본 분석을 복구했습니다."),
+      riskPattern: clean(profileBasicSections?.riskPattern || "위험 패턴은 보수적 기준으로 보정했습니다."),
+      aptitudePattern: clean(profileBasicSections?.aptitudePattern || "적성 패턴은 핵심 지표 중심으로 보정했습니다."),
+      relationshipPattern: clean(profileBasicSections?.relationshipPattern || "관계 패턴은 십성 구조를 기준으로 보정했습니다."),
+      wealthPattern: clean(profileBasicSections?.wealthPattern || "재물 패턴은 손실 방어 우선으로 보정했습니다."),
+      careerPattern: clean(profileBasicSections?.careerPattern || "진로 패턴은 지배 오행 중심으로 보정했습니다."),
+      timingAdvice: clean(profileBasicSections?.timingAdvice || "고위험은 수비, 저위험은 실행 강화 리듬을 유지하세요."),
+    },
+    reportSeed: {
+      keywords: Array.isArray(profileReportSeed?.keywords) ? profileReportSeed.keywords.map(clean).filter(Boolean) : [],
+      strengths: Array.isArray(profileReportSeed?.strengths) ? profileReportSeed.strengths.map(clean).filter(Boolean) : [],
+      weaknesses: Array.isArray(profileReportSeed?.weaknesses) ? profileReportSeed.weaknesses.map(clean).filter(Boolean) : [],
+      cautionPeriods: Array.isArray(profileReportSeed?.cautionPeriods) ? profileReportSeed.cautionPeriods.map(clean).filter(Boolean) : [],
+      recommendedActions: Array.isArray(profileReportSeed?.recommendedActions) ? profileReportSeed.recommendedActions.map(clean).filter(Boolean) : [],
+    },
+    sibyl: {
+      mode: clean(profileClassification?.mode || sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
+      modeTitle: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
+      modeDescription: clean(profileClassification?.subtitle || sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
+      riskScore,
+      aptitudeScore,
+      dominantTenGod: clean(profileSaju?.tenGods?.primary || sibylNode?.dominantTenGod || saju.tenGodSummary.dominantTenGod || body?.dominantTenStar || "미상"),
+      dominantElement: clean(profileSaju?.dominantElement || sibylNode?.dominantElement || saju.dominantElement || body?.dominantEl || "미상"),
       warningKeywords: Array.isArray(sibylNode?.warningKeywords) ? sibylNode.warningKeywords.map(clean).filter(Boolean) : [],
       strengthKeywords: Array.isArray(sibylNode?.strengthKeywords) ? sibylNode.strengthKeywords.map(clean).filter(Boolean) : [],
-      coreMessage: clean(sibylNode?.coreMessage || "핵심 성향은 명확하며, 리스크 관리 루틴을 먼저 고정하면 성과 변동성이 크게 줄어듭니다."),
-      lifeStrategy: clean(sibylNode?.lifeStrategy || "고위험 구간에는 결정 지연, 저위험 구간에는 집중 실행으로 리듬을 분리하세요."),
+      coreMessage: clean(profileClassification?.coreMessage || sibylNode?.coreMessage || "핵심 성향은 명확하며, 리스크 관리 루틴을 먼저 고정하면 성과 변동성이 크게 줄어듭니다."),
+      lifeStrategy: clean(profileBasicSections?.timingAdvice || sibylNode?.lifeStrategy || "고위험 구간에는 결정 지연, 저위험 구간에는 집중 실행으로 리듬을 분리하세요."),
     },
     yearlyFlow,
+    monthlyFlow: Array.isArray(normalizedProfile?.monthlyFlow)
+      ? normalizedProfile.monthlyFlow.map((item, index) => ({
+          month: toNumber(item?.month, index + 1),
+          riskScore: clamp(toNumber(item?.riskScore, 40), 5, 100),
+          opportunityScore: clamp(toNumber(item?.opportunityScore, 60), 5, 100),
+          warning: clean(item?.warning || "월별 경계 신호를 먼저 확인하세요."),
+          advice: clean(item?.advice || "핵심 과제를 1개로 집중하세요."),
+        }))
+      : [],
+    debug: {
+      source: clean(profileDebug?.source || "worker-normalized"),
+      missingFields: Array.isArray(profileDebug?.missingFields) ? profileDebug.missingFields.map(clean).filter(Boolean) : [],
+      warnings: Array.isArray(profileDebug?.warnings) ? profileDebug.warnings.map(clean).filter(Boolean) : [],
+    },
   };
 }
 
@@ -491,17 +554,25 @@ export async function handleSibylRoutes(request, env = {}) {
     const path = getRoutePath(request, "/api/sibyl");
     if (path !== "/report") return notFound();
 
-    await requireAuth(request, env);
+    const auth = await requireAuth(request, env);
     const body = await readJson(request);
     const canonical = normalizeCanonicalSibylData(body);
+    const requestId = clean(body?.requestId || body?.paymentContext?.requestId || "").slice(0, 120) || `sibyl_${stableHash(JSON.stringify(body?.pillars || {})).slice(0, 8)}`;
+    const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "premium-sibyl-dominator");
+    const profileValidation = {
+      ok: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields.length === 0 : true,
+      missingFields: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields : [],
+    };
 
     let rich;
+    let reportStatus = "generated";
     try {
       rich = await buildRichSibylReport(env, body);
     } catch {
       rich = buildFallbackReport(body);
       rich.source = "fallback";
       rich.warnings = ["gemini generation failed"];
+      reportStatus = "fallback-generated";
     }
 
     if (!rich || !Array.isArray(rich.chapters) || !rich.chapters.length) {
@@ -520,9 +591,20 @@ export async function handleSibylRoutes(request, env = {}) {
       mapped.chapterList = hardFallback.chapterList;
       rich.source = "fallback";
       rich.warnings = (rich.warnings || []).concat(["premium chapter validation fallback"]);
+      reportStatus = "fallback-validated";
     }
 
     const totalChars = mapped.chapterList.reduce((sum, chapter) => sum + clean(chapter.content).length, 0);
+    console.log("[sibyl-report]", {
+      requestId,
+      featureKey,
+      hasUserId: Boolean(auth?.userId),
+      unlocked: true,
+      profileValidation,
+      reportStatus,
+      totalChars,
+      source: rich?.source || "unknown",
+    });
     return json({
       ...rich,
       reportId: buildSibylFingerprint(body),
@@ -535,6 +617,11 @@ export async function handleSibylRoutes(request, env = {}) {
       minTotalChars: Math.min(SIBYL_MIN_TOTAL_CHARS, Math.max(totalChars, 6000)),
     });
   } catch (error) {
+    console.warn("[sibyl-report:error]", {
+      requestId: clean(error?.requestId || ""),
+      message: clean(error?.message || "sibyl route error"),
+      code: clean(error?.code || "SIBYL_ROUTE_ERROR"),
+    });
     return handleRouteError(error);
   }
 }
