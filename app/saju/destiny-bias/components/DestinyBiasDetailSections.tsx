@@ -3,11 +3,11 @@
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import styles from "../destiny-bias.module.css";
 
-function compactText(value: string, maxLength: number) {
-  const normalized = String(value || "").replace(/\s+/g, " ").trim();
-  if (!normalized) return "";
-  if (normalized.length <= maxLength) return normalized;
-  return `${normalized.slice(0, maxLength).trim()}...`;
+function toParagraphs(value: string) {
+  return String(value || "")
+    .split(/\n{2,}/)
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
 }
 
 function DetailCard({
@@ -32,7 +32,11 @@ function DetailCard({
       <div className={styles.auroraDiv} style={{ marginTop: 8, marginBottom: 10 }} aria-hidden />
       <h3 className="text-sm font-extrabold leading-snug text-white">{title}</h3>
       <p className="mt-2 text-sm font-semibold leading-6 text-pink-100/90">{summary}</p>
-      <p className="mt-2 text-sm leading-7 text-white/82">{description}</p>
+      <div className="mt-2 space-y-2 text-sm leading-7 text-white/82">
+        {toParagraphs(description).map((paragraph, index) => (
+          <p key={`${title}-${index}`}>{paragraph}</p>
+        ))}
+      </div>
     </article>
   );
 }
@@ -40,23 +44,24 @@ function DetailCard({
 export default function DestinyBiasDetailSections({ vm }: { vm: DestinyBiasResultViewModel }) {
   const energySvgMarkup = vm.biasEnergySvg.replace(/^<\?xml[^>]*>\s*/i, "");
 
-  const profileSummary = `최애의 무드 중심은 ${vm.biasEnergyType}이고, 무대 위 아우라는 ${vm.stageAuraComment}`;
-  const profileDesc = compactText(vm.biasPersonalityReport, 180);
+  const profileSummary = `사주형 에너지 축 기준, ${vm.biasName}의 중심 파동은 ${vm.biasEnergyType}이며 ${vm.stageAuraComment}`;
+  const profileDesc = vm.biasPersonalityReport;
 
   const chemistrySummary = `당신과 최애의 기본 결은 ${vm.chemistrySummary}`;
-  const chemistryDesc = compactText(`${vm.compatibilityDetail} 페어링 별칭은 ${vm.pairingAlias}입니다.`, 180);
+  const chemistryDesc = `${vm.compatibilityDetail}\n\n페어링 별칭은 ${vm.pairingAlias}입니다.`;
 
   const flowSummary = `지금의 에너지 흐름은 ${vm.destinySignal} 쪽으로 선명하게 기울고 있어요.`;
-  const flowDesc = compactText(`${vm.energyConnectionDetail} 오늘의 미션은 ${vm.todayMission}`, 180);
+  const flowDesc = `${vm.energyConnectionDetail}\n\n오늘의 미션: ${vm.todayMission}`;
 
-  const supportSummary = `응원 포인트는 ${vm.cheerPoint}이고, 관계 무드는 ${vm.relationMood}입니다.`;
-  const supportDesc = compactText(
-    `추천 키워드는 ${vm.moodKeywords.slice(0, 3).join(", ")}이며, 매칭 태그는 ${vm.matchingTags.slice(0, 3).join(", ")}입니다.`,
-    180,
-  );
+  const supportSummary = `${vm.relationMood} 관계 모드는 ${vm.biasEnergyType} 공명과 맞물릴 때 가장 강하게 살아납니다.`;
+  const supportDesc = [
+    `응원 운영 포인트: ${vm.cheerPoint}`,
+    `에너지 해설: ${vm.biasEnergySummary}`,
+    `추천 키워드: ${vm.moodKeywords.slice(0, 3).join(", ")} · 매칭 태그: ${vm.matchingTags.slice(0, 3).join(", ")}`,
+  ].join("\n\n");
 
   const destinySummary = vm.oneLineDestinyMessage;
-  const destinyDesc = compactText(vm.fansignMessage, 160);
+  const destinyDesc = vm.fansignMessage;
 
   return (
     <section className="space-y-3">
@@ -99,7 +104,11 @@ export default function DestinyBiasDetailSections({ vm }: { vm: DestinyBiasResul
             dangerouslySetInnerHTML={{ __html: energySvgMarkup }}
           />
         </div>
-        <p className="mt-3 text-sm leading-7 text-white/82">{supportDesc}</p>
+        <div className="mt-3 space-y-2 text-sm leading-7 text-white/82">
+          {toParagraphs(supportDesc).map((paragraph, index) => (
+            <p key={`support-${index}`}>{paragraph}</p>
+          ))}
+        </div>
       </article>
 
       <DetailCard

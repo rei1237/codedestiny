@@ -17,6 +17,7 @@ export type DestinyBiasCardSvgInput = {
   pairingAlias: string;
   editionLabel: string;
   stageChemistryKeywords: string[];
+  themeKey?: string;
   themeLabel: string;
 };
 
@@ -38,6 +39,7 @@ export type DestinyBiasCardSvgModel = {
     issuedAt: string;
     energyColor: string;
     editionLabel: string;
+      themeKey: string;
     themeLabel: string;
     stageChemistryKeywords: string[];
   };
@@ -130,6 +132,7 @@ export function buildBiasCardSvgModel(input: DestinyBiasCardSvgInput): DestinyBi
       issuedAt: trimText(input.issuedAt, "0000.00.00"),
       energyColor: trimText(input.energyColor, "#ffffff"),
       editionLabel: trimText(input.editionLabel, "LIMITED AURA CARD"),
+      themeKey: trimText(input.themeKey, "moonlight_neon"),
       themeLabel: trimText(input.themeLabel, "Aurora Glass"),
       stageChemistryKeywords: (Array.isArray(input.stageChemistryKeywords) ? input.stageChemistryKeywords : [])
         .map((item) => String(item || "").trim())

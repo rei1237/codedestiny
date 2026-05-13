@@ -44,11 +44,11 @@ const TAG_POOL = ["몽환형", "안정형", "폭발형", "치유형", "응원형
 const EDITION_POOL = ["LIMITED AURA CARD", "FANSIGN EDITION", "DESTINY VERIFIED", "BACKSTAGE PASS"] as const;
 
 const FANSIGN_POOL = [
-  "Always shine with your rhythm.",
-  "Keep your glow and trust your tempo.",
-  "See you at the next stage.",
-  "Your light makes this stage brighter.",
-  "Tonight, your heartbeat is the chorus.",
+  "오늘 템포 미쳤다, 네 리듬이 무드 완성함.",
+  "과몰입 허용 구간 진입, 근데 균형감도 챙기는 중.",
+  "다음 무대에서 또 연결돼, 오늘 여운은 저장 완료.",
+  "네 응원 파동 덕분에 스테이지 조도가 한 톤 올라감.",
+  "오늘 심장 BPM이 코러스랑 싱크 맞았어.",
 ] as const;
 
 function hashText(seed: string) {
@@ -152,9 +152,9 @@ export function getStageAuraComment(score: number, auraType: string) {
 }
 
 export function getCheerPoint(score: number, relationMood: string) {
-  if (score >= 90) return `피크 타임 응원에 강점: ${relationMood} 루틴을 짧고 강하게 유지해 보세요.`;
-  if (score >= 75) return `집중 응원에 강점: ${relationMood} 감성 메시지를 1일 1회 기록해 보세요.`;
-  if (score >= 60) return `안정 응원에 강점: ${relationMood} 플레이리스트 3곡으로 텐션을 맞춰 보세요.`;
-  if (score >= 40) return `성장 응원에 강점: ${relationMood} 루틴을 주 2회로 천천히 고정해 보세요.`;
-  return `리듬 적응이 우선: ${relationMood} 감성보다 휴식-응원 균형을 먼저 잡아 보세요.`;
+  if (score >= 90) return `피크 공명 구간 오픈. ${relationMood} 모드로 짧고 강한 응원 1세트만 넣어도 존재감이 크게 증폭됩니다.`;
+  if (score >= 75) return `집중 파동이 잘 맞는 날입니다. ${relationMood} 메시지를 하루 1회만 남겨도 에너지 잔광이 오래 유지됩니다.`;
+  if (score >= 60) return `안정 누적형 흐름입니다. ${relationMood} 템포에 맞춰 플리 3곡 루프를 만들면 감정선이 깔끔하게 정렬됩니다.`;
+  if (score >= 40) return `성장 잠금해제 단계입니다. ${relationMood} 루틴을 주 2회 고정하면 다음 사이클에서 공명 강도가 눈에 띄게 올라갑니다.`;
+  return `초기 동기화 단계입니다. ${relationMood} 감정보다 컨디션 회복을 먼저 챙기면 이후 응원 파동이 훨씬 안정적으로 붙습니다.`;
 }

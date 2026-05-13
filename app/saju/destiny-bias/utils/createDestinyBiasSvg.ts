@@ -75,9 +75,77 @@ function buildBarcode(seed: string) {
   return bars.join("");
 }
 
+type CardThemeTokens = {
+  stageBg: [string, string, string, string];
+  lightA: string;
+  lightB: string;
+  holoStroke: [string, string, string, string, string];
+  panelStroke: [string, string, string];
+  scoreTint: string;
+};
+
+function resolveCardTheme(themeKey: string, themeLabel: string): CardThemeTokens {
+  const key = String(themeKey || "").toLowerCase();
+  const label = String(themeLabel || "").toLowerCase();
+
+  if (key === "gold_nocturne" || label.includes("chrome")) {
+    return {
+      stageBg: ["#09101D", "#1A2036", "#64748B", "#D1D5DB"],
+      lightA: "#F8FAFF",
+      lightB: "#C5D8FF",
+      holoStroke: ["#F8FAFC", "#E2E8F0", "#C7D2FE", "#93C5FD", "#FFFFFF"],
+      panelStroke: ["rgba(226,232,240,0.76)", "rgba(199,210,254,0.62)", "rgba(147,197,253,0.72)"],
+      scoreTint: "#E5EEFF",
+    };
+  }
+
+  if (key === "coral_haze" || label.includes("pink")) {
+    return {
+      stageBg: ["#260A2C", "#54124E", "#D9468F", "#FB7185"],
+      lightA: "#FFC2EC",
+      lightB: "#FF9BD4",
+      holoStroke: ["#FFE4F8", "#FF9AD8", "#F472B6", "#FB7185", "#FDBA74"],
+      panelStroke: ["rgba(251,113,133,0.72)", "rgba(244,114,182,0.62)", "rgba(253,186,116,0.68)"],
+      scoreTint: "#FFD1E8",
+    };
+  }
+
+  if (key === "skywave_mint" || label.includes("midnight")) {
+    return {
+      stageBg: ["#030712", "#0B1F3E", "#1D4ED8", "#22D3EE"],
+      lightA: "#93C5FD",
+      lightB: "#67E8F9",
+      holoStroke: ["#DBEAFE", "#93C5FD", "#60A5FA", "#22D3EE", "#A5F3FC"],
+      panelStroke: ["rgba(59,130,246,0.7)", "rgba(34,211,238,0.56)", "rgba(165,243,252,0.72)"],
+      scoreTint: "#C9E8FF",
+    };
+  }
+
+  if (key === "jade_orbit" || label.includes("soft fan")) {
+    return {
+      stageBg: ["#042321", "#0B3D39", "#22C55E", "#7DD3FC"],
+      lightA: "#A7F3D0",
+      lightB: "#93C5FD",
+      holoStroke: ["#ECFEFF", "#99F6E4", "#6EE7B7", "#7DD3FC", "#E0F2FE"],
+      panelStroke: ["rgba(110,231,183,0.74)", "rgba(125,211,252,0.58)", "rgba(224,242,254,0.72)"],
+      scoreTint: "#D1FAE5",
+    };
+  }
+
+  return {
+    stageBg: ["#09051F", "#1A0B3F", "#6D3BFF", "#40C8FF"],
+    lightA: "#FF5FD2",
+    lightB: "#40C8FF",
+    holoStroke: ["#F8F3FF", "#FF9AD8", "#C9A7FF", "#80FFE7", "#FFD98A"],
+    panelStroke: ["rgba(255,95,210,0.65)", "rgba(201,167,255,0.58)", "rgba(64,200,255,0.65)"],
+    scoreTint: "#FFD98A",
+  };
+}
+
 export function createDestinyBiasCardSvg(input: SvgInput) {
   const model = buildBiasCardSvgModel(input);
   const fontFamily = "Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif";
+  const theme = resolveCardTheme(model.meta.themeKey, model.meta.themeLabel);
 
   const profileNameY = 468;
   const profileLinkedY = profileNameY + blockHeight(model.biasName.lines, model.biasName.lineHeight) + 56;
@@ -205,34 +273,34 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1680" viewBox="0 0 1080 1680" role="img" aria-label="My Destiny Bias Premium Photocard">
   <defs>
     <linearGradient id="stageBg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#09051F"/>
-      <stop offset="44%" stop-color="#1A0B3F"/>
-      <stop offset="70%" stop-color="#6D3BFF"/>
-      <stop offset="100%" stop-color="#40C8FF"/>
+      <stop offset="0%" stop-color="${theme.stageBg[0]}"/>
+      <stop offset="44%" stop-color="${theme.stageBg[1]}"/>
+      <stop offset="70%" stop-color="${theme.stageBg[2]}"/>
+      <stop offset="100%" stop-color="${theme.stageBg[3]}"/>
     </linearGradient>
     <radialGradient id="lightA" cx="0.12" cy="0.08" r="0.45">
-      <stop offset="0%" stop-color="#FF5FD2" stop-opacity="0.56"/>
+      <stop offset="0%" stop-color="${theme.lightA}" stop-opacity="0.56"/>
       <stop offset="100%" stop-color="#FFE8FA" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="lightB" cx="0.86" cy="0.11" r="0.42">
-      <stop offset="0%" stop-color="#40C8FF" stop-opacity="0.52"/>
+      <stop offset="0%" stop-color="${theme.lightB}" stop-opacity="0.52"/>
       <stop offset="100%" stop-color="#CCF8FF" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="holoStroke" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#F8F3FF"/>
-      <stop offset="28%" stop-color="#FF9AD8"/>
-      <stop offset="58%" stop-color="#C9A7FF"/>
-      <stop offset="78%" stop-color="#80FFE7"/>
-      <stop offset="100%" stop-color="#FFD98A"/>
+      <stop offset="0%" stop-color="${theme.holoStroke[0]}"/>
+      <stop offset="28%" stop-color="${theme.holoStroke[1]}"/>
+      <stop offset="58%" stop-color="${theme.holoStroke[2]}"/>
+      <stop offset="78%" stop-color="${theme.holoStroke[3]}"/>
+      <stop offset="100%" stop-color="${theme.holoStroke[4]}"/>
     </linearGradient>
     <linearGradient id="glassPanel" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.06)"/>
     </linearGradient>
     <linearGradient id="panelStroke" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="rgba(255,95,210,0.65)"/>
-      <stop offset="50%" stop-color="rgba(201,167,255,0.58)"/>
-      <stop offset="100%" stop-color="rgba(64,200,255,0.65)"/>
+      <stop offset="0%" stop-color="${theme.panelStroke[0]}"/>
+      <stop offset="50%" stop-color="${theme.panelStroke[1]}"/>
+      <stop offset="100%" stop-color="${theme.panelStroke[2]}"/>
     </linearGradient>
     <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
@@ -305,7 +373,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   <text x="184" y="724" fill="#E9F7FF" font-family="${fontFamily}" font-size="22" font-weight="700">궁합 점수</text>
   <text x="184" y="832" fill="#FFFFFF" font-family="${fontFamily}" font-size="100" font-weight="900">${score}</text>
   <text x="300" y="832" fill="#E4F7FF" font-family="${fontFamily}" font-size="32" font-weight="700">/ 100</text>
-  <text x="184" y="882" fill="#FFD98A" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(model.meta.themeLabel)}</text>
+  <text x="184" y="882" fill="${theme.scoreTint}" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(model.meta.themeLabel)}</text>
 
   <rect x="548" y="682" width="374" height="244" rx="30" fill="rgba(8,15,40,0.66)" stroke="rgba(255,255,255,0.24)"/>
   <text x="574" y="724" fill="#E9F7FF" font-family="${fontFamily}" font-size="22" font-weight="700">에너지 타입 / 재질</text>

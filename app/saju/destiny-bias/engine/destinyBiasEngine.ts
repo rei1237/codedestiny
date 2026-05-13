@@ -28,6 +28,7 @@ export type DestinyBiasAnalyzeInput = {
   linkedArtistName?: string;
   biasMood: string;
   relationMood: string;
+  themeKey?: string;
   themeLabel: string;
 };
 
@@ -189,6 +190,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     pairingAlias,
     editionLabel: auraMeta.editionLabel,
     stageChemistryKeywords,
+    themeKey: input.themeKey,
     themeLabel: input.themeLabel,
   });
 
@@ -198,6 +200,8 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     auraType: auraMeta.auraType,
     auraMaterial: auraMeta.auraMaterial,
     energyColor: auraMeta.energyColor,
+    relationMood: input.relationMood,
+    themeKey: input.themeKey,
     totalScore: compatibility.totalScore,
     connectionKeywords: compatibility.connectionKeyword,
   });

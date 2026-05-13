@@ -445,6 +445,7 @@ export default function DestinyBiasClient() {
         linkedArtistName: biasArtistInput,
         biasMood,
         relationMood,
+        themeKey: selectedTheme.key,
         themeLabel: selectedTheme.name,
       });
 
@@ -835,14 +836,27 @@ export default function DestinyBiasClient() {
                       <button
                         key={theme.key}
                         type="button"
+                        aria-pressed={active}
+                        aria-label={`${theme.name} 테마 ${active ? "선택됨" : "선택"}${locked ? " (프리미엄 필요)" : ""}`}
                         onClick={() => {
-                          if (!locked) setActiveThemeKey(theme.key);
+                          if (locked) {
+                            setToast("프리미엄 테마는 구독 또는 언락 후 선택할 수 있어요.");
+                            return;
+                          }
+                          setActiveThemeKey(theme.key);
                         }}
                         className={`${styles.themeCard} ${active ? styles.themeCardActive : ""} ${locked ? "opacity-50 cursor-not-allowed" : ""} text-left`}
                       >
                         <div className="h-24" style={{ background: theme.preview }} />
                         <div className="p-3">
-                          <p className="text-sm font-bold text-white">{theme.name}</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-bold text-white">{theme.name}</p>
+                            {active ? (
+                              <span className="rounded-full border border-pink-200/60 bg-pink-300/20 px-2 py-0.5 text-[10px] font-black tracking-[0.08em] text-pink-100">
+                                SELECTED
+                              </span>
+                            ) : null}
+                          </div>
                           <p className="mt-1 text-xs text-white/75">{theme.description}</p>
                           <p className="mt-2 text-[11px] font-semibold text-cyan-100/85">{theme.premium ? "PREMIUM" : "FREE"}</p>
                         </div>
