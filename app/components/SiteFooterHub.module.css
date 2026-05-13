@@ -165,6 +165,105 @@
   border-top: 1px solid rgba(125, 151, 207, 0.28);
 }
 
+.sfhBusinessCard {
+  margin-top: 14px;
+  border: 1px solid rgba(147, 168, 218, 0.34);
+  border-radius: 14px;
+  background:
+    linear-gradient(140deg, rgba(7, 19, 43, 0.92), rgba(7, 15, 32, 0.9) 55%, rgba(13, 29, 58, 0.84)),
+    linear-gradient(120deg, rgba(255, 220, 160, 0.08), rgba(127, 165, 245, 0.08));
+  box-shadow: inset 0 1px 0 rgba(160, 184, 236, 0.12), 0 10px 24px rgba(2, 8, 24, 0.32);
+  padding: 14px 14px 12px;
+}
+
+.sfhBusinessTitle {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(127, 156, 219, 0.28);
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d4c3ff;
+}
+
+.sfhBusinessList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.sfhBusinessItem {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.72;
+  color: #9eb1d9;
+  word-break: keep-all;
+}
+
+.sfhBusinessItem strong {
+  color: #d8e3ff;
+}
+
+.sfhBusinessDivider {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(87, 113, 166, 0.5);
+}
+
+.sfhBusinessEmphasis {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.72;
+  color: #d0dcf6;
+  word-break: keep-all;
+}
+
+.sfhBusinessEmphasis strong {
+  color: #e8f0ff;
+}
+
+.sfhBusinessMuted {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.72;
+  color: #9eb1d9;
+  word-break: keep-all;
+}
+
+.sfhRefundTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffc4d1;
+}
+
+.sfhRefundList {
+  margin: 0;
+  padding: 0 0 0 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.sfhRefundNotice {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.72;
+  color: #ffc4d1;
+  word-break: keep-all;
+}
+
+.sfhRefundNoticeStrong {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.72;
+  font-weight: 700;
+  color: #ffc4d1;
+  word-break: keep-all;
+}
+
 .sfhPolicyLink {
   color: #b6c8fb;
   text-decoration: none;
@@ -199,6 +298,10 @@
 
   .sfhPolicyNav {
     gap: 7px 10px;
+  }
+
+  .sfhBusinessCard {
+    padding: 12px 11px 11px;
   }
 }
 
