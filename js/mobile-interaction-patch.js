@@ -603,10 +603,23 @@
       .filter(function(v) { return v.length > 0; });
   }
 
+  function ensureMobileBackstackRuntime() {
+    if (window.__cdMobileNav) return;
+    loadScript('/js/mobile-backstack-navigation.js?v=20260513-mobile-backstack-v1').catch(function(err) {
+      console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
+    });
+  }
+
   function invokeConfiguredDataAction(actionEl, sourceEvent) {
     if (!actionEl) return false;
     var action = actionEl.getAttribute('data-action');
     if (!action) return false;
+    ensureMobileBackstackRuntime();
+    try {
+      if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
+        window.__cdMobileNav.onActionInvoke(action, actionEl);
+      }
+    } catch (_) {}
     var fn = window[action];
     if (typeof fn !== 'function') return false;
 
@@ -719,6 +732,12 @@
 
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
+    ensureMobileBackstackRuntime();
+    try {
+      if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
+        window.__cdMobileNav.onActionInvoke(rule.action, origin || null);
+      }
+    } catch (_) {}
     // Preview CTA?�서 data-pvw-bypass�??�클�?��??경우???�상 ?�속 ?�로?�이므�?    // dedupe??걸리지 ?�게 ?�야 ?�리미엄 ?�션??무반?�으�??�모?��? ?�는??
     var _fromPreviewBypass = false;
     if (origin && typeof origin.closest === 'function') {

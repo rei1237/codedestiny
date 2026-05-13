@@ -87,7 +87,7 @@ function stripLocalePrefix(pathname: string) {
 
 export function resolveBackPolicy(pathname: string): BackPolicy {
   const normalized = stripLocalePrefix(pathname);
-  if (normalized === "/") {
+  if (normalized === "/" || normalized === "/index.html" || normalized === "/index") {
     return { kind: "main" };
   }
   if (normalized === "/saju" || normalized.startsWith("/saju/")) {

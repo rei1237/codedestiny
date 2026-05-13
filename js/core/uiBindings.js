@@ -72,6 +72,17 @@ function __ensureSajuCoreScripts() {
 
 const __lazyActionState = {};
 const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=20260512-sukuyo-reflect-fix1';
+const __MOBILE_BACKSTACK_SRC = '/js/mobile-backstack-navigation.js?v=20260513-mobile-backstack-v1';
+
+function __ensureMobileBackstackLoaded() {
+  return __loadScriptOnce(__MOBILE_BACKSTACK_SRC).catch((err) => {
+    console.error('[uiBindings] mobile-backstack lazy load failed:', err);
+  });
+}
+
+if (typeof window !== 'undefined') {
+  __ensureMobileBackstackLoaded();
+}
 
 /** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
 const __CD_DEFER_INP_ACTIONS = new Set([
@@ -335,6 +346,16 @@ function __callActionWithConfig(action, actionEl, event, args) {
 
 function __invokeAction(action, actionEl, event) {
   const args = parseArgs(actionEl.getAttribute('data-action-args'));
+
+  if ((typeof window !== 'undefined') && !window.__cdMobileNav) {
+    __ensureMobileBackstackLoaded();
+  }
+
+  try {
+    if (typeof window !== 'undefined' && window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
+      window.__cdMobileNav.onActionInvoke(action, actionEl || null);
+    }
+  } catch (_) {}
 
   const run = () => {
     const out = __callActionWithConfig(action, actionEl, event, args);

@@ -126,7 +126,6 @@ export default function NavigationProvider({ children }: { children: React.React
         const exitResult = attemptAppExit(window);
         firstMainBackAtRef.current = 0;
         if (!exitResult.handled) {
-          showExitToast("브라우저 정책으로 자동 종료가 제한됩니다");
           rearmGuardState(pathKey, "main");
         }
         return;
