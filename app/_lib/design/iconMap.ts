@@ -17,6 +17,7 @@ export const FEATURE_ICON_MAP: Record<string, DestinyIconName> = {
 
 export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/saju/basic": "yinYang",
+  "/saju/basic/play": "compass",
   "/saju/sibyl": "seal",
   "/saju/lifebook": "scroll",
   "/saju/love-secret": "heartGlow",
@@ -24,6 +25,8 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/saju/destiny-bias": "photocard",
   "/saju/animal-test": "animalPaw",
   "/saju/animal-destiny": "animalPaw",
+  "/saju-picture": "seal",
+  "/animal/mbti": "animalPaw",
   "/ziwei/chart": "palace",
   "/astrology/cosmic": "zodiac",
   "/vedic/jyotish": "compass",
@@ -34,6 +37,19 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/oracle/hwatu": "scroll",
   "/oracle/hwatu-life": "scroll",
   "/oracle/sikojen-povailu": "coin",
+  "/geomancy-oracle-v4.html": "compass",
+  "/destiny-poker.html": "tarot",
+  "/fortune-teller-fish.html": "moon",
+  "/tadagochi": "crystal",
+  "/neville-meditation.html": "lotus",
+  "/yoga-guru.html": "lotus",
+  "/cosmic-soul-meditation.html": "sparkleLine",
+  "/emoi_omikuji_v2.html": "torii",
+  "/blood-type-app.html": "crystal",
+  "/myungwun_final.html": "scroll",
+  "/high-value": "crystal",
+  "/olympus": "stageLight",
+  "/psychotest": "seal",
   "/tarot/mingri": "tarot",
   "/tarot/love": "heartGlow",
   "/tarot/healing": "sun",
@@ -53,7 +69,34 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/signup": "sparkle",
 };
 
+const STATIC_ACTION_ICON_MAP: Record<string, DestinyIconName> = {
+  gotoZiweiPremium: "palace",
+  gotoAstrologyPremium: "zodiac",
+  gotoSukuyoPremium: "moon",
+  gotoVedicPremium: "compass",
+  gotoNamingPremium: "scroll",
+  openAnimalTotemModal: "animalPaw",
+};
+
 export function resolveRouteIcon(route?: string, fallback: DestinyIconName = "sparkle"): DestinyIconName {
   if (!route) return fallback;
-  return ROUTE_ICON_MAP[route] || fallback;
+  if (ROUTE_ICON_MAP[route]) return ROUTE_ICON_MAP[route];
+
+  const [path, query = ""] = route.split("?");
+  if (ROUTE_ICON_MAP[path]) return ROUTE_ICON_MAP[path];
+
+  if (path === "/static/index.html" || path === "/static/") {
+    const params = new URLSearchParams(query);
+    const action = params.get("action") || "";
+    if (STATIC_ACTION_ICON_MAP[action]) {
+      return STATIC_ACTION_ICON_MAP[action];
+    }
+  }
+
+  const prefixed = Object.keys(ROUTE_ICON_MAP).find((key) => route.startsWith(`${key}/`));
+  if (prefixed) {
+    return ROUTE_ICON_MAP[prefixed];
+  }
+
+  return fallback;
 }

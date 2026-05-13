@@ -18,7 +18,7 @@ const requiredHtmlMarkers = [
   'data-action="gotoSukuyoPremium"',
   'data-action="gotoVedicPremium"',
   'data-action="gotoNamingPremium"',
-  "사업자등록번호",
+  'href="/privacy-policy"',
   'id="cdAdminFlowerBtn"',
 ];
 
