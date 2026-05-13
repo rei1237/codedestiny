@@ -6,6 +6,21 @@ import { getApiBaseUrl } from "../../_lib/api-config";
 import { sanitizePublicInsightHtml, stripHtmlText } from "../_lib/sanitizePublicHtml";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
+const SITE_ORIGIN = "https://code-destiny.com";
+const FALLBACK_ARTICLE_IMAGE = "/icons/fortune-tama-512.webp";
+const ARTICLE_IMAGE_PROFILES = [
+  { url: "/fuctionassets/jami.webp", alt: "자미두수 명반 인사이트 이미지", keywords: ["자미", "ziwei", "명궁", "12궁", "궁위", "사화", "자미두수"] },
+  { url: "/fuctionassets/sukyo.webp", alt: "숙요점 궁합 인사이트 이미지", keywords: ["숙요", "27숙", "영친", "업태", "안괴", "본명숙", "월명숙"] },
+  { url: "/fuctionassets/saju.webp", alt: "사주 명리학 인사이트 이미지", keywords: ["사주", "명리", "천간", "지지", "오행", "십성", "용신", "만세력", "일간", "대운", "세운"] },
+  { url: "/tarot-cards/theworld.webp", alt: "타로 메이저 아르카나 인사이트 이미지", keywords: ["아르카나", "major", "arcana", "메이저", "카드"] },
+  { url: "/fuctionassets/tarolove.webp", alt: "타로 리딩 인사이트 이미지", keywords: ["타로", "tarot", "스프레드", "리딩", "역방향"] },
+  { url: "/fuctionassets/jumsung.webp", alt: "점성술 차트 인사이트 이미지", keywords: ["점성", "astrology", "태양궁", "달궁", "상승궁", "하우스", "출생차트"] },
+  { url: "/fuctionassets/veda.webp", alt: "베다점성술 인사이트 이미지", keywords: ["베다", "vedic", "라그나", "나크샤트라"] },
+  { url: "/fuctionassets/heamong.webp", alt: "꿈해몽 인사이트 이미지", keywords: ["꿈", "dream", "해몽", "무의식"] },
+  { url: "/fuctionassets/lovebible.webp", alt: "연애 궁합 인사이트 이미지", keywords: ["연애", "궁합", "관계", "재회", "사랑", "속마음"] },
+  { url: "/fuctionassets/flower4.webp", alt: "운세 인사이트 이미지", keywords: ["운세", "인사이트", "가이드", "fortune"] },
+];
+
 function upsertMetaTag(selector, attrs, content) {
   if (typeof document === "undefined") return;
 
@@ -128,7 +143,78 @@ function extractFaqItemsFromHtml(rawHtml) {
   return items.filter((item) => item.question && item.answer);
 }
 
-function resolveSeo(item, shareUrl) {
+function isKnownBrokenImageUrl(value) {
+  const url = String(value || "").trim().toLowerCase();
+  if (!url) return true;
+  return url.includes("/og/code-destiny-og.png");
+}
+
+function toAbsoluteAssetUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith("/")) return `${SITE_ORIGIN}${raw}`;
+  return `${SITE_ORIGIN}/${raw}`;
+}
+
+function pickImageProfile(item) {
+  const blob = [
+    item?.slug,
+    item?.title,
+    item?.subtitle,
+    item?.excerpt,
+    item?.category,
+    ...(Array.isArray(item?.tags) ? item.tags : []),
+  ]
+    .map((value) => String(value || "").toLowerCase())
+    .join(" ");
+
+  let best = ARTICLE_IMAGE_PROFILES[ARTICLE_IMAGE_PROFILES.length - 1];
+  let bestScore = 0;
+
+  for (const profile of ARTICLE_IMAGE_PROFILES) {
+    let score = 0;
+    for (const keyword of profile.keywords) {
+      if (blob.includes(String(keyword || "").toLowerCase())) score += 2;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = profile;
+    }
+  }
+
+  return best || ARTICLE_IMAGE_PROFILES[0];
+}
+
+function buildInsightImageBundle(item) {
+  const profile = pickImageProfile(item);
+  const candidates = [];
+
+  const pushCandidate = (value) => {
+    const url = String(value || "").trim();
+    if (!url || isKnownBrokenImageUrl(url)) return;
+    if (candidates.includes(url)) return;
+    candidates.push(url);
+  };
+
+  pushCandidate(item?.featuredImage?.url);
+  pushCandidate(item?.ogImage);
+  pushCandidate(item?.twitterImage);
+  pushCandidate(profile?.url);
+  pushCandidate(FALLBACK_ARTICLE_IMAGE);
+
+  return {
+    candidates,
+    primaryUrl: candidates[0] || "",
+    ogUrl: toAbsoluteAssetUrl(candidates[0] || FALLBACK_ARTICLE_IMAGE),
+    alt: String(item?.featuredImage?.alt || profile?.alt || item?.title || "인사이트 대표 이미지").trim(),
+    width: Number(item?.featuredImage?.width || 0) || 1200,
+    height: Number(item?.featuredImage?.height || 0) || 630,
+  };
+}
+
+function resolveSeo(item, shareUrl, fallbackOgImage) {
   const title = String(item?.title || "").trim();
   const subtitle = String(item?.subtitle || "").trim();
   const excerpt = String(item?.excerpt || "").trim();
@@ -139,10 +225,16 @@ function resolveSeo(item, shareUrl) {
   const metaDescription = String(item?.metaDescription || "").trim() || excerpt || bodySnippet;
   const ogTitle = String(item?.ogTitle || "").trim() || metaTitle;
   const ogDescription = String(item?.ogDescription || "").trim() || metaDescription;
-  const ogImage = String(item?.ogImage || "").trim() || String(item?.featuredImage?.url || "").trim();
+  const rawOgImage = String(item?.ogImage || "").trim() || String(item?.featuredImage?.url || "").trim();
+  const ogImage = !isKnownBrokenImageUrl(rawOgImage)
+    ? toAbsoluteAssetUrl(rawOgImage)
+    : toAbsoluteAssetUrl(fallbackOgImage);
   const twitterTitle = String(item?.twitterTitle || "").trim() || ogTitle;
   const twitterDescription = String(item?.twitterDescription || "").trim() || ogDescription;
-  const twitterImage = String(item?.twitterImage || "").trim() || ogImage;
+  const rawTwitterImage = String(item?.twitterImage || "").trim();
+  const twitterImage = !isKnownBrokenImageUrl(rawTwitterImage)
+    ? toAbsoluteAssetUrl(rawTwitterImage)
+    : ogImage;
   const canonical = String(item?.canonicalUrl || "").trim() || shareUrl;
 
   return {
@@ -237,6 +329,7 @@ export default function InsightArticleCosmicClient({
   const [error, setError] = useState("");
   const [shareMessage, setShareMessage] = useState("");
   const [tocOpen, setTocOpen] = useState(false);
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -298,6 +391,8 @@ export default function InsightArticleCosmicClient({
   const tocBundle = useMemo(() => enrichHtmlWithToc(safeHtml), [safeHtml]);
   const renderedHtml = tocBundle.html;
   const tocItems = tocBundle.toc;
+  const imageBundle = useMemo(() => buildInsightImageBundle(item), [item]);
+  const heroImageUrl = imageBundle.candidates[heroImageIndex] || "";
   const htmlFaqItems = useMemo(() => extractFaqItemsFromHtml(renderedHtml), [renderedHtml]);
   const dataFaqItems = useMemo(() => normalizeFaqItems(item?.faq), [item?.faq]);
   const faqItems = useMemo(() => {
@@ -321,7 +416,7 @@ export default function InsightArticleCosmicClient({
   }, [item?.cta?.links, item?.internalLinks]);
   const readingTime = Math.max(1, Number(item?.readingTime || 0) || 1);
   const shareUrl = buildShareUrl(item?.shareUrl, item?.slug || slug);
-  const seo = useMemo(() => resolveSeo(item, shareUrl), [item, shareUrl]);
+  const seo = useMemo(() => resolveSeo(item, shareUrl, imageBundle.ogUrl), [item, shareUrl, imageBundle.ogUrl]);
   const breadcrumbJsonLd = useMemo(
     () =>
       buildBreadcrumbJsonLd([
@@ -364,6 +459,10 @@ export default function InsightArticleCosmicClient({
   }, [faqItems]);
 
   useEffect(() => {
+    setHeroImageIndex(0);
+  }, [item?.slug, imageBundle.primaryUrl]);
+
+  useEffect(() => {
     if (!item) return;
 
     document.title = seo.metaTitle || seo.title || "인사이트";
@@ -386,6 +485,13 @@ export default function InsightArticleCosmicClient({
     if (!element) return;
     element.scrollIntoView({ behavior: "smooth", block: "start" });
     setTocOpen(false);
+  }
+
+  function onHeroImageError() {
+    setHeroImageIndex((prev) => {
+      if (prev + 1 >= imageBundle.candidates.length) return prev;
+      return prev + 1;
+    });
   }
 
   async function onShare() {
@@ -422,91 +528,110 @@ export default function InsightArticleCosmicClient({
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#2a1a47_0%,#100a1f_45%,#090612_100%)] text-slate-100">
-      <section className="mx-auto w-full max-w-4xl px-4 py-8 md:py-10 space-y-6">
-        <nav aria-label="Breadcrumb" className="text-xs text-slate-300">
+    <main className="relative min-h-screen overflow-hidden bg-[#06050d] text-slate-100">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_18%,rgba(76,29,149,0.55),transparent_36%),radial-gradient(circle_at_84%_22%,rgba(251,191,36,0.18),transparent_30%),radial-gradient(circle_at_52%_80%,rgba(14,165,233,0.14),transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px] opacity-[0.06]" />
+
+      <section className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 md:px-6 md:py-10">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs text-slate-300/90">
           <Link href="/" className="hover:text-amber-100">홈</Link>
-          <span>{" > "}</span>
+          <span className="text-slate-500">/</span>
           <Link href="/insights" className="hover:text-amber-100">운세 인사이트 허브</Link>
-          <span>{" > "}</span>
-          <span className="text-slate-100">{item.title}</span>
+          <span className="text-slate-500">/</span>
+          <span className="line-clamp-1 text-slate-100">{item.title}</span>
         </nav>
 
-        <Link href="/insights" className="inline-flex rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10">목록으로 돌아가기</Link>
+        <Link href="/insights" className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-slate-100 backdrop-blur hover:border-amber-200/50 hover:bg-white/15">
+          목록으로 돌아가기
+        </Link>
 
-        <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">
-          <p className="text-xs text-amber-200/85">{item.category || "인사이트"}</p>
-          <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">{item.title}</h1>
-          {item.subtitle ? <p className="mt-3 text-base text-slate-300 leading-7">{item.subtitle}</p> : null}
+        <header className="relative overflow-hidden rounded-[28px] border border-white/15 bg-[#120f26]/80 p-5 shadow-[0_24px_90px_rgba(15,8,44,0.45)] backdrop-blur-xl md:p-8">
+          <div className="pointer-events-none absolute -top-20 right-[-90px] h-56 w-56 rounded-full bg-amber-300/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 left-[-100px] h-64 w-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
 
-          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
-            <span>작성일 {formatDateTime(item.publishedAt || item.createdAt)}</span>
-            <span>수정일 {formatDateTime(item.updatedAt)}</span>
-            <span>조회 {Number(item.viewCount || 0).toLocaleString("ko-KR")}</span>
-            <span>약 {readingTime}분 읽기</span>
-          </div>
-
-          {item.noIndex ? (
-            <p className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
-              이 글은 검색 색인 제외(noIndex) 설정이 켜져 있습니다.
+          <div className="relative z-10">
+            <p className="inline-flex rounded-full border border-amber-200/35 bg-amber-100/10 px-2.5 py-1 text-xs text-amber-100/95">
+              {item.category || "인사이트"}
             </p>
-          ) : null}
+            <h1 className="mt-3 text-2xl font-semibold leading-tight text-amber-50 md:text-4xl">{item.title}</h1>
+            {item.subtitle ? <p className="mt-3 text-base leading-7 text-slate-200/90">{item.subtitle}</p> : null}
 
-          {item.featuredImage?.url ? (
-            <div className="mt-5 overflow-hidden rounded-2xl border border-white/10">
-              <img
-                src={item.featuredImage.url}
-                alt={item.featuredImage.alt || item.title}
-                loading="lazy"
-                width={item.featuredImage.width || undefined}
-                height={item.featuredImage.height || undefined}
-                className="w-full h-auto object-cover"
-              />
+            <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300/90">
+              <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1">작성일 {formatDateTime(item.publishedAt || item.createdAt)}</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1">수정일 {formatDateTime(item.updatedAt)}</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1">조회 {Number(item.viewCount || 0).toLocaleString("ko-KR")}</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1">약 {readingTime}분 읽기</span>
             </div>
-          ) : null}
 
-          {Array.isArray(item.tags) && item.tags.length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {item.tags.map((value) => (
-                <span key={`${item.slug}-${value}`} className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] text-slate-200">#{value}</span>
-              ))}
+            {item.noIndex ? (
+              <p className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+                이 글은 검색 색인 제외(noIndex) 설정이 켜져 있습니다.
+              </p>
+            ) : null}
+
+            <div className="mt-6 overflow-hidden rounded-2xl border border-white/15 bg-black/20">
+              {heroImageUrl ? (
+                <img
+                  src={heroImageUrl}
+                  alt={imageBundle.alt || item.title}
+                  loading="lazy"
+                  width={imageBundle.width || undefined}
+                  height={imageBundle.height || undefined}
+                  onError={onHeroImageError}
+                  className="aspect-[16/9] w-full object-cover"
+                />
+              ) : (
+                <div className="flex aspect-[16/9] w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(251,191,36,0.22),transparent_38%),radial-gradient(circle_at_75%_30%,rgba(168,85,247,0.28),transparent_45%),linear-gradient(130deg,#1f153c,#09080f)] px-6 text-center text-sm text-slate-200">
+                  대표 이미지가 준비되는 동안 텍스트 콘텐츠를 먼저 확인하실 수 있습니다.
+                </div>
+              )}
             </div>
-          ) : null}
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={onShare}
-              className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
-            >
-              공유하기
-            </button>
-            <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(item.title)}`}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
-            >
-              X 공유
-            </a>
-            <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
-            >
-              Facebook 공유
-            </a>
-            {shareMessage ? <span className="text-xs text-emerald-300">{shareMessage}</span> : null}
+            {Array.isArray(item.tags) && item.tags.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {item.tags.map((value) => (
+                  <span key={`${item.slug}-${value}`} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] text-slate-100">
+                    #{value}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={onShare}
+                className="rounded-lg border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-sm text-amber-50 hover:bg-amber-100/20"
+              >
+                공유하기
+              </button>
+              <a
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(item.title)}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm hover:bg-white/15"
+              >
+                X 공유
+              </a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm hover:bg-white/15"
+              >
+                Facebook 공유
+              </a>
+              {shareMessage ? <span className="text-xs text-emerald-300">{shareMessage}</span> : null}
+            </div>
           </div>
         </header>
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <section className="rounded-2xl border border-white/15 bg-[#100d22]/75 p-4 backdrop-blur-md">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-amber-100">목차</h2>
             <button
               type="button"
-              className="rounded-lg border border-white/20 bg-white/5 px-2.5 py-1 text-xs text-slate-200 md:hidden"
+              className="rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-xs text-slate-100 md:hidden"
               onClick={() => setTocOpen((open) => !open)}
             >
               {tocOpen ? "접기" : "펼치기"}
@@ -514,16 +639,17 @@ export default function InsightArticleCosmicClient({
           </div>
 
           {tocItems.length > 0 ? (
-            <nav className={`${tocOpen ? "block" : "hidden"} md:block mt-3`} aria-label="본문 목차">
+            <nav className={`${tocOpen ? "block" : "hidden"} mt-3 md:block`} aria-label="본문 목차">
               <ul className="space-y-1.5">
                 {tocItems.map((toc) => (
                   <li key={toc.id} className={toc.level === 3 ? "pl-4" : ""}>
                     <button
                       type="button"
                       onClick={() => onTocClick(toc.id)}
-                      className="text-left text-sm text-slate-200 hover:text-amber-100 leading-6"
+                      className="text-left text-sm leading-6 text-slate-200 hover:text-amber-100"
                     >
-                      {toc.level === 3 ? "- " : ""}{toc.text}
+                      {toc.level === 3 ? "- " : ""}
+                      {toc.text}
                     </button>
                   </li>
                 ))}
@@ -534,12 +660,12 @@ export default function InsightArticleCosmicClient({
           )}
         </section>
 
-        <article className="rounded-3xl border border-white/10 bg-white/[0.03] px-5 py-6 md:px-8 md:py-8">
-          <div className="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-headings:text-amber-50 prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:leading-8 prose-li:leading-8 prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-blockquote:border-amber-300/40 prose-blockquote:text-slate-200" dangerouslySetInnerHTML={{ __html: renderedHtml }} />
+        <article className="rounded-3xl border border-white/15 bg-[#0f0c1e]/85 px-5 py-6 shadow-[0_14px_44px_rgba(0,0,0,0.35)] md:px-8 md:py-8">
+          <div className="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-headings:text-amber-50 prose-h1:text-3xl prose-h2:mt-10 prose-h2:text-[1.55rem] prose-h2:leading-[1.35] prose-h3:text-xl prose-p:leading-8 prose-li:leading-8 prose-img:rounded-xl prose-img:border prose-img:border-white/15 prose-blockquote:border-amber-300/40 prose-blockquote:text-slate-200" dangerouslySetInnerHTML={{ __html: renderedHtml }} />
         </article>
 
         {ctaLinks.length > 0 ? (
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] px-5 py-6 md:px-8 md:py-8">
+          <section className="rounded-3xl border border-white/15 bg-[#110e23]/75 px-5 py-6 md:px-8 md:py-8">
             <h2 className="text-xl font-semibold text-amber-100">관련 서비스 바로가기</h2>
             <p className="mt-3 text-sm leading-7 text-slate-300">
               검색으로 들어온 내용을 기능 실행으로 이어가야 해석의 가치가 커집니다. 아래 키워드 앵커로 바로 이동해 보세요.
@@ -549,7 +675,7 @@ export default function InsightArticleCosmicClient({
                 <Link
                   key={`${item.slug}-${linkItem.href}-${linkItem.label}`}
                   href={linkItem.href}
-                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm hover:bg-white/10"
+                  className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-slate-100 hover:border-amber-200/40 hover:bg-white/15"
                 >
                   {linkItem.label}
                 </Link>
@@ -559,11 +685,11 @@ export default function InsightArticleCosmicClient({
         ) : null}
 
         {faqItems.length > 0 ? (
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] px-5 py-6 md:px-8 md:py-8">
+          <section className="rounded-3xl border border-white/15 bg-[#100d22]/80 px-5 py-6 md:px-8 md:py-8">
             <h2 className="text-xl font-semibold text-amber-100">자주 묻는 질문</h2>
             <div className="mt-4 space-y-3">
               {faqItems.map((faq) => (
-                <article key={`${faq.question}-${faq.answer.slice(0, 20)}`} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3">
+                <article key={`${faq.question}-${faq.answer.slice(0, 20)}`} className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">
                   <h3 className="text-sm font-semibold text-slate-100">{faq.question}</h3>
                   <p className="mt-2 text-sm leading-7 text-slate-300">{faq.answer}</p>
                 </article>
@@ -576,19 +702,23 @@ export default function InsightArticleCosmicClient({
         ) : null}
 
         {(previous || next) ? (
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-white/15 bg-[#100d20]/80 p-4">
               <p className="text-xs text-slate-400">이전 글</p>
               {previous ? (
-                <Link href={`/insights/${previous.slug}`} className="mt-2 block text-sm font-semibold text-slate-100 hover:text-amber-100">{previous.title}</Link>
+                <Link href={`/insights/${previous.slug}`} className="mt-2 block text-sm font-semibold text-slate-100 hover:text-amber-100">
+                  {previous.title}
+                </Link>
               ) : (
                 <p className="mt-2 text-sm text-slate-500">이전 글이 없습니다.</p>
               )}
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-2xl border border-white/15 bg-[#100d20]/80 p-4">
               <p className="text-xs text-slate-400">다음 글</p>
               {next ? (
-                <Link href={`/insights/${next.slug}`} className="mt-2 block text-sm font-semibold text-slate-100 hover:text-amber-100">{next.title}</Link>
+                <Link href={`/insights/${next.slug}`} className="mt-2 block text-sm font-semibold text-slate-100 hover:text-amber-100">
+                  {next.title}
+                </Link>
               ) : (
                 <p className="mt-2 text-sm text-slate-500">다음 글이 없습니다.</p>
               )}
@@ -599,11 +729,15 @@ export default function InsightArticleCosmicClient({
         {related.length > 0 ? (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-amber-100">관련 글</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {related.map((rel) => (
-                <Link key={`rel-${rel.slug}`} href={`/insights/${rel.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:border-amber-300/40 transition">
+                <Link
+                  key={`rel-${rel.slug}`}
+                  href={`/insights/${rel.slug}`}
+                  className="rounded-2xl border border-white/15 bg-[#100d20]/80 p-4 transition hover:border-amber-300/40"
+                >
                   <p className="text-xs text-slate-400">{rel.category || "인사이트"} · {formatDateTime(rel.publishedAt)}</p>
-                  <h3 className="mt-2 text-sm font-semibold text-slate-100 leading-6">{rel.title}</h3>
+                  <h3 className="mt-2 text-sm font-semibold leading-6 text-slate-100">{rel.title}</h3>
                 </Link>
               ))}
             </div>

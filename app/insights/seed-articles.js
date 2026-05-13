@@ -2,7 +2,145 @@ import { INSIGHT_ARTICLES } from "./articles";
 import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
 const DEFAULT_AUTHOR = "Code Destiny Editorial Team";
-const DEFAULT_OG_IMAGE = "https://code-destiny.com/og/code-destiny-og.png";
+const SITE_ORIGIN = "https://code-destiny.com";
+const DEFAULT_FEATURED_IMAGE = "/icons/fortune-tama-512.webp";
+const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}${DEFAULT_FEATURED_IMAGE}`;
+
+const INSIGHT_IMAGE_PROFILES = [
+  {
+    id: "ziwei",
+    url: "/fuctionassets/jami.webp",
+    alt: "자미두수 명반 인사이트 이미지",
+    keywords: ["자미", "ziwei", "명궁", "12궁", "궁위", "사화", "자미두수"],
+  },
+  {
+    id: "sukuyo",
+    url: "/fuctionassets/sukyo.webp",
+    alt: "숙요점 궁합 인사이트 이미지",
+    keywords: ["숙요", "27숙", "영친", "업태", "안괴", "본명숙", "월명숙"],
+  },
+  {
+    id: "saju",
+    url: "/fuctionassets/saju.webp",
+    alt: "사주 명리학 인사이트 이미지",
+    keywords: ["사주", "명리", "천간", "지지", "오행", "십성", "용신", "만세력", "일간", "대운", "세운"],
+  },
+  {
+    id: "tarot-major",
+    url: "/tarot-cards/theworld.webp",
+    alt: "타로 메이저 아르카나 인사이트 이미지",
+    keywords: ["아르카나", "major", "arcana", "메이저", "카드"],
+  },
+  {
+    id: "tarot",
+    url: "/fuctionassets/tarolove.webp",
+    alt: "타로 리딩 인사이트 이미지",
+    keywords: ["타로", "tarot", "스프레드", "리딩", "역방향"],
+  },
+  {
+    id: "astrology",
+    url: "/fuctionassets/jumsung.webp",
+    alt: "점성술 차트 인사이트 이미지",
+    keywords: ["점성", "astrology", "태양궁", "달궁", "상승궁", "하우스", "출생차트"],
+  },
+  {
+    id: "vedic",
+    url: "/fuctionassets/veda.webp",
+    alt: "베다점성술 인사이트 이미지",
+    keywords: ["베다", "vedic", "라그나", "나크샤트라"],
+  },
+  {
+    id: "dream",
+    url: "/fuctionassets/heamong.webp",
+    alt: "꿈해몽 인사이트 이미지",
+    keywords: ["꿈", "dream", "해몽", "무의식"],
+  },
+  {
+    id: "love",
+    url: "/fuctionassets/lovebible.webp",
+    alt: "연애 궁합 인사이트 이미지",
+    keywords: ["연애", "궁합", "관계", "재회", "사랑", "속마음"],
+  },
+  {
+    id: "general",
+    url: "/fuctionassets/flower4.webp",
+    alt: "운세 인사이트 이미지",
+    keywords: ["운세", "인사이트", "가이드", "fortune"],
+  },
+];
+
+function isKnownBrokenImageUrl(value) {
+  const url = String(value || "").trim().toLowerCase();
+  if (!url) return true;
+  return url.includes("/og/code-destiny-og.png");
+}
+
+function toAbsoluteAssetUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith("/")) return `${SITE_ORIGIN}${raw}`;
+  return `${SITE_ORIGIN}/${raw}`;
+}
+
+function pickTopicImageProfile(article, index) {
+  const blob = [
+    article?.slug,
+    article?.title,
+    article?.description,
+    article?.category,
+    article?.mainKeyword,
+    ...(Array.isArray(article?.keywords) ? article.keywords : []),
+    ...(Array.isArray(article?.relatedKeywords) ? article.relatedKeywords : []),
+  ]
+    .map((value) => String(value || "").toLowerCase())
+    .join(" ");
+
+  let bestScore = 0;
+  const bestProfiles = [];
+
+  for (const profile of INSIGHT_IMAGE_PROFILES) {
+    let score = 0;
+    for (const keyword of profile.keywords) {
+      if (blob.includes(String(keyword || "").toLowerCase())) score += 2;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestProfiles.length = 0;
+      bestProfiles.push(profile);
+    } else if (score > 0 && score === bestScore) {
+      bestProfiles.push(profile);
+    }
+  }
+
+  if (bestProfiles.length > 0) {
+    return bestProfiles[Math.abs(index) % bestProfiles.length];
+  }
+
+  return INSIGHT_IMAGE_PROFILES.find((profile) => profile.id === "general") || INSIGHT_IMAGE_PROFILES[0];
+}
+
+function resolveSeedImage(article, index, title) {
+  const explicitImageUrl = String(
+    article?.thumbnailUrl
+      || article?.featuredImage?.url
+      || article?.heroImage
+      || article?.image
+      || "",
+  ).trim();
+
+  const profile = pickTopicImageProfile(article, index);
+  const selectedUrl = !isKnownBrokenImageUrl(explicitImageUrl) ? explicitImageUrl : profile.url;
+  const selectedAlt = String(article?.featuredImage?.alt || profile.alt || `${title} 대표 이미지`).trim();
+
+  return {
+    url: selectedUrl || DEFAULT_FEATURED_IMAGE,
+    alt: selectedAlt || `${title} 대표 이미지`,
+    width: Math.max(0, Number(article?.featuredImage?.width || 1200) || 1200),
+    height: Math.max(0, Number(article?.featuredImage?.height || 630) || 630),
+  };
+}
 
 function escapeHtml(value) {
   return String(value || "")
@@ -94,6 +232,7 @@ function normalizeFaqItems(items) {
 function buildSeedArticle(article, index) {
   const slug = String(article?.slug || "").trim();
   const title = String(article?.title || "운세 인사이트").trim();
+  const resolvedImage = resolveSeedImage(article, index, title);
   const description = String(article?.description || buildExcerpt(article)).trim();
   const excerpt = buildExcerpt(article);
   const category = String(article?.category || "운세 인사이트").trim();
@@ -136,7 +275,11 @@ function buildSeedArticle(article, index) {
     noIndex: false,
     isFeatured: index < 12,
     canonicalUrl: `https://code-destiny.com/insights/${encodeURIComponent(slug)}`,
-    ogImage: DEFAULT_OG_IMAGE,
+    ogImage: toAbsoluteAssetUrl(
+      !isKnownBrokenImageUrl(article?.ogImage)
+        ? String(article?.ogImage || "").trim()
+        : resolvedImage.url,
+    ) || DEFAULT_OG_IMAGE,
     internalLinks,
     faq,
     ctaServiceRoute,
@@ -147,12 +290,7 @@ function buildSeedArticle(article, index) {
     relatedPosts: Array.isArray(article?.relatedPosts)
       ? article.relatedPosts.map((value) => String(value || "").trim()).filter(Boolean).slice(0, 12)
       : [],
-    featuredImage: {
-      url: DEFAULT_OG_IMAGE,
-      alt: `${title} 대표 이미지`,
-      width: 1200,
-      height: 630,
-    },
+    featuredImage: resolvedImage,
     contentHtml,
   };
 }
