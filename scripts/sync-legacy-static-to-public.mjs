@@ -236,121 +236,11 @@ function normalizeOmikujiHeroImageRefs(html) {
   return html.split(LEGACY_OMIKUJI_HERO_IMG).join(SHRINE_OMIKUJI_HERO_IMG);
 }
 
-function syncCriticalShellBlocks(rootHtml, targetHtml) {
-  let html = targetHtml;
-  let changed = false;
-
-  const flowerRe = /<section class="fg-group fg-group--flower"[\s\S]*?<\/section><!-- \/fg-group--flower -->/;
-  const psychotestVisualRe = /<!-- psychotest-visual-entry -->[\s\S]*?<!-- \/psychotest-visual-entry -->/;
-  const footerRe = /<footer[^>]*role="contentinfo"[\s\S]*?<\/footer>/;
-  const authHeroRe = /<div class="auth-quick-links" id="authQuickLinks">[\s\S]*?<div id="goldenGrainBadgeRoot"><\/div>/;
-  const authCardCssRe = /\.auth-btn--signup\{[\s\S]*?\.cd-user-card__actions\{[^}]*\}/;
-  const flowerHideRe = /\.fg-group--flower\{display:none !important\}/g;
-  const overlayHideRe = /#destinyFlowerStudioOverlay,.df-studio-overlay\{display:none !important\}/g;
-
-  const rootFlower = extractFirst(rootHtml, flowerRe);
-  const rootPsychotestVisual = extractFirst(rootHtml, psychotestVisualRe);
-  const rootFooter = extractFirst(rootHtml, footerRe);
-  const rootAuthHero = extractFirst(rootHtml, authHeroRe);
-  const rootAuthCardCss = extractFirst(rootHtml, authCardCssRe);
-  const rootCanonicalRedirectRef = extractFirst(rootHtml, /\/js\/inline\/canonical-redirect\.js\?v=[^"']+/);
-  const rootMainGlassRef = extractFirst(rootHtml, /\/styles\/main-glass\.css\?v=[^"']+/);
-  const rootRuntimeRef = extractFirst(rootHtml, /\/js\/core\/index-inline-runtime\.js\?v=[^"']+/);
-  const rootSibylRef = extractFirst(rootHtml, /\/js\/sibyl-system\.js\?v=[^"']+/);
-  const premiumRuntimeRefs = ["ziwei-book", "astro-book", "sukuyo-book", "vedic-book"].map((name) => ({
-    name,
-    rootRef: extractFirst(rootHtml, new RegExp(`/js/${name}\\.js\\?v=[^"']+`)),
-  }));
-
-  if (rootFlower && flowerRe.test(html)) {
-    const next = html.replace(flowerRe, rootFlower);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootPsychotestVisual && psychotestVisualRe.test(html)) {
-    const next = html.replace(psychotestVisualRe, rootPsychotestVisual);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootFooter && footerRe.test(html)) {
-    const next = html.replace(footerRe, rootFooter);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootAuthHero && authHeroRe.test(html)) {
-    const next = html.replace(authHeroRe, rootAuthHero);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootAuthCardCss && authCardCssRe.test(html)) {
-    const next = html.replace(authCardCssRe, rootAuthCardCss);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootMainGlassRef) {
-    const next = html.replace(/\/styles\/main-glass\.css\?v=[^"']+/g, rootMainGlassRef);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootCanonicalRedirectRef) {
-    const next = html.replace(/\/js\/inline\/canonical-redirect\.js\?v=[^"']+/g, rootCanonicalRedirectRef);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootRuntimeRef) {
-    const next = html.replace(/\/js\/core\/index-inline-runtime\.js\?v=[^"']+/g, rootRuntimeRef);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  if (rootSibylRef) {
-    const next = html.replace(/\/js\/sibyl-system\.js\?v=[^"']+/g, rootSibylRef);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  for (const { name, rootRef } of premiumRuntimeRefs) {
-    if (!rootRef) continue;
-    const next = html.replace(new RegExp(`/js/${name}\\.js\\?v=[^"']+`, "g"), rootRef);
-    if (next !== html) {
-      html = next;
-      changed = true;
-    }
-  }
-
-  const noFlowerHide = html.replace(flowerHideRe, "");
-  const noOverlayHide = noFlowerHide.replace(overlayHideRe, "");
-  if (noOverlayHide !== html) {
-    html = noOverlayHide;
-    changed = true;
-  }
-
-  return { html, changed };
+function stripLegacyPublicBlocks(html) {
+  if (!html) return html;
+  return html
+    .replace(/\s*<!-- psychotest-visual-entry -->[\s\S]*?<!-- \/psychotest-visual-entry -->\s*/g, "\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 function applyLocaleSeoMeta(indexHtml, localePath) {
@@ -459,94 +349,72 @@ const localeLandingDirs = [
 ];
 const legacyLocaleLandingDirs = ["en-us", "ja-jp", "zh-cn"];
 const publicIndex = resolve(publicDir, "index.html");
-if (existsSync(publicIndex)) {
+if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
+  if (!existsSync(rootIndexPath)) {
+    throw new Error("[sync-legacy-static-to-public] Missing root index.html; cannot build canonical public shell.");
+  }
+
+  const rootIndexBuf = stripLeadingBom(readFileSync(rootIndexPath));
+  const rootIndexHtml = rootIndexBuf.toString("utf8");
+  const rootIssues = collectEntryIssues(rootIndexHtml);
+  if (rootIssues.length > 0) {
+    throw new Error(
+      `[sync-legacy-static-to-public] Refusing to sync from unhealthy root/index.html: ${rootIssues.join(", ")}`,
+    );
+  }
+
+  let baseIndexHtml = stripLegacyPublicBlocks(makePublicShellFromRoot(rootIndexHtml));
+
   // Strip all leading UTF-8 BOMs (EF BB BF) to prevent double-BOM quirks-mode regression.
   // A BOM before <!DOCTYPE html> causes browsers to misidentify the DOCTYPE and enter quirks
   // mode, which breaks Google Translate's DOM rewriting (garbled strings on language switch).
-  let indexBuf = readFileSync(publicIndex);
-  const stripped = stripLeadingBom(indexBuf);
-  const bomStart = indexBuf.length - stripped.length;
+  const currentPublicBuf = existsSync(publicIndex) ? readFileSync(publicIndex) : Buffer.alloc(0);
+  const stripped = stripLeadingBom(currentPublicBuf);
+  const bomStart = currentPublicBuf.length - stripped.length;
   if (bomStart > 0) {
-    indexBuf = stripped;
-    writeFileSync(publicIndex, indexBuf);
-    console.log(`[sync-legacy-static-to-public] Stripped ${bomStart} BOM byte(s) from public/index.html`);
+    console.log(`[sync-legacy-static-to-public] Detected ${bomStart} BOM byte(s) in existing public/index.html`);
   }
 
   const legacyReplacementMarker = "'�'(replacement char)";
-  let baseIndexHtml = indexBuf.toString("utf8");
   const dedupedIndexHtml = dedupeUtf8CharsetMeta(baseIndexHtml);
   if (dedupedIndexHtml !== baseIndexHtml) {
     baseIndexHtml = dedupedIndexHtml;
-    indexBuf = Buffer.from(baseIndexHtml, "utf8");
-    writeFileSync(publicIndex, indexBuf);
-    console.log("[sync-legacy-static-to-public] Removed duplicate UTF-8 charset meta in public/index.html");
+    console.log("[sync-legacy-static-to-public] Removed duplicate UTF-8 charset meta in canonical shell");
   }
 
   const normalizedIndexHtml = baseIndexHtml.replaceAll(legacyReplacementMarker, "U+FFFD(replacement char)");
   if (normalizedIndexHtml !== baseIndexHtml) {
     baseIndexHtml = normalizedIndexHtml;
-    indexBuf = Buffer.from(baseIndexHtml, "utf8");
-    writeFileSync(publicIndex, indexBuf);
-    console.log("[sync-legacy-static-to-public] Normalized legacy replacement-char marker in public/index.html");
+    console.log("[sync-legacy-static-to-public] Normalized legacy replacement-char marker in canonical shell");
   }
 
   const noSplashIndexHtml = stripStartupSplash(baseIndexHtml);
   if (noSplashIndexHtml !== baseIndexHtml) {
     baseIndexHtml = noSplashIndexHtml;
-    indexBuf = Buffer.from(baseIndexHtml, "utf8");
-    writeFileSync(publicIndex, indexBuf);
-    console.log("[sync-legacy-static-to-public] Removed startup splash script/overlay from public/index.html");
+    console.log("[sync-legacy-static-to-public] Removed startup splash script/overlay from canonical shell");
   }
 
   const normalizedOmikujiHeroIndexHtml = normalizeOmikujiHeroImageRefs(baseIndexHtml);
   if (normalizedOmikujiHeroIndexHtml !== baseIndexHtml) {
     baseIndexHtml = normalizedOmikujiHeroIndexHtml;
-    indexBuf = Buffer.from(baseIndexHtml, "utf8");
-    writeFileSync(publicIndex, indexBuf);
-    console.log("[sync-legacy-static-to-public] Canonicalized omikuji hero image to 오미쿠지.webp in public/index.html");
+    console.log("[sync-legacy-static-to-public] Canonicalized omikuji hero image to 오미쿠지.webp in canonical shell");
   }
 
-  const baseIssues = collectEntryIssues(baseIndexHtml);
-  if (baseIssues.length > 0) {
-    if (existsSync(rootIndexPath)) {
-      const rootIndexBufForRepair = stripLeadingBom(readFileSync(rootIndexPath));
-      const rootIndexHtmlForRepair = rootIndexBufForRepair.toString("utf8");
-      const rootIssuesForRepair = collectEntryIssues(rootIndexHtmlForRepair);
-      if (rootIssuesForRepair.length === 0) {
-        const patched = syncCriticalShellBlocks(rootIndexHtmlForRepair, baseIndexHtml);
-        const patchedIssues = collectEntryIssues(patched.html);
-        if (patchedIssues.length === 0) {
-          baseIndexHtml = patched.html;
-          indexBuf = Buffer.from(baseIndexHtml, "utf8");
-          writeFileSync(publicIndex, indexBuf);
-          console.log(
-            "[sync-legacy-static-to-public] Healed public/index.html using extracted critical blocks from root/index.html.",
-          );
-        } else {
-          const rebuilt = makePublicShellFromRoot(rootIndexHtmlForRepair);
-          const rebuiltIssues = collectEntryIssues(rebuilt);
-          if (rebuiltIssues.length === 0) {
-            baseIndexHtml = rebuilt;
-            indexBuf = Buffer.from(baseIndexHtml, "utf8");
-            writeFileSync(publicIndex, indexBuf);
-            console.warn(
-              "[sync-legacy-static-to-public] Recovered corrupted public/index.html from root/index.html as final fallback.",
-            );
-          }
-        }
-      }
-    }
-  }
-
-  const finalizedOmikujiHeroIndexHtml = normalizeOmikujiHeroImageRefs(baseIndexHtml);
+  const finalizedOmikujiHeroIndexHtml = stripLegacyPublicBlocks(normalizeOmikujiHeroImageRefs(baseIndexHtml));
   if (finalizedOmikujiHeroIndexHtml !== baseIndexHtml) {
     baseIndexHtml = finalizedOmikujiHeroIndexHtml;
-    indexBuf = Buffer.from(baseIndexHtml, "utf8");
-    writeFileSync(publicIndex, indexBuf);
-    console.log("[sync-legacy-static-to-public] Finalized omikuji hero image canonical path in public/index.html");
+    console.log("[sync-legacy-static-to-public] Stripped legacy public-only blocks from canonical shell");
   }
 
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
+  const indexBuf = Buffer.from(baseIndexHtml, "utf8");
+  const currentPublicHtml = existsSync(publicIndex)
+    ? stripLeadingBom(readFileSync(publicIndex)).toString("utf8")
+    : "";
+  if (currentPublicHtml !== baseIndexHtml) {
+    writeFileSync(publicIndex, indexBuf);
+    console.log("[sync-legacy-static-to-public] Rebuilt public/index.html from canonical root shell");
+  }
 
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
