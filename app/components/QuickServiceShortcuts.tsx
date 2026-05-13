@@ -1,12 +1,13 @@
 import Link from "next/link";
+import FeatureSymbol from "./icons/FeatureSymbol";
 
 const shortcuts = [
-  { label: "점성술", href: "/astrology/cosmic", emoji: "🌌" },
-  { label: "자미두수", href: "/ziwei/chart", emoji: "✨" },
-  { label: "오라클", href: "/oracle/rune", emoji: "ᚱ" },
-  { label: "인사이트", href: "/insights", emoji: "📚" },
-  { label: "포인트", href: "/points", emoji: "💳" },
-  { label: "내 정보", href: "/me", emoji: "👤" },
+  { label: "점성술", href: "/astrology/cosmic" },
+  { label: "자미두수", href: "/ziwei/chart" },
+  { label: "오라클", href: "/oracle/rune" },
+  { label: "인사이트", href: "/insights" },
+  { label: "포인트", href: "/points" },
+  { label: "내 정보", href: "/me" },
 ];
 
 export default function QuickServiceShortcuts() {
@@ -21,7 +22,7 @@ export default function QuickServiceShortcuts() {
             href={s.href}
             className="flex items-center justify-center gap-1.5 rounded-xl border border-violet-200/25 bg-[rgba(18,10,41,0.72)] px-3 py-3 text-xs font-semibold text-violet-50 transition hover:border-violet-200/55 hover:bg-[rgba(69,42,126,0.55)]"
           >
-            <span>{s.emoji}</span>
+            <FeatureSymbol route={s.href} size={16} className="text-violet-100" variant="soft" />
             <span>{s.label}</span>
           </Link>
         ))}

@@ -513,10 +513,13 @@ body {
 	contain-intrinsic-size: 420px;
 	border-radius: 22px;
 	padding: 24px 16px 22px;
-	border: 1px solid rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.14);
 	overflow-x: hidden;
 	overflow-y: visible;
 	position: relative;
+	backdrop-filter: blur(10px) saturate(118%);
+	-webkit-backdrop-filter: blur(10px) saturate(118%);
+	box-shadow: 0 20px 52px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 /* 컬렉션별 배경·테두리 색상 (배포 사이트와 동일 - muted teal / deep purple) */
 .feat-collection--animal {
@@ -539,6 +542,14 @@ body {
 	border-color: rgba(251, 207, 232, 0.7);
 	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(236, 72, 153, 0.35) inset;
 }
+.feat-collection--misc {
+	background:
+		radial-gradient(circle at 16% 16%, rgba(251, 191, 36, 0.2), transparent 35%),
+		radial-gradient(circle at 84% 20%, rgba(56, 189, 248, 0.18), transparent 36%),
+		linear-gradient(160deg, rgba(9, 20, 47, 0.92), rgba(16, 35, 72, 0.9));
+	border-color: rgba(125, 211, 252, 0.62);
+	box-shadow: 0 16px 42px rgba(3, 14, 42, 0.45), 0 0 0 1px rgba(56, 189, 248, 0.24) inset;
+}
 .tarot-collection {
 	background: linear-gradient(180deg, rgba(55, 25, 95, 0.7), rgba(18, 8, 35, 0.92));
 	border-color: rgba(196, 181, 253, 0.5);
@@ -557,6 +568,7 @@ body {
 .feat-collection--oracle .feat-collection__header { border-bottom-color: rgba(253, 224, 71, 0.75); }
 .feat-collection--cosmic .feat-collection__header { border-bottom-color: rgba(167, 139, 250, 0.8); }
 .feat-collection--flower .feat-collection__header { border-bottom-color: rgba(251, 207, 232, 0.75); }
+.feat-collection--misc .feat-collection__header { border-bottom-color: rgba(125, 211, 252, 0.8); }
 .tarot-collection__header { border-bottom-color: rgba(196, 181, 253, 0.75); }
 .feat-collection__icon,
 .tarot-collection__icon {
@@ -637,10 +649,18 @@ body {
 .feat-collection--flower .feat-collection__lede {
 	color: rgba(255, 228, 241, 0.92);
 }
+.feat-collection--misc .feat-collection__lede {
+	color: rgba(224, 242, 254, 0.92);
+}
 .feat-collection--flower .feat-collection__featureline {
 	color: rgba(251, 207, 232, 0.98);
 	border-color: rgba(244, 114, 182, 0.42);
 	background: linear-gradient(120deg, rgba(236, 72, 153, 0.3), rgba(157, 23, 77, 0.2));
+}
+.feat-collection--misc .feat-collection__featureline {
+	color: rgba(224, 242, 254, 0.98);
+	border-color: rgba(125, 211, 252, 0.5);
+	background: linear-gradient(120deg, rgba(14, 165, 233, 0.32), rgba(30, 64, 175, 0.22));
 }
 .tarot-collection .tarot-collection__lede {
 	color: rgba(233, 225, 255, 0.92);
@@ -688,6 +708,8 @@ body {
 .feat-collection--cosmic .fc-div-gem { color: #a78bfa; }
 .feat-collection--flower .fc-div-line { background: linear-gradient(90deg, transparent, rgba(251, 207, 232, 0.9), transparent); }
 .feat-collection--flower .fc-div-gem { color: #f472b6; }
+.feat-collection--misc .fc-div-line { background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.92), transparent); }
+.feat-collection--misc .fc-div-gem { color: #7dd3fc; }
 .tarot-collection .tc-divider-line { background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.9), transparent); }
 .tarot-collection .tc-divider-star,
 .tarot-collection .tc-divider-gem { color: #a78bfa; }
@@ -747,6 +769,10 @@ body {
 .feat-collection--flower .fc-star {
 	background: #ec4899;
 	box-shadow: 0 0 10px 4px rgba(251, 207, 232, 0.95), 0 0 22px 8px rgba(236, 72, 153, 0.5);
+}
+.feat-collection--misc .fc-star {
+	background: #7dd3fc;
+	box-shadow: 0 0 10px 4px rgba(125, 211, 252, 0.95), 0 0 22px 8px rgba(14, 165, 233, 0.52);
 }
 /* 타로 컬렉션 별 (tc-star) */
 .tarot-collection__cosmos .tc-star {
@@ -844,6 +870,17 @@ body {
 		radial-gradient(1.2px 1.2px at 6% 48%, rgba(251, 207, 232, 0.55), transparent),
 		radial-gradient(1px 1px at 94% 62%, rgba(236, 72, 153, 0.6), transparent);
 }
+.feat-collection--misc::after {
+	background-image:
+		radial-gradient(2.5px 2.5px at 15% 22%, rgba(125, 211, 252, 0.96), transparent),
+		radial-gradient(1.5px 1.5px at 88% 18%, rgba(186, 230, 253, 0.86), transparent),
+		radial-gradient(2px 2px at 38% 58%, rgba(56, 189, 248, 0.76), transparent),
+		radial-gradient(1px 1px at 68% 82%, rgba(59, 130, 246, 0.7), transparent),
+		radial-gradient(1.5px 1.5px at 22% 68%, rgba(186, 230, 253, 0.62), transparent),
+		radial-gradient(1px 1px at 52% 28%, rgba(125, 211, 252, 0.66), transparent),
+		radial-gradient(1.2px 1.2px at 6% 48%, rgba(56, 189, 248, 0.56), transparent),
+		radial-gradient(1px 1px at 94% 62%, rgba(14, 165, 233, 0.61), transparent);
+}
 .tarot-collection::after {
 	background-image:
 		radial-gradient(2.5px 2.5px at 15% 22%, rgba(167, 139, 250, 0.95), transparent),
@@ -888,6 +925,10 @@ body {
 .feat-collection--flower .feat-collection__title {
 	color: #ec4899;
 	text-shadow: 0 0 28px rgba(249, 168, 212, 0.85), 0 0 20px rgba(236, 72, 153, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.feat-collection--misc .feat-collection__title {
+	color: #7dd3fc;
+	text-shadow: 0 0 28px rgba(186, 230, 253, 0.9), 0 0 20px rgba(14, 165, 233, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 .tarot-collection__title {
 	color: #c4b5fd;
@@ -939,22 +980,23 @@ body {
 .tarot-tile {
 	display: flex;
 	flex-direction: column;
-	background: linear-gradient(155deg, rgba(255,255,255,0.07), rgba(45, 35, 90, 0.12));
-	border: 1px solid rgba(148, 80, 255, 0.22);
+	background: linear-gradient(155deg, rgba(255,255,255,0.1), rgba(33, 60, 112, 0.18));
+	border: 1px solid rgba(148, 163, 184, 0.35);
 	border-radius: 16px;
 	overflow: hidden;
 	cursor: pointer;
-	transition: transform 0.22s ease, box-shadow 0.22s ease;
+	transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
 	min-height: 140px;
 	touch-action: pan-y;
 	-webkit-tap-highlight-color: transparent;
-	box-shadow: 0 4px 20px rgba(100, 60, 200, 0.12), 0 2px 12px rgba(30, 123, 165, 0.08);
+	box-shadow: 0 8px 24px rgba(7, 20, 48, 0.35), 0 2px 14px rgba(30, 123, 165, 0.12);
 }
 .tarot-tile:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 14px 36px rgba(100, 60, 200, 0.22), 0 8px 24px rgba(30, 123, 165, 0.14);
+	transform: translateY(-5px);
+	border-color: rgba(125, 211, 252, 0.62);
+	box-shadow: 0 16px 38px rgba(7, 20, 48, 0.52), 0 0 0 1px rgba(125, 211, 252, 0.22) inset;
 }
 .tarot-tile__img-wrap {
 	position: relative;
@@ -1248,6 +1290,7 @@ body {
 .feat-collection--oracle .fc-toggle-hint { color: rgba(253, 224, 71, 0.7); }
 .feat-collection--cosmic .fc-toggle-hint { color: rgba(196, 181, 253, 0.7); }
 .feat-collection--flower .fc-toggle-hint { color: rgba(251, 207, 232, 0.7); }
+.feat-collection--misc .fc-toggle-hint { color: rgba(186, 230, 253, 0.78); }
 .tarot-collection .fc-toggle-hint { color: rgba(196, 181, 253, 0.7); }
 .feat-collection--cosmic .fc-toggle-hint {
 	border-color: rgba(167, 139, 250, 0.42);
@@ -1258,6 +1301,11 @@ body {
 	border-color: rgba(251, 113, 192, 0.38);
 	background: linear-gradient(120deg, rgba(251, 113, 192, 0.22), rgba(157, 23, 77, 0.12));
 	box-shadow: 0 8px 24px rgba(157, 23, 77, 0.28), 0 0 0 1px rgba(251,207,232,0.22) inset;
+}
+.feat-collection--misc .fc-toggle-hint {
+	border-color: rgba(125, 211, 252, 0.44);
+	background: linear-gradient(120deg, rgba(56, 189, 248, 0.24), rgba(37, 99, 235, 0.12));
+	box-shadow: 0 8px 24px rgba(30, 64, 175, 0.3), 0 0 0 1px rgba(186,230,253,0.2) inset;
 }
 [data-collection-open="false"] .fc-toggle-hint {
 	animation: fc-tapBeacon-gpu 2.2s ease-in-out infinite;

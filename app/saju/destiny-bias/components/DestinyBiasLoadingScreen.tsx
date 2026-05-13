@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import styles from "../destiny-bias.module.css";
+import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
 export default function DestinyBiasLoadingScreen({
   message,
@@ -77,13 +78,13 @@ export default function DestinyBiasLoadingScreen({
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
         >
           <div
-            className="flex h-20 w-20 items-center justify-center rounded-full text-3xl"
+            className="flex h-20 w-20 items-center justify-center rounded-full"
             style={{
               background: "radial-gradient(circle, rgba(255,95,210,0.25) 0%, rgba(109,59,255,0.15) 60%, transparent 100%)",
               boxShadow: "0 0 24px rgba(255,95,210,0.4), 0 0 48px rgba(64,200,255,0.2)",
             }}
           >
-            💖
+            <DestinyIcon name="lightstick" size={34} className="text-pink-100" variant="glow" />
           </div>
         </motion.div>
       </div>

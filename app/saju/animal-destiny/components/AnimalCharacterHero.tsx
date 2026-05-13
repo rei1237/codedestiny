@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { AnimalDestinyData } from "../lib/types";
+import AnimalSymbol from "@/app/components/icons/AnimalSymbol";
 
 interface Props {
   animal: AnimalDestinyData;
@@ -30,7 +31,7 @@ export default function AnimalCharacterHero({ animal, heroLine }: Props) {
           transition={{ duration: 2.2, repeat: Infinity }}
           className="mx-auto flex h-32 w-32 items-center justify-center rounded-full border-2 border-white/70 bg-white/60 text-5xl shadow-lg"
         >
-          🐾
+          <AnimalSymbol name="deer" size={72} className="text-[#446b48]" />
         </motion.div>
       </div>
     </div>

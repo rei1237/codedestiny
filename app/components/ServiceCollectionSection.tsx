@@ -1,13 +1,16 @@
 "use client";
 
 import { useMemo, useState, useRef } from "react";
+import type { ReactNode } from "react";
 import ServiceCard, { type ServiceCardModel } from "./ServiceCard";
+import IconBadge from "./ui/IconBadge";
+import SectionTitle from "./ui/SectionTitle";
 
 type Props = {
   title: string;
   subtitle: string;
   description: string;
-  icon?: string;
+  icon?: ReactNode;
   items: ServiceCardModel[];
   defaultOpen?: boolean;
 };
@@ -70,13 +73,8 @@ export default function ServiceCollectionSection({
         className="relative z-10 w-full text-left"
       >
         <div className="mb-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            {icon ? <span className="text-xl">{icon}</span> : null}
-            <h2 className="text-[1.06rem] font-black tracking-tight text-slate-50 md:text-lg">{title}</h2>
-          </div>
-          <span className="inline-flex shrink-0 items-center rounded-full border border-sky-100/35 bg-slate-900/45 px-2.5 py-1 text-[10px] font-semibold text-sky-100/90">
-            {items.length} cards
-          </span>
+          <SectionTitle icon={icon} title={title} />
+          <IconBadge icon={<span>{items.length}</span>} label="Cards" tone="sky" />
         </div>
         <p className="text-sm font-semibold text-sky-100/95">{subtitle}</p>
         <p className="mt-1 text-sm leading-6 text-slate-100/80">{description}</p>

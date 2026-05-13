@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
+import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CosmicConcertBackground from "./components/CosmicConcertBackground";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
 import DestinyBiasDetailSections from "./components/DestinyBiasDetailSections";
@@ -637,7 +638,15 @@ export default function DestinyBiasClient() {
               animationDuration: `${3.6 + (index % 4) * 0.8}s`,
             }}
           >
-            {index % 4 === 0 ? "⭐" : index % 4 === 1 ? "💖" : index % 4 === 2 ? "✨" : "🩵"}
+            {index % 4 === 0 ? (
+              <DestinyIcon name="star" size={14} className="text-violet-100/90" variant="soft" />
+            ) : index % 4 === 1 ? (
+              <DestinyIcon name="heartGlow" size={14} className="text-rose-100/90" variant="glow" />
+            ) : index % 4 === 2 ? (
+              <DestinyIcon name="sparkle" size={14} className="text-fuchsia-100/90" variant="soft" />
+            ) : (
+              <DestinyIcon name="lightstick" size={14} className="text-cyan-100/90" variant="soft" />
+            )}
           </span>
         ))}
       </div>

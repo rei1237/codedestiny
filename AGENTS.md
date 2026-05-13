@@ -32,3 +32,18 @@
 - No direct edits in mirror locales unless explicitly requested.
 - No behavior-only fix applied exclusively under `server/**` when worker route is active.
 - Build and runtime sync checks pass before commit.
+
+## 7) Deployment Reflection & Cache Guard (Must Follow)
+- Before editing UI, identify live-render source first:
+	- Static main screen users see first: `index.html` (not auxiliary React home).
+	- React route UI: `app/**` only when that route is actually served.
+- If request targets main shell UX/cards, modify `index.html` and any referenced runtime styles in `styles/**`.
+- After `index.html` or static-style edits, always run in order:
+	1. `npm run sync:public`
+	2. `npm run verify:locale-main-sync`
+	3. `npm run verify:runtime-cache-sync`
+- Cache-bust rule for static assets:
+	- When changing a file loaded by fixed URL (for example `/styles/core-ui.css`), bump the query version in `index.html` (for example `?v=YYYYMMDD-tag`) in the same commit.
+- Reflection verification before reporting "done":
+	- Confirm changed marker text/attribute exists in root `index.html` and mirrored `public/static/index.html` after sync.
+	- Include the exact changed marker in commit message/body or report so production verification is immediate.

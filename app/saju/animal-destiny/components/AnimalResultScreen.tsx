@@ -9,6 +9,8 @@ import { buildDetailedInterpretation, PILLAR_INFO } from "../lib/animalInterpret
 import { getFourPillarStageItems } from "../lib/twelveStages";
 import type { FourPillarStageItem } from "../lib/twelveStages";
 import AnimalShareCard from "./AnimalShareCard";
+import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
+import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
 
 type TabKey = "personality" | "love" | "career" | "relationship" | "growth";
@@ -23,23 +25,23 @@ const TAB_LABELS: Record<TabKey, string> = {
 
 const PILLAR_ORDER: Array<"year" | "month" | "day" | "hour"> = ["year", "month", "day", "hour"];
 
-function stageEmoji(stage?: string) {
-  if (!stage) return "✨";
-  const map: Record<string, string> = {
-    장생: "🐆",
-    목욕: "🐵",
-    관대: "🐈‍⬛",
-    건록: "🐨",
-    제왕: "🐯",
-    쇠: "🦝",
-    병: "🦏",
-    사: "🐘",
-    묘: "🐑",
-    절: "🪽",
-    태: "🐺",
-    양: "🦌",
+function stageAnimalSymbol(stage?: string): AnimalSymbolName {
+  if (!stage) return "cat";
+  const map: Record<string, AnimalSymbolName> = {
+    장생: "lion",
+    목욕: "rabbit",
+    관대: "cat",
+    건록: "bear",
+    제왕: "lion",
+    쇠: "fox",
+    병: "turtle",
+    사: "elephant",
+    묘: "deer",
+    절: "swan",
+    태: "dog",
+    양: "bird",
   };
-  return map[stage] || "🐾";
+  return map[stage] || "cat";
 }
 
 function keywordsByStage(stage?: string) {
@@ -119,7 +121,7 @@ export default function AnimalResultScreen({
         <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">오늘의 대표 동물 프로필</p>
         <div className="mt-3 flex items-start gap-4">
           <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border border-white/70 bg-white/70 text-5xl shadow-md">
-            {stageEmoji(twelveStages.day || twelveStages.primary)}
+            <AnimalSymbol name={stageAnimalSymbol(twelveStages.day || twelveStages.primary)} size={68} className="text-emerald-700" />
           </div>
           <div className="min-w-0">
             <h3 className="text-2xl font-black text-emerald-950">{animal.animal_ko}</h3>
@@ -147,7 +149,9 @@ export default function AnimalResultScreen({
             return (
               <article key={pillarKey} className="rounded-2xl border border-white/70 bg-white/75 p-3">
                 <p className="text-xs font-black text-emerald-700">{info.label}</p>
-                <p className="mt-1 text-lg">{stageEmoji(item.stage)}</p>
+                <p className="mt-1 text-lg">
+                  <AnimalSymbol name={stageAnimalSymbol(item.stage)} size={30} className="text-emerald-700" />
+                </p>
                 <p className="text-sm font-bold text-emerald-950">{(item.stem || "-") + (item.branch || "-")}</p>
                 <p className="text-sm font-semibold text-emerald-700">{item.stage || "시간 미입력"}</p>
                 <p className="mt-1 text-[11px] text-emerald-700">{keywords.join(" · ")}</p>
@@ -178,7 +182,10 @@ export default function AnimalResultScreen({
           {activeTab === "growth" ? (
             <ul className="space-y-2">
               {detail.growthMissions.map((mission) => (
-                <li key={mission} className="rounded-xl bg-emerald-50 p-3">🐾 {mission}</li>
+                <li key={mission} className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3">
+                  <DestinyIcon name="animalPaw" size={15} className="text-emerald-700" variant="soft" />
+                  {mission}
+                </li>
               ))}
             </ul>
           ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
 const STEPS = [
   "사주 사기둥(年·月·日·時) 계산 중...",
@@ -20,7 +21,7 @@ export default function SajuComputingAnimation() {
       >
         <div className="absolute inset-0 rounded-full border-4 border-[#cde8c4] border-t-[#5a8f56]" />
         <div className="absolute inset-3 flex items-center justify-center text-3xl">
-          🐾
+          <DestinyIcon name="animalPaw" size={28} className="text-[#4d7352]" variant="soft" />
         </div>
       </motion.div>
 

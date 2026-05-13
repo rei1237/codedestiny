@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MainHeroFortuneForm from "./MainHeroFortuneForm";
 import QuickServiceShortcuts from "./QuickServiceShortcuts";
+import DestinyIcon from "./icons/DestinyIcon";
 import type { ServiceCardModel } from "./ServiceCard";
 
 // AUXILIARY LANDING (React Home): 메인 서비스 기준 화면은 public/static/index.html 의 inputPage.
@@ -235,13 +236,13 @@ export default function MainLandingPage() {
                 href="/signup"
                 className="inline-flex items-center rounded-full border border-violet-200/40 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(89,53,188,0.38)] transition hover:brightness-110"
               >
-                ✨ 회원가입
+                <DestinyIcon name="sparkle" size={16} className="mr-1.5" variant="soft" />회원가입
               </Link>
               <Link
                 href="/login"
                 className="inline-flex items-center rounded-full border border-amber-200/45 bg-[rgba(17,20,44,0.7)] px-5 py-2.5 text-sm font-bold text-amber-100 transition hover:bg-[rgba(36,38,78,0.78)]"
               >
-                🔐 로그인
+                <DestinyIcon name="seal" size={16} className="mr-1.5" variant="soft" />로그인
               </Link>
               <a
                 href="#fortuneForm"
@@ -267,7 +268,7 @@ export default function MainLandingPage() {
           title="기타 점술 컬렉션"
           subtitle="심리테스트부터 혈액형 테스트까지"
           description="심리테스트에서 시작해 AI 오미쿠지, 혈액형 테스트를 거쳐 최애운명까지 자연스럽게 이어지는 탐색 흐름입니다."
-          icon="🧩"
+          icon={<DestinyIcon name="seal" size={20} className="text-violet-100" variant="soft" />}
           defaultOpen
           items={miscDivinationItems}
         />
@@ -290,7 +291,7 @@ export default function MainLandingPage() {
           title="나에게 맞는 추천 운세"
           subtitle="입력 정보를 기준으로 우선순위가 높은 리딩"
           description="첫 진입에 적합한 서비스부터 시작해 오늘의 운세 흐름을 빠르게 확인하세요."
-          icon="🧭"
+          icon={<DestinyIcon name="compass" size={20} className="text-sky-100" variant="soft" />}
           defaultOpen
           items={recommendations.length ? recommendations : [...oracleItems.slice(0, 3), ...cosmicItems.slice(0, 2), premiumItems[5]]}
         />
@@ -299,7 +300,7 @@ export default function MainLandingPage() {
           title="신탁 & 점술 컬렉션"
           subtitle="동서양 상징 기반 점술 리딩"
           description="화투, 찻잎, 주석, 지오맨시 등 상징 해석 중심의 점술 컬렉션입니다."
-          icon="🃏"
+          icon={<DestinyIcon name="tarot" size={20} className="text-amber-100" variant="soft" />}
           items={oracleItems}
         />
 
@@ -307,7 +308,7 @@ export default function MainLandingPage() {
           title="코즈믹 & 별자리 컬렉션"
           subtitle="별자리·자미두수·베다 기반 우주형 리딩"
           description="행성과 궁성 데이터를 통해 성향과 타이밍을 입체적으로 읽어냅니다."
-          icon="🌌"
+          icon={<DestinyIcon name="zodiac" size={20} className="text-indigo-100" variant="soft" />}
           items={cosmicItems}
         />
 
@@ -315,7 +316,7 @@ export default function MainLandingPage() {
           title="동물 & 관상 컬렉션"
           subtitle="본능 캐릭터와 관계 에너지 분석"
           description="동물 관상, 토템, 가디언 아트 등 직관형 체험 서비스를 모았습니다."
-          icon="🦁"
+          icon={<DestinyIcon name="animalPaw" size={20} className="text-emerald-100" variant="soft" />}
           items={animalItems}
         />
 
@@ -323,7 +324,7 @@ export default function MainLandingPage() {
           title="명상 컬렉션"
           subtitle="내면 안정과 집중 회복을 위한 루틴"
           description="명상과 꿈 해석을 결합해 감정 흐름을 정리하고 실행력을 높입니다."
-          icon="🧘"
+          icon={<DestinyIcon name="lotus" size={20} className="text-rose-100" variant="soft" />}
           items={meditationItems}
         />
 
@@ -331,7 +332,7 @@ export default function MainLandingPage() {
           title="프리미엄/코인 서비스 안내"
           subtitle="소개 보기부터 PDF 생성까지 이어지는 VVIP 리포트"
           description="프리미엄 분석은 코인 기반으로 제공되며 결과 리포트는 PDF로 보관할 수 있습니다."
-          icon="♛"
+          icon={<DestinyIcon name="coin" size={20} className="text-amber-100" variant="soft" />}
           items={premiumItems}
         />
       </LazySection>

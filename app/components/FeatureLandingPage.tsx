@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "../_lib/localePath";
+import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
 
 type ServiceLike = {
   title?: string;
@@ -260,6 +261,49 @@ const PARTICLE_POS = [
   { top:"82%", left:"6%"   },
 ];
 
+const ICON_TOKEN_MAP: Record<string, DestinyIconName> = {
+  "✨": "sparkle",
+  "⭐": "star",
+  "🌟": "star",
+  "💫": "sparkleLine",
+  "🌙": "moon",
+  "☀️": "sun",
+  "☀": "sun",
+  "🌸": "lotus",
+  "🌺": "lotus",
+  "💮": "lotus",
+  "🪷": "lotus",
+  "🔮": "crystal",
+  "💎": "crystal",
+  "📜": "scroll",
+  "🧭": "compass",
+  "⚡": "seal",
+  "☯": "yinYang",
+  "☸": "palace",
+  "🌌": "zodiac",
+  "🪐": "zodiac",
+  "🦁": "animalPaw",
+  "🦊": "animalPaw",
+  "🦅": "animalPaw",
+  "🐷": "flowerPig",
+  "🎴": "tarot",
+  "🃏": "tarot",
+  "ᚱ": "rune",
+  "🪬": "seal",
+  "🫖": "lotus",
+  "💭": "cloud",
+  "🧠": "seal",
+  "🧘": "lotus",
+  "🧘‍♀️": "lotus",
+  "🕉️": "yinYang",
+  "🕯️": "seal",
+  "✦": "sparkleLine",
+};
+
+function resolveTokenIcon(token: string): DestinyIconName {
+  return ICON_TOKEN_MAP[token] || "sparkle";
+}
+
 /* ═══════════════════════════════════════════
    Component
 ═══════════════════════════════════════════ */
@@ -285,6 +329,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const cfg: SlugCfg = SLUG_CFG[basePath] ?? {
     icon:"✨", badge:"SERVICE", particles:["✦","⭐","✨","💫","✦"],
   };
+  const heroIconName = resolveTokenIcon(cfg.icon);
 
   const title = service?.h1 || service?.title || "운세 서비스";
   const description = service?.description || "Code Destiny 메인 기능으로 연결되는 서비스입니다.";
@@ -368,13 +413,19 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
       {cfg.particles.map((p, i) => (
         <div key={i} aria-hidden="true" style={{
           position:"absolute",
-          fontSize:`${0.85 + (i % 3) * 0.38}rem`,
           opacity: 0.08 + i * 0.035,
           pointerEvents:"none",
           ...PARTICLE_POS[i],
           animation:`flp-float ${4.2 + i * 0.9}s ease-in-out ${i * 0.55}s infinite`,
           userSelect:"none",
-        }}>{p}</div>
+        }}>
+          <DestinyIcon
+            name={resolveTokenIcon(p)}
+            size={14 + (i % 3) * 5}
+            className="text-violet-100/70"
+            variant="soft"
+          />
+        </div>
       ))}
 
       {/* ── Flower category: extra petal orbs ── */}
@@ -422,10 +473,13 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
         {/* Icon + Title */}
         <header className="flp-in flp-d1" style={{ textAlign:"center", marginBottom:"30px" }}>
           <div style={{
-            fontSize:"clamp(2.8rem,10vw,4.2rem)", lineHeight:1, marginBottom:"16px",
+            lineHeight:1, marginBottom:"16px",
             filter:`drop-shadow(0 0 22px ${t.orb1})`,
             animation:`flp-float 4s ease-in-out infinite`,
-          }}>{cfg.icon}</div>
+            display:"inline-flex",
+          }}>
+            <DestinyIcon name={heroIconName} size={72} className="text-violet-100" variant="glow" />
+          </div>
           <h1 style={{
             fontFamily:"'Noto Serif KR','Noto Serif',serif",
             fontSize:"clamp(1.6rem,5vw,2.35rem)", fontWeight:800,
@@ -645,7 +699,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             textDecoration:"none", boxShadow:t.btnGlow, letterSpacing:"0.03em",
             fontFamily:"'Noto Sans KR',sans-serif",
           }}>
-            <span style={{ fontSize:"1.1rem" }}>{cfg.icon}</span>
+            <DestinyIcon name={heroIconName} size={18} className="text-white" variant="soft" />
             <span>{isPaidFeature ? `유료 기능 실행 · ${paidMeta.coins}` : "기능 바로 실행"}</span>
           </a>
           <Link href="/insights" className="flp-btn-s" style={{

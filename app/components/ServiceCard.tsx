@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
+import type { DestinyIconName } from "./icons/DestinyIcon";
+import FeatureSymbol from "./icons/FeatureSymbol";
 
 type Badge = {
   text: string;
@@ -11,10 +13,15 @@ export type ServiceCardModel = {
   description: string;
   href: string;
   emoji?: string;
+  iconName?: DestinyIconName;
   image?: string; // 신규: 카드 꾸미기용 이미지
   badges?: Badge[];
   cta?: string;
 };
+
+function cleanTitle(raw: string) {
+  return raw.replace(/^[^\p{L}\p{N}]+/u, "").trim();
+}
 
 function badgeClass(tone: Badge["tone"]) {
   if (tone === "free") return "border-emerald-200/45 bg-emerald-400/15 text-emerald-50";
@@ -57,8 +64,10 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_18%_0%,rgba(250,204,21,0.18),transparent_58%)] opacity-90" aria-hidden />
       <div className="mb-2 flex items-start justify-between gap-2">
         <h3 className="relative z-10 text-sm font-extrabold leading-6 text-slate-50">
-          {item.emoji ? <span className="mr-1">{item.emoji}</span> : null}
-          {item.title}
+          <span className="mr-1.5 inline-flex align-middle text-sky-100/95">
+            <FeatureSymbol route={item.href} iconName={item.iconName} size={16} variant="soft" />
+          </span>
+          {cleanTitle(item.title)}
         </h3>
       </div>
 

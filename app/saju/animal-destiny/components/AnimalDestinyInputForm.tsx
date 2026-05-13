@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnimalDestinyInput } from "../lib/types";
+import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
 interface Props {
   input: AnimalDestinyInput;
@@ -71,9 +72,9 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
       <button
         onClick={onSubmit}
         disabled={!canSubmit || isBusy}
-        className="w-full rounded-2xl bg-gradient-to-r from-[#4a9e5c] to-[#3d8b8b] px-6 py-3 text-sm font-bold text-white shadow-md disabled:opacity-60 active:scale-[0.98]"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#4a9e5c] to-[#3d8b8b] px-6 py-3 text-sm font-bold text-white shadow-md disabled:opacity-60 active:scale-[0.98]"
       >
-        {isBusy ? "계산 중..." : "🐾 내 사주 동물 찾기"}
+        {isBusy ? "계산 중..." : <><DestinyIcon name="animalPaw" size={16} className="text-white" variant="soft" />내 사주 동물 찾기</>}
       </button>
 
       <p className="text-center text-xs text-[#7a9080]">

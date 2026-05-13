@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import styles from "../destiny-bias.module.css";
+import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
 export default function DestinyBiasPhotocard({
   vm,
@@ -31,7 +32,9 @@ export default function DestinyBiasPhotocard({
           <div className="relative z-10 flex h-full flex-col p-4 md:p-5">
             <div className="flex items-start justify-between">
               <span className={styles.pinkBadge}>Fan Edition</span>
-              <span className={styles.iconBubble} aria-label="sparkle">💖</span>
+              <span className={styles.iconBubble} aria-label="heart glow">
+                <DestinyIcon name="heartGlow" size={16} className="text-pink-100" variant="glow" />
+              </span>
             </div>
 
             <div className="mt-5 flex items-center justify-between gap-3">
@@ -55,9 +58,15 @@ export default function DestinyBiasPhotocard({
                 <p className="mt-2 text-lg font-black text-pink-50">{vm.energyColor}</p>
                 <p className="mt-1 text-xs text-cyan-100/85">{vm.auraMaterial}</p>
               </div>
-              <span className="absolute left-4 top-4 text-xs text-white/70">✦</span>
-              <span className="absolute right-5 top-8 text-sm text-pink-100/70">★</span>
-              <span className="absolute bottom-6 left-6 text-[11px] text-cyan-100/75">♡</span>
+              <span className="absolute left-4 top-4 text-xs text-white/70">
+                <DestinyIcon name="sparkle" size={13} className="text-white/75" variant="glow" />
+              </span>
+              <span className="absolute right-5 top-8 text-sm text-pink-100/70">
+                <DestinyIcon name="star" size={15} className="text-pink-100/75" variant="soft" />
+              </span>
+              <span className="absolute bottom-6 left-6 text-[11px] text-cyan-100/75">
+                <DestinyIcon name="ribbon" size={13} className="text-cyan-100/80" variant="soft" />
+              </span>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-1.5">

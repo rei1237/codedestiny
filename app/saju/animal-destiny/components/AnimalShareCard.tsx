@@ -4,6 +4,7 @@ import { forwardRef } from "react";
 import type { AnimalDestinyData, TwelveStage } from "../lib/types";
 import type { FourPillarStageItem } from "../lib/twelveStages";
 import type { StageScore } from "../lib/stageScore";
+import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
 
 interface Props {
   animal: AnimalDestinyData;
@@ -31,7 +32,29 @@ function row(label: string, item: FourPillarStageItem) {
   return `${label}: ${item.stage || "-"} / ${item.stage ? STAGE_ANIMAL_ALIAS[item.stage] : "-"}`;
 }
 
+function stageToSymbol(stage?: TwelveStage): AnimalSymbolName {
+  if (!stage) return "cat";
+  const map: Record<TwelveStage, AnimalSymbolName> = {
+    장생: "lion",
+    목욕: "rabbit",
+    관대: "cat",
+    건록: "bear",
+    제왕: "lion",
+    쇠: "fox",
+    병: "turtle",
+    사: "elephant",
+    묘: "deer",
+    절: "swan",
+    태: "dog",
+    양: "bird",
+  };
+  return map[stage];
+}
+
 const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCard({ animal, pillars, score, oneLine }, ref) {
+  const dayStage = pillars.day.stage || undefined;
+  const symbolName = stageToSymbol(dayStage as TwelveStage | undefined);
+
   return (
     <div
       ref={ref}
@@ -46,7 +69,9 @@ const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCa
           <p className="mt-1 text-xs font-semibold text-[#24626d]">십이운성 동물점</p>
 
           <div className="mt-4 rounded-2xl border border-white/70 bg-white/55 p-3 text-center">
-            <p className="text-5xl">🐾</p>
+            <p className="text-5xl inline-flex items-center justify-center">
+              <AnimalSymbol name={symbolName} size={52} className="text-[#24626d]" />
+            </p>
             <h4 className="mt-1 text-xl font-black">대표 동물: {animal.animal_ko}</h4>
             <p className="text-sm font-semibold text-[#14525b]">십이운성: {animal.saju_stage}</p>
             <p className="mt-2 text-xs font-medium text-[#285d63]">{oneLine}</p>
