@@ -1,4 +1,48 @@
+async function triggerBlobDownload(blob: Blob, fileName: string) {
+  const pngUrl = URL.createObjectURL(blob);
+  try {
+    const link = document.createElement("a");
+    link.href = pngUrl;
+    link.download = fileName;
+    link.rel = "noopener";
+    link.click();
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(pngUrl), 300);
+  }
+}
+
 export async function downloadPngFromSvg(svgText: string, fileName: string) {
+  const previewElement = typeof document !== "undefined"
+    ? document.getElementById("destiny-bias-card-preview") as HTMLElement | null
+    : null;
+
+  if (previewElement) {
+    try {
+      const [{ toBlob }] = await Promise.all([
+        import("html-to-image"),
+        document.fonts?.ready ?? Promise.resolve(),
+      ]);
+
+      const rect = previewElement.getBoundingClientRect();
+      const pixelRatio = Math.min(3, Math.max(2, typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2));
+
+      const domBlob = await toBlob(previewElement, {
+        cacheBust: true,
+        pixelRatio,
+        backgroundColor: "transparent",
+        canvasWidth: Math.max(1, Math.round(rect.width * pixelRatio)),
+        canvasHeight: Math.max(1, Math.round(rect.height * pixelRatio)),
+      });
+
+      if (domBlob) {
+        await triggerBlobDownload(domBlob, fileName);
+        return;
+      }
+    } catch {
+      // DOM 캡처가 실패하면 기존 SVG->Canvas 방식으로 자동 폴백
+    }
+  }
+
   const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
   const blobUrl = URL.createObjectURL(blob);
 
@@ -26,6 +70,9 @@ export async function downloadPngFromSvg(svgText: string, fileName: string) {
       throw new Error("캔버스 컨텍스트를 생성할 수 없습니다.");
     }
 
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
     const pngBlob = await new Promise<Blob | null>((resolve) => {
@@ -36,16 +83,7 @@ export async function downloadPngFromSvg(svgText: string, fileName: string) {
       throw new Error("PNG 변환에 실패했습니다.");
     }
 
-    const pngUrl = URL.createObjectURL(pngBlob);
-    try {
-      const link = document.createElement("a");
-      link.href = pngUrl;
-      link.download = fileName;
-      link.rel = "noopener";
-      link.click();
-    } finally {
-      setTimeout(() => URL.revokeObjectURL(pngUrl), 300);
-    }
+    await triggerBlobDownload(pngBlob, fileName);
   } finally {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 300);
   }

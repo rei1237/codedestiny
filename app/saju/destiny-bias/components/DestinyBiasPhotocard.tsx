@@ -17,7 +17,7 @@ export default function DestinyBiasPhotocard({
   return (
     <motion.div
       id="destiny-bias-card-preview"
-      className="relative"
+      className="relative isolate"
       initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.92, y: reduceMotion ? 0 : 20, rotateX: reduceMotion ? 0 : 8 }}
       animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
       transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
