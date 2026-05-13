@@ -72,25 +72,6 @@ const SEO_LINK_GROUPS = [
   },
 ];
 
-const BUSINESS_INFO_ROWS = [
-  { label: "상호명", value: "코드 데스티니 (Code Destiny)" },
-  { label: "대표자", value: "박병하" },
-  { label: "사업자등록번호", value: "372-23-02329" },
-  { label: "연락처", value: "050-6664-7398" },
-  { label: "이메일", value: "seongbae555@gmail.com" },
-  { label: "사업장 주소", value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
-];
-
-const REFUND_POLICY_ROWS = [
-  "충전일로부터 7일 이내, 그리고 코인 전량 미사용 상태인 경우에 한해 결제금액 전액 환불이 가능합니다.",
-  "미사용 유상 코인은 전자상거래 관련 법령에 따라 '7일 이내 청약철회 가능' 기준으로 환불 접수할 수 있습니다.",
-  "결과 열람, 리딩 실행, AI 해석 생성 등으로 코인이 1회라도 차감된 경우 해당 차감분은 디지털 콘텐츠 제공이 완료된 것으로 보아 환불 대상에서 제외됩니다.",
-  "부분 환불은 잔여 유상 코인만 가능하며, 프로모션/이벤트/무상 지급 코인, 만료·소멸된 코인, 보상성 지급분은 환불되지 않습니다.",
-  "환불 금액 산정은 최근 충전분 우선 차감 기준을 적용하며, 결제사 수수료/송금 수수료 등 실제 발생비용은 관련 법령 허용 범위 내에서 공제될 수 있습니다.",
-  "타인 명의 결제, 도용 카드 사용, 비정상 다계정 환불 시도, 약관 위반이 확인되면 환불 심사가 보류되거나 제한될 수 있습니다.",
-  "환불 접수는 결제자 본인 확인이 완료된 요청만 처리하며, 환급 완료까지 통상 영업일 3~10일이 소요됩니다.",
-];
-
 export default function SiteFooterHub() {
   return (
     <footer className={styles.sfhRoot} aria-label="서비스 하단 정책 정보">
@@ -121,43 +102,6 @@ export default function SiteFooterHub() {
               </section>
             ))}
           </div>
-
-          <section aria-label="사업자 정보 및 코인 환불 정책" className={styles.sfhBusinessCard}>
-            <h2 className={styles.sfhBusinessTitle}>사업자 정보 및 코인 환불 정책</h2>
-
-            <ul className={styles.sfhBusinessList}>
-              {BUSINESS_INFO_ROWS.map((row) => (
-                <li key={row.label} className={styles.sfhBusinessItem}>
-                  <strong>{row.label}:</strong> {row.value}
-                </li>
-              ))}
-            </ul>
-
-            <div className={styles.sfhBusinessDivider}>
-              <p className={styles.sfhBusinessEmphasis}>
-                모든 거래에 대한 책임과 환불, 민원 등은 <strong>코드 데스티니(Code Destiny)</strong>에서 진행합니다.
-              </p>
-              <p className={styles.sfhBusinessMuted}>민원담당자 : 박병하 (seongbae555@gmail.com)</p>
-            </div>
-
-            <div className={styles.sfhBusinessDivider}>
-              <p className={styles.sfhRefundTitle}>코인 충전형 디지털 운세 서비스 환불 기준</p>
-              <p className={styles.sfhBusinessEmphasis}>
-                코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라 미사용 유상 코인 범위에서만 환불이 가능합니다.
-              </p>
-              <ul className={styles.sfhRefundList}>
-                {REFUND_POLICY_ROWS.map((rule) => (
-                  <li key={rule} className={styles.sfhBusinessMuted}>
-                    {rule}
-                  </li>
-                ))}
-              </ul>
-              <p className={styles.sfhRefundNotice}>
-                본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
-              </p>
-              <p className={styles.sfhRefundNoticeStrong}>환불 처리는 결제 수단(카드)으로만 가능합니다.</p>
-            </div>
-          </section>
         </section>
 
         <nav aria-label="정책 및 안내 링크" className={styles.sfhPolicyNav}>
