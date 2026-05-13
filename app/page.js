@@ -3,6 +3,7 @@ import { INSIGHT_SEED_ARTICLES } from "./insights/seed-articles";
 import { createI18nMetadata } from "../lib/seo/createI18nMetadata";
 import { getAlternatesByRouteKey } from "../lib/i18n/routes";
 import { buildOrganizationJsonLd, buildWebPageJsonLd, buildWebsiteJsonLd } from "../lib/structured-data";
+import styles from "./home-cosmic.module.css";
 
 export const metadata = createI18nMetadata({
   locale: "ko",
@@ -52,36 +53,49 @@ export default function HomePage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
-      <header className="rounded-3xl border border-white/10 bg-[#0f1324] px-5 py-6 md:px-8 md:py-8">
-        <h1 className="text-2xl font-semibold leading-tight text-amber-50 md:text-4xl">
+    <main className={styles.pageWrap}>
+      <div className={styles.pageGlow} aria-hidden />
+
+      <header className={`${styles.panel} ${styles.heroPanel}`}>
+        <span className={styles.heroKicker}>COSMIC SERVICE HUB</span>
+        <h1 className={styles.heroTitle}>
           무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니
         </h1>
-        <p className="mt-4 text-sm leading-7 text-slate-200 md:text-base">
+        <p className={styles.heroLead}>
           Code Destiny는 사주·타로·자미두수·점성술·숙요점·베다점을 한곳에서 해석하는 무료 운세 플랫폼입니다.
           검색 사용자가 바로 이해하고 1클릭으로 기능을 시작할 수 있도록 서비스 허브와 인사이트 허브를 연결했습니다.
         </p>
+        <div className={styles.badgeRow}>
+          <span className={styles.badge}>One-click Launch</span>
+          <span className={styles.badge}>Star-linked Insights</span>
+          <span className={styles.badge}>Cosmic Navigation</span>
+        </div>
       </header>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#10182c] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">핵심 서비스 링크 허브</h2>
-        <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+      <section className={`${styles.panel} ${styles.sectionPanel}`}>
+        <h2 className={styles.sectionTitle}>핵심 서비스 링크 허브</h2>
+        <p className={styles.sectionLead}>오늘 바로 시작할 수 있는 핵심 운세 기능을 우주 항로처럼 빠르게 이동하세요.</p>
+        <div className={styles.serviceGrid}>
           {SERVICE_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm hover:bg-white/10">
-              {link.label}
+            <Link key={link.href} href={link.href} className={styles.serviceLink}>
+              <span className={styles.serviceText}>{link.label}</span>
+              <span className={styles.serviceArrow} aria-hidden>
+                ↗
+              </span>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1628] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">운세 인사이트 최신 글</h2>
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <section className={`${styles.panel} ${styles.sectionPanel}`}>
+        <h2 className={styles.sectionTitle}>운세 인사이트 최신 글</h2>
+        <p className={styles.sectionLead}>해석 팁, 심층 가이드, 관계/커리어 운세 인사이트를 별자리 카드처럼 확인하세요.</p>
+        <div className={styles.insightGrid}>
           {latestInsights.map((item) => (
-            <Link key={item.slug} href={`/insights/${item.slug}`} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10">
-              <p className="text-xs text-slate-400">{item.category}</p>
-              <h3 className="mt-1 text-sm font-semibold leading-6 text-slate-100">{item.title}</h3>
-              <p className="mt-2 text-xs leading-6 text-slate-300 line-clamp-2">{item.excerpt}</p>
+            <Link key={item.slug} href={`/insights/${item.slug}`} className={styles.insightCard}>
+              <p className={styles.insightCategory}>{item.category}</p>
+              <h3 className={styles.insightTitle}>{item.title}</h3>
+              <p className={styles.insightExcerpt}>{item.excerpt}</p>
             </Link>
           ))}
         </div>

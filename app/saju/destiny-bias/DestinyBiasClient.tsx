@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -170,7 +169,6 @@ function InputField({
 }
 
 export default function DestinyBiasClient() {
-  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const { guardHandlers, shouldBlockClick } = useDestinyBiasTouchGuard();
 
@@ -374,8 +372,10 @@ export default function DestinyBiasClient() {
   });
 
   const goBackToMain = useCallback(() => {
-    router.replace("/");
-  }, [router]);
+    if (typeof window !== "undefined") {
+      window.location.assign("/");
+    }
+  }, []);
 
   const validateBirthInput = useCallback((value: string, target: "me" | "bias") => {
     const result = normalizeBirthDateInput(value);
