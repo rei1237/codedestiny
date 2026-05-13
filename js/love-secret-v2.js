@@ -1122,6 +1122,9 @@
     }
 
     var _premiumReportSessionId = '';
+    var _premiumReportType = 'loveSecret';
+    var _premiumFeatureType = 'saju_love_secret';
+    var _premiumPreparePayload = null;
     var _chapterTimeoutMs = 115000;
     var _maxChapterAttempts = 4;
     var _recoveryPasses = 0;
@@ -1171,6 +1174,12 @@
       };
     }
 
+    function _getLoveSecretPreparePayload() {
+      if (_premiumPreparePayload) return _premiumPreparePayload;
+      _premiumPreparePayload = _buildLoveSecretChapterPayload(0);
+      return _premiumPreparePayload;
+    }
+
     function _ensurePremiumReportSession() {
       if (_premiumReportSessionId) {
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
@@ -1179,9 +1188,9 @@
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
-        featureType: 'saju_love_secret',
-        reportType: 'loveSecret',
-        requestBody: _buildLoveSecretChapterPayload(0)
+        featureType: _premiumFeatureType,
+        reportType: _premiumReportType,
+        requestBody: _getLoveSecretPreparePayload()
       }).then(function(prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
           _premiumReportSessionId = String(prepared.reportSessionId);
@@ -1192,95 +1201,78 @@
     }
 
     function _fetchChapter(idx) {
-      return new Promise(function (resolve) {
-        var _settled = false;
-        var _abortMsg = '응답 시간 초과 (115초). 네트워크 상태를 확인해 주세요.';
-        var _lastMsg = '';
-        var _maxAttempts = _maxChapterAttempts;
-
-        function _done(payload) {
-          if (_settled) return;
-          _settled = true;
-          _abortActiveRequest();
-          resolve(payload);
-        }
-
-        function _runAttempt(at) {
-          if (_cancelGeneration) {
-            _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
-            return;
-          }
-          if (at >= _maxAttempts) {
-            _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
-            return;
-          }
+      function _attempt(tryNo) {
+        return new Promise(function (resolve) {
           var timeoutId = setTimeout(function () {
-            _lastMsg = _abortMsg;
-            _runAttempt(at + 1);
+            resolve({ ok: false, message: '응답 시간 초과 (115초). 네트워크 상태를 확인해 주세요.' });
           }, _chapterTimeoutMs);
 
           _ensurePremiumReportSession().then(function(prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
               clearTimeout(timeoutId);
-              _done(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
               return;
             }
             if (typeof window.__cdPremiumAuthJson !== 'function') {
               clearTimeout(timeoutId);
-              _done({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
+              resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
               return;
             }
 
             window.__cdPremiumAuthJson('/api/premium-report/chapter', {
               reportSessionId: _premiumReportSessionId,
-              chapterId: idx + 1
+              chapterId: idx + 1,
+              reportType: _premiumReportType,
+              featureType: _premiumFeatureType,
+              requestBody: _getLoveSecretPreparePayload(),
+              requestId: 'love-secret:chapter:' + (idx + 1) + ':' + Date.now().toString(36) + ':' + tryNo,
+            }, {
+              maxAttempts: 2,
             }).then(function(data) {
               clearTimeout(timeoutId);
-              if (data && data.ok && String(data.text || '').length >= _chapterMinChars(idx + 1)) {
-                _done(data);
-                return;
-              }
-              if (data && Number(data.status || 0) === 401) {
-                _done(data);
-                return;
-              }
-              var status = Number((data && data.status) || 0);
-              var code = String((data && data.code) || '').toUpperCase();
-              if (
-                status === 422
-                || code === 'MISSING_CALCULATION_DATA'
-                || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
-                || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
-              ) {
-                data = data || { ok: false };
-                data.fatal = true;
-                data.errorCode = 'DATA_INCOMPLETE';
-                data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
-                _done(data);
-                return;
-              }
-              _lastMsg = (data && data.message) ? data.message : '분량 또는 응답 기준을 충족하지 못했습니다.';
-              setTimeout(function () {
-                _runAttempt(at + 1);
-              }, Math.min(900 * (at + 1), 2800));
+              resolve(data);
             }).catch(function(err) {
               clearTimeout(timeoutId);
-              _lastMsg = String(err && err.message ? err.message : err);
-              setTimeout(function () {
-                _runAttempt(at + 1);
-              }, Math.min(900 * (at + 1), 2800));
+              resolve({ ok: false, message: String(err && err.message ? err.message : err) });
             });
           }).catch(function(err) {
             clearTimeout(timeoutId);
-            _lastMsg = String(err && err.message ? err.message : err);
-            setTimeout(function () {
-              _runAttempt(at + 1);
-            }, Math.min(900 * (at + 1), 2800));
+            resolve({ ok: false, message: String(err && err.message ? err.message : err) });
           });
-        }
+        }).then(function(data) {
+          if (data && data.reportSessionId) {
+            _premiumReportSessionId = String(data.reportSessionId);
+          }
 
-        _runAttempt(0);
-      });
+          var status = Number((data && data.status) || 0);
+          var code = String((data && data.code) || '').toUpperCase();
+          if (status === 401) return data;
+          if (
+            status === 422
+            || code === 'MISSING_CALCULATION_DATA'
+            || code === 'PREMIUM_REPORT_DATA_INCOMPLETE'
+            || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
+          ) {
+            data = data || { ok: false };
+            data.fatal = true;
+            data.errorCode = 'DATA_INCOMPLETE';
+            data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+            return data;
+          }
+
+          if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
+            _premiumReportSessionId = '';
+            if (tryNo < _maxChapterAttempts) return _attempt(tryNo + 1);
+            return data;
+          }
+
+          if (data && data.ok && String(data.text || '').length >= _chapterMinChars(idx + 1)) return data;
+          if (tryNo >= _maxChapterAttempts) return data;
+          return _attempt(tryNo + 1);
+        });
+      }
+
+      return _attempt(1);
     }
 
     (function generateNext(idx) {
@@ -1357,6 +1349,39 @@
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
+          if (data && data.reportSessionId) _premiumReportSessionId = String(data.reportSessionId);
+          var statusCode = Number((data && data.status) || 0);
+          var code = String((data && data.code) || '').toUpperCase();
+          var isSessionMissing = statusCode === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND';
+
+          if (isSessionMissing || statusCode === 402 || statusCode === 503) {
+            console.error('[연애 비책 프리미엄 PDF][BLOCKED]', {
+              chapter: idx + 1,
+              status: statusCode,
+              code: code,
+              isSessionMissing: isSessionMissing,
+              message: String((data && data.message) || ''),
+              requestId: String((data && data.requestId) || ''),
+              reportSessionId: String((data && data.reportSessionId) || ''),
+              raw: data || null,
+            });
+            _generating = false;
+            _stopLoadingAnimation();
+            _showScreen('lsErrorScreen');
+            var blockedErr = _qs('lsErrorMessage');
+            if (blockedErr) {
+              if (isSessionMissing) {
+                blockedErr.textContent = '리포트 세션이 만료되어 챕터 생성을 이어갈 수 없습니다. 다시 생성을 시작해 주세요.';
+              } else if (statusCode === 402) {
+                blockedErr.textContent = '결제 상태 확인에 실패해 리포트 생성을 중단했습니다. 잠시 후 다시 시도해 주세요.';
+              } else {
+                blockedErr.textContent = '외부 API 응답 지연으로 리포트 생성을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+              }
+            }
+            _attemptAutoRefundOnce('연애 비책 세션/결제/외부API 오류 자동 환급');
+            return;
+          }
+
           if (data && Number(data.status || 0) === 401) {
             console.error('[연애 비책 프리미엄 PDF][AUTH_REQUIRED]', {
               chapter: idx + 1,
