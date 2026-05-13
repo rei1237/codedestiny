@@ -3332,7 +3332,15 @@
       riskScore: _safeScore(normalizedProfile && normalizedProfile.scores && normalizedProfile.scores.riskScore, data.risk || SIBYL_DEFAULT_RISK_SCORE, 0, 100),
       gender: (profile && profile.gender) || 'F',
       currentYear: new Date().getFullYear(),
-      requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : ''
+      requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : '',
+      kasiContext: (window.G_KASI_CONTEXT && typeof window.G_KASI_CONTEXT === 'object') ? {
+        solar: window.G_KASI_CONTEXT.solar || null,
+        lunar: window.G_KASI_CONTEXT.lunar || null,
+        ganji: window.G_KASI_CONTEXT.ganji || null,
+        solarTerms: window.G_KASI_CONTEXT.solarTerms || null,
+        calendarType: window.G_KASI_CONTEXT.calendarType || null,
+        source: window.G_KASI_CONTEXT.source || null
+      } : null
     };
 
     var normalized = data.normalized || _normalizeSibylInput(payload, data);

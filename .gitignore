@@ -38,6 +38,7 @@ server/.env.*
 # Cloudflare local deploy secrets
 .env.cloudflare
 .env.cloudflare.local
+.dev.vars
 
 ziwei_autotune_report.json
 ziwei_autotune_report.err.txt

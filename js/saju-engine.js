@@ -3693,6 +3693,7 @@ async function calculate(){
     var natal=calcNatalElement(p);
     var johu=analyzeJohu(p);
     G_PILLARS=p;
+    window.G_KASI_CONTEXT = primaryDateCtx || null;
     G_NATAL=natal;
     G_JOHU=johu; JOHU_TYPE=johu.type; JOHU_SCORE=johu.score;
     G_POWER=calcPower(p);
