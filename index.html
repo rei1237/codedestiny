@@ -7830,10 +7830,75 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return true;
   }
 
+  var _cdActionDetailHrefMap = {
+    gotoZiweiPremium: '/services/ziwei',
+    gotoAstrologyPremium: '/services/astrology',
+    gotoSukuyoPremium: '/services/sukyo',
+    gotoVedicPremium: '/services/vedic',
+    gotoNamingPremium: '/services/saju',
+    navigateToVedic: '/vedic/jyotish',
+    navigateToZiweiChart: '/ziwei/chart',
+    openAnimalTotemModal: '/services/animal-totem',
+    openAstroModal: '/astrology/cosmic',
+    openAstrologyFlowerStudio: '/services/astrology',
+    openCelestialHarmony: '/celestial-harmony.html',
+    openCosmicSoulMeditation: '/cosmic-soul-meditation.html',
+    openDestinyEggPage: '/destiny-poker.html',
+    openDestinyFlowerStudio: '/services/saju',
+    openDreamModal: '/dream/tarot',
+    openFortuneTellerFishPage: '/fortune-teller-fish.html',
+    openGeomancyOracle: '/geomancy-oracle-v4.html',
+    openHwatuModal: '/oracle/hwatu-life',
+    openIfaOracle: '/oracle/ifa',
+    openJamidusuFlowerStudio: '/services/ziwei',
+    openJuyukModal: '/services/stonehenge-rune',
+    openKemetModal: '/services/stonehenge-rune',
+    openLoveSimulation: '/saju/love-simulation',
+    openMbtiModal: '/animal/mbti',
+    openNevilleMeditationPage: '/neville-meditation.html',
+    openOlympusOracleModal: '/olympus',
+    openPhysiognomyApp: '/animal/physio',
+    openPsychoDreamModal: '/dream/psycho',
+    openRoyalTeaOracle: '/oracle/royal-tea',
+    openRuneOracle: '/oracle/rune',
+    openSajuAnimalPage: '/saju/animal-test',
+    openSukuyoFlowerStudio: '/services/sukyo',
+    openTarotHealingModal: '/tarot/healing',
+    openTarotLoveModal: '/tarot/love',
+    openTarotModal: '/tarot/mingri',
+    openTarotReunionModal: '/tarot/reunion',
+    openTarotSelfEsteemModal: '/tarot/self-esteem',
+    openTarotYearFortuneModal: '/tarot/year',
+    openYogaGuru: '/yoga-guru.html',
+    openZiweiModal: '/ziwei/chart',
+  };
+
+  var _cdHrefDetailHrefMap = {
+    '/ifa-oracle.html': '/oracle/ifa',
+    '/royal-tea-oracle.html': '/oracle/royal-tea',
+    '/saju-picture': '/animal/physio',
+    '/palm-reading': '/services/palm-reading',
+    '/saju/destiny-bias': '/saju/destiny-bias',
+    '/saju/love-simulation': '/saju/love-simulation',
+    '/tarot/mindscan/': '/tarot/mindscan',
+    '/tarot/crystal-soul/': '/tarot/crystal-soul',
+    '/fortune/sikojen-povailu/': '/oracle/sikojen-povailu',
+  };
+
+  function _cdResolveMappedServiceDetailHref(actionNode) {
+    if (!actionNode || typeof actionNode.getAttribute !== 'function') return '';
+    var action = String(actionNode.getAttribute('data-action') || '').trim();
+    if (action && _cdActionDetailHrefMap[action]) return _cdActionDetailHrefMap[action];
+    var href = String(actionNode.getAttribute('href') || '').trim();
+    if (href && _cdHrefDetailHrefMap[href]) return _cdHrefDetailHrefMap[href];
+    return '';
+  }
+
   function _cdNavigateToServiceDetail(actionNode) {
     if (!actionNode || typeof actionNode.getAttribute !== 'function') return false;
     if (actionNode.getAttribute('data-pvw-bypass')) return false;
-    var detailHref = String(actionNode.getAttribute('data-service-detail-href') || '').trim();
+    var mappedDetailHref = _cdResolveMappedServiceDetailHref(actionNode);
+    var detailHref = mappedDetailHref || String(actionNode.getAttribute('data-service-detail-href') || '').trim();
     if (!detailHref) return false;
     window.location.assign(detailHref);
     return true;
