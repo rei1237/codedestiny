@@ -42,7 +42,7 @@ const SEO_PUBLIC_PATHS = new Set([
   "/rss.xml",
   "/favicon.ico",
   "/manifest.json",
-  "/manifest-samba.json",
+  "/manifest-neo.json",
   "/status.json",
 ]);
 
@@ -280,7 +280,7 @@ export function middleware(request) {
     // Keep legacy/static pages referencing an icon path without 404ing.
     if (pathname === "/icons/icon-192x192.png") {
       const url = request.nextUrl.clone();
-      url.pathname = "/icons/samba-mode-icon.png";
+      url.pathname = "/icons/neo-mode-icon.png";
       url.search = search;
       return NextResponse.rewrite(url);
     }
@@ -397,6 +397,6 @@ export function middleware(request) {
 export const config = {
   matcher: [
     "/",
-    "/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|rss.xml|manifest.json|manifest-samba.json|status.json|styles/|css/|js/|icons/|fuctionassets/|tarot-cards/|lib/|sudda/).*)",
+    "/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|rss.xml|manifest.json|manifest-neo.json|status.json|styles/|css/|js/|icons/|fuctionassets/|tarot-cards/|lib/|sudda/).*)",
   ],
 };

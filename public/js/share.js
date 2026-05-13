@@ -432,8 +432,8 @@ var THEME_MODE_STATE_SCHEMA = '20260511-theme-state-v2';
 var THEME_LOGO_REV = '20260511-mobile-logo-fix4';
 var PIG_LOGO_URL = '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=' + THEME_LOGO_REV;
 var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
-var SAMBA_LOGO_URL = '/icons/samba.webp?v=' + THEME_LOGO_REV;
-var SAMBA_LOGO_SRCSET = '/icons/samba-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/samba-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + SAMBA_LOGO_URL + ' 512w';
+var NEO_LOGO_URL = '/icons/neo.webp?v=' + THEME_LOGO_REV;
+var NEO_LOGO_SRCSET = '/icons/neo-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/neo-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + NEO_LOGO_URL + ' 512w';
 
 function ensureThemeModeStateSchema() {
   try {
@@ -529,15 +529,15 @@ function writeThemeModeState(isNeo) {
 function applyPwaThemeAssets(isNeo) {
   var manifestLink = document.querySelector('link[rel="manifest"]');
   if (manifestLink) {
-    var manifestHref = (isNeo ? '/manifest-samba.json' : '/manifest.json') + '?v=' + THEME_LOGO_REV;
+    var manifestHref = (isNeo ? '/manifest-neo.json' : '/manifest.json') + '?v=' + THEME_LOGO_REV;
     manifestLink.setAttribute('href', manifestHref);
   }
 
   var faviconLink = document.getElementById('pwa-favicon');
   var appleIconLink = document.getElementById('pwa-apple-icon');
   if (isNeo) {
-    if (faviconLink) { faviconLink.setAttribute('href', SAMBA_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', SAMBA_LOGO_URL);
+    if (faviconLink) { faviconLink.setAttribute('href', NEO_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', NEO_LOGO_URL);
   } else {
     if (faviconLink) { faviconLink.setAttribute('href', PIG_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
     if (appleIconLink) appleIconLink.setAttribute('href', PIG_LOGO_URL);
@@ -563,8 +563,8 @@ function syncThemeLogoSources(reason) {
   }
 
   if (neoLogo) {
-    neoLogo.setAttribute('src', SAMBA_LOGO_URL);
-    neoLogo.setAttribute('srcset', SAMBA_LOGO_SRCSET);
+    neoLogo.setAttribute('src', NEO_LOGO_URL);
+    neoLogo.setAttribute('srcset', NEO_LOGO_SRCSET);
     neoLogo.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
   }
 
@@ -574,7 +574,7 @@ function syncThemeLogoSources(reason) {
 function getFavoriteModeLabels() {
   return {
     pig: '꽃돼지 연이의 운세 꽃밭 즐겨찾기',
-    neo: '백사자 쌈바의 운세 플랫폼 즐겨찾기'
+    neo: '백사자 네오의 운세 플랫폼 즐겨찾기'
   };
 }
 
@@ -858,7 +858,7 @@ function fallbackCopy(text,msg){
 }
 
 /* ═══════════════════════════════════════
-   NEO MODE — 팩폭 사자 쌈바 퍼소나 시스템
+   NEO MODE — 팩폭 사자 네오 퍼소나 시스템
 ═══════════════════════════════════════ */
 var NEO_MODE=false;
 var THEME_PERF_PROBE_MS = 1200;
@@ -1075,7 +1075,7 @@ var NEO_TITLES={
   '한난조습 (寒暖燥濕) 조후 분석':'에너지 극성 — 당신은 차갑나 뜨겁나',
   '종합 사주 풀이':'팩트 보고서 — 사주로 보는 당신의 특징',
   '오행 밸런스를 위한 여행지':'부족 오행 충전 원정 — 당장 떠나라',
-  '에너지 원정 리포트 — 사주 맞춤 에너지 좌표':'확장 원정 — 쌈바의 기운 충전 좌표',
+  '에너지 원정 리포트 — 사주 맞춤 에너지 좌표':'확장 원정 — 네오의 기운 충전 좌표',
   '대박 로또 생성기 — 수리 에너지 공명 번호':'퀀텀 코드 추출 — 수리 공명 로또',
   '대운 (大運) — 억부+조후+종격 통합 판단':'대운 — 당신의 운명 궤도를 보라',
   '일운·월운 근대운':'단기 에너지 스캔 — 지금 당신의 흐름',
@@ -1122,7 +1122,7 @@ function toggleNeoMode(nextMode){
     if(neoLabel) neoLabel.textContent = '🌸 연이 모드';
     var tLabel = document.getElementById('themeToggleLabel');
     if(tLabel) {
-      tLabel.innerText = '🦁 팩폭 사자 쌈바 모드';
+      tLabel.innerText = '🦁 팩폭 사자 네오 모드';
       tLabel.style.color = '#FFD700';
     }
     /* 사자모드 manifest + 아이콘 교체 */
@@ -1209,7 +1209,7 @@ function applyNeoTexts(){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
+    letterTitle.innerHTML = NEO_MODE ? '🦁 네오의 팩폭!' : '💖 연이의 편지';
   }
   // 결과 화면이 보일 때만 무거운 카드 재렌더를 수행해 모바일 전환 안정성을 높인다.
   if(isResultPageVisible() && window.G_PILLARS) {
@@ -1300,7 +1300,7 @@ window.addEventListener('load',function(){
     if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
     if(tLabel) {
-      tLabel.innerText = '🦁 팩폭 사자 쌈바 모드';
+      tLabel.innerText = '🦁 팩폭 사자 네오 모드';
       tLabel.style.color = '#FFD700';
     }
   }

@@ -125,7 +125,7 @@ self.addEventListener('fetch', (event) => {
     pathname === '/version.json' ||
     pathname === '/status.json' ||
     pathname === '/manifest.json' ||
-    pathname === '/manifest-samba.json' ||
+    pathname === '/manifest-neo.json' ||
     pathname === '/manifest-tadagochi.json'
   ) {
     event.respondWith(

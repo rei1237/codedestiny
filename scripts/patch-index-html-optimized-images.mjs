@@ -29,7 +29,7 @@ html = html.replace(
 );
 
 html = replaceSrc(html, "/icons/꿀꿀 운세 로고.webp", 256);
-html = replaceSrc(html, "/icons/samba.webp", 256);
+html = replaceSrc(html, "/icons/neo.webp", 256);
 
 const tile384 = [
   "/fuctionassets/ai%20animal.webp",
@@ -62,8 +62,8 @@ html = replaceSrc(html, "/fuctionassets/flower.webp", 384);
 html = replaceSrc(html, "/fuctionassets/info.webp", 1080);
 
 html = html.replace(
-  'href="/icons/samba.webp"',
-  `href="${opt("/icons/samba.webp", 256)}"`
+  'href="/icons/neo.webp"',
+  `href="${opt("/icons/neo.webp", 256)}"`
 );
 
 writeFileSync(indexPath, html, "utf8");

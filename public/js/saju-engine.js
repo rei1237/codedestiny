@@ -3097,7 +3097,7 @@ function evalDaewun(ganChar,zhiChar){
   return result;
 }
 
-/* ─── NEO_GAEUN_DB — 쌈바 팩폭 어투 대운 해석 ─── */
+/* ─── NEO_GAEUN_DB — 네오 팩폭 어투 대운 해석 ─── */
 var NEO_GAEUN_DB={
   fire:{
     good:{love:'열정 지수 MAX. 지금 움직이지 않으면 기회는 사라진다. 주도적으로 어필하거나 포기하거나, 선택해라.',wealth:'확장 에너지 고조. IT·에너지·미디어 섹터에 자금을 투입할 타이밍이다. 망설임이 최대 그림자 파동다.',relationship:'리더십 발동 조건 성립. 팀을 이끌어라. 에너지를 나눠주는 게 아니라 방향을 제시해라.',career:'승진·이직 창이 열렸다. 프레젠테이션을 망치면 자업자득이니 준비하고 들어가라.',health:'심장·혈압이 과부하 직전이다. 과로하면 성과도 같이 무너진다. 지금 당장 수면 시간을 확보해라.',lifestyle:'과열을 식혀라. 수기(水氣) 공간·파란 계열 소품·물가 산책이 운 조절의 정답이다.'},
@@ -7783,9 +7783,9 @@ function renderAstroInsight() {
         +'</div>'
 
         +'<div class="astro-expert">'
-        +'<div class="expert-title">🗣️ 쌈바 & 연이의 코즈믹 카운슬링 (요약 팩폭)</div>'
+        +'<div class="expert-title">🗣️ 네오 & 연이의 코즈믹 카운슬링 (요약 팩폭)</div>'
         +'<div class="expert-msg">'
-        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "오늘 승부처는 분명합니다. 태양 '+sunHousePair+'와 MC '+mcSign+' 축에서 이름을 드러내고, 토성 '+saturnHousePair+'에서 기본기를 고정하세요. 타이트 각 '+tightAspectText+'은 타이밍 신호예요. <b>'+profHouse+'</b> 프로펙션과 <b>'+firdariaMain.kr+'</b> 타임로드가 겹치는 지금, 준비된 사람만 결과를 크게 가져갑니다."</div>'
+        +'<div class="neo-bubble"><strong>[분석가 네오 🦁]</strong> "오늘 승부처는 분명합니다. 태양 '+sunHousePair+'와 MC '+mcSign+' 축에서 이름을 드러내고, 토성 '+saturnHousePair+'에서 기본기를 고정하세요. 타이트 각 '+tightAspectText+'은 타이밍 신호예요. <b>'+profHouse+'</b> 프로펙션과 <b>'+firdariaMain.kr+'</b> 타임로드가 겹치는 지금, 준비된 사람만 결과를 크게 가져갑니다."</div>'
         +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "달 <b>'+moonSign+'</b>('+moonHousePair+')은 네 마음 배터리 충전소예요. 불안할수록 여기부터 챙기면 멘탈이 빨리 돌아옵니다. 금성 <b>'+venusSign+'</b>('+venusHousePair+')의 사랑 언어를 솔직하게 말하면 연애 오해가 크게 줄어요. 그리고 <b>'+elemShortNames[elemWeakest]+'</b> 기운을 채워주는 사람/취미를 곁에 두면 하루 체감이 훨씬 좋아져요. 가보자고! 🌸"</div>'
         +'</div>'
         +'</div>'
@@ -16942,12 +16942,12 @@ function renderSummary(p,johu,natal){
     '#9C27B0','rgba(243,229,245,.7)');
 
   /* ───────────────────────────────
-     13. 연이의 현실 조언 / 쌈바의 현실적 팩폭 (NEO_MODE 분기)
+     13. 연이의 현실 조언 / 네오의 현실적 팩폭 (NEO_MODE 분기)
   ─────────────────────────────── */
   var _isNeoSaju = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || document.body.classList.contains('neo-mode');
   if (_isNeoSaju) {
     html+='<div class="prem-box" style="background:linear-gradient(135deg,rgba(30,5,5,.9),rgba(60,10,10,.85));border-color:#e53935">'+
-      '<span class="prem-title" style="border-color:#e53935;color:#FF6B6B">🦁 쌈바의 현실적 팩폭 — '+(USER_NAME||'당신')+'님을 향한 직격탄</span>'+
+      '<span class="prem-title" style="border-color:#e53935;color:#FF6B6B">🦁 네오의 현실적 팩폭 — '+(USER_NAME||'당신')+'님을 향한 직격탄</span>'+
       '<div class="prem-text">'+generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep)+'</div></div>';
   } else {
     html+='<div class="prem-box" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7">'+
@@ -18482,7 +18482,7 @@ function generateDetailedAdvice(p,pw,jg,dominant,dayMaster,domE,natal,deep){
   return out;
 }
 
-/* ─── generateNeoFactPunch: 쌈바의 현실적 팩폭 (백사자 NEO MODE 전용) ─── */
+/* ─── generateNeoFactPunch: 네오의 현실적 팩폭 (백사자 NEO MODE 전용) ─── */
 function generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep){
   var dg=p.d.g;
   var out='';
@@ -18529,7 +18529,7 @@ function generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep){
 
   // 구성
   out+='<div style="border-radius:10px;padding:14px;margin-bottom:14px;border-left:4px solid #e53935;background:rgba(229,57,53,.08)">';
-  out+='<b style="font-size:.9rem;color:#FF6B6B">🦁 일간 '+dg+' — 쌈바가 당신 사주에서 본 것</b><br>';
+  out+='<b style="font-size:.9rem;color:#FF6B6B">🦁 일간 '+dg+' — 네오가 당신 사주에서 본 것</b><br>';
   out+='<span style="font-size:.86rem;line-height:1.9">'+(ganPunch[dg]||deep.advice)+'</span>';
   out+='</div>';
 
@@ -18557,7 +18557,7 @@ function generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep){
     out+='</div>';
   }
 
-  out+='<div style="text-align:right;margin-top:8px;font-style:italic;color:#FF6B6B;font-size:.8rem">— 쌈바가 당신의 사주를 보며 팩트로 꽂아드립니다 🦁⚡</div>';
+  out+='<div style="text-align:right;margin-top:8px;font-style:italic;color:#FF6B6B;font-size:.8rem">— 네오가 당신의 사주를 보며 팩트로 꽂아드립니다 🦁⚡</div>';
   return out;
 }
 
@@ -19762,7 +19762,7 @@ function renderVillain(p, power) {
     '관성': '상대 권위가 커 보일수록 요청 범위를 문장으로 다시 확인해 스스로를 보호하세요.',
     '인성': '도움받는 것과 의존하는 것은 달라요. 결정 전 마지막 선택권은 반드시 내가 가져가야 해요.'
   };
-  var ssambaAdviceMap = {
+  var neoAdviceMap = {
     '비겁': '성과는 숫자로 남겨. 증거 없는 호의는 결국 네 몫을 깎아먹는다.',
     '식상': '말싸움은 체력전이다. 상대 페이스 말고 네 기준표로 판을 바꿔.',
     '재성': '돈 얘기 흐리는 순간 게임 끝. 한도, 기한, 증빙 없으면 바로 스톱.',
@@ -19854,7 +19854,7 @@ function renderVillain(p, power) {
 
     + '  <div class="villain-quotes">'
     + '    <div class="villain-quote yeoni"><strong>👩 연이의 조언</strong><br>"' + yeoniAdviceMap[badTenGod] + '"</div>'
-    + '    <div class="villain-quote neo"><strong>🕶️ 쌈바의 조언</strong><br>"' + ssambaAdviceMap[badTenGod] + '"</div>'
+    + '    <div class="villain-quote neo"><strong>🕶️ 네오의 조언</strong><br>"' + neoAdviceMap[badTenGod] + '"</div>'
     + '  </div>'
     + '</div>';
 

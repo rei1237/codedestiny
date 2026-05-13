@@ -223,8 +223,8 @@ function __applyResponsiveSrcsetHints(img) {
       width: 130,
       height: 130
     },
-    '/icons/samba.webp': {
-      srcset: '/icons/samba-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/samba.webp?v=20260511-mobile-logo-fix4 512w',
+    '/icons/neo.webp': {
+      srcset: '/icons/neo-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/neo-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/neo.webp?v=20260511-mobile-logo-fix4 512w',
       sizes: '(max-width: 768px) 88px, 130px',
       width: 130,
       height: 130
@@ -264,9 +264,9 @@ function __applyResponsiveSrcsetHints(img) {
   }
 
   if ((cls.indexOf('neo-logo-icon') !== -1 || id === 'neoLogo') && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', srcsetHints['/icons/samba.webp'].srcset);
-    img.setAttribute('sizes', srcsetHints['/icons/samba.webp'].sizes);
-    byPath = srcsetHints['/icons/samba.webp'];
+    img.setAttribute('srcset', srcsetHints['/icons/neo.webp'].srcset);
+    img.setAttribute('sizes', srcsetHints['/icons/neo.webp'].sizes);
+    byPath = srcsetHints['/icons/neo.webp'];
   }
 
   if (id === 'dfStudioImage' && !img.getAttribute('srcset')) {

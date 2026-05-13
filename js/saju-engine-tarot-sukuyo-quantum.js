@@ -1831,7 +1831,7 @@ function renderLetter(p){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
+    letterTitle.innerHTML = NEO_MODE ? '🦁 네오의 팩폭!' : '💖 연이의 편지';
   }
 
   if(NEO_MODE){
@@ -1844,7 +1844,7 @@ function renderLetter(p){
       '<p class="letter-para">운이 나쁘다고 징징대지 마라. 겨울이 왔다고 죽는 게 아니라, 겨울에 반팔 입고 돌아다니니까 얼어 죽는 거다. 지금 당장 당신의 기신(忌神) 짓을 멈추고, 용신(用神)의 방향으로 움직여라. 사주는 당신이 어떤 옷을 입어야 가장 잘 어울리는지 알려주는 거다. 여름 사주가 겨울옷을 입고 땀 흘리면서 "왜 나만 힘들어"라고 하면 누가 동정하겠어?</p>'+
       '<p class="letter-para">그리고 주변 관계도 점검해라. 당신의 용신에 해당하는 사람이 곁에 있으면 삶이 풀리고, 기신에 해당하는 인간이 옆에 붙어있으면 아무리 뛰어도 제자리다. 냉정하게 잘라낼 건 자르고, 소중한 건 목숨 걸고 지켜라. 인간관계도 천기가다.</p>'+
       '<p class="letter-para">하지만 명심해라. 사주가 아무리 엉망이어도, 결국 그 패를 쥐고 게임을 하는 건 당신이다. <b>당신은 생각보다 강하고, 당신의 인생은 아직 끝나지 않았다.</b> 지금까지 살아남은 것 자체가 증거다. 당신은 여태 수많은 힘든 순간을 이겨냈잖아. 그때마다 "이번엔 진짜 안 될 것 같다"고 생각했을 거다. 근데 어? 여기까지 왔잖아. 이번에도 될 거다. 핑계는 여기까지다. 이제 당신의 진짜 패를 보여줄 차례다. 일어나라.</p>'+
-      '<p style="text-align:right;font-style:italic;color:#FFD700;font-weight:700;font-size:.82rem">— 팩폭 사자 쌈바 🦁</p>';
+      '<p style="text-align:right;font-style:italic;color:#FFD700;font-weight:700;font-size:.82rem">— 팩폭 사자 네오 🦁</p>';
   } else {
     document.getElementById('letterContent').innerHTML=
       '<p class="letter-para">사랑하는 <b>'+USER_NAME+'</b>님,</p>'+

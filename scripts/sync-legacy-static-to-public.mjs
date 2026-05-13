@@ -9,6 +9,7 @@ const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
 
 const staticTargets = [
+  "_headers",
   "emoi_omikuji_v2.html",
   "blood-type-app.html",
   "AnalysisEngine.js",
@@ -17,7 +18,7 @@ const staticTargets = [
   "secret-house_real.html",
   "ads.txt",
   "manifest.json",
-  "manifest-samba.json",
+  "manifest-neo.json",
   "service-worker.js",
   "css",
   "js",

@@ -338,7 +338,7 @@
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4">
 <!-- PWA 테마 초기화: 인라인으로 처리 (HTTP 요청 1건 제거) -->
 <script>
-(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=20260511-mobile-logo-fix4');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix4');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp?v=20260511-mobile-logo-fix4');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
+(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-neo.json?v=20260511-mobile-logo-fix4');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/neo.webp?v=20260511-mobile-logo-fix4');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/neo.webp?v=20260511-mobile-logo-fix4');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
 </script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
@@ -349,7 +349,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- ═══ LCP + Resource Hints (PERF-TASK17) ═══ -->
 <link rel="preload" as="image" href="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4">
-<link rel="preload" as="image" href="/icons/samba.webp?v=20260511-mobile-logo-fix4">
+<link rel="preload" as="image" href="/icons/neo.webp?v=20260511-mobile-logo-fix4">
 <!-- 폰트 CSS: UX 우선 즉시 로드 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap">
@@ -396,6 +396,19 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .card.input-section{background:rgba(15,10,30,0.85);border-radius:20px;padding:20px 16px;margin-bottom:16px}
 .auth-quick-links{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
 .auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:10px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}
+.cd-top-install-wrap{margin:14px auto 0;max-width:540px;width:100%}
+.cd-top-install-btn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;border:none;border-radius:18px;background:linear-gradient(135deg,rgba(255,134,177,0.94),rgba(255,184,119,0.94));color:#fff;box-shadow:0 10px 24px rgba(191,66,125,0.32),inset 0 1px 0 rgba(255,255,255,0.34);cursor:pointer;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease;text-align:left;overflow:hidden}
+.cd-top-install-btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 12% -20%,rgba(255,255,255,0.34),transparent 48%);pointer-events:none}
+.cd-top-install-btn:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(191,66,125,0.38),inset 0 1px 0 rgba(255,255,255,0.4);filter:brightness(1.03)}
+.cd-top-install-btn:active{transform:translateY(0) scale(.995)}
+.cd-top-install-btn.installed{background:linear-gradient(135deg,rgba(34,197,94,0.94),rgba(45,212,191,0.94));box-shadow:0 10px 24px rgba(16,129,92,0.34),inset 0 1px 0 rgba(255,255,255,0.32)}
+.cd-top-install-icon{font-size:1.35rem;line-height:1;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.22))}
+.cd-top-install-copy{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.cd-top-install-title{font-size:.9rem;font-weight:900;letter-spacing:-.01em;line-height:1.25;word-break:keep-all;text-shadow:0 1px 6px rgba(0,0,0,0.22)}
+.cd-top-install-sub{font-size:.72rem;font-weight:700;color:rgba(255,255,255,0.92);line-height:1.28;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd-top-install-chip{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.54);background:rgba(100,16,58,0.26);font-size:.68rem;font-weight:900;letter-spacing:.04em;line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24)}
+@media(max-width:768px){.cd-top-install-wrap{margin-top:12px}.cd-top-install-btn{padding:11px 12px;border-radius:16px;gap:9px}.cd-top-install-title{font-size:.84rem}.cd-top-install-sub{font-size:.67rem}.cd-top-install-chip{padding:5px 8px;font-size:.63rem}}
+@media(prefers-reduced-motion:reduce){.cd-top-install-btn{transition:none}.cd-top-install-btn:hover,.cd-top-install-btn:active{transform:none;filter:none}}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35);box-shadow:0 4px 18px rgba(124,58,237,0.35)}
 .auth-btn--signup:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.5)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
@@ -1469,17 +1482,27 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp?v=20260511-mobile-logo-fix4"
-            srcset="/icons/samba-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/samba-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/samba.webp?v=20260511-mobile-logo-fix4 512w" sizes="(max-width: 768px) 88px, 130px"
-            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="low" decoding="async">
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=20260511-mobile-logo-fix4"
+            srcset="/icons/neo-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/neo-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/neo.webp?v=20260511-mobile-logo-fix4 512w" sizes="(max-width: 768px) 88px, 130px"
+            width="130" height="130" alt="네오 모드 로고" loading="eager" fetchpriority="low" decoding="async">
         </div>
-        <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
+        <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">네오의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
       <div class="auth-quick-links" id="authQuickLinks">
         <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
         <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
+      </div>
+      <div class="cd-top-install-wrap" aria-live="polite">
+        <button class="btn-install cd-top-install-btn" id="btnPwaInstallHome" data-action="handlePwaInstall">
+          <span class="cd-top-install-icon" aria-hidden="true">🔮</span>
+          <span class="cd-top-install-copy">
+            <span class="cd-top-install-title" id="pwaInstallLabelHome">꽃돼지 운세 서비스 앱 설치하기</span>
+            <span class="cd-top-install-sub">홈 화면에 귀여운 부적 바로가기 만들기</span>
+          </span>
+          <span class="cd-top-install-chip" aria-hidden="true">무료</span>
+        </button>
       </div>
       <script>
         (function () {
@@ -4157,13 +4180,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
     <!-- ═══ 운세 인사이트 허브 끝 ═══ -->
 
-    <!-- 즐겨찾기 + 앱 설치 버튼 (홈 화면 하단) -->
+    <!-- 즐겨찾기 버튼 (홈 화면 하단) -->
     <div class="quick-action-stack quick-action-stack--home" style="padding: 36px 0 24px; display:flex; justify-content:center;">
       <button class="btn-favorite" id="btnFavoriteHome" data-action="handleFavoriteAdd">
         <span class="btn-favorite-icon" aria-hidden="true">🌸</span> <span id="favoriteLabelHome">꽃돼지 연이의 운세 꽃밭 즐겨찾기</span>
-      </button>
-      <button class="btn-install" id="btnPwaInstallHome" data-action="handlePwaInstall">
-        <span style="font-size:1.1rem">🔮</span> <span id="pwaInstallLabelHome">꽃돼지 운세 서비스 앱 설치하기</span>
       </button>
     </div>
 
@@ -4177,7 +4197,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         원하는 주기로 연이의 따뜻한 맞춤 운세를 이메일로 편하게 받아보세요!<br>
       </div>
       <div class="sub-desc neo-only">
-        쌈바의 냉철한 운세 분석을 원하는 주기로 이메일을 통해 전송받으세요.<br>
+        네오의 냉철한 운세 분석을 원하는 주기로 이메일을 통해 전송받으세요.<br>
       </div>
       <div style="margin-bottom: 15px; display: flex; gap: 20px; justify-content: center; font-size: 0.95rem;">
         <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="subDailyHome" checked> 일일 운세 받기</label>
@@ -6197,7 +6217,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
 
     
-        <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
+        <!-- 9. 연이의 편지 / 네오의 팩폭 -->
     <section class="letter-box" id="letterBox" style="margin-bottom:16px; display:none;" aria-labelledby="letterTitle">
       <h3 id="letterTitle">💖 연이의 편지</h3>
       <div id="letterContent"></div>
@@ -6234,7 +6254,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         원하는 주기로 연이의 따뜻한 맞춤 운세를 이메일로 편하게 받아보세요!<br>
       </div>
       <div class="sub-desc neo-only">
-        쌈바의 냉철한 운세 분석을 원하는 주기로 이메일을 통해 전송받으세요.<br>
+        네오의 냉철한 운세 분석을 원하는 주기로 이메일을 통해 전송받으세요.<br>
       </div>
 
       <div style="margin-bottom: 15px; display: flex; gap: 20px; justify-content: center; font-size: 0.95rem;">
@@ -9684,10 +9704,10 @@ if (document.readyState === 'loading') {
 <!-- 꽃돼지/백사자 모드 토글: body 직하위 배치로 contain:layout 영향 완전 회피 -->
 <div class="theme-switch-wrapper">
   <span id="themeToggleLabel" class="theme-toggle-label" aria-live="polite">🌸 꽃돼지 연이 모드</span>
-  <input type="checkbox" id="themeCheckbox" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이 · 백사자 쌈바 모드 전환" />
+  <input type="checkbox" id="themeCheckbox" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이 · 백사자 네오 모드 전환" />
   <label class="theme-switch-pill" for="themeCheckbox" aria-hidden="true">
     <span class="tsp-option tsp-pig"><span class="tsp-icon" aria-hidden="true">🌸</span><span class="tsp-name">연이</span></span>
-    <span class="tsp-option tsp-lion"><span class="tsp-icon" aria-hidden="true">🦁</span><span class="tsp-name">쌈바</span></span>
+    <span class="tsp-option tsp-lion"><span class="tsp-icon" aria-hidden="true">🦁</span><span class="tsp-name">네오</span></span>
   </label>
 </div>
 <script>
@@ -9701,7 +9721,7 @@ if (document.readyState === 'loading') {
     if (isNeo) {
       document.body.classList.add('neo-mode');
       if (cb) { cb.checked = true; cb.setAttribute('aria-checked', 'true'); }
-      if (lbl) lbl.textContent = '🦁 백사자 쌈바 모드';
+      if (lbl) lbl.textContent = '🦁 백사자 네오 모드';
     } else {
       document.body.classList.remove('neo-mode');
       if (cb) { cb.checked = false; cb.setAttribute('aria-checked', 'false'); }

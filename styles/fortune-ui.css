@@ -4000,7 +4000,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .sim-score-bar-bg { width: 100%; height: 6px; background: #ffe0d6; border-radius: 3px; overflow: hidden; }
 .sim-score-bar-fill { height: 100%; background: linear-gradient(90deg, #ffb347, #ff7b54); border-radius: 3px; }
 
-/* 쌈바 모드 대응 */
+/* 네오 모드 대응 */
 .neo-mode .sim-celeb-item { background: #1e293b; border-color: #334155; }
 .neo-mode .sim-celeb-name { color: #e2e8f0; }
 .neo-mode .sim-celeb-matches { color: #94a3b8; }
@@ -4095,7 +4095,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   .ts2-card{padding:10px}
 }
 
-/* ═══════════ NEO MODE — 백사자 쌈바 다크 모드 ═══════════ */
+/* ═══════════ NEO MODE — 백사자 네오 다크 모드 ═══════════ */
 
 /* ── 언어 선택 드롭다운 (컴팩트) ── */
 .lang-toggle-wrap {
@@ -4409,7 +4409,7 @@ body.neo-mode #lib-msg{color:#FFD700!important}
 body.neo-mode .dot{background:#FFD700!important}
 body.neo-mode .logo-area h1{color:#FFD700!important;text-shadow:0 0 16px rgba(255,215,0,.4)}
 body.neo-mode .logo-area p{color:#444!important}
-/* 쌈바 로고 전환 */
+/* 네오 로고 전환 */
 body.neo-mode .normal-logo{display:none!important}
 body.neo-mode .neo-logo{display:flex!important}
 /* 백사자 모드: 로고 위 별·네뷸라 제거 */
@@ -4480,7 +4480,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
 .neo-logo h1{font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;
   text-shadow:0 0 20px rgba(255,215,0,.5);margin-top:6px}
 .neo-logo p{color:#555;font-size:.85rem;margin-top:4px}
-/* 쌈바 프로모션 박스 */
+/* 네오 프로모션 박스 */
 .neo-promo-box {
   background: #0f172a;
   border-radius: 12px;
@@ -6006,7 +6006,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     color: #eedc9a;
   }
 
-  /* 쌈바/꽃돼지 모드 분기 (기본값 설정) */
+  /* 네오/꽃돼지 모드 분기 (기본값 설정) */
   .pig-only { display: block; }
   span.pig-only { display: inline; }
   .neo-only { display: none; }
@@ -6100,7 +6100,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   .fate-scroll-top-indicator .fate-scroll-next-arrow {
     animation: fate-scroll-bounce-up 1.5s ease-in-out infinite;
   }
-  /* 쌈바 모드 색상 오버라이드 */
+  /* 네오 모드 색상 오버라이드 */
   body.neo-mode .fate-scroll-next-arrow {
     box-shadow: 0 4px 16px rgba(255, 215, 0, 0.35);
   }
@@ -6145,7 +6145,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     border-bottom: 1.5px solid rgba(255, 183, 178, 0.45);
     box-shadow: 0 3px 16px rgba(255, 139, 167, 0.18);
   }
-  /* 쌈바 모드 */
+  /* 네오 모드 */
   .fsn-navbar.fsn-neo {
     background: rgba(14, 14, 20, 0.92);
     border-bottom: 1.5px solid rgba(255, 215, 0, 0.28);
