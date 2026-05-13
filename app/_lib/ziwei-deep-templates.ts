@@ -36,7 +36,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["비교", "경계 붕괴", "감정 소모"],
   },
   spouse: {
-    title: "부처궁",
+    title: "부부궁",
     meaning: "연애/결혼/동반자 관계의 작동 원리를 보여주는 궁입니다.",
     insightPrompts: [
       "이상형과 실제 궁합의 차이는 무엇인가",

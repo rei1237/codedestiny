@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { calculateZiweiChart } from "../_lib/ziwei-engine";
+import {
+  calculateZiweiChart,
+  normalizeZiweiForAdvancedReport,
+  validateAdvancedZiweiResult,
+} from "../_lib/ziwei-engine";
 import { normalizeZiweiInput } from "../_lib/normalize-ziwei-input";
 import { getZiweiDeepChapter, primeZiweiDeepRuntime } from "../_lib/ziwei-deep-runtime";
 import { validateZiweiChart } from "../_lib/validate-ziwei-chart";
@@ -13,6 +17,7 @@ import {
   ZiweiSectionId,
   ZIWEI_SECTIONS,
 } from "../_lib/ziwei-types";
+import { transformationTypeToLabel } from "../_lib/ziwei-advanced-normalization";
 import PremiumBlurGate from "./PremiumBlurGate";
 import { usePayment } from "./PaymentProcessingContext";
 import { useToast } from "./Toast";
@@ -46,7 +51,7 @@ interface FormState {
   timezone: string;
 }
 
-const RESULT_CACHE_KEY = "premium:ziwei:result:v6";
+const RESULT_CACHE_KEY = "premium:ziwei:result:v7";
 const PREMIUM_UNLOCK_MARKER_KEY = "premium:ziwei:unlock:v1";
 const LEGACY_TILE_LOCK_KEY = "cd_tile_locks";
 const TILE_LOCK_PREFIX = "cd_tile_locks_v2::";
@@ -233,6 +238,13 @@ export default function AdvancedZiweiSectionV2({
     return "border-white/30 bg-white/10 text-slate-200";
   }, []);
 
+  const transformationBadgeClass = useCallback((label: string) => {
+    if (label === "화록") return "border-lime-300/50 bg-lime-200/15 text-lime-100";
+    if (label === "화권") return "border-orange-300/50 bg-orange-200/15 text-orange-100";
+    if (label === "화과") return "border-sky-300/50 bg-sky-200/15 text-sky-100";
+    return "border-rose-300/50 bg-rose-200/15 text-rose-100";
+  }, []);
+
   const syncUnlockState = useCallback(
     async (checkServer: boolean) => {
       if (resolvedUnlocked) return true;
@@ -339,7 +351,16 @@ export default function AdvancedZiweiSectionV2({
 
     setTimeout(() => {
       try {
-        const nextChart = calculateZiweiChart(normalized.input!);
+        const nextChart = normalizeZiweiForAdvancedReport(calculateZiweiChart(normalized.input!));
+        const advancedValidation = validateAdvancedZiweiResult(nextChart);
+        if (!advancedValidation.valid) {
+          clearInterval(timer);
+          console.error("[AdvancedZiweiV2] advanced chart validation failed:", advancedValidation.missingFields);
+          alert("명반 데이터 보정 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+          setStep("form");
+          return;
+        }
+
         nextChart.warnings = [...nextChart.warnings, ...normalized.warnings];
 
         const validation = validateZiweiChart(nextChart);
@@ -350,7 +371,10 @@ export default function AdvancedZiweiSectionV2({
           return;
         }
 
-        nextChart.warnings = [...nextChart.warnings, ...validation.warnings.map((w) => ({ code: "INVALID_DATE" as const, message: w }))];
+        nextChart.debugWarnings = [...(nextChart.debugWarnings || []), ...validation.debugWarnings];
+        if (nextChart.debugWarnings.length) {
+          console.warn("[AdvancedZiweiV2] debug warnings:", nextChart.debugWarnings);
+        }
 
         primeZiweiDeepRuntime(nextChart, ["overview", "ming"]);
         const overview = getZiweiDeepChapter(nextChart, "overview");
@@ -411,15 +435,27 @@ export default function AdvancedZiweiSectionV2({
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed?.chart && parsed?.chapters) {
-          setChart(parsed.chart);
-          setChapters(parsed.chapters);
-          setActiveSection(parsed.activeSection || "overview");
-          if (parsed.unlocked === true) {
-            setResolvedUnlocked(true);
-            markPremiumUnlockedLocal();
+          const migratedChart = (!parsed.chart.version || !String(parsed.chart.version).includes("four-transformations"))
+            ? normalizeZiweiForAdvancedReport(parsed.chart)
+            : parsed.chart;
+          const advancedValidation = validateAdvancedZiweiResult(migratedChart);
+          if (!advancedValidation.valid) {
+            console.warn("[AdvancedZiweiV2] cached chart invalid, ignore cache:", advancedValidation.missingFields);
+            sessionStorage.removeItem(RESULT_CACHE_KEY);
+          } else {
+            primeZiweiDeepRuntime(migratedChart, ["overview", "ming"]);
+            const overview = parsed.chapters?.overview || getZiweiDeepChapter(migratedChart, "overview");
+            const ming = parsed.chapters?.ming || getZiweiDeepChapter(migratedChart, "ming");
+            setChart(migratedChart);
+            setChapters({ ...parsed.chapters, overview, ming });
+            setActiveSection(parsed.activeSection || "overview");
+            if (parsed.unlocked === true) {
+              setResolvedUnlocked(true);
+              markPremiumUnlockedLocal();
+            }
+            setStep("result");
+            return;
           }
-          setStep("result");
-          return;
         }
       }
 
@@ -728,17 +764,22 @@ export default function AdvancedZiweiSectionV2({
                   {activePalace ? (
                     <div className="mt-3 grid gap-3 lg:grid-cols-2">
                       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <p className="text-xs font-bold text-slate-200">{activePalace.name} 별 배치</p>
+                        <p className="text-xs font-bold text-slate-200">{activePalace.name} {activePalace.branch || activePalace.earthlyBranch}</p>
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          {activePalace.isEmptyMainStarPalace
+                            ? "무주성궁: 대궁과 삼방사정 영향을 강하게 받는 구조"
+                            : "주성 배치가 궁의 기본 성향을 직접 형성"}
+                        </p>
                         <p className="mt-2 text-[11px] text-slate-400">주성</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
-                          {activePalace.mainStars.map((star) => {
+                          {activePalace.mainStars.length ? activePalace.mainStars.map((star) => {
                             const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
                             return (
                               <span key={`main-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
                                 {star.name} {symbol}
                               </span>
                             );
-                          })}
+                          }) : <span className="text-[11px] text-slate-400">무주성궁</span>}
                         </div>
 
                         <p className="mt-3 text-[11px] text-slate-400">보조성</p>
@@ -764,26 +805,49 @@ export default function AdvancedZiweiSectionV2({
                             );
                           }) : <span className="text-[11px] text-slate-400">없음</span>}
                         </div>
+
+                        <p className="mt-3 text-[11px] text-slate-400">묘왕리함 요약</p>
+                        <p className="mt-1 text-[11px] text-slate-300">
+                          강점: {activePalace.strengthSummary?.strongestStars?.length ? activePalace.strengthSummary.strongestStars.map((s) => `${s.name}${s.strengthSymbol || s.symbol || ""}`).join(", ") : "뚜렷한 강세 없음"}
+                        </p>
+                        <p className="mt-1 text-[11px] text-slate-300">
+                          보완: {activePalace.strengthSummary?.weakStars?.length ? activePalace.strengthSummary.weakStars.map((s) => `${s.name}${s.strengthSymbol || s.symbol || ""}`).join(", ") : "약세 신호 약함"}
+                        </p>
                       </div>
 
                       <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                         <p className="text-xs font-bold text-slate-200">사화·삼방사정 연결</p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {activePalace.sihua.length ? activePalace.sihua.map((key) => (
-                            <span key={`sihua-${key}`} className="rounded-full border border-violet-300/50 bg-violet-200/15 px-2 py-0.5 text-[11px] font-semibold text-violet-100">
-                              {key}
-                            </span>
-                          )) : <span className="text-[11px] text-slate-400">사화 없음</span>}
+                          {activePalace.fourTransformations.length ? activePalace.fourTransformations.map((item) => {
+                            const label = transformationTypeToLabel(item.type);
+                            return (
+                              <span key={`sihua-${label}-${item.starName}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${transformationBadgeClass(label)}`}>
+                                {label} {item.starName}
+                              </span>
+                            );
+                          }) : <span className="text-[11px] text-slate-300">이 궁에는 생년사화가 직접 들어오지 않았습니다.</span>}
+                        </div>
+
+                        <p className="mt-3 text-[11px] text-slate-400">사화 유입</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {activePalace.incomingFourTransformations.length ? activePalace.incomingFourTransformations.map((item) => {
+                            const label = transformationTypeToLabel(item.type);
+                            return (
+                              <span key={`inflow-${label}-${item.starName}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${transformationBadgeClass(label)}`}>
+                                {label} {item.starName}
+                              </span>
+                            );
+                          }) : <span className="text-[11px] text-slate-400">삼방사정/대궁 직접 유입이 강하지 않습니다.</span>}
                         </div>
 
                         <p className="mt-3 text-[11px] text-slate-400">대궁</p>
-                        <p className="mt-1 text-sm font-bold text-slate-100">{chart.palaces.find((p) => p.id === activePalace.oppositePalaceId)?.name || activePalace.oppositePalaceId}</p>
+                        <p className="mt-1 text-sm font-bold text-slate-100">{activePalace.oppositePalace?.name || chart.palaces.find((p) => p.id === activePalace.oppositePalaceId)?.name || activePalace.oppositePalaceId}</p>
 
                         <p className="mt-3 text-[11px] text-slate-400">삼방사정</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
-                          {activePalace.triadPalaceIds.map((id) => (
-                            <span key={`triad-${id}`} className="rounded-full border border-sky-300/50 bg-sky-200/15 px-2 py-0.5 text-[11px] font-semibold text-sky-100">
-                              {chart.palaces.find((p) => p.id === id)?.name || id}
+                          {(activePalace.sanFangSiZheng?.palaceNames || activePalace.triadPalaceIds.map((id) => chart.palaces.find((p) => p.id === id)?.name || id)).map((label) => (
+                            <span key={`triad-${label}`} className="rounded-full border border-sky-300/50 bg-sky-200/15 px-2 py-0.5 text-[11px] font-semibold text-sky-100">
+                              {label}
                             </span>
                           ))}
                         </div>

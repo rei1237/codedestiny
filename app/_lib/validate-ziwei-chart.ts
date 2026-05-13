@@ -4,11 +4,13 @@ export interface ZiweiChartValidationResult {
   valid: boolean;
   errors: string[];
   warnings: string[];
+  debugWarnings: string[];
 }
 
 export function validateZiweiChart(chart: ZiweiDeepChart): ZiweiChartValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const debugWarnings: string[] = [];
 
   if (!chart.user.birthYear || !chart.user.birthMonth || !chart.user.birthDay) {
     errors.push("생년월일 누락으로 명반 계산이 완료되지 않았습니다.");
@@ -26,19 +28,31 @@ export function validateZiweiChart(chart: ZiweiDeepChart): ZiweiChartValidationR
     errors.push("12궁 데이터가 완전하지 않습니다.");
   }
 
-  chart.palaces.forEach((p) => {
-    if (!p.mainStars.length) {
-      warnings.push(`${p.name}의 주성이 비어 있어 보수적으로 해석합니다.`);
+  (chart.palaces || []).forEach((p, index) => {
+    if (!p) {
+      debugWarnings.push(`palaces[${index}] 객체 누락`);
+      return;
     }
-    if (!p.sihua.length) {
-      warnings.push(`${p.name}의 사화 정보가 없어 기본 해석만 제공합니다.`);
+    if (!p.name) {
+      debugWarnings.push(`palaces[${index}].name 누락`);
     }
+    if (!p.branch && !p.earthlyBranch) {
+      debugWarnings.push(`palaces[${index}].branch 누락`);
+    }
+    if (p.mainStars === undefined || p.mainStars === null) {
+      debugWarnings.push(`palaces[${index}].mainStars 누락`);
+    }
+    if (p.fourTransformations === undefined || p.fourTransformations === null) {
+      debugWarnings.push(`palaces[${index}].fourTransformations 누락`);
+    }
+    // 무주성궁(mainStars.length === 0)과 직접 사화 없음(fourTransformations.length === 0)은 정상 구조다.
   });
 
   return {
     valid: errors.length === 0,
     errors,
     warnings,
+    debugWarnings,
   };
 }
 

@@ -196,7 +196,7 @@ function buildMajorCycleText(chart: ZiweiChartData) {
 }
 
 function palaceSummary(label: string, palace?: ZiweiPalaceData) {
-  if (!palace) return `${label} 정보가 계산되지 않아 보수적으로 해석합니다.`;
+  if (!palace) return `${label} 데이터 점검이 필요합니다. 별 배치와 지지 정보를 다시 계산해 주세요.`;
   const mains = joinOrFallback(starList(palace, "stars"), "주성이 비어 있음");
   const aux = joinOrFallback(starList(palace, "auxStars"), "보좌성 없음");
   const bad = joinOrFallback(starList(palace, "badStars"), "강한 살성 없음");
@@ -205,7 +205,7 @@ function palaceSummary(label: string, palace?: ZiweiPalaceData) {
 
 export function generateAdvancedReport(chart: ZiweiChartData, name: string): AdvancedZiweiResult {
   const ming = getPalaceData(chart, "명궁");
-  const spouse = getPalaceData(chart, "부처궁");
+  const spouse = getPalaceData(chart, "부부궁");
   const wealth = getPalaceData(chart, "재백궁");
   const career = getPalaceData(chart, "관록궁");
   const realEstate = getPalaceData(chart, "전택궁");
@@ -269,8 +269,8 @@ export function generateAdvancedReport(chart: ZiweiChartData, name: string): Adv
 
     love: {
       title: "애정, 인연운",
-      summary: `부처궁 리드 성향(${spouseLead || "핵심성"})은 ${spouseTrait.love} 구도에서 안정적인 애정운을 만듭니다.`,
-      detail: `### 인연의 작동 원리\n${palaceSummary("부처궁", spouse)}\n${name}님의 애정운은 감정의 강도보다 "관계의 구조"가 맞을 때 오래 갑니다. 즉, 서로의 생활 리듬과 의사결정 방식이 맞아야 사랑의 지속성이 높아집니다.\n\n### 반복 패턴\n초기에는 빠르게 가까워지더라도, 중기에는 경계/역할/기대치 조율이 핵심 이슈로 떠오릅니다. 이 시점을 건강하게 통과하면 장기 안정 관계로 전환됩니다.\n\n### 갈등 관리\n${spouseTrait.caution} 경향이 보일 때는 문제 자체보다 말의 속도와 방식이 갈등을 키울 수 있습니다. 결론을 빨리 내기보다 감정과 사실을 분리해 대화하면 관계 회복력이 크게 올라갑니다.\n\n### 실행 전략\n1) 관계 규칙(돈/시간/경계)을 초기에 합의하세요.\n2) 주 1회 감정 체크인 대화를 루틴화하세요.\n3) 사랑의 언어를 "행동"으로 명시해 오해를 줄이세요.`,
+      summary: `부부궁 리드 성향(${spouseLead || "핵심성"})은 ${spouseTrait.love} 구도에서 안정적인 애정운을 만듭니다.`,
+      detail: `### 인연의 작동 원리\n${palaceSummary("부부궁", spouse)}\n${name}님의 애정운은 감정의 강도보다 "관계의 구조"가 맞을 때 오래 갑니다. 즉, 서로의 생활 리듬과 의사결정 방식이 맞아야 사랑의 지속성이 높아집니다.\n\n### 반복 패턴\n초기에는 빠르게 가까워지더라도, 중기에는 경계/역할/기대치 조율이 핵심 이슈로 떠오릅니다. 이 시점을 건강하게 통과하면 장기 안정 관계로 전환됩니다.\n\n### 갈등 관리\n${spouseTrait.caution} 경향이 보일 때는 문제 자체보다 말의 속도와 방식이 갈등을 키울 수 있습니다. 결론을 빨리 내기보다 감정과 사실을 분리해 대화하면 관계 회복력이 크게 올라갑니다.\n\n### 실행 전략\n1) 관계 규칙(돈/시간/경계)을 초기에 합의하세요.\n2) 주 1회 감정 체크인 대화를 루틴화하세요.\n3) 사랑의 언어를 "행동"으로 명시해 오해를 줄이세요.`,
     },
 
     family: {

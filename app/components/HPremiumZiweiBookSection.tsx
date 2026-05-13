@@ -20,7 +20,7 @@ const CHAPTER_META = [
   { num: 3, title: "사회적 페르소나", subtitle: "천이궁으로 보는 외부 활동운", icon: "🌍" },
   { num: 4, title: "진로·직업운", subtitle: "관록궁 중심 적성/커리어 전략", icon: "👑" },
   { num: 5, title: "재물운·자산 운영", subtitle: "재백궁 기반 수익 구조 분석", icon: "💰" },
-  { num: 6, title: "연애·배우자운", subtitle: "부처궁 관계 패턴 정밀 해석", icon: "💞" },
+  { num: 6, title: "연애·배우자운", subtitle: "부부궁 관계 패턴 정밀 해석", icon: "💞" },
   { num: 7, title: "인맥·협업 구조", subtitle: "교우궁·형제궁 귀인/소인 분석", icon: "🤝" },
   { num: 8, title: "주거·부동산 흐름", subtitle: "전택궁 공간 에너지 전략", icon: "🏠" },
   { num: 9, title: "건강·활력 리듬", subtitle: "질액궁 생활/회복 루틴 설계", icon: "💪" },

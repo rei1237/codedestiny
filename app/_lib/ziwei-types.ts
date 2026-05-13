@@ -1,5 +1,15 @@
+import type {
+  FourTransformation,
+  FourTransformationSummary,
+  TransformationType,
+} from "./ziwei-advanced-normalization";
+
 export type ZiweiGender = "M" | "F";
 export type ZiweiCalendarType = "solar" | "lunar";
+
+export type ZiweiTransformationType = TransformationType;
+export type ZiweiFourTransformation = FourTransformation;
+export type ZiweiFourTransformationSummary = FourTransformationSummary;
 
 export type ZiweiPalaceId =
   | "ming"
@@ -109,14 +119,44 @@ export interface ZiweiDeepAnalysisInput {
 }
 
 export interface ZiweiPalace {
+  index: number;
   id: ZiweiPalaceId;
   name: string;
+  normalizedName: string;
+  branch: string;
   earthlyBranch: string;
   mainStars: ZiweiStarMeta[];
+  subStars: ZiweiStarMeta[];
+  minorStars: ZiweiStarMeta[];
+  allStars: ZiweiStarMeta[];
   auxiliaryStars: ZiweiStarMeta[];
   maleficStars: ZiweiStarMeta[];
   luckyStars: ZiweiStarMeta[];
+  isEmptyMainStarPalace: boolean;
+  strengthSummary: {
+    strongestStars: ZiweiStarMeta[];
+    weakStars: ZiweiStarMeta[];
+    hasMiaoWang: boolean;
+    hasXianRuo: boolean;
+  };
+  fourTransformations: ZiweiFourTransformation[];
+  incomingFourTransformations: ZiweiFourTransformation[];
   sihua: string[];
+  oppositePalace: {
+    name: string;
+    index: number;
+    mainStars: ZiweiStarMeta[];
+    fourTransformations: ZiweiFourTransformation[];
+  } | null;
+  sanFangSiZheng: {
+    self: string;
+    wealthOrCareerRelated: string;
+    relationshipRelated: string;
+    opposite: string;
+    palaceNames: string[];
+    mainStars: ZiweiStarMeta[];
+    fourTransformations: ZiweiFourTransformation[];
+  };
   oppositePalaceId: ZiweiPalaceId;
   triadPalaceIds: ZiweiPalaceId[];
   keywords: string[];
@@ -155,10 +195,13 @@ export interface ZiweiDeepSummary {
 }
 
 export interface ZiweiDeepChart {
+  version: string;
   user: ZiweiUserInput;
   warnings: ZiweiInputWarning[];
+  debugWarnings?: string[];
   mingGong: string;
   shenGong: string;
+  birthYearStem: string;
   yearGan: string;
   yearZhi: string;
   juInfo: string;
@@ -169,6 +212,7 @@ export interface ZiweiDeepChart {
     huaji: string;
   };
   palaces: ZiweiPalace[];
+  fourTransformations: ZiweiFourTransformationSummary;
   majorPeriods: ZiweiPeriod[];
   annualFlow?: ZiweiAnnualFlow;
   summary: ZiweiDeepSummary;
@@ -220,7 +264,7 @@ export const ZIWEI_PALACE_ORDER: ZiweiPalaceId[] = [
 export const ZIWEI_PALACE_NAME: Record<ZiweiPalaceId, string> = {
   ming: "명궁",
   siblings: "형제궁",
-  spouse: "부처궁",
+  spouse: "부부궁",
   children: "자녀궁",
   wealth: "재백궁",
   health: "질액궁",
@@ -238,7 +282,7 @@ export const ZIWEI_SECTIONS: Array<{ id: ZiweiSectionId; title: string; palaceId
   { id: "career", title: "CH.04 관록궁" , palaceId: "career" },
   { id: "wealth", title: "CH.05 재백궁" , palaceId: "wealth" },
   { id: "travel", title: "CH.06 천이궁" , palaceId: "travel" },
-  { id: "spouse", title: "CH.07 부처궁" , palaceId: "spouse" },
+  { id: "spouse", title: "CH.07 부부궁" , palaceId: "spouse" },
   { id: "fortune", title: "CH.08 복덕궁" , palaceId: "fortune" },
   { id: "health", title: "CH.09 질액궁" , palaceId: "health" },
   { id: "property", title: "CH.10 전택궁" , palaceId: "property" },

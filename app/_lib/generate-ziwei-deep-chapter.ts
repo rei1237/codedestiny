@@ -14,6 +14,7 @@ import {
   STAR_INTERPRETATIONS,
 } from "./ziwei-star-interpretations";
 import { MASTER_TEMPLATE, OVERVIEW_TEMPLATE, ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
+import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
 
 type StrengthSymbol = "◎" | "○" | "△" | "×" | "";
 
@@ -31,7 +32,7 @@ const SIHUA_BADGE: Record<string, string> = {
   화기: "집중 과제/집착 관리",
 };
 
-function sentenceList(items: string[], empty = "정보가 제한되어 기본 해석을 제공합니다."): string {
+function sentenceList(items: string[], empty = "직접 사화가 없는 구간은 삼방사정과 대궁 흐름을 함께 해석합니다."): string {
   if (!items.length) return empty;
   return items.join(" ");
 }
@@ -256,7 +257,27 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
   const main = groupBadge(palace.mainStars);
   const assistant = groupBadge(palace.auxiliaryStars);
   const malefic = groupBadge(palace.maleficStars);
-  const transformations = palace.sihua.length ? palace.sihua.map((k) => `${k}(${SIHUA_BADGE[k] || "작동"})`).join(", ") : "없음";
+  const directTransformations = Array.isArray(palace.fourTransformations) ? palace.fourTransformations : [];
+  const transformations = directTransformations.length
+    ? directTransformations
+      .map((item) => {
+        const label = transformationTypeToLabel(item.type);
+        return `${label} ${item.starName}(${SIHUA_BADGE[label] || "작동"})`;
+      })
+      .join(", ")
+    : "직접 사화 없음";
+  const incomingTransformations = Array.isArray(palace.incomingFourTransformations) ? palace.incomingFourTransformations : [];
+  const incomingTransformationText = incomingTransformations.length
+    ? incomingTransformations
+      .map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`)
+      .join(", ")
+    : "삼방사정·대궁에서 확인된 직접 유입 없음";
+  const emptyMainNarrative = palace.isEmptyMainStarPalace
+    ? "이 궁은 주성이 직접 자리하지 않는 무주성궁입니다. 대궁과 삼방사정의 영향을 강하게 받는 구조로, 관계와 사건의 흐름이 주변 궁의 별 배치에 따라 섬세하게 달라집니다."
+    : "";
+  const noDirectTransformationNarrative = directTransformations.length === 0
+    ? "이 궁에는 생년사화가 직접 들어오지 않았습니다. 따라서 별의 기본 성향과 삼방사정에서 들어오는 흐름을 중심으로 해석합니다."
+    : "";
 
   const starDetails = [
     ...palace.mainStars.map((s) => buildStarInterpretation(s, "main")),
@@ -315,6 +336,9 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
     `배치된 보조성: ${assistant}`,
     `배치된 살성: ${malefic}`,
     `사화 배치: ${transformations}`,
+    `사화 유입: ${incomingTransformationText}`,
+    emptyMainNarrative,
+    noDirectTransformationNarrative,
     "",
     "각 별의 강약 기호 기준",
     "- 강약 서열: 묘 > 왕 > 리 > 평 > 함",
@@ -474,7 +498,7 @@ function buildMaster(chart: ZiweiDeepChart): ZiweiDeepChapter {
     `명반 전체 성공 공식: ${chart.summary.direction}`,
     "직업 전략: 관록궁 강점 별을 핵심 역량으로 고정하고, 약점 별은 협업/도구 시스템으로 보완",
     "돈 전략: 재백궁-관록궁-천이궁을 연결해 수익화 경로를 다변화하고 누수 패턴을 선제 차단",
-    "관계 전략: 부처궁/복덕궁/교우궁을 묶어 경계-소통-회복 루틴을 하나의 운영 체계로 설계",
+    "관계 전략: 부부궁/복덕궁/교우궁을 묶어 경계-소통-회복 루틴을 하나의 운영 체계로 설계",
     "콘텐츠·플랫폼·사업 전략: 거문/문창/천기 계열 언어·기획 역량을 구조화 상품으로 전환",
     "조심해야 할 함정: 과속 확장, 감정 과부하, 기준 없는 관계 소모",
     "가장 강력한 무기: 강약 기호를 행동 규칙으로 번역하는 실행력",
@@ -543,12 +567,15 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
     subtitle: `${palace.name} · 지지 ${palace.earthlyBranch}`,
     summary: [
       `궁의 의미: ${ZIWEI_PALACE_TEMPLATES[palace.id].meaning}`,
-      `주성: ${groupBadge(palace.mainStars)}`,
+      `주성: ${palace.isEmptyMainStarPalace ? "무주성궁" : groupBadge(palace.mainStars)}`,
       `보조성/살성: ${groupBadge(palace.auxiliaryStars)} / ${groupBadge(palace.maleficStars)}`,
-      `사화: ${sentenceList(palace.sihua, "없음")}`,
+      `사화: ${sentenceList((palace.fourTransformations || []).map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`), "직접 사화 없음")}`,
     ],
     fullText,
-    highlights: [...palace.keywords, ...palace.sihua].slice(0, 8),
+    highlights: [
+      ...palace.keywords,
+      ...(palace.fourTransformations || []).map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`),
+    ].slice(0, 8),
     strengths: [
       "별 강약 기호를 근거로 행동 우선순위를 제시합니다.",
       "삼방사정·대궁 연결을 통해 단일 궁 해석의 왜곡을 줄입니다.",

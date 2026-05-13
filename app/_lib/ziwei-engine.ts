@@ -1,6 +1,17 @@
 import { Solar } from "lunar-javascript";
 import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
 import {
+  calculateFourTransformations,
+  FOUR_TRANSFORMATIONS_BY_YEAR_STEM,
+  getOppositePalaceIndex,
+  getSanFangSiZhengIndexes,
+  normalizePalaceName,
+  normalizeYearStem,
+  type FourTransformation,
+  transformationTypeToLabel,
+  ZIWEI_ENGINE_VERSION,
+} from "./ziwei-advanced-normalization";
+import {
   getZiweiClassicalStrength,
   normalizeZiweiClassicStrength,
   ziweiClassicStrengthFromSymbol,
@@ -121,7 +132,7 @@ export function calcZiweiPalaces(
   const mingIdx = (baseIdx - hIdx + 12) % 12;
   const shenIdx = (baseIdx + hIdx) % 12;
 
-  const PALACE_LABELS = ["명궁", "형제궁", "부처궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁", "전택궁", "복덕궁", "부모궁"];
+  const PALACE_LABELS = ["명궁", "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "교우궁", "관록궁", "전택궁", "복덕궁", "부모궁"];
   const palacesByIndex: string[] = new Array(12);
   const palaceStarData: ZiweiPalaceData[] = Array.from({ length: 12 }, (_, i) => ({
     palace: "",
@@ -208,20 +219,12 @@ export function calcZiweiPalaces(
   addStar(11 - hIdx, "지공", "bad");
   addStar(11 + hIdx, "지겁", "bad");
 
-  // 사화
-  const sihuaMap: Record<string, string[]> = {
-    '갑': ['염정', '파군', '무곡', '태양'],
-    '을': ['천기', '천량', '자미', '태음'],
-    '병': ['천동', '천기', '문창', '염정'],
-    '정': ['태음', '천동', '천기', '거문'],
-    '무': ['탐랑', '태음', '우필', '천기'],
-    '기': ['무곡', '탐랑', '천량', '문곡'],
-    '경': ['태양', '무곡', '태음', '천동'],
-    '신': ['거문', '태양', '문곡', '문창'],
-    '임': ['천량', '자미', '좌보', '무곡'],
-    '계': ['파군', '거문', '태음', '탐랑']
-  };
-  const [luk, quan, ke, ji] = sihuaMap[yGan] || [];
+  // 사화(생년간 기준 중앙 상수)
+  const stem = normalizeYearStem(yGan) as keyof typeof FOUR_TRANSFORMATIONS_BY_YEAR_STEM;
+  const stemTransform = FOUR_TRANSFORMATIONS_BY_YEAR_STEM[stem];
+  const [luk, quan, ke, ji] = stemTransform
+    ? [stemTransform.록, stemTransform.권, stemTransform.과, stemTransform.기]
+    : ["", "", "", ""];
 
   // 대한
   const isYang = [0, 2, 4, 6, 8].includes(gIdx);
@@ -273,7 +276,9 @@ function getBrightness(star: string, branch: number, starType: "main" | "aux" | 
 const PALACE_LABEL_TO_ID: Record<string, ZiweiPalaceId> = {
   "명궁": "ming",
   "형제궁": "siblings",
+  "부부궁": "spouse",
   "부처궁": "spouse",
+  "배우자궁": "spouse",
   "자녀궁": "children",
   "재백궁": "wealth",
   "질액궁": "health",
@@ -374,6 +379,52 @@ function palaceScore(main: ZiweiStarMeta[], aux: ZiweiStarMeta[], bad: ZiweiStar
   return Math.max(10, Math.min(95, score));
 }
 
+function starSymbol(star: ZiweiStarMeta): string {
+  return String(star.strengthSymbol || star.symbol || "").trim();
+}
+
+function dedupeStars(stars: ZiweiStarMeta[]): ZiweiStarMeta[] {
+  const seen = new Set<string>();
+  const result: ZiweiStarMeta[] = [];
+  stars.forEach((star) => {
+    const key = `${star.name}:${star.starType || ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(star);
+  });
+  return result;
+}
+
+function buildStrengthSummary(stars: ZiweiStarMeta[]) {
+  const strongestStars = stars.filter((star) => {
+    const symbol = starSymbol(star);
+    return symbol === "◎" || symbol === "○";
+  });
+  const weakStars = stars.filter((star) => {
+    const symbol = starSymbol(star);
+    return symbol === "△" || symbol === "×";
+  });
+  return {
+    strongestStars,
+    weakStars,
+    hasMiaoWang: strongestStars.length > 0,
+    hasXianRuo: weakStars.some((star) => starSymbol(star) === "×"),
+  };
+}
+
+function uniqueTransformations(items: Array<FourTransformation | null | undefined>): FourTransformation[] {
+  const seen = new Set<string>();
+  const list: FourTransformation[] = [];
+  items.forEach((item) => {
+    if (!item) return;
+    const key = `${item.type}:${item.starName}:${item.palaceName}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    list.push(item);
+  });
+  return list;
+}
+
 function buildPalaces(chart: ZiweiChartData): ZiweiPalace[] {
   const transformMap = new Map<string, "화록" | "화권" | "화과" | "화기">();
   if (chart.sihua.luk) transformMap.set(chart.sihua.luk, "화록");
@@ -390,18 +441,43 @@ function buildPalaces(chart: ZiweiChartData): ZiweiPalace[] {
       const auxiliaryStars = toStarMeta(palaceData.auxStars, "assistant", transformMap);
       const maleficStars = toStarMeta(palaceData.badStars, "malefic", transformMap);
       const luckyStars = auxiliaryStars.filter((s) => LUCKY_STAR_SET.has(s.name));
+      const subStars = [...auxiliaryStars];
+      const minorStars = [...luckyStars, ...maleficStars];
+      const allStars = dedupeStars([...mainStars, ...subStars, ...minorStars]);
       const sihua = findSihuaInPalace([...mainStars, ...auxiliaryStars], chart.sihua);
       const keywords = buildPalaceKeywords(mainStars, sihua);
+      const normalizedName = normalizePalaceName(id === "friends" ? "교우궁" : palaceData.palace);
+      const branch = String(palaceData.branch || "");
 
       return {
+        index: 0,
         id,
-        name: id === "friends" ? "교우궁" : palaceData.palace,
-        earthlyBranch: palaceData.branch,
+        name: normalizedName,
+        normalizedName,
+        branch,
+        earthlyBranch: branch,
         mainStars,
+        subStars,
+        minorStars,
+        allStars,
         auxiliaryStars,
         maleficStars,
         luckyStars,
+        isEmptyMainStarPalace: mainStars.length === 0,
+        strengthSummary: buildStrengthSummary(allStars),
+        fourTransformations: [],
+        incomingFourTransformations: [],
         sihua,
+        oppositePalace: null,
+        sanFangSiZheng: {
+          self: normalizedName,
+          wealthOrCareerRelated: "",
+          relationshipRelated: "",
+          opposite: "",
+          palaceNames: [],
+          mainStars: [],
+          fourTransformations: [],
+        },
         oppositePalaceId: "ming",
         triadPalaceIds: ["ming", "career", "wealth"],
         keywords,
@@ -412,14 +488,70 @@ function buildPalaces(chart: ZiweiChartData): ZiweiPalace[] {
     })
     .filter(Boolean) as ZiweiPalace[];
 
-  converted.forEach((palace) => {
-    const idx = PALACE_ID_ORDER.indexOf(palace.id);
-    const opposite = (idx + 6) % 12;
+  const ordered = PALACE_ID_ORDER.map((id) => converted.find((p) => p.id === id)).filter(Boolean) as ZiweiPalace[];
+
+  ordered.forEach((palace, idx) => {
+    palace.index = idx;
+    const opposite = getOppositePalaceIndex(idx);
     palace.oppositePalaceId = PALACE_ID_ORDER[opposite];
     palace.triadPalaceIds = [PALACE_ID_ORDER[(idx + 4) % 12], PALACE_ID_ORDER[(idx + 8) % 12]];
   });
 
-  return PALACE_ID_ORDER.map((id) => converted.find((p) => p.id === id)).filter(Boolean) as ZiweiPalace[];
+  const fourTransformations = calculateFourTransformations({
+    yearStem: chart.yearGan,
+    palaces: ordered,
+  });
+
+  ordered.forEach((palace) => {
+    const selfTransforms = fourTransformations.byPalace[palace.normalizedName] || [];
+    palace.fourTransformations = [...selfTransforms];
+    palace.sihua = selfTransforms.map((item) => transformationTypeToLabel(item.type));
+
+    const sfIndexes = getSanFangSiZhengIndexes(palace.index);
+    const oppositePalace = ordered[getOppositePalaceIndex(palace.index)] || null;
+    const triadA = ordered[(palace.index + 4) % 12];
+    const triadB = ordered[(palace.index + 8) % 12];
+    const linkedPalaces = sfIndexes.map((idx) => ordered[idx]).filter(Boolean);
+    const linkedMainStars = dedupeStars(linkedPalaces.flatMap((item) => item.mainStars));
+    const linkedTransforms = uniqueTransformations(
+      linkedPalaces.flatMap((item) => fourTransformations.byPalace[item.normalizedName] || []),
+    );
+    const directKeys = new Set(palace.fourTransformations.map((item) => `${item.type}:${item.starName}`));
+
+    palace.incomingFourTransformations = linkedTransforms.filter(
+      (item) => !directKeys.has(`${item.type}:${item.starName}`),
+    );
+
+    palace.sanFangSiZheng = {
+      self: palace.name,
+      wealthOrCareerRelated: triadA?.name || "",
+      relationshipRelated: triadB?.name || "",
+      opposite: oppositePalace?.name || "",
+      palaceNames: linkedPalaces.map((item) => item.name),
+      mainStars: linkedMainStars,
+      fourTransformations: linkedTransforms,
+    };
+
+    palace.oppositePalace = oppositePalace
+      ? {
+          name: oppositePalace.name,
+          index: oppositePalace.index,
+          mainStars: oppositePalace.mainStars,
+          fourTransformations: [...(fourTransformations.byPalace[oppositePalace.normalizedName] || [])],
+        }
+      : null;
+
+    palace.isEmptyMainStarPalace = palace.mainStars.length === 0;
+    palace.isEmpty = palace.isEmptyMainStarPalace;
+    palace.strengthSummary = buildStrengthSummary(palace.allStars);
+    palace.keywords = buildPalaceKeywords(
+      palace.mainStars,
+      palace.fourTransformations.map((item) => transformationTypeToLabel(item.type)),
+    );
+    palace.score = palaceScore(palace.mainStars, palace.auxiliaryStars, palace.maleficStars, palace.sihua);
+  });
+
+  return ordered;
 }
 
 const PALACE_ID_TO_CANONICAL_KEY: Record<ZiweiPalaceId, ZiweiCanonicalPalace["key"]> = {
@@ -516,11 +648,19 @@ export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
   );
 
   const palaces = buildPalaces(base);
+  const fourTransformations = calculateFourTransformations({
+    yearStem: base.yearGan,
+    palaces,
+  });
+
   const withoutSummary = {
+    version: ZIWEI_ENGINE_VERSION,
     user: input,
     warnings: [],
+    debugWarnings: [],
     mingGong: base.meng,
     shenGong: base.body,
+    birthYearStem: normalizeYearStem(base.yearGan),
     yearGan: base.yearGan,
     yearZhi: base.yearZhi,
     juInfo: base.juInfo,
@@ -531,6 +671,7 @@ export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
       huaji: base.sihua.ji,
     },
     palaces,
+    fourTransformations,
     majorPeriods: palaces.map((p) => ({ palaceId: p.id, range: p.dahan })),
     annualFlow: {
       yearLabel: `${base.yearGan}${base.yearZhi}`,
@@ -553,4 +694,103 @@ export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
 
   chartWithSummary.canonicalInput = buildCanonicalInput(chartWithSummary);
   return chartWithSummary;
+}
+
+export function validateAdvancedZiweiResult(result: ZiweiDeepChart): { valid: boolean; missingFields: string[] } {
+  const missingFields: string[] = [];
+
+  if (!result) {
+    return { valid: false, missingFields: ["result"] };
+  }
+  if (!result.mingGong) missingFields.push("mingGong");
+  if (!result.birthYearStem) missingFields.push("birthYearStem");
+  if (!result.fourTransformations) missingFields.push("fourTransformations");
+  if (!Array.isArray(result.palaces) || result.palaces.length !== 12) {
+    missingFields.push("palaces");
+  }
+
+  (result.palaces || []).forEach((palace, index) => {
+    if (!palace?.name) missingFields.push(`palaces[${index}].name`);
+    if (!palace?.branch) missingFields.push(`palaces[${index}].branch`);
+    if (!Array.isArray(palace?.mainStars)) missingFields.push(`palaces[${index}].mainStars`);
+    if (!Array.isArray(palace?.fourTransformations)) missingFields.push(`palaces[${index}].fourTransformations`);
+    if (!palace?.sanFangSiZheng) missingFields.push(`palaces[${index}].sanFangSiZheng`);
+  });
+
+  return {
+    valid: missingFields.length === 0,
+    missingFields,
+  };
+}
+
+export function normalizeZiweiForAdvancedReport(baseResult: ZiweiDeepChart): ZiweiDeepChart {
+  const source = baseResult;
+  const yearStem = normalizeYearStem(source.birthYearStem || source.yearGan);
+  const nextPalaces = Array.isArray(source.palaces) ? source.palaces.map((palace, idx) => {
+    const branch = String((palace as ZiweiPalace).branch || (palace as ZiweiPalace).earthlyBranch || "");
+    const normalizedName = normalizePalaceName((palace as ZiweiPalace).name);
+    const mainStars = Array.isArray((palace as ZiweiPalace).mainStars) ? (palace as ZiweiPalace).mainStars : [];
+    const auxiliaryStars = Array.isArray((palace as ZiweiPalace).auxiliaryStars) ? (palace as ZiweiPalace).auxiliaryStars : [];
+    const maleficStars = Array.isArray((palace as ZiweiPalace).maleficStars) ? (palace as ZiweiPalace).maleficStars : [];
+    const luckyStars = Array.isArray((palace as ZiweiPalace).luckyStars) ? (palace as ZiweiPalace).luckyStars : [];
+    const subStars = Array.isArray((palace as ZiweiPalace).subStars) ? (palace as ZiweiPalace).subStars : [...auxiliaryStars];
+    const minorStars = Array.isArray((palace as ZiweiPalace).minorStars) ? (palace as ZiweiPalace).minorStars : [...luckyStars, ...maleficStars];
+    const allStars = Array.isArray((palace as ZiweiPalace).allStars)
+      ? (palace as ZiweiPalace).allStars
+      : dedupeStars([...mainStars, ...subStars, ...minorStars]);
+
+    return {
+      ...(palace as ZiweiPalace),
+      index: Number.isFinite((palace as ZiweiPalace).index) ? (palace as ZiweiPalace).index : idx,
+      name: normalizedName || (palace as ZiweiPalace).name,
+      normalizedName: normalizedName || (palace as ZiweiPalace).name,
+      branch,
+      earthlyBranch: branch,
+      mainStars,
+      auxiliaryStars,
+      maleficStars,
+      luckyStars,
+      subStars,
+      minorStars,
+      allStars,
+      isEmptyMainStarPalace: mainStars.length === 0,
+      strengthSummary: buildStrengthSummary(allStars),
+      fourTransformations: Array.isArray((palace as ZiweiPalace).fourTransformations) ? (palace as ZiweiPalace).fourTransformations : [],
+      incomingFourTransformations: Array.isArray((palace as ZiweiPalace).incomingFourTransformations) ? (palace as ZiweiPalace).incomingFourTransformations : [],
+      sihua: Array.isArray((palace as ZiweiPalace).sihua) ? (palace as ZiweiPalace).sihua : [],
+      oppositePalace: (palace as ZiweiPalace).oppositePalace || null,
+      sanFangSiZheng: (palace as ZiweiPalace).sanFangSiZheng || {
+        self: normalizedName,
+        wealthOrCareerRelated: "",
+        relationshipRelated: "",
+        opposite: "",
+        palaceNames: [],
+        mainStars: [],
+        fourTransformations: [],
+      },
+    } as ZiweiPalace;
+  }) : [];
+
+  const normalizedFour = calculateFourTransformations({
+    yearStem,
+    palaces: nextPalaces,
+  });
+
+  const normalizedChart = {
+    ...source,
+    version: ZIWEI_ENGINE_VERSION,
+    birthYearStem: yearStem,
+    palaces: nextPalaces,
+    fourTransformations: normalizedFour,
+  } as ZiweiDeepChart;
+
+  const validation = validateAdvancedZiweiResult(normalizedChart);
+  if (!validation.valid) {
+    normalizedChart.debugWarnings = [
+      ...(normalizedChart.debugWarnings || []),
+      `명반 데이터 보정 중 오류: ${validation.missingFields.join(", ")}`,
+    ];
+  }
+
+  return normalizedChart;
 }

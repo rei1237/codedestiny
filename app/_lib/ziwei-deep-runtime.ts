@@ -2,7 +2,7 @@ import { generateZiweiDeepChapter } from "./generate-ziwei-deep-chapter";
 import { validateZiweiChapter } from "./validate-ziwei-chart";
 import { ZiweiDeepChart, ZiweiDeepChapter, ZiweiDeepRuntimeCache, ZiweiSectionId } from "./ziwei-types";
 
-const CACHE_KEY = "ziwei:deep:runtime:v1";
+const CACHE_KEY = "ziwei:deep:runtime:v2";
 const memoryCache = new Map<string, ZiweiDeepRuntimeCache>();
 
 function hasWindow(): boolean {
@@ -12,6 +12,7 @@ function hasWindow(): boolean {
 function getChartKey(chart: ZiweiDeepChart): string {
   const u = chart.user;
   return [
+    chart.version || "legacy",
     u.birthYear,
     u.birthMonth,
     u.birthDay,
