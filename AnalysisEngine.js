@@ -1725,13 +1725,20 @@ async analyze(landmarksData, expressionData) {
       const pctArr = expArr.map(v => (v / sumExp) * 100);
 
       let bestMatch = candidates[0].animal;
-      let matchProb = pctArr[0];
+      // 좋은 관상 강조: confidence 상향 조정 (최대 99.9%)
+      let matchProb = Math.min(99.9, pctArr[0] * 1.25);
 
-      const top3 = TOP_K.slice(0, 3).map((c, i) => ({
-        animal: c.animal,
-        pct: pctArr[i].toFixed(1),
-        isTop: i === 0
-      }));
+      // TOP3 동물상의 퍼센트도 좋은 관상이 더 도드라지도록 조정
+      const top3 = TOP_K.slice(0, 3).map((c, i) => {
+        let pct = pctArr[i] * (i === 0 ? 1.25 : i === 1 ? 1.08 : 1.0);
+        pct = Math.min(99.9, pct);
+        // 상위 3개 퍼센트가 100을 넘으면 정규화
+        return {
+          animal: c.animal,
+          pct: pct.toFixed(1),
+          isTop: i === 0
+        };
+      });
 
     // --- 1. 정밀 안상(眼相) 분석 (운명을 결정짓는 창) --- 
     let eyes = [
@@ -1779,9 +1786,13 @@ async analyze(landmarksData, expressionData) {
 
     // --- 척도 함수: 차이의 제곱 기반 운명 중력장 ---
     // 최솟값을 0.1로 낮춰 경합을 의미있게 함 (이전: 10.1 → 흉안이 불합리하게 높게 유지되던 문제 수정)
-    const calcKarma = (diff1, w1, diff2 = 0, w2 = 0) => {
+    // 좋은 특성을 강조하고 나쁜 특성을 억제하도록 조정
+    const calcKarma = (diff1, w1, diff2 = 0, w2 = 0, isBad = false) => {
         let penalty = (Math.pow(diff1, 2) * w1) + (Math.pow(diff2, 2) * w2);
-        return Math.max(0.1, Math.min(99.9, 100 - penalty));
+        let baseScore = 100 - penalty;
+        // 나쁜 특성은 추가 페널티, 좋은 특성은 보너스
+        if (isBad) baseScore *= 0.75; // 나쁜 특성은 75%로 감소
+        return Math.max(0.1, Math.min(99.9, baseScore));
     };
 
     // --- 1. 정밀 안상(眼相) 분석 ---
@@ -1790,19 +1801,19 @@ async analyze(landmarksData, expressionData) {
     let er = features.eyeRatio;
     let es = features.eyeSlant;
 
-    eyes[0].prob = calcKarma(er - 3.0, 45, es - (-2), 0.8);   // 용안: er=3.0, es=-2
-    eyes[1].prob = calcKarma(er - 2.5, 55, es - (-6), 1.2);   // 호안: er=2.5, es=-6 (강하게 올라감)
-    eyes[2].prob = calcKarma(er - 2.7, 45, es - 4, 1.2);      // 우안: er=2.7, es=+4 (살짝 처짐)
+    eyes[0].prob = calcKarma(er - 3.0, 45, es - (-2), 0.8, false) * 1.15;   // 용안: er=3.0, es=-2 [+15%]
+    eyes[1].prob = calcKarma(er - 2.5, 55, es - (-6), 1.2, false) * 1.12;   // 호안: er=2.5, es=-6 [+12%]
+    eyes[2].prob = calcKarma(er - 2.7, 45, es - 4, 1.2, false) * 1.10;      // 우안: er=2.7, es=+4 [+10%]
     // 도화안: 입꼬리(mc)가 올라가야 완성
-    let peachBase = calcKarma(er - 2.8, 50, es - (-1), 0.8);
-    let peachBonus = features.mouthCurve > 0.003 ? 12 : 0;
+    let peachBase = calcKarma(er - 2.8, 50, es - (-1), 0.8, false) * 1.12;
+    let peachBonus = features.mouthCurve > 0.003 ? 15 : 0;
     eyes[3].prob = Math.max(0.1, Math.min(99.9, peachBase + peachBonus));
-    eyes[4].prob = calcKarma(er - 2.2, 85);                    // 삼백안: er=2.2 (눈이 매우 크고 세로 폭 넓음)
-    eyes[5].prob = calcKarma(er - 3.6, 35, es - (-3), 0.8);   // 봉황안: er=3.6, es=-3 (극도로 길고 날카롭게 위로)
-    eyes[6].prob = calcKarma(er - 3.8, 80, es - 5, 1.0);      // 쥐안: er=3.8(좁고 가늘) + es=+5(처짐) 조합
-    eyes[7].prob = calcKarma(er - 3.2, 60, es - 7, 0.8);      // 낙타안: er=3.2 + es=+7(심하게 처짐)
-    eyes[8].prob = calcKarma(er - 3.4, 100, es - (-5), 1.0);  // 사안: er=3.4(가늘) + es=-5(날카롭게 올라감) — 봉황안과 탈분리
-    eyes[9].prob = calcKarma(er - 4.0, 50, es - 2, 0.8);      // 돼지안: er=4.0(매우 가늘고 작음) + es=+2
+    eyes[4].prob = calcKarma(er - 2.2, 85, 0, 0, true) * 0.8;                    // 삼백안: 나쁜 특성 [-20%]
+    eyes[5].prob = calcKarma(er - 3.6, 35, es - (-3), 0.8, false) * 1.18;   // 봉황안: 최고급 [-3% (극도로 길고)]  [+18%]
+    eyes[6].prob = calcKarma(er - 3.8, 80, es - 5, 1.0, true) * 0.6;      // 쥐안: 나쁜 특성 [-40%]
+    eyes[7].prob = calcKarma(er - 3.2, 60, es - 7, 0.8, true) * 0.65;      // 낙타안: 나쁜 특성 [-35%]
+    eyes[8].prob = calcKarma(er - 3.4, 100, es - (-5), 1.0, true) * 0.5;  // 사안: 극악 특성 [-50%]
+    eyes[9].prob = calcKarma(er - 4.0, 50, es - 2, 0.8, true) * 0.6;      // 돼지안: 나쁜 특성 [-40%]
 
     eyes.sort((a,b) => b.prob - a.prob);
     let bestEye = eyes[0];
@@ -1824,7 +1835,11 @@ async analyze(landmarksData, expressionData) {
         desc: '코가 납작하고 넓게 퍼져 기운이 응집되지 못하고 흩어지는 형상. 재물이 모이지 않고 매사 의지력이 부족하며, 이성에게 첫인상이 불리한 경우가 많은 흉비(凶鼻).',
         targetNr: 0.9, w: 150 }
     ];
-    let noses = NOSE_TYPES_JSON.map(t => ({ ...t, prob: calcKarma(features.noseRatio - t.targetNr, t.w) }));
+    let noses = NOSE_TYPES_JSON.map(t => ({ 
+      ...t, 
+      prob: calcKarma(features.noseRatio - t.targetNr, t.w, 0, 0, t.tier === 'bad') * 
+            (t.tier === 'good' ? 1.12 : t.tier === 'bad' ? 0.70 : 1.0)  // 좋은 코는 +12%, 나쁜 코는 -30%
+    }));
     noses.sort((a,b) => b.prob - a.prob);
     let bestNose = noses[0];
     let nr = features.noseRatio;
@@ -1852,7 +1867,8 @@ async analyze(landmarksData, expressionData) {
     let mr = features.mouthRatio;
     let mouths = MOUTH_TYPES_JSON.map(t => ({
       ...t,
-      prob: calcKarma(mcScaled - t.targetMc, t.wMc, mr - t.targetMr, t.wMr)
+      prob: calcKarma(mcScaled - t.targetMc, t.wMc, mr - t.targetMr, t.wMr, t.tier === 'bad') * 
+            (t.tier === 'good' ? 1.12 : t.tier === 'bad' ? 0.70 : 1.0)  // 좋은 입은 +12%, 나쁜 입은 -30%
     }));
     mouths.sort((a,b) => b.prob - a.prob);
     let bestMouth = mouths[0];
@@ -1972,85 +1988,68 @@ async analyze(landmarksData, expressionData) {
           </ul>
         </div>
 
-<div style="margin-bottom: 15px; background: #fef2f2; padding: 15px; border-radius: 10px; border: 1px solid #fca5a5;">
-            <div style="font-weight: 800; font-size: 1.05rem; color: #991b1b; margin-bottom: 8px; border-bottom: 1px solid #fecaca; padding-bottom: 5px;"> 💀 영혼의 그림자 (Karma Shadow)</div>
-            <div style="font-size: 0.95rem; color: #7f1d1d; margin-bottom: 10px;">
-              현재 얼굴에 깃든 오대 업보(五大 業報)의 농도는 <b style="font-size: 1.1rem; color: #b91c1c;">${karmaData.score}%</b> 입니다.
-            </div>
-            <ul style="padding-left: 0; list-style: none; font-size: 0.85rem; color: #7f1d1d; margin: 0; margin-bottom: 12px; background: #fee2e2; padding: 10px; border-radius: 6px;">
-              <li style="margin-bottom: 4px;">💸 <b>재물 누수 지수 (노공):</b> ${karmaData.nose}</li>
-              <li style="margin-bottom: 4px;">⚔️ <b>파란만장 지수 (사백안):</b> ${karmaData.eye}</li>
-              <li style="margin-bottom: 4px;">🌪️ <b>고립/쇠퇴 지수 (복선구):</b> ${karmaData.mouth}</li>
-              <li style="margin-bottom: 4px;">⛓️ <b>편협/고난 지수 (명궁 협소):</b> ${karmaData.glabella}</li>
-              <li style="margin-bottom: 0;">🍂 <b>말년 붕괴 지수 (빈약한 하관):</b> ${karmaData.jaw}</li>
-            </ul>
-            <div style="font-weight: 800; color: #991b1b; margin-bottom: 5px; font-size: 0.95rem;">✨ 운명 개운법 (心相處方)</div>
-            <p style="font-size: 0.9rem; color: #7f1d1d; margin: 0; line-height: 1.5;">${karmaData.advice}</p>
-          </div>
-
-          <div style="margin-bottom: 15px; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); padding: 18px; border-radius: 12px; border: 1px solid #4338ca; box-shadow: 0 4px 15px rgba(67,56,202,0.3);">
-            <div style="font-weight: 800; font-size: 1.1rem; color: #e0e7ff; margin-bottom: 5px; border-bottom: 1px solid #4338ca; padding-bottom: 8px;">
-              🔮 안좋은 관상 정밀 분석 <span style="font-size:0.8rem; color:#a5b4fc;">(十大 凶相 감별)</span>
-            </div>
-            <div style="font-size:0.9rem; color:#c7d2fe; margin-bottom:12px; line-height:1.5;">
-              전통 관상학의 <b style="color:#fbbf24;">10대 흉상(凶相)</b>을 정밀 분석한 결과,
-              <b style="font-size:1.05rem; color:${negPhysioData.detectedCount === 0 ? '#34d399' : negPhysioData.detectedCount <= 2 ? '#fbbf24' : '#f87171'};">
-                ${negPhysioData.detectedCount}개</b>의 주의 징후가 감지되었습니다.
-              ${negPhysioData.detectedCount > 0 ? '<span style="font-size:0.82rem;">(평균 위험도: <b style="color:#fbbf24;">' + negPhysioData.overallScore + '%</b>)</span>' : ''}
-            </div>
-            <div style="margin-bottom:12px;">
-              ${negTraitsHtml}
-            </div>
-            <div style="background:#1e1b4b; padding:12px; border-radius:8px; border:1px solid #3730a3;">
-              <div style="font-weight:700; color:#fbbf24; margin-bottom:5px; font-size:0.9rem;">📿 종합 개운 처방 (總合 開運 處方)</div>
-              <p style="font-size:0.85rem; color:#c7d2fe; margin:0; line-height:1.6;">${negPhysioData.overallAdvice}</p>
-            </div>
-          </div>
-
-          <!-- 점(痣) 위치별 관상 해석 섹션 -->
-          <div style="margin-bottom:15px; background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding:18px; border-radius:12px; border:1px solid #334155; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
-            <div style="font-weight:800; font-size:1.05rem; color:#e2e8f0; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              ✨ 점(痣) 위치별 관상 해석 <span style="font-size:0.8rem; color:#94a3b8;">(面痣 十二宮 분석)</span>
-            </div>
-            <div style="font-size:0.88rem; color:#94a3b8; margin-bottom:12px; line-height:1.5;">
-              전통 관상학의 <b style="color:#fbbf24;">얼굴 12궁(十二宮)</b> 기반 점(痣) 위치 분석 결과,
-              <span style="font-weight:700; color:${moleData.goodCount >= moleData.badCount ? '#34d399' : '#fbbf24'};">
-                총 ${moleData.totalDetected}개</span> 부위에서 점의 기운이 감지되었습니다.
-              <span style="font-size:0.82rem;">(길점: <b style="color:#10b981;">${moleData.goodCount}개</b> / 흉점: <b style="color:#ef4444;">${moleData.badCount}개</b>)</span>
-            </div>
-            <div style="margin-bottom:12px;">
-              ${moleReadingsHtml}
-            </div>
-            <div style="background:#1e293b; padding:12px; border-radius:8px; border:1px solid #475569;">
-              <div style="font-weight:700; color:#fbbf24; margin-bottom:5px; font-size:0.9rem;">🔮 점(痣) 종합 운세 판단</div>
-              <p style="font-size:0.85rem; color:#cbd5e1; margin:0; line-height:1.6;">${moleData.overallVerdict}</p>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 15px; background: #fffbeb; padding: 15px; border-radius: 10px; border: 1px solid #fde68a;">
+        <div style="margin-bottom: 15px; background: #fffbeb; padding: 15px; border-radius: 10px; border: 1px solid #fde68a;">
           <div style="font-weight: 800; font-size: 1.05rem; color: #d97706; margin-bottom: 5px;"> 📜 삶의 지혜 (Advise)</div>
-          <p style="font-size: 0.95rem; color: #78350f; margin: 0;">관상의 흠결은 미소 하나로 훌륭하게 덧입혀지고, 아무리 좋은 상(相)도 오만한 태도 앞에서는 금세 빛을 잃습니다. <b>본인의 타고난 강점을 믿고 겸손하게 내면(心相)을 다루는 것</b>이 진정한 개운(開運)의 본질임을 잊지 마십시오.</p>
+          <p style="font-size: 0.95rem; color: #78350f; margin: 0;">관상의 흠결은 미소 하나로 훌륭하게 덧입혀지고, 아무리 좋은 상(相)도 오만한 태도 앞에서는 금세 빛을 잃습니다. <b>본인의 타고난 강점을 믿고 겸손하게 내면(心相)을 다루는 것</b>이 진정한 개운(開運)의 본질입니다.</p>
         </div>
 
-        <div>
-           <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;"> 🐾 이면의 현대적 동물상 매칭</div>
+        <div style="margin-bottom: 15px; background: #f0f9ff; padding: 15px; border-radius: 10px; border-left: 4px solid #0ea5e9;">
+           <div style="font-weight: 800; font-size: 1.05rem; color: #0c4a6e; margin-bottom: 8px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px;"> 🐾 이면의 현대적 동물상 매칭</div>
            <!-- Top3 동물상 퍼센트 표시 -->
-           <div style="margin-bottom:14px; background:#f0f9ff; padding:14px; border-radius:10px; border-left:4px solid #0ea5e9;">
-             <div style="font-weight:800; font-size:0.95rem; color:#0c4a6e; margin-bottom:10px;">🐾 동물상 매칭 순위 (TOP 3)</div>
+           <div style="margin-bottom:14px;">
+             <div style="font-weight:700; font-size:0.9rem; color:#0c4a6e; margin-bottom:10px;">💫 동물상 매칭 순위 (TOP 3)</div>
              ${top3.map((t, i) => `
              <div style="margin-bottom:${i<2?'10':'0'}px;">
                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                  <span style="font-weight:${t.isTop?'800':'600'};font-size:${t.isTop?'1.05':'0.88'}rem;color:${t.isTop?'#0f172a':'#475569'};">${i+1}위 ${t.animal.emoji} ${t.animal.name}</span>
                  <span style="font-weight:800;color:${t.isTop?'#0ea5e9':'#64748b'};font-size:${t.isTop?'1rem':'0.85'}rem;">${t.pct}%</span>
                </div>
-               <div style="background:#e2e8f0;height:${t.isTop?'10':'6'}px;border-radius:9px;overflow:hidden;">
+               <div style="background:#dbeafe;height:${t.isTop?'10':'6'}px;border-radius:9px;overflow:hidden;">
                  <div style="height:100%;width:${t.pct}%;background:${t.isTop?'linear-gradient(90deg,#38bdf8,#0ea5e9)':'#94a3b8'};border-radius:9px;"></div>
                </div>
-               ${t.isTop ? `<div style="font-size:0.75rem;color:#64748b;margin-top:3px;">대표 연예인: ${t.animal.celebrities.slice(0,3).join(', ')}</div>` : ''}
+               ${t.isTop ? `<div style="font-size:0.75rem;color:#0c4a6e;margin-top:3px;font-weight:600;">대표 연예인: ${t.animal.celebrities.slice(0,3).join(', ')}</div>` : ''}
              </div>`).join('')}
            </div>
-           <p style="font-size: 0.95rem; color: #475569; margin: 0;">위의 고전 관상학적 특질을 현대 매력 지수로 체환하면 <b>[${bestMatch.name} ${bestMatch.emoji}]</b>의 기운과 흡사합니다. (대표 연예인: ${bestMatch.celebrities.join(", ")})</p>
+           <p style="font-size: 0.95rem; color: #0c4a6e; margin: 0;"><b>[${bestMatch.name} ${bestMatch.emoji}]</b>의 매력이 당신을 특징짓는 대표 기운입니다. (대표 연예인: ${bestMatch.celebrities.join(", ")})</p>
         </div>
+
+        <!-- 점(痣) 위치별 관상 해석 섹션 -->
+        <div style="margin-bottom:15px; background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding:15px; border-radius:10px; border:1px solid #a7f3d0;">
+            <div style="font-weight:800; font-size:1rem; color:#065f46; margin-bottom:8px;">
+              ✨ 피부와 점(痣) 분석 <span style="font-size:0.8rem; color:#059669;">(面痣 분석)</span>
+            </div>
+            <div style="font-size:0.9rem; color:#047857; margin-bottom:10px; line-height:1.5;">
+              ${moleData.totalDetected === 0 ? '깨끗하고 밝은 피부: 타고난 복상의 징표입니다.' : `점의 위치와 성격을 분석한 결과, <b style="color:#059669;">길점 ${moleData.goodCount}개</b>와 <b style="color:#dc2626;">참고 사항 ${moleData.badCount}개</b>가 감지되었습니다.`}
+            </div>
+            ${moleData.totalDetected > 0 ? `<div style="margin-bottom:10px;">${moleReadingsHtml}</div>` : ''}
+            <div style="background:#ecfdf5; padding:10px; border-radius:8px; border-left:3px solid #10b981;">
+              <div style="font-weight:700; color:#065f46; margin-bottom:3px; font-size:0.9rem;">💎 종합 평가</div>
+              <p style="font-size:0.85rem; color:#047857; margin:0; line-height:1.5;">${moleData.overallVerdict}</p>
+            </div>
+        </div>
+
+        ${negPhysioData.detectedCount > 0 ? `
+        <div style="margin-bottom: 15px; background: #fef2f2; padding: 12px; border-radius: 10px; border-left: 3px solid #dc2626;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #991b1b; margin-bottom: 6px;">⚠️ 참고사항 (관심 영역)</div>
+            <div style="font-size:0.85rem; color:#7f1d1d; margin-bottom:10px;">
+              분석 결과, <b>${negPhysioData.detectedCount}개</b>의 흉상 징후가 감지되었으나, 이는 대부분의 사람에게서 나타나는 자연스러운 범위입니다.
+            </div>
+            <div style="background:#fee2e2; padding:8px; border-radius:6px; font-size:0.8rem; color:#7f1d1d; line-height:1.5;">
+              <b style="color:#991b1b;">핵심 개운법:</b> ${negPhysioData.overallAdvice.substring(0, 150)}...
+              <div style="margin-top:8px; padding-top:8px; border-top:1px solid #fecaca;">
+                <b style="color:#059669;">💡 실천 방법:</b> 의식적인 미소 연습, 따뜻한 시선 유지, 정기적인 운동과 명상이 효과적입니다.
+              </div>
+            </div>
+        </div>
+        ` : `
+        <div style="margin-bottom: 15px; background: #f0fdf4; padding: 12px; border-radius: 10px; border-left: 3px solid #10b981;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #065f46; margin-bottom: 6px;">✅ 안심하세요!</div>
+            <div style="font-size:0.85rem; color:#047857;">
+              분석 결과, 특별한 흉상(凶相) 징후가 감지되지 않았습니다. 타고난 복상(福相)입니다. 이 좋은 에너지를 감사하는 마음으로 유지하세요.
+            </div>
+        </div>
+        `}
+
       </div>
     `;
 

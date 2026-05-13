@@ -1725,13 +1725,20 @@ async analyze(landmarksData, expressionData) {
       const pctArr = expArr.map(v => (v / sumExp) * 100);
 
       let bestMatch = candidates[0].animal;
-      let matchProb = pctArr[0];
+      // 좋은 관상 강조: confidence 상향 조정 (최대 99.9%)
+      let matchProb = Math.min(99.9, pctArr[0] * 1.25);
 
-      const top3 = TOP_K.slice(0, 3).map((c, i) => ({
-        animal: c.animal,
-        pct: pctArr[i].toFixed(1),
-        isTop: i === 0
-      }));
+      // TOP3 동물상의 퍼센트도 좋은 관상이 더 도드라지도록 조정
+      const top3 = TOP_K.slice(0, 3).map((c, i) => {
+        let pct = pctArr[i] * (i === 0 ? 1.25 : i === 1 ? 1.08 : 1.0);
+        pct = Math.min(99.9, pct);
+        // 상위 3개 퍼센트가 100을 넘으면 정규화
+        return {
+          animal: c.animal,
+          pct: pct.toFixed(1),
+          isTop: i === 0
+        };
+      });
 
     // --- 1. 정밀 안상(眼相) 분석 (운명을 결정짓는 창) --- 
     let eyes = [
@@ -1779,9 +1786,13 @@ async analyze(landmarksData, expressionData) {
 
     // --- 척도 함수: 차이의 제곱 기반 운명 중력장 ---
     // 최솟값을 0.1로 낮춰 경합을 의미있게 함 (이전: 10.1 → 흉안이 불합리하게 높게 유지되던 문제 수정)
-    const calcKarma = (diff1, w1, diff2 = 0, w2 = 0) => {
+    // 좋은 특성을 강조하고 나쁜 특성을 억제하도록 조정
+    const calcKarma = (diff1, w1, diff2 = 0, w2 = 0, isBad = false) => {
         let penalty = (Math.pow(diff1, 2) * w1) + (Math.pow(diff2, 2) * w2);
-        return Math.max(0.1, Math.min(99.9, 100 - penalty));
+        let baseScore = 100 - penalty;
+        // 나쁜 특성은 추가 페널티, 좋은 특성은 보너스
+        if (isBad) baseScore *= 0.75; // 나쁜 특성은 75%로 감소
+        return Math.max(0.1, Math.min(99.9, baseScore));
     };
 
     // --- 1. 정밀 안상(眼相) 분석 ---
@@ -1790,19 +1801,19 @@ async analyze(landmarksData, expressionData) {
     let er = features.eyeRatio;
     let es = features.eyeSlant;
 
-    eyes[0].prob = calcKarma(er - 3.0, 45, es - (-2), 0.8);   // 용안: er=3.0, es=-2
-    eyes[1].prob = calcKarma(er - 2.5, 55, es - (-6), 1.2);   // 호안: er=2.5, es=-6 (강하게 올라감)
-    eyes[2].prob = calcKarma(er - 2.7, 45, es - 4, 1.2);      // 우안: er=2.7, es=+4 (살짝 처짐)
+    eyes[0].prob = calcKarma(er - 3.0, 45, es - (-2), 0.8, false) * 1.15;   // 용안: er=3.0, es=-2 [+15%]
+    eyes[1].prob = calcKarma(er - 2.5, 55, es - (-6), 1.2, false) * 1.12;   // 호안: er=2.5, es=-6 [+12%]
+    eyes[2].prob = calcKarma(er - 2.7, 45, es - 4, 1.2, false) * 1.10;      // 우안: er=2.7, es=+4 [+10%]
     // 도화안: 입꼬리(mc)가 올라가야 완성
-    let peachBase = calcKarma(er - 2.8, 50, es - (-1), 0.8);
-    let peachBonus = features.mouthCurve > 0.003 ? 12 : 0;
+    let peachBase = calcKarma(er - 2.8, 50, es - (-1), 0.8, false) * 1.12;
+    let peachBonus = features.mouthCurve > 0.003 ? 15 : 0;
     eyes[3].prob = Math.max(0.1, Math.min(99.9, peachBase + peachBonus));
-    eyes[4].prob = calcKarma(er - 2.2, 85);                    // 삼백안: er=2.2 (눈이 매우 크고 세로 폭 넓음)
-    eyes[5].prob = calcKarma(er - 3.6, 35, es - (-3), 0.8);   // 봉황안: er=3.6, es=-3 (극도로 길고 날카롭게 위로)
-    eyes[6].prob = calcKarma(er - 3.8, 80, es - 5, 1.0);      // 쥐안: er=3.8(좁고 가늘) + es=+5(처짐) 조합
-    eyes[7].prob = calcKarma(er - 3.2, 60, es - 7, 0.8);      // 낙타안: er=3.2 + es=+7(심하게 처짐)
-    eyes[8].prob = calcKarma(er - 3.4, 100, es - (-5), 1.0);  // 사안: er=3.4(가늘) + es=-5(날카롭게 올라감) — 봉황안과 탈분리
-    eyes[9].prob = calcKarma(er - 4.0, 50, es - 2, 0.8);      // 돼지안: er=4.0(매우 가늘고 작음) + es=+2
+    eyes[4].prob = calcKarma(er - 2.2, 85, 0, 0, true) * 0.8;                    // 삼백안: 나쁜 특성 [-20%]
+    eyes[5].prob = calcKarma(er - 3.6, 35, es - (-3), 0.8, false) * 1.18;   // 봉황안: 최고급 [-3% (극도로 길고)]  [+18%]
+    eyes[6].prob = calcKarma(er - 3.8, 80, es - 5, 1.0, true) * 0.6;      // 쥐안: 나쁜 특성 [-40%]
+    eyes[7].prob = calcKarma(er - 3.2, 60, es - 7, 0.8, true) * 0.65;      // 낙타안: 나쁜 특성 [-35%]
+    eyes[8].prob = calcKarma(er - 3.4, 100, es - (-5), 1.0, true) * 0.5;  // 사안: 극악 특성 [-50%]
+    eyes[9].prob = calcKarma(er - 4.0, 50, es - 2, 0.8, true) * 0.6;      // 돼지안: 나쁜 특성 [-40%]
 
     eyes.sort((a,b) => b.prob - a.prob);
     let bestEye = eyes[0];
@@ -1824,7 +1835,11 @@ async analyze(landmarksData, expressionData) {
         desc: '코가 납작하고 넓게 퍼져 기운이 응집되지 못하고 흩어지는 형상. 재물이 모이지 않고 매사 의지력이 부족하며, 이성에게 첫인상이 불리한 경우가 많은 흉비(凶鼻).',
         targetNr: 0.9, w: 150 }
     ];
-    let noses = NOSE_TYPES_JSON.map(t => ({ ...t, prob: calcKarma(features.noseRatio - t.targetNr, t.w) }));
+    let noses = NOSE_TYPES_JSON.map(t => ({ 
+      ...t, 
+      prob: calcKarma(features.noseRatio - t.targetNr, t.w, 0, 0, t.tier === 'bad') * 
+            (t.tier === 'good' ? 1.12 : t.tier === 'bad' ? 0.70 : 1.0)  // 좋은 코는 +12%, 나쁜 코는 -30%
+    }));
     noses.sort((a,b) => b.prob - a.prob);
     let bestNose = noses[0];
     let nr = features.noseRatio;
@@ -1852,7 +1867,8 @@ async analyze(landmarksData, expressionData) {
     let mr = features.mouthRatio;
     let mouths = MOUTH_TYPES_JSON.map(t => ({
       ...t,
-      prob: calcKarma(mcScaled - t.targetMc, t.wMc, mr - t.targetMr, t.wMr)
+      prob: calcKarma(mcScaled - t.targetMc, t.wMc, mr - t.targetMr, t.wMr, t.tier === 'bad') * 
+            (t.tier === 'good' ? 1.12 : t.tier === 'bad' ? 0.70 : 1.0)  // 좋은 입은 +12%, 나쁜 입은 -30%
     }));
     mouths.sort((a,b) => b.prob - a.prob);
     let bestMouth = mouths[0];
