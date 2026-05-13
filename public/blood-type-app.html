@@ -111,13 +111,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 .compat-tabs{display:flex;gap:10px;margin-bottom:20px;}
 .tab-btn{flex:1;border:2.5px solid var(--black);border-radius:50px;padding:10px;font-size:13px;font-weight:900;background:var(--white);cursor:pointer;box-shadow:var(--shadow);transition:all .15s;}
 .tab-btn.active{background:var(--black);color:var(--white);transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--black);}
-.swipe-area{position:relative;height:320px;margin-bottom:20px;}
-.swipe-card{position:absolute;top:0;left:0;right:0;border:2.5px solid var(--black);border-radius:20px;padding:24px;box-shadow:var(--shadow-lg);cursor:grab;background:var(--white);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.swipe-area{position:relative;height:380px;margin-bottom:20px;}
+.swipe-card{position:absolute;top:0;left:0;right:0;border:2.5px solid var(--black);border-radius:20px;padding:20px;box-shadow:var(--shadow-lg);cursor:grab;background:var(--white);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;min-height:336px;overflow:hidden;touch-action:pan-y;user-select:none;pointer-events:none;}
+.swipe-card.is-active{pointer-events:auto;}
 .swipe-card.fly-right{transform:translateX(120%) rotate(15deg)!important;transition:transform .4s ease;}
 .swipe-card.fly-left{transform:translateX(-120%) rotate(-15deg)!important;transition:transform .4s ease;}
-.swipe-type{font-family:'Black Han Sans',sans-serif;font-size:64px;text-align:center;margin-bottom:8px;}
-.swipe-name{font-size:18px;font-weight:900;text-align:center;color:var(--black);}
+.swipe-type{font-family:'Black Han Sans',sans-serif;font-size:52px;line-height:1;text-align:center;margin-bottom:6px;}
+.swipe-name{font-size:17px;font-weight:900;text-align:center;color:var(--black);line-height:1.35;word-break:keep-all;}
 .swipe-hint{font-size:12px;color:#888;text-align:center;margin-top:6px;}
+.swipe-insight{margin-top:12px;background:rgba(255,255,255,0.66);border-radius:10px;padding:10px;}
+.swipe-insight-title{font-size:12px;font-weight:800;color:#222;line-height:1.45;word-break:keep-all;}
+.swipe-insight-desc{font-size:12px;color:#555;margin-top:4px;line-height:1.45;word-break:keep-all;}
 .swipe-btns{display:flex;justify-content:center;gap:20px;margin-bottom:20px;}
 .swipe-btn{width:64px;height:64px;border:2.5px solid var(--black);border-radius:50%;font-size:28px;background:var(--white);cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;transition:transform .15s;}
 .swipe-btn:active{transform:scale(.9);}
@@ -145,14 +149,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 /* ENTERTAINMENT */
 .ent-section{margin-bottom:24px;}
 .whatif-card{border:2.5px solid var(--black);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow-lg);cursor:pointer;}
-.whatif-q{font-size:15px;font-weight:900;color:var(--black);margin-bottom:10px;line-height:1.4;}
-.whatif-a{font-size:13px;color:#333;line-height:1.6;display:none;border-top:1.5px solid #ddd;padding-top:10px;margin-top:10px;}
+.whatif-q{font-size:15px;font-weight:900;color:var(--black);margin-bottom:10px;line-height:1.45;word-break:keep-all;}
+.whatif-a{font-size:13px;color:#333;line-height:1.6;display:none;border-top:1.5px solid #ddd;padding-top:10px;margin-top:10px;word-break:keep-all;}
 .whatif-a.show{display:block;}
 .reveal-btn{font-size:11px;font-weight:700;color:#888;display:flex;align-items:center;gap:4px;}
 .balance-card{border:2.5px solid var(--black);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow-lg);}
-.balance-q{padding:16px;font-size:15px;font-weight:900;color:var(--black);background:#f8f8f8;border-bottom:2px solid var(--black);}
+.balance-q{padding:16px;font-size:15px;font-weight:900;color:var(--black);background:#f8f8f8;border-bottom:2px solid var(--black);line-height:1.45;word-break:keep-all;}
 .balance-opts{display:grid;grid-template-columns:1fr 1fr;}
-.balance-opt{padding:16px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;transition:background .2s;border:none;background:none;width:100%;}
+.balance-opt{padding:12px 10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;transition:background .2s;border:none;background:none;width:100%;min-height:58px;display:flex;align-items:center;justify-content:center;line-height:1.35;word-break:keep-all;}
 .balance-opt:first-child{border-right:1.5px solid var(--black);}
 .balance-opt:hover{background:#f0f0f0;}
 .balance-opt.chosen-a{background:var(--a);}
@@ -188,8 +192,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 .result-highlight{border:2.5px solid var(--black);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);}
 .rank-pill{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:22px;border:2.5px solid var(--black);border-radius:50px;padding:4px 16px;margin-right:8px;box-shadow:var(--shadow);}
 /* SOCIAL COMPAT */
-.social-row{border:2.5px solid var(--black);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:center;}
-.social-type{font-family:'Black Han Sans',sans-serif;font-size:36px;width:56px;height:56px;border:2.5px solid var(--black);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.social-row{border:2.5px solid var(--black);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start;}
+.social-type{font-family:'Black Han Sans',sans-serif;font-size:26px;width:64px;height:64px;border:2.5px solid var(--black);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;white-space:nowrap;letter-spacing:-0.02em;}
+.social-meta{font-size:12px;font-weight:700;color:#666;margin-bottom:4px;line-height:1.4;word-break:keep-all;}
+.social-tip{font-size:13px;font-weight:700;color:var(--black);line-height:1.5;word-break:keep-all;}
 /* SCROLL */
 ::-webkit-scrollbar{width:0;}
 /* TOAST */
@@ -648,10 +654,78 @@ let state = {
   compatTab: 'love',
   lifeTab: 'diet',
   swipeIndex: 0,
+  swipeDeck: [],
   shareType: 'dashboard',
-  balanceChoices: {}
+  balanceChoicesByBlood: {},
+  openWhatifByBlood: {}
 };
 const TYPES = ['A','B','O','AB'];
+
+const LOVE_CHECK_PROMPTS = [
+  '첫 만남에서 대화 템포가 잘 맞을까?',
+  '갈등이 생겼을 때 화해 속도는 어떨까?',
+  '장기 연애에서 루틴 궁합은 잘 맞을까?'
+];
+
+const WHATIF_EXTRA = {
+  A: [
+    {q:'A형이 팀플 리더를 맡으면?',a:'역할표부터 만든 뒤 데드라인을 쪼개서 관리한다. 처음엔 빡세 보여도 결과물 완성도는 확실히 올라간다.'},
+    {q:'A형이 소개팅에서 호감이 생기면?',a:'티는 안 내지만 상대의 말투·시간 약속·배려 포인트를 조용히 체크한다. 기준 통과하면 천천히 확실하게 다가간다.'}
+  ],
+  B: [
+    {q:'B형이 갑자기 새 취미에 꽂히면?',a:'장비부터 빠르게 세팅하고 몰입한다. 초반 몰입력이 매우 높아 단기간 실력이 급상승하는 편이다.'},
+    {q:'B형이 프로젝트에서 아이디어가 막히면?',a:'장소를 바꾸거나 사람을 만나면서 자극을 받는다. 환경 전환 후에 해결책이 튀어나오는 타입이다.'}
+  ],
+  O: [
+    {q:'O형이 일정이 꼬였을 때?',a:'우선순위를 즉시 재정렬하고 핵심부터 밀어붙인다. 손해를 최소화하면서 결과를 만드는 데 강하다.'},
+    {q:'O형이 썸에서 확신이 들면?',a:'애매한 신호 대신 분명한 표현으로 직진한다. 상대 입장에서는 답답함이 적고 의도가 명확하다.'}
+  ],
+  AB: [
+    {q:'AB형이 혼자만의 시간이 필요할 때?',a:'연락 속도를 줄이고 생각 정리를 한다. 충분히 충전하면 다시 대화 밀도가 높아지는 패턴이다.'},
+    {q:'AB형이 중요한 선택을 앞두면?',a:'감각과 분석을 동시에 돌린다. 결론이 늦어 보여도 한 번 결정하면 의외로 흔들림이 적다.'}
+  ]
+};
+
+const BALANCE_EXTRA = {
+  A: [
+    {q:'A형에게 더 힘든 상황은?',a:'갑작스러운 일정 변경',b:'근거 없는 지시 받기'},
+    {q:'A형의 에너지가 오르는 순간은?',a:'체계가 맞아떨어질 때',b:'고마움을 직접 들을 때'}
+  ],
+  B: [
+    {q:'B형이 더 오래 버티는 환경은?',a:'자율권 높은 팀',b:'규칙 명확한 팀'},
+    {q:'B형의 집중력을 높이는 방식은?',a:'짧고 강한 몰입',b:'꾸준한 루틴'}
+  ],
+  O: [
+    {q:'O형이 더 만족하는 성과 방식은?',a:'내가 주도해 달성',b:'팀과 함께 달성'},
+    {q:'O형에게 동기부여가 큰 건?',a:'분명한 목표',b:'인정과 신뢰'}
+  ],
+  AB: [
+    {q:'AB형이 더 편한 소통 방식은?',a:'짧고 핵심 위주',b:'맥락까지 깊게'},
+    {q:'AB형의 회복 루틴은?',a:'혼자 정리 시간',b:'소수와 깊은 대화'}
+  ]
+};
+
+function getBalanceChoices() {
+  if (!state.balanceChoicesByBlood[state.blood]) {
+    state.balanceChoicesByBlood[state.blood] = {};
+  }
+  return state.balanceChoicesByBlood[state.blood];
+}
+
+function getWhatifOpenMap() {
+  if (!state.openWhatifByBlood[state.blood]) {
+    state.openWhatifByBlood[state.blood] = {};
+  }
+  return state.openWhatifByBlood[state.blood];
+}
+
+function getExtendedWhatIfList(d) {
+  return [...d.whatif, ...(WHATIF_EXTRA[state.blood] || [])];
+}
+
+function getExtendedBalanceList(d) {
+  return [...d.balance, ...(BALANCE_EXTRA[state.blood] || [])];
+}
 
 // ====== INIT ======
 function init() {
@@ -902,30 +976,43 @@ function renderSwipeCards(d) {
   state.swipeIndex = 0;
   const area = document.getElementById('swipe-area');
   const others = TYPES.filter(t => t !== state.blood);
-  area.innerHTML = others.map((t, i) => {
-    const od = DATA[t];
-    const compat = d.compat[t];
-    return `<div class="swipe-card" id="swipe-${i}" style="background:${od.color};z-index:${others.length-i};transform:rotate(${(i-1)*3}deg) scale(${1-i*0.03})" data-type="${t}" data-idx="${i}">
+  const deck = others.flatMap((t) =>
+    LOVE_CHECK_PROMPTS.map((prompt, roundIdx) => ({ type: t, prompt, round: roundIdx + 1 }))
+  );
+  state.swipeDeck = deck;
+
+  const cardTransform = (idx) => {
+    const rot = Math.max(-3, Math.min(3, idx * 0.8 - 1.5));
+    const scale = Math.max(0.84, 1 - idx * 0.015);
+    return `rotate(${rot}deg) scale(${scale})`;
+  };
+
+  area.innerHTML = deck.map((item, i) => {
+    const od = DATA[item.type];
+    const compat = d.compat[item.type];
+    return `<div class="swipe-card ${i===0 ? 'is-active' : ''}" id="swipe-${i}" style="background:${od.color};z-index:${deck.length-i};transform:${cardTransform(i)}" data-type="${item.type}">
       <div class="swipe-type">${od.emoji}</div>
-      <div style="font-family:'Black Han Sans',sans-serif;font-size:40px;text-align:center;margin-bottom:4px;">${t}형</div>
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:36px;line-height:1;text-align:center;margin-bottom:6px;">${item.type}형</div>
       <div class="swipe-name">${od.tagline}</div>
-      <div style="margin-top:16px;background:rgba(255,255,255,0.6);border-radius:10px;padding:12px;">
-        <div style="font-size:13px;font-weight:700;color:#333;">${compat.emoji} ${compat.title}</div>
-        <div style="font-size:12px;color:#555;margin-top:4px;">${compat.desc}</div>
+      <div class="swipe-insight">
+        <div class="swipe-insight-title">❓ ${item.prompt}</div>
+        <div class="swipe-insight-desc">${compat.emoji} ${compat.title} · ${compat.score}점</div>
       </div>
       <div class="swipe-hint">← 별로 &nbsp;&nbsp;&nbsp; 좋아 →</div>
     </div>`;
-  }).reverse().join('');
-  document.getElementById('love-result').innerHTML = '';
-  initSwipeDrag(others);
+  }).join('');
+
+  document.getElementById('love-result').innerHTML = `<div class="balance-divider" style="padding:10px 0 0;color:#777;">총 ${deck.length}개 궁합 체크 질문</div>`;
+  initSwipeDrag(deck.length, cardTransform);
 }
 
-function initSwipeDrag(others) {
-  others.forEach((t, i) => {
+function initSwipeDrag(cardCount, cardTransform) {
+  for (let i = 0; i < cardCount; i++) {
     const card = document.getElementById('swipe-'+i);
-    if (!card) return;
+    if (!card) continue;
     let startX, startY, isDragging = false;
     const onStart = (e) => {
+      if (i !== state.swipeIndex) return;
       startX = (e.touches?.[0]||e).clientX;
       startY = (e.touches?.[0]||e).clientY;
       isDragging = true;
@@ -942,9 +1029,9 @@ function initSwipeDrag(others) {
       isDragging = false;
       const dx = (e.changedTouches?.[0]||e).clientX - startX;
       if (Math.abs(dx) > 80) {
-        swipeCard(dx > 0 ? 'right' : 'left', i);
+        swipeCard(dx > 0 ? 'right' : 'left');
       } else {
-        card.style.transform = `rotate(${(i-1)*3}deg) scale(${1-i*0.03})`;
+        card.style.transform = cardTransform(i);
         card.style.opacity = 1;
       }
     };
@@ -954,38 +1041,48 @@ function initSwipeDrag(others) {
     card.addEventListener('touchstart', onStart, {passive:true});
     card.addEventListener('touchmove', onMove, {passive:true});
     card.addEventListener('touchend', onEnd);
-  });
+  }
 }
 
-function swipeCard(dir, forceIdx) {
-  const others = TYPES.filter(t => t !== state.blood);
-  const idx = forceIdx !== undefined ? forceIdx : others.length - 1 - state.swipeIndex;
+function swipeCard(dir) {
+  const idx = state.swipeIndex;
+  const deck = state.swipeDeck || [];
   const card = document.getElementById('swipe-'+idx);
+  if (!deck.length) return;
   if (!card || card.classList.contains('fly-right') || card.classList.contains('fly-left')) return;
   card.classList.add(dir === 'right' ? 'fly-right' : 'fly-left');
+  card.classList.remove('is-active');
+
+  const picked = deck[idx];
+  const type = picked.type;
+  const prompt = picked.prompt;
   state.swipeIndex++;
-  const type = card.dataset.type;
   const compat = DATA[state.blood].compat[type];
+
   setTimeout(() => {
     if (dir === 'right') {
       if (compat.score >= 85) {
         triggerConfetti();
       }
-      showLoveResult(type, compat, DATA[state.blood]);
+      showLoveResult(type, compat, DATA[state.blood], prompt, idx + 1, deck.length);
     }
-    if (state.swipeIndex >= others.length) {
+    const nextCard = document.getElementById('swipe-' + state.swipeIndex);
+    if (nextCard) nextCard.classList.add('is-active');
+
+    if (state.swipeIndex >= deck.length) {
       setTimeout(() => renderSwipeCards(DATA[state.blood]), 400);
     }
   }, 400);
 }
 
-function showLoveResult(type, compat, d) {
+function showLoveResult(type, compat, d, prompt, progress, total) {
   const od = DATA[type];
   const pct = compat.score;
   const circumference = 2 * Math.PI * 28;
   const dash = (pct/100) * circumference;
   document.getElementById('love-result').innerHTML = `
     <div class="result-card" style="background:${od.bg}">
+      <div style="font-size:11px;color:#666;font-weight:700;margin-bottom:10px;">질문 ${progress}/${total} · ${prompt}</div>
       <div class="compat-row">
         <div class="score-ring">
           <svg viewBox="0 0 64 64" width="72" height="72">
@@ -1010,9 +1107,9 @@ function renderSocialCompat(d) {
   el.innerHTML = d.social.map(s => `
     <div class="social-row" style="background:${DATA[s.type]?.bg||'#f8f8f8'}">
       <div class="social-type" style="background:${DATA[s.type]?.color};border-color:${DATA[s.type]?.dark}">${s.type}형</div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:3px;">${s.emoji} ${s.relation}</div>
-        <div style="font-size:13px;font-weight:700;color:var(--black);line-height:1.5">${s.tip}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="social-meta">${s.emoji} ${s.relation}</div>
+        <div class="social-tip">${s.tip}</div>
       </div>
     </div>
   `).join('');
@@ -1101,41 +1198,45 @@ function renderEntertainment(d) {
 }
 
 function renderBalanceGames(d) {
+  const choices = getBalanceChoices();
+  const items = getExtendedBalanceList(d);
   const el = document.getElementById('balance-games');
-  el.innerHTML = d.balance.map((b, bi) => `
+  el.innerHTML = `<div class="balance-divider" style="padding:2px 0 10px;color:#777;">총 ${items.length}개 밸런스 문항</div>` + items.map((b, bi) => `
     <div class="balance-card">
       <div class="balance-q">${b.q}</div>
       <div class="balance-opts">
-        <button class="balance-opt ${state.balanceChoices[bi]==='a'?'chosen-a':''}" onclick="chooseBalance(${bi},'a','${b.a}',this)">${b.a}</button>
-        <button class="balance-opt ${state.balanceChoices[bi]==='b'?'chosen-b':''}" onclick="chooseBalance(${bi},'b','${b.b}',this)">${b.b}</button>
+        <button class="balance-opt ${choices[bi]==='a'?'chosen-a':''}" onclick="chooseBalance(${bi},'a')">${b.a}</button>
+        <button class="balance-opt ${choices[bi]==='b'?'chosen-b':''}" onclick="chooseBalance(${bi},'b')">${b.b}</button>
       </div>
-      ${state.balanceChoices[bi] ? `<div class="balance-divider">${state.balanceChoices[bi]==='a'?'A':'B'} 선택! ${d.emoji} ${d.label}답다 ㅋㅋ</div>` : ''}
+      ${choices[bi] ? `<div class="balance-divider">${choices[bi]==='a'?'A':'B'} 선택! ${d.emoji} ${d.label}답다 ㅋㅋ</div>` : ''}
     </div>
   `).join('');
 }
 
-function chooseBalance(idx, choice, text, btn) {
-  state.balanceChoices[idx] = choice;
+function chooseBalance(idx, choice) {
+  const choices = getBalanceChoices();
+  choices[idx] = choice;
   triggerBounce();
   renderBalanceGames(DATA[state.blood]);
 }
 
 function renderWhatIf(d) {
+  const openMap = getWhatifOpenMap();
+  const items = getExtendedWhatIfList(d);
   const el = document.getElementById('whatif-content');
-  el.innerHTML = d.whatif.map((w, i) => `
+  el.innerHTML = `<div class="balance-divider" style="padding:2px 0 10px;color:#777;">총 ${items.length}개 만약에 문답</div>` + items.map((w, i) => `
     <div class="whatif-card bouncy" onclick="toggleWhatif(${i})">
       <div class="whatif-q">Q. ${w.q}</div>
-      <div class="reveal-btn" id="reveal-${i}">💡 탭해서 ${d.label} 답변 보기</div>
-      <div class="whatif-a" id="whatif-a-${i}">${w.a}</div>
+      <div class="reveal-btn" id="reveal-${i}" style="display:${openMap[i] ? 'none' : 'flex'}">💡 탭해서 ${d.label} 답변 보기</div>
+      <div class="whatif-a ${openMap[i] ? 'show' : ''}" id="whatif-a-${i}">${w.a}</div>
     </div>
   `).join('');
 }
 
 function toggleWhatif(i) {
-  const a = document.getElementById('whatif-a-'+i);
-  const r = document.getElementById('reveal-'+i);
-  const show = a.classList.toggle('show');
-  r.style.display = show ? 'none' : 'flex';
+  const openMap = getWhatifOpenMap();
+  openMap[i] = !openMap[i];
+  renderWhatIf(DATA[state.blood]);
 }
 
 // ====== SHARE ======
