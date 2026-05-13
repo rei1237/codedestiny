@@ -3792,7 +3792,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   };
 }
 
-function syRenderCanonicalDashboard(canonicalPayload) {
+function syRenderCanonicalDashboard(canonicalPayload, reading) {
   var canonical = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
   if (!canonical || !canonical.natalSukuyo) return '';
 
@@ -3824,6 +3824,20 @@ function syRenderCanonicalDashboard(canonicalPayload) {
   var recoveryRhythm = syCanonicalList(attrs.recoveryPattern, '회복 리듬 정보 없음');
   var temperament = syCanonicalList(attrs.temperament, '기질 정보 없음');
   var keywords = syCanonicalList(natalInfo.keywords, '핵심 키워드 정보 없음');
+  var integratedSummaryCards = reading && Array.isArray(reading.summaryCards)
+    ? reading.summaryCards.filter(function(cardItem) {
+      return cardItem && cardItem.label !== '나의 본명숙';
+    })
+    : [];
+  var integratedHeroSubtitle = reading && reading.hero && reading.hero.subtitle
+    ? String(reading.hero.subtitle)
+    : '태어난 날의 달빛으로 본 성향, 인연, 감정 리듬을 읽어드립니다.';
+  var integratedMoonLabel = reading && reading.hero && reading.hero.moonLabel
+    ? String(reading.hero.moonLabel)
+    : '🌙 달빛 흐름';
+  var integratedGuardianLabel = reading && reading.guardian
+    ? String((reading.guardian.emoji || '✨') + ' ' + (reading.guardian.name || '달빛 수호령'))
+    : '✨ 달빛 수호령';
 
   var renderTagList = function (items) {
     return items.map(function (item) {
@@ -3846,11 +3860,14 @@ function syRenderCanonicalDashboard(canonicalPayload) {
     + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard">'
     + '<div class="sy-canon-hero">'
     + '<div class="sy-canon-overline">MAIN SUKUYO · CANONICAL</div>'
-    + '<h4>🌕 기본 숙요점 핵심 대시보드</h4>'
+    + '<h4>🌕 기본 숙요점 · 월하 명식 통합 대시보드</h4>'
+    + '<p>' + syCanonicalEsc(integratedHeroSubtitle) + '</p>'
     + '<div class="sy-canon-hero-row">'
     + '<span class="sy-canon-pill">본명숙 ' + syCanonicalEsc(mansionLabel) + '</span>'
     + '<span class="sy-canon-pill">27수 INDEX ' + syCanonicalEsc(indexText) + '</span>'
     + '<span class="sy-canon-pill">월상 ' + syCanonicalEsc(phaseLabel) + '</span>'
+    + '<span class="sy-canon-pill">' + syCanonicalEsc(integratedMoonLabel) + '</span>'
+    + '<span class="sy-canon-pill">수호 상징 ' + syCanonicalEsc(integratedGuardianLabel) + '</span>'
     + '</div>'
     + '</div>'
     + validationMsg
@@ -3866,6 +3883,15 @@ function syRenderCanonicalDashboard(canonicalPayload) {
     + '<div class="sy-canon-kv"><span>음력 생일</span><strong>' + syCanonicalEsc(lunarDate) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>방향 / 속성</span><strong>' + syCanonicalEsc(directionText + ' / ' + elementText) + '</strong></div>'
     + '</div>'
+    + (integratedSummaryCards.length
+      ? '<div class="sy-canon-brief-grid">' + integratedSummaryCards.map(function(cardItem) {
+        return '<article class="sy-canon-brief-item">'
+          + '<div class="sy-canon-brief-label">' + syCanonicalEsc(cardItem.label) + '</div>'
+          + '<div class="sy-canon-brief-value">' + syCanonicalEsc(cardItem.value) + '</div>'
+          + '<div class="sy-canon-brief-note">' + syCanonicalEsc(cardItem.note) + '</div>'
+          + '</article>';
+      }).join('') + '</div>'
+      : '')
     + '<div class="sy-canon-chip-row">' + renderTagList(temperament) + '</div>'
     + '<div class="sy-canon-chip-row">' + renderTagList(keywords) + '</div>'
     + '<p class="sy-canon-footnote">계산 소스: ' + syCanonicalEsc(calcSource) + ' · 버전: ' + syCanonicalEsc(methodVersion) + '</p>'
@@ -3980,7 +4006,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
-        .sy-canon-card { border-left-color:#fbbf24; background:linear-gradient(150deg, rgba(36,26,58,0.95) 0%, rgba(20,23,42,0.95) 100%); }
+        .sy-canon-card { border-left-color:#fbbf24; background:linear-gradient(155deg, rgba(30,20,45,0.97) 0%, rgba(14,25,48,0.97) 48%, rgba(10,16,36,0.97) 100%); box-shadow:0 16px 34px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(250,204,21,0.08); position:relative; overflow:hidden; }
+        .sy-canon-card::before { content:''; position:absolute; inset:-24% auto auto -12%; width:260px; height:260px; pointer-events:none; background:radial-gradient(circle, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.03) 40%, rgba(251,191,36,0) 72%); }
+        .sy-canon-card::after { content:''; position:absolute; right:-120px; bottom:-120px; width:280px; height:280px; pointer-events:none; background:radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0.06) 40%, rgba(99,102,241,0) 74%); }
         .sy-canon-hero { margin-bottom:12px; }
         .sy-canon-overline { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:#fde68a; margin-bottom:4px; }
         .sy-canon-hero h4 { margin:0 0 6px 0; color:#fef3c7; font-size:1.05rem; }
@@ -3997,6 +4025,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-kv { border:1px solid rgba(226,232,240,0.2); background:rgba(15,23,42,0.55); border-radius:10px; padding:10px; }
         .sy-canon-kv span { display:block; font-size:0.7rem; color:#94a3b8; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; }
         .sy-canon-kv strong { color:#f8fafc; font-size:0.92rem; line-height:1.45; }
+        .sy-canon-brief-grid { margin-top:10px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+        .sy-canon-brief-item { border:1px solid rgba(250,204,21,0.24); border-radius:10px; padding:10px; background:linear-gradient(150deg, rgba(67,56,202,0.22) 0%, rgba(15,23,42,0.72) 100%); }
+        .sy-canon-brief-label { color:#fcd34d; font-size:0.72rem; letter-spacing:0.04em; }
+        .sy-canon-brief-value { margin-top:3px; color:#fff7d6; font-size:0.94rem; line-height:1.45; font-weight:900; }
+        .sy-canon-brief-note { margin-top:5px; color:#dbeafe; font-size:0.77rem; line-height:1.6; }
         .sy-canon-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
         .sy-canon-chip { display:inline-flex; align-items:center; border-radius:999px; padding:4px 10px; font-size:0.74rem; color:#e2e8f0; background:rgba(15,23,42,0.75); border:1px solid rgba(148,163,184,0.3); }
         .sy-canon-footnote { margin:10px 0 0; color:#cbd5e1; font-size:0.76rem; line-height:1.6; }
@@ -4056,6 +4089,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-wheel-caption { font-size:0.82rem; }
           .sy-wheel-meta-grid { grid-template-columns:1fr; }
           .sy-canon-grid { grid-template-columns:1fr; }
+          .sy-canon-brief-grid { grid-template-columns:1fr; }
           .sy-canon-rhythm-grid { grid-template-columns:1fr; }
         }
         @media (max-width: 430px) {
@@ -4168,12 +4202,27 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         </div>`;
     }
 
+    if (!sData) {
+      window._syWheelState = null;
+    }
+
+    if (sData) {
+      if (window._syLastCompat && window._syLastCompat.myIdx !== sData.mansionIdx) {
+        window._syLastCompat = null;
+      }
+      window._syWheelState = {
+        mansionIdx: sData.mansionIdx,
+        mansion: sData.mansion
+      };
+      html += `${syRenderWheelCard(window._syWheelState, window._syLastCompat)}`;
+    }
+
     if (_legacyNexusHtml) {
       html += _legacyNexusHtml;
     }
 
     if (canonicalData) {
-      html += syRenderCanonicalDashboard(canonicalData);
+      html += syRenderCanonicalDashboard(canonicalData, _reading);
     }
 
     if (!lunarObj) {
@@ -4183,44 +4232,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         </div>`;
     }
 
-    if (!sData) {
-      window._syWheelState = null;
-    }
-
     if (sData) {
-        if (window._syLastCompat && window._syLastCompat.myIdx !== sData.mansionIdx) {
-          window._syLastCompat = null;
-        }
-        window._syWheelState = {
-          mansionIdx: sData.mansionIdx,
-          mansion: sData.mansion
-        };
-
         var reading = _reading || syBuildBasicReading(canonicalData, sData, (dailyFlow || getDailyKarmicGuidance(lunarObj, sData.mansion)), _selfGuardian);
-        if (reading) {
-          html += `<div class="sy-card sy-hero-card">
-            <h4 class="sy-hero-title">${syCanonicalEsc(reading.hero.title)}</h4>
-            <p class="sy-hero-sub">${syCanonicalEsc(reading.hero.subtitle)}</p>
-            <div class="sy-hero-meta">
-              <span class="sy-pill">${syCanonicalEsc(reading.hero.mansionLabel)}</span>
-              <span class="sy-pill">${syCanonicalEsc(reading.hero.moonLabel)}</span>
-              <span class="sy-pill">수호 상징 ${syCanonicalEsc(reading.guardian.emoji + ' ' + reading.guardian.name)}</span>
-            </div>
-            <div class="sy-summary-grid">
-              ${reading.summaryCards.map(function(cardItem) {
-                return '<article class="sy-summary-item">'
-                  + '<div class="sy-summary-label">' + syCanonicalEsc(cardItem.label) + '</div>'
-                  + '<div class="sy-summary-score" style="font-size:1rem;line-height:1.45;">' + syCanonicalEsc(cardItem.value) + '</div>'
-                  + '<div class="sy-summary-tone">' + syCanonicalEsc(cardItem.tone) + '</div>'
-                  + '<div class="sy-summary-note">' + syCanonicalEsc(cardItem.note) + '</div>'
-                  + '</article>';
-              }).join('')}
-            </div>
-          </div>`;
-        }
-
-        html += `${syRenderWheelCard(window._syWheelState, window._syLastCompat)}`;
-
         if (reading) {
           html += `<div class="sy-card" style="border-left-color:#a5b4fc;">
             <h4 style="margin:0 0 10px 0; color:#c7d2fe;">🌙 달빛 성향 카드</h4>
