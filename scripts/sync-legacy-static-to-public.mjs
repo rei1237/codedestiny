@@ -388,12 +388,6 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log("[sync-legacy-static-to-public] Normalized legacy replacement-char marker in canonical shell");
   }
 
-  const noSplashIndexHtml = stripStartupSplash(baseIndexHtml);
-  if (noSplashIndexHtml !== baseIndexHtml) {
-    baseIndexHtml = noSplashIndexHtml;
-    console.log("[sync-legacy-static-to-public] Removed startup splash script/overlay from canonical shell");
-  }
-
   const normalizedOmikujiHeroIndexHtml = normalizeOmikujiHeroImageRefs(baseIndexHtml);
   if (normalizedOmikujiHeroIndexHtml !== baseIndexHtml) {
     baseIndexHtml = normalizedOmikujiHeroIndexHtml;
