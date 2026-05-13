@@ -3946,14 +3946,35 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-star:nth-child(4) { animation-delay:1.5s; }
         .sy-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media(min-width: 600px) { .sy-grid { grid-template-columns: 1fr 1fr; } }
-        .sy-natal-tab-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-        .sy-ntab { padding:6px 13px; border-radius:20px; font-size:0.84rem; border:1px solid rgba(167,139,250,0.35); background:rgba(167,139,250,0.08); color:#b8a0f0; cursor:pointer; transition:all 0.2s; white-space:nowrap; touch-action:manipulation; -webkit-tap-highlight-color:transparent; min-height:44px; display:inline-flex; align-items:center; }
-        .sy-ntab.active { background:rgba(167,139,250,0.25); border-color:rgba(167,139,250,0.7); color:#e2d9ff; font-weight:bold; }
+        .sy-nexus-shell { border:1px solid rgba(167,139,250,0.24); border-radius:16px; padding:14px; background:radial-gradient(circle at 12% 0%, rgba(196,181,253,0.18) 0%, rgba(15,23,42,0.72) 46%, rgba(2,6,23,0.88) 100%); box-shadow:0 18px 40px rgba(2,6,23,0.5); }
+        .sy-lunar-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+        .sy-lunar-seal { position:relative; width:28px; height:28px; border-radius:999px; border:1px solid rgba(226,232,240,0.42); background:radial-gradient(circle at 34% 30%, rgba(248,250,252,0.95) 0%, rgba(199,210,254,0.86) 38%, rgba(129,140,248,0.38) 100%); box-shadow:0 0 18px rgba(147,197,253,0.32); flex-shrink:0; }
+        .sy-lunar-seal::before { content:''; position:absolute; inset:-4px; border-radius:999px; border:1px dashed rgba(196,181,253,0.46); }
+        .sy-lunar-seal::after { content:''; position:absolute; right:3px; top:4px; width:8px; height:8px; border-radius:999px; background:rgba(15,23,42,0.38); }
+        .sy-moon-chip-wrap { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px 0; }
+        .sy-moon-chip { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:4px 10px; font-size:0.72rem; border:1px solid rgba(148,163,184,0.35); color:#cbd5e1; background:rgba(15,23,42,0.58); }
+        .sy-moon-chip-dot { width:7px; height:7px; border-radius:999px; display:inline-block; background:linear-gradient(135deg,#c4b5fd,#93c5fd); box-shadow:0 0 9px rgba(165,180,252,0.6); }
+        .sy-natal-tab-bar { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
+        .sy-ntab { padding:8px 12px; border-radius:999px; font-size:0.82rem; border:1px solid rgba(148,163,184,0.34); background:rgba(15,23,42,0.62); color:#dbeafe; cursor:pointer; transition:all 0.2s; white-space:nowrap; touch-action:manipulation; -webkit-tap-highlight-color:transparent; min-height:44px; display:inline-flex; align-items:center; gap:6px; font-weight:700; letter-spacing:0.02em; }
+        .sy-ntab.active { background:linear-gradient(135deg, rgba(99,102,241,0.4), rgba(14,116,144,0.34)); border-color:rgba(165,180,252,0.72); color:#f8fafc; box-shadow:0 0 0 1px rgba(196,181,253,0.35) inset, 0 10px 22px rgba(30,41,59,0.45); }
+        .sy-ntab-glyph { width:14px; height:14px; border-radius:999px; border:1px solid rgba(226,232,240,0.38); position:relative; display:inline-block; background:radial-gradient(circle at 32% 26%, rgba(248,250,252,0.95) 0%, rgba(191,219,254,0.74) 55%, rgba(30,41,59,0.2) 100%); flex-shrink:0; }
+        .sy-ntab-glyph::after { content:''; position:absolute; right:2px; top:2px; width:4px; height:4px; border-radius:999px; background:rgba(15,23,42,0.35); }
+        .sy-ntab-glyph--hidden { background:radial-gradient(circle at 28% 28%, rgba(226,232,240,0.72) 0%, rgba(71,85,105,0.84) 55%, rgba(2,6,23,0.85) 100%); }
+        .sy-ntab-glyph--karma { background:radial-gradient(circle at 30% 30%, rgba(250,245,255,0.96) 0%, rgba(196,181,253,0.92) 45%, rgba(34,211,238,0.72) 100%); }
+        .sy-ntab-glyph--mantra { background:radial-gradient(circle at 30% 30%, rgba(254,249,195,0.95) 0%, rgba(251,191,36,0.7) 45%, rgba(234,88,12,0.42) 100%); }
+        .sy-ntab-glyph--daily { background:radial-gradient(circle at 30% 30%, rgba(220,252,231,0.95) 0%, rgba(52,211,153,0.72) 45%, rgba(6,95,70,0.45) 100%); }
         .sy-natal-panel { display:none; animation: syFadeIn 0.4s ease; }
         .sy-natal-panel.active { display:block; }
         @keyframes syFadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .sy-natal-text { font-size:0.97rem; line-height:1.9; color:#d8d0ee; padding:14px 15px; background:rgba(0,0,0,0.2); border-radius:8px; border-left:3px solid rgba(167,139,250,0.4); margin-bottom:0; }
         .sy-mantra { font-size:0.95rem; font-style:italic; color:#ffd700; text-align:center; padding:13px; border:1px dashed rgba(255,215,0,0.3); border-radius:8px; background:rgba(255,215,0,0.04); line-height:1.78; }
+        .sy-narr-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px; }
+        .sy-narr-card { border-radius:10px; border:1px solid rgba(148,163,184,0.24); background:rgba(15,23,42,0.52); padding:10px 11px; }
+        .sy-narr-card h5 { margin:0 0 5px 0; font-size:0.78rem; letter-spacing:0.04em; text-transform:uppercase; color:#c7d2fe; }
+        .sy-narr-card p { margin:0; font-size:0.86rem; line-height:1.72; color:#e2e8f0; }
+        .sy-narr-tail { margin-top:10px; padding:10px 11px; border-radius:10px; border:1px solid rgba(196,181,253,0.3); background:rgba(30,41,59,0.58); color:#e5e7eb; font-size:0.9rem; line-height:1.78; }
+        .sy-mantra-stack { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+        .sy-daily-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
         .sy-talent-bar { display:flex; align-items:center; gap:10px; margin-top:10px; }
         .sy-talent-track { flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; }
         .sy-talent-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#a78bfa,#ffd700); transition:width 1.5s cubic-bezier(0.4,0,0.2,1); }
@@ -4081,6 +4102,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-header h3 { font-size:1.35rem; }
           .sy-natal-text,.sy-mantra,.sy-insight,.sy-guardian-main-desc,.sy-guardian-detail-item p { font-size:0.92rem; line-height:1.82; }
           .sy-ritual-grid { grid-template-columns:1fr; }
+          .sy-narr-grid { grid-template-columns:1fr 1fr; }
+          .sy-mantra-stack { grid-template-columns:1fr; }
+          .sy-daily-grid { grid-template-columns:1fr; }
           .sy-summary-grid { grid-template-columns:1fr 1fr; }
           .sy-profile-grid { grid-template-columns:1fr; }
           .sy-mini-grid { grid-template-columns:1fr 1fr; }
@@ -4098,6 +4122,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-hero-title { font-size:1.08rem; }
           .sy-summary-grid { grid-template-columns:1fr; }
           .sy-mini-grid { grid-template-columns:1fr; }
+          .sy-narr-grid { grid-template-columns:1fr; }
           .sy-ntab, .sy-rel-tab, .sy-canon-tab { min-height:44px; }
         }
         `;
@@ -4148,29 +4173,97 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       };
 
       var legacyDailyCard = '';
+      var coreText = String(tr.core || tr.desc || '').trim();
+      var hiddenText = String(tr.hidden || tr.desc || '').trim();
+      var karmaText = String(tr.karma || tr.love || '').trim();
+      var mantraText = String(tr.mantra || '"나답게 사는 것이 가장 위대한 일이다."').trim();
+      var workText = String(tr.work || '').trim();
+      var loveText = String(tr.love || '').trim();
+      var wealthText = String(tr.wealth || '').trim();
+      var mansionName = String(sData.mansion || '본명숙').trim();
+      var moonToneLabel = legacyDaily && legacyDaily.moon && legacyDaily.moon.label ? String(legacyDaily.moon.label) : '달빛 리듬';
+      var moonToneDesc = legacyDaily && legacyDaily.moon && legacyDaily.moon.desc ? String(legacyDaily.moon.desc) : '지금의 정서는 고요하게 수렴되는 위상입니다.';
+      var coreTokens = syCanonicalTokenize(coreText, '당신의 중심 축은 안정적으로 빛납니다.');
+      var hiddenTokens = syCanonicalTokenize(hiddenText, '감정의 파도는 조용한 시간에 정돈됩니다.');
+      var karmaTokens = syCanonicalTokenize(karmaText, '관계는 작은 배려에서 깊어집니다.');
+      var workTokens = syCanonicalTokenize(workText, '역할을 분명히 할수록 성과가 안정됩니다.');
+      var loveTokens = syCanonicalTokenize(loveText, '감정의 속도를 맞추는 대화가 중요합니다.');
+      var wealthTokens = syCanonicalTokenize(wealthText, '지출 기준을 세우면 재물 리듬이 고르게 유지됩니다.');
+      var renderNarrCard = function(title, body) {
+        return '<article class="sy-narr-card rounded-xl border border-slate-300/20 bg-slate-900/45 p-3 backdrop-blur-sm">'
+          + '<h5 class="text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-200">' + syCanonicalEsc(title) + '</h5>'
+          + '<p class="text-sm leading-7 text-slate-100/90">' + syCanonicalEsc(body) + '</p>'
+          + '</article>';
+      };
 
       _legacyNexusHtml = `
         <div class="sy-grid">
           <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #a78bfa;">
-            <h4 style="margin: 0 0 6px 0; color: #c4b5fd; font-size: 1.05rem;">🪷 본성 심화 해석</h4>
-            <p style="margin:0 0 10px 0; font-size:0.86rem; color:#cbd5e1; line-height:1.7;">통합 대시보드의 핵심 좌표를 바탕으로, 성향과 관계 리듬을 문맥형으로 더 깊게 풀이합니다.</p>
-            <div class="sy-natal-tab-bar">
-              <button class="sy-ntab active" data-ntab="core">🌟 천성의 빛</button>
-              <button class="sy-ntab" data-ntab="hidden">🌑 달의 이면</button>
-              <button class="sy-ntab" data-ntab="karma">💫 인연의 궤도</button>
-              <button class="sy-ntab" data-ntab="mantra">✨ 수호의 문장</button>
-              <button class="sy-ntab" data-ntab="daily">📋 일상 적용</button>
-            </div>
-            <div class="sy-natal-panel active" id="sy-panel-core"><p class="sy-natal-text">${syCanonicalEsc(tr.core || tr.desc || '')}</p></div>
-            <div class="sy-natal-panel" id="sy-panel-hidden"><p class="sy-natal-text">${syCanonicalEsc(tr.hidden || tr.desc || '')}</p></div>
-            <div class="sy-natal-panel" id="sy-panel-karma"><p class="sy-natal-text">${syCanonicalEsc(tr.karma || tr.love || '')}</p></div>
-            <div class="sy-natal-panel" id="sy-panel-mantra"><p class="sy-mantra">${syCanonicalEsc(tr.mantra || '"나답게 사는 것이 가장 위대한 일이다."')}</p></div>
-            <div class="sy-natal-panel" id="sy-panel-daily">
-              <div style="display:grid; gap:8px;">
-                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(167,139,250,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">💼 일 / 사회성</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(tr.work || '')}</p></div>
-                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,139,160,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">❤️ 연애 / 관계</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(tr.love || '')}</p></div>
-                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,191,36,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">💰 재물 / 현실</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(tr.wealth || '')}</p></div>
+            <div class="sy-nexus-shell rounded-2xl border border-indigo-200/20 bg-gradient-to-br from-slate-950/90 via-indigo-950/65 to-slate-900/90 p-4 shadow-2xl backdrop-blur-md">
+              <div class="sy-lunar-head">
+                <span class="sy-lunar-seal" aria-hidden="true"></span>
+                <h4 style="margin:0; color:#d8d4fe; font-size:1.05rem;">본성 심화 해석</h4>
               </div>
+              <p style="margin:0 0 10px 0; font-size:0.86rem; color:#cbd5e1; line-height:1.8;">${syCanonicalEsc(mansionName)}의 핵심 좌표와 ${syCanonicalEsc(moonToneLabel)} 위상을 함께 반영해, 성향·관계·실행 루틴을 문맥형으로 더 길고 세밀하게 읽어드립니다.</p>
+              <div class="sy-moon-chip-wrap">
+                <span class="sy-moon-chip rounded-full border border-slate-300/25 bg-slate-900/60 px-3 py-1 text-[11px] tracking-[0.04em] text-slate-200"><span class="sy-moon-chip-dot"></span>본명숙 ${syCanonicalEsc(mansionName)}</span>
+                <span class="sy-moon-chip rounded-full border border-indigo-300/30 bg-indigo-900/30 px-3 py-1 text-[11px] tracking-[0.04em] text-indigo-100"><span class="sy-moon-chip-dot"></span>${syCanonicalEsc(moonToneLabel)}</span>
+                <span class="sy-moon-chip rounded-full border border-cyan-300/30 bg-cyan-900/20 px-3 py-1 text-[11px] tracking-[0.04em] text-cyan-100"><span class="sy-moon-chip-dot"></span>달 결 ${syCanonicalEsc(moonToneDesc)}</span>
+              </div>
+            <div class="sy-natal-tab-bar">
+              <button class="sy-ntab active" data-ntab="core"><span class="sy-ntab-glyph"></span><span>천성의 빛</span></button>
+              <button class="sy-ntab" data-ntab="hidden"><span class="sy-ntab-glyph sy-ntab-glyph--hidden"></span><span>달의 이면</span></button>
+              <button class="sy-ntab" data-ntab="karma"><span class="sy-ntab-glyph sy-ntab-glyph--karma"></span><span>인연의 궤도</span></button>
+              <button class="sy-ntab" data-ntab="mantra"><span class="sy-ntab-glyph sy-ntab-glyph--mantra"></span><span>수호의 문장</span></button>
+              <button class="sy-ntab" data-ntab="daily"><span class="sy-ntab-glyph sy-ntab-glyph--daily"></span><span>일상 적용</span></button>
+            </div>
+            <div class="sy-natal-panel active" id="sy-panel-core">
+              <p class="sy-natal-text">${syCanonicalEsc(coreText)}</p>
+              <div class="sy-narr-grid">
+                ${renderNarrCard('핵심 파동', coreTokens[0] || coreText)}
+                ${renderNarrCard('현실 발현', workTokens[0] || workText || coreTokens[1] || coreText)}
+                ${renderNarrCard('풍요 방향', wealthTokens[0] || wealthText || coreTokens[2] || coreText)}
+              </div>
+              <div class="sy-narr-tail rounded-xl border border-indigo-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc(mansionName + '의 천성은 ' + syComposeFromTokens(coreTokens, coreText) + '의 결로 읽힙니다. 이 기질은 일에서는 ' + syFirstToken(workTokens, workText || '안정적인 실행력') + '로 나타나고, 재물에서는 ' + syFirstToken(wealthTokens, wealthText || '지속 가능한 축적 감각') + '로 연결됩니다. 즉, 감정의 속도를 조절하면서 작은 실행을 누적할 때 가장 품격 있는 성과로 이어집니다.')}</div>
+            </div>
+            <div class="sy-natal-panel" id="sy-panel-hidden">
+              <p class="sy-natal-text">${syCanonicalEsc(hiddenText)}</p>
+              <div class="sy-narr-grid">
+                ${renderNarrCard('감정 저수지', hiddenTokens[0] || hiddenText)}
+                ${renderNarrCard('그림자 신호', hiddenTokens[1] || hiddenText)}
+                ${renderNarrCard('회복 단서', hiddenTokens[2] || moonToneDesc)}
+              </div>
+              <div class="sy-narr-tail rounded-xl border border-cyan-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc('달의 이면에서는 ' + syComposeFromTokens(hiddenTokens, hiddenText) + '이 반복됩니다. 특히 ' + syFirstToken(loveTokens, loveText || '관계 장면') + '에서 내면 반응이 커질 수 있으니, 즉시 결론보다 감정 기록 3줄과 휴식 10분을 먼저 적용하면 불필요한 소모를 크게 줄일 수 있습니다.')}</div>
+            </div>
+            <div class="sy-natal-panel" id="sy-panel-karma">
+              <p class="sy-natal-text">${syCanonicalEsc(karmaText)}</p>
+              <div class="sy-narr-grid">
+                ${renderNarrCard('끌림 축', karmaTokens[0] || karmaText)}
+                ${renderNarrCard('관계 확장', karmaTokens[1] || loveText || karmaText)}
+                ${renderNarrCard('경계 포인트', karmaTokens[2] || hiddenTokens[0] || karmaText)}
+              </div>
+              <div class="sy-narr-tail rounded-xl border border-pink-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc('인연의 궤도는 ' + syComposeFromTokens(karmaTokens, karmaText) + '을 중심으로 회전합니다. 여기에 ' + syFirstToken(loveTokens, loveText || '관계 리듬') + '를 더하면 매력은 커지지만, 경계선이 흐려질 수 있습니다. 한 달 기준으로 대화의 강약을 조절하면 관계의 안정성과 깊이가 동시에 올라갑니다.')}</div>
+            </div>
+            <div class="sy-natal-panel" id="sy-panel-mantra">
+              <p class="sy-mantra">${syCanonicalEsc(mantraText)}</p>
+              <div class="sy-mantra-stack">
+                ${renderNarrCard('문장 해석', syFirstToken(syCanonicalTokenize(mantraText, mantraText), mantraText))}
+                ${renderNarrCard('실천 번역', '오늘은 마음이 흔들릴 때 이 문장을 기준점으로 삼아 한 가지 행동만 끝까지 완수해 보세요.')}
+                ${renderNarrCard('관계 적용', '대화 전에 내 의도를 한 줄로 정리하면 말의 온도와 정확도가 동시에 올라갑니다.')}
+                ${renderNarrCard('현실 적용', '일과 재물 의사결정에서 즉흥 선택을 줄이고, 24시간 숙성 후 실행하면 손실을 낮출 수 있습니다.')}
+              </div>
+            </div>
+            <div class="sy-natal-panel" id="sy-panel-daily">
+              <div class="sy-daily-grid">
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(167,139,250,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">일 · 사회성</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(workText)}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,139,160,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">연애 · 관계</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(loveText)}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,191,36,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">재물 · 현실</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(wealthText)}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(125,211,252,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">달빛 루틴</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc('오늘은 ' + moonToneLabel + ' 위상입니다. ' + moonToneDesc)}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(110,231,183,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">실행 체크</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc('하루의 우선순위 1가지를 먼저 끝내고, 관계 대화는 밤 시간대에 진행하면 리듬이 안정됩니다.')}</p></div>
+              </div>
+              <div class="sy-narr-tail rounded-xl border border-emerald-200/25 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc('일상 적용의 핵심은 과한 결심보다 리듬 유지입니다. 오늘은 "짧은 실행 → 감정 정리 → 관계 대화" 순서를 지키면 에너지 누수를 줄이면서도 만족도가 오래 지속됩니다.')}</div>
+              </div>
+            </div>
             </div>
           </div>
           ${legacyDailyCard}
