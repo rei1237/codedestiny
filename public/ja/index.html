@@ -8578,7 +8578,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
     if(_paywallEl){
       // 구독 플랜 체크
-      var _pvwHasSub = hasActivePremiumSubscriptionFromCache();
+      var _pvwHasSub = false;
+      try {
+        _pvwHasSub = (typeof hasActivePremiumSubscriptionFromCache === 'function') && !!hasActivePremiumSubscriptionFromCache();
+      } catch (_pvwSubErr) {
+        _pvwHasSub = false;
+      }
       if(coinCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall';

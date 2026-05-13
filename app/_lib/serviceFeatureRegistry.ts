@@ -71,7 +71,7 @@ function withServerPrice(feature: ServiceFeature): ServiceFeature {
   };
 }
 
-const FEATURES: ServiceFeature[] = [
+const FEATURES: ServiceFeature[] = ([
   {
     slug: "saju",
     title: "사주 정밀 분석",
@@ -547,7 +547,7 @@ const FEATURES: ServiceFeature[] = [
       keywords: ["애니멀 토템", "수호 동물", "토템 리딩"],
     },
   },
-].map(withServerPrice);
+] as ServiceFeature[]).map(withServerPrice);
 
 export const SERVICE_FEATURES: ServiceFeature[] = FEATURES;
 
