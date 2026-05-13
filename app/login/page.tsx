@@ -86,6 +86,13 @@ function normalizeSocialAuthError(rawReason: string | null): string {
   return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
+function fallbackDisplayNameFromLoginId(rawId: string) {
+  const normalized = rawId.trim();
+  if (!normalized) return "탐험가";
+  const candidate = normalized.split("@")[0]?.trim();
+  return candidate || "탐험가";
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -94,6 +101,7 @@ export default function LoginPage() {
   const [callbackProcessing] = useState(false);
   const [loginStatus, setLoginStatus] = useState<LoginStatus>("idle");
   const [portalMessage, setPortalMessage] = useState("");
+  const [portalDisplayName, setPortalDisplayName] = useState("탐험가");
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -149,6 +157,8 @@ export default function LoginPage() {
     setError("");
     clearAuthError();
     setLoginSubmitting(true);
+    const fallbackDisplayName = fallbackDisplayNameFromLoginId(normalizedId);
+    setPortalDisplayName(fallbackDisplayName);
     setLoginStatus("loading");
     setPortalMessage("당신의 운명 데이터를 안전하게 불러오고 있습니다.");
 
@@ -163,6 +173,7 @@ export default function LoginPage() {
       });
 
       setLoginStatus("success");
+      setPortalDisplayName(loginResult.user?.name?.trim() || fallbackDisplayName);
       setPortalMessage("별빛 여정이 시작되었습니다.");
       const resolvedNextPath = sanitizeNextPath(loginResult.nextPath || null) || nextPath;
       if (IS_DEV) console.debug("[auth] redirect to home");
@@ -187,11 +198,12 @@ export default function LoginPage() {
     if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
 
     setError("");
-  clearAuthError();
+    clearAuthError();
     setOauthRedirecting(provider);
-  setLoginStatus("loading");
-  setPortalMessage("우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
-  authInfo("[AUTH] oauth redirect start");
+    setPortalDisplayName("탐험가");
+    setLoginStatus("loading");
+    setPortalMessage("우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
+    authInfo("[AUTH] oauth redirect start");
 
     try {
       sessionStorage.setItem("cd_oauth_intent", JSON.stringify({ provider, flow: "login", at: Date.now() }));
@@ -210,29 +222,29 @@ export default function LoginPage() {
   const formDisabled = isBusy;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0b1225] via-[#1b1745] to-[#2f0a4f] px-4 py-10 text-slate-100">
-      <StarlightLoginPortal status={loginStatus} message={portalMessage} error={error} />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:64px_64px] opacity-40 animate-twinkle" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(168,85,247,0.30),transparent_28%),radial-gradient(circle_at_15%_80%,rgba(99,102,241,0.22),transparent_33%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.15),transparent_35%),radial-gradient(circle_at_82%_18%,rgba(251,191,36,0.12),transparent_36%),linear-gradient(150deg,#030712_0%,#07152b_52%,#0a1f39_100%)] px-4 py-10 text-slate-100">
+      <StarlightLoginPortal status={loginStatus} message={portalMessage} error={error} displayName={portalDisplayName} />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.2)_1px,transparent_1px)] [background-size:62px_62px] opacity-45 animate-twinkle" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_78%,rgba(56,189,248,0.24),transparent_32%),radial-gradient(circle_at_86%_84%,rgba(245,158,11,0.14),transparent_30%)]" />
 
       <div className="relative mx-auto w-full max-w-md opacity-0 animate-fade-in-up">
-        <div className="rounded-3xl bg-gradient-to-br from-violet-300/35 via-fuchsia-300/10 to-slate-200/35 p-[1px] shadow-violet-neon">
-          <section className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl [color-scheme:dark] sm:p-8">
+        <div className="rounded-3xl bg-gradient-to-br from-cyan-200/35 via-sky-300/15 to-amber-200/30 p-[1px] shadow-[0_24px_60px_rgba(3,15,32,0.55)]">
+          <section className="rounded-3xl border border-cyan-100/15 bg-slate-900/45 p-6 backdrop-blur-xl [color-scheme:dark] sm:p-8">
             <header className="mb-6 text-center">
-              <p className="mb-2 inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-violet-200">
-                TWILIGHT LOGIN
+              <p className="mb-2 inline-flex rounded-full border border-cyan-200/35 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-cyan-100">
+                COSMIC LOGIN
               </p>
               <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">별빛 로그인 포털</h1>
-              <p className="mt-2 text-sm leading-6 text-violet-100/80">
+              <p className="mt-2 text-sm leading-6 text-cyan-50/80">
                 아이디(이메일)/비밀번호 또는 소셜 계정으로 로그인할 수 있습니다.
               </p>
-              <div className="mt-4 inline-flex rounded-full border border-violet-200/25 bg-slate-950/30 p-1">
-                <span className="min-h-0 min-w-0 rounded-full bg-violet-400/20 px-3 py-1.5 text-xs font-semibold text-violet-100">
+              <div className="mt-4 inline-flex rounded-full border border-cyan-100/25 bg-slate-950/40 p-1">
+                <span className="min-h-0 min-w-0 rounded-full bg-cyan-300/20 px-3 py-1.5 text-xs font-semibold text-cyan-100">
                   로그인
                 </span>
                 <Link
                   href="/signup"
-                  className="min-h-0 min-w-0 rounded-full px-3 py-1.5 text-xs font-semibold text-violet-200/85 transition hover:text-violet-100"
+                  className="min-h-0 min-w-0 rounded-full px-3 py-1.5 text-xs font-semibold text-cyan-100/80 transition hover:text-cyan-50"
                 >
                   회원가입
                 </Link>
@@ -245,7 +257,7 @@ export default function LoginPage() {
 
             <form className="space-y-3" onSubmit={handleLocalLogin}>
               <div>
-                <label htmlFor="login-id" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">ID / EMAIL</label>
+                <label htmlFor="login-id" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-cyan-100/75">ID / EMAIL</label>
                 <input
                   id="login-id"
                   type="email"
@@ -254,12 +266,12 @@ export default function LoginPage() {
                   onChange={(event) => setLoginId(event.target.value)}
                   disabled={formDisabled}
                   placeholder="name@example.com"
-                  className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-12 w-full rounded-xl border border-cyan-100/25 bg-slate-950/55 px-4 text-sm text-slate-100 outline-none transition focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                 />
-                <p className="mt-1.5 text-[11px] text-violet-100/65">가입할 때 사용한 이메일 아이디를 입력해 주세요.</p>
+                <p className="mt-1.5 text-[11px] text-cyan-100/65">가입할 때 사용한 이메일 아이디를 입력해 주세요.</p>
               </div>
               <div>
-                <label htmlFor="login-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PASSWORD</label>
+                <label htmlFor="login-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-cyan-100/75">PASSWORD</label>
                 <div className="relative">
                   <input
                     id="login-password"
@@ -269,13 +281,13 @@ export default function LoginPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     disabled={formDisabled}
                     placeholder="비밀번호 입력"
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 pr-14 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-12 w-full rounded-xl border border-cyan-100/25 bg-slate-950/55 px-4 pr-14 text-sm text-slate-100 outline-none transition focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     disabled={formDisabled}
-                    className="absolute right-2 top-1/2 h-8 min-h-0 min-w-0 -translate-y-1/2 rounded-md border border-violet-300/30 bg-violet-400/10 px-2 py-1 text-[11px] font-semibold text-violet-100 hover:bg-violet-400/20 disabled:opacity-60"
+                    className="absolute right-2 top-1/2 h-8 min-h-0 min-w-0 -translate-y-1/2 rounded-md border border-cyan-300/30 bg-cyan-400/10 px-2 py-1 text-[11px] font-semibold text-cyan-100 hover:bg-cyan-400/20 disabled:opacity-60"
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                   >
                     {showPassword ? "숨김" : "보기"}
@@ -285,7 +297,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setError("비밀번호 재설정 기능은 준비 중입니다. 잠시만 기다려 주세요.")}
-                    className="min-h-0 min-w-0 px-0 py-0 text-xs font-semibold text-violet-200/85 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-100"
+                    className="min-h-0 min-w-0 px-0 py-0 text-xs font-semibold text-cyan-100/85 underline decoration-cyan-300/60 underline-offset-4 hover:text-cyan-50"
                   >
                     비밀번호를 잊으셨나요?
                   </button>
@@ -294,16 +306,16 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={formDisabled}
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-cyan-100/35 bg-gradient-to-r from-cyan-500/80 via-sky-500/70 to-amber-400/75 text-sm font-semibold text-slate-950 shadow-[0_10px_26px_rgba(8,47,73,.4)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loginSubmitting ? "로그인 중..." : "아이디/비밀번호로 로그인"}
               </button>
             </form>
 
             <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-violet-100/20" />
-              <span className="text-[11px] font-semibold tracking-[0.2em] text-violet-100/60">SOCIAL LOGIN</span>
-              <div className="h-px flex-1 bg-violet-100/20" />
+              <div className="h-px flex-1 bg-cyan-100/20" />
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-cyan-100/65">SOCIAL LOGIN</span>
+              <div className="h-px flex-1 bg-cyan-100/20" />
             </div>
 
             <div className="space-y-2.5">
@@ -359,9 +371,9 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <footer className="mt-5 text-center text-xs text-violet-100/75">
+            <footer className="mt-5 text-center text-xs text-cyan-50/75">
               회원가입에서 아이디/비밀번호 또는 소셜 계정을 선택할 수 있습니다. {" "}
-              <Link href="/signup" className="font-semibold text-violet-200 underline decoration-violet-300/70 underline-offset-4 hover:text-violet-100">
+              <Link href="/signup" className="font-semibold text-cyan-100 underline decoration-cyan-300/70 underline-offset-4 hover:text-cyan-50">
                 회원가입
               </Link>
             </footer>
