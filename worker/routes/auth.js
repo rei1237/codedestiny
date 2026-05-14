@@ -1098,7 +1098,7 @@ async function handleRegister(request, env) {
 }
 
 async function handleLogin(request, env) {
-  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 9000);
+  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 15000);
   const fastDbEnv = {
     ...buildAuthDbEnv(env, timeoutMs),
     MONGO_CONNECT_RETRY_ONCE: "true",
