@@ -390,7 +390,11 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         persistAuthFromCallback(payload);
         debugAuth("[auth] auth store updated");
 
-        await Promise.allSettled([
+        setStatus("별빛 여정이 시작되었습니다.");
+        const nextPath = sanitizeNextPath(payload.nextPath || null) || resolveNextPathFromQuery(params);
+        clearIntent();
+
+        void Promise.allSettled([
           fetch(balanceUrl, {
             method: "GET",
             credentials: "include",
@@ -433,15 +437,13 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
             credentials: "include",
             cache: "no-store",
           }),
-        ]);
+        ]).catch(() => {
+          // Non-blocking sync: redirect should never wait for optional post-login hydration.
+        });
 
         if (isStaleFlow()) {
           return;
         }
-
-        setStatus("별빛 여정이 시작되었습니다.");
-        const nextPath = sanitizeNextPath(payload.nextPath || null) || resolveNextPathFromQuery(params);
-        clearIntent();
         debugAuth("[auth] redirect to home");
 
         if (nextPath === "/" || nextPath === "/index.html") {
