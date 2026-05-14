@@ -1064,23 +1064,30 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 402 });
   }
 
-  const history = await PointHistory.create({
-    userId: auth.userId,
-    kind: "deduct",
-    delta: -cost,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "fortune.pig-coin.consume",
-      ...(requestId ? { requestId } : {}),
-      ...(categoryKey ? { categoryKey } : {}),
-      ...(subFeatureKey ? { subFeatureKey } : {}),
-      ...(payloadHash ? { payloadHash } : {}),
-      ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
-      subscriptionTierAtConsume: effectiveTier || "free",
-    },
-  });
+  let history = null;
+  let historyWriteFailed = false;
+  try {
+    history = await PointHistory.create({
+      userId: auth.userId,
+      kind: "deduct",
+      delta: -cost,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey,
+      metadata: {
+        source: "fortune.pig-coin.consume",
+        ...(requestId ? { requestId } : {}),
+        ...(categoryKey ? { categoryKey } : {}),
+        ...(subFeatureKey ? { subFeatureKey } : {}),
+        ...(payloadHash ? { payloadHash } : {}),
+        ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
+        subscriptionTierAtConsume: effectiveTier || "free",
+      },
+    });
+  } catch (error) {
+    historyWriteFailed = true;
+    console.error("[fortune:pig-coin:consume] point-history write degraded:", error?.message || error);
+  }
 
   const unlockedFeatures = normalizePersistentUnlockKeys(
     (updatedUser && updatedUser.unlockedFeatures) || unlockKeysToPersist,
@@ -1099,6 +1106,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     profileLimit: policy.profileLimit,
     recommendedCoins: policy.recommendedCoins,
     transactionId: String(history?._id || ""),
+    historyWriteDegraded: historyWriteFailed,
     user: userPayload(auth, updatedUser.points, unlockedFeatures),
     unlockedFeatures,
     unlockMap: toUnlockMap(unlockedFeatures),
@@ -1275,26 +1283,34 @@ async function handlePigCoinRefund(request, auth) {
     return json({ message: "User not found." }, { status: 404 });
   }
 
-  const refundHistory = await PointHistory.create({
-    userId: auth.userId,
-    kind: "refund",
-    delta: cost,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "fortune.pig-coin.refund",
-      requestId,
-      refundForPointHistoryId: String(deducted._id),
-      sourceTransactionId: String(deducted._id),
-    },
-  });
+  let refundHistory = null;
+  let refundHistoryWriteFailed = false;
+  try {
+    refundHistory = await PointHistory.create({
+      userId: auth.userId,
+      kind: "refund",
+      delta: cost,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey,
+      metadata: {
+        source: "fortune.pig-coin.refund",
+        requestId,
+        refundForPointHistoryId: String(deducted._id),
+        sourceTransactionId: String(deducted._id),
+      },
+    });
+  } catch (error) {
+    refundHistoryWriteFailed = true;
+    console.error("[fortune:pig-coin:refund] point-history write degraded:", error?.message || error);
+  }
 
   return json({
     message: `${cost.toLocaleString("ko-KR")} coins refunded.`,
     refundedCoins: cost,
     sourceTransactionId: String(deducted._id),
     refundTransactionId: String(refundHistory?._id || ""),
+    historyWriteDegraded: refundHistoryWriteFailed,
     user: userPayload(auth, updatedUser.points),
   });
 }

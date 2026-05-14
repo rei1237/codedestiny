@@ -176,18 +176,34 @@ function __cdShouldTrackPaymentRequest(pathname, method) {
   if (!pathname) return false;
   if (method === 'GET' || method === 'HEAD') return false;
 
+  if (pathname.indexOf('/api/billing/') === 0) return true;
+  if (pathname.indexOf('/api/payments/') === 0) return true;
+  if (pathname.indexOf('/api/subscription/') === 0) return true;
+  if (pathname.indexOf('/api/payment/') === 0) return true;
+  if (pathname.indexOf('/api/checkout/') === 0) return true;
+  if (pathname.indexOf('/api/fortune/pig-coin/') === 0) return true;
+
   if (pathname.indexOf('/api/premium/') === 0) return true;
   if (pathname.indexOf('/api/tarot/reading') === 0) return true;
   if (pathname.indexOf('/api/sibyl/report') === 0) return true;
-  if (pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) return true;
   return false;
 }
 
 function __cdResolvePaymentMessage(pathname) {
-  if (pathname && pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) {
-    return '결제가 진행 중입니다.';
+  if (!pathname) return '운명을 읽어오는 중입니다...';
+  if (pathname.indexOf('/api/payments/subscription/confirm') === 0 || pathname.indexOf('/api/billing/confirm') === 0) {
+    return '은하 결제망에서 구독 활성화를 확인하고 있습니다...';
   }
-  return '운명을 읽어오는 중입니다...';
+  if (pathname.indexOf('/api/payments/confirm') === 0 || pathname.indexOf('/api/billing/purchase') === 0) {
+    return '별빛 결제를 검증하고 포인트를 정산하고 있습니다...';
+  }
+  if (pathname.indexOf('/api/payments/prepare') === 0 || pathname.indexOf('/api/billing/checkout') === 0) {
+    return '우주 결제 채널을 준비하고 있습니다...';
+  }
+  if (pathname.indexOf('/api/fortune/pig-coin/') === 0) {
+    return '꽃돼지 코인 게이트를 통과하는 중입니다...';
+  }
+  return '성간 결제 라인을 연결하고 있습니다...';
 }
 
 function __cdEnsurePaymentLoadingStyle() {
@@ -288,6 +304,27 @@ function __cdEnsurePaymentLoadingOverlay() {
 
 function __cdSetPaymentLoadingOverlay(open, message) {
   if (typeof document === 'undefined') return;
+
+  try {
+    window.dispatchEvent(new CustomEvent('cd:payment-pending', {
+      detail: {
+        pending: !!open,
+        message: (typeof message === 'string' && message.trim()) ? message.trim() : '결제가 진행 중입니다.',
+        source: 'static-runtime'
+      }
+    }));
+  } catch (_) {}
+
+  // Next 앱이 제공하는 전역 오버레이가 있으면 우선 사용한다.
+  try {
+    if (typeof window._cdSetCoinGateOverlay === 'function') {
+      window._cdSetCoinGateOverlay(!!open, message);
+      var bridgedOverlay = document.getElementById('cdPaymentLoadingOverlay');
+      if (bridgedOverlay) bridgedOverlay.style.display = 'none';
+      return;
+    }
+  } catch (_) {}
+
   var overlay = __cdEnsurePaymentLoadingOverlay();
   var statusNode = document.getElementById('cdPaymentLoadingStatus');
   if (statusNode && typeof message === 'string' && message.trim()) {

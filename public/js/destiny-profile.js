@@ -221,6 +221,8 @@
   }
 
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
+  var _DP_FETCH_TIMEOUT_MS = 9000;
+  var _dpRefreshSessionInFlight = null;
 
   function _dpNormalizeApiBase(rawBase) {
     var base = String(rawBase || '').trim();
@@ -235,9 +237,62 @@
     return normalizedBase ? (normalizedBase + path) : path;
   }
 
-  function _dpBuildApiCandidates(pathname) {
+  function _dpIsWorkersDevHost(hostname) {
+    var host = String(hostname || '').trim().toLowerCase();
+    return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
+  }
+
+  function _dpIsAuthSensitivePath(pathname) {
+    var path = String(pathname || '');
+    return path.indexOf('/api/auth/') === 0
+      || path.indexOf('/api/user/') === 0
+      || path.indexOf('/api/fortune/pig-coin/') === 0
+      || path.indexOf('/api/billing/') === 0
+      || path.indexOf('/api/payments/') === 0
+      || path.indexOf('/api/subscription/') === 0;
+  }
+
+  function _dpShouldAllowWorkerFallback(pathname, options) {
+    var opts = options || {};
+    if (opts.allowWorkerFallback === true) return true;
+    if (opts.allowWorkerFallback === false) return false;
+
+    if (!_dpIsAuthSensitivePath(pathname)) return true;
+    try {
+      if (_dpIsWorkersDevHost(window.location.hostname || '')) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  function _dpIsSameOriginBase(base) {
+    var normalized = _dpNormalizeApiBase(base);
+    if (!normalized) return true;
+    try {
+      return normalized === _dpNormalizeApiBase(window.location.origin || '');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _dpShouldTryRefresh(pathname, options) {
+    var opts = options || {};
+    if (opts.retryOn401 === false) return false;
+    var path = String(pathname || '');
+    if (!_dpIsAuthSensitivePath(path)) return false;
+    if (path === '/api/auth/refresh') return false;
+    if (path === '/api/auth/login') return false;
+    if (path === '/api/auth/register') return false;
+    if (path === '/api/auth/logout') return false;
+    if (path === '/api/auth/oauth/complete') return false;
+    return true;
+  }
+
+  function _dpBuildApiCandidates(pathname, options) {
     var path = String(pathname || '');
     if (path.charAt(0) !== '/') path = '/' + path;
+    var opts = options || {};
+    var authSensitive = _dpIsAuthSensitivePath(path);
+    var allowWorkerFallback = _dpShouldAllowWorkerFallback(path, opts);
 
     var out = [];
     var seen = Object.create(null);
@@ -250,15 +305,45 @@
       out.push({ base: normalized, url: url });
     }
 
-    pushBase('');
-    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
-    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
-    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
-    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
-    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
-    pushBase(_DP_DEFAULT_API_WORKER_ORIGIN);
+    if (authSensitive) {
+      pushBase('');
+      try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+      try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+      try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+      try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+      try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+      if (allowWorkerFallback) pushBase(_DP_DEFAULT_API_WORKER_ORIGIN);
+    } else {
+      try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+      try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+      try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+      try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+      pushBase('');
+      try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+      if (allowWorkerFallback) pushBase(_DP_DEFAULT_API_WORKER_ORIGIN);
+    }
 
     return out.length ? out : [{ base: '', url: path }];
+  }
+
+  function _dpFetchWithTimeout(url, init, timeoutMs) {
+    var ms = Number(timeoutMs);
+    if (!isFinite(ms) || ms <= 0) ms = _DP_FETCH_TIMEOUT_MS;
+    ms = Math.max(2000, Math.min(20000, Math.floor(ms)));
+
+    if (typeof AbortController === 'undefined') {
+      return fetch(url, init);
+    }
+
+    var controller = new AbortController();
+    var requestInit = Object.assign({}, init || {}, { signal: controller.signal });
+    var timeoutId = setTimeout(function() {
+      try { controller.abort(); } catch (_) {}
+    }, ms);
+
+    return fetch(url, requestInit).finally(function() {
+      clearTimeout(timeoutId);
+    });
   }
 
   function _dpLooksLikeHtmlResponse(response, bodyText) {
@@ -300,8 +385,58 @@
       });
   }
 
-  function _dpFetchJsonWithFallback(pathname, init) {
-    var candidates = _dpBuildApiCandidates(pathname);
+  function _dpRefreshAuthSessionSilently(options) {
+    var opts = options || {};
+    if (_dpRefreshSessionInFlight) return _dpRefreshSessionInFlight;
+
+    _dpRefreshSessionInFlight = (function() {
+      var refreshCandidates = _dpBuildApiCandidates('/api/auth/refresh', {
+        allowWorkerFallback: false,
+        retryOn401: false,
+      });
+
+      function attempt(index) {
+        if (index >= refreshCandidates.length) return Promise.resolve(false);
+
+        var candidate = refreshCandidates[index];
+        return _dpFetchWithTimeout(candidate.url, {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-store',
+        }, opts.timeoutMs)
+          .then(function(response) {
+            if (!response.ok) {
+              if (response.status >= 500 && index < refreshCandidates.length - 1) return attempt(index + 1);
+              return false;
+            }
+
+            return response.json().catch(function() { return null; }).then(function(payload) {
+              if (!payload || payload.ok !== true) return false;
+              var accessToken = String((payload && payload.accessToken) || '').trim();
+              if (accessToken) {
+                try { localStorage.setItem('fortune_auth_token', accessToken); } catch (_) {}
+              }
+              if (payload && payload.user) _dpPersistSessionUser(payload.user);
+              return true;
+            });
+          })
+          .catch(function() {
+            if (index < refreshCandidates.length - 1) return attempt(index + 1);
+            return false;
+          });
+      }
+
+      return attempt(0).finally(function() {
+        _dpRefreshSessionInFlight = null;
+      });
+    })();
+
+    return _dpRefreshSessionInFlight;
+  }
+
+  function _dpFetchJsonWithFallback(pathname, init, options) {
+    var opts = options || {};
+    var candidates = _dpBuildApiCandidates(pathname, opts);
     var requestInit = Object.assign({}, init || {});
     var lastResult = null;
 
@@ -319,7 +454,7 @@
       }
 
       var candidate = candidates[index];
-      return fetch(candidate.url, requestInit)
+      return _dpFetchWithTimeout(candidate.url, requestInit, opts.timeoutMs)
         .then(function(response) {
           return _dpReadApiPayload(response).then(function(parsed) {
             var data = parsed && parsed.data;
@@ -341,6 +476,40 @@
             };
 
             lastResult = result;
+
+            if (response.status === 401 && _dpShouldTryRefresh(pathname, opts)) {
+              return _dpRefreshAuthSessionSilently({ timeoutMs: opts.timeoutMs }).then(function(refreshed) {
+                if (!refreshed) return result;
+                return _dpFetchWithTimeout(candidate.url, requestInit, opts.timeoutMs)
+                  .then(function(retryResponse) {
+                    return _dpReadApiPayload(retryResponse).then(function(retryParsed) {
+                      var retryData = retryParsed && retryParsed.data;
+                      var retryLooksHtml = !retryParsed.parsed && _dpLooksLikeHtmlResponse(retryResponse, retryParsed.text);
+                      var retryPayload = (retryData && typeof retryData === 'object') ? retryData : {};
+                      if (retryLooksHtml && !retryPayload.message) {
+                        retryPayload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
+                      }
+
+                      var retryResult = {
+                        ok: retryResponse.ok && !retryLooksHtml,
+                        status: retryResponse.status,
+                        data: retryPayload,
+                        response: retryResponse,
+                        base: candidate.base,
+                        url: candidate.url,
+                        looksHtml: retryLooksHtml,
+                      };
+
+                      lastResult = retryResult;
+                      if (retryResult.ok) _dpRememberApiBase(candidate.base);
+                      return retryResult;
+                    });
+                  })
+                  .catch(function() {
+                    return result;
+                  });
+              });
+            }
 
             if (result.ok) {
               _dpRememberApiBase(candidate.base);
@@ -433,9 +602,13 @@
       credentials: 'include',
       cache: 'no-store',
       headers: _dpBuildAuthHeaders()
+    }, {
+      allowWorkerFallback: false,
+      retryOn401: true,
+      timeoutMs: _DP_FETCH_TIMEOUT_MS,
     }).then(function(result) {
       if (!result.ok) {
-        if (result.status === 401 || result.status === 403) {
+        if ((result.status === 401 || result.status === 403) && _dpIsSameOriginBase(result.base)) {
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
           try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
         }
@@ -769,6 +942,26 @@
     } catch (_) {}
   }
 
+  function _dpSetPaymentPending(show, message) {
+    var text = String(message || '').trim() || '결제가 진행 중입니다.';
+
+    try {
+      if (typeof window._cdSetCoinGateOverlay === 'function') {
+        window._cdSetCoinGateOverlay(!!show, text);
+      }
+    } catch (_) {}
+
+    try {
+      window.dispatchEvent(new CustomEvent('cd:payment-pending', {
+        detail: {
+          pending: !!show,
+          message: text,
+          source: 'destiny-profile',
+        }
+      }));
+    } catch (_) {}
+  }
+
   function _cdIsAdminLikeUser() {
     var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
     try {
@@ -829,23 +1022,6 @@
         hasBalanceSnapshot = true;
       }
     } catch(_) {}
-    if (hasBalanceSnapshot && balance < cost) {
-      if (typeof onCancel === 'function') onCancel();
-      var shortageNow = Date.now();
-      var shortageLastGlobal = Number(window.__cdCoinGateShortagePromptLastAt || 0);
-      if (shortageLastGlobal && (shortageNow - shortageLastGlobal < 1800)) {
-        return;
-      }
-      window.__cdCoinGateShortagePromptLastAt = shortageNow;
-      window.__cdCoinGateShortagePromptLastKey = String(cost || 0) + '|' + String(reason || '');
-      if (typeof window.__cdOpenChargeModal === 'function') {
-        window.alert('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 창을 열겠습니다.');
-        window.__cdOpenChargeModal();
-      } else if (window.confirm('🪙 ' + reason + '\n\n' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n충전 페이지로 이동하시겠습니까?')) {
-        window.location.href = '/points';
-      }
-      return;
-    }
     var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
     if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + balanceLabel + '\n\n진행하시겠습니까?')) {
       if (typeof onCancel === 'function') onCancel();
@@ -855,15 +1031,20 @@
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
+    _dpSetPaymentPending(true, '꽃돼지 코인을 차감하는 중입니다...');
     _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: consumeHeaders,
       credentials: 'include',
       cache: 'no-store',
       body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'coin-gate-per-use', forceDeduct: true, requestId: requestId })
+    }, {
+      retryOn401: true,
+      timeoutMs: _DP_FETCH_TIMEOUT_MS,
     })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
+      _dpSetPaymentPending(false);
       if (res.status === 401 || res.status === 403) {
         if (typeof window.__cdOpenLoginRequiredModal === 'function') {
           window.__cdOpenLoginRequiredModal({
@@ -896,7 +1077,7 @@
       }
       cb(res.data && res.data.transactionId ? String(res.data.transactionId) : '');
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {
@@ -1017,15 +1198,20 @@
         'Content-Type': 'application/json'
       };
       if (token) unlockHeaders.Authorization = 'Bearer ' + token;
+      _dpSetPaymentPending(true, info.name + ' 결제를 처리하는 중입니다...');
       _dpFetchJsonWithFallback(endpoint, {
         method: 'POST',
         headers: unlockHeaders,
         credentials: 'include',
         cache: 'no-store',
         body: JSON.stringify(payload)
+      }, {
+        retryOn401: true,
+        timeoutMs: _DP_FETCH_TIMEOUT_MS,
       })
       .then(function (res) {
         inFlight = false;
+        _dpSetPaymentPending(false);
         if (res.status === 401 || res.status === 403) {
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({
@@ -1066,6 +1252,7 @@
       })
       .catch(function (e) {
         inFlight = false;
+        _dpSetPaymentPending(false);
         console.error('[dp-coin-gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       });

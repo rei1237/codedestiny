@@ -115,6 +115,31 @@ async function handleSyncDestinyProfiles(request, auth) {
   return json({ ok: true, profiles: nextProfiles, currentId: nextCurrentId });
 }
 
+async function handleSyncDestinyProfilesDegraded(request, auth) {
+  let body = {};
+  try {
+    body = await readJson(request);
+  } catch {
+    body = {};
+  }
+
+  const profiles = sanitizeDestinyProfiles(body?.profiles || []);
+  const currentId = resolveCurrentId(body?.currentId, profiles);
+
+  return json({
+    ok: true,
+    profiles,
+    currentId,
+    degraded: true,
+    code: "DESTINY_PROFILE_STORAGE_UNAVAILABLE",
+    message: "프로필 저장소가 일시적으로 불안정하여 로컬 데이터로 동작합니다.",
+    user: {
+      id: String(auth?.userId || ""),
+      points: Number(auth?.points || 0),
+    },
+  });
+}
+
 export async function handleUserRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -141,8 +166,19 @@ export async function handleUserRoutes(request, env) {
 
     if (method === "POST" && path === "/destiny-profiles") {
       const auth = await requireUserFromRequest(request, env);
-      await connectDb(env);
-      return await handleSyncDestinyProfiles(request, auth);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        console.error("[user:destiny-profiles] sync degraded fallback: db unavailable:", error?.message || error);
+        return await handleSyncDestinyProfilesDegraded(request, auth);
+      }
+
+      try {
+        return await handleSyncDestinyProfiles(request, auth);
+      } catch (error) {
+        console.error("[user:destiny-profiles] sync degraded fallback: query failed:", error?.message || error);
+        return await handleSyncDestinyProfilesDegraded(request, auth);
+      }
     }
 
     if (["GET", "POST"].includes(method)) return notFound();
