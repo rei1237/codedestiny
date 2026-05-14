@@ -131,7 +131,12 @@ export async function handleUserRoutes(request, env) {
         console.error("[user:destiny-profiles] DB unavailable:", error?.message || error);
         return handleDestinyProfilesDbFallback(auth);
       }
-      return await handleGetDestinyProfiles(auth);
+      try {
+        return await handleGetDestinyProfiles(auth);
+      } catch (error) {
+        console.error("[user:destiny-profiles] query degraded fallback:", error?.message || error);
+        return handleDestinyProfilesDbFallback(auth);
+      }
     }
 
     if (method === "POST" && path === "/destiny-profiles") {

@@ -12,6 +12,7 @@ import AnimalShareCard from "./AnimalShareCard";
 import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CosmicSigil from "./CosmicSigil";
+import { motion } from "framer-motion";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
 
 type TabKey = "personality" | "love" | "career" | "wealth" | "relationship" | "today" | "compatibility";
@@ -226,6 +227,5 @@ export default function AnimalResultScreen({
       </div>
     </section>
   );
-}
-  );
+
 }

@@ -403,11 +403,18 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
   const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
   if (fromUser.length || !userId) return fromUser;
 
-  const historyKeys = await PointHistory.distinct("featureKey", {
-    userId,
-    kind: "deduct",
-    featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
-  });
+  let historyKeys = [];
+  try {
+    historyKeys = await PointHistory.distinct("featureKey", {
+      userId,
+      kind: "deduct",
+      featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
+    });
+  } catch (error) {
+    console.error("[fortune:unlock-features] fallback to user unlock cache:", error?.message || error);
+    return fromUser;
+  }
+
   const inferred = normalizePersistentUnlockKeys(historyKeys);
   if (inferred.length) {
     await User.updateOne(
@@ -714,7 +721,12 @@ async function handleBalance(auth) {
     });
   }
 
-  const unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+  let unlockedFeatures = normalizePersistentUnlockKeys(user.unlockedFeatures);
+  try {
+    unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+  } catch (error) {
+    console.error("[fortune:handleBalance] unlock feature lookup degraded:", error?.message || error);
+  }
   const points = Number(user.points || 0);
 
   return json({
@@ -1828,8 +1840,28 @@ export async function handleFortuneRoutes(request, env) {
       }
       trace.dbConnected = true;
 
-      if (path === "/pig-coin/balance") return await handleBalance(auth);
-      return await handleSubscriptionStatus(request, env, auth);
+      try {
+        if (path === "/pig-coin/balance") return await handleBalance(auth);
+        return await handleSubscriptionStatus(request, env, auth);
+      } catch (error) {
+        console.error("[fortune:pig-coin:get] degraded fallback:", error?.message || error);
+        if (path === "/pig-coin/balance") {
+          return json({
+            ok: true,
+            authenticated: true,
+            degraded: true,
+            source: "token",
+            code: "COIN_STORAGE_UNAVAILABLE",
+            message: "코인 저장소가 일시적으로 불안정하여 임시 잔액으로 표시합니다.",
+            balance: Number(auth?.points || 0),
+            walletCreated: false,
+            user: userPayload(auth, Number(auth?.points || 0), []),
+            unlockedFeatures: [],
+            unlockMap: {},
+          });
+        }
+        return json(buildTokenFallbackSubscriptionStatus(auth));
+      }
     }
 
     if (method === "POST" && path === "/pig-coin/unlock") {
