@@ -692,7 +692,7 @@ async function settlePaymentByImpUid({
         },
         $inc: { confirmAttempts: 1 },
       },
-      { new: true },
+      { returnDocument: "after" },
     ).lean();
 
     if (!finalizedPayment) {
@@ -708,7 +708,7 @@ async function settlePaymentByImpUid({
     const updatedUser = await User.findByIdAndUpdate(
       ownerUserId,
       { $inc: { points: chargedPoints } },
-      { new: true, projection: { points: 1 } },
+      { returnDocument: "after", projection: { points: 1 } },
     ).lean();
 
     if (!updatedUser) {
@@ -772,7 +772,7 @@ async function settlePaymentByImpUid({
             },
             $inc: { confirmAttempts: 1 },
           },
-          { new: true, session },
+          { returnDocument: "after", session },
         ).lean();
 
         if (!finalizedPayment) {
@@ -789,7 +789,7 @@ async function settlePaymentByImpUid({
         const updatedUser = await User.findByIdAndUpdate(
           ownerUserId,
           { $inc: { points: chargedPoints } },
-          { new: true, projection: { points: 1 }, session },
+          { returnDocument: "after", projection: { points: 1 }, session },
         ).lean();
 
         if (!updatedUser) throw new Error("user_not_found");
@@ -912,7 +912,10 @@ async function handleWebhook(request, env) {
   });
 
   if (!settled.ok) {
-    return json({ ok: false, message: settled.message });
+    return json(
+      { ok: false, message: settled.message },
+      { status: settled.status || 400 },
+    );
   }
 
   return json({
@@ -1349,7 +1352,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
         "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
       },
     },
-    { new: true, projection: { points: 1, profileSubscription: 1 } },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
   ).lean();
 
   return json({
@@ -1468,7 +1471,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           failureStage: null,
         },
       },
-      { new: true },
+      { returnDocument: "after" },
     ).lean();
 
     let updatedPoints = Number(user.points || 0);
@@ -1476,7 +1479,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
       const updatedUser = await User.findByIdAndUpdate(
         auth.userId,
         { $inc: { points: -pointsToRollback } },
-        { new: true, projection: { points: 1 } },
+        { returnDocument: "after", projection: { points: 1 } },
       ).lean();
       updatedPoints = Number(updatedUser?.points || 0);
 
@@ -1517,7 +1520,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
               failureStage: null,
             },
           },
-          { new: true, session },
+          { returnDocument: "after", session },
         ).lean();
 
         let updatedPoints = Number(user.points || 0);
@@ -1525,7 +1528,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           const updatedUser = await User.findByIdAndUpdate(
             auth.userId,
             { $inc: { points: -pointsToRollback } },
-            { new: true, projection: { points: 1 }, session },
+            { returnDocument: "after", projection: { points: 1 }, session },
           ).lean();
           updatedPoints = Number(updatedUser?.points || 0);
 
