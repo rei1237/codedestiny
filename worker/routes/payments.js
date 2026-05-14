@@ -7,7 +7,7 @@ import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 
-const PAYMENTS_READ_QUERY_TIMEOUT_MS = 6000;
+const PAYMENTS_READ_QUERY_TIMEOUT_MS = 4500;
 let readIndexesEnsurePromise = null;
 
 function toDateFromUnixSeconds(value) {
@@ -97,6 +97,8 @@ function buildReadDbEnv(env = {}, queryTimeoutMs = PAYMENTS_READ_QUERY_TIMEOUT_M
     MONGO_SERVER_SELECTION_TIMEOUT_MS: String(serverSelection),
     MONGO_CONNECT_TIMEOUT_MS: String(connectTimeout),
     MONGO_WORKER_CONNECT_GUARD_MS: String(guardTimeout),
+    MONGO_CONNECT_RETRY_ONCE: "false",
+    MONGO_VERIFY_PING_EACH_REQUEST: "false",
   };
 }
 
