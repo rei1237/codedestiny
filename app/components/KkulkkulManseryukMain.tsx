@@ -149,7 +149,7 @@ type PremiumGateResult = {
 };
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
-  ziwei: 500,
+  ziwei: 590,
   astrology: 390,
   sukuyo: 390,
   veda: 390,
@@ -164,6 +164,14 @@ const PREMIUM_SERVICE_LABEL: Record<PremiumServiceKey, string> = {
   naming: "명운 작명 프리미엄 리포트",
 };
 
+const PREMIUM_SERVICE_FEATURE_KEY: Record<PremiumServiceKey, string> = {
+  ziwei: "premium_pdf_ziwei",
+  astrology: "premium_pdf_western_astrology",
+  sukuyo: "premium_pdf_sukyo",
+  veda: "premium_pdf_vedic",
+  naming: "premium-naming-report",
+};
+
 const UNLOCK_PRODUCT_BY_KEY: Record<UnlockKey, string> = {
   allPaidSaju: "unlock.all_paid_saju",
   rpgCharacter: "unlock.rpg_character",
@@ -172,14 +180,6 @@ const UNLOCK_PRODUCT_BY_KEY: Record<UnlockKey, string> = {
   sajuDiary: "unlock.saju_diary",
   secretHouseEpisodes: "unlock.secret_house_episodes",
   premiumDivinationPack: "unlock.premium_divination_pack",
-};
-
-const PREMIUM_PRODUCT_BY_SERVICE: Record<PremiumServiceKey, string> = {
-  ziwei: "unlock.premium_ziwei",
-  astrology: "unlock.premium_astrology",
-  sukuyo: "unlock.premium_sukuyo",
-  veda: "unlock.premium_veda",
-  naming: "unlock.premium_naming",
 };
 
 const PER_USE_DESTINATION: Partial<Record<PerUseKey, string>> = {
@@ -635,9 +635,6 @@ export default function KkulkkulManseryukMain() {
   };
 
   const runPremiumIntroGate = async (service: PremiumServiceKey): Promise<PremiumGateResult> => {
-    if (unlockedFeatures.premiumDivinationPack) {
-      return { ok: true };
-    }
     const authHeaders = buildClientAuthHeaders();
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/balance', {
@@ -749,32 +746,23 @@ export default function KkulkkulManseryukMain() {
       setVedaFlowState('access_granted');
     }
 
-    if (unlockedFeatures.premiumDivinationPack) {
-      if (service === "ziwei") {
-        markZiweiPremiumUnlockedClient();
-      }
-      if (service === 'veda') {
-        setVedaFlowState('generating_pdf');
-      }
-      setPremiumFlowStage('generate');
-      return;
-    }
-
     const authHeaders = buildClientAuthHeaders();
 
     const cost = PREMIUM_SERVICE_COST[service];
-    const productId = PREMIUM_PRODUCT_BY_SERVICE[service];
-    const requestId = `premium:${productId || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
+    const featureKey = PREMIUM_SERVICE_FEATURE_KEY[service];
+    const requestId = `premium:${featureKey || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
     setPremiumGateLoading(service);
     try {
-      const { res, data } = await fetchJsonWithTimeout(productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume', {
+      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify(
-          productId
-            ? { productId, requestId }
-            : { cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId },
-        ),
+        body: JSON.stringify({
+          cost,
+          reason: `${PREMIUM_SERVICE_LABEL[service]} 생성`,
+          featureKey,
+          forceDeduct: true,
+          requestId,
+        }),
       });
       if (isLoginRequiredResponse(res.status, data)) {
         if (service === 'veda') {
@@ -808,7 +796,7 @@ export default function KkulkkulManseryukMain() {
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
-      notifyCoinResult(data, cost, newPoints, `${service} 프리미엄`);
+      notifyCoinResult(data, cost, newPoints, PREMIUM_SERVICE_LABEL[service]);
       if (service === "ziwei") {
         markZiweiPremiumUnlockedClient();
       }
@@ -1205,7 +1193,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>자미두수 · Ziwei Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>자미두수 프리미엄 PDF</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>500코인 · 15챕터 · 12궁/사화/대한 심층 분석</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>590코인 · 15챕터 · 12궁/사화/대한 심층 분석</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
