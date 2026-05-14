@@ -1,4 +1,5 @@
 import { authFetch } from "@/app/_lib/auth-client";
+import { persistSanitizedAuthUser } from "@/app/_lib/auth-storage";
 
 type BillingError = {
   code: string;
@@ -113,6 +114,155 @@ async function billingFetch(path: string, init: RequestInit) {
   });
 }
 
+function buildBillingResultError<T>(status: number, code: string, message: string, raw: Record<string, unknown> = {}): BillingResult<T> {
+  return {
+    ok: false,
+    status,
+    data: null,
+    message,
+    error: {
+      code,
+      message,
+    },
+    raw,
+  };
+}
+
+function resolveUserIdFromPayload(payload: Record<string, unknown> | null | undefined): string {
+  const rootUser = payload?.user && typeof payload.user === "object"
+    ? (payload.user as Record<string, unknown>)
+    : null;
+  const data = payload?.data && typeof payload.data === "object"
+    ? (payload.data as Record<string, unknown>)
+    : null;
+  const dataUser = data?.user && typeof data.user === "object"
+    ? (data.user as Record<string, unknown>)
+    : null;
+
+  const candidate = String(
+    rootUser?.id
+      || rootUser?.userId
+      || rootUser?._id
+      || dataUser?.id
+      || dataUser?.userId
+      || dataUser?._id
+      || "",
+  ).trim();
+
+  return candidate;
+}
+
+async function ensureServerAuthenticated(): Promise<BillingResult<never> | null> {
+  const response = await billingFetch("/api/auth/me", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
+  const userId = resolveUserIdFromPayload(payload);
+  const authenticated = payload?.authenticated === true;
+
+  if (response.status === 401 || response.status === 403) {
+    return buildBillingResultError<never>(401, "AUTH_REQUIRED", "로그인이 필요합니다.", payload);
+  }
+
+  if (!response.ok) {
+    const message = toText(payload?.message) || "인증 상태 확인에 실패했습니다.";
+    return buildBillingResultError<never>(response.status, "AUTH_REQUIRED", message, payload);
+  }
+
+  if (!authenticated || !userId) {
+    return buildBillingResultError<never>(401, "AUTH_REQUIRED", "로그인이 필요합니다.", payload);
+  }
+
+  const payloadUser = payload?.user && typeof payload.user === "object"
+    ? payload.user
+    : (payload?.data && typeof payload.data === "object" && (payload.data as Record<string, unknown>).user);
+  if (payloadUser && typeof payloadUser === "object") {
+    persistSanitizedAuthUser(payloadUser);
+  }
+
+  return null;
+}
+
+async function refreshBillingStateAfterPurchase() {
+  const [meRes, balanceRes, entitlementsRes] = await Promise.allSettled([
+    billingFetch("/api/auth/me", { method: "GET", cache: "no-store" }),
+    billingFetch("/api/billing/balance", { method: "GET", cache: "no-store" }),
+    billingFetch("/api/billing/entitlements", { method: "GET", cache: "no-store" }),
+  ]);
+
+  if (meRes.status === "fulfilled") {
+    const mePayload = await meRes.value.json().catch(() => ({})) as Record<string, unknown>;
+    const payloadUser = mePayload?.user && typeof mePayload.user === "object"
+      ? mePayload.user
+      : (mePayload?.data && typeof mePayload.data === "object" && (mePayload.data as Record<string, unknown>).user);
+    if (payloadUser && typeof payloadUser === "object") {
+      persistSanitizedAuthUser(payloadUser);
+    }
+  }
+
+  if (balanceRes.status === "fulfilled") {
+    const balancePayload = await balanceRes.value.json().catch(() => ({})) as Record<string, unknown>;
+    const balanceData = balancePayload?.data && typeof balancePayload.data === "object"
+      ? (balancePayload.data as Record<string, unknown>)
+      : balancePayload;
+    const points = Number(balanceData?.balance ?? (balanceData?.user && (balanceData.user as Record<string, unknown>).points) ?? NaN);
+    if (typeof window !== "undefined" && Number.isFinite(points)) {
+      try {
+        window.localStorage.setItem("fortune_user_points", String(points));
+      } catch {
+        // ignore storage failures
+      }
+    }
+  }
+
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent("cd:billing-updated", {
+        detail: {
+          updatedAt: Date.now(),
+          from: "purchaseFeature",
+          hasEntitlements: entitlementsRes.status === "fulfilled",
+        },
+      }));
+    } catch {
+      // ignore event failures
+    }
+  }
+}
+
+export async function apiFetch<T = Record<string, unknown>>(path: string, options: RequestInit = {}): Promise<T> {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await authFetch(path, {
+    ...options,
+    credentials: "include",
+    cache: options.cache || "no-store",
+    headers,
+  }, {
+    retryOn401: true,
+    timeoutMs: BILLING_TIMEOUT_MS,
+    transientRetries: 1,
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const text = await response.text().catch(() => "");
+  const payload = text ? JSON.parse(text) as T : ({} as T);
+
+  if (!response.ok) {
+    throw new Error(typeof payload === "object" && payload ? String((payload as Record<string, unknown>).message || text || "REQUEST_FAILED") : "REQUEST_FAILED");
+  }
+
+  return payload;
+}
+
 export async function fetchBillingFeaturePricing(input: {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -147,6 +297,7 @@ export async function runBillingCoinGate(input: {
   subFeatureKey?: string;
   featureKey?: string;
   reason?: string;
+  productId?: string;
   requestId?: string;
   forceDeduct?: boolean;
   payloadHash?: string;
@@ -156,6 +307,14 @@ export async function runBillingCoinGate(input: {
   balance: number | null;
   user: Record<string, unknown> | null;
 }>> {
+  const authCheck = await ensureServerAuthenticated();
+  if (authCheck) return authCheck as BillingResult<{
+    pricing: BillingFeaturePricing;
+    consume: Record<string, unknown>;
+    balance: number | null;
+    user: Record<string, unknown> | null;
+  }>;
+
   const purchaseResponse = await billingFetch("/api/billing/purchase", {
     method: "POST",
     headers: {
@@ -228,7 +387,24 @@ export async function runBillingCoinGate(input: {
     parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
   }
 
+  if (parsed.ok) {
+    void refreshBillingStateAfterPurchase();
+  }
+
   return parsed;
+}
+
+export async function purchaseFeature(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  productId?: string;
+  requestId?: string;
+  forceDeduct?: boolean;
+  payloadHash?: string;
+}) {
+  return runBillingCoinGate(input);
 }
 
 export async function fetchBillingMe(): Promise<BillingResult<{
@@ -310,6 +486,7 @@ export async function runBillingPurchase(input: {
   subFeatureKey?: string;
   featureKey?: string;
   reason?: string;
+  productId?: string;
   requestId?: string;
   forceDeduct?: boolean;
   payloadHash?: string;
@@ -326,6 +503,21 @@ export async function runBillingPurchase(input: {
     subscriptionGranted?: boolean;
   };
 }>> {
+  const authCheck = await ensureServerAuthenticated();
+  if (authCheck) return authCheck as BillingResult<{
+    purchased: boolean;
+    requestId?: string;
+    pricing?: BillingFeaturePricing;
+    consume?: Record<string, unknown> | null;
+    balance?: number | null;
+    user?: Record<string, unknown> | null;
+    accessDecision?: BillingAccessDecision;
+    unlockState?: {
+      alreadyUnlocked?: boolean;
+      subscriptionGranted?: boolean;
+    };
+  }>;
+
   const response = await billingFetch("/api/billing/purchase", {
     method: "POST",
     headers: {
@@ -333,8 +525,11 @@ export async function runBillingPurchase(input: {
     },
     body: JSON.stringify(input || {}),
   });
-
-  return parseBillingResponse(response);
+  const parsed = await parseBillingResponse(response);
+  if (parsed.ok) {
+    void refreshBillingStateAfterPurchase();
+  }
+  return parsed;
 }
 
 export async function runBillingConsume(input: {
@@ -342,6 +537,7 @@ export async function runBillingConsume(input: {
   subFeatureKey?: string;
   featureKey?: string;
   reason?: string;
+  productId?: string;
   requestId?: string;
   forceDeduct?: boolean;
   payloadHash?: string;
@@ -358,6 +554,21 @@ export async function runBillingConsume(input: {
     subscriptionGranted?: boolean;
   };
 }>> {
+  const authCheck = await ensureServerAuthenticated();
+  if (authCheck) return authCheck as BillingResult<{
+    purchased: boolean;
+    requestId?: string;
+    pricing?: BillingFeaturePricing;
+    consume?: Record<string, unknown> | null;
+    balance?: number | null;
+    user?: Record<string, unknown> | null;
+    accessDecision?: BillingAccessDecision;
+    unlockState?: {
+      alreadyUnlocked?: boolean;
+      subscriptionGranted?: boolean;
+    };
+  }>;
+
   const response = await billingFetch("/api/billing/consume", {
     method: "POST",
     headers: {
@@ -365,8 +576,11 @@ export async function runBillingConsume(input: {
     },
     body: JSON.stringify(input || {}),
   });
-
-  return parseBillingResponse(response);
+  const parsed = await parseBillingResponse(response);
+  if (parsed.ok) {
+    void refreshBillingStateAfterPurchase();
+  }
+  return parsed;
 }
 
 export async function fetchBillingBalance(): Promise<BillingResult<{

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { wrapPdfExportTask } from "../_lib/pdf-export-guard";
+import { purchaseFeature } from "../_lib/billing-client";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -752,37 +753,32 @@ export default function HPremiumVedicSection({
       // ignore storage errors
     }
 
-    const token = localStorage.getItem("fortune_auth_token");
-
     const requestId = `premium:veda:compat-addon:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const res = await fetch("/api/fortune/pig-coin/consume", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        cost: VEDIC_COMPAT_ADDON_COST,
-        reason: "베다 프리미엄 궁합 모드 추가",
-        featureKey: "premium-veda-compatibility-addon",
-        forceDeduct: true,
-        requestId,
-      }),
+    const purchaseResult = await purchaseFeature({
+      featureKey: "premium-veda-compatibility-addon",
+      reason: "프리미엄 베다점 궁합 확장 분석 추가",
+      forceDeduct: true,
+      requestId,
     });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 402) {
+
+    if (!purchaseResult.ok && purchaseResult.status === 402) {
       throw new Error("코인이 부족합니다. 궁합 모드는 300코인이 추가됩니다.");
     }
-    if (res.status === 401 || res.status === 403) {
+    if (!purchaseResult.ok && (purchaseResult.status === 401 || purchaseResult.status === 403)) {
       throw new Error("로그인이 필요합니다. 로그인 후 궁합 리포트를 생성해 주세요.");
     }
-    if (!res.ok) {
-      throw new Error(data?.message || "궁합 모드 추가 코인 차감에 실패했습니다.");
+    if (!purchaseResult.ok) {
+      throw new Error(purchaseResult.error?.message || purchaseResult.message || "궁합 모드 추가 코인 차감에 실패했습니다.");
     }
-    if (data?.transactionId) {
+
+    const consumeData = (purchaseResult.data?.consume && typeof purchaseResult.data.consume === "object")
+      ? purchaseResult.data.consume as Record<string, unknown>
+      : {};
+    const transactionId = String(consumeData?.transactionId || purchaseResult.raw?.transactionId || "");
+
+    if (transactionId) {
       try {
-        sessionStorage.setItem(VEDIC_COMPAT_ADDON_TX_KEY, String(data.transactionId));
+        sessionStorage.setItem(VEDIC_COMPAT_ADDON_TX_KEY, transactionId);
       } catch {
         // ignore storage errors
       }

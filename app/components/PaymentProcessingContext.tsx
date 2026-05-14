@@ -184,7 +184,12 @@ export function PaymentProcessingProvider({
           // ignore event dispatch failures
         }
 
-        return originalFetch(input as RequestInfo, init)
+        const requestInit: RequestInit = {
+          ...(init || {}),
+          credentials: "include",
+        };
+
+        return originalFetch(input as RequestInfo, requestInit)
           .finally(() => {
             try {
               window.dispatchEvent(new CustomEvent("cd:payment-pending", {

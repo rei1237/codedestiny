@@ -257,6 +257,68 @@ function detectLocale(country) {
   return localeMap[country] || "en-US";
 }
 
+function resolveRuntimeEnvironment(request, env) {
+  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
+  if (nodeEnv === "development") return "development";
+
+  let host = "";
+  try {
+    host = new URL(request.url).hostname.toLowerCase();
+  } catch {
+    host = "";
+  }
+
+  if (!host || host === "localhost" || host === "127.0.0.1") {
+    return nodeEnv === "production" ? "production" : "development";
+  }
+
+  if (host === "code-destiny.com" || host === "www.code-destiny.com") {
+    return "production";
+  }
+
+  if (host.endsWith(".pages.dev") || host.endsWith(".workers.dev")) {
+    return "preview";
+  }
+
+  return nodeEnv === "production" ? "production" : "preview";
+}
+
+function buildVersionPayload(request, env) {
+  const appVersion = String(
+    env?.NEXT_PUBLIC_APP_VERSION
+      || env?.APP_VERSION
+      || "0.1.0",
+  ).trim() || "0.1.0";
+
+  const gitSha = String(
+    env?.NEXT_PUBLIC_GIT_SHA
+      || env?.GIT_SHA
+      || env?.CF_PAGES_COMMIT_SHA
+      || "unknown",
+  ).trim() || "unknown";
+
+  const buildTime = String(
+    env?.NEXT_PUBLIC_BUILD_TIME
+      || env?.BUILD_TIME
+      || "unknown",
+  ).trim() || "unknown";
+
+  const environment = resolveRuntimeEnvironment(request, env);
+  const source = "workers";
+
+  return {
+    ok: true,
+    appVersion,
+    gitSha,
+    buildTime,
+    environment,
+    source,
+    commit: gitSha,
+    commitShort: gitSha === "unknown" ? "unknown" : gitSha.slice(0, 12),
+    builtAt: buildTime,
+  };
+}
+
 function isLoop(requestUrl, upstreamOrigin) {
   if (!upstreamOrigin) return false;
 
@@ -404,6 +466,10 @@ export default {
         });
       }
 
+      if (url.pathname === "/api/version" || url.pathname === "/api/admin/version") {
+        return jsonResponse(request, env, buildVersionPayload(request, env));
+      }
+
       if (url.pathname === "/api/health/auth-env") {
         const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
         const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
@@ -468,6 +534,32 @@ export default {
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
+      }
+
+      // Legacy compatibility: coin/wallet aliases routed to billing APIs.
+      if (url.pathname === "/api/coins" || url.pathname === "/api/user/coins") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/balance");
+        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/wallet") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/me");
+        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/entitlement" || url.pathname === "/api/entitlements") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/entitlements");
+        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/purchase" || url.pathname === "/api/unlock") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/purchase");
+        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/pdf" || url.pathname.startsWith("/api/pdf/")) {
+        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/pdf", "/api/premium-report"));
+        return withCorsHeaders(request, env, await handlePremiumReportRoutes(rewrittenRequest, env));
       }
 
       // Legacy compatibility: singular payment namespace.

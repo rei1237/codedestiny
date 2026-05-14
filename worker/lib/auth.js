@@ -165,7 +165,33 @@ function extractTokenUserId(payload) {
 }
 
 export async function requireAuth(request, env) {
-  return requireUserFromRequest(request, env);
+  const session = await getSessionFromRequest(request, env);
+  if (!session?.user?.id) {
+    throw createHttpError(401, "Authentication is required.", { code: "AUTH_REQUIRED" });
+  }
+  return session.user;
+}
+
+export async function getSessionFromRequest(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  const userId = String(auth?.userId || "").trim();
+  if (!userId) return null;
+
+  return {
+    user: {
+      id: userId,
+      userId,
+      email: auth?.email ? String(auth.email) : "",
+      role: auth?.role ? String(auth.role) : "user",
+      name: auth?.name ? String(auth.name) : "",
+      image: auth?.image ? String(auth.image) : "",
+      birthDate: auth?.birthDate ? String(auth.birthDate) : "",
+      birthTime: auth?.birthTime ? String(auth.birthTime) : "",
+      gender: auth?.gender ? String(auth.gender) : "OTHER",
+      points: Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0,
+      joinedAt: auth?.joinedAt || null,
+    },
+  };
 }
 
 export async function getOptionalUserFromRequest(request, env) {
@@ -190,9 +216,7 @@ export async function getOptionalUserFromRequest(request, env) {
 }
 
 export async function requireUserFromRequest(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env);
-  if (auth) return auth;
-  throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
+  return requireAuth(request, env);
 }
 
 export async function signAuthToken(user, env) {

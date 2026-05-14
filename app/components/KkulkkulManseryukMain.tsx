@@ -11,6 +11,7 @@ import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
 import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { authFetch } from "../_lib/auth-client";
+import { purchaseFeature } from "../_lib/billing-client";
 import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 type LockedSectionProps = {
@@ -569,13 +570,11 @@ export default function KkulkkulManseryukMain() {
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
-    const authHeaders = buildClientAuthHeaders();
-    
+
     startPayment(`결제를 진행 중입니다.`);
     try {
       const productId = UNLOCK_PRODUCT_BY_KEY[key];
       const requestId = `unlock:${productId || key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
-      const endpoint = '/api/billing/purchase';
       const payload = {
         featureKey: key,
         reason: `${key} 해금`,
@@ -584,19 +583,20 @@ export default function KkulkkulManseryukMain() {
         ...(productId ? { productId } : { cost }),
       };
 
-      const { res, data } = await fetchJsonWithTimeout(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify(payload),
-      });
-      if (isLoginRequiredResponse(res.status, data)) {
+      const purchaseResult = await purchaseFeature(payload);
+      if (!purchaseResult.ok && isLoginRequiredResponse(purchaseResult.status, purchaseResult.raw)) {
         alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
         redirectToLoginWithNext('/');
         return;
       }
-      if (res.status === 402) { setShowRechargeModal(true); return; }
-      if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
-      const normalized = extractCoinLikePayload(data);
+      if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
+      if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패'); return; }
+
+      const normalized = {
+        ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
+        user: purchaseResult.data?.user || null,
+        balance: purchaseResult.data?.balance,
+      };
       const newPoints = normalized?.user?.points !== undefined
         ? Number(normalized.user.points)
         : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
@@ -639,23 +639,27 @@ export default function KkulkkulManseryukMain() {
       return;
     }
 
-    const authHeaders = buildClientAuthHeaders();
-    
     startPayment(`결제를 진행 중입니다.`);
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/billing/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ cost, reason: `${key} 이용`, featureKey: key, forceDeduct: true, requestId: `use:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
+      const purchaseResult = await purchaseFeature({
+        featureKey: key,
+        reason: `${key} 이용`,
+        forceDeduct: true,
+        requestId: `use:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9),
       });
-      if (isLoginRequiredResponse(res.status, data)) {
+      if (!purchaseResult.ok && isLoginRequiredResponse(purchaseResult.status, purchaseResult.raw)) {
         alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
         redirectToLoginWithNext('/');
         return;
       }
-      if (res.status === 402) { setShowRechargeModal(true); return; }
-      if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
-      const normalized = extractCoinLikePayload(data);
+      if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
+      if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패'); return; }
+
+      const normalized = {
+        ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
+        user: purchaseResult.data?.user || null,
+        balance: purchaseResult.data?.balance,
+      };
       const newPoints = normalized?.user?.points !== undefined
         ? Number(normalized.user.points)
         : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
@@ -787,25 +791,18 @@ export default function KkulkkulManseryukMain() {
       setVedaFlowState('access_granted');
     }
 
-    const authHeaders = buildClientAuthHeaders();
-
     const cost = PREMIUM_SERVICE_COST[service];
     const featureKey = PREMIUM_SERVICE_FEATURE_KEY[service];
     const requestId = `premium:${featureKey || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
     setPremiumGateLoading(service);
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/billing/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({
-          cost,
-          reason: `${PREMIUM_SERVICE_LABEL[service]} 생성`,
-          featureKey,
-          forceDeduct: true,
-          requestId,
-        }),
+      const purchaseResult = await purchaseFeature({
+        featureKey,
+        reason: `${PREMIUM_SERVICE_LABEL[service]} 생성`,
+        forceDeduct: true,
+        requestId,
       });
-      if (isLoginRequiredResponse(res.status, data)) {
+      if (!purchaseResult.ok && isLoginRequiredResponse(purchaseResult.status, purchaseResult.raw)) {
         if (service === 'veda') {
           setVedaFlowState('idle');
         }
@@ -813,17 +810,17 @@ export default function KkulkkulManseryukMain() {
         redirectToLoginWithNext('/');
         return;
       }
-      if (res.status === 402) {
+      if (!purchaseResult.ok && purchaseResult.status === 402) {
         if (service === 'veda') {
           setVedaFlowState('payment_required');
-          setVedaFlowError(data?.message || '코인이 부족합니다.');
+          setVedaFlowError(purchaseResult.error?.message || '코인이 부족합니다.');
         } else {
           setShowRechargeModal(true);
         }
         return;
       }
-      if (!res.ok) {
-        const message = data?.message || '코인 차감 실패';
+      if (!purchaseResult.ok) {
+        const message = purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패';
         setPremiumGateError(message);
         if (service === 'veda') {
           setVedaFlowState('error');
@@ -831,8 +828,13 @@ export default function KkulkkulManseryukMain() {
         }
         return;
       }
-      const normalized = extractCoinLikePayload(data);
-      const txId = normalized?.transactionId || data?.transactionId;
+
+      const normalized = {
+        ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
+        user: purchaseResult.data?.user || null,
+        balance: purchaseResult.data?.balance,
+      };
+      const txId = normalized?.transactionId || purchaseResult.raw?.transactionId;
       if (txId) {
         try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(txId)); } catch (_) {}
       }

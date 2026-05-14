@@ -7,6 +7,7 @@ import { showToast } from "./Toast";
 import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import { purchaseFeature } from "../_lib/billing-client";
 
 type DrawnCard = {
   cardId: string;
@@ -179,48 +180,19 @@ export default function LoveRelationshipTarot() {
         return false;
       };
 
-      const authToken = typeof window !== "undefined"
-        ? localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken")
-        : "";
-      const flowerAdminToken = typeof window !== "undefined"
-        ? (String(sessionStorage.getItem("flower_admin_password_ok") || "") === "1"
-          ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
-          : "")
-        : "";
-      const adminTestTier = typeof window !== "undefined"
-        ? String(localStorage.getItem("flower_admin_test_tier") || "").toLowerCase()
-        : "";
       const isFlowerAdminMode = isAdminLikeUser();
-      const validAdminToken = FLOWER_ADMIN_TOKEN_RE.test(String(flowerAdminToken || ""))
-        ? String(flowerAdminToken)
-        : "";
 
       if (!isFlowerAdminMode) {
         paymentOverlayActive = true;
         startPayment("결제를 확인 중입니다...");
-        const consumeRequestHeaders: Record<string, string> = {
-          "Content-Type": "application/json",
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-          ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
-          ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
-            ? { "x-admin-subscription-tier": adminTestTier }
-            : {}),
-        };
-        const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
-          method: "POST",
-          credentials: "include",
-          headers: consumeRequestHeaders,
-          body: JSON.stringify({
-            cost: LOVE_RELATIONSHIP_COIN_COST,
-            reason: "우리는 무슨 사이 타로 이용",
-            featureKey: "tarot-love-relationship",
-            forceDeduct: true,
-            requestId: "tarot-love-relationship:req:" + Date.now().toString() + "-" + Math.random().toString(36).slice(2,9),
-          }),
+        const purchaseResult = await purchaseFeature({
+          featureKey: "tarot-love-relationship",
+          reason: "우리는 무슨 사이? 타로 리딩",
+          forceDeduct: true,
+          requestId: "tarot-love-relationship:req:" + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9),
         });
-        const consumeData = await consumeRes.json().catch(() => ({}));
-        const consumeCode = String(consumeData?.code || consumeData?.error || "").toUpperCase();
-        if (consumeRes.status === 401 || consumeRes.status === 403 || consumeCode === "LOGIN_REQUIRED" || consumeCode === "AUTH_REQUIRED" || consumeCode === "UNAUTHORIZED") {
+        const purchaseCode = String(purchaseResult.error?.code || "").toUpperCase();
+        if (!purchaseResult.ok && (purchaseResult.status === 401 || purchaseResult.status === 403 || purchaseCode === "LOGIN_REQUIRED" || purchaseCode === "AUTH_REQUIRED" || purchaseCode === "UNAUTHORIZED")) {
           setError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
           if (typeof window !== "undefined") {
             const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -230,17 +202,25 @@ export default function LoveRelationshipTarot() {
           }
           return;
         }
-        if (consumeRes.status === 402) {
+        if (!purchaseResult.ok && purchaseResult.status === 402) {
           setError(`코인이 부족합니다. ${LOVE_RELATIONSHIP_COIN_COST}코인이 필요합니다.`);
           return;
         }
-        if (!consumeRes.ok) {
-          setError(String(consumeData?.message || "코인 차감에 실패했습니다."));
+        if (!purchaseResult.ok) {
+          setError(String(purchaseResult.error?.message || purchaseResult.message || "코인 차감에 실패했습니다."));
           return;
         }
+        const consumeData = (purchaseResult.data?.consume && typeof purchaseResult.data.consume === "object")
+          ? purchaseResult.data.consume as Record<string, unknown>
+          : {};
         consumedTxId = String(consumeData?.transactionId || "");
-        refundHeaders = consumeRequestHeaders;
-        const remainPoints = Number(consumeData?.user?.points ?? 0);
+        refundHeaders = { "Content-Type": "application/json" };
+        const remainPoints = Number(
+          purchaseResult.data?.balance
+            ?? (purchaseResult.data?.user && (purchaseResult.data.user as Record<string, unknown>).points)
+            ?? (consumeData?.user && (consumeData.user as Record<string, unknown>).points)
+            ?? 0,
+        );
         const chargedCoins = Number(consumeData?.chargedCoins ?? LOVE_RELATIONSHIP_COIN_COST);
         if (isSubscriptionIncludedResponse(consumeData, chargedCoins)) {
           showSubscriptionIncludedNotice({
