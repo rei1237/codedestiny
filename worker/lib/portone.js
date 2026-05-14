@@ -1,13 +1,67 @@
 import { getEnv } from "./env.js";
 
 const DEFAULT_PORTONE_BASE_URL = "https://api.iamport.kr";
+const DEFAULT_PORTONE_HTTP_TIMEOUT_MS = 4500;
+const TOKEN_EXPIRY_SKEW_MS = 30 * 1000;
+const FALLBACK_TOKEN_TTL_MS = 8 * 60 * 1000;
+
+let cachedPortOneToken = "";
+let cachedPortOneTokenExpiresAtMs = 0;
+let portOneTokenInFlight = null;
 
 function getPortOneBaseUrl(env) {
   return getEnv(env, "PORTONE_API_BASE_URL", DEFAULT_PORTONE_BASE_URL).replace(/\/+$/, "");
 }
 
-async function requestJson(url, options, errorPrefix) {
-  const response = await fetch(url, options);
+function resolvePortOneHttpTimeoutMs(env) {
+  const raw = Number(getEnv(env, "PORTONE_HTTP_TIMEOUT_MS", String(DEFAULT_PORTONE_HTTP_TIMEOUT_MS)));
+  if (!Number.isFinite(raw)) return DEFAULT_PORTONE_HTTP_TIMEOUT_MS;
+  return Math.max(1500, Math.min(Math.floor(raw), 15000));
+}
+
+function isCachedTokenUsable() {
+  return Boolean(cachedPortOneToken)
+    && Number.isFinite(cachedPortOneTokenExpiresAtMs)
+    && (Date.now() + TOKEN_EXPIRY_SKEW_MS) < cachedPortOneTokenExpiresAtMs;
+}
+
+function resolveTokenExpiryMs(payload) {
+  const expiresAtSec = Number(payload?.response?.expired_at || 0);
+  if (Number.isFinite(expiresAtSec) && expiresAtSec > 0) {
+    return expiresAtSec * 1000;
+  }
+  return Date.now() + FALLBACK_TOKEN_TTL_MS;
+}
+
+async function requestJson(url, options, errorPrefix, env) {
+  const timeoutMs = resolvePortOneHttpTimeoutMs(env);
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller
+    ? setTimeout(() => {
+        try {
+          controller.abort();
+        } catch {
+          // ignore abort failures
+        }
+      }, timeoutMs)
+    : null;
+
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      signal: controller?.signal,
+    });
+  } catch (error) {
+    if (timeoutId) clearTimeout(timeoutId);
+    const message = String(error?.name || "").toLowerCase() === "aborterror"
+      ? `${errorPrefix}: timeout`
+      : `${errorPrefix}: ${String(error?.message || "network_error")}`;
+    throw new Error(message);
+  }
+
+  if (timeoutId) clearTimeout(timeoutId);
+
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -19,6 +73,15 @@ async function requestJson(url, options, errorPrefix) {
 }
 
 async function getPortOneAccessToken(env) {
+  if (isCachedTokenUsable()) {
+    return cachedPortOneToken;
+  }
+
+  if (portOneTokenInFlight) {
+    return portOneTokenInFlight;
+  }
+
+  portOneTokenInFlight = (async () => {
   const apiKey = getEnv(env, "PORTONE_API_KEY");
   const apiSecret = getEnv(env, "PORTONE_API_SECRET");
   if (!apiKey || !apiSecret) {
@@ -36,6 +99,7 @@ async function getPortOneAccessToken(env) {
       }),
     },
     "PortOne token request failed",
+    env,
   );
 
   const token = payload?.response?.access_token;
@@ -43,7 +107,16 @@ async function getPortOneAccessToken(env) {
     throw new Error("PortOne token response did not include access_token.");
   }
 
-  return token;
+    cachedPortOneToken = String(token);
+    cachedPortOneTokenExpiresAtMs = resolveTokenExpiryMs(payload);
+    return cachedPortOneToken;
+  })();
+
+  try {
+    return await portOneTokenInFlight;
+  } finally {
+    portOneTokenInFlight = null;
+  }
 }
 
 export async function fetchPortOnePayment(env, impUid) {
@@ -57,6 +130,7 @@ export async function fetchPortOnePayment(env, impUid) {
       headers: { Authorization: token },
     },
     "PortOne payment lookup failed",
+    env,
   );
 
   const payment = payload?.response;
@@ -104,6 +178,7 @@ export async function cancelPortOnePayment(env, params = {}) {
       body: JSON.stringify(body),
     },
     "PortOne payment cancel failed",
+    env,
   );
 
   const canceled = payload?.response;
@@ -159,6 +234,7 @@ export async function chargePortOneBilling(env, params = {}) {
       body: JSON.stringify(body),
     },
     "PortOne billing charge failed",
+    env,
   );
 
   const billed = payload?.response;

@@ -9,6 +9,7 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 
 const PAYMENTS_READ_QUERY_TIMEOUT_MS = 4500;
 let readIndexesEnsurePromise = null;
+let mongoTransactionMode = "unknown";
 
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
@@ -318,6 +319,16 @@ function isTransactionUnsupported(error) {
     .test(String(error?.message || ""));
 }
 
+function shouldUseMongoTransaction() {
+  return mongoTransactionMode !== "unsupported";
+}
+
+function markMongoTransactionMode(mode) {
+  if (mode === "supported" || mode === "unsupported") {
+    mongoTransactionMode = mode;
+  }
+}
+
 async function settlePaymentByImpUid({
   env,
   impUid,
@@ -331,6 +342,24 @@ async function settlePaymentByImpUid({
   request,
   body,
 }) {
+  let paymentRecord = await findPaymentRecord(impUid, merchantUidHint);
+  if (paymentRecord?.status === "success") {
+    const ownerUserIdFast = String(paymentRecord.userId || "");
+    if (requestedUserId && ownerUserIdFast && String(requestedUserId) !== ownerUserIdFast) {
+      return { ok: false, status: 403, message: "Only your own payment can be processed." };
+    }
+
+    return {
+      ok: true,
+      idempotent: true,
+      user: {
+        id: ownerUserIdFast,
+        points: ownerUserIdFast ? await getUserPoints(ownerUserIdFast) : 0,
+      },
+      payment: formatPaymentResponse(paymentRecord),
+    };
+  }
+
   let portOnePayment;
   try {
     portOnePayment = await fetchPortOnePayment(env, impUid);
@@ -360,7 +389,9 @@ async function settlePaymentByImpUid({
   const merchantUid = String(portOnePayment.merchant_uid || merchantUidHint || "").trim();
   const paymentMethod = normalizePaymentMethod(portOnePayment.pay_method || requestedPaymentMethod);
 
-  let paymentRecord = await findPaymentRecord(impUid, merchantUid);
+  if (!paymentRecord) {
+    paymentRecord = await findPaymentRecord(impUid, merchantUid);
+  }
   const customDataUserId = parseCustomDataUserId(portOnePayment.custom_data);
   const ownerUserId = paymentRecord?.userId
     ? String(paymentRecord.userId)
@@ -790,11 +821,17 @@ async function settlePaymentByImpUid({
   };
 
   let settlementResult;
-  try {
-    settlementResult = await runSettlementWithTransaction();
-  } catch (error) {
-    if (!isTransactionUnsupported(error)) throw error;
+  if (!shouldUseMongoTransaction()) {
     settlementResult = await runSettlementWithoutTransaction();
+  } else {
+    try {
+      settlementResult = await runSettlementWithTransaction();
+      markMongoTransactionMode("supported");
+    } catch (error) {
+      if (!isTransactionUnsupported(error)) throw error;
+      markMongoTransactionMode("unsupported");
+      settlementResult = await runSettlementWithoutTransaction();
+    }
   }
 
   if (!settlementResult?.ok) {
@@ -1151,6 +1188,30 @@ async function handleSubscriptionConfirm(request, env, auth) {
     return json({ message: "impUid and valid tier are required." }, { status: 400 });
   }
 
+  let paymentRecord = await findPaymentRecord(impUid, merchantUidHint);
+  if (paymentRecord && String(paymentRecord.userId) !== String(auth.userId)) {
+    return json({ message: "Only your own payment can be processed." }, { status: 403 });
+  }
+
+  if (paymentRecord?.status === "success") {
+    const currentUser = await User.findById(auth.userId).select("profileSubscription").lean();
+    const sub = currentUser?.profileSubscription || {};
+    return json({
+      message: "Subscription payment already processed.",
+      idempotent: true,
+      payment: formatPaymentResponse(paymentRecord),
+      subscription: {
+        tier: sub?.tier || "free",
+        source: sub?.source || "coin",
+        isActive: hasActiveSubscriptionConflict(sub),
+        expiresAt: toIsoOrNull(sub?.expiresAt),
+        profileLimit: plan.profileLimit,
+        cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
+        cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
+      },
+    });
+  }
+
   let portOnePayment;
   try {
     portOnePayment = await fetchPortOnePayment(env, impUid);
@@ -1179,7 +1240,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
     return json({ message: "merchantUid mismatch." }, { status: 400 });
   }
 
-  const paymentRecord = await findPaymentRecord(impUid, merchantUid);
+  if (!paymentRecord) {
+    paymentRecord = await findPaymentRecord(impUid, merchantUid);
+  }
   if (!paymentRecord) {
     return json({ message: "Payment record not found." }, { status: 404 });
   }
@@ -1491,10 +1554,17 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
     }
   };
 
+  if (!shouldUseMongoTransaction()) {
+    return runWithoutTransaction();
+  }
+
   try {
-    return await runWithTransaction();
+    const result = await runWithTransaction();
+    markMongoTransactionMode("supported");
+    return result;
   } catch (error) {
     if (!isTransactionUnsupported(error)) throw error;
+    markMongoTransactionMode("unsupported");
     return runWithoutTransaction();
   }
 }

@@ -73,17 +73,31 @@ function isLocalHostname(hostname: string) {
   return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "[::1]";
 }
 
+function isWorkersDevHostname(hostname: string) {
+  const normalized = String(hostname || "").trim().toLowerCase();
+  return normalized === "workers.dev" || normalized.endsWith(".workers.dev");
+}
+
 function resolveApiBaseForRequest(pathOrUrl: string, apiBase: string) {
   if (typeof window === "undefined") return apiBase;
   if (/^https?:\/\//i.test(pathOrUrl)) return apiBase;
 
   const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
   const isAuthPath = normalizedPath.startsWith("/api/auth/");
-  if (!isAuthPath) return apiBase;
+  const isPaymentCriticalPath = normalizedPath.startsWith("/api/payments/")
+    || normalizedPath.startsWith("/api/billing/")
+    || normalizedPath.startsWith("/api/subscription/");
+
+  if (!isAuthPath && !isPaymentCriticalPath) return apiBase;
 
   const currentHost = String(window.location.hostname || "");
   if (isLocalHostname(currentHost)) {
     // In local dev, keep explicit local API base if configured.
+    return apiBase;
+  }
+
+  if (isWorkersDevHostname(currentHost)) {
+    // workers.dev host already serves API on the same origin.
     return apiBase;
   }
 
