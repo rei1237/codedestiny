@@ -10,6 +10,7 @@ import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "
 import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
 import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import { authFetch } from "../_lib/auth-client";
 import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 type LockedSectionProps = {
@@ -390,8 +391,36 @@ function buildClientAuthHeaders(): Record<string, string> {
 }
 
 function isLoginRequiredResponse(status: number, payload: any): boolean {
-  const code = String(payload?.code || payload?.error || '').trim().toUpperCase();
+  const nestedErrorCode = payload?.error && typeof payload.error === "object"
+    ? String(payload.error.code || "")
+    : "";
+  const code = String(payload?.code || nestedErrorCode || payload?.error || '').trim().toUpperCase();
   return status === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED' || code === 'LOGIN_REQUIRED';
+}
+
+function unwrapBillingPayload(payload: any) {
+  if (payload && payload.ok === true && payload.data && typeof payload.data === "object") {
+    return payload.data;
+  }
+  return payload;
+}
+
+function extractCoinLikePayload(payload: any) {
+  const normalized = unwrapBillingPayload(payload);
+  if (!normalized || typeof normalized !== "object") return {};
+  if (normalized.consume && typeof normalized.consume === "object") {
+    return {
+      ...normalized.consume,
+      user: normalized.user || normalized.consume.user || null,
+      balance: normalized.balance ?? normalized.consume.balance ?? normalized.consume?.user?.points,
+      chargedCoins: normalized.consume.chargedCoins ?? 0,
+      subscriptionTier: normalized.consume.subscriptionTier,
+      freeBySubscription: normalized.consume.freeBySubscription,
+      transactionId: normalized.consume.transactionId,
+      message: normalized.message || normalized.consume.message,
+    };
+  }
+  return normalized;
 }
 
 function redirectToLoginWithNext(nextPath: string = '/'): void {
@@ -473,12 +502,13 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
 }
 
 function notifyCoinResult(data: any, fallbackCost: number, points: number, label: string) {
-  const chargedCoins = Number(data?.chargedCoins ?? fallbackCost);
-  if (isSubscriptionIncludedResponse(data, chargedCoins)) {
+  const normalized = extractCoinLikePayload(data);
+  const chargedCoins = Number(normalized?.chargedCoins ?? fallbackCost);
+  if (isSubscriptionIncludedResponse(normalized, chargedCoins)) {
     showSubscriptionIncludedNotice({
-      message: String(data?.message || "구독 혜택이 적용되어 코인이 차감되지 않았습니다."),
+      message: String(normalized?.message || data?.message || "구독 혜택이 적용되어 코인이 차감되지 않았습니다."),
       reason: label,
-      tier: String(data?.subscriptionTier || ""),
+      tier: String(normalized?.subscriptionTier || ""),
     });
     return;
   }
@@ -525,7 +555,7 @@ export default function KkulkkulManseryukMain() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         ...init,
         credentials: init.credentials || 'include',
         signal: controller.signal,
@@ -545,10 +575,14 @@ export default function KkulkkulManseryukMain() {
     try {
       const productId = UNLOCK_PRODUCT_BY_KEY[key];
       const requestId = `unlock:${productId || key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
-      const endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
-      const payload = productId
-        ? { productId, requestId }
-        : { cost, reason: `${key} 해금`, featureKey: key, forceDeduct: true, requestId };
+      const endpoint = '/api/billing/purchase';
+      const payload = {
+        featureKey: key,
+        reason: `${key} 해금`,
+        forceDeduct: true,
+        requestId,
+        ...(productId ? { productId } : { cost }),
+      };
 
       const { res, data } = await fetchJsonWithTimeout(endpoint, {
         method: 'POST',
@@ -562,10 +596,13 @@ export default function KkulkkulManseryukMain() {
       }
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
-      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      const normalized = extractCoinLikePayload(data);
+      const newPoints = normalized?.user?.points !== undefined
+        ? Number(normalized.user.points)
+        : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
-      notifyCoinResult(data, cost, newPoints, key);
+      notifyCoinResult(normalized, cost, newPoints, key);
       setUnlockedFeatures((prev) => {
         const next = { ...prev, [key]: true };
         if (alsoUnlock?.length) {
@@ -606,7 +643,7 @@ export default function KkulkkulManseryukMain() {
     
     startPayment(`결제를 진행 중입니다.`);
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+      const { res, data } = await fetchJsonWithTimeout('/api/billing/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ cost, reason: `${key} 이용`, featureKey: key, forceDeduct: true, requestId: `use:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
@@ -618,10 +655,13 @@ export default function KkulkkulManseryukMain() {
       }
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
-      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      const normalized = extractCoinLikePayload(data);
+      const newPoints = normalized?.user?.points !== undefined
+        ? Number(normalized.user.points)
+        : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
-      notifyCoinResult(data, cost, newPoints, key);
+      notifyCoinResult(normalized, cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
       showToast(`✨ 운명 확인을 위해 코인이 사용되었습니다. 잠시 후 결과가 열립니다.`, "success");
@@ -637,7 +677,7 @@ export default function KkulkkulManseryukMain() {
   const runPremiumIntroGate = async (service: PremiumServiceKey): Promise<PremiumGateResult> => {
     const authHeaders = buildClientAuthHeaders();
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/balance', {
+      const { res, data } = await fetchJsonWithTimeout('/api/billing/me', {
         method: 'GET',
         headers: { ...authHeaders },
       });
@@ -648,7 +688,8 @@ export default function KkulkkulManseryukMain() {
         throw new Error(data?.message || '잔액 확인에 실패했습니다.');
       }
 
-      const points = Number(data?.user?.points ?? currentCoins ?? 0);
+      const normalized = unwrapBillingPayload(data);
+      const points = Number(normalized?.balance ?? normalized?.user?.points ?? currentCoins ?? 0);
       setCurrentCoins(points);
       saveUserPoints(points);
 
@@ -753,7 +794,7 @@ export default function KkulkkulManseryukMain() {
     const requestId = `premium:${featureKey || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
     setPremiumGateLoading(service);
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+      const { res, data } = await fetchJsonWithTimeout('/api/billing/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
@@ -790,13 +831,17 @@ export default function KkulkkulManseryukMain() {
         }
         return;
       }
-      if (data?.transactionId) {
-        try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(data.transactionId)); } catch (_) {}
+      const normalized = extractCoinLikePayload(data);
+      const txId = normalized?.transactionId || data?.transactionId;
+      if (txId) {
+        try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(txId)); } catch (_) {}
       }
-      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      const newPoints = normalized?.user?.points !== undefined
+        ? Number(normalized.user.points)
+        : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
-      notifyCoinResult(data, cost, newPoints, PREMIUM_SERVICE_LABEL[service]);
+      notifyCoinResult(normalized, cost, newPoints, PREMIUM_SERVICE_LABEL[service]);
       if (service === "ziwei") {
         markZiweiPremiumUnlockedClient();
       }
@@ -878,22 +923,22 @@ export default function KkulkkulManseryukMain() {
       bootstrapBalanceSyncInFlight.current = true;
 
       const authHeaders = buildClientAuthHeaders();
-      fetch('/api/fortune/pig-coin/balance', {
-        credentials: 'include',
+      authFetch('/api/billing/me', {
+        method: 'GET',
         cache: 'no-store',
         headers: { ...authHeaders },
         signal: controller.signal,
       })
-        .then((r) => r.json())
+        .then((r) => r.json().catch(() => ({})))
         .then((d) => {
-          if (d?.user?.points !== undefined) {
-            const pts = Number(d.user.points);
-            if (Number.isFinite(pts)) {
-              setCurrentCoins(pts);
-              saveUserPoints(pts);
-            }
+          const normalized = unwrapBillingPayload(d);
+          const points = Number(normalized?.balance ?? normalized?.user?.points ?? NaN);
+          if (Number.isFinite(points)) {
+            const pts = Number(points);
+            setCurrentCoins(pts);
+            saveUserPoints(pts);
           }
-          const restored = buildUnlockStateFromPayload(d);
+          const restored = buildUnlockStateFromPayload(normalized);
           setUnlockedFeatures((prev) => ({
             ...prev,
             ...restored,

@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
 import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
+import { fetchBillingEntitlements, fetchBillingMe } from "./billing-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, type ClientAuthUser } from "./auth-storage";
 
 export type AuthUser = ClientAuthUser & {
@@ -251,9 +252,12 @@ function clearStaleGuestCache() {
   if (typeof window === "undefined") return;
   const staleKeys = [
     "fortune_auth_user",
+    "fortune_user_profile",
     "fortune_profile_subscription",
     "fortune_profile_subscription_owner",
     "fortune_user_points",
+    "fortune_billing_me",
+    "fortune_billing_entitlements",
   ];
   staleKeys.forEach((key) => {
     try {
@@ -262,6 +266,15 @@ function clearStaleGuestCache() {
       // ignore storage failures
     }
   });
+}
+
+function writeLocalJsonCache(key: string, value: unknown) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value ?? null));
+  } catch {
+    // ignore storage failures
+  }
 }
 
 async function refreshCoinBalanceFromServer() {
@@ -281,6 +294,33 @@ async function refreshCoinBalanceFromServer() {
   };
   resolveSafeUser(merged);
   debugAuth("[auth] coin refreshed");
+}
+
+async function refreshProfileMeFromServer() {
+  const response = await authFetch("/api/profile/me", {
+    method: "GET",
+    cache: "no-store",
+  });
+  if (!response.ok) return;
+  const payload = (await response.json().catch(() => null)) as { profile?: Record<string, unknown> } | null;
+  if (!payload?.profile) return;
+
+  writeLocalJsonCache("fortune_user_profile", payload.profile);
+
+  const base = (readSanitizedAuthUser() || {}) as Record<string, unknown>;
+  const merged = {
+    ...base,
+    ...(typeof payload.profile.displayName === "string" && payload.profile.displayName.trim()
+      ? { name: String(payload.profile.displayName) }
+      : {}),
+    ...(typeof payload.profile.birthDate === "string" && payload.profile.birthDate.trim()
+      ? { birthDate: String(payload.profile.birthDate) }
+      : {}),
+    ...(typeof payload.profile.birthTime === "string" && payload.profile.birthTime.trim()
+      ? { birthTime: String(payload.profile.birthTime) }
+      : {}),
+  };
+  resolveSafeUser(merged);
 }
 
 async function refreshProfileSubscriptionCache() {
@@ -303,20 +343,65 @@ async function refreshProfileSubscriptionCache() {
     },
   };
   resolveSafeUser(merged);
+  writeLocalJsonCache("fortune_profile_subscription", statusPayload);
+  const ownerId = String(base.id || base.userId || base._id || base.uid || "").trim();
+  if (ownerId) {
+    try {
+      localStorage.setItem("fortune_profile_subscription_owner", ownerId);
+    } catch {
+      // ignore storage failures
+    }
+  }
 }
 
-async function refreshEntitlements() {
-  await authFetch("/api/billing/balance", {
+async function refreshBillingMeFromServer() {
+  const result = await fetchBillingMe();
+  if (!result.ok || !result.data) return;
+
+  writeLocalJsonCache("fortune_billing_me", result.data);
+
+  const base = (readSanitizedAuthUser() || {}) as Record<string, unknown>;
+  const points = Number(result.data.balance);
+  if (Number.isFinite(points)) {
+    resolveSafeUser({
+      ...base,
+      points,
+    });
+    try {
+      localStorage.setItem("fortune_user_points", String(points));
+    } catch {
+      // ignore storage failures
+    }
+  }
+}
+
+async function refreshBillingEntitlements() {
+  const result = await fetchBillingEntitlements();
+  if (!result.ok || !result.data) return;
+  writeLocalJsonCache("fortune_billing_entitlements", result.data);
+}
+
+async function refreshSubscriptionMeFromServer() {
+  const response = await authFetch("/api/subscription/me", {
     method: "GET",
     cache: "no-store",
   });
+  if (!response.ok) return;
+
+  const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!payload) return;
+
+  writeLocalJsonCache("fortune_profile_subscription", payload);
 }
 
 export async function syncPostLoginData() {
   await Promise.allSettled([
+    refreshProfileMeFromServer(),
+    refreshBillingMeFromServer(),
+    refreshBillingEntitlements(),
+    refreshSubscriptionMeFromServer(),
     refreshCoinBalanceFromServer(),
     refreshProfileSubscriptionCache(),
-    refreshEntitlements(),
   ]);
 }
 

@@ -13,6 +13,7 @@ import { usePayment } from "./PaymentProcessingContext";
 import { useToast } from "./Toast";
 import PremiumBlurGate from "./PremiumBlurGate";
 import { motion, AnimatePresence } from "framer-motion";
+import { authFetch } from "../_lib/auth-client";
 
 type Step = "form" | "computing" | "result";
 
@@ -279,48 +280,30 @@ export default function AdvancedZiweiSection({
 
   const syncUnlockState = useCallback(async (checkServer: boolean) => {
     if (resolvedUnlocked) return true;
-    const isLocal = isPremiumUnlockedLocal();
-    if (isLocal) {
-      setResolvedUnlocked(true);
-      return true;
-    }
-
     if (!checkServer) return false;
 
     setUnlockSyncing(true);
     startPayment("프리미엄 해금 정보를 확인하고 있습니다...");
     try {
-      const token = localStorage.getItem('fortune_auth_token');
-      const userCache = localStorage.getItem('fortune_auth_user');
-      const adminToken = getFlowerAdminTokenClient();
-      const hasSessionHint = Boolean(token) || Boolean(userCache);
-      if (!hasSessionHint && !adminToken) {
-        return false;
-      }
-
-      const response = await fetch('/api/user/destiny-profiles', {
-        credentials: 'include',
-        headers: {
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-        }
+      const response = await authFetch('/api/billing/entitlements', {
+        method: 'GET',
+        cache: 'no-store',
       });
       if (response.status === 401 || response.status === 403) {
         return false;
       }
       const payload = await response.json();
-      if (response.ok && payloadHasPremiumUnlock(payload)) {
+      if (response.ok && payload?.ok && payloadHasPremiumUnlock(payload?.data || payload)) {
         setResolvedUnlocked(true);
         markPremiumUnlockedLocal();
         showToast("✨ 자미두수 프리미엄 해금이 확인되었습니다!", "success");
-        setUnlockSyncing(false);
-        endPayment();
         return true;
       }
     } catch (err) {
       console.error('[AdvancedZiwei] sync error:', err);
     } finally {
       setUnlockSyncing(false);
+      endPayment();
     }
 
     return false;

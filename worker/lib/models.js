@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
   },
   destinyProfiles: { type: [mongoose.Schema.Types.Mixed], default: [] },
   destinyProfilesCurrentId: { type: String, default: "" },
+  profileMe: { type: mongoose.Schema.Types.Mixed, default: null },
   twoFA: {
     enabled: { type: Boolean, default: false, index: true },
     totpSecret: { type: String, default: "" },

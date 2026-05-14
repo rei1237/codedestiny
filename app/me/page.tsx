@@ -176,11 +176,79 @@ export default function MePage() {
     setCurrentId(nextCurrentId);
   }, []);
 
+  const syncProfilesFromServer = useCallback(async (nextUser: AuthUser | null) => {
+    if (!nextUser) return;
+
+    const nextScope = resolveScope(nextUser);
+    try {
+      const response = await authFetch(`${apiBase}/api/user/destiny-profiles`, {
+        method: "GET",
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+
+      if (!response.ok) return;
+      const payload = await response.json().catch(() => null);
+      if (!payload?.ok) return;
+
+      const serverProfiles = Array.isArray(payload.profiles) ? payload.profiles as DestinyProfile[] : [];
+      const serverCurrentId = typeof payload.currentId === "string" ? payload.currentId : "";
+      const nextCurrentId = serverCurrentId || serverProfiles[0]?.id || "";
+
+      writeProfiles(nextScope, serverProfiles, nextCurrentId);
+      setProfiles(serverProfiles);
+      setCurrentId(nextCurrentId);
+    } catch {
+      // Local cache fallback is intentional when network is temporarily unstable.
+    }
+  }, [apiBase]);
+
+  const syncProfilesToServer = useCallback(async (nextProfiles: DestinyProfile[], nextCurrentId: string) => {
+    if (!user) return;
+
+    try {
+      const response = await authFetch(`${apiBase}/api/user/destiny-profiles`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          action: "sync",
+          profiles: nextProfiles,
+          currentId: nextCurrentId,
+        }),
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok) {
+        setAuthNotice("프로필 저장이 서버에 반영되지 않았습니다. 네트워크 상태를 확인해 주세요.");
+        return;
+      }
+
+      const serverProfiles = Array.isArray(payload.profiles) ? payload.profiles as DestinyProfile[] : nextProfiles;
+      const serverCurrentId = typeof payload.currentId === "string"
+        ? payload.currentId
+        : (nextCurrentId || serverProfiles[0]?.id || "");
+
+      writeProfiles(scope, serverProfiles, serverCurrentId);
+      setProfiles(serverProfiles);
+      setCurrentId(serverCurrentId);
+      setAuthNotice("");
+    } catch {
+      setAuthNotice("프로필 저장 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+  }, [apiBase, scope, user]);
+
   useEffect(() => {
     const cachedUser = readCachedUser();
     setUser(cachedUser);
     setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
     reloadProfiles(cachedUser);
+    void syncProfilesFromServer(cachedUser);
 
     authFetch(`${apiBase}/api/auth/me`, {
       method: "GET",
@@ -209,6 +277,7 @@ export default function MePage() {
         setUser(payload.user);
         setHasLocalAuth(payload.user?.hasLocalAuth !== false);
         reloadProfiles(payload.user);
+        void syncProfilesFromServer(payload.user);
       })
       .catch((error) => {
         if (error instanceof Error && error.message === "auth_invalid") {
@@ -219,7 +288,7 @@ export default function MePage() {
         setAuthNotice("일시적인 네트워크 지연으로 계정 동기화가 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
       })
       .finally(() => setLoading(false));
-  }, [apiBase, reloadProfiles, router]);
+  }, [apiBase, reloadProfiles, router, syncProfilesFromServer]);
 
   useEffect(() => {
     if (!user) return;
@@ -247,6 +316,7 @@ export default function MePage() {
   const activateProfile = (profileId: string) => {
     writeProfiles(scope, profiles, profileId);
     setCurrentId(profileId);
+    void syncProfilesToServer(profiles, profileId);
   };
 
   const deleteProfile = (profileId: string) => {
@@ -257,6 +327,7 @@ export default function MePage() {
     writeProfiles(scope, nextProfiles, nextCurrentId);
     setProfiles(nextProfiles);
     setCurrentId(nextCurrentId);
+    void syncProfilesToServer(nextProfiles, nextCurrentId);
   };
 
   const handleLogout = async () => {

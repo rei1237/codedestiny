@@ -144,8 +144,38 @@ function publishAuthSync(event: "login" | "logout") {
 export function clearClientAuthState() {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem("fortune_auth_token");
-    localStorage.removeItem("fortune_auth_user");
+    [
+      "fortune_auth_token",
+      "fortune_auth_user",
+      "fortune_user_profile",
+      "fortune_profile_subscription",
+      "fortune_profile_subscription_owner",
+      "fortune_user_points",
+      "fortune_billing_me",
+      "fortune_billing_entitlements",
+      "premium:ziwei:unlock:v1",
+      "premium:ziwei:result:v5",
+      "premium:ziwei:result:v7",
+      "FORTUNE_APP_USER_PROFILES.current",
+      "FORTUNE_APP_USER_PROFILES.list",
+      "FORTUNE_APP_USER_PROFILES",
+    ].forEach((key) => localStorage.removeItem(key));
+
+    Object.keys(localStorage).forEach((key) => {
+      if (
+        key.startsWith("FORTUNE_APP_USER_PROFILES.")
+        || key.startsWith("premium:")
+        || key.startsWith("cd_premium_tx_")
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith("premium:") || key.startsWith("cd_premium_tx_")) {
+        sessionStorage.removeItem(key);
+      }
+    });
   } catch {
     // ignore storage failures
   }

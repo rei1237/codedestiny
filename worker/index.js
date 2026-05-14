@@ -26,6 +26,7 @@ import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
 import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
 import { handleBillingRoutes } from "./routes/billing.js";
+import { handleProfileRoutes } from "./routes/profile.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -432,6 +433,10 @@ export default {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
       }
 
+      if (url.pathname === "/api/profile" || url.pathname.startsWith("/api/profile/")) {
+        return withCorsHeaders(request, env, await handleProfileRoutes(request, env));
+      }
+
       if (url.pathname === "/api/session") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/auth/session");
         return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));
@@ -499,6 +504,26 @@ export default {
       if (url.pathname === "/api/subscription/status") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
         return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/me") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/checkout") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/subscription/prepare");
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/confirm") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/subscription/confirm");
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/webhook") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
       }
 
       // Legacy compatibility: singular endpoint used by older destiny-profile bundles.

@@ -26,6 +26,7 @@ import ZiweiCosmicHero from "./ziwei/ZiweiCosmicHero";
 import ZiweiPalaceOrbit from "./ziwei/ZiweiPalaceOrbit";
 import ZiweiPalaceTabs from "./ziwei/ZiweiPalaceTabs";
 import ZiweiDeepChapterView from "./ziwei/ZiweiDeepChapterView";
+import { authFetch } from "../_lib/auth-client";
 
 type Step = "form" | "computing" | "result";
 
@@ -248,35 +249,20 @@ export default function AdvancedZiweiSectionV2({
   const syncUnlockState = useCallback(
     async (checkServer: boolean) => {
       if (resolvedUnlocked) return true;
-      if (isPremiumUnlockedLocal()) {
-        setResolvedUnlocked(true);
-        return true;
-      }
       if (!checkServer) return false;
 
       setUnlockSyncing(true);
       startPayment("프리미엄 해금 정보를 확인하고 있습니다...");
       try {
-        const token = localStorage.getItem("fortune_auth_token");
-        const userCache = localStorage.getItem("fortune_auth_user");
-        const adminToken = getFlowerAdminTokenClient();
-        const hasSessionHint = Boolean(token) || Boolean(userCache);
-        if (!hasSessionHint && !adminToken) {
-          return false;
-        }
-
-        const response = await fetch("/api/user/destiny-profiles", {
-          credentials: "include",
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...(adminToken ? { "x-admin-token": adminToken } : {}),
-          },
+        const response = await authFetch("/api/billing/entitlements", {
+          method: "GET",
+          cache: "no-store",
         });
         if (response.status === 401 || response.status === 403) {
           return false;
         }
         const payload = await response.json();
-        if (response.ok && payloadHasPremiumUnlock(payload)) {
+        if (response.ok && payload?.ok && payloadHasPremiumUnlock(payload?.data || payload)) {
           setResolvedUnlocked(true);
           markPremiumUnlockedLocal();
           showToast("✨ 자미두수 프리미엄 해금이 확인되었습니다!", "success");
