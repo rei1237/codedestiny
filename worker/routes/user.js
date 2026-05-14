@@ -1,10 +1,32 @@
 import { connectDb } from "../lib/db.js";
 import { User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import {
+  getRoutePath,
+  handleRouteError,
+  json,
+  logApiCatchDiagnostic,
+  methodNotAllowed,
+  notFound,
+  readJson,
+} from "../lib/http.js";
 
 const MAX_DESTINY_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
+
+function hasMongoBinding(env = {}) {
+  return Boolean(String(env?.MONGO_URI || env?.MONGODB_URI || "").trim());
+}
+
+function buildStorageFailureResponse(env, error, fallbackCode = "DB_QUERY_FAILED") {
+  const configMissing = !hasMongoBinding(env);
+  return json({
+    ok: false,
+    code: configMissing ? "SERVER_CONFIG_ERROR" : fallbackCode,
+    message: "서버 설정 또는 데이터 조회 중 오류가 발생했습니다.",
+    ...(configMissing ? { detail: String(error?.message || "") } : {}),
+  }, { status: 500 });
+}
 
 function sanitizeProfileId(value) {
   return String(value || "").trim().slice(0, MAX_PROFILE_ID_LEN);
@@ -141,49 +163,105 @@ async function handleSyncDestinyProfilesDegraded(request, auth) {
 }
 
 export async function handleUserRoutes(request, env) {
-  try {
-    const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/user");
+  const method = request.method.toUpperCase();
+  const path = getRoutePath(request, "/api/user");
+  const trace = {
+    route: "user",
+    requestPath: new URL(request.url).pathname,
+    method,
+    hasSession: Boolean(request.headers.get("Authorization") || request.headers.get("Cookie")),
+    envBindingExists: hasMongoBinding(env),
+    userIdExists: false,
+  };
 
+  try {
     if (method === "GET" && path === "/destiny-profiles") {
       const auth = await getOptionalUserFromRequest(request, env);
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }
+      trace.userIdExists = Boolean(String(auth?.userId || auth?.id || "").trim());
       try {
         await connectDb(env);
       } catch (error) {
-        console.error("[user:destiny-profiles] DB unavailable:", error?.message || error);
-        return handleDestinyProfilesDbFallback(auth);
+        logApiCatchDiagnostic({
+          request,
+          route: "/api/user/destiny-profiles",
+          method,
+          userId: auth?.userId || auth?.id,
+          env,
+          hasSession: true,
+          envBindingExists: hasMongoBinding(env),
+          error,
+        });
+        return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
       try {
         return await handleGetDestinyProfiles(auth);
       } catch (error) {
-        console.error("[user:destiny-profiles] query degraded fallback:", error?.message || error);
-        return handleDestinyProfilesDbFallback(auth);
+        logApiCatchDiagnostic({
+          request,
+          route: "/api/user/destiny-profiles",
+          method,
+          userId: auth?.userId || auth?.id,
+          env,
+          hasSession: true,
+          envBindingExists: hasMongoBinding(env),
+          error,
+        });
+        return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
     }
 
     if (method === "POST" && path === "/destiny-profiles") {
       const auth = await requireUserFromRequest(request, env);
+      trace.userIdExists = Boolean(String(auth?.userId || auth?.id || "").trim());
       try {
         await connectDb(env);
       } catch (error) {
-        console.error("[user:destiny-profiles] sync degraded fallback: db unavailable:", error?.message || error);
-        return await handleSyncDestinyProfilesDegraded(request, auth);
+        logApiCatchDiagnostic({
+          request,
+          route: "/api/user/destiny-profiles",
+          method,
+          userId: auth?.userId || auth?.id,
+          env,
+          hasSession: true,
+          envBindingExists: hasMongoBinding(env),
+          error,
+        });
+        return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
 
       try {
         return await handleSyncDestinyProfiles(request, auth);
       } catch (error) {
-        console.error("[user:destiny-profiles] sync degraded fallback: query failed:", error?.message || error);
-        return await handleSyncDestinyProfilesDegraded(request, auth);
+        logApiCatchDiagnostic({
+          request,
+          route: "/api/user/destiny-profiles",
+          method,
+          userId: auth?.userId || auth?.id,
+          env,
+          hasSession: true,
+          envBindingExists: hasMongoBinding(env),
+          error,
+        });
+        return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
     }
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
-    return handleRouteError(error);
+    logApiCatchDiagnostic({
+      request,
+      route: `/api/user${path}`,
+      method,
+      userId: "",
+      env,
+      hasSession: trace.hasSession,
+      envBindingExists: trace.envBindingExists,
+      error,
+    });
+    return handleRouteError(error, { request, env, trace });
   }
 }

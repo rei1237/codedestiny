@@ -1,7 +1,15 @@
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import {
+  getRoutePath,
+  handleRouteError,
+  json,
+  logApiCatchDiagnostic,
+  methodNotAllowed,
+  notFound,
+  readJson,
+} from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
-import { requireAuth } from "../lib/auth.js";
+import { requireUser } from "../lib/auth.js";
 import {
   assertFeatureEnabled,
   getBillingFeaturePricing,
@@ -39,15 +47,30 @@ const ACCESS_DECISION_REASONS = Object.freeze({
   FEATURE_DISABLED: "feature_disabled",
 });
 
-function failure(status, code, message, debugMessage) {
+function failure(status, code, message, debugMessage, extras = {}) {
   return json({
     ok: false,
+    ...extras,
     error: {
       code,
       message,
       ...(debugMessage ? { debugMessage: String(debugMessage).slice(0, 300) } : {}),
     },
   }, { status });
+}
+
+function hasMongoBinding(env = {}) {
+  return Boolean(String(env?.MONGO_URI || env?.MONGODB_URI || "").trim());
+}
+
+function featureKeyFailure(featureKey, message, debugMessage) {
+  return failure(
+    400,
+    "UNKNOWN_FEATURE_KEY",
+    message || "서버 가격표에 정의되지 않은 기능입니다.",
+    debugMessage,
+    { featureKey: String(featureKey || "").trim() },
+  );
 }
 
 function requestHasCookie(request, cookieName) {
@@ -82,12 +105,12 @@ function logBillingDiagnostic(event, request, details = {}) {
 
 async function requireBillingAuth(request, env, context = {}) {
   try {
-    const user = await requireAuth(request, env);
+    const resolved = await requireUser(request, env);
     logBillingDiagnostic("auth_ok", request, {
       featureKey: String(context.featureKey || ""),
-      userIdPresent: Boolean(user?.id || user?.userId),
+      userIdPresent: Boolean(resolved?.userId),
     });
-    return { ok: true, user };
+    return { ok: true, user: resolved };
   } catch (error) {
     const status = Number(error?.status || 0);
     if (status === 401 || status === 403) {
@@ -179,15 +202,34 @@ function mapCoinGateFailure(responseStatus, payload) {
   }
 
   if (
+    rawCode === "UNKNOWN_FEATURE_KEY"
+  ) {
+    return {
+      status: 400,
+      code: "UNKNOWN_FEATURE_KEY",
+      message: "서버 가격표에 정의되지 않은 기능입니다.",
+      debugMessage: message,
+    };
+  }
+
+  if (
     responseStatus === 404
     || rawCode === "PRICE_NOT_FOUND"
     || rawCode === "SERVER_PRICE_REQUIRED"
-    || rawCode === "UNKNOWN_FEATURE_KEY"
   ) {
     return {
       status: 404,
       code: "PRICE_NOT_FOUND",
       message: "요청한 기능의 서버 가격표를 찾을 수 없습니다.",
+      debugMessage: message,
+    };
+  }
+
+  if (rawCode === "SERVER_CONFIG_ERROR" || rawCode === "DB_QUERY_FAILED") {
+    return {
+      status: 500,
+      code: rawCode,
+      message: "서버 설정 또는 데이터 조회 중 오류가 발생했습니다.",
       debugMessage: message,
     };
   }
@@ -232,7 +274,7 @@ async function handleFeatures(request) {
   if (categoryKey || subFeatureKey || featureKey || reason) {
     const resolved = getBillingFeaturePricing({ categoryKey, subFeatureKey, featureKey, reason });
     if (!resolved.ok) {
-      return failure(404, "PRICE_NOT_FOUND", resolved.message || "가격 정보를 찾을 수 없습니다.");
+      return featureKeyFailure(featureKey, "서버 가격표에 정의되지 않은 기능입니다.", resolved.message || "가격 정보를 찾을 수 없습니다.");
     }
 
     return success({ pricing: resolved.pricing, source: resolved.source }, "기능 가격 정보를 조회했습니다.");
@@ -388,7 +430,11 @@ async function resolveAccessDecision(request, env, pricingInput) {
   if (!pricingResult?.ok) {
     return {
       ok: false,
-      response: failure(404, "PRICE_NOT_FOUND", pricingResult?.message || "가격 정보를 찾을 수 없습니다."),
+      response: featureKeyFailure(
+        new URL(request.url).searchParams.get("featureKey"),
+        "서버 가격표에 정의되지 않은 기능입니다.",
+        pricingResult?.message || "가격 정보를 찾을 수 없습니다.",
+      ),
     };
   }
 
@@ -556,7 +602,7 @@ async function handlePurchase(request, env) {
       priceFound: false,
       errorCode: pricingResult.code || "PRICE_NOT_FOUND",
     });
-    return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+    return featureKeyFailure(body?.featureKey, "서버 가격표에 정의되지 않은 기능입니다.", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
   const authCheck = await requireBillingAuth(request, env, { featureKey: pricingResult.pricing.featureKey });
@@ -642,7 +688,7 @@ async function handleUnlockStatus(request, env) {
 
   const pricingResult = getBillingFeaturePricing({ categoryKey, subFeatureKey, featureKey, reason });
   if (!pricingResult.ok) {
-    return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+    return featureKeyFailure(featureKey, "서버 가격표에 정의되지 않은 기능입니다.", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
   const balanceResponse = await handleBalance(request, env);
@@ -683,7 +729,7 @@ async function handleCoinGate(request, env) {
       priceFound: false,
       errorCode: pricingResult.code || "PRICE_NOT_FOUND",
     });
-    return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+    return featureKeyFailure(body?.featureKey, "서버 가격표에 정의되지 않은 기능입니다.", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
   const authCheck = await requireBillingAuth(request, env, { featureKey: pricingResult.pricing.featureKey });
@@ -781,6 +827,9 @@ export async function handleBillingRoutes(request, env) {
     route: "billing",
     requestPath: new URL(request.url).pathname,
     method,
+    hasSession: Boolean(request.headers.get("Authorization") || request.headers.get("Cookie")),
+    envBindingExists: hasMongoBinding(env),
+    userIdExists: false,
   };
 
   try {
@@ -802,6 +851,16 @@ export async function handleBillingRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    logApiCatchDiagnostic({
+      request,
+      route: `/api/billing${path}`,
+      method,
+      userId: "",
+      env,
+      hasSession: trace.hasSession,
+      envBindingExists: trace.envBindingExists,
+      error,
+    });
     return handleRouteError(error, { request, env, trace });
   }
 }

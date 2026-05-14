@@ -3038,20 +3038,23 @@
 
     renderMasterCard(DPStorage.current());
 
-    /* 로그인 상태이면 서버에서 최신 프로필 동기화 */
-    if (_dpHasLoginSession()) {
+    /* ★ 구독 플랜 기반 저장 버튼 초기화 */
+    _dpLoadSubCache();
+    _dpUpdateSaveBtn();
+
+    // 초기 진입 시에는 인증 상태를 먼저 확인한 뒤에만 결제/구독/프로필 API를 호출한다.
+    _dpVerifyLoginSession(false).then(function(ok) {
+      if (!ok) return;
+
       _dpLoadFromServer(function(loaded) {
         if (loaded) {
           renderMasterCard(DPStorage.current());
           renderProfileList();
         }
       });
-    }
 
-    /* ★ 구독 플랜 기반 저장 버튼 초기화 */
-    _dpLoadSubCache();
-    _dpUpdateSaveBtn();
-    _fetchSubscription(); // API 로드 후 재검증
+      _fetchSubscription();
+    }).catch(function() {});
 
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {

@@ -1,7 +1,16 @@
 import { connectDb, mongoose } from "../lib/db.js";
 import { User, PointHistory } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
-import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import {
+  createHttpError,
+  getRoutePath,
+  handleRouteError,
+  json,
+  logApiCatchDiagnostic,
+  methodNotAllowed,
+  notFound,
+  readJson,
+} from "../lib/http.js";
 import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
@@ -22,6 +31,20 @@ const PIG_COIN_PACKAGES = {
   goldVault: { name: "Gold Vault", coins: 700, bonus: 180 },
   emperorReserve: { name: "Emperor Reserve", coins: 1500, bonus: 500 },
 };
+
+function hasMongoBinding(env = {}) {
+  return Boolean(String(env?.MONGO_URI || env?.MONGODB_URI || "").trim());
+}
+
+function buildStorageFailureResponse(env, error, fallbackCode = "DB_QUERY_FAILED") {
+  const configMissing = !hasMongoBinding(env);
+  return json({
+    ok: false,
+    code: configMissing ? "SERVER_CONFIG_ERROR" : fallbackCode,
+    message: "서버 설정 또는 데이터 조회 중 오류가 발생했습니다.",
+    ...(configMissing ? { detail: String(error?.message || "") } : {}),
+  }, { status: 500 });
+}
 
 function isTruthyFlag(value) {
   const normalized = String(value || "").trim().toLowerCase();
@@ -691,24 +714,7 @@ async function handleConsume(auth) {
 }
 
 async function handleBalance(auth) {
-  let user;
-  try {
-    user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
-  } catch (dbErr) {
-    // MongoDB 일시적 장애 시 graceful fallback - 500 대신 빈 잔액으로 응답
-    console.error("[fortune:handleBalance] DB error:", dbErr?.message || dbErr);
-    return json({
-      ok: true,
-      authenticated: true,
-      balance: 0,
-      walletCreated: false,
-      message: "Coin balance temporarily unavailable. Defaulting to 0.",
-      user: userPayload(auth, 0, []),
-      unlockedFeatures: [],
-      unlockMap: {},
-      _dbError: true,
-    });
-  }
+  const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
   if (!user) {
     return json({
       ok: true,
@@ -1844,25 +1850,24 @@ export async function handleFortuneRoutes(request, env) {
       }
 
       trace.authVerified = true;
+      trace.userIdExists = Boolean(String(auth?.userId || auth?.id || "").trim());
+      trace.userId = String(auth?.userId || auth?.id || "").trim();
+      trace.hasSession = true;
+      trace.envBindingExists = hasMongoBinding(env);
       try {
         await connectDb(env);
       } catch (error) {
-        const isBalanceRoute = path === "/pig-coin/balance";
-        if (isBalanceRoute) {
-          return json({
-            ok: true,
-            authenticated: true,
-            balance: Number(auth?.points || 0),
-            walletCreated: false,
-            code: "COIN_STORAGE_UNAVAILABLE",
-            message: "코인 저장소가 일시적으로 불안정하여 임시 잔액으로 표시합니다.",
-            user: userPayload(auth, Number(auth?.points || 0), []),
-            unlockedFeatures: [],
-            unlockMap: {},
-            _dbError: true,
-          });
-        }
-        return json(buildTokenFallbackSubscriptionStatus(auth));
+        logApiCatchDiagnostic({
+          request,
+          route: `/api/fortune${path}`,
+          method,
+          userId: auth?.userId || auth?.id,
+          env,
+          hasSession: true,
+          envBindingExists: hasMongoBinding(env),
+          error,
+        });
+        return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
       trace.dbConnected = true;
 
@@ -1870,29 +1875,27 @@ export async function handleFortuneRoutes(request, env) {
         if (path === "/pig-coin/balance") return await handleBalance(auth);
         return await handleSubscriptionStatus(request, env, auth);
       } catch (error) {
-        console.error("[fortune:pig-coin:get] degraded fallback:", error?.message || error);
-        if (path === "/pig-coin/balance") {
-          return json({
-            ok: true,
-            authenticated: true,
-            degraded: true,
-            source: "token",
-            code: "COIN_STORAGE_UNAVAILABLE",
-            message: "코인 저장소가 일시적으로 불안정하여 임시 잔액으로 표시합니다.",
-            balance: Number(auth?.points || 0),
-            walletCreated: false,
-            user: userPayload(auth, Number(auth?.points || 0), []),
-            unlockedFeatures: [],
-            unlockMap: {},
-          });
-        }
-        return json(buildTokenFallbackSubscriptionStatus(auth));
+        logApiCatchDiagnostic({
+          request,
+          route: `/api/fortune${path}`,
+          method,
+          userId: auth?.userId || auth?.id,
+          env,
+          hasSession: true,
+          envBindingExists: hasMongoBinding(env),
+          error,
+        });
+        return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
     }
 
     if (method === "POST" && path === "/pig-coin/unlock") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
       trace.authVerified = true;
+      trace.userIdExists = Boolean(String(authCtx?.auth?.userId || authCtx?.auth?.id || "").trim());
+      trace.userId = String(authCtx?.auth?.userId || authCtx?.auth?.id || "").trim();
+      trace.hasSession = true;
+      trace.envBindingExists = hasMongoBinding(env);
       await connectDb(env);
       trace.dbConnected = true;
       return await handlePigCoinUnlock(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
@@ -1901,6 +1904,10 @@ export async function handleFortuneRoutes(request, env) {
     if (method === "POST" && path === "/pig-coin/consume") {
       const authCtx = await resolvePigCoinConsumeAuth(request, env);
       trace.authVerified = true;
+      trace.userIdExists = Boolean(String(authCtx?.auth?.userId || authCtx?.auth?.id || "").trim());
+      trace.userId = String(authCtx?.auth?.userId || authCtx?.auth?.id || "").trim();
+      trace.hasSession = true;
+      trace.envBindingExists = hasMongoBinding(env);
       await connectDb(env);
       trace.dbConnected = true;
       return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
@@ -1908,6 +1915,10 @@ export async function handleFortuneRoutes(request, env) {
 
     const auth = await requireUserFromRequest(request, env);
     trace.authVerified = true;
+    trace.userIdExists = Boolean(String(auth?.id || auth?.userId || "").trim());
+    trace.userId = String(auth?.id || auth?.userId || "").trim();
+    trace.hasSession = true;
+    trace.envBindingExists = hasMongoBinding(env);
 
     await connectDb(env);
     trace.dbConnected = true;
@@ -1924,6 +1935,16 @@ export async function handleFortuneRoutes(request, env) {
     return methodNotAllowed();
   } catch (error) {
     trace.mongoQueryFailed = /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(String(error?.message || ""));
+    logApiCatchDiagnostic({
+      request,
+      route: `/api/fortune${path}`,
+      method,
+      userId: trace.userId || "",
+      env,
+      hasSession: trace.hasSession,
+      envBindingExists: trace.envBindingExists,
+      error,
+    });
     return handleRouteError(error, { request, env, trace });
   }
 }

@@ -91,6 +91,54 @@ export function getRequestMeta(request) {
   };
 }
 
+function hasSessionHint(request) {
+  try {
+    const authHeader = String(request?.headers?.get("authorization") || "").trim();
+    if (authHeader) return true;
+    const cookieHeader = String(request?.headers?.get("cookie") || "").trim();
+    if (!cookieHeader) return false;
+    return /(?:^|;\s*)(fortune_auth_token|fortune_auth_refresh|cdToken)=/i.test(cookieHeader);
+  } catch {
+    return false;
+  }
+}
+
+function hasPrimaryDbBinding(env = {}) {
+  return Boolean(
+    String(env?.MONGO_URI || env?.MONGODB_URI || "").trim(),
+  );
+}
+
+export function logApiCatchDiagnostic({
+  request,
+  route,
+  method,
+  userId,
+  env,
+  error,
+  hasSession,
+  envBindingExists,
+} = {}) {
+  const payload = {
+    route: String(route || "").trim(),
+    method: String(method || request?.method || "").trim().toUpperCase(),
+    hasSession: typeof hasSession === "boolean" ? hasSession : hasSessionHint(request),
+    userIdExists: Boolean(String(userId || "").trim()),
+    envBindingExists: typeof envBindingExists === "boolean" ? envBindingExists : hasPrimaryDbBinding(env),
+    errorName: String(error?.name || "Error"),
+    errorMessage: String(error?.message || "Unknown error"),
+    stack: String(error?.stack || ""),
+  };
+
+  try {
+    console.error("[api-catch-diagnostic]", JSON.stringify(payload));
+  } catch {
+    console.error("[api-catch-diagnostic]", payload);
+  }
+
+  return payload;
+}
+
 function resolveRequestPathFromContext(context = {}) {
   const fromTrace = String(context?.trace?.requestPath || "").trim();
   if (fromTrace) return fromTrace;

@@ -185,6 +185,28 @@ export async function requireAuth(request, env) {
   return session.user;
 }
 
+export async function requireUser(request, env) {
+  try {
+    const session = await getSessionFromRequest(request, env);
+    const userId = String(session?.user?.id || session?.user?.userId || "").trim();
+    if (!userId) {
+      throw createHttpError(401, "로그인이 필요합니다.", { code: "AUTH_REQUIRED" });
+    }
+
+    return {
+      userId,
+      email: String(session?.user?.email || "").trim(),
+      session,
+    };
+  } catch (error) {
+    const status = Number(error?.status || 0);
+    if (status === 401 || status === 403) {
+      throw createHttpError(401, "로그인이 필요합니다.", { code: "AUTH_REQUIRED" });
+    }
+    throw error;
+  }
+}
+
 export async function getSessionFromRequest(request, env) {
   const auth = await getOptionalUserFromRequest(request, env);
   const userId = String(auth?.userId || "").trim();
@@ -229,7 +251,8 @@ export async function getOptionalUserFromRequest(request, env) {
 }
 
 export async function requireUserFromRequest(request, env) {
-  return requireAuth(request, env);
+  const auth = await requireAuth(request, env);
+  return auth;
 }
 
 export async function signAuthToken(user, env) {
