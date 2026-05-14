@@ -1602,7 +1602,7 @@ async function handleCancel(request, env, auth) {
   });
 }
 
-async function handleReportFailure(request, auth) {
+async function handleReportFailure(request, env, auth) {
   const body = await readJson(request);
   const merchantUid = String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined;
   const impUid = String(body?.impUid || body?.paymentId || "").trim() || undefined;
@@ -1637,6 +1637,66 @@ async function handleReportFailure(request, auth) {
     });
   }
 
+  const normalizedReason = String(reasonCode || "").trim().toLowerCase();
+  const autoRefundEligible = payment
+    && payment.status === "success"
+    && normalizedReason !== "cancelled"
+    && normalizedReason !== "client_cancel_or_fail"
+    && normalizedReason !== "subscription_client_cancel_or_fail";
+
+  let autoRefund = {
+    attempted: false,
+    refunded: false,
+    skippedReason: "",
+    message: "",
+    userPoints: null,
+    payment: null,
+  };
+
+  if (autoRefundEligible) {
+    autoRefund.attempted = true;
+
+    const pointsToRollback = Number(payment.chargedPoints || payment.expectedChargedPoints || 0);
+    const paidAmount = Number(payment.paymentAmount || 0);
+    const user = await User.findById(auth.userId).select("points").lean();
+
+    if (!user) {
+      autoRefund.skippedReason = "user_not_found";
+      autoRefund.message = "Automatic refund skipped because user was not found.";
+    } else if (pointsToRollback > 0 && Number(user.points || 0) < pointsToRollback) {
+      autoRefund.skippedReason = "points_already_used";
+      autoRefund.message = "Automatic refund skipped because charged points were already used.";
+    } else {
+      try {
+        const canceledPortOne = await cancelPortOnePayment(env, {
+          impUid: payment.impUid || impUid,
+          merchantUid: payment.merchantUid || merchantUid,
+          reason: `Automatic refund after client failure: ${reasonCode}`.slice(0, 120),
+          amount: paidAmount > 0 ? paidAmount : undefined,
+          checksum: paidAmount > 0 ? paidAmount : undefined,
+        });
+
+        const updateResult = await runCancelUpdate({
+          paymentRecord: payment,
+          canceledPortOne,
+          pointsToRollback,
+          auth,
+          user,
+          requestedCancelAmount: paidAmount > 0 ? paidAmount : undefined,
+          paidAmount,
+        });
+
+        autoRefund.refunded = true;
+        autoRefund.message = "Automatic refund completed.";
+        autoRefund.userPoints = Number(updateResult?.updatedPoints || 0);
+        autoRefund.payment = formatPaymentResponse(updateResult?.canceledPayment);
+      } catch (error) {
+        autoRefund.skippedReason = "refund_failed";
+        autoRefund.message = `Automatic refund failed: ${String(error?.message || "unknown")}`;
+      }
+    }
+  }
+
   await writeFailureLog({
     request,
     userId: auth.userId,
@@ -1650,7 +1710,11 @@ async function handleReportFailure(request, auth) {
     payload: body,
   });
 
-  return json({ ok: true, message: "Payment failure report recorded." });
+  return json({
+    ok: true,
+    message: "Payment failure report recorded.",
+    autoRefund,
+  });
 }
 
 function formatPointHistoryEntry(entry) {
@@ -1933,7 +1997,7 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
-    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
+    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, env, auth);
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

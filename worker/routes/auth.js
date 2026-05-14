@@ -305,6 +305,28 @@ function getAuthOpTimeoutMs(env) {
   return Math.floor(raw);
 }
 
+function buildAuthDbEnv(env, timeoutMs) {
+  const clamp = (value, fallback, floor, ceil) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(floor, Math.min(Math.floor(parsed), ceil));
+  };
+
+  const base = clamp(timeoutMs, 7000, 2500, 9000);
+  const serverSelection = clamp(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", String(base)), base, 2500, 9000);
+  const connectTimeout = clamp(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", String(base)), base, 2500, 9000);
+  const guardTimeout = clamp(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", String(base + 1000)), base + 1000, 3000, 11000);
+
+  return {
+    ...env,
+    MONGO_SERVER_SELECTION_TIMEOUT_MS: String(serverSelection),
+    MONGO_CONNECT_TIMEOUT_MS: String(connectTimeout),
+    MONGO_WORKER_CONNECT_GUARD_MS: String(guardTimeout),
+    MONGO_CONNECT_RETRY_ONCE: "false",
+    MONGO_VERIFY_PING_EACH_REQUEST: "false",
+  };
+}
+
 async function withAuthOpTimeout(task, timeoutMs, label) {
   let timeoutId;
   try {
@@ -1076,8 +1098,9 @@ async function handleRegister(request, env) {
 }
 
 async function handleLogin(request, env) {
-  const timeoutMs = getAuthOpTimeoutMs(env);
+  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 7000);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const dbEnv = buildAuthDbEnv(env, timeoutMs);
   const body = await readJson(request);
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
@@ -1093,7 +1116,7 @@ async function handleLogin(request, env) {
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
+      await withAuthOpTimeout(connectDb(dbEnv), timeoutMs, "auth_login_connect_db");
 
       const users = User.collection;
       const user = await withAuthOpTimeout(
@@ -1252,6 +1275,9 @@ async function handleMe(request, env) {
 }
 
 async function handleRefresh(request, env) {
+  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 7000);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const dbEnv = buildAuthDbEnv(env, timeoutMs);
   const refreshToken = readRefreshTokenFromRequest(request);
   if (!refreshToken) {
     const response = json({ ok: false, message: "Refresh token is missing." }, { status: 401 });
@@ -1278,10 +1304,39 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  await connectDb(env);
+  try {
+    await withAuthOpTimeout(connectDb(dbEnv), timeoutMs, "auth_refresh_connect_db");
+  } catch (error) {
+    if (isAuthInfraFailure(error, ["auth_refresh_connect_db"])) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_connect_db_unavailable", error);
+      return json({
+        ok: false,
+        code: "refresh_service_unavailable",
+        message: "Refresh service is temporarily unavailable. Please retry.",
+      }, { status: 503 });
+    }
+    throw error;
+  }
 
   const tokenHash = hashRefreshToken(refreshToken, env);
-  const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
+  let session;
+  try {
+    session = await withAuthOpTimeout(
+      RefreshTokenSession.findOne({ tokenHash }).maxTimeMS(dbMaxTimeMs).lean(),
+      timeoutMs,
+      "auth_refresh_find_session",
+    );
+  } catch (error) {
+    if (isAuthInfraFailure(error, ["auth_refresh_find_session"])) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_find_session_unavailable", error);
+      return json({
+        ok: false,
+        code: "refresh_service_unavailable",
+        message: "Refresh service is temporarily unavailable. Please retry.",
+      }, { status: 503 });
+    }
+    throw error;
+  }
   if (!session) {
     await revokeAllUserRefreshSessions(userId);
     const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
@@ -1305,24 +1360,42 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  const user = await User.collection.findOne(
-    { _id: new mongoose.Types.ObjectId(userId) },
-    {
-      projection: {
-        _id: 1,
-        name: 1,
-        email: 1,
-        birthDate: 1,
-        birthTime: 1,
-        gender: 1,
-        role: 1,
-        points: 1,
-        joinedAt: 1,
-        passwordHash: 1,
-        localAuth: 1,
-      },
-    },
-  );
+  let user;
+  try {
+    user = await withAuthOpTimeout(
+      User.collection.findOne(
+        { _id: new mongoose.Types.ObjectId(userId) },
+        {
+          projection: {
+            _id: 1,
+            name: 1,
+            email: 1,
+            birthDate: 1,
+            birthTime: 1,
+            gender: 1,
+            role: 1,
+            points: 1,
+            joinedAt: 1,
+            passwordHash: 1,
+            localAuth: 1,
+          },
+          maxTimeMS: dbMaxTimeMs,
+        },
+      ),
+      timeoutMs,
+      "auth_refresh_find_user",
+    );
+  } catch (error) {
+    if (isAuthInfraFailure(error, ["auth_refresh_find_user"])) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_find_user_unavailable", error);
+      return json({
+        ok: false,
+        code: "refresh_service_unavailable",
+        message: "Refresh service is temporarily unavailable. Please retry.",
+      }, { status: 503 });
+    }
+    throw error;
+  }
 
   if (!user) {
     await revokeAllUserRefreshSessions(userId);
@@ -1331,13 +1404,40 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  const accessToken = await signAuthToken(user, env);
-  const nextRefresh = await issueRefreshTokenForUser(userId, env);
-  await createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt);
-  await markSessionRevoked(tokenHash, {
-    revokedAt: new Date(),
-    replacedByTokenHash: nextRefresh.tokenHash,
-  });
+  let accessToken;
+  let nextRefresh;
+  try {
+    accessToken = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_refresh_sign_access");
+    nextRefresh = await withAuthOpTimeout(issueRefreshTokenForUser(userId, env), timeoutMs, "auth_refresh_issue_refresh");
+    await withAuthOpTimeout(
+      createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt),
+      timeoutMs,
+      "auth_refresh_create_session",
+    );
+    await withAuthOpTimeout(
+      markSessionRevoked(tokenHash, {
+        revokedAt: new Date(),
+        replacedByTokenHash: nextRefresh.tokenHash,
+      }),
+      timeoutMs,
+      "auth_refresh_revoke_previous",
+    );
+  } catch (error) {
+    if (isAuthInfraFailure(error, [
+      "auth_refresh_sign_access",
+      "auth_refresh_issue_refresh",
+      "auth_refresh_create_session",
+      "auth_refresh_revoke_previous",
+    ])) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_issue_token_unavailable", error);
+      return json({
+        ok: false,
+        code: "refresh_service_unavailable",
+        message: "Refresh service is temporarily unavailable. Please retry.",
+      }, { status: 503 });
+    }
+    throw error;
+  }
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
 
   const response = json({
