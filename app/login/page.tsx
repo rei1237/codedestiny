@@ -5,6 +5,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearAuthError, login as loginWithStore, refreshAuth, useAuthStore } from "../_lib/auth-store";
+import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
 
 declare global {
   interface Window {
@@ -246,9 +247,29 @@ export default function LoginPage() {
 
   const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing;
   const formDisabled = isBusy;
+  const portalStatus = useMemo<LoginStatus>(() => {
+    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return "loading";
+    if (auth.status === "checking" && !error) return "loading";
+    return "idle";
+  }, [auth.status, callbackProcessing, error, loginSubmitting, oauthRedirecting]);
+
+  const portalMessage = useMemo(() => {
+    if (oauthRedirecting === "google") return "Google 인증을 연결하고 있습니다.";
+    if (oauthRedirecting === "naver") return "네이버 인증을 연결하고 있습니다.";
+    if (oauthRedirecting === "kakao") return "카카오 인증을 연결하고 있습니다.";
+    if (loginSubmitting) return "계정 정보를 확인하고 안전한 세션을 열고 있습니다.";
+    if (auth.status === "checking") return "기존 로그인 세션을 복구하고 있습니다.";
+    return "";
+  }, [auth.status, loginSubmitting, oauthRedirecting]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#0a0e27_0%,#1a0a2e_25%,#16213e_50%,#0f3460_75%,#0a1428_100%)] px-4 py-10 text-slate-100">
+      <StarlightLoginPortal
+        status={portalStatus}
+        message={portalMessage}
+        displayName={fallbackDisplayNameFromLoginId(loginId)}
+      />
+
       {/* 우주 배경 - 행성 배치 */}
       <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-purple-600/20 via-purple-800/10 to-transparent blur-3xl opacity-60" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-600/10 to-transparent blur-3xl opacity-50" />

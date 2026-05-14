@@ -2,6 +2,15 @@ import { getApiBaseUrl } from "./api-config";
 import { persistSanitizedAuthUser } from "./auth-storage";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
+const DEFAULT_AUTH_TIMEOUT_MS = 10000;
+const MAX_TRANSIENT_RETRIES = 2;
+
+type AuthFetchOptions = {
+  retryOn401?: boolean;
+  apiBase?: string;
+  timeoutMs?: number;
+  transientRetries?: number;
+};
 
 type RefreshSessionState = "success" | "invalid" | "transient";
 
@@ -121,6 +130,95 @@ function shouldTryRefresh(url: string) {
   }
 }
 
+function isTransientStatus(status: number) {
+  return status === 408 || status === 425 || status === 429 || (status >= 500 && status <= 504);
+}
+
+function isRetryableRequestPath(url: string) {
+  try {
+    const parsed = new URL(url, "http://localhost");
+    const path = parsed.pathname;
+    return path.startsWith("/api/auth/")
+      || path.startsWith("/api/billing/")
+      || path.startsWith("/api/payments/")
+      || path.startsWith("/api/subscription/")
+      || path.startsWith("/api/fortune/pig-coin/");
+  } catch {
+    return false;
+  }
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
+function isNetworkError(error: unknown) {
+  return error instanceof TypeError;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchRequestWithTimeout(request: Request, timeoutMs: number) {
+  const safeTimeoutMs = Number.isFinite(timeoutMs) && timeoutMs > 0
+    ? Math.floor(timeoutMs)
+    : DEFAULT_AUTH_TIMEOUT_MS;
+
+  if (typeof AbortController === "undefined") {
+    return fetch(request.clone());
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    try {
+      controller.abort();
+    } catch {
+      // ignore abort failures
+    }
+  }, safeTimeoutMs);
+
+  try {
+    return await fetch(new Request(request.clone(), { signal: controller.signal }));
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function performFetchWithTransientRetry(
+  targetUrl: string,
+  init: RequestInit,
+  timeoutMs: number,
+  transientRetries: number,
+) {
+  const retryablePath = isRetryableRequestPath(targetUrl);
+  const maxRetries = retryablePath
+    ? Math.min(Math.max(Math.floor(transientRetries), 0), MAX_TRANSIENT_RETRIES)
+    : 0;
+
+  let attempt = 0;
+  while (true) {
+    try {
+      const request = buildAuthRequest(targetUrl, init);
+      const response = await fetchRequestWithTimeout(request, timeoutMs);
+      if (attempt < maxRetries && isTransientStatus(response.status)) {
+        attempt += 1;
+        await sleep(120 * attempt);
+        continue;
+      }
+      return response;
+    } catch (error) {
+      const canRetry = attempt < maxRetries && (isAbortError(error) || isNetworkError(error));
+      if (canRetry) {
+        attempt += 1;
+        await sleep(120 * attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
 function publishAuthSync(event: "login" | "logout") {
   if (typeof window === "undefined") return;
   const payload = { source: "auth-client", event, at: Date.now() };
@@ -237,9 +335,15 @@ function isMeRequest(url: string, init: RequestInit = {}) {
   }
 }
 
-async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string) {
-  let request = buildAuthRequest(targetUrl, init);
-  let response = await fetch(request.clone());
+async function performAuthFetch(
+  targetUrl: string,
+  init: RequestInit,
+  retryOn401: boolean,
+  apiBase: string,
+  timeoutMs: number,
+  transientRetries: number,
+) {
+  let response = await performFetchWithTransientRetry(targetUrl, init, timeoutMs, transientRetries);
   if (
     response.status === 401
     && retryOn401
@@ -247,8 +351,7 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
   ) {
     const refreshState = await refreshSession(apiBase);
     if (refreshState === "success") {
-      request = buildAuthRequest(targetUrl, init);
-      response = await fetch(request.clone());
+      response = await performFetchWithTransientRetry(targetUrl, init, timeoutMs, transientRetries);
     } else if (refreshState === "transient") {
       return buildRefreshTransientResponse(response.status);
     }
@@ -257,15 +360,22 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
   return response;
 }
 
-export async function authFetch(input: string, init: RequestInit = {}, options: { retryOn401?: boolean; apiBase?: string } = {}) {
+export async function authFetch(input: string, init: RequestInit = {}, options: AuthFetchOptions = {}) {
   const configuredBase = String(options.apiBase || getApiBaseUrl() || "").trim();
   const apiBase = resolveApiBaseForRequest(input, configuredBase);
   const targetUrl = toAbsoluteApiUrl(input, apiBase);
   const retryOn401 = options.retryOn401 !== false;
+  const timeoutMs = Number(options.timeoutMs);
+  const resolvedTimeoutMs = Number.isFinite(timeoutMs) && timeoutMs > 0
+    ? Math.floor(timeoutMs)
+    : DEFAULT_AUTH_TIMEOUT_MS;
+  const transientRetries = Number.isFinite(Number(options.transientRetries))
+    ? Number(options.transientRetries)
+    : 1;
 
   if (isMeRequest(targetUrl, init)) {
     if (!meRequestInFlight) {
-      meRequestInFlight = performAuthFetch(targetUrl, init, retryOn401, apiBase)
+      meRequestInFlight = performAuthFetch(targetUrl, init, retryOn401, apiBase, resolvedTimeoutMs, transientRetries)
         .finally(() => {
           meRequestInFlight = null;
         });
@@ -274,7 +384,7 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
     return sharedResponse.clone();
   }
 
-  return performAuthFetch(targetUrl, init, retryOn401, apiBase);
+  return performAuthFetch(targetUrl, init, retryOn401, apiBase, resolvedTimeoutMs, transientRetries);
 }
 
 export async function logoutWithServer(apiBase?: string) {

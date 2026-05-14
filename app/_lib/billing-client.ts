@@ -26,6 +26,8 @@ type BillingFeaturePricing = {
   cashPrice?: number | null;
 };
 
+const BILLING_TIMEOUT_MS = 9000;
+
 export type BillingAccessDecision = {
   allowed: boolean;
   reason:
@@ -52,13 +54,25 @@ function toNumber(value: unknown, fallback = 0): number {
 
 async function parseBillingResponse<T>(response: Response): Promise<BillingResult<T>> {
   let payload: Record<string, unknown> = {};
-  try {
-    payload = (await response.json()) as Record<string, unknown>;
-  } catch {
-    payload = {};
+  const rawText = await response.text().catch(() => "");
+
+  if (rawText) {
+    try {
+      payload = JSON.parse(rawText) as Record<string, unknown>;
+    } catch {
+      const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+      const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
+      payload = {
+        ok: false,
+        code: looksLikeHtml ? "INVALID_RESPONSE_FORMAT" : "RESPONSE_PARSE_ERROR",
+        message: looksLikeHtml
+          ? "결제 서버 응답이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요."
+          : "결제 응답 파싱 중 오류가 발생했습니다.",
+      };
+    }
   }
 
-  const ok = response.ok && payload?.ok === true;
+  const ok = response.ok && (payload?.ok === true || (payload?.ok == null && response.status === 200));
   const message = toText(payload?.message) || (ok ? "요청이 성공했습니다." : "요청 처리에 실패했습니다.");
   const errorObject = payload?.error && typeof payload.error === "object"
     ? (payload.error as Record<string, unknown>)
@@ -91,6 +105,14 @@ function toQuery(input: Record<string, unknown>) {
   return params.toString();
 }
 
+async function billingFetch(path: string, init: RequestInit) {
+  return authFetch(path, init, {
+    retryOn401: true,
+    timeoutMs: BILLING_TIMEOUT_MS,
+    transientRetries: 1,
+  });
+}
+
 export async function fetchBillingFeaturePricing(input: {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -99,7 +121,7 @@ export async function fetchBillingFeaturePricing(input: {
 }): Promise<BillingResult<{ pricing: BillingFeaturePricing }>> {
   const query = toQuery(input as Record<string, unknown>);
   const path = query ? `/api/billing/features?${query}` : "/api/billing/features";
-  const response = await authFetch(path, { method: "GET" });
+  const response = await billingFetch(path, { method: "GET" });
   return parseBillingResponse<{ pricing: BillingFeaturePricing }>(response);
 }
 
@@ -116,7 +138,7 @@ export async function fetchBillingPrices(input: {
 }>> {
   const query = toQuery(input as Record<string, unknown>);
   const path = query ? `/api/billing/prices?${query}` : "/api/billing/prices";
-  const response = await authFetch(path, { method: "GET" });
+  const response = await billingFetch(path, { method: "GET" });
   return parseBillingResponse(response);
 }
 
@@ -134,7 +156,7 @@ export async function runBillingCoinGate(input: {
   balance: number | null;
   user: Record<string, unknown> | null;
 }>> {
-  const purchaseResponse = await authFetch("/api/billing/purchase", {
+  const purchaseResponse = await billingFetch("/api/billing/purchase", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -186,7 +208,7 @@ export async function runBillingCoinGate(input: {
     };
   }
 
-  const fallbackResponse = await authFetch("/api/billing/coin-gate", {
+  const fallbackResponse = await billingFetch("/api/billing/coin-gate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -219,7 +241,7 @@ export async function fetchBillingMe(): Promise<BillingResult<{
   payments: Array<Record<string, unknown>>;
   subscriptions: Array<Record<string, unknown>>;
 }>> {
-  const response = await authFetch("/api/billing/me", { method: "GET" });
+  const response = await billingFetch("/api/billing/me", { method: "GET" });
   const parsed = await parseBillingResponse<{
     authenticated: boolean;
     balance: number;
@@ -249,7 +271,7 @@ export async function fetchBillingEntitlements(): Promise<BillingResult<{
   unlockedFeatures: string[];
   subscription: Record<string, unknown> | null;
 }>> {
-  const response = await authFetch("/api/billing/entitlements", { method: "GET" });
+  const response = await billingFetch("/api/billing/entitlements", { method: "GET" });
   const parsed = await parseBillingResponse<{
     entitlements: Array<Record<string, unknown>>;
     unlockMap: Record<string, boolean>;
@@ -279,7 +301,7 @@ export async function fetchBillingAccessDecision(input: {
 }>> {
   const query = toQuery(input as Record<string, unknown>);
   const path = query ? `/api/billing/access?${query}` : "/api/billing/access";
-  const response = await authFetch(path, { method: "GET" });
+  const response = await billingFetch(path, { method: "GET" });
   return parseBillingResponse(response);
 }
 
@@ -304,7 +326,7 @@ export async function runBillingPurchase(input: {
     subscriptionGranted?: boolean;
   };
 }>> {
-  const response = await authFetch("/api/billing/purchase", {
+  const response = await billingFetch("/api/billing/purchase", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -336,7 +358,7 @@ export async function runBillingConsume(input: {
     subscriptionGranted?: boolean;
   };
 }>> {
-  const response = await authFetch("/api/billing/consume", {
+  const response = await billingFetch("/api/billing/consume", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -354,7 +376,7 @@ export async function fetchBillingBalance(): Promise<BillingResult<{
   unlockedFeatures: string[];
   unlockMap: Record<string, boolean>;
 }>> {
-  const response = await authFetch("/api/billing/balance", { method: "GET" });
+  const response = await billingFetch("/api/billing/balance", { method: "GET" });
   const parsed = await parseBillingResponse<{
     authenticated: boolean;
     balance: number;

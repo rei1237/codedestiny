@@ -545,19 +545,23 @@ export async function login(credentials: LoginCredentials) {
   clearStaleGuestCache();
   debugAuth("[auth] login started");
 
-  const requestLogin = () => fetch(`${apiBase}/api/auth/login`, {
+  const requestLogin = () => authFetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({
       email,
       password,
       nextPath,
     }),
+  }, {
+    apiBase,
+    retryOn401: false,
+    timeoutMs: 9000,
+    transientRetries: 1,
   });
 
   try {
-    let response: Response;
+    let response: Response | null = null;
     try {
       response = await requestLogin();
     } catch {
@@ -568,6 +572,10 @@ export async function login(credentials: LoginCredentials) {
     if (response.status === 503) {
       await sleep(180);
       response = await requestLogin();
+    }
+
+    if (!response) {
+      throw new Error("로그인 요청에 실패했습니다.");
     }
 
     const payload = await parseJsonResponse<LoginApiPayload>(response);

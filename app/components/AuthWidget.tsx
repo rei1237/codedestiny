@@ -62,8 +62,8 @@ export default function AuthWidget() {
     };
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    void logout();
     window.location.assign("/");
   };
 
