@@ -44,6 +44,11 @@
 	3. `npm run verify:runtime-cache-sync`
 - Cache-bust rule for static assets:
 	- When changing a file loaded by fixed URL (for example `/styles/core-ui.css`), bump the query version in `index.html` (for example `?v=YYYYMMDD-tag`) in the same commit.
+	- When changing an already versioned runtime/static file (for example `/js/core/index-inline-runtime.js` or `/js/saju-engine-tarot-sukuyo-quantum.js`), always bump to a NEW cache key in the same commit (never reuse the previous `?v=` value).
+	- If the changed file is loaded through another loader map, bump BOTH levels together:
+		1. entry include key (for example `index.html` script `?v=`)
+		2. loader target key (for example runtime map URL `?v=`)
+	- Verify the new key exists in root source and synced mirrors after `npm run sync:public`.
 - Reflection verification before reporting "done":
 	- Confirm changed marker text/attribute exists in root `index.html` and mirrored `public/static/index.html` after sync.
 	- Include the exact changed marker in commit message/body or report so production verification is immediate.
