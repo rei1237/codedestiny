@@ -23,13 +23,35 @@
       return normalized;
     }
 
-    var explicit = window.CODE_DESTINY_API_BASE_URL || window.__CF_PAGES_API_BASE_URL || "";
-    var allowedExplicit = normalizeAllowedBase(explicit);
-    if (allowedExplicit) {
-      var normalized = allowedExplicit;
+    function applyRuntimeBase(base) {
+      var normalized = normalizeAllowedBase(base);
+      if (!normalized) return "";
       window.CODE_DESTINY_API_BASE_URL = normalized;
       window.__CF_PAGES_API_BASE_URL = normalized;
       window.__CD_API_BASE_URL = normalized;
+      try { localStorage.setItem("fortune_api_base_url", normalized); } catch (e) {}
+      return normalized;
+    }
+
+    function readStoredBase() {
+      var raw = "";
+      try { raw = String(localStorage.getItem("fortune_api_base_url") || "").trim(); } catch (e) {}
+      if (!raw) return "";
+      var normalized = normalizeAllowedBase(raw);
+      if (!normalized) {
+        try { localStorage.removeItem("fortune_api_base_url"); } catch (e) {}
+        return "";
+      }
+      if (normalized !== raw) {
+        try { localStorage.setItem("fortune_api_base_url", normalized); } catch (e) {}
+      }
+      return normalized;
+    }
+
+    var explicit = window.CODE_DESTINY_API_BASE_URL || window.__CF_PAGES_API_BASE_URL || "";
+    var allowedExplicit = normalizeAllowedBase(explicit);
+    if (allowedExplicit) {
+      applyRuntimeBase(allowedExplicit);
       return;
     }
 
@@ -37,16 +59,19 @@
     if (meta && meta.content) {
       var fromMeta = normalizeAllowedBase(meta.content);
       if (fromMeta) {
-        window.CODE_DESTINY_API_BASE_URL = fromMeta;
-        window.__CF_PAGES_API_BASE_URL = fromMeta;
-        window.__CD_API_BASE_URL = fromMeta;
+        applyRuntimeBase(fromMeta);
+        return;
+      }
+    }
+
+    var storedBase = readStoredBase();
+    if (storedBase) {
+      if (applyRuntimeBase(storedBase)) {
         return;
       }
     }
 
     // Default to current origin so frontend always uses same-origin /api.
-    window.CODE_DESTINY_API_BASE_URL = location.origin;
-    window.__CF_PAGES_API_BASE_URL = location.origin;
-    window.__CD_API_BASE_URL = location.origin;
+    applyRuntimeBase(location.origin);
   } catch (e) {}
 })();

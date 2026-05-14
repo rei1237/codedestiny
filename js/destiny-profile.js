@@ -239,10 +239,24 @@
   var _DP_FETCH_TIMEOUT_MS = 9000;
   var _dpRefreshSessionInFlight = null;
 
+  function _dpIsWorkersDevHost(hostname) {
+    var host = String(hostname || '').trim().toLowerCase();
+    if (!host) return false;
+    try {
+      if (host.indexOf('://') >= 0) host = new URL(host).hostname.toLowerCase();
+    } catch (_) {}
+    return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
+  }
+
   function _dpNormalizeApiBase(rawBase) {
     var base = String(rawBase || '').trim();
     if (!base) return '';
-    return base.replace(/\/+$/, '');
+    var normalized = base.replace(/\/+$/, '');
+    try {
+      var currentHost = (window && window.location && window.location.hostname) || '';
+      if (_dpIsWorkersDevHost(normalized) && !_dpIsWorkersDevHost(currentHost)) return '';
+    } catch (_) {}
+    return normalized;
   }
 
   function _dpJoinApiUrl(base, pathname) {
@@ -252,10 +266,18 @@
     return normalizedBase ? (normalizedBase + path) : path;
   }
 
-  function _dpIsWorkersDevHost(hostname) {
-    var host = String(hostname || '').trim().toLowerCase();
-    return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
-  }
+  (function _dpSanitizeStoredApiBase() {
+    try {
+      var stored = String(localStorage.getItem('fortune_api_base_url') || '').trim();
+      if (!stored) return;
+      var normalized = _dpNormalizeApiBase(stored);
+      if (!normalized) {
+        localStorage.removeItem('fortune_api_base_url');
+        return;
+      }
+      if (normalized !== stored) localStorage.setItem('fortune_api_base_url', normalized);
+    } catch (_) {}
+  })();
 
   function _dpIsAuthSensitivePath(pathname) {
     var path = String(pathname || '');
@@ -375,7 +397,13 @@
 
   function _dpRememberApiBase(base) {
     var normalized = _dpNormalizeApiBase(base);
-    if (!normalized) return;
+    if (!normalized) {
+      try {
+        var currentIsWorkers = _dpIsWorkersDevHost((window && window.location && window.location.hostname) || '');
+        if (!currentIsWorkers) localStorage.removeItem('fortune_api_base_url');
+      } catch (_) {}
+      return;
+    }
     try { localStorage.setItem('fortune_api_base_url', normalized); } catch (_) {}
     try {
       window.CODE_DESTINY_API_BASE_URL = normalized;

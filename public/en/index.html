@@ -548,8 +548,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #sajuLoaderOverlay {
   position: fixed;
   inset: 0;
-  z-index: 99999;
-  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+  z-index: 2147483000;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(56, 189, 248, 0.18), transparent 46%),
+    radial-gradient(circle at 82% 72%, rgba(217, 70, 239, 0.14), transparent 50%),
+    radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
   display: none;
   flex-direction: column;
   align-items: center;
@@ -651,7 +654,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260514-mbti-bloodtone1">
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260515-mobile-cacheguard1" media="(max-width: 1024px)">
 
-  <script src="/js/inline/api-base-init.js?v=20260515-auth-sameorigin1" defer></script>
+  <script src="/js/inline/api-base-init.js?v=20260515-auth-sameorigin2" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
@@ -6357,7 +6360,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260515-mobile-cacheguard1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260514-premium-report-engine2"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260515-cosmic-payment-overlay1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -7423,6 +7426,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return headers;
     }
 
+    function shouldSingleRetry(pathname, status) {
+      var code = Number(status || 0);
+      if (!(code === 0 || code >= 500)) return false;
+      var normalizedPath = String(pathname || '');
+      return normalizedPath.indexOf('/api/billing/') === 0
+        || normalizedPath.indexOf('/api/fortune/pig-coin/') === 0;
+    }
+
+    async function retryRequestOnce(requestUrl, requestInit) {
+      await new Promise(function(resolve) { setTimeout(resolve, 180); });
+      var retryInit = Object.assign({}, requestInit);
+      retryInit.headers = buildHeaders(requestInit.headers);
+      return fetch(requestUrl, retryInit);
+    }
+
     var requestInit = Object.assign({}, init || {});
     var headers = buildHeaders(requestInit.headers);
     if (requestInit.body && !headers.has('Content-Type')) {
@@ -7443,12 +7461,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       try {
         response = await fetch(requestUrl, requestInit);
       } catch (_networkError) {
-        lastResult = {
-          ok: false,
-          status: 0,
-          payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
-        };
-        continue;
+        if (shouldSingleRetry(path, 0)) {
+          try {
+            response = await retryRequestOnce(requestUrl, requestInit);
+          } catch (_networkRetryError) {
+            lastResult = {
+              ok: false,
+              status: 0,
+              payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+            };
+            continue;
+          }
+        } else {
+          lastResult = {
+            ok: false,
+            status: 0,
+            payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+          };
+          continue;
+        }
       }
 
       if (response.status === 401) {
@@ -7467,6 +7498,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             continue;
           }
         }
+      }
+
+      if (!response.ok && shouldSingleRetry(path, response.status)) {
+        try {
+          response = await retryRequestOnce(requestUrl, requestInit);
+        } catch (_retryOnceError) {}
       }
 
       var parsed = await readJsonOrTextPayload(response);

@@ -215,33 +215,74 @@ function __cdEnsurePaymentLoadingStyle() {
     '  from { transform: rotate(0deg); }',
     '  to { transform: rotate(360deg); }',
     '}',
+    '@keyframes cdNebulaDrift {',
+    '  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.74; }',
+    '  50% { transform: translate3d(0, -12px, 0) scale(1.04); opacity: 0.98; }',
+    '  100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.74; }',
+    '}',
+    '@keyframes cdStarPulse {',
+    '  0%, 100% { opacity: 0.3; transform: scale(0.98); }',
+    '  50% { opacity: 0.8; transform: scale(1.02); }',
+    '}',
     '#cdPaymentLoadingOverlay {',
     '  position: fixed;',
     '  inset: 0;',
-    '  z-index: 1400;',
+    '  z-index: 2147483000;',
     '  display: none;',
     '  align-items: center;',
     '  justify-content: center;',
-    '  background: rgba(2, 6, 23, 0.58);',
-    '  backdrop-filter: blur(6px);',
+    '  background:',
+    '    radial-gradient(circle at 22% 18%, rgba(56, 189, 248, 0.18), transparent 46%),',
+    '    radial-gradient(circle at 78% 72%, rgba(217, 70, 239, 0.14), transparent 50%),',
+    '    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.86), rgba(2, 6, 23, 0.97));',
+    '  backdrop-filter: blur(10px) saturate(1.08);',
     '  padding: 16px;',
+    '  isolation: isolate;',
+    '}',
+    '#cdPaymentLoadingOverlay::before {',
+    '  content: "";',
+    '  position: absolute;',
+    '  inset: 0;',
+    '  pointer-events: none;',
+    '  background-image:',
+    '    radial-gradient(1.5px 1.5px at 18% 22%, rgba(255, 255, 255, 0.92), transparent),',
+    '    radial-gradient(1px 1px at 62% 28%, rgba(186, 230, 253, 0.88), transparent),',
+    '    radial-gradient(1.2px 1.2px at 82% 64%, rgba(244, 208, 255, 0.9), transparent),',
+    '    radial-gradient(1px 1px at 38% 74%, rgba(255, 255, 255, 0.82), transparent),',
+    '    radial-gradient(1px 1px at 12% 58%, rgba(255, 255, 255, 0.75), transparent);',
+    '  background-size: 100% 100%;',
+    '  animation: cdStarPulse 2.6s ease-in-out infinite;',
+    '}',
+    '#cdPaymentLoadingOverlay::after {',
+    '  content: "";',
+    '  position: absolute;',
+    '  width: min(58vw, 620px);',
+    '  height: min(58vw, 620px);',
+    '  border-radius: 999px;',
+    '  pointer-events: none;',
+    '  background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.18), rgba(14, 116, 144, 0) 62%);',
+    '  filter: blur(1px);',
+    '  animation: cdNebulaDrift 3.8s ease-in-out infinite;',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-card {',
+    '  position: relative;',
+    '  z-index: 1;',
     '  width: min(420px, 100%);',
-    '  border-radius: 20px;',
-    '  border: 1px solid rgba(253, 230, 138, 0.28);',
-    '  background: rgba(2, 6, 23, 0.88);',
-    '  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.42);',
+    '  border-radius: 24px;',
+    '  border: 1px solid rgba(186, 230, 253, 0.32);',
+    '  background: linear-gradient(180deg, rgba(2, 6, 23, 0.9) 0%, rgba(17, 24, 39, 0.93) 100%);',
+    '  box-shadow: 0 30px 92px rgba(2, 6, 23, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.12);',
     '  text-align: center;',
     '  color: #ffffff;',
-    '  padding: 24px 20px;',
+    '  padding: 26px 22px 22px;',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-spinner-wrap {',
-    '  width: 74px;',
-    '  height: 74px;',
+    '  width: 78px;',
+    '  height: 78px;',
     '  margin: 0 auto 14px;',
     '  border-radius: 999px;',
-    '  border: 1px solid rgba(253, 230, 138, 0.25);',
+    '  border: 1px solid rgba(186, 230, 253, 0.34);',
+    '  box-shadow: 0 0 24px rgba(56, 189, 248, 0.22), inset 0 0 24px rgba(37, 99, 235, 0.2);',
     '  display: grid;',
     '  place-items: center;',
     '}',
@@ -249,33 +290,34 @@ function __cdEnsurePaymentLoadingStyle() {
     '  width: 44px;',
     '  height: 44px;',
     '  border-radius: 999px;',
-    '  border: 3px solid rgba(251, 191, 36, 0.25);',
-    '  border-top-color: rgba(251, 191, 36, 1);',
+    '  border: 3px solid rgba(125, 211, 252, 0.3);',
+    '  border-top-color: rgba(125, 211, 252, 1);',
     '  animation: cdPaymentSpin 0.9s linear infinite;',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-title {',
     '  margin: 0;',
-    '  font-size: 20px;',
+    '  font-size: 21px;',
     '  font-weight: 800;',
     '  letter-spacing: -0.02em;',
+    '  color: rgba(224, 242, 254, 0.98);',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-desc {',
-    '  margin: 8px 0 0;',
+    '  margin: 9px 0 0;',
     '  font-size: 14px;',
-    '  color: rgba(226, 232, 240, 0.9);',
+    '  color: rgba(186, 230, 253, 0.95);',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-status {',
-    '  margin: 12px 0 0;',
-    '  border-radius: 10px;',
-    '  border: 1px solid rgba(255, 255, 255, 0.14);',
-    '  background: rgba(255, 255, 255, 0.07);',
+    '  margin: 13px 0 0;',
+    '  border-radius: 12px;',
+    '  border: 1px solid rgba(167, 243, 208, 0.28);',
+    '  background: linear-gradient(135deg, rgba(15, 23, 42, 0.44), rgba(6, 78, 59, 0.28));',
     '  padding: 8px 10px;',
-    '  color: rgba(254, 243, 199, 0.95);',
+    '  color: rgba(220, 252, 231, 0.98);',
     '  font-size: 13px;',
     '  font-weight: 600;',
     '}',
     '@media (max-width: 480px) {',
-    '  #cdPaymentLoadingOverlay .cd-payment-card { padding: 20px 16px; border-radius: 18px; }',
+    '  #cdPaymentLoadingOverlay .cd-payment-card { padding: 20px 16px; border-radius: 20px; }',
     '  #cdPaymentLoadingOverlay .cd-payment-title { font-size: 18px; }',
     '}'
   ].join('\n');
@@ -293,8 +335,8 @@ function __cdEnsurePaymentLoadingOverlay() {
   overlay.innerHTML = [
     '<div class="cd-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
     '  <div class="cd-payment-spinner-wrap"><div class="cd-payment-spinner"></div></div>',
-    '  <p class="cd-payment-title">운명을 읽어오는 중입니다...</p>',
-    '  <p class="cd-payment-desc">결제가 진행 중입니다.</p>',
+    '  <p class="cd-payment-title">은하 결제망 동기화 중...</p>',
+    '  <p class="cd-payment-desc">별빛 회로로 결제 정보를 안전하게 확인하고 있습니다.</p>',
     '  <p class="cd-payment-status" id="cdPaymentLoadingStatus">결제가 진행 중입니다.</p>',
     '</div>'
   ].join('');
@@ -1951,16 +1993,37 @@ function __cdGetAuthTokenForLockSync() {
 }
 
 function __cdResolveApiBaseForLockSync() {
+  function __cdIsWorkersDevHost(rawValue) {
+    var host = String(rawValue || '').trim().toLowerCase();
+    if (!host) return false;
+    try {
+      if (host.indexOf('://') >= 0) host = new URL(host).hostname.toLowerCase();
+    } catch (_) {}
+    return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
+  }
+
+  function __cdNormalizeSafeApiBase(rawBase) {
+    var normalized = String(rawBase || '').trim().replace(/\/+$/, '');
+    if (!normalized) return '';
+    var currentIsWorkers = false;
+    try { currentIsWorkers = __cdIsWorkersDevHost(window.location.hostname || ''); } catch (_) {}
+    if (__cdIsWorkersDevHost(normalized) && !currentIsWorkers) return '';
+    return normalized;
+  }
+
   try {
     if (window.CODE_DESTINY_API_BASE_URL) {
-      return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+      var runtimeBase = __cdNormalizeSafeApiBase(window.CODE_DESTINY_API_BASE_URL);
+      if (runtimeBase) return runtimeBase;
     }
   } catch (_) {}
   try {
     var custom = localStorage.getItem('fortune_api_base_url');
-    if (custom) return String(custom).replace(/\/+$/, '');
+    var safeCustom = __cdNormalizeSafeApiBase(custom);
+    if (safeCustom) return safeCustom;
+    if (custom) localStorage.removeItem('fortune_api_base_url');
   } catch (_) {}
-  return window.location.origin;
+  return __cdNormalizeSafeApiBase(window.location.origin) || window.location.origin;
 }
 
 function __cdGetTileLockScopeStorageKey() {
