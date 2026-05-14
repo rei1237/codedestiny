@@ -68,6 +68,29 @@ function toAbsoluteApiUrl(pathOrUrl: string, apiBase: string) {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+function isLocalHostname(hostname: string) {
+  const normalized = String(hostname || "").trim().toLowerCase();
+  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "[::1]";
+}
+
+function resolveApiBaseForRequest(pathOrUrl: string, apiBase: string) {
+  if (typeof window === "undefined") return apiBase;
+  if (/^https?:\/\//i.test(pathOrUrl)) return apiBase;
+
+  const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  const isAuthPath = normalizedPath.startsWith("/api/auth/");
+  if (!isAuthPath) return apiBase;
+
+  const currentHost = String(window.location.hostname || "");
+  if (isLocalHostname(currentHost)) {
+    // In local dev, keep explicit local API base if configured.
+    return apiBase;
+  }
+
+  // In preview/production, auth should stay same-origin for reliable cookies.
+  return "";
+}
+
 function shouldTryRefresh(url: string) {
   try {
     const parsed = new URL(url, "http://localhost");
@@ -191,7 +214,8 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
 }
 
 export async function authFetch(input: string, init: RequestInit = {}, options: { retryOn401?: boolean; apiBase?: string } = {}) {
-  const apiBase = String(options.apiBase || getApiBaseUrl() || "").trim();
+  const configuredBase = String(options.apiBase || getApiBaseUrl() || "").trim();
+  const apiBase = resolveApiBaseForRequest(input, configuredBase);
   const targetUrl = toAbsoluteApiUrl(input, apiBase);
   const retryOn401 = options.retryOn401 !== false;
 
@@ -210,15 +234,32 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
 }
 
 export async function logoutWithServer(apiBase?: string) {
-  const resolvedBase = String(apiBase || getApiBaseUrl() || "").trim();
+  const configuredBase = String(apiBase || getApiBaseUrl() || "").trim();
+  const resolvedBase = resolveApiBaseForRequest("/api/auth/logout", configuredBase);
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
   try {
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    timeoutId = controller
+      ? setTimeout(() => {
+          try {
+            controller.abort();
+          } catch {
+            // ignore abort failures
+          }
+        }, 1200)
+      : null;
+
     await fetch(toAbsoluteApiUrl("/api/auth/logout", resolvedBase), {
       method: "POST",
       credentials: "include",
       cache: "no-store",
+      keepalive: true,
+      signal: controller?.signal,
     });
   } catch {
     // local cleanup still required
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
   clearClientAuthState();
   publishAuthSync("logout");

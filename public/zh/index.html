@@ -1561,14 +1561,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
-              btn.addEventListener('click', async function () {
-                try {
-                  await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include',
-                    cache: 'no-store'
-                  });
-                } catch (_) {}
+              btn.addEventListener('click', function () {
+                try { btn.disabled = true; } catch (_) {}
                 ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
                   try { localStorage.removeItem(k); } catch (_) {}
                 });
@@ -1580,6 +1574,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
                 try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
                 try { window.__cdAdminBypass = false; } catch (_) {}
+                try {
+                  window.dispatchEvent(new CustomEvent('cd:auth-changed', {
+                    detail: { source: 'index-shell', event: 'logout', at: Date.now() }
+                  }));
+                } catch (_) {}
+                try {
+                  fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    cache: 'no-store',
+                    keepalive: true
+                  });
+                } catch (_) {}
                 location.reload();
               });
             }
@@ -1669,17 +1676,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   var _abtn = document.getElementById('cdAuthLogoutBtn');
                   if (_abtn) {
                     _abtn.addEventListener('click', function () {
+                      try { _abtn.disabled = true; } catch (_) {}
+                      ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+                        try { localStorage.removeItem(k); } catch (_) {}
+                      });
+                      document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+                      document.cookie = 'fortune_auth_refresh=;max-age=0;path=/;SameSite=Lax';
+                      document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
                       try {
                         fetch('/api/auth/logout', {
                           method: 'POST',
                           credentials: 'include',
-                          cache: 'no-store'
+                          cache: 'no-store',
+                          keepalive: true
                         });
                       } catch (_) {}
                       try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
                       try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
                       try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
                       try { window.__cdAdminBypass = false; } catch (_) {}
+                      try {
+                        window.dispatchEvent(new CustomEvent('cd:auth-changed', {
+                          detail: { source: 'index-shell', event: 'logout', at: Date.now() }
+                        }));
+                      } catch (_) {}
                       location.reload();
                     });
                   }

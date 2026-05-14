@@ -875,30 +875,37 @@ router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
     if (!userId) {
-      return res.status(401).json({ ok: false, code: "UNAUTHORIZED", message: "인증 정보가 없습니다." });
+      return res.status(200).json({
+        ok: true,
+        authenticated: false,
+        user: null,
+        wallet: null,
+      });
     }
 
-    const user = await findUserByIdRaw(userId, {
-      _id: 1,
-      name: 1,
-      email: 1,
-      profileImage: 1,
-      birthDate: 1,
-      birthTime: 1,
-      gender: 1,
-      role: 1,
-      points: 1,
-      joinedAt: 1,
-    });
-    if (!user) {
-      console.warn("[AUTH] User not found during /me check:", userId);
-      return res.status(401).json({ ok: false, code: "UNAUTHORIZED", message: "사용자 정보를 찾을 수 없습니다." });
-    }
+    const points = Number.isFinite(Number(req.auth?.points)) ? Number(req.auth.points) : 0;
+    const user = {
+      id: String(userId),
+      name: String(req.auth?.name || req.auth?.email || ""),
+      email: String(req.auth?.email || ""),
+      image: String(req.auth?.image || ""),
+      birthDate: String(req.auth?.birthDate || ""),
+      birthTime: String(req.auth?.birthTime || ""),
+      gender: String(req.auth?.gender || "OTHER"),
+      role: String(req.auth?.role || "user"),
+      points,
+      joinedAt: req.auth?.joinedAt || null,
+    };
 
     return res.status(200).json({
       ok: true,
+      authenticated: true,
       message: "인증 사용자 조회에 성공했습니다.",
-      user: normalizeUserResponse(user),
+      user,
+      wallet: {
+        coinBalance: points,
+      },
+      source: "token",
     });
   } catch (error) {
     return next(error);
@@ -908,7 +915,14 @@ router.get("/me", requireAuth, async (req, res, next) => {
 router.post("/logout", async (req, res) => {
   const refreshToken = getCookieValue(req, REFRESH_COOKIE_NAME);
   if (refreshToken) {
-    await revokeRefreshSessionByHash(hashRefreshToken(refreshToken));
+    try {
+      await Promise.race([
+        revokeRefreshSessionByHash(hashRefreshToken(refreshToken)),
+        new Promise((resolve) => setTimeout(resolve, 900)),
+      ]);
+    } catch {
+      // Best-effort revocation only.
+    }
   }
   clearAuthCookies(req, res);
   return res.status(200).json({ ok: true, message: "로그아웃되었습니다." });

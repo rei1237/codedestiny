@@ -260,8 +260,8 @@ export default function MePage() {
   };
 
   const handleLogout = async () => {
-    await logoutWithServer(apiBase);
     publishLogout();
+    void logoutWithServer(apiBase);
     window.location.assign("/");
   };
 

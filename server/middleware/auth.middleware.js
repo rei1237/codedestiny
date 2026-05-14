@@ -67,6 +67,13 @@ function requireAuth(req, res, next) {
       userId,
       role: payload.role || "user",
       email: payload.email,
+      name: payload.name || "",
+      image: payload.image || "",
+      birthDate: payload.birthDate || "",
+      birthTime: payload.birthTime || "",
+      gender: payload.gender || "OTHER",
+      points: Number.isFinite(Number(payload.points)) ? Number(payload.points) : 0,
+      joinedAt: payload.joinedAt || null,
       issuer: payload.iss,
     };
     return next();

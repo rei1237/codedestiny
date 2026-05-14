@@ -1240,7 +1240,7 @@ async function handleLogin(request, env) {
 
 async function handleMe(request, env) {
   try {
-    const timeoutMs = getAuthOpTimeoutMs(env);
+    const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 2500);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
     const auth = await getOptionalUserFromRequest(request, env);
 
@@ -1254,6 +1254,22 @@ async function handleMe(request, env) {
     }
 
     const userId = String(auth.userId || "");
+    const tokenFallbackUser = buildTokenFallbackUser(auth);
+    const forceDbLookup = String(getEnv(env, "AUTH_ME_FORCE_DB", "false")).trim().toLowerCase() === "true";
+
+    if (!forceDbLookup) {
+      return json({
+        ok: true,
+        authenticated: true,
+        message: "Authenticated user loaded from token.",
+        user: tokenFallbackUser,
+        wallet: {
+          coinBalance: Number.isFinite(Number(tokenFallbackUser.points)) ? Number(tokenFallbackUser.points) : 0,
+        },
+        source: "token",
+      });
+    }
+
     const objectId = new mongoose.Types.ObjectId(userId);
 
     let user;
@@ -1283,7 +1299,6 @@ async function handleMe(request, env) {
       );
     } catch (error) {
       if (isAuthDbInfraError(error)) {
-        const tokenFallbackUser = buildTokenFallbackUser(auth);
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
         return json({
           ok: true,
@@ -1516,7 +1531,16 @@ async function handleLogout(request, env) {
   const refreshToken = readRefreshTokenFromRequest(request);
   if (refreshToken) {
     const tokenHash = hashRefreshToken(refreshToken, env);
-    await markSessionRevoked(tokenHash, { revokedAt: new Date() });
+    const revokeTimeoutMs = 900;
+    try {
+      await withAuthOpTimeout(
+        markSessionRevoked(tokenHash, { revokedAt: new Date() }),
+        revokeTimeoutMs,
+        "auth_logout_revoke_session",
+      );
+    } catch {
+      // Best-effort revocation: cookie clear must not wait for DB infra.
+    }
   }
 
   const response = json({ ok: true, message: "Logged out." });

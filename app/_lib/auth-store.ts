@@ -531,9 +531,9 @@ export async function login(credentials: LoginCredentials) {
 }
 
 export async function logout(apiBase?: string) {
-  await logoutWithServer(apiBase);
   clearAuthStateHard();
   publishAuthSync("logout");
+  void logoutWithServer(apiBase);
 }
 
 export function clearAuthError() {
