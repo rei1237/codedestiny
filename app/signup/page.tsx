@@ -276,12 +276,12 @@ export default function SignupPage() {
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const nextResponse = await fetch(socialCompleteEndpoint, {
+          const nextResponse = await fetchWithTimeout(socialCompleteEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ socialGrant }),
-          });
+          }, LOCAL_AUTH_TIMEOUT_MS);
 
           if (nextResponse.status >= 500 && attempt === 0) {
             await sleep(250);
@@ -312,11 +312,11 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        const meResponse = await fetch(`${authApiBase}/api/auth/me`, {
+        const meResponse = await fetchWithTimeout(`${authApiBase}/api/auth/me`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
-        });
+        }, LOCAL_AUTH_TIMEOUT_MS);
         const mePayload = await parseJsonResponse<{ authenticated?: boolean; user?: SignupResult["user"] | null; nextPath?: string }>(meResponse);
         if (!meResponse.ok || !isAuthenticatedMeShape(mePayload)) {
           throw new Error("로그인은 완료되었지만 세션 확인에 실패했습니다. 다시 시도해 주세요.");
