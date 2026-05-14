@@ -220,6 +220,162 @@
     return headers;
   }
 
+  var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
+
+  function _dpNormalizeApiBase(rawBase) {
+    var base = String(rawBase || '').trim();
+    if (!base) return '';
+    return base.replace(/\/+$/, '');
+  }
+
+  function _dpJoinApiUrl(base, pathname) {
+    var path = String(pathname || '');
+    if (path.charAt(0) !== '/') path = '/' + path;
+    var normalizedBase = _dpNormalizeApiBase(base);
+    return normalizedBase ? (normalizedBase + path) : path;
+  }
+
+  function _dpBuildApiCandidates(pathname) {
+    var path = String(pathname || '');
+    if (path.charAt(0) !== '/') path = '/' + path;
+
+    var out = [];
+    var seen = Object.create(null);
+
+    function pushBase(rawBase) {
+      var normalized = _dpNormalizeApiBase(rawBase);
+      var url = _dpJoinApiUrl(normalized, path);
+      if (seen[url]) return;
+      seen[url] = true;
+      out.push({ base: normalized, url: url });
+    }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+    pushBase(_DP_DEFAULT_API_WORKER_ORIGIN);
+
+    return out.length ? out : [{ base: '', url: path }];
+  }
+
+  function _dpLooksLikeHtmlResponse(response, bodyText) {
+    var contentType = '';
+    try {
+      contentType = String((response && response.headers && response.headers.get('Content-Type')) || '').toLowerCase();
+    } catch (_) {}
+    if (contentType.indexOf('text/html') >= 0) return true;
+
+    var text = String(bodyText || '').trim().toLowerCase();
+    if (!text) return false;
+    return text.indexOf('<!doctype') === 0 || text.charAt(0) === '<';
+  }
+
+  function _dpRememberApiBase(base) {
+    var normalized = _dpNormalizeApiBase(base);
+    if (!normalized) return;
+    try { localStorage.setItem('fortune_api_base_url', normalized); } catch (_) {}
+    try {
+      window.CODE_DESTINY_API_BASE_URL = normalized;
+      window.__CF_PAGES_API_BASE_URL = normalized;
+      window.__CD_API_BASE_URL = normalized;
+    } catch (_) {}
+  }
+
+  function _dpReadApiPayload(response) {
+    return response.clone().json()
+      .then(function(data) {
+        return { data: data, text: '', parsed: true };
+      })
+      .catch(function() {
+        return response.clone().text()
+          .then(function(text) {
+            return { data: null, text: text, parsed: false };
+          })
+          .catch(function() {
+            return { data: null, text: '', parsed: false };
+          });
+      });
+  }
+
+  function _dpFetchJsonWithFallback(pathname, init) {
+    var candidates = _dpBuildApiCandidates(pathname);
+    var requestInit = Object.assign({}, init || {});
+    var lastResult = null;
+
+    function attempt(index) {
+      if (index >= candidates.length) {
+        return Promise.resolve(lastResult || {
+          ok: false,
+          status: 503,
+          data: { message: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' },
+          response: null,
+          base: '',
+          url: _dpJoinApiUrl('', pathname),
+          looksHtml: false,
+        });
+      }
+
+      var candidate = candidates[index];
+      return fetch(candidate.url, requestInit)
+        .then(function(response) {
+          return _dpReadApiPayload(response).then(function(parsed) {
+            var data = parsed && parsed.data;
+            var looksHtml = !parsed.parsed && _dpLooksLikeHtmlResponse(response, parsed.text);
+            var payload = (data && typeof data === 'object') ? data : {};
+
+            if (looksHtml && !payload.message) {
+              payload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
+            }
+
+            var result = {
+              ok: response.ok && !looksHtml,
+              status: response.status,
+              data: payload,
+              response: response,
+              base: candidate.base,
+              url: candidate.url,
+              looksHtml: looksHtml,
+            };
+
+            lastResult = result;
+
+            if (result.ok) {
+              _dpRememberApiBase(candidate.base);
+              return result;
+            }
+
+            var hasNext = index < candidates.length - 1;
+            var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
+            if (hasNext && retryable) return attempt(index + 1);
+
+            return result;
+          });
+        })
+        .catch(function(error) {
+          lastResult = {
+            ok: false,
+            status: 0,
+            data: {
+              message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+              error: String((error && error.message) || error || 'network_error'),
+            },
+            response: null,
+            base: candidate.base,
+            url: candidate.url,
+            looksHtml: false,
+          };
+
+          if (index < candidates.length - 1) return attempt(index + 1);
+          return lastResult;
+        });
+    }
+
+    return attempt(0);
+  }
+
   function _dpHasSessionHint() {
     try {
       if (_dpGetProfileScope() !== 'guest') return true;
@@ -272,20 +428,20 @@
       return Promise.resolve(false);
     }
 
-    _dpSessionVerify.pending = fetch('/api/auth/me', {
+    _dpSessionVerify.pending = _dpFetchJsonWithFallback('/api/auth/me', {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
       headers: _dpBuildAuthHeaders()
-    }).then(function(res) {
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
+    }).then(function(result) {
+      if (!result.ok) {
+        if (result.status === 401 || result.status === 403) {
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
           try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
         }
         return null;
       }
-      return res.json().catch(function() { return null; });
+      return (result.data && typeof result.data === 'object') ? result.data : null;
     }).then(function(payload) {
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
@@ -335,7 +491,7 @@
       var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
       var currentId = '';
       try { currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || ''; } catch(e) {}
-      fetch('/api/user/destiny-profiles', {
+      _dpFetchJsonWithFallback('/api/user/destiny-profiles', {
         method: 'POST',
         credentials: 'include',
         cache: 'no-store',
@@ -352,14 +508,14 @@
         if (callback) callback(false);
         return;
       }
-      fetch('/api/user/destiny-profiles', {
+      _dpFetchJsonWithFallback('/api/user/destiny-profiles', {
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders()
       })
-      .then(function(res) {
-        if (res.status === 401 || res.status === 403) return null;
-        return res.ok ? res.json() : null;
+      .then(function(result) {
+        if (result.status === 401 || result.status === 403) return null;
+        return result.ok ? result.data : null;
       })
       .then(function(data) {
         if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
@@ -699,17 +855,16 @@
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
-    fetch('/api/fortune/pig-coin/consume', {
+    _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: consumeHeaders,
       credentials: 'include',
       cache: 'no-store',
       body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'coin-gate-per-use', forceDeduct: true, requestId: requestId })
     })
-    .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         if (typeof window.__cdOpenLoginRequiredModal === 'function') {
           window.__cdOpenLoginRequiredModal({
             reason: '로그인 후 이용할 수 있는 기능입니다.',
@@ -862,19 +1017,16 @@
         'Content-Type': 'application/json'
       };
       if (token) unlockHeaders.Authorization = 'Bearer ' + token;
-      fetch(endpoint, {
+      _dpFetchJsonWithFallback(endpoint, {
         method: 'POST',
         headers: unlockHeaders,
         credentials: 'include',
         cache: 'no-store',
         body: JSON.stringify(payload)
       })
-      .then(function (r) {
-        return r.json().then(function (data) { return { status: r.status, ok: r.ok, data: data }; });
-      })
       .then(function (res) {
         inFlight = false;
-        if (res.status === 401) {
+        if (res.status === 401 || res.status === 403) {
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({
               reason: '로그인 후 이용할 수 있는 기능입니다.',
@@ -1001,14 +1153,14 @@
         return;
       }
 
-      fetch('/api/fortune/pig-coin/profile-subscription/status', {
+      _dpFetchJsonWithFallback('/api/fortune/pig-coin/profile-subscription/status', {
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders()
       })
-      .then(function(r) {
-        if (r.status === 401 || r.status === 403) return null;
-        return r.ok ? r.json() : null;
+      .then(function(res) {
+        if (res.status === 401 || res.status === 403) return null;
+        return res.ok ? res.data : null;
       })
       .then(function(d) {
         if (!d) return;
