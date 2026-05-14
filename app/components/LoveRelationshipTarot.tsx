@@ -51,9 +51,31 @@ function sectionTitle(key: string) {
   return READING_LABELS[key] || key;
 }
 
-function isPositionBreakdownItem(value: unknown): value is { title?: string; card?: string; summary?: string } {
+function isPositionBreakdownItem(value: unknown): value is {
+  positionTitle?: string;
+  cardName?: string;
+  orientationLabel?: string;
+  headline?: string;
+  summary?: string;
+  detail?: string;
+  relationshipInsight?: string;
+  advice?: string;
+  caution?: string;
+  title?: string;
+  card?: string;
+} {
   if (!value || typeof value !== "object") return false;
-  return "title" in value || "card" in value || "summary" in value;
+  return "title" in value || "card" in value || "summary" in value || "positionTitle" in value || "cardName" in value;
+}
+
+function isFinalAdvice(value: unknown): value is {
+  instantMission?: string;
+  conversationTip?: string;
+  relationshipBoundary?: string;
+  nextSevenDays?: string;
+} {
+  if (!value || typeof value !== "object") return false;
+  return "instantMission" in value || "conversationTip" in value || "relationshipBoundary" in value || "nextSevenDays" in value;
 }
 
 const TAROT_IMAGE_MAP: Record<string, string> = {
@@ -392,11 +414,29 @@ export default function LoveRelationshipTarot() {
                       <div className="space-y-2">
                         {rows.map((row, idx) => (
                           <div key={`${key}-${idx}`} className="rounded-md border border-emerald-900/70 bg-slate-900/50 p-2">
-                            <p className="text-xs font-semibold text-emerald-200">{row.title || `포지션 ${idx + 1}`}</p>
-                            <p className="text-xs text-slate-300">{row.card || ""}</p>
-                            <p className="mt-1 text-sm text-slate-100">{row.summary || ""}</p>
+                            <p className="text-xs font-semibold text-emerald-200">{row.positionTitle || row.title || `포지션 ${idx + 1}`}</p>
+                            <p className="text-xs text-slate-300">{(row.cardName || row.card || "") + (row.orientationLabel ? ` · ${row.orientationLabel}` : "")}</p>
+                            {(row.headline || row.summary) ? <p className="mt-1 text-sm text-slate-100"><strong>한 줄 핵심:</strong> {row.headline || row.summary}</p> : null}
+                            {row.detail ? <p className="mt-1 text-sm text-slate-100"><strong>상세 해석:</strong> {row.detail}</p> : null}
+                            {row.relationshipInsight ? <p className="mt-1 text-sm text-slate-100"><strong>상대/관계 심리:</strong> {row.relationshipInsight}</p> : null}
+                            {row.advice ? <p className="mt-1 text-sm text-slate-100"><strong>조언:</strong> {row.advice}</p> : null}
+                            {row.caution ? <p className="mt-1 text-sm text-slate-100"><strong>주의할 점:</strong> {row.caution}</p> : null}
                           </div>
                         ))}
+                      </div>
+                    </article>
+                  );
+                }
+
+                if (isFinalAdvice(value)) {
+                  return (
+                    <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                      <h3 className="mb-2 text-sm font-semibold text-emerald-300">{title}</h3>
+                      <div className="space-y-2 text-sm text-slate-100">
+                        {value.instantMission ? <p><strong>⚡ 지금 당장 할 1가지:</strong> {value.instantMission}</p> : null}
+                        {value.conversationTip ? <p><strong>💬 대화 팁:</strong> {value.conversationTip}</p> : null}
+                        {value.relationshipBoundary ? <p><strong>🛡️ 내가 지킬 선:</strong> {value.relationshipBoundary}</p> : null}
+                        {value.nextSevenDays ? <p><strong>🌙 앞으로 7일:</strong> {value.nextSevenDays}</p> : null}
                       </div>
                     </article>
                   );

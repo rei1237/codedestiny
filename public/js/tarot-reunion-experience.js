@@ -1095,6 +1095,141 @@
       });
   }
 
+  function removeRepeatedSentences(text) {
+    var sentences = String(text || "")
+      .split(/(?<=[.!?。！？]|입니다\.|해요\.|세요\.|합니다\.)\s+/)
+      .map(function (s) { return String(s || "").trim(); })
+      .filter(Boolean);
+
+    var seen = Object.create(null);
+    var out = [];
+    sentences.forEach(function (sentence) {
+      var normalized = sentence
+        .replace(/\s+/g, " ")
+        .replace(/[“”"']/g, "")
+        .replace(/읽는\s*정확함/g, "해석 정확도")
+        .trim();
+      if (!normalized || seen[normalized]) return;
+      seen[normalized] = true;
+      out.push(sentence);
+    });
+    return out.join(" ");
+  }
+
+  var REUNION_FORBIDDEN_PATTERNS = [
+    /카드\(정방향\)/gi,
+    /카드\(역방향\)/gi,
+    /카드가\s*담은/gi,
+    /카드가\s*보여주는/gi,
+    /읽는\s*정확함/gi,
+    /실전\s*읽는\s*정확함/gi,
+    /포지션\s*핵심\s*의미/gi,
+    /이번\s*리딩의\s*핵심은\s*재회\s*가능성\s*자체보다[^.。!?]*[.。!?]?/gi,
+    /관계\s*상담\s*관점에서[^.。!?]*[.。!?]?/gi,
+    /다섯\s*장의\s*카드가\s*재회의\s*실마리를[^.。!?]*[.。!?]?/gi,
+  ];
+
+  function cleanReunionText(input) {
+    var out = String(input || "").trim();
+    if (!out) return "";
+    REUNION_FORBIDDEN_PATTERNS.forEach(function (pattern) {
+      out = out.replace(pattern, "");
+    });
+    out = out.replace(/읽는\s*정확함/g, "해석 정확도");
+    out = removeRepeatedSentences(out);
+    out = out.replace(/\s{2,}/g, " ").trim();
+    return out;
+  }
+
+  function cardDisplayName(card) {
+    return String((card && (card.nameKo || card.nameKr || card.nameEn || card.name)) || "").trim() || "이름이 확인되지 않은 카드";
+  }
+
+  function orientationLabel(value) {
+    return value === "reversed" ? "역방향" : "정방향";
+  }
+
+  function normalizePositionReadingItem(item, idx, cards) {
+    var src = item && typeof item === "object" ? item : {};
+    var card = cards[idx] || {};
+    var title = String(src.positionTitle || REUNION_POSITION_TITLES[idx] || (idx + 1) + ") 포지션").trim();
+    var cardName = String(src.cardName || cardDisplayName(card)).trim() || "이름이 확인되지 않은 카드";
+    var orient = String(src.orientationLabel || orientationLabel(card.orientation)).trim() || "정방향";
+    return {
+      positionTitle: title,
+      cardName: cardName,
+      orientationLabel: orient,
+      headline: cleanReunionText(src.headline || ""),
+      directAnswer: cleanReunionText(src.directAnswer || src.summary || ""),
+      detailedReading: cleanReunionText(src.detailedReading || src.detail || ""),
+      reunionPoint: cleanReunionText(src.reunionPoint || src.relationshipInsight || ""),
+      advice: cleanReunionText(src.advice || ""),
+    };
+  }
+
+  var REUNION_POSITION_TITLES = [
+    "과거의 인연",
+    "상대의 현재 근황",
+    "주변의 방해물 또는 상황",
+    "나를 향한 속마음",
+    "재회의 가능성과 결과",
+  ];
+
+  function normalizeReunionResultData(reading, cards) {
+    var src = reading && typeof reading === "object" ? reading : {};
+    var safeCards = Array.isArray(cards) ? cards : [];
+
+    var summarySrc = src.summary && typeof src.summary === "object" ? src.summary : {};
+    var score = Number(summarySrc.reunionChanceScore);
+    if (!Number.isFinite(score)) score = 50;
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    var label = String(summarySrc.reunionChanceLabel || "").trim() || (score >= 75 ? "높음" : score >= 58 ? "조건부 높음" : score >= 40 ? "보통" : "낮음");
+
+    var summary = {
+      reunionChanceLabel: label,
+      reunionChanceScore: score,
+      partnerState: cleanReunionText(summarySrc.partnerState || "관망 중"),
+      bestContactTiming: cleanReunionText(summarySrc.bestContactTiming || "자연스러운 계기 필요"),
+      mainObstacle: cleanReunionText(summarySrc.mainObstacle || "오해"),
+      oneLineAdvice: cleanReunionText(summarySrc.oneLineAdvice || "긴 고백보다 짧은 안부 메시지가 유리합니다."),
+    };
+
+    var rawPositions = Array.isArray(src.positions) ? src.positions : [];
+    if (!rawPositions.length) {
+      rawPositions = [
+        { positionTitle: REUNION_POSITION_TITLES[0], detailedReading: src.pastBond || "" },
+        { positionTitle: REUNION_POSITION_TITLES[1], detailedReading: src.theirNow || "" },
+        { positionTitle: REUNION_POSITION_TITLES[2], detailedReading: src.outsideFactor || "" },
+        { positionTitle: REUNION_POSITION_TITLES[3], detailedReading: src.theirHeart || "" },
+        { positionTitle: REUNION_POSITION_TITLES[4], detailedReading: src.reunionOutcome || "" },
+      ];
+    }
+    var positions = rawPositions.slice(0, 5).map(function (item, idx) {
+      return normalizePositionReadingItem(item, idx, safeCards);
+    });
+
+    var finalSrc = src.finalGuide && typeof src.finalGuide === "object" ? src.finalGuide : {};
+    var finalGuide = {
+      shouldContactNow: cleanReunionText(finalSrc.shouldContactNow || "지금은 긴 감정 고백보다 짧은 안부가 적합합니다."),
+      messageExample: cleanReunionText(finalSrc.messageExample || "요즘 문득 생각나서 짧게 안부 전하고 싶었어. 부담 갖지 않아도 괜찮아."),
+      avoidThis: cleanReunionText(finalSrc.avoidThis || "답을 강요하는 질문은 피하고, 상대의 반응 속도를 존중하세요."),
+      nextSevenDays: cleanReunionText(finalSrc.nextSevenDays || "앞으로 7일은 예전 갈등을 한 문장으로 정리하고 대화 준비를 하세요."),
+    };
+
+    var actionPlan = Array.isArray(src.actionPlan) ? src.actionPlan.map(cleanReunionText).filter(Boolean) : [];
+    if (!actionPlan.length) {
+      actionPlan = [summary.oneLineAdvice, finalGuide.shouldContactNow, finalGuide.nextSevenDays].filter(Boolean);
+    }
+
+    return {
+      summary: summary,
+      positions: positions,
+      finalGuide: finalGuide,
+      actionPlan: actionPlan,
+      opening: cleanReunionText(src.opening || ""),
+    };
+  }
+
   function getEncouragingMessage(r) {
     var text = [r.reunionOutcome || "", r.lighthouseGuidance || "", r.opening || ""].join(" ");
     var positive = /재회|다시 만나|가능성|희망|긍정|좋은|따뜻한|다가올|인연|기회|성장|이해|용서|화해|다가오/i;
@@ -1198,176 +1333,146 @@
 
   function renderTarotReunionResult() {
     var container = byId("tarotReunionReadingContent");
-    var cardsContainer = byId("tarotReunionResultCards");
     if (!container || !state.reading) return;
     if (!state.hasAccess) {
       window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
       return;
     }
-    var r = state.reading;
+    var normalized = normalizeReunionResultData(state.reading, state.cards);
+    var r = normalized;
+    state.reading = Object.assign({}, state.reading, normalized);
     container.removeAttribute("aria-busy");
 
     renderTarotReunionResultCards();
-
-    function getCardByPosition(positionKey) {
-      if (!Array.isArray(state.cards) || !state.cards.length) return null;
-      for (var i = 0; i < state.cards.length; i += 1) {
-        if (state.cards[i] && state.cards[i].position === positionKey) return state.cards[i];
-      }
-      return null;
-    }
-
-    var sections = [];
-    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
-      sections.push({
-        title: "🔭 핵심 상담 하이라이트",
-        text: state.consultingHighlights
-          .map(function (line) { return "• " + String(line || "").trim(); })
-          .filter(Boolean)
-          .join("\n"),
-        isGuidance: true,
-      });
-    }
-    if (r.opening) sections.push({ title: "🌌 밤바다의 서문", text: r.opening });
-    if (r.pastBond) sections.push({ title: "1) 과거의 인연", text: r.pastBond, card: getCardByPosition("past_bond") });
-    if (r.theirNow) sections.push({ title: "2) 상대의 현재 근황", text: r.theirNow, card: getCardByPosition("their_now") });
-    if (r.outsideFactor) sections.push({ title: "3) 주변의 방해물 또는 상황", text: r.outsideFactor, card: getCardByPosition("outside_factor") });
-    if (r.theirHeart) sections.push({ title: "4) 나를 향한 속마음", text: r.theirHeart, card: getCardByPosition("their_heart") });
-    if (r.reunionOutcome) sections.push({ title: "5) 재회의 가능성과 결과", text: r.reunionOutcome, card: getCardByPosition("reunion_outcome") });
-    if (r.lighthouseGuidance) sections.push({ title: "🕯️ 등대의 조언", text: r.lighthouseGuidance, isGuidance: true });
-
-    var encouraging = pickRandom(getEncouragingMessage(r));
-
     container.innerHTML = "";
 
-    var totalChars = sections.reduce(function (sum, section) {
-      return sum + String(section && section.text ? section.text : "").length;
-    }, 0) + String(encouraging || "").length;
-    var typingSpeed = totalChars > 5200 ? 3 : totalChars > 3200 ? 6 : 14;
-    var sectionDelay = totalChars > 3200 ? 90 : 180;
+    var summarySection = document.createElement("section");
+    summarySection.className = "tarot-reunion-section tarot-reunion-section--guidance tarot-reunion-summary-section";
+    summarySection.innerHTML =
+      '<h4 class="tarot-reunion-section-title">🌙 재회운 핵심 요약</h4>' +
+      '<div class="tarot-reunion-summary-grid">' +
+      '  <article class="tarot-reunion-summary-item"><h5>🌙 재회 가능성</h5><p>' + escapeHtml(r.summary.reunionChanceLabel + ' ' + r.summary.reunionChanceScore + '%') + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>💭 상대의 상태</h5><p>' + escapeHtml(r.summary.partnerState) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>⏳ 연락 타이밍</h5><p>' + escapeHtml(r.summary.bestContactTiming) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>🚧 핵심 장애물</h5><p>' + escapeHtml(r.summary.mainObstacle) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>🕯️ 지금 할 일</h5><p>' + escapeHtml(r.summary.oneLineAdvice) + '</p></article>' +
+      '</div>';
+    container.appendChild(summarySection);
 
-    function addSection(section, isLast, onDone) {
+    if (r.opening) {
+      var opening = document.createElement("section");
+      opening.className = "tarot-reunion-section tarot-reunion-section--star-sea";
+      opening.innerHTML =
+        '<h4 class="tarot-reunion-section-title">🌌 짧은 서문</h4>' +
+        '<p class="tarot-reunion-section-text">' + escapeHtml(r.opening) + '</p>';
+      container.appendChild(opening);
+    }
+
+    (r.positions || []).forEach(function (pos, idx) {
       var sec = document.createElement("section");
-      sec.className = "tarot-reunion-section" + (section.isGuidance ? " tarot-reunion-section--guidance" : "") + " tarot-reunion-section--star-sea";
+      sec.className = "tarot-reunion-section tarot-reunion-section--star-sea tarot-reunion-position-section";
 
       var head = document.createElement("div");
       head.className = "tarot-reunion-section-head";
 
       var title = document.createElement("h4");
       title.className = "tarot-reunion-section-title";
-      title.textContent = section.title || "";
+      title.textContent = (idx + 1) + ") " + (pos.positionTitle || REUNION_POSITION_TITLES[idx] || "포지션");
       head.appendChild(title);
 
-      if (section.card) {
+      var card = state.cards[idx] || null;
+      if (card) {
         var cardMeta = document.createElement("div");
         cardMeta.className = "tarot-reunion-inline-card";
+        cardMeta.setAttribute("role", "button");
+        cardMeta.setAttribute("tabindex", "0");
 
         var thumb = document.createElement("div");
         thumb.className = "tarot-reunion-inline-card-thumb";
 
         var thumbFront = document.createElement("div");
         thumbFront.className = "tarot-reunion-inline-card-front";
-        if (section.card.orientation === "reversed") thumbFront.setAttribute("data-reversed", "1");
+        if (card.orientation === "reversed") thumbFront.setAttribute("data-reversed", "1");
 
         var thumbImg = document.createElement("img");
         thumbImg.className = "tarot-reunion-face-img";
-        thumbImg.alt = section.card.nameKr || section.card.name || "타로 카드";
+        thumbImg.alt = cardDisplayName(card);
         thumbImg.loading = "lazy";
         thumbImg.decoding = "async";
-        applyTarotImageWithFallback(thumbImg, thumbFront, section.card);
+        applyTarotImageWithFallback(thumbImg, thumbFront, card);
         thumbFront.appendChild(thumbImg);
         thumb.appendChild(thumbFront);
 
         var cardName = document.createElement("span");
         cardName.className = "tarot-reunion-inline-card-name";
-        cardName.textContent = (section.card.nameKr || section.card.name || "") + (section.card.orientation === "reversed" ? " (역)" : "");
+        cardName.textContent = cardDisplayName(card);
+
+        var orientBadge = document.createElement("span");
+        orientBadge.className = "tarot-reunion-orientation-badge " + (card.orientation === "reversed" ? "is-reversed" : "is-upright");
+        orientBadge.textContent = orientationLabel(card.orientation);
 
         cardMeta.appendChild(thumb);
         cardMeta.appendChild(cardName);
-        cardMeta.setAttribute("role", "button");
-        cardMeta.setAttribute("tabindex", "0");
-        cardMeta.setAttribute("aria-label", (section.card.nameKr || section.card.name || "타로 카드") + " 확대 보기");
+        cardMeta.appendChild(orientBadge);
         bindReunionFastTap(cardMeta, function () {
-          openTarotReunionCardLightbox(section.card);
+          openTarotReunionCardLightbox(card);
         });
         cardMeta.addEventListener("keydown", function (e) {
           if (!e) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             e.stopPropagation();
-            openTarotReunionCardLightbox(section.card);
+            openTarotReunionCardLightbox(card);
           }
         });
         head.appendChild(cardMeta);
       }
 
-      var textP = document.createElement("p");
-      textP.className = "tarot-reunion-section-text";
-      textP.innerHTML = '<span class="tarot-reunion-typing-text"></span><span class="tarot-reunion-typing-cursor"></span>';
-
       sec.appendChild(head);
-      sec.appendChild(textP);
+
+      var body = document.createElement("div");
+      body.className = "tarot-reunion-position-body";
+      body.innerHTML =
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">한 줄 핵심</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.headline || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">직관 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.directAnswer || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">상세 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.detailedReading || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">재회 포인트</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.reunionPoint || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">조언</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.advice || "") + '</p></div>';
+      sec.appendChild(body);
       container.appendChild(sec);
+    });
 
-      var textEl = sec.querySelector(".tarot-reunion-typing-text");
-      typeText(textEl, section.text, typingSpeed, function () {
-        if (sec.querySelector(".tarot-reunion-typing-cursor")) {
-          sec.querySelector(".tarot-reunion-typing-cursor").style.display = "none";
-        }
-        if (isLast) {
-          addEncouragingMessage(encouraging, onDone);
-        } else {
-          setTimeout(onDone, sectionDelay);
-        }
-      });
-    }
+    var finalGuide = document.createElement("section");
+    finalGuide.className = "tarot-reunion-section tarot-reunion-section--guidance tarot-reunion-final-guide";
+    finalGuide.innerHTML =
+      '<h4 class="tarot-reunion-section-title">🕯️ 재회운 최종 가이드</h4>' +
+      '<div class="tarot-reunion-final-grid">' +
+      '  <article class="tarot-reunion-final-item"><h5>지금 연락해도 될까?</h5><p>' + escapeHtml(r.finalGuide.shouldContactNow || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>추천 메시지</h5><p class="tarot-reunion-message-example">' + escapeHtml(r.finalGuide.messageExample || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>피해야 할 말</h5><p>' + escapeHtml(r.finalGuide.avoidThis || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>앞으로 7일</h5><p>' + escapeHtml(r.finalGuide.nextSevenDays || "") + '</p></article>' +
+      '</div>';
+    container.appendChild(finalGuide);
 
-    function addEncouragingMessage(msg, onDone) {
-      var sec = document.createElement("section");
-      sec.className = "tarot-reunion-section tarot-reunion-section--encouraging tarot-reunion-section--star-sea";
-      sec.innerHTML = '<h4 class="tarot-reunion-section-title">✨ 별 바다의 응원</h4><p class="tarot-reunion-section-text"><span class="tarot-reunion-typing-text"></span><span class="tarot-reunion-typing-cursor"></span></p>';
-      container.appendChild(sec);
-
-      var textEl = sec.querySelector(".tarot-reunion-typing-text");
-      typeText(textEl, msg, typingSpeed + 2, function () {
-        if (sec.querySelector(".tarot-reunion-typing-cursor")) {
-          sec.querySelector(".tarot-reunion-typing-cursor").style.display = "none";
-        }
-        addActionPlan(r);
-        if (typeof onDone === "function") onDone();
-      });
-    }
-
-    function addActionPlan(r) {
-      if (!Array.isArray(r.actionPlan) || !r.actionPlan.length) return;
-      var sec = document.createElement("section");
-      sec.className = "tarot-reunion-section tarot-reunion-section--star-sea";
-      sec.innerHTML = '<h4 class="tarot-reunion-section-title">🧭 지금 바로 할 수 있는 행동</h4><ul class="tarot-reunion-advice-list"></ul>';
-      var ul = sec.querySelector("ul");
-      r.actionPlan.forEach(function (item) {
+    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
+      var action = document.createElement("section");
+      action.className = "tarot-reunion-section tarot-reunion-section--star-sea";
+      action.innerHTML = '<h4 class="tarot-reunion-section-title">✅ 실전 체크리스트</h4><ul class="tarot-reunion-checklist"></ul>';
+      var ul = action.querySelector("ul");
+      r.actionPlan.slice(0, 6).forEach(function (item) {
         var li = document.createElement("li");
         li.textContent = item;
         ul.appendChild(li);
       });
-      container.appendChild(sec);
-
-      if (state.engineMeta && state.engineMeta.qualityEnhanced) {
-        var quality = document.createElement("p");
-        quality.className = "tarot-reunion-engine-meta";
-        quality.textContent = "엔진 품질 강화 적용: 카드별 맥락 기반 상담 모드";
-        sec.appendChild(quality);
-      }
+      container.appendChild(action);
     }
 
-    var idx = 0;
-    function next() {
-      if (idx >= sections.length) return;
-      var sec = sections[idx];
-      var isLast = idx === sections.length - 1;
-      idx += 1;
-      addSection(sec, isLast, next);
+    if (state.engineMeta && state.engineMeta.qualityEnhanced) {
+      var quality = document.createElement("p");
+      quality.className = "tarot-reunion-engine-meta";
+      quality.textContent = "엔진 품질 강화 적용: 재회운 구조형 해석 모드";
+      container.appendChild(quality);
     }
-    next();
   }
 
   function ensureTarotReunionLightbox() {
@@ -1449,14 +1554,15 @@
   }
 
   function shareTarotReunionResult() {
-    var r = state.reading;
+    var r = normalizeReunionResultData(state.reading, state.cards);
     if (!r) return;
     var text = "🌊 [별 헤는 밤바다 재회운 타로] 🌊\n\n";
-    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
-      text += "🔭 핵심 하이라이트\n" + state.consultingHighlights.slice(0, 2).join("\n") + "\n\n";
-    }
-    if (r.opening) text += "🌌 " + r.opening + "\n\n";
-    if (r.lighthouseGuidance) text += "🕯️ " + r.lighthouseGuidance + "\n\n";
+    text += "🌙 재회 가능성: " + r.summary.reunionChanceLabel + " " + r.summary.reunionChanceScore + "%\n";
+    text += "💭 상대의 상태: " + r.summary.partnerState + "\n";
+    text += "⏳ 연락 타이밍: " + r.summary.bestContactTiming + "\n";
+    text += "🚧 핵심 장애물: " + r.summary.mainObstacle + "\n";
+    text += "🕯️ 지금 할 일: " + r.summary.oneLineAdvice + "\n\n";
+    text += "추천 메시지: \"" + r.finalGuide.messageExample + "\"\n\n";
     text += "👉 무료 재회운 타로 보기: https://code-destiny.com";
 
     if (navigator.share) {

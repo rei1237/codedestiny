@@ -165,12 +165,19 @@ function pickCards(spreadType) {
   return deck.slice(0, spread.cardCount).map((base, idx) => {
     const orientation = Math.random() < 0.5 ? "upright" : "reversed";
     const imageCandidates = buildImageCandidates(base.cardId);
+    const meta = parseCardMeta(base.cardId);
     return {
+      id: base.cardId,
       cardId: base.cardId,
       name: base.name,
+      nameEn: base.name,
       nameKr: base.nameKr,
+      nameKo: base.nameKr,
       position: spread.labels[idx],
       orientation,
+      arcana: meta.arcana,
+      suit: meta.suit,
+      number: meta.number,
       imageKey: String(base.cardId || "").toLowerCase(),
       imageUrl: imageCandidates[0],
       imageCandidates,
@@ -195,13 +202,64 @@ function assertCardCount(spreadType, cards) {
 }
 
 function cardNameLine(card) {
-  const name = String(card?.nameKr || card?.name || "카드");
+  const name = String(card?.nameKo || card?.nameKr || card?.nameEn || card?.name || "").trim() || "이름이 확인되지 않은 카드";
   const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
   return `${name}(${orientation})`;
 }
 
 function asText(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function removeRepeatedSentences(text) {
+  const sentences = String(text || "")
+    .split(/(?<=[.!?。！？]|입니다\.|세요\.|합니다\.)\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const seen = new Set();
+  const result = [];
+
+  for (const sentence of sentences) {
+    const normalized = sentence
+      .replace(/\s+/g, " ")
+      .replace(/[“”"']/g, "")
+      .trim();
+
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      result.push(sentence);
+    }
+  }
+
+  return result.join(" ");
+}
+
+const CONTENT_BANNED_PHRASES = [
+  /카드\(정방향\)의\s*포지션\s*핵심\s*의미는/gi,
+  /카드\(역방향\)의\s*포지션\s*핵심\s*의미는/gi,
+  /입니다\.\s*이\s*포지션의\s*메시지는/gi,
+  /카드\(정방향\)/gi,
+  /카드\(역방향\)/gi,
+  /카드가\s*담은/gi,
+  /카드가\s*보여주는/gi,
+  /포지션\s*핵심\s*의미/gi,
+  /카드가\s*가리키는\s*장애물/gi,
+  /관계\s*상담\s*관점에서[,.]?/gi,
+  /다섯\s*장의\s*카드가\s*재회의\s*실마리를[,.]?/gi,
+  /이번\s*리딩의\s*핵심은\s*재회\s*가능성\s*자체보다[^.。!?]*[.。!?]?/gi,
+  /실전\s*읽는\s*정확함/gi,
+  /읽는\s*정확함/gi,
+  /한\s*번에\s*한\s*가지씩\s*해결하세요/gi,
+];
+
+function cleanRelationshipBannedPhrases(text) {
+  let out = String(text || "");
+  CONTENT_BANNED_PHRASES.forEach((pattern) => {
+    out = out.replace(pattern, "");
+  });
+  out = out.replace(/\s{2,}/g, " ").trim();
+  return out;
 }
 
 const FORBIDDEN_TONE_PATTERNS = [
@@ -216,8 +274,10 @@ const NATURAL_WORD_REPLACEMENTS = [
   [/프로토콜/g, "진행 순서"],
   [/데이터/g, "근거"],
   [/오차/g, "차이"],
-  [/정밀도/g, "읽는 정확함"],
-  [/정확도/g, "읽는 정확함"],
+  [/실전\s*읽는\s*정확함/g, "실전 해석 정확도"],
+  [/읽는\s*정확함/g, "해석 정확도"],
+  [/정밀도/g, "해석 정확도"],
+  [/정확도/g, "해석 정확도"],
 ];
 
 function cleanForbiddenTone(text) {
@@ -258,10 +318,12 @@ function smoothCounselorTone(text) {
   if (!text) return "";
   let out = String(text);
   out = cleanForbiddenTone(out);
+  out = cleanRelationshipBannedPhrases(out);
   out = replaceWithNaturalWords(out);
   out = out.replace(/\s{2,}/g, " ");
   out = out.replace(/\n{3,}/g, "\n\n");
   out = out.replace(/([가-힣A-Za-z]{2,})(\s+\1){1,}/g, "$1");
+  out = removeRepeatedSentences(out);
   out = dedupeBlocks(out);
   return out.trim();
 }
@@ -290,7 +352,7 @@ function buildCardMeaningGuide(cards) {
   const safeCards = Array.isArray(cards) ? cards : [];
   return safeCards
     .map((card, idx) => {
-      const name = asText(card?.nameKr || card?.name) || `카드 ${idx + 1}`;
+      const name = asText(card?.nameKo || card?.nameKr || card?.nameEn || card?.name) || "이름이 확인되지 않은 카드";
       const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
       const meaning = asText(card?.interpretation) || getCardMeaning(card);
       return smoothCounselorTone(`${idx + 1}번 카드 ${name}(${orientation}): ${meaning}`);
@@ -342,158 +404,33 @@ function buildConsultingHighlights(reading) {
 }
 
 function enhanceRelationshipReading(reading, cards) {
-  const c = (i) => cards[i] || cards[0] || {};
-  const n = (i) => cardNameLine(c(i));
-  const m = (i) => getCardMeaning(c(i));
-
-  const counselorTone = "이번 해석은 연애 상담사가 마음을 정리하듯, 타로 카드가 보여준 흐름을 일상 대화와 행동으로 옮겨드리는 방식입니다. 당장 결론을 재촉하기보다 서로의 감정 속도와 관계 리듬을 맞추는 데 집중해 보세요.";
-
-  const overallBlocks = [
-    `${n(0)}와 ${n(1)} 조합은 관계의 '체감 온도'와 '관계 운영 방식'이 분리되어 있다는 신호를 줍니다. 즉, 감정은 분명 존재하지만 전달 방식과 해석 방식에서 오해 비용이 누적될 수 있습니다. 이 배열에서는 감정의 진위를 의심하기보다 감정 전달의 구조를 다시 설계하는 접근이 더 효과적입니다.`,
-    `현재 흐름에서는 누가 더 사랑하느냐보다 '누가 더 정확하게 표현하느냐'가 관계 안정도를 좌우합니다. ${m(0)}의 메시지는 개인 감정의 결을, ${m(1)}의 메시지는 관계 시스템의 상태를 가리키므로 둘을 동시에 읽어야 정확도가 높아집니다.`,
-    "특히 연락 빈도, 반응 지연 해석, 갈등 후 복귀 방식이 관계의 실제 체력을 결정합니다. 카드가 좋더라도 운영이 불안정하면 소모가 커지고, 카드가 거칠어도 운영이 정교하면 회복이 가능합니다. 그래서 이번 리딩의 1순위는 감정 확인이 아니라 구조 확인입니다.",
-  ];
-
-  const deepBlocks = [
-    `${n(2)}와 ${n(3)}는 '상대의 인식'과 '상대의 의지'를 분리해서 보라는 핵심 신호입니다. 상대가 당신을 좋게 인식해도 현재 연애 의지가 낮을 수 있고, 반대로 표현이 서툴러 차갑게 보이지만 실제 의지는 살아 있을 수 있습니다.`,
-    "상담 관점에서 이 파트는 한 문장으로 요약됩니다. '말의 강도'보다 '행동의 일관성'을 우선 근거로 보세요. 약속 이행률, 대화 지속성, 책임 회피 패턴은 감정의 진짜 깊이를 꽤 분명하게 보여줍니다.",
-    "또한 방어기제의 종류를 구분해야 합니다. 회피형 침묵, 불안형 확인 요구, 통제형 대화는 모두 다른 처방이 필요합니다. 이 구분을 하지 않으면 같은 문제를 반복 해석하게 되고, 반복 해석은 관계 피로를 크게 증가시킵니다.",
-  ];
-
-  const futureBlocks = [
-    `${n(4)}는 현재 막히는 지점을, ${n(5)}는 단기 결말의 방향을 가리킵니다. 리딩의 읽는 정확함을 높이는 방법은 예언을 소비하는 것이 아니라 막히는 지점을 푸는 실행을 붙이는 것입니다. 장애요인을 방치한 채 결말만 확인하면 해석 체감이 급격히 떨어집니다.`,
-    "앞으로 2~6주 구간의 핵심은 '관계 운영 리듬 재정렬'입니다. 감정이 올라온 순간 바로 결론을 묻기보다, 사실 확인 질문 → 감정 명료화 → 기대치 합의 순서를 지키면 관계가 불필요한 급락을 피할 가능성이 높습니다.",
-    "미래는 단일 이벤트가 아니라 반복 선택의 누적입니다. 따라서 관계 개선은 대화의 질, 경계 존중, 응답 일관성이라는 세 지표를 기준으로 점검해야 하며, 이 세 지표가 회복되면 카드가 말한 결말도 더 좋은 쪽으로 구체화됩니다.",
-  ];
-
-  const positionCoach = [
-    "이 포지션의 메시지는 감정의 진위를 가리는 구간입니다. 추측을 줄이고 사실 확인 질문을 늘릴수록 오해 비용이 감소합니다.",
-    "이 포지션은 관계 운영 패턴을 보여줍니다. 말의 내용보다 말이 오가는 구조(타이밍, 톤, 반복성)를 점검해야 정확한 해석이 됩니다.",
-    "이 포지션은 상대의 인지·정서 반응을 분리해서 보라는 신호입니다. 반응 속도 하나만으로 마음을 단정하지 마세요.",
-    "이 포지션은 현재 의지의 지속 가능성을 점검합니다. 일관된 행동이 있는지, 약속 이행률이 유지되는지 확인해 보세요.",
-    "이 포지션은 막히는 지점의 원인을 압축해 보여줍니다. 문제를 한 문장으로 정의한 뒤 해결 행동 1개를 먼저 실행해야 흐름이 움직입니다.",
-    "이 포지션은 단기 결말을 보여주지만 고정 운명을 뜻하지 않습니다. 운영 방식이 바뀌면 결말도 함께 이동합니다.",
-  ];
-
-  const positionBreakdown = (Array.isArray(reading.positionBreakdown) ? reading.positionBreakdown : cards.map((card, idx) => ({
-    title: REL_POSITION_LABELS[idx] || `포지션 ${idx + 1}`,
-    card: cardNameLine(card),
-    summary: getCardMeaning(card),
-  }))).slice(0, 6).map((item, idx) => {
-    const baseSummary = asText(item?.summary);
-    const cardLine = `${n(idx)}의 포지션 핵심 의미는 ${m(idx)} 입니다.`;
-    return {
-      ...item,
-      title: asText(item?.title) || REL_POSITION_LABELS[idx] || `포지션 ${idx + 1}`,
-      card: asText(item?.card) || n(idx),
-      summary: ensureTextLength(baseSummary, 560, [cardLine, positionCoach[idx % positionCoach.length]]),
-    };
-  });
-
-  while (positionBreakdown.length < 6) {
-    const idx = positionBreakdown.length;
-    positionBreakdown.push({
-      title: REL_POSITION_LABELS[idx] || `포지션 ${idx + 1}`,
-      card: n(idx),
-      summary: ensureTextLength("", 560, [
-        `${n(idx)} 포지션의 핵심은 관계 신호를 감정 해석과 행동 해석으로 분리하는 것입니다.`,
-        positionCoach[idx % positionCoach.length],
-      ]),
-    });
+  const normalizedCards = normalizeRelationshipCards(cards);
+  const structured = buildRelationshipReading(normalizedCards);
+  if (!reading || typeof reading !== "object") {
+    return structured;
   }
-
-  const advice = Array.isArray(reading.advice) ? reading.advice.map(asText).filter(Boolean) : [];
-  const adviceSeed = [
-    "상대의 의도를 추측하기 전에 확인 질문 1개를 먼저 던져 오해 비용을 낮추세요.",
-    "감정이 크게 올라올 때는 즉시 전송 대신 10분 정리 후 핵심만 전달하세요.",
-    "이번 주에 15분 진심 대화 1회를 고정 일정으로 잡아 관계 리듬을 회복하세요.",
-    "반복 갈등 주제를 한 문장으로 정의하고 재발 방지 합의 1개를 만드세요.",
-    "관계 안정도를 '반응 속도'가 아니라 '반응의 일관성'으로 판단하세요.",
-    "상대를 바꾸려 하기보다 내가 지킬 대화 경계 2개를 먼저 고정하세요.",
-    "하루 1회, 관계 평가보다 자기 루틴(수면/식사/운동) 회복을 우선하세요.",
-    "결론 압박형 대화 대신 사실-감정-요청 3단 구조로 전달해 보세요.",
-  ];
-  while (advice.length < 8) advice.push(adviceSeed[advice.length % adviceSeed.length]);
-
   return {
     ...reading,
-    counselorTone: ensureTextLength(reading.counselorTone, 900, [counselorTone]),
-    overallVibe: ensureTextLength(reading.overallVibe, 1800, overallBlocks),
-    deepReading: ensureTextLength(reading.deepReading, 1800, deepBlocks),
-    realityAndFuture: ensureTextLength(reading.realityAndFuture, 1800, futureBlocks),
-    positionBreakdown,
-    advice: advice.slice(0, 12),
+    ...structured,
+    positionBreakdown: structured.positionBreakdown,
+    finalAdvice: structured.finalAdvice,
+    advice: structured.advice,
   };
 }
 
 function enhanceReunionReading(reading, cards) {
-  const c = (i) => cards[i] || cards[0] || {};
-  const n = (i) => cardNameLine(c(i));
-  const m = (i) => getCardMeaning(c(i));
-
-  const counselorTone = "이번 재회 리딩은 연애 상담사가 관계를 점검하듯, 타로 카드의 신호를 감정 관리와 소통 전략으로 풀어드리는 방식입니다. 마음이 흔들릴수록 결론보다 관계의 안전한 대화 구조를 먼저 세워보세요.";
-
-  const openingBlocks = [
-    `이번 리딩의 핵심은 재회 가능성 자체보다 '재회가 성립되는 조건'을 분리해서 보는 것입니다. ${n(0)}부터 ${n(4)}까지의 배열은 감정선, 현실 변수, 타이밍 변수를 각각 분해해 보여주므로 단순히 긍정/부정을 단정하는 접근보다 훨씬 정확한 해석이 가능합니다.`,
-    "관계 상담 관점에서, 재회 리딩의 읽는 정확함은 희망의 강도보다 패턴의 반복성에서 결정됩니다. 같은 갈등 구조가 반복되는지, 대화 회복 루틴이 있었는지, 상호 책임성이 살아 있는지를 함께 봐야 실제 결론과의 차이가 줄어듭니다.",
-    "따라서 이번 결과는 감정적 위로나 단호한 단절 중 하나를 강요하지 않습니다. 대신 감정의 진실과 현실의 제약을 동시에 인정하고, 재접촉의 질을 높이는 실행 조건을 제시하는 방식으로 읽어야 실전 정확도가 높아집니다.",
-  ];
-
-  const pastBlocks = [
-    `${n(0)}는 과거 인연의 결을 보여줍니다. ${m(0)} 이 카드는 과거의 강점만이 아니라 과거의 취약 패턴도 함께 환기합니다. 재회를 원한다면 좋은 기억의 복원만이 아니라 실패 패턴의 수정 가능성까지 함께 점검해야 합니다.`,
-    "과거 인연 자리는 두 사람이 '어떻게 사랑했는가'보다 '어떻게 충돌했는가'를 복기할수록 해석 정확도가 올라갑니다. 갈등의 촉발 문장, 침묵의 길이, 화해 방식의 반복 여부를 구체적으로 보는 것이 중요합니다.",
-  ];
-
-  const nowBlocks = [
-    `${n(1)}는 상대의 현재 리듬을 보여줍니다. ${m(1)} 여기서 중요한 것은 상대의 감정 유무보다 현재의 여유 자원(시간, 정신 에너지, 관계 우선순위)입니다. 감정이 있어도 여유 자원이 없으면 반응은 지연될 수 있습니다.`,
-    "현재 근황 파트는 해석 오차가 가장 크게 나는 구간입니다. 단답, 읽씹, 지연 반응을 마음의 부정으로만 읽지 말고 상대의 생활 구조 변화와 스트레스 구간까지 함께 고려해야 정확도가 올라갑니다.",
-  ];
-
-  const outsideBlocks = [
-    `${n(2)}는 외부 변수의 실제 압력을 가리킵니다. ${m(2)} 재회는 감정만으로 성립되지 않고 상황 조정 능력에 크게 좌우됩니다. 관계 외적 변수(거리, 일정, 주변 시선, 기존 갈등 기록)를 먼저 정리해야 감정 대화가 의미를 가집니다.`,
-    "이 포지션을 무시하면 재접촉 이후에도 같은 파열이 재발하기 쉽습니다. 문제를 감정 문제와 구조 문제로 분리하고, 구조 문제는 일정·룰·경계로 해결하는 접근이 필요합니다.",
-  ];
-
-  const heartBlocks = [
-    `${n(3)}는 상대의 속마음을 비춥니다. ${m(3)} 속마음은 단일 감정이 아니라 미련·경계·두려움·호기심이 동시에 공존할 수 있습니다. 따라서 반응의 일관성과 복귀 의지 데이터를 함께 읽어야 실제 감정선과의 오차가 줄어듭니다.`,
-    "상대의 마음을 읽을 때는 낭만적 확신보다 행동의 증거를 중시해야 합니다. 먼저 안부를 유지하려는지, 갈등 주제를 회피만 하는지, 작은 약속을 지키는지에 따라 재회 가능성의 결이 분명히 갈립니다.",
-  ];
-
-  const outcomeBlocks = [
-    `${n(4)}는 단기 결말의 방향을 보여줍니다. ${m(4)} 이 결과는 고정 운명이 아니라 현재 패턴의 추세선입니다. 연락 방식, 속도, 경계 합의가 바뀌면 결말 역시 유의미하게 조정될 수 있습니다.`,
-    "재회 성공률을 높이려면 감정 확인보다 신뢰 복구 단계를 먼저 통과해야 합니다. 사실 확인 대화 → 책임 분담 합의 → 재발 방지 문장 합의의 3단계를 거치면 결과 카드가 가진 잠재력이 현실화될 가능성이 커집니다.",
-  ];
-
-  const guideBlocks = [
-    "등대의 조언 파트는 감정의 진폭을 줄이고 판단 정확도를 높이는 실전 진행 순서입니다. 첫째, 즉시 결론 요구를 멈추고 짧고 명료한 소통을 유지하세요. 둘째, 상대 반응을 속도로 평가하지 말고 일관성으로 평가하세요. 셋째, 과거와 다른 행동 증거 1개를 확인한 뒤 다음 단계를 밟으세요.",
-    "재회는 사랑의 크기만으로 완성되지 않습니다. 관계를 운영하는 기술, 갈등을 복구하는 태도, 경계를 지키는 성숙함이 함께 필요합니다. 이번 리딩이 말하는 핵심은 '붙잡기'가 아니라 '건강한 방식으로 다시 연결될 자격을 갖추는 과정'입니다.",
-    "따라서 지금의 최적 전략은 조급함을 줄이고, 대화 품질을 높이며, 자기 안정 루틴을 유지하는 것입니다. 자기 안정이 확보될수록 상대를 해석하는 정확도와 선택의 질이 함께 상승합니다.",
-  ];
-
-  const plan = Array.isArray(reading.actionPlan) ? reading.actionPlan.map(asText).filter(Boolean) : [];
-  const planSeed = [
-    "첫 연락 전, 전달할 핵심을 2문장으로 압축해 감정 폭주를 방지하세요.",
-    "상대의 반응 지연을 거절로 단정하지 말고 최소 48시간 관찰 간격을 유지하세요.",
-    "재회 대화의 첫 목적을 '결론'이 아닌 '신뢰 회복'으로 설정하세요.",
-    "과거 갈등의 재발 방지 문장을 미리 준비하고, 책임 분담 표현을 포함하세요.",
-    "안부 메시지는 짧고 분명하게, 질문은 한 번에 하나만 던지세요.",
-    "상대가 응답했을 때 즉시 과거 평가전으로 가지 말고 현재 상태 확인부터 시작하세요.",
-    "재회 여부와 무관하게 내 수면·식사·업무 루틴을 먼저 안정화하세요.",
-    "관계 기준 3가지를 글로 고정해 감정 기복 시 판단 기준으로 사용하세요.",
-  ];
-  while (plan.length < 8) plan.push(planSeed[plan.length % planSeed.length]);
-
+  const normalizedCards = normalizeReunionCards(cards);
+  const structured = buildReunionReading(normalizedCards);
+  if (!reading || typeof reading !== "object") {
+    return structured;
+  }
   return {
     ...reading,
-    counselorTone: ensureTextLength(reading.counselorTone, 850, [counselorTone]),
-    opening: ensureTextLength(reading.opening, 1200, openingBlocks),
-    pastBond: ensureTextLength(reading.pastBond, 680, pastBlocks),
-    theirNow: ensureTextLength(reading.theirNow, 680, nowBlocks),
-    outsideFactor: ensureTextLength(reading.outsideFactor, 680, outsideBlocks),
-    theirHeart: ensureTextLength(reading.theirHeart, 680, heartBlocks),
-    reunionOutcome: ensureTextLength(reading.reunionOutcome, 760, outcomeBlocks),
-    lighthouseGuidance: ensureTextLength(reading.lighthouseGuidance, 1200, guideBlocks),
-    actionPlan: plan.slice(0, 10),
+    ...structured,
+    positions: structured.positions,
+    summary: structured.summary,
+    finalGuide: structured.finalGuide,
+    actionPlan: structured.actionPlan,
   };
 }
 
@@ -589,24 +526,402 @@ const REL_POSITION_LABELS = [
   "앞으로 펼쳐질 단기적 결말",
 ];
 
+const REL_POSITION_KEYS = ["position_1", "position_2", "position_3", "position_4", "position_5", "position_6"];
+
+const MAJOR_LOVE_MEANINGS = {
+  M00: {
+    upright: { attraction: "새로운 느낌에 강하게 끌리는 구간입니다.", emotionalState: "가볍지만 진심 어린 호기심이 살아 있습니다.", relationshipPattern: "연락과 만남이 빠르게 시작될 수 있습니다.", hiddenConcern: "속도가 앞서면 약속의 밀도가 약해질 수 있습니다.", advice: "설렘을 살리되 다음 만남의 기준을 먼저 정하세요." },
+    reversed: { attraction: "끌림은 있지만 불안이 먼저 올라오는 상태입니다.", emotionalState: "확신이 없어 감정이 오락가락하기 쉽습니다.", relationshipPattern: "연락 텀이 들쭉날쭉해 오해가 생기기 쉽습니다.", hiddenConcern: "충동적 확인 요구가 상대의 부담을 키울 수 있습니다.", advice: "결론을 재촉하지 말고 행동 패턴을 1주일만 관찰하세요." },
+  },
+  M01: {
+    upright: { attraction: "상대의 추진력과 표현력에 호감이 커집니다.", emotionalState: "주도권을 잡고 싶은 의지가 분명합니다.", relationshipPattern: "연락, 대화, 만남 제안이 비교적 또렷하게 이어집니다.", hiddenConcern: "한쪽 주도만 강하면 거리감이 생길 수 있습니다.", advice: "의견 제시 후 상대의 속도도 함께 확인하세요." },
+    reversed: { attraction: "매력은 있으나 말과 행동의 온도 차이가 보입니다.", emotionalState: "확신 부족으로 표현이 과장되거나 축소되기 쉽습니다.", relationshipPattern: "약속을 잡아도 실행이 늦어질 수 있습니다.", hiddenConcern: "확인 없는 기대가 오해를 만듭니다.", advice: "화려한 말보다 실제 이행률을 기준으로 판단하세요." },
+  },
+  M02: {
+    upright: { attraction: "말보다 분위기와 눈치를 통해 호감을 느끼는 흐름입니다.", emotionalState: "서로 조심스럽지만 감정의 결은 깊습니다.", relationshipPattern: "연락은 잦지 않아도 대화의 밀도가 높은 편입니다.", hiddenConcern: "해석을 숨긴 채 참으면 거리감이 커질 수 있습니다.", advice: "애매한 부분은 부드럽게 질문해 확인하세요." },
+    reversed: { attraction: "신비로움에 끌리지만 불안도 함께 커집니다.", emotionalState: "상대의 의도를 과도하게 추측하기 쉽습니다.", relationshipPattern: "읽씹, 단답 같은 신호에 의미를 과하게 부여하기 쉽습니다.", hiddenConcern: "오해가 누적되면 대화가 닫힐 수 있습니다.", advice: "추측 대신 사실 3가지를 적고 대화하세요." },
+  },
+  M03: {
+    upright: { attraction: "따뜻한 배려와 안정감에 호감이 커집니다.", emotionalState: "관계를 키우고 싶은 정서가 살아 있습니다.", relationshipPattern: "만남의 만족도가 높고 연락도 부드럽게 이어집니다.", hiddenConcern: "기대가 커지면 작은 지연도 부담으로 느껴질 수 있습니다.", advice: "고마움과 요청을 함께 말해 관계 균형을 맞추세요." },
+    reversed: { attraction: "끌림은 있으나 감정 소모가 쉽게 생깁니다.", emotionalState: "받고 싶은 마음이 커져 예민해질 수 있습니다.", relationshipPattern: "대화가 돌봄 요구 중심으로 치우치기 쉽습니다.", hiddenConcern: "상대의 여유를 무시하면 거리감이 생깁니다.", advice: "요구 전에 내 컨디션과 기대치를 먼저 정리하세요." },
+  },
+  M04: {
+    upright: { attraction: "신뢰감 있고 책임감 있는 태도에 호감이 생깁니다.", emotionalState: "관계를 명확히 정의하고 싶은 마음이 있습니다.", relationshipPattern: "약속과 일정이 비교적 체계적으로 맞춰집니다.", hiddenConcern: "기준이 너무 단단하면 상대가 부담을 느낄 수 있습니다.", advice: "원칙은 지키되 대화 톤은 부드럽게 유지하세요." },
+    reversed: { attraction: "강한 존재감에 끌리지만 통제감도 함께 느껴집니다.", emotionalState: "상대가 경직되거나 방어적으로 보일 수 있습니다.", relationshipPattern: "대화가 맞다/틀리다 구도로 흐르기 쉽습니다.", hiddenConcern: "자존심 경쟁이 관계 속도를 늦출 수 있습니다.", advice: "정답 싸움보다 감정 확인 질문을 먼저 두세요." },
+  },
+  M05: {
+    upright: { attraction: "진지한 태도와 관계에 대한 성실함이 보입니다.", emotionalState: "관계를 가볍게 보지 않으려는 마음이 있습니다.", relationshipPattern: "약속, 기준, 예의를 중요하게 보는 흐름입니다.", hiddenConcern: "형식이 강하면 감정 표현이 답답해질 수 있습니다.", advice: "기준을 말할 때 감정도 같이 표현하세요." },
+    reversed: { attraction: "끌림은 있으나 가치관 차이가 도드라질 수 있습니다.", emotionalState: "관계 정의를 미루거나 애매하게 둘 수 있습니다.", relationshipPattern: "연락은 이어져도 확정 대화는 늦어질 수 있습니다.", hiddenConcern: "기준 충돌을 방치하면 오해가 반복됩니다.", advice: "서로의 기대치 3가지를 먼저 합의해 보세요." },
+  },
+  M06: {
+    upright: { attraction: "상호 호감과 정서적 연결이 강한 카드입니다.", emotionalState: "끌림과 관계 의지가 함께 올라옵니다.", relationshipPattern: "연락과 만남 모두에서 따뜻한 반응이 나타나기 쉽습니다.", hiddenConcern: "좋은 흐름일수록 속도 차이 관리가 필요합니다.", advice: "호감을 확인하되 약속 이행으로 신뢰를 쌓으세요." },
+    reversed: { attraction: "호감은 있지만 선택과 확신이 흔들릴 수 있습니다.", emotionalState: "마음이 갈려 거리감이 생길 수 있습니다.", relationshipPattern: "가까워졌다가 멀어지는 패턴이 반복될 수 있습니다.", hiddenConcern: "결정 회피가 상대의 부담을 키웁니다.", advice: "관계 목표를 모호하게 두지 말고 대화로 정리하세요." },
+  },
+  M07: {
+    upright: { attraction: "강하게 끌리지만 주도권과 속도감이 중요한 관계입니다.", emotionalState: "한쪽이 관계를 밀어붙이고 싶어 하는 마음이 있습니다.", relationshipPattern: "연락이나 만남이 빠르게 진행될 수 있지만 감정 확인보다 행동이 앞설 수 있습니다.", hiddenConcern: "속도가 다르면 한쪽은 부담을 느낄 수 있습니다.", advice: "명확한 제안은 좋지만 상대 반응 속도를 존중하세요." },
+    reversed: { attraction: "끌림은 있지만 방향이 엇갈리거나 감정이 급하게 흔들립니다.", emotionalState: "마음이 없는 것보다 어떻게 움직일지 몰라 우왕좌왕할 가능성이 큽니다.", relationshipPattern: "연락이 갑자기 빨라졌다가 느려지는 기복이 생길 수 있습니다.", hiddenConcern: "자존심과 불안, 확인 욕구가 관계를 흔듭니다.", advice: "지금은 결론 압박보다 차분한 속도 합의가 먼저입니다." },
+  },
+  M08: {
+    upright: { attraction: "따뜻한 단단함과 배려에 매력을 느낍니다.", emotionalState: "감정을 안정적으로 다루려는 성숙함이 있습니다.", relationshipPattern: "갈등이 와도 대화로 회복할 가능성이 높습니다.", hiddenConcern: "참기만 하면 오히려 거리감이 커질 수 있습니다.", advice: "부드럽게 경계를 말해 감정 소모를 줄이세요." },
+    reversed: { attraction: "끌림은 있으나 자신감 저하가 관계를 흔들 수 있습니다.", emotionalState: "작은 신호에도 불안이 커지기 쉽습니다.", relationshipPattern: "확인 요구가 늘며 대화 톤이 날카로워질 수 있습니다.", hiddenConcern: "자기비난이 약속 이행 의지를 약하게 만듭니다.", advice: "감정 폭주 전 쉬는 텀을 만들고 대화를 재개하세요." },
+  },
+  M09: {
+    upright: { attraction: "상대의 깊이와 진중함에 끌리는 흐름입니다.", emotionalState: "조용히 관계를 관찰하며 확신을 모으는 단계입니다.", relationshipPattern: "연락 빈도는 적어도 의미 있는 대화가 중요해집니다.", hiddenConcern: "침묵이 길어지면 오해가 커질 수 있습니다.", advice: "짧아도 솔직한 안부 대화를 주기적으로 이어가세요." },
+    reversed: { attraction: "관심은 있으나 고립감이 관계를 가로막을 수 있습니다.", emotionalState: "거리감이 커지고 혼자 결론 내리기 쉽습니다.", relationshipPattern: "연락을 미루다 만남 타이밍도 놓치기 쉽습니다.", hiddenConcern: "침묵을 무관심으로 오해할 가능성이 큽니다.", advice: "확신이 없어도 현재 상태를 짧게 공유해 보세요." },
+  },
+  M10: {
+    upright: { attraction: "관계의 전환점에서 서로를 다시 보게 됩니다.", emotionalState: "예상 밖의 호감 신호가 들어올 수 있습니다.", relationshipPattern: "연락 흐름이 바뀌며 만남 기회가 새롭게 생길 수 있습니다.", hiddenConcern: "좋은 변화도 준비 없이 받으면 부담이 됩니다.", advice: "변화가 왔을 때 약속의 기준을 분명히 하세요." },
+    reversed: { attraction: "끌림은 있으나 타이밍이 자주 어긋납니다.", emotionalState: "기대와 실망의 반복으로 피로가 생길 수 있습니다.", relationshipPattern: "연락 텀과 만남 계획이 자주 미뤄질 수 있습니다.", hiddenConcern: "운에 맡기면 같은 오해가 반복됩니다.", advice: "작은 약속 하나부터 현실적으로 맞추세요." },
+  },
+  M11: {
+    upright: { attraction: "성숙한 대화와 균형감 있는 태도에 끌립니다.", emotionalState: "감정보다 공정함과 신뢰를 중시하는 흐름입니다.", relationshipPattern: "기준을 맞추면 관계 속도가 안정됩니다.", hiddenConcern: "지나친 계산은 친밀감을 늦출 수 있습니다.", advice: "사실 확인과 감정 표현을 같은 비중으로 두세요." },
+    reversed: { attraction: "호감은 있지만 불공정하다는 느낌이 생길 수 있습니다.", emotionalState: "한쪽만 노력한다는 부담이 커질 수 있습니다.", relationshipPattern: "대화가 판정 모드로 흘러 갈등이 길어질 수 있습니다.", hiddenConcern: "서운함을 쌓아두면 거리감이 고착됩니다.", advice: "문제 정의보다 책임 분담 합의를 먼저 시도하세요." },
+  },
+  M12: {
+    upright: { attraction: "다른 관점으로 상대를 보게 되는 카드입니다.", emotionalState: "지금은 속도를 늦추고 의미를 재해석하는 단계입니다.", relationshipPattern: "연락 빈도보다 대화의 질이 더 중요해집니다.", hiddenConcern: "기다림의 목적이 없으면 불안이 커집니다.", advice: "멈춤의 시간을 관계 점검 시간으로 쓰세요." },
+    reversed: { attraction: "끌림은 있지만 답답함이 먼저 느껴질 수 있습니다.", emotionalState: "정체감과 피로가 커져 거리감이 생깁니다.", relationshipPattern: "같은 대화를 반복하며 결론이 밀릴 수 있습니다.", hiddenConcern: "고집이 오해를 키우고 약속 이행을 늦춥니다.", advice: "한 번의 차분한 재정의 대화로 방향을 바꾸세요." },
+  },
+  M13: {
+    upright: { attraction: "관계를 새 단계로 바꾸는 결단의 에너지입니다.", emotionalState: "과거 패턴을 끝내고 싶다는 마음이 큽니다.", relationshipPattern: "오래된 오해를 정리하면 흐름이 급격히 개선됩니다.", hiddenConcern: "정리 없이 버티면 부담만 커집니다.", advice: "버릴 패턴과 지킬 약속을 분리해 선언하세요." },
+    reversed: { attraction: "미련과 익숙함 사이에서 흔들리는 상태입니다.", emotionalState: "끝내야 할 문제를 미루며 피로가 누적됩니다.", relationshipPattern: "연락은 이어지지만 본질 대화가 지연될 수 있습니다.", hiddenConcern: "변화 회피가 더 큰 거리감을 부릅니다.", advice: "지금 필요한 결정을 작은 단위로 실행하세요." },
+  },
+  M14: {
+    upright: { attraction: "안정적이고 균형 잡힌 관계 운영에 끌립니다.", emotionalState: "서로 맞춰가려는 의지가 살아 있습니다.", relationshipPattern: "연락 속도와 만남 주기를 조율하면 관계가 좋아집니다.", hiddenConcern: "좋은 흐름에서도 방심하면 약속이 느슨해질 수 있습니다.", advice: "서로 편한 속도를 명확히 합의하세요." },
+    reversed: { attraction: "호감은 있으나 균형이 자주 깨질 수 있습니다.", emotionalState: "기대치가 엇갈려 부담이 커집니다.", relationshipPattern: "과잉 연락과 침묵이 번갈아 나오기 쉽습니다.", hiddenConcern: "감정 기복이 대화 신뢰를 해칠 수 있습니다.", advice: "대화 빈도와 경계를 먼저 맞추는 것이 우선입니다." },
+  },
+  M15: {
+    upright: { attraction: "강한 끌림과 집착이 동시에 작동할 수 있습니다.", emotionalState: "놓치기 싫은 마음이 크게 올라옵니다.", relationshipPattern: "연락 확인 욕구가 커져 속도 집착이 생기기 쉽습니다.", hiddenConcern: "불안 기반 행동이 상대 부담을 키울 수 있습니다.", advice: "감정 강도를 낮추고 사실 중심 대화를 유지하세요." },
+    reversed: { attraction: "강한 자석 같은 끌림에서 벗어나려는 흐름입니다.", emotionalState: "관계 중독 패턴을 자각하기 시작합니다.", relationshipPattern: "불필요한 확인 연락을 줄이면 관계가 안정됩니다.", hiddenConcern: "미련이 남아 재발 패턴이 올 수 있습니다.", advice: "지킬 선을 문장으로 정해 반복 실천하세요." },
+  },
+  M16: {
+    upright: { attraction: "관계의 진실이 드러나는 전환 카드입니다.", emotionalState: "숨겨둔 감정이 급하게 터질 수 있습니다.", relationshipPattern: "갈등 후 대화 구조를 바꾸면 오히려 가까워질 수 있습니다.", hiddenConcern: "충동적 단절 선언은 장기 부담을 남깁니다.", advice: "감정 폭발보다 복구 대화 규칙을 먼저 정하세요." },
+    reversed: { attraction: "무너질 것 같은 불안을 억지로 버티는 흐름입니다.", emotionalState: "문제를 알지만 미루며 피로가 쌓입니다.", relationshipPattern: "같은 갈등이 형태만 바꿔 반복될 수 있습니다.", hiddenConcern: "회피가 누적되면 거리감이 고착됩니다.", advice: "작은 사실 확인부터 시작해 관계를 재정비하세요." },
+  },
+  M17: {
+    upright: { attraction: "따뜻한 희망과 신뢰 회복의 기운이 있습니다.", emotionalState: "상대에게 다시 기대를 걸고 싶어지는 흐름입니다.", relationshipPattern: "대화 톤이 부드러워지면 연락 흐름도 안정됩니다.", hiddenConcern: "기대가 커질수록 실망 관리가 필요합니다.", advice: "희망은 유지하되 행동 증거로 확인하세요." },
+    reversed: { attraction: "호감은 남아도 실망 경험이 크게 남아 있습니다.", emotionalState: "좋아도 믿기 어렵다는 마음이 생길 수 있습니다.", relationshipPattern: "연락이 이어져도 확신 대화가 늦어질 수 있습니다.", hiddenConcern: "부정적 예측이 오해를 확대합니다.", advice: "작은 약속 이행부터 신뢰를 다시 쌓으세요." },
+  },
+  M18: {
+    upright: { attraction: "감정의 미묘한 결을 강하게 느끼는 시기입니다.", emotionalState: "호감과 불안이 함께 움직일 수 있습니다.", relationshipPattern: "야간 연락, 애매한 말, 느린 답장에 흔들리기 쉽습니다.", hiddenConcern: "추측이 사실을 덮으면 거리감이 커집니다.", advice: "감정 해석 전에 대화로 사실을 확인하세요." },
+    reversed: { attraction: "혼란이 걷히며 본질이 보이기 시작합니다.", emotionalState: "과한 불안에서 벗어나 현실적으로 보게 됩니다.", relationshipPattern: "오해를 정리하면 연락과 만남 흐름이 개선됩니다.", hiddenConcern: "해소되지 않은 의심이 재발할 수 있습니다.", advice: "결론보다 확인 질문을 습관화하세요." },
+  },
+  M19: {
+    upright: { attraction: "호감 표현이 자연스럽고 밝게 이어지는 카드입니다.", emotionalState: "상대와 함께 있을 때 안정감이 큽니다.", relationshipPattern: "만남과 대화에서 긍정 반응이 분명히 나타납니다.", hiddenConcern: "좋은 분위기만 믿고 기준을 놓치면 흔들릴 수 있습니다.", advice: "기분 좋은 흐름일 때 약속 기준을 명확히 하세요." },
+    reversed: { attraction: "따뜻함은 있으나 확신이 약해질 수 있습니다.", emotionalState: "표면은 밝아도 속으로는 부담을 느낄 수 있습니다.", relationshipPattern: "연락은 오가지만 깊은 대화가 얕아질 수 있습니다.", hiddenConcern: "과장된 낙관이 오해를 키울 수 있습니다.", advice: "좋은 분위기 속에서도 핵심 질문을 피하지 마세요." },
+  },
+  M20: {
+    upright: { attraction: "관계를 다시 정의하고 싶어지는 카드입니다.", emotionalState: "과거를 정리하고 진지한 선택을 하려는 마음이 큽니다.", relationshipPattern: "확정 대화와 약속 재설계가 필요한 시기입니다.", hiddenConcern: "정리 없이 재시작하면 같은 패턴이 반복됩니다.", advice: "관계 기준과 기대치를 문장으로 합의하세요." },
+    reversed: { attraction: "마음은 남아도 결정을 미루기 쉽습니다.", emotionalState: "과거의 상처가 현재 선택을 붙잡을 수 있습니다.", relationshipPattern: "대화가 과거 회상에 머물고 행동 전환이 늦어집니다.", hiddenConcern: "미해결 감정이 부담으로 누적됩니다.", advice: "과거 평가보다 지금의 행동 기준을 먼저 세우세요." },
+  },
+  M21: {
+    upright: { attraction: "관계 완성도를 높일 수 있는 안정 카드입니다.", emotionalState: "호감과 신뢰가 균형 있게 자랍니다.", relationshipPattern: "연락, 만남, 약속이 일관되면 빠르게 안정됩니다.", hiddenConcern: "완성 직전의 방심이 오해를 만들 수 있습니다.", advice: "좋은 흐름일수록 작은 약속을 꾸준히 지키세요." },
+    reversed: { attraction: "연결은 있으나 마무리되지 않은 과제가 남아 있습니다.", emotionalState: "애매한 상태가 길어져 거리감이 생길 수 있습니다.", relationshipPattern: "관계는 이어지지만 확정이 늦어질 수 있습니다.", hiddenConcern: "미완성 상태가 서로의 부담을 키웁니다.", advice: "남은 쟁점 1가지를 정해 이번 주에 대화하세요." },
+  },
+};
+
+let REL_CARD_LOOKUP = null;
+
+function getRelationshipCardLookup() {
+  if (REL_CARD_LOOKUP) return REL_CARD_LOOKUP;
+  REL_CARD_LOOKUP = new Map();
+  getDeck().forEach((card) => {
+    REL_CARD_LOOKUP.set(String(card.cardId || "").toUpperCase(), card);
+  });
+  return REL_CARD_LOOKUP;
+}
+
+function parseCardMeta(cardId) {
+  const id = String(cardId || "").toUpperCase();
+  if (/^M\d{2}$/.test(id)) {
+    return { arcana: "major", suit: undefined, number: Number(id.slice(1)) };
+  }
+  const suitMap = { W: "wands", C: "cups", S: "swords", P: "pentacles" };
+  const prefix = id.charAt(0);
+  const suit = suitMap[prefix];
+  const rawNum = id.slice(1);
+  const parsedNum = Number(rawNum);
+  return {
+    arcana: suit ? "minor" : "major",
+    suit,
+    number: Number.isFinite(parsedNum) && parsedNum > 0 ? parsedNum : rawNum || undefined,
+  };
+}
+
+function buildMinorLoveMeaning(card) {
+  const suit = String(card?.suit || "").toLowerCase();
+  const rank = Number(card?.number || 0);
+  const suitTheme = {
+    cups: "감정과 공감",
+    wands: "열정과 추진",
+    swords: "대화와 판단",
+    pentacles: "현실과 안정",
+  };
+  const rankTone = rank >= 11 ? "성숙한 역할 의식" : rank >= 7 ? "점검과 조율" : "관계의 기초 형성";
+  const theme = suitTheme[suit] || "관계 운영";
+  return {
+    upright: {
+      attraction: `${theme} 영역에서 호감이 선명하게 작동합니다.`,
+      emotionalState: `${rankTone}이 올라오며 관계 속도와 약속을 맞추려는 마음이 보입니다.`,
+      relationshipPattern: "연락과 만남의 행동 패턴을 맞추면 관계가 빠르게 안정됩니다.",
+      hiddenConcern: "기대치 합의가 없으면 작은 오해도 부담으로 커질 수 있습니다.",
+      advice: "대화를 통해 속도와 약속 기준을 먼저 정하세요.",
+    },
+    reversed: {
+      attraction: `${theme}의 끌림은 있으나 거리감이 번갈아 나타날 수 있습니다.`,
+      emotionalState: `${rankTone}이 흔들리며 확신보다 불안이 앞서기 쉽습니다.`,
+      relationshipPattern: "연락 텀과 만남 리듬이 불규칙하면 오해가 반복될 수 있습니다.",
+      hiddenConcern: "추측이 늘면 대화가 닫히고 관계 부담이 커질 수 있습니다.",
+      advice: "결론 압박 대신 사실 확인 대화를 짧게 이어가세요.",
+    },
+  };
+}
+
+function getLoveMeaningProfile(card) {
+  const id = String(card?.cardId || "").toUpperCase();
+  if (id && MAJOR_LOVE_MEANINGS[id]) return MAJOR_LOVE_MEANINGS[id];
+  return buildMinorLoveMeaning(card);
+}
+
+function normalizeRelationshipCard(raw, idx) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const lookup = getRelationshipCardLookup();
+  const cardId = String(source.cardId || source.id || "").toUpperCase();
+  const fromDeck = lookup.get(cardId) || null;
+  const meta = parseCardMeta(cardId);
+  const nameKo = asText(source.nameKo || source.nameKr || fromDeck?.nameKr);
+  const nameEn = asText(source.nameEn || source.name || fromDeck?.name);
+  const orientation = source.orientation === "reversed" ? "reversed" : "upright";
+  const keywords = Array.isArray(source.keywords)
+    ? source.keywords.filter(Boolean)
+    : (Array.isArray(fromDeck?.keywords) ? fromDeck.keywords.filter(Boolean) : []);
+  const profile = getLoveMeaningProfile({ cardId, suit: meta.suit, number: meta.number });
+  if (!nameKo && !nameEn) {
+    console.error("[tarot/love-reading] card name missing for", cardId || `index_${idx}`);
+  }
+  return {
+    ...source,
+    id: cardId || `unknown_${idx + 1}`,
+    cardId: cardId || `unknown_${idx + 1}`,
+    nameKo,
+    nameKr: nameKo || nameEn || "",
+    nameEn,
+    name: nameEn || nameKo || "",
+    arcana: meta.arcana,
+    arcanaType: meta.arcana === "major" ? "Major" : "Minor",
+    suit: meta.suit,
+    number: meta.number,
+    orientation,
+    position: REL_POSITION_KEYS[idx] || source.position || `position_${idx + 1}`,
+    keywords,
+    loveUpright: profile.upright.relationshipPattern,
+    loveReversed: profile.reversed.relationshipPattern,
+  };
+}
+
+function normalizeRelationshipCards(cards) {
+  const arr = Array.isArray(cards) ? cards : [];
+  return arr.slice(0, 6).map((card, idx) => normalizeRelationshipCard(card, idx));
+}
+
+function relationshipText(text) {
+  return smoothCounselorTone(removeRepeatedSentences(String(text || "")));
+}
+
+function buildPositionReading(card, idx) {
+  const positionTitle = REL_POSITION_LABELS[idx] || `포지션 ${idx + 1}`;
+  const cardName = String(card?.nameKo || card?.nameKr || card?.nameEn || card?.name || "").trim() || "이름이 확인되지 않은 카드";
+  const orientationLabel = card?.orientation === "reversed" ? "역방향" : "정방향";
+  const profile = getLoveMeaningProfile(card);
+  const orientKey = card?.orientation === "reversed" ? "reversed" : "upright";
+  const meaning = profile[orientKey];
+
+  if (idx === 0) {
+    const headline = orientationLabel === "정방향"
+      ? "당신의 시선은 호감의 이유를 또렷하게 보고 있습니다."
+      : "당신의 기대가 상대의 실제 행동 패턴보다 앞서갈 수 있습니다.";
+    const summary = `${meaning.attraction} ${meaning.emotionalState}`;
+    const detail = orientationLabel === "정방향"
+      ? `당신은 상대의 매력을 분명히 느끼고 있고, 연락 속도와 만남의 분위기에서 확신을 얻고 싶어합니다. 다만 호감이 클수록 오해도 빨라질 수 있으니, 단일 장면보다 반복되는 행동 패턴을 보는 것이 현실적입니다.`
+      : `상대가 애매하게 반응할수록 당신은 빈칸을 상상으로 채우기 쉽습니다. 연락이 빨랐던 날과 느렸던 날의 행동 패턴을 비교하지 않으면 오해와 부담이 함께 커질 수 있습니다.`;
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: relationshipText(headline),
+      summary: relationshipText(summary),
+      detail: relationshipText(detail),
+      relationshipInsight: relationshipText(`${meaning.relationshipPattern} 지금 시선이 현실적인지 확인하려면 대화 내용보다 반복 행동을 기준으로 판단하세요.`),
+      advice: relationshipText(`${meaning.advice} 지금은 결론을 서두르기보다 연락과 만남의 속도를 맞추는 데 집중하세요.`),
+      caution: relationshipText(`${meaning.hiddenConcern} 상대를 이상화하거나 단정하는 표현은 잠시 줄이세요.`),
+    };
+  }
+
+  if (idx === 1) {
+    const headline = orientationLabel === "정방향"
+      ? "상대는 이 관계를 가능성 있는 흐름으로 보고 있습니다."
+      : "상대는 관계의 속도와 부담 사이에서 관망하는 중입니다.";
+    const summary = `${meaning.attraction} 상대는 현재 관계 속도를 민감하게 체감하고 있습니다.`;
+    const detail = orientationLabel === "정방향"
+      ? "상대는 관계를 가볍게 넘기기보다 현실적으로 이어갈 수 있는지 살피는 편입니다. 연락과 만남의 템포가 맞으면 약속 이행 의지도 따라올 가능성이 큽니다."
+      : "상대는 마음이 없어서가 아니라 관계의 부담을 줄일 방법을 찾지 못해 속도를 늦출 수 있습니다. 확정 대화를 미룬다고 해도 완전한 거절로 단정하기는 이릅니다.";
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: relationshipText(headline),
+      summary: relationshipText(summary),
+      detail: relationshipText(detail),
+      relationshipInsight: relationshipText(`${meaning.relationshipPattern} 상대는 대화 톤, 약속 부담, 관계 속도 균형을 가장 신경 쓰고 있습니다.`),
+      advice: relationshipText(`${meaning.advice} 확답 요구 대신 관계를 어떻게 운영할지 질문해 보세요.`),
+      caution: relationshipText(`${meaning.hiddenConcern} 반응 지연을 무관심으로 단정하면 거리감이 커질 수 있습니다.`),
+    };
+  }
+
+  if (idx === 2) {
+    const headline = orientationLabel === "정방향"
+      ? "상대는 당신에게 호감과 신뢰 가능성을 동시에 느낍니다."
+      : "상대는 호감이 있어도 조심스러움과 거리감을 함께 느낄 수 있습니다.";
+    const summary = `${meaning.emotionalState} 말보다 행동 패턴에서 진심을 확인해야 합니다.`;
+    const detail = orientationLabel === "정방향"
+      ? "상대는 당신을 매력적인 사람으로 보되, 관계가 빨라질 때 부담이 생기지 않는지 함께 확인하려 합니다. 말이 다정해도 행동 패턴이 일관적인지 보는 것이 중요합니다."
+      : "상대는 끌림이 있어도 상처 회피나 현실 부담 때문에 한 발 물러서는 반응을 보일 수 있습니다. 말과 행동의 간격은 거절보다는 확신 부족 신호일 수 있습니다.";
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: relationshipText(headline),
+      summary: relationshipText(summary),
+      detail: relationshipText(detail),
+      relationshipInsight: relationshipText(`${meaning.relationshipPattern} 호감과 거리감이 동시에 있을 수 있으니, 대화의 질과 약속 이행을 함께 보세요.`),
+      advice: relationshipText(`${meaning.advice} 추측 질문보다 "나는 이렇게 느꼈어" 방식의 대화를 추천합니다.`),
+      caution: relationshipText(`${meaning.hiddenConcern} 확신을 강요하면 상대 방어가 더 커질 수 있습니다.`),
+    };
+  }
+
+  if (idx === 3) {
+    const headline = orientationLabel === "정방향"
+      ? "상대의 연애 의지는 행동으로 이어질 가능성이 있습니다."
+      : "감정은 있어도 움직일 여유가 부족할 수 있습니다.";
+    const summary = `${meaning.emotionalState} 연락, 만남, 약속 이행에서 의지를 확인하세요.`;
+    const detail = orientationLabel === "정방향"
+      ? "상대는 관계를 유지하거나 진전시키려는 힘이 있고, 제안을 받았을 때 응답하려는 태도가 비교적 분명합니다. 짧은 연락보다 실제 만남과 약속 이행률이 핵심 지표입니다."
+      : "상대는 호감이 있어도 현실 문제나 심리 부담 때문에 행동 전환이 늦을 수 있습니다. 감정 유무를 묻기보다 언제, 어떤 방식의 만남이 가능한지 구체적으로 확인해야 합니다.";
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: relationshipText(headline),
+      summary: relationshipText(summary),
+      detail: relationshipText(detail),
+      relationshipInsight: relationshipText(`${meaning.relationshipPattern} 지금은 감정 선언보다 행동 패턴의 지속성이 더 정확한 근거입니다.`),
+      advice: relationshipText(`${meaning.advice} 작은 약속부터 맞춰 단기 신뢰를 먼저 확보하세요.`),
+      caution: relationshipText(`${meaning.hiddenConcern} 빈번한 확인 연락은 의지 확인에 오히려 역효과가 날 수 있습니다.`),
+    };
+  }
+
+  if (idx === 4) {
+    const headline = orientationLabel === "정방향"
+      ? "지금 막히는 핵심은 감정보다 소통 방식의 불일치입니다."
+      : "오해와 방어 반응이 관계 흐름을 직접 막고 있습니다.";
+    const summary = `${meaning.hiddenConcern} 대화 구조를 바꾸지 않으면 같은 갈등이 반복됩니다.`;
+    const detail = orientationLabel === "정방향"
+      ? "문제의 본질은 사랑 부족이 아니라 속도, 약속, 기대치 조율 부족일 가능성이 큽니다. 지금 당장 줄여야 할 행동은 상대 반응을 추측해 결론 내리는 습관입니다."
+      : "감정이 올라올 때 즉시 단정하는 패턴이 오해와 거리감을 키우고 있습니다. 상대에게 기대하기 전에 먼저 확인해야 할 사실은 최근 2주간의 연락/만남/약속 이행 패턴입니다.";
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: relationshipText(headline),
+      summary: relationshipText(summary),
+      detail: relationshipText(detail),
+      relationshipInsight: relationshipText(`${meaning.relationshipPattern} 핵심 장애물은 소통 타이밍, 자존심, 불안 관리 방식일 수 있습니다.`),
+      advice: relationshipText(`${meaning.advice} 상대를 설득하기 전, 내가 지킬 대화 규칙 1개를 먼저 정하세요.`),
+      caution: relationshipText("해석만 반복하고 행동 기준을 만들지 않으면 같은 문제가 다시 나타납니다."),
+    };
+  }
+
+  const headline = orientationLabel === "정방향"
+    ? "앞으로 2~6주, 관계를 가까워지게 만들 여지가 충분합니다."
+    : "앞으로 2~6주, 흐름은 열려 있지만 속도 조절이 필수입니다.";
+  const summary = `${meaning.relationshipPattern} 단기 결말은 고정 운명이 아니라 현재 패턴의 예상입니다.`;
+  const detail = orientationLabel === "정방향"
+    ? "연락과 만남의 템포를 맞추고 약속 이행을 꾸준히 만들면 관계는 안정적으로 가까워질 수 있습니다. 결론을 압박하기보다 편안한 대화 1회를 만드는 태도가 가장 효과적입니다."
+    : "관계가 완전히 끝난 신호라기보다, 오해와 부담을 먼저 정리해야 하는 구간입니다. 속도를 늦추고 대화의 질을 높이면 다시 가까워질 여지는 충분합니다.";
+  return {
+    positionTitle,
+    cardName,
+    orientationLabel,
+    headline: relationshipText(headline),
+    summary: relationshipText(summary),
+    detail: relationshipText(detail),
+    relationshipInsight: relationshipText(`${meaning.emotionalState} 이번 단기 흐름에서 중요한 키워드는 연락, 대화, 약속, 행동 패턴입니다.`),
+    advice: relationshipText(`${meaning.advice} 7일 안에 무리한 확답 요구 대신 짧고 솔직한 만남 대화를 1회 시도하세요.`),
+    caution: relationshipText(`${meaning.hiddenConcern} 미래 카드를 운명으로 단정하면 선택의 여지를 놓칠 수 있습니다.`),
+  };
+}
+
+function buildFinalAdvice(cards, positionBreakdown) {
+  const reversedCount = cards.filter((card) => card.orientation === "reversed").length;
+  const blocker = positionBreakdown[4];
+  const future = positionBreakdown[5];
+  const calmMode = reversedCount >= 3;
+  return {
+    instantMission: relationshipText(
+      calmMode
+        ? "상대 반응을 추측해 결론 내리지 말고, 최근 7일의 연락·만남·약속 이행 기록을 3줄로 정리하세요."
+        : "관계를 앞당기려 하기보다 이번 주 대화 1회 일정을 먼저 확정하세요."
+    ),
+    conversationTip: relationshipText(
+      calmMode
+        ? "" + "\"왜 그랬어?\" 대신 \"나는 그때 혼란스러웠어. 네 생각을 듣고 싶어\"처럼 말하세요."
+        : "" + "\"우리 지금 뭐야?\"보다 \"나는 너와의 연락 속도를 이렇게 느껴. 너는 어때?\"처럼 질문하세요."
+    ),
+    relationshipBoundary: relationshipText(
+      blocker?.caution || "답장이 늦다는 이유만으로 관계 전체를 단정하지 않되, 반복적으로 약속을 피하는 행동은 분명히 기록하세요."
+    ),
+    nextSevenDays: relationshipText(
+      future?.advice || "결론 압박보다 편안한 대화 1회를 만드는 것이 7일 흐름을 가장 크게 바꿉니다."
+    ),
+  };
+}
+
 function buildRelationshipReading(cards) {
-  const c = (i) => cards[i] || cards[0];
-  const m = (i) => getCardMeaning(c(i));
-  const n = (i) => cardNameLine(c(i));
+  const normalizedCards = normalizeRelationshipCards(cards);
+  const positionBreakdown = normalizedCards.map((card, idx) => {
+    const reading = buildPositionReading(card, idx);
+    return {
+      ...reading,
+      title: reading.positionTitle,
+      card: `${reading.cardName} · ${reading.orientationLabel}`,
+    };
+  });
+  const finalAdvice = buildFinalAdvice(normalizedCards, positionBreakdown);
+
+  const overallVibe = relationshipText(
+    `지금 관계는 ${positionBreakdown[0]?.cardName || "상대"}를 바라보는 당신의 기대와, ${positionBreakdown[1]?.cardName || "상대의 시선"}이 보여주는 현실 속도 사이를 조율하는 구간입니다. `
+    + "호감은 분명하지만 관계의 만족도는 감정 크기보다 연락, 대화, 약속 이행 같은 행동 패턴에서 결정됩니다."
+  );
+  const deepReading = relationshipText(
+    `상대가 당신을 보는 마음(${positionBreakdown[2]?.orientationLabel || "정방향"})과 실제 연애 의지(${positionBreakdown[3]?.orientationLabel || "정방향"})는 같을 수도, 다를 수도 있습니다. `
+    + "그래서 말의 강도보다 반복 행동의 일관성을 확인해야 오해와 거리감을 줄일 수 있습니다."
+  );
+  const realityAndFuture = relationshipText(
+    `핵심 장애물은 ${positionBreakdown[4]?.headline || "소통 방식의 불일치"}에 가깝고, 단기 결말은 ${positionBreakdown[5]?.headline || "현재 패턴의 연장선"}입니다. `
+    + "단기 결말은 고정 운명이 아니라 현재 대화 방식과 속도 조절에 따라 충분히 바뀔 수 있습니다."
+  );
 
   return {
-    overallVibe: `${n(0)}과 ${n(1)}의 흐름이 교차하며 관계의 온도를 보여줍니다. ${m(0)} 지금 당신의 시선과 상대의 시선 사이의 간격을 이해하는 것이 핵심입니다. 섣부른 결론보다 관찰과 사실 확인이 먼저입니다.`,
-    deepReading: `${n(2)}는 상대가 당신을 어떻게 바라보는지 알려줍니다. ${m(2)} 반면 ${n(3)}는 상대의 연애 의지를 보여줍니다. ${m(3)} 두 카드가 가리키는 방향을 비교하면 관계의 실제 온도가 드러납니다.`,
-    realityAndFuture: `${n(4)}는 관계를 가로막는 핵심 요인입니다. ${m(4)} 이 요인을 의식적으로 다루면 ${n(5)}가 가리키는 방향으로 흐름이 바뀝니다. ${m(5)} 지금 당장 필요한 것은 실행보다 이해입니다.`,
-    positionBreakdown: cards.map((card, idx) => ({
-      title: REL_POSITION_LABELS[idx] || `포지션 ${idx + 1}`,
-      card: cardNameLine(card),
-      summary: getCardMeaning(card),
-    })),
+    counselorTone: "따뜻하지만 현실적인 상담 톤으로, 감정 추측보다 행동 근거를 중심으로 읽어드립니다.",
+    overallVibe,
+    deepReading,
+    realityAndFuture,
+    positionBreakdown,
+    finalAdvice,
     advice: [
-      `${n(4)}가 가리키는 장애물을 인정하고, 한 번에 한 가지씩 해결하세요.`,
-      "추궁형 대화 대신 '나 전달법'으로 감정을 표현하면 오해 비용이 줄어듭니다.",
-      "이번 주 15분 이상의 진심 대화 1회를 먼저 예약해 보세요.",
+      finalAdvice.instantMission,
+      finalAdvice.conversationTip,
+      finalAdvice.relationshipBoundary,
+      finalAdvice.nextSevenDays,
     ],
   };
 }
@@ -686,30 +1001,364 @@ function getDetailedCardReading(card) {
 }
 
 // ─── 재회운 등대 5카드 스프레드 ──────────────────────────────────────────────
-function buildReunionReading(cards) {
-  const c = (i) => cards[i] || cards[0];
-  const m = (i) => getCardMeaning(c(i));
-  const n = (i) => cardNameLine(c(i));
+const REUNION_POSITION_LABELS = [
+  "과거의 인연",
+  "상대의 현재 근황",
+  "주변의 방해물 또는 상황",
+  "나를 향한 속마음",
+  "재회의 가능성과 결과",
+];
 
-  const isOutcomePositive = !String(c(4)?.orientation || "").includes("reversed") &&
-    ["M06","M10","M17","M19","M21","C10","C09","W06","P10","P09"].includes(
-      String(c(4)?.cardId || "").toUpperCase()
-    );
+const REUNION_POSITION_KEYS = ["past_bond", "their_now", "outside_factor", "their_heart", "reunion_outcome"];
+
+function getCardDisplayName(card) {
+  return String(card?.nameKo || card?.nameKr || card?.nameEn || card?.name || "").trim() || "이름이 확인되지 않은 카드";
+}
+
+function getOrientationLabel(orientation) {
+  return orientation === "upright" ? "정방향" : "역방향";
+}
+
+const MAJOR_REUNION_MEANINGS = {
+  M00: { upright: { emotionalTrace: "미련은 남아 있지만 관계를 가볍게 다시 시작하고 싶은 기류가 있습니다.", partnerMind: "상대는 아직 결론보다 가능성을 열어두고 있습니다.", contactPossibility: "부담 없는 안부에는 반응할 여지가 있습니다.", obstacle: "감정 확인을 서두르면 오히려 거리를 만들 수 있습니다.", reunionAdvice: "긴 고백 대신 짧고 가벼운 근황 메시지로 시작하세요." }, reversed: { emotionalTrace: "끌림은 있으나 불안과 경계가 함께 남아 있습니다.", partnerMind: "상대는 같은 패턴이 반복될까 걱정합니다.", contactPossibility: "즉시 재회 대화는 부담으로 느껴질 수 있습니다.", obstacle: "충동적 연락과 감정 압박이 관계를 더 닫게 만듭니다.", reunionAdvice: "최소 1주일 텀을 두고 차분한 안부만 시도하세요." } },
+  M01: { upright: { emotionalTrace: "미련과 관심이 현실 행동으로 옮겨질 가능성이 보입니다.", partnerMind: "상대는 대화의 주도권과 명확함을 원합니다.", contactPossibility: "목적이 분명한 연락에 반응하기 쉽습니다.", obstacle: "과장된 표현이나 감정 과잉은 신뢰를 떨어뜨립니다.", reunionAdvice: "핵심만 짧게 말하고 상대의 답변 공간을 남기세요." }, reversed: { emotionalTrace: "감정은 남아도 신뢰는 흔들린 상태입니다.", partnerMind: "상대는 말보다 행동을 먼저 보려 합니다.", contactPossibility: "빈말이나 애매한 연락에는 반응이 낮습니다.", obstacle: "약속 불이행 기억이 강하면 재접점이 늦어집니다.", reunionAdvice: "사과와 변화 계획을 분리해 전달하세요." } },
+  M02: { upright: { emotionalTrace: "표현되지 않은 감정이 아직 남아 있습니다.", partnerMind: "상대는 속마음을 쉽게 드러내지 않는 상태입니다.", contactPossibility: "서두르지 않는 메시지에 점진적으로 반응할 수 있습니다.", obstacle: "추측과 오해가 대화 진입을 막습니다.", reunionAdvice: "질문 하나만 던지고 답을 기다리는 방식이 유리합니다." }, reversed: { emotionalTrace: "감정 피로와 불신이 남아 있어 마음을 닫기 쉽습니다.", partnerMind: "상대는 해석 싸움을 피하고 싶어 합니다.", contactPossibility: "즉시 응답보다 시간이 필요한 흐름입니다.", obstacle: "의도 추궁이 반복되면 관계가 더 멀어집니다.", reunionAdvice: "추측 문장을 줄이고 사실 기반 대화만 남기세요." } },
+  M03: { upright: { emotionalTrace: "좋았던 기억과 따뜻한 정서가 남아 있습니다.", partnerMind: "상대는 안정적인 배려를 원합니다.", contactPossibility: "다정하지만 부담 없는 연락은 호의적으로 받아들여질 수 있습니다.", obstacle: "기대치를 한 번에 높이면 부담이 생깁니다.", reunionAdvice: "짧은 고마움 표현과 안부를 함께 전달하세요." }, reversed: { emotionalTrace: "정은 있으나 감정 소모를 다시 겪을까 걱정합니다.", partnerMind: "상대는 에너지 관리가 먼저인 상태입니다.", contactPossibility: "감정 요구가 큰 연락은 피하려는 경향이 큽니다.", obstacle: "돌봄을 당연시하는 패턴이 재회를 막습니다.", reunionAdvice: "요구보다 배려와 경계 존중을 먼저 보여주세요." } },
+  M04: { upright: { emotionalTrace: "책임감 기반의 유대가 남아 있습니다.", partnerMind: "상대는 관계 기준을 명확히 하고 싶어 합니다.", contactPossibility: "진지하고 단정한 메시지에 반응하기 쉽습니다.", obstacle: "통제형 대화가 반복되면 경계가 커집니다.", reunionAdvice: "기준을 말하되 압박 없는 톤을 유지하세요." }, reversed: { emotionalTrace: "과거의 통제감과 부담이 상처로 남아 있습니다.", partnerMind: "상대는 다시 갇힐까 봐 조심합니다.", contactPossibility: "관계 정의를 강요하는 연락은 역효과가 큽니다.", obstacle: "자존심 대결과 책임 전가가 핵심 장애물입니다.", reunionAdvice: "정답 싸움을 멈추고 감정 확인 질문부터 시작하세요." } },
+  M05: { upright: { emotionalTrace: "신뢰와 원칙을 중요하게 여긴 기억이 남아 있습니다.", partnerMind: "상대는 관계를 가볍게 다시 시작하고 싶지 않습니다.", contactPossibility: "성의 있고 예의 있는 연락엔 반응 가능성이 있습니다.", obstacle: "가치관 충돌을 방치하면 다시 멀어집니다.", reunionAdvice: "재회를 원한다면 관계 기준 2가지를 먼저 합의하세요." }, reversed: { emotionalTrace: "기준 충돌의 피로가 크게 남아 있습니다.", partnerMind: "상대는 정의하기 어려운 관계를 부담스러워합니다.", contactPossibility: "애매한 연락은 오래 이어지기 어렵습니다.", obstacle: "서로 기대치가 다르면 갈등이 재발합니다.", reunionAdvice: "핵심 기대치를 명확히 적고 대화를 제안하세요." } },
+  M06: { upright: { emotionalTrace: "호감과 미련이 동시에 살아 있는 카드입니다.", partnerMind: "상대는 관계를 다시 열 가능성을 검토하고 있습니다.", contactPossibility: "적절한 타이밍의 안부 메시지에는 반응 여지가 큽니다.", obstacle: "속도 차이를 무시하면 다시 흔들릴 수 있습니다.", reunionAdvice: "결론 요구보다 감정 확인과 작은 약속부터 맞추세요." }, reversed: { emotionalTrace: "좋은 기억은 남아도 확신은 흔들립니다.", partnerMind: "상대는 다시 선택해야 하는 부담을 느낍니다.", contactPossibility: "가벼운 접촉은 가능하지만 확정 대화는 늦어질 수 있습니다.", obstacle: "결정 회피와 모호한 태도가 반복될 수 있습니다.", reunionAdvice: "관계 목표를 모호하게 두지 말고 단계적으로 합의하세요." } },
+  M07: { upright: { emotionalTrace: "강한 끌림과 빠른 재접촉 욕구가 남아 있습니다.", partnerMind: "상대는 속도와 주도권의 균형을 보고 있습니다.", contactPossibility: "명확하지만 짧은 연락에 반응할 수 있습니다.", obstacle: "서두른 결론 요구가 부담을 키웁니다.", reunionAdvice: "연락 속도 합의부터 만들고 감정 확인을 이어가세요." }, reversed: { emotionalTrace: "미련은 있지만 감정 기복이 큰 상태입니다.", partnerMind: "상대는 다시 휘말릴까 봐 경계합니다.", contactPossibility: "반응이 들쭉날쭉할 가능성이 큽니다.", obstacle: "급한 확인 요구와 단정적 해석이 재회를 막습니다.", reunionAdvice: "짧은 안부 후 반응 간격을 두고 관찰하세요." } },
+  M08: { upright: { emotionalTrace: "상대는 아직 정서적 신뢰를 완전히 버리지 않았습니다.", partnerMind: "감정 조절이 되는 대화를 원합니다.", contactPossibility: "차분한 메시지라면 대화가 이어질 수 있습니다.", obstacle: "감정 폭발형 접근은 즉시 방어를 부릅니다.", reunionAdvice: "부드러운 문장과 짧은 요청으로 시작하세요." }, reversed: { emotionalTrace: "좋은 감정은 남아도 자신감이 떨어져 있습니다.", partnerMind: "상대는 상처 재발을 특히 경계합니다.", contactPossibility: "즉각적 재회 제안은 부담이 큽니다.", obstacle: "불안 기반 집착이 관계를 더 멀어지게 합니다.", reunionAdvice: "자기 안정 루틴을 먼저 회복한 뒤 연락하세요." } },
+  M09: { upright: { emotionalTrace: "미련이 잔존하나 거리 두며 정리하는 흐름입니다.", partnerMind: "상대는 시간을 두고 상황을 보려 합니다.", contactPossibility: "느리지만 성의 있는 메시지엔 반응 가능성이 있습니다.", obstacle: "침묵을 단절로 오해하면 타이밍을 놓칩니다.", reunionAdvice: "짧은 안부 후 답변을 재촉하지 마세요." }, reversed: { emotionalTrace: "고립감과 피로가 크게 남아 있습니다.", partnerMind: "상대는 관계 대화 자체를 미루고 싶어 할 수 있습니다.", contactPossibility: "지금은 먼저 연락 비추천 신호가 강합니다.", obstacle: "과도한 접촉이 회피 반응을 강화합니다.", reunionAdvice: "최소 1~2주 기다리며 접촉 명분을 준비하세요." } },
+  M10: { upright: { emotionalTrace: "관계 전환 가능성이 살아 있는 카드입니다.", partnerMind: "상대는 기회가 오면 다시 대화해 볼 여지를 둡니다.", contactPossibility: "자연스러운 계기가 생기면 응답 가능성이 높습니다.", obstacle: "타이밍을 놓치면 기회가 빠르게 닫힐 수 있습니다.", reunionAdvice: "명분 있는 짧은 연락을 기회 창에서 시도하세요." }, reversed: { emotionalTrace: "미련은 남아도 타이밍이 자주 어긋납니다.", partnerMind: "상대는 아직 정리되지 않은 변수에 묶여 있습니다.", contactPossibility: "지금은 즉시 연락보다 기다림이 유리합니다.", obstacle: "조급한 재접촉이 반복되면 피로가 누적됩니다.", reunionAdvice: "1~2주 뒤에 부담 없는 안부로 다시 시도하세요." } },
+  M11: { upright: { emotionalTrace: "감정보다 신뢰 회복 가능성이 핵심으로 남아 있습니다.", partnerMind: "상대는 공정한 책임 분담을 확인하고 싶어 합니다.", contactPossibility: "사과와 책임 인식이 담긴 연락엔 반응 가능성이 있습니다.", obstacle: "일방적 피해자 프레임이 남아 있으면 재회가 어렵습니다.", reunionAdvice: "잘못 인정과 재발 방지 문장을 함께 전달하세요." }, reversed: { emotionalTrace: "불공정하다는 감정이 아직 크게 남아 있습니다.", partnerMind: "상대는 다시 같은 상황을 겪을까 두려워합니다.", contactPossibility: "해명 위주의 긴 메시지는 효과가 낮습니다.", obstacle: "책임 회피로 보이는 표현이 가장 큰 리스크입니다.", reunionAdvice: "짧고 명확한 책임 표현 후 반응을 기다리세요." } },
+  M12: { upright: { emotionalTrace: "감정은 남아도 멈춤과 관찰이 필요한 상태입니다.", partnerMind: "상대는 시간을 두고 관계를 다시 보려 합니다.", contactPossibility: "자연스러운 계기 필요 신호가 강합니다.", obstacle: "지금 결론을 요구하면 역효과가 큽니다.", reunionAdvice: "지금은 관찰 기간으로 두고 대화 명분을 준비하세요." }, reversed: { emotionalTrace: "정체 피로와 답답함이 남아 있습니다.", partnerMind: "상대는 반복 패턴을 특히 경계합니다.", contactPossibility: "섣부른 연락은 읽고 넘길 가능성이 큽니다.", obstacle: "고집과 단정형 문장이 재회를 막습니다.", reunionAdvice: "한 번의 짧은 안부 후 추가 압박은 피하세요." } },
+  M13: { upright: { emotionalTrace: "관계는 끝났어도 감정 흔적은 남아 있는 형태입니다.", partnerMind: "상대는 과거를 정리해야 새 대화를 고려할 수 있습니다.", contactPossibility: "변화가 확인될 때만 접촉이 의미를 가집니다.", obstacle: "과거 방식 반복이 가장 큰 장애물입니다.", reunionAdvice: "예전과 달라진 행동 증거를 먼저 준비하세요." }, reversed: { emotionalTrace: "끝내지 못한 감정이 잔존해 혼란이 큽니다.", partnerMind: "상대는 정리와 미련 사이를 오가고 있습니다.", contactPossibility: "사과나 정리 메시지에는 반응 여지가 있습니다.", obstacle: "미완결 감정 방치가 관계를 계속 흔듭니다.", reunionAdvice: "재회를 말하기 전 상처 포인트를 인정하세요." } },
+  M14: { upright: { emotionalTrace: "감정 회복 여지가 안정적으로 남아 있습니다.", partnerMind: "상대는 균형 잡힌 소통을 원합니다.", contactPossibility: "1~2주 내 짧은 안부가 적합합니다.", obstacle: "과잉 연락 또는 침묵 극단이 흐름을 깨뜨립니다.", reunionAdvice: "연락 주기와 대화 경계를 함께 맞추세요." }, reversed: { emotionalTrace: "정이 남아도 균형 붕괴 경험이 크게 남아 있습니다.", partnerMind: "상대는 감정 기복을 특히 경계합니다.", contactPossibility: "지금 가능보다는 조율 후 접촉이 유리합니다.", obstacle: "속도 차이와 감정 과열이 재발 리스크입니다.", reunionAdvice: "짧은 메시지와 느린 템포를 유지하세요." } },
+  M15: { upright: { emotionalTrace: "강한 집착과 미련이 함께 남아 있습니다.", partnerMind: "상대는 감정 압박을 가장 부담스러워합니다.", contactPossibility: "즉시 재회 요구는 거절 반응을 키울 수 있습니다.", obstacle: "질문 공세와 통제 욕구가 핵심 장애물입니다.", reunionAdvice: "감정 강도를 낮추고 사실 기반 대화로 전환하세요." }, reversed: { emotionalTrace: "집착에서 벗어나려는 흐름이 보입니다.", partnerMind: "상대는 관계를 더 건강하게 재정의하려 합니다.", contactPossibility: "부담 없는 안부는 긍정 반응 가능성이 있습니다.", obstacle: "과거 감정 습관이 재발하면 다시 멀어집니다.", reunionAdvice: "내가 지킬 경계를 먼저 정하고 연락하세요." } },
+  M16: { upright: { emotionalTrace: "상처 기억과 충격이 강하게 남아 있습니다.", partnerMind: "상대는 지금 방어적이며 재회 대화 여유가 낮습니다.", contactPossibility: "먼저 연락 비추천 신호가 큽니다.", obstacle: "신뢰 붕괴와 감정 소진이 핵심입니다.", reunionAdvice: "지금은 시간 확보와 자기 정리가 우선입니다." }, reversed: { emotionalTrace: "무너진 감정 속에서도 회복의 여지가 조금 남아 있습니다.", partnerMind: "상대는 다시 다가가고 싶어도 재발을 두려워합니다.", contactPossibility: "시간을 둔 사과 메시지에는 반응 가능성이 있습니다.", obstacle: "상처를 덮고 넘어가면 같은 문제가 반복됩니다.", reunionAdvice: "상처를 인정하는 문장부터 대화에 넣으세요." } },
+  M17: { upright: { emotionalTrace: "좋은 기억과 기대가 아직 살아 있습니다.", partnerMind: "상대는 천천히 회복되는 관계를 상상할 수 있습니다.", contactPossibility: "지금 가능 또는 1~2주 내 접촉이 유리합니다.", obstacle: "기대만 높이고 행동이 없으면 신뢰가 떨어집니다.", reunionAdvice: "작은 약속 하나를 제안해 실행하세요." }, reversed: { emotionalTrace: "실망감이 남아 기대를 쉽게 열지 못합니다.", partnerMind: "상대는 신뢰 재건 증거를 기다립니다.", contactPossibility: "긴 감정문보다 간결한 안부가 낫습니다.", obstacle: "부정적 예측과 단정이 회복을 막습니다.", reunionAdvice: "연락 빈도보다 행동 일관성을 보여주세요." } },
+  M18: { upright: { emotionalTrace: "미련과 불안이 동시에 남아 혼란이 큽니다.", partnerMind: "상대는 당신의 의도를 완전히 신뢰하지 못할 수 있습니다.", contactPossibility: "자연스러운 계기 필요 신호가 강합니다.", obstacle: "추측과 오해가 접촉 타이밍을 망칩니다.", reunionAdvice: "사실 확인 질문 중심으로 접근하세요." }, reversed: { emotionalTrace: "혼란이 조금 걷히며 현실 판단이 가능해집니다.", partnerMind: "상대는 조심스럽게 대화를 열 수 있습니다.", contactPossibility: "1~2주 뒤 짧은 안부가 적합합니다.", obstacle: "남은 의심을 방치하면 재회 후 재갈등이 큽니다.", reunionAdvice: "핵심 오해 한 가지를 먼저 정리하세요." } },
+  M19: { upright: { emotionalTrace: "좋았던 기억과 호감이 선명히 남아 있습니다.", partnerMind: "상대는 다시 편안한 연결을 시도할 여지가 있습니다.", contactPossibility: "지금 가능 신호가 비교적 강합니다.", obstacle: "좋은 분위기에 기대어 핵심 문제를 미루면 재발합니다.", reunionAdvice: "밝은 톤으로 시작하되 경계 합의를 잊지 마세요." }, reversed: { emotionalTrace: "호감은 있으나 확신은 약해진 상태입니다.", partnerMind: "상대는 가벼운 연결은 가능해도 깊은 대화는 조심합니다.", contactPossibility: "짧은 안부만 추천되는 구간입니다.", obstacle: "낙관 과잉과 결론 압박이 리스크입니다.", reunionAdvice: "분위기보다 신뢰 회복 문장을 먼저 두세요." } },
+  M20: { upright: { emotionalTrace: "과거를 다시 돌아보는 마음이 살아 있습니다.", partnerMind: "상대는 관계 재평가 의지가 있습니다.", contactPossibility: "정리된 메시지에는 반응 가능성이 큽니다.", obstacle: "과거 핵심 갈등을 회피하면 다시 멈춥니다.", reunionAdvice: "재회보다 문제 인식과 변화 의지를 먼저 전달하세요." }, reversed: { emotionalTrace: "미련은 있어도 결정을 미루는 흐름입니다.", partnerMind: "상대는 과거 피로를 아직 정리하지 못했습니다.", contactPossibility: "지금은 먼저 연락 비추천에 가깝습니다.", obstacle: "과거 상처 회피가 재회 진입을 지연시킵니다.", reunionAdvice: "시간을 두고 사과/정리 메시지를 준비하세요." } },
+  M21: { upright: { emotionalTrace: "관계를 성숙하게 다시 맞출 가능성이 있습니다.", partnerMind: "상대는 마무리보다 완성형 재시작을 검토할 수 있습니다.", contactPossibility: "적절한 타이밍의 접촉은 긍정 반응 확률이 높습니다.", obstacle: "마지막 쟁점을 덮으면 완성 직전 다시 멀어집니다.", reunionAdvice: "남은 갈등 한 가지를 정확히 정리해 제안하세요." }, reversed: { emotionalTrace: "연결은 남아도 미완결 과제가 큰 상태입니다.", partnerMind: "상대는 확답보다 관망을 택할 수 있습니다.", contactPossibility: "자연스러운 계기 후 접촉이 유리합니다.", obstacle: "미완결 이슈가 반복되면 재회 후 재이별 위험이 큽니다.", reunionAdvice: "재시작 전 핵심 이슈 해결 약속을 먼저 합의하세요." } },
+};
+
+function reunionText(text) {
+  const cleaned = String(text || "").replace(/읽는\s*정확함/g, "해석 정확도");
+  return smoothCounselorTone(cleaned);
+}
+
+function buildMinorReunionMeaning(card) {
+  const suit = String(card?.suit || "").toLowerCase();
+  const rank = Number(card?.number || 0);
+  const suitLabel = {
+    cups: "감정선",
+    wands: "행동 의지",
+    swords: "대화와 판단",
+    pentacles: "현실 조건",
+  }[suit] || "관계 흐름";
+  const rankTone = rank >= 11 ? "성숙한 책임" : rank >= 7 ? "점검과 조율" : "관계 초반 에너지";
+  return {
+    upright: {
+      emotionalTrace: `${suitLabel}에서 미련과 연결 욕구가 남아 있습니다.`,
+      partnerMind: `상대는 ${rankTone}을 기준으로 재접점을 판단합니다.`,
+      contactPossibility: "부담 없는 안부에는 반응할 가능성이 있습니다.",
+      obstacle: "속도와 기대치가 맞지 않으면 오해가 커질 수 있습니다.",
+      reunionAdvice: "짧은 안부 후 반응을 관찰하며 다음 대화를 준비하세요.",
+    },
+    reversed: {
+      emotionalTrace: `${suitLabel}에서 상처와 경계가 더 크게 작동합니다.`,
+      partnerMind: `상대는 ${rankTone}이 흔들려 조심스러운 태도를 보일 수 있습니다.`,
+      contactPossibility: "지금은 즉시 재회 대화보다 느린 접촉이 유리합니다.",
+      obstacle: "과거 패턴 반복과 감정 압박이 핵심 리스크입니다.",
+      reunionAdvice: "먼저 연락 비추천 구간이면 1~2주 관찰 후 접근하세요.",
+    },
+  };
+}
+
+function toReunionMeaningShape(raw) {
+  return {
+    emotionalTrace: reunionText(raw?.emotionalTrace || ""),
+    currentState: reunionText(raw?.partnerMind || raw?.currentState || ""),
+    obstacle: reunionText(raw?.obstacle || ""),
+    reconnectionChance: reunionText(raw?.contactPossibility || raw?.reconnectionChance || ""),
+    actionAdvice: reunionText(raw?.reunionAdvice || raw?.actionAdvice || ""),
+  };
+}
+
+function getReunionMeaningProfile(card) {
+  const id = String(card?.cardId || "").toUpperCase();
+  const profile = MAJOR_REUNION_MEANINGS[id] || buildMinorReunionMeaning(card);
+  return {
+    upright: toReunionMeaningShape(profile.upright),
+    reversed: toReunionMeaningShape(profile.reversed),
+  };
+}
+
+function normalizeReunionCard(raw, idx) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const lookup = getRelationshipCardLookup();
+  const cardId = String(source.cardId || source.id || "").toUpperCase();
+  const deckCard = lookup.get(cardId) || {};
+  const meta = parseCardMeta(cardId);
+  const nameKo = asText(source.nameKo || source.nameKr || deckCard.nameKr);
+  const nameEn = asText(source.nameEn || source.name || deckCard.name);
+  const orientation = source.orientation === "reversed" ? "reversed" : "upright";
+  const keywords = Array.isArray(source.keywords)
+    ? source.keywords.filter(Boolean)
+    : (Array.isArray(deckCard.keywords) ? deckCard.keywords.filter(Boolean) : []);
+  const reunionMeaning = getReunionMeaningProfile({ cardId, suit: meta.suit, number: meta.number });
+
+  if (!nameKo && !nameEn) {
+    console.error("[tarot/reunion-reading] card name missing", cardId || `index_${idx}`);
+  }
 
   return {
-    opening: `별 헤는 밤바다의 등대가 두 사람의 인연을 조명합니다. ${n(0)}, ${n(1)}, ${n(2)}, ${n(3)}, ${n(4)} — 다섯 장의 카드가 재회의 실마리를 하나씩 펼쳐 보입니다. 결론을 서두르지 말고 각 카드의 이야기를 천천히 따라가 보세요.`,
-    pastBond: `${n(0)}가 두 사람의 과거 인연을 보여줍니다. ${m(0)} 이 에너지는 아직 완전히 사라지지 않았습니다. 과거의 감정적 기반이 얼마나 단단했는지를 이 카드가 증언합니다.`,
-    theirNow: `${n(1)}는 그 사람의 지금 이 순간을 담고 있습니다. ${m(1)} 상대의 현재 리듬이 어느 방향으로 흐르고 있는지를 파악하면 재접촉 타이밍을 더 정확히 잡을 수 있습니다.`,
-    outsideFactor: `${n(2)}는 두 사람 사이에 작용하는 외부 변수를 가리킵니다. ${m(2)} 이 요소를 무시하면 노력이 헛되기 쉽습니다. 현실 조건을 먼저 정리해야 재회의 에너지가 제대로 흐를 수 있습니다.`,
-    theirHeart: `${n(3)}가 그 사람의 속마음을 비춥니다. ${m(3)} 표면적 반응만 보지 말고 이 카드가 전하는 깊은 감정의 층을 읽으세요. 미련과 경계가 공존할 수 있으며, 그것이 인간의 감정이 작동하는 방식입니다.`,
-    reunionOutcome: `${n(4)}가 재회의 가능성을 알려줍니다. ${m(4)} ${isOutcomePositive ? "긍정적인 흐름이 열려 있습니다. 무리한 접근이 아닌 신뢰 회복 중심의 전략을 유지하면 가능성이 현실이 될 수 있습니다." : "현재 타이밍은 즉각적 재회보다 내면 정비와 준비의 시간입니다. 억지로 밀어붙이는 것보다 자신을 채우는 시간이 오히려 재회 가능성을 높입니다."}`,
-    lighthouseGuidance: `등대의 빛처럼, 재회의 가능성은 어둠 속에서도 꺼지지 않는 신호입니다. ${n(3)}가 담은 상대의 마음과 ${n(4)}가 보여주는 흐름을 결합하면 — 지금 당신에게 필요한 것은 결과를 통제하려는 시도가 아니라, 신뢰를 다시 쌓는 작은 행동들입니다.`,
+    ...source,
+    id: cardId || `unknown_${idx + 1}`,
+    cardId: cardId || `unknown_${idx + 1}`,
+    nameKo,
+    nameKr: nameKo || nameEn || "",
+    nameEn,
+    name: nameEn || nameKo || "",
+    arcana: meta.arcana,
+    arcanaType: meta.arcana === "major" ? "Major" : "Minor",
+    suit: meta.suit,
+    number: meta.number,
+    orientation,
+    position: REUNION_POSITION_KEYS[idx] || source.position || `position_${idx + 1}`,
+    keywords,
+    reunionMeaning,
+  };
+}
+
+function normalizeReunionCards(cards) {
+  const arr = Array.isArray(cards) ? cards : [];
+  return arr.slice(0, 5).map((card, idx) => normalizeReunionCard(card, idx));
+}
+
+function calculateReunionChance(cards) {
+  let score = 50;
+  const scoreRules = [
+    { ids: ["M06", "C02", "C06", "M20", "M17"], upright: 12, reversed: 4 },
+    { ids: ["S10", "S03", "C05", "M16", "C08"], upright: -14, reversed: -6 },
+    { ids: ["W11", "C11", "C12"], upright: 8, reversed: -2 },
+    { ids: ["S02", "S04", "M12"], upright: -2, reversed: -5 },
+    { ids: ["P13", "P14", "M14"], upright: 7, reversed: -4 },
+  ];
+
+  cards.forEach((card) => {
+    const id = String(card?.cardId || "").toUpperCase();
+    const reversed = card?.orientation === "reversed";
+    scoreRules.forEach((rule) => {
+      if (!rule.ids.includes(id)) return;
+      score += reversed ? rule.reversed : rule.upright;
+    });
+  });
+
+  return Math.max(0, Math.min(100, score));
+}
+
+function getReunionChanceLabel(score) {
+  if (score >= 75) return "높음";
+  if (score >= 58) return "조건부 높음";
+  if (score >= 40) return "보통";
+  return "낮음";
+}
+
+function inferPartnerState(card) {
+  const id = String(card?.cardId || "").toUpperCase();
+  const reversed = card?.orientation === "reversed";
+  if (["M16", "S10", "S09", "C08"].includes(id) && !reversed) return "정리 중";
+  if (["M18", "S02", "S07"].includes(id)) return "혼란";
+  if (reversed && ["M04", "M11", "M07", "P14", "S13"].includes(id)) return "방어적";
+  if (["M06", "C06", "M20", "M17", "C02"].includes(id)) return "미련 있음";
+  return reversed ? "관망 중" : "조심스러운 관망";
+}
+
+function inferContactTiming(score, cards) {
+  const blocker = cards[2];
+  const blockerId = String(blocker?.cardId || "").toUpperCase();
+  if (["M16", "S10", "S03"].includes(blockerId) && blocker?.orientation !== "reversed") return "먼저 연락 비추천";
+  if (score >= 75 && cards[1]?.orientation === "upright") return "지금 가능";
+  if (score >= 58) return "1~2주 뒤";
+  if (score < 40) return "자연스러운 계기 필요";
+  return "짧은 안부만 추천";
+}
+
+function inferMainObstacle(card) {
+  const id = String(card?.cardId || "").toUpperCase();
+  if (["M16", "S10", "S03"].includes(id)) return "신뢰 붕괴";
+  if (["M15", "M04", "P14"].includes(id)) return "자존심";
+  if (["M18", "S02", "S07"].includes(id)) return "오해";
+  if (["P04", "P05", "P10", "P14"].includes(id)) return "현실 문제";
+  return "감정 소진";
+}
+
+function inferOneLineAdvice(timing, score) {
+  if (timing === "지금 가능") return "짧은 안부로 문을 열고, 바로 재회 결론은 묻지 마세요.";
+  if (timing === "1~2주 뒤") return "지금은 준비 기간으로 두고 1~2주 뒤 부담 없는 연락을 시도하세요.";
+  if (timing === "먼저 연락 비추천") return "당장은 거리두기가 유리하며, 상처 정리 후에 다시 시도하세요.";
+  if (score < 40) return "감정 호소보다 사과 정리와 신뢰 회복 근거를 먼저 준비하세요.";
+  return "긴 고백보다 짧고 진심 있는 안부가 더 효과적입니다.";
+}
+
+function buildReunionPositionReading(card, idx, score, label, contactTiming) {
+  const positionTitle = REUNION_POSITION_LABELS[idx] || `포지션 ${idx + 1}`;
+  const cardName = getCardDisplayName(card);
+  const orientationLabel = getOrientationLabel(card?.orientation);
+  const meaning = card?.reunionMeaning?.[card?.orientation === "reversed" ? "reversed" : "upright"] || {
+    emotionalTrace: "감정 흔적은 남아 있지만 해석은 신중해야 합니다.",
+    currentState: "상대 상태를 행동 패턴으로 확인해야 합니다.",
+    obstacle: "오해와 속도 차이가 핵심 변수입니다.",
+    reconnectionChance: "부담 없는 접촉에서 가능성을 확인할 수 있습니다.",
+    actionAdvice: "짧고 정중한 안부로 시작하세요.",
+  };
+
+  if (idx === 0) {
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: reunionText(`${cardName} ${orientationLabel}은 과거의 정은 남아 있지만 같은 갈등 패턴을 경계해야 한다는 신호입니다.`),
+      directAnswer: reunionText(`두 사람 사이에 정은 있었고, 좋았던 기억도 분명했습니다. 다만 ${meaning.obstacle} 패턴이 누적되며 거리감이 커졌을 가능성이 큽니다.`),
+      detailedReading: reunionText(`${meaning.emotionalTrace} 관계가 좋았던 시기의 강점은 정서적 연결이었고, 약점은 갈등 후 복구 방식이었습니다. 재회를 원하면 예전처럼 누가 맞는지 따지기보다 무엇이 부담이었는지 먼저 정리해야 합니다.`),
+      reunionPoint: reunionText("과거를 미화하지 말고 반복된 갈등 문장 1개를 정확히 바꾸는 것이 핵심입니다."),
+      advice: reunionText(meaning.actionAdvice),
+    };
+  }
+
+  if (idx === 1) {
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: reunionText(`${cardName} ${orientationLabel}은 상대가 지금 여유보다 방어를 먼저 두는 상태를 보여줍니다.`),
+      directAnswer: reunionText(`상대의 현재 상태는 "${meaning.currentState}"에 가깝습니다. 감정이 남아 있어도 현실 피로가 크면 반응이 느릴 수 있습니다.`),
+      detailedReading: reunionText(`${meaning.emotionalTrace} 지금 연락하면 즉답보다는 관망 반응이 나올 수 있으니, 답장 속도만으로 마음을 단정하지 않는 것이 중요합니다.`),
+      reunionPoint: reunionText("상대가 연락을 받을 공간이 있는지부터 확인해야 재접촉 실패를 줄일 수 있습니다."),
+      advice: reunionText(`현재 타이밍은 ${contactTiming} 신호이며, ${meaning.actionAdvice}`),
+    };
+  }
+
+  if (idx === 2) {
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: reunionText(`${cardName} ${orientationLabel}은 재회를 막는 구조적 요인이 아직 남아 있음을 보여줍니다.`),
+      directAnswer: reunionText(`핵심 장애물은 ${meaning.obstacle}입니다. 감정 문제와 현실 문제를 분리해 풀지 않으면 같은 갈등이 반복됩니다.`),
+      detailedReading: reunionText("거리, 일정, 주변 시선, 과거 오해 중 무엇이 가장 큰지 우선순위를 정해야 합니다. 무리한 접근은 상대의 방어심을 더 키울 수 있습니다."),
+      reunionPoint: reunionText("재회 시도 전에 먼저 정리할 조건을 1개라도 해결하면 반응 질이 달라집니다."),
+      advice: reunionText(meaning.actionAdvice),
+    };
+  }
+
+  if (idx === 3) {
+    return {
+      positionTitle,
+      cardName,
+      orientationLabel,
+      headline: reunionText(`${cardName} ${orientationLabel}은 미련과 경계가 동시에 존재하는 속마음 신호입니다.`),
+      directAnswer: reunionText(`상대의 속마음은 "${meaning.emotionalTrace}"에 가깝습니다. 좋아하는 감정이 남아도 상처 재발을 두려워할 수 있습니다.`),
+      detailedReading: reunionText("상대를 단정하기보다, 다시 연락하고 싶은 마음과 멈추고 싶은 마음이 함께 있다는 전제를 두고 접근해야 합니다."),
+      reunionPoint: reunionText("속마음 확인의 핵심은 말보다 행동 일관성입니다."),
+      advice: reunionText(`질문 공세보다 짧은 안부 + 상대 반응 존중이 효과적입니다. ${meaning.actionAdvice}`),
+    };
+  }
+
+  const labelText = label === "높음" ? "높은 편" : label === "조건부 높음" ? "조건부 높음" : label === "보통" ? "보통" : "낮은 편";
+  const outcomeLine = label === "낮음"
+    ? "현재 흐름은 재회 즉시 성사보다는 상처 회복이 먼저인 구간입니다."
+    : label === "보통"
+      ? "재회 가능성은 열려 있지만 조건 정리가 선행되어야 합니다."
+      : "재회 가능성은 열려 있으나 같은 문제를 반복하지 않을 조건이 필요합니다.";
+
+  return {
+    positionTitle,
+    cardName,
+    orientationLabel,
+    headline: reunionText(`${cardName} ${orientationLabel} 기준 현재 재회 가능성은 ${labelText}입니다.`),
+    directAnswer: reunionText(`재회 가능성 등급은 ${label} (${score}%)입니다. 연락 가능성은 "${contactTiming}"에 가깝습니다.`),
+    detailedReading: reunionText(`${meaning.reconnectionChance} ${outcomeLine} 재회를 말할 때는 감정보다 구체적 변화와 재발 방지 약속이 필요합니다.`),
+    reunionPoint: reunionText("재회 성공은 사랑의 크기보다 신뢰 복구 실행력에서 갈립니다."),
+    advice: reunionText(meaning.actionAdvice),
+  };
+}
+
+function buildReunionFinalGuide(summary, positions) {
+  const timing = summary?.bestContactTiming || "자연스러운 계기 필요";
+  const shouldContactNow = timing === "지금 가능"
+    ? "지금 연락은 가능하지만, 재회 결론을 바로 묻기보다 짧은 안부로 문을 여는 방식이 적합합니다."
+    : timing === "1~2주 뒤"
+      ? "지금은 감정 정리 기간으로 두고 1~2주 안에 짧은 안부를 보내는 것이 좋습니다."
+      : timing === "먼저 연락 비추천"
+        ? "지금 먼저 연락하면 상대의 방어심이 커질 가능성이 높습니다. 시간을 두고 접촉 명분을 만드는 편이 유리합니다."
+        : "자연스러운 계기를 만들기 전에는 긴 대화보다 짧은 근황 공유만 추천됩니다.";
+
+  const messageExample = timing === "먼저 연락 비추천"
+    ? "요즘 생각이 나서 인사만 남겨. 답장은 편할 때 해도 괜찮아."
+    : "요즘 문득 생각나서 짧게 안부 전하고 싶었어. 부담 갖지 않아도 괜찮아.";
+
+  const avoidThis = "\"우리 다시 만날 수 있어?\", \"왜 답이 없어?\", \"아직 나 좋아하지?\"처럼 답을 강요하는 질문은 피하세요.";
+  const nextSevenDays = reunionText(
+    `앞으로 7일은 ${summary?.mainObstacle || "핵심 장애물"}을 줄이는 준비 기간으로 두세요. `
+    + "과거 갈등을 한 문장으로 정리하고, 재회 대화가 열리면 감정보다 구체적 변화부터 말하는 것이 효과적입니다."
+  );
+
+  return {
+    shouldContactNow: reunionText(shouldContactNow),
+    messageExample: reunionText(messageExample),
+    avoidThis: reunionText(avoidThis),
+    nextSevenDays,
+  };
+}
+
+function buildReunionReading(cards) {
+  const normalizedCards = normalizeReunionCards(cards);
+  const score = calculateReunionChance(normalizedCards);
+  const reunionChanceLabel = getReunionChanceLabel(score);
+  const partnerState = inferPartnerState(normalizedCards[1] || {});
+  const bestContactTiming = inferContactTiming(score, normalizedCards);
+  const mainObstacle = inferMainObstacle(normalizedCards[2] || {});
+  const oneLineAdvice = inferOneLineAdvice(bestContactTiming, score);
+
+  const positions = normalizedCards.map((card, idx) =>
+    buildReunionPositionReading(card, idx, score, reunionChanceLabel, bestContactTiming)
+  );
+
+  const summary = {
+    reunionChanceLabel,
+    reunionChanceScore: score,
+    partnerState,
+    bestContactTiming,
+    mainObstacle,
+    oneLineAdvice,
+  };
+
+  const finalGuide = buildReunionFinalGuide(summary, positions);
+
+  return {
+    counselorTone: "감정 위로보다 판단 가능한 구조를 우선해 재회 흐름을 정리했습니다.",
+    opening: reunionText("이번 배열은 상대의 현재 상태, 재회 조건, 연락 타이밍을 함께 보여줍니다. 핵심 요약부터 확인하고 각 포지션을 순서대로 읽어보세요."),
+    summary,
+    positions,
+    finalGuide,
+    pastBond: positions[0]?.detailedReading || "",
+    theirNow: positions[1]?.detailedReading || "",
+    outsideFactor: positions[2]?.detailedReading || "",
+    theirHeart: positions[3]?.detailedReading || "",
+    reunionOutcome: positions[4]?.detailedReading || "",
+    lighthouseGuidance: finalGuide.nextSevenDays,
+    positionBreakdown: positions,
     actionPlan: [
-      `${n(2)}가 가리키는 외부 장애물을 먼저 현실적으로 정리하세요.`,
-      "첫 연락은 감정 토로보다 가볍고 진심 어린 안부 중심 3문장으로 시작하세요.",
-      "응답 속도에 집착하지 말고 48시간 단위로 상대의 리듬을 관찰하세요.",
-      "재회 목표보다 '신뢰 회복'을 단기 목표로 설정하면 조급함이 줄어듭니다.",
-    ],
+      oneLineAdvice,
+      finalGuide.shouldContactNow,
+      finalGuide.avoidThis,
+      finalGuide.nextSevenDays,
+      positions[2]?.advice || "핵심 장애물을 먼저 줄이세요.",
+    ].map(reunionText).filter(Boolean),
   };
 }
 
@@ -970,8 +1619,11 @@ export async function handleTarotRoutes(request, env = {}) {
     if (path === "/reading") {
       const spreadType = normalizeSpreadType(body?.spreadType || "one_card");
       const category = String(body?.category || "general");
-      const cards = Array.isArray(body?.cards) ? body.cards : [];
-      assertCardCount(spreadType, cards);
+      const requestCards = Array.isArray(body?.cards) ? body.cards : [];
+      assertCardCount(spreadType, requestCards);
+      const cards = spreadType === "reunion_lighthouse_five_card"
+        ? normalizeReunionCards(requestCards)
+        : requestCards;
       const rawReading = pickReading(spreadType, cards);
       const reading = applyQualityEnhancement(spreadType, rawReading, cards);
       return json({
@@ -994,20 +1646,21 @@ export async function handleTarotRoutes(request, env = {}) {
       const spreadType = "relationship_six_card";
       const cards = Array.isArray(body?.cards) ? body.cards : [];
       assertCardCount(spreadType, cards);
-      const rawReading = buildRelationshipReading(cards);
-      const reading = applyQualityEnhancement(spreadType, rawReading, cards);
+      const normalizedCards = normalizeRelationshipCards(cards);
+      const rawReading = buildRelationshipReading(normalizedCards);
+      const reading = applyQualityEnhancement(spreadType, rawReading, normalizedCards);
       return json({
         ok: true,
         category: "love",
         spreadType,
-        cards,
+        cards: normalizedCards,
         reading,
         consultingHighlights: buildConsultingHighlights(reading),
         engineMeta: {
           source: "worker/routes/tarot.js",
           qualityEnhanced: reading !== rawReading,
           spreadType,
-          cardCount: cards.length,
+          cardCount: normalizedCards.length,
         },
         isRelationshipReading: true,
         api: "love-reading",

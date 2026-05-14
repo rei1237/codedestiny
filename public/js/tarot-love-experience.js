@@ -7,12 +7,12 @@
   "use strict";
 
   var POSITION_LABELS = {
-    position_1: "내가 보는 상대",
-    position_2: "상대가 관계를 보는 것",
-    position_3: "상대가 나를 보는 것",
-    position_4: "연애하고픈 마음",
-    position_5: "관계를 막는 것",
-    position_6: "예상되는 결과",
+    position_1: "내가 바라보는 상대",
+    position_2: "상대가 관계 전체를 보는 시각",
+    position_3: "상대가 나를 바라보는 마음",
+    position_4: "상대의 연애 의지와 열망",
+    position_5: "관계를 가로막는 핵심 요인",
+    position_6: "앞으로 펼쳐질 단기적 결말",
   };
   var DISPLAY_ORDER = [0, 1, 2, 3, 4, 5];
   var GUIDE_ORDER = [0, 1, 2, 3, 4, 5];
@@ -473,7 +473,7 @@
     }
 
     if (!cardId) cardId = "M00";
-    if (!name) name = "Tarot Card";
+    if (!name) name = "이름이 확인되지 않은 카드";
     if (!nameKr) nameKr = name;
 
     return {
@@ -1020,6 +1020,105 @@
       });
   }
 
+  function removeRepeatedSentencesForUi(text) {
+    var sentences = String(text || "")
+      .split(/(?<=[.!?。！？]|입니다\.|세요\.|합니다\.)\s+/)
+      .map(function (s) { return String(s || "").trim(); })
+      .filter(Boolean);
+
+    var seen = Object.create(null);
+    var result = [];
+    sentences.forEach(function (sentence) {
+      var normalized = sentence
+        .replace(/\s+/g, " ")
+        .replace(/[“”"']/g, "")
+        .trim();
+      if (!normalized || seen[normalized]) return;
+      seen[normalized] = true;
+      result.push(sentence);
+    });
+    return result.join(" ");
+  }
+
+  var FORBIDDEN_RESULT_PATTERNS = [
+    /카드\(정방향\)의\s*포지션\s*핵심\s*의미는/gi,
+    /카드\(역방향\)의\s*포지션\s*핵심\s*의미는/gi,
+    /입니다\.\s*이\s*포지션의\s*메시지는/gi,
+    /포지션\s*핵심\s*의미/gi,
+    /카드가\s*가리키는\s*장애물/gi,
+    /한\s*번에\s*한\s*가지씩\s*해결하세요/gi,
+  ];
+
+  function cleanRelationshipResultText(input) {
+    var out = String(input || "").trim();
+    if (!out) return "";
+    FORBIDDEN_RESULT_PATTERNS.forEach(function (pattern) {
+      out = out.replace(pattern, "");
+    });
+    out = removeRepeatedSentencesForUi(out);
+    out = out.replace(/\s{2,}/g, " ").trim();
+    return out;
+  }
+
+  function normalizePositionReadingItem(item, idx) {
+    var src = item && typeof item === "object" ? item : {};
+    var fallbackTitle = RELATIONSHIP_POSITIONS[idx] || ("position_" + String(idx + 1));
+    var positionTitle = String(src.positionTitle || src.title || POSITION_LABELS[fallbackTitle] || ("포지션 " + String(idx + 1))).trim();
+    var cardName = String(src.cardName || src.card || "").trim();
+    var orientationLabel = String(src.orientationLabel || "").trim();
+
+    if (!orientationLabel && /역방향|\(역\)/.test(cardName)) orientationLabel = "역방향";
+    if (!orientationLabel) orientationLabel = "정방향";
+    cardName = cardName.replace(/\s*[·|]\s*(정방향|역방향)$/, "").replace(/\((정|역)\)$/, "").trim();
+    if (!cardName) cardName = "이름이 확인되지 않은 카드";
+
+    return {
+      positionTitle: positionTitle,
+      cardName: cardName,
+      orientationLabel: orientationLabel,
+      headline: cleanRelationshipResultText(src.headline || src.summary || ""),
+      summary: cleanRelationshipResultText(src.summary || src.headline || ""),
+      detail: cleanRelationshipResultText(src.detail || src.summary || ""),
+      relationshipInsight: cleanRelationshipResultText(src.relationshipInsight || ""),
+      advice: cleanRelationshipResultText(src.advice || ""),
+      caution: cleanRelationshipResultText(src.caution || ""),
+    };
+  }
+
+  function normalizeFinalAdvice(rawFinalAdvice, adviceList) {
+    var src = rawFinalAdvice && typeof rawFinalAdvice === "object" ? rawFinalAdvice : {};
+    return {
+      instantMission: cleanRelationshipResultText(src.instantMission || adviceList[0] || "상대의 반응을 추측하기보다 최근 행동 3가지를 정리해 보세요."),
+      conversationTip: cleanRelationshipResultText(src.conversationTip || adviceList[1] || "왜 그랬어? 대신 나는 이렇게 느꼈어. 네 생각을 듣고 싶어 라고 말해 보세요."),
+      relationshipBoundary: cleanRelationshipResultText(src.relationshipBoundary || adviceList[2] || "답장이 늦다는 이유만으로 관계를 단정하지 말고 반복되는 약속 회피는 기록해 두세요."),
+      nextSevenDays: cleanRelationshipResultText(src.nextSevenDays || adviceList[3] || "결론 압박보다 편안한 대화 1회를 만드는 것이 다음 7일 흐름을 바꿉니다."),
+    };
+  }
+
+  function sanitizeRelationshipReading(rawReading) {
+    var src = rawReading && typeof rawReading === "object" ? rawReading : {};
+    var adviceList = Array.isArray(src.advice)
+      ? src.advice.map(function (item) { return cleanRelationshipResultText(item); }).filter(Boolean)
+      : [];
+    var seenAdvice = Object.create(null);
+    adviceList = adviceList.filter(function (line) {
+      var key = String(line || "").toLowerCase();
+      if (!key || seenAdvice[key]) return false;
+      seenAdvice[key] = true;
+      return true;
+    });
+    return {
+      overallVibe: cleanRelationshipResultText(src.overallVibe || ""),
+      deepReading: cleanRelationshipResultText(src.deepReading || ""),
+      realityAndFuture: cleanRelationshipResultText(src.realityAndFuture || ""),
+      positionBreakdown: Array.isArray(src.positionBreakdown)
+        ? src.positionBreakdown.map(function (item, idx) { return normalizePositionReadingItem(item, idx); })
+        : [],
+      finalAdvice: normalizeFinalAdvice(src.finalAdvice, adviceList),
+      advice: adviceList,
+    };
+  }
+
   function renderTarotLoveResult() {
     var container = byId("tarotLoveReadingContent");
     if (!container || !state.reading) return;
@@ -1028,12 +1127,13 @@
       return;
     }
 
-    var r = state.reading;
+    var r = sanitizeRelationshipReading(state.reading);
     var overallVibe = r.overallVibe != null ? String(r.overallVibe) : "";
     var deepReading = r.deepReading != null ? String(r.deepReading) : "";
     var realityAndFuture = r.realityAndFuture != null ? String(r.realityAndFuture) : "";
     var positionBreakdown = Array.isArray(r.positionBreakdown) ? r.positionBreakdown : [];
     var adviceList = Array.isArray(r.advice) ? r.advice : [];
+    var finalAdvice = r.finalAdvice && typeof r.finalAdvice === "object" ? r.finalAdvice : {};
     var html = "";
 
     if (overallVibe) {
@@ -1059,37 +1159,49 @@
 
     if (positionBreakdown.length) {
       html += '<section class="tarot-love-section tarot-love-section--position">';
-      html += '<h4 class="tarot-love-section-title">🃏 포지션별 타로 해석</h4>';
+      html += '<h4 class="tarot-love-section-title">🃏 포지션별 관계 해석</h4>';
       html += '<div class="tarot-love-position-grid">';
       positionBreakdown.forEach(function (item) {
-        var title = item && item.title != null ? String(item.title) : "";
-        var card = item && item.card != null ? String(item.card) : "";
-        var summary = item && item.summary != null ? String(item.summary) : "";
-        if (!title && !summary) return;
+        var title = item && item.positionTitle != null ? String(item.positionTitle) : "";
+        var cardName = item && item.cardName != null ? String(item.cardName) : "";
+        var orientationLabel = item && item.orientationLabel != null ? String(item.orientationLabel) : "정방향";
+        var headline = item && item.headline != null ? String(item.headline) : "";
+        var detail = item && item.detail != null ? String(item.detail) : "";
+        var relationshipInsight = item && item.relationshipInsight != null ? String(item.relationshipInsight) : "";
+        var advice = item && item.advice != null ? String(item.advice) : "";
+        var caution = item && item.caution != null ? String(item.caution) : "";
+        if (!title && !headline && !detail) return;
         html += '<article class="tarot-love-position-card">';
+        html += '<div class="tarot-love-position-head">';
         html += '<p class="tarot-love-position-title">' + escapeHtml(title) + "</p>";
-        if (card) html += '<p class="tarot-love-position-cardname">' + escapeHtml(card) + "</p>";
-        if (summary) html += '<div class="tarot-love-position-text">' + formatReadingText(summary) + "</div>";
+        html += '<span class="tarot-love-orientation-badge ' + (orientationLabel === "역방향" ? "is-reversed" : "is-upright") + '">' + escapeHtml(orientationLabel) + '</span>';
+        html += '</div>';
+        if (cardName) html += '<p class="tarot-love-position-cardname">' + escapeHtml(cardName) + "</p>";
+        if (headline) html += '<div class="tarot-love-position-keyline"><strong>한 줄 핵심:</strong> ' + escapeHtml(headline) + '</div>';
+        if (detail) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">상세 해석</p>' + formatReadingText(detail) + '</div>';
+        if (relationshipInsight) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">상대/관계 심리</p>' + formatReadingText(relationshipInsight) + '</div>';
+        if (advice) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">조언</p>' + formatReadingText(advice) + '</div>';
+        if (caution) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">주의할 점</p>' + formatReadingText(caution) + '</div>';
         html += "</article>";
       });
       html += "</div>";
       html += "</section>";
     }
 
-    if (adviceList.length && adviceList[0]) {
-      html += '<section class="tarot-love-section tarot-love-focus-section">';
-      html += '<h4 class="tarot-love-section-title">⚡ 지금 당장 할 1가지</h4>';
-      html += '<div class="tarot-love-focus-box">';
-      html += '<p class="tarot-love-focus-label">오늘의 즉시 실행 미션</p>';
-      html += '<p class="tarot-love-focus-text">' + escapeHtml(String(adviceList[0])) + "</p>";
-      html += "</div>";
-      html += "</section>";
-    }
+    html += '<section class="tarot-love-section tarot-love-focus-section">';
+    html += '<h4 class="tarot-love-section-title">🧭 마지막 조언</h4>';
+    html += '<div class="tarot-love-final-advice-grid">';
+    html += '<article class="tarot-love-final-advice-item"><h5>⚡ 지금 당장 할 1가지</h5><p>' + escapeHtml(String(finalAdvice.instantMission || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>💬 대화 팁</h5><p>' + escapeHtml(String(finalAdvice.conversationTip || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>🛡️ 내가 지킬 선</h5><p>' + escapeHtml(String(finalAdvice.relationshipBoundary || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>🌙 앞으로 7일</h5><p>' + escapeHtml(String(finalAdvice.nextSevenDays || "")) + '</p></article>';
+    html += '</div>';
+    html += '</section>';
 
     if (adviceList.length) {
       html += '<section class="tarot-love-section tarot-love-section--advice">';
-      html += '<h4 class="tarot-love-section-title">💡 마스터의 조언</h4>';
-      html += '<ul class="tarot-love-advice-list">';
+      html += '<h4 class="tarot-love-section-title">✅ 실전 체크리스트</h4>';
+      html += '<ul class="tarot-love-checklist">';
       adviceList.forEach(function (item) {
         var text = item != null ? String(item) : "";
         if (text) html += "<li>" + escapeHtml(text) + "</li>";
