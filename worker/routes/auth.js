@@ -1098,7 +1098,7 @@ async function handleRegister(request, env) {
 }
 
 async function handleLogin(request, env) {
-  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 7000);
+  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 4500);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const dbEnv = buildAuthDbEnv(env, timeoutMs);
   const body = await readJson(request);
@@ -1114,97 +1114,84 @@ async function handleLogin(request, env) {
 
   const { email, password } = validated.sanitized;
 
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    try {
-      await withAuthOpTimeout(connectDb(dbEnv), timeoutMs, "auth_login_connect_db");
+  try {
+    await withAuthOpTimeout(connectDb(dbEnv), timeoutMs, "auth_login_connect_db");
 
-      const users = User.collection;
-      const user = await withAuthOpTimeout(
-        users.findOne(
-          { email },
-          {
-            projection: {
-              _id: 1,
-              name: 1,
-              email: 1,
-              birthDate: 1,
-              birthTime: 1,
-              gender: 1,
-              role: 1,
-              points: 1,
-              joinedAt: 1,
-              passwordHash: 1,
-              localAuth: 1,
-            },
-            maxTimeMS: dbMaxTimeMs,
+    const users = User.collection;
+    const user = await withAuthOpTimeout(
+      users.findOne(
+        { email },
+        {
+          projection: {
+            _id: 1,
+            name: 1,
+            email: 1,
+            birthDate: 1,
+            birthTime: 1,
+            gender: 1,
+            role: 1,
+            points: 1,
+            joinedAt: 1,
+            passwordHash: 1,
+            localAuth: 1,
           },
-        ),
-        timeoutMs,
-        "auth_login_find_user",
-      );
-      if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
-        return json({
-          ok: false,
-          code: "invalid_credentials",
-          message: "Email or password is incorrect.",
-        }, { status: 401 });
-      }
-
-      const passwordOk = await withAuthOpTimeout(
-        verifyPassword(password, user.passwordHash),
-        timeoutMs,
-        "auth_login_verify_password",
-      );
-      if (!passwordOk) {
-        return json({
-          ok: false,
-          code: "invalid_credentials",
-          message: "Email or password is incorrect.",
-        }, { status: 401 });
-      }
-
-      return await withAuthOpTimeout(
-        createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
-        timeoutMs,
-        "auth_login_issue_session",
-      );
-    } catch (error) {
-      const infraFailure = isAuthInfraFailure(error, [
-        "auth_login_connect_db",
-        "auth_login_find_user",
-        "auth_login_verify_password_timeout",
-      ]);
-
-      if (infraFailure && attempt < 3) {
-        console.warn("[auth/login] transient infra failure, retrying:", error);
-        resetMongooseConnection().catch(() => {});
-        await sleep(150 * attempt);
-        continue;
-      }
-
-      if (infraFailure) {
-        console.error("[auth/login] infrastructure failure:", error);
-        return json({
-          ok: false,
-          code: "login_service_unavailable",
-          message: "Login service is temporarily unavailable. Please try again.",
-        }, { status: 503 });
-      }
-
-      console.error("[auth/login] normalized auth failure:", error);
+          maxTimeMS: dbMaxTimeMs,
+        },
+      ),
+      timeoutMs,
+      "auth_login_find_user",
+    );
+    if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
       return json({
         ok: false,
         code: "invalid_credentials",
         message: "Email or password is incorrect.",
       }, { status: 401 });
     }
-  }
 
-  return json({
-    ok: false,
-    code: "login_service_unavailable",
-    message: "Login service is temporarily unavailable. Please try again.",
-  }, { status: 503 });
+    const passwordOk = await withAuthOpTimeout(
+      verifyPassword(password, user.passwordHash),
+      timeoutMs,
+      "auth_login_verify_password",
+    );
+    if (!passwordOk) {
+      return json({
+        ok: false,
+        code: "invalid_credentials",
+        message: "Email or password is incorrect.",
+      }, { status: 401 });
+    }
+
+    return await withAuthOpTimeout(
+      createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
+      timeoutMs,
+      "auth_login_issue_session",
+    );
+  } catch (error) {
+    const infraFailure = isAuthInfraFailure(error, [
+      "auth_login_connect_db",
+      "auth_login_find_user",
+      "auth_login_verify_password_timeout",
+      "auth_login_issue_session",
+    ]);
+
+    if (infraFailure) {
+      resetMongooseConnection().catch(() => {});
+      console.error("[auth/login] infrastructure failure:", error);
+      return json({
+        ok: false,
+        code: "login_service_unavailable",
+        message: "Login service is temporarily unavailable. Please try again.",
+      }, { status: 503 });
+    }
+
+    console.error("[auth/login] normalized auth failure:", error);
+    return json({
+      ok: false,
+      code: "invalid_credentials",
+      message: "Email or password is incorrect.",
+    }, { status: 401 });
+  }
 }
 
 async function handleMe(request, env) {

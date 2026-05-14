@@ -5,7 +5,6 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearAuthError, login as loginWithStore } from "../_lib/auth-store";
-import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
 
 declare global {
   interface Window {
@@ -99,9 +98,6 @@ export default function LoginPage() {
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [oauthRedirecting, setOauthRedirecting] = useState<SocialProvider | null>(null);
   const [callbackProcessing] = useState(false);
-  const [loginStatus, setLoginStatus] = useState<LoginStatus>("idle");
-  const [portalMessage, setPortalMessage] = useState("");
-  const [portalDisplayName, setPortalDisplayName] = useState("탐험가");
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -128,21 +124,13 @@ export default function LoginPage() {
     const oauthError = params.get("error") || params.get("social_error");
     if (oauthError) {
       setError(normalizeSocialAuthError(oauthError));
-      setLoginStatus("error");
       authWarn("[AUTH] oauth callback failed", oauthError);
     }
 
     if (params.get("social_grant")) {
       setError("소셜 로그인 콜백이 만료되었거나 경로가 올바르지 않습니다. 소셜 로그인을 다시 시도해 주세요.");
-      setLoginStatus("error");
     }
   }, []);
-
-  useEffect(() => {
-    if (loginStatus !== "error") return;
-    const timer = window.setTimeout(() => setLoginStatus("idle"), 1400);
-    return () => window.clearTimeout(timer);
-  }, [loginStatus]);
 
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -168,10 +156,6 @@ export default function LoginPage() {
     setError("");
     clearAuthError();
     setLoginSubmitting(true);
-    const fallbackDisplayName = fallbackDisplayNameFromLoginId(normalizedId);
-    setPortalDisplayName(fallbackDisplayName);
-    setLoginStatus("loading");
-    setPortalMessage("당신의 운명 데이터를 안전하게 불러오고 있습니다.");
 
     try {
       const params = new URLSearchParams(window.location.search);
@@ -183,9 +167,6 @@ export default function LoginPage() {
         apiBase: authApiBase,
       });
 
-      setLoginStatus("success");
-      setPortalDisplayName(loginResult.user?.name?.trim() || fallbackDisplayName);
-      setPortalMessage("별빛 여정이 시작되었습니다.");
       const resolvedNextPath = sanitizeNextPath(loginResult.nextPath || null) || nextPath;
       if (IS_DEV) console.debug("[auth] redirect to home");
       redirectAfterAuth(resolvedNextPath, loginResult.user as LoginResult["user"]);
@@ -194,11 +175,9 @@ export default function LoginPage() {
       authWarn("[AUTH] email login failed", message);
       if (message === "Failed to fetch") {
         setError("로그인 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.");
-        setLoginStatus("error");
         return;
       }
       setError(message);
-      setLoginStatus("error");
     } finally {
       setLoginSubmitting(false);
     }
@@ -211,9 +190,6 @@ export default function LoginPage() {
     setError("");
     clearAuthError();
     setOauthRedirecting(provider);
-    setPortalDisplayName("탐험가");
-    setLoginStatus("loading");
-    setPortalMessage("우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
     authInfo("[AUTH] oauth redirect start");
 
     try {
@@ -229,13 +205,11 @@ export default function LoginPage() {
     window.location.href = startUrl;
   };
 
-  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing || loginStatus === "success";
+  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing;
   const formDisabled = isBusy;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#0a0e27_0%,#1a0a2e_25%,#16213e_50%,#0f3460_75%,#0a1428_100%)] px-4 py-10 text-slate-100">
-      <StarlightLoginPortal status={loginStatus} message={portalMessage} error={error} displayName={portalDisplayName} />
-      
       {/* 우주 배경 - 행성 배치 */}
       <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-purple-600/20 via-purple-800/10 to-transparent blur-3xl opacity-60" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-600/10 to-transparent blur-3xl opacity-50" />

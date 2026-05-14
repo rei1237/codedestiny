@@ -145,7 +145,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const LOGIN_ME_RETRY_DELAYS_MS = [180, 320, 520] as const;
+const LOGIN_ME_RETRY_DELAYS_MS = [120] as const;
 
 function isRetryableLoginSyncError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
@@ -384,41 +384,16 @@ export async function login(credentials: LoginCredentials) {
   debugAuth("[auth] login started");
 
   try {
-    let response: Response | null = null;
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      try {
-        const nextResponse = await fetch(`${apiBase}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            email,
-            password,
-            nextPath,
-          }),
-        });
-
-        if (nextResponse.status >= 500 && attempt < 2) {
-          await sleep(250 * (attempt + 1));
-          continue;
-        }
-
-        response = nextResponse;
-        break;
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-        if (attempt < 2) {
-          await sleep(250 * (attempt + 1));
-          continue;
-        }
-      }
-    }
-
-    if (!response) {
-      throw (lastError || new Error("로그인 처리 중 오류가 발생했습니다."));
-    }
+    const response = await fetch(`${apiBase}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        email,
+        password,
+        nextPath,
+      }),
+    });
 
     const payload = await parseJsonResponse<LoginApiPayload>(response);
     if (!response.ok) {
@@ -435,17 +410,33 @@ export async function login(credentials: LoginCredentials) {
 
     debugAuth("[auth] login api success");
     const fallbackUser = resolveSafeUser(payload.user) as AuthUser | null;
-    const meUser = await resolveUserAfterLogin(fallbackUser);
-    debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
+    if (fallbackUser) {
+      applyResolvedUser(fallbackUser);
+      publishAuthSync("login");
+      setState({ error: null });
 
-    await syncPostLoginData();
-    applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
+      void resolveUserAfterLogin(fallbackUser)
+        .then((meUser) => {
+          debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
+          applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
+        })
+        .catch((error) => {
+          debugAuth("[auth] me sync delayed", error instanceof Error ? error.message : "unknown");
+        });
+
+      void syncPostLoginData();
+    } else {
+      const meUser = await resolveUserAfterLogin(null);
+      debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
+      applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
+      publishAuthSync("login");
+      void syncPostLoginData();
+      setState({ error: null });
+    }
+
     debugAuth("[auth] auth store updated");
-    publishAuthSync("login");
-
-    setState({ error: null });
     return {
-      user: state.user,
+      user: state.user || fallbackUser,
       nextPath: String(payload.nextPath || nextPath || "/"),
     };
   } catch (error) {
