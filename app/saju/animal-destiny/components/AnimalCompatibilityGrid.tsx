@@ -14,13 +14,12 @@ interface Props {
 function CompatibilityCard({ label, animalName, reason }: { label: string; animalName: string; reason: string }) {
   return (
     <motion.div
-      whileHover={{ rotateY: 7 }}
-      className="rounded-xl border border-cyan-100/25 bg-cyan-50/10 p-3 text-sm text-cyan-50"
-      style={{ transformStyle: "preserve-3d" }}
+      whileHover={{ scale: 1.02 }}
+      className="rounded-2xl border border-[#EAD8B1] bg-white p-4 shadow-sm"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-cyan-100/80">{label}</p>
-      <p className="mt-1 text-base font-black text-white">{animalName}</p>
-      <p className="mt-1 text-xs leading-relaxed text-cyan-50/85">{reason}</p>
+      <p className="text-[10px] font-black tracking-widest text-[#B88E2F] uppercase">{label}</p>
+      <p className="mt-1 text-lg font-black text-[#634832]">{animalName}</p>
+      <p className="mt-2 text-xs leading-relaxed text-[#634832]/80">{reason}</p>
     </motion.div>
   );
 }
@@ -42,74 +41,83 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
   const isLunar = (partnerInput.calendarType || "solar") === "lunar";
 
   return (
-    <section className="space-y-3 rounded-2xl border border-cyan-100/20 bg-[linear-gradient(160deg,rgba(10,31,59,0.72),rgba(10,20,45,0.7))] p-4">
-      <h3 className="text-lg font-black text-cyan-50">궁합 공명 분석</h3>
-      <div className="grid gap-2 md:grid-cols-2">
-        <CompatibilityCard label="환상의 짝꿍" animalName={bestName} reason={animal.compatibility.best.reason} />
-        <CompatibilityCard label="잘 맞는 동물" animalName={goodName} reason={animal.compatibility.good.reason} />
-        <CompatibilityCard label="긴장감 있는 동물" animalName={challengingName} reason={animal.compatibility.challenging.reason} />
-        <CompatibilityCard label="주의 동물" animalName={worstName} reason={animal.compatibility.worst.reason} />
+    <section className="space-y-6">
+      <div className="grid grid-cols-2 gap-3">
+        <CompatibilityCard label="최고의 궁합" animalName={bestName} reason={animal.compatibility.best.reason} />
+        <CompatibilityCard label="좋은 인연" animalName={goodName} reason={animal.compatibility.good.reason} />
+        <CompatibilityCard label="조심할 인연" animalName={challengingName} reason={animal.compatibility.challenging.reason} />
+        <CompatibilityCard label="피할 인연" animalName={worstName} reason={animal.compatibility.worst.reason} />
       </div>
 
-      <div className="rounded-xl border border-cyan-100/25 bg-cyan-50/10 p-3">
-        <p className="mb-2 text-sm font-bold text-cyan-50">상대방 정보 입력</p>
-        <div className="grid gap-2 md:grid-cols-5">
+      <div className="rounded-3xl border-2 border-dashed border-[#EAD8B1] bg-[#FFFBEB]/30 p-5">
+        <p className="mb-4 text-center text-sm font-black text-[#634832]">상대방과의 실시간 궁합 분석</p>
+        <div className="grid gap-3 sm:grid-cols-2">
           <input
             value={partnerInput.name || ""}
             onChange={(e) => setPartnerInput((prev) => ({ ...prev, name: e.target.value.slice(0, 20) }))}
             placeholder="상대 이름"
-            className="rounded-lg border border-cyan-100/35 bg-cyan-50/10 px-2 py-2 text-sm text-cyan-50 placeholder:text-cyan-100/45"
+            className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832] focus:border-[#B88E2F] focus:outline-none"
           />
           <input
             type="date"
             value={partnerInput.birthDate}
             onChange={(e) => setPartnerInput((prev) => ({ ...prev, birthDate: e.target.value }))}
-            className="rounded-lg border border-cyan-100/35 bg-cyan-50/10 px-2 py-2 text-sm text-cyan-50"
+            className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832]"
           />
           <input
             type="time"
             value={partnerInput.birthTime || ""}
             onChange={(e) => setPartnerInput((prev) => ({ ...prev, birthTime: e.target.value }))}
-            className="rounded-lg border border-cyan-100/35 bg-cyan-50/10 px-2 py-2 text-sm text-cyan-50"
+            className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832]"
           />
           <select
             value={partnerInput.calendarType || "solar"}
             onChange={(e) => setPartnerInput((prev) => ({ ...prev, calendarType: e.target.value as AnimalDestinyInput["calendarType"] }))}
-            className="rounded-lg border border-cyan-100/35 bg-cyan-50/10 px-2 py-2 text-sm text-cyan-50"
+            className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832]"
           >
-            <option value="solar" className="text-slate-900">양력</option>
-            <option value="lunar" className="text-slate-900">음력</option>
+            <option value="solar">양력</option>
+            <option value="lunar">음력</option>
           </select>
-          <button
-            onClick={() => onSubmitPartner(partnerInput)}
-            className="rounded-lg bg-[linear-gradient(120deg,#33d3ff,#6fa9ff)] px-3 py-2 text-sm font-bold text-[#071228]"
-          >
-            궁합 계산
-          </button>
         </div>
 
         {isLunar ? (
-          <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-fuchsia-100">
+          <label className="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#B88E2F]">
             <input
               type="checkbox"
               checked={Boolean(partnerInput.lunarLeap)}
               onChange={(e) => setPartnerInput((prev) => ({ ...prev, lunarLeap: e.target.checked }))}
-              className="h-4 w-4 accent-fuchsia-300"
+              className="h-4 w-4 accent-[#634832]"
             />
             상대 출생월이 윤달이면 체크
           </label>
         ) : null}
 
+        <button
+          onClick={() => onSubmitPartner(partnerInput)}
+          className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-[#634832] text-sm font-black text-white shadow-md active:scale-[0.98]"
+        >
+          궁합 결과 확인하기
+        </button>
+
         {partner.animalData ? (
-          <div className="mt-3 rounded-lg border border-cyan-100/30 bg-slate-950/35 p-3 text-sm text-cyan-50">
-            <p className="font-black text-white">궁합 점수: {partner.score}점 ({partner.relationType})</p>
-            <p className="mt-1 text-xs text-cyan-100/75">상대 핵심 십이운성: {partner.primaryStage || "-"}</p>
-            {partner.stageEvidence ? <p className="mt-1 rounded-lg bg-cyan-100/10 p-2 text-xs font-semibold text-cyan-100">사주 근거: {partner.stageEvidence}</p> : null}
-            <p className="mt-1">관계 타입: {partner.summary}</p>
-            <p className="mt-1"><span className="font-bold">잘 맞는 포인트:</span> {partner.goodPoints.join(" · ")}</p>
-            <p className="mt-1"><span className="font-bold">충돌 포인트:</span> {partner.clashPoints.join(" · ")}</p>
-            <p className="mt-1"><span className="font-bold">유지 팁:</span> {partner.tips.join(" · ")}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 space-y-4 rounded-2xl bg-white p-5 shadow-sm"
+          >
+            <div className="flex items-center justify-between border-b border-[#EAD8B1]/40 pb-3">
+              <p className="text-lg font-black text-[#634832]">{partner.relationType}</p>
+              <span className="rounded-full bg-[#B88E2F] px-3 py-1 text-xs font-black text-white">{partner.score}점</span>
+            </div>
+            <div className="space-y-2 text-sm text-[#634832]">
+              <p><span className="font-bold">분석 결과:</span> {partner.summary}</p>
+              <p><span className="font-bold">끌림 포인트:</span> {partner.goodPoints.join(" · ")}</p>
+              <p><span className="font-bold">주의할 점:</span> {partner.clashPoints.join(" · ")}</p>
+              <p className="mt-3 rounded-lg bg-[#FFFBEB] p-3 text-xs italic">
+                💡 {partner.tips[0]}
+              </p>
+            </div>
+          </motion.div>
         ) : null}
       </div>
     </section>

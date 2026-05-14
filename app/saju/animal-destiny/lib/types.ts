@@ -44,6 +44,8 @@ export interface AnimalDestinyData {
     strengths: string[];
     weaknesses: string[];
     hidden_side: string;
+    stress_behavior: string;
+    growth_direction: string;
   };
   love: {
     style: string;
@@ -51,6 +53,11 @@ export interface AnimalDestinyData {
     weakness_in_love: string;
     best_date_mood: string;
     advice: string;
+    approach_style: string;
+    attractive_type: string;
+    recurring_pattern: string;
+    breakup_recovery: string;
+    long_term_tip: string;
   };
   career: {
     talent: string;
@@ -58,6 +65,31 @@ export interface AnimalDestinyData {
     work_style: string;
     money_style: string;
     advice: string;
+    good_work_method: string;
+    bad_work_environment: string;
+    earning_method: string;
+    aptitude_check: string;
+  };
+  wealth: {
+    spending_style: string;
+    saving_style: string;
+    impulse_buy_risk: string;
+    investment_sense: string;
+    monetization_strategy: string;
+  };
+  human_relations: {
+    friend_relations: string;
+    family_relations: string;
+    social_relations: string;
+    first_impression: string;
+    connection_traits: string;
+  };
+  today: {
+    caution: string;
+    action: string;
+    lucky_behavior: string;
+    emotion_management: string;
+    support_message: string;
   };
   luck_essentials: {
     food: string;
@@ -69,18 +101,46 @@ export interface AnimalDestinyData {
     best: {
       animal_id: AnimalId;
       reason: string;
+      compatibility_score: number;
+      clash_point: string;
+      conversation_style: string;
+      romance_score: number;
+      friend_score: number;
+      work_score: number;
+      maintenance_tip: string;
     };
     good: {
       animal_id: AnimalId;
       reason: string;
+      compatibility_score: number;
+      clash_point: string;
+      conversation_style: string;
+      romance_score: number;
+      friend_score: number;
+      work_score: number;
+      maintenance_tip: string;
     };
     challenging: {
       animal_id: AnimalId;
       reason: string;
+      compatibility_score: number;
+      clash_point: string;
+      conversation_style: string;
+      romance_score: number;
+      friend_score: number;
+      work_score: number;
+      maintenance_tip: string;
     };
     worst: {
       animal_id: AnimalId;
       reason: string;
+      compatibility_score: number;
+      clash_point: string;
+      conversation_style: string;
+      romance_score: number;
+      friend_score: number;
+      work_score: number;
+      maintenance_tip: string;
     };
   };
   game_stats: {

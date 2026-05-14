@@ -62,25 +62,62 @@ export function buildDetailedInterpretation(args: {
   const yearKw = k(year);
   const hourKw = k(hour);
 
-  const personality = `${animal.animal_ko}의 본심은 일주 ${stageName(day)}에 새겨져 있습니다. 이 기운은 ${dayKw[0]}와 ${dayKw[1]}의 결을 통해 당신의 말투, 선택, 침묵의 방향까지 결정합니다. 처음 만나는 자리에서는 절제된 아우라가 먼저 드러나고, 신뢰가 열리면 놀랍도록 따뜻한 결이 나타납니다. 월주 ${stageName(month)}의 ${monthKw[0]} 성향은 현실 감각을 날카롭게 세워 실전에서 흔들림을 줄이고, 연주 ${stageName(year)}의 ${yearKw[0]} 흐름은 사회적 장면에서 당신에게 자연스러운 존재감을 입힙니다. 시주 ${stageName(hour)}의 ${hourKw[0]}는 늦게 열리는 비밀 문처럼 작동해, 시간이 갈수록 당신의 잠재력을 더 깊고 넓게 확장시킵니다.`;
+  const personality = `
+    십이운성 ${stageName(day)}의 기운을 품은 ${animal.animal_ko}은(는) ${animal.personality.summary}
+    이 동물의 가장 큰 매력은 ${animal.personality.strengths.join(", ")}입니다.
+    하지만 ${animal.personality.weaknesses.join(", ")}와 같은 면모가 있어 때로는 스스로를 힘들게 하기도 합니다.
+    스트레스를 받을 때는 ${animal.personality.stress_behavior} 모습을 보이기도 하지만,
+    결국 ${animal.personality.growth_direction} 방향으로 나아갈 때 가장 큰 운의 문이 열립니다.
+    ${animal.personality.hidden_side}
+  `;
 
-  const love = `연애의 무대에서는 일주 ${stageName(day)}가 가장 크게 빛납니다. ${dayKw[0]}와 ${dayKw[2]}가 겹치는 순간, 당신은 상대에게 안정과 설렘을 동시에 전하는 힘을 가집니다. 다만 감정의 불이 빨리 붙는 편이라 깊어질수록 템포 조율이 필요합니다. 월주 ${stageName(month)}의 ${monthKw[1]} 기운은 관계를 오래 지탱하는 뼈대를 만들기에 약속, 루틴, 대화 규칙을 정해두면 만족도가 크게 올라갑니다. 시주 ${stageName(hour)}의 ${hourKw[2]} 흐름은 선택지를 넓혀 주지만 결정 피로를 부를 수 있으니, 호감 기준을 두세 가지로 선명히 잡는 것이 좋습니다. 당신에게 맞는 사랑은 감정 표현과 생활 배려가 함께 흐르는 형태이며, 피해야 할 습관은 혼자 의미를 확정해 버리는 조용한 오해입니다.`;
+  const love = `
+    사랑 앞에서 당신은 ${animal.love.style}.
+    상대방은 당신의 ${animal.love.attraction_point}에 깊은 매력을 느낍니다.
+    연애를 시작하면 주로 ${animal.love.approach_style} 방식으로 다가가며, ${animal.love.attractive_type} 유형의 사람에게 강하게 끌리는 경향이 있습니다.
+    관계가 깊어질수록 ${animal.love.recurring_pattern} 패턴이 반복될 수 있으니 주의가 필요합니다.
+    이별의 순간에는 ${animal.love.breakup_recovery} 태도를 보이며, ${animal.love.long_term_tip}을 기억한다면 사랑의 결실을 오래도록 맺을 수 있습니다.
+  `;
 
-  const career = `일과 진로의 중심축은 월주 ${stageName(month)}입니다. ${monthKw[0]}과 ${monthKw[2]}의 결이 강해 구조화, 우선순위, 실행의 삼박자를 맞출 때 성과가 급격히 상승합니다. 일주 ${stageName(day)}의 ${dayKw[1]} 기운은 전문성의 깊이를 키워 한 분야를 파고드는 직무에서 탁월함을 만듭니다. 시주 ${stageName(hour)}의 ${hourKw[0]} 흐름은 앞으로 확장할 축을 예고하므로, 지금의 일을 자산화하는 기록 습관이 중요합니다. 팀 환경에서는 책임 구역이 분명할수록 빛나고, 독립 환경에서는 반복 가능한 작업 루틴을 먼저 세울수록 수익 변동을 줄일 수 있습니다. 당신의 커리어 상승식은 단기 성과 하나와 장기 자산 하나를 동시에 쌓는 이중 축 전략입니다.`;
+  const career = `
+    당신은 ${animal.career.good_work_method} 방식으로 일할 때 최고의 효율을 냅니다.
+    ${animal.career.talent} 재능을 타고났으며, 특히 ${animal.career.recommended_fields.join(", ")} 분야에서 두각을 나타낼 가능성이 높습니다.
+    반면 ${animal.career.bad_work_environment} 환경은 당신의 에너지를 뺏으니 피하는 것이 좋습니다.
+    ${animal.career.earning_method} 방식으로 부를 쌓는 것이 유리하며, ${animal.career.aptitude_check} 성향을 잘 활용해 보세요.
+  `;
 
-  const relationship = `인간관계의 핵심 코드는 연주 ${stageName(year)}와 월주 ${stageName(month)}의 합입니다. 첫인상은 ${yearKw[0]}·${yearKw[1]} 축으로 각인되어 낯선 장면에서도 존재감이 자연히 살아나고, 가까워질수록 월주의 ${monthKw[1]}·${monthKw[2]}가 작동해 신뢰의 근거를 세심히 확인하게 됩니다. 당신은 속도보다 지속성을 중시해 오래 가는 인연의 밀도가 높은 편이며, 상황에 따라 거리 조절도 유연하게 해냅니다. 갈등이 생겼을 때는 감정의 파도에 올라타기보다 원인을 정리하고 해결 순서를 세울 때 훨씬 강해집니다. 대화를 열 때는 사실-감정-요청의 흐름을 지키면 오해의 그림자가 빠르게 걷힙니다. 관계 피로를 막는 비결은 주간 회복 시간을 먼저 예약해 에너지 누수를 차단하는 것입니다.`;
+  const wealth = `
+    재물에 있어서는 ${animal.wealth.spending_style}.
+    돈을 모을 때는 ${animal.wealth.saving_style} 전략이 가장 잘 맞습니다.
+    ${animal.wealth.impulse_buy_risk} 위험이 있으니 자산 관리에 유의해야 하며, ${animal.wealth.investment_sense} 감각을 타고났습니다.
+    장기적으로는 ${animal.wealth.monetization_strategy}을 통해 안정적인 수익 구조를 만드는 것을 추천합니다.
+  `;
+
+  const relationship = `
+    사회생활에서는 ${animal.human_relations.first_impression} 인상을 남깁니다.
+    친구들 사이에서는 ${animal.human_relations.friend_relations}, 가족들에게는 ${animal.human_relations.family_relations} 모습을 보입니다.
+    ${animal.human_relations.social_relations} 관계 패턴을 가지고 있으며, ${animal.human_relations.connection_traits} 특징을 가진 인연이 당신의 곁에 오래 머물게 됩니다.
+  `;
+
+  const today = `
+    오늘은 ${animal.today.support_message}
+    ${animal.today.action} 일은 과감히 밀어붙여도 좋지만, ${animal.today.caution} 점은 꼭 염두에 두세요.
+    행운을 부르는 행동은 ${animal.today.lucky_behavior}이며, ${animal.today.emotion_management}을 통해 평온한 하루를 보낼 수 있습니다.
+  `;
 
   const growthMissions = [
-    `일주 ${stageName(day)}의 힘을 깨우려면 하루 20분의 핵심 루틴을 14일만 고정해 보세요. 작은 반복이 운의 문을 여는 주문이 됩니다.`,
-    `월주 ${stageName(month)}의 기운을 자산으로 봉인하려면 이번 달 완성작 1개를 문서 또는 포트폴리오로 남겨 흐름을 현실로 고정하세요.`,
-    `연주 ${stageName(year)}와 시주 ${stageName(hour)}의 균형을 위해 주 1회 관계 확장, 주 1회 고요한 회복 시간을 분리해 배치하세요.`,
+    `일주 ${stageName(day)}의 에너지를 활용해 ${animal.personality.growth_direction}을(를) 위한 작은 습관을 오늘부터 시작해 보세요.`,
+    `월주 ${stageName(month)}의 기운은 당신의 사회적 성취를 돕습니다. ${animal.career.advice}`,
+    `현재 당신의 흐름에 맞는 ${animal.today.lucky_behavior}을 실천하며 긍정적인 에너지를 채워보세요.`,
   ];
 
   return {
     personality,
     love,
     career,
+    wealth,
     relationship,
+    today,
     growthMissions,
   };
 }

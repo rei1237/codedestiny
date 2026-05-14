@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -7,10 +8,9 @@ import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
 import AnimalDestinyInputForm from "./AnimalDestinyInputForm";
-import AnimalDestinyIntro from "./AnimalDestinyIntro";
+import AnimalDestinyHero from "./AnimalDestinyHero";
 import AnimalResultScreen from "./AnimalResultScreen";
 import AnimalRevealAnimation from "./AnimalRevealAnimation";
-import TamagotchiDeviceFrame from "./TamagotchiDeviceFrame";
 
 const FEATURE_KEY = "animal-destiny-unlock";
 const UNLOCK_REASON = "십이운성 동물점 해금";
@@ -121,27 +121,59 @@ export default function AnimalDestinyPage() {
   }, [shareCard]);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,#203f73_0%,transparent_38%),radial-gradient(circle_at_88%_10%,#5a2a6d_0%,transparent_32%),linear-gradient(160deg,#020711_0%,#081a3c_40%,#07142f_100%)] px-4 py-6 md:py-8">
+    <main className="min-h-[100dvh] w-full bg-[#0a0218] bg-[radial-gradient(circle_at_20%_30%,#2d1254_0%,transparent_50%),radial-gradient(circle_at_80%_70%,#1e0a3d_0%,transparent_50%)] overflow-x-hidden text-white font-sans">
       <Toaster position="top-center" richColors />
-      <TamagotchiDeviceFrame>
-        <div className="space-y-4">
-          <AnimalDestinyIntro />
+      
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-xl border-b border-[#EAD8B1]/20 bg-[#0a0218]/80">
+        <button 
+          onClick={() => window.history.back()}
+          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors text-[#EAD8B1]"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <div className="flex flex-col items-center">
+          <h2 className="text-xs font-black tracking-[0.3em] uppercase text-[#EAD8B1]">Animal Destiny</h2>
+          <div className="h-0.5 w-8 bg-[#B88E2F] mt-0.5" />
+        </div>
+        <button 
+          onClick={reset}
+          className="p-2 -mr-2 rounded-full hover:bg-white/10 transition-colors text-[#EAD8B1]"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+        </button>
+      </header>
 
-          <div className="rounded-xl border border-cyan-100/25 bg-cyan-100/10 px-3 py-2 text-xs font-semibold text-cyan-100">
+      <div className="max-w-4xl mx-auto pb-20">
+        <AnimalDestinyHero />
+
+        <div className="px-6 space-y-8">
+          <div className="flex items-center justify-center gap-3 py-2 px-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-medium text-purple-200/80">
+            <div className={`w-2 h-2 rounded-full ${isUnlocked ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
             {isUnlocked
-              ? "해금 상태: 사용 가능"
-              : "해금 상태: 잠금 (100코인)"}
-            {isLoggedIn ? " · 로그인 인증됨" : " · 로그인 필요"}
+              ? "프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다."
+              : "해금 상태: 잠금 (분석을 위해 100코인이 필요합니다)"}
+            {!isLoggedIn && " · 로그인이 필요합니다"}
           </div>
 
           {(status === "idle" || status === "input" || status === "error") ? (
-            <AnimalDestinyInputForm
-              input={input}
-              onChange={setInput}
-              onSubmit={handleSubmit}
-              isBusy={isUnlocking}
-              canSubmit={canSubmit}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <AnimalDestinyInputForm
+                input={input}
+                onChange={setInput}
+                onSubmit={handleSubmit}
+                isBusy={isUnlocking}
+                canSubmit={canSubmit}
+              />
+            </motion.div>
           ) : null}
 
           {status === "calculating" ? <AnimalRevealAnimation mode="calculating" /> : null}
@@ -163,27 +195,29 @@ export default function AnimalDestinyPage() {
           ) : null}
 
           {error ? (
-            <div className="rounded-xl border border-rose-200/35 bg-rose-200/10 p-3 text-sm text-rose-100">
+            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-200 text-center backdrop-blur-sm">
               {error}
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={reset}
-              className="rounded-full bg-cyan-100/15 px-4 py-2 text-xs font-bold text-cyan-50"
-            >
-              다시 시작
-            </button>
-            <a
-              href="/saju"
-              className="rounded-full border border-cyan-100/30 bg-white/10 px-4 py-2 text-xs font-bold text-cyan-50"
-            >
-              사주 메인으로 복귀
-            </a>
-          </div>
+          {(status === "result") && (
+            <div className="flex flex-col gap-3 pt-8">
+              <button
+                onClick={reset}
+                className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-bold hover:bg-white/20 transition-all"
+              >
+                다른 생년월일로 테스트하기
+              </button>
+              <a
+                href="/saju"
+                className="w-full py-4 rounded-2xl border border-amber-400/30 text-amber-200 font-bold text-center hover:bg-amber-400/10 transition-all"
+              >
+                사주 운세 메인으로
+              </a>
+            </div>
+          )}
         </div>
-      </TamagotchiDeviceFrame>
+      </div>
     </main>
   );
 }
