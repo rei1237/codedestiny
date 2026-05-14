@@ -383,17 +383,30 @@ export async function login(credentials: LoginCredentials) {
   clearStaleGuestCache();
   debugAuth("[auth] login started");
 
+  const requestLogin = () => fetch(`${apiBase}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      email,
+      password,
+      nextPath,
+    }),
+  });
+
   try {
-    const response = await fetch(`${apiBase}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email,
-        password,
-        nextPath,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await requestLogin();
+    } catch {
+      await sleep(180);
+      response = await requestLogin();
+    }
+
+    if (response.status === 503) {
+      await sleep(180);
+      response = await requestLogin();
+    }
 
     const payload = await parseJsonResponse<LoginApiPayload>(response);
     if (!response.ok) {

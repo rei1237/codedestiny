@@ -1098,9 +1098,11 @@ async function handleRegister(request, env) {
 }
 
 async function handleLogin(request, env) {
-  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 4500);
-  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const dbEnv = buildAuthDbEnv(env, timeoutMs);
+  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 9000);
+  const fastDbEnv = {
+    ...buildAuthDbEnv(env, timeoutMs),
+    MONGO_CONNECT_RETRY_ONCE: "true",
+  };
   const body = await readJson(request);
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
@@ -1113,9 +1115,14 @@ async function handleLogin(request, env) {
   }
 
   const { email, password } = validated.sanitized;
+  const runLoginAttempt = async (activeEnv, activeTimeoutMs, stageSuffix = "") => {
+    const activeDbMaxTimeMs = Math.max(1000, activeTimeoutMs - 1000);
 
-  try {
-    await withAuthOpTimeout(connectDb(dbEnv), timeoutMs, "auth_login_connect_db");
+    await withAuthOpTimeout(
+      connectDb(activeEnv),
+      activeTimeoutMs,
+      `auth_login_connect_db${stageSuffix}`,
+    );
 
     const users = User.collection;
     const user = await withAuthOpTimeout(
@@ -1135,11 +1142,11 @@ async function handleLogin(request, env) {
             passwordHash: 1,
             localAuth: 1,
           },
-          maxTimeMS: dbMaxTimeMs,
+          maxTimeMS: activeDbMaxTimeMs,
         },
       ),
-      timeoutMs,
-      "auth_login_find_user",
+      activeTimeoutMs,
+      `auth_login_find_user${stageSuffix}`,
     );
     if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
       return json({
@@ -1149,10 +1156,11 @@ async function handleLogin(request, env) {
       }, { status: 401 });
     }
 
+    const passwordTimeoutMs = Math.min(Math.max(activeTimeoutMs + 6000, 12000), 25000);
     const passwordOk = await withAuthOpTimeout(
       verifyPassword(password, user.passwordHash),
-      timeoutMs,
-      "auth_login_verify_password",
+      passwordTimeoutMs,
+      `auth_login_verify_password${stageSuffix}`,
     );
     if (!passwordOk) {
       return json({
@@ -1162,11 +1170,16 @@ async function handleLogin(request, env) {
       }, { status: 401 });
     }
 
+    const sessionTimeoutMs = Math.min(Math.max(activeTimeoutMs + 4000, 12000), 22000);
     return await withAuthOpTimeout(
       createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
-      timeoutMs,
-      "auth_login_issue_session",
+      sessionTimeoutMs,
+      `auth_login_issue_session${stageSuffix}`,
     );
+  };
+
+  try {
+    return await runLoginAttempt(fastDbEnv, timeoutMs);
   } catch (error) {
     const infraFailure = isAuthInfraFailure(error, [
       "auth_login_connect_db",
@@ -1177,12 +1190,36 @@ async function handleLogin(request, env) {
 
     if (infraFailure) {
       resetMongooseConnection().catch(() => {});
-      console.error("[auth/login] infrastructure failure:", error);
-      return json({
-        ok: false,
-        code: "login_service_unavailable",
-        message: "Login service is temporarily unavailable. Please try again.",
-      }, { status: 503 });
+      const fallbackTimeoutMs = Math.min(Math.max(timeoutMs + 4000, 12000), 18000);
+      try {
+        const fallbackDbEnv = {
+          ...env,
+          MONGO_CONNECT_RETRY_ONCE: "true",
+        };
+        return await runLoginAttempt(fallbackDbEnv, fallbackTimeoutMs, "_fallback");
+      } catch (fallbackError) {
+        const fallbackInfraFailure = isAuthInfraFailure(fallbackError, [
+          "auth_login_connect_db_fallback",
+          "auth_login_find_user_fallback",
+          "auth_login_verify_password_fallback",
+          "auth_login_issue_session_fallback",
+        ]);
+        if (fallbackInfraFailure) {
+          resetMongooseConnection().catch(() => {});
+          console.error("[auth/login] infrastructure failure:", fallbackError);
+          return json({
+            ok: false,
+            code: "login_service_unavailable",
+            message: "Login service is temporarily unavailable. Please try again.",
+          }, { status: 503 });
+        }
+        console.error("[auth/login] normalized auth failure (fallback):", fallbackError);
+        return json({
+          ok: false,
+          code: "invalid_credentials",
+          message: "Email or password is incorrect.",
+        }, { status: 401 });
+      }
     }
 
     console.error("[auth/login] normalized auth failure:", error);
