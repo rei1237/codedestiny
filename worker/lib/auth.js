@@ -8,6 +8,7 @@ import { RefreshTokenSession, User } from "./models.js";
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
 export const REFRESH_COOKIE_NAME = "fortune_auth_refresh";
+const LEGACY_ACCESS_COOKIE_NAMES = ["cdToken"];
 
 export function getJwtIssuer(env) {
   return getEnv(env, "JWT_ISSUER") || JWT_ISSUER;
@@ -46,12 +47,24 @@ export function getRefreshTokenExpiresIn(env) {
 export function getBearerToken(request) {
   const authorization = request.headers.get("Authorization") || "";
   const bearer = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
-  return bearer || cookieValue(request, ACCESS_COOKIE_NAME);
+  return bearer || getAccessCookieToken(request);
 }
 
 function getHeaderBearerToken(request) {
   const authorization = request.headers.get("Authorization") || "";
   return authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
+}
+
+function getAccessCookieToken(request) {
+  const primary = cookieValue(request, ACCESS_COOKIE_NAME);
+  if (primary) return primary;
+
+  for (let i = 0; i < LEGACY_ACCESS_COOKIE_NAMES.length; i += 1) {
+    const token = cookieValue(request, LEGACY_ACCESS_COOKIE_NAMES[i]);
+    if (token) return token;
+  }
+
+  return "";
 }
 
 function hashRefreshToken(rawToken, env) {
@@ -196,7 +209,7 @@ export async function getSessionFromRequest(request, env) {
 
 export async function getOptionalUserFromRequest(request, env) {
   const bearerToken = getHeaderBearerToken(request);
-  const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
+  const accessCookieToken = getAccessCookieToken(request);
   const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
 
   const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);

@@ -23,7 +23,7 @@ export default function TarotYearLandingPage() {
         description: META.description,
         ogImage: META.image,
         landingPoints: [...META.featureList],
-        seoText: "실행은 /static 서비스 화면에서만 진행됩니다.",
+        seoText: "실행은 메인 런처에서 진행됩니다.",
       }}
     />
   );

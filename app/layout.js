@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import { Noto_Sans_KR } from "next/font/google";
 import AppVersionGuard from "./components/AppVersionGuard";
+import BuildInfoLogger from "./components/BuildInfoLogger";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import DeferredAdsense from "./components/DeferredAdsense";
@@ -202,6 +203,7 @@ export default function RootLayout({ children }) {
         <PaymentProcessingProvider>
           <NavigationProvider>
             <DeferredAdsense />
+            <BuildInfoLogger />
             <AppVersionGuard />
             <ToastProvider />
             <AppChrome>

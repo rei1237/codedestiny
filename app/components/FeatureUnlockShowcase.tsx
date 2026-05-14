@@ -22,7 +22,7 @@ const unlockFeatures: UnlockFeature[] = [
     title: "운명의 꽃",
     subtitle: "Flower of Destiny",
     description: "사주·점성술·자미두수 흐름을 하나의 상징 꽃으로 결합한 통합 아틀리에.",
-    href: "/static/index.html?action=openDestinyFlowerStudio",
+    href: "/?action=openDestinyFlowerStudio",
     accent: "from-fuchsia-200 via-rose-200 to-amber-200",
     glow: "from-fuchsia-400/35 via-rose-300/20 to-amber-300/25",
   },

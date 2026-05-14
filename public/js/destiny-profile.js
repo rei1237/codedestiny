@@ -209,8 +209,23 @@
      1-S. 서버 동기화 (로그인 상태 전용)
      생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 저장됩니다.
   ────────────────────────────────────────── */
+  function _dpReadStoredAuthToken() {
+    try {
+      var primary = String(localStorage.getItem('fortune_auth_token') || '').trim();
+      if (primary) return primary;
+
+      var legacy = String(localStorage.getItem('cdToken') || '').trim();
+      if (!legacy) return '';
+
+      try { localStorage.setItem('fortune_auth_token', legacy); } catch (_) {}
+      return legacy;
+    } catch (e) {
+      return '';
+    }
+  }
+
   function _dpGetAuthToken() {
-    try { return localStorage.getItem('fortune_auth_token') || ''; } catch(e) { return ''; }
+    return _dpReadStoredAuthToken();
   }
 
   function _dpBuildAuthHeaders(baseHeaders) {
@@ -744,9 +759,7 @@
   }
 
   function _dpHasAuthToken() {
-    try {
-      if (localStorage.getItem('fortune_auth_token')) return true;
-    } catch (e) {}
+    if (_dpReadStoredAuthToken()) return true;
     return _dpHasSessionHint();
   }
 
@@ -1081,7 +1094,7 @@
   };
 
   function _dpGetAuthToken() {
-    try { return localStorage.getItem('fortune_auth_token') || ''; } catch (e) { return ''; }
+    return _dpReadStoredAuthToken();
   }
 
   function _dpGetUserBalance() {

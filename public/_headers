@@ -14,143 +14,143 @@
 # ── HTML 진입점: 절대 캐시 금지 ──────────────────────────────────
 /
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /index.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*/
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*/index.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*/*/
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*/*/index.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*/*/*/
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /*/*/*/index.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /static
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /static/
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /static/index.html
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 # ── API: 절대 캐시 금지 ──────────────────────────────────────────
 /api/*
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 # ── 버전/상태 파일: 절대 캐시 금지 ──────────────────────────────
 /version.json
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /status.json
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 # ── Service Worker: 절대 캐시 금지 ──────────────────────────────
 /service-worker.js
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache
   Expires: 0
 
 /tadagochi-sw.js
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /sw.js
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 # ── Manifest: 절대 캐시 금지 (PWA 설치 상태에서 구버전 앱 방지) ──
 /manifest.json
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /manifest-neo.json
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /manifest-tadagochi.json
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 # ── 고정 파일명 JS/CSS (해시 없음): 항상 재검증 ────────────────
 /*.js
@@ -190,34 +190,34 @@
   Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
 /icons/꿀꿀 운세 로고.webp
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /icons/꿀꿀 운세 로고.webp
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /icons/꿀꿀 운세 로고.webp
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /icons/꿀꿀 운세 로고.webp
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /icons/꿀꿀 운세 로고.webp
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /icons/꿀꿀 운세 로고.webp
-  Cache-Control: no-cache, no-store, must-revalidate
-  CDN-Cache-Control: no-cache, no-store, must-revalidate
-  Cloudflare-CDN-Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
 /fuctionassets/*
   Cache-Control: no-cache, max-age=0, must-revalidate

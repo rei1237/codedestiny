@@ -4,11 +4,20 @@ var APP_VERSION_KEY = 'app_version';
 var APP_VERSION_RELOAD_GUARD = 'app_version_reload_guard';  // 무한 reload 방지
 var APP_VERSION_DEFER_GUARD = 'app_version_defer_guard';
 var SW_PURGED_VERSION_KEY = 'app_sw_purged_version';
+var SW_RETIRE_ONCE_KEY = 'app_sw_retire_once';
 var VERSION_GUARD_BANNER_ID = 'cd-version-update-banner';
-var VERSION_CHECK_INTERVAL_MS = 45000;
+var VERSION_CHECK_INTERVAL_MS = 15000;
 var CD_PDF_GUARD_COUNT_KEY = '__CD_PDF_EXPORT_ACTIVE_COUNT__';
 var CD_PDF_GUARD_FLAG_KEY = '__CD_PDF_EXPORT_IN_PROGRESS__';
 var CD_PDF_FETCH_GUARD_INSTALLED_KEY = '__CD_PDF_FETCH_GUARD_INSTALLED__';
+var SW_CACHE_PREFIXES = [
+  'kkul-mansaeryeok-',
+  'workbox',
+  'code-destiny',
+  'next',
+  'tadagochi',
+  'legacy'
+];
 
 function _isPdfRelatedRequestUrl(url) {
   var value = String(url || '').toLowerCase();
@@ -183,7 +192,15 @@ function applyVersionRefresh(version) {
       sessionStorage.setItem(APP_VERSION_RELOAD_GUARD, version);
       sessionStorage.removeItem(APP_VERSION_DEFER_GUARD);
     } catch (e) {}
-    window.location.reload();
+    var nextUrl;
+    try {
+      var parsed = new URL(window.location.href);
+      parsed.searchParams.set('v', version);
+      nextUrl = parsed.toString();
+    } catch (e) {
+      nextUrl = window.location.href;
+    }
+    window.location.replace(nextUrl);
     return version;
   });
 }
@@ -900,6 +917,9 @@ function bindFavoriteButtons() {
 
 function retireServiceWorkers() {
   var tasks = [];
+  var prefixes = Array.isArray(SW_CACHE_PREFIXES) && SW_CACHE_PREFIXES.length > 0
+    ? SW_CACHE_PREFIXES
+    : ['kkul-mansaeryeok-', 'workbox', 'code-destiny', 'next', 'tadagochi', 'legacy'];
 
   if ('serviceWorker' in navigator) {
     tasks.push(
@@ -915,7 +935,11 @@ function retireServiceWorkers() {
         return Promise.all(
           keys
             .filter(function(key) {
-              return SW_CACHE_PREFIXES.some(function(prefix) { return key.indexOf(prefix) === 0; });
+              var normalized = String(key || '').toLowerCase();
+              return prefixes.some(function(prefix) {
+                var token = String(prefix || '').toLowerCase();
+                return normalized.indexOf(token) >= 0;
+              });
             })
             .map(function(key) { return caches.delete(key); })
         );
@@ -926,10 +950,25 @@ function retireServiceWorkers() {
   return Promise.all(tasks).catch(function() {});
 }
 
+function retireServiceWorkersOnce(version) {
+  var target = String(version || APP_VERSION || 'dev').trim() || 'dev';
+
+  try {
+    var already = localStorage.getItem(SW_RETIRE_ONCE_KEY) || '';
+    if (already === target) {
+      return Promise.resolve();
+    }
+  } catch (e) {}
+
+  return retireServiceWorkers().finally(function() {
+    try { localStorage.setItem(SW_RETIRE_ONCE_KEY, target); } catch (e) {}
+  });
+}
+
 if ('serviceWorker' in navigator || 'caches' in window) {
   window.addEventListener('load', function() {
     runNuclearVersionGuard().finally(function() {
-      retireServiceWorkers();
+      retireServiceWorkersOnce(APP_VERSION);
     });
   });
 }

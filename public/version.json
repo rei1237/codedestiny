@@ -1,11 +1,15 @@
 {
   "ok": true,
   "service": "code-destiny",
-  "commit": "a672f2a609c1181600191505d9d47871153df758",
-  "commitShort": "a672f2a609c1",
+  "appVersion": "0.1.0",
+  "gitSha": "531abefecdb614987d539f3e53e1935ee7149496",
+  "buildTime": "2026-05-14T18:38:03.429Z",
+  "environment": "production",
+  "source": "pages",
+  "commit": "531abefecdb614987d539f3e53e1935ee7149496",
+  "commitShort": "531abefecdb6",
   "branch": "main",
-  "builtAt": "2026-05-14T17:17:47.250Z",
-  "buildTime": "2026-05-14T17:17:47.250Z",
+  "builtAt": "2026-05-14T18:38:03.429Z",
   "deploymentMode": "manual-pages-only",
-  "source": "local"
+  "buildSource": "local"
 }

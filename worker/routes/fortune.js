@@ -537,8 +537,9 @@ async function resolvePigCoinConsumeAuth(request, env) {
 }
 
 function userPayload(auth, points, unlockedFeatures) {
+  const authUserId = String(auth?.userId || "").trim();
   const payload = {
-    id: String(auth.userId),
+    id: authUserId,
     points: Number(points || 0),
   };
   const normalizedUnlocks = normalizePersistentUnlockKeys(unlockedFeatures);
@@ -807,6 +808,15 @@ async function handleChargeSimulate(request, env, auth) {
 async function handlePigCoinConsume(request, auth, options = {}) {
   const env = options?.env || {};
   const adminMode = Boolean(options?.adminMode);
+  if (!auth && !adminMode) {
+    return json({ message: "Authentication is required.", code: "AUTH_REQUIRED" }, { status: 401 });
+  }
+
+  const authUserId = String(auth?.userId || "").trim();
+  if (!adminMode && !/^[a-f0-9]{24}$/i.test(authUserId)) {
+    return json({ message: "Authentication is required.", code: "AUTH_REQUIRED" }, { status: 401 });
+  }
+
   const body = await readJson(request);
   const productId = String(body?.productId || options?.productId || "").trim().toLowerCase();
   const productSpec = productId ? resolveUnlockProductSpec(productId) : null;

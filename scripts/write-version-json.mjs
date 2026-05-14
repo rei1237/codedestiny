@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 function runGit(args) {
@@ -18,6 +18,17 @@ function firstNonEmpty(values) {
 
 const rootDir = process.cwd();
 const distDir = resolve(rootDir, "dist");
+
+function readPackageVersion() {
+  try {
+    const packageJsonPath = resolve(rootDir, "package.json");
+    const raw = readFileSync(packageJsonPath, "utf8");
+    const parsed = JSON.parse(raw);
+    return String(parsed?.version || "").trim();
+  } catch {
+    return "";
+  }
+}
 
 if (!existsSync(distDir)) {
   console.error("[write-version-json] dist directory not found. Run build first.");
@@ -42,24 +53,41 @@ const branch = firstNonEmpty([
 ]) || "unknown";
 
 const builtAt = new Date().toISOString();
+const appVersion = firstNonEmpty([
+  process.env.NEXT_PUBLIC_APP_VERSION,
+  process.env.APP_VERSION,
+  readPackageVersion(),
+  "0.0.0",
+]);
 const deploymentMode = firstNonEmpty([
   process.env.DEPLOYMENT_MODE,
   "manual-pages-only",
 ]);
+const environment = firstNonEmpty([
+  process.env.CF_PAGES === "1" || process.env.CF_PAGES === "true" ? "production" : "",
+  process.env.NODE_ENV,
+  "production",
+]);
+const source = "pages";
+const buildSource = firstNonEmpty([
+  process.env.CF_PAGES_URL ? "cloudflare-pages" : "",
+  process.env.GITHUB_ACTIONS ? "github-actions" : "",
+  "local",
+]);
 const payload = {
   ok: true,
   service: "code-destiny",
+  appVersion,
+  gitSha: commitSha || "unknown",
+  buildTime: builtAt,
+  environment,
+  source,
   commit: commitSha || "unknown",
   commitShort,
   branch,
   builtAt,
-  buildTime: builtAt,
   deploymentMode,
-  source: firstNonEmpty([
-    process.env.CF_PAGES_URL ? "cloudflare-pages" : "",
-    process.env.GITHUB_ACTIONS ? "github-actions" : "",
-    "local",
-  ]),
+  buildSource,
 };
 
 const versionPath = resolve(distDir, "version.json");

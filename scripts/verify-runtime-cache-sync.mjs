@@ -25,6 +25,10 @@ const syncPairs = [
 
 const runtimeTagRe = /index-inline-runtime\.js\?v=([^"'\s>]+)/;
 const canonicalRedirectTagRe = /canonical-redirect\.js\?v=([^"'\s>]+)/;
+const mobileLiteCssRe = /\/styles\/mobile-lite\.css\?v=([^"'\s>]+)/;
+const mobileInteractionPatchRe = /\/js\/mobile-interaction-patch\.js\?v=([^"'\s>]+)/;
+const shareScriptRe = /\/js\/share\.js\?v=([^"'\s>]+)/;
+const manifestTagRe = /\/manifest\.json\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
 const sibylScriptTagRe = /\/js\/sibyl-system\.js\?v=([^"'\s>]+)/;
 const premiumReportScripts = [
@@ -60,6 +64,10 @@ function read(rel) {
 
 const htmlVersions = new Map();
 const canonicalRedirectVersions = new Map();
+const mobileLiteCssVersions = new Map();
+const mobileInteractionPatchVersions = new Map();
+const shareScriptVersions = new Map();
+const manifestVersions = new Map();
 const premiumReportVersions = new Map();
 const sibylScriptVersions = new Map();
 for (const rel of htmlTargets) {
@@ -89,6 +97,38 @@ for (const rel of htmlTargets) {
     failed = true;
   } else {
     canonicalRedirectVersions.set(rel, cm[1]);
+  }
+
+  const mobileCssMatch = txt.match(mobileLiteCssRe);
+  if (!mobileCssMatch) {
+    console.error(`[runtime-cache-sync] mobile-lite css version not found: ${rel}`);
+    failed = true;
+  } else {
+    mobileLiteCssVersions.set(rel, mobileCssMatch[1]);
+  }
+
+  const mobilePatchMatch = txt.match(mobileInteractionPatchRe);
+  if (!mobilePatchMatch) {
+    console.error(`[runtime-cache-sync] mobile interaction patch version not found: ${rel}`);
+    failed = true;
+  } else {
+    mobileInteractionPatchVersions.set(rel, mobilePatchMatch[1]);
+  }
+
+  const shareMatch = txt.match(shareScriptRe);
+  if (!shareMatch) {
+    console.error(`[runtime-cache-sync] share script version not found: ${rel}`);
+    failed = true;
+  } else {
+    shareScriptVersions.set(rel, shareMatch[1]);
+  }
+
+  const manifestMatch = txt.match(manifestTagRe);
+  if (!manifestMatch) {
+    console.error(`[runtime-cache-sync] manifest version not found: ${rel}`);
+    failed = true;
+  } else {
+    manifestVersions.set(rel, manifestMatch[1]);
   }
 
   for (const scriptName of premiumReportScripts) {
@@ -132,6 +172,46 @@ if (canonicalRedirectVersions.size > 0) {
   for (const [rel, v] of canonicalRedirectVersions.entries()) {
     if (v !== expected) {
       console.error(`[runtime-cache-sync] canonical redirect version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
+if (mobileLiteCssVersions.size > 0) {
+  const expected = mobileLiteCssVersions.get('index.html') || mobileLiteCssVersions.values().next().value;
+  for (const [rel, v] of mobileLiteCssVersions.entries()) {
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] mobile-lite css version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
+if (mobileInteractionPatchVersions.size > 0) {
+  const expected = mobileInteractionPatchVersions.get('index.html') || mobileInteractionPatchVersions.values().next().value;
+  for (const [rel, v] of mobileInteractionPatchVersions.entries()) {
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] mobile interaction patch version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
+if (shareScriptVersions.size > 0) {
+  const expected = shareScriptVersions.get('index.html') || shareScriptVersions.values().next().value;
+  for (const [rel, v] of shareScriptVersions.entries()) {
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] share script version mismatch: ${rel} has ${v}, expected ${expected}`);
+      failed = true;
+    }
+  }
+}
+
+if (manifestVersions.size > 0) {
+  const expected = manifestVersions.get('index.html') || manifestVersions.values().next().value;
+  for (const [rel, v] of manifestVersions.entries()) {
+    if (v !== expected) {
+      console.error(`[runtime-cache-sync] manifest version mismatch: ${rel} has ${v}, expected ${expected}`);
       failed = true;
     }
   }
@@ -201,4 +281,6 @@ if (failed) {
 const runtimeVer = htmlVersions.get('public/index.html') || 'unknown';
 const sajuVer = sajuVersions.get('public/js/core/index-inline-runtime.js') || sajuVersions.values().next().value || 'unknown';
 const sibylVer = sibylScriptVersions.get('public/static/index.html') || sibylScriptVersions.values().next().value || 'unknown';
-console.log(`[runtime-cache-sync] OK: runtime=${runtimeVer}, saju-engine=${sajuVer}, sibyl=${sibylVer}`);
+const mobileLiteVer = mobileLiteCssVersions.get('public/static/index.html') || mobileLiteCssVersions.values().next().value || 'unknown';
+const shareVer = shareScriptVersions.get('public/static/index.html') || shareScriptVersions.values().next().value || 'unknown';
+console.log(`[runtime-cache-sync] OK: runtime=${runtimeVer}, saju-engine=${sajuVer}, sibyl=${sibylVer}, mobile-lite=${mobileLiteVer}, share=${shareVer}`);

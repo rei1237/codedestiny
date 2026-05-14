@@ -4,13 +4,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
 import { installPdfExportFetchGuard } from "../_lib/pdf-export-guard";
 
-const APP_VERSION = "dev";
+const APP_VERSION = process.env.NEXT_PUBLIC_GIT_SHA
+  || process.env.NEXT_PUBLIC_BUILD_TIME
+  || process.env.NEXT_PUBLIC_APP_VERSION
+  || "dev";
 const VERSION_KEY = "app_version";
 // 무한 reload 방지: sessionStorage에 이미 reload한 버전을 기록
 const RELOAD_GUARD_KEY = "app_version_reload_guard";
 const SW_PURGED_VERSION_KEY = "app_sw_purged_version";
+const SW_RETIRE_ONCE_KEY = "app_sw_retire_once";
+const SW_RETIRE_VERSION = process.env.NEXT_PUBLIC_BUILD_TIME
+  || process.env.NEXT_PUBLIC_GIT_SHA
+  || process.env.NEXT_PUBLIC_APP_VERSION
+  || "dev";
 const DEFER_GUARD_KEY = "app_version_defer_guard";
-const VERSION_CHECK_INTERVAL_MS = 45_000;
+const VERSION_CHECK_INTERVAL_MS = 15_000;
 
 type RuntimeWindow = Window & Record<string, unknown>;
 
@@ -81,6 +89,53 @@ async function purgeIfNeeded(version: string): Promise<void> {
   }
 }
 
+async function retireLegacyServiceWorkersOnce(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  try {
+    const already = window.localStorage.getItem(SW_RETIRE_ONCE_KEY) || "";
+    if (already === SW_RETIRE_VERSION) return;
+  } catch {
+    // ignore
+  }
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((reg) => reg.unregister()));
+    }
+  } catch {
+    // ignore
+  }
+
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => {
+            const normalized = String(key || "").toLowerCase();
+            return normalized.includes("legacy")
+              || normalized.includes("code-destiny")
+              || normalized.includes("kkul")
+              || normalized.includes("workbox")
+              || normalized.includes("next")
+              || normalized.includes("tadagochi");
+          })
+          .map((key) => caches.delete(key)),
+      );
+    }
+  } catch {
+    // ignore
+  }
+
+  try {
+    window.localStorage.setItem(SW_RETIRE_ONCE_KEY, SW_RETIRE_VERSION);
+  } catch {
+    // ignore
+  }
+}
+
 function getWindowBooleanFlag(flagName: string): boolean {
   try {
     return Boolean((window as unknown as RuntimeWindow)[flagName]);
@@ -137,6 +192,7 @@ export default function AppVersionGuard() {
 
   useEffect(() => {
     installPdfExportFetchGuard();
+    void retireLegacyServiceWorkersOnce();
   }, []);
 
   useEffect(() => {
