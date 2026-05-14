@@ -13,8 +13,16 @@ export type AuthUser = ClientAuthUser & {
   points?: number;
 };
 
+export type AuthStatus = "checking" | "guest" | "login_submitting" | "authenticated" | "error";
+
+export type AuthWallet = {
+  coinBalance: number;
+};
+
 export type AuthState = {
   user: AuthUser | null;
+  wallet: AuthWallet | null;
+  status: AuthStatus;
   isAuthenticated: boolean;
   isLoading: boolean;
   isLoggingIn: boolean;
@@ -31,19 +39,52 @@ type LoginCredentials = {
 
 type LoginApiPayload = {
   ok?: boolean;
+  authenticated?: boolean;
   message?: string;
   code?: string;
   error?: string;
   nextPath?: string;
   accessToken?: string;
+  wallet?: {
+    coinBalance?: number;
+  } | null;
   user?: AuthUser;
   errors?: string[];
 };
+
+type MeApiPayload = {
+  ok?: boolean;
+  authenticated?: boolean;
+  user?: AuthUser | null;
+  wallet?: {
+    coinBalance?: number;
+  } | null;
+  code?: string;
+  error?: string;
+};
+
+function resolveUserId(user: unknown) {
+  if (!user || typeof user !== "object") return "";
+  const source = user as Record<string, unknown>;
+  return String(source.id || source.userId || source._id || source.uid || "").trim();
+}
+
+function isAuthenticatedMePayload(payload: MeApiPayload | null | undefined) {
+  if (!payload) return false;
+  if (payload.authenticated === false) return false;
+  const userId = resolveUserId(payload.user);
+  if (!userId) return false;
+  if (payload.authenticated === true) return true;
+  // Backward-compatible support for legacy /api/auth/me payload shape.
+  return payload.ok === true || payload.authenticated == null;
+}
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 let state: AuthState = {
   user: null,
+  wallet: null,
+  status: "checking",
   isAuthenticated: false,
   isLoading: false,
   isLoggingIn: false,
@@ -152,7 +193,7 @@ function isRetryableLoginSyncError(error: unknown) {
   return message === "auth_refresh_failed" || message === "AUTH_REFRESH_TEMPORARY_FAILURE";
 }
 
-async function resolveUserAfterLogin(fallbackUser: AuthUser | null) {
+async function resolveUserAfterLogin() {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= LOGIN_ME_RETRY_DELAYS_MS.length; attempt += 1) {
@@ -173,12 +214,21 @@ async function resolveUserAfterLogin(fallbackUser: AuthUser | null) {
     }
   }
 
-  if (fallbackUser) {
-    applyResolvedUser(fallbackUser);
-    return fallbackUser;
+  throw (lastError || new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다."));
+}
+
+function normalizeWallet(payloadWallet: MeApiPayload["wallet"], user: AuthUser | null): AuthWallet | null {
+  const direct = Number(payloadWallet?.coinBalance);
+  if (Number.isFinite(direct)) {
+    return { coinBalance: direct };
   }
 
-  throw (lastError || new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다."));
+  const fromUser = Number(user?.points);
+  if (Number.isFinite(fromUser)) {
+    return { coinBalance: fromUser };
+  }
+
+  return null;
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -274,6 +324,8 @@ function applyResolvedUser(user: AuthUser | null) {
   if (!user) {
     setState({
       user: null,
+      wallet: null,
+      status: "guest",
       isAuthenticated: false,
     });
     return;
@@ -281,6 +333,8 @@ function applyResolvedUser(user: AuthUser | null) {
 
   setState({
     user,
+    wallet: normalizeWallet(null, user),
+    status: "authenticated",
     isAuthenticated: true,
   });
 }
@@ -289,6 +343,8 @@ function clearAuthStateHard() {
   clearClientAuthState();
   setState({
     user: null,
+    wallet: null,
+    status: "guest",
     isAuthenticated: false,
   });
 }
@@ -311,20 +367,34 @@ async function loadMeFromServer() {
       publishAuthSync("logout");
       return null;
     }
+
+    const payload = (await response.json().catch(() => null)) as MeApiPayload | null;
+    const code = String(payload?.code || payload?.error || "").trim().toUpperCase();
+    if (code === "AUTH_REFRESH_TEMPORARY_FAILURE") {
+      throw new Error("AUTH_REFRESH_TEMPORARY_FAILURE");
+    }
     throw new Error("auth_refresh_failed");
   }
 
-  const payload = (await response.json()) as { user?: AuthUser };
-  const user = resolveSafeUser(payload?.user) as AuthUser | null;
+  const payload = (await response.json()) as MeApiPayload;
+  const authenticated = isAuthenticatedMePayload(payload);
+  const user = authenticated ? (resolveSafeUser(payload?.user) as AuthUser | null) : null;
   latestAppliedMeSeq = requestSeq;
 
-  if (!user) {
+  if (!authenticated || !user) {
     clearAuthStateHard();
     publishAuthSync("logout");
     return null;
   }
 
-  applyResolvedUser(user);
+  setState({
+    user,
+    wallet: normalizeWallet(payload?.wallet, user),
+    status: "authenticated",
+    isAuthenticated: true,
+    error: null,
+  });
+
   return user;
 }
 
@@ -333,7 +403,10 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
   if (!force && refreshInFlight) return refreshInFlight;
 
   if (!silent) {
-    setState({ isLoading: true });
+    setState({
+      isLoading: true,
+      status: state.isLoggingIn ? "login_submitting" : "checking",
+    });
   }
 
   refreshInFlight = (async () => {
@@ -342,6 +415,7 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
       setState({
         authReady: true,
         isLoading: false,
+        status: user ? "authenticated" : "guest",
       });
       if (user) {
         setState({ error: null });
@@ -351,6 +425,7 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
       setState({
         authReady: true,
         isLoading: false,
+        status: state.isLoggingIn ? "login_submitting" : "guest",
       });
       throw error;
     } finally {
@@ -377,6 +452,8 @@ export async function login(credentials: LoginCredentials) {
 
   setState({
     isLoggingIn: true,
+    isLoading: true,
+    status: "login_submitting",
     error: null,
   });
 
@@ -422,45 +499,33 @@ export async function login(credentials: LoginCredentials) {
     }
 
     debugAuth("[auth] login api success");
-    const fallbackUser = resolveSafeUser(payload.user) as AuthUser | null;
-    if (fallbackUser) {
-      applyResolvedUser(fallbackUser);
-      publishAuthSync("login");
-      setState({ error: null });
 
-      void resolveUserAfterLogin(fallbackUser)
-        .then((meUser) => {
-          debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
-          applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
-        })
-        .catch((error) => {
-          debugAuth("[auth] me sync delayed", error instanceof Error ? error.message : "unknown");
-        });
-
-      void syncPostLoginData();
-    } else {
-      const meUser = await resolveUserAfterLogin(null);
-      debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
-      applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
-      publishAuthSync("login");
-      void syncPostLoginData();
-      setState({ error: null });
-    }
+    const meUser = await resolveUserAfterLogin();
+    debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
+    publishAuthSync("login");
+    void syncPostLoginData();
 
     debugAuth("[auth] auth store updated");
     return {
-      user: state.user || fallbackUser,
+      user: state.user || meUser,
       nextPath: String(payload.nextPath || nextPath || "/"),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "로그인 처리 중 오류가 발생했습니다.";
-    setState({ error: message });
+    setState({
+      user: null,
+      wallet: null,
+      isAuthenticated: false,
+      status: "error",
+      error: message,
+    });
     throw error;
   } finally {
     setState({
       isLoggingIn: false,
       authReady: true,
       isLoading: false,
+      status: state.isAuthenticated ? "authenticated" : (state.error ? "error" : "guest"),
     });
   }
 }
@@ -482,10 +547,7 @@ export function setUser(user: AuthUser | null) {
 
 export function primeAuthFromCache() {
   if (typeof window === "undefined") return;
-  const cached = readSanitizedAuthUser() as AuthUser | null;
-  if (cached) {
-    applyResolvedUser(cached);
-  }
+  readSanitizedAuthUser();
 }
 
 export function subscribeAuth(listener: () => void) {

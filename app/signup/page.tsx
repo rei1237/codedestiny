@@ -36,6 +36,18 @@ type SignupResult = {
   };
 };
 
+function resolveSignupUserId(user: SignupResult["user"] | null | undefined) {
+  if (!user || typeof user !== "object") return "";
+  return String((user as unknown as Record<string, unknown>).id || (user as unknown as Record<string, unknown>).userId || (user as unknown as Record<string, unknown>)._id || "").trim();
+}
+
+function isAuthenticatedMeShape(payload: { authenticated?: boolean; ok?: boolean; user?: SignupResult["user"] | null } | null | undefined) {
+  if (!payload) return false;
+  if (payload.authenticated === false) return false;
+  if (!resolveSignupUserId(payload.user || null)) return false;
+  return payload.authenticated === true || payload.ok === true || payload.authenticated == null;
+}
+
 type SocialProvider = "google" | "naver" | "kakao";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
@@ -300,12 +312,22 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        persistAuth(payload.user, payload.accessToken);
+        const meResponse = await fetch(`${authApiBase}/api/auth/me`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+        const mePayload = await parseJsonResponse<{ authenticated?: boolean; user?: SignupResult["user"] | null; nextPath?: string }>(meResponse);
+        if (!meResponse.ok || !isAuthenticatedMeShape(mePayload)) {
+          throw new Error("로그인은 완료되었지만 세션 확인에 실패했습니다. 다시 시도해 주세요.");
+        }
+
+        persistAuth(mePayload.user, payload.accessToken);
 
         const nextFromQuery = resolveNextPathFromQuery(params);
-        const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
+        const nextPath = sanitizeNextPath(mePayload.nextPath || payload.nextPath || null) || nextFromQuery || "/";
 
-        redirectAfterAuth(nextPath, payload.user);
+        redirectAfterAuth(nextPath, mePayload.user);
       })
       .catch((e: Error) => {
         setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");

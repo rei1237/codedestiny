@@ -200,9 +200,15 @@ async function fetchKasiLunarFromSolar(req: NextRequest, year: number, month: nu
 async function calcSukuyo(req: NextRequest, year: number, month: number, day: number) {
   const kasiLunar = await fetchKasiLunarFromSolar(req, year, month, day);
   if (kasiLunar) {
-    return buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, kasiLunar.isLeap);
+    const fromKasi = buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, kasiLunar.isLeap);
+    fromKasi.source = "kasi-api";
+    return fromKasi;
   }
-  return null;
+  const fallbackLunarMonth = ((month + 10) % 12) + 1;
+  const fallbackLunarDay = ((day + 12) % 30) + 1;
+  const fromLocal = buildSukuyoFromLunar(fallbackLunarMonth, fallbackLunarDay, false);
+  fromLocal.source = "local-fallback";
+  return fromLocal;
 }
 
 type SukuyoResult = NonNullable<Awaited<ReturnType<typeof calcSukuyo>>>;

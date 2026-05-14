@@ -11,6 +11,7 @@ import {
   getRefreshTokenExpiresIn,
   getRefreshTokenSecret,
   requireAuth,
+  getOptionalUserFromRequest,
   normalizeUserResponse,
   signAuthToken,
   JWT_ISSUER,
@@ -851,11 +852,17 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   const { refreshToken, tokenHash, expiresAt } = await issueRefreshTokenForUser(user._id, env);
   await createRefreshSession(request, env, user._id, tokenHash, expiresAt);
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
+  const normalizedUser = normalizeUserResponse(user);
+  const wallet = {
+    coinBalance: Number.isFinite(Number(normalizedUser?.points)) ? Number(normalizedUser.points) : 0,
+  };
 
   const response = json({
     ok: true,
+    authenticated: true,
     message: status === 201 ? "Registration completed." : "Login completed.",
-    user: normalizeUserResponse(user),
+    user: normalizedUser,
+    wallet,
     nextPath: sanitizeNextPath(nextPath) || "/",
     accessToken,
     tokenType: "Bearer",
@@ -1235,12 +1242,18 @@ async function handleMe(request, env) {
   try {
     const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-    const auth = await requireAuth(request, env);
+    const auth = await getOptionalUserFromRequest(request, env);
+
+    if (!auth || !mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) {
+      return json({
+        ok: true,
+        authenticated: false,
+        user: null,
+        wallet: null,
+      });
+    }
 
     const userId = String(auth.userId || "");
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
-    }
     const objectId = new mongoose.Types.ObjectId(userId);
 
     let user;
@@ -1270,26 +1283,42 @@ async function handleMe(request, env) {
       );
     } catch (error) {
       if (isAuthDbInfraError(error)) {
+        const tokenFallbackUser = buildTokenFallbackUser(auth);
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
         return json({
           ok: true,
+          authenticated: true,
           message: "Authenticated user loaded from token.",
-          user: buildTokenFallbackUser(auth),
+          user: tokenFallbackUser,
+          wallet: {
+            coinBalance: Number.isFinite(Number(tokenFallbackUser.points)) ? Number(tokenFallbackUser.points) : 0,
+          },
           source: "token",
         });
       }
       throw error;
     }
     if (!user) {
-      return json({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
+      return json({
+        ok: true,
+        authenticated: false,
+        user: null,
+        wallet: null,
+      });
     }
+
+    const normalizedUser = {
+      ...normalizeUserResponse(user),
+      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+    };
 
     return json({
       ok: true,
+      authenticated: true,
       message: "Authenticated user loaded.",
-      user: {
-        ...normalizeUserResponse(user),
-        hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+      user: normalizedUser,
+      wallet: {
+        coinBalance: Number.isFinite(Number(normalizedUser.points)) ? Number(normalizedUser.points) : 0,
       },
     });
   } catch (error) {
@@ -1466,6 +1495,7 @@ async function handleRefresh(request, env) {
 
   const response = json({
     ok: true,
+    authenticated: true,
     message: "Token refreshed.",
     accessToken,
     tokenType: "Bearer",
@@ -1473,6 +1503,9 @@ async function handleRefresh(request, env) {
     user: {
       ...normalizeUserResponse(user),
       hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+    },
+    wallet: {
+      coinBalance: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
     },
   });
   appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
@@ -1829,8 +1862,12 @@ async function handleOAuthComplete(request, env) {
 
         const response = json({
           ok: true,
+          authenticated: true,
           message: "Social login completed.",
           user: normalizeUserResponse(user),
+          wallet: {
+            coinBalance: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
+          },
           nextPath: sanitizeNextPath(payload.nextPath) || "/",
           provider: payload.provider,
           accessToken,

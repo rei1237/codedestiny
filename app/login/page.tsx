@@ -4,7 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { clearAuthError, login as loginWithStore } from "../_lib/auth-store";
+import { clearAuthError, login as loginWithStore, refreshAuth, useAuthStore } from "../_lib/auth-store";
 
 declare global {
   interface Window {
@@ -94,6 +94,7 @@ function fallbackDisplayNameFromLoginId(rawId: string) {
 
 export default function LoginPage() {
   const router = useRouter();
+  const auth = useAuthStore();
 
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [oauthRedirecting, setOauthRedirecting] = useState<SocialProvider | null>(null);
@@ -104,6 +105,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
+
+  useEffect(() => {
+    refreshAuth({ silent: false }).catch(() => {
+      // login page should remain usable even if bootstrap auth check fails.
+    });
+  }, []);
 
   const redirectAfterAuth = useCallback((nextPath: string, user?: LoginResult["user"]) => {
     if (user?.role === "admin" && nextPath === "/") {
@@ -131,6 +138,38 @@ export default function LoginPage() {
       setError("소셜 로그인 콜백이 만료되었거나 경로가 올바르지 않습니다. 소셜 로그인을 다시 시도해 주세요.");
     }
   }, []);
+
+  useEffect(() => {
+    if (auth.status !== "authenticated" || !auth.user) return;
+    const params = new URLSearchParams(window.location.search);
+    const nextPath = resolveNextPathFromQuery(params);
+    redirectAfterAuth(nextPath, auth.user as LoginResult["user"]);
+  }, [auth.status, auth.user, redirectAfterAuth]);
+
+  const statusNotice = useMemo(() => {
+    if (loginSubmitting) {
+      return {
+        title: "별빛 로그인 포털",
+        body: "계정 정보를 확인하고 있어요...",
+      };
+    }
+
+    if (auth.status === "checking" && !error) {
+      return {
+        title: "세션 복구 중",
+        body: "별빛 여정을 이어가는 중이에요... 잠시만 기다려 주세요.",
+      };
+    }
+
+    if (auth.status === "error" && !error) {
+      return {
+        title: "로그인에 실패했어요.",
+        body: "이메일 또는 비밀번호를 확인해 주세요.",
+      };
+    }
+
+    return null;
+  }, [auth.status, error, loginSubmitting]);
 
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -248,6 +287,13 @@ export default function LoginPage() {
 
             {error ? (
               <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200 shadow-lg shadow-rose-500/10">{error}</p>
+            ) : null}
+
+            {statusNotice ? (
+              <div className="mb-4 rounded-lg border border-violet-300/35 bg-violet-500/10 px-3 py-2 text-sm text-violet-100 shadow-lg shadow-violet-500/10">
+                <p className="font-semibold">{statusNotice.title}</p>
+                <p className="mt-0.5 text-xs text-violet-100/85">{statusNotice.body}</p>
+              </div>
             ) : null}
 
             <form className="space-y-3" onSubmit={handleLocalLogin}>

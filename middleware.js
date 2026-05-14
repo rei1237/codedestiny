@@ -185,7 +185,10 @@ function isUsableAuthToken(token) {
 
 function hasAuthSessionCookie(request) {
   const accessToken = String(request.cookies.get("fortune_auth_token")?.value || "").trim();
-  return isUsableAuthToken(accessToken);
+  if (isUsableAuthToken(accessToken)) return true;
+
+  const refreshToken = String(request.cookies.get("fortune_auth_refresh")?.value || "").trim();
+  return Boolean(refreshToken);
 }
 
 function buildLoginRedirectUrl(request) {

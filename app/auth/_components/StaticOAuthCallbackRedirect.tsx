@@ -208,6 +208,21 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       } catch {}
     }
 
+    function resolveUserId(user) {
+      if (!user || typeof user !== "object") return "";
+      return String(user.id || user.userId || user._id || user.uid || "").trim();
+    }
+
+    function isAuthenticatedMePayload(payload) {
+      return !!(
+        payload
+        && payload.authenticated !== false
+        && payload.user
+        && resolveUserId(payload.user)
+        && (payload.authenticated === true || payload.ok === true || payload.authenticated == null)
+      );
+    }
+
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("error") || params.get("social_error");
     const socialGrant = params.get("social_grant");
@@ -273,7 +288,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
             }, REQUEST_TIMEOUT_MS);
 
             const parsed = await parseJsonResponse(response);
-            if (!response.ok || !parsed || !parsed.user || !parsed.user.id) {
+            if (!response.ok || !parsed) {
               const retryable = response.status >= 500;
               if (retryable && attempt < MAX_RETRIES - 1) {
                 await sleep(RETRY_BASE_DELAY_MS * (attempt + 1));
@@ -304,7 +319,8 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
           }
         }
 
-        if (!payload || !payload.user || !payload.user.id) {
+        let mePayload = null;
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
           try {
             const meResponse = await fetchWithTimeout(meUrl, {
               method: "GET",
@@ -312,18 +328,40 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
               cache: "no-store",
             }, REQUEST_TIMEOUT_MS);
 
-            if (meResponse.ok) {
-              const mePayload = await parseJsonResponse(meResponse);
-              if (mePayload && mePayload.user && mePayload.user.id) {
-                payload = {
-                  ...mePayload,
-                  nextPath: resolveNextPathFromQuery(params),
-                };
-                debugAuth("[auth] me loaded", mePayload.user.id);
+            if (!meResponse.ok) {
+              const retryable = meResponse.status >= 500;
+              if (retryable && attempt < MAX_RETRIES - 1) {
+                await sleep(RETRY_BASE_DELAY_MS * (attempt + 1));
+                continue;
               }
+              break;
             }
-          } catch {
-            // ignore fallback errors
+
+            const parsedMe = await parseJsonResponse(meResponse);
+            if (isAuthenticatedMePayload(parsedMe)) {
+              mePayload = parsedMe;
+              break;
+            }
+
+            if (parsedMe && parsedMe.authenticated === false) {
+              lastError = new Error("session_not_authenticated");
+              break;
+            }
+          } catch (error) {
+            lastError = error;
+            const message = String(error && error.message ? error.message : "");
+            const retryable = (
+              message === "response_is_html"
+              || message.includes("network")
+              || message.includes("timeout")
+              || message.includes("abort")
+              || message.includes("Failed to fetch")
+            );
+
+            if (retryable && attempt < MAX_RETRIES - 1) {
+              await sleep(RETRY_BASE_DELAY_MS * (attempt + 1));
+              continue;
+            }
           }
         }
 
@@ -331,11 +369,18 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
           return;
         }
 
-        if (payload && payload.user && payload.user.id) {
-          debugAuth("[auth] me loaded", payload.user.id);
+        if (mePayload) {
+          payload = {
+            ...(payload || {}),
+            ...mePayload,
+            user: mePayload.user,
+            wallet: mePayload.wallet || null,
+            nextPath: sanitizeNextPath((payload && payload.nextPath) || null) || resolveNextPathFromQuery(params),
+          };
+          debugAuth("[auth] me loaded", resolveUserId(mePayload.user));
         }
 
-        if (!payload || !payload.user || !payload.user.id) {
+        if (!payload || !isAuthenticatedMePayload(payload)) {
           clearIntent();
           const reason = encodeURIComponent(String((lastError && lastError.message) || "oauth_failed"));
           window.location.replace("/login?error=" + reason);

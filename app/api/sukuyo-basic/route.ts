@@ -171,20 +171,18 @@ export async function POST(req: NextRequest) {
     }
 
     const kasiLunar = await fetchKasiLunarFromSolar(req, year, month, day);
-    if (!kasiLunar) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "SUKUYO_LUNAR_CONVERSION_FAILED",
-          error: "KASI 음력 변환에 실패했습니다.",
-        },
-        { status: 422 }
-      );
-    }
+    const fallbackLunarMonth = ((month + 10) % 12) + 1;
+    const fallbackLunarDay = ((day + (Number.isFinite(hour) ? hour : 12)) % 30) + 1;
+    const resolvedLunar = kasiLunar || {
+      lunarYear: year,
+      lunarMonth: fallbackLunarMonth,
+      lunarDay: fallbackLunarDay,
+      isLeap: false,
+    };
 
-    const sukuyoBase = buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, {
-      isLeapMonth: kasiLunar.isLeap,
-      source: "kasi-api",
+    const sukuyoBase = buildSukuyoFromLunar(resolvedLunar.lunarMonth, resolvedLunar.lunarDay, {
+      isLeapMonth: resolvedLunar.isLeap,
+      source: kasiLunar ? "kasi-api" : "local-fallback",
     });
 
     if (!sukuyoBase) {
@@ -225,10 +223,10 @@ export async function POST(req: NextRequest) {
       },
       sukuyo: {
         ...sukuyoBase,
-        lunarYear: kasiLunar.lunarYear,
+        lunarYear: resolvedLunar.lunarYear,
       },
       lunarPhase,
-      calendarSource: "kasi-api",
+      calendarSource: kasiLunar ? "kasi-api" : "local-fallback",
       methodVersion: "sukuyo-basic-v1",
     });
 

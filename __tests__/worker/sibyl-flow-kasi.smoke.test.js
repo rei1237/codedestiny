@@ -77,7 +77,7 @@ describe("Sibyl flow and KASI smoke", () => {
     expect(canonical.yearlyFlow[0].pillar).toBeTruthy();
   });
 
-  test("KASI 업스트림 장애 시 maintenance/fallbackRecommended 응답을 반환한다", async () => {
+  test("KASI 업스트림 장애 시 200 local fallback 응답을 반환한다", async () => {
     const originalFetch = global.fetch;
     global.fetch = jest.fn(async () => {
       const payload = {
@@ -109,10 +109,10 @@ describe("Sibyl flow and KASI smoke", () => {
       });
       const payload = await res.json();
 
-      expect(res.status).toBe(503);
-      expect(payload.ok).toBe(false);
-      expect(payload.maintenance).toBe(true);
-      expect(payload.fallbackRecommended).toBe(true);
+      expect(res.status).toBe(200);
+      expect(payload.ok).toBe(true);
+      expect(payload.source).toBe("local");
+      expect(Array.isArray(payload.warnings)).toBe(true);
     } finally {
       global.fetch = originalFetch;
     }

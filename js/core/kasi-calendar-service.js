@@ -4,7 +4,7 @@
   var DEFAULTS = {
     apiEndpoint: '/api/kasi/calendar',
     maintenanceMessage: '\ud55c\uad6d\ucc9c\ubb38\uc5f0 API \uc11c\ubc84 \uc810\uac80 \uc911\uc73c\ub85c \ub0b4\ubd80 \uacc4\uc0b0\uae30\ub85c \uc804\ud658\ud569\ub2c8\ub2e4.',
-    timeoutMs: 3000,
+    timeoutMs: 2500,
     cacheTtlMs: 1000 * 60 * 60 * 24 * 180,
     storageKeyPrefix: 'kasi:date-context:v1:'
   };
@@ -16,17 +16,100 @@
   var _namedContexts = Object.create(null);
   var _subscribers = [];
   var _lastProxyFailure = null;
-  var _lastNoticeAt = 0;
   var _maintenanceUntil = 0; // circuit breaker: skip KASI calls until this timestamp
-  var _MAINTENANCE_CIRCUIT_MS = 5 * 60 * 1000; // 5 minutes
+  var _MAINTENANCE_CIRCUIT_MS = 10 * 60 * 1000; // 10 minutes
+  var _kasiFailureStreak = 0;
+  var _KASI_FAILURE_THRESHOLD = 3;
+  var _METHOD_CACHE_TTL_MS = 30 * 60 * 1000;
+  var _methodCache = new Map();
+  var _methodInflight = new Map();
+  var _solarTermYearCache = new Map();
+  var _warnedKeys = new Set();
 
   function _isMaintenanceCircuitOpen() {
     return Date.now() < _maintenanceUntil;
   }
 
-  function _tripMaintenanceCircuit(message) {
+  function _tripMaintenanceCircuit(message, reason) {
     _maintenanceUntil = Date.now() + _MAINTENANCE_CIRCUIT_MS;
-    _lastProxyFailure = { at: Date.now(), message: message || _config.maintenanceMessage };
+    _lastProxyFailure = {
+      at: Date.now(),
+      message: message || _config.maintenanceMessage,
+      reason: reason || 'KASI_UPSTREAM_ERROR'
+    };
+  }
+
+  function _isDevRuntime() {
+    try {
+      var host = String((w && w.location && w.location.hostname) || '').toLowerCase();
+      if (!host) return false;
+      return host === 'localhost' || host === '127.0.0.1' || host.indexOf('.local') > 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function _warnOnce(key, message, detail) {
+    var k = String(key || '').trim();
+    if (!k) return;
+    if (_warnedKeys.has(k)) return;
+    _warnedKeys.add(k);
+    if (!_isDevRuntime()) return;
+    try {
+      if (detail !== undefined) {
+        console.warn('[KASI]', message, detail);
+      } else {
+        console.warn('[KASI]', message);
+      }
+    } catch (e) {}
+  }
+
+  function _recordProxyFailure(message, reason) {
+    _kasiFailureStreak += 1;
+    _lastProxyFailure = {
+      at: Date.now(),
+      message: message || _config.maintenanceMessage,
+      reason: reason || 'KASI_UPSTREAM_ERROR'
+    };
+    if (_kasiFailureStreak >= _KASI_FAILURE_THRESHOLD) {
+      _tripMaintenanceCircuit(message, reason);
+      _warnOnce('kasi-circuit-open', 'KASI circuit breaker opened for 10 minutes', {
+        reason: reason || 'KASI_UPSTREAM_ERROR',
+        streak: _kasiFailureStreak
+      });
+    }
+  }
+
+  function _recordProxySuccess() {
+    _kasiFailureStreak = 0;
+  }
+
+  function _makeMethodCacheKey(method, params) {
+    var p = params && typeof params === 'object' ? params : {};
+    var keys = Object.keys(p).sort();
+    var parts = [];
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      parts.push(key + '=' + String(p[key] == null ? '' : p[key]));
+    }
+    return String(method || '') + '|' + parts.join('&');
+  }
+
+  function _readMethodCache(cacheKey) {
+    var hit = _methodCache.get(cacheKey);
+    if (!hit) return null;
+    if (Date.now() > hit.expiresAt) {
+      _methodCache.delete(cacheKey);
+      return null;
+    }
+    return _clone(hit.rows || []);
+  }
+
+  function _writeMethodCache(cacheKey, rows) {
+    _methodCache.set(cacheKey, {
+      expiresAt: Date.now() + _METHOD_CACHE_TTL_MS,
+      rows: _clone(Array.isArray(rows) ? rows : [])
+    });
   }
 
   var _IPCHUN_KEYS = [
@@ -222,6 +305,7 @@
 
   function _makeCacheKey(norm) {
     return [
+      'saju',
       norm.calendarType,
       norm.year,
       _pad2(norm.month),
@@ -233,6 +317,16 @@
       norm.longitude.toFixed(4),
       norm.tzOffsetHours
     ].join('|');
+  }
+
+  function _makeCalendarDateKey(norm) {
+    return [
+      'calendar',
+      norm.calendarType,
+      norm.year,
+      _pad2(norm.month),
+      _pad2(norm.day)
+    ].join(':');
   }
 
   function _readStorage(cacheKey) {
@@ -327,154 +421,156 @@
     try {
       w.dispatchEvent(new CustomEvent('kasi:maintenance', { detail: { message: msg } }));
     } catch (e) {}
-
-    if (typeof document === 'undefined') return;
-    var now = Date.now();
-    if (now - _lastNoticeAt < 15000) return;
-    _lastNoticeAt = now;
-
-    var existing = document.getElementById('kasiMaintenanceNotice');
-    if (existing) return;
-
-    var el = document.createElement('div');
-    el.id = 'kasiMaintenanceNotice';
-    el.textContent = msg;
-    el.style.position = 'fixed';
-    el.style.left = '50%';
-    el.style.bottom = '22px';
-    el.style.transform = 'translateX(-50%)';
-    el.style.zIndex = '9999';
-    el.style.maxWidth = '92vw';
-    el.style.padding = '10px 14px';
-    el.style.borderRadius = '10px';
-    el.style.background = 'rgba(17,24,39,.92)';
-    el.style.color = '#f9fafb';
-    el.style.fontSize = '12px';
-    el.style.lineHeight = '1.4';
-    el.style.boxShadow = '0 8px 24px rgba(0,0,0,.24)';
-    document.body.appendChild(el);
-
-    setTimeout(function () {
-      if (el && el.parentNode) el.parentNode.removeChild(el);
-    }, 3500);
+    _warnOnce('kasi-maintenance-notify', 'KASI fallback mode enabled');
   }
 
   async function _fetchKasi(method, params) {
-    var url = _resolveApiEndpoint();
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function () {
-      controller.abort();
-    }, _config.timeoutMs);
+    var methodParams = params || {};
+    var methodCacheKey = _makeMethodCacheKey(method, methodParams);
+    var cachedRows = _readMethodCache(methodCacheKey);
+    if (cachedRows) return cachedRows;
 
-    try {
-      var res = await fetch(url, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({ method: method, params: params || {} })
-      });
-      var rawText = await res.text();
-      var payload = null;
-      if (rawText) {
-        try {
-          payload = JSON.parse(rawText);
-        } catch (parseErr) {
-          var parseError = new Error('KASI 응답 파싱 실패(JSON 아님) for ' + method);
-          parseError.detail = parseErr && parseErr.message ? parseErr.message : null;
-          parseError.snippet = String(rawText).slice(0, 220);
-          parseError.maintenance = true;
-          _lastProxyFailure = {
-            at: Date.now(),
-            message: _config.maintenanceMessage
-          };
-          _notifyMaintenance(_config.maintenanceMessage);
-          console.error('[KASI] parse failure:', method, params || {}, parseError.detail, parseError.snippet);
-          throw parseError;
-        }
-      }
-
-      if (!res.ok) {
-        var error = new Error((payload && payload.message) || ('HTTP ' + res.status + ' for ' + method));
-        error.status = res.status;
-        error.maintenance = !!(payload && payload.maintenance);
-        error.code = (payload && payload.code) || null;
-        if (error.maintenance || res.status === 503) {
-          var failMsg = (payload && payload.message) || _config.maintenanceMessage;
-          _tripMaintenanceCircuit(failMsg);
-          _notifyMaintenance(failMsg);
-        }
-        console.error('[KASI] proxy failure:', method, params || {}, error.message);
-        throw error;
-      }
-      return (payload && Array.isArray(payload.rows)) ? payload.rows : [];
-    } finally {
-      clearTimeout(timeoutId);
+    if (_isMaintenanceCircuitOpen()) {
+      var circuitError = new Error('KASI circuit open');
+      circuitError.code = 'KASI_CIRCUIT_OPEN';
+      throw circuitError;
     }
+
+    var inflight = _methodInflight.get(methodCacheKey);
+    if (inflight) return inflight;
+
+    var task = (async function() {
+      var url = _resolveApiEndpoint();
+      var maxAttempts = 2; // initial + 1 retry
+      var lastError = null;
+
+      for (var attempt = 0; attempt < maxAttempts; attempt++) {
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function () {
+          controller.abort();
+        }, _config.timeoutMs);
+
+        try {
+          var res = await fetch(url, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            },
+            body: JSON.stringify({ method: method, params: methodParams })
+          });
+
+          var rawText = await res.text();
+          var payload = null;
+          if (rawText) {
+            try {
+              payload = JSON.parse(rawText);
+            } catch (parseErr) {
+              var parseError = new Error('KASI 응답 파싱 실패(JSON 아님) for ' + method);
+              parseError.code = 'KASI_PARSE_ERROR';
+              parseError.detail = parseErr && parseErr.message ? parseErr.message : null;
+              parseError.snippet = String(rawText).slice(0, 220);
+              throw parseError;
+            }
+          }
+
+          if (!res.ok || (payload && payload.ok === false)) {
+            var error = new Error(
+              (payload && payload.message)
+              || ('HTTP ' + res.status + ' for ' + method)
+            );
+            error.status = res.status;
+            error.code = (payload && payload.code) || 'KASI_UPSTREAM_ERROR';
+            throw error;
+          }
+
+          var rows = (payload && Array.isArray(payload.rows)) ? payload.rows : [];
+          _recordProxySuccess();
+          _writeMethodCache(methodCacheKey, rows);
+          return rows;
+        } catch (error) {
+          lastError = error;
+          var status = Number(error && error.status);
+          var isTimeout = !!(error && error.name === 'AbortError');
+          var retryable = isTimeout || !status || status === 408 || status === 429 || status >= 500;
+          if (!retryable || attempt >= (maxAttempts - 1)) {
+            break;
+          }
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
+
+      var failMessage = (lastError && lastError.message) || _config.maintenanceMessage;
+      var failCode = (lastError && lastError.code) || 'KASI_UPSTREAM_ERROR';
+      _recordProxyFailure(failMessage, failCode);
+      if (_isMaintenanceCircuitOpen()) {
+        _notifyMaintenance(failMessage);
+      }
+      throw lastError || new Error('KASI request failed');
+    })();
+
+    _methodInflight.set(methodCacheKey, task);
+    return task.finally(function() {
+      _methodInflight.delete(methodCacheKey);
+    });
   }
 
   async function _fetchSolarFromLunar(norm) {
     if (_isMaintenanceCircuitOpen()) return null;
     var leapMark = norm.calendarType === 'lunar_leap' ? '\uc724' : '\ud3c9';
-    var variants = [
-      { lunYear: norm.year, lunMonth: _pad2(norm.month), lunDay: _pad2(norm.day), lunLeapmonth: leapMark },
-      { lunYear: norm.year, lunMonth: norm.month, lunDay: norm.day, lunLeapmonth: leapMark },
-      { lunYear: norm.year, lunMonth: _pad2(norm.month), lunDay: _pad2(norm.day), leapMonth: leapMark }
-    ];
-
-    for (var i = 0; i < variants.length; i++) {
-      try {
-        var rows = await _fetchKasi('getSolCalInfo', variants[i]);
-        if (rows && rows.length) {
-          for (var r = 0; r < rows.length; r++) {
-            var row = rows[r];
-            var y = _toInt(_pick(row, ['solYear', 'year', 'solarYear']), null);
-            var m = _toInt(_pick(row, ['solMonth', 'month', 'solarMonth']), null);
-            var d = _toInt(_pick(row, ['solDay', 'day', 'solarDay']), null);
-            if (y && m && d) return { year: y, month: m, day: d, source: 'kasi' };
-          }
+    try {
+      var rows = await _fetchKasi('getSolCalInfo', {
+        lunYear: String(norm.year),
+        lunMonth: _pad2(norm.month),
+        lunDay: _pad2(norm.day),
+        lunLeapmonth: leapMark
+      });
+      if (rows && rows.length) {
+        for (var r = 0; r < rows.length; r++) {
+          var row = rows[r];
+          var y = _toInt(_pick(row, ['solYear', 'year', 'solarYear']), null);
+          var m = _toInt(_pick(row, ['solMonth', 'month', 'solarMonth']), null);
+          var d = _toInt(_pick(row, ['solDay', 'day', 'solarDay']), null);
+          if (y && m && d) return { year: y, month: m, day: d, source: 'kasi' };
         }
-      } catch (e) {
-        console.warn('[KASI] getSolCalInfo failed:', variants[i], e && e.message ? e.message : e);
       }
+    } catch (e) {
+      _warnOnce('kasi-getSolCalInfo-failed', 'getSolCalInfo fallback to local engine');
     }
     return null;
   }
 
   async function _fetchLunarFromSolar(solarDate) {
     if (_isMaintenanceCircuitOpen()) return null;
-    var variants = [
-      { solYear: solarDate.getFullYear(), solMonth: _pad2(solarDate.getMonth() + 1), solDay: _pad2(solarDate.getDate()) },
-      { solYear: solarDate.getFullYear(), solMonth: solarDate.getMonth() + 1, solDay: solarDate.getDate() }
-    ];
-
-    for (var i = 0; i < variants.length; i++) {
-      try {
-        var rows = await _fetchKasi('getLunCalInfo', variants[i]);
-        if (rows && rows.length) {
-          for (var r = 0; r < rows.length; r++) {
-            var row = rows[r];
-            var y = _toInt(_pick(row, ['lunYear', 'year', 'lunarYear']), null);
-            var m = _toInt(_pick(row, ['lunMonth', 'month', 'lunarMonth']), null);
-            var d = _toInt(_pick(row, ['lunDay', 'day', 'lunarDay']), null);
-            var leap = _isLeapValue(_pick(row, ['lunLeapmonth', 'isLeap', 'leapMonth']));
-            if (y && m && d) {
-              return {
-                year: y,
-                month: m,
-                day: d,
-                isLeap: leap,
-                source: 'kasi',
-                raw: row
-              };
-            }
+    try {
+      var rows = await _fetchKasi('getLunCalInfo', {
+        solYear: String(solarDate.getFullYear()),
+        solMonth: _pad2(solarDate.getMonth() + 1),
+        solDay: _pad2(solarDate.getDate())
+      });
+      if (rows && rows.length) {
+        for (var r = 0; r < rows.length; r++) {
+          var row = rows[r];
+          var y = _toInt(_pick(row, ['lunYear', 'year', 'lunarYear']), null);
+          var m = _toInt(_pick(row, ['lunMonth', 'month', 'lunarMonth']), null);
+          var d = _toInt(_pick(row, ['lunDay', 'day', 'lunarDay']), null);
+          var leap = _isLeapValue(_pick(row, ['lunLeapmonth', 'isLeap', 'leapMonth']));
+          if (y && m && d) {
+            return {
+              year: y,
+              month: m,
+              day: d,
+              isLeap: leap,
+              source: 'kasi',
+              raw: row
+            };
           }
         }
-      } catch (e) {
-        console.warn('[KASI] getLunCalInfo failed:', variants[i], e && e.message ? e.message : e);
       }
+    } catch (e) {
+      _warnOnce('kasi-getLunCalInfo-failed', 'getLunCalInfo fallback to local engine');
     }
 
     return null;
@@ -482,29 +578,28 @@
 
   async function _fetchSolarTerms(year, month, day) {
     if (_isMaintenanceCircuitOpen()) return [];
-    // 연도 전체 절기 조회 우선 시도 (월주 계산에 12개 중절 모두 필요)
-    var yearVariants = [
-      { solYear: year, numOfRows: 30 },
-      { solYear: year }
-    ];
-    for (var k = 0; k < yearVariants.length; k++) {
-      try {
-        var fullRows = await _fetchKasi('get24DivisionsInfo', yearVariants[k]);
-        if (fullRows && fullRows.length >= 12) return fullRows;
-      } catch (e) {}
+    var yearKey = 'solar-terms:' + String(year);
+    var cached = _solarTermYearCache.get(yearKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return _clone(cached.rows || []);
     }
-    // 날짜 기반 fallback
-    var variants = [
-      { solYear: year, solMonth: _pad2(month), solDay: _pad2(day) },
-      { solYear: year, solMonth: month, solDay: day },
-      { year: year, month: month, day: day }
-    ];
-    for (var i = 0; i < variants.length; i++) {
-      try {
-        var rows = await _fetchKasi('get24DivisionsInfo', variants[i]);
-        if (rows && rows.length) return rows;
-      } catch (e) {}
+
+    try {
+      var rows = await _fetchKasi('get24DivisionsInfo', {
+        solYear: String(year),
+        numOfRows: '30'
+      });
+      if (rows && rows.length) {
+        _solarTermYearCache.set(yearKey, {
+          expiresAt: Date.now() + _METHOD_CACHE_TTL_MS,
+          rows: _clone(rows)
+        });
+        return rows;
+      }
+    } catch (e) {
+      _warnOnce('kasi-get24DivisionsInfo-failed:' + String(year), 'get24DivisionsInfo fallback to local terms');
     }
+
     return [];
   }
 
@@ -807,6 +902,7 @@
       }
       cached.meta = cached.meta || {};
       cached.meta.fromCache = true;
+      cached.source = 'cache';
       if (options.setCurrent !== false) _setCurrent(cached);
       return Promise.resolve(cached);
     }
@@ -905,7 +1001,8 @@
       var context = {
         version: 1,
         cacheKey: cacheKey,
-        source: fallbackUsed ? (diagnostics.length ? 'mixed' : 'fallback') : 'kasi',
+        dateKey: _makeCalendarDateKey(norm),
+        source: fallbackUsed ? 'local' : 'kasi',
         input: {
           calendarType: norm.calendarType,
           year: norm.year,
@@ -946,11 +1043,19 @@
           fromCache: false,
           fallbackUsed: fallbackUsed,
           diagnostics: diagnostics,
+          warnings: fallbackUsed ? ['KASI_FALLBACK_USED'] : [],
           userMessage: hadProxyFailure ? (_lastProxyFailure && _lastProxyFailure.message) || _config.maintenanceMessage : null
         }
       };
 
       _applyAuthoritativeCalendarCorrection(context);
+
+      if (fallbackUsed && hadProxyFailure) {
+        _warnOnce('kasi-fallback-' + context.dateKey, 'KASI fallback used', {
+          dateKey: context.dateKey,
+          reason: (_lastProxyFailure && _lastProxyFailure.reason) || 'KASI_UPSTREAM_ERROR'
+        });
+      }
 
       _writeCache(cacheKey, context);
       if (options.setCurrent !== false) _setCurrent(context);
@@ -1033,6 +1138,10 @@
     clearCache: function () {
       _memoryCache.clear();
       _inflightCache.clear();
+      _methodCache.clear();
+      _methodInflight.clear();
+      _solarTermYearCache.clear();
+      _warnedKeys.clear();
       _namedContexts = Object.create(null);
       try {
         var keys = [];

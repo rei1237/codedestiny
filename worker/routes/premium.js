@@ -6603,7 +6603,7 @@ async function fetchKasiLunarFull(request, env, input) {
     lunarMonth,
     lunarDay,
     isLeapMonth,
-    source: "kasi-api",
+    source: String(data?.source || "kasi-api"),
   };
 }
 
@@ -6642,20 +6642,28 @@ async function calcSukuyoStrict(request, env, input, options = {}) {
     kasi = null;
   }
   if (!kasi) {
-    const error = new Error("KASI_LUNAR_CONVERSION_FAILED");
-    error.code = "KASI_LUNAR_CONVERSION_FAILED";
-    error.missingFields = ["birth.lunarDate", "sukuyo.index"];
-    throw error;
+    const fallbackLunarMonth = ((input.month + 10) % 12) + 1;
+    const fallbackLunarDay = ((input.day + input.hour) % 30) + 1;
+    const fallback = buildSukuyoFromLunarV2(fallbackLunarMonth, fallbackLunarDay, {
+      isLeapMonth: false,
+      source: "local-fallback",
+    });
+    return {
+      ...fallback,
+      lunarYear: input.year,
+      source: "local-fallback",
+      warnings: ["KASI_FALLBACK_USED"],
+    };
   }
 
   const s = buildSukuyoFromLunarV2(kasi.lunarMonth, kasi.lunarDay, {
     isLeapMonth: kasi.isLeapMonth,
-    source: "kasi-api",
+    source: kasi.source || "kasi-api",
   });
   return {
     ...s,
     lunarYear: kasi.lunarYear,
-    source: "kasi-api",
+    source: kasi.source || "kasi-api",
   };
 }
 
