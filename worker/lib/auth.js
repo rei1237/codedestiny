@@ -180,7 +180,7 @@ function extractTokenUserId(payload) {
 export async function requireAuth(request, env) {
   const session = await getSessionFromRequest(request, env);
   if (!session?.user?.id) {
-    throw createHttpError(401, "Authentication is required.", { code: "AUTH_REQUIRED" });
+    throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
   }
   return session.user;
 }

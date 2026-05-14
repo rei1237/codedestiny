@@ -651,7 +651,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260514-mbti-bloodtone1">
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260515-mobile-cacheguard1" media="(max-width: 1024px)">
 
-  <script src="/js/inline/api-base-init.js" defer></script>
+  <script src="/js/inline/api-base-init.js?v=20260515-auth-sameorigin1" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
@@ -6584,19 +6584,65 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return goldenPackages[0];
   }
 
-  function getApiBaseUrl() {
-    if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
-    if (window.__CD_API_BASE_URL) return String(window.__CD_API_BASE_URL).replace(/\/+$/, '');
-    if (window.__CF_PAGES_API_BASE_URL) return String(window.__CF_PAGES_API_BASE_URL).replace(/\/+$/, '');
-    try {
-      var custom = localStorage.getItem('fortune_api_base_url');
-      if (custom) return String(custom).replace(/\/+$/, '');
-    } catch (_e) {}
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return 'http://localhost:4000';
-    return location.origin;
+  function isLocalApiHost(hostname) {
+    var host = String(hostname || '').trim().toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
   }
 
-  var DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
+  function isWorkersDevApiBase(rawBase) {
+    var value = String(rawBase || '').trim();
+    if (!value) return false;
+    try {
+      var host = new URL(value).hostname.toLowerCase();
+      return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
+    } catch (_e) {
+      return /workers\.dev/i.test(value);
+    }
+  }
+
+  function isCurrentWorkersDevHost() {
+    try { return isWorkersDevApiBase(window.location.origin || ''); } catch (_e) { return false; }
+  }
+
+  function getApiBaseHostname(rawBase) {
+    try { return new URL(String(rawBase || '')).hostname; } catch (_e) { return ''; }
+  }
+
+  function normalizeAllowedApiBase(rawBase) {
+    var normalized = String(rawBase || '').trim().replace(/\/+$/, '');
+    if (!normalized) return '';
+    if (isWorkersDevApiBase(normalized) && !isCurrentWorkersDevHost()) return '';
+    return normalized;
+  }
+
+  function getApiBaseUrl() {
+    var currentOrigin = '';
+    try { currentOrigin = String(window.location.origin || '').replace(/\/+$/, ''); } catch (_e) {}
+    var isLocal = isLocalApiHost(location.hostname);
+    var candidates = [
+      window.CODE_DESTINY_API_BASE_URL,
+      window.__CD_API_BASE_URL,
+      window.__CF_PAGES_API_BASE_URL
+    ];
+    try { candidates.push(localStorage.getItem('fortune_api_base_url') || ''); } catch (_e) {}
+
+    if (isLocal) {
+      for (var i = 0; i < candidates.length; i += 1) {
+        var localCandidate = normalizeAllowedApiBase(candidates[i]);
+        if (localCandidate && isLocalApiHost(getApiBaseHostname(localCandidate))) return localCandidate;
+      }
+      return 'http://localhost:4000';
+    }
+
+    if (isCurrentWorkersDevHost()) {
+      for (var w = 0; w < candidates.length; w += 1) {
+        var workerCandidate = normalizeAllowedApiBase(candidates[w]);
+        if (workerCandidate) return workerCandidate;
+      }
+    }
+
+    return currentOrigin;
+  }
 
   function normalizeApiBaseCandidate(rawBase) {
     var base = String(rawBase || '').trim();
@@ -6613,6 +6659,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function rememberSuccessfulApiBase(base) {
     var normalized = normalizeApiBaseCandidate(base);
+    if (isWorkersDevApiBase(normalized) && !isCurrentWorkersDevHost()) return;
     if (!normalized) return;
     try { localStorage.setItem('fortune_api_base_url', normalized); } catch (_e) {}
     try {
@@ -6625,6 +6672,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function getApiBaseCandidatesForPath(path) {
     var normalizedPath = String(path || '');
     if (normalizedPath.charAt(0) !== '/') normalizedPath = '/' + normalizedPath;
+    var isApiPath = normalizedPath.indexOf('/api/') === 0;
 
     var out = [];
     var seen = Object.create(null);
@@ -6637,6 +6685,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       out.push(normalizedBase);
     }
 
+    if (isApiPath && !isLocalApiHost(location.hostname)) {
+      push('');
+      return out.length ? out : [''];
+    }
+
     push('');
     push(getApiBaseUrl());
     push(window.__CD_API_BASE_URL || '');
@@ -6644,7 +6697,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     push(window.__CF_PAGES_API_BASE_URL || '');
     try { push(localStorage.getItem('fortune_api_base_url') || ''); } catch (_e) {}
     try { push(window.location.origin || ''); } catch (_e) {}
-    push(DEFAULT_API_WORKER_ORIGIN);
 
     return out.length ? out : [''];
   }
@@ -7270,6 +7322,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
         }
         return false;
+      }
+      if (result.payload && result.payload.user && typeof result.payload.user.points === 'number') {
+        userBalance = Number(result.payload.user.points || 0);
+        saveBalance();
+        updateBadge();
       }
       if (_cdReconcileUnlocksWithServer(result.payload)) {
         saveTileLocks();
@@ -8514,7 +8571,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   updateBadge();
   refreshUnlockButtons();
   if(typeof applySectionGates==='function')applySectionGates();
-  void syncBalanceFromServer();
   void syncUnlocksFromServer();
 
   window.__cdSetGoldenBalance = function (points) {

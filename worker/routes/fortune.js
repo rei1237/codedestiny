@@ -530,7 +530,7 @@ async function resolvePigCoinConsumeAuth(request, env) {
     : false;
 
   if (!auth && !adminMode) {
-    throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
+    throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
   }
 
   return { auth, adminMode };
@@ -809,12 +809,12 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const env = options?.env || {};
   const adminMode = Boolean(options?.adminMode);
   if (!auth && !adminMode) {
-    return json({ message: "Authentication is required.", code: "AUTH_REQUIRED" }, { status: 401 });
+    return json({ message: "로그인이 필요합니다.", code: "AUTH_REQUIRED" }, { status: 401 });
   }
 
   const authUserId = String(auth?.userId || "").trim();
   if (!adminMode && !/^[a-f0-9]{24}$/i.test(authUserId)) {
-    return json({ message: "Authentication is required.", code: "AUTH_REQUIRED" }, { status: 401 });
+    return json({ message: "로그인이 필요합니다.", code: "AUTH_REQUIRED" }, { status: 401 });
   }
 
   const body = await readJson(request);
