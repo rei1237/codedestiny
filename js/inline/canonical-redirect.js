@@ -42,6 +42,15 @@
     if (!loc) return;
     var protocol = String(loc.protocol || '').toLowerCase();
     if (protocol !== 'http:' && protocol !== 'https:') return;
+
+    var host = String(loc.hostname || '').toLowerCase();
+    var isLocalHost = host === 'localhost'
+      || host === '127.0.0.1'
+      || host === '[::1]'
+      || host === '::1'
+      || host.endsWith('.local');
+    if (isLocalHost) return;
+
     if (protocol === 'https:') return;
     var next = new URL(loc.href);
     next.protocol = 'https:';
