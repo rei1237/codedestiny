@@ -14,6 +14,16 @@ import {
   getPremiumSpecByFeatureType,
   getPremiumSpecByReportType,
 } from "../lib/premium-pdf-specs.js";
+import { getPremiumPdfV2ChapterPlan } from "../lib/pdf-v2/chapter-plans.js";
+import {
+  PREMIUM_PDF_V2_BANNED_PHRASES,
+  validateChapterData,
+  validateGeneratedChapterText,
+} from "../lib/pdf-v2/validation.js";
+import { PREMIUM_PDF_V2_SYSTEM_PROMPT } from "../lib/pdf-v2/prompts/system-prompt.js";
+import { buildPromptTemplatesForReportType } from "../lib/pdf-v2/prompts/template-factory.js";
+import { createPremiumPdfJob } from "../lib/pdf-v2/premium-pdf.service.js";
+import { createPremiumPdfPaymentManager } from "../lib/pdf-v2/payment-manager.js";
 import {
   getSwissWesternChart as getLocalSwissWesternChart,
   getSwissVedicPlanets as getLocalSwissVedicPlanets,
@@ -1269,6 +1279,21 @@ function createPremiumRequestId(seed = "") {
   return `prq_${ts}_${suffix}`;
 }
 
+function isPremiumPdfV2Enabled(env) {
+  return String(env?.PDF_V2_ENABLED || "").trim().toLowerCase() === "true";
+}
+
+function updatePremiumPaymentState(context, state, reason = "") {
+  if (!context || typeof context !== "object") return;
+  const payment = context.payment && typeof context.payment === "object" ? context.payment : {};
+  context.payment = {
+    ...payment,
+    state: String(state || payment.state || "").trim(),
+    stateReason: String(reason || "").trim(),
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
 function getPremiumRequiredChapters(reportType, mode = "") {
   const spec = getPremiumSpecByReportType(reportType, mode);
   if (spec && Number(spec.chapterCount || 0) > 0) {
@@ -1463,55 +1488,52 @@ function getPremiumExpectedSchema(reportType) {
   const byType = {
     ziweiPremium: {
       requiredNormalizedKeys: [
-        "normalizedData.meta",
-        "normalizedData.userProfile",
-        "normalizedData.ziwei.chart.mingGong",
-        "normalizedData.ziwei.palaces",
-        "normalizedData.ziwei.stars.major",
+        "normalizedData.profile",
+        "normalizedData.chart",
+        "normalizedData.palaces",
+        "normalizedData.fourTransformations",
+        "normalizedData.luckCycles",
       ],
     },
     lifeBook: {
       requiredNormalizedKeys: [
-        "normalizedData.meta",
-        "normalizedData.userProfile",
-        "normalizedData.saju.pillars",
-        "normalizedData.saju.dayMaster",
-        "normalizedData.saju.fiveElements",
+        "normalizedData.profile",
+        "normalizedData.chart",
+        "normalizedData.elements",
+        "normalizedData.usefulGods",
+        "normalizedData.luckCycles",
       ],
     },
     loveSecret: {
       requiredNormalizedKeys: [
-        "normalizedData.meta",
-        "normalizedData.userProfile",
-        "normalizedData.saju.pillars",
-        "normalizedData.saju.interpretation.relationship",
+        "normalizedData.profile",
+        "normalizedData.chart",
+        "normalizedData.lovePattern",
+        "normalizedData.datingAdvice",
+        "normalizedData.luckCycles",
       ],
     },
     sookyoPremium: {
       requiredNormalizedKeys: [
-        "normalizedData.meta",
-        "normalizedData.userProfile",
-        "normalizedData.sukuyo.birthStar",
-        "normalizedData.sukuyo.interpretation",
+        "normalizedData.profile",
+        "normalizedData.宿曜",
+        "normalizedData.mansionAnalysis",
+        "normalizedData.fortuneCycles",
       ],
     },
     vedicPremium: {
       requiredNormalizedKeys: [
-        "normalizedData.meta",
-        "normalizedData.userProfile",
-        "normalizedData.vedic.chart.lagna",
-        "normalizedData.vedic.planets",
-        "normalizedData.vedic.houses",
+        "normalizedData.profile",
+        "normalizedData.chart",
+        "normalizedData.dasha",
+        "normalizedData.analysis",
       ],
     },
     westernAstrologyPremium: {
       requiredNormalizedKeys: [
-        "normalizedData.meta",
-        "normalizedData.userProfile",
-        "normalizedData.westernAstrology.chart.sunSign",
-        "normalizedData.westernAstrology.planets",
-        "normalizedData.westernAstrology.houses",
-        "normalizedData.westernAstrology.aspects",
+        "normalizedData.profile",
+        "normalizedData.natalChart",
+        "normalizedData.analysis",
       ],
     },
   };
@@ -1545,24 +1567,32 @@ function getPremiumNormalizedDataSummary(reportType, canonicalJson) {
     }
     return {
       hasBirthInfo,
-      hasZiweiChart: hasMeaningfulValue(calculated?.chartMeta?.mingGong),
+      hasZiweiChart: hasMeaningfulValue(calculated?.chart?.mingGong),
       palaceCount,
       majorStarCount,
     };
   }
 
-  if (reportType === "lifeBook" || reportType === "loveSecret") {
+  if (reportType === "lifeBook") {
     return {
       hasBirthInfo,
-      hasSaju: hasMeaningfulValue(calculated?.saju?.fourPillars?.year) || hasMeaningfulValue(calculated?.saju?.dayMaster),
-      hasUsefulGods: hasMeaningfulValue(calculated?.saju?.usefulGods?.yongsin?.element),
+      hasSaju: hasMeaningfulValue(calculated?.chart?.yearPillar?.ganji) || hasMeaningfulValue(calculated?.chart?.dayMaster),
+      hasUsefulGods: hasMeaningfulValue(calculated?.usefulGods?.yongshin),
+    };
+  }
+
+  if (reportType === "loveSecret") {
+    return {
+      hasBirthInfo,
+      hasSaju: hasMeaningfulValue(calculated?.chart?.dayMaster) || hasMeaningfulValue(calculated?.chart?.spousePalace),
+      hasLoveSignals: Array.isArray(calculated?.chart?.relationshipStars) && calculated.chart.relationshipStars.length > 0,
     };
   }
 
   if (reportType === "sookyoPremium") {
     return {
       hasBirthInfo,
-      hasSukuyo: hasMeaningfulValue(calculated?.nativeSook?.nameKo) || hasMeaningfulValue(calculated?.compatibility?.relationType),
+      hasSukuyo: hasMeaningfulValue(calculated?.["宿曜"]?.birthMansion) || hasMeaningfulValue(calculated?.compatibility?.relationType),
       hasCompatibility: hasMeaningfulValue(calculated?.compatibility?.relationType),
     };
   }
@@ -1570,19 +1600,19 @@ function getPremiumNormalizedDataSummary(reportType, canonicalJson) {
   if (reportType === "vedicPremium") {
     return {
       hasBirthInfo,
-      hasVedicChart: hasMeaningfulValue(calculated?.lagna?.name),
-      planetCount: calculated?.planets && typeof calculated.planets === "object" ? Object.keys(calculated.planets).length : 0,
-      houseCount: Array.isArray(calculated?.houses) ? calculated.houses.length : 0,
+      hasVedicChart: hasMeaningfulValue(calculated?.chart?.lagna),
+      planetCount: Array.isArray(calculated?.chart?.planets) ? calculated.chart.planets.length : 0,
+      houseCount: Array.isArray(calculated?.chart?.houses) ? calculated.chart.houses.length : 0,
     };
   }
 
   if (reportType === "westernAstrologyPremium") {
     return {
       hasBirthInfo,
-      hasAstroChart: hasMeaningfulValue(calculated?.angles?.ascendant?.sign) || hasMeaningfulValue(calculated?.planets?.sun?.sign),
-      planetCount: calculated?.planets && typeof calculated.planets === "object" ? Object.keys(calculated.planets).length : 0,
-      houseCount: Array.isArray(calculated?.houses) ? calculated.houses.length : 0,
-      aspectCount: Array.isArray(calculated?.aspects) ? calculated.aspects.length : 0,
+      hasAstroChart: hasMeaningfulValue(calculated?.natalChart?.ascendant) || hasMeaningfulValue(calculated?.natalChart?.sunSign),
+      planetCount: Array.isArray(calculated?.natalChart?.planets) ? calculated.natalChart.planets.length : 0,
+      houseCount: Array.isArray(calculated?.natalChart?.houses) ? calculated.natalChart.houses.length : 0,
+      aspectCount: Array.isArray(calculated?.natalChart?.aspects) ? calculated.natalChart.aspects.length : 0,
     };
   }
 
@@ -1831,62 +1861,62 @@ function buildFeatureDataJson(reportType, canonicalJson = {}) {
   if (reportType === "lifeBook") {
     return {
       type: reportType,
-      identity: calculatedData?.integratedThemes?.coreIdentity || [],
-      mission: calculatedData?.integratedThemes?.lifeMission || [],
-      timeline: calculatedData?.timeline || {},
-      saju: calculatedData?.saju || {},
-      crossSystems: {
-        ziwei: calculatedData?.ziwei || {},
-        westernAstrology: calculatedData?.westernAstrology || {},
-        vedic: calculatedData?.vedic || {},
-        sookyo: calculatedData?.sookyo || {},
-      },
+      profile: calculatedData?.profile || {},
+      chart: calculatedData?.chart || {},
+      elements: calculatedData?.elements || {},
+      usefulGods: calculatedData?.usefulGods || {},
+      personality: calculatedData?.personality || {},
+      luckCycles: calculatedData?.luckCycles || {},
+      lifeThemes: calculatedData?.lifeThemes || {},
     };
   }
   if (reportType === "loveSecret") {
     return {
       type: reportType,
-      self: calculatedData?.self || {},
-      compatibility: calculatedData?.compatibility || {},
-      optionalCrossSystems: calculatedData?.optionalCrossSystems || {},
+      profile: calculatedData?.profile || {},
+      chart: calculatedData?.chart || {},
+      lovePattern: calculatedData?.lovePattern || {},
+      datingAdvice: calculatedData?.datingAdvice || {},
+      luckCycles: calculatedData?.luckCycles || {},
     };
   }
   if (reportType === "westernAstrologyPremium") {
     return {
       type: reportType,
-      birthInfo: calculatedData?.birthInfo || {},
-      angles: calculatedData?.angles || {},
-      planets: calculatedData?.planets || {},
-      houses: calculatedData?.houses || [],
-      aspects: calculatedData?.aspects || [],
+      profile: calculatedData?.profile || {},
+      natalChart: calculatedData?.natalChart || {},
+      analysis: calculatedData?.analysis || {},
+      transits: calculatedData?.transits || {},
     };
   }
   if (reportType === "vedicPremium") {
     return {
       type: reportType,
-      birthInfo: calculatedData?.birthInfo || {},
-      lagna: calculatedData?.lagna || {},
-      planets: calculatedData?.planets || {},
-      dashas: calculatedData?.dashas || {},
-      karakas: calculatedData?.karakas || {},
+      profile: calculatedData?.profile || {},
+      chart: calculatedData?.chart || {},
+      dasha: calculatedData?.dasha || {},
+      analysis: calculatedData?.analysis || {},
     };
   }
   if (reportType === "ziweiPremium") {
     return {
       type: reportType,
-      coreChart: calculatedData?.coreChart || {},
+      profile: calculatedData?.profile || {},
+      chart: calculatedData?.chart || {},
       palaces: calculatedData?.palaces || {},
-      cycles: calculatedData?.cycles || {},
-      relationshipData: calculatedData?.relationshipData || {},
+      fourTransformations: calculatedData?.fourTransformations || {},
+      starStrengthLegend: calculatedData?.starStrengthLegend || {},
+      luckCycles: calculatedData?.luckCycles || {},
     };
   }
   if (reportType === "sookyoPremium") {
     return {
       type: reportType,
-      birthInfo: calculatedData?.birthInfo || {},
-      nativeSook: calculatedData?.nativeSook || {},
+      profile: calculatedData?.profile || {},
+      "宿曜": calculatedData?.["宿曜"] || {},
+      mansionAnalysis: calculatedData?.mansionAnalysis || {},
       compatibility: calculatedData?.compatibility || {},
-      cycleData: calculatedData?.cycleData || {},
+      fortuneCycles: calculatedData?.fortuneCycles || {},
     };
   }
   return {
@@ -2184,123 +2214,193 @@ function mapZiweiPalaces(canonical) {
     : (canonical?.palaces && typeof canonical.palaces === "object")
       ? Object.values(canonical.palaces)
       : [];
-  const byKey = new Map();
-  sourcePalaces.forEach((palace) => {
-    const key = String(palace?.palaceKey || palace?.key || "").trim();
-    if (key) byKey.set(key, palace);
-  });
-  const keyMap = {
-    ming: "ming",
-    siblings: "siblings",
-    spouse: "spouse",
-    children: "children",
-    wealth: "wealth",
-    health: "health",
-    travel: "travel",
-    friends: "friends",
-    career: "career",
-    property: "property",
-    fortune: "fortune",
-    parents: "parents",
-  };
-  const result = {};
-  Object.entries(keyMap).forEach(([targetKey, sourceKey]) => {
-    const p = byKey.get(sourceKey) || {};
-    const mainStars = Array.isArray(p.mainStars) ? p.mainStars : (Array.isArray(p.stars) ? p.stars : []);
-    const auxiliaryStars = Array.isArray(p.auxStars) ? p.auxStars : (Array.isArray(p.auxiliaryStars) ? p.auxiliaryStars : []);
-    const maleficStars = Array.isArray(p.maleficStars) ? p.maleficStars : [];
-    const starBrightness = {};
-    [...mainStars, ...auxiliaryStars, ...maleficStars].forEach((star) => {
-      const name = String(star?.nameKo || star?.name || "").trim();
-      if (!name) return;
-      starBrightness[name] = {
-        brightness: star?.brightnessKo || star?.brightness || "",
-        symbol: star?.symbol || "",
-      };
-    });
+  return sourcePalaces;
+}
 
-    result[targetKey] = {
-      name: p.palaceNameKo || p.palaceName || p.nameKo || p.name || "",
-      earthlyBranch: p.branch || "",
-      mainStars,
-      minorStars: Array.isArray(p.minorStars) ? p.minorStars : [],
-      auxiliaryStars,
-      maleficStars,
-      fourTransformations: Array.isArray(p.transformations) ? p.transformations : [],
-      starBrightness,
-    };
-  });
-  return result;
+function mapZiweiStarStrengthSymbol(rawSymbol, rawStrength) {
+  const normalizedSymbol = normalizeZiweiStrengthSymbol(rawSymbol);
+  if (normalizedSymbol === "◎" || normalizedSymbol === "○" || normalizedSymbol === "△" || normalizedSymbol === "×") {
+    return normalizedSymbol;
+  }
+
+  const strength = normalizeZiweiStrengthLabel(rawStrength);
+  if (strength === "묘" || strength === "왕") return "◎";
+  if (strength === "득" || strength === "평") return "○";
+  if (strength === "리") return "△";
+  if (strength === "함") return "×";
+  return "△";
+}
+
+function mapZiweiStarMeaning(star, strengthSymbol) {
+  const directMeaning = String(
+    star?.meaning
+      || star?.interpretation
+      || star?.summary
+      || star?.positiveMeaning
+      || "",
+  ).trim();
+  if (directMeaning) return directMeaning;
+
+  if (strengthSymbol === "◎") return "핵심 기운이 강하게 작동해 성과 확장에 유리합니다.";
+  if (strengthSymbol === "○") return "안정적으로 작동하며 운영 품질에 따라 성과를 확장할 수 있습니다.";
+  if (strengthSymbol === "△") return "조건부로 작동하므로 상황별 보정 전략이 필요합니다.";
+  return "불리한 배치로 방어 전략과 리스크 관리가 우선입니다.";
+}
+
+function mapZiweiStarData(star) {
+  const raw = (star && typeof star === "object") ? star : { name: star };
+  const name = String(raw?.nameKo || raw?.name || "").trim();
+  if (!name) return null;
+  const strengthRaw = String(raw?.brightnessKo || raw?.brightness || raw?.strength || "").trim();
+  const strengthSymbol = mapZiweiStarStrengthSymbol(raw?.symbol, strengthRaw);
+  const meaning = mapZiweiStarMeaning(raw, strengthSymbol);
+  return {
+    name,
+    strengthRaw: strengthRaw || undefined,
+    strengthSymbol,
+    meaning,
+  };
+}
+
+function mapZiweiTransformationValue(value) {
+  if (Array.isArray(value)) {
+    const lines = value
+      .map((item) => mapZiweiTransformationValue(item))
+      .filter(Boolean);
+    return lines.join(", ");
+  }
+  if (value && typeof value === "object") {
+    const star = String(value?.star || value?.starName || value?.name || "").trim();
+    const type = String(value?.type || value?.label || "").trim();
+    const palace = String(value?.palace || value?.palaceName || "").trim();
+    return [star, type, palace].filter(Boolean).join(" ");
+  }
+  return String(value || "").trim();
+}
+
+function mapZiweiPalaceTransformations(rawTransformations) {
+  if (!Array.isArray(rawTransformations)) return [];
+  const out = [];
+  for (let i = 0; i < rawTransformations.length; i += 1) {
+    const text = mapZiweiTransformationValue(rawTransformations[i]);
+    if (!text) continue;
+    out.push(text);
+  }
+  return out;
+}
+
+function buildZiweiPalaceStrengthSummary(mainStars = []) {
+  if (!Array.isArray(mainStars) || mainStars.length === 0) {
+    return "주성 정보가 없어 보조성/잡성 중심으로 해석합니다.";
+  }
+
+  let strong = 0;
+  let stable = 0;
+  let conditional = 0;
+  let weak = 0;
+  for (let i = 0; i < mainStars.length; i += 1) {
+    const symbol = String(mainStars[i]?.strengthSymbol || "").trim();
+    if (symbol === "◎") strong += 1;
+    else if (symbol === "○") stable += 1;
+    else if (symbol === "△") conditional += 1;
+    else if (symbol === "×") weak += 1;
+  }
+  return `주성 강도 분포: ◎ ${strong} / ○ ${stable} / △ ${conditional} / × ${weak}`;
+}
+
+function mapZiweiPalaceData(rawPalace) {
+  const raw = rawPalace && typeof rawPalace === "object" ? rawPalace : {};
+  const mainStarsRaw = Array.isArray(raw?.mainStars) ? raw.mainStars : (Array.isArray(raw?.stars) ? raw.stars : []);
+  const minorStarsRaw = Array.isArray(raw?.minorStars) ? raw.minorStars : [];
+  const auxiliaryStarsRaw = Array.isArray(raw?.auxStars) ? raw.auxStars : (Array.isArray(raw?.auxiliaryStars) ? raw.auxiliaryStars : []);
+
+  const mainStars = [];
+  for (let i = 0; i < mainStarsRaw.length; i += 1) {
+    const mapped = mapZiweiStarData(mainStarsRaw[i]);
+    if (mapped) mainStars.push(mapped);
+  }
+
+  const minorStars = [];
+  for (let i = 0; i < minorStarsRaw.length; i += 1) {
+    const mapped = mapZiweiStarData(minorStarsRaw[i]);
+    if (mapped) minorStars.push(mapped);
+  }
+
+  const auxiliaryStars = [];
+  for (let i = 0; i < auxiliaryStarsRaw.length; i += 1) {
+    const mapped = mapZiweiStarData(auxiliaryStarsRaw[i]);
+    if (mapped) auxiliaryStars.push(mapped);
+  }
+
+  const palaceName = String(raw?.palaceNameKo || raw?.palaceName || raw?.nameKo || raw?.name || raw?.key || "").trim();
+  const branch = String(raw?.branch || raw?.earthlyBranch || "").trim();
+
+  return {
+    palaceName,
+    branch,
+    mainStars,
+    minorStars,
+    auxiliaryStars,
+    transformations: mapZiweiPalaceTransformations(raw?.transformations),
+    strengthSummary: buildZiweiPalaceStrengthSummary(mainStars),
+  };
 }
 
 function mapZiweiCalculatedData(canonical) {
-  const palaces = mapZiweiPalaces(canonical);
+  const sourcePalaces = mapZiweiPalaces(canonical);
+  const palaces = [];
+  for (let i = 0; i < sourcePalaces.length; i += 1) {
+    palaces.push(mapZiweiPalaceData(sourcePalaces[i]));
+  }
+
   const fourTransforms = canonical?.transformations || {};
-  const ziweiStar = Object.values(palaces)
-    .flatMap((p) => Array.isArray(p.mainStars) ? p.mainStars : [])
-    .find((s) => String(s?.nameKo || s?.name || "").includes("자미")) || {};
+  const huaLu = mapZiweiTransformationValue(canonical?.fourTransformations?.huaLu || fourTransforms?.huaLu || "");
+  const huaQuan = mapZiweiTransformationValue(canonical?.fourTransformations?.huaQuan || fourTransforms?.huaQuan || "");
+  const huaKe = mapZiweiTransformationValue(canonical?.fourTransformations?.huaKe || fourTransforms?.huaKe || "");
+  const huaJi = mapZiweiTransformationValue(canonical?.fourTransformations?.huaJi || fourTransforms?.huaJi || "");
+
+  const annualSource = canonical?.luck?.annual;
+  const annualLuck = Array.isArray(annualSource)
+    ? annualSource
+    : (annualSource && typeof annualSource === "object" ? [annualSource] : []);
 
   return {
-    birthInfo: {
-      solarDate: canonical?.profile?.birth?.solarDate || "",
-      lunarDate: canonical?.profile?.birth?.lunarDate || "",
-      birthTimeBranch: canonical?.profile?.birth?.timeBranch || "",
-      gender: canonical?.profile?.gender || "",
-      yinYangGenderDirection: canonical?.chartMeta?.fortuneDirection || "",
-      calendarConversionSource: canonical?.chartMeta?.calculationSource || "",
+    profile: {
+      name: String(canonical?.profile?.name || "").trim() || undefined,
+      gender: String(canonical?.profile?.gender || "").trim() || undefined,
+      birthDate: String(canonical?.profile?.birth?.solarDate || "").trim(),
+      birthTime: String(canonical?.profile?.birth?.time || canonical?.profile?.birth?.timeBranch || "").trim() || undefined,
+      lunarDate: String(canonical?.profile?.birth?.lunarDate || "").trim() || undefined,
     },
-    coreChart: {
-      mingGong: canonical?.chartMeta?.mingGong || "",
-      shenGong: canonical?.chartMeta?.shenGong || "",
-      juType: canonical?.chartMeta?.juType || canonical?.chartMeta?.bureauType || "",
-      fiveElementBureau: canonical?.chartMeta?.fiveElementBureau || "",
-      lifeMasterStar: canonical?.chartMeta?.lifeMasterStar || "",
-      bodyMasterStar: canonical?.chartMeta?.bodyMasterStar || "",
+    chart: {
+      mingGong: String(canonical?.chartMeta?.mingGong || "").trim(),
+      shenGong: String(canonical?.chartMeta?.shenGong || "").trim(),
+      bodyMaster: String(canonical?.chartMeta?.bodyMasterStar || "").trim() || undefined,
+      lifeMaster: String(canonical?.chartMeta?.lifeMasterStar || "").trim() || undefined,
+      fiveElementClass: String(canonical?.chartMeta?.fiveElementBureau || canonical?.chartMeta?.juType || canonical?.chartMeta?.bureauType || "").trim() || undefined,
     },
     palaces,
-    stars: {
-      ziwei: {
-        palace: ziweiStar?.palaceNameKo || ziweiStar?.palace || "",
-        brightness: ziweiStar?.brightnessKo || ziweiStar?.brightness || "",
-        symbol: ziweiStar?.symbol || "",
-        role: ziweiStar?.role || "",
-        positiveMeaning: ziweiStar?.positiveMeaning || "",
-        negativeMeaning: ziweiStar?.negativeMeaning || "",
-      },
-    },
     fourTransformations: {
-      huaLu: canonical?.fourTransformations?.huaLu || fourTransforms?.huaLu || {},
-      huaQuan: canonical?.fourTransformations?.huaQuan || fourTransforms?.huaQuan || {},
-      huaKe: canonical?.fourTransformations?.huaKe || fourTransforms?.huaKe || {},
-      huaJi: canonical?.fourTransformations?.huaJi || fourTransforms?.huaJi || {},
+      huaLu: huaLu || undefined,
+      huaQuan: huaQuan || undefined,
+      huaKe: huaKe || undefined,
+      huaJi: huaJi || undefined,
+      byStem: String(
+        canonical?.fourTransformations?.byStem
+          || fourTransforms?.byStem
+          || canonical?.chartMeta?.yearStem
+          || "",
+      ).trim() || undefined,
     },
-    sanFangSiZheng: {
-      mingGongTriangle: canonical?.sanFangSiZheng?.mingGongTriangle || {},
-      careerTriangle: canonical?.sanFangSiZheng?.careerTriangle || {},
-      wealthTriangle: canonical?.sanFangSiZheng?.wealthTriangle || {},
-      relationshipTriangle: canonical?.sanFangSiZheng?.relationshipTriangle || {},
+    starStrengthLegend: {
+      "◎": "묘/왕 수준의 강한 힘",
+      "○": "평/득 수준의 안정된 힘",
+      "△": "약하거나 조건부로 작동하는 힘",
+      "×": "함/불리한 배치",
     },
-    cycles: {
-      daXian: Array.isArray(canonical?.luck?.decadePeriods) ? canonical.luck.decadePeriods : [],
-      annual: Array.isArray(canonical?.luck?.annual) ? canonical.luck.annual : [],
-      monthly: Array.isArray(canonical?.luck?.monthly) ? canonical.luck.monthly : [],
-    },
-    relationshipData: {
-      spousePalace: palaces.spouse || {},
-      romanceStars: canonical?.relationshipData?.romanceStars || [],
-      marriageRiskSignals: canonical?.relationshipData?.marriageRiskSignals || [],
-      compatibilityHints: canonical?.relationshipData?.compatibilityHints || [],
-    },
-    careerData: {
-      careerPalace: palaces.career || {},
-      wealthPalace: palaces.wealth || {},
-      authorityStars: canonical?.careerData?.authorityStars || [],
-      suitableFields: canonical?.careerData?.suitableFields || [],
-    },
-    healthData: {
-      healthPalace: palaces.health || {},
-      weakElements: canonical?.healthData?.weakElements || [],
-      stressSignals: canonical?.healthData?.stressSignals || [],
+    luckCycles: {
+      decadeLuck: Array.isArray(canonical?.luck?.decadePeriods) ? canonical.luck.decadePeriods : [],
+      annualLuck,
     },
   };
 }
@@ -2309,53 +2409,58 @@ function mapSookyoCalculatedData(canonical, requestBody) {
   const personA = canonical?.personA || {};
   const personB = canonical?.personB || {};
   const comp = canonical?.compatibility || {};
+  const strengths = Array.isArray(personA?.profile?.strengths) ? personA.profile.strengths : [];
+  const weaknesses = Array.isArray(personA?.profile?.weaknesses) ? personA.profile.weaknesses : [];
+  const profileAdvice = String(personA?.profile?.growthAdvice || "").trim();
+
+  const toCycleArray = (raw) => {
+    if (Array.isArray(raw)) return raw;
+    if (raw && typeof raw === "object") return [raw];
+    return [];
+  };
+
+  const compatibility = {
+    targetName: String(personB?.profile?.name || "").trim() || undefined,
+    targetMansion: String(personB?.sukuyo?.nameKo || personB?.sukuyo?.name || "").trim() || undefined,
+    relationType: String(comp?.relationType || "").trim() || undefined,
+    distance: Number.isFinite(Number(comp?.distance)) ? Number(comp.distance) : undefined,
+    summary: String(
+      comp?.summary
+      || comp?.emotionalCompatibility
+      || comp?.longTermPotential
+      || "",
+    ).trim() || undefined,
+  };
+
+  const hasCompatibility = Object.values(compatibility).some((value) => hasMeaningfulValue(value));
+
   return {
-    birthInfo: {
-      solarDate: personA?.birth?.solarDate || "",
-      lunarDate: personA?.birth?.lunarDate || "",
-      moonLongitude: canonical?.calculationMeta?.moonLongitude || "",
-      moonMansionIndex: personA?.sukuyo?.index || "",
-      calculationSource: canonical?.calculationMeta?.source || "KASI",
+    profile: {
+      name: String(personA?.profile?.name || "").trim() || undefined,
+      birthDate: String(personA?.birth?.solarDate || "").trim(),
+      birthTime: String(personA?.birth?.time || "").trim() || undefined,
+      lunarDate: String(personA?.birth?.lunarDate || "").trim() || undefined,
     },
-    nativeSook: {
-      name: personA?.sukuyo?.nameKo || "",
-      number: Number(personA?.sukuyo?.index || 0),
-      group: personA?.sukuyo?.group || "",
-      animalSymbol: personA?.sukuyo?.animalSymbol || "",
-      elementSymbol: personA?.sukuyo?.element || "",
-      personalityArchetype: personA?.profile?.archetype || "",
-      strengths: personA?.profile?.strengths || [],
-      weaknesses: personA?.profile?.weaknesses || [],
-      relationshipPattern: personA?.profile?.relationshipPattern || "",
-      careerPattern: personA?.profile?.careerPattern || "",
-      emotionalPattern: personA?.profile?.emotionalPattern || "",
+    "宿曜": {
+      birthMansion: String(personA?.sukuyo?.nameKo || personA?.sukuyo?.name || "").trim(),
+      birthMansionIndex: Number(personA?.sukuyo?.index || 0),
+      mansionGroup: String(personA?.sukuyo?.group || "").trim(),
+      guardianDeity: String(personA?.sukuyo?.guardianDeity || personA?.sukuyo?.deity || "").trim() || undefined,
+      coreNature: String(personA?.profile?.archetype || personA?.profile?.emotionalPattern || "").trim(),
     },
-    twentySevenSook: SUKUYO_MANSIONS.map((row, idx) => ({
-      number: idx + 1,
-      name: row[0],
-      modernTitle: row[2],
-      symbol: row[5],
-      keywords: [row[3], row[4]].filter(Boolean),
-      meaning: `${row[0]}宿 (${row[1]})`,
-    })),
-    compatibility: {
-      partnerInput: personB?.birth || {},
-      partnerSook: personB?.sukuyo || {},
-      distance: Number(comp?.distance || 0),
-      relationshipType: comp?.relationType || "",
-      direction: comp?.direction || "",
-      chemistryScore: Number(comp?.chemistryScore || 0),
-      emotionalCompatibility: comp?.emotionalCompatibility || "",
-      conflictPattern: comp?.conflictPattern || "",
-      longTermPotential: comp?.longTermPotential || "",
-      physicalChemistryHints: comp?.physicalChemistryHints || "",
-      communicationStyle: comp?.communicationStyle || "",
-      relationshipAdvice: comp?.relationshipAdvice || [],
+    mansionAnalysis: {
+      personality: String(personA?.profile?.emotionalPattern || personA?.profile?.archetype || "").trim(),
+      relationshipStyle: String(personA?.profile?.relationshipPattern || "").trim(),
+      workStyle: String(personA?.profile?.careerPattern || "").trim(),
+      wealthStyle: String(personA?.profile?.wealthPattern || personA?.profile?.careerPattern || "").trim(),
+      weakness: weaknesses.length ? weaknesses.join(", ") : "",
+      growthAdvice: profileAdvice || (strengths.length ? `강점(${strengths.slice(0, 2).join(", ")})을 일상 루틴으로 고정하세요.` : ""),
     },
-    cycleData: {
-      daily: canonical?.cycleData?.daily || {},
-      monthly: canonical?.cycleData?.monthly || {},
-      yearly: canonical?.cycleData?.yearly || {},
+    compatibility: hasCompatibility ? compatibility : undefined,
+    fortuneCycles: {
+      daily: toCycleArray(canonical?.cycleData?.daily),
+      monthly: toCycleArray(canonical?.cycleData?.monthly),
+      yearly: toCycleArray(canonical?.cycleData?.yearly),
     },
     _compatibilityRequired: Boolean(
       String(requestBody?.reportType || requestBody?.reportMode || "").toLowerCase() === "compatibility"
@@ -2364,161 +2469,560 @@ function mapSookyoCalculatedData(canonical, requestBody) {
   };
 }
 
+function summarizeForPremiumAnalysis(value) {
+  if (!hasMeaningfulValue(value)) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    const tokens = value
+      .map((item) => summarizeForPremiumAnalysis(item))
+      .filter(Boolean)
+      .slice(0, 3);
+    return tokens.join(", ");
+  }
+
+  if (typeof value === "object") {
+    const source = value;
+    const candidateKeys = [
+      "summary", "interpretation", "description", "message", "advice", "core", "pattern", "meaning", "title", "name",
+    ];
+    for (let i = 0; i < candidateKeys.length; i += 1) {
+      const text = String(source?.[candidateKeys[i]] || "").trim();
+      if (text) return text;
+    }
+  }
+
+  return "";
+}
+
+function mapPlanetMapToArray(planetsMap = {}, kind = "western") {
+  const source = planetsMap && typeof planetsMap === "object" ? planetsMap : {};
+  const out = [];
+  Object.entries(source).forEach(([key, value]) => {
+    const p = value && typeof value === "object" ? value : {};
+    const name = String(p?.name || key || "").trim();
+    if (!name) return;
+    const sign = String(p?.sign || p?.rashi || "").trim();
+    const degreeNumber = Number(p?.degree ?? p?.longitude ?? NaN);
+    const houseNumber = Number(p?.house ?? p?.bhava ?? NaN);
+    const planet = {
+      name,
+      sign,
+      degree: Number.isFinite(degreeNumber) ? degreeNumber : undefined,
+      house: Number.isFinite(houseNumber) ? houseNumber : undefined,
+      retrograde: Boolean(p?.retrograde),
+    };
+
+    if (kind === "vedic") {
+      const nakshatra = String(p?.nakshatra || "").trim();
+      const dignity = String(p?.dignity || "").trim();
+      if (nakshatra) planet.nakshatra = nakshatra;
+      if (dignity) planet.dignity = dignity;
+    }
+
+    if (hasMeaningfulValue(planet.sign) || hasMeaningfulValue(planet.degree) || hasMeaningfulValue(planet.house)) {
+      out.push(planet);
+    }
+  });
+  return out;
+}
+
+function mapHousesToArray(rawHouses) {
+  if (Array.isArray(rawHouses)) {
+    return rawHouses.map((house) => {
+      const h = house && typeof house === "object" ? house : {};
+      const numberValue = Number(h?.house ?? h?.number ?? NaN);
+      return {
+        house: Number.isFinite(numberValue) ? numberValue : undefined,
+        sign: String(h?.sign || h?.rashi || "").trim(),
+        cuspDegree: Number.isFinite(Number(h?.cuspDegree)) ? Number(h.cuspDegree) : undefined,
+        planets: Array.isArray(h?.planets) ? h.planets : [],
+      };
+    });
+  }
+  if (rawHouses && typeof rawHouses === "object") {
+    const out = [];
+    Object.entries(rawHouses).forEach(([k, v]) => {
+      const h = v && typeof v === "object" ? v : {};
+      const numberValue = Number(k);
+      out.push({
+        house: Number.isFinite(numberValue) ? numberValue : undefined,
+        sign: String(h?.sign || h?.rashi || "").trim(),
+        cuspDegree: Number.isFinite(Number(h?.cuspDegree)) ? Number(h.cuspDegree) : undefined,
+        planets: Array.isArray(h?.planets) ? h.planets : [],
+      });
+    });
+    return out;
+  }
+  return [];
+}
+
+function mapAspectsToArray(rawAspects) {
+  if (!Array.isArray(rawAspects)) return [];
+  return rawAspects.map((aspect) => {
+    const a = aspect && typeof aspect === "object" ? aspect : {};
+    const orb = Number(a?.orb ?? NaN);
+    return {
+      planetA: String(a?.planetA || a?.from || "").trim(),
+      planetB: String(a?.planetB || a?.to || "").trim(),
+      type: String(a?.type || a?.aspect || "").trim(),
+      orb: Number.isFinite(orb) ? orb : undefined,
+    };
+  });
+}
+
+function mapDashaTimeline(rawVimshottari) {
+  if (Array.isArray(rawVimshottari)) return rawVimshottari;
+  if (!rawVimshottari || typeof rawVimshottari !== "object") return [];
+  const timeline = Array.isArray(rawVimshottari?.timeline)
+    ? rawVimshottari.timeline
+    : Array.isArray(rawVimshottari?.periods)
+      ? rawVimshottari.periods
+      : Array.isArray(rawVimshottari?.dashaPeriods)
+        ? rawVimshottari.dashaPeriods
+        : [];
+  if (timeline.length > 0) return timeline;
+  return [rawVimshottari];
+}
+
 function mapWesternAstrologyCalculatedData(canonical) {
   const planets = normalizeAstroPlanetMap(canonical?.planets || canonical?.chart?.planets || {});
+  const planetArray = mapPlanetMapToArray(planets, "western");
+  const sunSign = String(planets?.sun?.sign || "").trim();
+  const moonSign = String(planets?.moon?.sign || "").trim();
+  const ascendant = String(canonical?.angles?.ascendant?.sign || "").trim();
+  const transitsSource = canonical?.transits;
+  const currentTransits = Array.isArray(transitsSource?.currentTransits)
+    ? transitsSource.currentTransits
+    : (Array.isArray(transitsSource) ? transitsSource : []);
+  const yearlyTheme = String(transitsSource?.yearlyTheme || transitsSource?.summary || "").trim();
+  const transits = (currentTransits.length > 0 || yearlyTheme)
+    ? {
+        currentTransits,
+        yearlyTheme: yearlyTheme || undefined,
+      }
+    : undefined;
+
+  const relationshipSummary = summarizeForPremiumAnalysis(canonical?.relationshipData);
+  const careerSummary = summarizeForPremiumAnalysis(canonical?.careerData);
+  const elementSummary = summarizeForPremiumAnalysis(canonical?.elementBalance);
+  const modalitySummary = summarizeForPremiumAnalysis(canonical?.modalityBalance);
+  const venusSign = String(planets?.venus?.sign || "").trim();
+  const saturnSign = String(planets?.saturn?.sign || "").trim();
+
   return {
-    birthInfo: {
-      date: canonical?.profile?.birth?.date || "",
-      time: canonical?.profile?.birth?.time || "",
-      place: canonical?.profile?.birth?.place || "",
-      latitude: Number(canonical?.profile?.birth?.latitude || 0),
-      longitude: Number(canonical?.profile?.birth?.longitude || 0),
-      timezone: canonical?.profile?.birth?.timezone || "",
-      houseSystem: canonical?.settings?.houseSystem || "Placidus",
-      zodiac: canonical?.settings?.zodiac || "tropical",
-      ephemerisSource: canonical?.calculationMeta?.ephemerisSource || "Swiss Ephemeris",
+    profile: {
+      name: String(canonical?.profile?.name || "").trim() || undefined,
+      birthDate: String(canonical?.profile?.birth?.date || "").trim(),
+      birthTime: String(canonical?.profile?.birth?.time || "").trim(),
+      location: String(canonical?.profile?.birth?.place || "").trim() || undefined,
     },
-    angles: {
-      ascendant: canonical?.angles?.ascendant || {},
-      midheaven: canonical?.angles?.midheaven || {},
-      descendant: canonical?.angles?.descendant || {},
-      imumCoeli: canonical?.angles?.imumCoeli || {},
+    natalChart: {
+      sunSign,
+      moonSign,
+      ascendant,
+      planets: planetArray,
+      houses: mapHousesToArray(canonical?.houses),
+      aspects: mapAspectsToArray(canonical?.aspects),
     },
-    planets,
-    houses: Array.isArray(canonical?.houses) ? canonical.houses : [],
-    aspects: Array.isArray(canonical?.aspects) ? canonical.aspects : [],
-    elementBalance: canonical?.elementBalance || {},
-    modalityBalance: canonical?.modalityBalance || {},
-    relationshipData: canonical?.relationshipData || {},
-    careerData: canonical?.careerData || {},
+    analysis: {
+      personality: summarizeForPremiumAnalysis(canonical?.profile?.summary)
+        || [sunSign, ascendant].filter(Boolean).join("/") || "",
+      emotionPattern: summarizeForPremiumAnalysis(canonical?.emotions)
+        || (moonSign ? `Moon ${moonSign} 중심 감정 리듬` : ""),
+      lovePattern: relationshipSummary || (venusSign ? `Venus ${venusSign} 기반 관계 패턴` : ""),
+      careerPattern: careerSummary || (saturnSign ? `Saturn ${saturnSign} 기반 경력 패턴` : ""),
+      lifeTheme: elementSummary || modalitySummary || "",
+    },
+    transits,
   };
 }
 
 function mapVedicCalculatedData(canonical) {
   const planets = normalizeAstroPlanetMap(canonical?.planets || {});
-  return {
-    birthInfo: {
-      date: canonical?.profile?.birth?.date || "",
-      time: canonical?.profile?.birth?.time || "",
-      place: canonical?.profile?.birth?.place || "",
-      latitude: Number(canonical?.profile?.birth?.latitude || 0),
-      longitude: Number(canonical?.profile?.birth?.longitude || 0),
-      timezone: canonical?.profile?.birth?.timezone || "",
-      zodiac: canonical?.settings?.zodiac || "sidereal",
-      ayanamsa: canonical?.settings?.ayanamsa || "Lahiri",
-      ephemerisSource: canonical?.calculationMeta?.ephemerisSource || "Swiss Ephemeris",
-    },
-    lagna: canonical?.lagna || {},
-    rashiChart: canonical?.rashiChart || {},
-    navamsaChart: canonical?.navamsaChart || {},
-    planets,
-    nakshatras: canonical?.nakshatras || {},
-    karakas: canonical?.karakas || {},
-    dashas: canonical?.dashas || {},
-    yogas: canonical?.yogas || [],
-    relationshipData: canonical?.relationshipData || {},
-    careerData: canonical?.careerData || {},
-  };
-}
+  const planetArray = mapPlanetMapToArray(planets, "vedic");
+  const lagna = String(canonical?.lagna?.name || canonical?.lagna?.sign || "").trim();
+  const moonSign = String(planets?.moon?.sign || "").trim();
+  const sunSign = String(planets?.sun?.sign || "").trim();
+  const nakshatra = String(canonical?.nakshatras?.moonNakshatra?.name || "").trim();
+  const atmakaraka = String(
+    canonical?.karakas?.atmakaraka?.planet
+    || canonical?.karakas?.atmakaraka?.name
+    || canonical?.karakas?.atmakaraka
+    || "",
+  ).trim();
+  const vimshottari = canonical?.dashas?.vimshottari || {};
+  const currentDasha = String(
+    vimshottari?.currentDasha?.mahadasha
+    || vimshottari?.currentDasha
+    || vimshottari?.mahadasha
+    || "",
+  ).trim();
+  const currentAntardasha = String(
+    vimshottari?.currentDasha?.antardasha
+    || vimshottari?.currentAntardasha
+    || vimshottari?.antardasha
+    || "",
+  ).trim();
 
-function mapLoveSecretCalculatedData(canonical, supplemental) {
-  const optionalCross = {
-    ziweiRelationship: supplemental?.ziweiPremium?.calculatedData?.relationshipData || {},
-    sookyoRelationship: supplemental?.sookyoPremium?.calculatedData?.compatibility || {},
-    westernRelationship: supplemental?.westernAstrologyPremium?.calculatedData?.relationshipData || {},
-    vedicRelationship: supplemental?.vedicPremium?.calculatedData?.relationshipData || {},
-  };
+  const relationshipSummary = summarizeForPremiumAnalysis(canonical?.relationshipData);
+  const careerSummary = summarizeForPremiumAnalysis(canonical?.careerData);
+  const yogaSummary = summarizeForPremiumAnalysis(canonical?.yogas);
+  const karmaSummary = summarizeForPremiumAnalysis(canonical?.karakas?.atmakaraka);
 
   return {
-    self: {
-      birthInfo: canonical?.personA?.birth || {},
-      sajuChart: canonical?.personA?.sajuChart || {},
-      fiveElementBalance: canonical?.personA?.fiveElementBalance || {},
-      relationshipProfile: canonical?.personA?.relationshipProfile || {},
+    profile: {
+      name: String(canonical?.profile?.name || "").trim() || undefined,
+      gender: String(canonical?.profile?.gender || "").trim() || undefined,
+      birthDate: String(canonical?.profile?.birth?.date || "").trim(),
+      birthTime: String(canonical?.profile?.birth?.time || "").trim(),
+      location: String(canonical?.profile?.birth?.place || "").trim() || undefined,
     },
-    partner: {
-      birthInfo: canonical?.personB?.birth || {},
-      sajuChart: canonical?.personB?.sajuChart || {},
-      fiveElementBalance: canonical?.personB?.fiveElementBalance || {},
-      relationshipProfile: canonical?.personB?.relationshipProfile || {},
+    chart: {
+      lagna,
+      moonSign,
+      sunSign,
+      nakshatra: nakshatra || undefined,
+      atmakaraka: atmakaraka || undefined,
+      planets: planetArray,
+      houses: mapHousesToArray(canonical?.houses || canonical?.rashiChart),
     },
-    compatibility: canonical?.compatibility || {},
-    optionalCrossSystems: optionalCross,
+    dasha: {
+      currentDasha: currentDasha || undefined,
+      currentAntardasha: currentAntardasha || undefined,
+      timeline: mapDashaTimeline(vimshottari),
+    },
+    analysis: {
+      personality: summarizeForPremiumAnalysis(canonical?.lagna?.interpretation)
+        || (lagna ? `Lagna ${lagna} 기반 성향` : ""),
+      karmaTheme: karmaSummary || (atmakaraka ? `Atmakaraka ${atmakaraka} 중심 카르마 과제` : ""),
+      relationship: relationshipSummary || "",
+      career: careerSummary || "",
+      wealth: summarizeForPremiumAnalysis(canonical?.careerData?.wealth) || careerSummary || "",
+      spiritualGrowth: yogaSummary || summarizeForPremiumAnalysis(vimshottari) || "",
+    },
   };
 }
 
-function mapLifeBookCalculatedData(primary, supplemental) {
-  const saju = primary?.calculatedData || primary || {};
-  const ziwei = supplemental?.ziweiPremium?.calculatedData || {};
-  const sookyo = supplemental?.sookyoPremium?.calculatedData || {};
-  const western = supplemental?.westernAstrologyPremium?.calculatedData || {};
-  const vedic = supplemental?.vedicPremium?.calculatedData || {};
+function normalizeLoveCalendarType(rawCalendar) {
+  const token = String(rawCalendar || "").trim().toLowerCase();
+  if (token === "lunar") return "lunar";
+  return "solar";
+}
 
-  const repeatedSignals = [];
-  const conflictingSignals = [];
-  if (hasMeaningfulValue(saju?.relationshipProfile?.conflictSignals) && hasMeaningfulValue(ziwei?.relationshipData?.marriageRiskSignals)) {
-    repeatedSignals.push("관계 경계선 관리 필요");
+function buildLoveSecretRelationshipStars(stars = {}) {
+  const out = [];
+  if (Array.isArray(stars?.dohwa) && stars.dohwa.length) out.push("도화");
+  if (Array.isArray(stars?.hongyeom) && stars.hongyeom.length) out.push("홍염");
+  if (Array.isArray(stars?.hwagae) && stars.hwagae.length) out.push("화개");
+  if (Array.isArray(stars?.yeokma) && stars.yeokma.length) out.push("역마");
+  return out;
+}
+
+function deriveLovePatternFromCanonical(personA = {}, compatibility = {}) {
+  const relationshipProfile = personA?.loveProfile?.relationshipPatterns || {};
+  const stars = personA?.attractionStars || {};
+  const dominantTenGods = Array.isArray(personA?.tenGods?.dominantTenGods) ? personA.tenGods.dominantTenGods : [];
+  const expressionStar = String(personA?.tenGods?.loveRelatedGods?.expressionStar || "").trim();
+  const spouseStar = String(personA?.tenGods?.loveRelatedGods?.spouseStar || "").trim();
+  const conflictCount = (compatibility?.stemBranchInteractions?.clashes?.length || 0)
+    + (compatibility?.stemBranchInteractions?.punishments?.length || 0)
+    + (compatibility?.stemBranchInteractions?.harms?.length || 0);
+
+  const attractionStyle = String(relationshipProfile?.attractionStyle || "").trim()
+    || (Array.isArray(stars?.dohwa) && stars.dohwa.length
+      ? "도화/매력 신호가 강한 직관형 끌림"
+      : (dominantTenGods.includes("식신") || dominantTenGods.includes("상관")
+        ? "표현 중심의 감정 교류형 끌림"
+        : "신뢰 축적형 끌림"));
+  const attachmentStyle = String(relationshipProfile?.attachmentStyle || "").trim()
+    || (String(personA?.dayMaster?.strength || "").includes("신강")
+      ? "독립성과 경계가 강한 자율형"
+      : String(personA?.dayMaster?.strength || "").includes("신약")
+        ? "정서 확인이 중요한 안정지향형"
+        : "균형형 애착");
+  const conflictPattern = String(relationshipProfile?.conflictStyle || "").trim()
+    || (conflictCount >= 3
+      ? "속도 차이와 기대치 불일치가 반복되는 충돌형"
+      : "의사소통 조율로 완화 가능한 조정형");
+  const expressionStyle = String(relationshipProfile?.expressionStyle || "").trim()
+    || (expressionStar ? `${expressionStar} 중심 표현형` : "감정 누적 후 표현형");
+  const idealPartnerType = String(relationshipProfile?.idealPartnerType || "").trim()
+    || (spouseStar ? `${spouseStar} 기운과 상호보완되는 안정형 파트너` : "경계 존중형 파트너");
+
+  return {
+    attractionStyle,
+    attachmentStyle,
+    conflictPattern,
+    expressionStyle,
+    idealPartnerType,
+  };
+}
+
+function mapLoveSecretCalculatedData(canonical, requestBody = {}) {
+  const source = canonical && typeof canonical === "object" ? canonical : {};
+  const personA = source?.personA || {};
+  const compatibility = source?.compatibility || {};
+  const stars = personA?.attractionStars || {};
+  const relationshipStars = buildLoveSecretRelationshipStars(stars);
+  const lovePattern = deriveLovePatternFromCanonical(personA, compatibility);
+  const tenGodDistribution = personA?.tenGods?.distribution || {};
+  const tenGods = {};
+  Object.entries(tenGodDistribution).forEach(([key, value]) => {
+    const k = String(key || "").trim();
+    if (!k) return;
+    tenGods[k] = String(value ?? "").trim();
+  });
+
+  const strengthsInLove = [];
+  if (relationshipStars.includes("도화")) strengthsInLove.push("자연스러운 호감 유도력");
+  if (relationshipStars.includes("홍염")) strengthsInLove.push("친밀감 형성 속도 우위");
+  if (Array.isArray(personA?.tenGods?.dominantTenGods) && personA.tenGods.dominantTenGods.length) {
+    strengthsInLove.push(`주요 연애 십성: ${personA.tenGods.dominantTenGods.slice(0, 2).join(", ")}`);
   }
-  if (hasMeaningfulValue(western?.careerData?.tenthHouse) && hasMeaningfulValue(vedic?.careerData?.tenthHouse)) {
-    repeatedSignals.push("직업 방향성의 장기성 강조");
+
+  const risksInLove = [];
+  if (Array.isArray(personA?.tenGods?.weakTenGods) && personA.tenGods.weakTenGods.length) {
+    risksInLove.push(`취약 십성: ${personA.tenGods.weakTenGods.slice(0, 2).join(", ")}`);
   }
-  if (hasMeaningfulValue(western?.modalityBalance) && hasMeaningfulValue(saju?.fiveElementBalance)) {
-    conflictingSignals.push("서양 차트의 변동성/사주의 안정성 신호가 혼재될 수 있음");
+  const clashCount = (compatibility?.stemBranchInteractions?.clashes?.length || 0);
+  if (clashCount > 0) risksInLove.push(`관계 충돌 신호 ${clashCount}건`);
+
+  const communicationAdvice = [
+    `${lovePattern.expressionStyle} 기준으로 감정-요청-합의 순서로 말하기`,
+    "답장 속도보다 약속 이행률로 관계 상태 판단",
+  ];
+  const longTermRelationshipAdvice = [
+    String(personA?.luck?.currentDaewoon?.ganji || "").trim()
+      ? `현재 대운 ${String(personA.luck.currentDaewoon.ganji).trim()} 흐름에서 관계 우선순위 점검`
+      : "관계 장기화 전 경계와 역할 분담 합의",
+    Number.isFinite(Number(compatibility?.marriagePotentialScore))
+      ? `장기 가능성 점수 ${Number(compatibility.marriagePotentialScore)} 기준으로 갈등 복구 루틴 설계`
+      : "갈등 후 복구 대화 규칙을 24시간 내 실행",
+  ];
+
+  const loveDaewoon = [];
+  if (personA?.luck?.currentDaewoon && typeof personA.luck.currentDaewoon === "object") {
+    loveDaewoon.push(personA.luck.currentDaewoon);
+  }
+  if (personA?.luck?.nextDaewoon && typeof personA.luck.nextDaewoon === "object") {
+    loveDaewoon.push(personA.luck.nextDaewoon);
+  }
+
+  const loveYearlyLuck = [];
+  const annualLuck = personA?.luck?.annualLuck;
+  if (annualLuck && typeof annualLuck === "object") {
+    const year = Number(annualLuck?.year || 0);
+    if (year > 0 || String(annualLuck?.ganji || "").trim()) {
+      loveYearlyLuck.push({
+        year: year > 0 ? year : new Date().getFullYear(),
+        ganji: String(annualLuck?.ganji || "").trim(),
+        stem: String(annualLuck?.stem || "").trim(),
+        branch: String(annualLuck?.branch || "").trim(),
+        tenGod: String(annualLuck?.tenGod || "").trim(),
+        monthlyLuck: Array.isArray(annualLuck?.monthlyLuck) ? annualLuck.monthlyLuck : [],
+      });
+    }
   }
 
   return {
-    saju,
-    ziwei,
-    sookyo,
-    westernAstrology: western,
-    vedic,
-    integratedThemes: {
-      coreIdentity: (primary?.interpretationSeed?.coreIdentity?.length
-        ? primary.interpretationSeed.coreIdentity
-        : (hasMeaningfulValue(saju) ? _deriveCoreIdentityFromSaju(saju) : ["사주 기반 핵심 정체성"])),
-      lifeMission: (primary?.interpretationSeed?.lifeMission?.length
-        ? primary.interpretationSeed.lifeMission
-        : (hasMeaningfulValue(saju) ? _deriveLifeMissionFromSaju(saju) : ["사주 기반 인생 방향"])),
-      careerDirection: primary?.interpretationSeed?.careerDirection || [],
-      relationshipPattern: primary?.interpretationSeed?.relationshipPattern || [],
-      wealthPattern: primary?.interpretationSeed?.wealthPattern || [],
-      healthPattern: primary?.interpretationSeed?.healthPattern || [],
-      turningPoints: primary?.interpretationSeed?.turningPoints || [],
-      repeatedSignals,
-      conflictingSignals,
+    profile: {
+      name: String(personA?.profile?.name || "").trim() || undefined,
+      gender: String(personA?.profile?.gender || "").trim() || undefined,
+      birthDate: String(personA?.profile?.birth?.solarDate || "").trim(),
+      birthTime: String(personA?.profile?.birth?.time || "").trim() || undefined,
+      calendarType: normalizeLoveCalendarType(requestBody?.calendarType || requestBody?.calendar || ""),
     },
-    timeline: {
-      sajuDaewoon: saju?.luckCycles?.daewoonList || [],
-      ziweiDaXian: ziwei?.cycles?.daXian || [],
-      vedicDasha: vedic?.dashas?.vimshottari?.periods || [],
-      astrologyTransits: western?.timingData?.transits || [],
+    chart: {
+      dayMaster: String(personA?.dayMaster?.stem || "").trim(),
+      spousePalace: String(personA?.loveProfile?.spousePalace?.branch || personA?.fourPillars?.day?.branch || "").trim(),
+      tenGods,
+      relationshipStars,
+      peachBlossom: Array.isArray(stars?.dohwa) ? stars.dohwa : [],
+      hongyeom: Array.isArray(stars?.hongyeom) ? stars.hongyeom : [],
+      hwagae: Array.isArray(stars?.hwagae) ? stars.hwagae : [],
+    },
+    lovePattern,
+    datingAdvice: {
+      strengthsInLove,
+      risksInLove,
+      communicationAdvice,
+      longTermRelationshipAdvice,
+    },
+    luckCycles: {
+      loveDaewoon,
+      loveYearlyLuck,
     },
   };
 }
 
-function _deriveCoreIdentityFromSaju(saju) {
-  const items = [];
-  // Support both canonical formats: fourPillars.day.stem and pillars.day.stem
-  const stem = String(saju?.dayMaster?.stem || saju?.fourPillars?.day?.stem || saju?.pillars?.day?.stem || "").trim();
-  const strengthLabel = String(saju?.dayMaster?.strength || saju?.interpretation?.strengthLabel || "").trim();
-  const dominant = String(saju?.fiveElements?.dominant || saju?.fiveElementBalance?.dominant || "").trim();
-  const yongsin = String(saju?.usefulGods?.yongsin?.element || "").trim();
-  if (stem) items.push(`일간: ${stem}`);
-  if (strengthLabel) items.push(`사주 강약: ${strengthLabel}`);
-  if (dominant) items.push(`주도 오행: ${dominant}`);
-  if (yongsin) items.push(`용신: ${yongsin}`);
-  return items.length ? items : ["사주 기반 핵심 정체성"];
+function toStringRecord(raw = {}) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out = {};
+  Object.entries(raw).forEach(([k, v]) => {
+    const key = String(k || "").trim();
+    if (!key) return;
+    out[key] = String(v ?? "").trim();
+  });
+  return out;
 }
 
-function _deriveLifeMissionFromSaju(saju) {
-  const items = [];
-  const yongsin = String(saju?.usefulGods?.yongsin?.element || "").trim();
-  const weakest = String(saju?.fiveElements?.weakest || saju?.fiveElementBalance?.weakest || "").trim();
-  const huisin = String(saju?.usefulGods?.huisin?.element || "").trim();
-  if (yongsin) items.push(`${yongsin} 에너지 강화`);
-  if (weakest) items.push(`${weakest} 오행 균형`);
-  if (huisin && huisin !== yongsin) items.push(`${huisin} 흐름 활용`);
-  return items.length ? items : ["사주 기반 인생 방향"];
+function toStringArray(raw = [], max = 8) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (let i = 0; i < raw.length; i += 1) {
+    if (out.length >= max) break;
+    const value = String(raw[i] ?? "").trim();
+    if (!value) continue;
+    out.push(value);
+  }
+  return out;
+}
+
+function buildLifeBookV2PillarData(pillar = {}) {
+  return {
+    stem: String(pillar?.stem || "").trim(),
+    branch: String(pillar?.branch || "").trim(),
+    ganji: String(pillar?.ganji || "").trim(),
+    stemElement: String(pillar?.stemElement || "").trim(),
+    branchElement: String(pillar?.branchElement || "").trim(),
+    tenGod: String(pillar?.tenGod || "").trim(),
+  };
+}
+
+function buildLifeBookV2TwelveStages(raw = []) {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    return toStringRecord(raw);
+  }
+  if (!Array.isArray(raw)) return {};
+  const out = {};
+  raw.forEach((item, idx) => {
+    if (item && typeof item === "object") {
+      const key = String(item?.pillar || item?.target || item?.key || `stage_${idx + 1}`).trim();
+      const value = String(item?.stage || item?.name || item?.value || "").trim();
+      if (key && value) out[key] = value;
+      return;
+    }
+    const value = String(item || "").trim();
+    if (!value) return;
+    out[`stage_${idx + 1}`] = value;
+  });
+  return out;
+}
+
+function buildLifeBookV2HiddenStems(pillars = {}) {
+  return {
+    year: Array.isArray(pillars?.year?.hiddenStems) ? pillars.year.hiddenStems.map((v) => String(v || "").trim()).filter(Boolean) : [],
+    month: Array.isArray(pillars?.month?.hiddenStems) ? pillars.month.hiddenStems.map((v) => String(v || "").trim()).filter(Boolean) : [],
+    day: Array.isArray(pillars?.day?.hiddenStems) ? pillars.day.hiddenStems.map((v) => String(v || "").trim()).filter(Boolean) : [],
+    hour: Array.isArray(pillars?.hour?.hiddenStems) ? pillars.hour.hiddenStems.map((v) => String(v || "").trim()).filter(Boolean) : [],
+  };
+}
+
+function buildLifeBookV2Elements(fiveElements = {}) {
+  const scores = {
+    wood: Number(fiveElements?.wood || 0),
+    fire: Number(fiveElements?.fire || 0),
+    earth: Number(fiveElements?.earth || 0),
+    metal: Number(fiveElements?.metal || 0),
+    water: Number(fiveElements?.water || 0),
+  };
+  const sorted = Object.entries(scores)
+    .sort((a, b) => Number(b[1]) - Number(a[1]));
+  const dominantElements = sorted.filter(([, score]) => Number(score) > 0).slice(0, 2).map(([name]) => name);
+  const weakElements = sorted.filter(([, score]) => Number(score) <= 1).map(([name]) => name);
+  const balanceSummary = String(fiveElements?.balanceComment || "").trim();
+  return {
+    scores,
+    dominantElements,
+    weakElements,
+    balanceSummary,
+  };
+}
+
+function mapLifeBookCalculatedData(canonical, requestBody = {}) {
+  const source = canonical && typeof canonical === "object" ? canonical : {};
+  const pillars = source?.fourPillars || {};
+  const lifeThemes = source?.lifeThemes && typeof source.lifeThemes === "object" ? source.lifeThemes : {};
+  const reqCalendar = String(requestBody?.calendarType || requestBody?.calendar || "").trim().toLowerCase();
+  const calendarType = reqCalendar === "lunar"
+    ? "lunar"
+    : "solar";
+
+  const dayMaster = String(source?.dayMaster?.stem || pillars?.day?.stem || "").trim();
+  const tenGods = toStringRecord(source?.tenGods?.distribution || {});
+  const strengths = toStringArray(source?.tenGods?.dominantTenGods || [], 6);
+  const weaknesses = toStringArray(source?.tenGods?.weakTenGods || [], 6);
+  const yongshin = String(source?.usefulGods?.yongsin?.element || "").trim();
+  const heeshin = String(source?.usefulGods?.huisin?.element || "").trim();
+  const gishin = String(source?.usefulGods?.gisin?.element || "").trim();
+  const analysisBasis = [
+    String(source?.usefulGods?.yongsin?.reason || "").trim(),
+    String(source?.usefulGods?.huisin?.reason || "").trim(),
+    String(source?.usefulGods?.gisin?.reason || "").trim(),
+  ].filter(Boolean).join(" | ");
+
+  const yearlyLuck = [];
+  if (Number(source?.annualLuck?.year) > 0) {
+    yearlyLuck.push({
+      year: Number(source.annualLuck.year),
+      ganji: String(source?.annualLuck?.ganji || "").trim(),
+      stem: String(source?.annualLuck?.stem || "").trim(),
+      branch: String(source?.annualLuck?.branch || "").trim(),
+      tenGod: String(source?.annualLuck?.tenGod || "").trim(),
+      monthlyLuck: Array.isArray(source?.annualLuck?.monthlyLuck) ? source.annualLuck.monthlyLuck : [],
+    });
+  }
+
+  return {
+    profile: {
+      name: String(source?.profile?.name || "").trim() || undefined,
+      gender: String(source?.profile?.gender || "").trim() || undefined,
+      birthDate: String(source?.profile?.birth?.solarDate || "").trim(),
+      birthTime: String(source?.profile?.birth?.time || "").trim() || undefined,
+      calendarType,
+    },
+    chart: {
+      yearPillar: buildLifeBookV2PillarData(pillars?.year || {}),
+      monthPillar: buildLifeBookV2PillarData(pillars?.month || {}),
+      dayPillar: buildLifeBookV2PillarData(pillars?.day || {}),
+      hourPillar: buildLifeBookV2PillarData(pillars?.hour || {}),
+      dayMaster,
+      tenGods,
+      twelveStages: buildLifeBookV2TwelveStages(source?.twelveStages || []),
+      hiddenStems: buildLifeBookV2HiddenStems(pillars),
+    },
+    elements: buildLifeBookV2Elements(source?.fiveElements || {}),
+    usefulGods: {
+      yongshin: yongshin || undefined,
+      heeshin: heeshin || undefined,
+      gishin: gishin || undefined,
+      analysisBasis,
+    },
+    personality: {
+      coreTemperament: [
+        String(source?.dayMaster?.strength || "").trim(),
+        String(source?.dayMaster?.yinYang || "").trim(),
+        String(source?.fourPillars?.month?.branch || "").trim(),
+      ].filter(Boolean),
+      strengths,
+      weaknesses,
+      relationshipPattern: String(lifeThemes?.relationship?.summary || lifeThemes?.relationship?.pattern || "").trim(),
+      workPattern: String(lifeThemes?.career?.summary || lifeThemes?.career?.pattern || "").trim(),
+    },
+    luckCycles: {
+      daewoon: Array.isArray(source?.luckCycles?.daewoonList) ? source.luckCycles.daewoonList : [],
+      yearlyLuck,
+    },
+    lifeThemes: {
+      career: String(lifeThemes?.career?.summary || lifeThemes?.career?.core || "").trim(),
+      wealth: String(lifeThemes?.wealth?.summary || lifeThemes?.wealth?.core || "").trim(),
+      relationship: String(lifeThemes?.relationship?.summary || lifeThemes?.relationship?.core || "").trim(),
+      family: String(lifeThemes?.family?.summary || lifeThemes?.family?.core || "").trim(),
+      health: String(lifeThemes?.health?.summary || lifeThemes?.health?.core || "").trim(),
+      growth: String(lifeThemes?.socialMission?.summary || lifeThemes?.socialMission?.core || "").trim(),
+    },
+  };
 }
 
 function buildChapterDataMap(reportType, calculatedData) {
@@ -2526,21 +3030,21 @@ function buildChapterDataMap(reportType, calculatedData) {
     return {
       ch1: {
         chapterTitle: "명궁",
-        requiredPaths: ["calculatedData.coreChart.mingGong", "calculatedData.palaces.ming", "calculatedData.sanFangSiZheng.mingGongTriangle"],
+        requiredPaths: ["calculatedData.chart.mingGong", "calculatedData.palaces", "calculatedData.fourTransformations"],
       },
       ch2: {
         chapterTitle: "신궁",
-        requiredPaths: ["calculatedData.coreChart.shenGong"],
+        requiredPaths: ["calculatedData.chart.shenGong", "calculatedData.palaces"],
       },
-      ch3: { chapterTitle: "복덕궁", requiredPaths: ["calculatedData.palaces.fortune"] },
-      ch4: { chapterTitle: "직업운", requiredPaths: ["calculatedData.palaces.career", "calculatedData.careerData"] },
-      ch5: { chapterTitle: "재물운", requiredPaths: ["calculatedData.palaces.wealth", "calculatedData.careerData.wealthPalace"] },
-      ch6: { chapterTitle: "연애/결혼", requiredPaths: ["calculatedData.palaces.spouse", "calculatedData.relationshipData"] },
-      ch7: { chapterTitle: "건강", requiredPaths: ["calculatedData.palaces.health", "calculatedData.healthData"] },
-      ch8: { chapterTitle: "대운/대한", requiredPaths: ["calculatedData.cycles.daXian"] },
-      ch9: { chapterTitle: "유년운", requiredPaths: ["calculatedData.cycles.annual"] },
+      ch3: { chapterTitle: "복덕궁", requiredPaths: ["calculatedData.palaces"] },
+      ch4: { chapterTitle: "직업운", requiredPaths: ["calculatedData.palaces"] },
+      ch5: { chapterTitle: "재물운", requiredPaths: ["calculatedData.palaces"] },
+      ch6: { chapterTitle: "연애/결혼", requiredPaths: ["calculatedData.palaces"] },
+      ch7: { chapterTitle: "건강", requiredPaths: ["calculatedData.palaces"] },
+      ch8: { chapterTitle: "대운/대한", requiredPaths: ["calculatedData.luckCycles.decadeLuck"] },
+      ch9: { chapterTitle: "유년운", requiredPaths: ["calculatedData.luckCycles.annualLuck"] },
       ch10: { chapterTitle: "사화 분석", requiredPaths: ["calculatedData.fourTransformations"] },
-      ch11: { chapterTitle: "삼방사정 종합", requiredPaths: ["calculatedData.sanFangSiZheng"] },
+      ch11: { chapterTitle: "삼방사정 종합", requiredPaths: ["calculatedData.palaces", "calculatedData.fourTransformations"] },
       ch12: { chapterTitle: "인생 전략", requiredPaths: ["calculatedData"] },
       ch13: { chapterTitle: "종합 결론", requiredPaths: ["calculatedData"] },
     };
@@ -2548,74 +3052,75 @@ function buildChapterDataMap(reportType, calculatedData) {
 
   if (reportType === "sookyoPremium") {
     return {
-      ch1: { chapterTitle: "영혼의 원형", requiredPaths: ["calculatedData.nativeSook"] },
-      ch2: { chapterTitle: "감정 반응 패턴", requiredPaths: ["calculatedData.nativeSook.emotionalPattern"] },
-      ch3: { chapterTitle: "관계 본능", requiredPaths: ["calculatedData.nativeSook.relationshipPattern"] },
-      ch4: { chapterTitle: "직업/재능", requiredPaths: ["calculatedData.nativeSook.careerPattern"] },
-      ch5: { chapterTitle: "궁합 핵심", requiredPaths: ["calculatedData.compatibility.relationshipType", "calculatedData.compatibility.distance"] },
-      ch6: { chapterTitle: "관계의 장점", requiredPaths: ["calculatedData.compatibility.emotionalCompatibility"] },
-      ch7: { chapterTitle: "갈등 패턴", requiredPaths: ["calculatedData.compatibility.conflictPattern"] },
-      ch8: { chapterTitle: "장기 관계 가능성", requiredPaths: ["calculatedData.compatibility.longTermPotential"] },
-      ch9: { chapterTitle: "속궁합/끌림", requiredPaths: ["calculatedData.compatibility.physicalChemistryHints"] },
-      ch10: { chapterTitle: "실전 조언", requiredPaths: ["calculatedData.compatibility.relationshipAdvice"] },
+      ch1: { chapterTitle: "영혼의 원형", requiredPaths: ["calculatedData.宿曜.birthMansion", "calculatedData.宿曜.coreNature"] },
+      ch2: { chapterTitle: "감정 반응 패턴", requiredPaths: ["calculatedData.mansionAnalysis.personality"] },
+      ch3: { chapterTitle: "관계 본능", requiredPaths: ["calculatedData.mansionAnalysis.relationshipStyle"] },
+      ch4: { chapterTitle: "직업/재능", requiredPaths: ["calculatedData.mansionAnalysis.workStyle", "calculatedData.mansionAnalysis.wealthStyle"] },
+      ch5: { chapterTitle: "궁합 핵심", requiredPaths: ["calculatedData.compatibility.relationType", "calculatedData.compatibility.distance"] },
+      ch6: { chapterTitle: "관계의 장점", requiredPaths: ["calculatedData.compatibility.summary", "calculatedData.mansionAnalysis.growthAdvice"] },
+      ch7: { chapterTitle: "약점 패턴", requiredPaths: ["calculatedData.mansionAnalysis.weakness"] },
+      ch8: { chapterTitle: "성장 전략", requiredPaths: ["calculatedData.mansionAnalysis.growthAdvice"] },
+      ch9: { chapterTitle: "일일/월간 흐름", requiredPaths: ["calculatedData.fortuneCycles.daily", "calculatedData.fortuneCycles.monthly"] },
+      ch10: { chapterTitle: "연간 종합", requiredPaths: ["calculatedData.fortuneCycles.yearly"] },
     };
   }
 
   if (reportType === "westernAstrologyPremium") {
     return {
-      ch1: { chapterTitle: "핵심 자아", requiredPaths: ["calculatedData.planets.sun", "calculatedData.angles.ascendant"] },
-      ch2: { chapterTitle: "감정 구조", requiredPaths: ["calculatedData.planets.moon"] },
-      ch3: { chapterTitle: "사회적 이미지", requiredPaths: ["calculatedData.angles.ascendant", "calculatedData.angles.midheaven"] },
-      ch4: { chapterTitle: "사랑 방식", requiredPaths: ["calculatedData.relationshipData.venus", "calculatedData.relationshipData.mars"] },
-      ch5: { chapterTitle: "관계 패턴", requiredPaths: ["calculatedData.houses", "calculatedData.relationshipData.majorLoveAspects"] },
-      ch6: { chapterTitle: "직업/소명", requiredPaths: ["calculatedData.careerData"] },
-      ch7: { chapterTitle: "인생 과제", requiredPaths: ["calculatedData.planets.saturn", "calculatedData.aspects"] },
-      ch8: { chapterTitle: "재능", requiredPaths: ["calculatedData.aspects", "calculatedData.planets.jupiter"] },
-      ch9: { chapterTitle: "내면 갈등", requiredPaths: ["calculatedData.aspects"] },
+      ch1: { chapterTitle: "핵심 자아", requiredPaths: ["calculatedData.natalChart.sunSign", "calculatedData.natalChart.ascendant"] },
+      ch2: { chapterTitle: "감정 구조", requiredPaths: ["calculatedData.natalChart.moonSign", "calculatedData.analysis.emotionPattern"] },
+      ch3: { chapterTitle: "사회적 이미지", requiredPaths: ["calculatedData.natalChart.planets", "calculatedData.natalChart.houses"] },
+      ch4: { chapterTitle: "사랑 방식", requiredPaths: ["calculatedData.analysis.lovePattern"] },
+      ch5: { chapterTitle: "관계 패턴", requiredPaths: ["calculatedData.natalChart.aspects"] },
+      ch6: { chapterTitle: "직업/소명", requiredPaths: ["calculatedData.analysis.careerPattern"] },
+      ch7: { chapterTitle: "인생 과제", requiredPaths: ["calculatedData.analysis.lifeTheme"] },
+      ch8: { chapterTitle: "재능", requiredPaths: ["calculatedData.natalChart.planets", "calculatedData.analysis.personality"] },
+      ch9: { chapterTitle: "현재 트랜짓", requiredPaths: ["calculatedData.transits.currentTransits"] },
       ch10: { chapterTitle: "종합", requiredPaths: ["calculatedData"] },
     };
   }
 
   if (reportType === "vedicPremium") {
     return {
-      ch1: { chapterTitle: "영혼의 설계도", requiredPaths: ["calculatedData.lagna", "calculatedData.nakshatras.moonNakshatra", "calculatedData.karakas.atmakaraka"] },
-      ch2: { chapterTitle: "현실 성향", requiredPaths: ["calculatedData.rashiChart"] },
-      ch3: { chapterTitle: "내면 운명", requiredPaths: ["calculatedData.navamsaChart"] },
-      ch4: { chapterTitle: "카르마 과제", requiredPaths: ["calculatedData.karakas", "calculatedData.planets.saturn", "calculatedData.planets.rahu", "calculatedData.planets.ketu"] },
-      ch5: { chapterTitle: "사랑/결혼", requiredPaths: ["calculatedData.relationshipData"] },
-      ch6: { chapterTitle: "직업/소명", requiredPaths: ["calculatedData.careerData"] },
-      ch7: { chapterTitle: "인생 주기", requiredPaths: ["calculatedData.dashas.vimshottari"] },
-      ch8: { chapterTitle: "요가 분석", requiredPaths: ["calculatedData.yogas"] },
+      ch1: { chapterTitle: "영혼의 설계도", requiredPaths: ["calculatedData.chart.lagna", "calculatedData.chart.nakshatra", "calculatedData.chart.atmakaraka"] },
+      ch2: { chapterTitle: "현실 성향", requiredPaths: ["calculatedData.analysis.personality"] },
+      ch3: { chapterTitle: "내면 운명", requiredPaths: ["calculatedData.analysis.spiritualGrowth"] },
+      ch4: { chapterTitle: "카르마 과제", requiredPaths: ["calculatedData.analysis.karmaTheme"] },
+      ch5: { chapterTitle: "사랑/결혼", requiredPaths: ["calculatedData.analysis.relationship"] },
+      ch6: { chapterTitle: "직업/소명", requiredPaths: ["calculatedData.analysis.career", "calculatedData.analysis.wealth"] },
+      ch7: { chapterTitle: "인생 주기", requiredPaths: ["calculatedData.dasha.timeline"] },
+      ch8: { chapterTitle: "행성/하우스", requiredPaths: ["calculatedData.chart.planets", "calculatedData.chart.houses"] },
       ch9: { chapterTitle: "종합 전략", requiredPaths: ["calculatedData"] },
     };
   }
 
   if (reportType === "loveSecret") {
     return {
-      ch1: { chapterTitle: "나의 연애 본능", requiredPaths: ["calculatedData.self.sajuChart.dayMaster", "calculatedData.self.relationshipProfile"] },
-      ch2: { chapterTitle: "끌림의 구조", requiredPaths: ["calculatedData.self.fiveElementBalance", "calculatedData.self.relationshipProfile.attractionSignals"] },
-      ch3: { chapterTitle: "반복 패턴", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.self.sajuChart.tenGods"] },
-      ch4: { chapterTitle: "상대와의 궁합", requiredPaths: ["calculatedData.compatibility"] },
-      ch5: { chapterTitle: "속궁합/조후", requiredPaths: ["calculatedData.compatibility.temperatureHumidityMatch"] },
-      ch6: { chapterTitle: "감정 소통", requiredPaths: ["calculatedData.compatibility.communicationPattern"] },
-      ch7: { chapterTitle: "결혼 가능성", requiredPaths: ["calculatedData.compatibility.longTermMarriagePotential"] },
-      ch8: { chapterTitle: "갈등 해결법", requiredPaths: ["calculatedData.compatibility.practicalAdvice"] },
-      ch9: { chapterTitle: "종합 연애 전략", requiredPaths: ["calculatedData"] },
+      ch1: { chapterTitle: "나의 연애 본능", requiredPaths: ["calculatedData.chart.dayMaster", "calculatedData.chart.spousePalace"] },
+      ch2: { chapterTitle: "끌림의 구조", requiredPaths: ["calculatedData.chart.relationshipStars", "calculatedData.chart.peachBlossom"] },
+      ch3: { chapterTitle: "반복 패턴", requiredPaths: ["calculatedData.lovePattern.conflictPattern", "calculatedData.chart.tenGods"] },
+      ch4: { chapterTitle: "상대와의 궁합", requiredPaths: ["calculatedData.lovePattern.idealPartnerType", "calculatedData.lovePattern.attachmentStyle"] },
+      ch5: { chapterTitle: "속궁합/조후", requiredPaths: ["calculatedData.chart.hongyeom", "calculatedData.chart.hwagae"] },
+      ch6: { chapterTitle: "감정 소통", requiredPaths: ["calculatedData.datingAdvice.communicationAdvice"] },
+      ch7: { chapterTitle: "결혼 가능성", requiredPaths: ["calculatedData.datingAdvice.longTermRelationshipAdvice"] },
+      ch8: { chapterTitle: "갈등 해결법", requiredPaths: ["calculatedData.datingAdvice.risksInLove"] },
+      ch9: { chapterTitle: "운의 흐름", requiredPaths: ["calculatedData.luckCycles.loveDaewoon", "calculatedData.luckCycles.loveYearlyLuck"] },
+      ch10: { chapterTitle: "종합 연애 전략", requiredPaths: ["calculatedData"] },
     };
   }
 
   if (reportType === "lifeBook") {
     return {
-      ch1: { chapterTitle: "핵심 정체성", requiredPaths: ["calculatedData.integratedThemes.coreIdentity"] },
-      ch2: { chapterTitle: "타고난 성향", requiredPaths: ["calculatedData.saju"] },
-      ch3: { chapterTitle: "인생의 소명", requiredPaths: ["calculatedData.integratedThemes.lifeMission"] },
-      ch4: { chapterTitle: "직업과 사회적 방향", requiredPaths: ["calculatedData.integratedThemes.careerDirection"] },
-      ch5: { chapterTitle: "재물 흐름", requiredPaths: ["calculatedData.integratedThemes.wealthPattern"] },
-      ch6: { chapterTitle: "관계와 사랑", requiredPaths: ["calculatedData.integratedThemes.relationshipPattern"] },
-      ch7: { chapterTitle: "건강과 에너지", requiredPaths: ["calculatedData.integratedThemes.healthPattern"] },
-      ch8: { chapterTitle: "인생 전환점", requiredPaths: ["calculatedData.timeline"] },
-      ch9: { chapterTitle: "반복 신호", requiredPaths: ["calculatedData.integratedThemes.repeatedSignals"] },
-      ch10: { chapterTitle: "충돌 신호", requiredPaths: ["calculatedData.integratedThemes.conflictingSignals"] },
+      ch1: { chapterTitle: "핵심 정체성", requiredPaths: ["calculatedData.profile", "calculatedData.chart.dayMaster"] },
+      ch2: { chapterTitle: "타고난 성향", requiredPaths: ["calculatedData.personality.coreTemperament", "calculatedData.chart.tenGods"] },
+      ch3: { chapterTitle: "인생의 소명", requiredPaths: ["calculatedData.usefulGods.analysisBasis", "calculatedData.lifeThemes.growth"] },
+      ch4: { chapterTitle: "직업과 사회적 방향", requiredPaths: ["calculatedData.lifeThemes.career", "calculatedData.personality.workPattern"] },
+      ch5: { chapterTitle: "재물 흐름", requiredPaths: ["calculatedData.lifeThemes.wealth", "calculatedData.elements"] },
+      ch6: { chapterTitle: "관계와 사랑", requiredPaths: ["calculatedData.lifeThemes.relationship", "calculatedData.personality.relationshipPattern"] },
+      ch7: { chapterTitle: "건강과 에너지", requiredPaths: ["calculatedData.lifeThemes.health", "calculatedData.elements.weakElements"] },
+      ch8: { chapterTitle: "인생 전환점", requiredPaths: ["calculatedData.luckCycles.daewoon", "calculatedData.luckCycles.yearlyLuck"] },
+      ch9: { chapterTitle: "반복 신호", requiredPaths: ["calculatedData.elements.dominantElements", "calculatedData.chart.twelveStages"] },
+      ch10: { chapterTitle: "충돌 신호", requiredPaths: ["calculatedData.elements.weakElements", "calculatedData.chart.hiddenStems"] },
       ch11: { chapterTitle: "종합 인생 전략", requiredPaths: ["calculatedData"] },
     };
   }
@@ -2626,46 +3131,60 @@ function buildChapterDataMap(reportType, calculatedData) {
 function buildInterpretationSeed(reportType, calculatedData) {
   if (reportType === "ziweiPremium") {
     return {
-      coreIdentity: [calculatedData?.coreChart?.mingGong || "", calculatedData?.coreChart?.shenGong || ""].filter(Boolean),
-      requiredPalaces: ["ming", "shen", "fortune", "career", "wealth", "spouse"],
+      coreIdentity: [calculatedData?.chart?.mingGong || "", calculatedData?.chart?.shenGong || ""].filter(Boolean),
+      palaceCount: Array.isArray(calculatedData?.palaces) ? calculatedData.palaces.length : 0,
+      requiredPalaces: ["명궁", "신궁", "복덕궁", "관록궁", "재백궁", "부처궁"],
     };
   }
   if (reportType === "sookyoPremium") {
     return {
-      nativeSook: calculatedData?.nativeSook?.name || "",
-      relationshipType: calculatedData?.compatibility?.relationshipType || "",
+      birthMansion: calculatedData?.["宿曜"]?.birthMansion || "",
+      mansionGroup: calculatedData?.["宿曜"]?.mansionGroup || "",
+      relationType: calculatedData?.compatibility?.relationType || "",
     };
   }
   if (reportType === "westernAstrologyPremium") {
+    const natal = toPlainObject(calculatedData?.natalChart);
+    const planets = Array.isArray(natal?.planets) ? natal.planets : [];
+    const saturn = planets.find((p) => String(p?.name || "").toLowerCase() === "saturn") || {};
     return {
-      ascendant: calculatedData?.angles?.ascendant || {},
-      sun: calculatedData?.planets?.sun || {},
-      moon: calculatedData?.planets?.moon || {},
-      saturn: calculatedData?.planets?.saturn || {},
+      ascendant: natal?.ascendant || "",
+      sunSign: natal?.sunSign || "",
+      moonSign: natal?.moonSign || "",
+      saturn,
     };
   }
   if (reportType === "vedicPremium") {
     return {
-      lagna: calculatedData?.lagna || {},
-      moonNakshatra: calculatedData?.nakshatras?.moonNakshatra || {},
-      currentDasha: calculatedData?.dashas?.vimshottari || {},
+      lagna: calculatedData?.chart?.lagna || "",
+      moonNakshatra: calculatedData?.chart?.nakshatra || "",
+      currentDasha: calculatedData?.dasha?.currentDasha || "",
     };
   }
   if (reportType === "loveSecret") {
     return {
-      dayMaster: calculatedData?.self?.sajuChart?.dayMaster || "",
-      temperatureHumidityMatch: calculatedData?.compatibility?.temperatureHumidityMatch || "",
+      dayMaster: calculatedData?.chart?.dayMaster || "",
+      spousePalace: calculatedData?.chart?.spousePalace || "",
+      relationshipStars: Array.isArray(calculatedData?.chart?.relationshipStars) ? calculatedData.chart.relationshipStars : [],
+      attractionStyle: calculatedData?.lovePattern?.attractionStyle || "",
+      conflictPattern: calculatedData?.lovePattern?.conflictPattern || "",
     };
   }
   if (reportType === "lifeBook") {
+    const lifeThemes = calculatedData?.lifeThemes || {};
+    const personality = calculatedData?.personality || {};
+    const luckCycles = calculatedData?.luckCycles || {};
+    const usefulGods = calculatedData?.usefulGods || {};
     return {
-      coreIdentity: calculatedData?.integratedThemes?.coreIdentity || [],
-      lifeMission: calculatedData?.integratedThemes?.lifeMission || [],
-      careerDirection: calculatedData?.integratedThemes?.careerDirection || [],
-      relationshipPattern: calculatedData?.integratedThemes?.relationshipPattern || [],
-      wealthPattern: calculatedData?.integratedThemes?.wealthPattern || [],
-      healthPattern: calculatedData?.integratedThemes?.healthPattern || [],
-      turningPoints: calculatedData?.integratedThemes?.turningPoints || [],
+      coreIdentity: toStringArray(personality?.coreTemperament || [], 6),
+      lifeMission: [String(lifeThemes?.growth || "").trim(), String(usefulGods?.analysisBasis || "").trim()].filter(Boolean),
+      careerDirection: [String(lifeThemes?.career || "").trim(), String(personality?.workPattern || "").trim()].filter(Boolean),
+      relationshipPattern: [String(lifeThemes?.relationship || "").trim(), String(personality?.relationshipPattern || "").trim()].filter(Boolean),
+      wealthPattern: [String(lifeThemes?.wealth || "").trim()].filter(Boolean),
+      healthPattern: [String(lifeThemes?.health || "").trim()].filter(Boolean),
+      turningPoints: Array.isArray(luckCycles?.daewoon)
+        ? luckCycles.daewoon.map((item) => String(item?.ganji || item?.label || "").trim()).filter(Boolean).slice(0, 6)
+        : [],
     };
   }
   return {};
@@ -2674,45 +3193,78 @@ function buildInterpretationSeed(reportType, calculatedData) {
 function validateCanonicalJson(reportType, canonicalJson) {
   const requiredByType = {
     ziweiPremium: [
-      "calculatedData.coreChart.mingGong",
-      "calculatedData.coreChart.shenGong",
-      "calculatedData.palaces.ming",
+      "calculatedData.chart.mingGong",
+      "calculatedData.chart.shenGong",
+      "calculatedData.palaces",
+      "calculatedData.fourTransformations",
     ],
     sookyoPremium: [
-      "calculatedData.nativeSook.name",
-      "calculatedData.nativeSook.number",
+      "calculatedData.profile.birthDate",
+      "calculatedData.宿曜.birthMansion",
+      "calculatedData.宿曜.birthMansionIndex",
+      "calculatedData.宿曜.mansionGroup",
+      "calculatedData.mansionAnalysis.personality",
+      "calculatedData.fortuneCycles",
     ],
     westernAstrologyPremium: [
-      "calculatedData.angles.ascendant.sign",
-      "calculatedData.angles.midheaven.sign",
-      "calculatedData.planets.sun.sign",
-      "calculatedData.planets.moon.sign",
-      "calculatedData.houses",
+      "calculatedData.profile.birthDate",
+      "calculatedData.profile.birthTime",
+      "calculatedData.natalChart.sunSign",
+      "calculatedData.natalChart.moonSign",
+      "calculatedData.natalChart.ascendant",
+      "calculatedData.natalChart.planets",
+      "calculatedData.natalChart.houses",
+      "calculatedData.natalChart.aspects",
     ],
     vedicPremium: [
-      "calculatedData.lagna.sign",
-      "calculatedData.nakshatras.moonNakshatra.name",
-      "calculatedData.planets.rahu",
-      "calculatedData.planets.ketu",
-      "calculatedData.dashas.vimshottari",
+      "calculatedData.profile.birthDate",
+      "calculatedData.profile.birthTime",
+      "calculatedData.chart.lagna",
+      "calculatedData.chart.moonSign",
+      "calculatedData.chart.sunSign",
+      "calculatedData.chart.planets",
+      "calculatedData.chart.houses",
+      "calculatedData.dasha.timeline",
     ],
     loveSecret: [
-      "calculatedData.self.sajuChart.dayPillar",
-      "calculatedData.self.sajuChart.dayMaster",
-      "calculatedData.self.fiveElementBalance",
+      "calculatedData.profile.birthDate",
+      "calculatedData.chart.dayMaster",
+      "calculatedData.chart.spousePalace",
+      "calculatedData.chart.tenGods",
+      "calculatedData.lovePattern.attractionStyle",
+      "calculatedData.datingAdvice.communicationAdvice",
+      "calculatedData.luckCycles.loveDaewoon",
     ],
     lifeBook: [
-      "calculatedData.saju",
+      "calculatedData.profile.birthDate",
+      "calculatedData.chart.yearPillar.ganji",
+      "calculatedData.chart.monthPillar.ganji",
+      "calculatedData.chart.dayPillar.ganji",
+      "calculatedData.chart.dayMaster",
+      "calculatedData.elements.scores.wood",
+      "calculatedData.usefulGods.analysisBasis",
+      "calculatedData.luckCycles.daewoon",
     ],
   };
 
   const optionalByType = {
-    ziweiPremium: ["calculatedData.cycles.monthly", "calculatedData.relationshipData.compatibilityHints"],
-    sookyoPremium: ["calculatedData.cycleData.monthly", "calculatedData.compatibility.relationshipAdvice"],
-    westernAstrologyPremium: ["calculatedData.elementBalance", "calculatedData.modalityBalance"],
-    vedicPremium: ["calculatedData.yogas", "calculatedData.relationshipData"],
-    loveSecret: ["calculatedData.optionalCrossSystems"],
-    lifeBook: ["calculatedData.integratedThemes.coreIdentity", "calculatedData.integratedThemes.lifeMission", "calculatedData.integratedThemes.repeatedSignals", "calculatedData.integratedThemes.conflictingSignals"],
+    ziweiPremium: ["calculatedData.luckCycles.decadeLuck", "calculatedData.luckCycles.annualLuck"],
+    sookyoPremium: ["calculatedData.compatibility.summary", "calculatedData.fortuneCycles.monthly"],
+    westernAstrologyPremium: ["calculatedData.transits.currentTransits", "calculatedData.transits.yearlyTheme"],
+    vedicPremium: ["calculatedData.dasha.currentDasha", "calculatedData.analysis.spiritualGrowth"],
+    loveSecret: [
+      "calculatedData.chart.peachBlossom",
+      "calculatedData.chart.hongyeom",
+      "calculatedData.chart.hwagae",
+      "calculatedData.luckCycles.loveYearlyLuck",
+    ],
+    lifeBook: [
+      "calculatedData.personality.coreTemperament",
+      "calculatedData.lifeThemes.career",
+      "calculatedData.lifeThemes.relationship",
+      "calculatedData.lifeThemes.health",
+      "calculatedData.luckCycles.yearlyLuck",
+    ],
   };
 
   const requiredPaths = requiredByType[reportType] || [];
@@ -2721,30 +3273,64 @@ function validateCanonicalJson(reportType, canonicalJson) {
   const optionalMissing = optionalPaths.filter((path) => pathMissing(canonicalJson, path));
 
   if (reportType === "ziweiPremium") {
-    const palaceKeys = ["ming", "siblings", "spouse", "children", "wealth", "health", "travel", "friends", "career", "property", "fortune", "parents"];
-    palaceKeys.forEach((key) => {
-      const fullPath = `calculatedData.palaces.${key}`;
-      if (pathMissing(canonicalJson, fullPath)) optionalMissing.push(fullPath);
-    });
+    const palaces = Array.isArray(getPathValue(canonicalJson, "calculatedData.palaces"))
+      ? getPathValue(canonicalJson, "calculatedData.palaces")
+      : [];
+    for (let i = 0; i < palaces.length; i += 1) {
+      const palace = palaces[i] || {};
+      const basePath = `calculatedData.palaces.${i}`;
+      if (!hasMeaningfulValue(palace?.palaceName)) requiredMissing.push(`${basePath}.palaceName`);
+      if (!hasMeaningfulValue(palace?.branch)) requiredMissing.push(`${basePath}.branch`);
+      if (!Array.isArray(palace?.mainStars)) {
+        requiredMissing.push(`${basePath}.mainStars`);
+      } else {
+        for (let j = 0; j < palace.mainStars.length; j += 1) {
+          const star = palace.mainStars[j] || {};
+          if (!hasMeaningfulValue(star?.name)) requiredMissing.push(`${basePath}.mainStars.${j}.name`);
+          if (!hasMeaningfulValue(star?.strengthSymbol)) requiredMissing.push(`${basePath}.mainStars.${j}.strengthSymbol`);
+        }
+      }
+    }
+  }
+
+  if (reportType === "westernAstrologyPremium") {
+    if (!Array.isArray(getPathValue(canonicalJson, "calculatedData.natalChart.planets"))) {
+      requiredMissing.push("calculatedData.natalChart.planets");
+    }
+    if (!Array.isArray(getPathValue(canonicalJson, "calculatedData.natalChart.houses"))) {
+      requiredMissing.push("calculatedData.natalChart.houses");
+    }
+    if (!Array.isArray(getPathValue(canonicalJson, "calculatedData.natalChart.aspects"))) {
+      requiredMissing.push("calculatedData.natalChart.aspects");
+    }
+  }
+
+  if (reportType === "vedicPremium") {
+    if (!Array.isArray(getPathValue(canonicalJson, "calculatedData.chart.planets"))) {
+      requiredMissing.push("calculatedData.chart.planets");
+    }
+    if (!Array.isArray(getPathValue(canonicalJson, "calculatedData.chart.houses"))) {
+      requiredMissing.push("calculatedData.chart.houses");
+    }
+    if (!Array.isArray(getPathValue(canonicalJson, "calculatedData.dasha.timeline"))) {
+      requiredMissing.push("calculatedData.dasha.timeline");
+    }
+  }
+
+  if (reportType === "westernAstrologyPremium") {
+    const transits = getPathValue(canonicalJson, "calculatedData.transits.currentTransits");
+    if (transits && !Array.isArray(transits)) optionalMissing.push("calculatedData.transits.currentTransits");
   }
 
   if (reportType === "sookyoPremium") {
     const compatRequired = Boolean(getPathValue(canonicalJson, "calculatedData._compatibilityRequired"));
     if (compatRequired) {
       [
-        "calculatedData.compatibility.relationshipType",
+        "calculatedData.compatibility.relationType",
         "calculatedData.compatibility.distance",
       ].forEach((path) => {
         if (pathMissing(canonicalJson, path)) optionalMissing.push(path);
       });
-    }
-  }
-
-  if (reportType === "lifeBook") {
-    const hasZiwei = hasMeaningfulValue(getPathValue(canonicalJson, "calculatedData.ziwei"));
-    const hasWestern = hasMeaningfulValue(getPathValue(canonicalJson, "calculatedData.westernAstrology"));
-    if (!hasZiwei && !hasWestern) {
-      requiredMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
     }
   }
 
@@ -2761,7 +3347,6 @@ function validateCanonicalJson(reportType, canonicalJson) {
 
 function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authInfo, meta) {
   const input = requestBody && typeof requestBody === "object" ? requestBody : {};
-  const supplemental = meta?.supplementalCanonicalByType || {};
   let calculatedData = {};
 
   if (reportType === "ziweiPremium") {
@@ -2773,22 +3358,11 @@ function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authI
   } else if (reportType === "vedicPremium") {
     calculatedData = mapVedicCalculatedData(prepareData?.canonicalVedicChart || {});
   } else if (reportType === "loveSecret") {
-    calculatedData = mapLoveSecretCalculatedData(prepareData?.canonicalSajuLoveReport || {}, supplemental);
+    calculatedData = mapLoveSecretCalculatedData(prepareData?.canonicalSajuLoveReport || {}, requestBody);
   } else if (reportType === "lifeBook") {
     calculatedData = mapLifeBookCalculatedData(
-      {
-        calculatedData: prepareData?.canonicalSajuChart || requestBody?.canonicalSajuChart || {},
-        interpretationSeed: {
-          coreIdentity: prepareData?.coreIdentity || [],
-          lifeMission: prepareData?.lifeMission || [],
-          careerDirection: prepareData?.careerDirection || [],
-          relationshipPattern: prepareData?.relationshipPattern || [],
-          wealthPattern: prepareData?.wealthPattern || [],
-          healthPattern: prepareData?.healthPattern || [],
-          turningPoints: prepareData?.turningPoints || [],
-        },
-      },
-      supplemental,
+      prepareData?.canonicalSajuChart || requestBody?.canonicalSajuChart || {},
+      requestBody,
     );
   }
 
@@ -2837,14 +3411,45 @@ function toTopArray(value, max = 8) {
 function compactZiweiPalaceForPrompt(palace) {
   const source = toPlainObject(palace);
   return {
-    name: String(source.name || ""),
-    earthlyBranch: String(source.earthlyBranch || ""),
+    palaceName: String(source.palaceName || source.name || ""),
+    branch: String(source.branch || source.earthlyBranch || ""),
     mainStars: toTopArray(source.mainStars, 4),
     minorStars: toTopArray(source.minorStars, 4),
     auxiliaryStars: toTopArray(source.auxiliaryStars, 4),
-    maleficStars: toTopArray(source.maleficStars, 4),
-    fourTransformations: toTopArray(source.fourTransformations, 4),
+    transformations: toTopArray(source.transformations || source.fourTransformations, 4),
+    strengthSummary: String(source.strengthSummary || "").trim(),
   };
+}
+
+function pickZiweiPalaceForPrompt(palaces, palaceType, chart = {}) {
+  if (!Array.isArray(palaces) || palaces.length === 0) return {};
+  const normalizedType = String(palaceType || "").trim().toLowerCase();
+
+  if (normalizedType === "ming") {
+    return findZiweiPalaceByBranch(palaces, chart?.mingGong) || palaces[0] || {};
+  }
+  if (normalizedType === "shen") {
+    return findZiweiPalaceByBranch(palaces, chart?.shenGong) || palaces[0] || {};
+  }
+
+  const keywordMap = {
+    spouse: ["부처", "夫妻"],
+    wealth: ["재백", "財帛"],
+    career: ["관록", "官祿"],
+    health: ["질액", "疾厄"],
+    fortune: ["복덕", "福德"],
+  };
+  const keywords = keywordMap[normalizedType] || [];
+  if (!keywords.length) return palaces[0] || {};
+
+  for (let i = 0; i < palaces.length; i += 1) {
+    const palaceName = String(palaces[i]?.palaceName || "").trim();
+    if (!palaceName) continue;
+    for (let k = 0; k < keywords.length; k += 1) {
+      if (palaceName.includes(keywords[k])) return palaces[i];
+    }
+  }
+  return palaces[0] || {};
 }
 
 function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
@@ -2867,26 +3472,28 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
   };
 
   if (reportType === "ziweiPremium") {
-    const palaces = toPlainObject(calculatedData.palaces);
+    const chart = toPlainObject(calculatedData.chart);
+    const palaces = Array.isArray(calculatedData.palaces) ? calculatedData.palaces : [];
     return {
       chapterCore,
       signals: {
-        coreChart: toPlainObject(calculatedData.coreChart),
-        ming: compactZiweiPalaceForPrompt(palaces.ming),
-        spouse: compactZiweiPalaceForPrompt(palaces.spouse),
-        wealth: compactZiweiPalaceForPrompt(palaces.wealth),
-        career: compactZiweiPalaceForPrompt(palaces.career),
-        health: compactZiweiPalaceForPrompt(palaces.health),
+        profile: toPlainObject(calculatedData.profile),
+        chart,
+        ming: compactZiweiPalaceForPrompt(pickZiweiPalaceForPrompt(palaces, "ming", chart)),
+        shen: compactZiweiPalaceForPrompt(pickZiweiPalaceForPrompt(palaces, "shen", chart)),
+        spouse: compactZiweiPalaceForPrompt(pickZiweiPalaceForPrompt(palaces, "spouse", chart)),
+        wealth: compactZiweiPalaceForPrompt(pickZiweiPalaceForPrompt(palaces, "wealth", chart)),
+        career: compactZiweiPalaceForPrompt(pickZiweiPalaceForPrompt(palaces, "career", chart)),
+        health: compactZiweiPalaceForPrompt(pickZiweiPalaceForPrompt(palaces, "health", chart)),
+        fourTransformations: toPlainObject(calculatedData.fourTransformations),
+        starStrengthLegend: toPlainObject(calculatedData.starStrengthLegend),
       },
       timing: {
-        daXian: toTopArray(calculatedData?.cycles?.daXian, 6),
-        annual: toTopArray(calculatedData?.cycles?.annual, 4),
-        monthly: toTopArray(calculatedData?.cycles?.monthly, 4),
+        decadeLuck: toTopArray(calculatedData?.luckCycles?.decadeLuck, 6),
+        annualLuck: toTopArray(calculatedData?.luckCycles?.annualLuck, 4),
       },
       actions: {
-        relationshipData: toPlainObject(calculatedData.relationshipData),
-        careerData: toPlainObject(calculatedData.careerData),
-        healthData: toPlainObject(calculatedData.healthData),
+        palaces: toTopArray(palaces, 12),
       },
     };
   }
@@ -2895,16 +3502,17 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
-        birthInfo: toPlainObject(calculatedData.birthInfo),
-        nativeSook: toPlainObject(calculatedData.nativeSook),
+        profile: toPlainObject(calculatedData.profile),
+        "宿曜": toPlainObject(calculatedData?.["宿曜"]),
+        mansionAnalysis: toPlainObject(calculatedData.mansionAnalysis),
         compatibility: toPlainObject(calculatedData.compatibility),
       },
       timing: {
-        cycleData: toPlainObject(calculatedData.cycleData),
+        fortuneCycles: toPlainObject(calculatedData.fortuneCycles),
       },
       actions: {
-        relationshipAdvice: toTopArray(calculatedData?.compatibility?.relationshipAdvice, 8),
-        twentySevenSook: toTopArray(calculatedData.twentySevenSook, 12),
+        growthAdvice: String(calculatedData?.mansionAnalysis?.growthAdvice || ""),
+        weakness: String(calculatedData?.mansionAnalysis?.weakness || ""),
       },
     };
   }
@@ -2913,25 +3521,14 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
-        birthInfo: toPlainObject(calculatedData.birthInfo),
-        angles: toPlainObject(calculatedData.angles),
-        planets: {
-          sun: toPlainObject(calculatedData?.planets?.sun),
-          moon: toPlainObject(calculatedData?.planets?.moon),
-          venus: toPlainObject(calculatedData?.planets?.venus),
-          mars: toPlainObject(calculatedData?.planets?.mars),
-          saturn: toPlainObject(calculatedData?.planets?.saturn),
-        },
+        profile: toPlainObject(calculatedData.profile),
+        natalChart: toPlainObject(calculatedData.natalChart),
       },
       timing: {
-        aspectsTop: toTopArray(calculatedData.aspects, 18),
-        housesTop: toTopArray(calculatedData.houses, 12),
+        transits: toPlainObject(calculatedData.transits),
       },
       actions: {
-        relationshipData: toPlainObject(calculatedData.relationshipData),
-        careerData: toPlainObject(calculatedData.careerData),
-        elementBalance: toPlainObject(calculatedData.elementBalance),
-        modalityBalance: toPlainObject(calculatedData.modalityBalance),
+        analysis: toPlainObject(calculatedData.analysis),
       },
     };
   }
@@ -2940,23 +3537,14 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
-        birthInfo: toPlainObject(calculatedData.birthInfo),
-        lagna: toPlainObject(calculatedData.lagna),
-        moonNakshatra: toPlainObject(calculatedData?.nakshatras?.moonNakshatra),
-        karakas: toPlainObject(calculatedData.karakas),
-        planets: {
-          saturn: toPlainObject(calculatedData?.planets?.saturn),
-          rahu: toPlainObject(calculatedData?.planets?.rahu),
-          ketu: toPlainObject(calculatedData?.planets?.ketu),
-        },
+        profile: toPlainObject(calculatedData.profile),
+        chart: toPlainObject(calculatedData.chart),
       },
       timing: {
-        dasha: toPlainObject(calculatedData.dashas),
-        yogas: toTopArray(calculatedData.yogas, 10),
+        dasha: toPlainObject(calculatedData.dasha),
       },
       actions: {
-        relationshipData: toPlainObject(calculatedData.relationshipData),
-        careerData: toPlainObject(calculatedData.careerData),
+        analysis: toPlainObject(calculatedData.analysis),
       },
     };
   }
@@ -2965,22 +3553,15 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
-        self: {
-          birthInfo: toPlainObject(calculatedData?.self?.birthInfo),
-          sajuChart: toPlainObject(calculatedData?.self?.sajuChart),
-          relationshipProfile: toPlainObject(calculatedData?.self?.relationshipProfile),
-        },
-        partner: {
-          birthInfo: toPlainObject(calculatedData?.partner?.birthInfo),
-          sajuChart: toPlainObject(calculatedData?.partner?.sajuChart),
-          relationshipProfile: toPlainObject(calculatedData?.partner?.relationshipProfile),
-        },
+        profile: toPlainObject(calculatedData?.profile),
+        chart: toPlainObject(calculatedData?.chart),
+        lovePattern: toPlainObject(calculatedData?.lovePattern),
       },
       timing: {
-        compatibility: toPlainObject(calculatedData.compatibility),
+        luckCycles: toPlainObject(calculatedData?.luckCycles),
       },
       actions: {
-        optionalCrossSystems: toPlainObject(calculatedData.optionalCrossSystems),
+        datingAdvice: toPlainObject(calculatedData?.datingAdvice),
       },
     };
   }
@@ -2989,17 +3570,17 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
-        integratedThemes: toPlainObject(calculatedData.integratedThemes),
-        saju: toPlainObject(calculatedData.saju),
+        profile: toPlainObject(calculatedData.profile),
+        chart: toPlainObject(calculatedData.chart),
+        elements: toPlainObject(calculatedData.elements),
+        usefulGods: toPlainObject(calculatedData.usefulGods),
       },
       timing: {
-        timeline: toPlainObject(calculatedData.timeline),
+        luckCycles: toPlainObject(calculatedData.luckCycles),
       },
       actions: {
-        ziwei: toPlainObject(calculatedData.ziwei),
-        westernAstrology: toPlainObject(calculatedData.westernAstrology),
-        vedic: toPlainObject(calculatedData.vedic),
-        sookyo: toPlainObject(calculatedData.sookyo),
+        personality: toPlainObject(calculatedData.personality),
+        lifeThemes: toPlainObject(calculatedData.lifeThemes),
       },
     };
   }
@@ -3029,17 +3610,24 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
     reportType,
     chapterId: String(chapterId || ""),
     chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+    chapterPurpose: String(chapterMeta.purpose || "해당 챕터 제목과 목적에 맞는 해석문 생성"),
     tone: "Code:Destiny premium mystical but practical Korean tone",
+    systemPrompt: PREMIUM_PDF_V2_SYSTEM_PROMPT,
     calculatedDataForThisChapter: chapterDataSubset,
     chapterJsonPacks,
     globalSummary: canonicalJson?.interpretationSeed || {},
     doNotCalculate: true,
+    bannedPhrases: PREMIUM_PDF_V2_BANNED_PHRASES,
     rules: [
-      "계산되지 않은 내용을 임의로 만들지 말 것",
-      "JSON에 없는 별, 행성, 궁, 십성, 숙요 관계를 지어내지 말 것",
-      "계산 데이터와 해석을 구분할 것",
-      "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
-      "미신적 단정 대신 전략과 자기이해 중심으로 작성할 것",
+      "제공된 JSON 데이터만 근거로 해석할 것",
+      "JSON에 없는 계산값을 임의로 만들지 말 것",
+      "누락된 데이터는 추측으로 보완하지 말 것",
+      "사주팔자, 자미두수 명반, 27숙, 라그나, 행성 위치, 대운/다샤/트랜짓 계산을 새로 수행하지 말 것",
+      "같은 문장을 반복하지 말 것",
+      "챕터 제목과 목적에 맞는 내용만 작성할 것",
+      "독자가 이해하기 쉬운 한국어로 작성할 것",
+      "공포 조장 문구를 피하고 활용 전략 중심으로 설명할 것",
+      "출력은 챕터 본문만 작성할 것",
       "chapterJsonPacks(core/signals/timing/actions)에서 최소 3개 이상 근거를 본문에 반영할 것",
     ],
   };
@@ -9949,6 +10537,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const inputHash = stablePayloadHash(requestBody || {});
   const modeKey = modeKeyFromInput(requestBody || {});
   const priceMeta = getPremiumRoutePriceMeta(reportType, requestBody || {});
+  const usePdfV2 = isPremiumPdfV2Enabled(env);
   const cacheKey = getPremiumCacheKey(reportType, authInfo.userId, inputHash, calculationVersion, modeKey);
   const idempotencyKey = `${String(authInfo.userId || "anonymous")}:${String(featureType || reportType || "")}:${modeKey}:${inputHash}`;
   const existingSessionId = PREMIUM_REPORT_CONTEXT_INDEX.get(cacheKey);
@@ -9968,6 +10557,19 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
         refundable: true,
       };
       existing.idempotencyKey = existing.idempotencyKey || idempotencyKey;
+      existing.derivedData = existing.derivedData || {};
+      if (usePdfV2 && (!Array.isArray(existing.derivedData.pdfV2ChapterPlan) || !existing.derivedData.pdfV2ChapterPlan.length)) {
+        existing.derivedData.pdfV2ChapterPlan = getPremiumPdfV2ChapterPlan(reportType, modeKey);
+      }
+      existing.payment = existing.payment || {
+        coinCharged: false,
+        chargedAmount: Number(existing.priceCoins || 0),
+        refundable: true,
+      };
+      if (usePdfV2 && !existing.payment.transactionType) {
+        existing.payment.transactionType = "PDF_PURCHASE_HOLD";
+        existing.payment.state = existing.payment.state || "hold_pending";
+      }
       existing.updatedAt = new Date(now).toISOString();
       existing.expiresAt = now + PREMIUM_REPORT_CONTEXT_TTL_MS;
       await savePremiumReportContext(env, existing);
@@ -10012,7 +10614,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     basePrepareData: initialPrepareData,
   });
 
-  const failOpen = isPremiumFailOpenPayload(requestBody);
+  const failOpen = usePdfV2 ? false : isPremiumFailOpenPayload(requestBody);
 
   let prepareData = hydrated?.prepareData || null;
   let canonicalBuild = hydrated?.canonicalBuild || null;
@@ -10064,6 +10666,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     ...(canonicalBuild.validation?.optionalMissing || []),
   ]));
   const status = missingData.length === 0 && canonicalBuild.validation?.canGeneratePdf ? "ready" : "needs-data";
+  const pdfV2ChapterPlan = usePdfV2 ? getPremiumPdfV2ChapterPlan(reportType, modeKey) : [];
 
   const context = {
     reportSessionId,
@@ -10089,6 +10692,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     },
     derivedData: {
       chapterPlan: Array.isArray(prepareData.chapterPlan) ? prepareData.chapterPlan : [],
+      pdfV2ChapterPlan,
       validation: canonicalBuild.validation || prepareData.validation || null,
       quality: prepareData.quality || null,
       canonicalHydration: hydrated.hydration || null,
@@ -10119,6 +10723,8 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
       chargedAmount: Number(priceMeta?.priceCoins || 0),
       transactionId: "",
       refundable: true,
+      transactionType: usePdfV2 ? "PDF_PURCHASE_HOLD" : "",
+      state: usePdfV2 ? "hold_pending" : "none",
     },
     totalChapters,
     requiredChapters: Number(specChapters || totalChapters),
@@ -10155,6 +10761,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
 
 async function handlePremiumReportPrepare(request, env, authInfo) {
   const body = normalizePremiumStartRequestBody(await readJson(request));
+  const usePdfV2 = isPremiumPdfV2Enabled(env);
   const requestedRequestId = String(body.requestId || "").trim();
   const requestId = requestedRequestId || createPremiumRequestId(`${authInfo.userId}|prepare`);
   const typePair = resolvePremiumTypePair(body.reportType || body.type, body.featureType || body.feature || body.kind);
@@ -10178,9 +10785,10 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     ...requestBodySource,
     _premiumFailOpen: Object.prototype.hasOwnProperty.call(requestBodySource, "_premiumFailOpen")
       ? requestBodySource._premiumFailOpen
-      : true,
+      : (usePdfV2 ? false : true),
   };
-  const failOpen = isPremiumFailOpenPayload(requestBody);
+  if (usePdfV2) requestBody._premiumFailOpen = false;
+  const failOpen = usePdfV2 ? false : isPremiumFailOpenPayload(requestBody);
   const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, featureType, requestBody, requestId);
   if (!prepared.ok) {
     return json({
@@ -10193,9 +10801,17 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   context.requestId = requestId;
   context.featureType = context.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "";
   const summary = buildPremiumContextSummary(context);
-  const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) && context.derivedData.chapterPlan.length
-    ? context.derivedData.chapterPlan
-    : (getPremiumSpecByReportType(context.reportType, context.modeKey)?.chapters || []);
+  const chapterPlan = usePdfV2
+    ? (
+      (Array.isArray(context?.derivedData?.pdfV2ChapterPlan) && context.derivedData.pdfV2ChapterPlan.length)
+        ? context.derivedData.pdfV2ChapterPlan
+        : getPremiumPdfV2ChapterPlan(context.reportType, context.modeKey)
+    )
+    : (
+      Array.isArray(context?.derivedData?.chapterPlan) && context.derivedData.chapterPlan.length
+        ? context.derivedData.chapterPlan
+        : (getPremiumSpecByReportType(context.reportType, context.modeKey)?.chapters || [])
+    );
   const receivedKeys = collectReceivedKeys(requestBody);
   const expectedSchema = getPremiumExpectedSchema(context.reportType);
   const normalizedDataSummary = getPremiumNormalizedDataSummary(context.reportType, context?.coreData?.canonicalJson || {});
@@ -10217,7 +10833,9 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     return json({
       ok: false,
       code: "MISSING_CALCULATION_DATA",
-      message: "PDF 생성에 필요한 계산 데이터가 누락되었습니다.",
+      message: usePdfV2
+        ? "PDF 생성에 필요한 계산 데이터가 일부 누락되어 생성을 중단했습니다. 코인은 차감되지 않았거나 자동으로 환불되었습니다. 잠시 후 다시 시도해 주세요."
+        : "PDF 생성에 필요한 계산 데이터가 누락되었습니다.",
       requestId,
       reportType: context.reportType,
       featureType: context.featureType,
@@ -10267,6 +10885,15 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       normalizedDataSummary,
       contextSummary: summary,
     }, { status: Number(access.status || 402) });
+  }
+
+  if (usePdfV2) {
+    context.payment = context.payment || {};
+    context.payment.accessType = String(access?.accessType || "");
+    updatePremiumPaymentState(context, "hold_active", "prepare-access-ok");
+    context.updatedAt = new Date().toISOString();
+    context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+    await savePremiumReportContext(env, context);
   }
 
   return json({
@@ -10353,7 +10980,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
   const activeReportSessionId = String(context.reportSessionId || reportSessionId);
   context.requestId = requestId;
-  const failOpen = isPremiumFailOpenPayload(context.input || body || {});
+  const usePdfV2 = isPremiumPdfV2Enabled(env);
+  const failOpen = usePdfV2 ? false : isPremiumFailOpenPayload(context.input || body || {});
 
   const applyHydrationToContext = (hydrated) => {
     if (!hydrated?.canonicalBuild || !hydrated?.prepareData) return false;
@@ -10429,6 +11057,14 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapterNo ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
+  const pdfV2ChapterPlan = usePdfV2
+    ? (
+      (Array.isArray(context?.derivedData?.pdfV2ChapterPlan) && context.derivedData.pdfV2ChapterPlan.length)
+        ? context.derivedData.pdfV2ChapterPlan
+        : getPremiumPdfV2ChapterPlan(context.reportType, context.modeKey)
+    )
+    : [];
+  const pdfV2ChapterMeta = usePdfV2 ? (pdfV2ChapterPlan[chapterId - 1] || null) : null;
   const chapterAttemptDefault = context.reportType === "ziweiPremium"
     ? 1
     : getPremiumChapterMaxAttempts(env);
@@ -10479,7 +11115,14 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   const chapterRequiredPaths = Array.isArray(context?.coreData?.canonicalJson?.chapterData?.[chapterKey]?.requiredPaths)
     ? context.coreData.canonicalJson.chapterData[chapterKey].requiredPaths
     : [];
-  let chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
+  const normalizedDataForV2 = context?.coreData?.canonicalJson?.calculatedData || {};
+  let chapterMissing = [];
+  if (usePdfV2 && pdfV2ChapterMeta) {
+    const chapterValidation = validateChapterData(normalizedDataForV2, pdfV2ChapterMeta);
+    chapterMissing = chapterValidation.ok ? [] : chapterValidation.missingFields;
+  } else {
+    chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
+  }
 
   if (chapterMissing.length > 0) {
     const hydrated = await hydratePremiumCanonicalData({
@@ -10503,17 +11146,46 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     context.updatedAt = new Date().toISOString();
     context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
     await savePremiumReportContext(env, context);
-    chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
+    if (usePdfV2 && pdfV2ChapterMeta) {
+      const chapterValidation = validateChapterData(context?.coreData?.canonicalJson?.calculatedData || {}, pdfV2ChapterMeta);
+      chapterMissing = chapterValidation.ok ? [] : chapterValidation.missingFields;
+    } else {
+      chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
+    }
   }
 
   if (chapterMissing.length > 0 && !failOpen) {
+    if (usePdfV2) {
+      const chapterRef = String(pdfV2ChapterMeta?.chapterId || chapterId);
+      const missingJoined = chapterMissing.join(",");
+      console.error(`[PDF_V2_MISSING_FIELDS] pdfType=${context.reportType} chapterId=${chapterRef} missingFields=${missingJoined}`);
+      updatePremiumPaymentState(context, "hold_released", "missing-fields-before-gemini");
+      context.status = "failed";
+      context.chapterData[String(chapterId)] = {
+        chapterId,
+        chapterRef,
+        ok: false,
+        status: 422,
+        code: "PDF_V2_MISSING_FIELDS",
+        message: "PDF 생성에 필요한 계산 데이터가 일부 누락되어 생성을 중단했습니다. 코인은 차감되지 않았거나 자동으로 환불되었습니다. 잠시 후 다시 시도해 주세요.",
+        missingFields: chapterMissing,
+        requestId,
+        updatedAt: new Date().toISOString(),
+      };
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      await savePremiumReportContext(env, context);
+    }
     return json({
       ok: false,
-      code: "PREMIUM_REPORT_CHAPTER_DATA_MISSING",
-      message: "해당 챕터 생성에 필요한 계산 데이터가 부족합니다.",
+      code: usePdfV2 ? "PDF_V2_MISSING_FIELDS" : "PREMIUM_REPORT_CHAPTER_DATA_MISSING",
+      message: usePdfV2
+        ? "PDF 생성에 필요한 계산 데이터가 일부 누락되어 생성을 중단했습니다. 코인은 차감되지 않았거나 자동으로 환불되었습니다. 잠시 후 다시 시도해 주세요."
+        : "해당 챕터 생성에 필요한 계산 데이터가 부족합니다.",
       requestId,
       chapterId,
       missingData: chapterMissing,
+      missingFields: chapterMissing,
     }, { status: 422 });
   }
 
@@ -10552,6 +11224,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       ),
       _premiumChapterJsonPacks: chapterJsonPacks,
       _premiumMissingPaths: chapterMissing,
+      _premiumV2Enabled: usePdfV2,
     };
 
     const { response, data } = await invokePremiumLegacyHandler(handler, request, env, chapterRequestBody);
@@ -10565,7 +11238,46 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       continue;
     }
 
-    const chapterText = String(data.text || "").trim();
+    let chapterText = String(data.text || "").trim();
+    if (usePdfV2 && pdfV2ChapterMeta) {
+      const disallowedKeywords = context.reportType === "vedicPremium"
+        ? ["어센던트", "Ascendant", "Solar Return", "Synastry", "Composite"]
+        : (context.reportType === "westernAstrologyPremium"
+          ? ["라그나", "나크샤트라", "비므쇼타리", "Vimshottari", "다샤"]
+          : []);
+      const v2TextValidation = validateGeneratedChapterText(chapterText, {
+        minChars: Number(pdfV2ChapterMeta.minChars || 0),
+        maxChars: Number(pdfV2ChapterMeta.maxChars || 0),
+        chapterTitle: String(pdfV2ChapterMeta.title || ""),
+        normalizedData: context?.coreData?.canonicalJson?.calculatedData || {},
+        bannedPhrases: PREMIUM_PDF_V2_BANNED_PHRASES,
+        disallowedKeywords,
+      });
+
+      if (!v2TextValidation.ok) {
+        lastFailure = {
+          status: 422,
+          code: "PDF_V2_CHAPTER_VALIDATION_FAILED",
+          message: "챕터 생성 결과 검증에 실패했습니다.",
+          lengthValidation: {
+            ok: false,
+            warnings: v2TextValidation.errors,
+            chapterMin: Number(pdfV2ChapterMeta.minChars || 0),
+            chapterTarget: Number(pdfV2ChapterMeta.maxChars || 0),
+          },
+        };
+        continue;
+      }
+
+      chapterText = String(v2TextValidation.text || chapterText).trim();
+      if (v2TextValidation.warnings.includes("REPEATED_PARAGRAPHS_REMOVED")) {
+        data.warnings = Array.isArray(data.warnings) ? data.warnings : [];
+        if (!data.warnings.includes("REPEATED_PARAGRAPHS_REMOVED")) {
+          data.warnings.push("REPEATED_PARAGRAPHS_REMOVED");
+        }
+      }
+    }
+
     const lengthCheck = validateChapterLength({
       reportType: context.reportType,
       featureType: context.featureType,
@@ -10585,7 +11297,10 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     }
 
     successResponse = response;
-    successData = data;
+    successData = {
+      ...data,
+      text: chapterText,
+    };
     successLengthCheck = lengthCheck;
     successAttempt = attempt;
     break;
@@ -10634,7 +11349,13 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     } else {
     const status = normalizePremiumChapterFailureStatus(lastFailure.status || 422, lastFailure.code, lastFailure.message);
     const code = String(lastFailure.code || "PREMIUM_REPORT_CHAPTER_FAILED");
-    const message = String(lastFailure.message || "챕터 생성 실패");
+    const message = usePdfV2
+      ? "PDF 생성에 필요한 계산 데이터가 일부 누락되어 생성을 중단했습니다. 코인은 차감되지 않았거나 자동으로 환불되었습니다. 잠시 후 다시 시도해 주세요."
+      : String(lastFailure.message || "챕터 생성 실패");
+    if (usePdfV2) {
+      updatePremiumPaymentState(context, "hold_released", code || "chapter-failed");
+      context.status = "failed";
+    }
     context.chapterData[String(chapterId)] = {
       chapterId,
       ok: false,
@@ -10776,7 +11497,8 @@ async function handlePremiumReportRun(request, env, authInfo) {
     1,
     6,
   );
-  const failOpen = isPremiumFailOpenPayload(context.input || body || {});
+  const usePdfV2 = isPremiumPdfV2Enabled(env);
+  const failOpen = usePdfV2 ? false : isPremiumFailOpenPayload(context.input || body || {});
   const stopOnFailure = failOpen ? false : body.stopOnFailure !== false;
 
   const generated = [];
@@ -10910,6 +11632,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   const body = await readJson(request);
   const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|pdf`);
   const isFinalize = body.finalize === true || body._premiumFinalize === true;
+  const usePdfV2 = isPremiumPdfV2Enabled(env);
   const reportSessionId = String(body.reportSessionId || "").trim();
   if (!reportSessionId) {
     return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
@@ -10936,6 +11659,13 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   }
 
   if (validChapters === 0) {
+    if (usePdfV2) {
+      updatePremiumPaymentState(context, "hold_released", "no-valid-chapters");
+      context.status = "failed";
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      await savePremiumReportContext(env, context);
+    }
     logPremiumPipeline({
       scope: "PremiumPDF",
       reportType: context.reportType,
@@ -10961,6 +11691,13 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   }
 
   if (validChapters < requiredChapters) {
+    if (usePdfV2) {
+      updatePremiumPaymentState(context, "hold_released", "required-chapters-missing");
+      context.status = "failed";
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      await savePremiumReportContext(env, context);
+    }
     logPremiumPipeline({
       scope: "PremiumPDF",
       reportType: context.reportType,
@@ -10998,6 +11735,13 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   });
 
   if (!totalLengthValidation.ok) {
+    if (usePdfV2) {
+      updatePremiumPaymentState(context, "hold_released", "total-length-short");
+      context.status = "failed";
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      await savePremiumReportContext(env, context);
+    }
     logPremiumPipeline({
       scope: "PremiumPDF",
       reportType: context.reportType,
@@ -11026,6 +11770,11 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   }
 
   context.status = "pdf-ready";
+  if (usePdfV2) {
+    updatePremiumPaymentState(context, "captured", "pdf-ready");
+    context.payment = context.payment || {};
+    context.payment.transactionType = "PDF_PURCHASE_CAPTURE";
+  }
   context.updatedAt = new Date().toISOString();
   context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
   await savePremiumReportContext(env, context);
@@ -11071,6 +11820,240 @@ async function handlePremiumReportFinalize(request, env, authInfo) {
   return handlePremiumReportPdf(finalizeRequest, env, authInfo);
 }
 
+async function handlePremiumPdfGenerateEntry(request, env, authInfo, forceV2 = false) {
+  const rawBody = await readJson(request);
+  const usePdfV2 = isPremiumPdfV2Enabled(env);
+  if (forceV2 && !usePdfV2) {
+    return json({
+      ok: false,
+      code: "PDF_V2_DISABLED",
+      message: "PDF v2 기능이 비활성화되어 있습니다.",
+    }, { status: 409 });
+  }
+
+  const normalizedBody = normalizePremiumStartRequestBody(rawBody);
+  const requestId = String(normalizedBody?.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|pdf-generate`);
+
+  const prepareRequest = buildInternalPremiumJsonRequest(request, {
+    ...normalizedBody,
+    requestId,
+  });
+  const prepareResponse = await handlePremiumReportPrepare(prepareRequest, env, authInfo);
+  const preparePayload = await prepareResponse.json().catch(() => ({}));
+  if (!prepareResponse.ok || !preparePayload?.ok) {
+    return json(preparePayload, { status: Number(prepareResponse.status || 422) });
+  }
+
+  const reportSessionId = String(preparePayload.reportSessionId || preparePayload.generationId || "").trim();
+  if (!reportSessionId) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_CREATED",
+      message: "reportSessionId 생성에 실패했습니다.",
+      requestId,
+    }, { status: 500 });
+  }
+
+  if (!usePdfV2) {
+    const runRequest = buildInternalPremiumJsonRequest(request, {
+      reportSessionId,
+      requestId: `${requestId}_run`,
+      maxAttemptsPerChapter: rawBody?.maxAttemptsPerChapter,
+      stopOnFailure: rawBody?.stopOnFailure,
+      startChapter: rawBody?.startChapter,
+      endChapter: rawBody?.endChapter,
+    });
+    return handlePremiumReportRun(runRequest, env, authInfo);
+  }
+
+  const context = await loadPremiumReportContext(env, reportSessionId);
+  if (!context) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_FOUND",
+      message: "reportSessionId를 찾을 수 없습니다.",
+      requestId,
+    }, { status: 404 });
+  }
+
+  const chapterPlan = getPremiumPdfV2ChapterPlan(context.reportType, context.modeKey);
+  const paymentManager = createPremiumPdfPaymentManager({
+    env,
+    logger: console,
+    enabled: String(env?.PDF_V2_COIN_HOLD_ENABLED || "").trim().toLowerCase() === "true",
+  });
+  const accessType = String(context?.payment?.accessType || "").trim().toLowerCase();
+  const shouldBypassCoinLedger = accessType === "unlock" || accessType === "recent-payment";
+  const serviceResult = await createPremiumPdfJob({
+    userId: authInfo.userId,
+    featureKey: String(context.featureKey || ""),
+    pdfType: context.reportType,
+    input: context.input || {},
+  }, {
+    createJobId: () => context.reportId || reportSessionId,
+    updateJobStatus: async ({ status, code, message, error }) => {
+      context.status = status === "completed" ? "pdf-ready" : (status === "failed" ? "failed" : context.status);
+      context.lastJobCode = code || "";
+      context.lastJobMessage = message || "";
+      context.lastJobError = error || null;
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      await savePremiumReportContext(env, context);
+    },
+    resolvePricing: async () => {
+      const meta = getPremiumRoutePriceMeta(context.reportType, context.input || {});
+      return {
+        featureKey: String(meta?.featureKey || context.featureKey || ""),
+        priceCoins: Number(meta?.priceCoins || context.priceCoins || 0),
+      };
+    },
+    payment: {
+      hold: async ({ userId, featureKey, amount, idempotencyKey, jobId }) => {
+        if (shouldBypassCoinLedger) {
+          updatePremiumPaymentState(context, "hold_bypassed", `access-${accessType}`);
+          context.payment = context.payment || {};
+          context.payment.transactionType = "PDF_PURCHASE_HOLD";
+          await savePremiumReportContext(env, context);
+          return { ok: true, holdId: String(context.idempotencyKey || reportSessionId), bypassed: true };
+        }
+
+        const holdResult = await paymentManager.hold({ userId, featureKey, amount, idempotencyKey, jobId });
+        if (!holdResult?.ok) return holdResult;
+        updatePremiumPaymentState(context, "hold_active", "pdf-v2-service-hold");
+        context.payment = context.payment || {};
+        context.payment.transactionType = "PDF_PURCHASE_HOLD";
+        context.payment.holdId = String(holdResult?.holdId || "");
+        await savePremiumReportContext(env, context);
+        return holdResult;
+      },
+      capture: async ({ userId, featureKey, amount, idempotencyKey, holdId, jobId }) => {
+        if (shouldBypassCoinLedger) {
+          updatePremiumPaymentState(context, "captured", `access-${accessType}`);
+          context.payment = context.payment || {};
+          context.payment.transactionType = "PDF_PURCHASE_CAPTURE";
+          await savePremiumReportContext(env, context);
+          return { ok: true, bypassed: true };
+        }
+
+        const captureResult = await paymentManager.capture({ userId, featureKey, amount, idempotencyKey, holdId, jobId });
+        if (!captureResult?.ok) return captureResult;
+        updatePremiumPaymentState(context, "captured", "pdf-v2-service-capture");
+        context.payment = context.payment || {};
+        context.payment.transactionType = "PDF_PURCHASE_CAPTURE";
+        await savePremiumReportContext(env, context);
+        return captureResult;
+      },
+      release: async ({ userId, featureKey, amount, idempotencyKey, holdId, jobId }) => {
+        if (shouldBypassCoinLedger) {
+          updatePremiumPaymentState(context, "hold_released", `access-${accessType}`);
+          context.payment = context.payment || {};
+          context.payment.transactionType = "PDF_PURCHASE_REFUND";
+          await savePremiumReportContext(env, context);
+          return { ok: true, bypassed: true };
+        }
+
+        const releaseResult = await paymentManager.release({ userId, featureKey, amount, idempotencyKey, holdId, jobId });
+        if (!releaseResult?.ok) return releaseResult;
+        updatePremiumPaymentState(context, "hold_released", "pdf-v2-service-release");
+        context.payment = context.payment || {};
+        context.payment.transactionType = "PDF_PURCHASE_REFUND";
+        await savePremiumReportContext(env, context);
+        return releaseResult;
+      },
+    },
+    resolveAdapter: async () => ({
+      pdfType: context.reportType,
+      async runEngine() {
+        return context?.coreData?.canonicalJson || {};
+      },
+      async normalize(engineResult) {
+        return engineResult?.calculatedData || {};
+      },
+      getChapterPlan() {
+        return chapterPlan;
+      },
+      validate(normalizedData) {
+        const missingByChapter = chapterPlan
+          .map((chapter) => {
+            const validation = validateChapterData(normalizedData, chapter);
+            return validation.ok ? null : {
+              chapterId: chapter.chapterId,
+              missingFields: validation.missingFields,
+            };
+          })
+          .filter(Boolean);
+        return {
+          ok: missingByChapter.length === 0,
+          missingByChapter,
+        };
+      },
+    }),
+    resolvePromptTemplates: async (pdfType, mode) => buildPromptTemplatesForReportType(pdfType, mode),
+    generateChapter: async ({ chapter }) => {
+      const chapterOrder = Number(chapter?.order || 0);
+      const chapterRequest = buildInternalPremiumJsonRequest(request, {
+        reportSessionId,
+        chapterId: chapterOrder,
+        requestId: `${requestId}_v2_ch${chapterOrder}`,
+        maxAttempts: rawBody?.maxAttemptsPerChapter,
+      });
+      const chapterResponse = await handlePremiumReportChapter(chapterRequest, env, authInfo);
+      const chapterPayload = await chapterResponse.json().catch(() => ({}));
+      if (!chapterResponse.ok || !chapterPayload?.ok) {
+        const chapterError = new Error(String(chapterPayload?.message || "챕터 생성 실패"));
+        chapterError.code = String(chapterPayload?.code || "PREMIUM_REPORT_CHAPTER_FAILED");
+        chapterError.missingFields = Array.isArray(chapterPayload?.missingFields)
+          ? chapterPayload.missingFields
+          : [];
+        throw chapterError;
+      }
+      return String(chapterPayload?.text || "");
+    },
+    renderPdf: async () => {
+      const pdfRequest = buildInternalPremiumJsonRequest(request, {
+        reportSessionId,
+        requestId: `${requestId}_v2_pdf`,
+      });
+      const pdfResponse = await handlePremiumReportPdf(pdfRequest, env, authInfo);
+      const pdfPayload = await pdfResponse.json().catch(() => ({}));
+      if (!pdfResponse.ok || !pdfPayload?.ok) {
+        const pdfError = new Error(String(pdfPayload?.message || "PDF 렌더링 실패"));
+        pdfError.code = String(pdfPayload?.code || "PDF_V2_RENDER_FAILED");
+        throw pdfError;
+      }
+      return pdfPayload;
+    },
+    savePdf: async ({ pdfBinary }) => ({
+      reportSessionId,
+      reportId: context.reportId,
+      reportType: context.reportType,
+      pdfStatus: pdfBinary?.status || "completed",
+      lengthValidation: pdfBinary?.lengthValidation || null,
+    }),
+  });
+
+  if (!serviceResult?.ok) {
+    return json({
+      ok: false,
+      code: serviceResult?.code || "PREMIUM_PDF_V2_FAILED",
+      message: serviceResult?.message || "PDF 생성에 실패했습니다.",
+      missingFields: Array.isArray(serviceResult?.missingFields) ? serviceResult.missingFields : [],
+      reportSessionId,
+      requestId,
+    }, { status: 422 });
+  }
+
+  return json({
+    ok: true,
+    code: "PREMIUM_PDF_V2_COMPLETED",
+    message: "PDF v2 생성 파이프라인이 완료되었습니다.",
+    requestId,
+    reportSessionId,
+    reportId: context.reportId,
+    result: serviceResult,
+  });
+}
+
 export async function handlePremiumReportRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -11095,6 +12078,12 @@ export async function handlePremiumReportRoutes(request, env) {
     }
     if (method === "POST" && url.pathname === "/api/premium-report/finalize") {
       return await handlePremiumReportFinalize(request, env, authInfo);
+    }
+    if (method === "POST" && url.pathname === "/api/premium-pdf/generate") {
+      return await handlePremiumPdfGenerateEntry(request, env, authInfo, false);
+    }
+    if (method === "POST" && url.pathname === "/api/premium-pdf/v2/generate") {
+      return await handlePremiumPdfGenerateEntry(request, env, authInfo, true);
     }
     return notFound();
   } catch (error) {

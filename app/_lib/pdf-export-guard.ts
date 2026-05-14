@@ -4,6 +4,8 @@ type RuntimeWindow = Window & {
   __CD_PDF_EXPORT_IN_PROGRESS__?: boolean;
   __CD_PDF_EXPORT_ACTIVE_COUNT__?: number;
   __CD_PDF_FETCH_GUARD_INSTALLED__?: boolean;
+  __CD_PAYMENT_PROCESSING__?: boolean;
+  __CD_VERSION_GUARD_BLOCK__?: boolean;
 };
 
 function dispatchCriticalState() {
