@@ -1,6 +1,7 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
+import { requireAuth } from "../lib/auth.js";
 import {
   assertFeatureEnabled,
   getBillingFeaturePricing,
@@ -47,6 +48,61 @@ function failure(status, code, message, debugMessage) {
       ...(debugMessage ? { debugMessage: String(debugMessage).slice(0, 300) } : {}),
     },
   }, { status });
+}
+
+function requestHasCookie(request, cookieName) {
+  const cookieHeader = String(request.headers.get("cookie") || "");
+  if (!cookieHeader) return false;
+  return new RegExp(`(?:^|;\\s*)${cookieName}=`).test(cookieHeader);
+}
+
+function logBillingDiagnostic(event, request, details = {}) {
+  const payload = {
+    event,
+    requestPath: (() => {
+      try {
+        return new URL(request.url).pathname;
+      } catch {
+        return "";
+      }
+    })(),
+    method: String(request.method || ""),
+    authCookiePresent: requestHasCookie(request, "fortune_auth_token"),
+    refreshCookiePresent: requestHasCookie(request, "fortune_auth_refresh"),
+    authorizationHeaderPresent: Boolean(request.headers.get("authorization")),
+    ...details,
+  };
+
+  try {
+    console.info("[billing-diagnostic]", JSON.stringify(payload));
+  } catch {
+    console.info("[billing-diagnostic]", payload);
+  }
+}
+
+async function requireBillingAuth(request, env, context = {}) {
+  try {
+    const user = await requireAuth(request, env);
+    logBillingDiagnostic("auth_ok", request, {
+      featureKey: String(context.featureKey || ""),
+      userIdPresent: Boolean(user?.id || user?.userId),
+    });
+    return { ok: true, user };
+  } catch (error) {
+    const status = Number(error?.status || 0);
+    if (status === 401 || status === 403) {
+      logBillingDiagnostic("auth_required", request, {
+        featureKey: String(context.featureKey || ""),
+        userIdPresent: false,
+        errorCode: String(error?.payload?.code || error?.code || "AUTH_REQUIRED"),
+      });
+      return {
+        ok: false,
+        response: failure(401, "AUTH_REQUIRED", "로그인이 필요합니다.", "인증 쿠키가 없거나 서버 세션 검증에 실패했습니다."),
+      };
+    }
+    throw error;
+  }
 }
 
 function buildRoutedRequest(request, targetPath, method, body) {
@@ -495,8 +551,16 @@ async function handlePurchase(request, env) {
   });
 
   if (!pricingResult.ok) {
+    logBillingDiagnostic("price_not_found", request, {
+      featureKey: String(body?.featureKey || ""),
+      priceFound: false,
+      errorCode: pricingResult.code || "PRICE_NOT_FOUND",
+    });
     return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
+
+  const authCheck = await requireBillingAuth(request, env, { featureKey: pricingResult.pricing.featureKey });
+  if (!authCheck.ok) return authCheck.response;
 
   const enabled = assertFeatureEnabled(pricingResult.pricing);
   if (!enabled.ok) {
@@ -614,8 +678,16 @@ async function handleCoinGate(request, env) {
   });
 
   if (!pricingResult.ok) {
+    logBillingDiagnostic("price_not_found", request, {
+      featureKey: String(body?.featureKey || ""),
+      priceFound: false,
+      errorCode: pricingResult.code || "PRICE_NOT_FOUND",
+    });
     return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
+
+  const authCheck = await requireBillingAuth(request, env, { featureKey: pricingResult.pricing.featureKey });
+  if (!authCheck.ok) return authCheck.response;
 
   const enabled = assertFeatureEnabled(pricingResult.pricing);
   if (!enabled.ok) {
@@ -654,6 +726,14 @@ async function handleCoinGate(request, env) {
   }
 
   const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
+  logBillingDiagnostic("coin_gate_completed", request, {
+    featureKey: String(pricing.featureKey || ""),
+    priceFound: true,
+    transactionId: String(payload?.transactionId || ""),
+    chargedCoins: Number(payload?.chargedCoins || 0),
+    balanceAfter: Number.isFinite(balance) ? balance : null,
+    refunded: false,
+  });
   return success({
     pricing,
     consume: payload,
@@ -729,4 +809,5 @@ export async function handleBillingRoutes(request, env) {
 export const __billingTestUtils = {
   buildAccessDecision,
   ACCESS_DECISION_REASONS,
+  requireBillingAuth,
 };

@@ -27,6 +27,20 @@ type BillingFeaturePricing = {
   cashPrice?: number | null;
 };
 
+type BillingPurchaseData = {
+  purchased: boolean;
+  requestId?: string;
+  pricing?: BillingFeaturePricing;
+  consume?: Record<string, unknown> | null;
+  balance?: number | null;
+  user?: Record<string, unknown> | null;
+  accessDecision?: BillingAccessDecision;
+  unlockState?: {
+    alreadyUnlocked?: boolean;
+    subscriptionGranted?: boolean;
+  };
+};
+
 const BILLING_TIMEOUT_MS = 9000;
 
 export type BillingAccessDecision = {
@@ -152,6 +166,49 @@ function resolveUserIdFromPayload(payload: Record<string, unknown> | null | unde
   return candidate;
 }
 
+function resolveAuthenticatedFromPayload(payload: Record<string, unknown> | null | undefined): boolean {
+  if (!payload || typeof payload !== "object") return false;
+
+  const data = payload?.data && typeof payload.data === "object"
+    ? (payload.data as Record<string, unknown>)
+    : null;
+  const authenticated = payload.authenticated ?? data?.authenticated;
+  if (authenticated === false) return false;
+
+  const userId = resolveUserIdFromPayload(payload);
+  if (!userId) return false;
+
+  return authenticated === true || payload.ok === true || data?.ok === true || authenticated == null;
+}
+
+function createBillingRequestId(prefix: string): string {
+  const safePrefix = toText(prefix) || "billing";
+  const randomPart = (() => {
+    try {
+      const cryptoApi = typeof globalThis !== "undefined" ? globalThis.crypto : null;
+      if (cryptoApi && typeof cryptoApi.randomUUID === "function") return cryptoApi.randomUUID();
+    } catch {
+      // fall through to timestamp/random fallback
+    }
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  })();
+
+  return `${safePrefix}:${randomPart}`.slice(0, 120);
+}
+
+function withBillingRequestId<T extends { requestId?: string }>(input: T | undefined, prefix: string): T & { requestId: string } {
+  const base = { ...(input || {}) } as T & { requestId: string };
+  base.requestId = toText(base.requestId) || createBillingRequestId(prefix);
+  return base;
+}
+
+function buildMutationHeaders(requestId: string) {
+  return {
+    "Content-Type": "application/json",
+    "Idempotency-Key": requestId,
+  };
+}
+
 async function ensureServerAuthenticated(): Promise<BillingResult<never> | null> {
   const response = await billingFetch("/api/auth/me", {
     method: "GET",
@@ -160,7 +217,7 @@ async function ensureServerAuthenticated(): Promise<BillingResult<never> | null>
 
   const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
   const userId = resolveUserIdFromPayload(payload);
-  const authenticated = payload?.authenticated === true;
+  const authenticated = resolveAuthenticatedFromPayload(payload);
 
   if (response.status === 401 || response.status === 403) {
     return buildBillingResultError<never>(401, "AUTH_REQUIRED", "로그인이 필요합니다.", payload);
@@ -315,12 +372,12 @@ export async function runBillingCoinGate(input: {
     user: Record<string, unknown> | null;
   }>;
 
+  const purchaseInput = withBillingRequestId(input, "billing-purchase");
+
   const purchaseResponse = await billingFetch("/api/billing/purchase", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input || {}),
+    headers: buildMutationHeaders(purchaseInput.requestId),
+    body: JSON.stringify(purchaseInput),
   });
 
   const purchaseParsed = await parseBillingResponse<{
@@ -369,10 +426,8 @@ export async function runBillingCoinGate(input: {
 
   const fallbackResponse = await billingFetch("/api/billing/coin-gate", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input || {}),
+    headers: buildMutationHeaders(purchaseInput.requestId),
+    body: JSON.stringify(purchaseInput),
   });
 
   const parsed = await parseBillingResponse<{
@@ -490,42 +545,18 @@ export async function runBillingPurchase(input: {
   requestId?: string;
   forceDeduct?: boolean;
   payloadHash?: string;
-}): Promise<BillingResult<{
-  purchased: boolean;
-  requestId?: string;
-  pricing?: BillingFeaturePricing;
-  consume?: Record<string, unknown> | null;
-  balance?: number | null;
-  user?: Record<string, unknown> | null;
-  accessDecision?: BillingAccessDecision;
-  unlockState?: {
-    alreadyUnlocked?: boolean;
-    subscriptionGranted?: boolean;
-  };
-}>> {
+}): Promise<BillingResult<BillingPurchaseData>> {
   const authCheck = await ensureServerAuthenticated();
-  if (authCheck) return authCheck as BillingResult<{
-    purchased: boolean;
-    requestId?: string;
-    pricing?: BillingFeaturePricing;
-    consume?: Record<string, unknown> | null;
-    balance?: number | null;
-    user?: Record<string, unknown> | null;
-    accessDecision?: BillingAccessDecision;
-    unlockState?: {
-      alreadyUnlocked?: boolean;
-      subscriptionGranted?: boolean;
-    };
-  }>;
+  if (authCheck) return authCheck as BillingResult<BillingPurchaseData>;
+
+  const purchaseInput = withBillingRequestId(input, "billing-purchase");
 
   const response = await billingFetch("/api/billing/purchase", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input || {}),
+    headers: buildMutationHeaders(purchaseInput.requestId),
+    body: JSON.stringify(purchaseInput),
   });
-  const parsed = await parseBillingResponse(response);
+  const parsed = await parseBillingResponse<BillingPurchaseData>(response);
   if (parsed.ok) {
     void refreshBillingStateAfterPurchase();
   }
@@ -541,42 +572,18 @@ export async function runBillingConsume(input: {
   requestId?: string;
   forceDeduct?: boolean;
   payloadHash?: string;
-}): Promise<BillingResult<{
-  purchased: boolean;
-  requestId?: string;
-  pricing?: BillingFeaturePricing;
-  consume?: Record<string, unknown> | null;
-  balance?: number | null;
-  user?: Record<string, unknown> | null;
-  accessDecision?: BillingAccessDecision;
-  unlockState?: {
-    alreadyUnlocked?: boolean;
-    subscriptionGranted?: boolean;
-  };
-}>> {
+}): Promise<BillingResult<BillingPurchaseData>> {
   const authCheck = await ensureServerAuthenticated();
-  if (authCheck) return authCheck as BillingResult<{
-    purchased: boolean;
-    requestId?: string;
-    pricing?: BillingFeaturePricing;
-    consume?: Record<string, unknown> | null;
-    balance?: number | null;
-    user?: Record<string, unknown> | null;
-    accessDecision?: BillingAccessDecision;
-    unlockState?: {
-      alreadyUnlocked?: boolean;
-      subscriptionGranted?: boolean;
-    };
-  }>;
+  if (authCheck) return authCheck as BillingResult<BillingPurchaseData>;
+
+  const consumeInput = withBillingRequestId(input, "billing-consume");
 
   const response = await billingFetch("/api/billing/consume", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input || {}),
+    headers: buildMutationHeaders(consumeInput.requestId),
+    body: JSON.stringify(consumeInput),
   });
-  const parsed = await parseBillingResponse(response);
+  const parsed = await parseBillingResponse<BillingPurchaseData>(response);
   if (parsed.ok) {
     void refreshBillingStateAfterPurchase();
   }

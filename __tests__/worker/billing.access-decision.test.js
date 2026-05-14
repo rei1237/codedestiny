@@ -10,6 +10,21 @@ beforeAll(async () => {
 });
 
 describe("Billing access decision", () => {
+  test("결제 POST 인증 프리체크는 미인증 요청을 AUTH_REQUIRED로 표준화해야 한다", async () => {
+    const request = new Request("https://example.com/api/billing/purchase", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ featureKey: "premium_pdf_ziwei" }),
+    });
+
+    const result = await utils.requireBillingAuth(request, { NODE_ENV: "production" }, { featureKey: "premium_pdf_ziwei" });
+    const payload = await result.response.json();
+
+    expect(result.ok).toBe(false);
+    expect(result.response.status).toBe(401);
+    expect(payload.error.code).toBe("AUTH_REQUIRED");
+  });
+
   test("무료 기능은 allowed=true/free 이어야 한다", () => {
     const decision = utils.buildAccessDecision({
       pricing: { featureKey: "free-feature", cost: 0 },

@@ -1755,7 +1755,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 if (!t) return;
                 var subscriptionHeaders = {};
                 if (t) subscriptionHeaders.Authorization = 'Bearer ' + t;
-                fetch('/api/fortune/pig-coin/profile-subscription/status', {
+                fetch('/api/subscription/me', {
                   method: 'GET',
                   credentials: 'include',
                   cache: 'no-store',
@@ -7298,6 +7298,54 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return changed;
   }
 
+  function _cdToCoinPayload(payload) {
+    if (!payload || typeof payload !== 'object') return {};
+    var data = (payload.data && typeof payload.data === 'object') ? payload.data : null;
+    if (!data) return payload;
+
+    var consume = (data.consume && typeof data.consume === 'object') ? data.consume : null;
+    if (consume) {
+      var merged = Object.assign({}, consume);
+      if ((!merged.user || typeof merged.user !== 'object') && data.user && typeof data.user === 'object') {
+        merged.user = data.user;
+      }
+      if ((!merged.unlockMap || typeof merged.unlockMap !== 'object') && data.unlockMap && typeof data.unlockMap === 'object') {
+        merged.unlockMap = data.unlockMap;
+      }
+      if (!Array.isArray(merged.unlockedFeatures) && Array.isArray(data.unlockedFeatures)) {
+        merged.unlockedFeatures = data.unlockedFeatures;
+      }
+      if (!Number.isFinite(Number(merged.balance)) && Number.isFinite(Number(data.balance))) {
+        merged.balance = Number(data.balance);
+      }
+      return merged;
+    }
+
+    var normalized = Object.assign({}, payload);
+    if ((!normalized.user || typeof normalized.user !== 'object') && data.user && typeof data.user === 'object') {
+      normalized.user = data.user;
+    }
+    if ((!normalized.unlockMap || typeof normalized.unlockMap !== 'object') && data.unlockMap && typeof data.unlockMap === 'object') {
+      normalized.unlockMap = data.unlockMap;
+    }
+    if (!Array.isArray(normalized.unlockedFeatures) && Array.isArray(data.unlockedFeatures)) {
+      normalized.unlockedFeatures = data.unlockedFeatures;
+    }
+    if (!Number.isFinite(Number(normalized.balance)) && Number.isFinite(Number(data.balance))) {
+      normalized.balance = Number(data.balance);
+    }
+    return normalized;
+  }
+
+  function _cdResolveBalanceFromPayload(payload, fallback) {
+    var coinPayload = _cdToCoinPayload(payload);
+    var userPoints = Number(((coinPayload || {}).user || {}).points);
+    if (Number.isFinite(userPoints) && userPoints >= 0) return userPoints;
+    var directBalance = Number((coinPayload || {}).balance);
+    if (Number.isFinite(directBalance) && directBalance >= 0) return directBalance;
+    return Number.isFinite(Number(fallback)) ? Number(fallback) : 0;
+  }
+
   async function syncUnlocksFromServer() {
     if (!hasAuthToken()) return false;
     var authOk = await verifyAuthSessionForCoinApi(false);
@@ -7311,7 +7359,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return false;
     }
     try {
-      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
+      var result = await fetchJsonWithAuth('/api/billing/balance', { method: 'GET' });
       if (!result.ok) {
         if (result.status === 401 || result.status === 403) {
           if (_cdClearKnownUnlocks()) {
@@ -7323,12 +7371,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         return false;
       }
-      if (result.payload && result.payload.user && typeof result.payload.user.points === 'number') {
-        userBalance = Number(result.payload.user.points || 0);
+      var resultPayload = _cdToCoinPayload(result.payload);
+      if (resultPayload && resultPayload.user && typeof resultPayload.user.points === 'number') {
+        userBalance = Number(resultPayload.user.points || 0);
         saveBalance();
         updateBadge();
       }
-      if (_cdReconcileUnlocksWithServer(result.payload)) {
+      if (_cdReconcileUnlocksWithServer(resultPayload)) {
         saveTileLocks();
         applyTileLockVisuals();
         refreshUnlockButtons();
@@ -7461,9 +7510,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!authOk) return;
     syncInFlight = true;
     try {
-      var primary = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
-      if (primary.ok && primary.payload && primary.payload.user && typeof primary.payload.user.points === 'number') {
-        userBalance = Number(primary.payload.user.points || 0);
+      var primary = await fetchJsonWithAuth('/api/billing/balance', { method: 'GET' });
+      var primaryPayload = _cdToCoinPayload(primary.payload);
+      if (primary.ok && primaryPayload && primaryPayload.user && typeof primaryPayload.user.points === 'number') {
+        userBalance = Number(primaryPayload.user.points || 0);
         saveBalance();
         updateBadge();
       }
@@ -7576,18 +7626,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       _unlockOverlayOpened = true;
       var productId = resolveUnlockProductIdByFeatureKey(featureKey);
       var requestId = 'unlock:' + (productId || featureKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
-      var payload = productId
-        ? { productId: productId, requestId: requestId }
-        : {
-          cost: cost,
-          featureKey: featureKey,
-          reason: '유료 섹션 잠금 해제 코인 차감',
-          forceDeduct: true,
-          requestId: requestId,
-        };
+      var payload = {
+        featureKey: featureKey,
+        reason: '유료 섹션 잠금 해제 코인 차감',
+        forceDeduct: true,
+        requestId: requestId,
+      };
+      if (productId) payload.productId = productId;
 
-      var result = await fetchJsonWithAuth(endpoint, {
+      var result = await fetchJsonWithAuth('/api/billing/coin-gate', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
@@ -7603,10 +7650,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
 
-      userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
+      var unlockPayload = _cdToCoinPayload(result.payload);
+      userBalance = _cdResolveBalanceFromPayload(unlockPayload, userBalance);
       saveBalance();
       updateBadge();
-      _cdApplyUnlocksFromPaymentPayload(result.payload);
+      _cdApplyUnlocksFromPaymentPayload(unlockPayload);
       if (!isTileKeyUnlocked(featureKey)) {
         var rechecked = await syncUnlocksFromServer();
         if (!rechecked || !isTileKeyUnlocked(featureKey)) {
@@ -8444,11 +8492,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           _cdSetCoinGateOverlay(true, fname + ' 해금 중입니다. 잠시만 기다려 주세요...');
           _unlockOverlayOpened = true;
           var tileRequestId = 'unlock:' + tileLockKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-          var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+          var r = await fetchJsonWithAuth('/api/billing/coin-gate', {
             method: 'POST',
             body: JSON.stringify({
-              cost: tileLockCost,
-              amount: tileLockCost,
               featureKey: tileLockKey,
               reason: fname + ' 영구 해금',
               forceDeduct: true,
@@ -8460,16 +8506,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             window.alert((r.payload && r.payload.message) || '해금 처리에 실패했습니다.');
             return;
           }
-          if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
-            userBalance = r.payload.user.points;
-          } else if (r.payload && r.payload.testAccountBypass) {
+          var lockPayload = _cdToCoinPayload(r.payload);
+          if (lockPayload && lockPayload.testAccountBypass) {
             userBalance = Number(userBalance || 0);
           } else {
-            userBalance = Math.max(0, userBalance - tileLockCost);
+            userBalance = _cdResolveBalanceFromPayload(lockPayload, Math.max(0, userBalance - tileLockCost));
           }
           saveBalance();
           updateBadge();
-          _cdApplyUnlocksFromPaymentPayload(r.payload);
+          _cdApplyUnlocksFromPaymentPayload(lockPayload);
           if (!isTileKeyUnlocked(tileLockKey)) {
             var _lockRechecked = await syncUnlocksFromServer();
             if (!_lockRechecked || !isTileKeyUnlocked(tileLockKey)) {

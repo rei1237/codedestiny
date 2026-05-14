@@ -592,7 +592,11 @@ export default function KkulkkulManseryukMain() {
       if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
       if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패'); return; }
 
-      const normalized = {
+      const normalized: Record<string, unknown> & {
+        user: Record<string, unknown> | null;
+        balance: number | null | undefined;
+        transactionId?: unknown;
+      } = {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
@@ -655,7 +659,11 @@ export default function KkulkkulManseryukMain() {
       if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
       if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패'); return; }
 
-      const normalized = {
+      const normalized: Record<string, unknown> & {
+        user: Record<string, unknown> | null;
+        balance: number | null | undefined;
+        transactionId?: unknown;
+      } = {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
@@ -829,7 +837,11 @@ export default function KkulkkulManseryukMain() {
         return;
       }
 
-      const normalized = {
+      const normalized: Record<string, unknown> & {
+        user: Record<string, unknown> | null;
+        balance: number | null | undefined;
+        transactionId?: unknown;
+      } = {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,

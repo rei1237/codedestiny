@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
 import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
-import { fetchBillingEntitlements, fetchBillingMe } from "./billing-client";
+import { fetchBillingMe } from "./billing-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, type ClientAuthUser } from "./auth-storage";
 
 export type AuthUser = ClientAuthUser & {
@@ -95,6 +95,7 @@ let state: AuthState = {
 
 const subscribers = new Set<() => void>();
 let refreshInFlight: Promise<AuthUser | null> | null = null;
+let postLoginSyncInFlight: Promise<void> | null = null;
 let meRequestSeq = 0;
 let latestAppliedMeSeq = 0;
 
@@ -277,25 +278,6 @@ function writeLocalJsonCache(key: string, value: unknown) {
   }
 }
 
-async function refreshCoinBalanceFromServer() {
-  const response = await authFetch("/api/fortune/pig-coin/balance", {
-    method: "GET",
-    cache: "no-store",
-  });
-  if (!response.ok) return;
-  const payload = (await response.json().catch(() => null)) as { user?: { points?: number } } | null;
-  const points = Number(payload?.user?.points);
-  if (!Number.isFinite(points)) return;
-
-  const base = readSanitizedAuthUser() as AuthUser | null;
-  const merged = {
-    ...(base || {}),
-    points,
-  };
-  resolveSafeUser(merged);
-  debugAuth("[auth] coin refreshed");
-}
-
 async function refreshProfileMeFromServer() {
   const response = await authFetch("/api/profile/me", {
     method: "GET",
@@ -323,37 +305,6 @@ async function refreshProfileMeFromServer() {
   resolveSafeUser(merged);
 }
 
-async function refreshProfileSubscriptionCache() {
-  const response = await authFetch("/api/fortune/pig-coin/profile-subscription/status", {
-    method: "GET",
-    cache: "no-store",
-  });
-  if (!response.ok) return;
-  const statusPayload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!statusPayload) return;
-
-  const base = (readSanitizedAuthUser() || {}) as Record<string, unknown>;
-  const merged = {
-    ...base,
-    profileSubscription: {
-      tier: String(statusPayload.tier || "free"),
-      isActive: !!statusPayload.isActive,
-      expiresAt: typeof statusPayload.expiresAt === "string" ? statusPayload.expiresAt : null,
-      profileLimit: Number.isFinite(Number(statusPayload.profileLimit)) ? Number(statusPayload.profileLimit) : undefined,
-    },
-  };
-  resolveSafeUser(merged);
-  writeLocalJsonCache("fortune_profile_subscription", statusPayload);
-  const ownerId = String(base.id || base.userId || base._id || base.uid || "").trim();
-  if (ownerId) {
-    try {
-      localStorage.setItem("fortune_profile_subscription_owner", ownerId);
-    } catch {
-      // ignore storage failures
-    }
-  }
-}
-
 async function refreshBillingMeFromServer() {
   const result = await fetchBillingMe();
   if (!result.ok || !result.data) return;
@@ -367,18 +318,15 @@ async function refreshBillingMeFromServer() {
       ...base,
       points,
     });
+    if (state.isAuthenticated) {
+      setState({ wallet: { coinBalance: points } });
+    }
     try {
       localStorage.setItem("fortune_user_points", String(points));
     } catch {
       // ignore storage failures
     }
   }
-}
-
-async function refreshBillingEntitlements() {
-  const result = await fetchBillingEntitlements();
-  if (!result.ok || !result.data) return;
-  writeLocalJsonCache("fortune_billing_entitlements", result.data);
 }
 
 async function refreshSubscriptionMeFromServer() {
@@ -395,14 +343,19 @@ async function refreshSubscriptionMeFromServer() {
 }
 
 export async function syncPostLoginData() {
-  await Promise.allSettled([
+  if (postLoginSyncInFlight) return postLoginSyncInFlight;
+
+  postLoginSyncInFlight = Promise.allSettled([
     refreshProfileMeFromServer(),
     refreshBillingMeFromServer(),
-    refreshBillingEntitlements(),
     refreshSubscriptionMeFromServer(),
-    refreshCoinBalanceFromServer(),
-    refreshProfileSubscriptionCache(),
-  ]);
+  ])
+    .then(() => undefined)
+    .finally(() => {
+      postLoginSyncInFlight = null;
+    });
+
+  return postLoginSyncInFlight;
 }
 
 function applyResolvedUser(user: AuthUser | null) {

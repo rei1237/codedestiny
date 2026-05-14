@@ -1,6 +1,18 @@
 import type { AnimalDestinyData, AnimalId, TwelveStage } from "../lib/types";
 
-type BaseAnimal = Omit<AnimalDestinyData, "compatibility">;
+type BaseAnimal = Omit<AnimalDestinyData, "compatibility" | "personality" | "love" | "career" | "wealth" | "human_relations" | "today"> & {
+  personality: Pick<AnimalDestinyData["personality"], "summary" | "strengths" | "weaknesses" | "hidden_side">
+    & Partial<Pick<AnimalDestinyData["personality"], "stress_behavior" | "growth_direction">>;
+  love: Pick<AnimalDestinyData["love"], "style" | "attraction_point" | "weakness_in_love" | "best_date_mood" | "advice">
+    & Partial<Pick<AnimalDestinyData["love"], "approach_style" | "attractive_type" | "recurring_pattern" | "breakup_recovery" | "long_term_tip">>;
+  career: Pick<AnimalDestinyData["career"], "talent" | "recommended_fields" | "work_style" | "money_style" | "advice">
+    & Partial<Pick<AnimalDestinyData["career"], "good_work_method" | "bad_work_environment" | "earning_method" | "aptitude_check">>;
+  wealth?: Partial<AnimalDestinyData["wealth"]>;
+  human_relations?: Partial<AnimalDestinyData["human_relations"]>;
+  today?: Partial<AnimalDestinyData["today"]>;
+};
+
+type CompatibilityEntry = AnimalDestinyData["compatibility"]["best"];
 
 const ORDER: AnimalId[] = [
   "cheetah",
@@ -697,6 +709,73 @@ function animalName(id: AnimalId) {
   return BASE[id].animal_ko;
 }
 
+function completeBaseAnimal(base: BaseAnimal): Omit<AnimalDestinyData, "compatibility"> {
+  return {
+    ...base,
+    personality: {
+      ...base.personality,
+      stress_behavior: base.personality.stress_behavior || `${base.personality.hidden_side} 이면의 긴장감이 드러나는`,
+      growth_direction: base.personality.growth_direction || base.career.advice,
+    },
+    love: {
+      ...base.love,
+      approach_style: base.love.approach_style || base.love.style,
+      attractive_type: base.love.attractive_type || base.love.attraction_point,
+      recurring_pattern: base.love.recurring_pattern || base.love.weakness_in_love,
+      breakup_recovery: base.love.breakup_recovery || "감정을 정리할 시간을 충분히 갖는",
+      long_term_tip: base.love.long_term_tip || base.love.advice,
+    },
+    career: {
+      ...base.career,
+      good_work_method: base.career.good_work_method || base.career.work_style,
+      bad_work_environment: base.career.bad_work_environment || "강점이 반복적으로 끊기는",
+      earning_method: base.career.earning_method || base.career.money_style,
+      aptitude_check: base.career.aptitude_check || base.career.talent,
+    },
+    wealth: {
+      spending_style: base.wealth?.spending_style || base.career.money_style,
+      saving_style: base.wealth?.saving_style || "목표가 선명할 때 저축 리듬이 안정됩니다.",
+      impulse_buy_risk: base.wealth?.impulse_buy_risk || "감정이 앞설 때 즉흥 지출이 늘 수 있습니다.",
+      investment_sense: base.wealth?.investment_sense || "익숙한 분야를 충분히 관찰한 뒤 움직일 때 강합니다.",
+      monetization_strategy: base.wealth?.monetization_strategy || base.career.advice,
+    },
+    human_relations: {
+      friend_relations: base.human_relations?.friend_relations || `${base.animal_ko} 타입은 강점이 분명한 관계에서 편안함을 느낍니다.`,
+      family_relations: base.human_relations?.family_relations || "가까운 사람에게는 말보다 행동으로 마음을 보이는 편입니다.",
+      social_relations: base.human_relations?.social_relations || base.personality.summary,
+      first_impression: base.human_relations?.first_impression || base.short_copy,
+      connection_traits: base.human_relations?.connection_traits || base.personality.strengths.join(", "),
+    },
+    today: {
+      caution: base.today?.caution || base.love.weakness_in_love,
+      action: base.today?.action || base.career.advice,
+      lucky_behavior: base.today?.lucky_behavior || `오늘은 ${base.luck_essentials.place}처럼 탁 트인 리듬을 선택해 보세요.`,
+      emotion_management: base.today?.emotion_management || base.personality.hidden_side,
+      support_message: base.today?.support_message || base.tamagotchi.growth_message,
+    },
+  };
+}
+
+function compatibilityEntry(
+  animal_id: AnimalId,
+  reason: string,
+  score: number,
+  clash_point: string,
+  maintenance_tip: string,
+): CompatibilityEntry {
+  return {
+    animal_id,
+    reason,
+    compatibility_score: score,
+    clash_point,
+    conversation_style: "속도와 감정선을 먼저 맞춘 뒤 구체적인 역할을 나누면 좋습니다.",
+    romance_score: Math.max(40, Math.min(99, score + 2)),
+    friend_score: Math.max(40, Math.min(99, score + 4)),
+    work_score: Math.max(40, Math.min(99, score - 1)),
+    maintenance_tip,
+  };
+}
+
 function buildCompatibility(id: AnimalId): AnimalDestinyData["compatibility"] {
   const idx = ORDER.indexOf(id);
   const best = relationByOffset(idx, 1);
@@ -705,28 +784,40 @@ function buildCompatibility(id: AnimalId): AnimalDestinyData["compatibility"] {
   const worst = relationByOffset(idx, 6);
 
   return {
-    best: {
-      animal_id: best,
-      reason: `${animalName(best)}와는 리듬이 자연스럽게 맞아 속도와 감정 밸런스가 좋습니다.`,
-    },
-    good: {
-      animal_id: good,
-      reason: `${animalName(good)}와는 서로의 강점을 보완하며 현실적인 시너지를 냅니다.`,
-    },
-    challenging: {
-      animal_id: challenging,
-      reason: `${animalName(challenging)}와는 목표 접근 방식이 달라 조율 대화가 자주 필요합니다.`,
-    },
-    worst: {
-      animal_id: worst,
-      reason: `${animalName(worst)}와는 감정 템포가 크게 달라 오해가 누적되기 쉽습니다.`,
-    },
+    best: compatibilityEntry(
+      best,
+      `${animalName(best)}와는 리듬이 자연스럽게 맞아 속도와 감정 밸런스가 좋습니다.`,
+      92,
+      "서로에게 기대는 속도가 빨라질 수 있습니다.",
+      "좋은 흐름일수록 약속과 휴식 리듬을 함께 정해두세요.",
+    ),
+    good: compatibilityEntry(
+      good,
+      `${animalName(good)}와는 서로의 강점을 보완하며 현실적인 시너지를 냅니다.`,
+      84,
+      "결정 속도나 우선순위가 가끔 엇갈릴 수 있습니다.",
+      "역할을 명확히 나누면 관계의 안정감이 오래갑니다.",
+    ),
+    challenging: compatibilityEntry(
+      challenging,
+      `${animalName(challenging)}와는 목표 접근 방식이 달라 조율 대화가 자주 필요합니다.`,
+      62,
+      "좋다고 생각하는 배려 방식이 서로 다를 수 있습니다.",
+      "판단보다 확인 질문을 먼저 두면 긴장이 낮아집니다.",
+    ),
+    worst: compatibilityEntry(
+      worst,
+      `${animalName(worst)}와는 감정 템포가 크게 달라 오해가 누적되기 쉽습니다.`,
+      48,
+      "감정 표현의 온도 차이가 반복될 수 있습니다.",
+      "중요한 이야기는 짧은 메시지보다 직접 대화로 풀어가세요.",
+    ),
   };
 }
 
 export const ANIMAL_DESTINY_DATA: Record<AnimalId, AnimalDestinyData> = ORDER.reduce((acc, id) => {
   acc[id] = {
-    ...BASE[id],
+    ...completeBaseAnimal(BASE[id]),
     compatibility: buildCompatibility(id),
   };
   return acc;
