@@ -49,6 +49,7 @@ const INITIAL_BIAS: PersonInputState = {
 type StoredProfile = {
   id?: string;
   name?: string;
+  gender?: string;
   birth?: {
     year?: number;
     month?: number;
@@ -56,6 +57,20 @@ type StoredProfile = {
     hour?: number;
     minute?: number;
   };
+};
+
+type ProfileSeed = {
+  name: string;
+  birthDateInput: string;
+  birthTimeInput: string;
+  gender: (typeof GENDER_OPTIONS)[number] | "";
+};
+
+type StoredAuthUser = {
+  name?: string;
+  birthDate?: string;
+  birthTime?: string;
+  gender?: string;
 };
 
 function toPaddedNumber(value: unknown, length: number) {
@@ -79,16 +94,40 @@ function buildBirthTimeInput(birth: StoredProfile["birth"]) {
   return `${hour}${minute}`;
 }
 
-function readCurrentProfileSeed() {
+function normalizeBirthDateText(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 8) return "";
+  return digits;
+}
+
+function normalizeBirthTimeText(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 4) return "";
+  return digits;
+}
+
+function normalizeGenderOption(value: unknown): (typeof GENDER_OPTIONS)[number] | "" {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  if (/^(f|female|woman|여|여성)$/i.test(raw)) return "여성";
+  if (/^(m|male|man|남|남성)$/i.test(raw)) return "남성";
+  if (/^(other|기타)$/i.test(raw)) return "기타";
+
+  return "";
+}
+
+function readCurrentProfileSeed(): ProfileSeed {
   if (typeof window === "undefined") {
     return {
       name: "",
       birthDateInput: "",
       birthTimeInput: "",
+      gender: "",
     };
   }
   try {
-    const user = readSanitizedAuthUser();
+    const user = readSanitizedAuthUser() as StoredAuthUser | null;
     const scope = resolveAuthScopeFromUser(user) || "guest";
     const listRaw = localStorage.getItem(`${PROFILE_NS}.list::${scope}`) || localStorage.getItem(`${PROFILE_NS}.list`) || "[]";
     const currentId =
@@ -96,24 +135,34 @@ function readCurrentProfileSeed() {
       localStorage.getItem(`${PROFILE_NS}.current`) ||
       "";
     const list = JSON.parse(listRaw) as StoredProfile[];
+    const fallbackName = String(user?.name || "").trim();
+    const fallbackBirthDateInput = normalizeBirthDateText(user?.birthDate);
+    const fallbackBirthTimeInput = normalizeBirthTimeText(user?.birthTime);
+    const fallbackGender = normalizeGenderOption(user?.gender);
+
     if (!Array.isArray(list) || list.length === 0) {
       return {
-        name: "",
-        birthDateInput: "",
-        birthTimeInput: "",
+        name: fallbackName,
+        birthDateInput: fallbackBirthDateInput,
+        birthTimeInput: fallbackBirthTimeInput,
+        gender: fallbackGender,
       };
     }
     const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0];
+    const profileBirthDateInput = buildBirthDateInput(profile?.birth);
+    const profileBirthTimeInput = buildBirthTimeInput(profile?.birth);
     return {
-      name: String(profile?.name || "").trim(),
-      birthDateInput: buildBirthDateInput(profile?.birth),
-      birthTimeInput: buildBirthTimeInput(profile?.birth),
+      name: String(profile?.name || fallbackName).trim(),
+      birthDateInput: profileBirthDateInput || fallbackBirthDateInput,
+      birthTimeInput: profileBirthTimeInput || fallbackBirthTimeInput,
+      gender: normalizeGenderOption(profile?.gender) || fallbackGender,
     };
   } catch {
     return {
       name: "",
       birthDateInput: "",
       birthTimeInput: "",
+      gender: "",
     };
   }
 }
@@ -176,7 +225,7 @@ export default function DestinyBiasClient() {
   const [uiStep, setUiStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [meInput, setMeInput] = useState<PersonInputState>(INITIAL_ME);
   const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
-  const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>("여성");
+  const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>(() => readCurrentProfileSeed().gender || "기타");
   const [biasArtistInput, setBiasArtistInput] = useState("");
   const [biasImageDataUrl, setBiasImageDataUrl] = useState("");
   const [biasImageName, setBiasImageName] = useState("");
@@ -242,9 +291,9 @@ export default function DestinyBiasClient() {
     const applyProfileData = () => {
       const profileSeed = readCurrentProfileSeed();
       setMeInput((prev) => {
-        const nextName = prev.name.trim() ? prev.name : profileSeed.name;
-        const nextBirthDate = prev.birthDateInput.trim() ? prev.birthDateInput : profileSeed.birthDateInput;
-        const nextBirthTime = prev.birthTimeInput.trim() ? prev.birthTimeInput : profileSeed.birthTimeInput;
+        const nextName = profileSeed.name || prev.name;
+        const nextBirthDate = profileSeed.birthDateInput || prev.birthDateInput;
+        const nextBirthTime = profileSeed.birthTimeInput || prev.birthTimeInput;
 
         if (nextName === prev.name && nextBirthDate === prev.birthDateInput && nextBirthTime === prev.birthTimeInput) {
           return prev;
@@ -256,6 +305,11 @@ export default function DestinyBiasClient() {
           birthDateInput: nextBirthDate,
           birthTimeInput: nextBirthTime,
         };
+      });
+
+      setMeGender((prev) => {
+        const nextGender = profileSeed.gender || prev;
+        return nextGender === prev ? prev : nextGender;
       });
     };
 
