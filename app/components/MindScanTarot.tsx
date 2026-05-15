@@ -824,7 +824,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                   style={{ background: "rgba(236,72,153,0.14)", border: "1px solid rgba(236,72,153,0.22)" }}>
                   <span className="text-lg">✨</span>
                 </div>
-                <h4 className="text-sm sm:text-base font-bold text-purple-100">마스터의 종합 조언</h4>
+                <h4 className="text-sm sm:text-base font-bold text-purple-100">연애 상담사의 조언</h4>
               </div>
               <p className="text-[15px] sm:text-base text-purple-50/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
             </motion.article>
@@ -836,12 +836,12 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             initial={{ opacity: 0 }}
             animate={{ opacity: visibleCount >= 11 ? 1 : 0 }}
             transition={{ duration: 0.4 }}>
-            <p className="text-[10px] tracking-[0.45em] text-purple-400/45 uppercase mb-3">Closing Message</p>
+            <p className="text-[10px] tracking-[0.45em] text-purple-400/45 uppercase mb-3">마지막 한마디</p>
             <p className="text-[15px] sm:text-base text-purple-100/84 leading-8 tracking-[0.01em] italic">{reading.closing}</p>
             <div className="flex items-center justify-center gap-2 mt-3">
               <div className="w-8 h-px bg-purple-700/35" />
               <p className="text-[9px] text-purple-500/35 tracking-widest">
-                {reading.source === "gemini" ? "✦ Gemini AI 해석" : "✦ 타로 카드 DB 해석"}
+                {reading.source === "gemini" ? "✦ 연애 상담사 리딩" : "✦ 마음 흐름 리딩"}
               </p>
               <div className="w-8 h-px bg-purple-700/35" />
             </div>
@@ -853,7 +853,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: visibleCount >= 12 ? 1 : 0, y: visibleCount >= 12 ? 0 : 8 }}>
           <div className={`${COSMIC_CARD} p-3 sm:p-4`}>
-            <p className="text-[11px] text-purple-300/70 mb-3 tracking-[0.24em] uppercase text-center">Result Quick Actions</p>
+            <p className="text-[11px] text-purple-300/70 mb-3 tracking-[0.24em] uppercase text-center">함께 나누기</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
                 type="button"

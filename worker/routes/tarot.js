@@ -809,21 +809,21 @@ function buildMindscanFallback(pairs) {
     slot: idx + 1,
     title: pair.positionLabel,
     content:
-      `${pair.mainCardName}와 ${pair.subCardName} 조합은 이 위치에서 감정을 숨기기보다 안전하게 표현할 때 관계의 신뢰가 회복된다는 신호입니다. `
-      + "당장 결론을 내리기보다 상대의 반응 패턴을 관찰하고, 질문형 대화를 늘리는 것이 좋습니다.",
+      `${pair.mainCardName}와 ${pair.subCardName}가 함께 나온 흐름을 보면, 상대방은 마음이 아예 없는 상태라기보다 상처받지 않으려고 조심하는 쪽에 가깝습니다. `
+      + "지금은 답을 몰아붙이기보다 가벼운 안부와 따뜻한 공감으로 숨통을 열어 주는 접근이 더 잘 맞습니다.",
     mainCardName: pair.mainCardName,
     subCardName: pair.subCardName,
   }));
 
   return {
     source: "fallback",
-    persona: "공감형 심층 분석가",
-    intro: "현재 에너지는 감정의 명료화 단계에 있습니다. 서로의 의도를 확인하는 대화가 핵심입니다.",
+    persona: "연애 상담사",
+    intro: "지금 이 관계는 마음이 사라진 흐름이라기보다, 서로 다치지 않으려는 조심스러움이 앞서는 시기예요. 천천히 신뢰를 회복하면 분위기가 달라질 수 있어요.",
     sections,
     masterAdvice:
-      "핵심은 속도보다 방향입니다. 하루에 한 번 솔직한 감정 문장을 나누고, 상대의 답을 판단 없이 끝까지 듣는 루틴을 유지하세요.",
+      "핵심은 속도보다 안정감이에요. 하루 한 번 짧은 안부로 연결감을 만들고, 상대의 반응 속도를 존중해 주세요. 조급함을 내려놓을수록 대화의 결이 부드러워집니다.",
     closing:
-      "상대의 마음을 읽는 가장 강한 방법은 추측이 아니라 일관된 관심입니다. 지금의 진심은 충분히 전달될 수 있습니다.",
+      "당신의 진심은 이미 충분히 따뜻해요. 지금은 크게 흔들기보다, 편안한 톤으로 곁을 지키는 방식이 관계를 다시 살립니다.",
   };
 }
 
@@ -884,12 +884,14 @@ async function buildMindscanReading(env, pairs) {
     .join("\n");
 
   const prompt = [
-    "당신은 마인드 스캔 타로 마스터입니다.",
-    "아래 카드 페어를 바탕으로 상대방 속마음을 분석하세요.",
-    "반드시 JSON만 출력하세요. 마크다운 금지.",
-    "JSON 스키마:",
+    "당신은 연애 상담사입니다.",
+    "아래 카드 페어를 바탕으로 상대방 속마음을 상담하듯 부드럽고 현실적으로 설명하세요.",
+    "문장은 따뜻하고 단정하게, 어려운 전문 용어 없이 작성하세요.",
+    "출력 형식은 JSON만 사용하고 마크다운은 사용하지 마세요.",
+    "형식:",
     '{"persona":"","intro":"","sections":[{"slot":1,"title":"","content":"","mainCardName":"","subCardName":""}],"masterAdvice":"","closing":""}',
     "sections는 5개를 반환하고, 각 content는 2~4문장으로 작성하세요.",
+    "절대 사용하지 말 것: JSON, 스키마, API, 데이터베이스, 알고리즘, 시스템, 엔진, 모델 같은 기술 용어.",
     "카드 페어:",
     pairLines,
   ].join("\n\n");
@@ -920,7 +922,7 @@ async function buildMindscanReading(env, pairs) {
       title: asText(item.title) || pair.positionLabel,
       content:
         asText(item.content)
-        || `${pair.mainCardName}와 ${pair.subCardName}의 조합은 상대가 관계의 안정성과 진정성을 동시에 확인하고 싶어 한다는 신호입니다.`,
+        || `${pair.mainCardName}와 ${pair.subCardName}를 함께 보면, 상대는 관계를 가볍게 끝내기보다 천천히 마음의 안전함을 확인하고 싶어 하는 상태로 읽힙니다.`,
       mainCardName: asText(item.mainCardName) || pair.mainCardName,
       subCardName: asText(item.subCardName) || pair.subCardName,
     };
