@@ -273,6 +273,31 @@ function mapCoinGateFailure(responseStatus, payload) {
   };
 }
 
+function mapRefundFailure(responseStatus, payload) {
+  const rawCode = String(toCode(payload) || "").trim().toUpperCase();
+  const message = toMessage(payload, "환불 처리 중 오류가 발생했습니다.");
+
+  if (rawCode === "REFUND_ALREADY_PROCESSED") {
+    return {
+      status: 200,
+      code: "REFUND_ALREADY_PROCESSED",
+      message: "이미 환불이 완료된 요청입니다.",
+      debugMessage: message,
+    };
+  }
+
+  if (rawCode === "NO_REFUNDABLE_DEDUCTION") {
+    return {
+      status: 409,
+      code: "NO_REFUNDABLE_DEDUCTION",
+      message: "환불 가능한 차감 내역을 찾을 수 없습니다.",
+      debugMessage: message,
+    };
+  }
+
+  return mapCoinGateFailure(responseStatus, payload);
+}
+
 async function handleFeatures(request) {
   const url = new URL(request.url);
   const categoryKey = String(url.searchParams.get("categoryKey") || "").trim();
@@ -797,6 +822,118 @@ async function handleCoinGate(request, env) {
   }, toMessage(payload, "코인 결제가 완료되었습니다."));
 }
 
+async function handleCharge(request, env) {
+  const body = await readJson(request);
+  const pricingResult = getBillingFeaturePricing({
+    categoryKey: body?.categoryKey,
+    subFeatureKey: body?.subFeatureKey,
+    featureKey: body?.featureKey,
+    reason: body?.reason,
+  });
+
+  if (!pricingResult.ok) {
+    return featureKeyFailure(body?.featureKey, "서버 가격표에 정의되지 않은 기능입니다.", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+  }
+
+  const authCheck = await requireBillingAuth(request, env, { featureKey: pricingResult.pricing.featureKey });
+  if (!authCheck.ok) return authCheck.response;
+
+  const requestId = resolveRequestId(request, body);
+  const pricing = pricingResult.pricing;
+  const delegatedBody = {
+    cost: Number(pricing.cost),
+    reason: String(pricing.reason),
+    featureKey: String(pricing.featureKey),
+    categoryKey: String(pricing.categoryKey || ""),
+    subFeatureKey: String(pricing.subFeatureKey || ""),
+    requestId,
+    idempotencyKey: requestId,
+    forceDeduct: body?.forceDeduct !== false,
+    payloadHash: String(body?.payloadHash || "").trim().slice(0, 120),
+  };
+
+  if (body?.productId) {
+    delegatedBody.productId = String(body.productId).trim().toLowerCase();
+  }
+
+  const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/charge", "POST", delegatedBody);
+  const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+  const payload = await readPayloadSafe(delegatedResponse);
+
+  if (!delegatedResponse.ok) {
+    const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
+    return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
+  }
+
+  return success({
+    pricing,
+    requestId,
+    transactionId: String(payload?.transactionId || ""),
+    featureKey: String(payload?.featureKey || pricing.featureKey || ""),
+    chargedCoins: Number(payload?.chargedCoins || 0),
+    requiredCoins: Number(payload?.requiredCoins || pricing.cost || 0),
+    balanceAfter: Number(payload?.balanceAfter ?? payload?.user?.points ?? 0),
+    idempotencyKey: String(payload?.idempotencyKey || requestId || ""),
+    freeBySubscription: Boolean(payload?.freeBySubscription),
+    user: payload?.user || null,
+    raw: payload,
+  }, toMessage(payload, "코인 차감이 완료되었습니다."));
+}
+
+async function handleRefund(request, env) {
+  const body = await readJson(request);
+  const authCheck = await requireBillingAuth(request, env, { featureKey: body?.featureKey });
+  if (!authCheck.ok) return authCheck.response;
+
+  const requestId = resolveRequestId(request, body);
+  const delegatedBody = {
+    requestId,
+    idempotencyKey: requestId,
+    transactionId: String(body?.transactionId || body?.sourceTransactionId || "").trim(),
+    sourceTransactionId: String(body?.sourceTransactionId || body?.transactionId || "").trim(),
+    featureKey: String(body?.featureKey || "").trim(),
+    reason: String(body?.reason || "Premium generation failed auto-refund").trim(),
+    ...(Number.isFinite(Number(body?.cost)) && Number(body?.cost) > 0 ? { cost: Number(body.cost) } : {}),
+  };
+
+  const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/refund", "POST", delegatedBody);
+  const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+  const payload = await readPayloadSafe(delegatedResponse);
+
+  if (!delegatedResponse.ok) {
+    const mapped = mapRefundFailure(delegatedResponse.status, payload);
+    return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
+  }
+
+  const responseCode = String(payload?.code || "").toUpperCase();
+  if (responseCode === "REFUND_ALREADY_PROCESSED") {
+    return success({
+      alreadyRefunded: true,
+      requestId,
+      refundTransactionId: String(payload?.refundTransactionId || ""),
+      sourceTransactionId: String(payload?.sourceTransactionId || delegatedBody.sourceTransactionId || ""),
+      featureKey: String(payload?.featureKey || delegatedBody.featureKey || ""),
+      refundedCoins: Number(payload?.refundedCoins || 0),
+      balanceAfter: Number(payload?.user?.points ?? 0),
+      user: payload?.user || null,
+      raw: payload,
+    }, "이미 환불이 완료된 요청입니다.");
+  }
+
+  return success({
+    alreadyRefunded: Boolean(payload?.alreadyRefunded),
+    requestId,
+    refundTransactionId: String(payload?.refundTransactionId || ""),
+    sourceTransactionId: String(payload?.sourceTransactionId || delegatedBody.sourceTransactionId || ""),
+    featureKey: String(payload?.featureKey || delegatedBody.featureKey || ""),
+    refundedCoins: Number(payload?.refundedCoins || 0),
+    balanceAfter: Number(payload?.user?.points ?? 0),
+    idempotencyKey: String(payload?.idempotencyKey || requestId || ""),
+    user: payload?.user || null,
+    raw: payload,
+  }, toMessage(payload, "코인 환불이 완료되었습니다."));
+}
+
 async function delegateToPayments(request, env, targetPath, body) {
   const delegatedRequest = buildRoutedRequest(request, targetPath, "POST", body);
   const delegatedResponse = await handlePaymentRoutes(delegatedRequest, env);
@@ -854,6 +991,8 @@ export async function handleBillingRoutes(request, env) {
     if (method === "POST" && path === "/purchase") return await handlePurchase(request, env);
     if (method === "POST" && path === "/consume") return await handlePurchase(request, env);
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
+    if (method === "POST" && path === "/charge") return await handleCharge(request, env);
+    if (method === "POST" && path === "/refund") return await handleRefund(request, env);
     if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env);
 

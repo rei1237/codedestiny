@@ -36,32 +36,8 @@ function buildRefreshTransientResponse(originalStatus: number) {
   );
 }
 
-function readClientAccessToken() {
-  if (typeof window === "undefined") return "";
-  try {
-    return String(localStorage.getItem("fortune_auth_token") || "").trim();
-  } catch {
-    return "";
-  }
-}
-
-function persistClientAccessToken(token: unknown) {
-  if (typeof window === "undefined") return;
-  const normalized = String(token || "").trim();
-  if (!normalized) return;
-  try {
-    localStorage.setItem("fortune_auth_token", normalized);
-  } catch {
-    // ignore storage failures
-  }
-}
-
 function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
-  const token = readClientAccessToken();
-  if (token && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   return new Request(targetUrl, {
     ...init,
@@ -436,7 +412,6 @@ async function refreshSession(apiBase: string) {
 
         try {
           const payload = (await response.json()) as { user?: unknown; accessToken?: string };
-          persistClientAccessToken(payload?.accessToken);
           if (payload?.user) {
             persistSanitizedAuthUser(payload.user);
             publishAuthSync("login");

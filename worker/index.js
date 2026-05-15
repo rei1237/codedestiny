@@ -599,7 +599,32 @@ export default {
       }
 
       if (url.pathname === "/api/subscription/me") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/me");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/plans") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/plans");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/subscribe") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/subscribe");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/extend") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/extend");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/auto-renew") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/auto-renew");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/consent") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/consent");
         return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
       }
 
@@ -719,9 +744,11 @@ export default {
   async scheduled(event, env, ctx) {
     const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
+    const { processHoneySubscriptionRenewals } = await import("./routes/fortune.js");
     ctx.waitUntil(Promise.all([
       runDailyFortuneTask(env),
       runCardSubscriptionBillingTask(env),
+      processHoneySubscriptionRenewals(env),
     ]));
   },
 };

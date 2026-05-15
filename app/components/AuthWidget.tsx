@@ -62,9 +62,12 @@ export default function AuthWidget() {
     };
   }, []);
 
-  const handleLogout = () => {
-    void logout();
-    window.location.assign("/");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      window.location.assign("/");
+    }
   };
 
   if (!mounted) return null;

@@ -54,7 +54,6 @@ type SubscriptionStatus = {
 };
 
 const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
-const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 
 function readCachedUser(): AuthUser | null {
   return readSanitizedAuthUser() as AuthUser | null;
@@ -112,16 +111,6 @@ function writeProfiles(scope: string, profiles: DestinyProfile[], currentId: str
 
 function clearAuth() {
   clearClientAuthState();
-}
-
-function publishLogout() {
-  try {
-    const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
-    channel.postMessage({ source: "me-page", event: "logout", at: Date.now() });
-    channel.close();
-  } catch {
-    // no-op
-  }
 }
 
 function formatProfileBirth(profile: DestinyProfile) {
@@ -250,7 +239,7 @@ export default function MePage() {
     reloadProfiles(cachedUser);
     void syncProfilesFromServer(cachedUser);
 
-    authFetch(`${apiBase}/api/auth/me`, {
+    authFetch("/api/auth/me", {
       method: "GET",
       cache: "no-store",
     }, {
@@ -292,7 +281,7 @@ export default function MePage() {
 
   useEffect(() => {
     if (!user) return;
-    authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/status`, {
+    authFetch(`${apiBase}/api/subscription/me`, {
       method: "GET",
       cache: "no-store",
     }, {
@@ -302,12 +291,22 @@ export default function MePage() {
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
         if (!payload) return;
+        const current = payload.subscription && typeof payload.subscription === "object" ? payload.subscription : {};
+        const benefits = payload.benefits && typeof payload.benefits === "object" ? payload.benefits : {};
+        const tierFromPlanId = typeof current.planId === "string"
+          ? (current.planId === "honey_standard" ? "standard"
+            : current.planId === "honey_premium" ? "premium"
+              : current.planId === "honey_vvip" ? "vvip"
+                : "free")
+          : "free";
         setSubscription({
-          tier: payload.tier || "free",
+          tier: payload.tier || tierFromPlanId,
           source: payload.source === "card" ? "card" : "coin",
-          isActive: !!payload.isActive,
-          expiresAt: payload.expiresAt || null,
-          profileLimit: typeof payload.profileLimit === "number" ? payload.profileLimit : 1,
+          isActive: !!(payload.isActive ?? benefits.isSubscriber),
+          expiresAt: payload.expiresAt || current.currentPeriodEnd || null,
+          profileLimit: typeof payload.profileLimit === "number"
+            ? payload.profileLimit
+            : (typeof benefits.profileLimit === "number" ? benefits.profileLimit : 1),
         });
       })
       .catch(() => {});
@@ -331,8 +330,7 @@ export default function MePage() {
   };
 
   const handleLogout = async () => {
-    publishLogout();
-    void logoutWithServer(apiBase);
+    await logoutWithServer(apiBase);
     window.location.assign("/");
   };
 

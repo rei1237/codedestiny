@@ -1,6 +1,7 @@
 import { connectDb } from "../lib/db.js";
-import { User } from "../lib/models.js";
+import { HoneySubscription, User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
+import { getHoneyPlan, normalizeHoneyPlanId } from "../lib/honey-subscription.js";
 import {
   getRoutePath,
   handleRouteError,
@@ -78,6 +79,52 @@ function resolveCurrentId(rawCurrentId, profiles) {
   return "";
 }
 
+function toValidDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function resolveActiveLimitFromUserMirror(user) {
+  const tier = String(user?.profileSubscription?.tier || "").trim().toLowerCase();
+  if (!tier || tier === "free") return 1;
+
+  const expiresAt = toValidDate(
+    user?.profileSubscription?.currentPeriodEnd
+    || user?.profileSubscription?.expiresAt,
+  );
+  if (!expiresAt || expiresAt.getTime() <= Date.now()) return 1;
+
+  const rawLimit = Number(user?.profileSubscription?.profileLimit);
+  if (Number.isFinite(rawLimit) && rawLimit > 0) return Math.floor(rawLimit);
+  return 1;
+}
+
+async function resolveActiveProfileLimit(userId, user) {
+  const fallbackLimit = resolveActiveLimitFromUserMirror(user);
+  const objectId = String(userId || "").trim();
+  if (!objectId) return fallbackLimit;
+
+  const now = Date.now();
+  const snapshot = await HoneySubscription.findOne({ userId: objectId })
+    .select("planId status currentPeriodEnd profileLimit")
+    .lean()
+    .catch(() => null);
+
+  if (!snapshot) return fallbackLimit;
+
+  const planId = normalizeHoneyPlanId(snapshot?.planId) || "free";
+  const status = String(snapshot?.status || "none").trim().toLowerCase();
+  const expiresAt = toValidDate(snapshot?.currentPeriodEnd);
+  const active = planId !== "free" && status === "active" && expiresAt && expiresAt.getTime() > now;
+  if (!active) return fallbackLimit;
+
+  const plan = getHoneyPlan(planId);
+  const limit = Number(snapshot?.profileLimit);
+  if (Number.isFinite(limit) && limit > 0) return Math.floor(limit);
+  return Math.floor(Number(plan.profileLimit || fallbackLimit || 1));
+}
+
 async function handleGetDestinyProfiles(auth) {
   const user = await User.findById(auth.userId)
     .select("destinyProfiles destinyProfilesCurrentId")
@@ -117,6 +164,28 @@ async function handleSyncDestinyProfiles(request, auth) {
 
   const profiles = sanitizeDestinyProfiles(body?.profiles || []);
   const currentId = resolveCurrentId(body?.currentId, profiles);
+
+  const existingUser = await User.findById(auth.userId)
+    .select("destinyProfiles profileSubscription")
+    .lean();
+  if (!existingUser) return json({ ok: false, message: "User not found." }, { status: 404 });
+
+  const existingProfiles = sanitizeDestinyProfiles(existingUser.destinyProfiles || []);
+  const existingCount = existingProfiles.length;
+  const requestedCount = profiles.length;
+  const planLimit = await resolveActiveProfileLimit(auth.userId, existingUser);
+  const hardAllowedMax = Math.max(Number(planLimit || 1), existingCount);
+
+  if (requestedCount > hardAllowedMax) {
+    return json({
+      ok: false,
+      code: "PROFILE_LIMIT_EXCEEDED",
+      message: `프로필 한도를 초과했습니다. 현재 플랜 한도는 ${planLimit}개입니다.`,
+      profileLimit: planLimit,
+      currentCount: existingCount,
+      requestedCount,
+    }, { status: 409 });
+  }
 
   const updated = await User.findByIdAndUpdate(
     auth.userId,

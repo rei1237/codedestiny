@@ -55,6 +55,20 @@ beforeAll(async () => {
 });
 
 describe("Worker API status normalization", () => {
+  test("비로그인 /api/fortune/pig-coin/prices 는 200 + 가격표를 반환해야 한다", async () => {
+    const request = new Request("https://example.com/api/fortune/pig-coin/prices", {
+      method: "GET",
+    });
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(Array.isArray(payload.prices)).toBe(true);
+    expect(payload.prices.length).toBeGreaterThan(0);
+  });
+
   test("비로그인 /api/fortune/pig-coin/balance 는 401 AUTH_REQUIRED", async () => {
     const request = new Request("https://example.com/api/fortune/pig-coin/balance", {
       method: "GET",
@@ -77,6 +91,47 @@ describe("Worker API status normalization", () => {
 
     expect(response.status).toBe(401);
     expect(payload.code).toBe("AUTH_REQUIRED");
+  });
+
+  test("비로그인 /api/fortune/pig-coin/profile-subscription/me 는 401 AUTH_REQUIRED", async () => {
+    const request = new Request("https://example.com/api/fortune/pig-coin/profile-subscription/me", {
+      method: "GET",
+    });
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(payload.code).toBe("AUTH_REQUIRED");
+  });
+
+  test("비로그인 /api/fortune/pig-coin/profile-subscription/plans 는 200 + 플랜 목록", async () => {
+    const request = new Request("https://example.com/api/fortune/pig-coin/profile-subscription/plans", {
+      method: "GET",
+    });
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(Array.isArray(payload.plans)).toBe(true);
+    const ids = payload.plans.map((plan) => String(plan.planId || ""));
+    expect(ids).toEqual(expect.arrayContaining(["free", "honey_standard", "honey_premium", "honey_vvip"]));
+  });
+
+  test("비로그인 /api/fortune/pig-coin/profile-subscription/subscribe 는 401 AUTH_REQUIRED", async () => {
+    const request = new Request("https://example.com/api/fortune/pig-coin/profile-subscription/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ planId: "honey_premium" }),
+    });
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(payload.code).toBe("UNAUTHORIZED");
   });
 
   test("비로그인 /api/user/destiny-profiles 는 401 AUTH_REQUIRED", async () => {
@@ -140,5 +195,39 @@ describe("Worker API status normalization", () => {
     expect(payload.ok).toBe(false);
     expect(payload.error?.code).toBe("UNKNOWN_FEATURE_KEY");
     expect(payload.featureKey).toBe("not-registered-feature-key");
+  });
+
+  test("/api/billing/charge 에 미등록 featureKey 요청 시 400 UNKNOWN_FEATURE_KEY", async () => {
+    const request = new Request("https://example.com/api/billing/charge", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        featureKey: "not-registered-feature-key",
+      }),
+    });
+
+    const response = await handleBillingRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.ok).toBe(false);
+    expect(payload.error?.code).toBe("UNKNOWN_FEATURE_KEY");
+  });
+
+  test("비로그인 /api/billing/refund 는 401 AUTH_REQUIRED", async () => {
+    const request = new Request("https://example.com/api/billing/refund", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        transactionId: "507f1f77bcf86cd799439011",
+      }),
+    });
+
+    const response = await handleBillingRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(payload.ok).toBe(false);
+    expect(payload.error?.code).toBe("AUTH_REQUIRED");
   });
 });

@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import { authFetch } from "../_lib/auth-client";
+import { clearAuthError, refreshAuth, register as registerWithStore } from "../_lib/auth-store";
 
 declare global {
   interface Window {
@@ -35,18 +36,6 @@ type SignupResult = {
     joinedAt: string;
   };
 };
-
-function resolveSignupUserId(user: SignupResult["user"] | null | undefined) {
-  if (!user || typeof user !== "object") return "";
-  return String((user as unknown as Record<string, unknown>).id || (user as unknown as Record<string, unknown>).userId || (user as unknown as Record<string, unknown>)._id || "").trim();
-}
-
-function isAuthenticatedMeShape(payload: { authenticated?: boolean; ok?: boolean; user?: SignupResult["user"] | null } | null | undefined) {
-  if (!payload) return false;
-  if (payload.authenticated === false) return false;
-  if (!resolveSignupUserId(payload.user || null)) return false;
-  return payload.authenticated === true || payload.ok === true || payload.authenticated == null;
-}
 
 type SocialProvider = "google" | "naver" | "kakao";
 
@@ -162,12 +151,9 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
-  const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
-
-  const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
   const abortBootstrapAuthCheck = useCallback(() => {
     const activeController = bootstrapAuthCheckControllerRef.current;
@@ -177,21 +163,8 @@ export default function SignupPage() {
     }
   }, []);
 
-  const persistAuth = (user?: SignupResult["user"], accessToken?: string) => {
-    if (user || accessToken) {
-      authCommittedRef.current = true;
-    }
-    if (accessToken) {
-      try {
-        localStorage.setItem("fortune_auth_token", String(accessToken));
-      } catch {
-        // ignore storage failures
-      }
-    }
+  const persistAuth = (user?: SignupResult["user"]) => {
     if (user) {
-      const safeUser = persistSanitizedAuthUser(user);
-      const role = String((safeUser && safeUser.role) || user.role || "user");
-      document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
       publishAuthSync("login");
     }
   };
@@ -218,11 +191,13 @@ export default function SignupPage() {
     bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    fetch(`${authApiBase}/api/auth/me`, {
+    authFetch("/api/auth/me", {
       method: "GET",
-      credentials: "include",
       cache: "no-store",
       signal: controller.signal,
+    }, {
+      apiBase: authApiBase,
+      retryOn401: true,
     })
       .then(async (response) => {
         if (!response.ok) return null;
@@ -230,7 +205,7 @@ export default function SignupPage() {
       })
       .then((payload) => {
         if (!payload?.user) return;
-        persistAuth(payload.user, payload.accessToken);
+        persistAuth(payload.user);
         const nextPath = resolveNextPathFromQuery(params);
         setIsRedirecting(true);
         timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 400);
@@ -276,12 +251,16 @@ export default function SignupPage() {
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const nextResponse = await fetchWithTimeout(socialCompleteEndpoint, {
+          const nextResponse = await authFetch("/api/auth/oauth/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            credentials: "include",
             body: JSON.stringify({ socialGrant }),
-          }, LOCAL_AUTH_TIMEOUT_MS);
+          }, {
+            apiBase: authApiBase,
+            retryOn401: false,
+            timeoutMs: LOCAL_AUTH_TIMEOUT_MS,
+            transientRetries: 1,
+          });
 
           if (nextResponse.status >= 500 && attempt === 0) {
             await sleep(250);
@@ -312,22 +291,17 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        const meResponse = await fetchWithTimeout(`${authApiBase}/api/auth/me`, {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        }, LOCAL_AUTH_TIMEOUT_MS);
-        const mePayload = await parseJsonResponse<{ authenticated?: boolean; user?: SignupResult["user"] | null; nextPath?: string }>(meResponse);
-        if (!meResponse.ok || !isAuthenticatedMeShape(mePayload)) {
+        const refreshedUser = await refreshAuth({ force: true, silent: false });
+        if (!refreshedUser) {
           throw new Error("로그인은 완료되었지만 세션 확인에 실패했습니다. 다시 시도해 주세요.");
         }
 
-        persistAuth(mePayload.user, payload.accessToken);
+        persistAuth(refreshedUser as SignupResult["user"]);
 
         const nextFromQuery = resolveNextPathFromQuery(params);
-        const nextPath = sanitizeNextPath(mePayload.nextPath || payload.nextPath || null) || nextFromQuery || "/";
+        const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
-        redirectAfterAuth(nextPath, mePayload.user);
+        redirectAfterAuth(nextPath, refreshedUser as SignupResult["user"]);
       })
       .catch((e: Error) => {
         setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");
@@ -335,7 +309,7 @@ export default function SignupPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [abortBootstrapAuthCheck, redirectAfterAuth, socialCompleteEndpoint]);
+  }, [abortBootstrapAuthCheck, authApiBase, redirectAfterAuth]);
 
   const hasRequiredConsents = agreePrivacy && agreeTerms;
 
@@ -356,61 +330,25 @@ export default function SignupPage() {
     }
 
     setError("");
+    clearAuthError();
     setLoading(true);
 
     try {
       const params = new URLSearchParams(window.location.search);
       const nextPath = resolveNextPathFromQuery(params);
+      const result = await registerWithStore({
+        name: name.trim(),
+        email: loginId.trim(),
+        password,
+        birthDate,
+        birthTime,
+        gender,
+        nextPath,
+        apiBase: authApiBase,
+      });
 
-      let response: Response | null = null;
-      let lastFetchError: Error | null = null;
-
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              name: name.trim(),
-              email: loginId.trim(),
-              password,
-              birthDate,
-              birthTime,
-              gender,
-              nextPath,
-            }),
-          });
-
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-
-          response = nextResponse;
-          break;
-        } catch (error) {
-          lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-        }
-      }
-
-      if (!response) {
-        throw (lastFetchError || new Error("회원가입 처리 중 오류가 발생했습니다."));
-      }
-
-      const payload = await parseJsonResponse<SignupResult & { errors?: string[] }>(response);
-      if (!response.ok) {
-        throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
-      }
-
-      persistAuth(payload.user, payload.accessToken);
-      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
-
-      redirectAfterAuth(resolvedNextPath, payload.user);
+      const resolvedNextPath = sanitizeNextPath(result.nextPath || null) || nextPath;
+      redirectAfterAuth(resolvedNextPath, result.user as SignupResult["user"]);
     } catch (e) {
       const message = e instanceof Error ? e.message : "회원가입 처리 중 오류가 발생했습니다.";
       if (message === "Failed to fetch") {

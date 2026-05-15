@@ -1,5 +1,11 @@
 import { connectDb, mongoose } from "../lib/db.js";
-import { User, PointHistory } from "../lib/models.js";
+import {
+  User,
+  PointHistory,
+  HoneySubscription,
+  HoneySubscriptionTransaction,
+  MembershipContentAccessConsent,
+} from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import {
   createHttpError,
@@ -16,10 +22,25 @@ import {
   FEATURE_KEY_PRICE_TABLE,
   PIG_COIN_UNLOCK_PRODUCTS,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
+  listPublicCoinPriceTable,
   listServerPricedFeatureKeys,
   normalizePaidFeatureKey,
   resolveFeatureReasonCost,
 } from "../lib/paid-feature-registry.js";
+import {
+  HONEY_SUBSCRIPTION_PLANS,
+  addDaysFromDate,
+  getDefaultHoneyDurationDays,
+  getHoneyPlan,
+  honeyPlanIdToLegacyTier,
+  isPaidHoneyPlan,
+  legacyTierToHoneyPlanId,
+  listPublicHoneySubscriptionPlans,
+  normalizeHoneyPlanId,
+  normalizeHoneyRenewalFailReason,
+  normalizeHoneyStatus,
+  resolveHoneyBenefits,
+} from "../lib/honey-subscription.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -281,13 +302,34 @@ function resolveUnlockProductSpec(productId) {
   return PIG_COIN_UNLOCK_PRODUCTS[id] || null;
 }
 
-const PROFILE_SUB_PLANS = {
-  standard: { name: "Standard", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
-  premium: { name: "Premium", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
-  vvip: { name: "VVIP", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
-};
+const PROFILE_SUB_PLANS = Object.freeze({
+  standard: {
+    name: HONEY_SUBSCRIPTION_PLANS.honey_standard.name,
+    coins: HONEY_SUBSCRIPTION_PLANS.honey_standard.priceCoins,
+    profileLimit: HONEY_SUBSCRIPTION_PLANS.honey_standard.profileLimit,
+    durationDays: HONEY_SUBSCRIPTION_PLANS.honey_standard.durationDays,
+    lowWarnAt: HONEY_SUBSCRIPTION_PLANS.honey_standard.freeServiceThresholdCoins,
+    planId: "honey_standard",
+  },
+  premium: {
+    name: HONEY_SUBSCRIPTION_PLANS.honey_premium.name,
+    coins: HONEY_SUBSCRIPTION_PLANS.honey_premium.priceCoins,
+    profileLimit: HONEY_SUBSCRIPTION_PLANS.honey_premium.profileLimit,
+    durationDays: HONEY_SUBSCRIPTION_PLANS.honey_premium.durationDays,
+    lowWarnAt: HONEY_SUBSCRIPTION_PLANS.honey_premium.freeServiceThresholdCoins,
+    planId: "honey_premium",
+  },
+  vvip: {
+    name: HONEY_SUBSCRIPTION_PLANS.honey_vvip.name,
+    coins: HONEY_SUBSCRIPTION_PLANS.honey_vvip.priceCoins,
+    profileLimit: HONEY_SUBSCRIPTION_PLANS.honey_vvip.profileLimit,
+    durationDays: HONEY_SUBSCRIPTION_PLANS.honey_vvip.durationDays,
+    lowWarnAt: HONEY_SUBSCRIPTION_PLANS.honey_vvip.freeServiceThresholdCoins,
+    planId: "honey_vvip",
+  },
+});
 
-const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
+const VALID_SUB_TIERS = new Set(Object.keys(PROFILE_SUB_PLANS));
 
 const SHARE_REWARD_AMOUNT = 10;
 const SHARE_REWARD_DAILY_LIMIT = 3;
@@ -577,8 +619,10 @@ function userPayload(auth, points, unlockedFeatures) {
 }
 
 function normalizeSubscriptionTier(value) {
-  const tier = String(value || "").trim().toLowerCase();
-  return VALID_SUB_TIERS.has(tier) ? tier : null;
+  const planId = normalizeHoneyPlanId(value);
+  if (!planId || planId === "free") return null;
+  const legacyTier = honeyPlanIdToLegacyTier(planId);
+  return VALID_SUB_TIERS.has(legacyTier) ? legacyTier : null;
 }
 
 function getPlanPolicy(tier) {
@@ -600,102 +644,484 @@ function getPlanPolicy(tier) {
   };
 }
 
-function resolveEffectiveActiveTier(user) {
-  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
-  if (!tier) return null;
-
-  const expAtRaw = user?.profileSubscription?.expiresAt;
-  if (!expAtRaw) return null;
-
-  const expAt = new Date(expAtRaw);
-  if (!Number.isFinite(expAt.getTime())) return null;
-
-  return expAt.getTime() > Date.now() ? tier : null;
+function toObjectId(value) {
+  const normalized = String(value || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalized)) return null;
+  return new mongoose.Types.ObjectId(normalized);
 }
 
-async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
-  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
-  const source = String(user?.profileSubscription?.source || "coin").toLowerCase();
-  if (!tier) {
-    return { user, effectiveTier: null, autoRenewed: false };
+function buildHoneyFreeSnapshot(userId, now = new Date(), status = "none") {
+  const freePlan = getHoneyPlan("free");
+  return {
+    userId: toObjectId(userId),
+    planId: "free",
+    status: normalizeHoneyStatus(status),
+    startedAt: null,
+    currentPeriodStart: null,
+    currentPeriodEnd: null,
+    autoRenewEnabled: false,
+    cancelAtPeriodEnd: false,
+    priceCoins: Number(freePlan.priceCoins || 0),
+    profileLimit: Number(freePlan.profileLimit || 1),
+    freeServiceThresholdCoins: Number(freePlan.freeServiceThresholdCoins || 0),
+    lastRenewedAt: null,
+    lastRenewalFailedAt: null,
+    renewalFailReason: "",
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function normalizeHoneySnapshot(rawSnapshot, userId, now = new Date()) {
+  if (!rawSnapshot || typeof rawSnapshot !== "object") {
+    return buildHoneyFreeSnapshot(userId, now, "none");
   }
 
-  const expAtRaw = user?.profileSubscription?.expiresAt;
-  if (!expAtRaw) {
-    return { user, effectiveTier: null, autoRenewed: false };
+  const planId = normalizeHoneyPlanId(rawSnapshot.planId || rawSnapshot.tier) || "free";
+  const plan = getHoneyPlan(planId);
+  const status = normalizeHoneyStatus(rawSnapshot.status || (planId === "free" ? "none" : "active"));
+
+  const startedAt = toValidDate(rawSnapshot.startedAt);
+  const currentPeriodStart = toValidDate(rawSnapshot.currentPeriodStart || rawSnapshot.startedAt);
+  const currentPeriodEnd = toValidDate(rawSnapshot.currentPeriodEnd || rawSnapshot.expiresAt);
+  const autoRenewEnabled = Boolean(rawSnapshot.autoRenewEnabled);
+  const cancelAtPeriodEnd = Boolean(rawSnapshot.cancelAtPeriodEnd);
+
+  return {
+    ...rawSnapshot,
+    userId: toObjectId(rawSnapshot.userId || userId),
+    planId,
+    status,
+    startedAt,
+    currentPeriodStart,
+    currentPeriodEnd,
+    autoRenewEnabled: plan.autoRenewSupported ? autoRenewEnabled : false,
+    cancelAtPeriodEnd,
+    priceCoins: Number.isFinite(Number(rawSnapshot.priceCoins))
+      ? Number(rawSnapshot.priceCoins)
+      : Number(plan.priceCoins || 0),
+    profileLimit: Number.isFinite(Number(rawSnapshot.profileLimit)) && Number(rawSnapshot.profileLimit) > 0
+      ? Number(rawSnapshot.profileLimit)
+      : Number(plan.profileLimit || 1),
+    freeServiceThresholdCoins: Number.isFinite(Number(rawSnapshot.freeServiceThresholdCoins))
+      ? Number(rawSnapshot.freeServiceThresholdCoins)
+      : Number(plan.freeServiceThresholdCoins || 0),
+    lastRenewedAt: toValidDate(rawSnapshot.lastRenewedAt),
+    lastRenewalFailedAt: toValidDate(rawSnapshot.lastRenewalFailedAt),
+    renewalFailReason: normalizeHoneyRenewalFailReason(rawSnapshot.renewalFailReason) || "",
+    createdAt: toValidDate(rawSnapshot.createdAt) || now,
+    updatedAt: toValidDate(rawSnapshot.updatedAt) || now,
+  };
+}
+
+async function ensureHoneySubscriptionSnapshot(userId, user, now = new Date()) {
+  const normalizedUserId = String(userId || "").trim();
+  const objectId = toObjectId(normalizedUserId);
+  if (!objectId) return buildHoneyFreeSnapshot(normalizedUserId, now, "none");
+
+  let snapshot = await HoneySubscription.findOne({ userId: objectId }).lean();
+  if (snapshot) {
+    const normalizedSnapshot = normalizeHoneySnapshot(snapshot, normalizedUserId, now);
+    const patch = {};
+    const plan = getHoneyPlan(normalizedSnapshot.planId);
+    if (normalizedSnapshot.priceCoins !== Number(plan.priceCoins || 0)) {
+      patch.priceCoins = Number(plan.priceCoins || 0);
+    }
+    if (normalizedSnapshot.profileLimit !== Number(plan.profileLimit || 1)) {
+      patch.profileLimit = Number(plan.profileLimit || 1);
+    }
+    if (normalizedSnapshot.freeServiceThresholdCoins !== Number(plan.freeServiceThresholdCoins || 0)) {
+      patch.freeServiceThresholdCoins = Number(plan.freeServiceThresholdCoins || 0);
+    }
+    if (!plan.autoRenewSupported && normalizedSnapshot.autoRenewEnabled) {
+      patch.autoRenewEnabled = false;
+    }
+    if (Object.keys(patch).length > 0) {
+      snapshot = await HoneySubscription.findByIdAndUpdate(
+        normalizedSnapshot._id,
+        { $set: patch },
+        { new: true },
+      ).lean();
+    }
+    return normalizeHoneySnapshot(snapshot || normalizedSnapshot, normalizedUserId, now);
   }
 
-  const expAt = new Date(expAtRaw);
-  if (!Number.isFinite(expAt.getTime())) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
+  const legacyTier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
+  const seededPlanId = legacyTier ? (PROFILE_SUB_PLANS[legacyTier]?.planId || "free") : "free";
+  const seededPlan = getHoneyPlan(seededPlanId);
+  const seededEnd = toValidDate(user?.profileSubscription?.currentPeriodEnd || user?.profileSubscription?.expiresAt);
+  const seededStart = toValidDate(user?.profileSubscription?.currentPeriodStart || user?.profileSubscription?.startedAt);
+  const seededIsActive = Boolean(seededPlanId !== "free" && seededEnd && seededEnd.getTime() > now.getTime());
+  const seededStatus = seededIsActive ? "active" : (seededPlanId === "free" ? "none" : "expired");
 
-  if (expAt.getTime() > Date.now()) {
-    return { user, effectiveTier: tier, autoRenewed: false };
-  }
-
-  if (source === "card") {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (Boolean(user?.profileSubscription?.cancelAtPeriodEnd)) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const plan = PROFILE_SUB_PLANS[tier];
-  if (!plan) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const requiredCoins = Number(plan.coins || 0);
-  if (!Number.isFinite(requiredCoins) || requiredCoins <= 0) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (Number(user?.points || 0) < requiredCoins) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const now = new Date();
-  const newExpAt = new Date(Math.max(expAt.getTime(), now.getTime()) + Number(plan.durationDays || 30) * 86400000);
-  const nextProjection = projection || {
-    points: 1,
-    profileSubscription: 1,
-    unlockedFeatures: 1,
-    recentConsumeRequestIds: 1,
+  const createPayload = {
+    userId: objectId,
+    planId: seededIsActive ? seededPlanId : "free",
+    status: seededStatus,
+    startedAt: seededIsActive ? (seededStart || now) : null,
+    currentPeriodStart: seededIsActive ? (seededStart || now) : null,
+    currentPeriodEnd: seededIsActive ? seededEnd : null,
+    autoRenewEnabled: seededIsActive
+      ? Boolean(user?.profileSubscription?.autoRenewEnabled ?? !Boolean(user?.profileSubscription?.cancelAtPeriodEnd))
+      : false,
+    cancelAtPeriodEnd: seededIsActive ? Boolean(user?.profileSubscription?.cancelAtPeriodEnd) : false,
+    priceCoins: seededIsActive ? Number(seededPlan.priceCoins || 0) : 0,
+    profileLimit: seededIsActive ? Number(seededPlan.profileLimit || 1) : 1,
+    freeServiceThresholdCoins: seededIsActive ? Number(seededPlan.freeServiceThresholdCoins || 0) : 0,
+    lastRenewedAt: null,
+    lastRenewalFailedAt: null,
+    renewalFailReason: "",
   };
 
-  const renewedUser = await User.findOneAndUpdate(
-    { _id: userId, points: { $gte: requiredCoins } },
+  try {
+    snapshot = (await HoneySubscription.create(createPayload)).toObject();
+  } catch (_) {
+    snapshot = await HoneySubscription.findOne({ userId: objectId }).lean();
+  }
+
+  return normalizeHoneySnapshot(snapshot, normalizedUserId, now);
+}
+
+async function syncHoneySubscriptionToUserMirror(userId, snapshot, userProjection) {
+  const planId = normalizeHoneyPlanId(snapshot?.planId) || "free";
+  const paidPlan = getHoneyPlan(planId);
+  const tier = planId === "free" ? "free" : honeyPlanIdToLegacyTier(planId);
+  const status = normalizeHoneyStatus(snapshot?.status || (planId === "free" ? "none" : "active"));
+  const expiresAt = toValidDate(snapshot?.currentPeriodEnd);
+  const isActive = Boolean(planId !== "free" && status === "active" && expiresAt && expiresAt.getTime() > Date.now());
+  const profileLimit = isActive ? Number(paidPlan.profileLimit || 1) : 1;
+  const freeThreshold = isActive ? Number(paidPlan.freeServiceThresholdCoins || 0) : 0;
+  const priceCoins = isActive ? Number(paidPlan.priceCoins || 0) : 0;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
     {
-      $inc: { points: -requiredCoins },
       $set: {
-        "profileSubscription.expiresAt": newExpAt,
-        "profileSubscription.startedAt": now,
+        "profileSubscription.tier": isActive ? tier : "free",
+        "profileSubscription.planId": isActive ? planId : "free",
+        "profileSubscription.status": isActive ? "active" : status,
+        "profileSubscription.source": "coin",
+        "profileSubscription.startedAt": isActive ? toValidDate(snapshot?.startedAt || snapshot?.currentPeriodStart) : null,
+        "profileSubscription.expiresAt": isActive ? expiresAt : null,
+        "profileSubscription.currentPeriodStart": isActive ? toValidDate(snapshot?.currentPeriodStart || snapshot?.startedAt) : null,
+        "profileSubscription.currentPeriodEnd": isActive ? expiresAt : null,
+        "profileSubscription.autoRenewEnabled": Boolean(isActive && snapshot?.autoRenewEnabled),
+        "profileSubscription.cancelAtPeriodEnd": Boolean(isActive && snapshot?.cancelAtPeriodEnd),
+        "profileSubscription.priceCoins": priceCoins,
+        "profileSubscription.profileLimit": profileLimit,
+        "profileSubscription.freeServiceThresholdCoins": freeThreshold,
+        "profileSubscription.lastRenewedAt": toValidDate(snapshot?.lastRenewedAt),
+        "profileSubscription.lastRenewalFailedAt": toValidDate(snapshot?.lastRenewalFailedAt),
+        "profileSubscription.renewalFailReason": String(snapshot?.renewalFailReason || "").trim(),
       },
     },
-    { new: true, projection: nextProjection },
+    {
+      new: true,
+      projection: userProjection || {
+        points: 1,
+        profileSubscription: 1,
+        unlockedFeatures: 1,
+        recentConsumeRequestIds: 1,
+      },
+    },
   ).lean();
 
-  if (!renewedUser) {
+  return updatedUser;
+}
+
+async function createHoneySubscriptionTransaction(payload) {
+  const idempotencyKey = String(payload?.idempotencyKey || "").trim().slice(0, 120);
+  const txPayload = {
+    userId: payload.userId,
+    subscriptionId: payload.subscriptionId,
+    planId: normalizeHoneyPlanId(payload.planId) || "free",
+    type: String(payload.type || "SUBSCRIBE").trim().toUpperCase(),
+    amountCoins: Number(payload.amountCoins || 0),
+    status: String(payload.status || "SUCCESS").trim().toUpperCase(),
+    periodStart: toValidDate(payload.periodStart),
+    periodEnd: toValidDate(payload.periodEnd),
+    idempotencyKey,
+    reason: String(payload.reason || "").trim().slice(0, 300),
+  };
+
+  if (idempotencyKey) {
+    const existing = await HoneySubscriptionTransaction.findOne({
+      userId: txPayload.userId,
+      type: txPayload.type,
+      idempotencyKey,
+    }).lean();
+    if (existing) return existing;
+  }
+
+  return HoneySubscriptionTransaction.create(txPayload);
+}
+
+function resolveHoneyLegacyTier(snapshot, now = new Date()) {
+  const planId = normalizeHoneyPlanId(snapshot?.planId) || "free";
+  if (planId === "free") return null;
+
+  const status = normalizeHoneyStatus(snapshot?.status);
+  const currentPeriodEnd = toValidDate(snapshot?.currentPeriodEnd);
+  const active = Boolean(status === "active" && currentPeriodEnd && currentPeriodEnd.getTime() > now.getTime());
+  if (!active) return null;
+  return honeyPlanIdToLegacyTier(planId);
+}
+
+async function moveHoneySubscriptionToFreePlan({
+  userId,
+  snapshot,
+  now,
+  status,
+  renewalFailReason,
+  transactionType,
+  transactionStatus,
+  transactionReason,
+  userProjection,
+}) {
+  const nextStatus = normalizeHoneyStatus(status || "expired");
+  const failReason = normalizeHoneyRenewalFailReason(renewalFailReason) || "";
+
+  const updated = await HoneySubscription.findByIdAndUpdate(
+    snapshot._id,
+    {
+      $set: {
+        planId: "free",
+        status: nextStatus,
+        startedAt: null,
+        currentPeriodStart: null,
+        currentPeriodEnd: null,
+        autoRenewEnabled: false,
+        cancelAtPeriodEnd: false,
+        priceCoins: 0,
+        profileLimit: 1,
+        freeServiceThresholdCoins: 0,
+        lastRenewalFailedAt: failReason ? now : null,
+        renewalFailReason: failReason,
+      },
+    },
+    { new: true },
+  ).lean();
+
+  await createHoneySubscriptionTransaction({
+    userId,
+    subscriptionId: snapshot._id,
+    planId: snapshot.planId,
+    type: transactionType || (failReason ? "RENEWAL_FAILED" : "EXPIRE"),
+    amountCoins: 0,
+    status: transactionStatus || (failReason ? "FAILED" : "SUCCESS"),
+    periodStart: snapshot.currentPeriodStart,
+    periodEnd: snapshot.currentPeriodEnd,
+    reason: transactionReason || (failReason ? "자동 갱신 실패 후 무료 플랜 전환" : "구독 만료 후 무료 플랜 전환"),
+  }).catch(() => null);
+
+  const mirroredUser = await syncHoneySubscriptionToUserMirror(userId, updated, userProjection);
+  return {
+    snapshot: normalizeHoneySnapshot(updated, userId, now),
+    user: mirroredUser,
+    autoRenewed: false,
+  };
+}
+
+async function processHoneyRenewalForSnapshot({ userId, user, snapshot, now, userProjection }) {
+  const planId = normalizeHoneyPlanId(snapshot?.planId) || "free";
+  const currentPeriodEnd = toValidDate(snapshot?.currentPeriodEnd);
+  const status = normalizeHoneyStatus(snapshot?.status || "none");
+
+  if (planId === "free") {
+    const mirroredUser = await syncHoneySubscriptionToUserMirror(userId, snapshot, userProjection);
     return {
-      user,
-      effectiveTier: resolveEffectiveActiveTier(user),
+      snapshot: normalizeHoneySnapshot(snapshot, userId, now),
+      user: mirroredUser || user,
       autoRenewed: false,
     };
   }
 
+  const plan = getHoneyPlan(planId);
+  if (status !== "active" || !currentPeriodEnd) {
+    const resetSnapshot = await HoneySubscription.findByIdAndUpdate(
+      snapshot._id,
+      {
+        $set: {
+          status: "expired",
+          autoRenewEnabled: false,
+          cancelAtPeriodEnd: false,
+        },
+      },
+      { new: true },
+    ).lean();
+    return moveHoneySubscriptionToFreePlan({
+      userId,
+      snapshot: normalizeHoneySnapshot(resetSnapshot || snapshot, userId, now),
+      now,
+      status: "expired",
+      transactionType: "EXPIRE",
+      transactionStatus: "SUCCESS",
+      transactionReason: "구독 상태 비정상으로 무료 플랜 복구",
+      userProjection,
+    });
+  }
+
+  if (currentPeriodEnd.getTime() > now.getTime()) {
+    const stable = await HoneySubscription.findByIdAndUpdate(
+      snapshot._id,
+      {
+        $set: {
+          status: "active",
+          priceCoins: Number(plan.priceCoins || 0),
+          profileLimit: Number(plan.profileLimit || 1),
+          freeServiceThresholdCoins: Number(plan.freeServiceThresholdCoins || 0),
+        },
+      },
+      { new: true },
+    ).lean();
+
+    const normalizedStable = normalizeHoneySnapshot(stable || snapshot, userId, now);
+    const mirroredUser = await syncHoneySubscriptionToUserMirror(userId, normalizedStable, userProjection);
+    return {
+      snapshot: normalizedStable,
+      user: mirroredUser || user,
+      autoRenewed: false,
+    };
+  }
+
+  if (!plan.autoRenewSupported || !snapshot.autoRenewEnabled || snapshot.cancelAtPeriodEnd) {
+    return moveHoneySubscriptionToFreePlan({
+      userId,
+      snapshot,
+      now,
+      status: "expired",
+      transactionType: "EXPIRE",
+      transactionStatus: "SUCCESS",
+      transactionReason: "자동 갱신 해제 상태에서 만료",
+      userProjection,
+    });
+  }
+
+  const priceCoins = Number(plan.priceCoins || 0);
+  const idempotencyKey = `honey-renew:${String(snapshot._id)}:${currentPeriodEnd.toISOString()}`;
+  const existingRenew = await HoneySubscriptionTransaction.findOne({
+    userId: toObjectId(userId),
+    subscriptionId: snapshot._id,
+    type: "RENEW",
+    idempotencyKey,
+    status: "SUCCESS",
+  }).lean();
+
+  if (existingRenew) {
+    const latestSnapshot = await HoneySubscription.findById(snapshot._id).lean();
+    const normalizedLatest = normalizeHoneySnapshot(latestSnapshot || snapshot, userId, now);
+    const mirroredUser = await syncHoneySubscriptionToUserMirror(userId, normalizedLatest, userProjection);
+    return {
+      snapshot: normalizedLatest,
+      user: mirroredUser || user,
+      autoRenewed: false,
+    };
+  }
+
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: userId, points: { $gte: priceCoins } },
+    { $inc: { points: -priceCoins } },
+    {
+      new: true,
+      projection: userProjection || {
+        points: 1,
+        profileSubscription: 1,
+        unlockedFeatures: 1,
+        recentConsumeRequestIds: 1,
+      },
+    },
+  ).lean();
+
+  if (!updatedUser) {
+    return moveHoneySubscriptionToFreePlan({
+      userId,
+      snapshot,
+      now,
+      status: "renewal_failed",
+      renewalFailReason: "INSUFFICIENT_COINS",
+      transactionType: "RENEWAL_FAILED",
+      transactionStatus: "FAILED",
+      transactionReason: "자동 갱신 코인 부족",
+      userProjection,
+    });
+  }
+
+  const renewalBase = new Date(Math.max(currentPeriodEnd.getTime(), now.getTime()));
+  const nextPeriodEnd = addDaysFromDate(renewalBase, Number(plan.durationDays || getDefaultHoneyDurationDays()));
+  const nextPeriodStart = renewalBase;
+
+  const renewedSnapshot = await HoneySubscription.findByIdAndUpdate(
+    snapshot._id,
+    {
+      $set: {
+        planId,
+        status: "active",
+        startedAt: toValidDate(snapshot.startedAt) || now,
+        currentPeriodStart: nextPeriodStart,
+        currentPeriodEnd: nextPeriodEnd,
+        autoRenewEnabled: true,
+        cancelAtPeriodEnd: false,
+        priceCoins,
+        profileLimit: Number(plan.profileLimit || 1),
+        freeServiceThresholdCoins: Number(plan.freeServiceThresholdCoins || 0),
+        lastRenewedAt: now,
+        lastRenewalFailedAt: null,
+        renewalFailReason: "",
+      },
+    },
+    { new: true },
+  ).lean();
+
   await PointHistory.create({
     userId,
     kind: "deduct",
-    delta: -requiredCoins,
-    balanceAfter: Number(renewedUser.points || 0),
+    delta: -priceCoins,
+    balanceAfter: Number(updatedUser.points || 0),
     reason: `${plan.name} subscription auto-renewal`,
     featureKey: "profile-subscription-auto-renew",
-    metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
+    metadata: { planId, expiresAt: nextPeriodEnd ? nextPeriodEnd.toISOString() : null, autoRenew: true },
   }).catch(() => {});
 
-  return { user: renewedUser, effectiveTier: tier, autoRenewed: true };
+  await createHoneySubscriptionTransaction({
+    userId,
+    subscriptionId: snapshot._id,
+    planId,
+    type: "RENEW",
+    amountCoins: priceCoins,
+    status: "SUCCESS",
+    periodStart: nextPeriodStart,
+    periodEnd: nextPeriodEnd,
+    idempotencyKey,
+    reason: "코인 자동 갱신 성공",
+  }).catch(() => null);
+
+  const normalizedRenewed = normalizeHoneySnapshot(renewedSnapshot, userId, now);
+  const mirroredUser = await syncHoneySubscriptionToUserMirror(userId, normalizedRenewed, userProjection);
+  return {
+    snapshot: normalizedRenewed,
+    user: mirroredUser || updatedUser,
+    autoRenewed: true,
+  };
+}
+
+async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
+  const now = new Date();
+  const snapshot = await ensureHoneySubscriptionSnapshot(userId, user, now);
+  const runtime = await processHoneyRenewalForSnapshot({
+    userId,
+    user,
+    snapshot,
+    now,
+    userProjection: projection,
+  });
+
+  const effectiveTier = resolveHoneyLegacyTier(runtime.snapshot, now);
+  return {
+    user: runtime.user || user,
+    effectiveTier,
+    autoRenewed: Boolean(runtime.autoRenewed),
+    subscription: runtime.snapshot,
+  };
 }
 
 async function handleCheck() {
@@ -817,6 +1243,26 @@ async function handleChargeSimulate(request, env, auth) {
   });
 }
 
+function normalizeIdempotencyKey(request, body) {
+  return String(
+    body?.requestId
+      || body?.idempotencyKey
+      || request.headers.get("idempotency-key")
+      || request.headers.get("x-idempotency-key")
+      || "",
+  ).trim().slice(0, 120);
+}
+
+async function handlePigCoinPrices() {
+  return json({
+    ok: true,
+    code: "OK",
+    message: "서버 코인 가격표를 조회했습니다.",
+    prices: listPublicCoinPriceTable(),
+    updatedAt: new Date().toISOString(),
+  });
+}
+
 async function handlePigCoinConsume(request, auth, options = {}) {
   const env = options?.env || {};
   const adminMode = Boolean(options?.adminMode);
@@ -906,12 +1352,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const subFeatureKey = String(body?.subFeatureKey || "").trim().slice(0, 60);
   const payloadHash = String(body?.payloadHash || "").trim().slice(0, 120);
   const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
-  const requestId = String(
-    body?.requestId
-      || request.headers.get("idempotency-key")
-      || request.headers.get("x-idempotency-key")
-      || "",
-  ).trim().slice(0, 120);
+  const requestId = normalizeIdempotencyKey(request, body);
   const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
   const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
   const forceDeductApplied = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
@@ -935,6 +1376,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     return json({
       message: "Admin bypass enabled. No coins were deducted.",
       code: "ADMIN_BYPASS",
+      featureKey,
       productId: productId || null,
       requiredCoins: cost,
       chargedCoins: 0,
@@ -983,6 +1425,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     return json({
       message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
       code: "SUBSCRIPTION_INCLUDED",
+      featureKey,
       productId: productId || null,
       requiredCoins: cost,
       chargedCoins: 0,
@@ -1062,7 +1505,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         return json({
           message: "Already processed request.",
           code: "IDEMPOTENT_REPLAY",
+          featureKey,
           alreadyProcessed: true,
+          idempotencyKey: requestId || null,
           productId: productId || null,
           requiredCoins: cost,
           chargedCoins: 0,
@@ -1118,6 +1563,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   return json({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
     code: "OK",
+    featureKey,
+    idempotencyKey: requestId || null,
     productId: productId || null,
     requiredCoins: cost,
     chargedCoins: cost,
@@ -1132,6 +1579,35 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     user: userPayload(auth, updatedUser.points, unlockedFeatures),
     unlockedFeatures,
     unlockMap: toUnlockMap(unlockedFeatures),
+  });
+}
+
+async function handlePigCoinCharge(request, auth, options = {}) {
+  const consumeResponse = await handlePigCoinConsume(request, auth, options);
+  const payload = await consumeResponse.clone().json().catch(() => ({}));
+
+  if (!consumeResponse.ok) {
+    return consumeResponse;
+  }
+
+  const chargedCoins = Number(payload?.chargedCoins || 0);
+  const balanceAfter = Number(payload?.user?.points ?? payload?.balance ?? 0);
+
+  return json({
+    ok: true,
+    code: String(payload?.code || "OK"),
+    message: String(payload?.message || "코인 차감이 완료되었습니다."),
+    transactionId: String(payload?.transactionId || ""),
+    featureKey: String(payload?.featureKey || payload?.requestedFeatureKey || ""),
+    chargedCoins: Number.isFinite(chargedCoins) ? chargedCoins : 0,
+    requiredCoins: Number(payload?.requiredCoins || chargedCoins || 0),
+    freeBySubscription: Boolean(payload?.freeBySubscription),
+    idempotencyKey: String(payload?.idempotencyKey || "") || null,
+    balanceAfter: Number.isFinite(balanceAfter) ? balanceAfter : 0,
+    user: payload?.user || null,
+    unlockMap: payload?.unlockMap && typeof payload.unlockMap === "object" ? payload.unlockMap : {},
+    unlockedFeatures: Array.isArray(payload?.unlockedFeatures) ? payload.unlockedFeatures : [],
+    raw: payload,
   });
 }
 
@@ -1193,18 +1669,16 @@ async function findUserByIdRaw(userId, projection = {}) {
 async function handlePigCoinRefund(request, auth) {
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
-  const cost = Number.isFinite(requestedCost) && requestedCost > 0
+  const requestId = normalizeIdempotencyKey(request, body);
+  const sourceTransactionId = String(body?.sourceTransactionId || body?.transactionId || "").trim();
+  const featureKeyInput = String(body?.featureKey || "").trim();
+  const shouldResolveFromSource = !Number.isFinite(requestedCost) || requestedCost <= 0 || !featureKeyInput;
+  let resolvedCost = Number.isFinite(requestedCost) && requestedCost > 0
     ? Math.floor(requestedCost)
-    : PIG_COIN_DEFAULT_UNLOCK_COST;
-
-  if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
-    return json({ message: "Invalid coin refund amount." }, { status: 400 });
-  }
+    : NaN;
+  let resolvedFeatureKey = featureKeyInput || "";
 
   const reason = String(body?.reason || "Premium generation failed auto-refund").trim().slice(0, 120);
-  const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
-  const sourceTransactionId = String(body?.sourceTransactionId || "").trim();
-  const requestId = String(body?.requestId || "").trim().slice(0, 120);
   const now = new Date();
   const recentWindow = new Date(now.getTime() - 1000 * 60 * 60 * 48);
 
@@ -1230,8 +1704,8 @@ async function handlePigCoinRefund(request, auth) {
   const deductQuery = {
     userId: auth.userId,
     kind: "deduct",
-    delta: -cost,
-    featureKey,
+    ...(Number.isFinite(resolvedCost) ? { delta: -resolvedCost } : {}),
+    ...(resolvedFeatureKey ? { featureKey: resolvedFeatureKey } : {}),
     createdAt: { $gte: recentWindow },
   };
 
@@ -1278,6 +1752,18 @@ async function handlePigCoinRefund(request, auth) {
     }, { status: 409 });
   }
 
+  if (shouldResolveFromSource) {
+    const detectedCost = Math.abs(Number(deducted?.delta || 0));
+    if (Number.isFinite(detectedCost) && detectedCost > 0) {
+      resolvedCost = Math.floor(detectedCost);
+    }
+    resolvedFeatureKey = String(deducted?.featureKey || resolvedFeatureKey || "pig-coin-unlock").trim().slice(0, 60);
+  }
+
+  if (!Number.isFinite(resolvedCost) || resolvedCost <= 0 || resolvedCost > PIG_COIN_MAX_COST) {
+    return json({ message: "Invalid coin refund amount.", code: "INVALID_REFUND_AMOUNT" }, { status: 400 });
+  }
+
   const alreadyRefunded = await PointHistory.findOne({
     userId: auth.userId,
     kind: "refund",
@@ -1297,7 +1783,7 @@ async function handlePigCoinRefund(request, auth) {
 
   const updatedUser = await User.findByIdAndUpdate(
     auth.userId,
-    { $inc: { points: cost } },
+    { $inc: { points: resolvedCost } },
     { new: true, projection: { points: 1 } },
   ).lean();
 
@@ -1311,10 +1797,10 @@ async function handlePigCoinRefund(request, auth) {
     refundHistory = await PointHistory.create({
       userId: auth.userId,
       kind: "refund",
-      delta: cost,
+      delta: resolvedCost,
       balanceAfter: Number(updatedUser.points || 0),
       reason,
-      featureKey,
+      featureKey: resolvedFeatureKey,
       metadata: {
         source: "fortune.pig-coin.refund",
         requestId,
@@ -1328,8 +1814,11 @@ async function handlePigCoinRefund(request, auth) {
   }
 
   return json({
-    message: `${cost.toLocaleString("ko-KR")} coins refunded.`,
-    refundedCoins: cost,
+    message: `${resolvedCost.toLocaleString("ko-KR")} coins refunded.`,
+    code: "OK",
+    idempotencyKey: requestId || null,
+    featureKey: resolvedFeatureKey,
+    refundedCoins: resolvedCost,
     sourceTransactionId: String(deducted._id),
     refundTransactionId: String(refundHistory?._id || ""),
     historyWriteDegraded: refundHistoryWriteFailed,
@@ -1338,23 +1827,32 @@ async function handlePigCoinRefund(request, auth) {
 }
 
 async function handleSubscriptionStatus(request, env, auth) {
-  const user = await findUserByIdRaw(auth.userId, {
-    points: 1,
-    profileSubscription: 1,
-    has_started_paid_service: 1,
-    first_service_access_date: 1,
-  });
+  const user = await User.findById(auth.userId)
+    .select("points profileSubscription has_started_paid_service first_service_access_date")
+    .lean();
 
   if (!user) {
-    const policy = getPlanPolicy(null);
     return json({
       ok: true,
       authenticated: true,
       subscription: {
-        isSubscribed: false,
-        plan: "free",
-        expiresAt: null,
+        planId: "free",
+        planName: HONEY_SUBSCRIPTION_PLANS.free.name,
+        status: "none",
+        currentPeriodStart: null,
+        currentPeriodEnd: null,
+        autoRenewEnabled: false,
+        cancelAtPeriodEnd: false,
       },
+      benefits: {
+        isSubscriber: false,
+        profileLimit: 1,
+        freeServiceThresholdCoins: 0,
+        sharedAcrossProfiles: false,
+      },
+      planId: "free",
+      planName: HONEY_SUBSCRIPTION_PLANS.free.name,
+      status: "none",
       isSubscribed: false,
       plan: "free",
       tier: "free",
@@ -1365,6 +1863,7 @@ async function handleSubscriptionStatus(request, env, auth) {
       points: 0,
       lowBalanceWarning: false,
       autoRenewed: false,
+      autoRenewEnabled: false,
       cancelAtPeriodEnd: false,
       cancelRequestedAt: null,
       hasStartedPaidService: false,
@@ -1372,140 +1871,135 @@ async function handleSubscriptionStatus(request, env, auth) {
       adminMode: false,
       simulated: false,
       adminTestTier: null,
-      freeLimit: policy.freeLimit,
-      recommendedCoins: policy.recommendedCoins,
+      freeLimit: 0,
+      recommendedCoins: 0,
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
     });
   }
 
-  const sub = user.profileSubscription || {};
-  const tier = sub.tier || "free";
-  const source = String(sub.source || "coin").toLowerCase();
-  const expAt = toValidDate(sub.expiresAt);
-  const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
-  const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
-  let points = Number(user.points || 0);
-  const plan = PROFILE_SUB_PLANS[tier];
-  const now = new Date();
+  const runtime = await ensureActiveSubscriptionByAutoRenew(
+    auth.userId,
+    user,
+    {
+      points: 1,
+      profileSubscription: 1,
+      has_started_paid_service: 1,
+      first_service_access_date: 1,
+    },
+  );
 
-  let effectiveTier = "free";
-  let effectiveExpAt = expAt;
-  let autoRenewed = false;
-
-  if (tier !== "free" && effectiveExpAt) {
-    if (effectiveExpAt > now) {
-      effectiveTier = tier;
-    } else if (source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
-      const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 86400000);
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: auth.userId, points: { $gte: plan.coins } },
-        {
-          $inc: { points: -plan.coins },
-          $set: {
-            "profileSubscription.expiresAt": newExpAt,
-            "profileSubscription.startedAt": now,
-          },
-        },
-        { new: true, projection: { points: 1 } },
-      ).lean();
-
-      if (updatedUser) {
-        points = Number(updatedUser.points || 0);
-        effectiveTier = tier;
-        effectiveExpAt = newExpAt;
-        autoRenewed = true;
-        await PointHistory.create({
-          userId: auth.userId,
-          kind: "deduct",
-          delta: -plan.coins,
-          balanceAfter: points,
-          reason: `${plan.name} subscription auto-renewal`,
-          featureKey: "profile-subscription-auto-renew",
-          metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
-        }).catch(() => {});
-      }
-    }
-  }
-
-  const isActive = effectiveTier !== "free";
-  const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
-  const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
-  const policy = getPlanPolicy(isActive ? effectiveTier : null);
+  const runtimeUser = runtime.user || user;
+  const points = Number(runtimeUser?.points || 0);
+  const snapshot = normalizeHoneySnapshot(runtime.subscription, auth.userId, new Date());
 
   const adminToken = extractAdminTokenFromRequest(request);
   const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
   const adminTestTier = adminMode ? normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier")) : null;
 
   if (adminMode && adminTestTier) {
-    const simulatedPolicy = getPlanPolicy(adminTestTier);
+    const simulatedPlanId = PROFILE_SUB_PLANS[adminTestTier]?.planId || "free";
+    const simulatedPlan = getHoneyPlan(simulatedPlanId);
     return json({
       ok: true,
       authenticated: true,
       subscription: {
-        isSubscribed: true,
-        plan: adminTestTier,
-        expiresAt: toIsoOrNull(effectiveExpAt),
+        planId: simulatedPlanId,
+        planName: simulatedPlan.name,
+        status: "active",
+        currentPeriodStart: toIsoOrNull(snapshot.currentPeriodStart),
+        currentPeriodEnd: toIsoOrNull(snapshot.currentPeriodEnd),
+        autoRenewEnabled: true,
+        cancelAtPeriodEnd: false,
       },
+      benefits: {
+        isSubscriber: true,
+        profileLimit: Number(simulatedPlan.profileLimit || 1),
+        freeServiceThresholdCoins: Number(simulatedPlan.freeServiceThresholdCoins || 0),
+        sharedAcrossProfiles: true,
+      },
+      planId: simulatedPlanId,
+      planName: simulatedPlan.name,
+      status: "active",
       isSubscribed: true,
       plan: adminTestTier,
       tier: adminTestTier,
+      source: "coin",
       isActive: true,
-      expiresAt: toIsoOrNull(effectiveExpAt),
-      profileLimit: simulatedPolicy.profileLimit,
+      expiresAt: toIsoOrNull(snapshot.currentPeriodEnd),
+      profileLimit: Number(simulatedPlan.profileLimit || 1),
       points,
-      lowBalanceWarning: Boolean(points <= simulatedPolicy.freeLimit),
+      lowBalanceWarning: points <= Number(simulatedPlan.freeServiceThresholdCoins || 0),
       autoRenewed: false,
+      autoRenewEnabled: true,
       cancelAtPeriodEnd: false,
       cancelRequestedAt: null,
-      hasStartedPaidService: Boolean(user.has_started_paid_service),
-      firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
+      hasStartedPaidService: Boolean(runtimeUser.has_started_paid_service),
+      firstServiceAccessDate: toIsoOrNull(runtimeUser.first_service_access_date),
       adminMode: true,
       simulated: true,
       adminTestTier,
-      freeLimit: simulatedPolicy.freeLimit,
-      recommendedCoins: simulatedPolicy.recommendedCoins,
+      freeLimit: Number(simulatedPlan.freeServiceThresholdCoins || 0),
+      recommendedCoins: Number(simulatedPlan.priceCoins || 0),
+      currentPeriodStart: toIsoOrNull(snapshot.currentPeriodStart),
+      currentPeriodEnd: toIsoOrNull(snapshot.currentPeriodEnd),
     });
   }
+
+  const legacyTier = resolveHoneyLegacyTier(snapshot, new Date()) || "free";
+  const activePlanId = legacyTier === "free" ? "free" : (PROFILE_SUB_PLANS[legacyTier]?.planId || "free");
+  const activePlan = getHoneyPlan(activePlanId);
+  const activeStatus = legacyTier === "free" ? normalizeHoneyStatus(snapshot.status || "none") : "active";
+  const benefits = resolveHoneyBenefits(activePlanId, legacyTier !== "free");
 
   return json({
     ok: true,
     authenticated: true,
     subscription: {
-      isSubscribed: Boolean(isActive),
-      plan: effectiveTier,
-      expiresAt: toIsoOrNull(effectiveExpAt),
+      planId: activePlanId,
+      planName: activePlan.name,
+      status: activeStatus,
+      currentPeriodStart: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodStart),
+      currentPeriodEnd: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+      autoRenewEnabled: Boolean(legacyTier !== "free" && snapshot.autoRenewEnabled),
+      cancelAtPeriodEnd: Boolean(legacyTier !== "free" && snapshot.cancelAtPeriodEnd),
     },
-    isSubscribed: Boolean(isActive),
-    plan: effectiveTier,
-    tier: effectiveTier,
-    source: effectiveTier === "free" ? "coin" : source,
-    isActive: Boolean(isActive),
-    expiresAt: toIsoOrNull(effectiveExpAt),
-    profileLimit,
+    benefits,
+    planId: activePlanId,
+    planName: activePlan.name,
+    status: activeStatus,
+    isSubscribed: legacyTier !== "free",
+    plan: legacyTier,
+    tier: legacyTier,
+    source: "coin",
+    isActive: legacyTier !== "free",
+    expiresAt: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+    profileLimit: Number(benefits.profileLimit || 1),
     points,
-    lowBalanceWarning: Boolean(lowBalanceWarning),
-    autoRenewed: Boolean(autoRenewed),
-    cancelAtPeriodEnd: Boolean(cancelAtPeriodEnd),
-    cancelRequestedAt: toIsoOrNull(cancelRequestedAt),
-    hasStartedPaidService: Boolean(user.has_started_paid_service),
-    firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
+    lowBalanceWarning: Boolean(legacyTier !== "free" && points <= Number(benefits.freeServiceThresholdCoins || 0)),
+    autoRenewed: Boolean(runtime.autoRenewed),
+    autoRenewEnabled: Boolean(legacyTier !== "free" && snapshot.autoRenewEnabled),
+    cancelAtPeriodEnd: Boolean(legacyTier !== "free" && snapshot.cancelAtPeriodEnd),
+    cancelRequestedAt: null,
+    hasStartedPaidService: Boolean(runtimeUser.has_started_paid_service),
+    firstServiceAccessDate: toIsoOrNull(runtimeUser.first_service_access_date),
     adminMode,
     simulated: false,
     adminTestTier: null,
-    freeLimit: policy.freeLimit,
-    recommendedCoins: policy.recommendedCoins,
+    freeLimit: Number(benefits.freeServiceThresholdCoins || 0),
+    recommendedCoins: Number(activePlan.priceCoins || 0),
+    currentPeriodStart: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodStart),
+    currentPeriodEnd: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+    renewalFailReason: String(snapshot.renewalFailReason || "") || null,
   });
 }
 
 function buildTokenFallbackSubscriptionStatus(auth) {
-  const hintedTier = normalizeSubscriptionTier(
-    auth?.subscriptionTier
-    || auth?.profileSubscription?.tier
-    || auth?.tier,
-  );
-  const tier = hintedTier || "free";
-  const isActive = tier !== "free";
-  const policy = getPlanPolicy(isActive ? tier : null);
-  const plan = PROFILE_SUB_PLANS[tier] || null;
+  const hintedTier = normalizeSubscriptionTier(auth?.subscriptionTier || auth?.profileSubscription?.tier || auth?.tier) || "free";
+  const planId = hintedTier === "free" ? "free" : (PROFILE_SUB_PLANS[hintedTier]?.planId || "free");
+  const plan = getHoneyPlan(planId);
+  const isActive = hintedTier !== "free";
+  const benefits = resolveHoneyBenefits(planId, isActive);
   const points = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
 
   return {
@@ -1516,19 +2010,28 @@ function buildTokenFallbackSubscriptionStatus(auth) {
     code: "SUBSCRIPTION_STORAGE_UNAVAILABLE",
     message: "구독 정보를 임시 데이터로 표시합니다.",
     subscription: {
-      isSubscribed: isActive,
-      plan: tier,
-      expiresAt: null,
+      planId,
+      planName: plan.name,
+      status: isActive ? "active" : "none",
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+      autoRenewEnabled: false,
+      cancelAtPeriodEnd: false,
     },
+    benefits,
+    planId,
+    planName: plan.name,
+    status: isActive ? "active" : "none",
     isSubscribed: isActive,
-    plan: tier,
-    tier,
+    plan: hintedTier,
+    tier: hintedTier,
     isActive,
     expiresAt: null,
-    profileLimit: isActive ? Number(plan?.profileLimit || 1) : 1,
+    profileLimit: Number(benefits.profileLimit || 1),
     points,
     lowBalanceWarning: false,
     autoRenewed: false,
+    autoRenewEnabled: false,
     cancelAtPeriodEnd: false,
     cancelRequestedAt: null,
     hasStartedPaidService: false,
@@ -1536,8 +2039,11 @@ function buildTokenFallbackSubscriptionStatus(auth) {
     adminMode: false,
     simulated: false,
     adminTestTier: null,
-    freeLimit: policy.freeLimit,
-    recommendedCoins: policy.recommendedCoins,
+    freeLimit: Number(benefits.freeServiceThresholdCoins || 0),
+    recommendedCoins: Number(plan.priceCoins || 0),
+    currentPeriodStart: null,
+    currentPeriodEnd: null,
+    renewalFailReason: null,
   };
 }
 
@@ -1554,18 +2060,55 @@ async function handleStartService(request, auth) {
   const body = await readJson(request);
   const action = String(body?.action || "membership-content").trim().slice(0, 80);
   const contentTitle = String(body?.contentTitle || "Membership content").trim().slice(0, 120);
-  const legalVersion = String(body?.legalVersion || "2026-04-11").trim().slice(0, 20);
+  const policyVersion = String(body?.policyVersion || body?.legalVersion || "2026-05-honey-membership-v1").trim().slice(0, 40);
+  const featureKey = String(body?.featureKey || action || "membership-content").trim().slice(0, 120);
+  const profileId = String(body?.profileId || "").trim().slice(0, 120);
   const now = new Date();
 
   const user = await User.findById(auth.userId)
-    .select("profileSubscription has_started_paid_service first_service_access_date points")
+    .select("profileSubscription points has_started_paid_service first_service_access_date")
     .lean();
 
   if (!user) return json({ message: "User not found." }, { status: 404 });
 
-  const tier = String(user.profileSubscription?.tier || "free");
-  if (tier === "free") {
-    return json({ message: "Only subscribed users can access this service." }, { status: 403 });
+  const runtime = await ensureActiveSubscriptionByAutoRenew(
+    auth.userId,
+    user,
+    { points: 1, profileSubscription: 1, has_started_paid_service: 1, first_service_access_date: 1 },
+  );
+  const activeTier = runtime.effectiveTier;
+  if (!activeTier) {
+    return json({
+      ok: false,
+      code: "SUBSCRIPTION_REQUIRED",
+      message: "멤버십 전용 콘텐츠는 구독 후 이용할 수 있습니다.",
+    }, { status: 403 });
+  }
+
+  if (!featureKey) {
+    return json({
+      ok: false,
+      code: "MEMBERSHIP_CONSENT_REQUIRED",
+      message: "동의 기록 저장을 위해 featureKey가 필요합니다.",
+    }, { status: 400 });
+  }
+
+  let consentRecord = null;
+  try {
+    consentRecord = await MembershipContentAccessConsent.create({
+      userId: auth.userId,
+      profileId,
+      featureKey,
+      policyVersion,
+      agreedAt: now,
+    });
+  } catch (error) {
+    console.error("[fortune:membership-consent] save failed:", error?.message || error);
+    return json({
+      ok: false,
+      code: "MEMBERSHIP_CONSENT_SAVE_FAILED",
+      message: "동의 기록 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    }, { status: 500 });
   }
 
   const alreadyStarted = Boolean(user.has_started_paid_service);
@@ -1598,7 +2141,9 @@ async function handleStartService(request, auth) {
     metadata: {
       action,
       contentTitle,
-      legalVersion,
+      policyVersion,
+      featureKey,
+      profileId,
       acknowledgedAt: now.toISOString(),
     },
   }).catch(() => {});
@@ -1607,8 +2152,562 @@ async function handleStartService(request, auth) {
     ok: true,
     started: true,
     alreadyStarted,
+    consentId: String(consentRecord?._id || ""),
+    consent: {
+      userId: String(auth.userId || ""),
+      profileId: profileId || null,
+      featureKey,
+      agreedAt: now.toISOString(),
+      policyVersion,
+    },
     hasStartedPaidService: true,
     firstServiceAccessDate: startedAt ? startedAt.toISOString() : now.toISOString(),
+  });
+}
+
+async function handleSubscriptionPlans() {
+  return json({
+    ok: true,
+    plans: listPublicHoneySubscriptionPlans(),
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+async function handleSubscriptionMe(request, env, auth) {
+  return handleSubscriptionStatus(request, env, auth);
+}
+
+async function handleSubscriptionSubscribe(request, auth) {
+  const body = await readJson(request);
+  const planId = normalizeHoneyPlanId(body?.planId || body?.tier);
+  const idempotencyKey = normalizeIdempotencyKey(request, body);
+
+  if (!planId || planId === "free" || !isPaidHoneyPlan(planId)) {
+    return json({ ok: false, code: "SUBSCRIPTION_PLAN_NOT_FOUND", message: "지원하지 않는 구독 플랜입니다." }, { status: 400 });
+  }
+
+  if (idempotencyKey) {
+    const existingTx = await HoneySubscriptionTransaction.findOne({
+      userId: toObjectId(auth.userId),
+      idempotencyKey,
+      type: { $in: ["SUBSCRIBE", "EXTEND"] },
+      status: "SUCCESS",
+    }).lean();
+
+    if (existingTx) {
+      const user = await User.findById(auth.userId)
+        .select("points profileSubscription has_started_paid_service first_service_access_date")
+        .lean();
+      const runtime = user
+        ? await ensureActiveSubscriptionByAutoRenew(auth.userId, user, {
+          points: 1,
+          profileSubscription: 1,
+          has_started_paid_service: 1,
+          first_service_access_date: 1,
+        })
+        : null;
+      const snapshot = runtime?.subscription || buildHoneyFreeSnapshot(auth.userId, new Date(), "none");
+      const legacyTier = resolveHoneyLegacyTier(snapshot, new Date()) || "free";
+      const activePlanId = legacyTier === "free" ? "free" : (PROFILE_SUB_PLANS[legacyTier]?.planId || "free");
+      return json({
+        ok: true,
+        idempotent: true,
+        subscription: {
+          planId: activePlanId,
+          tier: legacyTier,
+          status: legacyTier === "free" ? normalizeHoneyStatus(snapshot?.status || "none") : "active",
+          isActive: legacyTier !== "free",
+          expiresAt: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+          currentPeriodEnd: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+          profileLimit: Number((legacyTier !== "free" ? getHoneyPlan(activePlanId).profileLimit : 1) || 1),
+          cancelAtPeriodEnd: Boolean(legacyTier !== "free" && snapshot?.cancelAtPeriodEnd),
+        },
+        chargedCoins: Number(existingTx.amountCoins || 0),
+        balanceAfter: Number(runtime?.user?.points || user?.points || 0),
+      });
+    }
+  }
+
+  const user = await User.findById(auth.userId)
+    .select("points profileSubscription has_started_paid_service first_service_access_date")
+    .lean();
+  if (!user) return json({ ok: false, code: "USER_NOT_FOUND", message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+
+  const runtime = await ensureActiveSubscriptionByAutoRenew(auth.userId, user, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
+  const snapshot = normalizeHoneySnapshot(runtime.subscription, auth.userId, new Date());
+  const plan = getHoneyPlan(planId);
+  const chargedCoins = Number(plan.priceCoins || 0);
+
+  const chargedUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      points: { $gte: chargedCoins },
+      ...(idempotencyKey ? { recentConsumeRequestIds: { $ne: idempotencyKey } } : {}),
+    },
+    {
+      $inc: { points: -chargedCoins },
+      ...(idempotencyKey
+        ? {
+          $push: {
+            recentConsumeRequestIds: {
+              $each: [idempotencyKey],
+              $slice: -200,
+            },
+          },
+        }
+        : {}),
+    },
+    {
+      new: true,
+      projection: {
+        points: 1,
+        profileSubscription: 1,
+        recentConsumeRequestIds: 1,
+        has_started_paid_service: 1,
+        first_service_access_date: 1,
+      },
+    },
+  ).lean();
+
+  if (!chargedUser) {
+    if (idempotencyKey) {
+      const replayUser = await User.findById(auth.userId)
+        .select("points recentConsumeRequestIds")
+        .lean();
+      const replayIds = Array.isArray(replayUser?.recentConsumeRequestIds)
+        ? replayUser.recentConsumeRequestIds.map((v) => String(v))
+        : [];
+      if (replayIds.includes(idempotencyKey)) {
+        const replayRuntime = await ensureActiveSubscriptionByAutoRenew(
+          auth.userId,
+          replayUser,
+          { points: 1, profileSubscription: 1 },
+        );
+        const replaySnapshot = replayRuntime?.subscription || snapshot;
+        const replayTier = resolveHoneyLegacyTier(replaySnapshot, new Date()) || "free";
+        const replayPlanId = replayTier === "free" ? "free" : (PROFILE_SUB_PLANS[replayTier]?.planId || "free");
+        const replayPlan = getHoneyPlan(replayPlanId);
+        return json({
+          ok: true,
+          idempotent: true,
+          subscription: {
+            planId: replayPlanId,
+            tier: replayTier,
+            status: replayTier === "free" ? normalizeHoneyStatus(replaySnapshot?.status || "none") : "active",
+            isActive: replayTier !== "free",
+            expiresAt: replayTier === "free" ? null : toIsoOrNull(replaySnapshot?.currentPeriodEnd),
+            currentPeriodEnd: replayTier === "free" ? null : toIsoOrNull(replaySnapshot?.currentPeriodEnd),
+            profileLimit: Number(replayPlan.profileLimit || 1),
+            cancelAtPeriodEnd: Boolean(replaySnapshot?.cancelAtPeriodEnd),
+          },
+          chargedCoins,
+          balanceAfter: Number(replayRuntime?.user?.points || replayUser?.points || 0),
+        });
+      }
+    }
+    return json({
+      ok: false,
+      code: "INSUFFICIENT_COINS_FOR_SUBSCRIPTION",
+      requiredCoins: chargedCoins,
+      currentCoins: Number(runtime?.user?.points || user?.points || 0),
+      message: "코인이 부족합니다.",
+    }, { status: 402 });
+  }
+
+  const now = new Date();
+  const currentActiveTier = resolveHoneyLegacyTier(snapshot, now);
+  const isSamePlanActive = Boolean(currentActiveTier && (PROFILE_SUB_PLANS[currentActiveTier]?.planId || "") === planId);
+  const transactionType = isSamePlanActive ? "EXTEND" : "SUBSCRIBE";
+  const periodBase = isSamePlanActive
+    ? (toValidDate(snapshot.currentPeriodEnd) || now)
+    : now;
+  const nextPeriodEnd = addDaysFromDate(periodBase, Number(plan.durationDays || getDefaultHoneyDurationDays()));
+
+  const updatedSnapshot = await HoneySubscription.findByIdAndUpdate(
+    snapshot._id,
+    {
+      $set: {
+        planId,
+        status: "active",
+        startedAt: isSamePlanActive ? (toValidDate(snapshot.startedAt) || now) : now,
+        currentPeriodStart: isSamePlanActive ? (toValidDate(snapshot.currentPeriodStart) || now) : now,
+        currentPeriodEnd: nextPeriodEnd,
+        autoRenewEnabled: true,
+        cancelAtPeriodEnd: false,
+        priceCoins: chargedCoins,
+        profileLimit: Number(plan.profileLimit || 1),
+        freeServiceThresholdCoins: Number(plan.freeServiceThresholdCoins || 0),
+        lastRenewedAt: transactionType === "EXTEND" ? now : null,
+        lastRenewalFailedAt: null,
+        renewalFailReason: "",
+      },
+    },
+    { new: true },
+  ).lean();
+
+  await PointHistory.create({
+    userId: auth.userId,
+    kind: "deduct",
+    delta: -chargedCoins,
+    balanceAfter: Number(chargedUser.points || 0),
+    reason: `${plan.name} subscription ${transactionType === "EXTEND" ? "extend" : "purchase"}`,
+    featureKey: "profile-subscription",
+    metadata: {
+      planId,
+      periodEnd: nextPeriodEnd ? nextPeriodEnd.toISOString() : null,
+      idempotencyKey: idempotencyKey || null,
+      transactionType,
+    },
+  }).catch(() => {});
+
+  await createHoneySubscriptionTransaction({
+    userId: auth.userId,
+    subscriptionId: snapshot._id,
+    planId,
+    type: transactionType,
+    amountCoins: chargedCoins,
+    status: "SUCCESS",
+    periodStart: updatedSnapshot?.currentPeriodStart,
+    periodEnd: updatedSnapshot?.currentPeriodEnd,
+    idempotencyKey,
+    reason: transactionType === "EXTEND" ? "즉시 연장" : "구독 구매",
+  }).catch(() => null);
+
+  await syncHoneySubscriptionToUserMirror(auth.userId, updatedSnapshot, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
+
+  return json({
+    ok: true,
+    message: transactionType === "EXTEND"
+      ? "구독 기간이 30일 연장되었습니다."
+      : "구독이 시작되었습니다.",
+    subscription: {
+      planId,
+      tier: honeyPlanIdToLegacyTier(planId),
+      status: "active",
+      isActive: true,
+      expiresAt: toIsoOrNull(updatedSnapshot?.currentPeriodEnd),
+      currentPeriodEnd: toIsoOrNull(updatedSnapshot?.currentPeriodEnd),
+      profileLimit: Number(plan.profileLimit || 1),
+      cancelAtPeriodEnd: false,
+    },
+    chargedCoins,
+    balanceAfter: Number(chargedUser.points || 0),
+  });
+}
+
+async function handleSubscriptionExtend(request, auth) {
+  const body = await readJson(request);
+  const idempotencyKey = normalizeIdempotencyKey(request, body);
+
+  if (idempotencyKey) {
+    const existingTx = await HoneySubscriptionTransaction.findOne({
+      userId: toObjectId(auth.userId),
+      idempotencyKey,
+      type: "EXTEND",
+      status: "SUCCESS",
+    }).lean();
+    if (existingTx) {
+      const user = await User.findById(auth.userId)
+        .select("points profileSubscription has_started_paid_service first_service_access_date")
+        .lean();
+      const runtime = user
+        ? await ensureActiveSubscriptionByAutoRenew(auth.userId, user, {
+          points: 1,
+          profileSubscription: 1,
+          has_started_paid_service: 1,
+          first_service_access_date: 1,
+        })
+        : null;
+      const snapshot = runtime?.subscription || buildHoneyFreeSnapshot(auth.userId, new Date(), "none");
+      const legacyTier = resolveHoneyLegacyTier(snapshot, new Date()) || "free";
+      const planId = legacyTier === "free" ? "free" : (PROFILE_SUB_PLANS[legacyTier]?.planId || "free");
+      return json({
+        ok: true,
+        idempotent: true,
+        subscription: {
+          planId,
+          tier: legacyTier,
+          status: legacyTier === "free" ? normalizeHoneyStatus(snapshot?.status || "none") : "active",
+          isActive: legacyTier !== "free",
+          expiresAt: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+          currentPeriodEnd: legacyTier === "free" ? null : toIsoOrNull(snapshot.currentPeriodEnd),
+          profileLimit: Number((legacyTier !== "free" ? getHoneyPlan(planId).profileLimit : 1) || 1),
+          cancelAtPeriodEnd: Boolean(legacyTier !== "free" && snapshot?.cancelAtPeriodEnd),
+        },
+        chargedCoins: Number(existingTx.amountCoins || 0),
+        balanceAfter: Number(runtime?.user?.points || user?.points || 0),
+      });
+    }
+  }
+
+  const user = await User.findById(auth.userId)
+    .select("points profileSubscription has_started_paid_service first_service_access_date")
+    .lean();
+  if (!user) return json({ ok: false, code: "USER_NOT_FOUND", message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+
+  const runtime = await ensureActiveSubscriptionByAutoRenew(auth.userId, user, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
+
+  const snapshot = normalizeHoneySnapshot(runtime.subscription, auth.userId, new Date());
+  const activeTier = resolveHoneyLegacyTier(snapshot, new Date());
+  if (!activeTier) {
+    return json({
+      ok: false,
+      code: "SUBSCRIPTION_EXPIRED",
+      message: "활성 구독이 없습니다. 먼저 구독을 구매해 주세요.",
+    }, { status: 409 });
+  }
+
+  const planId = PROFILE_SUB_PLANS[activeTier]?.planId || "free";
+  const plan = getHoneyPlan(planId);
+  const chargedCoins = Number(plan.priceCoins || 0);
+
+  const chargedUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      points: { $gte: chargedCoins },
+      ...(idempotencyKey ? { recentConsumeRequestIds: { $ne: idempotencyKey } } : {}),
+    },
+    {
+      $inc: { points: -chargedCoins },
+      ...(idempotencyKey
+        ? {
+          $push: {
+            recentConsumeRequestIds: {
+              $each: [idempotencyKey],
+              $slice: -200,
+            },
+          },
+        }
+        : {}),
+    },
+    {
+      new: true,
+      projection: {
+        points: 1,
+        profileSubscription: 1,
+        recentConsumeRequestIds: 1,
+        has_started_paid_service: 1,
+        first_service_access_date: 1,
+      },
+    },
+  ).lean();
+
+  if (!chargedUser) {
+    if (idempotencyKey) {
+      const replayUser = await User.findById(auth.userId)
+        .select("points recentConsumeRequestIds")
+        .lean();
+      const replayIds = Array.isArray(replayUser?.recentConsumeRequestIds)
+        ? replayUser.recentConsumeRequestIds.map((v) => String(v))
+        : [];
+      if (replayIds.includes(idempotencyKey)) {
+        const replayRuntime = await ensureActiveSubscriptionByAutoRenew(
+          auth.userId,
+          replayUser,
+          { points: 1, profileSubscription: 1 },
+        );
+        const replaySnapshot = replayRuntime?.subscription || snapshot;
+        const replayTier = resolveHoneyLegacyTier(replaySnapshot, new Date()) || "free";
+        const replayPlanId = replayTier === "free" ? "free" : (PROFILE_SUB_PLANS[replayTier]?.planId || "free");
+        const replayPlan = getHoneyPlan(replayPlanId);
+        return json({
+          ok: true,
+          idempotent: true,
+          subscription: {
+            planId: replayPlanId,
+            tier: replayTier,
+            status: replayTier === "free" ? normalizeHoneyStatus(replaySnapshot?.status || "none") : "active",
+            isActive: replayTier !== "free",
+            expiresAt: replayTier === "free" ? null : toIsoOrNull(replaySnapshot?.currentPeriodEnd),
+            currentPeriodEnd: replayTier === "free" ? null : toIsoOrNull(replaySnapshot?.currentPeriodEnd),
+            profileLimit: Number(replayPlan.profileLimit || 1),
+            cancelAtPeriodEnd: Boolean(replaySnapshot?.cancelAtPeriodEnd),
+          },
+          chargedCoins,
+          balanceAfter: Number(replayRuntime?.user?.points || replayUser?.points || 0),
+        });
+      }
+    }
+    return json({
+      ok: false,
+      code: "INSUFFICIENT_COINS_FOR_SUBSCRIPTION",
+      requiredCoins: chargedCoins,
+      currentCoins: Number(runtime?.user?.points || user?.points || 0),
+      message: "코인이 부족합니다.",
+    }, { status: 402 });
+  }
+
+  const now = new Date();
+  const baseDate = toValidDate(snapshot.currentPeriodEnd);
+  const periodBase = baseDate && baseDate.getTime() > now.getTime() ? baseDate : now;
+  const nextPeriodEnd = addDaysFromDate(periodBase, Number(plan.durationDays || getDefaultHoneyDurationDays()));
+
+  const updatedSnapshot = await HoneySubscription.findByIdAndUpdate(
+    snapshot._id,
+    {
+      $set: {
+        planId,
+        status: "active",
+        startedAt: toValidDate(snapshot.startedAt) || now,
+        currentPeriodStart: toValidDate(snapshot.currentPeriodStart) || now,
+        currentPeriodEnd: nextPeriodEnd,
+        autoRenewEnabled: true,
+        cancelAtPeriodEnd: false,
+        priceCoins: chargedCoins,
+        profileLimit: Number(plan.profileLimit || 1),
+        freeServiceThresholdCoins: Number(plan.freeServiceThresholdCoins || 0),
+        lastRenewedAt: now,
+        lastRenewalFailedAt: null,
+        renewalFailReason: "",
+      },
+    },
+    { new: true },
+  ).lean();
+
+  await PointHistory.create({
+    userId: auth.userId,
+    kind: "deduct",
+    delta: -chargedCoins,
+    balanceAfter: Number(chargedUser.points || 0),
+    reason: `${plan.name} subscription extend`,
+    featureKey: "profile-subscription-extend",
+    metadata: {
+      planId,
+      periodEnd: nextPeriodEnd ? nextPeriodEnd.toISOString() : null,
+      idempotencyKey: idempotencyKey || null,
+      transactionType: "EXTEND",
+    },
+  }).catch(() => {});
+
+  await createHoneySubscriptionTransaction({
+    userId: auth.userId,
+    subscriptionId: snapshot._id,
+    planId,
+    type: "EXTEND",
+    amountCoins: chargedCoins,
+    status: "SUCCESS",
+    periodStart: updatedSnapshot?.currentPeriodStart,
+    periodEnd: updatedSnapshot?.currentPeriodEnd,
+    idempotencyKey,
+    reason: "즉시 연장",
+  }).catch(() => null);
+
+  await syncHoneySubscriptionToUserMirror(auth.userId, updatedSnapshot, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
+
+  return json({
+    ok: true,
+    message: "구독 기간이 30일 연장되었습니다.",
+    subscription: {
+      planId,
+      tier: honeyPlanIdToLegacyTier(planId),
+      status: "active",
+      isActive: true,
+      expiresAt: toIsoOrNull(updatedSnapshot?.currentPeriodEnd),
+      currentPeriodEnd: toIsoOrNull(updatedSnapshot?.currentPeriodEnd),
+      profileLimit: Number(plan.profileLimit || 1),
+      cancelAtPeriodEnd: false,
+    },
+    chargedCoins,
+    balanceAfter: Number(chargedUser.points || 0),
+  });
+}
+
+async function handleSubscriptionAutoRenew(request, auth) {
+  const body = await readJson(request);
+  const autoRenewEnabled = body?.autoRenewEnabled === true || String(body?.autoRenewEnabled || "").toLowerCase() === "true";
+
+  const user = await User.findById(auth.userId)
+    .select("points profileSubscription has_started_paid_service first_service_access_date")
+    .lean();
+  if (!user) return json({ ok: false, code: "USER_NOT_FOUND", message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+
+  const runtime = await ensureActiveSubscriptionByAutoRenew(auth.userId, user, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
+  const snapshot = normalizeHoneySnapshot(runtime.subscription, auth.userId, new Date());
+  const activeTier = resolveHoneyLegacyTier(snapshot, new Date());
+
+  if (!activeTier) {
+    return json({
+      ok: false,
+      code: "SUBSCRIPTION_REQUIRED",
+      message: "활성 구독에서만 자동 갱신을 설정할 수 있습니다.",
+    }, { status: 409 });
+  }
+
+  const planId = PROFILE_SUB_PLANS[activeTier]?.planId || "free";
+  const updatedSnapshot = await HoneySubscription.findByIdAndUpdate(
+    snapshot._id,
+    {
+      $set: {
+        autoRenewEnabled,
+        cancelAtPeriodEnd: !autoRenewEnabled,
+        status: "active",
+      },
+    },
+    { new: true },
+  ).lean();
+
+  await syncHoneySubscriptionToUserMirror(auth.userId, updatedSnapshot, {
+    points: 1,
+    profileSubscription: 1,
+    has_started_paid_service: 1,
+    first_service_access_date: 1,
+  });
+
+  if (!autoRenewEnabled) {
+    await createHoneySubscriptionTransaction({
+      userId: auth.userId,
+      subscriptionId: snapshot._id,
+      planId,
+      type: "CANCEL",
+      amountCoins: 0,
+      status: "SUCCESS",
+      periodStart: updatedSnapshot?.currentPeriodStart,
+      periodEnd: updatedSnapshot?.currentPeriodEnd,
+      reason: "자동 갱신 해제",
+    }).catch(() => null);
+  }
+
+  return json({
+    ok: true,
+    subscription: {
+      planId,
+      tier: honeyPlanIdToLegacyTier(planId),
+      status: "active",
+      isActive: true,
+      expiresAt: toIsoOrNull(updatedSnapshot?.currentPeriodEnd),
+      currentPeriodEnd: toIsoOrNull(updatedSnapshot?.currentPeriodEnd),
+      profileLimit: Number(getHoneyPlan(planId).profileLimit || 1),
+      autoRenewEnabled,
+      cancelAtPeriodEnd: !autoRenewEnabled,
+    },
+    message: autoRenewEnabled
+      ? "자동 갱신이 활성화되었습니다."
+      : "자동 갱신이 해제되었습니다. 현재 기간 만료 후 무료 플랜으로 전환됩니다.",
   });
 }
 
@@ -1686,131 +2785,28 @@ async function handleShareReward(request, auth) {
 }
 
 async function handleSubscribe(request, auth) {
-  const body = await readJson(request);
-  const reqTier = String(body?.tier || "").trim();
-  const plan = PROFILE_SUB_PLANS[reqTier];
-  if (!plan) return json({ message: "Unsupported subscription plan." }, { status: 400 });
-
-  const cost = plan.coins;
-  const now = new Date();
-  const existingUser = await User.findById(auth.userId)
-    .select("points profileSubscription")
-    .lean();
-
-  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
-
-  const existingTier = String(existingUser?.profileSubscription?.tier || "free");
-  const existingSource = String(existingUser?.profileSubscription?.source || "coin").toLowerCase();
-  const existingExpAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
-  if (existingSource === "card" && existingTier !== "free" && existingExpAt && existingExpAt > now) {
-    return json({
-      message: "카드 정기결제가 활성화되어 있어 코인 구독을 동시에 신청할 수 없습니다.",
-      code: "SUBSCRIPTION_CONFLICT",
-    }, { status: 409 });
-  }
-
-  const prevExpAt = existingUser.profileSubscription?.expiresAt;
-  const baseTime = (prevExpAt && new Date(prevExpAt) > now)
-    ? new Date(prevExpAt).getTime()
-    : now.getTime();
-  const expiresAt = new Date(baseTime + plan.durationDays * 86400000);
-  const isFirstSub = !existingUser.profileSubscription?.firstSubAt;
-
-  const updatedUser = await User.findOneAndUpdate(
-    { _id: auth.userId, points: { $gte: cost } },
-    {
-      $inc: { points: -cost },
-      $set: {
-        "profileSubscription.tier": reqTier,
-        "profileSubscription.source": "coin",
-        "profileSubscription.startedAt": now,
-        "profileSubscription.expiresAt": expiresAt,
-        "profileSubscription.cancelAtPeriodEnd": false,
-        "profileSubscription.cancelRequestedAt": null,
-        "profileSubscription.customerUid": "",
-        "profileSubscription.paymentMethod": "",
-        "profileSubscription.nextBillingAt": null,
-        "profileSubscription.lastBillingStatus": "idle",
-        "profileSubscription.lastBillingError": "",
-        ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
-      },
-    },
-    { new: true, projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    return json({ message: "Not enough coins.", requiredCoins: cost }, { status: 402 });
-  }
-
-  const balanceAfter = Number(updatedUser.points || 0);
-  await PointHistory.create({
-    userId: auth.userId,
-    kind: "deduct",
-    delta: -cost,
-    balanceAfter,
-    reason: `${plan.name} subscription`,
-    featureKey: "profile-subscription",
-    metadata: { tier: reqTier, expiresAt: expiresAt.toISOString() },
-  });
-
-  return json({
-    message: `${plan.name} subscription started for 30 days.`,
-    subscription: {
-      tier: reqTier,
-      isActive: true,
-      expiresAt: expiresAt.toISOString(),
-      profileLimit: plan.profileLimit,
-      cancelAtPeriodEnd: false,
-      cancelRequestedAt: null,
-    },
-    user: { points: balanceAfter },
-  });
+  return handleSubscriptionSubscribe(request, auth);
 }
 
 async function handleSubscriptionCancel(request, auth) {
   const body = await readJson(request);
   const resume = body?.resume === true || String(body?.resume || "").toLowerCase() === "true";
-  const now = new Date();
 
-  const existingUser = await User.findById(auth.userId)
-    .select("profileSubscription")
-    .lean();
+  const delegatedRequest = new Request(request.url, {
+    method: "POST",
+    headers: new Headers({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ autoRenewEnabled: resume }),
+  });
 
-  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
-
-  const sub = existingUser.profileSubscription || {};
-  const tier = String(sub.tier || "free");
-  const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
-  const isActive = tier !== "free" && !!expiresAt && expiresAt > now;
-
-  if (!isActive) {
-    return json({ message: "No active subscription available to cancel." }, { status: 400 });
-  }
-
-  await User.updateOne(
-    { _id: auth.userId },
-    {
-      $set: {
-        "profileSubscription.cancelAtPeriodEnd": !resume,
-        "profileSubscription.cancelRequestedAt": resume ? null : now,
-      },
-    },
-  );
-
-  const plan = PROFILE_SUB_PLANS[tier];
+  const response = await handleSubscriptionAutoRenew(delegatedRequest, auth);
+  const payload = await response.clone().json().catch(() => null);
+  if (!response.ok || !payload) return response;
 
   return json({
+    ...payload,
     message: resume
       ? "Subscription cancellation has been reverted. Auto-renewal is active again."
       : "Subscription cancellation is scheduled. Benefits stay active until expiry.",
-    subscription: {
-      tier,
-      isActive: true,
-      expiresAt: expiresAt ? expiresAt.toISOString() : null,
-      profileLimit: plan?.profileLimit ?? 1,
-      cancelAtPeriodEnd: !resume,
-      cancelRequestedAt: resume ? null : now.toISOString(),
-    },
   });
 }
 
@@ -1847,8 +2843,18 @@ export async function handleFortuneRoutes(request, env) {
 
   try {
     if (method === "GET" && path === "/check") return await handleCheck();
+    if (method === "GET" && path === "/pig-coin/prices") return await handlePigCoinPrices();
+    if (method === "GET" && (path === "/pig-coin/profile-subscription/plans" || path === "/pig-coin/subscription/plans")) {
+      return await handleSubscriptionPlans();
+    }
 
-    if (method === "GET" && (path === "/pig-coin/balance" || path === "/pig-coin/profile-subscription/status" || path === "/pig-coin/subscription/status")) {
+    if (method === "GET" && (
+      path === "/pig-coin/balance"
+      || path === "/pig-coin/profile-subscription/status"
+      || path === "/pig-coin/subscription/status"
+      || path === "/pig-coin/profile-subscription/me"
+      || path === "/pig-coin/subscription/me"
+    )) {
       const auth = await getOptionalUserFromRequest(request, env);
       if (!auth) {
         if (path === "/pig-coin/balance") return handleGuestBalance();
@@ -1873,12 +2879,18 @@ export async function handleFortuneRoutes(request, env) {
           envBindingExists: hasMongoBinding(env),
           error,
         });
+        if (path !== "/pig-coin/balance") {
+          return json(buildTokenFallbackSubscriptionStatus(auth));
+        }
         return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
       trace.dbConnected = true;
 
       try {
         if (path === "/pig-coin/balance") return await handleBalance(auth);
+        if (path === "/pig-coin/profile-subscription/me" || path === "/pig-coin/subscription/me") {
+          return await handleSubscriptionMe(request, env, auth);
+        }
         return await handleSubscriptionStatus(request, env, auth);
       } catch (error) {
         logApiCatchDiagnostic({
@@ -1891,6 +2903,9 @@ export async function handleFortuneRoutes(request, env) {
           envBindingExists: hasMongoBinding(env),
           error,
         });
+        if (path !== "/pig-coin/balance") {
+          return json(buildTokenFallbackSubscriptionStatus(auth));
+        }
         return buildStorageFailureResponse(env, error, "DB_QUERY_FAILED");
       }
     }
@@ -1919,6 +2934,18 @@ export async function handleFortuneRoutes(request, env) {
       return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
     }
 
+    if (method === "POST" && path === "/pig-coin/charge") {
+      const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      trace.authVerified = true;
+      trace.userIdExists = Boolean(String(authCtx?.auth?.userId || authCtx?.auth?.id || "").trim());
+      trace.userId = String(authCtx?.auth?.userId || authCtx?.auth?.id || "").trim();
+      trace.hasSession = true;
+      trace.envBindingExists = hasMongoBinding(env);
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handlePigCoinCharge(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
+    }
+
     const auth = await requireUserFromRequest(request, env);
     trace.authVerified = true;
     trace.userIdExists = Boolean(String(auth?.id || auth?.userId || "").trim());
@@ -1932,9 +2959,11 @@ export async function handleFortuneRoutes(request, env) {
     if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
     if (method === "POST" && path === "/consume") return await handleConsume(auth);
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
-    if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
+    if (method === "POST" && (path === "/pig-coin/profile-subscription/start-service" || path === "/pig-coin/profile-subscription/consent")) return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
-    if (method === "POST" && path === "/pig-coin/profile-subscription/subscribe") return await handleSubscribe(request, auth);
+    if (method === "POST" && path === "/pig-coin/profile-subscription/subscribe") return await handleSubscriptionSubscribe(request, auth);
+    if (method === "POST" && path === "/pig-coin/profile-subscription/extend") return await handleSubscriptionExtend(request, auth);
+    if (method === "POST" && path === "/pig-coin/profile-subscription/auto-renew") return await handleSubscriptionAutoRenew(request, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/cancel") return await handleSubscriptionCancel(request, auth);
 
     if (["GET", "POST"].includes(method)) return notFound();
@@ -1953,6 +2982,71 @@ export async function handleFortuneRoutes(request, env) {
     });
     return handleRouteError(error, { request, env, trace });
   }
+}
+
+export async function processHoneySubscriptionRenewals(env, options = {}) {
+  const limit = Number.isFinite(Number(options?.limit)) ? Math.max(1, Number(options.limit)) : 300;
+  await connectDb(env);
+
+  const now = new Date();
+  const dueSnapshots = await HoneySubscription.find({
+    status: "active",
+    planId: { $ne: "free" },
+    currentPeriodEnd: { $ne: null, $lte: now },
+  })
+    .select("userId planId status startedAt currentPeriodStart currentPeriodEnd autoRenewEnabled cancelAtPeriodEnd priceCoins profileLimit freeServiceThresholdCoins lastRenewedAt lastRenewalFailedAt renewalFailReason")
+    .sort({ currentPeriodEnd: 1 })
+    .limit(limit)
+    .lean();
+
+  let processed = 0;
+  let renewed = 0;
+  let failed = 0;
+  let expired = 0;
+
+  for (let i = 0; i < dueSnapshots.length; i += 1) {
+    const snapshot = dueSnapshots[i];
+    const userId = String(snapshot?.userId || "").trim();
+    if (!mongoose.Types.ObjectId.isValid(userId)) continue;
+
+    const user = await User.findById(userId)
+      .select("points profileSubscription has_started_paid_service first_service_access_date")
+      .lean();
+    if (!user) continue;
+
+    processed += 1;
+    const runtime = await processHoneyRenewalForSnapshot({
+      userId,
+      user,
+      snapshot: normalizeHoneySnapshot(snapshot, userId, now),
+      now,
+      userProjection: {
+        points: 1,
+        profileSubscription: 1,
+        has_started_paid_service: 1,
+        first_service_access_date: 1,
+      },
+    });
+
+    const status = normalizeHoneyStatus(runtime?.snapshot?.status || "none");
+    if (runtime?.autoRenewed) {
+      renewed += 1;
+    } else if (status === "renewal_failed") {
+      failed += 1;
+    } else if (status === "expired" || status === "none") {
+      expired += 1;
+    }
+  }
+
+  return {
+    ok: true,
+    processed,
+    renewed,
+    failed,
+    expired,
+    examined: dueSnapshots.length,
+    runAt: now.toISOString(),
+  };
 }
 
 export const __fortuneAccessTestUtils = {

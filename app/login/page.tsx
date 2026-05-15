@@ -4,8 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { clearAuthError, login as loginWithStore, refreshAuth, useAuthStore } from "../_lib/auth-store";
-import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
+import { clearAuthError, login as loginWithStore, useAuthStore } from "../_lib/auth-store";
 
 declare global {
   interface Window {
@@ -86,32 +85,18 @@ function normalizeSocialAuthError(rawReason: string | null): string {
   return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
-function fallbackDisplayNameFromLoginId(rawId: string) {
-  const normalized = rawId.trim();
-  if (!normalized) return "탐험가";
-  const candidate = normalized.split("@")[0]?.trim();
-  return candidate || "탐험가";
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuthStore();
 
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [oauthRedirecting, setOauthRedirecting] = useState<SocialProvider | null>(null);
-  const [callbackProcessing] = useState(false);
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>("");
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
-
-  useEffect(() => {
-    refreshAuth({ silent: false }).catch(() => {
-      // login page should remain usable even if bootstrap auth check fails.
-    });
-  }, []);
 
   const redirectAfterAuth = useCallback((nextPath: string, user?: LoginResult["user"]) => {
     if (user?.role === "admin" && nextPath === "/") {
@@ -147,34 +132,9 @@ export default function LoginPage() {
     redirectAfterAuth(nextPath, auth.user as LoginResult["user"]);
   }, [auth.status, auth.user, redirectAfterAuth]);
 
-  const statusNotice = useMemo(() => {
-    if (loginSubmitting) {
-      return {
-        title: "별빛 로그인 포털",
-        body: "계정 정보를 확인하고 있어요...",
-      };
-    }
-
-    if (auth.status === "checking" && !error) {
-      return {
-        title: "세션 복구 중",
-        body: "별빛 여정을 이어가는 중이에요... 잠시만 기다려 주세요.",
-      };
-    }
-
-    if (auth.status === "error" && !error) {
-      return {
-        title: "로그인에 실패했어요.",
-        body: "이메일 또는 비밀번호를 확인해 주세요.",
-      };
-    }
-
-    return null;
-  }, [auth.status, error, loginSubmitting]);
-
   const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
+    if (loginSubmitting || oauthRedirecting !== null) return;
 
     const form = event.currentTarget;
     const submittedLoginId = String(
@@ -225,7 +185,7 @@ export default function LoginPage() {
 
   const startSocialLogin = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
-    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return;
+    if (loginSubmitting || oauthRedirecting !== null) return;
 
     setError("");
     clearAuthError();
@@ -245,31 +205,11 @@ export default function LoginPage() {
     window.location.href = startUrl;
   };
 
-  const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing;
+  const isBusy = loginSubmitting || oauthRedirecting !== null;
   const formDisabled = isBusy;
-  const portalStatus = useMemo<LoginStatus>(() => {
-    if (loginSubmitting || oauthRedirecting !== null || callbackProcessing) return "loading";
-    if (auth.status === "checking" && !error) return "loading";
-    return "idle";
-  }, [auth.status, callbackProcessing, error, loginSubmitting, oauthRedirecting]);
-
-  const portalMessage = useMemo(() => {
-    if (oauthRedirecting === "google") return "Google 인증을 연결하고 있습니다.";
-    if (oauthRedirecting === "naver") return "네이버 인증을 연결하고 있습니다.";
-    if (oauthRedirecting === "kakao") return "카카오 인증을 연결하고 있습니다.";
-    if (loginSubmitting) return "계정 정보를 확인하고 안전한 세션을 열고 있습니다.";
-    if (auth.status === "checking") return "기존 로그인 세션을 복구하고 있습니다.";
-    return "";
-  }, [auth.status, loginSubmitting, oauthRedirecting]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#0a0e27_0%,#1a0a2e_25%,#16213e_50%,#0f3460_75%,#0a1428_100%)] px-4 py-10 text-slate-100">
-      <StarlightLoginPortal
-        status={portalStatus}
-        message={portalMessage}
-        displayName={fallbackDisplayNameFromLoginId(loginId)}
-      />
-
       {/* 우주 배경 - 행성 배치 */}
       <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-purple-600/20 via-purple-800/10 to-transparent blur-3xl opacity-60" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-600/10 to-transparent blur-3xl opacity-50" />
@@ -308,13 +248,6 @@ export default function LoginPage() {
 
             {error ? (
               <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200 shadow-lg shadow-rose-500/10">{error}</p>
-            ) : null}
-
-            {statusNotice ? (
-              <div className="mb-4 rounded-lg border border-violet-300/35 bg-violet-500/10 px-3 py-2 text-sm text-violet-100 shadow-lg shadow-violet-500/10">
-                <p className="font-semibold">{statusNotice.title}</p>
-                <p className="mt-0.5 text-xs text-violet-100/85">{statusNotice.body}</p>
-              </div>
             ) : null}
 
             <form className="space-y-3" onSubmit={handleLocalLogin}>

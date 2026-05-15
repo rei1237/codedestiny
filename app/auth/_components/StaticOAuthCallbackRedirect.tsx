@@ -43,6 +43,15 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       }
     }
 
+    function isWorkersDevBase(rawValue) {
+      try {
+        const host = String(new URL(String(rawValue || "")).hostname || "").toLowerCase();
+        return host === "workers.dev" || host.endsWith(".workers.dev");
+      } catch {
+        return false;
+      }
+    }
+
     function resolveApiBase() {
       let runtimeBase = "";
       try {
@@ -50,13 +59,21 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       } catch {
         runtimeBase = "";
       }
-
-      if (runtimeBase) return runtimeBase;
-
       const configured = normalizeBaseUrl(configuredApiBase);
-      if (configured) return configured;
+      const sameOriginBase = normalizeBaseUrl(window.location.origin);
+      const currentIsWorkersDev = isWorkersDevBase(sameOriginBase);
 
-      return window.location.origin;
+      if (isDev) {
+        return runtimeBase || configured || sameOriginBase;
+      }
+
+      if (!currentIsWorkersDev) {
+        if (runtimeBase && !isWorkersDevBase(runtimeBase)) return runtimeBase;
+        if (configured && !isWorkersDevBase(configured)) return configured;
+        return sameOriginBase;
+      }
+
+      return runtimeBase || configured || sameOriginBase;
     }
 
     function sanitizeNextPath(rawNext) {
@@ -188,12 +205,6 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
     }
 
     function persistAuthFromCallback(payload) {
-      if (payload && payload.accessToken) {
-        try {
-          localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-        } catch {}
-      }
-
       if (payload && payload.user) {
         const safeUser = sanitizeAndPersistAuthUser(payload.user);
         const role = String((safeUser && safeUser.role) || payload.user.role || "user");

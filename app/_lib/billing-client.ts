@@ -41,6 +41,33 @@ type BillingPurchaseData = {
   };
 };
 
+type BillingChargeData = {
+  pricing: BillingFeaturePricing;
+  requestId?: string;
+  transactionId?: string;
+  featureKey?: string;
+  chargedCoins?: number;
+  requiredCoins?: number;
+  balanceAfter?: number;
+  idempotencyKey?: string;
+  freeBySubscription?: boolean;
+  user?: Record<string, unknown> | null;
+  raw?: Record<string, unknown>;
+};
+
+type BillingRefundData = {
+  alreadyRefunded?: boolean;
+  requestId?: string;
+  refundTransactionId?: string;
+  sourceTransactionId?: string;
+  featureKey?: string;
+  refundedCoins?: number;
+  balanceAfter?: number;
+  idempotencyKey?: string;
+  user?: Record<string, unknown> | null;
+  raw?: Record<string, unknown>;
+};
+
 const BILLING_TIMEOUT_MS = 9000;
 
 export type BillingAccessDecision = {
@@ -362,6 +389,73 @@ export async function fetchBillingPrices(input: {
   const path = query ? `/api/billing/prices?${query}` : "/api/billing/prices";
   const response = await billingFetch(path, { method: "GET" });
   return parseBillingResponse(response);
+}
+
+export async function fetchPigCoinPrices(): Promise<BillingResult<{
+  prices: Array<Record<string, unknown>>;
+  updatedAt?: string;
+}>> {
+  const response = await billingFetch("/api/fortune/pig-coin/prices", { method: "GET" });
+  const parsed = await parseBillingResponse<{
+    prices: Array<Record<string, unknown>>;
+    updatedAt?: string;
+  }>(response);
+
+  if (parsed.ok && parsed.data) {
+    if (!Array.isArray(parsed.data.prices)) parsed.data.prices = [];
+  }
+
+  return parsed;
+}
+
+export async function runBillingCharge(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  productId?: string;
+  requestId?: string;
+  forceDeduct?: boolean;
+  payloadHash?: string;
+}): Promise<BillingResult<BillingChargeData>> {
+  const authCheck = await ensureServerAuthenticated();
+  if (authCheck) return authCheck as BillingResult<BillingChargeData>;
+
+  const chargeInput = withBillingRequestId(input, "billing-charge");
+  const response = await billingFetch("/api/billing/charge", {
+    method: "POST",
+    headers: buildMutationHeaders(chargeInput.requestId),
+    body: JSON.stringify(chargeInput),
+  });
+  const parsed = await parseBillingResponse<BillingChargeData>(response);
+  if (parsed.ok) {
+    void refreshBillingStateAfterPurchase();
+  }
+  return parsed;
+}
+
+export async function runBillingRefund(input: {
+  transactionId?: string;
+  sourceTransactionId?: string;
+  featureKey?: string;
+  reason?: string;
+  cost?: number;
+  requestId?: string;
+}): Promise<BillingResult<BillingRefundData>> {
+  const authCheck = await ensureServerAuthenticated();
+  if (authCheck) return authCheck as BillingResult<BillingRefundData>;
+
+  const refundInput = withBillingRequestId(input, "billing-refund");
+  const response = await billingFetch("/api/billing/refund", {
+    method: "POST",
+    headers: buildMutationHeaders(refundInput.requestId),
+    body: JSON.stringify(refundInput),
+  });
+  const parsed = await parseBillingResponse<BillingRefundData>(response);
+  if (parsed.ok) {
+    void refreshBillingStateAfterPurchase();
+  }
+  return parsed;
 }
 
 export async function runBillingCoinGate(input: {

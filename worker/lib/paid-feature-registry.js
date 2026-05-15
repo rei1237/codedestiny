@@ -210,6 +210,37 @@ export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
 
 export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   "premium-sukyo": "premium-sukuyo",
+  "saju.premium.lifebook": "premium_pdf_saju_life_book",
+  "saju.premium.loveSecret": "premium_pdf_saju_love_secret",
+  "saju.premium.loveSecret.compatibility": "premium_pdf_saju_love_secret_compat",
+  "ziwei.premiumPdf": "premium_pdf_ziwei",
+  "sukyo.premiumPdf": "premium_pdf_sukyo",
+  "vedic.premiumPdf": "premium_pdf_vedic",
+  "western.premiumPdf": "premium_pdf_western_astrology",
+  "tarot.relationship": "tarot-love-relationship",
+  "tarot.reunion": "tarot-reunion-reading",
+  "tarot.mindScan": "tarot-mindscan",
+  "tarot.yearFortune": "tarot-year-fortune",
+  "oracle.egypt": "egyptOracle",
+  "oracle.geomancy": "geomancy",
+  "oracle.ifa": "ifa-oracle",
+  "sibyl.premium": "premium-sibyl-dominator",
+  "animalDestiny.unlock": "animal-destiny-unlock",
+  "stonehengeRune.spread1": "stonehenge-runes-single",
+  "stonehengeRune.spread3": "stonehenge-runes-triad",
+  "stonehengeRune.spread5": "stonehenge-runes-deep",
+  "stonehengeRune.spread12": "stonehenge-runes-yearly",
+  "palm.general": "palm-reading-general",
+  "palm.love": "palm-reading-love",
+  "palm.wealth": "palm-reading-wealth",
+  "palm.career": "palm-reading-career",
+  "palm.personality": "palm-reading-personality",
+  "palm.relationship": "palm-reading-relationship",
+  "destinyBias.analyze": "destiny-bias-analyze",
+  "destinyBias.themePremium": "destiny-bias-theme-premium",
+  "destinyBias.collectionSave": "destiny-bias-collection-save",
+  "destinyBias.deepProfile": "destiny-bias-deep-profile",
+  "veda.compatibilityAddon": "premium-veda-compatibility-addon",
   "openjuyuk": "openJuyukModal",
   "openkemet": "openKemetModal",
   "opengeomancy": "openGeomancyOracle",
@@ -403,6 +434,54 @@ export function resolveFeatureReasonCost(featureKey, reason) {
   const matched = Number(table[reasonText]);
   if (!Number.isFinite(matched) || matched <= 0) return null;
   return matched;
+}
+
+export function listPublicCoinPriceTable() {
+  const table = Object.create(null);
+
+  for (const [featureKey, spec] of Object.entries(FEATURE_KEY_PRICE_TABLE)) {
+    const cost = Number(spec?.cost);
+    if (!Number.isFinite(cost) || cost <= 0) continue;
+    table[featureKey] = {
+      featureKey,
+      canonicalFeatureKey: featureKey,
+      cost,
+      reason: String(spec?.reason || "Paid feature unlock"),
+      source: "feature",
+    };
+  }
+
+  for (const [featureKey, spec] of Object.entries(UNLOCK_PRODUCT_BY_FEATURE_KEY)) {
+    const cost = Number(spec?.cost);
+    if (!Number.isFinite(cost) || cost <= 0) continue;
+    if (table[featureKey]) continue;
+    table[featureKey] = {
+      featureKey,
+      canonicalFeatureKey: featureKey,
+      cost,
+      reason: String(spec?.reason || "Paid feature unlock"),
+      source: "unlock",
+    };
+  }
+
+  for (const [aliasKey, targetKeyRaw] of Object.entries(PAID_FEATURE_KEY_ALIASES)) {
+    const alias = String(aliasKey || "").trim();
+    if (!alias) continue;
+
+    const canonicalFeatureKey = normalizePaidFeatureKey(targetKeyRaw);
+    const base = table[canonicalFeatureKey] || null;
+    if (!base) continue;
+
+    table[alias] = {
+      featureKey: alias,
+      canonicalFeatureKey,
+      cost: Number(base.cost),
+      reason: String(base.reason || "Paid feature unlock"),
+      source: base.source,
+    };
+  }
+
+  return Object.values(table).sort((a, b) => String(a.featureKey).localeCompare(String(b.featureKey)));
 }
 
 export function listLegacyUnlockBaselineMismatches() {

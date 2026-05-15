@@ -38,6 +38,17 @@ type LoginCredentials = {
   apiBase?: string;
 };
 
+type RegisterCredentials = {
+  name: string;
+  email: string;
+  password: string;
+  birthDate: string;
+  birthTime: string;
+  gender: "M" | "F" | "OTHER";
+  nextPath?: string;
+  apiBase?: string;
+};
+
 type LoginApiPayload = {
   ok?: boolean;
   authenticated?: boolean;
@@ -510,46 +521,39 @@ export async function login(credentials: LoginCredentials) {
     apiBase,
     retryOn401: false,
     timeoutMs: 9000,
-    transientRetries: 1,
+    transientRetries: 0,
   });
 
   try {
-    let response: Response | null = null;
-    try {
-      response = await requestLogin();
-    } catch {
-      await sleep(180);
-      response = await requestLogin();
-    }
-
-    if (response.status === 503) {
-      await sleep(180);
-      response = await requestLogin();
-    }
-
-    if (!response) {
-      throw new Error("로그인 요청에 실패했습니다.");
-    }
+    const response = await requestLogin();
 
     const payload = await parseJsonResponse<LoginApiPayload>(response);
     if (!response.ok) {
       throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
     }
 
-    if (payload.accessToken) {
-      try {
-        localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-      } catch {
-        // ignore storage failures
+    debugAuth("[auth] login api success");
+
+    let meUser = resolveSafeUser(payload.user);
+    if (meUser) {
+      setState({
+        user: meUser,
+        wallet: normalizeWallet(payload.wallet || null, meUser),
+        status: "authenticated",
+        isAuthenticated: true,
+        error: null,
+      });
+    } else {
+      meUser = await refreshAuth({ force: true, silent: true });
+      if (!meUser) {
+        throw new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다.");
       }
     }
 
-    debugAuth("[auth] login api success");
-
-    const meUser = await resolveUserAfterLogin();
     debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
     publishAuthSync("login");
     void syncPostLoginData();
+    void refreshAuth({ force: true, silent: true }).catch(() => {});
 
     debugAuth("[auth] auth store updated");
     return {
@@ -576,10 +580,103 @@ export async function login(credentials: LoginCredentials) {
   }
 }
 
+export async function register(credentials: RegisterCredentials) {
+  const apiBase = String(credentials.apiBase || getApiBaseUrl() || "").trim();
+  const name = String(credentials.name || "").trim();
+  const email = String(credentials.email || "").trim();
+  const password = String(credentials.password || "");
+  const birthDate = String(credentials.birthDate || "").trim();
+  const birthTime = String(credentials.birthTime || "").trim();
+  const gender = credentials.gender;
+  const nextPath = String(credentials.nextPath || "/");
+
+  if (!name || name.length < 2 || !email || password.length < 8 || !birthDate || !birthTime || !gender) {
+    throw new Error("이름, 아이디(이메일), 비밀번호, 생년월일/시간을 다시 확인해 주세요.");
+  }
+
+  setState({
+    isLoading: true,
+    status: state.isAuthenticated ? "authenticated" : "checking",
+    error: null,
+  });
+
+  clearStaleGuestCache();
+  debugAuth("[auth] register started");
+
+  const requestRegister = () => authFetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      email,
+      password,
+      birthDate,
+      birthTime,
+      gender,
+      nextPath,
+    }),
+  }, {
+    apiBase,
+    retryOn401: false,
+    timeoutMs: 9000,
+    transientRetries: 1,
+  });
+
+  try {
+    let response: Response | null = null;
+    try {
+      response = await requestRegister();
+    } catch {
+      await sleep(180);
+      response = await requestRegister();
+    }
+
+    if (response.status === 503) {
+      await sleep(180);
+      response = await requestRegister();
+    }
+
+    if (!response) {
+      throw new Error("회원가입 요청에 실패했습니다.");
+    }
+
+    const payload = await parseJsonResponse<LoginApiPayload>(response);
+    if (!response.ok) {
+      throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
+    }
+
+    const meUser = await resolveUserAfterLogin();
+    publishAuthSync("login");
+    void syncPostLoginData();
+
+    setState({ error: null });
+    return {
+      user: state.user || meUser,
+      nextPath: String(payload.nextPath || nextPath || "/"),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "회원가입 처리 중 오류가 발생했습니다.";
+    setState({
+      user: null,
+      wallet: null,
+      isAuthenticated: false,
+      status: "error",
+      error: message,
+    });
+    throw error;
+  } finally {
+    setState({
+      authReady: true,
+      isLoading: false,
+      status: state.isAuthenticated ? "authenticated" : (state.error ? "error" : "guest"),
+    });
+  }
+}
+
 export async function logout(apiBase?: string) {
   clearAuthStateHard();
   publishAuthSync("logout");
-  void logoutWithServer(apiBase);
+  await logoutWithServer(apiBase);
 }
 
 export function clearAuthError() {
