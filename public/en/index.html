@@ -6672,6 +6672,107 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (_e) {}
   }
 
+  var _CD_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
+  var _cdApiInFlightGetRequests = Object.create(null);
+  var _cdApiCooldownUntil = Object.create(null);
+
+  function isAuthSensitiveApiPath(pathname) {
+    var path = String(pathname || '');
+    return path.indexOf('/api/auth/') === 0
+      || path.indexOf('/api/user/') === 0
+      || path.indexOf('/api/fortune/pig-coin/') === 0
+      || path.indexOf('/api/billing/') === 0
+      || path.indexOf('/api/payments/') === 0
+      || path.indexOf('/api/subscription/') === 0;
+  }
+
+  function shouldAllowWorkerFallbackForPath(pathname) {
+    var path = String(pathname || '');
+    if (!path || path.indexOf('/api/') !== 0) return false;
+    if (!isAuthSensitiveApiPath(path)) return true;
+    if (isCurrentWorkersDevHost()) return true;
+
+    if (path === '/api/auth/refresh' || path === '/api/auth/logout' || path === '/api/auth/login' || path === '/api/auth/register') {
+      return false;
+    }
+
+    if (path.indexOf('/api/auth/oauth/') === 0) return false;
+    if (path === '/api/auth/me') return true;
+    return path.indexOf('/api/user/destiny-profiles') === 0
+      || path.indexOf('/api/fortune/pig-coin/') === 0
+      || path.indexOf('/api/billing/') === 0
+      || path.indexOf('/api/payments/') === 0
+      || path.indexOf('/api/subscription/') === 0;
+  }
+
+  function shouldDedupeApiGet(pathname, method) {
+    if (String(method || '').toUpperCase() !== 'GET') return false;
+    var path = String(pathname || '');
+    return path.indexOf('/api/billing/balance') === 0
+      || path.indexOf('/api/subscription/me') === 0
+      || path.indexOf('/api/fortune/pig-coin/profile-subscription/status') === 0
+      || path.indexOf('/api/user/destiny-profiles') === 0
+      || path.indexOf('/api/auth/me') === 0;
+  }
+
+  function getApiCooldownKey(pathname) {
+    return String(pathname || '').trim().toLowerCase();
+  }
+
+  function shouldApplyApiCooldown(pathname, method) {
+    if (String(method || '').toUpperCase() !== 'GET') return false;
+    var path = String(pathname || '');
+    return path.indexOf('/api/billing/') === 0
+      || path.indexOf('/api/subscription/') === 0
+      || path.indexOf('/api/user/destiny-profiles') === 0
+      || path.indexOf('/api/fortune/pig-coin/profile-subscription/status') === 0
+      || path.indexOf('/api/auth/me') === 0;
+  }
+
+  function readApiCooldown(pathname) {
+    var key = getApiCooldownKey(pathname);
+    if (!key) return 0;
+    return Number(_cdApiCooldownUntil[key] || 0);
+  }
+
+  function markApiCooldown(pathname, status, looksHtml) {
+    var key = getApiCooldownKey(pathname);
+    if (!key) return;
+    var ms = 0;
+    if (looksHtml) ms = 6000;
+    else if (Number(status) === 0) ms = 3500;
+    else if (Number(status) >= 503) ms = 5000;
+    else if (Number(status) >= 500) ms = 2600;
+    if (ms <= 0) return;
+    _cdApiCooldownUntil[key] = Date.now() + ms;
+  }
+
+  function clearApiCooldown(pathname) {
+    var key = getApiCooldownKey(pathname);
+    if (!key) return;
+    delete _cdApiCooldownUntil[key];
+  }
+
+  function fetchWithTimeout(url, init, timeoutMs) {
+    var ms = Number(timeoutMs);
+    if (!Number.isFinite(ms) || ms <= 0) ms = 9000;
+    ms = Math.max(2500, Math.min(18000, Math.floor(ms)));
+
+    if (typeof AbortController === 'undefined') {
+      return fetch(url, init);
+    }
+
+    var controller = new AbortController();
+    var requestInit = Object.assign({}, init || {}, { signal: controller.signal });
+    var timeoutId = setTimeout(function() {
+      try { controller.abort(); } catch (_abortError) {}
+    }, ms);
+
+    return fetch(url, requestInit).finally(function() {
+      clearTimeout(timeoutId);
+    });
+  }
+
   function getApiBaseCandidatesForPath(path) {
     var normalizedPath = String(path || '');
     if (normalizedPath.charAt(0) !== '/') normalizedPath = '/' + normalizedPath;
@@ -6690,6 +6791,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
     if (isApiPath && !isLocalApiHost(location.hostname)) {
       push('');
+      try { push(window.location.origin || ''); } catch (_e) {}
+      push(window.__CD_API_BASE_URL || '');
+      push(window.CODE_DESTINY_API_BASE_URL || '');
+      push(window.__CF_PAGES_API_BASE_URL || '');
+      try { push(localStorage.getItem('fortune_api_base_url') || ''); } catch (_e) {}
+      if (shouldAllowWorkerFallbackForPath(normalizedPath)) {
+        push(_CD_DEFAULT_API_WORKER_ORIGIN);
+      }
       return out.length ? out : [''];
     }
 
@@ -6785,25 +6894,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return false;
     }
 
-    _cdCoinApiAuthState.pending = fetch(getApiBaseUrl() + '/api/auth/me', {
+    _cdCoinApiAuthState.pending = fetchJsonWithAuth('/api/auth/me', {
       method: 'GET',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: (function() {
-        var headers = {};
-        var token = getAuthToken();
-        if (token) headers.Authorization = 'Bearer ' + token;
-        return headers;
-      })(),
-    }).then(function(response) {
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
+      cache: 'no-store'
+    }).then(function(result) {
+      if (!result || !result.ok) {
+        var statusCode = Number((result && result.status) || 0);
+        if (statusCode === 401 || statusCode === 403) {
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
           try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
         }
         return null;
       }
-      return response.json().catch(function() { return null; });
+      return result.payload && typeof result.payload === 'object' ? result.payload : null;
     }).then(function(payload) {
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
@@ -7396,11 +7499,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     async function refreshAuthSessionForCoinApi(baseUrl) {
       var refreshUrl = joinApiPathWithBase(baseUrl, '/api/auth/refresh');
       try {
-        var refreshRes = await fetch(refreshUrl, {
+        var refreshRes = await fetchWithTimeout(refreshUrl, {
           method: 'POST',
           credentials: 'include',
           cache: 'no-store'
-        });
+        }, 7000);
         if (!refreshRes.ok) return false;
         var refreshData = await refreshRes.json().catch(function() { return null; });
         if (!refreshData || refreshData.ok !== true) return false;
@@ -7431,17 +7534,36 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!(code === 0 || code >= 500)) return false;
       var normalizedPath = String(pathname || '');
       return normalizedPath.indexOf('/api/billing/') === 0
-        || normalizedPath.indexOf('/api/fortune/pig-coin/') === 0;
+        || normalizedPath.indexOf('/api/fortune/pig-coin/') === 0
+        || normalizedPath.indexOf('/api/subscription/') === 0
+        || normalizedPath.indexOf('/api/user/destiny-profiles') === 0
+        || normalizedPath.indexOf('/api/auth/me') === 0;
+    }
+
+    function resolveTimeoutMs(pathname, method) {
+      var normalizedMethod = String(method || 'GET').toUpperCase();
+      var normalizedPath = String(pathname || '');
+      if (normalizedMethod !== 'GET' && normalizedPath.indexOf('/api/fortune/pig-coin/consume') === 0) return 14000;
+      if (normalizedMethod !== 'GET' && normalizedPath.indexOf('/api/billing/coin-gate') === 0) return 14000;
+      if (normalizedPath.indexOf('/api/user/destiny-profiles') === 0) return 11000;
+      return 9000;
+    }
+
+    function shouldTryNextCandidate(status, looksHtml) {
+      var code = Number(status || 0);
+      return !!looksHtml || code === 0 || code === 404 || code >= 500;
     }
 
     async function retryRequestOnce(requestUrl, requestInit) {
       await new Promise(function(resolve) { setTimeout(resolve, 180); });
       var retryInit = Object.assign({}, requestInit);
       retryInit.headers = buildHeaders(requestInit.headers);
-      return fetch(requestUrl, retryInit);
+      return fetchWithTimeout(requestUrl, retryInit, requestInit.__cdTimeoutMs || 9000);
     }
 
     var requestInit = Object.assign({}, init || {});
+    var normalizedMethod = String(requestInit.method || 'GET').toUpperCase();
+    requestInit.method = normalizedMethod;
     var headers = buildHeaders(requestInit.headers);
     if (requestInit.body && !headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
@@ -7449,96 +7571,134 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     requestInit.headers = headers;
     requestInit.credentials = 'include';
     if (!requestInit.cache) requestInit.cache = 'no-store';
+    requestInit.__cdTimeoutMs = resolveTimeoutMs(path, normalizedMethod);
 
-    var candidates = getApiBaseCandidatesForPath(path);
-    var lastResult = null;
+    var cooldownEnabled = shouldApplyApiCooldown(path, normalizedMethod);
+    if (cooldownEnabled) {
+      var cooldownUntil = readApiCooldown(path);
+      if (cooldownUntil > Date.now()) {
+        return {
+          ok: false,
+          status: 503,
+          payload: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.'
+          }
+        };
+      }
+    }
 
-    for (var i = 0; i < candidates.length; i += 1) {
-      var candidateBase = candidates[i];
-      var requestUrl = joinApiPathWithBase(candidateBase, path);
-      var response;
+    var dedupeKey = shouldDedupeApiGet(path, normalizedMethod) ? (normalizedMethod + ':' + String(path || '')) : '';
+    if (dedupeKey && _cdApiInFlightGetRequests[dedupeKey]) {
+      return _cdApiInFlightGetRequests[dedupeKey];
+    }
 
-      try {
-        response = await fetch(requestUrl, requestInit);
-      } catch (_networkError) {
-        if (shouldSingleRetry(path, 0)) {
+    var runRequest = async function() {
+      var candidates = getApiBaseCandidatesForPath(path);
+      var lastResult = null;
+
+      for (var i = 0; i < candidates.length; i += 1) {
+        var candidateBase = candidates[i];
+        var requestUrl = joinApiPathWithBase(candidateBase, path);
+        var response;
+
+        try {
+          response = await fetchWithTimeout(requestUrl, requestInit, requestInit.__cdTimeoutMs);
+        } catch (_networkError) {
+          if (shouldSingleRetry(path, 0)) {
+            try {
+              response = await retryRequestOnce(requestUrl, requestInit);
+            } catch (_networkRetryError) {
+              lastResult = {
+                ok: false,
+                status: 0,
+                payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+              };
+              if (cooldownEnabled) markApiCooldown(path, 0, false);
+              continue;
+            }
+          } else {
+            lastResult = {
+              ok: false,
+              status: 0,
+              payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+            };
+            if (cooldownEnabled) markApiCooldown(path, 0, false);
+            continue;
+          }
+        }
+
+        if (response.status === 401) {
+          var refreshed = await refreshAuthSessionForCoinApi(candidateBase);
+          if (refreshed) {
+            var retryInit = Object.assign({}, requestInit);
+            retryInit.headers = buildHeaders(requestInit.headers);
+            try {
+              response = await fetchWithTimeout(requestUrl, retryInit, retryInit.__cdTimeoutMs || requestInit.__cdTimeoutMs);
+            } catch (_retryNetworkError) {
+              lastResult = {
+                ok: false,
+                status: 0,
+                payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
+              };
+              if (cooldownEnabled) markApiCooldown(path, 0, false);
+              continue;
+            }
+          }
+        }
+
+        if (!response.ok && shouldSingleRetry(path, response.status)) {
           try {
             response = await retryRequestOnce(requestUrl, requestInit);
-          } catch (_networkRetryError) {
-            lastResult = {
-              ok: false,
-              status: 0,
-              payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
-            };
-            continue;
-          }
-        } else {
-          lastResult = {
-            ok: false,
-            status: 0,
-            payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
-          };
-          continue;
+          } catch (_retryOnceError) {}
         }
-      }
 
-      if (response.status === 401) {
-        var refreshed = await refreshAuthSessionForCoinApi(candidateBase);
-        if (refreshed) {
-          var retryInit = Object.assign({}, requestInit);
-          retryInit.headers = buildHeaders(requestInit.headers);
-          try {
-            response = await fetch(requestUrl, retryInit);
-          } catch (_retryNetworkError) {
-            lastResult = {
-              ok: false,
-              status: 0,
-              payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
-            };
-            continue;
-          }
+        var parsed = await readJsonOrTextPayload(response);
+        var payload = (parsed.payload && typeof parsed.payload === 'object') ? parsed.payload : {};
+        var contentType = String(response.headers.get('Content-Type') || '').toLowerCase();
+        var looksHtml = !parsed.parsed && (contentType.indexOf('text/html') >= 0 || /^\s*</.test(parsed.text || ''));
+
+        if (looksHtml) {
+          payload.code = String(payload.code || 'INVALID_RESPONSE_FORMAT');
+          if (!payload.message) payload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
         }
-      }
 
-      if (!response.ok && shouldSingleRetry(path, response.status)) {
-        try {
-          response = await retryRequestOnce(requestUrl, requestInit);
-        } catch (_retryOnceError) {}
-      }
+        var result = {
+          ok: response.ok && !looksHtml,
+          status: response.status,
+          payload: payload
+        };
 
-      var parsed = await readJsonOrTextPayload(response);
-      var payload = (parsed.payload && typeof parsed.payload === 'object') ? parsed.payload : {};
-      var contentType = String(response.headers.get('Content-Type') || '').toLowerCase();
-      var looksHtml = !parsed.parsed && (contentType.indexOf('text/html') >= 0 || /^\s*</.test(parsed.text || ''));
+        lastResult = result;
 
-      if (looksHtml && !payload.message) {
-        payload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
-      }
+        if (result.ok) {
+          clearApiCooldown(path);
+          rememberSuccessfulApiBase(candidateBase);
+          return result;
+        }
 
-      var result = {
-        ok: response.ok && !looksHtml,
-        status: response.status,
-        payload: payload
-      };
-
-      lastResult = result;
-
-      if (result.ok) {
-        rememberSuccessfulApiBase(candidateBase);
+        if (cooldownEnabled) markApiCooldown(path, response.status, looksHtml);
+        var hasNext = i < candidates.length - 1;
+        if (hasNext && shouldTryNextCandidate(response.status, looksHtml)) continue;
         return result;
       }
 
-      var hasNext = i < candidates.length - 1;
-      var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
-      if (hasNext && retryable) continue;
-      return result;
+      return lastResult || {
+        ok: false,
+        status: 503,
+        payload: { message: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' }
+      };
+    };
+
+    var requestPromise = runRequest();
+    if (dedupeKey) {
+      _cdApiInFlightGetRequests[dedupeKey] = requestPromise.finally(function() {
+        delete _cdApiInFlightGetRequests[dedupeKey];
+      });
+      return _cdApiInFlightGetRequests[dedupeKey];
     }
 
-    return lastResult || {
-      ok: false,
-      status: 503,
-      payload: { message: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' }
-    };
+    return requestPromise;
   }
 
   async function syncBalanceFromServer() {

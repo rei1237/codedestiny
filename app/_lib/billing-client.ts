@@ -215,7 +215,18 @@ async function ensureServerAuthenticated(): Promise<BillingResult<never> | null>
     cache: "no-store",
   });
 
-  const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
+  const payload = await response.clone().json().catch(async () => {
+    const text = await response.clone().text().catch(() => "");
+    const looksHtml = /^\s*</.test(String(text || ""));
+    if (looksHtml) {
+      return {
+        ok: false,
+        code: "INVALID_RESPONSE_FORMAT",
+        message: "인증 서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.",
+      } as Record<string, unknown>;
+    }
+    return {} as Record<string, unknown>;
+  }) as Record<string, unknown>;
   const userId = resolveUserIdFromPayload(payload);
   const authenticated = resolveAuthenticatedFromPayload(payload);
 
@@ -224,6 +235,10 @@ async function ensureServerAuthenticated(): Promise<BillingResult<never> | null>
   }
 
   if (!response.ok) {
+    if (response.status >= 500 || String(payload?.code || "") === "INVALID_RESPONSE_FORMAT") {
+      const temporaryMessage = toText(payload?.message) || "인증 서버가 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.";
+      return buildBillingResultError<never>(503, "SERVICE_UNAVAILABLE", temporaryMessage, payload);
+    }
     const message = toText(payload?.message) || "인증 상태 확인에 실패했습니다.";
     return buildBillingResultError<never>(response.status, "AUTH_REQUIRED", message, payload);
   }

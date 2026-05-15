@@ -238,6 +238,23 @@
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
   var _DP_FETCH_TIMEOUT_MS = 9000;
   var _dpRefreshSessionInFlight = null;
+  var _dpApiInFlightGet = Object.create(null);
+  var _dpApiCooldownUntil = Object.create(null);
+
+  function _dpIsWorkerFallbackSafePath(pathname) {
+    var path = String(pathname || '');
+    if (!path || path.indexOf('/api/') !== 0) return false;
+    if (path === '/api/auth/refresh' || path === '/api/auth/logout' || path === '/api/auth/login' || path === '/api/auth/register') {
+      return false;
+    }
+    if (path.indexOf('/api/auth/oauth/') === 0) return false;
+    if (path === '/api/auth/me') return true;
+    return path.indexOf('/api/user/destiny-profiles') === 0
+      || path.indexOf('/api/fortune/pig-coin/') === 0
+      || path.indexOf('/api/billing/') === 0
+      || path.indexOf('/api/payments/') === 0
+      || path.indexOf('/api/subscription/') === 0;
+  }
 
   function _dpIsWorkersDevHost(hostname) {
     var host = String(hostname || '').trim().toLowerCase();
@@ -298,7 +315,7 @@
     try {
       if (_dpIsWorkersDevHost(window.location.hostname || '')) return true;
     } catch (_) {}
-    return false;
+    return _dpIsWorkerFallbackSafePath(pathname);
   }
 
   function _dpIsSameOriginBase(base) {
@@ -477,11 +494,89 @@
     return _dpRefreshSessionInFlight;
   }
 
+  function _dpShouldDedupeGet(pathname, method) {
+    if (String(method || '').toUpperCase() !== 'GET') return false;
+    var path = String(pathname || '');
+    return path.indexOf('/api/user/destiny-profiles') === 0
+      || path.indexOf('/api/subscription/me') === 0
+      || path.indexOf('/api/fortune/pig-coin/profile-subscription/status') === 0
+      || path.indexOf('/api/billing/balance') === 0
+      || path.indexOf('/api/auth/me') === 0;
+  }
+
+  function _dpShouldApplyCooldown(pathname, method) {
+    return _dpShouldDedupeGet(pathname, method);
+  }
+
+  function _dpCooldownKey(pathname) {
+    return String(pathname || '').trim().toLowerCase();
+  }
+
+  function _dpReadCooldown(pathname) {
+    var key = _dpCooldownKey(pathname);
+    if (!key) return 0;
+    return Number(_dpApiCooldownUntil[key] || 0);
+  }
+
+  function _dpMarkCooldown(pathname, status, looksHtml) {
+    var key = _dpCooldownKey(pathname);
+    if (!key) return;
+    var code = Number(status || 0);
+    var ms = 0;
+    if (looksHtml) ms = 6000;
+    else if (code === 0) ms = 3500;
+    else if (code >= 503) ms = 5000;
+    else if (code >= 500) ms = 2600;
+    if (ms <= 0) return;
+    _dpApiCooldownUntil[key] = Date.now() + ms;
+  }
+
+  function _dpClearCooldown(pathname) {
+    var key = _dpCooldownKey(pathname);
+    if (!key) return;
+    delete _dpApiCooldownUntil[key];
+  }
+
   function _dpFetchJsonWithFallback(pathname, init, options) {
     var opts = options || {};
-    var candidates = _dpBuildApiCandidates(pathname, opts);
+    var method = String(((init && init.method) || 'GET')).toUpperCase();
     var requestInit = Object.assign({}, init || {});
+    requestInit.method = method;
+    requestInit.credentials = 'include';
+    if (!requestInit.cache) requestInit.cache = 'no-store';
+
+    var cooldownEnabled = _dpShouldApplyCooldown(pathname, method);
+    if (cooldownEnabled) {
+      var cooldownUntil = _dpReadCooldown(pathname);
+      if (cooldownUntil > Date.now()) {
+        return Promise.resolve({
+          ok: false,
+          status: 503,
+          data: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.'
+          },
+          response: null,
+          base: '',
+          url: _dpJoinApiUrl('', pathname),
+          looksHtml: false,
+        });
+      }
+    }
+
+    var dedupeKey = _dpShouldDedupeGet(pathname, method) ? (method + ':' + String(pathname || '')) : '';
+    if (dedupeKey && _dpApiInFlightGet[dedupeKey]) return _dpApiInFlightGet[dedupeKey];
+
+    var candidates = _dpBuildApiCandidates(pathname, opts);
     var lastResult = null;
+
+    function runRetryOnce(candidate) {
+      return new Promise(function(resolve) {
+        setTimeout(resolve, 180);
+      }).then(function() {
+        return _dpFetchWithTimeout(candidate.url, requestInit, opts.timeoutMs);
+      });
+    }
 
     function attempt(index) {
       if (index >= candidates.length) {
@@ -498,14 +593,21 @@
 
       var candidate = candidates[index];
       return _dpFetchWithTimeout(candidate.url, requestInit, opts.timeoutMs)
+        .catch(function(error) {
+          if (method === 'GET') {
+            return runRetryOnce(candidate).catch(function() { throw error; });
+          }
+          throw error;
+        })
         .then(function(response) {
           return _dpReadApiPayload(response).then(function(parsed) {
             var data = parsed && parsed.data;
             var looksHtml = !parsed.parsed && _dpLooksLikeHtmlResponse(response, parsed.text);
             var payload = (data && typeof data === 'object') ? data : {};
 
-            if (looksHtml && !payload.message) {
-              payload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
+            if (looksHtml) {
+              payload.code = String(payload.code || 'INVALID_RESPONSE_FORMAT');
+              if (!payload.message) payload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
             }
 
             var result = {
@@ -529,8 +631,9 @@
                       var retryData = retryParsed && retryParsed.data;
                       var retryLooksHtml = !retryParsed.parsed && _dpLooksLikeHtmlResponse(retryResponse, retryParsed.text);
                       var retryPayload = (retryData && typeof retryData === 'object') ? retryData : {};
-                      if (retryLooksHtml && !retryPayload.message) {
-                        retryPayload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
+                      if (retryLooksHtml) {
+                        retryPayload.code = String(retryPayload.code || 'INVALID_RESPONSE_FORMAT');
+                        if (!retryPayload.message) retryPayload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
                       }
 
                       var retryResult = {
@@ -544,7 +647,12 @@
                       };
 
                       lastResult = retryResult;
-                      if (retryResult.ok) _dpRememberApiBase(candidate.base);
+                      if (retryResult.ok) {
+                        _dpClearCooldown(pathname);
+                        _dpRememberApiBase(candidate.base);
+                      } else if (cooldownEnabled) {
+                        _dpMarkCooldown(pathname, retryResponse.status, retryLooksHtml);
+                      }
                       return retryResult;
                     });
                   })
@@ -555,10 +663,12 @@
             }
 
             if (result.ok) {
+              _dpClearCooldown(pathname);
               _dpRememberApiBase(candidate.base);
               return result;
             }
 
+            if (cooldownEnabled) _dpMarkCooldown(pathname, response.status, looksHtml);
             var hasNext = index < candidates.length - 1;
             var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
             if (hasNext && retryable) return attempt(index + 1);
@@ -571,6 +681,7 @@
             ok: false,
             status: 0,
             data: {
+              code: 'NETWORK_ERROR',
               message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
               error: String((error && error.message) || error || 'network_error'),
             },
@@ -580,12 +691,21 @@
             looksHtml: false,
           };
 
+          if (cooldownEnabled) _dpMarkCooldown(pathname, 0, false);
           if (index < candidates.length - 1) return attempt(index + 1);
           return lastResult;
         });
     }
 
-    return attempt(0);
+    var requestPromise = attempt(0);
+    if (dedupeKey) {
+      _dpApiInFlightGet[dedupeKey] = requestPromise.finally(function() {
+        delete _dpApiInFlightGet[dedupeKey];
+      });
+      return _dpApiInFlightGet[dedupeKey];
+    }
+
+    return requestPromise;
   }
 
   function _dpHasSessionHint() {

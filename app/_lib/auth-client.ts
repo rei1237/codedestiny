@@ -4,6 +4,7 @@ import { persistSanitizedAuthUser } from "./auth-storage";
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const DEFAULT_AUTH_TIMEOUT_MS = 10000;
 const MAX_TRANSIENT_RETRIES = 2;
+const DEFAULT_WORKER_API_BASE = "https://code-destiny-web.bulegyung.workers.dev";
 
 type AuthFetchOptions = {
   retryOn401?: boolean;
@@ -112,6 +113,137 @@ function resolveApiBaseForRequest(pathOrUrl: string, apiBase: string) {
 
   // In preview/production, auth should stay same-origin for reliable cookies.
   return "";
+}
+
+function normalizeCandidateBase(base: string) {
+  return String(base || "").trim().replace(/\/+$/, "");
+}
+
+function isSensitiveApiPath(pathname: string) {
+  const path = String(pathname || "");
+  return path.startsWith("/api/auth/")
+    || path.startsWith("/api/user/")
+    || path.startsWith("/api/fortune/pig-coin/")
+    || path.startsWith("/api/billing/")
+    || path.startsWith("/api/payments/")
+    || path.startsWith("/api/subscription/");
+}
+
+function canUseWorkerFallback(pathname: string) {
+  const path = String(pathname || "");
+  if (!path.startsWith("/api/")) return false;
+  if (!isSensitiveApiPath(path)) return true;
+  if (path === "/api/auth/refresh" || path === "/api/auth/logout" || path === "/api/auth/login" || path === "/api/auth/register") {
+    return false;
+  }
+  if (path.startsWith("/api/auth/oauth/")) return false;
+  if (path === "/api/auth/me") return true;
+  return path.startsWith("/api/user/destiny-profiles")
+    || path.startsWith("/api/fortune/pig-coin/")
+    || path.startsWith("/api/billing/")
+    || path.startsWith("/api/payments/")
+    || path.startsWith("/api/subscription/");
+}
+
+function readWindowApiBaseCandidates() {
+  if (typeof window === "undefined") return [] as string[];
+
+  const values: string[] = [];
+  try { values.push(String((window as any).__CD_API_BASE_URL || "")); } catch {}
+  try { values.push(String((window as any).CODE_DESTINY_API_BASE_URL || "")); } catch {}
+  try { values.push(String((window as any).__CF_PAGES_API_BASE_URL || "")); } catch {}
+  try { values.push(String(window.location.origin || "")); } catch {}
+  try { values.push(String(localStorage.getItem("fortune_api_base_url") || "")); } catch {}
+  return values;
+}
+
+function rememberApiBase(base: string) {
+  const normalized = normalizeCandidateBase(base);
+  if (!normalized) return;
+  if (typeof window === "undefined") return;
+
+  try { localStorage.setItem("fortune_api_base_url", normalized); } catch {}
+  try {
+    (window as any).__CD_API_BASE_URL = normalized;
+    (window as any).CODE_DESTINY_API_BASE_URL = normalized;
+    (window as any).__CF_PAGES_API_BASE_URL = normalized;
+  } catch {
+    // ignore runtime assignment failures
+  }
+}
+
+function parseApiPath(pathOrUrl: string) {
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    try {
+      return new URL(pathOrUrl).pathname || "";
+    } catch {
+      return "";
+    }
+  }
+  const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  return normalizedPath;
+}
+
+function buildApiBaseCandidates(pathOrUrl: string, configuredBase: string) {
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    return [{ base: configuredBase, url: pathOrUrl }];
+  }
+
+  const path = parseApiPath(pathOrUrl);
+  const seen = new Set<string>();
+  const candidates: Array<{ base: string; url: string }> = [];
+
+  const push = (rawBase: string) => {
+    const base = normalizeCandidateBase(rawBase);
+    const url = toAbsoluteApiUrl(path, base);
+    if (seen.has(url)) return;
+    seen.add(url);
+    candidates.push({ base, url });
+  };
+
+  const resolvedBase = resolveApiBaseForRequest(path, configuredBase);
+  push(resolvedBase);
+  push("");
+
+  readWindowApiBaseCandidates().forEach((base) => push(base));
+
+  if (canUseWorkerFallback(path)) {
+    push(DEFAULT_WORKER_API_BASE);
+  }
+
+  return candidates.length ? candidates : [{ base: "", url: toAbsoluteApiUrl(path, "") }];
+}
+
+async function looksLikeHtmlResponse(response: Response) {
+  const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+  if (contentType.includes("text/html")) return true;
+  if (contentType.includes("application/json")) return false;
+
+  const bodyText = await response.clone().text().catch(() => "");
+  return /^\s*</.test(bodyText);
+}
+
+function shouldTryNextCandidate(response: Response, looksHtml: boolean) {
+  const status = Number(response.status || 0);
+  if (looksHtml) return true;
+  return status === 0 || status === 404 || status >= 500;
+}
+
+function buildNetworkFailureResponse() {
+  return new Response(
+    JSON.stringify({
+      ok: false,
+      code: "NETWORK_ERROR",
+      message: "Network request failed. Please retry.",
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
+    },
+  );
 }
 
 function shouldTryRefresh(url: string) {
@@ -362,8 +494,6 @@ async function performAuthFetch(
 
 export async function authFetch(input: string, init: RequestInit = {}, options: AuthFetchOptions = {}) {
   const configuredBase = String(options.apiBase || getApiBaseUrl() || "").trim();
-  const apiBase = resolveApiBaseForRequest(input, configuredBase);
-  const targetUrl = toAbsoluteApiUrl(input, apiBase);
   const retryOn401 = options.retryOn401 !== false;
   const timeoutMs = Number(options.timeoutMs);
   const resolvedTimeoutMs = Number.isFinite(timeoutMs) && timeoutMs > 0
@@ -373,9 +503,50 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
     ? Number(options.transientRetries)
     : 1;
 
-  if (isMeRequest(targetUrl, init)) {
+  const candidates = buildApiBaseCandidates(input, configuredBase);
+
+  const performAcrossCandidates = async () => {
+    let lastResponse: Response | null = null;
+
+    for (let i = 0; i < candidates.length; i += 1) {
+      const candidate = candidates[i];
+      try {
+        const response = await performAuthFetch(
+          candidate.url,
+          init,
+          retryOn401,
+          candidate.base,
+          resolvedTimeoutMs,
+          transientRetries,
+        );
+
+        const looksHtml = await looksLikeHtmlResponse(response);
+        if (response.ok && !looksHtml) {
+          rememberApiBase(candidate.base);
+          return response;
+        }
+
+        lastResponse = response;
+        const hasNext = i < candidates.length - 1;
+        if (!hasNext || !shouldTryNextCandidate(response, looksHtml)) {
+          return response;
+        }
+      } catch {
+        const hasNext = i < candidates.length - 1;
+        if (!hasNext) {
+          return buildNetworkFailureResponse();
+        }
+      }
+    }
+
+    return lastResponse || buildNetworkFailureResponse();
+  };
+
+  const mePath = parseApiPath(input);
+
+  if (isMeRequest(mePath, init)) {
     if (!meRequestInFlight) {
-      meRequestInFlight = performAuthFetch(targetUrl, init, retryOn401, apiBase, resolvedTimeoutMs, transientRetries)
+      meRequestInFlight = performAcrossCandidates()
         .finally(() => {
           meRequestInFlight = null;
         });
@@ -384,7 +555,7 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
     return sharedResponse.clone();
   }
 
-  return performAuthFetch(targetUrl, init, retryOn401, apiBase, resolvedTimeoutMs, transientRetries);
+  return performAcrossCandidates();
 }
 
 export async function logoutWithServer(apiBase?: string) {

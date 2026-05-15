@@ -20,12 +20,18 @@ function hasMongoBinding(env = {}) {
 
 function buildStorageFailureResponse(env, error, fallbackCode = "DB_QUERY_FAILED") {
   const configMissing = !hasMongoBinding(env);
+  const status = configMissing ? 500 : 503;
+  const code = configMissing ? "SERVER_CONFIG_ERROR" : "SERVICE_UNAVAILABLE";
+  const message = configMissing
+    ? "서버 설정 또는 데이터 조회 중 오류가 발생했습니다."
+    : "프로필 저장소가 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.";
   return json({
     ok: false,
-    code: configMissing ? "SERVER_CONFIG_ERROR" : fallbackCode,
-    message: "서버 설정 또는 데이터 조회 중 오류가 발생했습니다.",
+    code,
+    causeCode: fallbackCode,
+    message,
     ...(configMissing ? { detail: String(error?.message || "") } : {}),
-  }, { status: 500 });
+  }, { status });
 }
 
 function sanitizeProfileId(value) {

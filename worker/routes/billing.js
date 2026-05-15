@@ -225,11 +225,20 @@ function mapCoinGateFailure(responseStatus, payload) {
     };
   }
 
-  if (rawCode === "SERVER_CONFIG_ERROR" || rawCode === "DB_QUERY_FAILED") {
+  if (rawCode === "SERVER_CONFIG_ERROR") {
     return {
       status: 500,
       code: rawCode,
       message: "서버 설정 또는 데이터 조회 중 오류가 발생했습니다.",
+      debugMessage: message,
+    };
+  }
+
+  if (rawCode === "DB_QUERY_FAILED") {
+    return {
+      status: 503,
+      code: "SERVICE_UNAVAILABLE",
+      message: "코인 결제 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
       debugMessage: message,
     };
   }
