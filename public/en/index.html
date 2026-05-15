@@ -1518,6 +1518,36 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <script>
         (function () {
+          var __CD_LOGOUT_INFLIGHT_KEY = 'fortune_auth_logout_inflight_at';
+          var __CD_AUTH_SYNC_CHANNEL_NAME = 'code-destiny-auth-sync';
+
+          function __cdRenderGuestAuthLinks() {
+            var el = document.getElementById('authQuickLinks');
+            if (!el) return;
+            el.innerHTML =
+              '<a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>' +
+              '<a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>';
+          }
+
+          function __cdMarkLogoutInFlight() {
+            try { localStorage.setItem(__CD_LOGOUT_INFLIGHT_KEY, String(Date.now())); } catch (_) {}
+          }
+
+          function __cdClearLogoutInFlight() {
+            try { localStorage.removeItem(__CD_LOGOUT_INFLIGHT_KEY); } catch (_) {}
+          }
+
+          function __cdIsLogoutInFlight() {
+            var raw = '';
+            try { raw = String(localStorage.getItem(__CD_LOGOUT_INFLIGHT_KEY) || ''); } catch (_) { raw = ''; }
+            var at = Number(raw || 0);
+            if (!Number.isFinite(at) || at <= 0) return false;
+            // Prevent stale /api/auth/me bootstrap from restoring UI while logout request is still racing.
+            if ((Date.now() - at) <= 15000) return true;
+            __cdClearLogoutInFlight();
+            return false;
+          }
+
           function __cdRenderAuthSummary(name, points, isAdmin, subscriptionLabel) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
@@ -1567,6 +1597,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             if (btn) {
               btn.addEventListener('click', async function () {
                 if (btn.getAttribute('data-logout-pending') === '1') return;
+                __cdMarkLogoutInFlight();
                 try { btn.setAttribute('data-logout-pending', '1'); } catch (_) {}
                 try { btn.disabled = true; } catch (_) {}
                 try { btn.textContent = '🔒\u00a0로그아웃 중...'; } catch (_) {}
@@ -1642,6 +1673,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               var us = localStorage.getItem('fortune_auth_user');
               var el = document.getElementById('authQuickLinks');
               if (!el) return;
+              var _logoutInFlight = __cdIsLogoutInFlight();
 
               var __cdIsLikelyUsableJwt = function (rawToken) {
                 var token = String(rawToken || '').trim();
@@ -1662,11 +1694,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
                 t = '';
               }
+              if ((t || us) && !_logoutInFlight) {
+                __cdClearLogoutInFlight();
+              }
               // flower_admin_token 포맷 검증 (서명 형식: payloadB64.hex64)
               var _adminTok = (function(){ try { return sessionStorage.getItem('flower_admin_token'); } catch(_){return null;} })();
               var _adminTokValid = !!(_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok));
               // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 관리자 표시 + 나가기 버튼
               if (!t && !us) {
+                __cdRenderGuestAuthLinks();
+                if (_logoutInFlight) return;
                 if (_adminTokValid) {
                   el.innerHTML =
                     '<div class="cd-user-card">' +
@@ -1698,6 +1735,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   if (_abtn) {
                     _abtn.addEventListener('click', async function () {
                       if (_abtn.getAttribute('data-logout-pending') === '1') return;
+                      __cdMarkLogoutInFlight();
                       try { _abtn.setAttribute('data-logout-pending', '1'); } catch (_) {}
                       try { _abtn.disabled = true; } catch (_) {}
                       try { _abtn.textContent = '🔒\u00a0로그아웃 중...'; } catch (_) {}
@@ -1753,6 +1791,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   })
                   .then(function (payload) {
                     if (!payload || !payload.user) return;
+                    __cdClearLogoutInFlight();
                     if (payload.accessToken) {
                       try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
                     }
@@ -1858,6 +1897,46 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             } catch (_) {}
           }
           window.__cdUpdateAuthState = __cdAuthState;
+
+          window.addEventListener('cd:auth-changed', function (event) {
+            try {
+              var detail = event && event.detail;
+              var ev = detail && String(detail.event || '').toLowerCase();
+              if (ev === 'logout') __cdMarkLogoutInFlight();
+              else if (ev === 'login') __cdClearLogoutInFlight();
+            } catch (_) {}
+            __cdAuthState();
+          });
+
+          window.addEventListener('storage', function (event) {
+            var key = String((event && event.key) || '').trim();
+            if (!key) return;
+            if (
+              key === 'fortune_auth_token'
+              || key === 'fortune_auth_user'
+              || key === 'fortune_auth_role'
+              || key === __CD_LOGOUT_INFLIGHT_KEY
+              || key === 'flower_admin_token'
+            ) {
+              __cdAuthState();
+            }
+          });
+
+          try {
+            if (typeof BroadcastChannel !== 'undefined') {
+              var __cdAuthSyncChannel = new BroadcastChannel(__CD_AUTH_SYNC_CHANNEL_NAME);
+              __cdAuthSyncChannel.onmessage = function (event) {
+                try {
+                  var detail = event && event.data;
+                  var ev = detail && String(detail.event || '').toLowerCase();
+                  if (ev === 'logout') __cdMarkLogoutInFlight();
+                  else if (ev === 'login') __cdClearLogoutInFlight();
+                } catch (_) {}
+                __cdAuthState();
+              };
+            }
+          } catch (_) {}
+
           __cdAuthState();
         })();
       </script>
