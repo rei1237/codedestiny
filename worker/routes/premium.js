@@ -1276,12 +1276,19 @@ function getPremiumCanonicalFromPrepare(reportType, prepareData) {
   return null;
 }
 
-function getPremiumMissingData(prepareData) {
+function getPremiumMissingData(prepareData, reportType = "") {
   if (!prepareData || typeof prepareData !== "object") return [];
   const fromTop = Array.isArray(prepareData.missingFields) ? prepareData.missingFields : [];
   const fromValidation = Array.isArray(prepareData.validation?.missingFields)
     ? prepareData.validation.missingFields
     : [];
+
+  // Ziwei 기본 모드는 fail-open이 원칙이므로 상세 필드 누락은 경고로만 처리하고
+  // strict 모드(_premiumStrictValidation / PREMIUM_ZIWEI_STRICT_MODE)에서만 차단한다.
+  if (reportType === "ziweiPremium" && !asBool(prepareData.strictValidationRequested)) {
+    return [];
+  }
+
   return Array.from(new Set([...fromTop, ...fromValidation].map((v) => String(v || "").trim()).filter(Boolean)));
 }
 
@@ -9599,7 +9606,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const canonicalBuild = hydrated.canonicalBuild;
   const sourceMap = buildPremiumSourceMap(reportType, requestBody, prepareData);
 
-  const baseMissing = getPremiumMissingData(prepareData);
+  const baseMissing = getPremiumMissingData(prepareData, reportType);
   const baseWarnings = getPremiumWarnings(prepareData);
   const missingData = Array.from(new Set([
     ...baseMissing,
