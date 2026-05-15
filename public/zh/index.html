@@ -5352,7 +5352,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lb-start__profile-label">분석 대상 프로필</div>
             <div id="zbProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-          <button class="lb-start__cta" id="zbStartBtn" onclick="generateZiweiBook()">
+          <button class="lb-start__cta" id="zbStartBtn" data-action="generateZiweiBook" data-coin-cost="590" data-coin-feature-key="premium-ziwei-report" data-coin-reason="자미두수 프리미엄 PDF 리포트 생성" onclick="generateZiweiBook()">
             🌌 자미두수 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
@@ -5481,7 +5481,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lb-start__profile-label">분석 대상 프로필</div>
             <div id="abProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-          <button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
+          <button class="lb-start__cta" id="abStartBtn" data-action="generateAstroBook" data-coin-cost="390" data-coin-feature-key="premium-astrology-report" data-coin-reason="점성술 프리미엄 PDF 리포트 생성" onclick="generateAstroBook()">
             ✨ 점성술 코즈믹 차트 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
@@ -5639,7 +5639,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             </div>
           </div>
 
-          <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
+          <button class="lb-start__cta" id="skStartBtn" data-action="generateSukuyoBook" data-coin-cost="390" data-coin-feature-key="premium-sukuyo-report" data-coin-reason="숙요점 프리미엄 PDF 리포트 생성" onclick="generateSukuyoBook()">
             💞 숙요 궁합 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
@@ -5767,7 +5767,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lb-start__profile-label">분석 대상 프로필</div>
             <div id="vdProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-          <button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">
+          <button class="lb-start__cta" id="vdStartBtn" data-action="generateVedicBook" data-coin-cost="390" data-coin-feature-key="premium-vedic-report" data-coin-reason="베다 점성술 프리미엄 PDF 리포트 생성" onclick="generateVedicBook()">
             🪷 베다 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
@@ -6460,7 +6460,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260515-mobile-cacheguard1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260515-sukuyo-stage-sync2"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260516-premium-pdf-gate-v1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -8471,6 +8471,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       startIjikTarot: true,
       startMindScanTarot: true,
       startCrystalSoulTarot: true,
+      gotoZiweiPremium: true,
+      gotoAstrologyPremium: true,
+      gotoSukuyoPremium: true,
+      gotoVedicPremium: true,
     };
     return SELF_GATED_ACTIONS[action] === true;
   }
@@ -8525,7 +8529,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
       }
       var titleEl = actionNode.querySelector('.tarot-tile__title');
-      var fname = titleEl ? titleEl.textContent.trim() : '서비스';
+      var fname = titleEl ? titleEl.textContent.trim() : ((actionNode.textContent || '').trim() || '서비스');
       if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return false;
       if (consumeInFlight) {
         return false;
@@ -8533,13 +8537,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       consumeInFlight = true;
       try {
         var perUseRequestId = 'peruse:' + action + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-        var perUseFeatureKey = String(action || 'coin-gate-per-use').trim().slice(0, 60) || 'coin-gate-per-use';
+        var perUseFeatureKeyOverride = String(actionNode.getAttribute('data-coin-feature-key') || '').trim();
+        var perUseReasonOverride = String(actionNode.getAttribute('data-coin-reason') || '').trim();
+        var perUseFeatureKey = (perUseFeatureKeyOverride || String(action || 'coin-gate-per-use')).trim().slice(0, 60) || 'coin-gate-per-use';
         var r = await fetchJsonWithAuth('/api/billing/coin-gate', {
           method: 'POST',
           body: JSON.stringify({
             categoryKey: 'main-tile',
             subFeatureKey: perUseFeatureKey,
-            reason: fname + ' 이용',
+            reason: perUseReasonOverride || (fname + ' 이용'),
             featureKey: perUseFeatureKey,
             forceDeduct: true,
             requestId: perUseRequestId,

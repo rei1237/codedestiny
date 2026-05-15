@@ -2148,7 +2148,7 @@ async function __cdSyncTileLocksFromServer() {
     if (!authOk) return;
 
     var token = __cdGetAuthTokenForLockSync();
-    var url = __cdResolveApiBaseForLockSync() + '/api/fortune/pig-coin/balance';
+    var url = __cdResolveApiBaseForLockSync() + '/api/billing/balance';
     var headers = {
       Accept: 'application/json'
     };
@@ -2160,20 +2160,22 @@ async function __cdSyncTileLocksFromServer() {
       cache: 'no-store',
       headers: headers
     });
-    if (!response.ok) {
+    var payload = await response.json().catch(function() { return {}; });
+    var payloadData = (payload && payload.data && typeof payload.data === 'object') ? payload.data : payload;
+
+    if (!response.ok || (payload && payload.ok === false)) {
       if (response.status === 401 || response.status === 403) {
         __cdInvalidateAuthSessionCache();
       }
       return;
     }
 
-    var payload = await response.json().catch(function() { return {}; });
     var keys = [];
-    if (payload && Array.isArray(payload.unlockedFeatures)) keys = payload.unlockedFeatures;
-    if (payload && payload.unlockMap && typeof payload.unlockMap === 'object') {
-      var mapKeys = Object.keys(payload.unlockMap);
+    if (payloadData && Array.isArray(payloadData.unlockedFeatures)) keys = payloadData.unlockedFeatures;
+    if (payloadData && payloadData.unlockMap && typeof payloadData.unlockMap === 'object') {
+      var mapKeys = Object.keys(payloadData.unlockMap);
       for (var i = 0; i < mapKeys.length; i += 1) {
-        if (payload.unlockMap[mapKeys[i]] === true) keys.push(mapKeys[i]);
+        if (payloadData.unlockMap[mapKeys[i]] === true) keys.push(mapKeys[i]);
       }
     }
 
