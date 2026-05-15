@@ -292,6 +292,7 @@ const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
   secretHouseEpisodes: ["rpt_secretHouseEntryCard"],
 });
 const PERSISTENT_UNLOCK_KEY_SET = new Set([
+  "animal-destiny-unlock",
   "flower-fc",
   "flower-destiny",
   "flower-astro",
@@ -926,6 +927,34 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const runtimeUser = renewState.user || user;
   const effectiveTier = renewState.effectiveTier;
   const policy = getPlanPolicy(effectiveTier);
+  const runtimeUnlockedFeatures = normalizePersistentUnlockKeys(runtimeUser.unlockedFeatures);
+  const runtimeUnlockMap = toUnlockMap(runtimeUnlockedFeatures);
+  const alreadyUnlocked = Boolean(
+    !forceDeductApplied
+    && unlockKeysToPersist.length
+    && unlockKeysToPersist.some((key) => runtimeUnlockMap[key] === true),
+  );
+
+  if (alreadyUnlocked) {
+    return json({
+      message: "이미 해금된 콘텐츠입니다. 추가 코인이 차감되지 않습니다.",
+      code: "ALREADY_UNLOCKED",
+      alreadyUnlocked: true,
+      productId: productId || null,
+      requiredCoins: cost,
+      chargedCoins: 0,
+      freeBySubscription: false,
+      forceDeductApplied,
+      subscriptionTier: effectiveTier || "free",
+      freeLimit: policy.freeLimit,
+      profileLimit: policy.profileLimit,
+      recommendedCoins: policy.recommendedCoins,
+      user: userPayload(auth, Number(runtimeUser.points || 0), runtimeUnlockedFeatures),
+      unlockedFeatures: runtimeUnlockedFeatures,
+      unlockMap: runtimeUnlockMap,
+    });
+  }
+
   const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
   if (isIncludedBySubscription) {
