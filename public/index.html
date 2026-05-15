@@ -455,6 +455,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-modal__close{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.84);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer;z-index:2}
 .golden-grain-modal__head{position:relative;z-index:1;text-align:center;padding:4px 8px 8px}
 .golden-grain-modal__title{margin:0 0 6px;font-size:1.38rem;font-weight:900;color:#6d2400;letter-spacing:-.01em}
+.golden-grain-modal__title-btn{border:none;background:transparent;color:inherit;font:inherit;font-weight:inherit;line-height:inherit;letter-spacing:inherit;margin:0;padding:0;cursor:pointer}
 .golden-grain-modal__subtitle{margin:0;font-size:.91rem;color:#8b4b24;line-height:1.45}
 .golden-grain-piggy{width:84px;height:84px;margin:0 auto 10px;border-radius:50%;display:block;overflow:hidden;background:radial-gradient(circle at 30% 25%,#fff2cb 0%,#ffd972 56%,#f6b126 100%);border:2px solid rgba(211,133,17,0.62);box-shadow:inset 0 3px 10px rgba(255,255,255,0.56),0 8px 20px rgba(155,95,15,0.25)}
 .golden-grain-piggy__img{width:100%;height:100%;object-fit:cover;display:block}
@@ -7260,7 +7261,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
       '    <div class="golden-grain-modal__head">',
       '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260515-mobile-cacheguard1" srcset="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260515-mobile-cacheguard1 96w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260515-mobile-cacheguard1 130w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260515-mobile-cacheguard1 512w" sizes="84px" width="84" height="84" alt=""></div>',
-      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title">✨ 황금 돼지 저금통 충전소</h3>',
+      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title"><button type="button" class="golden-grain-modal__title-btn" data-action="confirmGoldenCharge" aria-label="공식 포인트 충전소로 이동">✨ 황금 돼지 저금통 충전소</button></h3>',
       '      <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
       '    </div>',
       '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages">' + packageItems + '</div></div>',
