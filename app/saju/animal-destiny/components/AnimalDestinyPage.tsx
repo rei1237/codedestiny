@@ -121,26 +121,26 @@ export default function AnimalDestinyPage() {
   }, [shareCard]);
 
   return (
-    <main className="min-h-[100dvh] w-full overflow-x-hidden bg-[linear-gradient(180deg,#f7f4ea_0%,#f8fbff_42%,#eef5ff_100%)] text-[#1f3550] font-sans">
+    <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_15%_12%,rgba(250,212,122,0.26),transparent_34%),radial-gradient(circle_at_84%_4%,rgba(97,177,198,0.22),transparent_30%),linear-gradient(176deg,#f8f1df_0%,#f4f8ff_44%,#eaf2ff_100%)] text-[#1f3550]">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(125deg,transparent_0%,rgba(255,255,255,0.44)_35%,transparent_58%)]" />
       <Toaster position="top-center" richColors />
       
-      {/* Premium Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d8c7a4]/45 bg-[#f8f4e8]/85 px-6 py-4 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d8c7a4]/55 bg-[#f6efe0]/80 px-4 py-4 backdrop-blur-xl sm:px-6">
         <button 
           onClick={() => window.history.back()}
-          className="-ml-2 rounded-full p-2 text-[#2c4d67] transition-colors hover:bg-[#2c4d67]/10"
+          className="-ml-1 rounded-full border border-transparent p-2 text-[#2c4d67] transition-all hover:border-[#2c4d67]/15 hover:bg-[#2c4d67]/10"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
         <div className="flex flex-col items-center">
-          <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[#1f4967]">Animal Destiny</h2>
-          <div className="mt-0.5 h-0.5 w-8 bg-[#ca9732]" />
+          <h2 className="text-[10px] font-black uppercase tracking-[0.28em] text-[#1f4967]">Celestial Engine</h2>
+          <p className="mt-1 text-sm font-black tracking-tight text-[#173754]">십이운성 동물점</p>
         </div>
         <button 
           onClick={reset}
-          className="-mr-2 rounded-full p-2 text-[#2c4d67] transition-colors hover:bg-[#2c4d67]/10"
+          className="-mr-1 rounded-full border border-transparent p-2 text-[#2c4d67] transition-all hover:border-[#2c4d67]/15 hover:bg-[#2c4d67]/10"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -149,16 +149,19 @@ export default function AnimalDestinyPage() {
         </button>
       </header>
 
-      <div className="mx-auto max-w-5xl pb-20">
+      <div className="relative z-10 mx-auto max-w-5xl pb-20">
         <AnimalDestinyHero />
 
         <div className="space-y-8 px-6">
-          <div className="flex items-center justify-center gap-3 rounded-2xl border border-[#d7c8a8] bg-white/75 px-4 py-2 text-xs font-bold text-[#35526e]">
-            <div className={`h-2 w-2 rounded-full ${isUnlocked ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
-            {isUnlocked
-              ? "프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다."
-              : "해금 상태: 잠금 (분석을 위해 100코인이 필요합니다)"}
-            {!isLoggedIn && " · 로그인이 필요합니다"}
+          <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d7c8a8] bg-white/75 px-4 py-3 text-xs font-bold text-[#35526e] shadow-[0_10px_24px_rgba(24,58,96,0.08)]">
+            <span className={`h-2 w-2 rounded-full ${isUnlocked ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+            <span>
+              {isUnlocked
+                ? "프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다."
+                : "해금 상태: 잠금 (분석을 위해 100코인이 필요합니다)"}
+            </span>
+            <span className="rounded-full bg-[#fff2cf] px-2.5 py-1 text-[11px] font-black text-[#8b6116]">100 COINS</span>
+            {!isLoggedIn ? <span className="text-rose-600">로그인이 필요합니다</span> : null}
           </div>
 
           {(status === "idle" || status === "input" || status === "error") ? (
@@ -210,7 +213,7 @@ export default function AnimalDestinyPage() {
               </button>
               <a
                 href="/saju"
-                className="w-full rounded-2xl border border-[#d8b46d] py-4 text-center font-bold text-[#825f18] transition-all hover:bg-[#fff3da]"
+                className="w-full rounded-2xl border border-[#d8b46d] bg-[linear-gradient(180deg,#fffdf6,#fff3da)] py-4 text-center font-bold text-[#825f18] transition-all hover:brightness-[1.02]"
               >
                 사주 운세 메인으로
               </a>

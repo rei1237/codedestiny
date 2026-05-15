@@ -29,6 +29,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "stonehenge-runes-yearly",
   "animal-totem-basic",
   "animal-totem-deep",
+  "animal-destiny-unlock",
   "palm-reading-general",
   "palm-reading-love",
   "palm-reading-wealth",
@@ -62,6 +63,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
 
 export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "애니멀 토템 리딩": 30,
+  "십이운성 동물점 해금": 100,
   "인생의 책 생성 (13챕터)": 500,
   "시빌라 도미네이터 리포트": 100,
   "점성술 셜럭 시나스트리 궁합": 50,
@@ -108,6 +110,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "stonehenge-runes-yearly": { cost: 120, reason: "스톤헨지 룬 12-룬 리딩" },
   "animal-totem-basic": { cost: 30, reason: "애니멀 토템 리딩" },
   "animal-totem-deep": { cost: 60, reason: "애니멀 토템 심화 리딩" },
+  "animal-destiny-unlock": { cost: 100, reason: "십이운성 동물점 해금" },
   premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
   "palm-reading-general": { cost: 50, reason: "손금 전체운 분석" },
   "palm-reading-love": { cost: 30, reason: "손금 연애운 분석" },
