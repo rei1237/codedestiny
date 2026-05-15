@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
+const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
 
 const envFiles = [
   ".env.local",
@@ -159,9 +160,13 @@ function putPagesSecret(project, key, value) {
 
 const available = PAGES_PUBLIC_KEYS.filter((key) => getSecretValue(key));
 if (available.length === 0) {
-  console.error(
-    "[secrets] No Pages public values found in env files (.env.cloudflare.local/.env.cloudflare/.env.local/.env)."
-  );
+  const message =
+    "[secrets] No Pages public values found in env files (.env.cloudflare.local/.env.cloudflare/.env.local/.env).";
+  if (skipEmpty) {
+    console.warn(`${message} Skipping because --skip-empty was supplied.`);
+    process.exit(0);
+  }
+  console.error(message);
   process.exit(1);
 }
 

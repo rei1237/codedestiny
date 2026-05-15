@@ -60,25 +60,16 @@ jobs:
       - name: Wrangler token preflight
         run: npx --no-install wrangler whoami
 
-      - name: Sync Pages Gemini secrets
+      - name: Sync Pages public values
         env:
-          GEMINIF_API_KEY1: ${{ secrets.GEMINIF_API_KEY1 }}
-          GEMINIF_API_KEY2: ${{ secrets.GEMINIF_API_KEY2 }}
-          GEMINIF_API_KEY3: ${{ secrets.GEMINIF_API_KEY3 }}
-          GEMINIF_API_KEY4: ${{ secrets.GEMINIF_API_KEY4 }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          YOUTUBE_DATA_API_KEY: ${{ secrets.YOUTUBE_DATA_API_KEY }}
-          GOOGLE_YOUTUBE_API_KEY: ${{ secrets.GOOGLE_YOUTUBE_API_KEY }}
-          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
-          PREMIUM_GEMINI_MODEL: ${{ vars.PREMIUM_GEMINI_MODEL }}
-          LIFEBOOK_GEMINI_MODEL: ${{ vars.LIFEBOOK_GEMINI_MODEL }}
-          LOVE_SECRET_GEMINI_MODEL: ${{ vars.LOVE_SECRET_GEMINI_MODEL }}
-          PSYCHO_ANALYSIS_GEMINI_MODEL: ${{ vars.PSYCHO_ANALYSIS_GEMINI_MODEL }}
-          SUKUYO_GEMINI_MODEL: ${{ vars.SUKUYO_GEMINI_MODEL }}
-          ASTRO_GEMINI_MODEL: ${{ vars.ASTRO_GEMINI_MODEL }}
-          VEDIC_GEMINI_MODEL: ${{ vars.VEDIC_GEMINI_MODEL }}
-          ZIWEI_GEMINI_MODEL: ${{ vars.ZIWEI_GEMINI_MODEL }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL || secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_AUTH_API_BASE_URL: ${{ vars.NEXT_PUBLIC_AUTH_API_BASE_URL || secrets.NEXT_PUBLIC_AUTH_API_BASE_URL }}
+          NEXT_PUBLIC_PORTONE_IMP_CODE: ${{ vars.NEXT_PUBLIC_PORTONE_IMP_CODE || secrets.NEXT_PUBLIC_PORTONE_IMP_CODE }}
+          NEXT_PUBLIC_PORTONE_STORE_ID: ${{ vars.NEXT_PUBLIC_PORTONE_STORE_ID || secrets.NEXT_PUBLIC_PORTONE_STORE_ID }}
+          NEXT_PUBLIC_PORTONE_CHANNEL_KEY: ${{ vars.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || secrets.NEXT_PUBLIC_PORTONE_CHANNEL_KEY }}
+          NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY: ${{ vars.NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY || secrets.NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY }}
+          NEXT_PUBLIC_PORTONE_PG_CARD: ${{ vars.NEXT_PUBLIC_PORTONE_PG_CARD || secrets.NEXT_PUBLIC_PORTONE_PG_CARD }}
+          NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH: ${{ vars.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || secrets.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH }}
         run: npm run secrets:cf:pages -- --skip-empty
 
       - name: Deploy Cloudflare Pages
