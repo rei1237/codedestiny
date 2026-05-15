@@ -45,7 +45,7 @@ export default function DestinyBiasLoadingScreen({
         COSMIC CONCERT LINKING
       </p>
       <p className="relative z-10 mt-1 text-center text-lg font-extrabold leading-snug text-white/95 md:text-xl">
-        무대가 열리고<br />두 사람의 르이 동기화 중이에요 ✨
+        무대가 열리고<br />두 사람의 리듬이 동기화 중이에요 ✨
       </p>
 
       {/* Aurora rings */}

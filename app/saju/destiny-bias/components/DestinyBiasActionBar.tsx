@@ -24,7 +24,7 @@ export default function DestinyBiasActionBar({
       <div className="relative z-10">
       <p className="text-[10px] font-semibold tracking-[0.16em] text-cyan-100/70">SAVE &amp; SHARE ✨</p>
       <h3 className="mt-1 text-lg font-black text-white">포토카드 저장하고 공유해요 💜</h3>
-      <p className="mt-1 text-sm text-white/75">저장 먼저 하고 스토리에 올리면 디칼 맡쪼 돼요!</p>
+      <p className="mt-1 text-sm text-white/75">저장하고 바로 스토리/피드에 올리면 오늘 덕심 기록 완료!</p>
 
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <button
@@ -39,7 +39,7 @@ export default function DestinyBiasActionBar({
           onClick={onShare}
           className="min-h-12 rounded-full bg-[linear-gradient(92deg,#ec4899,#8b5cf6,#22d3ee)] px-4 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(236,72,153,0.36)] transition hover:-translate-y-0.5"
         >
-          펜드 평에 공유하기
+          공유하기
         </button>
       </div>
 
@@ -51,7 +51,7 @@ export default function DestinyBiasActionBar({
           텍스트 복사
         </button>
         <button type="button" onClick={onRetry} className="min-h-11 rounded-full border border-white/22 bg-white/6 text-sm font-semibold text-white/90 transition hover:border-cyan-200/65 hover:bg-cyan-300/10">
-          결과 다시 븬기
+          결과 다시 보기
         </button>
       </div>
 

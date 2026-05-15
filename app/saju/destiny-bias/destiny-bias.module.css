@@ -168,6 +168,52 @@
     repeating-linear-gradient(110deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12) 3px, rgba(34, 211, 238, 0.06) 6px, rgba(236, 72, 153, 0.07) 9px);
 }
 
+.glassSpotLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      280px 220px at var(--card-glare-x, 50%) var(--card-glare-y, 16%),
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.18) 24%,
+      rgba(255, 255, 255, 0.04) 52%,
+      transparent 70%
+    ),
+    linear-gradient(158deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 34%, rgba(255, 255, 255, 0.12) 100%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+  transition: background-position 0.12s ease-out;
+  z-index: 2;
+}
+
+.glassNoiseLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.11) 0.6px, transparent 0.8px),
+    radial-gradient(rgba(255, 255, 255, 0.08) 0.5px, transparent 0.7px);
+  background-size: 2px 2px, 3px 3px;
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  z-index: 1;
+}
+
+.uploadBlendFrame {
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -12px 40px rgba(8, 10, 30, 0.4),
+    0 12px 34px rgba(6, 7, 20, 0.34);
+}
+
 .premiumInput {
   height: 52px;
   border-radius: 18px;
