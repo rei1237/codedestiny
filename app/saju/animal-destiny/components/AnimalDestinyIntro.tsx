@@ -1,9 +1,18 @@
 import CosmicSigil from "./CosmicSigil";
 
+const HERO_IMAGE = "/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp";
+
 export default function AnimalDestinyIntro() {
   return (
     <section className="space-y-4">
-      <div className="relative overflow-hidden rounded-[1.8rem] border border-cyan-100/25 bg-[linear-gradient(140deg,rgba(2,10,30,0.75),rgba(12,30,64,0.72))] p-5 shadow-[0_18px_56px_rgba(2,8,28,0.48)]">
+      <div
+        className="relative overflow-hidden rounded-[1.8rem] border border-cyan-100/25 p-5 shadow-[0_18px_56px_rgba(2,8,28,0.48)]"
+        style={{
+          backgroundImage: `linear-gradient(140deg,rgba(2,10,30,0.75),rgba(12,30,64,0.72)), url('${HERO_IMAGE}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="pointer-events-none absolute -right-12 -top-10 h-48 w-48 opacity-70">
           <CosmicSigil className="h-full w-full" />
         </div>

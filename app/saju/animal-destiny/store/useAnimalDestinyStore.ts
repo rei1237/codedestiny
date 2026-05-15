@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { getAnimalBySajuResult, getAnimalDisplayData, calculateAnimalCompatibility } from "../lib/animalMapping";
-import { fetchSajuEngineResult } from "../lib/sajuAdapter";
+import { fetchSajuEngineResult, resolveAnimalTwelveResult } from "../lib/sajuAdapter";
 import { getTwelveStagesForPillars } from "../lib/twelveStages";
 import { buildCompatibilityStageEvidence } from "../lib/analysisNarrative";
 import type {
@@ -79,6 +79,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
 
   calculate: async () => {
     const currentInput = get().input;
+    if (get().status === "calculating" || get().status === "revealing") return;
 
     if (!currentInput.birthDate) {
       set({
@@ -95,22 +96,23 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
     });
 
     try {
-      const sajuResult = await fetchSajuEngineResult(currentInput);
-      const twelveStages = getTwelveStagesForPillars(sajuResult);
-
-      if (!twelveStages.primary) {
-        throw new Error("사주 계산 데이터가 부족합니다");
+      const resolved = await resolveAnimalTwelveResult(currentInput);
+      if (!resolved.ok || !resolved.profile || !resolved.sajuResult) {
+        throw new Error(resolved.error || "사주 계산 정보를 다시 확인해 주세요.");
       }
+
+      const sajuResult = resolved.sajuResult;
+      const twelveStagesFromEngine = getTwelveStagesForPillars(sajuResult);
+      const twelveStages = {
+        ...twelveStagesFromEngine,
+        primary: resolved.representativeStage?.labelKo || twelveStagesFromEngine.primary,
+      };
 
       const { animalId } = getAnimalBySajuResult(sajuResult);
-      if (!animalId) {
-        throw new Error("십이운성 매핑에 실패했습니다.");
-      }
+      if (!animalId) throw new Error("십이운성 매핑에 실패했습니다.");
 
-      const animalData = getAnimalDisplayData(animalId);
-      if (!animalData) {
-        throw new Error("동물 데이터 로딩에 실패했습니다.");
-      }
+      const animalData = getAnimalDisplayData(animalId) || resolved.profile;
+      if (!animalData) throw new Error("동물 데이터 로딩에 실패했습니다.");
 
       set({
         status: "revealing",

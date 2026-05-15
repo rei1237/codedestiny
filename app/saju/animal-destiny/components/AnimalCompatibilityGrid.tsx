@@ -111,8 +111,12 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
             </div>
             <div className="space-y-2 text-sm text-[#634832]">
               <p><span className="font-bold">분석 결과:</span> {partner.summary}</p>
+              <p><span className="font-bold">대표 운성:</span> {partner.primaryStage || "미확인"}</p>
               <p><span className="font-bold">끌림 포인트:</span> {partner.goodPoints.join(" · ")}</p>
               <p><span className="font-bold">주의할 점:</span> {partner.clashPoints.join(" · ")}</p>
+              {partner.stageEvidence ? (
+                <p className="rounded-lg bg-[#f9f3e4] p-2 text-xs"><span className="font-bold">사주 근거:</span> {partner.stageEvidence}</p>
+              ) : null}
               <p className="mt-3 rounded-lg bg-[#FFFBEB] p-3 text-xs italic">
                 💡 {partner.tips[0]}
               </p>

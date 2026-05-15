@@ -1,6 +1,19 @@
-import { ANIMAL_DESTINY_DATA } from "../data/animalDestinyData";
+import {
+  ANIMAL_DESTINY_DATA,
+  STAGE_KEY_TO_ID,
+  STAGE_LABEL_TO_KEY,
+  STAGE_SEQUENCE,
+  STAGE_KEY_TO_LABEL,
+} from "@/components/fortune/animal-twelve/animalTwelveData";
 import { getPrimaryAnimalStage } from "./twelveStages";
-import type { AnimalDestinyData, AnimalId, AnimalCompatibilityResult, SajuEngineResult, TwelveStage } from "./types";
+import type {
+  AnimalDestinyData,
+  AnimalId,
+  AnimalCompatibilityResult,
+  SajuEngineResult,
+  TwelveStage,
+  TwelveStageKey,
+} from "./types";
 
 export const STAGE_TO_ANIMAL: Record<TwelveStage, AnimalId> = {
   장생: "cheetah",
@@ -16,6 +29,35 @@ export const STAGE_TO_ANIMAL: Record<TwelveStage, AnimalId> = {
   태: "wolf",
   양: "fawn",
 };
+
+function relationByDistance(distance: number) {
+  if (distance <= 1) return { relationType: "환상" as const, baseScore: 92 };
+  if (distance <= 2) return { relationType: "좋음" as const, baseScore: 82 };
+  if (distance <= 4) return { relationType: "긴장" as const, baseScore: 62 };
+  return { relationType: "주의" as const, baseScore: 48 };
+}
+
+function stageDistance(myStageKey: TwelveStageKey, partnerStageKey: TwelveStageKey) {
+  const myIndex = STAGE_SEQUENCE.indexOf(myStageKey);
+  const partnerIndex = STAGE_SEQUENCE.indexOf(partnerStageKey);
+  if (myIndex < 0 || partnerIndex < 0) return 6;
+
+  const direct = Math.abs(myIndex - partnerIndex);
+  return Math.min(direct, 12 - direct);
+}
+
+function relationSummary(myAnimal: string, partnerAnimal: string, distance: number) {
+  if (distance <= 1) {
+    return `${myAnimal}와 ${partnerAnimal}는 감정 박자가 비슷해 빠르게 친밀해지는 조합입니다.`;
+  }
+  if (distance <= 2) {
+    return `${myAnimal}와 ${partnerAnimal}는 서로의 장점을 보완하며 성장하는 조합입니다.`;
+  }
+  if (distance <= 4) {
+    return `${myAnimal}와 ${partnerAnimal}는 매력은 크지만 생활 리듬 조율이 필요한 조합입니다.`;
+  }
+  return `${myAnimal}와 ${partnerAnimal}는 표현 방식 차이가 커 경계와 합의가 중요한 조합입니다.`;
+}
 
 export function getAnimalByStage(stage: TwelveStage | null | undefined): AnimalId | null {
   if (!stage) return null;
@@ -47,58 +89,49 @@ export function calculateAnimalCompatibility(myAnimalId: AnimalId, partnerAnimal
   const my = ANIMAL_DESTINY_DATA[myAnimalId];
   const partner = ANIMAL_DESTINY_DATA[partnerAnimalId];
 
-  const base: AnimalCompatibilityResult = {
-    score: 68,
-    relationType: "좋음",
-    summary: `${my.animal_ko}와 ${partner.animal_ko}는 대화와 조율을 잘하면 오래 가는 조합입니다.`,
-    goodPoints: ["현실 감각의 균형", "서로 다른 장점 보완"],
-    clashPoints: ["우선순위 차이", "속도감 차이"],
-    tips: ["감정 체크인 루틴 만들기", "주 1회 서로의 일정 공유"],
-  };
+  const myStageKey = STAGE_LABEL_TO_KEY[my.stageLabel || my.saju_stage];
+  const partnerStageKey = STAGE_LABEL_TO_KEY[partner.stageLabel || partner.saju_stage];
 
-  if (my.compatibility.best.animal_id === partnerAnimalId) {
+  if (!myStageKey || !partnerStageKey) {
     return {
-      score: 92,
-      relationType: "환상",
-      summary: `${my.animal_ko}와 ${partner.animal_ko}는 호흡이 빠르게 맞는 환상 조합입니다.`,
-      goodPoints: ["감정 템포 일치", "동기부여 상승", "갈등 회복력 높음"],
-      clashPoints: ["과몰입으로 페이스 오버"],
-      tips: ["좋은 흐름일 때도 휴식 리듬 유지", "중요 결정은 하루 숙성 후 확정"],
-    };
-  }
-
-  if (my.compatibility.good.animal_id === partnerAnimalId) {
-    return {
-      score: 81,
+      score: 66,
       relationType: "좋음",
-      summary: `${my.animal_ko}와 ${partner.animal_ko}는 성장형 시너지가 큰 좋은 조합입니다.`,
-      goodPoints: ["역할 분담 효율", "현실과 감성 균형"],
-      clashPoints: ["소통 방식 차이"],
-      tips: ["목표와 기대치를 먼저 맞추기", "주간 회고 대화 15분"],
+      summary: `${my.animal_ko}와 ${partner.animal_ko}는 대화를 자주 할수록 안정감이 올라갑니다.`,
+      goodPoints: ["따뜻한 공감", "역할 보완"],
+      clashPoints: ["속도 차이", "표현 온도 차이"],
+      tips: ["주 1회 감정 점검 대화를 해보세요."],
     };
   }
 
-  if (my.compatibility.challenging.animal_id === partnerAnimalId) {
-    return {
-      score: 59,
-      relationType: "긴장",
-      summary: `${my.animal_ko}와 ${partner.animal_ko}는 매력은 강하지만 템포 충돌이 잦은 조합입니다.`,
-      goodPoints: ["새로운 시각 제공", "성장 자극"],
-      clashPoints: ["의사결정 방식 불일치", "감정 표현 온도 차이"],
-      tips: ["논쟁 전 감정 상태 먼저 공유", "결정 기준 문서화"],
-    };
-  }
+  const distance = stageDistance(myStageKey, partnerStageKey);
+  const relation = relationByDistance(distance);
+  const score = relation.baseScore;
 
-  if (my.compatibility.worst.animal_id === partnerAnimalId) {
-    return {
-      score: 42,
-      relationType: "주의",
-      summary: `${my.animal_ko}와 ${partner.animal_ko}는 기대치와 표현 방식이 크게 달라 주의가 필요한 조합입니다.`,
-      goodPoints: ["서로의 맹점 인식 가능"],
-      clashPoints: ["지속적인 오해", "감정 소모"],
-      tips: ["갈등 규칙을 미리 합의", "중립 시간 20분 후 대화 재개", "비난 대신 요청 문장 사용"],
-    };
-  }
+  const myKeywords = my.keywords || [];
+  const partnerKeywords = partner.keywords || [];
 
-  return base;
+  const goodPoints = [
+    `${myKeywords[0] || "안정"}과 ${partnerKeywords[0] || "균형"}의 상호 보완`,
+    `${myKeywords[1] || "배려"}을(를) 통해 신뢰를 쌓는 흐름`,
+    `${partnerKeywords[1] || "실행"}이(가) 관계의 추진력을 높임`,
+  ];
+
+  const clashPoints = [
+    "중요한 결정을 내릴 때 속도 차이가 발생할 수 있음",
+    "감정 표현 방식이 달라 오해가 생길 수 있음",
+    "서로의 휴식 방식이 달라 피로 누적 가능성",
+  ];
+
+  return {
+    score,
+    relationType: relation.relationType,
+    summary: relationSummary(my.animal_ko, partner.animal_ko, distance),
+    goodPoints,
+    clashPoints,
+    tips: [
+      `${STAGE_KEY_TO_LABEL[myStageKey]}-${STAGE_KEY_TO_LABEL[partnerStageKey]} 조합은 경계와 기대치를 먼저 합의할수록 장기 안정성이 높아집니다.`,
+      "갈등이 생기면 감정 해석보다 사실 확인을 먼저 해보세요.",
+      "한 달에 한 번, 관계 목표를 함께 업데이트해 보세요.",
+    ],
+  };
 }

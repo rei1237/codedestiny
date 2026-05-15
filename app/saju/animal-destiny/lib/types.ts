@@ -16,6 +16,30 @@ export type TwelveStage =
   | "태"
   | "양";
 
+export type TwelveStageKey =
+  | "jangsaeng"
+  | "mogyok"
+  | "gwandae"
+  | "geonrok"
+  | "jewang"
+  | "soe"
+  | "byeong"
+  | "sa"
+  | "myo"
+  | "jeol"
+  | "tae"
+  | "yang";
+
+export type StageSource = "saju-engine" | "local-fallback";
+
+export interface TwelveStageResult {
+  key: TwelveStageKey;
+  labelKo: TwelveStage;
+  hanja: string;
+  pillar: "year" | "month" | "day" | "hour";
+  source: StageSource;
+}
+
 export type AnimalId =
   | "cheetah"
   | "monkey"
@@ -30,7 +54,118 @@ export type AnimalId =
   | "wolf"
   | "fawn";
 
+export type AnimalTwelveProfile = {
+  stageKey: TwelveStageKey;
+  stageLabel: TwelveStage;
+  animalName: string;
+  title: string;
+  subtitle: string;
+  keywords: string[];
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
+  symbolItems: string[];
+  energyScores: {
+    charm: number;
+    drive: number;
+    recovery: number;
+    money: number;
+    love: number;
+    intuition: number;
+  };
+  personality: {
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    hiddenPattern: string;
+    advice: string;
+    paragraphs: string[];
+  };
+  love: {
+    style: string;
+    attractionPoint: string;
+    weakPoint: string;
+    advice: string;
+    paragraphs: string[];
+  };
+  relationship: {
+    friends: string;
+    work: string;
+    family: string;
+    caution: string;
+    bestFit: string;
+  };
+  career: {
+    workStyle: string;
+    goodFields: string[];
+    avoidFields: string[];
+    growthAdvice: string;
+    moneyBoostCondition: string;
+  };
+  money: {
+    moneyFlow: string;
+    spendingPattern: string;
+    savingAdvice: string;
+    habitTip: string;
+  };
+  daily: {
+    message: string;
+    luckyAction: string;
+    caution: string;
+    luckyColor: string;
+    luckyItem: string;
+  };
+};
+
+export type StageCompatibility = {
+  relationTemp: number;
+  chemistryType: "환상" | "좋음" | "긴장" | "주의";
+  summary: string;
+  strengths: string[];
+  clashes: string[];
+  loveScore: number;
+  friendScore: number;
+  businessScore: number;
+  advice: string;
+};
+
+export type AnimalTwelveResolvedResult = {
+  ok: boolean;
+  source: StageSource;
+  sajuResult: SajuEngineResult | null;
+  representativeStage: TwelveStageResult | null;
+  allStages: TwelveStageResult[];
+  profile: AnimalDestinyData | null;
+  warning?: string;
+  error?: string;
+};
+
 export interface AnimalDestinyData {
+  stageKey: TwelveStageKey;
+  stageLabel: TwelveStage;
+  animalName: string;
+  titleLine: string;
+  subtitleLine: string;
+  keywords: string[];
+  palette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
+  symbolItems: string[];
+  energyScores: {
+    charm: number;
+    drive: number;
+    recovery: number;
+    money: number;
+    love: number;
+    intuition: number;
+  };
+  profile: AnimalTwelveProfile;
   id: AnimalId;
   saju_stage: TwelveStage;
   stage_hanja: string;
@@ -163,6 +298,11 @@ export interface AnimalDestinyData {
     quote: string;
     hashtags: string[];
   };
+  compatibilityStory: {
+    bestMatchStage: TwelveStage;
+    cautionMatchStage: TwelveStage;
+    narrative: string;
+  };
 }
 
 export interface AnimalDestinyInput {
@@ -180,6 +320,7 @@ export interface TwelveStagePillars {
   month?: TwelveStage;
   day?: TwelveStage;
   hour?: TwelveStage;
+  stageResults?: TwelveStageResult[];
 }
 
 export interface AnimalCompatibilityResult {

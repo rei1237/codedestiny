@@ -121,26 +121,26 @@ export default function AnimalDestinyPage() {
   }, [shareCard]);
 
   return (
-    <main className="min-h-[100dvh] w-full bg-[#0a0218] bg-[radial-gradient(circle_at_20%_30%,#2d1254_0%,transparent_50%),radial-gradient(circle_at_80%_70%,#1e0a3d_0%,transparent_50%)] overflow-x-hidden text-white font-sans">
+    <main className="min-h-[100dvh] w-full overflow-x-hidden bg-[linear-gradient(180deg,#f7f4ea_0%,#f8fbff_42%,#eef5ff_100%)] text-[#1f3550] font-sans">
       <Toaster position="top-center" richColors />
       
       {/* Premium Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-xl border-b border-[#EAD8B1]/20 bg-[#0a0218]/80">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d8c7a4]/45 bg-[#f8f4e8]/85 px-6 py-4 backdrop-blur-xl">
         <button 
           onClick={() => window.history.back()}
-          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors text-[#EAD8B1]"
+          className="-ml-2 rounded-full p-2 text-[#2c4d67] transition-colors hover:bg-[#2c4d67]/10"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
         <div className="flex flex-col items-center">
-          <h2 className="text-xs font-black tracking-[0.3em] uppercase text-[#EAD8B1]">Animal Destiny</h2>
-          <div className="h-0.5 w-8 bg-[#B88E2F] mt-0.5" />
+          <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[#1f4967]">Animal Destiny</h2>
+          <div className="mt-0.5 h-0.5 w-8 bg-[#ca9732]" />
         </div>
         <button 
           onClick={reset}
-          className="p-2 -mr-2 rounded-full hover:bg-white/10 transition-colors text-[#EAD8B1]"
+          className="-mr-2 rounded-full p-2 text-[#2c4d67] transition-colors hover:bg-[#2c4d67]/10"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -149,12 +149,12 @@ export default function AnimalDestinyPage() {
         </button>
       </header>
 
-      <div className="max-w-4xl mx-auto pb-20">
+      <div className="mx-auto max-w-5xl pb-20">
         <AnimalDestinyHero />
 
-        <div className="px-6 space-y-8">
-          <div className="flex items-center justify-center gap-3 py-2 px-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-medium text-purple-200/80">
-            <div className={`w-2 h-2 rounded-full ${isUnlocked ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
+        <div className="space-y-8 px-6">
+          <div className="flex items-center justify-center gap-3 rounded-2xl border border-[#d7c8a8] bg-white/75 px-4 py-2 text-xs font-bold text-[#35526e]">
+            <div className={`h-2 w-2 rounded-full ${isUnlocked ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
             {isUnlocked
               ? "프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다."
               : "해금 상태: 잠금 (분석을 위해 100코인이 필요합니다)"}
@@ -195,7 +195,7 @@ export default function AnimalDestinyPage() {
           ) : null}
 
           {error ? (
-            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-200 text-center backdrop-blur-sm">
+            <div className="rounded-2xl border border-rose-400/40 bg-rose-50 p-5 text-center text-sm text-rose-700 backdrop-blur-sm">
               {error}
             </div>
           ) : null}
@@ -204,13 +204,13 @@ export default function AnimalDestinyPage() {
             <div className="flex flex-col gap-3 pt-8">
               <button
                 onClick={reset}
-                className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-bold hover:bg-white/20 transition-all"
+                className="w-full rounded-2xl border border-[#b6c8d9] bg-white py-4 font-bold text-[#234664] transition-all hover:bg-[#f4f9ff]"
               >
                 다른 생년월일로 테스트하기
               </button>
               <a
                 href="/saju"
-                className="w-full py-4 rounded-2xl border border-amber-400/30 text-amber-200 font-bold text-center hover:bg-amber-400/10 transition-all"
+                className="w-full rounded-2xl border border-[#d8b46d] py-4 text-center font-bold text-[#825f18] transition-all hover:bg-[#fff3da]"
               >
                 사주 운세 메인으로
               </a>

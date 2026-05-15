@@ -74,6 +74,7 @@ const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCa
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-100/85">Code Destiny</p>
           <p className="mt-1 text-xs font-semibold text-cyan-100">Celestial Animal Destiny</p>
+          <p className="mt-1 text-[11px] font-semibold text-cyan-100/85">십이운성 동물점</p>
 
           <div className="mt-4 rounded-2xl border border-cyan-100/30 bg-slate-950/22 p-3 text-center">
             <p className="text-5xl inline-flex items-center justify-center">

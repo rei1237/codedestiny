@@ -1,7 +1,6 @@
 "use client";
 
 import type { AnimalDestinyInput } from "../lib/types";
-import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
 interface Props {
   input: AnimalDestinyInput;
@@ -15,66 +14,66 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
   const isLunar = (input.calendarType || "solar") === "lunar";
 
   return (
-    <section className="space-y-6 rounded-[2.5rem] border-[3px] border-[#d4af37]/40 bg-[#fffcf0] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3),inset_0_0_40px_rgba(212,175,55,0.1)] text-[#3a2d1f]">
+    <section className="space-y-6 rounded-[2.2rem] border border-[#d6c6a7] bg-[linear-gradient(160deg,#fffdfa_0%,#f3f9ff_100%)] p-5 text-[#2a425d] shadow-[0_18px_48px_rgba(28,53,83,0.16)] sm:p-8">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-black tracking-tight text-[#5a2a6d]">운명의 명식 입력</h2>
-        <p className="text-sm font-medium leading-relaxed text-[#3a2d1f]/70">
+        <h2 className="text-2xl font-black tracking-tight text-[#1d4766]">운명의 명식 입력</h2>
+        <p className="text-sm font-semibold leading-relaxed text-[#47637f]">
           당신의 태어난 순간을 입력해 주세요.<br />별들이 당신의 수호 동물을 안내해 드립니다.
         </p>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <label className="space-y-2 text-sm font-bold text-[#5a2a6d]">
+        <label className="space-y-2 text-sm font-bold text-[#2d4966]">
           이름 또는 닉네임
           <input
             value={input.name || ""}
             onChange={(e) => onChange({ name: e.target.value.slice(0, 20) })}
             placeholder="예: 별빛여우"
-            className="w-full rounded-2xl border-2 border-[#d4af37]/20 bg-white px-4 py-3 text-base text-[#3a2d1f] placeholder:text-[#3a2d1f]/30 focus:border-[#5a2a6d] focus:outline-none transition-all"
+            className="w-full rounded-2xl border border-[#c7d7e7] bg-white px-4 py-3 text-base text-[#284662] placeholder:text-[#89a2bb] transition-all focus:border-[#3d7e93] focus:outline-none"
           />
         </label>
 
-        <label className="space-y-2 text-sm font-bold text-[#5a2a6d]">
-          출생일 <span className="text-rose-500">*</span>
+        <label className="space-y-2 text-sm font-bold text-[#2d4966]">
+          출생일 <span className="text-rose-600">*</span>
           <input
             type="date"
             value={input.birthDate}
             onChange={(e) => onChange({ birthDate: e.target.value })}
-            className="w-full rounded-2xl border-2 border-[#d4af37]/20 bg-white px-4 py-3 text-base text-[#3a2d1f] focus:border-[#5a2a6d] focus:outline-none transition-all"
+            className="w-full rounded-2xl border border-[#c7d7e7] bg-white px-4 py-3 text-base text-[#284662] transition-all focus:border-[#3d7e93] focus:outline-none"
           />
         </label>
 
-        <label className="space-y-2 text-sm font-bold text-[#5a2a6d]">
+        <label className="space-y-2 text-sm font-bold text-[#2d4966]">
           달력 타입
           <select
             value={input.calendarType || "solar"}
             onChange={(e) => onChange({ calendarType: e.target.value as AnimalDestinyInput["calendarType"] })}
-            className="w-full rounded-2xl border-2 border-[#d4af37]/20 bg-white px-4 py-3 text-base text-[#3a2d1f] appearance-none focus:border-[#5a2a6d] focus:outline-none transition-all"
+            className="w-full appearance-none rounded-2xl border border-[#c7d7e7] bg-white px-4 py-3 text-base text-[#284662] transition-all focus:border-[#3d7e93] focus:outline-none"
           >
             <option value="solar">양력 (기본)</option>
             <option value="lunar">음력</option>
           </select>
         </label>
 
-        <label className="space-y-2 text-sm font-bold text-[#5a2a6d]">
+        <label className="space-y-2 text-sm font-bold text-[#2d4966]">
           태어난 시간
           <input
             type="time"
             value={input.birthTime || ""}
             onChange={(e) => onChange({ birthTime: e.target.value })}
-            className="w-full rounded-2xl border-2 border-[#d4af37]/20 bg-white px-4 py-3 text-base text-[#3a2d1f] focus:border-[#5a2a6d] focus:outline-none transition-all"
+            className="w-full rounded-2xl border border-[#c7d7e7] bg-white px-4 py-3 text-base text-[#284662] transition-all focus:border-[#3d7e93] focus:outline-none"
           />
-          <span className="block text-[11px] font-medium text-[#3a2d1f]/60 px-1">
+          <span className="block px-1 text-[11px] font-medium text-[#62819f]">
             * 시간을 모르면 비워두셔도 됩니다.
           </span>
         </label>
 
-        <label className="space-y-2 text-sm font-bold text-[#5a2a6d]">
+        <label className="space-y-2 text-sm font-bold text-[#2d4966]">
           성별
           <select
             value={input.gender}
             onChange={(e) => onChange({ gender: e.target.value as AnimalDestinyInput["gender"] })}
-            className="w-full rounded-2xl border-2 border-[#d4af37]/20 bg-white px-4 py-3 text-base text-[#3a2d1f] appearance-none focus:border-[#5a2a6d] focus:outline-none transition-all"
+            className="w-full appearance-none rounded-2xl border border-[#c7d7e7] bg-white px-4 py-3 text-base text-[#284662] transition-all focus:border-[#3d7e93] focus:outline-none"
           >
             <option value="unknown">성별 미선택</option>
             <option value="female">여성</option>
@@ -83,12 +82,12 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
         </label>
 
         {isLunar ? (
-          <label className="flex items-center gap-3 rounded-2xl border-2 border-purple-200 bg-purple-50 px-4 py-3 text-sm font-bold text-[#5a2a6d] md:col-span-2 cursor-pointer hover:bg-purple-100 transition-colors">
+          <label className="cursor-pointer rounded-2xl border border-[#b7d5d7] bg-[#ebf8f7] px-4 py-3 text-sm font-bold text-[#275566] transition-colors hover:bg-[#dff2f0] md:col-span-2 flex items-center gap-3">
             <input
               type="checkbox"
               checked={Boolean(input.lunarLeap)}
               onChange={(e) => onChange({ lunarLeap: e.target.checked })}
-              className="h-5 w-5 accent-[#5a2a6d]"
+              className="h-5 w-5 accent-[#1b7a78]"
             />
             윤달 출생입니다
           </label>
@@ -98,13 +97,13 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
       <button
         onClick={onSubmit}
         disabled={!canSubmit || isBusy}
-        className="relative group w-full mt-4 overflow-hidden rounded-[1.8rem] bg-[#5a2a6d] py-5 text-lg font-black text-white shadow-[0_15px_30px_rgba(90,42,109,0.3)] disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+        className="group relative mt-4 w-full overflow-hidden rounded-[1.8rem] bg-[linear-gradient(130deg,#1d5c74,#1f4566)] py-5 text-lg font-black text-white shadow-[0_15px_30px_rgba(26,69,98,0.3)] transition-all active:scale-[0.98] disabled:opacity-50 hover:scale-[1.01]"
       >
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.2),transparent)] translate-x-[-100%] group-hover:animate-[shimmer_2s_infinite]" />
+        <div className="absolute inset-0 translate-x-[-100%] bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.18),transparent)] group-hover:animate-[shimmer_2s_infinite]" />
         {isBusy ? "별들의 궤적을 읽는 중..." : "나의 수호 동물 소환하기"}
       </button>
 
-      <p className="text-center text-[11px] font-medium text-[#3a2d1f]/50 italic">
+      <p className="text-center text-[11px] font-semibold italic text-[#6884a0]">
         정밀 사주 엔진이 당신의 십이운성을 계산합니다.
       </p>
     </section>

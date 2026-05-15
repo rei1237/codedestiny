@@ -1,4 +1,13 @@
-import type { BranchKo, SajuEngineResult, StemKo, TwelveStage, TwelveStagePillars } from "./types";
+import type {
+  BranchKo,
+  SajuEngineResult,
+  StageSource,
+  StemKo,
+  TwelveStage,
+  TwelveStagePillars,
+  TwelveStageResult,
+} from "./types";
+import { STAGE_KEY_TO_HANJA, STAGE_KEY_TO_LABEL, STAGE_LABEL_TO_KEY } from "@/components/fortune/animal-twelve/animalTwelveData";
 
 const STEM_KO_LIST: StemKo[] = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCH_KO_LIST: BranchKo[] = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
@@ -44,12 +53,57 @@ const TWELVE_STAGE_TABLE: Record<StemKo, Record<BranchKo, TwelveStage>> = {
   계: { 묘: "장생", 인: "목욕", 축: "관대", 자: "건록", 해: "제왕", 술: "쇠", 유: "병", 신: "사", 미: "묘", 오: "절", 사: "태", 진: "양" },
 };
 
+const STAGE_ALIAS_MAP: Record<string, TwelveStage> = {
+  jangsaeng: "장생",
+  mogyok: "목욕",
+  gwandae: "관대",
+  geonrok: "건록",
+  jewang: "제왕",
+  soe: "쇠",
+  byeong: "병",
+  sa: "사",
+  myo: "묘",
+  jeol: "절",
+  tae: "태",
+  yang: "양",
+  "長生": "장생",
+  "沐浴": "목욕",
+  "冠帶": "관대",
+  "建祿": "건록",
+  "帝旺": "제왕",
+  "衰": "쇠",
+  "病": "병",
+  "死": "사",
+  "墓": "묘",
+  "絶": "절",
+  "胎": "태",
+  "養": "양",
+  "양육": "양",
+};
+
+type PillarKey = "year" | "month" | "day" | "hour";
+
 function pickChar(source: string, list: string[]) {
   for (let i = 0; i < source.length; i += 1) {
     const ch = source[i];
     if (list.includes(ch)) return ch;
   }
   return "";
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function toStageResult(pillar: PillarKey, stage: TwelveStage, source: StageSource): TwelveStageResult {
+  const stageKey = STAGE_LABEL_TO_KEY[stage];
+  return {
+    key: stageKey,
+    labelKo: stage,
+    hanja: STAGE_KEY_TO_HANJA[stageKey],
+    pillar,
+    source,
+  };
 }
 
 export function normalizeStem(value: unknown): StemKo | null {
@@ -78,8 +132,29 @@ export function normalizeBranch(value: unknown): BranchKo | null {
   return null;
 }
 
-function toRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+export function normalizeTwelveStage(value: unknown): TwelveStage | null {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  if ((Object.values(STAGE_KEY_TO_LABEL) as string[]).includes(raw)) {
+    return raw as TwelveStage;
+  }
+
+  const compact = raw
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[_-]/g, "");
+
+  const aliasHit = STAGE_ALIAS_MAP[raw] || STAGE_ALIAS_MAP[compact];
+  if (aliasHit) return aliasHit;
+
+  const hanCandidate = pickChar(raw, ["長", "沐", "冠", "建", "帝", "衰", "病", "死", "墓", "絶", "胎", "養"]);
+  if (hanCandidate) {
+    const exact = STAGE_ALIAS_MAP[raw.replace(/\s+/g, "")];
+    if (exact) return exact;
+  }
+
+  return null;
 }
 
 function extractStemFromPillar(pillar: unknown): StemKo | null {
@@ -107,23 +182,18 @@ function extractBranchFromPillar(pillar: unknown): BranchKo | null {
   );
 }
 
-function pickPillar(source: Record<string, unknown>, key: "year" | "month" | "day" | "hour") {
+function pickPillar(source: Record<string, unknown>, key: PillarKey) {
   const pillars = toRecord(source.pillars);
   const fourPillars = toRecord(source.fourPillars);
 
-  const shortMap: Record<string, string> = {
+  const shortMap: Record<PillarKey, string> = {
     year: "y",
     month: "m",
     day: "d",
     hour: "h",
   };
 
-  return (
-    pillars[key] ||
-    pillars[shortMap[key]] ||
-    fourPillars[key] ||
-    source[key]
-  );
+  return pillars[key] || pillars[shortMap[key]] || fourPillars[key] || source[key];
 }
 
 function extractDayStem(source: Record<string, unknown>): StemKo | null {
@@ -137,6 +207,63 @@ function extractDayStem(source: Record<string, unknown>): StemKo | null {
     normalizeStem(source.dayStem) ||
     fromDayPillar
   );
+}
+
+function extractExistingPillarStages(source: Record<string, unknown>) {
+  const out: Partial<Record<PillarKey, TwelveStage>> = {};
+
+  const direct = toRecord(source.twelveStage || source.twelveStages || source.twelveFortune || source.twelveFortunes);
+  (["year", "month", "day", "hour"] as PillarKey[]).forEach((pillar) => {
+    const stage = normalizeTwelveStage(direct[pillar]);
+    if (stage) out[pillar] = stage;
+  });
+
+  const list = Array.isArray(source.twelveStages) ? source.twelveStages : [];
+  list.forEach((item) => {
+    const row = toRecord(item);
+    const pillarRaw = String(row.pillar || row.type || row.position || "").toLowerCase();
+    const stage = normalizeTwelveStage(row.stage || row.label || row.value || row.name);
+    if (!stage) return;
+
+    if (pillarRaw.includes("year") || pillarRaw.includes("연")) out.year = stage;
+    if (pillarRaw.includes("month") || pillarRaw.includes("월")) out.month = stage;
+    if (pillarRaw.includes("day") || pillarRaw.includes("일")) out.day = stage;
+    if (pillarRaw.includes("hour") || pillarRaw.includes("시")) out.hour = stage;
+  });
+
+  (["year", "month", "day", "hour"] as PillarKey[]).forEach((pillar) => {
+    const pillarObj = toRecord(pickPillar(source, pillar));
+    const stage = normalizeTwelveStage(
+      pillarObj.twelveStage || pillarObj.twelveFortune || pillarObj.stage || pillarObj.lifeStage,
+    );
+    if (stage) out[pillar] = stage;
+  });
+
+  return out;
+}
+
+function selectRepresentativeStage(stages: Partial<Record<PillarKey, TwelveStage>>): TwelveStage | undefined {
+  if (stages.day) return stages.day;
+  if (stages.month) return stages.month;
+
+  const values = [stages.year, stages.month, stages.day, stages.hour].filter(Boolean) as TwelveStage[];
+  if (!values.length) return undefined;
+
+  const counter = new Map<TwelveStage, number>();
+  values.forEach((stage) => {
+    counter.set(stage, (counter.get(stage) || 0) + 1);
+  });
+
+  let winner: TwelveStage | undefined;
+  let maxCount = 0;
+  counter.forEach((count, stage) => {
+    if (count > maxCount) {
+      winner = stage;
+      maxCount = count;
+    }
+  });
+
+  return winner || values[0];
 }
 
 export function validateTwelveStageInput(dayStem: unknown, branch: unknown) {
@@ -165,20 +292,44 @@ export function getTwelveStage(dayStem: unknown, branch: unknown): TwelveStage |
 
 export function getTwelveStagesForPillars(sajuResult: SajuEngineResult): TwelveStagePillars {
   const source = toRecord(sajuResult);
-  const dayStem = extractDayStem(source);
-  if (!dayStem) return {};
+  const existing = extractExistingPillarStages(source);
 
+  const dayStem = extractDayStem(source);
   const yearBranch = extractBranchFromPillar(pickPillar(source, "year"));
   const monthBranch = extractBranchFromPillar(pickPillar(source, "month"));
   const dayBranch = extractBranchFromPillar(pickPillar(source, "day"));
   const hourBranch = extractBranchFromPillar(pickPillar(source, "hour"));
 
+  const computed = {
+    year: dayStem && yearBranch ? getTwelveStage(dayStem, yearBranch) || undefined : undefined,
+    month: dayStem && monthBranch ? getTwelveStage(dayStem, monthBranch) || undefined : undefined,
+    day: dayStem && dayBranch ? getTwelveStage(dayStem, dayBranch) || undefined : undefined,
+    hour: dayStem && hourBranch ? getTwelveStage(dayStem, hourBranch) || undefined : undefined,
+  } as Partial<Record<PillarKey, TwelveStage>>;
+
+  const merged: Partial<Record<PillarKey, TwelveStage>> = {
+    year: existing.year || computed.year,
+    month: existing.month || computed.month,
+    day: existing.day || computed.day,
+    hour: existing.hour || computed.hour,
+  };
+
+  const stageResults: TwelveStageResult[] = (["year", "month", "day", "hour"] as PillarKey[])
+    .map((pillar) => {
+      const stage = merged[pillar];
+      if (!stage) return null;
+      const sourceType: StageSource = existing[pillar] ? "saju-engine" : "local-fallback";
+      return toStageResult(pillar, stage, sourceType);
+    })
+    .filter(Boolean) as TwelveStageResult[];
+
   return {
-    primary: dayBranch ? getTwelveStage(dayStem, dayBranch) || undefined : undefined,
-    year: yearBranch ? getTwelveStage(dayStem, yearBranch) || undefined : undefined,
-    month: monthBranch ? getTwelveStage(dayStem, monthBranch) || undefined : undefined,
-    day: dayBranch ? getTwelveStage(dayStem, dayBranch) || undefined : undefined,
-    hour: hourBranch ? getTwelveStage(dayStem, hourBranch) || undefined : undefined,
+    primary: selectRepresentativeStage(merged),
+    year: merged.year,
+    month: merged.month,
+    day: merged.day,
+    hour: merged.hour,
+    stageResults,
   };
 }
 
@@ -198,8 +349,6 @@ export function getNormalizedSajuCore(sajuResult: SajuEngineResult) {
   };
 }
 
-type PillarKey = "year" | "month" | "day" | "hour";
-
 export interface FourPillarStageItem {
   pillar: PillarKey;
   stem: StemKo | null;
@@ -209,52 +358,37 @@ export interface FourPillarStageItem {
 
 export function getFourPillarStageItems(sajuResult: SajuEngineResult): Record<PillarKey, FourPillarStageItem> {
   const source = toRecord(sajuResult);
-  const dayStem = extractDayStem(source);
+  const pillarStages = getTwelveStagesForPillars(sajuResult);
 
   const yearPillar = pickPillar(source, "year");
   const monthPillar = pickPillar(source, "month");
   const dayPillar = pickPillar(source, "day");
   const hourPillar = pickPillar(source, "hour");
 
-  const yearStem = extractStemFromPillar(yearPillar);
-  const monthStem = extractStemFromPillar(monthPillar);
-  const dayPillarStem = extractStemFromPillar(dayPillar);
-  const hourStem = extractStemFromPillar(hourPillar);
-
-  const yearBranch = extractBranchFromPillar(yearPillar);
-  const monthBranch = extractBranchFromPillar(monthPillar);
-  const dayBranch = extractBranchFromPillar(dayPillar);
-  const hourBranch = extractBranchFromPillar(hourPillar);
-
-  const calc = (branch: BranchKo | null): TwelveStage | undefined => {
-    if (!dayStem || !branch) return undefined;
-    return getTwelveStage(dayStem, branch) || undefined;
-  };
-
   return {
     year: {
       pillar: "year",
-      stem: yearStem,
-      branch: yearBranch,
-      stage: calc(yearBranch),
+      stem: extractStemFromPillar(yearPillar),
+      branch: extractBranchFromPillar(yearPillar),
+      stage: pillarStages.year,
     },
     month: {
       pillar: "month",
-      stem: monthStem,
-      branch: monthBranch,
-      stage: calc(monthBranch),
+      stem: extractStemFromPillar(monthPillar),
+      branch: extractBranchFromPillar(monthPillar),
+      stage: pillarStages.month,
     },
     day: {
       pillar: "day",
-      stem: dayPillarStem || dayStem,
-      branch: dayBranch,
-      stage: calc(dayBranch),
+      stem: extractStemFromPillar(dayPillar),
+      branch: extractBranchFromPillar(dayPillar),
+      stage: pillarStages.day || pillarStages.primary,
     },
     hour: {
       pillar: "hour",
-      stem: hourStem,
-      branch: hourBranch,
-      stage: calc(hourBranch),
+      stem: extractStemFromPillar(hourPillar),
+      branch: extractBranchFromPillar(hourPillar),
+      stage: pillarStages.hour,
     },
   };
 }
