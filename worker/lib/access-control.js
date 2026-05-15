@@ -28,6 +28,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "lifeBook") {
     return [
       {
+        featureKey: "premium_pdf_saju_life_book",
+        reason: "인생의 책 생성 (13챕터)",
+        minCost: 500,
+        windowMinutes: 30,
+      },
+      {
         featureKey: "premium-lifebook-report",
         reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
@@ -45,20 +51,45 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "loveSecret") {
     const modeToken = normalizeModeToken(requestBody);
     const isCouple = modeToken.includes("couple");
-    return [{
-      featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
-      reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
-      minCost: isCouple ? 400 : 300,
-      windowMinutes: 45,
-    }];
+    return [
+      {
+        featureKey: isCouple ? "premium_pdf_saju_love_secret_compat" : "premium_pdf_saju_love_secret",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 45,
+      },
+      {
+        featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 45,
+      },
+    ];
   }
 
   if (reportType === "ziweiPremium") {
+    return [
+      {
+        featureKey: "premium_pdf_ziwei",
+        reason: "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: 590,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-ziwei-report",
+        reason: "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: 590,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "sibylDominator") {
     return [{
-      featureKey: "premium-ziwei-report",
-      reason: "자미두수 프리미엄 PDF 리포트 생성",
-      minCost: 590,
-      windowMinutes: 120,
+      featureKey: "premium-sibyl-dominator",
+      reason: "시빌라 도미네이터 리포트",
+      minCost: 100,
+      windowMinutes: 45,
     }];
   }
 

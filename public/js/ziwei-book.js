@@ -79,7 +79,7 @@
   var _currentChapter = 1;
   var _mysticTimer = null;
   var PREMIUM_ZIWEI_COST = 590;
-  var PREMIUM_ZIWEI_FEATURE_KEY = 'premium-ziwei';
+  var PREMIUM_ZIWEI_FEATURE_KEY = 'premium-ziwei-report';
   var PREMIUM_ZIWEI_TX_KEY = 'cd_premium_tx_ziwei';
   var ADVANCED_ZIWEI_CACHE_KEYS = ['premium:ziwei:result:v7', 'premium:ziwei:result:v6', 'premium:ziwei:result:v5'];
   var ZB_DIRECT_TAP_MOVE_THRESHOLD = 8;
@@ -1232,19 +1232,35 @@
       ? chapterNumEl.parentElement
       : null;
 
+    function _resolvePipelineStage(done) {
+      if (done <= 0) {
+        return {
+          phase: '결제 확인 중 → 명반 계산 중 → 정규화 중',
+          subtitle: '결제/세션/명반 데이터를 확인하고 있습니다.'
+        };
+      }
+      if (done < 13) {
+        return {
+          phase: 'Gemini 해석 생성 중',
+          subtitle: 'Chapter ' + (done + 1) + '/13 · ' + (CHAPTER_SUBTITLES[done] || '')
+        };
+      }
+      return {
+        phase: 'PDF 렌더링 중 → 다운로드 준비 완료',
+        subtitle: '전체 챕터를 통합해 PDF를 정리하고 있습니다.'
+      };
+    }
+
     function _setProgress(done) {
       var pct = Math.round((done / 13) * 100);
       if (progressBar) progressBar.style.width = pct + '%';
       if (progressText) progressText.textContent = done + ' / 13 챕터 완성 (' + pct + '%)';
       if (stageEl) {
-        var _phase = done === 0
-          ? '데이터 검증 및 명반 정렬 중'
-          : (done < 13 ? ('AI가 Chapter ' + (done + 1) + ' 분석 중') : 'PDF 저장 준비 완료');
-        var _subtitle = done < 13 ? (CHAPTER_SUBTITLES[done] || '') : '전체 챕터 정리를 완료했습니다.';
-        stageEl.textContent = '진행 단계: ' + _phase + ' · ' + _subtitle;
+        var _stage = _resolvePipelineStage(done);
+        stageEl.textContent = '진행 단계: ' + _stage.phase + ' · ' + _stage.subtitle;
       }
       if (loadingStatusEl && done < 13) loadingStatusEl.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (loadingStatusEl && done >= 13) loadingStatusEl.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
+      if (loadingStatusEl && done >= 13) loadingStatusEl.textContent = 'PDF 렌더링 및 다운로드 준비 중...';
       if (chapterNumEl) chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
       if (chapterTitleEl && done < 13) chapterTitleEl.textContent = CHAPTER_TITLES[done] || '분석 중...';
       if (chapterTitleEl && done >= 13) chapterTitleEl.textContent = '모든 챕터 분석 완료';
@@ -1326,6 +1342,10 @@
       if (_premiumReportSessionId) {
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
       }
+      if (stageEl) {
+        stageEl.textContent = '진행 단계: 결제 확인 중 → 명반 계산 중 → 정규화 중 · 프리미엄 세션을 준비하고 있습니다.';
+      }
+      if (loadingStatusEl) loadingStatusEl.textContent = '결제와 세션 상태를 확인하는 중...';
       if (typeof window.__cdPremiumAuthJson !== 'function') {
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
@@ -1336,6 +1356,7 @@
       }).then(function (prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
           _premiumReportSessionId = String(prepared.reportSessionId);
+          if (loadingStatusEl) loadingStatusEl.textContent = '명반 정규화가 완료되어 챕터 생성을 시작합니다...';
           return prepared;
         }
         return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
@@ -1396,9 +1417,11 @@
             || code === 'PREMIUM_REPORT_CHAPTER_DATA_MISSING'
           ) {
             data = data || { ok: false };
-            data.fatal = true;
-            data.errorCode = 'DATA_INCOMPLETE';
-            data.message = _formatPremiumFailureMessage(data, '계산 데이터가 부족해 리포트를 생성할 수 없습니다.');
+            data.fatal = false;
+            data.errorCode = 'DATA_INCOMPLETE_SOFT';
+            data.retryable = tryNo < _maxChapterAttempts;
+            data.message = _formatPremiumFailureMessage(data, '일부 명반 데이터가 부족해 보완 생성으로 재시도합니다.');
+            if (tryNo < _maxChapterAttempts) return _attempt(tryNo + 1);
             return data;
           }
           if (status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND') {
@@ -1452,7 +1475,7 @@
           _trace('GENERATION_FAILED', { validChapters: _validCount, totalChapters: 13, reason: 'CHAPTERS_INCOMPLETE' });
           var errEl = _qs('zbErrorMsg');
           if (errEl) errEl.textContent = _validCount === 0
-            ? '모든 챕터 생성에 실패했습니다. 명반 계산 데이터 누락 또는 서버 응답 지연이 원인일 수 있습니다. 계산 데이터를 다시 확인한 뒤 재시도해 주세요.'
+            ? '모든 챕터 생성에 실패했습니다. 보완 생성 재시도 또는 서버 응답 지연이 원인일 수 있습니다. 잠시 후 다시 시도해 주세요.'
             : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
@@ -1519,7 +1542,7 @@
           _generating = false;
           if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
           var dataErrEl = _qs('zbErrorMsg');
-          if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 명반 데이터가 누락되었습니다. 계산 후 다시 시도해 주세요.');
+          if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, '명반 보완 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
           _showScreen('zbErrorScreen');
           _trace('GENERATION_FAILED', {
             chapter: idx + 1,
