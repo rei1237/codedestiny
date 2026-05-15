@@ -1332,7 +1332,7 @@ export default function PointsPage() {
       "x-admin-token": flowerAdminToken,
       ...(adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
     } : {};
-    authFetch(`${apiBase}/api/subscription/me`, {
+    authFetch(`${apiBase}/api/subscription/status`, {
       method: "GET",
       credentials: "include",
       headers: adminHeaders,
@@ -1343,33 +1343,22 @@ export default function PointsPage() {
     })
       .then((r) => {
         if (!r.ok && r.status !== 401 && r.status !== 403) {
-          console.warn("[points-page] API error", { path: "/api/subscription/me", status: r.status });
+          console.warn("[points-page] API error", { path: "/api/subscription/status", status: r.status });
         }
         return r;
       })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         if (!d) return;
-        const benefits = d.benefits && typeof d.benefits === "object" ? d.benefits : {};
-        const current = d.subscription && typeof d.subscription === "object" ? d.subscription : {};
         setSubscription({
-          tier: d.tier || (typeof current.planId === "string"
-            ? (current.planId === "honey_standard" ? "standard"
-              : current.planId === "honey_premium" ? "premium"
-                : current.planId === "honey_vvip" ? "vvip"
-                  : "free")
-            : "free"),
-          isActive: !!(d.isActive ?? benefits.isSubscriber),
-          expiresAt: d.expiresAt || current.currentPeriodEnd || null,
-          profileLimit: typeof d.profileLimit === "number"
-            ? d.profileLimit
-            : (typeof benefits.profileLimit === "number" ? benefits.profileLimit : 1),
+          tier:              d.tier         || "free",
+          isActive:          !!d.isActive,
+          expiresAt:         d.expiresAt    || null,
+          profileLimit:      typeof d.profileLimit === "number" ? d.profileLimit : 1,
           lowBalanceWarning: !!d.lowBalanceWarning,
-          cancelAtPeriodEnd: !!(d.cancelAtPeriodEnd ?? current.cancelAtPeriodEnd),
+          cancelAtPeriodEnd: !!d.cancelAtPeriodEnd,
           cancelRequestedAt: d.cancelRequestedAt || null,
-          freeLimit: typeof d.freeLimit === "number"
-            ? d.freeLimit
-            : (typeof benefits.freeServiceThresholdCoins === "number" ? benefits.freeServiceThresholdCoins : 0),
+          freeLimit: typeof d.freeLimit === "number" ? d.freeLimit : 0,
         });
       })
       .catch(() => {});
@@ -1943,90 +1932,196 @@ export default function PointsPage() {
   };
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
+    const flowerAdminToken = getFlowerAdminTokenClient();
+
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
     }
 
     setIsProcessing(true);
-    setProcessingText("구독 결제 중입니다. 꽃돼지 코인을 확인하고 있어요.");
+    setProcessingText(`${plan.title} 카드 정기결제를 준비하고 있습니다...`);
 
     try {
-      const res = await authFetch(`${apiBase}/api/subscription/subscribe`, {
+      const prepareRes = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({
-          planId: plan.id,
-          idempotencyKey: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
-        }),
+        body: JSON.stringify({ tier: plan.id, paymentMethod: selectedMethod || "card_general" }),
       }, {
         retryOn401: true,
         apiBase,
       });
 
-      const data = await safeParseJson<{
-        ok?: boolean;
-        code?: string;
-        message?: string;
-        chargedCoins?: number;
-        balanceAfter?: number;
-        requiredCoins?: number;
-        currentCoins?: number;
-        subscription?: {
-          tier?: SubscriptionStatus["tier"];
-          isActive?: boolean;
-          expiresAt?: string | null;
-          profileLimit?: number;
-          cancelAtPeriodEnd?: boolean;
-        };
-      }>(res);
-
-      if (!res.ok || data.ok === false) {
-        if ((data.code || "") === "INSUFFICIENT_COINS_FOR_SUBSCRIPTION") {
-          const required = Number(data.requiredCoins || plan.coins);
-          const current = Number(data.currentCoins || currentPoints);
-          const lack = Math.max(0, required - current);
-          pushToast("error", `코인이 부족하여 구독을 시작할 수 없습니다. 필요 코인: ${required} / 보유 코인: ${current} / 부족 코인: ${lack}`);
-          return;
-        }
-        pushToast("error", data.message || "구독 처리에 실패했습니다.");
+      if (prepareRes.status === 404 || prepareRes.status === 405 || prepareRes.status === 501) {
+        await handleSubscribeLegacy(plan);
         return;
       }
 
-      if (typeof data.balanceAfter === "number") {
-        persistUserPoints(Number(data.balanceAfter));
+      const prepareData = await safeParseJson<PrepareSubscriptionOrderResponse>(prepareRes);
+      if (!prepareRes.ok || !prepareData.order) {
+        if (prepareRes.status === 409) {
+          pushToast("error", prepareData.message || "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.");
+          return;
+        }
+        pushToast("error", prepareData.message || "구독 결제 준비에 실패했습니다.");
+        return;
       }
 
-      if (data.subscription) {
-        const newSub: SubscriptionStatus = {
-          tier: data.subscription.tier || "free",
-          source: "coin",
-          isActive: !!data.subscription.isActive,
-          expiresAt: data.subscription.expiresAt || null,
-          profileLimit: typeof data.subscription.profileLimit === "number" ? data.subscription.profileLimit : 1,
-          lowBalanceWarning: false,
-          cancelAtPeriodEnd: !!data.subscription.cancelAtPeriodEnd,
-          cancelRequestedAt: null,
-          freeLimit: 0,
-        };
-        setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
-        persistSubscriptionCache(newSub);
-      }
+      await ensurePortoneSdk();
+      if (!window.IMP) throw new Error("포트원 결제 SDK가 초기화되지 않았습니다.");
 
-      setShowStarBurst(true);
-      setTimeout(() => setShowStarBurst(false), 1200);
-      pushToast("success", data.message || "구독이 시작되었습니다. 앞으로 30일간 꿀 구독 혜택을 이용할 수 있어요.");
+      const order = prepareData.order;
+      const pgConfig = resolvePgConfig(selectedMethod || "card_general");
+      window.IMP.init(PORTONE_IMP_CODE);
+
+      const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
+      redirectUrl.searchParams.set("portone_subscription_redirect", "1");
+
+      const buyerName = authUser.name || "회원";
+      const buyerEmail = authUser.email || "";
+
+      const requestData: Record<string, unknown> = {
+        pg: pgConfig.pg,
+        pay_method: pgConfig.payMethod,
+        merchant_uid: order.merchantUid,
+        name: order.productName,
+        amount: order.paymentAmount,
+        buyer_name: buyerName,
+        buyer_email: buyerEmail,
+        customer_uid: order.customerUid,
+        customerName: buyerName,
+        customerEmail: buyerEmail,
+        m_redirect_url: redirectUrl.toString(),
+        custom_data: {
+          userId: authUser.id,
+          subscriptionTier: plan.id,
+          subscriptionSource: "card",
+          paymentMethod: selectedMethod || "card_general",
+        },
+      };
+
+      if (PORTONE_STORE_ID) requestData.storeId = PORTONE_STORE_ID;
+      if (PORTONE_CHANNEL_KEY) requestData.channelKey = PORTONE_CHANNEL_KEY;
+      if (PORTONE_NOTICE_URL) requestData.notice_url = PORTONE_NOTICE_URL;
+
+      savePendingSubscriptionOrder({
+        merchantUid: order.merchantUid,
+        customerUid: order.customerUid,
+        tier: plan.id,
+        paymentMethod: selectedMethod || "card_general",
+      });
+
+      await new Promise<void>((resolve) => {
+        window.IMP!.request_pay(requestData, async (rsp: PortOnePaymentResponse) => {
+          if (!rsp || !rsp.success || !rsp.imp_uid) {
+            clearPendingSubscriptionOrder();
+            const message = mapPaymentErrorMessage(
+              rsp?.error_msg || rsp?.errorMsg || "구독 결제가 취소되었습니다.",
+            );
+            reportPaymentFailureToServer({
+              merchantUid: order.merchantUid,
+              impUid: rsp?.imp_uid,
+              reasonCode: "subscription_client_cancel_or_fail",
+              reasonMessage: message,
+              paymentMethod: selectedMethod || "card_general",
+            });
+            pushToast("error", message);
+            resolve();
+            return;
+          }
+
+          try {
+            setProcessingText("구독 결제 검증 및 활성화를 진행하고 있습니다...");
+            const confirmRes = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                impUid: rsp.imp_uid,
+                merchantUid: order.merchantUid,
+                tier: plan.id,
+                customerUid: order.customerUid,
+                paymentMethod: selectedMethod || "card_general",
+              }),
+            }, {
+              retryOn401: true,
+              apiBase,
+            });
+
+            const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
+            if (!confirmRes.ok) {
+              clearPendingSubscriptionOrder();
+              pushToast("error", confirmData.message || "구독 결제 확인에 실패했습니다.");
+              resolve();
+              return;
+            }
+
+            if (confirmData.user?.points !== undefined) persistUserPoints(Number(confirmData.user.points));
+
+            if (confirmData.subscription) {
+              const newSub: SubscriptionStatus = {
+                tier: confirmData.subscription?.tier || "free",
+                source: confirmData.subscription?.source || "card",
+                isActive: !!confirmData.subscription?.isActive,
+                expiresAt: confirmData.subscription?.expiresAt || null,
+                profileLimit: typeof confirmData.subscription?.profileLimit === "number"
+                  ? confirmData.subscription.profileLimit
+                  : 1,
+                lowBalanceWarning: false,
+                cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
+                cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
+                freeLimit: 0,
+              };
+              setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+              persistSubscriptionCache(newSub);
+            }
+
+            clearPendingSubscriptionOrder();
+            pushToast("success", confirmData.message || `${plan.title} 카드 정기결제가 활성화되었습니다! ✨`);
+            setShowStarBurst(true);
+            setTimeout(() => setShowStarBurst(false), 1200);
+          } catch (error: unknown) {
+            clearPendingSubscriptionOrder();
+            reportPaymentFailureToServer({
+              merchantUid: order.merchantUid,
+              impUid: rsp.imp_uid,
+              reasonCode: "subscription_confirm_failed",
+              reasonMessage: getErrorMessage(error, "구독 결제 확인에 실패했습니다."),
+              paymentMethod: selectedMethod || "card_general",
+            });
+            pushToast("error", getErrorMessage(error, "구독 결제 확인에 실패했습니다."));
+          } finally {
+            resolve();
+          }
+        });
+      });
     } catch (error: unknown) {
-      pushToast("error", getErrorMessage(error, "구독 처리 중 오류가 발생했습니다."));
+      const message = getErrorMessage(error, "구독 처리 중 오류가 발생했습니다.");
+      clearPendingSubscriptionOrder();
+      if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 구독")) {
+        pushToast("error", "이미 활성 구독이 있어 중복 구독을 신청할 수 없습니다.");
+        return;
+      }
+      try {
+        await handleSubscribeLegacy(plan);
+        return;
+      } catch {
+        pushToast("error", message);
+      }
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleSubscriptionCancel = async (resume: boolean) => {
+    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
+    const flowerAdminToken = getFlowerAdminTokenClient();
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
@@ -2040,13 +2135,15 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingText(resume ? "자동 갱신을 다시 설정하는 중입니다..." : "구독 해지를 예약하는 중입니다...");
     try {
-      const res = await authFetch(`${apiBase}/api/subscription/auto-renew`, {
+      const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+          ...(isFlowerAdmin && adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({ autoRenewEnabled: resume }),
+        body: JSON.stringify({ resume }),
       }, {
         retryOn401: true,
         apiBase,

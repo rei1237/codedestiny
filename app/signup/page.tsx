@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { authFetch } from "../_lib/auth-client";
-import { clearAuthError, refreshAuth, register as registerWithStore } from "../_lib/auth-store";
+import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 
 declare global {
   interface Window {
@@ -151,9 +150,12 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
+  const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
+
+  const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
   const abortBootstrapAuthCheck = useCallback(() => {
     const activeController = bootstrapAuthCheckControllerRef.current;
@@ -163,8 +165,21 @@ export default function SignupPage() {
     }
   }, []);
 
-  const persistAuth = (user?: SignupResult["user"]) => {
+  const persistAuth = (user?: SignupResult["user"], accessToken?: string) => {
+    if (user || accessToken) {
+      authCommittedRef.current = true;
+    }
+    if (accessToken) {
+      try {
+        localStorage.setItem("fortune_auth_token", String(accessToken));
+      } catch {
+        // ignore storage failures
+      }
+    }
     if (user) {
+      const safeUser = persistSanitizedAuthUser(user);
+      const role = String((safeUser && safeUser.role) || user.role || "user");
+      document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
       publishAuthSync("login");
     }
   };
@@ -191,13 +206,11 @@ export default function SignupPage() {
     bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    authFetch("/api/auth/me", {
+    fetch(`${authApiBase}/api/auth/me`, {
       method: "GET",
+      credentials: "include",
       cache: "no-store",
       signal: controller.signal,
-    }, {
-      apiBase: authApiBase,
-      retryOn401: true,
     })
       .then(async (response) => {
         if (!response.ok) return null;
@@ -205,7 +218,7 @@ export default function SignupPage() {
       })
       .then((payload) => {
         if (!payload?.user) return;
-        persistAuth(payload.user);
+        persistAuth(payload.user, payload.accessToken);
         const nextPath = resolveNextPathFromQuery(params);
         setIsRedirecting(true);
         timer = setTimeout(() => redirectAfterAuth(nextPath, payload.user), 400);
@@ -251,15 +264,11 @@ export default function SignupPage() {
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const nextResponse = await authFetch("/api/auth/oauth/complete", {
+          const nextResponse = await fetch(socialCompleteEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ socialGrant }),
-          }, {
-            apiBase: authApiBase,
-            retryOn401: false,
-            timeoutMs: LOCAL_AUTH_TIMEOUT_MS,
-            transientRetries: 1,
           });
 
           if (nextResponse.status >= 500 && attempt === 0) {
@@ -291,17 +300,12 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        const refreshedUser = await refreshAuth({ force: true, silent: false });
-        if (!refreshedUser) {
-          throw new Error("로그인은 완료되었지만 세션 확인에 실패했습니다. 다시 시도해 주세요.");
-        }
-
-        persistAuth(refreshedUser as SignupResult["user"]);
+        persistAuth(payload.user, payload.accessToken);
 
         const nextFromQuery = resolveNextPathFromQuery(params);
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
-        redirectAfterAuth(nextPath, refreshedUser as SignupResult["user"]);
+        redirectAfterAuth(nextPath, payload.user);
       })
       .catch((e: Error) => {
         setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");
@@ -309,7 +313,7 @@ export default function SignupPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [abortBootstrapAuthCheck, authApiBase, redirectAfterAuth]);
+  }, [abortBootstrapAuthCheck, redirectAfterAuth, socialCompleteEndpoint]);
 
   const hasRequiredConsents = agreePrivacy && agreeTerms;
 
@@ -330,25 +334,61 @@ export default function SignupPage() {
     }
 
     setError("");
-    clearAuthError();
     setLoading(true);
 
     try {
       const params = new URLSearchParams(window.location.search);
       const nextPath = resolveNextPathFromQuery(params);
-      const result = await registerWithStore({
-        name: name.trim(),
-        email: loginId.trim(),
-        password,
-        birthDate,
-        birthTime,
-        gender,
-        nextPath,
-        apiBase: authApiBase,
-      });
 
-      const resolvedNextPath = sanitizeNextPath(result.nextPath || null) || nextPath;
-      redirectAfterAuth(resolvedNextPath, result.user as SignupResult["user"]);
+      let response: Response | null = null;
+      let lastFetchError: Error | null = null;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              name: name.trim(),
+              email: loginId.trim(),
+              password,
+              birthDate,
+              birthTime,
+              gender,
+              nextPath,
+            }),
+          });
+
+          if (nextResponse.status >= 500 && attempt === 0) {
+            await sleep(250);
+            continue;
+          }
+
+          response = nextResponse;
+          break;
+        } catch (error) {
+          lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
+          if (attempt === 0) {
+            await sleep(250);
+            continue;
+          }
+        }
+      }
+
+      if (!response) {
+        throw (lastFetchError || new Error("회원가입 처리 중 오류가 발생했습니다."));
+      }
+
+      const payload = await parseJsonResponse<SignupResult & { errors?: string[] }>(response);
+      if (!response.ok) {
+        throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
+      }
+
+      persistAuth(payload.user, payload.accessToken);
+      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
+
+      redirectAfterAuth(resolvedNextPath, payload.user);
     } catch (e) {
       const message = e instanceof Error ? e.message : "회원가입 처리 중 오류가 발생했습니다.";
       if (message === "Failed to fetch") {
@@ -381,64 +421,55 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#0a0e27_0%,#1a0a2e_25%,#16213e_50%,#0f3460_75%,#0a1428_100%)] px-4 py-10 text-slate-100">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#3b0764] px-4 py-10 text-slate-100">
       {(loading || isRedirecting) && (
-        <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0a0e27 0%, #1a0a2e 25%, #16213e 50%, #0f3460 75%, #0a1428 100%)" }}>
+        <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #3b0764 100%)" }}>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:60px_60px] opacity-35" />
           <div className="relative z-10 flex flex-col items-center gap-6">
             <div className="relative h-20 w-20">
-              <div className="absolute inset-0 rounded-full border border-violet-500/30" />
+              <div className="absolute inset-0 rounded-full border border-violet-500/20" />
               <div className="absolute inset-0 rounded-full border-t-2 border-violet-400 animate-spin" />
-              <div className="absolute inset-[5px] rounded-full border-t-2 border-indigo-400/70 animate-spin" style={{ animationDuration: "1.4s", animationDirection: "reverse" }} />
+              <div className="absolute inset-[5px] rounded-full border-t-2 border-fuchsia-400/70 animate-spin" style={{ animationDuration: "1.4s", animationDirection: "reverse" }} />
               <div className="absolute inset-0 flex items-center justify-center text-2xl text-violet-300 animate-pulse">✦</div>
             </div>
             <div className="text-center">
-              <p className="text-base font-bold tracking-wide text-white">{isRedirecting ? "운명의 세계로 이동 중..." : "신비의 문을 열고 있습니다"}</p>
+              <p className="text-base font-bold tracking-wide text-white">{isRedirecting ? "별빛 여정으로 이동 중..." : "별빛 회원가입 포털을 열고 있습니다"}</p>
               <p className="mt-1 text-sm text-violet-200/60">잠시만 기다려 주세요...</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* 우주 배경 - 행성 배치 */}
-      <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-purple-600/20 via-purple-800/10 to-transparent blur-3xl opacity-60" />
-      <div className="pointer-events-none absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-600/10 to-transparent blur-3xl opacity-50" />
-      <div className="pointer-events-none absolute -bottom-20 left-1/4 w-72 h-72 rounded-full bg-gradient-to-br from-indigo-600/15 via-purple-700/10 to-transparent blur-3xl opacity-40" />
-      <div className="pointer-events-none absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-amber-600/12 via-orange-700/8 to-transparent blur-3xl opacity-35" />
-
-      {/* 별 필드 */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(147,197,253,0.25)_0.5px,transparent_0.5px),radial-gradient(circle_at_60%_45%,rgba(199,210,254,0.2)_0.3px,transparent_0.3px),radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.22)_0.4px,transparent_0.4px)] [background-size:82px_82px,123px_123px,156px_156px] opacity-40 animate-twinkle" />
-      
-      {/* 심층 우주 그리드 */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(139,92,246,0.15),transparent_35%),radial-gradient(circle_at_75%_35%,rgba(34,211,238,0.12),transparent_40%),radial-gradient(circle_at_50%_80%,rgba(249,115,22,0.08),transparent_45%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.20)_1px,transparent_1px)] [background-size:64px_64px] opacity-40 animate-twinkle" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(168,85,247,0.32),transparent_28%),radial-gradient(circle_at_15%_80%,rgba(147,51,234,0.22),transparent_33%)]" />
 
       <div className="relative mx-auto w-full max-w-xl opacity-0 animate-fade-in-up">
-        <div className="rounded-3xl bg-gradient-to-br from-violet-400/30 via-indigo-500/25 to-blue-600/20 p-[2px] shadow-[0_0_60px_rgba(139,92,246,0.3),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-sm">
-          <section className="rounded-3xl border border-violet-300/25 bg-gradient-to-br from-slate-900/70 via-slate-950/60 to-slate-900/70 p-6 backdrop-blur-2xl [color-scheme:dark] sm:p-8 shadow-inner">
+        <div className="rounded-3xl bg-gradient-to-br from-violet-300/35 via-fuchsia-300/10 to-slate-200/35 p-[1px] shadow-violet-neon">
+          <section className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl [color-scheme:dark] sm:p-8">
             <header className="mb-6 text-center">
-              <p className="mb-2 inline-flex rounded-full border border-violet-300/50 bg-violet-500/15 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-violet-200">
-                ✦ DESTINY AWAKENS ✦
+              <p className="mb-2 inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-violet-200">
+                TWILIGHT SIGN UP
               </p>
-              <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-lg sm:text-4xl bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-transparent">운명의 문을 열다</h1>
-              <p className="mt-3 text-sm leading-6 text-violet-100/85">
-                우주의 신비로운 에너지와 함께 당신의 운명을 탐색하세요.
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">신비로운 별빛 회원가입</h1>
+              <p className="mt-2 text-sm leading-6 text-violet-100/80">
+                아이디(이메일)/비밀번호 회원가입 또는 소셜 회원가입을 선택할 수 있습니다.
               </p>
-              <p className="mt-2 text-xs text-violet-100/70">
-                이미 계정이 있다면 {" "}
-                <Link href="/login" className="font-semibold text-violet-100 underline decoration-violet-400/60 underline-offset-4 hover:text-violet-50 transition">
+              <p className="mt-3 text-sm text-violet-100/75">
+                이미 계정이 있다면{" "}
+                <Link href="/login" className="font-semibold text-violet-200 underline decoration-violet-300/70 underline-offset-4 hover:text-violet-100">
                   로그인
                 </Link>
                 으로 이동하세요.
               </p>
 
-              <div className="mt-5 inline-flex rounded-full border border-violet-300/35 bg-violet-950/40 p-1 shadow-lg shadow-violet-500/10">
+              <div className="mt-4 inline-flex rounded-full border border-violet-200/25 bg-slate-950/30 p-1">
                 <Link
                   href="/login"
-                  className="min-h-0 min-w-0 rounded-full px-3 py-1.5 text-xs font-semibold text-violet-100/70 transition hover:text-violet-50"
+                  className="min-h-0 min-w-0 rounded-full px-3 py-1.5 text-xs font-semibold text-violet-200/85 transition hover:text-violet-100"
                 >
                   로그인
                 </Link>
-                <span className="min-h-0 min-w-0 rounded-full bg-gradient-to-r from-violet-500/30 to-indigo-500/30 px-3 py-1.5 text-xs font-semibold text-violet-100">
+                <span className="min-h-0 min-w-0 rounded-full bg-violet-400/20 px-3 py-1.5 text-xs font-semibold text-violet-100">
                   회원가입
                 </span>
               </div>

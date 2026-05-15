@@ -7,10 +7,6 @@ import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 
-const PAYMENTS_READ_QUERY_TIMEOUT_MS = 4500;
-let readIndexesEnsurePromise = null;
-let mongoTransactionMode = "unknown";
-
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
   if (!Number.isFinite(unixSeconds) || unixSeconds <= 0) return new Date();
@@ -75,74 +71,13 @@ function toIsoOrNull(value) {
   return date ? date.toISOString() : null;
 }
 
-function resolveReadQueryTimeoutMs(env = {}) {
-  const parsed = Number(getEnv(env, "PAYMENTS_READ_QUERY_TIMEOUT_MS", String(PAYMENTS_READ_QUERY_TIMEOUT_MS)));
-  if (!Number.isFinite(parsed) || parsed < 1500) return PAYMENTS_READ_QUERY_TIMEOUT_MS;
-  return Math.min(Math.floor(parsed), 20000);
-}
-
-function buildReadDbEnv(env = {}, queryTimeoutMs = PAYMENTS_READ_QUERY_TIMEOUT_MS) {
-  const clamp = (value, fallback, floor, ceil) => {
-    const raw = Number(value);
-    if (!Number.isFinite(raw)) return fallback;
-    return Math.max(floor, Math.min(Math.floor(raw), ceil));
-  };
-
-  const fastTimeout = clamp(queryTimeoutMs, PAYMENTS_READ_QUERY_TIMEOUT_MS, 2500, 9000);
-  const serverSelection = clamp(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", String(fastTimeout)), fastTimeout, 2500, 9000);
-  const connectTimeout = clamp(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", String(fastTimeout)), fastTimeout, 2500, 9000);
-  const guardTimeout = clamp(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", String(fastTimeout + 1000)), fastTimeout + 1000, 3000, 11000);
-
-  return {
-    ...env,
-    MONGO_SERVER_SELECTION_TIMEOUT_MS: String(serverSelection),
-    MONGO_CONNECT_TIMEOUT_MS: String(connectTimeout),
-    MONGO_WORKER_CONNECT_GUARD_MS: String(guardTimeout),
-    MONGO_CONNECT_RETRY_ONCE: "false",
-    MONGO_VERIFY_PING_EACH_REQUEST: "false",
-  };
-}
-
-function isLikelyQueryTimeoutError(error) {
-  const text = String(error?.message || "").toLowerCase();
-  return text.includes("maxtimems")
-    || text.includes("operation exceeded time limit")
-    || text.includes("query exceeded")
-    || text.includes("execution time limit")
-    || text.includes("timed out");
-}
-
-function ensureReadIndexesInBackground() {
-  if (readIndexesEnsurePromise) return readIndexesEnsurePromise;
-
-  readIndexesEnsurePromise = (async () => {
-    const tasks = [
-      Payment.collection.createIndex({ userId: 1, createdAt: -1 }, { background: true }),
-      PointHistory.collection.createIndex({ userId: 1, createdAt: -1 }, { background: true }),
-      PointHistory.collection.createIndex({ userId: 1, kind: 1, createdAt: -1 }, { background: true }),
-    ];
-
-    const settled = await Promise.allSettled(tasks);
-    const failed = settled.filter((entry) => entry.status === "rejected");
-    if (failed.length > 0) {
-      console.warn("[payments/read-indexes] 일부 인덱스 보장 실패:", failed.map((entry) => String(entry.reason?.message || entry.reason || "unknown")));
-    }
-    return failed.length === 0;
-  })().catch((error) => {
-    console.warn("[payments/read-indexes] 인덱스 보장 실패:", String(error?.message || "unknown"));
-    return false;
-  });
-
-  return readIndexesEnsurePromise;
-}
-
-async function findUserByIdRaw(userId, projection = {}, maxTimeMS = PAYMENTS_READ_QUERY_TIMEOUT_MS) {
+async function findUserByIdRaw(userId, projection = {}) {
   const normalizedId = String(userId || "").trim();
   if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
 
   return User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(normalizedId) },
-    { projection, maxTimeMS },
+    { projection },
   );
 }
 
@@ -319,16 +254,6 @@ function isTransactionUnsupported(error) {
     .test(String(error?.message || ""));
 }
 
-function shouldUseMongoTransaction() {
-  return mongoTransactionMode !== "unsupported";
-}
-
-function markMongoTransactionMode(mode) {
-  if (mode === "supported" || mode === "unsupported") {
-    mongoTransactionMode = mode;
-  }
-}
-
 async function settlePaymentByImpUid({
   env,
   impUid,
@@ -342,24 +267,6 @@ async function settlePaymentByImpUid({
   request,
   body,
 }) {
-  let paymentRecord = await findPaymentRecord(impUid, merchantUidHint);
-  if (paymentRecord?.status === "success") {
-    const ownerUserIdFast = String(paymentRecord.userId || "");
-    if (requestedUserId && ownerUserIdFast && String(requestedUserId) !== ownerUserIdFast) {
-      return { ok: false, status: 403, message: "Only your own payment can be processed." };
-    }
-
-    return {
-      ok: true,
-      idempotent: true,
-      user: {
-        id: ownerUserIdFast,
-        points: ownerUserIdFast ? await getUserPoints(ownerUserIdFast) : 0,
-      },
-      payment: formatPaymentResponse(paymentRecord),
-    };
-  }
-
   let portOnePayment;
   try {
     portOnePayment = await fetchPortOnePayment(env, impUid);
@@ -389,9 +296,7 @@ async function settlePaymentByImpUid({
   const merchantUid = String(portOnePayment.merchant_uid || merchantUidHint || "").trim();
   const paymentMethod = normalizePaymentMethod(portOnePayment.pay_method || requestedPaymentMethod);
 
-  if (!paymentRecord) {
-    paymentRecord = await findPaymentRecord(impUid, merchantUid);
-  }
+  let paymentRecord = await findPaymentRecord(impUid, merchantUid);
   const customDataUserId = parseCustomDataUserId(portOnePayment.custom_data);
   const ownerUserId = paymentRecord?.userId
     ? String(paymentRecord.userId)
@@ -692,7 +597,7 @@ async function settlePaymentByImpUid({
         },
         $inc: { confirmAttempts: 1 },
       },
-      { returnDocument: "after" },
+      { new: true },
     ).lean();
 
     if (!finalizedPayment) {
@@ -708,7 +613,7 @@ async function settlePaymentByImpUid({
     const updatedUser = await User.findByIdAndUpdate(
       ownerUserId,
       { $inc: { points: chargedPoints } },
-      { returnDocument: "after", projection: { points: 1 } },
+      { new: true, projection: { points: 1 } },
     ).lean();
 
     if (!updatedUser) {
@@ -772,7 +677,7 @@ async function settlePaymentByImpUid({
             },
             $inc: { confirmAttempts: 1 },
           },
-          { returnDocument: "after", session },
+          { new: true, session },
         ).lean();
 
         if (!finalizedPayment) {
@@ -789,7 +694,7 @@ async function settlePaymentByImpUid({
         const updatedUser = await User.findByIdAndUpdate(
           ownerUserId,
           { $inc: { points: chargedPoints } },
-          { returnDocument: "after", projection: { points: 1 }, session },
+          { new: true, projection: { points: 1 }, session },
         ).lean();
 
         if (!updatedUser) throw new Error("user_not_found");
@@ -821,17 +726,11 @@ async function settlePaymentByImpUid({
   };
 
   let settlementResult;
-  if (!shouldUseMongoTransaction()) {
+  try {
+    settlementResult = await runSettlementWithTransaction();
+  } catch (error) {
+    if (!isTransactionUnsupported(error)) throw error;
     settlementResult = await runSettlementWithoutTransaction();
-  } else {
-    try {
-      settlementResult = await runSettlementWithTransaction();
-      markMongoTransactionMode("supported");
-    } catch (error) {
-      if (!isTransactionUnsupported(error)) throw error;
-      markMongoTransactionMode("unsupported");
-      settlementResult = await runSettlementWithoutTransaction();
-    }
   }
 
   if (!settlementResult?.ok) {
@@ -912,10 +811,7 @@ async function handleWebhook(request, env) {
   });
 
   if (!settled.ok) {
-    return json(
-      { ok: false, message: settled.message },
-      { status: settled.status || 400 },
-    );
+    return json({ ok: false, message: settled.message });
   }
 
   return json({
@@ -1191,30 +1087,6 @@ async function handleSubscriptionConfirm(request, env, auth) {
     return json({ message: "impUid and valid tier are required." }, { status: 400 });
   }
 
-  let paymentRecord = await findPaymentRecord(impUid, merchantUidHint);
-  if (paymentRecord && String(paymentRecord.userId) !== String(auth.userId)) {
-    return json({ message: "Only your own payment can be processed." }, { status: 403 });
-  }
-
-  if (paymentRecord?.status === "success") {
-    const currentUser = await User.findById(auth.userId).select("profileSubscription").lean();
-    const sub = currentUser?.profileSubscription || {};
-    return json({
-      message: "Subscription payment already processed.",
-      idempotent: true,
-      payment: formatPaymentResponse(paymentRecord),
-      subscription: {
-        tier: sub?.tier || "free",
-        source: sub?.source || "coin",
-        isActive: hasActiveSubscriptionConflict(sub),
-        expiresAt: toIsoOrNull(sub?.expiresAt),
-        profileLimit: plan.profileLimit,
-        cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
-        cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
-      },
-    });
-  }
-
   let portOnePayment;
   try {
     portOnePayment = await fetchPortOnePayment(env, impUid);
@@ -1243,9 +1115,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
     return json({ message: "merchantUid mismatch." }, { status: 400 });
   }
 
-  if (!paymentRecord) {
-    paymentRecord = await findPaymentRecord(impUid, merchantUid);
-  }
+  const paymentRecord = await findPaymentRecord(impUid, merchantUid);
   if (!paymentRecord) {
     return json({ message: "Payment record not found." }, { status: 404 });
   }
@@ -1352,7 +1222,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
         "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
       },
     },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+    { new: true, projection: { points: 1, profileSubscription: 1 } },
   ).lean();
 
   return json({
@@ -1471,7 +1341,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           failureStage: null,
         },
       },
-      { returnDocument: "after" },
+      { new: true },
     ).lean();
 
     let updatedPoints = Number(user.points || 0);
@@ -1479,7 +1349,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
       const updatedUser = await User.findByIdAndUpdate(
         auth.userId,
         { $inc: { points: -pointsToRollback } },
-        { returnDocument: "after", projection: { points: 1 } },
+        { new: true, projection: { points: 1 } },
       ).lean();
       updatedPoints = Number(updatedUser?.points || 0);
 
@@ -1520,7 +1390,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
               failureStage: null,
             },
           },
-          { returnDocument: "after", session },
+          { new: true, session },
         ).lean();
 
         let updatedPoints = Number(user.points || 0);
@@ -1528,7 +1398,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           const updatedUser = await User.findByIdAndUpdate(
             auth.userId,
             { $inc: { points: -pointsToRollback } },
-            { returnDocument: "after", projection: { points: 1 }, session },
+            { new: true, projection: { points: 1 }, session },
           ).lean();
           updatedPoints = Number(updatedUser?.points || 0);
 
@@ -1557,17 +1427,10 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
     }
   };
 
-  if (!shouldUseMongoTransaction()) {
-    return runWithoutTransaction();
-  }
-
   try {
-    const result = await runWithTransaction();
-    markMongoTransactionMode("supported");
-    return result;
+    return await runWithTransaction();
   } catch (error) {
     if (!isTransactionUnsupported(error)) throw error;
-    markMongoTransactionMode("unsupported");
     return runWithoutTransaction();
   }
 }
@@ -1675,7 +1538,7 @@ async function handleCancel(request, env, auth) {
   });
 }
 
-async function handleReportFailure(request, env, auth) {
+async function handleReportFailure(request, auth) {
   const body = await readJson(request);
   const merchantUid = String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined;
   const impUid = String(body?.impUid || body?.paymentId || "").trim() || undefined;
@@ -1710,66 +1573,6 @@ async function handleReportFailure(request, env, auth) {
     });
   }
 
-  const normalizedReason = String(reasonCode || "").trim().toLowerCase();
-  const autoRefundEligible = payment
-    && payment.status === "success"
-    && normalizedReason !== "cancelled"
-    && normalizedReason !== "client_cancel_or_fail"
-    && normalizedReason !== "subscription_client_cancel_or_fail";
-
-  let autoRefund = {
-    attempted: false,
-    refunded: false,
-    skippedReason: "",
-    message: "",
-    userPoints: null,
-    payment: null,
-  };
-
-  if (autoRefundEligible) {
-    autoRefund.attempted = true;
-
-    const pointsToRollback = Number(payment.chargedPoints || payment.expectedChargedPoints || 0);
-    const paidAmount = Number(payment.paymentAmount || 0);
-    const user = await User.findById(auth.userId).select("points").lean();
-
-    if (!user) {
-      autoRefund.skippedReason = "user_not_found";
-      autoRefund.message = "Automatic refund skipped because user was not found.";
-    } else if (pointsToRollback > 0 && Number(user.points || 0) < pointsToRollback) {
-      autoRefund.skippedReason = "points_already_used";
-      autoRefund.message = "Automatic refund skipped because charged points were already used.";
-    } else {
-      try {
-        const canceledPortOne = await cancelPortOnePayment(env, {
-          impUid: payment.impUid || impUid,
-          merchantUid: payment.merchantUid || merchantUid,
-          reason: `Automatic refund after client failure: ${reasonCode}`.slice(0, 120),
-          amount: paidAmount > 0 ? paidAmount : undefined,
-          checksum: paidAmount > 0 ? paidAmount : undefined,
-        });
-
-        const updateResult = await runCancelUpdate({
-          paymentRecord: payment,
-          canceledPortOne,
-          pointsToRollback,
-          auth,
-          user,
-          requestedCancelAmount: paidAmount > 0 ? paidAmount : undefined,
-          paidAmount,
-        });
-
-        autoRefund.refunded = true;
-        autoRefund.message = "Automatic refund completed.";
-        autoRefund.userPoints = Number(updateResult?.updatedPoints || 0);
-        autoRefund.payment = formatPaymentResponse(updateResult?.canceledPayment);
-      } catch (error) {
-        autoRefund.skippedReason = "refund_failed";
-        autoRefund.message = `Automatic refund failed: ${String(error?.message || "unknown")}`;
-      }
-    }
-  }
-
   await writeFailureLog({
     request,
     userId: auth.userId,
@@ -1783,11 +1586,7 @@ async function handleReportFailure(request, env, auth) {
     payload: body,
   });
 
-  return json({
-    ok: true,
-    message: "Payment failure report recorded.",
-    autoRefund,
-  });
+  return json({ ok: true, message: "Payment failure report recorded." });
 }
 
 function formatPointHistoryEntry(entry) {
@@ -1894,33 +1693,19 @@ function buildTokenFallbackPaymentsMe(auth, message) {
   };
 }
 
-async function handleMe(auth, env) {
-  const queryTimeoutMS = resolveReadQueryTimeoutMs(env);
-  const readDbEnv = buildReadDbEnv(env, queryTimeoutMS);
-
+async function handleMe(auth) {
   try {
-    await connectDb(readDbEnv);
-    traceReadIndexWarmup();
-
     const user = await findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
       points: 1,
       unlockedFeatures: 1,
       profileSubscription: 1,
-    }, queryTimeoutMS);
+    });
 
     const [recentPayments, pointHistories] = await Promise.all([
-      Payment.find({ userId: auth.userId })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .maxTimeMS(queryTimeoutMS)
-        .lean(),
-      PointHistory.find({ userId: auth.userId })
-        .sort({ createdAt: -1 })
-        .limit(20)
-        .maxTimeMS(queryTimeoutMS)
-        .lean(),
+      Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
+      PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
     ]);
 
     const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
@@ -1931,35 +1716,22 @@ async function handleMe(auth, env) {
 
     return json(body);
   } catch (error) {
-    const isTimeout = isLikelyQueryTimeoutError(error);
     console.warn("[payments/me] degraded fallback to token:", String(error?.message || "unknown"));
-    return json(buildTokenFallbackPaymentsMe(
-      auth,
-      isTimeout
-        ? "Payment data query timed out. Loaded safe account data from token."
-        : undefined,
-    ));
+    return json(buildTokenFallbackPaymentsMe(auth));
   }
 }
 
-async function handlePointsMe(auth, env) {
-  const queryTimeoutMS = resolveReadQueryTimeoutMs(env);
-  const readDbEnv = buildReadDbEnv(env, queryTimeoutMS);
-
+async function handlePointsMe(auth) {
   try {
-    await connectDb(readDbEnv);
-    traceReadIndexWarmup();
-
     const user = await findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
       points: 1,
-    }, queryTimeoutMS);
+    });
 
     const pointHistories = await PointHistory.find({ userId: auth.userId })
       .sort({ createdAt: -1 })
       .limit(20)
-      .maxTimeMS(queryTimeoutMS)
       .lean();
 
     const transactions = Array.isArray(pointHistories)
@@ -1986,14 +1758,8 @@ async function handlePointsMe(auth, env) {
       transactions,
     });
   } catch (error) {
-    const isTimeout = isLikelyQueryTimeoutError(error);
     console.warn("[payments/points-me] degraded fallback to token:", String(error?.message || "unknown"));
-    const fallbackBody = buildTokenFallbackPaymentsMe(
-      auth,
-      isTimeout
-        ? "Point history query timed out. Loaded safe account data from token."
-        : "Point history is temporarily unavailable. Loaded safe account data from token.",
-    );
+    const fallbackBody = buildTokenFallbackPaymentsMe(auth, "Point history is temporarily unavailable. Loaded safe account data from token.");
     return json({
       success: true,
       ok: true,
@@ -2015,11 +1781,6 @@ async function handlePointsMe(auth, env) {
       transactions: [],
     });
   }
-}
-
-function traceReadIndexWarmup() {
-  // Fire-and-forget warmup: build critical read indexes when missing.
-  void ensureReadIndexesInBackground();
 }
 
 export async function handlePaymentRoutes(request, env) {
@@ -2059,9 +1820,6 @@ export async function handlePaymentRoutes(request, env) {
     const auth = await requireAuth(request, env);
     trace.authVerified = true;
 
-    if (method === "GET" && path === "/me") return await handleMe(auth, env);
-    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
-
     await connectDb(env);
     trace.dbConnected = true;
 
@@ -2070,7 +1828,9 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
-    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, env, auth);
+    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
+    if (method === "GET" && path === "/me") return await handleMe(auth);
+    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth);
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

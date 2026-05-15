@@ -16,7 +16,6 @@ import { handleDreamRoutes } from "./routes/dream.js";
 import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
 import { handleSibylRoutes } from "./routes/sibyl.js";
-import { handleKasiRoutes } from "./routes/kasi.js";
 import { handleOracleRoutes } from "./routes/oracle.js";
 import { handleUserRoutes } from "./routes/user.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
@@ -26,7 +25,6 @@ import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
 import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
 import { handleBillingRoutes } from "./routes/billing.js";
-import { handleProfileRoutes } from "./routes/profile.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -257,68 +255,6 @@ function detectLocale(country) {
   return localeMap[country] || "en-US";
 }
 
-function resolveRuntimeEnvironment(request, env) {
-  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
-  if (nodeEnv === "development") return "development";
-
-  let host = "";
-  try {
-    host = new URL(request.url).hostname.toLowerCase();
-  } catch {
-    host = "";
-  }
-
-  if (!host || host === "localhost" || host === "127.0.0.1") {
-    return nodeEnv === "production" ? "production" : "development";
-  }
-
-  if (host === "code-destiny.com" || host === "www.code-destiny.com") {
-    return "production";
-  }
-
-  if (host.endsWith(".pages.dev") || host.endsWith(".workers.dev")) {
-    return "preview";
-  }
-
-  return nodeEnv === "production" ? "production" : "preview";
-}
-
-function buildVersionPayload(request, env) {
-  const appVersion = String(
-    env?.NEXT_PUBLIC_APP_VERSION
-      || env?.APP_VERSION
-      || "0.1.0",
-  ).trim() || "0.1.0";
-
-  const gitSha = String(
-    env?.NEXT_PUBLIC_GIT_SHA
-      || env?.GIT_SHA
-      || env?.CF_PAGES_COMMIT_SHA
-      || "unknown",
-  ).trim() || "unknown";
-
-  const buildTime = String(
-    env?.NEXT_PUBLIC_BUILD_TIME
-      || env?.BUILD_TIME
-      || "unknown",
-  ).trim() || "unknown";
-
-  const environment = resolveRuntimeEnvironment(request, env);
-  const source = "workers";
-
-  return {
-    ok: true,
-    appVersion,
-    gitSha,
-    buildTime,
-    environment,
-    source,
-    commit: gitSha,
-    commitShort: gitSha === "unknown" ? "unknown" : gitSha.slice(0, 12),
-    builtAt: buildTime,
-  };
-}
-
 function isLoop(requestUrl, upstreamOrigin) {
   if (!upstreamOrigin) return false;
 
@@ -466,10 +402,6 @@ export default {
         });
       }
 
-      if (url.pathname === "/api/version" || url.pathname === "/api/admin/version") {
-        return jsonResponse(request, env, buildVersionPayload(request, env));
-      }
-
       if (url.pathname === "/api/health/auth-env") {
         const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
         const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
@@ -497,10 +429,6 @@ export default {
 
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
-      }
-
-      if (url.pathname === "/api/profile" || url.pathname.startsWith("/api/profile/")) {
-        return withCorsHeaders(request, env, await handleProfileRoutes(request, env));
       }
 
       if (url.pathname === "/api/session") {
@@ -536,32 +464,6 @@ export default {
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
       }
 
-      // Legacy compatibility: coin/wallet aliases routed to billing APIs.
-      if (url.pathname === "/api/coins" || url.pathname === "/api/user/coins") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/balance");
-        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/wallet") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/me");
-        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/entitlement" || url.pathname === "/api/entitlements") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/entitlements");
-        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/purchase" || url.pathname === "/api/unlock") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/billing/purchase");
-        return withCorsHeaders(request, env, await handleBillingRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/pdf" || url.pathname.startsWith("/api/pdf/")) {
-        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/pdf", "/api/premium-report"));
-        return withCorsHeaders(request, env, await handlePremiumReportRoutes(rewrittenRequest, env));
-      }
-
       // Legacy compatibility: singular payment namespace.
       if (url.pathname === "/api/payment" || url.pathname.startsWith("/api/payment/")) {
         const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/payment", "/api/payments"));
@@ -589,58 +491,9 @@ export default {
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
       }
 
-      if (url.pathname === "/api/kasi" || url.pathname.startsWith("/api/kasi/")) {
-        return withCorsHeaders(request, env, await handleKasiRoutes(request, env));
-      }
-
       if (url.pathname === "/api/subscription/status") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
         return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/me") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/me");
-        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/plans") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/plans");
-        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/subscribe") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/subscribe");
-        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/extend") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/extend");
-        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/auto-renew") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/auto-renew");
-        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/consent") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/consent");
-        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/checkout") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/subscription/prepare");
-        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/confirm") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/subscription/confirm");
-        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
-      }
-
-      if (url.pathname === "/api/subscription/webhook") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
-        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
       }
 
       // Legacy compatibility: singular endpoint used by older destiny-profile bundles.
@@ -744,11 +597,9 @@ export default {
   async scheduled(event, env, ctx) {
     const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
-    const { processHoneySubscriptionRenewals } = await import("./routes/fortune.js");
     ctx.waitUntil(Promise.all([
       runDailyFortuneTask(env),
       runCardSubscriptionBillingTask(env),
-      processHoneySubscriptionRenewals(env),
     ]));
   },
 };

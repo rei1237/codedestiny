@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema({
   },
   destinyProfiles: { type: [mongoose.Schema.Types.Mixed], default: [] },
   destinyProfilesCurrentId: { type: String, default: "" },
-  profileMe: { type: mongoose.Schema.Types.Mixed, default: null },
   twoFA: {
     enabled: { type: Boolean, default: false, index: true },
     totpSecret: { type: String, default: "" },
@@ -48,40 +47,13 @@ const userSchema = new mongoose.Schema({
   adminRefreshTokenHash: { type: String, default: "" },
   adminLastActivityAt: { type: Date, default: null },
   profileSubscription: {
-    tier: {
-      type: String,
-      enum: ["free", "standard", "premium", "vvip", "honey_standard", "honey_premium", "honey_vvip"],
-      default: "free",
-    },
-    planId: {
-      type: String,
-      enum: ["free", "honey_standard", "honey_premium", "honey_vvip"],
-      default: "free",
-    },
-    status: {
-      type: String,
-      enum: ["none", "active", "expired", "renewal_failed", "canceled"],
-      default: "none",
-    },
+    tier: { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
     source: { type: String, enum: ["coin", "card"], default: "coin" },
     startedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
-    currentPeriodStart: { type: Date, default: null },
-    currentPeriodEnd: { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
-    autoRenewEnabled: { type: Boolean, default: false },
     cancelAtPeriodEnd: { type: Boolean, default: false },
     cancelRequestedAt: { type: Date, default: null },
-    priceCoins: { type: Number, default: 0, min: 0 },
-    profileLimit: { type: Number, default: 1, min: 1 },
-    freeServiceThresholdCoins: { type: Number, default: 0, min: 0 },
-    lastRenewedAt: { type: Date, default: null },
-    lastRenewalFailedAt: { type: Date, default: null },
-    renewalFailReason: {
-      type: String,
-      enum: ["", "INSUFFICIENT_COINS", "PAYMENT_ERROR", "UNKNOWN"],
-      default: "",
-    },
     customerUid: { type: String, default: "" },
     paymentMethod: { type: String, default: "" },
     nextBillingAt: { type: Date, default: null },
@@ -154,83 +126,6 @@ const pointHistorySchema = new mongoose.Schema({
 
 pointHistorySchema.index({ userId: 1, createdAt: -1 });
 
-const honeySubscriptionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true, index: true },
-  planId: {
-    type: String,
-    enum: ["free", "honey_standard", "honey_premium", "honey_vvip"],
-    default: "free",
-    index: true,
-  },
-  status: {
-    type: String,
-    enum: ["none", "active", "expired", "renewal_failed", "canceled"],
-    default: "none",
-    index: true,
-  },
-  startedAt: { type: Date, default: null },
-  currentPeriodStart: { type: Date, default: null },
-  currentPeriodEnd: { type: Date, default: null, index: true },
-  autoRenewEnabled: { type: Boolean, default: false, index: true },
-  cancelAtPeriodEnd: { type: Boolean, default: false },
-  priceCoins: { type: Number, default: 0, min: 0 },
-  profileLimit: { type: Number, default: 1, min: 1 },
-  freeServiceThresholdCoins: { type: Number, default: 0, min: 0 },
-  lastRenewedAt: { type: Date, default: null },
-  lastRenewalFailedAt: { type: Date, default: null },
-  renewalFailReason: {
-    type: String,
-    enum: ["", "INSUFFICIENT_COINS", "PAYMENT_ERROR", "UNKNOWN"],
-    default: "",
-  },
-}, { timestamps: true });
-
-honeySubscriptionSchema.index({ status: 1, autoRenewEnabled: 1, currentPeriodEnd: 1 });
-
-const honeySubscriptionTransactionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-  subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: "HoneySubscription", required: true, index: true },
-  planId: {
-    type: String,
-    enum: ["free", "honey_standard", "honey_premium", "honey_vvip"],
-    required: true,
-    default: "free",
-  },
-  type: {
-    type: String,
-    enum: ["SUBSCRIBE", "RENEW", "EXTEND", "CANCEL", "EXPIRE", "RENEWAL_FAILED"],
-    required: true,
-    index: true,
-  },
-  amountCoins: { type: Number, required: true, default: 0 },
-  status: { type: String, enum: ["SUCCESS", "FAILED", "REFUNDED"], required: true, default: "SUCCESS" },
-  periodStart: { type: Date, default: null },
-  periodEnd: { type: Date, default: null },
-  idempotencyKey: { type: String, trim: true, default: "", index: true },
-  reason: { type: String, trim: true, default: "" },
-}, { timestamps: { createdAt: true, updatedAt: false } });
-
-honeySubscriptionTransactionSchema.index({ userId: 1, createdAt: -1 });
-honeySubscriptionTransactionSchema.index(
-  { userId: 1, type: 1, idempotencyKey: 1 },
-  {
-    unique: true,
-    partialFilterExpression: {
-      idempotencyKey: { $exists: true, $type: "string", $gt: "" },
-    },
-  },
-);
-
-const membershipContentAccessConsentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-  profileId: { type: String, trim: true, default: "" },
-  featureKey: { type: String, required: true, trim: true, index: true },
-  policyVersion: { type: String, required: true, trim: true, default: "2026-05-honey-membership-v1" },
-  agreedAt: { type: Date, required: true, default: Date.now, index: true },
-}, { timestamps: true });
-
-membershipContentAccessConsentSchema.index({ userId: 1, featureKey: 1, profileId: 1, agreedAt: -1 });
-
 const refreshTokenSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   tokenHash: { type: String, required: true, unique: true, index: true },
@@ -272,12 +167,6 @@ paymentFailureLogSchema.index({ source: 1, createdAt: -1 });
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
 export const PointHistory = mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema);
-export const HoneySubscription = mongoose.models.HoneySubscription
-  || mongoose.model("HoneySubscription", honeySubscriptionSchema);
-export const HoneySubscriptionTransaction = mongoose.models.HoneySubscriptionTransaction
-  || mongoose.model("HoneySubscriptionTransaction", honeySubscriptionTransactionSchema);
-export const MembershipContentAccessConsent = mongoose.models.MembershipContentAccessConsent
-  || mongoose.model("MembershipContentAccessConsent", membershipContentAccessConsentSchema);
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 

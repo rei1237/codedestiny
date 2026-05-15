@@ -27,130 +27,8 @@ const PUBLIC_ALLOWED_HTML_TAGS = new Set([
   "br",
 ]);
 
-const SITE_ORIGIN = "https://code-destiny.com";
-const DEFAULT_FALLBACK_IMAGE = "/icons/fortune-tama-512.webp";
-
-const INSIGHT_FALLBACK_IMAGES = [
-  {
-    url: "/fuctionassets/jami.webp",
-    alt: "자미두수 인사이트 대표 이미지",
-    keywords: ["자미", "ziwei", "명궁", "12궁", "궁위", "사화", "자미두수"],
-  },
-  {
-    url: "/fuctionassets/sukyo.webp",
-    alt: "숙요점 인사이트 대표 이미지",
-    keywords: ["숙요", "27숙", "영친", "업태", "안괴", "본명숙", "월명숙"],
-  },
-  {
-    url: "/fuctionassets/saju.webp",
-    alt: "사주 인사이트 대표 이미지",
-    keywords: ["사주", "명리", "천간", "지지", "오행", "십성", "용신", "만세력", "일간", "대운", "세운"],
-  },
-  {
-    url: "/tarot-cards/theworld.webp",
-    alt: "타로 메이저 아르카나 대표 이미지",
-    keywords: ["아르카나", "major", "arcana", "메이저", "카드"],
-  },
-  {
-    url: "/fuctionassets/tarolove.webp",
-    alt: "타로 인사이트 대표 이미지",
-    keywords: ["타로", "tarot", "스프레드", "리딩", "역방향"],
-  },
-  {
-    url: "/fuctionassets/jumsung.webp",
-    alt: "점성술 인사이트 대표 이미지",
-    keywords: ["점성", "astrology", "태양궁", "달궁", "상승궁", "하우스", "출생차트"],
-  },
-  {
-    url: "/fuctionassets/veda.webp",
-    alt: "베다점성술 인사이트 대표 이미지",
-    keywords: ["베다", "vedic", "라그나", "나크샤트라"],
-  },
-  {
-    url: "/fuctionassets/heamong.webp",
-    alt: "꿈해몽 인사이트 대표 이미지",
-    keywords: ["꿈", "dream", "해몽", "무의식"],
-  },
-  {
-    url: "/fuctionassets/lovebible.webp",
-    alt: "연애 궁합 인사이트 대표 이미지",
-    keywords: ["연애", "궁합", "관계", "재회", "사랑", "속마음"],
-  },
-  {
-    url: "/fuctionassets/flower4.webp",
-    alt: "운세 인사이트 대표 이미지",
-    keywords: ["운세", "인사이트", "가이드", "fortune"],
-  },
-];
-
 function normalizeText(value, maxLen = 3000) {
   return String(value || "").trim().slice(0, maxLen);
-}
-
-function isKnownBrokenImageUrl(value) {
-  const url = normalizeText(value, 1200).toLowerCase();
-  if (!url) return true;
-  return url.includes("/og/code-destiny-og.png");
-}
-
-function toAbsoluteAssetUrl(value) {
-  const raw = normalizeText(value, 1200);
-  if (!raw) return "";
-  if (/^https?:\/\//i.test(raw)) return raw;
-  if (raw.startsWith("/")) return `${SITE_ORIGIN}${raw}`;
-  return `${SITE_ORIGIN}/${raw}`;
-}
-
-function pickInsightFallbackImage(item) {
-  const blob = [
-    item?.slug,
-    item?.title,
-    item?.subtitle,
-    item?.summary,
-    item?.excerpt,
-    item?.category,
-    ...(Array.isArray(item?.tags) ? item.tags : []),
-  ]
-    .map((value) => normalizeText(value, 300).toLowerCase())
-    .join(" ");
-
-  let best = INSIGHT_FALLBACK_IMAGES[INSIGHT_FALLBACK_IMAGES.length - 1];
-  let bestScore = 0;
-
-  for (const profile of INSIGHT_FALLBACK_IMAGES) {
-    let score = 0;
-    for (const keyword of profile.keywords) {
-      if (blob.includes(String(keyword || "").toLowerCase())) score += 2;
-    }
-
-    if (score > bestScore) {
-      bestScore = score;
-      best = profile;
-    }
-  }
-
-  return best || INSIGHT_FALLBACK_IMAGES[0];
-}
-
-function buildSafeFeaturedImage(item) {
-  const explicitUrl = normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000);
-  const profile = pickInsightFallbackImage(item);
-  const url = !isKnownBrokenImageUrl(explicitUrl) ? explicitUrl : profile.url;
-
-  return {
-    url: url || DEFAULT_FALLBACK_IMAGE,
-    alt: normalizeText(item?.featuredImage?.alt, 300) || profile.alt,
-    width: Math.max(0, Number(item?.featuredImage?.width || 1200) || 1200),
-    height: Math.max(0, Number(item?.featuredImage?.height || 630) || 630),
-  };
-}
-
-function resolveOgImageUrl(item, featuredImageUrl) {
-  const explicitOg = normalizeText(item?.seo?.ogImage || item?.ogImage, 1000);
-  if (!isKnownBrokenImageUrl(explicitOg)) {
-    return toAbsoluteAssetUrl(explicitOg) || toAbsoluteAssetUrl(featuredImageUrl) || toAbsoluteAssetUrl(DEFAULT_FALLBACK_IMAGE);
-  }
-  return toAbsoluteAssetUrl(featuredImageUrl) || toAbsoluteAssetUrl(DEFAULT_FALLBACK_IMAGE);
 }
 
 function stripHtml(value) {
@@ -344,7 +222,6 @@ function buildListQuery(request) {
 }
 
 function serializeInsightCard(item) {
-  const featuredImage = buildSafeFeaturedImage(item);
   return {
     _id: String(item?._id || ""),
     slug: normalizeText(item?.slug, 240),
@@ -353,7 +230,12 @@ function serializeInsightCard(item) {
     excerpt: buildExcerpt(item),
     category: normalizeText(item?.category, 120),
     tags: Array.isArray(item?.tags) ? item.tags.map((tag) => normalizeText(tag, 80)).filter(Boolean) : [],
-    featuredImage,
+    featuredImage: {
+      url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
+      alt: normalizeText(item?.featuredImage?.alt, 300),
+      width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
+      height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
+    },
     canonicalUrl: normalizeText(item?.seo?.canonicalUrl || item?.canonicalUrl, 1000),
     isFeatured: Boolean(item?.isFeatured),
     noIndex: Boolean(item?.noIndex),
@@ -453,13 +335,17 @@ function estimateReadingTime(contentHtml) {
 
 function serializeLinkItem(item) {
   if (!item) return null;
-  const featuredImage = buildSafeFeaturedImage(item);
   return {
     slug: normalizeText(item?.slug, 240),
     title: normalizeText(item?.title, 240),
     category: normalizeText(item?.category, 120),
     publishedAt: item?.publishedAt || null,
-    featuredImage,
+    featuredImage: {
+      url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
+      alt: normalizeText(item?.featuredImage?.alt, 300),
+      width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
+      height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
+    },
   };
 }
 
@@ -522,12 +408,6 @@ async function handleInsightDetail(path, request, env) {
   ]);
 
   const contentHtml = sanitizeInsightHtml(item.contentHtml || "");
-  const featuredImage = buildSafeFeaturedImage(item);
-  const ogImage = resolveOgImageUrl(item, featuredImage.url);
-  const explicitTwitterImage = normalizeText(item?.seo?.twitterImage || item?.twitterImage, 1000);
-  const twitterImage = !isKnownBrokenImageUrl(explicitTwitterImage)
-    ? toAbsoluteAssetUrl(explicitTwitterImage)
-    : ogImage;
 
   return json({
     ok: true,
@@ -540,16 +420,21 @@ async function handleInsightDetail(path, request, env) {
       contentHtml,
       category: normalizeText(item.category, 120),
       tags: Array.isArray(item.tags) ? item.tags.map((tag) => normalizeText(tag, 80)).filter(Boolean) : [],
-      featuredImage,
+      featuredImage: {
+        url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
+        alt: normalizeText(item?.featuredImage?.alt, 300),
+        width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
+        height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
+      },
       metaTitle: normalizeText(item?.seo?.metaTitle || item.metaTitle, 240),
       metaDescription: normalizeText(item?.seo?.metaDescription || item.metaDescription, 600),
       canonicalUrl: normalizeText(item?.seo?.canonicalUrl || item.canonicalUrl, 1000),
       ogTitle: normalizeText(item?.seo?.ogTitle || item.ogTitle, 240),
       ogDescription: normalizeText(item?.seo?.ogDescription || item.ogDescription, 600),
-      ogImage,
+      ogImage: normalizeText(item?.seo?.ogImage || item.ogImage, 1000),
       twitterTitle: normalizeText(item.twitterTitle, 240),
       twitterDescription: normalizeText(item.twitterDescription, 600),
-      twitterImage,
+      twitterImage: normalizeText(item.twitterImage, 1000),
       noIndex: Boolean(item.noIndex),
       isFeatured: Boolean(item.isFeatured),
       viewCount: Math.max(0, Number(item.viewCount || 0) || 0),

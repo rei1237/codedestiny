@@ -74,7 +74,7 @@ async function fetchSwissWesternChart(req: NextRequest, payload: Record<string, 
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (auth.ok === false) return auth.response;
+    if (!auth.ok) return auth.response;
 
     const body = await req.json();
     const year = Number(body.year);

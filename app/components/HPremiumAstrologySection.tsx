@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { wrapPdfExportTask } from "../_lib/pdf-export-guard";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -441,27 +440,26 @@ export default function HPremiumAstrologySection({
   }, [showIntro, resetAstrologyState]);
 
   const handleDownloadAstroPDF = useCallback(() => {
-    void wrapPdfExportTask(async () => {
-      const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
-      if (doneChapters.length !== TOTAL_CHAPTERS) {
-        setPdfError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
-        return;
-      }
-      setPdfLoading(true); setPdfError("");
-      try {
-        const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
-        const chartLine = chart
-          ? `ASC: ${escH(chart.ascendant?.signKo ?? "-")} | ☀️ ${escH(chart.planets?.Sun?.signKo ?? "-")} | 🌙 ${escH(chart.planets?.Moon?.signKo ?? "-")}`
-          : "";
-        const chaptersHtml = doneChapters.map((m, i) => {
-          const r = chapters[m.num].result!;
-          const secHtml = r.sections.length > 0
-            ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
-            : `<div class="sec">${nl2p(r.text)}</div>`;
-          return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(m.icon)} CHAPTER ${m.num}</span><h2 class="ct">${escH(m.title)}</h2><p class="cs">${escH(m.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
-        }).join("");
-        const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>점성술 프리미엄 리포트</title><style>
+    const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
+    if (doneChapters.length !== TOTAL_CHAPTERS) {
+      setPdfError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+      return;
+    }
+    setPdfLoading(true); setPdfError("");
+    try {
+      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
+      const chartLine = chart
+        ? `ASC: ${escH(chart.ascendant?.signKo ?? "-")} | ☀️ ${escH(chart.planets?.Sun?.signKo ?? "-")} | 🌙 ${escH(chart.planets?.Moon?.signKo ?? "-")}`
+        : "";
+      const chaptersHtml = doneChapters.map((m, i) => {
+        const r = chapters[m.num].result!;
+        const secHtml = r.sections.length > 0
+          ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
+          : `<div class="sec">${nl2p(r.text)}</div>`;
+        return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(m.icon)} CHAPTER ${m.num}</span><h2 class="ct">${escH(m.title)}</h2><p class="cs">${escH(m.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
+      }).join("");
+      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>점성술 프리미엄 리포트</title><style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0}
@@ -491,18 +489,16 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#
 </div>
 ${chaptersHtml}
 </body></html>`;
-        const win = window.open("", "_blank", "width=900,height=700");
-        if (!win) { setPdfError("팝업 차단됨. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
-        win.document.open(); win.document.write(fullHtml); win.document.close();
-        win.focus();
-        setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
-        await new Promise((resolve) => setTimeout(resolve, 1800));
-      } catch (e) {
-        setPdfError(e instanceof Error ? e.message : "PDF 생성 중 오류가 발생했습니다.");
-      } finally {
-        setPdfLoading(false);
-      }
-    }, 2000);
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) { setPdfError("팝업 차단됨. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
+      win.document.open(); win.document.write(fullHtml); win.document.close();
+      win.focus();
+      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+    } catch (e) {
+      setPdfError(e instanceof Error ? e.message : "PDF 생성 중 오류가 발생했습니다.");
+    } finally {
+      setPdfLoading(false);
+    }
   }, [chapters, chart, birthYear, birthMonth, birthDay]);
 
   const postAstroJson = useCallback(async (path: string, payload: unknown) => {
@@ -525,14 +521,6 @@ ${chaptersHtml}
         if (!res.ok || !data?.ok) {
           const err = new Error(data?.error || data?.message || "요청 처리 중 오류가 발생했습니다.") as Error & { status?: number };
           err.status = Number(res.status || 500);
-          console.error("[AstrologyPremiumPDF][API_ERROR]", {
-            path,
-            attempt,
-            status: Number(res.status || 0),
-            code: String(data?.code || ""),
-            message: String(data?.message || data?.error || ""),
-            response: data || null,
-          });
           throw err;
         }
         return data;
@@ -541,16 +529,6 @@ ${chaptersHtml}
         const status = Number((e as { status?: number })?.status || 0);
         const retryableStatus = [0, 408, 409, 425, 429, 500, 502, 503, 504];
         const retryable = (e instanceof Error && e.name === "AbortError") || retryableStatus.includes(status);
-        if (attempt === 4 || !retryable) {
-          console.error("[AstrologyPremiumPDF][REQUEST_FAILED]", {
-            path,
-            attempt,
-            status,
-            retryable,
-            name: e instanceof Error ? e.name : "",
-            message: e instanceof Error ? e.message : String(e),
-          });
-        }
         if (attempt === 4 || !retryable) break;
         await new Promise((resolve) => setTimeout(resolve, Math.min(700 * (2 ** (attempt - 1)), 2800)));
       } finally {
@@ -592,11 +570,6 @@ ${chaptersHtml}
       setChapters(createEmptyChapters());
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "차트 계산 중 오류";
-      console.error("[AstrologyPremiumPDF][CALC_FAILED]", {
-        status: Number((e as { status?: number })?.status || 0),
-        name: e instanceof Error ? e.name : "",
-        message,
-      });
       setCalcError(message);
       setRequestError(message);
     } finally {
@@ -640,12 +613,6 @@ ${chaptersHtml}
       // 차트 최신화 (astro-life에서도 계산 결과가 옴)
       if (data.chart && !chart) setChart(data.chart);
     } catch (e: unknown) {
-      console.error("[AstrologyPremiumPDF][CHAPTER_FAILED]", {
-        chapter: chNum,
-        status: Number((e as { status?: number })?.status || 0),
-        name: e instanceof Error ? e.name : "",
-        message: e instanceof Error ? e.message : String(e),
-      });
       setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev => ({ ...prev, [chNum]: { step:"error", result:null } }));
     }

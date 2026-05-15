@@ -21,7 +21,7 @@ function isChartPayload(value: unknown): value is {
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (auth.ok === false) return auth.response;
+    if (!auth.ok) return auth.response;
 
     const body = await req.json();
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;

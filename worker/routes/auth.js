@@ -11,7 +11,6 @@ import {
   getRefreshTokenExpiresIn,
   getRefreshTokenSecret,
   requireAuth,
-  getOptionalUserFromRequest,
   normalizeUserResponse,
   signAuthToken,
   JWT_ISSUER,
@@ -304,28 +303,6 @@ function getAuthOpTimeoutMs(env) {
   const raw = Number(getEnv(env, "AUTH_OPERATION_TIMEOUT_MS", "12000"));
   if (!Number.isFinite(raw) || raw < 1000) return 5000;
   return Math.floor(raw);
-}
-
-function buildAuthDbEnv(env, timeoutMs) {
-  const clamp = (value, fallback, floor, ceil) => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return fallback;
-    return Math.max(floor, Math.min(Math.floor(parsed), ceil));
-  };
-
-  const base = clamp(timeoutMs, 7000, 2500, 9000);
-  const serverSelection = clamp(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", String(base)), base, 2500, 9000);
-  const connectTimeout = clamp(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", String(base)), base, 2500, 9000);
-  const guardTimeout = clamp(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", String(base + 1000)), base + 1000, 3000, 11000);
-
-  return {
-    ...env,
-    MONGO_SERVER_SELECTION_TIMEOUT_MS: String(serverSelection),
-    MONGO_CONNECT_TIMEOUT_MS: String(connectTimeout),
-    MONGO_WORKER_CONNECT_GUARD_MS: String(guardTimeout),
-    MONGO_CONNECT_RETRY_ONCE: "false",
-    MONGO_VERIFY_PING_EACH_REQUEST: "false",
-  };
 }
 
 async function withAuthOpTimeout(task, timeoutMs, label) {
@@ -852,17 +829,11 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   const { refreshToken, tokenHash, expiresAt } = await issueRefreshTokenForUser(user._id, env);
   await createRefreshSession(request, env, user._id, tokenHash, expiresAt);
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
-  const normalizedUser = normalizeUserResponse(user);
-  const wallet = {
-    coinBalance: Number.isFinite(Number(normalizedUser?.points)) ? Number(normalizedUser.points) : 0,
-  };
 
   const response = json({
     ok: true,
-    authenticated: true,
     message: status === 201 ? "Registration completed." : "Login completed.",
-    user: normalizedUser,
-    wallet,
+    user: normalizeUserResponse(user),
     nextPath: sanitizeNextPath(nextPath) || "/",
     accessToken,
     tokenType: "Bearer",
@@ -1105,11 +1076,8 @@ async function handleRegister(request, env) {
 }
 
 async function handleLogin(request, env) {
-  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 15000);
-  const fastDbEnv = {
-    ...buildAuthDbEnv(env, timeoutMs),
-    MONGO_CONNECT_RETRY_ONCE: "true",
-  };
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const body = await readJson(request);
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
@@ -1122,154 +1090,110 @@ async function handleLogin(request, env) {
   }
 
   const { email, password } = validated.sanitized;
-  const runLoginAttempt = async (activeEnv, activeTimeoutMs, stageSuffix = "") => {
-    const activeDbMaxTimeMs = Math.max(1000, activeTimeoutMs - 1000);
 
-    await withAuthOpTimeout(
-      connectDb(activeEnv),
-      activeTimeoutMs,
-      `auth_login_connect_db${stageSuffix}`,
-    );
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
 
-    const users = User.collection;
-    const user = await withAuthOpTimeout(
-      users.findOne(
-        { email },
-        {
-          projection: {
-            _id: 1,
-            name: 1,
-            email: 1,
-            birthDate: 1,
-            birthTime: 1,
-            gender: 1,
-            role: 1,
-            points: 1,
-            joinedAt: 1,
-            passwordHash: 1,
-            localAuth: 1,
+      const users = User.collection;
+      const user = await withAuthOpTimeout(
+        users.findOne(
+          { email },
+          {
+            projection: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              birthDate: 1,
+              birthTime: 1,
+              gender: 1,
+              role: 1,
+              points: 1,
+              joinedAt: 1,
+              passwordHash: 1,
+              localAuth: 1,
+            },
+            maxTimeMS: dbMaxTimeMs,
           },
-          maxTimeMS: activeDbMaxTimeMs,
-        },
-      ),
-      activeTimeoutMs,
-      `auth_login_find_user${stageSuffix}`,
-    );
-    if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
-      return json({
-        ok: false,
-        code: "invalid_credentials",
-        message: "Email or password is incorrect.",
-      }, { status: 401 });
-    }
-
-    const passwordTimeoutMs = Math.min(Math.max(activeTimeoutMs + 6000, 12000), 25000);
-    const passwordOk = await withAuthOpTimeout(
-      verifyPassword(password, user.passwordHash),
-      passwordTimeoutMs,
-      `auth_login_verify_password${stageSuffix}`,
-    );
-    if (!passwordOk) {
-      return json({
-        ok: false,
-        code: "invalid_credentials",
-        message: "Email or password is incorrect.",
-      }, { status: 401 });
-    }
-
-    const sessionTimeoutMs = Math.min(Math.max(activeTimeoutMs + 4000, 12000), 22000);
-    return await withAuthOpTimeout(
-      createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
-      sessionTimeoutMs,
-      `auth_login_issue_session${stageSuffix}`,
-    );
-  };
-
-  try {
-    return await runLoginAttempt(fastDbEnv, timeoutMs);
-  } catch (error) {
-    const infraFailure = isAuthInfraFailure(error, [
-      "auth_login_connect_db",
-      "auth_login_find_user",
-      "auth_login_verify_password_timeout",
-      "auth_login_issue_session",
-    ]);
-
-    if (infraFailure) {
-      resetMongooseConnection().catch(() => {});
-      const fallbackTimeoutMs = Math.min(Math.max(timeoutMs + 4000, 12000), 18000);
-      try {
-        const fallbackDbEnv = {
-          ...env,
-          MONGO_CONNECT_RETRY_ONCE: "true",
-        };
-        return await runLoginAttempt(fallbackDbEnv, fallbackTimeoutMs, "_fallback");
-      } catch (fallbackError) {
-        const fallbackInfraFailure = isAuthInfraFailure(fallbackError, [
-          "auth_login_connect_db_fallback",
-          "auth_login_find_user_fallback",
-          "auth_login_verify_password_fallback",
-          "auth_login_issue_session_fallback",
-        ]);
-        if (fallbackInfraFailure) {
-          resetMongooseConnection().catch(() => {});
-          console.error("[auth/login] infrastructure failure:", fallbackError);
-          return json({
-            ok: false,
-            code: "login_service_unavailable",
-            message: "Login service is temporarily unavailable. Please try again.",
-          }, { status: 503 });
-        }
-        console.error("[auth/login] normalized auth failure (fallback):", fallbackError);
+        ),
+        timeoutMs,
+        "auth_login_find_user",
+      );
+      if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
         return json({
           ok: false,
           code: "invalid_credentials",
           message: "Email or password is incorrect.",
         }, { status: 401 });
       }
-    }
 
-    console.error("[auth/login] normalized auth failure:", error);
-    return json({
-      ok: false,
-      code: "invalid_credentials",
-      message: "Email or password is incorrect.",
-    }, { status: 401 });
+      const passwordOk = await withAuthOpTimeout(
+        verifyPassword(password, user.passwordHash),
+        timeoutMs,
+        "auth_login_verify_password",
+      );
+      if (!passwordOk) {
+        return json({
+          ok: false,
+          code: "invalid_credentials",
+          message: "Email or password is incorrect.",
+        }, { status: 401 });
+      }
+
+      return await withAuthOpTimeout(
+        createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
+        timeoutMs,
+        "auth_login_issue_session",
+      );
+    } catch (error) {
+      const infraFailure = isAuthInfraFailure(error, [
+        "auth_login_connect_db",
+        "auth_login_find_user",
+        "auth_login_verify_password_timeout",
+      ]);
+
+      if (infraFailure && attempt < 3) {
+        console.warn("[auth/login] transient infra failure, retrying:", error);
+        resetMongooseConnection().catch(() => {});
+        await sleep(150 * attempt);
+        continue;
+      }
+
+      if (infraFailure) {
+        console.error("[auth/login] infrastructure failure:", error);
+        return json({
+          ok: false,
+          code: "login_service_unavailable",
+          message: "Login service is temporarily unavailable. Please try again.",
+        }, { status: 503 });
+      }
+
+      console.error("[auth/login] normalized auth failure:", error);
+      return json({
+        ok: false,
+        code: "invalid_credentials",
+        message: "Email or password is incorrect.",
+      }, { status: 401 });
+    }
   }
+
+  return json({
+    ok: false,
+    code: "login_service_unavailable",
+    message: "Login service is temporarily unavailable. Please try again.",
+  }, { status: 503 });
 }
 
 async function handleMe(request, env) {
   try {
-    const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 2500);
+    const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-    const auth = await getOptionalUserFromRequest(request, env);
-
-    if (!auth || !mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) {
-      return json({
-        ok: true,
-        authenticated: false,
-        user: null,
-        wallet: null,
-      });
-    }
+    const auth = await requireAuth(request, env);
 
     const userId = String(auth.userId || "");
-    const tokenFallbackUser = buildTokenFallbackUser(auth);
-    const forceDbLookup = String(getEnv(env, "AUTH_ME_FORCE_DB", "false")).trim().toLowerCase() === "true";
-
-    if (!forceDbLookup) {
-      return json({
-        ok: true,
-        authenticated: true,
-        message: "Authenticated user loaded from token.",
-        user: tokenFallbackUser,
-        wallet: {
-          coinBalance: Number.isFinite(Number(tokenFallbackUser.points)) ? Number(tokenFallbackUser.points) : 0,
-        },
-        source: "token",
-      });
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
     }
-
     const objectId = new mongoose.Types.ObjectId(userId);
 
     let user;
@@ -1302,38 +1226,23 @@ async function handleMe(request, env) {
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
         return json({
           ok: true,
-          authenticated: true,
           message: "Authenticated user loaded from token.",
-          user: tokenFallbackUser,
-          wallet: {
-            coinBalance: Number.isFinite(Number(tokenFallbackUser.points)) ? Number(tokenFallbackUser.points) : 0,
-          },
+          user: buildTokenFallbackUser(auth),
           source: "token",
         });
       }
       throw error;
     }
     if (!user) {
-      return json({
-        ok: true,
-        authenticated: false,
-        user: null,
-        wallet: null,
-      });
+      return json({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
     }
-
-    const normalizedUser = {
-      ...normalizeUserResponse(user),
-      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
-    };
 
     return json({
       ok: true,
-      authenticated: true,
       message: "Authenticated user loaded.",
-      user: normalizedUser,
-      wallet: {
-        coinBalance: Number.isFinite(Number(normalizedUser.points)) ? Number(normalizedUser.points) : 0,
+      user: {
+        ...normalizeUserResponse(user),
+        hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
       },
     });
   } catch (error) {
@@ -1343,9 +1252,6 @@ async function handleMe(request, env) {
 }
 
 async function handleRefresh(request, env) {
-  const timeoutMs = Math.min(getAuthOpTimeoutMs(env), 7000);
-  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const dbEnv = buildAuthDbEnv(env, timeoutMs);
   const refreshToken = readRefreshTokenFromRequest(request);
   if (!refreshToken) {
     const response = json({ ok: false, message: "Refresh token is missing." }, { status: 401 });
@@ -1372,39 +1278,10 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  try {
-    await withAuthOpTimeout(connectDb(dbEnv), timeoutMs, "auth_refresh_connect_db");
-  } catch (error) {
-    if (isAuthInfraFailure(error, ["auth_refresh_connect_db"])) {
-      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_connect_db_unavailable", error);
-      return json({
-        ok: false,
-        code: "refresh_service_unavailable",
-        message: "Refresh service is temporarily unavailable. Please retry.",
-      }, { status: 503 });
-    }
-    throw error;
-  }
+  await connectDb(env);
 
   const tokenHash = hashRefreshToken(refreshToken, env);
-  let session;
-  try {
-    session = await withAuthOpTimeout(
-      RefreshTokenSession.findOne({ tokenHash }).maxTimeMS(dbMaxTimeMs).lean(),
-      timeoutMs,
-      "auth_refresh_find_session",
-    );
-  } catch (error) {
-    if (isAuthInfraFailure(error, ["auth_refresh_find_session"])) {
-      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_find_session_unavailable", error);
-      return json({
-        ok: false,
-        code: "refresh_service_unavailable",
-        message: "Refresh service is temporarily unavailable. Please retry.",
-      }, { status: 503 });
-    }
-    throw error;
-  }
+  const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
   if (!session) {
     await revokeAllUserRefreshSessions(userId);
     const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
@@ -1428,42 +1305,24 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  let user;
-  try {
-    user = await withAuthOpTimeout(
-      User.collection.findOne(
-        { _id: new mongoose.Types.ObjectId(userId) },
-        {
-          projection: {
-            _id: 1,
-            name: 1,
-            email: 1,
-            birthDate: 1,
-            birthTime: 1,
-            gender: 1,
-            role: 1,
-            points: 1,
-            joinedAt: 1,
-            passwordHash: 1,
-            localAuth: 1,
-          },
-          maxTimeMS: dbMaxTimeMs,
-        },
-      ),
-      timeoutMs,
-      "auth_refresh_find_user",
-    );
-  } catch (error) {
-    if (isAuthInfraFailure(error, ["auth_refresh_find_user"])) {
-      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_find_user_unavailable", error);
-      return json({
-        ok: false,
-        code: "refresh_service_unavailable",
-        message: "Refresh service is temporarily unavailable. Please retry.",
-      }, { status: 503 });
-    }
-    throw error;
-  }
+  const user = await User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(userId) },
+    {
+      projection: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        birthDate: 1,
+        birthTime: 1,
+        gender: 1,
+        role: 1,
+        points: 1,
+        joinedAt: 1,
+        passwordHash: 1,
+        localAuth: 1,
+      },
+    },
+  );
 
   if (!user) {
     await revokeAllUserRefreshSessions(userId);
@@ -1472,45 +1331,17 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  let accessToken;
-  let nextRefresh;
-  try {
-    accessToken = await withAuthOpTimeout(signAuthToken(user, env), timeoutMs, "auth_refresh_sign_access");
-    nextRefresh = await withAuthOpTimeout(issueRefreshTokenForUser(userId, env), timeoutMs, "auth_refresh_issue_refresh");
-    await withAuthOpTimeout(
-      createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt),
-      timeoutMs,
-      "auth_refresh_create_session",
-    );
-    await withAuthOpTimeout(
-      markSessionRevoked(tokenHash, {
-        revokedAt: new Date(),
-        replacedByTokenHash: nextRefresh.tokenHash,
-      }),
-      timeoutMs,
-      "auth_refresh_revoke_previous",
-    );
-  } catch (error) {
-    if (isAuthInfraFailure(error, [
-      "auth_refresh_sign_access",
-      "auth_refresh_issue_refresh",
-      "auth_refresh_create_session",
-      "auth_refresh_revoke_previous",
-    ])) {
-      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_issue_token_unavailable", error);
-      return json({
-        ok: false,
-        code: "refresh_service_unavailable",
-        message: "Refresh service is temporarily unavailable. Please retry.",
-      }, { status: 503 });
-    }
-    throw error;
-  }
+  const accessToken = await signAuthToken(user, env);
+  const nextRefresh = await issueRefreshTokenForUser(userId, env);
+  await createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt);
+  await markSessionRevoked(tokenHash, {
+    revokedAt: new Date(),
+    replacedByTokenHash: nextRefresh.tokenHash,
+  });
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
 
   const response = json({
     ok: true,
-    authenticated: true,
     message: "Token refreshed.",
     accessToken,
     tokenType: "Bearer",
@@ -1518,9 +1349,6 @@ async function handleRefresh(request, env) {
     user: {
       ...normalizeUserResponse(user),
       hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
-    },
-    wallet: {
-      coinBalance: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
     },
   });
   appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
@@ -1531,16 +1359,7 @@ async function handleLogout(request, env) {
   const refreshToken = readRefreshTokenFromRequest(request);
   if (refreshToken) {
     const tokenHash = hashRefreshToken(refreshToken, env);
-    const revokeTimeoutMs = 900;
-    try {
-      await withAuthOpTimeout(
-        markSessionRevoked(tokenHash, { revokedAt: new Date() }),
-        revokeTimeoutMs,
-        "auth_logout_revoke_session",
-      );
-    } catch {
-      // Best-effort revocation: cookie clear must not wait for DB infra.
-    }
+    await markSessionRevoked(tokenHash, { revokedAt: new Date() });
   }
 
   const response = json({ ok: true, message: "Logged out." });
@@ -1886,12 +1705,8 @@ async function handleOAuthComplete(request, env) {
 
         const response = json({
           ok: true,
-          authenticated: true,
           message: "Social login completed.",
           user: normalizeUserResponse(user),
-          wallet: {
-            coinBalance: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
-          },
           nextPath: sanitizeNextPath(payload.nextPath) || "/",
           provider: payload.provider,
           accessToken,

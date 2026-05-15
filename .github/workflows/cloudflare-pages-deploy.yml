@@ -1,53 +1,14 @@
-name: Deploy Cloudflare Pages
+name: Cloudflare Pages Deploy Disabled
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
-
-concurrency:
-  group: cloudflare-pages-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  deploy-pages:
+  check:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CF_PAGES_FORCE_DIRECT_DEPLOY: "true"
-      CF_PAGES_BRANCH: main
-      CF_PAGES_PROJECT_NAME: codedestiny
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Validate deploy secrets
-        run: |
-          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
-            echo "CLOUDFLARE_API_TOKEN is missing."
-            exit 1
-          fi
-          if [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
-            echo "CLOUDFLARE_ACCOUNT_ID is missing."
-            exit 1
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Wrangler auth preflight
-        run: npx --no-install wrangler whoami
-
-      - name: Build, verify, and deploy Pages
-        run: npm run deploy:cf:pages
+      - name: Pages Deploy Disabled Notice
+        run: echo "Cloudflare Pages deploy is disabled in GitHub Actions. Use manual deploy only."

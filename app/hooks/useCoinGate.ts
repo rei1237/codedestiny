@@ -3,10 +3,8 @@
 import { useCallback, useRef, useState } from "react";
 import { getAuthState, refreshAuth } from "../_lib/auth-store";
 import {
-  fetchBillingAccessDecision,
   fetchBillingFeaturePricing,
-  runBillingCharge,
-  runBillingRefund,
+  runBillingCoinGate,
 } from "../_lib/billing-client";
 import { usePayment } from "./usePayment";
 
@@ -136,109 +134,9 @@ export function useCoinGate() {
 
       requiredCoins = toNumber(pricingResult.data.pricing.cost, 0);
 
-      const accessResult = await fetchBillingAccessDecision({
-        categoryKey: input.categoryKey,
-        subFeatureKey: input.subFeatureKey,
-        featureKey: input.featureKey || pricingResult.data.pricing.featureKey,
-        reason: input.reason || pricingResult.data.pricing.reason,
-      });
-
-      if (!accessResult.ok) {
-        const accessCode = toText(accessResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
-        const accessMessage = toText(accessResult.error?.message || accessResult.message || "결제 접근 권한 확인에 실패했습니다.") || "결제 접근 권한 확인에 실패했습니다.";
-        if (resolveLoginRequired(accessCode, accessResult.status)) {
-          return {
-            ok: false,
-            code: "AUTH_REQUIRED",
-            message: "로그인이 필요합니다.",
-            requiredCoins,
-            chargedCoins: 0,
-            balanceAfter: 0,
-            transactionId: "",
-            refunded: false,
-          };
-        }
-        return {
-          ok: false,
-          code: accessCode,
-          message: accessMessage,
-          requiredCoins,
-          chargedCoins: 0,
-          balanceAfter: 0,
-          transactionId: "",
-          refunded: false,
-        };
-      }
-
-      const accessDecision = accessResult.data?.accessDecision;
-      const accessReason = toText(accessDecision?.reason).toLowerCase();
-      const accessBalance = toNumber(accessDecision?.coinBalance, 0);
-
-      if (accessReason === "auth_required") {
-        return {
-          ok: false,
-          code: "AUTH_REQUIRED",
-          message: "로그인이 필요합니다.",
-          requiredCoins,
-          chargedCoins: 0,
-          balanceAfter: accessBalance,
-          transactionId: "",
-          refunded: false,
-        };
-      }
-
-      if (accessReason === "insufficient_coins") {
-        return {
-          ok: false,
-          code: "INSUFFICIENT_COINS",
-          message: "코인이 부족합니다.",
-          requiredCoins,
-          chargedCoins: 0,
-          balanceAfter: accessBalance,
-          transactionId: "",
-          refunded: false,
-        };
-      }
-
-      if (accessReason === "free" || accessReason === "already_unlocked" || accessReason === "subscription_active") {
-        if (typeof input.onPaid === "function") {
-          try {
-            await input.onPaid({
-              transactionId: "",
-              chargedCoins: 0,
-              requiredCoins,
-              balanceAfter: accessBalance,
-              featureKey: toText(input.featureKey || pricingResult.data.pricing.featureKey),
-            });
-          } catch (error) {
-            return {
-              ok: false,
-              code: "FEATURE_EXECUTION_FAILED",
-              message: error instanceof Error ? error.message : "유료 기능 실행에 실패했습니다.",
-              requiredCoins,
-              chargedCoins: 0,
-              balanceAfter: accessBalance,
-              transactionId: "",
-              refunded: false,
-            };
-          }
-        }
-
-        return {
-          ok: true,
-          code: "OK",
-          message: "이미 이용 가능한 서비스입니다.",
-          requiredCoins,
-          chargedCoins: 0,
-          balanceAfter: accessBalance,
-          transactionId: "",
-          refunded: false,
-        };
-      }
-
       setPaymentMessage(`결제를 진행 중입니다... (${requiredCoins}코인)`);
 
-      const chargeResult = await runBillingCharge({
+      const chargeResult = await runBillingCoinGate({
         categoryKey: input.categoryKey,
         subFeatureKey: input.subFeatureKey,
         featureKey: input.featureKey || pricingResult.data.pricing.featureKey,
@@ -290,10 +188,11 @@ export function useCoinGate() {
         };
       }
 
-      const transactionId = toText(chargeResult.data.transactionId);
-      const chargedCoins = toNumber(chargeResult.data.chargedCoins, 0);
-      const balanceAfter = toNumber(chargeResult.data.balanceAfter, 0);
-      const resolvedFeatureKey = toText(chargeResult.data.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
+      const consume = (chargeResult.data.consume || {}) as Record<string, unknown>;
+      const transactionId = toText(consume.transactionId || consume._id || "");
+      const chargedCoins = toNumber(consume.cost, requiredCoins);
+      const balanceAfter = toNumber(chargeResult.data.balance, 0);
+      const resolvedFeatureKey = toText(consume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
 
       if (typeof input.onPaid === "function") {
         setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
@@ -306,16 +205,6 @@ export function useCoinGate() {
             featureKey: resolvedFeatureKey,
           });
         } catch (error) {
-          if (transactionId) {
-            await runBillingRefund({
-              transactionId,
-              sourceTransactionId: transactionId,
-              featureKey: resolvedFeatureKey,
-              cost: chargedCoins > 0 ? chargedCoins : requiredCoins,
-              reason: `${toText(input.reason) || "유료 기능 실행"} 실패 자동 환불`,
-            });
-          }
-
           return {
             ok: false,
             code: "FEATURE_EXECUTION_FAILED",
@@ -324,7 +213,7 @@ export function useCoinGate() {
             chargedCoins,
             balanceAfter,
             transactionId,
-            refunded: Boolean(transactionId),
+            refunded: false,
           };
         }
       }

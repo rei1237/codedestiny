@@ -1,6 +1,5 @@
 import { connectDb } from "./db.js";
 import { User, PointHistory } from "./models.js";
-import { getPremiumReportPriceByReportType } from "./paid-feature-registry.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   lifeBook: ["premiumDivinationPack"],
@@ -9,7 +8,6 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
-  sibylDominator: ["premium-sibyl-dominator"],
 });
 
 function uniqueStrings(values) {
@@ -26,28 +24,9 @@ function normalizeModeToken(requestBody = {}) {
   return `${mode} ${reportMode}`.trim();
 }
 
-function buildPremiumReportPriceRules(reportType, requestBody = {}) {
-  const modeToken = normalizeModeToken(requestBody);
-  const spec = getPremiumReportPriceByReportType(reportType, modeToken);
-  if (!spec) return [];
-
-  const featureKeys = uniqueStrings([
-    spec.featureKey,
-    ...(Array.isArray(spec.legacyFeatureKeys) ? spec.legacyFeatureKeys : []),
-  ]);
-  return featureKeys.map((featureKey) => ({
-    featureKey,
-    reason: String(spec.label || "프리미엄 PDF 리포트 생성"),
-    minCost: Number(spec.priceCoins || 0),
-    windowMinutes: reportType === "loveSecret" ? 45 : 120,
-    reportKind: spec.reportKind,
-  }));
-}
-
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "lifeBook") {
     return [
-      ...buildPremiumReportPriceRules(reportType, requestBody),
       {
         featureKey: "premium-lifebook-report",
         reason: "인생의 책 생성 (13챕터)",
@@ -66,9 +45,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "loveSecret") {
     const modeToken = normalizeModeToken(requestBody);
     const isCouple = modeToken.includes("couple");
-    return [
-      ...buildPremiumReportPriceRules(reportType, requestBody),
-      {
+    return [{
       featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
       reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
       minCost: isCouple ? 400 : 300,
@@ -77,9 +54,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "ziweiPremium") {
-    return [
-      ...buildPremiumReportPriceRules(reportType, requestBody),
-      {
+    return [{
       featureKey: "premium-ziwei-report",
       reason: "자미두수 프리미엄 PDF 리포트 생성",
       minCost: 590,
@@ -88,9 +63,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "westernAstrologyPremium") {
-    return [
-      ...buildPremiumReportPriceRules(reportType, requestBody),
-      {
+    return [{
       featureKey: "premium-astrology-report",
       reason: "점성술 프리미엄 PDF 리포트 생성",
       minCost: 390,
@@ -99,9 +72,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "sookyoPremium") {
-    return [
-      ...buildPremiumReportPriceRules(reportType, requestBody),
-      {
+    return [{
       featureKey: "premium-sukuyo-report",
       reason: "숙요점 프리미엄 PDF 리포트 생성",
       minCost: 390,
@@ -110,21 +81,10 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "vedicPremium") {
-    return [
-      ...buildPremiumReportPriceRules(reportType, requestBody),
-      {
+    return [{
       featureKey: "premium-vedic-report",
       reason: "베다 점성술 프리미엄 PDF 리포트 생성",
       minCost: 390,
-      windowMinutes: 120,
-    }];
-  }
-
-  if (reportType === "sibylDominator") {
-    return [{
-      featureKey: "premium-sibyl-dominator",
-      reason: "시빌라 도미네이터 리포트",
-      minCost: 100,
       windowMinutes: 120,
     }];
   }
@@ -267,5 +227,4 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 export const __accessControlTestUtils = {
   buildAlternativePaymentRules,
   buildRequiredPaymentRules,
-  buildPremiumReportPriceRules,
 };

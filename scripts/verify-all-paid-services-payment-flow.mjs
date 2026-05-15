@@ -51,10 +51,10 @@ if (
 
 const args = parseArgs(process.argv.slice(2));
 const TEST_LOGIN_ID = String(args.email || "test1234@example.com").trim().toLowerCase();
-const TEST_POINTS_ARG = args.points === undefined ? undefined : Number(args.points);
+const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 9999;
 const REQUEST_ID_PREFIX = `qa-all-paid-${Date.now().toString(36)}`;
 
-if (TEST_POINTS_ARG !== undefined && (!Number.isInteger(TEST_POINTS_ARG) || TEST_POINTS_ARG <= 0)) {
+if (!Number.isInteger(TEST_POINTS) || TEST_POINTS <= 0) {
   throw new Error("--points must be a positive integer.");
 }
 
@@ -161,31 +161,6 @@ function verifyCoverage(cases) {
   }
 }
 
-function resolveSeedPoints(cases, explicitPoints) {
-  const totalRequired = cases.reduce((sum, entry) => {
-    const cost = Number(entry?.expectedCost || 0);
-    if (!Number.isFinite(cost) || cost <= 0) {
-      throw new Error(`유효하지 않은 expectedCost: id=${entry?.id || "unknown"}, cost=${entry?.expectedCost}`);
-    }
-    return sum + cost;
-  }, 0);
-
-  // Keep a small headroom so newly added side checks don't accidentally under-seed.
-  const recommendedSeed = totalRequired + 500;
-
-  if (explicitPoints !== undefined) {
-    if (explicitPoints < totalRequired) {
-      throw new Error(
-        `--points(${explicitPoints})가 전체 필요 코인(${totalRequired})보다 작습니다. `
-        + `최소 ${totalRequired} 이상(권장 ${recommendedSeed})으로 실행하세요.`,
-      );
-    }
-    return { seedPoints: explicitPoints, totalRequired };
-  }
-
-  return { seedPoints: recommendedSeed, totalRequired };
-}
-
 async function prepareTestUser(email, points) {
   await dbConnect();
   const User = await getUserModel();
@@ -261,9 +236,8 @@ async function main() {
   const env = getEnvForWorker();
   const cases = buildConsumeCases();
   verifyCoverage(cases);
-  const { seedPoints, totalRequired } = resolveSeedPoints(cases, TEST_POINTS_ARG);
 
-  const user = await prepareTestUser(TEST_LOGIN_ID, seedPoints);
+  const user = await prepareTestUser(TEST_LOGIN_ID, TEST_POINTS);
   const authToken = await signAuthToken(user, env);
 
   let totalCharged = 0;
@@ -283,7 +257,7 @@ async function main() {
 
   const User = await getUserModel();
   const afterUser = await User.findById(user._id).select("points").lean();
-  const expectedPoints = seedPoints - totalCharged;
+  const expectedPoints = TEST_POINTS - totalCharged;
   const actualPoints = Number(afterUser?.points || 0);
 
   if (actualPoints !== expectedPoints) {
@@ -302,8 +276,7 @@ async function main() {
 
   console.log("[verify-all-paid-services-payment-flow] PASS");
   console.log(`  - user: ${TEST_LOGIN_ID}`);
-  console.log(`  - required total: ${totalRequired}`);
-  console.log(`  - initial points: ${seedPoints}`);
+  console.log(`  - initial points: ${TEST_POINTS}`);
   console.log(`  - cases executed: ${cases.length}`);
   console.log(`  - total charged: ${totalCharged}`);
   console.log(`  - final points: ${actualPoints}`);

@@ -200,18 +200,10 @@ async function fetchKasiLunarFromSolar(req: NextRequest, year: number, month: nu
 async function calcSukuyo(req: NextRequest, year: number, month: number, day: number) {
   const kasiLunar = await fetchKasiLunarFromSolar(req, year, month, day);
   if (kasiLunar) {
-    const fromKasi = buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, kasiLunar.isLeap);
-    fromKasi.source = "kasi-api";
-    return fromKasi;
+    return buildSukuyoFromLunar(kasiLunar.lunarMonth, kasiLunar.lunarDay, kasiLunar.isLeap);
   }
-  const fallbackLunarMonth = ((month + 10) % 12) + 1;
-  const fallbackLunarDay = ((day + 12) % 30) + 1;
-  const fromLocal = buildSukuyoFromLunar(fallbackLunarMonth, fallbackLunarDay, false);
-  fromLocal.source = "local-fallback";
-  return fromLocal;
+  return null;
 }
-
-type SukuyoResult = NonNullable<Awaited<ReturnType<typeof calcSukuyo>>>;
 
 function relation(myIdx: number, otherIdx?: number | null) {
   if (otherIdx == null) return null;
@@ -423,7 +415,7 @@ function buildSukuyoChartSummaryLine(chart: any) {
   ].filter(Boolean).join(", ");
 }
 
-function fallbackText(chapter: number, sukuyo: SukuyoResult, rel: ReturnType<typeof relation>, reportMode: "personal" | "compatibility") {
+function fallbackText(chapter: number, sukuyo: ReturnType<typeof calcSukuyo>, rel: ReturnType<typeof relation>, reportMode: "personal" | "compatibility") {
   const metaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
   const guideList = reportMode === "compatibility" ? COMPAT_CHAPTER_GUIDES : SOLO_CHAPTER_GUIDES;
   const meta = metaList[chapter - 1] ?? metaList[0];
@@ -439,7 +431,7 @@ function fallbackText(chapter: number, sukuyo: SukuyoResult, rel: ReturnType<typ
   ].join("\n\n");
 }
 
-function buildPrompt(chapter: number, sukuyo: SukuyoResult, reportMode: "personal" | "compatibility", partner?: SukuyoResult | null, chart?: any, scores?: any) {
+function buildPrompt(chapter: number, sukuyo: ReturnType<typeof calcSukuyo>, reportMode: "personal" | "compatibility", partner?: ReturnType<typeof calcSukuyo> | null, chart?: any, scores?: any) {
   const metaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
   const guideList = reportMode === "compatibility" ? COMPAT_CHAPTER_GUIDES : SOLO_CHAPTER_GUIDES;
   const meta = metaList[chapter - 1] ?? metaList[0];
@@ -532,7 +524,7 @@ async function generateText(prompt: string, minChars: number) {
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (auth.ok === false) return auth.response;
+    if (!auth.ok) return auth.response;
 
     const body = await req.json();
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;

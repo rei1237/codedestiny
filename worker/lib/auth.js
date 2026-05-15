@@ -8,7 +8,6 @@ import { RefreshTokenSession, User } from "./models.js";
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
 export const REFRESH_COOKIE_NAME = "fortune_auth_refresh";
-const LEGACY_ACCESS_COOKIE_NAMES = ["cdToken"];
 
 export function getJwtIssuer(env) {
   return getEnv(env, "JWT_ISSUER") || JWT_ISSUER;
@@ -47,24 +46,12 @@ export function getRefreshTokenExpiresIn(env) {
 export function getBearerToken(request) {
   const authorization = request.headers.get("Authorization") || "";
   const bearer = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
-  return bearer || getAccessCookieToken(request);
+  return bearer || cookieValue(request, ACCESS_COOKIE_NAME);
 }
 
 function getHeaderBearerToken(request) {
   const authorization = request.headers.get("Authorization") || "";
   return authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
-}
-
-function getAccessCookieToken(request) {
-  const primary = cookieValue(request, ACCESS_COOKIE_NAME);
-  if (primary) return primary;
-
-  for (let i = 0; i < LEGACY_ACCESS_COOKIE_NAMES.length; i += 1) {
-    const token = cookieValue(request, LEGACY_ACCESS_COOKIE_NAMES[i]);
-    if (token) return token;
-  }
-
-  return "";
 }
 
 function hashRefreshToken(rawToken, env) {
@@ -178,60 +165,12 @@ function extractTokenUserId(payload) {
 }
 
 export async function requireAuth(request, env) {
-  const session = await getSessionFromRequest(request, env);
-  if (!session?.user?.id) {
-    throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
-  }
-  return session.user;
-}
-
-export async function requireUser(request, env) {
-  try {
-    const session = await getSessionFromRequest(request, env);
-    const userId = String(session?.user?.id || session?.user?.userId || "").trim();
-    if (!userId) {
-      throw createHttpError(401, "로그인이 필요합니다.", { code: "AUTH_REQUIRED" });
-    }
-
-    return {
-      userId,
-      email: String(session?.user?.email || "").trim(),
-      session,
-    };
-  } catch (error) {
-    const status = Number(error?.status || 0);
-    if (status === 401 || status === 403) {
-      throw createHttpError(401, "로그인이 필요합니다.", { code: "AUTH_REQUIRED" });
-    }
-    throw error;
-  }
-}
-
-export async function getSessionFromRequest(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env);
-  const userId = String(auth?.userId || "").trim();
-  if (!userId) return null;
-
-  return {
-    user: {
-      id: userId,
-      userId,
-      email: auth?.email ? String(auth.email) : "",
-      role: auth?.role ? String(auth.role) : "user",
-      name: auth?.name ? String(auth.name) : "",
-      image: auth?.image ? String(auth.image) : "",
-      birthDate: auth?.birthDate ? String(auth.birthDate) : "",
-      birthTime: auth?.birthTime ? String(auth.birthTime) : "",
-      gender: auth?.gender ? String(auth.gender) : "OTHER",
-      points: Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0,
-      joinedAt: auth?.joinedAt || null,
-    },
-  };
+  return requireUserFromRequest(request, env);
 }
 
 export async function getOptionalUserFromRequest(request, env) {
   const bearerToken = getHeaderBearerToken(request);
-  const accessCookieToken = getAccessCookieToken(request);
+  const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
   const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
 
   const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
@@ -251,8 +190,9 @@ export async function getOptionalUserFromRequest(request, env) {
 }
 
 export async function requireUserFromRequest(request, env) {
-  const auth = await requireAuth(request, env);
-  return auth;
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (auth) return auth;
+  throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
 }
 
 export async function signAuthToken(user, env) {

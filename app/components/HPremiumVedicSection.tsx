@@ -1,7 +1,5 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { wrapPdfExportTask } from "../_lib/pdf-export-guard";
-import { purchaseFeature } from "../_lib/billing-client";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -279,29 +277,28 @@ function PDFDownloadButton({
   const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
 
   const handleDownload = useCallback(() => {
-    void wrapPdfExportTask(async () => {
-      if (doneChapters.length !== TOTAL_CHAPTERS) {
-        setError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
-        return;
-      }
-      setLoading(true); setError("");
-      try {
-        const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
-        const chaptersHtml = doneChapters.map((m, i) => {
-          const r = chapters[m.num].result!;
-          const secHtml = Array.isArray(r.sections) && r.sections.length > 0
-            ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
-            : `<div class="sec">${nl2p(r.text)}</div>`;
-          return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(m.icon)} CHAPTER ${m.num}</span><h2 class="ct">${escH(m.title)}</h2><p class="cs">${escH(m.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
-        }).join("");
-        const chartMeta = chart ? [
-          `라그나: ${chart.lagna?.signSanskrit ?? "-"} ${chart.lagna?.degree ?? ""}°`,
-          `달 낙샤트라: ${chart.moonNakshatra?.ko ?? "-"}`,
-          `아트마카라카: ${chart.atmakaraka?.nameKo ?? "-"}`,
-          `현재 대운: ${chart.vimshottariDasha?.current?.planet ?? "-"}`,
-        ] : [];
-        const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>베다 점성술 Karmic Blueprint</title><style>
+    if (doneChapters.length !== TOTAL_CHAPTERS) {
+      setError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+      return;
+    }
+    setLoading(true); setError("");
+    try {
+      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
+      const chaptersHtml = doneChapters.map((m, i) => {
+        const r = chapters[m.num].result!;
+        const secHtml = Array.isArray(r.sections) && r.sections.length > 0
+          ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
+          : `<div class="sec">${nl2p(r.text)}</div>`;
+        return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(m.icon)} CHAPTER ${m.num}</span><h2 class="ct">${escH(m.title)}</h2><p class="cs">${escH(m.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
+      }).join("");
+      const chartMeta = chart ? [
+        `라그나: ${chart.lagna?.signSanskrit ?? "-"} ${chart.lagna?.degree ?? ""}°`,
+        `달 낙샤트라: ${chart.moonNakshatra?.ko ?? "-"}`,
+        `아트마카라카: ${chart.atmakaraka?.nameKo ?? "-"}`,
+        `현재 대운: ${chart.vimshottariDasha?.current?.planet ?? "-"}`,
+      ] : [];
+      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>베다 점성술 Karmic Blueprint</title><style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0}
@@ -331,16 +328,14 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#
 </div>
 ${chaptersHtml}
 </body></html>`;
-          const win = window.open("", "_blank", "width=900,height=700");
-          if (!win) { setError("팝업이 차단됐습니다. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
-          win.document.open(); win.document.write(fullHtml); win.document.close();
-          win.focus();
-          setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
-          await new Promise((resolve) => setTimeout(resolve, 1800));
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "PDF 생성 중 오류");
-        } finally { setLoading(false); }
-      }, 2000);
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) { setError("팝업이 차단됐습니다. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
+      win.document.open(); win.document.write(fullHtml); win.document.close();
+      win.focus();
+      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "PDF 생성 중 오류");
+    } finally { setLoading(false); }
   }, [doneChapters, chapters, chart, userName, birthDate]);
 
   // 모바일 스크롤 중 오작동 방지: touchmove 감지 시 클릭 방지
@@ -663,14 +658,6 @@ export default function HPremiumVedicSection({
           err.status = status;
           err.code = code;
           err.details = data?.details || data?.missingFields || null;
-          console.error("[VedicPremiumPDF][API_ERROR]", {
-            attempt,
-            status,
-            code,
-            message: mappedMessage,
-            details: err.details,
-            response: data || null,
-          });
           throw err;
         }
         return data;
@@ -679,17 +666,6 @@ export default function HPremiumVedicSection({
         const status = Number((e as VedicApiError)?.status || 0);
         const retryableStatus = [408, 409, 429, 500, 502, 503, 504];
         const retryable = (e instanceof Error && e.name === "AbortError") || !status || retryableStatus.includes(status);
-        if (attempt === 4 || !retryable) {
-          console.error("[VedicPremiumPDF][REQUEST_FAILED]", {
-            attempt,
-            status,
-            retryable,
-            code: String((e as VedicApiError)?.code || ""),
-            name: e instanceof Error ? e.name : "",
-            message: e instanceof Error ? e.message : String(e),
-            details: (e as VedicApiError)?.details || null,
-          });
-        }
         if (attempt === 4 || !retryable) break;
         await new Promise((resolve) => setTimeout(resolve, Math.min(700 * (2 ** (attempt - 1)), 2600)));
       } finally {
@@ -753,32 +729,37 @@ export default function HPremiumVedicSection({
       // ignore storage errors
     }
 
-    const requestId = `premium:veda:compat-addon:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const purchaseResult = await purchaseFeature({
-      featureKey: "premium-veda-compatibility-addon",
-      reason: "프리미엄 베다점 궁합 확장 분석 추가",
-      forceDeduct: true,
-      requestId,
-    });
+    const token = localStorage.getItem("fortune_auth_token");
 
-    if (!purchaseResult.ok && purchaseResult.status === 402) {
+    const requestId = `premium:veda:compat-addon:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const res = await fetch("/api/fortune/pig-coin/consume", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        cost: VEDIC_COMPAT_ADDON_COST,
+        reason: "베다 프리미엄 궁합 모드 추가",
+        featureKey: "premium-veda-compatibility-addon",
+        forceDeduct: true,
+        requestId,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 402) {
       throw new Error("코인이 부족합니다. 궁합 모드는 300코인이 추가됩니다.");
     }
-    if (!purchaseResult.ok && (purchaseResult.status === 401 || purchaseResult.status === 403)) {
+    if (res.status === 401 || res.status === 403) {
       throw new Error("로그인이 필요합니다. 로그인 후 궁합 리포트를 생성해 주세요.");
     }
-    if (!purchaseResult.ok) {
-      throw new Error(purchaseResult.error?.message || purchaseResult.message || "궁합 모드 추가 코인 차감에 실패했습니다.");
+    if (!res.ok) {
+      throw new Error(data?.message || "궁합 모드 추가 코인 차감에 실패했습니다.");
     }
-
-    const consumeData = (purchaseResult.data?.consume && typeof purchaseResult.data.consume === "object")
-      ? purchaseResult.data.consume as Record<string, unknown>
-      : {};
-    const transactionId = String(consumeData?.transactionId || purchaseResult.raw?.transactionId || "");
-
-    if (transactionId) {
+    if (data?.transactionId) {
       try {
-        sessionStorage.setItem(VEDIC_COMPAT_ADDON_TX_KEY, transactionId);
+        sessionStorage.setItem(VEDIC_COMPAT_ADDON_TX_KEY, String(data.transactionId));
       } catch {
         // ignore storage errors
       }
@@ -803,12 +784,6 @@ export default function HPremiumVedicSection({
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
       const message = toVedicUiError(e);
-      console.error("[VedicPremiumPDF][CALC_FAILED]", {
-        status: Number((e as VedicApiError)?.status || 0),
-        code: String((e as VedicApiError)?.code || ""),
-        message,
-        details: (e as VedicApiError)?.details || null,
-      });
       setCalcError(message);
       setRequestError(message);
       onPdfFlowStateChange?.("error", message);
@@ -844,13 +819,6 @@ export default function HPremiumVedicSection({
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
       const message = toVedicUiError(e);
-      console.error("[VedicPremiumPDF][CHAPTER_FAILED]", {
-        chapter: chNum,
-        status: Number((e as VedicApiError)?.status || 0),
-        code: String((e as VedicApiError)?.code || ""),
-        message,
-        details: (e as VedicApiError)?.details || null,
-      });
       setRequestError(message);
       setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
       onPdfFlowStateChange?.("error", message);
