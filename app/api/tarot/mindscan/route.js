@@ -163,89 +163,19 @@ export async function POST(req) {
       );
     }
 
-    // Gemini API 키 확인
-    const apiKey = pickGeminiKey();
-    if (!apiKey) {
+    const { buildMindscanReadingPayload } = await import("../../../../lib/tarot/mindscan-reading.mjs");
+    const reading = buildMindscanReadingPayload(pairs);
+    if (!reading?.ok) {
       return NextResponse.json(
-        { ok: false, message: "Gemini API 키가 설정되지 않았습니다." },
-        { status: 500 }
+        {
+          ok: false,
+          message: reading?.message || "카드 의미 데이터가 누락되어 정확한 해석을 생성할 수 없습니다",
+        },
+        { status: 422 },
       );
     }
 
-    const normalizedPairs = pairs.map(normalizePair);
-    const pairLines = normalizedPairs
-      .map((pair, idx) => {
-        return `${idx + 1}. slot=${pair.slot}, position=${pair.positionLabel}, meaning=${pair.positionMeaning}, main=${pair.mainCardName}, sub=${pair.subCardName}`;
-      })
-      .join("\n");
-
-    const prompt = [
-      "당신은 마인드 스캔 타로 마스터입니다.",
-      "아래 카드 페어를 바탕으로 상대방 속마음을 분석하세요.",
-      "반드시 JSON만 출력하세요. 마크다운 금지.",
-      "JSON 스키마:",
-      '{"persona":"","intro":"","sections":[{"slot":1,"title":"","content":"","mainCardName":"","subCardName":""}],"masterAdvice":"","closing":""}',
-      "sections는 5개를 반환하고, 각 content는 2~4문장으로 작성하세요.",
-      "카드 페어:",
-      pairLines,
-    ].join("\n\n");
-
-    // Gemini API 호출
-    const model = getGeminiModel();
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 4096,
-        }
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("[tarot/mindscan] Gemini API error:", errorData);
-      const fallback = buildFallbackReading(normalizedPairs);
-      return NextResponse.json({
-        ...fallback,
-        message: "Gemini 응답 오류로 기본 리딩으로 대체되었습니다.",
-      });
-    }
-
-    const data = await response.json();
-    const rawText = extractGeminiText(data);
-    const parsed = parseJsonFromText(rawText);
-    const fallback = buildFallbackReading(normalizedPairs);
-
-    const rawSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
-    const normalizedSections = normalizedPairs.map((pair, idx) => {
-      const item = rawSections[idx] || {};
-      return {
-        slot: Number(item.slot || idx + 1),
-        title: toText(item.title) || pair.positionLabel,
-        content:
-          toText(item.content) ||
-          `${pair.mainCardName}와 ${pair.subCardName}의 조합은 상대가 관계의 안정성과 진정성을 동시에 확인하고 싶어 한다는 신호입니다.`,
-        mainCardName: toText(item.mainCardName) || pair.mainCardName,
-        subCardName: toText(item.subCardName) || pair.subCardName,
-      };
-    });
-
-    return NextResponse.json({
-      ok: true,
-      source: parsed ? "gemini" : fallback.source,
-      persona: toText(parsed?.persona) || fallback.persona,
-      intro: toText(parsed?.intro) || fallback.intro,
-      sections: normalizedSections,
-      masterAdvice: toText(parsed?.masterAdvice) || fallback.masterAdvice,
-      closing: toText(parsed?.closing) || fallback.closing,
-    });
+    return NextResponse.json(reading);
   } catch (error) {
     console.error("[tarot/mindscan] Error:", error);
     return NextResponse.json(

@@ -14,16 +14,50 @@ interface TarotPos {
   id: string; label: string; meaning: string; icon: string;
   col: number; row: number; isCenter?: boolean;
 }
-interface ReadingSection { slot: number; title: string; content: string; mainCardName?: string; subCardName?: string; }
-interface ReadingResult { source: string; persona: string; intro: string; sections: ReadingSection[]; masterAdvice?: string; closing: string; }
+interface ReadingMessageExample { tone?: string; text: string; }
+interface ReadingSummaryCard {
+  emotionalTemperature?: number;
+  emotionalTemperatureText?: string;
+  corePsychology?: string;
+  contactChance?: string;
+  relationFlow?: string;
+  reApproachChance?: string;
+  recommendedAction?: string;
+}
+interface ReadingSection {
+  slot: number;
+  icon?: string;
+  title: string;
+  subtitle?: string;
+  content?: string;
+  summary?: string;
+  detail?: string[];
+  mainCardName?: string;
+  subCardName?: string;
+  mainCardKeywords?: string[];
+  subCardKeywords?: string[];
+  loveSignal?: "긍정" | "혼란" | "방어" | "미련" | "거리두기" | "재접근 가능";
+  emotionalTemperature?: number;
+}
+interface ReadingResult {
+  source: string;
+  persona: string;
+  intro: string;
+  sections: ReadingSection[];
+  summaryCard?: ReadingSummaryCard;
+  masterAdvice?: string;
+  suggestedMessages?: ReadingMessageExample[];
+  oneLineConclusion?: string;
+  closing: string;
+}
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
 const POSITIONS: TarotPos[] = [
-  { id: "top",    label: "위",   meaning: "의식적으로 드러내는 감정", icon: "🌙", col: 2, row: 1 },
-  { id: "left",   label: "좌",   meaning: "과거의 감정 흔적",         icon: "🕯", col: 1, row: 2 },
-  { id: "center", label: "중앙", meaning: "현재 진심의 핵심",          icon: "💜", col: 2, row: 2, isCenter: true },
-  { id: "right",  label: "우",   meaning: "바라는 미래 방향",          icon: "⭐", col: 3, row: 2 },
-  { id: "bottom", label: "아래", meaning: "숨겨둔 무의식적 욕구",      icon: "🔮", col: 2, row: 3 },
+  { id: "top",    label: "위",   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
+  { id: "left",   label: "좌",   meaning: "실제 속마음",               icon: "💓", col: 1, row: 2 },
+  { id: "center", label: "중앙", meaning: "다가오지 않는 이유",        icon: "🧱", col: 2, row: 2, isCenter: true },
+  { id: "right",  label: "우",   meaning: "숨겨진 욕구",               icon: "🫧", col: 3, row: 2 },
+  { id: "bottom", label: "아래", meaning: "관계에 대한 판단",          icon: "⚖️", col: 2, row: 3 },
 ];
 
 const DECK_SIZE = 78;
@@ -574,7 +608,15 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
 }
 
 // ── RESULT STAGE ───────────────────────────────────────────────────────────────
-const SLOT_ICONS = ["🧠", "🎭", "👁", "💬", "💜"];
+const SLOT_ICONS = ["🎭", "💓", "🧱", "🫧", "⚖️", "🛰️", "📝"];
+const LOVE_SIGNAL_CLASS: Record<string, string> = {
+  "긍정": "border-emerald-400/35 bg-emerald-500/15 text-emerald-100",
+  "혼란": "border-amber-400/35 bg-amber-500/15 text-amber-100",
+  "방어": "border-sky-400/35 bg-sky-500/15 text-sky-100",
+  "미련": "border-pink-400/35 bg-pink-500/15 text-pink-100",
+  "거리두기": "border-slate-300/35 bg-slate-500/15 text-slate-100",
+  "재접근 가능": "border-violet-300/45 bg-violet-500/20 text-violet-100",
+};
 
 interface ResultStageProps {
   drawn: Record<string, number>;
@@ -587,10 +629,12 @@ interface ResultStageProps {
 function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultStageProps) {
   const [shareMsg, setShareMsg] = useState("");
   const [visibleCount, setVisibleCount] = useState(0);
+  const summaryCard = reading.summaryCard || {};
+  const suggestedMessages = Array.isArray(reading.suggestedMessages) ? reading.suggestedMessages.slice(0, 3) : [];
 
   // Stagger-reveal sections
   useEffect(() => {
-    const total = (reading.sections?.length ?? 0) + 4;
+    const total = (reading.sections?.length ?? 0) + 7;
     let n = 0;
     const t = setInterval(() => { n++; setVisibleCount(n); if (n >= total) clearInterval(t); }, 200);
     return () => clearInterval(t);
@@ -598,11 +642,30 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
   const buildText = useCallback(() => [
     "[속마음 타로 리딩]", `페르소나: ${reading.persona}`, "",
+    `감정 온도: ${summaryCard.emotionalTemperatureText || `${summaryCard.emotionalTemperature || 3} / 5`}`,
+    `현재 심리: ${summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}`,
+    `연락 가능성: ${summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}`,
+    `관계 흐름: ${summaryCard.relationFlow || "단절보다 거리두기에 가까운 흐름"}`,
+    `추천 행동: ${summaryCard.recommendedAction || "부담 없는 안부로 접점 만들기"}`,
+    "",
     reading.intro, "",
     ...(reading.sections || []).map(s =>
-      [`${s.slot}. ${s.title}`, `메인: ${s.mainCardName || "-"} / 보조: ${s.subCardName || "-"}`, s.content].join("\n")),
-    "", reading.masterAdvice || "", "", reading.closing,
-  ].join("\n"), [reading]);
+      [
+        `${s.slot}. ${s.title}`,
+        s.subtitle ? `소제목: ${s.subtitle}` : "",
+        `메인: ${s.mainCardName || "-"} / 보조: ${s.subCardName || "-"}`,
+        s.summary || s.content || "",
+        ...(Array.isArray(s.detail) ? s.detail : []),
+      ].filter(Boolean).join("\n")
+    ),
+    "",
+    "[지금 보내기 좋은 메시지 예시]",
+    ...suggestedMessages.map((item, idx) => `${idx + 1}. ${item.tone || "메시지"}: ${item.text}`),
+    "",
+    reading.masterAdvice || "",
+    "",
+    reading.oneLineConclusion || reading.closing,
+  ].join("\n"), [reading, suggestedMessages, summaryCard]);
 
   const showMsg = (msg: string) => { setShareMsg(msg); setTimeout(() => setShareMsg(""), 2500); };
 
@@ -764,20 +827,49 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             <p className="text-[15px] sm:text-base text-purple-100/88 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
           </motion.div>
 
+          {/* Summary card */}
+          <motion.article className="rounded-2xl border border-fuchsia-400/22 p-5 sm:p-6"
+            style={{ background: "linear-gradient(130deg,rgba(124,58,237,0.2),rgba(236,72,153,0.08),rgba(14,165,233,0.05))" }}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: visibleCount >= 4 ? 1 : 0, y: visibleCount >= 4 ? 0 : 14 }}>
+            <h3 className="text-base sm:text-lg font-black text-white mb-3">상대방 속마음 요약</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm">
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-50/92">
+                감정 온도: <b>{summaryCard.emotionalTemperatureText || `${summaryCard.emotionalTemperature || 3} / 5`}</b>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-50/92">
+                재접근 가능성: <b>{summaryCard.reApproachChance || "중간"}</b>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-50/92">
+                연락 가능성: <b>{summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}</b>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-50/92">
+                관계 흐름: <b>{summaryCard.relationFlow || "단절보다 거리두기에 가까움"}</b>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-fuchsia-100/90 leading-7">
+              현재 심리: {summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}
+            </p>
+            <p className="text-sm text-fuchsia-100/85 leading-7">
+              추천 행동: {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
+            </p>
+          </motion.article>
+
           {/* Sections */}
           {(reading.sections || []).map((s, i) => (
             <motion.article key={s.slot} className="rounded-2xl border border-white/7 p-5 sm:p-6"
               style={{ background: i % 2 === 0 ? "rgba(109,40,217,0.07)" : "rgba(168,85,247,0.05)" }}
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: visibleCount >= i + 4 ? 1 : 0, y: visibleCount >= i + 4 ? 0 : 16 }}
+              animate={{ opacity: visibleCount >= i + 5 ? 1 : 0, y: visibleCount >= i + 5 ? 0 : 16 }}
               transition={{ duration: 0.38 }}>
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ background: "rgba(168,85,247,0.14)", border: "1px solid rgba(168,85,247,0.22)" }}>
-                  <span className="text-lg">{SLOT_ICONS[i] ?? "✦"}</span>
+                  <span className="text-lg">{s.icon || SLOT_ICONS[i] || "✦"}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm sm:text-base font-semibold text-purple-100 leading-snug">{s.slot}. {s.title}</h4>
+                  {s.subtitle && <p className="text-xs text-purple-300/60 mt-1">{s.subtitle}</p>}
                   {(s.mainCardName || s.subCardName) && (
                     <div className="flex flex-wrap items-center gap-x-1 mt-0.5">
                       <span className="text-[10px] text-purple-400/55">메인:</span>
@@ -787,25 +879,70 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                       <span className="text-[10px] text-purple-200 font-medium">{s.subCardName || "—"}</span>
                     </div>
                   )}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    {s.loveSignal && (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${LOVE_SIGNAL_CLASS[s.loveSignal] || "border-purple-300/35 bg-purple-500/15 text-purple-100"}`}>
+                        {s.loveSignal}
+                      </span>
+                    )}
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border border-violet-300/35 bg-violet-500/15 text-violet-100">
+                      감정 온도 {s.emotionalTemperature || 3}/5
+                    </span>
+                    {(s.mainCardKeywords || []).slice(0, 2).map((kw) => (
+                      <span key={`m-${s.slot}-${kw}`} className="px-2 py-0.5 rounded-full text-[10px] border border-fuchsia-300/30 text-fuchsia-100/90 bg-fuchsia-500/10">#{kw}</span>
+                    ))}
+                    {(s.subCardKeywords || []).slice(0, 2).map((kw) => (
+                      <span key={`s-${s.slot}-${kw}`} className="px-2 py-0.5 rounded-full text-[10px] border border-sky-300/30 text-sky-100/90 bg-sky-500/10">#{kw}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <p className="text-[15px] sm:text-base text-purple-100/90 leading-8 tracking-[0.01em] sm:pl-12 whitespace-pre-line">{s.content}</p>
+              <p className="text-[15px] sm:text-base text-purple-100/90 leading-8 tracking-[0.01em] sm:pl-12 whitespace-pre-line">
+                {s.summary || s.content}
+              </p>
+              {(Array.isArray(s.detail) && s.detail.length > 0) && (
+                <div className="sm:pl-12 mt-2.5 space-y-2">
+                  {s.detail.map((line, idx) => (
+                    <p key={`${s.slot}-detail-${idx}`} className="text-[13px] sm:text-sm text-purple-100/78 leading-7">
+                      • {line}
+                    </p>
+                  ))}
+                </div>
+              )}
             </motion.article>
           ))}
+
+          {/* Suggested messages */}
+          {suggestedMessages.length > 0 && (
+            <motion.article className="rounded-2xl border border-cyan-300/24 p-5 sm:p-6"
+              style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(109,40,217,0.06),transparent)" }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: visibleCount >= 12 ? 1 : 0, y: visibleCount >= 12 ? 0 : 16 }}>
+              <h4 className="text-sm sm:text-base font-bold text-cyan-50 mb-3">지금 보내기 좋은 메시지 예시</h4>
+              <div className="space-y-2.5">
+                {suggestedMessages.map((item, idx) => (
+                  <div key={`msg-${idx}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
+                    <p className="text-[11px] text-cyan-200/75 mb-1">{item.tone || `메시지 ${idx + 1}`}</p>
+                    <p className="text-sm text-cyan-50/92 leading-7">“{item.text}”</p>
+                  </div>
+                ))}
+              </div>
+            </motion.article>
+          )}
 
           {/* Master advice */}
           {reading.masterAdvice && (
             <motion.article className="rounded-2xl border border-purple-400/18 p-5 sm:p-6"
               style={{ background: "linear-gradient(135deg,rgba(124,58,237,0.12),rgba(236,72,153,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: visibleCount >= 10 ? 1 : 0, y: visibleCount >= 10 ? 0 : 16 }}
+              animate={{ opacity: visibleCount >= 13 ? 1 : 0, y: visibleCount >= 13 ? 0 : 16 }}
               transition={{ duration: 0.38 }}>
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "rgba(236,72,153,0.14)", border: "1px solid rgba(236,72,153,0.22)" }}>
                   <span className="text-lg">✨</span>
                 </div>
-                <h4 className="text-sm sm:text-base font-bold text-purple-100">마스터의 종합 조언</h4>
+                <h4 className="text-sm sm:text-base font-bold text-purple-100">현실적인 행동 가이드</h4>
               </div>
               <p className="text-[15px] sm:text-base text-purple-50/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
             </motion.article>
@@ -815,14 +952,14 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           <motion.div className="rounded-2xl border border-white/5 p-5 sm:p-6 text-center"
             style={{ background: "rgba(255,255,255,0.02)" }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: visibleCount >= 11 ? 1 : 0 }}
+            animate={{ opacity: visibleCount >= 14 ? 1 : 0 }}
             transition={{ duration: 0.4 }}>
-            <p className="text-[10px] tracking-[0.45em] text-purple-400/45 uppercase mb-3">Closing Message</p>
-            <p className="text-[15px] sm:text-base text-purple-100/84 leading-8 tracking-[0.01em] italic">{reading.closing}</p>
+            <p className="text-[10px] tracking-[0.45em] text-purple-400/45 uppercase mb-3">One Line Conclusion</p>
+            <p className="text-[15px] sm:text-base text-purple-100/84 leading-8 tracking-[0.01em] italic">{reading.oneLineConclusion || reading.closing}</p>
             <div className="flex items-center justify-center gap-2 mt-3">
               <div className="w-8 h-px bg-purple-700/35" />
               <p className="text-[9px] text-purple-500/35 tracking-widest">
-                {reading.source === "gemini" ? "✦ Gemini AI 해석" : "✦ 타로 카드 DB 해석"}
+                {reading.source === "rule-engine" ? "✦ 카드 의미 기반 리딩" : "✦ 마인드 스캔 리딩"}
               </p>
               <div className="w-8 h-px bg-purple-700/35" />
             </div>

@@ -1321,7 +1321,6 @@ function bindFeatureCardImageFallbacks() {
     var img = document.querySelector('.feature-card.' + def.cardClass + ' .feature-card__img');
     if (!img) return;
 
-    var relativePath = 'fuctionassets/' + def.fileName;
     var absolutePath = '/fuctionassets/' + def.fileName;
 
     if (!img.dataset.fallbackBound) {
@@ -1329,7 +1328,7 @@ function bindFeatureCardImageFallbacks() {
       img.addEventListener('error', function() {
         if (img.dataset.fallbackTried === '1') return;
         img.dataset.fallbackTried = '1';
-        img.src = relativePath;
+        img.src = absolutePath;
       });
     }
 

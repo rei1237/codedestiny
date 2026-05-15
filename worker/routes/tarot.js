@@ -1,5 +1,4 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { callGeminiText } from "../lib/gemini.js";
 import { requireAuth } from "../lib/auth.js";
 
 const SPREAD_CONFIG = {
@@ -754,78 +753,6 @@ function pickReading(spreadType, cards) {
   return buildGenericReading(cards);
 }
 
-const MINDSCAN_POSITION_TITLES = [
-  "표면 감정",
-  "과거의 잔상",
-  "핵심 진심",
-  "미래 기대",
-  "무의식 욕구",
-];
-
-function normalizeMindscanPair(pair, idx) {
-  const slot = Number(pair?.slot || idx + 1);
-  const positionLabel = asText(pair?.positionLabel) || MINDSCAN_POSITION_TITLES[idx] || `포지션 ${slot}`;
-  const positionMeaning = asText(pair?.positionMeaning) || "이 위치의 감정 흐름을 읽어냅니다.";
-  const mainCardName = asText(pair?.mainCardName) || `Card ${Number(pair?.mainCardId ?? idx)}`;
-  const subCardName = asText(pair?.subCardName) || `Card ${Number(pair?.subCardId ?? (idx + 5))}`;
-
-  return {
-    slot,
-    positionLabel,
-    positionMeaning,
-    mainCardName,
-    subCardName,
-  };
-}
-
-function parseJsonCandidate(text) {
-  const source = asText(text);
-  if (!source) return null;
-
-  const candidates = [source];
-  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenced?.[1]) candidates.push(asText(fenced[1]));
-
-  const firstBrace = source.indexOf("{");
-  const lastBrace = source.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) {
-    candidates.push(source.slice(firstBrace, lastBrace + 1));
-  }
-
-  for (const raw of candidates) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch {
-      // try next candidate
-    }
-  }
-
-  return null;
-}
-
-function buildMindscanFallback(pairs) {
-  const sections = pairs.map((pair, idx) => ({
-    slot: idx + 1,
-    title: pair.positionLabel,
-    content:
-      `${pair.mainCardName}와 ${pair.subCardName} 조합은 이 위치에서 감정을 숨기기보다 안전하게 표현할 때 관계의 신뢰가 회복된다는 신호입니다. `
-      + "당장 결론을 내리기보다 상대의 반응 패턴을 관찰하고, 질문형 대화를 늘리는 것이 좋습니다.",
-    mainCardName: pair.mainCardName,
-    subCardName: pair.subCardName,
-  }));
-
-  return {
-    source: "fallback",
-    persona: "공감형 심층 분석가",
-    intro: "현재 에너지는 감정의 명료화 단계에 있습니다. 서로의 의도를 확인하는 대화가 핵심입니다.",
-    sections,
-    masterAdvice:
-      "핵심은 속도보다 방향입니다. 하루에 한 번 솔직한 감정 문장을 나누고, 상대의 답을 판단 없이 끝까지 듣는 루틴을 유지하세요.",
-    closing:
-      "상대의 마음을 읽는 가장 강한 방법은 추측이 아니라 일관된 관심입니다. 지금의 진심은 충분히 전달될 수 있습니다.",
-  };
-}
 
 function buildCrystalSoulReading(body = {}) {
   const topicName = asText(body?.topic?.name) || "원석 소울 타로";
@@ -877,64 +804,9 @@ function buildCrystalSoulReading(body = {}) {
   return lines.join("\n");
 }
 
-async function buildMindscanReading(env, pairs) {
-  const normalizedPairs = pairs.slice(0, 5).map(normalizeMindscanPair);
-  const pairLines = normalizedPairs
-    .map((pair, idx) => `${idx + 1}. slot=${pair.slot}, position=${pair.positionLabel}, meaning=${pair.positionMeaning}, main=${pair.mainCardName}, sub=${pair.subCardName}`)
-    .join("\n");
-
-  const prompt = [
-    "당신은 마인드 스캔 타로 마스터입니다.",
-    "아래 카드 페어를 바탕으로 상대방 속마음을 분석하세요.",
-    "반드시 JSON만 출력하세요. 마크다운 금지.",
-    "JSON 스키마:",
-    '{"persona":"","intro":"","sections":[{"slot":1,"title":"","content":"","mainCardName":"","subCardName":""}],"masterAdvice":"","closing":""}',
-    "sections는 5개를 반환하고, 각 content는 2~4문장으로 작성하세요.",
-    "카드 페어:",
-    pairLines,
-  ].join("\n\n");
-
-  const ai = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["MINDSCAN_GEMINI_MODEL"],
-    temperature: 0.8,
-    maxOutputTokens: 4096,
-    timeoutMs: Number(env.MINDSCAN_PROVIDER_TIMEOUT_MS || 45000),
-  });
-
-  const fallback = buildMindscanFallback(normalizedPairs);
-  if (!ai.ok) {
-    return {
-      ok: true,
-      ...fallback,
-      message: ai.message || "Gemini 호출 실패로 기본 리딩을 반환했습니다.",
-    };
-  }
-
-  const parsed = parseJsonCandidate(ai.text);
-  const rawSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
-
-  const sections = normalizedPairs.map((pair, idx) => {
-    const item = rawSections[idx] || {};
-    return {
-      slot: Number(item.slot || idx + 1),
-      title: asText(item.title) || pair.positionLabel,
-      content:
-        asText(item.content)
-        || `${pair.mainCardName}와 ${pair.subCardName}의 조합은 상대가 관계의 안정성과 진정성을 동시에 확인하고 싶어 한다는 신호입니다.`,
-      mainCardName: asText(item.mainCardName) || pair.mainCardName,
-      subCardName: asText(item.subCardName) || pair.subCardName,
-    };
-  });
-
-  return {
-    ok: true,
-    source: parsed ? "gemini" : "fallback",
-    persona: asText(parsed?.persona) || fallback.persona,
-    intro: asText(parsed?.intro) || fallback.intro,
-    sections,
-    masterAdvice: asText(parsed?.masterAdvice) || fallback.masterAdvice,
-    closing: asText(parsed?.closing) || fallback.closing,
-  };
+async function buildMindscanReading(pairs) {
+  const { buildMindscanReadingPayload } = await import("../../lib/tarot/mindscan-reading.mjs");
+  return buildMindscanReadingPayload(pairs);
 }
 
 export async function handleTarotRoutes(request, env = {}) {
@@ -1031,7 +903,13 @@ export async function handleTarotRoutes(request, env = {}) {
       if (!pairs.length) {
         return json({ ok: false, message: "카드 페어 데이터가 필요합니다." }, { status: 400 });
       }
-      const reading = await buildMindscanReading(env, pairs);
+      const reading = await buildMindscanReading(pairs);
+      if (!reading?.ok) {
+        return json({
+          ok: false,
+          message: reading?.message || "카드 의미 데이터가 누락되어 정확한 해석을 생성할 수 없습니다",
+        }, { status: 422 });
+      }
       return json(reading);
     }
 
