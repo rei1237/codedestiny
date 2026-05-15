@@ -21,6 +21,7 @@ const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 export default function AuthWidget() {
   const auth = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
   const user = (auth.user as AuthUser | null) || null;
 
   useEffect(() => {
@@ -63,10 +64,12 @@ export default function AuthWidget() {
   }, []);
 
   const handleLogout = async () => {
+    if (logoutPending) return;
+    setLogoutPending(true);
     try {
       await logout();
     } finally {
-      window.location.assign("/");
+      window.location.replace("/");
     }
   };
 
@@ -125,9 +128,10 @@ export default function AuthWidget() {
         <button
           type="button"
           onClick={handleLogout}
+          disabled={logoutPending}
           className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
         >
-          로그아웃
+          {logoutPending ? "로그아웃 중..." : "로그아웃"}
         </button>
       </div>
     );

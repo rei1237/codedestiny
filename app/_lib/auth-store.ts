@@ -109,6 +109,8 @@ let refreshInFlight: Promise<AuthUser | null> | null = null;
 let postLoginSyncInFlight: Promise<void> | null = null;
 let meRequestSeq = 0;
 let latestAppliedMeSeq = 0;
+let logoutInFlight = false;
+let authEpoch = 0;
 
 function debugAuth(...args: unknown[]) {
   if (!IS_DEV) return;
@@ -398,12 +400,16 @@ function clearAuthStateHard() {
   });
 }
 
-async function loadMeFromServer() {
+async function loadMeFromServer(expectedEpoch = authEpoch) {
   const requestSeq = ++meRequestSeq;
   const response = await authFetch("/api/auth/me", {
     method: "GET",
     cache: "no-store",
   }, { retryOn401: true });
+
+  if (expectedEpoch !== authEpoch || logoutInFlight) {
+    return null;
+  }
 
   if (requestSeq < latestAppliedMeSeq) {
     return state.user;
@@ -428,6 +434,11 @@ async function loadMeFromServer() {
   const payload = (await response.json()) as MeApiPayload;
   const authenticated = isAuthenticatedMePayload(payload);
   const user = authenticated ? (resolveSafeUser(payload?.user) as AuthUser | null) : null;
+
+  if (expectedEpoch !== authEpoch || logoutInFlight) {
+    return null;
+  }
+
   latestAppliedMeSeq = requestSeq;
 
   if (!authenticated || !user) {
@@ -450,6 +461,11 @@ async function loadMeFromServer() {
 export async function refreshAuth(options: { force?: boolean; silent?: boolean } = {}) {
   const { force = false, silent = false } = options;
   if (!force && refreshInFlight) return refreshInFlight;
+  if (logoutInFlight) {
+    return null;
+  }
+
+  const refreshEpoch = authEpoch;
 
   if (!silent) {
     setState({
@@ -460,7 +476,10 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
 
   refreshInFlight = (async () => {
     try {
-      const user = await loadMeFromServer();
+      const user = await loadMeFromServer(refreshEpoch);
+      if (refreshEpoch !== authEpoch || logoutInFlight) {
+        return null;
+      }
       setState({
         authReady: true,
         isLoading: false,
@@ -674,9 +693,16 @@ export async function register(credentials: RegisterCredentials) {
 }
 
 export async function logout(apiBase?: string) {
+  if (logoutInFlight) return;
+  logoutInFlight = true;
+  authEpoch += 1;
   clearAuthStateHard();
   publishAuthSync("logout");
-  await logoutWithServer(apiBase);
+  try {
+    await logoutWithServer(apiBase);
+  } finally {
+    logoutInFlight = false;
+  }
 }
 
 export function clearAuthError() {

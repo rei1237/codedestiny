@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authFetch, clearClientAuthState, logoutWithServer } from "../_lib/auth-client";
+import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { logout } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import WithdrawModal from "../components/WithdrawModal";
 
@@ -150,6 +151,7 @@ export default function MePage() {
   });
   const [loading, setLoading] = useState(true);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
   const [hasLocalAuth, setHasLocalAuth] = useState(true);
 
   const scope = useMemo(() => resolveScope(user), [user]);
@@ -330,8 +332,13 @@ export default function MePage() {
   };
 
   const handleLogout = async () => {
-    await logoutWithServer(apiBase);
-    window.location.assign("/");
+    if (logoutPending) return;
+    setLogoutPending(true);
+    try {
+      await logout(apiBase);
+    } finally {
+      window.location.replace("/");
+    }
   };
 
   if (loading) {
@@ -364,8 +371,12 @@ export default function MePage() {
             >
               회원 탈퇴
             </button>
-            <button onClick={handleLogout} className="rounded-md border border-slate-500/50 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200">
-              로그아웃
+            <button
+              onClick={handleLogout}
+              disabled={logoutPending}
+              className="rounded-md border border-slate-500/50 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {logoutPending ? "로그아웃 중..." : "로그아웃"}
             </button>
           </div>
         </header>

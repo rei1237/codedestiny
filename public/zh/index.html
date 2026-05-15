@@ -1568,6 +1568,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 if (btn.getAttribute('data-logout-pending') === '1') return;
                 try { btn.setAttribute('data-logout-pending', '1'); } catch (_) {}
                 try { btn.disabled = true; } catch (_) {}
+                try { btn.textContent = '🔒\u00a0로그아웃 중...'; } catch (_) {}
                 ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
                   try { localStorage.removeItem(k); } catch (_) {}
                 });
@@ -1584,19 +1585,28 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     detail: { source: 'index-shell', event: 'logout', at: Date.now() }
                   }));
                 } catch (_) {}
-                var logoutController = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                var logoutTimeout = logoutController ? setTimeout(function () {
-                  try { logoutController.abort(); } catch (_) {}
-                }, 1600) : null;
+                var _logoutRequest = async function (timeoutMs, keepalive) {
+                  var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                  var timeoutId = controller ? setTimeout(function () {
+                    try { controller.abort(); } catch (_) {}
+                  }, timeoutMs) : null;
+                  try {
+                    await fetch('/api/auth/logout', {
+                      method: 'POST',
+                      credentials: 'include',
+                      cache: 'no-store',
+                      keepalive: !!keepalive,
+                      signal: controller ? controller.signal : undefined
+                    });
+                  } finally {
+                    if (timeoutId) clearTimeout(timeoutId);
+                  }
+                };
                 try {
-                  await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include',
-                    cache: 'no-store',
-                    signal: logoutController ? logoutController.signal : undefined
-                  });
-                } catch (_) {}
-                if (logoutTimeout) clearTimeout(logoutTimeout);
+                  await _logoutRequest(3500, true);
+                } catch (_) {
+                  try { await _logoutRequest(3500, false); } catch (_) {}
+                }
                 location.replace('/');
               });
             }
@@ -1689,25 +1699,35 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                       if (_abtn.getAttribute('data-logout-pending') === '1') return;
                       try { _abtn.setAttribute('data-logout-pending', '1'); } catch (_) {}
                       try { _abtn.disabled = true; } catch (_) {}
+                      try { _abtn.textContent = '🔒\u00a0로그아웃 중...'; } catch (_) {}
                       ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
                         try { localStorage.removeItem(k); } catch (_) {}
                       });
                       document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
                       document.cookie = 'fortune_auth_refresh=;max-age=0;path=/;SameSite=Lax';
                       document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
-                      var _logoutController = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                      var _logoutTimeout = _logoutController ? setTimeout(function () {
-                        try { _logoutController.abort(); } catch (_) {}
-                      }, 1600) : null;
+                      var _logoutRequest2 = async function (timeoutMs, keepalive) {
+                        var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                        var timeoutId = controller ? setTimeout(function () {
+                          try { controller.abort(); } catch (_) {}
+                        }, timeoutMs) : null;
+                        try {
+                          await fetch('/api/auth/logout', {
+                            method: 'POST',
+                            credentials: 'include',
+                            cache: 'no-store',
+                            keepalive: !!keepalive,
+                            signal: controller ? controller.signal : undefined
+                          });
+                        } finally {
+                          if (timeoutId) clearTimeout(timeoutId);
+                        }
+                      };
                       try {
-                        await fetch('/api/auth/logout', {
-                          method: 'POST',
-                          credentials: 'include',
-                          cache: 'no-store',
-                          signal: _logoutController ? _logoutController.signal : undefined
-                        });
-                      } catch (_) {}
-                      if (_logoutTimeout) clearTimeout(_logoutTimeout);
+                        await _logoutRequest2(3500, true);
+                      } catch (_) {
+                        try { await _logoutRequest2(3500, false); } catch (_) {}
+                      }
                       try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
                       try { sessionStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
                       try { localStorage.removeItem('flower_admin_token'); } catch (_) {}

@@ -5,6 +5,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react
 import { useRouter } from "next/navigation";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearAuthError, login as loginWithStore, useAuthStore } from "../_lib/auth-store";
+import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
 
 declare global {
   interface Window {
@@ -83,6 +84,13 @@ function normalizeSocialAuthError(rawReason: string | null): string {
   if (reason === "oauth_not_configured") return "소셜 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
   if (reason === "invalid_callback" || reason === "provider_mismatch") return "소셜 인증 콜백이 유효하지 않습니다. 다시 시도해 주세요.";
   return "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+}
+
+function fallbackDisplayNameFromLoginId(rawId: string) {
+  const normalized = rawId.trim();
+  if (!normalized) return "탐험가";
+  const candidate = normalized.split("@")[0]?.trim();
+  return candidate || "탐험가";
 }
 
 export default function LoginPage() {
@@ -207,9 +215,23 @@ export default function LoginPage() {
 
   const isBusy = loginSubmitting || oauthRedirecting !== null;
   const formDisabled = isBusy;
+  const portalStatus: LoginStatus = isBusy ? "loading" : "idle";
+  const portalMessage = oauthRedirecting === "google"
+    ? "Google 인증을 연결하고 있습니다."
+    : oauthRedirecting === "naver"
+      ? "네이버 인증을 연결하고 있습니다."
+      : oauthRedirecting === "kakao"
+        ? "카카오 인증을 연결하고 있습니다."
+        : (loginSubmitting ? "로그인 시도 중... 우주 포털을 여는 중입니다." : "");
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#0a0e27_0%,#1a0a2e_25%,#16213e_50%,#0f3460_75%,#0a1428_100%)] px-4 py-10 text-slate-100">
+      <StarlightLoginPortal
+        status={portalStatus}
+        message={portalMessage}
+        displayName={fallbackDisplayNameFromLoginId(loginId)}
+      />
+
       {/* 우주 배경 - 행성 배치 */}
       <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-purple-600/20 via-purple-800/10 to-transparent blur-3xl opacity-60" />
       <div className="pointer-events-none absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-600/10 to-transparent blur-3xl opacity-50" />

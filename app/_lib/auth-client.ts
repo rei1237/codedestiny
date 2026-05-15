@@ -536,31 +536,44 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
 export async function logoutWithServer(apiBase?: string) {
   const configuredBase = String(apiBase || getApiBaseUrl() || "").trim();
   const resolvedBase = resolveApiBaseForRequest("/api/auth/logout", configuredBase);
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  try {
+  const logoutUrl = toAbsoluteApiUrl("/api/auth/logout", resolvedBase);
+  const requestWithTimeout = async (timeoutMs: number, keepalive: boolean) => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    timeoutId = controller
-      ? setTimeout(() => {
-          try {
-            controller.abort();
-          } catch {
-            // ignore abort failures
-          }
-        }, 1200)
-      : null;
+    if (controller) {
+      timeoutId = setTimeout(() => {
+        try {
+          controller.abort();
+        } catch {
+          // ignore abort failures
+        }
+      }, timeoutMs);
+    }
 
-    await fetch(toAbsoluteApiUrl("/api/auth/logout", resolvedBase), {
-      method: "POST",
-      credentials: "include",
-      cache: "no-store",
-      keepalive: true,
-      signal: controller?.signal,
-    });
+    try {
+      await fetch(logoutUrl, {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+        keepalive,
+        signal: controller?.signal,
+      });
+      return true;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+  };
+
+  try {
+    await requestWithTimeout(3500, true);
   } catch {
-    // local cleanup still required
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
+    try {
+      await requestWithTimeout(3500, false);
+    } catch {
+      // local cleanup still required
+    }
   }
+
   clearClientAuthState();
   publishAuthSync("logout");
 }
