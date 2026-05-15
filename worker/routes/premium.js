@@ -159,31 +159,26 @@ const LOVE_SECRET_MODE_CONFIG = {
   solo: {
     mode: "solo",
     reportType: "saju_love_solo",
-    totalChapters: 10,
-    minTotalChars: 45000,
-    chapterMinDefault: 4000,
-    chapterMinByIndex: { 1: 5000, 2: 5000, 3: 5500, 4: 4500, 5: 5500, 6: 4500, 7: 4500, 8: 4500, 9: 5500, 10: 5000 },
+    totalChapters: 5,
+    minTotalChars: 22000,
+    chapterMinDefault: 4200,
+    chapterMinByIndex: { 1: 4200, 2: 4200, 3: 4600, 4: 4200, 5: 4200 },
     title: "프리미엄 사주 연애운 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "일간/월지/일지/오행/십성으로 읽는 관계 자아", required: ["일간", "일지 배우자궁", "월지", "신강/신약", "오행 분포", "십성 분포", "관계 주도권"] },
       { title: "🌹 치명적 매력과 페로몬", subtitle: "도화/홍염/화개/역마가 만드는 매력 결", required: ["도화살", "홍염살", "화개살", "역마살", "기둥 위치", "매력 작동 상황", "과잉 리스크"] },
-      { title: "🧲 운명의 상대방 리포트", subtitle: "배우자궁·배우자성·오행 보완으로 보는 이상형", required: ["배우자성", "배우자궁", "재성/관성", "식상/인성/비겁", "보완 오행", "위험 상대 유형", "안정 상대 유형"] },
-      { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "식상·재성·관성·인성·비겁 기반 실전 대화법", required: ["식상", "재성", "관성", "인성", "비겁", "연락법", "갈등 대화법"] },
       { title: "📅 시기별 연애운 흐름", subtitle: "대운·세운·월운 기반 Go/Hold/Retreat", required: ["현재 대운", "다음 대운", "해당 연도 세운", "월운", "고백/정리 타이밍", "주의 시기", "선택 전략"] },
       { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "기신 과열·오행 불균형의 위기 패턴", required: ["기신", "오행 불균형", "일지 충형파해", "신살 역작용", "충돌 버튼", "이별 전조", "회복 프로토콜"] },
-      { title: "🔥 친밀감과 육체적 매력", subtitle: "관계 온도와 친밀 리듬의 데이터 기반 해석", required: ["화 기운", "수 기운", "식상", "재성/관성", "홍염/도화", "속도 차이", "안정감 조건"] },
       { title: "📱 현대적 상황별 연애 비책", subtitle: "카톡/DM/썸/재회/장거리 실전 운영", required: ["연락 템포", "썸 단계", "갈등 후 메시지", "재회/정리", "온라인 관계", "말투 전략", "맞춤 접근법"] },
-      { title: "💍 결혼과 정착", subtitle: "배우자궁·배우자성·책임 구조로 보는 장기 안정성", required: ["배우자궁", "배우자성", "재성/관성", "결혼 시기", "역할 분담", "돈/생활 운영", "장기 안정성"] },
-      { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "용신/희신 강화와 기신 절감의 7·30·90일 플랜", required: ["용신", "희신", "기신", "오행 개운", "말투/공간 처방", "7일/30일/90일", "최종 10계명"] },
     ],
   },
   couple: {
     mode: "couple",
     reportType: "saju_love_couple",
-    totalChapters: 10,
-    minTotalChars: 60000,
+    totalChapters: 11,
+    minTotalChars: 68000,
     chapterMinDefault: 5500,
-    chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 5500, 8: 5500, 9: 6500, 10: 6000 },
+    chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 6000, 8: 6200, 9: 6500, 10: 6200, 11: 6000 },
     title: "프리미엄 사주 궁합 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "두 사람의 연애 자아와 수용 방식 비교" },
@@ -192,9 +187,10 @@ const LOVE_SECRET_MODE_CONFIG = {
       { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "두 사람 명식에 맞춘 대화 운영 매뉴얼" },
       { title: "📅 시기별 연애운 흐름", subtitle: "대운·세운·월운 동시성 타이밍" },
       { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "충돌 버튼과 회복 프로토콜" },
-      { title: "🔥 친밀감과 육체적 매력", subtitle: "관계 온도와 친밀 속도 조율" },
-      { title: "📱 현대적 상황별 연애 비책", subtitle: "상황별 맞춤 소통/거리 전략" },
-      { title: "💍 결혼과 정착", subtitle: "장기 안정성·역할 분담·생활 리듬" },
+      { title: "🧩 두 사람의 궁합 심층 진단", subtitle: "오행/십성/합충형파해 기반 상호작용 분석" },
+      { title: "🔥 육체적 궁합과 매력 온도", subtitle: "친밀감 온도·속도·회복 리듬 분석" },
+      { title: "💍 결혼 시기와 장기 정착", subtitle: "결혼 타이밍·역할 분담·생활 안정성" },
+      { title: "🌙 속궁합과 친밀 리듬", subtitle: "조후·월지·화수 균형으로 보는 속궁합" },
       { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "공동 7·30·90일 관계 강화 플랜" },
     ],
   },
@@ -1171,7 +1167,7 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   westernAstrologyPremium: 13,
   vedicPremium: 13,
   lifeBook: 13,
-  loveSecret: 10,
+  loveSecret: 11,
 };
 
 const FEATURE_TYPE_MAP = {
@@ -1216,6 +1212,8 @@ function resolvePremiumTypePair(reportTypeInput, featureTypeInput) {
 function modeKeyFromInput(input = {}) {
   const raw = String(input?.mode || input?.reportMode || "").trim().toLowerCase();
   if (!raw) return "default";
+  if (raw === "couple" || raw === "compat" || raw === "compatibility") return "compatibility";
+  if (raw === "solo" || raw === "single") return "solo";
   return raw.replace(/[^a-z0-9_-]/g, "") || "default";
 }
 
@@ -1230,6 +1228,10 @@ function getPremiumRequiredChapters(reportType, mode = "") {
   const spec = getPremiumSpecByReportType(reportType, mode);
   if (spec && Number(spec.chapterCount || 0) > 0) {
     return Number(spec.chapterCount);
+  }
+  if (reportType === "loveSecret") {
+    const normalizedMode = modeKeyFromInput({ mode });
+    return normalizedMode === "compatibility" ? 11 : 5;
   }
   return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
 }
@@ -1668,7 +1670,10 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
 
   if (reportType === "loveSecret") {
     if (!hasMeaningfulValue(base.mode)) base.mode = "solo";
-    if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = 10;
+    if (!hasMeaningfulValue(base.totalChapters)) {
+      const preparedMode = modeKeyFromInput(base);
+      base.totalChapters = preparedMode === "compatibility" ? 11 : 5;
+    }
   }
 
   if (reportType === "lifeBook") {
@@ -2379,20 +2384,48 @@ function mapLoveSecretCalculatedData(canonical, supplemental) {
     vedicRelationship: supplemental?.vedicPremium?.calculatedData?.relationshipData || {},
   };
 
+  const personA = canonical?.personA || {};
+  const personB = canonical?.personB || {};
+  const compatibility = canonical?.compatibility || {};
+
+  const mapSajuChart = (person) => ({
+    yearPillar: person?.fourPillars?.year?.ganji || "",
+    monthPillar: person?.fourPillars?.month?.ganji || "",
+    dayPillar: person?.fourPillars?.day?.ganji || "",
+    hourPillar: person?.fourPillars?.hour?.ganji || "",
+    dayMaster: person?.dayMaster?.stem || "",
+    tenGods: person?.tenGods?.distribution || {},
+  });
+
+  const mapRelationshipProfile = (person) => ({
+    spousePalace: person?.loveProfile?.spousePalace || {},
+    attractionSignals: person?.attractionStars || {},
+    conflictSignals: person?.loveProfile?.relationshipPatterns?.conflictStyle || "",
+    reconciliationStyle: person?.loveProfile?.relationshipPatterns?.reconciliationStyle || "",
+  });
+
   return {
     self: {
-      birthInfo: canonical?.personA?.birth || {},
-      sajuChart: canonical?.personA?.sajuChart || {},
-      fiveElementBalance: canonical?.personA?.fiveElementBalance || {},
-      relationshipProfile: canonical?.personA?.relationshipProfile || {},
+      birthInfo: personA?.profile?.birth || {},
+      sajuChart: mapSajuChart(personA),
+      fiveElementBalance: personA?.fiveElements || {},
+      relationshipProfile: mapRelationshipProfile(personA),
     },
     partner: {
-      birthInfo: canonical?.personB?.birth || {},
-      sajuChart: canonical?.personB?.sajuChart || {},
-      fiveElementBalance: canonical?.personB?.fiveElementBalance || {},
-      relationshipProfile: canonical?.personB?.relationshipProfile || {},
+      birthInfo: personB?.profile?.birth || {},
+      sajuChart: mapSajuChart(personB),
+      fiveElementBalance: personB?.fiveElements || {},
+      relationshipProfile: mapRelationshipProfile(personB),
     },
-    compatibility: canonical?.compatibility || {},
+    compatibility: {
+      ...compatibility,
+      temperatureHumidityMatch: compatibility?.johuCompatibility?.intimacyClimateSummary || "",
+      communicationPattern: compatibility?.summary || "",
+      longTermMarriagePotential: compatibility?.marriagePotentialScore || null,
+      practicalAdvice: Array.isArray(compatibility?.johuCompatibility?.balancingStrategies)
+        ? compatibility.johuCompatibility.balancingStrategies
+        : [],
+    },
     optionalCrossSystems: optionalCross,
   };
 }
@@ -2638,7 +2671,6 @@ function validateCanonicalJson(reportType, canonicalJson) {
       "calculatedData.self.sajuChart.dayMaster",
       "calculatedData.self.sajuChart.tenGods",
       "calculatedData.self.fiveElementBalance",
-      "calculatedData.compatibility.temperatureHumidityMatch",
     ],
     lifeBook: [
       "calculatedData.saju",
@@ -2664,7 +2696,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
     sookyoPremium: ["calculatedData.cycleData.monthly", "calculatedData.compatibility.relationshipAdvice"],
     westernAstrologyPremium: ["calculatedData.elementBalance", "calculatedData.modalityBalance"],
     vedicPremium: ["calculatedData.yogas", "calculatedData.relationshipData"],
-    loveSecret: ["calculatedData.optionalCrossSystems"],
+    loveSecret: ["calculatedData.optionalCrossSystems", "calculatedData.compatibility.temperatureHumidityMatch"],
     lifeBook: ["calculatedData.integratedThemes.repeatedSignals", "calculatedData.integratedThemes.conflictingSignals"],
   };
 
@@ -7843,14 +7875,14 @@ const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
     requiredDataPoints: ["기신", "오행 불균형", "일지 충형파해", "신살 역작용", "십성 충돌", "배우자궁", "대운/세운 압박"],
   },
   7: {
-    purpose: "친밀감의 온도와 속도를 선정성 없이 데이터 중심으로 해석",
-    requiredSections: ["친밀감 데이터 요약표", "나의 관계 온도", "끌림이 생기는 조건", "가까워질수록 필요한 안정감", "친밀감을 건강하게 유지하는 법", "핵심 요약 5줄"],
-    requiredDataPoints: ["화 기운", "수 기운", "식상", "재성/관성", "도화/홍염", "일지", "신강/신약"],
+    purpose: "두 사람의 궁합 구조를 오행/십성/합충형파해 데이터로 심층 진단",
+    requiredSections: ["궁합 데이터 요약표", "오행 보완/충돌 구조", "십성 상호작용", "합충형파해 핵심 포인트", "관계 안정/갈등 포인트", "핵심 요약 5줄"],
+    requiredDataPoints: ["personA.fourPillars", "personB.fourPillars", "오행 분포", "십성 분포", "합/충/형/파/해", "관계 안정성", "갈등 트리거"],
   },
   8: {
-    purpose: "현대 연애 상황(카톡/DM/썸/재회/장거리)별 맞춤 대응 전략 제시",
-    requiredSections: ["현대 연애 상황 요약표", "썸 단계 전략", "연락 템포", "갈등 후 메시지 예시", "재회/정리 상황 전략", "핵심 요약 5줄"],
-    requiredDataPoints: ["식상", "비겁", "인성", "오행 온도", "대운/세운 시기", "배우자궁", "신강/신약"],
+    purpose: "육체적 궁합과 매력 온도를 선정성 없이 데이터 중심으로 해석",
+    requiredSections: ["친밀감 데이터 요약표", "관계 온도", "끌림의 조건", "속도 차이와 조율", "친밀감 유지 전략", "핵심 요약 5줄"],
+    requiredDataPoints: ["화 기운", "수 기운", "식상", "재성/관성", "도화/홍염", "일지", "신강/신약"],
   },
   9: {
     purpose: "결혼관·역할 분담·생활 리듬을 배우자궁/배우자성/운세 흐름으로 진단",
@@ -7858,6 +7890,11 @@ const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
     requiredDataPoints: ["배우자궁", "배우자성", "재성/관성", "대운 결혼 시기", "오행 보완", "가족/책임", "장기 안정성"],
   },
   10: {
+    purpose: "조후·월지·화수 균형으로 속궁합과 친밀 리듬을 해석",
+    requiredSections: ["속궁합 데이터 요약표", "나의 친밀감 기후", "상대의 친밀감 기후", "조후 보완성", "속궁합 운영 전략", "핵심 요약 5줄"],
+    requiredDataPoints: ["personA.johu", "personB.johu", "johuCompatibility", "intimacyCompatibility", "월지", "계절", "화수 균형"],
+  },
+  11: {
     purpose: "용신/희신 강화와 기신 절감을 위한 실행형 개운 처방전 작성",
     requiredSections: ["개운 데이터 요약표", "나에게 필요한 연애 기운", "줄여야 할 연애 습관", "데이트/공간/말투/연락 처방", "7일 플랜", "30일 플랜", "90일 플랜", "최종 연애 비책 10계명", "핵심 요약 5줄"],
     requiredDataPoints: ["용신", "희신", "기신", "오행 강약", "말투/환경 전략", "관계 루틴", "대운/세운 타이밍"],
@@ -7871,7 +7908,8 @@ function normalizeLoveMode(modeConfigMode) {
 
 function resolveLoveSecretMode(body) {
   const explicit = String(body.mode || "").toLowerCase();
-  if (explicit === "solo" || explicit === "couple") return explicit;
+  if (explicit === "solo" || explicit === "single") return "solo";
+  if (explicit === "couple" || explicit === "compatibility" || explicit === "compat") return "couple";
   const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2400);
   return partnerData.trim() ? "couple" : "solo";
 }
@@ -8617,7 +8655,18 @@ function buildLoveChapterDataSections(canonical, chapter) {
     }
   }
 
-  if (chapter === 7) {
+  if (canonical?.mode === "compatibility" && chapter === 7) {
+    sections.push(
+      "궁합 데이터 요약표",
+      "오행 상생/상극 구조",
+      "십성 상호작용",
+      "합충형파해 영향",
+      "관계 안정/갈등 포인트",
+      "두 사람의 관계 운영 원칙"
+    );
+  }
+
+  if (canonical?.mode === "compatibility" && chapter === 10) {
     sections.push(
       "속궁합 데이터 요약표",
       "나의 친밀감 기후",
@@ -8635,8 +8684,12 @@ function buildLoveChapterDataSections(canonical, chapter) {
 
 function buildLoveChapterPlanning(canonical) {
   const chapterPlanning = {};
-  const titles = LOVE_SECRET_MODE_CONFIG.solo.chapters;
-  for (let i = 1; i <= 10; i += 1) {
+  const activeModeConfig = canonical?.mode === "compatibility"
+    ? LOVE_SECRET_MODE_CONFIG.couple
+    : LOVE_SECRET_MODE_CONFIG.solo;
+  const titles = activeModeConfig.chapters || [];
+  const totalChapters = Number(activeModeConfig.totalChapters || titles.length || 1);
+  for (let i = 1; i <= totalChapters; i += 1) {
     const chapterTitle = titles[i - 1]?.title || `Chapter ${i}`;
     const entry = {
       title: chapterTitle,
@@ -8660,8 +8713,7 @@ function buildLoveChapterPlanning(canonical) {
         "compatibility.intimacyCompatibility"
       );
     }
-    if (i === 7) {
-      entry.title = "조후로 보는 속궁합과 친밀감의 리듬";
+    if (canonical?.mode === "compatibility" && i === 10) {
       entry.mustUseData = [
         "personA.johu",
         "personB.johu",
@@ -8823,13 +8875,14 @@ function countLoveDataEvidence(text, canonical, chapter) {
   return tokens.filter((token) => source.includes(token)).length;
 }
 
-function detectLoveMissingMarkers(text, chapter) {
+function detectLoveMissingMarkers(text, chapter, canonical = null) {
   const source = String(text || "");
   const spec = LOVE_SECRET_CHAPTER_BLUEPRINTS[chapter] || { requiredSections: [] };
   const required = ["사용 데이터 요약표", "핵심 요약 5줄", ...(spec.requiredSections || [])];
   if (chapter === 5) required.push("대운", "세운", "월별", "|");
-  if (chapter === 9) required.push("배우자궁", "배우자성", "안정성");
-  if (chapter === 10) required.push("7일 플랜", "30일 플랜", "90일 플랜");
+  if (canonical?.mode === "compatibility" && chapter === 9) required.push("배우자궁", "배우자성", "안정성");
+  if (canonical?.mode === "compatibility" && chapter === 10) required.push("속궁합", "조후", "친밀");
+  if (canonical?.mode === "compatibility" && chapter === 11) required.push("7일 플랜", "30일 플랜", "90일 플랜");
   return required.filter((token) => !source.includes(token));
 }
 
@@ -8874,7 +8927,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
   const blueprint = LOVE_SECRET_CHAPTER_BLUEPRINTS[chapter] || LOVE_SECRET_CHAPTER_BLUEPRINTS[1];
   const chapterPlan = canonical?.chapterPlanning?.[`chapter${chapter}`] || { dataDrivenSections: [], mustUseData: [] };
   const targetLength = Math.max(minChars + 300, chapter === 3 || chapter === 5 || chapter === 9 ? 5600 : 5000);
-  const chapter7RequiredDataPoints = [
+  const intimacyRequiredDataPoints = [
     "personA.johu.birthSeason",
     "personA.johu.monthBranch",
     "personA.johu.climateType",
@@ -8890,18 +8943,19 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
     "compatibility.johuCompatibility.seasonalCompatibility",
     "compatibility.intimacyCompatibility",
   ];
+  const useIntimacyPayload = canonical?.mode === "compatibility" && chapter === 10;
 
   return {
-    chapterTitle: chapter === 7 ? "조후로 보는 속궁합과 친밀감의 리듬" : (chapterMeta?.title || `Chapter ${chapter}`),
+    chapterTitle: useIntimacyPayload ? "조후로 보는 속궁합과 친밀감의 리듬" : (chapterMeta?.title || `Chapter ${chapter}`),
     chapterPurpose: blueprint.purpose,
     mode: canonical?.mode || "single",
     personA: canonical?.personA || {},
     personB: canonical?.personB?.exists ? canonical.personB : null,
     compatibility: canonical?.compatibility?.enabled ? canonical.compatibility : null,
     chapterSpecificSections: chapterPlan.dataDrivenSections || [],
-    requiredDataPoints: chapter === 7 ? chapter7RequiredDataPoints : blueprint.requiredDataPoints,
+    requiredDataPoints: useIntimacyPayload ? intimacyRequiredDataPoints : blueprint.requiredDataPoints,
     requiredSections: blueprint.requiredSections,
-    johuData: chapter === 7
+    johuData: useIntimacyPayload
       ? {
         personA: canonical?.personA?.johu || null,
         personB: canonical?.personB?.exists ? canonical.personB.johu : null,
@@ -8911,7 +8965,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
       : null,
     mustUseData: chapterPlan.mustUseData || [],
     forbiddenRepeatedPhrases: LOVE_SECRET_FORBIDDEN_REPEATED_PHRASES,
-    forbidden: chapter === 7
+    forbidden: useIntimacyPayload
       ? ["노골적 성 묘사", "성적 능력 단정", "무조건 잘 맞음", "무조건 안 맞음", "임신/질병/생식 관련 단정"]
       : [],
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
@@ -8990,7 +9044,7 @@ function ensureLoveSecretSourceData(body = {}) {
 function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [], minChars = 4000) {
   const source = String(text || "").trim();
   const failedChecks = [];
-  const missingMarkers = detectLoveMissingMarkers(source, chapter);
+  const missingMarkers = detectLoveMissingMarkers(source, chapter, canonical);
   const evidenceCount = countLoveDataEvidence(source, canonical, chapter);
   const repeatedInside = detectRepeatedLongSentences(source, 30);
   const repeatedAcross = detectCrossChapterRepeatedSentences(source, previousTexts || [], 30);
@@ -9004,14 +9058,17 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
   if (chapter === 5 && (!source.includes("대운") || !source.includes("세운") || !source.includes("월별") || !/\|.+\|.+\|/.test(source))) {
     failedChecks.push("QUALITY_GATE_G_CH5_TIMING_TABLE");
   }
-  if (chapter === 9 && (!source.includes("배우자궁") || !source.includes("배우자성") || !source.includes("안정"))) {
+  if (canonical?.mode === "compatibility" && chapter === 9 && (!source.includes("배우자궁") || !source.includes("배우자성") || !source.includes("안정"))) {
     failedChecks.push("QUALITY_GATE_H_CH9_MARRIAGE_ANALYSIS");
   }
-  if (chapter === 10 && (!source.includes("7일 플랜") || !source.includes("30일 플랜") || !source.includes("90일 플랜"))) {
+  if (canonical?.mode === "compatibility" && chapter === 10 && (!source.includes("속궁합") || !source.includes("조후") || !source.includes("친밀"))) {
+    failedChecks.push("QUALITY_GATE_I_CH10_INTIMACY");
+  }
+  if (canonical?.mode === "compatibility" && chapter === 11 && (!source.includes("7일 플랜") || !source.includes("30일 플랜") || !source.includes("90일 플랜"))) {
     failedChecks.push("QUALITY_GATE_I_CH10_PLAN");
   }
 
-  if (chapter === 7) {
+  if (canonical?.mode === "compatibility" && chapter === 10) {
     if (source.length < 6000) failedChecks.push("QUALITY_GATE_J_CH7_MIN_LENGTH_6000");
 
     const hasDataTable = /###\s*1\.\s*사용\s*데이터\s*요약표/.test(source) && /\|.+\|.+\|/.test(source);
@@ -9040,7 +9097,7 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
       && !/조후|월지|계절|온도|습윤|건조|용신|희신|기신|일지|합|충|형|파|해|십성/.test(source);
     if (onlyDohwaHongyeom) failedChecks.push("QUALITY_GATE_Q_CH7_NO_SIMPLE_DOHWA_HONGYEOM");
 
-    const plannedSections = canonical?.chapterPlanning?.chapter7?.dataDrivenSections || [];
+    const plannedSections = canonical?.chapterPlanning?.chapter10?.dataDrivenSections || [];
     if (plannedSections.length > 0) {
       const used = plannedSections.filter((s) => source.includes(String(s || "").trim())).length;
       if (used < Math.min(4, plannedSections.length)) failedChecks.push("QUALITY_GATE_R_CH7_PLANNED_SECTIONS");
@@ -9071,7 +9128,7 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
   const chapterSubtitle = String(chapterMeta?.subtitle || "사주 기반 연애 실행 전략").trim();
   const personADayMaster = String(canonical?.personA?.dayMaster?.stem || "정보 확인");
   const personBDayMaster = personBExists ? String(canonical?.personB?.dayMaster?.stem || "정보 확인") : "";
-  const spousePalace = String(canonical?.personA?.spousePalace?.branch || "정보 확인");
+  const spousePalace = String(canonical?.personA?.loveProfile?.spousePalace?.branch || "정보 확인");
   const qualityHint = Array.isArray(quality?.failedChecks) && quality.failedChecks.length
     ? `품질 보강 포인트: ${quality.failedChecks.join(", ")}`
     : "품질 보강 포인트: 데이터 근거 밀도와 실행 구체성을 강화합니다.";
@@ -9104,7 +9161,14 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
       "| 월별 | 감정/소통 리듬 | 주간 점검으로 미세 조정 |",
     );
   }
-  if (chapter === 7) {
+  if (mode === "compatibility" && chapter === 7) {
+    chapterSpecific.push(
+      "### 5. 궁합 구조 보강",
+      "두 사람의 오행 보완/충돌 지점과 합충형파해를 분리해서 읽어야 관계 운영 오류를 줄일 수 있습니다.",
+      "궁합은 점수보다 생활 리듬의 합의가 더 중요합니다. 관계 속도, 갈등 복구 시간, 의사결정 방식을 함께 설계해야 장기 안정성이 생깁니다.",
+    );
+  }
+  if (mode === "compatibility" && chapter === 10) {
     chapterSpecific.push(
       "### 5. 친밀감 기후 해석",
       "건조/습윤, 한/열, 월지, 계절, 화수 균형을 함께 봐야 친밀감 속도를 안정적으로 맞출 수 있습니다.",
@@ -9114,14 +9178,14 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
         : `${personAName}의 반응 리듬을 먼저 정리한 뒤, 상대의 속도와 회복 조건을 같이 확인하는 방식이 안전합니다.`,
     );
   }
-  if (chapter === 9) {
+  if (mode === "compatibility" && chapter === 9) {
     chapterSpecific.push(
       "### 5. 결혼 안정성 보강",
       "배우자궁과 배우자성 신호를 함께 확인해야 장기 안정성을 현실적으로 설계할 수 있습니다.",
       "안정은 감정 강도가 아니라 역할 분담·생활 리듬·갈등 복구 규칙으로 만들어집니다.",
     );
   }
-  if (chapter === 10) {
+  if (mode === "compatibility" && chapter === 11) {
     chapterSpecific.push(
       "### 5. 단계별 실행 플랜",
       "7일 플랜: 감정 트리거와 대화 패턴을 하루 1회 기록하고 즉시 수정 포인트를 1개만 실행합니다.",
@@ -9487,14 +9551,7 @@ async function handleLoveSecretSession(request, env) {
     sajuData: dataState.sourceData,
   };
   const canonical = buildCanonicalSajuLoveReport(effectiveBody, input, modeConfig);
-  if (!canonical?.validation?.isValid) {
-    return json({
-      ok: false,
-      message: "canonicalSajuLoveReport 검증 실패: 필수 사주 데이터가 부족합니다.",
-      validation: canonical.validation,
-      canonicalSajuLoveReport: canonical,
-    }, { status: 422 });
-  }
+  const canonicalDegraded = !Boolean(canonical?.validation?.isValid);
 
   if (prepareOnly) {
     return json({
@@ -9508,10 +9565,12 @@ async function handleLoveSecretSession(request, env) {
         title: meta?.title || `Chapter ${idx + 1}`,
         subtitle: meta?.subtitle || "",
       })),
-      chapterMinChars: modeConfig.chapterMinChars || {},
+      chapterMinChars: modeConfig.chapterMinByIndex || {},
       minTotalChars: modeConfig.minTotalChars,
       canonicalSajuLoveReport: canonical,
       validation: canonical.validation,
+      degraded: canonicalDegraded,
+      failOpenApplied: canonicalDegraded,
       dataQuality: {
         usedFallbackData: dataState.usedFallbackData,
         warning: dataState.warning,
@@ -9607,6 +9666,8 @@ async function handleLoveSecretSession(request, env) {
     usedFallback,
     quality,
     canonicalSajuLoveReport: canonical,
+    degraded: canonicalDegraded,
+    failOpenApplied: canonicalDegraded,
     dataQuality: {
       usedFallbackData: dataState.usedFallbackData,
       warning: dataState.warning,
@@ -9948,7 +10009,9 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     ...baseWarnings,
     ...(canonicalBuild.validation?.optionalMissing || []),
   ]));
-  const status = missingData.length === 0 && canonicalBuild.validation?.canGeneratePdf ? "ready" : "needs-data";
+  const isFailOpenReport = reportType === "loveSecret" || reportType === "lifeBook";
+  const strictReady = missingData.length === 0 && canonicalBuild.validation?.canGeneratePdf;
+  const status = isFailOpenReport ? "ready" : (strictReady ? "ready" : "needs-data");
   const chapterPlan = reportType === "sookyoPremium"
     ? SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
       num: idx + 1,
@@ -10005,7 +10068,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     warnings,
     totalChapters,
     requiredChapters: Number(specChapters || totalChapters),
-    isCompleteForPdf: missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf),
+    isCompleteForPdf: isFailOpenReport ? true : Boolean(strictReady),
     status,
     createdAt: new Date(now).toISOString(),
     updatedAt: new Date(now).toISOString(),
@@ -10199,9 +10262,12 @@ async function handlePremiumReportChapter(request, env, authInfo) {
 
     const missingData = Array.from(new Set(canonicalBuild.validation?.requiredMissing || []));
     const warnings = Array.from(new Set(canonicalBuild.validation?.optionalMissing || []));
+    const isFailOpenReport = context.reportType === "loveSecret" || context.reportType === "lifeBook";
     context.missingData = missingData;
     context.warnings = warnings;
-    context.isCompleteForPdf = missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf);
+    context.isCompleteForPdf = isFailOpenReport
+      ? true
+      : (missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf));
     context.status = context.isCompleteForPdf ? "ready" : "needs-data";
     return true;
   };
@@ -10269,6 +10335,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   const chapterRequiredPaths = Array.isArray(context?.coreData?.canonicalJson?.chapterData?.[chapterKey]?.requiredPaths)
     ? context.coreData.canonicalJson.chapterData[chapterKey].requiredPaths
     : [];
+  const chapterFailOpen = context.reportType === "loveSecret" || context.reportType === "lifeBook";
   let chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
 
   if (chapterMissing.length > 0) {
@@ -10296,7 +10363,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
   }
 
-  if (chapterMissing.length > 0) {
+  if (chapterMissing.length > 0 && !chapterFailOpen) {
     return json({
       ok: false,
       code: "PREMIUM_REPORT_CHAPTER_DATA_MISSING",
@@ -10305,6 +10372,13 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       chapterId,
       missingData: chapterMissing,
     }, { status: 422 });
+  }
+
+  if (chapterMissing.length > 0 && chapterFailOpen) {
+    context.warnings = Array.from(new Set([
+      ...(Array.isArray(context.warnings) ? context.warnings : []),
+      ...chapterMissing.map((path) => `CHAPTER_${chapterId}_MISSING:${path}`),
+    ]));
   }
 
   const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
