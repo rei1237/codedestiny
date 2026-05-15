@@ -15,22 +15,22 @@ const STAR_POINTS = [
 
 export default function AnimalDestinyHero() {
   return (
-    <section className="relative w-full overflow-hidden px-6 pb-14 pt-10 sm:pt-14">
+    <section className="relative w-full overflow-hidden px-6 pb-14 pt-8 sm:pt-12">
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(180deg, rgba(250,246,234,0.9) 0%, rgba(236,244,255,0.66) 42%, rgba(247,250,255,0.95) 100%), url('/fuctionassets/동물점테스트.webp')",
+              "linear-gradient(180deg, rgba(250,246,234,0.9) 0%, rgba(236,244,255,0.7) 42%, rgba(247,250,255,0.96) 100%), url('/fuctionassets/동물점테스트.webp')",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "saturate(0.85)",
+            filter: "saturate(0.9)",
           }}
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_24%,rgba(255,179,71,0.28),transparent_42%),radial-gradient(circle_at_76%_72%,rgba(23,154,147,0.2),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_24%,rgba(255,179,71,0.3),transparent_42%),radial-gradient(circle_at_76%_72%,rgba(23,154,147,0.18),transparent_45%)]" />
       </div>
 
-      <div className="relative mx-auto max-w-5xl rounded-[34px] border border-[#ebdfc6] bg-white/62 p-6 shadow-[0_22px_56px_rgba(27,47,76,0.16)] backdrop-blur-sm sm:p-10">
+      <div className="relative mx-auto max-w-5xl rounded-[34px] border border-[#ebdfc6] bg-white/66 p-6 shadow-[0_24px_58px_rgba(27,47,76,0.16)] backdrop-blur-sm sm:p-10">
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[34px]">
           {STAR_POINTS.map((star, index) => (
             <span
@@ -54,7 +54,7 @@ export default function AnimalDestinyHero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
-              className="inline-flex rounded-full bg-[#15324f]/85 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#f8edcf]"
+              className="inline-flex rounded-full bg-[#15324f]/88 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#f8edcf]"
             >
               CELESTIAL ANIMAL ORACLE
             </motion.p>
@@ -86,9 +86,9 @@ export default function AnimalDestinyHero() {
               transition={{ duration: 0.7, delay: 0.28 }}
               className="grid gap-2 text-[12px] font-bold text-[#214767] sm:grid-cols-3"
             >
-              <span className="rounded-full bg-[#ecf8f7] px-3 py-2">12단계 운성 정규화</span>
-              <span className="rounded-full bg-[#fff4df] px-3 py-2">성격/연애/직업 분석</span>
-              <span className="rounded-full bg-[#eef2ff] px-3 py-2">두 사람 궁합 계산</span>
+              <span className="rounded-full border border-[#bfe3de] bg-[#ecf8f7] px-3 py-2">12단계 운성 정규화</span>
+              <span className="rounded-full border border-[#f3d8a4] bg-[#fff4df] px-3 py-2">성격/연애/직업 분석</span>
+              <span className="rounded-full border border-[#ced8f5] bg-[#eef2ff] px-3 py-2">두 사람 궁합 계산</span>
             </motion.div>
           </div>
 

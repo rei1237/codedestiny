@@ -203,7 +203,10 @@
   function _formatPremiumFailureMessage(data, fallback) {
     var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
     var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
+    var missingData = (data && Array.isArray(data.missingData)) ? data.missingData : [];
     if (missing.length) base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
+    if (missingData.length) base += '\n누락 데이터: ' + missingData.slice(0, 5).join(', ');
+    if (data && data.requestId) base += '\n요청 ID: ' + String(data.requestId);
     return base;
   }
 
@@ -547,19 +550,24 @@
       ? chapterNumEl.parentElement
       : null;
 
+    function _setStageStatus(phase, subtitle) {
+      if (!stageEl) return;
+      stageEl.textContent = '진행 단계: ' + String(phase || '분석 진행 중') + (subtitle ? ' · ' + String(subtitle) : '');
+    }
+
     function _setProgress(done) {
       var pct=Math.round((done/ASTRO_TOTAL_CHAPTERS)*100);
       if (progressBar) progressBar.style.width=pct+'%';
       if (progressText) progressText.textContent=done+' / '+ASTRO_TOTAL_CHAPTERS+' 챕터 완성 ('+pct+'%)';
       if (stageEl) {
         var _phase = done===0
-          ? '천궁 데이터 정렬 및 좌표 동기화'
-          : (done<ASTRO_TOTAL_CHAPTERS ? ('AI가 Chapter '+(done+1)+' Professional 해석 중') : 'PDF 저장 준비 완료');
+          ? '1/6 로그인 및 결제 상태 확인'
+          : (done<ASTRO_TOTAL_CHAPTERS ? ('4/6 Gemini 해석 생성 · Chapter '+(done+1)) : '6/6 리포트 렌더링 완료');
         var _subtitle = done < ASTRO_TOTAL_CHAPTERS ? (CHAPTER_SUBTITLES[done] || '') : '전체 챕터 정리를 완료했습니다.';
         stageEl.textContent='진행 단계: '+_phase+(_subtitle ? ' · '+_subtitle : '');
       }
-      if (chapterMsg&&done<ASTRO_TOTAL_CHAPTERS) chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
-      if (chapterMsg&&done>=ASTRO_TOTAL_CHAPTERS) chapterMsg.textContent='Professional Edition 리포트가 완성되었습니다 ✦';
+      if (chapterMsg&&done<ASTRO_TOTAL_CHAPTERS) chapterMsg.textContent='4/6 Gemini 해석 생성 · ' + (LOADING_MSGS[done]||'분석 중...');
+      if (chapterMsg&&done>=ASTRO_TOTAL_CHAPTERS) chapterMsg.textContent='6/6 Professional Edition 리포트가 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent=done<ASTRO_TOTAL_CHAPTERS?'Chapter '+(done+1):'✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
@@ -599,6 +607,8 @@
     var _chapterTimeoutMs = 115000;
     var _maxChapterAttempts = 4;
     var _recoveryPasses = 0;
+    var _fallbackChapterCount = 0;
+    var _fallbackChapterByIndex = Object.create(null);
 
     function _isValidChapterText(txt) {
       return typeof txt === 'string' && txt.trim().length >= 900 && !/^⚠️/.test(txt.trim());
@@ -634,11 +644,13 @@
 
     function _ensurePremiumReportSession() {
       if (_premiumReportSessionId) {
+        _setStageStatus('2/6 리포트 세션 확인', '기존 세션을 재사용합니다.');
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
       }
       if (typeof window.__cdPremiumAuthJson !== 'function') {
         return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
       }
+      _setStageStatus('1/6 로그인 및 결제 상태 확인', '프리미엄 리포트 세션을 준비합니다.');
       return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
         featureType: _premiumFeatureType,
         reportType: _premiumReportType,
@@ -646,6 +658,7 @@
       }).then(function(prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
           _premiumReportSessionId = String(prepared.reportSessionId);
+          _setStageStatus('3/6 차트 계산 및 정규화', '챕터 생성 준비가 완료되었습니다.');
           return prepared;
         }
         return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
@@ -654,6 +667,7 @@
 
     function _fetchChapter(idx) {
       function _attempt(tryNo) {
+        _setStageStatus('4/6 Gemini 해석 생성', 'Chapter ' + (idx + 1) + ' 분석 중 (' + tryNo + '차 시도)');
         return new Promise(function(resolve) {
           var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (115초).'}); },_chapterTimeoutMs);
           _ensurePremiumReportSession().then(function(prepared) {
@@ -734,6 +748,7 @@
           }
           if (_missing.length) {
             _recoveryPasses += 1;
+            _setStageStatus('5/6 누락 챕터 복구', '생성 누락 챕터를 재시도합니다.');
             if (chapterMsg) chapterMsg.textContent = '누락된 챕터를 복구하는 중...';
             (function recoverMissing(pos) {
               if (pos >= _missing.length) {
@@ -757,6 +772,7 @@
         }
 
         clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
+        _setStageStatus('6/6 리포트 렌더링', '최종 챕터를 정리하고 결과를 표시합니다.');
         var validCount = _chapters.filter(_isValidChapterText).length;
         if (validCount < ASTRO_TOTAL_CHAPTERS) {
           var errEl=_qs('abErrorMsg');
@@ -773,10 +789,13 @@
         var _nameEl=_qs('abResultName'), _dateEl=_qs('abResultDate');
         if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 Professional Astrology Report';
         if (_dateEl) { var _b=prof.birth||{}; _dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행'; }
+        if (_fallbackChapterCount > 0 && chapterMsg) {
+          chapterMsg.textContent = '보완 생성 챕터 ' + _fallbackChapterCount + '개를 포함해 리포트를 완성했습니다 ✦';
+        }
         _abSaveResult(prof);
         return;
       }
-      if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
+      if (chapterMsg) chapterMsg.textContent='4/6 Gemini 해석 생성 · ' + (LOADING_MSGS[idx]||'분석 중...');
       _fetchChapter(idx).then(function(data) {
         var statusCode = Number((data && data.status) || 0);
         var errorCode = String((data && data.code) || '').toUpperCase();
@@ -846,7 +865,15 @@
             .then(function(refunded){ if(refunded) window.alert('점성술 프리미엄 결제가 자동 환급되었습니다.'); });
           return;
         }
-        if (data&&data.ok&&data.text) { _chapters[idx]=data.text; }
+        if (data&&data.ok&&data.text) {
+          _chapters[idx]=data.text;
+          var _usedFallback = !!(data.usedFallback || (data.quality && data.quality.usedFallback));
+          if (_usedFallback && !_fallbackChapterByIndex[idx]) {
+            _fallbackChapterByIndex[idx] = true;
+            _fallbackChapterCount += 1;
+            _setStageStatus('4/6 Gemini 해석 생성', 'Chapter ' + (idx + 1) + '은(는) 누락 데이터를 보완해 완성했습니다.');
+          }
+        }
         else {
           _failCount++;
           var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';

@@ -35,6 +35,56 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(numberValue) ? numberValue : fallback;
 }
 
+function normalizeBaseUrl(rawValue: unknown): string {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    const parsed = new URL(value);
+    parsed.pathname = parsed.pathname.replace(/\/api\/?$/, "");
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return value.replace(/\/api\/?$/, "").replace(/\/$/, "");
+  }
+}
+
+function collectBillingFallbackBases(): string[] {
+  const fromEnv = [
+    process.env.NEXT_PUBLIC_AUTH_API_BASE_URL,
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+  ]
+    .map((candidate) => normalizeBaseUrl(candidate))
+    .filter(Boolean);
+
+  const fromRuntime = typeof window !== "undefined"
+    ? [normalizeBaseUrl((window as any).CODE_DESTINY_API_BASE_URL)]
+    : [];
+
+  const sameOrigin = typeof window !== "undefined"
+    ? normalizeBaseUrl(window.location.origin)
+    : "";
+
+  return Array.from(new Set([...fromRuntime, ...fromEnv]))
+    .filter((base) => Boolean(base) && base !== sameOrigin);
+}
+
+async function authFetchBilling(path: string, init: RequestInit): Promise<Response> {
+  const primary = await authFetch(path, init);
+  if (primary.ok || primary.status !== 404) return primary;
+
+  const fallbackBases = collectBillingFallbackBases();
+  if (!fallbackBases.length) return primary;
+
+  for (const apiBase of fallbackBases) {
+    const retried = await authFetch(path, init, { apiBase });
+    if (retried.ok || retried.status !== 404) return retried;
+  }
+
+  return primary;
+}
+
 async function parseBillingResponse<T>(response: Response): Promise<BillingResult<T>> {
   let payload: Record<string, unknown> = {};
   try {
@@ -84,7 +134,7 @@ export async function fetchBillingFeaturePricing(input: {
 }): Promise<BillingResult<{ pricing: BillingFeaturePricing }>> {
   const query = toQuery(input as Record<string, unknown>);
   const path = query ? `/api/billing/features?${query}` : "/api/billing/features";
-  const response = await authFetch(path, { method: "GET" });
+  const response = await authFetchBilling(path, { method: "GET" });
   return parseBillingResponse<{ pricing: BillingFeaturePricing }>(response);
 }
 
@@ -102,7 +152,7 @@ export async function runBillingCoinGate(input: {
   balance: number | null;
   user: Record<string, unknown> | null;
 }>> {
-  const response = await authFetch("/api/billing/coin-gate", {
+  const response = await authFetchBilling("/api/billing/coin-gate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -132,7 +182,7 @@ export async function fetchBillingBalance(): Promise<BillingResult<{
   unlockedFeatures: string[];
   unlockMap: Record<string, boolean>;
 }>> {
-  const response = await authFetch("/api/billing/balance", { method: "GET" });
+  const response = await authFetchBilling("/api/billing/balance", { method: "GET" });
   const parsed = await parseBillingResponse<{
     authenticated: boolean;
     balance: number;

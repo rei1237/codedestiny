@@ -383,11 +383,11 @@ export function generateBiasPersonalityReport(args: ReportArgs) {
 
   return [
     `최애 에너지 타입: [${energyAlias}] · ${toneLabel}`,
-    `핵심 키워드: ${keywordTags}`,
-    `사주형 에너지 매칭 기준으로 ${args.biasName}의 기본 결은 ${args.biasEnergyType}입니다. 겉무드는 ${args.biasMood}로 인식되지만 내부 출력은 더 정밀하게 제어되는 편이라, 무대마다 감정 온도를 다르게 세팅하는 타입으로 해석됩니다.`,
-    `무대 체감은 ${stageImage}에 가깝습니다. 그래서 짧은 장면만 스쳐도 기억 잔상이 오래 남고, 다음 콘텐츠에서 다시 감정선이 빠르게 되살아납니다.`,
-    `숨은 매력 포인트는 ${hiddenCharm}입니다. 처음에는 화려함이 먼저 보이지만, 길게 볼수록 디테일의 층위가 열리며 몰입 깊이가 커지는 구조입니다.`,
-    `관계 축에서 ${args.relationMood} 모드와의 상성도 우수합니다. 과한 출력 없이도 리듬이 맞는 순간 공명 강도가 자연스럽게 상승하는 패턴입니다.`,
+    `핵심 해시: ${keywordTags}`,
+    `${args.biasName}의 기본 결은 ${args.biasEnergyType}. 한마디로 "무대 켜지면 분위기 장악" 타입이에요. 겉무드는 ${args.biasMood}로 보여도, 실제론 텐션 조절을 꽤 영리하게 하는 편!`,
+    `현장 체감은 ${stageImage}에 가까워요. 잠깐 스친 컷도 뇌리에 오래 남아서, 나중에 다시 떠올라도 심장 반응이 재생되는 패턴입니다.`,
+    `숨은 매력은 ${hiddenCharm}. 처음엔 비주얼 임팩트, 오래 볼수록 디테일 중독이 오는 구조라 덕심 누적에 강해요.`,
+    `${args.relationMood} 모드에서 특히 궁합이 좋아요. 과몰입 없이 템포만 잘 맞추면 공명 강도가 자연스럽게 치고 올라옵니다.`,
   ].join("\n\n");
 }
 
@@ -399,12 +399,12 @@ export function generateCompatibilityReport(args: ReportArgs) {
   const weakestLabel = AXIS_LABELS[weakest[0]];
 
   return [
-    `나와 최애의 케미 포인트: [${TIER_CHEMISTRY_TITLE[tier]}]`,
-    `사주 입력값 기반 궁합 점수는 ${args.totalScore}점이며 현재 판정은 ${TIER_LABELS[tier]}입니다. 결론적으로 이번 페어링은 ${core}로 분석됩니다.`,
-    `세부 스코어는 감정 ${args.emotionalScore}점, 팬심 ${args.fandomScore}점, 장기지속 ${args.longTermScore}점, 응원방식 ${args.supportStyleScore}점입니다. 이 조합은 즉시 설렘과 장기 만족을 함께 노릴 수 있는 균형 구조를 보여줍니다.`,
-    `가장 강한 축은 ${strongestLabel}(${strongest[1]}점)입니다. 이 축이 활성화될 때 몰입 효율이 크게 오르고, 컨디션이 흔들려도 회복 속도가 빨라집니다.`,
-    `보강이 필요한 축은 ${weakestLabel}(${weakest[1]}점)입니다. ${axisAdvice(weakest[0])}`,
-    `주의 포인트는 고정 텐션 강박입니다. ${tierCaution(tier)}`,
+    `나와 최애 케미 타입: [${TIER_CHEMISTRY_TITLE[tier]}]`,
+    `이번 궁합은 ${args.totalScore}점, 판정은 ${TIER_LABELS[tier]}! 총평은 "${core}"로 보면 딱 맞아요.`,
+    `세부 점수는 감정 ${args.emotionalScore}, 팬심 ${args.fandomScore}, 장기지속 ${args.longTermScore}, 응원운영 ${args.supportStyleScore}점. 설렘만 높은 게 아니라 오래 가는 힘도 챙긴 조합입니다.`,
+    `가장 강한 축은 ${strongestLabel}(${strongest[1]}점). 이 구간이 켜지면 몰입 효율이 확 뛰고, 하루 컨디션도 금방 복구됩니다.`,
+    `보강 포인트는 ${weakestLabel}(${weakest[1]}점). ${axisAdvice(weakest[0])}`,
+    `주의할 점은 텐션 과속. ${tierCaution(tier)}`,
   ].join("\n\n");
 }
 
@@ -416,14 +416,14 @@ export function generateEnergyConnectionReport(args: ReportArgs) {
   const destinyLine = pickFromPool(DESTINY_LINE_POOL, args, "destiny-line");
   const anchorKeyword = args.connectionKeyword[0] || "네온 공명";
   const secondaryKeyword = args.connectionKeyword[1] || "무대 몰입";
-  const oneLine = `${withParticle(`${args.userName}님`, "은", "는")} ${withParticle(args.userEnergyType, "과", "와")} ${args.biasName}의 ${withParticle(args.biasEnergyType, "이", "가")} 만나, ${withParticle(anchorKeyword, "이", "가")} ${secondaryKeyword} 축으로 동기화되는 흐름입니다.`;
+  const oneLine = `${withParticle(`${args.userName}님`, "은", "는")} ${withParticle(args.userEnergyType, "과", "와")} ${args.biasName}의 ${withParticle(args.biasEnergyType, "이", "가")} 만나 ${withParticle(anchorKeyword, "이", "가")} ${secondaryKeyword} 모드로 싱크된 상태예요.`;
 
   const report = [
-    `지금 이 순간의 에너지 흐름: [주파수 동기화 구간]`,
+    `지금 이 순간의 에너지 흐름: [주파수 싱크 구간]`,
     `현재 상태: ${flowState}`,
-    `오늘 연결 키워드는 ${args.connectionKeyword.join(", ")}입니다. 이 패턴은 현실 루틴을 지키면서도 설렘의 밀도를 유지하는 사주형 공명으로 분류됩니다.`,
-    `${args.userName}님이 ${args.biasName}에게 끌리는 핵심은 외형보다 에너지 결입니다. 무대를 볼 때 감정이 정리되는 체감이 반복되는 이유가 이 공명축에 있습니다.`,
-    `응원 타입 & 관계 무드는 [${supportType}]로 정리됩니다. 과열보다 지속을 택할수록 관계 서사가 더 빠르게 두꺼워지는 구조입니다.`,
+    `오늘 연결 키워드는 ${args.connectionKeyword.join(", ")}. 이건 "설렘 + 일상 밸런스"를 동시에 챙길 때 제일 잘 터지는 패턴입니다.`,
+    `${args.userName}님이 ${args.biasName}에게 끌리는 이유는 비주얼 한 방보다 에너지 결의 합에 가까워요. 그래서 짧은 영상도 체감 여운이 길게 남습니다.`,
+    `응원 타입 & 관계 무드는 [${supportType}]로 정리돼요. 과열보다 지속을 택하면 덕심 만족도가 훨씬 오래 갑니다.`,
     `오늘의 실행 미션: ${mission}`,
     `운명 한 줄 요약: ${destinyLine}`,
   ].join("\n\n");
@@ -440,9 +440,9 @@ export function generateBiasEnergySummary(args: ReportArgs) {
   const energySignal = args.connectionKeyword[1] || "무대 몰입";
   const supportType = pickFromPool(SUPPORT_ARCHETYPES, args, "energy-summary-support");
   return [
-    `${withParticle(args.biasName, "은", "는")} ${args.biasEnergyType} 결을 가진 파동형이며 현재 판정은 ${TIER_LABELS[tier]}입니다. 강하게 밀기보다 맞는 타이밍에서 출력이 급상승하는 타입으로 읽힙니다.`,
-    `핵심 공명축은 ${energySignal}입니다. ${withParticle(args.userName, "이", "가")} 응원 템포를 일정하게 유지할수록 반응 에너지가 더 맑고 오래 올라옵니다.`,
-    `추천 운영법은 ${supportType} 방식입니다. 짧고 선명한 멘트 + 간격 있는 루틴을 유지하면 과열 없이도 존재감을 크게 키울 수 있습니다.`,
+    `${withParticle(args.biasName, "은", "는")} ${args.biasEnergyType} 결을 가진 파동형이고, 현재 판정은 ${TIER_LABELS[tier]}예요. 세게 밀기보다 타이밍 맞춰 들어갈 때 반응이 크게 올라옵니다.`,
+    `핵심 공명축은 ${energySignal}. ${withParticle(args.userName, "이", "가")} 응원 템포를 일정하게 가져가면 반응 에너지가 더 또렷하고 오래 유지돼요.`,
+    `추천 운영은 ${supportType} 스타일. 짧고 선명한 멘트 + 간격 있는 루틴으로 가면 과열 없이 존재감이 잘 쌓입니다.`,
   ].join("\n\n");
 }
 
@@ -450,7 +450,7 @@ export function generateChemistrySummary(args: ReportArgs) {
   const tier = getScoreTier(args.totalScore);
   const first = args.connectionKeyword[0] || "네온 공명";
   const second = args.connectionKeyword[1] || "무대 몰입";
-  return `${args.userName}님과 ${args.biasName}의 공명축은 ${first} · ${second}이며, 케미 타입은 ${TIER_CHEMISTRY_TITLE[tier]}입니다. 초반 점화 이후 루틴 앵커를 걸수록 만족도가 더 길게 유지됩니다.`;
+  return `${args.userName}님과 ${args.biasName}의 공명축은 ${first} · ${second}, 케미 타입은 ${TIER_CHEMISTRY_TITLE[tier]}! 초반 심장 쿵 이후 루틴 앵커를 걸면 만족도가 더 길게 유지됩니다.`;
 }
 
 export function generateDestinySignal(args: ReportArgs) {

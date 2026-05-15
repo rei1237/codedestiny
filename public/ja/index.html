@@ -6460,7 +6460,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260515-mobile-cacheguard1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260515-cosmic-payment-overlay1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260515-sukuyo-stage-sync2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -6987,7 +6987,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
 
     if (_cdCoinApiAuthState.pending) return _cdCoinApiAuthState.pending;
-    if (!hasAuthSessionHint()) {
+    if (!force && !hasAuthSessionHint()) {
       _cdCoinApiAuthState.checkedAt = now;
       _cdCoinApiAuthState.ok = false;
       _cdCoinApiAuthState.userId = '';
@@ -7051,6 +7051,27 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function hasAuthToken() {
     return hasAuthSessionHint();
+  }
+
+  async function ensureCoinApiAuthenticated(loginNextPath) {
+    var nextPath = String(loginNextPath || '/').trim() || '/';
+    var verified = false;
+
+    if (hasAuthToken()) {
+      verified = await verifyAuthSessionForCoinApi(false);
+      if (!verified) {
+        verified = await verifyAuthSessionForCoinApi(true);
+      }
+    } else {
+      verified = await verifyAuthSessionForCoinApi(true);
+    }
+
+    if (verified) return true;
+
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?')) {
+      window.location.href = '/login?next=' + encodeURIComponent(nextPath);
+    }
+    return false;
   }
 
   function readAuthUser() {
@@ -7856,9 +7877,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function applyCharge() {
-    if (!hasAuthToken()) {
-      window.alert('로그인이 필요합니다. 로그인 후 공식 포인트 충전소에서 결제를 진행해 주세요.');
-      window.location.href = '/login?next=%2Fpoints';
+    if (!(await ensureCoinApiAuthenticated('/points'))) {
       return;
     }
 
@@ -7900,9 +7919,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return;
     }
 
-    if (!hasAuthToken()) {
-      window.alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
-      window.location.href = '/login?next=%2F';
+    if (!(await ensureCoinApiAuthenticated('/'))) {
       return;
     }
     if (isTileKeyUnlocked(featureKey)) {
@@ -8184,7 +8201,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       (function() {
         var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
         var _zbLoadFn = function() {
-          var _zbExpected = 'v=20260514-premium-report-engine3';
+          var _zbExpected = 'v=20260515-ziwei-pipeline-v1';
           var s = document.querySelector('script[src*="ziwei-book.js"][src*="' + _zbExpected + '"]');
           if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
             _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
@@ -8292,7 +8309,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         (function() {
           var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
           var _spLoadFn = function() {
-            var _spExpected='v=20260514-premium-report-engine3';
+            var _spExpected='v=20260515-sukuyo-stage-sync1';
             var s=document.querySelector('script[src*="sukuyo-book.js"][src*="'+_spExpected+'"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?'+_spExpected;el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
@@ -8479,10 +8496,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         _cdInvokeActionDirect(action, actionNode);
         return true;
       }
-      if (!hasAuthToken()) {
-        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-          window.location.href = '/login?next=%2F';
-        }
+      if (!(await ensureCoinApiAuthenticated('/'))) {
         return false;
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
@@ -8741,10 +8755,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       } else {
       _cdSafeBlockEvent(event);
       (async function () {
-        if (!hasAuthToken()) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-            window.location.href = '/login?next=%2F';
-          }
+        if (!(await ensureCoinApiAuthenticated('/'))) {
           return;
         }
         if (isTileKeyUnlocked(tileLockKey)) {
@@ -8996,9 +9007,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/life-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=20260513-quantum-v5" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260515-ziwei-pipeline-v1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/astro-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260515-sukuyo-stage-sync1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/vedic-book.js?v=20260514-premium-report-engine3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>

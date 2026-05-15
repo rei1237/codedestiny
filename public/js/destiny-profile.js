@@ -1295,7 +1295,8 @@
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
-    _dpSetPaymentPending(true, '꽃돼지 코인을 차감하는 중입니다...');
+    var pendingLabel = String(reason || '').trim() || '유료 서비스';
+    _dpSetPaymentPending(true, pendingLabel + ' 결제를 확인하는 중입니다...');
     _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: consumeHeaders,

@@ -28,14 +28,9 @@ const LIFE_BOOK_TITLES = [
 const LOVE_SOLO_TITLES = [
   "본연의 연애 자아",
   "치명적 매력과 페로몬",
-  "운명의 상대방 리포트",
-  "실전 연애 전략 및 스킬",
   "시기별 연애운 흐름",
   "연애의 어두운 면과 위기 관리",
-  "친밀감과 육체적 매력",
   "현대적 상황별 연애 비책",
-  "결혼과 정착",
-  "맞춤형 연애 개운 처방전",
 ];
 
 const LOVE_COMPATIBILITY_TITLES = [
@@ -45,9 +40,10 @@ const LOVE_COMPATIBILITY_TITLES = [
   "관계 운영 커뮤니케이션",
   "시기별 궁합 흐름",
   "갈등 패턴과 위기 관리",
-  "친밀 리듬과 속도 조율",
-  "현대적 상황별 궁합 전략",
-  "결혼과 장기 정착",
+  "두 사람의 궁합 심층 진단",
+  "육체적 궁합과 매력 온도",
+  "결혼 시기와 장기 정착",
+  "속궁합과 친밀 리듬",
   "공동 개운 처방전",
 ];
 
@@ -68,19 +64,16 @@ const ZIWEI_TITLES = [
 ];
 
 const SUKYO_TITLES = [
-  "영혼의 원형",
-  "감정의 조수간만",
-  "페르소나와 브랜딩",
-  "자산의 중력",
-  "협력 역학",
-  "관계 정밀 레이더",
-  "파괴적 혁신",
-  "조화로운 성장",
-  "정서적 유대",
-  "운명적 거리",
-  "달의 주기",
-  "관계 회복 기술",
-  "영혼의 마스터플랜",
+  "본명숙 원형 해독",
+  "달의 주기와 정서 리듬",
+  "페르소나와 첫인상",
+  "자산 감각과 생활 기반",
+  "협업과 조직 적응",
+  "관계 감지력",
+  "위기와 전환",
+  "가족과 뿌리",
+  "욕망과 추진력",
+  "내면 회복과 영성",
 ];
 
 const VEDIC_TITLES = [
@@ -129,20 +122,15 @@ export const PREMIUM_PDF_SPECS = {
     title: "사주 연애 비책",
     featureType: "saju_love_secret",
     supportedModes: ["solo", "compatibility"],
-    minTotalChars: 45000,
-    targetTotalChars: 56000,
+    minTotalChars: 22000,
+    targetTotalChars: 28000,
     chaptersByMode: {
       solo: [
-        makeChapter("love_solo_01", LOVE_SOLO_TITLES[0], 5000, 5600),
-        makeChapter("love_solo_02", LOVE_SOLO_TITLES[1], 5000, 5600),
-        makeChapter("love_solo_03", LOVE_SOLO_TITLES[2], 5500, 6200),
-        makeChapter("love_solo_04", LOVE_SOLO_TITLES[3], 4500, 5200),
-        makeChapter("love_solo_05", LOVE_SOLO_TITLES[4], 5500, 6200),
-        makeChapter("love_solo_06", LOVE_SOLO_TITLES[5], 4500, 5200),
-        makeChapter("love_solo_07", LOVE_SOLO_TITLES[6], 4500, 5200),
-        makeChapter("love_solo_08", LOVE_SOLO_TITLES[7], 4500, 5200),
-        makeChapter("love_solo_09", LOVE_SOLO_TITLES[8], 5500, 6200),
-        makeChapter("love_solo_10", LOVE_SOLO_TITLES[9], 5000, 5600),
+        makeChapter("love_solo_01", LOVE_SOLO_TITLES[0], 4200, 4800),
+        makeChapter("love_solo_02", LOVE_SOLO_TITLES[1], 4200, 4800),
+        makeChapter("love_solo_03", LOVE_SOLO_TITLES[2], 4600, 5200),
+        makeChapter("love_solo_04", LOVE_SOLO_TITLES[3], 4200, 4800),
+        makeChapter("love_solo_05", LOVE_SOLO_TITLES[4], 4200, 4800),
       ],
       compatibility: [
         makeChapter("love_comp_01", LOVE_COMPATIBILITY_TITLES[0], 6000, 6800),
@@ -151,10 +139,11 @@ export const PREMIUM_PDF_SPECS = {
         makeChapter("love_comp_04", LOVE_COMPATIBILITY_TITLES[3], 5500, 6200),
         makeChapter("love_comp_05", LOVE_COMPATIBILITY_TITLES[4], 6500, 7200),
         makeChapter("love_comp_06", LOVE_COMPATIBILITY_TITLES[5], 5500, 6200),
-        makeChapter("love_comp_07", LOVE_COMPATIBILITY_TITLES[6], 5500, 6200),
-        makeChapter("love_comp_08", LOVE_COMPATIBILITY_TITLES[7], 5500, 6200),
+        makeChapter("love_comp_07", LOVE_COMPATIBILITY_TITLES[6], 6000, 6800),
+        makeChapter("love_comp_08", LOVE_COMPATIBILITY_TITLES[7], 6200, 7000),
         makeChapter("love_comp_09", LOVE_COMPATIBILITY_TITLES[8], 6500, 7200),
-        makeChapter("love_comp_10", LOVE_COMPATIBILITY_TITLES[9], 6000, 6800),
+        makeChapter("love_comp_10", LOVE_COMPATIBILITY_TITLES[9], 6200, 7000),
+        makeChapter("love_comp_11", LOVE_COMPATIBILITY_TITLES[10], 6000, 6800),
       ],
     },
     legacyReportType: "loveSecret",
@@ -170,9 +159,9 @@ export const PREMIUM_PDF_SPECS = {
   sookyo_premium: {
     title: "프리미엄 숙요점",
     featureType: "sookyo_premium",
-    minTotalChars: 52000,
-    targetTotalChars: 58500,
-    chapters: buildIndexedChapters("sukyo_ch", SUKYO_TITLES, 4000, 4500),
+    minTotalChars: 24000,
+    targetTotalChars: 36000,
+    chapters: buildIndexedChapters("sukyo_ch", SUKYO_TITLES, 2200, 3200),
     legacyReportType: "sookyoPremium",
   },
   vedic_premium: {
@@ -219,12 +208,13 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
     };
   }
 
-  const normalizedMode = String(mode || "").trim().toLowerCase() === "compatibility"
+  const rawMode = String(mode || "").trim().toLowerCase();
+  const normalizedMode = (rawMode === "compatibility" || rawMode === "couple" || rawMode === "compat")
     ? "compatibility"
     : "solo";
   const chapters = spec.chaptersByMode?.[normalizedMode] || spec.chaptersByMode?.solo || [];
-  const minTotalChars = normalizedMode === "compatibility" ? 60000 : 45000;
-  const targetTotalChars = normalizedMode === "compatibility" ? 70000 : 56000;
+  const minTotalChars = normalizedMode === "compatibility" ? 68000 : 22000;
+  const targetTotalChars = normalizedMode === "compatibility" ? 76000 : 28000;
 
   return {
     ...spec,

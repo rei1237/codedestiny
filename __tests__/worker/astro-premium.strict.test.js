@@ -142,7 +142,7 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(plan.some((p) => String(p.key).startsWith("R"))).toBe(false);
   });
 
-  test("E. forecast 데이터가 없으면 Forecast 챕터(C12)가 생성되지 않아야 한다", () => {
+  test("E. forecast 데이터가 없어도 Forecast 챕터(C12)는 유지되고 degraded 표시가 있어야 한다", () => {
     const canonical = makeCanonical();
     canonical.forecast.transits = null;
     canonical.forecast.secondaryProgressions = null;
@@ -152,7 +152,11 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     canonical.validation.hasForecast = revalidated.hasForecast;
 
     const plan = buildAstroChapterPlan(canonical);
-    expect(plan.some((p) => p.key === "C12")).toBe(false);
+    const c12 = plan.find((p) => p.key === "C12");
+    expect(Boolean(c12)).toBe(true);
+    expect(c12.degraded).toBe(true);
+    expect(Array.isArray(c12.reasons)).toBe(true);
+    expect(c12.reasons.includes("forecast")).toBe(true);
   });
 
   test("F. 실행 보강 메모 패딩 문구는 탐지되어야 한다", () => {

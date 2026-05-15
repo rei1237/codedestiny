@@ -16,25 +16,19 @@
     { title: '🏡 가족과 뿌리', subtitle: '정서적 기반과 소속감' },
     { title: '🔥 욕망과 추진력', subtitle: '내가 움직이는 진짜 이유' },
     { title: '🧘 내면 회복과 영성', subtitle: '혼자 있을 때 살아나는 힘' },
-    { title: '🧭 인생 방향성', subtitle: '나에게 맞는 길의 형태' },
-    { title: '📅 달빛 실천 캘린더', subtitle: '4주 루틴' },
-    { title: '🌕 숙요점 인생 총결산', subtitle: '나의 달빛 사용법' },
   ];
 
   var COMPAT_CHAPTER_META = [
-    { title: '🌙 두 사람의 본명숙 계산표', subtitle: '27숙 원형과 달의 좌표' },
-    { title: '🧭 관계 거리와 숙요 궁합 공식', subtitle: '왜 이 관계로 분류되는가' },
-    { title: '💞 첫 끌림과 감정 화학작용', subtitle: '두 숙이 서로를 알아보는 방식' },
-    { title: '🪞 서로의 그림자', subtitle: '반복 갈등과 상처 버튼' },
-    { title: '🏡 안정감과 장기 관계 가능성', subtitle: '결혼·동거·일상 궁합' },
-    { title: '🔥 애정 표현과 친밀감', subtitle: '연애 온도와 거리 조절' },
-    { title: '🗣️ 대화와 오해의 구조', subtitle: '말이 통하는 지점과 어긋나는 지점' },
-    { title: '💼 협업과 현실 궁합', subtitle: '일·돈·목표를 함께할 수 있는가' },
-    { title: '🌊 위기 상황의 관계 반응', subtitle: '멀어질 때와 다시 가까워질 때' },
-    { title: '🧩 관계 유형별 심층 분석', subtitle: '실제 relationType 심층' },
-    { title: '📅 30일 관계 운영 로드맵', subtitle: '관계 유형/거리별 실행 설계' },
-    { title: '🕯️ 관계를 살리는 문장과 피해야 할 문장', subtitle: '갈등·화해 문장 실전' },
-    { title: '🌕 최종 궁합 총평', subtitle: '점수표·장점·위험·원칙' },
+    { title: '🌑 본명숙 원형 해독', subtitle: '나의 27숙 정체성' },
+    { title: '🌙 달의 주기와 정서 리듬', subtitle: '월상·삭망각·조도 분석' },
+    { title: '🎭 페르소나와 첫인상', subtitle: '세상이 나를 기억하는 방식' },
+    { title: '💰 자산 감각과 생활 기반', subtitle: '돈을 대하는 숙요적 태도' },
+    { title: '⚙️ 협업과 조직 적응', subtitle: '보이지 않는 톱니바퀴' },
+    { title: '📡 관계 감지력', subtitle: '인간관계 레이더와 거리 조절' },
+    { title: '💥 위기와 전환', subtitle: '무너질 때 다시 살아나는 방식' },
+    { title: '🏡 가족과 뿌리', subtitle: '정서적 기반과 소속감' },
+    { title: '🔥 욕망과 추진력', subtitle: '내가 움직이는 진짜 이유' },
+    { title: '🧘 내면 회복과 영성', subtitle: '혼자 있을 때 살아나는 힘' },
   ];
 
   var PERSONAL_LOADING_MSGS = [
@@ -48,25 +42,19 @@
     '가족과 뿌리의 정서 기반을 구성하는 중...',
     '욕망과 추진력의 동기를 분석하는 중...',
     '내면 회복과 영성 루틴을 설계하는 중...',
-    '인생 방향성과 성장 축을 정리하는 중...',
-    '달빛 실천 캘린더를 작성하는 중...',
-    '숙요점 인생 총결산을 완성하는 중...',
   ];
 
   var COMPAT_LOADING_MSGS = [
-    '두 사람의 본명숙 계산표를 생성하는 중...',
-    '관계 거리와 숙요 궁합 공식을 분석하는 중...',
-    '첫 끌림의 감정 화학작용을 해석하는 중...',
-    '반복 갈등과 상처 버튼을 정리하는 중...',
-    '장기 관계 가능성과 안정감을 점검하는 중...',
-    '애정 표현과 친밀감 온도를 맞추는 중...',
-    '대화/오해 패턴을 구조화하는 중...',
-    '협업·현실 궁합 지표를 계산하는 중...',
-    '위기 상황의 관계 반응을 시뮬레이션하는 중...',
-    '관계 유형별 심층 분석을 정리하는 중...',
-    '30일 관계 운영 로드맵을 설계하는 중...',
-    '관계를 살리는 문장과 금지 문장을 정리하는 중...',
-    '최종 궁합 총평과 원칙을 완성하는 중...',
+    '본명숙 원형 해독 데이터를 정리하는 중...',
+    '달의 주기와 정서 리듬을 분석하는 중...',
+    '페르소나와 첫인상 코드를 해석하는 중...',
+    '자산 감각과 생활 기반을 정리하는 중...',
+    '협업과 조직 적응 패턴을 추출하는 중...',
+    '관계 감지력과 거리 조절법을 계산하는 중...',
+    '위기와 전환 리듬을 분석하는 중...',
+    '가족과 뿌리의 정서 기반을 구성하는 중...',
+    '욕망과 추진력의 동기를 분석하는 중...',
+    '내면 회복과 영성 루틴을 설계하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -82,7 +70,7 @@
     '만트라는 영혼이 스스로에게 보내는 진동 코드입니다.',
   ];
 
-  var _chapters = Array(13).fill(null);
+  var _chapters = Array(PERSONAL_CHAPTER_META.length).fill(null);
   var _sukuyoChart = null;
   var _generating = false;
   var _currentChapter = 1;
@@ -94,7 +82,7 @@
   var PREMIUM_SUKUYO_TX_KEY = 'cd_premium_tx_sukuyo';
   var PREMIUM_SUKUYO_COMPAT_TX_KEY = 'cd_premium_tx_sukuyo_compat_extra';
   var _reportMode = 'personal';
-  var _totalChapters = 13;
+  var _totalChapters = PERSONAL_CHAPTER_META.length;
   var _reportId = '';
   var _canonicalSukuyoCompatibility = null;
   var _chapterMetaRuntime = Array(_totalChapters).fill(null);
@@ -116,7 +104,7 @@
   }
 
   function _resetChapterState() {
-    _totalChapters = 13;
+    _totalChapters = _getActiveChapterMeta().length;
     _chapters = Array(_totalChapters).fill(null);
     _chapterMetaRuntime = Array(_totalChapters).fill(null);
     _reportId = '';
@@ -178,7 +166,7 @@
     var mode = _getReportMode();
     var previousMode = _reportMode;
     _reportMode = mode;
-    _totalChapters = 13;
+    _totalChapters = _getActiveChapterMeta().length;
     if (partnerBox) partnerBox.style.display = mode === 'compatibility' ? '' : 'none';
     if (startBtn) {
       startBtn.textContent = mode === 'compatibility'
@@ -620,7 +608,7 @@
       _reportMode = saved.reportMode === 'compatibility' ? 'compatibility' : 'personal';
       _syncReportModeSelector(_reportMode);
       _applyReportModeUi();
-      _totalChapters = Number(saved.totalChapters) || 13;
+      _totalChapters = Number(saved.totalChapters) || _getActiveChapterMeta().length;
       _chapters=saved.chapters;
       if (_chapters.length !== _totalChapters) {
         _chapters = _chapters.slice(0, _totalChapters);
@@ -774,6 +762,22 @@
     }
     var chapterMsg=_qs('skLoadingChapter'),chapterNumEl=_qs('skLoadingChapterNum');
     var mysticEl=_qs('skMysticQuote');
+    var PDF_STAGE_LABELS = [
+      '로그인 확인 중',
+      '결제 정보 확인 중',
+      '숙요점 기본 데이터 계산 중',
+      'PDF 데이터 정규화 중',
+      'Gemini 해석 생성 중',
+      'PDF 렌더링 중',
+      '다운로드 준비 완료'
+    ];
+
+    function _setStage(step, detail) {
+      var idx = Math.max(1, Math.min(PDF_STAGE_LABELS.length, Number(step) || 1));
+      if (!stageEl) return;
+      var label = PDF_STAGE_LABELS[idx - 1] || PDF_STAGE_LABELS[0];
+      stageEl.textContent = '진행 단계 ' + idx + '/' + PDF_STAGE_LABELS.length + ': ' + label + (detail ? ' · ' + detail : '');
+    }
 
     if(_mysticTimer)clearInterval(_mysticTimer);
     var _mqIdx=0;
@@ -796,14 +800,11 @@
       var pct=Math.round((done/_totalChapters)*100);
       if(progressBar)progressBar.style.width=pct+'%';
       if(progressText)progressText.textContent=done+' / '+_totalChapters+' 챕터 완성 ('+pct+'%)';
-      if(stageEl){
-        var _phase=done===0
-          ? '별자리 관계 데이터 정렬 중'
-          : (done<_totalChapters?('AI가 Chapter '+(done+1)+' 숙요 해석 중'):'PDF 저장 준비 완료');
-        var _chapterMeta = _getChapterMetaAt(done);
-        var _subtitle=done<_totalChapters?((_chapterMeta&&_chapterMeta.subtitle)||''):'전체 챕터 정리를 완료했습니다.';
-        stageEl.textContent='진행 단계: '+_phase+(_subtitle?' · '+_subtitle:'');
-      }
+      var _chapterMeta = _getChapterMetaAt(done);
+      var _subtitle = done < _totalChapters
+        ? ((_chapterMeta && _chapterMeta.subtitle) || ('Chapter ' + (done + 1)))
+        : '전체 챕터 정리를 완료했습니다.';
+      _setStage(done < _totalChapters ? 5 : 6, _subtitle);
       if(chapterMsg&&done<_totalChapters)chapterMsg.textContent=activeLoading[done]||'분석 중...';
       if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent='숙요점 인생 총람이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<_totalChapters?'Chapter '+(done+1):'✦ 완성 ✦';
@@ -837,6 +838,7 @@
     }
 
     _setProgress(0);
+    _setStage(1, '세션 상태를 확인하고 있습니다.');
 
     var _premiumReportSessionId = '';
     var _premiumReportType = 'sookyoPremium';
@@ -893,7 +895,25 @@
         requestBody: _getSukuyoPreparePayload()
       }).then(function(prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
+          _setStage(2, '결제/접근 권한을 확인했습니다.');
           _premiumReportSessionId = String(prepared.reportSessionId);
+          var preparedTotal = Number(prepared.totalChapters);
+          if (preparedTotal > 0) {
+            _totalChapters = preparedTotal;
+            _chapters = Array(_totalChapters).fill(null);
+            _chapterMetaRuntime = Array(_totalChapters).fill(null);
+          }
+          if (Array.isArray(prepared.chapterPlan) && prepared.chapterPlan.length) {
+            for (var _cp = 0; _cp < prepared.chapterPlan.length && _cp < _totalChapters; _cp++) {
+              var _row = prepared.chapterPlan[_cp] || {};
+              _chapterMetaRuntime[_cp] = {
+                title: String(_row.title || ('Chapter ' + (_cp + 1))),
+                subtitle: String(_row.subtitle || _row.goal || '')
+              };
+            }
+          }
+          _setStage(3, '기본 계산 데이터를 확보했습니다.');
+          _setStage(4, '챕터 생성용 데이터 구조를 정규화했습니다.');
           return prepared;
         }
         return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
@@ -973,6 +993,7 @@
     var _failCount=0;
     (function generateNext(idx){
       if(idx>=_totalChapters){
+        _setStage(6, '챕터 조합을 정리하고 있습니다.');
         if (_recoveryPasses < 1) {
           var _missing = [];
           for (var _ri = 0; _ri < _totalChapters; _ri++) {
@@ -1020,6 +1041,7 @@
         }
         try { sessionStorage.removeItem(PREMIUM_SUKUYO_TX_KEY); } catch (_) {}
         try { sessionStorage.removeItem(PREMIUM_SUKUYO_COMPAT_TX_KEY); } catch (_) {}
+        _setStage(7, '리포트 다운로드 준비가 완료되었습니다.');
         _showScreen('skResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};

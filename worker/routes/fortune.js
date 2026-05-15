@@ -93,6 +93,8 @@ const UNLOCK_REASON_PRICING_MAP = buildReasonPricingMap(
 );
 
 function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey, reason }) {
+  const requestedFeatureKeyRaw = String(featureKey || "").trim();
+
   if (productSpec) {
     return {
       ok: true,
@@ -165,7 +167,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: featureReasonCost,
       reason: reasonText,
-      featureKey: key,
+      featureKey: requestedFeatureKeyRaw || key,
       pricingSource: "feature-reason",
     };
   }
@@ -176,7 +178,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: Number(featurePrice.cost),
       reason: String(featurePrice.reason || reasonText || "Paid feature unlock"),
-      featureKey: key,
+      featureKey: requestedFeatureKeyRaw || key,
       pricingSource: "feature-key",
     };
   }
@@ -187,7 +189,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: Number(unlockSpec.cost),
       reason: String(unlockSpec.reason || reasonText || "Paid feature unlock"),
-      featureKey: key,
+      featureKey: requestedFeatureKeyRaw || key,
       pricingSource: "unlock-feature",
     };
   }
@@ -232,7 +234,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       ok: true,
       cost: requestCost,
       reason: reasonText || "Paid feature unlock",
-      featureKey: key,
+      featureKey: requestedFeatureKeyRaw || key,
       pricingSource: "dynamic-fallback",
     };
   }
@@ -306,6 +308,7 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "healthReport",
   "sajuDiary",
   "secretHouseEpisodes",
+  "animal-destiny-unlock",
   "premiumDivinationPack",
   "rpt_specialCharmCard",
   "rpt_quantumCard",

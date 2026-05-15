@@ -1,33 +1,70 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useState, type CSSProperties, type MouseEvent } from "react";
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import styles from "../destiny-bias.module.css";
 
 export default function DestinyBiasPhotocard({
   vm,
+  biasImageUrl,
 }: {
   vm: DestinyBiasResultViewModel;
+  biasImageUrl?: string;
 }) {
   const reduceMotion = useReducedMotion();
+  const [glare, setGlare] = useState({ x: 50, y: 16, tiltX: 0, tiltY: 0 });
   const relationHeadline = `${vm.userName} x ${vm.biasName}`;
   const relationSignal = `${vm.userEnergyType} ↔ ${vm.biasEnergyType}`;
   const oneLine = String(vm.chemistrySummary || vm.oneLineDestinyMessage || "").replace(/\s+/g, " ").trim();
+
+  const handleMove = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    if (reduceMotion) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    const centerX = x - 50;
+    const centerY = y - 50;
+
+    setGlare({
+      x,
+      y,
+      tiltX: Number((-centerY / 15).toFixed(2)),
+      tiltY: Number((centerX / 15).toFixed(2)),
+    });
+  }, [reduceMotion]);
+
+  const resetMove = useCallback(() => {
+    setGlare({ x: 50, y: 16, tiltX: 0, tiltY: 0 });
+  }, []);
+
+  const dynamicStyle = {
+    "--card-glare-x": `${glare.x}%`,
+    "--card-glare-y": `${glare.y}%`,
+    transform: reduceMotion ? "none" : `perspective(1200px) rotateX(${glare.tiltX}deg) rotateY(${glare.tiltY}deg)`,
+  } as CSSProperties;
 
   return (
     <motion.div
       id="destiny-bias-card-preview"
       className="relative isolate mx-auto w-full max-w-[360px]"
+      onMouseMove={handleMove}
+      onMouseLeave={resetMove}
       initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.95, y: reduceMotion ? 0 : 16 }}
       animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
       whileHover={reduceMotion ? undefined : { scale: 1.02, y: -4 }}
       transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
+      style={dynamicStyle}
     >
       {/* rainbow holo border */}
       <div className={styles.biasCardOuter}>
       <div className={styles.biasCardInner}>
         <div className="relative aspect-[9/16] p-4 md:p-5">
+          <div className={styles.glassSpotLayer} aria-hidden />
+          <div className={styles.glassNoiseLayer} aria-hidden />
           {/* holographic shimmer + glitter */}
           <div className={`pointer-events-none absolute inset-0 ${styles.photocardHolo}`} aria-hidden />
           <div className={`pointer-events-none absolute inset-0 ${styles.biasGlitterLayer}`} aria-hidden />
@@ -75,9 +112,26 @@ export default function DestinyBiasPhotocard({
             </div>
 
             <div className="relative mt-5 flex-1 overflow-hidden rounded-[24px] border border-white/20 bg-[linear-gradient(160deg,rgba(7,22,45,0.74)_0%,rgba(25,19,63,0.62)_50%,rgba(8,30,55,0.72)_100%)] p-4">
+              <div className={styles.uploadBlendFrame} aria-hidden />
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_38%,rgba(191,219,254,0.56),transparent_30%),radial-gradient(circle_at_72%_66%,rgba(34,211,238,0.32),transparent_28%)]" aria-hidden />
               <div className="pointer-events-none absolute left-1/2 top-[48%] h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/35" aria-hidden />
               <div className="pointer-events-none absolute left-1/2 top-[48%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-pink-100/30" aria-hidden />
+
+              <div className="relative z-10 mb-3 overflow-hidden rounded-2xl border border-white/25 bg-black/35">
+                {biasImageUrl ? (
+                  <img
+                    src={biasImageUrl}
+                    alt={`${vm.biasName} 업로드 이미지`}
+                    className="h-36 w-full object-cover"
+                  />
+                ) : (
+                  <div className="grid h-36 place-items-center bg-[linear-gradient(140deg,rgba(30,41,89,0.75),rgba(56,189,248,0.22),rgba(219,39,119,0.24))]">
+                    <p className="text-xs font-semibold tracking-[0.12em] text-white/88">NO IMAGE UPLOAD</p>
+                  </div>
+                )}
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(165deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,rgba(255,255,255,0.0)_45%,rgba(255,255,255,0.2)_100%)] mix-blend-screen" aria-hidden />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.36),transparent_40%),radial-gradient(circle_at_80%_85%,rgba(125,211,252,0.2),transparent_34%)]" aria-hidden />
+              </div>
 
               <div className="relative z-10 space-y-3">
                 <p className="text-xs font-semibold tracking-[0.04em] text-white/90">{relationHeadline}</p>

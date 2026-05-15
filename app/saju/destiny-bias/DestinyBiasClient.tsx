@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
@@ -28,6 +28,7 @@ import { downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 
 const DEFAULT_ANALYZE_COST = 50;
 const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
+const MAX_BIAS_IMAGE_SIZE_MB = 12;
 
 const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
 const RELATION_MOODS = ["응원형", "성장형", "설렘형", "위로형", "운명형"] as const;
@@ -48,6 +49,7 @@ const INITIAL_BIAS: PersonInputState = {
 type StoredProfile = {
   id?: string;
   name?: string;
+  gender?: string;
   birth?: {
     year?: number;
     month?: number;
@@ -55,6 +57,20 @@ type StoredProfile = {
     hour?: number;
     minute?: number;
   };
+};
+
+type ProfileSeed = {
+  name: string;
+  birthDateInput: string;
+  birthTimeInput: string;
+  gender: (typeof GENDER_OPTIONS)[number] | "";
+};
+
+type StoredAuthUser = {
+  name?: string;
+  birthDate?: string;
+  birthTime?: string;
+  gender?: string;
 };
 
 function toPaddedNumber(value: unknown, length: number) {
@@ -78,16 +94,40 @@ function buildBirthTimeInput(birth: StoredProfile["birth"]) {
   return `${hour}${minute}`;
 }
 
-function readCurrentProfileSeed() {
+function normalizeBirthDateText(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 8) return "";
+  return digits;
+}
+
+function normalizeBirthTimeText(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 4) return "";
+  return digits;
+}
+
+function normalizeGenderOption(value: unknown): (typeof GENDER_OPTIONS)[number] | "" {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  if (/^(f|female|woman|여|여성)$/i.test(raw)) return "여성";
+  if (/^(m|male|man|남|남성)$/i.test(raw)) return "남성";
+  if (/^(other|기타)$/i.test(raw)) return "기타";
+
+  return "";
+}
+
+function readCurrentProfileSeed(): ProfileSeed {
   if (typeof window === "undefined") {
     return {
       name: "",
       birthDateInput: "",
       birthTimeInput: "",
+      gender: "",
     };
   }
   try {
-    const user = readSanitizedAuthUser();
+    const user = readSanitizedAuthUser() as StoredAuthUser | null;
     const scope = resolveAuthScopeFromUser(user) || "guest";
     const listRaw = localStorage.getItem(`${PROFILE_NS}.list::${scope}`) || localStorage.getItem(`${PROFILE_NS}.list`) || "[]";
     const currentId =
@@ -95,24 +135,34 @@ function readCurrentProfileSeed() {
       localStorage.getItem(`${PROFILE_NS}.current`) ||
       "";
     const list = JSON.parse(listRaw) as StoredProfile[];
+    const fallbackName = String(user?.name || "").trim();
+    const fallbackBirthDateInput = normalizeBirthDateText(user?.birthDate);
+    const fallbackBirthTimeInput = normalizeBirthTimeText(user?.birthTime);
+    const fallbackGender = normalizeGenderOption(user?.gender);
+
     if (!Array.isArray(list) || list.length === 0) {
       return {
-        name: "",
-        birthDateInput: "",
-        birthTimeInput: "",
+        name: fallbackName,
+        birthDateInput: fallbackBirthDateInput,
+        birthTimeInput: fallbackBirthTimeInput,
+        gender: fallbackGender,
       };
     }
     const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0];
+    const profileBirthDateInput = buildBirthDateInput(profile?.birth);
+    const profileBirthTimeInput = buildBirthTimeInput(profile?.birth);
     return {
-      name: String(profile?.name || "").trim(),
-      birthDateInput: buildBirthDateInput(profile?.birth),
-      birthTimeInput: buildBirthTimeInput(profile?.birth),
+      name: String(profile?.name || fallbackName).trim(),
+      birthDateInput: profileBirthDateInput || fallbackBirthDateInput,
+      birthTimeInput: profileBirthTimeInput || fallbackBirthTimeInput,
+      gender: normalizeGenderOption(profile?.gender) || fallbackGender,
     };
   } catch {
     return {
       name: "",
       birthDateInput: "",
       birthTimeInput: "",
+      gender: "",
     };
   }
 }
@@ -175,8 +225,11 @@ export default function DestinyBiasClient() {
   const [uiStep, setUiStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [meInput, setMeInput] = useState<PersonInputState>(INITIAL_ME);
   const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
-  const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>("여성");
+  const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>(() => readCurrentProfileSeed().gender || "기타");
   const [biasArtistInput, setBiasArtistInput] = useState("");
+  const [biasImageDataUrl, setBiasImageDataUrl] = useState("");
+  const [biasImageName, setBiasImageName] = useState("");
+  const [biasImageError, setBiasImageError] = useState("");
 
   const [biasMood, setBiasMood] = useState<(typeof BIAS_MOODS)[number]>("청량");
   const [relationMood, setRelationMood] = useState<(typeof RELATION_MOODS)[number]>("응원형");
@@ -238,9 +291,9 @@ export default function DestinyBiasClient() {
     const applyProfileData = () => {
       const profileSeed = readCurrentProfileSeed();
       setMeInput((prev) => {
-        const nextName = prev.name.trim() ? prev.name : profileSeed.name;
-        const nextBirthDate = prev.birthDateInput.trim() ? prev.birthDateInput : profileSeed.birthDateInput;
-        const nextBirthTime = prev.birthTimeInput.trim() ? prev.birthTimeInput : profileSeed.birthTimeInput;
+        const nextName = profileSeed.name || prev.name;
+        const nextBirthDate = profileSeed.birthDateInput || prev.birthDateInput;
+        const nextBirthTime = profileSeed.birthTimeInput || prev.birthTimeInput;
 
         if (nextName === prev.name && nextBirthDate === prev.birthDateInput && nextBirthTime === prev.birthTimeInput) {
           return prev;
@@ -252,6 +305,11 @@ export default function DestinyBiasClient() {
           birthDateInput: nextBirthDate,
           birthTimeInput: nextBirthTime,
         };
+      });
+
+      setMeGender((prev) => {
+        const nextGender = profileSeed.gender || prev;
+        return nextGender === prev ? prev : nextGender;
       });
     };
 
@@ -321,6 +379,56 @@ export default function DestinyBiasClient() {
       requiredCoins: Number(params.requiredCoins || 0),
       loginRequired: Boolean(params.loginRequired),
     });
+  }, []);
+
+  const handleBiasImageChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const imageType = /^image\/(png|jpe?g|webp|gif|bmp|avif)$/i.test(file.type);
+    if (!imageType) {
+      setBiasImageError("PNG, JPG, WEBP, GIF 이미지 파일만 업로드할 수 있어요.");
+      event.target.value = "";
+      return;
+    }
+
+    const maxBytes = MAX_BIAS_IMAGE_SIZE_MB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setBiasImageError(`이미지 용량은 ${MAX_BIAS_IMAGE_SIZE_MB}MB 이하로 업로드해 주세요.`);
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+      if (!dataUrl) {
+        setBiasImageError("이미지를 읽지 못했어요. 다시 선택해 주세요.");
+        event.target.value = "";
+        return;
+      }
+
+      setBiasImageDataUrl(dataUrl);
+      setBiasImageName(file.name || "my-bias-image");
+      setBiasImageError("");
+      setToast("최애 이미지를 카드에 합성할 준비를 끝냈어요.");
+    };
+
+    reader.onerror = () => {
+      setBiasImageError("이미지 처리 중 오류가 발생했어요. 다른 파일로 다시 시도해 주세요.");
+      event.target.value = "";
+    };
+
+    reader.readAsDataURL(file);
+  }, []);
+
+  const clearBiasImage = useCallback(() => {
+    setBiasImageDataUrl("");
+    setBiasImageName("");
+    setBiasImageError("");
+    setToast("업로드 이미지를 초기화했어요.");
   }, []);
 
   const onSafeClick = useCallback((callback: () => void) => {
@@ -610,6 +718,9 @@ export default function DestinyBiasClient() {
     setUiStep(1);
     setResultVm(null);
     setBiasArtistInput("");
+    setBiasImageDataUrl("");
+    setBiasImageName("");
+    setBiasImageError("");
     setError("");
   }, []);
 
@@ -618,6 +729,9 @@ export default function DestinyBiasClient() {
     setResultVm(null);
     setBiasInput(INITIAL_BIAS);
     setBiasArtistInput("");
+    setBiasImageDataUrl("");
+    setBiasImageName("");
+    setBiasImageError("");
     setError("");
     setToast("다른 최애 정보를 입력해 주세요.");
   }, []);
@@ -819,6 +933,46 @@ export default function DestinyBiasClient() {
                     </select>
                   </label>
                 </div>
+
+                <div className="mt-4 rounded-2xl border border-white/15 bg-black/20 p-4">
+                  <p className="text-[10px] font-semibold tracking-[0.15em] text-cyan-100/80">PHOTO MERGE / 포토카드 합성</p>
+                  <h3 className="mt-1 text-base font-black text-white">최애 이미지 업로드하기</h3>
+                  <p className="mt-1 text-sm leading-6 text-white/75">
+                    업로드한 이미지를 결과 카드의 글래스 프레임에 자동 합성해요. 12MB 이하, PNG/JPG/WEBP 권장.
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[linear-gradient(92deg,#22d3ee,#8b5cf6,#ec4899)] px-4 py-2 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(139,92,246,0.38)] transition hover:-translate-y-0.5">
+                      이미지 선택
+                      <input type="file" accept="image/*" className="sr-only" onChange={handleBiasImageChange} />
+                    </label>
+                    {biasImageDataUrl ? (
+                      <button
+                        type="button"
+                        onClick={clearBiasImage}
+                        className="rounded-full border border-white/25 bg-white/8 px-4 py-2 text-xs font-semibold text-white/90 transition hover:border-cyan-200/65 hover:bg-cyan-300/10"
+                      >
+                        업로드 초기화
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {biasImageDataUrl ? (
+                    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-cyan-200/25 bg-cyan-300/8 p-2">
+                      <img
+                        src={biasImageDataUrl}
+                        alt="업로드한 최애 이미지 미리보기"
+                        className="h-16 w-16 rounded-xl border border-white/20 object-cover"
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-cyan-100">{biasImageName || "업로드 완료"}</p>
+                        <p className="mt-0.5 text-[11px] text-white/70">결과 카드에서 유리 질감 포토카드로 합성됩니다.</p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {biasImageError ? <p className="mt-2 text-xs text-[#FF9AD8]">{biasImageError}</p> : null}
+                </div>
               </section>
             ) : null}
 
@@ -903,7 +1057,7 @@ export default function DestinyBiasClient() {
                   <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">REPRESENTATIVE PHOTOCARD ✨</p>
                   <h3 className="mt-1 text-xl font-black text-white">나만의 한정판 포토카드</h3>
                 </div>
-                <DestinyBiasPhotocard vm={resultVm} />
+                <DestinyBiasPhotocard vm={resultVm} biasImageUrl={biasImageDataUrl} />
               </section>
 
               <section className="space-y-3">

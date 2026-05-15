@@ -185,6 +185,12 @@ const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
   { value: "both", label: "양손" },
 ];
 
+const DOMINANT_HAND_HINT_LABEL: Record<DominantHand, string> = {
+  right: "오른손 중심 해석",
+  left: "왼손 중심 해석",
+  both: "양손 균형 해석",
+};
+
 const SHOOTING_GUIDES = [
   "손바닥 전체가 보이게 촬영해 주세요.",
   "손가락을 자연스럽게 펼쳐 주세요.",
@@ -1055,8 +1061,18 @@ export default function PalmDestinyMain() {
     resetAnalysisState();
 
     let normalizedFile = file;
+    let prepWarning = "";
     try {
-      normalizedFile = await resizeImageIfNeeded(file);
+      try {
+        normalizedFile = await resizeImageIfNeeded(file);
+      } catch (error) {
+        normalizedFile = file;
+        prepWarning =
+          isHeicLikeFile(file)
+            ? "이 기기에서는 HEIC/HEIF 미리보기 최적화가 제한됩니다. 원본 파일로 분석을 진행합니다."
+            : `브라우저 전처리를 건너뛰고 원본으로 분석합니다. (${error instanceof Error ? error.message : "UNKNOWN_PREP_ERROR"})`;
+      }
+
       const signature = await computeFileSignature(normalizedFile);
 
       setHandImage(side, normalizedFile);
@@ -1072,6 +1088,9 @@ export default function PalmDestinyMain() {
         quality = await analyzeImageQuality(normalizedFile);
       } catch {
         quality = null;
+        if (!prepWarning) {
+          prepWarning = "이 브라우저에서는 품질 사전점검이 제한되어 서버 분석 결과를 기준으로 안내합니다.";
+        }
       }
 
       setQualityFeedbackBySide((prev) => ({
@@ -1080,13 +1099,19 @@ export default function PalmDestinyMain() {
       }));
 
       if (quality?.confidence === "낮음") {
-        setSubmitMessage("분석은 가능하지만 사진이 조금 어둡거나 흐릴 수 있습니다. 결과는 참고용으로 확인해 주세요.");
+        const warningSuffix = prepWarning ? ` ${prepWarning}` : "";
+        setSubmitMessage(`분석은 가능하지만 사진이 조금 어둡거나 흐릴 수 있습니다. 결과는 참고용으로 확인해 주세요.${warningSuffix}`);
         return;
       }
 
       const sourceLabel = source === "camera" ? "카메라 촬영" : "앨범 선택";
       if (isHeicLikeFile(file) && normalizedFile.type === "image/jpeg") {
         setSubmitMessage(`${sourceLabel} HEIC 이미지를 분석용 JPEG로 변환했습니다. 미리보기 확인 후 분석을 시작해 주세요.`);
+        return;
+      }
+
+      if (prepWarning) {
+        setSubmitMessage(`${sourceLabel} 이미지를 불러왔습니다. ${prepWarning} 미리보기 확인 후 분석을 시작해 주세요.`);
         return;
       }
 
@@ -2085,7 +2110,7 @@ export default function PalmDestinyMain() {
                         aria-pressed={active}
                       >
                         <span className="block">{option.label}</span>
-                        <span className="mt-0.5 block text-[11px] opacity-80">{PALM_PURPOSE_COIN_LABEL[option.value]}</span>
+                        <span className="mt-0.5 block text-[11px] opacity-80">{DOMINANT_HAND_HINT_LABEL[option.value]}</span>
                       </button>
                     );
                   })}

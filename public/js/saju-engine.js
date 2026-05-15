@@ -16454,6 +16454,260 @@ function sbxToggle(id,btn){
   btn.textContent=hidden?'접기 ▲':'펼치기 ▼';
 }
 
+var SAJU_MONTH_COMMAND_BY_BRANCH = {
+  '寅': { branch:'寅', branchKo:'인', monthName:'인월', startTerm:'입춘', endTerm:'경칩', season:'초봄', dominantElement:'목', seasonPower:'목왕지절' },
+  '卯': { branch:'卯', branchKo:'묘', monthName:'묘월', startTerm:'경칩', endTerm:'청명', season:'한봄', dominantElement:'목', seasonPower:'목왕지절' },
+  '辰': { branch:'辰', branchKo:'진', monthName:'진월', startTerm:'청명', endTerm:'입하', season:'봄의 끝, 환절기', dominantElement:'토', seasonPower:'습토, 목의 여운과 토의 전환' },
+  '巳': { branch:'巳', branchKo:'사', monthName:'사월', startTerm:'입하', endTerm:'망종', season:'초여름', dominantElement:'화', seasonPower:'화왕지절' },
+  '午': { branch:'午', branchKo:'오', monthName:'오월', startTerm:'망종', endTerm:'소서', season:'한여름', dominantElement:'화', seasonPower:'화왕지절' },
+  '未': { branch:'未', branchKo:'미', monthName:'미월', startTerm:'소서', endTerm:'입추', season:'여름의 끝, 환절기', dominantElement:'토', seasonPower:'조토, 화의 여운과 토의 전환' },
+  '申': { branch:'申', branchKo:'신', monthName:'신월', startTerm:'입추', endTerm:'백로', season:'초가을', dominantElement:'금', seasonPower:'금왕지절' },
+  '酉': { branch:'酉', branchKo:'유', monthName:'유월', startTerm:'백로', endTerm:'한로', season:'한가을', dominantElement:'금', seasonPower:'금왕지절' },
+  '戌': { branch:'戌', branchKo:'술', monthName:'술월', startTerm:'한로', endTerm:'입동', season:'가을의 끝, 환절기', dominantElement:'토', seasonPower:'조토, 금의 여운과 토의 전환' },
+  '亥': { branch:'亥', branchKo:'해', monthName:'해월', startTerm:'입동', endTerm:'대설', season:'초겨울', dominantElement:'수', seasonPower:'수왕지절' },
+  '子': { branch:'子', branchKo:'자', monthName:'자월', startTerm:'대설', endTerm:'소한', season:'한겨울', dominantElement:'수', seasonPower:'수왕지절' },
+  '丑': { branch:'丑', branchKo:'축', monthName:'축월', startTerm:'소한', endTerm:'입춘', season:'겨울의 끝, 환절기', dominantElement:'토', seasonPower:'한습토, 수의 여운과 토의 전환' }
+};
+
+var SAJU_MONTH_COMMAND_MEANINGS = {
+  '寅': { summary:'겨울의 응축이 풀리고 생명력이 처음 솟아나는 시기. 시작, 성장, 기획, 개척의 힘이 강합니다.', personality:'새로운 방향을 열고 싶어 하며, 배우고 확장하려는 욕구가 강합니다.', career:'기획, 교육, 상담, 창업, 성장 산업, 콘텐츠 확장에 유리합니다.', love:'관계에서도 가능성과 성장성을 중요하게 보며, 정체된 관계에는 답답함을 느끼기 쉽습니다.', caution:'초기 추진력은 강하지만 지속 관리가 약해질 수 있으므로 루틴화가 필요합니다.' },
+  '卯': { summary:'목의 기운이 가장 왕성한 시기. 성장, 매력, 관계 확장, 감수성이 강합니다.', personality:'부드러움 속에 강한 생존력과 자기 확장 욕구가 있습니다.', career:'브랜딩, 디자인, 교육, 관계 기반 일, 콘텐츠에 강점이 있습니다.', love:'호감과 매력을 자연스럽게 만들지만, 관계의 경계가 흔들릴 수 있습니다.', caution:'타인의 반응에 민감해질 수 있으므로 자기 중심을 지키는 것이 중요합니다.' },
+  '辰': { summary:'목의 여운을 품은 습토. 성장한 것을 현실에 뿌리내리게 하는 전환의 기운입니다.', personality:'생각이 깊고, 여러 가능성을 현실적으로 조율하려는 힘이 있습니다.', career:'기획을 현실화하는 일, 중재, 시스템 구축, 자산화에 유리합니다.', love:'감정만으로 움직이기보다 안정성과 현실성을 함께 봅니다.', caution:'생각이 많아지면 결정을 미루기 쉬우므로 실행 기준이 필요합니다.' },
+  '巳': { summary:'화의 기운이 본격적으로 드러나는 시기. 표현, 직관, 열정, 명예욕이 살아납니다.', personality:'내면의 생각을 밖으로 드러내고 싶어 하며, 존재감을 만들고자 합니다.', career:'콘텐츠, 말, 표현, 홍보, 교육, 예술, 기술 구현에 강점이 있습니다.', love:'끌림이 빠르게 생기며, 관계에서도 열정과 반응을 중요하게 여깁니다.', caution:'과열과 조급함을 조절하지 않으면 쉽게 소진될 수 있습니다.' },
+  '午': { summary:'화의 기운이 절정에 이른 시기. 노출, 명예, 표현력, 강한 생명력을 상징합니다.', personality:'표현력과 존재감이 강하며, 인정받고 싶은 욕구가 뚜렷합니다.', career:'대중 앞에 드러나는 일, 브랜드, 리더십, 강의, 콘텐츠 사업에 유리합니다.', love:'사랑에서도 뜨거운 반응과 확신을 원하며, 애매함을 견디기 어렵습니다.', caution:'감정과 에너지가 과열되기 쉬우므로 휴식과 냉각 루틴이 필요합니다.' },
+  '未': { summary:'화의 열기를 품은 조토. 열정 이후의 정리, 축적, 현실화를 의미합니다.', personality:'겉으로는 부드러워도 내면에는 강한 고집과 축적 욕구가 있습니다.', career:'기술, 자산화, 관리, 상담, 교육, 반복 축적형 일에 적합합니다.', love:'관계에서 안정성과 신뢰를 원하지만, 마음을 쉽게 드러내지 않을 수 있습니다.', caution:'묵은 감정이 쌓이면 무기력이나 고집으로 나타날 수 있습니다.' },
+  '申': { summary:'금의 기운이 시작되는 시기. 정리, 판단, 기술, 수익화의 힘이 생깁니다.', personality:'분석적이고 현실 감각이 있으며, 결과와 효율을 중요하게 여깁니다.', career:'기술, 분석, 시스템, 금융, 법, 전략, 수익화 구조에 강점이 있습니다.', love:'감정보다 신뢰와 실질적 태도를 중요하게 봅니다.', caution:'지나친 판단과 비판으로 관계가 차가워지지 않도록 해야 합니다.' },
+  '酉': { summary:'금의 기운이 가장 맑고 강한 시기. 완성, 절제, 미감, 결단의 힘이 강합니다.', personality:'정리 능력과 미감, 판단력이 뛰어나며, 기준이 분명합니다.', career:'브랜딩, 미용, 디자인, 금융, 데이터, 정밀 기술, 문서 작업에 유리합니다.', love:'관계에서도 품격과 신뢰, 태도의 정확성을 중요하게 봅니다.', caution:'완벽주의와 차가운 표현이 오해를 만들 수 있습니다.' },
+  '戌': { summary:'금의 여운을 품은 조토. 정리된 것을 저장하고 다음 계절을 준비하는 기운입니다.', personality:'책임감과 보존 욕구가 강하며, 자기 세계를 쉽게 열지 않습니다.', career:'관리, 부동산, 문서, 연구, 전략, 안정적 기반 구축에 유리합니다.', love:'관계에서 신뢰를 중시하지만, 속마음을 늦게 여는 편일 수 있습니다.', caution:'방어성이 강해지면 고립되기 쉬우므로 유연한 소통이 필요합니다.' },
+  '亥': { summary:'수의 기운이 시작되는 시기. 지혜, 감수성, 연구, 내면 탐색의 힘이 강해집니다.', personality:'직관과 상상력이 깊고, 보이지 않는 흐름을 잘 감지합니다.', career:'연구, 상담, 콘텐츠, 심리, 영성, 데이터 탐색, 기획에 강점이 있습니다.', love:'깊은 정서적 연결을 원하지만, 혼자만의 세계도 중요합니다.', caution:'생각이 깊어질수록 현실 실행이 늦어질 수 있습니다.' },
+  '子': { summary:'수의 기운이 절정인 시기. 지혜, 정보, 감정, 잠재력, 생존 본능이 강합니다.', personality:'깊이 생각하고 관찰하며, 보이지 않는 정보를 읽는 힘이 있습니다.', career:'분석, 연구, 기획, 상담, 글쓰기, 데이터, 지식 산업에 적합합니다.', love:'감정이 깊지만 쉽게 드러내지 않으며, 안정된 신뢰를 원합니다.', caution:'불안과 과도한 생각이 쌓이지 않도록 몸을 움직이는 루틴이 필요합니다.' },
+  '丑': { summary:'수의 여운을 품은 한습토. 오래 버티고 축적하며 새봄을 준비하는 기운입니다.', personality:'인내심과 현실 감각이 강하고, 겉으로 드러나지 않는 내공이 깊습니다.', career:'축적형 사업, 관리, 연구, 부동산, 장기 프로젝트에 유리합니다.', love:'관계에서도 쉽게 움직이지 않지만, 한 번 정하면 오래 책임지려 합니다.', caution:'변화에 늦게 반응할 수 있으므로 적절한 시점의 결단이 필요합니다.' }
+};
+
+var SAJU_DAY_MASTER_ELEMENT = { '甲':'목','乙':'목','丙':'화','丁':'화','戊':'토','己':'토','庚':'금','辛':'금','壬':'수','癸':'수' };
+var SAJU_ELEMENT_KO_TO_EN = { '목':'wood','화':'fire','토':'earth','금':'metal','수':'water' };
+var SAJU_ELEMENT_GENERATES = { '목':'화','화':'토','토':'금','금':'수','수':'목' };
+var SAJU_ELEMENT_CONTROLS = { '목':'토','토':'수','수':'화','화':'금','금':'목' };
+
+function _sajuElementEnToKo(elementEn) {
+  if (!elementEn) return '';
+  if (elementEn === 'wood') return '목';
+  if (elementEn === 'fire') return '화';
+  if (elementEn === 'earth') return '토';
+  if (elementEn === 'metal') return '금';
+  if (elementEn === 'water') return '수';
+  return '';
+}
+
+function _resolveMonthCommandBirthDate() {
+  try {
+    var b = window._ziweiBirth || window._astroBirth || null;
+    if (b && b.year && b.month && b.day) {
+      var hh = (b.hour != null) ? Number(b.hour) : 12;
+      var mm = (b.minute != null) ? Number(b.minute) : 0;
+      return new Date(Number(b.year), Number(b.month) - 1, Number(b.day), isNaN(hh) ? 12 : hh, isNaN(mm) ? 0 : mm, 0);
+    }
+    var dEl = document.getElementById('birthDate');
+    if (dEl && dEl.value) {
+      var p = String(dEl.value).split('-').map(function(v){ return parseInt(v, 10); });
+      if (p.length >= 3 && !isNaN(p[0]) && !isNaN(p[1]) && !isNaN(p[2])) {
+        var hEl = document.getElementById('birthHour');
+        var mEl = document.getElementById('birthMinute');
+        var h = hEl ? parseInt(String(hEl.value || '12'), 10) : 12;
+        var m = mEl ? parseInt(String(mEl.value || '0'), 10) : 0;
+        return new Date(p[0], p[1] - 1, p[2], isNaN(h) ? 12 : h, isNaN(m) ? 0 : m, 0);
+      }
+    }
+  } catch (_e) {}
+  return null;
+}
+
+function _calculateMonthBranchBySolarTerm(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) return '';
+  if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return '';
+  try {
+    var s = Solar.fromYmdHms(
+      dateObj.getFullYear(),
+      dateObj.getMonth() + 1,
+      dateObj.getDate(),
+      dateObj.getHours(),
+      dateObj.getMinutes(),
+      dateObj.getSeconds()
+    );
+    var lunar = s && s.getLunar ? s.getLunar() : null;
+    var bazi = lunar && lunar.getEightChar ? lunar.getEightChar() : null;
+    var monthGanji = bazi && bazi.getMonth ? String(bazi.getMonth()) : '';
+    return monthGanji.length >= 2 ? monthGanji.charAt(1) : '';
+  } catch (_e) {
+    return '';
+  }
+}
+
+function _getElementRelation(dayElementKo, monthElementKo) {
+  if (!dayElementKo || !monthElementKo) return 'unknown';
+  if (dayElementKo === monthElementKo) return '비겁';
+  if (SAJU_ELEMENT_GENERATES[monthElementKo] === dayElementKo) return '인성';
+  if (SAJU_ELEMENT_GENERATES[dayElementKo] === monthElementKo) return '식상';
+  if (SAJU_ELEMENT_CONTROLS[dayElementKo] === monthElementKo) return '재성';
+  if (SAJU_ELEMENT_CONTROLS[monthElementKo] === dayElementKo) return '관성';
+  return 'unknown';
+}
+
+function _getRelationNarrative(relation) {
+  if (relation === '비겁') return '월령 오행이 일간과 같아 계절 자체가 나를 직접 보강합니다. 자존감, 자기 추진력, 독립 에너지가 강해지는 구조입니다.';
+  if (relation === '인성') return '월령 오행이 일간을 생해 주는 인성 환경으로, 보호·학습·회복 기반이 탄탄해지기 쉽습니다.';
+  if (relation === '식상') return '일간이 월령 오행을 생하는 식상 환경으로, 표현·창작·산출이 강해지지만 체력 소모 관리가 필요합니다.';
+  if (relation === '재성') return '일간이 월령 오행을 극하는 재성 환경으로, 성과·자원·돈 관리 압박이 현실 과제로 작동할 수 있습니다.';
+  if (relation === '관성') return '월령 오행이 일간을 극하는 관성 환경으로, 책임·규율·평가 압력이 강하게 체감될 수 있습니다.';
+  return '일간 데이터 미확인: 일간 정보가 없어 월령과의 십성 관계(비겁/인성/식상/재성/관성)는 보수적으로 생략합니다.';
+}
+
+function _getRelationStrengthHint(relation, pw) {
+  var strongKnown = !!(pw && typeof pw.isStrong === 'boolean');
+  var isStrong = strongKnown ? !!pw.isStrong : null;
+  if (relation === '비겁') return isStrong === false ? 'strong' : 'veryStrong';
+  if (relation === '인성') return isStrong === false ? 'strong' : 'veryStrong';
+  if (relation === '식상') return isStrong === true ? 'neutral' : 'weak';
+  if (relation === '재성') return isStrong === true ? 'neutral' : 'weak';
+  if (relation === '관성') return isStrong === true ? 'weak' : 'veryWeak';
+  return 'unknown';
+}
+
+function _buildMonthCommandFromEngine(p, natal, pw) {
+  var monthBranchByPillar = (p && p.m && p.m.j) ? String(p.m.j) : '';
+  var birthDate = _resolveMonthCommandBirthDate();
+  var monthBranchBySolarTerm = _calculateMonthBranchBySolarTerm(birthDate);
+  var selectedBranch = monthBranchBySolarTerm || monthBranchByPillar;
+  var fallbackUsed = false;
+  var fallbackNotice = '';
+
+  if (monthBranchByPillar && monthBranchBySolarTerm && monthBranchByPillar !== monthBranchBySolarTerm) {
+    fallbackUsed = true;
+    fallbackNotice = '정확한 절기 시각 데이터가 확인되지 않아, 계산된 월주 지지를 기준으로 월령을 보완 해석합니다.';
+    selectedBranch = monthBranchByPillar;
+  } else if (!monthBranchBySolarTerm && monthBranchByPillar) {
+    fallbackUsed = true;
+    fallbackNotice = '정확한 절기 시각 데이터가 확인되지 않아, 계산된 월주 지지를 기준으로 월령을 보완 해석합니다.';
+    selectedBranch = monthBranchByPillar;
+  }
+
+  if (!selectedBranch) {
+    var noDataMsg = '월령 계산에 필요한 월주 또는 절기 데이터가 확인되지 않아, 현재는 기본 사주 분석 결과를 중심으로 계절적 기운을 보완 해석합니다.';
+    return {
+      monthCommand: null,
+      reading: {
+        title: '월령 해석',
+        summary: noDataMsg,
+        seasonalEnergy: noDataMsg,
+        relationToDayMaster: '일간 데이터 미확인',
+        strengthAnalysis: '월령 데이터 미확인으로 신강/신약 보조 판정은 제한됩니다.',
+        elementBalanceImpact: '오행 균형 영향은 기존 오행 분포 분석을 우선 참고해 주세요.',
+        careerImpact: '기존 직업·진로 해석을 우선 적용합니다.',
+        wealthImpact: '기존 재물운 해석을 우선 적용합니다.',
+        loveImpact: '기존 연애·관계 해석을 우선 적용합니다.',
+        advice: '월령 데이터가 보강되면 계절 기반 전략을 더 정밀하게 제시할 수 있습니다.',
+        caution: noDataMsg
+      },
+      fallbackUsed: true,
+      fallbackNotice: noDataMsg
+    };
+  }
+
+  var base = SAJU_MONTH_COMMAND_BY_BRANCH[selectedBranch] || {
+    branch: selectedBranch,
+    branchKo: selectedBranch,
+    monthName: selectedBranch + '월',
+    startTerm: '절기 시작',
+    endTerm: '다음 절기',
+    season: '계절 전환기',
+    dominantElement: '토',
+    seasonPower: '계절 전환'
+  };
+  var kb = SAJU_MONTH_COMMAND_MEANINGS[selectedBranch] || {
+    summary: '해당 월령의 기본 해석 데이터가 아직 보강 중입니다.',
+    personality: '계절의 흐름을 타는 기질이 핵심으로 작동합니다.',
+    career: '계절 에너지에 맞는 실행 전략이 중요합니다.',
+    love: '관계에서는 정서 리듬과 타이밍 조율이 핵심입니다.',
+    caution: '계절 과잉/결핍 반응을 관찰하며 루틴을 조정하세요.'
+  };
+
+  var dayStem = (p && p.d && p.d.g) ? String(p.d.g) : '';
+  var dayElementKo = SAJU_DAY_MASTER_ELEMENT[dayStem] || _sajuElementEnToKo(p && p.d && p.d.gE);
+  var relation = _getElementRelation(dayElementKo, base.dominantElement);
+  var relationText = dayStem
+    ? ('일간 ' + dayStem + '(' + (dayElementKo || '미상') + ') 기준 관계는 ' + relation + '입니다. ' + _getRelationNarrative(relation))
+    : '일간 데이터 미확인: 일간 정보가 없어 월령과의 십성 관계(비겁/인성/식상/재성/관성)는 보수적으로 생략합니다.';
+  var hint = dayStem ? _getRelationStrengthHint(relation, pw) : 'unknown';
+
+  var monthElementKey = SAJU_ELEMENT_KO_TO_EN[base.dominantElement] || '';
+  var monthElementRatio = (natal && natal.ratios && monthElementKey) ? Number(natal.ratios[monthElementKey] || 0) : 0;
+  var elementBalanceImpact = '';
+  if (monthElementRatio >= 30) {
+    elementBalanceImpact = '월령의 주도 오행(' + base.dominantElement + ')이 원국에서도 높은 비율(' + monthElementRatio.toFixed(0) + '%)을 차지해, 해당 오행 과열 가능성까지 함께 관리해야 합니다.';
+  } else if (monthElementRatio <= 14) {
+    elementBalanceImpact = '월령의 주도 오행(' + base.dominantElement + ')이 원국 비율(' + monthElementRatio.toFixed(0) + '%) 대비 상대적으로 약해, 계절 환경의 도움을 실전 루틴으로 연결하는 것이 중요합니다.';
+  } else {
+    elementBalanceImpact = '월령 오행(' + base.dominantElement + ')과 원국 비율(' + monthElementRatio.toFixed(0) + '%)이 비교적 균형적입니다. 과도한 보정보다 지속 가능한 운영이 유리합니다.';
+  }
+
+  var powerLabel = (pw && typeof pw.isStrong === 'boolean') ? (pw.isStrong ? '신강' : '신약') : '미확인';
+  var strengthAnalysis = '현재 억부 판정은 ' + powerLabel + '입니다. 월령 관계(' + (dayStem ? relation : '미확인') + ')를 함께 보면 ';
+  if (hint === 'veryStrong' || hint === 'strong') {
+    strengthAnalysis += '계절이 일간 체력을 보조하는 축이 강해, 신강/신약 판단에서 "환경 지원" 근거가 분명합니다.';
+  } else if (hint === 'weak' || hint === 'veryWeak') {
+    strengthAnalysis += '계절이 일간을 소모/압박할 수 있어, 신강/신약 판단에서 "환경 부담" 근거가 강화됩니다.';
+  } else {
+    strengthAnalysis += '일간 데이터가 제한되어 신강/신약 보조 판정은 보수적으로 유지합니다.';
+  }
+
+  var seasonalEnergy = '당신의 월령은 ' + base.monthName + '입니다. ' + base.startTerm + ' 이후 ' + base.endTerm + ' 전까지의 기운으로, ' + kb.summary;
+  var summary = base.monthName + ' · ' + base.season + ' · ' + base.dominantElement + ' 왕기';
+  var careerImpact = kb.career + ' 관계값(' + (dayStem ? relation : '미확인') + ')을 고려해 실행 강도와 속도를 조절하면 커리어 성과가 안정됩니다.';
+  var wealthImpact = (relation === '재성' || relation === '관성')
+    ? '재물·성과 압박이 구조적으로 커질 수 있으므로 자금 흐름과 고정비 통제가 핵심입니다. '
+    : '월령의 계절 지원을 활용해 수익 구조를 천천히 확장하는 방식이 유리합니다. ';
+  wealthImpact += '특히 ' + base.dominantElement + ' 오행이 강해지는 시기에는 투자보다 회수 규칙을 먼저 세우세요.';
+  var loveImpact = kb.love + ' 관계에서는 계절 리듬을 맞춘 소통 주기와 감정 온도 조절이 핵심입니다.';
+  var advice = kb.personality + ' 월령의 왕기(' + base.dominantElement + ')를 일상 루틴(수면·운동·업무 리듬)에 연결하면 체감 운이 안정됩니다.';
+  var caution = kb.caution + (fallbackNotice ? (' ' + fallbackNotice) : '');
+  var interpretation = seasonalEnergy + ' ' + kb.personality;
+
+  return {
+    monthCommand: {
+      branch: base.branch,
+      branchKo: base.branchKo,
+      monthName: base.monthName,
+      startTerm: base.startTerm,
+      endTerm: base.endTerm,
+      season: base.season,
+      dominantElement: base.dominantElement,
+      seasonPower: base.seasonPower,
+      dayMasterRelation: dayStem ? relation : undefined,
+      dayMasterStrengthHint: hint,
+      interpretation: interpretation,
+      caution: caution,
+      fallbackUsed: !!fallbackUsed,
+      dayMasterRelationText: relationText,
+      advice: advice
+    },
+    reading: {
+      title: '월령 해석',
+      summary: summary,
+      seasonalEnergy: seasonalEnergy,
+      relationToDayMaster: relationText,
+      strengthAnalysis: strengthAnalysis,
+      elementBalanceImpact: elementBalanceImpact,
+      careerImpact: careerImpact,
+      wealthImpact: wealthImpact,
+      loveImpact: loveImpact,
+      advice: advice,
+      caution: caution
+    },
+    fallbackUsed: !!fallbackUsed,
+    fallbackNotice: fallbackNotice
+  };
+}
+
 function renderSummary(p,johu,natal){
   var dg=p.d.g,dayMaster=p.d.gE||'earth';
   var health=HEALTH_DATA[dayMaster]||HEALTH_DATA.earth;
@@ -16470,6 +16724,9 @@ function renderSummary(p,johu,natal){
   var dayNames={wood:'성장하는 나무',fire:'타오르는 불꽃',earth:'포용하는 대지',metal:'단단한 바위',water:'흐르는 강물'};
   var ratStr=Object.keys(natal.ratios).map(function(e){return EL_K[e]+' '+natal.ratios[e].toFixed(0)+'%';}).join(' · ');
   var pw=G_POWER,jg=G_JONG;
+  var monthCommandBundle=_buildMonthCommandFromEngine(p,natal,pw);
+  var monthCommand=monthCommandBundle&&monthCommandBundle.monthCommand?monthCommandBundle.monthCommand:null;
+  var monthReading=monthCommandBundle&&monthCommandBundle.reading?monthCommandBundle.reading:null;
 
   /* ─── 섹션 빌더 헬퍼 ─── */
   var _bxCtr=0;
@@ -16621,6 +16878,43 @@ function renderSummary(p,johu,natal){
          '</div>'
         :'억부 계산 중 또는 사주 데이터가 부족합니다.'),
     '#9C27B0','rgba(243,229,245,.7)');
+
+  /* ───────────────────────────────
+     2-1. 월령(절기 기준) 해석
+  ─────────────────────────────── */
+  if(monthCommand&&monthReading){
+    html+=box('🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
+      subHead('월령 요약 카드','#3f51b5')+
+      kv('월령',monthCommand.monthName+' ('+monthCommand.branch+')')+
+      kv('절기 구간',monthCommand.startTerm+' ~ '+monthCommand.endTerm)+
+      kv('계절',monthCommand.season)+
+      kv('왕한 오행',monthCommand.dominantElement+' · '+monthCommand.seasonPower)+
+      (monthCommand.fallbackUsed?'<div style="margin-top:4px;font-size:.8rem;color:#6b7280">정확한 절기 시각 데이터가 확인되지 않아, 계산된 월주 지지를 기준으로 월령을 보완 해석합니다.</div>':'')+
+      '<br>'+subHead('계절의 기운','#5c6bc0')+
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.seasonalEnergy+'</div>'+
+      '<br>'+subHead('일간과 월령의 관계','#3949ab')+
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.relationToDayMaster+'</div>'+
+      '<br>'+subHead('신강/신약 판단 보조','#3949ab')+
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.strengthAnalysis+'</div>'+
+      '<br>'+subHead('오행 균형에 미치는 영향','#5c6bc0')+
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.elementBalanceImpact+'</div>'+
+      '<br>'+subHead('직업·재물·연애에 미치는 영향','#3949ab')+
+      '<div style="font-size:.84rem;line-height:1.85">'+
+      '<b>직업:</b> '+monthReading.careerImpact+'<br><br>'+
+      '<b>재물:</b> '+monthReading.wealthImpact+'<br><br>'+
+      '<b>연애:</b> '+monthReading.loveImpact+
+      '</div>'+
+      '<br>'+subHead('생활 조언','#5c6bc0')+
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.advice+'</div>'+
+      '<div style="margin-top:8px;padding:9px 10px;border-radius:8px;border-left:3px solid #8b5cf6;background:rgba(129,140,248,.12);font-size:.82rem;line-height:1.72;color:#4c1d95"><b>주의:</b> '+monthReading.caution+'</div>',
+      '#5c6bc0','rgba(232,236,255,.78)');
+  }else if(monthReading){
+    html+=box('🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.summary+'</div>'+
+      '<br>'+subHead('보완 안내','#5c6bc0')+
+      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.caution+'</div>',
+      '#5c6bc0','rgba(232,236,255,.78)');
+  }
 
   /* ───────────────────────────────
      3. 오행 분포
@@ -16954,6 +17248,13 @@ function renderSummary(p,johu,natal){
       '<span class="prem-title" style="border-color:#4CAF50;color:#2E7D32">🍀 연이의 현실 조언 — '+(USER_NAME||'당신')+'님만을 위한 이야기</span>'+
       '<div class="prem-text">'+generateDetailedAdvice(p,pw,jg,dominant,dayMaster,domE,natal,deep)+'</div></div>';
   }
+
+  try {
+    window.__lastComprehensiveSajuReading = {
+      monthCommandReading: monthReading || null,
+      monthCommand: monthCommand || null
+    };
+  } catch (_eLastReading) {}
 
   document.getElementById('summaryArea').innerHTML=html;
 }

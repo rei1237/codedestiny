@@ -1157,10 +1157,8 @@
     var canonical = prepared && prepared.canonicalSajuChart ? prepared.canonicalSajuChart : _buildCanonicalSajuChart(profile);
     var canonicalCheck = _validateCanonicalSajuChart(canonical);
     if (!canonicalCheck.isValid) {
-      _setFlowState('error');
-      _lastError = '사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다\n누락: ' + canonicalCheck.missingFields.join(', ');
-      alert(_lastError);
-      return;
+      _lastError = '사주 계산 데이터 일부가 부족해 보완 해석으로 생성합니다\n누락: ' + canonicalCheck.missingFields.join(', ');
+      console.warn('[인생의 책] canonical preflight degraded:', canonicalCheck.missingFields);
     }
 
     _canonicalSajuChart = canonical;
@@ -1739,8 +1737,7 @@
       var _prepared = { canonicalSajuChart: _buildCanonicalSajuChart(_profileForPreflight) };
       var _preflight = _validateCanonicalSajuChart(_prepared.canonicalSajuChart);
       if (!_preflight.isValid) {
-        window.alert('사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다\n누락: ' + _preflight.missingFields.join(', '));
-        return;
+        console.warn('[인생의 책] preflight degraded:', _preflight.missingFields);
       }
 
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 500);

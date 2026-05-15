@@ -3610,7 +3610,6 @@ function renderResult(){
       <span class="tag tag-purple">아트마카라카: ${PKR[(report.ext&&report.ext.atmakaraka)||'Sun']||((report.ext&&report.ext.atmakaraka)||'Sun')}</span>
       <span class="tag tag-pink">현재 대운: ${PKR[maha.p]}</span>
     </div>
-    <button class="btn-sm" onclick="copyCurrentVedicDataSnapshot()" style="margin-bottom:14px">JSON 복사</button>
   </div>
 
   <div class="acc-item reveal reveal-delay-2">
@@ -3688,13 +3687,17 @@ function renderResult(){
     </div>
   </div>
 
-  <details class="reveal reveal-delay-4" style="margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;background:rgba(255,255,255,0.02)">
-    <summary style="cursor:pointer;color:var(--text2);font-size:12px;list-style:none">분석 데이터 JSON 펼치기</summary>
-    <pre style="margin-top:8px;white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.55;color:var(--text3)">${hEsc(snapshotText)}</pre>
-  </details>`;
+  `;
 
   const tabPersonality=renderPersonality(report.personality, chart, insights);
-  const tabRelation=renderRomance(report.romance, chart, insights);
+  const tabRelation=renderRomance(report.romance, chart, insights)+`
+  <div class="reveal reveal-delay-2" style="margin-top:14px">
+    <div class="glass" style="padding:14px;border:1px solid rgba(236,72,153,0.22)">
+      <div class="section-head section-head-kr" style="color:var(--pink);margin-bottom:8px">💞 베다 궁합 계산</div>
+      <div class="body-text" style="margin-bottom:10px">아쉬타쿠타 밀란 8항목으로 두 사람의 궁합을 계산합니다. 궁합 계산은 1회 50코인이 차감됩니다.</div>
+      <button class="btn-primary" onclick="showDetail('compat')">💕 궁합 계산기 열기 (1회 50코인)</button>
+    </div>
+  </div>`;
   const tabMoneyWork=renderWealth(report.wealth, insights)+renderCareer(report.career, insights);
   const tabDashaFocus=tabDasha+renderVimshottari(chart, insights)+tabAntar;
   const tabEnergy=renderChakra(report.chakra, insights)+renderRemedies(report.remedies, chart, insights);
