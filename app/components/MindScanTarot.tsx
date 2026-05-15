@@ -23,6 +23,20 @@ interface ReadingSummaryCard {
   relationFlow?: string;
   reApproachChance?: string;
   recommendedAction?: string;
+  relationshipStage?: string;
+  silenceDriver?: string;
+  situationPressure?: string;
+  emotionalNeed?: string;
+}
+interface ReadingInsightCard {
+  id: string;
+  icon?: string;
+  category: string;
+  title: string;
+  headline?: string;
+  summary?: string;
+  bullets?: string[];
+  riskLevel?: string;
 }
 interface ReadingSection {
   slot: number;
@@ -45,6 +59,7 @@ interface ReadingResult {
   intro: string;
   sections: ReadingSection[];
   summaryCard?: ReadingSummaryCard;
+  insightDeck?: ReadingInsightCard[];
   masterAdvice?: string;
   suggestedMessages?: ReadingMessageExample[];
   oneLineConclusion?: string;
@@ -617,6 +632,12 @@ const LOVE_SIGNAL_CLASS: Record<string, string> = {
   "거리두기": "border-slate-300/35 bg-slate-500/15 text-slate-100",
   "재접근 가능": "border-violet-300/45 bg-violet-500/20 text-violet-100",
 };
+const RISK_LEVEL_CLASS: Record<string, string> = {
+  "낮음": "border-emerald-300/35 bg-emerald-500/15 text-emerald-100",
+  "중간": "border-amber-300/35 bg-amber-500/15 text-amber-100",
+  "중상": "border-orange-300/35 bg-orange-500/15 text-orange-100",
+  "높음": "border-rose-300/35 bg-rose-500/15 text-rose-100",
+};
 
 interface ResultStageProps {
   drawn: Record<string, number>;
@@ -630,11 +651,41 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
   const [shareMsg, setShareMsg] = useState("");
   const [visibleCount, setVisibleCount] = useState(0);
   const summaryCard = reading.summaryCard || {};
+  const insightDeck = useMemo(
+    () => (Array.isArray(reading.insightDeck) ? reading.insightDeck.slice(0, 6) : []),
+    [reading.insightDeck],
+  );
   const suggestedMessages = Array.isArray(reading.suggestedMessages) ? reading.suggestedMessages.slice(0, 3) : [];
+  const [openedInsightIds, setOpenedInsightIds] = useState<string[]>([]);
+  const [activeInsightId, setActiveInsightId] = useState<string>("");
+
+  const activeInsight = useMemo(() => {
+    if (!insightDeck.length) return null;
+    const picked = insightDeck.find((item) => item.id === activeInsightId);
+    return picked || insightDeck[0];
+  }, [insightDeck, activeInsightId]);
+
+  useEffect(() => {
+    if (!insightDeck.length) {
+      setOpenedInsightIds([]);
+      setActiveInsightId("");
+      return;
+    }
+    const first = insightDeck[0];
+    setOpenedInsightIds([first.id]);
+    setActiveInsightId(first.id);
+  }, [insightDeck]);
+
+  const handleDrawInsight = useCallback((card: ReadingInsightCard) => {
+    const id = String(card?.id || "");
+    if (!id) return;
+    setActiveInsightId(id);
+    setOpenedInsightIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
 
   // Stagger-reveal sections
   useEffect(() => {
-    const total = (reading.sections?.length ?? 0) + 7;
+    const total = (reading.sections?.length ?? 0) + 10;
     let n = 0;
     const t = setInterval(() => { n++; setVisibleCount(n); if (n >= total) clearInterval(t); }, 200);
     return () => clearInterval(t);
@@ -646,7 +697,21 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     `현재 심리: ${summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}`,
     `연락 가능성: ${summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}`,
     `관계 흐름: ${summaryCard.relationFlow || "단절보다 거리두기에 가까운 흐름"}`,
+    `관계 단계: ${summaryCard.relationshipStage || "유보형 거리두기 단계"}`,
+    `침묵 동인: ${summaryCard.silenceDriver || "자존심과 상처 재발 우려가 먼저 작동"}`,
+    `상황 압력: ${summaryCard.situationPressure || "접근 강도 조절이 필요한 중간 구간"}`,
+    `감정 욕구: ${summaryCard.emotionalNeed || "안전감과 존중 확인 욕구"}`,
     `추천 행동: ${summaryCard.recommendedAction || "부담 없는 안부로 접점 만들기"}`,
+    "",
+    "[상대방 감정/상황 딥다이브 카드]",
+    ...(insightDeck || []).map((card, idx) =>
+      [
+        `${idx + 1}. ${card.category} - ${card.title}`,
+        card.headline ? `핵심: ${card.headline}` : "",
+        card.summary || "",
+        ...(Array.isArray(card.bullets) ? card.bullets : []),
+      ].filter(Boolean).join("\n")
+    ),
     "",
     reading.intro, "",
     ...(reading.sections || []).map(s =>
@@ -665,7 +730,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     reading.masterAdvice || "",
     "",
     reading.oneLineConclusion || reading.closing,
-  ].join("\n"), [reading, suggestedMessages, summaryCard]);
+  ].join("\n"), [insightDeck, reading, suggestedMessages, summaryCard]);
 
   const showMsg = (msg: string) => { setShareMsg(msg); setTimeout(() => setShareMsg(""), 2500); };
 
@@ -853,14 +918,107 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             <p className="text-sm text-fuchsia-100/85 leading-7">
               추천 행동: {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
             </p>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-100/88">
+                관계 단계: <b>{summaryCard.relationshipStage || "유보형 거리두기 단계"}</b>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-100/88">
+                침묵 동인: <b>{summaryCard.silenceDriver || "자존심과 상처 재발 우려"}</b>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-purple-100/88 sm:col-span-2">
+                상황 압력: <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
+              </div>
+            </div>
           </motion.article>
+
+          {/* Insight card draw */}
+          {insightDeck.length > 0 && (
+            <motion.article className="rounded-2xl border border-indigo-300/24 p-5 sm:p-6"
+              style={{ background: "linear-gradient(130deg,rgba(67,56,202,0.15),rgba(30,64,175,0.12),rgba(14,116,144,0.08))" }}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: visibleCount >= 5 ? 1 : 0, y: visibleCount >= 5 ? 0 : 14 }}>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h3 className="text-base sm:text-lg font-black text-white">상대방 감정/상황 딥다이브 카드</h3>
+                <span className="text-[11px] text-indigo-100/80 tracking-wide">카드를 눌러 하나씩 확인하세요</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
+                {insightDeck.map((card, idx) => {
+                  const id = String(card.id || `insight-${idx}`);
+                  const opened = openedInsightIds.includes(id);
+                  const active = activeInsight?.id === id;
+                  return (
+                    <motion.button
+                      key={id}
+                      type="button"
+                      onClick={() => handleDrawInsight(card)}
+                      className="rounded-xl p-3 text-left border transition-all"
+                      style={{
+                        borderColor: active ? "rgba(196,181,253,0.75)" : "rgba(196,181,253,0.28)",
+                        background: opened
+                          ? "linear-gradient(155deg, rgba(30,41,59,0.75), rgba(67,56,202,0.25))"
+                          : "linear-gradient(155deg, rgba(2,6,23,0.88), rgba(30,27,75,0.8))",
+                        boxShadow: active ? "0 0 24px rgba(129,140,248,0.35)" : "none",
+                      }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.98 }}>
+                      {opened ? (
+                        <>
+                          <p className="text-[10px] text-indigo-200/75 mb-1 tracking-[0.12em] uppercase">{card.category}</p>
+                          <p className="text-sm text-indigo-50 font-semibold leading-5">{card.title}</p>
+                          <p className="text-[11px] text-indigo-200/80 mt-2">{card.icon || "🃏"} OPEN</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-[10px] text-indigo-200/65 tracking-[0.18em] uppercase mb-2">Mindscan Deck</p>
+                          <p className="text-xs text-indigo-50/90 font-semibold">카드 #{idx + 1}</p>
+                          <p className="text-[11px] text-indigo-200/75 mt-2">눌러서 뽑기</p>
+                        </>
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {activeInsight && (
+                <motion.div
+                  className="rounded-xl border border-white/12 bg-black/20 p-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={activeInsight.id}>
+                  <div className="flex items-center justify-between gap-3 mb-2.5">
+                    <div>
+                      <p className="text-[10px] text-indigo-200/72 tracking-[0.16em] uppercase">{activeInsight.category}</p>
+                      <h4 className="text-sm sm:text-base font-bold text-indigo-50 mt-1">{activeInsight.icon || "🃏"} {activeInsight.title}</h4>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${RISK_LEVEL_CLASS[activeInsight.riskLevel || "중간"] || RISK_LEVEL_CLASS["중간"]}`}>
+                      리스크 {activeInsight.riskLevel || "중간"}
+                    </span>
+                  </div>
+                  {activeInsight.headline && (
+                    <p className="text-sm text-indigo-100/95 leading-7">핵심: {activeInsight.headline}</p>
+                  )}
+                  {activeInsight.summary && (
+                    <p className="text-sm text-indigo-100/86 leading-7 mt-1.5">{activeInsight.summary}</p>
+                  )}
+                  {(Array.isArray(activeInsight.bullets) && activeInsight.bullets.length > 0) && (
+                    <div className="mt-2.5 space-y-1.5">
+                      {activeInsight.bullets.map((line, idx) => (
+                        <p key={`${activeInsight.id}-line-${idx}`} className="text-[13px] text-indigo-100/78 leading-6">• {line}</p>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </motion.article>
+          )}
 
           {/* Sections */}
           {(reading.sections || []).map((s, i) => (
             <motion.article key={s.slot} className="rounded-2xl border border-white/7 p-5 sm:p-6"
               style={{ background: i % 2 === 0 ? "rgba(109,40,217,0.07)" : "rgba(168,85,247,0.05)" }}
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: visibleCount >= i + 5 ? 1 : 0, y: visibleCount >= i + 5 ? 0 : 16 }}
+              animate={{ opacity: visibleCount >= i + 7 ? 1 : 0, y: visibleCount >= i + 7 ? 0 : 16 }}
               transition={{ duration: 0.38 }}>
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
@@ -917,7 +1075,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             <motion.article className="rounded-2xl border border-cyan-300/24 p-5 sm:p-6"
               style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(109,40,217,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: visibleCount >= 12 ? 1 : 0, y: visibleCount >= 12 ? 0 : 16 }}>
+              animate={{ opacity: visibleCount >= 14 ? 1 : 0, y: visibleCount >= 14 ? 0 : 16 }}>
               <h4 className="text-sm sm:text-base font-bold text-cyan-50 mb-3">지금 보내기 좋은 메시지 예시</h4>
               <div className="space-y-2.5">
                 {suggestedMessages.map((item, idx) => (
@@ -935,7 +1093,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             <motion.article className="rounded-2xl border border-purple-400/18 p-5 sm:p-6"
               style={{ background: "linear-gradient(135deg,rgba(124,58,237,0.12),rgba(236,72,153,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: visibleCount >= 13 ? 1 : 0, y: visibleCount >= 13 ? 0 : 16 }}
+              animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 16 }}
               transition={{ duration: 0.38 }}>
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -952,7 +1110,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           <motion.div className="rounded-2xl border border-white/5 p-5 sm:p-6 text-center"
             style={{ background: "rgba(255,255,255,0.02)" }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: visibleCount >= 14 ? 1 : 0 }}
+            animate={{ opacity: visibleCount >= 16 ? 1 : 0 }}
             transition={{ duration: 0.4 }}>
             <p className="text-[10px] tracking-[0.45em] text-purple-400/45 uppercase mb-3">One Line Conclusion</p>
             <p className="text-[15px] sm:text-base text-purple-100/84 leading-8 tracking-[0.01em] italic">{reading.oneLineConclusion || reading.closing}</p>
@@ -969,7 +1127,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
         {/* Quick actions under result */}
         <motion.div className="mt-6 w-full max-w-2xl"
           initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: visibleCount >= 12 ? 1 : 0, y: visibleCount >= 12 ? 0 : 8 }}>
+          animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 8 }}>
           <div className="rounded-2xl border border-purple-400/18 bg-white/[0.03] p-3 sm:p-4">
             <p className="text-[11px] text-purple-300/70 mb-3 tracking-[0.24em] uppercase text-center">Result Quick Actions</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -994,7 +1152,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
         {/* Action buttons */}
         <motion.div className="mt-6 w-full max-w-2xl flex flex-wrap gap-2 justify-center"
           initial={{ opacity: 0 }}
-          animate={{ opacity: visibleCount >= 12 ? 1 : 0 }}>
+          animate={{ opacity: visibleCount >= 15 ? 1 : 0 }}>
           {[
             { label: "📷 이미지 저장", fn: handleSaveImage, cls: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100 hover:bg-emerald-500/18" },
             { label: "🔗 공유",       fn: handleShare,     cls: "border-fuchsia-400/22 bg-fuchsia-500/8 text-fuchsia-100 hover:bg-fuchsia-500/18" },
