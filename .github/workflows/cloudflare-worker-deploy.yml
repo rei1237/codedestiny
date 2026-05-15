@@ -1,6 +1,9 @@
-name: Deploy Worker API (Manual)
+name: Deploy Worker API
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -27,6 +30,18 @@ jobs:
         with:
           node-version: "24"
           cache: npm
+
+      - name: Validate required secrets
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::Missing required secret CLOUDFLARE_API_TOKEN"
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::Missing required secret CLOUDFLARE_ACCOUNT_ID"
+            exit 1
+          fi
 
       - name: Install dependencies
         run: npm ci
