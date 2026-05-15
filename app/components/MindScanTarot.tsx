@@ -78,6 +78,8 @@ const POSITIONS: TarotPos[] = [
 const DECK_SIZE = 78;
 const GRID_COUNT = 24;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const COSMIC_PANEL = "rounded-[1.6rem] border border-indigo-300/20 bg-slate-950/45 backdrop-blur-xl shadow-[0_18px_65px_rgba(76,29,149,0.45)]";
+const COSMIC_CARD = "rounded-2xl border border-cyan-300/20 bg-slate-950/42 backdrop-blur-lg";
 
 const MAJOR = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor",
   "The Hierophant","The Lovers","The Chariot","Strength","The Hermit","Wheel of Fortune",
@@ -147,6 +149,15 @@ function StarField() {
             background: s.id % 5 === 0 ? "#f0abfc" : s.id % 4 === 0 ? "#e879f9" : "#c4b5fd" }}
           animate={{ opacity: [0, s.size > 2 ? 0.9 : 0.5, 0] }}
           transition={{ duration: s.dur, delay: s.delay, repeat: Infinity, ease: "easeInOut" }} />
+      ))}
+      {[0, 1].map((i) => (
+        <motion.div
+          key={`shooting-${i}`}
+          className="absolute h-[1px] w-28 rounded-full bg-gradient-to-r from-white/0 via-cyan-200/70 to-white/0"
+          style={{ top: i === 0 ? "22%" : "58%", left: i === 0 ? "-10%" : "15%" }}
+          animate={{ x: [0, 520, 980], y: [0, 40, 90], opacity: [0, 1, 0] }}
+          transition={{ duration: i === 0 ? 4.8 : 6.2, delay: i === 0 ? 1.2 : 3.4, repeat: Infinity, ease: "easeInOut" }}
+        />
       ))}
     </div>
   );
@@ -251,7 +262,10 @@ function IntroStage({ onStart }: { onStart: () => void }) {
     <motion.div className="fixed inset-0 flex flex-col items-center justify-center px-6 z-20 overflow-y-auto"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.65 }}>
-      <div className="min-h-full w-full flex flex-col items-center justify-center py-14 text-center">
+      <div className="min-h-full w-full max-w-4xl relative flex flex-col items-center justify-center py-14 text-center">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_12%_24%,rgba(34,211,238,0.14),transparent_38%),radial-gradient(circle_at_84%_16%,rgba(196,181,253,0.14),transparent_36%),radial-gradient(circle_at_50%_82%,rgba(244,114,182,0.10),transparent_42%)]" />
+        <motion.div className={`${COSMIC_PANEL} relative px-6 sm:px-8 py-8 sm:py-10 w-full max-w-3xl`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <div className="absolute inset-0 rounded-[1.6rem] border border-cyan-200/10" />
         {/* Orb with orbiting rings */}
         <motion.div className="relative mb-8"
           initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -290,21 +304,25 @@ function IntroStage({ onStart }: { onStart: () => void }) {
 
         {/* Title */}
         <motion.div className="space-y-3 mb-8" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <p className="text-[11px] tracking-[0.55em] text-purple-400/65 uppercase">Mind Scan Tarot</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+          <div className="flex items-center justify-center gap-2.5 mb-2">
+            <span className="px-2.5 py-1 rounded-full border border-cyan-300/30 bg-cyan-400/10 text-[10px] tracking-[0.22em] text-cyan-100/85 uppercase">Stellar Reading</span>
+            <span className="px-2.5 py-1 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 text-[10px] tracking-[0.22em] text-fuchsia-100/85 uppercase">Mind Scan</span>
+          </div>
+          <p className="text-[11px] tracking-[0.55em] text-purple-300/70 uppercase">Mind Scan Tarot</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(192,132,252,0.42)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
             상대방의 정확한<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-300 to-pink-400">
               속마음 읽기
             </span>
           </h1>
-          <p className="text-sm text-purple-200/52 leading-relaxed max-w-sm mx-auto">
+          <p className="text-sm text-indigo-100/70 leading-relaxed max-w-sm mx-auto">
             직관을 따라 10장의 카드를 선택하세요.<br />
             타로 마스터가 상대방의 진짜 감정과 숨겨진 의도를 깊이 해석합니다.
           </p>
         </motion.div>
 
         {/* Position icons */}
-        <motion.div className="flex items-center justify-center gap-4 mb-7 bg-white/[0.04] rounded-2xl px-6 py-3 border border-white/[0.06]"
+        <motion.div className="flex items-center justify-center gap-4 mb-7 bg-slate-900/45 rounded-2xl px-6 py-3 border border-indigo-200/15 backdrop-blur-md"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}>
           {POSITIONS.map(p => (
             <div key={p.id} className="flex flex-col items-center gap-1">
@@ -315,7 +333,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         </motion.div>
 
         {/* Flow steps */}
-        <motion.div className="flex items-center gap-2 mb-8 text-[10px] text-purple-400/42"
+        <motion.div className="flex items-center gap-2 mb-8 text-[10px] text-indigo-200/55"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
           {["메인 5장", "→", "보조 5장", "→", "포지션 공개", "→", "AI 리딩"].map((t, i) => (
             <span key={i} className={t === "→" ? "text-purple-800/40" : ""}>{t}</span>
@@ -324,9 +342,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
 
         {/* CTA button */}
         <motion.button onClick={onStart}
-          className="relative overflow-hidden px-12 py-4 rounded-full text-white font-bold text-sm tracking-[0.22em] uppercase"
-          style={{ background: "linear-gradient(135deg,#6d28d9,#a855f7 50%,#7c3aed)",
-            boxShadow: "0 0 32px rgba(168,85,247,0.52), 0 4px 24px rgba(109,40,217,0.4)" }}
+          className="relative overflow-hidden px-12 py-4 rounded-full text-white font-bold text-sm tracking-[0.22em] uppercase border border-cyan-200/35 bg-gradient-to-r from-indigo-600/90 via-violet-600/90 to-fuchsia-600/90 shadow-[0_0_34px_rgba(34,211,238,0.35),0_0_62px_rgba(168,85,247,0.38)]"
           initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.62, type: "spring" }}
           whileHover={{ scale: 1.07, boxShadow: "0 0 52px rgba(168,85,247,0.7), 0 6px 30px rgba(109,40,217,0.5)" }}
           whileTap={{ scale: 0.95 }}>
@@ -340,6 +356,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
           ✦ 상대방을 마음속으로 떠올리며 시작하세요 ✦
         </motion.p>
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -377,13 +394,13 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
     [currentSelected.length]);
 
   return (
-    <motion.div className="fixed inset-0 flex flex-col z-20"
+    <motion.div className="fixed inset-0 flex flex-col z-20 bg-[radial-gradient(circle_at_18%_12%,rgba(34,211,238,0.09),transparent_40%),radial-gradient(circle_at_78%_22%,rgba(217,70,239,0.10),transparent_36%)]"
       initial={{ opacity: 0, x: round === "sub" ? 30 : 0 }} animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: round === "main" ? -30 : 0 }}
       transition={{ duration: 0.35 }}>
 
       {/* Header */}
-      <div className="flex-shrink-0 pt-5 pb-3 px-4 text-center">
+      <div className={`flex-shrink-0 pt-5 pb-3 px-4 text-center mx-auto mt-3 w-[min(100%,34rem)] ${COSMIC_PANEL}`}>
         <p className="text-[10px] tracking-[0.42em] text-purple-400/58 uppercase mb-1">Mind Scan Tarot</p>
         <motion.h2 key={round} className="text-xl sm:text-2xl font-bold text-white"
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -431,8 +448,9 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
       </div>
 
       {/* Card Grid */}
-      <div className="flex-1 overflow-y-auto px-3 pb-8">
-        <div className="grid gap-2.5 sm:gap-3 mx-auto" style={{ gridTemplateColumns: "repeat(6, 1fr)", maxWidth: 444 }}>
+      <div className="flex-1 overflow-y-auto px-3 pb-8 pt-2">
+        <div className={`${COSMIC_CARD} mx-auto w-[min(100%,32rem)] p-3 sm:p-4`}>
+          <div className="grid gap-2.5 sm:gap-3 mx-auto" style={{ gridTemplateColumns: "repeat(6, 1fr)", maxWidth: 444 }}>
           {Array.from({ length: GRID_COUNT }, (_, idx) => {
             const disabled = isDisabled(idx);
             const order = pickOrder(idx);
@@ -462,6 +480,7 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
               </motion.div>
             );
           })}
+          </div>
         </div>
       </div>
     </motion.div>
@@ -482,13 +501,13 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
   const allRevealed = revealedCount >= POSITIONS.length;
 
   return (
-    <motion.div className="fixed inset-0 flex flex-col items-center justify-center z-20 overflow-y-auto"
+    <motion.div className="fixed inset-0 flex flex-col items-center justify-center z-20 overflow-y-auto bg-[radial-gradient(circle_at_24%_14%,rgba(56,189,248,0.10),transparent_35%),radial-gradient(circle_at_76%_16%,rgba(217,70,239,0.11),transparent_34%)]"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.45 }}>
-      <div className="min-h-full w-full flex flex-col items-center justify-center px-4 py-10">
+      <div className="min-h-full w-full max-w-4xl flex flex-col items-center justify-center px-4 py-10">
 
         {/* Header */}
-        <motion.div className="text-center mb-7" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div className={`text-center mb-7 w-full max-w-2xl px-5 py-5 ${COSMIC_PANEL}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-[10px] tracking-[0.45em] text-purple-400/60 uppercase mb-1">Mind Scan Tarot</p>
           <AnimatePresence mode="wait">
             <motion.h2 key={allRevealed ? "done" : `r${revealedCount}`}
@@ -510,7 +529,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
         </motion.div>
 
         {/* Cross layout */}
-        <div className="grid gap-5 sm:gap-7 mb-8 flex-shrink-0"
+        <div className={`${COSMIC_CARD} grid gap-5 sm:gap-7 mb-8 flex-shrink-0 p-4 sm:p-6`}
           style={{ gridTemplateColumns: "repeat(3, auto)", gridTemplateRows: "repeat(3, auto)" }}>
           {POSITIONS.map((pos, i) => {
             const revealed = i < revealedCount;
@@ -827,17 +846,17 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
   }, [reportRef]);
 
   return (
-    <motion.div className="fixed inset-0 overflow-y-auto z-20"
+    <motion.div className="fixed inset-0 overflow-y-auto z-20 bg-[radial-gradient(circle_at_20%_10%,rgba(56,189,248,0.09),transparent_36%),radial-gradient(circle_at_80%_15%,rgba(217,70,239,0.12),transparent_40%)]"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}>
       <div className="min-h-full px-4 py-8 flex flex-col items-center">
 
         {/* Hero header */}
-        <motion.div className="text-center mb-7 w-full max-w-2xl"
+        <motion.div className={`text-center mb-7 w-full max-w-2xl px-5 py-5 ${COSMIC_PANEL}`}
           initial={{ opacity: 0, y: -12 }} animate={{ opacity: visibleCount >= 1 ? 1 : 0, y: visibleCount >= 1 ? 0 : -12 }}
           transition={{ duration: 0.4 }}>
           <p className="text-[11px] tracking-[0.55em] text-purple-400/62 uppercase mb-2">Mind Scan Tarot · 심층 리딩</p>
-          <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(167,139,250,0.35)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
             상대방의 진심이{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-300 to-pink-400">열렸습니다</span>
           </h2>
@@ -877,7 +896,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
         <div ref={reportRef} className="w-full max-w-2xl space-y-4">
 
           {/* Intro */}
-          <motion.div className="rounded-2xl border border-purple-500/15 p-5 sm:p-6"
+          <motion.div className={`${COSMIC_CARD} p-5 sm:p-6`}
             style={{ background: "linear-gradient(135deg,rgba(109,40,217,0.1),rgba(168,85,247,0.04))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 3 ? 1 : 0, y: visibleCount >= 3 ? 0 : 14 }}
@@ -1015,7 +1034,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
           {/* Sections */}
           {(reading.sections || []).map((s, i) => (
-            <motion.article key={s.slot} className="rounded-2xl border border-white/7 p-5 sm:p-6"
+            <motion.article key={s.slot} className={`${COSMIC_CARD} p-5 sm:p-6`}
               style={{ background: i % 2 === 0 ? "rgba(109,40,217,0.07)" : "rgba(168,85,247,0.05)" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= i + 7 ? 1 : 0, y: visibleCount >= i + 7 ? 0 : 16 }}
@@ -1090,7 +1109,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
           {/* Master advice */}
           {reading.masterAdvice && (
-            <motion.article className="rounded-2xl border border-purple-400/18 p-5 sm:p-6"
+            <motion.article className={`${COSMIC_CARD} p-5 sm:p-6`}
               style={{ background: "linear-gradient(135deg,rgba(124,58,237,0.12),rgba(236,72,153,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 16 }}
@@ -1107,7 +1126,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           )}
 
           {/* Closing */}
-          <motion.div className="rounded-2xl border border-white/5 p-5 sm:p-6 text-center"
+          <motion.div className={`${COSMIC_CARD} p-5 sm:p-6 text-center`}
             style={{ background: "rgba(255,255,255,0.02)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: visibleCount >= 16 ? 1 : 0 }}
@@ -1128,7 +1147,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
         <motion.div className="mt-6 w-full max-w-2xl"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 8 }}>
-          <div className="rounded-2xl border border-purple-400/18 bg-white/[0.03] p-3 sm:p-4">
+          <div className={`${COSMIC_CARD} p-3 sm:p-4`}>
             <p className="text-[11px] text-purple-300/70 mb-3 tracking-[0.24em] uppercase text-center">Result Quick Actions</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
@@ -1355,11 +1374,10 @@ export default function MindScanTarot() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60]"
-      style={{ background: "linear-gradient(145deg,#040814 0%,#0a0920 30%,#120722 65%,#040916 100%)" }}>
+    <div className="fixed inset-0 z-[60] bg-[linear-gradient(150deg,#020617_0%,#050b24_28%,#160726_58%,#040916_100%)]">
       {/* Ambient gradient */}
-      <div className="fixed inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 75% 50% at 50% 12%,rgba(109,40,217,0.15) 0%,transparent 65%)" }} />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_76%_52%_at_50%_10%,rgba(109,40,217,0.16)_0%,transparent_65%),radial-gradient(ellipse_35%_28%_at_12%_82%,rgba(34,211,238,0.11)_0%,transparent_60%),radial-gradient(ellipse_30%_22%_at_88%_78%,rgba(244,114,182,0.09)_0%,transparent_58%)]" />
+      <div className="fixed inset-0 pointer-events-none opacity-30 bg-[linear-gradient(transparent_96%,rgba(148,163,184,0.18)_97%),linear-gradient(90deg,transparent_96%,rgba(148,163,184,0.16)_97%)] bg-[length:32px_32px]" />
       <StarField />
       <AnimatePresence mode="wait">
         {stage === "intro" && (
