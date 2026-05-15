@@ -1109,6 +1109,8 @@
     try {
       if (typeof window._cdSetCoinGateOverlay === 'function') {
         window._cdSetCoinGateOverlay(!!show, text);
+      } else {
+        _dpSetStandalonePaymentOverlay(!!show, text);
       }
     } catch (_) {}
 
@@ -1121,6 +1123,107 @@
         }
       }));
     } catch (_) {}
+  }
+
+  function _dpEnsureStandalonePaymentOverlayStyle() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('cdStandalonePaymentOverlayStyle')) return;
+    var style = document.createElement('style');
+    style.id = 'cdStandalonePaymentOverlayStyle';
+    style.textContent = [
+      '@keyframes cdStandalonePaymentSpin {',
+      '  from { transform: rotate(0deg); }',
+      '  to { transform: rotate(360deg); }',
+      '}',
+      '#cdStandalonePaymentOverlay {',
+      '  position: fixed;',
+      '  inset: 0;',
+      '  z-index: 2147483000;',
+      '  display: none;',
+      '  align-items: center;',
+      '  justify-content: center;',
+      '  background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.92));',
+      '  backdrop-filter: blur(8px);',
+      '  padding: 16px;',
+      '}',
+      '#cdStandalonePaymentOverlay .cd-standalone-payment-card {',
+      '  width: min(420px, 100%);',
+      '  border-radius: 20px;',
+      '  border: 1px solid rgba(125, 211, 252, 0.42);',
+      '  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.94));',
+      '  box-shadow: 0 24px 54px rgba(2, 6, 23, 0.5);',
+      '  padding: 22px 18px;',
+      '  color: rgba(226, 232, 240, 0.98);',
+      '  text-align: center;',
+      '}',
+      '#cdStandalonePaymentOverlay .cd-standalone-payment-spinner {',
+      '  width: 44px;',
+      '  height: 44px;',
+      '  margin: 0 auto 12px;',
+      '  border-radius: 999px;',
+      '  border: 3px solid rgba(125, 211, 252, 0.22);',
+      '  border-top-color: rgba(125, 211, 252, 0.96);',
+      '  animation: cdStandalonePaymentSpin 0.9s linear infinite;',
+      '}',
+      '#cdStandalonePaymentOverlay .cd-standalone-payment-title {',
+      '  margin: 0;',
+      '  font-size: 19px;',
+      '  font-weight: 800;',
+      '  color: rgba(224, 242, 254, 0.98);',
+      '}',
+      '#cdStandalonePaymentOverlay .cd-standalone-payment-desc {',
+      '  margin: 9px 0 0;',
+      '  font-size: 14px;',
+      '  color: rgba(186, 230, 253, 0.95);',
+      '}',
+      '#cdStandalonePaymentOverlay .cd-standalone-payment-status {',
+      '  margin: 13px 0 0;',
+      '  border-radius: 12px;',
+      '  border: 1px solid rgba(167, 243, 208, 0.3);',
+      '  background: linear-gradient(135deg, rgba(15, 23, 42, 0.44), rgba(6, 78, 59, 0.3));',
+      '  padding: 8px 10px;',
+      '  color: rgba(220, 252, 231, 0.98);',
+      '  font-size: 13px;',
+      '  font-weight: 600;',
+      '}',
+      '@media (max-width: 480px) {',
+      '  #cdStandalonePaymentOverlay .cd-standalone-payment-card { padding: 20px 16px; border-radius: 18px; }',
+      '  #cdStandalonePaymentOverlay .cd-standalone-payment-title { font-size: 17px; }',
+      '}'
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
+  function _dpEnsureStandalonePaymentOverlay() {
+    if (typeof document === 'undefined') return null;
+    var existing = document.getElementById('cdStandalonePaymentOverlay');
+    if (existing) return existing;
+
+    _dpEnsureStandalonePaymentOverlayStyle();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'cdStandalonePaymentOverlay';
+    overlay.innerHTML = [
+      '<div class="cd-standalone-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
+      '  <div class="cd-standalone-payment-spinner" aria-hidden="true"></div>',
+      '  <p class="cd-standalone-payment-title">은하 결제망 동기화 중...</p>',
+      '  <p class="cd-standalone-payment-desc">별빛 회로로 결제 정보를 안전하게 확인하고 있습니다.</p>',
+      '  <p class="cd-standalone-payment-status" id="cdStandalonePaymentOverlayStatus">결제가 진행 중입니다.</p>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function _dpSetStandalonePaymentOverlay(show, message) {
+    if (typeof document === 'undefined') return;
+    var overlay = _dpEnsureStandalonePaymentOverlay();
+    if (!overlay) return;
+    var statusEl = document.getElementById('cdStandalonePaymentOverlayStatus');
+    if (statusEl) {
+      statusEl.textContent = String(message || '').trim() || '결제가 진행 중입니다.';
+    }
+    overlay.style.display = show ? 'flex' : 'none';
   }
 
   function _cdIsAdminLikeUser() {
@@ -1192,7 +1295,8 @@
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
-    _dpSetPaymentPending(true, '꽃돼지 코인을 차감하는 중입니다...');
+    var pendingLabel = String(reason || '').trim() || '유료 서비스';
+    _dpSetPaymentPending(true, pendingLabel + ' 결제를 확인하는 중입니다...');
     _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: consumeHeaders,

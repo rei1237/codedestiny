@@ -822,6 +822,35 @@ function getDisplayCoins() {
   return STATE.serverCoins !== null ? STATE.serverCoins : STATE.coins;
 }
 
+function setFortuneFishPaymentPending(show, message) {
+  const text = String(message || '').trim() || '포춘텔러 피쉬 결제를 확인하는 중입니다...';
+  try {
+    if (typeof window._cdSetCoinGateOverlay === 'function') {
+      window._cdSetCoinGateOverlay(!!show, text);
+      return;
+    }
+  } catch (_) {}
+
+  let overlay = document.getElementById('fortuneFishPayOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'fortuneFishPayOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(4,7,15,.76), rgba(2,5,12,.92));backdrop-filter:blur(6px);padding:16px;';
+    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(232,200,74,.34);background:linear-gradient(135deg, rgba(12,18,42,.95), rgba(20,10,30,.95));box-shadow:0 18px 46px rgba(0,0,0,.45);padding:18px;text-align:center;color:#fef3c7;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(232,200,74,.28);border-top-color:rgba(232,200,74,.95);animation:fortuneFishPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">행운 가챠 결제 확인 중</p><p id="fortuneFishPayOverlayMsg" style="margin:0;font-size:13px;color:rgba(253,230,138,.95);">포춘텔러 피쉬 결제를 확인하는 중입니다...</p></div>';
+    document.body.appendChild(overlay);
+    if (!document.getElementById('fortuneFishPayOverlayStyle')) {
+      const st = document.createElement('style');
+      st.id = 'fortuneFishPayOverlayStyle';
+      st.textContent = '@keyframes fortuneFishPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+  }
+
+  const msg = document.getElementById('fortuneFishPayOverlayMsg');
+  if (msg) msg.textContent = text;
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
 async function doGachaRoll() {
   const avail = getDisplayCoins();
   if (avail < GACHA_COST) {
@@ -831,6 +860,7 @@ async function doGachaRoll() {
 
   if (STATE.serverCoins !== null && STATE.serverCoins >= GACHA_COST) {
     // 서버(꽃돼지) 코인 차감
+    setFortuneFishPaymentPending(true, '포춘텔러 피쉬 행운 가챠 결제를 확인하는 중입니다...');
     try {
       const requestId = 'fortune-fish-gacha:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 10);
       const res = await authFetchWithRefresh('/api/fortune/pig-coin/consume', {
@@ -846,6 +876,8 @@ async function doGachaRoll() {
       if (STATE.coins < GACHA_COST) { showToast(`코인이 부족해요 🥺`); return; }
       STATE.coins -= GACHA_COST;
       saveState();
+    } finally {
+      setFortuneFishPaymentPending(false);
     }
   } else {
     // 로컬 코인 차감

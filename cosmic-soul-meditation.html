@@ -1445,7 +1445,7 @@ function _showMeditationPaymentUi(message){
   _ensureMeditationPaymentUi();
   var overlay=document.getElementById('cdMeditationPayOverlay');
   var text=document.getElementById('cdMeditationPayMessage');
-  if(text)text.textContent=message||'코인 결제 처리 중...';
+  if(text)text.textContent=message||'코즈믹 소울 명상 결제를 확인하는 중입니다...';
   if(overlay)overlay.classList.add('is-show');
 }
 
@@ -1488,7 +1488,7 @@ async function _consumeMeditationCoin(cost,reason){
     return false;
   }
 
-  _showMeditationPaymentUi('코인 결제 처리 중...');
+  _showMeditationPaymentUi('코즈믹 소울 명상 결제를 확인하는 중입니다...');
   try{
     var r=await fetch('/api/fortune/pig-coin/consume',{
       method:'POST',

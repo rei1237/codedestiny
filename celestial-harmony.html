@@ -508,6 +508,34 @@
         return false;
       }
     }
+    function _chSetPaymentPending(show, message){
+      var text = String(message || '').trim() || '천체의 선율 결제를 확인하는 중입니다...';
+      try {
+        if (typeof window._cdSetCoinGateOverlay === 'function') {
+          window._cdSetCoinGateOverlay(!!show, text);
+          return;
+        }
+      } catch (_) {}
+
+      var overlay = document.getElementById('chPaymentOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'chPaymentOverlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.75), rgba(2,6,23,.92));backdrop-filter:blur(6px);padding:16px;';
+        overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:18px;border:1px solid rgba(167,139,250,.35);background:linear-gradient(135deg, rgba(30,27,75,.95), rgba(12,24,48,.95));box-shadow:0 18px 48px rgba(0,0,0,.45);padding:18px;text-align:center;color:#ede9fe;"><div style="width:42px;height:42px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(196,181,253,.25);border-top-color:rgba(196,181,253,.95);animation:chPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">코즈믹 결제 채널 정렬 중</p><p id="chPaymentOverlayMsg" style="margin:0;font-size:13px;color:rgba(221,214,254,.95);">천체의 선율 결제를 확인하는 중입니다...</p></div>';
+        document.body.appendChild(overlay);
+        if (!document.getElementById('chPaymentOverlayStyle')) {
+          var st = document.createElement('style');
+          st.id = 'chPaymentOverlayStyle';
+          st.textContent = '@keyframes chPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+          document.head.appendChild(st);
+        }
+      }
+
+      var msg = document.getElementById('chPaymentOverlayMsg');
+      if (msg) msg.textContent = text;
+      overlay.style.display = show ? 'flex' : 'none';
+    }
     function _chCoinGate(onOk,onCancel){
       if(_chIsAdminLikeUser()){onOk('');return;}
       var tk=localStorage.getItem('fortune_auth_token');
@@ -520,10 +548,12 @@
       var headers={'Content-Type':'application/json','Authorization':'Bearer '+tk};
       if(adminTk)headers['x-admin-token']=adminTk;
       if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
+      _chSetPaymentPending(true, '천체의 선율 코즈믹 리딩 결제를 확인하는 중입니다...');
       fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:headers,body:JSON.stringify({amount:100,cost:100,reason:'천체의 선율 코즈믹 리딩',featureKey:'tarot-celestial-harmony',forceDeduct:true,requestId:'celestial:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)})})
         .then(function(r){return r.json();})
         .then(function(d){if(d&&d.ok){_chLastCoinTx=String(d.transactionId||'');onOk(_chLastCoinTx);}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
-        .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();});
+        .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();})
+        .finally(function(){_chSetPaymentPending(false);});
     }
     $draw.addEventListener('click',function(){
       var deck=shuffle(MAJOR);

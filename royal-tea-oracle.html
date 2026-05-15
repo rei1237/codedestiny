@@ -556,6 +556,36 @@ body::before {
 <script>
 (function(){
   'use strict';
+
+  function setRoyalTeaPaymentPending(show, message) {
+    var text = String(message || '').trim() || '로열 티 오라클 결제를 확인하는 중입니다...';
+    try {
+      if (typeof window._cdSetCoinGateOverlay === 'function') {
+        window._cdSetCoinGateOverlay(!!show, text);
+        return;
+      }
+    } catch (_e) {}
+
+    var overlay = document.getElementById('royalTeaPayOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'royalTeaPayOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(8,10,20,.7), rgba(2,6,16,.92));backdrop-filter:blur(6px);padding:16px;';
+      overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(212,175,55,.36);background:linear-gradient(135deg, rgba(12,16,34,.95), rgba(24,18,8,.95));box-shadow:0 18px 46px rgba(0,0,0,.45);padding:18px;text-align:center;color:#fef3c7;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(212,175,55,.28);border-top-color:rgba(212,175,55,.95);animation:royalTeaPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">티리프 결제 룬 정렬 중</p><p id="royalTeaPayOverlayMsg" style="margin:0;font-size:13px;color:rgba(253,230,138,.96);">로열 티 오라클 결제를 확인하는 중입니다...</p></div>';
+      document.body.appendChild(overlay);
+      if (!document.getElementById('royalTeaPayOverlayStyle')) {
+        var st = document.createElement('style');
+        st.id = 'royalTeaPayOverlayStyle';
+        st.textContent = '@keyframes royalTeaPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+        document.head.appendChild(st);
+      }
+    }
+
+    var msg = document.getElementById('royalTeaPayOverlayMsg');
+    if (msg) msg.textContent = text;
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+
   var COST = 30, KEY = 'openRoyalTeaOracle';
   var flag = 'cd_pa_' + KEY;
   if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); return; }
@@ -574,6 +604,7 @@ body::before {
     window.history.back();
     return;
   }
+  setRoyalTeaPaymentPending(true, '로열 티 오라클 입장 결제를 확인하는 중입니다...');
   fetch('/api/fortune/pig-coin/consume', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -590,7 +621,8 @@ body::before {
         if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
       }
     });
-  }).catch(function() {});
+  }).catch(function() {})
+    .finally(function() { setRoyalTeaPaymentPending(false); });
 })();
 </script>
 
