@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { Body, Ecliptic, GeoVector } from "astronomy-engine";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
+import { normalizeVedicChartForPdf } from "@/app/_lib/vedic/pdf/normalizeVedicChartForPdf";
+import { buildVedicGeminiPrompt } from "@/app/_lib/vedic/pdf/buildVedicGeminiPrompt";
+import { VEDIC_PDF_CHAPTERS, getVedicChapterByNumber } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
+import type { VedicPdfChapterOutput } from "@/app/_lib/vedic/pdf/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -478,22 +482,12 @@ function applySwissCoreToChart(chart: VedicChart, swiss: { planets?: Record<stri
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
-export const VEDIC_CHAPTER_META = [
-  { num:1,  title:"프롤로그 — 카르마 블루프린트 소개", subtitle:"베다 점성술 리포트 사용 가이드",       icon:"📜" },
-  { num:2,  title:"라그나와 영혼의 목적", subtitle:"Lagna & Atmakaraka",       icon:"🕉️" },
-  { num:3,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분석", icon:"🌙" },
-  { num:4,  title:"다샤 — 인생의 웅장한 계절",   subtitle:"Vimshottari Dasha 전략",            icon:"⏳" },
-  { num:5,  title:"부와 번영의 정렬",            subtitle:"Artha & 2·11하우스 다나 요가",       icon:"💰" },
-  { num:6,  title:"카르마와 천직",               subtitle:"Dharma & 10하우스 · D9 · D10",      icon:"👑" },
-  { num:7,  title:"나밤샤 — 영혼의 성숙도",       subtitle:"D9 숨겨진 잠재력",                  icon:"💎" },
-  { num:8,  title:"관계의 거울 — 아슈타 쿠타",   subtitle:"Ashta Koota 궁합 분석",             icon:"🔮" },
-  { num:9,  title:"인연의 깊이와 카르믹 계약",   subtitle:"7하우스 · 금성/화성",               icon:"💞" },
-  { num:10, title:"생명력과 정화",               subtitle:"Health 6·8·12하우스 · 아유르베다",  icon:"🌿" },
-  { num:11, title:"요가 — 특별한 축복의 조합",   subtitle:"차트의 천부적 재능과 치트키",        icon:"✨" },
-  { num:12, title:"우파야 — 운명을 바꾸는 실천", subtitle:"행성 에너지 정화 비책",             icon:"🙏" },
-  { num:13, title:"고차라와 올해의 행동 전략",   subtitle:"Transit & Annual Strategy",          icon:"🪐" },
-  { num:14, title:"마스터플랜 — 카르마를 넘어선 자유", subtitle:"총결산 & 북극성 선언",         icon:"🌟" },
-];
+export const VEDIC_CHAPTER_META = VEDIC_PDF_CHAPTERS.map((chapter) => ({
+  num: chapter.number,
+  title: chapter.titleKo,
+  subtitle: chapter.subtitleKo,
+  icon: chapter.icon,
+}));
 
 // ─────────────────────────────────────────────────────────────────
 // Gemini API
@@ -1038,6 +1032,174 @@ ${saturn?.nameKo ?? "토성"}이 관여하는 책임/지연 이슈는 과로 또
 "나는 ${c.lagna.signSanskrit} 라그나의 흐름을 따라, 두려움보다 실행을 선택하고, 매일의 루틴으로 카르마를 성장 에너지로 전환한다."`;
 }
 
+function clampConfidence(value: unknown): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0.55;
+  return Math.max(0, Math.min(1, parsed));
+}
+
+function sanitizeSafetyText(text: string): string {
+  let next = String(text || "");
+  next = next.replace(/\b(사망|단명|죽음이|죽게|수명이 짧)\b/g, "건강 관리가 필요한 시기");
+  next = next.replace(/\b(확정|반드시|절대)\b/g, "가능성이 높은");
+  return next;
+}
+
+function stripCodeFence(input: string): string {
+  const text = String(input || "").trim();
+  if (!text.startsWith("```")) return text;
+  return text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+}
+
+function extractLikelyJsonObject(input: string): string {
+  const text = stripCodeFence(input);
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start >= 0 && end > start) return text.slice(start, end + 1);
+  return text;
+}
+
+function parseGeminiChapterJson(rawText: string): Record<string, unknown> | null {
+  const candidate = extractLikelyJsonObject(rawText);
+  const attempts = [
+    candidate,
+    candidate.replace(/,\s*([}\]])/g, "$1"),
+    candidate.replace(/\uFEFF/g, "").trim(),
+  ];
+
+  for (const attempt of attempts) {
+    try {
+      const parsed = JSON.parse(attempt);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // next attempt
+    }
+  }
+
+  return null;
+}
+
+function composeChapterText(payload: VedicPdfChapterOutput): string {
+  const sectionBlocks = payload.sections
+    .map((section, index) => `## ${index + 1}. ${section.title}\n${section.body}`)
+    .join("\n\n");
+
+  const actionBlock = payload.actionItems.length
+    ? `\n\n## 실행 체크리스트\n${payload.actionItems.map((item) => `- ${item}`).join("\n")}`
+    : "";
+
+  return [payload.summary, sectionBlocks, actionBlock].filter(Boolean).join("\n\n");
+}
+
+function normalizeChapterOutput(args: {
+  parsed: Record<string, unknown>;
+  chapterNumber: number;
+  chapterId: string;
+  chapterTitle: string;
+  contextMissingSummary: string[];
+}): VedicPdfChapterOutput {
+  const title = String(args.parsed.title || args.chapterTitle).trim() || args.chapterTitle;
+  const summary = sanitizeSafetyText(String(args.parsed.summary || "").trim());
+
+  const rawSections = Array.isArray(args.parsed.sections) ? args.parsed.sections : [];
+  const sections = rawSections
+    .map((entry) => {
+      const titleText = String((entry as any)?.title || "").trim();
+      const bodyText = sanitizeSafetyText(String((entry as any)?.body || "").trim());
+      if (!titleText || !bodyText) return null;
+      return { title: titleText, body: bodyText };
+    })
+    .filter((entry): entry is { title: string; body: string } => Boolean(entry));
+
+  const actionItems = (Array.isArray(args.parsed.actionItems) ? args.parsed.actionItems : [])
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .slice(0, 7);
+
+  const cautions = (Array.isArray(args.parsed.cautions) ? args.parsed.cautions : [])
+    .map((item) => sanitizeSafetyText(String(item || "").trim()))
+    .filter(Boolean)
+    .slice(0, 5);
+
+  const missingFieldsFromModel = (Array.isArray(args.parsed.missingFields) ? args.parsed.missingFields : [])
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+
+  const mergedMissingFields = Array.from(new Set([...args.contextMissingSummary, ...missingFieldsFromModel]));
+
+  const confidence = clampConfidence(args.parsed.confidence);
+  const fallbackUsedByModel = Boolean(args.parsed.fallbackUsed);
+
+  if (!summary || sections.length < 2) {
+    return {
+      chapterNumber: args.chapterNumber,
+      chapterId: args.chapterId,
+      title,
+      summary: summary || "핵심 데이터 일부 누락으로 기본 템플릿 해석을 제공합니다.",
+      sections: sections.length
+        ? sections
+        : [{ title: "기본 해석", body: "입력 데이터 일부가 누락되어 기본 해석 템플릿으로 생성되었습니다." }],
+      actionItems: actionItems.length ? actionItems : ["핵심 루틴 1개를 7일 유지", "주간 회고 10분 실행", "과도한 결정은 24시간 유예"],
+      cautions,
+      fallbackUsed: true,
+      missingFields: mergedMissingFields,
+      confidence: Math.min(confidence, 0.55),
+    };
+  }
+
+  return {
+    chapterNumber: args.chapterNumber,
+    chapterId: args.chapterId,
+    title,
+    summary,
+    sections,
+    actionItems,
+    cautions,
+    fallbackUsed: fallbackUsedByModel,
+    missingFields: mergedMissingFields,
+    confidence,
+  };
+}
+
+function buildFallbackChapterPayload(args: {
+  chapterNumber: number;
+  chapterId: string;
+  chapterTitle: string;
+  chart: VedicChart;
+  contextMissingSummary: string[];
+  reason?: string;
+}): VedicPdfChapterOutput {
+  const fallbackText = buildFallbackChapterText(args.chapterNumber, args.chart, args.reason);
+  const sections = parseSections(fallbackText).map((section) => ({
+    title: section.title,
+    body: sanitizeSafetyText(section.body),
+  }));
+
+  return {
+    chapterNumber: args.chapterNumber,
+    chapterId: args.chapterId,
+    title: args.chapterTitle,
+    summary: "핵심 데이터로 생성된 fallback 해석입니다. 누락 데이터는 추정하지 않았습니다.",
+    sections: sections.length
+      ? sections
+      : [{ title: "기본 해석", body: sanitizeSafetyText(fallbackText) }],
+    actionItems: [
+      "핵심 루틴을 7일간 유지합니다.",
+      "과도한 의사결정은 24시간 유예합니다.",
+      "다음 다샤 전환 시점을 달력에 기록합니다.",
+    ],
+    cautions: [
+      "누락 데이터는 임의로 보간하지 않았습니다.",
+      "건강/수명 관련 단정 해석을 피하고 생활 루틴 중심으로 적용하세요.",
+    ],
+    fallbackUsed: true,
+    missingFields: Array.from(new Set(args.contextMissingSummary)),
+    confidence: 0.45,
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────
 // POST 핸들러
 // ─────────────────────────────────────────────────────────────────
@@ -1053,6 +1215,17 @@ export async function POST(req: NextRequest) {
       reportType?: "personal" | "compatibility";
       name?: string;
       partnerName?: string;
+      birthPlace?: string;
+      previousChapterTexts?: string[];
+      partnerYear?: number;
+      partnerMonth?: number;
+      partnerDay?: number;
+      partnerHour?: number;
+      partnerMinute?: number;
+      partnerTimezone?: number;
+      partnerLat?: number;
+      partnerLon?: number;
+      partnerBirthPlace?: string;
     };
 
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
@@ -1060,7 +1233,7 @@ export async function POST(req: NextRequest) {
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
     const chapterRaw = Number(body.chapter ?? 1);
     const chapter = Number.isFinite(chapterRaw)
-      ? Math.max(1, Math.min(14, Math.floor(chapterRaw)))
+      ? Math.max(1, Math.min(VEDIC_CHAPTER_META.length, Math.floor(chapterRaw)))
       : 1;
     const hour   = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
     const minute = Number.isFinite(Number(body.minute)) ? Number(body.minute) : 0;
@@ -1101,33 +1274,108 @@ export async function POST(req: NextRequest) {
         })
       : baseChart;
 
-    // 2) AI 텍스트 생성
-    const prompt = buildPrompt(chapter, chart, reportType, body as unknown as Record<string, unknown>);
-    let text = "";
-    let sections: { title:string; body:string }[] = [];
+    const chapterDef = getVedicChapterByNumber(chapter);
+    const normalizedContext = normalizeVedicChartForPdf({
+      chart,
+      reportMode: reportType === "compatibility" ? "compatibility" : "single",
+      userProfile: {
+        name: body?.name,
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        timezone: tz,
+        lat,
+        lon,
+        birthPlace: body?.birthPlace,
+      },
+      partnerProfile: reportType === "compatibility"
+        ? {
+            name: body?.partnerName,
+            year: body?.partnerYear,
+            month: body?.partnerMonth,
+            day: body?.partnerDay,
+            hour: body?.partnerHour,
+            minute: body?.partnerMinute,
+            timezone: body?.partnerTimezone,
+            lat: body?.partnerLat,
+            lon: body?.partnerLon,
+            birthPlace: body?.partnerBirthPlace,
+          }
+        : undefined,
+      chartEngine: swissData ? "swiss+local" : "local-fallback",
+      chartFallbackUsed: !swissData,
+    });
+
+    if (normalizedContext.missingSummary.length) {
+      warnings.push(`Missing canonical fields: ${normalizedContext.missingSummary.join(", ")}`);
+    }
+
+    // 2) AI 텍스트 생성 (JSON 스키마 출력)
+    const prompt = buildVedicGeminiPrompt({
+      chapter: chapterDef,
+      context: normalizedContext,
+      previousChapterTexts: Array.isArray(body?.previousChapterTexts) ? body.previousChapterTexts : [],
+    });
+
+    let chapterPayload: VedicPdfChapterOutput;
     let usedFallback = false;
+    let rawAiText = "";
 
     try {
-      text = await callGemini(prompt);
-      if (!text || !text.trim()) {
+      rawAiText = await callGemini(prompt);
+      if (!rawAiText || !rawAiText.trim()) {
         usedFallback = true;
-        warnings.push("AI text unavailable, fallback chapter text used");
-        text = buildFallbackChapterText(chapter, chart, "AI empty output");
-      }
-      sections = parseSections(text);
-      if (!sections.length) {
-        usedFallback = true;
-        warnings.push("AI response format invalid, fallback chapter text used");
-        text = buildFallbackChapterText(chapter, chart, "Section parse failed");
-        sections = parseSections(text);
+        warnings.push("AI text unavailable, fallback chapter payload used");
+        chapterPayload = buildFallbackChapterPayload({
+          chapterNumber: chapter,
+          chapterId: chapterDef.id,
+          chapterTitle: chapterDef.titleKo,
+          chart,
+          contextMissingSummary: normalizedContext.missingSummary,
+          reason: "AI empty output",
+        });
+      } else {
+        const parsed = parseGeminiChapterJson(rawAiText);
+        if (!parsed) {
+          usedFallback = true;
+          warnings.push("AI JSON parse failed, fallback chapter payload used");
+          chapterPayload = buildFallbackChapterPayload({
+            chapterNumber: chapter,
+            chapterId: chapterDef.id,
+            chapterTitle: chapterDef.titleKo,
+            chart,
+            contextMissingSummary: normalizedContext.missingSummary,
+            reason: "JSON parse failed",
+          });
+        } else {
+          chapterPayload = normalizeChapterOutput({
+            parsed,
+            chapterNumber: chapter,
+            chapterId: chapterDef.id,
+            chapterTitle: chapterDef.titleKo,
+            contextMissingSummary: normalizedContext.missingSummary,
+          });
+          usedFallback = chapterPayload.fallbackUsed;
+        }
       }
     } catch (aiErr: unknown) {
       const reason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
       usedFallback = true;
-      warnings.push(`AI generation failed, fallback chapter text used: ${reason}`);
-      text = buildFallbackChapterText(chapter, chart, reason);
-      sections = parseSections(text);
+      warnings.push(`AI generation failed, fallback chapter payload used: ${reason}`);
+      chapterPayload = buildFallbackChapterPayload({
+        chapterNumber: chapter,
+        chapterId: chapterDef.id,
+        chapterTitle: chapterDef.titleKo,
+        chart,
+        contextMissingSummary: normalizedContext.missingSummary,
+        reason,
+      });
     }
+
+    const text = composeChapterText(chapterPayload);
+    const sections = chapterPayload.sections;
 
     return NextResponse.json({
       ok: true,
@@ -1138,6 +1386,10 @@ export async function POST(req: NextRequest) {
       text,
       sections,
       usedFallback,
+      missingFields: chapterPayload.missingFields,
+      confidence: chapterPayload.confidence,
+      actionItems: chapterPayload.actionItems,
+      cautions: chapterPayload.cautions,
       warnings,
     });
 

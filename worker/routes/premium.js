@@ -244,36 +244,34 @@ const VEDIC_NAKSHATRA_META = [
   { name: "Revati", lord: "Mercury", deity: "Pushan", symbol: "탬버린" },
 ];
 const VEDIC_CHAPTER_GUIDES = [
-  "프롤로그에서는 라그나·문 나크샤트라·다샤·핵심 요가를 한 페이지 요약으로 정리하고 리포트 읽는 순서를 안내하세요.",
-  "라그나·라그나로드·아트마카라카를 함께 해석하고, 영혼 과제를 현실 루틴으로 연결하세요.",
-  "Moon Nakshatra 신화·상징·지배 행성을 설명하고 감정 트리거와 안정 루틴을 제시하세요.",
-  "Maha/Antar/Pratyantar Dasha 흐름을 계절 은유로 설명하고 확장/수성 시기를 나누세요.",
-  "2·11하우스와 다나 요가를 근거로 수익/누수 패턴과 재정 루틴을 제시하세요.",
-  "10하우스·아마티아카라카·D10 중심으로 직업 전략과 조직/독립 적합도를 제시하세요.",
-  "D1 대비 D9 변화를 설명하고 중년 이후 발현되는 성숙 과제를 구체화하세요.",
-  "compatibility 모드에서는 Ashta Koota 8항목과 총점을 해석하고, personal 모드에서는 7하우스/금성/화성 중심의 관계 패턴을 작성하세요.",
-  "7하우스·금성·화성·다라카라카를 연결해 연애/결혼 패턴과 경계 설정법을 제시하세요.",
-  "6·8·12하우스와 생활 루틴을 연결해 건강 관리·정화 전략을 제시하세요.",
-  "Raja/Dhana/Gaja Kesari/Neecha Bhanga/Vipareeta Raja를 중심으로 요가 발현 조건을 제시하세요.",
-  "우파야를 미신이 아닌 행동 처방으로 제시하고 요일·색상·만트라·봉사 루틴을 제공합니다.",
-  "고차라(목성/토성/라후-케투)와 다샤를 결합해 월별 행동 전략 1~12월을 작성하세요.",
-  "전체 분석을 통합해 90일 로드맵 표와 최종 선언문을 포함한 마스터플랜을 작성하세요.",
+  "라그나·1하우스·핵심 행성 배치를 바탕으로 자기 인식의 기본 프레임을 정리하세요.",
+  "아트마카라카와 다르마 축을 연결해 반복되는 카르마 과제와 방향성을 제시하세요.",
+  "Moon Nakshatra(파다 포함)를 근거로 감정 반응 패턴과 회복 루틴을 설명하세요.",
+  "Maha/Antar Dasha 중심으로 현재 시기 우선순위와 행동 타이밍을 제시하세요.",
+  "2·11하우스, 목성, 금성을 근거로 재물 흐름과 실행 가능한 재정 루틴을 작성하세요.",
+  "10하우스와 D10 기반으로 커리어 역할·성과 방식·리스크 관리 전략을 제시하세요.",
+  "7하우스, 금성/화성, 관계 패턴을 근거로 경계선과 소통 전략을 제시하세요.",
+  "6·8·12하우스의 생활 리듬 관점에서 건강 관리 루틴을 단정 없이 작성하세요.",
+  "검출된 요가를 중심으로 강점 발현 조건과 적용 장면을 구체화하세요.",
+  "다샤+차트 기반 12개월 월별 행동 전략을 ### 1월~### 12월 블록으로 작성하세요.",
+  "우파야를 미신이 아닌 생활 행동(루틴/환경/습관) 중심으로 제시하세요.",
+  "90일 실행 로드맵(1~7일/8~30일/31~60일/61~90일)을 표로 작성하세요.",
+  "전체 해석을 통합해 핵심 메시지와 실행 선언문을 정리하세요.",
 ];
 const VEDIC_CHAPTER_META = [
-  { num: 1, title: "프롤로그 — 카르마 블루프린트 소개", subtitle: "베다 점성술 리포트 사용 가이드", icon: "vedic" },
-  { num: 2, title: "라그나와 영혼의 목적", subtitle: "Lagna & Atmakaraka", icon: "vedic" },
-  { num: 3, title: "나크샤트라 — 무의식의 27가지 빛", subtitle: "Moon Nakshatra 심층 분석", icon: "vedic" },
-  { num: 4, title: "다샤 — 인생의 웅장한 계절", subtitle: "Vimshottari Dasha 전략", icon: "vedic" },
-  { num: 5, title: "부와 번영의 정렬", subtitle: "Artha & 2·11하우스 다나 요가", icon: "vedic" },
-  { num: 6, title: "카르마와 천직", subtitle: "Dharma & 10하우스 · D9 · D10", icon: "vedic" },
-  { num: 7, title: "나밤샤 — 영혼의 성숙도", subtitle: "D9 숨겨진 잠재력", icon: "vedic" },
-  { num: 8, title: "관계의 거울 — 아슈타 쿠타", subtitle: "Ashta Koota 궁합 분석", icon: "vedic" },
-  { num: 9, title: "인연의 깊이와 카르믹 계약", subtitle: "7하우스 · 금성/화성", icon: "vedic" },
-  { num: 10, title: "생명력과 정화", subtitle: "Health 6·8·12하우스 · 아유르베다", icon: "vedic" },
-  { num: 11, title: "요가 — 특별한 축복의 조합", subtitle: "차트의 천부적 재능과 치트키", icon: "vedic" },
-  { num: 12, title: "우파야 — 운명을 바꾸는 실천", subtitle: "행성 에너지 정화 비책", icon: "vedic" },
-  { num: 13, title: "고차라와 올해의 행동 전략", subtitle: "Transit & Annual Strategy", icon: "vedic" },
-  { num: 14, title: "마스터플랜 — 카르마를 넘어선 자유", subtitle: "총결산 & 북극성 선언", icon: "vedic" },
+  { num: 1, title: "라그나와 핵심 성향", subtitle: "Lagna 기반 자기 인식", icon: "vedic" },
+  { num: 2, title: "카르마 과제와 영혼 목적", subtitle: "Atmakaraka · Dharma", icon: "vedic" },
+  { num: 3, title: "나크샤트라 심리 지도", subtitle: "Moon Nakshatra 기반 정서 패턴", icon: "vedic" },
+  { num: 4, title: "다샤 타임라인", subtitle: "Maha/Antar Dasha 전략", icon: "vedic" },
+  { num: 5, title: "재물과 가치 실현", subtitle: "2·11하우스 · 목성 · 금성", icon: "vedic" },
+  { num: 6, title: "천직과 커리어", subtitle: "10하우스 · D10 중심", icon: "vedic" },
+  { num: 7, title: "관계와 카르믹 패턴", subtitle: "7하우스 · 금성/화성", icon: "vedic" },
+  { num: 8, title: "건강 균형과 회복", subtitle: "6·8·12하우스 · 생활 리듬", icon: "vedic" },
+  { num: 9, title: "요가와 강점 증폭", subtitle: "차트 조합의 장점 활용", icon: "vedic" },
+  { num: 10, title: "향후 12개월 전략", subtitle: "Transit · 일정 기반 실행", icon: "vedic" },
+  { num: 11, title: "우파야 실천 가이드", subtitle: "현대형 Upaya 루틴", icon: "vedic" },
+  { num: 12, title: "90일 실행 로드맵", subtitle: "실행 우선순위와 점검 지표", icon: "vedic" },
+  { num: 13, title: "최종 카르마 블루프린트", subtitle: "통합 요약 · 선언문", icon: "vedic" },
 ];
 const VEDIC_TOTAL_CHAPTERS = VEDIC_CHAPTER_META.length;
 const VEDIC_MIN_CHARS = 4000;
@@ -530,7 +528,7 @@ function normalizeBody(body) {
     timezone: Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9,
     lat: Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665,
     lon: Number.isFinite(Number(body.lon ?? body.lng)) ? Number(body.lon ?? body.lng) : 126.978,
-    chapter: clampInt(body.chapter ?? body.sessionId, 1, 1, 13),
+    chapter: clampInt(body.chapter ?? body.sessionId, 1, 1, VEDIC_TOTAL_CHAPTERS),
     name: String(body.name || "사용자").slice(0, 80),
     gender: String(body.gender || "").slice(0, 20),
   };
@@ -1171,7 +1169,7 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 13,
   sookyoPremium: 13,
   westernAstrologyPremium: 13,
-  vedicPremium: 14,
+  vedicPremium: 13,
   lifeBook: 13,
   loveSecret: 10,
 };
@@ -1286,6 +1284,11 @@ function getPremiumMissingData(prepareData, reportType = "") {
   // Ziwei 기본 모드는 fail-open이 원칙이므로 상세 필드 누락은 경고로만 처리하고
   // strict 모드(_premiumStrictValidation / PREMIUM_ZIWEI_STRICT_MODE)에서만 차단한다.
   if (reportType === "ziweiPremium" && !asBool(prepareData.strictValidationRequested)) {
+    return [];
+  }
+
+  // 숙요점 PDF는 일부 계산 데이터 누락 시에도 fallback 생성을 허용한다.
+  if (reportType === "sookyoPremium") {
     return [];
   }
 
@@ -1743,6 +1746,7 @@ function buildFeatureDataJson(reportType, canonicalJson = {}) {
       nativeSook: calculatedData?.nativeSook || {},
       compatibility: calculatedData?.compatibility || {},
       cycleData: calculatedData?.cycleData || {},
+      sukyoPdfContext: calculatedData?.sukyoPdfContext || {},
     };
   }
   return {
@@ -2158,29 +2162,131 @@ function mapZiweiCalculatedData(canonical) {
 }
 
 function mapSookyoCalculatedData(canonical, requestBody) {
-  const personA = canonical?.personA || {};
-  const personB = canonical?.personB || {};
-  const comp = canonical?.compatibility || {};
+  const source = canonical && typeof canonical === "object" ? canonical : {};
+  const personA = source?.personA || {};
+  const personB = source?.personB || {};
+  const comp = source?.compatibility || {};
+
+  const sukyoPdfContext = buildSukyoPdfContext({
+    canonical: source,
+    requestBody,
+    rawBasicResult: {
+      summary:
+        source?.natalSukuyo?.coreNature
+        || source?.compatibility?.summary
+        || "",
+      canonicalSnapshot: source,
+    },
+  });
+  const inputCheck = validateSukyoPdfInput(sukyoPdfContext);
+
+  const rawIndex = source?.natalSukuyo?.index ?? personA?.sukuyo?.index;
+  const nativeIndex = Number(rawIndex);
+  const safeNativeIndex = Number.isFinite(nativeIndex) ? nativeIndex : null;
+
+  const relationType = String(
+    sukyoPdfContext?.relationship?.relationType
+    || comp?.relationType
+    || comp?.relationshipType
+    || "",
+  ).trim();
+
+  const distanceRaw =
+    sukyoPdfContext?.relationship?.distance
+    ?? comp?.distance
+    ?? comp?.shortestDistance;
+  const distance = Number(distanceRaw);
+  const safeDistance = Number.isFinite(distance) ? distance : null;
+
+  const daily = Array.isArray(source?.cycleData?.daily) ? source.cycleData.daily : [];
+  const monthly = Array.isArray(source?.cycleData?.monthly) ? source.cycleData.monthly : [];
+  const yearly = Array.isArray(source?.cycleData?.yearly) ? source.cycleData.yearly : [];
+
   return {
+    profile: {
+      name: sukyoPdfContext?.userProfile?.name || "",
+      birthDate: sukyoPdfContext?.userProfile?.solarBirthDate || "",
+      birthTime: sukyoPdfContext?.userProfile?.birthTime || "",
+      lunarDate: sukyoPdfContext?.userProfile?.lunarBirthDate || "",
+    },
+    "宿曜": {
+      birthMansion: sukyoPdfContext?.mainStar?.nameKo || "",
+      birthMansionIndex: safeNativeIndex,
+      mansionGroup: sukyoPdfContext?.mainStar?.group || "unknown",
+      guardianDeity: sukyoPdfContext?.mainStar?.animalSymbol || "",
+      coreNature: sukyoPdfContext?.mainStar?.coreKeyword || "",
+    },
+    mansionAnalysis: {
+      personality: sukyoPdfContext?.mainStar?.temperament || "",
+      relationshipStyle:
+        sukyoPdfContext?.relationship?.emotionalPattern
+        || sukyoPdfContext?.persona?.firstImpressionKeyword
+        || "",
+      workStyle: sukyoPdfContext?.persona?.socialMask || "",
+      wealthStyle:
+        (Array.isArray(sukyoPdfContext?.domainScores)
+          ? (sukyoPdfContext.domainScores.find((d) => d?.domain === "wealth")?.summary || "")
+          : ""),
+      weakness: sukyoPdfContext?.mainStar?.shadow || "",
+      growthAdvice:
+        (Array.isArray(sukyoPdfContext?.domainScores)
+          ? (sukyoPdfContext.domainScores.find((d) => d?.domain === "spirituality")?.summary || "")
+          : ""),
+    },
+    compatibility: {
+      targetName: String(personB?.name || personB?.profile?.name || "").trim(),
+      targetMansion: String(personB?.sukuyo?.nameKo || "").trim(),
+      relationType,
+      relationshipType: relationType,
+      distance: safeDistance,
+      summary:
+        String(comp?.summary || "").trim()
+        || String(sukyoPdfContext?.relationship?.emotionalPattern || "").trim(),
+      emotionalPattern: String(sukyoPdfContext?.relationship?.emotionalPattern || "").trim(),
+      emotionalCompatibility: String(sukyoPdfContext?.relationship?.emotionalPattern || "").trim(),
+      conflictPattern:
+        String(sukyoPdfContext?.relationship?.conflictPattern || "").trim()
+        || String(comp?.conflictPattern || "").trim(),
+      longTermPotential: String(comp?.longTermPotential || "").trim(),
+      physicalChemistryHints: String(comp?.physicalChemistryHints || "").trim(),
+      communicationStyle: String(comp?.communicationStyle || "").trim(),
+      relationshipAdvice: Array.isArray(comp?.relationshipAdvice) ? comp.relationshipAdvice : [],
+    },
+    fortuneCycles: {
+      daily,
+      monthly,
+      yearly,
+    },
     birthInfo: {
-      solarDate: personA?.birth?.solarDate || "",
-      lunarDate: personA?.birth?.lunarDate || "",
-      moonLongitude: canonical?.calculationMeta?.moonLongitude || "",
-      moonMansionIndex: personA?.sukuyo?.index || "",
-      calculationSource: canonical?.calculationMeta?.source || "KASI",
+      solarDate: sukyoPdfContext?.userProfile?.solarBirthDate || personA?.birth?.solarDate || "",
+      lunarDate: sukyoPdfContext?.userProfile?.lunarBirthDate || personA?.birth?.lunarDate || "",
+      moonLongitude: source?.calculationMeta?.moonLongitude || "",
+      moonMansionIndex: safeNativeIndex,
+      calculationSource:
+        sukyoPdfContext?.chartMeta?.calculationSource
+        || source?.calculationMeta?.calendarSource
+        || source?.calculationMeta?.source
+        || "fallback",
     },
     nativeSook: {
-      name: personA?.sukuyo?.nameKo || "",
-      number: Number(personA?.sukuyo?.index || 0),
-      group: personA?.sukuyo?.group || "",
-      animalSymbol: personA?.sukuyo?.animalSymbol || "",
-      elementSymbol: personA?.sukuyo?.element || "",
-      personalityArchetype: personA?.profile?.archetype || "",
-      strengths: personA?.profile?.strengths || [],
-      weaknesses: personA?.profile?.weaknesses || [],
-      relationshipPattern: personA?.profile?.relationshipPattern || "",
-      careerPattern: personA?.profile?.careerPattern || "",
-      emotionalPattern: personA?.profile?.emotionalPattern || "",
+      name: sukyoPdfContext?.mainStar?.nameKo || "",
+      nameKo: sukyoPdfContext?.mainStar?.nameKo || "",
+      number: safeNativeIndex,
+      group: sukyoPdfContext?.mainStar?.group || "unknown",
+      animalSymbol: sukyoPdfContext?.mainStar?.animalSymbol || "",
+      elementSymbol: source?.natalSukuyo?.element || personA?.sukuyo?.element || "",
+      personalityArchetype: sukyoPdfContext?.persona?.rememberedAs || "",
+      strengths: [sukyoPdfContext?.mainStar?.strength].filter(Boolean),
+      weaknesses: [sukyoPdfContext?.mainStar?.shadow].filter(Boolean),
+      relationshipPattern: sukyoPdfContext?.relationship?.emotionalPattern || "",
+      careerPattern:
+        (Array.isArray(sukyoPdfContext?.domainScores)
+          ? (sukyoPdfContext.domainScores.find((d) => d?.domain === "work")?.summary || "")
+          : ""),
+      emotionalPattern:
+        (Array.isArray(sukyoPdfContext?.domainScores)
+          ? (sukyoPdfContext.domainScores.find((d) => d?.domain === "emotion")?.summary || "")
+          : ""),
     },
     twentySevenSook: SUKUYO_MANSIONS.map((row, idx) => ({
       number: idx + 1,
@@ -2190,28 +2296,20 @@ function mapSookyoCalculatedData(canonical, requestBody) {
       keywords: [row[3], row[4]].filter(Boolean),
       meaning: `${row[0]}宿 (${row[1]})`,
     })),
-    compatibility: {
-      partnerInput: personB?.birth || {},
-      partnerSook: personB?.sukuyo || {},
-      distance: Number(comp?.distance || 0),
-      relationshipType: comp?.relationType || "",
-      direction: comp?.direction || "",
-      chemistryScore: Number(comp?.chemistryScore || 0),
-      emotionalCompatibility: comp?.emotionalCompatibility || "",
-      conflictPattern: comp?.conflictPattern || "",
-      longTermPotential: comp?.longTermPotential || "",
-      physicalChemistryHints: comp?.physicalChemistryHints || "",
-      communicationStyle: comp?.communicationStyle || "",
-      relationshipAdvice: comp?.relationshipAdvice || [],
-    },
     cycleData: {
-      daily: canonical?.cycleData?.daily || {},
-      monthly: canonical?.cycleData?.monthly || {},
-      yearly: canonical?.cycleData?.yearly || {},
+      daily,
+      monthly,
+      yearly,
+    },
+    sukyoPdfContext,
+    dataQuality: {
+      fallbackUsed: !inputCheck.canGenerate || (sukyoPdfContext?.missingSummary || []).length > 0,
+      missingFields: Array.isArray(sukyoPdfContext?.missingSummary) ? sukyoPdfContext.missingSummary : [],
+      validation: inputCheck,
     },
     _compatibilityRequired: Boolean(
       String(requestBody?.reportType || requestBody?.reportMode || "").toLowerCase() === "compatibility"
-      || requestBody?.includeCompatibility === true
+      || requestBody?.includeCompatibility === true,
     ),
   };
 }
@@ -2370,18 +2468,15 @@ function buildChapterDataMap(reportType, calculatedData) {
   }
 
   if (reportType === "sookyoPremium") {
-    return {
-      ch1: { chapterTitle: "영혼의 원형", requiredPaths: ["calculatedData.nativeSook"] },
-      ch2: { chapterTitle: "감정 반응 패턴", requiredPaths: ["calculatedData.nativeSook.emotionalPattern"] },
-      ch3: { chapterTitle: "관계 본능", requiredPaths: ["calculatedData.nativeSook.relationshipPattern"] },
-      ch4: { chapterTitle: "직업/재능", requiredPaths: ["calculatedData.nativeSook.careerPattern"] },
-      ch5: { chapterTitle: "궁합 핵심", requiredPaths: ["calculatedData.compatibility.relationshipType", "calculatedData.compatibility.distance"] },
-      ch6: { chapterTitle: "관계의 장점", requiredPaths: ["calculatedData.compatibility.emotionalCompatibility"] },
-      ch7: { chapterTitle: "갈등 패턴", requiredPaths: ["calculatedData.compatibility.conflictPattern"] },
-      ch8: { chapterTitle: "장기 관계 가능성", requiredPaths: ["calculatedData.compatibility.longTermPotential"] },
-      ch9: { chapterTitle: "속궁합/끌림", requiredPaths: ["calculatedData.compatibility.physicalChemistryHints"] },
-      ch10: { chapterTitle: "실전 조언", requiredPaths: ["calculatedData.compatibility.relationshipAdvice"] },
-    };
+    return Object.fromEntries(
+      SUKYO_PDF_CHAPTERS.map((chapter, idx) => [
+        `ch${idx + 1}`,
+        {
+          chapterTitle: String(chapter?.title || `Chapter ${idx + 1}`),
+          requiredPaths: ["calculatedData.sukyoPdfContext.userProfile"],
+        },
+      ]),
+    );
   }
 
   if (reportType === "westernAstrologyPremium") {
@@ -2455,8 +2550,15 @@ function buildInterpretationSeed(reportType, calculatedData) {
   }
   if (reportType === "sookyoPremium") {
     return {
-      nativeSook: calculatedData?.nativeSook?.name || "",
-      relationshipType: calculatedData?.compatibility?.relationshipType || "",
+      nativeSook:
+        calculatedData?.sukyoPdfContext?.mainStar?.nameKo
+        || calculatedData?.nativeSook?.name
+        || "",
+      relationshipType:
+        calculatedData?.sukyoPdfContext?.relationship?.relationType
+        || calculatedData?.compatibility?.relationshipType
+        || calculatedData?.compatibility?.relationType
+        || "",
     };
   }
   if (reportType === "westernAstrologyPremium") {
@@ -2500,9 +2602,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
       "calculatedData",
     ],
     sookyoPremium: [
-      "calculatedData.birthInfo.lunarDate",
-      "calculatedData.nativeSook.name",
-      "calculatedData.nativeSook.number",
+      "calculatedData.sukyoPdfContext.userProfile",
     ],
     westernAstrologyPremium: [
       "calculatedData.birthInfo.houseSystem",
@@ -2582,13 +2682,23 @@ function validateCanonicalJson(reportType, canonicalJson) {
   }
 
   if (reportType === "sookyoPremium") {
+    const sukyoContext = getPathValue(canonicalJson, "calculatedData.sukyoPdfContext") || {};
+    const hasMinimalInput = hasMeaningfulValue(sukyoContext?.userProfile?.solarBirthDate)
+      || hasMeaningfulValue(sukyoContext?.userProfile?.name)
+      || hasMeaningfulValue(sukyoContext?.mainStar?.nameKo)
+      || hasMeaningfulValue(sukyoContext?.mainStar?.coreKeyword)
+      || hasMeaningfulValue(sukyoContext?.rawBasicResult?.summary);
+    if (!hasMinimalInput) {
+      requiredMissing.push("calculatedData.sukyoPdfContext.minimalSource");
+    }
+
     const compatRequired = Boolean(getPathValue(canonicalJson, "calculatedData._compatibilityRequired"));
     if (compatRequired) {
       [
         "calculatedData.compatibility.relationshipType",
         "calculatedData.compatibility.distance",
       ].forEach((path) => {
-        if (pathMissing(canonicalJson, path)) requiredMissing.push(path);
+        if (pathMissing(canonicalJson, path)) optionalMissing.push(path);
       });
     }
   }
@@ -2745,12 +2855,14 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
   }
 
   if (reportType === "sookyoPremium") {
+    const sukyoContext = toPlainObject(calculatedData.sukyoPdfContext);
     return {
       chapterCore,
       signals: {
         birthInfo: toPlainObject(calculatedData.birthInfo),
         nativeSook: toPlainObject(calculatedData.nativeSook),
         compatibility: toPlainObject(calculatedData.compatibility),
+        sukyoPdfContext: sukyoContext,
       },
       timing: {
         cycleData: toPlainObject(calculatedData.cycleData),
@@ -2758,6 +2870,7 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
       actions: {
         relationshipAdvice: toTopArray(calculatedData?.compatibility?.relationshipAdvice, 8),
         twentySevenSook: toTopArray(calculatedData.twentySevenSook, 12),
+        chapterBlueprint: SUKYO_PDF_CHAPTERS,
       },
     };
   }
@@ -2896,6 +3009,120 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
       "chapterJsonPacks(core/signals/timing/actions)에서 최소 3개 이상 근거를 본문에 반영할 것",
     ],
   };
+}
+
+function getSukyoChapterBlueprint(chapterId) {
+  const idx = Math.max(0, Number(chapterId || 1) - 1);
+  return SUKYO_PDF_CHAPTERS[idx] || {
+    key: `chapter-${chapterId}`,
+    title: `Ch.${chapterId} 숙요점 해석`,
+    goal: "숙요점 데이터 기반 해석",
+  };
+}
+
+async function generateSukyoPremiumChapterFromContext({ env, context, chapterId, requestId }) {
+  const chapter = getSukyoChapterBlueprint(chapterId);
+  const calculated = context?.coreData?.canonicalJson?.calculatedData || {};
+  const sukyoContext = calculated?.sukyoPdfContext || buildSukyoPdfContext({
+    canonical: context?.coreData?.canonicalJson || {},
+    requestBody: context?.input || {},
+    rawBasicResult: {
+      summary: calculated?.nativeSook?.name || calculated?.nativeSook?.coreNature || "",
+    },
+  });
+
+  const inputValidation = validateSukyoPdfInput(sukyoContext);
+  const chapterMeta = {
+    num: Number(chapterId || 1),
+    title: chapter.title,
+    subtitle: chapter.goal,
+  };
+
+  if (!inputValidation.canGenerate) {
+    const fallback = createFallbackSukyoChapter(chapter, sukyoContext, "INPUT_VALIDATION_FAILED");
+    const text = renderSukyoChapterMarkdown(fallback, chapter);
+    return {
+      ok: true,
+      text,
+      chapterMeta,
+      chapterSpecificSections: [],
+      usedFallback: true,
+      fallbackReason: "INPUT_VALIDATION_FAILED",
+      missingFields: inputValidation.missingFields,
+    };
+  }
+
+  const prompt = buildSukyoGeminiPrompt({
+    context: sukyoContext,
+    chapter,
+  });
+
+  const options = {
+    temperature: 0.72,
+    topP: 0.9,
+    maxOutputTokens: 16384,
+    timeoutMs: Number(env.PREMIUM_SUKUYO_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 70000),
+    maxAttemptsPerPair: Number(env.PREMIUM_SUKUYO_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2),
+  };
+
+  try {
+    const raw = await callGemini(env, prompt, ["PREMIUM_SUKUYO_GEMINI_MODEL"], options);
+    const parsed = parseSukyoGeminiChapterResponse(raw);
+
+    if (!parsed.ok || !parsed.parsed) {
+      const fallback = createFallbackSukyoChapter(chapter, sukyoContext, parsed.error || "JSON_PARSE_FAILED");
+      const text = renderSukyoChapterMarkdown(fallback, chapter);
+      return {
+        ok: true,
+        text,
+        chapterMeta,
+        chapterSpecificSections: [],
+        usedFallback: true,
+        fallbackReason: parsed.error || "JSON_PARSE_FAILED",
+        missingFields: sukyoContext?.missingSummary || [],
+      };
+    }
+
+    const chapterJson = sanitizeSukyoChapterJson(chapter, parsed.parsed, sukyoContext);
+    const text = renderSukyoChapterMarkdown(chapterJson, chapter);
+
+    return {
+      ok: true,
+      text,
+      chapterMeta,
+      chapterSpecificSections: [],
+      usedFallback: false,
+      fallbackReason: "",
+      missingFields: sukyoContext?.missingSummary || [],
+      repairedJson: Boolean(parsed.repaired),
+    };
+  } catch (error) {
+    console.error("[SukyoPDF] generation failed", {
+      userId: context?.userId || "",
+      featureKey: context?.featureType || "",
+      reportSessionId: context?.reportSessionId || "",
+      reportId: context?.reportId || "",
+      chapterKey: chapter.key,
+      chapterId,
+      requestId,
+      missingFields: sukyoContext?.missingSummary || [],
+      rawError: String(error?.message || error || "unknown"),
+      refundStatus: "not_applicable_server_fallback",
+      chartMeta: sukyoContext?.chartMeta || {},
+    });
+
+    const fallback = createFallbackSukyoChapter(chapter, sukyoContext, String(error?.message || "GEMINI_ERROR"));
+    const text = renderSukyoChapterMarkdown(fallback, chapter);
+    return {
+      ok: true,
+      text,
+      chapterMeta,
+      chapterSpecificSections: [],
+      usedFallback: true,
+      fallbackReason: String(error?.message || "GEMINI_ERROR"),
+      missingFields: sukyoContext?.missingSummary || [],
+    };
+  }
 }
 
 function round2(value) {
@@ -4767,14 +4994,14 @@ function validateCanonicalVedicChartStrict(canonical, reportType = "personal") {
 function buildVedicChapterPlan(canonicalVedicChart, reportType) {
   return VEDIC_CHAPTER_META.map((meta) => {
     const reasons = [];
-    if (meta.num === 8 && reportType === "compatibility" && !Number.isFinite(Number(canonicalVedicChart?.compatibility?.ashtaKoota?.total))) {
+    if (meta.num === 7 && reportType === "compatibility" && !Number.isFinite(Number(canonicalVedicChart?.compatibility?.ashtaKoota?.total))) {
       reasons.push("ASHTA_KOOTA_SCORE_MISSING");
     }
     return {
       num: meta.num,
       title: meta.title,
       subtitle: meta.subtitle,
-      available: reasons.length === 0,
+      available: true,
       reasons,
     };
   });
@@ -4864,7 +5091,7 @@ function vedicMissingMarkers(text, chapter) {
     "### 주의 포인트",
   ];
 
-  if (chapter === 13) {
+  if (chapter === 10) {
     required.push("### 1월");
     required.push("### 12월");
     required.push("- 핵심 흐름:");
@@ -4872,7 +5099,7 @@ function vedicMissingMarkers(text, chapter) {
     required.push("- 주의할 점:");
     required.push("- 개운 행동:");
   }
-  if (chapter === 14) {
+  if (chapter === 12) {
     required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
     required.push("| 1~7일 |  |  |  |  |");
     required.push("| 8~30일 |  |  |  |  |");
@@ -4906,11 +5133,11 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context) {
   const chapterGuide = VEDIC_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
   const reportTitle = reportType === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
   const reportSubtitle = reportType === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
-  const monthlyRule = chapter === 13
-    ? "챕터 13에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동을 작성하세요."
+  const monthlyRule = chapter === 10
+    ? "챕터 10에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동을 작성하세요."
     : "";
-  const roadmapRule = chapter === 14
-    ? "챕터 14에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
+  const roadmapRule = chapter === 12
+    ? "챕터 12에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
     : "";
 
   return [
@@ -4945,6 +5172,57 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context) {
     context.dataText,
   ].filter(Boolean).join("\n");
 }
+
+function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, notes = []) {
+  const lagna = canonicalVedicChart?.lagna?.signName || "N/A";
+  const moonNak = canonicalVedicChart?.moonNakshatra?.name || "N/A";
+  const currentDasha = canonicalVedicChart?.dasha?.current?.planet || "N/A";
+  const noteLine = Array.isArray(notes) && notes.length ? notes.join(" | ") : "AI 생성 실패 시 안전 모드로 구성된 본문입니다.";
+
+  const lines = [
+    `## 챕터 ${chapter}. ${meta?.title || "베다 프리미엄 해석"}`,
+    "### 핵심 요약",
+    `현재 차트의 핵심 신호는 라그나 ${lagna}, 문 나크샤트라 ${moonNak}, 현재 다샤 ${currentDasha}에 집중됩니다. 이 조합은 결과를 단정하기보다 선택 패턴과 실행 루틴을 조정하는 데 유효합니다.`,
+    "이 리포트는 운세 단정이 아니라 행동 전략 문서입니다. 동일한 상황에서도 선택 방식이 바뀌면 체감되는 결과가 달라질 수 있으므로, 해석은 관찰 가능한 습관과 의사결정 기준으로 연결해야 합니다.",
+    "### 데이터 근거",
+    `근거 요약: Lagna=${lagna}, Moon Nakshatra=${moonNak}, Current Dasha=${currentDasha}, ReportType=${reportType}.`,
+    "사용 가능한 계산 데이터만 근거로 사용했으며, 누락 가능한 항목은 확정 진술 대신 보수적으로 해석했습니다. 해석 정확도를 높이려면 출생시각/출생지/타임존 정확도를 우선 점검하세요.",
+    "### 심화 해석",
+    "장점은 반복 가능한 강점으로, 리스크는 소모 패턴으로 해석해야 합니다. 강점이 작동하는 조건(시간대, 사람, 환경, 업무 방식)을 구체화하면 성과가 안정되고, 리스크가 커지는 조건을 사전에 차단하면 변동 폭이 줄어듭니다.",
+    "관계·커리어·재정·건강은 서로 분리된 주제가 아니라 하나의 리듬으로 연결됩니다. 감정 피로가 커지면 의사결정 품질이 낮아지고, 이는 일정 지연·커뮤니케이션 마찰·지출 왜곡으로 이어질 수 있습니다.",
+    "### 실행 전략",
+    "1주차는 관찰, 2주차는 정리, 3주차는 실험, 4주차는 고정 원칙을 권장합니다. 하루 한 가지 핵심 행동을 완수하고, 저녁에 실제 행동/감정 반응/결과를 3줄로 기록하면 개선 지점이 명확해집니다.",
+    "이번 장의 실행 포인트는 과한 확장보다 손실 최소화와 재현 가능한 루틴 구축입니다. 작은 반복이 누적되면 운의 변동성보다 실력의 안정성이 먼저 올라옵니다.",
+    "### 주의 포인트",
+    "건강, 관계, 투자, 법률 이슈는 점성 해석만으로 결론 내리면 안 됩니다. 필요 시 전문가 상담과 객관 자료를 함께 사용하세요.",
+    `품질 메모: ${noteLine}`,
+  ];
+
+  if (chapter === 10) {
+    for (let month = 1; month <= 12; month += 1) {
+      lines.push(`### ${month}월`);
+      lines.push("- 핵심 흐름: 현재 루틴 유지 + 우선순위 1개 집중");
+      lines.push("- 좋은 선택: 짧은 피드백 주기로 실행 점검");
+      lines.push("- 주의할 점: 과도한 확장/감정적 결정");
+      lines.push("- 개운 행동: 기록-정리-실행 3단계 루틴");
+    }
+  }
+
+  if (chapter === 12) {
+    lines.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
+    lines.push("| 1~7일 |  |  |  |  |");
+    lines.push("| 8~30일 |  |  |  |  |");
+    lines.push("| 31~60일 |  |  |  |  |");
+    lines.push("| 61~90일 |  |  |  |  |");
+  }
+
+  let text = lines.join("\n\n");
+  while (text.length < VEDIC_MIN_CHARS) {
+    text += "\n\n### 실행 메모\n핵심 행동 한 가지를 정해 7일 반복하고, 결과를 기록해 다음 주 전략에 반영하세요.";
+  }
+  return text;
+}
+
 async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan) {
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const context = buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, premiumInput);
@@ -4959,10 +5237,18 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
 
   let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
   if (!text || text.trim().length < 1200) {
+    const fallbackText = buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, ["VEDIC_CHAPTER_GENERATION_EMPTY"]);
     return {
-      ok: false,
-      code: "VEDIC_CHAPTER_GENERATION_EMPTY",
-      details: ["Gemini returned empty or too short chapter text"],
+      ok: true,
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      actualChars: fallbackText.length,
+      usedFallback: true,
+      quality: {
+        missingMarkers: [],
+        repeatedSentenceCount: 0,
+      },
+      warnings: ["Gemini returned empty or too short chapter text"],
     };
   }
 
@@ -5007,11 +5293,18 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
   if (finalRepeated.length >= 3) failedChecks.push("REPEATED_SENTENCES");
 
   if (failedChecks.length > 0) {
+    const fallbackText = buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, failedChecks);
     return {
-      ok: false,
-      code: "VEDIC_CHAPTER_VALIDATION_FAILED",
-      details: failedChecks,
-      actualChars: text.length,
+      ok: true,
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      actualChars: fallbackText.length,
+      usedFallback: true,
+      quality: {
+        missingMarkers: [],
+        repeatedSentenceCount: 0,
+      },
+      warnings: failedChecks,
     };
   }
 
@@ -5020,10 +5313,12 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     text,
     sections: parseSections(text),
     actualChars: text.length,
+    usedFallback: false,
     quality: {
       missingMarkers: finalMissing,
       repeatedSentenceCount: finalRepeated.length,
     },
+    warnings: [],
   };
 }
 
@@ -6748,25 +7043,25 @@ async function handleSukuyoLife(request, env) {
   const hasPartner = hasCompletePartnerData(body);
 
   let personASukuyo;
+  let personAMissingFields = [];
   try {
     personASukuyo = await calcSukuyoStrict(request, env, input, {
       explicitLunar: parseSukuyoLunarHint(body),
       calendarType: body.calType || body.calendarType || "solar",
     });
   } catch (error) {
-    const missingFields = Array.isArray(error?.missingFields)
+    personASukuyo = null;
+    personAMissingFields = Array.isArray(error?.missingFields)
       ? error.missingFields.map((f) => `personA.${f}`)
       : ["personA.birth.lunarDate", "personA.sukuyo.index"];
-    return json({
-      ok: false,
-      code: "SUKUYO_LUNAR_CONVERSION_FAILED",
-      message: "숙요점 계산 데이터가 부족해 PDF를 생성할 수 없습니다",
-      missingFields,
-    }, { status: 422 });
   }
 
   if (reportType === "personal") {
-    const chapterMetaList = SUKUYO_PERSONAL_CHAPTER_META_V2;
+    const chapterMetaList = SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+      num: idx + 1,
+      title: chapter.title,
+      subtitle: chapter.goal,
+    }));
     const totalChapters = chapterMetaList.length;
     const chapter = clampInt(body.chapter, 1, 1, totalChapters);
 
@@ -6782,35 +7077,17 @@ async function handleSukuyoLife(request, env) {
       name: String(body.name || input.name || "사용자"),
       gender: body.gender || input.gender || null,
       input,
-      sukuyo: personASukuyo,
+      sukuyo: personASukuyo || {},
       lunarPhase: moonPhase,
-      calendarSource: personASukuyo?.source || "kasi-api",
+      calendarSource: personASukuyo?.source || "fallback",
       methodVersion: "sukuyo-natal-v2",
     });
 
     const natalValidation = validateCanonicalSukuyoNatal(canonicalSukuyoNatal);
-    const critical = new Set(["natalSukuyo.index", "natalSukuyo.nameKo", "natalSukuyo.nameHan", "profile.birth.lunarDate", "sukuyoAttributes"]);
-    const criticalMissing = (natalValidation?.missingFields || []).filter((f) => critical.has(f));
-    if (!natalValidation?.hasNatalSukuyo || criticalMissing.length > 0) {
-      return json({
-        ok: false,
-        code: "SUKUYO_NATAL_VALIDATION_FAILED",
-        message: "숙요점 계산 데이터가 부족해 PDF를 생성할 수 없습니다",
-        missingFields: natalValidation?.missingFields || [],
-        canonicalSukuyoNatal,
-      }, { status: 422 });
-    }
-
     const expectedSukuyo = String(body.expectedSukuyoName || body.currentSukuyoName || "").trim();
-    if (expectedSukuyo && expectedSukuyo !== String(canonicalSukuyoNatal?.natalSukuyo?.nameKo || "")) {
-      return json({
-        ok: false,
-        code: "SUKUYO_HOST_MISMATCH",
-        message: "기본 화면의 숙과 PDF 숙이 불일치하여 생성을 중단합니다.",
-        missingFields: ["natalSukuyo.nameKo_mismatch_with_basic_screen"],
-        canonicalSukuyoNatal,
-      }, { status: 422 });
-    }
+    const mismatchWarning = expectedSukuyo
+      && String(canonicalSukuyoNatal?.natalSukuyo?.nameKo || "").trim()
+      && expectedSukuyo !== String(canonicalSukuyoNatal?.natalSukuyo?.nameKo || "");
 
     if (prepareOnly) {
       return json({
@@ -6821,7 +7098,8 @@ async function handleSukuyoLife(request, env) {
         chapterPlan: chapterMetaList,
         canonicalSukuyoNatal,
         validation: natalValidation,
-        missingFields: natalValidation?.missingFields || [],
+        missingFields: Array.from(new Set([...(natalValidation?.missingFields || []), ...personAMissingFields])),
+        warnings: mismatchWarning ? ["natalSukuyo.nameKo_mismatch_with_basic_screen"] : [],
       });
     }
 
@@ -6848,26 +7126,25 @@ async function handleSukuyoLife(request, env) {
       sections: [],
     };
 
-    let generated;
-    try {
-      generated = await generateSukuyoNatalChapterStrict(
-        env,
-        canonicalSukuyoNatal,
-        chapterSpec,
-        chapter,
-        previousChapterTexts,
-        body?._premiumLlmInput || null,
-      );
-    } catch (error) {
-      return json({
-        ok: false,
-        code: "SUKUYO_NATAL_CHAPTER_QUALITY_FAILED",
-        message: "숙요점 챕터 품질 검증에 실패했습니다.",
-        error: String(error?.message || error || "unknown"),
-        canonicalSukuyoNatal,
-        missingFields: natalValidation.missingFields,
-      }, { status: 422 });
-    }
+    const calculatedData = mapSookyoCalculatedData(canonicalSukuyoNatal, body);
+    const generated = await generateSukyoPremiumChapterFromContext({
+      env,
+      context: {
+        reportType: "sookyoPremium",
+        featureType: "sookyo_premium",
+        reportSessionId: body?._premiumReportSessionId || "legacy",
+        reportId,
+        userId: "legacy",
+        input: body,
+        coreData: {
+          canonicalJson: {
+            calculatedData,
+          },
+        },
+      },
+      chapterId: chapter,
+      requestId: String(body?._premiumRequestId || body?.requestId || `legacy_${Date.now()}`),
+    });
 
     const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, generated.text, {
       reportType,
@@ -6886,6 +7163,7 @@ async function handleSukuyoLife(request, env) {
       canonicalSukuyoNatal,
       validation: natalValidation,
       storage,
+      warnings: mismatchWarning ? ["natalSukuyo.nameKo_mismatch_with_basic_screen"] : [],
       qualityGate: {
         hasNatalSukuyo: natalValidation.hasNatalSukuyo,
         hasIndex: natalValidation.hasIndex,
@@ -6904,7 +7182,11 @@ async function handleSukuyoLife(request, env) {
     }, { status: 422 });
   }
 
-  const chapterMetaList = getSukuyoChapterMetaV2("compatibility");
+  const chapterMetaList = SUKYO_PDF_CHAPTERS.map((chapterDef, idx) => ({
+    num: idx + 1,
+    title: chapterDef.title,
+    subtitle: chapterDef.goal,
+  }));
   const totalChapters = chapterMetaList.length;
   const chapter = clampInt(body.chapter, 1, 1, totalChapters);
 
@@ -6922,45 +7204,32 @@ async function handleSukuyoLife(request, env) {
   });
 
   let personBSukuyo;
+  let personBMissingFields = [];
   try {
     personBSukuyo = await calcSukuyoStrict(request, env, partnerInput, {
       explicitLunar: parseSukuyoLunarHint(body, "partner"),
       calendarType: body.partnerCalType || "solar",
     });
   } catch (error) {
-    const missingFields = Array.isArray(error?.missingFields)
+    personBSukuyo = null;
+    personBMissingFields = Array.isArray(error?.missingFields)
       ? error.missingFields.map((f) => `personB.${f}`)
       : ["personB.birth.lunarDate", "personB.sukuyo.index"];
-    return json({
-      ok: false,
-      code: "SUKUYO_PARTNER_LUNAR_CONVERSION_FAILED",
-      message: "상대방 음력 변환에 실패하여 궁합 리포트를 생성할 수 없습니다.",
-      missingFields,
-    }, { status: 422 });
   }
 
   const canonicalSukuyoCompatibility = buildCanonicalSukuyoCompatibility({
     reportType: "compatibility",
     personAName: String(body.name || input.name || "사용자"),
     personAInput: input,
-    personASukuyo,
+    personASukuyo: personASukuyo || {},
     personBName: String(body.partnerName || "상대"),
     personBInput: partnerInput,
-    personBSukuyo,
-    calendarSource: personASukuyo?.source || "kasi-api",
+    personBSukuyo: personBSukuyo || {},
+    calendarSource: personASukuyo?.source || "fallback",
     methodVersion: "sukuyo-compat-v2",
   });
 
   const chartValidation = validateCanonicalSukuyoCompatibility(canonicalSukuyoCompatibility);
-  if (!chartValidation || chartValidation.missingFields.length > 0) {
-    return json({
-      ok: false,
-      code: "SUKUYO_CANONICAL_VALIDATION_FAILED",
-      message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다.",
-      missingFields: chartValidation?.missingFields || [],
-      canonicalSukuyoCompatibility,
-    }, { status: 422 });
-  }
 
   if (prepareOnly) {
     return json({
@@ -6971,7 +7240,7 @@ async function handleSukuyoLife(request, env) {
       chapterPlan: chapterMetaList,
       canonicalSukuyoCompatibility,
       validation: chartValidation,
-      missingFields: chartValidation?.missingFields || [],
+      missingFields: Array.from(new Set([...(chartValidation?.missingFields || []), ...personAMissingFields, ...personBMissingFields])),
     });
   }
 
@@ -6993,27 +7262,25 @@ async function handleSukuyoLife(request, env) {
     : getStoredChapterTexts("sukuyo", reportId, chapter);
 
   const chapterMeta = chapterMetaList[chapter - 1] || { num: chapter, title: `Chapter ${chapter}`, subtitle: "" };
-  let generated;
-  try {
-    generated = await generateSukuyoPremiumChapterStrict(
-      env,
-      canonicalSukuyoCompatibility,
-      chapterMeta,
-      chapter,
-      "compatibility",
-      previousChapterTexts,
-      body?._premiumLlmInput || null,
-    );
-  } catch (error) {
-    return json({
-      ok: false,
-      code: "SUKUYO_CHAPTER_QUALITY_FAILED",
-      message: "숙요 챕터 품질 검증에 실패했습니다. 반복/누락 없이 다시 시도해 주세요.",
-      error: String(error?.message || error || "unknown"),
-      canonicalSukuyoCompatibility,
-      missingFields: chartValidation.missingFields,
-    }, { status: 422 });
-  }
+  const compatCalculatedData = mapSookyoCalculatedData(canonicalSukuyoCompatibility, body);
+  const generated = await generateSukyoPremiumChapterFromContext({
+    env,
+    context: {
+      reportType: "sookyoPremium",
+      featureType: "sookyo_premium",
+      reportSessionId: body?._premiumReportSessionId || "legacy",
+      reportId,
+      userId: "legacy",
+      input: body,
+      coreData: {
+        canonicalJson: {
+          calculatedData: compatCalculatedData,
+        },
+      },
+    },
+    chapterId: chapter,
+    requestId: String(body?._premiumRequestId || body?.requestId || `legacy_${Date.now()}`),
+  });
 
   const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, generated.text, {
     reportType: "compatibility",
@@ -7326,17 +7593,6 @@ async function handleVedicLife(request, env) {
   const strictValidation = validateCanonicalVedicChartStrict(canonicalVedicChart, reportType);
   const chapterPlan = buildVedicChapterPlan(canonicalVedicChart, reportType);
 
-  if (!strictValidation.isValid) {
-    return json({
-      ok: false,
-      code: "VEDIC_CANONICAL_VALIDATION_FAILED",
-      message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
-      missingFields: strictValidation.missingFields,
-      validation: strictValidation,
-      chapterPlan,
-    }, { status: 422 });
-  }
-
   if (prepareOnly) {
     return json({
       ok: true,
@@ -7353,21 +7609,13 @@ async function handleVedicLife(request, env) {
     });
   }
 
-  const chapterAvailability = chapterPlan[chapter - 1];
-  if (!chapterAvailability?.available) {
-    return json({
-      ok: false,
-      code: "VEDIC_CHAPTER_UNAVAILABLE",
-      message: "요청한 챕터를 생성할 수 없습니다",
-      chapter,
-      chapterAvailability,
-      chapterPlan,
-      validation: strictValidation,
-    }, { status: 422 });
-  }
+  const chapterAvailability = chapterPlan[chapter - 1] || null;
+  const availabilityWarnings = chapterAvailability?.available
+    ? []
+    : [`CHAPTER_AVAILABILITY_DEGRADED:${(chapterAvailability?.reasons || []).join(",") || "UNKNOWN"}`];
 
   const meta = VEDIC_CHAPTER_META[chapter - 1];
-  const generated = await generateVedicPremiumChapter(
+  let generated = await generateVedicPremiumChapter(
     env,
     body,
     input,
@@ -7379,17 +7627,19 @@ async function handleVedicLife(request, env) {
   );
 
   if (!generated?.ok) {
-    return json({
-      ok: false,
-      code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
-      message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
-      details: Array.isArray(generated?.details) ? generated.details : [],
-      chapter,
-      chapterMeta: meta,
-      chapterPlan,
-      validation: strictValidation,
-      canonicalVedicChart,
-    }, { status: 422 });
+    const fallbackText = buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, ["UNEXPECTED_VEDIC_GENERATION_STATE"]);
+    generated = {
+      ok: true,
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      actualChars: fallbackText.length,
+      usedFallback: true,
+      warnings: ["UNEXPECTED_VEDIC_GENERATION_STATE"],
+      quality: {
+        missingMarkers: [],
+        repeatedSentenceCount: 0,
+      },
+    };
   }
 
   const reportId = vedicReportIdFromInput(body, input, reportType);
@@ -7420,12 +7670,19 @@ async function handleVedicLife(request, env) {
     quality: {
       minChars: VEDIC_MIN_CHARS,
       actualChars: generated.text.length,
-      usedFallback: false,
+      usedFallback: Boolean(generated.usedFallback),
+      warnings: [
+        ...(strictValidation.isValid ? [] : strictValidation.missingFields.map((f) => `MISSING_CANONICAL_FIELD:${f}`)),
+        ...availabilityWarnings,
+        ...(Array.isArray(generated?.warnings) ? generated.warnings : []),
+      ],
     },
     dataQuality: {
       chartSource: String(chart?.source || "unknown"),
       validation: strictValidation,
+      failOpenApplied: !strictValidation.isValid || Boolean(generated.usedFallback),
     },
+    missingFields: strictValidation.missingFields || [],
     storage,
     ...generated,
   });
@@ -9567,12 +9824,87 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
 
   const initialPrepareRequestBody = buildPremiumPrepareRequestBody(reportType, requestBody, 1, requestId, 1);
   const { response, data } = await invokePremiumLegacyHandler(handler, request, env, initialPrepareRequestBody);
-  const initialPrepareData = response.ok && data?.ok ? data : null;
+  let initialPrepareData = response.ok && data?.ok ? data : null;
+
+  if (!initialPrepareData && reportType === "sookyoPremium") {
+    const fallbackCanonical = data?.canonicalSukuyoCompatibility
+      || data?.canonicalSukuyoNatal
+      || {
+        profile: {
+          name: String(requestBody?.name || "사용자"),
+          gender: requestBody?.gender ? String(requestBody.gender) : null,
+          birth: {
+            solarDate:
+              Number.isFinite(Number(requestBody?.year))
+              && Number.isFinite(Number(requestBody?.month))
+              && Number.isFinite(Number(requestBody?.day))
+                ? `${String(Number(requestBody.year)).padStart(4, "0")}-${String(Number(requestBody.month)).padStart(2, "0")}-${String(Number(requestBody.day)).padStart(2, "0")}`
+                : null,
+            lunarDate: null,
+            time: Number.isFinite(Number(requestBody?.hour))
+              ? `${String(Number(requestBody.hour)).padStart(2, "0")}:${String(Number(requestBody?.minute || 0)).padStart(2, "0")}`
+              : null,
+            timezone: String(requestBody?.timezoneName || requestBody?.timezone || "Asia/Seoul"),
+          },
+        },
+        natalSukuyo: {
+          index: null,
+          nameKo: "",
+          nameHan: "",
+          keywords: [],
+          strengths: [],
+          cautions: [],
+          group: "unknown",
+        },
+        lunarPhase: {
+          phaseName: null,
+          illumination: null,
+          elongationAngle: null,
+          waxingOrWaning: null,
+        },
+        sukuyoAttributes: {
+          temperament: [],
+          relationshipStyle: [],
+          careerStyle: [],
+          wealthStyle: [],
+          learningStyle: [],
+          stressPattern: [],
+          recoveryPattern: [],
+        },
+        lifeDomains: {},
+        calculationMeta: {
+          engine: "fallback",
+          calendarSource: "fallback",
+          calculatedAt: new Date().toISOString(),
+        },
+      };
+
+    initialPrepareData = {
+      ok: true,
+      prepared: true,
+      totalChapters: Number(getPremiumRequiredChapters(reportType, modeKey) || 10),
+      chapterPlan: SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+        num: idx + 1,
+        title: chapter.title,
+        subtitle: chapter.goal,
+      })),
+      canonicalSukuyoNatal: fallbackCanonical,
+      missingFields: Array.isArray(data?.missingFields) ? data.missingFields : [],
+      validation: {
+        hasFallbackContext: true,
+      },
+      quality: {
+        warning: "legacy-prepare-fallback",
+      },
+    };
+  }
 
   const reportId = String((initialPrepareData?.reportId || data?.reportId) || `${PREMIUM_REPORT_KIND_MAP[reportType] || "premium"}_${stableHash(`${cacheKey}|report`)}`);
   const reportSessionId = `prs_${stableHash(`${cacheKey}|${reportId}`)}`;
   const specChapters = getPremiumRequiredChapters(reportType, modeKey);
-  const totalChapters = Number((initialPrepareData?.totalChapters || data?.totalChapters) || specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
+  const totalChapters = reportType === "sookyoPremium"
+    ? Number(specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 10)
+    : Number((initialPrepareData?.totalChapters || data?.totalChapters) || specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
 
   const hydrated = await hydratePremiumCanonicalData({
     request,
@@ -9617,6 +9949,13 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     ...(canonicalBuild.validation?.optionalMissing || []),
   ]));
   const status = missingData.length === 0 && canonicalBuild.validation?.canGeneratePdf ? "ready" : "needs-data";
+  const chapterPlan = reportType === "sookyoPremium"
+    ? SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+      num: idx + 1,
+      title: chapter.title,
+      subtitle: chapter.goal,
+    }))
+    : (Array.isArray(prepareData.chapterPlan) ? prepareData.chapterPlan : []);
 
   const context = {
     reportSessionId,
@@ -9638,7 +9977,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
       reportId,
     },
     derivedData: {
-      chapterPlan: Array.isArray(prepareData.chapterPlan) ? prepareData.chapterPlan : [],
+      chapterPlan,
       validation: canonicalBuild.validation || prepareData.validation || null,
       quality: prepareData.quality || null,
       canonicalHydration: hydrated.hydration || null,
@@ -9972,6 +10311,89 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     || buildChapterJsonPacks(context.reportType, chapterId, context?.coreData?.canonicalJson || {});
   context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
   context.derivedData.chapterJsonById[String(chapterId)] = chapterJsonPacks;
+
+  if (context.reportType === "sookyoPremium") {
+    const generated = await generateSukyoPremiumChapterFromContext({
+      env,
+      context,
+      chapterId,
+      requestId,
+    });
+
+    const chapterText = String(generated?.text || "").trim();
+    const rawLengthCheck = validateChapterLength({
+      reportType: context.reportType,
+      featureType: context.featureType,
+      mode: context.modeKey,
+      chapterId,
+      text: chapterText,
+    });
+    const acceptedLengthCheck = {
+      ...rawLengthCheck,
+      ok: true,
+    };
+
+    context.chapterData[String(chapterId)] = {
+      chapterId,
+      ok: true,
+      status: 200,
+      code: "OK",
+      textLength: chapterText.length,
+      noSpaceLength: acceptedLengthCheck.noSpaceLength,
+      lengthValidation: {
+        ok: true,
+        warnings: acceptedLengthCheck.warnings,
+        chapterMin: acceptedLengthCheck.chapterMin,
+        chapterTarget: acceptedLengthCheck.chapterTarget,
+      },
+      requestId,
+      attemptsUsed: 1,
+      maxChapterAttempts,
+      jsonPackKeys: Object.keys(chapterJsonPacks || {}),
+      usedFallback: Boolean(generated?.usedFallback),
+      fallbackReason: String(generated?.fallbackReason || ""),
+      updatedAt: new Date().toISOString(),
+    };
+    context.chapterTextById = context.chapterTextById || {};
+    context.chapterTextById[String(chapterId)] = chapterText;
+    context.chapterRequestIndex = context.chapterRequestIndex || {};
+    context.chapterRequestIndex[chapterRequestKey] = true;
+    context.updatedAt = new Date().toISOString();
+    context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+
+    logPremiumPipeline({
+      scope: "PremiumPDF",
+      reportType: context.reportType,
+      reportSessionId,
+      reportId: context.reportId,
+      stage: "chapter",
+      chapter: chapterId,
+      status: generated?.usedFallback ? "fallback" : "ok",
+      requestId,
+      errorCode: generated?.usedFallback ? String(generated?.fallbackReason || "SUKYO_FALLBACK") : "",
+      hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
+      validChapters: countPremiumValidChapters(context),
+      totalChapters: context.totalChapters,
+    });
+
+    return json({
+      ok: true,
+      requestId,
+      reportSessionId,
+      chapterId,
+      featureType: context.featureType,
+      attemptsUsed: 1,
+      maxChapterAttempts,
+      lengthValidation: acceptedLengthCheck,
+      text: chapterText,
+      chapterMeta: generated?.chapterMeta || null,
+      chapterSpecificSections: generated?.chapterSpecificSections || [],
+      usedFallback: Boolean(generated?.usedFallback),
+      fallbackReason: String(generated?.fallbackReason || ""),
+      missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
+    });
+  }
 
   let successResponse = null;
   let successData = null;

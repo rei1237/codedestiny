@@ -68,19 +68,16 @@ const ZIWEI_TITLES = [
 ];
 
 const SUKYO_TITLES = [
-  "영혼의 원형",
-  "감정의 조수간만",
-  "페르소나와 브랜딩",
-  "자산의 중력",
-  "협력 역학",
-  "관계 정밀 레이더",
-  "파괴적 혁신",
-  "조화로운 성장",
-  "정서적 유대",
-  "운명적 거리",
-  "달의 주기",
-  "관계 회복 기술",
-  "영혼의 마스터플랜",
+  "본명숙 원형 해독",
+  "달의 주기와 정서 리듬",
+  "페르소나와 첫인상",
+  "자산 감각과 생활 기반",
+  "협업과 조직 적응",
+  "관계 감지력",
+  "위기와 전환",
+  "가족과 뿌리",
+  "욕망과 추진력",
+  "내면 회복과 영성",
 ];
 
 const VEDIC_TITLES = [
@@ -170,9 +167,9 @@ export const PREMIUM_PDF_SPECS = {
   sookyo_premium: {
     title: "프리미엄 숙요점",
     featureType: "sookyo_premium",
-    minTotalChars: 52000,
-    targetTotalChars: 58500,
-    chapters: buildIndexedChapters("sukyo_ch", SUKYO_TITLES, 4000, 4500),
+    minTotalChars: 24000,
+    targetTotalChars: 36000,
+    chapters: buildIndexedChapters("sukyo_ch", SUKYO_TITLES, 2200, 3200),
     legacyReportType: "sookyoPremium",
   },
   vedic_premium: {
