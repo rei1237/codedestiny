@@ -1405,6 +1405,27 @@ function collectMissingData(handReading: PalmHandReading | null | undefined): st
   return missing;
 }
 
+const MISSING_LABEL_MAP: Record<string, string> = {
+  handShape: "손의 전체 흐름",
+  lifeLine: "에너지 흐름",
+  headLine: "생각 흐름",
+  heartLine: "감정 흐름",
+  fateLine: "일과 방향 흐름",
+  sunLine: "표현 흐름",
+  moneyLine: "돈 흐름",
+  marriageLine: "관계 흐름",
+  mounts: "보조 흐름",
+};
+
+function formatMissingForUser(missingData: string[]): string {
+  const labels = missingData
+    .map((key) => MISSING_LABEL_MAP[key] || key)
+    .filter(Boolean)
+    .slice(0, 5);
+  if (labels.length === 0) return "";
+  return `이번 사진에서는 ${labels.join(", ")}이(가) 또렷하게 보이지 않아 참고 흐름으로 안내해요.`;
+}
+
 function lineStrengthFromMajor(line: { depth?: string; curvature?: string } | null | undefined): "strong" | "medium" | "weak" | "unknown" {
   const depth = String(line?.depth || "").toLowerCase();
   if (depth === "deep") return "strong";
@@ -1687,8 +1708,8 @@ export async function POST(req: NextRequest) {
     });
     const missingData = collectMissingData(primaryAnalysis.handReading);
     const warnings = [
-      mode !== "full" ? "손금 선명도가 낮아 일부 항목은 판독 보류/추정으로 제공됩니다." : "",
-      missingData.length > 0 ? `미검출 항목: ${missingData.join(", ")}` : "",
+      mode !== "full" ? "이번 사진은 선이 조금 흐려서, 몇몇 내용은 가볍게 참고용으로 읽어 주세요." : "",
+      formatMissingForUser(missingData),
     ].filter(Boolean);
 
     const canonicalBase: CanonicalPalmReading = createDefaultCanonicalPalmReading({
@@ -1712,100 +1733,83 @@ export async function POST(req: NextRequest) {
         hasEnoughQuality: mode !== "fallback" || canonicalBase.validation.hasEnoughQuality,
         missingFields: Array.from(new Set([...(canonicalBase.validation.missingFields || []), ...missingData])),
         analysisMode: mode === "full" ? "detailed" : "estimated",
-        qualityWarning: mode === "full" ? null : "손바닥은 감지되었지만 선명도가 낮아 일부 항목은 보수적으로 판독했습니다.",
+        qualityWarning:
+          mode === "full"
+            ? null
+            : "손바닥은 확인되었지만 선이 흐린 부분이 있어, 이번 리딩은 가볍게 참고하는 느낌으로 봐 주세요.",
       },
     };
 
     const interpretation = buildPalmInterpretationReport(canonical);
 
-    const recognitionData = {
-      primarySide,
-      primary: primaryAnalysis.recognitionData,
-      bySide: {
-        left: leftAnalysis?.recognitionData || null,
-        right: rightAnalysis?.recognitionData || null,
-      },
-    };
+    const exposeDebug = shouldExposeDebug();
 
     const primaryReading = primaryAnalysis.handReading;
-    const lines = {
-      lifeLine: lineFromMajor(primaryReading.majorLines.lifeLine),
-      headLine: lineFromMajor(primaryReading.majorLines.headLine),
-      heartLine: lineFromMajor(primaryReading.majorLines.heartLine),
-      fateLine: lineFromMajor(primaryReading.majorLines.fateLine),
-      sunLine: lineFromMinor(primaryReading.minorLines.sunLine),
-      moneyLine: lineFromMinor(primaryReading.minorLines.moneyLine),
-      marriageLine: lineFromMinor(primaryReading.minorLines.marriageLine),
-    };
-
-    const standardMount = (input: { fullness?: string; summary?: string }) => ({
-      fullness: String(input?.fullness || "unknown"),
-      meaning: String(input?.summary || "이미지 선명도 부족으로 판독 보류"),
-    });
-
-    const mounts = {
-      venus: standardMount(primaryReading.mounts.venus),
-      jupiter: standardMount(primaryReading.mounts.jupiter),
-      saturn: standardMount(primaryReading.mounts.saturn),
-      sun: standardMount(primaryReading.mounts.sun),
-      mercury: standardMount(primaryReading.mounts.mercury),
-      moon: standardMount(primaryReading.mounts.moon),
-      mars: standardMount(primaryReading.mounts.mars),
-    };
 
     const report = {
-      summary:
-        String(canonical.purposeAnalysis?.summary || "").trim() ||
-        String(primaryReading.overall.summary || "손바닥을 기반으로 현재 흐름을 분석했습니다."),
-      personality: String(primaryReading.majorLines.headLine.summary || "이미지 선명도 부족으로 판독 보류"),
-      love: String(primaryReading.majorLines.heartLine.summary || "이미지 선명도 부족으로 판독 보류"),
-      wealth: String(primaryReading.minorLines.moneyLine.summary || "이미지 선명도 부족으로 판독 보류"),
-      career: String(primaryReading.majorLines.fateLine.summary || "이미지 선명도 부족으로 판독 보류"),
-      relationship:
-        String(bothHandsComparison.loveSummary || "").trim() ||
-        String(primaryReading.majorLines.heartLine.advice || "이미지 선명도 부족으로 판독 보류"),
-      healthEnergy: String(primaryReading.majorLines.lifeLine.summary || "이미지 선명도 부족으로 판독 보류"),
-      advice:
-        Array.isArray(primaryReading.overall.recommendedActions) && primaryReading.overall.recommendedActions.length > 0
-          ? String(primaryReading.overall.recommendedActions[0])
-          : "더 선명한 손바닥 사진을 업로드하면 세부 정확도가 높아집니다.",
-      warnings:
-        Array.isArray(primaryReading.overall.cautions) && primaryReading.overall.cautions.length > 0
-          ? String(primaryReading.overall.cautions[0])
-          : mode === "full"
-          ? ""
-          : "이미지 선명도 부족으로 일부 항목은 추정 기반입니다.",
+      oneLiner: String(interpretation.report?.oneLiner || interpretation.oneLiner || "이번 손금 리딩을 쉽고 재밌게 정리했어요."),
+      summary: String(interpretation.report?.summary || "지금 흐름을 가볍고 이해하기 쉽게 읽어봤어요."),
+      personality: String(interpretation.report?.personality || "당신의 매력과 성향 흐름을 부드럽게 정리했어요."),
+      love: String(interpretation.report?.love || "연애운은 안정감과 대화 리듬이 핵심으로 읽혀요."),
+      wealth: String(interpretation.report?.wealth || "재물운은 꾸준히 쌓을 때 더 잘 살아나는 흐름이에요."),
+      career: String(interpretation.report?.career || "직업운은 내 방식과 실력을 쌓을수록 강해지는 흐름이에요."),
+      relationship: String(interpretation.report?.relationship || "관계운은 솔직한 확인 대화가 운을 살려줘요."),
+      healthEnergy: String(interpretation.report?.healthEnergy || "에너지는 무리보다 리듬 관리에서 더 좋아져요."),
+      advice: String(interpretation.report?.advice || "오늘은 미뤄둔 일 하나를 끝내며 흐름을 열어보세요."),
+      warnings: warnings[0] || "",
+      tips: Array.isArray(interpretation.report?.tips)
+        ? interpretation.report.tips.map((item) => String(item))
+        : [],
     };
 
-    const resultSections =
-      Array.isArray((primaryAnalysis.recognitionData as Record<string, unknown> | undefined)?.sections)
-        ? (((primaryAnalysis.recognitionData as Record<string, unknown>)?.sections as Array<Record<string, unknown>>) || []).map((section, index) => ({
-            key: String(section?.key || `section-${index + 1}`),
-            title: String(section?.title || `해석 ${index + 1}`),
-            content: String(section?.content || ""),
-          }))
-        : [];
+    const debugData = exposeDebug
+      ? {
+          palm: {
+            handedness: primarySide,
+            handShape: String(primaryReading.handShape.type || "unknown"),
+            palmRatio: Number(primaryReading.handShape.palmRatio) || 0,
+            fingerRatio: Number(primaryReading.handShape.fingerRatio) || 0,
+          },
+          lines: {
+            lifeLine: lineFromMajor(primaryReading.majorLines.lifeLine),
+            headLine: lineFromMajor(primaryReading.majorLines.headLine),
+            heartLine: lineFromMajor(primaryReading.majorLines.heartLine),
+            fateLine: lineFromMajor(primaryReading.majorLines.fateLine),
+            sunLine: lineFromMinor(primaryReading.minorLines.sunLine),
+            moneyLine: lineFromMinor(primaryReading.minorLines.moneyLine),
+            marriageLine: lineFromMinor(primaryReading.minorLines.marriageLine),
+          },
+          mounts: {
+            venus: { fullness: String(primaryReading.mounts.venus.fullness || "unknown"), meaning: String(primaryReading.mounts.venus.summary || "") },
+            jupiter: { fullness: String(primaryReading.mounts.jupiter.fullness || "unknown"), meaning: String(primaryReading.mounts.jupiter.summary || "") },
+            saturn: { fullness: String(primaryReading.mounts.saturn.fullness || "unknown"), meaning: String(primaryReading.mounts.saturn.summary || "") },
+            sun: { fullness: String(primaryReading.mounts.sun.fullness || "unknown"), meaning: String(primaryReading.mounts.sun.summary || "") },
+            mercury: { fullness: String(primaryReading.mounts.mercury.fullness || "unknown"), meaning: String(primaryReading.mounts.mercury.summary || "") },
+            moon: { fullness: String(primaryReading.mounts.moon.fullness || "unknown"), meaning: String(primaryReading.mounts.moon.summary || "") },
+            mars: { fullness: String(primaryReading.mounts.mars.fullness || "unknown"), meaning: String(primaryReading.mounts.mars.summary || "") },
+          },
+          recognitionData: {
+            primarySide,
+            primary: primaryAnalysis.recognitionData,
+            bySide: {
+              left: leftAnalysis?.recognitionData || null,
+              right: rightAnalysis?.recognitionData || null,
+            },
+          },
+        }
+      : {};
 
     return NextResponse.json({
       ok: true,
       data: {
         mode,
         qualityScore: Number(Number(primaryAnalysis.qualityScore || 0).toFixed(4)),
-        palm: {
-          handedness: primarySide,
-          handShape: String(primaryReading.handShape.type || "unknown"),
-          palmRatio: Number(primaryReading.handShape.palmRatio) || 0,
-          fingerRatio: Number(primaryReading.handShape.fingerRatio) || 0,
-        },
-        lines,
-        mounts,
         report,
         missingData,
         warnings,
         canonical,
         interpretation,
-        recognitionData,
-        resultSections,
+        ...debugData,
       },
     });
   } catch (error: any) {

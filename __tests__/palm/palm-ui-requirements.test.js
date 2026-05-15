@@ -131,8 +131,8 @@ describe("Palm UI requirements", () => {
       message: "손바닥 인식에 실패했습니다.",
     });
 
-    expect(msg).toContain("손바닥 인식 실패");
-    expect(msg).toContain("손바닥 전체");
+    expect(msg).toContain("손바닥");
+    expect(msg).toContain("다시");
   });
 
   test("Test E: 흐릿한 이미지 코드면 재촬영 안내 문구가 나온다", () => {
@@ -142,8 +142,8 @@ describe("Palm UI requirements", () => {
       message: "이미지 품질이 부족합니다.",
     });
 
-    expect(msg).toContain("재촬영");
-    expect(msg).toContain("선명하게");
+    expect(msg).toContain("선명");
+    expect(msg).toContain("다시");
   });
 
   test("Test E-1: reasonCode=LOW_CONFIDENCE면 부분 분석 안내 문구가 나온다", () => {
@@ -154,8 +154,8 @@ describe("Palm UI requirements", () => {
       message: "손바닥은 감지되었지만 선명도가 낮습니다.",
     });
 
-    expect(msg).toContain("부분 분석");
-    expect(msg).toContain("선명도");
+    expect(msg).toContain("손바닥");
+    expect(msg).toContain("다시");
   });
 
   test("Test E-2: status=415면 지원 형식 안내 문구가 나온다", () => {

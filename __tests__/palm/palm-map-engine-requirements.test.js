@@ -315,15 +315,13 @@ describe("Palm map engine requirements", () => {
     expect(right.handRole).toBe("innate");
   });
 
-  test("Test T: 실제 인식 데이터 보기 섹션에 측정값이 표시되어야 한다", () => {
+  test("Test T: 사용자 화면에는 디버그/검출 용어가 노출되지 않아야 한다", () => {
     const uiPath = path.join(process.cwd(), "app", "palm-reading", "PalmDestinyMain.tsx");
     const source = fs.readFileSync(uiPath, "utf8");
 
-    expect(source).toContain("실제 인식 데이터 보기");
-    expect(source).toContain("감지 상태");
-    expect(source).toContain("신뢰도");
-    expect(source).toContain("길이");
-    expect(source).toContain("곡률");
-    expect(source).toContain("path 좌표 접기/펼치기");
+    expect(source).not.toContain("실제 인식 데이터 보기");
+    expect(source).not.toContain("손금 용어 설명");
+    expect(source).not.toContain("해석 섹션 아코디언");
+    expect(source).not.toMatch(/palmRatio|fingerRatio|upperPalm|middlePalm|lowerPalm|검출 근거|보수적 해석|감지되지 않음/);
   });
 });

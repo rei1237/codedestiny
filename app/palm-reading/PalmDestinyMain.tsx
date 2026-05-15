@@ -82,7 +82,27 @@ type PalmInterpretationPayload = {
   generatedAt: string;
   analysisPurpose: AnalysisPurpose;
   tone: string;
+  oneLiner?: string;
   focusSummary: string;
+  sections?: Array<{
+    key: string;
+    title: string;
+    summary: string;
+    detail: string;
+    advice: string;
+  }>;
+  report?: {
+    oneLiner?: string;
+    summary?: string;
+    love?: string;
+    wealth?: string;
+    career?: string;
+    personality?: string;
+    healthEnergy?: string;
+    relationship?: string;
+    advice?: string;
+    tips?: string[];
+  };
   cards: PalmInterpretationCard[];
 };
 
@@ -92,7 +112,6 @@ type CategoryConsultation = {
   summary: string;
   details: string[];
   actions: string[];
-  confidence: "높음" | "중간" | "보수";
 };
 
 type AnalysisResultState = {
@@ -108,8 +127,6 @@ type AnalysisResultState = {
     left: OverlayPathMap | null;
     right: OverlayPathMap | null;
   };
-  recognitionData: Record<string, unknown> | null;
-  resultSections: Array<{ key: string; title: string; content: string }>;
   raw: unknown;
 };
 
@@ -161,15 +178,6 @@ const PURPOSE_OPTIONS: Array<{ value: AnalysisPurpose; label: string }> = [
   { value: "relationship", label: "관계 패턴" },
 ];
 
-const PALM_PURPOSE_COIN_LABEL: Record<AnalysisPurpose, string> = {
-  general: "50코인",
-  love: "30코인",
-  wealth: "30코인",
-  career: "30코인",
-  personality: "30코인",
-  relationship: "30코인",
-};
-
 const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
   general: "general",
   love: "love",
@@ -203,7 +211,7 @@ const SHOOTING_GUIDES = [
 const LOADING_PHASES = [
   "손바닥 윤곽을 확인하고 있습니다.",
   "생명선·감정선·지능선을 찾고 있습니다.",
-  "손의 형태와 구丘 영역을 분석하고 있습니다.",
+  "손의 형태와 전체 흐름을 분석하고 있습니다.",
   "카테고리별 상담 결과를 정리하고 있습니다.",
 ];
 
@@ -211,28 +219,6 @@ const MAX_UPLOAD_FILE_BYTES = 25 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 2048;
 
 const FILE_EXTENSION_PATTERN = /\.(png|jpe?g|webp|gif|bmp|avif|heic|heif)$/i;
-
-const PALM_TERM_GLOSSARY: Array<{ term: string; description: string }> = [
-  { term: "생명선", description: "엄지 아래를 감싸 내려가는 선으로, 수명 예언이 아니라 에너지 운용과 회복 리듬을 봅니다." },
-  { term: "감정선", description: "손가락 아래 가로선으로, 감정 표현 습관과 관계에서의 반응 패턴을 읽습니다." },
-  { term: "지능선", description: "손바닥 중앙 가로선으로, 사고 방식·집중 패턴·판단 스타일을 설명합니다." },
-  { term: "운명선", description: "손바닥 중앙 세로 흐름으로, 직업 방향성·책임감·사회적 목표를 봅니다." },
-  { term: "결혼선", description: "새끼손가락 아래 짧은 선으로, 관계의 횟수 단정이 아니라 친밀감과 약속 방식을 읽습니다." },
-  { term: "재물선", description: "수성구 방향 선으로, 돈의 절대량 예언이 아니라 자원 관리 습관을 해석합니다." },
-  { term: "태양선", description: "약지 아래 세로선으로, 인지도·표현력·성과 가시화 성향을 봅니다." },
-  { term: "건강선", description: "수성선 계열 보조선으로, 생활 리듬과 피로 누적 신호를 보조적으로 확인합니다." },
-  { term: "금성구丘", description: "엄지 뿌리 주변 영역으로, 애정 표현·체력·정서적 온기를 봅니다." },
-  { term: "목성구丘", description: "검지 아래 영역으로, 리더십·성장 욕구·목표 지향성을 읽습니다." },
-  { term: "토성구丘", description: "중지 아래 영역으로, 책임감·지속성·현실 감각을 봅니다." },
-  { term: "태양구丘", description: "약지 아래 영역으로, 창의 표현·평판·성과 노출 성향을 읽습니다." },
-  { term: "수성구丘", description: "새끼손가락 아래 영역으로, 소통·협상·사업 감각을 봅니다." },
-  { term: "월구丘", description: "손바닥 바깥 아래 영역으로, 상상력·직관·감수성 흐름을 봅니다." },
-  { term: "화성구丘", description: "손바닥 중앙/측면 보조 영역으로, 추진력·인내·갈등 대응을 읽습니다." },
-  { term: "흙의 손", description: "손바닥이 넓고 단단한 경향으로, 실행력과 현실 기반 판단이 강한 유형입니다." },
-  { term: "불의 손", description: "손바닥이 길고 손가락이 비교적 짧아, 직감과 추진이 빠른 유형입니다." },
-  { term: "물의 손", description: "손바닥과 손가락이 길고 부드러워, 감수성과 분위기 인지가 좋은 유형입니다." },
-  { term: "공기의 손", description: "손가락이 길고 관찰력이 살아 있어, 분석/소통 중심의 유형입니다." },
-];
 
 function getGalleryInputId(side: HandSide): string {
   return `palm-${side}-gallery-input`;
@@ -517,14 +503,14 @@ async function computeFileSignature(file: File): Promise<string> {
 }
 
 const CARD_KEY_TO_LABEL: Record<PalmCardKey, string> = {
-  lifeLine: "생명선",
-  headLine: "두뇌선",
-  heartLine: "감정선",
-  fateLine: "운명선",
-  sunLine: "태양선",
-  moneyLine: "재물선",
-  marriageLine: "결혼선",
-  mounts: "손바닥 구丘",
+  lifeLine: "🌱 에너지",
+  headLine: "🧠 생각",
+  heartLine: "💗 연애",
+  fateLine: "🧭 진로",
+  sunLine: "✨ 매력",
+  moneyLine: "💰 재물",
+  marriageLine: "🤝 관계",
+  mounts: "🌟 종합",
 };
 
 const LINE_TO_CARD_KEY: Record<OverlayLineKey, PalmCardKey> = {
@@ -565,11 +551,53 @@ function normalizeInterpretation(payload: unknown): PalmInterpretationPayload | 
 
   if (cards.length === 0) return null;
 
+  const sections = Array.isArray(rec.sections)
+    ? rec.sections
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const row = item as Record<string, unknown>;
+          return {
+            key: String(row.key || "").trim(),
+            title: String(row.title || "").trim(),
+            summary: String(row.summary || "").trim(),
+            detail: String(row.detail || "").trim(),
+            advice: String(row.advice || "").trim(),
+          };
+        })
+        .filter(
+          (
+            item,
+          ): item is { key: string; title: string; summary: string; detail: string; advice: string } =>
+            Boolean(item && item.key && item.title),
+        )
+    : [];
+
+  const report =
+    rec.report && typeof rec.report === "object"
+      ? {
+          oneLiner: String((rec.report as Record<string, unknown>).oneLiner || ""),
+          summary: String((rec.report as Record<string, unknown>).summary || ""),
+          love: String((rec.report as Record<string, unknown>).love || ""),
+          wealth: String((rec.report as Record<string, unknown>).wealth || ""),
+          career: String((rec.report as Record<string, unknown>).career || ""),
+          personality: String((rec.report as Record<string, unknown>).personality || ""),
+          healthEnergy: String((rec.report as Record<string, unknown>).healthEnergy || ""),
+          relationship: String((rec.report as Record<string, unknown>).relationship || ""),
+          advice: String((rec.report as Record<string, unknown>).advice || ""),
+          tips: Array.isArray((rec.report as Record<string, unknown>).tips)
+            ? ((rec.report as Record<string, unknown>).tips as unknown[]).map((item) => String(item))
+            : [],
+        }
+      : undefined;
+
   return {
     generatedAt: String(rec.generatedAt || ""),
     analysisPurpose: (String(rec.analysisPurpose || "general") as AnalysisPurpose),
     tone: String(rec.tone || ""),
+    oneLiner: String(rec.oneLiner || ""),
     focusSummary: String(rec.focusSummary || ""),
+    ...(sections.length > 0 ? { sections } : {}),
+    ...(report ? { report } : {}),
     cards,
   };
 }
@@ -636,21 +664,6 @@ function extractOverlayPathsBySide(payload: unknown): { left: OverlayPathMap | n
   };
 }
 
-function normalizeResultSections(payload: unknown): Array<{ key: string; title: string; content: string }> {
-  if (!Array.isArray(payload)) return [];
-  return payload
-    .map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const row = item as Record<string, unknown>;
-      const key = String(row.key || "").trim();
-      const title = String(row.title || "").trim();
-      const content = String(row.content || "").trim();
-      if (!key || !title || !content) return null;
-      return { key, title, content };
-    })
-    .filter((x): x is { key: string; title: string; content: string } => Boolean(x));
-}
-
 function uniqText(list: Array<string | null | undefined>, max = 6): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -664,15 +677,6 @@ function uniqText(list: Array<string | null | undefined>, max = 6): string[] {
   return out;
 }
 
-function scoreToNarrative(score: number | null | undefined, label: string): string {
-  if (!Number.isFinite(Number(score))) return `${label} 점수 근거는 아직 보수적으로 유지됩니다.`;
-  const value = Number(score);
-  if (value >= 78) return `${label} 지표(${value})가 높아 강점을 바로 활용하기 좋은 구간입니다.`;
-  if (value >= 60) return `${label} 지표(${value})가 안정권이며 루틴 유지 시 상승 여지가 큽니다.`;
-  if (value >= 45) return `${label} 지표(${value})가 전환 구간이라 작은 습관 조정이 중요합니다.`;
-  return `${label} 지표(${value})가 낮게 관찰되어 보수적 접근과 점진적 보완이 필요합니다.`;
-}
-
 function buildInterpretationWithFallback(
   canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
   payload: unknown,
@@ -682,153 +686,83 @@ function buildInterpretationWithFallback(
   return normalizeInterpretation(buildPalmInterpretationReport(canonical));
 }
 
-function buildCategoryConsultations(
-  canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
-): CategoryConsultation[] {
-  const dominant = canonical.profile.dominantHand;
-  const primaryReading =
-    dominant === "left"
-      ? canonical.leftHandReading || canonical.rightHandReading
-      : dominant === "right"
-      ? canonical.rightHandReading || canonical.leftHandReading
-      : canonical.rightHandReading || canonical.leftHandReading;
+function pickSection(
+  interpretation: PalmInterpretationPayload | null,
+  key: string,
+): { key: string; title: string; summary: string; detail: string; advice: string } | null {
+  if (!Array.isArray(interpretation?.sections)) return null;
+  return (
+    interpretation.sections.find((section) => section.key === key) ||
+    interpretation.sections.find((section) => section.key.toLowerCase() === key.toLowerCase()) ||
+    null
+  );
+}
 
-  const scores = primaryReading?.scores || {
-    love: null,
-    career: null,
-    wealth: null,
-    vitality: null,
-    creativity: null,
-    communication: null,
-  };
+function buildCategoryConsultations(input: {
+  report: Record<string, unknown> | null;
+  interpretation: PalmInterpretationPayload | null;
+}): CategoryConsultation[] {
+  const report = input.report || {};
+  const generalSection = pickSection(input.interpretation, "overall");
+  const loveSection = pickSection(input.interpretation, "love");
+  const wealthSection = pickSection(input.interpretation, "wealth");
+  const careerSection = pickSection(input.interpretation, "career");
+  const personalitySection = pickSection(input.interpretation, "personality");
+  const relationshipSection = pickSection(input.interpretation, "relationship");
+  const adviceSection = pickSection(input.interpretation, "advice");
 
-  const confidence: CategoryConsultation["confidence"] = canonical.validation.hasEnoughQuality
-    ? "높음"
-    : canonical.validation.hasMajorLines
-    ? "중간"
-    : "보수";
-
-  const overallSummary =
-    primaryReading?.overall.summary ||
-    canonical.bothHandsComparison.growthSummary ||
-    "손형·주요선·보조선 조합에서 읽힌 현재 습관 흐름을 중심으로 해석합니다.";
-
-  const loveDetails = uniqText([
-    canonical.bothHandsComparison.loveSummary,
-    primaryReading?.majorLines.heartLine.summary,
-    primaryReading?.minorLines.marriageLine.summary,
-    scoreToNarrative(scores.love, "연애"),
-  ]);
-
-  const wealthDetails = uniqText([
-    canonical.bothHandsComparison.wealthSummary,
-    primaryReading?.minorLines.moneyLine.summary,
-    primaryReading?.minorLines.sunLine.summary,
-    scoreToNarrative(scores.wealth, "재물"),
-  ]);
-
-  const careerDetails = uniqText([
-    canonical.bothHandsComparison.careerSummary,
-    primaryReading?.majorLines.fateLine.summary,
-    primaryReading?.majorLines.headLine.summary,
-    scoreToNarrative(scores.career, "직업"),
-  ]);
-
-  const personalityDetails = uniqText([
-    primaryReading?.handShape.summary,
-    primaryReading?.majorLines.headLine.summary,
-    primaryReading?.majorLines.heartLine.summary,
-    scoreToNarrative(scores.creativity, "창의"),
-    scoreToNarrative(scores.communication, "소통"),
-  ]);
-
-  const relationshipDetails = uniqText([
-    canonical.bothHandsComparison.differenceSummary,
-    canonical.bothHandsComparison.growthSummary,
-    primaryReading?.majorLines.heartLine.advice,
-    primaryReading?.minorLines.marriageLine.summary,
-    scoreToNarrative(scores.communication, "관계 소통"),
-  ]);
-
-  const baseActions = uniqText([
-    ...(primaryReading?.overall.recommendedActions || []),
-    "오늘의 관찰 1줄과 손바닥 사진 1장을 같은 시간에 기록해 패턴을 누적하세요.",
-    "선택 기준을 문장으로 먼저 고정한 뒤 행동하면 해석 정확도가 올라갑니다.",
-  ], 4);
+  const commonActions = uniqText([
+    adviceSection?.advice,
+    "오늘은 미뤄둔 일 하나를 끝내며 흐름을 열어 보세요.",
+    "혼자 해석이 길어지면 짧게라도 확인 대화를 시작해 보세요.",
+  ], 3);
 
   return [
     {
       key: "general",
-      title: "전체 운세",
-      summary: overallSummary,
+      title: "🌟 전체 운세",
+      summary: String(report.summary || generalSection?.summary || "지금 흐름을 쉽게 정리한 손금 리딩이에요."),
       details: uniqText([
-        scoreToNarrative(scores.vitality, "에너지"),
-        scoreToNarrative(scores.love, "연애"),
-        scoreToNarrative(scores.career, "직업"),
-        scoreToNarrative(scores.wealth, "재물"),
-      ]),
-      actions: baseActions,
-      confidence,
+        String(report.oneLiner || ""),
+        generalSection?.detail,
+        String((input.interpretation?.focusSummary || "").trim()),
+      ], 3),
+      actions: commonActions,
     },
     {
       key: "love",
-      title: "연애운",
-      summary: loveDetails[0] || "감정선과 관계선을 중심으로 현재 연애 패턴을 읽었습니다.",
-      details: loveDetails,
-      actions: uniqText([
-        primaryReading?.majorLines.heartLine.advice,
-        "기대치를 추측하지 말고 요청 문장으로 전달해 오해를 줄이세요.",
-        "관계 대화 직후 감정 온도를 3단계로 기록해 반복 패턴을 파악하세요.",
-      ], 3),
-      confidence,
+      title: "💗 연애운",
+      summary: String(report.love || loveSection?.summary || "연애운은 안정감과 솔직한 대화가 핵심으로 보여요."),
+      details: uniqText([loveSection?.detail, loveSection?.advice], 3),
+      actions: uniqText([loveSection?.advice, ...commonActions], 3),
     },
     {
       key: "wealth",
-      title: "재물운",
-      summary: wealthDetails[0] || "재물선과 수성구 신호를 기준으로 돈 흐름 습관을 해석했습니다.",
-      details: wealthDetails,
-      actions: uniqText([
-        "지출을 필수/성장/위안 3분류로 나누어 기록하세요.",
-        "결제 전 목적 문장 1개를 먼저 쓰면 충동 소비를 줄일 수 있습니다.",
-        "소액이라도 주 1회 가치 창출 활동을 고정하세요.",
-      ], 3),
-      confidence,
+      title: "💰 재물운",
+      summary: String(report.wealth || wealthSection?.summary || "재물운은 꾸준히 쌓을 때 힘이 붙는 흐름이에요."),
+      details: uniqText([wealthSection?.detail, wealthSection?.advice], 3),
+      actions: uniqText([wealthSection?.advice, ...commonActions], 3),
     },
     {
       key: "career",
-      title: "직업운",
-      summary: careerDetails[0] || "운명선과 두뇌선 근거로 직업 방향성의 안정도를 읽었습니다.",
-      details: careerDetails,
-      actions: uniqText([
-        primaryReading?.majorLines.fateLine.advice,
-        "2주 단위 목표-실행-회고 루틴을 캘린더에 고정하세요.",
-        "중요 과제는 시작 전 성공 기준 1문장을 먼저 정의하세요.",
-      ], 3),
-      confidence,
+      title: "🧭 직업운",
+      summary: String(report.career || careerSection?.summary || "직업운은 내 방식과 실력을 쌓을수록 강해져요."),
+      details: uniqText([careerSection?.detail, careerSection?.advice], 3),
+      actions: uniqText([careerSection?.advice, ...commonActions], 3),
     },
     {
       key: "personality",
-      title: "성격 분석",
-      summary: personalityDetails[0] || "손형과 두뇌선·감정선 조합으로 기본 성향을 해석했습니다.",
-      details: personalityDetails,
-      actions: uniqText([
-        "결정 직전 망설임 포인트를 하루 1회 기록해 자기 패턴을 선명하게 보세요.",
-        "집중 블록과 휴식 블록을 번갈아 고정해 사고 피로를 줄이세요.",
-        "감정이 큰 날에는 결정을 하루 미루고 기준 문장을 다시 확인하세요.",
-      ], 3),
-      confidence,
+      title: "✨ 성격/매력",
+      summary: String(report.personality || personalitySection?.summary || "성격과 매력을 가볍게 정리한 리딩이에요."),
+      details: uniqText([personalitySection?.detail, personalitySection?.advice], 3),
+      actions: uniqText([personalitySection?.advice, ...commonActions], 3),
     },
     {
       key: "relationship",
-      title: "관계 패턴",
-      summary: relationshipDetails[0] || "감정선·결혼선·양손 비교를 바탕으로 관계 리듬을 정리했습니다.",
-      details: relationshipDetails,
-      actions: uniqText([
-        "갈등 상황에서는 해석보다 확인 질문을 먼저 던지세요.",
-        "관계에서 지키고 싶은 약속 1개를 문장으로 합의하세요.",
-        "불편했던 장면을 주 3회 기록해 반복 트리거를 줄이세요.",
-      ], 3),
-      confidence,
+      title: "🤝 관계운",
+      summary: String(report.relationship || relationshipSection?.summary || "관계운은 편안한 소통에서 더 좋아져요."),
+      details: uniqText([relationshipSection?.detail, relationshipSection?.advice], 3),
+      actions: uniqText([relationshipSection?.advice, ...commonActions], 3),
     },
   ];
 }
@@ -904,17 +838,15 @@ export default function PalmDestinyMain() {
 
   const interpretationCards = analysisResult?.interpretation?.cards ?? [];
   const mobileFocusedCard = interpretationCards.find((item) => item.key === activeCardKey) ?? interpretationCards[0] ?? null;
-  const categoryConsultations = analysisResult ? buildCategoryConsultations(analysisResult.canonical) : [];
+  const categoryConsultations = analysisResult
+    ? buildCategoryConsultations({
+        report: analysisResult.report,
+        interpretation: analysisResult.interpretation,
+      })
+    : [];
   const mobileFocusedConsultation =
     categoryConsultations.find((item) => item.key === activeConsultationKey) || categoryConsultations[0] || null;
   const bothHandsComparison = analysisResult?.canonical.bothHandsComparison;
-  const recognitionPrimary = (analysisResult?.recognitionData?.primary as Record<string, unknown> | undefined) || null;
-  const recognitionBySide = (analysisResult?.recognitionData?.bySide as Record<string, unknown> | undefined) || null;
-  const activeRecognition =
-    (recognitionBySide?.[overlaySide] as Record<string, unknown> | undefined) ||
-    (recognitionBySide?.left as Record<string, unknown> | undefined) ||
-    (recognitionBySide?.right as Record<string, unknown> | undefined) ||
-    recognitionPrimary;
 
   const pickedOverlayImage = overlaySide === "left" ? leftHand.previewUrl : rightHand.previewUrl;
   const overlayImageUrl = pickedOverlayImage || leftHand.previewUrl || rightHand.previewUrl || null;
@@ -1356,11 +1288,6 @@ export default function PalmDestinyMain() {
       const interpretation = buildInterpretationWithFallback(canonical, payloadRoot?.interpretation);
       const overlayPaths = extractOverlayPaths(payloadRoot?.overlayPaths ?? payloadRoot);
       const overlayPathsBySide = extractOverlayPathsBySide(payloadRoot);
-      const recognitionData =
-        payloadRoot?.recognitionData && typeof payloadRoot.recognitionData === "object"
-          ? (payloadRoot.recognitionData as Record<string, unknown>)
-          : null;
-      const resultSections = normalizeResultSections(payloadRoot?.resultSections);
       const modeFromPayload =
         payloadRoot?.mode === "full" || payloadRoot?.mode === "partial" || payloadRoot?.mode === "fallback"
           ? (payloadRoot.mode as "full" | "partial" | "fallback")
@@ -1467,8 +1394,6 @@ export default function PalmDestinyMain() {
         interpretation,
         overlayPaths,
         overlayPathsBySide,
-        recognitionData,
-        resultSections,
         raw: payloadRoot,
       });
 
@@ -1554,7 +1479,7 @@ export default function PalmDestinyMain() {
     });
   };
 
-  const renderInterpretationCard = (card: PalmInterpretationCard, compactMobile = false) => {
+  const renderInterpretationCard = (card: PalmInterpretationCard) => {
     const cardId = `palm-card-${card.key}`;
     const active = activeCardKey === card.key;
 
@@ -1593,7 +1518,7 @@ export default function PalmDestinyMain() {
 
         <section className="mt-3">
           <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-            <span aria-hidden className="text-[8px]">◆</span>상세 해석
+            <span aria-hidden className="text-[8px]">◆</span>리딩 포인트
           </h5>
           <ul className="mt-2 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
             {card.details.slice(0, 8).map((line, index) => (
@@ -1646,10 +1571,6 @@ export default function PalmDestinyMain() {
             <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.sevenDayPractice}</p>
           </div>
         </section>
-
-        {compactMobile ? null : (
-          <p className="mt-3 text-[11px] text-[#c8a84b]/55 md:text-xs">카드 키: {card.key}</p>
-        )}
       </article>
     );
   };
@@ -2313,16 +2234,10 @@ export default function PalmDestinyMain() {
                     <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-xs font-bold text-[#f5d987]">
-                          분석 모드: {analysisResult.mode === "full" ? "정밀" : analysisResult.mode === "partial" ? "부분" : "기본"}
+                          {analysisResult.mode === "full"
+                            ? "사진이 선명해서 리딩이 더 자세해졌어요"
+                            : "이번 리딩은 핵심 흐름 위주로 가볍게 읽어 드려요"}
                         </span>
-                        <span className="rounded-full border border-[#c8a84b]/30 bg-[#0d0606] px-3 py-1 text-xs font-bold text-[#e8d090]">
-                          품질 점수: {(analysisResult.qualityScore * 100).toFixed(0)}점
-                        </span>
-                        {analysisResult.mode !== "full" ? (
-                          <span className="rounded-full border border-[#b8860b]/55 bg-[#3a2800]/80 px-3 py-1 text-xs font-bold text-[#ffd98a]">
-                            부분 분석 모드
-                          </span>
-                        ) : null}
                       </div>
 
                       {analysisResult.warnings.length > 0 ? (
@@ -2335,9 +2250,9 @@ export default function PalmDestinyMain() {
 
                       {analysisResult.missingData.length > 0 ? (
                         <div className="mt-3 rounded-lg border border-[#c8a84b]/20 bg-[#120909]/70 px-3 py-2">
-                          <p className="text-xs font-bold text-[#f5d987] md:text-sm">판독 보류 항목</p>
+                          <p className="text-xs font-bold text-[#f5d987] md:text-sm">사진 가이드</p>
                           <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-                            {analysisResult.missingData.join(", ")} (이미지 선명도 부족으로 판독 보류)
+                            손바닥 전체가 화면에 들어오고 그림자가 적으면 리딩이 훨씬 더 풍부해져요.
                           </p>
                         </div>
                       ) : null}
@@ -2347,80 +2262,6 @@ export default function PalmDestinyMain() {
                       <div className="rounded-lg border border-[#b8860b]/60 bg-[#3a2800]/90 p-3 text-sm leading-6 text-[#ffd700] shadow-md">
                         ⚠️ {analysisResult.canonical.validation.qualityWarning}
                       </div>
-                    ) : null}
-
-                    {analysisResult.canonical.purposeAnalysis ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/60 bg-[linear-gradient(145deg,rgba(15,8,8,0.98),rgba(25,10,10,0.97))] p-4 md:p-6 shadow-lg">
-                        <div className="flex items-center gap-3 border-b border-[#c8a84b]/30 pb-4">
-                          <div aria-hidden className="h-6 w-1.5 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                          <h2 className="text-lg font-black text-[#f5d987] md:text-xl" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                            {PURPOSE_OPTIONS.find(o => o.value === analysisPurpose)?.label || "선택된 목적"} 맞춤 정밀 분석
-                          </h2>
-                        </div>
-                        
-                        <div className="mt-5 space-y-6">
-                          <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
-                            <h3 className="text-sm font-bold text-[#d4b45c]">핵심 요약</h3>
-                            <p className="mt-2 text-sm leading-7 text-[#e8d8b0]/90">{analysisResult.canonical.purposeAnalysis.summary}</p>
-                          </div>
-                          
-                          <div className="space-y-4">
-                            {analysisResult.canonical.purposeAnalysis.sections?.map((sec: { title?: string; content?: string }, i: number) => (
-                              <div key={`pa-sec-${i}`} className="overflow-hidden rounded-xl border border-[#c8a84b]/30 bg-[linear-gradient(180deg,rgba(20,8,8,0.9),rgba(13,6,6,0.95))] shadow-md">
-                                <div className="border-b border-[#c8a84b]/20 bg-[#1a0a0a]/90 px-4 py-3">
-                                  <h3 className="text-[15px] font-bold tracking-wide text-[#f5d987] md:text-base">{sec.title}</h3>
-                                </div>
-                                <div className="p-4 md:p-5">
-                                  <p className="whitespace-pre-wrap text-[14px] leading-[1.8] text-[#e8d8b0]/95 md:text-[15px]">{sec.content}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/80 p-4">
-                              <h3 className="text-sm font-bold text-[#f5d987]">손금 데이터 근거</h3>
-                              <ul className="mt-2 space-y-2">
-                                {analysisResult.canonical.purposeAnalysis.evidence?.map((ev: { label?: string; text?: string }, i: number) => (
-                                  <li key={`ev-${i}`} className="text-sm leading-6 text-[#e8d8b0]/90">
-                                    <span className="font-bold text-[#d4b45c]">[{ev.label}]</span> {ev.text}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                            
-                            <div className="rounded-lg border border-[#8b1a1a]/35 bg-[#140808]/60 p-4">
-                              <h3 className="text-sm font-bold text-[#ff7b7b]">주의할 점</h3>
-                              <ul className="mt-2 space-y-2">
-                                {analysisResult.canonical.purposeAnalysis.cautions?.map((c: string, i: number) => (
-                                  <li key={`cau-${i}`} className="text-sm leading-6 text-[#e8d8b0]/90 list-disc ml-4">{c}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-
-                          <div className="overflow-hidden rounded-xl border border-[#c8a84b]/30 bg-[#0d0606]/80">
-                            <div className="border-b border-[#c8a84b]/20 bg-[#1a0a0a]/90 px-4 py-3">
-                              <h3 className="text-[15px] font-bold text-[#d4b45c]">종합 상세 해석</h3>
-                            </div>
-                            <div className="p-4 md:p-5">
-                              <p className="whitespace-pre-wrap text-[14px] leading-[1.8] text-[#e8d8b0]/95 md:text-[15px]">{analysisResult.canonical.purposeAnalysis.details}</p>
-                            </div>
-                          </div>
-
-                          <div className="rounded-xl border border-[#4a7a30]/30 bg-[linear-gradient(145deg,rgba(10,18,6,0.9),rgba(15,25,10,0.8))] p-4 shadow-md md:p-5">
-                            <h3 className="text-sm font-bold text-[#8ade5f]">앞으로의 활용법 & 실천 가이드</h3>
-                            <div className="mt-3 space-y-3">
-                              {analysisResult.canonical.purposeAnalysis.actions?.map((act: string, i: number) => (
-                                <div key={`act-${i}`} className="flex gap-3">
-                                  <span className="text-[#8ade5f]">◆</span>
-                                  <p className="text-sm leading-7 text-[#e8d8b0]/90">{act}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </section>
                     ) : null}
 
                     {analysisResult.interpretation?.focusSummary ? (
@@ -2468,17 +2309,6 @@ export default function PalmDestinyMain() {
                                 </button>
                               );
                             })}
-                            <button
-                              type="button"
-                              onClick={() => setActiveConsultationKey("general")}
-                              className={`cd-select-btn min-h-[46px] shrink-0 rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
-                                activeConsultationKey === "general"
-                                  ? "border-[#f5d987]/80 bg-[#401515] text-[#fff5c8]"
-                                  : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
-                              }`}
-                            >
-                              손금 근거
-                            </button>
                           </div>
                         </div>
 
@@ -2489,7 +2319,7 @@ export default function PalmDestinyMain() {
                               <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{mobileFocusedConsultation.summary}</p>
                             </div>
                             <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
-                              <p className="text-xs font-bold text-[#f5d987] md:text-sm">분석 신뢰도: {mobileFocusedConsultation.confidence}</p>
+                              <p className="text-xs font-bold text-[#f5d987] md:text-sm">자세히 보면 이런 흐름이에요</p>
                               <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                                 {mobileFocusedConsultation.details.map((line) => (
                                   <li key={line}>• {line}</li>
@@ -2511,18 +2341,18 @@ export default function PalmDestinyMain() {
 
                     {analysisResult.report ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>표준 리포트 요약</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>🌙 한눈에 보는 손금 리딩</h3>
                         <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
                           {[
-                            ["전체 운세", String(analysisResult.report.summary || "이미지 선명도 부족으로 판독 보류")],
-                            ["성격 분석", String(analysisResult.report.personality || "이미지 선명도 부족으로 판독 보류")],
-                            ["연애운", String(analysisResult.report.love || "이미지 선명도 부족으로 판독 보류")],
-                            ["재물운", String(analysisResult.report.wealth || "이미지 선명도 부족으로 판독 보류")],
-                            ["직업운", String(analysisResult.report.career || "이미지 선명도 부족으로 판독 보류")],
-                            ["인간관계", String(analysisResult.report.relationship || "이미지 선명도 부족으로 판독 보류")],
-                            ["건강/에너지 경향", String(analysisResult.report.healthEnergy || "이미지 선명도 부족으로 판독 보류")],
-                            ["현재 시기 조언", String(analysisResult.report.advice || "더 선명한 사진을 올리면 세부 정확도가 올라갑니다.")],
-                            ["주의할 점", String(analysisResult.report.warnings || "이미지 선명도 부족으로 일부 항목은 추정 기반입니다.")],
+                            ["🌙 한 줄 요약", String(analysisResult.report.oneLiner || "이번 손금 흐름을 쉽고 재밌게 정리해 드렸어요.")],
+                            ["🌟 전체 운세", String(analysisResult.report.summary || "지금은 내 리듬을 찾을수록 운이 안정되는 시기예요.")],
+                            ["💗 연애운", String(analysisResult.report.love || "연애운은 솔직한 대화에서 더 좋아지는 흐름이에요.")],
+                            ["💰 재물운", String(analysisResult.report.wealth || "재물운은 꾸준히 쌓을 때 더 잘 살아나요.")],
+                            ["🧭 직업운", String(analysisResult.report.career || "직업운은 내 방식과 실력을 쌓을수록 강해져요.")],
+                            ["✨ 성격/매력", String(analysisResult.report.personality || "묵직한 신뢰감이 당신의 매력 포인트예요.")],
+                            ["🌱 건강/에너지", String(analysisResult.report.healthEnergy || "무리보다 리듬 관리가 운을 살려줘요.")],
+                            ["🤝 관계운", String(analysisResult.report.relationship || "관계운은 편안한 소통에서 힘이 붙어요.")],
+                            ["🔮 오늘의 조언", String(analysisResult.report.advice || "오늘은 미뤄둔 작은 일 하나를 끝내 보세요.")],
                           ].map(([label, text]) => (
                             <div key={`std-report-${label}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
                               <p className="text-xs font-black text-[#f5d987] md:text-sm">{label}</p>
@@ -2530,117 +2360,6 @@ export default function PalmDestinyMain() {
                             </div>
                           ))}
                         </div>
-                      </section>
-                    ) : null}
-
-                    <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                      <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>손금 용어 설명</h3>
-                      <div className="mt-3 space-y-2">
-                        {PALM_TERM_GLOSSARY.map((item) => (
-                          <details key={item.term} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2">
-                            <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">{item.term}</summary>
-                            <p className="mt-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{item.description}</p>
-                          </details>
-                        ))}
-                      </div>
-                    </section>
-
-                    {analysisResult.resultSections.length > 0 ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>해석 섹션 아코디언</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">카드/탭과 별개로 전체 14개 구조 리딩을 접기/펼치기로 확인할 수 있습니다.</p>
-                        <div className="mt-3 space-y-2">
-                          {analysisResult.resultSections.map((section) => (
-                            <details
-                              key={`section-${section.key}`}
-                              className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2"
-                            >
-                              <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">{section.title}</summary>
-                              <p className="mt-2 whitespace-pre-wrap text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{section.content}</p>
-                            </details>
-                          ))}
-                        </div>
-                      </section>
-                    ) : null}
-
-                    {activeRecognition ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>실제 인식 데이터 보기</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">감지된 값만 보여주며, 미감지 항목은 감지되지 않음/unknown으로 유지합니다.</p>
-
-                        <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">손바닥 감지 여부: {String(activeRecognition.palmDetected ?? false)}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">왼손/오른손 판별: {String(activeRecognition.handSide ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">선천적/후천적 손 여부: {String(activeRecognition.handRoleLabel ?? "미확정")}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">이미지 밝기: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.brightness ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">이미지 선명도: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.sharpness ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">손바닥 점유율: {String((activeRecognition.imageQuality as Record<string, unknown> | undefined)?.palmCoverage ?? "unknown")}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">손형 판별값: {String((activeRecognition.handShape as Record<string, unknown> | undefined)?.type ?? "unknown")} / palmRatio={String((activeRecognition.handShape as Record<string, unknown> | undefined)?.palmRatio ?? "unknown")} / fingerRatio={String((activeRecognition.handShape as Record<string, unknown> | undefined)?.fingerRatio ?? "unknown")}</p>
-                        </div>
-
-                        <div className="mt-3 space-y-2">
-                          {[
-                            ["생명선", "lifeLine"],
-                            ["두뇌선", "headLine"],
-                            ["감정선", "heartLine"],
-                            ["운명선", "fateLine"],
-                            ["태양선", "sunLine"],
-                            ["재물선", "moneyLine"],
-                            ["결혼선", "marriageLine"],
-                            ["소통선", "communicationLine"],
-                          ].map(([label, key]) => {
-                            const line = ((activeRecognition.lines as Record<string, unknown> | undefined)?.[key] || {}) as Record<string, unknown>;
-                            const path = Array.isArray(line.path) ? (line.path as Array<unknown>) : [];
-                            return (
-                              <details key={`line-${key}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2">
-                                <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">{label} 측정값</summary>
-                                <div className="mt-2 grid gap-1 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
-                                  <p>감지 상태: {String(line.detected ?? false)}</p>
-                                  <p>신뢰도: {String(line.confidence ?? "unknown")}</p>
-                                  <p>normalizedLength: {String(line.normalizedLength ?? 0)}</p>
-                                  <p>길이: {String(line.lengthLabel ?? "unknown")}</p>
-                                  <p>depthScore: {String(line.depthScore ?? 0)}</p>
-                                  <p>선명도: {String(line.depthLabel ?? "unknown")}</p>
-                                  <p>curvatureScore: {String(line.curvatureScore ?? 0)}</p>
-                                  <p>곡률: {String(line.curvatureLabel ?? "unknown")}</p>
-                                  <p>끊김: {String(line.breaks ?? 0)}</p>
-                                  <p>분기: {String(line.branches ?? 0)}</p>
-                                  <p>시작 영역: {String(line.startZone ?? "unknown")}</p>
-                                  <p>끝 영역: {String(line.endZone ?? "unknown")}</p>
-                                  <p>variant: {String(line.variant ?? "unknown")}</p>
-                                </div>
-                                <details className="mt-2 rounded-md border border-[#c8a84b]/18 bg-[#0d0606]/60 px-2 py-1">
-                                  <summary className="cursor-pointer text-[11px] font-bold text-[#d4b45c] md:text-xs">path 좌표 접기/펼치기</summary>
-                                  <pre className="mt-1 max-h-36 overflow-auto whitespace-pre-wrap break-all text-[10px] text-[#d8c89a]/85 md:text-[11px]">
-                                    {path.length > 0 ? JSON.stringify(path, null, 2) : "[]"}
-                                  </pre>
-                                </details>
-                              </details>
-                            );
-                          })}
-                        </div>
-
-                        <details className="mt-3 rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/75 px-3 py-2">
-                          <summary className="cursor-pointer text-xs font-black text-[#f5d987] md:text-sm">구丘 분석값</summary>
-                          <div className="mt-2 grid gap-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-                            {[
-                              ["금성구", "venus"],
-                              ["월구", "moon"],
-                              ["목성구", "jupiter"],
-                              ["토성구", "saturn"],
-                              ["태양구", "sun"],
-                              ["수성구", "mercury"],
-                              ["화성구", "mars"],
-                            ].map(([label, key]) => {
-                              const mount = ((activeRecognition.mounts as Record<string, unknown> | undefined)?.[key] || {}) as Record<string, unknown>;
-                              return (
-                                <p key={`mount-${key}`}>
-                                  {label}: fullness={String(mount.fullness ?? "unknown")}, confidence={String(mount.confidence ?? "low")} - {String(mount.summary ?? "보수적 해석")}
-                                </p>
-                              );
-                            })}
-                          </div>
-                        </details>
                       </section>
                     ) : null}
 
@@ -2665,7 +2384,7 @@ export default function PalmDestinyMain() {
                           );
                         })}
                       </div>
-                      {mobileFocusedCard ? renderInterpretationCard(mobileFocusedCard, true) : null}
+                      {mobileFocusedCard ? renderInterpretationCard(mobileFocusedCard) : null}
                     </section>
 
                     <section className="hidden space-y-4 md:block">
