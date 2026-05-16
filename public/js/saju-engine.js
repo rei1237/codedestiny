@@ -3872,6 +3872,257 @@ function generateIdealPartnerPrompt(p, natal){
   return prompt;
 }
 
+var SAJU_AI_PROMPT_COST = 100;
+var SAJU_AI_PROMPT_MIN_LENGTH = 5;
+var SAJU_AI_PROMPT_MAX_LENGTH = 1000;
+var ASTROLOGY_AI_PROMPT_COST = 100;
+var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
+var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
+
+function _sajuPromptClone(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (_) {
+    return null;
+  }
+}
+
+function _buildSajuAIPromptPayload() {
+  var profile = null;
+  var snapshot = null;
+  try { profile = window.__cdActiveBirthProfile || null; } catch (_) {}
+  try { snapshot = window.__destinyFlowerSajuSnapshot || null; } catch (_) {}
+
+  return {
+    profile: _sajuPromptClone(profile),
+    snapshot: _sajuPromptClone(snapshot),
+    pillars: _sajuPromptClone(G_PILLARS || null),
+    natal: _sajuPromptClone(G_NATAL || null),
+    johu: _sajuPromptClone(G_JOHU || null),
+    power: _sajuPromptClone(G_POWER || null),
+    jong: _sajuPromptClone(G_JONG || null)
+  };
+}
+
+function _applySajuAIPromptBalance(points) {
+  var n = Number(points);
+  if (!Number.isFinite(n)) return;
+
+  try {
+    var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+    user.points = n;
+    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+  } catch (_) {}
+
+  try {
+    if (typeof window.__cdSetGoldenBalance === 'function') {
+      window.__cdSetGoldenBalance(n);
+    }
+  } catch (_) {}
+}
+
+function _setSajuAIPromptStatus(node, message, tone) {
+  if (!node) return;
+  node.textContent = String(message || '');
+  if (tone === 'error') {
+    node.style.color = '#b91c1c';
+  } else if (tone === 'success') {
+    node.style.color = '#166534';
+  } else {
+    node.style.color = '#475569';
+  }
+}
+
+function _mountSajuAIPromptQuestionBox(aiCard) {
+  if (!aiCard || document.getElementById('sajuAiPromptQuestionBox')) return;
+
+  var box = document.createElement('div');
+  box.id = 'sajuAiPromptQuestionBox';
+  box.className = 'prem-box';
+  box.style.background = 'linear-gradient(135deg,#fff7ed,#fffbeb)';
+  box.style.border = '1.5px solid #f59e0b';
+  box.style.marginBottom = '12px';
+
+  box.innerHTML = ''
+    + '<span class="prem-title" style="color:#b45309;">🪙 질문 맞춤 사주 AI 상담 프롬프트</span>'
+    + '<p style="font-size:0.8rem;color:#7c2d12;margin-bottom:8px;line-height:1.55;">'
+    + '질문을 입력하면 현재 사주 분석 결과(JSON)를 근거로 AI 상담 프롬프트를 생성합니다. 성공 시 1회 100코인이 차감됩니다.'
+    + '</p>'
+    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예) 올해 이직을 준비해도 괜찮을까요? 강점과 리스크를 알려주세요." style="width:100%;min-height:96px;border:1px solid #fdba74;border-radius:10px;padding:10px;font-size:0.85rem;line-height:1.5;color:#444;background:#fff;resize:vertical;box-sizing:border-box;"></textarea>'
+    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;">'
+    + '  <span id="sajuAiPromptQuestionCount" style="font-size:0.74rem;color:#9a3412;">0 / 1000</span>'
+    + '  <span style="font-size:0.74rem;color:#9a3412;">프롬프트 생성 비용: 100코인</span>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
+    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:10px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">100코인으로 프롬프트 생성</button>'
+    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">생성 프롬프트 복사</button>'
+    + '</div>'
+    + '<textarea id="sajuAiPromptOutput" readonly style="display:none;margin-top:10px;width:100%;min-height:190px;border:1px solid #93c5fd;border-radius:10px;padding:10px;font-size:0.84rem;line-height:1.6;color:#1f2937;background:#eff6ff;resize:vertical;box-sizing:border-box;"></textarea>'
+    + '<div id="sajuAiPromptStatus" style="margin-top:8px;font-size:0.78rem;color:#475569;"></div>';
+
+  aiCard.insertBefore(box, aiCard.firstChild);
+
+  var inputEl = document.getElementById('sajuAiPromptQuestionInput');
+  var countEl = document.getElementById('sajuAiPromptQuestionCount');
+  var generateBtn = document.getElementById('sajuAiPromptGenerateBtn');
+  var copyBtn = document.getElementById('sajuAiPromptCopyBtn');
+  var outputEl = document.getElementById('sajuAiPromptOutput');
+  var statusEl = document.getElementById('sajuAiPromptStatus');
+
+  if (!inputEl || !countEl || !generateBtn || !copyBtn || !outputEl || !statusEl) return;
+
+  var inFlight = false;
+
+  function setLoading(nextLoading) {
+    inFlight = !!nextLoading;
+    generateBtn.disabled = inFlight;
+    inputEl.disabled = inFlight;
+    generateBtn.style.opacity = inFlight ? '0.72' : '1';
+    generateBtn.textContent = inFlight
+      ? '프롬프트 생성 중...'
+      : (SAJU_AI_PROMPT_COST + '코인으로 프롬프트 생성');
+  }
+
+  function updateCount() {
+    var len = String(inputEl.value || '').trim().length;
+    countEl.textContent = len + ' / ' + SAJU_AI_PROMPT_MAX_LENGTH;
+  }
+
+  function buildHeaders() {
+    var headers = { 'Content-Type': 'application/json' };
+    var token = '';
+    try { token = getFortuneAuthToken(); } catch (_) {}
+    if (token) headers.Authorization = 'Bearer ' + token;
+    return headers;
+  }
+
+  function requestSajuPrompt(body) {
+    var path = '/api/fortune/saju/ai-prompt';
+    var urls = [path];
+    try {
+      var base = getFortuneApiBaseUrl();
+      if (base) {
+        var full = String(base).replace(/\/+$/, '') + path;
+        if (urls.indexOf(full) < 0) urls.push(full);
+      }
+    } catch (_) {}
+
+    function runAt(index) {
+      return fetch(urls[index], {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildHeaders(),
+        body: JSON.stringify(body)
+      }).then(function(res) {
+        return res.json().catch(function() { return {}; }).then(function(payload) {
+          return { ok: res.ok, status: res.status, payload: payload || {} };
+        });
+      }).catch(function(err) {
+        if (index + 1 < urls.length) return runAt(index + 1);
+        throw err;
+      });
+    }
+
+    return runAt(0);
+  }
+
+  generateBtn.addEventListener('click', function() {
+    if (inFlight) return;
+
+    var question = String(inputEl.value || '').trim();
+    if (!question || question.length < SAJU_AI_PROMPT_MIN_LENGTH) {
+      _setSajuAIPromptStatus(statusEl, '질문은 최소 ' + SAJU_AI_PROMPT_MIN_LENGTH + '자 이상 입력해 주세요.', 'error');
+      return;
+    }
+    if (question.length > SAJU_AI_PROMPT_MAX_LENGTH) {
+      _setSajuAIPromptStatus(statusEl, '질문은 최대 ' + SAJU_AI_PROMPT_MAX_LENGTH + '자까지 입력할 수 있습니다.', 'error');
+      return;
+    }
+
+    var sajuPayload = _buildSajuAIPromptPayload();
+    if (!sajuPayload || !sajuPayload.pillars || !sajuPayload.pillars.d) {
+      _setSajuAIPromptStatus(statusEl, '사주 분석 결과를 먼저 생성한 뒤 다시 시도해 주세요.', 'error');
+      return;
+    }
+
+    setLoading(true);
+    _setSajuAIPromptStatus(statusEl, '질문에 맞는 프롬프트를 생성하고 있습니다...', 'info');
+
+    requestSajuPrompt({
+      question: question,
+      sajuResult: sajuPayload
+    }).then(function(result) {
+      var payload = result.payload || {};
+      if (result.ok && payload.ok === true && typeof payload.prompt === 'string' && payload.prompt.trim()) {
+        outputEl.style.display = 'block';
+        outputEl.value = payload.prompt;
+        outputEl.scrollTop = 0;
+        copyBtn.style.display = 'inline-flex';
+        var charged = Math.max(0, Number(payload.chargedCoins || 0));
+        var balanceAfter = Number(payload.balanceAfter);
+        if (Number.isFinite(balanceAfter)) _applySajuAIPromptBalance(balanceAfter);
+        _setSajuAIPromptStatus(
+          statusEl,
+          charged > 0
+            ? ('프롬프트 생성 완료. ' + charged + '코인이 차감되었습니다.')
+            : '프롬프트 생성 완료.',
+          'success'
+        );
+        return;
+      }
+
+      var code = String(payload.code || '').trim();
+      var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+
+      if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+        _setSajuAIPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
+        if (window.confirm('로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?')) {
+          var next = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = '/login?next=' + next;
+        }
+        return;
+      }
+
+      if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+        _setSajuAIPromptStatus(statusEl, message, 'error');
+        try {
+          if (typeof window.openChargeModal === 'function') {
+            window.openChargeModal();
+            return;
+          }
+        } catch (_) {}
+        if (window.confirm('코인이 부족합니다. 포인트 페이지로 이동할까요?')) {
+          window.location.href = '/points?next=%2F';
+        }
+        return;
+      }
+
+      _setSajuAIPromptStatus(statusEl, message, 'error');
+    }).catch(function() {
+      _setSajuAIPromptStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+    }).finally(function() {
+      setLoading(false);
+    });
+  });
+
+  copyBtn.addEventListener('click', function() {
+    var text = String(outputEl.value || '').trim();
+    if (!text) {
+      _setSajuAIPromptStatus(statusEl, '복사할 프롬프트가 없습니다.', 'error');
+      return;
+    }
+    navigator.clipboard.writeText(text).then(function() {
+      _setSajuAIPromptStatus(statusEl, '프롬프트를 복사했습니다.', 'success');
+    }).catch(function() {
+      _setSajuAIPromptStatus(statusEl, '복사에 실패했습니다. 텍스트를 직접 복사해 주세요.', 'error');
+    });
+  });
+
+  inputEl.addEventListener('input', updateCount);
+  updateCount();
+}
+
 /* ─── 심화 매력 분석 & AI 물상 렌더링 (초디테일 버전) ─── */
 function renderSpecialCharm(p, natal) {
   /* ── 1. 기초 데이터 ── */
@@ -4067,6 +4318,11 @@ function renderSpecialCharm(p, natal) {
   
   document.getElementById('dailyMonthlyCard').insertAdjacentHTML('afterend', html);
   document.getElementById('specialCharmCard').insertAdjacentHTML('afterend', aiPromptHtml);
+
+  var aiCardNode = document.getElementById('aiPromptCard');
+  if (aiCardNode) {
+    _mountSajuAIPromptQuestionBox(aiCardNode);
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -6237,6 +6493,8 @@ function renderAstroInsight() {
       return;
     }
 
+    var astroLatestCompatibilityResult = null;
+
     /* ── 현재 날짜 목성 트랜짓 (실시간) ── */
     var now = new Date();
     var jupiterTransit = chartNow.planets.Jupiter.sign.sign;
@@ -7064,6 +7322,32 @@ function renderAstroInsight() {
       + '<p class="astro-birth-foot">모바일에서는 스크롤 중 실수 탭이 줄도록 카드 터치 가드를 적용했습니다. 천천히 스크롤해도 의도치 않게 펼쳐지지 않아요.</p>'
       + '</div>';
 
+    var astroAiPromptSectionHtml = ''
+      + '<div class="astro-section astro-neon-accent astro-neon-accent-amber" id="astroAiPromptSection">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;color:#fde68a;">🪙 점성술 AI 질문 프롬프트 생성기</div>'
+      + '<p class="astro-birth-lead" style="margin-bottom:8px;">'
+      + '질문을 입력하면 현재 점성술 결과를 기반으로 상담형 프롬프트를 생성합니다. 궁합 질문은 먼저 시나스트리 결과를 계산해 주세요.'
+      + '</p>'
+      + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
+      + '  <span style="font-size:11px;color:#fde68a;">1회 '+ASTROLOGY_AI_PROMPT_COST+'코인 차감</span>'
+      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#fef3c7;">코인 잔액 확인 중...</span>'
+      + '</div>'
+      + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요." style="width:100%;min-height:102px;border-radius:10px;border:1px solid rgba(245,158,11,0.45);background:rgba(2,6,23,.68);color:#f8fafc;padding:10px;line-height:1.6;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">'
+      + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#fcd34d;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
+      + '  <span style="font-size:11px;color:#fcd34d;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;border:1px solid rgba(251,191,36,.45);border-radius:9px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;">'+ASTROLOGY_AI_PROMPT_COST+'코인으로 생성</button>'
+      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:#0ea5e9;color:#fff;border:1px solid rgba(125,211,252,.5);border-radius:9px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+      + '</div>'
+      + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.55;"></div>'
+      + '<div id="astroAiPromptOutputWrap" style="display:none;margin-top:10px;border:1px solid rgba(52,211,153,.35);border-radius:10px;background:rgba(2,44,34,.35);padding:10px;">'
+      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a7f3d0;font-weight:700;margin-bottom:6px;">질문 유형: 일반</div>'
+      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:8px;border:1px solid rgba(134,239,172,.4);background:rgba(2,6,23,.75);color:#ecfdf5;padding:10px;font-size:12px;line-height:1.62;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '</div>'
+      + '</div>';
+
     masterInsight = '<div class="astro-section precision-insight-card astro-neon-accent astro-neon-accent-gold" style="margin-bottom:20px;">'
       +'<div class="astro-subhead" style="color:#D4AF37;">🌌 Cosmic Summary</div>'
       +'<div class="astro-birth-chip-row" style="margin-bottom:10px;">'+birthMapSummaryChips+'</div>'
@@ -7442,6 +7726,7 @@ function renderAstroInsight() {
       + personalGuidanceSectionHtml
       + astroCanonicalSectionHtml
       + mobileScenarioSectionHtml
+      + astroAiPromptSectionHtml
 
         +'<div class="astro-section">'
         +'<div class="astro-subhead">🌟 심화 1. 성향 근거 자세히 (태양·달·상승궁)</div>'
@@ -7864,6 +8149,332 @@ function renderAstroInsight() {
     }
     _astroInitBirthMapSection();
 
+    function _astroPromptClone(value) {
+      try {
+        return JSON.parse(JSON.stringify(value));
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function _astroHouseLabel(value) {
+      var n = Number(value);
+      if (!Number.isFinite(n) || n <= 0) return '-';
+      return String(Math.trunc(n)) + 'H';
+    }
+
+    function _astroQuestionTypeLabel(type) {
+      var map = {
+        compatibility: '궁합/시나스트리',
+        love: '연애/관계',
+        career: '직업/커리어',
+        money: '돈/재정',
+        health: '건강/멘탈',
+        life_direction: '인생 방향',
+        relationship: '인간관계',
+        general: '일반'
+      };
+      return map[String(type || 'general')] || map.general;
+    }
+
+    function _astroBuildPromptContext() {
+      var placements = Array.isArray(placementData) ? placementData.slice(0, 12).map(function(row) {
+        return {
+          planet: String(row && row.planet || ''),
+          sign: String(row && row.sign || ''),
+          house: row && row.wholeSignHouse ? (String(row.wholeSignHouse) + 'H') : '-',
+          degree: (row && Number.isFinite(Number(row.lon))) ? (Number(row.lon).toFixed(2) + '°') : '-'
+        };
+      }) : [];
+
+      var majorAspects = Array.isArray(majorAspectRows) ? majorAspectRows.slice(0, 12).map(function(row) {
+        var text = String(row && row.text || '').trim();
+        return {
+          pair: text || '주요 각도',
+          aspect: String(row && row.aspectName || row && row.aspect || '').trim() || '-',
+          orb: Number.isFinite(Number(row && row.orb)) ? (Number(row.orb).toFixed(2) + '°') : '-'
+        };
+      }) : [];
+
+      var astrologyResult = {
+        birth: {
+          year: y,
+          month: m,
+          day: d,
+          hour: h,
+          minute: min,
+          timezone: 'UTC' + (tz >= 0 ? '+' : '') + tz,
+          latitude: lat,
+          longitude: lon
+        },
+        coreSigns: {
+          sun: sunSign,
+          moon: moonSign,
+          asc: ascSign,
+          mc: mcSign,
+          desc: descSign
+        },
+        elements: {
+          dominant: elemDominant,
+          weakest: elemWeakest,
+          counts: {
+            fire: elemCount.fire,
+            earth: elemCount.earth,
+            air: elemCount.air,
+            water: elemCount.water
+          },
+          percentages: {
+            fire: elemPct.fire,
+            earth: elemPct.earth,
+            air: elemPct.air,
+            water: elemPct.water
+          }
+        },
+        modalities: {
+          dominant: modalityDominant,
+          counts: {
+            cardinal: modalityCount.cardinal,
+            fixed: modalityCount.fixed,
+            mutable: modalityCount.mutable
+          },
+          advice: modalityAdvice[modalityDominant] || ''
+        },
+        focus: {
+          topHouse: topFocusHouse ? String(topFocusHouse) + 'H' : '-',
+          topHouseTopic: topHouseTopic,
+          focusCount: topFocusCount
+        },
+        transits: {
+          jupiterTransit: jupiterTransit,
+          jupiterIndex: jupiterIndex,
+          message: transitMsg[jupiterIndex] || ''
+        },
+        timelord: {
+          firdaria: {
+            main: firdariaMain ? firdariaMain.kr : '',
+            sub: firdariaSubPlanet,
+            yearsLeft: firdariaMainYearsLeft
+          },
+          profection: {
+            house: profHouse,
+            sign: profSign,
+            ruler: profRuler,
+            theme: (profectionDynamic && profectionDynamic.theme) || (curProfData && curProfData.theme) || ''
+          }
+        },
+        placements: placements,
+        majorAspects: majorAspects
+      };
+
+      return {
+        astrologyResult: astrologyResult,
+        compatibilityResult: _astroPromptClone(astroLatestCompatibilityResult)
+      };
+    }
+
+    function _astroSetPromptStatus(node, message, tone) {
+      if (!node) return;
+      node.textContent = String(message || '');
+      if (tone === 'error') {
+        node.style.color = '#fda4af';
+      } else if (tone === 'success') {
+        node.style.color = '#86efac';
+      } else {
+        node.style.color = '#cbd5e1';
+      }
+    }
+
+    function _astroSetCoinBalanceText(node, points) {
+      if (!node) return;
+      var n = Number(points);
+      if (Number.isFinite(n)) {
+        node.textContent = '현재 코인 ' + n.toLocaleString('ko-KR');
+        return;
+      }
+
+      try {
+        var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+        var p = Number(user && user.points);
+        if (Number.isFinite(p)) {
+          node.textContent = '현재 코인 ' + p.toLocaleString('ko-KR');
+          return;
+        }
+      } catch (_) {}
+
+      node.textContent = '현재 코인 확인 불가';
+    }
+
+    function _astroBuildPromptHeaders() {
+      var headers = { 'Content-Type': 'application/json' };
+      var token = '';
+      try { token = getFortuneAuthToken(); } catch (_) {}
+      if (token) headers.Authorization = 'Bearer ' + token;
+      return headers;
+    }
+
+    function _astroRequestAIPrompt(body) {
+      var path = '/api/fortune/astrology/ai-prompt';
+      var urls = [path];
+      try {
+        var base = getFortuneApiBaseUrl();
+        if (base) {
+          var full = String(base).replace(/\/+$/, '') + path;
+          if (urls.indexOf(full) < 0) urls.push(full);
+        }
+      } catch (_) {}
+
+      function runAt(index) {
+        return fetch(urls[index], {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-store',
+          headers: _astroBuildPromptHeaders(),
+          body: JSON.stringify(body)
+        }).then(function(res) {
+          return res.json().catch(function() { return {}; }).then(function(payload) {
+            return { ok: res.ok, status: res.status, payload: payload || {} };
+          });
+        }).catch(function(err) {
+          if (index + 1 < urls.length) return runAt(index + 1);
+          throw err;
+        });
+      }
+
+      return runAt(0);
+    }
+
+    function _astroMountPromptSection() {
+      var inputEl = document.getElementById('astroAiPromptQuestionInput');
+      var countEl = document.getElementById('astroAiPromptQuestionCount');
+      var generateBtn = document.getElementById('astroAiPromptGenerateBtn');
+      var copyBtn = document.getElementById('astroAiPromptCopyBtn');
+      var statusEl = document.getElementById('astroAiPromptStatus');
+      var outputWrap = document.getElementById('astroAiPromptOutputWrap');
+      var outputEl = document.getElementById('astroAiPromptOutput');
+      var typeEl = document.getElementById('astroAiPromptType');
+      var balanceEl = document.getElementById('astroAiPromptCoinBalance');
+
+      if (!inputEl || !countEl || !generateBtn || !copyBtn || !statusEl || !outputWrap || !outputEl || !typeEl) return;
+
+      var inFlight = false;
+      _astroSetCoinBalanceText(balanceEl);
+
+      function setLoading(nextLoading) {
+        inFlight = !!nextLoading;
+        generateBtn.disabled = inFlight;
+        inputEl.disabled = inFlight;
+        generateBtn.style.opacity = inFlight ? '0.72' : '1';
+        generateBtn.textContent = inFlight ? '생성 중...' : (ASTROLOGY_AI_PROMPT_COST + '코인으로 생성');
+      }
+
+      function updateCount() {
+        var len = String(inputEl.value || '').trim().length;
+        countEl.textContent = len + ' / ' + ASTROLOGY_AI_PROMPT_MAX_LENGTH;
+      }
+
+      generateBtn.addEventListener('click', function() {
+        if (inFlight) return;
+
+        var question = String(inputEl.value || '').trim();
+        if (!question || question.length < ASTROLOGY_AI_PROMPT_MIN_LENGTH) {
+          _astroSetPromptStatus(statusEl, '질문은 최소 ' + ASTROLOGY_AI_PROMPT_MIN_LENGTH + '자 이상 입력해 주세요.', 'error');
+          return;
+        }
+        if (question.length > ASTROLOGY_AI_PROMPT_MAX_LENGTH) {
+          _astroSetPromptStatus(statusEl, '질문은 최대 ' + ASTROLOGY_AI_PROMPT_MAX_LENGTH + '자까지 입력해 주세요.', 'error');
+          return;
+        }
+
+        var context = _astroBuildPromptContext();
+        setLoading(true);
+        _astroSetPromptStatus(statusEl, '질문 맞춤 프롬프트를 생성하고 있습니다...', 'info');
+
+        _astroRequestAIPrompt({
+          question: question,
+          astrologyResult: context.astrologyResult,
+          compatibilityResult: context.compatibilityResult
+        }).then(function(result) {
+          var payload = result.payload || {};
+          if (result.ok && payload.ok === true && typeof payload.prompt === 'string' && payload.prompt.trim()) {
+            outputWrap.style.display = 'block';
+            outputEl.value = payload.prompt;
+            outputEl.scrollTop = 0;
+            copyBtn.style.display = 'inline-flex';
+
+            var qType = String(payload.questionType || 'general');
+            typeEl.textContent = '질문 유형: ' + _astroQuestionTypeLabel(qType);
+
+            var charged = Math.max(0, Number(payload.chargedCoins || 0));
+            var balanceAfter = Number(payload.balanceAfter);
+            if (Number.isFinite(balanceAfter)) {
+              _applySajuAIPromptBalance(balanceAfter);
+              _astroSetCoinBalanceText(balanceEl, balanceAfter);
+            } else {
+              _astroSetCoinBalanceText(balanceEl);
+            }
+
+            _astroSetPromptStatus(
+              statusEl,
+              charged > 0
+                ? ('프롬프트 생성 완료. ' + charged + '코인이 차감되었습니다.')
+                : '프롬프트 생성 완료.',
+              'success'
+            );
+            return;
+          }
+
+          var code = String(payload.code || '').trim();
+          var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+
+          if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+            _astroSetPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
+            if (window.confirm('로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?')) {
+              var next = encodeURIComponent(window.location.pathname + window.location.search);
+              window.location.href = '/login?next=' + next;
+            }
+            return;
+          }
+
+          if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+            _astroSetPromptStatus(statusEl, message, 'error');
+            try {
+              if (typeof window.openChargeModal === 'function') {
+                window.openChargeModal();
+                return;
+              }
+            } catch (_) {}
+            if (window.confirm('코인이 부족합니다. 포인트 페이지로 이동할까요?')) {
+              window.location.href = '/points?next=%2F';
+            }
+            return;
+          }
+
+          _astroSetPromptStatus(statusEl, message, 'error');
+        }).catch(function() {
+          _astroSetPromptStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+        }).finally(function() {
+          setLoading(false);
+        });
+      });
+
+      copyBtn.addEventListener('click', function() {
+        var text = String(outputEl.value || '').trim();
+        if (!text) {
+          _astroSetPromptStatus(statusEl, '복사할 프롬프트가 없습니다.', 'error');
+          return;
+        }
+        navigator.clipboard.writeText(text).then(function() {
+          _astroSetPromptStatus(statusEl, '프롬프트를 복사했습니다.', 'success');
+        }).catch(function() {
+          _astroSetPromptStatus(statusEl, '복사에 실패했습니다. 텍스트를 직접 복사해 주세요.', 'error');
+        });
+      });
+
+      inputEl.addEventListener('input', updateCount);
+      updateCount();
+    }
+    _astroMountPromptSection();
+
     /* ── 시나스트리 성궁 진법 초기화 (DOM 삽입 후) ── */
     setTimeout(function() {
         /* userSunIdx: 내 태양 별자리 인덱스 (12궁) */
@@ -8283,6 +8894,7 @@ function renderAstroInsight() {
     window._astroPickCelebCore = function(name, birth, hour) {
         var resultDiv = document.getElementById('astroSyResult');
         if (!resultDiv) return;
+      astroLatestCompatibilityResult = null;
         resultDiv.style.display = 'block';
         resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">🌌 셀럽 시나스트리 계산중</div><span class="astro-neon-syn-chip">Deep Universe</span></div><div class="astro-syn-loading">우주 좌표 싱크 중... 지금 별의 각도와 하우스 오버레이를 맞춰서 케미 지도를 만들고 있어요.</div></div>';
 
@@ -8381,6 +8993,33 @@ function renderAstroInsight() {
                 var busDesc = synNarr.busDesc;
                 var spiritDesc = synNarr.spiritDesc;
 
+                astroLatestCompatibilityResult = {
+                  source: 'celebrity',
+                  score: synScore,
+                  relationType: relType,
+                  loveDesc: loveDesc,
+                  workDesc: busDesc,
+                  spiritDesc: spiritDesc,
+                  bestSupport: bestSupport,
+                  bestChallenge: bestChallenge,
+                  partner: {
+                    name: name,
+                    gender: celebRec && celebRec.gender ? celebRec.gender : 'OTHER',
+                    sun: celebSunSign,
+                    moon: celebMoonSign,
+                    venus: celebVSign,
+                    mars: celebMSign
+                  },
+                  houseOverlay: {
+                    mySunInPartnerHouse: _astroHouseLabel(overlayMySunToTheir),
+                    partnerSunInMyHouse: _astroHouseLabel(overlayTheirSunToMy),
+                    myMoonInPartnerHouse: _astroHouseLabel(overlayMyMoonToTheir),
+                    partnerMoonInMyHouse: _astroHouseLabel(overlayTheirMoonToMy),
+                    myVenusInPartnerHouse: _astroHouseLabel(overlayMyVenusToTheir),
+                    partnerVenusInMyHouse: _astroHouseLabel(overlayTheirVenusToMy)
+                  }
+                };
+
                 /* ── HTML 렌더 ── */
                 var html2 = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">🌌 셀럽 시나스트리 리포트</div><span class="astro-neon-syn-chip">네온 궁합 모드</span></div><p class="astro-neon-mz-tip">오늘의 별자리 브리핑 톤 그대로 적용했어요. 점수는 내비게이션, 진짜 키는 대화 템포와 감정 회복 루틴입니다.</p>';
                 html2 += '<div class="astro-syn-quick"><div class="astro-syn-quick-title">Quick Read</div><ul><li><b>현재 관계 결:</b> '+relType+'</li><li><b>강점 각도:</b> '+bestSupport+'</li><li><b>보완 포인트:</b> '+bestChallenge+'</li></ul></div>';
@@ -8475,6 +9114,7 @@ function renderAstroInsight() {
                 resultDiv.innerHTML = html2;
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch(e) {
+              astroLatestCompatibilityResult = null;
                 resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
@@ -8504,6 +9144,7 @@ function renderAstroInsight() {
     window._astroDirectSynastryCore = function() {
         var resultDiv = document.getElementById('asDirectResult');
         if (!resultDiv) return;
+      astroLatestCompatibilityResult = null;
 
         var nameVal = (document.getElementById('asDirect_name') || {}).value || '상대방';
         var dateVal = (document.getElementById('asDirect_date') || {}).value;
@@ -8651,6 +9292,33 @@ function renderAstroInsight() {
                 var loveDesc2 = synNarr2.loveDesc;
                 var busDesc2 = synNarr2.busDesc;
                 var spiritDesc2 = synNarr2.spiritDesc;
+
+                astroLatestCompatibilityResult = {
+                  source: 'direct',
+                  score: synScore2,
+                  relationType: relType2,
+                  loveDesc: loveDesc2,
+                  workDesc: busDesc2,
+                  spiritDesc: spiritDesc2,
+                  bestSupport: bestSupport2,
+                  bestChallenge: bestChallenge2,
+                  partner: {
+                    name: nameVal,
+                    gender: genderVal,
+                    sun: pSunSign,
+                    moon: pMoonSign,
+                    venus: pVSign,
+                    mars: pMSign
+                  },
+                  houseOverlay: {
+                    mySunInPartnerHouse: _astroHouseLabel(ovMySunToPartner),
+                    partnerSunInMyHouse: _astroHouseLabel(ovPartnerSunToMy),
+                    myMoonInPartnerHouse: _astroHouseLabel(ovMyMoonToPartner),
+                    partnerMoonInMyHouse: _astroHouseLabel(ovPartnerMoonToMy),
+                    myVenusInPartnerHouse: _astroHouseLabel(ovMyVenusToPartner),
+                    partnerVenusInMyHouse: _astroHouseLabel(ovPartnerVenusToMy)
+                  }
+                };
 
                 /* ── 렌더 ── */
                 var h = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">💫 직접 입력 시나스트리 리포트</div><span class="astro-neon-syn-chip">실전 궁합 맵</span></div><p class="astro-neon-mz-tip">오늘 브리핑 감성으로 풀어낸 실전 버전입니다. 점수는 방향표이고, 관계의 승부는 합의 루틴과 리페어 속도에서 갈려요.</p>';
@@ -8828,6 +9496,7 @@ function renderAstroInsight() {
                   console.warn('[CompatLlm western]', llmW);
                 }
             } catch(e) {
+              astroLatestCompatibilityResult = null;
                 resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
@@ -12819,74 +13488,152 @@ function renderZiwei(p, natal, targetId) {
       + '</div>';
   }
 
-  function _zwBuildDeepAiPromptSet(payload) {
-    if (!payload) {
+  var _ZW_AI_PROMPT_COST = 100;
+  var _ZW_AI_PROMPT_MAX_LENGTH = 1000;
+  var _ZW_AI_PROMPT_MIN_LENGTH = 5;
+
+  function _zwPromptPalaceIdFromName(name) {
+    var map = {
+      '명궁': 'ming',
+      '형제궁': 'siblings',
+      '부부궁': 'spouse',
+      '자녀궁': 'children',
+      '재백궁': 'wealth',
+      '질액궁': 'health',
+      '천이궁': 'travel',
+      '교우궁': 'friends',
+      '관록궁': 'career',
+      '전택궁': 'property',
+      '복덕궁': 'fortune',
+      '부모궁': 'parents'
+    };
+    var key = String(name || '').trim();
+    return map[key] || '';
+  }
+
+  function _zwPromptNormalizeStar(raw) {
+    if (raw && typeof raw === 'object') {
+      var objName = String(raw.name || '').trim();
+      if (!objName) return null;
       return {
-        master: '자미두수 심화 데이터를 불러오지 못했습니다. 명반 계산 후 다시 시도하세요.',
-        career: '',
-        relation: '',
-        strategy: ''
+        name: objName,
+        strengthSymbol: String(raw.strengthSymbol || raw.symbol || '').trim()
       };
     }
+    var text = String(raw || '')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!text) return null;
+    var symbolMatch = text.match(/[◎○△×]/);
+    var symbol = symbolMatch ? symbolMatch[0] : '';
+    var name = text
+      .replace(/[◎○△×]/g, '')
+      .replace(/\(차성\)/g, '')
+      .trim();
+    if (!name) return null;
+    return {
+      name: name,
+      strengthSymbol: symbol
+    };
+  }
 
-    var topLines = payload.topPalaces.map(function(row, idx) {
-      return (idx + 1) + ') ' + row.palace + ' [' + (row.mainStars[0] || '공궁') + '] / 점수 ' + row.score;
-    }).join('\n');
-    var riskLines = payload.riskPalaces.map(function(row, idx) {
-      return (idx + 1) + ') ' + row.palace + ' / 리스크 ' + row.riskScore + (row.sihua ? ' / ' + row.sihua : '');
-    }).join('\n');
-    var decadeLines = payload.decadeFlow.slice(0, 6).map(function(row) {
-      return '- ' + row.period + ' : ' + row.palace + ' / ' + row.focus;
-    }).join('\n');
-    var dataBlock = ''
-      + '[자미두수 심화 데이터]\n'
-      + '명궁=' + payload.core.meng + ', 신궁=' + payload.core.shen + ', 오행국=' + payload.core.juInfo + '\n'
-      + '사화=' + '화록 ' + payload.sihua.count['화록'] + ', 화권 ' + payload.sihua.count['화권'] + ', 화과 ' + payload.sihua.count['화과'] + ', 화기 ' + payload.sihua.count['화기'] + ', 주축 ' + payload.sihua.dominant + '\n'
-      + '핵심궁 TOP\n' + topLines + '\n'
-      + '리스크궁\n' + riskLines + '\n'
-      + '대운리듬\n' + decadeLines + '\n'
-      + '키워드=' + (payload.keywords || []).join(', ');
+  function _zwPromptNormalizeStarList(list) {
+    if (!Array.isArray(list)) return [];
+    return list
+      .map(function(item) { return _zwPromptNormalizeStar(item); })
+      .filter(function(item) { return !!item && !!item.name; });
+  }
 
-    var guard = ''
-      + '[해석 규칙]\n'
-      + '1) 데이터에 없는 항목은 추정하지 말 것\n'
-      + '2) 각 결론마다 근거 궁/별/사화 2개 이상 제시\n'
-      + '3) 확률형 문장으로 표현하고 단정 금지\n'
-      + '4) 의료/법률/투자 결과 보장 금지\n';
+  function _zwGetPromptProfile() {
+    try {
+      if (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) return window.__cdActiveBirthProfile;
+    } catch (_) {}
+    try {
+      if (window.__destinyFlowerSajuSnapshot && window.__destinyFlowerSajuSnapshot.birth) return window.__destinyFlowerSajuSnapshot;
+    } catch (_) {}
+    return null;
+  }
 
-    var outputMaster = ''
-      + '[출력 형식]\n'
-      + '- 총평 5줄\n'
-      + '- 강점 3개(근거 포함)\n'
-      + '- 리스크 3개(회피 액션 포함)\n'
-      + '- 90일 실행계획(매월 3개)\n'
-      + '- 한 줄 결론\n';
+  function _zwBuildPromptChartResult(pd) {
+    var birth = window._ziweiBirth || {};
+    var profile = _zwGetPromptProfile();
+    var profileBirth = (profile && profile.birth) ? profile.birth : {};
+    var rawGender = String((profile && profile.gender) || '').trim().toLowerCase();
+    var normalizedGender = '';
+    if (rawGender === 'm' || rawGender === 'male' || rawGender.indexOf('남') === 0) normalizedGender = 'M';
+    if (rawGender === 'f' || rawGender === 'female' || rawGender.indexOf('여') === 0) normalizedGender = 'F';
+    var calendarType = String(profileBirth.calendarType || profileBirth.calendar || 'solar').toLowerCase() === 'lunar' ? 'lunar' : 'solar';
+    var unknownHour = profileBirth.unknownHour === true || birth.unknownHour === true;
+    var user = {
+      name: (profile && profile.name) ? String(profile.name) : '',
+      gender: normalizedGender,
+      birthYear: Number(profileBirth.year || birth.year || 0) || undefined,
+      birthMonth: Number(profileBirth.month || birth.month || 0) || undefined,
+      birthDay: Number(profileBirth.day || birth.day || 0) || undefined,
+      birthHour: Number(profileBirth.hour || birth.hour || 0) || undefined,
+      birthMinute: Number(profileBirth.minute || birth.minute || 0) || undefined,
+      calendarType: calendarType,
+      unknownHour: unknownHour,
+      birthPlace: '대한민국 서울',
+      timezone: 'Asia/Seoul'
+    };
 
-    var outputCareer = ''
-      + '[출력 형식]\n'
-      + '- 커리어 확장 타이밍 3구간\n'
-      + '- 재물 운영 원칙 5개\n'
-      + '- 피해야 할 의사결정 3개\n'
-      + '- 이번 달/다음 달 액션 5개\n';
+    var palaceRows = Array.isArray(pd && pd.palaceStarData) ? pd.palaceStarData : [];
+    var palaces = palaceRows.map(function(row, idx) {
+      var palaceName = String((row && row.palace) || ((pd && pd.palacesByIndex && pd.palacesByIndex[idx]) || '')).trim();
+      var palaceId = _zwPromptPalaceIdFromName(palaceName);
+      return {
+        id: palaceId,
+        name: palaceName,
+        branch: String((row && row.branch) || (ZHI_LIST[idx] || '')).trim(),
+        mainStars: _zwPromptNormalizeStarList((row && row.stars) || []),
+        auxiliaryStars: _zwPromptNormalizeStarList((row && row.auxStars) || []),
+        strengthSummary: {
+          weakStars: _zwPromptNormalizeStarList((row && row.badStars) || [])
+        },
+        index: idx
+      };
+    });
 
-    var outputRelation = ''
-      + '[출력 형식]\n'
-      + '- 관계 패턴 진단 4줄\n'
-      + '- 연애/배우자 궁 해석 6줄\n'
-      + '- 갈등 방지 대화 프레임 5개\n'
-      + '- 관계 회복 루틴 14일 플랜\n';
+    var majorPeriods = Array.isArray(pd && pd.daHanList)
+      ? pd.daHanList.map(function(period, idx) {
+        var palaceName = (pd && pd.palacesByIndex && pd.palacesByIndex[idx]) || '';
+        return {
+          palaceId: _zwPromptPalaceIdFromName(palaceName),
+          range: String(period || '')
+        };
+      })
+      : [];
 
-    var outputStrategy = ''
-      + '[출력 형식]\n'
-      + '- 12개월 월별 핵심 포커스(표)\n'
-      + '- 분기별 목표 KPI(행동지표)\n'
-      + '- 리스크 이벤트 대응 체크리스트\n';
+    var summaryDirection = '';
+    if (pd && typeof pd.meng !== 'undefined' && typeof pd.shen !== 'undefined') {
+      summaryDirection = '명궁 ' + String(pd.meng || '-') + ' · 신궁 ' + String(pd.shen || '-') + ' 축 중심';
+    }
 
     return {
-      master: '너는 자미두수 실전 통변가다. 아래 심화 데이터를 기반으로 정밀 운세 리포트를 작성하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputMaster,
-      career: '너는 자미두수 커리어·재물 전문 분석가다. 아래 데이터로 직업/사업/재무 전략만 집중 분석하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputCareer,
-      relation: '너는 자미두수 관계 통변 전문가다. 아래 데이터로 연애·배우자·관계 회복 전략을 상세히 작성하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputRelation,
-      strategy: '너는 자미두수 연간 코치다. 아래 데이터로 12개월 실행 로드맵을 현실적으로 작성하라.\n\n' + guard + '\n' + dataBlock + '\n\n' + outputStrategy
+      user: user,
+      mingGong: String((pd && pd.meng) || ''),
+      shenGong: String((pd && pd.shen) || ''),
+      juInfo: String((pd && pd.juInfo) || ''),
+      summary: {
+        direction: summaryDirection,
+        strengths: [],
+        weaknesses: []
+      },
+      sihua: {
+        hualu: '',
+        huaquan: '',
+        huake: '',
+        huaji: ''
+      },
+      majorPeriods: majorPeriods,
+      annualFlow: {
+        yearLabel: String(new Date().getFullYear()) + '년',
+        keyPalaces: [],
+        notes: []
+      },
+      palaces: palaces
     };
   }
 
@@ -12915,40 +13662,27 @@ function renderZiwei(p, natal, targetId) {
     });
   }
 
-  function _zwOpenAiChatPrompt(promptText, statusEl) {
-    var text = String(promptText || '').trim();
-    if (!text) {
-      if (statusEl) statusEl.textContent = '프롬프트가 비어 있습니다.';
-      return;
-    }
-    _zwCopyTextSafe(text).then(function() {
-      if (statusEl) statusEl.textContent = '프롬프트를 복사했고 AI 채팅을 엽니다.';
-      var chatUrl = 'https://chat.openai.com/?q=' + encodeURIComponent(text);
-      window.open(chatUrl, '_blank', 'noopener,noreferrer');
-    }).catch(function() {
-      if (statusEl) statusEl.textContent = '자동 복사에 실패했습니다. 텍스트를 직접 복사한 뒤 AI 채팅에 붙여 넣어 주세요.';
-      window.open('https://chat.openai.com/', '_blank', 'noopener,noreferrer');
-    });
-  }
-
   function _zwBuildDeepAiPromptPanel() {
     return ''
       + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel">'
       + '  <div class="zw-dp-header">'
-      + '    <div class="zw-dp-title">🧠 자미두수 심화 AI 프롬프트</div>'
-      + '    <div class="zw-dp-subtitle">심화 명반 데이터를 근거로 프롬프트 4종을 즉시 생성합니다.</div>'
+      + '    <div class="zw-dp-title">🪙 자미두수 AI 질문 프롬프트</div>'
+      + '    <div class="zw-dp-subtitle">기본 명반 데이터를 기반으로 질문별 고품질 상담 프롬프트를 생성합니다. (1회 100코인)</div>'
       + '  </div>'
-      + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
-      + '    <button type="button" data-zw-prompt-key="master" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(196,181,253,0.5);background:rgba(76,29,149,0.38);color:#ede9fe;font-size:0.76rem;font-weight:800;cursor:pointer">정밀 종합</button>'
-      + '    <button type="button" data-zw-prompt-key="career" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(147,197,253,0.48);background:rgba(30,64,175,0.3);color:#dbeafe;font-size:0.76rem;font-weight:800;cursor:pointer">커리어·재물</button>'
-      + '    <button type="button" data-zw-prompt-key="relation" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(251,191,36,0.45);background:rgba(120,53,15,0.3);color:#fef3c7;font-size:0.76rem;font-weight:800;cursor:pointer">연애·관계</button>'
-      + '    <button type="button" data-zw-prompt-key="strategy" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(52,211,153,0.45);background:rgba(6,78,59,0.35);color:#d1fae5;font-size:0.76rem;font-weight:800;cursor:pointer">12개월 전략</button>'
+      + '  <div style="font-size:0.78rem;line-height:1.6;color:#dbeafe;margin-bottom:10px">'
+      + '    연애, 소송, 직업, 돈, 인간관계, 건강, 인생 방향 질문을 입력하면 질문 분류+명반 핵심궁을 반영해 프롬프트를 생성합니다.'
       + '  </div>'
-      + '  <textarea id="zwDeepAiPromptText" readonly style="width:100%;min-height:250px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="질문을 입력해 주세요. (최소 5자, 최대 1000자)" style="width:100%;min-height:118px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#c4b5fd">'
+      + '    <span id="zwDeepAiPromptCount">0 / 1000</span>'
+      + '    <span id="zwDeepAiPromptBalance">로그인 시 잔액이 표시됩니다.</span>'
+      + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-      + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="background:#7c3aed;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
-      + '    <button id="zwDeepAiPromptOpenBtn" type="button" style="background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">AI 채팅 열기</button>'
+      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:8px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 AI 프롬프트 생성</button>'
+      + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>'
+      + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:#7c3aed;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '  </div>'
+      + '  <textarea id="zwDeepAiPromptText" readonly style="margin-top:10px;width:100%;min-height:220px;border-radius:10px;border:1px solid rgba(52,211,153,0.45);background:rgba(2,24,19,0.56);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;display:none"></textarea>'
       + '  <div id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>'
       + '</div>';
   }
@@ -12957,67 +13691,185 @@ function renderZiwei(p, natal, targetId) {
     var panel = document.getElementById(panelId);
     if (!panel || !pd) return;
 
-    var payload = _zwBuildDeepCanonicalPayload(pd);
-    var promptSet = _zwBuildDeepAiPromptSet(payload);
-    var box = panel.querySelector('#zwDeepAiPromptText');
-    var status = panel.querySelector('#zwDeepAiPromptStatus');
+    var chartResult = _zwBuildPromptChartResult(pd);
+    var questionEl = panel.querySelector('#zwDeepAiPromptQuestion');
+    var countEl = panel.querySelector('#zwDeepAiPromptCount');
+    var balanceEl = panel.querySelector('#zwDeepAiPromptBalance');
+    var statusEl = panel.querySelector('#zwDeepAiPromptStatus');
+    var outputEl = panel.querySelector('#zwDeepAiPromptText');
+    var generateBtn = panel.querySelector('#zwDeepAiPromptGenerateBtn');
+    var regenerateBtn = panel.querySelector('#zwDeepAiPromptRegenerateBtn');
     var copyBtn = panel.querySelector('#zwDeepAiPromptCopyBtn');
-    var openBtn = panel.querySelector('#zwDeepAiPromptOpenBtn');
-    var tabBtns = panel.querySelectorAll('[data-zw-prompt-key]');
-    var activeKey = 'master';
 
-    function paintActiveTab(key) {
-      tabBtns.forEach(function(btn) {
-        var on = btn.getAttribute('data-zw-prompt-key') === key;
-        btn.style.filter = on ? 'brightness(1.2)' : 'brightness(1)';
-        btn.style.outline = on ? '1px solid rgba(255,255,255,0.5)' : 'none';
+    if (!questionEl || !statusEl || !outputEl || !generateBtn || !regenerateBtn || !copyBtn) return;
+
+    var isLoading = false;
+
+    function setStatus(message, tone) {
+      statusEl.textContent = String(message || '');
+      if (tone === 'error') {
+        statusEl.style.color = '#fda4af';
+      } else if (tone === 'success') {
+        statusEl.style.color = '#86efac';
+      } else {
+        statusEl.style.color = '#b4a6d8';
+      }
+    }
+
+    function setLoading(nextLoading) {
+      isLoading = !!nextLoading;
+      generateBtn.disabled = isLoading;
+      regenerateBtn.disabled = isLoading;
+      questionEl.disabled = isLoading;
+      generateBtn.textContent = isLoading
+        ? '프롬프트 생성 중...'
+        : (_ZW_AI_PROMPT_COST + '코인으로 AI 프롬프트 생성');
+      generateBtn.style.opacity = isLoading ? '0.7' : '1';
+      regenerateBtn.style.opacity = isLoading ? '0.7' : '1';
+    }
+
+    function updateCount() {
+      var len = String(questionEl.value || '').trim().length;
+      if (countEl) countEl.textContent = len + ' / ' + _ZW_AI_PROMPT_MAX_LENGTH;
+    }
+
+    function buildHeaders() {
+      var headers = { 'Content-Type': 'application/json' };
+      try {
+        var token = localStorage.getItem('fortune_auth_token');
+        if (token) headers.Authorization = 'Bearer ' + token;
+      } catch (_) {}
+      return headers;
+    }
+
+    function updateBalance() {
+      if (!balanceEl) return Promise.resolve();
+      return fetch('/api/fortune/pig-coin/balance', {
+        method: 'GET',
+        credentials: 'include',
+        headers: buildHeaders(),
+        cache: 'no-store'
+      }).then(function(res) {
+        if (!res.ok) {
+          balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
+          return null;
+        }
+        return res.json().catch(function() { return null; });
+      }).then(function(payload) {
+        if (!payload) return;
+        var points = Number((payload.user && payload.user.points) || payload.balance);
+        if (Number.isFinite(points)) {
+          balanceEl.textContent = '현재 코인: ' + points.toLocaleString('ko-KR');
+        }
+      }).catch(function() {
+        balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
       });
     }
 
-    function applyPrompt(key) {
-      activeKey = key;
-      var nextText = promptSet[key] || promptSet.master || '';
-      if (box) {
-        box.value = nextText;
-        box.scrollTop = 0;
+    function handleGenerate() {
+      if (isLoading) return;
+      var question = String(questionEl.value || '').trim();
+      if (!question || question.length < _ZW_AI_PROMPT_MIN_LENGTH) {
+        setStatus('질문은 최소 ' + _ZW_AI_PROMPT_MIN_LENGTH + '자 이상 입력해 주세요.', 'error');
+        return;
       }
-      if (status) {
-        var labelMap = {
-          master: '정밀 종합 프롬프트',
-          career: '커리어·재물 프롬프트',
-          relation: '연애·관계 프롬프트',
-          strategy: '12개월 전략 프롬프트'
-        };
-        status.textContent = (labelMap[key] || '프롬프트') + '가 준비되었습니다.';
+      if (question.length > _ZW_AI_PROMPT_MAX_LENGTH) {
+        setStatus('질문은 최대 ' + _ZW_AI_PROMPT_MAX_LENGTH + '자까지 입력할 수 있습니다.', 'error');
+        return;
       }
-      paintActiveTab(key);
+
+      setLoading(true);
+      setStatus('명반 데이터를 바탕으로 프롬프트를 생성하고 있습니다...', 'info');
+
+      fetch('/api/fortune/ziwei/ai-prompt', {
+        method: 'POST',
+        credentials: 'include',
+        headers: buildHeaders(),
+        cache: 'no-store',
+        body: JSON.stringify({
+          question: question,
+          chartResult: chartResult
+        })
+      }).then(function(res) {
+        return res.json().catch(function() { return {}; }).then(function(payload) {
+          return { ok: res.ok, status: res.status, payload: payload || {} };
+        });
+      }).then(function(result) {
+        var payload = result.payload || {};
+        if (result.ok && payload.ok === true && typeof payload.prompt === 'string') {
+          outputEl.style.display = 'block';
+          outputEl.value = payload.prompt;
+          outputEl.scrollTop = 0;
+          copyBtn.style.display = 'inline-flex';
+          regenerateBtn.style.display = 'inline-flex';
+          var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
+          var balanceAfter = Number(payload.balanceAfter);
+          if (balanceEl && Number.isFinite(balanceAfter)) {
+            balanceEl.textContent = '현재 코인: ' + balanceAfter.toLocaleString('ko-KR');
+          }
+          setStatus(
+            chargedCoins > 0
+              ? ('프롬프트가 생성되었습니다. ' + chargedCoins + '코인이 차감되었습니다.')
+              : '프롬프트가 생성되었습니다.',
+            'success'
+          );
+          return;
+        }
+
+        var code = String(payload.code || '').trim();
+        var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+        if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+          setStatus('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
+          setTimeout(function() {
+            try {
+              var next = encodeURIComponent(window.location.pathname + window.location.search);
+              window.location.href = '/login?next=' + next;
+            } catch (_) {}
+          }, 700);
+          return;
+        }
+        if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+          setStatus(message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.', 'error');
+          try {
+            if (typeof window.openChargeModal === 'function') window.openChargeModal();
+          } catch (_) {}
+          return;
+        }
+        setStatus(message, 'error');
+      }).catch(function() {
+        setStatus('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+      }).finally(function() {
+        setLoading(false);
+        updateBalance();
+      });
     }
 
-    tabBtns.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        applyPrompt(btn.getAttribute('data-zw-prompt-key') || 'master');
+    questionEl.addEventListener('input', function() {
+      updateCount();
+      if (statusEl && statusEl.textContent) {
+        setStatus('', 'info');
+      }
+    });
+
+    generateBtn.addEventListener('click', handleGenerate);
+    regenerateBtn.addEventListener('click', handleGenerate);
+
+    copyBtn.addEventListener('click', function() {
+      var text = String(outputEl.value || '').trim();
+      if (!text) {
+        setStatus('복사할 프롬프트가 없습니다.', 'error');
+        return;
+      }
+      _zwCopyTextSafe(text).then(function() {
+        setStatus('프롬프트를 복사했습니다. 원하는 AI에 붙여 넣어 사용하세요.', 'success');
+      }).catch(function() {
+        setStatus('복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.', 'error');
       });
     });
 
-    if (copyBtn) {
-      copyBtn.addEventListener('click', function() {
-        var text = box ? box.value : (promptSet[activeKey] || promptSet.master || '');
-        _zwCopyTextSafe(text).then(function() {
-          if (status) status.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 해석을 받으세요.';
-        }).catch(function() {
-          if (status) status.textContent = '복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.';
-        });
-      });
-    }
-
-    if (openBtn) {
-      openBtn.addEventListener('click', function() {
-        var text = box ? box.value : (promptSet[activeKey] || promptSet.master || '');
-        _zwOpenAiChatPrompt(text, status);
-      });
-    }
-
-    applyPrompt('master');
+    updateCount();
+    updateBalance();
+    setStatus('질문 입력 후 버튼을 누르면 100코인 차감 후 프롬프트를 생성합니다.', 'info');
   }
 
   function _zwPortfolioBuildModalHtml(row, summary) {

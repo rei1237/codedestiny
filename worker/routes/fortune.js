@@ -11,6 +11,31 @@ import {
   normalizePaidFeatureKey,
   resolveFeatureReasonCost,
 } from "../lib/paid-feature-registry.js";
+import {
+  buildZiweiAIPrompt,
+  ZIWEI_AI_PROMPT_FEATURE_KEY,
+  ZIWEI_AI_PROMPT_PRICE,
+} from "../lib/ziwei-ai-prompt.js";
+import {
+  buildSukuyoAIPrompt,
+  SUKUYO_AI_PROMPT_FEATURE_KEY,
+  SUKUYO_AI_PROMPT_PRICE,
+} from "../lib/sukuyo-ai-prompt.js";
+import {
+  buildSajuAIPrompt,
+  SAJU_AI_PROMPT_FEATURE_KEY,
+  SAJU_AI_PROMPT_PRICE,
+} from "../lib/saju-ai-prompt.js";
+import {
+  buildAstrologyAIPrompt,
+  ASTROLOGY_AI_PROMPT_FEATURE_KEY,
+  ASTROLOGY_AI_PROMPT_PRICE,
+} from "../lib/astrology-ai-prompt.js";
+import {
+  buildVedicAIPrompt,
+  VEDIC_AI_PROMPT_FEATURE_KEY,
+  VEDIC_AI_PROMPT_PRICE,
+} from "../lib/vedic-ai-prompt.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -478,6 +503,19 @@ async function hmacSha256Hex(data, secret) {
   return Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+async function sha256Hex(text) {
+  try {
+    const subtle = globalThis?.crypto?.subtle;
+    if (!subtle) return "";
+    const digest = await subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
+    return Array.from(new Uint8Array(digest))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  } catch {
+    return "";
+  }
 }
 
 async function verifyFlowerAdminToken(token, env) {
@@ -1271,6 +1309,688 @@ async function handlePigCoinRefund(request, auth) {
   });
 }
 
+function buildZiweiAIPromptError(code, message, status = 400) {
+  return json({ ok: false, code, message }, { status });
+}
+
+function mapZiweiConsumeFailure(response, payload) {
+  const status = Number(response?.status || 500);
+  const code = String(payload?.code || "").trim();
+  const message = String(payload?.message || "").trim();
+
+  if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
+    return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+    return buildZiweiAIPromptError(
+      "INSUFFICIENT_COINS",
+      `코인이 부족합니다. ${ZIWEI_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      402,
+    );
+  }
+
+  return buildZiweiAIPromptError(
+    "PROMPT_GENERATION_FAILED",
+    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    status >= 400 && status < 600 ? status : 500,
+  );
+}
+
+function buildSajuAIPromptError(code, message, status = 400) {
+  return json({ ok: false, code, message }, { status });
+}
+
+function mapSajuConsumeFailure(response, payload) {
+  const status = Number(response?.status || 500);
+  const code = String(payload?.code || "").trim();
+  const message = String(payload?.message || "").trim();
+
+  if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
+    return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+    return buildSajuAIPromptError(
+      "INSUFFICIENT_COINS",
+      `코인이 부족합니다. ${SAJU_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      402,
+    );
+  }
+
+  return buildSajuAIPromptError(
+    "PROMPT_GENERATION_FAILED",
+    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    status >= 400 && status < 600 ? status : 500,
+  );
+}
+
+function buildAstrologyAIPromptError(code, message, status = 400) {
+  return json({ ok: false, code, message }, { status });
+}
+
+function buildVedicAIPromptError(code, message, status = 400) {
+  return json({ ok: false, code, message }, { status });
+}
+
+function mapAstrologyConsumeFailure(response, payload) {
+  const status = Number(response?.status || 500);
+  const code = String(payload?.code || "").trim();
+  const message = String(payload?.message || "").trim();
+
+  if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
+    return buildAstrologyAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+    return buildAstrologyAIPromptError(
+      "INSUFFICIENT_COINS",
+      `코인이 부족합니다. ${ASTROLOGY_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      402,
+    );
+  }
+
+  return buildAstrologyAIPromptError(
+    "PROMPT_GENERATION_FAILED",
+    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    status >= 400 && status < 600 ? status : 500,
+  );
+}
+
+function mapVedicConsumeFailure(response, payload) {
+  const status = Number(response?.status || 500);
+  const code = String(payload?.code || "").trim();
+  const message = String(payload?.message || "").trim();
+
+  if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
+    return buildVedicAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+    return buildVedicAIPromptError(
+      "INSUFFICIENT_COINS",
+      `코인이 부족합니다. ${VEDIC_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      402,
+    );
+  }
+
+  return buildVedicAIPromptError(
+    "PROMPT_GENERATION_FAILED",
+    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    status >= 400 && status < 600 ? status : 500,
+  );
+}
+
+async function handleAstrologyAIPrompt(request, auth, env) {
+  const body = await readJson(request);
+  const question = String(body?.question || "").trim();
+  const astrologyResult = body?.astrologyResult;
+  const compatibilityResult = body?.compatibilityResult;
+
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildAstrologyAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+  }
+
+  if (!astrologyResult || typeof astrologyResult !== "object") {
+    return buildAstrologyAIPromptError("MISSING_ASTROLOGY_RESULT", "기본 점성술 결과가 필요합니다.", 400);
+  }
+
+  let builtPrompt = null;
+  try {
+    builtPrompt = buildAstrologyAIPrompt({
+      question,
+      astrologyResult,
+      compatibilityResult,
+    });
+  } catch (error) {
+    const code = String(error?.message || "").trim();
+    if (code === "INVALID_QUESTION") {
+      return buildAstrologyAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+    }
+    if (code === "MISSING_ASTROLOGY_RESULT") {
+      return buildAstrologyAIPromptError("MISSING_ASTROLOGY_RESULT", "기본 점성술 결과가 필요합니다.", 400);
+    }
+    if (code === "COMPATIBILITY_CONTEXT_REQUIRED") {
+      return buildAstrologyAIPromptError(
+        "COMPATIBILITY_CONTEXT_REQUIRED",
+        "궁합 질문은 시나스트리 결과를 먼저 계산한 후 다시 시도해 주세요.",
+        400,
+      );
+    }
+    console.error("[fortune][astrology-ai-prompt] prompt build failed:", error);
+    return buildAstrologyAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
+  }
+
+  const digestBase = `${String(auth?.userId || "").trim()}:${ASTROLOGY_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
+  const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
+  const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
+  const requestId = `${String(auth?.userId || "").trim()}:${ASTROLOGY_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+
+  let chargedCoins = 0;
+  let sourceTransactionId = "";
+
+  try {
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
+        reason: "점성술 AI 질문 프롬프트 생성",
+        forceDeduct: true,
+        requestId,
+        categoryKey: "astrology",
+        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        payloadHash,
+      }),
+    });
+
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    const consumePayload = await consumeResponse.json().catch(() => ({}));
+
+    if (!consumeResponse.ok) {
+      return mapAstrologyConsumeFailure(consumeResponse, consumePayload);
+    }
+
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
+    sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    const balanceAfterRaw = Number(consumePayload?.user?.points);
+    const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+
+    return json({
+      ok: true,
+      prompt: builtPrompt.prompt,
+      questionType: builtPrompt.questionType,
+      chargedCoins,
+      featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
+      balanceAfter,
+      compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
+    });
+  } catch (error) {
+    if (chargedCoins > 0 && sourceTransactionId) {
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: chargedCoins,
+            featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
+            sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Astrology AI prompt generation failed auto-refund",
+          }),
+        });
+        await handlePigCoinRefund(refundRequest, auth);
+      } catch (refundError) {
+        console.error("[fortune][astrology-ai-prompt] refund failed:", refundError);
+      }
+    }
+
+    console.error("[fortune][astrology-ai-prompt] request failed:", error);
+    return buildAstrologyAIPromptError(
+      "PROMPT_GENERATION_FAILED",
+      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      500,
+    );
+  }
+}
+
+async function handleVedicAIPrompt(request, auth, env) {
+  const body = await readJson(request);
+  const question = String(body?.question || "").trim();
+  const vedicResult = body?.vedicResult;
+  const compatibilityResult = body?.compatibilityResult;
+
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildVedicAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+  }
+
+  if (!vedicResult || typeof vedicResult !== "object") {
+    return buildVedicAIPromptError("MISSING_VEDIC_RESULT", "기본 베다 점성술 결과가 필요합니다.", 400);
+  }
+
+  let builtPrompt = null;
+  try {
+    builtPrompt = buildVedicAIPrompt({
+      question,
+      vedicResult,
+      compatibilityResult,
+    });
+  } catch (error) {
+    const code = String(error?.message || "").trim();
+    if (code === "INVALID_QUESTION") {
+      return buildVedicAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+    }
+    if (code === "MISSING_VEDIC_RESULT") {
+      return buildVedicAIPromptError("MISSING_VEDIC_RESULT", "기본 베다 점성술 결과가 필요합니다.", 400);
+    }
+    if (code === "MISSING_COMPATIBILITY_RESULT") {
+      return buildVedicAIPromptError(
+        "MISSING_COMPATIBILITY_RESULT",
+        "궁합 질문은 베다 궁합 계산 결과를 먼저 생성한 뒤 다시 시도해 주세요.",
+        400,
+      );
+    }
+    console.error("[fortune][vedic-ai-prompt] prompt build failed:", error);
+    return buildVedicAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
+  }
+
+  const digestBase = `${String(auth?.userId || "").trim()}:${VEDIC_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
+  const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
+  const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
+  const requestId = `${String(auth?.userId || "").trim()}:${VEDIC_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+
+  let chargedCoins = 0;
+  let sourceTransactionId = "";
+
+  try {
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
+        reason: "베다 점성술 AI 질문 프롬프트 생성",
+        forceDeduct: true,
+        requestId,
+        categoryKey: "vedic",
+        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        payloadHash,
+      }),
+    });
+
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    const consumePayload = await consumeResponse.json().catch(() => ({}));
+
+    if (!consumeResponse.ok) {
+      return mapVedicConsumeFailure(consumeResponse, consumePayload);
+    }
+
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
+    sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    const balanceAfterRaw = Number(consumePayload?.user?.points);
+    const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+
+    return json({
+      ok: true,
+      prompt: builtPrompt.prompt,
+      questionType: builtPrompt.questionType,
+      chargedCoins,
+      featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
+      balanceAfter,
+      compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
+      compatibilityHint: String(builtPrompt.compatibilityHint || ""),
+    });
+  } catch (error) {
+    if (chargedCoins > 0 && sourceTransactionId) {
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: chargedCoins,
+            featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
+            sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Vedic AI prompt generation failed auto-refund",
+          }),
+        });
+        await handlePigCoinRefund(refundRequest, auth);
+      } catch (refundError) {
+        console.error("[fortune][vedic-ai-prompt] refund failed:", refundError);
+      }
+    }
+
+    console.error("[fortune][vedic-ai-prompt] request failed:", error);
+    return buildVedicAIPromptError(
+      "PROMPT_GENERATION_FAILED",
+      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      500,
+    );
+  }
+}
+
+async function handleSajuAIPrompt(request, auth, env) {
+  const body = await readJson(request);
+  const question = String(body?.question || "").trim();
+  const sajuResult = body?.sajuResult;
+
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildSajuAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+  }
+
+  if (!sajuResult || typeof sajuResult !== "object") {
+    return buildSajuAIPromptError("MISSING_SAJU_RESULT", "기본 사주 분석 결과가 필요합니다.", 400);
+  }
+
+  let builtPrompt = null;
+  try {
+    builtPrompt = buildSajuAIPrompt({ question, sajuResult });
+  } catch (error) {
+    const code = String(error?.message || "").trim();
+    if (code === "INVALID_QUESTION") {
+      return buildSajuAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+    }
+    if (code === "MISSING_SAJU_RESULT") {
+      return buildSajuAIPromptError("MISSING_SAJU_RESULT", "기본 사주 분석 결과가 필요합니다.", 400);
+    }
+    console.error("[fortune][saju-ai-prompt] prompt build failed:", error);
+    return buildSajuAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
+  }
+
+  const digestBase = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
+  const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
+  const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
+  const requestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+
+  let chargedCoins = 0;
+  let sourceTransactionId = "";
+
+  try {
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+        reason: "사주 AI 질문 프롬프트 생성",
+        forceDeduct: true,
+        requestId,
+        categoryKey: "saju",
+        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        payloadHash,
+      }),
+    });
+
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    const consumePayload = await consumeResponse.json().catch(() => ({}));
+
+    if (!consumeResponse.ok) {
+      return mapSajuConsumeFailure(consumeResponse, consumePayload);
+    }
+
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
+    sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    const balanceAfterRaw = Number(consumePayload?.user?.points);
+    const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+
+    return json({
+      ok: true,
+      prompt: builtPrompt.prompt,
+      chargedCoins,
+      featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+      balanceAfter,
+    });
+  } catch (error) {
+    if (chargedCoins > 0 && sourceTransactionId) {
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: chargedCoins,
+            featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+            sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Saju AI prompt generation failed auto-refund",
+          }),
+        });
+        await handlePigCoinRefund(refundRequest, auth);
+      } catch (refundError) {
+        console.error("[fortune][saju-ai-prompt] refund failed:", refundError);
+      }
+    }
+
+    console.error("[fortune][saju-ai-prompt] request failed:", error);
+    return buildSajuAIPromptError(
+      "PROMPT_GENERATION_FAILED",
+      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      500,
+    );
+  }
+}
+
+async function handleZiweiAIPrompt(request, auth, env) {
+  const body = await readJson(request);
+  const question = String(body?.question || "").trim();
+  const chartResult = body?.chartResult;
+
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildZiweiAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+  }
+
+  if (!chartResult || typeof chartResult !== "object") {
+    return buildZiweiAIPromptError("MISSING_CHART_RESULT", "기본 자미두수 명반 결과가 필요합니다.", 400);
+  }
+
+  let builtPrompt = null;
+  try {
+    builtPrompt = buildZiweiAIPrompt({ question, chartResult });
+  } catch (error) {
+    const code = String(error?.message || "").trim();
+    if (code === "INVALID_QUESTION") {
+      return buildZiweiAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+    }
+    if (code === "MISSING_CHART_RESULT") {
+      return buildZiweiAIPromptError("MISSING_CHART_RESULT", "기본 자미두수 명반 결과가 필요합니다.", 400);
+    }
+    console.error("[fortune][ziwei-ai-prompt] prompt build failed:", error);
+    return buildZiweiAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
+  }
+
+  const digestBase = `${String(auth?.userId || "").trim()}:${ZIWEI_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
+  const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
+  const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
+  const requestId = `${String(auth?.userId || "").trim()}:${ZIWEI_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+
+  let chargedCoins = 0;
+  let sourceTransactionId = "";
+
+  try {
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
+        reason: "자미두수 AI 질문 프롬프트 생성",
+        forceDeduct: true,
+        requestId,
+        categoryKey: "ziweidoushu",
+        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        payloadHash,
+      }),
+    });
+
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    const consumePayload = await consumeResponse.json().catch(() => ({}));
+
+    if (!consumeResponse.ok) {
+      return mapZiweiConsumeFailure(consumeResponse, consumePayload);
+    }
+
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
+    sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    const balanceAfterRaw = Number(consumePayload?.user?.points);
+    const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+
+    return json({
+      ok: true,
+      prompt: builtPrompt.prompt,
+      chargedCoins,
+      featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
+      balanceAfter,
+    });
+  } catch (error) {
+    if (chargedCoins > 0 && sourceTransactionId) {
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: chargedCoins,
+            featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
+            sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Ziwei AI prompt generation failed auto-refund",
+          }),
+        });
+        await handlePigCoinRefund(refundRequest, auth);
+      } catch (refundError) {
+        console.error("[fortune][ziwei-ai-prompt] refund failed:", refundError);
+      }
+    }
+
+    console.error("[fortune][ziwei-ai-prompt] request failed:", error);
+    return buildZiweiAIPromptError(
+      "PROMPT_GENERATION_FAILED",
+      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      500,
+    );
+  }
+}
+
+function buildSukuyoAIPromptError(code, message, status = 400) {
+  return json({ ok: false, code, message }, { status });
+}
+
+function mapSukuyoConsumeFailure(response, payload) {
+  const status = Number(response?.status || 500);
+  const code = String(payload?.code || "").trim();
+  const message = String(payload?.message || "").trim();
+
+  if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
+    return buildSukuyoAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+    return buildSukuyoAIPromptError(
+      "INSUFFICIENT_COINS",
+      `코인이 부족합니다. ${SUKUYO_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      402,
+    );
+  }
+
+  return buildSukuyoAIPromptError(
+    "PROMPT_GENERATION_FAILED",
+    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    status >= 400 && status < 600 ? status : 500,
+  );
+}
+
+async function handleSukuyoAIPrompt(request, auth, env) {
+  const body = await readJson(request);
+  const question = String(body?.question || "").trim();
+  const basicResult = body?.basicResult;
+  const compatibilityResult = body?.compatibilityResult;
+
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildSukuyoAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+  }
+
+  let builtPrompt = null;
+  try {
+    builtPrompt = buildSukuyoAIPrompt({
+      question,
+      basicResult,
+      compatibilityResult,
+    });
+  } catch (error) {
+    const code = String(error?.message || "").trim();
+    if (code === "INVALID_QUESTION") {
+      return buildSukuyoAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
+    }
+    if (code === "MISSING_BASIC_RESULT") {
+      return buildSukuyoAIPromptError("MISSING_BASIC_RESULT", "기본 숙요점 결과가 필요합니다.", 400);
+    }
+    console.error("[fortune][sukuyo-ai-prompt] prompt build failed:", error);
+    return buildSukuyoAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
+  }
+
+  const digestBase = `${String(auth?.userId || "").trim()}:${SUKUYO_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
+  const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
+  const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
+  const requestId = `${String(auth?.userId || "").trim()}:${SUKUYO_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+
+  let chargedCoins = 0;
+  let sourceTransactionId = "";
+
+  try {
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
+        reason: "숙요점 AI 질문 프롬프트 생성",
+        forceDeduct: true,
+        requestId,
+        categoryKey: "sukuyo",
+        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        payloadHash,
+      }),
+    });
+
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    const consumePayload = await consumeResponse.json().catch(() => ({}));
+
+    if (!consumeResponse.ok) {
+      return mapSukuyoConsumeFailure(consumeResponse, consumePayload);
+    }
+
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
+    sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    const balanceAfterRaw = Number(consumePayload?.user?.points);
+    const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+
+    return json({
+      ok: true,
+      prompt: builtPrompt.prompt,
+      chargedCoins,
+      featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
+      balanceAfter,
+      compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
+      compatibilityHint: String(builtPrompt.compatibilityHint || ""),
+    });
+  } catch (error) {
+    if (chargedCoins > 0 && sourceTransactionId) {
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: chargedCoins,
+            featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
+            sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Sukuyo AI prompt generation failed auto-refund",
+          }),
+        });
+        await handlePigCoinRefund(refundRequest, auth);
+      } catch (refundError) {
+        console.error("[fortune][sukuyo-ai-prompt] refund failed:", refundError);
+      }
+    }
+
+    console.error("[fortune][sukuyo-ai-prompt] request failed:", error);
+    return buildSukuyoAIPromptError(
+      "PROMPT_GENERATION_FAILED",
+      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      500,
+    );
+  }
+}
+
 async function handleSubscriptionStatus(request, env, auth) {
   const user = await findUserByIdRaw(auth.userId, {
     points: 1,
@@ -1759,6 +2479,61 @@ export async function handleFortuneRoutes(request, env) {
       await connectDb(env);
       trace.dbConnected = true;
       return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
+    }
+
+    if (method === "POST" && path === "/ziwei/ai-prompt") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleZiweiAIPrompt(request, auth, env);
+    }
+
+    if (method === "POST" && path === "/sukuyo/ai-prompt") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildSukuyoAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleSukuyoAIPrompt(request, auth, env);
+    }
+
+    if (method === "POST" && path === "/saju/ai-prompt") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleSajuAIPrompt(request, auth, env);
+    }
+
+    if (method === "POST" && path === "/astrology/ai-prompt") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildAstrologyAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleAstrologyAIPrompt(request, auth, env);
+    }
+
+    if (method === "POST" && path === "/vedic/ai-prompt") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildVedicAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleVedicAIPrompt(request, auth, env);
     }
 
     const auth = await requireUserFromRequest(request, env);

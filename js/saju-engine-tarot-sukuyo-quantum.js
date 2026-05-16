@@ -4148,6 +4148,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     let sData = lunarObj ? calcSukuyoData(lunarObj) : null;
     let dailyFlow = sData ? getDailyKarmicGuidance(lunarObj, sData.mansion) : null;
 
+    window._syLastSukuyoBasicResult = sData ? {
+      mansion: sData.mansion,
+      mansionIdx: sData.mansionIdx,
+      icon: sData.icon,
+      talent: sData.talent,
+      traits: sData.traits || {},
+      daily: dailyFlow || null
+    } : null;
+
     var canonicalData = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
     if (!canonicalData) {
       canonicalData = syBuildLocalCanonicalData(lunarObj, sData, dailyFlow, sourceProfile || window._ziweiBirth || null);
@@ -4548,6 +4557,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
+      html += `<div class="sy-card" id="syAiPromptCard" style="border-left-color:#f59e0b; background:linear-gradient(140deg, rgba(120,53,15,0.3), rgba(30,32,55,0.88));">
+        <h4 style="margin:0 0 8px 0; color:#fde68a;">🪙 AI 질문 프롬프트 생성</h4>
+        <p style="font-size:0.86rem;color:#fef3c7;margin:0 0 10px 0;line-height:1.75;word-break:keep-all;">
+          질문을 입력하면 <strong>기본 숙요점 결과</strong>를 필수 반영해 프롬프트를 생성합니다. 궁합 분석 결과가 있으면 자동으로 함께 반영됩니다. (1회 100코인)
+        </p>
+        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 지금 내 연애 패턴에서 가장 먼저 고쳐야 할 점이 뭘까?" style="width:100%;min-height:104px;border-radius:10px;border:1px solid rgba(251,191,36,0.45);background:rgba(10,15,30,0.72);color:#fff8dc;padding:11px;font-size:0.84rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span data-sy-ai-count style="font-size:0.72rem;color:#fcd34d;">0 / 1000</span>
+          <span data-sy-ai-balance style="font-size:0.72rem;color:#fef3c7;">로그인 시 잔액이 표시됩니다.</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2f05;border:1px solid rgba(251,191,36,0.78);padding:9px 13px;border-radius:8px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 프롬프트 생성</button>
+          <button data-sy-ai-regenerate type="button" style="display:none;background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
+          <button data-sy-ai-copy type="button" style="display:none;background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
+        </div>
+        <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:10px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>
+        <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#fde68a;"></div>
+      </div>`;
+
     html += `<div class="sy-card sy-cta-card">
       <div class="sy-cta-row">
         <p>오늘의 달빛 리딩이 마음에 들었다면, 더 깊은 리딩으로 인연·직업·감정 주기를 길게 확인해보세요.</p>
@@ -4630,6 +4658,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               window.triggerSynergyCheck(btnIdx, btnMansion);
             }
           });
+        }
+        const syAiPromptCard = document.getElementById('syAiPromptCard');
+        if (syAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
+          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false });
         }
         // 국가 탭 생성 (Config-driven)
         const _countryCatsDiv = document.getElementById('szCountryCats');
@@ -5148,7 +5180,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       partnerMansion: '',
       relationType: rel.typeLabel || rel.type || '',
       distanceLabel: distInfo.label || '',
-      temperature: rel.temperature || 0
+      temperature: rel.temperature || 0,
+      score: rel.score || 0,
+      magnetism: rel.magnetism || 0,
+      stamp: rel.stamp || ''
     };
     try {
       var _wheelState = window._syWheelState;
@@ -5544,6 +5579,255 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     ].join('\n');
   }
 
+  function syBuildFortuneAuthHeaders(extraHeaders) {
+    var headers = { 'Content-Type': 'application/json' };
+    try {
+      var token = localStorage.getItem('fortune_auth_token') || '';
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+      }
+    } catch (_) {}
+    if (extraHeaders && typeof extraHeaders === 'object') {
+      Object.keys(extraHeaders).forEach(function(key) {
+        headers[key] = extraHeaders[key];
+      });
+    }
+    return headers;
+  }
+
+  function syGetPromptBasicResult() {
+    if (!window._syLastSukuyoBasicResult || typeof window._syLastSukuyoBasicResult !== 'object') return null;
+    return window._syLastSukuyoBasicResult;
+  }
+
+  function syGetPromptCompatibilityResult(basicResult, preferCompatibility) {
+    if (!preferCompatibility && !window._syLastCompat) return null;
+    var compat = window._syLastCompat;
+    if (!compat || typeof compat !== 'object') return null;
+    var myIdx = Number(compat.myIdx);
+    var basicIdx = Number(basicResult && basicResult.mansionIdx);
+    if (Number.isFinite(myIdx) && Number.isFinite(basicIdx) && myIdx !== basicIdx) {
+      return null;
+    }
+    return compat;
+  }
+
+  function syOpenLoginForPrompt() {
+    try {
+      var next = encodeURIComponent((window.location && window.location.pathname ? window.location.pathname : '/') + (window.location && window.location.search ? window.location.search : ''));
+      window.location.href = '/login?next=' + next;
+      return;
+    } catch (_) {}
+    window.location.href = '/login?next=%2F';
+  }
+
+  function syFetchCoinBalance() {
+    return fetch('/api/fortune/pig-coin/balance', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: syBuildFortuneAuthHeaders()
+    }).then(function(res) {
+      if (!res.ok) return null;
+      return res.json().catch(function() { return null; });
+    }).then(function(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      var points = Number((payload.user && payload.user.points) || payload.balance);
+      return Number.isFinite(points) ? points : null;
+    }).catch(function() {
+      return null;
+    });
+  }
+
+  function syRequestSukuyoPromptByQuestion(question, options) {
+    var opts = options && typeof options === 'object' ? options : {};
+    var basicResult = syGetPromptBasicResult();
+    if (!basicResult) {
+      return Promise.resolve({
+        ok: false,
+        status: 400,
+        payload: { code: 'MISSING_BASIC_RESULT', message: '기본 숙요점 결과를 먼저 계산해 주세요.' }
+      });
+    }
+    var compatibilityResult = syGetPromptCompatibilityResult(basicResult, !!opts.preferCompatibility);
+    var requestNonce = Date.now() + ':' + Math.random().toString(16).slice(2);
+
+    return fetch('/api/fortune/sukuyo/ai-prompt', {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: syBuildFortuneAuthHeaders({ 'idempotency-key': 'sy-ai:' + requestNonce }),
+      body: JSON.stringify({
+        question: question,
+        basicResult: basicResult,
+        compatibilityResult: compatibilityResult
+      })
+    }).then(function(res) {
+      return res.json().catch(function() { return {}; }).then(function(payload) {
+        return {
+          ok: res.ok && payload && payload.ok !== false,
+          status: res.status,
+          payload: payload || {}
+        };
+      });
+    }).catch(function(error) {
+      return {
+        ok: false,
+        status: 0,
+        payload: {
+          code: 'NETWORK_ERROR',
+          message: (error && error.message) ? String(error.message) : '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+        }
+      };
+    });
+  }
+
+  function syBindSukuyoPromptComposer(rootEl, options) {
+    if (!rootEl) return;
+
+    var opts = options && typeof options === 'object' ? options : {};
+    var questionEl = rootEl.querySelector('[data-sy-ai-question]');
+    var countEl = rootEl.querySelector('[data-sy-ai-count]');
+    var balanceEl = rootEl.querySelector('[data-sy-ai-balance]');
+    var generateBtn = rootEl.querySelector('[data-sy-ai-generate]');
+    var regenerateBtn = rootEl.querySelector('[data-sy-ai-regenerate]');
+    var copyBtn = rootEl.querySelector('[data-sy-ai-copy]');
+    var outputEl = rootEl.querySelector('[data-sy-ai-output]');
+    var statusEl = rootEl.querySelector('[data-sy-ai-status]');
+
+    if (!questionEl || !generateBtn || !regenerateBtn || !copyBtn || !outputEl || !statusEl) return;
+    if (rootEl.dataset.syAiBound === '1') return;
+    rootEl.dataset.syAiBound = '1';
+
+    var isLoading = false;
+
+    function setStatus(message, tone) {
+      statusEl.textContent = String(message || '');
+      if (tone === 'error') {
+        statusEl.style.color = '#fda4af';
+      } else if (tone === 'success') {
+        statusEl.style.color = '#86efac';
+      } else {
+        statusEl.style.color = '#fde68a';
+      }
+    }
+
+    function setLoading(next) {
+      isLoading = !!next;
+      questionEl.disabled = isLoading;
+      generateBtn.disabled = isLoading;
+      regenerateBtn.disabled = isLoading;
+      generateBtn.style.opacity = isLoading ? '0.72' : '1';
+      regenerateBtn.style.opacity = isLoading ? '0.72' : '1';
+      if (isLoading) {
+        generateBtn.textContent = '프롬프트 생성 중...';
+      } else {
+        generateBtn.textContent = '100코인으로 프롬프트 생성';
+      }
+    }
+
+    function updateCount() {
+      var n = String(questionEl.value || '').trim().length;
+      if (countEl) countEl.textContent = n + ' / 1000';
+    }
+
+    function updateBalanceText() {
+      if (!balanceEl) return;
+      syFetchCoinBalance().then(function(points) {
+        if (points == null) {
+          balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
+          return;
+        }
+        balanceEl.textContent = '현재 코인: ' + points.toLocaleString('ko-KR');
+      });
+    }
+
+    function onGenerate() {
+      if (isLoading) return;
+
+      var question = String(questionEl.value || '').trim();
+      if (!question || question.length < 5) {
+        setStatus('질문은 최소 5자 이상 입력해 주세요.', 'error');
+        return;
+      }
+      if (question.length > 1000) {
+        setStatus('질문은 최대 1000자까지 입력할 수 있습니다.', 'error');
+        return;
+      }
+
+      setLoading(true);
+      setStatus('숙요 데이터를 분석해 질문 맞춤 프롬프트를 생성하고 있습니다...', 'info');
+
+      syRequestSukuyoPromptByQuestion(question, { preferCompatibility: !!opts.preferCompatibility }).then(function(result) {
+        var payload = result && result.payload ? result.payload : {};
+        if (result && result.ok && typeof payload.prompt === 'string' && payload.prompt.trim()) {
+          outputEl.style.display = 'block';
+          outputEl.value = payload.prompt;
+          outputEl.scrollTop = 0;
+          copyBtn.style.display = 'inline-flex';
+          regenerateBtn.style.display = 'inline-flex';
+
+          var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
+          var balanceAfter = Number(payload.balanceAfter);
+          if (balanceEl && Number.isFinite(balanceAfter)) {
+            balanceEl.textContent = '현재 코인: ' + balanceAfter.toLocaleString('ko-KR');
+          }
+
+          if (payload.compatibilityUsed) {
+            setStatus((chargedCoins > 0 ? chargedCoins + '코인 차감 완료. ' : '') + '궁합 데이터까지 반영해 프롬프트를 생성했습니다.', 'success');
+          } else {
+            var hint = String(payload.compatibilityHint || '궁합 데이터가 없어 기본 숙요점 기준으로 생성했습니다.');
+            setStatus((chargedCoins > 0 ? chargedCoins + '코인 차감 완료. ' : '') + hint, 'success');
+          }
+          return;
+        }
+
+        var code = String(payload.code || '');
+        var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+        if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+          setStatus('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
+          setTimeout(function() { syOpenLoginForPrompt(); }, 700);
+          return;
+        }
+        if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+          setStatus(message, 'error');
+          try {
+            if (typeof window.openChargeModal === 'function') {
+              window.openChargeModal();
+            }
+          } catch (_) {}
+          return;
+        }
+        setStatus(message, 'error');
+      }).finally(function() {
+        setLoading(false);
+        updateBalanceText();
+      });
+    }
+
+    questionEl.addEventListener('input', function() {
+      updateCount();
+    });
+    generateBtn.addEventListener('click', onGenerate);
+    regenerateBtn.addEventListener('click', onGenerate);
+    copyBtn.addEventListener('click', function() {
+      var text = String(outputEl.value || '').trim();
+      if (!text) {
+        setStatus('복사할 프롬프트가 없습니다.', 'error');
+        return;
+      }
+      syCopyText(text).then(function() {
+        setStatus('프롬프트를 복사했습니다. 원하는 AI에 붙여 넣어 사용하세요.', 'success');
+      }).catch(function() {
+        setStatus('복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.', 'error');
+      });
+    });
+
+    updateCount();
+    updateBalanceText();
+    setStatus('질문 입력 후 버튼을 누르면 100코인 차감 후 프롬프트를 생성합니다.', 'info');
+  }
+
   function syCopyText(text) {
     if (!text) {
       return Promise.reject(new Error('empty'));
@@ -5760,7 +6044,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             partnerMansion: tData.mansion || '',
             relationType: rel.typeLabel || rel.type || '',
             distanceLabel: distInfo.label || '',
-            temperature: rel.temperature || 0
+            temperature: rel.temperature || 0,
+            score: rel.score || 0,
+            magnetism: rel.magnetism || 0,
+            stamp: rel.stamp || '',
+            partnerGender: partnerGenderLabel
           };
           try {
             var _wheelState = window._syWheelState;
@@ -5781,16 +6069,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           const gradColor = 'linear-gradient(135deg, ' + palette[0] + ', ' + palette[1] + ')';
           const mgVal = rel.magnetism || 60;
           const relationStory = buildSukuyoRelationStory(rel, distInfo);
-          const myStarName = String(myMansionName || '').trim() || (document.querySelector('.sy-glow-text') ? String(document.querySelector('.sy-glow-text').textContent || '').trim() : '미상');
-          const aiPromptText = buildSukuyoAiPromptTemplate({
-            personAStar: myStarName || '미상',
-            personBStar: tData.mansion || '미상',
-            relationshipType: syPromptRelationLabel(rel, relationStory),
-            distance: syPromptDistanceLabel(distInfo),
-            karmaScore: rel.score,
-            temperature: rel.temperature,
-            magnetism: mgVal
-          });
           const relationStageCards = (relationStory.stages || []).map(function(stage, idx) {
             var tint = idx === 0 ? 'rgba(125,211,252,0.11)' : (idx === 1 ? 'rgba(196,181,253,0.11)' : 'rgba(251,146,60,0.11)');
             var border = idx === 0 ? 'rgba(125,211,252,0.35)' : (idx === 1 ? 'rgba(196,181,253,0.35)' : 'rgba(251,146,60,0.35)');
@@ -5940,45 +6218,29 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 ${rxItems}
               </div>
 
-              <div class="sy-sec" style="background:rgba(180,160,255,0.08); border:1px solid rgba(180,160,255,0.3);">
-                <div class="sy-sec-title" style="color:#c4b5fd;">🤖 AI 심층 궁합 프롬프트</div>
-                <div style="font-size:0.86rem;color:#d8d0ee;line-height:1.72;margin-bottom:10px;">아래 프롬프트는 지금 계산된 숙요 궁합 결과를 자동 반영합니다. 복사하여 원하는 AI에 붙여 넣으면 세부 관계 리포트를 받을 수 있습니다.</div>
-                <textarea id="sy3AiPromptText" readonly style="width:100%;min-height:260px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-                  <button id="sy3AiPromptCopyBtn" type="button" style="background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
-                  <button id="sy3AiPromptOpenBtn" type="button" style="background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">AI 채팅 열기</button>
+              <div class="sy-sec" id="syCompatAiPromptCard" style="background:rgba(180,160,255,0.08); border:1px solid rgba(180,160,255,0.3);">
+                <div class="sy-sec-title" style="color:#c4b5fd;">🤖 AI 질문 프롬프트 생성</div>
+                <div style="font-size:0.84rem;color:#d8d0ee;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터를 포함해 프롬프트를 생성합니다. (1회 100코인)</div>
+                <textarea data-sy-ai-question maxlength="1000" placeholder="예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?" style="width:100%;min-height:110px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#fff;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                  <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
+                  <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
                 </div>
-                <div id="sy3AiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
+                  <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.78);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 프롬프트 생성</button>
+                  <button data-sy-ai-regenerate type="button" style="display:none;background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
+                  <button data-sy-ai-copy type="button" style="display:none;background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
+                </div>
+                <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:10px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>
+                <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>
               </div>
 
             </div>
           </div>`;
 
-          var promptBox = rd.querySelector('#sy3AiPromptText');
-          if (promptBox) {
-            promptBox.value = aiPromptText;
-            promptBox.scrollTop = 0;
-          }
-          var promptCopyBtn = rd.querySelector('#sy3AiPromptCopyBtn');
-          var promptOpenBtn = rd.querySelector('#sy3AiPromptOpenBtn');
-          var promptStatus = rd.querySelector('#sy3AiPromptStatus');
-          if (promptCopyBtn && promptBox) {
-            promptCopyBtn.addEventListener('click', function() {
-              syCopyText(promptBox.value || aiPromptText).then(function() {
-                if (promptStatus) {
-                  promptStatus.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 세부 궁합 리포트를 받아보세요.';
-                }
-              }).catch(function() {
-                if (promptStatus) {
-                  promptStatus.textContent = '복사에 실패했습니다. 프롬프트 박스를 길게 눌러 직접 복사해 주세요.';
-                }
-              });
-            });
-          }
-          if (promptOpenBtn && promptBox) {
-            promptOpenBtn.addEventListener('click', function() {
-              syOpenAiChat(promptBox.value || aiPromptText, promptStatus);
-            });
+          var compatAiPromptCard = rd.querySelector('#syCompatAiPromptCard');
+          if (compatAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
+            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true });
           }
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약
