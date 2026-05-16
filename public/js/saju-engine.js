@@ -1959,11 +1959,14 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
             strength = down[normalized] || normalized;
           }
         }
+        var hit = (raw || '').match(/화록|화권|화과|화기/);
+        var sihua = hit ? hit[0] : '';
         return {
           name: starName,
           strength: strength,
           symbol: zwStrengthToSymbol(strength),
-          borrowed: !!borrowedFlag
+          borrowed: !!borrowedFlag,
+          sihua: sihua
         };
       }).filter(function(v){ return !!v; });
     }
@@ -4333,7 +4336,10 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
           targetCard.insertAdjacentHTML('afterend', html);
         }
         
-        if (letterBox) {
+        var aiMount = document.getElementById('aiPromptMount');
+        if (aiMount) {
+          aiMount.innerHTML = aiPromptHtml;
+        } else if (letterBox) {
           letterBox.insertAdjacentHTML('beforebegin', aiPromptHtml);
         } else if (targetCard) {
           var scCard = document.getElementById('specialCharmCard');
@@ -13370,10 +13376,8 @@ function renderZiwei(p, natal, targetId) {
       var sihua = '';
       for (var i = 0; i < mergedRaw.length; i += 1) {
         var raw = mergedRaw[i];
-        var starName = (raw && typeof raw === 'object') ? (raw.name || '') : String(raw || '');
-        var hit = starName.match(/화록|화권|화과|화기/);
-        if (hit) {
-          sihua = hit[0];
+        if (raw && typeof raw === 'object' && raw.sihua) {
+          sihua = raw.sihua;
           break;
         }
       }
@@ -13486,8 +13490,11 @@ function renderZiwei(p, natal, targetId) {
     }).join('');
 
     var decadeHtml = payload.decadeFlow.slice(0, 5).map(function(row) {
+      var periodText = (row.period && typeof row.period === 'object') 
+        ? (row.period.startAge + '세~') 
+        : String(row.period || '-');
       return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(147,197,253,0.14)">'
-        + '<span style="color:#bae6fd;font-size:0.78rem;white-space:nowrap">' + _zwPortfolioEscapeHtml(String(row.period || '-')) + '</span>'
+        + '<span style="color:#bae6fd;font-size:0.78rem;white-space:nowrap">' + _zwPortfolioEscapeHtml(periodText) + '</span>'
         + '<span style="color:#e2e8f0;font-size:0.77rem;text-align:right">' + _zwPortfolioEscapeHtml(String(row.palace || '-')) + ' · ' + _zwPortfolioEscapeHtml(String(row.focus || '')) + '</span>'
         + '</div>';
     }).join('');
