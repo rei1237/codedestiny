@@ -193,13 +193,54 @@ function _renderZiweiSection() {
     '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
+
+  function showZiweiFallback(message) {
+    if (!area) return;
+    area.innerHTML = ''
+      + '<div style="text-align:center;padding:28px 16px;border:1px solid rgba(244,114,182,0.35);border-radius:14px;background:rgba(88,28,135,0.18)">'
+      + '  <div style="font-size:1rem;color:#f9a8d4;font-family:\"Gowun Dodum\",serif;letter-spacing:0.5px">자미두수 화면을 불러오지 못했습니다.</div>'
+      + '  <div style="margin-top:8px;font-size:0.82rem;color:#fbcfe8;line-height:1.6">' + String(message || '필수 스크립트 로딩 중 오류가 발생했습니다.') + '</div>'
+      + '  <div style="margin-top:12px">'
+      + '    <button type="button" onclick="openZiweiModal()" style="background:rgba(236,72,153,0.22);color:#fce7f3;border:1px solid rgba(244,114,182,0.55);border-radius:10px;padding:8px 12px;font-size:0.8rem;cursor:pointer">다시 시도</button>'
+      + '  </div>'
+      + '</div>';
+  }
+
   setTimeout(function () {
-    if (typeof renderZiwei === 'function') {
-      try {
-        renderZiwei(null, null, 'ziweiModalSection');
-      } catch (e) {
-        console.warn('[Ziwei] 렌더 오류:', e);
+    if (typeof renderZiwei !== 'function') {
+      console.warn('[Ziwei] renderZiwei 누락, 의존성 재시도');
+      if (typeof __cdEnsureBirthModalDepsLoaded === 'function') {
+        __cdEnsureBirthModalDepsLoaded()
+          .then(function () {
+            if (typeof renderZiwei === 'function') {
+              try {
+                renderZiwei(null, null, 'ziweiModalSection');
+              } catch (e) {
+                console.warn('[Ziwei] 렌더 오류(재시도 후):', e);
+                showZiweiFallback('렌더링 중 오류가 발생했습니다. 페이지 새로고침 후 다시 시도해 주세요.');
+              }
+            } else {
+              showZiweiFallback('필수 스크립트를 불러오지 못했습니다. 브라우저 캐시를 새로고침해 주세요.');
+            }
+            _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
+          })
+          .catch(function (err) {
+            console.warn('[Ziwei] 의존성 재시도 실패:', err);
+            showZiweiFallback('필수 스크립트 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+            _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
+          });
+        return;
       }
+      showZiweiFallback('필수 스크립트 초기화에 실패했습니다. 새로고침 후 다시 시도해 주세요.');
+      _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
+      return;
+    }
+
+    try {
+      renderZiwei(null, null, 'ziweiModalSection');
+    } catch (e) {
+      console.warn('[Ziwei] 렌더 오류:', e);
+      showZiweiFallback('렌더링 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.');
     }
     _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
   }, 0);

@@ -2600,14 +2600,14 @@ function renderVedicAIPromptSection(){
   const charCount=String(state.question||'').length;
   const hasCompat=!!G.vedicCompatibilityResult;
   return `
-  <div class="glass reveal reveal-delay-2" style="padding:16px;margin:14px 0 12px;border:1px solid rgba(125,211,252,0.28)">
-    <div class="section-head section-head-kr" style="margin-bottom:8px;color:#7dd3fc">🧠 베다 AI 상담 프롬프트 생성기</div>
-    <div class="body-text" style="margin-bottom:12px;line-height:1.72">현재 계산된 베다 결과 JSON을 기반으로 질문 맞춤형 상담 프롬프트를 만듭니다. 서버에서 가격을 검증하며, 생성 성공 시에만 100코인이 차감됩니다.</div>
+  <div class="glass reveal reveal-delay-2" style="padding:16px;margin:14px 0 12px;border:1px solid rgba(251,191,36,0.35);border-radius:16px;background:radial-gradient(130% 140% at 6% 0%, rgba(251,191,36,0.2), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(45,212,191,0.18), transparent 42%), linear-gradient(145deg, rgba(11,20,38,0.93), rgba(17,24,39,0.94));box-shadow:0 24px 56px rgba(120,53,15,0.25), inset 0 1px 0 rgba(255,255,255,0.07);">
+    <div class="section-head section-head-kr" style="margin-bottom:8px;color:#fde68a">🕉 베다 AI 상담 프롬프트 생성기</div>
+    <div class="body-text" style="margin-bottom:12px;line-height:1.72;color:#e2e8f0">현재 계산된 베다 결과 JSON(라시/나크샤트라/다샤)을 기반으로 질문 맞춤형 상담 프롬프트를 생성합니다. 서버에서 가격을 검증하며, 생성 성공 시에만 100코인이 차감됩니다.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-      <span class="tag tag-cyan">1회 ${VEDIC_AI_PROMPT_COST}코인</span>
+      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36)">1회 ${VEDIC_AI_PROMPT_COST}코인</span>
       <span class="tag ${hasCompat?'tag-gold':'tag-purple'}" id="vedicAiCompatState">궁합 컨텍스트: ${hasCompat?'연결됨':'미연결'}</span>
     </div>
-    <textarea id="vedicAiQuestion" oninput="vedicAiOnQuestionInput(this.value)" maxlength="1000" placeholder="예: 내 다샤 흐름에서 올해 커리어 전환 타이밍을 어떻게 잡아야 할까?" style="width:100%;min-height:96px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(15,23,42,0.42);color:var(--text);padding:12px;font-size:13px;line-height:1.65;resize:vertical">${hEsc(state.question)}</textarea>
+    <textarea id="vedicAiQuestion" oninput="vedicAiOnQuestionInput(this.value)" maxlength="1000" placeholder="예: 내 다샤 흐름에서 올해 커리어 전환 타이밍을 어떻게 잡아야 할까?" style="width:100%;min-height:100px;border-radius:12px;border:1px solid rgba(45,212,191,0.34);background:rgba(6,14,30,0.68);color:#ecfeff;padding:12px;font-size:13px;line-height:1.65;resize:vertical">${hEsc(state.question)}</textarea>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:var(--text3)">
       <div>질문 길이: <span id="vedicAiCharCount">${charCount}</span>/1000</div>
       <div>추천: 구체적 기간/상황/목표를 함께 입력</div>
@@ -2619,14 +2619,14 @@ function renderVedicAIPromptSection(){
       <button class="btn-sm" type="button" onclick="vedicAiUseExample('상대와의 궁합 데이터 기반으로 갈등을 줄이는 실전 행동 계획을 알려줘.')">예시: 궁합</button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()">${state.inFlight?'생성 중...':'✨ AI 상담 프롬프트 생성 (100코인)'}</button>
+      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'생성 중...':'✨ AI 상담 프롬프트 생성 (100코인)'}</button>
       <button class="btn-sm" id="vedicAiCopyBtn" type="button" onclick="vedicAiCopyPrompt()" ${state.prompt?'':'disabled'}>📋 복사</button>
       <button class="btn-sm" id="vedicAiRegenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" ${state.prompt?'':'disabled'}>🔄 재생성</button>
     </div>
     <div id="vedicAiStatus" style="margin-top:10px;font-size:12px;color:${statusColor};line-height:1.6">${hEsc(state.statusMessage)}</div>
     <div id="vedicAiPromptWrap" style="margin-top:12px;${state.prompt?'':'display:none;'}">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">생성된 프롬프트</div>
-      <pre id="vedicAiPromptText" style="margin:0;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(2,6,23,0.58);color:#dbeafe;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto">${hEsc(state.prompt)}</pre>
+      <div style="font-size:11px;color:#fde68a;margin-bottom:6px">생성된 프롬프트</div>
+      <pre id="vedicAiPromptText" style="margin:0;padding:12px;border-radius:12px;border:1px solid rgba(45,212,191,0.24);background:rgba(2,6,23,0.58);color:#ccfbf1;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto">${hEsc(state.prompt)}</pre>
       <div id="vedicAiPromptMeta" style="margin-top:8px;font-size:11px;color:var(--text3)"></div>
     </div>
   </div>`;

@@ -4557,23 +4557,26 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
-      html += `<div class="sy-card" id="syAiPromptCard" style="border-left-color:#f59e0b; background:linear-gradient(140deg, rgba(120,53,15,0.3), rgba(30,32,55,0.88));">
-        <h4 style="margin:0 0 8px 0; color:#fde68a;">🪙 AI 질문 프롬프트 생성</h4>
-        <p style="font-size:0.86rem;color:#fef3c7;margin:0 0 10px 0;line-height:1.75;word-break:keep-all;">
-          질문을 입력하면 <strong>기본 숙요점 결과</strong>를 필수 반영해 프롬프트를 생성합니다. 궁합 분석 결과가 있으면 자동으로 함께 반영됩니다. (1회 100코인)
+      html += `<div class="sy-card" id="syAiPromptCard" style="border-left-color:rgba(168,85,247,0.9);background:radial-gradient(130% 140% at 8% 0%, rgba(59,130,246,0.24), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(168,85,247,0.25), transparent 38%), linear-gradient(145deg, rgba(20,24,56,0.96), rgba(17,24,39,0.94)); border:1px solid rgba(196,181,253,0.28); box-shadow:0 24px 54px rgba(76,29,149,0.35);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+          <h4 style="margin:0;color:#ddd6fe;letter-spacing:0.3px;">🌙 숙요 인연 맞춤 AI 프롬프트</h4>
+          <span style="font-size:0.7rem;color:#fde68a;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.12);padding:3px 8px;border-radius:999px;">별거리/인연온도 동시 반영</span>
+        </div>
+        <p style="font-size:0.84rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.72;word-break:keep-all;">
+          질문을 입력하면 <strong>기본 숙요점 결과</strong>를 필수 반영해 프롬프트를 생성합니다. 궁합 분석 결과가 있으면 자동으로 함께 결합됩니다. (1회 100코인)
         </p>
-        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 지금 내 연애 패턴에서 가장 먼저 고쳐야 할 점이 뭘까?" style="width:100%;min-height:104px;border-radius:10px;border:1px solid rgba(251,191,36,0.45);background:rgba(10,15,30,0.72);color:#fff8dc;padding:11px;font-size:0.84rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
+        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 지금 내 연애 패턴에서 가장 먼저 고쳐야 할 점이 뭘까?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(196,181,253,0.44);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          <span data-sy-ai-count style="font-size:0.72rem;color:#fcd34d;">0 / 1000</span>
-          <span data-sy-ai-balance style="font-size:0.72rem;color:#fef3c7;">로그인 시 잔액이 표시됩니다.</span>
+          <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
+          <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2f05;border:1px solid rgba(251,191,36,0.78);padding:9px 13px;border-radius:8px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 프롬프트 생성</button>
-          <button data-sy-ai-regenerate type="button" style="display:none;background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
-          <button data-sy-ai-copy type="button" style="display:none;background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
+          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.78);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(251,191,36,0.28);">100코인으로 프롬프트 생성</button>
+          <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
+          <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
         </div>
-        <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:10px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>
-        <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#fde68a;"></div>
+        <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+        <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#e9d5ff;"></div>
       </div>`;
 
     html += `<div class="sy-card sy-cta-card">
@@ -6218,21 +6221,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 ${rxItems}
               </div>
 
-              <div class="sy-sec" id="syCompatAiPromptCard" style="background:rgba(180,160,255,0.08); border:1px solid rgba(180,160,255,0.3);">
-                <div class="sy-sec-title" style="color:#c4b5fd;">🤖 AI 질문 프롬프트 생성</div>
-                <div style="font-size:0.84rem;color:#d8d0ee;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터를 포함해 프롬프트를 생성합니다. (1회 100코인)</div>
-                <textarea data-sy-ai-question maxlength="1000" placeholder="예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?" style="width:100%;min-height:110px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#fff;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>
+              <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
+                <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
+                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리/관계유형/카르마)를 포함해 프롬프트를 생성합니다. (1회 100코인)</div>
+                <textarea data-sy-ai-question maxlength="1000" placeholder="예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-                  <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.78);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 프롬프트 생성</button>
-                  <button data-sy-ai-regenerate type="button" style="display:none;background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
-                  <button data-sy-ai-copy type="button" style="display:none;background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
+                  <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.78);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(251,191,36,0.25);">100코인으로 프롬프트 생성</button>
+                  <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
+                  <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
                 </div>
-                <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:10px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>
-                <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>
+                <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+                <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
               </div>
 
             </div>

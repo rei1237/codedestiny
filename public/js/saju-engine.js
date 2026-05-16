@@ -3939,26 +3939,31 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
   var box = document.createElement('div');
   box.id = 'sajuAiPromptQuestionBox';
   box.className = 'prem-box';
-  box.style.background = 'linear-gradient(135deg,#fff7ed,#fffbeb)';
-  box.style.border = '1.5px solid #f59e0b';
+  box.style.background = 'radial-gradient(120% 150% at 6% 0%, rgba(251,191,36,0.22), transparent 48%), linear-gradient(145deg,#fffdf7,#fff7ed 46%,#fffbeb)';
+  box.style.border = '1px solid rgba(180,83,9,0.28)';
+  box.style.boxShadow = '0 22px 48px rgba(180,83,9,0.14), inset 0 1px 0 rgba(255,255,255,0.9)';
+  box.style.borderRadius = '16px';
   box.style.marginBottom = '12px';
 
   box.innerHTML = ''
-    + '<span class="prem-title" style="color:#b45309;">🪙 질문 맞춤 사주 AI 상담 프롬프트</span>'
-    + '<p style="font-size:0.8rem;color:#7c2d12;margin-bottom:8px;line-height:1.55;">'
-    + '질문을 입력하면 현재 사주 분석 결과(JSON)를 근거로 AI 상담 프롬프트를 생성합니다. 성공 시 1회 100코인이 차감됩니다.'
+    + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px">'
+    + '  <span class="prem-title" style="color:#7c2d12;font-size:0.95rem;letter-spacing:0.2px;">🧧 사주 명식 맞춤 AI 상담 프롬프트</span>'
+    + '  <span style="font-size:0.7rem;color:#9a3412;border:1px solid rgba(180,83,9,0.28);background:rgba(251,191,36,0.14);padding:3px 8px;border-radius:999px;">사주 원국 + 용신 흐름 반영</span>'
+    + '</div>'
+    + '<p style="font-size:0.8rem;color:#7c2d12;margin-bottom:8px;line-height:1.62;">'
+    + '질문을 입력하면 현재 사주 분석 결과(JSON)를 근거로 상담형 프롬프트를 생성합니다. 생성 성공 시에만 1회 100코인이 차감됩니다.'
     + '</p>'
-    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예) 올해 이직을 준비해도 괜찮을까요? 강점과 리스크를 알려주세요." style="width:100%;min-height:96px;border:1px solid #fdba74;border-radius:10px;padding:10px;font-size:0.85rem;line-height:1.5;color:#444;background:#fff;resize:vertical;box-sizing:border-box;"></textarea>'
-    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;">'
-    + '  <span id="sajuAiPromptQuestionCount" style="font-size:0.74rem;color:#9a3412;">0 / 1000</span>'
-    + '  <span style="font-size:0.74rem;color:#9a3412;">프롬프트 생성 비용: 100코인</span>'
+    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예) 올해 이직을 준비해도 괜찮을까요? 강점과 리스크를 알려주세요." style="width:100%;min-height:106px;border:1px solid rgba(194,120,3,0.42);border-radius:12px;padding:11px;font-size:0.84rem;line-height:1.65;color:#3f2a13;background:rgba(255,255,255,0.86);backdrop-filter:blur(1.8px);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(146,64,14,0.08);"></textarea>'
+    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap;">'
+    + '  <span id="sajuAiPromptQuestionCount" style="font-size:0.73rem;color:#9a3412;">0 / 1000</span>'
+    + '  <span style="font-size:0.73rem;color:#9a3412;">생성 비용: <b>100코인</b></span>'
     + '</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:10px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">100코인으로 프롬프트 생성</button>'
-    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">생성 프롬프트 복사</button>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">'
+    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#b45309,#f59e0b 58%,#fbbf24);color:#fff;border:1px solid rgba(180,83,9,0.5);border-radius:10px;padding:10px 13px;font-size:0.79rem;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(180,83,9,0.28);">100코인으로 프롬프트 생성</button>'
+    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:1px solid rgba(37,99,235,0.52);border-radius:10px;padding:10px 12px;font-size:0.79rem;font-weight:700;cursor:pointer;">생성 프롬프트 복사</button>'
     + '</div>'
-    + '<textarea id="sajuAiPromptOutput" readonly style="display:none;margin-top:10px;width:100%;min-height:190px;border:1px solid #93c5fd;border-radius:10px;padding:10px;font-size:0.84rem;line-height:1.6;color:#1f2937;background:#eff6ff;resize:vertical;box-sizing:border-box;"></textarea>'
-    + '<div id="sajuAiPromptStatus" style="margin-top:8px;font-size:0.78rem;color:#475569;"></div>';
+    + '<textarea id="sajuAiPromptOutput" readonly style="display:none;margin-top:10px;width:100%;min-height:200px;border:1px solid rgba(59,130,246,0.38);border-radius:12px;padding:11px;font-size:0.83rem;line-height:1.65;color:#111827;background:linear-gradient(180deg,#f8fbff,#eef5ff);resize:vertical;box-sizing:border-box;"></textarea>'
+    + '<div id="sajuAiPromptStatus" style="margin-top:8px;font-size:0.78rem;color:#7c2d12;"></div>';
 
   aiCard.insertBefore(box, aiCard.firstChild);
 
@@ -7323,28 +7328,28 @@ function renderAstroInsight() {
       + '</div>';
 
     var astroAiPromptSectionHtml = ''
-      + '<div class="astro-section astro-neon-accent astro-neon-accent-amber" id="astroAiPromptSection">'
-      + '<div class="astro-subhead" style="margin-bottom:8px;color:#fde68a;">🪙 점성술 AI 질문 프롬프트 생성기</div>'
-      + '<p class="astro-birth-lead" style="margin-bottom:8px;">'
-      + '질문을 입력하면 현재 점성술 결과를 기반으로 상담형 프롬프트를 생성합니다. 궁합 질문은 먼저 시나스트리 결과를 계산해 주세요.'
+      + '<div class="astro-section" id="astroAiPromptSection" style="border:1px solid rgba(125,211,252,0.35);background:radial-gradient(140% 140% at 8% 0%, rgba(56,189,248,0.2), transparent 46%), radial-gradient(120% 120% at 100% 100%, rgba(99,102,241,0.18), transparent 42%), linear-gradient(145deg,rgba(2,6,23,.95),rgba(15,23,42,.9));box-shadow:0 24px 54px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;">'
+      + '<div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 Cosmic AI Question Composer</div>'
+      + '<p class="astro-birth-lead" style="margin-bottom:9px;color:#e2e8f0;">'
+      + '현재 네이탈/각도/하우스 데이터를 바탕으로 질문 맞춤 프롬프트를 생성합니다. 궁합 질문은 시나스트리 결과가 있으면 자동 결합됩니다.'
       + '</p>'
       + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
-      + '  <span style="font-size:11px;color:#fde68a;">1회 '+ASTROLOGY_AI_PROMPT_COST+'코인 차감</span>'
-      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#fef3c7;">코인 잔액 확인 중...</span>'
+      + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">1회 '+ASTROLOGY_AI_PROMPT_COST+'코인</span>'
+      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">코인 잔액 확인 중...</span>'
       + '</div>'
-      + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요." style="width:100%;min-height:102px;border-radius:10px;border:1px solid rgba(245,158,11,0.45);background:rgba(2,6,23,.68);color:#f8fafc;padding:10px;line-height:1.6;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">'
-      + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#fcd34d;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
-      + '  <span style="font-size:11px;color:#fcd34d;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
+      + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요." style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
+      + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
+      + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;border:1px solid rgba(251,191,36,.45);border-radius:9px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;">'+ASTROLOGY_AI_PROMPT_COST+'코인으로 생성</button>'
-      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:#0ea5e9;color:#fff;border:1px solid rgba(125,211,252,.5);border-radius:9px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">'+ASTROLOGY_AI_PROMPT_COST+'코인으로 생성</button>'
+      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
-      + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.55;"></div>'
-      + '<div id="astroAiPromptOutputWrap" style="display:none;margin-top:10px;border:1px solid rgba(52,211,153,.35);border-radius:10px;background:rgba(2,44,34,.35);padding:10px;">'
-      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a7f3d0;font-weight:700;margin-bottom:6px;">질문 유형: 일반</div>'
-      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:8px;border:1px solid rgba(134,239,172,.4);background:rgba(2,6,23,.75);color:#ecfdf5;padding:10px;font-size:12px;line-height:1.62;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
+      + '<div id="astroAiPromptOutputWrap" style="display:none;margin-top:10px;border:1px solid rgba(56,189,248,.32);border-radius:12px;background:rgba(2,18,38,.66);padding:11px;">'
+      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a5f3fc;font-weight:700;margin-bottom:6px;">질문 유형: 일반</div>'
+      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:190px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:12px;line-height:1.66;box-sizing:border-box;resize:vertical;"></textarea>'
       + '</div>'
       + '</div>';
 
@@ -13664,26 +13669,26 @@ function renderZiwei(p, natal, targetId) {
 
   function _zwBuildDeepAiPromptPanel() {
     return ''
-      + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel">'
+      + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel" style="border:1px solid rgba(192,132,252,0.32);background:radial-gradient(140% 130% at 8% 0%, rgba(168,85,247,0.2), transparent 44%), radial-gradient(130% 130% at 100% 100%, rgba(16,185,129,0.18), transparent 40%), linear-gradient(145deg,rgba(24,24,55,0.93),rgba(8,20,28,0.92));box-shadow:0 24px 50px rgba(88,28,135,0.34), inset 0 1px 0 rgba(255,255,255,0.07);border-radius:16px;">'
       + '  <div class="zw-dp-header">'
-      + '    <div class="zw-dp-title">🪙 자미두수 AI 질문 프롬프트</div>'
-      + '    <div class="zw-dp-subtitle">기본 명반 데이터를 기반으로 질문별 고품질 상담 프롬프트를 생성합니다. (1회 100코인)</div>'
+      + '    <div class="zw-dp-title" style="color:#f5d0fe">👑 자미두수 궁성 맞춤 AI 프롬프트</div>'
+      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">기본 명반 데이터를 기반으로 질문별 고품질 상담 프롬프트를 생성합니다. (1회 100코인)</div>'
       + '  </div>'
-      + '  <div style="font-size:0.78rem;line-height:1.6;color:#dbeafe;margin-bottom:10px">'
+      + '  <div style="font-size:0.78rem;line-height:1.62;color:#e9d5ff;margin-bottom:10px">'
       + '    연애, 소송, 직업, 돈, 인간관계, 건강, 인생 방향 질문을 입력하면 질문 분류+명반 핵심궁을 반영해 프롬프트를 생성합니다.'
       + '  </div>'
-      + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="질문을 입력해 주세요. (최소 5자, 최대 1000자)" style="width:100%;min-height:118px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;"></textarea>'
-      + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#c4b5fd">'
+      + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="질문을 입력해 주세요. (최소 5자, 최대 1000자)" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#ddd6fe">'
       + '    <span id="zwDeepAiPromptCount">0 / 1000</span>'
       + '    <span id="zwDeepAiPromptBalance">로그인 시 잔액이 표시됩니다.</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:8px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 AI 프롬프트 생성</button>'
-      + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>'
-      + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:#7c3aed;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#34d399);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">100코인으로 AI 프롬프트 생성</button>'
+      + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#312e81);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>'
+      + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '  </div>'
-      + '  <textarea id="zwDeepAiPromptText" readonly style="margin-top:10px;width:100%;min-height:220px;border-radius:10px;border:1px solid rgba(52,211,153,0.45);background:rgba(2,24,19,0.56);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.62;resize:vertical;box-sizing:border-box;display:none"></textarea>'
-      + '  <div id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>'
+      + '  <textarea id="zwDeepAiPromptText" readonly style="margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(52,211,153,0.42);background:rgba(2,24,19,0.56);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;display:none"></textarea>'
+      + '  <div id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>'
       + '</div>';
   }
 
