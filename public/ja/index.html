@@ -7876,13 +7876,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     animatePiggy();
   }
 
-  async function applyCharge() {
-    if (!(await ensureCoinApiAuthenticated('/points'))) {
-      return;
-    }
-
+  function applyCharge() {
     closeChargeModal();
-    window.location.href = '/points';
+    window.location.assign('/points');
   }
 
   function resolveUnlockProductIdByFeatureKey(featureKey) {
@@ -8647,6 +8643,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   // ※ defer 스크립트(index-inline-runtime.js)보다 먼저 등록되어 touchend를 선점
   document.addEventListener('touchend', function (event) {
     if (!(event.target instanceof Element)) return;
+    var chargeActionNode = event.target.closest('[data-action]');
+    if (chargeActionNode) {
+      var chargeAction = chargeActionNode.getAttribute('data-action') || '';
+      if (chargeAction === 'openGoldenGrainCharge') {
+        _cdSafeBlockEvent(event);
+        openChargeModal();
+        return;
+      }
+      if (chargeAction === 'closeGoldenGrainCharge') {
+        _cdSafeBlockEvent(event);
+        closeChargeModal();
+        return;
+      }
+      if (chargeAction === 'selectGoldenPackage') {
+        _cdSafeBlockEvent(event);
+        selectPackage(chargeActionNode.getAttribute('data-package-id') || 'sample');
+        return;
+      }
+      if (chargeAction === 'confirmGoldenCharge') {
+        _cdSafeBlockEvent(event);
+        applyCharge();
+        return;
+      }
+    }
     var actionNode = event.target.closest('[data-coin-cost]');
     if (!actionNode) return;
     if (_cdShouldSuppressActionDuringScroll(event, actionNode)) {
