@@ -98,6 +98,7 @@
     lastScrollAt: 0,
     suppressUntil: 0
   };
+  var _zbProfile = null;
 
   function _zbResolveEventTarget(event) {
     if (!event || !event.target) return null;
@@ -1076,8 +1077,11 @@
         '<div class="lb-start__ch-label">📖 13챕터 구성</div>' +
         '<ul class="lb-start__ch-list" id="zbChapterPreviewList"></ul>';
       var anchor = start.querySelector('.lb-start__note');
-      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
-      else start.appendChild(wrap);
+      if (anchor && anchor.parentNode) {
+        anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+      } else {
+        start.appendChild(wrap);
+      }
     }
     var list = document.getElementById('zbChapterPreviewList') || wrap.querySelector('.lb-start__ch-list');
     if (!list) return;
@@ -1145,7 +1149,7 @@
     var ziweiData = _collectZiweiData();
 
     // 서버 계산을 위한 생년월일 파라미터 추출
-    var _zbProfile = (function () {
+    _zbProfile = (function () {
       var _p = window.__cdActiveBirthProfile || {};
       var _s = window.__destinyFlowerSajuSnapshot || {};
       var _rawBirth = _p.birth || _s.birth || {};

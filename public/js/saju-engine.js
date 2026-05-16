@@ -4315,18 +4315,32 @@ function renderSpecialCharm(p, natal) {
     '</div>'+
     '</div>';
 
-  var existing = document.getElementById('specialCharmCard');
-  if(existing) existing.remove();
-  
-  var existingAi = document.getElementById('aiPromptCard');
-  if(existingAi) existingAi.remove();
-  
-  document.getElementById('dailyMonthlyCard').insertAdjacentHTML('afterend', html);
-  document.getElementById('specialCharmCard').insertAdjacentHTML('afterend', aiPromptHtml);
+  try {
+    var existing = document.getElementById('specialCharmCard');
+    if(existing) existing.remove();
+    
+    var existingAi = document.getElementById('aiPromptCard');
+    if(existingAi) existingAi.remove();
+    
+    var targetCard = document.getElementById('dailyMonthlyCard') || document.getElementById('fortuneResult');
+    if (targetCard) {
+      targetCard.insertAdjacentHTML('afterend', html);
+      var scCard = document.getElementById('specialCharmCard');
+      if (scCard) {
+        scCard.insertAdjacentHTML('afterend', aiPromptHtml);
+      } else {
+        targetCard.insertAdjacentHTML('afterend', aiPromptHtml);
+      }
+    } else {
+      console.warn('[renderSpecialCharm] Target card for insertion not found');
+    }
 
-  var aiCardNode = document.getElementById('aiPromptCard');
-  if (aiCardNode) {
-    _mountSajuAIPromptQuestionBox(aiCardNode);
+    var aiCardNode = document.getElementById('aiPromptCard');
+    if (aiCardNode) {
+      _mountSajuAIPromptQuestionBox(aiCardNode);
+    }
+  } catch (e) {
+    console.error('[renderSpecialCharm] UI 렌더링 실패:', e);
   }
 }
 
@@ -13985,10 +13999,10 @@ function renderZiwei(p, natal, targetId) {
   html += '</div>';
   html += '</div>';
   html += '</div></div>';
-  html += _zwBuildBasicCanonicalCards(palace);
-  html += _zwBuildLifeAnimalCards(palace);
-  html += _zwBuildDeepCanonicalCards(palace);
-  html += _zwBuildDeepAiPromptPanel();
+  try { html += _zwBuildBasicCanonicalCards(palace); } catch(e) { console.error('BasicCanonical 에러:', e); }
+  try { html += _zwBuildLifeAnimalCards(palace); } catch(e) { console.error('LifeAnimal 에러:', e); }
+  try { html += _zwBuildDeepCanonicalCards(palace); } catch(e) { console.error('DeepCanonical 에러:', e); }
+  try { html += _zwBuildDeepAiPromptPanel(); } catch(e) { console.error('DeepAiPrompt 에러:', e); }
 
   html += `
     <div class="zw-detail-panel" id="zwDetailPanel">
@@ -14007,7 +14021,9 @@ function renderZiwei(p, natal, targetId) {
   </div>`;
 
   var sec = document.getElementById(targetId || 'ziweiSection');
-  if(sec) sec.innerHTML = html;
+  if(sec) {
+    sec.innerHTML = html;
+  }
   if (!window._zwToggleAnimalCodex) {
     window._zwToggleAnimalCodex = function(detailsId) {
       var detailsEl = document.getElementById(detailsId || 'zwLifeAnimalCodex');
