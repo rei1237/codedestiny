@@ -2951,7 +2951,6 @@ var __cdProtectedActions = {
   openJuyukModal: true,
   openSukuyoModal: true,
   openAstroModal: true,
-  openZiweiModal: true,
   openDestinyFlower: true,
   openAstrologyFlower: true,
   openJamidusuFlower: true,
@@ -8189,6 +8188,9 @@ function closeZiweiModal() {
   _ModalProfileState.unsubscribe('ziwei');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+window.navigateToZiweiChart = navigateToZiweiChart;
+window.openZiweiModal = openZiweiModal;
+window.closeZiweiModal = closeZiweiModal;
 
 function openAstroModal(_retried) {
   if (!_retried) {
@@ -8679,7 +8681,6 @@ function __cdInstallProtectedActionWrappers() {
     ['openTarotSelfEsteemModal', '자존감 타로'],
     ['openTarotReunionModal', '재회 타로'],
     ['openTarotYearFortuneModal', '연운 타로'],
-    ['openZiweiModal', '자미두수'],
     ['openAstroModal', '점성술'],
     ['openSukuyoModal', '숙요점'],
     ['openHwatuModal', '화투 점괘'],
