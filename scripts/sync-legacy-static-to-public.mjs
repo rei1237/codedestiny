@@ -401,6 +401,24 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log("[sync-legacy-static-to-public] Stripped legacy public-only blocks from canonical shell");
   }
 
+  // Auto cache-bust all static asset query strings (?v=...)
+  const buildTimestamp = "build-" + Date.now();
+  const cacheBustedIndexHtml = baseIndexHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+  if (cacheBustedIndexHtml !== baseIndexHtml) {
+    baseIndexHtml = cacheBustedIndexHtml;
+    console.log(`[sync-legacy-static-to-public] Auto cache-busted static assets with ${buildTimestamp}`);
+  }
+
+  const inlineRuntimePath = resolve(publicDir, "js", "core", "index-inline-runtime.js");
+  if (existsSync(inlineRuntimePath)) {
+    let runtimeJs = readFileSync(inlineRuntimePath, "utf8");
+    const bustedRuntimeJs = runtimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+    if (bustedRuntimeJs !== runtimeJs) {
+      writeFileSync(inlineRuntimePath, bustedRuntimeJs);
+      console.log(`[sync-legacy-static-to-public] Auto cache-busted index-inline-runtime.js with ${buildTimestamp}`);
+    }
+  }
+
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
   const indexBuf = Buffer.from(baseIndexHtml, "utf8");
   const currentPublicHtml = existsSync(publicIndex)
@@ -434,6 +452,26 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   console.log(
     `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,
   );
+
+  // Sync back the auto cache-busted versions to root to maintain consistency for verification
+  const rootInlineRuntimePath = resolve(rootDir, "js", "core", "index-inline-runtime.js");
+  if (existsSync(rootInlineRuntimePath)) {
+    let rootRuntimeJs = readFileSync(rootInlineRuntimePath, "utf8");
+    const bustedRootRuntimeJs = rootRuntimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+    if (bustedRootRuntimeJs !== rootRuntimeJs) {
+      writeFileSync(rootInlineRuntimePath, bustedRootRuntimeJs);
+      console.log(`[sync-legacy-static-to-public] Updated root index-inline-runtime.js with ${buildTimestamp}`);
+    }
+  }
+
+  if (existsSync(rootIndexPath)) {
+    let rootHtml = readFileSync(rootIndexPath, "utf8");
+    const bustedRootHtml = rootHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+    if (bustedRootHtml !== rootHtml) {
+      writeFileSync(rootIndexPath, bustedRootHtml);
+      console.log(`[sync-legacy-static-to-public] Updated root index.html with ${buildTimestamp}`);
+    }
+  }
 }
 
 console.log("[sync-legacy-static-to-public] Completed static asset sync.");

@@ -3121,6 +3121,7 @@ var NEO_GAEUN_DB={
   }
 };
 
+
 function getDetailedGaeun(element,isGood){
   if(NEO_MODE && NEO_GAEUN_DB[element]){
     return NEO_GAEUN_DB[element][isGood?'good':'bad'];
@@ -4129,220 +4130,228 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 }
 
 /* ─── 심화 매력 분석 & AI 물상 렌더링 (초디테일 버전) ─── */
-function renderSpecialCharm(p, natal) {
-  /* ── 1. 기초 데이터 ── */
-  var branches  = [p.y.j, p.m.j, p.d.j, p.h.j];
-  var counts    = (natal&&natal.counts)?natal.counts:{wood:0,fire:0,earth:0,metal:0,water:0};
-  var dominant  = (natal&&natal.dominant)?natal.dominant:'earth';
-  var dayEl     = ((GAN[p.d.g]||{}).e)||'earth';
-  var total     = Math.max(1, counts.wood+counts.fire+counts.earth+counts.metal+counts.water);
+  function renderSpecialCharm(p, natal) {
+    // 기초 데이터
+    var branches  = [p.y.j, p.m.j, p.d.j, p.h.j];
+    var counts    = (natal&&natal.counts)?natal.counts:{wood:0,fire:0,earth:0,metal:0,water:0};
+    var dominant  = (natal&&natal.dominant)?natal.dominant:'earth';
+    var dayEl     = ((GAN[p.d.g]||{}).e)||'earth';
+    var total     = Math.max(1, counts.wood+counts.fire+counts.earth+counts.metal+counts.water);
 
-  /* ── 2. 신살 스탯 계산 ── */
-  var taoSet  = ['子','午','卯','酉'];
-  var taoHit  = branches.filter(function(b){return taoSet.indexOf(b)>=0;}).length;
-  var taoPct  = Math.min(100, taoHit*22 + (taoSet.indexOf(p.d.j)>=0 ? 25 : 0));
+    // 신살 스탯 계산
+    var taoSet  = ['子','午','卯','酉'];
+    var taoHit  = branches.filter(function(b){return taoSet.indexOf(b)>=0;}).length;
+    var taoPct  = Math.min(100, taoHit*22 + (taoSet.indexOf(p.d.j)>=0 ? 25 : 0));
 
-  var yemSet  = ['寅','申','巳','亥'];
-  var yemHit  = branches.filter(function(b){return yemSet.indexOf(b)>=0;}).length;
-  var yemNY   = (yemSet.indexOf(p.y.j)>=0?1:0)+(yemSet.indexOf(p.m.j)>=0?1:0);
-  var yemPct  = Math.min(100, yemHit*20 + yemNY*15);
+    var yemSet  = ['寅','申','巳','亥'];
+    var yemHit  = branches.filter(function(b){return yemSet.indexOf(b)>=0;}).length;
+    var yemNY   = (yemSet.indexOf(p.y.j)>=0?1:0)+(yemSet.indexOf(p.m.j)>=0?1:0);
+    var yemPct  = Math.min(100, yemHit*20 + yemNY*15);
 
-  var hwaSet  = ['辰','戌','丑','未'];
-  var hwaHit  = branches.filter(function(b){return hwaSet.indexOf(b)>=0;}).length;
-  var hwaPct  = Math.min(100, hwaHit*22 + (hwaHit>=2?18:0));
+    var hwaSet  = ['辰','戌','丑','未'];
+    var hwaHit  = branches.filter(function(b){return hwaSet.indexOf(b)>=0;}).length;
+    var hwaPct  = Math.min(100, hwaHit*22 + (hwaHit>=2?18:0));
 
-  /* ── 3. 매력 클래스 결정 ── */
-  var maxStat = Math.max(taoPct, yemPct, hwaPct);
-  var cls;
-  if(taoPct===maxStat && taoPct>=40){
-    if(dominant==='fire') cls={icon:'🔥',name:'태양 아래의 승부사',sub:'방에 들어서는 순간 공기가 바뀝니다. 당신의 존재 자체가 가장 강력한 무기입니다.'};
-    else if(dominant==='water') cls={icon:'🌊',name:'물 속의 인어',sub:'다가가기 어렵지만 한 번 빠지면 헤어나올 수 없는 치명적 매력의 소유자입니다.'};
-    else cls={icon:'🌹',name:'치명적 유혹자',sub:'원하든 원치 않든 주변을 끌어당기는 자기장이 상시 작동 중입니다.'};
-  } else if(yemPct===maxStat && yemPct>=40){
-    if(dominant==='metal') cls={icon:'⚔️',name:'경계 없는 개척자',sub:'좁은 무대에 가둘 수 없는 사람. 더 넓은 세계에서 진가를 발휘합니다.'};
-    else cls={icon:'🌪️',name:'역동적인 방랑자',sub:'멈추는 순간 매력이 반감됩니다. 에너지 자체가 당신의 가장 큰 무기입니다.'};
-  } else if(hwaPct===maxStat && hwaPct>=40){
-    if(dominant==='water') cls={icon:'🔮',name:'베일에 싸인 철학자',sub:'쉽게 읽히지 않는 깊이가 상대방을 계속 궁금하게 만드는 트랩 매력입니다.'};
-    else cls={icon:'🪷',name:'고독한 예술가',sub:'내면의 풍경이 너무 깊어 통하는 사람이 드물지만, 한 번 연결되면 강렬합니다.'};
-  } else if(dominant==='metal'){
-    cls={icon:'💎',name:'차가운 도시의 세련미',sub:'함부로 다가가기 힘든 분위기와 날카로운 안목이 당신을 희귀하게 만듭니다.'};
-  } else if(dominant==='fire'){
-    cls={icon:'🌟',name:'압도적 화려함',sub:'분위기를 바꾸는 타입. 열정과 표현력이 곧 매력입니다.'};
-  } else if(dominant==='wood'){
-    cls={icon:'🌿',name:'자연스러운 청량미',sub:'꾸미지 않아도 빛나는 순수함으로 사람들 마음에 스며드는 타입입니다.'};
-  } else if(dominant==='water'){
-    cls={icon:'💧',name:'위험한 신비로움',sub:'깊이를 알 수 없는 눈빛과 조용한 카리스마가 상대방의 경계를 무너뜨립니다.'};
-  } else {
-    cls={icon:'🗿',name:'중독성 강한 안정감',sub:'어딜 가나 묵직한 신뢰감을 주는 사람. 시간이 지날수록 매력이 진해지는 타입입니다.'};
-  }
-
-  /* ── 4. 오행 마그네티즘 ── */
-  var magMeta = {
-    wood: {icon:'🌿', name:'목(木) — 자연스러운 청량미', pct:Math.round((counts.wood||0)/total*100),
-           desc:'순수하고 생동감 넘치는 청춘 에너지. 상대를 편안하게 만드는 배려와 따뜻한 공감력이 핵심 매력입니다.'},
-    fire: {icon:'🔥', name:'화(火) — 압도적 화려함', pct:Math.round((counts.fire||0)/total*100),
-           desc:'화려하고 열정적으로 주변을 태우는 에너지. 리액션과 전달력이 뛰어나 첫인상에서 강한 호감을 남깁니다.'},
-    earth:{icon:'⛰️', name:'토(土) — 중독성 안정감', pct:Math.round((counts.earth||0)/total*100),
-           desc:'묵직하고 믿음직해 기댈 곳을 주는 중독성 안정감. 오래 곁에 있고 싶게 만드는 포근한 신뢰 매력입니다.'},
-    metal:{icon:'🗡️', name:'금(金) — 차가운 세련미', pct:Math.round((counts.metal||0)/total*100),
-           desc:'날카롭고 세련되어 함부로 다가가기 힘든 분위기. 기준이 높아 선택받은 기분을 주는 희귀 매력입니다.'},
-    water:{icon:'🌊', name:'수(水) — 위험한 신비로움', pct:Math.round((counts.water||0)/total*100),
-           desc:'깊이를 알 수 없는 눈빛과 지적 아우라. 상대를 계속 궁금하게 만드는 트랩형 카리스마입니다.'}
-  };
-
-  /* ── 5. 팩폭 ── */
-  var bombs = [];
-  if(taoPct>=60) bombs.push('도화 기운이 넘쳐 의도치 않은 시그널을 남발하고 있진 않은지 점검하세요. 가볍게 보일 수 있습니다.');
-  if(yemPct>=60) bombs.push('역마 에너지가 강해 한 곳에 뿌리내리기 어렵습니다. 상대는 당신이 언제 떠날지 항상 불안해합니다.');
-  if(hwaPct>=60) bombs.push('화개가 강하면 현실보다 이상 세계에 빠지기 쉽습니다. 깊이는 매력이지만 소통 단절로 이어질 수 있습니다.');
-  if(dominant==='metal') bombs.push('세련된 건 알겠는데, 옆에 있으면 베일 것 같습니다. 능동적인 온기 표현이 없으면 차갑게 읽힙니다.');
-  if(dominant==='fire'&&(counts.fire||0)>=3) bombs.push('에너지가 너무 강해 상대방이 압도당하거나 지칩니다. 공간을 주는 것도 매력 천기입니다.');
-  if(dominant==='water'&&(counts.water||0)>=3) bombs.push('신비로움이 지나치면 답답함으로 읽힙니다. 먼저 열어 보이는 용기가 관계를 한 단계 깊게 합니다.');
-  if(bombs.length===0) bombs.push('치명적 약점은 없지만, 모든 매력을 풀가동하려면 자신의 색깔을 더 선명하게 드러내는 연습이 필요합니다.');
-
-  /* ── 6. 극대화 천기 ── */
-  var strategies = [];
-  if(taoPct>=40){
-    strategies.push('연애: 첫인상보다 꾸준한 관심 표현이 효과적입니다. 도화 매력은 시작은 강하지만 지속이 관건입니다.');
-    strategies.push('비즈니스: 얼굴이 곧 브랜드입니다. 영상 콘텐츠·강연·퍼블릭 페이스 포지셔닝이 최적의 무대입니다.');
-  }
-  if(yemPct>=40){
-    strategies.push('연애: 새로운 경험을 함께하는 데이트가 최고의 매력 발산법입니다. 일상 패턴화를 경계하세요.');
-    strategies.push('비즈니스: 해외·다분야·네트워킹 업무에서 강점이 폭발합니다. 크로스오버 커리어가 천직입니다.');
-  }
-  if(hwaPct>=40){
-    strategies.push('연애: 깊이 있는 대화와 공통 관심사(예술·철학·영성)로 연결되는 관계가 오래갑니다.');
-    strategies.push('비즈니스: 크리에이티브·상담·연구직에서 화개 에너지가 빛납니다. 독창성 자체가 경쟁력입니다.');
-  }
-  if(strategies.length===0){
-    strategies.push('오행 균형이 잡혀 있어 상황에 맞게 매력을 조절하는 카멜레온 천기가 유리합니다.');
-    strategies.push('특정 매력을 강화하려면 도화(스타일·외모) · 역마(적극성·모험) · 화개(깊이·예술) 중 하나를 의도적으로 키우세요.');
-  }
-
-  /* ── 7. HTML 조립 ── */
-  var magRow = '';
-  ['wood','fire','earth','metal','water'].forEach(function(e){
-    var m = magMeta[e];
-    var isActive = (e===dominant || e===dayEl);
-    var lvl = m.pct>=33?'🔥 강함':m.pct>=20?'활성':m.pct>=10?'기본':'잠재';
-    magRow += '<div class="cs-mag-item'+(isActive?' cs-active':'')+'">'+
-      '<div class="cs-mag-head">'+
-        '<span class="cs-mag-name">'+m.icon+' '+m.name+'</span>'+
-        '<span class="cs-mag-level">'+lvl+' ('+m.pct+'%)</span>'+
-      '</div>'+
-      '<div class="cs-mag-desc">'+m.desc+'</div>'+
-    '</div>';
-  });
-
-  var bombRows = bombs.map(function(f){return '<div class="cs-factbomb-item">'+f+'</div>';}).join('');
-  var stratRows = strategies.map(function(s){return '<div class="cs-strategy-item">'+s+'</div>';}).join('');
-
-  /* ── AI 프롬프트 ── */
-  var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
-    '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
-    '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
-  var prompt=(musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
-  var safePrompt=prompt.replace(/'/g,"\\'");
-
-  var html =
-    '<div id="specialCharmCard" style="margin-top:15px">'+
-    /* ===== 스탯 카드 ===== */
-    '<div class="cscard">'+
-      /* 매력 클래스 헤더 */
-      '<div class="cs-class-wrap">'+
-        '<span class="cs-class-icon">'+cls.icon+'</span>'+
-        '<div class="cs-class-label">나의 매력 클래스</div>'+
-        '<div class="cs-class-name">'+cls.name+'</div>'+
-        '<div class="cs-class-sub">'+cls.sub+'</div>'+
-      '</div>'+
-      '<div class="cs-divider"></div>'+
-      /* 3대 신살 스탯바 */
-      '<div class="cs-stat-section">'+
-        '<div class="cs-stat-title">⚡ 3대 매력 신살(神殺) 스탯</div>'+
-        '<div class="cs-stat-row">'+
-          '<div class="cs-stat-head"><span class="cs-stat-name">🌸 도화살(桃花殺)</span><span class="cs-stat-pct">'+taoPct+'%</span></div>'+
-          '<div class="cs-stat-keyword">치명적 존재감 · 시선 집중 · 유혹 · 인기 · 연예인 기질</div>'+
-          '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-taohua" style="width:'+taoPct+'%"></div></div>'+
-        '</div>'+
-        '<div class="cs-stat-row" style="margin-top:10px">'+
-          '<div class="cs-stat-head"><span class="cs-stat-name">🌪️ 역마살(驛馬殺)</span><span class="cs-stat-pct">'+yemPct+'%</span></div>'+
-          '<div class="cs-stat-keyword">역동적 에너지 · 활력 · 개척자 · 글로벌 감각 · 모험</div>'+
-          '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-yemma" style="width:'+yemPct+'%"></div></div>'+
-        '</div>'+
-        '<div class="cs-stat-row" style="margin-top:10px">'+
-          '<div class="cs-stat-head"><span class="cs-stat-name">🔮 화개살(華蓋殺)</span><span class="cs-stat-pct">'+hwaPct+'%</span></div>'+
-          '<div class="cs-stat-keyword">예술적 고독 · 신비로움 · 철학 · 직관 · 묘한 끌림</div>'+
-          '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-hwagae" style="width:'+hwaPct+'%"></div></div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="cs-divider"></div>'+
-      /* 오행 마그네티즘 */
-      '<div class="cs-mag-title">🌈 오행 매력 마그네티즘(Magnetism)</div>'+
-      '<div class="cs-mag-row">'+magRow+'</div>'+
-      '<div class="cs-divider"></div>'+
-      /* 팩폭 */
-      '<div class="cs-factbomb">'+
-        '<div class="cs-factbomb-title">💥 팩폭 — 당신이 착각하고 있는 것들</div>'+
-        bombRows+
-      '</div>'+
-      /* 극대화 천기 */
-      '<div class="cs-strategy">'+
-        '<div class="cs-strategy-title">🚀 매력 극대화 천기 처방전</div>'+
-        stratRows+
-      '</div>'+
-    '</div>';
-
-  var aiPromptHtml = 
-    '<div id="aiPromptCard" style="margin-top:15px">'+
-    /* AI 프롬프트 박스들 */
-    '<div class="prem-box" style="background:#fff;border:1px solid #FFB7B2;">'+
-      '<span class="prem-title" style="color:#FF8BA7;">🎨 맞춤형 사주 물상 AI 프롬프트</span>'+
-      '<p style="font-size:0.8rem;color:#888;margin-bottom:10px;">이 문구를 복사해 AI(미드저니 등)에게 풍경화 스타일 물상을 요청해보세요.</p>'+
-      '<div style="background:#FFF5F8;padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #FF8BA7;word-break:break-all;color:#555;">'+prompt+'</div>'+
-      '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#FF8BA7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safePrompt+'\').then(function(){alert(\'✨ 프롬프트가 복사되었습니다!\');})">📋 프롬프트 복사하기</button>'+
-    '</div>'+
-    '<div class="prem-box" style="background:linear-gradient(135deg,#FCE4EC,#F3E5F5);margin-top:12px;border:1.5px solid #E91E63;">'+
-      '<span class="prem-title" style="color:#C2185B;">🐾 내 사주 아바타 — 귀여운 동물 캐릭터</span>'+
-      '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">타고난 사주 기운을 귀여운 동물로 표현했습니다.</p>'+
-      '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #E879A4;word-break:break-all;color:#555;">'+generateAvatarPrompt(p)+'</div>'+
-      '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#E879A4;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+generateAvatarPrompt(p).replace(/'/g,"\\'")+'\').then(function(){alert(\'✨ 아바타 프롬프트가 복사되었습니다!\');})">📋 아바타 프롬프트 복사</button>'+
-    '</div>'+
-    '<div class="prem-box" style="background:linear-gradient(135deg,#E1F5FE,#F0F4C3);margin-top:12px;border:1.5px solid #0277BD;">'+
-      '<span class="prem-title" style="color:#01579B;">💕 내 이상형 얼굴 — 사주 궁합 기반 AI 초상화</span>'+
-      '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">당신의 사주와 잘 맞는 이상형의 특징을 반영한 얼굴 초상화 프롬프트입니다.</p>'+
-      '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #4FC3F7;word-break:break-all;color:#555;">'+generateIdealPartnerPrompt(p,natal)+'</div>'+
-      '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#4FC3F7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+generateIdealPartnerPrompt(p,natal).replace(/'/g,"\\'")+'\').then(function(){alert(\'✨ 이상형 프롬프트가 복사되었습니다!\');})">📋 이상형 프롬프트 복사</button>'+
-    '</div>'+
-    '</div>';
-
-  try {
-    var existing = document.getElementById('specialCharmCard');
-    if(existing) existing.remove();
-    
-    var existingAi = document.getElementById('aiPromptCard');
-    if(existingAi) existingAi.remove();
-    
-    var targetCard = document.getElementById('dailyMonthlyCard') || document.getElementById('fortuneResult');
-    if (targetCard) {
-      targetCard.insertAdjacentHTML('afterend', html);
-      var scCard = document.getElementById('specialCharmCard');
-      if (scCard) {
-        scCard.insertAdjacentHTML('afterend', aiPromptHtml);
-      } else {
-        targetCard.insertAdjacentHTML('afterend', aiPromptHtml);
-      }
+    // 매력 클래스 결정
+    var maxStat = Math.max(taoPct, yemPct, hwaPct);
+    var cls;
+    if(taoPct===maxStat && taoPct>=40){
+      if(dominant==='fire') cls={icon:'🔥',name:'태양 아래의 승부사',sub:'방에 들어서는 순간 공기가 바뀝니다. 당신의 존재 자체가 가장 강력한 무기입니다.'};
+      else if(dominant==='water') cls={icon:'🌊',name:'물 속의 인어',sub:'다가가기 어렵지만 한 번 빠지면 헤어나올 수 없는 치명적 매력의 소유자입니다.'};
+      else cls={icon:'🌹',name:'치명적 유혹자',sub:'원하든 원치 않든 주변을 끌어당기는 자기장이 상시 작동 중입니다.'};
+    } else if(yemPct===maxStat && yemPct>=40){
+      if(dominant==='metal') cls={icon:'⚔️',name:'경계 없는 개척자',sub:'좁은 무대에 가둘 수 없는 사람. 더 넓은 세계에서 진가를 발휘합니다.'};
+      else cls={icon:'🌪️',name:'역동적인 방랑자',sub:'멈추는 순간 매력이 반감됩니다. 에너지 자체가 당신의 가장 큰 무기입니다.'};
+    } else if(hwaPct===maxStat && hwaPct>=40){
+      if(dominant==='water') cls={icon:'🔮',name:'베일에 싸인 철학자',sub:'쉽게 읽히지 않는 깊이가 상대방을 계속 궁금하게 만드는 트랩 매력입니다.'};
+      else cls={icon:'🪷',name:'고독한 예술가',sub:'내면의 풍경이 너무 깊어 통하는 사람이 드물지만, 한 번 연결되면 강렬합니다.'};
+    } else if(dominant==='metal'){
+      cls={icon:'💎',name:'차가운 도시의 세련미',sub:'함부로 다가가기 힘든 분위기와 날카로운 안목이 당신을 희귀하게 만듭니다.'};
+    } else if(dominant==='fire'){
+      cls={icon:'🌟',name:'압도적 화려함',sub:'분위기를 바꾸는 타입. 열정과 표현력이 곧 매력입니다.'};
+    } else if(dominant==='wood'){
+      cls={icon:'🌿',name:'자연스러운 청량미',sub:'꾸미지 않아도 빛나는 순수함으로 사람들 마음에 스며드는 타입입니다.'};
+    } else if(dominant==='water'){
+      cls={icon:'💧',name:'위험한 신비로움',sub:'깊이를 알 수 없는 눈빛과 조용한 카리스마가 상대방의 경계를 무너뜨립니다.'};
     } else {
-      console.warn('[renderSpecialCharm] Target card for insertion not found');
+      cls={icon:'🗿',name:'중독성 강한 안정감',sub:'어딜 가나 묵직한 신뢰감을 주는 사람. 시간이 지날수록 매력이 진해지는 타입입니다.'};
     }
 
-    var aiCardNode = document.getElementById('aiPromptCard');
-    if (aiCardNode) {
-      _mountSajuAIPromptQuestionBox(aiCardNode);
+    // 오행 마그네티즘
+    var magMeta = {
+      wood: {icon:'🌿', name:'목(木) — 자연스러운 청량미', pct:Math.round((counts.wood||0)/total*100),
+             desc:'순수하고 생동감 넘치는 청춘 에너지. 상대를 편안하게 만드는 배려와 따뜻한 공감력이 핵심 매력입니다.'},
+      fire: {icon:'🔥', name:'화(火) — 압도적 화려함', pct:Math.round((counts.fire||0)/total*100),
+             desc:'화려하고 열정적으로 주변을 태우는 에너지. 리액션과 전달력이 뛰어나 첫인상에서 강한 호감을 남깁니다.'},
+      earth:{icon:'⛰️', name:'토(土) — 중독성 안정감', pct:Math.round((counts.earth||0)/total*100),
+             desc:'묵직하고 믿음직해 기댈 곳을 주는 중독성 안정감. 오래 곁에 있고 싶게 만드는 포근한 신뢰 매력입니다.'},
+      metal:{icon:'🗡️', name:'금(金) — 차가운 세련미', pct:Math.round((counts.metal||0)/total*100),
+             desc:'날카롭고 세련되어 함부로 다가가기 힘든 분위기. 기준이 높아 선택받은 기분을 주는 희귀 매력입니다.'},
+      water:{icon:'🌊', name:'수(水) — 위험한 신비로움', pct:Math.round((counts.water||0)/total*100),
+             desc:'깊이를 알 수 없는 눈빛과 지적 아우라. 상대를 계속 궁금하게 만드는 트랩형 카리스마입니다.'}
+    };
+
+    // 팩폭
+    var bombs = [];
+    if(taoPct>=60) bombs.push('도화 기운이 넘쳐 의도치 않은 시그널을 남발하고 있진 않은지 점검하세요. 가볍게 보일 수 있습니다.');
+    if(yemPct>=60) bombs.push('역마 에너지가 강해 한 곳에 뿌리내리기 어렵습니다. 상대는 당신이 언제 떠날지 항상 불안해합니다.');
+    if(hwaPct>=60) bombs.push('화개가 강하면 현실보다 이상 세계에 빠지기 쉽습니다. 깊이는 매력이지만 소통 단절로 이어질 수 있습니다.');
+    if(dominant==='metal') bombs.push('세련된 건 알겠는데, 옆에 있으면 베일 것 같습니다. 능동적인 온기 표현이 없으면 차갑게 읽힙니다.');
+    if(dominant==='fire'&&(counts.fire||0)>=3) bombs.push('에너지가 너무 강해 상대방이 압도당하거나 지칩니다. 공간을 주는 것도 매력 천기입니다.');
+    if(dominant==='water'&&(counts.water||0)>=3) bombs.push('신비로움이 지나치면 답답함으로 읽힙니다. 먼저 열어 보이는 용기가 관계를 한 단계 깊게 합니다.');
+    if(bombs.length===0) bombs.push('치명적 약점은 없지만, 모든 매력을 풀가동하려면 자신의 색깔을 더 선명하게 드러내는 연습이 필요합니다.');
+
+    // 극대화 천기
+    var strategies = [];
+    if(taoPct>=40){
+      strategies.push('연애: 첫인상보다 꾸준한 관심 표현이 효과적입니다. 도화 매력은 시작은 강하지만 지속이 관건입니다.');
+      strategies.push('비즈니스: 얼굴이 곧 브랜드입니다. 영상 콘텐츠·강연·퍼블릭 페이스 포지셔닝이 최적의 무대입니다.');
     }
-  } catch (e) {
-    console.error('[renderSpecialCharm] UI 렌더링 실패:', e);
+    if(yemPct>=40){
+      strategies.push('연애: 새로운 경험을 함께하는 데이트가 최고의 매력 발산법입니다. 일상 패턴화를 경계하세요.');
+      strategies.push('비즈니스: 해외·다분야·네트워킹 업무에서 강점이 폭발합니다. 크로스오버 커리어가 천직입니다.');
+    }
+    if(hwaPct>=40){
+      strategies.push('연애: 깊이 있는 대화와 공통 관심사(예술·철학·영성)로 연결되는 관계가 오래갑니다.');
+      strategies.push('비즈니스: 크리에이티브·상담·연구직에서 화개 에너지가 빛납니다. 독창성 자체가 경쟁력입니다.');
+    }
+    if(strategies.length===0){
+      strategies.push('오행 균형이 잡혀 있어 상황에 맞게 매력을 조절하는 카멜레온 천기가 유리합니다.');
+      strategies.push('특정 매력을 강화하려면 도화(스타일·외모) · 역마(적극성·모험) · 화개(깊이·예술) 중 하나를 의도적으로 키우세요.');
+    }
+
+    // HTML 조립
+    var magRow = '';
+    ['wood','fire','earth','metal','water'].forEach(function(e){
+      var m = magMeta[e];
+      var isActive = (e===dominant || e===dayEl);
+      var lvl = m.pct>=33?'🔥 강함':m.pct>=20?'활성':m.pct>=10?'기본':'잠재';
+      magRow += '<div class="cs-mag-item'+(isActive?' cs-active':'')+'">'+
+        '<div class="cs-mag-head">'+
+          '<span class="cs-mag-name">'+m.icon+' '+m.name+'</span>'+
+          '<span class="cs-mag-level">'+lvl+' ('+m.pct+'%)</span>'+
+        '</div>'+
+        '<div class="cs-mag-desc">'+m.desc+'</div>'+
+      '</div>';
+    });
+
+    var bombRows = bombs.map(function(f){return '<div class="cs-factbomb-item">'+f+'</div>';}).join('');
+    var stratRows = strategies.map(function(s){return '<div class="cs-strategy-item">'+s+'</div>';}).join('');
+
+    var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
+      '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
+      '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
+    var prompt=(musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
+    var safePrompt=prompt.replace(/'/g,"\\'");
+
+    var html =
+      '<div id="specialCharmCard" style="margin-top:15px">'+
+      '<div class="cscard">'+
+        '<div class="cs-class-wrap">'+
+          '<span class="cs-class-icon">'+cls.icon+'</span>'+
+          '<div class="cs-class-label">나의 매력 클래스</div>'+
+          '<div class="cs-class-name">'+cls.name+'</div>'+
+          '<div class="cs-class-sub">'+cls.sub+'</div>'+
+        '</div>'+
+        '<div class="cs-divider"></div>'+
+        '<div class="cs-stat-section">'+
+          '<div class="cs-stat-title">⚡ 3대 매력 신살(神殺) 스탯</div>'+
+          '<div class="cs-stat-row">'+
+            '<div class="cs-stat-head"><span class="cs-stat-name">🌸 도화살(桃花殺)</span><span class="cs-stat-pct">'+taoPct+'%</span></div>'+
+            '<div class="cs-stat-keyword">치명적 존재감 · 시선 집중 · 유혹 · 인기 · 연예인 기질</div>'+
+            '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-taohua" style="width:'+taoPct+'%"></div></div>'+
+          '</div>'+
+          '<div class="cs-stat-row" style="margin-top:10px">'+
+            '<div class="cs-stat-head"><span class="cs-stat-name">🌪️ 역마살(驛馬殺)</span><span class="cs-stat-pct">'+yemPct+'%</span></div>'+
+            '<div class="cs-stat-keyword">역동적 에너지 · 활력 · 개척자 · 글로벌 감각 · 모험</div>'+
+            '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-yemma" style="width:'+yemPct+'%"></div></div>'+
+          '</div>'+
+          '<div class="cs-stat-row" style="margin-top:10px">'+
+            '<div class="cs-stat-head"><span class="cs-stat-name">🔮 화개살(華蓋殺)</span><span class="cs-stat-pct">'+hwaPct+'%</span></div>'+
+            '<div class="cs-stat-keyword">예술적 고독 · 신비로움 · 철학 · 직관 · 묘한 끌림</div>'+
+            '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-hwagae" style="width:'+hwaPct+'%"></div></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="cs-divider"></div>'+
+        '<div class="cs-mag-title">🌈 오행 매력 마그네티즘(Magnetism)</div>'+
+        '<div class="cs-mag-row">'+magRow+'</div>'+
+        '<div class="cs-divider"></div>'+
+        '<div class="cs-factbomb">'+
+          '<div class="cs-factbomb-title">💥 팩폭 — 당신이 착각하고 있는 것들</div>'+
+          bombRows+
+        '</div>'+
+        '<div class="cs-strategy">'+
+          '<div class="cs-strategy-title">🚀 매력 극대화 천기 처방전</div>'+
+          stratRows+
+        '</div>'+
+      '</div>'+
+      '</div>';
+
+    var aiPromptHtml = 
+      '<div id="aiPromptCard" style="margin-top:15px">'+
+      '<div class="prem-box" style="background:#fff;border:1px solid #FFB7B2;">'+
+        '<span class="prem-title" style="color:#FF8BA7;">🎨 맞춤형 사주 물상 AI 프롬프트</span>'+
+        '<p style="font-size:0.8rem;color:#888;margin-bottom:10px;">이 문구를 복사해 AI(미드저니 등)에게 풍경화 스타일 물상을 요청해보세요.</p>'+
+        '<div style="background:#FFF5F8;padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #FF8BA7;word-break:break-all;color:#555;">'+prompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#FF8BA7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safePrompt+'\').then(function(){alert(\'✨ 프롬프트가 복사되었습니다!\');})">📋 프롬프트 복사하기</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#FCE4EC,#F3E5F5);margin-top:12px;border:1.5px solid #E91E63;">'+
+        '<span class="prem-title" style="color:#C2185B;">🐾 내 사주 아바타 — 귀여운 동물 캐릭터</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">타고난 사주 기운을 귀여운 동물로 표현했습니다.</p>'+
+        '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #E879A4;word-break:break-all;color:#555;">'+generateAvatarPrompt(p)+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#E879A4;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+generateAvatarPrompt(p).replace(/'/g,"\\'")+'\').then(function(){alert(\'✨ 아바타 프롬프트가 복사되었습니다!\');})">📋 아바타 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#E1F5FE,#F0F4C3);margin-top:12px;border:1.5px solid #0277BD;">'+
+        '<span class="prem-title" style="color:#01579B;">💕 내 이상형 얼굴 — 사주 궁합 기반 AI 초상화</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">당신의 사주와 잘 맞는 이상형의 특징을 반영한 얼굴 초상화 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #4FC3F7;word-break:break-all;color:#555;">'+generateIdealPartnerPrompt(p,natal)+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#4FC3F7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+generateIdealPartnerPrompt(p,natal).replace(/'/g,"\\'")+'\').then(function(){alert(\'✨ 이상형 프롬프트가 복사되었습니다!\');})">📋 이상형 프롬프트 복사</button>'+
+      '</div>'+
+      '</div>';
+
+    // Retry logic to ensure the target containers are ready
+    var retryCount = 0;
+    var maxRetries = 20;
+    
+    function tryMount() {
+      var targetCard = document.getElementById('dailyMonthlyCard') || document.getElementById('fortuneResult');
+      var letterBox = document.getElementById('letterBox');
+      
+      if (!targetCard && !letterBox && retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(tryMount, 500);
+        return;
+      }
+      
+      try {
+        var existing = document.getElementById('specialCharmCard');
+        if(existing) existing.remove();
+        var existingAi = document.getElementById('aiPromptCard');
+        if(existingAi) existingAi.remove();
+        
+        if (targetCard) {
+          targetCard.insertAdjacentHTML('afterend', html);
+        }
+        
+        if (letterBox) {
+          letterBox.insertAdjacentHTML('beforebegin', aiPromptHtml);
+        } else if (targetCard) {
+          var scCard = document.getElementById('specialCharmCard');
+          if (scCard) scCard.insertAdjacentHTML('afterend', aiPromptHtml);
+          else targetCard.insertAdjacentHTML('afterend', aiPromptHtml);
+        }
+
+        var aiCardNode = document.getElementById('aiPromptCard');
+        if (aiCardNode) {
+          _mountSajuAIPromptQuestionBox(aiCardNode);
+        }
+      } catch (e) {
+        console.error('[renderSpecialCharm] UI 렌더링 실패:', e);
+      }
+    }
+    
+    tryMount();
   }
-}
 
 /* ═══════════════════════════════════════
    STEP 7: 렌더 함수
@@ -12686,7 +12695,8 @@ function renderZiwei(p, natal, targetId) {
   }
 
   function _zwPortfolioCleanStar(raw) {
-    return String(raw || '')
+    var val = (raw && typeof raw === 'object') ? (raw.name || '') : String(raw || '');
+    return val
       .replace(/<[^>]+>/g, ' ')
       .replace(/\(차성\)/g, ' ')
       .replace(/화록|화권|화과|화기/g, ' ')
@@ -13292,7 +13302,8 @@ function renderZiwei(p, natal, targetId) {
     pd.palaceStarData.forEach(function(row){
       var merged = [].concat((row && row.stars) || [], (row && row.auxStars) || [], (row && row.badStars) || []);
       merged.forEach(function(raw){
-        var hit = String(raw || '').match(/화록|화권|화과|화기/);
+        var starName = (raw && typeof raw === 'object') ? (raw.name || '') : String(raw || '');
+        var hit = starName.match(/화록|화권|화과|화기/);
         if (hit && Object.prototype.hasOwnProperty.call(sihuaCount, hit[0])) sihuaCount[hit[0]] += 1;
       });
     });
@@ -13358,7 +13369,9 @@ function renderZiwei(p, natal, targetId) {
       var mergedRaw = [].concat((row && row.stars) || [], (row && row.auxStars) || [], (row && row.badStars) || []);
       var sihua = '';
       for (var i = 0; i < mergedRaw.length; i += 1) {
-        var hit = String(mergedRaw[i] || '').match(/화록|화권|화과|화기/);
+        var raw = mergedRaw[i];
+        var starName = (raw && typeof raw === 'object') ? (raw.name || '') : String(raw || '');
+        var hit = starName.match(/화록|화권|화과|화기/);
         if (hit) {
           sihua = hit[0];
           break;
@@ -13454,9 +13467,10 @@ function renderZiwei(p, natal, targetId) {
 
     var topHtml = payload.topPalaces.map(function(row, idx) {
       var stars = row.mainStars.length ? row.mainStars.slice(0, 2).join(' · ') : '공궁(空宮)';
+      var persona = String(row.profile.persona || '');
       return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(148,163,184,0.12)">'
         + '<span style="color:#a5b4fc;font-size:0.79rem;white-space:nowrap">TOP ' + (idx + 1) + ' · ' + _zwPortfolioEscapeHtml(String(row.palace || '-')) + '</span>'
-        + '<span style="color:#f8fafc;font-size:0.8rem;text-align:right">' + _zwPortfolioEscapeHtml(stars) + '<br><span style="color:#93c5fd;font-size:0.72rem">' + _zwPortfolioEscapeHtml(String(row.profile.persona || '')) + '</span></span>'
+        + '<span style="color:#f8fafc;font-size:0.8rem;text-align:right">' + _zwPortfolioEscapeHtml(stars) + '<br><span style="color:#93c5fd;font-size:0.72rem">' + _zwPortfolioEscapeHtml(persona) + '</span></span>'
         + '</div>';
     }).join('');
 
