@@ -722,8 +722,25 @@
     checkedAt: 0,
     ok: false,
     userId: '',
+    signature: '',
     pending: null
   };
+
+  function _dpGetSessionHintSignature() {
+    var scope = '';
+    var hasRoleCookie = false;
+    var hasToken = false;
+    try {
+      scope = _dpGetProfileScope();
+    } catch (e) {}
+    try {
+      hasRoleCookie = document.cookie.indexOf('fortune_auth_role=') >= 0;
+    } catch (e2) {}
+    try {
+      hasToken = !!_dpReadStoredAuthToken();
+    } catch (e3) {}
+    return [scope, hasRoleCookie ? '1' : '0', hasToken ? '1' : '0'].join('|');
+  }
 
   function _dpPersistSessionUser(user) {
     if (!user || typeof user !== 'object') return;
@@ -746,12 +763,17 @@
     _dpSessionVerify.checkedAt = Date.now();
     _dpSessionVerify.ok = !!ok;
     _dpSessionVerify.userId = ok ? String(userId || '') : '';
+    _dpSessionVerify.signature = _dpGetSessionHintSignature();
   }
 
   function _dpVerifyLoginSession(forceRefresh) {
     var force = !!forceRefresh;
     var now = Date.now();
-    if (!force && _dpSessionVerify.checkedAt && (now - _dpSessionVerify.checkedAt < 30000)) {
+    var signature = _dpGetSessionHintSignature();
+    if (!force
+      && _dpSessionVerify.checkedAt
+      && _dpSessionVerify.signature === signature
+      && (now - _dpSessionVerify.checkedAt < 30000)) {
       return Promise.resolve(!!_dpSessionVerify.ok);
     }
     if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
@@ -802,7 +824,10 @@
 
   function _dpHasLoginSession() {
     var now = Date.now();
-    if (_dpSessionVerify.ok && _dpSessionVerify.checkedAt && (now - _dpSessionVerify.checkedAt < 30000)) {
+    if (_dpSessionVerify.ok
+      && _dpSessionVerify.checkedAt
+      && _dpSessionVerify.signature === _dpGetSessionHintSignature()
+      && (now - _dpSessionVerify.checkedAt < 30000)) {
       return true;
     }
     return _dpHasSessionHint();
@@ -3411,6 +3436,48 @@
         _dpResetTouchTapState(cardTouchState);
       }, { passive: true });
     }
+
+    function _dpRefreshAuthScopeNow() {
+      _dpScopedStorageReadyScope = '';
+      _dpSessionVerify.checkedAt = 0;
+      _dpSessionVerify.ok = false;
+      _dpSessionVerify.userId = '';
+      _dpSessionVerify.signature = '';
+      _dpSessionVerify.pending = null;
+
+      _dpEnsureScopedStorageReady();
+      _dpLoadSubCache();
+      _dpUpdateSaveBtn();
+      renderMasterCard(DPStorage.current());
+      renderProfileList();
+
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+        _dpUpdateSaveBtn();
+      });
+      _fetchSubscription();
+    }
+
+    window.addEventListener('cd:auth-changed', _dpRefreshAuthScopeNow);
+
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        var authSyncChannel = new BroadcastChannel('code-destiny-auth-sync');
+        authSyncChannel.onmessage = function() {
+          _dpRefreshAuthScopeNow();
+        };
+      }
+    } catch (e) {}
+
+    window.addEventListener('storage', function(ev) {
+      var key = ev && ev.key ? String(ev.key) : '';
+      if (!key) return;
+      if (key === 'fortune_auth_user' || key === 'fortune_auth_token' || key === 'fortune_auth_role') {
+        _dpRefreshAuthScopeNow();
+      }
+    });
 
     /* 운세 유형 선택 모달(dp-fsel) — 모바일 터치 위임 (onclick 유실 방지) */
     var fselTouchState = { active: false, x: 0, y: 0, startedAt: 0 };

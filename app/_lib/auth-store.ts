@@ -40,6 +40,10 @@ type LoginApiPayload = {
   errors?: string[];
 };
 
+const LOGIN_MAX_ATTEMPTS = 2;
+const LOGIN_RETRY_BASE_DELAY_MS = 180;
+const LOGIN_ATTEMPT_TIMEOUT_MS = 7000;
+
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 let state: AuthState = {
@@ -143,6 +147,29 @@ function normalizeAuthApiError(payload: LoginApiPayload, fallbackMessage: string
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isAbortError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybe = error as { name?: unknown };
+  return String(maybe.name || "") === "AbortError";
+}
+
+async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  if (typeof AbortController === "undefined") {
+    return fetch(input, init);
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -346,14 +373,15 @@ export async function login(credentials: LoginCredentials) {
 
   clearStaleGuestCache();
   debugAuth("[auth] login started");
+  const loginStartedAt = Date.now();
 
   try {
     let response: Response | null = null;
     let lastError: Error | null = null;
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (let attempt = 0; attempt < LOGIN_MAX_ATTEMPTS; attempt += 1) {
       try {
-        const nextResponse = await fetch(`${apiBase}/api/auth/login`, {
+        const nextResponse = await fetchWithTimeout(`${apiBase}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -362,19 +390,22 @@ export async function login(credentials: LoginCredentials) {
             password,
             nextPath,
           }),
-        });
+        }, LOGIN_ATTEMPT_TIMEOUT_MS);
 
-        if (nextResponse.status >= 500 && attempt < 2) {
-          await sleep(250 * (attempt + 1));
+        if (nextResponse.status >= 500 && attempt < LOGIN_MAX_ATTEMPTS - 1) {
+          await sleep(LOGIN_RETRY_BASE_DELAY_MS * (attempt + 1));
           continue;
         }
 
         response = nextResponse;
         break;
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-        if (attempt < 2) {
-          await sleep(250 * (attempt + 1));
+        const timeoutError = isAbortError(error)
+          ? new Error("로그인 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
+          : null;
+        lastError = timeoutError || (error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다."));
+        if (attempt < LOGIN_MAX_ATTEMPTS - 1) {
+          await sleep(LOGIN_RETRY_BASE_DELAY_MS * (attempt + 1));
           continue;
         }
       }
@@ -398,20 +429,38 @@ export async function login(credentials: LoginCredentials) {
     }
 
     debugAuth("[auth] login api success");
-    const meUser = await refreshAuth({ force: true });
-    if (!meUser) {
+    const payloadUser = resolveSafeUser(payload.user) as AuthUser | null;
+    let resolvedUser = payloadUser;
+
+    if (!resolvedUser) {
+      resolvedUser = await refreshAuth({ force: true });
+    } else {
+      applyResolvedUser(payloadUser);
+      void refreshAuth({ force: true, silent: true }).catch((error) => {
+        debugAuth("[auth] silent me refresh skipped", error);
+      });
+    }
+
+    if (!resolvedUser) {
       throw new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다.");
     }
-    debugAuth("[auth] me loaded", meUser.id || meUser.userId || meUser._id || meUser.uid || "");
 
-    await syncPostLoginData();
-    applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || meUser);
+    debugAuth("[auth] user ready", resolvedUser.id || resolvedUser.userId || resolvedUser._id || resolvedUser.uid || "");
+
+    void syncPostLoginData().then(() => {
+      const mergedUser = (readSanitizedAuthUser() as AuthUser | null) || resolvedUser;
+      applyResolvedUser(mergedUser);
+      debugAuth("[auth] post-login sync completed");
+    });
+
+    applyResolvedUser((readSanitizedAuthUser() as AuthUser | null) || resolvedUser);
     debugAuth("[auth] auth store updated");
     publishAuthSync("login");
 
+    debugAuth("[auth] login latency(ms)", Date.now() - loginStartedAt);
     setState({ error: null });
     return {
-      user: state.user,
+      user: state.user || resolvedUser,
       nextPath: String(payload.nextPath || nextPath || "/"),
     };
   } catch (error) {
