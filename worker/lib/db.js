@@ -55,6 +55,21 @@ function withTimeout(promise, ms, message) {
   });
 }
 
+function clampInt(rawValue, fallback, min, max) {
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) return fallback;
+  const normalized = Math.floor(value);
+  return Math.max(min, Math.min(max, normalized));
+}
+
+function sleep(ms) {
+  const wait = Number(ms);
+  if (!Number.isFinite(wait) || wait <= 0) return Promise.resolve();
+  return new Promise((resolve) => {
+    setTimeout(resolve, wait);
+  });
+}
+
 export async function connectDb(env = {}) {
   installProcessEnv(env);
 
@@ -62,6 +77,8 @@ export async function connectDb(env = {}) {
   const serverSelectionTimeoutMS = Number(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"));
   const connectTimeoutMS = Number(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "5000"));
   const socketTimeoutMS = Number(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "15000"));
+  const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
+  const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
   if (mongoose.connection.readyState === 1) {
     const pingTimeoutMS = Number(getEnv(env, "MONGO_PING_TIMEOUT_MS", "2500"));
@@ -83,51 +100,93 @@ export async function connectDb(env = {}) {
     throw new Error("MONGO_URI or MONGODB_URI is required for Worker-native API routes.");
   }
 
-  if (!connectPromise) {
-    console.log("[db-connect] starting connection to mongodb...");
-    const connectTask = mongoose.connect(uri, {
-      dbName: resolveMongoDbName(env) || undefined,
-      maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
-      serverSelectionTimeoutMS,
-      connectTimeoutMS,
-      socketTimeoutMS,
-      bufferCommands: false,
-      family: Number(getEnv(env, "MONGO_IP_FAMILY", "4")),
-      autoIndex: false,
-    });
+  const ipFamilyRaw = String(getEnv(env, "MONGO_IP_FAMILY") || "").trim();
+  const explicitIpFamily = Number(ipFamilyRaw);
+  const familyCandidates = (() => {
+    if (Number.isFinite(explicitIpFamily) && explicitIpFamily === 0) return [0];
+    if (Number.isFinite(explicitIpFamily) && (explicitIpFamily === 4 || explicitIpFamily === 6)) {
+      return [explicitIpFamily, 0];
+    }
+    return [4, 0];
+  })();
 
-    connectTask
-      .then(() => console.log("[db-connect] mongodb connected successfully."))
-      .catch((err) => {
-        console.error("[db-connect-error] mongodb connection failed:", err.message);
-      });
+  let lastError = null;
 
-    connectPromise = withTimeout(
-      connectTask,
-      guardTimeoutMS,
-      "MongoDB connection timed out in Worker.",
-    ).catch((error) => {
-      console.error("[db-connect-error] connection promise failed:", error.message);
-      // Do not block request completion on disconnect path.
-      resetMongooseConnection().catch(() => {});
-      throw error;
-    });
-  }
+  for (let familyIndex = 0; familyIndex < familyCandidates.length; familyIndex += 1) {
+    const ipFamily = familyCandidates[familyIndex];
 
-  try {
-    await connectPromise;
-  } finally {
-    // Allow a fresh attempt on the next request if current state is unhealthy.
-    if (mongoose.connection.readyState !== 1) {
+    for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+      if (!connectPromise) {
+        console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
+        const connectTask = mongoose.connect(uri, {
+          dbName: resolveMongoDbName(env) || undefined,
+          maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
+          serverSelectionTimeoutMS,
+          connectTimeoutMS,
+          socketTimeoutMS,
+          bufferCommands: false,
+          family: ipFamily,
+          autoIndex: false,
+        });
+
+        connectTask
+          .then(() => console.log(`[db-connect] mongodb connected successfully. family=${ipFamily}`))
+          .catch((err) => {
+            console.error(`[db-connect-error] mongodb connection failed. family=${ipFamily}:`, err.message);
+          });
+
+        connectPromise = withTimeout(
+          connectTask,
+          guardTimeoutMS,
+          "MongoDB connection timed out in Worker.",
+        ).catch((error) => {
+          console.error(`[db-connect-error] connection promise failed. family=${ipFamily}:`, error.message);
+          resetMongooseConnection().catch(() => {});
+          throw error;
+        });
+      }
+
+      try {
+        await connectPromise;
+      } catch (error) {
+        lastError = error;
+        connectPromise = null;
+        await resetMongooseConnection();
+
+        const isLastAttemptForFamily = attempt >= retryCount;
+        const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
+        if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
+          const delayMs = retryBaseDelayMS * (attempt + 1);
+          await sleep(delayMs);
+          continue;
+        }
+        break;
+      } finally {
+        if (mongoose.connection.readyState !== 1) {
+          connectPromise = null;
+        }
+      }
+
+      if (mongoose.connection.readyState === 1) {
+        return mongoose.connection;
+      }
+
+      lastError = new Error("MongoDB connection is not ready in Worker.");
       connectPromise = null;
+      await resetMongooseConnection();
+
+      const isLastAttemptForFamily = attempt >= retryCount;
+      const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
+      if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
+        const delayMs = retryBaseDelayMS * (attempt + 1);
+        await sleep(delayMs);
+        continue;
+      }
     }
   }
 
-  if (mongoose.connection.readyState !== 1) {
-    throw new Error("MongoDB connection is not ready in Worker.");
-  }
-
-  return mongoose.connection;
+  if (lastError) throw lastError;
+  throw new Error("MongoDB connection is not ready in Worker.");
 }
 
 export { mongoose };
