@@ -4325,14 +4325,22 @@ function renderSpecialCharm(p, natal) {
     var targetCard = document.getElementById('dailyMonthlyCard') || document.getElementById('fortuneResult');
     if (targetCard) {
       targetCard.insertAdjacentHTML('afterend', html);
-      var scCard = document.getElementById('specialCharmCard');
-      if (scCard) {
-        scCard.insertAdjacentHTML('afterend', aiPromptHtml);
-      } else {
-        targetCard.insertAdjacentHTML('afterend', aiPromptHtml);
-      }
     } else {
       console.warn('[renderSpecialCharm] Target card for insertion not found');
+    }
+
+    var letterBox = document.getElementById('letterBox');
+    if (letterBox) {
+      letterBox.insertAdjacentHTML('beforebegin', aiPromptHtml);
+    } else {
+      if (targetCard) {
+        var scCard = document.getElementById('specialCharmCard');
+        if (scCard) {
+          scCard.insertAdjacentHTML('afterend', aiPromptHtml);
+        } else {
+          targetCard.insertAdjacentHTML('afterend', aiPromptHtml);
+        }
+      }
     }
 
     var aiCardNode = document.getElementById('aiPromptCard');
