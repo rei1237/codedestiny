@@ -1858,6 +1858,21 @@ function renderLetter(p){
       '<p class="letter-para">'+USER_NAME+'님이 태어난 것 자체가 이 세상에 꼭 필요한 에너지가 하나 더해진 것입니다. 당신이 숨 쉬고, 웃고, 누군가를 걱정하는 것 — 그 모든 순간에 당신만의 빛이 세상에 퍼지고 있어요. 오늘도, 내일도, 당신의 모든 날들이 행복하기를 연이가 진심으로, 온 마음을 다해 바랍니다. 🌸</p>'+
       '<p style="text-align:right;font-style:italic;color:var(--pink-l);font-weight:700;font-size:.82rem">— 연이가 온 마음을 담아 🐷💕</p>';
   }
+
+  // ── 사주 AI 프롬프트 질문 박스 직접 마운트 ──
+  try {
+    var _aiMount = document.getElementById('aiPromptMount');
+    if (_aiMount && typeof _mountSajuAIPromptQuestionBox === 'function') {
+      // 기존 박스/카드 완전 초기화 (강제 재마운트)
+      _aiMount.innerHTML = '<div id="aiPromptCard" style="margin-bottom:12px;"></div>';
+      var _aiCard = document.getElementById('aiPromptCard');
+      if (_aiCard) {
+        _mountSajuAIPromptQuestionBox(_aiCard);
+      }
+    }
+  } catch(_e) {
+    console.error('[renderLetter] AI 프롬프트 마운트 실패:', _e);
+  }
 }
 
 /* ── renderEnergyCoord: 에너지 원정 리포트 ── */
