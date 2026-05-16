@@ -1605,8 +1605,8 @@ function analyzeFortuneGZ(gz, p, label){
 
 function buildFortuneHTML(res, p){
   if(!res)return '<p class="fr-row-body">데이터를 불러올 수 없습니다.</p>';
-  var EL_K={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
-  var TSADVICE=NEO_MODE?{
+  var isNeoSaju = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || (document.body && document.body.classList.contains('neo-mode'));
+  var TSADVICE=isNeoSaju?{
     '비견':'독립 판단력 MAX. 타인 의견 묻지 말고 직접 결정해서 직접 책임져라.',
     '겁재':'경쟁심 과열 경보. 충동 지출·투기 베팅은 지금 즉시 금지.',
     '식신':'창의 에너지 고조. 아이디어를 실행으로 전환하는 데만 집중해라.',
@@ -1753,6 +1753,7 @@ async function renderDailyMonthlyFortune(p){
 }
 
 function renderLetter(p){
+  var isNeoSaju = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || (document.body && document.body.classList.contains('neo-mode'));
   var pw=G_POWER,jg=G_JONG;
   var dayEl=(GAN[p.d.g]&&GAN[p.d.g].e)||'earth';
   var dg=p.d.g;
@@ -1831,10 +1832,10 @@ function renderLetter(p){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
+    letterTitle.innerHTML = isNeoSaju ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
   }
 
-  if(NEO_MODE){
+  if(isNeoSaju){
     document.getElementById('letterContent').innerHTML=
       '<p class="letter-para">어이, <b>'+USER_NAME+'</b>.</p>'+
       '<p class="letter-para">사주는 핑계 대라고 있는 게 아니다. 당신이 왜 그 모양으로 살고 있는지, 그리고 어떻게 해야 그 늪에서 빠져나올 수 있는지 보여주는 냉혹한 성적표다. "내 팔자가 이러니까 어쩔 수 없어"라고? 그 말 하는 순간 당신이 가진 가능성의 반은 이미 죽은 거다.</p>'+
