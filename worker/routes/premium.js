@@ -88,6 +88,11 @@ const SUKUYO_CHAPTER_META = [
   { num: 13, title: "영혼의 마스터플랜", subtitle: "달빛 전략가의 10년 로드맵", icon: "moon" },
 ];
 
+const SUKYO_PDF_CHAPTERS = SUKUYO_CHAPTER_META.map((chapter) => ({
+  ...chapter,
+  goal: String(chapter?.goal || chapter?.subtitle || ""),
+}));
+
 const SUKUYO_REPORT_TITLE_PERSONAL = "Moonlight Strategy: 숙요점 프리미엄 인생 리포트";
 const SUKUYO_REPORT_TITLE_COMPAT = "Moonlight Strategy: 숙요점 프리미엄 궁합 리포트";
 const SUKUYO_MIN_CHARS = 4000;
@@ -528,6 +533,51 @@ const ZIWEI_CHAPTER_FOCUS_KEYWORDS = [
   ["2026", "유년", "유월", "Go/Hold/Retreat", "월별 전략"],
   ["총결산", "강한 궁 3", "주의 궁 3", "Master Habit", "거장의 봉서"],
 ];
+
+const ZIWEI_V3_PERSONAL_CHAPTER_META = [
+  { index: 1, key: "personal_01_ming_core", title: "명궁 핵심 설계도", subtitle: "타고난 캐릭터와 기본 운행" },
+  { index: 2, key: "personal_02_shen_potential", title: "신궁 잠재 동력", subtitle: "잠재 무기와 실행 에너지" },
+  { index: 3, key: "personal_03_fortune_mind", title: "복덕궁 심층 구조", subtitle: "정서·회복·행복 감수성" },
+  { index: 4, key: "personal_04_travel_image", title: "천이궁 외부 무대", subtitle: "대외 이미지와 기회 흐름" },
+  { index: 5, key: "personal_05_career_trajectory", title: "관록궁 커리어 방정식", subtitle: "천직·성과·성장 경로" },
+  { index: 6, key: "personal_06_wealth_engine", title: "재백궁 자산 전략", subtitle: "수익 구조와 누수 관리" },
+  { index: 7, key: "personal_07_relationship_pattern", title: "부처궁 관계 패턴", subtitle: "인연·경계·감정 리듬" },
+  { index: 8, key: "personal_08_network_rules", title: "교우궁 네트워크", subtitle: "귀인·소인·협업 규칙" },
+  { index: 9, key: "personal_09_space_asset", title: "전택궁 공간/자산", subtitle: "환경 최적화와 안정 기반" },
+  { index: 10, key: "personal_10_health_rhythm", title: "질액궁 바이오리듬", subtitle: "컨디션·회복·생활 루틴" },
+  { index: 11, key: "personal_11_decade_flow", title: "대한 10년 파노라마", subtitle: "장기 흐름과 분기점" },
+  { index: 12, key: "personal_12_annual_tactics", title: "유년/유월 전술", subtitle: "연간 타이밍과 실행 순서" },
+  { index: 13, key: "personal_13_master_letter", title: "별의 편지", subtitle: "13챕터 통합 마스터플랜" },
+];
+
+const ZIWEI_V3_COMPAT_CHAPTER_META = [
+  { index: 1, key: "compat_01_overview", title: "두 사람의 관계 총론", subtitle: "관계 기본 프레임" },
+  { index: 2, key: "compat_02_emotional_axis", title: "감정 축과 반응 속도", subtitle: "정서 공명/차이" },
+  { index: 3, key: "compat_03_attraction_pattern", title: "끌림의 구조", subtitle: "호감 형성 메커니즘" },
+  { index: 4, key: "compat_04_communication", title: "소통 패턴", subtitle: "대화 리듬과 오해 포인트" },
+  { index: 5, key: "compat_05_conflict", title: "갈등 트리거", subtitle: "충돌 원인과 완화 규칙" },
+  { index: 6, key: "compat_06_trust", title: "신뢰와 안정성", subtitle: "지속 가능성 진단" },
+  { index: 7, key: "compat_07_intimacy", title: "친밀도 운영", subtitle: "거리감과 연결 균형" },
+  { index: 8, key: "compat_08_reality", title: "현실 운영 합", subtitle: "일상·재정·역할 분담" },
+  { index: 9, key: "compat_09_family", title: "가정/장기 시나리오", subtitle: "생활 확장 가능성" },
+  { index: 10, key: "compat_10_timing", title: "타이밍 합", subtitle: "관계 가속/완충 시기" },
+  { index: 11, key: "compat_11_recovery", title: "회복 프로토콜", subtitle: "갈등 후 복원 전략" },
+  { index: 12, key: "compat_12_growth", title: "성장형 관계 설계", subtitle: "관계 시스템 고도화" },
+  { index: 13, key: "compat_13_master_plan", title: "관계 마스터 플랜", subtitle: "90일 실행과 장기 로드맵" },
+];
+
+const ZIWEI_PREMIUM_V3_MIN_SECTION_BODY_CHARS = 120;
+const ZIWEI_PREMIUM_V3_MAX_RETRIES = 3;
+
+function getZiweiV3ChapterDefs(mode = "personal") {
+  return mode === "compatibility" ? ZIWEI_V3_COMPAT_CHAPTER_META : ZIWEI_V3_PERSONAL_CHAPTER_META;
+}
+
+const ZIWEI_V3_STATUS_MESSAGES = {
+  preparing: "자미두수 원본 계산 데이터를 준비하는 중입니다.",
+  rendering: "최종 리포트를 정리하는 중입니다.",
+  completed: "자미두수 프리미엄 리포트가 완성되었습니다.",
+};
 
 const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
   1: {
@@ -1237,6 +1287,9 @@ const REPORT_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const VEDIC_PREMIUM_V3_REPORT_STORE = new Map();
 const VEDIC_PREMIUM_V3_LOCKS = new Set();
 const VEDIC_PREMIUM_V3_TTL_MS = REPORT_SESSION_TTL_MS;
+const ZIWEI_PREMIUM_V3_REPORT_STORE = new Map();
+const ZIWEI_PREMIUM_V3_LOCKS = new Set();
+const ZIWEI_PREMIUM_V3_TTL_MS = REPORT_SESSION_TTL_MS;
 const ASTROLOGY_V3_REPORT_STORE = new Map();
 const ASTROLOGY_V3_LOCKS = new Set();
 const ASTROLOGY_V3_TTL_MS = REPORT_SESSION_TTL_MS;
@@ -4137,6 +4190,49 @@ function buildAstroChapterPlan(canonical) {
     for (const meta of ASTRO_RELATION_CHAPTER_META) add(meta);
   }
   return out;
+}
+
+function buildAstroDefaultChapterPlan(reportType) {
+  const metas = [
+    ...ASTRO_PERSONAL_CHAPTER_META,
+    ...(reportType === "compatibility" ? ASTRO_RELATION_CHAPTER_META : []),
+  ];
+  return metas.map((meta, idx) => ({
+    chapter: idx + 1,
+    key: meta.key,
+    title: meta.title,
+    subtitle: meta.subtitle,
+    icon: meta.icon,
+    degraded: true,
+    reasons: ["fallback-chapter-plan"],
+  }));
+}
+
+function buildAstroLifeFailOpenChapterText(meta, chart, reportType, strictValidation, reasons = []) {
+  const summary = buildBasicAstroSummaryFromChart(chart || {});
+  const missing = Array.isArray(strictValidation?.missingFields) ? strictValidation.missingFields : [];
+  const reasonText = Array.isArray(reasons) && reasons.length
+    ? reasons.map((reason) => String(reason || "").trim()).filter(Boolean).join(" | ")
+    : "ASTRO_FAIL_OPEN";
+  const reportLabel = reportType === "compatibility" ? "궁합" : "개인";
+
+  let text = [
+    `## 챕터 ${Number(meta?.chapter || 1)}. ${String(meta?.title || "점성술 프리미엄 해석")}`,
+    `### 1. 사용 데이터 요약표\n| 항목 | 값 |\n| --- | --- |\n| 모드 | ${reportLabel} |\n| ASC | ${String(summary?.ascendant?.sign || "정보 없음")} ${summary?.ascendant?.degree ?? ""} |\n| MC | ${String(summary?.mc?.sign || "정보 없음")} ${summary?.mc?.degree ?? ""} |\n| 태양 | ${String(summary?.sun?.sign || "정보 없음")} / ${summary?.sun?.house ?? "정보 없음"}하우스 |\n| 달 | ${String(summary?.moon?.sign || "정보 없음")} / ${summary?.moon?.house ?? "정보 없음"}하우스 |`,
+    "### 2. 핵심 해석\n제공된 차트 좌표를 기준으로 성향과 선택 패턴을 보수적으로 정리했습니다. 누락 데이터는 추측하지 않고, 확인 가능한 정보만 근거로 해석합니다.",
+    "### 3. 심리적 작동 방식\n태양-달 축과 주요 하우스 배치를 통해 감정 반응 및 의사결정 리듬을 읽고, 스트레스 상황에서 반복되는 반응 패턴을 중심으로 정리합니다.",
+    "### 4. 현실 적용\n일정·관계·업무 장면에서 바로 적용 가능한 체크포인트를 우선 제시합니다. 작은 단위의 루틴을 고정하면 체감 변화가 빠르게 나타납니다.",
+    "### 5. 어스펙트 심화\n어스펙트와 오브(orb) 해석은 데이터 범위 내에서만 반영했습니다. 강한 긴장각은 리스크 신호로, 조화각은 회복 및 협업 전략으로 연결해 활용합니다.",
+    "### 6. 그림자와 주의점\n과속 의사결정, 감정 과잉 반응, 관계 경계 흐림을 우선 관리하세요. 장기적으로는 반응 속도보다 회복 루틴의 일관성이 중요합니다.",
+    "### 7. 실천 전략\n- 오늘: 감정 트리거 1개를 기록하세요.\n- 이번 주: 대화/업무 우선순위를 2개로 줄이세요.\n- 90일: 주간 리뷰로 반복 패턴을 추적하고 보정하세요.",
+    `### 8. 챕터 요약\n데이터 누락 필드: ${missing.length ? missing.slice(0, 12).join(", ") : "없음"}.\n이번 챕터는 fail-open 모드로 생성되었으며, 원본 데이터가 보강되면 재생성 시 정밀도가 개선됩니다.\n품질 메모: ${reasonText}`,
+  ].join("\n\n");
+
+  while (text.length < ASTRO_MIN_CHARS) {
+    text += "\n\n### 실행 보강\n이번 주에는 동일한 상황에서 반응 패턴이 어떻게 반복되는지 기록하고, 다음 주에 한 가지 행동만 수정해 체감 변화를 확인하세요.";
+  }
+
+  return text;
 }
 
 function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], premiumInput = null) {
@@ -7054,6 +7150,23 @@ async function requirePremiumReportAccessWithRetry(env, userId, reportType, requ
   };
 }
 
+function isPremiumDataFailOpenReportType(reportType) {
+  const normalized = String(reportType || "").trim();
+  return normalized === "lifeBook"
+    || normalized === "loveSecret"
+    || normalized === "sookyoPremium"
+    || normalized === "vedicPremium"
+    || normalized === "westernAstrologyPremium";
+}
+
+function isAccessCheckTemporaryFailure(access) {
+  return String(access?.code || "") === "ACCESS_CHECK_TEMPORARY_FAILURE";
+}
+
+function shouldBypassTemporaryPremiumAccessFailure(reportType, access) {
+  return isPremiumDataFailOpenReportType(reportType) && isAccessCheckTemporaryFailure(access);
+}
+
 const PREMIUM_COMPAT_BONUS_MARKER = "궁합 모드 전용 확장 인사이트";
 const PREMIUM_COMPAT_BONUS_BODY = "관계의 승패보다 반복되는 감정 트리거, 대화 리듬, 현실 운영 패턴을 우선 관찰해 두 사람의 합을 높이는 방식으로 해석합니다.";
 
@@ -7653,25 +7766,9 @@ async function handleAstroLife(request, env) {
 
   const canonicalAstroChart = buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
   const strictValidation = validateCanonicalAstroChartStrict(canonicalAstroChart);
-  if (!strictValidation.isValid) {
-    return json({
-      ok: false,
-      code: "ASTRO_CANONICAL_VALIDATION_FAILED",
-      message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
-      missingFields: strictValidation.missingFields,
-      canonicalAstroChart,
-    }, { status: 422 });
-  }
-
-  const chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
-  if (!chapterPlan.length) {
-    return json({
-      ok: false,
-      code: "ASTRO_CHAPTER_PLAN_EMPTY",
-      message: "계산 데이터 누락으로 생성 가능한 챕터가 없습니다",
-      canonicalAstroChart,
-    }, { status: 422 });
-  }
+  const chapterPlanRaw = buildAstroChapterPlan(canonicalAstroChart);
+  const chapterPlan = chapterPlanRaw.length ? chapterPlanRaw : buildAstroDefaultChapterPlan(reportType);
+  const chapterPlanFallbackApplied = chapterPlanRaw.length === 0;
 
   if (prepareOnly) {
     return json({
@@ -7689,6 +7786,10 @@ async function handleAstroLife(request, env) {
       timingData,
       validation: strictValidation,
       missingFields: strictValidation?.missingFields || [],
+      warnings: [
+        ...(!strictValidation.isValid ? [ASTRO_MISSING_DATA_NOTICE] : []),
+        ...(chapterPlanFallbackApplied ? ["ASTRO_CHAPTER_PLAN_FALLBACK_APPLIED"] : []),
+      ],
     });
   }
 
@@ -7723,19 +7824,37 @@ async function handleAstroLife(request, env) {
     }
   }
 
-  let generated = await generateAstroPremiumChapter(
-    env,
-    { ...body, previousChapterTexts: previousTexts },
-    input,
-    Number(meta.chapter),
-    meta,
-    chart,
-    reportType,
-    partnerChart,
-    synastry,
-    composite,
-    timingData,
-  );
+  let generated;
+  let generatedViaFailOpen = false;
+  try {
+    generated = await generateAstroPremiumChapter(
+      env,
+      { ...body, previousChapterTexts: previousTexts },
+      input,
+      Number(meta.chapter),
+      meta,
+      chart,
+      reportType,
+      partnerChart,
+      synastry,
+      composite,
+      timingData,
+    );
+  } catch (error) {
+    generatedViaFailOpen = true;
+    const failReason = String(error?.message || "ASTRO_CHAPTER_GENERATION_FAILED");
+    const fallbackText = buildAstroLifeFailOpenChapterText(meta, chart, reportType, strictValidation, [failReason]);
+    generated = {
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      usedFallback: true,
+      warnings: [
+        `ASTRO_FAIL_OPEN:${failReason}`,
+        ...(!strictValidation.isValid ? strictValidation.missingFields.map((field) => `MISSING_CANONICAL_FIELD:${field}`) : []),
+      ],
+      canonicalAstroChart,
+    };
+  }
 
   const astroChapterText = appendCompatibilityBonusMarkdown(generated?.text, {
     mode: reportType,
@@ -7768,8 +7887,12 @@ async function handleAstroLife(request, env) {
     quality: {
       minChars: ASTRO_MIN_CHARS,
       actualChars: generated.text.length,
-      usedFallback: false,
-      warnings: generated.warnings || [],
+      usedFallback: Boolean(generated?.usedFallback) || generatedViaFailOpen,
+      warnings: [
+        ...(!strictValidation.isValid ? [ASTRO_MISSING_DATA_NOTICE] : []),
+        ...(chapterPlanFallbackApplied ? ["ASTRO_CHAPTER_PLAN_FALLBACK_APPLIED"] : []),
+        ...(generated.warnings || []),
+      ],
     },
     dataQuality: {
       usedDefaultGeo: !Number.isFinite(Number(body.lat)) || !Number.isFinite(Number(body.lon ?? body.lng)),
@@ -7777,6 +7900,7 @@ async function handleAstroLife(request, env) {
       houseCuspsSupplemented: !!chart?.houseSystemMeta?.approximation,
       chartSource: String(chart?.source || "unknown"),
       validation: strictValidation,
+      failOpenApplied: !strictValidation.isValid || chapterPlanFallbackApplied || Boolean(generated?.usedFallback) || generatedViaFailOpen,
     },
     ...generated,
   };
@@ -8157,6 +8281,11 @@ async function advanceVedicV3Report(request, env, report) {
       report.message = "다운로드 준비 완료";
     }
     saveVedicV3Report(report);
+  } catch (error) {
+    report.status = "failed";
+    report.errorMessage = String(error?.message || "베다 챕터 생성 중 내부 오류가 발생했습니다.");
+    report.message = report.errorMessage;
+    saveVedicV3Report(report);
   } finally {
     VEDIC_PREMIUM_V3_LOCKS.delete(reportId);
   }
@@ -8183,13 +8312,17 @@ async function handleVedicV3Generate(request, env, authInfo) {
     includeCompatibility: mode === "compatibility",
   });
   if (!access?.ok) {
-    return json({
-      ok: false,
-      code: access.code || "PAYMENT_REQUIRED",
-      message: access.message || "프리미엄 결제가 필요합니다.",
-      reportType: "vedicPremium",
-      required: access.required || null,
-    }, { status: Number(access.status || 402) });
+    if (shouldBypassTemporaryPremiumAccessFailure("vedicPremium", access)) {
+      console.warn("[vedic-v3] premium access check temporarily unavailable; continuing generation.");
+    } else {
+      return json({
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        reportType: "vedicPremium",
+        required: access.required || null,
+      }, { status: Number(access.status || 402) });
+    }
   }
 
   const report = {
@@ -10511,12 +10644,16 @@ async function handleLoveSecretGenerate(request, env, authInfo) {
       totalChapters: modeConfig.totalChapters,
     });
     if (!access.ok) {
-      return json({
-        ok: false,
-        code: access.code || "PAYMENT_REQUIRED",
-        message: access.message || "프리미엄 결제가 필요합니다.",
-        required: access.required || null,
-      }, { status: Number(access.status || 402) });
+      if (shouldBypassTemporaryPremiumAccessFailure("loveSecret", access)) {
+        console.warn("[love-secret] premium access check temporarily unavailable; continuing generation.");
+      } else {
+        return json({
+          ok: false,
+          code: access.code || "PAYMENT_REQUIRED",
+          message: access.message || "프리미엄 결제가 필요합니다.",
+          required: access.required || null,
+        }, { status: Number(access.status || 402) });
+      }
     }
 
     const touchedAt = new Date(now).toISOString();
@@ -11149,15 +11286,19 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   const requestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
   const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, reportType, requestBody);
   if (!access.ok) {
-    return json({
-      ok: false,
-      code: access.code || "PAYMENT_REQUIRED",
-      message: access.message || "프리미엄 결제가 필요합니다.",
-      reportType,
-      featureType,
-      requestId,
-      required: access.required || null,
-    }, { status: Number(access.status || 402) });
+    if (shouldBypassTemporaryPremiumAccessFailure(reportType, access)) {
+      console.warn(`[premium-report:prepare] premium access check temporarily unavailable for ${reportType}; continuing.`);
+    } else {
+      return json({
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        reportType,
+        featureType,
+        requestId,
+        required: access.required || null,
+      }, { status: Number(access.status || 402) });
+    }
   }
 
   const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, featureType, requestBody, requestId);
@@ -11290,7 +11431,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
 
     const missingData = Array.from(new Set(canonicalBuild.validation?.requiredMissing || []));
     const warnings = Array.from(new Set(canonicalBuild.validation?.optionalMissing || []));
-    const isFailOpenReport = context.reportType === "loveSecret" || context.reportType === "lifeBook";
+    const isFailOpenReport = isPremiumDataFailOpenReportType(context.reportType);
     context.missingData = missingData;
     context.warnings = warnings;
     context.isCompleteForPdf = isFailOpenReport
@@ -11363,7 +11504,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   const chapterRequiredPaths = Array.isArray(context?.coreData?.canonicalJson?.chapterData?.[chapterKey]?.requiredPaths)
     ? context.coreData.canonicalJson.chapterData[chapterKey].requiredPaths
     : [];
-  const chapterFailOpen = context.reportType === "loveSecret" || context.reportType === "lifeBook";
+  const chapterFailOpen = isPremiumDataFailOpenReportType(context.reportType);
   let chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
 
   if (chapterMissing.length > 0) {
@@ -12543,12 +12684,16 @@ async function handleAstrologyV3Generate(request, env, authInfo) {
 
   const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "westernAstrologyPremium", { ...body, mode });
   if (!access.ok) {
-    return json({
-      ok: false,
-      code: access.code || "PAYMENT_REQUIRED",
-      message: access.message || "프리미엄 결제가 필요합니다.",
-      required: access.required || null,
-    }, { status: Number(access.status || 402) });
+    if (shouldBypassTemporaryPremiumAccessFailure("westernAstrologyPremium", access)) {
+      console.warn("[astrology-v3] premium access check temporarily unavailable; continuing generation.");
+    } else {
+      return json({
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        required: access.required || null,
+      }, { status: Number(access.status || 402) });
+    }
   }
 
   const chartOptions = {
@@ -13780,13 +13925,17 @@ export async function handlePremiumRoutes(request, env) {
       const rawBody = await readJson(request.clone());
       const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, legacyReportType, rawBody);
       if (!access.ok) {
-        return json({
-          ok: false,
-          code: access.code || "PAYMENT_REQUIRED",
-          message: access.message || "프리미엄 결제가 필요합니다.",
-          reportType: legacyReportType,
-          required: access.required || null,
-        }, { status: Number(access.status || 402) });
+        if (shouldBypassTemporaryPremiumAccessFailure(legacyReportType, access)) {
+          console.warn(`[premium:legacy] premium access check temporarily unavailable for ${legacyReportType}; continuing.`);
+        } else {
+          return json({
+            ok: false,
+            code: access.code || "PAYMENT_REQUIRED",
+            message: access.message || "프리미엄 결제가 필요합니다.",
+            reportType: legacyReportType,
+            required: access.required || null,
+          }, { status: Number(access.status || 402) });
+        }
       }
     }
 
