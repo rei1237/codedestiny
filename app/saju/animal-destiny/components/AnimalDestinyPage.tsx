@@ -7,6 +7,7 @@ import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-clie
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
+import DestinyMeetingPlaceFeature from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceFeature";
 import AnimalDestinyInputForm from "./AnimalDestinyInputForm";
 import AnimalDestinyHero from "./AnimalDestinyHero";
 import AnimalResultScreen from "./AnimalResultScreen";
@@ -219,6 +220,10 @@ export default function AnimalDestinyPage() {
               </a>
             </div>
           )}
+
+          {status === "result" && sajuResult ? (
+            <DestinyMeetingPlaceFeature sajuResult={sajuResult} />
+          ) : null}
         </div>
       </div>
     </main>
