@@ -28,28 +28,9 @@
     '별의 편지'
   ];
 
-  var COMPAT_CHAPTERS = [
-    '관계 명궁 코드',
-    '관계 신궁의 내면 동력',
-    '두 사람 12궁 배치',
-    '부처궁·복덕궁 정서 호흡',
-    '교우궁·형제궁 소통 패턴',
-    '관록궁 역할 분담',
-    '재백궁 재정 운영',
-    '천이궁 거리·환경 변수',
-    '질액궁 컨디션 합',
-    '사화 상호작용',
-    '대운 동조·충돌 구간',
-    '유년 이슈 캘린더',
-    '관계 헌장'
-  ];
-
   var ZIWEI_COIN_BASE_COST = 590;
-  var ZIWEI_COIN_COMPAT_EXTRA_COST = 100;
   var ZIWEI_COIN_FEATURE_KEY = 'premium-ziwei-report';
-  var ZIWEI_COIN_FEATURE_KEY_COMPAT = 'premium-ziwei-report-compat';
   var ZIWEI_COIN_REASON = '자미두수 프리미엄 PDF 리포트 생성';
-  var ZIWEI_COIN_REASON_COMPAT = '자미두수 프리미엄 PDF 궁합 리포트 생성';
 
   var state = {
     generating: false,
@@ -259,7 +240,7 @@
   }
 
   function getChapterTitles() {
-    return state.mode === 'compatibility' ? COMPAT_CHAPTERS : PERSONAL_CHAPTERS;
+    return PERSONAL_CHAPTERS;
   }
 
   function ensurePartnerSelectOptions() {
@@ -297,65 +278,23 @@
     card.id = 'zbModeCard';
     card.style.cssText = 'margin-top:12px;padding:12px;border-radius:12px;border:1px solid rgba(167,139,250,0.35);background:rgba(30,27,75,0.36);';
     card.innerHTML = ''
-      + '<div style="font-size:12px;color:#c4b5fd;margin-bottom:8px">리포트 모드 선택</div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-      + '  <label style="display:inline-flex;align-items:center;gap:6px;color:#e9d5ff;font-size:13px;cursor:pointer"><input type="radio" name="zbMode" id="zbModePersonal" value="personal" checked> 개인</label>'
-      + '  <label style="display:inline-flex;align-items:center;gap:6px;color:#e9d5ff;font-size:13px;cursor:pointer"><input type="radio" name="zbMode" id="zbModeCompatibility" value="compatibility"> 궁합</label>'
+      + '<div style="font-size:12px;color:#c4b5fd;margin-bottom:6px">리포트 모드</div>'
+      + '<div style="display:inline-flex;align-items:center;gap:6px;color:#e9d5ff;font-size:13px">'
+      + '  <strong style="color:#f5f3ff">개인 모드 전용</strong>'
       + '</div>'
-      + '<div id="zbPartnerBox" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(196,181,253,0.35)">'
-      + '  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-      + '    <input id="zbPartnerName" type="text" placeholder="상대 이름" style="padding:10px;border-radius:10px;border:1px solid rgba(196,181,253,0.4);background:rgba(15,23,42,0.55);color:#f5f3ff">'
-      + '    <input id="zbPartnerBirthDate" type="date" style="padding:10px;border-radius:10px;border:1px solid rgba(196,181,253,0.4);background:rgba(15,23,42,0.55);color:#f5f3ff">'
-      + '  </div>'
-      + '  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'
-      + '    <select id="zbPartnerHour" style="padding:10px;border-radius:10px;border:1px solid rgba(196,181,253,0.4);background:rgba(15,23,42,0.55);color:#f5f3ff"><option value="12">12시</option></select>'
-      + '    <select id="zbPartnerMinute" style="padding:10px;border-radius:10px;border:1px solid rgba(196,181,253,0.4);background:rgba(15,23,42,0.55);color:#f5f3ff"><option value="0">00분</option></select>'
-      + '    <select id="zbPartnerGender" style="padding:10px;border-radius:10px;border:1px solid rgba(196,181,253,0.4);background:rgba(15,23,42,0.55);color:#f5f3ff">'
-      + '      <option value="female">여성</option>'
-      + '      <option value="male">남성</option>'
-      + '    </select>'
-      + '  </div>'
-      + '</div>';
+      + '<div style="margin-top:6px;font-size:12px;color:#cbd5e1">자미두수 PDF는 개인 명반 기준으로만 생성됩니다.</div>';
 
     profileBox.parentNode.insertBefore(card, profileBox.nextSibling);
-    ensurePartnerSelectOptions();
-
-    function applyModeUi(nextMode) {
-      state.mode = nextMode === 'compatibility' ? 'compatibility' : 'personal';
-      var partnerBox = qs('zbPartnerBox');
-      if (partnerBox) partnerBox.style.display = state.mode === 'compatibility' ? '' : 'none';
-
-      var subtitle = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-modal__subtitle') : null;
-      var cta = qs('zbStartBtn');
-      var heroDesc = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__desc') : null;
-      var chLabel = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__ch-label') : null;
-      if (subtitle) {
-        subtitle.textContent = state.mode === 'compatibility'
-          ? '두 사람 명반 기반 13챕터 자미두수 궁합 PDF'
-          : '나의 명반 기반 13챕터 자미두수 인생 PDF';
-      }
-      if (cta) {
-        cta.textContent = state.mode === 'compatibility'
-          ? '💞 자미두수 궁합 총람 생성하기'
-          : '🌌 자미두수 인생 총람 생성하기';
-      }
-      if (heroDesc) {
-        heroDesc.innerHTML = state.mode === 'compatibility'
-          ? '두 사람의 자미두수 명반을 비교해<br>관계의 흐름을 13챕터로 정리합니다'
-          : '복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다';
-      }
-      if (chLabel) chLabel.textContent = state.mode === 'compatibility' ? '📖 궁합 13챕터 구성' : '📖 13챕터 구성';
-      renderChapterList();
-    }
-
-    var modeInputs = qsa(card, 'input[name="zbMode"]');
-    modeInputs.forEach(function (input) {
-      input.addEventListener('change', function () {
-        if (input.checked) applyModeUi(input.value);
-      });
-    });
-
-    applyModeUi('personal');
+    state.mode = 'personal';
+    var subtitle = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-modal__subtitle') : null;
+    var cta = qs('zbStartBtn');
+    var heroDesc = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__desc') : null;
+    var chLabel = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__ch-label') : null;
+    if (subtitle) subtitle.textContent = '나의 명반 기반 13챕터 자미두수 인생 PDF';
+    if (cta) cta.textContent = '🌌 자미두수 인생 총람 생성하기';
+    if (heroDesc) heroDesc.innerHTML = '복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다';
+    if (chLabel) chLabel.textContent = '📖 13챕터 구성';
+    renderChapterList();
   }
 
   function renderChapterList() {
@@ -376,8 +315,7 @@
   }
 
   function getSelectedMode() {
-    var selected = document.querySelector('input[name="zbMode"]:checked');
-    return selected && selected.value === 'compatibility' ? 'compatibility' : 'personal';
+    return 'personal';
   }
 
   function readPartnerInput() {
@@ -439,11 +377,10 @@
   function buildRequestBody(forceRegenerate) {
     var profile = getActiveProfile() || {};
     var birth = profile.birth || {};
-    var mode = getSelectedMode();
-    state.mode = mode;
+    state.mode = 'personal';
 
     var body = {
-      mode: mode,
+      mode: 'personal',
       forceRegenerate: !!forceRegenerate,
       birthData: {
         name: String(profile.name || '사용자'),
@@ -460,25 +397,6 @@
         ziweiStructured: getPrimaryZiweiStructured()
       }
     };
-
-    if (mode === 'compatibility') {
-      var partner = readPartnerInput();
-      if (!partner) return { error: '궁합 모드는 상대방 생년월일을 입력해야 합니다.' };
-      body.partnerBirthData = {
-        name: partner.name,
-        gender: partner.gender,
-        year: partner.year,
-        month: partner.month,
-        day: partner.day,
-        hour: partner.hour,
-        minute: partner.minute,
-        calendarType: partner.calendarType,
-        timezone: String((profile.location && profile.location.tz) || 'Asia/Seoul'),
-        lat: Number((profile.location && profile.location.lat) || 37.5665),
-        lon: Number((profile.location && profile.location.lng) || 126.9780),
-        ziweiStructured: getPartnerZiweiStructured(partner)
-      };
-    }
 
     return { body: body };
   }
@@ -658,13 +576,11 @@
   }
 
   function resolveZiweiCoinPolicy(body) {
-    var mode = String(body && body.mode || 'personal');
-    var isCompat = mode === 'compatibility';
     return {
-      cost: ZIWEI_COIN_BASE_COST + (isCompat ? ZIWEI_COIN_COMPAT_EXTRA_COST : 0),
-      featureKey: isCompat ? ZIWEI_COIN_FEATURE_KEY_COMPAT : ZIWEI_COIN_FEATURE_KEY,
-      reason: isCompat ? ZIWEI_COIN_REASON_COMPAT : ZIWEI_COIN_REASON,
-      modeLabel: isCompat ? '궁합' : '개인'
+      cost: ZIWEI_COIN_BASE_COST,
+      featureKey: ZIWEI_COIN_FEATURE_KEY,
+      reason: ZIWEI_COIN_REASON,
+      modeLabel: '개인'
     };
   }
 

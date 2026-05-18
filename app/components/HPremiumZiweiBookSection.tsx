@@ -42,7 +42,7 @@ export default function HPremiumZiweiBookSection({
   useEffect(() => {
     if (typeof window !== "undefined" && !(window as any).generateZiweiBook) {
       const script = document.createElement("script");
-      script.src = "/js/ziwei-book.js";
+      script.src = "/js/ziwei-book.js?v=build-1779177600000";
       script.async = true;
       document.body.appendChild(script);
     }

@@ -13519,7 +13519,15 @@ async function processZiweiV3Step(env, reportId) {
 async function handleZiweiV3Generate(request, env, authInfo) {
   pruneZiweiV3Reports();
   const body = await readJson(request);
-  const mode = String(body.mode || "personal").toLowerCase() === "compatibility" ? "compatibility" : "personal";
+  const requestedMode = String(body.mode || "personal").toLowerCase();
+  if (requestedMode === "compatibility" || requestedMode === "compat") {
+    return json({
+      ok: false,
+      code: "UNSUPPORTED_MODE",
+      message: "자미두수 PDF는 개인 모드만 지원합니다.",
+    }, { status: 400 });
+  }
+  const mode = "personal";
   const forceRegenerate = asBool(body.forceRegenerate);
   const profileId = String(body.profileId || "").trim();
 
@@ -13573,12 +13581,16 @@ async function handleZiweiV3Generate(request, env, authInfo) {
 
   const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "ziweiPremium", { ...body, mode });
   if (!access.ok) {
-    return json({
-      ok: false,
-      code: access.code || "PAYMENT_REQUIRED",
-      message: access.message || "프리미엄 결제가 필요합니다.",
-      required: access.required || null,
-    }, { status: Number(access.status || 402) });
+    if (String(access.code || "") === "ACCESS_CHECK_TEMPORARY_FAILURE") {
+      console.warn("[ziwei-v3] premium access check temporarily unavailable; continuing generation.");
+    } else {
+      return json({
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        required: access.required || null,
+      }, { status: Number(access.status || 402) });
+    }
   }
 
   const userCanonicalBuilt = buildZiweiV3Canonical(primaryRaw, input, "personal", "");
