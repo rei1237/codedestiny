@@ -3,34 +3,56 @@
  */
 
 let registry;
+let accessUtils;
 
 beforeAll(async () => {
   registry = await import("../../worker/lib/paid-feature-registry.js");
+  const accessMod = await import("../../worker/lib/access-control.js");
+  accessUtils = accessMod.__accessControlTestUtils;
 });
 
 describe("Premium report pricing registry", () => {
-  test("ziwei-premium is fixed to premium_pdf_ziwei / 590 coins", () => {
-    const spec = registry.getPremiumReportPriceByKind("ziwei-premium");
+  test("ziwei 리포트 가격은 premium-ziwei-report 기준 590 코인이다", () => {
+    const spec = registry.FEATURE_KEY_PRICE_TABLE["premium-ziwei-report"];
     expect(spec).toMatchObject({
-      reportKind: "ziwei-premium",
-      legacyReportType: "ziweiPremium",
-      featureType: "jamidusu_premium",
-      featureKey: "premium_pdf_ziwei",
-      priceCoins: 590,
+      cost: 590,
+      reason: "자미두수 프리미엄 PDF 리포트 생성",
     });
   });
 
-  test("all premium PDF feature keys are present in the server price table", () => {
+  test("접근 제어 대체 결제 규칙의 canonical featureKey는 서버 가격표에 존재한다", () => {
     const serverKeys = new Set(registry.listServerPricedFeatureKeys());
-    Object.values(registry.PREMIUM_REPORT_PRICES).forEach((spec) => {
-      expect(serverKeys.has(spec.featureKey)).toBe(true);
-      expect(Number(spec.priceCoins)).toBeGreaterThanOrEqual(0);
+
+    const checks = [
+      { reportType: "lifeBook", requestBody: {}, key: "premium-lifebook-report", cost: 500 },
+      { reportType: "loveSecret", requestBody: { mode: "solo" }, key: "premium-love-secret-solo", cost: 300 },
+      { reportType: "loveSecret", requestBody: { mode: "compatibility" }, key: "premium-love-secret-couple", cost: 400 },
+      { reportType: "ziweiPremium", requestBody: {}, key: "premium-ziwei-report", cost: 590 },
+      { reportType: "westernAstrologyPremium", requestBody: {}, key: "premium-astrology-report", cost: 390 },
+      { reportType: "sookyoPremium", requestBody: {}, key: "premium-sukuyo-report", cost: 390 },
+      { reportType: "vedicPremium", requestBody: {}, key: "premium-vedic-report", cost: 390 },
+    ];
+
+    checks.forEach(({ reportType, requestBody, key, cost }) => {
+      const rules = accessUtils.buildAlternativePaymentRules(reportType, requestBody);
+      expect(rules).toEqual(expect.arrayContaining([expect.objectContaining({ featureKey: key, minCost: cost })]));
+      expect(serverKeys.has(key)).toBe(true);
+      expect(registry.FEATURE_KEY_PRICE_TABLE[key]?.cost).toBe(cost);
     });
   });
 
-  test("love-secret compatibility mode resolves to the compatibility price key", () => {
-    const spec = registry.getPremiumReportPriceByReportType("loveSecret", "compatibility");
-    expect(spec.featureKey).toBe("premium_pdf_saju_love_secret_compat");
-    expect(spec.priceCoins).toBe(400);
+  test("compatibility 추가 과금 키는 required payment 규칙과 가격표가 일치한다", () => {
+    const sukuyoRules = accessUtils.buildRequiredPaymentRules("sookyoPremium", { reportMode: "compatibility" });
+    const vedicRules = accessUtils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });
+
+    expect(sukuyoRules).toEqual(expect.arrayContaining([
+      expect.objectContaining({ featureKey: "premium-sukuyo-compat-extra", minCost: 300 }),
+    ]));
+    expect(vedicRules).toEqual(expect.arrayContaining([
+      expect.objectContaining({ featureKey: "premium-veda-compatibility-addon", minCost: 300 }),
+    ]));
+
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-sukuyo-compat-extra"]?.cost).toBe(300);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-veda-compatibility-addon"]?.cost).toBe(300);
   });
 });
