@@ -83,6 +83,203 @@ function fallbackMarkdown(dreamText) {
   ].join("\n");
 }
 
+function normalizeConsultTone(value) {
+  const tone = String(value || "comfort").trim().toLowerCase();
+  if (tone === "motivation" || tone === "coaching") return tone;
+  return "comfort";
+}
+
+function normalizeConsultCards(cards) {
+  const list = Array.isArray(cards) ? cards : [];
+  const normalized = list
+    .slice(0, 3)
+    .map((item, idx) => {
+      const name = String(item?.name || item?.card_name || `카드 ${idx + 1}`).trim();
+      const orientation = String(item?.orientation || "upright").toLowerCase() === "reversed" ? "reversed" : "upright";
+      const keywords = Array.isArray(item?.keywords)
+        ? item.keywords.map((v) => String(v || "").trim()).filter(Boolean).slice(0, 5)
+        : [];
+      return { name, orientation, keywords };
+    })
+    .filter((item) => item.name);
+
+  if (!normalized.length) {
+    return { ok: false, message: "카드 정보가 필요합니다." };
+  }
+
+  return { ok: true, cards: normalized };
+}
+
+function consultToneGuide(tone) {
+  if (tone === "motivation") {
+    return "따뜻하지만 추진력 있는 코치처럼 말하고, 실행 타이밍과 행동 동선을 분명하게 제시하세요.";
+  }
+  if (tone === "coaching") {
+    return "질문형 코칭 톤으로 말하고, 감정-사실-행동 순서로 현실적인 체크포인트를 제시하세요.";
+  }
+  return "정서적 안정감을 주는 상담사 톤으로 말하고, 불안을 낮추는 구체 행동을 제시하세요.";
+}
+
+function tarotConsultPrompt({ dreamText, cards, tone, summary }) {
+  const cardLines = cards.map((card, idx) => {
+    const orient = card.orientation === "reversed" ? "역방향" : "정방향";
+    const keywords = card.keywords.length ? card.keywords.join(", ") : "키워드 없음";
+    return `- ${idx + 1}번 카드: ${card.name} (${orient}) | 키워드: ${keywords}`;
+  });
+
+  return [
+    "당신은 한국어 전문 꿈-타로 상담사입니다.",
+    consultToneGuide(tone),
+    "과장된 예언이나 단정은 금지하고, 현실 행동 중심의 조언을 제공합니다.",
+    "출력은 반드시 아래 형식 그대로 작성하세요.",
+    "",
+    "## 카드 핵심 진단",
+    "3~4문장",
+    "",
+    "## 상담사가 보는 현재 감정",
+    "3~4문장",
+    "",
+    "## 지금 바로 할 3가지",
+    "- 항목 1",
+    "- 항목 2",
+    "- 항목 3",
+    "",
+    "## 관계/일/회복 한 줄 가이드",
+    "- 관계: ...",
+    "- 일/돈: ...",
+    "- 회복: ...",
+    "",
+    "## 오늘의 확언",
+    "한 줄",
+    "",
+    "[사용자 꿈 원문]",
+    dreamText,
+    "",
+    "[카드 정보]",
+    ...cardLines,
+    "",
+    "[사전 요약 참고]",
+    String(summary || "없음"),
+  ].join("\n");
+}
+
+function fallbackTarotConsultMarkdown({ dreamText, cards }) {
+  const compact = String(dreamText || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  const cardLine = cards.map((card) => card.name).join(" · ");
+  return [
+    "## 카드 핵심 진단",
+    `${cardLine || "오늘의 카드"} 조합은 마음속 불안을 피하려는 흐름보다, 지금 마주하고 정리해야 할 과제를 보여줍니다. 꿈 속 장면("${compact}")은 감정 정리가 늦어질수록 피로가 커진다는 신호에 가깝습니다.`,
+    "당장 결론을 내리기보다, 오늘 처리 가능한 한 가지를 먼저 끝내는 방식이 현재 운을 안정시키는 핵심입니다.",
+    "",
+    "## 상담사가 보는 현재 감정",
+    "지금 감정의 중심은 두려움 자체보다, 통제력을 잃을 수 있다는 긴장감입니다. 그래서 생각은 많아지는데 행동은 지연되는 패턴이 나타날 수 있습니다.",
+    "지금 필요한 것은 완벽한 해답이 아니라, 내 감정을 사실처럼 적어보는 짧은 정리 습관입니다. 감정을 이름 붙이는 순간 불안 강도는 실제로 낮아집니다.",
+    "",
+    "## 지금 바로 할 3가지",
+    "- 오늘 가장 불안했던 장면을 한 문장으로 적고, 감정 점수를 1~10으로 기록하기",
+    "- 미루던 일 1개를 15분 단위로 쪼개 바로 시작하기",
+    "- 잠들기 전 5분 동안 디지털 자극을 끄고 호흡 정리하기",
+    "",
+    "## 관계/일/회복 한 줄 가이드",
+    "- 관계: 상대를 해석하기보다 내 필요를 한 문장으로 먼저 표현하세요.",
+    "- 일/돈: 큰 결정보다 이번 주 리스크를 줄이는 작은 실행을 우선하세요.",
+    "- 회복: 회복 루틴은 길이보다 반복이 중요합니다. 5분이라도 매일 유지하세요.",
+    "",
+    "## 오늘의 확언",
+    "나는 오늘의 작은 실행으로 내일의 불안을 줄인다.",
+  ].join("\n");
+}
+
+function sectionText(markdown, heading) {
+  const source = String(markdown || "");
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`##\\s*${escaped}\\n([\\s\\S]*?)(?=\\n##\\s|$)`, "i");
+  const found = source.match(pattern);
+  return found ? String(found[1] || "").trim() : "";
+}
+
+function firstMeaningfulLine(text) {
+  return String(text || "")
+    .split(/\n+/)
+    .map((line) => String(line || "").replace(/^[-*]\s*/, "").trim())
+    .find(Boolean) || "";
+}
+
+function extractActionPlan(markdown) {
+  const section = sectionText(markdown, "지금 바로 할 3가지");
+  const lines = section
+    .split(/\n+/)
+    .map((line) => String(line || "").trim())
+    .filter((line) => /^[-*]\s+/.test(line))
+    .map((line) => line.replace(/^[-*]\s+/, "").trim())
+    .filter(Boolean);
+  return lines.slice(0, 3);
+}
+
+async function handleTarotConsult(request, env) {
+  const body = await readJson(request);
+  const normalized = normalizeDreamText(body);
+  if (!normalized.ok) {
+    return json({ ok: false, message: normalized.message }, { status: 400 });
+  }
+
+  const cards = normalizeConsultCards(body?.cards);
+  if (!cards.ok) {
+    return json({ ok: false, message: cards.message }, { status: 400 });
+  }
+
+  const tone = normalizeConsultTone(body?.tone);
+  const prompt = tarotConsultPrompt({
+    dreamText: normalized.text,
+    cards: cards.cards,
+    tone,
+    summary: String(body?.summary || "").trim(),
+  });
+
+  const ai = await callGeminiText(env, prompt, {
+    modelEnvKeys: ["DREAM_TAROT_GEMINI_MODEL", "PSYCHO_ANALYSIS_GEMINI_MODEL"],
+    temperature: 0.84,
+    topP: 0.93,
+    maxOutputTokens: 4096,
+    timeoutMs: Number(env.DREAM_TAROT_GEMINI_TIMEOUT_MS || env.PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS || 45000),
+  });
+
+  let markdown = "";
+  let formatWarning = false;
+
+  if (ai.ok) {
+    markdown = String(ai.text || "").trim();
+    formatWarning = !/^##\s+/m.test(markdown);
+    if (formatWarning) {
+      markdown = `## 카드 핵심 진단\n${markdown}`;
+    }
+  } else {
+    markdown = fallbackTarotConsultMarkdown({ dreamText: normalized.text, cards: cards.cards });
+    formatWarning = true;
+  }
+
+  const summary = firstMeaningfulLine(sectionText(markdown, "카드 핵심 진단"));
+  const goldenAdvice = firstMeaningfulLine(sectionText(markdown, "상담사가 보는 현재 감정"));
+  const actionPlan = extractActionPlan(markdown);
+
+  return json({
+    ok: true,
+    cached: false,
+    formatWarning,
+    record: {
+      id: `dream-tarot-consult-${Date.now()}`,
+      consultingText: markdown,
+      summary,
+      goldenAdvice,
+      actionPlan,
+      source: ai.ok ? "gemini" : "fallback",
+      model: ai.ok ? ai.model : "fallback/local",
+      createdAt: new Date().toISOString(),
+    },
+    message: ai.ok ? "ok" : ai.message,
+  });
+}
+
 async function callGemini(env, prompt) {
   return callGeminiText(env, prompt, {
     modelEnvKeys: ["PSYCHO_ANALYSIS_GEMINI_MODEL"],
@@ -138,6 +335,9 @@ export async function handleDreamRoutes(request, env) {
     const path = getRoutePath(request, "/api/dream");
     if (path === "/psycho-analysis") {
       return await handlePsychoAnalysis(request, env);
+    }
+    if (path === "/tarot-consult") {
+      return await handleTarotConsult(request, env);
     }
     return notFound();
   } catch (error) {

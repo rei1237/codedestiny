@@ -29,6 +29,8 @@
     stageDone: { 1: false, 2: false, 3: false, 4: false },
     nextStage: 1,
     visibleStage: 1,
+    autoReveal: true,
+    autoRevealTimer: null,
     textSpeed: 1,
     goldenTone: 'comfort',
     typingTimer: null,
@@ -66,6 +68,12 @@
     if (!state.goldenTimer) return;
     clearTimeout(state.goldenTimer);
     state.goldenTimer = null;
+  }
+
+  function clearAutoRevealTimer() {
+    if (!state.autoRevealTimer) return;
+    clearTimeout(state.autoRevealTimer);
+    state.autoRevealTimer = null;
   }
 
   function isMobileLikeDevice() {
@@ -254,8 +262,9 @@
 
   function setGoldenTabVisible(visible) {
     var tab = document.querySelector('.dream-stage-tab--gold');
-    if (!tab) return;
-    tab.hidden = !visible;
+    if (tab) tab.hidden = !visible;
+    var stage4 = document.querySelector('.dream-stage-progress-item[data-stage-progress="4"]');
+    if (stage4) stage4.hidden = !visible;
   }
 
   function setInteractionLocked(locked) {
@@ -264,10 +273,49 @@
     if (shell) shell.classList.toggle('dream-ui-locked', state.uiLocked);
 
     // 낭독 중에도 배속 변경은 허용한다.
-    var controls = document.querySelectorAll('[data-action="startDreamReading"], .dream-tone-btn, .dream-library-chip, .dream-library-btn, .dream-library-suggest-item, #dreamLibraryQuery, #dreamLibraryMoreBtn, #dreamNextStageBtn, .dream-ritual-card[data-action="revealDreamStage"]');
+    var controls = document.querySelectorAll('[data-action="startDreamReading"], [data-action="dreamToggleAutoReveal"], .dream-tone-btn, .dream-library-chip, .dream-library-btn, .dream-library-suggest-item, #dreamLibraryQuery, #dreamLibraryMoreBtn, #dreamNextStageBtn, .dream-ritual-card[data-action="revealDreamStage"]');
     controls.forEach(function (el) {
       el.disabled = state.uiLocked;
     });
+  }
+
+  function renderStageProgress() {
+    var nodes = document.querySelectorAll('.dream-stage-progress-item');
+    if (!nodes || !nodes.length) return;
+    nodes.forEach(function (node) {
+      var stage = Number(node.getAttribute('data-stage-progress'));
+      var done = !!state.stageDone[stage];
+      var active = state.visibleStage === stage;
+      node.classList.toggle('is-done', done);
+      node.classList.toggle('is-active', active);
+      node.setAttribute('aria-current', active ? 'step' : 'false');
+    });
+  }
+
+  function updateDrawGuide() {
+    var guide = $('dreamDrawGuide');
+    if (!guide) return;
+    if (!state.reading) {
+      guide.textContent = '카드가 준비되면 1단계부터 열어 서사를 시작하세요.';
+      return;
+    }
+    if (state.visibleStage === 4) {
+      guide.textContent = '황금 카드 상담 단계입니다. 오늘 실행할 한 가지를 정해보세요.';
+      return;
+    }
+    if (!state.stageDone[state.visibleStage]) {
+      guide.textContent = state.autoReveal
+        ? state.visibleStage + '단계 카드를 자동으로 여는 중입니다.'
+        : state.visibleStage + '단계 카드를 눌러 다음 문장을 확인하세요.';
+      return;
+    }
+    if (state.visibleStage < 3) {
+      guide.textContent = state.autoReveal
+        ? '자동 모드로 다음 카드로 이어집니다.'
+        : '다음 카드 보기 버튼으로 다음 단계로 이동하세요.';
+      return;
+    }
+    guide.textContent = '세 장이 모두 열렸습니다. 황금 카드가 곧 나타납니다.';
   }
 
   function setBodyLock(locked) {
@@ -336,6 +384,48 @@
     updateStoryModeLabel();
   }
 
+  function updateAutoRevealUi() {
+    var btn = $('dreamAutoRevealBtn');
+    if (btn) {
+      btn.classList.toggle('is-active', state.autoReveal);
+      btn.textContent = state.autoReveal ? '자동 펼치기 ON' : '자동 펼치기 OFF';
+      btn.setAttribute('aria-pressed', state.autoReveal ? 'true' : 'false');
+    }
+    var status = $('dreamAutoRevealState');
+    if (status) {
+      status.textContent = state.autoReveal
+        ? '자동 모드: 카드가 순서대로 이어서 열립니다.'
+        : '수동 모드: 원하는 타이밍에 카드를 직접 열 수 있습니다.';
+    }
+    updateDrawGuide();
+  }
+
+  function queueAutoReveal(delayMs) {
+    clearAutoRevealTimer();
+    if (!state.autoReveal) return;
+    state.autoRevealTimer = setTimeout(function () {
+      state.autoRevealTimer = null;
+      window.dreamAutoAdvance();
+    }, Math.max(120, Number(delayMs) || 360));
+  }
+
+  window.dreamAutoAdvance = function dreamAutoAdvance() {
+    if (!state.autoReveal) return;
+    if (state.uiLocked || state.typingStage || !state.reading) return;
+    if (state.visibleStage >= 4) return;
+
+    var current = state.visibleStage;
+    if (!state.stageDone[current]) {
+      window.revealDreamStage(current);
+      return;
+    }
+
+    if (current < 3) {
+      window.nextDreamStage();
+      queueAutoReveal(300);
+    }
+  };
+
   function stopTyping() {
     if (state.typingTimer) {
       clearInterval(state.typingTimer);
@@ -359,6 +449,7 @@
   function resetCards() {
     stopTyping();
     clearGoldenTimer();
+    clearAutoRevealTimer();
     var cards = document.querySelectorAll('.dream-ritual-card');
     cards.forEach(function (card) {
       card.classList.remove('is-open');
@@ -382,6 +473,8 @@
     var nextBtn = $('dreamNextStageBtn');
     if (nextBtn) nextBtn.style.display = 'none';
     updateVisibleStage(1);
+    renderStageProgress();
+    updateDrawGuide();
   }
 
   function updateStageTabs(stage) {
@@ -407,6 +500,8 @@
       }
     });
     updateStageTabs(stage);
+    renderStageProgress();
+    updateDrawGuide();
     scrollStoryToLatest(true);
   }
 
@@ -593,6 +688,28 @@
 
       var base = bases[index++];
       var url = (base ? base + '/api/tarot/' : '/api/tarot/') + endpoint;
+
+      return fetchJsonWithTimeout(url, payload).catch(function (error) {
+        lastError = error;
+        return tryNext();
+      });
+    }
+
+    return Promise.resolve().then(tryNext);
+  }
+
+  function callDreamApi(endpoint, payload) {
+    var bases = buildDreamTarotApiBaseCandidates();
+    var lastError = null;
+    var index = 0;
+
+    function tryNext() {
+      if (index >= bases.length) {
+        throw lastError || new Error('Dream API request failed');
+      }
+
+      var base = bases[index++];
+      var url = (base ? base + '/api/dream/' : '/api/dream/') + endpoint;
 
       return fetchJsonWithTimeout(url, payload).catch(function (error) {
         lastError = error;
@@ -1195,11 +1312,16 @@
     if (nextBtn) nextBtn.style.display = 'none';
     updateVisibleStage(1);
     setWizardLine('카드가 소환되었습니다. 꿈의 마법책이 1장부터 차례대로 이야기를 들려줍니다.');
+    updateAutoRevealUi();
     updateStoryModeLabel();
     renderToneButtons();
     $('dreamLoader').style.display = 'none';
     $('dreamResultWrap').style.display = 'block';
     scrollStoryToLatest();
+
+    if (state.autoReveal) {
+      queueAutoReveal(260);
+    }
   }
 
   function makeKeywordArt(keyword, symbol) {
@@ -1267,10 +1389,32 @@
     var title = String(reading.title || '오늘의 꿈');
     var summary = String(reading.summary || '').trim();
     var finalSpell = normalizedFinalSpell(reading);
+    var aiConsult = String(reading.aiConsultMarkdown || '').trim();
     var keywords = Array.isArray(reading.keywords)
       ? reading.keywords.slice(0, 3).filter(Boolean)
       : [];
+    var aiActions = Array.isArray(reading.aiActionPlan) ? reading.aiActionPlan.slice(0, 3) : [];
     var keyLine = keywords.length ? '핵심 키워드: ' + keywords.join(' · ') : '핵심 키워드: 감정, 관계, 선택의 방향';
+
+    if (aiConsult) {
+      return [
+        '■ 카드 기반 Gemini 상담 리포트 — ' + title,
+        '',
+        aiConsult,
+        '',
+        '【이번 해몽 핵심】',
+        summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
+        '',
+        '【핵심 상징】',
+        keyLine,
+        aiActions.length ? '' : '',
+        aiActions.length ? '【지금 바로 할 3가지】' : '',
+        aiActions.length ? ('- ' + aiActions.join('\n- ')) : '',
+        '',
+        '【마무리 확언】',
+        finalSpell
+      ].filter(Boolean).join('\n');
+    }
 
     return [
       '■ 꿈 해몽 종합 리포트 — ' + title,
@@ -1432,6 +1576,7 @@
   window.dreamReset = function dreamReset() {
     stopTyping();
     clearGoldenTimer();
+    clearAutoRevealTimer();
     setInteractionLocked(false);
     hideDreamLibrarySuggestions();
     state.reading = null;
@@ -1457,6 +1602,7 @@
     var finalConsultText = $('dreamFinalConsult');
     if (finalConsultText) finalConsultText.textContent = '';
     setWizardLine('누가(무엇이) 어떤 행동을 했고, 당신의 감정이 어떻게 흔들렸는지 적어주세요.');
+    updateAutoRevealUi();
     updateStoryModeLabel();
     renderToneButtons();
     renderDreamLibraryCategoryButtons();
@@ -1514,6 +1660,61 @@
     }
 
     return localReading;
+  }
+
+  function buildConsultCardsPayload(reading, drawData) {
+    var apiCards = drawData && Array.isArray(drawData.cards) ? drawData.cards : [];
+    if (apiCards.length) {
+      return apiCards.slice(0, 3).map(function (card, idx) {
+        var name = String(card.nameKr || card.name || ('카드 ' + (idx + 1))).trim();
+        var orientation = card.orientation === 'reversed' ? 'reversed' : 'upright';
+        var keywords = Array.isArray(card.keywords) ? card.keywords.slice(0, 5) : [];
+        return {
+          name: name,
+          orientation: orientation,
+          keywords: keywords
+        };
+      });
+    }
+
+    var localCards = reading && Array.isArray(reading.cards) ? reading.cards : [];
+    return localCards.slice(0, 3).map(function (card, idx) {
+      var keywords = String(card.energy_keyword || '')
+        .split(/\s*·\s*/)
+        .map(function (v) { return String(v || '').trim(); })
+        .filter(Boolean)
+        .slice(0, 5);
+      return {
+        name: String(card.card_name || ('카드 ' + (idx + 1))).trim(),
+        orientation: 'upright',
+        keywords: keywords
+      };
+    });
+  }
+
+  function mergeDreamConsultIntoReading(localReading, consultRecord) {
+    if (!localReading || !consultRecord) return localReading;
+    var merged = localReading;
+
+    if (consultRecord.summary) {
+      merged.summary = String(consultRecord.summary || '').trim() || merged.summary;
+    }
+    if (consultRecord.goldenAdvice) {
+      merged.goldenAdvice = String(consultRecord.goldenAdvice || '').trim() || merged.goldenAdvice;
+    }
+    if (consultRecord.consultingText) {
+      merged.aiConsultMarkdown = String(consultRecord.consultingText || '').trim();
+    }
+    if (Array.isArray(consultRecord.actionPlan)) {
+      merged.aiActionPlan = consultRecord.actionPlan.slice(0, 3).map(function (item) {
+        return String(item || '').trim();
+      }).filter(Boolean);
+    }
+    if (consultRecord.model) {
+      merged.aiModel = String(consultRecord.model || '').trim();
+    }
+
+    return merged;
   }
 
   window.startDreamReading = function startDreamReading() {
@@ -1585,7 +1786,7 @@
         }
       }
 
-      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → 최종화
+      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → Gemini 상담 병합 → 최종화
       setLoaderText('타로 카드가 꿈의 언어를 읽는 중입니다...');
       callDreamTarotApi('draw', { spreadType: 'three_card_past_present_future' })
         .then(function (drawData) {
@@ -1605,10 +1806,27 @@
           });
         })
         .then(function (apiResult) {
+          var consultCards = buildConsultCardsPayload(reading, apiResult && apiResult.drawData ? apiResult.drawData : null);
           if (apiResult && apiResult.drawData) {
             reading = mergeTarotApiIntoReading(reading, apiResult.drawData, apiResult.readingData);
           }
-          finalizeReading(reading);
+
+          setLoaderText('카드 조합으로 상담 메시지를 정리하는 중...');
+          return callDreamApi('tarot-consult', {
+            dreamText: text,
+            tone: state.goldenTone,
+            cards: consultCards,
+            summary: reading.summary
+          })
+          .then(function (consultData) {
+            if (consultData && consultData.record) {
+              reading = mergeDreamConsultIntoReading(reading, consultData.record);
+            }
+            finalizeReading(reading);
+          })
+          .catch(function () {
+            finalizeReading(reading);
+          });
         })
         .catch(function () {
           finalizeReading(reading);
@@ -1662,12 +1880,19 @@
       state.stageDone[s] = true;
       state.nextStage += 1;
       state.typingStage = 0;
+      renderStageProgress();
+      updateDrawGuide();
       var nextBtn = $('dreamNextStageBtn');
       if (nextBtn) nextBtn.style.display = s < 3 ? 'block' : 'none';
 
       if (s < 3) {
         setInteractionLocked(false);
-        setWizardLine('낭독이 완료되었습니다. 충분히 읽으신 후 "다음 카드 보기"를 눌러 진행해 주세요.');
+        if (state.autoReveal) {
+          setWizardLine('낭독이 완료되었습니다. 자동으로 다음 단계로 이어집니다.');
+          queueAutoReveal(420);
+        } else {
+          setWizardLine('낭독이 완료되었습니다. 충분히 읽으신 후 "다음 카드 보기"를 눌러 진행해 주세요.');
+        }
       }
 
       if (s === 3) {
@@ -1707,6 +1932,10 @@
     var nextBtn = $('dreamNextStageBtn');
     if (nextBtn) nextBtn.style.display = 'none';
     setWizardLine(next === 2 ? '제2장이 펼쳐졌습니다. 카드의 목소리를 들어보세요.' : '제3장이 열렸습니다. 마지막 장면이 기다립니다.');
+
+    if (state.autoReveal) {
+      queueAutoReveal(320);
+    }
   };
 
   window.dreamSetTextSpeed = function dreamSetTextSpeed(multiplier) {
@@ -1724,6 +1953,19 @@
     state.goldenTone = normalizeGoldenTone(tone);
     renderToneButtons();
     setWizardLine('황금 카드 조언 톤을 ' + toneLabel(state.goldenTone) + ' 모드로 맞췄습니다.');
+  };
+
+  window.dreamToggleAutoReveal = function dreamToggleAutoReveal() {
+    if (state.uiLocked) return;
+    state.autoReveal = !state.autoReveal;
+    updateAutoRevealUi();
+    if (!state.autoReveal) {
+      clearAutoRevealTimer();
+      setWizardLine('수동 모드로 전환했습니다. 원하는 타이밍에 카드를 직접 여세요.');
+      return;
+    }
+    setWizardLine('자동 모드로 전환했습니다. 카드가 순서대로 이어집니다.');
+    queueAutoReveal(260);
   };
 
   window.dreamLibrarySetCategory = function dreamLibrarySetCategory(category) {
@@ -1966,9 +2208,13 @@
   bindDirectTapAction('#dreamModalOverlay [data-action="startDreamReading"]', function () {
     window.startDreamReading();
   });
+  bindDirectTapAction('#dreamModalOverlay [data-action="dreamToggleAutoReveal"]', function () {
+    window.dreamToggleAutoReveal();
+  });
 
   renderSpeedButtons();
   renderToneButtons();
+  updateAutoRevealUi();
   renderDreamLibraryCategoryButtons();
   renderDreamLibraryList();
 })();
