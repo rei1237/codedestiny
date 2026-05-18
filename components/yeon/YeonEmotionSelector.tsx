@@ -31,7 +31,7 @@ type Props = {
 
 export default function YeonEmotionSelector({ selectedMood, onSelectMood }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
       {moodOrder.map((mood) => {
         const active = selectedMood === mood;
         return (
@@ -40,11 +40,11 @@ export default function YeonEmotionSelector({ selectedMood, onSelectMood }: Prop
             type="button"
             onClick={() => onSelectMood(mood)}
             whileTap={{ scale: 0.97 }}
-            animate={{ scale: active ? 1.08 : 1, opacity: active ? 1 : 0.66 }}
-            className={`relative min-h-11 rounded-full border px-3 py-2 text-sm font-semibold transition ${
+            animate={{ scale: active ? 1.03 : 1, opacity: active ? 1 : 0.78 }}
+            className={`relative min-h-11 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
               active
-                ? "border-white/60 bg-white/28 text-white shadow-[0_12px_24px_rgba(43,35,92,0.38)]"
-                : "border-white/25 bg-white/10 text-white/90"
+                ? "border-[#ffe7b5]/70 bg-[linear-gradient(120deg,rgba(255,220,155,0.24),rgba(126,162,255,0.24),rgba(183,143,255,0.23))] text-white shadow-[0_14px_28px_rgba(25,20,66,0.44)]"
+                : "border-white/25 bg-white/8 text-white/92"
             }`}
             aria-pressed={active}
           >

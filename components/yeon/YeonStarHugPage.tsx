@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import YeonEmotionSelector from "./YeonEmotionSelector";
 import YeonZodiacSelector from "./YeonZodiacSelector";
@@ -12,6 +12,7 @@ import { getZodiacFromBirthDate } from "@/lib/yeon/zodiac";
 import { getTimeThemeByLocalHour, timeThemeMap } from "@/lib/yeon/timeTheme";
 import { generateYeonMessageFromAstrology } from "@/lib/yeon/generateYeonPrompt";
 import type { AstrologyEngineInput, YeonMood, YeonMessageOutput, ZodiacSign } from "@/lib/yeon/types";
+import { readYeonProfileSeed, type YeonProfileSeed } from "@/lib/yeon/profileSeed";
 
 const zodiacElementMap: Record<ZodiacSign, "fire" | "earth" | "air" | "water"> = {
   양자리: "fire",
@@ -42,23 +43,86 @@ export default function YeonStarHugPage() {
   const [selectedMood, setSelectedMood] = useState<YeonMood>("tired");
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>("양자리");
   const [birthDate, setBirthDate] = useState("");
+  const [birthDateEdited, setBirthDateEdited] = useState(false);
+  const [profileSeed, setProfileSeed] = useState<YeonProfileSeed | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const [result, setResult] = useState<YeonMessageOutput | null>(null);
 
   const storyRef = useRef<HTMLDivElement>(null);
   const squareRef = useRef<HTMLDivElement>(null);
+  const fullscreenRef = useRef<HTMLElement>(null);
 
   const themeKey = useMemo(() => getTimeThemeByLocalHour(new Date()), []);
   const theme = timeThemeMap[themeKey];
 
-  function applyBirthDateToZodiac() {
-    const zodiac = getZodiacFromBirthDate(birthDate);
+  const applyBirthDateToZodiac = useCallback((targetBirthDate: string) => {
+    const zodiac = getZodiacFromBirthDate(targetBirthDate);
     if (zodiac) setSelectedSign(zodiac);
+  }, []);
+
+  const syncProfileSeed = useCallback(
+    (force = false) => {
+      const nextSeed = readYeonProfileSeed();
+      setProfileSeed(nextSeed);
+
+      if (!nextSeed.birthDate) return;
+      if (force || !birthDateEdited || !birthDate) {
+        setBirthDate(nextSeed.birthDate);
+        applyBirthDateToZodiac(nextSeed.birthDate);
+      }
+    },
+    [applyBirthDateToZodiac, birthDate, birthDateEdited]
+  );
+
+  useEffect(() => {
+    syncProfileSeed(false);
+
+    const onProfileEvent = () => syncProfileSeed(false);
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key || event.key.startsWith("FORTUNE_APP_USER_PROFILES") || event.key === "fortune_auth_user") {
+        syncProfileSeed(false);
+      }
+    };
+
+    window.addEventListener("destinyProfileChanged", onProfileEvent as EventListener);
+    window.addEventListener("cd:auth-changed", onProfileEvent as EventListener);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("destinyProfileChanged", onProfileEvent as EventListener);
+      window.removeEventListener("cd:auth-changed", onProfileEvent as EventListener);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [syncProfileSeed]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+      const target = fullscreenRef.current;
+      if (target && typeof target.requestFullscreen === "function") {
+        await target.requestFullscreen();
+      }
+    } catch {
+      // 전체화면 API 실패 시 기본 화면으로 그대로 진행한다.
+    }
   }
 
   async function handleGenerate() {
     setLoading(true);
     const input: AstrologyEngineInput = {
+      userName: profileSeed?.name || "사용자",
       birthDate: birthDate || undefined,
       zodiacSign: selectedSign,
       currentPeriod: "daily",
@@ -82,19 +146,24 @@ export default function YeonStarHugPage() {
       },
     };
 
-    await new Promise((resolve) => window.setTimeout(resolve, 900));
+    await new Promise((resolve) => window.setTimeout(resolve, 650));
     const generated = generateYeonMessageFromAstrology(input);
     setResult(generated);
     setLoading(false);
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-4 py-8 text-white md:px-6" style={{ background: theme.background }}>
+    <main
+      ref={fullscreenRef}
+      className="relative min-h-screen overflow-x-clip bg-[#070d24] text-white"
+      style={{ background: theme.background }}
+    >
       <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,225,156,0.19),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(107,145,255,0.24),transparent_36%),radial-gradient(circle_at_55%_100%,rgba(182,123,255,0.2),transparent_42%)]" />
         {Array.from({ length: 14 }).map((_, i) => (
           <motion.span
             key={i}
-            className="absolute text-[10px]"
+            className="absolute text-[11px]"
             style={{ left: `${(i * 7) % 96}%`, top: `${(i * 13) % 92}%` }}
             animate={{ opacity: [0.16, 0.9, 0.16] }}
             transition={{ duration: 2.8 + (i % 5) * 0.55, repeat: Infinity, ease: "easeInOut" }}
@@ -104,80 +173,141 @@ export default function YeonStarHugPage() {
         ))}
       </div>
 
-      <div className="relative z-10 mx-auto max-w-5xl space-y-4">
-        <section className="rounded-[30px] border border-white/30 bg-white/12 p-5 backdrop-blur-xl md:p-8">
-          <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.14em] text-white/80">YEON-I'S STAR HUG MESSAGE</p>
-              <h1 className="mt-2 text-3xl font-black md:text-4xl">오늘 하루 어땠어?</h1>
-              <p className="mt-2 text-sm text-white/90 md:text-base">
-                연이가 별빛 냄새로 네 마음을 살짝 읽어볼게. 점성술 흐름만으로 다정한 마음 메시지를 전해줄게.
-              </p>
-              <p className="mt-1 text-xs text-white/75">현재 테마: {theme.label}</p>
+      <div className="relative z-10 mx-auto w-full max-w-[1260px] px-4 py-5 md:px-8 md:py-8">
+        <section className="rounded-[34px] border border-white/35 bg-[linear-gradient(135deg,rgba(12,16,43,0.76),rgba(22,17,59,0.72),rgba(10,22,48,0.78))] p-5 shadow-[0_24px_80px_rgba(8,11,32,0.55)] backdrop-blur-2xl md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] font-semibold tracking-[0.22em] text-white/80">YEON STAR HUG LAB</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => syncProfileSeed(true)}
+                className="rounded-full border border-white/45 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                프로필 카드 동기화
+              </button>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="rounded-full border border-[#ffe4a5]/65 bg-[#ffd67b]/20 px-3 py-1.5 text-xs font-bold text-[#fff1cf]"
+              >
+                {fullscreen ? "전체화면 종료" : "전체화면 시작"}
+              </button>
             </div>
-            <YeonFloatingCharacter mood={selectedMood} />
+          </div>
+
+          <div className="mt-5 grid items-center gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <h1 className="text-3xl font-black leading-tight md:text-4xl">연이의 마음 별자리, 몰입형 상담 모드</h1>
+              <p className="mt-3 max-w-3xl text-sm text-white/90 md:text-base">
+                프로필 카드 정보로 별자리를 자동 인식하고, 감정 흐름과 결합한 점성술 중심 상담을 제공합니다. 스프라이트 시트 기반 연이
+                애니메이션으로 화면 전체에서 부드럽게 몰입해 보세요.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full border border-white/45 bg-white/10 px-3 py-1.5">현재 테마: {theme.label}</span>
+                <span className="rounded-full border border-white/45 bg-white/10 px-3 py-1.5">자동 판별 별자리: {selectedSign}</span>
+                {profileSeed?.birthDate ? (
+                  <span className="rounded-full border border-[#9dd0ff]/55 bg-[#7eb7ff]/15 px-3 py-1.5">
+                    프로필 생년월일: {profileSeed.birthDate}
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-[#ffd7b0]/50 bg-[#ffb979]/15 px-3 py-1.5">프로필 생년월일 없음</span>
+                )}
+              </div>
+            </div>
+            <YeonFloatingCharacter mood={selectedMood} sign={selectedSign} />
           </div>
         </section>
 
-        <section className="rounded-[30px] border border-white/30 bg-white/12 p-5 backdrop-blur-xl md:p-7">
-          <h2 className="mb-3 text-xl font-bold">감정 선택</h2>
-          <YeonEmotionSelector selectedMood={selectedMood} onSelectMood={setSelectedMood} />
-        </section>
+        <section className="mt-4 grid gap-4 xl:grid-cols-[1.04fr_0.96fr]">
+          <article className="rounded-[30px] border border-white/30 bg-white/10 p-5 shadow-[0_14px_44px_rgba(10,12,36,0.45)] backdrop-blur-xl md:p-7">
+            <h2 className="mb-2 text-xl font-bold">감정 선택</h2>
+            <p className="mb-4 text-xs text-white/80">감정 상태를 고르면 연이의 말투와 처방 문장이 함께 달라져요.</p>
+            <YeonEmotionSelector selectedMood={selectedMood} onSelectMood={setSelectedMood} />
 
-        <section className="rounded-[30px] border border-white/30 bg-white/12 p-5 backdrop-blur-xl md:p-7">
-          <h2 className="mb-3 text-xl font-bold">별자리 선택</h2>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className="min-h-11 rounded-xl border border-white/40 bg-white/15 px-3 text-sm text-white outline-none"
-            />
             <button
               type="button"
-              onClick={applyBirthDateToZodiac}
-              className="min-h-11 rounded-full border border-white/45 bg-white/20 px-4 text-sm font-semibold"
+              onClick={handleGenerate}
+              disabled={loading}
+              className="mt-5 min-h-11 w-full rounded-full border border-[#ffe9b6]/75 bg-[linear-gradient(90deg,rgba(255,208,121,0.34),rgba(154,184,255,0.28),rgba(197,147,255,0.28))] px-5 text-sm font-bold text-white"
             >
-              생년월일로 자동 선택
+              {loading ? "연이가 별빛 흐름을 정리 중이에요..." : "고품질 마음 별자리 상담 시작"}
             </button>
-          </div>
-          <YeonZodiacSelector selectedSign={selectedSign} onSelectSign={setSelectedSign} />
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={loading}
-            className="mt-4 min-h-11 rounded-full border border-white/50 bg-white/30 px-5 text-sm font-bold"
-          >
-            {loading ? "연이가 별빛을 주워 담는 중이에요..." : "연이의 마음 메시지 받기"}
-          </button>
-          <p className="mt-2 text-xs text-white/80">조금만 기다려줘요.</p>
+            <p className="mt-2 text-xs text-white/80">점성술 데이터만 활용하며 사주 정보는 혼합하지 않습니다.</p>
+          </article>
+
+          <article className="rounded-[30px] border border-white/30 bg-white/10 p-5 shadow-[0_14px_44px_rgba(10,12,36,0.45)] backdrop-blur-xl md:p-7">
+            <h2 className="mb-2 text-xl font-bold">별자리 자동 판별</h2>
+            <p className="mb-4 text-xs text-white/80">프로필 카드 생년월일을 우선 사용하고, 필요하면 직접 수정할 수 있어요.</p>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={birthDate}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setBirthDate(next);
+                  setBirthDateEdited(true);
+                }}
+                className="min-h-11 flex-1 rounded-xl border border-white/40 bg-white/12 px-3 text-sm text-white outline-none [color-scheme:dark]"
+              />
+              <button
+                type="button"
+                onClick={() => applyBirthDateToZodiac(birthDate)}
+                className="min-h-11 rounded-full border border-white/45 bg-white/20 px-4 text-sm font-semibold"
+              >
+                별자리 계산
+              </button>
+            </div>
+
+            {profileSeed ? (
+              <p className="mb-3 rounded-2xl border border-white/25 bg-black/15 px-3 py-2 text-xs text-white/88">
+                {profileSeed.name ? `${profileSeed.name}님의 ` : ""}
+                데이터 소스: {profileSeed.source === "profile-card" ? "프로필 카드" : profileSeed.source === "auth-user" ? "계정 정보" : "없음"}
+              </p>
+            ) : null}
+
+            <YeonZodiacSelector selectedSign={selectedSign} onSelectSign={setSelectedSign} />
+          </article>
         </section>
 
         {loading ? (
-          <section className="rounded-[30px] border border-white/30 bg-white/12 p-6 backdrop-blur-xl">
-            <p className="text-sm">연이가 별빛을 주워 담는 중이에요...</p>
-            <p className="text-sm">조금만 기다려줘요.</p>
+          <section className="mt-4 rounded-[30px] border border-white/30 bg-white/10 p-6 backdrop-blur-xl">
+            <p className="text-sm">연이가 별빛을 주워 담고 있어요...</p>
+            <p className="text-sm text-white/85">감정선, 별자리, 원소 흐름을 맞춰 정밀 상담 문장을 구성하는 중입니다.</p>
           </section>
         ) : null}
 
         {result ? (
-          <>
-            <section className="rounded-[30px] border border-white/30 bg-white/12 p-5 backdrop-blur-xl md:p-7">
+          <section className="mt-4 grid gap-4 xl:grid-cols-[1.02fr_0.98fr]">
+            <article className="rounded-[30px] border border-white/30 bg-white/10 p-5 backdrop-blur-xl md:p-7">
               <h2 className="mb-4 text-xl font-bold">결과 타임라인</h2>
               <YeonMessageTimeline message={result} />
-            </section>
+            </article>
 
-            <section className="rounded-[30px] border border-white/30 bg-white/12 p-5 backdrop-blur-xl md:p-7">
+            <article className="rounded-[30px] border border-white/30 bg-white/10 p-5 backdrop-blur-xl md:p-7">
               <h2 className="mb-4 text-xl font-bold">오늘의 마음 카드 만들기</h2>
               <div className="grid gap-4 md:grid-cols-2">
-                <YeonShareCard mode="story" mood={selectedMood} message={result} background={theme.background} ref={storyRef} />
-                <YeonShareCard mode="square" mood={selectedMood} message={result} background={theme.background} ref={squareRef} />
+                <YeonShareCard
+                  mode="story"
+                  mood={selectedMood}
+                  sign={selectedSign}
+                  message={result}
+                  background={theme.background}
+                  ref={storyRef}
+                />
+                <YeonShareCard
+                  mode="square"
+                  mood={selectedMood}
+                  sign={selectedSign}
+                  message={result}
+                  background={theme.background}
+                  ref={squareRef}
+                />
               </div>
               <div className="mt-4">
                 <YeonCardDownloadButton storyRef={storyRef} squareRef={squareRef} baseFileName={`yeon-${selectedSign}`} />
               </div>
-            </section>
-          </>
+            </article>
+          </section>
         ) : null}
       </div>
     </main>

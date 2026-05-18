@@ -10,7 +10,7 @@ type Props = {
 
 function TimelineCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-white/30 bg-white/18 p-4 shadow-[0_12px_28px_rgba(32,24,74,0.24)] backdrop-blur-lg">
+    <div className="rounded-3xl border border-white/30 bg-[linear-gradient(145deg,rgba(255,255,255,0.18),rgba(255,255,255,0.1))] p-4 shadow-[0_12px_28px_rgba(32,24,74,0.24)] backdrop-blur-lg">
       <h3 className="mb-2 text-base font-bold text-white">{title}</h3>
       <div className="text-sm leading-7 text-white/92">{children}</div>
     </div>
@@ -61,7 +61,7 @@ export default function YeonMessageTimeline({ message }: Props) {
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5">
       {cards.map((card, idx) => (
         <motion.div
           key={card.key}

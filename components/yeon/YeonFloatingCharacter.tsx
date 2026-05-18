@@ -2,41 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import type { YeonMood } from "@/lib/yeon/types";
-
-const SPRITE_URL =
-  "/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp";
-
-const BASE_URL = "/fuctionassets/yeon.webp";
-
-const moodFrames: Record<YeonMood, number[]> = {
-  happy: [4, 10, 3],
-  tired: [2, 5],
-  anxious: [6, 12],
-  lonely: [5, 7],
-  angry: [9, 3],
-  blank: [8, 2],
-  hopeful: [10, 11, 7],
-};
-
-const SPRITE_COLS = 4;
-const SPRITE_ROWS = 3;
+import type { YeonMood, ZodiacSign } from "@/lib/yeon/types";
+import { getYeonSpriteSequence } from "@/lib/yeon/sprite";
+import YeonSpriteFrame from "./YeonSpriteFrame";
 
 type Props = {
   mood: YeonMood;
+  sign: ZodiacSign;
 };
 
-function frameToPosition(frame: number) {
-  const index = Math.max(1, Math.min(12, frame)) - 1;
-  const col = index % SPRITE_COLS;
-  const row = Math.floor(index / SPRITE_COLS);
-  const x = (col / (SPRITE_COLS - 1)) * 100;
-  const y = (row / (SPRITE_ROWS - 1)) * 100;
-  return { x, y };
-}
-
-export default function YeonFloatingCharacter({ mood }: Props) {
-  const frames = useMemo(() => moodFrames[mood] || [1], [mood]);
+export default function YeonFloatingCharacter({ mood, sign }: Props) {
+  const frames = useMemo(() => getYeonSpriteSequence(sign, mood), [sign, mood]);
   const [cursor, setCursor] = useState(0);
 
   useEffect(() => {
@@ -48,35 +24,24 @@ export default function YeonFloatingCharacter({ mood }: Props) {
   }, [frames]);
 
   const frame = frames[cursor] || 1;
-  const pos = frameToPosition(frame);
 
   return (
     <motion.div
-      className="relative mx-auto h-56 w-56"
+      className="relative mx-auto h-56 w-56 md:h-64 md:w-64"
       animate={{ y: [-6, 6, -6] }}
       transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
       aria-label="연이 캐릭터"
     >
-      <img
-        src={BASE_URL}
-        alt="연이"
-        className="absolute inset-0 h-full w-full rounded-full object-contain opacity-20 blur-[1px]"
-        loading="lazy"
-        decoding="async"
-      />
+      <div className="absolute inset-0 rounded-full border border-white/35 bg-[radial-gradient(circle_at_28%_24%,rgba(255,255,255,0.36),transparent_44%),radial-gradient(circle_at_74%_72%,rgba(145,164,255,0.24),transparent_46%),rgba(8,10,34,0.35)]" />
       <motion.div
         key={`${mood}-${frame}`}
-        className="absolute inset-0 rounded-full"
+        className="absolute inset-[8%] rounded-full border border-white/45 bg-white/10 p-2 backdrop-blur-sm"
         initial={{ opacity: 0.85, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.28, ease: "easeOut" }}
-        style={{
-          backgroundImage: `url(${SPRITE_URL})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: `${SPRITE_COLS * 100}% ${SPRITE_ROWS * 100}%`,
-          backgroundPosition: `${pos.x}% ${pos.y}%`,
-        }}
-      />
+      >
+        <YeonSpriteFrame frame={frame} className="h-full w-full rounded-full" ariaLabel={`연이 ${sign} ${mood}`} />
+      </motion.div>
 
       {[0, 1, 2].map((n) => (
         <motion.span

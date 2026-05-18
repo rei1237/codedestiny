@@ -17,11 +17,13 @@ export const zodiacList: Array<{ sign: ZodiacSign; icon: string; dateRange: stri
 
 export function getZodiacFromBirthDate(dateText?: string): ZodiacSign | null {
   if (!dateText) return null;
-  const date = new Date(dateText);
-  if (Number.isNaN(date.getTime())) return null;
+  const match = String(dateText).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
 
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(month) || !Number.isFinite(day)) return null;
+
   const mmdd = month * 100 + day;
 
   if (mmdd >= 321 && mmdd <= 419) return "양자리";
