@@ -633,6 +633,7 @@
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('lb-modal-open');
     try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
   };
 
@@ -643,6 +644,7 @@
     if (!modal) return;
     modal.style.display = 'none';
     document.body.style.overflow = '';
+    document.body.classList.remove('lb-modal-open');
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
 

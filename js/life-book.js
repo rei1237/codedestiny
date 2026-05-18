@@ -868,6 +868,7 @@
     applyActiveProfileArg(profileArg);
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('lb-modal-open');
     modal.setAttribute('aria-hidden', 'false');
     syncStartPreviewChapters();
     if (!state.generating && chapterCount() < TOTAL_CHAPTERS) {
@@ -885,6 +886,7 @@
     if (!modal) return;
     modal.style.display = 'none';
     document.body.style.overflow = '';
+    document.body.classList.remove('lb-modal-open');
     modal.setAttribute('aria-hidden', 'true');
   };
 
