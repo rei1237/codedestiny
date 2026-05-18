@@ -2269,6 +2269,174 @@ body.theme-pig .lb-ch-dot--pending {
   color: #bfdbfe !important;
 }
 
+/* cd-premium-pdf-cosmic-chapter-ui-v20260518 */
+#ziweiBookModal .lb-result-article,
+#astroBookModal .lb-result-article,
+#vedicBookModal .lb-result-article,
+#sukuyoBookModal .lb-result-article {
+  position: relative;
+  overflow: hidden;
+  margin: 18px 18px 22px;
+  padding: 22px;
+  border: 1px solid rgba(191, 219, 254, 0.2);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(125, 211, 252, 0.18), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(251, 191, 36, 0.12), transparent 28%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#ziweiBookModal .lb-result-article::before,
+#astroBookModal .lb-result-article::before,
+#vedicBookModal .lb-result-article::before,
+#sukuyoBookModal .lb-result-article::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--lb-accent, #a78bfa), rgba(255, 255, 255, 0.8), var(--lb-accent2, #7c3aed), transparent);
+  opacity: 0.9;
+}
+
+#ziweiBookModal .lb-result-article__chapter,
+#astroBookModal .lb-result-article__chapter,
+#vedicBookModal .lb-result-article__chapter,
+#sukuyoBookModal .lb-result-article__chapter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: #fde68a;
+  background: rgba(15, 23, 42, 0.62);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+#ziweiBookModal .lb-result-article__chapter::before,
+#astroBookModal .lb-result-article__chapter::before,
+#vedicBookModal .lb-result-article__chapter::before,
+#sukuyoBookModal .lb-result-article__chapter::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lb-accent, #a78bfa);
+  box-shadow: 0 0 12px var(--lb-accent, #a78bfa);
+}
+
+#ziweiBookModal .lb-result-article__title,
+#astroBookModal .lb-result-article__title,
+#vedicBookModal .lb-result-article__title,
+#sukuyoBookModal .lb-result-article__title {
+  margin: 0;
+  color: #f8fbff;
+  font-size: 1.12rem;
+  line-height: 1.42;
+  font-weight: 850;
+}
+
+#ziweiBookModal .lb-result-article__subtitle,
+#astroBookModal .lb-result-article__subtitle,
+#vedicBookModal .lb-result-article__subtitle,
+#sukuyoBookModal .lb-result-article__subtitle {
+  margin: 8px 0 0;
+  color: #bfdbfe;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+#ziweiBookModal .lb-result-article__summary,
+#astroBookModal .lb-result-article__summary,
+#vedicBookModal .lb-result-article__summary,
+#sukuyoBookModal .lb-result-article__summary {
+  margin: 16px 0 0;
+  padding: 14px 15px;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 8px;
+  color: #e0f2fe;
+  background: rgba(8, 47, 73, 0.34);
+  line-height: 1.75;
+}
+
+#ziweiBookModal .lb-result-article__body,
+#astroBookModal .lb-result-article__body,
+#vedicBookModal .lb-result-article__body,
+#sukuyoBookModal .lb-result-article__body {
+  margin-top: 18px;
+  color: #edf3ff;
+  line-height: 1.86;
+}
+
+#ziweiBookModal .lb-result-article__section,
+#astroBookModal .lb-result-article__section,
+#vedicBookModal .lb-result-article__section,
+#sukuyoBookModal .lb-result-article__section,
+#ziweiBookModal .lb-result-article__list,
+#astroBookModal .lb-result-article__list,
+#vedicBookModal .lb-result-article__list,
+#sukuyoBookModal .lb-result-article__list {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+#ziweiBookModal .lb-result-article__section h4,
+#astroBookModal .lb-result-article__section h4,
+#vedicBookModal .lb-result-article__section h4,
+#sukuyoBookModal .lb-result-article__section h4,
+#ziweiBookModal .lb-result-article__list h5,
+#astroBookModal .lb-result-article__list h5,
+#vedicBookModal .lb-result-article__list h5,
+#sukuyoBookModal .lb-result-article__list h5 {
+  margin: 0 0 8px;
+  color: #fef3c7;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+#ziweiBookModal .lb-result-article__section p,
+#astroBookModal .lb-result-article__section p,
+#vedicBookModal .lb-result-article__section p,
+#sukuyoBookModal .lb-result-article__section p,
+#ziweiBookModal .lb-result-article__body p,
+#astroBookModal .lb-result-article__body p,
+#vedicBookModal .lb-result-article__body p,
+#sukuyoBookModal .lb-result-article__body p {
+  margin: 0 0 10px;
+}
+
+#ziweiBookModal .lb-result-article__extras,
+#astroBookModal .lb-result-article__extras,
+#vedicBookModal .lb-result-article__extras,
+#sukuyoBookModal .lb-result-article__extras {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+  #ziweiBookModal .lb-result-article,
+  #astroBookModal .lb-result-article,
+  #vedicBookModal .lb-result-article,
+  #sukuyoBookModal .lb-result-article {
+    margin: 14px 12px 18px;
+    padding: 17px;
+  }
+
+  #ziweiBookModal .lb-result-article__title,
+  #astroBookModal .lb-result-article__title,
+  #vedicBookModal .lb-result-article__title,
+  #sukuyoBookModal .lb-result-article__title {
+    font-size: 1rem;
+  }
+}
+
 
 .lb-result__actions {
   display: flex;

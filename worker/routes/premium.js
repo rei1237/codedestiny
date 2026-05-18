@@ -89,10 +89,20 @@ const SUKUYO_CHAPTER_META = [
   { num: 13, title: "영혼의 마스터플랜", subtitle: "달빛 전략가의 10년 로드맵", icon: "moon" },
 ];
 
-const SUKYO_PDF_CHAPTERS = SUKUYO_CHAPTER_META.map((chapter) => ({
-  ...chapter,
-  goal: String(chapter?.goal || chapter?.subtitle || ""),
-}));
+function getSukyoPdfChapterDefs(mode = "personal") {
+  const normalizedMode = String(mode || "personal").toLowerCase() === "compatibility" ? "compatibility" : "personal";
+  const source = getSukuyoChapterMetaV2(normalizedMode);
+  return source.map((chapter, idx) => ({
+    num: Number(chapter?.num || idx + 1),
+    key: String(chapter?.key || `${normalizedMode}_${idx + 1}`),
+    title: String(chapter?.title || `Chapter ${idx + 1}`),
+    subtitle: String(chapter?.subtitle || ""),
+    goal: String(chapter?.goal || chapter?.subtitle || ""),
+    icon: "moon",
+  }));
+}
+
+const SUKYO_PDF_CHAPTERS = getSukyoPdfChapterDefs("personal");
 
 const SUKUYO_REPORT_TITLE_PERSONAL = "Moonlight Strategy: 숙요점 프리미엄 인생 리포트";
 const SUKUYO_REPORT_TITLE_COMPAT = "Moonlight Strategy: 숙요점 프리미엄 궁합 리포트";
@@ -1410,7 +1420,7 @@ const PREMIUM_REPORT_KIND_MAP = {
 
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 13,
-  sookyoPremium: 13,
+  sookyoPremium: 12,
   westernAstrologyPremium: 12,
   vedicPremium: 13,
   lifeBook: 13,
@@ -2567,59 +2577,95 @@ function mapSookyoCalculatedData(canonical, requestBody) {
 }
 
 function mapWesternAstrologyCalculatedData(canonical) {
-  const planets = normalizeAstroPlanetMap(canonical?.planets || canonical?.chart?.planets || {});
+  const rawPlanets = Array.isArray(canonical?.planets)
+    ? Object.fromEntries(canonical.planets.map((planet) => [planet?.nameEn || planet?.key, planet]).filter(([key]) => key))
+    : (canonical?.planets || canonical?.chart?.planets || {});
+  const planets = normalizeAstroPlanetMap(rawPlanets);
+  const angles = canonical?.angles || {};
+  const midheaven = angles.midheaven || angles.mc || {};
+  const chartBalance = canonical?.chartBalance || {};
+  const houses = Array.isArray(canonical?.houses) ? canonical.houses : [];
   return {
     birthInfo: {
       date: canonical?.profile?.birth?.date || "",
       time: canonical?.profile?.birth?.time || "",
-      place: canonical?.profile?.birth?.place || "",
+      place: canonical?.profile?.birth?.place || canonical?.profile?.birth?.locationName || "",
       latitude: Number(canonical?.profile?.birth?.latitude || 0),
       longitude: Number(canonical?.profile?.birth?.longitude || 0),
       timezone: canonical?.profile?.birth?.timezone || "",
-      houseSystem: canonical?.settings?.houseSystem || "Placidus",
-      zodiac: canonical?.settings?.zodiac || "tropical",
-      ephemerisSource: canonical?.calculationMeta?.ephemerisSource || "Swiss Ephemeris",
+      houseSystem: canonical?.settings?.houseSystem || canonical?.calculationMeta?.houseSystem || "Placidus",
+      zodiac: canonical?.settings?.zodiac || canonical?.calculationMeta?.zodiac || "tropical",
+      ephemerisSource: canonical?.calculationMeta?.ephemerisSource || canonical?.calculationMeta?.engine || "Swiss Ephemeris",
     },
     angles: {
-      ascendant: canonical?.angles?.ascendant || {},
-      midheaven: canonical?.angles?.midheaven || {},
-      descendant: canonical?.angles?.descendant || {},
-      imumCoeli: canonical?.angles?.imumCoeli || {},
+      ascendant: angles.ascendant || {},
+      midheaven,
+      mc: midheaven,
+      descendant: angles.descendant || {},
+      imumCoeli: angles.imumCoeli || angles.ic || {},
+      ic: angles.ic || angles.imumCoeli || {},
     },
     planets,
-    houses: Array.isArray(canonical?.houses) ? canonical.houses : [],
+    houses,
     aspects: Array.isArray(canonical?.aspects) ? canonical.aspects : [],
-    elementBalance: canonical?.elementBalance || {},
-    modalityBalance: canonical?.modalityBalance || {},
-    relationshipData: canonical?.relationshipData || {},
-    careerData: canonical?.careerData || {},
+    elementBalance: canonical?.elementBalance || chartBalance.elements || {},
+    modalityBalance: canonical?.modalityBalance || chartBalance.modalities || {},
+    relationshipData: canonical?.relationshipData || canonical?.relationship || {},
+    careerData: canonical?.careerData || {
+      midheaven,
+      tenthHouse: houses.find((house) => Number(house?.house || 0) === 10) || {},
+    },
+    timingData: canonical?.forecast || {},
   };
 }
 
 function mapVedicCalculatedData(canonical) {
   const planets = normalizeAstroPlanetMap(canonical?.planets || {});
+  const divisionalCharts = canonical?.divisionalCharts || {};
+  const dasha = canonical?.dasha || canonical?.dashas || {};
+  const rawVimshottari = dasha.vimshottari || {};
+  const vimshottari = {
+    ...rawVimshottari,
+    currentMahaDasha: rawVimshottari.currentMahaDasha || rawVimshottari.currentDasha?.mahadasha || dasha.current?.mahaDasha || dasha.current || dasha.current?.lord || null,
+    currentAntarDasha: rawVimshottari.currentAntarDasha || rawVimshottari.currentDasha?.antardasha || dasha.antar || dasha.antar?.lord || null,
+    currentPratyantarDasha: rawVimshottari.currentPratyantarDasha || rawVimshottari.currentDasha?.pratyantar || dasha.pratyantar || dasha.pratyantar?.lord || null,
+    timeline: rawVimshottari.timeline || dasha.timeline || dasha.upcoming || [],
+    upcoming: rawVimshottari.upcoming || dasha.upcoming || null,
+    current: rawVimshottari.current || dasha.current || null,
+    antar: rawVimshottari.antar || dasha.antar || null,
+    pratyantar: rawVimshottari.pratyantar || dasha.pratyantar || null,
+  };
+  const lagna = {
+    ...(canonical?.lagna || {}),
+    sign: canonical?.lagna?.sign || canonical?.lagna?.signName || canonical?.lagna?.signKo || canonical?.lagna?.name || "",
+  };
   return {
     birthInfo: {
       date: canonical?.profile?.birth?.date || "",
       time: canonical?.profile?.birth?.time || "",
-      place: canonical?.profile?.birth?.place || "",
+      place: canonical?.profile?.birth?.place || canonical?.profile?.birth?.locationName || "",
       latitude: Number(canonical?.profile?.birth?.latitude || 0),
       longitude: Number(canonical?.profile?.birth?.longitude || 0),
       timezone: canonical?.profile?.birth?.timezone || "",
-      zodiac: canonical?.settings?.zodiac || "sidereal",
-      ayanamsa: canonical?.settings?.ayanamsa || "Lahiri",
-      ephemerisSource: canonical?.calculationMeta?.ephemerisSource || "Swiss Ephemeris",
+      zodiac: canonical?.settings?.zodiac || canonical?.calculationMeta?.zodiac || "sidereal",
+      ayanamsa: canonical?.settings?.ayanamsa || canonical?.calculationMeta?.ayanamsaMode || "Lahiri",
+      ephemerisSource: canonical?.calculationMeta?.ephemerisSource || canonical?.calculationMeta?.engine || "Swiss Ephemeris",
     },
-    lagna: canonical?.lagna || {},
-    rashiChart: canonical?.rashiChart || {},
-    navamsaChart: canonical?.navamsaChart || {},
+    lagna,
+    rashiChart: canonical?.rashiChart || { houses: canonical?.houses || {}, d1: divisionalCharts.d1 || {} },
+    navamsaChart: canonical?.navamsaChart || { houses: divisionalCharts.d9 || {}, planets: divisionalCharts.d9 || {} },
+    dashamsaChart: canonical?.dashamsaChart || { houses: divisionalCharts.d10 || {}, planets: divisionalCharts.d10 || {} },
     planets,
-    nakshatras: canonical?.nakshatras || {},
+    nakshatras: canonical?.nakshatras || { moonNakshatra: canonical?.moonNakshatra || {} },
     karakas: canonical?.karakas || {},
-    dashas: canonical?.dashas || {},
+    dashas: {
+      ...(canonical?.dashas || {}),
+      vimshottari,
+    },
     yogas: canonical?.yogas || [],
-    relationshipData: canonical?.relationshipData || {},
-    careerData: canonical?.careerData || {},
+    relationshipData: canonical?.relationshipData || canonical?.compatibility || {},
+    careerData: canonical?.careerData || { tenthHouse: canonical?.houses?.h10 || {}, d10: divisionalCharts.d10 || {} },
+    divisionalCharts,
   };
 }
 
@@ -2749,7 +2795,7 @@ function buildChapterDataMap(reportType, calculatedData) {
 
   if (reportType === "sookyoPremium") {
     return Object.fromEntries(
-      SUKYO_PDF_CHAPTERS.map((chapter, idx) => [
+      getSukyoPdfChapterDefs("personal").map((chapter, idx) => [
         `ch${idx + 1}`,
         {
           chapterTitle: String(chapter?.title || `Chapter ${idx + 1}`),
@@ -3149,7 +3195,7 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
       actions: {
         relationshipAdvice: toTopArray(calculatedData?.compatibility?.relationshipAdvice, 8),
         twentySevenSook: toTopArray(calculatedData.twentySevenSook, 12),
-        chapterBlueprint: SUKYO_PDF_CHAPTERS,
+        chapterBlueprint: getSukyoPdfChapterDefs(canonicalJson?.input?.mode || canonicalJson?.input?.reportMode || canonicalJson?.input?.reportType || "personal"),
       },
     };
   }
@@ -3290,9 +3336,10 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
   };
 }
 
-function getSukyoChapterBlueprint(chapterId) {
+function getSukyoChapterBlueprint(chapterId, mode = "personal") {
   const idx = Math.max(0, Number(chapterId || 1) - 1);
-  return SUKYO_PDF_CHAPTERS[idx] || {
+  const chapters = getSukyoPdfChapterDefs(mode);
+  return chapters[idx] || {
     key: `chapter-${chapterId}`,
     title: `Ch.${chapterId} 숙요점 해석`,
     goal: "숙요점 데이터 기반 해석",
@@ -3300,7 +3347,10 @@ function getSukyoChapterBlueprint(chapterId) {
 }
 
 async function generateSukyoPremiumChapterFromContext({ env, context, chapterId, requestId }) {
-  const chapter = getSukyoChapterBlueprint(chapterId);
+  const mode = String(context?.modeKey || context?.input?.mode || context?.input?.reportMode || context?.input?.reportType || "personal").toLowerCase() === "compatibility"
+    ? "compatibility"
+    : "personal";
+  const chapter = getSukyoChapterBlueprint(chapterId, mode);
   const calculated = context?.coreData?.canonicalJson?.calculatedData || {};
   const sukyoContext = calculated?.sukyoPdfContext || buildSukyoPdfContext({
     canonical: context?.coreData?.canonicalJson || {},
@@ -7478,7 +7528,8 @@ async function handleSukuyoLife(request, env) {
   }
 
   if (reportType === "personal") {
-    const chapterMetaList = SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+    const chapterDefs = getSukyoPdfChapterDefs("personal");
+    const chapterMetaList = chapterDefs.map((chapter, idx) => ({
       num: idx + 1,
       title: chapter.title,
       subtitle: chapter.goal,
@@ -7603,7 +7654,8 @@ async function handleSukuyoLife(request, env) {
     }, { status: 422 });
   }
 
-  const chapterMetaList = SUKYO_PDF_CHAPTERS.map((chapterDef, idx) => ({
+  const chapterDefs = getSukyoPdfChapterDefs("compatibility");
+  const chapterMetaList = chapterDefs.map((chapterDef, idx) => ({
     num: idx + 1,
     title: chapterDef.title,
     subtitle: chapterDef.goal,
@@ -11189,7 +11241,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
       ok: true,
       prepared: true,
       totalChapters: Number(getPremiumRequiredChapters(reportType, modeKey) || 10),
-      chapterPlan: SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+      chapterPlan: getSukyoPdfChapterDefs(modeKey).map((chapter, idx) => ({
         num: idx + 1,
         title: chapter.title,
         subtitle: chapter.goal,
@@ -11258,7 +11310,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const strictReady = missingData.length === 0 && canonicalBuild.validation?.canGeneratePdf;
   const status = isFailOpenReport ? "ready" : (strictReady ? "ready" : "needs-data");
   const chapterPlan = reportType === "sookyoPremium"
-    ? SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+    ? getSukyoPdfChapterDefs(modeKey).map((chapter, idx) => ({
       num: idx + 1,
       title: chapter.title,
       subtitle: chapter.goal,
