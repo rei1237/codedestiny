@@ -80,6 +80,15 @@ const miscDivinationItems: ServiceCardModel[] = [
     cta: "오미쿠지 보기",
   },
   {
+    title: "연이의 마음 별자리",
+    description: "별빛 흐름과 오늘 마음을 포개어, 연이가 다정한 위로 문장과 감성 카드를 건네줘요",
+    href: "/yeon-star-hug",
+    emoji: "🐷",
+    image: "/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp",
+    badges: [{ text: "무료", tone: "free" }, { text: "HUG", tone: "new" }],
+    cta: "마음 안아주기",
+  },
+  {
     title: "혈액형 테스트",
     description: "혈액형 성향, 라이프 코칭, 궁합, 밸런스 게임까지 가볍게 체험",
     href: "/blood-type-app.html",
