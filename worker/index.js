@@ -135,6 +135,53 @@ function resolveHealthBool(env, keys = []) {
   return keys.some((key) => Boolean(getEnv(env, key)));
 }
 
+function buildVersionPayload(env) {
+  const commit = String(
+    getEnv(env, "COMMIT_SHA")
+    || getEnv(env, "CF_PAGES_COMMIT_SHA")
+    || getEnv(env, "GITHUB_SHA")
+    || getEnv(env, "VERCEL_GIT_COMMIT_SHA")
+    || "",
+  ).trim();
+  const commitShort = commit ? commit.slice(0, 12) : "";
+  const branch = String(
+    getEnv(env, "BRANCH")
+    || getEnv(env, "CF_PAGES_BRANCH")
+    || getEnv(env, "GITHUB_REF_NAME")
+    || getEnv(env, "VERCEL_GIT_COMMIT_REF")
+    || "main",
+  ).trim();
+  const builtAt = String(
+    getEnv(env, "BUILT_AT")
+    || getEnv(env, "BUILD_TIME")
+    || getEnv(env, "DEPLOY_TIME")
+    || "",
+  ).trim() || null;
+  const source = String(getEnv(env, "DEPLOY_SOURCE") || "worker-native").trim() || "worker-native";
+  const environment = String(getEnv(env, "NODE_ENV") || getEnv(env, "APP_ENV") || "production").trim() || "production";
+  const deploymentMode = String(getEnv(env, "DEPLOYMENT_MODE") || "manual-pages-only").trim() || "manual-pages-only";
+  const appVersion = String(
+    getEnv(env, "APP_VERSION")
+    || getEnv(env, "BUILD_ID")
+    || commitShort
+    || "unknown",
+  ).trim() || "unknown";
+
+  return {
+    ok: true,
+    appVersion,
+    gitSha: commit || null,
+    buildTime: builtAt,
+    environment,
+    source,
+    commit: commit || null,
+    commitShort: commitShort || null,
+    branch,
+    builtAt,
+    deploymentMode,
+  };
+}
+
 function stackSnippet(error) {
   const stack = String(error?.stack || "");
   if (!stack) return "";
@@ -426,6 +473,10 @@ export default {
         });
       }
 
+      if (url.pathname === "/api/version") {
+        return jsonResponse(request, env, buildVersionPayload(env));
+      }
+
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
       }
@@ -491,6 +542,11 @@ export default {
       }
 
       if (url.pathname === "/api/subscription/status") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
+        return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/subscription/me") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
         return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
       }

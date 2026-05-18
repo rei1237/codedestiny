@@ -7015,6 +7015,45 @@ function isCompatibilityReportMode(mode) {
   return normalized === "compatibility" || normalized === "compat";
 }
 
+function isTransientPremiumAccessError(error) {
+  const message = String(error?.message || "").toLowerCase();
+  if (!message) return false;
+  return message.includes("timeout")
+    || message.includes("timed out")
+    || message.includes("mongo")
+    || message.includes("server selection")
+    || message.includes("topology")
+    || message.includes("econn");
+}
+
+function sleepPremiumRetry(ms) {
+  const wait = Number(ms);
+  if (!Number.isFinite(wait) || wait <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, wait));
+}
+
+async function requirePremiumReportAccessWithRetry(env, userId, reportType, requestBody = {}) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      return await requirePremiumReportAccess(env, userId, reportType, requestBody);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= 2 || !isTransientPremiumAccessError(error)) break;
+      await sleepPremiumRetry(140 * attempt);
+    }
+  }
+
+  return {
+    ok: false,
+    status: 503,
+    code: "ACCESS_CHECK_TEMPORARY_FAILURE",
+    message: "결제/접근 권한 확인이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
+    reportType: String(reportType || "").trim() || null,
+    errorMessage: String(lastError?.message || "").slice(0, 180),
+  };
+}
+
 const PREMIUM_COMPAT_BONUS_MARKER = "궁합 모드 전용 확장 인사이트";
 const PREMIUM_COMPAT_BONUS_BODY = "관계의 승패보다 반복되는 감정 트리거, 대화 리듬, 현실 운영 패턴을 우선 관찰해 두 사람의 합을 높이는 방식으로 해석합니다.";
 
@@ -8136,7 +8175,7 @@ async function handleVedicV3Generate(request, env, authInfo) {
     }
   }
 
-  const access = await requirePremiumReportAccess(env, authInfo.userId, "vedicPremium", {
+  const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "vedicPremium", {
     ...body,
     reportMode: mode,
     mode,
@@ -10464,7 +10503,7 @@ async function handleLoveSecretGenerate(request, env, authInfo) {
   }
 
   if (!entry?.extra?.accessGranted) {
-    const access = await requirePremiumReportAccess(env, authInfo.userId, "loveSecret", {
+    const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "loveSecret", {
       ...body,
       mode,
       reportId,
@@ -11108,7 +11147,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   }
 
   const requestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
-  const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, requestBody);
+  const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, reportType, requestBody);
   if (!access.ok) {
     return json({
       ok: false,
@@ -12502,7 +12541,7 @@ async function handleAstrologyV3Generate(request, env, authInfo) {
     return json(buildAstrologyV3StatusPayload(ASTROLOGY_V3_REPORT_STORE.get(reportId) || existing, false));
   }
 
-  const access = await requirePremiumReportAccess(env, authInfo.userId, "westernAstrologyPremium", { ...body, mode });
+  const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "westernAstrologyPremium", { ...body, mode });
   if (!access.ok) {
     return json({
       ok: false,
@@ -13532,7 +13571,7 @@ async function handleZiweiV3Generate(request, env, authInfo) {
     return json(buildZiweiV3StatusPayload(ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || existing, false));
   }
 
-  const access = await requirePremiumReportAccess(env, authInfo.userId, "ziweiPremium", { ...body, mode });
+  const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "ziweiPremium", { ...body, mode });
   if (!access.ok) {
     return json({
       ok: false,
@@ -13727,7 +13766,7 @@ export async function handlePremiumRoutes(request, env) {
 
     if (legacyReportType) {
       const rawBody = await readJson(request.clone());
-      const access = await requirePremiumReportAccess(env, authInfo.userId, legacyReportType, rawBody);
+      const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, legacyReportType, rawBody);
       if (!access.ok) {
         return json({
           ok: false,

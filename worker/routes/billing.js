@@ -79,6 +79,38 @@ function resolveRequestId(request, body) {
   return `billing:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function shouldRetryCoinConsume(responseStatus, payload) {
+  const status = Number(responseStatus || 0);
+  if (status >= 500) return true;
+  const code = String(toCode(payload) || "").trim().toUpperCase();
+  return code === "SERVICE_UNAVAILABLE" || code === "WORKER_UNHANDLED_EXCEPTION";
+}
+
+function sleep(ms) {
+  const delay = Number(ms);
+  if (!Number.isFinite(delay) || delay <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
+async function consumeCoinWithRetry(request, env, delegatedBody) {
+  const maxAttempts = 2;
+  let delegatedResponse = null;
+  let payload = {};
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/consume", "POST", delegatedBody);
+    delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+    payload = await readPayloadSafe(delegatedResponse);
+
+    if (delegatedResponse.ok) break;
+    if (attempt >= maxAttempts) break;
+    if (!shouldRetryCoinConsume(delegatedResponse.status, payload)) break;
+    await sleep(120);
+  }
+
+  return { delegatedResponse, payload };
+}
+
 function mapCoinGateFailure(responseStatus, payload) {
   const rawCode = String(toCode(payload) || "").trim().toUpperCase();
   const message = toMessage(payload, "코인 결제 처리 중 오류가 발생했습니다.");
@@ -258,9 +290,7 @@ async function handleCoinGate(request, env) {
     delegatedBody.productId = String(body.productId).trim().toLowerCase();
   }
 
-  const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/consume", "POST", delegatedBody);
-  const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
-  const payload = await readPayloadSafe(delegatedResponse);
+  const { delegatedResponse, payload } = await consumeCoinWithRetry(request, env, delegatedBody);
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
