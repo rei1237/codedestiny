@@ -40,7 +40,9 @@
     downloadUrl: '',
     stopPolling: false,
     currentMessage: '',
-    paidGateKey: ''
+    paidGateKey: '',
+    paymentContext: null,
+    refundInFlight: false
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -538,13 +540,15 @@
       applyStatus(res.data);
       if (String(res.data.status) === 'completed') return res.data;
       if (String(res.data.status) === 'failed') {
+        await attemptZiweiAutoRefund('자미두수 프리미엄 PDF 생성 실패 자동 환불');
         throw new Error(String(res.data.errorMessage || res.data.message || '리포트 생성에 실패했습니다.'));
       }
 
       await delay(POLL_INTERVAL_MS);
     }
 
-    throw new Error('생성 시간이 길어지고 있습니다. 잠시 뒤 다시 시도해 주세요.');
+    await attemptZiweiAutoRefund('자미두수 프리미엄 PDF 생성 미완료 자동 환불');
+    throw new Error('생성 시간이 길어지고 있습니다. 코인이 차감된 경우 자동 환불을 시도했습니다. 잠시 뒤 다시 시도해 주세요.');
   }
 
   function resetForGenerate() {
@@ -582,6 +586,47 @@
       reason: ZIWEI_COIN_REASON,
       modeLabel: '개인'
     };
+  }
+
+  function extractCoinGatePayload(data) {
+    if (data && typeof data.data === 'object') return data.data;
+    return data || {};
+  }
+
+  async function attemptZiweiAutoRefund(reason) {
+    if (state.refundInFlight) return false;
+    var ctx = state.paymentContext;
+    if (!ctx || !ctx.featureKey || !Number(ctx.cost)) return false;
+
+    state.refundInFlight = true;
+    try {
+      var refundRes = await requestJson('/api/fortune/pig-coin/refund', {
+        method: 'POST',
+        body: {
+          cost: Number(ctx.cost),
+          featureKey: String(ctx.featureKey),
+          sourceTransactionId: String(ctx.sourceTransactionId || ''),
+          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
+          reason: String(reason || '자미두수 프리미엄 PDF 생성 실패 자동 환불')
+        }
+      });
+
+      var payload = refundRes.data || {};
+      var code = String(payload.code || '').toUpperCase();
+      if (refundRes.ok || code === 'REFUND_ALREADY_PROCESSED') {
+        state.paymentContext = null;
+        state.paidGateKey = '';
+        return true;
+      }
+
+      console.warn('[ZiweiBook] auto refund failed:', payload);
+      return false;
+    } catch (error) {
+      console.warn('[ZiweiBook] auto refund exception:', error);
+      return false;
+    } finally {
+      state.refundInFlight = false;
+    }
   }
 
   async function ensureZiweiCoinGate(body) {
@@ -636,6 +681,16 @@
       return false;
     }
 
+    var payload = extractCoinGatePayload(data);
+    var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
+    state.paymentContext = {
+      featureKey: String(policy.featureKey || ''),
+      cost: Number(policy.cost || 0),
+      requestId: String(requestId || ''),
+      sourceTransactionId: String(consume.transactionId || payload.transactionId || ''),
+      mode: String(policy.modeLabel || '')
+    };
+
     state.paidGateKey = gateKey;
     return true;
   }
@@ -667,11 +722,15 @@
       });
 
       if (!genRes.ok || !genRes.data || !genRes.data.ok) {
+        await attemptZiweiAutoRefund('자미두수 프리미엄 PDF 생성 시작 실패 자동 환불');
         throw new Error(String(genRes.data && genRes.data.message || '리포트 생성 요청에 실패했습니다.'));
       }
 
       state.reportId = String(genRes.data.reportId || '').trim();
-      if (!state.reportId) throw new Error('리포트 식별자를 받지 못했습니다.');
+      if (!state.reportId) {
+        await attemptZiweiAutoRefund('자미두수 프리미엄 PDF reportId 누락 자동 환불');
+        throw new Error('리포트 식별자를 받지 못했습니다.');
+      }
 
       applyStatus(genRes.data);
       var finalStatus = String(genRes.data.status || '').toLowerCase() === 'completed'
@@ -680,6 +739,7 @@
 
       applyStatus(finalStatus);
       setLoadingProgress(TOTAL_CHAPTERS, 'completed');
+      state.paymentContext = null;
       renderResultScreen();
       notify('자미두수 리포트 생성이 완료되었습니다.');
     } catch (error) {

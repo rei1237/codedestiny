@@ -62,6 +62,8 @@
     generating: false,
     reportId: '',
     paidReportId: '',
+    paymentContext: null,
+    refundInFlight: false,
     payload: null,
     chapterTexts: {},
     chapterMeta: {},
@@ -755,6 +757,7 @@
     state.generating = false;
     state.reportId = '';
     state.paidReportId = '';
+    state.paymentContext = null;
     state.payload = null;
     state.chapterTexts = {};
     state.chapterMeta = {};
@@ -1008,6 +1011,7 @@
       state.chapterMeta = {};
       state.activeChapter = 1;
       state.paidReportId = '';
+      state.paymentContext = null;
     }
 
     state.mode = mode;
@@ -1021,6 +1025,7 @@
 
     try {
       await generateAllChapters();
+      state.paymentContext = null;
       renderResultScreen();
       persistState();
       notify(state.mode === MODE_COMPAT
@@ -1028,11 +1033,52 @@
         : '연애 비책 13챕터 생성이 완료되었습니다.');
     } catch (err) {
       console.error('[LoveSecret] generation failed:', err);
+      await attemptLoveSecretAutoRefund('연애 비책 PDF 생성 실패 자동 환불');
       setErrorScreen(asText(err && err.message) || '연애 비책 생성 중 오류가 발생했습니다.');
     } finally {
       state.generating = false;
       setGenerateButtonBusy(false);
       setPartnerButtonsBusy(false);
+    }
+  }
+
+  async function attemptLoveSecretAutoRefund(reason) {
+    if (state.refundInFlight) return false;
+    var ctx = state.paymentContext;
+    if (!ctx || !Number(ctx.cost)) return false;
+
+    state.refundInFlight = true;
+    try {
+      var response = await fetch('/api/fortune/pig-coin/refund', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          cost: Number(ctx.cost),
+          featureKey: String(ctx.featureKey || 'coin-gate-per-use'),
+          sourceTransactionId: String(ctx.sourceTransactionId || ''),
+          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
+          reason: String(reason || '연애 비책 PDF 생성 실패 자동 환불')
+        })
+      });
+
+      var payload = await response.json().catch(function () { return {}; });
+      var code = String(payload && payload.code || '').toUpperCase();
+      if (response.ok || code === 'REFUND_ALREADY_PROCESSED') {
+        state.paymentContext = null;
+        state.paidReportId = '';
+        persistState();
+        return true;
+      }
+
+      console.warn('[LoveSecret] auto refund failed:', payload);
+      return false;
+    } catch (error) {
+      console.warn('[LoveSecret] auto refund exception:', error);
+      return false;
+    } finally {
+      state.refundInFlight = false;
     }
   }
 
@@ -1057,7 +1103,13 @@
       window._cdCoinGatePerUse(
         cost,
         reason,
-        function () {
+        function (transactionId) {
+          state.paymentContext = {
+            featureKey: 'coin-gate-per-use',
+            cost: Number(cost || 0),
+            sourceTransactionId: String(transactionId || ''),
+            requestId: String(('lovesecret:' + reportId + ':' + Date.now()).slice(0, 120))
+          };
           state.paidReportId = reportId;
           persistState();
           startGeneration(mode, partnerPayload);

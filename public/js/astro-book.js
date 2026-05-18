@@ -85,7 +85,9 @@
     downloadUrl: '',
     chapters: [],
     quoteTick: 0,
-    paidGateKey: ''
+    paidGateKey: '',
+    paymentContext: null,
+    refundInFlight: false
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -499,6 +501,47 @@
     };
   }
 
+  function extractCoinGatePayload(data) {
+    if (data && typeof data.data === 'object') return data.data;
+    return data || {};
+  }
+
+  async function attemptAstroAutoRefund(reason) {
+    if (state.refundInFlight) return false;
+    var ctx = state.paymentContext;
+    if (!ctx || !ctx.featureKey || !Number(ctx.cost)) return false;
+
+    state.refundInFlight = true;
+    try {
+      var refundRes = await requestJson('/api/fortune/pig-coin/refund', {
+        method: 'POST',
+        body: {
+          cost: Number(ctx.cost),
+          featureKey: String(ctx.featureKey),
+          sourceTransactionId: String(ctx.sourceTransactionId || ''),
+          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
+          reason: String(reason || '점성술 프리미엄 PDF 생성 실패 자동 환불')
+        }
+      });
+
+      var payload = refundRes.data || {};
+      var code = String(payload.code || '').toUpperCase();
+      if (refundRes.ok || code === 'REFUND_ALREADY_PROCESSED') {
+        state.paymentContext = null;
+        state.paidGateKey = '';
+        return true;
+      }
+
+      console.warn('[AstroBook] auto refund failed:', payload);
+      return false;
+    } catch (error) {
+      console.warn('[AstroBook] auto refund exception:', error);
+      return false;
+    } finally {
+      state.refundInFlight = false;
+    }
+  }
+
   async function ensureAstroCoinGate(body) {
     var gateKey = buildAstroGateKey(body);
     if (state.paidGateKey && state.paidGateKey === gateKey) return true;
@@ -551,8 +594,17 @@
       return false;
     }
 
+    var payload = extractCoinGatePayload(data);
+    var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
+    state.paymentContext = {
+      featureKey: String(policy.featureKey || ''),
+      cost: Number(policy.cost || 0),
+      requestId: String(requestId || ''),
+      sourceTransactionId: String(consume.transactionId || payload.transactionId || ''),
+      mode: String(policy.modeLabel || '')
+    };
+
     try {
-      var payload = (data && data.data && typeof data.data === 'object') ? data.data : data;
       var user = payload.user || (payload.consume && payload.consume.user) || null;
       if (user && typeof user.points === 'number' && typeof window.__cdSetGoldenBalance === 'function') {
         window.__cdSetGoldenBalance(user.points);
@@ -653,11 +705,13 @@
 
       if (String(data.status) === 'completed') {
         state.chapters = Array.isArray(data.chapters) ? data.chapters : [];
+        state.paymentContext = null;
         renderResultScreen();
         return true;
       }
 
       if (String(data.status) === 'failed') {
+        await attemptAstroAutoRefund('점성술 프리미엄 PDF 생성 실패 자동 환불');
         setError(String(data.errorMessage || data.message || '리포트 생성에 실패했습니다.'));
         return false;
       }
@@ -665,7 +719,8 @@
       await delay(POLL_INTERVAL_MS);
     }
 
-    setError('생성 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.');
+    await attemptAstroAutoRefund('점성술 프리미엄 PDF 생성 미완료 자동 환불');
+    setError('생성 시간이 길어지고 있습니다. 코인이 차감된 경우 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
   }
 
@@ -751,6 +806,7 @@
     });
 
     if (!res.ok || !res.data || !res.data.ok) {
+      await attemptAstroAutoRefund('점성술 프리미엄 PDF 생성 시작 실패 자동 환불');
       state.generating = false;
       setError(String(res.data && res.data.message || '점성술 리포트 생성 시작에 실패했습니다.'));
       return;
@@ -761,6 +817,7 @@
     state.downloadUrl = String(res.data.downloadUrl || '');
 
     if (!state.reportId) {
+      await attemptAstroAutoRefund('점성술 프리미엄 PDF reportId 누락 자동 환불');
       state.generating = false;
       setError('reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
       return;

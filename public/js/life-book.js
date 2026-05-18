@@ -37,6 +37,8 @@
     generating: false,
     reportId: '',
     paidReportId: '',
+    paymentContext: null,
+    refundInFlight: false,
     payload: null,
     chapterTexts: {},
     chapterMeta: {},
@@ -686,15 +688,57 @@
 
     try {
       await generateAllChapters();
+      state.paymentContext = null;
       renderResultScreen();
       persistState();
       notify('인생의 책 13챕터 생성이 완료되었습니다.');
     } catch (err) {
       console.error('[LifeBook] generation failed:', err);
+      await attemptLifeBookAutoRefund('인생의 책 PDF 생성 실패 자동 환불');
       setErrorScreen(String(err && err.message || '인생의 책 생성 중 오류가 발생했습니다.'));
     } finally {
       state.generating = false;
       setGenerateButtonBusy(false);
+    }
+  }
+
+  async function attemptLifeBookAutoRefund(reason) {
+    if (state.refundInFlight) return false;
+    var ctx = state.paymentContext;
+    if (!ctx || !Number(ctx.cost)) return false;
+
+    state.refundInFlight = true;
+    try {
+      var response = await fetch('/api/fortune/pig-coin/refund', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          cost: Number(ctx.cost),
+          featureKey: String(ctx.featureKey || 'coin-gate-per-use'),
+          sourceTransactionId: String(ctx.sourceTransactionId || ''),
+          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
+          reason: String(reason || '인생의 책 PDF 생성 실패 자동 환불')
+        })
+      });
+
+      var payload = await response.json().catch(function () { return {}; });
+      var code = String(payload && payload.code || '').toUpperCase();
+      if (response.ok || code === 'REFUND_ALREADY_PROCESSED') {
+        state.paymentContext = null;
+        state.paidReportId = '';
+        persistState();
+        return true;
+      }
+
+      console.warn('[LifeBook] auto refund failed:', payload);
+      return false;
+    } catch (error) {
+      console.warn('[LifeBook] auto refund exception:', error);
+      return false;
+    } finally {
+      state.refundInFlight = false;
     }
   }
 
@@ -727,7 +771,13 @@
       window._cdCoinGatePerUse(
         COST_COINS,
         COIN_REASON,
-        function () {
+        function (transactionId) {
+          state.paymentContext = {
+            featureKey: 'coin-gate-per-use',
+            cost: Number(COST_COINS || 0),
+            sourceTransactionId: String(transactionId || ''),
+            requestId: String(('lifebook:' + (state.reportId || Date.now())).slice(0, 120))
+          };
           state.paidReportId = state.reportId;
           persistState();
           startLifeBookGeneration();

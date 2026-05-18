@@ -41,7 +41,9 @@
     chapterMeta: {},
     fakeProgressTimer: null,
     fakeProgress: 0,
-    paidGateKey: ''
+    paidGateKey: '',
+    paymentContext: null,
+    refundInFlight: false
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -530,6 +532,47 @@
     };
   }
 
+  function extractCoinGatePayload(data) {
+    if (data && typeof data.data === 'object') return data.data;
+    return data || {};
+  }
+
+  async function attemptSukuyoAutoRefund(reason) {
+    if (state.refundInFlight) return false;
+    var ctx = state.paymentContext;
+    if (!ctx || !ctx.featureKey || !Number(ctx.cost)) return false;
+
+    state.refundInFlight = true;
+    try {
+      var refundRes = await requestJson('/api/fortune/pig-coin/refund', {
+        method: 'POST',
+        body: {
+          cost: Number(ctx.cost),
+          featureKey: String(ctx.featureKey),
+          sourceTransactionId: String(ctx.sourceTransactionId || ''),
+          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
+          reason: String(reason || '숙요 프리미엄 PDF 생성 실패 자동 환불')
+        }
+      });
+
+      var payload = refundRes.data || {};
+      var code = String(payload.code || '').toUpperCase();
+      if (refundRes.ok || code === 'REFUND_ALREADY_PROCESSED') {
+        state.paymentContext = null;
+        state.paidGateKey = '';
+        return true;
+      }
+
+      console.warn('[SukuyoBook] auto refund failed:', payload);
+      return false;
+    } catch (error) {
+      console.warn('[SukuyoBook] auto refund exception:', error);
+      return false;
+    } finally {
+      state.refundInFlight = false;
+    }
+  }
+
   async function ensureSukuyoCoinGate(body) {
     var gateKey = buildSukuyoGateKey(body);
     if (state.paidGateKey && state.paidGateKey === gateKey) return true;
@@ -582,6 +625,16 @@
       return false;
     }
 
+    var payload = extractCoinGatePayload(data);
+    var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
+    state.paymentContext = {
+      featureKey: String(policy.featureKey || ''),
+      cost: Number(policy.cost || 0),
+      requestId: String(requestId || ''),
+      sourceTransactionId: String(consume.transactionId || payload.transactionId || ''),
+      mode: String(policy.modeLabel || '')
+    };
+
     state.paidGateKey = gateKey;
     return true;
   }
@@ -623,6 +676,7 @@
       });
 
       if (!genRes.ok || !genRes.data || !genRes.data.ok) {
+        await attemptSukuyoAutoRefund('숙요 프리미엄 PDF 생성 실패 자동 환불');
         throw new Error(String(genRes.data && genRes.data.message || '리포트 생성에 실패했습니다.'));
       }
 
@@ -634,10 +688,12 @@
 
       state.fakeProgress = 100;
   setLoadingProgress(TOTAL_CHAPTERS, 'completed');
+      state.paymentContext = null;
       renderResultScreen();
       notify('숙요 리포트 생성이 완료되었습니다.');
     } catch (error) {
       console.error('[SukuyoBook] generate failed:', error);
+      await attemptSukuyoAutoRefund('숙요 프리미엄 PDF 생성 미완료 자동 환불');
       setError(String(error && error.message || '생성 중 오류가 발생했습니다.'));
     } finally {
       stopFakeProgress();
