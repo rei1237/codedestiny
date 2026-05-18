@@ -409,6 +409,35 @@ function stopAmbience(){
 function vib(seq){if(navigator.vibrate)navigator.vibrate(seq);} 
 function wait(ms){return new Promise((r)=>setTimeout(r,ms));}
 
+function setIfaPaymentPending(show,message){
+  var text=String(message||'').trim()||'IFÀ 오라클 결제를 확인하는 중입니다...';
+  try{
+    if(typeof window._cdSetCoinGateOverlay==='function'){
+      window._cdSetCoinGateOverlay(!!show,text);
+      return;
+    }
+  }catch(_e){}
+
+  var overlay=document.getElementById('ifaPaymentOverlay');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='ifaPaymentOverlay';
+    overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(6,10,20,.72), rgba(2,6,14,.9));backdrop-filter:blur(6px);padding:16px;';
+    overlay.innerHTML='<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(217,119,6,.34);background:linear-gradient(135deg, rgba(22,14,8,.95), rgba(8,16,30,.95));box-shadow:0 16px 44px rgba(0,0,0,.45);padding:18px;text-align:center;color:#fef3c7;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(251,191,36,.28);border-top-color:rgba(251,191,36,.95);animation:ifaPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">오두 결제 의식 진행 중</p><p id="ifaPaymentOverlayMsg" style="margin:0;font-size:13px;color:rgba(254,240,138,.96);">IFÀ 오라클 결제를 확인하는 중입니다...</p></div>';
+    document.body.appendChild(overlay);
+    if(!document.getElementById('ifaPaymentOverlayStyle')){
+      var st=document.createElement('style');
+      st.id='ifaPaymentOverlayStyle';
+      st.textContent='@keyframes ifaPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+  }
+
+  var msg=document.getElementById('ifaPaymentOverlayMsg');
+  if(msg)msg.textContent=text;
+  overlay.style.display=show?'flex':'none';
+}
+
 function setPhase(text){el("phase").textContent=text;}
 
 function ensureIfaCoinGate(){
@@ -436,22 +465,44 @@ function ensureIfaCoinGate(){
     if (!confirm('🪙 IFÀ 오라클 리딩\n\n이용할 때마다 ' + IFA_COIN_COST + '코인이 차감됩니다.\n현재 보유: ' + bal.toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
       resolve(false); return;
     }
-    fetch('/api/fortune/pig-coin/consume', {
+    var requestId = 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    setIfaPaymentPending(true,'IFÀ 오라클 리딩 결제를 확인하는 중입니다...');
+    fetch('/api/billing/coin-gate', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk},
-      body: JSON.stringify({cost: IFA_COIN_COST, reason: 'IFÀ 오라클 리딩'})
+      body: JSON.stringify({
+        categoryKey: 'oracle',
+        subFeatureKey: 'ifa-oracle',
+        featureKey: 'ifa-oracle',
+        reason: 'IFÀ 오라클 리딩',
+        forceDeduct: true,
+        requestId: requestId
+      })
     })
     .then(function(r){ return r.json().then(function(d){ return {ok: r.ok, data: d}; }); })
     .then(function(res){
       if (res.ok) {
-        try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u2.points = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, bal - IFA_COIN_COST); localStorage.setItem('fortune_auth_user', JSON.stringify(_u2)); } catch(_) {}
+        try {
+          var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+          var _coinData = (res.data && res.data.data) || {};
+          var _coinUser = _coinData.user || (_coinData.consume && _coinData.consume.user) || null;
+          _u2.points = (_coinUser && typeof _coinUser.points === 'number')
+            ? _coinUser.points
+            : Math.max(0, bal - IFA_COIN_COST);
+          localStorage.setItem('fortune_auth_user', JSON.stringify(_u2));
+        } catch(_) {}
         resolve(true);
       } else {
-        alert((res.data && res.data.message) || '코인 차감에 실패했습니다.');
+        var _msg =
+          (res.data && res.data.error && res.data.error.message) ||
+          (res.data && res.data.message) ||
+          '코인 차감에 실패했습니다.';
+        alert(_msg);
         resolve(false);
       }
     })
-    .catch(function(){ alert('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); resolve(false); });
+    .catch(function(){ alert('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); resolve(false); })
+    .finally(function(){ setIfaPaymentPending(false); });
   });
 }
 
