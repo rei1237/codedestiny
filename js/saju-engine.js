@@ -3504,7 +3504,7 @@ async function calculate(){
       var _rp = document.getElementById('resultPage');
       ['lottoCard','quantumCard','healthReportCard','skillTreeCard',
        'tTestCard','hormone-vibe-section','energyCoordCard',
-       'villainCard','sajuFourCutCard','aiPromptCard'].forEach(function(id) {
+      'villainCard','sajuFourCutCard','aiPromptCard','sajuQuestionPromptGeneratorCard'].forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
         if ((_rc && _rc.contains(el)) || (_rz && _rz.contains(el))) {
@@ -3951,21 +3951,22 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 
   box.innerHTML = ''
     + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px">'
-    + '  <span class="prem-title" style="color:#7c2d12;font-size:0.95rem;letter-spacing:0.2px;">🧧 사주 명식 맞춤 AI 상담 프롬프트</span>'
-    + '  <span style="font-size:0.7rem;color:#9a3412;border:1px solid rgba(180,83,9,0.28);background:rgba(251,191,36,0.14);padding:3px 8px;border-radius:999px;">사주 원국 + 용신 흐름 반영</span>'
+    + '  <span class="prem-title" style="color:#7c2d12;font-size:0.95rem;letter-spacing:0.2px;">사주 질문 프롬프트 만들기</span>'
+    + '  <span style="font-size:0.7rem;color:#9a3412;border:1px solid rgba(180,83,9,0.28);background:rgba(251,191,36,0.14);padding:3px 8px;border-radius:999px;">결과 기반 고품질 질문</span>'
     + '</div>'
     + '<p style="font-size:0.8rem;color:#7c2d12;margin-bottom:8px;line-height:1.62;">'
-    + '질문을 입력하면 현재 사주 분석 결과(JSON)를 근거로 상담형 프롬프트를 생성합니다. 생성 성공 시에만 1회 100코인이 차감됩니다.'
+    + '궁금한 내용을 짧게 적어주시면, 현재 사주 분석 결과를 바탕으로 AI에게 더 깊게 물어볼 수 있는 질문 프롬프트로 정리해드립니다.'
     + '</p>'
-    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예) 올해 이직을 준비해도 괜찮을까요? 강점과 리스크를 알려주세요." style="width:100%;min-height:106px;border:1px solid rgba(194,120,3,0.42);border-radius:12px;padding:11px;font-size:0.84rem;line-height:1.65;color:#3f2a13;background:rgba(255,255,255,0.86);backdrop-filter:blur(1.8px);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(146,64,14,0.08);"></textarea>'
+    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예: 올해 돈을 벌 수 있을까요? / 그 사람과 다시 이어질 수 있을까요?" style="width:100%;min-height:106px;border:1px solid rgba(194,120,3,0.42);border-radius:12px;padding:11px;font-size:0.84rem;line-height:1.65;color:#3f2a13;background:rgba(255,255,255,0.86);backdrop-filter:blur(1.8px);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(146,64,14,0.08);"></textarea>'
     + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap;">'
     + '  <span id="sajuAiPromptQuestionCount" style="font-size:0.73rem;color:#9a3412;">0 / 1000</span>'
     + '  <span style="font-size:0.73rem;color:#9a3412;">생성 비용: <b>100코인</b></span>'
     + '</div>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">'
-    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#b45309,#f59e0b 58%,#fbbf24);color:#fff;border:1px solid rgba(180,83,9,0.5);border-radius:10px;padding:10px 13px;font-size:0.79rem;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(180,83,9,0.28);">100코인으로 프롬프트 생성</button>'
-    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:1px solid rgba(37,99,235,0.52);border-radius:10px;padding:10px 12px;font-size:0.79rem;font-weight:700;cursor:pointer;">생성 프롬프트 복사</button>'
+    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#b45309,#f59e0b 58%,#fbbf24);color:#fff;border:1px solid rgba(180,83,9,0.5);border-radius:10px;padding:10px 13px;font-size:0.79rem;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(180,83,9,0.28);">질문 프롬프트 만들기 (100코인)</button>'
+    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:1px solid rgba(37,99,235,0.52);border-radius:10px;padding:10px 12px;font-size:0.79rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
     + '</div>'
+    + '<div style="margin-top:10px;font-size:0.78rem;color:#7c2d12;">아래 내용을 AI에게 그대로 붙여넣어 질문해보세요.</div>'
     + '<textarea id="sajuAiPromptOutput" readonly style="display:none;margin-top:10px;width:100%;min-height:200px;border:1px solid rgba(59,130,246,0.38);border-radius:12px;padding:11px;font-size:0.83rem;line-height:1.65;color:#111827;background:linear-gradient(180deg,#f8fbff,#eef5ff);resize:vertical;box-sizing:border-box;"></textarea>'
     + '<div id="sajuAiPromptStatus" style="margin-top:8px;font-size:0.78rem;color:#7c2d12;"></div>';
 
@@ -3989,7 +3990,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
     generateBtn.style.opacity = inFlight ? '0.72' : '1';
     generateBtn.textContent = inFlight
       ? '프롬프트 생성 중...'
-      : (SAJU_AI_PROMPT_COST + '코인으로 프롬프트 생성');
+      : ('질문 프롬프트 만들기 (' + SAJU_AI_PROMPT_COST + '코인)');
   }
 
   function updateCount() {
@@ -4006,13 +4007,17 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
   }
 
   function requestSajuPrompt(body) {
-    var path = '/api/fortune/saju/ai-prompt';
-    var urls = [path];
+    var primaryPath = '/api/fortune/saju/question-prompt';
+    var legacyPath = '/api/fortune/saju/ai-prompt';
+    var urls = [primaryPath, legacyPath];
     try {
       var base = getFortuneApiBaseUrl();
       if (base) {
-        var full = String(base).replace(/\/+$/, '') + path;
-        if (urls.indexOf(full) < 0) urls.push(full);
+        var baseNormalized = String(base).replace(/\/+$/, '');
+        var fullPrimary = baseNormalized + primaryPath;
+        var fullLegacy = baseNormalized + legacyPath;
+        if (urls.indexOf(fullPrimary) < 0) urls.push(fullPrimary);
+        if (urls.indexOf(fullLegacy) < 0) urls.push(fullLegacy);
       }
     } catch (_) {}
 
@@ -4056,7 +4061,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
     }
 
     setLoading(true);
-    _setSajuAIPromptStatus(statusEl, '질문에 맞는 프롬프트를 생성하고 있습니다...', 'info');
+    _setSajuAIPromptStatus(statusEl, '질문 프롬프트를 생성하고 있습니다...', 'info');
 
     requestSajuPrompt({
       question: question,
@@ -4082,7 +4087,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       }
 
       var code = String(payload.code || '').trim();
-      var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+      var message = String(payload.message || '').trim() || '생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 
       if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
         _setSajuAIPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
@@ -4109,7 +4114,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 
       _setSajuAIPromptStatus(statusEl, message, 'error');
     }).catch(function() {
-      _setSajuAIPromptStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+      _setSajuAIPromptStatus(statusEl, '생성에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'error');
     }).finally(function() {
       setLoading(false);
     });
@@ -4331,25 +4336,43 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
         if(existing) existing.remove();
         var existingAi = document.getElementById('aiPromptCard');
         if(existingAi) existingAi.remove();
+        var existingQuestion = document.getElementById('sajuQuestionPromptGeneratorCard');
+        if (existingQuestion) existingQuestion.remove();
         
         if (targetCard) {
           targetCard.insertAdjacentHTML('afterend', html);
         }
         
-        var aiMount = document.getElementById('aiPromptMount');
-        if (aiMount) {
-          aiMount.innerHTML = aiPromptHtml;
-        } else if (letterBox) {
-          letterBox.insertAdjacentHTML('beforebegin', aiPromptHtml);
-        } else if (targetCard) {
-          var scCard = document.getElementById('specialCharmCard');
-          if (scCard) scCard.insertAdjacentHTML('afterend', aiPromptHtml);
-          else targetCard.insertAdjacentHTML('afterend', aiPromptHtml);
+        // 이미지/아바타 물상화 프롬프트 카드 3개는 sajuAiImagePromptMount 에 주입
+        var imgMount = document.getElementById('sajuAiImagePromptMount');
+        if (imgMount) {
+          imgMount.innerHTML = aiPromptHtml;
+        } else {
+          var aiMount = document.getElementById('aiPromptMount');
+          if (aiMount) {
+            aiMount.innerHTML = aiPromptHtml;
+          } else if (letterBox) {
+            letterBox.insertAdjacentHTML('beforebegin', aiPromptHtml);
+          }
         }
 
-        var aiCardNode = document.getElementById('aiPromptCard');
-        if (aiCardNode) {
-          _mountSajuAIPromptQuestionBox(aiCardNode);
+        // 질문 프롬프트 생성은 기존 프롬프트를 대체하지 않는 별도 카드로, 연이의 편지 바로 위에 고정 주입
+        var questionHostHtml = '<div id="sajuQuestionPromptGeneratorCard" style="margin-top:12px;margin-bottom:12px;"></div>';
+        var qMount = document.getElementById('sajuAiPromptQuestionMount');
+        if (qMount) {
+          qMount.innerHTML = questionHostHtml;
+        } else if (letterBox) {
+          letterBox.insertAdjacentHTML('beforebegin', questionHostHtml);
+        } else {
+          var anchorCard = document.getElementById('aiPromptCard') || document.getElementById('specialCharmCard');
+          if (anchorCard) {
+            anchorCard.insertAdjacentHTML('afterend', questionHostHtml);
+          }
+        }
+
+        var questionHost = document.getElementById('sajuQuestionPromptGeneratorCard');
+        if (questionHost) {
+          _mountSajuAIPromptQuestionBox(questionHost);
         }
       } catch (e) {
         console.error('[renderSpecialCharm] UI 렌더링 실패:', e);

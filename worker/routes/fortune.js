@@ -2503,7 +2503,7 @@ export async function handleFortuneRoutes(request, env) {
       return await handleSukuyoAIPrompt(request, auth, env);
     }
 
-    if (method === "POST" && path === "/saju/ai-prompt") {
+    if (method === "POST" && (path === "/saju/ai-prompt" || path === "/saju/question-prompt")) {
       const auth = await getOptionalUserFromRequest(request, env);
       if (!auth) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
