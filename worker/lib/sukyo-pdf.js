@@ -1,57 +1,48 @@
 const UNKNOWN = "unknown";
 
-const SUKYO_PDF_CHAPTERS = [
-  {
-    key: "identity",
-    title: "Ch.1 본명숙 원형 해독 - 나의 27숙 정체성",
-    goal: "본명숙, 27숙 그룹, 기본 숙요점 결과를 바탕으로 타고난 정체성, 기질, 무의식적 반응 방식을 해석한다.",
-  },
-  {
-    key: "emotion",
-    title: "Ch.2 달의 주기와 정서 리듬 - 월상/삭망각/조도 분석",
-    goal: "월상, 삭망각, 조도, 달의 차오름/기움 상태를 바탕으로 정서 리듬과 회복법을 해석한다.",
-  },
-  {
-    key: "persona",
-    title: "Ch.3 페르소나와 첫인상 - 세상이 나를 기억하는 방식",
-    goal: "본명숙과 달의 리듬을 바탕으로 외부 인상과 사회적 가면을 해석한다.",
-  },
-  {
-    key: "wealth",
-    title: "Ch.4 자산 감각과 생활 기반 - 돈을 대하는 숙요적 태도",
-    goal: "본명숙 기질과 생활 리듬으로 돈을 모으고 쓰는 태도를 해석한다.",
-  },
-  {
-    key: "work",
-    title: "Ch.5 협업과 조직 적응 - 보이지 않는 톱니바퀴",
-    goal: "사회적 반응과 역할 감각을 기반으로 협업/조직 적응력을 해석한다.",
-  },
-  {
-    key: "relationship",
-    title: "Ch.6 관계 감지력 - 인간관계 레이더와 거리 조절",
-    goal: "관계 감지력과 경계 설정을 해석하고, 데이터가 있으면 업태/안괴/영친 등을 반영한다.",
-  },
-  {
-    key: "crisis",
-    title: "Ch.7 위기와 전환 - 무너질 때 다시 살아나는 방식",
-    goal: "본명숙 그림자와 달의 회복 리듬으로 위기 반응과 재기 전략을 해석한다.",
-  },
-  {
-    key: "family",
-    title: "Ch.8 가족과 뿌리 - 정서적 기반과 소속감",
-    goal: "정서적 안정감과 소속 욕구를 숙요 관점으로 해석한다.",
-  },
-  {
-    key: "desire",
-    title: "Ch.9 욕망과 추진력 - 내가 움직이는 진짜 이유",
-    goal: "인정 욕구/성취 욕구/행동 동기를 해석한다.",
-  },
-  {
-    key: "spirituality",
-    title: "Ch.10 내면 회복과 영성 - 혼자 있을 때 살아나는 힘",
-    goal: "달의 리듬과 내면성으로 회복 루틴과 영적 감수성을 해석한다.",
-  },
+const SUKYO_PDF_PERSONAL_CHAPTERS = [
+  { key: "P1", title: "Ch.1 영혼의 원형", goal: "본명숙과 27숙 데이터를 바탕으로 타고난 정체성과 반응 패턴을 해석한다." },
+  { key: "P2", title: "Ch.2 감정의 조수간만", goal: "월상/삭망각/조도로 감정의 상승-하강 리듬과 회복 패턴을 해석한다." },
+  { key: "P3", title: "Ch.3 페르소나와 브랜딩", goal: "외부 인상, 평판, 사회적 가면의 작동 방식을 데이터 근거로 해석한다." },
+  { key: "P4", title: "Ch.4 자산의 중력", goal: "재정 습관, 누수 패턴, 축적 전략을 숙요 성향과 연결해 해석한다." },
+  { key: "P5", title: "Ch.5 보이지 않는 톱니바퀴", goal: "협업 역할, 충돌 지점, 조직 적응 전략을 해석한다." },
+  { key: "P6", title: "Ch.6 관계의 정밀 레이더", goal: "관계 감지력과 거리 조절 규칙을 숙요 관계축 기준으로 해석한다." },
+  { key: "P7", title: "Ch.7 파괴적 혁신", goal: "위기 트리거와 반등 구간을 단계형 전환 전략으로 해석한다." },
+  { key: "P8", title: "Ch.8 조화로운 성장", goal: "환경·생활 리듬·습관을 조정하는 성장 설계를 해석한다." },
+  { key: "P9", title: "Ch.9 정서적 유대", goal: "친밀감 형성, 오해 누적, 회복 대화 패턴을 해석한다." },
+  { key: "P10", title: "Ch.10 운명적 거리", goal: "가까워야 할 관계/멀어져야 할 관계의 기준을 제시한다." },
+  { key: "P11", title: "Ch.11 달의 주기", goal: "초승-상현-보름-하현-그믐 5단계 행동 우선순위를 해석한다." },
+  { key: "P12", title: "Ch.12 영혼의 마스터플랜", goal: "1년/3년/10년 로드맵과 90일 실행계획을 제시한다." },
 ];
+
+const SUKYO_PDF_COMPAT_CHAPTERS = [
+  { key: "C1", title: "Ch.1 두 사람의 원형 좌표", goal: "두 사람의 본명숙 좌표와 기본 성향 차이를 해석한다." },
+  { key: "C2", title: "Ch.2 관계 거리와 역할", goal: "forward/reverse distance와 역할(A/B)을 근거로 관계 구조를 해석한다." },
+  { key: "C3", title: "Ch.3 첫 끌림과 정서 파동", goal: "감정적 끌림, 정서 화학, 친밀감 형성 속도를 해석한다." },
+  { key: "C4", title: "Ch.4 갈등 트리거와 그림자", goal: "반복 충돌 패턴과 각자의 그림자 버튼을 해석한다." },
+  { key: "C5", title: "Ch.5 신뢰와 안정성", goal: "장기 관계에서 안정감을 만드는 조건을 해석한다." },
+  { key: "C6", title: "Ch.6 친밀감과 사랑 언어", goal: "애정 표현 방식과 거리 조절 리듬을 해석한다." },
+  { key: "C7", title: "Ch.7 대화 구조와 오해 해소", goal: "소통 오해 패턴과 회복 대화 프레임을 제시한다." },
+  { key: "C8", title: "Ch.8 협업·재정·생활 궁합", goal: "일/돈/생활 루틴의 현실 운영 궁합을 해석한다." },
+  { key: "C9", title: "Ch.9 위기 대응과 회복", goal: "갈등 후 복구 속도와 재결합 조건을 해석한다." },
+  { key: "C10", title: "Ch.10 관계 유형 심층 리딩", goal: "relationType 특성을 심층 해석하고 주의점을 제시한다." },
+  { key: "C11", title: "Ch.11 30일 관계 실행 플랜", goal: "관계 유형/거리별 30일 실행 계획을 제시한다." },
+  { key: "C12", title: "Ch.12 최종 궁합 총평", goal: "강점/리스크/핵심 원칙을 통합해 최종 결론을 제시한다." },
+];
+
+const SUKYO_PDF_CHAPTERS = SUKYO_PDF_PERSONAL_CHAPTERS;
+
+function normalizeSukyoMode(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "compatibility" || raw === "compat" || raw === "couple") return "compatibility";
+  return "personal";
+}
+
+function getSukyoPdfChapterPlan(mode = "personal") {
+  return normalizeSukyoMode(mode) === "compatibility"
+    ? SUKYO_PDF_COMPAT_CHAPTERS
+    : SUKYO_PDF_PERSONAL_CHAPTERS;
+}
 
 const SUKYO_GENERAL_MEANINGS = {
   system:
@@ -636,7 +627,10 @@ function renderSukyoChapterMarkdown(chapterJson, chapterFallbackMeta = null) {
 }
 
 export {
+  SUKYO_PDF_PERSONAL_CHAPTERS,
+  SUKYO_PDF_COMPAT_CHAPTERS,
   SUKYO_PDF_CHAPTERS,
+  getSukyoPdfChapterPlan,
   SUKYO_GENERAL_MEANINGS,
   SUKYO_27_STARS_GENERAL,
   SUKYO_MOON_PHASE_MEANINGS,

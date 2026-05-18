@@ -7,9 +7,6 @@ var SW_PURGED_VERSION_KEY = 'app_sw_purged_version';
 var SW_RETIRE_ONCE_KEY = 'app_sw_retire_once';
 var VERSION_GUARD_BANNER_ID = 'cd-version-update-banner';
 var VERSION_CHECK_INTERVAL_MS = 15000;
-var CD_PDF_GUARD_COUNT_KEY = '__CD_PDF_EXPORT_ACTIVE_COUNT__';
-var CD_PDF_GUARD_FLAG_KEY = '__CD_PDF_EXPORT_IN_PROGRESS__';
-var CD_PDF_FETCH_GUARD_INSTALLED_KEY = '__CD_PDF_FETCH_GUARD_INSTALLED__';
 var SW_CACHE_PREFIXES = [
   'kkul-mansaeryeok-',
   'workbox',
@@ -18,95 +15,6 @@ var SW_CACHE_PREFIXES = [
   'tadagochi',
   'legacy'
 ];
-
-function _isPdfRelatedRequestUrl(url) {
-  var value = String(url || '').toLowerCase();
-  if (!value) return false;
-  return (
-    value.indexOf('/api/premium-report/') >= 0
-    || value.indexOf('/api/premium/') >= 0
-    || value.indexOf('/api/love-secret') >= 0
-    || value.indexOf('/api/saju/lifebook') >= 0
-  );
-}
-
-function _extractRequestUrl(input) {
-  try {
-    if (typeof input === 'string') return input;
-    if (input && typeof input.url === 'string') return input.url;
-  } catch (_) {}
-  return '';
-}
-
-function _applyPdfGuardState(nextCount) {
-  var count = Math.max(0, Number(nextCount) || 0);
-  try {
-    window[CD_PDF_GUARD_COUNT_KEY] = count;
-    window[CD_PDF_GUARD_FLAG_KEY] = count > 0;
-  } catch (_) {}
-
-  try {
-    if (document && document.body && document.body.dataset) {
-      if (count > 0) {
-        document.body.dataset.cdVersionGuardBusy = '1';
-      } else if (!window.__CD_PAYMENT_PROCESSING__ && !window.__CD_VERSION_GUARD_BLOCK__) {
-        delete document.body.dataset.cdVersionGuardBusy;
-      }
-    }
-  } catch (_) {}
-
-  try {
-    window.dispatchEvent(new CustomEvent('cd:critical-operation-state', {
-      detail: {
-        isPdfExportInProgress: count > 0
-      }
-    }));
-  } catch (_) {}
-}
-
-function beginPdfExportGuardLegacy() {
-  var current = 0;
-  try { current = Number(window[CD_PDF_GUARD_COUNT_KEY] || 0); } catch (_) { current = 0; }
-  _applyPdfGuardState(current + 1);
-
-  var released = false;
-  return function releasePdfExportGuardLegacy() {
-    if (released) return;
-    released = true;
-    var next = 0;
-    try { next = Number(window[CD_PDF_GUARD_COUNT_KEY] || 0) - 1; } catch (_) { next = -1; }
-    _applyPdfGuardState(next);
-  };
-}
-
-function installPdfFetchGuardLegacy() {
-  if (typeof window === 'undefined' || typeof window.fetch !== 'function') return;
-  try {
-    if (window[CD_PDF_FETCH_GUARD_INSTALLED_KEY]) return;
-    window[CD_PDF_FETCH_GUARD_INSTALLED_KEY] = true;
-  } catch (_) {
-    return;
-  }
-
-  var originalFetch = window.fetch.bind(window);
-  window.fetch = function(input, init) {
-    var url = _extractRequestUrl(input);
-    if (!_isPdfRelatedRequestUrl(url)) {
-      return originalFetch(input, init);
-    }
-
-    var release = beginPdfExportGuardLegacy();
-    return originalFetch(input, init).finally(function() {
-      release();
-    });
-  };
-
-  try {
-    window.__cdPdfExportGuardBegin = beginPdfExportGuardLegacy;
-  } catch (_) {}
-}
-
-installPdfFetchGuardLegacy();
 
 function pickRuntimeVersion(payload) {
   if (!payload || typeof payload !== 'object') return APP_VERSION;
@@ -156,7 +64,6 @@ function nukeAllCachesLegacy() {
 function isCriticalOperationInProgress() {
   try {
     if (window.__CD_PAYMENT_PROCESSING__) return '결제 처리 중';
-    if (window.__CD_PDF_EXPORT_IN_PROGRESS__) return 'PDF 생성/다운로드 중';
     if (window.__CD_VERSION_GUARD_BLOCK__) return '중요 입력 작업 진행 중';
     if (document && document.body && document.body.dataset && document.body.dataset.cdVersionGuardBusy === '1') {
       return '핵심 작업 진행 중';

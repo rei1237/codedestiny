@@ -34,6 +34,75 @@ function __cdCleanLegacyAdminLocalStorage() {
 
 __cdCleanLegacyAdminLocalStorage();
 
+var __cdPerfBootTs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+  ? performance.now()
+  : Date.now();
+
+function __cdIsDevPerfEnabled() {
+  try {
+    if (window.__cdPerfDebug === 1) return true;
+    var host = String((window.location && window.location.hostname) || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') return true;
+    var q = new URLSearchParams((window.location && window.location.search) || '');
+    return q.get('cdPerfDebug') === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+var __cdPerfDebug = __cdIsDevPerfEnabled();
+
+function __cdPerfNow() {
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+    return performance.now();
+  }
+  return Date.now();
+}
+
+function __cdPerfInfo() {
+  if (!__cdPerfDebug) return;
+  try {
+    console.info.apply(console, arguments);
+  } catch (_) {}
+}
+
+function __cdIsCoarsePointerDevice() {
+  try {
+    var mm = typeof window.matchMedia === 'function';
+    var coarse = mm && (
+      window.matchMedia('(pointer:coarse)').matches ||
+      window.matchMedia('(any-pointer:coarse)').matches
+    );
+    var points = (navigator && typeof navigator.maxTouchPoints === 'number')
+      ? navigator.maxTouchPoints
+      : 0;
+    return !!(coarse || points > 0);
+  } catch (_) {
+    return false;
+  }
+}
+
+function __cdLogMainScreenFirstRender() {
+  if (!__cdPerfDebug) return;
+  var emit = function() {
+    var elapsed = Math.round(__cdPerfNow() - __cdPerfBootTs);
+    __cdPerfInfo('[Perf] main screen first render', elapsed);
+  };
+  if (typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(function() {
+      window.requestAnimationFrame(emit);
+    });
+    return;
+  }
+  setTimeout(emit, 0);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __cdLogMainScreenFirstRender, { once: true });
+} else {
+  __cdLogMainScreenFirstRender();
+}
+
 function __cdInitCollectionPerfMetrics() {
   if (window.__cdCollectionPerfInited) return;
   window.__cdCollectionPerfInited = true;
@@ -139,6 +208,10 @@ function __cdInitCollectionPerfMetrics() {
     __cdPushPerfMetric('collectionTapLatencyLast', ms, {
       key: key
     });
+
+    if (__cdPerfDebug && __cdIsCoarsePointerDevice()) {
+      __cdPerfInfo('[Perf] mobile tap latency', key, ms);
+    }
   }
 
   document.addEventListener('pointerdown', onPressStart, { passive: true });
@@ -204,6 +277,91 @@ function __cdResolvePaymentMessage(pathname) {
     return '꽃돼지 코인 게이트를 통과하는 중입니다...';
   }
   return '성간 결제 라인을 연결하고 있습니다...';
+}
+
+var __cdFeaturePerfState = Object.create(null);
+
+function __cdResolvePerfFeatureKey(action, actionEl) {
+  var explicit = '';
+  if (actionEl && actionEl.getAttribute) {
+    explicit = String(actionEl.getAttribute('data-feature-key') || actionEl.getAttribute('data-feature-name') || '').trim();
+  }
+  return explicit || String(action || '').trim() || 'unknown-feature';
+}
+
+function __cdPerfFeatureClick(featureKey) {
+  if (!featureKey) return;
+  __cdFeaturePerfState[featureKey] = {
+    clickAt: __cdPerfNow(),
+    moduleLoadedAt: 0,
+    readyLogged: false
+  };
+  __cdPerfInfo('[Perf] feature click', featureKey);
+}
+
+function __cdPerfFeatureModuleLoaded(featureKey) {
+  if (!featureKey) return;
+  var state = __cdFeaturePerfState[featureKey];
+  if (!state || !state.clickAt) return;
+  if (state.moduleLoadedAt) return;
+  state.moduleLoadedAt = __cdPerfNow();
+  var elapsed = Math.max(0, Math.round(state.moduleLoadedAt - state.clickAt));
+  __cdPerfInfo('[Perf] feature module loaded', featureKey, elapsed);
+}
+
+function __cdPerfFeatureScreenReady(featureKey) {
+  if (!featureKey) return;
+  var state = __cdFeaturePerfState[featureKey];
+  if (!state || !state.clickAt || state.readyLogged) return;
+  state.readyLogged = true;
+  var elapsed = Math.max(0, Math.round(__cdPerfNow() - state.clickAt));
+  __cdPerfInfo('[Perf] feature screen ready', featureKey, elapsed);
+}
+
+function __cdEnsureFeatureLaunchOverlayStyle() {
+  if (document.getElementById('cdFeatureLaunchOverlayStyle')) return;
+  var style = document.createElement('style');
+  style.id = 'cdFeatureLaunchOverlayStyle';
+  style.textContent = [
+    '#cdFeatureLaunchOverlay{position:fixed;inset:0;z-index:2147482100;display:none;align-items:center;justify-content:center;background:rgba(6,10,24,.68);padding:16px;}',
+    '#cdFeatureLaunchOverlay .cd-feature-launch-card{width:min(420px,100%);border-radius:16px;border:1px solid rgba(167,243,208,.22);background:linear-gradient(160deg,rgba(7,18,38,.96),rgba(12,30,58,.96));color:#e2e8f0;padding:16px 14px;box-shadow:0 18px 40px rgba(2,6,23,.45);text-align:center;}',
+    '#cdFeatureLaunchOverlay .cd-feature-launch-title{margin:0;font-size:15px;font-weight:800;line-height:1.45;}',
+    '#cdFeatureLaunchOverlay .cd-feature-launch-desc{margin:8px 0 0;font-size:12px;color:rgba(186,230,253,.92);line-height:1.55;}',
+    '#cdFeatureLaunchOverlay .cd-feature-launch-bar{position:relative;height:4px;border-radius:999px;background:rgba(148,163,184,.22);margin:12px auto 0;overflow:hidden;}',
+    '#cdFeatureLaunchOverlay .cd-feature-launch-bar::after{content:"";position:absolute;inset:0;width:44%;background:linear-gradient(90deg,rgba(103,232,249,.96),rgba(147,197,253,.95));animation:cdFeatureLaunchSlide .9s ease-in-out infinite;}',
+    '@keyframes cdFeatureLaunchSlide{0%{transform:translateX(-120%)}100%{transform:translateX(260%)}}',
+    '@media (max-width: 640px){#cdFeatureLaunchOverlay .cd-feature-launch-card{padding:14px 12px;}}'
+  ].join('');
+  document.head.appendChild(style);
+}
+
+function __cdEnsureFeatureLaunchOverlay() {
+  var existing = document.getElementById('cdFeatureLaunchOverlay');
+  if (existing) return existing;
+  __cdEnsureFeatureLaunchOverlayStyle();
+  var overlay = document.createElement('div');
+  overlay.id = 'cdFeatureLaunchOverlay';
+  overlay.innerHTML = [
+    '<div class="cd-feature-launch-card" role="status" aria-live="polite" aria-atomic="true">',
+    '  <p class="cd-feature-launch-title" id="cdFeatureLaunchTitle">별빛 기능을 여는 중이에요</p>',
+    '  <p class="cd-feature-launch-desc">필요한 해석 엔진만 가볍게 불러오고 있어요.</p>',
+    '  <div class="cd-feature-launch-bar" aria-hidden="true"></div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function __cdSetFeatureLaunchOverlay(open, featureName) {
+  if (typeof document === 'undefined') return;
+  var overlay = __cdEnsureFeatureLaunchOverlay();
+  if (!overlay) return;
+  var title = document.getElementById('cdFeatureLaunchTitle');
+  if (title && open) {
+    var label = String(featureName || '').trim();
+    title.textContent = label ? (label + ' 여는 중...') : '별빛 기능을 여는 중이에요';
+  }
+  overlay.style.display = open ? 'flex' : 'none';
 }
 
 function __cdEnsurePaymentLoadingStyle() {
@@ -615,33 +773,116 @@ function __cdInitGlobalPaymentLoading() {
   window.__cdPaymentFetchPatched = true;
 
   var originalFetch = window.fetch.bind(window);
+  var apiDedupeInFlight = Object.create(null);
+
+  function shouldDedupeApiRequest(pathname, method) {
+    if (!pathname) return false;
+    if (method !== 'GET' && method !== 'HEAD') return false;
+    if (pathname === '/api/auth/me') return true;
+    if (pathname === '/api/billing/balance') return true;
+    if (pathname === '/api/fortune/pig-coin/balance') return true;
+    if (pathname === '/api/subscription/status') return true;
+    return false;
+  }
+
   window.fetch = function(input, init) {
     var reqUrl = __cdResolveRequestUrl(input);
     var reqMethod = __cdResolveRequestMethod(input, init);
     var pathname = reqUrl ? reqUrl.pathname : '';
+    var endpoint = reqUrl ? (reqUrl.pathname + (reqUrl.search || '')) : '';
+    var isApiRequest = !!(pathname && pathname.indexOf('/api/') === 0);
+    var requestStartAt = isApiRequest ? __cdPerfNow() : 0;
+    if (isApiRequest) {
+      __cdPerfInfo('[Perf] api start', reqMethod, endpoint);
+    }
+
     var shouldTrack = __cdShouldTrackPaymentRequest(pathname, reqMethod);
-
-    if (!shouldTrack) {
-      return originalFetch(input, init);
+    var dedupeKey = '';
+    if (reqUrl && shouldDedupeApiRequest(pathname, reqMethod)) {
+      dedupeKey = reqMethod + ' ' + reqUrl.pathname + (reqUrl.search || '');
     }
 
-    startPayment(__cdResolvePaymentMessage(pathname));
+    function reportApiEnd(statusLabel) {
+      if (!isApiRequest) return;
+      var elapsed = Math.max(0, Math.round(__cdPerfNow() - requestStartAt));
+      __cdPerfInfo('[Perf] api end', reqMethod, endpoint, elapsed, statusLabel);
+    }
 
-    try {
-      return originalFetch(input, init).then(
-        function(response) {
-          endPayment();
-          return response;
-        },
-        function(error) {
-          endPayment();
-          throw error;
+    function runFetch() {
+      if (!shouldTrack) {
+        return originalFetch(input, init).then(
+          function(response) {
+            reportApiEnd(response && response.status);
+            return response;
+          },
+          function(error) {
+            reportApiEnd('error');
+            throw error;
+          }
+        );
+      }
+
+      startPayment(__cdResolvePaymentMessage(pathname));
+
+      try {
+        return originalFetch(input, init).then(
+          function(response) {
+            endPayment();
+            reportApiEnd(response && response.status);
+            return response;
+          },
+          function(error) {
+            endPayment();
+            reportApiEnd('error');
+            throw error;
+          }
+        );
+      } catch (error) {
+        endPayment();
+        reportApiEnd('error');
+        throw error;
+      }
+    }
+
+    if (!dedupeKey) {
+      return runFetch();
+    }
+
+    if (apiDedupeInFlight[dedupeKey]) {
+      __cdPerfInfo('[Perf] duplicate API prevented', endpoint || dedupeKey);
+      return apiDedupeInFlight[dedupeKey].then(function(bundle) {
+        reportApiEnd('deduped');
+        if (bundle && bundle.sharedClone) {
+          try {
+            return bundle.sharedClone.clone();
+          } catch (_) {}
         }
-      );
-    } catch (error) {
-      endPayment();
-      throw error;
+        return runFetch();
+      }, function() {
+        reportApiEnd('retry');
+        return runFetch();
+      });
     }
+
+    var inFlightPromise = runFetch().then(function(response) {
+      var sharedClone = null;
+      try {
+        sharedClone = response.clone();
+      } catch (_) {
+        sharedClone = null;
+      }
+      return {
+        firstResponse: response,
+        sharedClone: sharedClone
+      };
+    });
+
+    apiDedupeInFlight[dedupeKey] = inFlightPromise;
+    return inFlightPromise.then(function(bundle) {
+      return bundle.firstResponse;
+    }).finally(function() {
+      delete apiDedupeInFlight[dedupeKey];
+    });
   };
 }
 
@@ -1818,7 +2059,7 @@ function __cdWaitMs(delayMs) {
 async function __cdPremiumAuthJson(url, payload, options) {
   var opts = options || {};
   var targetUrl = String(url || '');
-  var defaultAttempts = /^\/api\/premium-report\//.test(targetUrl) ? 3 : 1;
+  var defaultAttempts = 1;
   var maxAttempts = Number(opts.maxAttempts || defaultAttempts);
   if (!Number.isFinite(maxAttempts) || maxAttempts < 1) maxAttempts = defaultAttempts;
 
@@ -2240,23 +2481,23 @@ var __cdLazyActionLoaders = {
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779069882842').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779069882842'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779076383512').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779076383512'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779069882842'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779069882842'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779076383512'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779076383512'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779069882842'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779069882842'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779076383512'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779076383512'); },
   openRuneOracle: function() { return Promise.resolve(window.location.assign('/oracle/rune')); },
-  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779069882842'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-1779069882842'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-1779069882842'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-1779069882842'); },
+  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779076383512'); },
+  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-1779076383512'); },
+  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-1779076383512'); },
+  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-1779076383512'); },
   gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779069882842'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779076383512'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779069882842').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779076383512').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -2495,13 +2736,13 @@ function __cdEnsureSajuCoreLoaded() {
   if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
 
   var chain = [
-    '/js/core/kasi-calendar-service.js?v=build-1779069882842',
-    '/js/compat-llm-prompts.js?v=build-1779069882842',
-    '/js/saju-engine.js?v=build-1779069882842',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779069882842',
-    '/js/core/saju/modalProfileState.js?v=build-1779069882842',
-    '/js/core/saju/reportDashboard.js?v=build-1779069882842',
-    '/js/saju-engine-continuation.js?v=build-1779069882842',
+    '/js/core/kasi-calendar-service.js?v=build-1779076383512',
+    '/js/compat-llm-prompts.js?v=build-1779076383512',
+    '/js/saju-engine.js?v=build-1779076383512',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779076383512',
+    '/js/core/saju/modalProfileState.js?v=build-1779076383512',
+    '/js/core/saju/reportDashboard.js?v=build-1779076383512',
+    '/js/saju-engine-continuation.js?v=build-1779076383512',
     '/js/entertain-engine.js'
   ];
 
@@ -2580,7 +2821,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-1779069882842';
+    var src = '/js/swisseph-loader.js?v=build-1779076383512';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2989,13 +3230,50 @@ function __cdResolveFeatureName(actionEl, action) {
   return action || '이 기능';
 }
 
+function __cdIsFeatureLaunchAction(action, actionEl) {
+  if (!action) return false;
+  if (__cdLazyActionLoaders[action]) return true;
+  if (__cdProtectedActions[action]) return true;
+  if (/^(open|goto|start)[A-Z]/.test(action)) return true;
+  if (actionEl && actionEl.getAttribute('data-feature-key')) return true;
+  return false;
+}
+
+function __cdMarkFeatureReadySoon(featureKey) {
+  if (!featureKey) return;
+  var done = false;
+  function emit() {
+    if (done) return;
+    done = true;
+    __cdPerfFeatureScreenReady(featureKey);
+  }
+  if (typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(function() {
+      window.requestAnimationFrame(emit);
+    });
+  }
+  setTimeout(emit, 340);
+}
+
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
+  var trackFeaturePerf = __cdIsFeatureLaunchAction(action, actionEl);
+  var featureKey = __cdResolvePerfFeatureKey(action, actionEl);
+  var featureName = __cdResolveFeatureName(actionEl, action);
+
+  if (trackFeaturePerf) {
+    __cdPerfFeatureClick(featureKey);
+  }
 
   function runInvoke() {
     var out = __cdInvokeActionWithConfig(action, actionEl, event, args);
+
+    if (trackFeaturePerf && out !== undefined) {
+      __cdPerfFeatureModuleLoaded(featureKey);
+      __cdMarkFeatureReadySoon(featureKey);
+    }
 
     var loader = __cdLazyActionLoaders[action];
     var hasFn = typeof window[action] === 'function';
@@ -3009,8 +3287,14 @@ function __cdInvokeAction(action, actionEl, event) {
           action === 'gotoNamingPremium') return;
     }
 
+    __cdSetFeatureLaunchOverlay(true, featureName);
+
     if (!__cdLazyActionState[action]) {
-      __cdLazyActionState[action] = loader().catch(function(err) {
+      __cdLazyActionState[action] = loader().then(function() {
+        if (trackFeaturePerf) {
+          __cdPerfFeatureModuleLoaded(featureKey);
+        }
+      }).catch(function(err) {
         console.error('[index-inline-runtime] lazy action load failed:', action, err);
       });
     }
@@ -3038,10 +3322,16 @@ function __cdInvokeAction(action, actionEl, event) {
         } else if (action === 'gotoNamingPremium') {
           window.location.assign('/myungwun_final.html');
         }
+        if (trackFeaturePerf) {
+          __cdMarkFeatureReadySoon(featureKey);
+        }
         return;
       }
       try {
         __cdInvokeActionWithConfig(action, actionEl, event, args);
+        if (trackFeaturePerf) {
+          __cdMarkFeatureReadySoon(featureKey);
+        }
       } catch (err) {
         if (action === 'openOlympusOracleModal') {
           if (typeof window.openFortuneFromProfile === 'function') {
@@ -3053,6 +3343,8 @@ function __cdInvokeAction(action, actionEl, event) {
         }
         throw err;
       }
+    }).finally(function() {
+      __cdSetFeatureLaunchOverlay(false, featureName);
     });
   }
 
@@ -3077,7 +3369,7 @@ function __cdInvokeAction(action, actionEl, event) {
       }
       runInvoke();
     }, {
-      featureName: __cdResolveFeatureName(actionEl, action),
+      featureName: featureName,
       redirectTo: __cdBuildRedirectAfterLogin()
     })).catch(function(err) {
       console.error('[index-inline-runtime] auth gate failed:', err);
@@ -3363,8 +3655,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779069882842')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779069882842'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779076383512')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779076383512'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -7821,9 +8113,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-1779069882842',
-    '/js/saju-engine.js?v=build-1779069882842',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779069882842'
+    '/js/compat-llm-prompts.js?v=build-1779076383512',
+    '/js/saju-engine.js?v=build-1779076383512',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779076383512'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7843,7 +8135,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779069882842'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779076383512'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8510,8 +8802,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779069882842')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779069882842'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779076383512')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779076383512'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {

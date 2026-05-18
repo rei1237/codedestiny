@@ -135,7 +135,7 @@ describe("Sukuyo Natal Premium Quality Tests (A~K)", () => {
 
   test("H. 챕터별 소제목 스펙이 존재하고 중복 없이 구성되어야 한다", () => {
     const seen = new Set();
-    for (let i = 1; i <= 13; i += 1) {
+    for (let i = 1; i <= 12; i += 1) {
       const spec = getSukuyoNatalChapterSpec(i);
       expect(spec).toBeTruthy();
       const sections = spec.sections || [];

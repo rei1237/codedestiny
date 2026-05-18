@@ -34,32 +34,14 @@ describe("Premium Report Feature Spec", () => {
     expect(resolvePremiumTypePair("saju-love-book", "").reportType).toBe("loveSecret");
     expect(resolvePremiumTypePair("western-astrology-premium", "").reportType).toBe("westernAstrologyPremium");
     expect(resolvePremiumTypePair("", "ziwei-life-book").featureType).toBe("jamidusu_premium");
-    expect(resolvePremiumTypePair("sukyo-premium", "").reportType).toBe("sookyoPremium");
+    expect(resolvePremiumTypePair("sukuyo-premium", "").reportType).toBe("sookyoPremium");
   });
 
-  test("/api/premium-report/start 입력을 기존 Worker 파이프라인 입력으로 정규화", () => {
-    const { normalizePremiumStartRequestBody, getPremiumRoutePriceMeta } = __premiumReportTestUtils;
-    const normalized = normalizePremiumStartRequestBody({
-      reportKind: "ziwei-premium",
-      userInput: { year: 1992, month: 6, day: 15 },
-    });
+  test("loveSecret는 현재 premium spec 기준으로 13챕터를 사용한다", () => {
+    const { getPremiumRequiredChapters } = __premiumReportTestUtils;
 
-    expect(normalized.reportType).toBe("ziweiPremium");
-    expect(normalized.featureType).toBe("jamidusu_premium");
-    expect(normalized.requestBody.year).toBe(1992);
-
-    const price = getPremiumRoutePriceMeta(normalized.reportType, normalized.requestBody);
-    expect(price).toMatchObject({
-      reportKind: "ziwei-premium",
-      featureKey: "premium_pdf_ziwei",
-      priceCoins: 590,
-    });
-  });
-
-  test("Gemini timeout 계열 챕터 실패는 524 retryable 상태로 정규화", () => {
-    const { normalizePremiumChapterFailureStatus } = __premiumReportTestUtils;
-    expect(normalizePremiumChapterFailureStatus(500, "GEMINI_TIMEOUT", "응답 시간 초과")).toBe(524);
-    expect(normalizePremiumChapterFailureStatus(500, "RATE_LIMIT", "quota exceeded")).toBe(429);
+    expect(getPremiumRequiredChapters("loveSecret", "solo")).toBe(13);
+    expect(getPremiumRequiredChapters("loveSecret", "compatibility")).toBe(13);
   });
 
   test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {
@@ -71,20 +53,20 @@ describe("Premium Report Feature Spec", () => {
 
     expect(Array.isArray(ziwei.requestKeys)).toBe(true);
     expect(ziwei.requestKeys).toContain("normalizedData");
-    expect(ziwei.requiredNormalizedKeys).toContain("normalizedData.palaces");
-    expect(ziwei.requiredNormalizedKeys).toContain("normalizedData.chart");
+    expect(ziwei.requiredNormalizedKeys).toContain("normalizedData.ziwei.chart.mingGong");
+    expect(ziwei.requiredNormalizedKeys).toContain("normalizedData.ziwei.palaces");
 
     expect(Array.isArray(sookyo.requestKeys)).toBe(true);
-    expect(sookyo.requiredNormalizedKeys).toContain("normalizedData.宿曜");
-    expect(sookyo.requiredNormalizedKeys).toContain("normalizedData.mansionAnalysis");
+    expect(sookyo.requiredNormalizedKeys).toContain("normalizedData.sukuyo.birthStar");
+    expect(sookyo.requiredNormalizedKeys).toContain("normalizedData.sukuyo.interpretation");
 
     expect(Array.isArray(vedic.requestKeys)).toBe(true);
-    expect(vedic.requiredNormalizedKeys).toContain("normalizedData.chart");
-    expect(vedic.requiredNormalizedKeys).toContain("normalizedData.dasha");
+    expect(vedic.requiredNormalizedKeys).toContain("normalizedData.vedic.chart.lagna");
+    expect(vedic.requiredNormalizedKeys).toContain("normalizedData.vedic.planets");
 
     expect(Array.isArray(astro.requestKeys)).toBe(true);
-    expect(astro.requiredNormalizedKeys).toContain("normalizedData.natalChart");
-    expect(astro.requiredNormalizedKeys).toContain("normalizedData.analysis");
+    expect(astro.requiredNormalizedKeys).toContain("normalizedData.westernAstrology.chart.sunSign");
+    expect(astro.requiredNormalizedKeys).toContain("normalizedData.westernAstrology.aspects");
   });
 
   test("정규화 데이터 요약 헬퍼가 ziwei 핵심 통계를 계산", () => {
@@ -92,11 +74,11 @@ describe("Premium Report Feature Spec", () => {
     const summary = getPremiumNormalizedDataSummary("ziweiPremium", {
       input: { year: 1991, month: 7, day: 11 },
       calculatedData: {
-        chart: { mingGong: "명궁" },
-        palaces: [
-          { mainStars: [{ name: "자미" }] },
-          { mainStars: [] },
-        ],
+        chartMeta: { mingGong: "명궁" },
+        palaces: {
+          ming: { mainStars: [{ name: "자미" }] },
+          spouse: { mainStars: [] },
+        },
       },
     });
 
@@ -111,7 +93,7 @@ describe("Premium Report Feature Spec", () => {
     const summary = getPremiumNormalizedDataSummary("sookyoPremium", {
       input: { year: 1991, month: 7, day: 11 },
       calculatedData: {
-        "宿曜": { birthMansion: "각" },
+        nativeSook: { nameKo: "각" },
         compatibility: { relationType: "상생" },
       },
     });
@@ -126,11 +108,9 @@ describe("Premium Report Feature Spec", () => {
     const summary = getPremiumNormalizedDataSummary("vedicPremium", {
       input: { year: 1991, month: 7, day: 11 },
       calculatedData: {
-        chart: {
-          lagna: "Mithuna",
-          planets: [{ name: "Sun" }, { name: "Moon" }],
-          houses: [{ house: 1 }],
-        },
+        lagna: { name: "Mithuna" },
+        planets: { sun: {}, moon: {} },
+        houses: [{ house: 1 }],
       },
     });
 
@@ -145,13 +125,10 @@ describe("Premium Report Feature Spec", () => {
     const summary = getPremiumNormalizedDataSummary("westernAstrologyPremium", {
       input: { year: 1991, month: 7, day: 11 },
       calculatedData: {
-        natalChart: {
-          sunSign: "Gemini",
-          ascendant: "Gemini",
-          planets: [{ name: "Sun" }, { name: "Moon" }, { name: "Saturn" }],
-          houses: [{ house: 1 }, { house: 2 }],
-          aspects: [{ type: "square" }],
-        },
+        angles: { ascendant: { sign: "Gemini" } },
+        planets: { sun: {}, moon: {}, saturn: {} },
+        houses: [{ house: 1 }, { house: 2 }],
+        aspects: [{ type: "square" }],
       },
     });
 

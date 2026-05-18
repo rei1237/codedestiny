@@ -98,7 +98,14 @@
     loadDeferredFeatureScripts();
   }
 
-  function onFirstInteraction() {
+  function isFeatureIntentEvent(event) {
+    var target = event && event.target;
+    if (!target || !(target instanceof Element)) return false;
+    return !!target.closest('[data-action], [data-touchend-action], .tarot-tile, .feature-card, .feat-collection-toggle, .fc-toggle-btn');
+  }
+
+  function onFirstInteraction(event) {
+    if (isMobile() && !isFeatureIntentEvent(event)) return;
     interactionCount = Math.max(interactionCount + 1, 1);
     loadDeferredFeatureScripts();
   }
@@ -108,13 +115,13 @@
 
     var events = ['pointerdown', 'touchstart', 'keydown', 'click'];
     for (var i = 0; i < events.length; i += 1) {
-      window.addEventListener(events[i], onFirstInteraction, { passive: true, once: true });
+      window.addEventListener(events[i], onFirstInteraction, { passive: true });
     }
 
     setTimeout(function () {
       interactionCount = Math.max(interactionCount, 1);
       loadDeferredFeatureScripts();
-    }, isMobile() ? 32000 : 24000);
+    }, isMobile() ? 50000 : 24000);
 
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'hidden') {

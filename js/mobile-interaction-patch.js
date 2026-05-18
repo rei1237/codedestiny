@@ -676,7 +676,7 @@
     openLifeBookModal: ['js/life-book.js?v=20260507-sajuref1'],
     gotoZiweiPremium: ['js/ziwei-book.js?v=20260509-premiumapifix1'],
     gotoAstrologyPremium: ['js/astro-book.js?v=20260509-premiumapifix1'],
-    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260509-premiumapifix1'],
+    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260518-syukyo12-engine1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260509-premiumapifix1'],
     gotoNamingPremium: [],
     openSibylModal: ['js/sibyl-system.js?v=20260512-quantum-v4']
