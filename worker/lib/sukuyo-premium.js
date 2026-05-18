@@ -49,35 +49,33 @@ const SUKUYO_RELATION_HAN = {
 };
 
 const SUKUYO_PERSONAL_CHAPTER_META = [
-  { num: 1, title: "🌑 본명숙 원형 해독", subtitle: "나의 27숙 정체성" },
-  { num: 2, title: "🌙 달의 주기와 정서 리듬", subtitle: "월상·삭망각·조도 분석" },
-  { num: 3, title: "🎭 페르소나와 첫인상", subtitle: "세상이 나를 기억하는 방식" },
-  { num: 4, title: "💰 자산 감각과 생활 기반", subtitle: "돈을 대하는 숙요적 태도" },
-  { num: 5, title: "⚙️ 협업과 조직 적응", subtitle: "보이지 않는 톱니바퀴" },
-  { num: 6, title: "📡 관계 감지력", subtitle: "인간관계 레이더와 거리 조절" },
-  { num: 7, title: "💥 위기와 전환", subtitle: "무너질 때 다시 살아나는 방식" },
-  { num: 8, title: "🏡 가족과 뿌리", subtitle: "정서적 기반과 소속감" },
-  { num: 9, title: "🔥 욕망과 추진력", subtitle: "내가 움직이는 진짜 이유" },
-  { num: 10, title: "🧘 내면 회복과 영성", subtitle: "혼자 있을 때 살아나는 힘" },
-  { num: 11, title: "🧭 인생 방향성", subtitle: "나에게 맞는 길의 형태" },
-  { num: 12, title: "📅 달빛 실천 캘린더", subtitle: "4주 루틴" },
-  { num: 13, title: "🌕 숙요점 인생 총결산", subtitle: "나의 달빛 사용법" },
+  { key: "P1", num: 1, title: "영혼의 원형", subtitle: "당신의 숙요별이 새긴 운명 코드" },
+  { key: "P2", num: 2, title: "감정의 조수간만", subtitle: "달의 주기가 만드는 정서 파동" },
+  { key: "P3", num: 3, title: "페르소나와 브랜딩", subtitle: "세상이 당신을 기억하는 방식" },
+  { key: "P4", num: 4, title: "자산의 중력", subtitle: "부를 끌어당기는 달빛 전략" },
+  { key: "P5", num: 5, title: "보이지 않는 톱니바퀴", subtitle: "성공 뒤에 숨은 협력 역학" },
+  { key: "P6", num: 6, title: "관계의 정밀 레이더", subtitle: "안괴·성쇠·우친 방향성과 거리 해석" },
+  { key: "P7", num: 7, title: "파괴적 혁신", subtitle: "위기를 기회로 전환하는 전략" },
+  { key: "P8", num: 8, title: "조화로운 성장", subtitle: "나를 살리는 공간과 환경의 법칙" },
+  { key: "P9", num: 9, title: "정서적 유대", subtitle: "깊은 연결을 만드는 감정 지능" },
+  { key: "P10", num: 10, title: "운명적 거리", subtitle: "가까이해야 할 것과 멀리해야 할 것" },
+  { key: "P11", num: 11, title: "달의 주기", subtitle: "월령 에너지 사이클 완전 공략" },
+  { key: "P12", num: 12, title: "영혼의 마스터플랜", subtitle: "1년·3년·10년 실행 로드맵" },
 ];
 
 const SUKUYO_COMPAT_CHAPTER_META = [
-  { num: 1, title: "두 사람의 본명숙 계산표", subtitle: "27숙 원형과 달의 좌표", icon: "🌙" },
-  { num: 2, title: "관계 거리와 숙요 궁합 공식", subtitle: "왜 이 관계로 분류되는가", icon: "🧭" },
-  { num: 3, title: "첫 끌림과 감정 화학작용", subtitle: "두 숙이 서로를 알아보는 방식", icon: "💞" },
-  { num: 4, title: "서로의 그림자", subtitle: "반복 갈등과 상처 버튼", icon: "🪞" },
-  { num: 5, title: "안정감과 장기 관계 가능성", subtitle: "결혼·동거·일상 궁합", icon: "🏡" },
-  { num: 6, title: "애정 표현과 친밀감", subtitle: "연애 온도와 거리 조절", icon: "🔥" },
-  { num: 7, title: "대화와 오해의 구조", subtitle: "말이 통하는 지점과 어긋나는 지점", icon: "🗣️" },
-  { num: 8, title: "협업과 현실 궁합", subtitle: "일·돈·목표를 함께할 수 있는가", icon: "💼" },
-  { num: 9, title: "위기 상황의 관계 반응", subtitle: "멀어질 때와 다시 가까워질 때", icon: "🌊" },
-  { num: 10, title: "관계 유형별 심층 분석", subtitle: "실제 relationType 심층", icon: "🧩" },
-  { num: 11, title: "30일 관계 운영 로드맵", subtitle: "관계 유형/거리별 실행 설계", icon: "📅" },
-  { num: 12, title: "관계를 살리는 문장과 피해야 할 문장", subtitle: "갈등·화해 문장 실전", icon: "🕯️" },
-  { num: 13, title: "최종 궁합 총평", subtitle: "점수표·장점·위험·원칙", icon: "🌕" },
+  { key: "C1", num: 1, title: "두 사람의 원형 좌표", subtitle: "27숙 원형과 달의 좌표" },
+  { key: "C2", num: 2, title: "관계 거리와 역할", subtitle: "왜 이 관계가 형성되는가" },
+  { key: "C3", num: 3, title: "첫 끌림과 정서 파동", subtitle: "두 숙이 서로를 알아보는 방식" },
+  { key: "C4", num: 4, title: "갈등 트리거와 그림자", subtitle: "반복 충돌과 상처 버튼" },
+  { key: "C5", num: 5, title: "신뢰와 안정성", subtitle: "장기 관계의 기반" },
+  { key: "C6", num: 6, title: "친밀감과 사랑 언어", subtitle: "연애 온도와 거리 조절" },
+  { key: "C7", num: 7, title: "대화 구조와 오해 해소", subtitle: "말이 통하는 지점과 어긋나는 지점" },
+  { key: "C8", num: 8, title: "협업·재정·생활 궁합", subtitle: "현실을 함께 운영하는 방식" },
+  { key: "C9", num: 9, title: "위기 대응과 회복", subtitle: "멀어질 때와 다시 가까워질 때" },
+  { key: "C10", num: 10, title: "관계 유형 심층 리딩", subtitle: "relationType 기반 정밀 해석" },
+  { key: "C11", num: 11, title: "30일 관계 실행 플랜", subtitle: "거리/역할별 실전 운영" },
+  { key: "C12", num: 12, title: "최종 궁합 총평", subtitle: "강점·리스크·핵심 원칙" },
 ];
 
 const SUKUYO_NATAL_FORBIDDEN_COMMON_SECTIONS = [
@@ -99,9 +97,8 @@ const SUKUYO_NATAL_CHAPTER_SPECS = [
   { chapter: 8, title: "🏡 가족과 뿌리 — 정서적 기반과 소속감", purpose: "가족·공간·정서적 기반", sections: ["집과 공간에 대한 감각", "가족 안에서 맡기 쉬운 역할", "정서적 안정감을 느끼는 조건", "독립과 소속 사이의 균형", "과거 기억이 현재 선택에 주는 영향", "안정되는 생활 리듬", "내 공간을 운의 기반으로 만드는 법", "Chapter 8 핵심 요약"] },
   { chapter: 9, title: "🔥 욕망과 추진력 — 내가 움직이는 진짜 이유", purpose: "욕망·동기·추진력", sections: ["나를 움직이는 핵심 욕구", "목표가 생길 때의 반응", "몰입이 시작되는 조건", "열정이 식는 이유", "남에게 인정받고 싶은 지점", "욕망을 건강하게 쓰는 법", "장기 목표를 지속하는 방식", "Chapter 9 핵심 요약"] },
   { chapter: 10, title: "🧘 내면 회복과 영성 — 혼자 있을 때 살아나는 힘", purpose: "회복 루틴과 영적 성장", sections: ["혼자 있을 때의 에너지", "회복에 필요한 환경", "내면의 소리를 듣는 방식", "과도한 자극을 정리하는 법", "직관을 믿어도 되는 순간", "명상/기록/산책 등 맞춤 회복법", "영적 성숙의 방향", "Chapter 10 핵심 요약"] },
-  { chapter: 11, title: "🧭 인생 방향성 — 나에게 맞는 길의 형태", purpose: "장기 선택과 성장 방향", sections: ["나에게 맞는 삶의 속도", "선택할수록 운이 좋아지는 길", "피해야 할 삶의 방식", "직업/일의 방향성", "배우면 강해지는 분야", "사람들에게 줄 수 있는 가치", "10년 단위 성장 방향", "Chapter 11 핵심 요약"] },
-  { chapter: 12, title: "📅 달빛 실천 캘린더 — 4주 루틴", purpose: "전체 리포트 기반 4주 실천 계획", sections: ["1주차: 감정 리듬 정리", "2주차: 관계 거리 조절", "3주차: 일과 돈의 기준 정리", "4주차: 나만의 성장 루틴 고정", "매주 점검 질문", "중단해야 할 습관", "새로 시작할 습관", "4주 후 점검표"] },
-  { chapter: 13, title: "🌕 숙요점 인생 총결산 — 나의 달빛 사용법", purpose: "전체 종합 결론", sections: ["나를 설명하는 핵심 키워드 7개", "가장 강한 재능 5개", "가장 조심해야 할 반복 패턴 5개", "관계에서 기억할 원칙 3개", "일과 돈에서 기억할 원칙 3개", "회복을 위한 원칙 3개", "최종 달빛 메시지", "한 줄 결론"] },
+  { chapter: 11, title: "🌙 달의 주기 — 월령 에너지 사이클", purpose: "한 달 주기 행동 우선순위", sections: ["초승 단계 핵심 행동", "상현 단계 실행 전략", "보름 단계 확장 전략", "하현 단계 정리 전략", "그믐 단계 회복 전략", "주기별 감정 경보 신호", "월간 점검 질문", "Chapter 11 핵심 요약"] },
+  { chapter: 12, title: "🗺️ 영혼의 마스터플랜 — 1년·3년·10년 로드맵", purpose: "전체 종합 결론과 실행 계획", sections: ["핵심 강점 5가지", "반복 리스크 5가지", "1년 집중 과제", "3년 확장 전략", "10년 장기 비전", "90일 실행표", "이번 달 즉시 행동 3가지", "Chapter 12 핵심 요약"] },
 ];
 
 function toDateString(year, month, day) {

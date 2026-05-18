@@ -465,19 +465,39 @@ function ensureIfaCoinGate(){
     if (!confirm('🪙 IFÀ 오라클 리딩\n\n이용할 때마다 ' + IFA_COIN_COST + '코인이 차감됩니다.\n현재 보유: ' + bal.toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
       resolve(false); return;
     }
+    var requestId = 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
     setIfaPaymentPending(true,'IFÀ 오라클 리딩 결제를 확인하는 중입니다...');
-    fetch('/api/fortune/pig-coin/consume', {
+    fetch('/api/billing/coin-gate', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk},
-      body: JSON.stringify({cost: IFA_COIN_COST, reason: 'IFÀ 오라클 리딩'})
+      body: JSON.stringify({
+        categoryKey: 'oracle',
+        subFeatureKey: 'ifa-oracle',
+        featureKey: 'ifa-oracle',
+        reason: 'IFÀ 오라클 리딩',
+        forceDeduct: true,
+        requestId: requestId
+      })
     })
     .then(function(r){ return r.json().then(function(d){ return {ok: r.ok, data: d}; }); })
     .then(function(res){
       if (res.ok) {
-        try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u2.points = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, bal - IFA_COIN_COST); localStorage.setItem('fortune_auth_user', JSON.stringify(_u2)); } catch(_) {}
+        try {
+          var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+          var _coinData = (res.data && res.data.data) || {};
+          var _coinUser = _coinData.user || (_coinData.consume && _coinData.consume.user) || null;
+          _u2.points = (_coinUser && typeof _coinUser.points === 'number')
+            ? _coinUser.points
+            : Math.max(0, bal - IFA_COIN_COST);
+          localStorage.setItem('fortune_auth_user', JSON.stringify(_u2));
+        } catch(_) {}
         resolve(true);
       } else {
-        alert((res.data && res.data.message) || '코인 차감에 실패했습니다.');
+        var _msg =
+          (res.data && res.data.error && res.data.error.message) ||
+          (res.data && res.data.message) ||
+          '코인 차감에 실패했습니다.';
+        alert(_msg);
         resolve(false);
       }
     })

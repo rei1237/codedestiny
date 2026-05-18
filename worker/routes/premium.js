@@ -31,6 +31,15 @@ import {
   buildSukuyoDataSummaryTable,
 } from "../lib/sukuyo-premium.js";
 import {
+  buildSukyoPdfContext,
+  validateSukyoPdfInput,
+  buildSukyoGeminiPrompt,
+  parseSukyoGeminiChapterResponse,
+  createFallbackSukyoChapter,
+  sanitizeSukyoChapterJson,
+  renderSukyoChapterMarkdown,
+} from "../lib/sukyo-pdf.js";
+import {
   ZIWEI_PDF_CHAPTERS as ZIWEI_PDF_CHAPTERS_V2,
   buildZiweiChapterMarkdown,
   buildZiweiGeminiPrompt,
@@ -155,43 +164,106 @@ const ASTRO_CHAPTER_FOCUS_KEYWORDS = {
   R3: ["갈등 회복", "관계 운영", "경계", "대화 프로토콜", "실천 계획"],
 };
 
+const ASTROLOGY_V3_PERSONAL_CHAPTER_META = [
+  { index: 1, key: "personal_01_chart_overview", title: "기본 차트 요약", subtitle: "차트 핵심 구조" },
+  { index: 2, key: "personal_02_identity", title: "자아와 정체성", subtitle: "ASC·태양·1하우스" },
+  { index: 3, key: "personal_03_emotion", title: "감정과 무의식", subtitle: "달·4하우스" },
+  { index: 4, key: "personal_04_communication", title: "사고/소통 스타일", subtitle: "수성·3/9하우스" },
+  { index: 5, key: "personal_05_love_style", title: "사랑/관계 스타일", subtitle: "금성·7하우스" },
+  { index: 6, key: "personal_06_drive", title: "행동/에너지 패턴", subtitle: "화성·행동 리듬" },
+  { index: 7, key: "personal_07_growth", title: "확장/행운 포인트", subtitle: "목성·확장 축" },
+  { index: 8, key: "personal_08_responsibility", title: "책임/성취 구조", subtitle: "토성·10하우스" },
+  { index: 9, key: "personal_09_change_trigger", title: "변화/성장 트리거", subtitle: "외행성 변곡점" },
+  { index: 10, key: "personal_10_node_axis", title: "영혼 과제/노드 축", subtitle: "북노드·남노드" },
+  { index: 11, key: "personal_11_career_social", title: "커리어/사회적 포지션", subtitle: "MC·10하우스 실전" },
+  { index: 12, key: "personal_12_year_plan", title: "연간 흐름/실행 로드맵", subtitle: "트랜짓·90일 전략" },
+];
+
+const ASTROLOGY_V3_COMPAT_CHAPTER_META = [
+  { index: 1, key: "compat_01_overview", title: "두 사람의 관계 총론", subtitle: "관계 기본 프레임" },
+  { index: 2, key: "compat_02_sun_moon", title: "태양/달 페어링", subtitle: "기질 조화와 정서 합" },
+  { index: 3, key: "compat_03_venus_mars", title: "금성/화성 케미", subtitle: "끌림과 열정 리듬" },
+  { index: 4, key: "compat_04_communication", title: "수성/소통 호환", subtitle: "대화 패턴" },
+  { index: 5, key: "compat_05_conflict_healing", title: "갈등 트리거/힐링", subtitle: "긴장 포인트와 회복" },
+  { index: 6, key: "compat_06_stability", title: "장기 안정성", subtitle: "토성·지속 가능성" },
+  { index: 7, key: "compat_07_intimacy", title: "친밀도/성적 리듬", subtitle: "친밀감 조율" },
+  { index: 8, key: "compat_08_marriage_reality", title: "결혼/동거 현실성", subtitle: "생활 운영 합" },
+  { index: 9, key: "compat_09_finance_career", title: "재정/커리어 합", subtitle: "현실 목표 정렬" },
+  { index: 10, key: "compat_10_family", title: "자녀/가정 운영", subtitle: "가정 리듬 설계" },
+  { index: 11, key: "compat_11_crisis", title: "위기 시나리오", subtitle: "리스크 대응" },
+  { index: 12, key: "compat_12_master_plan", title: "관계 운영 마스터 플랜", subtitle: "90일 관계 실행" },
+];
+const ASTROLOGY_V3_TOTAL_CHAPTERS = 12;
+
+function normalizeAstrologyV3Mode(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "compatibility" || raw === "compat" || raw === "couple") return "compatibility";
+  return "personal";
+}
+
+function getAstrologyV3ChapterDefs(mode = "personal") {
+  return mode === "compatibility" ? ASTROLOGY_V3_COMPAT_CHAPTER_META : ASTROLOGY_V3_PERSONAL_CHAPTER_META;
+}
+
+const ASTROLOGY_V3_STATUS_MESSAGES = {
+  preparing: "점성술 원본 계산 데이터를 준비하는 중입니다.",
+  rendering: "최종 리포트를 정리하는 중입니다.",
+  completed: "점성술 프리미엄 리포트가 완성되었습니다.",
+};
+
 const LOVE_SECRET_MODE_CONFIG = {
   solo: {
     mode: "solo",
     reportType: "saju_love_solo",
-    totalChapters: 5,
-    minTotalChars: 22000,
-    chapterMinDefault: 4200,
-    chapterMinByIndex: { 1: 4200, 2: 4200, 3: 4600, 4: 4200, 5: 4200 },
+    totalChapters: 13,
+    minTotalChars: 56000,
+    chapterMinDefault: 4000,
+    chapterMinByIndex: {
+      1: 4200, 2: 4200, 3: 4600, 4: 4200, 5: 4600, 6: 4200, 7: 4300,
+      8: 4200, 9: 4600, 10: 4300, 11: 4200, 12: 4200, 13: 4300,
+    },
     title: "프리미엄 사주 연애운 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "일간/월지/일지/오행/십성으로 읽는 관계 자아", required: ["일간", "일지 배우자궁", "월지", "신강/신약", "오행 분포", "십성 분포", "관계 주도권"] },
       { title: "🌹 치명적 매력과 페로몬", subtitle: "도화/홍염/화개/역마가 만드는 매력 결", required: ["도화살", "홍염살", "화개살", "역마살", "기둥 위치", "매력 작동 상황", "과잉 리스크"] },
+      { title: "🧲 운명의 상대방 리포트", subtitle: "배우자성/배우자궁으로 보는 이상형과 현실형", required: ["배우자궁", "배우자성", "오행 보완", "관계 안정성", "갈등 트리거"] },
+      { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "연락/고백/갈등 대화를 데이터 기반으로 설계", required: ["식상", "재성", "관성", "인성", "비겁", "신강/신약", "말투 전략"] },
       { title: "📅 시기별 연애운 흐름", subtitle: "대운·세운·월운 기반 Go/Hold/Retreat", required: ["현재 대운", "다음 대운", "해당 연도 세운", "월운", "고백/정리 타이밍", "주의 시기", "선택 전략"] },
       { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "기신 과열·오행 불균형의 위기 패턴", required: ["기신", "오행 불균형", "일지 충형파해", "신살 역작용", "충돌 버튼", "이별 전조", "회복 프로토콜"] },
+      { title: "🔥 친밀감과 감정 리듬", subtitle: "한난조습과 화수 균형으로 보는 친밀 리듬", required: ["조후", "월지", "계절", "화수 균형", "감정 개방 속도", "회복 리듬"] },
       { title: "📱 현대적 상황별 연애 비책", subtitle: "카톡/DM/썸/재회/장거리 실전 운영", required: ["연락 템포", "썸 단계", "갈등 후 메시지", "재회/정리", "온라인 관계", "말투 전략", "맞춤 접근법"] },
+      { title: "💍 결혼과 정착", subtitle: "결혼관·역할 분담·생활 운영 안정성", required: ["배우자궁", "배우자성", "재성/관성", "생활 리듬", "장기 안정성"] },
+      { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "용신/희신 강화와 기신 절감 실행 플랜", required: ["용신", "희신", "기신", "7일 플랜", "30일 플랜", "90일 플랜"] },
+      { title: "🔁 재회·이별·회복 시나리오", subtitle: "관계 전환 국면별 의사결정 기준", required: ["재회 조건", "이별 신호", "회복 문장", "경계 규칙", "실행 체크포인트"] },
+      { title: "🗺️ 장기 관계 운영 매뉴얼", subtitle: "1년 운영 루틴과 재발 방지 시스템", required: ["갈등 복구 SLA", "역할 분담", "정서 점검 루틴", "관계 KPI"] },
+      { title: "👑 최종 사랑 마스터플랜", subtitle: "핵심 패턴 총정리와 장기 실행 로드맵", required: ["핵심 요약", "관계 원칙", "90일 로드맵", "1년 확장 전략"] },
     ],
   },
   couple: {
     mode: "couple",
     reportType: "saju_love_couple",
-    totalChapters: 11,
-    minTotalChars: 68000,
-    chapterMinDefault: 5500,
-    chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 6000, 8: 6200, 9: 6500, 10: 6200, 11: 6000 },
+    totalChapters: 13,
+    minTotalChars: 76000,
+    chapterMinDefault: 5200,
+    chapterMinByIndex: {
+      1: 5600, 2: 5600, 3: 6200, 4: 5400, 5: 6200, 6: 5400, 7: 6000,
+      8: 6000, 9: 6200, 10: 6200, 11: 5600, 12: 5600, 13: 6000,
+    },
     title: "프리미엄 사주 궁합 리포트",
     chapters: [
-      { title: "💗 본연의 연애 자아", subtitle: "두 사람의 연애 자아와 수용 방식 비교" },
-      { title: "🌹 치명적 매력과 페로몬", subtitle: "도화/홍염/화개/역마의 상호작용" },
-      { title: "🧲 운명의 상대방 리포트", subtitle: "이상형 구조와 실제 상대 일치도" },
-      { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "두 사람 명식에 맞춘 대화 운영 매뉴얼" },
-      { title: "📅 시기별 연애운 흐름", subtitle: "대운·세운·월운 동시성 타이밍" },
-      { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "충돌 버튼과 회복 프로토콜" },
-      { title: "🧩 두 사람의 궁합 심층 진단", subtitle: "오행/십성/합충형파해 기반 상호작용 분석" },
-      { title: "🔥 육체적 궁합과 매력 온도", subtitle: "친밀감 온도·속도·회복 리듬 분석" },
-      { title: "💍 결혼 시기와 장기 정착", subtitle: "결혼 타이밍·역할 분담·생활 안정성" },
-      { title: "🌙 속궁합과 친밀 리듬", subtitle: "조후·월지·화수 균형으로 보는 속궁합" },
-      { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "공동 7·30·90일 관계 강화 플랜" },
+      { title: "💞 두 사람의 관계 자아 진단", subtitle: "연애 자아와 수용 방식 비교" },
+      { title: "🌹 상호 매력과 감정 점화 패턴", subtitle: "도화/홍염/화개/역마의 상호작용" },
+      { title: "🧩 궁합 핵심 구조 리포트", subtitle: "이상형 구조와 실제 상대 일치도" },
+      { title: "🗣️ 실전 커뮤니케이션 전술", subtitle: "두 사람 명식에 맞춘 대화 운영 매뉴얼" },
+      { title: "📅 시기별 관계 진전 타이밍", subtitle: "대운·세운·월운 동시성 타이밍" },
+      { title: "🌑 갈등·거리감·권태 위기 관리", subtitle: "충돌 버튼과 회복 프로토콜" },
+      { title: "🔥 친밀감과 조후 궁합 리듬", subtitle: "친밀감 온도·속도·회복 리듬 분석" },
+      { title: "📱 현대 연애 상황별 운영 비책", subtitle: "카톡/DM/장거리/갈등 후 소통 운영" },
+      { title: "💍 결혼·동거·정착 적합성", subtitle: "결혼 타이밍·역할 분담·생활 안정성" },
+      { title: "🧭 커플 맞춤 개운 처방전", subtitle: "조후·월지·화수 균형 기반 공동 플랜" },
+      { title: "🔁 재회·이별·회복 의사결정표", subtitle: "관계 전환 국면별 공동 선택 기준" },
+      { title: "🗺️ 장기 관계 운영 매뉴얼", subtitle: "1년 운영 루틴과 재발 방지 시스템" },
+      { title: "👑 커플 사랑 마스터플랜", subtitle: "관계 핵심 원칙과 장기 실행 로드맵" },
     ],
   },
 };
@@ -269,6 +341,51 @@ const VEDIC_CHAPTER_META = [
   { num: 12, title: "90일 실행 로드맵", subtitle: "실행 우선순위와 점검 지표", icon: "vedic" },
   { num: 13, title: "최종 카르마 블루프린트", subtitle: "통합 요약 · 선언문", icon: "vedic" },
 ];
+const VEDIC_V3_PERSONAL_CHAPTER_META = [
+  { index: 1, key: "personal_01_chart_overview", title: "나의 베다 차트 전체 구조", subtitle: "영혼의 설계도" },
+  { index: 2, key: "personal_02_lagna", title: "라그나와 1하우스", subtitle: "세상에 태어난 방식" },
+  { index: 3, key: "personal_03_moon_nakshatra", title: "달과 나크샤트라", subtitle: "감정과 무의식 지도" },
+  { index: 4, key: "personal_04_sun_purpose", title: "태양과 인생 사명", subtitle: "내가 빛나는 자리" },
+  { index: 5, key: "personal_05_planets_houses", title: "행성 배치와 하우스", subtitle: "영역별 운명 코드" },
+  { index: 6, key: "personal_06_twelve_houses", title: "12하우스 인생 분석", subtitle: "삶의 영역별 해석" },
+  { index: 7, key: "personal_07_yoga_karma", title: "요가와 카르마", subtitle: "차트 조합의 핵심" },
+  { index: 8, key: "personal_08_career_wealth", title: "직업과 재물", subtitle: "현실 성공 방식" },
+  { index: 9, key: "personal_09_love_marriage", title: "사랑과 결혼", subtitle: "관계 카르마" },
+  { index: 10, key: "personal_10_dasha_flow", title: "다샤와 인생 흐름", subtitle: "지금 지나가는 시기" },
+  { index: 11, key: "personal_11_spiritual_task", title: "차크라와 영적 과제", subtitle: "나를 회복시키는 길" },
+  { index: 12, key: "personal_12_soul_letter", title: "영혼의 마지막 편지", subtitle: "베다 선언문" },
+];
+const VEDIC_V3_COMPAT_CHAPTER_META = [
+  { index: 1, key: "compat_01_relationship_karma", title: "두 사람의 베다 궁합 구조", subtitle: "관계 카르마" },
+  { index: 2, key: "compat_02_moon_nakshatra", title: "달과 나크샤트라 궁합", subtitle: "감정 궁합" },
+  { index: 3, key: "compat_03_chemistry", title: "끌림과 화학작용", subtitle: "금성·화성·라후" },
+  { index: 4, key: "compat_04_communication", title: "대화와 사고방식", subtitle: "수성·목성 상호작용" },
+  { index: 5, key: "compat_05_conflict", title: "갈등 구조", subtitle: "긴장과 회복 지점" },
+  { index: 6, key: "compat_06_trust", title: "안정감과 신뢰", subtitle: "오래 가는 관계인가" },
+  { index: 7, key: "compat_07_marriage", title: "결혼 궁합", subtitle: "7하우스와 나바암샤" },
+  { index: 8, key: "compat_08_reality", title: "돈과 현실 궁합", subtitle: "함께 삶을 운영하는 법" },
+  { index: 9, key: "compat_09_breakup_reunion", title: "이별 위기와 재회", subtitle: "관계 흔들림 대응" },
+  { index: 10, key: "compat_10_timing", title: "두 사람의 다샤 타이밍", subtitle: "관계가 깊어지는 시기" },
+  { index: 11, key: "compat_11_manual", title: "관계를 살리는 실전 전략", subtitle: "관계 운영 매뉴얼" },
+  { index: 12, key: "compat_12_final_letter", title: "카르마의 편지", subtitle: "베다 궁합 결론" },
+];
+const VEDIC_V3_TOTAL_CHAPTERS = 12;
+
+function normalizeVedicV3Mode(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "compatibility" || raw === "compat" || raw === "couple") return "compatibility";
+  return "personal";
+}
+
+function resolveVedicV3Mode(body = {}) {
+  if (body.includeCompatibility === true) return "compatibility";
+  return normalizeVedicV3Mode(body.mode || body.reportMode || body.reportType);
+}
+
+function getVedicV3ChapterMeta(mode = "personal") {
+  return mode === "compatibility" ? VEDIC_V3_COMPAT_CHAPTER_META : VEDIC_V3_PERSONAL_CHAPTER_META;
+}
+
 const VEDIC_TOTAL_CHAPTERS = VEDIC_CHAPTER_META.length;
 const VEDIC_MIN_CHARS = 4000;
 const VEDIC_REPORT_TITLE_PERSONAL = "Professional Edition: 베다 점성술 프리미엄 리포트";
@@ -1117,6 +1234,12 @@ const ASTRO_MAJORS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Sat
 const ASTRO_REPORT_CACHE = new Map();
 const REPORT_SESSION_STORE = new Map();
 const REPORT_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const VEDIC_PREMIUM_V3_REPORT_STORE = new Map();
+const VEDIC_PREMIUM_V3_LOCKS = new Set();
+const VEDIC_PREMIUM_V3_TTL_MS = REPORT_SESSION_TTL_MS;
+const ASTROLOGY_V3_REPORT_STORE = new Map();
+const ASTROLOGY_V3_LOCKS = new Set();
+const ASTROLOGY_V3_TTL_MS = REPORT_SESSION_TTL_MS;
 const PREMIUM_REPORT_CONTEXT_STORE = new Map();
 const PREMIUM_REPORT_CONTEXT_INDEX = new Map();
 const PREMIUM_REPORT_CONTEXT_TTL_MS = REPORT_SESSION_TTL_MS;
@@ -1164,10 +1287,10 @@ const PREMIUM_REPORT_KIND_MAP = {
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 13,
   sookyoPremium: 13,
-  westernAstrologyPremium: 13,
+  westernAstrologyPremium: 12,
   vedicPremium: 13,
   lifeBook: 13,
-  loveSecret: 11,
+  loveSecret: 13,
 };
 
 const FEATURE_TYPE_MAP = {
@@ -3989,19 +4112,23 @@ function buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, 
 
 function buildAstroChapterPlan(canonical) {
   const out = [];
-  const add = (meta) => {
+  const add = (meta, extras = null) => {
     out.push({
       chapter: out.length + 1,
       key: meta.key,
       title: meta.title,
       subtitle: meta.subtitle,
       icon: meta.icon,
+      ...(extras && typeof extras === "object" ? extras : {}),
     });
   };
 
   for (const meta of ASTRO_PERSONAL_CHAPTER_META) {
     if (meta.key === "C10" && (!canonical?.nodes?.northNode || !canonical?.nodes?.southNode)) continue;
-    if (meta.key === "C12" && !canonical?.validation?.hasForecast) continue;
+    if (meta.key === "C12" && !canonical?.validation?.hasForecast) {
+      add(meta, { degraded: true, reasons: ["forecast"] });
+      continue;
+    }
     if (!canonical?.validation?.hasHouses && ["C1", "C3", "C4", "C5", "C6", "C7", "C8"].includes(meta.key)) continue;
     add(meta);
   }
@@ -5123,7 +5250,7 @@ function vedicMissingMarkers(text, chapter) {
     "### 주의 포인트",
   ];
 
-  if (chapter === 10) {
+  if (chapter === 13) {
     required.push("### 1월");
     required.push("### 12월");
     required.push("- 핵심 흐름:");
@@ -5131,7 +5258,7 @@ function vedicMissingMarkers(text, chapter) {
     required.push("- 주의할 점:");
     required.push("- 개운 행동:");
   }
-  if (chapter === 12) {
+  if (chapter === 14) {
     required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
     required.push("| 1~7일 |  |  |  |  |");
     required.push("| 8~30일 |  |  |  |  |");
@@ -5165,11 +5292,11 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context) {
   const chapterGuide = VEDIC_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
   const reportTitle = reportType === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
   const reportSubtitle = reportType === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
-  const monthlyRule = chapter === 10
-    ? "챕터 10에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동을 작성하세요."
+  const monthlyRule = chapter === 13
+    ? "챕터 13에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동을 작성하세요."
     : "";
-  const roadmapRule = chapter === 12
-    ? "챕터 12에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
+  const roadmapRule = chapter === 14
+    ? "챕터 14에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
     : "";
 
   return [
@@ -5230,7 +5357,7 @@ function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, repo
     `품질 메모: ${noteLine}`,
   ];
 
-  if (chapter === 10) {
+  if (chapter === 13) {
     for (let month = 1; month <= 12; month += 1) {
       lines.push(`### ${month}월`);
       lines.push("- 핵심 흐름: 현재 루틴 유지 + 우선순위 1개 집중");
@@ -5240,7 +5367,7 @@ function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, repo
     }
   }
 
-  if (chapter === 12) {
+  if (chapter === 14) {
     lines.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
     lines.push("| 1~7일 |  |  |  |  |");
     lines.push("| 8~30일 |  |  |  |  |");
@@ -7720,6 +7847,357 @@ async function handleVedicLife(request, env) {
   });
 }
 
+function pruneVedicV3Reports() {
+  const now = Date.now();
+  for (const [key, value] of VEDIC_PREMIUM_V3_REPORT_STORE.entries()) {
+    if (!value || Number(value.expiresAt || 0) < now) {
+      VEDIC_PREMIUM_V3_REPORT_STORE.delete(key);
+      VEDIC_PREMIUM_V3_LOCKS.delete(String(key));
+    }
+  }
+}
+
+function sanitizeVedicChapterText(value) {
+  return String(value || "")
+    .replace(/\r/g, "")
+    .replace(/\u0000/g, "")
+    .trim();
+}
+
+function buildVedicV3Summary(text, fallbackTitle) {
+  const source = sanitizeVedicChapterText(text)
+    .replace(/^##\s+.+$/gm, "")
+    .replace(/^###\s+.+$/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!source) return `${String(fallbackTitle || "이 챕터")}: 핵심 해석을 정리했습니다.`;
+  return source.slice(0, 220);
+}
+
+function normalizeVedicV3Sections(text) {
+  const parsed = parseSections(text);
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return [
+      {
+        heading: "핵심 해석",
+        body: sanitizeVedicChapterText(text),
+      },
+    ].filter((row) => row.body);
+  }
+  return parsed
+    .map((row) => ({
+      heading: String(row?.title || "핵심 해석").replace(/^#+\s*/, "").trim(),
+      body: sanitizeVedicChapterText(row?.body || ""),
+    }))
+    .filter((row) => row.heading && row.body)
+    .slice(0, 6);
+}
+
+function normalizeVedicV3ChapterPayload(mode, chapterIndex, chapterText, fallbackMeta, quality = null) {
+  const chapterMetaList = getVedicV3ChapterMeta(mode);
+  const chapterMeta = chapterMetaList[chapterIndex - 1] || fallbackMeta || { index: chapterIndex, key: `chapter_${chapterIndex}`, title: `Chapter ${chapterIndex}`, subtitle: "" };
+  const sections = normalizeVedicV3Sections(chapterText);
+  const summary = buildVedicV3Summary(chapterText, chapterMeta.title);
+  const keyInsights = sections.slice(0, 3).map((section) => section.heading).filter(Boolean);
+  const practicalAdvice = [
+    `${chapterMeta.title}의 핵심 포인트를 오늘 일정에 1개 반영하세요.`,
+    "7일 동안 같은 루틴을 유지하면서 감정/행동 변화를 기록하세요.",
+    "다음 챕터와 연결해 반복 패턴을 한 번 더 교차 점검하세요.",
+  ];
+
+  return {
+    chapterIndex,
+    chapterKey: String(chapterMeta.key || `chapter_${chapterIndex}`),
+    title: String(chapterMeta.title || `Chapter ${chapterIndex}`),
+    subtitle: String(chapterMeta.subtitle || ""),
+    summary,
+    sections,
+    keyInsights,
+    practicalAdvice,
+    quality: quality || null,
+  };
+}
+
+function createVedicV3ReportId(body, mode) {
+  const token = `${mode}|${body.name || "user"}|${body.year || 0}|${body.month || 0}|${body.day || 0}|${Date.now()}|${Math.random().toString(36).slice(2, 8)}`;
+  return `vd3_${stableHash(token)}`;
+}
+
+function getVedicV3Report(reportId) {
+  const id = String(reportId || "").trim();
+  if (!id) return null;
+  pruneVedicV3Reports();
+  const report = VEDIC_PREMIUM_V3_REPORT_STORE.get(id);
+  if (!report) return null;
+  if (Number(report.expiresAt || 0) < Date.now()) {
+    VEDIC_PREMIUM_V3_REPORT_STORE.delete(id);
+    VEDIC_PREMIUM_V3_LOCKS.delete(id);
+    return null;
+  }
+  return report;
+}
+
+function saveVedicV3Report(report) {
+  if (!report || !report.id) return;
+  report.updatedAt = new Date().toISOString();
+  report.expiresAt = Date.now() + VEDIC_PREMIUM_V3_TTL_MS;
+  VEDIC_PREMIUM_V3_REPORT_STORE.set(report.id, report);
+}
+
+async function advanceVedicV3Report(request, env, report) {
+  if (!report || report.status !== "generating") return;
+  const reportId = String(report.id || "");
+  if (!reportId) return;
+  if (VEDIC_PREMIUM_V3_LOCKS.has(reportId)) return;
+
+  VEDIC_PREMIUM_V3_LOCKS.add(reportId);
+  try {
+    const nextChapter = Math.max(1, Number(report.currentChapter || 0) + 1);
+    if (nextChapter > VEDIC_V3_TOTAL_CHAPTERS) {
+      report.status = "completed";
+      report.message = "다운로드 준비 완료";
+      saveVedicV3Report(report);
+      return;
+    }
+
+    const mode = normalizeVedicV3Mode(report.mode);
+    const chapterMetaList = getVedicV3ChapterMeta(mode);
+    const chapterMeta = chapterMetaList[nextChapter - 1] || null;
+
+    const chapterBody = {
+      ...(report.requestBody || {}),
+      mode,
+      reportMode: mode,
+      reportType: mode,
+      includeCompatibility: mode === "compatibility",
+      chapter: nextChapter,
+      sessionId: nextChapter,
+      prepareOnly: false,
+    };
+
+    const chapterRequest = buildInternalPremiumJsonRequest(request, chapterBody);
+    const chapterResponse = await handleVedicLife(chapterRequest, env);
+    const chapterPayload = await chapterResponse.json().catch(() => ({}));
+
+    if (!chapterResponse.ok || !chapterPayload?.ok) {
+      report.status = "failed";
+      report.errorMessage = String(chapterPayload?.message || "베다 챕터 생성에 실패했습니다.");
+      report.message = report.errorMessage;
+      saveVedicV3Report(report);
+      return;
+    }
+
+    const chapterText = sanitizeVedicChapterText(chapterPayload?.text || "");
+    if (!chapterText) {
+      report.status = "failed";
+      report.errorMessage = "생성된 챕터 본문이 비어 있습니다.";
+      report.message = report.errorMessage;
+      saveVedicV3Report(report);
+      return;
+    }
+
+    const normalizedChapter = normalizeVedicV3ChapterPayload(
+      mode,
+      nextChapter,
+      chapterText,
+      chapterMeta,
+      chapterPayload?.quality || null,
+    );
+
+    const chapters = Array.isArray(report.chapters) ? report.chapters.slice() : [];
+    const existingIndex = chapters.findIndex((row) => Number(row?.chapterIndex || 0) === nextChapter);
+    if (existingIndex >= 0) chapters[existingIndex] = normalizedChapter;
+    else chapters.push(normalizedChapter);
+    chapters.sort((a, b) => Number(a?.chapterIndex || 0) - Number(b?.chapterIndex || 0));
+
+    report.chapters = chapters;
+    report.currentChapter = nextChapter;
+    report.message = `${nextChapter} / ${VEDIC_V3_TOTAL_CHAPTERS} 챕터 생성 완료`;
+    if (nextChapter >= VEDIC_V3_TOTAL_CHAPTERS) {
+      report.status = "completed";
+      report.message = "다운로드 준비 완료";
+    }
+    saveVedicV3Report(report);
+  } finally {
+    VEDIC_PREMIUM_V3_LOCKS.delete(reportId);
+  }
+}
+
+async function handleVedicV3Generate(request, env, authInfo) {
+  const body = await readJson(request);
+  const mode = resolveVedicV3Mode(body);
+
+  if (mode === "compatibility") {
+    const hasPartnerBirth = Number.isFinite(Number(body.partnerYear))
+      && Number.isFinite(Number(body.partnerMonth))
+      && Number.isFinite(Number(body.partnerDay));
+    if (!hasPartnerBirth) {
+      return json({ ok: false, code: "PARTNER_BIRTH_REQUIRED", message: "궁합 모드는 상대 생년월일이 필요합니다." }, { status: 422 });
+    }
+  }
+
+  const access = await requirePremiumReportAccess(env, authInfo.userId, "vedicPremium", {
+    ...body,
+    reportMode: mode,
+    mode,
+    reportType: mode,
+    includeCompatibility: mode === "compatibility",
+  });
+  if (!access?.ok) {
+    return json({
+      ok: false,
+      code: access.code || "PAYMENT_REQUIRED",
+      message: access.message || "프리미엄 결제가 필요합니다.",
+      reportType: "vedicPremium",
+      required: access.required || null,
+    }, { status: Number(access.status || 402) });
+  }
+
+  const report = {
+    id: createVedicV3ReportId(body, mode),
+    userId: String(authInfo.userId || ""),
+    mode,
+    status: "generating",
+    currentChapter: 0,
+    totalChapters: VEDIC_V3_TOTAL_CHAPTERS,
+    message: "베다 원본 데이터를 검증하는 중...",
+    requestBody: {
+      ...(body && typeof body === "object" ? body : {}),
+      mode,
+      reportMode: mode,
+      reportType: mode,
+      includeCompatibility: mode === "compatibility",
+    },
+    chapters: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    expiresAt: Date.now() + VEDIC_PREMIUM_V3_TTL_MS,
+  };
+
+  saveVedicV3Report(report);
+  await advanceVedicV3Report(request, env, report);
+
+  return json({
+    ok: true,
+    reportId: report.id,
+    mode: report.mode,
+    status: report.status,
+    currentChapter: report.currentChapter || 1,
+    message: report.message,
+    downloadUrl: report.status === "completed" ? `/api/premium/vedic/download?reportId=${encodeURIComponent(report.id)}` : "",
+  });
+}
+
+async function handleVedicV3Status(request, env, authInfo) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+  }
+
+  const report = getVedicV3Report(reportId);
+  if (!report) {
+    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 404 });
+  }
+  if (String(report.userId || "") !== String(authInfo.userId || "")) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다." }, { status: 401 });
+  }
+
+  await advanceVedicV3Report(request, env, report);
+  const latest = getVedicV3Report(reportId);
+  if (!latest) {
+    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트 세션이 만료되었습니다." }, { status: 404 });
+  }
+
+  const currentChapter = latest.status === "completed"
+    ? VEDIC_V3_TOTAL_CHAPTERS
+    : Math.max(1, Number(latest.currentChapter || 1));
+
+  return json({
+    ok: true,
+    reportId: latest.id,
+    mode: latest.mode,
+    status: latest.status,
+    currentChapter,
+    totalChapters: VEDIC_V3_TOTAL_CHAPTERS,
+    message: latest.message || "베다 챕터를 생성하는 중입니다.",
+    errorMessage: latest.errorMessage || "",
+    downloadUrl: latest.status === "completed" ? `/api/premium/vedic/download?reportId=${encodeURIComponent(latest.id)}` : "",
+    chapters: latest.status === "completed" ? (Array.isArray(latest.chapters) ? latest.chapters : []) : [],
+  });
+}
+
+function buildVedicV3DownloadMarkdown(report) {
+  const title = report.mode === "compatibility" ? "베다 궁합 리포트" : "베다 인생 리포트";
+  const chapters = Array.isArray(report.chapters) ? report.chapters.slice().sort((a, b) => Number(a?.chapterIndex || 0) - Number(b?.chapterIndex || 0)) : [];
+  const parts = [
+    `# ${title}`,
+    `- reportId: ${report.id}`,
+    `- mode: ${report.mode}`,
+    `- generatedAt: ${new Date().toISOString()}`,
+    "",
+  ];
+
+  chapters.forEach((chapter) => {
+    parts.push(`## Chapter ${chapter.chapterIndex}. ${chapter.title}`);
+    if (chapter.subtitle) parts.push(`### ${chapter.subtitle}`);
+    if (chapter.summary) parts.push(chapter.summary);
+    parts.push("");
+
+    (chapter.sections || []).forEach((section) => {
+      parts.push(`#### ${section.heading}`);
+      parts.push(String(section.body || ""));
+      parts.push("");
+    });
+
+    if (Array.isArray(chapter.keyInsights) && chapter.keyInsights.length > 0) {
+      parts.push("#### 핵심 통찰");
+      chapter.keyInsights.forEach((item) => parts.push(`- ${item}`));
+      parts.push("");
+    }
+
+    if (Array.isArray(chapter.practicalAdvice) && chapter.practicalAdvice.length > 0) {
+      parts.push("#### 실천 조언");
+      chapter.practicalAdvice.forEach((item) => parts.push(`- ${item}`));
+      parts.push("");
+    }
+
+    parts.push("---", "");
+  });
+
+  return parts.join("\n");
+}
+
+async function handleVedicV3Download(request, _env, authInfo) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+  }
+
+  const report = getVedicV3Report(reportId);
+  if (!report) {
+    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 404 });
+  }
+  if (String(report.userId || "") !== String(authInfo.userId || "")) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다." }, { status: 401 });
+  }
+  if (String(report.status || "") !== "completed") {
+    return json({ ok: false, code: "REPORT_INCOMPLETE", message: "리포트가 아직 완성되지 않았습니다." }, { status: 422 });
+  }
+
+  const markdown = buildVedicV3DownloadMarkdown(report);
+  const filename = `vedic-${report.mode}-${report.id}.md`;
+  return new Response(markdown, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/markdown; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 const LIFEBOOK_CHAPTERS = [
   "사주 원국 완전 해설",
   "나의 설계도",
@@ -7899,6 +8377,16 @@ const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
     requiredSections: ["개운 데이터 요약표", "나에게 필요한 연애 기운", "줄여야 할 연애 습관", "데이트/공간/말투/연락 처방", "7일 플랜", "30일 플랜", "90일 플랜", "최종 연애 비책 10계명", "핵심 요약 5줄"],
     requiredDataPoints: ["용신", "희신", "기신", "오행 강약", "말투/환경 전략", "관계 루틴", "대운/세운 타이밍"],
   },
+  12: {
+    purpose: "장기 관계 운영 규칙을 구축하고 재발 패턴을 차단",
+    requiredSections: ["운영 데이터 요약표", "역할 분담 기준", "갈등 복구 SLA", "재발 방지 루틴", "관계 에너지 점검표", "핵심 요약 5줄"],
+    requiredDataPoints: ["배우자궁", "십성 분포", "오행 균형", "대운/세운", "생활 리듬", "갈등 트리거"],
+  },
+  13: {
+    purpose: "연애 마스터플랜을 확정하고 90일·1년 실행 체계를 정리",
+    requiredSections: ["최종 데이터 요약표", "관계 핵심 원칙 5가지", "90일 실행 로드맵", "1년 확장 전략", "위기 대응 백업 플랜", "핵심 요약 5줄"],
+    requiredDataPoints: ["전체 챕터 핵심 패턴", "용신/기신", "배우자궁", "합충형파해", "조후/화수 균형", "장기 안정성"],
+  },
 };
 
 function normalizeLoveMode(modeConfigMode) {
@@ -7912,6 +8400,11 @@ function resolveLoveSecretMode(body) {
   if (explicit === "couple" || explicit === "compatibility" || explicit === "compat") return "couple";
   const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2400);
   return partnerData.trim() ? "couple" : "solo";
+}
+
+function normalizeLoveClientMode(mode) {
+  const raw = String(mode || "").toLowerCase();
+  return raw === "compatibility" || raw === "couple" ? "compatibility" : "solo";
 }
 
 function getLoveSecretChapterMinChars(modeConfig, chapter) {
@@ -8666,7 +9159,7 @@ function buildLoveChapterDataSections(canonical, chapter) {
     );
   }
 
-  if (canonical?.mode === "compatibility" && chapter === 10) {
+  if (canonical?.mode === "compatibility" && chapter === 7) {
     sections.push(
       "속궁합 데이터 요약표",
       "나의 친밀감 기후",
@@ -8713,7 +9206,7 @@ function buildLoveChapterPlanning(canonical) {
         "compatibility.intimacyCompatibility"
       );
     }
-    if (canonical?.mode === "compatibility" && i === 10) {
+    if (canonical?.mode === "compatibility" && i === 7) {
       entry.mustUseData = [
         "personA.johu",
         "personB.johu",
@@ -8881,8 +9374,8 @@ function detectLoveMissingMarkers(text, chapter, canonical = null) {
   const required = ["사용 데이터 요약표", "핵심 요약 5줄", ...(spec.requiredSections || [])];
   if (chapter === 5) required.push("대운", "세운", "월별", "|");
   if (canonical?.mode === "compatibility" && chapter === 9) required.push("배우자궁", "배우자성", "안정성");
-  if (canonical?.mode === "compatibility" && chapter === 10) required.push("속궁합", "조후", "친밀");
-  if (canonical?.mode === "compatibility" && chapter === 11) required.push("7일 플랜", "30일 플랜", "90일 플랜");
+  if (canonical?.mode === "compatibility" && chapter === 7) required.push("속궁합", "조후", "친밀");
+  if (canonical?.mode === "compatibility" && chapter === 10) required.push("7일 플랜", "30일 플랜", "90일 플랜");
   return required.filter((token) => !source.includes(token));
 }
 
@@ -8943,7 +9436,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
     "compatibility.johuCompatibility.seasonalCompatibility",
     "compatibility.intimacyCompatibility",
   ];
-  const useIntimacyPayload = canonical?.mode === "compatibility" && chapter === 10;
+  const useIntimacyPayload = canonical?.mode === "compatibility" && chapter === 7;
 
   return {
     chapterTitle: useIntimacyPayload ? "조후로 보는 속궁합과 친밀감의 리듬" : (chapterMeta?.title || `Chapter ${chapter}`),
@@ -9061,14 +9554,14 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
   if (canonical?.mode === "compatibility" && chapter === 9 && (!source.includes("배우자궁") || !source.includes("배우자성") || !source.includes("안정"))) {
     failedChecks.push("QUALITY_GATE_H_CH9_MARRIAGE_ANALYSIS");
   }
-  if (canonical?.mode === "compatibility" && chapter === 10 && (!source.includes("속궁합") || !source.includes("조후") || !source.includes("친밀"))) {
+  if (canonical?.mode === "compatibility" && chapter === 7 && (!source.includes("속궁합") || !source.includes("조후") || !source.includes("친밀"))) {
     failedChecks.push("QUALITY_GATE_I_CH10_INTIMACY");
   }
-  if (canonical?.mode === "compatibility" && chapter === 11 && (!source.includes("7일 플랜") || !source.includes("30일 플랜") || !source.includes("90일 플랜"))) {
+  if (canonical?.mode === "compatibility" && chapter === 10 && (!source.includes("7일 플랜") || !source.includes("30일 플랜") || !source.includes("90일 플랜"))) {
     failedChecks.push("QUALITY_GATE_I_CH10_PLAN");
   }
 
-  if (canonical?.mode === "compatibility" && chapter === 10) {
+  if (canonical?.mode === "compatibility" && chapter === 7) {
     if (source.length < 6000) failedChecks.push("QUALITY_GATE_J_CH7_MIN_LENGTH_6000");
 
     const hasDataTable = /###\s*1\.\s*사용\s*데이터\s*요약표/.test(source) && /\|.+\|.+\|/.test(source);
@@ -9097,7 +9590,7 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
       && !/조후|월지|계절|온도|습윤|건조|용신|희신|기신|일지|합|충|형|파|해|십성/.test(source);
     if (onlyDohwaHongyeom) failedChecks.push("QUALITY_GATE_Q_CH7_NO_SIMPLE_DOHWA_HONGYEOM");
 
-    const plannedSections = canonical?.chapterPlanning?.chapter10?.dataDrivenSections || [];
+    const plannedSections = canonical?.chapterPlanning?.chapter7?.dataDrivenSections || [];
     if (plannedSections.length > 0) {
       const used = plannedSections.filter((s) => source.includes(String(s || "").trim())).length;
       if (used < Math.min(4, plannedSections.length)) failedChecks.push("QUALITY_GATE_R_CH7_PLANNED_SECTIONS");
@@ -9527,6 +10020,142 @@ async function handleLifebookSession(request, env) {
   });
 }
 
+function getStoredReportSession(kind, reportId) {
+  const key = `${kind}:${reportId}`;
+  const entry = REPORT_SESSION_STORE.get(key);
+  if (!entry) return null;
+  if (Number(entry.expiresAt || 0) < Date.now()) {
+    REPORT_SESSION_STORE.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function escapeHtmlForDownload(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildLifebookDownloadHtml(reportId, chapters = []) {
+  const chapterHtml = chapters.map((item) => {
+    const title = escapeHtmlForDownload(item?.chapterMeta?.title || `Chapter ${item?.chapter || ""}`);
+    const subtitle = escapeHtmlForDownload(item?.chapterMeta?.subtitle || "");
+    const body = escapeHtmlForDownload(String(item?.text || "")).replace(/\r?\n/g, "<br>");
+    return [
+      "<section class=\"chapter\">",
+      `<h2>${title}</h2>`,
+      subtitle ? `<p class=\"subtitle\">${subtitle}</p>` : "",
+      `<div class=\"body\">${body}</div>`,
+      "</section>",
+    ].join("\n");
+  }).join("\n");
+
+  return [
+    "<!doctype html>",
+    "<html lang=\"ko\">",
+    "<head>",
+    "<meta charset=\"utf-8\">",
+    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
+    `<title>LifeBook ${escapeHtmlForDownload(reportId)}</title>`,
+    "<style>",
+    "body{font-family:'Noto Sans KR',sans-serif;margin:0;padding:24px;background:#f7f7f8;color:#111}",
+    ".cover{margin-bottom:20px;padding:16px 18px;background:#fff;border-radius:12px;border:1px solid #e5e7eb}",
+    ".chapter{margin:0 0 16px;padding:16px 18px;background:#fff;border-radius:12px;border:1px solid #e5e7eb}",
+    ".chapter h2{margin:0 0 6px;font-size:20px}",
+    ".subtitle{margin:0 0 12px;color:#4b5563}",
+    ".body{line-height:1.72;white-space:normal}",
+    "</style>",
+    "</head>",
+    "<body>",
+    `<section class=\"cover\"><h1>인생의 책</h1><p>reportId: ${escapeHtmlForDownload(reportId)}</p></section>`,
+    chapterHtml,
+    "</body>",
+    "</html>",
+  ].join("\n");
+}
+
+async function handleLifebookGenerate(request, env, _authInfo) {
+  const body = await readJson(request);
+  const reportId = String(body?.reportId || "").trim();
+  const stored = reportId ? getStoredReportSession("lifebook", reportId) : null;
+  const nextChapter = chapterRequestProvided(body)
+    ? clampInt(body.chapter ?? body.sessionId, 1, 1, 13)
+    : clampInt(Object.keys(stored?.chapters || {}).length + 1, 1, 1, 13);
+
+  const payload = {
+    ...body,
+    reportId: reportId || undefined,
+    chapter: nextChapter,
+    sessionId: nextChapter,
+  };
+
+  const proxyRequest = new Request(request.url, {
+    method: "POST",
+    headers: request.headers,
+    body: JSON.stringify(payload),
+  });
+  return handleLifebookSession(proxyRequest, env);
+}
+
+async function handleLifebookStatus(request, _env, _authInfo) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, error: "report_id_required" }, { status: 400 });
+  }
+
+  const entry = getStoredReportSession("lifebook", reportId);
+  if (!entry) {
+    return json({ ok: false, error: "not_found" }, { status: 404 });
+  }
+
+  const includeText = asBool(url.searchParams.get("includeText")) || url.searchParams.get("includeText") === "1";
+  const chapters = Object.values(entry.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0))
+    .map((item) => ({
+      chapter: Number(item?.chapter || 0),
+      chapterMeta: item?.chapterMeta || null,
+      ...(includeText ? { text: String(item?.text || "") } : {}),
+    }));
+
+  const completedChapters = chapters.length;
+  return json({
+    ok: true,
+    reportId,
+    totalChapters: Number(entry.totalChapters || 13),
+    completedChapters,
+    isComplete: completedChapters >= Number(entry.totalChapters || 13),
+    chapters,
+  });
+}
+
+async function handleLifebookDownload(request, _env, _authInfo) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, error: "report_id_required" }, { status: 400 });
+  }
+
+  const entry = getStoredReportSession("lifebook", reportId);
+  if (!entry) {
+    return json({ ok: false, error: "not_found" }, { status: 404 });
+  }
+
+  const chapters = Object.values(entry.chapters || {}).sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+  const html = buildLifebookDownloadHtml(reportId, chapters);
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+}
+
 async function handleLoveSecretSession(request, env) {
   const body = await readJson(request);
   const mode = resolveLoveSecretMode(body);
@@ -9673,6 +10302,242 @@ async function handleLoveSecretSession(request, env) {
       warning: dataState.warning,
     },
     storage,
+  });
+}
+
+function escapeLoveSecretHtml(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderLoveSecretHtml(entry) {
+  const chapters = Object.values(entry?.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+  const mode = normalizeLoveClientMode(entry?.extra?.mode || "solo");
+  const modeLabel = mode === "compatibility" ? "커플 연애 비책" : "연애 비책";
+  const ownerName = String(entry?.extra?.ownerName || "사용자");
+  const chapterHtml = chapters.map((row) => {
+    const chapterNum = Number(row?.chapter || 0);
+    const title = row?.chapterMeta?.title || `Chapter ${chapterNum}`;
+    const subtitle = row?.chapterMeta?.subtitle || "";
+    const body = escapeLoveSecretHtml(String(row?.text || "")).replace(/\r?\n/g, "<br />");
+    return `<section class="chapter"><h2>CHAPTER ${chapterNum}. ${escapeLoveSecretHtml(title)}</h2><p class="subtitle">${escapeLoveSecretHtml(subtitle)}</p><div class="body">${body}</div></section>`;
+  }).join("\n");
+
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeLoveSecretHtml(modeLabel)}</title><style>body{margin:0;background:#fff7fb;color:#1f2937;font-family:"Noto Serif KR","Noto Sans KR",serif}.cover{padding:52px 38px;background:linear-gradient(145deg,#7c2d12,#9d174d 60%,#831843);color:#fff}.cover h1{margin:0 0 6px}.meta{font-size:13px;opacity:.92}.chapter{page-break-before:always;padding:26px 38px;background:#fff;border-top:1px solid #f3d5e5}.chapter h2{margin:0 0 8px;color:#9d174d}.subtitle{margin:0 0 14px;color:#6b7280}.body{line-height:1.84;font-size:15px}.closing{padding:24px 38px 44px;color:#6b7280;font-size:13px;line-height:1.72}@media(max-width:820px){.cover,.chapter,.closing{padding-left:16px;padding-right:16px}}</style></head><body><section class="cover"><h1>${escapeLoveSecretHtml(ownerName)}님의 ${escapeLoveSecretHtml(modeLabel)}</h1><p class="meta">reportId: ${escapeLoveSecretHtml(entry?.reportId || "")}</p><p class="meta">생성일: ${escapeLoveSecretHtml(entry?.updatedAt || entry?.createdAt || "")}</p></section>${chapterHtml}<section class="closing">본 리포트는 사주 기반 해석 정보이며, 개인의 판단을 대신하지 않습니다.</section></body></html>`;
+}
+
+async function handleLoveSecretGenerate(request, env, authInfo) {
+  const body = await readJson(request);
+  const mode = resolveLoveSecretMode(body);
+  const modeConfig = LOVE_SECRET_MODE_CONFIG[mode] || LOVE_SECRET_MODE_CONFIG.solo;
+  const input = buildSessionInput(body, modeConfig.totalChapters);
+  const chapter = input.chapter;
+  const reportId = String(body.reportId || "").trim() || loveSecretReportIdFromInput(body, input, mode);
+  const key = `love-secret:${reportId}`;
+  const now = Date.now();
+
+  const cached = REPORT_SESSION_STORE.get(key);
+  if (cached && Number(cached.expiresAt || 0) < now) {
+    REPORT_SESSION_STORE.delete(key);
+  }
+
+  let entry = REPORT_SESSION_STORE.get(key) || null;
+  const ownerUserId = String(entry?.extra?.ownerUserId || "").trim();
+  if (ownerUserId && ownerUserId !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+
+  if (!entry?.extra?.accessGranted) {
+    const access = await requirePremiumReportAccess(env, authInfo.userId, "loveSecret", {
+      ...body,
+      mode,
+      reportId,
+      chapter,
+      totalChapters: modeConfig.totalChapters,
+    });
+    if (!access.ok) {
+      return json({
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        required: access.required || null,
+      }, { status: Number(access.status || 402) });
+    }
+
+    const touchedAt = new Date(now).toISOString();
+    const seed = entry && typeof entry === "object"
+      ? entry
+      : {
+        kind: "love-secret",
+        reportId,
+        totalChapters: modeConfig.totalChapters,
+        createdAt: touchedAt,
+        chapters: {},
+        extra: {},
+      };
+
+    seed.totalChapters = modeConfig.totalChapters;
+    seed.extra = {
+      ...(seed.extra || {}),
+      ownerUserId: String(authInfo.userId),
+      ownerName: String(body.name || seed.extra?.ownerName || "사용자"),
+      accessGranted: true,
+      accessGrantedAt: String(seed.extra?.accessGrantedAt || touchedAt),
+      mode: normalizeLoveClientMode(mode),
+      reportType: modeConfig.reportType,
+    };
+    seed.updatedAt = touchedAt;
+    seed.expiresAt = now + REPORT_SESSION_TTL_MS;
+    REPORT_SESSION_STORE.set(key, seed);
+    entry = seed;
+  }
+
+  const sessionRequestBody = {
+    ...body,
+    reportId,
+    mode,
+    reportMode: mode,
+    totalChapters: modeConfig.totalChapters,
+    chapter,
+    sessionId: chapter,
+  };
+
+  const sessionRequest = new Request("https://internal.local/api/love-secret/session", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(sessionRequestBody),
+  });
+
+  const sessionResponse = await handleLoveSecretSession(sessionRequest, env);
+  const sessionData = await sessionResponse.json().catch(() => null);
+  if (!sessionResponse.ok || !sessionData?.ok) {
+    return json(
+      sessionData || { ok: false, code: "LOVE_SECRET_GENERATE_FAILED", message: "연애 비책 생성 중 오류가 발생했습니다." },
+      { status: Number(sessionResponse.status || 500) }
+    );
+  }
+
+  const latest = REPORT_SESSION_STORE.get(key);
+  if (latest) {
+    latest.extra = {
+      ...(latest.extra || {}),
+      ownerUserId: String(authInfo.userId),
+      ownerName: String(body.name || latest.extra?.ownerName || "사용자"),
+      accessGranted: true,
+      mode: normalizeLoveClientMode(mode),
+      reportType: modeConfig.reportType,
+    };
+    latest.updatedAt = new Date().toISOString();
+    latest.expiresAt = Date.now() + REPORT_SESSION_TTL_MS;
+    REPORT_SESSION_STORE.set(key, latest);
+  }
+
+  return json({
+    ...sessionData,
+    reportId,
+    mode: normalizeLoveClientMode(mode),
+    totalChapters: modeConfig.totalChapters,
+  });
+}
+
+async function handleLoveSecretStatus(request, env, authInfo) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+  }
+
+  const key = `love-secret:${reportId}`;
+  const entry = REPORT_SESSION_STORE.get(key);
+  if (!entry || Number(entry.expiresAt || 0) < Date.now()) {
+    if (entry) REPORT_SESSION_STORE.delete(key);
+    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const ownerUserId = String(entry?.extra?.ownerUserId || "").trim();
+  if (ownerUserId && ownerUserId !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+
+  const includeTextRaw = String(url.searchParams.get("includeText") || "").toLowerCase();
+  const includeText = includeTextRaw === "1" || includeTextRaw === "true";
+  const chapters = Object.values(entry.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0))
+    .map((row) => {
+      const payload = {
+        chapter: Number(row?.chapter || 0),
+        chapterMeta: row?.chapterMeta || null,
+        updatedAt: String(row?.updatedAt || ""),
+      };
+      if (includeText) payload.text = String(row?.text || "");
+      return payload;
+    });
+
+  entry.updatedAt = new Date().toISOString();
+  entry.expiresAt = Date.now() + REPORT_SESSION_TTL_MS;
+  REPORT_SESSION_STORE.set(key, entry);
+
+  const totalChapters = Number(entry.totalChapters || 13);
+  const completedChapters = chapters.length;
+
+  return json({
+    ok: true,
+    reportId,
+    mode: normalizeLoveClientMode(entry?.extra?.mode || "solo"),
+    totalChapters,
+    completedChapters,
+    isComplete: completedChapters >= totalChapters,
+    chapters,
+    updatedAt: entry.updatedAt,
+    downloadUrl: completedChapters >= totalChapters
+      ? `/api/love-secret/download?reportId=${encodeURIComponent(reportId)}`
+      : undefined,
+  });
+}
+
+async function handleLoveSecretDownload(request, env, authInfo) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+  }
+
+  const key = `love-secret:${reportId}`;
+  const entry = REPORT_SESSION_STORE.get(key);
+  if (!entry || Number(entry.expiresAt || 0) < Date.now()) {
+    if (entry) REPORT_SESSION_STORE.delete(key);
+    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const ownerUserId = String(entry?.extra?.ownerUserId || "").trim();
+  if (ownerUserId && ownerUserId !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+
+  const chapters = Object.values(entry.chapters || {});
+  if (!chapters.length) {
+    return json({ ok: false, code: "REPORT_EMPTY", message: "다운로드 가능한 챕터가 없습니다." }, { status: 409 });
+  }
+
+  entry.updatedAt = new Date().toISOString();
+  entry.expiresAt = Date.now() + REPORT_SESSION_TTL_MS;
+  REPORT_SESSION_STORE.set(key, entry);
+
+  const html = renderLoveSecretHtml(entry);
+  const mode = normalizeLoveClientMode(entry?.extra?.mode || "solo");
+  const filename = `love-secret-${mode}-${reportId}.html`;
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "content-disposition": `attachment; filename=\"${filename}\"`,
+    },
   });
 }
 
@@ -10951,6 +11816,1637 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   });
 }
 
+function pruneAstrologyV3Reports() {
+  const now = Date.now();
+  for (const [key, report] of ASTROLOGY_V3_REPORT_STORE.entries()) {
+    if (!report || Number(report.expiresAt || 0) < now) {
+      ASTROLOGY_V3_REPORT_STORE.delete(key);
+      ASTROLOGY_V3_LOCKS.delete(key);
+    }
+  }
+}
+
+function pickAstroPlanet(canonicalChart, planetName) {
+  const list = Array.isArray(canonicalChart?.planets) ? canonicalChart.planets : [];
+  return list.find((planet) => String(planet?.nameEn || "") === String(planetName || "")) || null;
+}
+
+function splitAstrologyV3Sentences(text) {
+  const source = String(text || "").replace(/\s+/g, " ").trim();
+  if (!source) return [];
+  const chunks = source.match(/[^.!?。！？]+[.!?。！？]?/g) || [];
+  return chunks.map((item) => String(item || "").trim()).filter(Boolean);
+}
+
+function extractAstrologyV3MarkdownSections(text) {
+  const source = String(text || "").trim();
+  if (!source) return [];
+  const parts = source.split(/\n(?=###\s+)/g);
+  const sections = [];
+  for (const part of parts) {
+    const match = String(part || "").trim().match(/^###\s*(.+?)\n([\s\S]*)$/);
+    if (!match) continue;
+    sections.push({
+      heading: String(match[1] || "").trim(),
+      body: String(match[2] || "").trim(),
+    });
+  }
+  return sections;
+}
+
+function extractAstrologyV3ListItems(text) {
+  return String(text || "")
+    .split(/\n+/)
+    .map((line) => String(line || "").trim())
+    .filter((line) => /^[-*]\s+/.test(line))
+    .map((line) => line.replace(/^[-*]\s+/, "").trim())
+    .filter(Boolean);
+}
+
+function buildAstrologyV3FallbackChapter(mode, def, report, reasons = []) {
+  const profile = report?.sourceData?.personalProfile || {};
+  const canonical = report?.sourceData?.natalChart || {};
+  const sun = pickAstroPlanet(canonical, "Sun");
+  const moon = pickAstroPlanet(canonical, "Moon");
+  const asc = canonical?.angles?.ascendant || null;
+  const modeLabel = mode === "compatibility" ? "궁합" : "개인";
+  const reasonText = reasons.length ? ` (${reasons.join(" | ")})` : "";
+
+  return {
+    chapterIndex: Number(def.index),
+    chapterKey: String(def.key),
+    title: String(def.title),
+    subtitle: String(def.subtitle || "보수적 해석 모드"),
+    summary: `${modeLabel} 모드에서 제공된 원본 계산 데이터 기준으로 챕터를 보수적으로 구성했습니다.${reasonText}`,
+    sections: [
+      {
+        heading: "데이터 근거 요약",
+        body: `${String(profile?.name || "사용자")}의 핵심 좌표는 ASC ${String(asc?.sign || "정보 없음")}, 태양 ${String(sun?.sign || "정보 없음")}, 달 ${String(moon?.sign || "정보 없음")}를 중심으로 확인됩니다.`,
+      },
+      {
+        heading: "패턴 해석",
+        body: "해당 챕터는 확인 가능한 하우스/행성/어스펙트만 사용해 해석하며, 누락 데이터는 추측하지 않습니다.",
+      },
+      {
+        heading: "관계/현실 적용",
+        body: "감정 반응과 의사결정 패턴을 실제 생활 장면에 연결하고, 과장 없이 실행 가능한 기준으로 요약합니다.",
+      },
+      {
+        heading: "리스크 및 주의점",
+        body: "긴장 어스펙트에서 반복되는 반응을 경고 신호로 관리하고, 갈등 발생 시 우선순위를 단순화합니다.",
+      },
+      {
+        heading: "실천 전략",
+        body: "7일, 30일, 90일 단위의 작은 루틴을 고정해 변화 지표를 기록하고 다음 업데이트 때 재검증하세요.",
+      },
+    ],
+    keyInsights: [
+      "원본 차트 데이터만 사용해 해석 신뢰도를 유지합니다.",
+      "데이터 부족 시에도 챕터 생성을 중단하지 않고 보수적으로 연결합니다.",
+      "핵심 패턴은 행동 루틴으로 전환할 때 가치가 높아집니다.",
+    ],
+    practicalAdvice: [
+      "핵심 감정 트리거 1개를 기록해 반응 패턴을 추적하세요.",
+      "갈등 시 사용할 짧은 대화 문장을 미리 준비하세요.",
+      "주간 리뷰에서 실행률(%)을 체크해 조정하세요.",
+      "추가 출생 정보 보강 후 재생성해 해석 차이를 비교하세요.",
+    ],
+    usedFallback: true,
+    fallbackReason: reasons.join(" | ") || "FALLBACK_CHAPTER",
+    warnings: Array.isArray(report?.sourceData?.notices) ? report.sourceData.notices : [],
+    rawText: "",
+  };
+}
+
+function buildAstrologyV3ChapterFromMarkdown(mode, def, markdownText, usedFallback, warnings, fallbackReason) {
+  const sectionsFromMarkdown = extractAstrologyV3MarkdownSections(markdownText);
+  const strategySection = sectionsFromMarkdown.find((section) => /실천|전략|가이드/.test(String(section?.heading || "")));
+  const summarySection = sectionsFromMarkdown.find((section) => /요약/.test(String(section?.heading || "")));
+
+  let summary = "";
+  if (summarySection?.body) {
+    summary = splitAstrologyV3Sentences(summarySection.body).slice(0, 2).join(" ").trim();
+  }
+  if (!summary) {
+    const firstBody = sectionsFromMarkdown[0]?.body || "";
+    summary = splitAstrologyV3Sentences(firstBody).slice(0, 2).join(" ").trim();
+  }
+
+  const normalizedSections = sectionsFromMarkdown
+    .filter((section) => !/요약/.test(String(section?.heading || "")))
+    .map((section) => ({
+      heading: String(section.heading || "").trim(),
+      body: String(section.body || "").trim(),
+    }))
+    .filter((section) => section.heading && section.body);
+
+  while (normalizedSections.length < 5) {
+    normalizedSections.push({
+      heading: `보강 섹션 ${normalizedSections.length + 1}`,
+      body: "제공된 차트 데이터 범위에서 보수적으로 정리된 해석입니다. 실행 가능한 작은 행동 단위로 전환해 확인하세요.",
+    });
+  }
+
+  const cappedSections = normalizedSections.slice(0, 6);
+  const summarySentences = splitAstrologyV3Sentences(summary).filter(Boolean);
+  const keyInsights = summarySentences.slice(0, 3);
+  while (keyInsights.length < 3) {
+    keyInsights.push(`${def.title}의 핵심 패턴을 실제 행동 기준으로 정리하세요.`);
+  }
+
+  let advice = extractAstrologyV3ListItems(strategySection?.body || "");
+  if (advice.length < 4) {
+    advice = advice.concat(splitAstrologyV3Sentences(strategySection?.body || "").slice(0, 4 - advice.length));
+  }
+  while (advice.length < 4) {
+    advice.push("작은 루틴을 정해 7일간 반복하고 체감 변화를 기록하세요.");
+  }
+
+  return {
+    chapterIndex: Number(def.index),
+    chapterKey: String(def.key),
+    title: String(def.title),
+    subtitle: String(def.subtitle || ""),
+    summary: summary || `${def.title} 핵심 요약`,
+    sections: cappedSections,
+    keyInsights: keyInsights.slice(0, 3),
+    practicalAdvice: advice.slice(0, 4),
+    usedFallback: Boolean(usedFallback),
+    fallbackReason: String(fallbackReason || ""),
+    warnings: Array.isArray(warnings) ? warnings : [],
+    rawText: String(markdownText || "").trim(),
+  };
+}
+
+function validateAstrologyV3Chapter(chapter) {
+  const errors = [];
+  if (!chapter || typeof chapter !== "object") errors.push("chapter-missing");
+  if (!String(chapter?.title || "").trim()) errors.push("title-empty");
+  if (String(chapter?.summary || "").trim().length < 80) errors.push("summary-too-short");
+  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+  if (sections.length < 5 || sections.length > 6) errors.push("sections-size-invalid");
+  sections.forEach((section, index) => {
+    if (String(section?.body || "").trim().length < 90) errors.push(`section-body-short-${index + 1}`);
+  });
+  if (!Array.isArray(chapter?.keyInsights) || chapter.keyInsights.length !== 3) errors.push("insights-size-invalid");
+  if (!Array.isArray(chapter?.practicalAdvice) || chapter.practicalAdvice.length !== 4) errors.push("advice-size-invalid");
+  return { ok: errors.length === 0, errors };
+}
+
+function upsertAstrologyV3Chapter(report, chapter) {
+  const chapters = Array.isArray(report.chapters) ? report.chapters.slice() : [];
+  const targetIndex = chapters.findIndex((item) => Number(item.chapterIndex) === Number(chapter.chapterIndex));
+  if (targetIndex >= 0) chapters[targetIndex] = chapter;
+  else chapters.push(chapter);
+  chapters.sort((a, b) => Number(a.chapterIndex || 0) - Number(b.chapterIndex || 0));
+  report.chapters = chapters;
+}
+
+function validateAstrologyV3FullReport(mode, chapters) {
+  const defs = getAstrologyV3ChapterDefs(mode);
+  const list = Array.isArray(chapters) ? chapters : [];
+  const errors = [];
+  if (list.length !== ASTROLOGY_V3_TOTAL_CHAPTERS) errors.push("chapter-count-not-12");
+
+  defs.forEach((def) => {
+    const chapter = list.find((item) => Number(item?.chapterIndex) === Number(def.index));
+    if (!chapter) {
+      errors.push(`missing-chapter-${def.index}`);
+      return;
+    }
+    if (String(chapter.chapterKey || "") !== String(def.key)) errors.push(`chapter-key-mismatch-${def.index}`);
+    const validation = validateAstrologyV3Chapter(chapter);
+    if (!validation.ok) {
+      validation.errors.forEach((err) => errors.push(`chapter-${def.index}:${err}`));
+    }
+  });
+
+  return {
+    ok: errors.length === 0,
+    errors,
+  };
+}
+
+function escapeAstrologyV3Html(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderAstrologyV3Html(report) {
+  const modeLabel = report.mode === "compatibility" ? "점성술 궁합 리포트" : "점성술 개인 리포트";
+  const chapters = (Array.isArray(report.chapters) ? report.chapters : [])
+    .slice()
+    .sort((a, b) => Number(a.chapterIndex || 0) - Number(b.chapterIndex || 0));
+  const notices = Array.isArray(report?.sourceData?.notices) ? report.sourceData.notices : [];
+
+  const chapterHtml = chapters.map((chapter) => {
+    const sections = (Array.isArray(chapter.sections) ? chapter.sections : []).map((section) => (
+      `<h4>${escapeAstrologyV3Html(section.heading)}</h4><p>${escapeAstrologyV3Html(section.body)}</p>`
+    )).join("");
+    const insights = (Array.isArray(chapter.keyInsights) ? chapter.keyInsights : []).map((item) => `<li>${escapeAstrologyV3Html(item)}</li>`).join("");
+    const advice = (Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : []).map((item) => `<li>${escapeAstrologyV3Html(item)}</li>`).join("");
+    return `<section class=\"chapter\"><h2>Ch.${chapter.chapterIndex} ${escapeAstrologyV3Html(chapter.title)}</h2><p class=\"subtitle\">${escapeAstrologyV3Html(chapter.subtitle || "")}</p><p class=\"summary\">${escapeAstrologyV3Html(chapter.summary || "")}</p>${sections}<div class=\"lists\"><div><h5>핵심 통찰</h5><ul>${insights}</ul></div><div><h5>실천 조언</h5><ul>${advice}</ul></div></div></section>`;
+  }).join("\n");
+
+  const noticeHtml = notices.length
+    ? `<section class=\"notice\"><h3>해석 참고 안내</h3><ul>${notices.map((notice) => `<li>${escapeAstrologyV3Html(notice)}</li>`).join("")}</ul></section>`
+    : "";
+
+  return `<!doctype html><html lang=\"ko\"><head><meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /><title>${escapeAstrologyV3Html(modeLabel)}</title><style>body{font-family:\"Noto Serif KR\",\"Noto Sans KR\",serif;margin:0;background:#f6f4ef;color:#111827}.cover{padding:52px 42px;background:linear-gradient(150deg,#1f2937,#111827 55%,#312e81);color:#f9fafb}.meta{padding:18px 42px;background:#fff7ed;border-bottom:1px solid #e5e7eb}.notice{margin:18px 42px;background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:14px 16px}.notice h3{margin:0 0 8px;color:#92400e}.chapter{page-break-before:always;padding:30px 42px;background:#fff;border-top:1px solid #e5e7eb}.chapter h2{margin:0 0 8px;color:#7c2d12}.chapter h4{margin:16px 0 8px}.chapter p{margin:0 0 10px;line-height:1.82}.summary{font-weight:600}.lists{display:grid;grid-template-columns:1fr 1fr;gap:14px}.lists h5{margin:0 0 8px;color:#92400e}ul{margin:0;padding-left:18px;line-height:1.72}@media(max-width:820px){.cover,.meta,.chapter{padding-left:18px;padding-right:18px}.notice{margin-left:18px;margin-right:18px}.lists{grid-template-columns:1fr}}</style></head><body><section class=\"cover\"><h1>Astrology Premium Report</h1><p>${escapeAstrologyV3Html(modeLabel)}</p><p>reportId: ${escapeAstrologyV3Html(report.id)}</p><p>생성일: ${escapeAstrologyV3Html(report.updatedAt || report.createdAt || "")}</p></section><section class=\"meta\"><strong>모드:</strong> ${escapeAstrologyV3Html(modeLabel)}</section>${noticeHtml}${chapterHtml}</body></html>`;
+}
+
+function buildAstrologyV3StatusPayload(report, includeChapters = false) {
+  const defs = getAstrologyV3ChapterDefs(report.mode);
+  const payload = {
+    ok: true,
+    reportId: report.id,
+    mode: report.mode,
+    status: report.status,
+    chapterCount: defs.length,
+    currentChapter: Number(report.currentChapter || 0),
+    totalChapters: defs.length,
+    message: String(report.message || ""),
+    downloadUrl: report.status === "completed"
+      ? `/api/premium/astrology/download?reportId=${encodeURIComponent(report.id)}`
+      : undefined,
+    errorMessage: report.status === "failed" ? String(report.errorMessage || "리포트 생성 실패") : undefined,
+  };
+  if (includeChapters) payload.chapters = toPlainObject(report.chapters || []);
+  return payload;
+}
+
+function getAstrologyV3GenerationMessage(mode, chapterIndex) {
+  const defs = getAstrologyV3ChapterDefs(mode);
+  const chapter = defs.find((item) => Number(item.index) === Number(chapterIndex));
+  if (!chapter) return "점성술 챕터를 작성하는 중입니다.";
+  if (mode === "compatibility" && chapterIndex === 3) return "두 사람의 끌림 패턴을 분석하는 중입니다.";
+  if (chapterIndex === 1) return "차트 핵심 좌표를 정리하는 중입니다.";
+  if (chapterIndex === ASTROLOGY_V3_TOTAL_CHAPTERS) return "최종 운영 전략을 정리하는 중입니다.";
+  return `${chapter.index}장 원고를 작성하는 중입니다.`;
+}
+
+function buildAstrologyV3ReportId(userId, mode, input, partnerInput, profileId = "") {
+  const seed = [
+    "astrology-premium-v3",
+    String(userId || ""),
+    String(profileId || ""),
+    mode,
+    input.year,
+    input.month,
+    input.day,
+    input.hour,
+    input.minute,
+    input.lat,
+    input.lon,
+    partnerInput ? `${partnerInput.year}|${partnerInput.month}|${partnerInput.day}|${partnerInput.hour}|${partnerInput.minute}` : "",
+  ].join("|");
+  return `astrov3_${stableHash(seed)}`;
+}
+
+function buildAstrologyV3PromptPack(report, def) {
+  const canonical = report?.sourceData?.natalChart || {};
+  const sun = pickAstroPlanet(canonical, "Sun");
+  const moon = pickAstroPlanet(canonical, "Moon");
+  const venus = pickAstroPlanet(canonical, "Venus");
+  const mars = pickAstroPlanet(canonical, "Mars");
+  const saturn = pickAstroPlanet(canonical, "Saturn");
+  const transits = Array.isArray(canonical?.forecast?.transits) ? canonical.forecast.transits.slice(0, 16) : [];
+  const synastryAspects = Array.isArray(report?.synastry?.aspects) ? report.synastry.aspects.slice(0, 20) : [];
+
+  return {
+    chapterCore: {
+      chapterId: Number(def.index),
+      chapterKey: def.key,
+      chapterTitle: def.title,
+      mode: report.mode,
+    },
+    signals: {
+      ascendant: canonical?.angles?.ascendant || null,
+      mc: canonical?.angles?.mc || null,
+      sun: sun || null,
+      moon: moon || null,
+      venus: venus || null,
+      mars: mars || null,
+      saturn: saturn || null,
+      nodes: canonical?.nodes || null,
+      elementBalance: canonical?.chartBalance?.elements || null,
+      modalityBalance: canonical?.chartBalance?.modalities || null,
+    },
+    timing: {
+      transits,
+    },
+    actions: {
+      houses: Array.isArray(canonical?.houses) ? canonical.houses.slice(0, 12) : [],
+      aspects: Array.isArray(canonical?.aspects) ? canonical.aspects.slice(0, 24) : [],
+      synastryAspects,
+      composite: report?.composite || null,
+    },
+  };
+}
+
+async function processAstrologyV3Step(request, env, reportId) {
+  const report = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  if (!report) return null;
+  if (report.status === "completed") return report;
+  if (ASTROLOGY_V3_LOCKS.has(reportId)) return report;
+
+  ASTROLOGY_V3_LOCKS.add(reportId);
+  try {
+    report.status = "generating";
+    const defs = getAstrologyV3ChapterDefs(report.mode);
+    const nextIndex = Math.max(1, Number(report.currentChapter || 0) + 1);
+
+    if (nextIndex <= defs.length) {
+      const def = defs[nextIndex - 1];
+      report.message = getAstrologyV3GenerationMessage(report.mode, def.index);
+      report.updatedAt = new Date().toISOString();
+      report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+      ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+
+      const attemptLimit = 3;
+      let chapter = null;
+      let lastErrors = [];
+
+      for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
+        try {
+          const chapterBody = {
+            name: report?.sourceData?.personalProfile?.name || "사용자",
+            gender: report?.sourceData?.personalProfile?.gender || "",
+            previousChapterTexts: (Array.isArray(report.chapters) ? report.chapters : []).map((item) => String(item?.rawText || "")).filter(Boolean).slice(-4),
+            _premiumLlmInput: {
+              chapterJsonPacks: buildAstrologyV3PromptPack(report, def),
+            },
+          };
+
+          const generated = await generateAstroPremiumChapter(
+            env,
+            chapterBody,
+            report.primaryInput,
+            Number(def.index),
+            { key: def.key, title: def.title, subtitle: def.subtitle },
+            report.primaryChart,
+            report.mode === "compatibility" ? "compatibility" : "personal",
+            report.partnerChart || null,
+            report.synastry || null,
+            report.composite || null,
+            report.timingData || null,
+          );
+
+          const structured = buildAstrologyV3ChapterFromMarkdown(
+            report.mode,
+            def,
+            generated?.text || "",
+            Boolean(generated?.usedFallback),
+            generated?.warnings || [],
+            "",
+          );
+          const validation = validateAstrologyV3Chapter(structured);
+          if (!validation.ok) {
+            lastErrors = validation.errors;
+            continue;
+          }
+
+          chapter = structured;
+          break;
+        } catch (error) {
+          lastErrors = [String(error?.message || "ASTROLOGY_V3_CHAPTER_FAILED")];
+        }
+      }
+
+      if (!chapter) {
+        chapter = buildAstrologyV3FallbackChapter(report.mode, def, report, lastErrors);
+      }
+
+      upsertAstrologyV3Chapter(report, chapter);
+      report.currentChapter = Number(def.index);
+      report.chapterWarnings[String(def.index)] = Array.isArray(chapter.warnings) ? chapter.warnings : [];
+      report.chapterFallbacks[String(def.index)] = Boolean(chapter.usedFallback);
+      report.updatedAt = new Date().toISOString();
+      report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+      ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+    }
+
+    if (Number(report.currentChapter || 0) >= defs.length) {
+      report.message = ASTROLOGY_V3_STATUS_MESSAGES.rendering;
+      const chapterMap = new Map((report.chapters || []).map((chapter) => [Number(chapter.chapterIndex), chapter]));
+      report.chapters = defs.map((def) => {
+        const existing = chapterMap.get(def.index);
+        if (!existing) return buildAstrologyV3FallbackChapter(report.mode, def, report, ["missing-final-chapter"]);
+        const valid = validateAstrologyV3Chapter(existing);
+        return valid.ok ? existing : buildAstrologyV3FallbackChapter(report.mode, def, report, valid.errors || ["invalid-final-chapter"]);
+      });
+
+      report.validation = validateAstrologyV3FullReport(report.mode, report.chapters);
+      report.status = "completed";
+      report.message = ASTROLOGY_V3_STATUS_MESSAGES.completed;
+      report.html = renderAstrologyV3Html(report);
+      report.updatedAt = new Date().toISOString();
+      report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+      ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+    }
+
+    return report;
+  } catch (error) {
+    report.status = "failed";
+    report.errorMessage = String(error?.message || "점성술 프리미엄 리포트 생성 중 오류");
+    report.message = "리포트 생성 실패";
+    report.updatedAt = new Date().toISOString();
+    report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+    ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+    return report;
+  } finally {
+    ASTROLOGY_V3_LOCKS.delete(reportId);
+  }
+}
+
+async function handleAstrologyV3Generate(request, env, authInfo) {
+  pruneAstrologyV3Reports();
+  const body = await readJson(request);
+  const mode = normalizeAstrologyV3Mode(body.mode || body.reportMode || body.reportType);
+  const forceRegenerate = asBool(body.forceRegenerate);
+  const profileId = String(body.profileId || "").trim();
+
+  const primaryRaw = body.birthData && typeof body.birthData === "object" ? body.birthData : body;
+  const primaryInput = normalizeBody({
+    ...body,
+    ...primaryRaw,
+    lat: primaryRaw?.lat ?? primaryRaw?.latitude ?? body?.lat ?? body?.latitude,
+    lon: primaryRaw?.lon ?? primaryRaw?.lng ?? primaryRaw?.longitude ?? body?.lon ?? body?.lng ?? body?.longitude,
+  });
+
+  if (!Number.isFinite(Number(primaryInput.year)) || !Number.isFinite(Number(primaryInput.month)) || !Number.isFinite(Number(primaryInput.day))) {
+    return json({ ok: false, code: "INVALID_BIRTH_DATA", message: "생년월일 데이터가 필요합니다." }, { status: 400 });
+  }
+
+  const partnerRaw = body.partnerBirthData && typeof body.partnerBirthData === "object"
+    ? body.partnerBirthData
+    : {
+      name: body.partnerName,
+      gender: body.partnerGender,
+      year: body.partnerYear,
+      month: body.partnerMonth,
+      day: body.partnerDay,
+      hour: body.partnerHour,
+      minute: body.partnerMinute,
+      lat: body.partnerLat,
+      lon: body.partnerLon ?? body.partnerLng,
+    };
+
+  const hasPartnerBirth = Number.isFinite(Number(partnerRaw?.year))
+    && Number.isFinite(Number(partnerRaw?.month))
+    && Number.isFinite(Number(partnerRaw?.day));
+
+  if (mode === "compatibility" && !hasPartnerBirth) {
+    return json({ ok: false, code: "PARTNER_BIRTH_REQUIRED", message: "궁합 모드는 상대방 생년월일이 필요합니다." }, { status: 400 });
+  }
+
+  const partnerInput = mode === "compatibility"
+    ? normalizeBody({
+      ...partnerRaw,
+      lat: partnerRaw?.lat ?? partnerRaw?.latitude ?? primaryInput.lat,
+      lon: partnerRaw?.lon ?? partnerRaw?.lng ?? partnerRaw?.longitude ?? primaryInput.lon,
+      timezone: partnerRaw?.timezone ?? primaryInput.timezone,
+    })
+    : null;
+
+  const reportId = buildAstrologyV3ReportId(authInfo.userId, mode, primaryInput, partnerInput, profileId);
+  const existing = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  if (existing && !forceRegenerate) {
+    if (String(existing.userId) !== String(authInfo.userId)) {
+      return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+    }
+    if (existing.status === "failed") {
+      existing.status = "generating";
+      existing.message = "재시도 중";
+      existing.errorMessage = "";
+      existing.updatedAt = new Date().toISOString();
+      existing.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+      ASTROLOGY_V3_REPORT_STORE.set(reportId, existing);
+    }
+    await processAstrologyV3Step(request, env, reportId);
+    return json(buildAstrologyV3StatusPayload(ASTROLOGY_V3_REPORT_STORE.get(reportId) || existing, false));
+  }
+
+  const access = await requirePremiumReportAccess(env, authInfo.userId, "westernAstrologyPremium", { ...body, mode });
+  if (!access.ok) {
+    return json({
+      ok: false,
+      code: access.code || "PAYMENT_REQUIRED",
+      message: access.message || "프리미엄 결제가 필요합니다.",
+      required: access.required || null,
+    }, { status: Number(access.status || 402) });
+  }
+
+  const chartOptions = {
+    houseSystem: String(body.houseSystem || primaryRaw.houseSystem || "placidus").toLowerCase(),
+    zodiacType: String(body.zodiacType || primaryRaw.zodiacType || "tropical").toLowerCase(),
+    includeMinorAspects: true,
+  };
+
+  const primaryRawChart = await getSwissWesternChart(request, env, primaryInput, { strict: false });
+  const primaryChart = buildWesternPremiumChart(primaryRawChart, { ...primaryInput, ...chartOptions }, chartOptions);
+
+  let partnerChart = null;
+  let synastry = null;
+  let composite = null;
+  if (mode === "compatibility" && partnerInput) {
+    const partnerRawChart = await getSwissWesternChart(request, env, partnerInput, { strict: false });
+    partnerChart = buildWesternPremiumChart(partnerRawChart, { ...partnerInput, ...chartOptions }, chartOptions);
+    synastry = buildSynastry(primaryChart, partnerChart);
+    composite = buildCompositeChart(primaryChart, partnerChart, chartOptions.houseSystem);
+  }
+
+  let timingData = null;
+  try {
+    timingData = await buildAstroTimingData(request, env, { ...primaryInput, ...chartOptions }, primaryChart);
+  } catch (_) {
+    timingData = null;
+  }
+
+  const partnerCanonical = partnerChart
+    ? buildCanonicalAstroChart(partnerRaw, partnerInput, partnerChart, "personal", null, null, null, null)
+    : null;
+  const canonicalAstroChart = buildCanonicalAstroChart(body, primaryInput, primaryChart, mode, partnerCanonical, synastry, composite, timingData);
+  const strictValidation = validateCanonicalAstroChartStrict(canonicalAstroChart);
+
+  const notices = [];
+  if (!hasPreciseBirthTime(primaryRaw)) notices.push(ASTRO_NO_BIRTHTIME_NOTICE);
+  if (mode === "compatibility" && partnerRaw && !hasPreciseBirthTime(partnerRaw)) {
+    notices.push("상대방 출생 시간이 없어 일부 하우스/각도 기반 궁합 해석은 보수적으로 처리되었습니다.");
+  }
+  if (!strictValidation.isValid) notices.push(ASTRO_MISSING_DATA_NOTICE);
+
+  const report = {
+    id: reportId,
+    userId: String(authInfo.userId),
+    profileId: profileId || undefined,
+    reportType: "astrology-premium",
+    mode,
+    status: "pending",
+    message: ASTROLOGY_V3_STATUS_MESSAGES.preparing,
+    errorMessage: "",
+    currentChapter: 0,
+    chapters: [],
+    chapterWarnings: {},
+    chapterFallbacks: {},
+    html: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    expiresAt: Date.now() + ASTROLOGY_V3_TTL_MS,
+    primaryInput,
+    partnerInput,
+    primaryChart,
+    partnerChart,
+    synastry,
+    composite,
+    timingData,
+    sourceData: {
+      mode,
+      notices,
+      validation: strictValidation,
+      personalProfile: {
+        name: String(body.name || primaryRaw.name || "사용자"),
+        gender: String(body.gender || primaryRaw.gender || ""),
+      },
+      partnerProfile: mode === "compatibility"
+        ? {
+          name: String(partnerRaw?.name || body.partnerName || "상대"),
+          gender: String(partnerRaw?.gender || body.partnerGender || ""),
+        }
+        : null,
+      natalChart: canonicalAstroChart,
+      partnerNatalChart: partnerCanonical,
+      synastry,
+      composite,
+      timingData,
+    },
+  };
+
+  ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+  await processAstrologyV3Step(request, env, reportId);
+
+  return json(buildAstrologyV3StatusPayload(ASTROLOGY_V3_REPORT_STORE.get(reportId) || report, false));
+}
+
+async function handleAstrologyV3Status(request, env, authInfo) {
+  pruneAstrologyV3Reports();
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+
+  const report = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
+  if (String(report.userId) !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+
+  if (report.status === "pending" || report.status === "generating") {
+    await processAstrologyV3Step(request, env, reportId);
+  }
+
+  const includeChapters = String(url.searchParams.get("includeChapters") || "") === "1";
+  const latest = ASTROLOGY_V3_REPORT_STORE.get(reportId) || report;
+  return json(buildAstrologyV3StatusPayload(latest, includeChapters));
+}
+
+async function handleAstrologyV3Download(request, env, authInfo) {
+  pruneAstrologyV3Reports();
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+
+  const report = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
+  if (String(report.userId) !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+  if (report.status !== "completed") {
+    return json({ ok: false, code: "REPORT_NOT_COMPLETED", message: "리포트 생성이 완료되지 않았습니다." }, { status: 409 });
+  }
+
+  const html = String(report.html || renderAstrologyV3Html(report));
+  report.html = html;
+  report.updatedAt = new Date().toISOString();
+  report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+  ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+
+  const filename = `astrology-premium-${report.mode}-${report.id}.html`;
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "content-disposition": `attachment; filename=\"${filename}\"`,
+    },
+  });
+}
+
+function parseZiweiV3Json(raw) {
+  const source = String(raw || "")
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+  if (!source) return null;
+  try {
+    return JSON.parse(source);
+  } catch (_) {}
+  const start = source.indexOf("{");
+  const end = source.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    try {
+      return JSON.parse(source.slice(start, end + 1));
+    } catch (_) {}
+  }
+  return null;
+}
+
+function normalizeZiweiV3StringList(value) {
+  return (Array.isArray(value) ? value : [])
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+}
+
+function normalizeZiweiV3Chapter(def, raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const sections = (Array.isArray(source.sections) ? source.sections : [])
+    .map((item, idx) => ({
+      heading: String(item?.heading || item?.title || `섹션 ${idx + 1}`).trim(),
+      body: String(item?.body || "").trim(),
+    }))
+    .filter((item) => item.heading && item.body);
+
+  return {
+    chapterIndex: Number(source.chapterIndex || def.index),
+    chapterKey: String(source.chapterKey || def.key).trim(),
+    title: String(source.title || def.title).trim(),
+    subtitle: String(source.subtitle || "").trim(),
+    summary: String(source.summary || "").trim(),
+    sections,
+    keyInsights: normalizeZiweiV3StringList(source.keyInsights),
+    practicalAdvice: normalizeZiweiV3StringList(source.practicalAdvice),
+  };
+}
+
+function validateZiweiV3Chapter(mode, def, chapter) {
+  const errors = [];
+  if (!chapter || typeof chapter !== "object") errors.push("chapter-object-missing");
+  if (Number(chapter?.chapterIndex) !== Number(def.index)) errors.push("chapter-index-mismatch");
+  if (String(chapter?.chapterKey || "") !== String(def.key)) errors.push("chapter-key-mismatch");
+  if (!String(chapter?.title || "").trim()) errors.push("title-empty");
+
+  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+  if (sections.length < 3) errors.push("sections-too-few");
+  sections.forEach((section, idx) => {
+    if (String(section?.body || "").trim().length < ZIWEI_PREMIUM_V3_MIN_SECTION_BODY_CHARS) {
+      errors.push(`section-body-short-${idx + 1}`);
+    }
+  });
+
+  if ((chapter?.keyInsights || []).length < 3) errors.push("key-insights-too-few");
+  if ((chapter?.practicalAdvice || []).length < 3) errors.push("practical-advice-too-few");
+
+  const keySet = new Set(getZiweiV3ChapterDefs(mode).map((item) => item.key));
+  if (!keySet.has(String(chapter?.chapterKey || ""))) errors.push("chapter-key-out-of-mode");
+
+  const hallucinationPattern = /임의\s*계산|새로\s*계산|없는\s*데이터를\s*추정|추정값으로\s*계산/;
+  if (hallucinationPattern.test(String(chapter?.summary || ""))) errors.push("hallucination-pattern");
+
+  return { ok: errors.length === 0, errors };
+}
+
+function buildZiweiV3FallbackChapter(mode, def, reasons = []) {
+  const reasonText = reasons.length ? `(${reasons.join(", ")})` : "";
+  const modeLabel = mode === "compatibility" ? "궁합" : "개인";
+  return {
+    chapterIndex: def.index,
+    chapterKey: def.key,
+    title: def.title,
+    subtitle: "보수적 해석 모드",
+    summary: `${modeLabel} 모드 원본 자미두수 계산 데이터 기준으로 보수적으로 작성했습니다. ${reasonText}`.trim(),
+    sections: [
+      {
+        heading: "원본 데이터 기준 해석",
+        body: "이 장은 기존 자미두수 엔진이 제공한 명반 JSON만 사용했습니다. 없는 데이터는 임의 생성하지 않고 확인 가능한 궁위/별/사화 중심으로 해석합니다.",
+      },
+      {
+        heading: "핵심 관찰",
+        body: "데이터가 제한적인 영역은 단정형 길흉 대신 보수적 문장으로 정리하고, 명궁·신궁·12궁의 연결 구조를 우선으로 해석합니다.",
+      },
+      {
+        heading: "실행 전략",
+        body: "이번 장의 핵심 문장을 7일 실행 규칙으로 바꿔 적용하세요. 추가 데이터가 확보되면 같은 챕터를 재생성해 정밀도를 높일 수 있습니다.",
+      },
+    ],
+    keyInsights: [
+      "자미두수 계산은 기존 엔진 결과만 사용합니다.",
+      "데이터가 부족해도 챕터 생성을 중단하지 않습니다.",
+      "보수적 해석은 실행 가능한 문장 중심으로 유지됩니다.",
+    ],
+    practicalAdvice: [
+      "이번 장의 행동 한 가지를 7일간 고정 실행하세요.",
+      "반복되는 패턴을 짧게 기록해 다음 생성 입력으로 사용하세요.",
+      "출생시/상대 데이터 보강 후 재생성해 해석 차이를 비교하세요.",
+    ],
+  };
+}
+
+function truncateJsonForPrompt(value, limit = 28000) {
+  const raw = JSON.stringify(toPlainObject(value || {}));
+  if (raw.length <= limit) return raw;
+  return `${raw.slice(0, limit)}...TRUNCATED_FOR_TOKEN_SAFETY`;
+}
+
+function buildZiweiV3Prompt(report, def) {
+  const previousSummaries = (report.chapters || [])
+    .map((chapter) => ({
+      chapterIndex: chapter.chapterIndex,
+      chapterKey: chapter.chapterKey,
+      summary: chapter.summary,
+    }))
+    .sort((a, b) => a.chapterIndex - b.chapterIndex)
+    .slice(0, def.index - 1);
+
+  const sourceData = truncateJsonForPrompt(report.sourceData, 30000);
+
+  return [
+    "너는 30년 경력의 자미두수 전문가이자 프리미엄 자미두수 PDF 원고 작가다.",
+    "아래 제공되는 자미두수 명반 계산 JSON과 궁합 계산 JSON만 근거로 해석하라.",
+    "자미두수 명반을 임의로 새로 계산하지 마라.",
+    "명궁, 신궁, 12궁, 주성, 보성, 살성, 사화, 대운, 유년을 임의로 만들지 마라.",
+    "궁합 점수나 관계 구조를 임의로 계산하지 마라.",
+    "없는 데이터는 지어내지 마라. 데이터가 부족하면 보수적으로 표현하라.",
+    "무주성 궁은 대궁, 삼방사정, 보성·살성 데이터를 활용해 보수적으로 해석하라.",
+    "사화 정보가 없으면 화록·화권·화과·화기를 임의로 만들지 마라.",
+    "반드시 JSON 형식으로만 응답하라. 마크다운 코드블록은 금지한다.",
+    `mode: ${report.mode}`,
+    `chapterIndex: ${def.index}`,
+    `chapterKey: ${def.key}`,
+    `title: ${def.title}`,
+    "[이전 챕터 요약]",
+    JSON.stringify(previousSummaries),
+    "[원본 계산 JSON]",
+    sourceData,
+    "응답 JSON 스키마:",
+    JSON.stringify({
+      chapterIndex: def.index,
+      chapterKey: def.key,
+      title: def.title,
+      subtitle: "소제목",
+      summary: "챕터 요약",
+      sections: [
+        { heading: "섹션 제목", body: "본문" },
+        { heading: "섹션 제목", body: "본문" },
+        { heading: "섹션 제목", body: "본문" },
+      ],
+      keyInsights: ["핵심 통찰 1", "핵심 통찰 2", "핵심 통찰 3"],
+      practicalAdvice: ["실천 조언 1", "실천 조언 2", "실천 조언 3"],
+    }),
+  ].join("\n");
+}
+
+async function generateZiweiV3Chapter(env, report, def) {
+  const warnings = [];
+  for (let attempt = 1; attempt <= ZIWEI_PREMIUM_V3_MAX_RETRIES; attempt += 1) {
+    const prompt = buildZiweiV3Prompt(report, def);
+    const requestId = `ziweiv3_${report.id}_ch${def.index}_a${attempt}`;
+    const result = await generateWithGemini(env, prompt, {
+      modelEnvKeys: ["PREMIUM_ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+      temperature: 0.72,
+      topP: 0.92,
+      maxOutputTokens: 4096,
+      timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 50000),
+      maxAttemptsPerPair: Number(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2),
+      requestId,
+    });
+
+    if (!result?.ok || !result?.text) {
+      warnings.push(`gemini-call-failed-${attempt}`);
+      continue;
+    }
+
+    const parsed = parseZiweiV3Json(result.text);
+    if (!parsed) {
+      warnings.push(`json-parse-failed-${attempt}`);
+      continue;
+    }
+
+    const chapter = normalizeZiweiV3Chapter(def, parsed);
+    const validation = validateZiweiV3Chapter(report.mode, def, chapter);
+    if (validation.ok) return { chapter, usedFallback: false, warnings };
+    warnings.push(`validation-failed-${attempt}:${validation.errors.join("|")}`);
+  }
+
+  return {
+    chapter: buildZiweiV3FallbackChapter(report.mode, def, warnings),
+    usedFallback: true,
+    warnings,
+  };
+}
+
+function upsertZiweiV3Chapter(report, chapter) {
+  const chapters = Array.isArray(report.chapters) ? report.chapters.slice() : [];
+  const idx = chapters.findIndex((item) => Number(item.chapterIndex) === Number(chapter.chapterIndex));
+  if (idx >= 0) chapters[idx] = chapter;
+  else chapters.push(chapter);
+  chapters.sort((a, b) => a.chapterIndex - b.chapterIndex);
+  report.chapters = chapters;
+}
+
+function pruneZiweiV3Reports() {
+  const now = Date.now();
+  for (const [key, report] of ZIWEI_PREMIUM_V3_REPORT_STORE.entries()) {
+    if (!report || Number(report.expiresAt || 0) < now) {
+      ZIWEI_PREMIUM_V3_REPORT_STORE.delete(key);
+      ZIWEI_PREMIUM_V3_LOCKS.delete(key);
+    }
+  }
+}
+
+function findZiweiV3Palace(chart, palaceKey) {
+  const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  return palaces.find((palace) => String(palace?.key || "") === String(palaceKey || "")) || null;
+}
+
+function collectZiweiV3StarNames(stars) {
+  return (Array.isArray(stars) ? stars : [])
+    .map((star) => String(star?.nameKo || star?.name || "").trim())
+    .filter(Boolean);
+}
+
+function computeOverlapScore(namesA, namesB) {
+  const a = new Set(namesA || []);
+  const b = new Set(namesB || []);
+  if (!a.size && !b.size) return 50;
+  const union = new Set([...a, ...b]);
+  let intersection = 0;
+  a.forEach((value) => {
+    if (b.has(value)) intersection += 1;
+  });
+  return Math.round((intersection / Math.max(1, union.size)) * 100);
+}
+
+function mapScoreToBand(score) {
+  if (score >= 80) return "high";
+  if (score >= 60) return "mid";
+  return "low";
+}
+
+function buildZiweiV3Compatibility(userChart, partnerChart) {
+  const keyMap = {
+    lifePalaceCompatibility: "ming",
+    spousePalaceCompatibility: "spouse",
+    fortunePalaceCompatibility: "fortune",
+    careerPalaceCompatibility: "career",
+    wealthPalaceCompatibility: "wealth",
+    migrationPalaceCompatibility: "travel",
+  };
+
+  const scores = {};
+  Object.entries(keyMap).forEach(([field, palaceKey]) => {
+    const a = findZiweiV3Palace(userChart, palaceKey);
+    const b = findZiweiV3Palace(partnerChart, palaceKey);
+    const namesA = collectZiweiV3StarNames(a?.mainStars);
+    const namesB = collectZiweiV3StarNames(b?.mainStars);
+    const score = computeOverlapScore(namesA, namesB);
+    scores[field] = {
+      palaceKey,
+      score,
+      band: mapScoreToBand(score),
+      sharedMainStars: namesA.filter((name) => namesB.includes(name)),
+    };
+  });
+
+  const emotionalScore = Math.round((scores.spousePalaceCompatibility.score + scores.fortunePalaceCompatibility.score) / 2);
+  const communicationScore = Math.round((
+    computeOverlapScore(collectZiweiV3StarNames(findZiweiV3Palace(userChart, "friends")?.mainStars), collectZiweiV3StarNames(findZiweiV3Palace(partnerChart, "friends")?.mainStars))
+    + computeOverlapScore(collectZiweiV3StarNames(findZiweiV3Palace(userChart, "siblings")?.mainStars), collectZiweiV3StarNames(findZiweiV3Palace(partnerChart, "siblings")?.mainStars))
+  ) / 2);
+  const marriageScore = Math.round((scores.spousePalaceCompatibility.score + scores.lifePalaceCompatibility.score) / 2);
+  const realityScore = Math.round((scores.careerPalaceCompatibility.score + scores.wealthPalaceCompatibility.score) / 2);
+
+  const userMalefic = new Set(
+    ["ming", "spouse", "fortune"].flatMap((key) => collectZiweiV3StarNames(findZiweiV3Palace(userChart, key)?.maleficStars))
+  );
+  const partnerMalefic = new Set(
+    ["ming", "spouse", "fortune"].flatMap((key) => collectZiweiV3StarNames(findZiweiV3Palace(partnerChart, key)?.maleficStars))
+  );
+  let sharedMalefic = 0;
+  userMalefic.forEach((star) => {
+    if (partnerMalefic.has(star)) sharedMalefic += 1;
+  });
+  const conflictScore = Math.min(100, Math.max(0, Math.round(35 + sharedMalefic * 14 + (100 - communicationScore) * 0.18)));
+
+  const overallScore = Math.round((
+    emotionalScore * 0.24
+    + communicationScore * 0.22
+    + marriageScore * 0.20
+    + realityScore * 0.20
+    + (100 - conflictScore) * 0.14
+  ));
+
+  const attractionFactors = [];
+  const spouseShared = scores.spousePalaceCompatibility.sharedMainStars || [];
+  if (spouseShared.length) {
+    attractionFactors.push({
+      topic: "부처궁 공명",
+      detail: `공통 주성(${spouseShared.slice(0, 3).join(", ")})이 관계 끌림의 핵심 축으로 작동할 수 있습니다.`,
+    });
+  }
+  const lifeShared = scores.lifePalaceCompatibility.sharedMainStars || [];
+  if (lifeShared.length) {
+    attractionFactors.push({
+      topic: "명궁 공통 코드",
+      detail: `명궁 공통 별(${lifeShared.slice(0, 3).join(", ")})이 기본 성향 공감대를 강화합니다.`,
+    });
+  }
+
+  const conflictFactors = [];
+  if (sharedMalefic > 0) {
+    conflictFactors.push({
+      topic: "살성 공명",
+      detail: `공통 살성 ${sharedMalefic}개가 감정 자극 구간을 빠르게 만들 수 있습니다.`,
+    });
+  }
+  if (communicationScore < 55) {
+    conflictFactors.push({
+      topic: "소통 온도 차",
+      detail: "교우궁/형제궁 반응 속도 차가 누적될 수 있어 화해 규칙이 필요합니다.",
+    });
+  }
+
+  const longTermFactors = [
+    {
+      topic: "현실 운영",
+      detail: `관록궁·재백궁 현실 점수 ${realityScore} 기준으로 역할 분담의 명문화가 중요합니다.`,
+    },
+    {
+      topic: "관계 안정",
+      detail: `복덕궁·부처궁 정서 점수 ${emotionalScore} 기준으로 회복 루틴을 고정할수록 장기 안정성이 올라갑니다.`,
+    },
+  ];
+
+  return {
+    overallScore,
+    emotionalScore,
+    communicationScore,
+    marriageScore,
+    realityScore,
+    conflictScore,
+    lifePalaceCompatibility: scores.lifePalaceCompatibility,
+    spousePalaceCompatibility: scores.spousePalaceCompatibility,
+    fortunePalaceCompatibility: scores.fortunePalaceCompatibility,
+    careerPalaceCompatibility: scores.careerPalaceCompatibility,
+    wealthPalaceCompatibility: scores.wealthPalaceCompatibility,
+    migrationPalaceCompatibility: scores.migrationPalaceCompatibility,
+    fourTransformationInteraction: {
+      user: toPlainObject(userChart?.sourcePayload?.sihuaData || {}),
+      partner: toPlainObject(partnerChart?.sourcePayload?.sihuaData || {}),
+    },
+    attractionFactors,
+    conflictFactors,
+    longTermFactors,
+  };
+}
+
+function normalizeZiweiV3PalaceForSource(palace) {
+  const mapTransformations = (transformations) => {
+    const out = { huaLu: null, huaQuan: null, huaKe: null, huaJi: null };
+    (Array.isArray(transformations) ? transformations : []).forEach((item) => {
+      const type = String(item?.type || "").trim();
+      const star = String(item?.star || "").trim() || null;
+      if (type === "화록") out.huaLu = star;
+      if (type === "화권") out.huaQuan = star;
+      if (type === "화과") out.huaKe = star;
+      if (type === "화기") out.huaJi = star;
+    });
+    return out;
+  };
+
+  return {
+    name: String(palace?.nameKo || "").trim(),
+    earthlyBranch: String(palace?.branch || "").trim() || undefined,
+    heavenlyStem: undefined,
+    mainStars: collectZiweiV3StarNames(palace?.mainStars),
+    auxiliaryStars: collectZiweiV3StarNames(palace?.auxStars),
+    maleficStars: collectZiweiV3StarNames(palace?.maleficStars),
+    transformations: mapTransformations(palace?.transformations),
+    oppositePalace: String(palace?.oppositePalaceKey || "").trim() || undefined,
+    triadPalaces: Array.isArray(palace?.triadPalaceKeys) ? palace.triadPalaceKeys : [],
+    strength: undefined,
+    notes: [],
+  };
+}
+
+function normalizeZiweiForPersonalV3(canonical, input, rawBody) {
+  const palaces = Array.isArray(canonical?.palaces) ? canonical.palaces : [];
+  const lifePalace = palaces.find((palace) => palace?.isMing) || findZiweiV3Palace(canonical, "ming");
+  const bodyPalace = palaces.find((palace) => palace?.isShen) || null;
+  const allMajor = Array.from(new Set(palaces.flatMap((palace) => collectZiweiV3StarNames(palace?.mainStars))));
+  const allAux = Array.from(new Set(palaces.flatMap((palace) => collectZiweiV3StarNames(palace?.auxStars))));
+  const allMalefic = Array.from(new Set(palaces.flatMap((palace) => collectZiweiV3StarNames(palace?.maleficStars))));
+
+  const mapLifeTransformations = (palace) => {
+    const transformed = normalizeZiweiV3PalaceForSource(palace);
+    return transformed.transformations || { huaLu: null, huaQuan: null, huaKe: null, huaJi: null };
+  };
+
+  return {
+    mode: "personal",
+    user: {
+      name: String(rawBody?.name || input?.name || "").trim() || undefined,
+      gender: String(rawBody?.gender || input?.gender || "").trim() || undefined,
+      birthDate: `${input.year}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
+      birthTime: `${String(input.hour).padStart(2, "0")}:${String(input.minute).padStart(2, "0")}`,
+      calendarType: String(rawBody?.calendarType || "").trim().toLowerCase() === "lunar" ? "lunar" : "solar",
+    },
+    ziwei: {
+      chartType: "standard",
+      lifePalace: lifePalace
+        ? {
+          palaceName: String(lifePalace?.nameKo || "").trim() || undefined,
+          earthlyBranch: String(lifePalace?.branch || "").trim() || undefined,
+          mainStars: collectZiweiV3StarNames(lifePalace?.mainStars),
+          auxiliaryStars: collectZiweiV3StarNames(lifePalace?.auxStars),
+          maleficStars: collectZiweiV3StarNames(lifePalace?.maleficStars),
+          transformations: mapLifeTransformations(lifePalace),
+          strength: undefined,
+        }
+        : null,
+      bodyPalace: bodyPalace
+        ? {
+          palaceName: String(bodyPalace?.nameKo || "").trim() || undefined,
+          earthlyBranch: String(bodyPalace?.branch || "").trim() || undefined,
+          mainStars: collectZiweiV3StarNames(bodyPalace?.mainStars),
+          auxiliaryStars: collectZiweiV3StarNames(bodyPalace?.auxStars),
+          maleficStars: collectZiweiV3StarNames(bodyPalace?.maleficStars),
+        }
+        : null,
+      palaces: palaces.map((palace) => normalizeZiweiV3PalaceForSource(palace)),
+      majorStars: allMajor,
+      auxiliaryStars: allAux,
+      maleficStars: allMalefic,
+      fourTransformations: toPlainObject(canonical?.sourcePayload?.sihuaData || {}),
+      luck: {
+        decadeLuck: Array.isArray(canonical?.luck?.decadePeriods) ? canonical.luck.decadePeriods : [],
+        currentDecadeLuck: canonical?.luck?.currentDecade || null,
+        annualLuck: Array.isArray(canonical?.luck?.monthly) ? canonical.luck.monthly : [],
+        currentAnnualLuck: canonical?.luck?.annual || null,
+      },
+    },
+    meta: {
+      generatedAt: new Date().toISOString(),
+      engineVersion: String(canonical?.sourcePayload?.calcMeta?.version || "ziwei-canonical-v3"),
+      locale: "ko-KR",
+      reportType: "ziwei-premium",
+      mode: "personal",
+      chapterCount: 13,
+    },
+  };
+}
+
+function normalizeZiweiForCompatibilityV3({
+  userCanonical,
+  partnerCanonical,
+  compatibilityResult,
+  userInput,
+  partnerInput,
+  userRaw,
+  partnerRaw,
+}) {
+  return {
+    mode: "compatibility",
+    userA: {
+      label: "me",
+      name: String(userRaw?.name || userInput?.name || "").trim() || undefined,
+      gender: String(userRaw?.gender || userInput?.gender || "").trim() || undefined,
+      birthDate: `${userInput.year}-${String(userInput.month).padStart(2, "0")}-${String(userInput.day).padStart(2, "0")}`,
+      birthTime: `${String(userInput.hour).padStart(2, "0")}:${String(userInput.minute).padStart(2, "0")}`,
+      calendarType: String(userRaw?.calendarType || "").trim().toLowerCase() === "lunar" ? "lunar" : "solar",
+      ziwei: userCanonical,
+    },
+    userB: {
+      label: "partner",
+      name: String(partnerRaw?.name || "상대").trim() || "상대",
+      gender: String(partnerRaw?.gender || partnerInput?.gender || "").trim() || undefined,
+      birthDate: `${partnerInput.year}-${String(partnerInput.month).padStart(2, "0")}-${String(partnerInput.day).padStart(2, "0")}`,
+      birthTime: `${String(partnerInput.hour).padStart(2, "0")}:${String(partnerInput.minute).padStart(2, "0")}`,
+      calendarType: String(partnerRaw?.calendarType || "").trim().toLowerCase() === "lunar" ? "lunar" : "solar",
+      ziwei: partnerCanonical,
+    },
+    compatibility: compatibilityResult,
+    timing: {
+      userACurrentDecadeLuck: userCanonical?.luck?.currentDecade || null,
+      userBCurrentDecadeLuck: partnerCanonical?.luck?.currentDecade || null,
+      userACurrentAnnualLuck: userCanonical?.luck?.annual || null,
+      userBCurrentAnnualLuck: partnerCanonical?.luck?.annual || null,
+      relationshipTiming: [
+        {
+          label: "현재 운세 흐름",
+          me: userCanonical?.luck?.currentDecade?.label || null,
+          partner: partnerCanonical?.luck?.currentDecade?.label || null,
+        },
+      ],
+    },
+    meta: {
+      generatedAt: new Date().toISOString(),
+      engineVersion: String(userCanonical?.sourcePayload?.calcMeta?.version || "ziwei-canonical-v3"),
+      locale: "ko-KR",
+      reportType: "ziwei-premium",
+      mode: "compatibility",
+      chapterCount: 13,
+    },
+  };
+}
+
+function convertZiweiStructuredInput(rawStructured) {
+  const source = rawStructured && typeof rawStructured === "object" ? rawStructured : null;
+  if (!source) return null;
+  if (Array.isArray(source.palaceStarData) && source.palaceStarData.length) return source;
+  if (Array.isArray(source.palaces) && source.palaces.length) {
+    return {
+      ...source,
+      palaceStarData: source.palaces.map((palace) => ({
+        palace: palace?.palace || palace?.nameKo || palace?.name || "",
+        branch: palace?.branch || palace?.earthlyBranch || "",
+        dahan: palace?.dahan || "",
+        stars: Array.isArray(palace?.stars) && palace.stars.length
+          ? palace.stars
+          : (Array.isArray(palace?.mainStars) ? palace.mainStars : []),
+        auxStars: Array.isArray(palace?.auxStars) && palace.auxStars.length
+          ? palace.auxStars
+          : (Array.isArray(palace?.auxiliaryStars) ? palace.auxiliaryStars : []),
+        badStars: Array.isArray(palace?.badStars) && palace.badStars.length
+          ? palace.badStars
+          : (Array.isArray(palace?.maleficStars) ? palace.maleficStars : []),
+      })),
+    };
+  }
+  return source;
+}
+
+function buildZiweiV3Canonical(rawInput, input, reportType, partnerOverview = "") {
+  const dataQuality = createZiweiDataQuality();
+  const structured = convertZiweiStructuredInput(rawInput?.ziweiStructured)
+    || parseZiweiDataTextFallback(rawInput?.ziweiData, dataQuality)
+    || {};
+
+  const canonical = buildCanonicalZiweiChart(
+    rawInput || {},
+    input,
+    structured,
+    reportType,
+    partnerOverview,
+    dataQuality,
+  );
+  const validation = validateCanonicalZiweiChartStrict(canonical, dataQuality);
+  if (!validation.isValid) {
+    pushUnique(dataQuality?.warnings, "일부 자미두수 필드가 누락되어 보수적 해석 모드로 생성합니다.");
+  }
+
+  return { canonical, validation, dataQuality };
+}
+
+function normalizeZiweiV3Input(raw = {}, fallback = {}) {
+  return normalizeBody({
+    year: raw.year ?? raw.birthYear ?? fallback.year,
+    month: raw.month ?? raw.birthMonth ?? fallback.month,
+    day: raw.day ?? raw.birthDay ?? fallback.day,
+    hour: raw.hour ?? raw.birthHour ?? fallback.hour,
+    minute: raw.minute ?? raw.birthMinute ?? fallback.minute,
+    timezone: raw.timezone ?? fallback.timezone,
+    lat: raw.lat ?? raw.latitude ?? fallback.lat,
+    lon: raw.lon ?? raw.lng ?? raw.longitude ?? fallback.lon,
+    name: raw.name ?? fallback.name,
+    gender: raw.gender ?? fallback.gender,
+  });
+}
+
+function buildZiweiV3ReportId(userId, mode, input, partnerInput, profileId = "") {
+  const seed = [
+    "ziwei-premium-v3",
+    String(userId || ""),
+    String(profileId || ""),
+    mode,
+    input.year,
+    input.month,
+    input.day,
+    input.hour,
+    input.minute,
+    partnerInput ? `${partnerInput.year}|${partnerInput.month}|${partnerInput.day}|${partnerInput.hour}|${partnerInput.minute}` : "",
+  ].join("|");
+  return `ziweiv3_${stableHash(seed)}`;
+}
+
+function buildZiweiV3StatusPayload(report, includeChapters = false) {
+  const payload = {
+    ok: true,
+    reportId: report.id,
+    mode: report.mode,
+    status: report.status,
+    chapterCount: 13,
+    currentChapter: Number(report.currentChapter || 0),
+    totalChapters: 13,
+    message: String(report.message || ""),
+    downloadUrl: report.status === "completed"
+      ? `/api/premium/ziwei/download?reportId=${encodeURIComponent(report.id)}`
+      : undefined,
+    errorMessage: report.status === "failed" ? String(report.errorMessage || "리포트 생성 실패") : undefined,
+  };
+  if (includeChapters) payload.chapters = toPlainObject(report.chapters || []);
+  return payload;
+}
+
+function escapeZiweiV3Html(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderZiweiV3Html(report) {
+  const source = toPlainObject(report.sourceData || {});
+  const modeLabel = report.mode === "compatibility" ? "자미두수 궁합 리포트" : "개인 자미두수 리포트";
+  const chapters = (report.chapters || []).slice().sort((a, b) => a.chapterIndex - b.chapterIndex);
+
+  const summaryCards = report.mode === "personal"
+    ? (() => {
+      const palaces = Array.isArray(source?.ziwei?.palaces) ? source.ziwei.palaces : [];
+      const palaceRows = palaces.map((palace) => `
+        <tr>
+          <td>${escapeZiweiV3Html(palace?.name || "-")}</td>
+          <td>${escapeZiweiV3Html((palace?.mainStars || []).join(", ") || "무주성")}</td>
+          <td>${escapeZiweiV3Html((palace?.auxiliaryStars || []).join(", ") || "-")}</td>
+          <td>${escapeZiweiV3Html((palace?.maleficStars || []).join(", ") || "-")}</td>
+        </tr>`).join("");
+      const four = toPlainObject(source?.ziwei?.fourTransformations || {});
+      return `
+        <section class="card"><h2>사용자 기본 정보</h2><p>이름: ${escapeZiweiV3Html(source?.user?.name || "사용자")}</p><p>출생일: ${escapeZiweiV3Html(source?.user?.birthDate || "-")}</p><p>출생시: ${escapeZiweiV3Html(source?.user?.birthTime || "-")}</p></section>
+        <section class="card"><h2>명반 요약 카드</h2><p>명궁: ${escapeZiweiV3Html(source?.ziwei?.lifePalace?.palaceName || "-")}</p><p>신궁: ${escapeZiweiV3Html(source?.ziwei?.bodyPalace?.palaceName || "-")}</p><p>핵심 주성: ${escapeZiweiV3Html((source?.ziwei?.majorStars || []).slice(0, 6).join(", ") || "-")}</p></section>
+        <section class="card"><h2>12궁 요약표</h2><table><thead><tr><th>궁</th><th>주성</th><th>보성</th><th>살성</th></tr></thead><tbody>${palaceRows}</tbody></table></section>
+        <section class="card"><h2>사화 요약 카드</h2><p>화록: ${escapeZiweiV3Html(JSON.stringify(four?.huaLu || null))}</p><p>화권: ${escapeZiweiV3Html(JSON.stringify(four?.huaQuan || null))}</p><p>화과: ${escapeZiweiV3Html(JSON.stringify(four?.huaKe || null))}</p><p>화기: ${escapeZiweiV3Html(JSON.stringify(four?.huaJi || null))}</p></section>
+      `;
+    })()
+    : (() => {
+      const c = toPlainObject(source?.compatibility || {});
+      return `
+        <section class="card"><h2>두 사람 명반 요약 카드</h2><p>나: ${escapeZiweiV3Html(source?.userA?.name || "사용자")} (${escapeZiweiV3Html(source?.userA?.birthDate || "-")})</p><p>상대: ${escapeZiweiV3Html(source?.userB?.name || "상대")} (${escapeZiweiV3Html(source?.userB?.birthDate || "-")})</p></section>
+        <section class="card"><h2>궁합 요약 카드</h2><p>종합 점수: ${escapeZiweiV3Html(c?.overallScore ?? "-")}</p><p>감정: ${escapeZiweiV3Html(c?.emotionalScore ?? "-")} · 소통: ${escapeZiweiV3Html(c?.communicationScore ?? "-")} · 결혼: ${escapeZiweiV3Html(c?.marriageScore ?? "-")}</p><p>현실 운영: ${escapeZiweiV3Html(c?.realityScore ?? "-")} · 갈등: ${escapeZiweiV3Html(c?.conflictScore ?? "-")}</p></section>
+      `;
+    })();
+
+  const chapterHtml = chapters.map((chapter) => {
+    const sections = (chapter.sections || []).map((section) => `<h4>${escapeZiweiV3Html(section.heading)}</h4><p>${escapeZiweiV3Html(section.body)}</p>`).join("");
+    const insights = (chapter.keyInsights || []).map((item) => `<li>${escapeZiweiV3Html(item)}</li>`).join("");
+    const advice = (chapter.practicalAdvice || []).map((item) => `<li>${escapeZiweiV3Html(item)}</li>`).join("");
+    return `<section class="chapter"><h2>${escapeZiweiV3Html(chapter.title)}</h2><p class="subtitle">${escapeZiweiV3Html(chapter.subtitle || "")}</p><p class="summary">${escapeZiweiV3Html(chapter.summary || "")}</p>${sections}<div class="lists"><div><h5>핵심 통찰</h5><ul>${insights}</ul></div><div><h5>실천 조언</h5><ul>${advice}</ul></div></div></section>`;
+  }).join("\n");
+
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeZiweiV3Html(modeLabel)}</title><style>body{font-family:"Noto Serif KR","Noto Sans KR",serif;margin:0;background:#f7f5ef;color:#111827}.cover{padding:54px 42px;background:linear-gradient(145deg,#111827,#1f2937 54%,#1b2746);color:#f9fafb}.mode{padding:22px 42px;background:#fff8eb;border-bottom:1px solid #e5e7eb}.cards{padding:20px 42px 10px;display:grid;gap:14px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:15px 16px}.card h2{margin:0 0 8px;color:#7c2d12}table{width:100%;border-collapse:collapse}th,td{border:1px solid #e5e7eb;padding:7px 8px;text-align:left;vertical-align:top;font-size:13px}.chapter{page-break-before:always;padding:32px 42px;background:#fff;border-top:1px solid #e5e7eb}.chapter h2{margin:0 0 8px;color:#92400e}.chapter h4{margin:16px 0 7px}.chapter p{margin:0 0 10px;line-height:1.84}.subtitle{color:#6b7280}.summary{font-weight:600}.lists{display:grid;grid-template-columns:1fr 1fr;gap:14px}.lists h5{margin:0 0 8px;color:#7c2d12}ul{margin:0;padding-left:20px;line-height:1.72}.closing{page-break-before:always;padding:34px 42px 48px;background:#fff}.disclaimer{margin-top:20px;font-size:13px;color:#6b7280;line-height:1.7}@media(max-width:820px){.cover,.mode,.cards,.chapter,.closing{padding-left:18px;padding-right:18px}.lists{grid-template-columns:1fr}}</style></head><body><section class="cover"><h1>Ziwei Premium Report</h1><p>${escapeZiweiV3Html(modeLabel)}</p><p>reportId: ${escapeZiweiV3Html(report.id)}</p><p>생성일: ${escapeZiweiV3Html(report.updatedAt || report.createdAt || "")}</p></section><section class="mode"><strong>모드 안내:</strong> ${escapeZiweiV3Html(modeLabel)}</section><section class="cards">${summaryCards}</section>${chapterHtml}<section class="closing"><h2>마지막 요약 페이지</h2><p>이 리포트는 기존 자미두수 계산 엔진 산출 JSON을 기반으로 생성되며, 데이터 부족 시 보수적 해석 모드로 안전하게 이어집니다.</p><p class="disclaimer">면책 안내: 본 리포트는 자기이해 및 의사결정 보조 문서입니다. 의료·법률·투자 판단을 단정하지 않습니다.</p></section></body></html>`;
+}
+
+function validateZiweiV3FullReport(mode, chapters) {
+  const defs = getZiweiV3ChapterDefs(mode);
+  const errors = [];
+  const chapterList = Array.isArray(chapters) ? chapters : [];
+
+  if (!(mode === "personal" || mode === "compatibility")) errors.push("invalid-mode");
+  if (chapterList.length !== 13) errors.push("chapter-count-not-13");
+
+  const indexSet = new Set();
+  chapterList.forEach((chapter) => {
+    const idx = Number(chapter?.chapterIndex || 0);
+    if (idx >= 1 && idx <= 13) {
+      if (indexSet.has(idx)) errors.push(`duplicate-index-${idx}`);
+      indexSet.add(idx);
+    }
+  });
+  for (let idx = 1; idx <= 13; idx += 1) {
+    if (!indexSet.has(idx)) errors.push(`missing-index-${idx}`);
+  }
+
+  defs.forEach((def) => {
+    const chapter = chapterList.find((item) => Number(item?.chapterIndex) === Number(def.index));
+    if (!chapter) {
+      errors.push(`missing-chapter-${def.index}`);
+      return;
+    }
+    const validation = validateZiweiV3Chapter(mode, def, chapter);
+    if (!validation.ok) {
+      validation.errors.forEach((item) => errors.push(`chapter-${def.index}:${item}`));
+    }
+  });
+
+  return {
+    ok: errors.length === 0,
+    errors,
+  };
+}
+
+function getZiweiV3GenerationMessage(mode, chapterIndex) {
+  const defs = getZiweiV3ChapterDefs(mode);
+  const chapter = defs.find((item) => Number(item.index) === Number(chapterIndex));
+  if (!chapter) return "자미두수 원고를 작성 중입니다.";
+  if (chapterIndex === 1) return "명궁과 신궁을 정리하고 있습니다.";
+  if (chapterIndex === 4) return "12궁의 별 배치를 해석하고 있습니다.";
+  if (chapterIndex === 7) return "사화의 흐름을 분석하고 있습니다.";
+  if (mode === "compatibility" && chapterIndex === 4) return "두 사람의 부처궁과 복덕궁을 비교하고 있습니다.";
+  if (chapterIndex === 13) return "마지막 별의 편지를 쓰고 있습니다.";
+  return `${chapter.index}장 원고를 작성하고 있습니다.`;
+}
+
+async function processZiweiV3Step(env, reportId) {
+  const report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  if (!report) return null;
+  if (report.status === "completed") return report;
+  if (ZIWEI_PREMIUM_V3_LOCKS.has(reportId)) return report;
+
+  ZIWEI_PREMIUM_V3_LOCKS.add(reportId);
+  try {
+    report.status = "generating";
+    const defs = getZiweiV3ChapterDefs(report.mode);
+
+    const nextIndex = Math.max(1, Number(report.currentChapter || 0) + 1);
+    if (nextIndex <= defs.length) {
+      const def = defs[nextIndex - 1];
+      report.message = getZiweiV3GenerationMessage(report.mode, def.index);
+      report.currentChapter = Math.max(0, def.index - 1);
+      report.updatedAt = new Date().toISOString();
+      report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+
+      const generated = await generateZiweiV3Chapter(env, report, def);
+      upsertZiweiV3Chapter(report, generated.chapter);
+      report.chapterWarnings[String(def.index)] = generated.warnings || [];
+      report.chapterFallbacks[String(def.index)] = Boolean(generated.usedFallback);
+      report.currentChapter = def.index;
+      report.updatedAt = new Date().toISOString();
+      report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+    }
+
+    if (Number(report.currentChapter || 0) >= defs.length) {
+      report.message = ZIWEI_V3_STATUS_MESSAGES.rendering;
+      const chapterMap = new Map((report.chapters || []).map((chapter) => [Number(chapter.chapterIndex), chapter]));
+      report.chapters = defs.map((def) => {
+        const existing = chapterMap.get(def.index);
+        if (!existing) return buildZiweiV3FallbackChapter(report.mode, def, ["missing-final-chapter"]);
+        const validity = validateZiweiV3Chapter(report.mode, def, existing);
+        return validity.ok ? existing : buildZiweiV3FallbackChapter(report.mode, def, validity.errors);
+      });
+
+      const fullValidation = validateZiweiV3FullReport(report.mode, report.chapters);
+      report.validation = fullValidation;
+      if (!fullValidation.ok) {
+        report.chapters = defs.map((def) => {
+          const existing = report.chapters.find((chapter) => Number(chapter.chapterIndex) === Number(def.index));
+          const validity = validateZiweiV3Chapter(report.mode, def, existing);
+          return validity.ok ? existing : buildZiweiV3FallbackChapter(report.mode, def, ["full-validation-repair"]);
+        });
+      }
+
+      report.status = "completed";
+      report.message = ZIWEI_V3_STATUS_MESSAGES.completed;
+      report.html = renderZiweiV3Html(report);
+      report.updatedAt = new Date().toISOString();
+      report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+    }
+
+    return report;
+  } catch (error) {
+    report.status = "failed";
+    report.errorMessage = error?.message || "자미두수 프리미엄 리포트 생성 중 오류";
+    report.message = "리포트 생성 실패";
+    report.updatedAt = new Date().toISOString();
+    report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+    ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+    return report;
+  } finally {
+    ZIWEI_PREMIUM_V3_LOCKS.delete(reportId);
+  }
+}
+
+async function handleZiweiV3Generate(request, env, authInfo) {
+  pruneZiweiV3Reports();
+  const body = await readJson(request);
+  const mode = String(body.mode || "personal").toLowerCase() === "compatibility" ? "compatibility" : "personal";
+  const forceRegenerate = asBool(body.forceRegenerate);
+  const profileId = String(body.profileId || "").trim();
+
+  const primaryRaw = body.birthData && typeof body.birthData === "object" ? body.birthData : body;
+  const input = normalizeZiweiV3Input(primaryRaw, body);
+  if (!Number.isFinite(Number(input.year)) || !Number.isFinite(Number(input.month)) || !Number.isFinite(Number(input.day))) {
+    return json({ ok: false, code: "INVALID_BIRTH_DATA", message: "생년월일 데이터가 필요합니다." }, { status: 400 });
+  }
+
+  const partnerRaw = body.partnerBirthData && typeof body.partnerBirthData === "object"
+    ? body.partnerBirthData
+    : {
+      year: body.partnerYear,
+      month: body.partnerMonth,
+      day: body.partnerDay,
+      hour: body.partnerHour,
+      minute: body.partnerMinute,
+      name: body.partnerName,
+      gender: body.partnerGender,
+      ziweiStructured: body.partnerZiweiStructured,
+      ziweiData: body.partnerZiweiData,
+      calendarType: body.partnerCalendarType,
+    };
+
+  const hasPartnerBirth = Number.isFinite(Number(partnerRaw?.year)) && Number.isFinite(Number(partnerRaw?.month)) && Number.isFinite(Number(partnerRaw?.day));
+  const partnerInput = mode === "compatibility"
+    ? normalizeZiweiV3Input(partnerRaw, { hour: 12, minute: 0, timezone: input.timezone, lat: input.lat, lon: input.lon })
+    : null;
+
+  if (mode === "compatibility" && !hasPartnerBirth) {
+    return json({ ok: false, code: "PARTNER_BIRTH_REQUIRED", message: "궁합 모드는 상대방 생년월일이 필요합니다." }, { status: 400 });
+  }
+
+  const reportId = buildZiweiV3ReportId(authInfo.userId, mode, input, partnerInput, profileId);
+  const existing = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  if (existing && !forceRegenerate) {
+    if (String(existing.userId) !== String(authInfo.userId)) {
+      return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+    }
+    if (existing.status === "failed") {
+      existing.status = "generating";
+      existing.message = "재시도 중";
+      existing.errorMessage = "";
+      existing.updatedAt = new Date().toISOString();
+      existing.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, existing);
+    }
+    await processZiweiV3Step(env, reportId);
+    return json(buildZiweiV3StatusPayload(ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || existing, false));
+  }
+
+  const access = await requirePremiumReportAccess(env, authInfo.userId, "ziweiPremium", { ...body, mode });
+  if (!access.ok) {
+    return json({
+      ok: false,
+      code: access.code || "PAYMENT_REQUIRED",
+      message: access.message || "프리미엄 결제가 필요합니다.",
+      required: access.required || null,
+    }, { status: Number(access.status || 402) });
+  }
+
+  const userCanonicalBuilt = buildZiweiV3Canonical(primaryRaw, input, "personal", "");
+  let partnerCanonicalBuilt = null;
+  let sourceData = null;
+
+  if (mode === "compatibility" && partnerInput) {
+    const partnerOverview = [
+      `이름:${String(partnerRaw?.name || "상대")}`,
+      `생년월일:${partnerInput.year}-${partnerInput.month}-${partnerInput.day}`,
+      `출생시간:${partnerInput.hour}:${String(partnerInput.minute).padStart(2, "0")}`,
+    ].join(", ");
+    partnerCanonicalBuilt = buildZiweiV3Canonical(partnerRaw, partnerInput, "personal", partnerOverview);
+    const compatibility = buildZiweiV3Compatibility(userCanonicalBuilt.canonical, partnerCanonicalBuilt.canonical);
+    sourceData = normalizeZiweiForCompatibilityV3({
+      userCanonical: userCanonicalBuilt.canonical,
+      partnerCanonical: partnerCanonicalBuilt.canonical,
+      compatibilityResult: compatibility,
+      userInput: input,
+      partnerInput,
+      userRaw: primaryRaw,
+      partnerRaw,
+    });
+  } else {
+    sourceData = normalizeZiweiForPersonalV3(userCanonicalBuilt.canonical, input, primaryRaw);
+  }
+
+  const report = {
+    id: reportId,
+    userId: String(authInfo.userId),
+    profileId: profileId || undefined,
+    reportType: "ziwei-premium",
+    mode,
+    status: "pending",
+    sourceData,
+    chapters: [],
+    html: "",
+    errorMessage: "",
+    currentChapter: 0,
+    chapterWarnings: {},
+    chapterFallbacks: {},
+    message: ZIWEI_V3_STATUS_MESSAGES.preparing,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    expiresAt: Date.now() + ZIWEI_PREMIUM_V3_TTL_MS,
+    dataQuality: {
+      user: userCanonicalBuilt?.dataQuality || null,
+      userValidation: userCanonicalBuilt?.validation || null,
+      partner: partnerCanonicalBuilt?.dataQuality || null,
+      partnerValidation: partnerCanonicalBuilt?.validation || null,
+    },
+  };
+
+  ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+  await processZiweiV3Step(env, reportId);
+
+  return json(buildZiweiV3StatusPayload(ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || report, false));
+}
+
+async function handleZiweiV3Status(request, env, authInfo) {
+  pruneZiweiV3Reports();
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+
+  const report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
+  if (String(report.userId) !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+
+  if (report.status === "pending" || report.status === "generating") {
+    await processZiweiV3Step(env, reportId);
+  }
+
+  const includeChapters = String(url.searchParams.get("includeChapters") || "") === "1";
+  const latest = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || report;
+  return json(buildZiweiV3StatusPayload(latest, includeChapters));
+}
+
+async function handleZiweiV3Download(request, env, authInfo) {
+  pruneZiweiV3Reports();
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+
+  const report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
+  if (String(report.userId) !== String(authInfo.userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
+  }
+  if (report.status !== "completed") {
+    return json({ ok: false, code: "REPORT_NOT_COMPLETED", message: "리포트 생성이 완료되지 않았습니다." }, { status: 409 });
+  }
+
+  const html = String(report.html || renderZiweiV3Html(report));
+  report.html = html;
+  report.updatedAt = new Date().toISOString();
+  report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+  ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+
+  const filename = `ziwei-premium-${report.mode}-${report.id}.html`;
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "content-disposition": `attachment; filename=\"${filename}\"`,
+    },
+  });
+}
+
 export async function handlePremiumReportRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -10981,14 +13477,45 @@ export async function handlePremiumReportRoutes(request, env) {
 
 export async function handlePremiumRoutes(request, env) {
   try {
-    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const method = request.method.toUpperCase();
+    if (!(method === "POST" || method === "GET")) return methodNotAllowed();
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/premium");
+
+    if (method === "POST" && path === "/ziwei/generate") {
+      return await handleZiweiV3Generate(request, env, authInfo);
+    }
+    if (method === "GET" && path === "/ziwei/status") {
+      return await handleZiweiV3Status(request, env, authInfo);
+    }
+    if (method === "GET" && path === "/ziwei/download") {
+      return await handleZiweiV3Download(request, env, authInfo);
+    }
+    if (method === "POST" && path === "/astrology/generate") {
+      return await handleAstrologyV3Generate(request, env, authInfo);
+    }
+    if (method === "GET" && path === "/astrology/status") {
+      return await handleAstrologyV3Status(request, env, authInfo);
+    }
+    if (method === "GET" && path === "/astrology/download") {
+      return await handleAstrologyV3Download(request, env, authInfo);
+    }
+    if (method === "POST" && path === "/vedic/generate") {
+      return await handleVedicV3Generate(request, env, authInfo);
+    }
+    if (method === "GET" && path === "/vedic/status") {
+      return await handleVedicV3Status(request, env, authInfo);
+    }
+    if (method === "GET" && path === "/vedic/download") {
+      return await handleVedicV3Download(request, env, authInfo);
+    }
+
+    if (method !== "POST") return methodNotAllowed();
 
     const legacyReportType = (() => {
       if (path === "/sukuyo-life") return "sookyoPremium";
       if (path === "/astro-western" || path === "/astro-life") return "westernAstrologyPremium";
-      if (path === "/vedic-life") return "vedicPremium";
+      if (path === "/vedic-life" || path === "/vedic/generate") return "vedicPremium";
       if (path === "/ziwei-life") return "ziweiPremium";
       return "";
     })();
@@ -11102,10 +13629,25 @@ export const __premiumReportTestUtils = {
 
 export async function handleLifebookRoutes(request, env) {
   try {
-    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
-    await requireAuth(request, env);
+    const method = request.method.toUpperCase();
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/lifebook");
-    if (path === "/session") return await handleLifebookSession(request, env);
+    if (path === "/session") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleLifebookSession(request, env);
+    }
+    if (path === "/generate") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleLifebookGenerate(request, env, authInfo);
+    }
+    if (path === "/status") {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleLifebookStatus(request, env, authInfo);
+    }
+    if (path === "/download") {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleLifebookDownload(request, env, authInfo);
+    }
     return notFound();
   } catch (error) {
     return handleRouteError(error);
@@ -11114,10 +13656,14 @@ export async function handleLifebookRoutes(request, env) {
 
 export async function handleLoveSecretRoutes(request, env) {
   try {
-    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
-    await requireAuth(request, env);
+    const method = request.method.toUpperCase();
+    if (!(method === "POST" || method === "GET")) return methodNotAllowed();
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/love-secret");
-    if (path === "/session") return await handleLoveSecretSession(request, env);
+    if (method === "POST" && path === "/session") return await handleLoveSecretSession(request, env);
+    if (method === "POST" && path === "/generate") return await handleLoveSecretGenerate(request, env, authInfo);
+    if (method === "GET" && path === "/status") return await handleLoveSecretStatus(request, env, authInfo);
+    if (method === "GET" && path === "/download") return await handleLoveSecretDownload(request, env, authInfo);
     return notFound();
   } catch (error) {
     return handleRouteError(error);

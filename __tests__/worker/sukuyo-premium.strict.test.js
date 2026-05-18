@@ -116,12 +116,12 @@ describe("Sukuyo Premium Strict Tests (A~J)", () => {
     expect(allowed.has(canonical.compatibility.relationType)).toBe(true);
   });
 
-  test("F. 챕터 메타는 개인 13장 / 궁합 13장으로 유지되어야 한다", () => {
+  test("F. 챕터 메타는 개인 12장 / 궁합 12장으로 유지되어야 한다", () => {
     const personal = getSukuyoChapterMetaV2("personal");
     const compatibility = getSukuyoChapterMetaV2("compatibility");
 
-    expect(personal).toHaveLength(13);
-    expect(compatibility).toHaveLength(13);
+    expect(personal).toHaveLength(12);
+    expect(compatibility).toHaveLength(12);
   });
 
   test("G. 동일 30자 이상 문장 2회 반복은 탐지되어야 한다", () => {

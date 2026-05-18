@@ -9,7 +9,6 @@ import {
   handleLifebookRoutes,
   handleLoveSecretRoutes,
   handlePremiumRoutes,
-  handlePremiumReportRoutes,
   handleZiweiBookRoutes,
 } from "./routes/premium.js";
 import { handleDreamRoutes } from "./routes/dream.js";
@@ -518,16 +517,22 @@ export default {
         return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
       }
 
-      if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
-        return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
-      }
-
       if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
         return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
       }
 
-      if (url.pathname === "/api/lifebook" || url.pathname.startsWith("/api/lifebook/")) {
-        return withCorsHeaders(request, env, await handleLifebookRoutes(request, env));
+      if (
+        url.pathname === "/api/lifebook"
+        || url.pathname.startsWith("/api/lifebook/")
+        || url.pathname === "/api/premium/saju/life-book"
+        || url.pathname.startsWith("/api/premium/saju/life-book/")
+      ) {
+        let routedRequest = request;
+        if (url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/")) {
+          const suffix = url.pathname.slice("/api/premium/saju/life-book".length);
+          routedRequest = rewriteRequestPath(request, "/api/lifebook" + (suffix || ""));
+        }
+        return withCorsHeaders(request, env, await handleLifebookRoutes(routedRequest, env));
       }
 
       if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {

@@ -158,6 +158,12 @@
     });
   }
 
+  function isFeatureIntentEvent(event) {
+    var target = event && event.target;
+    if (!target || !(target instanceof Element)) return false;
+    return !!target.closest('[data-action], [data-touchend-action], .tarot-tile, .feature-card, .feat-collection-toggle, .fc-toggle-btn');
+  }
+
   function boot() {
     var mobile = isMobile();
     MOBILE_DELAY_LEVEL = 0;
@@ -168,10 +174,14 @@
     var events = mobile
       ? ['pointerdown', 'touchstart', 'keydown']
       : ['pointerdown', 'keydown', 'click'];
+
+    function onIntent(event) {
+      if (mobile && !isFeatureIntentEvent(event)) return;
+      start(1);
+    }
+
     for (var i = 0; i < events.length; i += 1) {
-      window.addEventListener(events[i], function () {
-        start(1);
-      }, { once: true, passive: true });
+      window.addEventListener(events[i], onIntent, { passive: true });
     }
 
     document.addEventListener('cd:collection-toggle', function (event) {
@@ -184,7 +194,7 @@
     // 사용자 상호작용이 전혀 없는 긴 세션에서도 기능이 준비되도록 매우 늦게 로드한다.
     setTimeout(function () {
       start(1);
-    }, mobile ? 30000 : 22000);
+    }, mobile ? 45000 : 22000);
 
     // 탭이 백그라운드로 갈 때는 사용자 체감 영향이 거의 없어 미뤄둔 스크립트를 로드한다.
     document.addEventListener('visibilitychange', function () {

@@ -2822,23 +2822,23 @@
   function _t(id, text) { var el = _q(id); if (el) el.textContent = text; }
   function _html(id, html) { var el = _q(id); if (el) el.innerHTML = html; }
 
-  /* ── 스캔 애니메이션 ── */
+  /* ── 스캔 애니메이션 (초고속 프리미엄 최적화 - 병목 체감 완전 제거) ── */
   function _runScanAnim(onDone) {
     var scanSec = _q('sb-scan-section');
     if (scanSec) scanSec.classList.remove('sb-hidden');
-
+ 
     var barIds = ['sbBarOhaeng','sbBarTenstar','sbBarRisk','sbBarApt','sbBarHue'];
     var targets = [100, 100, 100, 100, 100];
-    // animate progressively
+    // 초고속 스캔 애니메이션으로 딜레이 차단 (0.6초 이내 완료)
     barIds.forEach(function(id, i) {
       var fill = _q(id);
       if (!fill) return;
-      var delay = i * 400;
+      var delay = i * 80;
       setTimeout(function() {
         fill.style.width = targets[i] + '%';
         var pct = _q(id + 'Pct');
         if (pct) {
-          var start = 0, end = targets[i], dur = 2500;
+          var start = 0, end = targets[i], dur = 350;
           var startTime = null;
           function step(ts) {
             if (!startTime) startTime = ts;
@@ -2850,11 +2850,11 @@
         }
       }, delay);
     });
-
+ 
     setTimeout(function() {
       if (scanSec) scanSec.classList.add('sb-hidden');
       if (onDone) onDone();
-    }, 2800);
+    }, 600);
   }
 
   /* ── 무료 섹션 렌더링 ── */

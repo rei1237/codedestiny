@@ -24,10 +24,6 @@ function normalizeModeToken(requestBody = {}) {
   return `${mode} ${reportMode}`.trim();
 }
 
-function isObjectIdLike(value) {
-  return /^[a-f0-9]{24}$/i.test(String(value || "").trim());
-}
-
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "lifeBook") {
     return [
@@ -54,7 +50,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
 
   if (reportType === "loveSecret") {
     const modeToken = normalizeModeToken(requestBody);
-    const isCouple = modeToken.includes("couple");
+    const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
     return [
       {
         featureKey: isCouple ? "premium_pdf_saju_love_secret_compat" : "premium_pdf_saju_love_secret",
@@ -206,16 +202,6 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       code: "ACCESS_POLICY_MISSING",
       message: "서버 접근 제어 정책이 정의되지 않은 reportType입니다.",
       reportType: normalizedReportType || null,
-    };
-  }
-
-  if (!isObjectIdLike(userId)) {
-    return {
-      ok: false,
-      status: 401,
-      code: "UNAUTHORIZED",
-      message: "유효한 사용자 인증이 필요합니다.",
-      reportType: normalizedReportType,
     };
   }
 
