@@ -1,18 +1,18 @@
 import { withUniqueRouteMetadata } from "../../lib/generate-page-metadata";
 
 export const metadata = withUniqueRouteMetadata("/saju-picture", {
-  title: "사주로 보는 나는 무슨 동물? — AI 파스텔 동물 캐릭터 생성 | 꿀꿀 만세력",
+  title: "사주로 보는 나는 무슨 동물? — 일주 가디언 동물 분석 | 꿀꿀 만세력",
   description:
-    "생년월일 사주 오행을 분석해 AI가 나만의 파스텔 동물 캐릭터를 그려드려요. 목·화·토·금·수 오행에 따라 토끼, 호랑이, 말, 용 등 나를 닮은 동물을 만나보세요.",
+    "생년월일 사주 정보를 바탕으로 일주 가디언 동물을 분석해 드려요. 60갑자 매칭으로 나를 닮은 동물과 성향 키워드를 확인해 보세요.",
   alternates: {
     canonical: "https://code-destiny.com/saju-picture",
   },
   openGraph: {
     type: "website",
     url: "https://code-destiny.com/saju-picture",
-    title: "사주로 보는 나는 무슨 동물? — AI 파스텔 동물 캐릭터",
+    title: "사주로 보는 나는 무슨 동물? — 일주 가디언 동물",
     description:
-      "생년월일 사주 오행 분석으로 AI가 나만의 파스텔 동물 이미지를 생성해 드려요. 토끼·호랑이·말·용 중 내 동물은?",
+      "생년월일 사주 분석과 60갑자 매칭으로 내 일주 가디언 동물을 확인해 보세요.",
     siteName: "Code Destiny — 꿀꿀 만세력",
     locale: "ko_KR",
     images: [
@@ -26,8 +26,8 @@ export const metadata = withUniqueRouteMetadata("/saju-picture", {
   },
   twitter: {
     card: "summary_large_image",
-    title: "사주로 보는 나는 무슨 동물? — AI 파스텔 동물 캐릭터",
-    description: "생년월일 사주 오행 분석으로 AI가 나만의 파스텔 동물 이미지를 생성해 드려요.",
+    title: "사주로 보는 나는 무슨 동물? — 일주 가디언 동물",
+    description: "생년월일 사주 분석으로 내 일주 가디언 동물을 확인해 보세요.",
     images: ["https://code-destiny.com/fuctionassets/Who%20am%20I%20with%20saju.webp"],
   },
   keywords: [
@@ -35,7 +35,7 @@ export const metadata = withUniqueRouteMetadata("/saju-picture", {
     "사주 오행 동물",
     "나는 무슨 동물",
     "사주 캐릭터",
-    "AI 동물 이미지",
+    "일주 동물",
     "파스텔 동물 캐릭터",
     "토끼 사주",
     "오행 동물",

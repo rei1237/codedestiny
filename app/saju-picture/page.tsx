@@ -5,6 +5,7 @@ import Image from "next/image";
 import GuardianAnimalSprite from "@/components/fortune/GuardianAnimalSprite";
 import { calculateLocalSaju } from "@/app/saju/animal-destiny/engine/localSajuCalculator";
 import {
+  GANJI_ANIMAL_MAP,
   getGuardianCopy,
   getStemElement,
   normalizeGanji,
@@ -107,6 +108,50 @@ const ANIMAL_EMOJI: Record<string, string> = {
   돼지: "🐷",
 };
 
+const STEM_TO_ELEMENT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
+  갑: "목",
+  을: "목",
+  병: "화",
+  정: "화",
+  무: "토",
+  기: "토",
+  경: "금",
+  신: "금",
+  임: "수",
+  계: "수",
+};
+
+const BRANCH_TO_ZODIAC: Record<string, string> = {
+  자: "쥐",
+  축: "소",
+  인: "호랑이",
+  묘: "토끼",
+  진: "용",
+  사: "뱀",
+  오: "말",
+  미: "양",
+  신: "원숭이",
+  유: "닭",
+  술: "개",
+  해: "돼지",
+};
+
+const ELEMENT_NEXT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
+  목: "화",
+  화: "토",
+  토: "금",
+  금: "수",
+  수: "목",
+};
+
+const ELEMENT_COLOR: Record<string, { ko: string; en: string }> = {
+  목: { ko: "초록", en: "Green" },
+  화: { ko: "코랄", en: "Coral" },
+  토: { ko: "샌드", en: "Sand" },
+  금: { ko: "아이보리", en: "Ivory" },
+  수: { ko: "하늘", en: "Sky" },
+};
+
 const SAJU_PICTURE_VALUE_SECTIONS = [
   {
     title: "1. 사주 동물 해석은 성격 낙인이 아니라 현재 에너지 번역입니다",
@@ -139,54 +184,6 @@ const SAJU_PICTURE_VALUE_SECTIONS = [
       "해석을 읽은 뒤 이번 주에 바로 적용할 행동 2가지를 정해보세요. 예를 들어 감정 기복이 크게 보인다면 휴식 블록을 일정에 고정하고, 관계 긴장이 보인다면 확인 질문을 먼저 하는 규칙을 추가하는 방식입니다. 이렇게 작은 실행으로 연결할 때 사주 동물 리딩은 즐거움과 실용성을 동시에 갖춘 도구가 됩니다.",
   },
 ] as const;
-
-function toNonEmpty(value: unknown): string | null {
-  const text = String(value ?? "").trim();
-  return text ? text : null;
-}
-
-function composeGanji(stem: unknown, branch: unknown): string | null {
-  const s = toNonEmpty(stem) ?? "";
-  const b = toNonEmpty(branch) ?? "";
-  const merged = `${s}${b}`.trim();
-  return merged || null;
-}
-
-function extractDayGanji(raw: ApiResult): string | null {
-  const result = raw?.result as Record<string, any> | undefined;
-  const fourDay = result?.fourPillars?.day;
-  const nestedSaju = result?.saju;
-  const nestedSajuDay = nestedSaju?.fourPillars?.day;
-  const topDay = raw?.fourPillars?.day;
-
-  const candidates = [
-    fourDay?.ganji,
-    composeGanji(fourDay?.stem, fourDay?.branch),
-    result?.dayPillar,
-    result?.dayGanji,
-    result?.ilju,
-    result?.dayStemBranch,
-    nestedSajuDay?.ganji,
-    composeGanji(nestedSajuDay?.stem, nestedSajuDay?.branch),
-    nestedSaju?.dayPillar,
-    nestedSaju?.dayGanji,
-    nestedSaju?.ilju,
-    nestedSaju?.dayStemBranch,
-    topDay?.ganji,
-    composeGanji(topDay?.stem, topDay?.branch),
-    raw?.dayPillar,
-    raw?.dayGanji,
-    raw?.ilju,
-    raw?.dayStemBranch,
-  ];
-
-  for (const candidate of candidates) {
-    const normalized = normalizeGanji(toNonEmpty(candidate));
-    if (normalized) return normalized;
-  }
-
-  return null;
-}
 
 /* ─────────────────────────── 셀렉터 UI ─────────────────────── */
 function SelectField({
@@ -262,7 +259,7 @@ function LoadingScreen() {
           우주의 기운을 모아 동물을 그리는 중...
         </p>
         <p className="text-sm text-pink-400 font-medium animate-pulse">
-          ✨ AI가 당신만의 동물을 정성스럽게 그리고 있어요 ✨
+          ✨ 로컬 사주 엔진으로 일주를 계산하고 있어요 ✨
         </p>
         <div className="flex justify-center gap-2 mt-2">
           {["🌸", "🌙", "⭐", "🌸", "🌙"].map((emoji, i) => (
@@ -278,7 +275,7 @@ function LoadingScreen() {
             </span>
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-4">AI 이미지 생성에 10~30초 소요될 수 있어요</p>
+        <p className="text-xs text-slate-400 mt-4">네트워크 없이 기기에서 바로 계산돼요</p>
       </div>
     </div>
   );
@@ -311,10 +308,8 @@ function ResultCard({
   }
 
   const result = data.result!;
-  const imageUrl = data.imageUrl ?? "";
-
   const resolvedGanji = useMemo(
-    () => normalizeGanji(data.resolvedGanji ?? extractDayGanji(data)),
+    () => normalizeGanji(data.resolvedGanji),
     [data],
   );
 
@@ -354,16 +349,12 @@ function ResultCard({
     },
   ];
 
-  const handleDownload = useCallback(() => {
-    if (!imageUrl || imageUrl.startsWith("/fuctionassets")) {
-      alert("생성된 이미지가 없어 다운로드할 수 없어요 💫");
-      return;
-    }
-    const link = document.createElement("a");
-    link.href = imageUrl;
-    link.download = `사주동물_${result.mainAnimal}_${Date.now()}.png`;
-    link.click();
-  }, [imageUrl, result.mainAnimal]);
+  const handleCopy = useCallback(async () => {
+    const headline = guardianCopy?.title || result.headlineKo;
+    const text = `${headline}\n\n${personalityLines.join(" ")}`;
+    await navigator.clipboard.writeText(text).catch(() => {});
+    alert("요약 문구를 복사했어요 📋");
+  }, [guardianCopy?.title, personalityLines, result.headlineKo]);
 
   const handleShare = useCallback(async () => {
     const headline = guardianCopy?.title || result.headlineKo;
@@ -379,8 +370,6 @@ function ResultCard({
       alert("클립보드에 복사됐어요! 📋");
     }
   }, [guardianCopy?.title, personalityLines, result.headlineKo]);
-
-  const hasGeneratedImage = Boolean(imageUrl && !imageUrl.startsWith("/fuctionassets"));
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 pb-14 pt-6">
@@ -440,22 +429,6 @@ function ResultCard({
                 {guardianCopy?.short || result.headlineKo}
               </p>
 
-              {hasGeneratedImage ? (
-                <div className="mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-white">
-                  {imageUrl.startsWith("data:") ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={imageUrl} alt={`AI 생성 ${result.mainAnimal} 캐릭터`} className="h-56 w-full object-cover" />
-                  ) : (
-                    <Image
-                      src={imageUrl}
-                      alt={`AI 생성 ${result.mainAnimal} 캐릭터`}
-                      width={1200}
-                      height={800}
-                      className="h-56 w-full object-cover"
-                    />
-                  )}
-                </div>
-              ) : null}
             </section>
           </div>
 
@@ -482,10 +455,10 @@ function ResultCard({
         <footer className="rounded-[2rem] border border-white/70 bg-white/75 p-4 shadow-xl backdrop-blur-xl sm:p-5">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <button
-              onClick={handleDownload}
+              onClick={handleCopy}
               className="rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-200/70 transition-transform active:scale-[0.98]"
             >
-              이미지 저장하기
+              해석 문구 복사하기
             </button>
             <button
               onClick={onReset}
@@ -528,54 +501,63 @@ export default function SajuPicturePage() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("/api/saju-animal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: birthHour !== "" ? Number(birthHour) : 12,
-          birthMinute: 0,
-        }),
+      const local = calculateLocalSaju({
+        year: Number(birthYear),
+        month: Number(birthMonth),
+        day: Number(birthDay),
+        hour: birthHour !== "" ? Number(birthHour) : 12,
+        minute: 0,
+        hasTime: birthHour !== "",
+        calendarType: "solar",
       });
 
-      const data: ApiResult = await res.json();
-      const fromApi = normalizeGanji(extractDayGanji(data));
-
-      let fromEngine: Ganji60 | null = null;
-      if (!fromApi) {
-        try {
-          const local = calculateLocalSaju({
-            year: Number(birthYear),
-            month: Number(birthMonth),
-            day: Number(birthDay),
-            hour: birthHour !== "" ? Number(birthHour) : 12,
-            minute: 0,
-            hasTime: birthHour !== "",
-            calendarType: "solar",
-          });
-          fromEngine = normalizeGanji(local?.pillars?.day?.ganji ?? null);
-        } catch {
-          fromEngine = null;
-        }
+      const resolvedGanji = normalizeGanji(local?.pillars?.day?.ganji ?? null);
+      if (!resolvedGanji) {
+        setErrorMsg("일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.");
+        setPhase("error");
+        return;
       }
 
-      const resolvedGanji = fromApi ?? fromEngine;
-      const enrichedData: ApiResult = {
-        ...data,
+      const dayStem = local.pillars.day.stem;
+      const dominantElement = STEM_TO_ELEMENT[dayStem] ?? "토";
+      const secondaryElement = ELEMENT_NEXT[dominantElement] ?? "금";
+      const zodiac = BRANCH_TO_ZODIAC[local.pillars.year.branch] ?? "용";
+      const mainAnimal = GANJI_ANIMAL_MAP[resolvedGanji] ?? "용";
+      const copy = getGuardianCopy(resolvedGanji);
+
+      const localData: ApiResult = {
+        ok: true,
         resolvedGanji,
+        result: {
+          dominantElement,
+          secondaryElement,
+          zodiac,
+          colorKo: ELEMENT_COLOR[dominantElement]?.ko ?? "파스텔",
+          colorEn: ELEMENT_COLOR[dominantElement]?.en ?? "Pastel",
+          animals: [mainAnimal],
+          mainAnimal,
+          expressionKo: `${mainAnimal} 기운이 깨어나는 날`,
+          personalitySummaryKo: copy.short,
+          personalityLines: copy.traits,
+          headlineKo: copy.title,
+          dayPillar: resolvedGanji,
+          dayGanji: resolvedGanji,
+          ilju: resolvedGanji,
+          dayStemBranch: resolvedGanji,
+          fourPillars: {
+            day: {
+              ganji: resolvedGanji,
+              stem: local.pillars.day.stem,
+              branch: local.pillars.day.branch,
+            },
+          },
+        },
       };
 
-      if ((data.ok || data.fallback) && data.result) {
-        setApiData(enrichedData);
-        setPhase("result");
-      } else {
-        setErrorMsg(data.message ?? "잠시 후 다시 시도해 주세요.");
-        setPhase("error");
-      }
+      setApiData(localData);
+      setPhase("result");
     } catch {
-      setErrorMsg("네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      setErrorMsg("로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.");
       setPhase("error");
     }
   }, [birthYear, birthMonth, birthDay, birthHour, isFormValid]);
@@ -664,7 +646,7 @@ export default function SajuPicturePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 text-center">
               <span className="inline-block bg-white/90 backdrop-blur-sm text-slate-800 font-bold text-sm rounded-full px-4 py-1.5 shadow-sm">
-                🐾 AI가 그려주는 나의 동물 캐릭터
+                🐾 일주 기반 동물 가디언
               </span>
             </div>
           </div>
@@ -676,7 +658,7 @@ export default function SajuPicturePage() {
             </h1>
             <p className="text-sm text-slate-500 leading-relaxed">
               사주 오행을 분석해 당신을 닮은<br />
-              <span className="font-semibold text-pink-500">파스텔 동물 캐릭터</span>를 AI가 직접 그려드려요!
+              <span className="font-semibold text-pink-500">일주 가디언 동물</span>을 보여드려요!
             </p>
           </div>
 
@@ -704,8 +686,8 @@ export default function SajuPicturePage() {
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3">
             {[
               { icon: "🔮", text: "사주 오행을 분석해 나만의 동물 선정" },
-              { icon: "🎨", text: "AI가 파스텔 동물 이미지를 직접 생성" },
-              { icon: "💌", text: "성격 분석 & 이미지 저장·공유 지원" },
+              { icon: "🧭", text: "60갑자 카드에서 일주 동물 자동 매칭" },
+              { icon: "💌", text: "성격 해석 & 결과 공유 지원" },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3">
                 <span className="text-xl shrink-0">{item.icon}</span>
@@ -816,7 +798,7 @@ export default function SajuPicturePage() {
         {isFormValid && (
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl py-4 px-5 border border-pink-100 shadow-sm animate-fade-in-up">
             <p className="text-center text-sm text-slate-500">
-              ✨ 준비됐어요! AI가 나만의 동물을 그려드릴게요
+              ✨ 준비됐어요! 로컬 계산으로 내 동물 가디언을 확인해요
             </p>
           </div>
         )}
@@ -831,7 +813,7 @@ export default function SajuPicturePage() {
               : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
           }`}
         >
-          {isFormValid ? "🎨 AI 동물 캐릭터 생성하기" : "년·월·일을 입력해 주세요"}
+          {isFormValid ? "🔮 내 동물 가디언 보기" : "년·월·일을 입력해 주세요"}
         </button>
 
         <p className="text-center text-xs text-slate-400">
