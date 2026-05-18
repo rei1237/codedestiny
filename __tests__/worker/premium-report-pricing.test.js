@@ -27,10 +27,14 @@ describe("Premium report pricing registry", () => {
       { reportType: "lifeBook", requestBody: {}, key: "premium-lifebook-report", cost: 500 },
       { reportType: "loveSecret", requestBody: { mode: "solo" }, key: "premium-love-secret-solo", cost: 300 },
       { reportType: "loveSecret", requestBody: { mode: "compatibility" }, key: "premium-love-secret-couple", cost: 400 },
-      { reportType: "ziweiPremium", requestBody: {}, key: "premium-ziwei-report", cost: 590 },
-      { reportType: "westernAstrologyPremium", requestBody: {}, key: "premium-astrology-report", cost: 390 },
-      { reportType: "sookyoPremium", requestBody: {}, key: "premium-sukuyo-report", cost: 390 },
-      { reportType: "vedicPremium", requestBody: {}, key: "premium-vedic-report", cost: 390 },
+      { reportType: "ziweiPremium", requestBody: { mode: "personal" }, key: "premium-ziwei-report", cost: 590 },
+      { reportType: "ziweiPremium", requestBody: { mode: "compatibility" }, key: "premium-ziwei-report-compat", cost: 690 },
+      { reportType: "westernAstrologyPremium", requestBody: { mode: "personal" }, key: "premium-astrology-report", cost: 390 },
+      { reportType: "westernAstrologyPremium", requestBody: { mode: "compatibility" }, key: "premium-astrology-report-compat", cost: 490 },
+      { reportType: "sookyoPremium", requestBody: { mode: "personal" }, key: "premium-sukuyo-report", cost: 390 },
+      { reportType: "sookyoPremium", requestBody: { mode: "compatibility" }, key: "premium-sukuyo-report-compat", cost: 490 },
+      { reportType: "vedicPremium", requestBody: { mode: "personal" }, key: "premium-vedic-report", cost: 390 },
+      { reportType: "vedicPremium", requestBody: { mode: "compatibility" }, key: "premium-vedic-report-compat", cost: 490 },
     ];
 
     checks.forEach(({ reportType, requestBody, key, cost }) => {
@@ -41,18 +45,15 @@ describe("Premium report pricing registry", () => {
     });
   });
 
-  test("compatibility 추가 과금 키는 required payment 규칙과 가격표가 일치한다", () => {
-    const sukuyoRules = accessUtils.buildRequiredPaymentRules("sookyoPremium", { reportMode: "compatibility" });
-    const vedicRules = accessUtils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });
+  test("compatibility 모드는 기본 featureKey 대비 +100 과금 키를 사용해야 한다", () => {
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-ziwei-report-compat"]?.cost).toBe(690);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-astrology-report-compat"]?.cost).toBe(490);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-sukuyo-report-compat"]?.cost).toBe(490);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report-compat"]?.cost).toBe(490);
 
-    expect(sukuyoRules).toEqual(expect.arrayContaining([
-      expect.objectContaining({ featureKey: "premium-sukuyo-compat-extra", minCost: 300 }),
-    ]));
-    expect(vedicRules).toEqual(expect.arrayContaining([
-      expect.objectContaining({ featureKey: "premium-veda-compatibility-addon", minCost: 300 }),
-    ]));
-
-    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-sukuyo-compat-extra"]?.cost).toBe(300);
-    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-veda-compatibility-addon"]?.cost).toBe(300);
+    const sukuyoRequired = accessUtils.buildRequiredPaymentRules("sookyoPremium", { reportMode: "compatibility" });
+    const vedicRequired = accessUtils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });
+    expect(sukuyoRequired).toHaveLength(0);
+    expect(vedicRequired).toHaveLength(0);
   });
 });

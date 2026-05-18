@@ -7010,6 +7010,45 @@ function countForbiddenSectionChapterHits(texts) {
   return counters;
 }
 
+function isCompatibilityReportMode(mode) {
+  const normalized = String(mode || "").trim().toLowerCase();
+  return normalized === "compatibility" || normalized === "compat";
+}
+
+const PREMIUM_COMPAT_BONUS_MARKER = "궁합 모드 전용 확장 인사이트";
+const PREMIUM_COMPAT_BONUS_BODY = "관계의 승패보다 반복되는 감정 트리거, 대화 리듬, 현실 운영 패턴을 우선 관찰해 두 사람의 합을 높이는 방식으로 해석합니다.";
+
+function appendCompatibilityBonusMarkdown(text, options = {}) {
+  const source = String(text || "").trim();
+  if (!source) return source;
+  if (!isCompatibilityReportMode(options.mode)) return source;
+  if (source.includes(PREMIUM_COMPAT_BONUS_MARKER)) return source;
+
+  const reportType = String(options.reportType || "").toLowerCase();
+  const reportLabel = (() => {
+    if (reportType === "ziweipremium") return "자미두수";
+    if (reportType === "westernastrologypremium") return "점성술";
+    if (reportType === "vedicpremium") return "베다";
+    if (reportType === "sookyopremium") return "숙요";
+    return "프리미엄";
+  })();
+  const chapterNo = Number(options.chapterId || 0);
+  const chapterLabel = chapterNo > 0 ? `Ch.${chapterNo}` : "현재 챕터";
+
+  const bonusBlock = [
+    `### ${PREMIUM_COMPAT_BONUS_MARKER}`,
+    `- ${chapterLabel}의 관계 시그널을 실제 대화/일정 단위로 다시 확인하세요.`,
+    `- ${reportLabel} 궁합 해석은 단발 점수보다 반복 패턴과 충돌 트리거를 우선으로 읽어야 정확도가 올라갑니다.`,
+    "",
+    "#### 궁합 모드 전용 실행 체크리스트",
+    "1. 감정 트리거 1개를 기록하고 7일간 반응 변화를 관찰합니다.",
+    "2. 갈등 상황에서 사용할 합의 문장을 미리 정해 재현성을 높입니다.",
+    "3. 다음 챕터 해석과 연결해 공통 패턴 1개를 확정합니다.",
+  ].join("\n");
+
+  return `${source}\n\n${bonusBlock}`.trim();
+}
+
 function buildSukuyoNatalPromptPayload(canonicalSukuyoNatal, chapterSpec, chapter, previousTexts = [], premiumInput = null) {
   return {
     chapterTitle: chapterSpec?.title || `Chapter ${chapter}`,
@@ -7441,7 +7480,16 @@ async function handleSukuyoLife(request, env) {
     requestId: String(body?._premiumRequestId || body?.requestId || `legacy_${Date.now()}`),
   });
 
-  const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, generated.text, {
+  const compatChapterText = appendCompatibilityBonusMarkdown(generated?.text, {
+    mode: "compatibility",
+    reportType: "sookyoPremium",
+    chapterId: chapter,
+  });
+  const generatedCompat = compatChapterText && compatChapterText !== String(generated?.text || "").trim()
+    ? { ...(generated || {}), text: compatChapterText, sections: parseSections(compatChapterText) }
+    : generated;
+
+  const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, generatedCompat.text, {
     reportType: "compatibility",
     canonicalSukuyoCompatibility,
   });
@@ -7456,7 +7504,7 @@ async function handleSukuyoLife(request, env) {
     canonicalSukuyoCompatibility,
     validation: chartValidation,
     storage,
-    ...generated,
+    ...generatedCompat,
   });
 }
 
@@ -7636,7 +7684,7 @@ async function handleAstroLife(request, env) {
     }
   }
 
-  const generated = await generateAstroPremiumChapter(
+  let generated = await generateAstroPremiumChapter(
     env,
     { ...body, previousChapterTexts: previousTexts },
     input,
@@ -7649,6 +7697,19 @@ async function handleAstroLife(request, env) {
     composite,
     timingData,
   );
+
+  const astroChapterText = appendCompatibilityBonusMarkdown(generated?.text, {
+    mode: reportType,
+    reportType: "westernAstrologyPremium",
+    chapterId: Number(meta.chapter),
+  });
+  if (astroChapterText && astroChapterText !== String(generated?.text || "").trim()) {
+    generated = {
+      ...(generated || {}),
+      text: astroChapterText,
+      sections: parseSections(astroChapterText),
+    };
+  }
 
   const responsePayload = {
     reportId,
@@ -7801,6 +7862,20 @@ async function handleVedicLife(request, env) {
     };
   }
 
+  const vedicChapterText = appendCompatibilityBonusMarkdown(generated?.text, {
+    mode: reportType,
+    reportType: "vedicPremium",
+    chapterId: chapter,
+  });
+  if (vedicChapterText && vedicChapterText !== String(generated?.text || "").trim()) {
+    generated = {
+      ...(generated || {}),
+      text: vedicChapterText,
+      sections: parseSections(vedicChapterText),
+      actualChars: vedicChapterText.length,
+    };
+  }
+
   const reportId = vedicReportIdFromInput(body, input, reportType);
   const storage = writeReportSessionChapter(
     "vedic",
@@ -7896,14 +7971,39 @@ function normalizeVedicV3Sections(text) {
 function normalizeVedicV3ChapterPayload(mode, chapterIndex, chapterText, fallbackMeta, quality = null) {
   const chapterMetaList = getVedicV3ChapterMeta(mode);
   const chapterMeta = chapterMetaList[chapterIndex - 1] || fallbackMeta || { index: chapterIndex, key: `chapter_${chapterIndex}`, title: `Chapter ${chapterIndex}`, subtitle: "" };
-  const sections = normalizeVedicV3Sections(chapterText);
+  const sections = normalizeVedicV3Sections(chapterText).slice(0, 6);
   const summary = buildVedicV3Summary(chapterText, chapterMeta.title);
-  const keyInsights = sections.slice(0, 3).map((section) => section.heading).filter(Boolean);
-  const practicalAdvice = [
+  let keyInsights = sections.slice(0, 3).map((section) => section.heading).filter(Boolean);
+  let practicalAdvice = [
     `${chapterMeta.title}의 핵심 포인트를 오늘 일정에 1개 반영하세요.`,
     "7일 동안 같은 루틴을 유지하면서 감정/행동 변화를 기록하세요.",
     "다음 챕터와 연결해 반복 패턴을 한 번 더 교차 점검하세요.",
   ];
+
+  if (isCompatibilityReportMode(mode)) {
+    const bonusSection = {
+      heading: PREMIUM_COMPAT_BONUS_MARKER,
+      body: PREMIUM_COMPAT_BONUS_BODY,
+    };
+    const bonusIndex = sections.findIndex((row) => String(row?.heading || "") === PREMIUM_COMPAT_BONUS_MARKER);
+    if (bonusIndex >= 0) {
+      sections[bonusIndex] = bonusSection;
+    } else if (sections.length < 6) {
+      sections.push(bonusSection);
+    } else {
+      sections[sections.length - 1] = bonusSection;
+    }
+
+    keyInsights = Array.from(new Set([
+      "궁합 모드에서는 반복되는 감정 트리거의 구조를 먼저 확인해야 합니다.",
+      ...keyInsights,
+    ])).slice(0, 3);
+
+    practicalAdvice = Array.from(new Set([
+      "두 사람이 공통으로 지키는 대화 규칙 1개를 정해 7일간 유지하세요.",
+      ...practicalAdvice,
+    ])).slice(0, 4);
+  }
 
   return {
     chapterIndex,
@@ -8164,6 +8264,17 @@ function buildVedicV3DownloadMarkdown(report) {
 
     parts.push("---", "");
   });
+
+  if (isCompatibilityReportMode(report.mode)) {
+    parts.push("## 궁합 모드 전용 확장 인사이트");
+    parts.push(PREMIUM_COMPAT_BONUS_BODY);
+    parts.push("");
+    parts.push("### 실행 체크리스트");
+    parts.push("- 감정 트리거 1개를 주간 단위로 추적하세요.");
+    parts.push("- 갈등 상황에서 사용할 합의 문장을 미리 정하세요.");
+    parts.push("- 다음 업데이트 시 공통 패턴 1개가 줄었는지 확인하세요.");
+    parts.push("");
+  }
 
   return parts.join("\n");
 }
@@ -10635,7 +10746,7 @@ async function handleZiweiBookSession(request, env) {
   }
 
   const previousChapterTexts = getStoredChapterTexts("ziwei", reportId, chapter);
-  const generated = await generateZiweiPremiumChapter(
+  let generated = await generateZiweiPremiumChapter(
     env,
     body,
     input,
@@ -10656,6 +10767,19 @@ async function handleZiweiBookSession(request, env) {
       missingFields: Array.isArray(generated?.details) ? generated.details : [],
       validation: chartValidation,
     }, { status: 422 });
+  }
+
+  const ziweiChapterText = appendCompatibilityBonusMarkdown(generated?.text, {
+    mode: reportType,
+    reportType: "ziweiPremium",
+    chapterId: chapter,
+  });
+  if (ziweiChapterText && ziweiChapterText !== String(generated?.text || "").trim()) {
+    generated = {
+      ...(generated || {}),
+      text: ziweiChapterText,
+      sections: parseSections(ziweiChapterText),
+    };
   }
 
   const storage = writeReportSessionChapter(
@@ -11259,7 +11383,11 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       requestId,
     });
 
-    const chapterText = String(generated?.text || "").trim();
+    const chapterText = appendCompatibilityBonusMarkdown(generated?.text, {
+      mode: context.modeKey,
+      reportType: context.reportType,
+      chapterId,
+    });
     const rawLengthCheck = validateChapterLength({
       reportType: context.reportType,
       featureType: context.featureType,
@@ -11376,7 +11504,14 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       continue;
     }
 
-    const chapterText = String(data.text || "").trim();
+    const chapterText = appendCompatibilityBonusMarkdown(data?.text, {
+      mode: context.modeKey,
+      reportType: context.reportType,
+      chapterId,
+    });
+    if (chapterText !== String(data?.text || "").trim()) {
+      data.text = chapterText;
+    }
     const lengthCheck = validateChapterLength({
       reportType: context.reportType,
       featureType: context.featureType,
@@ -11872,45 +12007,60 @@ function buildAstrologyV3FallbackChapter(mode, def, report, reasons = []) {
   const modeLabel = mode === "compatibility" ? "궁합" : "개인";
   const reasonText = reasons.length ? ` (${reasons.join(" | ")})` : "";
 
+  const sections = [
+    {
+      heading: "데이터 근거 요약",
+      body: `${String(profile?.name || "사용자")}의 핵심 좌표는 ASC ${String(asc?.sign || "정보 없음")}, 태양 ${String(sun?.sign || "정보 없음")}, 달 ${String(moon?.sign || "정보 없음")}를 중심으로 확인됩니다.`,
+    },
+    {
+      heading: "패턴 해석",
+      body: "해당 챕터는 확인 가능한 하우스/행성/어스펙트만 사용해 해석하며, 누락 데이터는 추측하지 않습니다.",
+    },
+    {
+      heading: "관계/현실 적용",
+      body: "감정 반응과 의사결정 패턴을 실제 생활 장면에 연결하고, 과장 없이 실행 가능한 기준으로 요약합니다.",
+    },
+    {
+      heading: "리스크 및 주의점",
+      body: "긴장 어스펙트에서 반복되는 반응을 경고 신호로 관리하고, 갈등 발생 시 우선순위를 단순화합니다.",
+    },
+    {
+      heading: "실천 전략",
+      body: "7일, 30일, 90일 단위의 작은 루틴을 고정해 변화 지표를 기록하고 다음 업데이트 때 재검증하세요.",
+    },
+  ];
+  if (isCompatibilityReportMode(mode)) {
+    sections.push({ heading: PREMIUM_COMPAT_BONUS_MARKER, body: PREMIUM_COMPAT_BONUS_BODY });
+  }
+
+  const keyInsights = [
+    "원본 차트 데이터만 사용해 해석 신뢰도를 유지합니다.",
+    "데이터 부족 시에도 챕터 생성을 중단하지 않고 보수적으로 연결합니다.",
+    "핵심 패턴은 행동 루틴으로 전환할 때 가치가 높아집니다.",
+  ];
+  if (isCompatibilityReportMode(mode)) {
+    keyInsights[0] = "궁합 모드에서는 점수보다 반복되는 관계 패턴을 먼저 확인합니다.";
+  }
+
+  const practicalAdvice = [
+    "핵심 감정 트리거 1개를 기록해 반응 패턴을 추적하세요.",
+    "갈등 시 사용할 짧은 대화 문장을 미리 준비하세요.",
+    "주간 리뷰에서 실행률(%)을 체크해 조정하세요.",
+    "추가 출생 정보 보강 후 재생성해 해석 차이를 비교하세요.",
+  ];
+  if (isCompatibilityReportMode(mode)) {
+    practicalAdvice[0] = "갈등 직전 신호 1개를 정해 두 사람이 같은 방식으로 기록하세요.";
+  }
+
   return {
     chapterIndex: Number(def.index),
     chapterKey: String(def.key),
     title: String(def.title),
     subtitle: String(def.subtitle || "보수적 해석 모드"),
     summary: `${modeLabel} 모드에서 제공된 원본 계산 데이터 기준으로 챕터를 보수적으로 구성했습니다.${reasonText}`,
-    sections: [
-      {
-        heading: "데이터 근거 요약",
-        body: `${String(profile?.name || "사용자")}의 핵심 좌표는 ASC ${String(asc?.sign || "정보 없음")}, 태양 ${String(sun?.sign || "정보 없음")}, 달 ${String(moon?.sign || "정보 없음")}를 중심으로 확인됩니다.`,
-      },
-      {
-        heading: "패턴 해석",
-        body: "해당 챕터는 확인 가능한 하우스/행성/어스펙트만 사용해 해석하며, 누락 데이터는 추측하지 않습니다.",
-      },
-      {
-        heading: "관계/현실 적용",
-        body: "감정 반응과 의사결정 패턴을 실제 생활 장면에 연결하고, 과장 없이 실행 가능한 기준으로 요약합니다.",
-      },
-      {
-        heading: "리스크 및 주의점",
-        body: "긴장 어스펙트에서 반복되는 반응을 경고 신호로 관리하고, 갈등 발생 시 우선순위를 단순화합니다.",
-      },
-      {
-        heading: "실천 전략",
-        body: "7일, 30일, 90일 단위의 작은 루틴을 고정해 변화 지표를 기록하고 다음 업데이트 때 재검증하세요.",
-      },
-    ],
-    keyInsights: [
-      "원본 차트 데이터만 사용해 해석 신뢰도를 유지합니다.",
-      "데이터 부족 시에도 챕터 생성을 중단하지 않고 보수적으로 연결합니다.",
-      "핵심 패턴은 행동 루틴으로 전환할 때 가치가 높아집니다.",
-    ],
-    practicalAdvice: [
-      "핵심 감정 트리거 1개를 기록해 반응 패턴을 추적하세요.",
-      "갈등 시 사용할 짧은 대화 문장을 미리 준비하세요.",
-      "주간 리뷰에서 실행률(%)을 체크해 조정하세요.",
-      "추가 출생 정보 보강 후 재생성해 해석 차이를 비교하세요.",
-    ],
+    sections,
+    keyInsights,
+    practicalAdvice,
     usedFallback: true,
     fallbackReason: reasons.join(" | ") || "FALLBACK_CHAPTER",
     warnings: Array.isArray(report?.sourceData?.notices) ? report.sourceData.notices : [],
@@ -11962,6 +12112,27 @@ function buildAstrologyV3ChapterFromMarkdown(mode, def, markdownText, usedFallba
     advice.push("작은 루틴을 정해 7일간 반복하고 체감 변화를 기록하세요.");
   }
 
+  if (isCompatibilityReportMode(mode)) {
+    const bonusSection = {
+      heading: PREMIUM_COMPAT_BONUS_MARKER,
+      body: PREMIUM_COMPAT_BONUS_BODY,
+    };
+    const bonusIndex = cappedSections.findIndex((row) => String(row?.heading || "") === PREMIUM_COMPAT_BONUS_MARKER);
+    if (bonusIndex >= 0) {
+      cappedSections[bonusIndex] = bonusSection;
+    } else if (cappedSections.length < 6) {
+      cappedSections.push(bonusSection);
+    } else {
+      cappedSections[cappedSections.length - 1] = bonusSection;
+    }
+
+    keyInsights.unshift("궁합 모드에서는 반복되는 감정 반응과 대화 리듬을 먼저 확인합니다.");
+    advice.unshift("관계 충돌 트리거 1개를 두 사람이 동일하게 기록해 7일간 비교하세요.");
+  }
+
+  const normalizedInsights = Array.from(new Set(keyInsights.map((item) => String(item || "").trim()).filter(Boolean))).slice(0, 3);
+  const normalizedAdvice = Array.from(new Set(advice.map((item) => String(item || "").trim()).filter(Boolean))).slice(0, 4);
+
   return {
     chapterIndex: Number(def.index),
     chapterKey: String(def.key),
@@ -11969,8 +12140,8 @@ function buildAstrologyV3ChapterFromMarkdown(mode, def, markdownText, usedFallba
     subtitle: String(def.subtitle || ""),
     summary: summary || `${def.title} 핵심 요약`,
     sections: cappedSections,
-    keyInsights: keyInsights.slice(0, 3),
-    practicalAdvice: advice.slice(0, 4),
+    keyInsights: normalizedInsights,
+    practicalAdvice: normalizedAdvice,
     usedFallback: Boolean(usedFallback),
     fallbackReason: String(fallbackReason || ""),
     warnings: Array.isArray(warnings) ? warnings : [],
@@ -12512,12 +12683,27 @@ function normalizeZiweiV3StringList(value) {
 
 function normalizeZiweiV3Chapter(def, raw) {
   const source = raw && typeof raw === "object" ? raw : {};
+  const isCompatChapter = String(def?.key || "").startsWith("compat_");
   const sections = (Array.isArray(source.sections) ? source.sections : [])
     .map((item, idx) => ({
       heading: String(item?.heading || item?.title || `섹션 ${idx + 1}`).trim(),
       body: String(item?.body || "").trim(),
     }))
     .filter((item) => item.heading && item.body);
+
+  if (isCompatChapter && !sections.some((item) => String(item?.heading || "") === PREMIUM_COMPAT_BONUS_MARKER)) {
+    sections.push({
+      heading: PREMIUM_COMPAT_BONUS_MARKER,
+      body: PREMIUM_COMPAT_BONUS_BODY,
+    });
+  }
+
+  const keyInsights = normalizeZiweiV3StringList(source.keyInsights);
+  const practicalAdvice = normalizeZiweiV3StringList(source.practicalAdvice);
+  if (isCompatChapter) {
+    keyInsights.unshift("궁합 모드에서는 반복되는 감정 트리거와 반응 속도를 함께 확인합니다.");
+    practicalAdvice.unshift("갈등 직전 신호를 두 사람이 같은 기준으로 1주일 기록하세요.");
+  }
 
   return {
     chapterIndex: Number(source.chapterIndex || def.index),
@@ -12526,8 +12712,8 @@ function normalizeZiweiV3Chapter(def, raw) {
     subtitle: String(source.subtitle || "").trim(),
     summary: String(source.summary || "").trim(),
     sections,
-    keyInsights: normalizeZiweiV3StringList(source.keyInsights),
-    practicalAdvice: normalizeZiweiV3StringList(source.practicalAdvice),
+    keyInsights: Array.from(new Set(keyInsights.map((item) => String(item || "").trim()).filter(Boolean))),
+    practicalAdvice: Array.from(new Set(practicalAdvice.map((item) => String(item || "").trim()).filter(Boolean))),
   };
 }
 
@@ -12561,36 +12747,51 @@ function validateZiweiV3Chapter(mode, def, chapter) {
 function buildZiweiV3FallbackChapter(mode, def, reasons = []) {
   const reasonText = reasons.length ? `(${reasons.join(", ")})` : "";
   const modeLabel = mode === "compatibility" ? "궁합" : "개인";
+  const sections = [
+    {
+      heading: "원본 데이터 기준 해석",
+      body: "이 장은 기존 자미두수 엔진이 제공한 명반 JSON만 사용했습니다. 없는 데이터는 임의 생성하지 않고 확인 가능한 궁위/별/사화 중심으로 해석합니다.",
+    },
+    {
+      heading: "핵심 관찰",
+      body: "데이터가 제한적인 영역은 단정형 길흉 대신 보수적 문장으로 정리하고, 명궁·신궁·12궁의 연결 구조를 우선으로 해석합니다.",
+    },
+    {
+      heading: "실행 전략",
+      body: "이번 장의 핵심 문장을 7일 실행 규칙으로 바꿔 적용하세요. 추가 데이터가 확보되면 같은 챕터를 재생성해 정밀도를 높일 수 있습니다.",
+    },
+  ];
+  if (isCompatibilityReportMode(mode)) {
+    sections.push({ heading: PREMIUM_COMPAT_BONUS_MARKER, body: PREMIUM_COMPAT_BONUS_BODY });
+  }
+
+  const keyInsights = [
+    "자미두수 계산은 기존 엔진 결과만 사용합니다.",
+    "데이터가 부족해도 챕터 생성을 중단하지 않습니다.",
+    "보수적 해석은 실행 가능한 문장 중심으로 유지됩니다.",
+  ];
+  if (isCompatibilityReportMode(mode)) {
+    keyInsights[0] = "궁합 모드에서는 두 사람의 반복 패턴을 우선 확인합니다.";
+  }
+
+  const practicalAdvice = [
+    "이번 장의 행동 한 가지를 7일간 고정 실행하세요.",
+    "반복되는 패턴을 짧게 기록해 다음 생성 입력으로 사용하세요.",
+    "출생시/상대 데이터 보강 후 재생성해 해석 차이를 비교하세요.",
+  ];
+  if (isCompatibilityReportMode(mode)) {
+    practicalAdvice[0] = "대화가 끊기는 순간의 트리거를 두 사람이 같은 표준으로 기록하세요.";
+  }
+
   return {
     chapterIndex: def.index,
     chapterKey: def.key,
     title: def.title,
     subtitle: "보수적 해석 모드",
     summary: `${modeLabel} 모드 원본 자미두수 계산 데이터 기준으로 보수적으로 작성했습니다. ${reasonText}`.trim(),
-    sections: [
-      {
-        heading: "원본 데이터 기준 해석",
-        body: "이 장은 기존 자미두수 엔진이 제공한 명반 JSON만 사용했습니다. 없는 데이터는 임의 생성하지 않고 확인 가능한 궁위/별/사화 중심으로 해석합니다.",
-      },
-      {
-        heading: "핵심 관찰",
-        body: "데이터가 제한적인 영역은 단정형 길흉 대신 보수적 문장으로 정리하고, 명궁·신궁·12궁의 연결 구조를 우선으로 해석합니다.",
-      },
-      {
-        heading: "실행 전략",
-        body: "이번 장의 핵심 문장을 7일 실행 규칙으로 바꿔 적용하세요. 추가 데이터가 확보되면 같은 챕터를 재생성해 정밀도를 높일 수 있습니다.",
-      },
-    ],
-    keyInsights: [
-      "자미두수 계산은 기존 엔진 결과만 사용합니다.",
-      "데이터가 부족해도 챕터 생성을 중단하지 않습니다.",
-      "보수적 해석은 실행 가능한 문장 중심으로 유지됩니다.",
-    ],
-    practicalAdvice: [
-      "이번 장의 행동 한 가지를 7일간 고정 실행하세요.",
-      "반복되는 패턴을 짧게 기록해 다음 생성 입력으로 사용하세요.",
-      "출생시/상대 데이터 보강 후 재생성해 해석 차이를 비교하세요.",
-    ],
+    sections,
+    keyInsights,
+    practicalAdvice,
   };
 }
 
@@ -13147,7 +13348,11 @@ function renderZiweiV3Html(report) {
     return `<section class="chapter"><h2>${escapeZiweiV3Html(chapter.title)}</h2><p class="subtitle">${escapeZiweiV3Html(chapter.subtitle || "")}</p><p class="summary">${escapeZiweiV3Html(chapter.summary || "")}</p>${sections}<div class="lists"><div><h5>핵심 통찰</h5><ul>${insights}</ul></div><div><h5>실천 조언</h5><ul>${advice}</ul></div></div></section>`;
   }).join("\n");
 
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeZiweiV3Html(modeLabel)}</title><style>body{font-family:"Noto Serif KR","Noto Sans KR",serif;margin:0;background:#f7f5ef;color:#111827}.cover{padding:54px 42px;background:linear-gradient(145deg,#111827,#1f2937 54%,#1b2746);color:#f9fafb}.mode{padding:22px 42px;background:#fff8eb;border-bottom:1px solid #e5e7eb}.cards{padding:20px 42px 10px;display:grid;gap:14px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:15px 16px}.card h2{margin:0 0 8px;color:#7c2d12}table{width:100%;border-collapse:collapse}th,td{border:1px solid #e5e7eb;padding:7px 8px;text-align:left;vertical-align:top;font-size:13px}.chapter{page-break-before:always;padding:32px 42px;background:#fff;border-top:1px solid #e5e7eb}.chapter h2{margin:0 0 8px;color:#92400e}.chapter h4{margin:16px 0 7px}.chapter p{margin:0 0 10px;line-height:1.84}.subtitle{color:#6b7280}.summary{font-weight:600}.lists{display:grid;grid-template-columns:1fr 1fr;gap:14px}.lists h5{margin:0 0 8px;color:#7c2d12}ul{margin:0;padding-left:20px;line-height:1.72}.closing{page-break-before:always;padding:34px 42px 48px;background:#fff}.disclaimer{margin-top:20px;font-size:13px;color:#6b7280;line-height:1.7}@media(max-width:820px){.cover,.mode,.cards,.chapter,.closing{padding-left:18px;padding-right:18px}.lists{grid-template-columns:1fr}}</style></head><body><section class="cover"><h1>Ziwei Premium Report</h1><p>${escapeZiweiV3Html(modeLabel)}</p><p>reportId: ${escapeZiweiV3Html(report.id)}</p><p>생성일: ${escapeZiweiV3Html(report.updatedAt || report.createdAt || "")}</p></section><section class="mode"><strong>모드 안내:</strong> ${escapeZiweiV3Html(modeLabel)}</section><section class="cards">${summaryCards}</section>${chapterHtml}<section class="closing"><h2>마지막 요약 페이지</h2><p>이 리포트는 기존 자미두수 계산 엔진 산출 JSON을 기반으로 생성되며, 데이터 부족 시 보수적 해석 모드로 안전하게 이어집니다.</p><p class="disclaimer">면책 안내: 본 리포트는 자기이해 및 의사결정 보조 문서입니다. 의료·법률·투자 판단을 단정하지 않습니다.</p></section></body></html>`;
+  const compatibilityBonusHtml = report.mode === "compatibility"
+    ? `<section class="card"><h2>${escapeZiweiV3Html(PREMIUM_COMPAT_BONUS_MARKER)}</h2><p>${escapeZiweiV3Html(PREMIUM_COMPAT_BONUS_BODY)}</p></section>`
+    : "";
+
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeZiweiV3Html(modeLabel)}</title><style>body{font-family:"Noto Serif KR","Noto Sans KR",serif;margin:0;background:#f7f5ef;color:#111827}.cover{padding:54px 42px;background:linear-gradient(145deg,#111827,#1f2937 54%,#1b2746);color:#f9fafb}.mode{padding:22px 42px;background:#fff8eb;border-bottom:1px solid #e5e7eb}.cards{padding:20px 42px 10px;display:grid;gap:14px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:15px 16px}.card h2{margin:0 0 8px;color:#7c2d12}table{width:100%;border-collapse:collapse}th,td{border:1px solid #e5e7eb;padding:7px 8px;text-align:left;vertical-align:top;font-size:13px}.chapter{page-break-before:always;padding:32px 42px;background:#fff;border-top:1px solid #e5e7eb}.chapter h2{margin:0 0 8px;color:#92400e}.chapter h4{margin:16px 0 7px}.chapter p{margin:0 0 10px;line-height:1.84}.subtitle{color:#6b7280}.summary{font-weight:600}.lists{display:grid;grid-template-columns:1fr 1fr;gap:14px}.lists h5{margin:0 0 8px;color:#7c2d12}ul{margin:0;padding-left:20px;line-height:1.72}.closing{page-break-before:always;padding:34px 42px 48px;background:#fff}.disclaimer{margin-top:20px;font-size:13px;color:#6b7280;line-height:1.7}@media(max-width:820px){.cover,.mode,.cards,.chapter,.closing{padding-left:18px;padding-right:18px}.lists{grid-template-columns:1fr}}</style></head><body><section class="cover"><h1>Ziwei Premium Report</h1><p>${escapeZiweiV3Html(modeLabel)}</p><p>reportId: ${escapeZiweiV3Html(report.id)}</p><p>생성일: ${escapeZiweiV3Html(report.updatedAt || report.createdAt || "")}</p></section><section class="mode"><strong>모드 안내:</strong> ${escapeZiweiV3Html(modeLabel)}</section><section class="cards">${summaryCards}${compatibilityBonusHtml}</section>${chapterHtml}<section class="closing"><h2>마지막 요약 페이지</h2><p>이 리포트는 기존 자미두수 계산 엔진 산출 JSON을 기반으로 생성되며, 데이터 부족 시 보수적 해석 모드로 안전하게 이어집니다.</p><p class="disclaimer">면책 안내: 본 리포트는 자기이해 및 의사결정 보조 문서입니다. 의료·법률·투자 판단을 단정하지 않습니다.</p></section></body></html>`;
 }
 
 function validateZiweiV3FullReport(mode, chapters) {

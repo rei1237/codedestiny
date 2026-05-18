@@ -11,9 +11,12 @@
     '실전 조언을 챕터 문맥에 맞게 정리하는 중입니다...'
   ];
 
-  var VEDIC_COIN_COST = 390;
+  var VEDIC_COIN_BASE_COST = 390;
+  var VEDIC_COIN_COMPAT_EXTRA_COST = 100;
   var VEDIC_COIN_FEATURE_KEY = 'premium-vedic-report';
+  var VEDIC_COIN_FEATURE_KEY_COMPAT = 'premium-vedic-report-compat';
   var VEDIC_COIN_REASON = '베다 점성술 프리미엄 PDF 리포트 생성';
+  var VEDIC_COIN_REASON_COMPAT = '베다 점성술 프리미엄 PDF 궁합 리포트 생성';
 
   var VEDIC_LOADING_FLOW_PERSONAL = [
     '라그나 기준점을 정밀 교정하는 중입니다...',
@@ -439,9 +442,21 @@
     return chunks.join('|');
   }
 
+  function resolveVedicCoinPolicy(body) {
+    var mode = String(body && body.mode || 'personal');
+    var isCompat = mode === 'compatibility';
+    return {
+      cost: VEDIC_COIN_BASE_COST + (isCompat ? VEDIC_COIN_COMPAT_EXTRA_COST : 0),
+      featureKey: isCompat ? VEDIC_COIN_FEATURE_KEY_COMPAT : VEDIC_COIN_FEATURE_KEY,
+      reason: isCompat ? VEDIC_COIN_REASON_COMPAT : VEDIC_COIN_REASON,
+      modeLabel: isCompat ? '궁합' : '개인'
+    };
+  }
+
   async function ensureVedicCoinGate(body) {
     var gateKey = buildVedicGateKey(body);
     if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+    var policy = resolveVedicCoinPolicy(body);
 
     try {
       if (window.__cdAdminBypass === true) {
@@ -450,7 +465,7 @@
       }
     } catch (_) {}
 
-    if (!window.confirm('🪙 베다 프리미엄 리포트 생성\n이용 시 ' + VEDIC_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+    if (!window.confirm('🪙 베다 프리미엄 ' + policy.modeLabel + ' 리포트 생성\n이용 시 ' + policy.cost + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
       return false;
     }
 
@@ -458,8 +473,8 @@
     var res = await requestJson('/api/billing/coin-gate', {
       method: 'POST',
       body: {
-        featureKey: VEDIC_COIN_FEATURE_KEY,
-        reason: VEDIC_COIN_REASON,
+        featureKey: policy.featureKey,
+        reason: policy.reason,
         forceDeduct: true,
         requestId: requestId
       }

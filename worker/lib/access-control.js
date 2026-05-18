@@ -68,17 +68,19 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "ziweiPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
     return [
       {
         featureKey: "premium_pdf_ziwei",
-        reason: "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: 590,
+        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 690 : 590,
         windowMinutes: 120,
       },
       {
-        featureKey: "premium-ziwei-report",
-        reason: "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: 590,
+        featureKey: isCompat ? "premium-ziwei-report-compat" : "premium-ziwei-report",
+        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 690 : 590,
         windowMinutes: 120,
       },
     ];
@@ -94,28 +96,34 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "westernAstrologyPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
     return [{
-      featureKey: "premium-astrology-report",
-      reason: "점성술 프리미엄 PDF 리포트 생성",
-      minCost: 390,
+      featureKey: isCompat ? "premium-astrology-report-compat" : "premium-astrology-report",
+      reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+      minCost: isCompat ? 490 : 390,
       windowMinutes: 120,
     }];
   }
 
   if (reportType === "sookyoPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
     return [{
-      featureKey: "premium-sukuyo-report",
-      reason: "숙요점 프리미엄 PDF 리포트 생성",
-      minCost: 390,
+      featureKey: isCompat ? "premium-sukuyo-report-compat" : "premium-sukuyo-report",
+      reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
+      minCost: isCompat ? 490 : 390,
       windowMinutes: 120,
     }];
   }
 
   if (reportType === "vedicPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
     return [{
-      featureKey: "premium-vedic-report",
-      reason: "베다 점성술 프리미엄 PDF 리포트 생성",
-      minCost: 390,
+      featureKey: isCompat ? "premium-vedic-report-compat" : "premium-vedic-report",
+      reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
+      minCost: isCompat ? 490 : 390,
       windowMinutes: 120,
     }];
   }
@@ -124,30 +132,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
 }
 
 export function buildRequiredPaymentRules(reportType, requestBody = {}) {
-  if (reportType === "sookyoPremium") {
-    const modeToken = normalizeModeToken(requestBody);
-    if (modeToken.includes("compat")) {
-      return [{
-        featureKey: "premium-sukuyo-compat-extra",
-        reason: "숙요점 궁합 확장 분석 추가",
-        minCost: 300,
-        windowMinutes: 120,
-      }];
-    }
-  }
-
-  if (reportType === "vedicPremium") {
-    const modeToken = normalizeModeToken(requestBody);
-    if (modeToken.includes("compat")) {
-      return [{
-        featureKey: "premium-veda-compatibility-addon",
-        reason: "프리미엄 베다점 궁합 확장 분석 추가",
-        minCost: 300,
-        windowMinutes: 120,
-      }];
-    }
-  }
-
   return [];
 }
 

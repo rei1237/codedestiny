@@ -103,6 +103,20 @@ describe("Fortune coin access guard", () => {
     expect(priced.pricingSource).toBe("feature-key");
   });
 
+  test("premium-ziwei-report-compat는 서버 가격 690으로 고정되어야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "premium-ziwei-report-compat",
+      reason: "자미두수 프리미엄 PDF 궁합 리포트 생성",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(690);
+    expect(priced.pricingSource).toBe("feature-key");
+  });
+
   test("premium_pdf_ziwei는 서버 가격 590으로 고정되어야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },
@@ -129,6 +143,20 @@ describe("Fortune coin access guard", () => {
 
     expect(priced.ok).toBe(true);
     expect(priced.cost).toBe(300);
+    expect(priced.pricingSource).toBe("feature-key");
+  });
+
+  test("premium-vedic-report-compat는 서버 가격 490으로 고정되어야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "premium-vedic-report-compat",
+      reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(490);
     expect(priced.pricingSource).toBe("feature-key");
   });
 

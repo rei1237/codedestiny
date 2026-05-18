@@ -10,9 +10,12 @@
     '챕터별 해석 품질을 점검하고 보정하고 있습니다...'
   ];
 
-  var SUKUYO_COIN_COST = 390;
+  var SUKUYO_COIN_BASE_COST = 390;
+  var SUKUYO_COIN_COMPAT_EXTRA_COST = 100;
   var SUKUYO_COIN_FEATURE_KEY = 'premium-sukuyo-report';
+  var SUKUYO_COIN_FEATURE_KEY_COMPAT = 'premium-sukuyo-report-compat';
   var SUKUYO_COIN_REASON = '숙요점 프리미엄 PDF 리포트 생성';
+  var SUKUYO_COIN_REASON_COMPAT = '숙요점 프리미엄 PDF 궁합 리포트 생성';
 
   var SUKUYO_LOADING_FLOW = [
     '본명숙과 월령 좌표를 정렬하는 중입니다...',
@@ -516,9 +519,21 @@
     return chunks.join('|');
   }
 
+  function resolveSukuyoCoinPolicy(body) {
+    var mode = String(body && body.mode || 'personal');
+    var isCompat = mode === 'compatibility';
+    return {
+      cost: SUKUYO_COIN_BASE_COST + (isCompat ? SUKUYO_COIN_COMPAT_EXTRA_COST : 0),
+      featureKey: isCompat ? SUKUYO_COIN_FEATURE_KEY_COMPAT : SUKUYO_COIN_FEATURE_KEY,
+      reason: isCompat ? SUKUYO_COIN_REASON_COMPAT : SUKUYO_COIN_REASON,
+      modeLabel: isCompat ? '궁합' : '개인'
+    };
+  }
+
   async function ensureSukuyoCoinGate(body) {
     var gateKey = buildSukuyoGateKey(body);
     if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+    var policy = resolveSukuyoCoinPolicy(body);
 
     try {
       if (window.__cdAdminBypass === true) {
@@ -527,7 +542,7 @@
       }
     } catch (_) {}
 
-    if (!window.confirm('🪙 숙요 프리미엄 리포트 생성\n이용 시 ' + SUKUYO_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+    if (!window.confirm('🪙 숙요 프리미엄 ' + policy.modeLabel + ' 리포트 생성\n이용 시 ' + policy.cost + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
       return false;
     }
 
@@ -535,8 +550,8 @@
     var res = await requestJson('/api/billing/coin-gate', {
       method: 'POST',
       body: {
-        featureKey: SUKUYO_COIN_FEATURE_KEY,
-        reason: SUKUYO_COIN_REASON,
+        featureKey: policy.featureKey,
+        reason: policy.reason,
         forceDeduct: true,
         requestId: requestId
       }

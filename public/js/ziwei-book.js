@@ -44,9 +44,12 @@
     '관계 헌장'
   ];
 
-  var ZIWEI_COIN_COST = 590;
+  var ZIWEI_COIN_BASE_COST = 590;
+  var ZIWEI_COIN_COMPAT_EXTRA_COST = 100;
   var ZIWEI_COIN_FEATURE_KEY = 'premium-ziwei-report';
+  var ZIWEI_COIN_FEATURE_KEY_COMPAT = 'premium-ziwei-report-compat';
   var ZIWEI_COIN_REASON = '자미두수 프리미엄 PDF 리포트 생성';
+  var ZIWEI_COIN_REASON_COMPAT = '자미두수 프리미엄 PDF 궁합 리포트 생성';
 
   var state = {
     generating: false,
@@ -638,23 +641,37 @@
   function buildZiweiGateKey(body) {
     var b = body || {};
     var mode = String(b.mode || 'personal');
+    var birth = (b.birthData && typeof b.birthData === 'object') ? b.birthData : {};
+    var partnerBirth = (b.partnerBirthData && typeof b.partnerBirthData === 'object') ? b.partnerBirthData : {};
     var chunks = [
       mode,
-      Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
-      Number(b.hour || 12), Number(b.minute || 0)
+      Number(b.year || birth.year || 0), Number(b.month || birth.month || 0), Number(b.day || birth.day || 0),
+      Number(b.hour || birth.hour || 12), Number(b.minute || birth.minute || 0)
     ];
     if (mode === 'compatibility') {
       chunks.push(
-        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
-        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
+        Number(b.partnerYear || partnerBirth.year || 0), Number(b.partnerMonth || partnerBirth.month || 0), Number(b.partnerDay || partnerBirth.day || 0),
+        Number(b.partnerHour || partnerBirth.hour || 12), Number(b.partnerMinute || partnerBirth.minute || 0)
       );
     }
     return chunks.join('|');
   }
 
+  function resolveZiweiCoinPolicy(body) {
+    var mode = String(body && body.mode || 'personal');
+    var isCompat = mode === 'compatibility';
+    return {
+      cost: ZIWEI_COIN_BASE_COST + (isCompat ? ZIWEI_COIN_COMPAT_EXTRA_COST : 0),
+      featureKey: isCompat ? ZIWEI_COIN_FEATURE_KEY_COMPAT : ZIWEI_COIN_FEATURE_KEY,
+      reason: isCompat ? ZIWEI_COIN_REASON_COMPAT : ZIWEI_COIN_REASON,
+      modeLabel: isCompat ? '궁합' : '개인'
+    };
+  }
+
   async function ensureZiweiCoinGate(body) {
     var gateKey = buildZiweiGateKey(body);
     if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+    var policy = resolveZiweiCoinPolicy(body);
 
     try {
       if (window.__cdAdminBypass === true) {
@@ -663,7 +680,7 @@
       }
     } catch (_) {}
 
-    if (!window.confirm('🪙 자미두수 프리미엄 리포트 생성\n이용 시 ' + ZIWEI_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+    if (!window.confirm('🪙 자미두수 프리미엄 ' + policy.modeLabel + ' 리포트 생성\n이용 시 ' + policy.cost + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
       return false;
     }
 
@@ -671,8 +688,8 @@
     var res = await requestJson('/api/billing/coin-gate', {
       method: 'POST',
       body: {
-        featureKey: ZIWEI_COIN_FEATURE_KEY,
-        reason: ZIWEI_COIN_REASON,
+        featureKey: policy.featureKey,
+        reason: policy.reason,
         forceDeduct: true,
         requestId: requestId
       }

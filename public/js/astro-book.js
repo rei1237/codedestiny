@@ -41,9 +41,12 @@
     '관계 운영 마스터 플랜'
   ];
 
-  var ASTRO_COIN_COST = 390;
+  var ASTRO_COIN_BASE_COST = 390;
+  var ASTRO_COIN_COMPAT_EXTRA_COST = 100;
   var ASTRO_COIN_FEATURE_KEY = 'premium-astrology-report';
+  var ASTRO_COIN_FEATURE_KEY_COMPAT = 'premium-astrology-report-compat';
   var ASTRO_COIN_REASON = '점성술 프리미엄 PDF 리포트 생성';
+  var ASTRO_COIN_REASON_COMPAT = '점성술 프리미엄 PDF 궁합 리포트 생성';
 
   var ASTRO_LOADING_FLOW_PERSONAL = [
     '출생 차트의 기준 축을 정렬하고 있습니다...',
@@ -485,9 +488,21 @@
     return chunks.join('|');
   }
 
+  function resolveAstroCoinPolicy(body) {
+    var mode = String(body && body.mode || 'personal');
+    var isCompat = mode === 'compatibility';
+    return {
+      cost: ASTRO_COIN_BASE_COST + (isCompat ? ASTRO_COIN_COMPAT_EXTRA_COST : 0),
+      featureKey: isCompat ? ASTRO_COIN_FEATURE_KEY_COMPAT : ASTRO_COIN_FEATURE_KEY,
+      reason: isCompat ? ASTRO_COIN_REASON_COMPAT : ASTRO_COIN_REASON,
+      modeLabel: isCompat ? '궁합' : '개인'
+    };
+  }
+
   async function ensureAstroCoinGate(body) {
     var gateKey = buildAstroGateKey(body);
     if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+    var policy = resolveAstroCoinPolicy(body);
 
     try {
       if (window.__cdAdminBypass === true) {
@@ -496,7 +511,7 @@
       }
     } catch (_) {}
 
-    if (!window.confirm('🪙 점성술 코즈믹 차트 생성\n이용 시 ' + ASTRO_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+    if (!window.confirm('🪙 점성술 프리미엄 ' + policy.modeLabel + ' 리포트 생성\n이용 시 ' + policy.cost + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
       return false;
     }
 
@@ -504,8 +519,8 @@
     var res = await requestJson('/api/billing/coin-gate', {
       method: 'POST',
       body: {
-        featureKey: ASTRO_COIN_FEATURE_KEY,
-        reason: ASTRO_COIN_REASON,
+        featureKey: policy.featureKey,
+        reason: policy.reason,
         forceDeduct: true,
         requestId: requestId
       }
