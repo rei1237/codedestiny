@@ -56,15 +56,15 @@ function mapYoutubeItems(data) {
     .filter((item) => {
       // Exclude 24/7 live/radio style results for stable meditation playback cards.
       const title = String(item.title || "");
-      return !/(24\/?7|live\s*radio|livestream|\blive\b)/i.test(title);
+      return !/(24\/?7|live\s*radio|livestream|\blive\b|\bshorts\b|#shorts)/i.test(title);
     });
 }
 
 function buildQuery(mode) {
   const queryMap = {
-    lofi: "creative commons lofi instrumental meditation no copyright claim -live -radio",
-    theta: "creative commons theta binaural meditation no copyright -live -radio",
-    ambient: "creative commons ambient meditation music no copyright -live -radio",
+    lofi: "creative commons lofi meditation instrumental no copyright -live -radio -shorts",
+    theta: "creative commons theta binaural beats meditation no copyright -live -radio -shorts",
+    ambient: "creative commons ambient meditation music no copyright -live -radio -shorts",
   };
   return queryMap[mode] || queryMap.lofi;
 }
@@ -75,6 +75,7 @@ function buildSearchUrl(mode, apiKey, strictMode = true) {
   searchUrl.searchParams.set("type", "video");
   searchUrl.searchParams.set("videoEmbeddable", "true");
   searchUrl.searchParams.set("videoCategoryId", "10");
+  searchUrl.searchParams.set("videoDuration", mode === "lofi" ? "long" : "medium");
   searchUrl.searchParams.set("maxResults", strictMode ? "8" : "10");
   searchUrl.searchParams.set("order", "relevance");
   searchUrl.searchParams.set("safeSearch", strictMode ? "strict" : "moderate");
