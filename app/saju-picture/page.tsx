@@ -1,7 +1,15 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
+import GuardianAnimalSprite from "@/components/fortune/GuardianAnimalSprite";
+import { calculateLocalSaju } from "@/app/saju/animal-destiny/engine/localSajuCalculator";
+import {
+  getGuardianCopy,
+  getStemElement,
+  normalizeGanji,
+  type Ganji60,
+} from "@/app/_lib/fortune/ganjiGuardianSprite";
 
 /* ─────────────────────────── 타입 ─────────────────────────── */
 interface ApiResult {
@@ -18,11 +26,47 @@ interface ApiResult {
     personalitySummaryKo: string;
     personalityLines: string[];
     headlineKo: string;
+    dayPillar?: string;
+    dayGanji?: string;
+    ilju?: string;
+    dayStemBranch?: string;
+    fourPillars?: {
+      day?: {
+        ganji?: string;
+        stem?: string;
+        branch?: string;
+      };
+    };
+    saju?: {
+      dayPillar?: string;
+      dayGanji?: string;
+      ilju?: string;
+      dayStemBranch?: string;
+      fourPillars?: {
+        day?: {
+          ganji?: string;
+          stem?: string;
+          branch?: string;
+        };
+      };
+    };
   };
   imageUrl?: string;
   fallback?: boolean;
   fallbackMessage?: string;
   message?: string;
+  dayPillar?: string;
+  dayGanji?: string;
+  ilju?: string;
+  dayStemBranch?: string;
+  fourPillars?: {
+    day?: {
+      ganji?: string;
+      stem?: string;
+      branch?: string;
+    };
+  };
+  resolvedGanji?: Ganji60 | null;
 }
 
 type Phase = "intro" | "form" | "loading" | "result" | "error";
@@ -95,6 +139,54 @@ const SAJU_PICTURE_VALUE_SECTIONS = [
       "해석을 읽은 뒤 이번 주에 바로 적용할 행동 2가지를 정해보세요. 예를 들어 감정 기복이 크게 보인다면 휴식 블록을 일정에 고정하고, 관계 긴장이 보인다면 확인 질문을 먼저 하는 규칙을 추가하는 방식입니다. 이렇게 작은 실행으로 연결할 때 사주 동물 리딩은 즐거움과 실용성을 동시에 갖춘 도구가 됩니다.",
   },
 ] as const;
+
+function toNonEmpty(value: unknown): string | null {
+  const text = String(value ?? "").trim();
+  return text ? text : null;
+}
+
+function composeGanji(stem: unknown, branch: unknown): string | null {
+  const s = toNonEmpty(stem) ?? "";
+  const b = toNonEmpty(branch) ?? "";
+  const merged = `${s}${b}`.trim();
+  return merged || null;
+}
+
+function extractDayGanji(raw: ApiResult): string | null {
+  const result = raw?.result as Record<string, any> | undefined;
+  const fourDay = result?.fourPillars?.day;
+  const nestedSaju = result?.saju;
+  const nestedSajuDay = nestedSaju?.fourPillars?.day;
+  const topDay = raw?.fourPillars?.day;
+
+  const candidates = [
+    fourDay?.ganji,
+    composeGanji(fourDay?.stem, fourDay?.branch),
+    result?.dayPillar,
+    result?.dayGanji,
+    result?.ilju,
+    result?.dayStemBranch,
+    nestedSajuDay?.ganji,
+    composeGanji(nestedSajuDay?.stem, nestedSajuDay?.branch),
+    nestedSaju?.dayPillar,
+    nestedSaju?.dayGanji,
+    nestedSaju?.ilju,
+    nestedSaju?.dayStemBranch,
+    topDay?.ganji,
+    composeGanji(topDay?.stem, topDay?.branch),
+    raw?.dayPillar,
+    raw?.dayGanji,
+    raw?.ilju,
+    raw?.dayStemBranch,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeGanji(toNonEmpty(candidate));
+    if (normalized) return normalized;
+  }
+
+  return null;
+}
 
 /* ─────────────────────────── 셀렉터 UI ─────────────────────── */
 function SelectField({
@@ -200,12 +292,67 @@ function ResultCard({
   data: ApiResult;
   onReset: () => void;
 }) {
+  if (!data.result) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 py-10">
+        <div className="mx-auto w-full max-w-xl rounded-[2rem] border border-white/70 bg-white/80 p-6 text-center shadow-xl backdrop-blur-xl">
+          <p className="text-sm font-semibold text-slate-600">
+            결과 데이터가 아직 준비되지 않았어요. 다시 생성하면 일주 기반 가디언 카드를 불러옵니다.
+          </p>
+          <button
+            onClick={onReset}
+            className="mt-4 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-2.5 text-sm font-black text-white"
+          >
+            다시 생성하기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const result = data.result!;
-  const imageUrl = data.imageUrl!;
+  const imageUrl = data.imageUrl ?? "";
+
+  const resolvedGanji = useMemo(
+    () => normalizeGanji(data.resolvedGanji ?? extractDayGanji(data)),
+    [data],
+  );
+
+  const guardianCopy = useMemo(
+    () => (resolvedGanji ? getGuardianCopy(resolvedGanji) : null),
+    [resolvedGanji],
+  );
+
+  const stemTheme = useMemo(
+    () => (resolvedGanji ? getStemElement(resolvedGanji) : null),
+    [resolvedGanji],
+  );
+
   const animalEmoji = ANIMAL_EMOJI[result.mainAnimal] ?? "🐾";
-  const bgGrad = ELEMENT_BG[result.dominantElement] ?? "from-pink-50 to-purple-50";
   const elementEmoji = ELEMENT_EMOJI[result.dominantElement] ?? "✨";
-  const imgRef = useRef<HTMLImageElement>(null);
+
+  const personalityLines = result.personalityLines?.length
+    ? result.personalityLines
+    : [result.personalitySummaryKo || "오늘의 감정 템포를 관찰하며 작은 루틴을 시작해 보세요."];
+
+  const interpretationCards = [
+    {
+      title: "나의 기본 기질",
+      body: result.personalitySummaryKo || personalityLines[0],
+    },
+    {
+      title: "가디언 동물이 상징하는 힘",
+      body: guardianCopy?.traits?.[0] || `${result.mainAnimal} 가디언은 지금의 감정 리듬을 안정적으로 지키는 힘을 상징합니다.`,
+    },
+    {
+      title: "오늘 활용하면 좋은 에너지",
+      body: personalityLines[1] || guardianCopy?.traits?.[1] || "중요한 선택 앞에서는 속도보다 호흡을 먼저 맞추면 운의 탄력이 살아납니다.",
+    },
+    {
+      title: "주의할 점",
+      body: guardianCopy?.caution || personalityLines[2] || "감정이 급해지는 순간에는 결정을 잠시 미루고 기준을 다시 확인해 보세요.",
+    },
+  ];
 
   const handleDownload = useCallback(() => {
     if (!imageUrl || imageUrl.startsWith("/fuctionassets")) {
@@ -219,7 +366,8 @@ function ResultCard({
   }, [imageUrl, result.mainAnimal]);
 
   const handleShare = useCallback(async () => {
-    const text = `${result.headlineKo}\n\n${result.personalityLines.join(" ")}\n\n🔮 코드 데스티니에서 나의 동물을 알아보세요! https://code-destiny.com/saju-picture`;
+    const headline = guardianCopy?.title || result.headlineKo;
+    const text = `${headline}\n\n${personalityLines.join(" ")}\n\n🔮 코드 데스티니에서 나의 동물을 알아보세요! https://code-destiny.com/saju-picture`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "사주로 보는 내 동물", text });
@@ -230,126 +378,133 @@ function ResultCard({
       await navigator.clipboard.writeText(text).catch(() => {});
       alert("클립보드에 복사됐어요! 📋");
     }
-  }, [result]);
+  }, [guardianCopy?.title, personalityLines, result.headlineKo]);
+
+  const hasGeneratedImage = Boolean(imageUrl && !imageUrl.startsWith("/fuctionassets"));
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${bgGrad} px-4 py-8`}>
-      <div className="max-w-md mx-auto space-y-5">
-        {/* 헤더 */}
-        <div className="text-center space-y-1">
-          <p className="text-xs font-semibold text-pink-400 tracking-widest uppercase">
-            {elementEmoji} 사주 동물 결과
-          </p>
-          <h1 className="text-2xl font-black text-slate-800 leading-snug">
-            {result.headlineKo}
-          </h1>
-        </div>
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 pb-14 pt-6">
+      <div className="pointer-events-none fixed left-[-7rem] top-20 h-56 w-56 rounded-full bg-pink-200/35 blur-3xl" />
+      <div className="pointer-events-none fixed right-[-5rem] top-36 h-52 w-52 rounded-full bg-indigo-200/35 blur-3xl" />
 
-        {/* 동물 이미지 */}
-        <div className="relative mx-auto w-full max-w-sm aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-pink-200/50 border-4 border-white/70 bg-white">
-          {data.fallback ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-6 text-center gap-4">
-              <span className="text-6xl">{animalEmoji}</span>
-              <Image
-                src={imageUrl}
-                alt={`${result.mainAnimal} 폴백 이미지`}
-                fill
-                className="object-cover opacity-40"
-                sizes="(max-width: 768px) 100vw, 384px"
-              />
-              <p className="relative z-10 text-sm text-slate-600 font-medium bg-white/80 rounded-xl px-3 py-2">
-                {data.fallbackMessage}
-              </p>
-            </div>
-          ) : imageUrl.startsWith("data:") ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              ref={imgRef}
-              src={imageUrl}
-              alt={`AI 생성 ${result.mainAnimal} 캐릭터`}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <Image
-              src={imageUrl}
-              alt={`AI 생성 ${result.mainAnimal} 캐릭터`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 384px"
-            />
-          )}
-
-          {/* 뱃지 */}
-          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold text-pink-500 shadow-sm">
-            {elementEmoji} {result.dominantElement}기운
-          </div>
-        </div>
-
-        {/* 오행 배지 */}
-        <div className="flex justify-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-pink-200 rounded-full px-4 py-1.5 text-sm font-bold text-slate-700 shadow-sm">
-            {animalEmoji} {result.animals.join(" + ")}
-          </span>
-          <span className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-purple-200 rounded-full px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm">
-            🎨 {result.colorKo}
-          </span>
-          <span className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-amber-200 rounded-full px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm">
-            ✦ {result.zodiac}띠
-          </span>
-        </div>
-
-        {/* 성격 카드 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 border border-white shadow-lg shadow-pink-100/50 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{animalEmoji}</span>
+      <div className="relative mx-auto w-full max-w-6xl space-y-6">
+        <header className="rounded-[2rem] border border-white/70 bg-white/75 px-5 py-4 shadow-xl backdrop-blur-xl sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs text-pink-400 font-semibold">나의 동물 성격</p>
-              <p className="text-sm font-bold text-slate-700">
-                {result.expressionKo} {result.mainAnimal}
-              </p>
+              <p className="text-xs font-black tracking-[0.16em] text-slate-500">SAJU GUARDIAN ART</p>
+              <h1 className="mt-1 text-2xl font-black leading-tight text-slate-800">사주 가디언 아트</h1>
+              <p className="mt-1 text-sm text-slate-600">당신의 일주가 부르는 수호 동물</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href="/"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm"
+              >
+                ← 뒤로가기
+              </a>
+              <button
+                onClick={onReset}
+                className="inline-flex items-center rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-bold text-rose-500 shadow-sm"
+              >
+                닫기
+              </button>
             </div>
           </div>
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent" />
-          <ul className="space-y-2">
-            {result.personalityLines.map((line, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-600 leading-relaxed">
-                <span className="text-pink-400 mt-0.5 shrink-0">✦</span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
+        </header>
+
+        <div className="grid gap-6 lg:grid-cols-[1.03fr,1fr]">
+          <div className="space-y-5">
+            <GuardianAnimalSprite ganji={resolvedGanji} />
+
+            <section className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl backdrop-blur-xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">
+                  {animalEmoji} {result.mainAnimal} 가디언
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
+                  {elementEmoji} {result.dominantElement} 기운
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                  ✦ {result.zodiac}띠
+                </span>
+                {resolvedGanji ? (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${stemTheme?.border || "border-slate-200"} ${stemTheme?.text || "text-slate-600"}`}
+                  >
+                    {resolvedGanji}일주 · {stemTheme?.label}
+                  </span>
+                ) : null}
+              </div>
+
+              <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                {guardianCopy?.short || result.headlineKo}
+              </p>
+
+              {hasGeneratedImage ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-white">
+                  {imageUrl.startsWith("data:") ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={imageUrl} alt={`AI 생성 ${result.mainAnimal} 캐릭터`} className="h-56 w-full object-cover" />
+                  ) : (
+                    <Image
+                      src={imageUrl}
+                      alt={`AI 생성 ${result.mainAnimal} 캐릭터`}
+                      width={1200}
+                      height={800}
+                      className="h-56 w-full object-cover"
+                    />
+                  )}
+                </div>
+              ) : null}
+            </section>
+          </div>
+
+          <section className="space-y-4 rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+            <h2 className="text-xl font-black text-slate-800">해석 카드</h2>
+            <div className="grid gap-3">
+              {interpretationCards.map((item) => (
+                <article key={item.title} className="rounded-2xl border border-slate-100 bg-white/80 p-4 shadow-sm">
+                  <h3 className="text-sm font-black text-slate-700">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="rounded-2xl border border-rose-100 bg-gradient-to-r from-rose-50 to-amber-50 p-4">
+              <p className="text-xs font-black tracking-[0.14em] text-rose-500">현재 가디언 메시지</p>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">
+                {guardianCopy?.subtitle || `${result.expressionKo} ${result.mainAnimal}의 에너지를 실전 루틴에 연결해 보세요.`}
+              </p>
+            </div>
+          </section>
         </div>
 
-        {/* 액션 버튼 */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={handleDownload}
-            className="flex flex-col items-center gap-1.5 bg-gradient-to-br from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white rounded-2xl py-4 font-bold text-sm shadow-lg shadow-rose-200/60 transition-all active:scale-95"
-          >
-            <span className="text-xl">⬇️</span>
-            이미지 저장
-          </button>
-          <button
-            onClick={handleShare}
-            className="flex flex-col items-center gap-1.5 bg-gradient-to-br from-purple-400 to-violet-500 hover:from-purple-500 hover:to-violet-600 text-white rounded-2xl py-4 font-bold text-sm shadow-lg shadow-violet-200/60 transition-all active:scale-95"
-          >
-            <span className="text-xl">🔗</span>
-            공유하기
-          </button>
-        </div>
+        <footer className="rounded-[2rem] border border-white/70 bg-white/75 p-4 shadow-xl backdrop-blur-xl sm:p-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <button
+              onClick={handleDownload}
+              className="rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-200/70 transition-transform active:scale-[0.98]"
+            >
+              이미지 저장하기
+            </button>
+            <button
+              onClick={onReset}
+              className="rounded-2xl bg-gradient-to-r from-amber-300 to-orange-400 px-4 py-3 text-sm font-black text-white shadow-lg shadow-amber-200/70 transition-transform active:scale-[0.98]"
+            >
+              다시 생성하기
+            </button>
+            <button
+              onClick={handleShare}
+              className="rounded-2xl bg-gradient-to-r from-indigo-400 to-sky-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200/70 transition-transform active:scale-[0.98]"
+            >
+              공유하기
+            </button>
+          </div>
 
-        {/* 다시하기 */}
-        <button
-          onClick={onReset}
-          className="w-full bg-white/80 hover:bg-white border border-pink-200 hover:border-pink-300 text-slate-600 font-semibold rounded-2xl py-3.5 text-sm transition-all active:scale-95 shadow-sm"
-        >
-          🔄 다시 해보기
-        </button>
-
-        {/* 저작권 */}
-        <p className="text-center text-xs text-slate-400 pb-2">
-          AI가 사주 오행을 분석해 생성한 이미지입니다 · Code Destiny
-        </p>
+          <p className="mt-3 text-center text-xs text-slate-500">
+            일주 기반 60갑자 가디언 카드와 기존 사주 해석 결과를 함께 보여줍니다.
+          </p>
+        </footer>
       </div>
     </div>
   );
@@ -386,9 +541,34 @@ export default function SajuPicturePage() {
       });
 
       const data: ApiResult = await res.json();
+      const fromApi = normalizeGanji(extractDayGanji(data));
 
-      if (data.ok || data.fallback) {
-        setApiData(data);
+      let fromEngine: Ganji60 | null = null;
+      if (!fromApi) {
+        try {
+          const local = calculateLocalSaju({
+            year: Number(birthYear),
+            month: Number(birthMonth),
+            day: Number(birthDay),
+            hour: birthHour !== "" ? Number(birthHour) : 12,
+            minute: 0,
+            hasTime: birthHour !== "",
+            calendarType: "solar",
+          });
+          fromEngine = normalizeGanji(local?.pillars?.day?.ganji ?? null);
+        } catch {
+          fromEngine = null;
+        }
+      }
+
+      const resolvedGanji = fromApi ?? fromEngine;
+      const enrichedData: ApiResult = {
+        ...data,
+        resolvedGanji,
+      };
+
+      if ((data.ok || data.fallback) && data.result) {
+        setApiData(enrichedData);
         setPhase("result");
       } else {
         setErrorMsg(data.message ?? "잠시 후 다시 시도해 주세요.");

@@ -995,7 +995,8 @@ function renderReportDashboard() {
     /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
     gridHtml += '<div class="rpt-v2-img-row">';
     b.images.forEach(function(img) {
-      var thumbSrc = '/fuctionassets/' + (img.thumb || (img.id + '.webp'));
+      var rawThumb = String(img.thumb || (img.id + '.webp'));
+      var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
       var tilePriceText = (b.coinCost > 0) ? ('🪙 ' + b.coinCost + '코인') : '무료';
       var tilePriceClass = (b.coinCost > 0) ? 'rpt-v2-price-badge' : 'rpt-v2-price-badge is-free';
       gridHtml += '<div class="rpt-v2-img-wrap">';

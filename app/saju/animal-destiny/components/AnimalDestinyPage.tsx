@@ -221,9 +221,7 @@ export default function AnimalDestinyPage() {
             </div>
           )}
 
-          {status === "result" && sajuResult ? (
-            <DestinyMeetingPlaceFeature sajuResult={sajuResult} />
-          ) : null}
+          <DestinyMeetingPlaceFeature sajuResult={sajuResult} />
         </div>
       </div>
     </main>

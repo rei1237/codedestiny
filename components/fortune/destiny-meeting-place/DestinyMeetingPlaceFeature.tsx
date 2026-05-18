@@ -13,9 +13,10 @@ import type { DestinyMeetingPlaceResult as MeetingResult } from "./destinyMeetin
 
 const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
+const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
 
 type Props = {
-  sajuResult: SajuEngineResult;
+  sajuResult?: SajuEngineResult | null;
 };
 
 export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
@@ -24,15 +25,23 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
   const [isCharging, setIsCharging] = useState(false);
   const [result, setResult] = useState<MeetingResult | null>(null);
   const [chargedCoins, setChargedCoins] = useState(100);
+  const hasSajuResult = Boolean(sajuResult);
 
   const previewLine = useMemo(() => {
+    if (!hasSajuResult) {
+      return "먼저 십이운성 동물 테스트 분석을 완료하면 인연의 장소 리포트를 열 수 있습니다.";
+    }
     const stem = String((sajuResult as Record<string, unknown>)?.dayStem || "").trim();
     if (stem) return `${stem} 일간의 감정 리듬으로 인연 좌표를 정밀 추천합니다.`;
     return "사주 에너지 기반으로 인연이 열리는 장소와 시기를 추천합니다.";
-  }, [sajuResult]);
+  }, [hasSajuResult, sajuResult]);
 
   const runAnalysis = useCallback(async () => {
     if (isLoading || isCharging) return;
+    if (!sajuResult) {
+      toast.error("먼저 십이운성 동물 테스트 분석을 완료해 주세요.");
+      return;
+    }
 
     setIsCharging(true);
     try {
@@ -86,6 +95,15 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
         <p className="text-xs font-black uppercase tracking-[0.2em] text-[#7d5b12]">재밌는 사주 콘텐츠 확장</p>
         <h3 className="mt-2 text-2xl font-black text-[#163758]">사주로 보는 인연의 장소</h3>
         <p className="mt-2 text-sm text-[#355274]">운명의 만남이 시작될 장소, 국가, 시기, 아이템을 사주 데이터로 추천합니다.</p>
+        <div className="mt-3 overflow-hidden rounded-2xl border border-[#e4d3b0] bg-white/70">
+          <img
+            src={HERO_IMAGE}
+            alt="사주로 보는 인연의 장소 이미지"
+            loading="lazy"
+            decoding="async"
+            className="h-[150px] w-full object-cover sm:h-[190px]"
+          />
+        </div>
         <p className="mt-2 text-xs text-[#5f6f84]">{previewLine}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full bg-[#fff0cf] px-3 py-1 font-black text-[#8b6116]">1회 100코인</span>
@@ -94,9 +112,10 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
         <button
           type="button"
           onClick={() => setOpen(true)}
+          disabled={!hasSajuResult}
           className="mt-4 rounded-2xl bg-[linear-gradient(90deg,#8b5cf6,#ff8bd8)] px-5 py-3 text-sm font-black text-white shadow-xl transition-transform hover:scale-[1.02] active:scale-95"
         >
-          인연의 장소 찾기
+          {hasSajuResult ? "인연의 장소 찾기" : "먼저 동물 테스트 분석하기"}
         </button>
       </section>
 
