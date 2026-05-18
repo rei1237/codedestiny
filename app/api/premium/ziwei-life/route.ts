@@ -1951,7 +1951,7 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   const auth = requireRouteAuth(req);
-  if (!auth.ok) return auth.response;
+  if (auth.ok === false) return auth.response;
 
   let body: unknown;
   try {

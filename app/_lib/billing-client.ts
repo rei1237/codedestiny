@@ -175,6 +175,20 @@ export async function runBillingCoinGate(input: {
   return parsed;
 }
 
+export async function purchaseFeature(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  requestId?: string;
+  forceDeduct?: boolean;
+  payloadHash?: string;
+  productId?: string;
+  cost?: number;
+}) {
+  return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
+}
+
 export async function fetchBillingBalance(): Promise<BillingResult<{
   authenticated: boolean;
   balance: number;

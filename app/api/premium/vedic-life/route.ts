@@ -479,6 +479,22 @@ function applySwissCoreToChart(chart: VedicChart, swiss: { planets?: Record<stri
   return chart;
 }
 
+function toFiniteNumberOrNull(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function toNumericRecord(value: unknown): Record<string, number> {
+  if (!value || typeof value !== "object") return {};
+  const src = value as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const [key, raw] of Object.entries(src)) {
+    const n = Number(raw);
+    if (Number.isFinite(n)) out[key] = n;
+  }
+  return out;
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
@@ -1206,7 +1222,7 @@ function buildFallbackChapterPayload(args: {
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (!auth.ok) return auth.response;
+    if (auth.ok === false) return auth.response;
 
     const body = await req.json() as {
       year:number; month:number; day:number;
@@ -1266,12 +1282,16 @@ export async function POST(req: NextRequest) {
 
     // 1) 베다 차트 계산 (Swiss API core 값 강제 반영)
     const baseChart = buildVedicChart(year, month, day, hour, minute, tz, lat, lon);
-    const chart = swissData
-      ? applySwissCoreToChart(baseChart, {
-          planets: swissData.planets,
-          ascendantSidereal: swissData.ascendantSidereal,
-          ayanamsa: swissData.ayanamsa,
-        })
+    const normalizedSwiss = swissData
+      ? {
+          planets: toNumericRecord(swissData.planets),
+          ascendantSidereal: toFiniteNumberOrNull(swissData.ascendantSidereal),
+          ayanamsa: toFiniteNumberOrNull(swissData.ayanamsa),
+        }
+      : null;
+
+    const chart = normalizedSwiss
+      ? applySwissCoreToChart(baseChart, normalizedSwiss)
       : baseChart;
 
     const chapterDef = getVedicChapterByNumber(chapter);

@@ -205,6 +205,8 @@ async function calcSukuyo(req: NextRequest, year: number, month: number, day: nu
   return null;
 }
 
+type SukuyoProfile = NonNullable<Awaited<ReturnType<typeof calcSukuyo>>>;
+
 function relation(myIdx: number, otherIdx?: number | null) {
   if (otherIdx == null) return null;
   const d = (otherIdx - myIdx + 27) % 27;
@@ -415,7 +417,7 @@ function buildSukuyoChartSummaryLine(chart: any) {
   ].filter(Boolean).join(", ");
 }
 
-function fallbackText(chapter: number, sukuyo: ReturnType<typeof calcSukuyo>, rel: ReturnType<typeof relation>, reportMode: "personal" | "compatibility") {
+function fallbackText(chapter: number, sukuyo: SukuyoProfile, rel: ReturnType<typeof relation>, reportMode: "personal" | "compatibility") {
   const metaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
   const guideList = reportMode === "compatibility" ? COMPAT_CHAPTER_GUIDES : SOLO_CHAPTER_GUIDES;
   const meta = metaList[chapter - 1] ?? metaList[0];
@@ -431,7 +433,7 @@ function fallbackText(chapter: number, sukuyo: ReturnType<typeof calcSukuyo>, re
   ].join("\n\n");
 }
 
-function buildPrompt(chapter: number, sukuyo: ReturnType<typeof calcSukuyo>, reportMode: "personal" | "compatibility", partner?: ReturnType<typeof calcSukuyo> | null, chart?: any, scores?: any) {
+function buildPrompt(chapter: number, sukuyo: SukuyoProfile, reportMode: "personal" | "compatibility", partner?: SukuyoProfile | null, chart?: any, scores?: any) {
   const metaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
   const guideList = reportMode === "compatibility" ? COMPAT_CHAPTER_GUIDES : SOLO_CHAPTER_GUIDES;
   const meta = metaList[chapter - 1] ?? metaList[0];
@@ -524,7 +526,7 @@ async function generateText(prompt: string, minChars: number) {
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (!auth.ok) return auth.response;
+    if (auth.ok === false) return auth.response;
 
     const body = await req.json();
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;

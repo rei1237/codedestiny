@@ -22,7 +22,9 @@ function copyString(source: Record<string, unknown>, key: keyof ClientAuthUser, 
   const value = source[key as string];
   if (typeof value === "string") {
     const trimmed = value.trim();
-    if (trimmed) target[key] = trimmed;
+    if (trimmed) {
+      (target as Record<string, unknown>)[key as string] = trimmed;
+    }
   }
 }
 
