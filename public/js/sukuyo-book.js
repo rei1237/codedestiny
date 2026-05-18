@@ -153,8 +153,55 @@
     return out.join('\n');
   }
 
+  function buildProfileFromCardRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    var birth = (row.birth && typeof row.birth === 'object') ? row.birth : null;
+    var year = Number((birth && birth.year) || row.birthYear || row.year || 0);
+    var month = Number((birth && birth.month) || row.birthMonth || row.month || 0);
+    var day = Number((birth && birth.day) || row.birthDay || row.day || 0);
+    if (!(year > 0 && month > 0 && day > 0)) return null;
+
+    var hour = Number((birth && birth.hour) || row.birthHour || row.hour);
+    var minute = Number((birth && birth.minute) || row.birthMinute || row.minute);
+    var calType = String((birth && (birth.calType || birth.calendarType)) || row.calType || row.calendarType || 'solar').toLowerCase();
+    if (calType !== 'lunar' && calType !== 'lunar_leap') calType = 'solar';
+
+    return {
+      name: String(row.name || row.nickname || row.profileName || '사용자'),
+      gender: String(row.gender || ''),
+      birth: {
+        year: year,
+        month: month,
+        day: day,
+        hour: Number.isFinite(hour) ? hour : 12,
+        minute: Number.isFinite(minute) ? minute : 0,
+        calType: calType
+      }
+    };
+  }
+
+  function getCurrentProfileFromStorage() {
+    try {
+      var list = safeParseJson(localStorage.getItem('FORTUNE_APP_USER_PROFILES.list') || '[]', []);
+      var currentId = String(localStorage.getItem('FORTUNE_APP_USER_PROFILES.current') || '').trim();
+      if (!Array.isArray(list) || !list.length) return null;
+      if (currentId) {
+        for (var i = 0; i < list.length; i += 1) {
+          var row = list[i] || {};
+          if (String(row.id || '').trim() === currentId) return buildProfileFromCardRow(row);
+        }
+      }
+      return buildProfileFromCardRow(list[0] || null);
+    } catch (_) {
+      return null;
+    }
+  }
+
   function getProfileFromStorage() {
     try {
+      var currentProfile = getCurrentProfileFromStorage();
+      if (currentProfile) return currentProfile;
+
       var user = safeParseJson(localStorage.getItem('fortune_auth_user') || 'null', null);
       if (!user) return null;
       var date = String(user.birthDate || '').trim();
@@ -565,9 +612,17 @@
     resetDots(1);
   }
 
-  window.openSukuyoBookModal = function () {
+  function applyActiveProfileArg(profileArg) {
+    if (!profileArg || !profileArg.birth) return;
+    var birth = profileArg.birth;
+    if (!(Number(birth.year) > 0 && Number(birth.month) > 0 && Number(birth.day) > 0)) return;
+    try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
+  }
+
+  window.openSukuyoBookModal = function (profileArg) {
     var modal = qs('sukuyoBookModal');
     if (!modal) return;
+    applyActiveProfileArg(profileArg);
     applyBaseUi();
     showOnly(hasProfile() ? 'skStartScreen' : 'skNoProfileScreen');
     modal.style.display = 'flex';

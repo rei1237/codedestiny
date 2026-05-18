@@ -1188,9 +1188,17 @@
     showOnly('lsStartScreen');
   };
 
-  window.openLoveSecretModal = function () {
+  function applyActiveProfileArg(profileArg) {
+    if (!profileArg || !profileArg.birth) return;
+    var birth = profileArg.birth;
+    if (!(Number(birth.year) > 0 && Number(birth.month) > 0 && Number(birth.day) > 0)) return;
+    try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
+  }
+
+  window.openLoveSecretModal = function (profileArg) {
     var modal = qs('loveSecretModal');
     if (!modal) return;
+    applyActiveProfileArg(profileArg);
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     modal.setAttribute('aria-hidden', 'false');

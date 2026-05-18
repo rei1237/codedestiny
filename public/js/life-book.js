@@ -92,6 +92,23 @@
     }
   }
 
+  function getCurrentProfileFromStorage() {
+    try {
+      var list = safeParse(localStorage.getItem('FORTUNE_APP_USER_PROFILES.list') || '[]', []);
+      var currentId = String(localStorage.getItem('FORTUNE_APP_USER_PROFILES.current') || '').trim();
+      if (!Array.isArray(list) || !list.length) return null;
+      if (currentId) {
+        for (var i = 0; i < list.length; i += 1) {
+          var row = list[i] || {};
+          if (String(row.id || '').trim() === currentId) return row;
+        }
+      }
+      return list[0] || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function escapeHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -201,7 +218,7 @@
     var snapshot = null;
     var authUser = getAuthUser() || {};
 
-    try { profile = window.__cdActiveBirthProfile || null; } catch (_) { profile = null; }
+    try { profile = window.__cdActiveBirthProfile || getCurrentProfileFromStorage() || null; } catch (_) { profile = null; }
     try { snapshot = window.__destinyFlowerSajuSnapshot || null; } catch (_) { snapshot = null; }
 
     var birthDate = String((authUser && authUser.birthDate) || '').trim();
@@ -838,9 +855,17 @@
     showOnly('lbStartScreen');
   };
 
-  window.openLifeBookModal = function () {
+  function applyActiveProfileArg(profileArg) {
+    if (!profileArg || !profileArg.birth) return;
+    var birth = profileArg.birth;
+    if (!(Number(birth.year) > 0 && Number(birth.month) > 0 && Number(birth.day) > 0)) return;
+    try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
+  }
+
+  window.openLifeBookModal = function (profileArg) {
     var modal = qs('lifeBookModal');
     if (!modal) return;
+    applyActiveProfileArg(profileArg);
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     modal.setAttribute('aria-hidden', 'false');
