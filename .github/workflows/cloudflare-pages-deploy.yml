@@ -22,7 +22,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
       CF_PAGES_BRANCH: ${{ github.ref_name }}
-      CF_PAGES_FORCE_DIRECT_DEPLOY: "1"
+      CF_PAGES_FORCE_DIRECT_DEPLOY: ${{ vars.CF_PAGES_FORCE_DIRECT_DEPLOY || '0' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
