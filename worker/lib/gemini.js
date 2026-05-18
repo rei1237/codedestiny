@@ -1,4 +1,5 @@
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+import { getEnv } from "./env.js";
 
 function clean(value) {
   return String(value || "").trim();
@@ -27,30 +28,30 @@ function unique(values) {
 }
 
 export function pickGeminiKeys(env, preferredEnvKeys = []) {
-  const preferred = preferredEnvKeys.map((key) => env?.[key]);
+  const preferred = preferredEnvKeys.map((key) => getEnv(env, key));
   return unique([
     ...preferred,
-    env.PREMIUM_GEMINI_API_KEY1,
-    env.PREMIUM_GEMINI_API_KEY2,
-    env.PREMIUM_GEMINI_API_KEY3,
-    env.PREMIUM_GEMINI_API_KEY4,
-    env.GEMINIF_API_KEY1,
-    env.GEMINIF_API_KEY2,
-    env.GEMINIF_API_KEY3,
-    env.GEMINIF_API_KEY4,
-    env.GEMINI_API_KEY,
-    env.GOOGLE_GEMINI_API_KEY,
-    env.GOOGLE_GENERATIVE_AI_API_KEY,
-    env.GOOGLE_AI_API_KEY,
-    env.GOOGLE_API_KEY,
+    getEnv(env, "PREMIUM_GEMINI_API_KEY1"),
+    getEnv(env, "PREMIUM_GEMINI_API_KEY2"),
+    getEnv(env, "PREMIUM_GEMINI_API_KEY3"),
+    getEnv(env, "PREMIUM_GEMINI_API_KEY4"),
+    getEnv(env, "GEMINIF_API_KEY1"),
+    getEnv(env, "GEMINIF_API_KEY2"),
+    getEnv(env, "GEMINIF_API_KEY3"),
+    getEnv(env, "GEMINIF_API_KEY4"),
+    getEnv(env, "GEMINI_API_KEY"),
+    getEnv(env, "GOOGLE_GEMINI_API_KEY"),
+    getEnv(env, "GOOGLE_GENERATIVE_AI_API_KEY"),
+    getEnv(env, "GOOGLE_AI_API_KEY"),
+    getEnv(env, "GOOGLE_API_KEY"),
   ].filter(isUsable));
 }
 
 export function pickGeminiModels(env, preferredEnvKeys = []) {
-  const preferred = preferredEnvKeys.map((key) => clean(env[key])).filter(Boolean);
+  const preferred = preferredEnvKeys.map((key) => clean(getEnv(env, key))).filter(Boolean);
   const defaults = [
-    clean(env.GEMINI_MODEL),
-    clean(env.VERTEX_GEMINI_MODEL),
+    clean(getEnv(env, "GEMINI_MODEL")),
+    clean(getEnv(env, "VERTEX_GEMINI_MODEL")),
     "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
@@ -147,7 +148,7 @@ export async function callGeminiText(env, prompt, options = {}) {
     return {
       ok: false,
       error: "gemini_keys_missing",
-      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~4 또는 GEMINI_API_KEY를 설정하세요.",
+      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~4, GEMINIF_API_KEY1~4 또는 GEMINI_API_KEY를 설정하세요.",
     };
   }
 

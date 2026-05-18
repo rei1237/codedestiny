@@ -1,4 +1,5 @@
 import { callGeminiText } from "./gemini.js";
+import { getEnv } from "./env.js";
 
 export async function generateWithGemini(env, prompt, options = {}) {
   const temperature = Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86;
@@ -6,10 +7,10 @@ export async function generateWithGemini(env, prompt, options = {}) {
   const maxOutputTokens = Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192;
   const timeoutMs = Number.isFinite(Number(options.timeoutMs))
     ? Number(options.timeoutMs)
-    : Number(env.PREMIUM_GEMINI_TIMEOUT_MS || 45000);
+    : Number(getEnv(env, "PREMIUM_GEMINI_TIMEOUT_MS") || 45000);
   const maxAttemptsPerPair = Number.isFinite(Number(options.maxAttemptsPerPair))
     ? Number(options.maxAttemptsPerPair)
-    : Number(env.PREMIUM_GEMINI_RETRIES || 2);
+    : Number(getEnv(env, "PREMIUM_GEMINI_RETRIES") || 2);
   const requestId = String(options.requestId || "").trim();
 
   return callGeminiText(env, prompt, {
@@ -18,6 +19,10 @@ export async function generateWithGemini(env, prompt, options = {}) {
       "PREMIUM_GEMINI_API_KEY2",
       "PREMIUM_GEMINI_API_KEY3",
       "PREMIUM_GEMINI_API_KEY4",
+      "GEMINIF_API_KEY1",
+      "GEMINIF_API_KEY2",
+      "GEMINIF_API_KEY3",
+      "GEMINIF_API_KEY4",
       "GEMINI_API_KEY",
       "GOOGLE_GEMINI_API_KEY",
       "GOOGLE_GENERATIVE_AI_API_KEY",
