@@ -10145,12 +10145,223 @@ function renderZiwei(p, natal, targetId) {
   window.getZiweiStructuredData = function(){
     var cur = window._currentZiweiData;
     if(!cur) return null;
+    var rows = Array.isArray(cur.palaceStarData) ? cur.palaceStarData : [];
+    var palaceOrder = ['ming','siblings','spouse','children','wealth','health','travel','friends','career','property','fortune','parents'];
+    var palaceNameToKey = {
+      '명궁': 'ming',
+      '형제궁': 'siblings',
+      '부처궁': 'spouse',
+      '부부궁': 'spouse',
+      '자녀궁': 'children',
+      '재백궁': 'wealth',
+      '질액궁': 'health',
+      '천이궁': 'travel',
+      '노복궁': 'friends',
+      '교우궁': 'friends',
+      '관록궁': 'career',
+      '전택궁': 'property',
+      '복덕궁': 'fortune',
+      '부모궁': 'parents'
+    };
+    var palaceKeyToName = {
+      'ming': '명궁',
+      'siblings': '형제궁',
+      'spouse': '부처궁',
+      'children': '자녀궁',
+      'wealth': '재백궁',
+      'health': '질액궁',
+      'travel': '천이궁',
+      'friends': '교우궁',
+      'career': '관록궁',
+      'property': '전택궁',
+      'fortune': '복덕궁',
+      'parents': '부모궁'
+    };
+    var ziweiBirth = window._ziweiBirth || {};
+
+    function asCanonicalStars(stars) {
+      var src = Array.isArray(stars) ? stars : [];
+      return src.map(function (s) {
+        var name = String((s && (s.nameKo || s.name)) || '').trim();
+        var brightness = String((s && (s.strength || s.brightnessKo || s.brightness)) || '').trim();
+        var symbol = String((s && s.symbol) || '').trim();
+        return {
+          nameKo: name,
+          name: name,
+          strength: brightness || null,
+          brightnessKo: brightness || null,
+          symbol: symbol || null,
+          borrowed: !!(s && s.borrowed),
+          sihua: String((s && s.sihua) || '').trim() || null
+        };
+      }).filter(function (s) { return !!s.nameKo; });
+    }
+
+    function parseDahan(dahanRaw, fallback) {
+      var text = String(dahanRaw || '').trim();
+      var m = text.match(/(\d{1,3})\s*[~\-]\s*(\d{1,3})/);
+      if (m) {
+        return {
+          range: String(Number(m[1])) + '-' + String(Number(m[2])),
+          startAge: Number(m[1]),
+          endAge: Number(m[2]),
+          label: String(Number(m[1])) + '~' + String(Number(m[2]))
+        };
+      }
+      if (fallback && Number.isFinite(Number(fallback.startAge)) && Number.isFinite(Number(fallback.endAge))) {
+        var sa = Number(fallback.startAge);
+        var ea = Number(fallback.endAge);
+        return {
+          range: String(sa) + '-' + String(ea),
+          startAge: sa,
+          endAge: ea,
+          label: String(sa) + '~' + String(ea)
+        };
+      }
+      return null;
+    }
+
+    var sihuaByPalaceIdx = {};
+    var sihuaEntries = [];
+    if (cur.sihuaData && typeof cur.sihuaData === 'object') {
+      Object.keys(cur.sihuaData).forEach(function (starName) {
+        var item = cur.sihuaData[starName] || {};
+        var pIdx = Number(item.palaceIdx);
+        var entry = {
+          star: String(starName || '').trim(),
+          type: String(item.type || '').trim(),
+          palaceIdx: Number.isFinite(pIdx) ? pIdx : -1,
+          palaceName: String(item.palaceName || '').trim()
+        };
+        if (entry.star && entry.type) sihuaEntries.push(entry);
+        if (Number.isFinite(entry.palaceIdx) && entry.palaceIdx >= 0) {
+          if (!Array.isArray(sihuaByPalaceIdx[entry.palaceIdx])) sihuaByPalaceIdx[entry.palaceIdx] = [];
+          sihuaByPalaceIdx[entry.palaceIdx].push({
+            star: entry.star,
+            type: entry.type,
+            meaning: entry.type + ' 작동'
+          });
+        }
+      });
+    }
+
+    var canonicalPalaces = palaceOrder.map(function (key, idx) {
+      var fallbackRow = rows[idx] || {};
+      var row = rows.find(function (r) {
+        var palaceName = String((r && r.palace) || '').trim();
+        return palaceNameToKey[palaceName] === key;
+      }) || fallbackRow;
+
+      var mappedIdx = Number(rows.indexOf(row));
+      var safeIdx = mappedIdx >= 0 ? mappedIdx : idx;
+      var mainStars = asCanonicalStars(row && row.stars);
+      var auxStars = asCanonicalStars(row && row.auxStars);
+      var maleficStars = asCanonicalStars(row && row.badStars);
+      var fallbackDahan = (Array.isArray(cur.daHanList) && cur.daHanList[safeIdx]) ? cur.daHanList[safeIdx] : null;
+      var decadeLuck = parseDahan(row && row.dahan, fallbackDahan);
+
+      return {
+        key: key,
+        nameKo: String((row && row.palace) || palaceKeyToName[key] || '').trim() || palaceKeyToName[key],
+        branch: String((row && row.branch) || '').trim(),
+        mainStars: mainStars,
+        auxStars: auxStars,
+        maleficStars: maleficStars,
+        transformations: Array.isArray(sihuaByPalaceIdx[safeIdx]) ? sihuaByPalaceIdx[safeIdx] : [],
+        oppositePalaceKey: palaceOrder[(idx + 6) % 12],
+        triadPalaceKeys: [palaceOrder[(idx + 4) % 12], palaceOrder[(idx + 8) % 12]],
+        decadeLuck: decadeLuck,
+        annualLuck: null
+      };
+    });
+
+    var decadeLuck = canonicalPalaces
+      .map(function (p) { return p && p.decadeLuck ? { palaceKey: p.key, range: p.decadeLuck.range, startAge: p.decadeLuck.startAge, endAge: p.decadeLuck.endAge, label: p.decadeLuck.label } : null; })
+      .filter(function (v) { return !!v; });
+
+    var currentYear = new Date().getFullYear();
+    var birthYear = Number(ziweiBirth.year || 0);
+    var currentAge = birthYear > 0 ? (currentYear - birthYear + 1) : 0;
+    var currentDecadeLuck = decadeLuck.find(function (d) {
+      return currentAge > 0 && currentAge >= Number(d.startAge) && currentAge <= Number(d.endAge);
+    }) || null;
+
+    var missingFields = [];
+    if (!String(cur.meng || '').trim()) missingFields.push('chartMeta.mingGong');
+    if (!String(cur.shen || '').trim()) missingFields.push('chartMeta.shenGong');
+    if (canonicalPalaces.length !== 12) missingFields.push('palaces.length');
+    canonicalPalaces.forEach(function (p, idx) {
+      if (!String(p.branch || '').trim()) missingFields.push('palaces[' + idx + '].branch');
+      if (!Array.isArray(p.mainStars) || p.mainStars.length === 0) missingFields.push('palaces[' + idx + '].mainStars');
+    });
+
+    var diagnostics = {
+      source: 'calcZiweiPalaces',
+      generatedAt: new Date().toISOString(),
+      palaceCount: canonicalPalaces.length,
+      hasAll12Palaces: canonicalPalaces.length === 12,
+      hasMingGong: !!String(cur.meng || '').trim(),
+      hasShenGong: !!String(cur.shen || '').trim(),
+      hasSihua: sihuaEntries.length > 0,
+      hasDecadeLuck: decadeLuck.length > 0,
+      missingFields: missingFields
+    };
+
+    var reportPayload = {
+      profile: {
+        name: String((window.__profileData && window.__profileData.name) || '').trim() || null,
+        gender: String((window.__profileData && window.__profileData.gender) || '').trim() || null,
+        birth: {
+          solarDate: birthYear > 0 ? (String(birthYear) + '-' + String(Number(ziweiBirth.month || 0)).padStart(2, '0') + '-' + String(Number(ziweiBirth.day || 0)).padStart(2, '0')) : null,
+          time: String(Number(ziweiBirth.hour || 12)).padStart(2, '0') + ':' + String(Number(ziweiBirth.minute || 0)).padStart(2, '0'),
+          timezone: 'Asia/Seoul',
+          lunarDate: (cur.calcMeta && Number(cur.calcMeta.lunarMonth) && Number(cur.calcMeta.lunarDay))
+            ? (String(birthYear > 0 ? birthYear : '') + '-' + String(cur.calcMeta.lunarMonth).padStart(2, '0') + '-' + String(cur.calcMeta.lunarDay).padStart(2, '0'))
+            : null
+        }
+      },
+      chartMeta: {
+        mingGong: String(cur.meng || '').trim(),
+        shenGong: String(cur.shen || '').trim(),
+        fiveElementBureau: String(cur.juInfo || '').trim() || null,
+        yearStemBranch: String(cur.yearGan || '').trim() || null,
+        calcMeta: cur.calcMeta || null
+      },
+      palaces: canonicalPalaces,
+      sihua: sihuaEntries,
+      luck: {
+        decadeLuck: decadeLuck,
+        currentDecadeLuck: currentDecadeLuck,
+        annual: null,
+        monthly: []
+      },
+      diagnostics: diagnostics
+    };
+
     return {
+      chart: {
+        meng: cur.meng,
+        shen: cur.shen,
+        juInfo: cur.juInfo,
+        yearGan: cur.yearGan || '',
+        calcMeta: cur.calcMeta || null,
+        palaceStarData: rows,
+        daHanList: Array.isArray(cur.daHanList) ? cur.daHanList : [],
+        sihuaData: cur.sihuaData || {}
+      },
+      reportPayload: reportPayload,
+      diagnostics: diagnostics,
       meng: cur.meng,
       shen: cur.shen,
       juInfo: cur.juInfo,
+      yearGan: cur.yearGan || '',
       calcMeta: cur.calcMeta || null,
-      palaces: (cur.palaceStarData || []).map(function(row){
+      palaceStarData: rows,
+      daHanList: Array.isArray(cur.daHanList) ? cur.daHanList : [],
+      sihuaData: cur.sihuaData || {},
+      annualLuck: null,
+      monthlyLuck: [],
+      palaces: rows.map(function(row){
         return {
           palace: zwDisplayPalaceName(row.palace),
           branch: row.branch,

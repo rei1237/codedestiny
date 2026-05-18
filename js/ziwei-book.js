@@ -339,20 +339,71 @@
   function convertRawZiweiToStructured(raw) {
     if (!raw || typeof raw !== 'object') return null;
     var rows = Array.isArray(raw.palaceStarData) ? raw.palaceStarData : [];
+    var diagnostics = {
+      source: 'calcZiweiPalaces',
+      palaceCount: rows.length,
+      hasAll12Palaces: rows.length === 12,
+      hasMingGong: !!String(raw.meng || '').trim(),
+      hasShenGong: !!String(raw.shen || '').trim(),
+      missingFields: []
+    };
+    if (!diagnostics.hasMingGong) diagnostics.missingFields.push('chartMeta.mingGong');
+    if (!diagnostics.hasShenGong) diagnostics.missingFields.push('chartMeta.shenGong');
+    if (!diagnostics.hasAll12Palaces) diagnostics.missingFields.push('palaces.length');
+
+    var normalizedRows = rows.map(function (row) {
+      return {
+        palace: row && row.palace ? row.palace : '',
+        branch: row && row.branch ? row.branch : '',
+        dahan: row && row.dahan ? row.dahan : '',
+        stars: Array.isArray(row && row.stars) ? row.stars : [],
+        auxStars: Array.isArray(row && row.auxStars) ? row.auxStars : [],
+        badStars: Array.isArray(row && row.badStars) ? row.badStars : []
+      };
+    });
+
+    var reportPayload = {
+      chartMeta: {
+        mingGong: String(raw.meng || '').trim(),
+        shenGong: String(raw.shen || '').trim(),
+        fiveElementBureau: String(raw.juInfo || '').trim() || null,
+        yearStemBranch: String(raw.yearGan || '').trim() || null,
+        calcMeta: raw.calcMeta || null
+      },
+      palaces: normalizedRows,
+      sihuaData: raw.sihuaData || {},
+      luck: {
+        decadeLuck: Array.isArray(raw.daHanList) ? raw.daHanList : [],
+        currentDecadeLuck: null,
+        annual: null,
+        monthly: []
+      },
+      diagnostics: diagnostics
+    };
+
     return {
+      chart: {
+        meng: raw.meng,
+        shen: raw.shen,
+        juInfo: raw.juInfo,
+        yearGan: raw.yearGan || '',
+        calcMeta: raw.calcMeta || null,
+        palaceStarData: normalizedRows,
+        daHanList: Array.isArray(raw.daHanList) ? raw.daHanList : [],
+        sihuaData: raw.sihuaData || {}
+      },
+      reportPayload: reportPayload,
+      diagnostics: diagnostics,
       meng: raw.meng,
       shen: raw.shen,
       juInfo: raw.juInfo,
       calcMeta: raw.calcMeta || null,
-      palaces: rows.map(function (row) {
-        return {
-          palace: row && row.palace ? row.palace : '',
-          branch: row && row.branch ? row.branch : '',
-          stars: Array.isArray(row && row.stars) ? row.stars : [],
-          auxStars: Array.isArray(row && row.auxStars) ? row.auxStars : [],
-          badStars: Array.isArray(row && row.badStars) ? row.badStars : []
-        };
-      })
+      palaceStarData: normalizedRows,
+      daHanList: Array.isArray(raw.daHanList) ? raw.daHanList : [],
+      sihuaData: raw.sihuaData || {},
+      palaces: normalizedRows,
+      annualLuck: null,
+      monthlyLuck: []
     };
   }
 
@@ -379,11 +430,19 @@
   function buildRequestBody(forceRegenerate) {
     var profile = getActiveProfile() || {};
     var birth = profile.birth || {};
+    var primaryStructured = getPrimaryZiweiStructured();
+    if (!primaryStructured || typeof primaryStructured !== 'object') {
+      return { error: '기본 자미두수 계산 데이터가 없습니다. 먼저 자미두수 결과를 생성해 주세요.' };
+    }
+    if (!primaryStructured.reportPayload || typeof primaryStructured.reportPayload !== 'object') {
+      return { error: 'PDF용 확장 데이터(reportPayload)가 누락되었습니다. 자미두수 계산을 다시 실행해 주세요.' };
+    }
     state.mode = 'personal';
 
     var body = {
       mode: 'personal',
       forceRegenerate: !!forceRegenerate,
+      _premiumStrictValidation: true,
       birthData: {
         name: String(profile.name || '사용자'),
         gender: normalizeGender(profile.gender),
@@ -396,7 +455,7 @@
         timezone: String((profile.location && profile.location.tz) || 'Asia/Seoul'),
         lat: Number((profile.location && profile.location.lat) || 37.5665),
         lon: Number((profile.location && profile.location.lng) || 126.9780),
-        ziweiStructured: getPrimaryZiweiStructured()
+        ziweiStructured: primaryStructured
       }
     };
 
@@ -433,10 +492,6 @@
     var active = Math.min(TOTAL_CHAPTERS, done + 1);
     var pct = done <= 0 ? 3 : Math.round((done / TOTAL_CHAPTERS) * 100);
     var titles = getChapterTitles();
-    var statusToken = String(status || 'generating').toLowerCase();
-    var progressMessage = statusToken === 'completed'
-      ? '자미두수 원고를 최종 교정하고 있습니다...'
-      : ('' + titles[Math.max(0, active - 1)] + ' 챕터를 정교하게 해석하는 중입니다...');
 
     var progressBar = qs('zbProgressBar');
     var progressText = qs('zbProgressText');
@@ -447,7 +502,7 @@
 
     if (progressBar) progressBar.style.width = String(Math.max(2, Math.min(100, pct))) + '%';
     if (progressText) progressText.textContent = done + ' / ' + TOTAL_CHAPTERS + ' 챕터';
-    if (loadingStatus) loadingStatus.textContent = progressMessage;
+  if (loadingStatus) loadingStatus.textContent = String(status || '자미두수 리포트를 생성하는 중...');
     if (chapterNum) chapterNum.textContent = 'Ch.' + Math.max(1, active);
     if (chapterTitle) chapterTitle.textContent = done >= TOTAL_CHAPTERS ? '완료 처리 중...' : String(titles[Math.max(0, active - 1)] || '준비 중...');
     if (quote) quote.textContent = LOADING_QUOTES[(Math.max(1, active) - 1) % LOADING_QUOTES.length];
@@ -523,7 +578,7 @@
     if (statusData.downloadUrl) state.downloadUrl = String(statusData.downloadUrl);
     if (Array.isArray(statusData.chapters)) state.chapters = statusData.chapters.slice();
     state.currentMessage = String(statusData.message || '');
-    setLoadingProgress(Number(statusData.currentChapter || 0), String(statusData.status || 'generating'));
+    setLoadingProgress(Number(statusData.currentChapter || 0), state.currentMessage);
   }
 
   async function pollStatusUntilDone() {
@@ -557,7 +612,7 @@
     state.downloadUrl = '';
     state.currentMessage = '';
     state.stopPolling = false;
-    setLoadingProgress(0, 'generating');
+    setLoadingProgress(0, '자미두수 리포트를 준비하는 중...');
   }
 
   function buildZiweiGateKey(body) {
@@ -738,7 +793,7 @@
         : await pollStatusUntilDone();
 
       applyStatus(finalStatus);
-      setLoadingProgress(TOTAL_CHAPTERS, 'completed');
+      setLoadingProgress(TOTAL_CHAPTERS, '리포트가 완성되었습니다.');
       state.paymentContext = null;
       renderResultScreen();
       notify('자미두수 리포트 생성이 완료되었습니다.');
