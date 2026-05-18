@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { Gem, Heart, Orbit, Sparkles, Star } from "lucide-react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
@@ -72,6 +73,8 @@ type StoredAuthUser = {
   birthTime?: string;
   gender?: string;
 };
+
+type UiStep = 0 | 1 | 2 | 3 | 4 | 5;
 
 function toPaddedNumber(value: unknown, length: number) {
   const parsed = Number(value);
@@ -222,7 +225,7 @@ export default function DestinyBiasClient() {
   const reduceMotion = useReducedMotion();
   const { guardHandlers, shouldBlockClick } = useDestinyBiasTouchGuard();
 
-  const [uiStep, setUiStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [uiStep, setUiStep] = useState<UiStep>(0);
   const [meInput, setMeInput] = useState<PersonInputState>(INITIAL_ME);
   const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
   const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>(() => readCurrentProfileSeed().gender || "기타");
@@ -238,6 +241,7 @@ export default function DestinyBiasClient() {
   const [analyzing, setAnalyzing] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [stageLoading, setStageLoading] = useState(0);
 
   const [birthInputErrors, setBirthInputErrors] = useState({
     me: "",
@@ -327,6 +331,19 @@ export default function DestinyBiasClient() {
     const core = Number(navigator.hardwareConcurrency || 8);
     setIsLowSpec(memory <= 4 || core <= 4);
   }, []);
+
+  useEffect(() => {
+    if (uiStep !== 0) {
+      setStageLoading(0);
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setStageLoading((prev) => (prev >= 100 ? 0 : prev + 1));
+    }, 40);
+
+    return () => window.clearInterval(timer);
+  }, [uiStep]);
 
   useEffect(() => {
     if (!analyzing) {
@@ -451,7 +468,7 @@ export default function DestinyBiasClient() {
       return false;
     }
 
-    if (uiStep <= 1) {
+    if (uiStep <= 0) {
       return false;
     }
 
@@ -462,8 +479,8 @@ export default function DestinyBiasClient() {
     }
 
     setUiStep((prev) => {
-      if (prev <= 1) return 1;
-      return (prev - 1) as 1 | 2 | 3 | 4;
+      if (prev <= 0) return 0;
+      return (prev - 1) as UiStep;
     });
     setError("");
     return true;
@@ -475,7 +492,7 @@ export default function DestinyBiasClient() {
     maxInternalBackSteps: 1,
     enabled: true,
     isLocked: () => analyzing && uiStep === 4,
-    canGoBack: () => coinModal.open || uiStep > 1,
+    canGoBack: () => coinModal.open || uiStep > 0,
     onBack: handleAnalysisBack,
   });
 
@@ -784,8 +801,101 @@ export default function DestinyBiasClient() {
         </AnimatePresence>
 
         <div className="space-y-4 md:space-y-5">
-          <MyDestinyBiasHero subtitle={destinyBiasIntroCopy.lead} />
-          <DestinyBiasProgress current={uiStep === 5 ? 5 : uiStep} />
+          {uiStep === 0 ? (
+            <motion.section
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
+              className="relative overflow-hidden rounded-[30px] border border-purple-300/45 bg-[linear-gradient(145deg,rgba(9,10,28,0.78),rgba(38,14,68,0.58))] p-5 shadow-[0_0_30px_rgba(192,132,252,0.34)] md:p-7"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_14%,rgba(236,72,153,.24),transparent_35%),radial-gradient(circle_at_82%_18%,rgba(56,189,248,.2),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(167,139,250,.18),transparent_45%)]" aria-hidden />
+              <div className="relative z-10 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr_420px]">
+                <article className="rounded-3xl border border-purple-300/45 bg-black/35 p-4 backdrop-blur-md shadow-[0_0_15px_rgba(192,132,252,0.5)]">
+                  <p className="text-[11px] tracking-[0.2em] text-purple-100/80">당신의 운명 속</p>
+                  <p className="mt-1 text-sm font-semibold text-pink-200">✨ 최애를 만나는 순간 ✨</p>
+                  <div className="mt-5 flex items-center justify-center gap-4">
+                    <Heart className="h-6 w-6 fill-pink-400 text-pink-200 drop-shadow-[0_0_12px_rgba(244,114,182,.95)]" />
+                    <Star className="h-7 w-7 fill-violet-300 text-violet-200 drop-shadow-[0_0_14px_rgba(167,139,250,.95)]" />
+                    <Heart className="h-6 w-6 fill-pink-400 text-pink-200 drop-shadow-[0_0_12px_rgba(244,114,182,.95)]" />
+                  </div>
+                  <p className="mt-5 text-[11px] tracking-[0.22em] text-fuchsia-100/90">DESTINY LOADING...</p>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-purple-300/35">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-300 shadow-[0_0_18px_rgba(236,72,153,.8)]"
+                      style={{ width: `${stageLoading}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-right text-xs font-semibold text-cyan-200/90">{stageLoading}%</p>
+                </article>
+
+                <article className="relative flex min-h-[260px] items-end justify-center">
+                  <motion.div
+                    className="absolute bottom-20 left-[32%] flex h-36 w-24 items-center justify-center rounded-[1.5rem] border border-pink-300/45 bg-black/35 shadow-[0_0_20px_rgba(236,72,153,.42)]"
+                    animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
+                    transition={reduceMotion ? undefined : { duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Sparkles className="h-6 w-6 text-pink-100" />
+                  </motion.div>
+                  <motion.div
+                    className="absolute bottom-16 right-[32%] flex h-32 w-20 items-center justify-center rounded-[1.3rem] border border-cyan-300/45 bg-black/35 shadow-[0_0_20px_rgba(34,211,238,.4)]"
+                    animate={reduceMotion ? undefined : { y: [0, -9, 0] }}
+                    transition={reduceMotion ? undefined : { duration: 2.9, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                  >
+                    <Sparkles className="h-5 w-5 text-cyan-100" />
+                  </motion.div>
+                  <div className="pointer-events-none absolute bottom-5 left-1/2 h-32 w-[90%] -translate-x-1/2 [perspective:900px]">
+                    <div className="absolute inset-0 rounded-[100%] border border-fuchsia-300/35 bg-gradient-to-r from-fuchsia-500/25 via-purple-500/20 to-cyan-400/25 [transform:rotateX(70deg)] shadow-[0_0_32px_rgba(236,72,153,.45)]" />
+                  </div>
+                </article>
+
+                <article>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-purple-300/45 bg-black/30 px-4 py-2 text-xs tracking-wide text-purple-100">
+                    <Star className="h-4 w-4 fill-yellow-300 text-yellow-200" />
+                    ⭐ 내 안의 운명 ✨ 최애와 연결되는 시간 ⭐
+                  </div>
+                  <h2 className="mt-4 text-5xl font-black leading-none tracking-tight bg-gradient-to-b from-pink-300 via-purple-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-[0_0_26px_rgba(236,72,153,.7)] md:text-6xl">
+                    최애운명
+                  </h2>
+                  <p className="mt-2 text-sm tracking-[0.28em] text-purple-100/90">✦ My Destiny Bias ✦</p>
+                  <div className="mt-5 rounded-3xl border border-purple-400/50 bg-purple-950/45 p-4 backdrop-blur-md">
+                    <p className="text-sm font-semibold text-fuchsia-100">내 사주 에너지가 최애에게 닿는 방식</p>
+                    <div className="mt-4 grid grid-cols-3 divide-x divide-purple-300/20 rounded-2xl border border-white/10 bg-black/25">
+                      {[
+                        { title: "최애 성향 분석", subtitle: "Heart Gem", icon: Gem, gradient: "from-pink-400 via-fuchsia-400 to-violet-400" },
+                        { title: "운명 궁합 매칭", subtitle: "Star Match", icon: Star, gradient: "from-violet-400 via-purple-400 to-indigo-400" },
+                        { title: "에너지 연결 리포트", subtitle: "Orbit Report", icon: Orbit, gradient: "from-cyan-400 via-sky-400 to-indigo-400" },
+                      ].map((feature) => {
+                        const Icon = feature.icon;
+                        return (
+                          <div key={feature.title} className="px-2 py-4 text-center">
+                            <div className={`mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${feature.gradient} shadow-[0_0_20px_rgba(192,132,252,.42)]`}>
+                              <Icon className="h-5 w-5 text-white" />
+                            </div>
+                            <p className="mt-2 text-xs font-semibold text-purple-50">{feature.title}</p>
+                            <p className="mt-1 text-[10px] text-purple-200/70">{feature.subtitle}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setUiStep(1)}
+                    className="mt-5 inline-flex items-center rounded-full bg-[linear-gradient(90deg,#ec4899,#8b5cf6,#22d3ee)] px-6 py-3 text-sm font-black text-white shadow-[0_14px_34px_rgba(139,92,246,.4)] transition hover:-translate-y-0.5"
+                  >
+                    Cosmic Stage 입장하기
+                  </button>
+                </article>
+              </div>
+            </motion.section>
+          ) : null}
+
+          {uiStep > 0 ? (
+            <>
+              <MyDestinyBiasHero subtitle={destinyBiasIntroCopy.lead} />
+              <DestinyBiasProgress current={uiStep === 5 ? 5 : uiStep} />
+            </>
+          ) : null}
 
             {uiStep === 1 ? (
               <section className={styles.inputPanel}>
@@ -1126,10 +1236,10 @@ export default function DestinyBiasClient() {
       {uiStep > 0 && uiStep < 4 ? (
         <div className={`md:hidden ${styles.stickyCtaBar}`} {...guardHandlers}>
           <div className="mx-auto flex w-full max-w-7xl gap-2">
-            {uiStep > 1 ? (
+            {uiStep > 0 ? (
               <button
                 type="button"
-                onClick={onSafeClick(() => setUiStep((prev) => (prev - 1) as 1 | 2 | 3 | 4))}
+                onClick={onSafeClick(() => setUiStep((prev) => (prev - 1) as UiStep))}
                 className="min-h-11 flex-1 rounded-full border border-white/30 bg-white/10 text-sm font-semibold text-white"
               >
                 이전
@@ -1163,10 +1273,10 @@ export default function DestinyBiasClient() {
       {uiStep > 0 && uiStep < 4 ? (
         <div className="mx-auto hidden w-full max-w-7xl px-6 pb-6 md:block">
           <div className="mt-4 flex gap-2">
-            {uiStep > 1 ? (
+            {uiStep > 0 ? (
               <button
                 type="button"
-                onClick={() => setUiStep((prev) => (prev - 1) as 1 | 2 | 3 | 4)}
+                onClick={() => setUiStep((prev) => (prev - 1) as UiStep)}
                 className="min-h-11 rounded-full border border-white/30 bg-white/10 px-6 text-sm font-semibold text-white"
               >
                 이전
