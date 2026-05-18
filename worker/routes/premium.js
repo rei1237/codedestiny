@@ -3,6 +3,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { generateWithGemini } from "../lib/gemini-client.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { connectDb, mongoose } from "../lib/db.js";
 import {
   FEATURE_TYPE_TO_REPORT_TYPE,
   REPORT_TYPE_TO_FEATURE_TYPE,
@@ -1293,9 +1294,79 @@ const ZIWEI_PREMIUM_V3_TTL_MS = REPORT_SESSION_TTL_MS;
 const ASTROLOGY_V3_REPORT_STORE = new Map();
 const ASTROLOGY_V3_LOCKS = new Set();
 const ASTROLOGY_V3_TTL_MS = REPORT_SESSION_TTL_MS;
+const PREMIUM_RUNTIME_COLLECTION = "premium_runtime_store";
+const PREMIUM_RUNTIME_BUCKETS = {
+  vedicV3: "vedic-v3",
+  astrologyV3: "astrology-v3",
+  ziweiV3: "ziwei-v3",
+};
+let premiumRuntimeIndexEnsured = false;
 const PREMIUM_REPORT_CONTEXT_STORE = new Map();
 const PREMIUM_REPORT_CONTEXT_INDEX = new Map();
 const PREMIUM_REPORT_CONTEXT_TTL_MS = REPORT_SESSION_TTL_MS;
+
+function buildPremiumRuntimeDocId(bucket, reportId) {
+  return `${String(bucket || "runtime")}:${String(reportId || "")}`;
+}
+
+async function getPremiumRuntimeCollection(env) {
+  try {
+    await connectDb(env);
+    const db = mongoose.connection?.db;
+    if (!db) return null;
+    const collection = db.collection(PREMIUM_RUNTIME_COLLECTION);
+    if (!premiumRuntimeIndexEnsured) {
+      premiumRuntimeIndexEnsured = true;
+      collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
+      collection.createIndex({ bucket: 1, reportId: 1 }, { unique: true }).catch(() => {});
+    }
+    return collection;
+  } catch {
+    return null;
+  }
+}
+
+async function loadPremiumRuntimeReport(env, bucket, reportId) {
+  const id = String(reportId || "").trim();
+  if (!id) return null;
+  const collection = await getPremiumRuntimeCollection(env);
+  if (!collection) return null;
+
+  const now = new Date();
+  const doc = await collection.findOne({
+    _id: buildPremiumRuntimeDocId(bucket, id),
+    expiresAt: { $gt: now },
+  });
+
+  if (!doc || !doc.payload || typeof doc.payload !== "object") return null;
+  return toPlainObject(doc.payload);
+}
+
+async function persistPremiumRuntimeReport(env, bucket, report) {
+  const payload = report && typeof report === "object" ? report : null;
+  const reportId = String(payload?.id || "").trim();
+  if (!reportId) return;
+
+  const collection = await getPremiumRuntimeCollection(env);
+  if (!collection) return;
+
+  const expiresAtMs = Number(payload.expiresAt || Date.now() + REPORT_SESSION_TTL_MS);
+  const expiresAt = new Date(Number.isFinite(expiresAtMs) ? expiresAtMs : Date.now() + REPORT_SESSION_TTL_MS);
+
+  await collection.updateOne(
+    { _id: buildPremiumRuntimeDocId(bucket, reportId) },
+    {
+      $set: {
+        bucket: String(bucket || "runtime"),
+        reportId,
+        payload: toPlainObject(payload),
+        expiresAt,
+        updatedAt: new Date(),
+      },
+    },
+    { upsert: true },
+  );
+}
 
 const PREMIUM_REPORT_TYPE_MAP = {
   ziweipremium: "ziweiPremium",
@@ -8186,11 +8257,17 @@ function createVedicV3ReportId(body, mode) {
   return `vd3_${stableHash(token)}`;
 }
 
-function getVedicV3Report(reportId) {
+async function getVedicV3Report(reportId, env = null) {
   const id = String(reportId || "").trim();
   if (!id) return null;
   pruneVedicV3Reports();
-  const report = VEDIC_PREMIUM_V3_REPORT_STORE.get(id);
+  let report = VEDIC_PREMIUM_V3_REPORT_STORE.get(id);
+  if (!report && env) {
+    report = await loadPremiumRuntimeReport(env, PREMIUM_RUNTIME_BUCKETS.vedicV3, id);
+    if (report) {
+      VEDIC_PREMIUM_V3_REPORT_STORE.set(id, report);
+    }
+  }
   if (!report) return null;
   if (Number(report.expiresAt || 0) < Date.now()) {
     VEDIC_PREMIUM_V3_REPORT_STORE.delete(id);
@@ -8200,11 +8277,14 @@ function getVedicV3Report(reportId) {
   return report;
 }
 
-function saveVedicV3Report(report) {
+async function saveVedicV3Report(report, env = null) {
   if (!report || !report.id) return;
   report.updatedAt = new Date().toISOString();
   report.expiresAt = Date.now() + VEDIC_PREMIUM_V3_TTL_MS;
   VEDIC_PREMIUM_V3_REPORT_STORE.set(report.id, report);
+  if (env) {
+    await persistPremiumRuntimeReport(env, PREMIUM_RUNTIME_BUCKETS.vedicV3, report);
+  }
 }
 
 async function advanceVedicV3Report(request, env, report) {
@@ -8219,7 +8299,7 @@ async function advanceVedicV3Report(request, env, report) {
     if (nextChapter > VEDIC_V3_TOTAL_CHAPTERS) {
       report.status = "completed";
       report.message = "다운로드 준비 완료";
-      saveVedicV3Report(report);
+      await saveVedicV3Report(report, env);
       return;
     }
 
@@ -8246,7 +8326,7 @@ async function advanceVedicV3Report(request, env, report) {
       report.status = "failed";
       report.errorMessage = String(chapterPayload?.message || "베다 챕터 생성에 실패했습니다.");
       report.message = report.errorMessage;
-      saveVedicV3Report(report);
+      await saveVedicV3Report(report, env);
       return;
     }
 
@@ -8255,7 +8335,7 @@ async function advanceVedicV3Report(request, env, report) {
       report.status = "failed";
       report.errorMessage = "생성된 챕터 본문이 비어 있습니다.";
       report.message = report.errorMessage;
-      saveVedicV3Report(report);
+      await saveVedicV3Report(report, env);
       return;
     }
 
@@ -8280,12 +8360,12 @@ async function advanceVedicV3Report(request, env, report) {
       report.status = "completed";
       report.message = "다운로드 준비 완료";
     }
-    saveVedicV3Report(report);
+    await saveVedicV3Report(report, env);
   } catch (error) {
     report.status = "failed";
     report.errorMessage = String(error?.message || "베다 챕터 생성 중 내부 오류가 발생했습니다.");
     report.message = report.errorMessage;
-    saveVedicV3Report(report);
+    await saveVedicV3Report(report, env);
   } finally {
     VEDIC_PREMIUM_V3_LOCKS.delete(reportId);
   }
@@ -8346,7 +8426,7 @@ async function handleVedicV3Generate(request, env, authInfo) {
     expiresAt: Date.now() + VEDIC_PREMIUM_V3_TTL_MS,
   };
 
-  saveVedicV3Report(report);
+  await saveVedicV3Report(report, env);
   await advanceVedicV3Report(request, env, report);
 
   return json({
@@ -8367,7 +8447,7 @@ async function handleVedicV3Status(request, env, authInfo) {
     return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
   }
 
-  const report = getVedicV3Report(reportId);
+  const report = await getVedicV3Report(reportId, env);
   if (!report) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 404 });
   }
@@ -8376,7 +8456,7 @@ async function handleVedicV3Status(request, env, authInfo) {
   }
 
   await advanceVedicV3Report(request, env, report);
-  const latest = getVedicV3Report(reportId);
+  const latest = await getVedicV3Report(reportId, env);
   if (!latest) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트 세션이 만료되었습니다." }, { status: 404 });
   }
@@ -8451,14 +8531,14 @@ function buildVedicV3DownloadMarkdown(report) {
   return parts.join("\n");
 }
 
-async function handleVedicV3Download(request, _env, authInfo) {
+async function handleVedicV3Download(request, env, authInfo) {
   const url = new URL(request.url);
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) {
     return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
   }
 
-  const report = getVedicV3Report(reportId);
+  const report = await getVedicV3Report(reportId, env);
   if (!report) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 404 });
   }
@@ -12141,6 +12221,36 @@ function pruneAstrologyV3Reports() {
   }
 }
 
+async function getAstrologyV3Report(reportId, env = null) {
+  const id = String(reportId || "").trim();
+  if (!id) return null;
+  pruneAstrologyV3Reports();
+
+  let report = ASTROLOGY_V3_REPORT_STORE.get(id);
+  if (!report && env) {
+    report = await loadPremiumRuntimeReport(env, PREMIUM_RUNTIME_BUCKETS.astrologyV3, id);
+    if (report) ASTROLOGY_V3_REPORT_STORE.set(id, report);
+  }
+
+  if (!report) return null;
+  if (Number(report.expiresAt || 0) < Date.now()) {
+    ASTROLOGY_V3_REPORT_STORE.delete(id);
+    ASTROLOGY_V3_LOCKS.delete(id);
+    return null;
+  }
+  return report;
+}
+
+async function saveAstrologyV3Report(report, env = null) {
+  if (!report || !report.id) return;
+  report.updatedAt = new Date().toISOString();
+  report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
+  ASTROLOGY_V3_REPORT_STORE.set(report.id, report);
+  if (env) {
+    await persistPremiumRuntimeReport(env, PREMIUM_RUNTIME_BUCKETS.astrologyV3, report);
+  }
+}
+
 function pickAstroPlanet(canonicalChart, planetName) {
   const list = Array.isArray(canonicalChart?.planets) ? canonicalChart.planets : [];
   return list.find((planet) => String(planet?.nameEn || "") === String(planetName || "")) || null;
@@ -12500,7 +12610,7 @@ function buildAstrologyV3PromptPack(report, def) {
 }
 
 async function processAstrologyV3Step(request, env, reportId) {
-  const report = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  const report = await getAstrologyV3Report(reportId, env);
   if (!report) return null;
   if (report.status === "completed") return report;
   if (ASTROLOGY_V3_LOCKS.has(reportId)) return report;
@@ -12516,7 +12626,7 @@ async function processAstrologyV3Step(request, env, reportId) {
       report.message = getAstrologyV3GenerationMessage(report.mode, def.index);
       report.updatedAt = new Date().toISOString();
       report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
-      ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+      await saveAstrologyV3Report(report, env);
 
       const attemptLimit = 3;
       let chapter = null;
@@ -12578,7 +12688,7 @@ async function processAstrologyV3Step(request, env, reportId) {
       report.chapterFallbacks[String(def.index)] = Boolean(chapter.usedFallback);
       report.updatedAt = new Date().toISOString();
       report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
-      ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+      await saveAstrologyV3Report(report, env);
     }
 
     if (Number(report.currentChapter || 0) >= defs.length) {
@@ -12597,7 +12707,7 @@ async function processAstrologyV3Step(request, env, reportId) {
       report.html = renderAstrologyV3Html(report);
       report.updatedAt = new Date().toISOString();
       report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
-      ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+      await saveAstrologyV3Report(report, env);
     }
 
     return report;
@@ -12607,7 +12717,7 @@ async function processAstrologyV3Step(request, env, reportId) {
     report.message = "리포트 생성 실패";
     report.updatedAt = new Date().toISOString();
     report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
-    ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+    await saveAstrologyV3Report(report, env);
     return report;
   } finally {
     ASTROLOGY_V3_LOCKS.delete(reportId);
@@ -12665,7 +12775,7 @@ async function handleAstrologyV3Generate(request, env, authInfo) {
     : null;
 
   const reportId = buildAstrologyV3ReportId(authInfo.userId, mode, primaryInput, partnerInput, profileId);
-  const existing = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  const existing = await getAstrologyV3Report(reportId, env);
   if (existing && !forceRegenerate) {
     if (String(existing.userId) !== String(authInfo.userId)) {
       return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
@@ -12676,10 +12786,10 @@ async function handleAstrologyV3Generate(request, env, authInfo) {
       existing.errorMessage = "";
       existing.updatedAt = new Date().toISOString();
       existing.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
-      ASTROLOGY_V3_REPORT_STORE.set(reportId, existing);
+      await saveAstrologyV3Report(existing, env);
     }
     await processAstrologyV3Step(request, env, reportId);
-    return json(buildAstrologyV3StatusPayload(ASTROLOGY_V3_REPORT_STORE.get(reportId) || existing, false));
+    return json(buildAstrologyV3StatusPayload((await getAstrologyV3Report(reportId, env)) || existing, false));
   }
 
   const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "westernAstrologyPremium", { ...body, mode });
@@ -12781,10 +12891,10 @@ async function handleAstrologyV3Generate(request, env, authInfo) {
     },
   };
 
-  ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+  await saveAstrologyV3Report(report, env);
   await processAstrologyV3Step(request, env, reportId);
 
-  return json(buildAstrologyV3StatusPayload(ASTROLOGY_V3_REPORT_STORE.get(reportId) || report, false));
+  return json(buildAstrologyV3StatusPayload((await getAstrologyV3Report(reportId, env)) || report, false));
 }
 
 async function handleAstrologyV3Status(request, env, authInfo) {
@@ -12793,7 +12903,7 @@ async function handleAstrologyV3Status(request, env, authInfo) {
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
 
-  const report = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  const report = await getAstrologyV3Report(reportId, env);
   if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
   if (String(report.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
@@ -12804,7 +12914,7 @@ async function handleAstrologyV3Status(request, env, authInfo) {
   }
 
   const includeChapters = String(url.searchParams.get("includeChapters") || "") === "1";
-  const latest = ASTROLOGY_V3_REPORT_STORE.get(reportId) || report;
+  const latest = (await getAstrologyV3Report(reportId, env)) || report;
   return json(buildAstrologyV3StatusPayload(latest, includeChapters));
 }
 
@@ -12814,7 +12924,7 @@ async function handleAstrologyV3Download(request, env, authInfo) {
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
 
-  const report = ASTROLOGY_V3_REPORT_STORE.get(reportId);
+  const report = await getAstrologyV3Report(reportId, env);
   if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
   if (String(report.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
@@ -12827,7 +12937,7 @@ async function handleAstrologyV3Download(request, env, authInfo) {
   report.html = html;
   report.updatedAt = new Date().toISOString();
   report.expiresAt = Date.now() + ASTROLOGY_V3_TTL_MS;
-  ASTROLOGY_V3_REPORT_STORE.set(reportId, report);
+  await saveAstrologyV3Report(report, env);
 
   const filename = `astrology-premium-${report.mode}-${report.id}.html`;
   return new Response(html, {
@@ -13088,6 +13198,36 @@ function pruneZiweiV3Reports() {
       ZIWEI_PREMIUM_V3_REPORT_STORE.delete(key);
       ZIWEI_PREMIUM_V3_LOCKS.delete(key);
     }
+  }
+}
+
+async function getZiweiV3Report(reportId, env = null) {
+  const id = String(reportId || "").trim();
+  if (!id) return null;
+  pruneZiweiV3Reports();
+
+  let report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(id);
+  if (!report && env) {
+    report = await loadPremiumRuntimeReport(env, PREMIUM_RUNTIME_BUCKETS.ziweiV3, id);
+    if (report) ZIWEI_PREMIUM_V3_REPORT_STORE.set(id, report);
+  }
+
+  if (!report) return null;
+  if (Number(report.expiresAt || 0) < Date.now()) {
+    ZIWEI_PREMIUM_V3_REPORT_STORE.delete(id);
+    ZIWEI_PREMIUM_V3_LOCKS.delete(id);
+    return null;
+  }
+  return report;
+}
+
+async function saveZiweiV3Report(report, env = null) {
+  if (!report || !report.id) return;
+  report.updatedAt = new Date().toISOString();
+  report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
+  ZIWEI_PREMIUM_V3_REPORT_STORE.set(report.id, report);
+  if (env) {
+    await persistPremiumRuntimeReport(env, PREMIUM_RUNTIME_BUCKETS.ziweiV3, report);
   }
 }
 
@@ -13590,7 +13730,7 @@ function getZiweiV3GenerationMessage(mode, chapterIndex) {
 }
 
 async function processZiweiV3Step(env, reportId) {
-  const report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  const report = await getZiweiV3Report(reportId, env);
   if (!report) return null;
   if (report.status === "completed") return report;
   if (ZIWEI_PREMIUM_V3_LOCKS.has(reportId)) return report;
@@ -13607,7 +13747,7 @@ async function processZiweiV3Step(env, reportId) {
       report.currentChapter = Math.max(0, def.index - 1);
       report.updatedAt = new Date().toISOString();
       report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
-      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+      await saveZiweiV3Report(report, env);
 
       const generated = await generateZiweiV3Chapter(env, report, def);
       upsertZiweiV3Chapter(report, generated.chapter);
@@ -13616,7 +13756,7 @@ async function processZiweiV3Step(env, reportId) {
       report.currentChapter = def.index;
       report.updatedAt = new Date().toISOString();
       report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
-      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+      await saveZiweiV3Report(report, env);
     }
 
     if (Number(report.currentChapter || 0) >= defs.length) {
@@ -13644,7 +13784,7 @@ async function processZiweiV3Step(env, reportId) {
       report.html = renderZiweiV3Html(report);
       report.updatedAt = new Date().toISOString();
       report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
-      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+      await saveZiweiV3Report(report, env);
     }
 
     return report;
@@ -13654,7 +13794,7 @@ async function processZiweiV3Step(env, reportId) {
     report.message = "리포트 생성 실패";
     report.updatedAt = new Date().toISOString();
     report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
-    ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+    await saveZiweiV3Report(report, env);
     return report;
   } finally {
     ZIWEI_PREMIUM_V3_LOCKS.delete(reportId);
@@ -13707,7 +13847,7 @@ async function handleZiweiV3Generate(request, env, authInfo) {
   }
 
   const reportId = buildZiweiV3ReportId(authInfo.userId, mode, input, partnerInput, profileId);
-  const existing = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  const existing = await getZiweiV3Report(reportId, env);
   if (existing && !forceRegenerate) {
     if (String(existing.userId) !== String(authInfo.userId)) {
       return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
@@ -13718,10 +13858,10 @@ async function handleZiweiV3Generate(request, env, authInfo) {
       existing.errorMessage = "";
       existing.updatedAt = new Date().toISOString();
       existing.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
-      ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, existing);
+      await saveZiweiV3Report(existing, env);
     }
     await processZiweiV3Step(env, reportId);
-    return json(buildZiweiV3StatusPayload(ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || existing, false));
+    return json(buildZiweiV3StatusPayload((await getZiweiV3Report(reportId, env)) || existing, false));
   }
 
   const access = await requirePremiumReportAccessWithRetry(env, authInfo.userId, "ziweiPremium", { ...body, mode });
@@ -13789,10 +13929,10 @@ async function handleZiweiV3Generate(request, env, authInfo) {
     },
   };
 
-  ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+  await saveZiweiV3Report(report, env);
   await processZiweiV3Step(env, reportId);
 
-  return json(buildZiweiV3StatusPayload(ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || report, false));
+  return json(buildZiweiV3StatusPayload((await getZiweiV3Report(reportId, env)) || report, false));
 }
 
 async function handleZiweiV3Status(request, env, authInfo) {
@@ -13801,7 +13941,7 @@ async function handleZiweiV3Status(request, env, authInfo) {
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
 
-  const report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  const report = await getZiweiV3Report(reportId, env);
   if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
   if (String(report.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
@@ -13812,7 +13952,7 @@ async function handleZiweiV3Status(request, env, authInfo) {
   }
 
   const includeChapters = String(url.searchParams.get("includeChapters") || "") === "1";
-  const latest = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId) || report;
+  const latest = (await getZiweiV3Report(reportId, env)) || report;
   return json(buildZiweiV3StatusPayload(latest, includeChapters));
 }
 
@@ -13822,7 +13962,7 @@ async function handleZiweiV3Download(request, env, authInfo) {
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
 
-  const report = ZIWEI_PREMIUM_V3_REPORT_STORE.get(reportId);
+  const report = await getZiweiV3Report(reportId, env);
   if (!report) return json({ ok: false, code: "REPORT_NOT_FOUND", message: "리포트를 찾을 수 없습니다." }, { status: 404 });
   if (String(report.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트입니다." }, { status: 401 });
@@ -13835,7 +13975,7 @@ async function handleZiweiV3Download(request, env, authInfo) {
   report.html = html;
   report.updatedAt = new Date().toISOString();
   report.expiresAt = Date.now() + ZIWEI_PREMIUM_V3_TTL_MS;
-  ZIWEI_PREMIUM_V3_REPORT_STORE.set(reportId, report);
+  await saveZiweiV3Report(report, env);
 
   const filename = `ziwei-premium-${report.mode}-${report.id}.html`;
   return new Response(html, {
