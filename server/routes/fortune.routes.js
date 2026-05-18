@@ -58,6 +58,11 @@ const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "palm-reading-relationship": { cost: 30, reason: "손금 관계 패턴 분석" },
   "premium-love-secret-solo": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
   "premium-love-secret-couple": { cost: 500, reason: "사주 프리미엄 궁합 리포트 생성" },
+  "saju_ai_prompt_generator": { cost: 100, reason: "사주 AI 질문 프롬프트 생성" },
+  "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
+  "sukuyo_ai_prompt_generator": { cost: 100, reason: "숙요점 AI 질문 프롬프트 생성" },
+  "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },
+  "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
   "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
 });

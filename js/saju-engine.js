@@ -12627,11 +12627,29 @@ function renderZiwei(p, natal, targetId) {
       <div class="zw-grid">
   `;
 
+  function _zwToStarRawText(rawValue) {
+    if (rawValue && typeof rawValue === 'object') {
+      if (typeof rawValue.raw === 'string' && rawValue.raw.trim()) return rawValue.raw;
+      var namePart = String(rawValue.name || rawValue.starName || '').trim();
+      var strengthPart = String(rawValue.strengthSymbol || rawValue.symbol || '').trim();
+      var sihuaPart = String(rawValue.sihua || rawValue.transform || '').trim();
+      var borrowedPart = rawValue.borrowed === true ? '(차성)' : '';
+      return [namePart, strengthPart, sihuaPart, borrowedPart].filter(Boolean).join(' ').trim();
+    }
+    return String(rawValue == null ? '' : rawValue);
+  }
+
   function _zwParseMainRaw(rawStr){
-    var plain = (rawStr || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    var borrowed = /\(차성\)|\b차성\b/.test(plain);
+    var source = _zwToStarRawText(rawStr);
+    var plain = source.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    var borrowed = /\(차성\)|\b차성\b/.test(plain) || !!(rawStr && typeof rawStr === 'object' && rawStr.borrowed === true);
     var sihuaMatch = plain.match(/화록|화권|화과|화기/);
     var sihua = sihuaMatch ? sihuaMatch[0] : '';
+    if (!sihua && rawStr && typeof rawStr === 'object') {
+      var rawSihua = String(rawStr.sihua || rawStr.transform || '').trim();
+      var rawSihuaMatch = rawSihua.match(/화록|화권|화과|화기/);
+      sihua = rawSihuaMatch ? rawSihuaMatch[0] : '';
+    }
     var name = plain
       .replace(/\(차성\)/g, '')
       .replace(/화록|화권|화과|화기/g, '')
@@ -12656,9 +12674,14 @@ function renderZiwei(p, natal, targetId) {
     return p.name + ' <span class="zw-star-strength '+symCls+'">' + symbol + '</span>' + sihuaHtml + borrowedHtml;
   }
   function _zwRenderMinorStar(rawStr, zhi){
-    var plain = (rawStr || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    var plain = _zwToStarRawText(rawStr).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     var sihuaMatch = plain.match(/화록|화권|화과|화기/);
     var sihua = sihuaMatch ? sihuaMatch[0] : '';
+    if (!sihua && rawStr && typeof rawStr === 'object') {
+      var rawSihua = String(rawStr.sihua || rawStr.transform || '').trim();
+      var rawSihuaMatch = rawSihua.match(/화록|화권|화과|화기/);
+      sihua = rawSihuaMatch ? rawSihuaMatch[0] : '';
+    }
     var name = plain
       .replace(/화록|화권|화과|화기/g,'')
       .replace(/◎|△|▲/g,'')
