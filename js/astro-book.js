@@ -41,13 +41,48 @@
     '관계 운영 마스터 플랜'
   ];
 
+  var ASTRO_COIN_COST = 390;
+  var ASTRO_COIN_FEATURE_KEY = 'premium-astrology-report';
+  var ASTRO_COIN_REASON = '점성술 프리미엄 PDF 리포트 생성';
+
+  var ASTRO_LOADING_FLOW_PERSONAL = [
+    '출생 차트의 기준 축을 정렬하고 있습니다...',
+    '태양·달·상승궁의 핵심 에너지를 해석하는 중입니다...',
+    '행성 간 각도를 정밀 계산해 관계를 분석하는 중입니다...',
+    '사랑·관계 패턴 챕터를 구성하는 중입니다...',
+    '커리어·성취 흐름 챕터를 다듬는 중입니다...',
+    '재정·기회 구간의 타이밍을 정리하는 중입니다...',
+    '변화 트리거와 전환 신호를 분석하는 중입니다...',
+    '갈등 완화·리스크 관리 포인트를 추출하는 중입니다...',
+    '생활 루틴 최적화 조언을 생성하는 중입니다...',
+    '영혼 과제와 노드 축 해석을 정리하는 중입니다...',
+    '연간 운세 흐름과 실천 로드맵을 연결하는 중입니다...',
+    '최종 코즈믹 리포트 문장을 검수하는 중입니다...'
+  ];
+
+  var ASTRO_LOADING_FLOW_COMPAT = [
+    '두 사람의 기준 차트를 동기화하고 있습니다...',
+    '태양·달 조합의 정서 호흡을 분석하는 중입니다...',
+    '금성·화성 케미스트리를 정밀 해석하는 중입니다...',
+    '소통 스타일과 오해 패턴을 점검하는 중입니다...',
+    '갈등 트리거와 회복 루틴을 구성하는 중입니다...',
+    '장기 안정성·신뢰 지표를 계산하는 중입니다...',
+    '친밀도와 관계 리듬을 분석하는 중입니다...',
+    '동거·결혼 현실성 챕터를 작성하는 중입니다...',
+    '재정·커리어 합을 정리하는 중입니다...',
+    '가정 운영과 장기 계획을 연결하는 중입니다...',
+    '위기 시나리오별 대응 전략을 도출하는 중입니다...',
+    '관계 운영 마스터 플랜을 완성하는 중입니다...'
+  ];
+
   var state = {
     generating: false,
     mode: 'personal',
     reportId: '',
     downloadUrl: '',
     chapters: [],
-    quoteTick: 0
+    quoteTick: 0,
+    paidGateKey: ''
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -408,10 +443,13 @@
     if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
     var currentChapter = Number(payload && payload.currentChapter || 0);
     var status = String(payload && payload.status || 'generating');
-    var message = String(payload && payload.message || '점성술 챕터를 생성하는 중...');
     var completed = status === 'completed' ? total : Math.max(0, Math.min(total, currentChapter));
     var nextChapter = Math.max(1, Math.min(total, currentChapter + 1));
     var progress = Math.round((completed / total) * 100);
+    var flow = state.mode === 'compatibility' ? ASTRO_LOADING_FLOW_COMPAT : ASTRO_LOADING_FLOW_PERSONAL;
+    var message = status === 'completed'
+      ? '코즈믹 리포트 최종 편집을 마무리하고 있습니다...'
+      : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '점성술 리포트를 생성하는 중입니다...');
 
     var bar = qs('abProgressBar');
     var text = qs('abProgressText');
@@ -428,6 +466,86 @@
       quote.textContent = LOADING_QUOTES[state.quoteTick % LOADING_QUOTES.length];
     }
     resetDots(nextChapter);
+  }
+
+  function buildAstroGateKey(body) {
+    var b = body || {};
+    var mode = String(b.mode || 'personal');
+    var chunks = [
+      mode,
+      Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
+      Number(b.hour || 12), Number(b.minute || 0)
+    ];
+    if (mode === 'compatibility') {
+      chunks.push(
+        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
+        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
+      );
+    }
+    return chunks.join('|');
+  }
+
+  async function ensureAstroCoinGate(body) {
+    var gateKey = buildAstroGateKey(body);
+    if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+
+    try {
+      if (window.__cdAdminBypass === true) {
+        state.paidGateKey = gateKey;
+        return true;
+      }
+    } catch (_) {}
+
+    if (!window.confirm('🪙 점성술 코즈믹 차트 생성\n이용 시 ' + ASTRO_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+      return false;
+    }
+
+    var requestId = 'premium-astro:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var res = await requestJson('/api/billing/coin-gate', {
+      method: 'POST',
+      body: {
+        featureKey: ASTRO_COIN_FEATURE_KEY,
+        reason: ASTRO_COIN_REASON,
+        forceDeduct: true,
+        requestId: requestId
+      }
+    });
+
+    var data = (res && res.data) || {};
+    var code = String((data && data.code) || '').toUpperCase();
+    if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: '로그인 후 점성술 프리미엄 리포트를 생성할 수 있습니다.',
+          redirectTo: window.location.pathname + window.location.search + window.location.hash
+        });
+      } else {
+        window.location.href = '/login?next=%2F';
+      }
+      return false;
+    }
+
+    if (res.status === 402 || code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS') {
+      window.alert(String(data.message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.'));
+      if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+      return false;
+    }
+
+    if (!res.ok || !data || data.ok === false) {
+      window.alert(String(data.message || '코인 결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'));
+      return false;
+    }
+
+    try {
+      var payload = (data && data.data && typeof data.data === 'object') ? data.data : data;
+      var user = payload.user || (payload.consume && payload.consume.user) || null;
+      if (user && typeof user.points === 'number' && typeof window.__cdSetGoldenBalance === 'function') {
+        window.__cdSetGoldenBalance(user.points);
+      }
+    } catch (_) {}
+
+    state.paidGateKey = gateKey;
+    return true;
   }
 
   function buildChapterArticle(chapter, index) {
@@ -596,6 +714,9 @@
       setError(requestInput.message || '입력값을 확인해 주세요.');
       return;
     }
+
+    var gateOk = await ensureAstroCoinGate(requestInput.body);
+    if (!gateOk) return;
 
     state.generating = true;
     state.mode = String(requestInput.body.mode || 'personal');

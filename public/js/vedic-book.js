@@ -11,13 +11,48 @@
     '실전 조언을 챕터 문맥에 맞게 정리하는 중입니다...'
   ];
 
+  var VEDIC_COIN_COST = 390;
+  var VEDIC_COIN_FEATURE_KEY = 'premium-vedic-report';
+  var VEDIC_COIN_REASON = '베다 점성술 프리미엄 PDF 리포트 생성';
+
+  var VEDIC_LOADING_FLOW_PERSONAL = [
+    '라그나 기준점을 정밀 교정하는 중입니다...',
+    '나크샤트라 기질 축을 해석하는 중입니다...',
+    '행성 하우스 배치를 교차 검증하는 중입니다...',
+    '커리어·소명 흐름을 정리하는 중입니다...',
+    '재정·기회 구간을 분석하는 중입니다...',
+    '관계·정서 패턴을 해석하는 중입니다...',
+    '건강·에너지 리듬을 도출하는 중입니다...',
+    '다샤 전환 타이밍을 계산하는 중입니다...',
+    '위기 회피와 성장 전략을 구성하는 중입니다...',
+    '실천 루틴과 실행 가이드를 작성하는 중입니다...',
+    '연간 흐름과 장기 로드맵을 연결하는 중입니다...',
+    '베다 리포트 최종 교정을 진행하는 중입니다...'
+  ];
+
+  var VEDIC_LOADING_FLOW_COMPAT = [
+    '두 사람의 라그나 축을 동기화하는 중입니다...',
+    '정서 교감 패턴을 해석하는 중입니다...',
+    '소통·갈등 트리거를 추적하는 중입니다...',
+    '관계 안정성 지표를 계산하는 중입니다...',
+    '친밀도와 관계 리듬을 분석하는 중입니다...',
+    '동거·결혼 현실 구간을 정리하는 중입니다...',
+    '재정·역할 분담 균형을 도출하는 중입니다...',
+    '다샤 동조/충돌 포인트를 계산하는 중입니다...',
+    '위기 대응 시나리오를 작성하는 중입니다...',
+    '장기 관계 운영 규칙을 정리하는 중입니다...',
+    '관계 성장 플랜을 통합하는 중입니다...',
+    '베다 궁합 리포트 최종 교정을 진행하는 중입니다...'
+  ];
+
   var state = {
     generating: false,
     mode: 'personal',
     reportId: '',
     downloadUrl: '',
     chapters: [],
-    quoteTick: 0
+    quoteTick: 0,
+    paidGateKey: ''
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -362,10 +397,13 @@
   function setLoadingProgress(payload) {
     var currentChapter = Number(payload && payload.currentChapter || 0);
     var status = String(payload && payload.status || 'generating');
-    var message = String(payload && payload.message || '베다 챕터를 생성하는 중...');
     var completed = status === 'completed' ? TOTAL_CHAPTERS : Math.max(0, Math.min(TOTAL_CHAPTERS, currentChapter));
     var nextChapter = Math.max(1, Math.min(TOTAL_CHAPTERS, currentChapter || 1));
     var progress = Math.round((completed / TOTAL_CHAPTERS) * 100);
+    var flow = state.mode === 'compatibility' ? VEDIC_LOADING_FLOW_COMPAT : VEDIC_LOADING_FLOW_PERSONAL;
+    var message = status === 'completed'
+      ? '베다 리포트 최종 편집을 마무리하고 있습니다...'
+      : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
 
     var bar = qs('vdProgressBar');
     var text = qs('vdProgressText');
@@ -382,6 +420,78 @@
       quote.textContent = LOADING_QUOTES[state.quoteTick % LOADING_QUOTES.length];
     }
     resetDots(nextChapter);
+  }
+
+  function buildVedicGateKey(body) {
+    var b = body || {};
+    var mode = String(b.mode || 'personal');
+    var chunks = [
+      mode,
+      Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
+      Number(b.hour || 12), Number(b.minute || 0)
+    ];
+    if (mode === 'compatibility') {
+      chunks.push(
+        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
+        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
+      );
+    }
+    return chunks.join('|');
+  }
+
+  async function ensureVedicCoinGate(body) {
+    var gateKey = buildVedicGateKey(body);
+    if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+
+    try {
+      if (window.__cdAdminBypass === true) {
+        state.paidGateKey = gateKey;
+        return true;
+      }
+    } catch (_) {}
+
+    if (!window.confirm('🪙 베다 프리미엄 리포트 생성\n이용 시 ' + VEDIC_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+      return false;
+    }
+
+    var requestId = 'premium-vedic:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var res = await requestJson('/api/billing/coin-gate', {
+      method: 'POST',
+      body: {
+        featureKey: VEDIC_COIN_FEATURE_KEY,
+        reason: VEDIC_COIN_REASON,
+        forceDeduct: true,
+        requestId: requestId
+      }
+    });
+
+    var data = (res && res.data) || {};
+    var code = String((data && data.code) || '').toUpperCase();
+    if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: '로그인 후 베다 프리미엄 리포트를 생성할 수 있습니다.',
+          redirectTo: window.location.pathname + window.location.search + window.location.hash
+        });
+      } else {
+        window.location.href = '/login?next=%2F';
+      }
+      return false;
+    }
+
+    if (res.status === 402 || code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS') {
+      window.alert(String(data.message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.'));
+      if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+      return false;
+    }
+
+    if (!res.ok || !data || data.ok === false) {
+      window.alert(String(data.message || '코인 결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'));
+      return false;
+    }
+
+    state.paidGateKey = gateKey;
+    return true;
   }
 
   function buildChapterArticle(chapter, index) {
@@ -539,6 +649,9 @@
       setError(requestInput.message || '입력값을 확인해 주세요.');
       return;
     }
+
+    var gateOk = await ensureVedicCoinGate(requestInput.body);
+    if (!gateOk) return;
 
     state.generating = true;
     state.mode = String(requestInput.body.mode || 'personal');

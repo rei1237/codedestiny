@@ -10,6 +10,25 @@
     '챕터별 해석 품질을 점검하고 보정하고 있습니다...'
   ];
 
+  var SUKUYO_COIN_COST = 390;
+  var SUKUYO_COIN_FEATURE_KEY = 'premium-sukuyo-report';
+  var SUKUYO_COIN_REASON = '숙요점 프리미엄 PDF 리포트 생성';
+
+  var SUKUYO_LOADING_FLOW = [
+    '본명숙과 월령 좌표를 정렬하는 중입니다...',
+    '27수 기질 패턴을 해석하는 중입니다...',
+    '관계 거리와 감정 리듬을 계산하는 중입니다...',
+    '갈등 완화 포인트를 추출하는 중입니다...',
+    '재물·건강 흐름을 정리하는 중입니다...',
+    '관계 유지 전략을 구성하는 중입니다...',
+    '위기 구간 대응 전술을 작성하는 중입니다...',
+    '장기 관계 안정성 지표를 검토하는 중입니다...',
+    '실천 루틴과 생활 가이드를 정리하는 중입니다...',
+    '운세 전환 구간을 요약하는 중입니다...',
+    '핵심 통찰과 조언을 교차 검증하는 중입니다...',
+    '숙요 리포트 최종 편집을 진행하는 중입니다...'
+  ];
+
   var state = {
     generating: false,
     mode: 'personal',
@@ -18,7 +37,8 @@
     chapterTexts: {},
     chapterMeta: {},
     fakeProgressTimer: null,
-    fakeProgress: 0
+    fakeProgress: 0,
+    paidGateKey: ''
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -341,10 +361,14 @@
     }
   }
 
-  function setLoadingProgress(chapter, subtitle) {
+  function setLoadingProgress(chapter, status) {
     var safeChapter = Math.max(1, Math.min(TOTAL_CHAPTERS, Number(chapter || 1)));
     var completed = Math.max(0, Math.min(TOTAL_CHAPTERS, chapterCount()));
     var ratio = TOTAL_CHAPTERS > 0 ? (completed / TOTAL_CHAPTERS) : 0;
+    var statusToken = String(status || 'generating').toLowerCase();
+    var subtitle = statusToken === 'completed'
+      ? '숙요 리포트 최종 편집을 마무리하는 중입니다...'
+      : String(SUKUYO_LOADING_FLOW[Math.max(0, Math.min(SUKUYO_LOADING_FLOW.length - 1, safeChapter - 1))] || '숙요 챕터를 생성하는 중입니다...');
     var progressBar = qs('skProgressBar');
     var progressText = qs('skProgressText');
     var chapterNum = qs('skLoadingChapterNum');
@@ -475,6 +499,78 @@
     if (progressText) progressText.textContent = '0 / ' + TOTAL_CHAPTERS + ' 챕터';
   }
 
+  function buildSukuyoGateKey(body) {
+    var b = body || {};
+    var mode = String(b.mode || 'personal');
+    var chunks = [
+      mode,
+      Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
+      Number(b.hour || 12), Number(b.minute || 0)
+    ];
+    if (mode === 'compatibility') {
+      chunks.push(
+        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
+        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
+      );
+    }
+    return chunks.join('|');
+  }
+
+  async function ensureSukuyoCoinGate(body) {
+    var gateKey = buildSukuyoGateKey(body);
+    if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+
+    try {
+      if (window.__cdAdminBypass === true) {
+        state.paidGateKey = gateKey;
+        return true;
+      }
+    } catch (_) {}
+
+    if (!window.confirm('🪙 숙요 프리미엄 리포트 생성\n이용 시 ' + SUKUYO_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+      return false;
+    }
+
+    var requestId = 'premium-sukuyo:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var res = await requestJson('/api/billing/coin-gate', {
+      method: 'POST',
+      body: {
+        featureKey: SUKUYO_COIN_FEATURE_KEY,
+        reason: SUKUYO_COIN_REASON,
+        forceDeduct: true,
+        requestId: requestId
+      }
+    });
+
+    var data = (res && res.data) || {};
+    var code = String((data && data.code) || '').toUpperCase();
+    if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: '로그인 후 숙요 프리미엄 리포트를 생성할 수 있습니다.',
+          redirectTo: window.location.pathname + window.location.search + window.location.hash
+        });
+      } else {
+        window.location.href = '/login?next=%2F';
+      }
+      return false;
+    }
+
+    if (res.status === 402 || code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS') {
+      window.alert(String(data.message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.'));
+      if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+      return false;
+    }
+
+    if (!res.ok || !data || data.ok === false) {
+      window.alert(String(data.message || '코인 결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'));
+      return false;
+    }
+
+    state.paidGateKey = gateKey;
+    return true;
+  }
+
   async function generateSukuyoBookImpl() {
     if (state.generating) return;
     if (!hasProfile()) {
@@ -491,14 +587,17 @@
       return;
     }
 
+    var payload = buildRequestBody();
+    var gateOk = await ensureSukuyoCoinGate(payload);
+    if (!gateOk) return;
+
     state.generating = true;
     resetStateForGenerate();
     showOnly('skLoadingScreen');
     startFakeProgress();
-    setLoadingProgress(1, '숙요 프리미엄 리포트를 생성하는 중...');
+    setLoadingProgress(1, 'generating');
 
     try {
-      var payload = buildRequestBody();
       var genRes = await requestJson('/api/premium/syukyo/generate', {
         method: 'POST',
         body: {
@@ -519,7 +618,7 @@
       if (!status.ok) throw new Error(status.message || '리포트 상태 조회에 실패했습니다.');
 
       state.fakeProgress = 100;
-      setLoadingProgress(TOTAL_CHAPTERS, '리포트 생성이 완료되었습니다.');
+  setLoadingProgress(TOTAL_CHAPTERS, 'completed');
       renderResultScreen();
       notify('숙요 리포트 생성이 완료되었습니다.');
     } catch (error) {

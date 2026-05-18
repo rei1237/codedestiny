@@ -44,6 +44,10 @@
     '관계 헌장'
   ];
 
+  var ZIWEI_COIN_COST = 590;
+  var ZIWEI_COIN_FEATURE_KEY = 'premium-ziwei-report';
+  var ZIWEI_COIN_REASON = '자미두수 프리미엄 PDF 리포트 생성';
+
   var state = {
     generating: false,
     mode: 'personal',
@@ -51,7 +55,8 @@
     chapters: [],
     downloadUrl: '',
     stopPolling: false,
-    currentMessage: ''
+    currentMessage: '',
+    paidGateKey: ''
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -500,11 +505,15 @@
     }
   }
 
-  function setLoadingProgress(currentChapter, message) {
+  function setLoadingProgress(currentChapter, status) {
     var done = Math.max(0, Math.min(TOTAL_CHAPTERS, Number(currentChapter || 0)));
     var active = Math.min(TOTAL_CHAPTERS, done + 1);
     var pct = done <= 0 ? 3 : Math.round((done / TOTAL_CHAPTERS) * 100);
     var titles = getChapterTitles();
+    var statusToken = String(status || 'generating').toLowerCase();
+    var progressMessage = statusToken === 'completed'
+      ? '자미두수 원고를 최종 교정하고 있습니다...'
+      : ('' + titles[Math.max(0, active - 1)] + ' 챕터를 정교하게 해석하는 중입니다...');
 
     var progressBar = qs('zbProgressBar');
     var progressText = qs('zbProgressText');
@@ -515,7 +524,7 @@
 
     if (progressBar) progressBar.style.width = String(Math.max(2, Math.min(100, pct))) + '%';
     if (progressText) progressText.textContent = done + ' / ' + TOTAL_CHAPTERS + ' 챕터';
-    if (loadingStatus) loadingStatus.textContent = String(message || '자미두수 리포트를 생성하는 중...');
+    if (loadingStatus) loadingStatus.textContent = progressMessage;
     if (chapterNum) chapterNum.textContent = 'Ch.' + Math.max(1, active);
     if (chapterTitle) chapterTitle.textContent = done >= TOTAL_CHAPTERS ? '완료 처리 중...' : String(titles[Math.max(0, active - 1)] || '준비 중...');
     if (quote) quote.textContent = LOADING_QUOTES[(Math.max(1, active) - 1) % LOADING_QUOTES.length];
@@ -591,7 +600,7 @@
     if (statusData.downloadUrl) state.downloadUrl = String(statusData.downloadUrl);
     if (Array.isArray(statusData.chapters)) state.chapters = statusData.chapters.slice();
     state.currentMessage = String(statusData.message || '');
-    setLoadingProgress(Number(statusData.currentChapter || 0), state.currentMessage);
+    setLoadingProgress(Number(statusData.currentChapter || 0), String(statusData.status || 'generating'));
   }
 
   async function pollStatusUntilDone() {
@@ -623,7 +632,79 @@
     state.downloadUrl = '';
     state.currentMessage = '';
     state.stopPolling = false;
-    setLoadingProgress(0, '자미두수 리포트를 준비하는 중...');
+    setLoadingProgress(0, 'generating');
+  }
+
+  function buildZiweiGateKey(body) {
+    var b = body || {};
+    var mode = String(b.mode || 'personal');
+    var chunks = [
+      mode,
+      Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
+      Number(b.hour || 12), Number(b.minute || 0)
+    ];
+    if (mode === 'compatibility') {
+      chunks.push(
+        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
+        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
+      );
+    }
+    return chunks.join('|');
+  }
+
+  async function ensureZiweiCoinGate(body) {
+    var gateKey = buildZiweiGateKey(body);
+    if (state.paidGateKey && state.paidGateKey === gateKey) return true;
+
+    try {
+      if (window.__cdAdminBypass === true) {
+        state.paidGateKey = gateKey;
+        return true;
+      }
+    } catch (_) {}
+
+    if (!window.confirm('🪙 자미두수 프리미엄 리포트 생성\n이용 시 ' + ZIWEI_COIN_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+      return false;
+    }
+
+    var requestId = 'premium-ziwei:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var res = await requestJson('/api/billing/coin-gate', {
+      method: 'POST',
+      body: {
+        featureKey: ZIWEI_COIN_FEATURE_KEY,
+        reason: ZIWEI_COIN_REASON,
+        forceDeduct: true,
+        requestId: requestId
+      }
+    });
+
+    var data = (res && res.data) || {};
+    var code = String((data && data.code) || '').toUpperCase();
+    if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: '로그인 후 자미두수 프리미엄 리포트를 생성할 수 있습니다.',
+          redirectTo: window.location.pathname + window.location.search + window.location.hash
+        });
+      } else {
+        window.location.href = '/login?next=%2F';
+      }
+      return false;
+    }
+
+    if (res.status === 402 || code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS') {
+      window.alert(String(data.message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.'));
+      if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+      return false;
+    }
+
+    if (!res.ok || !data || data.ok === false) {
+      window.alert(String(data.message || '코인 결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'));
+      return false;
+    }
+
+    state.paidGateKey = gateKey;
+    return true;
   }
 
   async function generateZiweiBookImpl(forceRegenerate) {
@@ -638,6 +719,9 @@
       setError(payloadInfo.error);
       return;
     }
+
+    var gateOk = await ensureZiweiCoinGate(payloadInfo.body);
+    if (!gateOk) return;
 
     state.generating = true;
     resetForGenerate();
@@ -662,7 +746,7 @@
         : await pollStatusUntilDone();
 
       applyStatus(finalStatus);
-      setLoadingProgress(TOTAL_CHAPTERS, '리포트가 완성되었습니다.');
+      setLoadingProgress(TOTAL_CHAPTERS, 'completed');
       renderResultScreen();
       notify('자미두수 리포트 생성이 완료되었습니다.');
     } catch (error) {
