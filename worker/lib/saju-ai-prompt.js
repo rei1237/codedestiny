@@ -1,3 +1,5 @@
+import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
@@ -21,6 +23,33 @@ const QUESTION_TYPE_LABELS = Object.freeze({
   life_direction: "인생 방향",
   general: "일반",
 });
+
+const SAJU_SPECIAL_ANGLES = Object.freeze([
+  "일간의 강약과 재성/관성/식상 수용력",
+  "월지 중심의 계절성 및 조후 균형",
+  "격국 성립 여부와 일반격/특수격의 실전 의미",
+  "용신/희신/기신이 질문 주제에 작동하는 방식",
+  "십성 구조(재성·관성·식상·인성·비겁)의 역할 분담",
+  "천간/지지의 흐름과 합·충·형·파·해의 변동성",
+  "지장간의 잠재 자원과 표면 행동의 불일치",
+  "대운·세운·월운의 타이밍에서 기회/리스크 분리",
+  "신살/공망의 보조적 해석과 과대해석 방지",
+  "종격 가능성(전왕격·종재격·종관격·종살격·종아격) 검토",
+  "신강/신약 판정 불확실성 구간과 대안 시나리오",
+  "반복되는 인생 패턴과 현재 시점의 전략 전환 포인트",
+]);
+
+const SAJU_MONEY_ANGLES = Object.freeze([
+  "재성을 단순 보유가 아니라 실제 작동 구조(유통/회수/축적)로 해석",
+  "식상생재 구조의 유무와 지속 가능한 매출화 경로",
+  "관성과 재성의 연결로 사회적 성취가 현금흐름으로 이어지는지 점검",
+  "비겁 과다 시 재탈/동업 리스크와 경쟁 소모 구조 분석",
+  "인성 과다 시 실행력 저하/의사결정 지연 리스크 분석",
+  "대운·세운에서 재성이 열리는 시기와 현금흐름 강화 시점 제시",
+  "십성 구조와 용신 흐름 기반으로 적합 수익 모델 3~5개 추천",
+  "직접사업형/콘텐츠지식형/상담교육형/기술자동화형/투자운용형/영업브랜딩형/전문직형/구독플랫폼형 적합도 비교",
+  "피해야 할 돈 버는 방식(투자 습관·동업 구조·소비 패턴) 명시",
+]);
 
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
@@ -152,86 +181,128 @@ export function classifySajuPromptQuestionType(question) {
   return "general";
 }
 
-export function buildSajuAIPrompt({ question, sajuResult }) {
+function includesAny(text, keywords) {
+  const normalized = String(text || "").toLowerCase();
+  return keywords.some((keyword) => normalized.includes(String(keyword).toLowerCase()));
+}
+
+function buildSajuAnalysisAngles(questionType, question) {
+  const angles = SAJU_SPECIAL_ANGLES.slice();
+
+  if (questionType === "money" || includesAny(question, ["재물", "돈", "수익", "사업", "창업", "부자", "투자"])) {
+    return angles.concat(SAJU_MONEY_ANGLES);
+  }
+
+  if (questionType === "career") {
+    angles.push(
+      "관성/식상/인성 배치로 조직형·전문직형·자영업형 커리어 적합도 비교",
+      "이직/전환 시기에서 손실 최소화 전략",
+      "직업 선택 시 피해야 할 업무 환경과 관계 패턴",
+    );
+  }
+
+  if (questionType === "love" || questionType === "relationship") {
+    angles.push(
+      "일지/배우자성/관성·재성의 관계 패턴과 감정 반응 분석",
+      "갈등 유발 트리거와 회복을 위한 소통 프로토콜 제안",
+      "결혼/동거/장기관계에서 안정성과 리스크 분리",
+    );
+  }
+
+  if (questionType === "health") {
+    angles.push(
+      "오행 편중과 생활 리듬 불균형의 신호 해석",
+      "대운·세운 변화 시기별 컨디션 관리 포인트",
+      "과로/수면/스트레스 관리 우선순위 제안",
+    );
+  }
+
+  return angles;
+}
+
+function buildSajuFollowUps(questionType) {
+  const common = [
+    "현재 대운 10년 구간에서 가장 강한 기회 테마는 무엇인가요?",
+    "실패 확률을 줄이기 위해 먼저 검증해야 할 선택지는 무엇인가요?",
+    "지금부터 90일 동안 실행할 우선순위 3가지를 제안해주세요.",
+  ];
+
+  if (questionType === "money") {
+    return common.concat([
+      "제 사주에서 현금흐름을 가장 빨리 만드는 수익모델 3가지는 무엇인가요?",
+      "동업/투자/레버리지 중 가장 위험한 선택은 무엇이며 이유는 무엇인가요?",
+      "재물운이 열리는 시기에 맞춰 준비해야 할 역량은 무엇인가요?",
+    ]);
+  }
+
+  if (questionType === "career") {
+    return common.concat([
+      "조직 내 성장과 독립형 커리어 중 어떤 축이 더 유리한가요?",
+      "이직 타이밍을 판단할 핵심 신호 3가지를 알려주세요.",
+    ]);
+  }
+
+  if (questionType === "love" || questionType === "relationship") {
+    return common.concat([
+      "관계에서 반복되는 갈등 패턴을 끊기 위한 행동 교정 포인트는 무엇인가요?",
+      "장기적으로 안정적인 관계를 위해 피해야 할 선택은 무엇인가요?",
+    ]);
+  }
+
+  return common;
+}
+
+export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverride, compatibilityTarget, mode } = {}) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureSajuResultPresence(sajuResult);
 
   const questionType = classifySajuPromptQuestionType(normalizedQuestion);
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
 
-  const profile = normalizeBirthInfo(sajuResult.profile, sajuResult.snapshot);
+  const normalizedProfile = normalizeBirthInfo(profileOverride || sajuResult.profile, sajuResult.snapshot);
   const pillars = normalizePillars(sajuResult.pillars);
   const weights = normalizeElementWeights(sajuResult, sajuResult.snapshot);
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
   const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
 
-  const prompt = [
-    "# 사주팔자 기반 AI 상담 프롬프트",
-    "",
-    "너는 실전 명리 상담 경험이 풍부한 전문가다.",
-    "아래 사주 분석 결과를 근거로 사용자의 질문에 현실적인 전략 중심 답변을 작성해라.",
-    "데이터에 없는 내용은 단정하지 말고 가능성/조건부로 설명해라.",
-    "",
-    "## 1. 사용자 질문",
-    normalizedQuestion,
-    "",
-    "## 2. 질문 유형",
-    `- 분류: ${questionTypeLabel}`,
-    "",
-    "## 3. 기본 정보",
-    `- 이름: ${profile.name}`,
-    `- 성별: ${profile.gender}`,
-    `- 달력 기준: ${profile.calendarType}`,
-    `- 생년월일: ${profile.birthDate}`,
-    `- 출생 시간: ${profile.birthTime}`,
-    `- 출생지: ${profile.birthPlace}`,
-    `- 시간대: ${profile.timezone}`,
-    "",
-    "## 4. 사주 원국(사주팔자)",
-    `- 연주: ${pillars.yearPillar}`,
-    `- 월주: ${pillars.monthPillar}`,
-    `- 일주: ${pillars.dayPillar}`,
-    `- 시주: ${pillars.hourPillar}`,
-    `- 일간: ${pillars.dayStem}`,
-    `- 일간 오행: ${pillars.dayStemElement}`,
-    "",
-    "## 5. 오행 분포 및 핵심 상태",
-    `- 목: ${weights.wood}`,
-    `- 화: ${weights.fire}`,
-    `- 토: ${weights.earth}`,
-    `- 금: ${weights.metal}`,
-    `- 수: ${weights.water}`,
-    `- 우세 오행: ${weights.dominant}`,
-    `- 조후 타입: ${toText(johu.type)}`,
-    `- 조후 점수: ${toText(johu.score)}`,
-    `- 신강/신약: ${typeof power.isStrong === "boolean" ? (power.isStrong ? "신강" : "신약") : DEFAULT_TEXT}`,
-    `- 용신 후보: ${toArrayText(power.yongshin)}`,
-    `- 기신 후보: ${toArrayText(power.kijishin)}`,
-    `- 종격 여부: ${jong.isJong ? `예 (${toText(jong.name, "종격")})` : "아니오"}`,
-    "",
-    "## 6. 답변 작성 지시",
-    "아래 순서를 반드시 지켜 작성하라.",
-    "1) 질문과 원국 연결 해석",
-    "2) 현재 강점 3가지",
-    "3) 리스크/주의점 3가지",
-    "4) 지금 당장 실행할 액션 3가지",
-    "5) 이번 달 체크포인트 3가지",
-    "6) 한 줄 결론",
-    "",
-    "## 7. 답변 톤",
-    "- 과장/공포 조장 없이 현실적인 조언",
-    "- 명리 용어를 쓰더라도 일반인이 이해 가능하게 설명",
-    "- 확정 예언이 아닌 선택 가능한 전략 중심",
-    "- 즉시 행동 가능한 문장으로 마무리",
-  ].join("\n");
+  const domainDataLines = [
+    `질문 유형: ${questionTypeLabel}`,
+    `이름/성별: ${normalizedProfile.name} / ${normalizedProfile.gender}`,
+    `생년월일/시간: ${normalizedProfile.birthDate} ${normalizedProfile.birthTime}`,
+    `사주 원국: 연주 ${pillars.yearPillar}, 월주 ${pillars.monthPillar}, 일주 ${pillars.dayPillar}, 시주 ${pillars.hourPillar}`,
+    `일간/일간오행: ${pillars.dayStem} / ${pillars.dayStemElement}`,
+    `오행 분포: 목 ${weights.wood}, 화 ${weights.fire}, 토 ${weights.earth}, 금 ${weights.metal}, 수 ${weights.water}`,
+    `우세 오행: ${weights.dominant}`,
+    `조후: ${toText(johu.type)} (점수 ${toText(johu.score)})`,
+    `신강/신약: ${typeof power.isStrong === "boolean" ? (power.isStrong ? "신강" : "신약") : DEFAULT_TEXT}`,
+    `용신/기신 후보: ${toArrayText(power.yongshin)} / ${toArrayText(power.kijishin)}`,
+    `종격 여부: ${jong.isJong ? `예 (${toText(jong.name, "종격")})` : "아니오"}`,
+  ];
+
+  const promptPackage = buildFortuneQuestionPromptPackage({
+    fortuneType: "saju",
+    fortuneLabel: "사주",
+    expertLabel: "30년 경력의 명리학 전문가",
+    userQuestion: normalizedQuestion,
+    analysisResult: sajuResult,
+    profile: normalizedProfile,
+    compatibilityTarget,
+    mode,
+    questionTypeLabel,
+    analysisAngles: buildSajuAnalysisAngles(questionType, normalizedQuestion),
+    recommendedFollowUpQuestions: buildSajuFollowUps(questionType),
+    caution: "사주는 확률적 경향 해석이며 법률/의료/투자 결정을 대체하지 않습니다.",
+    domainDataLines,
+    minPromptLength: 1800,
+  });
 
   const digestSource = [
     normalizedQuestion,
     questionType,
-    profile.gender,
-    profile.birthDate,
-    profile.birthTime,
+    normalizedProfile.gender,
+    normalizedProfile.birthDate,
+    normalizedProfile.birthTime,
     pillars.yearPillar,
     pillars.monthPillar,
     pillars.dayPillar,
@@ -251,10 +322,18 @@ export function buildSajuAIPrompt({ question, sajuResult }) {
     toArrayText(power.kijishin, ""),
     jong.isJong ? "jong" : "normal",
     toText(jong.name, ""),
+    promptPackage.summaryIntent,
+    promptPackage.analysisAngles.join("|"),
   ].join("\n");
 
   return {
-    prompt,
+    prompt: promptPackage.generatedPrompt,
+    generatedPrompt: promptPackage.generatedPrompt,
+    title: promptPackage.title,
+    summaryIntent: promptPackage.summaryIntent,
+    analysisAngles: promptPackage.analysisAngles,
+    recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
+    caution: promptPackage.caution,
     questionType,
     digestSource,
   };

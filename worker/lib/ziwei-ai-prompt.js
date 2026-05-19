@@ -1,3 +1,5 @@
+import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const ZIWEI_AI_PROMPT_FEATURE_KEY = "ziwei_ai_prompt_generator";
@@ -49,6 +51,15 @@ const QUESTION_TYPE_PALACES = Object.freeze({
   life_direction: ["ming", "career", "fortune", "travel"],
   general: ["ming", "career", "wealth", "fortune"],
 });
+
+const ZIWEI_CORE_ANGLES = Object.freeze([
+  "명궁/신궁의 기질 축과 질문 주제의 연결성",
+  "재백궁·관록궁·복덕궁·천이궁의 삼방사정 상호작용",
+  "주성·보조성·살성의 균형과 공궁 여부",
+  "화록·화권·화과·화기의 작동 방향과 역효과",
+  "궁간 연결과 대한·유년 흐름의 타이밍 차이",
+  "현실 선택(직업/관계/자원배분)으로 연결되는 실행 전략",
+]);
 
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
@@ -308,6 +319,59 @@ function buildRelatedPalaceLines(normalizedChart, questionType) {
   return lines;
 }
 
+function buildZiweiAngles(questionType) {
+  const angles = ZIWEI_CORE_ANGLES.slice();
+
+  if (questionType === "money") {
+    angles.push(
+      "재백궁 단독 해석이 아닌 명궁·신궁·관록궁·복덕궁·천이궁 연동 분석",
+      "재백궁 주성/보조성/살성과 화록·화권·화과·화기의 재물 작동 방식 구분",
+      "직접 수익과 사회활동 누적 수익의 경로 분리",
+      "전문기술형/조직직장형/사업창업형/콘텐츠브랜드형/상담교육형/투자운용형/해외이동형 수익 적합도 비교",
+    );
+  }
+
+  if (questionType === "career") {
+    angles.push(
+      "관록궁 중심의 직무 구조와 천이궁 기반 외부 확장 가능성",
+      "명궁·복덕궁 정서 에너지와 직업 지속성의 정합성",
+    );
+  }
+
+  if (questionType === "love" || questionType === "relationship") {
+    angles.push(
+      "부부궁/복덕궁/천이궁 연결로 관계 안정성과 갈등 촉발 지점 분석",
+      "관계에서 집착·거리두기 패턴의 원인과 조정 전략",
+    );
+  }
+
+  return angles;
+}
+
+function buildZiweiFollowUps(questionType) {
+  const common = [
+    "현재 대한/유년에서 우선적으로 강화해야 할 궁은 어디인가요?",
+    "제가 놓치기 쉬운 리스크 신호를 궁 단위로 알려주세요.",
+    "실행 전략을 단기(4주)와 중기(6개월)로 나눠 제안해주세요.",
+  ];
+
+  if (questionType === "money") {
+    return common.concat([
+      "재백궁 기준으로 돈이 새는 패턴을 끊기 위한 행동 규칙은 무엇인가요?",
+      "관록궁과 연결된 현실적인 수익 모델 3가지를 제안해주세요.",
+    ]);
+  }
+
+  if (questionType === "love") {
+    return common.concat([
+      "부부궁 기준으로 관계를 안정시키는 소통 방식은 무엇인가요?",
+      "갈등이 반복될 때 반드시 피해야 할 반응 패턴은 무엇인가요?",
+    ]);
+  }
+
+  return common;
+}
+
 function ensureValidQuestion(question) {
   const normalized = String(question || "").trim();
   if (!normalized || normalized.length < 5) {
@@ -340,67 +404,38 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
   const relatedPalaceLines = buildRelatedPalaceLines(normalizedChart, questionType);
 
-  const prompt = [
-    "# 자미두수 명반 기반 상담 요청 프롬프트",
-    "",
-    "너는 30년 경력의 자미두수 전문가이자 현실적인 인생 전략 상담가다.",
-    "아래 명반 정보를 바탕으로 사용자의 질문에 대해 구체적이고 현실적인 답변을 해줘.",
-    "데이터가 누락된 항목은 억지 단정 없이 보수적으로 해석해줘.",
-    "",
-    "## 1. 사용자의 질문",
-    normalizedQuestion,
-    "",
-    "## 2. 기본 정보",
-    `- 성별: ${normalizedChart.gender}`,
-    `- 달력 기준: ${normalizedChart.calendarType}`,
-    `- 생년월일: ${normalizedChart.birthDate}`,
-    `- 출생 시간: ${normalizedChart.birthTime}`,
-    `- 출생지: ${normalizedChart.birthPlace}`,
-    `- 시간대: ${normalizedChart.timezone}`,
-    `- 명반 기준 연도 정보: ${normalizedChart.chartYear}`,
-    `- 음력/윤달 정보: ${normalizedChart.lunarInfo}`,
-    "",
-    "## 3. 명반 핵심 요약",
-    `- 명궁: ${normalizedChart.mingGong}`,
-    `- 신궁: ${normalizedChart.shenGong}`,
-    `- 명궁 주성: ${normalizedChart.mingMainStars}`,
-    `- 신궁 주성: ${normalizedChart.shenMainStars}`,
-    `- 주요 국세 정보(局): ${normalizedChart.juInfo}`,
-    `- 강하게 작동하는 궁: ${normalizedChart.strongestPalace}`,
-    `- 보수적으로 점검할 궁: ${normalizedChart.weakestPalace}`,
-    `- 핵심 방향성: ${normalizedChart.direction}`,
-    `- 강점 요약: ${normalizedChart.strengths}`,
-    `- 약점/주의 요약: ${normalizedChart.weaknesses}`,
-    `- 사화(화록/화권/화과/화기): 화록 ${normalizedChart.hualu}, 화권 ${normalizedChart.huaquan}, 화과 ${normalizedChart.huake}, 화기 ${normalizedChart.huaji}`,
-    `- 대한/대운 요약: ${normalizedChart.majorPeriods.join(" | ")}`,
-    `- 세운 연도: ${normalizedChart.annualFlow.yearLabel}`,
-    `- 세운 핵심 궁: ${normalizedChart.annualFlow.keyPalaces.join(", ")}`,
-    `- 세운 메모: ${normalizedChart.annualFlow.notes.join(" | ")}`,
-    "",
-    "## 4. 질문과 관련된 핵심 궁",
-    `이번 질문은 ${questionTypeLabel}에 해당하므로 아래 궁을 중심으로 분석해줘.`,
-    "",
-    ...relatedPalaceLines,
-    "",
-    "## 5. 전체 12궁 참고 데이터",
-    ...normalizedChart.allPalaceLines.map((line) => `- ${line}`),
-    "",
-    "## 6. 분석 요청 방식",
-    "다음 항목을 반드시 나누어 설명해줘.",
-    "1. 이 명반에서 이 질문이 중요하게 드러나는 이유",
-    "2. 유리한 점",
-    "3. 불리하거나 조심해야 할 점",
-    "4. 올해 또는 현재 운에서 작동하는 흐름",
-    "5. 현실적으로 취해야 할 전략",
-    "6. 피해야 할 행동",
-    "7. 결론",
-    "",
-    "## 7. 답변 톤",
-    "- 막연한 위로나 공포 조장은 하지 말 것",
-    "- 자미두수 용어를 쓰되 일반인도 이해할 수 있게 풀어줄 것",
-    "- 운세를 단정하지 말고 가능성과 전략 중심으로 설명할 것",
-    "- 사용자가 실제 행동으로 옮길 수 있는 조언을 줄 것",
-  ].join("\n");
+  const domainDataLines = [
+    `질문 유형: ${questionTypeLabel}`,
+    `명궁/신궁: ${normalizedChart.mingGong} / ${normalizedChart.shenGong}`,
+    `명궁 주성/신궁 주성: ${normalizedChart.mingMainStars} / ${normalizedChart.shenMainStars}`,
+    `강세궁/약세궁: ${normalizedChart.strongestPalace} / ${normalizedChart.weakestPalace}`,
+    `사화: 화록 ${normalizedChart.hualu}, 화권 ${normalizedChart.huaquan}, 화과 ${normalizedChart.huake}, 화기 ${normalizedChart.huaji}`,
+    `대한/대운 요약: ${normalizedChart.majorPeriods.join(" | ")}`,
+    `세운: ${normalizedChart.annualFlow.yearLabel} / 핵심궁 ${normalizedChart.annualFlow.keyPalaces.join(", ")}`,
+    `핵심 궁 참조: ${relatedPalaceLines.join(" || ")}`,
+  ];
+
+  const promptPackage = buildFortuneQuestionPromptPackage({
+    fortuneType: "ziwei",
+    fortuneLabel: "자미두수",
+    expertLabel: "자미두수 명반 해석 전문가",
+    userQuestion: normalizedQuestion,
+    analysisResult: chartResult,
+    profile: {
+      gender: normalizedChart.gender,
+      calendarType: normalizedChart.calendarType,
+      birthDate: normalizedChart.birthDate,
+      birthTime: normalizedChart.birthTime,
+      birthPlace: normalizedChart.birthPlace,
+      timezone: normalizedChart.timezone,
+    },
+    questionTypeLabel,
+    analysisAngles: buildZiweiAngles(questionType),
+    recommendedFollowUpQuestions: buildZiweiFollowUps(questionType),
+    caution: "궁/별 해석은 경향성 기반이며 실제 결정은 현재 환경과 함께 판단해야 합니다.",
+    domainDataLines,
+    minPromptLength: 1700,
+  });
 
   const digestSource = [
     normalizedQuestion,
@@ -421,10 +456,18 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
     normalizedChart.annualFlow.yearLabel,
     normalizedChart.annualFlow.keyPalaces.join("|"),
     normalizedChart.allPalaceLines.join("|"),
+    promptPackage.summaryIntent,
+    promptPackage.analysisAngles.join("|"),
   ].join("\n");
 
   return {
-    prompt,
+    prompt: promptPackage.generatedPrompt,
+    generatedPrompt: promptPackage.generatedPrompt,
+    title: promptPackage.title,
+    summaryIntent: promptPackage.summaryIntent,
+    analysisAngles: promptPackage.analysisAngles,
+    recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
+    caution: promptPackage.caution,
     questionType,
     digestSource,
   };

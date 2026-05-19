@@ -1,3 +1,5 @@
+import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const ASTROLOGY_AI_PROMPT_FEATURE_KEY = "astrology_ai_prompt_generator";
@@ -23,6 +25,15 @@ const QUESTION_TYPE_LABELS = Object.freeze({
   relationship: "인간관계",
   general: "일반",
 });
+
+const ASTROLOGY_CORE_ANGLES = Object.freeze([
+  "태양·달·상승궁·MC의 심리/행동 축 해석",
+  "개인행성(수성·금성·화성)과 사회행성(목성·토성) 상호작용",
+  "세대행성(천왕성·해왕성·명왕성)의 장기 변곡점 영향",
+  "하우스 축과 핵심 어스펙트 기반 현실 선택 전략",
+  "트랜싯·프로그레션·타임로드를 통한 시기별 실행 우선순위",
+  "강점 활용/리스크 완충을 분리한 행동 설계",
+]);
 
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
@@ -235,6 +246,58 @@ function normalizeCompatibility(compatibilityResult) {
   };
 }
 
+function buildAstrologyAngles(questionType) {
+  const angles = ASTROLOGY_CORE_ANGLES.slice();
+
+  if (questionType === "money" || questionType === "career") {
+    angles.push(
+      "2H·6H·10H·11H를 중심으로 돈/직업 구조 해석",
+      "금성·목성·토성·MC·2하우스 주인·10하우스 주인의 상태 비교",
+      "안정적 직장형/창작브랜드형/기술분석형/대중영향형/플랫폼커뮤니티형 적합도 판단",
+    );
+  }
+
+  if (questionType === "love" || questionType === "compatibility") {
+    angles.push(
+      "금성·화성·달·7하우스 기반 관계 욕구와 갈등 트리거 분석",
+      "시나스트리 상호작용에서 감정 안전지대와 충돌 지점 분리",
+    );
+  }
+
+  if (questionType === "health") {
+    angles.push(
+      "6하우스·달·토성·해왕성 관점의 스트레스/회복 리듬 분석",
+      "생활 루틴 조정으로 증상 악화를 줄이는 전략 제시",
+    );
+  }
+
+  return angles;
+}
+
+function buildAstrologyFollowUps(questionType) {
+  const common = [
+    "지금 차트 기준으로 우선순위가 가장 높은 행동 3가지는 무엇인가요?",
+    "제가 과도하게 낙관/비관하기 쉬운 영역은 어디인가요?",
+    "다음 3개월 계획을 차트 흐름에 맞게 재배치해 주세요.",
+  ];
+
+  if (questionType === "money" || questionType === "career") {
+    return common.concat([
+      "2H·10H 기준으로 수익화 속도를 높이는 실무 전략은 무엇인가요?",
+      "이직/확장 시 가장 리스크가 큰 시기와 회피 전략을 알려주세요.",
+    ]);
+  }
+
+  if (questionType === "love" || questionType === "compatibility") {
+    return common.concat([
+      "관계를 안정시키는 대화 방식과 금지 패턴을 알려주세요.",
+      "감정 소모를 줄이기 위한 경계선 설정 방법을 제안해주세요.",
+    ]);
+  }
+
+  return common;
+}
+
 export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilityResult }) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureAstrologyResultPresence(astrologyResult);
@@ -275,75 +338,36 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     ]
     : ["- 없음(궁합 계산 결과 미제공)"];
 
-  const prompt = [
-    "# 서양 점성술 기반 AI 상담 프롬프트",
-    "",
-    "너는 실전 상담 경험이 풍부한 서양 점성술 전문가다.",
-    "아래 데이터(네이탈/타임로드/트랜짓/시나스트리)를 근거로 현실적인 조언을 작성해라.",
-    "불확실한 내용은 단정하지 말고 조건부로 설명해라.",
-    "",
-    "## 1. 사용자 질문",
-    normalizedQuestion,
-    "",
-    "## 2. 질문 유형",
-    `- 분류: ${questionTypeLabel}`,
-    "",
-    "## 3. 출생 기본 정보",
-    `- 생년월일: ${birth.birthDate}`,
-    `- 출생시간: ${birth.birthTime}`,
-    `- 시간대: ${birth.timezone}`,
-    `- 위도/경도: ${Number.isFinite(birth.latitude) ? birth.latitude : DEFAULT_TEXT} / ${Number.isFinite(birth.longitude) ? birth.longitude : DEFAULT_TEXT}`,
-    "",
-    "## 4. 네이탈 핵심 시그니처",
-    `- 태양: ${signs.sun}`,
-    `- 달: ${signs.moon}`,
-    `- 상승궁: ${signs.asc}`,
-    `- MC: ${signs.mc}`,
-    `- Desc: ${signs.desc}`,
-    "",
-    "## 5. 원소/양식 밸런스",
-    `- 원소 분포(개수): 불 ${elements.counts.fire}, 흙 ${elements.counts.earth}, 공기 ${elements.counts.air}, 물 ${elements.counts.water}`,
-    `- 원소 분포(%): 불 ${elements.percentages.fire}%, 흙 ${elements.percentages.earth}%, 공기 ${elements.percentages.air}%, 물 ${elements.percentages.water}%`,
-    `- 우세 원소: ${elements.dominant}`,
-    `- 보완 원소: ${elements.weakest}`,
-    `- 우세 양식: ${modalities.dominant}`,
-    `- 양식 분포: 활동 ${modalities.counts.cardinal}, 고정 ${modalities.counts.fixed}, 변통 ${modalities.counts.mutable}`,
-    `- 양식 운용 팁: ${modalities.advice}`,
-    "",
-    "## 6. 현재 집중 하우스/트랜짓/타임로드",
-    `- 집중 하우스: ${focus.topHouse}`,
-    `- 집중 주제: ${focus.topHouseTopic}`,
-    `- 집중 행성 수: ${focus.focusCount}`,
-    `- 목성 트랜짓: ${transit.jupiterTransit} (idx: ${transit.jupiterIndex})`,
-    `- 트랜짓 메시지: ${transit.message}`,
-    `- 피르다리아 메인/서브: ${timelord.firdariaMain} / ${timelord.firdariaSub}`,
-    `- 피르다리아 잔여 연도: ${timelord.firdariaYearsLeft}`,
-    `- 프로펙션: ${timelord.profectionHouse} · ${timelord.profectionSign} · ${timelord.profectionRuler}`,
-    `- 프로펙션 테마: ${timelord.profectionTheme}`,
-    "",
-    "## 7. 주요 행성 배치",
-    ...placements.map((line) => `- ${line}`),
-    "",
-    "## 8. 주요 어스펙트",
-    ...majorAspects.map((line) => `- ${line}`),
-    "",
-    "## 9. 시나스트리 컨텍스트",
-    ...compatibilityLines,
-    "",
-    "## 10. 답변 작성 지시",
-    "아래 순서를 반드시 지켜 작성해라.",
-    "1) 질문-차트 연결 핵심 3문장",
-    "2) 강점 3가지(실행 근거 포함)",
-    "3) 리스크 3가지(회피/완충 전략 포함)",
-    "4) 오늘~4주 액션 플랜 5개",
-    "5) 관계 질문인 경우: 대화 스크립트 예시 3문장",
-    "6) 마지막 한 줄 결론",
-    "",
-    "## 11. 톤 가이드",
-    "- 단정적 예언 금지, 선택 가능한 전략 중심",
-    "- 전문 용어는 짧게 풀어서 설명",
-    "- 불안을 키우지 말고 실행 가능성을 높이는 문장 사용",
-  ].join("\n");
+  const domainDataLines = [
+    `질문 유형: ${questionTypeLabel}`,
+    `핵심 시그니처: 태양 ${signs.sun}, 달 ${signs.moon}, ASC ${signs.asc}, MC ${signs.mc}`,
+    `원소 분포: 불 ${elements.counts.fire}, 흙 ${elements.counts.earth}, 공기 ${elements.counts.air}, 물 ${elements.counts.water}`,
+    `우세/보완 원소: ${elements.dominant} / ${elements.weakest}`,
+    `양식 분포: 활동 ${modalities.counts.cardinal}, 고정 ${modalities.counts.fixed}, 변통 ${modalities.counts.mutable}`,
+    `집중 하우스/테마: ${focus.topHouse} / ${focus.topHouseTopic}`,
+    `트랜싯/타임로드: ${transit.jupiterTransit}, Firdaria ${timelord.firdariaMain}/${timelord.firdariaSub}, Profection ${timelord.profectionHouse}`,
+    `주요 행성 배치: ${toArrayText(placements)}`,
+    `주요 어스펙트: ${toArrayText(majorAspects)}`,
+    `시나스트리: ${compatibility ? `${compatibility.relationType} (${compatibility.score}/100)` : "미제공"}`,
+    `시나스트리 상세: ${compatibilityLines.join(" | ")}`,
+  ];
+
+  const promptPackage = buildFortuneQuestionPromptPackage({
+    fortuneType: "astrology",
+    fortuneLabel: "서양 점성술",
+    expertLabel: "서양 점성술 차트 해석 전문가",
+    userQuestion: normalizedQuestion,
+    analysisResult: astrologyResult,
+    profile: birth,
+    compatibilityTarget: compatibility || undefined,
+    mode: questionType,
+    questionTypeLabel,
+    analysisAngles: buildAstrologyAngles(questionType),
+    recommendedFollowUpQuestions: buildAstrologyFollowUps(questionType),
+    caution: "점성술 해석은 방향성 참고용이며 투자/의료/법률의 확정 판단으로 사용하면 안 됩니다.",
+    domainDataLines,
+    minPromptLength: 1700,
+  });
 
   const digestSource = [
     normalizedQuestion,
@@ -379,10 +403,18 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     compatibility ? compatibility.relationType : "",
     compatibility ? compatibility.bestSupport : "",
     compatibility ? compatibility.bestChallenge : "",
+    promptPackage.summaryIntent,
+    promptPackage.analysisAngles.join("|"),
   ].join("\n");
 
   return {
-    prompt,
+    prompt: promptPackage.generatedPrompt,
+    generatedPrompt: promptPackage.generatedPrompt,
+    title: promptPackage.title,
+    summaryIntent: promptPackage.summaryIntent,
+    analysisAngles: promptPackage.analysisAngles,
+    recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
+    caution: promptPackage.caution,
     questionType,
     compatibilityUsed: Boolean(compatibility),
     digestSource,

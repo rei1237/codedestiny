@@ -1,3 +1,5 @@
+import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const VEDIC_AI_PROMPT_FEATURE_KEY = "vedic_ai_prompt_generator";
@@ -35,6 +37,15 @@ const QUESTION_TYPE_LABELS = Object.freeze({
   personality: "성향/기질",
   general: "일반",
 });
+
+const VEDIC_CORE_ANGLES = Object.freeze([
+  "라그나/라그나 로드와 문 사인·낙샤트라의 기질 축",
+  "아트마카라카 중심의 다르마/아르타/카마/목샤 균형",
+  "2·6·10·11하우스와 직업·재물 카르마의 연결",
+  "다샤(마하다샤/안타르다샤) 전환 시기별 선택 전략",
+  "요가·라후/케투 축의 기회와 부작용 동시 점검",
+  "관계 카르마(7H)와 확장 카르마(9H), 소모/해소(12H) 분석",
+]);
 
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
@@ -375,6 +386,58 @@ function createGuidanceByQuestionType(questionType, compatibilityUsed, birthTime
   return guidance;
 }
 
+function buildVedicAngles(questionType) {
+  const angles = VEDIC_CORE_ANGLES.slice();
+
+  if (questionType === "money") {
+    angles.push(
+      "라그나/라그나 로드 + 2H·6H·10H·11H + 다샤 흐름으로 재물 구조 분석",
+      "단순 금전운이 아닌 카르마적 역할 기반 수익화 경로 제시",
+      "재물 형성에 기여하는 요가와 손실 유발 패턴 분리",
+    );
+  }
+
+  if (questionType === "career") {
+    angles.push(
+      "직업 카르마 축(10H·아마티야카라카·다샴샤) 기반 역할 정의",
+      "조직형/전문가형/사업형 진로 적합도 비교",
+    );
+  }
+
+  if (questionType === "compatibility" || questionType === "love") {
+    angles.push(
+      "7H·다라카라카·아쉬타쿠타 breakdown 기반 관계 안정성 분석",
+      "관계 카르마의 반복 상처 패턴과 완화 전략 제안",
+    );
+  }
+
+  return angles;
+}
+
+function buildVedicFollowUps(questionType) {
+  const common = [
+    "현재 다샤 구간에서 가장 먼저 실행할 행동 3가지는 무엇인가요?",
+    "제 카르마 패턴에서 반복 손실을 줄이려면 무엇을 멈춰야 하나요?",
+    "2주~6주 단기 실천 체크리스트를 제시해주세요.",
+  ];
+
+  if (questionType === "money") {
+    return common.concat([
+      "재물 카르마에 맞는 수익 모델 3~5개를 우선순위로 제시해주세요.",
+      "손실 가능성이 큰 투자/협업 방식은 무엇인가요?",
+    ]);
+  }
+
+  if (questionType === "compatibility") {
+    return common.concat([
+      "갈등을 줄이기 위한 관계 규칙 3가지를 제시해주세요.",
+      "장기 관계 유지 가능성을 높이는 생활 리듬 조정법은 무엇인가요?",
+    ]);
+  }
+
+  return common;
+}
+
 export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult }) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureVedicResult(vedicResult);
@@ -427,75 +490,35 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
 
   const guidanceLines = createGuidanceByQuestionType(questionType, Boolean(compatibility), profile.birthTimeKnown);
 
-  const prompt = [
-    "# 베다 점성술 기반 AI 상담 프롬프트",
-    "",
-    "너는 베다 점성술(Jyotish) 실전 상담가다.",
-    "아래의 계산 완료 데이터를 근거로 질문에 답하고, 차트를 다시 계산하거나 임의 데이터로 대체하지 마라.",
-    "",
-    "## 1) 사용자 질문",
-    normalizedQuestion,
-    "",
-    "## 2) 질문 유형",
-    `- 분류: ${questionTypeLabel}`,
-    `- 궁합 데이터 사용 여부: ${compatibility ? "사용" : "미사용"}`,
-    `- 출생시간 신뢰도: ${profile.birthTimeKnown ? "확보" : "불확실(보수 해석 필요)"}`,
-    "",
-    "## 3) 출생/기본 시그니처",
-    `- 이름: ${profile.name}`,
-    `- 성별: ${profile.gender}`,
-    `- 생년월일: ${profile.birthDate}`,
-    `- 출생시간: ${profile.birthTime}`,
-    `- 시간대: ${profile.timezone}`,
-    `- 위도/경도: ${Number.isFinite(profile.latitude) ? profile.latitude : DEFAULT_TEXT} / ${Number.isFinite(profile.longitude) ? profile.longitude : DEFAULT_TEXT}`,
-    `- 라그나: ${lagna.signKo} (${lagna.sign}) ${Number.isFinite(lagna.degree) ? `${lagna.degree}°` : ""}`.trim(),
-    `- 라그나 로드: ${lagna.lord}`,
-    `- 문 낙샤트라: ${moonNak.name} Pada ${Number.isFinite(moonNak.pada) ? moonNak.pada : "?"} / Lord ${moonNak.lord}`,
-    `- 낙샤트라 신성 축: ${moonNak.deity} · ${moonNak.motive}`,
-    "",
-    "## 4) 자이미니 카라카",
-    `- 아트마카라카: ${karakas.atmakaraka}`,
-    `- 아마티야카라카: ${karakas.amatyakaraka}`,
-    `- 다라카라카: ${karakas.darakaraka}`,
-    "",
-    "## 5) 핵심 요가/행성/하우스",
-    `- 주요 요가: ${yogas.length ? yogas.join(", ") : DEFAULT_TEXT}`,
-    `- 행성 집중 하우스: ${topBhava.length ? topBhava.join(" · ") : DEFAULT_TEXT}`,
-    "- 행성 배치 요약:",
-    ...planets.map((row) => `  - ${row.graha}: ${row.rashi} · ${Number.isFinite(row.bhava) ? `${row.bhava}H` : "?H"} · ${row.nakshatra} P${Number.isFinite(row.pada) ? row.pada : "?"} · ${row.dignity}${row.retrograde ? " (역행)" : ""}`),
-    "- 하우스 요약:",
-    ...bhavas.map((row) => `  - ${row.number}H ${row.sign} / Lord ${row.lord} / Planets ${row.planets.length ? row.planets.join(", ") : "공실"}`),
-    "",
-    "## 6) 다샤 타임라인",
-    `- 현재 활성 대운: ${activeDasha ? `${activeDasha.planet} (${activeDasha.start} ~ ${activeDasha.end})` : DEFAULT_TEXT}`,
-    "- 주요 다샤 목록:",
-    ...dasha.map((row) => `  - ${row.planet}: ${row.start} ~ ${row.end} (${Number.isFinite(row.years) ? row.years : "?"}년)${row.active ? " [진행 중]" : ""}`),
-    "",
-    "## 7) 주제별 인사이트",
-    `- 성향/연애: ${domain.romance.join(" | ")}`,
-    `- 재물: ${domain.wealth.join(" | ")}`,
-    `- 직업: ${domain.career.join(" | ")}`,
-    `- 차크라: ${domain.chakra.join(" | ")}`,
-    `- 처방/루틴: ${domain.remedies.join(" | ")}`,
-    "",
-    "## 8) 궁합 컨텍스트",
-    ...compatibilityLines,
-    "",
-    "## 9) 답변 작성 지시",
-    ...guidanceLines,
-    "- 출력 구조를 다음 순서로 고정:",
-    "  1. 질문 요약(핵심 의도 2문장)",
-    "  2. 베다 근거 해석(핵심 지표 5개 이상 인용)",
-    "  3. 강점 3개 / 리스크 3개",
-    "  4. 2주~6주 실행 계획(행동 5개)",
-    "  5. 궁합 질문이면 관계 대화 가이드 3문장",
-    "  6. 한 줄 결론",
-    "",
-    "## 10) 금지 규칙",
-    "- 의료/법률/투자 확정 조언 금지",
-    "- 공포 유발 문장 금지",
-    "- 데이터 불충분 영역은 추가 입력 요청으로 처리",
-  ].join("\n");
+  const domainDataLines = [
+    `질문 유형: ${questionTypeLabel}`,
+    `라그나/로드: ${lagna.signKo}(${lagna.sign}) / ${lagna.lord}`,
+    `문 낙샤트라: ${moonNak.name} P${Number.isFinite(moonNak.pada) ? moonNak.pada : "?"} (Lord ${moonNak.lord})`,
+    `카라카: AK ${karakas.atmakaraka}, AmK ${karakas.amatyakaraka}, DK ${karakas.darakaraka}`,
+    `주요 요가: ${yogas.length ? yogas.join(", ") : DEFAULT_TEXT}`,
+    `행성 집중 하우스: ${topBhava.length ? topBhava.join(" · ") : DEFAULT_TEXT}`,
+    `활성 다샤: ${activeDasha ? `${activeDasha.planet} ${activeDasha.start}~${activeDasha.end}` : DEFAULT_TEXT}`,
+    `주제 인사이트(재물/직업/관계): ${domain.wealth.join(" | ")} / ${domain.career.join(" | ")} / ${domain.romance.join(" | ")}`,
+    `궁합 컨텍스트: ${compatibilityLines.join(" | ")}`,
+    `추가 가이드: ${guidanceLines.join(" | ")}`,
+  ];
+
+  const promptPackage = buildFortuneQuestionPromptPackage({
+    fortuneType: "vedic",
+    fortuneLabel: "베다 점성술",
+    expertLabel: "베다 점성술(Jyotish) 실전 상담 전문가",
+    userQuestion: normalizedQuestion,
+    analysisResult: vedicResult,
+    profile,
+    compatibilityTarget: compatibility || undefined,
+    mode: questionType,
+    questionTypeLabel,
+    analysisAngles: buildVedicAngles(questionType),
+    recommendedFollowUpQuestions: buildVedicFollowUps(questionType),
+    caution: "베다 해석은 카르마 경향 분석이며 의료/법률/투자 결정을 대체하지 않습니다.",
+    domainDataLines,
+    minPromptLength: 1800,
+  });
 
   const digestSource = [
     normalizedQuestion,
@@ -515,10 +538,18 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
     bhavas.map((row) => `${row.number}:${row.sign}:${row.lord}:${row.planets.join(",")}`).join("|"),
     dasha.map((row) => `${row.planet}:${row.start}:${row.end}:${row.active ? 1 : 0}`).join("|"),
     compatibility ? `compat:${compatibility.partnerName}:${compatibility.total}:${compatibility.pct}:${compatibility.verdict}` : "compat:none",
+    promptPackage.summaryIntent,
+    promptPackage.analysisAngles.join("|"),
   ].join("\n");
 
   return {
-    prompt,
+    prompt: promptPackage.generatedPrompt,
+    generatedPrompt: promptPackage.generatedPrompt,
+    title: promptPackage.title,
+    summaryIntent: promptPackage.summaryIntent,
+    analysisAngles: promptPackage.analysisAngles,
+    recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
+    caution: promptPackage.caution,
     questionType,
     digestSource,
     compatibilityUsed: Boolean(compatibility),

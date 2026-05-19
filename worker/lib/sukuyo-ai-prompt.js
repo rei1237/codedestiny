@@ -1,3 +1,5 @@
+import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+
 const DEFAULT_TEXT = "미상";
 
 export const SUKUYO_AI_PROMPT_FEATURE_KEY = "sukuyo_ai_prompt_generator";
@@ -25,6 +27,15 @@ const QUESTION_TYPE_LABELS = Object.freeze({
   personality: "성향/기질",
   general: "일반",
 });
+
+const SUKUYO_CORE_ANGLES = Object.freeze([
+  "본명숙 기반 기질과 27숙 성향의 핵심 동인",
+  "관계 유형에서 거리감·끌림 강도·정서 소모 구조",
+  "업태/안괴/영친/우쇠/성위/명 관계의 장점과 위험성 동시 해석",
+  "상처를 주고받는 반복 패턴과 회복 루틴",
+  "장기 관계 안정성 조건과 현실적 조율 전략",
+  "관계/커리어/재물 질문별 행동 우선순위 재설계",
+]);
 
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
@@ -121,6 +132,51 @@ function normalizeCompatibilityResult(raw, basicResult) {
   };
 }
 
+function buildSukuyoAngles(questionType) {
+  const angles = SUKUYO_CORE_ANGLES.slice();
+
+  if (questionType === "compatibility" || questionType === "love") {
+    angles.push(
+      "끌림이 생기는 이유와 갈등이 반복되는 이유를 분리 분석",
+      "한쪽의 집착/회피 패턴과 상처 누적 경로 해석",
+      "장기 관계 가능성을 감정합/생활리듬/가치관 축으로 검증",
+    );
+  }
+
+  if (questionType === "money") {
+    angles.push(
+      "숙요 기질 기반 수익 습관과 소비 리스크 패턴",
+      "관계형 협업과 단독 실행 중 손익 효율 비교",
+    );
+  }
+
+  if (questionType === "career") {
+    angles.push(
+      "숙 성향에 맞는 일 리듬(집중/휴식/협업) 설계",
+      "대인 스트레스가 성과에 미치는 영향과 완충 전략",
+    );
+  }
+
+  return angles;
+}
+
+function buildSukuyoFollowUps(questionType) {
+  const common = [
+    "제가 반복하는 감정 반응 패턴을 끊으려면 무엇부터 바꿔야 하나요?",
+    "다음 4주 동안 실천할 관계/일상 루틴 3가지를 제안해주세요.",
+    "지금 피해야 할 선택과 그 이유를 명확히 알려주세요.",
+  ];
+
+  if (questionType === "compatibility" || questionType === "love") {
+    return common.concat([
+      "상대와의 갈등 시 사용할 대화 문장 3개를 제안해주세요.",
+      "관계 유지에 유리한 거리감 조절 방법을 알려주세요.",
+    ]);
+  }
+
+  return common;
+}
+
 function buildPromptBody({ question, questionType, basicResult, compatibilityResult, compatibilityHint }) {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
 
@@ -202,12 +258,54 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
     ? "궁합 데이터가 제공되어 관계 상호작용까지 반영합니다."
     : "상대 데이터가 없어 본인 숙요 리듬 중심으로 답합니다. 궁합 질문이면 상대 생년월일/시간을 추가하면 정확도가 높아집니다.";
 
-  const prompt = buildPromptBody({
+  const legacyPrompt = buildPromptBody({
     question: normalizedQuestion,
     questionType: normalizedType,
     basicResult: normalizedBasic,
     compatibilityResult: normalizedCompat,
     compatibilityHint,
+  });
+
+  const domainDataLines = [
+    `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
+    `본명숙: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx})`,
+    `핵심 성향: ${normalizedBasic.traits.core}`,
+    `연애/일/재물 리듬: ${normalizedBasic.traits.love} / ${normalizedBasic.traits.work} / ${normalizedBasic.traits.wealth}`,
+    `달빛 톤/오늘 인사이트: ${normalizedBasic.moonTone} / ${normalizedBasic.moonInsight}`,
+    normalizedCompat
+      ? `궁합: ${normalizedCompat.partnerMansion}, 관계유형 ${normalizedCompat.relationType}, 점수 ${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}`
+      : `궁합 데이터 없음: ${compatibilityHint}`,
+    `레거시 프롬프트 초안: ${legacyPrompt.slice(0, 420)}...`,
+  ];
+
+  const promptPackage = buildFortuneQuestionPromptPackage({
+    fortuneType: "sukyo",
+    fortuneLabel: "숙요점",
+    expertLabel: "숙요점(27숙) 관계 해석 전문가",
+    userQuestion: normalizedQuestion,
+    analysisResult: {
+      basicResult,
+      compatibilityResult,
+    },
+    profile: {
+      mansion: normalizedBasic.mansion,
+      mansionIdx: normalizedBasic.mansionIdx,
+      icon: normalizedBasic.icon,
+      talent: normalizedBasic.talent,
+    },
+    compatibilityTarget: normalizedCompat
+      ? {
+        partnerMansion: normalizedCompat.partnerMansion,
+        relationType: normalizedCompat.relationType,
+        score: normalizedCompat.score,
+      }
+      : undefined,
+    questionTypeLabel: QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general,
+    analysisAngles: buildSukuyoAngles(normalizedType),
+    recommendedFollowUpQuestions: buildSukuyoFollowUps(normalizedType),
+    caution: "숙요 해석은 관계의 경향성을 보여주며, 상대 의사와 현실 환경을 함께 고려해야 합니다.",
+    domainDataLines,
+    minPromptLength: 1600,
   });
 
   const digestSource = [
@@ -225,10 +323,18 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
     normalizedCompat ? String(normalizedCompat.score ?? "") : "",
     normalizedCompat ? String(normalizedCompat.temperature ?? "") : "",
     normalizedCompat ? String(normalizedCompat.magnetism ?? "") : "",
+    promptPackage.summaryIntent,
+    promptPackage.analysisAngles.join("|"),
   ].join("\n");
 
   return {
-    prompt,
+    prompt: promptPackage.generatedPrompt,
+    generatedPrompt: promptPackage.generatedPrompt,
+    title: promptPackage.title,
+    summaryIntent: promptPackage.summaryIntent,
+    analysisAngles: promptPackage.analysisAngles,
+    recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
+    caution: promptPackage.caution,
     questionType: normalizedType,
     digestSource,
     compatibilityUsed: Boolean(normalizedCompat),

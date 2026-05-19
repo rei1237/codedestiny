@@ -1502,6 +1502,14 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     return json({
       ok: true,
       prompt: builtPrompt.prompt,
+      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+      title: builtPrompt.title || "점성술 심층 질문 프롬프트",
+      summaryIntent: builtPrompt.summaryIntent || "",
+      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+        ? builtPrompt.recommendedFollowUpQuestions
+        : [],
+      caution: String(builtPrompt.caution || "").trim() || undefined,
       questionType: builtPrompt.questionType,
       chargedCoins,
       featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
@@ -1618,6 +1626,14 @@ async function handleVedicAIPrompt(request, auth, env) {
     return json({
       ok: true,
       prompt: builtPrompt.prompt,
+      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+      title: builtPrompt.title || "베다 점성술 심층 질문 프롬프트",
+      summaryIntent: builtPrompt.summaryIntent || "",
+      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+        ? builtPrompt.recommendedFollowUpQuestions
+        : [],
+      caution: String(builtPrompt.caution || "").trim() || undefined,
       questionType: builtPrompt.questionType,
       chargedCoins,
       featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
@@ -1723,6 +1739,15 @@ async function handleSajuAIPrompt(request, auth, env) {
     return json({
       ok: true,
       prompt: builtPrompt.prompt,
+      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+      title: builtPrompt.title || "사주 심층 질문 프롬프트",
+      summaryIntent: builtPrompt.summaryIntent || "",
+      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+        ? builtPrompt.recommendedFollowUpQuestions
+        : [],
+      caution: String(builtPrompt.caution || "").trim() || undefined,
+      questionType: builtPrompt.questionType,
       chargedCoins,
       featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
@@ -1825,6 +1850,15 @@ async function handleZiweiAIPrompt(request, auth, env) {
     return json({
       ok: true,
       prompt: builtPrompt.prompt,
+      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+      title: builtPrompt.title || "자미두수 심층 질문 프롬프트",
+      summaryIntent: builtPrompt.summaryIntent || "",
+      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+        ? builtPrompt.recommendedFollowUpQuestions
+        : [],
+      caution: String(builtPrompt.caution || "").trim() || undefined,
+      questionType: builtPrompt.questionType,
       chargedCoins,
       featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
@@ -1956,6 +1990,15 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     return json({
       ok: true,
       prompt: builtPrompt.prompt,
+      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+      title: builtPrompt.title || "숙요점 심층 질문 프롬프트",
+      summaryIntent: builtPrompt.summaryIntent || "",
+      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+        ? builtPrompt.recommendedFollowUpQuestions
+        : [],
+      caution: String(builtPrompt.caution || "").trim() || undefined,
+      questionType: builtPrompt.questionType,
       chargedCoins,
       featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
