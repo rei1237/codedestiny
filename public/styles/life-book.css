@@ -44,6 +44,11 @@
   contain: layout paint style;
 }
 
+/* 사주 신년운세 카드는 공통 lifebook 배경이 아닌 전용 커버를 사용 */
+.lifebook-tile.saju-newyear-tile {
+  background: var(--lb-void) url('/fuctionassets/신년운세.webp?v=build-1779170632465') center 22% / cover no-repeat;
+}
+
 /* Hide the <img> inside — we use CSS background-image now */
 .lifebook-tile__img-wrap { display: none; }
 .lifebook-tile__img { display: none; }
