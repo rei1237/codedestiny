@@ -6,6 +6,7 @@
   var COIN_REASON = '사주 신년운세 PDF 리포트 생성';
   var API_TIMEOUT_MS = 140000;
   var STATE_STORAGE_KEY = '__cd_saju_new_year_state_v1__';
+  var NEW_YEAR_COVER_IMAGE = '/fuctionassets/신년운세.webp?v=20260519-ny-cover';
 
   var CHAPTER_DEFINITIONS = [
     { index: 1, title: '원국 기반 연간 전략 총론', subtitle: '기본 체질과 연간 선택 축' },
@@ -626,6 +627,8 @@
       '<style>',
       'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#f7f4ee;color:#1f2937;line-height:1.72}',
       '.lb-print-cover{padding:24px;border:1px solid #d5c9b3;border-radius:16px;background:#fffaf0;margin-bottom:24px}',
+      '.lb-print-cover-visual{margin:0 0 16px;border-radius:12px;overflow:hidden;border:1px solid #e6dcc8;background:#f3ead8}',
+      '.lb-print-cover-visual img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}',
       '.lb-print-cover h1{margin:0 0 6px;font-size:33px;color:#4b3621}',
       '.lb-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #e8ddcc;border-radius:12px;background:#fff}',
       '.lb-print-chapter h1{margin:0 0 12px;font-size:24px;color:#5b4630}',
@@ -640,6 +643,7 @@
       '</head>',
       '<body>',
       '<section class="lb-print-cover">',
+      '<div class="lb-print-cover-visual"><img src="' + escapeHtml(NEW_YEAR_COVER_IMAGE) + '" alt="사주 신년운세 표지 이미지" /></div>',
       '<h1>' + escapeHtml(ownerName + '님의 ' + targetYear + ' 신년운세') + '</h1>',
       '<p>생성일: ' + escapeHtml(formatDateLabel()) + '</p>',
       '</section>',

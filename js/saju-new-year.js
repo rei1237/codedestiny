@@ -6,7 +6,7 @@
   var COIN_REASON = '사주 신년운세 PDF 리포트 생성';
   var API_TIMEOUT_MS = 140000;
   var STATE_STORAGE_KEY = '__cd_saju_new_year_state_v1__';
-  var NEW_YEAR_COVER_IMAGE = '/fuctionassets/신년운세.webp';
+  var NEW_YEAR_COVER_IMAGE = '/fuctionassets/신년운세.webp?v=20260519-ny-cover';
 
   var CHAPTER_DEFINITIONS = [
     { index: 1, title: '원국 기반 연간 전략 총론', subtitle: '기본 체질과 연간 선택 축' },
