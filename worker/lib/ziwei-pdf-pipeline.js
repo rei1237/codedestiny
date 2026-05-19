@@ -40,20 +40,21 @@ const PALACE_KEY_MAP = Object.freeze({
 
 const STRENGTH_BY_SYMBOL = Object.freeze({
   "◎": "묘",
-  O: "왕",
   "○": "왕",
+  O: "왕",
   "▲": "리",
   "△": "평",
-  X: "함",
+  "함": "함",
   "×": "함",
+  X: "함",
 });
 
 const SYMBOL_BY_STRENGTH = Object.freeze({
   묘: "◎",
-  왕: "O",
+  왕: "○",
   리: "▲",
   평: "△",
-  함: "X",
+  함: "×",
   미상: null,
 });
 
@@ -73,10 +74,10 @@ function normalizeStrengthSymbol(raw) {
   const token = asText(raw);
   if (!token) return null;
   if (token === "◎") return "◎";
-  if (token === "O" || token === "○") return "O";
+  if (token === "O" || token === "○") return "○";
   if (token === "▲") return "▲";
   if (token === "△") return "△";
-  if (token === "X" || token === "×") return "X";
+  if (token === "함" || token === "X" || token === "×") return "×";
   return null;
 }
 
@@ -138,7 +139,7 @@ function strengthMeaning(name) {
   if (name === "미상") {
     return "별의 강약 데이터가 확인되지 않아, 별 자체의 기본 상징과 궁의 의미를 중심으로 해석합니다.";
   }
-  const symbol = SYMBOL_BY_STRENGTH[name] || (name === "왕" ? "O" : null);
+  const symbol = SYMBOL_BY_STRENGTH[name] || null;
   if (!symbol) return "강약 데이터가 제한적이어서 보수적으로 해석합니다.";
   return ZIWEI_STAR_STRENGTHS[symbol]?.meaning || "강약 데이터가 제한적이어서 보수적으로 해석합니다.";
 }
@@ -526,7 +527,7 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
 
 function buildStrengthTableMarkdown() {
   const rows = ["| 기호 | 명칭 | 의미 |", "|---|---|---|"];
-  ["◎", "O", "▲", "△", "X"].forEach((symbol) => {
+  ["◎", "○", "▲", "△", "함"].forEach((symbol) => {
     const item = ZIWEI_STAR_STRENGTHS[symbol];
     if (!item) return;
     rows.push(`| ${symbol} | ${item.name}(${item.hanja}) | ${item.meaning} |`);

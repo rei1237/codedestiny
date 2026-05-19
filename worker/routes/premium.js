@@ -50,6 +50,15 @@ import {
   parseZiweiGeminiResponse,
   sanitizeZiweiChapterJson,
 } from "../lib/ziwei-pdf-pipeline.js";
+import {
+  LIFE_BOOK_TOTAL_CHAPTERS,
+  LIFE_BOOK_MIN_TOTAL_CHARS as LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
+  buildLifeBookChapterPlan,
+  getLifeBookChapterByNumber,
+} from "../lib/saju/life-book/chapterConfig.js";
+import { buildLifeBookInputData } from "../lib/saju/life-book/buildLifeBookInputData.js";
+import { generateLifeBookPdf } from "../lib/saju/life-book/generateLifeBookPdf.js";
+import { renderLifeBookPdf } from "../lib/saju/life-book/renderLifeBookPdf.js";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -2316,12 +2325,22 @@ function normalizeAstroPlanetMap(planets) {
 
 function normalizeStrengthSymbol(symbol, brightness = "") {
   const raw = String(symbol || "").trim();
-  if (["◎", "○", "△", "×"].includes(raw)) return raw;
+  if (raw === "O") return "○";
+  if (raw === "X") return "×";
+  if (raw === "함") return "×";
+  if (["◎", "○", "▲", "△", "×"].includes(raw)) return raw;
+  if (/(묘|廟)/.test(raw)) return "◎";
+  if (/(왕|旺)/.test(raw)) return "○";
+  if (/(리|利|이로|유리|득)/.test(raw)) return "▲";
+  if (/(평|平|보통)/.test(raw)) return "△";
+  if (/(함|陷|약|쇠)/.test(raw)) return "×";
   const tone = String(brightness || "").trim();
-  if (/(왕|묘|길|강)/.test(tone)) return "◎";
-  if (/(평|보통)/.test(tone)) return "○";
-  if (/(약|함|쇠)/.test(tone)) return "△";
-  return "○";
+  if (/(묘|廟)/.test(tone)) return "◎";
+  if (/(왕|旺|강)/.test(tone)) return "○";
+  if (/(리|利|이로|유리|득)/.test(tone)) return "▲";
+  if (/(평|平|보통)/.test(tone)) return "△";
+  if (/(함|陷|약|쇠)/.test(tone)) return "×";
+  return "△";
 }
 
 function inferZiweiPalaceKey(palace = {}) {
@@ -5248,9 +5267,9 @@ function buildLifebookStatusPayload(reportId, includeText = false) {
     totalChapters,
     completed,
     currentChapter,
-    minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
+    minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
     totalChars,
-    isMinTotalCharsMet: totalChars >= LIFEBOOK_MIN_TOTAL_CHARS,
+    isMinTotalCharsMet: totalChars >= LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
     isComplete,
     chapters,
     message: isComplete
@@ -5261,8 +5280,38 @@ function buildLifebookStatusPayload(reportId, includeText = false) {
 
 function buildLifebookDownloadHtmlFromSession(reportId) {
   const status = buildLifebookStatusPayload(reportId, true);
+  const entry = getStoredReportSession("lifebook", reportId);
   const chapters = Array.isArray(status.chapters) ? status.chapters : [];
   if (!chapters.length) return "";
+
+  const chapterResultsFromStore = toPlainObject(entry?.extra?.chapterResultsByNumber);
+  const chapterResults = chapters
+    .filter((row) => row.chapter >= 1)
+    .map((row) => {
+      const num = Number(row.chapter);
+      const stored = toPlainObject(chapterResultsFromStore[String(num)]);
+      return {
+        id: String(stored.id || ""),
+        roman: String(stored.roman || ""),
+        title: String(stored.title || row?.chapterMeta?.title || `Chapter ${num}`),
+        subtitle: String(stored.subtitle || row?.chapterMeta?.subtitle || ""),
+        contentMarkdown: String(stored.contentMarkdown || row?.text || ""),
+        summary: String(stored.summary || ""),
+        practicalAdvice: Array.isArray(stored.practicalAdvice) ? stored.practicalAdvice : [],
+        warnings: Array.isArray(stored.warnings) ? stored.warnings : [],
+      };
+    });
+
+  const lifeBookInputData = toPlainObject(entry?.extra?.lifeBookInputData);
+  if (Object.keys(lifeBookInputData).length && chapterResults.length) {
+    const rendered = renderLifeBookPdf({
+      reportId: status.reportId,
+      lifeBookInputData,
+      chapters: chapterResults,
+      generatedAt: entry?.updatedAt || new Date().toISOString(),
+    });
+    if (rendered?.ok && rendered?.html) return rendered.html;
+  }
 
   const chapterBlocks = chapters
     .filter((row) => row.chapter >= 1)
@@ -6586,14 +6635,19 @@ function buildZiweiCanonicalStar(star, starPath, dataQuality) {
 
 function parseZiweiDecadeRange(rawRange, palaceKey) {
   const text = String(rawRange || "").trim();
-  const m = text.match(/^(\d{1,3})\s*-\s*(\d{1,3})$/);
+  const normalized = text
+    .replace(/[~～〜－–—−]/g, "-")
+    .replace(/\s*(?:세|살)\s*/g, "")
+    .replace(/\s*to\s*/gi, "-")
+    .trim();
+  const m = normalized.match(/^(\d{1,3})\s*-\s*(\d{1,3})$/);
   if (!m) return null;
   const startAge = Number(m[1]);
   const endAge = Number(m[2]);
   if (!Number.isFinite(startAge) || !Number.isFinite(endAge)) return null;
   return {
     palaceKey,
-    range: text,
+    range: normalized,
     startAge,
     endAge,
     label: `${startAge}~${endAge}`,
@@ -6874,7 +6928,7 @@ function buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality) 
   });
 
   const decadeLuck = Array.isArray(luck?.decadePeriods) ? luck.decadePeriods : [];
-  const currentDecadeLuck = luck?.currentDecade || null;
+  const currentDecadeLuck = luck?.currentDecade || (decadeLuck[0] || null);
 
   const diagnostics = {
     generatedAt: new Date().toISOString(),
@@ -6927,7 +6981,9 @@ function validateZiweiReportPayloadStrict(reportPayload, dataQuality) {
   if (!String(chartMeta?.shenGong || "").trim()) missingFields.push("chartMeta.shenGong");
   if (!palaces.length) missingFields.push("palaces");
   if (palaces.length !== 12) missingFields.push("palaces.length");
-  if (!sihua.length) missingFields.push("sihua");
+  if (!sihua.length) {
+    pushUnique(dataQuality?.warnings, "reportPayload.sihua 가 비어 있어 일반화된 사화 해석으로 진행합니다.");
+  }
 
   palaces.forEach((palace, idx) => {
     const pPath = `palaces[${idx}]`;
@@ -6938,8 +6994,12 @@ function validateZiweiReportPayloadStrict(reportPayload, dataQuality) {
 
   const decadeLuck = Array.isArray(luck?.decadeLuck) ? luck.decadeLuck : [];
   const currentDecadeLuck = luck?.currentDecadeLuck || null;
-  if (!decadeLuck.length) missingFields.push("luck.decadeLuck");
-  if (!currentDecadeLuck) missingFields.push("luck.currentDecadeLuck");
+  if (!decadeLuck.length) {
+    pushUnique(dataQuality?.warnings, "reportPayload.luck.decadeLuck 이 비어 있어 대운 흐름은 보수적으로 요약됩니다.");
+  }
+  if (!currentDecadeLuck) {
+    pushUnique(dataQuality?.warnings, "reportPayload.luck.currentDecadeLuck 이 비어 있어 현재 대운은 자동 추정으로 보완됩니다.");
+  }
 
   missingFields.forEach((field) => pushUnique(dataQuality?.missingFields, field));
   const deduped = Array.from(new Set(missingFields));
@@ -11249,146 +11309,179 @@ async function handleLifebookSession(request, env) {
     _premiumStrictPayload: strictPayloadMode,
   };
   const prepareOnly = asBool(strictBody.prepareOnly);
-  if (!prepareOnly && !chapterRequestProvided(strictBody)) {
+  const explicitMode = String(strictBody.mode || "").trim().toLowerCase();
+  const fullGenerateRequested = asBool(strictBody.generateAll)
+    || explicitMode === "lifebook";
+
+  if (!prepareOnly && !chapterRequestProvided(strictBody) && !fullGenerateRequested) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
-  const input = buildSessionInput(strictBody, 13);
+
+  const input = buildSessionInput(strictBody, LIFE_BOOK_TOTAL_CHAPTERS);
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || lifebookReportIdFromInput(strictBody, input);
-  const dataState = ensureLifebookSourceData(strictBody, input);
-  if (!dataState.ok) {
-    return json({
-      ok: false,
-      code: "SAJU_REPORT_PAYLOAD_MISSING",
-      message: dataState.warning || "사주 원본 데이터가 부족합니다.",
-      missingFields: ["sajuData"],
-    }, { status: 422 });
-  }
 
   if (prepareOnly) {
+    const preparedInputData = buildLifeBookInputData(strictBody, input);
+    const quality = preparedInputData?.dataQuality || { missingCore: [] };
+
     return json({
       ok: true,
       prepared: true,
-      reportType: "personal",
-      totalChapters: 13,
+      reportType: "lifeBook",
+      totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
       chapterMinChars: {
-        default: LIFEBOOK_MIN_CHARS,
+        default: Number(getLifeBookChapterByNumber(1)?.minLength || 2500),
       },
-      minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-      chapterPlan: LIFEBOOK_CHAPTERS.map((titleText, idx) => ({
-        num: idx + 1,
-        title: titleText,
-        subtitle: LIFEBOOK_CHAPTER_SUBTITLES[idx] || "",
-      })),
+      minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
+      chapterPlan: buildLifeBookChapterPlan(),
       dataQuality: {
-        usedFallbackData: dataState.usedFallbackData,
-        warning: dataState.warning,
+        missingCore: Array.isArray(quality?.missingCore) ? quality.missingCore : [],
+        source: quality?.source || {},
       },
       canonicalSajuChart: strictBody?.canonicalSajuChart || null,
-      missingFields: dataState.ok ? [] : ["sajuData"],
+      missingFields: Array.isArray(quality?.missingCore) ? quality.missingCore : [],
     });
   }
 
-  const effectiveBody = {
-    ...strictBody,
-    sajuData: dataState.sourceData,
-  };
-  const title = LIFEBOOK_CHAPTERS[chapter - 1] || LIFEBOOK_CHAPTERS[0];
-  const subtitle = LIFEBOOK_CHAPTER_SUBTITLES[chapter - 1] || "사주 분석 기반 인생의 책";
-  const counselorFocus = LIFEBOOK_COUNSELOR_FOCUS[chapter - 1] || "사주 구조를 실제 행동 기준으로 번역해 실행 전략으로 제시합니다.";
-  const sectionHeaders = LIFEBOOK_SECTION_HEADERS[chapter - 1] || DEFAULT_BOOK_SECTION_HEADERS;
-  const prompt = buildSessionPrompt(
-    "saju life book",
-    title,
-    chapter,
-    13,
-    effectiveBody,
-    sectionHeaders,
-    {
-      subtitle,
-      counselorFocus,
-      minTotalChars: LIFEBOOK_MIN_CHARS,
-      minSectionParagraphs: 3,
-      minSectionChars: 850,
-      premiumChapterJsonPacks: strictBody?._premiumLlmInput?.chapterJsonPacks || null,
-    }
-  );
-  const lifebookTimeoutMs = Number(env.LIFEBOOK_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 18000);
-  const lifebookTotalTimeoutMs = Number(env.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 36000);
-  const lifebookGenerationOptions = {
-    temperature: 0.78,
-    topP: 0.92,
-    maxOutputTokens: 12288,
-    timeoutMs: Math.max(6000, Math.min(35000, Number.isFinite(lifebookTimeoutMs) ? lifebookTimeoutMs : 18000)),
-    totalTimeoutMs: Math.max(12000, Math.min(65000, Number.isFinite(lifebookTotalTimeoutMs) ? lifebookTotalTimeoutMs : 36000)),
-    maxAttemptsPerPair: Math.max(1, Math.min(2, Number(env.LIFEBOOK_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 1))),
-  };
-
-  let text = await callGemini(env, prompt, ["LIFEBOOK_GEMINI_MODEL"], lifebookGenerationOptions);
-  let usedFallback = false;
-  if (!text || text.length < 1200) {
-    if (strictPayloadMode) {
-      return json({
-        ok: false,
-        code: "LIFEBOOK_CHAPTER_GENERATION_FAILED",
-        message: "lifebook 챕터 생성 결과가 최소 품질 기준에 미달합니다.",
-      }, { status: 422 });
-    }
-    usedFallback = true;
-    text = lifebookLongFallback(title, subtitle, strictBody, sectionHeaders, counselorFocus, LIFEBOOK_MIN_CHARS);
-  }
-
-  if (text.length < LIFEBOOK_MIN_CHARS && strictPayloadMode) {
-    const refined = await refineChapterToMinLength(
+  if (fullGenerateRequested && !chapterRequestProvided(strictBody)) {
+    const allGenerated = await generateLifeBookPdf({
       env,
-      text,
-      LIFEBOOK_MIN_CHARS,
-      {
-        title,
-        subtitle,
-        counselorFocus,
-        sectionHeaders,
-        data: effectiveBody.sajuData || effectiveBody.profile || effectiveBody.birth || effectiveBody,
-      },
-      ["LIFEBOOK_GEMINI_MODEL"],
-      lifebookGenerationOptions
-    );
-    if (refined && refined.length > text.length) {
-      text = refined;
-    }
-  }
+      body: strictBody,
+      normalizedInput: input,
+      strictMode: strictPayloadMode,
+      reportId,
+    });
 
-  if (text.length < LIFEBOOK_MIN_CHARS) {
-    if (strictPayloadMode) {
+    if (!allGenerated?.ok) {
       return json({
         ok: false,
-        code: "LIFEBOOK_CHAPTER_TOO_SHORT",
-        message: "lifebook 챕터 길이가 최소 기준에 미달합니다.",
-        details: [`minChars:${LIFEBOOK_MIN_CHARS}`, `actualChars:${text.length}`],
+        code: allGenerated?.code || "LIFEBOOK_GENERATION_FAILED",
+        message: allGenerated?.message || "인생의 책 생성에 실패했습니다.",
+        detail: allGenerated?.detail || undefined,
       }, { status: 422 });
     }
-    usedFallback = true;
-    text = lifebookLongFallback(title, subtitle, strictBody, sectionHeaders, counselorFocus, LIFEBOOK_MIN_CHARS);
+
+    const generatedChapters = Array.isArray(allGenerated.chapters) ? allGenerated.chapters : [];
+    let lastStorage = null;
+    const chapterResultsByNumber = {};
+
+    generatedChapters.forEach((chapterResult, idx) => {
+      const num = idx + 1;
+      chapterResultsByNumber[String(num)] = chapterResult;
+      lastStorage = writeReportSessionChapter(
+        "lifebook",
+        reportId,
+        num,
+        LIFE_BOOK_TOTAL_CHAPTERS,
+        {
+          num,
+          title: chapterResult.title,
+          subtitle: chapterResult.subtitle,
+          icon: "book",
+        },
+        chapterResult.contentMarkdown,
+        {
+          lifeBookInputData: allGenerated.lifeBookInputData,
+          chapterResultsByNumber,
+          generationWarnings: allGenerated.warnings || [],
+          renderMeta: {
+            chapterCount: generatedChapters.length,
+            generatedAt: allGenerated?.rendered?.generatedAt || new Date().toISOString(),
+          },
+        },
+      );
+    });
+
+    return json({
+      ok: true,
+      reportId,
+      jobId: reportId,
+      pdfUrl: `/api/lifebook/download?reportId=${encodeURIComponent(reportId)}`,
+      totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
+      minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
+      chapters: generatedChapters,
+      warnings: allGenerated.warnings || [],
+      storage: lastStorage,
+      dataQuality: allGenerated?.lifeBookInputData?.dataQuality || {},
+    });
   }
 
-  const storage = writeReportSessionChapter("lifebook", reportId, chapter, 13, { num: chapter, title, subtitle, icon: "book" }, text);
+  const generated = await generateLifeBookPdf({
+    env,
+    body: strictBody,
+    normalizedInput: input,
+    strictMode: strictPayloadMode,
+    reportId,
+    requestedChapter: chapter,
+  });
+
+  if (!generated?.ok) {
+    return json({
+      ok: false,
+      code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
+      message: generated?.message || "인생의 책 챕터 생성에 실패했습니다.",
+      detail: generated?.detail || undefined,
+    }, { status: 422 });
+  }
+
+  const chapterResult = Array.isArray(generated?.chapters) ? generated.chapters[0] : null;
+  if (!chapterResult) {
+    return json({
+      ok: false,
+      code: "LIFEBOOK_CHAPTER_EMPTY",
+      message: "생성된 챕터 데이터가 비어 있습니다.",
+    }, { status: 422 });
+  }
+
+  const chapterMeta = {
+    num: chapter,
+    title: chapterResult.title,
+    subtitle: chapterResult.subtitle,
+    icon: "book",
+  };
+
+  const existingEntry = getStoredReportSession("lifebook", reportId);
+  const existingChapterResultsByNumber = toPlainObject(existingEntry?.extra?.chapterResultsByNumber);
+  const mergedChapterResultsByNumber = {
+    ...existingChapterResultsByNumber,
+    [String(chapter)]: chapterResult,
+  };
+
+  const storage = writeReportSessionChapter(
+    "lifebook",
+    reportId,
+    chapter,
+    LIFE_BOOK_TOTAL_CHAPTERS,
+    chapterMeta,
+    chapterResult.contentMarkdown,
+    {
+      lifeBookInputData: generated.lifeBookInputData,
+      chapterResultsByNumber: mergedChapterResultsByNumber,
+      generationWarnings: generated.warnings || [],
+    },
+  );
+
+  const usedFallback = Array.isArray(generated.warnings) && generated.warnings.some((row) => {
+    return String(row?.chapterId || "") === String(chapterResult.id || "")
+      && String(row?.warning || "").includes("FALLBACK");
+  });
 
   return json({
     ok: true,
     reportId,
-    totalChapters: 13,
-    chapterMinChars: LIFEBOOK_MIN_CHARS,
-    minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
+    totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
+    chapterMinChars: Number(getLifeBookChapterByNumber(chapter)?.minLength || 2500),
+    minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
     sessionId: chapter,
     chapter,
-    chapterMeta: { num: chapter, title, subtitle, icon: "book" },
-    text,
-    sections: parseSections(text),
+    chapterMeta,
+    text: chapterResult.contentMarkdown,
+    sections: parseSections(chapterResult.contentMarkdown),
+    chapterResult,
     usedFallback,
-    dataQuality: {
-      usedFallbackData: dataState.usedFallbackData,
-      warning: dataState.warning,
-    },
+    dataQuality: generated?.lifeBookInputData?.dataQuality || {},
+    warnings: generated.warnings || [],
     storage,
   });
 }
@@ -12931,11 +13024,418 @@ export async function handlePremiumReportRoutes(request, env) {
   }
 }
 
+const LEGACY_PREMIUM_ALIAS_CONFIG = Object.freeze({
+  astrology: {
+    alias: "astrology",
+    sessionKind: "astro",
+    title: "점성술 프리미엄 리포트",
+    downloadPath: "/api/premium/astrology/download",
+    statusPath: "/api/premium/astrology/status",
+    generatePath: "/api/premium/astrology/generate",
+    reportType: "westernAstrologyPremium",
+    defaultTotalChapters: 13,
+  },
+  vedic: {
+    alias: "vedic",
+    sessionKind: "vedic",
+    title: "베다 점성술 프리미엄 리포트",
+    downloadPath: "/api/premium/vedic/download",
+    statusPath: "/api/premium/vedic/status",
+    generatePath: "/api/premium/vedic/generate",
+    reportType: "vedicPremium",
+    defaultTotalChapters: 13,
+  },
+  ziwei: {
+    alias: "ziwei",
+    sessionKind: "ziwei",
+    title: "자미두수 프리미엄 리포트",
+    downloadPath: "/api/premium/ziwei/download",
+    statusPath: "/api/premium/ziwei/status",
+    generatePath: "/api/premium/ziwei/generate",
+    reportType: "ziweiPremium",
+    defaultTotalChapters: 13,
+  },
+});
+
+function deepCloneSerializable(value) {
+  try {
+    return JSON.parse(JSON.stringify(value || {}));
+  } catch {
+    return {};
+  }
+}
+
+function normalizeLegacyMode(rawMode, rawReportType) {
+  const mode = String(rawMode || "").trim().toLowerCase();
+  const reportType = String(rawReportType || "").trim().toLowerCase();
+  if (mode === "compatibility" || mode === "couple") return "compatibility";
+  if (reportType === "compatibility" || reportType === "couple") return "compatibility";
+  return "personal";
+}
+
+function upsertLegacyFlowMeta(sessionKind, reportId, patch = {}) {
+  const key = `${sessionKind}:${String(reportId || "").trim()}`;
+  const entry = REPORT_SESSION_STORE.get(key);
+  if (!entry) return null;
+  const nowIso = new Date().toISOString();
+  const nextLegacyFlow = {
+    ...(entry.extra?.legacyFlow || {}),
+    ...(patch || {}),
+  };
+  entry.extra = {
+    ...(entry.extra || {}),
+    legacyFlow: nextLegacyFlow,
+  };
+  entry.updatedAt = nowIso;
+  entry.expiresAt = Date.now() + REPORT_SESSION_TTL_MS;
+  REPORT_SESSION_STORE.set(key, entry);
+  return entry;
+}
+
+function inferLegacySummary(text) {
+  const source = String(text || "").trim();
+  if (!source) return "";
+  const normalized = source.replace(/\r/g, "").replace(/\n+/g, " ").trim();
+  if (normalized.length <= 220) return normalized;
+  return `${normalized.slice(0, 220).trim()}...`;
+}
+
+function buildLegacyChapterPayload(row, includeText = false) {
+  const chapterIndex = Number(row?.chapter || 0);
+  const chapterMeta = row?.chapterMeta || {};
+  const text = String(row?.text || "");
+  const parsedSections = parseSections(text)
+    .map((section) => ({
+      heading: String(section?.title || "").trim(),
+      body: String(section?.body || "").trim(),
+    }))
+    .filter((section) => section.heading || section.body);
+
+  const sections = parsedSections.length
+    ? parsedSections
+    : (text
+      ? [{ heading: `Chapter ${chapterIndex}`, body: text }]
+      : []);
+
+  const payload = {
+    chapterIndex,
+    title: String(chapterMeta?.title || `Chapter ${chapterIndex}`),
+    subtitle: String(chapterMeta?.subtitle || ""),
+    summary: inferLegacySummary(text),
+    sections,
+    keyInsights: [],
+    practicalAdvice: [],
+    updatedAt: row?.updatedAt || null,
+  };
+
+  if (includeText) payload.text = text;
+  return payload;
+}
+
+function buildLegacyStatusPayload(config, reportId, includeText = false) {
+  const normalizedReportId = String(reportId || "").trim();
+  const entry = getStoredReportSession(config.sessionKind, normalizedReportId);
+  const rows = Object.values(entry?.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+
+  const totalChapters = Number(entry?.totalChapters || config.defaultTotalChapters || 13);
+  const completed = rows.length;
+  const currentChapter = Math.max(0, Math.min(totalChapters, completed));
+  const mode = normalizeLegacyMode(entry?.extra?.legacyFlow?.mode, entry?.extra?.reportType);
+  const failed = Boolean(entry?.extra?.legacyFlow?.failed);
+  const errorMessage = failed ? String(entry?.extra?.legacyFlow?.errorMessage || "리포트 생성 중 오류가 발생했습니다.") : "";
+  const status = failed
+    ? "failed"
+    : (completed >= totalChapters ? "completed" : "generating");
+
+  const chapters = (status === "completed" || includeText)
+    ? rows.map((row) => buildLegacyChapterPayload(row, includeText))
+    : [];
+
+  return {
+    ok: true,
+    reportId: normalizedReportId,
+    mode,
+    status,
+    currentChapter,
+    totalChapters,
+    completed,
+    downloadUrl: `${config.downloadPath}?reportId=${encodeURIComponent(normalizedReportId)}`,
+    message: failed
+      ? errorMessage
+      : (status === "completed"
+        ? "리포트 생성이 완료되었습니다."
+        : `리포트 생성 진행 중: ${completed}/${totalChapters} 챕터 완료`),
+    ...(failed ? { errorMessage } : {}),
+    chapters,
+  };
+}
+
+function buildLegacyDownloadHtml(config, reportId) {
+  const status = buildLegacyStatusPayload(config, reportId, true);
+  const chapters = Array.isArray(status?.chapters) ? status.chapters : [];
+  if (!chapters.length) return "";
+
+  const chapterBlocks = chapters.map((chapter) => {
+    const sectionBlocks = (Array.isArray(chapter.sections) ? chapter.sections : [])
+      .map((section) => {
+        const heading = escapeLifebookHtml(section?.heading || "");
+        const body = escapeLifebookHtml(section?.body || "");
+        return [
+          '<section class="legacy-print-section">',
+          heading ? `<h4>${heading}</h4>` : "",
+          body ? `<pre>${body}</pre>` : "",
+          "</section>",
+        ].join("\n");
+      })
+      .join("\n");
+
+    return [
+      '<article class="legacy-print-chapter">',
+      `<h2>Chapter ${Number(chapter.chapterIndex || 0)}. ${escapeLifebookHtml(chapter.title || "")}</h2>`,
+      chapter.subtitle ? `<p class="legacy-subtitle">${escapeLifebookHtml(chapter.subtitle)}</p>` : "",
+      chapter.summary ? `<p class="legacy-summary">${escapeLifebookHtml(chapter.summary)}</p>` : "",
+      sectionBlocks,
+      "</article>",
+    ].join("\n");
+  }).join("\n");
+
+  return [
+    "<!doctype html>",
+    '<html lang="ko">',
+    "<head>",
+    '<meta charset="utf-8" />',
+    `<title>${escapeLifebookHtml(config.title)}</title>`,
+    "<style>",
+    'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#f8fafc;color:#111827;line-height:1.72}',
+    '.legacy-print-cover{padding:24px;border:1px solid #cbd5e1;border-radius:16px;background:#ffffff;margin-bottom:24px}',
+    '.legacy-print-cover h1{margin:0 0 6px;font-size:30px;color:#0f172a}',
+    '.legacy-print-cover p{margin:2px 0;font-size:14px;color:#334155}',
+    '.legacy-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #e2e8f0;border-radius:12px;background:#fff}',
+    '.legacy-print-chapter h2{margin:0 0 8px;font-size:23px;color:#1e293b}',
+    '.legacy-subtitle{margin:0 0 10px;color:#475569}',
+    '.legacy-summary{margin:0 0 12px;color:#0f172a;font-weight:600}',
+    '.legacy-print-section{margin:0 0 12px}',
+    '.legacy-print-section h4{margin:0 0 6px;color:#1e293b}',
+    '.legacy-print-section pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:14px;line-height:1.72}',
+    '@media print{body{padding:0;background:#fff}.legacy-print-cover,.legacy-print-chapter{border:none}}',
+    "</style>",
+    "</head>",
+    "<body>",
+    '<section class="legacy-print-cover">',
+    `<h1>${escapeLifebookHtml(config.title)}</h1>`,
+    `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
+    `<p>생성 챕터: ${Number(status.completed || 0)}/${Number(status.totalChapters || 0)}</p>`,
+    "</section>",
+    chapterBlocks,
+    "</body>",
+    "</html>",
+  ].join("\n");
+}
+
+async function invokeLegacyGenerateChapter(config, request, env, payload) {
+  const url = new URL(request.url);
+  const headers = new Headers();
+  const authHeader = request.headers.get("Authorization");
+  const cookieHeader = request.headers.get("Cookie");
+  if (authHeader) headers.set("Authorization", authHeader);
+  if (cookieHeader) headers.set("Cookie", cookieHeader);
+  headers.set("Content-Type", "application/json");
+
+  let targetPath = "/api/premium/astro-life";
+  let handler = handleAstroLife;
+  if (config.alias === "vedic") {
+    targetPath = "/api/premium/vedic-life";
+    handler = handleVedicLife;
+  } else if (config.alias === "ziwei") {
+    targetPath = "/api/premium/ziwei-life";
+    handler = handleZiweiBookSession;
+  }
+
+  const nextUrl = new URL(url.toString());
+  nextUrl.pathname = targetPath;
+  const nextRequest = new Request(nextUrl.toString(), {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload || {}),
+  });
+
+  const response = await handler(nextRequest, env);
+  const data = await response.clone().json().catch(() => ({}));
+  return { response, data };
+}
+
+async function advanceLegacyPremiumSession(config, request, env, reportId) {
+  const entry = getStoredReportSession(config.sessionKind, reportId);
+  if (!entry) return null;
+
+  const totalChapters = Number(entry.totalChapters || config.defaultTotalChapters || 13);
+  const completed = Object.keys(entry.chapters || {}).length;
+  if (completed >= totalChapters) return entry;
+
+  const legacyFlow = entry.extra?.legacyFlow || {};
+  if (legacyFlow.failed) return entry;
+  const sourceBody = deepCloneSerializable(legacyFlow.requestBody || {});
+  const chapter = completed + 1;
+
+  const chapterPayload = {
+    ...sourceBody,
+    reportId,
+    chapter,
+    sessionId: chapter,
+    forceRegenerate: false,
+    retryChapter: false,
+    _premiumStrictPayload: false,
+    _premiumStrictValidation: false,
+  };
+
+  const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
+  if (!generated.response.ok || !generated.data?.ok) {
+    upsertLegacyFlowMeta(config.sessionKind, reportId, {
+      failed: true,
+      errorMessage: String(generated.data?.message || generated.data?.error || `Chapter ${chapter} 생성에 실패했습니다.`),
+      failedAt: new Date().toISOString(),
+    });
+    return getStoredReportSession(config.sessionKind, reportId);
+  }
+
+  return upsertLegacyFlowMeta(config.sessionKind, reportId, {
+    lastChapter: chapter,
+    failed: false,
+    errorMessage: "",
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+async function startLegacyPremiumSession(config, request, env) {
+  const body = await readJson(request.clone());
+  const sourceBody = deepCloneSerializable(body);
+  const mode = normalizeLegacyMode(sourceBody.mode, sourceBody.reportType || sourceBody.reportMode);
+  const chapterPayload = {
+    ...sourceBody,
+    chapter: 1,
+    sessionId: 1,
+    _premiumStrictPayload: false,
+    _premiumStrictValidation: false,
+  };
+
+  const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
+  if (!generated.response.ok || !generated.data?.ok) {
+    return json({
+      ok: false,
+      code: generated.data?.code || "PREMIUM_GENERATE_FAILED",
+      message: generated.data?.message || "리포트 생성을 시작하지 못했습니다.",
+    }, { status: Number(generated.response.status || 422) || 422 });
+  }
+
+  const reportId = String(generated.data?.reportId || "").trim();
+  if (!reportId) {
+    return json({ ok: false, code: "REPORT_ID_MISSING", message: "리포트 식별자를 만들지 못했습니다." }, { status: 500 });
+  }
+
+  const patched = upsertLegacyFlowMeta(config.sessionKind, reportId, {
+    mode,
+    reportType: mode,
+    requestBody: sourceBody,
+    active: true,
+    failed: false,
+    errorMessage: "",
+    startedAt: new Date().toISOString(),
+    lastChapter: 1,
+  });
+
+  if (!patched) {
+    return json({ ok: false, code: "LEGACY_SESSION_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 500 });
+  }
+
+  return json(buildLegacyStatusPayload(config, reportId));
+}
+
+async function handleLegacyPremiumStatus(config, request, env) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+  }
+
+  const includeRaw = String(url.searchParams.get("includeChapters") || "").trim().toLowerCase();
+  const includeChapters = includeRaw === "1" || includeRaw === "true" || includeRaw === "yes";
+
+  const before = getStoredReportSession(config.sessionKind, reportId);
+  if (!before) {
+    return json({ ok: false, message: "리포트 세션을 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const advanced = await advanceLegacyPremiumSession(config, request, env, reportId);
+  const finalEntry = advanced || getStoredReportSession(config.sessionKind, reportId);
+  if (!finalEntry) {
+    return json({ ok: false, message: "리포트 세션이 만료되었습니다." }, { status: 404 });
+  }
+
+  return json(buildLegacyStatusPayload(config, reportId, includeChapters));
+}
+
+async function handleLegacyPremiumDownload(config, request) {
+  const url = new URL(request.url);
+  const reportId = String(url.searchParams.get("reportId") || "").trim();
+  if (!reportId) {
+    return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+  }
+
+  const html = buildLegacyDownloadHtml(config, reportId);
+  if (!html) return notFound();
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
+    },
+  });
+}
+
 export async function handlePremiumRoutes(request, env) {
   try {
-    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const method = request.method.toUpperCase();
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/premium");
+
+    const legacyAliasByPath = (() => {
+      if (path.startsWith("/astrology/")) return LEGACY_PREMIUM_ALIAS_CONFIG.astrology;
+      if (path.startsWith("/vedic/")) return LEGACY_PREMIUM_ALIAS_CONFIG.vedic;
+      if (path.startsWith("/ziwei/")) return LEGACY_PREMIUM_ALIAS_CONFIG.ziwei;
+      return null;
+    })();
+
+    if (legacyAliasByPath) {
+      if (method === "POST" && path === `/${legacyAliasByPath.alias}/generate`) {
+        const cloned = request.clone();
+        const rawBody = await readJson(cloned);
+        const access = await requirePremiumReportAccess(env, authInfo.userId, legacyAliasByPath.reportType, rawBody);
+        if (!access.ok) {
+          return json({
+            ok: false,
+            code: access.code || "PAYMENT_REQUIRED",
+            message: access.message || "프리미엄 결제가 필요합니다.",
+            reportType: legacyAliasByPath.reportType,
+            required: access.required || null,
+          }, { status: Number(access.status || 402) });
+        }
+        return await startLegacyPremiumSession(legacyAliasByPath, request, env);
+      }
+
+      if (method === "GET" && path === `/${legacyAliasByPath.alias}/status`) {
+        return await handleLegacyPremiumStatus(legacyAliasByPath, request, env);
+      }
+
+      if (method === "GET" && path === `/${legacyAliasByPath.alias}/download`) {
+        return await handleLegacyPremiumDownload(legacyAliasByPath, request);
+      }
+
+      return methodNotAllowed();
+    }
+
+    if (method !== "POST") return methodNotAllowed();
 
     const legacyReportType = (() => {
       if (path === "/sukuyo-life") return "sookyoPremium";

@@ -95,42 +95,55 @@ export const ZIWEI_BODY_PALACE_MEANINGS = Object.freeze({
   fortune: "복덕궁과 신궁이 겹치면 정신적 자유, 종교, 예술, 자신의 즐거움을 찾는 것이 삶의 궁극적 목표가 된다.",
 });
 
+const ZIWEI_STRENGTH_MYO = Object.freeze({
+  name: "묘",
+  hanja: "廟",
+  label: "번성할 묘",
+  meaning: "별의 에너지가 최상인 상태. 장점은 극대화되고 단점은 억제된다.",
+  metaphor: "Full Optimization: 최고의 퍼포먼스 출력",
+});
+
+const ZIWEI_STRENGTH_WANG = Object.freeze({
+  name: "왕",
+  hanja: "旺",
+  label: "왕성할 왕",
+  meaning: "에너지가 매우 강력하고 활발하다. 주도적으로 운을 이끌어간다.",
+  metaphor: "High Performance: 안정적이고 높은 처리량",
+});
+
+const ZIWEI_STRENGTH_RI = Object.freeze({
+  name: "리",
+  hanja: "利",
+  label: "이로울 리",
+  meaning: "에너지가 양호하다. 실익을 챙길 수 있는 수준의 힘을 보유한다.",
+  metaphor: "Standard: 실무에 최적화된 안정적인 구동",
+});
+
+const ZIWEI_STRENGTH_PYEONG = Object.freeze({
+  name: "평",
+  hanja: "平",
+  label: "평범할 평",
+  meaning: "힘이 중간 정도다. 주변 별들의 상황이나 사화의 영향에 민감하다.",
+  metaphor: "Idle: 대기 상태, 외부 조건에 의존",
+});
+
+const ZIWEI_STRENGTH_HAM = Object.freeze({
+  name: "함",
+  hanja: "陷",
+  label: "빠질 함",
+  meaning: "별이 빛을 잃고 가장 어두운 상태. 장점은 묻히고 단점이 발현되기 쉽다.",
+  metaphor: "Critical Error/Lag: 자원 부족으로 인한 성능 저하",
+});
+
 export const ZIWEI_STAR_STRENGTHS = Object.freeze({
-  "◎": {
-    name: "묘",
-    hanja: "廟",
-    label: "번성할 묘",
-    meaning: "별의 에너지가 최상인 상태. 장점은 극대화되고 단점은 억제된다.",
-    metaphor: "Full Optimization: 최고의 퍼포먼스 출력",
-  },
-  O: {
-    name: "왕",
-    hanja: "旺",
-    label: "왕성할 왕",
-    meaning: "에너지가 매우 강력하고 활발하다. 주도적으로 운을 이끌어간다.",
-    metaphor: "High Performance: 안정적이고 높은 처리량",
-  },
-  "▲": {
-    name: "리",
-    hanja: "利",
-    label: "이로울 리",
-    meaning: "에너지가 양호하다. 실익을 챙길 수 있는 수준의 힘을 보유한다.",
-    metaphor: "Standard: 실무에 최적화된 안정적인 구동",
-  },
-  "△": {
-    name: "평",
-    hanja: "平",
-    label: "평범할 평",
-    meaning: "힘이 중간 정도다. 주변 별들의 상황이나 사화의 영향에 민감하다.",
-    metaphor: "Idle: 대기 상태, 외부 조건에 의존",
-  },
-  X: {
-    name: "함",
-    hanja: "陷",
-    label: "빠질 함",
-    meaning: "별이 빛을 잃고 가장 어두운 상태. 장점은 묻히고 단점이 발현되기 쉽다.",
-    metaphor: "Critical Error/Lag: 자원 부족으로 인한 성능 저하",
-  },
+  "◎": ZIWEI_STRENGTH_MYO,
+  "○": ZIWEI_STRENGTH_WANG,
+  O: ZIWEI_STRENGTH_WANG,
+  "▲": ZIWEI_STRENGTH_RI,
+  "△": ZIWEI_STRENGTH_PYEONG,
+  "함": ZIWEI_STRENGTH_HAM,
+  X: ZIWEI_STRENGTH_HAM,
+  "×": ZIWEI_STRENGTH_HAM,
 });
 
 export const ZIWEI_RELATIONSHIP_RULES = Object.freeze({

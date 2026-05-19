@@ -407,15 +407,71 @@
     };
   }
 
-  function hasValidZiweiStructured(structured) {
-    if (!structured || typeof structured !== 'object') return false;
-    var reportPayload = structured.reportPayload;
+  function hasZiweiReportPayloadCore(reportPayload) {
     if (!reportPayload || typeof reportPayload !== 'object') return false;
     var chartMeta = reportPayload.chartMeta;
     var palaces = reportPayload.palaces;
     var hasMing = !!String(chartMeta && chartMeta.mingGong || '').trim();
     var hasShen = !!String(chartMeta && chartMeta.shenGong || '').trim();
     return hasMing && hasShen && Array.isArray(palaces) && palaces.length === 12;
+  }
+
+  function hasZiweiRawCore(rawLike) {
+    if (!rawLike || typeof rawLike !== 'object') return false;
+    var rows = Array.isArray(rawLike.palaceStarData) ? rawLike.palaceStarData : [];
+    if (!rows.length && Array.isArray(rawLike.palaces)) rows = rawLike.palaces;
+    var hasMing = !!String(rawLike.meng || rawLike.mingGong || '').trim();
+    var hasShen = !!String(rawLike.shen || rawLike.shenGong || '').trim();
+    return hasMing && hasShen && rows.length === 12;
+  }
+
+  function normalizePrimaryZiweiStructured(structured) {
+    if (!structured || typeof structured !== 'object') return null;
+
+    if (hasZiweiReportPayloadCore(structured.reportPayload)) return structured;
+
+    var rawCandidate = null;
+    if (structured.chart && typeof structured.chart === 'object') rawCandidate = structured.chart;
+    else if (hasZiweiRawCore(structured)) rawCandidate = structured;
+
+    var converted = convertRawZiweiToStructured(rawCandidate);
+    if (!converted) {
+      return hasZiweiRawCore(structured) ? structured : null;
+    }
+
+    var merged = Object.assign({}, converted, structured);
+    if (!merged.reportPayload || typeof merged.reportPayload !== 'object') merged.reportPayload = converted.reportPayload;
+    if (!merged.chart || typeof merged.chart !== 'object') merged.chart = converted.chart;
+    if (!Array.isArray(merged.palaceStarData)) merged.palaceStarData = converted.palaceStarData || [];
+    if (!Array.isArray(merged.palaces)) merged.palaces = converted.palaces || [];
+    if (!Array.isArray(merged.daHanList)) merged.daHanList = converted.daHanList || [];
+    if (!merged.sihuaData || typeof merged.sihuaData !== 'object') merged.sihuaData = converted.sihuaData || {};
+    if (!String(merged.meng || '').trim()) merged.meng = converted.meng || structured.mingGong || '';
+    if (!String(merged.shen || '').trim()) merged.shen = converted.shen || structured.shenGong || '';
+    return merged;
+  }
+
+  function hasValidZiweiStructured(structured) {
+    var normalized = normalizePrimaryZiweiStructured(structured);
+    if (!normalized) return false;
+    if (hasZiweiReportPayloadCore(normalized.reportPayload)) return true;
+
+    var rawLike = (normalized.chart && typeof normalized.chart === 'object')
+      ? normalized.chart
+      : normalized;
+    return hasZiweiRawCore(rawLike);
+  }
+
+  async function ensureZiweiCoreReady() {
+    if (typeof window.calcZiweiPalaces === 'function') return true;
+
+    try {
+      if (typeof __cdEnsureSukuyoZiweiCoreLoaded === 'function') {
+        await __cdEnsureSukuyoZiweiCoreLoaded();
+      }
+    } catch (_) {}
+
+    return typeof window.calcZiweiPalaces === 'function';
   }
 
   function syncZiweiBirthContext(profile) {
@@ -457,7 +513,8 @@
 
       if (typeof window.getZiweiStructuredData === 'function') {
         var rebuilt = window.getZiweiStructuredData();
-        if (rebuilt && typeof rebuilt === 'object') return rebuilt;
+        var normalizedRebuilt = normalizePrimaryZiweiStructured(rebuilt);
+        if (normalizedRebuilt) return normalizedRebuilt;
       }
 
       return convertRawZiweiToStructured(raw);
@@ -470,15 +527,17 @@
     try {
       if (typeof window.getZiweiStructuredData === 'function') {
         var structured = window.getZiweiStructuredData();
-        if (hasValidZiweiStructured(structured)) return structured;
+        var normalizedStructured = normalizePrimaryZiweiStructured(structured);
+        if (hasValidZiweiStructured(normalizedStructured)) return normalizedStructured;
         if (structured && typeof structured === 'object' && window._currentZiweiData) {
           var fromCurrent = convertRawZiweiToStructured(window._currentZiweiData);
-          if (hasValidZiweiStructured(fromCurrent)) return fromCurrent;
+          var normalizedFromCurrent = normalizePrimaryZiweiStructured(fromCurrent);
+          if (hasValidZiweiStructured(normalizedFromCurrent)) return normalizedFromCurrent;
         }
       }
     } catch (_) {}
 
-    var rebuiltFromProfile = rebuildPrimaryZiweiStructuredFromProfile(profile);
+    var rebuiltFromProfile = normalizePrimaryZiweiStructured(rebuildPrimaryZiweiStructuredFromProfile(profile));
     if (hasValidZiweiStructured(rebuiltFromProfile)) return rebuiltFromProfile;
 
     if (rebuiltFromProfile && typeof rebuiltFromProfile === 'object') return rebuiltFromProfile;
@@ -498,31 +557,55 @@
   function buildRequestBody(forceRegenerate) {
     var profile = getActiveProfile() || {};
     var birth = profile.birth || {};
-    var primaryStructured = getPrimaryZiweiStructured(profile);
+    var primaryStructured = normalizePrimaryZiweiStructured(getPrimaryZiweiStructured(profile));
     if (!primaryStructured || typeof primaryStructured !== 'object') {
       return { error: '기본 자미두수 계산 데이터를 자동으로 복구하지 못했습니다. 먼저 자미두수 결과를 한 번 생성한 뒤 다시 시도해 주세요.' };
     }
-    if (!primaryStructured.reportPayload || typeof primaryStructured.reportPayload !== 'object') {
-      return { error: 'PDF용 확장 데이터(reportPayload)를 만들지 못했습니다. 메인 자미두수 결과를 다시 생성한 뒤 재시도해 주세요.' };
+    if (!hasValidZiweiStructured(primaryStructured)) {
+      return { error: '기본 자미두수 계산 데이터(명궁/신궁/12궁)가 부족합니다. 메인 자미두수 결과를 다시 생성한 뒤 재시도해 주세요.' };
     }
     state.mode = 'personal';
+
+    var name = String(profile.name || '사용자');
+    var gender = normalizeGender(profile.gender);
+    var year = Number(birth.year || 0);
+    var month = Number(birth.month || 0);
+    var day = Number(birth.day || 0);
+    var hour = Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12);
+    var minute = Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0);
+    var calendarType = normalizeCalType(birth.calType || birth.calendarType || 'solar');
+    var timezone = String((profile.location && profile.location.tz) || 'Asia/Seoul');
+    var lat = Number((profile.location && profile.location.lat) || 37.5665);
+    var lon = Number((profile.location && profile.location.lng) || 126.9780);
 
     var body = {
       mode: 'personal',
       forceRegenerate: !!forceRegenerate,
       _premiumStrictValidation: true,
+      name: name,
+      gender: gender,
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      calendarType: calendarType,
+      timezone: timezone,
+      lat: lat,
+      lon: lon,
+      ziweiStructured: primaryStructured,
       birthData: {
-        name: String(profile.name || '사용자'),
-        gender: normalizeGender(profile.gender),
-        year: Number(birth.year || 0),
-        month: Number(birth.month || 0),
-        day: Number(birth.day || 0),
-        hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
-        minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
-        calendarType: normalizeCalType(birth.calType || birth.calendarType || 'solar'),
-        timezone: String((profile.location && profile.location.tz) || 'Asia/Seoul'),
-        lat: Number((profile.location && profile.location.lat) || 37.5665),
-        lon: Number((profile.location && profile.location.lng) || 126.9780),
+        name: name,
+        gender: gender,
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        calendarType: calendarType,
+        timezone: timezone,
+        lat: lat,
+        lon: lon,
         ziweiStructured: primaryStructured
       }
     };
@@ -825,6 +908,12 @@
     if (state.generating) return;
     if (!hasProfile()) {
       showOnly('zbNoProfileScreen');
+      return;
+    }
+
+    var coreReady = await ensureZiweiCoreReady();
+    if (!coreReady) {
+      setError('자미두수 엔진을 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
       return;
     }
 

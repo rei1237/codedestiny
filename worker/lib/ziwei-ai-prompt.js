@@ -61,6 +61,14 @@ const ZIWEI_CORE_ANGLES = Object.freeze([
   "현실 선택(직업/관계/자원배분)으로 연결되는 실행 전략",
 ]);
 
+const ZIWEI_STRENGTH_META = Object.freeze({
+  "◎": { name: "묘", meaning: "가장 강함" },
+  "○": { name: "왕", meaning: "강함" },
+  "▲": { name: "리", meaning: "이로움" },
+  "△": { name: "평", meaning: "보통 중간" },
+  "함": { name: "함", meaning: "약함" },
+});
+
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
   return text || fallback;
@@ -115,8 +123,10 @@ function starLabel(star) {
   if (!star || typeof star !== "object") return "";
   const name = toText(star.name, "");
   if (!name) return "";
-  const strength = toText(star.strengthSymbol || star.symbol || "", "");
-  return strength ? `${name}${strength}` : name;
+  const strength = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol || "", star.strengthName || "");
+  if (!strength) return name;
+  const meta = ZIWEI_STRENGTH_META[strength];
+  return meta ? `${name}${strength}(${meta.name})` : `${name}${strength}`;
 }
 
 function starsToText(stars) {
@@ -131,9 +141,13 @@ function normalizeStar(star) {
   if (star && typeof star === "object") {
     const name = toText(star.name, "");
     if (!name) return null;
+    const strengthSymbol = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol, star.strengthName || star.strength || star.brightness || "");
+    const strengthMeta = strengthSymbol ? ZIWEI_STRENGTH_META[strengthSymbol] : null;
     return {
       name,
-      strengthSymbol: toText(star.strengthSymbol || star.symbol, ""),
+      strengthSymbol,
+      strengthName: strengthMeta?.name || "",
+      strengthMeaning: strengthMeta?.meaning || "",
     };
   }
   const raw = String(star == null ? "" : star)
@@ -141,14 +155,55 @@ function normalizeStar(star) {
     .replace(/\s+/g, " ")
     .trim();
   if (!raw) return null;
-  const symbolMatch = raw.match(/[◎○△×]/);
-  const strengthSymbol = symbolMatch ? symbolMatch[0] : "";
+  const symbolMatch = raw.match(/◎|○|▲|△|×|X|O|함/);
+  const strengthSymbol = normalizeStrengthSymbolToken(symbolMatch ? symbolMatch[0] : "", raw);
+  const strengthMeta = strengthSymbol ? ZIWEI_STRENGTH_META[strengthSymbol] : null;
   const name = raw
-    .replace(/[◎○△×]/g, "")
+    .replace(/◎|○|▲|△|×|X|O|함/g, "")
+    .replace(/묘|왕|리|평/g, "")
     .replace(/\(차성\)/g, "")
     .trim();
   if (!name) return null;
-  return { name, strengthSymbol };
+  return {
+    name,
+    strengthSymbol,
+    strengthName: strengthMeta?.name || "",
+    strengthMeaning: strengthMeta?.meaning || "",
+  };
+}
+
+function normalizeStrengthSymbolToken(rawSymbol, rawStrengthName = "") {
+  const symbol = String(rawSymbol == null ? "" : rawSymbol).trim();
+  const name = String(rawStrengthName == null ? "" : rawStrengthName).trim();
+  if (symbol === "◎") return "◎";
+  if (symbol === "○" || symbol === "O") return "○";
+  if (symbol === "▲") return "▲";
+  if (symbol === "△") return "△";
+  if (symbol === "함" || symbol === "×" || symbol === "X") return "함";
+  if (/묘|廟/.test(name)) return "◎";
+  if (/왕|旺/.test(name)) return "○";
+  if (/리|利|이로|유리|득/.test(name)) return "▲";
+  if (/평|平|보통/.test(name)) return "△";
+  if (/함|陷|약|쇠/.test(name)) return "함";
+  return "";
+}
+
+function starsStrengthEvidenceToText(stars) {
+  if (!Array.isArray(stars) || !stars.length) return DEFAULT_TEXT;
+  const labels = stars
+    .map((star) => {
+      if (!star || typeof star !== "object") return "";
+      const name = toText(star.name, "");
+      if (!name) return "";
+      const symbol = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol || "", star.strengthName || "");
+      if (!symbol) return name;
+      const meta = ZIWEI_STRENGTH_META[symbol];
+      if (!meta) return `${name}${symbol}`;
+      return `${name}${symbol}(${meta.meaning})`;
+    })
+    .filter(Boolean)
+    .slice(0, 10);
+  return labels.length ? labels.join(", ") : DEFAULT_TEXT;
 }
 
 function normalizeStarList(stars) {
@@ -218,7 +273,13 @@ function summarizePalace(palace) {
   const mainStars = starsToText(palace.mainStars);
   const auxStars = starsToText(palace.auxiliaryStars);
   const weakStars = starsToText(palace?.strengthSummary?.weakStars);
-  return `${name}(${branch}) | 주성: ${mainStars} | 보조성: ${auxStars} | 약세: ${weakStars}`;
+  const strengthEvidence = starsStrengthEvidenceToText(
+    []
+      .concat(Array.isArray(palace.mainStars) ? palace.mainStars : [])
+      .concat(Array.isArray(palace.auxiliaryStars) ? palace.auxiliaryStars : [])
+      .concat(Array.isArray(palace?.strengthSummary?.weakStars) ? palace.strengthSummary.weakStars : []),
+  );
+  return `${name}(${branch}) | 주성: ${mainStars} | 보조성: ${auxStars} | 약세: ${weakStars} | 강약근거: ${strengthEvidence}`;
 }
 
 function normalizeChart(chartResult) {
@@ -406,6 +467,7 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
 
   const domainDataLines = [
     `질문 유형: ${questionTypeLabel}`,
+    "강약 판정 기준: ◎=묘(가장 강함), ○=왕(강함), ▲=리(이로움), △=평(보통 중간), 함=함(약함)",
     `명궁/신궁: ${normalizedChart.mingGong} / ${normalizedChart.shenGong}`,
     `명궁 주성/신궁 주성: ${normalizedChart.mingMainStars} / ${normalizedChart.shenMainStars}`,
     `강세궁/약세궁: ${normalizedChart.strongestPalace} / ${normalizedChart.weakestPalace}`,
