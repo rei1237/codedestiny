@@ -1,6 +1,10 @@
+import { buildBiasSajuPersonalityInsight } from "./sajuPersonality";
+
 type ReportArgs = {
   userName: string;
   biasName: string;
+  userBirthDate: string;
+  biasBirthDate: string;
   userEnergyType: string;
   biasEnergyType: string;
   totalScore: number;
@@ -380,6 +384,11 @@ export function generateBiasPersonalityReport(args: ReportArgs) {
   const energyAlias = pickEnergyAlias(args.biasEnergyType, args);
   const keywordTags = buildKeywordTags(args).join(" ");
   const toneLabel = TIER_LABELS[tier];
+  const sajuInsight = buildBiasSajuPersonalityInsight({
+    userBirthDate: args.userBirthDate,
+    biasBirthDate: args.biasBirthDate,
+    biasName: args.biasName,
+  });
 
   return [
     `최애 에너지 타입: [${energyAlias}] · ${toneLabel}`,
@@ -388,6 +397,7 @@ export function generateBiasPersonalityReport(args: ReportArgs) {
     `현장 체감은 ${stageImage}에 가까워요. 잠깐 스친 컷도 뇌리에 오래 남아서, 나중에 다시 떠올라도 심장 반응이 재생되는 패턴입니다.`,
     `숨은 매력은 ${hiddenCharm}. 처음엔 비주얼 임팩트, 오래 볼수록 디테일 중독이 오는 구조라 덕심 누적에 강해요.`,
     `${args.relationMood} 모드에서 특히 궁합이 좋아요. 과몰입 없이 템포만 잘 맞추면 공명 강도가 자연스럽게 치고 올라옵니다.`,
+    sajuInsight.summary,
   ].join("\n\n");
 }
 

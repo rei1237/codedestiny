@@ -126,6 +126,8 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const reportArgs = {
     userName,
     biasName,
+    userBirthDate: normalizedUserBirth.value,
+    biasBirthDate: normalizedBiasBirth.value,
     userEnergyType: compatibility.userEnergyType,
     biasEnergyType: compatibility.biasEnergyType,
     totalScore: compatibility.totalScore,
