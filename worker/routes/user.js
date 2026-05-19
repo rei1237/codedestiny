@@ -110,13 +110,31 @@ export async function handleUserRoutes(request, env) {
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }
-      await connectDb(env);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        return json({
+          ok: false,
+          code: "SERVER_CONFIG_ERROR",
+          message: "서버 설정을 확인해 주세요.",
+          debugMessage: String(error?.message || ""),
+        }, { status: 500 });
+      }
       return await handleGetDestinyProfiles(auth);
     }
 
     if (method === "POST" && path === "/destiny-profiles") {
       const auth = await requireUserFromRequest(request, env);
-      await connectDb(env);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        return json({
+          ok: false,
+          code: "SERVER_CONFIG_ERROR",
+          message: "서버 설정을 확인해 주세요.",
+          debugMessage: String(error?.message || ""),
+        }, { status: 500 });
+      }
       return await handleSyncDestinyProfiles(request, auth);
     }
 

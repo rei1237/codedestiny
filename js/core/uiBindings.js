@@ -59,6 +59,7 @@ const __lazyActionLoaders = {
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260512-quantum-v4').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
+  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779148711642'),
   openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-sajuref1'),
   openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix')
 };
@@ -71,8 +72,8 @@ function __ensureSajuCoreScripts() {
 }
 
 const __lazyActionState = {};
-const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=20260512-sukuyo-reflect-fix1';
-const __MOBILE_BACKSTACK_SRC = '/js/mobile-backstack-navigation.js?v=20260513-mobile-backstack-v1';
+const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=build-1779146662869';
+const __MOBILE_BACKSTACK_SRC = '/js/mobile-backstack-navigation.js?v=build-1779146662869';
 
 function __ensureMobileBackstackLoaded() {
   return __loadScriptOnce(__MOBILE_BACKSTACK_SRC).catch((err) => {

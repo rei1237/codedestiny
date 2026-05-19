@@ -19,12 +19,16 @@ describe("Premium Report Feature Spec", () => {
     expect(resolvePremiumTypePair("", "sookyo_premium").reportType).toBe("sookyoPremium");
     expect(resolvePremiumTypePair("", "vedic_premium").reportType).toBe("vedicPremium");
     expect(resolvePremiumTypePair("", "astrology_premium").reportType).toBe("westernAstrologyPremium");
+    expect(resolvePremiumTypePair("", "saju_new_year_pdf").reportType).toBe("sajuNewYear");
   });
 
   test("legacy reportType 입력도 featureType으로 역정규화", () => {
     const { resolvePremiumTypePair } = __premiumReportTestUtils;
     const mapped = resolvePremiumTypePair("westernAstrologyPremium", "");
     expect(mapped.featureType).toBe("astrology_premium");
+
+    const newYearMapped = resolvePremiumTypePair("sajuNewYear", "");
+    expect(newYearMapped.featureType).toBe("saju_new_year_pdf");
   });
 
   test("신규 별칭 입력도 정규 reportType/featureType으로 정규화", () => {
@@ -44,12 +48,19 @@ describe("Premium Report Feature Spec", () => {
     expect(getPremiumRequiredChapters("loveSecret", "compatibility")).toBe(13);
   });
 
+  test("sajuNewYear는 premium spec 기준으로 10챕터를 사용한다", () => {
+    const { getPremiumRequiredChapters } = __premiumReportTestUtils;
+
+    expect(getPremiumRequiredChapters("sajuNewYear", "default")).toBe(10);
+  });
+
   test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {
     const { getPremiumExpectedSchema } = __premiumReportTestUtils;
     const ziwei = getPremiumExpectedSchema("ziweiPremium");
     const sookyo = getPremiumExpectedSchema("sookyoPremium");
     const vedic = getPremiumExpectedSchema("vedicPremium");
     const astro = getPremiumExpectedSchema("westernAstrologyPremium");
+    const sajuNewYear = getPremiumExpectedSchema("sajuNewYear");
 
     expect(Array.isArray(ziwei.requestKeys)).toBe(true);
     expect(ziwei.requestKeys).toContain("normalizedData");
@@ -67,6 +78,22 @@ describe("Premium Report Feature Spec", () => {
     expect(Array.isArray(astro.requestKeys)).toBe(true);
     expect(astro.requiredNormalizedKeys).toContain("normalizedData.westernAstrology.chart.sunSign");
     expect(astro.requiredNormalizedKeys).toContain("normalizedData.westernAstrology.aspects");
+
+    expect(Array.isArray(sajuNewYear.requestKeys)).toBe(true);
+    expect(sajuNewYear.requiredNormalizedKeys).toContain("normalizedData.saju.pillars");
+    expect(sajuNewYear.requiredNormalizedKeys).toContain("normalizedData.saju.interpretation.yearly");
+  });
+
+  test("정규화 데이터 요약 헬퍼가 sajuNewYear 챕터 요구 스키마를 제공", () => {
+    const { getPremiumNormalizedDataSummary } = __premiumReportTestUtils;
+    const summary = getPremiumNormalizedDataSummary("sajuNewYear", {
+      input: { year: 1991, month: 7, day: 11 },
+      calculatedData: {},
+    });
+
+    expect(summary.ch1.chapterTitle).toBe("원국 기반 연간 전략 총론");
+    expect(summary.ch10.chapterTitle).toBe("최종 통합 액션 플랜");
+    expect(summary.ch9.requiredPaths).toContain("calculatedData.monthlyLuck");
   });
 
   test("정규화 데이터 요약 헬퍼가 ziwei 핵심 통계를 계산", () => {

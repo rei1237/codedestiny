@@ -25,6 +25,19 @@ const LIFE_BOOK_TITLES = [
   "최종 마스터 플랜",
 ];
 
+const SAJU_NEW_YEAR_TITLES = [
+  "원국 기반 연간 전략 총론",
+  "연간 파동과 기회 창",
+  "커리어·사업 확장 전략",
+  "재물·현금흐름 관리",
+  "관계·인맥·파트너십",
+  "건강·에너지 밸런스",
+  "학습·성장·전환 기회",
+  "리스크 관리와 손실 방어",
+  "12개월 월별 실행 로드맵",
+  "최종 통합 액션 플랜",
+];
+
 const LOVE_SOLO_TITLES = [
   "본연의 연애 자아",
   "치명적 매력과 페로몬",
@@ -151,6 +164,18 @@ const ASTRO_COMPATIBILITY_TITLES = [
 ];
 
 export const PREMIUM_PDF_SPECS = {
+  saju_new_year_pdf: {
+    title: "사주 신년운세 PDF",
+    featureType: "saju_new_year_pdf",
+    minTotalChars: 30000,
+    targetTotalChars: 36000,
+    chapters: SAJU_NEW_YEAR_TITLES.map((title, idx) => {
+      const chapter = idx + 1;
+      const minChars = chapter === 9 ? 3200 : 2600;
+      return makeChapter(`newyear_ch_${String(chapter).padStart(2, "0")}`, title, minChars, minChars + 500);
+    }),
+    legacyReportType: "sajuNewYear",
+  },
   saju_life_book: {
     title: "사주 인생의 책",
     featureType: "saju_life_book",
@@ -222,6 +247,7 @@ export const PREMIUM_PDF_SPECS = {
 };
 
 export const FEATURE_TYPE_TO_REPORT_TYPE = {
+  saju_new_year_pdf: "sajuNewYear",
   saju_life_book: "lifeBook",
   saju_love_secret: "loveSecret",
   jamidusu_premium: "ziweiPremium",

@@ -1,11 +1,21 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
+import { getOptionalUserFromRequest } from "../lib/auth.js";
 import {
   assertFeatureEnabled,
   getBillingFeaturePricing,
   listBillingFeatures,
 } from "../lib/billing-feature-registry.js";
+
+const ACCESS_DECISION_REASONS = Object.freeze({
+  FREE: "free",
+  AUTH_REQUIRED: "auth_required",
+  ALREADY_UNLOCKED: "already_unlocked",
+  SUBSCRIPTION_ACTIVE: "subscription_active",
+  INSUFFICIENT_COINS: "insufficient_coins",
+  REQUIRES_PURCHASE: "requires_purchase",
+});
 
 function toMessage(payload, fallbackMessage) {
   if (!payload || typeof payload !== "object") return fallbackMessage;
@@ -28,9 +38,10 @@ function success(data, message = "요청이 성공했습니다.") {
   return json({ ok: true, data, message });
 }
 
-function failure(status, code, message, debugMessage) {
+function failure(status, code, message, debugMessage, extras = {}) {
   return json({
     ok: false,
+    ...extras,
     error: {
       code,
       message,
@@ -115,6 +126,15 @@ function mapCoinGateFailure(responseStatus, payload) {
   const rawCode = String(toCode(payload) || "").trim().toUpperCase();
   const message = toMessage(payload, "코인 결제 처리 중 오류가 발생했습니다.");
 
+  if (rawCode === "SERVER_CONFIG_ERROR") {
+    return {
+      status: 500,
+      code: "SERVER_CONFIG_ERROR",
+      message: "서버 설정을 확인해 주세요.",
+      debugMessage: message,
+    };
+  }
+
   if (
     responseStatus === 401
     || responseStatus === 403
@@ -159,6 +179,14 @@ function mapCoinGateFailure(responseStatus, payload) {
   }
 
   if (responseStatus >= 500) {
+    if (rawCode === "SERVICE_UNAVAILABLE") {
+      return {
+        status: 500,
+        code: "SERVER_CONFIG_ERROR",
+        message: "서버 설정을 확인해 주세요.",
+        debugMessage: message,
+      };
+    }
     return {
       status: 500,
       code: "SERVER_ERROR",
@@ -173,6 +201,141 @@ function mapCoinGateFailure(responseStatus, payload) {
     message: "코인 결제 요청이 거부되었습니다.",
     debugMessage: message,
   };
+}
+
+function buildAccessDecision({
+  pricing,
+  authenticated,
+  balance,
+  unlockMap,
+  subscription,
+} = {}) {
+  const cost = Number(pricing?.cost || 0);
+  const featureKey = String(pricing?.featureKey || "").trim();
+  const currentBalance = Number(balance || 0);
+  const unlocked = Boolean(featureKey && unlockMap && typeof unlockMap === "object" && unlockMap[featureKey]);
+  const subActive = Boolean(subscription?.isActive);
+  const subFreeLimit = Number(subscription?.freeLimit || 0);
+
+  if (!Number.isFinite(cost) || cost <= 0) {
+    return {
+      allowed: true,
+      reason: ACCESS_DECISION_REASONS.FREE,
+      requiredCoins: 0,
+    };
+  }
+
+  if (!authenticated) {
+    return {
+      allowed: false,
+      reason: ACCESS_DECISION_REASONS.AUTH_REQUIRED,
+      requiredCoins: cost,
+    };
+  }
+
+  if (unlocked) {
+    return {
+      allowed: true,
+      reason: ACCESS_DECISION_REASONS.ALREADY_UNLOCKED,
+      requiredCoins: cost,
+    };
+  }
+
+  if (subActive && Number.isFinite(subFreeLimit) && cost <= subFreeLimit) {
+    return {
+      allowed: true,
+      reason: ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE,
+      requiredCoins: cost,
+    };
+  }
+
+  if (!Number.isFinite(currentBalance) || currentBalance < cost) {
+    return {
+      allowed: false,
+      reason: ACCESS_DECISION_REASONS.INSUFFICIENT_COINS,
+      requiredCoins: cost,
+    };
+  }
+
+  return {
+    allowed: false,
+    reason: ACCESS_DECISION_REASONS.REQUIRES_PURCHASE,
+    requiredCoins: cost,
+  };
+}
+
+async function requireBillingAuth(request, env, pricing = {}) {
+  const cost = Number(pricing?.cost || 0);
+  const featureKey = String(pricing?.featureKey || "").trim();
+  if (Number.isFinite(cost) && cost <= 0 && !featureKey) {
+    return { ok: true, auth: null };
+  }
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (auth) {
+    return { ok: true, auth };
+  }
+
+  return {
+    ok: false,
+    response: failure(401, "AUTH_REQUIRED", "로그인이 필요합니다."),
+  };
+}
+
+function resolvePricingFromBody(body = {}) {
+  return getBillingFeaturePricing({
+    categoryKey: body?.categoryKey,
+    subFeatureKey: body?.subFeatureKey,
+    featureKey: body?.featureKey,
+    reason: body?.reason,
+  });
+}
+
+async function processCoinGateFromPricing(request, env, body, pricingResult) {
+  const authCheck = await requireBillingAuth(request, env, pricingResult?.pricing || {});
+  if (!authCheck.ok) return authCheck.response;
+
+  const enabled = assertFeatureEnabled(pricingResult.pricing);
+  if (!enabled.ok) {
+    return failure(403, enabled.code || "FEATURE_DISABLED", enabled.message || "현재 이용할 수 없는 기능입니다.");
+  }
+
+  const requestId = resolveRequestId(request, body);
+  const pricing = pricingResult.pricing;
+  const forceDeductRaw = body?.forceDeduct;
+  const forceDeduct = forceDeductRaw === undefined
+    ? true
+    : (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
+
+  const delegatedBody = {
+    cost: Number(pricing.cost),
+    reason: String(pricing.reason),
+    featureKey: String(pricing.featureKey),
+    requestId,
+    forceDeduct,
+    categoryKey: pricing.categoryKey,
+    subFeatureKey: pricing.subFeatureKey,
+    payloadHash: String(body?.payloadHash || "").trim().slice(0, 120),
+  };
+
+  if (body?.productId) {
+    delegatedBody.productId = String(body.productId).trim().toLowerCase();
+  }
+
+  const { delegatedResponse, payload } = await consumeCoinWithRetry(request, env, delegatedBody);
+
+  if (!delegatedResponse.ok) {
+    const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
+    return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
+  }
+
+  const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
+  return success({
+    pricing,
+    consume: payload,
+    balance: Number.isFinite(balance) ? balance : null,
+    user: payload?.user || null,
+  }, toMessage(payload, "코인 결제가 완료되었습니다."));
 }
 
 async function handleFeatures(request) {
@@ -251,59 +414,49 @@ async function handleUnlockStatus(request, env) {
 
 async function handleCoinGate(request, env) {
   const body = await readJson(request);
-
-  const pricingResult = getBillingFeaturePricing({
-    categoryKey: body?.categoryKey,
-    subFeatureKey: body?.subFeatureKey,
-    featureKey: body?.featureKey,
-    reason: body?.reason,
-  });
+  const pricingResult = resolvePricingFromBody(body);
 
   if (!pricingResult.ok) {
     return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
-  const enabled = assertFeatureEnabled(pricingResult.pricing);
-  if (!enabled.ok) {
-    return failure(403, enabled.code || "FEATURE_DISABLED", enabled.message || "현재 이용할 수 없는 기능입니다.");
+  return processCoinGateFromPricing(request, env, body, pricingResult);
+}
+
+async function handleLegacyPurchaseOrCharge(request, env) {
+  const body = await readJson(request);
+  const pricingResult = resolvePricingFromBody(body);
+
+  if (!pricingResult.ok) {
+    return failure(
+      400,
+      "UNKNOWN_FEATURE_KEY",
+      "결제 상품 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+      undefined,
+      {
+        featureKey: String(body?.featureKey || "").trim() || undefined,
+      },
+    );
   }
 
-  const requestId = resolveRequestId(request, body);
-  const pricing = pricingResult.pricing;
-  const forceDeductRaw = body?.forceDeduct;
-  const forceDeduct = forceDeductRaw === undefined
-    ? true
-    : (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
+  return processCoinGateFromPricing(request, env, body, pricingResult);
+}
 
-  const delegatedBody = {
-    cost: Number(pricing.cost),
-    reason: String(pricing.reason),
-    featureKey: String(pricing.featureKey),
-    requestId,
-    forceDeduct,
-    categoryKey: pricing.categoryKey,
-    subFeatureKey: pricing.subFeatureKey,
-    payloadHash: String(body?.payloadHash || "").trim().slice(0, 120),
-  };
+async function handleLegacyRefund(request, env) {
+  const authCheck = await requireBillingAuth(request, env, { cost: 1 });
+  if (!authCheck.ok) return authCheck.response;
 
-  if (body?.productId) {
-    delegatedBody.productId = String(body.productId).trim().toLowerCase();
-  }
-
-  const { delegatedResponse, payload } = await consumeCoinWithRetry(request, env, delegatedBody);
+  const body = await readJson(request);
+  const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/refund", "POST", body);
+  const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+  const payload = await readPayloadSafe(delegatedResponse);
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
     return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
   }
 
-  const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
-  return success({
-    pricing,
-    consume: payload,
-    balance: Number.isFinite(balance) ? balance : null,
-    user: payload?.user || null,
-  }, toMessage(payload, "코인 결제가 완료되었습니다."));
+  return success(payload, toMessage(payload, "환불 요청이 처리되었습니다."));
 }
 
 async function delegateToPayments(request, env, targetPath, body) {
@@ -353,6 +506,8 @@ export async function handleBillingRoutes(request, env) {
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
 
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
+    if (method === "POST" && (path === "/purchase" || path === "/charge")) return await handleLegacyPurchaseOrCharge(request, env);
+    if (method === "POST" && path === "/refund") return await handleLegacyRefund(request, env);
     if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env);
 
@@ -362,3 +517,9 @@ export async function handleBillingRoutes(request, env) {
     return handleRouteError(error, { request, env, trace });
   }
 }
+
+export const __billingTestUtils = {
+  ACCESS_DECISION_REASONS,
+  buildAccessDecision,
+  requireBillingAuth,
+};

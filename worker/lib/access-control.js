@@ -2,6 +2,7 @@ import { connectDb } from "./db.js";
 import { User, PointHistory } from "./models.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
+  sajuNewYear: ["premiumDivinationPack"],
   lifeBook: ["premiumDivinationPack"],
   loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
@@ -25,6 +26,23 @@ function normalizeModeToken(requestBody = {}) {
 }
 
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
+  if (reportType === "sajuNewYear") {
+    return [
+      {
+        featureKey: "premium-saju-newyear-report",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 45,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 45,
+      },
+    ];
+  }
+
   if (reportType === "lifeBook") {
     return [
       {

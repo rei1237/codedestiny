@@ -40,6 +40,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "premium-love-secret-solo",
   "premium-love-secret-couple",
   "premium-lifebook-report",
+  "premium-saju-newyear-report",
   "premium-sibyl-dominator",
   "premium-ziwei-report",
   "premium-ziwei-report-compat",
@@ -77,6 +78,7 @@ export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "사주 궁합 분석": 50,
   "숙요점 유명인 궁합": 50,
   "숙요점 궁합 분석": 50,
+  "사주 신년운세 PDF 리포트 생성": 300,
 });
 
 export const FEATURE_KEY_REASON_COSTS = Object.freeze({
@@ -132,6 +134,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },
   "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
   "premium-lifebook-report": { cost: 500, reason: "인생의 책 생성 (13챕터)" },
+  "premium-saju-newyear-report": { cost: 300, reason: "사주 신년운세 PDF 리포트 생성" },
   "premium-sibyl-dominator": { cost: 100, reason: "시빌라 도미네이터 리포트" },
   "premium-ziwei-report": { cost: 590, reason: "자미두수 프리미엄 PDF 리포트 생성" },
   "premium-ziwei-report-compat": { cost: 690, reason: "자미두수 프리미엄 PDF 궁합 리포트 생성" },
@@ -237,6 +240,8 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   openCosmicSoulMeditation: "cosmic-soul-meditation",
   openYogaGuru: "yoga-guru-per-use",
   generateLifeBook: "premium-lifebook-report",
+  openSajuNewYearModal: "premium-saju-newyear-report",
+  generateSajuNewYear: "premium-saju-newyear-report",
   generateSibylDominatorReport: "premium-sibyl-dominator",
   openSibylDominator: "premium-sibyl-dominator",
   "sibyl-dominator": "premium-sibyl-dominator",

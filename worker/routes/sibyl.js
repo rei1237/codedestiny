@@ -27,12 +27,46 @@ const SIBYL_PREMIUM_CHAPTERS = [
   { key: "yearlyFlow", title: "CH.06 10년 위험 계수 그래프 해설", focus: "연도별 위험/기회 흐름, 확장·수비 타이밍, 10년 로드맵" },
   { key: "relationship", title: "CH.07 관계와 애정 패턴", focus: "끌리는 사람, 충돌 패턴, 연애·결혼 리스크 관리" },
   { key: "moneyCareer", title: "CH.08 재물과 직업 전략", focus: "돈 버는 방식, 손실 패턴, 직업 선택 기준, 장기 커리어" },
-  { key: "systemWarning", title: "CH.09 시스템 경고문", focus: "반복 실패 패턴, 오판 방지 규칙, 현실 행동 지침" },
-  { key: "finalMessage", title: "CH.10 최종 시빌라 메시지", focus: "사주 구조 기반 최종 선언문과 운명 전략 문장" },
+  { key: "systemWarning", title: "CH.09 시스템 리스크 가이드", focus: "반복 실패 패턴, 오판 방지 규칙, 현실 행동 지침" },
+  { key: "finalMessage", title: "CH.10 최종 실행 가이드", focus: "사주 구조 기반 최종 선언문과 운명 전략 문장" },
 ];
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+const STEM_TO_ELEMENT = Object.freeze({
+  갑: "wood",
+  을: "wood",
+  甲: "wood",
+  乙: "wood",
+  병: "fire",
+  정: "fire",
+  丙: "fire",
+  丁: "fire",
+  무: "earth",
+  기: "earth",
+  戊: "earth",
+  己: "earth",
+  경: "metal",
+  신: "metal",
+  庚: "metal",
+  辛: "metal",
+  임: "water",
+  계: "water",
+  壬: "water",
+  癸: "water",
+});
+
+function inferElementFromStem(stem) {
+  const key = clean(stem);
+  return STEM_TO_ELEMENT[key] || "";
+}
+
+function resolveSibylModeTitle(riskScore) {
+  if (riskScore >= 70) return "집중 재정비 모드";
+  if (riskScore >= 45) return "위험 제거 모드";
+  return "안정 유지 모드";
 }
 
 function normalizeLineBreaks(text) {
@@ -121,6 +155,7 @@ function normalizeCanonicalSibylData(body = {}) {
   const profileBasicSections = normalizedProfile?.basicSections || {};
   const profileReportSeed = normalizedProfile?.reportSeed || {};
   const profileDebug = normalizedProfile?.debug || {};
+  const pillars = body?.pillars && typeof body.pillars === "object" ? body.pillars : {};
 
   const input = {
     birthDate: clean(profileInput?.birthDate)
@@ -134,18 +169,23 @@ function normalizeCanonicalSibylData(body = {}) {
     calendarType: clean(profileInput?.calendarType || canonical?.input?.calendarType || "solar") || "solar",
   };
 
+  const dayMaster = clean(profileSaju?.dayMaster || sajuNode?.dayMaster || pillars?.day?.g || "");
+  const inferredDominantElement = inferElementFromStem(dayMaster);
+  const dominantElement = clean(profileSaju?.dominantElement || sajuNode?.dominantElement || sibylNode?.dominantElement || body?.dominantEl || inferredDominantElement || "wood");
+  const dominantTenGod = clean(profileSaju?.tenGods?.primary || sajuNode?.tenGodSummary?.dominantTenGod || sibylNode?.dominantTenGod || body?.dominantTenStar || "비견");
+
   const saju = {
-    yearPillar: clean(profileSaju?.yearPillar || sajuNode?.yearPillar || ((body?.pillars?.year?.g && body?.pillars?.year?.j) ? `${body.pillars.year.g}${body.pillars.year.j}` : "미상")),
-    monthPillar: clean(profileSaju?.monthPillar || sajuNode?.monthPillar || ((body?.pillars?.month?.g && body?.pillars?.month?.j) ? `${body.pillars.month.g}${body.pillars.month.j}` : "미상")),
-    dayPillar: clean(profileSaju?.dayPillar || sajuNode?.dayPillar || ((body?.pillars?.day?.g && body?.pillars?.day?.j) ? `${body.pillars.day.g}${body.pillars.day.j}` : "미상")),
-    hourPillar: clean(profileSaju?.hourPillar || sajuNode?.hourPillar || ((body?.pillars?.hour?.g && body?.pillars?.hour?.j) ? `${body.pillars.hour.g}${body.pillars.hour.j}` : "미상")),
-    dayMaster: clean(profileSaju?.dayMaster || sajuNode?.dayMaster || body?.pillars?.day?.g || "미상"),
-    dominantElement: clean(profileSaju?.dominantElement || sajuNode?.dominantElement || sibylNode?.dominantElement || body?.dominantEl || "미상"),
+    yearPillar: clean(profileSaju?.yearPillar || sajuNode?.yearPillar || ((pillars?.year?.g && pillars?.year?.j) ? `${pillars.year.g}${pillars.year.j}` : "미상")),
+    monthPillar: clean(profileSaju?.monthPillar || sajuNode?.monthPillar || ((pillars?.month?.g && pillars?.month?.j) ? `${pillars.month.g}${pillars.month.j}` : "미상")),
+    dayPillar: clean(profileSaju?.dayPillar || sajuNode?.dayPillar || ((pillars?.day?.g && pillars?.day?.j) ? `${pillars.day.g}${pillars.day.j}` : "미상")),
+    hourPillar: clean(profileSaju?.hourPillar || sajuNode?.hourPillar || ((pillars?.hour?.g && pillars?.hour?.j) ? `${pillars.hour.g}${pillars.hour.j}` : "미상")),
+    dayMaster: dayMaster || "미상",
+    dominantElement,
     weakElement: clean(profileSaju?.weakElement || sajuNode?.weakElement || "미상"),
     favorableElements: Array.isArray(sajuNode?.favorableElements) ? sajuNode.favorableElements.map(clean).filter(Boolean) : [],
     unfavorableElements: Array.isArray(sajuNode?.unfavorableElements) ? sajuNode.unfavorableElements.map(clean).filter(Boolean) : [],
     tenGodSummary: {
-      dominantTenGod: clean(profileSaju?.tenGods?.primary || sajuNode?.tenGodSummary?.dominantTenGod || sibylNode?.dominantTenGod || body?.dominantTenStar || "미상"),
+      dominantTenGod,
       supportingTenGods: Array.isArray(sajuNode?.tenGodSummary?.supportingTenGods) ? sajuNode.tenGodSummary.supportingTenGods.map(clean).filter(Boolean) : [],
       lackingTenGods: Array.isArray(sajuNode?.tenGodSummary?.lackingTenGods) ? sajuNode.tenGodSummary.lackingTenGods.map(clean).filter(Boolean) : [],
     },
@@ -154,9 +194,18 @@ function normalizeCanonicalSibylData(body = {}) {
   const riskScore = clamp(toNumber(profileScores?.riskScore, sibylNode?.riskScore ?? body?.riskScore ?? 35), 5, 100);
   const aptitudeScore = clamp(toNumber(profileScores?.aptitudeScore, sibylNode?.aptitudeScore ?? body?.aptCoeff ?? 420), 80, 999);
 
+  const fallbackPillar = clean(`${pillars?.year?.g || ""}${pillars?.year?.j || ""}`) || saju.yearPillar || "갑자";
+
   const yearlySource = Array.isArray(normalizedProfile?.yearlyFlow) && normalizedProfile.yearlyFlow.length
     ? normalizedProfile.yearlyFlow
-    : (Array.isArray(canonical?.yearlyFlow) ? canonical.yearlyFlow : []);
+    : (Array.isArray(canonical?.yearlyFlow) && canonical.yearlyFlow.length
+      ? canonical.yearlyFlow
+      : Array.from({ length: 10 }, (_, index) => ({
+          year: new Date().getFullYear() + index,
+          pillar: fallbackPillar,
+          riskScore: clamp(riskScore + (index % 4) - 1, 5, 100),
+          opportunityScore: clamp(100 - riskScore - (index % 3), 5, 100),
+        })));
 
   const yearlyFlow = Array.isArray(yearlySource)
     ? yearlySource.map((item, index) => {
@@ -186,7 +235,7 @@ function normalizeCanonicalSibylData(body = {}) {
     classification: {
       mode: clean(profileClassification?.mode || sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
       riskLevel: clean(profileClassification?.riskLevel || (riskScore >= 75 ? "critical" : riskScore >= 55 ? "high" : riskScore >= 30 ? "medium" : "low")),
-      title: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
+      title: clean(profileClassification?.title || sibylNode?.modeTitle || resolveSibylModeTitle(riskScore)),
       subtitle: clean(profileClassification?.subtitle || sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
       coreMessage: clean(profileClassification?.coreMessage || sibylNode?.coreMessage || "핵심 성향은 명확하며, 리스크 관리 루틴을 먼저 고정하면 성과 변동성이 크게 줄어듭니다."),
       warningMessage: clean(profileClassification?.warningMessage || "고위험 구간은 결정을 지연하고 검증 루프를 짧게 유지하세요."),
@@ -210,12 +259,12 @@ function normalizeCanonicalSibylData(body = {}) {
     },
     sibyl: {
       mode: clean(profileClassification?.mode || sibylNode?.mode || (riskScore >= 70 ? "dd" : riskScore >= 45 ? "le" : "nle")),
-      modeTitle: clean(profileClassification?.title || sibylNode?.modeTitle || (riskScore >= 70 ? "완전 해체 모드" : riskScore >= 45 ? "위험 제거 모드" : "안정 유지 모드")),
+      modeTitle: clean(profileClassification?.title || sibylNode?.modeTitle || resolveSibylModeTitle(riskScore)),
       modeDescription: clean(profileClassification?.subtitle || sibylNode?.modeDescription || "현재 운세 구조에 맞춘 실행/수비 비율 조정이 필요합니다."),
       riskScore,
       aptitudeScore,
-      dominantTenGod: clean(profileSaju?.tenGods?.primary || sibylNode?.dominantTenGod || saju.tenGodSummary.dominantTenGod || body?.dominantTenStar || "미상"),
-      dominantElement: clean(profileSaju?.dominantElement || sibylNode?.dominantElement || saju.dominantElement || body?.dominantEl || "미상"),
+      dominantTenGod,
+      dominantElement,
       warningKeywords: Array.isArray(sibylNode?.warningKeywords) ? sibylNode.warningKeywords.map(clean).filter(Boolean) : [],
       strengthKeywords: Array.isArray(sibylNode?.strengthKeywords) ? sibylNode.strengthKeywords.map(clean).filter(Boolean) : [],
       coreMessage: clean(profileClassification?.coreMessage || sibylNode?.coreMessage || "핵심 성향은 명확하며, 리스크 관리 루틴을 먼저 고정하면 성과 변동성이 크게 줄어듭니다."),

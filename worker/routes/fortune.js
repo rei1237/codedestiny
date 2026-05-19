@@ -2159,6 +2159,49 @@ function handleGuestSubscriptionStatus() {
   }, { status: 401 });
 }
 
+function handlePigCoinPrices() {
+  const prices = Object.entries(PIG_COIN_PACKAGES).map(([packageId, pkg]) => ({
+    packageId,
+    name: String(pkg?.name || packageId),
+    coins: Number(pkg?.coins || 0),
+    bonus: Number(pkg?.bonus || 0),
+    priceKRW: Number(pkg?.priceKRW || 0),
+  }));
+
+  return json({
+    ok: true,
+    prices,
+  });
+}
+
+function handleProfileSubscriptionPlans() {
+  const plans = [
+    {
+      planId: "free",
+      tier: "free",
+      label: "Free",
+      coins: 0,
+      profileLimit: 1,
+      freeLimit: 0,
+      durationDays: 0,
+    },
+    ...Object.entries(PROFILE_SUB_PLANS).map(([tier, plan]) => ({
+      planId: `honey_${tier}`,
+      tier,
+      label: String(plan?.name || tier),
+      coins: Number(plan?.coins || 0),
+      profileLimit: Number(plan?.profileLimit || 1),
+      freeLimit: Number(plan?.lowWarnAt || 0),
+      durationDays: Number(plan?.durationDays || 30),
+    })),
+  ];
+
+  return json({
+    ok: true,
+    plans,
+  });
+}
+
 async function handleStartService(request, auth) {
   const body = await readJson(request);
   const action = String(body?.action || "membership-content").trim().slice(0, 80);
@@ -2440,7 +2483,10 @@ export async function handleFortuneRoutes(request, env) {
   try {
     if (method === "GET" && path === "/check") return await handleCheck();
 
-    if (method === "GET" && (path === "/pig-coin/balance" || path === "/pig-coin/profile-subscription/status" || path === "/pig-coin/subscription/status")) {
+    if (method === "GET" && path === "/pig-coin/prices") return handlePigCoinPrices();
+    if (method === "GET" && path === "/pig-coin/profile-subscription/plans") return handleProfileSubscriptionPlans();
+
+    if (method === "GET" && (path === "/pig-coin/balance" || path === "/pig-coin/profile-subscription/status" || path === "/pig-coin/subscription/status" || path === "/pig-coin/profile-subscription/me")) {
       const auth = await getOptionalUserFromRequest(request, env);
       if (!auth) {
         if (path === "/pig-coin/balance") return handleGuestBalance();
@@ -2455,9 +2501,10 @@ export async function handleFortuneRoutes(request, env) {
         return json({
           ok: false,
           authenticated: true,
-          code: isBalanceRoute ? "COIN_STORAGE_UNAVAILABLE" : "SUBSCRIPTION_STORAGE_UNAVAILABLE",
+          code: "SERVER_CONFIG_ERROR",
           message: isBalanceRoute ? "코인 정보를 불러올 수 없습니다." : "구독 정보를 불러올 수 없습니다.",
-        }, { status: 503 });
+          debugMessage: String(error?.message || ""),
+        }, { status: 500 });
       }
       trace.dbConnected = true;
 
