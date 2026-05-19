@@ -751,6 +751,24 @@ async function handleBalance(auth) {
   });
 }
 
+function buildDbFallbackBalance(auth, error) {
+  const points = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
+  return json({
+    ok: true,
+    authenticated: true,
+    degraded: true,
+    source: "auth_snapshot",
+    balance: points,
+    walletCreated: false,
+    code: "DB_FALLBACK",
+    message: "코인 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
+    debugMessage: String(error?.message || ""),
+    user: userPayload(auth, points, []),
+    unlockedFeatures: [],
+    unlockMap: {},
+  });
+}
+
 function handleGuestBalance() {
   return json({
     ok: false,
@@ -2202,6 +2220,43 @@ function handleGuestSubscriptionStatus() {
   }, { status: 401 });
 }
 
+function buildDbFallbackSubscriptionStatus(auth, error) {
+  const points = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
+  const policy = getPlanPolicy(null);
+  return json({
+    ok: true,
+    authenticated: true,
+    degraded: true,
+    source: "auth_snapshot",
+    subscription: {
+      isSubscribed: false,
+      plan: "free",
+      expiresAt: null,
+    },
+    isSubscribed: false,
+    plan: "free",
+    tier: "free",
+    isActive: false,
+    expiresAt: null,
+    profileLimit: 1,
+    points,
+    lowBalanceWarning: false,
+    autoRenewed: false,
+    cancelAtPeriodEnd: false,
+    cancelRequestedAt: null,
+    hasStartedPaidService: false,
+    firstServiceAccessDate: null,
+    adminMode: false,
+    simulated: false,
+    adminTestTier: null,
+    freeLimit: policy.freeLimit,
+    recommendedCoins: policy.recommendedCoins,
+    code: "DB_FALLBACK",
+    message: "구독 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
+    debugMessage: String(error?.message || ""),
+  });
+}
+
 function handlePigCoinPrices() {
   const prices = Object.entries(PIG_COIN_PACKAGES).map(([packageId, pkg]) => ({
     packageId,
@@ -2541,13 +2596,8 @@ export async function handleFortuneRoutes(request, env) {
         await connectDb(env);
       } catch (error) {
         const isBalanceRoute = path === "/pig-coin/balance";
-        return json({
-          ok: false,
-          authenticated: true,
-          code: "SERVER_CONFIG_ERROR",
-          message: isBalanceRoute ? "코인 정보를 불러올 수 없습니다." : "구독 정보를 불러올 수 없습니다.",
-          debugMessage: String(error?.message || ""),
-        }, { status: 500 });
+        if (isBalanceRoute) return buildDbFallbackBalance(auth, error);
+        return buildDbFallbackSubscriptionStatus(auth, error);
       }
       trace.dbConnected = true;
 

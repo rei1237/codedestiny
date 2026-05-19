@@ -115,10 +115,11 @@ export async function handleUserRoutes(request, env) {
       } catch (error) {
         return json({
           ok: false,
-          code: "SERVER_CONFIG_ERROR",
-          message: "서버 설정을 확인해 주세요.",
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
           debugMessage: String(error?.message || ""),
-        }, { status: 500 });
+        }, { status: 200 });
       }
       return await handleGetDestinyProfiles(auth);
     }
@@ -130,10 +131,11 @@ export async function handleUserRoutes(request, env) {
       } catch (error) {
         return json({
           ok: false,
-          code: "SERVER_CONFIG_ERROR",
-          message: "서버 설정을 확인해 주세요.",
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
           debugMessage: String(error?.message || ""),
-        }, { status: 500 });
+        }, { status: 202 });
       }
       return await handleSyncDestinyProfiles(request, auth);
     }

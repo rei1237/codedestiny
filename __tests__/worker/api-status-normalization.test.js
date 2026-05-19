@@ -146,37 +146,40 @@ describe("Worker API status normalization", () => {
     expect(payload.code).toBe("AUTH_REQUIRED");
   });
 
-  test("로그인 상태 + DB 바인딩 누락 /api/fortune/pig-coin/balance 는 500 SERVER_CONFIG_ERROR", async () => {
+  test("로그인 상태 + DB 바인딩 누락 /api/fortune/pig-coin/balance 는 200 DB_FALLBACK", async () => {
     const request = await buildAuthRequest("https://example.com/api/fortune/pig-coin/balance", "GET");
 
     const response = await handleFortuneRoutes(request, {});
     const payload = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(payload.ok).toBe(false);
-    expect(payload.code).toBe("SERVER_CONFIG_ERROR");
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.code).toBe("DB_FALLBACK");
+    expect(payload.degraded).toBe(true);
   });
 
-  test("로그인 상태 + DB 바인딩 누락 /api/user/destiny-profiles 는 500 SERVER_CONFIG_ERROR", async () => {
+  test("로그인 상태 + DB 바인딩 누락 /api/user/destiny-profiles 는 200 DB_FALLBACK", async () => {
     const request = await buildAuthRequest("https://example.com/api/user/destiny-profiles", "GET");
 
     const response = await handleUserRoutes(request, {});
     const payload = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(200);
     expect(payload.ok).toBe(false);
-    expect(payload.code).toBe("SERVER_CONFIG_ERROR");
+    expect(payload.code).toBe("DB_FALLBACK");
+    expect(payload.degraded).toBe(true);
   });
 
-  test("로그인 상태 + DB 바인딩 누락 /api/billing/balance 는 500 SERVER_CONFIG_ERROR", async () => {
+  test("로그인 상태 + DB 바인딩 누락 /api/billing/balance 는 200 응답으로 강건하게 처리", async () => {
     const request = await buildAuthRequest("https://example.com/api/billing/balance", "GET");
 
     const response = await handleBillingRoutes(request, {});
     const payload = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(payload.ok).toBe(false);
-    expect(payload.error?.code).toBe("SERVER_CONFIG_ERROR");
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.data?.raw?.code).toBe("DB_FALLBACK");
+    expect(payload.data?.raw?.degraded).toBe(true);
   });
 
   test("/api/billing/purchase 에 미등록 featureKey 요청 시 400 UNKNOWN_FEATURE_KEY", async () => {
