@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import html2canvas from "html2canvas";
 import {
   BatteryLow,
   Cloud,
@@ -16,10 +15,24 @@ import {
   Smile,
   Sparkles,
   Star,
+  Sun,
   type LucideIcon,
 } from "lucide-react";
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
+type ZodiacSign =
+  | "양자리"
+  | "황소자리"
+  | "쌍둥이자리"
+  | "게자리"
+  | "사자자리"
+  | "처녀자리"
+  | "천칭자리"
+  | "전갈자리"
+  | "사수자리"
+  | "염소자리"
+  | "물병자리"
+  | "물고기자리";
 
 type EmotionOption = {
   key: EmotionKey;
@@ -28,14 +41,50 @@ type EmotionOption = {
   tone: string;
 };
 
-type HoroscopePack = {
-  sign: string;
+type ConcernCategory = "love" | "work" | "money" | "family" | "health" | "self";
+
+type ConcernAnalysis = {
+  weights: Record<ConcernCategory, number>;
+  topCategory: ConcernCategory;
+  topKeywords: string[];
+};
+
+type MoonSnapshot = {
+  age: number;
+  illumination: number;
+  label: string;
+  scoreBias: { overall: number; love: number; money: number };
+};
+
+type AspectSnapshot = {
+  distance: number;
+  label: string;
+  summary: string;
+  scoreBias: number;
+};
+
+type DayRulerSnapshot = {
+  label: string;
+  summary: string;
+  scoreBias: { overall: number; love: number; money: number };
+};
+
+type ConsultationResult = {
+  sign: ZodiacSign;
   period: string;
   overall: number;
   love: number;
   money: number;
   luckyItem: string;
   warmMessage: string;
+  practicalTip: string;
+  actionPlan: string[];
+  concernCategoryLabel: string;
+  concernKeywords: string[];
+  todaySunSign: ZodiacSign;
+  moon: MoonSnapshot;
+  aspect: AspectSnapshot;
+  dayRuler: DayRulerSnapshot;
 };
 
 const HERO_IMAGE = "/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp";
@@ -51,62 +100,99 @@ const EMOTIONS: EmotionOption[] = [
   { key: "blue", label: "우울해", Icon: Moon, tone: "from-indigo-200 to-blue-200" },
 ];
 
-const HOROSCOPE_BY_EMOTION: Record<EmotionKey, HoroscopePack> = {
-  happy: {
-    sign: "사자자리",
-    period: "7.23 - 8.22",
-    overall: 5,
-    love: 4,
-    money: 4,
-    luckyItem: "핑크 로즈",
-    warmMessage: "웃음이 퍼지는 날, 네 온기가 주변을 환하게 밝혀줘.",
-  },
-  calm: {
-    sign: "천칭자리",
-    period: "9.24 - 10.22",
-    overall: 4,
-    love: 4,
-    money: 3,
-    luckyItem: "라벤더 티",
-    warmMessage: "고요한 마음은 오늘의 최고의 직감이야. 천천히 걸어도 괜찮아.",
-  },
-  tired: {
-    sign: "염소자리",
-    period: "12.25 - 1.19",
-    overall: 3,
-    love: 4,
-    money: 3,
-    luckyItem: "포근한 담요",
-    warmMessage: "오늘은 조금 천천히 가도 괜찮아. 숨을 고르면 다시 빛나.",
-  },
-  worried: {
-    sign: "처녀자리",
-    period: "8.23 - 9.23",
-    overall: 3,
-    love: 3,
-    money: 4,
-    luckyItem: "코랄 노트",
-    warmMessage: "불안은 네가 성실하다는 증거야. 작은 확신부터 차근차근.",
-  },
-  flutter: {
-    sign: "물고기자리",
-    period: "2.19 - 3.20",
-    overall: 5,
-    love: 5,
-    money: 3,
-    luckyItem: "진주 헤어핀",
-    warmMessage: "설렘이 좋은 방향으로 흐르는 날. 마음이 가는 쪽을 믿어봐.",
-  },
-  blue: {
-    sign: "게자리",
-    period: "6.22 - 7.22",
-    overall: 3,
-    love: 4,
-    money: 2,
-    luckyItem: "바닐라 캔들",
-    warmMessage: "괜찮지 않은 날도 괜찮아. 오늘의 너를 부드럽게 안아줄게.",
-  },
+const ZODIAC_SIGNS: Array<{ sign: ZodiacSign; period: string; mmddStart: number; mmddEnd: number }> = [
+  { sign: "양자리", period: "3.21 - 4.19", mmddStart: 321, mmddEnd: 419 },
+  { sign: "황소자리", period: "4.20 - 5.20", mmddStart: 420, mmddEnd: 520 },
+  { sign: "쌍둥이자리", period: "5.21 - 6.21", mmddStart: 521, mmddEnd: 621 },
+  { sign: "게자리", period: "6.22 - 7.22", mmddStart: 622, mmddEnd: 722 },
+  { sign: "사자자리", period: "7.23 - 8.22", mmddStart: 723, mmddEnd: 822 },
+  { sign: "처녀자리", period: "8.23 - 9.23", mmddStart: 823, mmddEnd: 923 },
+  { sign: "천칭자리", period: "9.24 - 10.22", mmddStart: 924, mmddEnd: 1022 },
+  { sign: "전갈자리", period: "10.23 - 11.22", mmddStart: 1023, mmddEnd: 1122 },
+  { sign: "사수자리", period: "11.23 - 12.24", mmddStart: 1123, mmddEnd: 1224 },
+  { sign: "염소자리", period: "12.25 - 1.19", mmddStart: 1225, mmddEnd: 119 },
+  { sign: "물병자리", period: "1.20 - 2.18", mmddStart: 120, mmddEnd: 218 },
+  { sign: "물고기자리", period: "2.19 - 3.20", mmddStart: 219, mmddEnd: 320 },
+];
+
+const ZODIAC_INDEX: Record<ZodiacSign, number> = {
+  양자리: 0,
+  황소자리: 1,
+  쌍둥이자리: 2,
+  게자리: 3,
+  사자자리: 4,
+  처녀자리: 5,
+  천칭자리: 6,
+  전갈자리: 7,
+  사수자리: 8,
+  염소자리: 9,
+  물병자리: 10,
+  물고기자리: 11,
 };
+
+const EMOTION_OPENING: Record<EmotionKey, string> = {
+  happy: "와, 오늘 네 마음빛이 분명 밝게 반짝였어.",
+  calm: "지금의 고요함, 사실 아주 큰 힘이야.",
+  tired: "오늘까지 버틴 것만으로도 이미 충분히 잘했어.",
+  worried: "걱정이 많다는 건 그만큼 진심이라는 뜻이야.",
+  flutter: "설렘은 네 안의 방향 감각이 살아 있다는 신호야.",
+  blue: "괜찮지 않은 날도 괜찮아, 연이가 옆에 있을게.",
+};
+
+const EMOTION_BIAS: Record<EmotionKey, { overall: number; love: number; money: number }> = {
+  happy: { overall: 0.7, love: 0.5, money: 0.2 },
+  calm: { overall: 0.4, love: 0.3, money: 0.3 },
+  tired: { overall: -0.4, love: 0.1, money: -0.2 },
+  worried: { overall: -0.3, love: -0.1, money: 0.1 },
+  flutter: { overall: 0.6, love: 0.8, money: 0 },
+  blue: { overall: -0.5, love: 0.2, money: -0.3 },
+};
+
+const CATEGORY_LABEL: Record<ConcernCategory, string> = {
+  love: "연애/관계",
+  work: "일/학업",
+  money: "금전/재정",
+  family: "가족",
+  health: "건강/멘탈",
+  self: "자기확신",
+};
+
+const KEYWORD_DICT: Record<ConcernCategory, string[]> = {
+  love: ["연애", "사랑", "썸", "이별", "고백", "데이트", "남친", "여친", "관계"],
+  work: ["회사", "직장", "업무", "프로젝트", "면접", "이직", "시험", "공부", "커리어"],
+  money: ["돈", "재정", "지출", "저축", "투자", "월급", "카드값", "대출", "수입"],
+  family: ["가족", "부모", "엄마", "아빠", "형제", "자매", "집안", "육아"],
+  health: ["건강", "수면", "잠", "피곤", "우울", "불안", "스트레스", "두통", "몸"],
+  self: ["미래", "진로", "선택", "결정", "자존감", "자신감", "목표", "불확실", "정체성"],
+};
+
+const LUCKY_ITEM_BY_CATEGORY: Record<ConcernCategory, string[]> = {
+  love: ["장미향 립밤", "파스텔 메모카드", "작은 향수 샘플", "하트 북마크"],
+  work: ["타이머 위젯", "라인 노트", "포스트잇 세트", "짧은 집중 플레이리스트"],
+  money: ["소비 기록 스티커", "가계부 템플릿", "지출 체크 알람", "예산 카드지갑"],
+  family: ["따뜻한 차 티백", "안부 메모", "가족 캘린더", "작은 포토키링"],
+  health: ["수면 안대", "라벤더 캔들", "호흡 타이머", "물병 리마인더"],
+  self: ["확언 노트", "한줄 일기 카드", "마음 정리 템플릿", "작은 목표 체크표"],
+};
+
+const ACTION_PLAN_BY_CATEGORY: Record<ConcernCategory, string[]> = {
+  love: ["감정 해석보다 사실 확인 질문 1개를 먼저 보내기", "답장을 재촉하기보다 내 상태를 먼저 한 문장으로 전달하기", "오늘은 관계 결론보다 감정 온도 맞추기를 우선하기"],
+  work: ["가장 큰 업무를 20분 단위로 쪼개 첫 블록만 시작하기", "완벽 기준 3개만 남기고 나머지는 내일로 미루기", "업무 종료 전 5분 회고로 내일의 첫 할 일 1개 적기"],
+  money: ["오늘 지출은 즉시 결제 전 10분 보류하기", "필요/위로 소비를 분리해 체크하기", "저녁에 1분만 써서 오늘의 소비 이유 기록하기"],
+  family: ["해결보다 안부와 공감 한 문장 먼저 보내기", "가족 대화에서 요구 1개만 명확히 말하기", "감정이 올라오면 5초 멈춘 뒤 말의 속도 낮추기"],
+  health: ["잠들기 1시간 전 화면 밝기 낮추기", "3분 복식호흡으로 긴장 신호 끊기", "오늘은 생산성보다 회복 루틴 1개 완료를 목표로 두기"],
+  self: ["내가 통제 가능한 일 1개만 적고 바로 실행하기", "비교 대신 오늘 기준의 작은 진전 1개 찾기", "결정은 정보 70%에서 일단 움직이고 보정하기"],
+};
+
+const WEEKDAY_RULER: Array<{ label: string; summary: string; scoreBias: { overall: number; love: number; money: number } }> = [
+  { label: "태양의 날", summary: "자기표현과 자신감이 올라가는 흐름", scoreBias: { overall: 0.4, love: 0.2, money: 0 } },
+  { label: "달의 날", summary: "감정 공감과 관계 회복에 유리한 흐름", scoreBias: { overall: 0.2, love: 0.5, money: -0.1 } },
+  { label: "화성의 날", summary: "행동력은 강하지만 말의 온도 조절이 중요한 흐름", scoreBias: { overall: 0.2, love: -0.1, money: 0.1 } },
+  { label: "수성의 날", summary: "대화, 학습, 실무 정리에 강한 흐름", scoreBias: { overall: 0.3, love: 0.1, money: 0.2 } },
+  { label: "목성의 날", summary: "기회 포착과 확장 판단에 힘이 실리는 흐름", scoreBias: { overall: 0.4, love: 0.1, money: 0.5 } },
+  { label: "금성의 날", summary: "관계 조율, 호감, 미적 감각이 살아나는 흐름", scoreBias: { overall: 0.3, love: 0.7, money: 0.1 } },
+  { label: "토성의 날", summary: "현실 점검과 구조화에 유리한 흐름", scoreBias: { overall: 0.1, love: -0.1, money: 0.4 } },
+];
 
 const STAR_DOTS = [
   { left: "6%", top: "12%", delay: 0.1 },
@@ -132,6 +218,343 @@ const STAR_DOTS = [
 
 const SPRITE_FRAMES = 6;
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function toScore(value: number) {
+  return Math.round(clamp(value, 1, 5));
+}
+
+function getSignByMonthDay(month: number, day: number): ZodiacSign {
+  const mmdd = month * 100 + day;
+  if (mmdd >= 321 && mmdd <= 419) return "양자리";
+  if (mmdd >= 420 && mmdd <= 520) return "황소자리";
+  if (mmdd >= 521 && mmdd <= 621) return "쌍둥이자리";
+  if (mmdd >= 622 && mmdd <= 722) return "게자리";
+  if (mmdd >= 723 && mmdd <= 822) return "사자자리";
+  if (mmdd >= 823 && mmdd <= 923) return "처녀자리";
+  if (mmdd >= 924 && mmdd <= 1022) return "천칭자리";
+  if (mmdd >= 1023 && mmdd <= 1122) return "전갈자리";
+  if (mmdd >= 1123 && mmdd <= 1224) return "사수자리";
+  if (mmdd >= 1225 || mmdd <= 119) return "염소자리";
+  if (mmdd >= 120 && mmdd <= 218) return "물병자리";
+  return "물고기자리";
+}
+
+function getMoonSnapshot(date: Date): MoonSnapshot {
+  const synodicMonth = 29.53058867;
+  const knownNewMoonUtc = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const nowUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12, 0, 0);
+  const daysSince = (nowUtc - knownNewMoonUtc) / 86400000;
+  const age = ((daysSince % synodicMonth) + synodicMonth) % synodicMonth;
+  const illumination = (1 - Math.cos((age / synodicMonth) * 2 * Math.PI)) / 2;
+
+  if (age < 1.85) {
+    return { age, illumination, label: "신월", scoreBias: { overall: 0.1, love: 0.1, money: 0.2 } };
+  }
+  if (age < 5.54) {
+    return { age, illumination, label: "초승달", scoreBias: { overall: 0.4, love: 0.3, money: 0.2 } };
+  }
+  if (age < 9.23) {
+    return { age, illumination, label: "상현달", scoreBias: { overall: 0.3, love: 0.2, money: 0.4 } };
+  }
+  if (age < 12.92) {
+    return { age, illumination, label: "차오르는 달", scoreBias: { overall: 0.5, love: 0.4, money: 0.3 } };
+  }
+  if (age < 16.61) {
+    return { age, illumination, label: "보름달", scoreBias: { overall: 0.2, love: 0.6, money: 0.1 } };
+  }
+  if (age < 20.3) {
+    return { age, illumination, label: "기우는 달", scoreBias: { overall: 0.1, love: 0.2, money: 0.4 } };
+  }
+  if (age < 23.99) {
+    return { age, illumination, label: "하현달", scoreBias: { overall: 0, love: -0.1, money: 0.5 } };
+  }
+  return { age, illumination, label: "그믐달", scoreBias: { overall: 0.1, love: 0, money: 0.3 } };
+}
+
+function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): AspectSnapshot {
+  const rawDistance = Math.abs(ZODIAC_INDEX[userSign] - ZODIAC_INDEX[todaySunSign]);
+  const distance = Math.min(rawDistance, 12 - rawDistance);
+
+  if (distance === 0) {
+    return {
+      distance,
+      label: "합(Conjunction)",
+      summary: "오늘 태양과 네 별자리가 같은 축에 있어 집중력이 또렷해.",
+      scoreBias: 0.8,
+    };
+  }
+  if (distance === 2) {
+    return {
+      distance,
+      label: "육합(Sextile)",
+      summary: "작은 기회가 자연스럽게 연결되는 날의 각도야.",
+      scoreBias: 0.5,
+    };
+  }
+  if (distance === 3) {
+    return {
+      distance,
+      label: "사각(Square)",
+      summary: "마찰이 있지만 방향 수정으로 성과를 만드는 각도야.",
+      scoreBias: -0.6,
+    };
+  }
+  if (distance === 4) {
+    return {
+      distance,
+      label: "삼합(Trine)",
+      summary: "흐름이 부드럽게 이어지는 행운의 각도야.",
+      scoreBias: 0.9,
+    };
+  }
+  if (distance === 6) {
+    return {
+      distance,
+      label: "대립(Opposition)",
+      summary: "상대 시선을 통해 균형을 회복하는 조율 각도야.",
+      scoreBias: -0.7,
+    };
+  }
+  return {
+    distance,
+    label: "중립 각도",
+    summary: "큰 충돌 없이 루틴을 안정화하기 좋은 각도야.",
+    scoreBias: 0.1,
+  };
+}
+
+function extractConcernAnalysis(concernText: string): ConcernAnalysis {
+  const text = concernText.trim().toLowerCase();
+  const weights: Record<ConcernCategory, number> = {
+    love: 0,
+    work: 0,
+    money: 0,
+    family: 0,
+    health: 0,
+    self: 0,
+  };
+  const hitSet = new Set<string>();
+
+  if (!text) {
+    return { weights: { ...weights, self: 1 }, topCategory: "self", topKeywords: [] };
+  }
+
+  (Object.keys(KEYWORD_DICT) as ConcernCategory[]).forEach((category) => {
+    KEYWORD_DICT[category].forEach((keyword) => {
+      if (text.includes(keyword)) {
+        weights[category] += category === "health" ? 1.2 : 1;
+        hitSet.add(keyword);
+      }
+    });
+  });
+
+  const totalWeight = Object.values(weights).reduce((acc, cur) => acc + cur, 0);
+  if (totalWeight === 0) {
+    weights.self = 1;
+  }
+
+  const topCategory = (Object.keys(weights) as ConcernCategory[]).reduce((best, current) =>
+    weights[current] > weights[best] ? current : best
+  , "self");
+
+  return {
+    weights,
+    topCategory,
+    topKeywords: Array.from(hitSet).slice(0, 4),
+  };
+}
+
+function pickLuckyItem(category: ConcernCategory, seed: string) {
+  const items = LUCKY_ITEM_BY_CATEGORY[category];
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return items[hash % items.length];
+}
+
+function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey, concernText: string, date: Date): ConsultationResult {
+  const todaySunSign = getSignByMonthDay(date.getMonth() + 1, date.getDate());
+  const moon = getMoonSnapshot(date);
+  const aspect = getAspectSnapshot(selectedSign, todaySunSign);
+  const dayRuler = WEEKDAY_RULER[date.getDay()] || WEEKDAY_RULER[0];
+  const concern = extractConcernAnalysis(concernText);
+  const emotionBias = EMOTION_BIAS[selectedEmotion];
+
+  const focusBias = {
+    overall: concern.weights.self * 0.2 + concern.weights.health * 0.25,
+    love: concern.weights.love * 0.55 + concern.weights.family * 0.25,
+    money: concern.weights.money * 0.65 + concern.weights.work * 0.3,
+  };
+
+  const overall = toScore(3 + emotionBias.overall + moon.scoreBias.overall + dayRuler.scoreBias.overall + aspect.scoreBias * 0.45 + focusBias.overall * 0.2);
+  const love = toScore(3 + emotionBias.love + moon.scoreBias.love + dayRuler.scoreBias.love + aspect.scoreBias * 0.4 + focusBias.love * 0.25);
+  const money = toScore(3 + emotionBias.money + moon.scoreBias.money + dayRuler.scoreBias.money + aspect.scoreBias * 0.3 + focusBias.money * 0.22);
+
+  const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
+  const concernHint = concern.topKeywords.length > 0 ? `"${concern.topKeywords.join(", ")}"` : "오늘 네 마음 상태";
+
+  const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} 고민은 지금 "작게 쪼개서 실행"할수록 정확도가 올라가. 오늘은 첫 행동 1개만 실행해도 흐름이 바뀌어.`;
+
+  const warmMessage = [
+    EMOTION_OPENING[selectedEmotion],
+    `지금 하늘은 ${todaySunSign} 태양, ${moon.label}, 그리고 ${dayRuler.label} 흐름이 겹쳐 있어.`,
+    `${aspect.summary} 그래서 ${concernHint}를 다룰 때 감정 해석보다 사실 확인이 더 중요해.`,
+    practicalTip,
+  ].join(" ");
+
+  const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
+
+  return {
+    sign: selectedSign,
+    period: signInfo.period,
+    overall,
+    love,
+    money,
+    luckyItem,
+    warmMessage,
+    practicalTip,
+    actionPlan: ACTION_PLAN_BY_CATEGORY[concern.topCategory],
+    concernCategoryLabel: CATEGORY_LABEL[concern.topCategory],
+    concernKeywords: concern.topKeywords,
+    todaySunSign,
+    moon,
+    aspect,
+    dayRuler,
+  };
+}
+
+function escapeXml(text: string) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function wrapByLength(input: string, maxLen: number) {
+  const words = String(input).trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+
+  words.forEach((word) => {
+    if ((current + " " + word).trim().length <= maxLen) {
+      current = (current + " " + word).trim();
+      return;
+    }
+    if (current) lines.push(current);
+    current = word;
+  });
+
+  if (current) lines.push(current);
+  if (lines.length === 0) lines.push(input.trim());
+  return lines.slice(0, 4);
+}
+
+function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: ConsultationResult) {
+  const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+  const messageLines = wrapByLength(consultation.warmMessage, 28).map((line, index) => {
+    const y = 650 + index * 54;
+    return `<text x="86" y="${y}" fill="#4b5563" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
+  });
+
+  const keywordLine = consultation.concernKeywords.length > 0
+    ? `키워드: ${consultation.concernKeywords.join(", ")}`
+    : `키워드: 감정 중심 리딩`;
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="연이의 마음 카드 SVG">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fde7f3"/>
+      <stop offset="52%" stop-color="#f8e8ff"/>
+      <stop offset="100%" stop-color="#fff2df"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#f9a8d4" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1350" fill="url(#bg)" rx="48"/>
+  <circle cx="940" cy="120" r="120" fill="#ffffff" fill-opacity="0.35"/>
+  <circle cx="120" cy="1240" r="140" fill="#fff7d6" fill-opacity="0.62"/>
+
+  <g filter="url(#soft)">
+    <rect x="54" y="54" width="972" height="1242" rx="40" fill="#ffffff" fill-opacity="0.84"/>
+  </g>
+
+  <rect x="86" y="92" width="300" height="56" rx="28" fill="#ffffff"/>
+  <text x="122" y="128" fill="#ec4899" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">YEON HEART CARD</text>
+
+  <text x="86" y="222" fill="#f43f5e" font-size="68" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">연이의 마음 별자리</text>
+  <text x="86" y="278" fill="#6b7280" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(emotionLabel)} 감정 리딩</text>
+
+  <rect x="86" y="332" width="908" height="208" rx="28" fill="#fff7fb" stroke="#fbcfe8"/>
+  <text x="124" y="390" fill="#db2777" font-size="34" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 점성술 근거</text>
+  <text x="124" y="438" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">태양: ${escapeXml(consultation.todaySunSign)} · 달: ${escapeXml(consultation.moon.label)}</text>
+  <text x="124" y="482" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">각도: ${escapeXml(consultation.aspect.label)} · 요일 행성: ${escapeXml(consultation.dayRuler.label)}</text>
+
+  <rect x="86" y="584" width="908" height="396" rx="28" fill="#ffffff" stroke="#f9a8d4"/>
+  ${messageLines.join("")}
+
+  <rect x="86" y="1012" width="908" height="92" rx="26" fill="url(#chip)"/>
+  <text x="128" y="1068" fill="#ffffff" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(keywordLine)}</text>
+
+  <rect x="86" y="1128" width="908" height="118" rx="26" fill="#fff7fb" stroke="#fbcfe8"/>
+  <text x="126" y="1182" fill="#be185d" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">행운 아이템: ${escapeXml(consultation.luckyItem)}</text>
+  <text x="126" y="1222" fill="#6b7280" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Healing Astrology</text>
+</svg>
+`.trim();
+}
+
+async function rasterizeSvgToPngBlob(svgText: string, width: number, height: number) {
+  const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  try {
+    const image = new Image();
+    image.decoding = "async";
+
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("SVG 이미지 로드 실패"));
+      image.src = url;
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    context.drawImage(image, 0, 0, width, height);
+
+    const pngBlob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/png", 1);
+    });
+
+    return pngBlob;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function RatingStars({ value }: { value: number }) {
   return (
     <div className="flex items-center gap-1" aria-label={`${value}점`}>
@@ -147,19 +570,32 @@ function RatingStars({ value }: { value: number }) {
 }
 
 export default function YeonStarHugPage() {
+  const today = useMemo(() => new Date(), []);
+  const defaultSign = useMemo(() => getSignByMonthDay(today.getMonth() + 1, today.getDate()), [today]);
+
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionKey>("calm");
-  const [spriteError, setSpriteError] = useState(false);
+  const [selectedSign, setSelectedSign] = useState<ZodiacSign>(defaultSign);
+  const [concernText, setConcernText] = useState("");
   const [heroError, setHeroError] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shareFeedback, setShareFeedback] = useState(" ");
   const [frame, setFrame] = useState(0);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [consultation, setConsultation] = useState<ConsultationResult>(() =>
+    buildConsultation(defaultSign, "calm", "", new Date())
+  );
 
-  const selectedData = HOROSCOPE_BY_EMOTION[selectedEmotion];
   const activeEmotion = useMemo(
     () => EMOTIONS.find((item) => item.key === selectedEmotion) ?? EMOTIONS[0],
     [selectedEmotion]
   );
+
+  useEffect(() => {
+    const speed = selectedEmotion === "tired" || selectedEmotion === "blue" ? 840 : 620;
+    const timer = window.setInterval(() => {
+      setFrame((prev) => (prev + 1) % SPRITE_FRAMES);
+    }, speed);
+    return () => window.clearInterval(timer);
+  }, [selectedEmotion]);
 
   const spriteStyle = useMemo<CSSProperties>(() => {
     const frameStep = SPRITE_FRAMES > 1 ? (frame / (SPRITE_FRAMES - 1)) * 100 : 0;
@@ -171,55 +607,62 @@ export default function YeonStarHugPage() {
     };
   }, [frame]);
 
+  const cardSvg = useMemo(
+    () => buildHeartCardSvg(today, activeEmotion.label, consultation),
+    [today, activeEmotion.label, consultation]
+  );
+
+  const runConsultation = () => {
+    const next = buildConsultation(selectedSign, selectedEmotion, concernText, new Date());
+    setConsultation(next);
+    setShareFeedback("연이가 고민 키워드와 오늘의 별 흐름을 반영해 상담을 업데이트했어요.");
+  };
+
   const handleShare = async () => {
-    if (!cardRef.current || isExporting) return;
+    if (isExporting) return;
 
     setIsExporting(true);
-    setShareFeedback("카드를 준비하고 있어요...");
+    setShareFeedback("SVG 마음 카드를 준비하고 있어요...");
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: Math.min(window.devicePixelRatio || 2, 2.2),
-        useCORS: true,
-      });
+      const svgBlob = new Blob([cardSvg], { type: "image/svg+xml;charset=utf-8" });
+      const svgFileName = `yeon-heart-card-${selectedSign}-${selectedEmotion}.svg`;
+      const svgFile = new File([svgBlob], svgFileName, { type: "image/svg+xml" });
 
-      const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob(resolve, "image/png", 1);
-      });
-
-      const shareText = `${activeEmotion.label} 감정의 오늘, ${selectedData.sign} 별빛으로 연이가 따뜻한 위로를 전해요.`;
-      const fileName = `yeon-heart-card-${selectedEmotion}.png`;
-
-      if (blob) {
-        const file = new File([blob], fileName, { type: "image/png" });
-
-        if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: "연이의 마음 별자리",
-            text: shareText,
-            files: [file],
-          });
-          setShareFeedback("이미지 카드 공유가 완료됐어요.");
-        } else {
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = fileName;
-          link.click();
-          URL.revokeObjectURL(link.href);
-
-          if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
-            setShareFeedback("이미지는 저장했고, 공유 문구는 클립보드에 복사했어요.");
-          } else {
-            setShareFeedback("이미지 저장이 완료됐어요.");
-          }
-        }
+      const shareText = `${activeEmotion.label} 감정 기준 ${consultation.sign} 상담 완료. ${consultation.practicalTip}`;
+      if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [svgFile] })) {
+        await navigator.share({
+          title: "연이의 마음 별자리",
+          text: shareText,
+          files: [svgFile],
+        });
+        setShareFeedback("SVG 마음 카드 공유가 완료됐어요.");
       } else {
-        setShareFeedback("이미지 변환에 실패했어요. 잠시 후 다시 시도해 주세요.");
+        const pngBlob = await rasterizeSvgToPngBlob(cardSvg, 1080, 1350);
+        if (pngBlob) {
+          const pngFile = new File([pngBlob], svgFileName.replace(".svg", ".png"), { type: "image/png" });
+          if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [pngFile] })) {
+            await navigator.share({
+              title: "연이의 마음 별자리",
+              text: shareText,
+              files: [pngFile],
+            });
+            setShareFeedback("PNG 카드 공유로 전달했어요. 원본은 SVG로 보관할 수 있어요.");
+          } else {
+            downloadBlob(svgBlob, svgFileName);
+            setShareFeedback("고화질 SVG 카드 저장 완료. 어디서나 깨지지 않게 사용할 수 있어요.");
+          }
+        } else {
+          downloadBlob(svgBlob, svgFileName);
+          setShareFeedback("고화질 SVG 카드 저장 완료.");
+        }
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
       }
     } catch {
-      setShareFeedback("공유 도중 문제가 생겼어요. 다시 눌러볼까요?");
+      setShareFeedback("공유 중 문제가 발생했어요. 다시 눌러볼까요?");
     } finally {
       setIsExporting(false);
     }
@@ -260,7 +703,7 @@ export default function YeonStarHugPage() {
               className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-sm font-semibold text-pink-500"
             >
               <Heart className="h-4 w-4 fill-pink-300 text-pink-400" />
-              오늘 하루 어땠어?
+              연이, 오늘 고민도 들어줘
             </motion.div>
 
             <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight md:text-5xl">
@@ -269,10 +712,11 @@ export default function YeonStarHugPage() {
               </span>
             </h1>
             <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-slate-600 md:text-base">
-              꽃돼지 연이가 전하는 따뜻한 별자리 위로
+              감정 + 고민 키워드 + 오늘의 점성술 신호로 상담해줄게
             </p>
             <p className="max-w-2xl text-sm text-slate-500">
-              감정을 고르고, 오늘의 별빛 흐름을 만나보세요. 한 장의 마음 카드로 저장하고 공유할 수 있어요.
+              오늘 태양 위치, 달 위상, 요일 행성 흐름을 기준으로 현실적인 한 줄 행동까지 정리해요. 스프라이트 연이와 함께
+              고화질 SVG 마음 카드로 저장/공유할 수 있어요.
             </p>
           </div>
 
@@ -299,39 +743,24 @@ export default function YeonStarHugPage() {
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="absolute -bottom-3 left-4"
             >
-              {!spriteError ? (
-                <button
-                  type="button"
-                  onClick={() => setFrame((prev) => (prev + 1) % SPRITE_FRAMES)}
-                  className="group rounded-2xl border border-pink-200/80 bg-white/80 p-2 shadow-[0_10px_28px_rgba(244,114,182,0.28)]"
-                  aria-label="연이 캐릭터 프레임 넘기기"
-                >
-                  <div
-                    className="h-20 w-20 rounded-xl bg-no-repeat"
-                    style={spriteStyle}
-                    onError={() => setSpriteError(true)}
-                  />
-                  <span className="mt-1 block text-[10px] font-semibold text-pink-500 opacity-80 group-hover:opacity-100">연이 톡!</span>
-                </button>
-              ) : (
-                <div className="rounded-2xl border border-pink-200 bg-white/85 p-3 text-pink-400">
-                  <Heart className="h-8 w-8 fill-pink-200 text-pink-400" />
-                </div>
-              )}
+              <div className="group rounded-2xl border border-pink-200/80 bg-white/80 p-2 shadow-[0_10px_28px_rgba(244,114,182,0.28)]">
+                <div className="h-20 w-20 rounded-xl bg-no-repeat" style={spriteStyle} />
+                <span className="mt-1 block text-[10px] font-semibold text-pink-500 opacity-80 group-hover:opacity-100">연이 리액션</span>
+              </div>
             </motion.div>
           </div>
         </motion.section>
 
-        <section className="grid gap-5 xl:grid-cols-4">
+        <section className="grid gap-5 xl:grid-cols-[1.15fr_1fr_1fr]">
           <motion.article
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
             className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">STEP 1</p>
-            <h2 className="text-lg font-black text-slate-700">감정 선택</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">오늘의 마음과 가장 가까운 버튼을 눌러줘.</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">입력</p>
+            <h2 className="text-lg font-black text-slate-700">감정 + 고민 상담</h2>
+            <p className="mb-4 mt-1 text-sm text-slate-500">감정을 고르고 고민을 적으면 핵심 키워드를 인식해 점성술 리딩을 생성해요.</p>
 
             <div className="grid grid-cols-3 gap-2">
               {EMOTIONS.map((emotion) => {
@@ -355,91 +784,121 @@ export default function YeonStarHugPage() {
                 );
               })}
             </div>
+
+            <label className="mt-4 block text-xs font-semibold text-slate-500">내 별자리</label>
+            <select
+              value={selectedSign}
+              onChange={(event) => setSelectedSign(event.target.value as ZodiacSign)}
+              className="mt-1 w-full rounded-xl border border-pink-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-400"
+            >
+              {ZODIAC_SIGNS.map((item) => (
+                <option key={item.sign} value={item.sign}>{`${item.sign} (${item.period})`}</option>
+              ))}
+            </select>
+
+            <label className="mt-4 block text-xs font-semibold text-slate-500">지금 고민 (키워드 인식용)</label>
+            <textarea
+              value={concernText}
+              onChange={(event) => setConcernText(event.target.value)}
+              placeholder="예: 요즘 이직 고민이 커서 불안하고, 돈도 아껴야 해서 압박이 커요"
+              className="mt-1 min-h-28 w-full resize-none rounded-xl border border-pink-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-400"
+            />
+
+            <button
+              type="button"
+              onClick={runConsultation}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_18px_rgba(251,113,133,0.36)] transition hover:brightness-105"
+            >
+              <Sparkles className="h-4 w-4" />
+              연이 상담 업데이트
+            </button>
           </motion.article>
 
           <motion.article
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.18 }}
+            transition={{ duration: 0.45, delay: 0.2 }}
             className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">STEP 2</p>
-            <h2 className="text-lg font-black text-slate-700">따뜻한 위로</h2>
-            <div className="mt-4 rounded-2xl bg-gradient-to-br from-pink-100/70 via-white to-purple-100/70 p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">분석 결과</p>
+            <h2 className="text-lg font-black text-slate-700">오늘의 점성술 상담</h2>
+
+            <div className="mt-3 rounded-2xl border border-pink-100 bg-pink-50/70 p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-pink-500 shadow-sm">
+                  <Sun className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-extrabold text-slate-700">{consultation.sign}</p>
+                  <p className="text-xs text-slate-500">{consultation.period}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-600">
+                <p className="rounded-lg bg-white/80 px-2 py-1">태양 위치: {consultation.todaySunSign}</p>
+                <p className="rounded-lg bg-white/80 px-2 py-1">달 위상: {consultation.moon.label} ({Math.round(consultation.moon.illumination * 100)}%)</p>
+                <p className="rounded-lg bg-white/80 px-2 py-1">행성 요일: {consultation.dayRuler.label}</p>
+                <p className="rounded-lg bg-white/80 px-2 py-1">별자리 각도: {consultation.aspect.label}</p>
+              </div>
+
+              <div className="mt-3 space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>전체 운세</span>
+                  <RatingStars value={consultation.overall} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>연애/관계</span>
+                  <RatingStars value={consultation.love} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>금전/현실</span>
+                  <RatingStars value={consultation.money} />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-2xl bg-gradient-to-br from-pink-100/70 via-white to-purple-100/70 p-4">
               <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-pink-400 shadow">
                 <Heart className="h-5 w-5 fill-pink-200" />
               </div>
               <AnimatePresence mode="wait">
                 <motion.p
-                  key={selectedEmotion}
+                  key={`${selectedEmotion}-${selectedSign}-${consultation.warmMessage}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.35 }}
                   className="text-sm font-semibold leading-relaxed text-slate-700"
                 >
-                  {selectedData.warmMessage}
+                  {consultation.warmMessage}
                 </motion.p>
               </AnimatePresence>
             </div>
-          </motion.article>
 
-          <motion.article
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.26 }}
-            className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
-          >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">STEP 3</p>
-            <h2 className="text-lg font-black text-slate-700">별자리 운세</h2>
-
-            <div className="mt-3 rounded-2xl border border-pink-100 bg-pink-50/70 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-pink-500 shadow-sm">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-extrabold text-slate-700">{selectedData.sign}</p>
-                  <p className="text-xs text-slate-500">{selectedData.period}</p>
-                </div>
-              </div>
-              <div className="mt-3 space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>전체 운세</span>
-                  <RatingStars value={selectedData.overall} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>연애 운세</span>
-                  <RatingStars value={selectedData.love} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>금전 운세</span>
-                  <RatingStars value={selectedData.money} />
-                </div>
-              </div>
-              <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-pink-500">
-                행운 아이템: {selectedData.luckyItem}
-              </p>
+            <div className="mt-3 rounded-xl border border-pink-100 bg-white/90 p-3">
+              <p className="text-xs font-semibold text-pink-500">핵심 포커스: {consultation.concernCategoryLabel}</p>
+              <p className="mt-1 text-xs text-slate-600">{consultation.practicalTip}</p>
+              {consultation.concernKeywords.length > 0 ? (
+                <p className="mt-2 text-xs text-slate-500">인식 키워드: {consultation.concernKeywords.join(", ")}</p>
+              ) : null}
             </div>
           </motion.article>
 
           <motion.article
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.34 }}
+            transition={{ duration: 0.45, delay: 0.3 }}
             className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">STEP 4</p>
-            <h2 className="text-lg font-black text-slate-700">마음 카드 공유</h2>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">공유 카드</p>
+            <h2 className="text-lg font-black text-slate-700">고화질 SVG 마음 카드</h2>
 
-            <div
-              ref={cardRef}
-              className="mt-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-200/60 via-white to-purple-200/60 p-4"
-            >
-              <p className="text-xs font-bold text-pink-500">YEON HEART CARD</p>
-              <p className="mt-2 text-sm font-black text-slate-700">오늘의 감정: {activeEmotion.label}</p>
-              <p className="mt-1 text-xs text-slate-600">별자리: {selectedData.sign}</p>
-              <p className="mt-3 text-sm font-semibold text-slate-700">{selectedData.warmMessage}</p>
+            <div className="mt-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-200/50 via-white to-purple-200/50 p-3">
+              <div
+                className="overflow-hidden rounded-xl border border-pink-200 bg-white"
+                aria-label="SVG 마음 카드 미리보기"
+                dangerouslySetInnerHTML={{ __html: cardSvg }}
+              />
             </div>
 
             <button
@@ -449,9 +908,19 @@ export default function YeonStarHugPage() {
               className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_18px_rgba(251,113,133,0.36)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
-              {isExporting ? "마음 카드 준비중..." : "공유하기"}
+              {isExporting ? "SVG 카드 준비중..." : "SVG 카드 공유/저장"}
             </button>
             <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
+
+            <div className="mt-3 rounded-xl border border-pink-100 bg-white p-3">
+              <p className="text-xs font-semibold text-pink-500">오늘의 실행 3단계</p>
+              <ol className="mt-2 list-inside list-decimal space-y-1 text-xs text-slate-600">
+                {consultation.actionPlan.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <p className="mt-2 text-xs font-semibold text-slate-600">행운 아이템: {consultation.luckyItem}</p>
+            </div>
           </motion.article>
         </section>
 
@@ -463,16 +932,16 @@ export default function YeonStarHugPage() {
           aria-label="기능 요약 배지"
         >
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/85 px-4 py-2 text-xs font-semibold text-pink-500 shadow-sm">
-            <Heart className="h-4 w-4" /> 감정 선택
+            <Heart className="h-4 w-4" /> 감정 + 고민 입력
           </div>
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200 bg-white/85 px-4 py-2 text-xs font-semibold text-purple-500 shadow-sm">
-            <Sparkles className="h-4 w-4" /> 별자리 운세
+            <Sparkles className="h-4 w-4" /> 실시간 키워드 인식
           </div>
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-white/85 px-4 py-2 text-xs font-semibold text-amber-500 shadow-sm">
-            <Cloud className="h-4 w-4" /> 힐링 메시지
+            <Cloud className="h-4 w-4" /> 실제 점성술 신호
           </div>
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/85 px-4 py-2 text-xs font-semibold text-rose-500 shadow-sm">
-            <Coins className="h-4 w-4" /> 공유 카드
+            <Coins className="h-4 w-4" /> SVG 카드 공유
           </div>
         </motion.nav>
       </div>
