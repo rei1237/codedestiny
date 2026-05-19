@@ -91,6 +91,9 @@ type ConsultationResult = {
   warmMessage: string;
   practicalTip: string;
   actionPlan: string[];
+  astroEvidence: string[];
+  concernCategory: ConcernCategory;
+  concernDomain: ConcernDomain;
   concernCategoryLabel: string;
   concernDomainLabel: string;
   concernKeywords: string[];
@@ -103,6 +106,11 @@ type ConsultationResult = {
 const HERO_IMAGE = "/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp";
 const SPRITE_SHEET =
   "/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp";
+const SPRITE_CELL_SIZE = 362;
+const SPRITE_GRID_COLS = 4;
+const SPRITE_GRID_ROWS = 3;
+const SPRITE_IMAGE_WIDTH = SPRITE_CELL_SIZE * SPRITE_GRID_COLS;
+const SPRITE_IMAGE_HEIGHT = SPRITE_CELL_SIZE * SPRITE_GRID_ROWS;
 
 const EMOTIONS: EmotionOption[] = [
   { key: "happy", label: "행복해", Icon: Smile, tone: "from-pink-300 to-orange-200" },
@@ -150,6 +158,21 @@ const ZODIAC_INDEX: Record<ZodiacSign, number> = {
   염소자리: 9,
   물병자리: 10,
   물고기자리: 11,
+};
+
+const ZODIAC_PROFILE: Record<ZodiacSign, { element: "불" | "흙" | "바람" | "물"; modality: "활동" | "고정" | "변동"; ruler: string }> = {
+  양자리: { element: "불", modality: "활동", ruler: "화성" },
+  황소자리: { element: "흙", modality: "고정", ruler: "금성" },
+  쌍둥이자리: { element: "바람", modality: "변동", ruler: "수성" },
+  게자리: { element: "물", modality: "활동", ruler: "달" },
+  사자자리: { element: "불", modality: "고정", ruler: "태양" },
+  처녀자리: { element: "흙", modality: "변동", ruler: "수성" },
+  천칭자리: { element: "바람", modality: "활동", ruler: "금성" },
+  전갈자리: { element: "물", modality: "고정", ruler: "명왕성/화성" },
+  사수자리: { element: "불", modality: "변동", ruler: "목성" },
+  염소자리: { element: "흙", modality: "활동", ruler: "토성" },
+  물병자리: { element: "바람", modality: "고정", ruler: "천왕성/토성" },
+  물고기자리: { element: "물", modality: "변동", ruler: "해왕성/목성" },
 };
 
 const EMOTION_OPENING: Record<EmotionKey, string> = {
@@ -235,10 +258,10 @@ const DOMAIN_TIP: Record<ConcernDomain, string> = {
 const LUCKY_ITEM_BY_CATEGORY: Record<ConcernCategory, string[]> = {
   love: ["장미향 립밤", "파스텔 메모카드", "작은 향수 샘플", "하트 북마크"],
   work: ["타이머 위젯", "라인 노트", "포스트잇 세트", "짧은 집중 플레이리스트"],
-  money: ["소비 기록 스티커", "가계부 템플릿", "지출 체크 알람", "예산 카드지갑"],
+  money: ["소비 기록 스티커", "황금 흐름 저널", "지출 체크 알람", "예산 카드지갑"],
   family: ["따뜻한 차 티백", "안부 메모", "가족 캘린더", "작은 포토키링"],
   health: ["수면 안대", "라벤더 캔들", "호흡 타이머", "물병 리마인더"],
-  self: ["확언 노트", "한줄 일기 카드", "마음 정리 템플릿", "작은 목표 체크표"],
+  self: ["확언 노트", "한줄 일기 카드", "내면 정렬 리추얼 카드", "작은 목표 체크표"],
 };
 
 const ACTION_PLAN_BY_CATEGORY: Record<ConcernCategory, string[]> = {
@@ -268,6 +291,35 @@ const EMOTION_INDEX: Record<EmotionKey, number> = {
   worried: 3,
   flutter: 4,
   blue: 5,
+};
+
+const CATEGORY_INDEX: Record<ConcernCategory, number> = {
+  love: 0,
+  work: 1,
+  money: 2,
+  family: 3,
+  health: 4,
+  self: 5,
+};
+
+const DOMAIN_INDEX: Record<ConcernDomain, number> = {
+  career: 0,
+  study: 1,
+  social: 2,
+  romance: 3,
+  familyCare: 4,
+  finance: 5,
+  wellness: 6,
+  growth: 7,
+};
+
+const SPRITE_VARIANTS_BY_EMOTION: Record<EmotionKey, number[]> = {
+  happy: [0, 2, 3, 9],
+  calm: [1, 10, 11],
+  tired: [7, 5, 4],
+  worried: [4, 5, 8],
+  flutter: [6, 9, 11],
+  blue: [7, 1, 5],
 };
 
 const WEEKDAY_RULER: Array<{ label: string; summary: string; scoreBias: { overall: number; love: number; money: number } }> = [
@@ -301,8 +353,6 @@ const STAR_DOTS = [
   { left: "71%", top: "74%", delay: 0.5 },
   { left: "86%", top: "82%", delay: 1.25 },
 ];
-
-const SPRITE_FRAMES = 6;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -505,9 +555,47 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
   };
 }
 
-function getCardSpriteFrame(sign: ZodiacSign, emotion: EmotionKey) {
-  const zodiacOffset = ZODIAC_INDEX[sign] % SPRITE_FRAMES;
-  return (EMOTION_INDEX[emotion] + zodiacOffset) % SPRITE_FRAMES;
+function getCardSpriteFrame(sign: ZodiacSign, emotion: EmotionKey, category: ConcernCategory, domain: ConcernDomain) {
+  const pool = SPRITE_VARIANTS_BY_EMOTION[emotion] ?? [0];
+  const seed =
+    ZODIAC_INDEX[sign] * 31 +
+    EMOTION_INDEX[emotion] * 17 +
+    CATEGORY_INDEX[category] * 13 +
+    DOMAIN_INDEX[domain] * 7;
+  return pool[Math.abs(seed) % pool.length];
+}
+
+function getElementRelation(
+  userElement: "불" | "흙" | "바람" | "물",
+  sunElement: "불" | "흙" | "바람" | "물"
+): { label: string; scoreBias: number; detail: string } {
+  if (userElement === sunElement) {
+    return {
+      label: "동일 원소 공명",
+      scoreBias: 0.55,
+      detail: `${userElement} 원소가 같은 축으로 공명해 의사결정의 일관성이 높아져.`,
+    };
+  }
+
+  const supportive =
+    (userElement === "불" && sunElement === "바람") ||
+    (userElement === "바람" && sunElement === "불") ||
+    (userElement === "흙" && sunElement === "물") ||
+    (userElement === "물" && sunElement === "흙");
+
+  if (supportive) {
+    return {
+      label: "상보 원소 시너지",
+      scoreBias: 0.28,
+      detail: `${userElement}·${sunElement} 조합은 실행과 감정 균형을 자연스럽게 맞춰줘.`,
+    };
+  }
+
+  return {
+    label: "긴장 원소 조율",
+    scoreBias: -0.22,
+    detail: `${userElement}·${sunElement} 조합은 속도 차가 커서 우선순위 조율이 중요해.`,
+  };
 }
 
 function pickLuckyItem(category: ConcernCategory, seed: string) {
@@ -526,6 +614,12 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const dayRuler = WEEKDAY_RULER[date.getDay()] || WEEKDAY_RULER[0];
   const concern = extractConcernAnalysis(concernText);
   const emotionBias = EMOTION_BIAS[selectedEmotion];
+  const userProfile = ZODIAC_PROFILE[selectedSign];
+  const sunProfile = ZODIAC_PROFILE[todaySunSign];
+  const elementRelation = getElementRelation(userProfile.element, sunProfile.element);
+  const moonIlluminationPct = Math.round(moon.illumination * 100);
+  const zodiacDegree = aspect.distance * 30;
+  const modalityBias = userProfile.modality === sunProfile.modality ? 0.12 : -0.05;
 
   const focusBias = {
     overall: concern.weights.self * 0.2 + concern.weights.health * 0.25,
@@ -533,20 +627,60 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     money: concern.weights.money * 0.65 + concern.weights.work * 0.3,
   };
 
-  const overall = toScore(3 + emotionBias.overall + moon.scoreBias.overall + dayRuler.scoreBias.overall + aspect.scoreBias * 0.45 + focusBias.overall * 0.2);
-  const love = toScore(3 + emotionBias.love + moon.scoreBias.love + dayRuler.scoreBias.love + aspect.scoreBias * 0.4 + focusBias.love * 0.25);
-  const money = toScore(3 + emotionBias.money + moon.scoreBias.money + dayRuler.scoreBias.money + aspect.scoreBias * 0.3 + focusBias.money * 0.22);
+  const overall = toScore(
+    3 +
+      emotionBias.overall +
+      moon.scoreBias.overall +
+      dayRuler.scoreBias.overall +
+      aspect.scoreBias * 0.45 +
+      focusBias.overall * 0.2 +
+      elementRelation.scoreBias * 0.5 +
+      modalityBias
+  );
+  const love = toScore(
+    3 +
+      emotionBias.love +
+      moon.scoreBias.love +
+      dayRuler.scoreBias.love +
+      aspect.scoreBias * 0.4 +
+      focusBias.love * 0.25 +
+      elementRelation.scoreBias * 0.35 +
+      modalityBias * 0.5
+  );
+  const money = toScore(
+    3 +
+      emotionBias.money +
+      moon.scoreBias.money +
+      dayRuler.scoreBias.money +
+      aspect.scoreBias * 0.3 +
+      focusBias.money * 0.22 +
+      elementRelation.scoreBias * 0.25 +
+      modalityBias * 0.35
+  );
 
   const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
   const concernHint = concern.topKeywords.length > 0 ? concern.topKeywords.join(", ") : "오늘 네 마음 상태";
 
   const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
+  const astroEvidence = [
+    `태양 위치: ${todaySunSign} (${sunProfile.element} 원소 · ${sunProfile.modality} 성질 · 주관 ${sunProfile.ruler})`,
+    `당신 별자리: ${selectedSign} (${userProfile.element} 원소)와 태양 관계는 ${elementRelation.label}`,
+    `달 위상: ${moon.label} (월령 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}%)`,
+    `별자리 각도: ${aspect.label} (${zodiacDegree}°)`,
+    `요일 행성: ${dayRuler.label} - ${dayRuler.summary}`,
+    `주요 키워드 포착: ${concernHint}`,
+  ];
+
   const warmMessage = [
     `사랑하는 ${EMOTION_LABEL[selectedEmotion]}의 마음을 가진 너에게,`,
-    `${EMOTION_OPENING[selectedEmotion]} 지금 하늘은 ${todaySunSign} 태양과 ${moon.label}, ${dayRuler.label} 흐름이 겹쳐 있어.`,
-    `${aspect.summary} 특히 ${DOMAIN_LABEL[concern.topDomain]} 주제에서 "${concernHint}" 같은 키워드가 강하게 보였어.`,
-    `오늘은 감정 해석보다 사실 확인을 먼저 해보자. ${practicalTip}`,
+    `${EMOTION_OPENING[selectedEmotion]} 오늘의 태양은 ${todaySunSign}에 머물며 ${sunProfile.ruler}의 결을 강화하고 있어.`,
+    `너의 기본 성향인 ${userProfile.element} 원소와 오늘 태양의 ${sunProfile.element} 원소는 ${elementRelation.label} 상태야. ${elementRelation.detail}`,
+    `달은 지금 ${moon.label} 구간이고, 월령은 ${moon.age.toFixed(1)}일, 밝기는 ${moonIlluminationPct}%야. 이 수치는 감정 처리 속도를 보여주는 중요한 리듬 지표야.`,
+    `또한 ${aspect.label} (${zodiacDegree}°)가 형성되어 있어. ${aspect.summary}`,
+    `${dayRuler.label}의 영향으로 오늘은 "${dayRuler.summary}"가 강해. 특히 ${DOMAIN_LABEL[concern.topDomain]} 축에서 ${concernHint} 이슈가 전면에 떠올랐어.`,
+    `따라서 지금은 감정 해석보다 근거 정리와 우선순위 확정이 먼저야. ${practicalTip}`,
+    `작은 실행을 1개라도 완료하면 오늘의 별 흐름을 네 편으로 돌릴 수 있어.`,
     `너의 속도를 믿어도 괜찮아. 연이는 오늘도 네 편이야.`,
   ].join("\n\n");
 
@@ -562,6 +696,9 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     warmMessage,
     practicalTip,
     actionPlan: ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory],
+    astroEvidence,
+    concernCategory: concern.topCategory,
+    concernDomain: concern.topDomain,
     concernCategoryLabel: CATEGORY_LABEL[concern.topCategory],
     concernDomainLabel: DOMAIN_LABEL[concern.topDomain],
     concernKeywords: concern.domainKeywords.length > 0 ? concern.domainKeywords : concern.topKeywords,
@@ -607,29 +744,56 @@ function wrapByLength(input: string, maxLen: number) {
   });
 
   if (lines.length === 0) lines.push(text);
-  return lines.slice(0, 6);
+  return lines.slice(0, 8);
 }
 
 function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: ConsultationResult, spriteFrame: number) {
   const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-  const frameSize = 148;
-  const spriteX = 826 - spriteFrame * frameSize;
-  const messageLines = wrapByLength(consultation.warmMessage, 28).map((line, index) => {
-    const y = 642 + index * 48;
-    return `<text x="92" y="${y}" fill="#4b5563" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
+  const mainSize = 146;
+  const subSize = 118;
+  const mainCellX = (spriteFrame % SPRITE_GRID_COLS) * SPRITE_CELL_SIZE;
+  const mainCellY = Math.floor(spriteFrame / SPRITE_GRID_COLS) * SPRITE_CELL_SIZE;
+  const mainScale = mainSize / SPRITE_CELL_SIZE;
+  const subScale = subSize / SPRITE_CELL_SIZE;
+  const mainSpriteX = 830 - mainCellX * mainScale;
+  const mainSpriteY = 152 - mainCellY * mainScale;
+  const subSpriteX = 842 - mainCellX * subScale;
+  const subSpriteY = 1180 - mainCellY * subScale;
+
+  const evidenceLines = consultation.astroEvidence
+    .slice(0, 5)
+    .flatMap((line) => wrapByLength(line, 33))
+    .slice(0, 8)
+    .map((line, index) => {
+      const y = 424 + index * 32;
+      return `<text x="126" y="${y}" fill="#4b5563" font-size="25" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
+    });
+
+  const messageLines = wrapByLength(consultation.warmMessage, 31).map((line, index) => {
+    const y = 668 + index * 43;
+    return `<text x="96" y="${y}" fill="#4b5563" font-size="25" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
   });
 
   const keywordLine = consultation.concernKeywords.length > 0
-    ? `키워드: ${consultation.concernKeywords.join(", ")}`
-    : `키워드: 감정 중심 리딩`;
+    ? `별의 단서: ${consultation.concernKeywords.join(", ")}`
+    : `별의 단서: 감정 중심 리딩`;
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="연이의 마음 카드 SVG">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fde7f3"/>
-      <stop offset="52%" stop-color="#f8e8ff"/>
-      <stop offset="100%" stop-color="#fff2df"/>
+      <stop offset="0%" stop-color="#ffe8f5"/>
+      <stop offset="50%" stop-color="#f2e8ff"/>
+      <stop offset="100%" stop-color="#fff5de"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f9d98c"/>
+      <stop offset="45%" stop-color="#ffd8ef"/>
+      <stop offset="100%" stop-color="#f7c873"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#fff7fd" stop-opacity="0.9"/>
     </linearGradient>
     <linearGradient id="chip" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#fb7185"/>
@@ -638,52 +802,55 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#f9a8d4" flood-opacity="0.35"/>
     </filter>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#f5d0fe" flood-opacity="0.65"/>
+    </filter>
     <clipPath id="yeonMainClip">
-      <rect x="826" y="156" width="148" height="148" rx="34"/>
+      <rect x="830" y="152" width="146" height="146" rx="32"/>
     </clipPath>
     <clipPath id="yeonSubClip">
-      <rect x="838" y="1148" width="126" height="126" rx="28"/>
+      <rect x="842" y="1180" width="118" height="118" rx="26"/>
     </clipPath>
   </defs>
 
   <rect width="1080" height="1350" fill="url(#bg)" rx="48"/>
-  <circle cx="940" cy="120" r="120" fill="#ffffff" fill-opacity="0.35"/>
+  <rect x="28" y="28" width="1024" height="1294" rx="44" fill="none" stroke="url(#goldBorder)" stroke-width="3"/>
+  <circle cx="940" cy="120" r="120" fill="#ffffff" fill-opacity="0.35" filter="url(#glow)"/>
   <circle cx="120" cy="1240" r="140" fill="#fff7d6" fill-opacity="0.62"/>
 
   <g filter="url(#soft)">
-    <rect x="54" y="54" width="972" height="1242" rx="40" fill="#ffffff" fill-opacity="0.84"/>
+    <rect x="54" y="54" width="972" height="1242" rx="40" fill="url(#panel)"/>
   </g>
 
-  <rect x="86" y="92" width="300" height="56" rx="28" fill="#ffffff"/>
-  <text x="122" y="128" fill="#ec4899" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">YEON HEART CARD</text>
+  <rect x="86" y="92" width="358" height="58" rx="29" fill="#ffffff"/>
+  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">YEON CELESTIAL LETTER</text>
 
   <text x="86" y="222" fill="#f43f5e" font-size="68" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">연이의 마음 별자리</text>
   <text x="86" y="278" fill="#6b7280" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(emotionLabel)} 감정 리딩</text>
 
-  <rect x="826" y="156" width="148" height="148" rx="34" fill="#fff7fb" stroke="#f9a8d4"/>
+  <rect x="830" y="152" width="146" height="146" rx="32" fill="#fff7fb" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonMainClip)">
-    <image href="${SPRITE_SHEET}" x="${spriteX}" y="156" width="${frameSize * SPRITE_FRAMES}" height="${frameSize}" preserveAspectRatio="xMinYMin slice"/>
+    <image href="${SPRITE_SHEET}" x="${mainSpriteX}" y="${mainSpriteY}" width="${SPRITE_IMAGE_WIDTH * mainScale}" height="${SPRITE_IMAGE_HEIGHT * mainScale}" preserveAspectRatio="none"/>
   </g>
-  <text x="846" y="330" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이 프레임</text>
+  <text x="842" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 성운 인장</text>
 
-  <rect x="86" y="332" width="908" height="208" rx="28" fill="#fff7fb" stroke="#fbcfe8"/>
+  <rect x="86" y="332" width="908" height="250" rx="28" fill="#fff7fb" stroke="#fbcfe8"/>
   <text x="124" y="390" fill="#db2777" font-size="34" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 점성술 근거</text>
-  <text x="124" y="438" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">태양: ${escapeXml(consultation.todaySunSign)} · 달: ${escapeXml(consultation.moon.label)}</text>
-  <text x="124" y="482" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">각도: ${escapeXml(consultation.aspect.label)} · 요일 행성: ${escapeXml(consultation.dayRuler.label)}</text>
+  ${evidenceLines.join("")}
 
-  <rect x="86" y="584" width="908" height="396" rx="28" fill="#ffffff" stroke="#f9a8d4"/>
+  <rect x="86" y="612" width="908" height="450" rx="28" fill="#ffffff" stroke="#f9a8d4"/>
   ${messageLines.join("")}
 
-  <rect x="86" y="1012" width="908" height="92" rx="26" fill="url(#chip)"/>
-  <text x="128" y="1068" fill="#ffffff" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(keywordLine)}</text>
+  <rect x="86" y="1084" width="908" height="92" rx="26" fill="url(#chip)"/>
+  <text x="128" y="1140" fill="#ffffff" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(keywordLine)}</text>
 
-  <rect x="86" y="1128" width="908" height="118" rx="26" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="126" y="1182" fill="#be185d" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">행운 아이템: ${escapeXml(consultation.luckyItem)}</text>
-  <text x="126" y="1222" fill="#6b7280" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Healing Astrology</text>
+  <rect x="86" y="1190" width="908" height="102" rx="24" fill="#fff7fb" stroke="#fbcfe8"/>
+  <text x="126" y="1238" fill="#be185d" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(consultation.luckyItem)}</text>
+  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Celestial Counseling</text>
 
-  <rect x="838" y="1148" width="126" height="126" rx="28" fill="#ffffff" fill-opacity="0.45" stroke="#f9a8d4"/>
+  <rect x="842" y="1180" width="118" height="118" rx="26" fill="#ffffff" fill-opacity="0.5" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonSubClip)">
-    <image href="${SPRITE_SHEET}" x="${850 - spriteFrame * 126}" y="1148" width="${126 * SPRITE_FRAMES}" height="126" preserveAspectRatio="xMinYMin slice"/>
+    <image href="${SPRITE_SHEET}" x="${subSpriteX}" y="${subSpriteY}" width="${SPRITE_IMAGE_WIDTH * subScale}" height="${SPRITE_IMAGE_HEIGHT * subScale}" preserveAspectRatio="none"/>
   </g>
 </svg>
 `.trim();
@@ -765,7 +932,12 @@ export default function YeonStarHugPage() {
   const cardSvg = useMemo(
     () => {
       if (!consultation) return "";
-      return buildHeartCardSvg(today, activeEmotion.label, consultation, getCardSpriteFrame(selectedSign, selectedEmotion));
+      return buildHeartCardSvg(
+        today,
+        activeEmotion.label,
+        consultation,
+        getCardSpriteFrame(selectedSign, selectedEmotion, consultation.concernCategory, consultation.concernDomain)
+      );
     },
     [today, activeEmotion.label, consultation, selectedSign, selectedEmotion]
   );
