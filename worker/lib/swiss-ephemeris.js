@@ -295,12 +295,23 @@ function resolveEpheBaseUrl(env, options = {}) {
     || getEnv(env, "PUBLIC_EPHE_BASE_URL"),
   );
   if (fromEnv) {
-    return fromEnv.endsWith("/") ? fromEnv : `${fromEnv}/`;
+    try {
+      const parsed = new URL(fromEnv);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return fromEnv.endsWith("/") ? fromEnv : `${fromEnv}/`;
+      }
+    } catch {
+      // Ignore malformed env URL and fallback to request origin below.
+    }
   }
 
   const requestUrl = clean(options.requestUrl);
   if (requestUrl) {
-    return new URL("/ephe/", requestUrl).toString();
+    try {
+      return new URL("/ephe/", requestUrl).toString();
+    } catch {
+      throw toStatusError(500, "Invalid request URL context for Swiss ephemeris base resolution.");
+    }
   }
 
   throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");

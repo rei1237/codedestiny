@@ -663,7 +663,13 @@ function signFromDeg(value) {
 
 function getApiBaseOrigin(request, env) {
   const preferred = String(env.API_UPSTREAM_ORIGIN || "").trim();
-  if (preferred) return preferred.replace(/\/+$/, "");
+  if (preferred) {
+    try {
+      return new URL(preferred).origin;
+    } catch {
+      // Ignore malformed upstream origin and fallback to current request origin.
+    }
+  }
   return new URL(request.url).origin;
 }
 

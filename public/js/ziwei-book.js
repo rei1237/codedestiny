@@ -1210,6 +1210,15 @@
     try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
   }
 
+  function blurActiveInsideModal(modal) {
+    try {
+      var active = document.activeElement;
+      if (active && modal && modal.contains(active) && typeof active.blur === 'function') {
+        active.blur();
+      }
+    } catch (_) {}
+  }
+
   window.openZiweiBookModal = function (profileArg) {
     var modal = qs('ziweiBookModal');
     if (!modal) return;
@@ -1220,13 +1229,20 @@
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
     document.body.classList.add('lb-modal-open');
-    try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
+    try {
+      modal.setAttribute('aria-hidden', 'false');
+      var closeBtn = modal.querySelector('.lb-modal__close');
+      if (closeBtn && typeof closeBtn.focus === 'function') {
+        setTimeout(function () { try { closeBtn.focus(); } catch (_) {} }, 40);
+      }
+    } catch (_) {}
   };
 
   window.closeZiweiBookModal = function () {
     var modal = qs('ziweiBookModal');
     if (!modal) return;
     state.stopPolling = true;
+    blurActiveInsideModal(modal);
     modal.style.display = 'none';
     document.body.style.overflow = '';
     document.body.classList.remove('lb-modal-open');
