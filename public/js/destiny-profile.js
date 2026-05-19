@@ -1366,20 +1366,34 @@
         if (typeof onCancel === 'function') onCancel();
         return;
       }
+      var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
+      var chargedCoins = Number((data && data.chargedCoins) || 0);
+      var freeBySubscription = Boolean(data && data.freeBySubscription === true);
+      var transactionId = data && data.transactionId ? String(data.transactionId) : '';
+      var requestedCost = Number(cost || 0);
+      var coinGateConfirmed = Number(res.status || 0) === 200
+        && data
+        && data.ok !== false
+        && (requestedCost <= 0 || freeBySubscription || chargedCoins > 0 || transactionId);
+      if (!coinGateConfirmed) {
+        var failMsg = String((data && data.message) || '코인 결제 확인값이 부족하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
+        window.alert(failMsg);
+        if (typeof onCancel === 'function') onCancel();
+        return;
+      }
       var nb = null;
-      if (res.data && res.data.user && typeof res.data.user.points === 'number') nb = res.data.user.points;
-      else if (res.data && typeof res.data.remainingPoints === 'number') nb = res.data.remainingPoints;
+      if (data && data.user && typeof data.user.points === 'number') nb = data.user.points;
+      else if (data && typeof data.remainingPoints === 'number') nb = data.remainingPoints;
       else if (hasBalanceSnapshot) nb = Math.max(0, balance - cost);
       if (!Number.isFinite(Number(nb))) nb = _dpGetUserBalance();
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; _dpWriteAuthUser(_u3); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
-      var chargedCoins = Number((res.data && res.data.chargedCoins) || 0);
-      if (res.data && res.data.freeBySubscription === true) {
-        window.alert(String(res.data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+      if (freeBySubscription) {
+        window.alert(String(data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
       } else if (chargedCoins > 0) {
         _cdShowCoinDeductNotice(chargedCoins, nb, reason);
       }
-      cb(res.data && res.data.transactionId ? String(res.data.transactionId) : '');
+      cb(transactionId);
     })
     .catch(function(e) { window._cdCoinGatePerUseInFlight = false; window.__cdCoinGatePerUseLockAt = 0; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };

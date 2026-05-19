@@ -96,6 +96,22 @@ function normalizeAuthResultFromUser(user) {
   };
 }
 
+function logAuthError(stage, error, extras = {}) {
+  const payload = {
+    stage: String(stage || "auth"),
+    name: error?.name || "Error",
+    code: error?.code || "AUTH_ERROR",
+    message: String(error?.message || "Unknown auth error"),
+    ...(extras && typeof extras === "object" ? extras : {}),
+  };
+
+  try {
+    console.error("[worker-auth-error]", JSON.stringify(payload));
+  } catch {
+    console.error("[worker-auth-error]", payload);
+  }
+}
+
 async function verifyAccessTokenToAuth(token, env) {
   if (!token) return null;
   try {
@@ -106,7 +122,8 @@ async function verifyAccessTokenToAuth(token, env) {
     const userId = extractTokenUserId(payload);
     if (!userId) return null;
     return normalizeAuthResultFromPayload(payload, userId);
-  } catch {
+  } catch (error) {
+    logAuthError("verify-access-token", error, { hasToken: true });
     return null;
   }
 }
@@ -153,7 +170,8 @@ async function verifyRefreshSessionToAuth(request, env) {
     if (!user) return null;
 
     return normalizeAuthResultFromUser(user);
-  } catch {
+  } catch (error) {
+    logAuthError("verify-refresh-session", error, { hasRefreshToken: true });
     return null;
   }
 }
@@ -169,24 +187,32 @@ export async function requireAuth(request, env) {
 }
 
 export async function getOptionalUserFromRequest(request, env) {
-  const bearerToken = getHeaderBearerToken(request);
-  const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
-  const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
+  try {
+    const bearerToken = getHeaderBearerToken(request);
+    const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
+    const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
 
-  const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
-  if (bearerAuth) return bearerAuth;
+    const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
+    if (bearerAuth) return bearerAuth;
 
-  if (accessCookieToken && accessCookieToken !== bearerToken) {
-    const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env);
-    if (cookieAuth) return cookieAuth;
+    if (accessCookieToken && accessCookieToken !== bearerToken) {
+      const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env);
+      if (cookieAuth) return cookieAuth;
+    }
+
+    if (refreshCookieToken) {
+      const refreshAuth = await verifyRefreshSessionToAuth(request, env);
+      if (refreshAuth) return refreshAuth;
+    }
+
+    return null;
+  } catch (error) {
+    logAuthError("get-optional-user", error, {
+      hasAuthorizationHeader: Boolean(request?.headers?.get("Authorization")),
+      hasCookieHeader: Boolean(request?.headers?.get("Cookie")),
+    });
+    return null;
   }
-
-  if (refreshCookieToken) {
-    const refreshAuth = await verifyRefreshSessionToAuth(request, env);
-    if (refreshAuth) return refreshAuth;
-  }
-
-  return null;
 }
 
 export async function requireUserFromRequest(request, env) {

@@ -556,11 +556,21 @@
 
     var payload = extractCoinGatePayload(data);
     var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
+    var sourceTransactionId = String(consume.transactionId || payload.transactionId || '');
+    var chargedCoins = Number(consume.chargedCoins || payload.chargedCoins || 0);
+    var freeBySubscription = Boolean(consume.freeBySubscription || payload.freeBySubscription);
+    var coinGateConfirmed = Number(res.status || 0) === 200
+      && (!Number(policy.cost || 0) || !!sourceTransactionId || freeBySubscription || chargedCoins <= 0);
+    if (!coinGateConfirmed) {
+      window.alert('코인 결제 확인값이 부족하여 리포트 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
+      return false;
+    }
+
     state.paymentContext = {
       featureKey: String(policy.featureKey || ''),
       cost: Number(policy.cost || 0),
       requestId: String(requestId || ''),
-      sourceTransactionId: String(consume.transactionId || payload.transactionId || ''),
+      sourceTransactionId: sourceTransactionId,
       mode: String(policy.modeLabel || '')
     };
     state.paidGateKey = gateKey;

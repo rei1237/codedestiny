@@ -837,12 +837,28 @@ export default function KkulkkulManseryukMain() {
         return;
       }
 
+      const consumePayload = purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object'
+        ? purchaseResult.data.consume
+        : null;
+      const coinGateConfirmed = purchaseResult.status === 200
+        && !!consumePayload
+        && (consumePayload as Record<string, unknown>).ok !== false;
+      if (!coinGateConfirmed) {
+        const message = '코인 결제 확인에 실패하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.';
+        setPremiumGateError(message);
+        if (service === 'veda') {
+          setVedaFlowState('error');
+          setVedaFlowError(message);
+        }
+        return;
+      }
+
       const normalized: Record<string, unknown> & {
         user: Record<string, unknown> | null;
         balance: number | null | undefined;
         transactionId?: unknown;
       } = {
-        ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
+        ...(consumePayload || {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
       };

@@ -17,6 +17,31 @@ const ACCESS_DECISION_REASONS = Object.freeze({
   REQUIRES_PURCHASE: "requires_purchase",
 });
 
+function buildBillingErrorDetails(stage, error, extras = {}) {
+  return {
+    stage: String(stage || "billing-route"),
+    name: error?.name || "Error",
+    code: error?.code || "BILLING_ROUTE_ERROR",
+    message: String(error?.message || "Unknown error"),
+    ...(extras && typeof extras === "object" ? extras : {}),
+  };
+}
+
+function logBillingRouteError(stage, error, request, extras = {}) {
+  const payload = {
+    route: "billing",
+    method: request?.method || "",
+    path: request ? new URL(request.url).pathname : "",
+    ...buildBillingErrorDetails(stage, error, extras),
+  };
+
+  try {
+    console.error("[worker-billing-route-error]", JSON.stringify(payload));
+  } catch {
+    console.error("[worker-billing-route-error]", payload);
+  }
+}
+
 function toMessage(payload, fallbackMessage) {
   if (!payload || typeof payload !== "object") return fallbackMessage;
   if (typeof payload.message === "string" && payload.message.trim()) return payload.message;
@@ -38,7 +63,7 @@ function success(data, message = "요청이 성공했습니다.") {
   return json({ ok: true, data, message });
 }
 
-function failure(status, code, message, debugMessage, extras = {}) {
+function failure(status, code, message, debugMessage, extras = {}, errorDetails) {
   return json({
     ok: false,
     ...extras,
@@ -46,6 +71,7 @@ function failure(status, code, message, debugMessage, extras = {}) {
       code,
       message,
       ...(debugMessage ? { debugMessage: String(debugMessage).slice(0, 300) } : {}),
+      ...(errorDetails && typeof errorDetails === "object" ? { details: errorDetails } : {}),
     },
   }, { status });
 }
@@ -322,7 +348,26 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     delegatedBody.productId = String(body.productId).trim().toLowerCase();
   }
 
-  const { delegatedResponse, payload } = await consumeCoinWithRetry(request, env, delegatedBody);
+  let delegatedResponse = null;
+  let payload = {};
+  try {
+    const consumeResult = await consumeCoinWithRetry(request, env, delegatedBody);
+    delegatedResponse = consumeResult.delegatedResponse;
+    payload = consumeResult.payload;
+  } catch (error) {
+    logBillingRouteError("coin-gate-consume", error, request, {
+      featureKey: String(pricing?.featureKey || ""),
+      requestId,
+    });
+    return failure(
+      500,
+      "SERVER_ERROR",
+      "코인 결제 처리 중 오류가 발생했습니다.",
+      String(error?.message || ""),
+      {},
+      buildBillingErrorDetails("coin-gate-consume", error, { featureKey: String(pricing?.featureKey || "") }),
+    );
+  }
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
@@ -358,9 +403,28 @@ async function handleFeatures(request) {
 }
 
 async function handleBalance(request, env) {
-  const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/balance", "GET");
-  const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
-  const payload = await readPayloadSafe(delegatedResponse);
+  let delegatedResponse = null;
+  let payload = {};
+  try {
+    const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/balance", "GET");
+    delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+    payload = await readPayloadSafe(delegatedResponse);
+  } catch (error) {
+    logBillingRouteError("balance-delegate-fortune", error, request);
+    return success({
+      authenticated: false,
+      balance: 0,
+      user: null,
+      unlockedFeatures: [],
+      unlockMap: {},
+      degraded: true,
+      error: {
+        code: "SERVER_ERROR",
+        message: "서버 처리 중 오류가 발생했습니다.",
+        errorDetails: buildBillingErrorDetails("balance-delegate-fortune", error),
+      },
+    }, "잔액 정보를 일시적으로 불러오지 못해 기본값으로 응답합니다.");
+  }
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
@@ -471,9 +535,23 @@ async function handleLegacyRefund(request, env) {
   if (!authCheck.ok) return authCheck.response;
 
   const body = await readJson(request);
-  const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/refund", "POST", body);
-  const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
-  const payload = await readPayloadSafe(delegatedResponse);
+  let delegatedResponse = null;
+  let payload = {};
+  try {
+    const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/refund", "POST", body);
+    delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+    payload = await readPayloadSafe(delegatedResponse);
+  } catch (error) {
+    logBillingRouteError("refund-delegate-fortune", error, request);
+    return failure(
+      500,
+      "SERVER_ERROR",
+      "환불 처리 중 서버 오류가 발생했습니다.",
+      String(error?.message || ""),
+      {},
+      buildBillingErrorDetails("refund-delegate-fortune", error),
+    );
+  }
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
@@ -484,9 +562,23 @@ async function handleLegacyRefund(request, env) {
 }
 
 async function delegateToPayments(request, env, targetPath, body) {
-  const delegatedRequest = buildRoutedRequest(request, targetPath, "POST", body);
-  const delegatedResponse = await handlePaymentRoutes(delegatedRequest, env);
-  const payload = await readPayloadSafe(delegatedResponse);
+  let delegatedResponse = null;
+  let payload = {};
+  try {
+    const delegatedRequest = buildRoutedRequest(request, targetPath, "POST", body);
+    delegatedResponse = await handlePaymentRoutes(delegatedRequest, env);
+    payload = await readPayloadSafe(delegatedResponse);
+  } catch (error) {
+    logBillingRouteError("delegate-to-payments", error, request, { targetPath });
+    return failure(
+      500,
+      "SERVER_ERROR",
+      "결제 서버 처리 중 오류가 발생했습니다.",
+      String(error?.message || ""),
+      {},
+      buildBillingErrorDetails("delegate-to-payments", error, { targetPath }),
+    );
+  }
 
   if (!delegatedResponse.ok) {
     const code = delegatedResponse.status === 401 || delegatedResponse.status === 403 ? "AUTH_REQUIRED" : "SERVER_ERROR";
@@ -538,6 +630,7 @@ export async function handleBillingRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    logBillingRouteError("handle-billing-routes", error, request);
     return handleRouteError(error, { request, env, trace });
   }
 }

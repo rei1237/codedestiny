@@ -110,22 +110,55 @@ function isDevelopmentLike(env = {}) {
   return nodeEnv === "development" || nodeEnv === "dev" || nodeEnv === "local";
 }
 
+function toPublicErrorDetails(error, context = {}) {
+  const requestPath = resolveRequestPathFromContext(context);
+  const trace = context?.trace || {};
+  const requestMeta = context?.request ? getRequestMeta(context.request) : null;
+
+  return {
+    name: error?.name || "Error",
+    code: error?.code || "INTERNAL_SERVER_ERROR",
+    route: trace.route || "unknown",
+    method: trace.method || context?.request?.method || "",
+    requestPath,
+    requestId: String(requestMeta?.requestId || ""),
+  };
+}
+
 export async function handleRouteError(error, context = {}) {
   if (error instanceof HttpError) {
+    const payloadDetails = error?.payload && typeof error.payload === "object"
+      ? error.payload.errorDetails
+      : undefined;
     return json({
       ok: false,
       success: false,
       message: error.message,
       ...error.payload,
+      errorDetails: payloadDetails && typeof payloadDetails === "object"
+        ? payloadDetails
+        : toPublicErrorDetails(error, context),
     }, { status: error.status });
   }
 
   if (error?.name === "TokenExpiredError") {
-    return json({ ok: false, success: false, message: "Authentication has expired. Please sign in again.", code: "UNAUTHORIZED" }, { status: 401 });
+    return json({
+      ok: false,
+      success: false,
+      message: "Authentication has expired. Please sign in again.",
+      code: "UNAUTHORIZED",
+      errorDetails: toPublicErrorDetails(error, context),
+    }, { status: 401 });
   }
 
   if (error?.name === "JsonWebTokenError") {
-    return json({ ok: false, success: false, message: "Invalid authentication token.", code: "UNAUTHORIZED" }, { status: 401 });
+    return json({
+      ok: false,
+      success: false,
+      message: "Invalid authentication token.",
+      code: "UNAUTHORIZED",
+      errorDetails: toPublicErrorDetails(error, context),
+    }, { status: 401 });
   }
 
   const trace = context?.trace || {};
@@ -172,6 +205,12 @@ export async function handleRouteError(error, context = {}) {
       code: "SERVICE_UNAVAILABLE",
       message: (exposeMessage || isConfigError) && errorText ? errorText : "Database is temporarily unavailable.",
       requestPath: (exposeMessage || isConfigError) ? requestPath : undefined,
+      errorDetails: {
+        ...toPublicErrorDetails(error, context),
+        code: "SERVICE_UNAVAILABLE",
+        reason: isConfigError ? "CONFIG_ERROR" : "DB_UNAVAILABLE",
+        message: (exposeMessage || isConfigError) && errorText ? errorText : "Database is temporarily unavailable.",
+      },
     }, {
       status: 503,
       headers: {
@@ -186,6 +225,11 @@ export async function handleRouteError(error, context = {}) {
     code: "INTERNAL_SERVER_ERROR",
     message: (exposeMessage || isConfigError) && errorText ? errorText : "Internal server error.",
     requestPath: (exposeMessage || isConfigError) ? requestPath : undefined,
+    errorDetails: {
+      ...toPublicErrorDetails(error, context),
+      code: "INTERNAL_SERVER_ERROR",
+      message: (exposeMessage || isConfigError) && errorText ? errorText : "Internal server error.",
+    },
   }, {
     status: 500,
     headers: {

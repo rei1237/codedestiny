@@ -778,6 +778,12 @@ function buildDbFallbackBalance(auth, error) {
     code: "DB_FALLBACK",
     message: "코인 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
     debugMessage: String(error?.message || ""),
+    errorDetails: {
+      stage: "fortune-db-fallback-balance",
+      name: error?.name || "Error",
+      code: error?.code || "DB_FALLBACK",
+      message: String(error?.message || "Unknown DB error"),
+    },
     user: userPayload(auth, points, []),
     unlockedFeatures: [],
     unlockMap: {},
@@ -2316,6 +2322,12 @@ function buildDbFallbackSubscriptionStatus(auth, error) {
     code: "DB_FALLBACK",
     message: "구독 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
     debugMessage: String(error?.message || ""),
+    errorDetails: {
+      stage: "fortune-db-fallback-subscription-status",
+      name: error?.name || "Error",
+      code: error?.code || "DB_FALLBACK",
+      message: String(error?.message || "Unknown DB error"),
+    },
   });
 }
 
@@ -2755,6 +2767,16 @@ export async function handleFortuneRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    try {
+      console.error("[worker-fortune-route-error]", JSON.stringify({
+        ...trace,
+        name: error?.name || "Error",
+        code: error?.code || "FORTUNE_ROUTE_ERROR",
+        message: String(error?.message || "Unknown error"),
+      }));
+    } catch {
+      console.error("[worker-fortune-route-error]", error);
+    }
     trace.mongoQueryFailed = /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(String(error?.message || ""));
     return handleRouteError(error, { request, env, trace });
   }

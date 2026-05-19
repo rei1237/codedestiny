@@ -796,7 +796,7 @@
       return;
     }
 
-    startNewYearGeneration();
+    notify('결제 모듈 로딩이 지연되어 생성 시작을 차단했습니다. 잠시 후 다시 시도해 주세요.');
   }
 
   function buildLocalPrintableHtml() {

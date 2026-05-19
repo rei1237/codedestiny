@@ -6,6 +6,31 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 const MAX_DESTINY_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 
+function buildErrorDetails(stage, error, extras = {}) {
+  return {
+    stage: String(stage || "user-route"),
+    name: error?.name || "Error",
+    code: error?.code || "USER_ROUTE_ERROR",
+    message: String(error?.message || "Unknown error"),
+    ...(extras && typeof extras === "object" ? extras : {}),
+  };
+}
+
+function logUserRouteError(stage, error, request, extras = {}) {
+  const payload = {
+    route: "user",
+    method: request?.method || "",
+    path: request ? new URL(request.url).pathname : "",
+    ...buildErrorDetails(stage, error, extras),
+  };
+
+  try {
+    console.error("[worker-user-route-error]", JSON.stringify(payload));
+  } catch {
+    console.error("[worker-user-route-error]", payload);
+  }
+}
+
 function sanitizeProfileId(value) {
   return String(value || "").trim().slice(0, MAX_PROFILE_ID_LEN);
 }
@@ -51,9 +76,17 @@ function resolveCurrentId(rawCurrentId, profiles) {
 }
 
 async function handleGetDestinyProfiles(auth) {
-  const user = await User.findById(auth.userId)
-    .select("destinyProfiles destinyProfilesCurrentId")
-    .lean();
+  let user = null;
+  try {
+    user = await User.findById(auth.userId)
+      .select("destinyProfiles destinyProfilesCurrentId")
+      .lean();
+  } catch (error) {
+    console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("query-destiny-profiles", error, {
+      userId: String(auth?.userId || ""),
+    })));
+    throw error;
+  }
 
   if (!user) {
     return json({ ok: true, profiles: [], currentId: "" });
@@ -75,22 +108,31 @@ async function handleSyncDestinyProfiles(request, auth) {
   const profiles = sanitizeDestinyProfiles(body?.profiles || []);
   const currentId = resolveCurrentId(body?.currentId, profiles);
 
-  const updated = await User.findByIdAndUpdate(
-    auth.userId,
-    {
-      $set: {
-        destinyProfiles: profiles,
-        destinyProfilesCurrentId: currentId,
+  let updated = null;
+  try {
+    updated = await User.findByIdAndUpdate(
+      auth.userId,
+      {
+        $set: {
+          destinyProfiles: profiles,
+          destinyProfilesCurrentId: currentId,
+        },
       },
-    },
-    {
-      new: true,
-      projection: {
-        destinyProfiles: 1,
-        destinyProfilesCurrentId: 1,
+      {
+        new: true,
+        projection: {
+          destinyProfiles: 1,
+          destinyProfilesCurrentId: 1,
+        },
       },
-    },
-  ).lean();
+    ).lean();
+  } catch (error) {
+    console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("sync-destiny-profiles", error, {
+      userId: String(auth?.userId || ""),
+      profileCount: profiles.length,
+    })));
+    throw error;
+  }
 
   if (!updated) return json({ ok: false, message: "User not found." }, { status: 404 });
 
@@ -113,12 +155,16 @@ export async function handleUserRoutes(request, env) {
       try {
         await connectDb(env);
       } catch (error) {
+        logUserRouteError("connect-db-get-destiny-profiles", error, request, {
+          userId: String(auth?.userId || ""),
+        });
         return json({
           ok: false,
           degraded: true,
           code: "DB_FALLBACK",
           message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
           debugMessage: String(error?.message || ""),
+          errorDetails: buildErrorDetails("connect-db-get-destiny-profiles", error),
         }, { status: 200 });
       }
       return await handleGetDestinyProfiles(auth);
@@ -129,12 +175,16 @@ export async function handleUserRoutes(request, env) {
       try {
         await connectDb(env);
       } catch (error) {
+        logUserRouteError("connect-db-post-destiny-profiles", error, request, {
+          userId: String(auth?.userId || ""),
+        });
         return json({
           ok: false,
           degraded: true,
           code: "DB_FALLBACK",
           message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
           debugMessage: String(error?.message || ""),
+          errorDetails: buildErrorDetails("connect-db-post-destiny-profiles", error),
         }, { status: 202 });
       }
       return await handleSyncDestinyProfiles(request, auth);
@@ -143,6 +193,7 @@ export async function handleUserRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    logUserRouteError("handle-user-routes", error, request);
     return handleRouteError(error);
   }
 }
