@@ -103,6 +103,15 @@ type ConsultationResult = {
   dayRuler: DayRulerSnapshot;
 };
 
+type HeartSymbolId = "clover" | "moonStar" | "lotus" | "goldKey" | "butterfly" | "comet";
+
+type HeartSymbol = {
+  id: HeartSymbolId;
+  name: string;
+  meaning: string;
+  whisper: string;
+};
+
 const HERO_IMAGE = "/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp";
 const SPRITE_SHEET =
   "/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp";
@@ -354,8 +363,186 @@ const STAR_DOTS = [
   { left: "86%", top: "82%", delay: 1.25 },
 ];
 
+const HEART_SYMBOL_LIBRARY: Record<HeartSymbolId, HeartSymbol> = {
+  clover: {
+    id: "clover",
+    name: "네잎 클로버",
+    meaning: "작은 행운의 문이 동시에 열리는 날",
+    whisper: "지금의 선택 하나가 기대보다 크게 이어져요.",
+  },
+  moonStar: {
+    id: "moonStar",
+    name: "달과 별",
+    meaning: "감정을 다독이는 치유의 밤 기운",
+    whisper: "마음을 조용히 정리하면 답이 선명해져요.",
+  },
+  lotus: {
+    id: "lotus",
+    name: "연꽃",
+    meaning: "흔들림 속에서도 중심을 지키는 회복력",
+    whisper: "천천히 숨을 고르면 컨디션이 안정돼요.",
+  },
+  goldKey: {
+    id: "goldKey",
+    name: "황금 열쇠",
+    meaning: "막힌 흐름을 푸는 현실 해답의 신호",
+    whisper: "핵심 하나를 먼저 열면 길이 이어집니다.",
+  },
+  butterfly: {
+    id: "butterfly",
+    name: "나비",
+    meaning: "관계와 마음이 가볍게 새로워지는 변화",
+    whisper: "부드러운 한마디가 분위기를 바꿔줘요.",
+  },
+  comet: {
+    id: "comet",
+    name: "혜성",
+    meaning: "정체된 구간을 돌파하는 용기의 타이밍",
+    whisper: "망설인 일을 짧게 시작하면 속도가 붙어요.",
+  },
+};
+
+const HEART_SYMBOL_BY_CATEGORY: Record<ConcernCategory, HeartSymbolId> = {
+  love: "butterfly",
+  work: "goldKey",
+  money: "clover",
+  family: "lotus",
+  health: "moonStar",
+  self: "comet",
+};
+
+const HEART_SYMBOL_BY_DOMAIN: Record<ConcernDomain, HeartSymbolId> = {
+  career: "goldKey",
+  study: "comet",
+  social: "butterfly",
+  romance: "butterfly",
+  familyCare: "lotus",
+  finance: "clover",
+  wellness: "moonStar",
+  growth: "comet",
+};
+
+const HEART_SYMBOL_BY_EMOTION: Record<EmotionKey, HeartSymbolId> = {
+  happy: "clover",
+  calm: "moonStar",
+  tired: "lotus",
+  worried: "moonStar",
+  flutter: "butterfly",
+  blue: "lotus",
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function hashText(input: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function pickHeartSymbols(consultation: ConsultationResult, emotionKey: EmotionKey): HeartSymbol[] {
+  const selected: HeartSymbolId[] = [];
+  const push = (id: HeartSymbolId) => {
+    if (!selected.includes(id)) selected.push(id);
+  };
+
+  push(HEART_SYMBOL_BY_CATEGORY[consultation.concernCategory]);
+  push(HEART_SYMBOL_BY_DOMAIN[consultation.concernDomain]);
+  push(HEART_SYMBOL_BY_EMOTION[emotionKey]);
+
+  const seed = `${consultation.sign}-${consultation.concernCategory}-${consultation.concernDomain}-${emotionKey}-${consultation.luckyItem}`;
+  const remaining = (Object.keys(HEART_SYMBOL_LIBRARY) as HeartSymbolId[]).sort(
+    (a, b) => hashText(`${seed}-${a}`) - hashText(`${seed}-${b}`)
+  );
+
+  remaining.forEach((id) => {
+    if (selected.length < 3) push(id);
+  });
+
+  return selected.slice(0, 3).map((id) => HEART_SYMBOL_LIBRARY[id]);
+}
+
+function buildStarPoints(cx: number, cy: number, outer: number, inner: number) {
+  const points: string[] = [];
+  for (let i = 0; i < 10; i += 1) {
+    const angle = (Math.PI / 5) * i - Math.PI / 2;
+    const radius = i % 2 === 0 ? outer : inner;
+    points.push(`${(cx + Math.cos(angle) * radius).toFixed(1)},${(cy + Math.sin(angle) * radius).toFixed(1)}`);
+  }
+  return points.join(" ");
+}
+
+function renderHeartSymbolGlyph(symbolId: HeartSymbolId, cx: number, cy: number) {
+  if (symbolId === "clover") {
+    return `
+      <g filter="url(#symbolGlow)">
+        <circle cx="${cx - 22}" cy="${cy - 20}" r="19" fill="url(#symbolLeaf)"/>
+        <circle cx="${cx + 22}" cy="${cy - 20}" r="19" fill="url(#symbolLeaf)"/>
+        <circle cx="${cx - 22}" cy="${cy + 20}" r="19" fill="url(#symbolLeaf)"/>
+        <circle cx="${cx + 22}" cy="${cy + 20}" r="19" fill="url(#symbolLeaf)"/>
+        <circle cx="${cx}" cy="${cy}" r="11" fill="#f0fff4" fill-opacity="0.9"/>
+        <path d="M ${cx + 6} ${cy + 18} C ${cx + 34} ${cy + 44}, ${cx + 20} ${cy + 66}, ${cx - 4} ${cy + 78}" stroke="#1f8f52" stroke-width="6" fill="none" stroke-linecap="round"/>
+      </g>
+    `;
+  }
+
+  if (symbolId === "moonStar") {
+    return `
+      <g filter="url(#symbolGlow)">
+        <circle cx="${cx - 6}" cy="${cy}" r="38" fill="url(#symbolMoon)"/>
+        <circle cx="${cx + 10}" cy="${cy - 8}" r="33" fill="#fff8ff"/>
+        <polygon points="${buildStarPoints(cx + 34, cy - 26, 14, 6)}" fill="url(#symbolStar)"/>
+      </g>
+    `;
+  }
+
+  if (symbolId === "lotus") {
+    return `
+      <g filter="url(#symbolGlow)">
+        <ellipse cx="${cx}" cy="${cy + 22}" rx="30" ry="18" fill="#dbeafe" fill-opacity="0.75"/>
+        <path d="M ${cx} ${cy - 38} C ${cx + 20} ${cy - 20}, ${cx + 18} ${cy + 10}, ${cx} ${cy + 18} C ${cx - 18} ${cy + 10}, ${cx - 20} ${cy - 20}, ${cx} ${cy - 38} Z" fill="url(#symbolLotus)"/>
+        <path d="M ${cx - 28} ${cy - 20} C ${cx - 8} ${cy - 10}, ${cx - 5} ${cy + 12}, ${cx - 20} ${cy + 20} C ${cx - 36} ${cy + 10}, ${cx - 40} ${cy - 8}, ${cx - 28} ${cy - 20} Z" fill="url(#symbolLotus)"/>
+        <path d="M ${cx + 28} ${cy - 20} C ${cx + 8} ${cy - 10}, ${cx + 5} ${cy + 12}, ${cx + 20} ${cy + 20} C ${cx + 36} ${cy + 10}, ${cx + 40} ${cy - 8}, ${cx + 28} ${cy - 20} Z" fill="url(#symbolLotus)"/>
+      </g>
+    `;
+  }
+
+  if (symbolId === "goldKey") {
+    return `
+      <g filter="url(#symbolGlow)">
+        <circle cx="${cx - 22}" cy="${cy - 8}" r="22" fill="none" stroke="url(#symbolKey)" stroke-width="8"/>
+        <rect x="${cx - 2}" y="${cy - 12}" width="50" height="10" rx="5" fill="url(#symbolKey)"/>
+        <rect x="${cx + 32}" y="${cy - 6}" width="12" height="18" rx="3" fill="url(#symbolKey)"/>
+        <rect x="${cx + 44}" y="${cy - 6}" width="10" height="12" rx="2" fill="url(#symbolKey)"/>
+      </g>
+    `;
+  }
+
+  if (symbolId === "butterfly") {
+    return `
+      <g filter="url(#symbolGlow)">
+        <ellipse cx="${cx - 18}" cy="${cy - 12}" rx="19" ry="16" fill="url(#symbolWing)"/>
+        <ellipse cx="${cx + 18}" cy="${cy - 12}" rx="19" ry="16" fill="url(#symbolWing)"/>
+        <ellipse cx="${cx - 16}" cy="${cy + 16}" rx="14" ry="12" fill="url(#symbolWing)"/>
+        <ellipse cx="${cx + 16}" cy="${cy + 16}" rx="14" ry="12" fill="url(#symbolWing)"/>
+        <rect x="${cx - 4}" y="${cy - 18}" width="8" height="46" rx="4" fill="#7c3aed"/>
+        <path d="M ${cx - 2} ${cy - 18} C ${cx - 12} ${cy - 36}, ${cx - 20} ${cy - 34}, ${cx - 24} ${cy - 26}" stroke="#7c3aed" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M ${cx + 2} ${cy - 18} C ${cx + 12} ${cy - 36}, ${cx + 20} ${cy - 34}, ${cx + 24} ${cy - 26}" stroke="#7c3aed" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </g>
+    `;
+  }
+
+  return `
+    <g filter="url(#symbolGlow)">
+      <polygon points="${buildStarPoints(cx - 2, cy - 6, 24, 10)}" fill="url(#symbolStar)"/>
+      <path d="M ${cx + 18} ${cy + 2} C ${cx + 50} ${cy - 14}, ${cx + 76} ${cy - 8}, ${cx + 102} ${cy + 8}" stroke="#f59e0b" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <path d="M ${cx + 14} ${cy + 18} C ${cx + 40} ${cy + 10}, ${cx + 62} ${cy + 16}, ${cx + 84} ${cy + 28}" stroke="#fde68a" stroke-width="5" stroke-linecap="round" fill="none"/>
+    </g>
+  `;
 }
 
 function toScore(value: number) {
@@ -747,7 +934,13 @@ function wrapByLength(input: string, maxLen: number) {
   return lines.slice(0, 8);
 }
 
-function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: ConsultationResult, spriteFrame: number) {
+function buildHeartCardSvg(
+  date: Date,
+  emotionKey: EmotionKey,
+  emotionLabel: string,
+  consultation: ConsultationResult,
+  spriteFrame: number
+) {
   const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
   const mainSize = 146;
   const subSize = 118;
@@ -769,9 +962,36 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
       return `<text x="126" y="${y}" fill="#4b5563" font-size="25" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
     });
 
-  const messageLines = wrapByLength(consultation.warmMessage, 31).map((line, index) => {
-    const y = 668 + index * 43;
-    return `<text x="96" y="${y}" fill="#4b5563" font-size="25" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
+  const heartSymbols = pickHeartSymbols(consultation, emotionKey);
+
+  const symbolCards = heartSymbols.map((symbol, index) => {
+    const cardX = 104 + index * 294;
+    const cardY = 666;
+    const cardCenterX = cardX + 136;
+    const cardCenterY = cardY + 74;
+    const meaningLines = wrapByLength(symbol.meaning, 14).slice(0, 2);
+    const whisperLines = wrapByLength(symbol.whisper, 14).slice(0, 2);
+
+    const meaningText = meaningLines
+      .map((line, lineIndex) => `<text x="${cardX + 26}" y="${cardY + 192 + lineIndex * 28}" fill="#4b5563" font-size="22" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`)
+      .join("");
+
+    const whisperText = whisperLines
+      .map((line, lineIndex) => `<text x="${cardX + 26}" y="${cardY + 276 + lineIndex * 28}" fill="#be185d" font-size="21" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`)
+      .join("");
+
+    return `
+      <g>
+        <rect x="${cardX}" y="${cardY}" width="272" height="366" rx="22" fill="#fff8fd" stroke="#fbcfe8"/>
+        <circle cx="${cardCenterX}" cy="${cardCenterY}" r="56" fill="#fffdf6" stroke="#fde68a"/>
+        ${renderHeartSymbolGlyph(symbol.id, cardCenterX, cardCenterY)}
+        <text x="${cardX + 26}" y="${cardY + 146}" fill="#db2777" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(symbol.name)}</text>
+        <text x="${cardX + 26}" y="${cardY + 170}" fill="#6b7280" font-size="18" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">상징 의미</text>
+        ${meaningText}
+        <text x="${cardX + 26}" y="${cardY + 250}" fill="#7e22ce" font-size="18" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">연이의 따뜻한 메시지</text>
+        ${whisperText}
+      </g>
+    `;
   });
 
   const keywordLine = consultation.concernKeywords.length > 0
@@ -799,11 +1019,38 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
       <stop offset="0%" stop-color="#fb7185"/>
       <stop offset="100%" stop-color="#f472b6"/>
     </linearGradient>
+    <linearGradient id="symbolLeaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <linearGradient id="symbolMoon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5d0fe"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="symbolLotus" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f9a8d4"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="symbolKey" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="symbolWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbcfe8"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="symbolStar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#f9a8d4" flood-opacity="0.35"/>
     </filter>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
       <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#f5d0fe" flood-opacity="0.65"/>
+    </filter>
+    <filter id="symbolGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#fda4af" flood-opacity="0.45"/>
     </filter>
     <clipPath id="yeonMainClip">
       <rect x="830" y="152" width="146" height="146" rx="32"/>
@@ -839,7 +1086,8 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
   ${evidenceLines.join("")}
 
   <rect x="86" y="612" width="908" height="450" rx="28" fill="#ffffff" stroke="#f9a8d4"/>
-  ${messageLines.join("")}
+  <text x="124" y="652" fill="#be185d" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 행운 · 힐링 상징 리딩</text>
+  ${symbolCards.join("")}
 
   <rect x="86" y="1084" width="908" height="92" rx="26" fill="url(#chip)"/>
   <text x="128" y="1140" fill="#ffffff" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(keywordLine)}</text>
@@ -921,7 +1169,7 @@ export default function YeonStarHugPage() {
   const [heroError, setHeroError] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [shareFeedback, setShareFeedback] = useState("SVG 카드로 저장하거나 공유할 수 있어요.");
+  const [shareFeedback, setShareFeedback] = useState("SVG 상징 카드로 저장하거나 공유할 수 있어요.");
   const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
 
   const activeEmotion = useMemo(
@@ -934,6 +1182,7 @@ export default function YeonStarHugPage() {
       if (!consultation) return "";
       return buildHeartCardSvg(
         today,
+        selectedEmotion,
         activeEmotion.label,
         consultation,
         getCardSpriteFrame(selectedSign, selectedEmotion, consultation.concernCategory, consultation.concernDomain)
@@ -948,7 +1197,7 @@ export default function YeonStarHugPage() {
     window.setTimeout(() => {
       const next = buildConsultation(selectedSign, selectedEmotion, concernText, new Date());
       setConsultation(next);
-      setShareFeedback("연이가 고민 키워드와 오늘의 별 흐름을 반영해 상담을 업데이트했어요.");
+      setShareFeedback("연이가 오늘의 행운 상징 리딩을 업데이트했어요.");
       setIsGenerating(false);
     }, 260);
   };
@@ -957,7 +1206,7 @@ export default function YeonStarHugPage() {
     if (isExporting || !consultation || !cardSvg) return;
 
     setIsExporting(true);
-    setShareFeedback("SVG 마음 카드를 준비하고 있어요...");
+    setShareFeedback("SVG 상징 카드를 준비하고 있어요...");
 
     try {
       const svgBlob = new Blob([cardSvg], { type: "image/svg+xml;charset=utf-8" });
@@ -971,7 +1220,7 @@ export default function YeonStarHugPage() {
           text: shareText,
           files: [svgFile],
         });
-        setShareFeedback("SVG 마음 카드 공유가 완료됐어요.");
+        setShareFeedback("SVG 상징 카드 공유가 완료됐어요.");
       } else {
         const pngBlob = await rasterizeSvgToPngBlob(cardSvg, 1080, 1350);
         if (pngBlob) {
@@ -1047,7 +1296,7 @@ export default function YeonStarHugPage() {
             </p>
             <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
               태양 위치, 달 위상, 요일 행성 흐름을 기반으로 현실적인 한 줄 행동까지 제안해요. 감정 선택부터 상담 결과,
-              SVG 마음 카드 저장까지 한 번에 이어집니다.
+              SVG 행운 상징 카드 저장까지 한 번에 이어집니다.
             </p>
           </div>
 
@@ -1213,12 +1462,12 @@ export default function YeonStarHugPage() {
                   className="rounded-3xl border border-white/45 bg-white/80 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
                 >
                   <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">공유 카드</p>
-                  <h2 className="text-lg font-black text-slate-700">고화질 SVG 마음 카드</h2>
+                  <h2 className="text-lg font-black text-slate-700">고화질 SVG 행운 상징 카드</h2>
 
                   <div className="mt-3 rounded-2xl border border-white/25 bg-white/90 p-3">
                     <div
                       className="mx-auto aspect-[4/5] w-full max-w-[420px] overflow-hidden rounded-xl border border-pink-100 bg-white [&_svg]:h-full [&_svg]:w-full"
-                      aria-label="SVG 마음 카드 미리보기"
+                        aria-label="SVG 행운 상징 카드 미리보기"
                       dangerouslySetInnerHTML={{ __html: cardSvg }}
                     />
                   </div>
@@ -1230,7 +1479,7 @@ export default function YeonStarHugPage() {
                     className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
-                    {isExporting ? "SVG 카드 준비중..." : "SVG 카드 공유/저장"}
+                    {isExporting ? "SVG 상징 카드 준비중..." : "SVG 상징 카드 공유/저장"}
                   </button>
                   <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
 
