@@ -479,6 +479,41 @@ function applySwissCoreToChart(chart: VedicChart, swiss: { planets?: Record<stri
   return chart;
 }
 
+type SwissCorePayload = {
+  planets: Record<string, number>;
+  ascendantSidereal?: number | null;
+  ayanamsa?: number | null;
+};
+
+function normalizeSwissCorePayload(value: unknown): SwissCorePayload | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const planetsRaw = record.planets;
+
+  if (!planetsRaw || typeof planetsRaw !== "object" || Array.isArray(planetsRaw)) return null;
+
+  const planets = Object.fromEntries(
+    Object.entries(planetsRaw as Record<string, unknown>)
+      .map(([key, rawValue]) => [key, Number(rawValue)] as const)
+      .filter(([, numeric]) => Number.isFinite(numeric)),
+  ) as Record<string, number>;
+
+  if (!Object.keys(planets).length) return null;
+
+  const ascendantSidereal = Number.isFinite(Number(record.ascendantSidereal))
+    ? Number(record.ascendantSidereal)
+    : null;
+  const ayanamsa = Number.isFinite(Number(record.ayanamsa))
+    ? Number(record.ayanamsa)
+    : null;
+
+  return {
+    planets,
+    ascendantSidereal,
+    ayanamsa,
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
@@ -1206,7 +1241,7 @@ function buildFallbackChapterPayload(args: {
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
-    if (!auth.ok) return auth.response;
+    if (auth.ok === false) return auth.response;
 
     const body = await req.json() as {
       year:number; month:number; day:number;
@@ -1242,7 +1277,7 @@ export async function POST(req: NextRequest) {
     const lon    = Number.isFinite(Number(body.lon)) ? Number(body.lon) : 126.9780;
     const reportType = body.reportType === "compatibility" ? "compatibility" : "personal";
 
-    let swissData: Record<string, unknown> | null = null;
+    let swissData: SwissCorePayload | null = null;
     let swissWarning = "";
     try {
       const swissRes = await fetch(`${req.nextUrl.origin}/api/vedic/planets`, {
@@ -1252,10 +1287,16 @@ export async function POST(req: NextRequest) {
         signal: AbortSignal.timeout(12_000),
       });
       const parsed = await swissRes.json().catch(() => ({}));
-      if (swissRes.ok && parsed?.ok && parsed?.planets) {
-        swissData = parsed;
+      const parsedRecord =
+        parsed && typeof parsed === "object" && !Array.isArray(parsed)
+          ? (parsed as Record<string, unknown>)
+          : {};
+      const normalizedSwiss = normalizeSwissCorePayload(parsedRecord);
+
+      if (swissRes.ok && parsedRecord.ok === true && normalizedSwiss) {
+        swissData = normalizedSwiss;
       } else {
-        swissWarning = String(parsed?.error || "Swiss API vedic planets unavailable");
+        swissWarning = String(parsedRecord.error || "Swiss API vedic planets unavailable");
       }
     } catch (swissErr: unknown) {
       swissWarning = swissErr instanceof Error ? swissErr.message : "Swiss API call failed";

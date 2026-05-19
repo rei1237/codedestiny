@@ -356,33 +356,37 @@ function deriveMeetingEnergyProfile(sajuResult: SajuEngineResult): MeetingEnergy
 
 function buildMeetingPlaceTypes(profile: MeetingEnergyProfile) {
   const dominantStyle = TEN_STAR_MEETING_STYLE[profile.dominantTenStarGroup];
-  const additional: Array<ReturnType<typeof TEN_STAR_MEETING_STYLE["resource"]>> = [];
+  const additional: DestinyMeetingPlaceResult["meetingPlaceTypes"] = [];
 
   if (profile.sinsalSignals.dohwa) additional.push({
     title: "도화 강화 루트",
     description: "사람 밀도가 높은 예술/사진 무대에서 도화 매력이 강하게 드러납니다.",
-    examples: ["사진 전시 오프닝", "라이브 공연장", "감성 팝업"],
+    whyItFits: "도화 신호가 활성화된 시기에는 시각적 자극과 유동 인구가 많은 장소에서 인연 접점이 빠르게 열립니다.",
+    examplePlaces: ["사진 전시 오프닝", "라이브 공연장", "감성 팝업"],
     caution: "첫인상 속도가 빠른 만큼 경계선은 분명히 두세요.",
   });
 
   if (profile.sinsalSignals.hongyeom) additional.push({
     title: "홍염 무드 루트",
     description: "야경과 향, 패션 무드가 만남 확률을 끌어올립니다.",
-    examples: ["루프탑", "야간 산책", "분위기 카페"],
+    whyItFits: "홍염 성향은 분위기·감각·스타일 자극에서 강하게 반응해 대화의 점화 속도가 빨라집니다.",
+    examplePlaces: ["루프탑", "야간 산책", "분위기 카페"],
     caution: "감정 과열을 피하려면 대화 속도를 천천히 맞추세요.",
   });
 
   if (profile.sinsalSignals.hwagae) additional.push({
     title: "화개 감성 루트",
     description: "고요한 전시/사찰/서점에서 깊은 대화형 인연이 열립니다.",
-    examples: ["독립서점", "사찰 산책", "소규모 전시"],
+    whyItFits: "화개 신호는 정적이고 사유가 깊어지는 공간에서 내면 대화를 자연스럽게 확장시킵니다.",
+    examplePlaces: ["독립서점", "사찰 산책", "소규모 전시"],
     caution: "침묵이 길어지면 질문 하나로 흐름을 열어주세요.",
   });
 
   if (profile.sinsalSignals.yeokma) additional.push({
     title: "역마 이동 루트",
     description: "이동 동선과 여행지에서 우연한 인연 운이 강합니다.",
-    examples: ["공항 라운지", "기차역 카페", "항구 도시 숙소"],
+    whyItFits: "역마 성향은 이동 자체가 트리거가 되어 예상 밖의 만남 확률을 구조적으로 높입니다.",
+    examplePlaces: ["공항 라운지", "기차역 카페", "항구 도시 숙소"],
     caution: "즉흥 이동 시 일정과 귀가 동선은 미리 고정하세요.",
   });
 
