@@ -5,6 +5,7 @@
   var COST_COINS = 500;
   var COIN_REASON = '인생의 책 생성 (13챕터)';
   var API_TIMEOUT_MS = 140000;
+  var LIFEBOOK_MIN_TOTAL_CHARS = 65500;
   var LIFEBOOK_STATE_STORAGE_KEY = '__cd_lifebook_state_v3__';
   var LIFEBOOK_API_BASE_CANDIDATES = ['/api/premium/saju/life-book', '/api/lifebook'];
 
@@ -430,6 +431,28 @@
     return last;
   }
 
+  async function requestJsonWithRouteFallback(pathnameCandidates, options) {
+    var candidates = Array.isArray(pathnameCandidates) ? pathnameCandidates : [pathnameCandidates];
+    var last = { ok: false, status: 0, data: {} };
+    for (var i = 0; i < candidates.length; i += 1) {
+      var candidate = String(candidates[i] || '').trim();
+      if (!candidate) continue;
+      var response = await requestJsonWithFallback(candidate, options);
+      last = response;
+      if (response.ok) return response;
+      if (response.status === 401 || response.status === 403 || response.status === 402) return response;
+    }
+    return last;
+  }
+
+  function getTotalGeneratedChars() {
+    var total = 0;
+    for (var chapter = 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
+      total += String(state.chapterTexts[chapter] || '').trim().length;
+    }
+    return total;
+  }
+
   async function fetchTextWithFallback(pathnameWithQuery, options) {
     var urls = buildLifeBookApiCandidates(pathnameWithQuery);
     var lastStatus = 0;
@@ -646,7 +669,7 @@
         requestId: 'lifebook-' + state.reportId + '-ch' + chapter + '-' + Date.now()
       });
 
-      var res = await requestJsonWithFallback('/generate', {
+      var res = await requestJsonWithRouteFallback(['/generate', '/session'], {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(reqBody)
@@ -688,6 +711,10 @@
 
     try {
       await generateAllChapters();
+      var totalChars = getTotalGeneratedChars();
+      if (totalChars < LIFEBOOK_MIN_TOTAL_CHARS) {
+        throw new Error('생성 결과가 최소 분량 기준(' + LIFEBOOK_MIN_TOTAL_CHARS + '자)에 미달했습니다. 다시 시도해 주세요. 현재 ' + totalChars + '자');
+      }
       state.paymentContext = null;
       renderResultScreen();
       persistState();
