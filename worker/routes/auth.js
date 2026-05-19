@@ -1247,7 +1247,41 @@ async function handleMe(request, env) {
     });
   } catch (error) {
     logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_failed", error);
-    throw error;
+    const status = Number(error?.status || 0);
+    const code = String(error?.payload?.code || error?.code || "").trim().toUpperCase();
+    const unauthorized = status === 401
+      || code === "UNAUTHORIZED"
+      || error?.name === "TokenExpiredError"
+      || error?.name === "JsonWebTokenError";
+
+    if (unauthorized) {
+      return json({
+        ok: true,
+        message: "No active authenticated session.",
+        authenticated: false,
+        user: null,
+      });
+    }
+
+    if (isAuthDbInfraError(error)) {
+      return json({
+        ok: true,
+        message: "사용자 정보를 일시적으로 불러오지 못해 기본 세션 상태로 응답합니다.",
+        authenticated: false,
+        user: null,
+        degraded: true,
+        code: "AUTH_ME_DEGRADED",
+      });
+    }
+
+    return json({
+      ok: true,
+      message: "사용자 세션 조회 중 예외가 발생해 기본 상태로 응답합니다.",
+      authenticated: false,
+      user: null,
+      degraded: true,
+      code: "AUTH_ME_RECOVERED",
+    });
   }
 }
 
@@ -1788,7 +1822,6 @@ export async function handleAuthRoutes(request, env) {
       || path === "/signup"
       || path === "/login"
       || path === "/refresh"
-      || path === "/me"
       || path === "/withdraw"
       || path === "/oauth/complete"
     ) {

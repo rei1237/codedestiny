@@ -364,7 +364,31 @@ async function handleBalance(request, env) {
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
-    return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
+    const authRequired = mapped.status === 401 || mapped.code === "AUTH_REQUIRED";
+
+    if (authRequired) {
+      return success({
+        authenticated: false,
+        balance: 0,
+        user: null,
+        unlockedFeatures: [],
+        unlockMap: {},
+        degraded: false,
+      }, "로그인이 필요하여 기본 잔액 상태로 응답합니다.");
+    }
+
+    return success({
+      authenticated: false,
+      balance: 0,
+      user: null,
+      unlockedFeatures: [],
+      unlockMap: {},
+      degraded: true,
+      error: {
+        code: mapped.code,
+        message: mapped.message,
+      },
+    }, "잔액 정보를 일시적으로 불러오지 못해 기본값으로 응답합니다.");
   }
 
   const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);

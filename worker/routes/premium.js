@@ -1149,6 +1149,9 @@ const REPORT_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const PREMIUM_REPORT_CONTEXT_STORE = new Map();
 const PREMIUM_REPORT_CONTEXT_INDEX = new Map();
 const PREMIUM_REPORT_CONTEXT_TTL_MS = REPORT_SESSION_TTL_MS;
+const ZIWEI_BASIC_RESULT_CACHE = new Map();
+const ZIWEI_BASIC_RESULT_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
+const LEGACY_ZIWEI_REQUEST_INDEX = new Map();
 
 const PREMIUM_REPORT_TYPE_MAP = {
   ziweipremium: "ziweiPremium",
@@ -6244,6 +6247,71 @@ function createZiweiDataQuality() {
   };
 }
 
+function buildZiweiBirthInputFromRequest(body, input) {
+  const birth = (body?.birthInput && typeof body.birthInput === "object") ? body.birthInput : {};
+  const year = clampInt(birth.year ?? body?.year ?? input?.year, 1990, 1900, 2100);
+  const month = clampInt(birth.month ?? body?.month ?? input?.month, 1, 1, 12);
+  const day = clampInt(birth.day ?? body?.day ?? input?.day, 1, 1, 31);
+  const hour = clampInt(birth.hour ?? body?.hour ?? input?.hour, 12, 0, 23);
+  const minute = clampInt(birth.minute ?? body?.minute ?? input?.minute, 0, 0, 59);
+
+  return {
+    name: String(birth.name || body?.name || input?.name || "사용자").trim() || "사용자",
+    gender: String(birth.gender || body?.gender || input?.gender || "").trim(),
+    birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    calendarType: String(birth.calendarType || body?.calendarType || "solar").trim() || "solar",
+    timezone: String(birth.timezone || body?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+    profileId: String(birth.profileId || body?.profileId || "").trim(),
+  };
+}
+
+function buildZiweiBasicResultCacheKey(profileId, birthInput) {
+  const profileToken = String(profileId || birthInput?.profileId || "").trim();
+  const dateToken = String(birthInput?.birthDate || "").trim();
+  const timeToken = String(birthInput?.birthTime || "").trim();
+  const genderToken = String(birthInput?.gender || "").trim().toLowerCase();
+  if (profileToken) return `profile:${profileToken}`;
+  if (!dateToken) return "";
+  return `birth:${dateToken}:${timeToken}:${genderToken}`;
+}
+
+function pruneZiweiBasicResultCache() {
+  const now = Date.now();
+  for (const [key, value] of ZIWEI_BASIC_RESULT_CACHE.entries()) {
+    if (!value || Number(value.expiresAt || 0) <= now) {
+      ZIWEI_BASIC_RESULT_CACHE.delete(key);
+    }
+  }
+}
+
+function readCachedZiweiBasicResult(profileId, birthInput) {
+  pruneZiweiBasicResultCache();
+  const key = buildZiweiBasicResultCacheKey(profileId, birthInput);
+  if (!key) return null;
+  const hit = ZIWEI_BASIC_RESULT_CACHE.get(key);
+  if (!hit || Number(hit.expiresAt || 0) <= Date.now()) {
+    ZIWEI_BASIC_RESULT_CACHE.delete(key);
+    return null;
+  }
+  return hit.value || null;
+}
+
+function writeCachedZiweiBasicResult(profileId, birthInput, value) {
+  const key = buildZiweiBasicResultCacheKey(profileId, birthInput);
+  if (!key || !value || typeof value !== "object") return;
+  pruneZiweiBasicResultCache();
+  ZIWEI_BASIC_RESULT_CACHE.set(key, {
+    value,
+    expiresAt: Date.now() + ZIWEI_BASIC_RESULT_CACHE_TTL_MS,
+  });
+}
+
 function normalizeZiweiStarRecord(star, fieldPath, dataQuality) {
   const src = (star && typeof star === "object") ? star : { name: String(star || "") };
   const name = String(src.name || src.nameKo || "").trim();
@@ -7013,6 +7081,416 @@ function validateZiweiReportPayloadStrict(reportPayload, dataQuality) {
   };
 }
 
+function buildZiweiStandardResultFromCanonical(canonicalZiweiChart, birthInput, profileId = "") {
+  const chart = (canonicalZiweiChart && typeof canonicalZiweiChart === "object") ? canonicalZiweiChart : {};
+  const chartMeta = (chart?.chartMeta && typeof chart.chartMeta === "object") ? chart.chartMeta : {};
+  const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const luck = (chart?.luck && typeof chart.luck === "object") ? chart.luck : {};
+  const yearStemBranch = String(chartMeta?.yearStemBranch || "").trim();
+  const stemBranchTokens = yearStemBranch.split(/\s+/).filter(Boolean);
+
+  const byName = {};
+  const byPalace = {};
+  palaces.forEach((palace) => {
+    const palaceKey = String(palace?.key || "").trim();
+    const mergedStars = []
+      .concat(Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+      .concat(Array.isArray(palace?.auxStars) ? palace.auxStars : [])
+      .concat(Array.isArray(palace?.minorStars) ? palace.minorStars : [])
+      .concat(Array.isArray(palace?.maleficStars) ? palace.maleficStars : []);
+
+    byPalace[palaceKey] = mergedStars.map((star) => String(star?.nameKo || star?.name || "").trim()).filter(Boolean);
+    mergedStars.forEach((star) => {
+      const name = String(star?.nameKo || star?.name || "").trim();
+      if (!name) return;
+      if (!Array.isArray(byName[name])) byName[name] = [];
+      byName[name].push({
+        palaceKey,
+        palaceName: String(palace?.nameKo || "").trim(),
+        strength: normalizeZiweiStrengthLabel(star?.brightness || star?.strength || "") || null,
+        symbol: normalizeZiweiStrengthSymbol(star?.symbol) || null,
+      });
+    });
+  });
+
+  const missingFields = [];
+  if (!String(chartMeta?.mingGong || "").trim()) missingFields.push("chart.mingGong");
+  if (!String(chartMeta?.shenGong || "").trim()) missingFields.push("chart.shenGong");
+  if (palaces.length < 12) missingFields.push("chart.palaces");
+
+  return {
+    ok: true,
+    source: "ziwei-basic-engine",
+    version: String(chart?.version || chartMeta?.version || "ziwei-basic-engine-v1").trim(),
+    input: {
+      name: birthInput?.name || "사용자",
+      gender: birthInput?.gender || "",
+      birthDate: birthInput?.birthDate || "",
+      birthTime: birthInput?.birthTime || "",
+      calendarType: birthInput?.calendarType || "solar",
+      timezone: birthInput?.timezone || "Asia/Seoul",
+      profileId: String(profileId || birthInput?.profileId || "").trim() || null,
+    },
+    chart: {
+      mingGong: chartMeta?.mingGong || null,
+      shenGong: chartMeta?.shenGong || null,
+      fiveElementBureau: chartMeta?.fiveElementBureau || null,
+      lunarInfo: chart?.profile?.birth?.lunarDate || null,
+      yearStemBranch: chartMeta?.yearStemBranch || null,
+      monthStemBranch: chartMeta?.monthStemBranch || null,
+      dayStemBranch: chartMeta?.dayStemBranch || null,
+      hourStemBranch: chartMeta?.hourStemBranch || null,
+      palaces,
+      stars: {
+        byPalace,
+        byName,
+      },
+      sihua: {
+        huaLu: chart?.sihua?.화록 || chart?.sihua?.hualu || null,
+        huaQuan: chart?.sihua?.화권 || chart?.sihua?.huaquan || null,
+        huaKe: chart?.sihua?.화과 || chart?.sihua?.huake || null,
+        huaJi: chart?.sihua?.화기 || chart?.sihua?.huaji || null,
+      },
+      luck: {
+        majorPeriods: Array.isArray(luck?.decadePeriods) ? luck.decadePeriods : [],
+        currentMajorPeriod: luck?.currentDecade || null,
+        annual: luck?.annual || null,
+        monthly: Array.isArray(luck?.monthly) ? luck.monthly : [],
+      },
+      relationships: {
+        sanFangSiZheng: palaces.map((palace) => ({
+          palaceKey: palace?.key || "",
+          triadPalaces: Array.isArray(palace?.triadPalaceKeys) ? palace.triadPalaceKeys : [],
+        })),
+        oppositePalaces: palaces.map((palace) => ({
+          palaceKey: palace?.key || "",
+          oppositePalaceKey: palace?.oppositePalaceKey || null,
+        })),
+        supportPalaces: palaces.map((palace) => ({
+          palaceKey: palace?.key || "",
+          supportPalaceKeys: Array.isArray(palace?.triadPalaceKeys) ? palace.triadPalaceKeys : [],
+        })),
+      },
+    },
+    reading: {
+      summary: "",
+      personality: "",
+      career: "",
+      wealth: "",
+      love: "",
+      relationship: "",
+      health: "",
+      migration: "",
+      fortuneFlow: stemBranchTokens.join(" "),
+      warnings: [],
+      strengths: [],
+      weaknesses: [],
+    },
+    pdfReady: missingFields.length === 0,
+    missingFields,
+  };
+}
+
+function normalizeZiweiReportStarEntry(star) {
+  const src = (star && typeof star === "object") ? star : { name: String(star || "") };
+  const nameKo = String(src.nameKo || src.name || src.starName || src.star || "").trim();
+  if (!nameKo) return null;
+  const brightness = normalizeZiweiStrengthLabel(src.brightness || src.strength || src.strengthName || "") || null;
+  const symbol = normalizeZiweiStrengthSymbol(src.symbol || src.strengthSymbol || "") || null;
+  return {
+    nameKo,
+    nameHan: ZIWEI_STAR_NAME_HAN[nameKo] || "",
+    brightness,
+    symbol,
+    meaning: brightness ? ziweiStrengthMeaning(brightness) : "",
+  };
+}
+
+function buildZiweiReportPayloadFromBasicResult(basicZiweiResult, dataQuality) {
+  const basic = (basicZiweiResult && typeof basicZiweiResult === "object") ? basicZiweiResult : {};
+  const chart = (basic?.chart && typeof basic.chart === "object") ? basic.chart : {};
+  const chartMetaRaw = (chart?.chartMeta && typeof chart.chartMeta === "object") ? chart.chartMeta : chart;
+  const sourcePalaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const luck = (chart?.luck && typeof chart.luck === "object") ? chart.luck : {};
+
+  const palaces = sourcePalaces.map((palace, idx) => {
+    const key = String(
+      palace?.key
+      || palace?.id
+      || normalizeZiweiPalaceKey(palace?.name || palace?.nameKo || "", idx)
+      || ZIWEI_CANONICAL_PALACE_ORDER[idx]
+      || ""
+    ).trim();
+
+    const mainStars = (Array.isArray(palace?.mainStars) ? palace.mainStars : (Array.isArray(palace?.stars) ? palace.stars : []))
+      .map(normalizeZiweiReportStarEntry)
+      .filter(Boolean);
+    const auxStars = (Array.isArray(palace?.assistantStars) ? palace.assistantStars : (Array.isArray(palace?.auxiliaryStars) ? palace.auxiliaryStars : (Array.isArray(palace?.auxStars) ? palace.auxStars : [])))
+      .map(normalizeZiweiReportStarEntry)
+      .filter(Boolean);
+    const minorStars = (Array.isArray(palace?.minorStars) ? palace.minorStars : (Array.isArray(palace?.subStars) ? palace.subStars : []))
+      .map(normalizeZiweiReportStarEntry)
+      .filter(Boolean);
+    const maleficStars = (Array.isArray(palace?.maleficStars) ? palace.maleficStars : (Array.isArray(palace?.badStars) ? palace.badStars : []))
+      .map(normalizeZiweiReportStarEntry)
+      .filter(Boolean);
+
+    const transformations = (Array.isArray(palace?.transformationStars) ? palace.transformationStars : (Array.isArray(palace?.transformations) ? palace.transformations : (Array.isArray(palace?.sihua) ? palace.sihua : [])))
+      .map((entry) => {
+        const star = String(entry?.star || entry?.starName || entry?.name || "").trim();
+        const type = normalizeZiweiTransformationType(entry?.type || entry?.kind || entry?.label || "");
+        if (!star || !type) return null;
+        return {
+          star,
+          type,
+          meaning: String(entry?.meaning || `${type} 작동`).trim(),
+        };
+      })
+      .filter(Boolean);
+
+    return {
+      key,
+      nameKo: String(palace?.nameKo || palace?.name || ZIWEI_CANONICAL_PALACE_KEY_TO_KO[key] || "").trim(),
+      branch: String(palace?.branch || palace?.earthlyBranch || "").trim(),
+      mainStars,
+      auxStars,
+      minorStars,
+      maleficStars,
+      transformations,
+      oppositePalaceKey: String(palace?.oppositePalaceKey || palace?.oppositePalaceId || "").trim() || null,
+      triadPalaceKeys: Array.isArray(palace?.triadPalaceKeys)
+        ? palace.triadPalaceKeys.map((v) => String(v || "").trim()).filter(Boolean)
+        : (Array.isArray(palace?.triadPalaceIds)
+          ? palace.triadPalaceIds.map((v) => String(v || "").trim()).filter(Boolean)
+          : []),
+    };
+  });
+
+  if (!palaces.length) {
+    pushUnique(dataQuality?.warnings, "basicZiweiResult.chart.palaces 가 비어 있어 다른 소스에서 reportPayload 복구를 시도합니다.");
+  }
+
+  const sihuaFromChart = [];
+  const chartSihua = (chart?.sihua && typeof chart.sihua === "object") ? chart.sihua : {};
+  [
+    { type: "화록", star: chartSihua?.huaLu || chartSihua?.hualu || chartSihua?.화록 },
+    { type: "화권", star: chartSihua?.huaQuan || chartSihua?.huaquan || chartSihua?.화권 },
+    { type: "화과", star: chartSihua?.huaKe || chartSihua?.huake || chartSihua?.화과 },
+    { type: "화기", star: chartSihua?.huaJi || chartSihua?.huaji || chartSihua?.화기 },
+  ].forEach((entry) => {
+    const star = String(entry.star || "").trim();
+    if (!star) return;
+    sihuaFromChart.push({
+      palaceKey: "",
+      palaceName: "",
+      star,
+      type: entry.type,
+      meaning: `${entry.type} 작동`,
+    });
+  });
+
+  const sihua = [];
+  palaces.forEach((palace) => {
+    (Array.isArray(palace?.transformations) ? palace.transformations : []).forEach((item) => {
+      sihua.push({
+        palaceKey: palace.key,
+        palaceName: palace.nameKo,
+        star: item.star,
+        type: item.type,
+        meaning: item.meaning,
+      });
+    });
+  });
+
+  const profileBirth = (basic?.input && typeof basic.input === "object") ? basic.input : {};
+  return {
+    profile: {
+      name: String(profileBirth?.name || chart?.profile?.name || "사용자").trim() || "사용자",
+      gender: String(profileBirth?.gender || chart?.profile?.gender || "").trim(),
+      birth: {
+        solarDate: String(profileBirth?.birthDate || chart?.profile?.birth?.solarDate || "").trim() || null,
+        lunarDate: String(chart?.lunarInfo || chart?.profile?.birth?.lunarDate || "").trim() || null,
+        time: String(profileBirth?.birthTime || chart?.profile?.birth?.time || "").trim() || null,
+        timezone: String(profileBirth?.timezone || chart?.profile?.birth?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+        isLeapMonth: chart?.profile?.birth?.isLeapMonth == null ? null : Boolean(chart.profile.birth.isLeapMonth),
+      },
+    },
+    chartMeta: {
+      mingGong: String(chartMetaRaw?.mingGong || chart?.mingGong || "").trim(),
+      shenGong: String(chartMetaRaw?.shenGong || chart?.shenGong || "").trim(),
+      fiveElementBureau: String(chartMetaRaw?.fiveElementBureau || chart?.fiveElementBureau || "").trim() || null,
+      yearStemBranch: String(chartMetaRaw?.yearStemBranch || chart?.yearStemBranch || "").trim() || null,
+      monthStemBranch: String(chartMetaRaw?.monthStemBranch || chart?.monthStemBranch || "").trim() || null,
+      dayStemBranch: String(chartMetaRaw?.dayStemBranch || chart?.dayStemBranch || "").trim() || null,
+      hourStemBranch: String(chartMetaRaw?.hourStemBranch || chart?.hourStemBranch || "").trim() || null,
+    },
+    palaces,
+    sihua: sihua.length ? sihua : sihuaFromChart,
+    luck: {
+      decadeLuck: Array.isArray(luck?.majorPeriods) ? luck.majorPeriods : (Array.isArray(luck?.decadeLuck) ? luck.decadeLuck : []),
+      currentDecadeLuck: luck?.currentMajorPeriod || luck?.currentDecade || luck?.currentDecadeLuck || null,
+      annual: luck?.annual || null,
+      monthly: Array.isArray(luck?.monthly) ? luck.monthly : [],
+    },
+    diagnostics: {
+      generatedAt: new Date().toISOString(),
+      source: "basicZiweiResult",
+      missingFields: Array.isArray(basic?.missingFields) ? basic.missingFields : [],
+    },
+  };
+}
+
+function buildZiweiPdfReportPayload({
+  basicZiweiResult,
+  userProfile,
+  birthInput,
+  existingReportPayload,
+  canonicalZiweiChart,
+  dataQuality,
+} = {}) {
+  const existing = (existingReportPayload && typeof existingReportPayload === "object") ? existingReportPayload : null;
+  const fromCanonical = canonicalZiweiChart
+    ? buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality)
+    : null;
+  const fromBasic = basicZiweiResult
+    ? buildZiweiReportPayloadFromBasicResult(basicZiweiResult, dataQuality)
+    : null;
+
+  const pickArray = (...values) => {
+    for (let i = 0; i < values.length; i += 1) {
+      if (Array.isArray(values[i]) && values[i].length > 0) return values[i];
+    }
+    return [];
+  };
+
+  const pickText = (...values) => {
+    for (let i = 0; i < values.length; i += 1) {
+      const text = String(values[i] ?? "").trim();
+      if (text) return text;
+    }
+    return "";
+  };
+
+  const profileBirthDate = String(birthInput?.birthDate || "").trim();
+  const profileBirthTime = String(birthInput?.birthTime || "").trim();
+  const merged = {
+    profile: {
+      name: String(fromCanonical?.profile?.name || existing?.profile?.name || fromBasic?.profile?.name || userProfile?.name || birthInput?.name || "사용자").trim() || "사용자",
+      gender: String(fromCanonical?.profile?.gender || existing?.profile?.gender || fromBasic?.profile?.gender || userProfile?.gender || birthInput?.gender || "").trim(),
+      birth: {
+        solarDate: String(fromCanonical?.profile?.birth?.solarDate || existing?.profile?.birth?.solarDate || fromBasic?.profile?.birth?.solarDate || profileBirthDate || userProfile?.birthDate || "").trim() || null,
+        lunarDate: String(fromCanonical?.profile?.birth?.lunarDate || existing?.profile?.birth?.lunarDate || fromBasic?.profile?.birth?.lunarDate || "").trim() || null,
+        time: String(fromCanonical?.profile?.birth?.time || existing?.profile?.birth?.time || fromBasic?.profile?.birth?.time || profileBirthTime || userProfile?.birthTime || "").trim() || null,
+        timezone: String(fromCanonical?.profile?.birth?.timezone || existing?.profile?.birth?.timezone || fromBasic?.profile?.birth?.timezone || birthInput?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+        isLeapMonth: fromCanonical?.profile?.birth?.isLeapMonth ?? existing?.profile?.birth?.isLeapMonth ?? fromBasic?.profile?.birth?.isLeapMonth ?? null,
+      },
+    },
+    chartMeta: {
+      mingGong: pickText(fromCanonical?.chartMeta?.mingGong, existing?.chartMeta?.mingGong, fromBasic?.chartMeta?.mingGong) || null,
+      shenGong: pickText(fromCanonical?.chartMeta?.shenGong, existing?.chartMeta?.shenGong, fromBasic?.chartMeta?.shenGong) || null,
+      fiveElementBureau: pickText(fromCanonical?.chartMeta?.fiveElementBureau, existing?.chartMeta?.fiveElementBureau, fromBasic?.chartMeta?.fiveElementBureau) || null,
+      yearStemBranch: pickText(fromCanonical?.chartMeta?.yearStemBranch, existing?.chartMeta?.yearStemBranch, fromBasic?.chartMeta?.yearStemBranch) || null,
+      monthStemBranch: pickText(fromCanonical?.chartMeta?.monthStemBranch, existing?.chartMeta?.monthStemBranch, fromBasic?.chartMeta?.monthStemBranch) || null,
+      dayStemBranch: pickText(fromCanonical?.chartMeta?.dayStemBranch, existing?.chartMeta?.dayStemBranch, fromBasic?.chartMeta?.dayStemBranch) || null,
+      hourStemBranch: pickText(fromCanonical?.chartMeta?.hourStemBranch, existing?.chartMeta?.hourStemBranch, fromBasic?.chartMeta?.hourStemBranch) || null,
+    },
+    palaces: pickArray(fromCanonical?.palaces, existing?.palaces, fromBasic?.palaces),
+    sihua: pickArray(fromCanonical?.sihua, existing?.sihua, fromBasic?.sihua),
+    luck: {
+      decadeLuck: pickArray(fromCanonical?.luck?.decadeLuck, existing?.luck?.decadeLuck, fromBasic?.luck?.decadeLuck),
+      currentDecadeLuck: fromCanonical?.luck?.currentDecadeLuck || existing?.luck?.currentDecadeLuck || fromBasic?.luck?.currentDecadeLuck || null,
+      annual: fromCanonical?.luck?.annual || existing?.luck?.annual || fromBasic?.luck?.annual || null,
+      monthly: pickArray(fromCanonical?.luck?.monthly, existing?.luck?.monthly, fromBasic?.luck?.monthly),
+    },
+    diagnostics: {
+      generatedAt: new Date().toISOString(),
+      source: existing ? "existing+fallback" : (fromBasic ? "basicZiweiResult" : "canonical"),
+      missingFields: Array.from(new Set([
+        ...(Array.isArray(existing?.diagnostics?.missingFields) ? existing.diagnostics.missingFields : []),
+        ...(Array.isArray(fromBasic?.diagnostics?.missingFields) ? fromBasic.diagnostics.missingFields : []),
+        ...(Array.isArray(fromCanonical?.diagnostics?.missingFields) ? fromCanonical.diagnostics.missingFields : []),
+      ])),
+    },
+  };
+
+  if (!String(merged.chartMeta?.mingGong || "").trim()) pushUnique(dataQuality?.missingFields, "chartMeta.mingGong");
+  if (!String(merged.chartMeta?.shenGong || "").trim()) pushUnique(dataQuality?.missingFields, "chartMeta.shenGong");
+  if (!Array.isArray(merged.palaces) || merged.palaces.length === 0) pushUnique(dataQuality?.missingFields, "palaces");
+
+  return merged;
+}
+
+async function ensureZiweiReportPayload(args = {}) {
+  return buildZiweiPdfReportPayload(args);
+}
+
+function validateZiweiPdfPayload(payload, birthInput = null) {
+  const critical = [];
+  const optional = [];
+  const source = (payload && typeof payload === "object") ? payload : null;
+
+  if (!source) {
+    return {
+      canGenerate: false,
+      missingCriticalFields: ["reportPayload"],
+      missingOptionalFields: [],
+      missingFields: ["reportPayload"],
+    };
+  }
+
+  const chartMeta = (source.chartMeta && typeof source.chartMeta === "object") ? source.chartMeta : {};
+  const palaces = Array.isArray(source.palaces) ? source.palaces : [];
+  const luck = (source.luck && typeof source.luck === "object") ? source.luck : {};
+  const sihua = Array.isArray(source.sihua) ? source.sihua : [];
+
+  const birthDate = String(
+    birthInput?.birthDate
+    || source?.profile?.birth?.solarDate
+    || ""
+  ).trim();
+  if (!birthDate) critical.push("birthInput");
+
+  if (!String(chartMeta?.mingGong || "").trim()) critical.push("chartMeta.mingGong");
+  if (!String(chartMeta?.shenGong || "").trim()) critical.push("chartMeta.shenGong");
+  if (!palaces.length) critical.push("palaces");
+  if (palaces.length > 0 && palaces.length < 12) critical.push("palaces.length");
+
+  const allMainStars = palaces.flatMap((palace) => Array.isArray(palace?.mainStars) ? palace.mainStars : []);
+  const hasAnyMainStar = allMainStars.some((star) => String(star?.nameKo || star?.name || "").trim());
+  if (!hasAnyMainStar) critical.push("palaces.mainStars");
+
+  if (!sihua.length) optional.push("sihua");
+  if (!Array.isArray(luck?.decadeLuck) || luck.decadeLuck.length === 0) optional.push("luck.decadeLuck");
+  if (!luck?.annual || typeof luck.annual !== "object") optional.push("luck.annual");
+  if (!Array.isArray(luck?.monthly) || luck.monthly.length === 0) optional.push("luck.monthly");
+
+  const strengthCount = allMainStars.filter((star) => {
+    const symbol = normalizeZiweiStrengthSymbol(star?.symbol || star?.strengthSymbol || "");
+    const strength = normalizeZiweiStrengthLabel(star?.brightness || star?.strength || "");
+    return Boolean(symbol || strength);
+  }).length;
+  if (hasAnyMainStar && strengthCount === 0) optional.push("palaces.mainStars.strength");
+
+  const interpretationSeedMissing = palaces.some((palace) => !String(palace?.interpretationSeed || "").trim());
+  if (interpretationSeedMissing) optional.push("palaces.interpretationSeed");
+
+  const hasAssistantOrMinor = palaces.some((palace) => {
+    const assistants = Array.isArray(palace?.auxStars) ? palace.auxStars.length : 0;
+    const minors = Array.isArray(palace?.minorStars) ? palace.minorStars.length : 0;
+    return assistants > 0 || minors > 0;
+  });
+  if (!hasAssistantOrMinor) optional.push("palaces.assistantOrMinorStars");
+
+  const missingCriticalFields = Array.from(new Set(critical));
+  const missingOptionalFields = Array.from(new Set(optional));
+  return {
+    canGenerate: missingCriticalFields.length === 0,
+    missingCriticalFields,
+    missingOptionalFields,
+    missingFields: Array.from(new Set([...missingCriticalFields, ...missingOptionalFields])),
+  };
+}
+
 function ziweiStrengthFromStar(star) {
   const symbol = String(star?.symbol || "").trim();
   if (symbol && ZIWEI_SYMBOL_TO_STRENGTH[symbol]) return ZIWEI_SYMBOL_TO_STRENGTH[symbol];
@@ -7508,6 +7986,11 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     title: meta?.title || `Chapter ${chapter}`,
     goal: meta?.subtitle || "자미두수 핵심 해석",
   };
+  console.info("[ZiweiPremium][Gemini] chapter start", {
+    chapter,
+    requestId: String(body?.requestId || body?.generationId || "").trim(),
+    chapterTitle: chapterSpec.title,
+  });
   const context = buildZiweiPdfContext({
     userProfile: {
       name: body?.name || input?.name || "사용자",
@@ -7570,6 +8053,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   let usedFallback = false;
   let chapterJson;
   if (!parsed.ok) {
+    console.error("[ZiweiPremium][Gemini] parse failed", {
+      chapter,
+      requestId: String(body?.requestId || body?.generationId || "").trim(),
+      code: "ZIWEI_CHAPTER_PARSE_FAILED",
+      stage: "gemini-parse",
+    });
     if (strictPayloadMode) {
       return {
         ok: false,
@@ -7593,6 +8082,13 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const finalText = repeatedSentences.length
     ? ensureZiweiChapterMarkdownLength(`${markdown}\n\n### 문체 다양화 메모\n동일 문장 반복을 줄이기 위해 해석 각도를 조정했습니다.`, context, ZIWEI_MIN_CHARS)
     : markdown;
+
+  console.info("[ZiweiPremium][Gemini] chapter end", {
+    chapter,
+    requestId: String(body?.requestId || body?.generationId || "").trim(),
+    usedFallback,
+    repeatedSentenceCount: repeatedSentences.length,
+  });
 
   return {
     ok: true,
@@ -11691,10 +12187,50 @@ async function handleZiweiBookSession(request, env) {
     icon: "ziwei"
   };
 
+  const requestId = String(
+    strictBody.requestId
+    || strictBody.generationId
+    || `ziwei:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  ).trim().slice(0, 120);
+  const generationId = String(strictBody.generationId || requestId).trim().slice(0, 120);
+  console.info("[ZiweiPremium][Flow] CLICK", {
+    stage: "click",
+    requestId,
+    generationId,
+    chapter,
+    prepareOnly,
+    reportType,
+  });
+
   const dataQuality = createZiweiDataQuality();
+  const birthInput = buildZiweiBirthInputFromRequest(strictBody, input);
+  const profileId = String(strictBody.profileId || birthInput.profileId || "").trim();
+
+  let basicZiweiResult = (strictBody.basicZiweiResult && typeof strictBody.basicZiweiResult === "object")
+    ? strictBody.basicZiweiResult
+    : null;
+
+  if (!basicZiweiResult) {
+    basicZiweiResult = readCachedZiweiBasicResult(profileId, birthInput);
+    if (basicZiweiResult) {
+      console.info("[ZiweiPremium][BasicResult] found in cache", { requestId, profileId });
+    }
+  }
+
   let structuredPayload = (strictBody.ziweiStructured && typeof strictBody.ziweiStructured === "object")
     ? strictBody.ziweiStructured
     : null;
+
+  if (!structuredPayload && basicZiweiResult && typeof basicZiweiResult === "object") {
+    const structuredFromBasic = basicZiweiResult.ziweiStructured
+      || basicZiweiResult.sourcePayload
+      || basicZiweiResult.chart?.sourcePayload
+      || null;
+    if (structuredFromBasic && typeof structuredFromBasic === "object") {
+      structuredPayload = structuredFromBasic;
+    }
+  }
+
   if (!structuredPayload && strictBody?.ziweiData) {
     const parsedFallback = parseZiweiDataTextFallback(strictBody.ziweiData, dataQuality);
     if (parsedFallback) {
@@ -11703,54 +12239,83 @@ async function handleZiweiBookSession(request, env) {
     }
   }
 
-  if (!structuredPayload) {
-    return json({
-      ok: false,
-      code: "ZIWEI_REPORT_PAYLOAD_MISSING",
-      message: "자미두수 계산 결과(ziweiStructured 또는 ziweiData)가 필요합니다.",
-      missingFields: ["ziweiStructured", "ziweiData"],
-    }, { status: 422 });
-  }
+  let canonicalZiweiChart = null;
+  let chartValidation = {
+    isValid: false,
+    canProceed: false,
+    missingFields: [],
+    hasAll12Palaces: false,
+    hasMingGong: false,
+    hasShenGong: false,
+    hasBrightnessSymbols: false,
+    warnings: [],
+  };
 
-  const canonicalZiweiChart = buildCanonicalZiweiChart(
-    strictBody,
-    input,
-    structuredPayload,
-    reportType,
-    partnerOverview,
-    dataQuality,
-  );
-  const chartValidation = validateCanonicalZiweiChartStrict(canonicalZiweiChart, dataQuality);
-  if (!chartValidation.isValid) {
-    return json({
-      ok: false,
-      code: "ZIWEI_CANONICAL_VALIDATION_FAILED",
-      message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
-      missingFields: chartValidation.missingFields,
-      validation: chartValidation,
-    }, { status: 422 });
-  }
-
-  const canonicalDerivedReportPayload = buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality);
-  const hasNativeReportPayload = Boolean(structuredPayload?.reportPayload && typeof structuredPayload.reportPayload === "object");
-  const reportPayload = hasNativeReportPayload
-    ? structuredPayload.reportPayload
-    : canonicalDerivedReportPayload;
-  const reportValidationRaw = validateZiweiReportPayloadStrict(reportPayload, dataQuality);
-  const reportValidation = (!hasNativeReportPayload && prepareOnly)
-    ? {
-      ...reportValidationRaw,
-      isValid: true,
-      missingFields: [],
-      code: "OK",
+  if (structuredPayload) {
+    canonicalZiweiChart = buildCanonicalZiweiChart(
+      strictBody,
+      input,
+      structuredPayload,
+      reportType,
+      partnerOverview,
+      dataQuality,
+    );
+    chartValidation = validateCanonicalZiweiChartStrict(canonicalZiweiChart, dataQuality);
+    if (!chartValidation.isValid) {
+      console.warn("[ZiweiPremium][BasicResult] canonical incomplete, continuing recovery mode", {
+        requestId,
+        missingFields: chartValidation.missingFields,
+      });
     }
-    : reportValidationRaw;
+  }
+
+  if (!basicZiweiResult && canonicalZiweiChart) {
+    basicZiweiResult = buildZiweiStandardResultFromCanonical(canonicalZiweiChart, birthInput, profileId);
+    console.info("[ZiweiPremium][BasicResult] built from canonical", { requestId, profileId });
+  }
+
+  const canonicalDerivedReportPayload = canonicalZiweiChart
+    ? buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality)
+    : null;
+
+  const fallbackReportPayload = (structuredPayload?.reportPayload && typeof structuredPayload.reportPayload === "object")
+    ? structuredPayload.reportPayload
+    : null;
+
+  const reportPayload = await ensureZiweiReportPayload({
+    existingReportPayload: (strictBody.reportPayload && typeof strictBody.reportPayload === "object")
+      ? strictBody.reportPayload
+      : fallbackReportPayload,
+    basicZiweiResult,
+    userProfile: {
+      name: strictBody?.name || birthInput.name || "사용자",
+      gender: strictBody?.gender || birthInput.gender || "",
+      birthDate: birthInput.birthDate,
+      birthTime: birthInput.birthTime,
+    },
+    birthInput,
+    canonicalZiweiChart,
+    dataQuality,
+  });
+
+  const payloadValidation = validateZiweiPdfPayload(reportPayload, birthInput);
+  payloadValidation.missingCriticalFields.forEach((field) => pushUnique(dataQuality?.missingFields, field));
+  payloadValidation.missingOptionalFields.forEach((field) => pushUnique(dataQuality?.warnings, `optional:${field}`));
+
+  const reportValidation = {
+    isValid: payloadValidation.canGenerate,
+    code: payloadValidation.canGenerate ? "OK" : "ZIWEI_CORE_CHART_MISSING",
+    missingFields: payloadValidation.missingFields,
+    missingCriticalFields: payloadValidation.missingCriticalFields,
+    missingOptionalFields: payloadValidation.missingOptionalFields,
+    diagnostics: reportPayload?.diagnostics || null,
+  };
   const strictValidationRequested = true;
 
   const canonicalSummary = {
-    palaceCount: Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces.length : 0,
-    mingGong: canonicalZiweiChart?.chartMeta?.mingGong || null,
-    shenGong: canonicalZiweiChart?.chartMeta?.shenGong || null,
+    palaceCount: Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces.length : (Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0),
+    mingGong: canonicalZiweiChart?.chartMeta?.mingGong || reportPayload?.chartMeta?.mingGong || null,
+    shenGong: canonicalZiweiChart?.chartMeta?.shenGong || reportPayload?.chartMeta?.shenGong || null,
     hasBrightnessSymbols: Boolean(canonicalZiweiChart?.validation?.hasBrightnessSymbols),
     reportPayloadPalaceCount: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0,
     reportPayloadHasSihua: Array.isArray(reportPayload?.sihua) && reportPayload.sihua.length > 0,
@@ -11762,25 +12327,30 @@ async function handleZiweiBookSession(request, env) {
   dataQuality.canonicalSummary = canonicalSummary;
   console.info("[ZiweiPremium][CanonicalSummary]", canonicalSummary);
 
-  if (!reportValidation.isValid) {
+  if (basicZiweiResult) {
+    writeCachedZiweiBasicResult(profileId, birthInput, basicZiweiResult);
+  }
+
+  if (!payloadValidation.canGenerate) {
+    const friendlyMessage = "자미두수 명반 데이터를 다시 구성하는 중 문제가 발생했습니다. 기본 자미두수 분석을 먼저 실행한 뒤 다시 PDF 생성을 시도해 주세요.";
+    console.error("[ZiweiPremium][PayloadValidation] failed", {
+      stage: "payload-validation",
+      code: "ZIWEI_CORE_CHART_MISSING",
+      message: friendlyMessage,
+      missingFields: payloadValidation.missingCriticalFields,
+      requestId,
+    });
     return json({
       ok: false,
-      code: reportValidation.code || "ZIWEI_REPORT_PAYLOAD_INVALID",
-      message: "reportPayload 필수 데이터 누락으로 PDF를 생성할 수 없습니다",
-      missingFields: reportValidation.missingFields,
+      stage: "payload-validation",
+      code: "ZIWEI_CORE_CHART_MISSING",
+      message: friendlyMessage,
+      missingFields: payloadValidation.missingCriticalFields,
+      missingOptionalFields: payloadValidation.missingOptionalFields,
       validation: {
         canonical: chartValidation,
         reportPayload: reportValidation,
       },
-    }, { status: 422 });
-  }
-
-  if (!Array.isArray(reportPayload?.palaces) || reportPayload.palaces.length === 0) {
-    return json({
-      ok: false,
-      code: "ZIWEI_CHART_EMPTY_OR_UNMAPPED",
-      message: "자미두수 12궁 데이터가 비어 있어 PDF를 생성할 수 없습니다",
-      missingFields: ["reportPayload.palaces"],
     }, { status: 422 });
   }
 
@@ -11794,8 +12364,9 @@ async function handleZiweiBookSession(request, env) {
       chapterPlan: ZIWEI_CHAPTER_META,
       canonicalZiweiChart,
       reportPayload,
+      basicZiweiResult,
       validation: {
-        isValid: Boolean(chartValidation?.isValid && reportValidation?.isValid),
+        isValid: Boolean(reportValidation?.isValid),
         canonical: chartValidation,
         reportPayload: reportValidation,
       },
@@ -11814,6 +12385,7 @@ async function handleZiweiBookSession(request, env) {
   const debugArtifacts = {
     rawEngineResult: canonicalZiweiChart,
     ziweiReportPayload: reportPayload,
+    basicZiweiResult,
     canonicalDerivedReportPayload,
     validationResult: {
       canonical: chartValidation,
@@ -11831,13 +12403,36 @@ async function handleZiweiBookSession(request, env) {
   console.info("[ZiweiPremium][DebugArtifact][validationResult.json]", debugArtifacts.validationResult);
 
   const previousChapterTexts = getStoredChapterTexts("ziwei", reportId, chapter);
+  const chapterInputChart = canonicalZiweiChart || {
+    profile: {
+      name: reportPayload?.profile?.name || birthInput.name,
+      gender: reportPayload?.profile?.gender || birthInput.gender,
+      birth: {
+        solarDate: reportPayload?.profile?.birth?.solarDate || birthInput.birthDate,
+        lunarDate: reportPayload?.profile?.birth?.lunarDate || null,
+        time: reportPayload?.profile?.birth?.time || birthInput.birthTime,
+        timezone: reportPayload?.profile?.birth?.timezone || birthInput.timezone,
+      },
+    },
+    chartMeta: reportPayload?.chartMeta || {},
+    palaces: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces : [],
+    luck: reportPayload?.luck || {},
+    validation: {
+      hasAll12Palaces: Array.isArray(reportPayload?.palaces) && reportPayload.palaces.length >= 12,
+      hasMingGong: Boolean(String(reportPayload?.chartMeta?.mingGong || "").trim()),
+      hasShenGong: Boolean(String(reportPayload?.chartMeta?.shenGong || "").trim()),
+      hasBrightnessSymbols: true,
+      missingFields: payloadValidation.missingOptionalFields,
+    },
+  };
+
   const generated = await generateZiweiPremiumChapter(
     env,
     strictBody,
     input,
     chapter,
     meta,
-    canonicalZiweiChart,
+    chapterInputChart,
     reportPayload,
     reportType,
     partnerOverview,
@@ -11846,8 +12441,17 @@ async function handleZiweiBookSession(request, env) {
   );
 
   if (!generated?.ok) {
+    console.error("[ZiweiPremium][Gemini] failed", {
+      stage: "gemini-generation",
+      code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
+      message: "자미두수 챕터 생성 중 오류가 발생했습니다",
+      missingFields: Array.isArray(generated?.details) ? generated.details : [],
+      requestId,
+      chapter,
+    });
     return json({
       ok: false,
+      stage: "gemini-generation",
       code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
       message: "자미두수 챕터 생성 중 오류가 발생했습니다",
       missingFields: Array.isArray(generated?.details) ? generated.details : [],
@@ -11873,6 +12477,8 @@ async function handleZiweiBookSession(request, env) {
     generated.text,
     {
       reportType,
+      requestId,
+      generationId,
       canonicalSummary,
       dataQuality: {
         missingFields: dataQuality.missingFields,
@@ -11904,8 +12510,9 @@ async function handleZiweiBookSession(request, env) {
     reportPayload,
     pipeline: [
       "buildCanonicalZiweiChart",
-      "buildZiweiReportPayloadFromCanonical",
-      "validateZiweiReportPayloadStrict",
+      "buildZiweiStandardResultFromCanonical",
+      "buildZiweiPdfReportPayload",
+      "validateZiweiPdfPayload",
       "validateCanonicalZiweiChartStrict",
       "buildZiweiPdfContext",
       "buildZiweiGeminiPrompt",
@@ -11918,7 +12525,7 @@ async function handleZiweiBookSession(request, env) {
     ],
     ...(String(strictBody?.debugCanonicalZiwei || "").toLowerCase() === "true" || strictBody?.debugCanonicalZiwei === true
       ? {
-        debugCanonicalZiweiChart: canonicalZiweiChart,
+        debugCanonicalZiweiChart: chapterInputChart,
         debugZiweiReportPayload: reportPayload,
         debugValidationResult: debugArtifacts.validationResult,
       }
@@ -13310,6 +13917,23 @@ async function advanceLegacyPremiumSession(config, request, env, reportId) {
 async function startLegacyPremiumSession(config, request, env) {
   const body = await readJson(request.clone());
   const sourceBody = deepCloneSerializable(body);
+  for (const [key, value] of LEGACY_ZIWEI_REQUEST_INDEX.entries()) {
+    if (!value || Number(value.expiresAt || 0) <= Date.now()) {
+      LEGACY_ZIWEI_REQUEST_INDEX.delete(key);
+    }
+  }
+  const requestId = String(sourceBody.requestId || sourceBody.generationId || "").trim().slice(0, 120);
+  if (requestId) {
+    const cached = LEGACY_ZIWEI_REQUEST_INDEX.get(requestId);
+    if (cached && Number(cached.expiresAt || 0) > Date.now()) {
+      const existing = buildLegacyStatusPayload(config, cached.reportId, false);
+      if (existing?.ok) {
+        console.info("[ZiweiPremium][Flow] deduped by requestId", { requestId, reportId: cached.reportId });
+        return json(existing);
+      }
+    }
+  }
+
   const mode = normalizeLegacyMode(sourceBody.mode, sourceBody.reportType || sourceBody.reportMode);
   const chapterPayload = {
     ...sourceBody,
@@ -13336,6 +13960,8 @@ async function startLegacyPremiumSession(config, request, env) {
   const patched = upsertLegacyFlowMeta(config.sessionKind, reportId, {
     mode,
     reportType: mode,
+    requestId,
+    generationId: String(sourceBody.generationId || requestId).trim().slice(0, 120),
     requestBody: sourceBody,
     active: true,
     failed: false,
@@ -13346,6 +13972,13 @@ async function startLegacyPremiumSession(config, request, env) {
 
   if (!patched) {
     return json({ ok: false, code: "LEGACY_SESSION_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 500 });
+  }
+
+  if (requestId) {
+    LEGACY_ZIWEI_REQUEST_INDEX.set(requestId, {
+      reportId,
+      expiresAt: Date.now() + REPORT_SESSION_TTL_MS,
+    });
   }
 
   return json(buildLegacyStatusPayload(config, reportId));
@@ -13474,6 +14107,10 @@ export const __ziweiTestUtils = {
   normalizeZiweiStructuredPayload,
   buildCanonicalZiweiChart,
   validateCanonicalZiweiChartStrict,
+  buildZiweiStandardResultFromCanonical,
+  buildZiweiReportPayloadFromBasicResult,
+  buildZiweiPdfReportPayload,
+  validateZiweiPdfPayload,
   hasZiweiBannedSummaryExpression,
   hasInvalidZiweiSummaryTable,
   detectCrossChapterRepeatedSentences,

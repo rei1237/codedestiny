@@ -5,6 +5,7 @@
 let handleFortuneRoutes;
 let handleUserRoutes;
 let handleBillingRoutes;
+let handleAuthRoutes;
 let signJwt;
 
 const TEST_USER_ID = "507f1f77bcf86cd799439011";
@@ -41,16 +42,18 @@ async function buildAuthRequest(url, method = "GET", body) {
 }
 
 beforeAll(async () => {
-  const [fortuneMod, userMod, billingMod, jwtMod] = await Promise.all([
+  const [fortuneMod, userMod, billingMod, authMod, jwtMod] = await Promise.all([
     import("../../worker/routes/fortune.js"),
     import("../../worker/routes/user.js"),
     import("../../worker/routes/billing.js"),
+    import("../../worker/routes/auth.js"),
     import("../../worker/lib/jwt.js"),
   ]);
 
   handleFortuneRoutes = fortuneMod.handleFortuneRoutes;
   handleUserRoutes = userMod.handleUserRoutes;
   handleBillingRoutes = billingMod.handleBillingRoutes;
+  handleAuthRoutes = authMod.handleAuthRoutes;
   signJwt = jwtMod.signJwt;
 });
 
@@ -180,6 +183,20 @@ describe("Worker API status normalization", () => {
     expect(payload.ok).toBe(true);
     expect(payload.data?.raw?.code).toBe("DB_FALLBACK");
     expect(payload.data?.raw?.degraded).toBe(true);
+  });
+
+  test("비로그인 /api/auth/me 는 500 대신 200 + user:null 로 응답해야 한다", async () => {
+    const request = new Request("https://example.com/api/auth/me", {
+      method: "GET",
+    });
+
+    const response = await handleAuthRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.user).toBeNull();
+    expect(payload.authenticated).toBe(false);
   });
 
   test("/api/billing/purchase 에 미등록 featureKey 요청 시 400 UNKNOWN_FEATURE_KEY", async () => {

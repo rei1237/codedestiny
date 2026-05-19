@@ -1382,18 +1382,26 @@ function buildZiweiAIPromptError(code, message, status = 400) {
 
 function mapZiweiConsumeFailure(response, payload) {
   const status = Number(response?.status || 500);
-  const code = String(payload?.code || "").trim();
+  const code = String(payload?.code || "").trim().toUpperCase();
   const message = String(payload?.message || "").trim();
 
   if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
     return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
   }
 
-  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+  if (status === 402 || code === "INSUFFICIENT_BALANCE" || code === "INSUFFICIENT_COINS" || code === "PAYMENT_REQUIRED") {
     return buildZiweiAIPromptError(
       "INSUFFICIENT_COINS",
       `코인이 부족합니다. ${ZIWEI_AI_PROMPT_PRICE}코인이 필요합니다.`,
       402,
+    );
+  }
+
+  if (status === 409 || code === "IDEMPOTENCY_CONFLICT" || code === "REQUEST_IN_PROGRESS") {
+    return buildZiweiAIPromptError(
+      "REQUEST_IN_PROGRESS",
+      "동일 요청이 처리 중입니다. 잠시 후 다시 시도해 주세요.",
+      409,
     );
   }
 
@@ -1876,6 +1884,11 @@ async function handleZiweiAIPrompt(request, auth, env) {
     return buildZiweiAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
   }
 
+  const generatedPrompt = String(builtPrompt?.generatedPrompt || builtPrompt?.prompt || "").trim();
+  if (generatedPrompt.length < 120) {
+    return buildZiweiAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 결과가 비어 있습니다. 다시 시도해 주세요.", 500);
+  }
+
   const digestBase = `${String(auth?.userId || "").trim()}:${ZIWEI_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
@@ -1916,8 +1929,8 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
     return json({
       ok: true,
-      prompt: builtPrompt.prompt,
-      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+      prompt: generatedPrompt,
+      generatedPrompt,
       title: builtPrompt.title || "자미두수 심층 질문 프롬프트",
       summaryIntent: builtPrompt.summaryIntent || "",
       analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],

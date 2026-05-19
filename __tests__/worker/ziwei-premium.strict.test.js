@@ -10,6 +10,9 @@ let handleZiweiBookRoutes;
 
 let buildCanonicalZiweiChart;
 let validateCanonicalZiweiChartStrict;
+let buildZiweiReportPayloadFromBasicResult;
+let buildZiweiPdfReportPayload;
+let validateZiweiPdfPayload;
 let hasZiweiBannedSummaryExpression;
 let hasInvalidZiweiSummaryTable;
 let detectCrossChapterRepeatedSentences;
@@ -104,6 +107,9 @@ beforeAll(async () => {
   ({
     buildCanonicalZiweiChart,
     validateCanonicalZiweiChartStrict,
+    buildZiweiReportPayloadFromBasicResult,
+    buildZiweiPdfReportPayload,
+    validateZiweiPdfPayload,
     hasZiweiBannedSummaryExpression,
     hasInvalidZiweiSummaryTable,
     detectCrossChapterRepeatedSentences,
@@ -136,6 +142,42 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(chart.palaces[0].mainStars[0].symbol).toBeTruthy();
     expect(q.supplementedFields.some((f) => f.includes("mainStars[0].brightness"))).toBe(true);
     expect(q.supplementedFields.some((f) => f.includes("mainStars[0].symbol"))).toBe(true);
+  });
+
+  test("B2. basic 결과 기반 어댑터는 reportPayload 핵심 필드를 복구해야 한다", () => {
+    const q = makeQuality();
+    const chart = buildCanonicalZiweiChart(makeBody(), makeInput(), makeStructuredPayload(), "personal", "", q);
+    const basicResult = {
+      input: {
+        name: "테스터",
+        gender: "F",
+        birthDate: "1992-06-15",
+        birthTime: "12:30",
+        timezone: "Asia/Seoul",
+      },
+      chart,
+    };
+
+    const payloadFromBasic = buildZiweiReportPayloadFromBasicResult(basicResult, q);
+    const mergedPayload = buildZiweiPdfReportPayload({
+      basicZiweiResult: basicResult,
+      userProfile: { name: "테스터", gender: "F", birthDate: "1992-06-15", birthTime: "12:30" },
+      birthInput: { name: "테스터", gender: "F", birthDate: "1992-06-15", birthTime: "12:30", timezone: "Asia/Seoul" },
+      existingReportPayload: null,
+      canonicalZiweiChart: chart,
+      dataQuality: q,
+    });
+
+    const validation = validateZiweiPdfPayload(mergedPayload, {
+      birthDate: "1992-06-15",
+      birthTime: "12:30",
+    });
+
+    expect(String(payloadFromBasic?.chartMeta?.mingGong || "")).toBeTruthy();
+    expect(String(payloadFromBasic?.chartMeta?.shenGong || "")).toBeTruthy();
+    expect(Array.isArray(payloadFromBasic?.palaces)).toBe(true);
+    expect(validation.canGenerate).toBe(true);
+    expect(validation.missingCriticalFields).toHaveLength(0);
   });
 
   test("C. 요약표에 '-' 결측 셀이 있으면 invalid table로 감지해야 한다", () => {
@@ -218,9 +260,9 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
 
     expect(res.status).toBe(422);
     expect(data.ok).toBe(false);
-    expect(data.code).toBe("ZIWEI_CANONICAL_VALIDATION_FAILED");
+    expect(data.code).toBe("ZIWEI_CORE_CHART_MISSING");
     expect(Array.isArray(data.missingFields)).toBe(true);
-    expect(data.message).toMatch(/계산 데이터 누락/);
+    expect(data.message).toMatch(/자미두수 명반 데이터를 다시 구성/);
   });
 
   test("H. ziweiStructured가 없어도 ziweiData 원문으로 canonical 복구가 가능해야 한다", async () => {
