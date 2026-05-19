@@ -248,6 +248,11 @@
       .replace(/'/g, '&#39;');
   }
 
+  function toParagraphHtml(text) {
+    var safe = escapeHtml(text || '').replace(/\r/g, '').replace(/\n{2,}/g, '\n\n').replace(/\n/g, '<br>');
+    return '<p>' + safe + '</p>';
+  }
+
   function ensureModeUi() {
     var startScreen = qs('vdStartScreen');
     if (!startScreen) return;
@@ -567,9 +572,9 @@
     var advice = Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : [];
 
     var sectionsHtml = sections.map(function (section) {
-      return '<section>'
+      return '<section class="lb-result-article__section">'
         + '<h4>' + escapeHtml(section.heading || '') + '</h4>'
-        + '<p>' + escapeHtml(section.body || '') + '</p>'
+        + toParagraphHtml(section.body || '')
         + '</section>';
     }).join('');
 
@@ -580,11 +585,11 @@
       + '<p class="lb-result-article__chapter">CHAPTER ' + index + '</p>'
       + '<h3 class="lb-result-article__title">' + escapeHtml(chapter.title || ('Chapter ' + index)) + '</h3>'
       + (chapter.subtitle ? '<p class="lb-result-article__subtitle">' + escapeHtml(chapter.subtitle) + '</p>' : '')
-      + (chapter.summary ? '<p class="lb-result-article__summary">' + escapeHtml(chapter.summary) + '</p>' : '')
+      + (chapter.summary ? '<div class="lb-result-article__summary">' + toParagraphHtml(chapter.summary) + '</div>' : '')
       + '<div class="lb-result-article__body">' + sectionsHtml + '</div>'
-      + '<div class="lb-result-article__extras" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'
-      + '<div><h5 style="margin:0 0 8px;">핵심 통찰</h5><ul>' + insightsHtml + '</ul></div>'
-      + '<div><h5 style="margin:0 0 8px;">실천 조언</h5><ul>' + adviceHtml + '</ul></div>'
+      + '<div class="lb-result-article__extras" style="display:grid;gap:12px;">'
+      + '<div class="lb-result-article__list"><h5>핵심 통찰</h5><ul>' + insightsHtml + '</ul></div>'
+      + '<div class="lb-result-article__list"><h5>실천 조언</h5><ul>' + adviceHtml + '</ul></div>'
       + '</div>'
       + '</article>';
   }

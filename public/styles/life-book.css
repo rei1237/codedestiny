@@ -2292,29 +2292,74 @@ body.theme-pig .lb-ch-dot--pending {
   color: #bfdbfe !important;
 }
 
-/* cd-premium-pdf-cosmic-chapter-ui-v20260518 */
+/* cd-premium-pdf-cosmic-chapter-ui-v20260519 */
+#ziweiBookModal {
+  --lb-accent: #f59e0b;
+  --lb-accent2: #c084fc;
+  --lb-sheet-tint1: rgba(245, 158, 11, 0.18);
+  --lb-sheet-tint2: rgba(192, 132, 252, 0.14);
+  --lb-title-gradient: linear-gradient(90deg, #fef3c7, #f5d0fe 52%, #bfdbfe);
+}
+
+#astroBookModal {
+  --lb-accent: #38bdf8;
+  --lb-accent2: #0ea5e9;
+  --lb-sheet-tint1: rgba(56, 189, 248, 0.18);
+  --lb-sheet-tint2: rgba(14, 165, 233, 0.14);
+  --lb-title-gradient: linear-gradient(90deg, #e0f2fe, #bfdbfe 52%, #93c5fd);
+}
+
+#vedicBookModal {
+  --lb-accent: #fb923c;
+  --lb-accent2: #f97316;
+  --lb-sheet-tint1: rgba(251, 146, 60, 0.17);
+  --lb-sheet-tint2: rgba(249, 115, 22, 0.14);
+  --lb-title-gradient: linear-gradient(90deg, #ffedd5, #fed7aa 52%, #fdba74);
+}
+
+#sukuyoBookModal {
+  --lb-accent: #67e8f9;
+  --lb-accent2: #22d3ee;
+  --lb-sheet-tint1: rgba(103, 232, 249, 0.16);
+  --lb-sheet-tint2: rgba(34, 211, 238, 0.14);
+  --lb-title-gradient: linear-gradient(90deg, #ecfeff, #cffafe 52%, #a5f3fc);
+}
+
+#lifeBookModal {
+  --lb-accent: #a78bfa;
+  --lb-accent2: #60a5fa;
+  --lb-sheet-tint1: rgba(167, 139, 250, 0.15);
+  --lb-sheet-tint2: rgba(96, 165, 250, 0.14);
+  --lb-title-gradient: linear-gradient(90deg, #f5f3ff, #ddd6fe 52%, #bfdbfe);
+}
+
 #ziweiBookModal .lb-result-article,
 #astroBookModal .lb-result-article,
 #vedicBookModal .lb-result-article,
-#sukuyoBookModal .lb-result-article {
+#sukuyoBookModal .lb-result-article,
+#lifeBookModal .lb-result-article {
   position: relative;
   overflow: hidden;
   margin: 18px 18px 22px;
   padding: 22px;
   border: 1px solid rgba(191, 219, 254, 0.2);
-  border-radius: 8px;
+  border-radius: 12px;
   background:
-    radial-gradient(circle at 12% 0%, rgba(125, 211, 252, 0.18), transparent 34%),
-    radial-gradient(circle at 88% 12%, rgba(251, 191, 36, 0.12), transparent 28%),
+    radial-gradient(circle at 12% 0%, var(--lb-sheet-tint1, rgba(125, 211, 252, 0.18)), transparent 34%),
+    radial-gradient(circle at 88% 12%, var(--lb-sheet-tint2, rgba(251, 191, 36, 0.12)), transparent 28%),
     linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
   box-shadow: 0 18px 40px rgba(2, 6, 23, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(1.6px);
+  animation: ziweiChapterFadeIn 0.52s ease both;
 }
 
 #ziweiBookModal .lb-result-article {
   border-radius: 14px;
   border-color: rgba(251, 191, 36, 0.28);
-  backdrop-filter: blur(1.8px);
-  animation: ziweiChapterFadeIn 0.52s ease both;
+}
+
+#lifeBookModal .lb-result-article {
+  border-color: rgba(167, 139, 250, 0.32);
 }
 
 @keyframes ziweiChapterFadeIn {
@@ -2331,7 +2376,8 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article::before,
 #astroBookModal .lb-result-article::before,
 #vedicBookModal .lb-result-article::before,
-#sukuyoBookModal .lb-result-article::before {
+#sukuyoBookModal .lb-result-article::before,
+#lifeBookModal .lb-result-article::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -2343,7 +2389,8 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__chapter,
 #astroBookModal .lb-result-article__chapter,
 #vedicBookModal .lb-result-article__chapter,
-#sukuyoBookModal .lb-result-article__chapter {
+#sukuyoBookModal .lb-result-article__chapter,
+#lifeBookModal .lb-result-article__chapter {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -2361,7 +2408,8 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__chapter::before,
 #astroBookModal .lb-result-article__chapter::before,
 #vedicBookModal .lb-result-article__chapter::before,
-#sukuyoBookModal .lb-result-article__chapter::before {
+#sukuyoBookModal .lb-result-article__chapter::before,
+#lifeBookModal .lb-result-article__chapter::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -2373,16 +2421,20 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__title,
 #astroBookModal .lb-result-article__title,
 #vedicBookModal .lb-result-article__title,
-#sukuyoBookModal .lb-result-article__title {
+#sukuyoBookModal .lb-result-article__title,
+#lifeBookModal .lb-result-article__title {
   margin: 0;
-  color: #f8fbff;
   font-size: 1.12rem;
   line-height: 1.42;
   font-weight: 850;
 }
 
-#ziweiBookModal .lb-result-article__title {
-  background: linear-gradient(90deg, #fef3c7, #e9d5ff 52%, #bfdbfe);
+#ziweiBookModal .lb-result-article__title,
+#astroBookModal .lb-result-article__title,
+#vedicBookModal .lb-result-article__title,
+#sukuyoBookModal .lb-result-article__title,
+#lifeBookModal .lb-result-article__title {
+  background: var(--lb-title-gradient, linear-gradient(90deg, #f8fbff, #e2e8f0 52%, #cbd5e1));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -2391,7 +2443,8 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__subtitle,
 #astroBookModal .lb-result-article__subtitle,
 #vedicBookModal .lb-result-article__subtitle,
-#sukuyoBookModal .lb-result-article__subtitle {
+#sukuyoBookModal .lb-result-article__subtitle,
+#lifeBookModal .lb-result-article__subtitle {
   margin: 8px 0 0;
   color: #bfdbfe;
   font-size: 0.86rem;
@@ -2401,7 +2454,8 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__summary,
 #astroBookModal .lb-result-article__summary,
 #vedicBookModal .lb-result-article__summary,
-#sukuyoBookModal .lb-result-article__summary {
+#sukuyoBookModal .lb-result-article__summary,
+#lifeBookModal .lb-result-article__summary {
   margin: 16px 0 0;
   padding: 14px 15px;
   border: 1px solid rgba(125, 211, 252, 0.2);
@@ -2414,7 +2468,8 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__body,
 #astroBookModal .lb-result-article__body,
 #vedicBookModal .lb-result-article__body,
-#sukuyoBookModal .lb-result-article__body {
+#sukuyoBookModal .lb-result-article__body,
+#lifeBookModal .lb-result-article__body {
   margin-top: 18px;
   color: #edf3ff;
   line-height: 1.86;
@@ -2428,10 +2483,12 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__section,
 #vedicBookModal .lb-result-article__section,
 #sukuyoBookModal .lb-result-article__section,
+#lifeBookModal .lb-result-article__section,
 #ziweiBookModal .lb-result-article__list,
 #astroBookModal .lb-result-article__list,
 #vedicBookModal .lb-result-article__list,
-#sukuyoBookModal .lb-result-article__list {
+#sukuyoBookModal .lb-result-article__list,
+#lifeBookModal .lb-result-article__list {
   margin-top: 14px;
   padding: 14px;
   border: 1px solid rgba(148, 163, 184, 0.16);
@@ -2446,14 +2503,28 @@ body.theme-pig .lb-ch-dot--pending {
     linear-gradient(145deg, rgba(15, 23, 42, 0.76), rgba(30, 41, 59, 0.62));
 }
 
+#lifeBookModal .lb-result-article__section,
+#lifeBookModal .lb-result-article__list {
+  border-color: rgba(167, 139, 250, 0.25);
+  background:
+    linear-gradient(145deg, rgba(22, 28, 48, 0.78), rgba(35, 47, 76, 0.64));
+}
+
+#lifeBookModal .lb-result-article__head {
+  display: grid;
+  gap: 10px;
+}
+
 #ziweiBookModal .lb-result-article__section h4,
 #astroBookModal .lb-result-article__section h4,
 #vedicBookModal .lb-result-article__section h4,
 #sukuyoBookModal .lb-result-article__section h4,
+#lifeBookModal .lb-result-article__section h4,
 #ziweiBookModal .lb-result-article__list h5,
 #astroBookModal .lb-result-article__list h5,
 #vedicBookModal .lb-result-article__list h5,
-#sukuyoBookModal .lb-result-article__list h5 {
+#sukuyoBookModal .lb-result-article__list h5,
+#lifeBookModal .lb-result-article__list h5 {
   margin: 0 0 8px;
   color: #fef3c7;
   font-size: 0.92rem;
@@ -2464,17 +2535,20 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__section p,
 #vedicBookModal .lb-result-article__section p,
 #sukuyoBookModal .lb-result-article__section p,
+#lifeBookModal .lb-result-article__section p,
 #ziweiBookModal .lb-result-article__body p,
 #astroBookModal .lb-result-article__body p,
 #vedicBookModal .lb-result-article__body p,
-#sukuyoBookModal .lb-result-article__body p {
+#sukuyoBookModal .lb-result-article__body p,
+#lifeBookModal .lb-result-article__body p {
   margin: 0 0 10px;
 }
 
 #ziweiBookModal .lb-result-article__extras,
 #astroBookModal .lb-result-article__extras,
 #vedicBookModal .lb-result-article__extras,
-#sukuyoBookModal .lb-result-article__extras {
+#sukuyoBookModal .lb-result-article__extras,
+#lifeBookModal .lb-result-article__extras {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
   margin-top: 14px;
 }
@@ -2483,7 +2557,8 @@ body.theme-pig .lb-ch-dot--pending {
   #ziweiBookModal .lb-result-article,
   #astroBookModal .lb-result-article,
   #vedicBookModal .lb-result-article,
-  #sukuyoBookModal .lb-result-article {
+  #sukuyoBookModal .lb-result-article,
+  #lifeBookModal .lb-result-article {
     margin: 14px 12px 18px;
     padding: 17px;
   }
@@ -2491,7 +2566,8 @@ body.theme-pig .lb-ch-dot--pending {
   #ziweiBookModal .lb-result-article__title,
   #astroBookModal .lb-result-article__title,
   #vedicBookModal .lb-result-article__title,
-  #sukuyoBookModal .lb-result-article__title {
+  #sukuyoBookModal .lb-result-article__title,
+  #lifeBookModal .lb-result-article__title {
     font-size: 1rem;
   }
 }

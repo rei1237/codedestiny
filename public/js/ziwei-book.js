@@ -407,13 +407,81 @@
     };
   }
 
-  function getPrimaryZiweiStructured() {
+  function hasValidZiweiStructured(structured) {
+    if (!structured || typeof structured !== 'object') return false;
+    var reportPayload = structured.reportPayload;
+    if (!reportPayload || typeof reportPayload !== 'object') return false;
+    var chartMeta = reportPayload.chartMeta;
+    var palaces = reportPayload.palaces;
+    var hasMing = !!String(chartMeta && chartMeta.mingGong || '').trim();
+    var hasShen = !!String(chartMeta && chartMeta.shenGong || '').trim();
+    return hasMing && hasShen && Array.isArray(palaces) && palaces.length === 12;
+  }
+
+  function syncZiweiBirthContext(profile) {
+    if (!profile || !profile.birth) return;
+    var birth = profile.birth || {};
+    if (!(Number(birth.year) > 0 && Number(birth.month) > 0 && Number(birth.day) > 0)) return;
+    try {
+      var current = (window._ziweiBirth && typeof window._ziweiBirth === 'object') ? window._ziweiBirth : {};
+      window._ziweiBirth = {
+        year: Number(birth.year),
+        month: Number(birth.month),
+        day: Number(birth.day),
+        hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
+        minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
+        calType: normalizeCalType(birth.calType || birth.calendarType || current.calType || 'solar')
+      };
+    } catch (_) {}
+  }
+
+  function rebuildPrimaryZiweiStructuredFromProfile(profile) {
+    if (!profile || !profile.birth) return null;
+    if (typeof window.calcZiweiPalaces !== 'function') return null;
+
+    var birth = profile.birth || {};
+    var year = Number(birth.year || 0);
+    var month = Number(birth.month || 0);
+    var day = Number(birth.day || 0);
+    var hour = Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12);
+    var minute = Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0);
+
+    if (!(year > 0 && month > 0 && day > 0)) return null;
+
+    try {
+      var raw = window.calcZiweiPalaces(year, month, day, hour, minute);
+      if (!raw || typeof raw !== 'object') return null;
+
+      try { window._currentZiweiData = raw; } catch (_) {}
+      syncZiweiBirthContext(profile);
+
+      if (typeof window.getZiweiStructuredData === 'function') {
+        var rebuilt = window.getZiweiStructuredData();
+        if (rebuilt && typeof rebuilt === 'object') return rebuilt;
+      }
+
+      return convertRawZiweiToStructured(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getPrimaryZiweiStructured(profile) {
     try {
       if (typeof window.getZiweiStructuredData === 'function') {
         var structured = window.getZiweiStructuredData();
-        if (structured && typeof structured === 'object') return structured;
+        if (hasValidZiweiStructured(structured)) return structured;
+        if (structured && typeof structured === 'object' && window._currentZiweiData) {
+          var fromCurrent = convertRawZiweiToStructured(window._currentZiweiData);
+          if (hasValidZiweiStructured(fromCurrent)) return fromCurrent;
+        }
       }
     } catch (_) {}
+
+    var rebuiltFromProfile = rebuildPrimaryZiweiStructuredFromProfile(profile);
+    if (hasValidZiweiStructured(rebuiltFromProfile)) return rebuiltFromProfile;
+
+    if (rebuiltFromProfile && typeof rebuiltFromProfile === 'object') return rebuiltFromProfile;
     return null;
   }
 
@@ -430,12 +498,12 @@
   function buildRequestBody(forceRegenerate) {
     var profile = getActiveProfile() || {};
     var birth = profile.birth || {};
-    var primaryStructured = getPrimaryZiweiStructured();
+    var primaryStructured = getPrimaryZiweiStructured(profile);
     if (!primaryStructured || typeof primaryStructured !== 'object') {
-      return { error: '기본 자미두수 계산 데이터가 없습니다. 먼저 자미두수 결과를 생성해 주세요.' };
+      return { error: '기본 자미두수 계산 데이터를 자동으로 복구하지 못했습니다. 먼저 자미두수 결과를 한 번 생성한 뒤 다시 시도해 주세요.' };
     }
     if (!primaryStructured.reportPayload || typeof primaryStructured.reportPayload !== 'object') {
-      return { error: 'PDF용 확장 데이터(reportPayload)가 누락되었습니다. 자미두수 계산을 다시 실행해 주세요.' };
+      return { error: 'PDF용 확장 데이터(reportPayload)를 만들지 못했습니다. 메인 자미두수 결과를 다시 생성한 뒤 재시도해 주세요.' };
     }
     state.mode = 'personal';
 
@@ -547,7 +615,10 @@
       tocHtml.push('<button type="button" class="lb-toc-item" data-zb-chapter="' + chapterIndex + '"><span>Ch.' + chapterIndex + '</span><strong>' + escapeHtml(title) + '</strong></button>');
 
       var sectionHtml = sections.map(function (section) {
-        return '<h4>' + escapeHtml(section && section.heading || '') + '</h4>' + toParagraphHtml(section && section.body || '');
+        return '<section class="lb-result-article__section">'
+          + '<h4>' + escapeHtml(section && section.heading || '') + '</h4>'
+          + toParagraphHtml(section && section.body || '')
+          + '</section>';
       }).join('');
       var insightsHtml = insights.length
         ? '<div class="lb-result-article__list"><h5>핵심 통찰</h5><ul>' + insights.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
