@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   BatteryLow,
   Cloud,
@@ -545,13 +545,18 @@ function escapeXml(text: string) {
 }
 
 function wrapByLength(input: string, maxLen: number) {
-  const words = String(input).trim().split(/\s+/).filter(Boolean);
+  const text = String(input || "").trim();
+  if (!text) return [""];
+
+  const words = text.includes(" ") ? text.split(/\s+/).filter(Boolean) : text.split("");
   const lines: string[] = [];
   let current = "";
 
   words.forEach((word) => {
-    if ((current + " " + word).trim().length <= maxLen) {
-      current = (current + " " + word).trim();
+    const glue = text.includes(" ") ? " " : "";
+    const candidate = `${current}${current ? glue : ""}${word}`;
+    if (candidate.length <= maxLen) {
+      current = candidate;
       return;
     }
     if (current) lines.push(current);
@@ -559,7 +564,7 @@ function wrapByLength(input: string, maxLen: number) {
   });
 
   if (current) lines.push(current);
-  if (lines.length === 0) lines.push(input.trim());
+  if (lines.length === 0) lines.push(text);
   return lines.slice(0, 4);
 }
 
@@ -647,7 +652,7 @@ async function rasterizeSvgToPngBlob(svgText: string, width: number, height: num
   const url = URL.createObjectURL(blob);
 
   try {
-    const image = new Image();
+    const image = typeof window !== "undefined" ? new window.Image() : document.createElement("img");
     image.decoding = "async";
 
     await new Promise<void>((resolve, reject) => {
@@ -697,6 +702,7 @@ function RatingStars({ value }: { value: number }) {
 }
 
 export default function YeonStarHugPage() {
+  const reduceMotion = useReducedMotion();
   const today = useMemo(() => new Date(), []);
   const defaultSign = useMemo(() => getSignByMonthDay(today.getMonth() + 1, today.getDate()), [today]);
 
@@ -704,12 +710,11 @@ export default function YeonStarHugPage() {
   const [selectedSign, setSelectedSign] = useState<ZodiacSign>(defaultSign);
   const [concernText, setConcernText] = useState("");
   const [heroError, setHeroError] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [shareFeedback, setShareFeedback] = useState(" ");
+  const [shareFeedback, setShareFeedback] = useState("SVG 카드로 저장하거나 공유할 수 있어요.");
   const [frame, setFrame] = useState(0);
-  const [consultation, setConsultation] = useState<ConsultationResult>(() =>
-    buildConsultation(defaultSign, "calm", "", new Date())
-  );
+  const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
 
   const activeEmotion = useMemo(
     () => EMOTIONS.find((item) => item.key === selectedEmotion) ?? EMOTIONS[0],
@@ -735,18 +740,26 @@ export default function YeonStarHugPage() {
   }, [frame]);
 
   const cardSvg = useMemo(
-    () => buildHeartCardSvg(today, activeEmotion.label, consultation, getCardSpriteFrame(selectedSign, selectedEmotion)),
+    () => {
+      if (!consultation) return "";
+      return buildHeartCardSvg(today, activeEmotion.label, consultation, getCardSpriteFrame(selectedSign, selectedEmotion));
+    },
     [today, activeEmotion.label, consultation, selectedSign, selectedEmotion]
   );
 
   const runConsultation = () => {
-    const next = buildConsultation(selectedSign, selectedEmotion, concernText, new Date());
-    setConsultation(next);
-    setShareFeedback("연이가 고민 키워드와 오늘의 별 흐름을 반영해 상담을 업데이트했어요.");
+    if (isGenerating) return;
+    setIsGenerating(true);
+    window.setTimeout(() => {
+      const next = buildConsultation(selectedSign, selectedEmotion, concernText, new Date());
+      setConsultation(next);
+      setShareFeedback("연이가 고민 키워드와 오늘의 별 흐름을 반영해 상담을 업데이트했어요.");
+      setIsGenerating(false);
+    }, 260);
   };
 
   const handleShare = async () => {
-    if (isExporting) return;
+    if (isExporting || !consultation || !cardSvg) return;
 
     setIsExporting(true);
     setShareFeedback("SVG 마음 카드를 준비하고 있어요...");
@@ -796,100 +809,96 @@ export default function YeonStarHugPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-yellow-100 px-4 py-8 text-slate-700 md:px-8 lg:px-10">
+    <main className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_18%_12%,rgba(248,193,255,0.16),transparent_35%),radial-gradient(circle_at_85%_8%,rgba(140,163,255,0.22),transparent_32%),linear-gradient(170deg,#120f2f_0%,#1f2046_52%,#2f2a66_100%)] px-4 py-8 text-slate-100 md:px-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -left-20 top-12 h-72 w-72 rounded-full bg-pink-300/35 blur-3xl" />
-        <div className="absolute right-[-6rem] top-[-4rem] h-80 w-80 rounded-full bg-purple-200/45 blur-3xl" />
-        <div className="absolute bottom-[-7rem] left-1/2 h-80 w-[30rem] -translate-x-1/2 rounded-full bg-yellow-100/70 blur-3xl" />
-        <div className="absolute left-6 top-20 h-24 w-44 rounded-full bg-white/40 blur-2xl" />
-        <div className="absolute right-10 top-32 h-20 w-36 rounded-full bg-white/45 blur-2xl" />
+        <div className="absolute -left-10 top-10 h-64 w-64 rounded-full bg-fuchsia-300/15 blur-3xl" />
+        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-indigo-300/20 blur-3xl" />
+        <div className="absolute bottom-[-6rem] left-1/2 h-72 w-[28rem] -translate-x-1/2 rounded-full bg-violet-300/15 blur-3xl" />
         {STAR_DOTS.map((dot, idx) => (
           <motion.span
             key={idx}
-            className="absolute text-pink-300/80"
+            className="absolute text-fuchsia-100/60"
             style={{ left: dot.left, top: dot.top }}
-            animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-            transition={{ duration: 2.8, repeat: Infinity, delay: dot.delay, ease: "easeInOut" }}
+            animate={reduceMotion ? undefined : { opacity: [0.2, 0.8, 0.2], scale: [0.9, 1.1, 0.9] }}
+            transition={reduceMotion ? undefined : { duration: 3.2, repeat: Infinity, delay: dot.delay, ease: "easeInOut" }}
           >
             ✦
           </motion.span>
         ))}
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-6">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5">
         <motion.section
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="grid gap-5 rounded-[2.2rem] border border-white/40 bg-white/65 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm md:grid-cols-[1.15fr_0.85fr] md:p-8"
+          initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
+          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="grid gap-5 rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_20px_44px_rgba(7,8,22,0.38)] backdrop-blur-md md:grid-cols-[1.1fr_0.9fr] md:p-7"
         >
           <div className="space-y-4">
             <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
-              className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-sm font-semibold text-pink-500"
+              animate={reduceMotion ? undefined : { y: [0, -5, 0] }}
+              transition={reduceMotion ? undefined : { duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+              className="inline-flex items-center gap-2 rounded-full border border-pink-200/55 bg-white/15 px-4 py-2 text-sm font-semibold text-pink-100"
             >
-              <Heart className="h-4 w-4 fill-pink-300 text-pink-400" />
-              연이, 오늘 고민도 들어줘
+              <Heart className="h-4 w-4 fill-pink-200 text-pink-200" />
+              연이의 별빛 상담소
             </motion.div>
 
-            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight md:text-5xl">
-              <span className="bg-gradient-to-r from-pink-500 to-orange-400 bg-clip-text text-transparent">
-                연이의 마음 별자리
-              </span>
+            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-white md:text-5xl">
+              연이의 마음 별자리
             </h1>
-            <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-slate-600 md:text-base">
-              감정 + 고민 키워드 + 오늘의 점성술 신호로 상담해줄게
+            <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-pink-100 md:text-base">
+              오늘의 감정과 고민을 별빛 흐름으로 다정하게 정리해줄게요.
             </p>
-            <p className="max-w-2xl text-sm text-slate-500">
-              오늘 태양 위치, 달 위상, 요일 행성 흐름을 기준으로 현실적인 한 줄 행동까지 정리해요. 스프라이트 연이와 함께
-              고화질 SVG 마음 카드로 저장/공유할 수 있어요.
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-200">
+              태양 위치, 달 위상, 요일 행성 흐름을 기반으로 현실적인 한 줄 행동까지 제안해요. 감정 선택부터 상담 결과,
+              SVG 마음 카드 저장까지 한 번에 이어집니다.
             </p>
           </div>
 
-          <div className="relative flex items-center justify-center overflow-hidden rounded-[1.8rem] border border-pink-100 bg-gradient-to-br from-pink-100/80 via-white/75 to-orange-100/70 p-4">
+          <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-4">
             {!heroError ? (
               <Image
                 src={HERO_IMAGE}
                 alt="연이의 마음 별자리 아트"
                 width={900}
                 height={620}
-                className="h-auto w-full rounded-[1.3rem] object-cover"
+                className="h-full max-h-[360px] w-full max-w-full rounded-2xl object-contain"
                 onError={() => setHeroError(true)}
                 priority
               />
             ) : (
-              <div className="flex h-full min-h-40 w-full flex-col items-center justify-center rounded-[1.3rem] bg-pink-50/80 text-pink-400">
+              <div className="flex h-full min-h-44 w-full flex-col items-center justify-center rounded-2xl bg-white/10 text-pink-100">
                 <Sparkles className="mb-2 h-8 w-8" />
-                <p className="text-sm font-semibold">몽글한 별빛 무드 로딩중</p>
+                <p className="text-sm font-semibold">연이 아트 로딩중</p>
               </div>
             )}
 
             <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-3 left-4"
+              animate={reduceMotion ? undefined : { y: [0, -6, 0] }}
+              transition={reduceMotion ? undefined : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-3 left-3"
             >
-              <div className="group rounded-2xl border border-pink-200/80 bg-white/80 p-2 shadow-[0_10px_28px_rgba(244,114,182,0.28)]">
+              <div className="rounded-2xl border border-pink-200/50 bg-white/80 p-2 shadow-[0_8px_22px_rgba(37,11,64,0.28)]">
                 <div className="h-20 w-20 rounded-xl bg-no-repeat" style={spriteStyle} />
-                <span className="mt-1 block text-[10px] font-semibold text-pink-500 opacity-80 group-hover:opacity-100">연이 리액션</span>
+                <span className="mt-1 block text-[10px] font-semibold text-pink-600">연이 리액션</span>
               </div>
             </motion.div>
           </div>
         </motion.section>
 
-        <section className="grid gap-5 xl:grid-cols-[1.15fr_1fr_1fr]">
+        <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
           <motion.article
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
+            className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">입력</p>
-            <h2 className="text-lg font-black text-slate-700">감정 + 고민 상담</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">감정을 고르고 고민을 적으면 핵심 키워드를 인식해 점성술 리딩을 생성해요.</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-200">입력 패널</p>
+            <h2 className="text-xl font-black text-white">감정 선택 → 별자리 → 고민 입력</h2>
+            <p className="mb-4 mt-1 text-sm text-slate-200">기존 상담 로직은 그대로 유지하고, 입력과 결과 표시를 더 읽기 쉽게 정리했어요.</p>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {EMOTIONS.map((emotion) => {
                 const isActive = selectedEmotion === emotion.key;
                 return (
@@ -899,176 +908,191 @@ export default function YeonStarHugPage() {
                     whileTap={{ scale: 0.92 }}
                     whileHover={{ y: -3 }}
                     onClick={() => setSelectedEmotion(emotion.key)}
-                    className={`rounded-2xl border px-2 py-3 text-center transition-all ${
+                    className={`min-h-11 rounded-2xl border px-2 py-3 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-200 ${
                       isActive
-                        ? `border-pink-300 bg-gradient-to-br ${emotion.tone} shadow-[0_8px_20px_rgba(244,114,182,0.26)]`
-                        : "border-pink-100 bg-white"
+                        ? `border-pink-200 bg-gradient-to-br ${emotion.tone} shadow-[0_8px_20px_rgba(248,113,113,0.26)]`
+                        : "border-white/35 bg-white/15"
                     }`}
+                    aria-label={`${emotion.label} 감정 선택`}
                   >
-                    <emotion.Icon className="mx-auto mb-1 h-4 w-4 text-pink-500" />
-                    <span className="text-xs font-bold text-slate-700">{emotion.label}</span>
+                    <emotion.Icon className="mx-auto mb-1 h-4 w-4 text-pink-100" />
+                    <span className="text-xs font-bold text-white">{emotion.label}</span>
                   </motion.button>
                 );
               })}
             </div>
 
-            <label className="mt-4 block text-xs font-semibold text-slate-500">내 별자리</label>
+            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-100">내 별자리</label>
             <select
+              id="yeon-zodiac-select"
               value={selectedSign}
               onChange={(event) => setSelectedSign(event.target.value as ZodiacSign)}
-              className="mt-1 w-full rounded-xl border border-pink-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-400"
+              className="mt-1 min-h-11 w-full appearance-none rounded-xl border border-white/35 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+              aria-label="별자리 선택"
             >
               {ZODIAC_SIGNS.map((item) => (
                 <option key={item.sign} value={item.sign}>{`${item.sign} (${item.period})`}</option>
               ))}
             </select>
 
-            <label className="mt-4 block text-xs font-semibold text-slate-500">지금 고민 (키워드 인식용)</label>
+            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-100">지금 고민 (키워드 인식용)</label>
             <textarea
+              id="yeon-concern-input"
               value={concernText}
               onChange={(event) => setConcernText(event.target.value)}
-              placeholder="예: 요즘 이직 고민이 커서 불안하고, 돈도 아껴야 해서 압박이 커요"
-              className="mt-1 min-h-28 w-full resize-none rounded-xl border border-pink-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-400"
+              placeholder="예: 요즘 이직 고민과 금전 압박 때문에 불안해요. 오늘 어떤 선택을 먼저 하면 좋을까요?"
+              className="mt-1 min-h-32 w-full resize-y rounded-xl border border-white/35 bg-white/90 px-3 py-3 text-sm leading-relaxed text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+              aria-label="고민 입력"
             />
 
             <button
               type="button"
               onClick={runConsultation}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_18px_rgba(251,113,133,0.36)] transition hover:brightness-105"
+              disabled={isGenerating}
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <Sparkles className="h-4 w-4" />
-              연이 상담 업데이트
+              {isGenerating ? <Download className="h-4 w-4 animate-pulse" /> : <Sparkles className="h-4 w-4" />}
+              {isGenerating ? "연이가 별빛 흐름 정리중..." : "연이 상담 업데이트"}
             </button>
+            <p className="mt-2 text-xs text-slate-300">상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드</p>
           </motion.article>
 
-          <motion.article
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
-            className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
-          >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">분석 결과</p>
-            <h2 className="text-lg font-black text-slate-700">오늘의 점성술 상담</h2>
-
-            <div className="mt-3 rounded-2xl border border-pink-100 bg-pink-50/70 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-pink-500 shadow-sm">
-                  <Sun className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-extrabold text-slate-700">{consultation.sign}</p>
-                  <p className="text-xs text-slate-500">{consultation.period}</p>
-                </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-600">
-                <p className="rounded-lg bg-white/80 px-2 py-1">태양 위치: {consultation.todaySunSign}</p>
-                <p className="rounded-lg bg-white/80 px-2 py-1">달 위상: {consultation.moon.label} ({Math.round(consultation.moon.illumination * 100)}%)</p>
-                <p className="rounded-lg bg-white/80 px-2 py-1">행성 요일: {consultation.dayRuler.label}</p>
-                <p className="rounded-lg bg-white/80 px-2 py-1">별자리 각도: {consultation.aspect.label}</p>
-              </div>
-
-              <div className="mt-3 space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>전체 운세</span>
-                  <RatingStars value={consultation.overall} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>연애/관계</span>
-                  <RatingStars value={consultation.love} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>금전/현실</span>
-                  <RatingStars value={consultation.money} />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 rounded-2xl bg-gradient-to-br from-pink-100/70 via-white to-purple-100/70 p-4">
-              <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-pink-400 shadow">
-                <Heart className="h-5 w-5 fill-pink-200" />
-              </div>
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={`${selectedEmotion}-${selectedSign}-${consultation.warmMessage}`}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
+          <div className="flex min-w-0 flex-col gap-4">
+            {!consultation ? (
+              <motion.article
+                initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+                animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-3xl border border-white/20 bg-white/10 p-6 text-center shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
+              >
+                <p className="text-sm font-semibold text-pink-100">감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.</p>
+                <p className="mt-2 text-xs text-slate-300">업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.</p>
+              </motion.article>
+            ) : (
+              <>
+                <motion.article
+                  initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+                  animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   transition={{ duration: 0.35 }}
-                  className="text-sm font-semibold leading-relaxed text-slate-700"
+                  className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
                 >
-                  {consultation.warmMessage}
-                </motion.p>
-              </AnimatePresence>
-            </div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-200">분석 결과</p>
+                  <h2 className="text-xl font-black text-white">오늘의 점성술 상담</h2>
 
-            <div className="mt-3 rounded-xl border border-pink-100 bg-white/90 p-3">
-              <p className="text-xs font-semibold text-pink-500">핵심 포커스: {consultation.concernCategoryLabel}</p>
-              <p className="mt-1 text-xs font-semibold text-purple-500">세부 도메인: {consultation.concernDomainLabel}</p>
-              <p className="mt-1 text-xs text-slate-600">{consultation.practicalTip}</p>
-              {consultation.concernKeywords.length > 0 ? (
-                <p className="mt-2 text-xs text-slate-500">인식 키워드: {consultation.concernKeywords.join(", ")}</p>
-              ) : null}
-            </div>
-          </motion.article>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-white">별자리: {consultation.sign}</span>
+                    <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-white">기간: {consultation.period}</span>
+                    <span className="rounded-full border border-pink-200/40 bg-pink-100/15 px-3 py-1 text-pink-100">태양: {consultation.todaySunSign}</span>
+                    <span className="rounded-full border border-violet-200/40 bg-violet-100/15 px-3 py-1 text-violet-100">달: {consultation.moon.label}</span>
+                    <span className="rounded-full border border-indigo-200/40 bg-indigo-100/15 px-3 py-1 text-indigo-100">요일 행성: {consultation.dayRuler.label}</span>
+                    <span className="rounded-full border border-amber-200/40 bg-amber-100/15 px-3 py-1 text-amber-100">별자리 각도: {consultation.aspect.label}</span>
+                  </div>
 
-          <motion.article
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.3 }}
-            className="rounded-[2rem] border border-white/50 bg-white/90 p-5 shadow-[0_8px_30px_rgb(244,114,182,0.2)] backdrop-blur-sm"
-          >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">공유 카드</p>
-            <h2 className="text-lg font-black text-slate-700">고화질 SVG 마음 카드</h2>
+                  <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-4 text-slate-700">
+                    <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+                      <div className="flex items-center justify-between rounded-lg bg-pink-50 px-3 py-2">
+                        <span>전체 운세</span>
+                        <RatingStars value={consultation.overall} />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-purple-50 px-3 py-2">
+                        <span>연애/관계</span>
+                        <RatingStars value={consultation.love} />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2">
+                        <span>금전/현실</span>
+                        <RatingStars value={consultation.money} />
+                      </div>
+                    </div>
 
-            <div className="mt-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-200/50 via-white to-purple-200/50 p-3">
-              <div
-                className="overflow-hidden rounded-xl border border-pink-200 bg-white"
-                aria-label="SVG 마음 카드 미리보기"
-                dangerouslySetInnerHTML={{ __html: cardSvg }}
-              />
-            </div>
+                    <div className="mt-3 rounded-xl border border-pink-100 bg-white px-4 py-3">
+                      <p className="text-xs font-semibold text-pink-500">연이의 해석</p>
+                      <AnimatePresence mode="wait">
+                        <motion.p
+                          key={`${selectedEmotion}-${selectedSign}-${consultation.warmMessage}`}
+                          initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
+                          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                          exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+                          transition={{ duration: 0.25 }}
+                          className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-700"
+                        >
+                          {consultation.warmMessage}
+                        </motion.p>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </motion.article>
 
-            <button
-              type="button"
-              onClick={handleShare}
-              disabled={isExporting}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_18px_rgba(251,113,133,0.36)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
-              {isExporting ? "SVG 카드 준비중..." : "SVG 카드 공유/저장"}
-            </button>
-            <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
+                <motion.article
+                  initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+                  animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.04 }}
+                  className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
+                >
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-200">공유 카드</p>
+                  <h2 className="text-lg font-black text-white">고화질 SVG 마음 카드</h2>
 
-            <div className="mt-3 rounded-xl border border-pink-100 bg-white p-3">
-              <p className="text-xs font-semibold text-pink-500">오늘의 실행 3단계</p>
-              <ol className="mt-2 list-inside list-decimal space-y-1 text-xs text-slate-600">
-                {consultation.actionPlan.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-              <p className="mt-2 text-xs font-semibold text-slate-600">행운 아이템: {consultation.luckyItem}</p>
-            </div>
-          </motion.article>
+                  <div className="mt-3 rounded-2xl border border-white/25 bg-white/90 p-3">
+                    <div
+                      className="mx-auto aspect-[4/5] w-full max-w-[420px] overflow-hidden rounded-xl border border-pink-100 bg-white [&_svg]:h-full [&_svg]:w-full"
+                      aria-label="SVG 마음 카드 미리보기"
+                      dangerouslySetInnerHTML={{ __html: cardSvg }}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    disabled={isExporting || !consultation}
+                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
+                    {isExporting ? "SVG 카드 준비중..." : "SVG 카드 공유/저장"}
+                  </button>
+                  <p className="mt-2 min-h-5 text-xs text-slate-200">{shareFeedback}</p>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-pink-200/35 bg-white/90 p-3 text-slate-700">
+                      <p className="text-xs font-semibold text-pink-500">핵심 포커스</p>
+                      <p className="mt-1 text-xs font-semibold text-purple-600">{consultation.concernCategoryLabel} · {consultation.concernDomainLabel}</p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-600">{consultation.practicalTip}</p>
+                      {consultation.concernKeywords.length > 0 ? (
+                        <p className="mt-2 text-xs text-slate-500">인식 키워드: {consultation.concernKeywords.join(", ")}</p>
+                      ) : null}
+                    </div>
+
+                    <div className="rounded-xl border border-rose-200/35 bg-white/90 p-3 text-slate-700">
+                      <p className="text-xs font-semibold text-rose-500">오늘의 실행 3단계</p>
+                      <ol className="mt-2 list-inside list-decimal space-y-1 text-xs leading-relaxed text-slate-600">
+                        {consultation.actionPlan.map((step) => (
+                          <li key={step} className="break-words">{step}</li>
+                        ))}
+                      </ol>
+                      <p className="mt-2 text-xs font-semibold text-slate-700">행운 아이템: {consultation.luckyItem}</p>
+                    </div>
+                  </div>
+                </motion.article>
+              </>
+            )}
+          </div>
         </section>
 
         <motion.nav
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
+          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.4 }}
           className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-4"
           aria-label="기능 요약 배지"
         >
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/85 px-4 py-2 text-xs font-semibold text-pink-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-pink-100 shadow-sm">
             <Heart className="h-4 w-4" /> 감정 + 고민 입력
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200 bg-white/85 px-4 py-2 text-xs font-semibold text-purple-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-purple-100 shadow-sm">
             <Sparkles className="h-4 w-4" /> 실시간 키워드 인식
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-white/85 px-4 py-2 text-xs font-semibold text-amber-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-amber-100 shadow-sm">
             <Cloud className="h-4 w-4" /> 실제 점성술 신호
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/85 px-4 py-2 text-xs font-semibold text-rose-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-rose-100 shadow-sm">
             <Coins className="h-4 w-4" /> SVG 카드 공유
           </div>
         </motion.nav>
