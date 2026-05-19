@@ -79,5 +79,39 @@ jobs:
       - name: Worker preflight build (dry-run)
         run: npm run build:worker
 
-      - name: Deploy Cloudflare Worker
-        run: npm run deploy:cf:worker
+      - name: Deploy Cloudflare Worker (retry transient API 5xx)
+        run: |
+          set -euo pipefail
+
+          max_attempts=3
+          attempt=1
+
+          while [ "$attempt" -le "$max_attempts" ]; do
+            echo "[deploy-worker] Attempt $attempt/$max_attempts"
+
+            log_file="$(mktemp)"
+            set +e
+            npm run deploy:cf:worker 2>&1 | tee "$log_file"
+            deploy_status=${PIPESTATUS[0]}
+            set -e
+
+            if [ "$deploy_status" -eq 0 ]; then
+              rm -f "$log_file"
+              exit 0
+            fi
+
+            if grep -Eiq "Received a malformed response from the API|workers/subdomain -> 5[0-9]{2}" "$log_file"; then
+              echo "[deploy-worker] Transient Cloudflare API error detected during workers/subdomain lookup."
+              if [ "$attempt" -lt "$max_attempts" ]; then
+                echo "[deploy-worker] Retrying in 20 seconds..."
+                sleep 20
+                rm -f "$log_file"
+                attempt=$((attempt + 1))
+                continue
+              fi
+            fi
+
+            echo "[deploy-worker] Deploy failed with non-retryable error or max retries reached."
+            rm -f "$log_file"
+            exit "$deploy_status"
+          done
