@@ -169,15 +169,18 @@ export default function DestinyMeetingPlacePage() {
   }, []);
 
   return (
-    <main className="relative min-h-[100dvh] overflow-x-hidden bg-[radial-gradient(circle_at_12%_10%,rgba(255,176,209,0.24),transparent_35%),radial-gradient(circle_at_86%_0%,rgba(255,208,122,0.2),transparent_30%),radial-gradient(circle_at_50%_90%,rgba(95,167,255,0.22),transparent_34%),linear-gradient(170deg,#0d0f2b_0%,#2e1a56_52%,#0d1638_100%)] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.12),transparent_38%),radial-gradient(circle_at_78%_66%,rgba(255,255,255,0.08),transparent_40%)]" />
+    <main className="relative min-h-[100dvh] overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(255,164,216,0.28),transparent_34%),radial-gradient(circle_at_88%_4%,rgba(101,212,255,0.3),transparent_30%),radial-gradient(circle_at_52%_92%,rgba(126,108,255,0.24),transparent_36%),linear-gradient(168deg,#050617_0%,#171038_45%,#2a0f47_100%)] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.13),transparent_38%),radial-gradient(circle_at_74%_68%,rgba(255,255,255,0.08),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.56)_0.9px,transparent_0.9px)] [background-size:3px_3px]" />
+      <div className="pointer-events-none absolute -left-24 top-20 h-48 w-48 rounded-full bg-[#80d8ff]/20 blur-3xl motion-safe:animate-pulse" />
+      <div className="pointer-events-none absolute -right-20 top-48 h-56 w-56 rounded-full bg-[#ff9be7]/18 blur-3xl motion-safe:animate-pulse" />
       <Toaster position="top-center" richColors />
 
-      <header className="sticky top-0 z-40 border-b border-white/15 bg-[#110f2f]/75 px-4 py-4 backdrop-blur-xl sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-[#92cbff]/30 bg-[#0a0a2b]/74 px-4 py-4 shadow-[0_10px_32px_rgba(3,6,20,0.45)] backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
           <button
             onClick={() => window.history.back()}
-            className="rounded-full border border-white/20 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
+            className="rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
             aria-label="뒤로 가기"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
@@ -185,12 +188,12 @@ export default function DestinyMeetingPlacePage() {
             </svg>
           </button>
           <div className="text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.26em] text-[#ffd68a]">Destiny Meeting Place</p>
-            <h1 className="mt-1 text-sm font-black tracking-tight text-white sm:text-base">사주로 보는 인연의 장소</h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd88a] [text-shadow:0_0_12px_rgba(255,212,138,0.7)]">Destiny Meeting Place</p>
+            <h1 className="mt-1 text-sm font-black tracking-tight text-white [text-shadow:0_0_18px_rgba(146,209,255,0.55)] sm:text-base">사주로 보는 인연의 장소</h1>
           </div>
           <button
             onClick={handleReset}
-            className="rounded-full border border-white/20 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
+            className="rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
             aria-label="초기화"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -202,7 +205,7 @@ export default function DestinyMeetingPlacePage() {
       </header>
 
       <div className="relative z-10 mx-auto w-full max-w-6xl space-y-6 px-4 pb-20 pt-6 sm:px-6">
-        <section className="overflow-hidden rounded-[2rem] border border-white/20 bg-[#1b1543]/72 shadow-[0_30px_60px_rgba(5,6,20,0.5)] backdrop-blur-sm">
+        <section className="overflow-hidden rounded-[2rem] border border-[#8fcfff]/35 bg-[#150f38]/70 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_26px_58px_rgba(5,7,24,0.6)] backdrop-blur-sm">
           <div className="relative h-[220px] sm:h-[300px]">
             <img
               src={HERO_IMAGE}
@@ -211,21 +214,42 @@ export default function DestinyMeetingPlacePage() {
               loading="eager"
               decoding="async"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,30,0.16),rgba(10,8,30,0.64))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,7,24,0.14),rgba(6,7,24,0.7))]" />
+            <div className="absolute right-4 top-4 rounded-full border border-[#bce6ff]/45 bg-[#0b122f]/65 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#cff0ff] [text-shadow:0_0_10px_rgba(161,230,255,0.8)]">
+              Cosmic Neon Read
+            </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#ffd88a]">Night Sky Oracle</p>
-              <h2 className="mt-2 text-2xl font-black leading-tight text-white sm:text-4xl">운명의 만남이 시작될 장소를 찾는 독립 리포트</h2>
-              <p className="mt-2 text-sm font-medium text-[#f0e8ff]">이 페이지에서 바로 사주 계산부터 인연 장소 분석까지 한 번에 실행합니다.</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#ffd88a] [text-shadow:0_0_10px_rgba(255,216,138,0.7)]">Night Sky Oracle</p>
+              <h2 className="mt-2 text-2xl font-black leading-tight text-white [text-shadow:0_0_16px_rgba(127,209,255,0.5)] sm:text-4xl">운명의 만남이 시작될 좌표를 별빛 지도처럼 찾아드립니다</h2>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-[#f5eeff]">
+                사주 에너지 흐름을 바탕으로 <span className="text-[#ffdca7]">어떤 장소에서</span>, <span className="text-[#bfe6ff]">언제</span>, <span className="text-[#ffccf0]">어떤 분위기</span>로
+                인연 운이 상승하는지 한 화면에서 깊이 있게 안내합니다.
+              </p>
             </div>
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-[#ffd4a5]/40 bg-[linear-gradient(160deg,rgba(30,22,70,0.92),rgba(34,20,64,0.88))] p-5 shadow-[0_22px_40px_rgba(9,8,30,0.45)] sm:p-8">
+        <section className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">
-            <span className="rounded-full bg-[#ffd88a]/18 px-3 py-1 text-[#ffd88a]">1회 100코인</span>
-            <span className="rounded-full bg-[#ff9dd9]/18 px-3 py-1 text-[#ffb9e6]">야경/별빛 무드 추천</span>
-            <span className="rounded-full bg-[#81bbff]/18 px-3 py-1 text-[#b8d9ff]">장소 + 시기 + 아이템</span>
-            {!isLoggedIn ? <span className="rounded-full bg-rose-400/15 px-3 py-1 text-rose-200">로그인 필요</span> : null}
+            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">1회 100코인</span>
+            <span className="rounded-full border border-[#ffb4e6]/45 bg-[#ff9dd9]/15 px-3 py-1 text-[#ffd6ef]">별빛/야경 인연 무드 추천</span>
+            <span className="rounded-full border border-[#9fd0ff]/45 bg-[#81bbff]/14 px-3 py-1 text-[#d6ebff]">장소 + 시기 + 국가 + 스타일</span>
+            {!isLoggedIn ? <span className="rounded-full border border-rose-200/40 bg-rose-400/15 px-3 py-1 text-rose-100">로그인 후 분석 가능</span> : null}
+          </div>
+
+          <div className="mb-6 grid gap-3 text-sm md:grid-cols-3">
+            <article className="rounded-2xl border border-[#b9e2ff]/25 bg-[#0f1233]/45 p-3 text-[#e9f3ff]">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#b9e2ff]">01 Place Signal</p>
+              <p className="mt-1 font-semibold leading-relaxed">당신의 오행 균형에 맞는 만남 장소 성향을 추출합니다.</p>
+            </article>
+            <article className="rounded-2xl border border-[#ffd6a9]/25 bg-[#16113b]/45 p-3 text-[#fff0d4]">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#ffdca8]">02 Timing Window</p>
+              <p className="mt-1 font-semibold leading-relaxed">계절, 월, 시간대까지 실제 행동 가능한 타이밍으로 안내합니다.</p>
+            </article>
+            <article className="rounded-2xl border border-[#f7b8f0]/25 bg-[#20123f]/45 p-3 text-[#ffe8fb]">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#ffc8f5]">03 Mood Styling</p>
+              <p className="mt-1 font-semibold leading-relaxed">인연운을 살리는 컬러와 분위기, 행동 포인트를 제안합니다.</p>
+            </article>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -234,9 +258,10 @@ export default function DestinyMeetingPlacePage() {
               <input
                 value={input.name || ""}
                 onChange={(event) => setPatch({ name: event.target.value.slice(0, 24) })}
-                placeholder="예: 별빛여우"
-                className="w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-base text-white placeholder:text-[#c8c4df] focus:border-[#ffd88a] focus:outline-none"
+                placeholder="예: 은하수여우"
+                className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] placeholder:text-[#cfc7ea] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               />
+              <span className="block text-[11px] font-medium text-[#d7d1ee]">리포트 상단에 표시될 호칭입니다. 본명이 아니어도 괜찮아요.</span>
             </label>
 
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
@@ -245,8 +270,9 @@ export default function DestinyMeetingPlacePage() {
                 type="date"
                 value={input.birthDate}
                 onChange={(event) => setPatch({ birthDate: event.target.value })}
-                className="w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-base text-white focus:border-[#ffd88a] focus:outline-none"
+                className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               />
+              <span className="block text-[11px] font-medium text-[#d7d1ee]">가장 정확한 장소 추천을 위해 반드시 입력해 주세요.</span>
             </label>
 
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
@@ -254,11 +280,12 @@ export default function DestinyMeetingPlacePage() {
               <select
                 value={input.calendarType || "solar"}
                 onChange={(event) => setPatch({ calendarType: event.target.value as AnimalDestinyInput["calendarType"] })}
-                className="w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-base text-white focus:border-[#ffd88a] focus:outline-none"
+                className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               >
                 <option value="solar" className="text-black">양력</option>
                 <option value="lunar" className="text-black">음력</option>
               </select>
+              <span className="block text-[11px] font-medium text-[#d7d1ee]">음력 생일이라면 음력 + 윤달 여부를 함께 선택해 주세요.</span>
             </label>
 
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
@@ -267,9 +294,9 @@ export default function DestinyMeetingPlacePage() {
                 type="time"
                 value={input.birthTime || ""}
                 onChange={(event) => setPatch({ birthTime: event.target.value })}
-                className="w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-base text-white focus:border-[#ffd88a] focus:outline-none"
+                className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               />
-              <span className="block text-[11px] font-medium text-[#c9c6e5]">모르면 비워도 분석할 수 있습니다.</span>
+              <span className="block text-[11px] font-medium text-[#d7d1ee]">모르면 비워도 분석할 수 있지만, 입력 시 장소/시간 추천 정확도가 올라갑니다.</span>
             </label>
 
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
@@ -277,12 +304,13 @@ export default function DestinyMeetingPlacePage() {
               <select
                 value={input.gender}
                 onChange={(event) => setPatch({ gender: event.target.value as AnimalDestinyInput["gender"] })}
-                className="w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-base text-white focus:border-[#ffd88a] focus:outline-none"
+                className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               >
                 <option value="unknown" className="text-black">성별 미선택</option>
                 <option value="female" className="text-black">여성</option>
                 <option value="male" className="text-black">남성</option>
               </select>
+              <span className="block text-[11px] font-medium text-[#d7d1ee]">관계 패턴 문장 톤 보정에만 사용되며, 미선택도 가능합니다.</span>
             </label>
 
             {isLunar ? (
@@ -302,22 +330,25 @@ export default function DestinyMeetingPlacePage() {
             type="button"
             onClick={handleAnalyze}
             disabled={!canSubmit || isLoading || isCharging}
-            className="mt-6 w-full rounded-2xl bg-[linear-gradient(90deg,#ff9dd9,#8e6dff,#6aa8ff)] px-5 py-4 text-base font-black text-white shadow-[0_18px_30px_rgba(8,7,28,0.45)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
+            className="mt-6 w-full rounded-2xl bg-[linear-gradient(92deg,#ff9dd9,#8a6bff,#66b4ff)] px-5 py-4 text-base font-black text-white shadow-[0_0_18px_rgba(151,211,255,0.6),0_18px_30px_rgba(8,7,28,0.45)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
           >
             {isCharging ? "코인 결제 확인 중..." : isLoading ? "별빛 지도를 분석하는 중..." : "인연의 장소 분석 시작"}
           </button>
+          <p className="mt-3 text-center text-xs leading-relaxed text-[#ddd7f2]">
+            결과는 오락 및 자기이해 참고용입니다. 중요한 재무/법률/의료 판단은 반드시 전문 상담을 함께 진행해 주세요.
+          </p>
         </section>
 
         {meta ? (
-          <section className="rounded-3xl border border-white/20 bg-white/10 p-4 text-sm text-[#f1edff] backdrop-blur-md sm:p-5">
-            <h3 className="text-base font-black text-white">분석 근거</h3>
+          <section className="rounded-3xl border border-[#9cd8ff]/30 bg-[#0f1538]/55 p-4 text-sm text-[#f1edff] backdrop-blur-md sm:p-5">
+            <h3 className="text-base font-black text-white [text-shadow:0_0_12px_rgba(145,216,255,0.5)]">분석 근거 데이터</h3>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               <p>일간: <b>{meta.dayMaster}</b></p>
               <p>대표 운성: <b>{meta.representativeStage}</b></p>
               <p>엔진 소스: <b>{meta.source === "saju-engine" ? "사주 엔진" : "로컬 정밀 계산"}</b></p>
               <p>시간 입력: <b>{meta.timeUnknown ? "시간 미입력" : "시간 입력됨"}</b></p>
             </div>
-            {meta.warning ? <p className="mt-2 text-xs text-[#ffd7e5]">{meta.warning}</p> : null}
+            {meta.warning ? <p className="mt-2 text-xs text-[#ffd7e5]">주의: {meta.warning}</p> : null}
           </section>
         ) : null}
 
