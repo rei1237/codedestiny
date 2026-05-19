@@ -83,6 +83,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         minCost: isCouple ? 400 : 300,
         windowMinutes: 45,
       },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 45,
+      },
     ];
   }
 
@@ -117,34 +123,58 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "westernAstrologyPremium") {
     const modeToken = normalizeModeToken(requestBody);
     const isCompat = modeToken.includes("compat");
-    return [{
-      featureKey: isCompat ? "premium-astrology-report-compat" : "premium-astrology-report",
-      reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
-      minCost: isCompat ? 490 : 390,
-      windowMinutes: 120,
-    }];
+    return [
+      {
+        featureKey: isCompat ? "premium-astrology-report-compat" : "premium-astrology-report",
+        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+    ];
   }
 
   if (reportType === "sookyoPremium") {
     const modeToken = normalizeModeToken(requestBody);
     const isCompat = modeToken.includes("compat");
-    return [{
-      featureKey: isCompat ? "premium-sukuyo-report-compat" : "premium-sukuyo-report",
-      reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
-      minCost: isCompat ? 490 : 390,
-      windowMinutes: 120,
-    }];
+    return [
+      {
+        featureKey: isCompat ? "premium-sukuyo-report-compat" : "premium-sukuyo-report",
+        reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+    ];
   }
 
   if (reportType === "vedicPremium") {
     const modeToken = normalizeModeToken(requestBody);
     const isCompat = modeToken.includes("compat");
-    return [{
-      featureKey: isCompat ? "premium-vedic-report-compat" : "premium-vedic-report",
-      reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
-      minCost: isCompat ? 490 : 390,
-      windowMinutes: 120,
-    }];
+    return [
+      {
+        featureKey: isCompat ? "premium-vedic-report-compat" : "premium-vedic-report",
+        reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+    ];
   }
 
   return [];
@@ -159,19 +189,30 @@ async function findRecentDeductionEvidence(userId, rule) {
   const minCost = Number(rule?.minCost || 0);
   const createdAtMin = new Date(Date.now() - minutes * 60 * 1000);
 
-  const query = {
+  const baseQuery = {
     userId,
     kind: "deduct",
     featureKey: String(rule?.featureKey || "").trim(),
-    reason: String(rule?.reason || "").trim(),
     createdAt: { $gte: createdAtMin },
   };
 
   if (minCost > 0) {
-    query.delta = { $lte: -Math.floor(minCost) };
+    baseQuery.delta = { $lte: -Math.floor(minCost) };
   }
 
-  return PointHistory.findOne(query)
+  const strictReason = String(rule?.reason || "").trim();
+  if (strictReason) {
+    const strictEvidence = await PointHistory.findOne({
+      ...baseQuery,
+      reason: strictReason,
+    })
+      .select("_id createdAt delta featureKey reason")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (strictEvidence) return strictEvidence;
+  }
+
+  return PointHistory.findOne(baseQuery)
     .select("_id createdAt delta featureKey reason")
     .sort({ createdAt: -1 })
     .lean();
