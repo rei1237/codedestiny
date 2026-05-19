@@ -1279,13 +1279,25 @@
    * @param {Function} cb   성공 시 호출할 콜백
    */
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
+    var now = Date.now();
+    var lockAt = Number(window.__cdCoinGatePerUseLockAt || 0);
+    var lockAgeMs = lockAt > 0 ? (now - lockAt) : 0;
+    var isStaleLock = !lockAt || lockAgeMs > 45000;
+
     // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
     if (window._cdCoinGatePerUseInFlight) {
+      if (isStaleLock) {
+        window._cdCoinGatePerUseInFlight = false;
+        window.__cdCoinGatePerUseLockAt = 0;
+        _dpSetPaymentPending(false);
+        window.alert('이전 결제 상태를 복구했습니다. 다시 시도해 주세요.');
+      } else {
       window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
+      }
       if (typeof onCancel === 'function') onCancel();
       return;
     }
-    var now = Date.now();
+
     var dedupeKey = String(reason || '') + '|' + String(cost || 0);
     var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
     // ⚠️ Dedup 타임아웃을 2.5초로 증가 (우회 시간 제거)
@@ -1320,6 +1332,7 @@
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
+    window.__cdCoinGatePerUseLockAt = Date.now();
     var pendingLabel = String(reason || '').trim() || '유료 서비스';
     _dpSetPaymentPending(true, pendingLabel + ' 결제를 확인하는 중입니다...');
     _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
@@ -1334,6 +1347,7 @@
     })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
+      window.__cdCoinGatePerUseLockAt = 0;
       _dpSetPaymentPending(false);
       if (res.status === 401 || res.status === 403) {
         if (typeof window.__cdOpenLoginRequiredModal === 'function') {
@@ -1367,7 +1381,7 @@
       }
       cb(res.data && res.data.transactionId ? String(res.data.transactionId) : '');
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; window.__cdCoinGatePerUseLockAt = 0; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {

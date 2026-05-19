@@ -35,6 +35,8 @@
     reportId: '',
     reportSessionId: '',
     paidReportId: '',
+    paymentContext: null,
+    refundInFlight: false,
     payload: null,
     chapterTexts: {},
     chapterMeta: {},
@@ -207,25 +209,104 @@
     };
   }
 
+  function toKoElementToken(value) {
+    var v = String(value || '').trim().toLowerCase();
+    if (!v) return '';
+    if (v === 'wood') return '목';
+    if (v === 'fire') return '화';
+    if (v === 'earth') return '토';
+    if (v === 'metal') return '금';
+    if (v === 'water') return '수';
+    return String(value || '').trim();
+  }
+
+  function extractDaewunRows(raw) {
+    if (!Array.isArray(raw)) return [];
+    var out = [];
+    for (var i = 0; i < raw.length && out.length < 8; i += 1) {
+      var row = raw[i] || {};
+      var ganji = String(row.ganji || row.gz || row.label || row.name || '').trim();
+      if (!ganji && row.stem && row.branch) ganji = String(row.stem) + String(row.branch);
+      if (!ganji) continue;
+      var fromAge = Number.isFinite(Number(row.fromAge)) ? Number(row.fromAge) : '';
+      var toAge = Number.isFinite(Number(row.toAge)) ? Number(row.toAge) : '';
+      out.push({ ganji: ganji, fromAge: fromAge, toAge: toAge });
+    }
+    return out;
+  }
+
+  function buildPillarSummary(pillars) {
+    var p = pillars || {};
+    var y = p.y || p.year || {};
+    var m = p.m || p.month || {};
+    var d = p.d || p.day || {};
+    var h = p.h || p.hour || {};
+    var yearGanji = String((y.g || '') + (y.j || '') || y.ganji || '').trim();
+    var monthGanji = String((m.g || '') + (m.j || '') || m.ganji || '').trim();
+    var dayGanji = String((d.g || '') + (d.j || '') || d.ganji || '').trim();
+    var hourGanji = String((h.g || '') + (h.j || '') || h.ganji || '').trim();
+    return {
+      yearGanji: yearGanji,
+      monthGanji: monthGanji,
+      dayGanji: dayGanji,
+      hourGanji: hourGanji,
+      dayStem: String(d.g || d.stem || '').trim(),
+      monthBranch: String(m.j || m.branch || '').trim()
+    };
+  }
+
   function buildEngineData() {
     var snapshot = null;
+    var pillars = null;
+    var elementWeights = null;
+    var power = null;
+    var johu = null;
+    var daewun = null;
+
     try { snapshot = window.__destinyFlowerSajuSnapshot || null; } catch (_) { snapshot = null; }
-    if (!snapshot) return null;
+    try { pillars = window.G_PILLARS || null; } catch (_) { pillars = null; }
+    try { elementWeights = window.G_NATAL || null; } catch (_) { elementWeights = null; }
+    try { power = window.G_POWER || null; } catch (_) { power = null; }
+    try { johu = window.G_JOHU || null; } catch (_) { johu = null; }
+    try { daewun = Array.isArray(window.G_DAEWUN) ? window.G_DAEWUN : null; } catch (_) { daewun = null; }
+
+    var rawPillars = (snapshot && (snapshot.pillars || snapshot.saju?.pillars)) || pillars || {};
+    var dayRow = rawPillars.d || rawPillars.day || {};
+    var dayMaster = String((snapshot && (snapshot.dayMaster || snapshot.saju?.dayMaster)) || dayRow.g || dayRow.stem || '').trim();
+    var yongsin = '';
+    var huisin = '';
+    var gisin = '';
+
+    if (power && Array.isArray(power.yongshin) && power.yongshin.length) {
+      yongsin = toKoElementToken(power.yongshin[0]);
+      huisin = toKoElementToken(power.yongshin[1] || '');
+    }
+    if (power && Array.isArray(power.kijishin) && power.kijishin.length) {
+      gisin = toKoElementToken(power.kijishin[0]);
+    }
+
     return {
-      dayMaster: snapshot.dayMaster || snapshot.saju?.dayMaster || '',
-      pillars: snapshot.pillars || snapshot.saju?.pillars || {}
+      dayMaster: dayMaster,
+      pillars: rawPillars,
+      elementWeights: elementWeights || {},
+      tenGods: power && typeof power.tenGods === 'object' ? power.tenGods : {},
+      usefulGods: {
+        yongsin: yongsin,
+        huisin: huisin,
+        gisin: gisin
+      },
+      seasonMeta: johu || undefined,
+      daewunRows: extractDaewunRows(daewun)
     };
   }
 
   function buildCompactSajuData() {
     var engine = buildEngineData() || {};
-    var dayMaster = String(engine.dayMaster || '').trim();
-    var pillars = engine.pillars && typeof engine.pillars === 'object' ? engine.pillars : {};
-
-    function pillarStem(name) {
-      var row = pillars && pillars[name] && typeof pillars[name] === 'object' ? pillars[name] : null;
-      return String((row && row.stem) || '').trim();
-    }
+    var summary = buildPillarSummary(engine.pillars || {});
+    var elementWeights = engine.elementWeights && typeof engine.elementWeights === 'object' ? engine.elementWeights : {};
+    var tenGods = engine.tenGods && typeof engine.tenGods === 'object' ? engine.tenGods : {};
+    var useful = engine.usefulGods && typeof engine.usefulGods === 'object' ? engine.usefulGods : {};
+    var daewunRows = Array.isArray(engine.daewunRows) ? engine.daewunRows : [];
 
     var sourceRaw = '';
     try {
@@ -237,9 +318,46 @@
     var compact = [
       '사주 원국 요약',
       '- 오행/십성/대운/세운/월운 기준의 신년 해석 데이터',
-      '- 일간: ' + (dayMaster || '정보 부족'),
-      '- 천간: 년 ' + (pillarStem('year') || '정보 부족') + ' / 월 ' + (pillarStem('month') || '정보 부족') + ' / 일 ' + (pillarStem('day') || '정보 부족') + ' / 시 ' + (pillarStem('hour') || '정보 부족')
+      '- 년주: ' + (summary.yearGanji || '정보 부족'),
+      '- 월주: ' + (summary.monthGanji || '정보 부족'),
+      '- 일주: ' + (summary.dayGanji || '정보 부족'),
+      '- 시주: ' + (summary.hourGanji || '정보 부족'),
+      '- 일간: ' + (summary.dayStem || engine.dayMaster || '정보 부족'),
+      '- 월지: ' + (summary.monthBranch || '정보 부족')
     ];
+
+    var hasElementWeights = ['wood', 'fire', 'earth', 'metal', 'water'].some(function (key) {
+      return Number.isFinite(Number(elementWeights[key]));
+    });
+    if (hasElementWeights) {
+      compact.push(
+        '- 오행 분포: '
+          + '목(' + Number(elementWeights.wood || 0) + ') '
+          + '화(' + Number(elementWeights.fire || 0) + ') '
+          + '토(' + Number(elementWeights.earth || 0) + ') '
+          + '금(' + Number(elementWeights.metal || 0) + ') '
+          + '수(' + Number(elementWeights.water || 0) + ')'
+      );
+    }
+
+    var tenGodEntries = Object.keys(tenGods).map(function (key) {
+      return key + ':' + Number(tenGods[key] || 0);
+    }).filter(Boolean);
+    if (tenGodEntries.length) {
+      compact.push('- 십성 분포: ' + tenGodEntries.join(', '));
+    }
+
+    compact.push('- 용신: ' + (String(useful.yongsin || '').trim() || '정보 부족'));
+    compact.push('- 희신: ' + (String(useful.huisin || '').trim() || '정보 부족'));
+    compact.push('- 기신: ' + (String(useful.gisin || '').trim() || '정보 부족'));
+
+    if (daewunRows.length) {
+      var daewunText = daewunRows.map(function (row) {
+        var ageText = row.fromAge !== '' && row.toAge !== '' ? ('(' + row.fromAge + '~' + row.toAge + ')') : '';
+        return String(row.ganji || '') + ageText;
+      }).filter(Boolean).join(', ');
+      if (daewunText) compact.push('- 대운(요약): ' + daewunText);
+    }
 
     var snippet = String(sourceRaw || '').replace(/\s+/g, ' ').trim().slice(0, SAJU_DATA_SNIPPET_LIMIT);
     if (snippet) {
@@ -270,6 +388,8 @@
       minute: Number(birth.minute || 0),
       targetYear: targetYearInput,
       focusArea: 'overall',
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       engineData: buildEngineData(),
       sajuData: buildCompactSajuData()
     };
@@ -308,6 +428,7 @@
         reportId: String(state.reportId || ''),
         reportSessionId: String(state.reportSessionId || ''),
         paidReportId: String(state.paidReportId || ''),
+        paymentContext: state.paymentContext || null,
         payload: state.payload || null,
         chapterTexts: state.chapterTexts || {},
         chapterMeta: state.chapterMeta || {},
@@ -327,6 +448,7 @@
       state.reportId = String(saved.reportId || '');
       state.reportSessionId = String(saved.reportSessionId || '');
       state.paidReportId = String(saved.paidReportId || '');
+      state.paymentContext = saved.paymentContext && typeof saved.paymentContext === 'object' ? saved.paymentContext : null;
       state.payload = saved.payload || null;
       state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
       state.chapterMeta = saved.chapterMeta && typeof saved.chapterMeta === 'object' ? saved.chapterMeta : {};
@@ -501,6 +623,46 @@
     return prepared;
   }
 
+  async function attemptSajuNewYearAutoRefund(reason) {
+    if (state.refundInFlight) return false;
+    var ctx = state.paymentContext;
+    if (!ctx || !Number(ctx.cost)) return false;
+
+    state.refundInFlight = true;
+    try {
+      var response = await fetch('/api/fortune/pig-coin/refund', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          cost: Number(ctx.cost),
+          featureKey: String(ctx.featureKey || 'coin-gate-per-use'),
+          sourceTransactionId: String(ctx.sourceTransactionId || ''),
+          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
+          reason: String(reason || '신년운세 PDF 생성 실패 자동 환불')
+        })
+      });
+
+      var payload = await response.json().catch(function () { return {}; });
+      var code = String(payload && payload.code || '').toUpperCase();
+      if (response.ok || code === 'REFUND_ALREADY_PROCESSED') {
+        state.paymentContext = null;
+        state.paidReportId = '';
+        persistState();
+        return true;
+      }
+
+      console.warn('[SajuNewYear] auto refund failed:', payload);
+      return false;
+    } catch (error) {
+      console.warn('[SajuNewYear] auto refund exception:', error);
+      return false;
+    } finally {
+      state.refundInFlight = false;
+    }
+  }
+
   async function generateAllChapters() {
     showOnly('nyLoadingScreen');
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
@@ -530,7 +692,10 @@
         chapterId: chapter,
         reportType: 'sajuNewYear',
         featureType: 'saju_new_year_pdf',
-        requestBody: state.payload,
+        requestBody: Object.assign({}, state.payload || {}, {
+          _premiumStrictPayload: true,
+          _premiumStrictValidation: true
+        }),
         requestId: 'newyear:chapter:' + chapter + ':' + Date.now().toString(36)
       }, {
         maxAttempts: 2
@@ -588,10 +753,12 @@
 
     try {
       await generateAllChapters();
+      state.paymentContext = null;
       renderResultScreen();
       notify('신년운세 PDF 10챕터 생성이 완료되었습니다.');
     } catch (err) {
       console.error('[SajuNewYear] generation failed:', err);
+      await attemptSajuNewYearAutoRefund('신년운세 PDF 생성 실패 자동 환불');
       setErrorScreen(String((err && err.message) || '신년운세 생성 중 오류가 발생했습니다.'));
     } finally {
       state.generating = false;
@@ -613,7 +780,13 @@
       window._cdCoinGatePerUse(
         COST_COINS,
         COIN_REASON,
-        function () {
+        function (transactionId) {
+          state.paymentContext = {
+            featureKey: 'coin-gate-per-use',
+            cost: Number(COST_COINS || 0),
+            sourceTransactionId: String(transactionId || ''),
+            requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120))
+          };
           state.paidReportId = state.reportId;
           persistState();
           startNewYearGeneration();

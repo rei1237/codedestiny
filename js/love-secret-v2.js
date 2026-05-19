@@ -925,6 +925,8 @@
         totalChapters: TOTAL_CHAPTERS,
         sessionId: chapter,
         chapter: chapter,
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true,
         requestId: 'love-secret-' + state.reportId + '-ch' + chapter + '-' + Date.now(),
       });
 
@@ -972,6 +974,8 @@
       mode: mode,
       reportMode: mode,
       totalChapters: TOTAL_CHAPTERS,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       sajuData: self.sajuData,
       engineData: self.engineData,
     };

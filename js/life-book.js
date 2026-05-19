@@ -25,6 +25,7 @@
     { index: 13, key: 'chapter_13_final_letter', title: '📜 운명의 서문과 마지막 편지 — 나에게 보내는 인생 선언문', subtitle: '핵심 메시지 통합과 인생 선언문' }
   ];
   var CHAPTER_TITLES = CHAPTER_DEFINITIONS.map(function (chapter) { return chapter.title; });
+  var ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII'];
 
   var MYSTIC_QUOTES = [
     '팔자(八字)의 결을 해독하는 중입니다...',
@@ -351,6 +352,8 @@
       day: birth.day,
       hour: birth.hour,
       minute: birth.minute,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       sajuData: sajuData,
       engineData: engineData
     };
@@ -560,6 +563,11 @@
     });
   }
 
+  function setLoadingStatusText(message) {
+    var loadingStatus = qs('lbLoadingStatus');
+    if (loadingStatus) loadingStatus.textContent = String(message || '');
+  }
+
   function renderResultChapter(chapter) {
     var contentEl = qs('lbChapterContent');
     if (!contentEl) return;
@@ -651,21 +659,23 @@
 
   async function generateAllChapters() {
     showOnly('lbLoadingScreen');
+    setLoadingStatusText('사주 명식 계산 중');
     setLoadingProgress(1, CHAPTER_TITLES[0]);
 
     var statusInfo = await loadExistingStatus(state.reportId);
     var startFrom = Number(statusInfo.completed || 0);
-    if (statusInfo && statusInfo.message) {
-      var loadingStatus = qs('lbLoadingStatus');
-      if (loadingStatus) loadingStatus.textContent = statusInfo.message;
-    }
+    setLoadingStatusText('인생의 책 데이터 정리 중');
     for (var chapter = startFrom + 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
+      var chapterRoman = ROMAN_NUMERALS[chapter - 1] || String(chapter);
+      setLoadingStatusText(chapterRoman + ' 챕터 생성 중');
       setLoadingProgress(chapter, CHAPTER_TITLES[chapter - 1]);
 
       var reqBody = Object.assign({}, state.payload, {
         reportId: state.reportId,
         sessionId: chapter,
         chapter: chapter,
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true,
         requestId: 'lifebook-' + state.reportId + '-ch' + chapter + '-' + Date.now()
       });
 
@@ -690,6 +700,7 @@
       persistState();
       setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_TITLES[Math.min(TOTAL_CHAPTERS - 1, chapter)]);
     }
+    setLoadingStatusText('PDF 편집 중');
   }
 
   async function startLifeBookGeneration() {
@@ -715,6 +726,7 @@
       if (totalChars < LIFEBOOK_MIN_TOTAL_CHARS) {
         throw new Error('생성 결과가 최소 분량 기준(' + LIFEBOOK_MIN_TOTAL_CHARS + '자)에 미달했습니다. 다시 시도해 주세요. 현재 ' + totalChars + '자');
       }
+      setLoadingStatusText('다운로드 준비 완료');
       state.paymentContext = null;
       renderResultScreen();
       persistState();
@@ -722,7 +734,11 @@
     } catch (err) {
       console.error('[LifeBook] generation failed:', err);
       await attemptLifeBookAutoRefund('인생의 책 PDF 생성 실패 자동 환불');
-      setErrorScreen(String(err && err.message || '인생의 책 생성 중 오류가 발생했습니다.'));
+      if (chapterCount() > 0) {
+        setErrorScreen('PDF 생성 중 일부 챕터에서 문제가 발생했습니다. 다시 시도해 주세요.');
+      } else {
+        setErrorScreen(String(err && err.message || '인생의 책 생성 중 오류가 발생했습니다.'));
+      }
     } finally {
       state.generating = false;
       setGenerateButtonBusy(false);

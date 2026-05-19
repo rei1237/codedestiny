@@ -872,7 +872,9 @@
         partnerMinute:partner.minute!==null?partner.minute:undefined,
         partnerGender:partner.gender||undefined,
         partnerCalType:partner.calType||undefined,
-        _premiumFailOpen: true
+        _premiumFailOpen: false,
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true
       };
     }
 

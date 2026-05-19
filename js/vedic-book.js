@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 12;
+  var TOTAL_CHAPTERS = 13;
   var API_TIMEOUT_MS = 360000;
   var POLL_INTERVAL_MS = 1800;
   var LOADING_QUOTES = [
@@ -336,6 +336,7 @@
       mode: mode,
       reportMode: mode,
       reportType: mode,
+      _premiumStrictValidation: true,
       includeCompatibility: mode === 'compatibility',
       name: String(profile.name || '사용자'),
       gender: String(profile.gender || ''),
@@ -627,11 +628,25 @@
 
   async function pollStatusLoop() {
     for (var attempt = 0; attempt < 260; attempt += 1) {
-      var res = await requestJson('/api/premium/vedic/status?reportId=' + encodeURIComponent(state.reportId), { method: 'GET' });
+      var res = await requestJson('/api/premium/vedic/status?reportId=' + encodeURIComponent(state.reportId) + '&includeChapters=1', { method: 'GET' });
       var data = res.data || {};
+      var code = String((data && data.code) || '').toUpperCase();
+
+      if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
+        await attemptVedicAutoRefund('베다 프리미엄 PDF 생성 중 세션 만료 자동 환불');
+        if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+          window.__cdOpenLoginRequiredModal({
+            reason: '로그인 세션이 만료되어 베다 프리미엄 리포트 생성을 중단했습니다.',
+            redirectTo: window.location.pathname + window.location.search + window.location.hash
+          });
+        }
+        setError(String(data.message || '로그인 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.'));
+        return false;
+      }
 
       if (!res.ok || !data || !data.ok) {
         if (attempt > 4) {
+          await attemptVedicAutoRefund('베다 프리미엄 PDF 상태 조회 실패 자동 환불');
           setError(String(data.message || '리포트 상태 조회에 실패했습니다.'));
           return false;
         }
@@ -770,7 +785,109 @@
     }
   };
 
-  window.downloadVedicBookPdf = function () {
+  function buildLocalVedicPrintableHtml() {
+    var profile = getActiveProfile() || {};
+    var ownerName = String(profile.name || '사용자');
+    var modeLabel = state.mode === 'compatibility' ? '베다 궁합 리포트' : '베다 인생 리포트';
+    var now = new Date();
+    var generatedAt = now.getFullYear() + '.' + String(now.getMonth() + 1).padStart(2, '0') + '.' + String(now.getDate()).padStart(2, '0');
+    var chapters = Array.isArray(state.chapters) ? state.chapters.slice() : [];
+    chapters.sort(function (a, b) {
+      return Number(a && a.chapterIndex || 0) - Number(b && b.chapterIndex || 0);
+    });
+
+    var chapterBlocks = chapters.map(function (chapter, i) {
+      var chapterIndex = Number(chapter && chapter.chapterIndex || (i + 1));
+      var title = String(chapter && chapter.title || ('Chapter ' + chapterIndex));
+      var subtitle = String(chapter && chapter.subtitle || '');
+      var summary = String(chapter && chapter.summary || '');
+      var sections = Array.isArray(chapter && chapter.sections) ? chapter.sections : [];
+      var advice = Array.isArray(chapter && chapter.practicalAdvice) ? chapter.practicalAdvice : [];
+      var insights = Array.isArray(chapter && chapter.keyInsights) ? chapter.keyInsights : [];
+
+      var sectionHtml = sections.map(function (section) {
+        var heading = escapeHtml(section && section.heading || '핵심 해석');
+        var body = toParagraphHtml(section && section.body || '');
+        return '<section class="vd-print-section"><h4>' + heading + '</h4>' + body + '</section>';
+      }).join('');
+
+      var adviceHtml = advice.length
+        ? '<div class="vd-print-list"><h5>실천 조언</h5><ul>' + advice.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        : '';
+      var insightsHtml = insights.length
+        ? '<div class="vd-print-list"><h5>핵심 통찰</h5><ul>' + insights.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        : '';
+
+      return [
+        '<article class="vd-print-chapter">',
+        '<p class="vd-print-chip">CHAPTER ' + chapterIndex + '</p>',
+        '<h2>' + escapeHtml(title) + '</h2>',
+        subtitle ? '<p class="vd-print-sub">' + escapeHtml(subtitle) + '</p>' : '',
+        summary ? '<div class="vd-print-summary">' + toParagraphHtml(summary) + '</div>' : '',
+        sectionHtml,
+        insightsHtml,
+        adviceHtml,
+        '</article>'
+      ].join('');
+    }).join('');
+
+    return [
+      '<!doctype html>',
+      '<html lang="ko">',
+      '<head>',
+      '<meta charset="utf-8" />',
+      '<meta name="viewport" content="width=device-width, initial-scale=1" />',
+      '<title>' + escapeHtml(ownerName + '님의 ' + modeLabel) + '</title>',
+      '<style>',
+      'body{margin:0;padding:24px;font-family:"Noto Serif KR","Nanum Myeongjo",serif;background:#f8fafc;color:#0f172a;line-height:1.75}',
+      '.vd-print-cover{padding:24px;border:1px solid #dbe5f7;border-radius:16px;background:#ffffff;margin-bottom:20px}',
+      '.vd-print-cover h1{margin:0 0 8px;font-size:30px;color:#7c2d12}',
+      '.vd-print-cover p{margin:2px 0;font-size:13px;color:#334155}',
+      '.vd-print-chapter{margin-bottom:18px;padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;break-inside:avoid}',
+      '.vd-print-chip{display:inline-block;margin:0 0 10px;padding:4px 10px;border-radius:999px;background:#ffedd5;color:#9a3412;font-weight:700;font-size:11px}',
+      '.vd-print-chapter h2{margin:0 0 6px;font-size:22px;color:#111827}',
+      '.vd-print-sub{margin:0 0 10px;color:#334155}',
+      '.vd-print-summary{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fdba74}',
+      '.vd-print-section{margin:0 0 10px}',
+      '.vd-print-section h4{margin:0 0 6px;font-size:16px;color:#1f2937}',
+      '.vd-print-list{margin-top:8px}',
+      '.vd-print-list h5{margin:0 0 6px;font-size:14px;color:#1f2937}',
+      '.vd-print-list ul{margin:0 0 0 18px;padding:0}',
+      '.vd-print-list li{margin:0 0 5px}',
+      '@media print{body{padding:0;background:#fff}.vd-print-cover,.vd-print-chapter{border:none;border-radius:0;box-shadow:none}}',
+      '</style>',
+      '</head>',
+      '<body>',
+      '<section class="vd-print-cover">',
+      '<h1>' + escapeHtml(ownerName + ' · ' + modeLabel) + '</h1>',
+      '<p>리포트 ID: ' + escapeHtml(String(state.reportId || 'local-preview')) + '</p>',
+      '<p>생성일: ' + escapeHtml(generatedAt) + '</p>',
+      '</section>',
+      chapterBlocks,
+      '</body>',
+      '</html>'
+    ].join('\n');
+  }
+
+  function openPrintWindow(html) {
+    var printWindow = null;
+    try {
+      printWindow = window.open('', '_blank');
+      if (!printWindow) return false;
+      printWindow.document.open();
+      printWindow.document.write(String(html || ''));
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(function () {
+        try { printWindow.print(); } catch (_) {}
+      }, 350);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  window.downloadVedicBookPdf = async function () {
     if (state.generating) {
       notify('아직 생성 중입니다. 잠시 후 다시 시도해 주세요.');
       return;
@@ -779,14 +896,61 @@
       notify('다운로드할 리포트를 찾을 수 없습니다.');
       return;
     }
-    var url = state.downloadUrl || ('/api/premium/vedic/download?reportId=' + encodeURIComponent(state.reportId));
+
+    var downloadUrl = state.downloadUrl || ('/api/premium/vedic/download?reportId=' + encodeURIComponent(state.reportId));
+    var headers = new Headers();
+    var token = getAuthToken();
+    if (token) headers.set('Authorization', 'Bearer ' + token);
+
+    var html = '';
+    var fetchError = null;
+    try {
+      var res = await fetch(downloadUrl, {
+        method: 'GET',
+        credentials: 'include',
+        headers: headers
+      });
+
+      if (!res.ok) {
+        var errData = null;
+        try { errData = await res.json(); } catch (_) { errData = null; }
+        throw new Error(String(errData && errData.message || '다운로드에 실패했습니다.'));
+      }
+
+      var contentType = String((res.headers && res.headers.get('content-type')) || '').toLowerCase();
+      if (contentType.indexOf('application/json') >= 0) {
+        var payload = null;
+        try { payload = await res.json(); } catch (_) { payload = null; }
+        throw new Error(String(payload && payload.message || '다운로드 응답 형식이 올바르지 않습니다.'));
+      }
+
+      html = await res.text();
+    } catch (error) {
+      fetchError = error;
+    }
+
+    if (!html) html = buildLocalVedicPrintableHtml();
+    if (!html) {
+      throw (fetchError || new Error('저장 가능한 리포트 내용을 찾지 못했습니다.'));
+    }
+
+    if (openPrintWindow(html)) {
+      notify('인쇄 창이 열렸습니다. 대상 프린터를 PDF로 선택해 저장해 주세요.');
+      return;
+    }
+
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var objectUrl = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener';
+    a.href = objectUrl;
+    a.download = 'vedic-premium-' + (state.mode || 'personal') + '-' + (state.reportId || Date.now()) + '.html';
     document.body.appendChild(a);
     a.click();
-    a.remove();
+    setTimeout(function () {
+      URL.revokeObjectURL(objectUrl);
+      if (a.parentNode) a.parentNode.removeChild(a);
+    }, 1200);
+    notify('HTML 파일로 다운로드되었습니다. 브라우저에서 열어 인쇄 > PDF 저장을 선택해 주세요.');
   };
 
   window.gotoVedicPremium = function () {

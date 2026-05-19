@@ -60,6 +60,7 @@
 
   var state = {
     generating: false,
+    coinGatePending: false,
     reportId: '',
     paidReportId: '',
     paymentContext: null,
@@ -755,9 +756,11 @@
 
   function resetState() {
     state.generating = false;
+    state.coinGatePending = false;
     state.reportId = '';
     state.paidReportId = '';
     state.paymentContext = null;
+    state.refundInFlight = false;
     state.payload = null;
     state.chapterTexts = {};
     state.chapterMeta = {};
@@ -922,6 +925,8 @@
         totalChapters: TOTAL_CHAPTERS,
         sessionId: chapter,
         chapter: chapter,
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true,
         requestId: 'love-secret-' + state.reportId + '-ch' + chapter + '-' + Date.now(),
       });
 
@@ -969,6 +974,8 @@
       mode: mode,
       reportMode: mode,
       totalChapters: TOTAL_CHAPTERS,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       sajuData: self.sajuData,
       engineData: self.engineData,
     };
@@ -1083,6 +1090,11 @@
   }
 
   function ensureCoinGateAndStart(mode, partnerPayload) {
+    if (state.coinGatePending) {
+      notify('결제 확인이 진행 중입니다. 잠시만 기다려 주세요.');
+      return;
+    }
+
     var built = buildGenerationPayload(mode, partnerPayload);
     if (!built.ok) {
       notify(built.message || '생성 준비에 실패했습니다.');
@@ -1099,11 +1111,20 @@
     var cost = mode === MODE_COMPAT ? MODE_COST.compatibility : MODE_COST.solo;
     var reason = mode === MODE_COMPAT ? MODE_REASON.compatibility : MODE_REASON.solo;
 
+    function finalizeCoinGatePending() {
+      state.coinGatePending = false;
+      setPartnerButtonsBusy(false);
+    }
+
+    state.coinGatePending = true;
+    setPartnerButtonsBusy(true);
+
     if (typeof window._cdCoinGatePerUse === 'function') {
       window._cdCoinGatePerUse(
         cost,
         reason,
         function (transactionId) {
+          finalizeCoinGatePending();
           state.paymentContext = {
             featureKey: 'coin-gate-per-use',
             cost: Number(cost || 0),
@@ -1114,11 +1135,14 @@
           persistState();
           startGeneration(mode, partnerPayload);
         },
-        function () {}
+        function () {
+          finalizeCoinGatePending();
+        }
       );
       return;
     }
 
+    finalizeCoinGatePending();
     startGeneration(mode, partnerPayload);
   }
 
