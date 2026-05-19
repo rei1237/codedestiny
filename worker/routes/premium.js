@@ -14044,7 +14044,13 @@ export async function handlePremiumRoutes(request, env) {
       if (method === "POST" && path === `/${legacyAliasByPath.alias}/generate`) {
         const cloned = request.clone();
         const rawBody = await readJson(cloned);
-        const access = await requirePremiumReportAccess(env, authInfo.userId, legacyAliasByPath.reportType, rawBody);
+        const tokenFromBody = String(rawBody?.premiumAccessToken || rawBody?._premiumAccessToken || "").trim();
+        const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+        const premiumAccessToken = tokenFromBody || tokenFromCookie;
+        const accessRequestBody = premiumAccessToken
+          ? { ...(rawBody && typeof rawBody === "object" ? rawBody : {}), premiumAccessToken }
+          : (rawBody && typeof rawBody === "object" ? rawBody : {});
+        const access = await requirePremiumReportAccess(env, authInfo.userId, legacyAliasByPath.reportType, accessRequestBody);
         if (!access.ok) {
           return json({
             ok: false,
@@ -14080,7 +14086,13 @@ export async function handlePremiumRoutes(request, env) {
 
     if (legacyReportType) {
       const rawBody = await readJson(request.clone());
-      const access = await requirePremiumReportAccess(env, authInfo.userId, legacyReportType, rawBody);
+      const tokenFromBody = String(rawBody?.premiumAccessToken || rawBody?._premiumAccessToken || "").trim();
+      const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+      const premiumAccessToken = tokenFromBody || tokenFromCookie;
+      const accessRequestBody = premiumAccessToken
+        ? { ...(rawBody && typeof rawBody === "object" ? rawBody : {}), premiumAccessToken }
+        : (rawBody && typeof rawBody === "object" ? rawBody : {});
+      const access = await requirePremiumReportAccess(env, authInfo.userId, legacyReportType, accessRequestBody);
       if (!access.ok) {
         return json({
           ok: false,
