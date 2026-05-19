@@ -570,7 +570,10 @@ export default {
         return withCorsHeaders(request, env, await handleCelestialHarmonyRoutes(request, env));
       }
 
-      if (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/")) {
+      if (
+        (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/"))
+        && !(url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/"))
+      ) {
         return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
       }
 

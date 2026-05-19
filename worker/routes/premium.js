@@ -5196,6 +5196,220 @@ function getStoredChapterTexts(kind, reportId, beforeChapter = Infinity) {
     .filter(Boolean);
 }
 
+function getStoredReportSession(kind, reportId) {
+  const key = `${kind}:${String(reportId || "").trim()}`;
+  const entry = REPORT_SESSION_STORE.get(key);
+  if (!entry) return null;
+  if (Number(entry.expiresAt || 0) < Date.now()) {
+    REPORT_SESSION_STORE.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function escapeLifebookHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildLifebookStatusPayload(reportId, includeText = false) {
+  const normalizedReportId = String(reportId || "").trim();
+  const entry = getStoredReportSession("lifebook", normalizedReportId);
+  const totalChapters = Number(entry?.totalChapters || 13) || 13;
+  const rows = Object.values(entry?.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+  const chapters = rows.map((row) => {
+    const base = {
+      chapter: Number(row?.chapter || 0),
+      chapterMeta: row?.chapterMeta || null,
+      updatedAt: row?.updatedAt || entry?.updatedAt || null,
+    };
+    if (includeText) base.text = String(row?.text || "");
+    return base;
+  });
+  const completed = rows.length;
+  const totalChars = rows.reduce((sum, row) => sum + String(row?.text || "").length, 0);
+  const isComplete = Boolean(totalChapters > 0 && completed >= totalChapters);
+  const currentChapter = isComplete ? totalChapters : Math.min(totalChapters, completed + 1);
+
+  return {
+    ok: true,
+    reportId: normalizedReportId,
+    totalChapters,
+    completed,
+    currentChapter,
+    minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
+    totalChars,
+    isMinTotalCharsMet: totalChars >= LIFEBOOK_MIN_TOTAL_CHARS,
+    isComplete,
+    chapters,
+    message: isComplete
+      ? "인생의 책 13챕터 생성이 완료되었습니다."
+      : `인생의 책 생성 진행 중: ${completed}/${totalChapters} 챕터 완료`,
+  };
+}
+
+function buildLifebookDownloadHtmlFromSession(reportId) {
+  const status = buildLifebookStatusPayload(reportId, true);
+  const chapters = Array.isArray(status.chapters) ? status.chapters : [];
+  if (!chapters.length) return "";
+
+  const chapterBlocks = chapters
+    .filter((row) => row.chapter >= 1)
+    .map((row) => {
+      const title = String(row?.chapterMeta?.title || `Chapter ${row.chapter}`);
+      const subtitle = String(row?.chapterMeta?.subtitle || "");
+      const text = String(row?.text || "");
+      return [
+        '<section class="lb-print-chapter">',
+        `<h2>Chapter ${row.chapter}. ${escapeLifebookHtml(title)}</h2>`,
+        subtitle ? `<p class="lb-subtitle">${escapeLifebookHtml(subtitle)}</p>` : "",
+        `<pre>${escapeLifebookHtml(text)}</pre>`,
+        "</section>",
+      ].join("\n");
+    })
+    .join("\n");
+
+  return [
+    "<!doctype html>",
+    '<html lang="ko">',
+    "<head>",
+    '<meta charset="utf-8" />',
+    "<title>사주 인생의 책</title>",
+    "<style>",
+    'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#f7f4ee;color:#1f2937;line-height:1.72}',
+    '.lb-print-cover{padding:24px;border:1px solid #d5c9b3;border-radius:16px;background:#fffaf0;margin-bottom:24px}',
+    '.lb-print-cover h1{margin:0 0 6px;font-size:33px;color:#4b3621}',
+    '.lb-print-cover p{margin:2px 0;font-size:14px;color:#5b4630}',
+    '.lb-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #e8ddcc;border-radius:12px;background:#fff}',
+    '.lb-print-chapter h2{margin:0 0 8px;font-size:24px;color:#5b4630}',
+    '.lb-subtitle{margin:0 0 12px;color:#7b5d3f}',
+    '.lb-print-chapter pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:14px;line-height:1.72}',
+    '@media print{body{padding:0;background:#fff}.lb-print-cover,.lb-print-chapter{border:none}}',
+    "</style>",
+    "</head>",
+    "<body>",
+    '<section class="lb-print-cover">',
+    "<h1>사주 인생의 책</h1>",
+    `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
+    `<p>생성 챕터: ${status.completed}/${status.totalChapters}</p>`,
+    `<p>총 글자수: ${status.totalChars} (최소 ${status.minTotalChars})</p>`,
+    "</section>",
+    chapterBlocks,
+    "</body>",
+    "</html>",
+  ].join("\n");
+}
+
+function normalizeLoveSecretStatusMode(rawMode, reportId) {
+  const mode = String(rawMode || "").trim().toLowerCase();
+  if (mode === "couple" || mode === "compatibility") return "compatibility";
+  if (mode === "solo" || mode === "single") return "solo";
+  const id = String(reportId || "").trim().toLowerCase();
+  if (id.endsWith("_compatibility") || id.endsWith("_couple")) return "compatibility";
+  return "solo";
+}
+
+function buildLoveSecretStatusPayload(reportId, includeText = false) {
+  const normalizedReportId = String(reportId || "").trim();
+  const entry = getStoredReportSession("love-secret", normalizedReportId);
+  const mode = normalizeLoveSecretStatusMode(entry?.extra?.mode, normalizedReportId);
+  const modeConfig = mode === "compatibility"
+    ? (LOVE_SECRET_MODE_CONFIG.couple || LOVE_SECRET_MODE_CONFIG.solo)
+    : LOVE_SECRET_MODE_CONFIG.solo;
+  const totalChapters = Number(entry?.totalChapters || modeConfig?.totalChapters || 10) || 10;
+  const rows = Object.values(entry?.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+  const chapters = rows.map((row) => {
+    const base = {
+      chapter: Number(row?.chapter || 0),
+      chapterMeta: row?.chapterMeta || null,
+      updatedAt: row?.updatedAt || entry?.updatedAt || null,
+    };
+    if (includeText) base.text = String(row?.text || "");
+    return base;
+  });
+  const completed = rows.length;
+  const totalChars = rows.reduce((sum, row) => sum + String(row?.text || "").length, 0);
+  const isComplete = Boolean(totalChapters > 0 && completed >= totalChapters);
+  const currentChapter = isComplete ? totalChapters : Math.min(totalChapters, completed + 1);
+  const minTotalChars = Number(modeConfig?.minTotalChars || 0);
+
+  return {
+    ok: true,
+    reportId: normalizedReportId,
+    mode,
+    totalChapters,
+    completed,
+    currentChapter,
+    minTotalChars,
+    totalChars,
+    isMinTotalCharsMet: minTotalChars > 0 ? totalChars >= minTotalChars : true,
+    isComplete,
+    chapters,
+    message: isComplete
+      ? "연애 비책 생성이 완료되었습니다."
+      : `연애 비책 생성 진행 중: ${completed}/${totalChapters} 챕터 완료`,
+  };
+}
+
+function buildLoveSecretDownloadHtmlFromSession(reportId) {
+  const status = buildLoveSecretStatusPayload(reportId, true);
+  const chapters = Array.isArray(status.chapters) ? status.chapters : [];
+  if (!chapters.length) return "";
+
+  const reportTitle = status.mode === "compatibility" ? "사주 궁합 연애 비책" : "사주 연애 비책";
+  const chapterBlocks = chapters
+    .filter((row) => row.chapter >= 1)
+    .map((row) => {
+      const title = String(row?.chapterMeta?.title || `Chapter ${row.chapter}`);
+      const subtitle = String(row?.chapterMeta?.subtitle || "");
+      const text = String(row?.text || "");
+      return [
+        '<section class="ls-print-chapter">',
+        `<h2>Chapter ${row.chapter}. ${escapeLifebookHtml(title)}</h2>`,
+        subtitle ? `<p class="ls-subtitle">${escapeLifebookHtml(subtitle)}</p>` : "",
+        `<pre>${escapeLifebookHtml(text)}</pre>`,
+        "</section>",
+      ].join("\n");
+    })
+    .join("\n");
+
+  return [
+    "<!doctype html>",
+    '<html lang="ko">',
+    "<head>",
+    '<meta charset="utf-8" />',
+    `<title>${escapeLifebookHtml(reportTitle)}</title>`,
+    "<style>",
+    'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#fff7fb;color:#1f2937;line-height:1.72}',
+    '.ls-print-cover{padding:24px;border:1px solid #f2d3e4;border-radius:16px;background:#fff;margin-bottom:24px}',
+    '.ls-print-cover h1{margin:0 0 6px;font-size:33px;color:#8b3a62}',
+    '.ls-print-cover p{margin:2px 0;font-size:14px;color:#5b3751}',
+    '.ls-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #f4e4ed;border-radius:12px;background:#fff}',
+    '.ls-print-chapter h2{margin:0 0 8px;font-size:24px;color:#8b3a62}',
+    '.ls-subtitle{margin:0 0 12px;color:#7d4a66}',
+    '.ls-print-chapter pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:14px;line-height:1.72}',
+    '@media print{body{padding:0;background:#fff}.ls-print-cover,.ls-print-chapter{border:none}}',
+    "</style>",
+    "</head>",
+    "<body>",
+    '<section class="ls-print-cover">',
+    `<h1>${escapeLifebookHtml(reportTitle)}</h1>`,
+    `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
+    `<p>생성 챕터: ${status.completed}/${status.totalChapters}</p>`,
+    `<p>총 글자수: ${status.totalChars}${status.minTotalChars ? ` (최소 ${status.minTotalChars})` : ""}</p>`,
+    "</section>",
+    chapterBlocks,
+    "</body>",
+    "</html>",
+  ].join("\n");
+}
+
 function extractLongSentences(text, minLength = 30) {
   return String(text || "")
     .replace(/\r/g, "")
@@ -8591,6 +8805,7 @@ const LIFEBOOK_SECTION_HEADERS = [
 ];
 
 const LIFEBOOK_MIN_CHARS = 6000;
+const LIFEBOOK_MIN_TOTAL_CHARS = 65500;
 
 const SAJU_NEW_YEAR_COST = 300;
 const SAJU_NEW_YEAR_REASON = "사주 신년운세 PDF 리포트 생성";
@@ -10635,6 +10850,10 @@ async function handleLifebookSession(request, env) {
       prepared: true,
       reportType: "personal",
       totalChapters: 13,
+      chapterMinChars: {
+        default: LIFEBOOK_MIN_CHARS,
+      },
+      minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
       chapterPlan: LIFEBOOK_CHAPTERS.map((titleText, idx) => ({
         num: idx + 1,
         title: titleText,
@@ -10734,6 +10953,8 @@ async function handleLifebookSession(request, env) {
     ok: true,
     reportId,
     totalChapters: 13,
+    chapterMinChars: LIFEBOOK_MIN_CHARS,
+    minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
     sessionId: chapter,
     chapter,
     chapterMeta: { num: chapter, title, subtitle, icon: "book" },
@@ -12407,10 +12628,46 @@ export const __premiumReportTestUtils = {
 
 export async function handleLifebookRoutes(request, env) {
   try {
-    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const method = request.method.toUpperCase();
     await requireAuth(request, env);
     const path = getRoutePath(request, "/api/lifebook");
-    if (path === "/session") return await handleLifebookSession(request, env);
+    if (path === "/session") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleLifebookSession(request, env);
+    }
+    if (path === "/generate") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleLifebookSession(request, env);
+    }
+    if (path === "/status") {
+      if (method !== "GET") return methodNotAllowed();
+      const url = new URL(request.url);
+      const reportId = String(url.searchParams.get("reportId") || "").trim();
+      if (!reportId) {
+        return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+      }
+      const includeTextRaw = String(url.searchParams.get("includeText") || "").trim().toLowerCase();
+      const includeText = includeTextRaw === "1" || includeTextRaw === "true" || includeTextRaw === "yes";
+      return json(buildLifebookStatusPayload(reportId, includeText));
+    }
+    if (path === "/download") {
+      if (method !== "GET") return methodNotAllowed();
+      const url = new URL(request.url);
+      const reportId = String(url.searchParams.get("reportId") || "").trim();
+      if (!reportId) {
+        return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+      }
+      const html = buildLifebookDownloadHtmlFromSession(reportId);
+      if (!html) return notFound();
+      return new Response(html, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+          Pragma: "no-cache",
+        },
+      });
+    }
     return notFound();
   } catch (error) {
     return handleRouteError(error);
@@ -12419,10 +12676,42 @@ export async function handleLifebookRoutes(request, env) {
 
 export async function handleLoveSecretRoutes(request, env) {
   try {
-    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const method = request.method.toUpperCase();
     await requireAuth(request, env);
     const path = getRoutePath(request, "/api/love-secret");
-    if (path === "/session") return await handleLoveSecretSession(request, env);
+    if (path === "/session" || path === "/generate") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleLoveSecretSession(request, env);
+    }
+    if (path === "/status") {
+      if (method !== "GET") return methodNotAllowed();
+      const url = new URL(request.url);
+      const reportId = String(url.searchParams.get("reportId") || "").trim();
+      if (!reportId) {
+        return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+      }
+      const includeTextRaw = String(url.searchParams.get("includeText") || "").trim().toLowerCase();
+      const includeText = includeTextRaw === "1" || includeTextRaw === "true" || includeTextRaw === "yes";
+      return json(buildLoveSecretStatusPayload(reportId, includeText));
+    }
+    if (path === "/download") {
+      if (method !== "GET") return methodNotAllowed();
+      const url = new URL(request.url);
+      const reportId = String(url.searchParams.get("reportId") || "").trim();
+      if (!reportId) {
+        return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+      }
+      const html = buildLoveSecretDownloadHtmlFromSession(reportId);
+      if (!html) return notFound();
+      return new Response(html, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+          Pragma: "no-cache",
+        },
+      });
+    }
     return notFound();
   } catch (error) {
     return handleRouteError(error);
