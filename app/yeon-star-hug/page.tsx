@@ -41,7 +41,7 @@ type EmotionOption = {
   tone: string;
 };
 
-type ConcernCategory = "love" | "work" | "money" | "family" | "health" | "self";
+type ConcernCategory = "love" | "work" | "money" | "family" | "health" | "self" | "legal";
 
 type ConcernDomain =
   | "career"
@@ -51,7 +51,8 @@ type ConcernDomain =
   | "familyCare"
   | "finance"
   | "wellness"
-  | "growth";
+  | "growth"
+  | "legal";
 
 type ConcernAnalysis = {
   weights: Record<ConcernCategory, number>;
@@ -209,6 +210,7 @@ const CATEGORY_LABEL: Record<ConcernCategory, string> = {
   family: "가족",
   health: "건강/멘탈",
   self: "자기확신",
+  legal: "법률/분쟁",
 };
 
 const DOMAIN_LABEL: Record<ConcernDomain, string> = {
@@ -220,6 +222,7 @@ const DOMAIN_LABEL: Record<ConcernDomain, string> = {
   finance: "재정관리",
   wellness: "건강회복",
   growth: "자기성장",
+  legal: "법률/절차",
 };
 
 const KEYWORD_DICT: Record<ConcernCategory, string[]> = {
@@ -229,6 +232,7 @@ const KEYWORD_DICT: Record<ConcernCategory, string[]> = {
   family: ["가족", "부모", "엄마", "아빠", "형제", "자매", "집안", "육아", "부부", "배우자", "친척", "갈등", "돌봄", "집안일"],
   health: ["건강", "수면", "잠", "피곤", "우울", "불안", "스트레스", "두통", "몸", "번아웃", "무기력", "호흡", "회복", "식습관", "운동", "소화"],
   self: ["미래", "진로", "선택", "결정", "자존감", "자신감", "목표", "불확실", "정체성", "의미", "방향", "성장", "동기", "집중"],
+  legal: ["송사", "소송", "법률", "법적", "분쟁", "고소", "고발", "재판", "합의", "조정", "중재", "판결", "변호사", "법원"],
 };
 
 const DOMAIN_RULES: Array<{ domain: ConcernDomain; category: ConcernCategory; weight: number; keywords: string[] }> = [
@@ -240,6 +244,7 @@ const DOMAIN_RULES: Array<{ domain: ConcernDomain; category: ConcernCategory; we
   { domain: "finance", category: "money", weight: 1.45, keywords: ["저축", "투자", "소비", "지출", "부채", "대출", "카드값", "예산", "월급"] },
   { domain: "wellness", category: "health", weight: 1.5, keywords: ["불안", "우울", "번아웃", "수면", "피로", "무기력", "스트레스", "두통", "건강"] },
   { domain: "growth", category: "self", weight: 1.2, keywords: ["진로", "자존감", "자신감", "방향", "목표", "선택", "동기", "정체성", "미래"] },
+  { domain: "legal", category: "legal", weight: 1.65, keywords: ["송사", "소송", "법률", "법적", "고소", "고발", "재판", "합의", "법원", "변호사"] },
 ];
 
 const FUZZY_KEYWORD_RULES: Array<{ category: ConcernCategory; domain: ConcernDomain; weight: number; synonyms: string[] }> = [
@@ -251,6 +256,14 @@ const FUZZY_KEYWORD_RULES: Array<{ category: ConcernCategory; domain: ConcernDom
   { category: "family", domain: "familyCare", weight: 1.55, synonyms: ["부모", "부모님", "엄마", "아빠", "가족", "형제", "자매", "배우자", "부부", "육아", "자녀"] },
   { category: "health", domain: "wellness", weight: 1.45, synonyms: ["건강", "스트레스", "수면", "잠", "피곤", "무기력", "번아웃", "우울", "불안", "회복"] },
   { category: "self", domain: "growth", weight: 1.3, synonyms: ["미래", "진로", "정체성", "자존감", "자신감", "선택", "방향", "동기", "목표"] },
+  { category: "legal", domain: "legal", weight: 1.85, synonyms: ["송사", "소송", "법률", "법적분쟁", "분쟁", "재판", "법원", "판결", "합의", "조정", "중재", "변호사", "법무"] },
+];
+
+const LEGAL_CONCERN_SAMPLES: string[] = [
+  "소송 가능성이 있는 분쟁이 생겼는데, 지금 무엇부터 정리하면 유리할까요?",
+  "법률 상담 전에 사건 타임라인과 증빙을 어떻게 준비하면 좋을까요?",
+  "합의와 재판 사이에서 고민 중인데, 오늘은 어떤 기준으로 판단하면 좋을까요?",
+  "송사 이슈로 불안한데, 차분하게 대응하기 위한 현실적인 첫 단계가 궁금해요.",
 ];
 
 const DOMAIN_TIP: Record<ConcernDomain, string> = {
@@ -262,6 +275,7 @@ const DOMAIN_TIP: Record<ConcernDomain, string> = {
   finance: "재정은 즉시 결제 지연 10분만으로 판단 정확도가 올라가.",
   wellness: "건강회복은 생산성보다 리듬 복구를 우선해야 오래 간다.",
   growth: "자기성장은 비교보다 오늘의 작은 진전 기록이 핵심이야.",
+  legal: "법률 이슈는 절차와 기록을 차분히 쌓을수록 유리해져. 작은 준비가 결국 판을 바꿔줘.",
 };
 
 const LUCKY_ITEM_BY_CATEGORY: Record<ConcernCategory, string[]> = {
@@ -271,6 +285,7 @@ const LUCKY_ITEM_BY_CATEGORY: Record<ConcernCategory, string[]> = {
   family: ["따뜻한 차 티백", "안부 메모", "가족 캘린더", "작은 포토키링"],
   health: ["수면 안대", "라벤더 캔들", "호흡 타이머", "물병 리마인더"],
   self: ["확언 노트", "한줄 일기 카드", "내면 정렬 리추얼 카드", "작은 목표 체크표"],
+  legal: ["타임라인 정리 노트", "증빙 보관 파일", "체크리스트 메모패드", "상담 일정 캘린더"],
 };
 
 const ACTION_PLAN_BY_CATEGORY: Record<ConcernCategory, string[]> = {
@@ -280,6 +295,7 @@ const ACTION_PLAN_BY_CATEGORY: Record<ConcernCategory, string[]> = {
   family: ["해결보다 안부와 공감 한 문장 먼저 보내기", "가족 대화에서 요구 1개만 명확히 말하기", "감정이 올라오면 5초 멈춘 뒤 말의 속도 낮추기"],
   health: ["잠들기 1시간 전 화면 밝기 낮추기", "3분 복식호흡으로 긴장 신호 끊기", "오늘은 생산성보다 회복 루틴 1개 완료를 목표로 두기"],
   self: ["내가 통제 가능한 일 1개만 적고 바로 실행하기", "비교 대신 오늘 기준의 작은 진전 1개 찾기", "결정은 정보 70%에서 일단 움직이고 보정하기"],
+  legal: ["사건 흐름을 날짜순으로 5줄 이내로 정리하기", "대화/문서/영수증 등 증빙을 한 폴더에 모아두기", "전문가 상담 질문 3개를 미리 적어 자신감 있게 확인하기"],
 };
 
 const ACTION_PLAN_BY_DOMAIN: Record<ConcernDomain, string[]> = {
@@ -291,6 +307,7 @@ const ACTION_PLAN_BY_DOMAIN: Record<ConcernDomain, string[]> = {
   finance: ["오늘 지출 1건은 결제 전에 필요/욕구를 분리 체크하기", "정기 지출 점검 시간을 주 1회 캘린더에 고정하기", "소액이라도 소비 사유를 기록해 패턴을 확인하기"],
   wellness: ["잠들기 전 10분 호흡 루틴으로 신경계 긴장 낮추기", "피로 신호가 오면 카페인보다 수분 보충 먼저 하기", "오늘 일정에서 1개를 비워 회복 시간을 확보하기"],
   growth: ["내가 통제 가능한 과제를 1개만 즉시 실행하기", "완벽주의 대신 완료 기준을 70%로 설정하기", "오늘 배운 점 1줄을 남겨 내일의 방향을 선명히 하기"],
+  legal: ["사실관계와 일정표를 먼저 정리해 상황을 명료하게 보기", "핵심 증빙 3개부터 우선 확보해 대응 근거 만들기", "전문가 상담 전에 확인할 질문을 정리해 주도적으로 진행하기"],
 };
 
 const EMOTION_INDEX: Record<EmotionKey, number> = {
@@ -309,6 +326,7 @@ const CATEGORY_INDEX: Record<ConcernCategory, number> = {
   family: 3,
   health: 4,
   self: 5,
+  legal: 6,
 };
 
 const DOMAIN_INDEX: Record<ConcernDomain, number> = {
@@ -320,6 +338,7 @@ const DOMAIN_INDEX: Record<ConcernDomain, number> = {
   finance: 5,
   wellness: 6,
   growth: 7,
+  legal: 8,
 };
 
 const SPRITE_VARIANTS_BY_EMOTION: Record<EmotionKey, number[]> = {
@@ -409,6 +428,7 @@ const HEART_SYMBOL_BY_CATEGORY: Record<ConcernCategory, HeartSymbolId> = {
   family: "lotus",
   health: "moonStar",
   self: "comet",
+  legal: "goldKey",
 };
 
 const HEART_SYMBOL_BY_DOMAIN: Record<ConcernDomain, HeartSymbolId> = {
@@ -420,6 +440,7 @@ const HEART_SYMBOL_BY_DOMAIN: Record<ConcernDomain, HeartSymbolId> = {
   finance: "clover",
   wellness: "moonStar",
   growth: "comet",
+  legal: "goldKey",
 };
 
 const HEART_SYMBOL_BY_EMOTION: Record<EmotionKey, HeartSymbolId> = {
@@ -604,7 +625,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 0) {
     return {
       distance,
-      label: "합(Conjunction)",
+      label: "컨정션(Conjunction)",
       summary: "오늘 태양과 네 별자리가 같은 축에 있어 집중력이 또렷해.",
       scoreBias: 0.8,
     };
@@ -612,7 +633,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 2) {
     return {
       distance,
-      label: "육합(Sextile)",
+      label: "섹스타일(Sextile)",
       summary: "작은 기회가 자연스럽게 연결되는 날의 각도야.",
       scoreBias: 0.5,
     };
@@ -620,7 +641,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 3) {
     return {
       distance,
-      label: "사각(Square)",
+      label: "스퀘어(Square)",
       summary: "마찰이 있지만 방향 수정으로 성과를 만드는 각도야.",
       scoreBias: -0.6,
     };
@@ -628,7 +649,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 4) {
     return {
       distance,
-      label: "삼합(Trine)",
+      label: "트라인(Trine)",
       summary: "흐름이 부드럽게 이어지는 행운의 각도야.",
       scoreBias: 0.9,
     };
@@ -636,7 +657,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 6) {
     return {
       distance,
-      label: "대립(Opposition)",
+      label: "오포지션(Opposition)",
       summary: "상대 시선을 통해 균형을 회복하는 조율 각도야.",
       scoreBias: -0.7,
     };
@@ -659,6 +680,7 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
     family: 0,
     health: 0,
     self: 0,
+    legal: 0,
   };
   const domainWeights: Record<ConcernDomain, number> = {
     career: 0,
@@ -669,6 +691,7 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
     finance: 0,
     wellness: 0,
     growth: 0,
+    legal: 0,
   };
   const hitSet = new Set<string>();
   const domainHitSet = new Set<string>();
@@ -809,9 +832,9 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const modalityBias = userProfile.modality === sunProfile.modality ? 0.12 : -0.05;
 
   const focusBias = {
-    overall: concern.weights.self * 0.2 + concern.weights.health * 0.25,
+    overall: concern.weights.self * 0.2 + concern.weights.health * 0.25 + concern.weights.legal * 0.18,
     love: concern.weights.love * 0.55 + concern.weights.family * 0.25,
-    money: concern.weights.money * 0.65 + concern.weights.work * 0.3,
+    money: concern.weights.money * 0.65 + concern.weights.work * 0.3 + concern.weights.legal * 0.12,
   };
 
   const overall = toScore(
@@ -847,13 +870,16 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
 
   const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
   const concernHint = concern.topKeywords.length > 0 ? concern.topKeywords.join(", ") : "오늘 네 마음 상태";
+  const domainHopeLine = concern.topDomain === "legal"
+    ? "법률 이슈는 불안보다 준비가 힘이 되는 영역이야. 차분한 기록과 상담 준비만으로도 충분히 유리한 흐름을 만들 수 있어."
+    : "작은 실행을 1개라도 완료하면 오늘의 별 흐름을 네 편으로 돌릴 수 있어.";
 
   const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
   const astroEvidence = [
     `태양 위치: ${todaySunSign} (${sunProfile.element} 원소 · ${sunProfile.modality} 성질 · 주관 ${sunProfile.ruler})`,
     `당신 별자리: ${selectedSign} (${userProfile.element} 원소)와 태양 관계는 ${elementRelation.label}`,
-    `달 위상: ${moon.label} (월령 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}%)`,
+    `달 위상: ${moon.label} (달 나이 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}%)`,
     `별자리 각도: ${aspect.label} (${zodiacDegree}°)`,
     `요일 행성: ${dayRuler.label} - ${dayRuler.summary}`,
     `주요 키워드 포착: ${concernHint}`,
@@ -863,11 +889,11 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     `사랑하는 ${EMOTION_LABEL[selectedEmotion]}의 마음을 가진 너에게,`,
     `${EMOTION_OPENING[selectedEmotion]} 오늘의 태양은 ${todaySunSign}에 머물며 ${sunProfile.ruler}의 결을 강화하고 있어.`,
     `너의 기본 성향인 ${userProfile.element} 원소와 오늘 태양의 ${sunProfile.element} 원소는 ${elementRelation.label} 상태야. ${elementRelation.detail}`,
-    `달은 지금 ${moon.label} 구간이고, 월령은 ${moon.age.toFixed(1)}일, 밝기는 ${moonIlluminationPct}%야. 이 수치는 감정 처리 속도를 보여주는 중요한 리듬 지표야.`,
+    `달은 지금 ${moon.label} 구간이고, 달 나이는 ${moon.age.toFixed(1)}일, 밝기는 ${moonIlluminationPct}%야. 이 수치는 감정 처리 속도를 보여주는 중요한 리듬 지표야.`,
     `또한 ${aspect.label} (${zodiacDegree}°)가 형성되어 있어. ${aspect.summary}`,
     `${dayRuler.label}의 영향으로 오늘은 "${dayRuler.summary}"가 강해. 특히 ${DOMAIN_LABEL[concern.topDomain]} 축에서 ${concernHint} 이슈가 전면에 떠올랐어.`,
     `따라서 지금은 감정 해석보다 근거 정리와 우선순위 확정이 먼저야. ${practicalTip}`,
-    `작은 실행을 1개라도 완료하면 오늘의 별 흐름을 네 편으로 돌릴 수 있어.`,
+    domainHopeLine,
     `너의 속도를 믿어도 괜찮아. 연이는 오늘도 네 편이야.`,
   ].join("\n\n");
 
@@ -1373,10 +1399,27 @@ export default function YeonStarHugPage() {
               id="yeon-concern-input"
               value={concernText}
               onChange={(event) => setConcernText(event.target.value)}
-              placeholder="예: 요즘 이직 고민과 금전 압박 때문에 불안해요. 오늘 어떤 선택을 먼저 하면 좋을까요?"
+              placeholder="예: 요즘 이직 고민과 금전 압박 때문에 불안해요. 또는 소송/법률 문제에서 무엇부터 준비하면 좋을까요?"
               className="mt-1 min-h-32 w-full resize-y rounded-xl border border-white/35 bg-white/90 px-3 py-3 text-sm leading-relaxed text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
               aria-label="고민 입력"
             />
+
+            <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
+              <p className="text-xs font-semibold text-rose-500">법률 키워드 샘플 문장</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {LEGAL_CONCERN_SAMPLES.map((sample) => (
+                  <button
+                    key={sample}
+                    type="button"
+                    onClick={() => setConcernText(sample)}
+                    className="min-h-9 rounded-full border border-rose-200 bg-white px-3 py-1 text-left text-[11px] font-medium leading-relaxed text-slate-700 transition hover:border-rose-300 hover:bg-rose-50"
+                    aria-label={`법률 샘플 문장 적용: ${sample}`}
+                  >
+                    {sample}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <button
               type="button"
