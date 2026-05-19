@@ -43,10 +43,22 @@ type EmotionOption = {
 
 type ConcernCategory = "love" | "work" | "money" | "family" | "health" | "self";
 
+type ConcernDomain =
+  | "career"
+  | "study"
+  | "social"
+  | "romance"
+  | "familyCare"
+  | "finance"
+  | "wellness"
+  | "growth";
+
 type ConcernAnalysis = {
   weights: Record<ConcernCategory, number>;
   topCategory: ConcernCategory;
   topKeywords: string[];
+  topDomain: ConcernDomain;
+  domainKeywords: string[];
 };
 
 type MoonSnapshot = {
@@ -80,6 +92,7 @@ type ConsultationResult = {
   practicalTip: string;
   actionPlan: string[];
   concernCategoryLabel: string;
+  concernDomainLabel: string;
   concernKeywords: string[];
   todaySunSign: ZodiacSign;
   moon: MoonSnapshot;
@@ -157,13 +170,46 @@ const CATEGORY_LABEL: Record<ConcernCategory, string> = {
   self: "자기확신",
 };
 
+const DOMAIN_LABEL: Record<ConcernDomain, string> = {
+  career: "직업/커리어",
+  study: "학업/시험",
+  social: "대인관계",
+  romance: "연애관계",
+  familyCare: "가족관계",
+  finance: "재정관리",
+  wellness: "건강회복",
+  growth: "자기성장",
+};
+
 const KEYWORD_DICT: Record<ConcernCategory, string[]> = {
-  love: ["연애", "사랑", "썸", "이별", "고백", "데이트", "남친", "여친", "관계"],
-  work: ["회사", "직장", "업무", "프로젝트", "면접", "이직", "시험", "공부", "커리어"],
-  money: ["돈", "재정", "지출", "저축", "투자", "월급", "카드값", "대출", "수입"],
-  family: ["가족", "부모", "엄마", "아빠", "형제", "자매", "집안", "육아"],
-  health: ["건강", "수면", "잠", "피곤", "우울", "불안", "스트레스", "두통", "몸"],
-  self: ["미래", "진로", "선택", "결정", "자존감", "자신감", "목표", "불확실", "정체성"],
+  love: ["연애", "사랑", "썸", "이별", "고백", "데이트", "남친", "여친", "관계", "호감", "권태기", "재회", "연락", "답장", "소개팅"],
+  work: ["회사", "직장", "업무", "프로젝트", "면접", "이직", "커리어", "팀장", "상사", "동료", "성과", "평가", "승진", "퇴사", "마감", "회의"],
+  money: ["돈", "재정", "지출", "저축", "투자", "월급", "카드값", "대출", "수입", "적금", "비상금", "예산", "소비", "빚", "부업"],
+  family: ["가족", "부모", "엄마", "아빠", "형제", "자매", "집안", "육아", "부부", "배우자", "친척", "갈등", "돌봄", "집안일"],
+  health: ["건강", "수면", "잠", "피곤", "우울", "불안", "스트레스", "두통", "몸", "번아웃", "무기력", "호흡", "회복", "식습관", "운동", "소화"],
+  self: ["미래", "진로", "선택", "결정", "자존감", "자신감", "목표", "불확실", "정체성", "의미", "방향", "성장", "동기", "집중"],
+};
+
+const DOMAIN_RULES: Array<{ domain: ConcernDomain; category: ConcernCategory; weight: number; keywords: string[] }> = [
+  { domain: "career", category: "work", weight: 1.35, keywords: ["이직", "승진", "연봉", "성과평가", "퇴사", "커리어", "인사", "직무", "직장"] },
+  { domain: "study", category: "work", weight: 1.3, keywords: ["공부", "시험", "수능", "자격증", "과제", "학점", "강의", "입시", "논문"] },
+  { domain: "social", category: "love", weight: 1.2, keywords: ["인간관계", "친구", "동료", "소통", "오해", "갈등", "거리감", "눈치", "대화"] },
+  { domain: "romance", category: "love", weight: 1.4, keywords: ["썸", "연애", "이별", "재회", "고백", "권태기", "데이트", "연락", "호감"] },
+  { domain: "familyCare", category: "family", weight: 1.45, keywords: ["가족", "부모", "육아", "부부", "배우자", "형제", "자매", "집안", "돌봄"] },
+  { domain: "finance", category: "money", weight: 1.45, keywords: ["저축", "투자", "소비", "지출", "부채", "대출", "카드값", "예산", "월급"] },
+  { domain: "wellness", category: "health", weight: 1.5, keywords: ["불안", "우울", "번아웃", "수면", "피로", "무기력", "스트레스", "두통", "건강"] },
+  { domain: "growth", category: "self", weight: 1.2, keywords: ["진로", "자존감", "자신감", "방향", "목표", "선택", "동기", "정체성", "미래"] },
+];
+
+const DOMAIN_TIP: Record<ConcernDomain, string> = {
+  career: "커리어는 감정 결정보다 데이터 기반 우선순위가 결과를 지켜줘.",
+  study: "학업은 완벽한 계획보다 오늘 1블록 실행이 성과를 만든다.",
+  social: "대인관계는 해석보다 확인 질문 한 줄이 오해를 줄여줘.",
+  romance: "연애는 결론 서두르기보다 감정 온도 조율이 먼저야.",
+  familyCare: "가족관계는 해결보다 공감 문장 1개가 분위기를 바꿔줘.",
+  finance: "재정은 즉시 결제 지연 10분만으로 판단 정확도가 올라가.",
+  wellness: "건강회복은 생산성보다 리듬 복구를 우선해야 오래 간다.",
+  growth: "자기성장은 비교보다 오늘의 작은 진전 기록이 핵심이야.",
 };
 
 const LUCKY_ITEM_BY_CATEGORY: Record<ConcernCategory, string[]> = {
@@ -182,6 +228,26 @@ const ACTION_PLAN_BY_CATEGORY: Record<ConcernCategory, string[]> = {
   family: ["해결보다 안부와 공감 한 문장 먼저 보내기", "가족 대화에서 요구 1개만 명확히 말하기", "감정이 올라오면 5초 멈춘 뒤 말의 속도 낮추기"],
   health: ["잠들기 1시간 전 화면 밝기 낮추기", "3분 복식호흡으로 긴장 신호 끊기", "오늘은 생산성보다 회복 루틴 1개 완료를 목표로 두기"],
   self: ["내가 통제 가능한 일 1개만 적고 바로 실행하기", "비교 대신 오늘 기준의 작은 진전 1개 찾기", "결정은 정보 70%에서 일단 움직이고 보정하기"],
+};
+
+const ACTION_PLAN_BY_DOMAIN: Record<ConcernDomain, string[]> = {
+  career: ["이번 주 커리어 목표를 숫자 1개로 정의하기", "상사/팀과의 기대치를 일정 전에 한 번 확인하기", "성과 근거를 짧게 기록해 다음 기회에 바로 활용하기"],
+  study: ["학습 목표를 25분 1세션으로 잘라 첫 세션부터 시작하기", "틀린 문제 유형을 1개만 골라 집중 복습하기", "하루 마감 전에 내일의 핵심 1단원만 미리 지정하기"],
+  social: ["감정 추측 대신 사실 확인 질문을 먼저 던지기", "예민한 대화는 문자보다 짧은 통화로 톤 맞추기", "갈등 신호가 보이면 주장보다 요약 확인부터 하기"],
+  romance: ["답장 속도보다 표현의 명확성을 우선하기", "상대 반응 해석 전에 내 감정을 먼저 문장으로 정리하기", "오늘은 결론 대화보다 안정 대화 10분을 목표로 두기"],
+  familyCare: ["가족과의 대화에서 요청사항을 하나로 좁혀 말하기", "감정이 올라올 때 5초 멈춘 뒤 낮은 톤으로 시작하기", "대화 후 오해 방지용 확인 문장을 짧게 남기기"],
+  finance: ["오늘 지출 1건은 결제 전에 필요/욕구를 분리 체크하기", "정기 지출 점검 시간을 주 1회 캘린더에 고정하기", "소액이라도 소비 사유를 기록해 패턴을 확인하기"],
+  wellness: ["잠들기 전 10분 호흡 루틴으로 신경계 긴장 낮추기", "피로 신호가 오면 카페인보다 수분 보충 먼저 하기", "오늘 일정에서 1개를 비워 회복 시간을 확보하기"],
+  growth: ["내가 통제 가능한 과제를 1개만 즉시 실행하기", "완벽주의 대신 완료 기준을 70%로 설정하기", "오늘 배운 점 1줄을 남겨 내일의 방향을 선명히 하기"],
+};
+
+const EMOTION_INDEX: Record<EmotionKey, number> = {
+  happy: 0,
+  calm: 1,
+  tired: 2,
+  worried: 3,
+  flutter: 4,
+  blue: 5,
 };
 
 const WEEKDAY_RULER: Array<{ label: string; summary: string; scoreBias: { overall: number; love: number; money: number } }> = [
@@ -336,17 +402,45 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
     health: 0,
     self: 0,
   };
+  const domainWeights: Record<ConcernDomain, number> = {
+    career: 0,
+    study: 0,
+    social: 0,
+    romance: 0,
+    familyCare: 0,
+    finance: 0,
+    wellness: 0,
+    growth: 0,
+  };
   const hitSet = new Set<string>();
+  const domainHitSet = new Set<string>();
 
   if (!text) {
-    return { weights: { ...weights, self: 1 }, topCategory: "self", topKeywords: [] };
+    return {
+      weights: { ...weights, self: 1 },
+      topCategory: "self",
+      topKeywords: [],
+      topDomain: "growth",
+      domainKeywords: [],
+    };
   }
 
   (Object.keys(KEYWORD_DICT) as ConcernCategory[]).forEach((category) => {
     KEYWORD_DICT[category].forEach((keyword) => {
       if (text.includes(keyword)) {
-        weights[category] += category === "health" ? 1.2 : 1;
+        weights[category] += category === "health" ? 1.1 : 0.8;
         hitSet.add(keyword);
+      }
+    });
+  });
+
+  DOMAIN_RULES.forEach((rule) => {
+    rule.keywords.forEach((keyword) => {
+      if (text.includes(keyword)) {
+        domainWeights[rule.domain] += rule.weight;
+        weights[rule.category] += rule.weight * 0.9;
+        hitSet.add(keyword);
+        domainHitSet.add(keyword);
       }
     });
   });
@@ -354,17 +448,29 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
   const totalWeight = Object.values(weights).reduce((acc, cur) => acc + cur, 0);
   if (totalWeight === 0) {
     weights.self = 1;
+    domainWeights.growth = 1;
   }
 
   const topCategory = (Object.keys(weights) as ConcernCategory[]).reduce((best, current) =>
     weights[current] > weights[best] ? current : best
   , "self");
 
+  const topDomain = (Object.keys(domainWeights) as ConcernDomain[]).reduce((best, current) =>
+    domainWeights[current] > domainWeights[best] ? current : best
+  , "growth");
+
   return {
     weights,
     topCategory,
-    topKeywords: Array.from(hitSet).slice(0, 4),
+    topKeywords: Array.from(hitSet).slice(0, 5),
+    topDomain,
+    domainKeywords: Array.from(domainHitSet).slice(0, 4),
   };
+}
+
+function getCardSpriteFrame(sign: ZodiacSign, emotion: EmotionKey) {
+  const zodiacOffset = ZODIAC_INDEX[sign] % SPRITE_FRAMES;
+  return (EMOTION_INDEX[emotion] + zodiacOffset) % SPRITE_FRAMES;
 }
 
 function pickLuckyItem(category: ConcernCategory, seed: string) {
@@ -397,12 +503,13 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
   const concernHint = concern.topKeywords.length > 0 ? `"${concern.topKeywords.join(", ")}"` : "오늘 네 마음 상태";
 
-  const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} 고민은 지금 "작게 쪼개서 실행"할수록 정확도가 올라가. 오늘은 첫 행동 1개만 실행해도 흐름이 바뀌어.`;
+  const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
   const warmMessage = [
     EMOTION_OPENING[selectedEmotion],
     `지금 하늘은 ${todaySunSign} 태양, ${moon.label}, 그리고 ${dayRuler.label} 흐름이 겹쳐 있어.`,
     `${aspect.summary} 그래서 ${concernHint}를 다룰 때 감정 해석보다 사실 확인이 더 중요해.`,
+    `특히 ${DOMAIN_LABEL[concern.topDomain]} 영역은 오늘 말의 속도보다 맥락 정리가 성과를 높여줘.`,
     practicalTip,
   ].join(" ");
 
@@ -417,9 +524,10 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     luckyItem,
     warmMessage,
     practicalTip,
-    actionPlan: ACTION_PLAN_BY_CATEGORY[concern.topCategory],
+    actionPlan: ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory],
     concernCategoryLabel: CATEGORY_LABEL[concern.topCategory],
-    concernKeywords: concern.topKeywords,
+    concernDomainLabel: DOMAIN_LABEL[concern.topDomain],
+    concernKeywords: concern.domainKeywords.length > 0 ? concern.domainKeywords : concern.topKeywords,
     todaySunSign,
     moon,
     aspect,
@@ -455,8 +563,10 @@ function wrapByLength(input: string, maxLen: number) {
   return lines.slice(0, 4);
 }
 
-function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: ConsultationResult) {
+function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: ConsultationResult, spriteFrame: number) {
   const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+  const frameSize = 148;
+  const spriteX = 826 - spriteFrame * frameSize;
   const messageLines = wrapByLength(consultation.warmMessage, 28).map((line, index) => {
     const y = 650 + index * 54;
     return `<text x="86" y="${y}" fill="#4b5563" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
@@ -481,6 +591,12 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#f9a8d4" flood-opacity="0.35"/>
     </filter>
+    <clipPath id="yeonMainClip">
+      <rect x="826" y="156" width="148" height="148" rx="34"/>
+    </clipPath>
+    <clipPath id="yeonSubClip">
+      <rect x="838" y="1148" width="126" height="126" rx="28"/>
+    </clipPath>
   </defs>
 
   <rect width="1080" height="1350" fill="url(#bg)" rx="48"/>
@@ -497,6 +613,12 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
   <text x="86" y="222" fill="#f43f5e" font-size="68" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">연이의 마음 별자리</text>
   <text x="86" y="278" fill="#6b7280" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(emotionLabel)} 감정 리딩</text>
 
+  <rect x="826" y="156" width="148" height="148" rx="34" fill="#fff7fb" stroke="#f9a8d4"/>
+  <g clip-path="url(#yeonMainClip)">
+    <image href="${SPRITE_SHEET}" x="${spriteX}" y="156" width="${frameSize * SPRITE_FRAMES}" height="${frameSize}" preserveAspectRatio="xMinYMin slice"/>
+  </g>
+  <text x="846" y="330" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이 프레임</text>
+
   <rect x="86" y="332" width="908" height="208" rx="28" fill="#fff7fb" stroke="#fbcfe8"/>
   <text x="124" y="390" fill="#db2777" font-size="34" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 점성술 근거</text>
   <text x="124" y="438" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">태양: ${escapeXml(consultation.todaySunSign)} · 달: ${escapeXml(consultation.moon.label)}</text>
@@ -511,6 +633,11 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
   <rect x="86" y="1128" width="908" height="118" rx="26" fill="#fff7fb" stroke="#fbcfe8"/>
   <text x="126" y="1182" fill="#be185d" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">행운 아이템: ${escapeXml(consultation.luckyItem)}</text>
   <text x="126" y="1222" fill="#6b7280" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Healing Astrology</text>
+
+  <rect x="838" y="1148" width="126" height="126" rx="28" fill="#ffffff" fill-opacity="0.45" stroke="#f9a8d4"/>
+  <g clip-path="url(#yeonSubClip)">
+    <image href="${SPRITE_SHEET}" x="${850 - spriteFrame * 126}" y="1148" width="${126 * SPRITE_FRAMES}" height="126" preserveAspectRatio="xMinYMin slice"/>
+  </g>
 </svg>
 `.trim();
 }
@@ -608,8 +735,8 @@ export default function YeonStarHugPage() {
   }, [frame]);
 
   const cardSvg = useMemo(
-    () => buildHeartCardSvg(today, activeEmotion.label, consultation),
-    [today, activeEmotion.label, consultation]
+    () => buildHeartCardSvg(today, activeEmotion.label, consultation, getCardSpriteFrame(selectedSign, selectedEmotion)),
+    [today, activeEmotion.label, consultation, selectedSign, selectedEmotion]
   );
 
   const runConsultation = () => {
@@ -877,6 +1004,7 @@ export default function YeonStarHugPage() {
 
             <div className="mt-3 rounded-xl border border-pink-100 bg-white/90 p-3">
               <p className="text-xs font-semibold text-pink-500">핵심 포커스: {consultation.concernCategoryLabel}</p>
+              <p className="mt-1 text-xs font-semibold text-purple-500">세부 도메인: {consultation.concernDomainLabel}</p>
               <p className="mt-1 text-xs text-slate-600">{consultation.practicalTip}</p>
               {consultation.concernKeywords.length > 0 ? (
                 <p className="mt-2 text-xs text-slate-500">인식 키워드: {consultation.concernKeywords.join(", ")}</p>
