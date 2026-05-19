@@ -337,23 +337,37 @@
       '.lsd-plain-btn{border:1.5px solid #d1d5db;border-radius:10px;padding:8px 10px;background:#fff;color:#374151;font-size:.73rem;font-weight:700;cursor:pointer}',
       '.lsd-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:.68rem;font-weight:800;margin:0 6px 6px 0}',
       '.lsd-theme-fx{transition:all .28s ease}',
-      '.lsd-saju-tab-row{display:flex;gap:7px;overflow:auto;padding:8px 0 2px;scrollbar-width:none;-ms-overflow-style:none}',
+      '.lsd-saju-tab-row{display:flex;gap:8px;overflow:auto;padding:10px 0 4px;scrollbar-width:none;-ms-overflow-style:none}',
       '.lsd-saju-tab-row::-webkit-scrollbar{display:none}',
-      '.lsd-saju-subtab{border:1px solid #cfe8f3;background:#effaff;color:#0891b2;border-radius:999px;padding:8px 14px;font-size:.76rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .2s}',
-      '.lsd-saju-subtab.is-on{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(14,165,233,.25)}',
-      '.lsd-saju-card{margin-top:8px;border:1px solid #e5e7eb;background:#fff;border-radius:16px;padding:12px 12px 14px}',
-      '.lsd-saju-headline{display:flex;align-items:center;gap:8px;font-size:1.02rem;font-weight:900;color:#0f172a;margin:0 0 8px;line-height:1.35}',
-      '.lsd-saju-headline:before{content:"";display:inline-block;width:6px;height:28px;border-radius:999px;background:#22d3ee;flex-shrink:0}',
-      '.lsd-saju-lead{font-size:.82rem;line-height:1.68;color:#334155;margin:0 0 10px}',
-      '.lsd-saju-chart-wrap{display:flex;justify-content:center;align-items:center;padding:6px 0 4px}',
-      '.lsd-saju-bullet-box{margin-top:8px;border:1px solid #e5e7eb;background:#f8fafc;border-radius:14px;padding:10px 12px;display:grid;gap:8px}',
-      '.lsd-saju-bullet{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;font-weight:700;color:#111827;line-height:1.5}',
-      '.lsd-saju-bullet-no{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:999px;background:#94a3b8;color:#fff;font-size:.7rem;font-weight:900;line-height:1}',
-      '.lsd-saju-hashes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0 2px}',
-      '.lsd-saju-hash{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 11px;background:#e5e7eb;color:#4b5563;font-size:.72rem;font-weight:800}',
-      '.lsd-saju-legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:.74rem;color:#334155;margin:2px 0 9px}',
+      '.lsd-saju-subtab{border:1px solid #bfdbfe;background:linear-gradient(180deg,#f8fdff,#eef8ff);color:#075985;border-radius:999px;padding:8px 14px;font-size:.75rem;font-weight:900;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 1px 0 rgba(255,255,255,.65) inset}',
+      '.lsd-saju-subtab:hover{border-color:#7dd3fc;transform:translateY(-1px)}',
+      '.lsd-saju-subtab.is-on{background:linear-gradient(135deg,#0f172a,#1d4ed8 55%,#0ea5e9);color:#f8fafc;border-color:transparent;box-shadow:0 10px 20px rgba(14,116,144,.28)}',
+      '.lsd-saju-card{position:relative;margin-top:8px;border:1px solid #dbe7f4;background:linear-gradient(180deg,#ffffff,#f8fbff);border-radius:18px;padding:14px 13px 14px;box-shadow:0 12px 30px rgba(15,23,42,.06);overflow:hidden}',
+      '.lsd-saju-card:before{content:"";position:absolute;inset:auto -40% 66% auto;width:220px;height:220px;border-radius:999px;background:radial-gradient(circle,rgba(125,211,252,.22),transparent 70%);pointer-events:none}',
+      '.lsd-saju-card[data-saju-variant="dna"]{background:linear-gradient(165deg,#f0fbff,#f8fafc 52%,#ecfeff)}',
+      '.lsd-saju-card[data-saju-variant="basic"]{background:linear-gradient(165deg,#fffdf7,#f8fafc 52%,#fff7ed)}',
+      '.lsd-saju-card[data-saju-variant="competency"]{background:linear-gradient(165deg,#f7fbff,#eef5ff 55%,#eef2ff)}',
+      '.lsd-saju-card[data-saju-variant="balance"]{background:linear-gradient(165deg,#f6fffb,#effcf6 45%,#f8fafc)}',
+      '.lsd-saju-headline{display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:900;color:#0f172a;margin:0 0 8px;line-height:1.35;letter-spacing:-.01em}',
+      '.lsd-saju-headline:before{content:"";display:inline-block;width:7px;height:28px;border-radius:999px;background:linear-gradient(180deg,#0ea5e9,#0369a1);flex-shrink:0}',
+      '.lsd-saju-card[data-saju-variant="basic"] .lsd-saju-headline:before{background:linear-gradient(180deg,#f59e0b,#d97706)}',
+      '.lsd-saju-card[data-saju-variant="competency"] .lsd-saju-headline:before{background:linear-gradient(180deg,#2563eb,#1d4ed8)}',
+      '.lsd-saju-card[data-saju-variant="balance"] .lsd-saju-headline:before{background:linear-gradient(180deg,#10b981,#0f766e)}',
+      '.lsd-saju-lead{font-size:.8rem;line-height:1.65;color:#334155;margin:0 0 11px}',
+      '.lsd-saju-chart-wrap{display:flex;justify-content:center;align-items:center;padding:5px 0 4px}',
+      '.lsd-saju-chart-wrap svg{width:min(100%,212px);height:auto;max-height:212px;filter:drop-shadow(0 7px 12px rgba(15,23,42,.12))}',
+      '.lsd-saju-pie{width:188px;height:188px;border-radius:999px;border:1px solid #dbe7f4;box-shadow:inset 0 0 0 1px rgba(255,255,255,.6),0 8px 18px rgba(15,23,42,.08)}',
+      '.lsd-saju-bullet-box{margin-top:9px;border:1px solid #dce8f4;background:rgba(248,250,252,.9);border-radius:14px;padding:10px 11px;display:grid;gap:8px}',
+      '.lsd-saju-bullet{display:flex;align-items:flex-start;gap:8px;font-size:.78rem;font-weight:700;color:#0f172a;line-height:1.52}',
+      '.lsd-saju-bullet-no{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:999px;background:#334155;color:#fff;font-size:.68rem;font-weight:900;line-height:1}',
+      '.lsd-saju-hashes{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:7px 0 2px}',
+      '.lsd-saju-hash{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 10px;background:#e2e8f0;color:#334155;font-size:.69rem;font-weight:800}',
+      '.lsd-saju-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:.71rem;color:#1e293b;margin:2px 0 9px}',
+      '.lsd-saju-legend span{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid #dbe7f4;background:#fff}',
       '.lsd-saju-dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:4px;vertical-align:middle}',
-      '.lsd-saju-balance-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 12px;background:#e5e7eb;color:#4b5563;font-size:.85rem;font-weight:900}'
+      '.lsd-saju-chip-row{text-align:center}',
+      '.lsd-saju-balance-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 12px;background:linear-gradient(135deg,#059669,#0f766e);color:#ecfeff;font-size:.78rem;font-weight:900;box-shadow:0 6px 14px rgba(15,118,110,.24)}',
+      '@media (max-width:640px){.lsd-saju-headline{font-size:.93rem}.lsd-saju-pie{width:160px;height:160px}.lsd-saju-chart-wrap svg{max-height:184px}.lsd-saju-subtab{font-size:.72rem;padding:7px 12px}}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -629,7 +643,7 @@
     var rings = [36, 62, 88, 108];
     var colors = ['#0f172a', '#1e3a8a', '#2563eb', '#1d4ed8', '#0ea5e9', '#38bdf8', '#3b82f6', '#1e40af'];
     var html = '';
-    html += '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="248" aria-label="본성 코드 차트">';
+    html += '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="220" aria-label="본성 코드 차트">';
     rings.forEach(function (r) {
       html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e5e7eb" stroke-width="1.4"></circle>';
     });
@@ -641,7 +655,7 @@
       var radius = 24 + (v * 0.84);
       html += '<path d="' + _wedgePath(cx, cy, radius, start, end) + '" fill="' + colors[i % colors.length] + '" opacity="0.92"></path>';
 
-      var labelPos = _polarPoint(cx, cy, 118, start + 20);
+      var labelPos = _polarPoint(cx, cy, 112, start + 20);
       var isDay = stems[i] === dayStem;
       html += '<g>';
       html += '<circle cx="' + labelPos.x.toFixed(2) + '" cy="' + labelPos.y.toFixed(2) + '" r="13" fill="' + (isDay ? '#111827' : '#ffffff') + '" stroke="#d1d5db" stroke-width="1.2"></circle>';
@@ -661,7 +675,7 @@
     var rings = [36, 62, 88, 108];
     var colors = ['#23479a', '#0f62ae', '#74c9a6', '#7f8cc8'];
     var html = '';
-    html += '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="248" aria-label="강점 리딩 차트">';
+    html += '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="220" aria-label="강점 리딩 차트">';
     rings.forEach(function (r) {
       html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e5e7eb" stroke-width="1.4"></circle>';
     });
@@ -674,7 +688,7 @@
       html += '<path d="' + _wedgePath(cx, cy, radius, start, end) + '" fill="' + colors[i % colors.length] + '" opacity="0.95"></path>';
 
       var mid = start + 43;
-      var lp = _polarPoint(cx, cy, 122, mid);
+      var lp = _polarPoint(cx, cy, 112, mid);
       html += '<text x="' + lp.x.toFixed(2) + '" y="' + (lp.y + 4).toFixed(2) + '" text-anchor="middle" font-size="11" font-weight="800" fill="#1f2937">' + labels[i] + '</text>';
     }
 
@@ -765,7 +779,7 @@
           title: '오늘의 운기 요약 · ' + (trait.type || '균형형'),
           lead: trait.summary,
           points: trait.points,
-          chartHtml: '<div class="lsd-saju-chart-wrap"><div style="width:220px;height:220px;border-radius:50%;background:' + basicPie + ';border:1px solid #e5e7eb;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)"></div></div>'
+          chartHtml: '<div class="lsd-saju-chart-wrap"><div class="lsd-saju-pie" style="background:' + basicPie + '"></div></div>'
         },
         competency: {
           title: '강점 활용 리딩',
@@ -789,7 +803,7 @@
           legend: balanceLabels.map(function (name, i) {
             return { name: name, color: balanceColors[i], value: Math.round(balanceValues[i]) };
           }),
-          chartHtml: '<div class="lsd-saju-chart-wrap"><div style="width:220px;height:220px;border-radius:50%;background:' + balancePie + ';border:1px solid #e5e7eb;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)"></div></div>'
+          chartHtml: '<div class="lsd-saju-chart-wrap"><div class="lsd-saju-pie" style="background:' + balancePie + '"></div></div>'
         }
       }
     };
@@ -802,6 +816,7 @@
 
     if (!model || !model.tabs) {
       tabBar.innerHTML = '';
+      body.setAttribute('data-saju-variant', 'none');
       body.innerHTML = '<p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 리딩을 완료하면 오늘의 운기 요약이 표시됩니다.</p>';
       return;
     }
@@ -815,6 +830,7 @@
     }).join('');
 
     var current = model.tabs[_lsdSajuInsightTab] || model.tabs.dna;
+    body.setAttribute('data-saju-variant', _lsdSajuInsightTab);
     var legendHtml = '';
     if (Array.isArray(current.legend) && current.legend.length) {
       legendHtml = '<div class="lsd-saju-legend">' + current.legend.map(function (item) {
@@ -822,7 +838,7 @@
       }).join('') + '</div>';
     }
 
-    var chipHtml = current.chip ? ('<div style="text-align:center"><span class="lsd-saju-balance-chip">' + escHtml(current.chip) + '</span></div>') : '';
+    var chipHtml = current.chip ? ('<div class="lsd-saju-chip-row"><span class="lsd-saju-balance-chip">' + escHtml(current.chip) + '</span></div>') : '';
     var tagsHtml = Array.isArray(current.tags)
       ? ('<div class="lsd-saju-hashes">' + current.tags.map(function (tag) { return '<span class="lsd-saju-hash">' + escHtml(tag) + '</span>'; }).join('') + '</div>')
       : '';
@@ -1901,6 +1917,9 @@
       .then(function (payload) {
         var meta = payload && payload.meta ? payload.meta : null;
         var items = payload && Array.isArray(payload.items) ? payload.items : [];
+        if (!force && !items.length) {
+          return loadSatsPlaylist(mode, true);
+        }
         var message = '';
         if (meta && /^fallback/.test(String(meta.source || '')) && meta.message) {
           message = meta.message;
@@ -1908,6 +1927,9 @@
         renderSatsPlaylist(mode, items, message, meta);
       })
       .catch(function (err) {
+        if (!force) {
+          return loadSatsPlaylist(mode, true);
+        }
         renderSatsPlaylist(mode, [], (err && err.message) ? err.message : '플레이리스트 로드 실패', null);
       });
   }
@@ -2044,6 +2066,20 @@
     return Math.max(min, Math.min(max, v));
   }
 
+  function _normalizeElementList(list) {
+    return (Array.isArray(list) ? list : []).map(function (raw) {
+      var v = String(raw || '').toLowerCase().trim();
+      if (!v) return '';
+      if (v === 'wood' || v === 'fire' || v === 'earth' || v === 'metal' || v === 'water') return v;
+      if (v === '목' || v === '木') return 'wood';
+      if (v === '화' || v === '火') return 'fire';
+      if (v === '토' || v === '土') return 'earth';
+      if (v === '금' || v === '金') return 'metal';
+      if (v === '수' || v === '水') return 'water';
+      return '';
+    }).filter(Boolean);
+  }
+
   function _classifyDayFromSaju(dateObj, pillars, power, jong) {
     var gz = getGanZhiByDate(dateObj);
     var scores = calcGodlifeScores(pillars, power, jong, gz);
@@ -2055,30 +2091,75 @@
       + Number(scores.study || 50)
     ) / 5);
 
-    var todayEl = (gz && gz.g) ? (GAN_ELEM[gz.g] || 'earth') : 'earth';
-    var yons = (power && Array.isArray(power.yongshin)) ? power.yongshin : [];
-    var kis = (power && Array.isArray(power.kijishin)) ? power.kijishin : [];
-    var tune = 0;
-    if (yons.indexOf(todayEl) >= 0) tune += 10;
-    if (kis.indexOf(todayEl) >= 0) tune -= 12;
-    if (todayEl === (_lsdCtx && _lsdCtx.luckyEl)) tune += 5;
+    var stemEl = (gz && gz.g) ? (GAN_ELEM[gz.g] || 'earth') : 'earth';
+    var branchEl = (gz && gz.j) ? (JI_ELEM[gz.j] || 'earth') : stemEl;
+    var dayMasterEl = (pillars && pillars.d && pillars.d.g) ? (GAN_ELEM[pillars.d.g] || 'earth') : ((_lsdCtx && _lsdCtx.dEl) || 'earth');
+    var luckyEl = (_lsdCtx && _lsdCtx.luckyEl) || dayMasterEl;
+    var yons = _normalizeElementList(power && power.yongshin);
+    var kis = _normalizeElementList(power && power.kijishin);
 
-    var goodness = _clamp(Math.round(avg + tune), 10, 95);
+    var huiPool = [];
+    yons.forEach(function (el) {
+      huiPool.push(el);
+      huiPool.push(SHENG[el]);
+    });
+    if (!huiPool.length) huiPool.push(luckyEl);
+
+    var positives = {};
+    huiPool.forEach(function (el) {
+      if (el) positives[el] = true;
+    });
+    positives[luckyEl] = true;
+
+    var negatives = {};
+    kis.forEach(function (el) {
+      if (el) negatives[el] = true;
+    });
+
+    function _elementImpact(el, roleWeight) {
+      var s = 0;
+      if (positives[el]) s += roleWeight;
+      if (negatives[el]) s -= roleWeight + 2;
+      return s;
+    }
+
+    var elementTune = _elementImpact(stemEl, 16) + _elementImpact(branchEl, 12);
+    var relationTune = 0;
+
+    if (stemEl === dayMasterEl) relationTune += 6;
+    if (branchEl === dayMasterEl) relationTune += 4;
+    if (SHENG[dayMasterEl] === stemEl) relationTune += 4;
+    if (SHENG[dayMasterEl] === branchEl) relationTune += 3;
+    if (GEN[dayMasterEl] === stemEl) relationTune += 3;
+    if (GEN[dayMasterEl] === branchEl) relationTune += 2;
+    if (KE[dayMasterEl] === stemEl) relationTune += 2;
+    if (KE[dayMasterEl] === branchEl) relationTune += 1;
+    if (KE[stemEl] === dayMasterEl) relationTune -= 9;
+    if (KE[branchEl] === dayMasterEl) relationTune -= 7;
+    if (stemEl === luckyEl) relationTune += 4;
+    if (branchEl === luckyEl) relationTune += 2;
+    if (positives[stemEl] && positives[branchEl]) relationTune += 7;
+    if (negatives[stemEl] && negatives[branchEl]) relationTune -= 8;
+    if (positives[stemEl] && negatives[branchEl]) relationTune -= 3;
+    if (negatives[stemEl] && positives[branchEl]) relationTune -= 2;
+
+    var normalizedBase = 50 + ((avg - 50) * 0.58);
+    var goodness = _clamp(Math.round(normalizedBase + elementTune + relationTune), 8, 96);
     var badness = _clamp(100 - goodness, 5, 90);
     var tone = 'normal';
     var label = '보통';
-    if (goodness >= 80) {
+    if (goodness >= 76) {
       tone = 'very-good';
       label = '좋은 날';
-    } else if (goodness >= 66) {
+    } else if (goodness >= 62) {
       tone = 'good';
       label = '양호';
-    } else if (goodness >= 52) {
+    } else if (goodness >= 47) {
       tone = 'normal';
       label = '보통';
-    } else if (goodness >= 40) {
+    } else if (goodness >= 33) {
       tone = 'bad';
-      label = '주의';
+      label = '강함';
     } else {
       tone = 'very-bad';
       label = '아주강함';
@@ -2915,13 +2996,13 @@
       '<span id="lsdSatsLicenseBadge" class="lsd-sats-badge">CC 우선 필터</span>',
       '</div>',
       '<div class="lsd-sats-toolbar-actions">',
-      '<button id="lsdStartSatsMode" type="button" class="lsd-plain-btn" style="border-color:#818cf8;color:#3730a3">🎧 목록 불러오기</button>',
+      '<button id="lsdStartSatsMode" type="button" class="lsd-plain-btn" style="border-color:#818cf8;color:#3730a3">🎧 자동 불러오기</button>',
       '<button id="lsdShuffleSatsPlaylist" type="button" class="lsd-plain-btn">🎲 랜덤 재생</button>',
       '<button id="lsdRefreshSatsPlaylist" type="button" class="lsd-plain-btn">🔄 새로고침</button>',
       '<button id="lsdStopSatsMode" type="button" class="lsd-plain-btn">⏹️ 정지</button>',
       '</div>',
       '</div>',
-      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">모드를 고르고 목록 불러오기를 누르면 CC 우선 트랙이 준비됩니다.</div>',
+      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">명상 탭 진입 시 CC 우선 플레이리스트를 자동으로 불러옵니다.</div>',
       '<div class="lsd-sats-player" style="margin-top:8px">',
       '<div id="lsdSatsPlayerPlaceholder" class="lsd-sats-player-placeholder">재생 버튼을 누르기 전까지 소리는 나오지 않습니다.<br>목록에서 원하는 트랙의 ▶ 재생을 눌러주세요.</div>',
       '<iframe id="lsdSatsYoutubeFrame" title="SATS YouTube Player" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
@@ -3216,6 +3297,10 @@
     });
 
     switchTab(_lsdActiveTab, modal);
+    if (!modal.__lsdSatsPreloadStarted) {
+      modal.__lsdSatsPreloadStarted = true;
+      ensureSatsPlaylistReady('lofi', false);
+    }
 
     /* 기분 이모지 */
     var moodBtns = modal.querySelectorAll('.lsd-mood-btn');
