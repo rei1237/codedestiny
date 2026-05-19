@@ -21,16 +21,16 @@ export default function AnimalDestinyHero() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(180deg, rgba(250,246,234,0.9) 0%, rgba(236,244,255,0.7) 42%, rgba(247,250,255,0.96) 100%), url('/fuctionassets/동물점테스트.webp')",
+              "linear-gradient(180deg, rgba(255,247,233,0.82) 0%, rgba(252,241,255,0.72) 42%, rgba(255,248,236,0.92) 100%), url('/fuctionassets/동물점테스트.webp')",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "saturate(0.9)",
+            filter: "saturate(1.06)",
           }}
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_24%,rgba(255,179,71,0.3),transparent_42%),radial-gradient(circle_at_76%_72%,rgba(23,154,147,0.18),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_24%,rgba(255,193,107,0.34),transparent_42%),radial-gradient(circle_at_76%_72%,rgba(172,124,255,0.24),transparent_45%)]" />
       </div>
 
-      <div className="relative mx-auto max-w-5xl rounded-[34px] border border-[#ebdfc6] bg-white/66 p-6 shadow-[0_24px_58px_rgba(27,47,76,0.16)] backdrop-blur-sm sm:p-10">
+      <div className="relative mx-auto max-w-5xl rounded-[34px] border border-[#efd6b2] bg-white/66 p-6 shadow-[0_24px_58px_rgba(103,76,158,0.2)] backdrop-blur-sm sm:p-10">
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[34px]">
           {STAR_POINTS.map((star, index) => (
             <span
@@ -54,7 +54,7 @@ export default function AnimalDestinyHero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
-              className="inline-flex rounded-full bg-[#15324f]/88 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#f8edcf]"
+              className="inline-flex rounded-full bg-[#6f47a6]/88 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#fff1c7]"
             >
               CELESTIAL ANIMAL ORACLE
             </motion.p>
@@ -63,7 +63,7 @@ export default function AnimalDestinyHero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.08 }}
-              className="text-balance text-3xl font-black leading-tight text-[#18314f] sm:text-5xl"
+              className="text-balance text-3xl font-black leading-tight text-[#4f2c78] sm:text-5xl"
             >
               사주 십이운성
               <br />
@@ -74,7 +74,7 @@ export default function AnimalDestinyHero() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.18 }}
-              className="max-w-2xl text-sm font-semibold leading-relaxed text-[#2f4d6a] sm:text-base"
+              className="max-w-2xl text-sm font-semibold leading-relaxed text-[#6b4d96] sm:text-base"
             >
               태어난 순간의 십이운성을 읽어, 당신의 기질과 관계 패턴을 동물 아키타입으로 해석합니다.
               성격, 연애, 진로, 재물운까지 한 번에 보는 프리미엄 리포트입니다.
@@ -84,11 +84,11 @@ export default function AnimalDestinyHero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.28 }}
-              className="grid gap-2 text-[12px] font-bold text-[#214767] sm:grid-cols-3"
+              className="grid gap-2 text-[12px] font-bold text-[#5a3f82] sm:grid-cols-3"
             >
-              <span className="rounded-full border border-[#bfe3de] bg-[#ecf8f7] px-3 py-2">12단계 운성 정규화</span>
+              <span className="rounded-full border border-[#edd2ff] bg-[#f7efff] px-3 py-2">12단계 운성 정규화</span>
               <span className="rounded-full border border-[#f3d8a4] bg-[#fff4df] px-3 py-2">성격/연애/직업 분석</span>
-              <span className="rounded-full border border-[#ced8f5] bg-[#eef2ff] px-3 py-2">두 사람 궁합 계산</span>
+              <span className="rounded-full border border-[#ffd6ea] bg-[#fff1f9] px-3 py-2">두 사람 궁합 계산</span>
             </motion.div>
           </div>
 
@@ -98,11 +98,11 @@ export default function AnimalDestinyHero() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mx-auto w-full max-w-[260px]"
           >
-            <div className="relative rounded-[28px] border border-[#d5c29a] bg-[linear-gradient(145deg,#173957,#1c5970)] p-5 shadow-[0_20px_46px_rgba(20,42,61,0.42)]">
+            <div className="relative rounded-[28px] border border-[#e2c28f] bg-[linear-gradient(145deg,#6f47a6,#9f59bc,#f08fb5)] p-5 shadow-[0_20px_46px_rgba(84,45,126,0.45)]">
               <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-[#ffdca5]/30 blur-2xl" />
               <CosmicSigil className="mx-auto h-36 w-36 text-[#fff2ce]" />
               <p className="mt-3 text-center text-xs font-black tracking-[0.18em] text-[#ffe7b1]">ORACLE CORE</p>
-              <p className="mt-2 text-center text-sm font-semibold leading-relaxed text-[#d7e6f3]">
+              <p className="mt-2 text-center text-sm font-semibold leading-relaxed text-[#fff2ff]">
                 입력한 생년월일을 바탕으로 대표 운성(일주 우선)을 선택해 동물 프로필을 완성합니다.
               </p>
             </div>

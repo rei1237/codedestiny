@@ -484,6 +484,37 @@ const FEATURES: ServiceFeature[] = ([
     },
   },
   {
+    slug: "destiny-meeting-place",
+    title: "사주로 보는 인연의 장소",
+    subtitle: "사주 에너지로 만남 장소·도시·시기를 추천하는 독립 리포트",
+    description:
+      "생년월일 입력만으로 사주 에너지 흐름을 분석해 인연이 열리는 장소 TOP5, 국가/도시, 타이밍, 스타일 아이템을 제안합니다.",
+    category: "fun",
+    image: "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+    heroImageAlt: "사주로 보는 인연의 장소 대표 이미지",
+    detailRoute: "/services/destiny-meeting-place",
+    launchRoute: "/saju/destiny-meeting-place",
+    accessType: "paid",
+    featureKey: "destiny_meeting_place",
+    tags: ["인연 장소", "사주 오행", "만남 타이밍", "국가 추천"],
+    highlights: ["독립 실행", "장소/도시/시기 통합 리포트"],
+    howItWorks: [
+      { title: "출생 정보 입력", description: "생년월일과 시간을 입력합니다." },
+      { title: "사주 에너지 계산", description: "일간과 오행 흐름을 기반으로 만남 패턴을 분석합니다." },
+      { title: "장소 리포트 확인", description: "인연 장소 TOP5, 도시, 시기, 실천 플랜을 확인합니다." },
+    ],
+    resultExamples: [
+      { title: "인연 장소 TOP5", description: "공간 유형별 만남 확률과 행동 팁" },
+      { title: "국가/도시 추천", description: "오행 흐름에 맞는 도시와 여행 무드" },
+      { title: "타이밍/스타일", description: "만남운 시즌과 실전 스타일 가이드" },
+    ],
+    seo: {
+      title: "사주로 보는 인연의 장소 소개 | Code Destiny",
+      description: "사주 에너지로 인연 장소, 도시, 시기를 추천하는 독립 실행 리포트 서비스 소개 페이지입니다.",
+      keywords: ["사주 인연 장소", "인연운", "사주 장소 추천", "만남 타이밍"],
+    },
+  },
+  {
     slug: "stonehenge-rune",
     title: "스톤헨지 룬점",
     subtitle: "고대 룬 상징으로 읽는 선택/시기 신탁",

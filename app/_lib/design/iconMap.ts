@@ -25,6 +25,7 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/saju/destiny-bias": "photocard",
   "/saju/animal-test": "animalPaw",
   "/saju/animal-destiny": "animalPaw",
+  "/saju/destiny-meeting-place": "heartGlow",
   "/saju-picture": "seal",
   "/animal/mbti": "animalPaw",
   "/ziwei/chart": "palace",

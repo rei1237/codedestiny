@@ -7,7 +7,6 @@ import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-clie
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
-import DestinyMeetingPlaceFeature from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceFeature";
 import AnimalDestinyInputForm from "./AnimalDestinyInputForm";
 import AnimalDestinyHero from "./AnimalDestinyHero";
 import AnimalResultScreen from "./AnimalResultScreen";
@@ -15,6 +14,7 @@ import AnimalRevealAnimation from "./AnimalRevealAnimation";
 
 const FEATURE_KEY = "animal-destiny-unlock";
 const UNLOCK_REASON = "십이운성 동물점 해금";
+const DESTINY_MEETING_PREFILL_KEY = "cd.destinyMeetingPlace.prefill.v1";
 
 export default function AnimalDestinyPage() {
   const shareCardRef = useRef<HTMLDivElement>(null);
@@ -121,27 +121,44 @@ export default function AnimalDestinyPage() {
     await shareCard(shareCardRef.current, `animal-destiny-${Date.now()}`);
   }, [shareCard]);
 
+  const handleOpenMeetingPlace = useCallback(() => {
+    try {
+      const prefill = {
+        name: input.name || "",
+        birthDate: input.birthDate || "",
+        birthTime: input.birthTime || "",
+        gender: input.gender || "unknown",
+        calendarType: input.calendarType || "solar",
+        lunarLeap: Boolean(input.lunarLeap),
+      };
+      sessionStorage.setItem(DESTINY_MEETING_PREFILL_KEY, JSON.stringify(prefill));
+    } catch {
+      // ignore session storage failures
+    }
+    window.location.assign("/saju/destiny-meeting-place");
+  }, [input]);
+
   return (
-    <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_15%_12%,rgba(250,212,122,0.26),transparent_34%),radial-gradient(circle_at_84%_4%,rgba(97,177,198,0.22),transparent_30%),linear-gradient(176deg,#f8f1df_0%,#f4f8ff_44%,#eaf2ff_100%)] text-[#1f3550]">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(125deg,transparent_0%,rgba(255,255,255,0.44)_35%,transparent_58%)]" />
+    <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_14%_10%,rgba(255,230,177,0.26),transparent_33%),radial-gradient(circle_at_80%_8%,rgba(206,166,255,0.28),transparent_35%),radial-gradient(circle_at_50%_86%,rgba(255,186,220,0.24),transparent_36%),linear-gradient(178deg,#f7ecff_0%,#fef8ea_54%,#f6eeff_100%)] text-[#3a2460]">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(130deg,transparent_0%,rgba(255,255,255,0.5)_36%,transparent_62%)]" />
       <Toaster position="top-center" richColors />
       
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d8c7a4]/55 bg-[#f6efe0]/80 px-4 py-4 backdrop-blur-xl sm:px-6">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d9c5f8]/60 bg-[#fff8ef]/78 px-4 py-4 backdrop-blur-xl sm:px-6">
         <button 
           onClick={() => window.history.back()}
-          className="-ml-1 rounded-full border border-transparent p-2 text-[#2c4d67] transition-all hover:border-[#2c4d67]/15 hover:bg-[#2c4d67]/10"
+          className="-ml-1 rounded-full border border-transparent p-2 text-[#67338e] transition-all hover:border-[#67338e]/20 hover:bg-[#67338e]/10"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
         <div className="flex flex-col items-center">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.28em] text-[#1f4967]">Celestial Engine</h2>
-          <p className="mt-1 text-sm font-black tracking-tight text-[#173754]">십이운성 동물점</p>
+          <h2 className="text-[10px] font-black uppercase tracking-[0.28em] text-[#7b4fa4]">Celestial Animal Test</h2>
+          <p className="mt-1 text-sm font-black tracking-tight text-[#512479]">십이운성 동물점</p>
         </div>
         <button 
           onClick={reset}
-          className="-mr-1 rounded-full border border-transparent p-2 text-[#2c4d67] transition-all hover:border-[#2c4d67]/15 hover:bg-[#2c4d67]/10"
+          className="-mr-1 rounded-full border border-transparent p-2 text-[#67338e] transition-all hover:border-[#67338e]/20 hover:bg-[#67338e]/10"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -154,14 +171,14 @@ export default function AnimalDestinyPage() {
         <AnimalDestinyHero />
 
         <div className="space-y-8 px-6">
-          <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d7c8a8] bg-white/75 px-4 py-3 text-xs font-bold text-[#35526e] shadow-[0_10px_24px_rgba(24,58,96,0.08)]">
+          <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#e3d1ff] bg-white/75 px-4 py-3 text-xs font-bold text-[#5b3b7f] shadow-[0_10px_24px_rgba(116,78,178,0.14)]">
             <span className={`h-2 w-2 rounded-full ${isUnlocked ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
             <span>
               {isUnlocked
                 ? "프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다."
                 : "해금 상태: 잠금 (분석을 위해 100코인이 필요합니다)"}
             </span>
-            <span className="rounded-full bg-[#fff2cf] px-2.5 py-1 text-[11px] font-black text-[#8b6116]">100 COINS</span>
+            <span className="rounded-full bg-[#ffecc3] px-2.5 py-1 text-[11px] font-black text-[#8b6116]">100 COINS</span>
             {!isLoggedIn ? <span className="text-rose-600">로그인이 필요합니다</span> : null}
           </div>
 
@@ -208,20 +225,45 @@ export default function AnimalDestinyPage() {
             <div className="flex flex-col gap-3 pt-8">
               <button
                 onClick={reset}
-                className="w-full rounded-2xl border border-[#b6c8d9] bg-white py-4 font-bold text-[#234664] transition-all hover:bg-[#f4f9ff]"
+                className="w-full rounded-2xl border border-[#cfb8f0] bg-white py-4 font-bold text-[#53307b] transition-all hover:bg-[#faf4ff]"
               >
                 다른 생년월일로 테스트하기
               </button>
               <a
                 href="/saju"
-                className="w-full rounded-2xl border border-[#d8b46d] bg-[linear-gradient(180deg,#fffdf6,#fff3da)] py-4 text-center font-bold text-[#825f18] transition-all hover:brightness-[1.02]"
+                className="w-full rounded-2xl border border-[#e2c17a] bg-[linear-gradient(180deg,#fffdf6,#fff3da)] py-4 text-center font-bold text-[#825f18] transition-all hover:brightness-[1.02]"
               >
                 사주 운세 메인으로
               </a>
             </div>
           )}
 
-          <DestinyMeetingPlaceFeature sajuResult={sajuResult} />
+          <section
+            id="destiny-meeting-place-entry"
+            className="overflow-hidden rounded-[2rem] border border-[#d6c6f3] bg-[linear-gradient(148deg,rgba(34,23,67,0.92),rgba(48,26,92,0.9),rgba(20,33,76,0.92))] p-5 text-white shadow-[0_24px_48px_rgba(20,9,46,0.45)]"
+          >
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#ffd58c]">Independent Experience</p>
+            <h3 className="mt-2 text-2xl font-black">사주로 보는 인연의 장소</h3>
+            <p className="mt-2 text-sm text-[#e7ddff]">
+              인연의 장소 리포트는 이제 독립 페이지에서 실행됩니다. 동물점 입력값을 자동으로 이어받아 바로 분석할 수 있어요.
+            </p>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-white/20">
+              <img
+                src="/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp"
+                alt="사주로 보는 인연의 장소"
+                loading="lazy"
+                decoding="async"
+                className="h-[165px] w-full object-cover sm:h-[220px]"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleOpenMeetingPlace}
+              className="mt-4 w-full rounded-2xl bg-[linear-gradient(90deg,#ff9cd6,#8767ff,#6ca9ff)] py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(18,15,46,0.42)] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+            >
+              독립 페이지에서 인연의 장소 분석하기
+            </button>
+          </section>
         </div>
       </div>
     </main>

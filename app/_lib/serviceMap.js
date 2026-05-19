@@ -134,6 +134,24 @@ export const SERVICE_MAP = {
       "twelve stage saju",
     ],
   },
+  "saju/destiny-meeting-place": {
+    component: FeatureLandingPage,
+    title: "사주로 보는 인연의 장소 - 독립 운명 좌표 리포트",
+    h1: "사주로 보는 인연의 장소",
+    description:
+      "생년월일 기반 사주 에너지로 인연이 열리는 장소, 국가/도시, 타이밍, 운명의 아이템을 추천하는 독립 리포트 페이지.",
+    seoText:
+      "인연의 장소 기능은 동물점 결과 화면 종속이 아닌 독립 분석 페이지로 실행되며, 입력 즉시 사주 계산 후 장소 리포트를 제공합니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+    landingPoints: ["독립 실행 입력 폼", "인연 장소 TOP 5", "국가/도시 추천", "1회 100코인"],
+    keywords: [
+      "사주로 보는 인연의 장소",
+      "인연 장소 추천",
+      "사주 장소 운세",
+      "meeting place saju",
+      "destiny meeting place",
+    ],
+  },
   "astrology/cosmic": {
     component: FeatureLandingPage,
     title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석",

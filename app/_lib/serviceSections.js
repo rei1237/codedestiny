@@ -10,6 +10,7 @@ export const SERVICE_SECTIONS = [
       { href: "/saju/love-simulation", title: "LOVE CODE", desc: "사주 연애 시뮬레이션 · 무료" },
       { href: "/saju/destiny-bias", title: "최애운명", desc: "사주 기반 팬덤 공명 분석 · 1회 50코인" },
       { href: "/saju/animal-test", title: "십이운성 동물점", desc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 100코인" },
+      { href: "/saju/destiny-meeting-place", title: "사주로 보는 인연의 장소", desc: "인연 장소·도시·타이밍 독립 분석 · 1회 100코인" },
     ],
   },
   {
