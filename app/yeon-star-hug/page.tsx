@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   BatteryLow,
@@ -113,6 +113,15 @@ const EMOTIONS: EmotionOption[] = [
   { key: "blue", label: "우울해", Icon: Moon, tone: "from-indigo-200 to-blue-200" },
 ];
 
+const EMOTION_LABEL: Record<EmotionKey, string> = {
+  happy: "행복",
+  calm: "편안",
+  tired: "피로",
+  worried: "걱정",
+  flutter: "설렘",
+  blue: "우울",
+};
+
 const ZODIAC_SIGNS: Array<{ sign: ZodiacSign; period: string; mmddStart: number; mmddEnd: number }> = [
   { sign: "양자리", period: "3.21 - 4.19", mmddStart: 321, mmddEnd: 419 },
   { sign: "황소자리", period: "4.20 - 5.20", mmddStart: 420, mmddEnd: 520 },
@@ -199,6 +208,17 @@ const DOMAIN_RULES: Array<{ domain: ConcernDomain; category: ConcernCategory; we
   { domain: "finance", category: "money", weight: 1.45, keywords: ["저축", "투자", "소비", "지출", "부채", "대출", "카드값", "예산", "월급"] },
   { domain: "wellness", category: "health", weight: 1.5, keywords: ["불안", "우울", "번아웃", "수면", "피로", "무기력", "스트레스", "두통", "건강"] },
   { domain: "growth", category: "self", weight: 1.2, keywords: ["진로", "자존감", "자신감", "방향", "목표", "선택", "동기", "정체성", "미래"] },
+];
+
+const FUZZY_KEYWORD_RULES: Array<{ category: ConcernCategory; domain: ConcernDomain; weight: number; synonyms: string[] }> = [
+  { category: "money", domain: "finance", weight: 1.6, synonyms: ["재물", "금전", "생활비", "경제", "고정비", "카드", "대출", "빚", "부채", "월세", "전세", "지갑", "돈관리"] },
+  { category: "love", domain: "romance", weight: 1.5, synonyms: ["연애", "사랑", "썸", "호감", "고백", "소개팅", "애인", "연락", "답장", "권태", "재회"] },
+  { category: "love", domain: "social", weight: 1.3, synonyms: ["인간관계", "대인관계", "친구", "동료", "갈등", "오해", "소통", "거리감", "눈치"] },
+  { category: "work", domain: "career", weight: 1.7, synonyms: ["이직", "직장", "회사", "퇴사", "상사", "면접", "연봉", "커리어", "승진", "직무", "출근"] },
+  { category: "work", domain: "study", weight: 1.4, synonyms: ["학업", "공부", "시험", "수능", "자격증", "과제", "학점", "입시"] },
+  { category: "family", domain: "familyCare", weight: 1.55, synonyms: ["부모", "부모님", "엄마", "아빠", "가족", "형제", "자매", "배우자", "부부", "육아", "자녀"] },
+  { category: "health", domain: "wellness", weight: 1.45, synonyms: ["건강", "스트레스", "수면", "잠", "피곤", "무기력", "번아웃", "우울", "불안", "회복"] },
+  { category: "self", domain: "growth", weight: 1.3, synonyms: ["미래", "진로", "정체성", "자존감", "자신감", "선택", "방향", "동기", "목표"] },
 ];
 
 const DOMAIN_TIP: Record<ConcernDomain, string> = {
@@ -394,6 +414,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
 
 function extractConcernAnalysis(concernText: string): ConcernAnalysis {
   const text = concernText.trim().toLowerCase();
+  const compactText = text.replace(/[^0-9a-zA-Z가-힣]/g, "");
   const weights: Record<ConcernCategory, number> = {
     love: 0,
     work: 0,
@@ -415,6 +436,11 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
   const hitSet = new Set<string>();
   const domainHitSet = new Set<string>();
 
+  const hasKeyword = (keyword: string) => {
+    const normalizedKeyword = keyword.toLowerCase().replace(/[^0-9a-zA-Z가-힣]/g, "");
+    return text.includes(keyword.toLowerCase()) || compactText.includes(normalizedKeyword);
+  };
+
   if (!text) {
     return {
       weights: { ...weights, self: 1 },
@@ -427,7 +453,7 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
 
   (Object.keys(KEYWORD_DICT) as ConcernCategory[]).forEach((category) => {
     KEYWORD_DICT[category].forEach((keyword) => {
-      if (text.includes(keyword)) {
+      if (hasKeyword(keyword)) {
         weights[category] += category === "health" ? 1.1 : 0.8;
         hitSet.add(keyword);
       }
@@ -436,11 +462,22 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
 
   DOMAIN_RULES.forEach((rule) => {
     rule.keywords.forEach((keyword) => {
-      if (text.includes(keyword)) {
+      if (hasKeyword(keyword)) {
         domainWeights[rule.domain] += rule.weight;
         weights[rule.category] += rule.weight * 0.9;
         hitSet.add(keyword);
         domainHitSet.add(keyword);
+      }
+    });
+  });
+
+  FUZZY_KEYWORD_RULES.forEach((rule) => {
+    rule.synonyms.forEach((synonym) => {
+      if (hasKeyword(synonym)) {
+        weights[rule.category] += rule.weight;
+        domainWeights[rule.domain] += rule.weight * 0.85;
+        hitSet.add(synonym);
+        domainHitSet.add(synonym);
       }
     });
   });
@@ -501,17 +538,17 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const money = toScore(3 + emotionBias.money + moon.scoreBias.money + dayRuler.scoreBias.money + aspect.scoreBias * 0.3 + focusBias.money * 0.22);
 
   const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
-  const concernHint = concern.topKeywords.length > 0 ? `"${concern.topKeywords.join(", ")}"` : "오늘 네 마음 상태";
+  const concernHint = concern.topKeywords.length > 0 ? concern.topKeywords.join(", ") : "오늘 네 마음 상태";
 
   const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
   const warmMessage = [
-    EMOTION_OPENING[selectedEmotion],
-    `지금 하늘은 ${todaySunSign} 태양, ${moon.label}, 그리고 ${dayRuler.label} 흐름이 겹쳐 있어.`,
-    `${aspect.summary} 그래서 ${concernHint}를 다룰 때 감정 해석보다 사실 확인이 더 중요해.`,
-    `특히 ${DOMAIN_LABEL[concern.topDomain]} 영역은 오늘 말의 속도보다 맥락 정리가 성과를 높여줘.`,
-    practicalTip,
-  ].join(" ");
+    `사랑하는 ${EMOTION_LABEL[selectedEmotion]}의 마음을 가진 너에게,`,
+    `${EMOTION_OPENING[selectedEmotion]} 지금 하늘은 ${todaySunSign} 태양과 ${moon.label}, ${dayRuler.label} 흐름이 겹쳐 있어.`,
+    `${aspect.summary} 특히 ${DOMAIN_LABEL[concern.topDomain]} 주제에서 "${concernHint}" 같은 키워드가 강하게 보였어.`,
+    `오늘은 감정 해석보다 사실 확인을 먼저 해보자. ${practicalTip}`,
+    `너의 속도를 믿어도 괜찮아. 연이는 오늘도 네 편이야.`,
+  ].join("\n\n");
 
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
 
@@ -547,25 +584,30 @@ function escapeXml(text: string) {
 function wrapByLength(input: string, maxLen: number) {
   const text = String(input || "").trim();
   if (!text) return [""];
-
-  const words = text.includes(" ") ? text.split(/\s+/).filter(Boolean) : text.split("");
   const lines: string[] = [];
-  let current = "";
 
-  words.forEach((word) => {
-    const glue = text.includes(" ") ? " " : "";
-    const candidate = `${current}${current ? glue : ""}${word}`;
-    if (candidate.length <= maxLen) {
-      current = candidate;
-      return;
-    }
+  const paragraphs = text.split(/\n+/).map((part) => part.trim()).filter(Boolean);
+
+  paragraphs.forEach((paragraph) => {
+    const words = paragraph.includes(" ") ? paragraph.split(/\s+/).filter(Boolean) : paragraph.split("");
+    let current = "";
+
+    words.forEach((word) => {
+      const glue = paragraph.includes(" ") ? " " : "";
+      const candidate = `${current}${current ? glue : ""}${word}`;
+      if (candidate.length <= maxLen) {
+        current = candidate;
+        return;
+      }
+      if (current) lines.push(current);
+      current = word;
+    });
+
     if (current) lines.push(current);
-    current = word;
   });
 
-  if (current) lines.push(current);
   if (lines.length === 0) lines.push(text);
-  return lines.slice(0, 4);
+  return lines.slice(0, 6);
 }
 
 function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: ConsultationResult, spriteFrame: number) {
@@ -573,8 +615,8 @@ function buildHeartCardSvg(date: Date, emotionLabel: string, consultation: Consu
   const frameSize = 148;
   const spriteX = 826 - spriteFrame * frameSize;
   const messageLines = wrapByLength(consultation.warmMessage, 28).map((line, index) => {
-    const y = 650 + index * 54;
-    return `<text x="86" y="${y}" fill="#4b5563" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
+    const y = 642 + index * 48;
+    return `<text x="92" y="${y}" fill="#4b5563" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
   });
 
   const keywordLine = consultation.concernKeywords.length > 0
@@ -713,31 +755,12 @@ export default function YeonStarHugPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("SVG 카드로 저장하거나 공유할 수 있어요.");
-  const [frame, setFrame] = useState(0);
   const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
 
   const activeEmotion = useMemo(
     () => EMOTIONS.find((item) => item.key === selectedEmotion) ?? EMOTIONS[0],
     [selectedEmotion]
   );
-
-  useEffect(() => {
-    const speed = selectedEmotion === "tired" || selectedEmotion === "blue" ? 840 : 620;
-    const timer = window.setInterval(() => {
-      setFrame((prev) => (prev + 1) % SPRITE_FRAMES);
-    }, speed);
-    return () => window.clearInterval(timer);
-  }, [selectedEmotion]);
-
-  const spriteStyle = useMemo<CSSProperties>(() => {
-    const frameStep = SPRITE_FRAMES > 1 ? (frame / (SPRITE_FRAMES - 1)) * 100 : 0;
-    return {
-      backgroundImage: `url(${SPRITE_SHEET})`,
-      backgroundSize: `${SPRITE_FRAMES * 100}% 100%`,
-      backgroundPosition: `${frameStep}% 50%`,
-      imageRendering: "auto",
-    };
-  }, [frame]);
 
   const cardSvg = useMemo(
     () => {
@@ -809,17 +832,17 @@ export default function YeonStarHugPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_18%_12%,rgba(248,193,255,0.16),transparent_35%),radial-gradient(circle_at_85%_8%,rgba(140,163,255,0.22),transparent_32%),linear-gradient(170deg,#120f2f_0%,#1f2046_52%,#2f2a66_100%)] px-4 py-8 text-slate-100 md:px-6 lg:px-8">
+    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-yellow-100 px-4 py-8 text-slate-700 md:px-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -left-10 top-10 h-64 w-64 rounded-full bg-fuchsia-300/15 blur-3xl" />
-        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-indigo-300/20 blur-3xl" />
-        <div className="absolute bottom-[-6rem] left-1/2 h-72 w-[28rem] -translate-x-1/2 rounded-full bg-violet-300/15 blur-3xl" />
+        <div className="absolute -left-14 top-8 h-72 w-72 rounded-full bg-pink-300/35 blur-3xl" />
+        <div className="absolute right-[-4rem] top-[-2rem] h-72 w-72 rounded-full bg-purple-200/45 blur-3xl" />
+        <div className="absolute bottom-[-6rem] left-1/2 h-72 w-[30rem] -translate-x-1/2 rounded-full bg-yellow-100/75 blur-3xl" />
         {STAR_DOTS.map((dot, idx) => (
           <motion.span
             key={idx}
-            className="absolute text-fuchsia-100/60"
+            className="absolute text-pink-300/75"
             style={{ left: dot.left, top: dot.top }}
-            animate={reduceMotion ? undefined : { opacity: [0.2, 0.8, 0.2], scale: [0.9, 1.1, 0.9] }}
+            animate={reduceMotion ? undefined : { opacity: [0.25, 1, 0.25], scale: [0.85, 1.15, 0.85] }}
             transition={reduceMotion ? undefined : { duration: 3.2, repeat: Infinity, delay: dot.delay, ease: "easeInOut" }}
           >
             ✦
@@ -832,31 +855,31 @@ export default function YeonStarHugPage() {
           initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="grid gap-5 rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_20px_44px_rgba(7,8,22,0.38)] backdrop-blur-md md:grid-cols-[1.1fr_0.9fr] md:p-7"
+          className="grid gap-5 rounded-3xl border border-white/45 bg-white/70 p-5 shadow-[0_14px_36px_rgba(236,72,153,0.22)] backdrop-blur-sm md:grid-cols-[1.1fr_0.9fr] md:p-7"
         >
           <div className="space-y-4">
             <motion.div
               animate={reduceMotion ? undefined : { y: [0, -5, 0] }}
               transition={reduceMotion ? undefined : { duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
-              className="inline-flex items-center gap-2 rounded-full border border-pink-200/55 bg-white/15 px-4 py-2 text-sm font-semibold text-pink-100"
+              className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/85 px-4 py-2 text-sm font-semibold text-pink-500"
             >
-              <Heart className="h-4 w-4 fill-pink-200 text-pink-200" />
+              <Heart className="h-4 w-4 fill-pink-200 text-pink-400" />
               연이의 별빛 상담소
             </motion.div>
 
-            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-white md:text-5xl">
-              연이의 마음 별자리
+            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight md:text-5xl">
+              <span className="bg-gradient-to-r from-pink-500 to-orange-400 bg-clip-text text-transparent">연이의 마음 별자리</span>
             </h1>
-            <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-pink-100 md:text-base">
+            <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-slate-600 md:text-base">
               오늘의 감정과 고민을 별빛 흐름으로 다정하게 정리해줄게요.
             </p>
-            <p className="max-w-2xl text-sm leading-relaxed text-slate-200">
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
               태양 위치, 달 위상, 요일 행성 흐름을 기반으로 현실적인 한 줄 행동까지 제안해요. 감정 선택부터 상담 결과,
               SVG 마음 카드 저장까지 한 번에 이어집니다.
             </p>
           </div>
 
-          <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-4">
+          <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden rounded-3xl border border-pink-100 bg-gradient-to-br from-pink-100/80 via-white/75 to-orange-100/75 p-4">
             {!heroError ? (
               <Image
                 src={HERO_IMAGE}
@@ -868,22 +891,11 @@ export default function YeonStarHugPage() {
                 priority
               />
             ) : (
-              <div className="flex h-full min-h-44 w-full flex-col items-center justify-center rounded-2xl bg-white/10 text-pink-100">
+              <div className="flex h-full min-h-44 w-full flex-col items-center justify-center rounded-2xl bg-pink-50/80 text-pink-500">
                 <Sparkles className="mb-2 h-8 w-8" />
                 <p className="text-sm font-semibold">연이 아트 로딩중</p>
               </div>
             )}
-
-            <motion.div
-              animate={reduceMotion ? undefined : { y: [0, -6, 0] }}
-              transition={reduceMotion ? undefined : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-3 left-3"
-            >
-              <div className="rounded-2xl border border-pink-200/50 bg-white/80 p-2 shadow-[0_8px_22px_rgba(37,11,64,0.28)]">
-                <div className="h-20 w-20 rounded-xl bg-no-repeat" style={spriteStyle} />
-                <span className="mt-1 block text-[10px] font-semibold text-pink-600">연이 리액션</span>
-              </div>
-            </motion.div>
           </div>
         </motion.section>
 
@@ -892,11 +904,11 @@ export default function YeonStarHugPage() {
             initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
+            className="rounded-3xl border border-white/45 bg-white/78 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-200">입력 패널</p>
-            <h2 className="text-xl font-black text-white">감정 선택 → 별자리 → 고민 입력</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-200">기존 상담 로직은 그대로 유지하고, 입력과 결과 표시를 더 읽기 쉽게 정리했어요.</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">입력 패널</p>
+            <h2 className="text-xl font-black text-slate-700">감정 선택 → 별자리 → 고민 입력</h2>
+            <p className="mb-4 mt-1 text-sm text-slate-500">오늘 마음을 편안하게 정리할 수 있도록 입력 동선을 간결하게 준비했어요.</p>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {EMOTIONS.map((emotion) => {
@@ -911,18 +923,18 @@ export default function YeonStarHugPage() {
                     className={`min-h-11 rounded-2xl border px-2 py-3 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-200 ${
                       isActive
                         ? `border-pink-200 bg-gradient-to-br ${emotion.tone} shadow-[0_8px_20px_rgba(248,113,113,0.26)]`
-                        : "border-white/35 bg-white/15"
+                        : "border-pink-100 bg-white/90"
                     }`}
                     aria-label={`${emotion.label} 감정 선택`}
                   >
-                    <emotion.Icon className="mx-auto mb-1 h-4 w-4 text-pink-100" />
-                    <span className="text-xs font-bold text-white">{emotion.label}</span>
+                    <emotion.Icon className={`mx-auto mb-1 h-4 w-4 ${isActive ? "text-pink-500" : "text-rose-400"}`} />
+                    <span className={`text-xs font-bold ${isActive ? "text-slate-700" : "text-slate-600"}`}>{emotion.label}</span>
                   </motion.button>
                 );
               })}
             </div>
 
-            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-100">내 별자리</label>
+            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-500">내 별자리</label>
             <select
               id="yeon-zodiac-select"
               value={selectedSign}
@@ -935,7 +947,7 @@ export default function YeonStarHugPage() {
               ))}
             </select>
 
-            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-100">지금 고민 (키워드 인식용)</label>
+            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-500">지금 고민 (키워드 인식용)</label>
             <textarea
               id="yeon-concern-input"
               value={concernText}
@@ -954,7 +966,7 @@ export default function YeonStarHugPage() {
               {isGenerating ? <Download className="h-4 w-4 animate-pulse" /> : <Sparkles className="h-4 w-4" />}
               {isGenerating ? "연이가 별빛 흐름 정리중..." : "연이 상담 업데이트"}
             </button>
-            <p className="mt-2 text-xs text-slate-300">상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드</p>
+            <p className="mt-2 text-xs text-slate-500">상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드</p>
           </motion.article>
 
           <div className="flex min-w-0 flex-col gap-4">
@@ -963,10 +975,10 @@ export default function YeonStarHugPage() {
                 initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                 animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="rounded-3xl border border-white/20 bg-white/10 p-6 text-center shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
+                className="rounded-3xl border border-white/45 bg-white/80 p-6 text-center shadow-[0_14px_34px_rgba(236,72,153,0.18)] backdrop-blur-sm"
               >
-                <p className="text-sm font-semibold text-pink-100">감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.</p>
-                <p className="mt-2 text-xs text-slate-300">업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.</p>
+                <p className="text-sm font-semibold text-pink-500">감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.</p>
+                <p className="mt-2 text-xs text-slate-500">업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.</p>
               </motion.article>
             ) : (
               <>
@@ -974,18 +986,18 @@ export default function YeonStarHugPage() {
                   initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   transition={{ duration: 0.35 }}
-                  className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
+                  className="rounded-3xl border border-white/45 bg-white/80 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
                 >
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-200">분석 결과</p>
-                  <h2 className="text-xl font-black text-white">오늘의 점성술 상담</h2>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">분석 결과</p>
+                  <h2 className="text-xl font-black text-slate-700">오늘의 점성술 상담</h2>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-white">별자리: {consultation.sign}</span>
-                    <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-white">기간: {consultation.period}</span>
-                    <span className="rounded-full border border-pink-200/40 bg-pink-100/15 px-3 py-1 text-pink-100">태양: {consultation.todaySunSign}</span>
-                    <span className="rounded-full border border-violet-200/40 bg-violet-100/15 px-3 py-1 text-violet-100">달: {consultation.moon.label}</span>
-                    <span className="rounded-full border border-indigo-200/40 bg-indigo-100/15 px-3 py-1 text-indigo-100">요일 행성: {consultation.dayRuler.label}</span>
-                    <span className="rounded-full border border-amber-200/40 bg-amber-100/15 px-3 py-1 text-amber-100">별자리 각도: {consultation.aspect.label}</span>
+                    <span className="rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-slate-700">별자리: {consultation.sign}</span>
+                    <span className="rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-slate-700">기간: {consultation.period}</span>
+                    <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-500">태양: {consultation.todaySunSign}</span>
+                    <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-500">달: {consultation.moon.label}</span>
+                    <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-500">요일 행성: {consultation.dayRuler.label}</span>
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-600">별자리 각도: {consultation.aspect.label}</span>
                   </div>
 
                   <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-4 text-slate-700">
@@ -1026,10 +1038,10 @@ export default function YeonStarHugPage() {
                   initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: 0.04 }}
-                  className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-[0_16px_38px_rgba(7,8,22,0.38)] backdrop-blur-md"
+                  className="rounded-3xl border border-white/45 bg-white/80 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
                 >
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-200">공유 카드</p>
-                  <h2 className="text-lg font-black text-white">고화질 SVG 마음 카드</h2>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">공유 카드</p>
+                  <h2 className="text-lg font-black text-slate-700">고화질 SVG 마음 카드</h2>
 
                   <div className="mt-3 rounded-2xl border border-white/25 bg-white/90 p-3">
                     <div
@@ -1048,7 +1060,7 @@ export default function YeonStarHugPage() {
                     {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
                     {isExporting ? "SVG 카드 준비중..." : "SVG 카드 공유/저장"}
                   </button>
-                  <p className="mt-2 min-h-5 text-xs text-slate-200">{shareFeedback}</p>
+                  <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-pink-200/35 bg-white/90 p-3 text-slate-700">
@@ -1083,16 +1095,16 @@ export default function YeonStarHugPage() {
           className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-4"
           aria-label="기능 요약 배지"
         >
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-pink-100 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-xs font-semibold text-pink-500 shadow-sm">
             <Heart className="h-4 w-4" /> 감정 + 고민 입력
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-purple-100 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200 bg-white/80 px-4 py-2 text-xs font-semibold text-purple-500 shadow-sm">
             <Sparkles className="h-4 w-4" /> 실시간 키워드 인식
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-amber-100 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-2 text-xs font-semibold text-amber-600 shadow-sm">
             <Cloud className="h-4 w-4" /> 실제 점성술 신호
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200/45 bg-white/10 px-4 py-2 text-xs font-semibold text-rose-100 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-500 shadow-sm">
             <Coins className="h-4 w-4" /> SVG 카드 공유
           </div>
         </motion.nav>
