@@ -10478,10 +10478,8 @@ function ensureSajuNewYearSourceData(body = {}, input = {}) {
 
 function normalizeSajuNewYearFocusArea(value) {
   const raw = String(value || "overall").trim().toLowerCase();
-  if (raw === "career") return "career";
-  if (raw === "wealth") return "wealth";
-  if (raw === "relationship") return "relationship";
-  if (raw === "health") return "health";
+  if (!raw) return "overall";
+  // 신년운세는 연도 중심 단일 모드로 고정한다.
   return "overall";
 }
 

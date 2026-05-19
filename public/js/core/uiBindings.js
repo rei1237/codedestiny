@@ -59,7 +59,7 @@ const __lazyActionLoaders = {
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260512-quantum-v4').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779148711642'),
+  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779180601000'),
   openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-sajuref1'),
   openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix')
 };

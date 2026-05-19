@@ -7,6 +7,7 @@
   var API_TIMEOUT_MS = 140000;
   var STATE_STORAGE_KEY = '__cd_saju_new_year_state_v1__';
   var NEW_YEAR_COVER_IMAGE = '/fuctionassets/신년운세.webp?v=20260519-ny-cover';
+  var SAJU_DATA_SNIPPET_LIMIT = 1800;
 
   var CHAPTER_DEFINITIONS = [
     { index: 1, title: '원국 기반 연간 전략 총론', subtitle: '기본 체질과 연간 선택 축' },
@@ -216,6 +217,38 @@
     };
   }
 
+  function buildCompactSajuData() {
+    var engine = buildEngineData() || {};
+    var dayMaster = String(engine.dayMaster || '').trim();
+    var pillars = engine.pillars && typeof engine.pillars === 'object' ? engine.pillars : {};
+
+    function pillarStem(name) {
+      var row = pillars && pillars[name] && typeof pillars[name] === 'object' ? pillars[name] : null;
+      return String((row && row.stem) || '').trim();
+    }
+
+    var sourceRaw = '';
+    try {
+      sourceRaw = String(localStorage.getItem('fortune_result_raw_json') || '');
+    } catch (_) {
+      sourceRaw = '';
+    }
+
+    var compact = [
+      '사주 원국 요약',
+      '- 오행/십성/대운/세운/월운 기준의 신년 해석 데이터',
+      '- 일간: ' + (dayMaster || '정보 부족'),
+      '- 천간: 년 ' + (pillarStem('year') || '정보 부족') + ' / 월 ' + (pillarStem('month') || '정보 부족') + ' / 일 ' + (pillarStem('day') || '정보 부족') + ' / 시 ' + (pillarStem('hour') || '정보 부족')
+    ];
+
+    var snippet = String(sourceRaw || '').replace(/\s+/g, ' ').trim().slice(0, SAJU_DATA_SNIPPET_LIMIT);
+    if (snippet) {
+      compact.push('- 원본 데이터 스니펫: ' + snippet);
+    }
+
+    return compact.join('\n');
+  }
+
   function buildPayload() {
     var birth = normalizeBirthParts();
     var profile = null;
@@ -227,9 +260,6 @@
       targetYearInput = thisYear;
     }
 
-    var focusArea = String(qs('nyFocusArea') && qs('nyFocusArea').value || 'overall').trim();
-    if (!focusArea) focusArea = 'overall';
-
     return {
       name: String((profile && profile.name) || '사용자'),
       gender: String((profile && profile.gender) || 'unknown'),
@@ -239,15 +269,9 @@
       hour: Number(birth.hour || 12),
       minute: Number(birth.minute || 0),
       targetYear: targetYearInput,
-      focusArea: focusArea,
+      focusArea: 'overall',
       engineData: buildEngineData(),
-      sajuData: safeParse((function () {
-        try {
-          return localStorage.getItem('fortune_result_raw_json') || '';
-        } catch (_) {
-          return '';
-        }
-      })(), null)
+      sajuData: buildCompactSajuData()
     };
   }
 
@@ -259,7 +283,6 @@
       payload.hour,
       payload.minute,
       payload.targetYear,
-      payload.focusArea,
       payload.name,
       Date.now().toString(36)
     ].join('|');
@@ -448,6 +471,8 @@
       featureType: 'saju_new_year_pdf',
       reportType: 'sajuNewYear',
       requestBody: state.payload
+    }, {
+      maxAttempts: 3
     });
 
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
@@ -689,10 +714,8 @@
 
   function syncStartInputs() {
     var yearInput = qs('nyTargetYear');
-    var focusInput = qs('nyFocusArea');
     var now = new Date().getFullYear();
     if (yearInput && !yearInput.value) yearInput.value = String(now);
-    if (focusInput && !focusInput.value) focusInput.value = 'overall';
   }
 
   window.openSajuNewYearModal = function () {
