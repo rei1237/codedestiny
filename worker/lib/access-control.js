@@ -1,5 +1,6 @@
 import { connectDb } from "./db.js";
 import { User, PointHistory } from "./models.js";
+import { verifyPremiumAccessToken } from "./premium-access-token.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   sajuNewYear: ["premiumDivinationPack"],
@@ -196,6 +197,25 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
+  const premiumAccessToken = String(
+    requestBody?.premiumAccessToken
+    || requestBody?._premiumAccessToken
+    || "",
+  ).trim();
+
+  if (premiumAccessToken) {
+    const tokenCheck = await verifyPremiumAccessToken(premiumAccessToken, env, {
+      userId: String(userId || ""),
+      reportType: normalizedReportType,
+    });
+    if (tokenCheck.ok) {
+      return {
+        ok: true,
+        accessType: "signed-payment-token",
+        reportType: normalizedReportType,
+      };
+    }
+  }
 
   if (!normalizedReportType || (!unlockPolicy.length && !alternativeRules.length && !requiredRules.length)) {
     return {

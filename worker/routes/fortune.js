@@ -36,6 +36,11 @@ import {
   VEDIC_AI_PROMPT_FEATURE_KEY,
   VEDIC_AI_PROMPT_PRICE,
 } from "../lib/vedic-ai-prompt.js";
+import {
+  buildPremiumAccessCookie,
+  createPremiumAccessToken,
+  resolvePremiumAccessReportType,
+} from "../lib/premium-access-token.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -59,6 +64,16 @@ function isProductionRuntime(env) {
 
   const appEnv = String(env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "").trim().toLowerCase();
   return appEnv === "prod" || appEnv === "production";
+}
+
+function buildJsonWithPremiumAccessCookie(body, init = {}, premiumAccessToken = "", env = {}) {
+  const token = String(premiumAccessToken || "").trim();
+  if (!token) return json(body, init);
+
+  const headers = new Headers(init.headers || {});
+  const secure = isProductionRuntime(env);
+  headers.append("Set-Cookie", buildPremiumAccessCookie(token, secure));
+  return json(body, { ...init, headers });
 }
 
 function isAdminPigCoinBypassEnabled(env) {
@@ -908,6 +923,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   }
 
   const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
+  const reportTypeForPremiumAccess = resolvePremiumAccessReportType(featureKey, reason);
   const categoryKey = String(body?.categoryKey || "").trim().slice(0, 60);
   const subFeatureKey = String(body?.subFeatureKey || "").trim().slice(0, 60);
   const payloadHash = String(body?.payloadHash || "").trim().slice(0, 120);
@@ -986,7 +1002,17 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
   if (isIncludedBySubscription) {
-    return json({
+    const premiumAccessToken = await createPremiumAccessToken(env, {
+      userId: String(auth.userId || ""),
+      reportType: reportTypeForPremiumAccess,
+      featureKey,
+      reason,
+      transactionId: requestId,
+      chargedCoins: 0,
+      freeBySubscription: true,
+    });
+
+    return buildJsonWithPremiumAccessCookie({
       message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
       code: "SUBSCRIPTION_INCLUDED",
       productId: productId || null,
@@ -999,10 +1025,11 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       profileLimit: policy.profileLimit,
       recommendedCoins: policy.recommendedCoins,
       autoRenewed: Boolean(renewState.autoRenewed),
+      premiumAccessToken: premiumAccessToken || "",
       user: userPayload(auth, Number(runtimeUser.points || 0), runtimeUser.unlockedFeatures),
       unlockedFeatures: normalizePersistentUnlockKeys(runtimeUser.unlockedFeatures),
       unlockMap: toUnlockMap(runtimeUser.unlockedFeatures),
-    });
+    }, {}, premiumAccessToken, env);
   }
 
   const updatePayload = {
@@ -1065,7 +1092,17 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         : [];
       if (replayIds.includes(requestId)) {
         const replayUnlocks = normalizePersistentUnlockKeys(replayUser?.unlockedFeatures || []);
-        return json({
+        const premiumAccessToken = await createPremiumAccessToken(env, {
+          userId: String(auth.userId || ""),
+          reportType: reportTypeForPremiumAccess,
+          featureKey,
+          reason,
+          transactionId: requestId,
+          chargedCoins: 0,
+          freeBySubscription: false,
+        });
+
+        return buildJsonWithPremiumAccessCookie({
           message: "Already processed request.",
           code: "IDEMPOTENT_REPLAY",
           alreadyProcessed: true,
@@ -1078,10 +1115,11 @@ async function handlePigCoinConsume(request, auth, options = {}) {
           freeLimit: policy.freeLimit,
           profileLimit: policy.profileLimit,
           recommendedCoins: policy.recommendedCoins,
+          premiumAccessToken: premiumAccessToken || "",
           user: userPayload(auth, Number(replayUser?.points || 0), replayUnlocks),
           unlockedFeatures: replayUnlocks,
           unlockMap: toUnlockMap(replayUnlocks),
-        });
+        }, {}, premiumAccessToken, env);
       }
     }
     return json({
@@ -1114,7 +1152,17 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     (updatedUser && updatedUser.unlockedFeatures) || unlockKeysToPersist,
   );
 
-  return json({
+  const premiumAccessToken = await createPremiumAccessToken(env, {
+    userId: String(auth.userId || ""),
+    reportType: reportTypeForPremiumAccess,
+    featureKey,
+    reason,
+    transactionId: String(history?._id || requestId || ""),
+    chargedCoins: cost,
+    freeBySubscription: false,
+  });
+
+  return buildJsonWithPremiumAccessCookie({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
     code: "OK",
     productId: productId || null,
@@ -1127,10 +1175,11 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     profileLimit: policy.profileLimit,
     recommendedCoins: policy.recommendedCoins,
     transactionId: String(history?._id || ""),
+    premiumAccessToken: premiumAccessToken || "",
     user: userPayload(auth, updatedUser.points, unlockedFeatures),
     unlockedFeatures,
     unlockMap: toUnlockMap(unlockedFeatures),
-  });
+  }, {}, premiumAccessToken, env);
 }
 
 async function handlePigCoinUnlock(request, auth, options = {}) {

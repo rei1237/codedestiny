@@ -1,4 +1,4 @@
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { generateWithGemini } from "../lib/gemini-client.js";
 import { requireAuth } from "../lib/auth.js";
@@ -10704,6 +10704,164 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
   return text;
 }
 
+function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, premiumLlmInput = null) {
+  const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
+  const topMonths = monthlyLuck
+    .slice()
+    .sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0))
+    .slice(0, 3)
+    .map((row) => `${Number(row?.month || 0)}월(${Number(row?.score || 0)})`)
+    .join(", ");
+  const cautionMonths = monthlyLuck
+    .slice()
+    .sort((a, b) => Number(a?.score || 0) - Number(b?.score || 0))
+    .slice(0, 3)
+    .map((row) => `${Number(row?.month || 0)}월(${Number(row?.score || 0)})`)
+    .join(", ");
+  const targetYear = Number(canonical?.targetYear || new Date().getFullYear());
+  const chapterLabel = String(chapterMeta?.title || `Chapter ${chapter}`);
+  const chapterSubtitle = String(chapterMeta?.subtitle || "");
+
+  return [
+    "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF 전문 작가입니다.",
+    "응답은 한국어 마크다운 본문만 작성하세요.",
+    "과장된 운세 문구/공포 유도 문구/확정적 예언을 금지합니다.",
+    `최소 길이: ${minChars}자`,
+    "섹션마다 실제 행동 기준을 포함하고, 모호한 위로 문장만 반복하지 마세요.",
+    "핵심은 월별 실행 전략이며, 데이터 기반 근거를 반드시 반영하세요.",
+    Number(chapter) === 9
+      ? "이 챕터는 반드시 12개월 월별 테이블을 마크다운 표 형식으로 포함하세요."
+      : "",
+    "",
+    `[챕터] ${chapterLabel}`,
+    chapterSubtitle ? `[부제] ${chapterSubtitle}` : "",
+    `[대상 연도] ${targetYear}`,
+    `[강한 달] ${topMonths || "정보 없음"}`,
+    `[주의 달] ${cautionMonths || "정보 없음"}`,
+    "",
+    "[canonical 데이터]",
+    JSON.stringify(canonical || {}, null, 2),
+    premiumLlmInput ? "" : null,
+    premiumLlmInput ? "[Premium LLM Input]" : null,
+    premiumLlmInput ? JSON.stringify(premiumLlmInput, null, 2) : null,
+    "",
+    "필수 구조:",
+    `## ${chapterLabel}`,
+    "### 데이터 기준점",
+    "### 핵심 해석",
+    "### 실행 가이드",
+    "### 월별 우선순위",
+    "### 리스크 관리",
+    Number(chapter) === 9 ? "### 12개월 월별 테이블" : "",
+  ].filter(Boolean).join("\n");
+}
+
+function buildSajuNewYearRewritePrompt(basePrompt, currentText, minChars) {
+  return [
+    basePrompt,
+    "",
+    "아래 원고를 같은 데이터 근거를 유지하면서 더 깊고 구체적으로 재작성하세요.",
+    `목표 길이: 최소 ${minChars}자`,
+    "섹션별로 실행 문장(언제/무엇/어떻게)을 명시하세요.",
+    "중복 문장을 줄이고 월별 전략의 차이를 분명히 쓰세요.",
+    "",
+    "[현재 원고]",
+    String(currentText || "").trim(),
+  ].join("\n");
+}
+
+async function generateSajuNewYearChapterWithGemini(env, {
+  chapter,
+  chapterMeta,
+  canonical,
+  minChars,
+  strictPayloadMode,
+  premiumLlmInput,
+}) {
+  const generationOptions = {
+    temperature: 0.78,
+    topP: 0.92,
+    maxOutputTokens: 12288,
+    timeoutMs: Number(env.SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 90000),
+    maxAttemptsPerPair: Number(env.SAJU_NEW_YEAR_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+  const modelEnvKeys = ["PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "LIFEBOOK_GEMINI_MODEL"];
+  const qualityFloor = Math.max(1200, Math.floor(minChars * 0.65));
+
+  let prompt = buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, premiumLlmInput || null);
+  let text = "";
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const candidate = String(await callGemini(env, prompt, modelEnvKeys, generationOptions) || "").trim();
+    if (!candidate) continue;
+
+    let normalized = candidate;
+    if (normalized.length < minChars) {
+      const expanded = await refineChapterToMinLength(
+        env,
+        normalized,
+        minChars,
+        {
+          title: String(chapterMeta?.title || `Chapter ${chapter}`),
+          subtitle: String(chapterMeta?.subtitle || ""),
+          counselorFocus: `${Number(canonical?.targetYear || new Date().getFullYear())}년 신년 전략 챕터`,
+          sectionHeaders: ["데이터 기준점", "핵심 해석", "실행 가이드", "월별 우선순위", "리스크 관리"],
+          data: canonical,
+        },
+        modelEnvKeys,
+        generationOptions,
+      );
+      if (expanded && expanded.length > normalized.length) normalized = String(expanded).trim();
+    }
+
+    if (normalized.length >= qualityFloor) {
+      text = normalized;
+      break;
+    }
+
+    prompt = buildSajuNewYearRewritePrompt(prompt, normalized, minChars);
+  }
+
+  if (!text) {
+    if (strictPayloadMode) {
+      return {
+        ok: false,
+        status: 503,
+        code: "SAJU_NEW_YEAR_GEMINI_UNAVAILABLE",
+        message: "신년운세 챕터 생성 모델 응답이 지연되었습니다.",
+      };
+    }
+    return {
+      ok: true,
+      text: buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars),
+      usedFallback: true,
+    };
+  }
+
+  if (text.length < minChars && strictPayloadMode) {
+    return {
+      ok: false,
+      status: 422,
+      code: "SAJU_NEW_YEAR_CHAPTER_TOO_SHORT",
+      message: `신년운세 챕터 길이가 최소 기준(${minChars})에 미달합니다.`,
+      details: [`minChars:${minChars}`, `actualChars:${text.length}`],
+    };
+  }
+
+  if (text.length < minChars) {
+    return {
+      ok: true,
+      text: buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars),
+      usedFallback: true,
+    };
+  }
+
+  return {
+    ok: true,
+    text,
+    usedFallback: false,
+  };
+}
+
 async function handleSajuNewYearSession(request, env) {
   const body = await readJson(request);
   const strictPayloadMode = body?._premiumStrictPayload !== false;
@@ -10768,7 +10926,25 @@ async function handleSajuNewYearSession(request, env) {
 
   const chapterMeta = SAJU_NEW_YEAR_CHAPTERS[chapter - 1] || SAJU_NEW_YEAR_CHAPTERS[0];
   const minChars = chapter === 9 ? 3200 : 2600;
-  const text = buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars);
+  const generated = await generateSajuNewYearChapterWithGemini(env, {
+    chapter,
+    chapterMeta,
+    canonical,
+    minChars,
+    strictPayloadMode,
+    premiumLlmInput: strictBody?._premiumLlmInput || null,
+  });
+
+  if (!generated?.ok) {
+    return json({
+      ok: false,
+      code: generated?.code || "SAJU_NEW_YEAR_CHAPTER_GENERATION_FAILED",
+      message: generated?.message || "신년운세 챕터 생성에 실패했습니다.",
+      details: Array.isArray(generated?.details) ? generated.details : [],
+    }, { status: Number(generated?.status || 422) });
+  }
+
+  const text = String(generated?.text || "").trim();
 
   const storage = writeReportSessionChapter(
     "saju-new-year",
@@ -10807,7 +10983,7 @@ async function handleSajuNewYearSession(request, env) {
     },
     text,
     sections: parseSections(text),
-    usedFallback: false,
+    usedFallback: Boolean(generated?.usedFallback),
     dataQuality: {
       usedFallbackData: dataState.usedFallbackData,
       warning: dataState.warning,
@@ -11615,7 +11791,14 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   }
 
   const requestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
-  const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, requestBody);
+  const tokenFromBody = String(body.premiumAccessToken || requestBody.premiumAccessToken || "").trim();
+  const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie;
+  const accessRequestBody = premiumAccessToken
+    ? { ...requestBody, premiumAccessToken }
+    : requestBody;
+
+  const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, accessRequestBody);
   if (!access.ok) {
     return json({
       ok: false,
