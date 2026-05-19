@@ -9,10 +9,11 @@ import { analyzeFptiFromBirth } from "@/lib/fpti/fpti-adapter";
 import type { FptiAnalysisResult, FptiFormInput } from "@/lib/fpti/fpti-types";
 
 const LOADING_STEPS = [
-  "생년월일시를 사주 팔자로 변환 중...",
-  "오행 분포와 십성 비율을 계산 중...",
-  "관계/전략 축 점수를 정규화 중...",
-  "FPTI 타입과 해석을 생성 중...",
+  "사주 원국을 계산하는 중...",
+  "일간의 본질을 읽는 중...",
+  "오행의 균형을 분석하는 중...",
+  "십성의 성격 패턴을 해석하는 중...",
+  "당신만의 FPTI 코드를 생성하는 중...",
 ];
 
 function sleep(ms: number) {
@@ -41,6 +42,39 @@ export default function FptiExperience() {
   const start = () => {
     setPhase("input");
     setError("");
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        const target = document.getElementById("fpti-input");
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  };
+
+  const preview = () => {
+    setPhase("result");
+    const sample = analyzeFptiFromBirth({
+      name: "샘플 사용자",
+      gender: "OTHER",
+      birthDate: "1994-12-09",
+      calendarType: "solar",
+      birthTime: "23:20",
+      timeUnknown: false,
+      birthRegion: "서울",
+    });
+    Promise.resolve(sample)
+      .then((data) => {
+        setResult(data);
+        if (typeof window !== "undefined") {
+          window.requestAnimationFrame(() => {
+            const target = document.getElementById("fpti-result");
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        }
+      })
+      .catch(() => {
+        setError("샘플 결과를 불러오지 못했습니다. 다시 시도해 주세요.");
+        setPhase("landing");
+      });
   };
 
   const onAnalyze = async () => {
@@ -70,27 +104,34 @@ export default function FptiExperience() {
   };
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#fffdf8_0%,#f5f7ff_45%,#f7fbff_100%)] py-8 md:py-12">
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 md:px-6">
-        <FptiHero onStart={start} />
+    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#050617_0%,#0B1026_45%,#130A2A_100%)] py-8 md:py-12">
+      <div className="pointer-events-none absolute inset-0 opacity-45 [background:radial-gradient(circle_at_20%_25%,rgba(124,58,237,0.35),transparent_42%),radial-gradient(circle_at_80%_65%,rgba(96,165,250,0.28),transparent_45%),radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:auto,auto,26px_26px]" />
+      <div className="relative mx-auto w-full max-w-6xl space-y-6 px-4 md:px-6">
+        <FptiHero onStart={start} onPreview={preview} />
 
-        <section id="fpti-intro" className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
-          <h2 className="text-base font-semibold text-slate-900">분석 기준</h2>
+        <section id="fpti-intro" className="rounded-3xl border border-white/15 bg-white/5 p-5 text-sm text-slate-200 backdrop-blur-xl">
+          <h2 className="text-base font-semibold text-slate-50">분석 기준</h2>
           <p className="mt-1">
             4축(기질/행동/관계/전략)은 사주 오행, 십성 분포, 월지 계절, 용신/희신 정보를 기반으로 계산됩니다.
             기존 사주 엔진 계산값을 재사용하며, 시간 미입력 시 신뢰도 안내를 함께 제공합니다.
           </p>
         </section>
 
-        {(phase === "input" || phase === "landing") && (
+        {phase === "input" && (
+          <section id="fpti-input">
           <FptiInputForm value={form} onChange={setForm} onSubmit={onAnalyze} busy={false} />
+          </section>
         )}
 
-        {phase === "loading" && <FptiLoading step={loadingStep} />}
+        {phase === "loading" && <FptiLoading step={loadingStep} stepIndex={stepIndex} />}
 
-        {phase === "result" && result && <FptiResultCard result={result} />}
+        {phase === "result" && result && (
+          <section id="fpti-result">
+            <FptiResultCard result={result} />
+          </section>
+        )}
 
-        {error && <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+        {error && <p className="rounded-xl border border-rose-300/30 bg-rose-500/12 p-3 text-sm text-rose-100">{error}</p>}
       </div>
     </main>
   );

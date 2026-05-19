@@ -5,7 +5,7 @@ import GlobalHeader from "./GlobalHeader";
 import SiteFooterHub from "./SiteFooterHub";
 import DisclaimerBanner from "./DisclaimerBanner";
 
-const CHROMELESS_ROUTES = ["/saju/destiny-bias", "/yeon-star-hug"];
+const CHROMELESS_ROUTES = ["/saju/destiny-bias", "/yeon-star-hug", "/saju-fpti"];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";

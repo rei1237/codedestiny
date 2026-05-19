@@ -15,17 +15,22 @@ type Props = {
 };
 
 export default function FptiElementChart({ percentages }: Props) {
+  const ordered = [...ELEMENTS].sort((a, b) => percentages[b.key] - percentages[a.key]);
+  const strong = ordered[0]?.label || "-";
+  const weak = ordered[ordered.length - 1]?.label || "-";
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4">
-      <h4 className="text-sm font-semibold text-slate-900">오행 분포 (정규화)</h4>
+    <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
+      <h4 className="text-sm font-semibold text-slate-100">오행 에너지 밸런스</h4>
+      <p className="mt-1 text-xs text-slate-300">강한 오행: {strong} · 부족한 오행: {weak}</p>
       <div className="mt-3 space-y-2">
         {ELEMENTS.map((item) => (
           <div key={item.key}>
-            <div className="mb-1 flex items-center justify-between text-xs text-slate-600">
+            <div className="mb-1 flex items-center justify-between text-xs text-slate-300">
               <span>{item.label}</span>
               <span>{percentages[item.key]}%</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+            <div className="h-2 overflow-hidden rounded-full bg-white/15">
               <div
                 className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
                 style={{ width: `${Math.max(4, Math.min(100, percentages[item.key]))}%` }}
