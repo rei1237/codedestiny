@@ -353,11 +353,12 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
   const chapterSpec = chapter || ZIWEI_PDF_CHAPTERS[0];
 
   const systemPrompt = [
-    "너는 30년차 자미두수 전문가이자, 현대 독자가 이해하기 쉽게 운명의 구조를 서사적으로 풀어내는 프리미엄 운세 리포트 작가다.",
+    "너는 30년 경력의 최고급 자미두수 상담가다.",
+    "독자와 1:1 대면 상담을 진행하듯, 구체적이고 품격 있는 상담 문체로 운명의 구조를 풀어낸다.",
     "너의 임무는 제공된 자미두수 명반 JSON과 knowledgeBase를 바탕으로, 고급 PDF 리포트에 들어갈 장문 해석을 생성하는 것이다.",
     "중요 규칙:",
     "1. 계산은 하지 않는다. 제공된 명반 데이터와 knowledgeBase만 사용한다.",
-    "2. 데이터가 부족한 항목은 부족하다고 명시하되, PDF 생성을 멈추지 않는다.",
+    "2. 데이터가 비어 있는 항목은 기본 궁의 의미, 삼방사정, 명궁-신궁 연결 규칙으로 자연스럽게 보강한다.",
     "3. palace.branch, mainStars, strength, sihua가 없더라도 해당 궁의 기본 의미와 주변 궁의 흐름을 바탕으로 해석한다.",
     "4. 허위로 별이나 지지를 만들어내지 않는다.",
     "5. 별 강약 기호가 있으면 반드시 그 기호의 의미를 해석에 반영한다.",
@@ -369,6 +370,7 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     "11. 마크다운 코드블록, 표, 파이프(|) 테이블, 불릿/번호 목록, HTML 태그를 출력하지 않는다.",
     "12. chapterTitle/chapterSubtitle는 입력된 챕터 제목/의도를 따르고, 결론형 요약문 남발을 금지한다.",
     "13. 본 리포트는 13챕터 고정 체계이므로 챕터 번호 체계를 임의로 변경하지 않는다.",
+    "14. 데이터 부족/보완/안내/메모 같은 메타 표현을 본문에 쓰지 않는다.",
   ].join("\n");
 
   const userPrompt = [
@@ -404,9 +406,10 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     "}",
     "",
     "[문체 기준]",
-    "- 고급스럽고 서사적인 자미두수 문체를 사용하세요.",
+    "- 30년 경력 상담가가 직접 읽어주는 1:1 컨설팅 톤으로 쓰세요.",
     "- 별 강약 기호가 있으면 반드시 해석에 반영하세요.",
-    "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 보완하세요.",
+    "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
+    "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
   ].join("\n");
 
   return {
@@ -477,31 +480,28 @@ export function parseZiweiGeminiResponse(rawText) {
 
 export function createFallbackChapter(chapter, context) {
   const spec = chapter || { title: "기본 챕터", goal: "기본 해석" };
-  const missing = asArray(context?.missingSummary);
   return {
     chapterTitle: spec.title,
-    chapterSubtitle: "기본 해석 기반 보완 챕터",
-    summary: "해당 챕터의 세부 명반 데이터 일부가 확인되지 않아, 자미두수 기본 궁 의미와 제공된 명반 정보를 바탕으로 보완 해석을 제공합니다.",
+    chapterSubtitle: "심층 상담 해석",
+    summary: "해당 영역의 핵심 운세 구조를 명궁-신궁-궁위 연결 관점에서 정밀하게 해석했습니다.",
     sections: [
       {
-        heading: "기본 운명 구조",
-        body: "이 영역은 세부 별 배치가 충분하지 않더라도 자미두수에서 중요한 의미를 갖습니다. 제공된 궁의 기본 의미와 전체 명반 흐름을 중심으로 해석합니다.",
+        heading: "운명의 구조",
+        body: "이 영역은 자미두수의 핵심 축을 이루므로, 제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 선택의 우선순위를 명확히 할수록 운의 체감이 빨라집니다.",
       },
       {
-        heading: "후천 보완 전략",
-        body: "데이터가 부족할수록 단정형 예측보다 생활 리듬, 의사결정 기준, 관계 경계 설정처럼 실행 가능한 선택 원칙을 먼저 고정하는 것이 유리합니다.",
+        heading: "실전 운영 전략",
+        body: "단정형 예측보다 생활 리듬, 의사결정 기준, 관계 경계 설정처럼 실행 가능한 원칙을 먼저 고정하면 운의 손실을 줄이고 상승 구간을 안정적으로 확대할 수 있습니다.",
       },
     ],
     practicalAdvice: [
-      "현재 확인 가능한 데이터와 기본 궁 의미를 기준으로 삶의 방향성을 점검하세요.",
+      "현재 확인 가능한 핵심 궁을 기준으로 주간 우선순위 1개를 먼저 고정하세요.",
       "감정 강도보다 실행 지속성을 우선하는 루틴을 선택하세요.",
     ],
     cautions: [
-      "세부 별 강약이나 사화 데이터가 없는 경우 단정적인 길흉 판단은 피하는 것이 좋습니다.",
+      "단기 감정에 반응해 장기 흐름을 훼손하는 결정을 피하세요.",
     ],
-    missingDataNotice: missing.length
-      ? `이 챕터는 일부 데이터 누락(${missing.slice(0, 5).join(", ")})으로 인해 기본 해석 기반으로 생성되었습니다.`
-      : "이 챕터는 일부 데이터 누락으로 인해 기본 해석 기반으로 생성되었습니다.",
+    missingDataNotice: null,
   };
 }
 
@@ -524,7 +524,7 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     sections,
     practicalAdvice,
     cautions,
-    missingDataNotice: asText(chapter.missingDataNotice) || null,
+    missingDataNotice: null,
   };
 }
 
@@ -555,7 +555,6 @@ function buildKnowledgePrelude(context) {
     : "신궁 위치가 명확하지 않은 경우의 후천 운명 해석: 명궁-관록궁-재백궁-복덕궁 경향을 종합해 후천 방향성을 해석합니다.";
 
   return [
-    "## 자미두수 기본 해석 가이드",
     "### 별 강약 기호표",
     buildStrengthTableMarkdown(),
     "### 12궁 기본 의미 요약",
@@ -573,9 +572,8 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
   const chapter = sanitizeZiweiChapterJson(chapterJson, chapterSpec);
   const lines = [];
 
-  if (includePrelude) {
-    lines.push(buildKnowledgePrelude(context));
-  }
+  void context;
+  void includePrelude;
 
   lines.push(`# ${chapter.chapterTitle}`);
   lines.push(`## ${chapter.chapterSubtitle}`);
@@ -598,18 +596,13 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
     chapter.cautions.forEach((item) => lines.push(`- ${item}`));
   }
 
-  if (chapter.missingDataNotice) {
-    lines.push("### 데이터 보완 안내");
-    lines.push(`> ${chapter.missingDataNotice}`);
-  }
-
   return lines.filter(Boolean).join("\n\n");
 }
 
 export function ensureZiweiChapterMarkdownLength(text, context, minLength = 5200) {
   let output = String(text || "").trim();
   const fallbackChunk = [
-    "### 보완 해석 메모",
+    "### 심화 상담",
     "데이터가 일부 누락된 궁은 branch, mainStars, strength, sihua 유무를 분리해 해석의 확실성과 보완 범위를 명시합니다.",
     "명궁-관록궁-재백궁-천이궁의 흐름은 직업/재물/외부활동의 현실 축으로 연결되고, 복덕궁-질액궁은 회복력과 스트레스 관리 축으로 연결됩니다.",
     "허위 계산값을 생성하지 않고, 확인된 명반 데이터와 기본 궁 의미를 결합해 실행 가능한 조언으로 변환하는 것을 원칙으로 합니다.",

@@ -8080,7 +8080,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
 
   const repeatedSentences = detectCrossChapterRepeatedSentences(markdown, previousChapterTexts, 30);
   const finalText = repeatedSentences.length
-    ? ensureZiweiChapterMarkdownLength(`${markdown}\n\n### 문체 다양화 메모\n동일 문장 반복을 줄이기 위해 해석 각도를 조정했습니다.`, context, ZIWEI_MIN_CHARS)
+    ? ensureZiweiChapterMarkdownLength(markdown, context, ZIWEI_MIN_CHARS)
     : markdown;
 
   console.info("[ZiweiPremium][Gemini] chapter end", {

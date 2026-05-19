@@ -2577,6 +2577,103 @@ body.theme-pig .lb-ch-dot--pending {
   }
 }
 
+/* cd-ziwei-chapter-polish-v20260519 */
+#ziweiBookModal {
+  --lb-accent: #fcd34d;
+  --lb-accent2: #c4b5fd;
+  --lb-sheet-tint1: rgba(251, 191, 36, 0.15);
+  --lb-sheet-tint2: rgba(196, 181, 253, 0.16);
+  --lb-title-gradient: linear-gradient(96deg, #fff7cc 0%, #e9d5ff 52%, #dbeafe 100%);
+}
+
+#ziweiBookModal .lb-result__content {
+  padding: 4px 0 34px;
+}
+
+#ziweiBookModal .lb-result-article {
+  margin: 16px 16px 20px;
+  padding: 24px 22px;
+  border-radius: 16px;
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  background:
+    radial-gradient(120% 74% at 6% 0%, rgba(251, 191, 36, 0.16), transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, rgba(196, 181, 253, 0.2), transparent 55%),
+    linear-gradient(158deg, rgba(30, 17, 66, 0.96), rgba(21, 32, 73, 0.9) 54%, rgba(15, 23, 42, 0.92));
+  box-shadow: 0 20px 42px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+#ziweiBookModal .lb-result-article::before {
+  height: 2px;
+  opacity: 0.96;
+  background: linear-gradient(90deg, rgba(252, 211, 77, 0), rgba(252, 211, 77, 0.95), rgba(230, 228, 255, 0.88), rgba(196, 181, 253, 0.95), rgba(196, 181, 253, 0));
+}
+
+#ziweiBookModal .lb-result-article__chapter {
+  padding: 6px 11px;
+  border-radius: 999px;
+  border-color: rgba(252, 211, 77, 0.32);
+  background: rgba(14, 24, 53, 0.62);
+  color: #fde68a;
+  letter-spacing: 0.02em;
+}
+
+#ziweiBookModal .lb-result-article__title {
+  font-size: 1.14rem;
+  line-height: 1.48;
+}
+
+#ziweiBookModal .lb-result-article__subtitle {
+  color: rgba(220, 235, 255, 0.9);
+}
+
+#ziweiBookModal .lb-result-article__summary {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  background: linear-gradient(160deg, rgba(11, 36, 64, 0.72), rgba(10, 29, 56, 0.5));
+  color: #e0efff;
+}
+
+#ziweiBookModal .lb-result-article__section,
+#ziweiBookModal .lb-result-article__list {
+  margin-top: 12px;
+  padding: 14px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(252, 211, 77, 0.22);
+  background: linear-gradient(162deg, rgba(16, 28, 58, 0.82), rgba(17, 36, 66, 0.64));
+}
+
+#ziweiBookModal .lb-result-article__section h4,
+#ziweiBookModal .lb-result-article__list h5 {
+  color: #fde68a;
+  font-size: 0.9rem;
+}
+
+#ziweiBookModal .lb-result-article__body,
+#ziweiBookModal .lb-result-article__body p,
+#ziweiBookModal .lb-result-article__section p {
+  color: #edf4ff;
+}
+
+@media (max-width: 640px) {
+  #ziweiBookModal .lb-result-article {
+    margin: 12px 10px 16px;
+    padding: 18px 16px;
+    border-radius: 13px;
+  }
+
+  #ziweiBookModal .lb-result-article__title {
+    font-size: 1.01rem;
+  }
+
+  #ziweiBookModal .lb-result-article__summary,
+  #ziweiBookModal .lb-result-article__section,
+  #ziweiBookModal .lb-result-article__list {
+    padding: 12px;
+  }
+}
+
 
 .lb-result__actions {
   display: flex;
