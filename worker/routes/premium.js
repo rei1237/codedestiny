@@ -169,10 +169,10 @@ const LOVE_SECRET_MODE_CONFIG = {
   solo: {
     mode: "solo",
     reportType: "saju_love_solo",
-    totalChapters: 10,
-    minTotalChars: 45000,
+    totalChapters: 13,
+    minTotalChars: 62000,
     chapterMinDefault: 4000,
-    chapterMinByIndex: { 1: 5000, 2: 5000, 3: 5500, 4: 4500, 5: 5500, 6: 4500, 7: 4500, 8: 4500, 9: 5500, 10: 5000 },
+    chapterMinByIndex: { 1: 5000, 2: 5000, 3: 5500, 4: 4500, 5: 5500, 6: 4500, 7: 4500, 8: 4500, 9: 5500, 10: 5000, 11: 4800, 12: 4800, 13: 5200 },
     title: "프리미엄 사주 연애운 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "일간/월지/일지/오행/십성으로 읽는 관계 자아", required: ["일간", "일지 배우자궁", "월지", "신강/신약", "오행 분포", "십성 분포", "관계 주도권"] },
@@ -185,15 +185,18 @@ const LOVE_SECRET_MODE_CONFIG = {
       { title: "📱 현대적 상황별 연애 비책", subtitle: "카톡/DM/썸/재회/장거리 실전 운영", required: ["연락 템포", "썸 단계", "갈등 후 메시지", "재회/정리", "온라인 관계", "말투 전략", "맞춤 접근법"] },
       { title: "💍 결혼과 정착", subtitle: "배우자궁·배우자성·책임 구조로 보는 장기 안정성", required: ["배우자궁", "배우자성", "재성/관성", "결혼 시기", "역할 분담", "돈/생활 운영", "장기 안정성"] },
       { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "용신/희신 강화와 기신 절감의 7·30·90일 플랜", required: ["용신", "희신", "기신", "오행 개운", "말투/공간 처방", "7일/30일/90일", "최종 10계명"] },
+      { title: "♻️ 재회·이별·회복 시나리오", subtitle: "이별 가능성·재회 확률·회복 루틴 의사결정", required: ["관계 단절 신호", "재회 가능 구간", "손절 기준", "회복 대화", "감정 리셋", "현실 조건", "의사결정표"] },
+      { title: "🛠 장기 관계 운영 매뉴얼", subtitle: "장기 연애 유지 시스템과 재발 방지 설계", required: ["갈등 재발 패턴", "경계선", "역할 분담", "감정 점검", "재정/생활 합의", "루틴", "관계 유지 KPI"] },
+      { title: "🌟 최종 사랑 마스터플랜", subtitle: "1년·3년·10년 관계 성장 로드맵", required: ["핵심 강점", "핵심 리스크", "우선순위", "90일 실행표", "1년 계획", "3년 계획", "10년 청사진"] },
     ],
   },
   couple: {
     mode: "couple",
     reportType: "saju_love_couple",
-    totalChapters: 10,
-    minTotalChars: 60000,
+    totalChapters: 13,
+    minTotalChars: 78000,
     chapterMinDefault: 5500,
-    chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 5500, 8: 5500, 9: 6500, 10: 6000 },
+    chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 5500, 8: 5500, 9: 6500, 10: 6000, 11: 5800, 12: 5800, 13: 6200 },
     title: "프리미엄 사주 궁합 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "두 사람의 연애 자아와 수용 방식 비교" },
@@ -206,6 +209,9 @@ const LOVE_SECRET_MODE_CONFIG = {
       { title: "📱 현대적 상황별 연애 비책", subtitle: "상황별 맞춤 소통/거리 전략" },
       { title: "💍 결혼과 정착", subtitle: "장기 안정성·역할 분담·생활 리듬" },
       { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "공동 7·30·90일 관계 강화 플랜" },
+      { title: "♻️ 재회·이별·회복 의사결정표", subtitle: "관계 단절/재회/복원 시나리오 판단 기준" },
+      { title: "🛠 장기 관계 운영 매뉴얼", subtitle: "커플 루틴·경계선·갈등 재발 방지 체계" },
+      { title: "🌟 커플 사랑 마스터플랜", subtitle: "커플 1년·3년·10년 공동 성장 전략" },
     ],
   },
 };
@@ -1187,7 +1193,7 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   westernAstrologyPremium: 13,
   vedicPremium: 13,
   lifeBook: 13,
-  loveSecret: 10,
+  loveSecret: 13,
   sajuNewYear: 10,
 };
 
@@ -5321,7 +5327,7 @@ function buildLoveSecretStatusPayload(reportId, includeText = false) {
   const modeConfig = mode === "compatibility"
     ? (LOVE_SECRET_MODE_CONFIG.couple || LOVE_SECRET_MODE_CONFIG.solo)
     : LOVE_SECRET_MODE_CONFIG.solo;
-  const totalChapters = Number(entry?.totalChapters || modeConfig?.totalChapters || 10) || 10;
+  const totalChapters = Number(entry?.totalChapters || modeConfig?.totalChapters || 13) || 13;
   const rows = Object.values(entry?.chapters || {})
     .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
   const chapters = rows.map((row) => {
@@ -8938,6 +8944,21 @@ const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
     requiredSections: ["개운 데이터 요약표", "나에게 필요한 연애 기운", "줄여야 할 연애 습관", "데이트/공간/말투/연락 처방", "7일 플랜", "30일 플랜", "90일 플랜", "최종 연애 비책 10계명", "핵심 요약 5줄"],
     requiredDataPoints: ["용신", "희신", "기신", "오행 강약", "말투/환경 전략", "관계 루틴", "대운/세운 타이밍"],
   },
+  11: {
+    purpose: "재회/이별/회복 시나리오를 데이터 기반 의사결정으로 구조화",
+    requiredSections: ["관계 전환 데이터 요약표", "이별 전조와 단절 신호", "재회 가능 구간", "회복 대화 시나리오", "손절 기준", "핵심 요약 5줄"],
+    requiredDataPoints: ["배우자궁", "합/충/형/파/해", "대운", "세운", "월별 흐름", "십성 충돌", "조후 밸런스"],
+  },
+  12: {
+    purpose: "장기 관계의 재발 패턴을 줄이는 운영 매뉴얼 수립",
+    requiredSections: ["장기 운영 데이터 요약표", "역할 분담 원칙", "갈등 재발 방지 규칙", "감정 점검 루틴", "생활/재정 운영 합의", "핵심 요약 5줄"],
+    requiredDataPoints: ["배우자궁", "배우자성", "오행 보완", "십성 분포", "조후", "대운 장기 흐름", "관계 경계선"],
+  },
+  13: {
+    purpose: "전 챕터 데이터를 통합해 최종 사랑 마스터플랜 제시",
+    requiredSections: ["통합 데이터 요약표", "핵심 강점 5개", "핵심 리스크 5개", "90일 실행표", "1년·3년·10년 로드맵", "최종 선언문", "핵심 요약 5줄"],
+    requiredDataPoints: ["일간", "배우자궁", "오행", "십성", "용신/희신/기신", "대운/세운", "궁합 핵심 점수"],
+  },
 };
 
 function normalizeLoveMode(modeConfigMode) {
@@ -8947,7 +8968,8 @@ function normalizeLoveMode(modeConfigMode) {
 
 function resolveLoveSecretMode(body) {
   const explicit = String(body.mode || "").toLowerCase();
-  if (explicit === "solo" || explicit === "couple") return explicit;
+  if (explicit === "solo" || explicit === "single") return "solo";
+  if (explicit === "couple" || explicit === "compatibility") return "couple";
   const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2400);
   return partnerData.trim() ? "couple" : "solo";
 }
@@ -8994,7 +9016,7 @@ function normalizeLoveGender(value) {
 
 function parseLoveBirthFromText(text = "") {
   const source = String(text || "");
-  const birthMatch = source.match(/생년월일\s*:\s*(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  const birthMatch = source.match(/생년월일\s*:\s*(\d{4})(?:년|[-./\s])+\s*(\d{1,2})(?:월|[-./\s])+\s*(\d{1,2})(?:일)?/);
   let hour = 12;
   let minute = 0;
   const hm = source.match(/출생\s*시각\s*:\s*(\d{1,2})시\s*(\d{1,2})분?/);
@@ -9049,14 +9071,27 @@ function parseLovePillarsFromText(text = "") {
 
 function parseLoveElementsFromText(text = "") {
   const source = String(text || "");
-  const m = source.match(/목\(木\)\s*:\s*([0-9.]+)[^\n]*화\(火\)\s*:\s*([0-9.]+)[^\n]*토\(土\)\s*:\s*([0-9.]+)[^\n]*금\(金\)\s*:\s*([0-9.]+)[^\n]*수\(水\)\s*:\s*([0-9.]+)/);
-  const weights = {
-    wood: m ? parseLoveNumber(m[1], 0) : 0,
-    fire: m ? parseLoveNumber(m[2], 0) : 0,
-    earth: m ? parseLoveNumber(m[3], 0) : 0,
-    metal: m ? parseLoveNumber(m[4], 0) : 0,
-    water: m ? parseLoveNumber(m[5], 0) : 0,
-  };
+  const weights = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+  const koToKey = { 목: "wood", 화: "fire", 토: "earth", 금: "metal", 수: "water" };
+  const elementPattern = /(목|화|토|금|수)\s*(?:\([木火土金水]\))?\s*[:：]?\s*\(?\s*([0-9]+(?:\.[0-9]+)?)\s*\)?/g;
+  let match = elementPattern.exec(source);
+  while (match) {
+    const key = koToKey[match[1]];
+    if (key) weights[key] = parseLoveNumber(match[2], 0);
+    match = elementPattern.exec(source);
+  }
+
+  if (!Object.values(weights).some((v) => v > 0)) {
+    const m = source.match(/목\(木\)\s*:\s*([0-9.]+)[^\n]*화\(火\)\s*:\s*([0-9.]+)[^\n]*토\(土\)\s*:\s*([0-9.]+)[^\n]*금\(金\)\s*:\s*([0-9.]+)[^\n]*수\(水\)\s*:\s*([0-9.]+)/);
+    if (m) {
+      weights.wood = parseLoveNumber(m[1], 0);
+      weights.fire = parseLoveNumber(m[2], 0);
+      weights.earth = parseLoveNumber(m[3], 0);
+      weights.metal = parseLoveNumber(m[4], 0);
+      weights.water = parseLoveNumber(m[5], 0);
+    }
+  }
+
   const dominant = pickDominantElement(weights);
   const weakest = pickWeakestElement(weights);
   const missing = Object.entries(weights).filter(([, v]) => Number(v) === 0).map(([k]) => k);
@@ -9126,6 +9161,20 @@ function parseLoveDaewoonFromText(text = "", birthYear = null) {
     rows.push({ age: parseLoveNumber(m[1], 0), ganji: `${m[2]}${m[3]}`, stem: m[2], branch: m[3] });
     m = re.exec(source);
   }
+
+  const ranged = new RegExp(`([${LOVE_SECRET_STEMS}])([${LOVE_SECRET_BRANCHES}])\\s*\\(\\s*(\\d{1,3})\\s*[~\\-]\\s*(\\d{1,3})\\s*\\)`, "g");
+  let rm = ranged.exec(source);
+  while (rm) {
+    rows.push({
+      age: parseLoveNumber(rm[3], 0),
+      ganji: `${rm[1]}${rm[2]}`,
+      stem: rm[1],
+      branch: rm[2],
+      fromAge: parseLoveNumber(rm[3], 0),
+      toAge: parseLoveNumber(rm[4], 0),
+    });
+    rm = ranged.exec(source);
+  }
   const nowYear = new Date().getFullYear();
   const currentAge = Number.isFinite(Number(birthYear)) ? Math.max(1, nowYear - Number(birthYear) + 1) : null;
   let idx = rows.length ? 0 : -1;
@@ -9139,6 +9188,142 @@ function parseLoveDaewoonFromText(text = "", birthYear = null) {
   return {
     currentDaewoon,
     nextDaewoon,
+    annualLuck: {},
+    monthlyLuck: [],
+  };
+}
+
+function normalizeLovePillarFromEngine(value) {
+  if (!value || typeof value !== "object") return null;
+  let stem = String(value.stem || value.g || "").trim();
+  let branch = String(value.branch || value.j || "").trim();
+  let ganji = String(value.ganji || value.gz || "").trim();
+
+  if (!ganji && stem && branch) ganji = `${stem}${branch}`;
+  if ((!stem || !branch) && ganji.length >= 2) {
+    const chars = ganji.split("");
+    if (!stem && chars[0] && LOVE_SECRET_STEMS.includes(chars[0])) stem = chars[0];
+    if (!branch && chars[1] && LOVE_SECRET_BRANCHES.includes(chars[1])) branch = chars[1];
+  }
+
+  if (!stem && !branch && !ganji) return null;
+  return {
+    ganji: ganji || (stem && branch ? `${stem}${branch}` : ""),
+    stem,
+    branch,
+    tenGod: "N/A",
+    hiddenStems: branch && LOVE_SECRET_BRANCH_HIDDEN_STEMS[branch] ? LOVE_SECRET_BRANCH_HIDDEN_STEMS[branch].slice() : [],
+  };
+}
+
+function normalizeLoveEngineDataHints(raw = {}) {
+  if (!raw || typeof raw !== "object") {
+    return {
+      pillars: {},
+      fiveElements: null,
+      tenGodDistribution: {},
+      usefulGods: {},
+      dayMaster: {},
+      seasonMeta: {},
+      daewunRows: [],
+    };
+  }
+
+  const pillarsSource = raw.pillars || raw.fourPillars || {};
+  const year = normalizeLovePillarFromEngine(pillarsSource.year || pillarsSource.y || null);
+  const month = normalizeLovePillarFromEngine(pillarsSource.month || pillarsSource.m || null);
+  const day = normalizeLovePillarFromEngine(pillarsSource.day || pillarsSource.d || null);
+  const hour = normalizeLovePillarFromEngine(pillarsSource.hour || pillarsSource.h || null);
+
+  const sourceWeights = raw.elementWeights || raw.fiveElements || {};
+  const fiveElementsBase = {
+    wood: parseLoveNumber(sourceWeights.wood, 0),
+    fire: parseLoveNumber(sourceWeights.fire, 0),
+    earth: parseLoveNumber(sourceWeights.earth, 0),
+    metal: parseLoveNumber(sourceWeights.metal, 0),
+    water: parseLoveNumber(sourceWeights.water, 0),
+  };
+  const hasFiveElements = Object.values(fiveElementsBase).some((v) => v > 0);
+
+  const tenGodDistribution = raw?.tenGods?.distribution && typeof raw.tenGods.distribution === "object"
+    ? { ...raw.tenGods.distribution }
+    : {};
+
+  const daewunRows = Array.isArray(raw?.daewunRows)
+    ? raw.daewunRows
+      .map((row) => {
+        const stem = String(row?.stem || "").trim();
+        const branch = String(row?.branch || "").trim();
+        const ganji = String(row?.ganji || "").trim() || (stem && branch ? `${stem}${branch}` : "");
+        if (!ganji) return null;
+        const fromAge = Number.isFinite(Number(row?.fromAge)) ? Number(row.fromAge) : null;
+        const toAge = Number.isFinite(Number(row?.toAge)) ? Number(row.toAge) : null;
+        return {
+          age: Number.isFinite(fromAge) ? fromAge : parseLoveNumber(row?.age, 0),
+          ganji,
+          stem: stem || ganji.charAt(0) || "",
+          branch: branch || ganji.charAt(1) || "",
+          fromAge,
+          toAge,
+        };
+      })
+      .filter(Boolean)
+    : [];
+
+  return {
+    pillars: { year, month, day, hour },
+    fiveElements: hasFiveElements
+      ? {
+        ...fiveElementsBase,
+        dominant: pickDominantElement(fiveElementsBase),
+        weakest: pickWeakestElement(fiveElementsBase),
+        missing: Object.entries(fiveElementsBase).filter(([, v]) => Number(v) === 0).map(([k]) => k),
+      }
+      : null,
+    tenGodDistribution,
+    usefulGods: {
+      yongsin: normalizeLoveElement(raw?.usefulGods?.yongsin?.element),
+      huisin: normalizeLoveElement(raw?.usefulGods?.huisin?.element),
+      gisin: normalizeLoveElement(raw?.usefulGods?.gisin?.element),
+    },
+    dayMaster: {
+      strength: String(raw?.dayMaster?.strength || "").trim(),
+      strengthScore: Number.isFinite(Number(raw?.dayMaster?.strengthScore)) ? Number(raw.dayMaster.strengthScore) : null,
+    },
+    seasonMeta: raw?.seasonMeta && typeof raw.seasonMeta === "object" ? raw.seasonMeta : {},
+    daewunRows,
+  };
+}
+
+function buildLoveDaewoonFromEngineRows(rows = [], birthYear = null) {
+  const normalized = Array.isArray(rows)
+    ? rows
+      .map((row) => ({
+        age: parseLoveNumber(row?.age, parseLoveNumber(row?.fromAge, 0)),
+        ganji: String(row?.ganji || "").trim(),
+        stem: String(row?.stem || "").trim(),
+        branch: String(row?.branch || "").trim(),
+      }))
+      .filter((row) => row.ganji)
+      .sort((a, b) => a.age - b.age)
+    : [];
+
+  if (!normalized.length) {
+    return { currentDaewoon: null, nextDaewoon: null, annualLuck: {}, monthlyLuck: [] };
+  }
+
+  const nowYear = new Date().getFullYear();
+  const currentAge = Number.isFinite(Number(birthYear)) ? Math.max(1, nowYear - Number(birthYear) + 1) : null;
+  let idx = 0;
+  if (currentAge != null) {
+    for (let i = 0; i < normalized.length; i += 1) {
+      if (normalized[i].age <= currentAge) idx = i;
+    }
+  }
+
+  return {
+    currentDaewoon: normalized[idx] || null,
+    nextDaewoon: normalized[idx + 1] || null,
     annualLuck: {},
     monthlyLuck: [],
   };
@@ -9259,21 +9444,48 @@ function buildLoveProfileFromPerson(person) {
   };
 }
 
-function buildLovePersonCanonical(rawText, profileHints = {}, input = {}) {
+function buildLovePersonCanonical(rawText, profileHints = {}, input = {}, engineDataHints = null) {
   const text = String(rawText || "");
+  const engineHints = normalizeLoveEngineDataHints(engineDataHints);
   const birthFromText = parseLoveBirthFromText(text);
-  const pillars = parseLovePillarsFromText(text);
+  const parsedPillars = parseLovePillarsFromText(text);
+  const pillars = {
+    year: parsedPillars.year || engineHints?.pillars?.year || null,
+    month: parsedPillars.month || engineHints?.pillars?.month || null,
+    day: parsedPillars.day || engineHints?.pillars?.day || null,
+    hour: parsedPillars.hour || engineHints?.pillars?.hour || null,
+  };
   const dayStemFromText = (text.match(/일간\(日干\)\s*:\s*([甲乙丙丁戊己庚辛壬癸])/) || [])[1] || pillars?.day?.stem || "";
   const dayElement = LOVE_SECRET_STEM_ELEMENTS[dayStemFromText] || null;
-  const fiveElements = parseLoveElementsFromText(text);
-  const tenGods = parseLoveTenGodDistribution(text);
+  const fiveElementsParsed = parseLoveElementsFromText(text);
+  const fiveElements = Object.values(fiveElementsParsed).some((v) => Number(v) > 0)
+    ? fiveElementsParsed
+    : (engineHints.fiveElements || fiveElementsParsed);
+  const tenGodsParsed = parseLoveTenGodDistribution(text);
+  const tenGodDistribution = Object.keys(tenGodsParsed.distribution || {}).length
+    ? tenGodsParsed.distribution
+    : (engineHints.tenGodDistribution || {});
+  const tenGods = {
+    distribution: tenGodDistribution,
+    dominantTenGods: Object.entries(tenGodDistribution).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 3).map(([k]) => k),
+    weakTenGods: Object.entries(tenGodDistribution).filter(([, v]) => Number(v) <= 1).map(([k]) => k),
+  };
   const stars = parseLoveStarsFromText(text);
   const strength = parseLoveStrengthFromText(text);
+  const finalStrength = strength && strength !== "N/A" ? strength : (engineHints?.dayMaster?.strength || "N/A");
   const yongshin = parseLoveLineElements(text, "용신");
   const huisin = parseLoveLineElements(text, "희신");
   const kishin = parseLoveLineElements(text, "기신");
   const birthYear = birthFromText.year || profileHints.birthYear || input.year || null;
-  const luck = parseLoveDaewoonFromText(text, birthYear);
+  const birthMonth = birthFromText.month || profileHints.birthMonth || input.month || null;
+  const birthDay = birthFromText.day || profileHints.birthDay || input.day || null;
+  const birthHour = Number.isFinite(Number(profileHints.birthHour)) ? Number(profileHints.birthHour) : birthFromText.hour ?? input.hour ?? 12;
+  const birthMinute = Number.isFinite(Number(profileHints.birthMinute)) ? Number(profileHints.birthMinute) : birthFromText.minute ?? input.minute ?? 0;
+
+  let luck = parseLoveDaewoonFromText(text, birthYear);
+  if (!luck.currentDaewoon && Array.isArray(engineHints.daewunRows) && engineHints.daewunRows.length) {
+    luck = buildLoveDaewoonFromEngineRows(engineHints.daewunRows, birthYear);
+  }
 
   const gender = normalizeLoveGender(profileHints.gender || (text.match(/성별\s*:\s*([^\n]+)/) || [])[1] || input.gender || "unknown");
   const spouseStarByGender = gender === "male" ? "재성" : gender === "female" ? "관성" : null;
@@ -9282,11 +9494,11 @@ function buildLovePersonCanonical(rawText, profileHints = {}, input = {}) {
     name: String(profileHints.name || (text.match(/이름\s*:\s*([^\n]+)/) || [])[1] || input.name || "사용자").trim(),
     gender,
     birth: {
-      solarDate: birthYear && (birthFromText.month || input.month) && (birthFromText.day || input.day)
-        ? `${birthYear}-${String(birthFromText.month || input.month).padStart(2, "0")}-${String(birthFromText.day || input.day).padStart(2, "0")}`
+      solarDate: birthYear && birthMonth && birthDay
+        ? `${birthYear}-${String(birthMonth).padStart(2, "0")}-${String(birthDay).padStart(2, "0")}`
         : null,
       lunarDate: null,
-      time: `${String(birthFromText.hour ?? input.hour ?? 12).padStart(2, "0")}:${String(birthFromText.minute ?? input.minute ?? 0).padStart(2, "0")}`,
+      time: `${String(birthHour).padStart(2, "0")}:${String(birthMinute).padStart(2, "0")}`,
       timezone: "Asia/Seoul",
       locationName: profileHints.locationName || null,
     },
@@ -9306,8 +9518,10 @@ function buildLovePersonCanonical(rawText, profileHints = {}, input = {}) {
       stem: dayStemFromText || "",
       element: dayElement || "",
       yinYang: LOVE_SECRET_STEM_YIN_YANG[dayStemFromText] || "",
-      strength,
-      strengthScore: Number.isFinite(Number(profileHints.strengthScore)) ? Number(profileHints.strengthScore) : null,
+      strength: finalStrength,
+      strengthScore: Number.isFinite(Number(profileHints.strengthScore))
+        ? Number(profileHints.strengthScore)
+        : (Number.isFinite(Number(engineHints?.dayMaster?.strengthScore)) ? Number(engineHints.dayMaster.strengthScore) : null),
     },
     fiveElements,
     tenGods: {
@@ -9324,9 +9538,9 @@ function buildLovePersonCanonical(rawText, profileHints = {}, input = {}) {
     },
     attractionStars: stars,
     usefulGods: {
-      yongsin: { element: yongshin[0] || null, reason: yongshin.length ? "사주 엔진 출력값" : "" },
-      huisin: { element: huisin[0] || yongshin[1] || null, reason: (huisin.length || yongshin.length > 1) ? "사주 엔진 출력값" : "" },
-      gisin: { element: kishin[0] || null, reason: kishin.length ? "사주 엔진 출력값" : "" },
+      yongsin: { element: yongshin[0] || engineHints?.usefulGods?.yongsin || null, reason: (yongshin.length || engineHints?.usefulGods?.yongsin) ? "사주 엔진 출력값" : "" },
+      huisin: { element: huisin[0] || yongshin[1] || engineHints?.usefulGods?.huisin || null, reason: (huisin.length || yongshin.length > 1 || engineHints?.usefulGods?.huisin) ? "사주 엔진 출력값" : "" },
+      gisin: { element: kishin[0] || engineHints?.usefulGods?.gisin || null, reason: (kishin.length || engineHints?.usefulGods?.gisin) ? "사주 엔진 출력값" : "" },
     },
     luck: {
       currentDaewoon: luck.currentDaewoon,
@@ -9338,6 +9552,15 @@ function buildLovePersonCanonical(rawText, profileHints = {}, input = {}) {
 
   person.loveProfile = buildLoveProfileFromPerson(person);
   person.johu = deriveLoveJohu(person);
+  if ((!person.johu?.monthBranch || !person.johu?.birthSeason) && engineHints?.seasonMeta && typeof engineHints.seasonMeta === "object") {
+    const monthBranch = String(engineHints.seasonMeta.monthBranch || person.johu?.monthBranch || person.fourPillars?.month?.branch || "").trim();
+    const season = String(engineHints.seasonMeta.birthSeason || person.johu?.birthSeason || loveSeasonFromMonthBranch(monthBranch)).trim();
+    person.johu = {
+      ...person.johu,
+      monthBranch: monthBranch || person.johu?.monthBranch || "",
+      birthSeason: season || person.johu?.birthSeason || "",
+    };
+  }
   return person;
 }
 
@@ -9711,8 +9934,9 @@ function buildLoveChapterDataSections(canonical, chapter) {
 
 function buildLoveChapterPlanning(canonical) {
   const chapterPlanning = {};
-  const titles = LOVE_SECRET_MODE_CONFIG.solo.chapters;
-  for (let i = 1; i <= 10; i += 1) {
+  const modeConfig = canonical?.mode === "compatibility" ? (LOVE_SECRET_MODE_CONFIG.couple || LOVE_SECRET_MODE_CONFIG.solo) : LOVE_SECRET_MODE_CONFIG.solo;
+  const titles = Array.isArray(modeConfig?.chapters) && modeConfig.chapters.length ? modeConfig.chapters : LOVE_SECRET_MODE_CONFIG.solo.chapters;
+  for (let i = 1; i <= titles.length; i += 1) {
     const chapterTitle = titles[i - 1]?.title || `Chapter ${i}`;
     const entry = {
       title: chapterTitle,
@@ -9804,16 +10028,39 @@ function buildCanonicalSajuLoveReport(body = {}, input = {}, modeConfig = LOVE_S
   const mode = normalizeLoveMode(modeConfig.mode);
   const personAText = stringifyCompact(body.sajuData || "", 20000);
   const personBText = stringifyCompact(body.partnerData || body.partner || "", 12000);
+  const personAEngineData = body.engineData || body.personAEngineData || body.selfEngineData || body?.personA?.engineData || null;
+  const personBEngineData = body?.partner?.engineData || body.partnerEngineData || body.personBEngineData || null;
+  const hasPartnerBirthHints = Number.isFinite(Number(body.partnerYear))
+    && Number.isFinite(Number(body.partnerMonth))
+    && Number.isFinite(Number(body.partnerDay));
   const personA = buildLovePersonCanonical(personAText, {
     name: body.name || input.name,
     gender: body.gender || input.gender,
-  }, input);
-  const personBExists = mode === "compatibility" && !!personBText.trim();
+    birthYear: body.year || input.year,
+    birthMonth: body.month || input.month,
+    birthDay: body.day || input.day,
+    birthHour: body.hour || input.hour,
+    birthMinute: body.minute || input.minute,
+  }, input, personAEngineData);
+  const personBExists = mode === "compatibility" && (!!personBText.trim() || !!personBEngineData || hasPartnerBirthHints);
   const personB = personBExists
     ? buildLovePersonCanonical(personBText, {
       name: body.partnerName || "상대",
       gender: body.partnerGender || "unknown",
-    }, input)
+      birthYear: body.partnerYear,
+      birthMonth: body.partnerMonth,
+      birthDay: body.partnerDay,
+      birthHour: body.partnerHour,
+      birthMinute: body.partnerMinute,
+    }, {
+      year: body.partnerYear,
+      month: body.partnerMonth,
+      day: body.partnerDay,
+      hour: body.partnerHour,
+      minute: body.partnerMinute,
+      name: body.partnerName || "상대",
+      gender: body.partnerGender || "unknown",
+    }, personBEngineData)
     : {
       exists: false,
       profile: {},
@@ -10996,7 +11243,7 @@ async function handleSajuNewYearSession(request, env) {
 
 async function handleLifebookSession(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = body?._premiumStrictPayload === true;
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -11066,12 +11313,15 @@ async function handleLifebookSession(request, env) {
       premiumChapterJsonPacks: strictBody?._premiumLlmInput?.chapterJsonPacks || null,
     }
   );
+  const lifebookTimeoutMs = Number(env.LIFEBOOK_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 18000);
+  const lifebookTotalTimeoutMs = Number(env.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 36000);
   const lifebookGenerationOptions = {
     temperature: 0.78,
     topP: 0.92,
     maxOutputTokens: 12288,
-    timeoutMs: Number(env.LIFEBOOK_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 90000),
-    maxAttemptsPerPair: Number(env.LIFEBOOK_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+    timeoutMs: Math.max(6000, Math.min(35000, Number.isFinite(lifebookTimeoutMs) ? lifebookTimeoutMs : 18000)),
+    totalTimeoutMs: Math.max(12000, Math.min(65000, Number.isFinite(lifebookTotalTimeoutMs) ? lifebookTotalTimeoutMs : 36000)),
+    maxAttemptsPerPair: Math.max(1, Math.min(2, Number(env.LIFEBOOK_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 1))),
   };
 
   let text = await callGemini(env, prompt, ["LIFEBOOK_GEMINI_MODEL"], lifebookGenerationOptions);
@@ -11088,7 +11338,7 @@ async function handleLifebookSession(request, env) {
     text = lifebookLongFallback(title, subtitle, strictBody, sectionHeaders, counselorFocus, LIFEBOOK_MIN_CHARS);
   }
 
-  if (text.length < LIFEBOOK_MIN_CHARS) {
+  if (text.length < LIFEBOOK_MIN_CHARS && strictPayloadMode) {
     const refined = await refineChapterToMinLength(
       env,
       text,

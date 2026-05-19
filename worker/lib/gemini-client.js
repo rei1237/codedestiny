@@ -11,6 +11,9 @@ export async function generateWithGemini(env, prompt, options = {}) {
   const maxAttemptsPerPair = Number.isFinite(Number(options.maxAttemptsPerPair))
     ? Number(options.maxAttemptsPerPair)
     : Number(getEnv(env, "PREMIUM_GEMINI_RETRIES") || 2);
+  const totalTimeoutMs = Number.isFinite(Number(options.totalTimeoutMs))
+    ? Number(options.totalTimeoutMs)
+    : 0;
   const requestId = String(options.requestId || "").trim();
 
   return callGeminiText(env, prompt, {
@@ -33,6 +36,7 @@ export async function generateWithGemini(env, prompt, options = {}) {
     topP,
     maxOutputTokens,
     timeoutMs,
+    totalTimeoutMs,
     maxAttemptsPerPair,
     metadata: requestId ? { requestId } : undefined,
   });

@@ -8,6 +8,7 @@ import { handlePaymentRoutes } from "./routes/payments.js";
 import {
   handleLifebookRoutes,
   handleLoveSecretRoutes,
+  handlePremiumReportRoutes,
   handlePremiumRoutes,
   handleZiweiBookRoutes,
 } from "./routes/premium.js";
@@ -575,6 +576,10 @@ export default {
         && !(url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/"))
       ) {
         return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
+        return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
       }
 
       if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {

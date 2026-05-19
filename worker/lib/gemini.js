@@ -143,6 +143,31 @@ export async function callGeminiText(env, prompt, options = {}) {
     return { ok: false, error: "empty_prompt", message: "Gemini prompt is empty." };
   }
 
+  const totalTimeoutMsRaw = Number(options.totalTimeoutMs);
+  const totalTimeoutMs = Number.isFinite(totalTimeoutMsRaw) && totalTimeoutMsRaw > 0
+    ? Math.max(1000, totalTimeoutMsRaw)
+    : 0;
+  const startedAt = Date.now();
+  const deadlineAt = totalTimeoutMs > 0 ? startedAt + totalTimeoutMs : 0;
+
+  function remainingBudgetMs() {
+    if (!deadlineAt) return Infinity;
+    return deadlineAt - Date.now();
+  }
+
+  function computeAttemptTimeoutMs() {
+    const configured = Number(options.timeoutMs);
+    const configuredMs = Number.isFinite(configured) && configured > 0 ? configured : 0;
+    if (!deadlineAt) return configuredMs || undefined;
+
+    const remaining = remainingBudgetMs();
+    if (!Number.isFinite(remaining) || remaining <= 250) return 0;
+
+    const budgetMs = Math.max(250, Math.floor(remaining - 120));
+    if (!configuredMs) return budgetMs;
+    return Math.max(250, Math.min(configuredMs, budgetMs));
+  }
+
   const keys = pickGeminiKeys(env, options.keyEnvKeys || []);
   if (!keys.length) {
     return {
@@ -162,10 +187,18 @@ export async function callGeminiText(env, prompt, options = {}) {
 
   const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
+
+  outer:
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     for (const key of rotatedKeys) {
       for (let attempt = 1; attempt <= maxAttemptsPerPair; attempt += 1) {
+        const attemptTimeoutMs = computeAttemptTimeoutMs();
+        if (attemptTimeoutMs === 0) {
+          lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
+          break outer;
+        }
+
         try {
           const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
             method: "POST",
@@ -174,14 +207,19 @@ export async function callGeminiText(env, prompt, options = {}) {
               contents: [{ role: "user", parts: [{ text: textPrompt }] }],
               generationConfig,
             }),
-            signal: buildSignal(options.timeoutMs),
+            signal: buildSignal(attemptTimeoutMs),
           });
 
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) {
             lastError = payload?.error?.message || `Gemini request failed (${response.status})`;
             if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
-              await sleep(computeRetryDelayMs(attempt, response, lastError));
+              const delayMs = computeRetryDelayMs(attempt, response, lastError);
+              if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
+                lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
+                break outer;
+              }
+              await sleep(delayMs);
               continue;
             }
             break;
@@ -194,14 +232,24 @@ export async function callGeminiText(env, prompt, options = {}) {
 
           lastError = "Gemini returned an empty response.";
           if (attempt < maxAttemptsPerPair) {
-            await sleep(computeRetryDelayMs(attempt, null, lastError));
+            const delayMs = computeRetryDelayMs(attempt, null, lastError);
+            if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
+              lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
+              break outer;
+            }
+            await sleep(delayMs);
             continue;
           }
           break;
         } catch (error) {
           lastError = error?.message || String(error);
           if (attempt < maxAttemptsPerPair && isRetriableErrorMessage(lastError)) {
-            await sleep(computeRetryDelayMs(attempt, null, lastError));
+            const delayMs = computeRetryDelayMs(attempt, null, lastError);
+            if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
+              lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
+              break outer;
+            }
+            await sleep(delayMs);
             continue;
           }
           break;
