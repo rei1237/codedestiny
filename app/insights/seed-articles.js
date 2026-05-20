@@ -3,7 +3,7 @@ import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
 const DEFAULT_AUTHOR = "Code Destiny Editorial Team";
 const SITE_ORIGIN = "https://code-destiny.com";
-const DEFAULT_FEATURED_IMAGE = "/icons/fortune-tama-512.webp";
+const DEFAULT_FEATURED_IMAGE = "/icons/꿀꿀 운세 로고.webp";
 const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}${DEFAULT_FEATURED_IMAGE}`;
 
 const INSIGHT_IMAGE_PROFILES = [

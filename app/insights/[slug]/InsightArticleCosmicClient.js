@@ -7,7 +7,7 @@ import { sanitizePublicInsightHtml, stripHtmlText } from "../_lib/sanitizePublic
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const SITE_ORIGIN = "https://code-destiny.com";
-const FALLBACK_ARTICLE_IMAGE = "/icons/fortune-tama-512.webp";
+const FALLBACK_ARTICLE_IMAGE = "/icons/꿀꿀 운세 로고.webp";
 const ARTICLE_IMAGE_PROFILES = [
   { url: "/fuctionassets/jami.webp", alt: "자미두수 명반 인사이트 이미지", keywords: ["자미", "ziwei", "명궁", "12궁", "궁위", "사화", "자미두수"] },
   { url: "/fuctionassets/sukyo.webp", alt: "숙요점 궁합 인사이트 이미지", keywords: ["숙요", "27숙", "영친", "업태", "안괴", "본명숙", "월명숙"] },

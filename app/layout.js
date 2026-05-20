@@ -53,12 +53,11 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/icons/favicon.ico",
-    shortcut: "/icons/favicon.ico",
-    apple: "/icons/apple-touch-icon.png",
+    icon: "/icons/꿀꿀 운세 로고.webp",
+    shortcut: "/icons/꿀꿀 운세 로고.webp",
+    apple: "/icons/꿀꿀 운세 로고.webp",
     other: [
-      { rel: "icon", type: "image/png", sizes: "32x32", url: "/icons/favicon-32x32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", url: "/icons/favicon-16x16.png" },
+      { rel: "icon", type: "image/webp", sizes: "1200x1200", url: "/icons/꿀꿀 운세 로고.webp" },
     ],
   },
   manifest: "/manifest.json",
@@ -66,7 +65,7 @@ export const metadata = {
     capable: true,
     title: "꿀꿀 만세력",
     statusBarStyle: "default",
-    startupImage: ["/icons/apple-touch-icon.png"],
+    startupImage: ["/icons/꿀꿀 운세 로고.webp"],
   },
   alternates: {
     canonical: "/",
