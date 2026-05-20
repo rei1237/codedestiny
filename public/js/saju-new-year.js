@@ -388,8 +388,8 @@
       minute: Number(birth.minute || 0),
       targetYear: targetYearInput,
       focusArea: 'overall',
-      _premiumStrictPayload: true,
-      _premiumStrictValidation: true,
+      _premiumStrictPayload: false,
+      _premiumStrictValidation: false,
       engineData: buildEngineData(),
       sajuData: buildCompactSajuData()
     };
@@ -693,8 +693,8 @@
         reportType: 'sajuNewYear',
         featureType: 'saju_new_year_pdf',
         requestBody: Object.assign({}, state.payload || {}, {
-          _premiumStrictPayload: true,
-          _premiumStrictValidation: true
+          _premiumStrictPayload: false,
+          _premiumStrictValidation: false
         }),
         requestId: 'newyear:chapter:' + chapter + ':' + Date.now().toString(36)
       }, {
@@ -823,20 +823,22 @@
       '<meta charset="utf-8" />',
       '<title>' + escapeHtml(ownerName + '님의 ' + targetYear + ' 신년운세') + '</title>',
       '<style>',
-      'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#f7f4ee;color:#1f2937;line-height:1.72}',
-      '.lb-print-cover{padding:24px;border:1px solid #d5c9b3;border-radius:16px;background:#fffaf0;margin-bottom:24px}',
+      '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600;700&display=swap");',
+      'body{margin:0;padding:26px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:#f7f4ee;color:#1f2937;line-height:1.86;word-break:keep-all}',
+      '.lb-print-cover{padding:28px;border:1px solid #d5c9b3;border-radius:18px;background:#fffaf0;margin-bottom:26px}',
       '.lb-print-cover-visual{margin:0 0 16px;border-radius:12px;overflow:hidden;border:1px solid #e6dcc8;background:#f3ead8}',
       '.lb-print-cover-visual img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}',
-      '.lb-print-cover h1{margin:0 0 6px;font-size:33px;color:#4b3621}',
-      '.lb-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #e8ddcc;border-radius:12px;background:#fff}',
-      '.lb-print-chapter h1{margin:0 0 12px;font-size:24px;color:#5b4630}',
-      '.lb-print-chapter h2{margin:16px 0 8px;font-size:19px;color:#6b4f35}',
-      '.lb-print-chapter h3{margin:12px 0 8px;font-size:16px;color:#7b5d3f}',
-      '.lb-print-chapter p{margin:0 0 10px}',
+      '.lb-print-cover h1{margin:0 0 8px;font-size:34px;line-height:1.35;color:#4b3621}',
+      '.lb-print-chapter{margin-bottom:24px;padding:22px;border:1px solid #e8ddcc;border-radius:14px;background:#fff}',
+      '.lb-print-chapter h1{margin:0 0 12px;font-size:25px;line-height:1.4;color:#5b4630}',
+      '.lb-print-chapter h2{margin:18px 0 10px;font-size:20px;line-height:1.45;color:#6b4f35}',
+      '.lb-print-chapter h3{margin:14px 0 8px;font-size:17px;line-height:1.5;color:#7b5d3f}',
+      '.lb-print-chapter p{margin:0 0 12px;font-size:15px;line-height:1.9}',
       '.lb-print-chapter ul{margin:0 0 10px 18px;padding:0}',
       '.lb-table{width:100%;border-collapse:collapse;margin:10px 0}',
       '.lb-table td{border:1px solid #dacbb1;padding:6px 8px;font-size:13px}',
-      '@media print{body{padding:0;background:#fff}.lb-print-cover,.lb-print-chapter{border:none}}',
+      '@page{size:A4;margin:14mm}',
+      '@media print{body{padding:0;background:#fff}.lb-print-cover,.lb-print-chapter{border:none;border-radius:0;box-shadow:none}}',
       '</style>',
       '</head>',
       '<body>',

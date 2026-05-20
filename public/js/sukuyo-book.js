@@ -873,8 +873,8 @@
         partnerGender:partner.gender||undefined,
         partnerCalType:partner.calType||undefined,
         _premiumFailOpen: false,
-        _premiumStrictPayload: true,
-        _premiumStrictValidation: true
+        _premiumStrictPayload: false,
+        _premiumStrictValidation: false
       };
     }
 

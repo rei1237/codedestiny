@@ -2035,6 +2035,7 @@ function getPremiumSupplementalMaxAttempts(env) {
 }
 
 function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId = 1, requestId = "", attempt = 1) {
+  const strictPayload = shouldEnforcePremiumStrictPayload(reportType);
   const base = {
     ...(sourceInput && typeof sourceInput === "object" ? sourceInput : {}),
     requestId: requestId || createPremiumRequestId(`${reportType}|prepare`),
@@ -2045,7 +2046,8 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
     _premiumReportPrepare: true,
     _premiumCanonicalHydration: true,
     _premiumHydrationAttempt: Number(attempt || 1),
-    _premiumStrictPayload: shouldEnforcePremiumStrictPayload(reportType),
+    _premiumStrictPayload: strictPayload,
+    _premiumStrictValidation: strictPayload,
   };
 
   if (reportType === "westernAstrologyPremium") {
@@ -2082,6 +2084,61 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
   }
 
   return base;
+}
+
+function normalizePremiumRequestBodyForPipeline(reportType, sourceInput = {}) {
+  const normalized = {
+    ...(sourceInput && typeof sourceInput === "object" ? sourceInput : {}),
+  };
+
+  const strictPayload = shouldEnforcePremiumStrictPayload(reportType);
+  normalized._premiumStrictPayload = strictPayload;
+  normalized._premiumStrictValidation = strictPayload;
+
+  const token = String(
+    normalized.premiumAccessToken
+    || normalized._premiumAccessToken
+    || "",
+  ).trim();
+  if (token) {
+    normalized.premiumAccessToken = token;
+    normalized._premiumAccessToken = token;
+  }
+
+  if (reportType === "westernAstrologyPremium") {
+    if (!hasMeaningfulValue(normalized.timezoneName)) normalized.timezoneName = "Asia/Seoul";
+    if (!hasMeaningfulValue(normalized.birthPlace)) normalized.birthPlace = "Seoul";
+    if (!hasMeaningfulValue(normalized.houseSystem)) normalized.houseSystem = "placidus";
+    if (!hasMeaningfulValue(normalized.zodiacType)) normalized.zodiacType = "tropical";
+    if (!hasMeaningfulValue(normalized.timezone)) normalized.timezone = 9;
+    if (!hasMeaningfulValue(normalized.lat)) normalized.lat = 37.5665;
+    if (!hasMeaningfulValue(normalized.lon)) normalized.lon = 126.978;
+  }
+
+  if (reportType === "vedicPremium") {
+    if (!hasMeaningfulValue(normalized.mode)) normalized.mode = "personal";
+    if (!hasMeaningfulValue(normalized.ayanamsa)) normalized.ayanamsa = "lahiri";
+  }
+
+  if (reportType === "sookyoPremium" && !hasMeaningfulValue(normalized.mode)) {
+    normalized.mode = "personal";
+  }
+
+  if (reportType === "loveSecret") {
+    if (!hasMeaningfulValue(normalized.mode)) normalized.mode = "solo";
+    if (!hasMeaningfulValue(normalized.totalChapters)) normalized.totalChapters = 10;
+  }
+
+  if (reportType === "lifeBook" && !hasMeaningfulValue(normalized.totalChapters)) {
+    normalized.totalChapters = 13;
+  }
+
+  if (reportType === "sajuNewYear") {
+    if (!hasMeaningfulValue(normalized.targetYear)) normalized.targetYear = new Date().getFullYear();
+    if (!hasMeaningfulValue(normalized.totalChapters)) normalized.totalChapters = 10;
+  }
+
+  return normalized;
 }
 
 function scoreCanonicalValidation(validation) {
@@ -13904,7 +13961,8 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     }, { status: 400 });
   }
 
-  const requestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
+  const rawRequestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
+  const requestBody = normalizePremiumRequestBodyForPipeline(reportType, rawRequestBody);
   logPremiumPipelineStage("Start", {
     fortuneType: reportType,
     featureKey: featureType,
@@ -13914,7 +13972,8 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   });
   const tokenFromBody = String(body.premiumAccessToken || requestBody.premiumAccessToken || "").trim();
   const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
-  const premiumAccessToken = tokenFromBody || tokenFromCookie;
+  const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
   const accessRequestBody = premiumAccessToken
     ? { ...requestBody, premiumAccessToken }
     : requestBody;

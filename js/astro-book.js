@@ -370,7 +370,8 @@
       mode: mode,
       reportMode: mode,
       reportType: mode,
-      _premiumStrictValidation: true,
+      _premiumStrictPayload: false,
+      _premiumStrictValidation: false,
       includeCompatibility: mode === 'compatibility',
       name: String(profile.name || '사용자'),
       gender: String(profile.gender || ''),
@@ -567,18 +568,31 @@
     }
 
     var requestId = 'premium-astro:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var gateBody = {
+      featureKey: policy.featureKey,
+      reason: policy.reason,
+      forceDeduct: true,
+      requestId: requestId
+    };
+
     var res = await requestJson('/api/billing/coin-gate', {
       method: 'POST',
-      body: {
-        featureKey: policy.featureKey,
-        reason: policy.reason,
-        forceDeduct: true,
-        requestId: requestId
-      }
+      body: gateBody
     });
 
     var data = (res && res.data) || {};
     var code = String((data && data.code) || '').toUpperCase();
+    var retryableGateError = (!res.ok || data.ok === false)
+      && (Number(res.status || 0) >= 500 || Number(res.status || 0) === 0 || code === 'SERVER_ERROR' || code === 'WORKER_UNHANDLED_EXCEPTION');
+
+    if (retryableGateError) {
+      res = await requestJson('/api/billing/coin-gate', {
+        method: 'POST',
+        body: gateBody
+      });
+      data = (res && res.data) || {};
+      code = String((data && data.code) || '').toUpperCase();
+    }
     if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
       if (typeof window.__cdOpenLoginRequiredModal === 'function') {
         window.__cdOpenLoginRequiredModal({

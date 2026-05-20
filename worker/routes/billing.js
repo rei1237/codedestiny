@@ -2,6 +2,7 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
 import { getOptionalUserFromRequest } from "../lib/auth.js";
+import { buildPremiumAccessCookie } from "../lib/premium-access-token.js";
 import {
   assertFeatureEnabled,
   getBillingFeaturePricing,
@@ -59,8 +60,8 @@ function toCode(payload) {
   return "";
 }
 
-function success(data, message = "요청이 성공했습니다.") {
-  return json({ ok: true, data, message });
+function success(data, message = "요청이 성공했습니다.", init = {}) {
+  return json({ ok: true, data, message }, init);
 }
 
 function failure(status, code, message, debugMessage, extras = {}, errorDetails) {
@@ -127,6 +128,22 @@ function sleep(ms) {
   const delay = Number(ms);
   if (!Number.isFinite(delay) || delay <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
+function isProductionRuntime(env) {
+  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
+  if (nodeEnv === "production") return true;
+
+  const appEnv = String(env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "").trim().toLowerCase();
+  return appEnv === "prod" || appEnv === "production";
+}
+
+function logCoinGateResult(payload) {
+  try {
+    console.log("[worker-billing-coin-gate]", JSON.stringify(payload));
+  } catch {
+    console.log("[worker-billing-coin-gate]", payload);
+  }
 }
 
 async function consumeCoinWithRetry(request, env, delegatedBody) {
@@ -371,16 +388,52 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   if (!delegatedResponse.ok) {
     const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
+    logCoinGateResult({
+      status: "failed",
+      requestId,
+      featureKey: String(pricing?.featureKey || ""),
+      responseStatus: Number(delegatedResponse.status || 0),
+      code: mapped.code,
+      delegatedCode: String(toCode(payload) || ""),
+      hasPremiumAccessToken: Boolean(String(payload?.premiumAccessToken || "").trim()),
+      transactionId: String(payload?.transactionId || ""),
+    });
     return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
   }
 
   const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
+  const premiumAccessToken = String(
+    payload?.premiumAccessToken
+    || payload?.data?.premiumAccessToken
+    || "",
+  ).trim();
+  const responseHeaders = new Headers();
+  const delegatedCookie = String(delegatedResponse.headers?.get("set-cookie") || "").trim();
+  if (delegatedCookie) responseHeaders.append("Set-Cookie", delegatedCookie);
+  if (premiumAccessToken) {
+    responseHeaders.append("Set-Cookie", buildPremiumAccessCookie(premiumAccessToken, isProductionRuntime(env)));
+  }
+
+  logCoinGateResult({
+    status: "ok",
+    requestId,
+    featureKey: String(pricing?.featureKey || ""),
+    responseStatus: Number(delegatedResponse.status || 200),
+    hasPremiumAccessToken: Boolean(premiumAccessToken),
+    transactionId: String(payload?.transactionId || ""),
+    chargedCoins: Number(payload?.chargedCoins || payload?.delta || payload?.deductedAmount || 0),
+    balance: Number.isFinite(balance) ? balance : null,
+  });
+
   return success({
     pricing,
     consume: payload,
+    premiumAccessToken: premiumAccessToken || null,
     balance: Number.isFinite(balance) ? balance : null,
     user: payload?.user || null,
-  }, toMessage(payload, "코인 결제가 완료되었습니다."));
+  }, toMessage(payload, "코인 결제가 완료되었습니다."), {
+    headers: responseHeaders,
+  });
 }
 
 async function handleFeatures(request) {
