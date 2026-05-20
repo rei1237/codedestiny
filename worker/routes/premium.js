@@ -1155,6 +1155,9 @@ const REPORT_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const PREMIUM_REPORT_CONTEXT_STORE = new Map();
 const PREMIUM_REPORT_CONTEXT_INDEX = new Map();
 const PREMIUM_REPORT_CONTEXT_TTL_MS = REPORT_SESSION_TTL_MS;
+const PREMIUM_ANALYSIS_SNAPSHOT_STORE = new Map();
+const PREMIUM_ANALYSIS_SNAPSHOT_INDEX = new Map();
+const PREMIUM_ANALYSIS_SNAPSHOT_TTL_MS = PREMIUM_REPORT_CONTEXT_TTL_MS;
 const ZIWEI_BASIC_RESULT_CACHE = new Map();
 const ZIWEI_BASIC_RESULT_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
 const LEGACY_ZIWEI_REQUEST_INDEX = new Map();
@@ -1418,6 +1421,18 @@ function prunePremiumReportContexts() {
     if (!ctx || Number(ctx.expiresAt || 0) <= now) {
       PREMIUM_REPORT_CONTEXT_STORE.delete(sessionId);
       if (ctx?.cacheKey) PREMIUM_REPORT_CONTEXT_INDEX.delete(ctx.cacheKey);
+      const snapshotId = String(ctx?.analysisSnapshot?.snapshotId || "").trim();
+      if (snapshotId) {
+        PREMIUM_ANALYSIS_SNAPSHOT_STORE.delete(snapshotId);
+        PREMIUM_ANALYSIS_SNAPSHOT_INDEX.delete(snapshotId);
+      }
+    }
+  }
+
+  for (const [snapshotId, snapshot] of PREMIUM_ANALYSIS_SNAPSHOT_STORE.entries()) {
+    if (!snapshot || Number(snapshot.expiresAt || 0) <= now) {
+      PREMIUM_ANALYSIS_SNAPSHOT_STORE.delete(snapshotId);
+      PREMIUM_ANALYSIS_SNAPSHOT_INDEX.delete(snapshotId);
     }
   }
 }
@@ -1676,8 +1691,10 @@ function buildPremiumContextSummary(context) {
   const validChapters = countPremiumValidChapters(context);
   const canonicalJson = context?.coreData?.canonicalJson || {};
   const dataMarkers = canonicalJson?.dataMarkers || {};
+  const snapshotId = String(context?.analysisSnapshot?.snapshotId || context?.derivedData?.analysisSnapshotId || "").trim();
   return {
     reportSessionId: context.reportSessionId,
+    snapshotId,
     reportId: context.reportId,
     reportType: context.reportType,
     featureType: context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "",
@@ -1702,9 +1719,227 @@ function buildPremiumContextSummary(context) {
       payloadMissingCount: Number(dataMarkers?.payloadMissingCount || 0),
     },
     blockingReasons: Array.isArray(canonicalJson?.blockingReasons) ? canonicalJson.blockingReasons : [],
+    preflightQualityScore: Number(context?.preflight?.qualityScore || 0),
     status: context.status,
     createdAt: context.createdAt,
     updatedAt: context.updatedAt,
+  };
+}
+
+function buildPromptSourceDataByChapter(reportType, canonicalJson, totalChapters, chapterJsonById = {}) {
+  const chapterCount = Math.max(1, Math.min(24, Number(totalChapters || 13)));
+  const result = {};
+  for (let chapterId = 1; chapterId <= chapterCount; chapterId += 1) {
+    const prebuilt = chapterJsonById?.[String(chapterId)] || null;
+    result[String(chapterId)] = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuilt);
+  }
+  return result;
+}
+
+function ensurePremiumPromptAndPdfSourceData(context) {
+  const canonicalJson = context?.coreData?.canonicalJson || {};
+  context.derivedData = context.derivedData || {};
+  context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
+  const totalChapters = Number(context?.requiredChapters || context?.totalChapters || 13);
+
+  for (let chapterId = 1; chapterId <= totalChapters; chapterId += 1) {
+    if (!context.derivedData.chapterJsonById[String(chapterId)]) {
+      context.derivedData.chapterJsonById[String(chapterId)] = buildChapterJsonPacks(
+        context.reportType,
+        chapterId,
+        canonicalJson,
+      );
+    }
+  }
+
+  context.derivedData.promptSourceDataByChapter = buildPromptSourceDataByChapter(
+    context.reportType,
+    canonicalJson,
+    totalChapters,
+    context.derivedData.chapterJsonById,
+  );
+
+  context.derivedData.pdfSourceData = {
+    reportType: context.reportType,
+    reportId: context.reportId,
+    reportPayload: canonicalJson?.reportPayload || canonicalJson?.calculatedData || {},
+    calculatedData: canonicalJson?.calculatedData || {},
+    interpretationSeed: canonicalJson?.interpretationSeed || {},
+    chapterData: canonicalJson?.chapterData || {},
+    chapterJsonById: context.derivedData.chapterJsonById,
+  };
+}
+
+function buildPremiumChapterPreflightChecks(context) {
+  const canonicalJson = context?.coreData?.canonicalJson || {};
+  const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) ? context.derivedData.chapterPlan : [];
+  const chapterCount = Math.max(1, Number(context?.requiredChapters || context?.totalChapters || 13));
+  const checks = [];
+
+  for (let chapterId = 1; chapterId <= chapterCount; chapterId += 1) {
+    const chapterKey = `ch${chapterId}`;
+    const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
+    const planMeta = chapterPlan[chapterId - 1] || {};
+    const requiredDataKeys = Array.isArray(chapterMeta?.requiredPaths) ? chapterMeta.requiredPaths : [];
+    const missingFields = requiredDataKeys.filter((path) => pathMissing(canonicalJson, path));
+    const requiredCount = requiredDataKeys.length;
+    const satisfiedCount = Math.max(0, requiredCount - missingFields.length);
+    const chapterQualityScore = requiredCount > 0
+      ? Math.round((satisfiedCount / requiredCount) * 100)
+      : 100;
+
+    checks.push({
+      chapterId,
+      chapterKey,
+      chapterTitle: String(chapterMeta?.chapterTitle || planMeta?.title || `Chapter ${chapterId}`),
+      requiredDataKeys,
+      missingFields,
+      requiredCount,
+      satisfiedCount,
+      chapterQualityScore,
+      canGenerate: missingFields.length === 0,
+    });
+  }
+
+  return checks;
+}
+
+function buildPremiumPreflightResult(context) {
+  ensurePremiumPromptAndPdfSourceData(context);
+  const canonicalJson = context?.coreData?.canonicalJson || {};
+  const rawEngineResult = context?.derivedData?.rawEngineResult || null;
+  const promptSourceData = context?.derivedData?.promptSourceDataByChapter || {};
+  const pdfSourceData = context?.derivedData?.pdfSourceData || {};
+  const chapterChecks = buildPremiumChapterPreflightChecks(context);
+  const blockedChapters = chapterChecks.filter((row) => !row.canGenerate);
+  const creatableChapterCount = chapterChecks.length - blockedChapters.length;
+  const chapterAvailabilityRatio = chapterChecks.length > 0
+    ? creatableChapterCount / chapterChecks.length
+    : 0;
+  const canonicalScore = Number(canonicalJson?.completenessScore || 0);
+  const hasRawEngineResult = hasMeaningfulValue(rawEngineResult);
+  const hasPromptSourceData = hasMeaningfulValue(promptSourceData);
+  const hasPdfSourceData = hasMeaningfulValue(pdfSourceData?.calculatedData || pdfSourceData?.reportPayload);
+  const minQualityScore = 80;
+  const qualityScore = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        canonicalScore * 0.5
+        + chapterAvailabilityRatio * 40
+        + (hasRawEngineResult ? 5 : 0)
+        + (hasPromptSourceData ? 3 : 0)
+        + (hasPdfSourceData ? 2 : 0),
+      ),
+    ),
+  );
+
+  const missingSummary = [];
+  if (!hasRawEngineResult) missingSummary.push("rawEngineResult");
+  if (!hasPromptSourceData) missingSummary.push("promptSourceData");
+  if (!hasPdfSourceData) missingSummary.push("pdfSourceData");
+  blockedChapters.forEach((row) => {
+    row.missingFields.forEach((field) => {
+      missingSummary.push(`chapter:${row.chapterId}:${field}`);
+    });
+  });
+
+  return {
+    ok: hasRawEngineResult
+      && hasPromptSourceData
+      && hasPdfSourceData
+      && blockedChapters.length === 0
+      && qualityScore >= minQualityScore,
+    reportType: context?.reportType || "",
+    featureType: context?.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context?.reportType] || "",
+    qualityScore,
+    minQualityScore,
+    hasRawEngineResult,
+    hasPromptSourceData,
+    hasPdfSourceData,
+    totalChapters: chapterChecks.length,
+    creatableChapterCount,
+    blockedChapterCount: blockedChapters.length,
+    chapterChecks,
+    blockedChapters,
+    missingSummary: Array.from(new Set(missingSummary)),
+  };
+}
+
+function upsertPremiumAnalysisSnapshot(context, rawEngineResult = null) {
+  const snapshotIdBase = String(context?.analysisSnapshot?.snapshotId || context?.derivedData?.analysisSnapshotId || "").trim();
+  const snapshotId = snapshotIdBase || `pas_${stableHash(`${context.reportSessionId}|${context.inputHash}|${context.calculationVersion}`).slice(0, 18)}`;
+  const nowIso = new Date().toISOString();
+
+  context.derivedData = context.derivedData || {};
+  if (rawEngineResult && typeof rawEngineResult === "object") {
+    context.derivedData.rawEngineResult = rawEngineResult;
+  } else if (!context.derivedData.rawEngineResult) {
+    context.derivedData.rawEngineResult = context?.coreData?.canonicalJson?.reportPayload || null;
+  }
+
+  const preflight = buildPremiumPreflightResult(context);
+  const nextSnapshot = {
+    snapshotId,
+    reportSessionId: context.reportSessionId,
+    reportId: context.reportId,
+    userId: context.userId,
+    reportType: context.reportType,
+    featureType: context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "",
+    rawEngineResult: context?.derivedData?.rawEngineResult || null,
+    normalizedResult: context?.coreData?.canonicalJson?.calculatedData || {},
+    promptSourceData: context?.derivedData?.promptSourceDataByChapter || {},
+    pdfSourceData: context?.derivedData?.pdfSourceData || {},
+    preflight,
+    createdAt: PREMIUM_ANALYSIS_SNAPSHOT_STORE.get(snapshotId)?.createdAt || nowIso,
+    updatedAt: nowIso,
+    expiresAt: Date.now() + PREMIUM_ANALYSIS_SNAPSHOT_TTL_MS,
+  };
+
+  PREMIUM_ANALYSIS_SNAPSHOT_STORE.set(snapshotId, nextSnapshot);
+  PREMIUM_ANALYSIS_SNAPSHOT_INDEX.set(snapshotId, context.reportSessionId);
+
+  context.analysisSnapshot = {
+    snapshotId,
+    createdAt: nextSnapshot.createdAt,
+    updatedAt: nextSnapshot.updatedAt,
+  };
+  context.derivedData.analysisSnapshotId = snapshotId;
+  context.preflight = {
+    ...preflight,
+    snapshotId,
+    executedAt: nowIso,
+  };
+
+  return context.analysisSnapshot;
+}
+
+function resolvePremiumContextBySessionOrSnapshot(reportSessionIdInput, snapshotIdInput) {
+  const requestedSessionId = String(reportSessionIdInput || "").trim();
+  const requestedSnapshotId = String(snapshotIdInput || "").trim();
+
+  let reportSessionId = requestedSessionId;
+  if (!reportSessionId && requestedSnapshotId) {
+    reportSessionId = String(
+      PREMIUM_ANALYSIS_SNAPSHOT_INDEX.get(requestedSnapshotId)
+      || PREMIUM_ANALYSIS_SNAPSHOT_STORE.get(requestedSnapshotId)?.reportSessionId
+      || "",
+    ).trim();
+  }
+
+  const context = reportSessionId ? PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) : null;
+  const resolvedSnapshotId = String(
+    requestedSnapshotId
+    || context?.analysisSnapshot?.snapshotId
+    || context?.derivedData?.analysisSnapshotId
+    || "",
+  ).trim();
+
+  return {
+    reportSessionId,
+    snapshotId: resolvedSnapshotId,
+    context,
   };
 }
 
@@ -4218,7 +4453,29 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
   };
 }
 
-function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
+function flattenPromptDataLines(source, prefix = "", out = [], depth = 0) {
+  if (!source || typeof source !== "object" || depth > 4 || out.length >= 80) return out;
+  const entries = Object.entries(source);
+  for (let i = 0; i < entries.length; i += 1) {
+    if (out.length >= 80) break;
+    const [key, value] = entries[i];
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value == null) continue;
+    if (Array.isArray(value)) {
+      if (!value.length) continue;
+      out.push(`${path}: ${JSON.stringify(value).slice(0, 260)}`);
+      continue;
+    }
+    if (typeof value === "object") {
+      flattenPromptDataLines(value, path, out, depth + 1);
+      continue;
+    }
+    out.push(`${path}: ${String(value)}`);
+  }
+  return out;
+}
+
+function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
   const chapterKey = `ch${Number(chapterId || 0)}`;
   const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
   const requiredPaths = Array.isArray(chapterMeta.requiredPaths) ? chapterMeta.requiredPaths : [];
@@ -4236,61 +4493,44 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
     loveSecret: { fortuneLabel: "연애 비책 프리미엄 PDF" },
     sajuNewYear: { fortuneLabel: "신년운세 프리미엄 PDF" },
   };
-
-  const flattenPromptDataLines = (source, prefix = "") => {
-    if (!source || typeof source !== "object") return [];
-    const lines = [];
-    const entries = Object.entries(source);
-    for (let i = 0; i < entries.length; i += 1) {
-      const [key, value] = entries[i];
-      const path = prefix ? `${prefix}.${key}` : key;
-      if (value == null) continue;
-      if (Array.isArray(value)) {
-        if (!value.length) continue;
-        lines.push(`${path}: ${JSON.stringify(value).slice(0, 260)}`);
-        continue;
-      }
-      if (typeof value === "object") {
-        lines.push(...flattenPromptDataLines(value, path));
-        continue;
-      }
-      lines.push(`${path}: ${String(value)}`);
-    }
-    return lines;
-  };
-
   const promptMeta = promptMetaByType[reportType] || { fortuneLabel: "프리미엄 PDF" };
-  const questionPromptPackage = {
-    schema: "cd-question-prompt-data-v1",
-    fortuneType: reportType,
-    fortuneLabel: promptMeta.fortuneLabel,
-    mode: canonicalJson?.input?.reportType || canonicalJson?.input?.mode || "personal",
-    chapterId: String(chapterId || ""),
-    chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
-    profile: canonicalJson?.input || canonicalJson?.calculatedData?.birthInfo || {},
-    compatibilityTarget: canonicalJson?.input?.partnerData || canonicalJson?.input?.partnerBirthData || undefined,
-    analysisResult: {
-      chapterId: String(chapterId || ""),
-      chapterDataSubset,
-      chapterJsonPacks,
-    },
-    analysisAngles: flattenPromptDataLines(chapterJsonPacks).slice(0, 14),
-    domainDataLines: flattenPromptDataLines(chapterDataSubset).slice(0, 24),
-    constraints: {
-      dataOnly: true,
-      noInferenceOutsideJson: true,
-      note: "JSON에 없는 계산 결과를 추정하지 말고 chapterJsonPacks 근거만 사용",
-    },
-  };
 
   return {
     reportType,
     chapterId: String(chapterId || ""),
     chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
-    tone: "Code:Destiny premium mystical but practical Korean tone",
     calculatedDataForThisChapter: chapterDataSubset,
     chapterJsonPacks,
-    questionPromptPackage,
+    questionPromptPackage: {
+      schema: "cd-question-prompt-data-v1",
+      fortuneType: reportType,
+      fortuneLabel: promptMeta.fortuneLabel,
+      mode: canonicalJson?.input?.reportType || canonicalJson?.input?.mode || "personal",
+      chapterId: String(chapterId || ""),
+      chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+      profile: canonicalJson?.input || canonicalJson?.calculatedData?.birthInfo || {},
+      compatibilityTarget: canonicalJson?.input?.partnerData || canonicalJson?.input?.partnerBirthData || undefined,
+      analysisResult: {
+        chapterId: String(chapterId || ""),
+        chapterDataSubset,
+        chapterJsonPacks,
+      },
+      analysisAngles: flattenPromptDataLines(chapterJsonPacks).slice(0, 14),
+      domainDataLines: flattenPromptDataLines(chapterDataSubset).slice(0, 24),
+      constraints: {
+        dataOnly: true,
+        noInferenceOutsideJson: true,
+        note: "JSON에 없는 계산 결과를 추정하지 말고 chapterJsonPacks 근거만 사용",
+      },
+    },
+  };
+}
+
+function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
+  const promptSourceData = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks);
+  return {
+    ...promptSourceData,
+    tone: "Code:Destiny premium mystical but practical Korean tone",
     globalSummary: canonicalJson?.interpretationSeed || {},
     doNotCalculate: true,
     rules: [
@@ -13774,6 +14014,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
       existing.idempotencyKey = existing.idempotencyKey || idempotencyKey;
       existing.updatedAt = new Date(now).toISOString();
       existing.expiresAt = now + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      upsertPremiumAnalysisSnapshot(existing);
       PREMIUM_REPORT_CONTEXT_STORE.set(existingSessionId, existing);
       return { ok: true, context: existing, cacheHit: true };
     }
@@ -13918,6 +14159,9 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     expiresAt: now + PREMIUM_REPORT_CONTEXT_TTL_MS,
   };
 
+  const rawEngineResult = getPremiumCanonicalFromPrepare(reportType, prepareData) || null;
+  upsertPremiumAnalysisSnapshot(context, rawEngineResult);
+
   PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
   PREMIUM_REPORT_CONTEXT_INDEX.set(cacheKey, reportSessionId);
 
@@ -14002,11 +14246,12 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   const context = prepared.context;
   context.requestId = requestId;
   context.featureType = context.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "";
+  const snapshot = upsertPremiumAnalysisSnapshot(context);
   const summary = buildPremiumContextSummary(context);
   const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) && context.derivedData.chapterPlan.length
     ? context.derivedData.chapterPlan
     : (getPremiumSpecByReportType(context.reportType, context.modeKey)?.chapters || []);
-  const allowFailOpen = isPremiumFailOpenReportType(context.reportType);
+  const allowFailOpen = false;
   const receivedKeys = collectReceivedKeys(requestBody);
   const expectedSchema = getPremiumExpectedSchema(context.reportType);
   const normalizedDataSummary = getPremiumNormalizedDataSummary(context.reportType, context?.coreData?.canonicalJson || {});
@@ -14031,17 +14276,21 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
 
   if (!context.isCompleteForPdf && !allowFailOpen) {
     const missingFields = Array.isArray(summary.missingData) ? summary.missingData : [];
+    const preflight = context.preflight || buildPremiumPreflightResult(context);
     return json({
       ok: false,
       code: getPremiumDataIncompleteCode(context.reportType),
       normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-      message: "보고서 생성에 필요한 입력값 정합성 점검이 필요합니다. 생년월일/시간/성별/양력·음력을 확인해 주세요.",
+      message: `${context.reportType} preflight에서 챕터별 필수 데이터 누락이 감지되었습니다.`,
       requestId,
       reportType: context.reportType,
       featureType: context.featureType,
       generationId: summary.reportSessionId,
       reportSessionId: summary.reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
       chapterPlan,
+      preflight,
+      blockedChapters: Array.isArray(preflight?.blockedChapters) ? preflight.blockedChapters : [],
       normalizedDataSummary,
       missingFields,
       missingData: missingFields,
@@ -14060,9 +14309,11 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     cacheHit: Boolean(prepared.cacheHit),
     requestId,
     generationId: summary.reportSessionId,
+    snapshotId: snapshot?.snapshotId || context?.analysisSnapshot?.snapshotId || "",
     featureType: context.featureType,
     failOpenMode: allowFailOpen,
     canonicalReady: Boolean(context.isCompleteForPdf),
+    preflight: context.preflight || null,
     ...summary,
     chapterPlan,
     normalizedDataSummary,
@@ -14071,6 +14322,73 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     derivedData: context.derivedData,
     chapterData: context.chapterData,
   });
+}
+
+async function handlePremiumReportPreflight(request, env, authInfo) {
+  const body = await readJson(request);
+  const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|preflight`);
+  if (!String(body.reportSessionId || "").trim() && !String(body.snapshotId || "").trim()) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_REQUIRED",
+      message: "reportSessionId 또는 snapshotId가 필요합니다.",
+      requestId,
+    }, { status: 400 });
+  }
+  const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
+  const reportSessionId = resolved.reportSessionId;
+  const snapshotId = resolved.snapshotId;
+  const context = resolved.context;
+
+  if (!reportSessionId || !context) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_FOUND",
+      message: "reportSessionId 또는 snapshotId에 해당하는 리포트 세션을 찾을 수 없습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId,
+    }, { status: 404 });
+  }
+
+  if (String(context.userId) !== String(authInfo.userId)) {
+    return json({
+      ok: false,
+      code: "UNAUTHORIZED",
+      message: "다른 사용자의 리포트 세션입니다.",
+      requestId,
+      reportSessionId,
+      snapshotId,
+    }, { status: 401 });
+  }
+
+  const resolvedSnapshot = upsertPremiumAnalysisSnapshot(context);
+  context.updatedAt = new Date().toISOString();
+  context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+  PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+
+  const preflight = context.preflight || buildPremiumPreflightResult(context);
+  const responsePayload = {
+    ok: Boolean(preflight.ok),
+    requestId,
+    reportSessionId,
+    snapshotId: resolvedSnapshot?.snapshotId || snapshotId || "",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    preflight,
+  };
+
+  if (!preflight.ok) {
+    return json({
+      ...responsePayload,
+      code: "PREMIUM_REPORT_PREFLIGHT_FAILED",
+      message: "PDF 생성 preflight 검증에 실패했습니다. 누락 데이터를 먼저 보강하세요.",
+      missingFields: Array.isArray(preflight.missingSummary) ? preflight.missingSummary : [],
+      blockedChapters: Array.isArray(preflight.blockedChapters) ? preflight.blockedChapters : [],
+    }, { status: 422 });
+  }
+
+  return json(responsePayload);
 }
 
 async function handlePremiumReportSessionRead(request, env, authInfo, reportSessionId) {
@@ -14084,9 +14402,12 @@ async function handlePremiumReportSessionRead(request, env, authInfo, reportSess
   }
 
   const summary = buildPremiumContextSummary(context);
+  const snapshotId = String(context?.analysisSnapshot?.snapshotId || context?.derivedData?.analysisSnapshotId || "").trim();
   return json({
     ok: true,
     ...summary,
+    snapshotId,
+    preflight: context?.preflight || null,
     input: context.input,
     coreData: context.coreData,
     derivedData: context.derivedData,
@@ -14097,21 +14418,48 @@ async function handlePremiumReportSessionRead(request, env, authInfo, reportSess
 async function handlePremiumReportChapter(request, env, authInfo) {
   const body = await readJson(request);
   const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|chapter`);
-  const reportSessionId = String(body.reportSessionId || "").trim();
-  if (!reportSessionId) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
+  if (!String(body.reportSessionId || "").trim() && !String(body.snapshotId || "").trim()) {
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId 또는 snapshotId가 필요합니다.", requestId }, { status: 400 });
   }
-
   prunePremiumReportContexts();
-  const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
-  if (!context) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
+  const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
+  const reportSessionId = resolved.reportSessionId;
+  const context = resolved.context;
+  const snapshotId = resolved.snapshotId;
+  if (!reportSessionId || !context) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_FOUND",
+      message: "reportSessionId 또는 snapshotId에 해당하는 리포트 세션을 찾을 수 없습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId,
+    }, { status: 404 });
   }
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
   context.requestId = requestId;
-  const allowFailOpen = isPremiumFailOpenReportType(context.reportType);
+  const allowFailOpen = false;
+
+  upsertPremiumAnalysisSnapshot(context);
+  const preflight = context.preflight || buildPremiumPreflightResult(context);
+  if (!preflight.ok) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_PREFLIGHT_FAILED",
+      normalizedCode: "PDF_REPORT_PREFLIGHT_FAILED",
+      message: "PDF 생성 preflight 검증을 통과하지 못했습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      reportType: context.reportType,
+      featureType: context.featureType,
+      missingFields: Array.isArray(preflight.missingSummary) ? preflight.missingSummary : [],
+      blockedChapters: Array.isArray(preflight.blockedChapters) ? preflight.blockedChapters : [],
+      preflight,
+    }, { status: 422 });
+  }
 
   const applyHydrationToContext = (hydrated) => {
     if (!hydrated?.canonicalBuild || !hydrated?.prepareData) return false;
@@ -14159,6 +14507,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     context.warnings = warnings;
     context.isCompleteForPdf = missingData.length === 0 && Boolean(canonicalBuild.validation?.canGeneratePdf);
     context.status = context.isCompleteForPdf ? "ready" : "needs-data";
+    const rawEngineResult = getPremiumCanonicalFromPrepare(context.reportType, hydrated.prepareData) || null;
+    upsertPremiumAnalysisSnapshot(context, rawEngineResult);
     return true;
   };
 
@@ -14241,6 +14591,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         ok: true,
         requestId,
         reportSessionId,
+        snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
         chapterId,
         cached: true,
         text: cachedText,
@@ -14284,13 +14635,19 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   if (chapterMissing.length > 0 && !allowFailOpen) {
+    const chapterTitle = String(context?.coreData?.canonicalJson?.chapterData?.[chapterKey]?.chapterTitle || `Chapter ${chapterId}`);
     return json({
       ok: false,
       code: "PREMIUM_REPORT_CHAPTER_DATA_MISSING",
       normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-      message: "해당 챕터 생성에 필요한 계산 데이터 정합성 점검이 필요합니다.",
+      message: `챕터 데이터가 부족하여 생성을 중단합니다. (${context.reportType} / ${chapterKey})`,
       requestId,
+      reportType: context.reportType,
+      featureType: context.featureType,
       chapterId,
+      chapterKey,
+      chapterTitle,
+      requiredDataKeys: chapterRequiredPaths,
       missingFields: chapterMissing,
       missingData: chapterMissing,
     }, { status: 422 });
@@ -14520,6 +14877,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       status,
       requestId,
       reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
       chapterId,
       attemptsUsed: maxChapterAttempts,
       maxChapterAttempts,
@@ -14575,6 +14933,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     ok: true,
     requestId,
     reportSessionId,
+    snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
     chapterId,
     featureType: context.featureType,
     attemptsUsed: successAttempt,
@@ -14587,18 +14946,45 @@ async function handlePremiumReportChapter(request, env, authInfo) {
 async function handlePremiumReportRun(request, env, authInfo) {
   const body = await readJson(request);
   const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|run`);
-  const reportSessionId = String(body.reportSessionId || "").trim();
-  if (!reportSessionId) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
+  if (!String(body.reportSessionId || "").trim() && !String(body.snapshotId || "").trim()) {
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId 또는 snapshotId가 필요합니다.", requestId }, { status: 400 });
   }
-
   prunePremiumReportContexts();
-  let context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
-  if (!context) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
+  const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
+  const reportSessionId = resolved.reportSessionId;
+  const snapshotId = resolved.snapshotId;
+  let context = resolved.context;
+  if (!reportSessionId || !context) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_FOUND",
+      message: "reportSessionId 또는 snapshotId에 해당하는 리포트 세션을 찾을 수 없습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId,
+    }, { status: 404 });
   }
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
+  }
+
+  upsertPremiumAnalysisSnapshot(context);
+  const preflight = context.preflight || buildPremiumPreflightResult(context);
+  if (!preflight.ok) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_PREFLIGHT_FAILED",
+      normalizedCode: "PDF_REPORT_PREFLIGHT_FAILED",
+      message: "preflight 실패로 PDF 생성을 중단했습니다. 결제/코인 차감 전에 누락 데이터를 보강하세요.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      reportType: context.reportType,
+      featureType: context.featureType,
+      missingFields: Array.isArray(preflight.missingSummary) ? preflight.missingSummary : [],
+      blockedChapters: Array.isArray(preflight.blockedChapters) ? preflight.blockedChapters : [],
+      preflight,
+    }, { status: 422 });
   }
 
   const requiredChapters = Number(context.requiredChapters || context.totalChapters || 13);
@@ -14680,6 +15066,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
   }
 
   context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || context;
+  upsertPremiumAnalysisSnapshot(context);
   const validChapters = countPremiumValidChapters(context);
   const missingChapterIds = [];
   for (let chapterId = 1; chapterId <= requiredChapters; chapterId += 1) {
@@ -14724,8 +15111,10 @@ async function handlePremiumReportRun(request, env, authInfo) {
     ok: failed.length === 0,
     requestId,
     reportSessionId,
+    snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
     reportType: context.reportType,
     featureType: context.featureType,
+    preflight,
     range: {
       startChapter,
       endChapter,
@@ -14750,20 +15139,47 @@ async function handlePremiumReportRun(request, env, authInfo) {
 async function handlePremiumReportPdf(request, env, authInfo) {
   const body = await readJson(request);
   const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|pdf`);
-  const reportSessionId = String(body.reportSessionId || "").trim();
-  if (!reportSessionId) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId가 필요합니다.", requestId }, { status: 400 });
+  if (!String(body.reportSessionId || "").trim() && !String(body.snapshotId || "").trim()) {
+    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_REQUIRED", message: "reportSessionId 또는 snapshotId가 필요합니다.", requestId }, { status: 400 });
   }
-
   prunePremiumReportContexts();
-  const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
-  if (!context) {
-    return json({ ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", message: "reportSessionId를 찾을 수 없습니다.", requestId }, { status: 404 });
+  const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
+  const reportSessionId = resolved.reportSessionId;
+  const snapshotId = resolved.snapshotId;
+  const context = resolved.context;
+  if (!reportSessionId || !context) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_FOUND",
+      message: "reportSessionId 또는 snapshotId에 해당하는 리포트 세션을 찾을 수 없습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId,
+    }, { status: 404 });
   }
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
   context.requestId = requestId;
+
+  upsertPremiumAnalysisSnapshot(context);
+  const preflight = context.preflight || buildPremiumPreflightResult(context);
+  if (!preflight.ok) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_PREFLIGHT_FAILED",
+      normalizedCode: "PDF_REPORT_PREFLIGHT_FAILED",
+      message: "preflight 실패로 PDF 렌더링을 중단했습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      reportType: context.reportType,
+      featureType: context.featureType,
+      missingFields: Array.isArray(preflight.missingSummary) ? preflight.missingSummary : [],
+      blockedChapters: Array.isArray(preflight.blockedChapters) ? preflight.blockedChapters : [],
+      preflight,
+    }, { status: 422 });
+  }
 
   const chapterEntries = Object.values(context.chapterData || {});
   const validEntries = chapterEntries.filter((entry) => isPremiumChapterEntryReadyForPdf(entry));
@@ -14886,6 +15302,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   context.status = "pdf-ready";
   context.updatedAt = new Date().toISOString();
   context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+  upsertPremiumAnalysisSnapshot(context);
   PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
 
   logPremiumPipeline({
@@ -14908,6 +15325,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
     ready: true,
     requestId,
     reportSessionId,
+    snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
     reportId: context.reportId,
     reportType: context.reportType,
     featureType: context.featureType,
@@ -14927,6 +15345,9 @@ export async function handlePremiumReportRoutes(request, env) {
 
     if (method === "POST" && url.pathname === "/api/premium-report/prepare") {
       return await handlePremiumReportPrepare(request, env, authInfo);
+    }
+    if (method === "POST" && url.pathname === "/api/premium-report/preflight") {
+      return await handlePremiumReportPreflight(request, env, authInfo);
     }
     if (method === "GET" && sessionId) {
       return await handlePremiumReportSessionRead(request, env, authInfo, sessionId);

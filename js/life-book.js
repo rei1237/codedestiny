@@ -4,6 +4,7 @@
   var TOTAL_CHAPTERS = 13;
   var COST_COINS = 500;
   var COIN_REASON = '인생의 책 생성 (13챕터)';
+  var COIN_FEATURE_KEY = 'premium_pdf_saju_life_book';
   var API_TIMEOUT_MS = 140000;
   var LIFEBOOK_MIN_TOTAL_CHARS = 65500;
   var LIFEBOOK_STATE_STORAGE_KEY = '__cd_lifebook_state_v3__';
@@ -759,7 +760,7 @@
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           cost: Number(ctx.cost),
-          featureKey: String(ctx.featureKey || 'coin-gate-per-use'),
+          featureKey: String(ctx.featureKey || COIN_FEATURE_KEY),
           sourceTransactionId: String(ctx.sourceTransactionId || ''),
           requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
           reason: String(reason || '인생의 책 PDF 생성 실패 자동 환불')
@@ -816,7 +817,7 @@
         COIN_REASON,
         function (transactionId) {
           state.paymentContext = {
-            featureKey: 'coin-gate-per-use',
+            featureKey: COIN_FEATURE_KEY,
             cost: Number(COST_COINS || 0),
             sourceTransactionId: String(transactionId || ''),
             requestId: String(('lifebook:' + (state.reportId || Date.now())).slice(0, 120))
@@ -825,7 +826,8 @@
           persistState();
           startLifeBookGeneration();
         },
-        function () {}
+        function () {},
+        { featureKey: COIN_FEATURE_KEY }
       );
       return;
     }

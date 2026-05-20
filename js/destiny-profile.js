@@ -1278,7 +1278,13 @@
    * @param {string} reason 기능명 (알림 문구용)
    * @param {Function} cb   성공 시 호출할 콜백
    */
-  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
+  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
+    if (!options && onCancel && typeof onCancel === 'object' && typeof cb === 'function') {
+      options = onCancel;
+      onCancel = undefined;
+    }
+    var optionBag = (options && typeof options === 'object') ? options : {};
+    var normalizedFeatureKey = String(optionBag.featureKey || '').trim() || 'coin-gate-per-use';
     var now = Date.now();
     var lockAt = Number(window.__cdCoinGatePerUseLockAt || 0);
     var lockAgeMs = lockAt > 0 ? (now - lockAt) : 0;
@@ -1298,7 +1304,7 @@
       return;
     }
 
-    var dedupeKey = String(reason || '') + '|' + String(cost || 0);
+    var dedupeKey = normalizedFeatureKey + '|' + String(reason || '') + '|' + String(cost || 0);
     var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
     // ⚠️ Dedup 타임아웃을 2.5초로 증가 (우회 시간 제거)
     if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 2500)) {
@@ -1340,7 +1346,7 @@
       headers: consumeHeaders,
       credentials: 'include',
       cache: 'no-store',
-      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'coin-gate-per-use', forceDeduct: true, requestId: requestId })
+      body: JSON.stringify({ cost: cost, reason: reason, featureKey: normalizedFeatureKey, forceDeduct: true, requestId: requestId })
     }, {
       retryOn401: true,
       timeoutMs: _DP_FETCH_TIMEOUT_MS,

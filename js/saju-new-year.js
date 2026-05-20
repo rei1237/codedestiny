@@ -4,6 +4,7 @@
   var TOTAL_CHAPTERS = 10;
   var COST_COINS = 300;
   var COIN_REASON = '사주 신년운세 PDF 리포트 생성';
+  var COIN_FEATURE_KEY = 'premium_pdf_saju_new_year';
   var API_TIMEOUT_MS = 140000;
   var STATE_STORAGE_KEY = '__cd_saju_new_year_state_v1__';
   var NEW_YEAR_COVER_IMAGE = '/fuctionassets/신년운세.webp?v=20260519-ny-cover';
@@ -637,7 +638,7 @@
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           cost: Number(ctx.cost),
-          featureKey: String(ctx.featureKey || 'coin-gate-per-use'),
+          featureKey: String(ctx.featureKey || COIN_FEATURE_KEY),
           sourceTransactionId: String(ctx.sourceTransactionId || ''),
           requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
           reason: String(reason || '신년운세 PDF 생성 실패 자동 환불')
@@ -782,7 +783,7 @@
         COIN_REASON,
         function (transactionId) {
           state.paymentContext = {
-            featureKey: 'coin-gate-per-use',
+            featureKey: COIN_FEATURE_KEY,
             cost: Number(COST_COINS || 0),
             sourceTransactionId: String(transactionId || ''),
             requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120))
@@ -791,7 +792,8 @@
           persistState();
           startNewYearGeneration();
         },
-        function () {}
+        function () {},
+        { featureKey: COIN_FEATURE_KEY }
       );
       return;
     }

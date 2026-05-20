@@ -18,6 +18,11 @@
     compatibility: '연애 비책 생성 (13챕터 · 궁합)',
   };
 
+  var MODE_FEATURE_KEY = {
+    solo: 'premium_pdf_saju_love_secret',
+    compatibility: 'premium_pdf_saju_love_secret_compat',
+  };
+
   var QUOTES = [
     '사주의 여덟 글자에서 사랑의 반복 패턴을 해독하는 중입니다...',
     '일간·배우자궁·오행 불균형을 정밀 교차분석하는 중입니다...',
@@ -1063,7 +1068,7 @@
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           cost: Number(ctx.cost),
-          featureKey: String(ctx.featureKey || 'coin-gate-per-use'),
+          featureKey: String(ctx.featureKey || MODE_FEATURE_KEY[state.mode] || MODE_FEATURE_KEY[MODE_SOLO]),
           sourceTransactionId: String(ctx.sourceTransactionId || ''),
           requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
           reason: String(reason || '연애 비책 PDF 생성 실패 자동 환불')
@@ -1110,6 +1115,7 @@
 
     var cost = mode === MODE_COMPAT ? MODE_COST.compatibility : MODE_COST.solo;
     var reason = mode === MODE_COMPAT ? MODE_REASON.compatibility : MODE_REASON.solo;
+    var featureKey = mode === MODE_COMPAT ? MODE_FEATURE_KEY.compatibility : MODE_FEATURE_KEY.solo;
 
     function finalizeCoinGatePending() {
       state.coinGatePending = false;
@@ -1126,7 +1132,7 @@
         function (transactionId) {
           finalizeCoinGatePending();
           state.paymentContext = {
-            featureKey: 'coin-gate-per-use',
+            featureKey: featureKey,
             cost: Number(cost || 0),
             sourceTransactionId: String(transactionId || ''),
             requestId: String(('lovesecret:' + reportId + ':' + Date.now()).slice(0, 120))
@@ -1137,7 +1143,8 @@
         },
         function () {
           finalizeCoinGatePending();
-        }
+        },
+        { featureKey: featureKey }
       );
       return;
     }

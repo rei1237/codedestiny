@@ -30,6 +30,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "sajuNewYear") {
     return [
       {
+        featureKey: "premium_pdf_saju_new_year",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 45,
+      },
+      {
         featureKey: "premium-saju-newyear-report",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
@@ -97,7 +103,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     const isCompat = modeToken.includes("compat");
     return [
       {
-        featureKey: "premium_pdf_ziwei",
+        featureKey: isCompat ? "premium_pdf_ziwei_compat" : "premium_pdf_ziwei",
         reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
         minCost: isCompat ? 690 : 590,
         windowMinutes: 120,

@@ -49,6 +49,8 @@
   var ASTRO_COIN_FEATURE_KEY_COMPAT = 'premium-astrology-report-compat';
   var ASTRO_COIN_REASON = '점성술 프리미엄 PDF 리포트 생성';
   var ASTRO_COIN_REASON_COMPAT = '점성술 프리미엄 PDF 궁합 리포트 생성';
+  var ASTRO_PREMIUM_REPORT_TYPE = 'westernAstrologyPremium';
+  var ASTRO_PREMIUM_FEATURE_TYPE = 'astrology_premium';
 
   var ASTRO_LOADING_FLOW_PERSONAL = [
     '출생 차트의 기준 축을 정렬하고 있습니다...',
@@ -149,6 +151,73 @@
     } finally {
       if (timer) clearTimeout(timer);
     }
+  }
+
+  async function premiumAuthJson(pathname, body, options) {
+    if (typeof window.__cdPremiumAuthJson === 'function') {
+      return window.__cdPremiumAuthJson(pathname, body || {}, options || {});
+    }
+    var res = await requestJson(pathname, {
+      method: 'POST',
+      body: body || {}
+    });
+    var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
+    if (!res.ok) data.status = Number(data.status || res.status || 0);
+    return data;
+  }
+
+  function buildPreflightMessage(response, fallback) {
+    var base = String((response && response.message) || fallback || '생성 전 데이터 검증에 실패했습니다.');
+    var blocked = Array.isArray(response && response.blockedChapters) ? response.blockedChapters : [];
+    if (!blocked.length) return base;
+    var first = blocked[0] || {};
+    var title = String(first.chapterTitle || ('챕터 ' + String(first.chapterId || ''))).trim();
+    var missing = Array.isArray(first.missingFields) ? first.missingFields.filter(Boolean) : [];
+    if (!missing.length) return base;
+    return base + ' (' + title + ' · 누락: ' + missing.slice(0, 2).join(', ') + ')';
+  }
+
+  async function ensureAstroPremiumPreflight(requestBody) {
+    var prepared = null;
+    for (var attempt = 0; attempt < 3; attempt += 1) {
+      prepared = await premiumAuthJson('/api/premium-report/prepare', {
+        featureType: ASTRO_PREMIUM_FEATURE_TYPE,
+        reportType: ASTRO_PREMIUM_REPORT_TYPE,
+        requestBody: requestBody || {}
+      }, {
+        maxAttempts: 2
+      });
+      var preparedCode = String((prepared && prepared.code) || '').toUpperCase();
+      var preparedStatus = Number((prepared && prepared.status) || 0);
+      var waitForPaymentSync = !prepared || !prepared.ok
+        ? (preparedStatus === 402 || preparedCode === 'PAYMENT_REQUIRED')
+        : false;
+      if (!waitForPaymentSync) break;
+      await delay(450);
+    }
+
+    if (!prepared || !prepared.ok || !prepared.reportSessionId) {
+      return {
+        ok: false,
+        message: buildPreflightMessage(prepared, '결제 확인/세션 준비에 실패했습니다.'),
+      };
+    }
+
+    var preflight = await premiumAuthJson('/api/premium-report/preflight', {
+      reportSessionId: String(prepared.reportSessionId || ''),
+      requestId: 'astro:preflight:' + Date.now().toString(36)
+    }, {
+      maxAttempts: 2
+    });
+
+    if (!preflight || !preflight.ok) {
+      return {
+        ok: false,
+        message: buildPreflightMessage(preflight, '생성 전 데이터 점검(preflight)에서 실패했습니다.'),
+      };
+    }
+
+    return { ok: true };
   }
 
   function buildProfileFromCardRow(row) {
@@ -851,6 +920,14 @@
 
     var gateOk = await ensureAstroCoinGate(requestInput.body);
     if (!gateOk) return;
+
+    var preflight = await ensureAstroPremiumPreflight(requestInput.body);
+    if (!preflight.ok) {
+      await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
+      state.paidGateKey = '';
+      setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+      return;
+    }
 
     state.generating = true;
     state.mode = String(requestInput.body.mode || 'personal');
