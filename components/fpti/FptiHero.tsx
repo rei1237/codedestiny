@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 type Props = {
   onStart: () => void;
@@ -10,6 +10,8 @@ type Props = {
 const ELEMENTS = ["木", "火", "土", "金", "水"];
 
 export default function FptiHero({ onStart, onPreview }: Props) {
+  const reducedMotion = useReducedMotion();
+
   return (
     <section className="relative isolate overflow-hidden rounded-[32px] border border-white/15 bg-[radial-gradient(circle_at_14%_18%,rgba(124,58,237,0.34),transparent_46%),radial-gradient(circle_at_82%_22%,rgba(96,165,250,0.28),transparent_44%),radial-gradient(circle_at_60%_84%,rgba(246,211,101,0.17),transparent_52%),linear-gradient(135deg,#050617_0%,#0b1026_44%,#130a2a_100%)] p-6 text-slate-50 shadow-[0_28px_90px_rgba(4,8,28,0.62)] md:p-10">
       <div className="pointer-events-none absolute inset-0 opacity-45 [background:radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.18)_1px,transparent_1px),radial-gradient(circle_at_78%_72%,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:26px_26px,32px_32px]" />
@@ -43,7 +45,7 @@ export default function FptiHero({ onStart, onPreview }: Props) {
               onClick={onStart}
               className="rounded-full bg-[linear-gradient(120deg,#7C3AED,#4C1D95,#F6D365)] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(124,58,237,0.45)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(246,211,101,0.35)]"
             >
-              성격 유형 분석 시작하기
+              내 FPTI 확인하기
             </button>
             <button
               type="button"
@@ -58,8 +60,8 @@ export default function FptiHero({ onStart, onPreview }: Props) {
             {ELEMENTS.map((item, idx) => (
               <motion.div
                 key={item}
-                animate={{ y: [0, -4, 0], opacity: [0.82, 1, 0.82] }}
-                transition={{ duration: 3.2, repeat: Infinity, delay: idx * 0.18 }}
+                animate={reducedMotion ? { opacity: 1 } : { y: [0, -4, 0], opacity: [0.82, 1, 0.82] }}
+                transition={reducedMotion ? { duration: 0 } : { duration: 3.2, repeat: Infinity, delay: idx * 0.18 }}
                 className="rounded-xl border border-white/15 bg-white/5 py-2 backdrop-blur"
               >
                 {item}

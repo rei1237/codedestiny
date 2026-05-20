@@ -113,7 +113,7 @@ export default function FptiExperience() {
           <h2 className="text-base font-semibold text-slate-50">분석 기준</h2>
           <p className="mt-1">
             4축(기질/행동/관계/전략)은 사주 오행, 십성 분포, 월지 계절, 용신/희신 정보를 기반으로 계산됩니다.
-            기존 사주 엔진 계산값을 재사용하며, 시간 미입력 시 신뢰도 안내를 함께 제공합니다.
+            기존 사주 엔진 계산값을 재사용하는 결정론적 로직이며, 입력 누락 시에는 부분/기본 분석 품질 안내를 함께 제공합니다.
           </p>
         </section>
 

@@ -7,6 +7,7 @@ import FptiElementChart from "./FptiElementChart";
 import FptiTenGodsPanel from "./FptiTenGodsPanel";
 import FptiRelationshipCard from "./FptiRelationshipCard";
 import FptiShareCard from "./FptiShareCard";
+import FptiStrategyCard from "./FptiStrategyCard";
 
 type Props = {
   result: FptiAnalysisResult;
@@ -31,6 +32,12 @@ const AXIS_CARD_LABELS: Record<string, string> = {
   H: "Healing / 치유형",
 };
 
+const QUALITY_LABELS = {
+  full: "정밀 분석",
+  partial: "부분 정밀 분석",
+  fallback: "기본 패턴 분석",
+} as const;
+
 function AxisChip({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/12 bg-white/5 p-3">
@@ -53,18 +60,30 @@ export default function FptiResultCard({ result }: Props) {
       <div className="rounded-[28px] border border-white/15 bg-[linear-gradient(150deg,rgba(11,16,38,0.9),rgba(19,10,42,0.88))] p-5 shadow-[0_18px_50px_rgba(2,6,22,0.55)] backdrop-blur-xl md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
+            <p className="text-xs tracking-[0.2em] text-[#f6d365]">당신의 FPTI 코드</p>
             <p className="text-xs tracking-[0.2em] text-[#bfdbfe]">SAJU FPTI RESULT</p>
             <h2 className="mt-1 text-4xl font-bold text-[#F6D365] md:text-5xl">{result.code}</h2>
             <p className="mt-1 text-lg font-semibold text-slate-100">{result.typeName}</p>
             <p className="mt-2 max-w-2xl text-sm text-slate-300">{result.oneLiner}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {result.keywords.slice(0, 5).map((keyword) => (
+                <span key={keyword} className="rounded-full border border-[#e9c46a]/45 bg-[#f6d365]/10 px-3 py-1 text-xs text-[#fef3c7]">
+                  #{keyword}
+                </span>
+              ))}
+            </div>
           </div>
           <div className="rounded-2xl border border-white/15 bg-black/35 px-4 py-3 text-white">
             <p className="text-xs text-slate-300">정확도 가이드</p>
             <p className="text-2xl font-bold">{result.confidence}%</p>
+            <p className="mt-1 text-xs text-[#f6d365]">{QUALITY_LABELS[result.quality]}</p>
           </div>
         </div>
 
         <p className="mt-4 rounded-xl border border-white/12 bg-white/5 p-3 text-sm text-slate-200">{result.reliabilityMessage}</p>
+        {result.fallbackNotice && (
+          <p className="mt-2 rounded-xl border border-amber-200/25 bg-amber-400/10 p-3 text-sm text-amber-100">{result.fallbackNotice}</p>
+        )}
 
         <div className="mt-4 grid gap-2 md:grid-cols-4">
           {codeParts.map((part, idx) => (
@@ -102,15 +121,46 @@ export default function FptiResultCard({ result }: Props) {
             <li>일간: {result.evidence.dayMaster}</li>
             <li>월지: {result.evidence.monthBranch}</li>
             <li>강한 오행: {result.evidence.strongElements.join(", ")}</li>
-            <li>강한 십성: {result.evidence.strongTenGods.join(", ")} (편인: 흐름 감각, 식신: 표현 실행)</li>
+            <li>약한 오행: {result.evidence.weakElements.join(", ")}</li>
+            <li>강한 십성: {result.evidence.strongTenGods.join(", ")}</li>
             <li>성격 축: {result.axisMeanings.temperament} / {result.axisMeanings.behavior} / {result.axisMeanings.relation} / {result.axisMeanings.strategy}</li>
           </ul>
+          <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+            <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">계산 노트</p>
+            <ul className="mt-2 space-y-1 text-sm text-slate-200">
+              {result.evidence.calculationNotes.map((note) => (
+                <li key={note}>- {note}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
+          <h4 className="text-sm font-semibold text-slate-100">나를 설명하는 4가지 문장</h4>
+          <div className="mt-2 space-y-2 text-sm text-slate-200">
+            <p>{result.essenceNarrative.hook}</p>
+            <p>{result.essenceNarrative.basis}</p>
+            <p>{result.essenceNarrative.balance}</p>
+            <p>{result.essenceNarrative.strategy}</p>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
+          <h4 className="text-sm font-semibold text-slate-100">핵심 해석 요약</h4>
+          <div className="mt-2 space-y-2 text-sm text-slate-200">
+            <p>{result.elementSummary}</p>
+            <p>{result.behaviorSummary}</p>
+            <p>{result.relationshipSummary}</p>
+            <p>{result.strategySummary}</p>
+          </div>
         </section>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">나의 본질</h4>
+          <h4 className="text-sm font-semibold text-slate-100">나의 강점</h4>
           <ul className="mt-2 space-y-1 text-sm text-slate-200">
             {result.strengths.map((item) => (
               <li key={item}>- {item}</li>
@@ -125,14 +175,14 @@ export default function FptiResultCard({ result }: Props) {
             ))}
           </ul>
         </section>
-        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">운이 열리는 방향</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            {result.growthTips.map((item) => (
-              <li key={item}>- {item}</li>
-            ))}
-          </ul>
-        </section>
+
+        <FptiStrategyCard
+          strategySummary={result.strategySummary}
+          relationshipSummary={result.relationshipSummary}
+          loveSummary={result.loveSummary}
+          careerMoneySummary={result.careerMoneySummary}
+          growthTips={result.growthTips}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

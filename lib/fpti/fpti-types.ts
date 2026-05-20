@@ -54,11 +54,16 @@ export type FptiAxisCodes = {
   strategy: "B" | "G" | "P" | "H" | "S";
 };
 
+export type FptiResultQuality = "full" | "partial" | "fallback";
+
 export type FptiAnalysisResult = {
   code: string;
   typeName: string;
   oneLiner: string;
   summary: string;
+  keywords: string[];
+  quality: FptiResultQuality;
+  fallbackNotice?: string;
   confidence: number;
   reliabilityMessage: string;
   fallbackUsed: boolean;
@@ -84,6 +89,18 @@ export type FptiAnalysisResult = {
     key: "Open" | "Deep" | "Loyal" | "Free";
     description: string;
   };
+  essenceNarrative: {
+    hook: string;
+    basis: string;
+    balance: string;
+    strategy: string;
+  };
+  elementSummary: string;
+  behaviorSummary: string;
+  relationshipSummary: string;
+  strategySummary: string;
+  loveSummary: string;
+  careerMoneySummary: string;
   growthTips: string[];
   careerTips: string[];
   loveTips: string[];
@@ -93,7 +110,9 @@ export type FptiAnalysisResult = {
     dayMaster: string;
     monthBranch: string;
     strongElements: string[];
+    weakElements: string[];
     strongTenGods: string[];
     recommendedDirection: string;
+    calculationNotes: string[];
   };
 };
