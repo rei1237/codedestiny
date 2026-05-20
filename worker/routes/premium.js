@@ -1644,7 +1644,13 @@ function validateZiweiReportPayload(canonicalJson) {
     }
   });
 
-  if (!Array.isArray(payload?.cycles?.daXian) || payload.cycles.daXian.length === 0) {
+  const hasDaXian = Array.isArray(payload?.cycles?.daXian) && payload.cycles.daXian.length > 0;
+  const hasAnnual = Array.isArray(payload?.cycles?.annual)
+    ? payload.cycles.annual.length > 0
+    : hasMeaningfulValue(payload?.cycles?.annual);
+  const hasMonthly = Array.isArray(payload?.cycles?.monthly) && payload.cycles.monthly.length > 0;
+  const hasAnyCycle = hasDaXian || hasAnnual || hasMonthly;
+  if (!hasAnyCycle) {
     missingFields.push("calculatedData.cycles.daXian");
   }
 
@@ -2825,6 +2831,121 @@ function normalizeZiweiStar(star = {}) {
   };
 }
 
+function buildZiweiPalaceInterpretationSeed(palace = {}, index = 0) {
+  const source = palace && typeof palace === "object" ? palace : {};
+  const fallbackName = `궁 ${Number(index) + 1}`;
+  const palaceName = String(
+    source?.palaceNameKo
+    || source?.palaceName
+    || source?.nameKo
+    || source?.name
+    || fallbackName,
+  ).trim() || fallbackName;
+  const branch = String(source?.branch || source?.earthlyBranch || "").trim();
+  const mainStars = Array.isArray(source?.mainStars) ? source.mainStars : [];
+  const starNames = mainStars
+    .map((star) => String(star?.nameKo || star?.name || "").trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  const transforms = Array.isArray(source?.transformations)
+    ? source.transformations.map((entry) => String(entry?.type || entry?.kind || "").trim()).filter(Boolean).slice(0, 2)
+    : [];
+
+  return [
+    palaceName,
+    branch ? `${branch}궁` : "",
+    starNames.length ? `주성 ${starNames.join("/")}` : "",
+    transforms.length ? `사화 ${transforms.join("/")}` : "",
+  ].filter(Boolean).join(" | ");
+}
+
+function buildZiweiDaXianRows(canonical = {}, palacesByKey = {}) {
+  const luck = canonical?.luck && typeof canonical.luck === "object" ? canonical.luck : {};
+  const palaceMap = palacesByKey && typeof palacesByKey === "object" ? palacesByKey : {};
+  const rows = [];
+
+  const pushRow = (entry = {}, fallbackIndex = 0) => {
+    const source = entry && typeof entry === "object" ? entry : {};
+    const inferredPalaceKey = inferZiweiPalaceKey({
+      palaceKey: source?.palaceKey,
+      key: source?.palaceKey,
+      palaceNameKo: source?.palaceName,
+      palaceName: source?.palaceName,
+      name: source?.palace,
+    });
+    const palaceKey = String(inferredPalaceKey || source?.palaceKey || "").trim();
+    const palaceName = String(
+      source?.palaceName
+      || source?.palace
+      || palaceMap?.[palaceKey]?.name
+      || palaceMap?.[palaceKey]?.palaceName
+      || "",
+    ).trim();
+    const range = String(
+      source?.range
+      || source?.period
+      || source?.ageRange
+      || ((Number.isFinite(Number(source?.startAge)) && Number.isFinite(Number(source?.endAge)))
+        ? `${Number(source.startAge)}-${Number(source.endAge)}`
+        : ""),
+    ).trim();
+
+    rows.push({
+      ...source,
+      palaceKey,
+      palaceName,
+      range: range || (palaceName ? `${palaceName} 대운` : `대운 ${Number(fallbackIndex) + 1}`),
+      period: String(source?.period || range || "").trim() || (palaceName ? `${palaceName} 대운` : `대운 ${Number(fallbackIndex) + 1}`),
+    });
+  };
+
+  const decadePeriods = Array.isArray(luck?.decadePeriods)
+    ? luck.decadePeriods
+    : (hasMeaningfulValue(luck?.decadePeriods) ? [luck.decadePeriods] : []);
+  decadePeriods.forEach((entry, idx) => pushRow(entry, idx));
+
+  if (!rows.length && hasMeaningfulValue(luck?.currentDecade)) {
+    pushRow(luck.currentDecade, 0);
+  }
+
+  if (!rows.length) {
+    const palaceRows = Object.values(palaceMap).flatMap((palace) => {
+      const decade = palace?.decadeLuck;
+      if (!hasMeaningfulValue(decade)) return [];
+      const decadeRows = Array.isArray(decade) ? decade : [decade];
+      return decadeRows.map((row) => ({
+        ...(row && typeof row === "object" ? row : {}),
+        palaceKey: palace?.palaceKey || "",
+        palaceName: palace?.name || palace?.palaceName || "",
+      }));
+    });
+    palaceRows.forEach((entry, idx) => pushRow(entry, idx));
+  }
+
+  if (!rows.length && hasMeaningfulValue(luck?.annual)) {
+    const annual = luck.annual && typeof luck.annual === "object" ? luck.annual : {};
+    const yearText = String(annual?.year || "").trim();
+    rows.push({
+      palaceKey: "",
+      palaceName: "",
+      range: yearText ? `${yearText}년 기준 대운 보정` : "현재 대운 보정",
+      period: yearText ? `${yearText}년 기준 대운 보정` : "현재 대운 보정",
+      year: annual?.year || null,
+      ganji: annual?.ganji || "",
+      source: "annual-fallback",
+    });
+  }
+
+  const seen = new Set();
+  return rows.filter((row, idx) => {
+    const token = `${String(row?.range || row?.period || "").trim()}|${String(row?.palaceKey || "").trim()}|${idx}`;
+    if (!String(row?.range || row?.period || "").trim()) return false;
+    if (seen.has(token)) return false;
+    seen.add(token);
+    return true;
+  });
+}
+
 function mapZiweiPalaces(canonical) {
   const sourcePalaces = Array.isArray(canonical?.palaces) ? canonical.palaces : [];
   const byKey = new Map();
@@ -2874,6 +2995,7 @@ function mapZiweiPalaces(canonical) {
       auxiliaryStars,
       maleficStars,
       fourTransformations: Array.isArray(p.transformations) ? p.transformations : [],
+      interpretationSeed: String(p?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(p, Object.keys(keyMap).indexOf(targetKey)),
       starBrightness,
     };
   });
@@ -2884,6 +3006,7 @@ function mapZiweiCalculatedData(canonical) {
   const palacesByKey = mapZiweiPalaces(canonical);
   const palaces = Object.values(palacesByKey);
   const fourTransforms = canonical?.transformations || {};
+  const daXianRows = buildZiweiDaXianRows(canonical, palacesByKey);
   const ziweiStar = Object.values(palaces)
     .flatMap((p) => Array.isArray(p.mainStars) ? p.mainStars : [])
     .find((s) => String(s?.nameKo || s?.name || "").includes("자미")) || {};
@@ -2936,9 +3059,7 @@ function mapZiweiCalculatedData(canonical) {
       relationshipTriangle: canonical?.sanFangSiZheng?.relationshipTriangle || {},
     },
     cycles: {
-      daXian: Array.isArray(canonical?.luck?.decadePeriods)
-        ? canonical.luck.decadePeriods
-        : (hasMeaningfulValue(canonical?.luck?.decadePeriods) ? [canonical.luck.decadePeriods] : []),
+      daXian: daXianRows,
       annual: Array.isArray(canonical?.luck?.annual)
         ? canonical.luck.annual
         : (hasMeaningfulValue(canonical?.luck?.annual) ? [canonical.luck.annual] : []),
@@ -3354,6 +3475,80 @@ function mapSajuNewYearCalculatedData(canonical) {
     monthlyLuck: Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [],
     actionPlan: canonical?.actionPlan || {},
   };
+}
+
+function normalizeZiweiCalculatedDataForPdf(calculatedData, canonicalSource, integrity) {
+  const payload = (calculatedData && typeof calculatedData === "object") ? { ...calculatedData } : {};
+  const canonical = (canonicalSource && typeof canonicalSource === "object") ? canonicalSource : {};
+
+  payload.coreChart = {
+    ...(payload?.coreChart && typeof payload.coreChart === "object" ? payload.coreChart : {}),
+    mingGong: String(payload?.coreChart?.mingGong || payload?.chart?.mingGong || canonical?.chartMeta?.mingGong || "").trim(),
+    shenGong: String(payload?.coreChart?.shenGong || payload?.chart?.shenGong || canonical?.chartMeta?.shenGong || "").trim(),
+  };
+  payload.chart = {
+    ...(payload?.chart && typeof payload.chart === "object" ? payload.chart : {}),
+    mingGong: String(payload?.chart?.mingGong || payload?.coreChart?.mingGong || canonical?.chartMeta?.mingGong || "").trim(),
+    shenGong: String(payload?.chart?.shenGong || payload?.coreChart?.shenGong || canonical?.chartMeta?.shenGong || "").trim(),
+  };
+
+  const rawPalaces = Array.isArray(payload?.palaces) ? payload.palaces : [];
+  const normalizedPalaces = rawPalaces.map((palace, idx) => {
+    const source = palace && typeof palace === "object" ? palace : {};
+    return {
+      ...source,
+      palaceKey: String(source?.palaceKey || inferZiweiPalaceKey(source) || "").trim(),
+      interpretationSeed: String(source?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(source, idx),
+    };
+  });
+
+  const byKey = {};
+  normalizedPalaces.forEach((palace) => {
+    const key = String(palace?.palaceKey || inferZiweiPalaceKey(palace) || "").trim();
+    if (!key) return;
+    byKey[key] = {
+      ...palace,
+      palaceKey: key,
+      interpretationSeed: String(palace?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(palace),
+    };
+  });
+
+  if (!Object.keys(byKey).length && payload?.palacesByKey && typeof payload.palacesByKey === "object") {
+    Object.entries(payload.palacesByKey).forEach(([key, palace]) => {
+      if (!key) return;
+      const source = palace && typeof palace === "object" ? palace : {};
+      byKey[String(key)] = {
+        ...source,
+        palaceKey: String(source?.palaceKey || key).trim(),
+        interpretationSeed: String(source?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(source),
+      };
+    });
+  }
+
+  payload.palacesByKey = byKey;
+  payload.palaces = normalizedPalaces.length ? normalizedPalaces : Object.values(byKey);
+
+  payload.cycles = (payload?.cycles && typeof payload.cycles === "object") ? { ...payload.cycles } : {};
+  if (!Array.isArray(payload.cycles.daXian) || payload.cycles.daXian.length === 0) {
+    payload.cycles.daXian = buildZiweiDaXianRows(canonical, byKey);
+    if (Array.isArray(payload.cycles.daXian) && payload.cycles.daXian.length > 0) {
+      pushUnique(integrity.supplementedFields, "calculatedData.cycles.daXian");
+    }
+  }
+  if (!Array.isArray(payload.cycles.annual) || payload.cycles.annual.length === 0) {
+    const annualRows = Array.isArray(canonical?.luck?.annual)
+      ? canonical.luck.annual
+      : (hasMeaningfulValue(canonical?.luck?.annual) ? [canonical.luck.annual] : []);
+    payload.cycles.annual = annualRows;
+    if (annualRows.length) pushUnique(integrity.supplementedFields, "calculatedData.cycles.annual");
+  }
+  if (!Array.isArray(payload.cycles.monthly) || payload.cycles.monthly.length === 0) {
+    const monthlyRows = Array.isArray(canonical?.luck?.monthly) ? canonical.luck.monthly : [];
+    payload.cycles.monthly = monthlyRows;
+    if (monthlyRows.length) pushUnique(integrity.supplementedFields, "calculatedData.cycles.monthly");
+  }
+
+  return payload;
 }
 
 function normalizeMonthToken(value) {
@@ -3811,7 +4006,9 @@ function applyPremiumPdfDataIntegrity(reportType, calculatedData, canonicalSourc
   };
 
   let normalized = (calculatedData && typeof calculatedData === "object") ? { ...calculatedData } : {};
-  if (reportType === "sookyoPremium") {
+  if (reportType === "ziweiPremium") {
+    normalized = normalizeZiweiCalculatedDataForPdf(normalized, canonicalSource, integrity);
+  } else if (reportType === "sookyoPremium") {
     normalized = normalizeSukyoCalculatedDataForPdf(normalized, canonicalSource, requestBody, integrity);
   } else if (reportType === "westernAstrologyPremium") {
     normalized = normalizeWesternCalculatedDataForPdf(normalized, canonicalSource, integrity);
@@ -7968,7 +8165,7 @@ function buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality) 
   const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
   const luck = (chart?.luck && typeof chart.luck === "object") ? chart.luck : {};
 
-  const reportPalaces = palaces.map((palace) => ({
+  const reportPalaces = palaces.map((palace, idx) => ({
     key: palace?.key || "",
     nameKo: palace?.nameKo || "",
     branch: palace?.branch || "",
@@ -7980,6 +8177,7 @@ function buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality) 
     triadPalaceKeys: Array.isArray(palace?.triadPalaceKeys) ? palace.triadPalaceKeys : [],
     decadeLuck: palace?.decadeLuck || null,
     annualLuck: palace?.annualLuck || null,
+    interpretationSeed: String(palace?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(palace, idx),
   }));
 
   const sihua = [];
@@ -8008,7 +8206,7 @@ function buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality) 
     uniqueSihua.push(entry);
   });
 
-  const decadeLuck = Array.isArray(luck?.decadePeriods) ? luck.decadePeriods : [];
+  const decadeLuck = buildZiweiDaXianRows(chart, Object.fromEntries(reportPalaces.map((p) => [String(p?.key || "").trim(), p])));
   const currentDecadeLuck = luck?.currentDecade || (decadeLuck[0] || null);
 
   const diagnostics = {
@@ -8276,6 +8474,12 @@ function buildZiweiReportPayloadFromBasicResult(basicZiweiResult, dataQuality) {
         : (Array.isArray(palace?.triadPalaceIds)
           ? palace.triadPalaceIds.map((v) => String(v || "").trim()).filter(Boolean)
           : []),
+      interpretationSeed: String(palace?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed({
+        palaceNameKo: String(palace?.nameKo || palace?.name || ZIWEI_CANONICAL_PALACE_KEY_TO_KO[key] || "").trim(),
+        branch: String(palace?.branch || palace?.earthlyBranch || "").trim(),
+        mainStars,
+        transformations,
+      }, idx),
     };
   });
 
@@ -8655,6 +8859,9 @@ function buildZiweiPdfReportPayload({
   const fromBasic = basicZiweiResult
     ? buildZiweiReportPayloadFromBasicResult(basicZiweiResult, dataQuality)
     : null;
+  const canonicalCalculatedData = canonicalZiweiChart
+    ? mapZiweiCalculatedData(canonicalZiweiChart)
+    : null;
 
   const pickArray = (...values) => {
     for (let i = 0; i < values.length; i += 1) {
@@ -8671,6 +8878,49 @@ function buildZiweiPdfReportPayload({
     return "";
   };
 
+  const mergedPalaces = pickArray(fromCanonical?.palaces, fromBasic?.palaces, existing?.palaces)
+    .map((palace, idx) => {
+      const source = palace && typeof palace === "object" ? palace : {};
+      const key = String(source?.key || source?.palaceKey || normalizeZiweiPalaceKey(source?.nameKo || source?.name || "", idx) || "").trim();
+      const branch = String(source?.branch || "").trim();
+      const mainStars = Array.isArray(source?.mainStars) ? source.mainStars : [];
+      const transformations = Array.isArray(source?.transformations) ? source.transformations : [];
+      return {
+        ...source,
+        key,
+        palaceKey: key || source?.palaceKey,
+        interpretationSeed: String(source?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed({
+          ...source,
+          palaceNameKo: String(source?.nameKo || source?.name || "").trim(),
+          branch,
+          mainStars,
+          transformations,
+        }, idx),
+      };
+    });
+
+  const mergedPalacesByKey = {};
+  mergedPalaces.forEach((palace, idx) => {
+    const key = String(palace?.key || palace?.palaceKey || normalizeZiweiPalaceKey(palace?.nameKo || palace?.name || "", idx) || "").trim();
+    if (!key) return;
+    mergedPalacesByKey[key] = {
+      ...palace,
+      palaceKey: key,
+      interpretationSeed: String(palace?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(palace, idx),
+    };
+  });
+
+  const mergedDaXian = (Array.isArray(existing?.calculatedData?.cycles?.daXian) && existing.calculatedData.cycles.daXian.length)
+    ? existing.calculatedData.cycles.daXian
+    : (Array.isArray(canonicalCalculatedData?.cycles?.daXian) && canonicalCalculatedData.cycles.daXian.length)
+      ? canonicalCalculatedData.cycles.daXian
+      : buildZiweiDaXianRows(canonicalZiweiChart || {}, mergedPalacesByKey);
+  const mergedAnnualLuck = fromCanonical?.luck?.annual || existing?.luck?.annual || fromBasic?.luck?.annual || null;
+  const mergedMonthlyLuck = pickArray(fromCanonical?.luck?.monthly, existing?.luck?.monthly, fromBasic?.luck?.monthly);
+
+  const mergedMingGong = pickText(fromCanonical?.chartMeta?.mingGong, existing?.chartMeta?.mingGong, fromBasic?.chartMeta?.mingGong) || null;
+  const mergedShenGong = pickText(fromCanonical?.chartMeta?.shenGong, existing?.chartMeta?.shenGong, fromBasic?.chartMeta?.shenGong) || null;
+
   const profileBirthDate = String(birthInput?.birthDate || "").trim();
   const profileBirthTime = String(birthInput?.birthTime || "").trim();
   const merged = {
@@ -8686,21 +8936,53 @@ function buildZiweiPdfReportPayload({
       },
     },
     chartMeta: {
-      mingGong: pickText(fromCanonical?.chartMeta?.mingGong, existing?.chartMeta?.mingGong, fromBasic?.chartMeta?.mingGong) || null,
-      shenGong: pickText(fromCanonical?.chartMeta?.shenGong, existing?.chartMeta?.shenGong, fromBasic?.chartMeta?.shenGong) || null,
+      mingGong: mergedMingGong,
+      shenGong: mergedShenGong,
       fiveElementBureau: pickText(fromCanonical?.chartMeta?.fiveElementBureau, existing?.chartMeta?.fiveElementBureau, fromBasic?.chartMeta?.fiveElementBureau) || null,
       yearStemBranch: pickText(fromCanonical?.chartMeta?.yearStemBranch, existing?.chartMeta?.yearStemBranch, fromBasic?.chartMeta?.yearStemBranch) || null,
       monthStemBranch: pickText(fromCanonical?.chartMeta?.monthStemBranch, existing?.chartMeta?.monthStemBranch, fromBasic?.chartMeta?.monthStemBranch) || null,
       dayStemBranch: pickText(fromCanonical?.chartMeta?.dayStemBranch, existing?.chartMeta?.dayStemBranch, fromBasic?.chartMeta?.dayStemBranch) || null,
       hourStemBranch: pickText(fromCanonical?.chartMeta?.hourStemBranch, existing?.chartMeta?.hourStemBranch, fromBasic?.chartMeta?.hourStemBranch) || null,
     },
-    palaces: pickArray(fromCanonical?.palaces, existing?.palaces, fromBasic?.palaces),
+    palaces: mergedPalaces,
     sihua: pickArray(fromCanonical?.sihua, existing?.sihua, fromBasic?.sihua),
     luck: {
       decadeLuck: pickArray(fromCanonical?.luck?.decadeLuck, existing?.luck?.decadeLuck, fromBasic?.luck?.decadeLuck),
       currentDecadeLuck: fromCanonical?.luck?.currentDecadeLuck || existing?.luck?.currentDecadeLuck || fromBasic?.luck?.currentDecadeLuck || null,
-      annual: fromCanonical?.luck?.annual || existing?.luck?.annual || fromBasic?.luck?.annual || null,
-      monthly: pickArray(fromCanonical?.luck?.monthly, existing?.luck?.monthly, fromBasic?.luck?.monthly),
+      annual: mergedAnnualLuck,
+      monthly: mergedMonthlyLuck,
+    },
+    calculatedData: {
+      ...(existing?.calculatedData && typeof existing.calculatedData === "object" ? existing.calculatedData : {}),
+      chart: {
+        ...(existing?.calculatedData?.chart && typeof existing.calculatedData.chart === "object" ? existing.calculatedData.chart : {}),
+        mingGong: pickText(existing?.calculatedData?.chart?.mingGong, canonicalCalculatedData?.chart?.mingGong, mergedMingGong),
+        shenGong: pickText(existing?.calculatedData?.chart?.shenGong, canonicalCalculatedData?.chart?.shenGong, mergedShenGong),
+      },
+      palaces: mergedPalaces.map((palace) => ({
+        ...palace,
+        palaceKey: String(palace?.key || palace?.palaceKey || "").trim(),
+        interpretationSeed: String(palace?.interpretationSeed || "").trim() || buildZiweiPalaceInterpretationSeed(palace),
+      })),
+      palacesByKey: {
+        ...(canonicalCalculatedData?.palacesByKey && typeof canonicalCalculatedData.palacesByKey === "object" ? canonicalCalculatedData.palacesByKey : {}),
+        ...mergedPalacesByKey,
+      },
+      cycles: {
+        ...(existing?.calculatedData?.cycles && typeof existing.calculatedData.cycles === "object" ? existing.calculatedData.cycles : {}),
+        ...(canonicalCalculatedData?.cycles && typeof canonicalCalculatedData.cycles === "object" ? canonicalCalculatedData.cycles : {}),
+        daXian: mergedDaXian,
+        annual: (Array.isArray(existing?.calculatedData?.cycles?.annual) && existing.calculatedData.cycles.annual.length)
+          ? existing.calculatedData.cycles.annual
+          : (Array.isArray(canonicalCalculatedData?.cycles?.annual) && canonicalCalculatedData.cycles.annual.length)
+            ? canonicalCalculatedData.cycles.annual
+            : (mergedAnnualLuck ? [mergedAnnualLuck] : []),
+        monthly: (Array.isArray(existing?.calculatedData?.cycles?.monthly) && existing.calculatedData.cycles.monthly.length)
+          ? existing.calculatedData.cycles.monthly
+          : (Array.isArray(canonicalCalculatedData?.cycles?.monthly) && canonicalCalculatedData.cycles.monthly.length)
+            ? canonicalCalculatedData.cycles.monthly
+            : mergedMonthlyLuck,
+      },
     },
     diagnostics: {
       generatedAt: new Date().toISOString(),
@@ -8741,6 +9023,7 @@ function validateZiweiPdfPayload(payload, birthInput = null) {
   const chartMeta = (source.chartMeta && typeof source.chartMeta === "object") ? source.chartMeta : {};
   const palaces = Array.isArray(source.palaces) ? source.palaces : [];
   const luck = (source.luck && typeof source.luck === "object") ? source.luck : {};
+  const calculatedData = (source.calculatedData && typeof source.calculatedData === "object") ? source.calculatedData : {};
   const sihua = Array.isArray(source.sihua) ? source.sihua : [];
 
   const birthDate = String(
@@ -8763,6 +9046,11 @@ function validateZiweiPdfPayload(payload, birthInput = null) {
   if (!Array.isArray(luck?.decadeLuck) || luck.decadeLuck.length === 0) optional.push("luck.decadeLuck");
   if (!luck?.annual || typeof luck.annual !== "object") optional.push("luck.annual");
   if (!Array.isArray(luck?.monthly) || luck.monthly.length === 0) optional.push("luck.monthly");
+
+  const calcCycles = (calculatedData?.cycles && typeof calculatedData.cycles === "object") ? calculatedData.cycles : {};
+  const hasDaXian = (Array.isArray(luck?.decadeLuck) && luck.decadeLuck.length > 0)
+    || (Array.isArray(calcCycles?.daXian) && calcCycles.daXian.length > 0);
+  if (!hasDaXian) optional.push("calculatedData.cycles.daXian");
 
   const strengthCount = allMainStars.filter((star) => {
     const symbol = normalizeZiweiStrengthSymbol(star?.symbol || star?.strengthSymbol || "");
@@ -13609,9 +13897,11 @@ async function handleZiweiBookSession(request, env) {
   const body = await readJson(request);
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictValidationMode = usePremiumStrictValidation(body, env);
+  const explicitStrictValidation = asBool(body?._premiumStrictValidation);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
+    _premiumStrictValidation: strictValidationMode || explicitStrictValidation,
   };
   const prepareOnly = asBool(strictBody.prepareOnly);
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
@@ -13764,7 +14054,7 @@ async function handleZiweiBookSession(request, env) {
     missingOptionalFields: payloadValidation.missingOptionalFields,
     diagnostics: reportPayload?.diagnostics || null,
   };
-  const strictValidationRequested = strictPayloadMode || strictValidationMode;
+  const strictValidationRequested = strictPayloadMode || strictValidationMode || explicitStrictValidation;
 
   const canonicalSummary = {
     palaceCount: Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces.length : (Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0),
