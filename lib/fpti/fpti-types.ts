@@ -4,7 +4,7 @@ export type FptiFormInput = {
   name: string;
   gender?: "M" | "F" | "OTHER";
   birthDate: string;
-  calendarType: "solar" | "lunar";
+  calendarType: "solar" | "lunar" | "lunar_leap";
   birthTime: string;
   timeUnknown: boolean;
   birthRegion?: string;

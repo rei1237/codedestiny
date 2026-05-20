@@ -45,15 +45,25 @@ type DestinyProfile = {
   gender?: string;
   birthDate?: string;
   birthTime?: string;
+  birthYear?: number | string;
+  birthMonth?: number | string;
+  birthDay?: number | string;
+  birthHour?: number | string;
+  birthMinute?: number | string;
+  calType?: string;
   calendarType?: string;
+  timeUnknown?: boolean;
+  birthTimeUnknown?: boolean;
+  noBirthTime?: boolean;
   birthRegion?: string;
   birth?: {
-    year?: number;
-    month?: number;
-    day?: number;
-    hour?: number;
-    minute?: number;
+    year?: number | string;
+    month?: number | string;
+    day?: number | string;
+    hour?: number | string;
+    minute?: number | string;
     calType?: string;
+    timeUnknown?: boolean;
   };
   location?: {
     label?: string;
@@ -80,40 +90,161 @@ function normalizeGender(raw: unknown): ProfileGender {
   return "OTHER";
 }
 
-function normalizeCalendarType(raw: unknown): "solar" | "lunar" {
+function normalizeCalendarType(raw: unknown): FptiFormInput["calendarType"] {
   const value = String(raw || "").trim().toLowerCase();
+  if (value.includes("leap") || value.includes("윤")) return "lunar_leap";
   if (value.includes("lunar") || value.includes("음")) return "lunar";
   return "solar";
 }
 
-function normalizeDate(profile: DestinyProfile): string {
-  const birth = profile.birth;
-  if (birth?.year && birth?.month && birth?.day) {
-    return `${birth.year}-${toTwoDigits(Number(birth.month))}-${toTwoDigits(Number(birth.day))}`;
+function parseFiniteInt(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) return null;
+  return Math.trunc(value);
+}
+
+function isValidSolarDate(year: number, month: number, day: number): boolean {
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  return candidate.getUTCFullYear() === year
+    && candidate.getUTCMonth() + 1 === month
+    && candidate.getUTCDate() === day;
+}
+
+function parseDatePartsFromText(raw: unknown): { year: number; month: number; day: number } | null {
+  const value = String(raw || "").trim();
+  if (!value) return null;
+
+  const isoLike = value.match(/^(\d{4}-\d{1,2}-\d{1,2})T/i);
+  const source = isoLike ? isoLike[1] : value;
+
+  const standard = source.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/);
+  if (standard) {
+    return {
+      year: Number(standard[1]),
+      month: Number(standard[2]),
+      day: Number(standard[3]),
+    };
   }
-  const dateFromField = String(profile.birthDate || "").trim();
-  if (!dateFromField) return "";
-  const m = dateFromField.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/);
-  if (!m) return "";
-  return `${m[1]}-${toTwoDigits(Number(m[2]))}-${toTwoDigits(Number(m[3]))}`;
+
+  const compact = source.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (compact) {
+    return {
+      year: Number(compact[1]),
+      month: Number(compact[2]),
+      day: Number(compact[3]),
+    };
+  }
+
+  const korean = source.match(/^(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일$/);
+  if (korean) {
+    return {
+      year: Number(korean[1]),
+      month: Number(korean[2]),
+      day: Number(korean[3]),
+    };
+  }
+
+  return null;
+}
+
+function normalizeDate(profile: DestinyProfile): string {
+  const candidates: Array<{ year: number; month: number; day: number }> = [];
+  const birth = profile.birth;
+
+  const birthYear = parseFiniteInt(birth?.year ?? profile.birthYear);
+  const birthMonth = parseFiniteInt(birth?.month ?? profile.birthMonth);
+  const birthDay = parseFiniteInt(birth?.day ?? profile.birthDay);
+  if (birthYear !== null && birthMonth !== null && birthDay !== null) {
+    candidates.push({ year: birthYear, month: birthMonth, day: birthDay });
+  }
+
+  const parsedFromField = parseDatePartsFromText(profile.birthDate);
+  if (parsedFromField) candidates.push(parsedFromField);
+
+  for (const candidate of candidates) {
+    if (!isValidSolarDate(candidate.year, candidate.month, candidate.day)) continue;
+    return `${candidate.year}-${toTwoDigits(candidate.month)}-${toTwoDigits(candidate.day)}`;
+  }
+
+  return "";
+}
+
+function isUnknownTimeMarker(raw: unknown): boolean {
+  if (typeof raw === "boolean") return raw;
+  const value = String(raw || "").trim().toLowerCase();
+  if (!value) return false;
+  return value === "unknown"
+    || value === "미상"
+    || value === "모름"
+    || value === "없음"
+    || value === "n/a";
+}
+
+function normalizeHourMinute(hour: number, minute: number): { hour: number; minute: number } | null {
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return { hour: Math.trunc(hour), minute: Math.trunc(minute) };
+}
+
+function parseBirthTimeFromText(raw: unknown): { hour: number; minute: number } | null {
+  const source = String(raw || "").trim();
+  if (!source) return null;
+
+  const colon = source.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+  if (colon) {
+    return normalizeHourMinute(Number(colon[1]), Number(colon[2]));
+  }
+
+  const compact = source.match(/^(\d{1,2})(\d{2})$/);
+  if (compact) {
+    return normalizeHourMinute(Number(compact[1]), Number(compact[2]));
+  }
+
+  const normalized = source.replace(/\s+/g, "");
+  const hasPm = /오후|pm/i.test(normalized);
+  const hasAm = /오전|am/i.test(normalized);
+  const cleaned = normalized.replace(/오전|오후|am|pm/gi, "");
+  const korean = cleaned.match(/^(\d{1,2})(?:시)?(?:(\d{1,2})분?)?$/);
+  if (!korean) return null;
+
+  let hour = Number(korean[1]);
+  const minute = Number(korean[2] || "0");
+
+  if (hasPm && hour >= 1 && hour <= 11) hour += 12;
+  if (hasAm && hour === 12) hour = 0;
+
+  return normalizeHourMinute(hour, minute);
 }
 
 function normalizeTime(profile: DestinyProfile): { birthTime: string; timeUnknown: boolean } {
   const birth = profile.birth;
-  const hour = Number(birth?.hour);
-  const minute = Number(birth?.minute);
-  if (Number.isFinite(hour) && Number.isFinite(minute)) {
-    return {
-      birthTime: `${toTwoDigits(Math.max(0, Math.min(23, hour)))}:${toTwoDigits(Math.max(0, Math.min(59, minute)))}`,
-      timeUnknown: false,
-    };
+  const explicitUnknown = Boolean(profile.timeUnknown)
+    || Boolean(profile.birthTimeUnknown)
+    || Boolean(profile.noBirthTime)
+    || Boolean(birth?.timeUnknown)
+    || isUnknownTimeMarker(profile.birthTime);
+  if (explicitUnknown) {
+    return { birthTime: "12:00", timeUnknown: true };
   }
 
-  const raw = String(profile.birthTime || "").trim();
-  const m = raw.match(/^(\d{1,2}):(\d{1,2})$/);
-  if (m) {
+  const rawHour = parseFiniteInt(birth?.hour ?? profile.birthHour);
+  const rawMinute = parseFiniteInt(birth?.minute ?? profile.birthMinute);
+  if (rawHour !== null) {
+    const normalized = normalizeHourMinute(rawHour, rawMinute ?? 0);
+    if (normalized) {
+      return {
+        birthTime: `${toTwoDigits(normalized.hour)}:${toTwoDigits(normalized.minute)}`,
+        timeUnknown: false,
+      };
+    }
+  }
+
+  const parsedFromText = parseBirthTimeFromText(profile.birthTime);
+  if (parsedFromText) {
     return {
-      birthTime: `${toTwoDigits(Math.max(0, Math.min(23, Number(m[1]))))}:${toTwoDigits(Math.max(0, Math.min(59, Number(m[2]))))}`,
+      birthTime: `${toTwoDigits(parsedFromText.hour)}:${toTwoDigits(parsedFromText.minute)}`,
       timeUnknown: false,
     };
   }
@@ -155,7 +286,7 @@ function toFormInput(profile: DestinyProfile): FptiFormInput | null {
     name: String(profile.name || "").trim(),
     gender: normalizeGender(profile.gender),
     birthDate,
-    calendarType: normalizeCalendarType(profile.birth?.calType || profile.calendarType),
+    calendarType: normalizeCalendarType(profile.birth?.calType || profile.calType || profile.calendarType),
     birthTime: time.birthTime,
     timeUnknown: time.timeUnknown,
     birthRegion: String(profile.location?.label || profile.birthRegion || "").trim(),

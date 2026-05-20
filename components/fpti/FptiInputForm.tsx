@@ -75,11 +75,12 @@ export default function FptiInputForm({ value, onChange, onSubmit, busy, autoRea
           <span className="mb-1 block text-[#dbe5ff]">양력 / 음력</span>
           <select
             value={value.calendarType}
-            onChange={(e) => update("calendarType", e.target.value as "solar" | "lunar")}
+            onChange={(e) => update("calendarType", e.target.value as FptiFormInput["calendarType"])}
             className={fieldClass}
           >
             <option value="solar">양력</option>
             <option value="lunar">음력</option>
+            <option value="lunar_leap">음력(윤달)</option>
           </select>
         </label>
 
