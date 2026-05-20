@@ -238,8 +238,18 @@
 
     var hour = Number((birth && birth.hour) || row.birthHour || row.hour);
     var minute = Number((birth && birth.minute) || row.birthMinute || row.minute);
+    var calType = normalizeCalType((birth && (birth.calType || birth.calendarType)) || row.calType || row.calendarType || 'solar');
+    var hasExplicitHour = Number.isFinite(hour);
+    var hasExplicitMinute = Number.isFinite(minute);
+    var timeUnknown = !!((birth && (birth.timeUnknown || birth.unknownTime)) || row.timeUnknown || row.birthTimeUnknown || (!hasExplicitHour && !hasExplicitMinute));
+    var birthPlace = String((birth && (birth.birthPlace || birth.place || birth.locationName)) || row.birthPlace || row.place || row.city || '').trim();
+    var tz = String((row.location && row.location.tz) || row.tz || row.timezone || 'Asia/Seoul').trim() || 'Asia/Seoul';
+    var lat = Number((row.location && row.location.lat) || row.lat || row.latitude);
+    var lng = Number((row.location && row.location.lng) || row.lng || row.longitude);
 
     return {
+      id: String(row.id || row.profileId || '').trim(),
+      profileId: String(row.profileId || row.id || '').trim(),
       name: String(row.name || row.nickname || row.profileName || '사용자'),
       gender: normalizeGender(row.gender),
       birth: {
@@ -248,11 +258,18 @@
         day: day,
         hour: Number.isFinite(hour) ? hour : 12,
         minute: Number.isFinite(minute) ? minute : 0,
-        calType: normalizeCalType((birth && (birth.calType || birth.calendarType)) || row.calType || row.calendarType || 'solar')
+        calType: calType,
+        calendarType: calType,
+        timeUnknown: timeUnknown,
+        isLunar: calType === 'lunar'
       },
       location: {
-        tz: 'Asia/Seoul'
-      }
+        tz: tz,
+        lat: Number.isFinite(lat) ? lat : undefined,
+        lng: Number.isFinite(lng) ? lng : undefined,
+        birthPlace: birthPlace || undefined
+      },
+      birthPlace: birthPlace || undefined
     };
   }
 
@@ -286,6 +303,8 @@
       var tm = time.match(/^(\d{1,2}):(\d{1,2})$/);
       if (!dm) return null;
       return {
+        id: String(user.profileId || user.id || '').trim(),
+        profileId: String(user.profileId || user.id || '').trim(),
         name: String(user.name || user.nickname || '사용자'),
         gender: normalizeGender(user.gender),
         birth: {
@@ -294,11 +313,16 @@
           day: Number(dm[3]),
           hour: tm ? Number(tm[1]) : 12,
           minute: tm ? Number(tm[2]) : 0,
-          calType: 'solar'
+          calType: normalizeCalType(user.calendarType || user.calType || 'solar'),
+          calendarType: normalizeCalType(user.calendarType || user.calType || 'solar'),
+          timeUnknown: !tm,
+          isLunar: normalizeCalType(user.calendarType || user.calType || 'solar') === 'lunar'
         },
         location: {
-          tz: 'Asia/Seoul'
-        }
+          tz: String(user.timezone || user.tz || 'Asia/Seoul').trim() || 'Asia/Seoul',
+          birthPlace: String(user.birthPlace || user.place || '').trim() || undefined
+        },
+        birthPlace: String(user.birthPlace || user.place || '').trim() || undefined
       };
     } catch (_) {
       return null;
@@ -664,17 +688,24 @@
     var birthDate = [birth.year, String(birth.month || '').padStart(2, '0'), String(birth.day || '').padStart(2, '0')].join('-');
     var birthTime = String(Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12).padStart(2, '0') + ':' + String(Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0).padStart(2, '0');
     var luck = (reportPayload && reportPayload.luck && typeof reportPayload.luck === 'object') ? reportPayload.luck : {};
+    var calendarType = normalizeCalType(birth.calType || birth.calendarType || 'solar');
+    var timeUnknown = !!birth.timeUnknown;
+    var birthPlace = String((profile && (profile.birthPlace || (profile.location && profile.location.birthPlace) || profile.place)) || '').trim();
 
     return {
       ok: true,
       source: 'ziwei-ui-basic',
       input: {
+        profileId: String((profile && (profile.profileId || profile.id)) || '').trim(),
         name: String((profile && profile.name) || '사용자'),
         gender: normalizeGender((profile && profile.gender) || ''),
         birthDate: birthDate,
         birthTime: birthTime,
-        calendarType: normalizeCalType(birth.calType || birth.calendarType || 'solar'),
-        timezone: String(((profile && profile.location && profile.location.tz) || 'Asia/Seoul'))
+        calendarType: calendarType,
+        timezone: String(((profile && profile.location && profile.location.tz) || 'Asia/Seoul')),
+        isLunar: calendarType === 'lunar',
+        timeUnknown: timeUnknown,
+        birthPlace: birthPlace || undefined
       },
       chart: {
         mingGong: String(chartMeta.mingGong || src.meng || chart.meng || '').trim() || null,
@@ -720,6 +751,12 @@
     var timezone = String((profile.location && profile.location.tz) || 'Asia/Seoul');
     var lat = Number((profile.location && profile.location.lat) || 37.5665);
     var lon = Number((profile.location && profile.location.lng) || 126.9780);
+    var profileId = String(profile.profileId || profile.id || '').trim();
+    var birthDate = [year, String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-');
+    var birthTime = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+    var timeUnknown = !!birth.timeUnknown;
+    var isLunar = calendarType === 'lunar';
+    var birthPlace = String(profile.birthPlace || (profile.location && profile.location.birthPlace) || '').trim();
 
     var body = {
       mode: 'personal',
@@ -734,11 +771,30 @@
       hour: hour,
       minute: minute,
       calendarType: calendarType,
+      profileId: profileId,
+      birthDate: birthDate,
+      birthTime: birthTime,
+      isLunar: isLunar,
+      timeUnknown: timeUnknown,
+      birthPlace: birthPlace || undefined,
       timezone: timezone,
       lat: lat,
       lon: lon,
       ziweiStructured: primaryStructured,
+      profile: {
+        profileId: profileId,
+        name: name,
+        gender: gender,
+        birthDate: birthDate,
+        birthTime: birthTime,
+        calendarType: calendarType,
+        isLunar: isLunar,
+        timeUnknown: timeUnknown,
+        birthPlace: birthPlace || undefined,
+        timezone: timezone
+      },
       birthData: {
+        profileId: profileId,
         name: name,
         gender: gender,
         year: year,
@@ -746,7 +802,12 @@
         day: day,
         hour: hour,
         minute: minute,
+        birthDate: birthDate,
+        birthTime: birthTime,
         calendarType: calendarType,
+        isLunar: isLunar,
+        timeUnknown: timeUnknown,
+        birthPlace: birthPlace || undefined,
         timezone: timezone,
         lat: lat,
         lon: lon,
