@@ -7921,6 +7921,7 @@ function normalizeZiweiField(value, fallback = "정보 없음") {
 const ZIWEI_SYMBOL_TO_STRENGTH = {
   "◎": "묘",
   "○": "왕",
+  "O": "왕",
   "▲": "리",
   "△": "평",
   "×": "함",
@@ -7930,16 +7931,16 @@ const ZIWEI_SYMBOL_TO_STRENGTH = {
 const ZIWEI_STRENGTH_TO_SYMBOL = {
   "묘": "◎",
   "왕": "○",
-  "리": "△",
+  "리": "▲",
   "평": "△",
   "함": "×",
   "묘왕": "◎",
   "묘왕지": "◎",
-  "득": "△",
-  "득지": "△",
-  "리지": "△",
+  "득": "▲",
+  "득지": "▲",
+  "리지": "▲",
   "평지": "△",
-  "함지": "△",
+  "함지": "×",
   "극함": "×",
   "심한함": "×",
   "불": "×",
@@ -7950,8 +7951,9 @@ const ZIWEI_STRENGTH_TO_SYMBOL = {
 function normalizeZiweiStrengthSymbol(raw) {
   const v = String(raw || "").trim();
   if (v === "◎") return "◎";
-  if (v === "○") return "○";
-  if (v === "▲" || v === "△") return "△";
+  if (v === "○" || v === "O") return "○";
+  if (v === "▲") return "▲";
+  if (v === "△") return "△";
   if (v === "×" || /^x$/i.test(v)) return "×";
   return "";
 }
@@ -7960,9 +7962,10 @@ function normalizeZiweiStrengthLabel(raw) {
   const v = String(raw || "").trim();
   if (!v) return "";
   if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || v === "◎") return "묘";
-  if (["왕", "旺"].includes(v) || v === "○") return "왕";
+  if (["왕", "旺"].includes(v) || v === "○" || v === "O") return "왕";
   if (["득", "리", "득지", "리지", "得", "利", "약"].includes(v) || v === "▲") return "리";
-  if (["평", "평지", "함지", "平", "陷", "한", "이"].includes(v) || v === "△") return "평";
+  if (["평", "평지", "平", "중", "보통"].includes(v) || v === "△") return "평";
+  if (["함지", "陷"].includes(v)) return "함";
   if (/^x$/i.test(v) || v === "X" || ["함", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×") return "함";
   return "";
 }
@@ -7995,15 +7998,105 @@ function createZiweiDataQuality() {
 
 function buildZiweiBirthInputFromRequest(body, input) {
   const birth = (body?.birthInput && typeof body.birthInput === "object") ? body.birthInput : {};
-  const year = clampInt(birth.year ?? body?.year ?? input?.year, 1990, 1900, 2100);
-  const month = clampInt(birth.month ?? body?.month ?? input?.month, 1, 1, 12);
-  const day = clampInt(birth.day ?? body?.day ?? input?.day, 1, 1, 31);
-  const hour = clampInt(birth.hour ?? body?.hour ?? input?.hour, 12, 0, 23);
-  const minute = clampInt(birth.minute ?? body?.minute ?? input?.minute, 0, 0, 59);
+  const birthData = (body?.birthData && typeof body.birthData === "object") ? body.birthData : {};
+  const profile = (body?.profile && typeof body.profile === "object") ? body.profile : {};
+
+  const parsedDate = parsePremiumBirthDate(
+    profile.birthDate
+    || birth.birthDate
+    || birthData.birthDate
+    || body?.birthDate,
+  );
+  const parsedTime = parsePremiumBirthTime(
+    profile.birthTime
+    || birth.birthTime
+    || birthData.birthTime
+    || body?.birthTime,
+  );
+
+  const year = clampInt(
+    birth.year ?? birthData.year ?? profile.year ?? body?.year ?? parsedDate.year ?? input?.year,
+    1990,
+    1900,
+    2100,
+  );
+  const month = clampInt(
+    birth.month ?? birthData.month ?? profile.month ?? body?.month ?? parsedDate.month ?? input?.month,
+    1,
+    1,
+    12,
+  );
+  const day = clampInt(
+    birth.day ?? birthData.day ?? profile.day ?? body?.day ?? parsedDate.day ?? input?.day,
+    1,
+    1,
+    31,
+  );
+  const hour = clampInt(
+    birth.hour ?? birthData.hour ?? profile.hour ?? body?.hour ?? parsedTime.hour ?? input?.hour,
+    12,
+    0,
+    23,
+  );
+  const minute = clampInt(
+    birth.minute ?? birthData.minute ?? profile.minute ?? body?.minute ?? parsedTime.minute ?? input?.minute,
+    0,
+    0,
+    59,
+  );
+
+  const isLunar = asBool(
+    profile.isLunar
+    ?? birth.isLunar
+    ?? birthData.isLunar
+    ?? body?.isLunar,
+  );
+  const normalizedCalendarType = normalizePremiumCalendarType(
+    profile.calendarType
+    || profile.calType
+    || birth.calendarType
+    || birth.calType
+    || birthData.calendarType
+    || birthData.calType
+    || body?.calendarType
+    || body?.calType
+    || (isLunar ? "lunar" : "solar"),
+  ) || (isLunar ? "lunar" : "solar");
+
+  const timeUnknown = asBool(
+    profile.timeUnknown
+    ?? birth.timeUnknown
+    ?? birthData.timeUnknown
+    ?? body?.timeUnknown
+    ?? body?.birthTimeUnknown,
+  );
+
+  const birthPlace = String(
+    profile.birthPlace
+    || birth.birthPlace
+    || birth.place
+    || birthData.birthPlace
+    || body?.birthPlace
+    || "",
+  ).trim();
 
   return {
-    name: String(birth.name || body?.name || input?.name || "사용자").trim() || "사용자",
-    gender: String(birth.gender || body?.gender || input?.gender || "").trim(),
+    name: String(
+      birth.name
+      || birthData.name
+      || profile.name
+      || body?.name
+      || input?.name
+      || "사용자",
+    ).trim() || "사용자",
+    gender: String(
+      birth.gender
+      || birthData.gender
+      || profile.gender
+      || body?.gender
+      || input?.gender
+      || "",
+    ).trim(),
     birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
     birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
     year,
@@ -8011,9 +8104,25 @@ function buildZiweiBirthInputFromRequest(body, input) {
     day,
     hour,
     minute,
-    calendarType: String(birth.calendarType || body?.calendarType || "solar").trim() || "solar",
-    timezone: String(birth.timezone || body?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
-    profileId: String(birth.profileId || body?.profileId || "").trim(),
+    calendarType: normalizedCalendarType,
+    isLunar,
+    timeUnknown,
+    birthPlace,
+    timezone: String(
+      birth.timezone
+      || birthData.timezone
+      || profile.timezone
+      || body?.timezone
+      || "Asia/Seoul",
+    ).trim() || "Asia/Seoul",
+    profileId: String(
+      birth.profileId
+      || birthData.profileId
+      || profile.profileId
+      || profile.id
+      || body?.profileId
+      || "",
+    ).trim(),
   };
 }
 
@@ -9742,6 +9851,145 @@ function ziweiStrengthMeaning(strength) {
   return "해석 보정이 필요한 구간";
 }
 
+function uniqueZiweiTextList(values = []) {
+  const seen = new Set();
+  const out = [];
+  (Array.isArray(values) ? values : []).forEach((value) => {
+    const token = String(value || "").trim();
+    if (!token || seen.has(token)) return;
+    seen.add(token);
+    out.push(token);
+  });
+  return out;
+}
+
+function normalizeZiweiPayloadStar(star) {
+  const name = String(star?.nameKo || star?.name || star?.star || "").trim();
+  if (!name) return null;
+  const strength = ziweiStrengthFromStar(star);
+  const symbol = ziweiStrengthSymbolFromStar(star);
+  return {
+    name,
+    strength,
+    symbol,
+    meaning: ziweiStrengthMeaning(strength),
+  };
+}
+
+function normalizeZiweiPayloadPalace(palace, index) {
+  const name = String(
+    palace?.nameKo
+    || palace?.name
+    || palace?.palaceName
+    || ZIWEI_CANONICAL_PALACE_KEY_TO_KO[String(palace?.key || "").trim()]
+    || `궁${index + 1}`,
+  ).trim();
+  const key = String(palace?.key || normalizeZiweiPalaceKey(name, index) || "").trim() || `palace_${index + 1}`;
+  const branch = String(palace?.branch || palace?.earthlyBranch || "").trim();
+  const stars = [];
+  const seenStars = new Set();
+  const pushStar = (rows) => {
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+      const normalized = normalizeZiweiPayloadStar(row);
+      const starName = String(normalized?.name || "").trim();
+      if (!starName || seenStars.has(starName)) return;
+      seenStars.add(starName);
+      stars.push(normalized);
+    });
+  };
+  pushStar(palace?.mainStars || palace?.stars || []);
+  pushStar(palace?.auxStars || palace?.subStars || palace?.minorStars || []);
+  pushStar(palace?.maleficStars || palace?.badStars || []);
+
+  return {
+    key,
+    name,
+    branch,
+    stars,
+  };
+}
+
+function normalizeZiweiPremiumProfile(profile = {}, birthInput = {}) {
+  const birthDate = String(profile.birthDate || birthInput.birthDate || "").trim();
+  const birthTime = String(profile.birthTime || birthInput.birthTime || "").trim();
+  const calendarType = normalizePremiumCalendarType(profile.calendarType || birthInput.calendarType || "") || "solar";
+  return {
+    profileId: String(profile.profileId || profile.id || birthInput.profileId || "").trim() || null,
+    name: String(profile.name || birthInput.name || "사용자").trim() || "사용자",
+    gender: String(profile.gender || birthInput.gender || "").trim() || "",
+    birthDate,
+    birthTime,
+    calendarType,
+    isLunar: asBool(profile.isLunar ?? birthInput.isLunar ?? calendarType === "lunar"),
+    timeUnknown: asBool(profile.timeUnknown ?? birthInput.timeUnknown),
+    birthPlace: String(profile.birthPlace || birthInput.birthPlace || "").trim() || null,
+    timezone: String(profile.timezone || birthInput.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+  };
+}
+
+function buildZiweiPremiumPayloadFromProfileAndBasicResult({
+  profile = {},
+  basicZiweiResult = null,
+  reportPayload = null,
+  chapterCount = 13,
+  totalCategoryCount = 0,
+} = {}) {
+  const source = (reportPayload && typeof reportPayload === "object") ? reportPayload : {};
+  const basic = (basicZiweiResult && typeof basicZiweiResult === "object") ? basicZiweiResult : {};
+  const chart = (basic.chart && typeof basic.chart === "object") ? basic.chart : {};
+
+  const chartMeta = {
+    mingGong: String(source?.chartMeta?.mingGong || chart?.chartMeta?.mingGong || chart?.mingGong || "").trim() || null,
+    shenGong: String(source?.chartMeta?.shenGong || chart?.chartMeta?.shenGong || chart?.shenGong || "").trim() || null,
+    fiveElementBureau: String(source?.chartMeta?.fiveElementBureau || chart?.chartMeta?.fiveElementBureau || "").trim() || null,
+    yearStemBranch: String(source?.chartMeta?.yearStemBranch || chart?.chartMeta?.yearStemBranch || "").trim() || null,
+  };
+
+  const rawPalaces = Array.isArray(source?.palaces) && source.palaces.length
+    ? source.palaces
+    : (Array.isArray(chart?.palaces) ? chart.palaces : []);
+  const palaces = rawPalaces
+    .map((palace, idx) => normalizeZiweiPayloadPalace(palace, idx))
+    .filter((palace) => palace && palace.stars.length > 0);
+
+  const luckSource = (source.luck && typeof source.luck === "object") ? source.luck : ((chart.luck && typeof chart.luck === "object") ? chart.luck : {});
+  const basicSummary = String(
+    basic.summary
+    || basic.analysisSummary
+    || basic.reportSummary
+    || "",
+  ).trim();
+
+  return {
+    userProfile: normalizeZiweiPremiumProfile(profile, {}),
+    chartMeta,
+    palaces,
+    periods: {
+      decade: Array.isArray(luckSource.decadeLuck) ? luckSource.decadeLuck : (Array.isArray(luckSource.decadePeriods) ? luckSource.decadePeriods : []),
+      annual: (luckSource.annual && typeof luckSource.annual === "object") ? luckSource.annual : null,
+      monthly: Array.isArray(luckSource.monthly) ? luckSource.monthly : [],
+    },
+    basicResultSummary: basicSummary || null,
+    chapterCount: Number.isFinite(Number(chapterCount)) ? Number(chapterCount) : 13,
+    totalCategoryCount: Number.isFinite(Number(totalCategoryCount)) ? Number(totalCategoryCount) : 0,
+  };
+}
+
+function collectZiweiBrightnessCheck(palaces = []) {
+  const rows = [];
+  (Array.isArray(palaces) ? palaces : []).forEach((palace) => {
+    const palaceName = String(palace?.name || palace?.nameKo || palace?.palaceName || "").trim() || "미상궁";
+    (Array.isArray(palace?.stars) ? palace.stars : []).forEach((star) => {
+      const name = String(star?.name || "").trim();
+      const strength = normalizeZiweiStrengthLabel(star?.strength || "") || "미상";
+      const symbol = normalizeZiweiStrengthSymbol(star?.symbol || "") || "";
+      if (!name || !symbol) return;
+      rows.push(`${palaceName}:${name}(${strength},${symbol})`);
+    });
+  });
+  return uniqueZiweiTextList(rows).slice(0, 48);
+}
+
 function normalizeZiweiBranchToken(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -9789,7 +10037,7 @@ function buildZiweiDataContext(body, input, canonicalZiweiChart, reportType, par
     `- 명궁 지지: ${normalizeZiweiField(chartMeta?.mingGong || "", "미상")}`,
     `- 신궁 지지: ${normalizeZiweiField(chartMeta?.shenGong || "", "미상")}`,
     `- 오행국: ${normalizeZiweiField(chartMeta?.fiveElementBureau || "", "미상")}`,
-    `- 강약 기호 기준(묘/왕/리/평/함): ◎=묘, ○=왕, △=리·평, ×=함`,
+    `- 강약 기호 기준(묘/왕/리/평/함): ◎=묘, ○=왕, ▲=리(득), △=평, ×=함`,
   ];
 
   if (reportType === "compatibility") {
@@ -9951,10 +10199,10 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
     "별 하나만 단편 해석하지 말고 궁위·삼방사정·대운·세운·사화를 종합하라.",
-    "입력 원자료의 궁별 별 목록과 강약(묘/왕/리/평/함)은 기호(◎/○/△/×) 중심으로 해석 근거에 직접 반영하라.",
+    "입력 원자료의 궁별 별 목록과 강약(묘/왕/리/평/함)은 기호(◎/○/△/▲/×) 중심으로 해석 근거에 직접 반영하라.",
     "자미두수 별의 해석은 별 이름만 나열하지 말고 반드시 묘(廟)/왕(旺)/리(利)/평(平)/함(陷) 세기 상태를 함께 반영하라.",
     "묘·왕은 강점과 활용 전략 중심, 리는 균형/실용성 중심, 평은 환경·습관 중심, 함은 단정이 아닌 보완·회복 전략 중심으로 작성하라.",
-    "천동이 △ 또는 ×이면 편안함 결핍/정서 예민/과각성 패턴을 근거로 설명하고, 안락함보다 성취감 중심 운영 전략을 제시하라.",
+    "천동이 ▲ 또는 ×이면 편안함 결핍/정서 예민/과각성 패턴을 근거로 설명하고, 안락함보다 성취감 중심 운영 전략을 제시하라.",
     "천동 약세는 감수성을 감정 소모로 쓰지 말고 UI/UX, 콘텐츠 로직, 서비스 디테일 설계로 전환하는 전략을 포함하라.",
     "경양은 흉으로 단정하지 말고 분리·절단·돌파 에너지로 해석하라. 경양이 ◎이면 기술력/집념/핵심 절단 역량으로 승화된다는 점을 명시하라.",
     "경양·살성의 에너지는 업상대체(코드·디버깅·아키텍처·분석 설계) 전략으로 제시하고 인간관계 충돌 소모를 줄이는 실천안을 포함하라.",
@@ -10124,7 +10372,7 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
   const chapterCategories = chapterCategoryMap[chapter] || ["핵심 카테고리 1", "핵심 카테고리 2", "핵심 카테고리 3", "핵심 카테고리 4"];
   const palaceDetailText = extractZiweiPalaceDetailFromDataText(dataText);
   const categoryBlocks = chapterCategories
-    .map((cat) => `### 카테고리: ${cat}\n이 카테고리에서는 궁위와 별 조합의 실제 작동을 해석합니다. 명반의 강약 기호(묘/왕/리/평/함: ◎/○/△/×)를 행동 우선순위로 번역해, 지금 당장 적용 가능한 선택 기준과 중장기 운영 원칙을 분리해 제시합니다.\n\n실전 적용: 이번 주 핵심 행동 1개와 중단할 행동 1개를 동시에 확정해 실행 피로를 줄이세요.`)
+    .map((cat) => `### 카테고리: ${cat}\n이 카테고리에서는 궁위와 별 조합의 실제 작동을 해석합니다. 명반의 강약 기호(묘/왕/리/평/함: ◎/○/△/▲/×)를 행동 우선순위로 번역해, 지금 당장 적용 가능한 선택 기준과 중장기 운영 원칙을 분리해 제시합니다.\n\n실전 적용: 이번 주 핵심 행동 1개와 중단할 행동 1개를 동시에 확정해 실행 피로를 줄이세요.`)
     .join("\n\n");
 
   let text = [
@@ -10150,10 +10398,10 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     "### 12궁 별·강약 상세 해석",
     palaceDetailText,
     "### 강약 해석 보정 규칙",
-    "천동이 △/×이면 편안함 결핍과 예민함이 커질 수 있으므로, 휴식 강요보다 성취 중심 몰입 과제와 회복 루틴(명상·시각화·수면 고정)을 함께 제시해야 합니다.",
+    "천동이 ▲/×이면 편안함 결핍과 예민함이 커질 수 있으므로, 휴식 강요보다 성취 중심 몰입 과제와 회복 루틴(명상·시각화·수면 고정)을 함께 제시해야 합니다.",
     "경양은 흉으로 단정하지 않고 분리·절단·돌파의 기술 에너지로 해석합니다. 경양이 강할수록 인간관계 충돌 대신 업상대체(코드·분석·디버깅·설계)로 전환해야 길성화됩니다.",
     "## 3. 별의 밝기로 본 강점과 약점",
-    "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/△/×)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
+    "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/△/▲/×)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
     "신궁은 실제 행동과 외부 환경에서 발현되는 패턴입니다. 신궁 별 조합을 명궁과 비교해 보면 내부 의도와 외부 실행의 불일치 구간을 찾을 수 있으며, 이 구간을 조정하면 관계·커리어·재정 성과가 동시에 개선됩니다.",
     categoryBlocks,
     "## 4. 심리적 의미",
@@ -10205,7 +10453,7 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
   return text;
 }
 
-async function generateZiweiPremiumChapter(env, body, input, chapter, meta, canonicalZiweiChart, reportPayload, reportType, partnerOverview, dataQuality, previousChapterTexts = []) {
+async function generateZiweiPremiumChapter(env, body, input, chapter, meta, canonicalZiweiChart, reportPayload, reportType, partnerOverview, dataQuality, previousChapterTexts = [], ziweiPremiumPayload = null) {
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const chapterSpec = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
     key: `ch_${chapter}`,
@@ -10217,14 +10465,21 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     requestId: String(body?.requestId || body?.generationId || "").trim(),
     chapterTitle: chapterSpec.title,
   });
+  const payloadProfile = (ziweiPremiumPayload && typeof ziweiPremiumPayload === "object" && ziweiPremiumPayload.userProfile)
+    ? ziweiPremiumPayload.userProfile
+    : {};
   const pdfRawChart = buildZiweiPdfPipelineRawChart(reportPayload, canonicalZiweiChart, dataQuality);
   const context = buildZiweiPdfContext({
     userProfile: {
-      name: body?.name || input?.name || "사용자",
-      gender: body?.gender || input?.gender || "",
-      birthDate: `${input?.year || ""}-${String(input?.month || "").padStart(2, "0")}-${String(input?.day || "").padStart(2, "0")}`,
-      birthTime: `${String(input?.hour || 0).padStart(2, "0")}:${String(input?.minute || 0).padStart(2, "0")}`,
+      name: payloadProfile.name || body?.name || input?.name || "사용자",
+      gender: payloadProfile.gender || body?.gender || input?.gender || "",
+      birthDate: payloadProfile.birthDate || `${input?.year || ""}-${String(input?.month || "").padStart(2, "0")}-${String(input?.day || "").padStart(2, "0")}`,
+      birthTime: payloadProfile.birthTime || `${String(input?.hour || 0).padStart(2, "0")}:${String(input?.minute || 0).padStart(2, "0")}`,
       lunarDate: body?.lunarDate || canonicalZiweiChart?.profile?.birth?.lunarDate || "",
+      calendarType: payloadProfile.calendarType || body?.calendarType || "",
+      isLunar: asBool(payloadProfile.isLunar),
+      timeUnknown: asBool(payloadProfile.timeUnknown),
+      birthPlace: payloadProfile.birthPlace || "",
     },
     rawChart: pdfRawChart,
   });
@@ -10848,6 +11103,7 @@ async function generateSukuyoNatalChapterStrict(env, canonicalSukuyoNatal, chapt
 
 async function handleSukuyoLife(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("sookyoPremium", body));
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
@@ -11154,6 +11410,7 @@ async function handleSukuyoLife(request, env) {
 
 async function handleAstroWestern(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("westernAstrologyPremium", body));
   const strictValidationMode = usePremiumStrictValidation(body, env);
   const input = normalizeBody(body);
   input.houseSystem = String(body.houseSystem || "placidus").toLowerCase();
@@ -11209,6 +11466,7 @@ async function handleAstroWestern(request, env) {
 
 async function handleAstroLife(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("westernAstrologyPremium", body));
   const strictValidationMode = usePremiumStrictValidation(body, env);
   const prepareOnly = asBool(body.prepareOnly);
   const input = normalizeBody(body);
@@ -11466,6 +11724,7 @@ async function handleAstroLife(request, env) {
 
 async function handleVedicLife(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("vedicPremium", body));
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
@@ -14174,6 +14433,7 @@ async function generateSajuNewYearChapterWithGemini(env, {
 
 async function handleSajuNewYearSession(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("sajuNewYear", body));
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
@@ -14311,6 +14571,7 @@ async function handleSajuNewYearSession(request, env) {
 
 async function handleLifebookSession(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("lifeBook", body));
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
@@ -14508,6 +14769,7 @@ async function handleLifebookSession(request, env) {
 
 async function handleLoveSecretSession(request, env) {
   const body = await readJson(request);
+  Object.assign(body, normalizePremiumRequestBodyForPipeline("loveSecret", body));
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
@@ -14747,6 +15009,45 @@ async function handleZiweiBookSession(request, env) {
   const dataQuality = createZiweiDataQuality();
   const birthInput = buildZiweiBirthInputFromRequest(strictBody, input);
   const profileId = String(strictBody.profileId || birthInput.profileId || "").trim();
+  const profileFromRequest = normalizeZiweiPremiumProfile({
+    ...((strictBody.profile && typeof strictBody.profile === "object") ? strictBody.profile : {}),
+    profileId: strictBody.profileId || birthInput.profileId || "",
+    name: strictBody.name || birthInput.name || "",
+    gender: strictBody.gender || birthInput.gender || "",
+    birthDate: strictBody.birthDate || birthInput.birthDate || "",
+    birthTime: strictBody.birthTime || birthInput.birthTime || "",
+    calendarType: strictBody.calendarType || birthInput.calendarType || "",
+    isLunar: strictBody.isLunar ?? birthInput.isLunar,
+    timeUnknown: strictBody.timeUnknown ?? strictBody.birthTimeUnknown ?? birthInput.timeUnknown,
+    birthPlace: strictBody.birthPlace || birthInput.birthPlace || "",
+    timezone: strictBody.timezone || birthInput.timezone || "",
+  }, birthInput);
+
+  const profileMissingFields = [];
+  if (!String(profileFromRequest.birthDate || "").trim()) profileMissingFields.push("profile.birthDate");
+  if (!String(profileFromRequest.gender || "").trim()) profileMissingFields.push("profile.gender");
+  if (!String(profileFromRequest.calendarType || "").trim()) profileMissingFields.push("profile.calendarType");
+
+  console.info("[ZiweiPDF][Profile]", {
+    requestId,
+    profileId: profileFromRequest.profileId || null,
+    hasBirthDate: Boolean(profileFromRequest.birthDate),
+    hasBirthTime: Boolean(profileFromRequest.birthTime),
+    gender: profileFromRequest.gender || null,
+    calendarType: profileFromRequest.calendarType || null,
+    timeUnknown: Boolean(profileFromRequest.timeUnknown),
+    isLunar: Boolean(profileFromRequest.isLunar),
+    birthPlace: profileFromRequest.birthPlace || null,
+  });
+
+  if (profileMissingFields.length > 0) {
+    return json({
+      ok: false,
+      code: "ZIWEI_PROFILE_REQUIRED_MISSING",
+      message: "프로필 필수값이 부족합니다. 생년월일/성별/양음력 정보를 확인한 뒤 다시 시도해 주세요.",
+      missingFields: profileMissingFields,
+    }, { status: 422 });
+  }
 
   let basicZiweiResult = (strictBody.basicZiweiResult && typeof strictBody.basicZiweiResult === "object")
     ? strictBody.basicZiweiResult
@@ -14830,6 +15131,37 @@ async function handleZiweiBookSession(request, env) {
     console.info("[ZiweiPremium][BasicResult] built from canonical", { requestId, profileId });
   }
 
+  const basicResultPalaceCount = Array.isArray(basicZiweiResult?.chart?.palaces)
+    ? basicZiweiResult.chart.palaces.length
+    : (Array.isArray(basicZiweiResult?.chart?.sourcePayload?.palaceStarData)
+      ? basicZiweiResult.chart.sourcePayload.palaceStarData.length
+      : 0);
+  const basicResultHasMeta = Boolean(
+    String(basicZiweiResult?.chart?.chartMeta?.mingGong || basicZiweiResult?.chart?.mingGong || "").trim()
+    && String(basicZiweiResult?.chart?.chartMeta?.shenGong || basicZiweiResult?.chart?.shenGong || "").trim(),
+  );
+
+  console.info("[ZiweiPDF][BasicResult]", {
+    requestId,
+    exists: Boolean(basicZiweiResult),
+    palaceCount: basicResultPalaceCount,
+    hasChartMeta: basicResultHasMeta,
+    source: String(basicZiweiResult?.source || "").trim() || "unknown",
+  });
+
+  if (!basicZiweiResult || !basicResultHasMeta || basicResultPalaceCount < 12) {
+    return json({
+      ok: false,
+      code: "ZIWEI_BASIC_RESULT_MISSING",
+      message: "기본 자미두수 결과가 부족해 PDF 생성을 진행할 수 없습니다. 메인 자미두수 결과를 먼저 생성한 뒤 다시 시도해 주세요.",
+      missingFields: [
+        !basicZiweiResult ? "basicZiweiResult" : null,
+        !basicResultHasMeta ? "basicZiweiResult.chart.chartMeta" : null,
+        basicResultPalaceCount < 12 ? "basicZiweiResult.chart.palaces" : null,
+      ].filter(Boolean),
+    }, { status: 422 });
+  }
+
   const canonicalDerivedReportPayload = canonicalZiweiChart
     ? buildZiweiReportPayloadFromCanonical(canonicalZiweiChart, dataQuality)
     : null;
@@ -14844,15 +15176,46 @@ async function handleZiweiBookSession(request, env) {
       : fallbackReportPayload,
     basicZiweiResult,
     userProfile: {
-      name: strictBody?.name || birthInput.name || "사용자",
-      gender: strictBody?.gender || birthInput.gender || "",
-      birthDate: birthInput.birthDate,
-      birthTime: birthInput.birthTime,
+      ...profileFromRequest,
+      name: profileFromRequest.name || "사용자",
+      gender: profileFromRequest.gender || "",
+      birthDate: profileFromRequest.birthDate || birthInput.birthDate,
+      birthTime: profileFromRequest.birthTime || birthInput.birthTime,
+      calendarType: profileFromRequest.calendarType || birthInput.calendarType,
+      birthPlace: profileFromRequest.birthPlace || birthInput.birthPlace || null,
     },
     birthInput,
     canonicalZiweiChart,
     dataQuality,
     preferBasicEngine: Boolean(basicZiweiResult),
+  });
+
+  const chapterCount = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
+    ? ZIWEI_PDF_CHAPTERS_V2.length
+    : 13;
+  const totalCategoryCount = chapterCount * 4;
+  const ziweiPremiumPayload = buildZiweiPremiumPayloadFromProfileAndBasicResult({
+    profile: profileFromRequest,
+    basicZiweiResult,
+    reportPayload,
+    chapterCount,
+    totalCategoryCount,
+  });
+  const brightnessCheckRows = collectZiweiBrightnessCheck(ziweiPremiumPayload.palaces);
+
+  console.info("[ZiweiPDF][Payload]", {
+    requestId,
+    chapterCount,
+    totalCategoryCount,
+    palaceCount: Array.isArray(ziweiPremiumPayload.palaces) ? ziweiPremiumPayload.palaces.length : 0,
+    mingGong: ziweiPremiumPayload.chartMeta?.mingGong || null,
+    shenGong: ziweiPremiumPayload.chartMeta?.shenGong || null,
+    hasBasicResultSummary: Boolean(ziweiPremiumPayload.basicResultSummary),
+  });
+  console.info("[ZiweiPDF][BrightnessCheck]", {
+    requestId,
+    count: brightnessCheckRows.length,
+    samples: brightnessCheckRows.slice(0, 20),
   });
 
   const payloadValidation = validateZiweiPdfPayload(reportPayload, birthInput);
@@ -14945,6 +15308,7 @@ async function handleZiweiBookSession(request, env) {
   const debugArtifacts = {
     rawEngineResult: canonicalZiweiChart,
     ziweiReportPayload: reportPayload,
+    ziweiPremiumPayload,
     basicZiweiResult,
     canonicalDerivedReportPayload,
     validationResult: {
@@ -14998,6 +15362,7 @@ async function handleZiweiBookSession(request, env) {
     partnerOverview,
     dataQuality,
     previousChapterTexts,
+    ziweiPremiumPayload,
   );
 
   if (!generated?.ok) {

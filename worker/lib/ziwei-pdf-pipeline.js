@@ -1061,7 +1061,7 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
 
 function buildStrengthTableMarkdown() {
   const rows = ["| 기호 | 명칭 | 의미 |", "|---|---|---|"];
-  ["◎", "○", "▲", "△", "함"].forEach((symbol) => {
+  ["◎", "○", "△", "▲", "함"].forEach((symbol) => {
     const item = ZIWEI_STAR_STRENGTHS[symbol];
     if (!item) return;
     rows.push(`| ${symbol} | ${item.name}(${item.hanja}) | ${item.meaning} |`);
