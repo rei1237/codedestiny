@@ -5478,7 +5478,8 @@ function buildCompositeChart(primary, partner, houseSystem = "placidus") {
   };
 }
 
-async function buildAstroTimingData(request, env, input, natalChart) {
+async function buildAstroTimingData(request, env, input, natalChart, options = {}) {
+  const strictSwiss = options?.strictSwiss === true;
   const now = new Date();
   const transitInput = {
     ...input,
@@ -5488,7 +5489,7 @@ async function buildAstroTimingData(request, env, input, natalChart) {
     hour: now.getUTCHours(),
     minute: now.getUTCMinutes(),
   };
-  const transitRaw = await getSwissWesternChart(request, env, transitInput, { strict: true });
+  const transitRaw = await getSwissWesternChart(request, env, transitInput, { strict: strictSwiss });
   const transitChart = buildWesternPremiumChart(transitRaw, transitInput, {
     houseSystem: input.houseSystem,
     zodiacType: input.zodiacType,
@@ -5539,7 +5540,7 @@ async function buildAstroTimingData(request, env, input, natalChart) {
     hour: progressedDate.getUTCHours(),
     minute: progressedDate.getUTCMinutes(),
   };
-  const progressedRaw = await getSwissWesternChart(request, env, progressedInput, { strict: true });
+  const progressedRaw = await getSwissWesternChart(request, env, progressedInput, { strict: strictSwiss });
   const progressed = buildWesternPremiumChart(progressedRaw, progressedInput, {
     houseSystem: input.houseSystem,
     zodiacType: input.zodiacType,
@@ -5554,7 +5555,7 @@ async function buildAstroTimingData(request, env, input, natalChart) {
     hour: input.hour,
     minute: input.minute,
   };
-  const solarRaw = await getSwissWesternChart(request, env, solarReturnInput, { strict: true });
+  const solarRaw = await getSwissWesternChart(request, env, solarReturnInput, { strict: strictSwiss });
   const solarReturn = buildWesternPremiumChart(solarRaw, solarReturnInput, {
     houseSystem: input.houseSystem,
     zodiacType: input.zodiacType,
@@ -10796,13 +10797,15 @@ async function handleAstroWestern(request, env) {
   input.zodiacType = String(body.zodiacType || "tropical").toLowerCase();
   input.includeMinorAspects = body.includeMinorAspects !== false;
 
+  const strictSwissMode = Boolean(strictValidationMode);
+
   try {
-    const raw = await getSwissWesternChart(request, env, input, { strict: true });
+    const raw = await getSwissWesternChart(request, env, input, { strict: strictSwissMode });
     const chart = buildWesternPremiumChart(raw, input, {
       houseSystem: input.houseSystem,
       zodiacType: input.zodiacType,
       includeMinorAspects: input.includeMinorAspects,
-      strictHouseCusps: true,
+      strictHouseCusps: strictSwissMode,
     });
     const canonicalAstroChart = buildCanonicalAstroChart(body, input, chart, "personal", null, null, null, null);
     const strict = validateCanonicalAstroChartStrict(canonicalAstroChart);
@@ -10862,18 +10865,29 @@ async function handleAstroLife(request, env) {
 
   const reportId = astroReportIdFromInput(body, input, reportType);
 
+  const strictSwissMode = Boolean(strictValidationMode);
+
   let chart;
   try {
-    const rawChart = await getSwissWesternChart(request, env, input, { strict: true });
+    const rawChart = await getSwissWesternChart(request, env, input, { strict: strictSwissMode });
     chart = buildWesternPremiumChart(rawChart, input, {
       houseSystem: input.houseSystem,
       zodiacType: input.zodiacType,
       includeMinorAspects: input.includeMinorAspects,
-      strictHouseCusps: true,
+      strictHouseCusps: strictSwissMode,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error || "Swiss chart generation failed");
-    return json({ ok: false, code: "ASTRO_SWISS_REQUIRED", message }, { status: 422 });
+    if (strictSwissMode) {
+      return json({ ok: false, code: "ASTRO_SWISS_REQUIRED", message }, { status: 422 });
+    }
+    const fallbackRaw = buildFallbackWesternChart(input);
+    chart = buildWesternPremiumChart(fallbackRaw, input, {
+      houseSystem: input.houseSystem,
+      zodiacType: input.zodiacType,
+      includeMinorAspects: input.includeMinorAspects,
+      strictHouseCusps: false,
+    });
   }
 
   let partnerChart = null;
@@ -10894,12 +10908,12 @@ async function handleAstroLife(request, env) {
       partnerInput.zodiacType = input.zodiacType;
       partnerInput.includeMinorAspects = input.includeMinorAspects;
 
-      const partnerRaw = await getSwissWesternChart(request, env, partnerInput, { strict: true });
+      const partnerRaw = await getSwissWesternChart(request, env, partnerInput, { strict: strictSwissMode });
       partnerChart = buildWesternPremiumChart(partnerRaw, partnerInput, {
         houseSystem: partnerInput.houseSystem,
         zodiacType: partnerInput.zodiacType,
         includeMinorAspects: partnerInput.includeMinorAspects,
-        strictHouseCusps: true,
+        strictHouseCusps: strictSwissMode,
       });
       synastry = buildSynastry(chart, partnerChart);
       composite = buildCompositeChart(chart, partnerChart, input.houseSystem);
@@ -10907,7 +10921,7 @@ async function handleAstroLife(request, env) {
 
   let timingData = null;
   try {
-    timingData = await buildAstroTimingData(request, env, input, chart);
+    timingData = await buildAstroTimingData(request, env, input, chart, { strictSwiss: strictSwissMode });
   } catch (_) {
     timingData = null;
   }
