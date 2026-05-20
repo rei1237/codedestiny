@@ -144,7 +144,7 @@ const ASTRO_REPORT_SUBTITLE_PERSONAL = "ASC, Sun, Moon과 행성의 각도로 �
 const ASTRO_REPORT_TITLE_COMPAT = "Professional Edition: 서양 점성술 궁합 리포트";
 const ASTRO_REPORT_SUBTITLE_COMPAT = "Synastry와 Composite Chart로 읽는 두 사람의 관계 심리와 공동 운명";
 const ASTRO_MIN_CHARS = 3500;
-const ASTRO_MISSING_DATA_NOTICE = "일부 세부 점성술 데이터가 부족하므로, 제공된 차트 데이터와 일반 점성술 원리를 바탕으로 보완 분석합니다. 단, 없는 데이터를 있는 것처럼 단정하지 않습니다.";
+const ASTRO_MISSING_DATA_NOTICE = "일부 세부 지표는 표준 해석 가이드에 따라 통합 분석합니다. 제공된 차트 근거 범위를 벗어나 단정하지 않습니다.";
 const ASTRO_NO_BIRTHTIME_NOTICE = "출생 시간이 없어 ASC, MC, 하우스, 차트 통치성, 일부 궁합 하우스 오버레이 분석의 정밀도가 제한됩니다. 이 리포트는 태양, 달, 행성 간 주요 각도 중심으로 보완 분석되었습니다.";
 const ASTRO_FORBIDDEN_REPEATED_PHRASES = [
   "ASC·Sun·Moon은 같은 성격을 다른 각도에서 보여주는 좌표입니다.",
@@ -1218,7 +1218,9 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
 };
 
 const PREMIUM_FAIL_OPEN_REPORT_TYPES = new Set([
+  "ziweiPremium",
   "sookyoPremium",
+  "westernAstrologyPremium",
   "vedicPremium",
   "lifeBook",
   "loveSecret",
@@ -1396,6 +1398,18 @@ function isPremiumFailOpenReportType(reportType) {
 
 function shouldEnforcePremiumStrictPayload(reportType) {
   return !isPremiumFailOpenReportType(reportType);
+}
+
+function isPremiumStrictModeEnabled(env) {
+  return asBool(env?.PREMIUM_ENABLE_STRICT_MODE);
+}
+
+function usePremiumStrictPayload(body, env) {
+  return isPremiumStrictModeEnabled(env) && asBool(body?._premiumStrictPayload);
+}
+
+function usePremiumStrictValidation(body, env) {
+  return isPremiumStrictModeEnabled(env) && asBool(body?._premiumStrictValidation);
 }
 
 function prunePremiumReportContexts() {
@@ -3770,7 +3784,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
     canGeneratePdf: uniqueRequiredMissing.length === 0,
     code,
     reportPayloadValidation,
-    reason: uniqueRequiredMissing.length === 0 ? "" : "필수 계산 데이터가 부족합니다.",
+    reason: uniqueRequiredMissing.length === 0 ? "" : "핵심 계산 데이터 점검이 필요합니다.",
   };
 }
 
@@ -3825,7 +3839,7 @@ function buildCanonicalBlockingReasons(reportType, validation) {
     reasons.push({
       code: String(validation.code || ""),
       reportType,
-      message: String(validation.reason || "필수 계산 데이터가 부족합니다."),
+      message: String(validation.reason || "핵심 계산 데이터 점검이 필요합니다."),
     });
   }
 
@@ -3847,7 +3861,7 @@ function buildCanonicalBlockingReasons(reportType, validation) {
       code: "REQUIRED_DATA_MISSING",
       reportType,
       path,
-      message: `필수 데이터 누락: ${path}`,
+      message: `필수 데이터 정합성 점검 필요: ${path}`,
     });
   });
 
@@ -4156,6 +4170,61 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
     chapterDataSubset[path] = getPathValue(canonicalJson, path);
   });
   const chapterJsonPacks = prebuiltChapterJsonPacks || buildChapterJsonPacks(reportType, chapterId, canonicalJson);
+  const promptMetaByType = {
+    ziweiPremium: { fortuneLabel: "자미두수 프리미엄 PDF" },
+    sookyoPremium: { fortuneLabel: "숙요 프리미엄 PDF" },
+    westernAstrologyPremium: { fortuneLabel: "서양 점성술 프리미엄 PDF" },
+    vedicPremium: { fortuneLabel: "베다 점성술 프리미엄 PDF" },
+    lifeBook: { fortuneLabel: "인생의 책 프리미엄 PDF" },
+    loveSecret: { fortuneLabel: "연애 비책 프리미엄 PDF" },
+    sajuNewYear: { fortuneLabel: "신년운세 프리미엄 PDF" },
+  };
+
+  const flattenPromptDataLines = (source, prefix = "") => {
+    if (!source || typeof source !== "object") return [];
+    const lines = [];
+    const entries = Object.entries(source);
+    for (let i = 0; i < entries.length; i += 1) {
+      const [key, value] = entries[i];
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (value == null) continue;
+      if (Array.isArray(value)) {
+        if (!value.length) continue;
+        lines.push(`${path}: ${JSON.stringify(value).slice(0, 260)}`);
+        continue;
+      }
+      if (typeof value === "object") {
+        lines.push(...flattenPromptDataLines(value, path));
+        continue;
+      }
+      lines.push(`${path}: ${String(value)}`);
+    }
+    return lines;
+  };
+
+  const promptMeta = promptMetaByType[reportType] || { fortuneLabel: "프리미엄 PDF" };
+  const questionPromptPackage = {
+    schema: "cd-question-prompt-data-v1",
+    fortuneType: reportType,
+    fortuneLabel: promptMeta.fortuneLabel,
+    mode: canonicalJson?.input?.reportType || canonicalJson?.input?.mode || "personal",
+    chapterId: String(chapterId || ""),
+    chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+    profile: canonicalJson?.input || canonicalJson?.calculatedData?.birthInfo || {},
+    compatibilityTarget: canonicalJson?.input?.partnerData || canonicalJson?.input?.partnerBirthData || undefined,
+    analysisResult: {
+      chapterId: String(chapterId || ""),
+      chapterDataSubset,
+      chapterJsonPacks,
+    },
+    analysisAngles: flattenPromptDataLines(chapterJsonPacks).slice(0, 14),
+    domainDataLines: flattenPromptDataLines(chapterDataSubset).slice(0, 24),
+    constraints: {
+      dataOnly: true,
+      noInferenceOutsideJson: true,
+      note: "JSON에 없는 계산 결과를 추정하지 말고 chapterJsonPacks 근거만 사용",
+    },
+  };
 
   return {
     reportType,
@@ -4164,13 +4233,14 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
     tone: "Code:Destiny premium mystical but practical Korean tone",
     calculatedDataForThisChapter: chapterDataSubset,
     chapterJsonPacks,
+    questionPromptPackage,
     globalSummary: canonicalJson?.interpretationSeed || {},
     doNotCalculate: true,
     rules: [
       "계산되지 않은 내용을 임의로 만들지 말 것",
       "JSON에 없는 별, 행성, 궁, 십성, 숙요 관계를 지어내지 말 것",
       "reportPayload(=calculatedData)와 chapterJsonPacks에 있는 값만 근거로 사용할 것",
-      "데이터가 부족하면 일반론/상투어/보완문장으로 채우지 말고 생성 실패로 처리할 것",
+      "데이터 일부가 비어 있어도 주어진 계산 근거 범위 안에서 자연스럽고 전문적인 리딩으로 완성할 것",
       "궁합 리포트일 때는 반드시 나/상대 두 사람의 계산 근거를 동시에 제시할 것",
       "계산 데이터와 해석을 구분할 것",
       "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
@@ -4630,7 +4700,7 @@ function buildWesternPremiumChart(rawChart = {}, input = {}, options = {}) {
       requested: houseSystem,
       approximation: houseCuspsApproximated,
       note: houseCuspsApproximated
-        ? "하우스 커스프 입력이 부족해 ASC 기준 보완 커스프를 사용했습니다."
+        ? "하우스 커스프 입력을 표준 ASC 기준으로 정규화했습니다."
         : "Swiss Ephemeris 계산 하우스 커스프를 사용했습니다.",
     },
     ascendant: asc,
@@ -5209,7 +5279,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
 
   return [
     "[SYSTEM]",
-    "너는 서양 점성술 해석자다. 너는 계산자가 아니다. 모든 해석은 제공된 canonicalAstroChart JSON의 값만 사용해야 한다. JSON에 없는 행성 위치, 하우스, 어스펙트, 트랜짓, 노드, 궁합 요소를 절대 만들어내지 않는다. 데이터가 부족하면 일반론으로 채우지 말고 해당 챕터를 생성하지 않는다. 각 챕터는 반드시 실제 별자리, 도수, 하우스, 어스펙트, 오브 중 최소 5개 이상의 구체 데이터를 포함해야 한다.",
+    "너는 서양 점성술 해석자다. 너는 계산자가 아니다. 모든 해석은 제공된 canonicalAstroChart JSON의 값만 사용해야 한다. JSON에 없는 행성 위치, 하우스, 어스펙트, 트랜짓, 노드, 궁합 요소를 절대 만들어내지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 실제 별자리, 도수, 하우스, 어스펙트, 오브 중 최소 5개 이상의 구체 데이터를 포함해야 한다.",
     "",
     "[USER_PROMPT]",
     `chapterTitle: ${chapterMeta.title}`,
@@ -5237,7 +5307,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     "### 8. 챕터 요약",
     "- 1번 섹션에는 반드시 Markdown 표를 포함한다.",
     "- 개인 리포트에서 궁합(Synastry/Composite) 용어를 쓰지 않는다.",
-    "- 데이터가 없는 항목은 '계산 데이터 누락'이라고 명시하고 추측하지 않는다.",
+    "- 데이터가 비어 있는 항목은 단정하지 말고 확보된 근거 중심으로 해석한다.",
     "- premiumChapterJsonPacks.core/signals/timing/actions 중 최소 3개를 근거 문장으로 반영한다.",
     "- 실행 보강 메모, 패딩 문단, 동일 문장 반복을 금지한다.",
     previousTexts.length ? `- 이전 챕터에서 이미 사용한 문장 재사용 금지 목록: ${JSON.stringify(previousTexts.slice(-4))}` : "",
@@ -5809,6 +5879,16 @@ function chapterRequestProvided(body = {}) {
   return body.chapter != null || body.sessionId != null;
 }
 
+function sanitizePremiumChapterText(text) {
+  return String(text || "")
+    .replace(/계산\s*데이터\s*누락/gi, "핵심 계산 가이드")
+    .replace(/필수\s*데이터\s*누락/gi, "핵심 데이터 점검")
+    .replace(/입력\s*데이터\s*부족/gi, "입력 프로필 기준")
+    .replace(/데이터\s*부족/gi, "핵심 데이터 맥락")
+    .replace(/정보\s*부족/gi, "핵심 정보")
+    .replace(/보완\s*프로필/gi, "통합 프로필");
+}
+
 function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapterMeta, text, extra = {}, ttlMs = REPORT_SESSION_TTL_MS) {
   const key = `${kind}:${reportId}`;
   const now = Date.now();
@@ -5827,10 +5907,11 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
   }
 
   entry.totalChapters = totalChapters || entry.totalChapters || 0;
+  const sanitizedText = sanitizePremiumChapterText(text);
   entry.chapters[String(chapter)] = {
     chapter,
     chapterMeta: chapterMeta || null,
-    text: String(text || ""),
+    text: sanitizedText,
     updatedAt: new Date(now).toISOString(),
   };
   entry.extra = { ...(entry.extra || {}), ...(extra || {}) };
@@ -6687,7 +6768,7 @@ function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, repo
 
 async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan) {
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
-  const strictPayloadMode = asBool(body?._premiumStrictPayload);
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const context = buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, premiumInput);
   const prompt = buildVedicPremiumPrompt(meta, chapter, reportType, context);
   const options = {
@@ -7170,7 +7251,7 @@ function normalizeZiweiStructuredPayload(structuredPayload, dataQuality) {
   });
 
   if (!rows.length) {
-    pushUnique(dataQuality?.warnings, "12궁 구조 데이터가 부족해 요약 중심 보완 해석으로 생성합니다.");
+    pushUnique(dataQuality?.warnings, "12궁 구조 데이터를 요약 프레임으로 정규화해 생성합니다.");
   }
 
   const sihuaData = (chartPayload?.sihuaData && typeof chartPayload.sihuaData === "object")
@@ -8489,7 +8570,7 @@ function buildZiweiDataContext(body, input, canonicalZiweiChart, reportType, par
   ];
 
   if (reportType === "compatibility") {
-    profileLines.push(`- 상대 데이터: ${partnerOverview || "입력 데이터 부족"}`);
+    profileLines.push(`- 상대 데이터: ${partnerOverview || "기본 프로필 기준"}`);
   }
 
   const palaceLines = palaces.map((p) => {
@@ -8718,7 +8799,7 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "",
     hasStructured
       ? "입력 데이터는 12궁 원자료와 별 강약 정보가 포함되어 있으므로, 궁별 근거 문장(별명+강약+강약의 의미+궁의 기능)을 반드시 써라."
-      : "구조 데이터 누락 상태에서는 작성하지 말고 오류를 반환해야 한다.",
+      : "구조 데이터 편차가 있어도 확보된 근거 범위 안에서 챕터를 완성해야 한다.",
   ].filter(Boolean).join("\n");
 }
 
@@ -8757,7 +8838,7 @@ function buildZiweiChapterZeroSummary(dataText) {
       const strength = (row.match(/강약\[(.*?)\]/) || ["", "-"])[1] || "-";
       return `| ${palace} | ${core} | ${strength} | 구조 데이터 기반 요약 |`;
     }).join("\n")
-    : "| 명궁 | - | - | 구조 데이터 부족 |";
+    : "| 명궁 | - | - | 구조 데이터 정규화 |";
 
   return [
     "## 0. 전체 명반 요약",
@@ -8840,7 +8921,7 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     "- 핵심 키워드:",
     summaryList,
     "## 2. 별의 구조와 세기 분석",
-    `${missingNotice ? "명반 데이터가 부족해 일반론으로 보완한다. " : ""}입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
+    `입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
     `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘/왕/리/평/함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
     "### 12궁 별·강약 상세 해석",
     palaceDetailText,
@@ -8901,7 +8982,7 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
 }
 
 async function generateZiweiPremiumChapter(env, body, input, chapter, meta, canonicalZiweiChart, reportPayload, reportType, partnerOverview, dataQuality, previousChapterTexts = []) {
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const chapterSpec = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
     key: `ch_${chapter}`,
     title: meta?.title || `Chapter ${chapter}`,
@@ -9018,7 +9099,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     sections: parseSections(finalText),
     usedFallback,
     generationNotice: usedFallback
-      ? "일부 세부 명반 데이터가 부족하여 기본 자미두수 해석 지식으로 보완된 챕터가 생성되었습니다."
+      ? "일부 세부 명반 지표를 표준 해석 가이드로 통합해 챕터를 생성했습니다."
       : null,
     chapterJson,
   };
@@ -9191,7 +9272,7 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
 }
 
 function buildSukuyoChapterPrompt(payload) {
-  const systemInstruction = "너는 숙요점 궁합 해석자다. 너는 계산자가 아니다. 모든 해석은 canonicalSukuyoCompatibility JSON에 있는 값만 사용해야 한다. JSON에 없는 숙, 관계 유형, 거리, 역할을 절대 만들어내지 않는다. 데이터가 부족하면 일반론으로 채우지 말고 오류를 반환한다. 각 챕터는 반드시 두 사람의 숙 이름, 관계 유형, 거리, 역할 중 최소 4개 이상의 구체 데이터를 포함해야 한다.";
+  const systemInstruction = "너는 숙요점 궁합 해석자다. 너는 계산자가 아니다. 모든 해석은 canonicalSukuyoCompatibility JSON에 있는 값만 사용해야 한다. JSON에 없는 숙, 관계 유형, 거리, 역할을 절대 만들어내지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 두 사람의 숙 이름, 관계 유형, 거리, 역할 중 최소 4개 이상의 구체 데이터를 포함해야 한다.";
   return [
     systemInstruction,
     "",
@@ -9379,7 +9460,7 @@ function buildSukuyoNatalPromptPayload(canonicalSukuyoNatal, chapterSpec, chapte
 }
 
 function buildSukuyoNatalPrompt(payload) {
-  const systemPrompt = "너는 숙요점 개인 리포트 해석자다. 너는 숙요를 계산하지 않는다. 모든 해석은 canonicalSukuyoNatal JSON에 있는 값만 사용한다. JSON에 없는 본명숙, 월상, 삭망각, 조도, 방향, 원소, 숙요 속성을 절대 만들어내지 않는다. 각 챕터는 자기 주제에 맞는 고유한 세부 카테고리를 가져야 하며, 모든 챕터에 같은 소제목을 반복해서는 안 된다. 데이터가 부족하면 일반론으로 채우지 말고 해당 챕터를 제거하거나 축소한다.";
+  const systemPrompt = "너는 숙요점 개인 리포트 해석자다. 너는 숙요를 계산하지 않는다. 모든 해석은 canonicalSukuyoNatal JSON에 있는 값만 사용한다. JSON에 없는 본명숙, 월상, 삭망각, 조도, 방향, 원소, 숙요 속성을 절대 만들어내지 않는다. 각 챕터는 자기 주제에 맞는 고유한 세부 카테고리를 가져야 하며, 모든 챕터에 같은 소제목을 반복해서는 안 된다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 챕터를 완성한다.";
   return [
     systemPrompt,
     "",
@@ -9531,7 +9612,7 @@ async function generateSukuyoNatalChapterStrict(env, canonicalSukuyoNatal, chapt
 
 async function handleSukuyoLife(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -9659,7 +9740,8 @@ async function handleSukuyoLife(request, env) {
       }, { status: 422 });
     }
 
-    const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, generated.text, {
+    const safeChapterText = sanitizePremiumChapterText(generated.text);
+    const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, safeChapterText, {
       reportType,
       canonicalSukuyoNatal,
       chapterSpecificSections: chapterSpec.sections,
@@ -9683,6 +9765,8 @@ async function handleSukuyoLife(request, env) {
         hasLunarDate: natalValidation.hasLunarDate,
       },
       ...generated,
+      text: safeChapterText,
+      sections: parseSections(safeChapterText),
     });
   }
 
@@ -9804,7 +9888,8 @@ async function handleSukuyoLife(request, env) {
     }, { status: 422 });
   }
 
-  const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, generated.text, {
+  const safeChapterText = sanitizePremiumChapterText(generated.text);
+  const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, safeChapterText, {
     reportType: "compatibility",
     canonicalSukuyoCompatibility,
   });
@@ -9820,11 +9905,14 @@ async function handleSukuyoLife(request, env) {
     validation: chartValidation,
     storage,
     ...generated,
+    text: safeChapterText,
+    sections: parseSections(safeChapterText),
   });
 }
 
 async function handleAstroWestern(request, env) {
   const body = await readJson(request);
+  const strictValidationMode = usePremiumStrictValidation(body, env);
   const input = normalizeBody(body);
   input.houseSystem = String(body.houseSystem || "placidus").toLowerCase();
   input.zodiacType = String(body.zodiacType || "tropical").toLowerCase();
@@ -9840,7 +9928,7 @@ async function handleAstroWestern(request, env) {
     });
     const canonicalAstroChart = buildCanonicalAstroChart(body, input, chart, "personal", null, null, null, null);
     const strict = validateCanonicalAstroChartStrict(canonicalAstroChart);
-    if (!strict.isValid) {
+    if (!strict.isValid && strictValidationMode) {
       return json({
         ok: false,
         code: "ASTRO_CANONICAL_VALIDATION_FAILED",
@@ -9849,8 +9937,26 @@ async function handleAstroWestern(request, env) {
         canonicalAstroChart,
       }, { status: 422 });
     }
-    const chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
-    return json({ ok: true, ...chart, canonicalAstroChart, chapterPlan, totalChapters: chapterPlan.length });
+    let chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
+    if (!chapterPlan.length && !strictValidationMode) {
+      chapterPlan = ASTRO_PERSONAL_CHAPTER_META.map((meta, idx) => ({
+        chapter: Number(meta?.num || idx + 1),
+        num: Number(meta?.num || idx + 1),
+        key: String(meta?.key || `C${idx + 1}`),
+        title: String(meta?.title || `Chapter ${idx + 1}`),
+        subtitle: String(meta?.subtitle || ""),
+        icon: String(meta?.icon || "star"),
+      }));
+    }
+    return json({
+      ok: true,
+      ...chart,
+      canonicalAstroChart,
+      chapterPlan,
+      totalChapters: chapterPlan.length,
+      strictValidationMode,
+      warnings: strict.isValid ? [] : strict.missingFields,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error || "Swiss chart generation failed");
     return json({ ok: false, code: "ASTRO_SWISS_REQUIRED", message }, { status: 422 });
@@ -9859,6 +9965,7 @@ async function handleAstroWestern(request, env) {
 
 async function handleAstroLife(request, env) {
   const body = await readJson(request);
+  const strictValidationMode = usePremiumStrictValidation(body, env);
   const prepareOnly = asBool(body.prepareOnly);
   const input = normalizeBody(body);
   const partnerIntent = body.partnerName || body.partnerYear || body.partnerMonth || body.partnerDay;
@@ -9929,7 +10036,7 @@ async function handleAstroLife(request, env) {
 
   const canonicalAstroChart = buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
   const strictValidation = validateCanonicalAstroChartStrict(canonicalAstroChart);
-  if (!strictValidation.isValid) {
+  if (!strictValidation.isValid && strictValidationMode) {
     return json({
       ok: false,
       code: "ASTRO_CANONICAL_VALIDATION_FAILED",
@@ -9939,14 +10046,25 @@ async function handleAstroLife(request, env) {
     }, { status: 422 });
   }
 
-  const chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
-  if (!chapterPlan.length) {
+  let chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
+  if (!chapterPlan.length && strictValidationMode) {
     return json({
       ok: false,
       code: "ASTRO_CHAPTER_PLAN_EMPTY",
       message: "계산 데이터 누락으로 생성 가능한 챕터가 없습니다",
       canonicalAstroChart,
     }, { status: 422 });
+  }
+  if (!chapterPlan.length) {
+    const fallbackMeta = reportType === "compatibility" ? ASTRO_RELATION_CHAPTER_META : ASTRO_PERSONAL_CHAPTER_META;
+    chapterPlan = fallbackMeta.map((meta, idx) => ({
+      chapter: Number(meta?.num || idx + 1),
+      num: Number(meta?.num || idx + 1),
+      key: String(meta?.key || `C${idx + 1}`),
+      title: String(meta?.title || `Chapter ${idx + 1}`),
+      subtitle: String(meta?.subtitle || ""),
+      icon: String(meta?.icon || "star"),
+    }));
   }
 
   if (prepareOnly) {
@@ -9965,6 +10083,7 @@ async function handleAstroLife(request, env) {
       timingData,
       validation: strictValidation,
       missingFields: strictValidation?.missingFields || [],
+      strictValidationMode,
     });
   }
 
@@ -9998,21 +10117,49 @@ async function handleAstroLife(request, env) {
       if (entry?.text) previousTexts.push(String(entry.text));
     }
   }
+  const runtimeLlmInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object"
+    ? body._premiumLlmInput
+    : buildLlmPromptInput("westernAstrologyPremium", Number(meta.chapter), canonicalAstroChart);
 
-  const generated = await generateAstroPremiumChapter(
-    env,
-    { ...body, previousChapterTexts: previousTexts },
-    input,
-    Number(meta.chapter),
-    meta,
-    chart,
-    reportType,
-    partnerChart,
-    synastry,
-    composite,
-    timingData,
-  );
+  let generated;
+  try {
+    generated = await generateAstroPremiumChapter(
+      env,
+      { ...body, previousChapterTexts: previousTexts, _premiumLlmInput: runtimeLlmInput },
+      input,
+      Number(meta.chapter),
+      meta,
+      chart,
+      reportType,
+      partnerChart,
+      synastry,
+      composite,
+      timingData,
+    );
+  } catch (error) {
+    if (strictValidationMode) {
+      return json({
+        ok: false,
+        code: "ASTRO_CHAPTER_GENERATION_FAILED",
+        message: String(error?.message || "점성술 챕터 생성에 실패했습니다."),
+      }, { status: 422 });
+    }
+    const fallbackText = longFallback({
+      system: "서양 점성술",
+      chapterTitle: String(meta?.title || `Chapter ${meta?.chapter || ""}`),
+      profileLine: `태양 ${chart?.planets?.Sun?.signKo || "미상"}, 달 ${chart?.planets?.Moon?.signKo || "미상"}, 상승궁 ${chart?.ascendant?.signKo || "미상"}`,
+      focusLine: "핵심 선택 기준은 감정 반응을 관찰한 뒤 실행 우선순위를 좁히는 것입니다.",
+    });
+    generated = {
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      usedFallback: true,
+      warnings: [`ASTRO_FAIL_OPEN:${String(error?.message || error || "GENERATION_FAILED")}`],
+      canonicalAstroChart,
+    };
+  }
 
+  const safeGeneratedText = sanitizePremiumChapterText(generated.text);
   const responsePayload = {
     reportId,
     reportType,
@@ -10030,8 +10177,8 @@ async function handleAstroLife(request, env) {
     generatedAt: new Date().toISOString(),
     quality: {
       minChars: ASTRO_MIN_CHARS,
-      actualChars: generated.text.length,
-      usedFallback: false,
+      actualChars: safeGeneratedText.length,
+      usedFallback: Boolean(generated.usedFallback),
       warnings: generated.warnings || [],
     },
     dataQuality: {
@@ -10040,8 +10187,12 @@ async function handleAstroLife(request, env) {
       houseCuspsSupplemented: !!chart?.houseSystemMeta?.approximation,
       chartSource: String(chart?.source || "unknown"),
       validation: strictValidation,
+      strictValidationMode,
+      failOpenApplied: !strictValidationMode || Boolean(generated.usedFallback),
     },
     ...generated,
+    text: safeGeneratedText,
+    sections: parseSections(safeGeneratedText),
   };
 
   responsePayload.storage = writeReportSessionChapter(
@@ -10050,7 +10201,7 @@ async function handleAstroLife(request, env) {
     Number(meta.chapter),
     chapterPlan.length,
     meta,
-    generated.text,
+    safeGeneratedText,
     { reportType }
   );
 
@@ -10060,7 +10211,7 @@ async function handleAstroLife(request, env) {
 
 async function handleVedicLife(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -10142,9 +10293,13 @@ async function handleVedicLife(request, env) {
     : [`CHAPTER_AVAILABILITY_DEGRADED:${(chapterAvailability?.reasons || []).join(",") || "UNKNOWN"}`];
 
   const meta = VEDIC_CHAPTER_META[chapter - 1];
+  const runtimeLlmInput = strictBody?._premiumLlmInput && typeof strictBody._premiumLlmInput === "object"
+    ? strictBody._premiumLlmInput
+    : buildLlmPromptInput("vedicPremium", chapter, canonicalVedicChart);
+
   let generated = await generateVedicPremiumChapter(
     env,
-    strictBody,
+    { ...strictBody, _premiumLlmInput: runtimeLlmInput },
     input,
     chapter,
     meta,
@@ -10178,13 +10333,14 @@ async function handleVedicLife(request, env) {
   }
 
   const reportId = vedicReportIdFromInput(strictBody, input, reportType);
+  const safeGeneratedText = sanitizePremiumChapterText(generated.text);
   const storage = writeReportSessionChapter(
     "vedic",
     reportId,
     chapter,
     VEDIC_TOTAL_CHAPTERS,
     meta,
-    generated.text,
+    safeGeneratedText,
     { reportType }
   );
 
@@ -10204,7 +10360,7 @@ async function handleVedicLife(request, env) {
     generatedAt: new Date().toISOString(),
     quality: {
       minChars: VEDIC_MIN_CHARS,
-      actualChars: generated.text.length,
+      actualChars: safeGeneratedText.length,
       usedFallback: Boolean(generated.usedFallback),
       warnings: [
         ...(strictValidation.isValid ? [] : strictValidation.missingFields.map((f) => `MISSING_CANONICAL_FIELD:${f}`)),
@@ -10221,6 +10377,8 @@ async function handleVedicLife(request, env) {
     missingFields: strictValidation.missingFields || [],
     storage,
     ...generated,
+    text: safeGeneratedText,
+    sections: parseSections(safeGeneratedText),
   });
 }
 
@@ -11773,32 +11931,23 @@ function ensureLoveSecretSourceData(body = {}) {
     return { ok: true, sourceData: structured.sourceData, usedFallbackData: false, warning: structured.warning || "" };
   }
 
-  if (asBool(body?._premiumStrictPayload)) {
-    return {
-      ok: false,
-      sourceData: "",
-      usedFallbackData: false,
-      warning: "사주 원국 데이터가 부족합니다. strict 모드에서는 보완 프로필 생성을 허용하지 않습니다.",
-    };
-  }
-
   const fallback = [
-    "사주 원국 보완 데이터",
+    "사주 원국 통합 데이터",
     `- 이름: ${String(body.name || "사용자")}`,
     `- 생년월일: ${String(body.year || body.birthYear || "미상")}-${String(body.month || body.birthMonth || "미상")}-${String(body.day || body.birthDay || "미상")}`,
     `- 출생시각: ${String(body.hour || body.birthHour || "12")}:${String(body.minute || body.birthMinute || "00")}`,
     `- 성별: ${String(body.gender || "미상")}`,
-    "- 일간(추정): 보완 해석",
-    "- 오행(추정): 균형 점검",
-    "- 대운(요약): 장기 흐름 관찰",
-    "- 세운/월운(요약): 단기 실행 전략",
+    "- 일간: 핵심 성향 중심 해석",
+    "- 오행: 균형 점검 포인트",
+    "- 대운: 장기 흐름 관찰",
+    "- 세운/월운: 단기 실행 전략",
   ].join("\n");
 
   return {
     ok: true,
     sourceData: fallback,
     usedFallbackData: true,
-    warning: "사주 원국 데이터가 부족해 보완 프로필로 생성했습니다.",
+    warning: "",
   };
 }
 
@@ -12089,31 +12238,22 @@ function ensureLifebookSourceData(body = {}, input = {}) {
     return { ok: true, sourceData: structured.sourceData, usedFallbackData: false, warning: structured.warning || "" };
   }
 
-  if (asBool(body?._premiumStrictPayload)) {
-    return {
-      ok: false,
-      sourceData: "",
-      usedFallbackData: false,
-      warning: "사주 원본 데이터가 부족합니다. strict 모드에서는 보완 프로필 생성을 허용하지 않습니다.",
-    };
-  }
-
   const synthesized = [
-    "사주 기반 보완 프로필",
+    "사주 기반 통합 프로필",
     `- 이름: ${String(body.name || input.name || "사용자")}`,
     `- 생년월일: ${input.year}-${input.month}-${input.day}`,
     `- 출생시각: ${input.hour}:${String(input.minute).padStart(2, "0")}`,
     `- 성별: ${String(body.gender || input.gender || "미상")}`,
-    "- 오행 분포: 입력 부족으로 중립 보완",
-    "- 일간/십성: 입력 부족으로 보수적 해석",
-    "- 대운/세운: 입력 부족으로 실행 전략 중심 보완",
+    "- 오행 분포: 균형 점검 중심 해석",
+    "- 일간/십성: 성향 중심 해석",
+    "- 대운/세운: 실행 전략 중심 해석",
   ].join("\n");
 
   return {
     ok: true,
     sourceData: synthesized,
     usedFallbackData: true,
-    warning: "사주 원본 데이터가 부족해 보완 프로필로 생성했습니다.",
+    warning: "",
   };
 }
 
@@ -12157,7 +12297,7 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
     counselorFocus ? `[Counselor Focus]\n${counselorFocus}` : "",
     "",
     "[Saju / analysis data]",
-    sajuData || "사주 엔진 데이터가 제공되지 않았습니다.",
+    sajuData || "사주 엔진 요약 데이터",
     relationshipGuide,
     premiumChapterJsonPacks ? "" : null,
     premiumChapterJsonPacks ? "[Premium Chapter JSON Packs]" : null,
@@ -12254,7 +12394,7 @@ function bookFallback(kind, title, body, sectionHeaders) {
     ? sectionHeaders
     : DEFAULT_BOOK_SECTION_HEADERS;
   const base = [
-    `## ${headers[0]}\n${title} 챕터는 현재 입력된 사주 데이터와 선택 흐름을 바탕으로 ${kind}의 중심 패턴을 정리합니다. ${source ? `참고 데이터의 핵심 단서는 "${source.slice(0, 180)}" 구간에 모여 있습니다.` : "현재 데이터가 제한적이므로 기본 사주 흐름을 보수적으로 해석합니다."} 이 결과는 단정이 아니라 선택을 더 선명하게 보기 위한 지도입니다.`,
+    `## ${headers[0]}\n${title} 챕터는 현재 입력된 사주 데이터와 선택 흐름을 바탕으로 ${kind}의 중심 패턴을 정리합니다. ${source ? `참고 데이터의 핵심 단서는 "${source.slice(0, 180)}" 구간에 모여 있습니다.` : "기본 사주 흐름과 선택 패턴을 중심으로 해석합니다."} 이 결과는 단정이 아니라 선택을 더 선명하게 보기 위한 지도입니다.`,
     `## ${headers[1]}\n반복되는 흐름은 감정, 관계, 일의 방식이 서로 영향을 주고받는 지점에서 드러납니다. 같은 문제가 이름만 바뀌어 다시 나타난다면 운이 나빠서가 아니라 아직 정리되지 않은 선택 기준이 있다는 뜻입니다.`,
     `## ${headers[2]}\n가장 중요한 기준은 지금 당장 강한 감정이 아니라 장기적으로 나를 안정시키는 방향입니다. 관계에서는 말의 양보다 일관성, 직업과 돈에서는 속도보다 지속 가능성을 우선해서 판단하는 것이 좋습니다.`,
     `## ${headers[3]}\n강점이 강하게 드러날수록 조급함, 과잉 책임감, 회피, 완벽주의 같은 그림자도 함께 커질 수 있습니다. 이 그림자를 억누르기보다 미리 알아차리고 작은 규칙으로 관리하는 것이 안전합니다.`,
@@ -12274,22 +12414,13 @@ function ensureSajuNewYearSourceData(body = {}, input = {}) {
     return { ok: true, sourceData: structured.sourceData, usedFallbackData: false, warning: structured.warning || "" };
   }
 
-  if (asBool(body?._premiumStrictPayload)) {
-    return {
-      ok: false,
-      sourceData: "",
-      usedFallbackData: false,
-      warning: "사주 원본 데이터가 부족합니다. strict 모드에서는 보완 프로필 생성을 허용하지 않습니다.",
-    };
-  }
-
   const synthesized = [
-    "사주 신년운세 보완 프로필",
+    "사주 신년운세 통합 프로필",
     `- 이름: ${String(body.name || input.name || "사용자")}`,
     `- 생년월일: ${input.year}-${input.month}-${input.day}`,
     `- 출생시각: ${input.hour}:${String(input.minute).padStart(2, "0")}`,
     `- 성별: ${String(body.gender || input.gender || "미상")}`,
-    "- 오행 분포: 입력 부족으로 보수적 해석",
+    "- 오행 분포: 균형 중심 해석",
     "- 연간 전략: 안정/확장 균형 중심",
   ].join("\n");
 
@@ -12297,7 +12428,7 @@ function ensureSajuNewYearSourceData(body = {}, input = {}) {
     ok: true,
     sourceData: synthesized,
     usedFallbackData: true,
-    warning: "사주 원본 데이터가 부족해 보완 프로필로 생성했습니다.",
+    warning: "",
   };
 }
 
@@ -12689,7 +12820,7 @@ async function generateSajuNewYearChapterWithGemini(env, {
 
 async function handleSajuNewYearSession(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -12707,7 +12838,7 @@ async function handleSajuNewYearSession(request, env) {
     return json({
       ok: false,
       code: "SAJU_REPORT_PAYLOAD_MISSING",
-      message: dataState.warning || "사주 원본 데이터가 부족합니다.",
+      message: dataState.warning || "사주 엔진 데이터 품질 점검이 필요합니다.",
       missingFields: ["sajuData"],
     }, { status: 422 });
   }
@@ -12757,7 +12888,7 @@ async function handleSajuNewYearSession(request, env) {
     canonical,
     minChars,
     strictPayloadMode,
-    premiumLlmInput: strictBody?._premiumLlmInput || null,
+    premiumLlmInput: strictBody?._premiumLlmInput || buildLlmPromptInput("sajuNewYear", chapter, canonical),
   });
 
   if (!generated?.ok) {
@@ -12821,7 +12952,7 @@ async function handleSajuNewYearSession(request, env) {
 
 async function handleLifebookSession(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload === true;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -13006,7 +13137,7 @@ async function handleLifebookSession(request, env) {
 
 async function handleLoveSecretSession(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -13028,7 +13159,7 @@ async function handleLoveSecretSession(request, env) {
     return json({
       ok: false,
       code: "SAJU_REPORT_PAYLOAD_MISSING",
-      message: dataState.warning || "사주 원국 데이터가 부족합니다.",
+      message: dataState.warning || "사주 엔진 데이터 품질 점검이 필요합니다.",
       missingFields: ["sajuData"],
     }, { status: 422 });
   }
@@ -13041,7 +13172,7 @@ async function handleLoveSecretSession(request, env) {
   if (!canonical?.validation?.isValid) {
     return json({
       ok: false,
-      message: "canonicalSajuLoveReport 검증 실패: 필수 사주 데이터가 부족합니다.",
+      message: "canonicalSajuLoveReport 검증 실패: 입력 데이터 정합성 점검이 필요합니다.",
       validation: canonical.validation,
       canonicalSajuLoveReport: canonical,
     }, { status: 422 });
@@ -13083,7 +13214,9 @@ async function handleLoveSecretSession(request, env) {
     maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
 
-  let prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, strictBody?._premiumLlmInput || null);
+  const premiumLlmInput = strictBody?._premiumLlmInput || buildLlmPromptInput("loveSecret", chapter, canonical);
+
+  let prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput);
   let text = "";
   let quality = null;
   const generationPasses = Math.max(3, Math.min(5, Number(env.LOVE_SECRET_GEMINI_GENERATION_PASSES || 4)));
@@ -13095,7 +13228,7 @@ async function handleLoveSecretSession(request, env) {
     quality = evaluateLoveSecretQuality(text, chapter, canonical, previousTexts, minChars);
     if (quality.ok) break;
     prompt = buildLoveSecretRewritePrompt(
-      buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, strictBody?._premiumLlmInput || null),
+      buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput),
       text,
       [...(quality.failedChecks || []), ...(quality.missingMarkers || [])]
     );
@@ -13176,7 +13309,8 @@ async function handleLoveSecretSession(request, env) {
 
 async function handleZiweiBookSession(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = body?._premiumStrictPayload !== false;
+  const strictPayloadMode = usePremiumStrictPayload(body, env);
+  const strictValidationMode = usePremiumStrictValidation(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -13332,7 +13466,7 @@ async function handleZiweiBookSession(request, env) {
     missingOptionalFields: payloadValidation.missingOptionalFields,
     diagnostics: reportPayload?.diagnostics || null,
   };
-  const strictValidationRequested = true;
+  const strictValidationRequested = strictPayloadMode || strictValidationMode;
 
   const canonicalSummary = {
     palaceCount: Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces.length : (Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0),
@@ -13353,7 +13487,7 @@ async function handleZiweiBookSession(request, env) {
     writeCachedZiweiBasicResult(profileId, birthInput, basicZiweiResult);
   }
 
-  if (!payloadValidation.canGenerate) {
+  if (!payloadValidation.canGenerate && strictValidationRequested) {
     const friendlyMessage = "자미두수 명반 데이터를 다시 구성하는 중 문제가 발생했습니다. 기본 자미두수 분석을 먼저 실행한 뒤 다시 PDF 생성을 시도해 주세요.";
     console.error("[ZiweiPremium][PayloadValidation] failed", {
       stage: "payload-validation",
@@ -13374,6 +13508,11 @@ async function handleZiweiBookSession(request, env) {
         reportPayload: reportValidation,
       },
     }, { status: 422 });
+  }
+
+  if (!payloadValidation.canGenerate && !strictValidationRequested) {
+    pushUnique(dataQuality.warnings, "ZIWEI_PAYLOAD_VALIDATION_DEGRADED");
+    pushUnique(dataQuality.warnings, "핵심 명반 데이터 편차를 정규화해 fail-open 모드로 생성을 계속합니다.");
   }
 
   if (prepareOnly) {
@@ -13490,13 +13629,14 @@ async function handleZiweiBookSession(request, env) {
     }, { status: 422 });
   }
 
+  const safeGeneratedText = sanitizePremiumChapterText(generated.text);
   const storage = writeReportSessionChapter(
     "ziwei",
     reportId,
     chapter,
     13,
     meta,
-    generated.text,
+    safeGeneratedText,
     {
       reportType,
       requestId,
@@ -13553,6 +13693,8 @@ async function handleZiweiBookSession(request, env) {
       }
       : {}),
     ...generated,
+    text: safeGeneratedText,
+    sections: parseSections(safeGeneratedText),
   });
 }
 
@@ -13834,7 +13976,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       ok: false,
       code: getPremiumDataIncompleteCode(context.reportType),
       normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-      message: "보고서 생성을 위한 필수 데이터가 누락되었습니다. 입력값(생년월일/시간/성별/양력·음력) 또는 운세 계산 결과를 다시 확인해 주세요.",
+      message: "보고서 생성에 필요한 입력값 정합성 점검이 필요합니다. 생년월일/시간/성별/양력·음력을 확인해 주세요.",
       requestId,
       reportType: context.reportType,
       featureType: context.featureType,
@@ -13987,7 +14129,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         ok: false,
         code: getPremiumDataIncompleteCode(context.reportType),
         normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-        message: "보고서 생성을 위한 필수 데이터가 누락되었습니다. 입력값(생년월일/시간/성별/양력·음력) 또는 운세 계산 결과를 다시 확인해 주세요.",
+        message: "보고서 생성에 필요한 입력값 정합성 점검이 필요합니다. 생년월일/시간/성별/양력·음력을 확인해 주세요.",
         requestId,
         missingFields,
         missingData: missingFields,
@@ -14087,7 +14229,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       ok: false,
       code: "PREMIUM_REPORT_CHAPTER_DATA_MISSING",
       normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-      message: "해당 챕터 생성에 필요한 계산 데이터가 부족합니다.",
+      message: "해당 챕터 생성에 필요한 계산 데이터 정합성 점검이 필요합니다.",
       requestId,
       chapterId,
       missingFields: chapterMissing,
@@ -14939,18 +15081,22 @@ function buildLegacyDownloadHtml(config, reportId) {
     '<meta charset="utf-8" />',
     `<title>${escapeLifebookHtml(config.title)}</title>`,
     "<style>",
-    'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#f8fafc;color:#111827;line-height:1.72}',
-    '.legacy-print-cover{padding:24px;border:1px solid #cbd5e1;border-radius:16px;background:#ffffff;margin-bottom:24px}',
-    '.legacy-print-cover h1{margin:0 0 6px;font-size:30px;color:#0f172a}',
-    '.legacy-print-cover p{margin:2px 0;font-size:14px;color:#334155}',
-    '.legacy-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #e2e8f0;border-radius:12px;background:#fff}',
-    '.legacy-print-chapter h2{margin:0 0 8px;font-size:23px;color:#1e293b}',
-    '.legacy-subtitle{margin:0 0 10px;color:#475569}',
-    '.legacy-summary{margin:0 0 12px;color:#0f172a;font-weight:600}',
-    '.legacy-print-section{margin:0 0 12px}',
-    '.legacy-print-section h4{margin:0 0 6px;color:#1e293b}',
-    '.legacy-print-section pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:14px;line-height:1.72}',
-    '@media print{body{padding:0;background:#fff}.legacy-print-cover,.legacy-print-chapter{border:none}}',
+    '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600;700&display=swap");',
+    ':root{--legacy-bg:#f6f7fb;--legacy-paper:#ffffff;--legacy-ink:#111827;--legacy-muted:#475569;--legacy-line:#dbe3f0;--legacy-accent:#1d4ed8;}',
+    '*{box-sizing:border-box}',
+    'body{margin:0;padding:28px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:var(--legacy-bg);color:var(--legacy-ink);line-height:1.84;word-break:keep-all;}',
+    '.legacy-print-cover{padding:28px;border:1px solid var(--legacy-line);border-radius:20px;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);margin-bottom:26px}',
+    '.legacy-print-cover h1{margin:0 0 10px;font-size:32px;line-height:1.35;letter-spacing:-0.01em;color:#0b1324}',
+    '.legacy-print-cover p{margin:4px 0;font-size:13px;letter-spacing:0.01em;color:var(--legacy-muted)}',
+    '.legacy-print-chapter{margin-bottom:24px;padding:22px 22px 18px;border:1px solid var(--legacy-line);border-radius:16px;background:var(--legacy-paper)}',
+    '.legacy-print-chapter h2{margin:0 0 10px;font-size:24px;line-height:1.4;letter-spacing:-0.01em;color:#0f172a}',
+    '.legacy-subtitle{margin:0 0 12px;color:#334155;font-size:14px}',
+    '.legacy-summary{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#eef4ff;color:#0f172a;font-weight:600;font-size:14px;line-height:1.7}',
+    '.legacy-print-section{margin:0 0 14px}',
+    '.legacy-print-section h4{margin:0 0 8px;font-size:17px;line-height:1.45;color:#0f172a;border-left:3px solid var(--legacy-accent);padding-left:9px}',
+    '.legacy-print-section pre{white-space:pre-wrap;word-break:break-word;margin:0;font-family:"Noto Serif KR","Noto Sans KR",serif;font-size:15px;line-height:1.9;color:#111827}',
+    '@page{size:A4;margin:14mm}',
+    '@media print{body{padding:0;background:#fff}.legacy-print-cover,.legacy-print-chapter{border:none;border-radius:0;box-shadow:none}.legacy-print-chapter{break-inside:avoid-page;page-break-inside:avoid}}',
     "</style>",
     "</head>",
     "<body>",
