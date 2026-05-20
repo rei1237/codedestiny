@@ -3,6 +3,7 @@ describe("Premium PDF v2 helpers", () => {
   let validateChapterData;
   let removeRepeatedParagraphs;
   let validateGeneratedChapterText;
+  let createPdfDataOrchestration;
 
   beforeAll(async () => {
     ({ getPremiumPdfV2ChapterPlan } = await import("../../worker/lib/pdf-v2/chapter-plans.js"));
@@ -11,6 +12,7 @@ describe("Premium PDF v2 helpers", () => {
       removeRepeatedParagraphs,
       validateGeneratedChapterText,
     } = await import("../../worker/lib/pdf-v2/validation.js"));
+    ({ createPdfDataOrchestration } = await import("../../worker/lib/pdf-v2/orchestrator.js"));
   });
 
   test("기존 챕터명/순서/글자수(min/target)를 lifeBook에서 유지한다", () => {
@@ -67,5 +69,29 @@ describe("Premium PDF v2 helpers", () => {
 
     expect(result.ok).toBe(false);
     expect(result.errors).toContain("BANNED_PHRASE_FOUND");
+  });
+
+  test("오케스트레이터는 fatal이 아닌 누락을 fallback 모드로 분류한다", () => {
+    const chapterTemplate = [{
+      chapterId: "life-ch-01",
+      title: "핵심 정체성",
+      requiredFields: ["chart.dayMaster", "timeline.daewoon"],
+      order: 1,
+    }];
+
+    const result = createPdfDataOrchestration({
+      fortuneType: "lifeBook",
+      userId: "user-1",
+      sessionId: "session-1",
+      userInput: { name: "테스트" },
+      baseEngineResult: { summary: "기본 분석" },
+      normalizedData: { chart: { dayMaster: "갑" } },
+      chapterTemplate,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.generationMode).toBe("fallback");
+    expect(result.missingDataReport.recoverableMissing).toContain("life-ch-01:timeline.daewoon");
+    expect(result.chapterEvidenceMap["life-ch-01"].contract.purpose).toBeTruthy();
   });
 });

@@ -81,7 +81,7 @@ describe("Premium PDF v2 service", () => {
     expect(statuses.map((s) => s.code)).toEqual(expect.arrayContaining(["PDF_V2_STARTED", "PDF_V2_COMPLETED"]));
   });
 
-  test("requiredFields 누락 시 Gemini 호출/렌더링 차단 및 release", async () => {
+  test("requiredFields 누락 시 복구 모드로 Gemini/렌더링을 계속 진행", async () => {
     const { deps, payment } = makeBaseDeps({
       resolveAdapter: async () => ({
         pdfType: "lifeBook",
@@ -109,14 +109,14 @@ describe("Premium PDF v2 service", () => {
       input: {},
     }, deps);
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("PDF_V2_MISSING_FIELDS");
-    expect(deps.generateChapter).toHaveBeenCalledTimes(0);
-    expect(deps.renderPdf).toHaveBeenCalledTimes(0);
-    expect(payment.release).toHaveBeenCalledTimes(1);
+    expect(result.ok).toBe(true);
+    expect(result.recoveryApplied).toBe(true);
+    expect(deps.generateChapter).toHaveBeenCalledTimes(1);
+    expect(deps.renderPdf).toHaveBeenCalledTimes(1);
+    expect(payment.release).toHaveBeenCalledTimes(0);
   });
 
-  test("Gemini 실패 시 PDF 렌더링 시도하지 않음", async () => {
+  test("Gemini 실패 시 챕터 fallback으로 PDF 렌더링 계속", async () => {
     const { deps, payment } = makeBaseDeps({
       generateChapter: jest.fn(async () => {
         throw Object.assign(new Error("gemini timeout"), { code: "GEMINI_TIMEOUT" });
@@ -130,10 +130,11 @@ describe("Premium PDF v2 service", () => {
       input: {},
     }, deps);
 
-    expect(result.ok).toBe(false);
+    expect(result.ok).toBe(true);
+    expect(result.recoveryApplied).toBe(true);
     expect(deps.generateChapter).toHaveBeenCalledTimes(1);
-    expect(deps.renderPdf).toHaveBeenCalledTimes(0);
-    expect(payment.release).toHaveBeenCalledTimes(1);
+    expect(deps.renderPdf).toHaveBeenCalledTimes(1);
+    expect(payment.release).toHaveBeenCalledTimes(0);
   });
 
   test("동일 jobId 재요청 시 idempotency 기반 중복 차감 방지", async () => {
@@ -197,7 +198,7 @@ describe("Premium PDF v2 service", () => {
     expect(deps.resolveAdapter).toHaveBeenCalledTimes(0);
   });
 
-  test("베다점 본문에 서양 점성술 용어가 섞이면 실패", async () => {
+  test("베다점 본문에 서양 점성술 용어가 섞이면 fallback으로 정리", async () => {
     const { deps } = makeBaseDeps({
       generateChapter: jest.fn(async () => "이 챕터는 Ascendant와 Solar Return을 기준으로 설명합니다."),
     });
@@ -209,8 +210,8 @@ describe("Premium PDF v2 service", () => {
       input: {},
     }, deps);
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("PDF_V2_CHAPTER_VALIDATION_FAILED");
-    expect(deps.renderPdf).toHaveBeenCalledTimes(0);
+    expect(result.ok).toBe(true);
+    expect(result.recoveryApplied).toBe(true);
+    expect(deps.renderPdf).toHaveBeenCalledTimes(1);
   });
 });

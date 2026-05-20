@@ -799,7 +799,7 @@ export function createFallbackChapter(chapter, context) {
   const spec = chapter || { title: "기본 챕터", goal: "기본 해석" };
   return {
     chapterTitle: spec.title,
-    chapterSubtitle: "심층 상담 해석",
+    chapterSubtitle: spec.goal || "챕터별 실행 해석",
     summary: "확인된 궁위 데이터와 별 배치를 기준으로 이 챕터의 핵심 흐름을 상담형으로 정리했습니다.",
     sections: [
       {

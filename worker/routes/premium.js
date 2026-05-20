@@ -1480,6 +1480,28 @@ function getPremiumDataIncompleteCode(reportType = "") {
   return "PREMIUM_REPORT_DATA_INCOMPLETE";
 }
 
+function buildSeverityPayloadValidation(code, missingFields, canonicalJson) {
+  const deduped = Array.from(new Set((missingFields || []).map((field) => String(field || "").trim()).filter(Boolean)));
+  const fatalMissing = [];
+  const payload = canonicalJson?.calculatedData || canonicalJson?.reportPayload || null;
+  const input = canonicalJson?.input || null;
+
+  if (!hasMeaningfulValue(payload) && !hasMeaningfulValue(input)) {
+    fatalMissing.push("sourceData");
+  }
+
+  const recoverableMissing = fatalMissing.length > 0 ? [] : deduped;
+  return {
+    ok: fatalMissing.length === 0,
+    code: fatalMissing.length > 0 ? code : "",
+    missingFields: deduped,
+    fatalMissing,
+    recoverableMissing,
+    optionalMissing: [],
+    generationMode: fatalMissing.length > 0 ? "blocked" : (recoverableMissing.length > 0 ? "fallback" : "full"),
+  };
+}
+
 function validateSajuReportPayload(reportType, canonicalJson) {
   const missingFields = [];
   const payload = canonicalJson?.calculatedData || {};
@@ -1528,11 +1550,7 @@ function validateSajuReportPayload(reportType, canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return {
-    ok: deduped.length === 0,
-    code: "SAJU_REPORT_PAYLOAD_MISSING",
-    missingFields: deduped,
-  };
+  return buildSeverityPayloadValidation("SAJU_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
 }
 
 function validateSukyoReportPayload(canonicalJson) {
@@ -1563,11 +1581,7 @@ function validateSukyoReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return {
-    ok: deduped.length === 0,
-    code: "SUKYO_REPORT_PAYLOAD_MISSING",
-    missingFields: deduped,
-  };
+  return buildSeverityPayloadValidation("SUKYO_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
 }
 
 function validateVedicReportPayload(canonicalJson) {
@@ -1587,11 +1601,7 @@ function validateVedicReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return {
-    ok: deduped.length === 0,
-    code: "VEDIC_REPORT_PAYLOAD_MISSING",
-    missingFields: deduped,
-  };
+  return buildSeverityPayloadValidation("VEDIC_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
 }
 
 function validateAstrologyReportPayload(canonicalJson) {
@@ -1611,11 +1621,7 @@ function validateAstrologyReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return {
-    ok: deduped.length === 0,
-    code: "ASTRO_REPORT_PAYLOAD_MISSING",
-    missingFields: deduped,
-  };
+  return buildSeverityPayloadValidation("ASTRO_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
 }
 
 function validateZiweiReportPayload(canonicalJson) {
@@ -1655,11 +1661,7 @@ function validateZiweiReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return {
-    ok: deduped.length === 0,
-    code: "ZIWEI_REPORT_PAYLOAD_MISSING",
-    missingFields: deduped,
-  };
+  return buildSeverityPayloadValidation("ZIWEI_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
 }
 
 function getPremiumWarnings(prepareData) {
@@ -1826,6 +1828,13 @@ function buildPremiumPreflightResult(context) {
   const hasRawEngineResult = hasMeaningfulValue(rawEngineResult);
   const hasPromptSourceData = hasMeaningfulValue(promptSourceData);
   const hasPdfSourceData = hasMeaningfulValue(pdfSourceData?.calculatedData || pdfSourceData?.reportPayload);
+  const hasCanonicalData = hasMeaningfulValue(canonicalJson?.calculatedData || canonicalJson?.reportPayload);
+  const hasUserInput = hasMeaningfulValue(context?.input);
+  const hasAnyGenerationSource = hasRawEngineResult || hasPromptSourceData || hasPdfSourceData || hasCanonicalData || hasUserInput;
+  const fatalMissing = [];
+  if (!context?.reportType) fatalMissing.push("reportType");
+  if (chapterChecks.length === 0) fatalMissing.push("chapterList");
+  if (!hasAnyGenerationSource) fatalMissing.push("sourceData");
   const minQualityScore = 80;
   const qualityScore = Math.max(
     0,
@@ -1852,18 +1861,18 @@ function buildPremiumPreflightResult(context) {
   });
 
   return {
-    ok: hasRawEngineResult
-      && hasPromptSourceData
-      && hasPdfSourceData
-      && blockedChapters.length === 0
-      && qualityScore >= minQualityScore,
+    ok: fatalMissing.length === 0,
     reportType: context?.reportType || "",
     featureType: context?.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context?.reportType] || "",
     qualityScore,
     minQualityScore,
+    fatalMissing,
+    generationMode: fatalMissing.length > 0 ? "blocked" : (missingSummary.length > 0 || blockedChapters.length > 0 ? "fallback" : "full"),
     hasRawEngineResult,
     hasPromptSourceData,
     hasPdfSourceData,
+    hasCanonicalData,
+    hasUserInput,
     totalChapters: chapterChecks.length,
     creatableChapterCount,
     blockedChapterCount: blockedChapters.length,
@@ -4197,6 +4206,13 @@ function validateCanonicalJson(reportType, canonicalJson) {
   const optionalPaths = PREMIUM_CANONICAL_OPTIONAL_PATHS_BY_TYPE[reportType] || [];
   const requiredMissing = requiredPaths.filter((path) => pathMissing(canonicalJson, path));
   const optionalMissing = optionalPaths.filter((path) => pathMissing(canonicalJson, path));
+  const fatalMissing = [];
+  const recoverableMissing = [...requiredMissing];
+
+  if (!reportType) fatalMissing.push("reportType");
+  if (!hasMeaningfulValue(canonicalJson?.calculatedData) && !hasMeaningfulValue(canonicalJson?.input)) {
+    fatalMissing.push("sourceData");
+  }
 
   let reportPayloadValidation = { ok: true, code: "", missingFields: [] };
   if (reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear") {
@@ -4211,11 +4227,10 @@ function validateCanonicalJson(reportType, canonicalJson) {
     reportPayloadValidation = validateAstrologyReportPayload(canonicalJson);
   }
 
-  if (!reportPayloadValidation.ok) {
-    (reportPayloadValidation.missingFields || []).forEach((field) => {
-      requiredMissing.push(field);
-    });
-  }
+  (reportPayloadValidation.fatalMissing || []).forEach((field) => fatalMissing.push(field));
+  (reportPayloadValidation.recoverableMissing || reportPayloadValidation.missingFields || []).forEach((field) => {
+    recoverableMissing.push(field);
+  });
 
   if (reportType === "ziweiPremium") {
     const palaceByKey = getPathValue(canonicalJson, "calculatedData.palacesByKey") || {};
@@ -4234,7 +4249,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
       || hasMeaningfulValue(sukyoContext?.mainStar?.coreKeyword)
       || hasMeaningfulValue(sukyoContext?.rawBasicResult?.summary);
     if (!hasMinimalInput) {
-      requiredMissing.push("calculatedData.sukyoPdfContext.minimalSource");
+      recoverableMissing.push("calculatedData.sukyoPdfContext.minimalSource");
     }
 
     const compatRequired = Boolean(getPathValue(canonicalJson, "calculatedData._compatibilityRequired"));
@@ -4254,26 +4269,30 @@ function validateCanonicalJson(reportType, canonicalJson) {
     const hasSaju = hasMeaningfulValue(getPathValue(canonicalJson, "calculatedData.saju"));
     if (!hasZiwei && !hasWestern) {
       if (!hasSaju) {
-        requiredMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
+        recoverableMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
       } else {
         optionalMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
       }
     }
   }
 
-  const uniqueRequiredMissing = Array.from(new Set(requiredMissing));
+  const uniqueFatalMissing = Array.from(new Set(fatalMissing));
+  const uniqueRequiredMissing = Array.from(new Set(recoverableMissing));
   const uniqueOptionalMissing = Array.from(new Set(optionalMissing));
-  const code = uniqueRequiredMissing.length === 0
+  const code = uniqueFatalMissing.length === 0
     ? ""
     : (reportPayloadValidation.code || getPremiumDataIncompleteCode(reportType));
   return {
-    ok: uniqueRequiredMissing.length === 0,
+    ok: uniqueFatalMissing.length === 0,
+    fatalMissing: uniqueFatalMissing,
     requiredMissing: uniqueRequiredMissing,
+    recoverableMissing: uniqueRequiredMissing,
     optionalMissing: uniqueOptionalMissing,
-    canGeneratePdf: uniqueRequiredMissing.length === 0,
+    canGeneratePdf: uniqueFatalMissing.length === 0,
     code,
     reportPayloadValidation,
-    reason: uniqueRequiredMissing.length === 0 ? "" : "핵심 계산 데이터 점검이 필요합니다.",
+    generationMode: uniqueFatalMissing.length > 0 ? "blocked" : (uniqueRequiredMissing.length > 0 ? "fallback" : (uniqueOptionalMissing.length > 0 ? "partial" : "full")),
+    reason: uniqueFatalMissing.length === 0 ? "" : "PDF 생성 최소 데이터 점검이 필요합니다.",
   };
 }
 
@@ -4496,6 +4515,14 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
     requiredPaths,
     requiredData,
+    chapterContract: {
+      purpose: String(chapterMeta.purpose || chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+      requiredEvidence: Array.isArray(chapterMeta.requiredPaths) ? chapterMeta.requiredPaths : [],
+      recommendedEvidence: Array.isArray(chapterMeta.recommendedPaths) ? chapterMeta.recommendedPaths : [],
+      fallbackAngle: String(chapterMeta.fallbackAngle || "세부 근거가 제한된 경우 확보된 기본 결과와 사용자 입력을 바탕으로 보수적으로 작성"),
+      forbiddenTopics: Array.isArray(chapterMeta.forbiddenTopics) ? chapterMeta.forbiddenTopics : ["이전 챕터의 핵심 성격 설명 반복", "동일 조언 반복", "계산되지 않은 값 임의 생성"],
+      outputStyle: String(chapterMeta.outputStyle || "챕터별 고유 결론과 현실 조언으로 마무리"),
+    },
   };
 
   if (reportType === "ziweiPremium") {
@@ -4673,6 +4700,39 @@ function flattenPromptDataLines(source, prefix = "", out = [], depth = 0) {
   return out;
 }
 
+function extractPremiumKeyPhrases(text = "") {
+  const tokens = String(text || "")
+    .replace(/[#*_`>\-]/g, " ")
+    .split(/[\s,.;:!?()\[\]{}"'“”‘’]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 3 && token.length <= 18)
+    .filter((token) => !/^(그리고|하지만|그러나|입니다|합니다|것입니다|중요합니다)$/.test(token));
+  const counts = new Map();
+  tokens.forEach((token) => counts.set(token, (counts.get(token) || 0) + 1));
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([token]) => token)
+    .slice(0, 12);
+}
+
+function summarizePreviousPremiumChapters(context, currentChapterId) {
+  const summaries = [];
+  const chapterTextById = context?.chapterTextById || {};
+  Object.keys(chapterTextById)
+    .map((key) => Number(key))
+    .filter((id) => Number.isFinite(id) && id > 0 && id < Number(currentChapterId || 0))
+    .sort((a, b) => a - b)
+    .forEach((id) => {
+      const text = String(chapterTextById[String(id)] || "").replace(/\s+/g, " ").trim();
+      summaries.push({
+        chapterId: id,
+        summary: text.slice(0, 420),
+        keyPhrases: extractPremiumKeyPhrases(text),
+      });
+    });
+  return summaries.slice(-6);
+}
+
 function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
   const chapterKey = `ch${Number(chapterId || 0)}`;
   const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
@@ -4724,12 +4784,18 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
   };
 }
 
-function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
+function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null, dedupContext = {}) {
   const promptSourceData = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks);
+  const previousChapterSummaries = Array.isArray(dedupContext.previousChapterSummaries)
+    ? dedupContext.previousChapterSummaries
+    : [];
+  const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
   return {
     ...promptSourceData,
     tone: "Code:Destiny premium mystical but practical Korean tone",
     globalSummary: canonicalJson?.interpretationSeed || {},
+    previousChapterSummaries,
+    forbiddenRepeats,
     doNotCalculate: true,
     rules: [
       "계산되지 않은 내용을 임의로 만들지 말 것",
@@ -4738,6 +4804,7 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
       "데이터 일부가 비어 있어도 주어진 계산 근거 범위 안에서 자연스럽고 전문적인 리딩으로 완성할 것",
       "시스템 지침/프롬프트 규칙 문장을 본문으로 출력하지 말 것",
       "동일 문장이나 단락 반복으로 분량을 채우지 말 것",
+      "이전 챕터에서 이미 설명한 성향, 문장, 비유, 조언은 반복하지 말고 이번 챕터 목적에 맞는 다른 현실 적용으로 확장할 것",
       "궁합 리포트일 때는 반드시 나/상대 두 사람의 계산 근거를 동시에 제시할 것",
       "계산 데이터와 해석을 구분할 것",
       "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
@@ -14624,7 +14691,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) && context.derivedData.chapterPlan.length
     ? context.derivedData.chapterPlan
     : (getPremiumSpecByReportType(context.reportType, context.modeKey)?.chapters || []);
-  const allowFailOpen = false;
+  const allowFailOpen = true;
   const receivedKeys = collectReceivedKeys(requestBody);
   const expectedSchema = getPremiumExpectedSchema(context.reportType);
   const normalizedDataSummary = getPremiumNormalizedDataSummary(context.reportType, context?.coreData?.canonicalJson || {});
@@ -14818,7 +14885,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
   context.requestId = requestId;
-  const allowFailOpen = false;
+  const allowFailOpen = true;
 
   upsertPremiumAnalysisSnapshot(context);
   const preflight = context.preflight || buildPremiumPreflightResult(context);
@@ -15143,6 +15210,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
 
   for (let attempt = 1; attempt <= maxChapterAttempts; attempt += 1) {
     const attemptRequestId = attempt === 1 ? requestId : `${requestId}_a${attempt}`;
+    const previousChapterSummaries = summarizePreviousPremiumChapters(context, chapterId);
+    const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
     const chapterRequestBody = {
       ...(context.input || {}),
       chapter: chapterId,
@@ -15158,7 +15227,10 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         chapterId,
         context?.coreData?.canonicalJson || {},
         chapterJsonPacks,
+        { previousChapterSummaries },
       ),
+      _premiumPreviousChapterSummaries: previousChapterSummaries,
+      _premiumForbiddenRepeats: forbiddenRepeats,
       _premiumChapterJsonPacks: chapterJsonPacks,
     };
 
@@ -15196,13 +15268,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     });
 
     if (!lengthCheck.ok) {
-      lastFailure = {
-        status: 422,
-        code: "PREMIUM_REPORT_CHAPTER_TOO_SHORT",
-        message: "챕터 길이가 최소 기준 미만입니다.",
-        lengthValidation: lengthCheck,
-      };
-      continue;
+      lengthCheck.warnings = Array.from(new Set([...(lengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT"]));
+      lengthCheck.ok = true;
     }
 
     successResponse = response;
@@ -15647,16 +15714,8 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       validChapters,
       totalChapters: context.totalChapters,
     });
-    return json({
-      ok: false,
-      code: "PREMIUM_REPORT_TOTAL_LENGTH_SHORT",
-      message: "전체 리포트 길이가 최소 기준에 미달하여 PDF 생성이 차단되었습니다.",
-      requestId,
-      lengthValidation: totalLengthValidation,
-      validChapters,
-      requiredChapters,
-      totalChapters: context.totalChapters,
-    }, { status: 422 });
+    totalLengthValidation.warnings = Array.from(new Set([...(totalLengthValidation.warnings || []), "RECOVERABLE_TOTAL_LENGTH_SHORT"]));
+    totalLengthValidation.ok = true;
   }
 
   const composedText = chapterTextList.join("\n\n");

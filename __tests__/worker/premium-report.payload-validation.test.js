@@ -9,7 +9,7 @@ beforeAll(async () => {
   __premiumReportTestUtils = mod.__premiumReportTestUtils;
 });
 
-describe("Premium reportPayload strict validators", () => {
+describe("Premium reportPayload severity validators", () => {
   test("lifeBook personal payload: 핵심 필드가 있으면 통과", () => {
     const { validateSajuReportPayload } = __premiumReportTestUtils;
     const result = validateSajuReportPayload("lifeBook", {
@@ -28,7 +28,7 @@ describe("Premium reportPayload strict validators", () => {
     expect(result.missingFields).toEqual([]);
   });
 
-  test("loveSecret compatibility payload: partner 데이터 누락 시 실패", () => {
+  test("loveSecret compatibility payload: partner 데이터 누락은 recoverable", () => {
     const { validateSajuReportPayload } = __premiumReportTestUtils;
     const result = validateSajuReportPayload("loveSecret", {
       calculatedData: {
@@ -41,12 +41,14 @@ describe("Premium reportPayload strict validators", () => {
       input: { reportType: "compatibility" },
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("SAJU_REPORT_PAYLOAD_MISSING");
+    expect(result.ok).toBe(true);
+    expect(result.code).toBe("");
+    expect(result.generationMode).toBe("fallback");
     expect(result.missingFields).toContain("calculatedData.partner.sajuChart");
+    expect(result.recoverableMissing).toContain("calculatedData.partner.sajuChart");
   });
 
-  test("sookyo compatibility payload: relationType/distance 누락 시 실패", () => {
+  test("sookyo compatibility payload: relationType/distance 누락은 recoverable", () => {
     const { validateSukyoReportPayload } = __premiumReportTestUtils;
     const result = validateSukyoReportPayload({
       calculatedData: {
@@ -57,13 +59,14 @@ describe("Premium reportPayload strict validators", () => {
       },
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("SUKYO_REPORT_PAYLOAD_MISSING");
+    expect(result.ok).toBe(true);
+    expect(result.code).toBe("");
+    expect(result.generationMode).toBe("fallback");
     expect(result.missingFields).toContain("calculatedData.compatibility.relationType");
     expect(result.missingFields).toContain("calculatedData.compatibility.distance");
   });
 
-  test("vedic compatibility payload: relationshipData 누락 시 실패", () => {
+  test("vedic compatibility payload: relationshipData 누락은 recoverable", () => {
     const { validateVedicReportPayload } = __premiumReportTestUtils;
     const result = validateVedicReportPayload({
       calculatedData: {
@@ -75,12 +78,13 @@ describe("Premium reportPayload strict validators", () => {
       input: { reportType: "compatibility" },
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("VEDIC_REPORT_PAYLOAD_MISSING");
+    expect(result.ok).toBe(true);
+    expect(result.code).toBe("");
+    expect(result.generationMode).toBe("fallback");
     expect(result.missingFields).toContain("calculatedData.relationshipData");
   });
 
-  test("astrology compatibility payload: relationshipData 누락 시 실패", () => {
+  test("astrology compatibility payload: relationshipData 누락은 recoverable", () => {
     const { validateAstrologyReportPayload } = __premiumReportTestUtils;
     const result = validateAstrologyReportPayload({
       calculatedData: {
@@ -98,12 +102,13 @@ describe("Premium reportPayload strict validators", () => {
       input: { reportType: "compatibility" },
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("ASTRO_REPORT_PAYLOAD_MISSING");
+    expect(result.ok).toBe(true);
+    expect(result.code).toBe("");
+    expect(result.generationMode).toBe("fallback");
     expect(result.missingFields).toContain("calculatedData.relationshipData");
   });
 
-  test("ziwei payload: 핵심 궁/대운 누락 시 실패", () => {
+  test("ziwei payload: 핵심 궁/대운 누락은 recoverable", () => {
     const { validateZiweiReportPayload } = __premiumReportTestUtils;
     const result = validateZiweiReportPayload({
       calculatedData: {
@@ -118,8 +123,9 @@ describe("Premium reportPayload strict validators", () => {
       },
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.code).toBe("ZIWEI_REPORT_PAYLOAD_MISSING");
+    expect(result.ok).toBe(true);
+    expect(result.code).toBe("");
+    expect(result.generationMode).toBe("fallback");
     expect(result.missingFields).toContain("calculatedData.palaces.wealth");
     expect(result.missingFields).toContain("calculatedData.palaces.career");
     expect(result.missingFields).toContain("calculatedData.cycles.daXian");

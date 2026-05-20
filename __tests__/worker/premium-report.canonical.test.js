@@ -10,7 +10,7 @@ beforeAll(async () => {
 });
 
 describe("Premium Report Canonical Validation", () => {
-  test("ziweiPremium: 필수 궁/핵심 필드 누락 시 canGeneratePdf=false", () => {
+  test("ziweiPremium: 필수 궁/핵심 필드 누락 시 fallback 생성 가능", () => {
     const { buildCanonicalJsonForReport } = __premiumReportTestUtils;
     const built = buildCanonicalJsonForReport(
       "ziweiPremium",
@@ -32,13 +32,14 @@ describe("Premium Report Canonical Validation", () => {
       }
     );
 
-    expect(built.validation.canGeneratePdf).toBe(false);
+    expect(built.validation.canGeneratePdf).toBe(true);
+    expect(built.validation.generationMode).toBe("fallback");
     expect(Array.isArray(built.validation.requiredMissing)).toBe(true);
     expect(built.validation.requiredMissing.length).toBeGreaterThan(0);
     expect(typeof built.canonicalJson.completenessScore).toBe("number");
-    expect(built.canonicalJson.completenessScore).toBeLessThan(80);
+    expect(built.canonicalJson.completenessScore).toBeGreaterThanOrEqual(85);
     expect(Array.isArray(built.canonicalJson.blockingReasons)).toBe(true);
-    expect(built.canonicalJson.blockingReasons.length).toBeGreaterThan(0);
+    expect(built.canonicalJson.blockingReasons.length).toBe(0);
     expect(built.canonicalJson.dataMarkers.requiredTotal).toBeGreaterThan(0);
   });
 
@@ -295,11 +296,12 @@ describe("Premium Report Canonical Validation", () => {
       },
     });
 
-    expect(validation.canGeneratePdf).toBe(false);
+    expect(validation.canGeneratePdf).toBe(true);
+    expect(validation.generationMode).toBe("fallback");
     expect(validation.requiredMissing).toContain("calculatedData.chart.dayMaster");
   });
 
-  test("loveSecret: 연애 normalizedData 핵심 필드 누락 시 차단", () => {
+  test("loveSecret: 연애 normalizedData 핵심 필드 누락 시 fallback 생성 가능", () => {
     const { validateCanonicalJson } = __premiumReportTestUtils;
     const validation = validateCanonicalJson("loveSecret", {
       calculatedData: {
@@ -325,7 +327,8 @@ describe("Premium Report Canonical Validation", () => {
       },
     });
 
-    expect(validation.canGeneratePdf).toBe(false);
+    expect(validation.canGeneratePdf).toBe(true);
+    expect(validation.generationMode).toBe("fallback");
     expect(validation.requiredMissing).toContain("calculatedData.chart.dayMaster");
     expect(validation.requiredMissing).toContain("calculatedData.chart.spousePalace");
   });

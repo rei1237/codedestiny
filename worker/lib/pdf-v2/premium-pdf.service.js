@@ -4,6 +4,13 @@ import {
   removeRepeatedParagraphs,
   validateGeneratedChapterText,
 } from "./validation.js";
+import {
+  createPdfDataOrchestration,
+  summarizeChapterForDedup,
+  buildForbiddenRepeats,
+  detectDuplicateThemes,
+  rewriteChapterForDeduplication,
+} from "./orchestrator.js";
 
 function nowIso() {
   return new Date().toISOString();
@@ -49,28 +56,30 @@ function buildProfessionalFallbackChapter(chapter = {}, params = {}, normalizedD
   const title = String(chapter?.title || `Chapter ${chapter?.chapterId || ""}`).trim();
   const chapterId = Number(chapter?.chapterId || 1);
   const typeLabel = String(params?.pdfType || "premium");
+  const purpose = String(chapter?.purpose || "이번 챕터의 고유 관점으로 판단 기준을 정리");
+  const fallbackAngle = String(chapter?.fallbackAngle || "확보된 기본 결과와 사용자 입력을 바탕으로 보수적으로 작성");
   const dataBrief = buildChapterDataBrief(normalizedData);
 
   return [
     `## ${title}`,
     "",
     "### 1. 핵심 진단",
-    `${typeLabel} 리포트 ${chapterId}장에서는 현재 계산된 지표를 행동 기준으로 변환해 현실적인 의사결정 프레임을 제시합니다.`,
+    `${typeLabel} 리포트 ${chapterId}장에서는 ${purpose}에 집중합니다. ${fallbackAngle}하되, 계산되지 않은 세부값은 새로 만들지 않습니다.`,
     "",
     "### 2. 데이터 기반 해석 포인트",
     dataBrief,
     "해석은 단정형 예언이 아니라 선택의 우선순위를 명확히 하는 방향으로 구성합니다.",
     "",
     "### 3. 실행 전략",
-    "이번 챕터의 핵심은 과속 결정보다 리듬 있는 실행입니다. 주간 단위로 관찰-조정-고정 루틴을 운영하면 결과 편차를 줄일 수 있습니다.",
+    `이번 챕터의 실행 기준은 ${title}에 맞는 한 가지 우선순위를 정하고, 관찰-조정-고정 루틴으로 검증하는 것입니다.`,
     "",
     "### 4. 리스크 관리",
     "관계, 일정, 에너지 관리에서 동시에 흔들리는 지점을 먼저 정리하고, 중단-정리-재개 순서를 기준으로 복구 속도를 높입니다.",
     "",
     "### 5. 바로 실행할 3가지",
-    "1) 이번 주 우선순위 1개를 정하고 완료 기준을 한 줄로 고정합니다.",
+    `1) ${title}와 직접 연결되는 우선순위 1개를 정하고 완료 기준을 한 줄로 고정합니다.`,
     "2) 반복 손실 패턴 1개를 멈추고 대체 행동 1개를 같은 시간대에 배치합니다.",
-    "3) 주 1회 점검에서 관계/일/건강/재정 점수를 기록해 다음 주 계획에 반영합니다.",
+    "3) 주 1회 점검에서 이번 챕터의 판단 기준이 실제 선택을 개선했는지 기록합니다.",
   ].join("\n");
 }
 
@@ -124,9 +133,52 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
     const chapterPlan = adapter.getChapterPlan?.(params?.input?.mode || "default")
       || getPremiumPdfV2ChapterPlan(params?.pdfType, params?.input?.mode || "default");
 
-    const adapterValidation = adapter.validate?.(normalizedData, chapterPlan)
+    const orchestration = createPdfDataOrchestration({
+      fortuneType: params?.pdfType,
+      userId: resultBase.userId,
+      sessionId: jobId,
+      userInput: params?.input || {},
+      baseEngineResult: engineResult,
+      promptGeneratedData: params?.promptGeneratedData || {},
+      existingAnalysisResult: params?.existingAnalysisResult || {},
+      normalizedData,
+      chapterTemplate: chapterPlan,
+      title: params?.title || params?.reportTitle || "",
+    });
+
+    if (!orchestration.ok) {
+      await payment.release?.({ holdId, idempotencyKey, reason: "PDF_V2_FATAL_MISSING" });
+      await pushStatus(deps, {
+        jobId,
+        code: "PDF_V2_FATAL_MISSING",
+        message: "PDF 생성에 필요한 최소 정보가 없습니다.",
+        missingDataReport: orchestration.missingDataReport,
+      });
+      return {
+        ok: false,
+        ...resultBase,
+        code: "PDF_V2_FATAL_MISSING",
+        missingDataReport: orchestration.missingDataReport,
+      };
+    }
+
+    const orchestratedData = orchestration.normalizedPayload.normalizedData;
+    const adapterValidation = adapter.validate?.(orchestratedData, chapterPlan)
       || { ok: true, missingByChapter: [] };
     const recoveryNotes = [];
+    if (orchestration.generationMode !== "full") {
+      recoveryNotes.push({
+        code: "PDF_V2_ORCHESTRATOR_RECOVERY",
+        generationMode: orchestration.generationMode,
+        missingDataReport: orchestration.missingDataReport,
+      });
+      deps?.logger?.warn?.("[pdf-v2] recoverable missing data", {
+        jobId,
+        pdfType: params?.pdfType,
+        generationMode: orchestration.generationMode,
+        missingDataReport: orchestration.missingDataReport,
+      });
+    }
     if (!adapterValidation.ok) {
       recoveryNotes.push({
         code: "PDF_V2_ADAPTER_RECOVERY",
@@ -144,8 +196,12 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
       : [];
 
     const chapters = [];
+    const previousChapterSummaries = [];
     for (const chapter of chapterPlan) {
-      const requiredCheck = validateChapterData(normalizedData, chapter);
+      const contract = orchestration.chapterContracts.find((item) => String(item.chapterId) === String(chapter.chapterId)) || null;
+      const chapterEvidence = orchestration.chapterEvidenceMap[String(chapter.chapterId)] || null;
+      const forbiddenRepeats = buildForbiddenRepeats(previousChapterSummaries);
+      const requiredCheck = validateChapterData(orchestratedData, chapter);
       if (!requiredCheck.ok) {
         recoveryNotes.push({
           code: "PDF_V2_CHAPTER_DATA_RECOVERY",
@@ -162,8 +218,15 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
         generated = await deps.generateChapter({
           params,
           chapter,
+          currentChapterContract: contract,
+          currentChapterEvidence: chapterEvidence,
+          previousChapterSummaries,
+          forbiddenRepeats,
+          alreadyUsedKeyPhrases: forbiddenRepeats,
+          missingDataReport: orchestration.missingDataReport,
+          generationMode: orchestration.generationMode,
           template,
-          normalizedData,
+          normalizedData: orchestratedData,
           engineResult,
         });
       } catch (error) {
@@ -172,7 +235,7 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
           chapterId: chapter.chapterId,
           message: asErrorMessage(error, "챕터 생성 보정"),
         });
-        generated = buildProfessionalFallbackChapter(chapter, params, normalizedData);
+        generated = buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData);
       }
 
       if (!String(generated || "").trim()) {
@@ -180,14 +243,14 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
           code: "PDF_V2_CHAPTER_EMPTY_RECOVERY",
           chapterId: chapter.chapterId,
         });
-        generated = buildProfessionalFallbackChapter(chapter, params, normalizedData);
+        generated = buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData);
       }
 
       let cleaned = removeRepeatedParagraphs(generated);
       const textValidation = validateGeneratedChapterText(cleaned, {
         minChars: chapter.minChars,
         maxChars: chapter.maxChars,
-        normalizedData,
+        normalizedData: orchestratedData,
         pdfType: params?.pdfType,
       });
 
@@ -197,22 +260,36 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
           chapterId: chapter.chapterId,
           errors: textValidation.errors,
         });
-        cleaned = removeRepeatedParagraphs(buildProfessionalFallbackChapter(chapter, params, normalizedData));
+        cleaned = removeRepeatedParagraphs(buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData));
       }
 
-      chapters.push({
+      const duplicateReport = detectDuplicateThemes(cleaned, previousChapterSummaries, 0.6);
+      if (duplicateReport.duplicated) {
+        recoveryNotes.push({
+          code: "PDF_V2_CHAPTER_DEDUP_REWRITE",
+          chapterId: chapter.chapterId,
+          similarity: duplicateReport.similarity,
+          repeated: duplicateReport.repeated.slice(0, 8),
+        });
+        cleaned = removeRepeatedParagraphs(rewriteChapterForDeduplication(cleaned, contract || chapter, duplicateReport));
+      }
+
+      const chapterOutput = {
         chapterId: chapter.chapterId,
         title: chapter.title,
         content: cleaned,
-      });
+      };
+      chapters.push(chapterOutput);
+      previousChapterSummaries.push(summarizeChapterForDedup(chapterOutput));
     }
 
     const render = await deps.renderPdf({
       params,
-      normalizedData,
+      normalizedData: orchestratedData,
       chapterPlan,
       chapters,
       engineResult,
+      orchestration,
     });
 
     if (!render || (render?.ok === false && render?.status !== "completed")) {
@@ -231,11 +308,12 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
 
     const save = await deps.savePdf({
       params,
-      normalizedData,
+      normalizedData: orchestratedData,
       chapterPlan,
       chapters,
       render,
       jobId,
+      orchestration,
     });
 
     await payment.capture?.({ holdId, idempotencyKey, featureKey: resultBase.featureKey });
