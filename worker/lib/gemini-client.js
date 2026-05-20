@@ -5,6 +5,8 @@ export async function generateWithGemini(env, prompt, options = {}) {
   const temperature = Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86;
   const topP = Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95;
   const maxOutputTokens = Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192;
+  const frequencyPenalty = Number.isFinite(Number(options.frequencyPenalty)) ? Number(options.frequencyPenalty) : undefined;
+  const presencePenalty = Number.isFinite(Number(options.presencePenalty)) ? Number(options.presencePenalty) : undefined;
   const timeoutMs = Number.isFinite(Number(options.timeoutMs))
     ? Number(options.timeoutMs)
     : Number(getEnv(env, "PREMIUM_GEMINI_TIMEOUT_MS") || 45000);
@@ -35,6 +37,8 @@ export async function generateWithGemini(env, prompt, options = {}) {
     temperature,
     topP,
     maxOutputTokens,
+    frequencyPenalty,
+    presencePenalty,
     timeoutMs,
     totalTimeoutMs,
     maxAttemptsPerPair,

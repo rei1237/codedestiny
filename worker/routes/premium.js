@@ -4736,6 +4736,8 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
       "JSON에 없는 별, 행성, 궁, 십성, 숙요 관계를 지어내지 말 것",
       "reportPayload(=calculatedData)와 chapterJsonPacks에 있는 값만 근거로 사용할 것",
       "데이터 일부가 비어 있어도 주어진 계산 근거 범위 안에서 자연스럽고 전문적인 리딩으로 완성할 것",
+      "시스템 지침/프롬프트 규칙 문장을 본문으로 출력하지 말 것",
+      "동일 문장이나 단락 반복으로 분량을 채우지 말 것",
       "궁합 리포트일 때는 반드시 나/상대 두 사람의 계산 근거를 동시에 제시할 것",
       "계산 데이터와 해석을 구분할 것",
       "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
@@ -6331,17 +6333,96 @@ ${guard}
 각 섹션은 두 문단 이상, 추상적인 위로보다 실제 선택과 행동 기준을 많이 포함하세요.`;
 }
 
+const PREMIUM_PDF_BLOCKED_LINE_PATTERNS = [
+  /데이터가\s*일부\s*누락된\s*궁은\s*branch,\s*mainStars,\s*strength,\s*sihua/i,
+  /reportPayload\(=calculatedData\)/i,
+  /chapterJsonPacks\(core\/signals\/timing\/actions\)/i,
+  /JSON에\s*없는\s*계산\s*결과를\s*추정하지\s*말/i,
+  /^\s*\[(SYSTEM|USER|System Prompt|User Prompt JSON)\]\s*$/i,
+  /premiumChapterJsonPacks/i,
+];
+
+function normalizePremiumFingerprint(text) {
+  return String(text || "")
+    .replace(/[#>*`\-|_\[\]\(\)\{\}]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function stripPremiumBlockedLines(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .filter((line) => {
+      const source = String(line || "").trim();
+      if (!source) return true;
+      return !PREMIUM_PDF_BLOCKED_LINE_PATTERNS.some((re) => re.test(source));
+    })
+    .join("\n");
+}
+
+function dedupePremiumParagraphs(text) {
+  const chunks = String(text || "").split(/\n\s*\n/);
+  const seen = new Set();
+  const out = [];
+  for (const chunk of chunks) {
+    const trimmed = String(chunk || "").trim();
+    if (!trimmed) {
+      out.push("");
+      continue;
+    }
+    const isHeading = /^#{1,4}\s/.test(trimmed);
+    const fp = normalizePremiumFingerprint(trimmed);
+    if (!isHeading && fp && seen.has(fp)) continue;
+    if (!isHeading && fp) seen.add(fp);
+    out.push(trimmed);
+  }
+  return out.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function dedupePremiumLongSentences(text, minLength = 36) {
+  const segments = String(text || "")
+    .replace(/\r/g, "")
+    .split(/(?<=[.!?。！？])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const seen = new Set();
+  const out = [];
+  for (const seg of segments) {
+    if (seg.length < minLength) {
+      out.push(seg);
+      continue;
+    }
+    const fp = normalizePremiumFingerprint(seg);
+    if (!fp || seen.has(fp)) continue;
+    seen.add(fp);
+    out.push(seg);
+  }
+  return out.join("\n").trim();
+}
+
+function sanitizePremiumGeneratedText(text) {
+  const stripped = stripPremiumBlockedLines(text);
+  const dedupedParagraphs = dedupePremiumParagraphs(stripped);
+  const dedupedSentences = dedupePremiumLongSentences(dedupedParagraphs, 36);
+  return dedupePremiumParagraphs(dedupedSentences);
+}
+
 async function callGemini(env, prompt, modelEnvKeys = [], options = {}) {
   const result = await generateWithGemini(env, prompt, {
     modelEnvKeys,
     temperature: options.temperature,
     topP: options.topP,
+    frequencyPenalty: Number.isFinite(Number(options.frequencyPenalty)) ? Math.max(0.5, Number(options.frequencyPenalty)) : 0.55,
+    presencePenalty: Number.isFinite(Number(options.presencePenalty)) ? Math.max(0.5, Number(options.presencePenalty)) : 0.55,
     maxOutputTokens: options.maxOutputTokens,
     timeoutMs: options.timeoutMs,
     maxAttemptsPerPair: options.maxAttemptsPerPair,
     requestId: options.requestId,
   });
-  return result.ok ? result.text : "";
+  if (!result.ok) return "";
+  return sanitizePremiumGeneratedText(result.text);
 }
 
 async function generatedChapter(env, kind, input, meta, dataLine, fallbackProfile, fallbackFocus, modelEnvKeys = []) {
@@ -6375,7 +6456,7 @@ function chapterRequestProvided(body = {}) {
 }
 
 function sanitizePremiumChapterText(text) {
-  return String(text || "")
+  return sanitizePremiumGeneratedText(text)
     .replace(/계산\s*데이터\s*누락/gi, "핵심 계산 가이드")
     .replace(/필수\s*데이터\s*누락/gi, "핵심 데이터 점검")
     .replace(/입력\s*데이터\s*부족/gi, "입력 프로필 기준")

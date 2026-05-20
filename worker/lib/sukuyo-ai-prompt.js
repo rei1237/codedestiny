@@ -37,6 +37,16 @@ const SUKUYO_CORE_ANGLES = Object.freeze([
   "관계/커리어/재물 질문별 행동 우선순위 재설계",
 ]);
 
+const SUKUYO_COMPATIBILITY_ANGLES = Object.freeze([
+  "나/상대 본명숙의 상호작용을 분리해 해석하고 충돌 지점을 특정",
+  "관계 유형(relationType)과 거리(distanceLabel/shortestDistance)의 체감 강도 분석",
+  "관계 역할(aRole/bRole 또는 myRole/partnerRole)의 비대칭성과 기대 충돌 구조 파악",
+  "카르마 점수·인연 온도·자력(磁力)을 끌림/안정/긴장 축으로 재해석",
+  "감정 패턴(emotionalPattern)·갈등 패턴(conflictPattern)·회복 루틴을 연결 분석",
+  "장기 가능성(longTermPotential)과 소통 난이도(communicationScore) 기반 실행 전략 제시",
+  "관계 외 주제 확장은 배제하고 궁합 질문 맥락에만 집중",
+]);
+
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
   return text || fallback;
@@ -45,6 +55,18 @@ function toText(value, fallback = DEFAULT_TEXT) {
 function toSafeNumber(value, fallback = null) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function toOptionalText(value) {
+  return String(value == null ? "" : value).trim();
+}
+
+function firstFiniteNumber(...values) {
+  for (let i = 0; i < values.length; i += 1) {
+    const n = Number(values[i]);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
 }
 
 function ensureValidQuestion(question) {
@@ -110,38 +132,63 @@ function normalizeBasicResult(raw) {
 function normalizeCompatibilityResult(raw, basicResult) {
   if (!raw || typeof raw !== "object") return null;
 
-  const myIdx = toSafeNumber(raw.myIdx, null);
-  const partnerIdx = toSafeNumber(raw.partnerIdx, null);
+  const myIdx = firstFiniteNumber(raw.myIdx, raw?.personA?.mansionIdx, raw?.my?.mansionIdx, raw?.my?.idx, raw?.my?.index);
+  const partnerIdx = firstFiniteNumber(raw.partnerIdx, raw?.personB?.mansionIdx, raw?.partner?.mansionIdx, raw?.partner?.idx, raw?.partner?.index);
   if (myIdx === null || partnerIdx === null) return null;
 
   if (basicResult && toSafeNumber(basicResult.mansionIdx, null) !== null && myIdx !== basicResult.mansionIdx) {
     return null;
   }
 
+  const partnerProfile = raw?.partner && typeof raw.partner === "object" ? raw.partner : (raw?.personB && typeof raw.personB === "object" ? raw.personB : {});
+
   return {
     myIdx,
     partnerIdx,
-    partnerMansion: toText(raw.partnerMansion),
+    partnerMansion: toText(raw.partnerMansion || partnerProfile?.mansion || partnerProfile?.nameKo || partnerProfile?.name),
     relationType: toText(raw.relationType),
+    relationTypeHan: toOptionalText(raw.relationTypeHan),
     distanceLabel: toText(raw.distanceLabel),
+    shortestDistance: firstFiniteNumber(raw.shortestDistance, raw.distance),
+    myRole: toOptionalText(raw.myRole || raw.aRole),
+    partnerRole: toOptionalText(raw.partnerRole || raw.bRole),
+    directionFromAToB: toOptionalText(raw.directionFromAToB || raw.forwardDirection),
+    directionFromBToA: toOptionalText(raw.directionFromBToA || raw.reverseDirection),
     temperature: toSafeNumber(raw.temperature, null),
     score: toSafeNumber(raw.score, null),
     magnetism: toSafeNumber(raw.magnetism, null),
+    communicationScore: toSafeNumber(raw.communicationScore, null),
+    stabilityScore: toSafeNumber(raw.stabilityScore, null),
+    growthScore: toSafeNumber(raw.growthScore, null),
+    conflictScore: toSafeNumber(raw.conflictScore, null),
+    emotionalPattern: toOptionalText(raw.emotionalPattern || raw.emotionalCompatibility),
+    conflictPattern: toOptionalText(raw.conflictPattern),
+    longTermPotential: toOptionalText(raw.longTermPotential),
+    summary: toOptionalText(raw.summary || raw.relationSummary),
     stamp: toText(raw.stamp),
-    partnerGender: toText(raw.partnerGender),
+    partnerGender: toText(raw.partnerGender || partnerProfile?.gender),
+    partnerName: toOptionalText(raw.partnerName || partnerProfile?.name),
+    partnerCore: toOptionalText(raw?.partnerTraits?.core || partnerProfile?.traits?.core || partnerProfile?.core),
+    partnerHidden: toOptionalText(raw?.partnerTraits?.hidden || partnerProfile?.traits?.hidden || partnerProfile?.hidden),
+    partnerLove: toOptionalText(raw?.partnerTraits?.love || partnerProfile?.traits?.love || partnerProfile?.love),
+    partnerMoonTone: toOptionalText(raw?.partnerTraits?.moonTone || partnerProfile?.moonTone || partnerProfile?.moonLabel),
   };
 }
 
-function buildSukuyoAngles(questionType) {
-  const angles = SUKUYO_CORE_ANGLES.slice();
-
-  if (questionType === "compatibility" || questionType === "love") {
-    angles.push(
-      "끌림이 생기는 이유와 갈등이 반복되는 이유를 분리 분석",
-      "한쪽의 집착/회피 패턴과 상처 누적 경로 해석",
-      "장기 관계 가능성을 감정합/생활리듬/가치관 축으로 검증",
-    );
+function buildSukuyoAngles(questionType, compatibilityUsed) {
+  if (questionType === "compatibility") {
+    return SUKUYO_COMPATIBILITY_ANGLES.slice();
   }
+
+  if (questionType === "love") {
+    const loveAngles = SUKUYO_COMPATIBILITY_ANGLES.slice();
+    if (!compatibilityUsed) {
+      loveAngles.push("상대 데이터가 없는 경우 개인 연애 패턴까지만 해석하고 궁합 단정은 보류");
+    }
+    return loveAngles;
+  }
+
+  const angles = SUKUYO_CORE_ANGLES.slice();
 
   if (questionType === "money") {
     angles.push(
@@ -168,13 +215,26 @@ function buildSukuyoFollowUps(questionType) {
   ];
 
   if (questionType === "compatibility" || questionType === "love") {
-    return common.concat([
+    return [
+      "관계 유형과 거리 기준으로 지금 가장 위험한 갈등 트리거 2개를 알려주세요.",
+      "나/상대 각각 어떤 말투를 쓰면 갈등이 완화되는지 예문으로 제시해주세요.",
+      "2주~6주 실행 가능한 관계 회복 루틴을 일정표 형태로 만들어주세요.",
       "상대와의 갈등 시 사용할 대화 문장 3개를 제안해주세요.",
       "관계 유지에 유리한 거리감 조절 방법을 알려주세요.",
-    ]);
+    ];
   }
 
   return common;
+}
+
+function buildSukuyoPromptCaution(questionType, compatibilityUsed) {
+  if (questionType === "compatibility" || questionType === "love") {
+    if (compatibilityUsed) {
+      return "궁합 질문에서는 관계 역학 해석에만 집중하고, 커리어/재물/건강 단독 운세로 주제를 확장하지 마세요.";
+    }
+    return "상대 궁합 데이터가 없으므로 개인 연애 패턴 범위까지만 답하고 궁합 단정은 피하세요.";
+  }
+  return "숙요 해석은 관계의 경향성을 보여주며, 상대 의사와 현실 환경을 함께 고려해야 합니다.";
 }
 
 function buildPromptBody({ question, questionType, basicResult, compatibilityResult, compatibilityHint }) {
@@ -253,6 +313,11 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
   const normalizedType = classifyQuestionType(normalizedQuestion);
   const normalizedBasic = normalizeBasicResult(basicResult);
   const normalizedCompat = normalizeCompatibilityResult(compatibilityResult, normalizedBasic);
+  const compatibilityFocus = normalizedType === "compatibility" || normalizedType === "love";
+
+  if (normalizedType === "compatibility" && !normalizedCompat) {
+    throw new Error("MISSING_COMPATIBILITY_RESULT");
+  }
 
   const compatibilityHint = normalizedCompat
     ? "궁합 데이터가 제공되어 관계 상호작용까지 반영합니다."
@@ -266,17 +331,41 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
     compatibilityHint,
   });
 
-  const domainDataLines = [
-    `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
-    `본명숙: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx})`,
-    `핵심 성향: ${normalizedBasic.traits.core}`,
-    `연애/일/재물 리듬: ${normalizedBasic.traits.love} / ${normalizedBasic.traits.work} / ${normalizedBasic.traits.wealth}`,
-    `달빛 톤/오늘 인사이트: ${normalizedBasic.moonTone} / ${normalizedBasic.moonInsight}`,
-    normalizedCompat
-      ? `궁합: ${normalizedCompat.partnerMansion}, 관계유형 ${normalizedCompat.relationType}, 점수 ${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}`
-      : `궁합 데이터 없음: ${compatibilityHint}`,
-    `레거시 프롬프트 초안: ${legacyPrompt.slice(0, 420)}...`,
-  ];
+  const domainDataLines = compatibilityFocus
+    ? [
+      `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
+      `나의 숙요 데이터: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx}), 핵심성향=${normalizedBasic.traits.core}, 그림자=${normalizedBasic.traits.hidden}, 연애리듬=${normalizedBasic.traits.love}, 달빛톤=${normalizedBasic.moonTone}`,
+      normalizedCompat
+        ? `상대 숙요 데이터: ${normalizedCompat.partnerMansion} (${normalizedCompat.partnerIdx}), 이름=${normalizedCompat.partnerName || DEFAULT_TEXT}, 성별=${normalizedCompat.partnerGender}`
+        : `상대 숙요 데이터: 없음 (${compatibilityHint})`,
+      normalizedCompat
+        ? `관계 핵심: 유형=${normalizedCompat.relationType}${normalizedCompat.relationTypeHan ? `(${normalizedCompat.relationTypeHan})` : ""}, 거리=${normalizedCompat.distanceLabel}, 최단거리=${normalizedCompat.shortestDistance != null ? normalizedCompat.shortestDistance : DEFAULT_TEXT}`
+        : "관계 핵심: 궁합 데이터 없음",
+      normalizedCompat
+        ? `역할/방향: 나역할=${normalizedCompat.myRole || DEFAULT_TEXT}, 상대역할=${normalizedCompat.partnerRole || DEFAULT_TEXT}, A→B=${normalizedCompat.directionFromAToB || DEFAULT_TEXT}, B→A=${normalizedCompat.directionFromBToA || DEFAULT_TEXT}`
+        : "역할/방향: 궁합 데이터 없음",
+      normalizedCompat
+        ? `관계 점수 축: 카르마=${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}, 온도=${normalizedCompat.temperature != null ? normalizedCompat.temperature : DEFAULT_TEXT}, 자력=${normalizedCompat.magnetism != null ? normalizedCompat.magnetism : DEFAULT_TEXT}, 소통=${normalizedCompat.communicationScore != null ? normalizedCompat.communicationScore : DEFAULT_TEXT}, 안정=${normalizedCompat.stabilityScore != null ? normalizedCompat.stabilityScore : DEFAULT_TEXT}, 성장=${normalizedCompat.growthScore != null ? normalizedCompat.growthScore : DEFAULT_TEXT}, 갈등=${normalizedCompat.conflictScore != null ? normalizedCompat.conflictScore : DEFAULT_TEXT}`
+        : "관계 점수 축: 궁합 데이터 없음",
+      normalizedCompat
+        ? `관계 패턴: 감정=${normalizedCompat.emotionalPattern || DEFAULT_TEXT}, 갈등=${normalizedCompat.conflictPattern || DEFAULT_TEXT}, 장기=${normalizedCompat.longTermPotential || DEFAULT_TEXT}, 요약=${normalizedCompat.summary || DEFAULT_TEXT}`
+        : "관계 패턴: 궁합 데이터 없음",
+      normalizedCompat && (normalizedCompat.partnerCore || normalizedCompat.partnerHidden || normalizedCompat.partnerLove || normalizedCompat.partnerMoonTone)
+        ? `상대 성향 보조: core=${normalizedCompat.partnerCore || DEFAULT_TEXT}, hidden=${normalizedCompat.partnerHidden || DEFAULT_TEXT}, love=${normalizedCompat.partnerLove || DEFAULT_TEXT}, moonTone=${normalizedCompat.partnerMoonTone || DEFAULT_TEXT}`
+        : "상대 성향 보조: 제공되지 않음",
+      `레거시 초안(참고): ${legacyPrompt.slice(0, 220)}...`,
+    ]
+    : [
+      `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
+      `본명숙: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx})`,
+      `핵심 성향: ${normalizedBasic.traits.core}`,
+      `연애/일/재물 리듬: ${normalizedBasic.traits.love} / ${normalizedBasic.traits.work} / ${normalizedBasic.traits.wealth}`,
+      `달빛 톤/오늘 인사이트: ${normalizedBasic.moonTone} / ${normalizedBasic.moonInsight}`,
+      normalizedCompat
+        ? `궁합: ${normalizedCompat.partnerMansion}, 관계유형 ${normalizedCompat.relationType}, 점수 ${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}`
+        : `궁합 데이터 없음: ${compatibilityHint}`,
+      `레거시 프롬프트 초안: ${legacyPrompt.slice(0, 420)}...`,
+    ];
 
   const promptPackage = buildFortuneQuestionPromptPackage({
     fortuneType: "sukyo",
@@ -300,10 +389,13 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
         score: normalizedCompat.score,
       }
       : undefined,
+    mode: normalizedType === "compatibility"
+      ? "compatibility"
+      : (normalizedType === "love" && normalizedCompat ? "compatibility" : (normalizedType === "love" ? "love" : "personal")),
     questionTypeLabel: QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general,
-    analysisAngles: buildSukuyoAngles(normalizedType),
+    analysisAngles: buildSukuyoAngles(normalizedType, Boolean(normalizedCompat)),
     recommendedFollowUpQuestions: buildSukuyoFollowUps(normalizedType),
-    caution: "숙요 해석은 관계의 경향성을 보여주며, 상대 의사와 현실 환경을 함께 고려해야 합니다.",
+    caution: buildSukuyoPromptCaution(normalizedType, Boolean(normalizedCompat)),
     domainDataLines,
     minPromptLength: 1600,
   });

@@ -153,6 +153,10 @@ const BANNED_PHRASES = [
   /운명이\s*끝난다/,
   /저주/,
   /파멸/,
+  /데이터가\s*일부\s*누락된\s*궁은\s*branch,\s*mainStars,\s*strength,\s*sihua/i,
+  /reportPayload\(=calculatedData\)|chapterJsonPacks/i,
+  /\[SYSTEM\]|\[USER\]|중요\s*규칙\s*:/i,
+  /실행\s*보강\s*메모/i,
 ];
 
 export function validateLifeBookChapter(chapterResult, chapterConfig) {
@@ -208,8 +212,12 @@ export function createLifeBookFallbackChapter(chapterConfig, lifeBookInputData, 
   ];
 
   let contentMarkdown = sections.join("\n\n");
+  let depth = 1;
   while (contentMarkdown.length < Math.max(2500, Number(chapterConfig?.minLength || 2500))) {
-    contentMarkdown += "\n\n### 실행 보강 메모\n오늘의 의사결정을 기록하고, 7일 뒤 같은 기준으로 다시 검토해 반복 패턴을 줄이세요.";
+    contentMarkdown += `\n\n### 심화 실행 노트 ${depth}\n`;
+    contentMarkdown += "이번 노트는 반복 손실을 줄이기 위한 행동 기준 정리입니다. 관계/일정/재정/회복 중 가장 흔들리는 한 축을 먼저 고정하세요.\n\n";
+    contentMarkdown += "실행 문장: 오늘의 의사결정을 기록하고, 7일 뒤 같은 기준으로 다시 검토해 대체 행동 1개를 확정하세요.";
+    depth += 1;
   }
 
   return {

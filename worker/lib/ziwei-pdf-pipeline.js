@@ -643,6 +643,27 @@ export function buildZiweiPdfContext({ userProfile = {}, rawChart = {} } = {}) {
   };
 }
 
+const ZIWEI_BLOCKED_OUTPUT_PATTERNS = [
+  /데이터가\s*일부\s*누락된\s*궁은\s*branch,\s*mainStars,\s*strength,\s*sihua/i,
+  /\[SYSTEM\]|\[USER\]/i,
+  /중요\s*규칙\s*:/i,
+  /JSON에\s*없는\s*계산\s*결과를\s*추정하지\s*말/i,
+  /chapterJsonPacks|reportPayload\(=calculatedData\)/i,
+];
+
+function sanitizeZiweiOutputText(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .filter((line) => {
+      const s = String(line || "").trim();
+      if (!s) return true;
+      return !ZIWEI_BLOCKED_OUTPUT_PATTERNS.some((re) => re.test(s));
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function buildZiweiGeminiPrompt({ chapter, context }) {
   const chapterSpec = chapter || ZIWEI_PDF_CHAPTERS[0];
 
@@ -665,6 +686,8 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     "12. chapterTitle/chapterSubtitle는 입력된 챕터 제목/의도를 따르고, 결론형 요약문 남발을 금지한다.",
     "13. 본 리포트는 13챕터 고정 체계이므로 챕터 번호 체계를 임의로 변경하지 않는다.",
     "14. 데이터 부족/보완/안내/메모 같은 메타 표현을 본문에 쓰지 않는다.",
+    "15. 시스템 지침 문장, 프롬프트 규칙 문장, JSON 키 설명 문장을 본문으로 출력하지 않는다.",
+    "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
   ].join("\n");
 
   const userPrompt = [
@@ -777,7 +800,7 @@ export function createFallbackChapter(chapter, context) {
   return {
     chapterTitle: spec.title,
     chapterSubtitle: "심층 상담 해석",
-    summary: "해당 영역의 핵심 운세 구조를 명궁-신궁-궁위 연결 관점에서 정밀하게 해석했습니다.",
+    summary: "확인된 궁위 데이터와 별 배치를 기준으로 이 챕터의 핵심 흐름을 상담형으로 정리했습니다.",
     sections: [
       {
         heading: "운명의 구조",
@@ -803,18 +826,18 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   const chapter = toPlainObject(rawChapter);
   const sections = asArray(chapter.sections)
     .map((row) => ({
-      heading: asText(row?.heading) || "핵심 해석",
-      body: asText(row?.body),
+      heading: sanitizeZiweiOutputText(asText(row?.heading)) || "핵심 해석",
+      body: sanitizeZiweiOutputText(asText(row?.body)),
     }))
     .filter((row) => row.body);
 
-  const practicalAdvice = asArray(chapter.practicalAdvice).map(asText).filter(Boolean);
-  const cautions = asArray(chapter.cautions).map(asText).filter(Boolean);
+  const practicalAdvice = asArray(chapter.practicalAdvice).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
 
   return {
-    chapterTitle: asText(chapter.chapterTitle) || chapterSpec?.title || "자미두수 해석",
-    chapterSubtitle: asText(chapter.chapterSubtitle) || "심층 해석",
-    summary: asText(chapter.summary) || "핵심 데이터와 지식 베이스를 기반으로 챕터를 생성했습니다.",
+    chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle)) || chapterSpec?.title || "자미두수 해석",
+    chapterSubtitle: sanitizeZiweiOutputText(asText(chapter.chapterSubtitle)) || "심층 해석",
+    summary: sanitizeZiweiOutputText(asText(chapter.summary)) || "핵심 데이터와 지식 베이스를 기반으로 챕터를 생성했습니다.",
     sections,
     practicalAdvice,
     cautions,
@@ -894,23 +917,27 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
 }
 
 export function ensureZiweiChapterMarkdownLength(text, context, minLength = 5200) {
-  let output = String(text || "").trim();
-  const fallbackChunk = [
-    "### 심화 상담",
-    "데이터가 일부 누락된 궁은 branch, mainStars, strength, sihua 유무를 분리해 해석의 확실성과 보완 범위를 명시합니다.",
-    "명궁-관록궁-재백궁-천이궁의 흐름은 직업/재물/외부활동의 현실 축으로 연결되고, 복덕궁-질액궁은 회복력과 스트레스 관리 축으로 연결됩니다.",
-    "허위 계산값을 생성하지 않고, 확인된 명반 데이터와 기본 궁 의미를 결합해 실행 가능한 조언으로 변환하는 것을 원칙으로 합니다.",
-    context?.chartMeta?.bodyPalaceKey
-      ? `신궁은 ${context.chartMeta.bodyPalaceKey} 축에서 후천 운명의 방향성을 보강합니다.`
-      : "신궁 데이터가 없으므로 명궁-관록궁-재백궁-복덕궁 축으로 후천 방향성을 보강합니다.",
-  ].join("\n\n");
+  let output = sanitizeZiweiOutputText(String(text || "").trim());
+  const bodyPalaceKey = asText(context?.chartMeta?.bodyPalaceKey);
 
   let guard = 0;
   while (output.length < minLength && guard < 12) {
-    output = `${output}\n\n${fallbackChunk}`;
+    const blockNo = guard + 1;
+    const dynamicChunk = [
+      `### 심화 상담 ${blockNo}`,
+      "확인된 궁 배치와 주성 흐름을 기준으로, 판단 우선순위를 행동 단위로 재정렬하는 해석을 제공합니다.",
+      blockNo % 2 === 0
+        ? "명궁-관록궁-재백궁 연결은 직업과 자산 운영의 핵심 축이며, 복덕궁-질액궁 연결은 회복력 관리의 핵심 축으로 작동합니다."
+        : "명궁-천이궁-교우궁 연결은 대외 관계 운영의 핵심 축이며, 복덕궁-전택궁 연결은 정서 안정 기반의 핵심 축으로 작동합니다.",
+      bodyPalaceKey
+        ? `신궁 정보는 ${bodyPalaceKey} 축의 실행력과 후천적 선택 패턴을 구체화하는 데 사용합니다.`
+        : "신궁 정보가 제한적인 경우에는 명궁과 핵심 현실궁의 상호작용을 중심으로 실행 패턴을 제시합니다.",
+      "실행 권고: 이번 주에는 가장 반복 비용이 큰 선택 패턴 1개를 기록하고, 대체 행동 1개를 같은 시간대에 고정하세요.",
+    ].join("\n\n");
+    output = `${output}\n\n${dynamicChunk}`;
     guard += 1;
   }
-  return output;
+  return sanitizeZiweiOutputText(output);
 }
 
 export { ZIWEI_PDF_CHAPTERS };

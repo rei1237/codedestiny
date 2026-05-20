@@ -10,6 +10,8 @@ export async function geminiLifeBookClient(env, prompt, options = {}) {
     modelEnvKeys: ["LIFEBOOK_GEMINI_MODEL"],
     temperature: toNumber(options.temperature, 0.72),
     topP: toNumber(options.topP, 0.92),
+    frequencyPenalty: toNumber(options.frequencyPenalty, 0.55),
+    presencePenalty: toNumber(options.presencePenalty, 0.55),
     maxOutputTokens: toNumber(options.maxOutputTokens, 12288),
     timeoutMs: toNumber(options.timeoutMs, Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 25000)),
     totalTimeoutMs: toNumber(options.totalTimeoutMs, Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || env?.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 60000)),

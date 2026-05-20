@@ -183,6 +183,8 @@ export async function callGeminiText(env, prompt, options = {}) {
     temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
     topP: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
     maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
+    frequencyPenalty: Number.isFinite(Number(options.frequencyPenalty)) ? Number(options.frequencyPenalty) : 0.5,
+    presencePenalty: Number.isFinite(Number(options.presencePenalty)) ? Number(options.presencePenalty) : 0.5,
   };
 
   const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));

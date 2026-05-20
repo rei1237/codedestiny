@@ -72,7 +72,29 @@ export function removeRepeatedParagraphs(content) {
     unique.push(paragraph);
   }
 
-  return unique.join("\n\n");
+  const sentenceSeen = new Set();
+  const compacted = unique
+    .map((paragraph) => {
+      const lines = String(paragraph || "")
+        .split(/(?<=[.!?。！？])\s+|\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const kept = [];
+      for (const line of lines) {
+        if (line.length < 36) {
+          kept.push(line);
+          continue;
+        }
+        const fp = line.replace(/\s+/g, " ").toLowerCase();
+        if (!fp || sentenceSeen.has(fp)) continue;
+        sentenceSeen.add(fp);
+        kept.push(line);
+      }
+      return kept.join("\n");
+    })
+    .filter(Boolean);
+
+  return compacted.join("\n\n");
 }
 
 const BANNED_PATTERNS = [
@@ -80,12 +102,16 @@ const BANNED_PATTERNS = [
   /일반론으로\s*보완/i,
   /정확한\s*데이터가\s*부족/i,
   /임의\s*추정/i,
+  /데이터가\s*일부\s*누락된\s*궁은\s*branch,\s*mainStars,\s*strength,\s*sihua/i,
+  /reportPayload\(=calculatedData\)/i,
+  /chapterJsonPacks/i,
+  /\[SYSTEM\]|\[USER\]|중요\s*규칙\s*:/i,
 ];
 
 const VEDIC_CROSS_DOMAIN = /(Ascendant|Solar\s*Return|Synastry|Composite)/i;
 
 export function validateGeneratedChapterText(text, options = {}) {
-  const source = String(text || "").trim();
+  const source = removeRepeatedParagraphs(String(text || "").trim());
   const minChars = Number(options?.minChars || 0);
   const maxChars = Number(options?.maxChars || 0);
   const pdfType = String(options?.pdfType || "");
@@ -109,6 +135,15 @@ export function validateGeneratedChapterText(text, options = {}) {
 
   if (BANNED_PATTERNS.some((re) => re.test(source))) {
     errors.push("BANNED_PHRASE_FOUND");
+  }
+
+  const repeatedSentences = source
+    .split(/(?<=[.!?。！？])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 36)
+    .map((s) => s.replace(/\s+/g, " ").toLowerCase());
+  if (new Set(repeatedSentences).size < repeatedSentences.length) {
+    errors.push("REPEATED_SENTENCE_FOUND");
   }
 
   if (pdfType === "vedicPremium" && VEDIC_CROSS_DOMAIN.test(source)) {

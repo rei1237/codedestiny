@@ -2039,6 +2039,13 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     if (code === "MISSING_BASIC_RESULT") {
       return buildSukuyoAIPromptError("MISSING_BASIC_RESULT", "기본 숙요점 결과가 필요합니다.", 400);
     }
+    if (code === "MISSING_COMPATIBILITY_RESULT") {
+      return buildSukuyoAIPromptError(
+        "MISSING_COMPATIBILITY_RESULT",
+        "궁합 질문은 숙요 궁합 계산 결과를 먼저 만든 뒤 다시 시도해 주세요.",
+        400,
+      );
+    }
     console.error("[fortune][sukuyo-ai-prompt] prompt build failed:", error);
     return buildSukuyoAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
   }
