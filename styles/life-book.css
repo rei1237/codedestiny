@@ -2150,17 +2150,287 @@ body.theme-pig .lb-ch-dot--pending {
   text-shadow: 0 1px 6px rgba(30, 41, 59, 0.5);
 }
 
-#ziweiBookModal .lb-toc-item {
-  color: #b9c9ee;
-  opacity: 0.72;
+/*
+ * TOC UX 개편 (Before -> After)
+ * - Before: 고정 42x42 박스에 13개 챕터를 밀집 배치하여 긴 제목 가독성이 급격히 저하됨.
+ * - After: 프리미엄 PDF 모달 공통 가로 스크롤 칩 내비게이션으로 번호/타이틀을 분리 표시.
+ */
+#ziweiBookModal .lb-toc,
+#astroBookModal .lb-toc,
+#vedicBookModal .lb-toc,
+#sukuyoBookModal .lb-toc,
+#lifeBookModal .lb-toc,
+#sajuNewYearModal .lb-toc {
+  position: relative;
+  gap: 10px;
+  padding: 14px 18px 16px;
+  border-bottom: 1px solid rgba(196, 181, 253, 0.24);
+  background:
+    radial-gradient(120% 100% at 12% 0%, rgba(99, 102, 241, 0.16), transparent 58%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.44), rgba(15, 23, 42, 0.12));
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
 }
 
-#ziweiBookModal .lb-toc-item.loaded {
-  color: #ede9fe;
+#ziweiBookModal .lb-toc::before,
+#ziweiBookModal .lb-toc::after,
+#astroBookModal .lb-toc::before,
+#astroBookModal .lb-toc::after,
+#vedicBookModal .lb-toc::before,
+#vedicBookModal .lb-toc::after,
+#sukuyoBookModal .lb-toc::before,
+#sukuyoBookModal .lb-toc::after,
+#lifeBookModal .lb-toc::before,
+#lifeBookModal .lb-toc::after,
+#sajuNewYearModal .lb-toc::before,
+#sajuNewYearModal .lb-toc::after {
+  content: '';
+  position: sticky;
+  top: 0;
+  width: 22px;
+  height: auto;
+  align-self: stretch;
+  pointer-events: none;
+  z-index: 2;
 }
 
-#ziweiBookModal .lb-toc-item:hover:not(.active) {
+#ziweiBookModal .lb-toc::before,
+#astroBookModal .lb-toc::before,
+#vedicBookModal .lb-toc::before,
+#sukuyoBookModal .lb-toc::before,
+#lifeBookModal .lb-toc::before,
+#sajuNewYearModal .lb-toc::before {
+  left: 0;
+  margin-right: -18px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0));
+}
+
+#ziweiBookModal .lb-toc::after,
+#astroBookModal .lb-toc::after,
+#vedicBookModal .lb-toc::after,
+#sukuyoBookModal .lb-toc::after,
+#lifeBookModal .lb-toc::after,
+#sajuNewYearModal .lb-toc::after {
+  right: 0;
+  margin-left: -18px;
+  background: linear-gradient(270deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0));
+}
+
+#ziweiBookModal .lb-toc-item,
+#astroBookModal .lb-toc-item,
+#vedicBookModal .lb-toc-item,
+#sukuyoBookModal .lb-toc-item,
+#lifeBookModal .lb-toc-item,
+#sajuNewYearModal .lb-toc-item {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  min-height: 56px;
+  padding: 10px 16px 11px;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 181, 253, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #dbeafe;
+  opacity: 1;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#ziweiBookModal .lb-toc-item > span,
+#astroBookModal .lb-toc-item > span,
+#vedicBookModal .lb-toc-item > span,
+#sukuyoBookModal .lb-toc-item > span,
+#lifeBookModal .lb-toc-item > span,
+#sajuNewYearModal .lb-toc-item > span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(191, 219, 254, 0.72);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#ziweiBookModal .lb-toc-item > strong,
+#astroBookModal .lb-toc-item > strong,
+#vedicBookModal .lb-toc-item > strong,
+#sukuyoBookModal .lb-toc-item > strong,
+#lifeBookModal .lb-toc-item > strong,
+#sajuNewYearModal .lb-toc-item > strong {
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.16;
   color: #f8fbff;
+  white-space: nowrap;
+}
+
+#ziweiBookModal .lb-toc-item.loaded,
+#astroBookModal .lb-toc-item.loaded,
+#vedicBookModal .lb-toc-item.loaded,
+#sukuyoBookModal .lb-toc-item.loaded,
+#lifeBookModal .lb-toc-item.loaded,
+#sajuNewYearModal .lb-toc-item.loaded {
+  color: #f8fbff;
+  border-color: rgba(167, 139, 250, 0.42);
+  background:
+    linear-gradient(156deg, rgba(96, 41, 166, 0.26), rgba(30, 41, 59, 0.3));
+}
+
+#ziweiBookModal .lb-toc-item.active,
+#ziweiBookModal .lb-toc-item:focus,
+#ziweiBookModal .lb-toc-item:focus-visible,
+#astroBookModal .lb-toc-item.active,
+#astroBookModal .lb-toc-item:focus,
+#astroBookModal .lb-toc-item:focus-visible,
+#vedicBookModal .lb-toc-item.active,
+#vedicBookModal .lb-toc-item:focus,
+#vedicBookModal .lb-toc-item:focus-visible,
+#sukuyoBookModal .lb-toc-item.active,
+#sukuyoBookModal .lb-toc-item:focus,
+#sukuyoBookModal .lb-toc-item:focus-visible,
+#lifeBookModal .lb-toc-item.active,
+#lifeBookModal .lb-toc-item:focus,
+#lifeBookModal .lb-toc-item:focus-visible,
+#sajuNewYearModal .lb-toc-item.active,
+#sajuNewYearModal .lb-toc-item:focus,
+#sajuNewYearModal .lb-toc-item:focus-visible {
+  border-color: rgba(196, 181, 253, 0.9);
+  background:
+    linear-gradient(132deg, rgba(88, 28, 135, 0.58), rgba(30, 58, 138, 0.52));
+  box-shadow:
+    0 0 12px rgba(147, 51, 234, 0.5),
+    0 14px 30px rgba(30, 41, 59, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+#ziweiBookModal .lb-toc-item.active > span,
+#ziweiBookModal .lb-toc-item:focus > span,
+#ziweiBookModal .lb-toc-item:focus-visible > span,
+#astroBookModal .lb-toc-item.active > span,
+#astroBookModal .lb-toc-item:focus > span,
+#astroBookModal .lb-toc-item:focus-visible > span,
+#vedicBookModal .lb-toc-item.active > span,
+#vedicBookModal .lb-toc-item:focus > span,
+#vedicBookModal .lb-toc-item:focus-visible > span,
+#sukuyoBookModal .lb-toc-item.active > span,
+#sukuyoBookModal .lb-toc-item:focus > span,
+#sukuyoBookModal .lb-toc-item:focus-visible > span,
+#lifeBookModal .lb-toc-item.active > span,
+#lifeBookModal .lb-toc-item:focus > span,
+#lifeBookModal .lb-toc-item:focus-visible > span,
+#sajuNewYearModal .lb-toc-item.active > span,
+#sajuNewYearModal .lb-toc-item:focus > span,
+#sajuNewYearModal .lb-toc-item:focus-visible > span {
+  color: rgba(245, 243, 255, 0.82);
+}
+
+#ziweiBookModal .lb-toc-item.active::after,
+#ziweiBookModal .lb-toc-item:focus::after,
+#ziweiBookModal .lb-toc-item:focus-visible::after,
+#astroBookModal .lb-toc-item.active::after,
+#astroBookModal .lb-toc-item:focus::after,
+#astroBookModal .lb-toc-item:focus-visible::after,
+#vedicBookModal .lb-toc-item.active::after,
+#vedicBookModal .lb-toc-item:focus::after,
+#vedicBookModal .lb-toc-item:focus-visible::after,
+#sukuyoBookModal .lb-toc-item.active::after,
+#sukuyoBookModal .lb-toc-item:focus::after,
+#sukuyoBookModal .lb-toc-item:focus-visible::after,
+#lifeBookModal .lb-toc-item.active::after,
+#lifeBookModal .lb-toc-item:focus::after,
+#lifeBookModal .lb-toc-item:focus-visible::after,
+#sajuNewYearModal .lb-toc-item.active::after,
+#sajuNewYearModal .lb-toc-item:focus::after,
+#sajuNewYearModal .lb-toc-item:focus-visible::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0), rgba(251, 191, 36, 0.92), rgba(192, 132, 252, 0.95), rgba(251, 191, 36, 0));
+}
+
+#ziweiBookModal .lb-toc-item:hover:not(.active),
+#astroBookModal .lb-toc-item:hover:not(.active),
+#vedicBookModal .lb-toc-item:hover:not(.active),
+#sukuyoBookModal .lb-toc-item:hover:not(.active),
+#lifeBookModal .lb-toc-item:hover:not(.active),
+#sajuNewYearModal .lb-toc-item:hover:not(.active) {
+  color: #f8fbff;
+  border-color: rgba(196, 181, 253, 0.65);
+  background: linear-gradient(144deg, rgba(109, 40, 217, 0.34), rgba(30, 64, 175, 0.28));
+  box-shadow: 0 8px 20px rgba(30, 41, 59, 0.32);
+}
+
+#ziweiBookModal .lb-toc-item:focus,
+#ziweiBookModal .lb-toc-item:focus-visible,
+#astroBookModal .lb-toc-item:focus,
+#astroBookModal .lb-toc-item:focus-visible,
+#vedicBookModal .lb-toc-item:focus,
+#vedicBookModal .lb-toc-item:focus-visible,
+#sukuyoBookModal .lb-toc-item:focus,
+#sukuyoBookModal .lb-toc-item:focus-visible,
+#lifeBookModal .lb-toc-item:focus,
+#lifeBookModal .lb-toc-item:focus-visible,
+#sajuNewYearModal .lb-toc-item:focus,
+#sajuNewYearModal .lb-toc-item:focus-visible {
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  #ziweiBookModal .lb-toc,
+  #astroBookModal .lb-toc,
+  #vedicBookModal .lb-toc,
+  #sukuyoBookModal .lb-toc,
+  #lifeBookModal .lb-toc,
+  #sajuNewYearModal .lb-toc {
+    gap: 8px;
+    padding: 12px 12px 14px;
+  }
+
+  #ziweiBookModal .lb-toc-item,
+  #astroBookModal .lb-toc-item,
+  #vedicBookModal .lb-toc-item,
+  #sukuyoBookModal .lb-toc-item,
+  #lifeBookModal .lb-toc-item,
+  #sajuNewYearModal .lb-toc-item {
+    min-height: 52px;
+    padding: 9px 13px 10px;
+    border-radius: 12px;
+  }
+
+  #ziweiBookModal .lb-toc-item > span,
+  #astroBookModal .lb-toc-item > span,
+  #vedicBookModal .lb-toc-item > span,
+  #sukuyoBookModal .lb-toc-item > span,
+  #lifeBookModal .lb-toc-item > span,
+  #sajuNewYearModal .lb-toc-item > span {
+    font-size: 0.62rem;
+  }
+
+  #ziweiBookModal .lb-toc-item > strong,
+  #astroBookModal .lb-toc-item > strong,
+  #vedicBookModal .lb-toc-item > strong,
+  #sukuyoBookModal .lb-toc-item > strong,
+  #lifeBookModal .lb-toc-item > strong,
+  #sajuNewYearModal .lb-toc-item > strong {
+    font-size: 0.79rem;
+  }
 }
 
 #ziweiBookModal .lb-loading__chapter {
