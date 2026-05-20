@@ -740,8 +740,19 @@
       return;
     }
 
+    _generating=true;
+    _showScreen('skLoadingScreen');
+    var _preBar=_qs('skProgressBar');
+    var _preText=_qs('skProgressText');
+    var _preChapter=_qs('skLoadingChapter');
+    if(_preBar)_preBar.style.width='4%';
+    if(_preText)_preText.textContent='결제 확인 중...';
+    if(_preChapter)_preChapter.textContent='결제 확인 중...';
+
     _ensureCompatibilitySurchargeIfNeeded(profile, partner).then(function (chargeResult) {
       if (!chargeResult || !chargeResult.ok) {
+        _generating=false;
+        _showScreen('skStartScreen');
         alert((chargeResult && chargeResult.message) || '궁합 추가 코인 차감에 실패했습니다.');
         return;
       }
@@ -1167,6 +1178,10 @@
         generateNext(idx+1);
       });
     })(0);
+    }).catch(function (err) {
+      _generating=false;
+      _showScreen('skStartScreen');
+      alert(String((err && err.message) || '숙요 PDF 생성 준비 중 오류가 발생했습니다.'));
     });
   };
 

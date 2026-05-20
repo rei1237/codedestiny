@@ -918,17 +918,6 @@
       return;
     }
 
-    var gateOk = await ensureAstroCoinGate(requestInput.body);
-    if (!gateOk) return;
-
-    var preflight = await ensureAstroPremiumPreflight(requestInput.body);
-    if (!preflight.ok) {
-      await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
-      state.paidGateKey = '';
-      setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
-      return;
-    }
-
     state.generating = true;
     state.mode = String(requestInput.body.mode || 'personal');
     state.reportId = '';
@@ -937,35 +926,53 @@
     state.quoteTick = 0;
 
     showOnly('abLoadingScreen');
-    setLoadingProgress({ currentChapter: 0, status: 'generating', message: '점성술 원본 데이터를 검증하는 중...' });
+    setLoadingProgress({ currentChapter: 0, status: 'generating', message: '결제 확인 중...' });
 
-    var res = await requestJson('/api/premium/astrology/generate', {
-      method: 'POST',
-      body: requestInput.body
-    });
+    try {
+      var gateOk = await ensureAstroCoinGate(requestInput.body);
+      if (!gateOk) {
+        showOnly('abStartScreen');
+        return;
+      }
 
-    if (!res.ok || !res.data || !res.data.ok) {
-      await attemptAstroAutoRefund('점성술 프리미엄 PDF 생성 시작 실패 자동 환불');
+      setLoadingProgress({ currentChapter: 0, status: 'generating', message: '생성 전 데이터 점검 중...' });
+      var preflight = await ensureAstroPremiumPreflight(requestInput.body);
+      if (!preflight.ok) {
+        await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
+        state.paidGateKey = '';
+        setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+        return;
+      }
+
+      setLoadingProgress({ currentChapter: 0, status: 'generating', message: '리포트 생성을 시작합니다...' });
+
+      var res = await requestJson('/api/premium/astrology/generate', {
+        method: 'POST',
+        body: requestInput.body
+      });
+
+      if (!res.ok || !res.data || !res.data.ok) {
+        await attemptAstroAutoRefund('점성술 프리미엄 PDF 생성 시작 실패 자동 환불');
+        setError(String(res.data && res.data.message || '점성술 리포트 생성 시작에 실패했습니다.'));
+        return;
+      }
+
+      state.reportId = String(res.data.reportId || '');
+      state.mode = String(res.data.mode || state.mode || 'personal');
+      state.downloadUrl = String(res.data.downloadUrl || '');
+
+      if (!state.reportId) {
+        await attemptAstroAutoRefund('점성술 프리미엄 PDF reportId 누락 자동 환불');
+        setError('reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+
+      var done = await pollStatusLoop();
+      if (!done && qs('abLoadingScreen') && qs('abLoadingScreen').style.display !== 'none') {
+        setError('리포트 생성 중 문제가 발생했습니다.');
+      }
+    } finally {
       state.generating = false;
-      setError(String(res.data && res.data.message || '점성술 리포트 생성 시작에 실패했습니다.'));
-      return;
-    }
-
-    state.reportId = String(res.data.reportId || '');
-    state.mode = String(res.data.mode || state.mode || 'personal');
-    state.downloadUrl = String(res.data.downloadUrl || '');
-
-    if (!state.reportId) {
-      await attemptAstroAutoRefund('점성술 프리미엄 PDF reportId 누락 자동 환불');
-      state.generating = false;
-      setError('reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
-      return;
-    }
-
-    var done = await pollStatusLoop();
-    state.generating = false;
-    if (!done && qs('abLoadingScreen') && qs('abLoadingScreen').style.display !== 'none') {
-      setError('리포트 생성 중 문제가 발생했습니다.');
     }
   };
 

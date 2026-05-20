@@ -826,12 +826,17 @@
           persistState();
           startLifeBookGeneration();
         },
-        function () {},
+        function () {
+          setGenerateButtonBusy(false);
+          if (!state.generating) showOnly('lbStartScreen');
+        },
         { featureKey: COIN_FEATURE_KEY }
       );
       return;
     }
 
+    setGenerateButtonBusy(false);
+    if (!state.generating) showOnly('lbStartScreen');
     notify('결제 모듈 로딩이 지연되어 생성 시작을 차단했습니다. 잠시 후 다시 시도해 주세요.');
   }
 
@@ -988,8 +993,18 @@
   };
 
   window.generateLifeBook = function () {
+    if (state.generating) {
+      notify('이미 리포트를 생성 중입니다.');
+      return;
+    }
+    setGenerateButtonBusy(true);
+    showOnly('lbLoadingScreen');
+    setLoadingStatusText('결제 확인 중');
+    setLoadingProgress(1, CHAPTER_TITLES[0]);
+
     ensureCoinGateAndGenerate().catch(function (err) {
       console.error('[LifeBook] gate check failed:', err);
+      setGenerateButtonBusy(false);
       setErrorScreen('인생의 책 생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     });
   };

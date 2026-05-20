@@ -1124,6 +1124,8 @@
 
     state.coinGatePending = true;
     setPartnerButtonsBusy(true);
+    showOnly('lsLoadingScreen');
+    setLoadingProgress(1, getChapterTitlesByMode(mode)[0] || '생성 준비 중...');
 
     if (typeof window._cdCoinGatePerUse === 'function') {
       window._cdCoinGatePerUse(
@@ -1143,6 +1145,7 @@
         },
         function () {
           finalizeCoinGatePending();
+          showOnly('lsPartnerScreen');
         },
         { featureKey: featureKey }
       );

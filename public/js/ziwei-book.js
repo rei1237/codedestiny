@@ -1037,40 +1037,47 @@
   }
 
   async function generateZiweiBookImpl(forceRegenerate) {
-    if (state.generating) return;
+    if (state.generating) {
+      notify('이미 생성을 진행 중입니다. 잠시만 기다려 주세요.');
+      return;
+    }
     if (!hasProfile()) {
       showOnly('zbNoProfileScreen');
       return;
     }
-
-    var coreReady = await ensureZiweiCoreReady();
-    if (!coreReady) {
-      setError('자미두수 엔진을 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
-      return;
-    }
-
-    var payloadInfo = buildRequestBody(forceRegenerate);
-    if (payloadInfo.error) {
-      setError(payloadInfo.error);
-      return;
-    }
-
-    var gateOk = await ensureZiweiCoinGate(payloadInfo.body);
-    if (!gateOk) return;
-
-    var preflight = await ensureZiweiPremiumPreflight(payloadInfo.body);
-    if (!preflight.ok) {
-      await attemptZiweiAutoRefund('자미두수 프리미엄 preflight 실패 자동 환불');
-      state.paidGateKey = '';
-      setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
-      return;
-    }
-
     state.generating = true;
     resetForGenerate();
     showOnly('zbLoadingScreen');
+    setLoadingProgress(0, '생성 준비 중...');
 
     try {
+      var coreReady = await ensureZiweiCoreReady();
+      if (!coreReady) {
+        throw new Error('자미두수 엔진을 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
+      }
+
+      var payloadInfo = buildRequestBody(forceRegenerate);
+      if (payloadInfo.error) {
+        throw new Error(String(payloadInfo.error));
+      }
+
+      setLoadingProgress(0, '결제 확인 중...');
+      var gateOk = await ensureZiweiCoinGate(payloadInfo.body);
+      if (!gateOk) {
+        showOnly('zbStartScreen');
+        return;
+      }
+
+      setLoadingProgress(0, '생성 전 데이터 점검 중...');
+      var preflight = await ensureZiweiPremiumPreflight(payloadInfo.body);
+      if (!preflight.ok) {
+        await attemptZiweiAutoRefund('자미두수 프리미엄 preflight 실패 자동 환불');
+        state.paidGateKey = '';
+        throw new Error(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+      }
+
+      setLoadingProgress(0, '리포트 생성을 시작합니다...');
+
       var genRes = await requestJson('/api/premium/ziwei/generate', {
         method: 'POST',
         body: payloadInfo.body
