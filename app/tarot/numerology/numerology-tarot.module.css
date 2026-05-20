@@ -36,6 +36,18 @@
   opacity: 0.6;
 }
 
+.screen::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(125deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 7px),
+    radial-gradient(circle at 70% 0%, rgba(222, 182, 101, 0.08), transparent 36%);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
 .container {
   position: relative;
   width: min(1320px, calc(100% - 24px));
@@ -142,6 +154,17 @@
   background: linear-gradient(180deg, rgba(14, 17, 60, 0.7), rgba(7, 8, 27, 0.88));
   padding: 22px;
   box-shadow: 0 16px 32px rgba(2, 3, 20, 0.42);
+  position: relative;
+  overflow: hidden;
+}
+
+.mainPanel::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 38%;
+  background: radial-gradient(circle at 50% 40%, rgba(214, 171, 86, 0.18), transparent 70%);
+  pointer-events: none;
 }
 
 .title {
@@ -279,6 +302,14 @@
   overflow: hidden;
 }
 
+.stageVisual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(239, 210, 133, 0.08), transparent 26%, transparent 74%, rgba(130, 96, 255, 0.12));
+}
+
 .moon {
   position: absolute;
   top: 58px;
@@ -358,6 +389,15 @@
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
+.previewCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255, 239, 194, 0.1), transparent 35%, transparent 68%, rgba(127, 85, 255, 0.08));
+  pointer-events: none;
+}
+
 .previewCard:hover {
   transform: translateY(-2px);
   border-color: rgba(235, 208, 145, 0.84);
@@ -370,6 +410,21 @@
   color: rgba(250, 243, 229, 0.7);
   font-size: 12px;
   letter-spacing: 0.18em;
+}
+
+.previewCardImageWrap {
+  width: min(100%, 132px);
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(240, 219, 170, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.previewCardImage {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .previewPosition {
@@ -498,6 +553,13 @@
   font-size: 18px;
 }
 
+.miniCardImage {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(240, 217, 163, 0.55);
+}
+
 .statPill {
   border: 1px solid rgba(240, 218, 163, 0.42);
   border-radius: 10px;
@@ -512,6 +574,51 @@
   border-radius: 18px;
   background: var(--nt-card-strong);
   padding: 16px;
+}
+
+.freeProfileCard {
+  margin-top: 14px;
+  border: 1px solid var(--nt-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(18, 20, 61, 0.88), rgba(8, 10, 36, 0.95));
+  padding: 14px;
+}
+
+.freeProfileCard h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-family: "Noto Serif KR", serif;
+}
+
+.freeProfileLead {
+  margin: 0;
+  color: rgba(247, 241, 225, 0.88);
+  line-height: 1.6;
+}
+
+.freeProfileGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.keywordLine {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #e5c98f;
+}
+
+.keywordChip {
+  margin: 0 0 6px;
+  color: #d4b572;
+  font-size: 12px;
+}
+
+.actionTip {
+  margin-top: 7px;
+  color: rgba(247, 241, 225, 0.72);
+  font-size: 12px;
 }
 
 .resultCard h3 {
@@ -664,7 +771,8 @@
   .userFlowRow,
   .keyList,
   .resultGrid,
-  .infoRail {
+  .infoRail,
+  .freeProfileGrid {
     grid-template-columns: 1fr;
   }
 

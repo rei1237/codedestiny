@@ -186,6 +186,7 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
     cards,
     topic,
     name: asText(body?.name),
+    question: asText(body?.question),
   });
 
   const prompt = buildGeminiPrompt({
@@ -217,7 +218,7 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   }
 
   const parsed = parseJsonCandidate(aiResult.text);
-  const interpretation = normalizeInterpretation(parsed, fallback, cards, topic);
+  const interpretation = normalizeInterpretation(parsed, fallback, cards, topic, asText(body?.question));
 
   return {
     ok: true,

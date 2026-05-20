@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCoinGate } from "../../hooks/useCoinGate";
@@ -37,7 +38,7 @@ type ReadingResponse = {
   interpretation?: {
     numerologyReading: string;
     coreMessage: string;
-    cardReadings: Array<{ title: string; interpretation: string }>;
+    cardReadings: Array<{ title: string; keywordFocus?: string; interpretation: string; actionTip?: string }>;
     conclusion: {
       summary: string;
       doThis: string[];
@@ -73,6 +74,46 @@ const PREVIEW_PLACEHOLDERS = [
 const YEARS = Array.from({ length: 91 }, (_, idx) => String(new Date().getFullYear() - idx));
 const MONTHS = Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
 
+const TAROT_IMAGE_MAP: Record<number, string> = {
+  0: "thefool.webp",
+  1: "themagician.webp",
+  2: "thehighpriestess.webp",
+  3: "theempress.webp",
+  4: "theemperor.webp",
+  5: "thehierophant.webp",
+  6: "TheLovers.webp",
+  7: "thechariot.webp",
+  8: "thestrength.webp",
+  9: "thehermit.webp",
+  10: "wheeloffortune.webp",
+  11: "justice.webp",
+  12: "thehangedman.webp",
+  13: "death.webp",
+  14: "temperance.webp",
+  15: "thedevil.webp",
+  16: "thetower.webp",
+  17: "thestar.webp",
+  18: "themoon.webp",
+  19: "thesun.webp",
+  20: "judgement.webp",
+  21: "theworld.webp",
+};
+
+const FREE_TALENT_MAP: Record<number, { trait: string; aptitude: string[]; growthTip: string }> = {
+  1: { trait: "독립성과 추진력이 강한 개척형", aptitude: ["기획/창업", "리더십 직무", "브랜딩"], growthTip: "시작은 빠르니 중간 점검 루틴을 붙이면 성과가 오래갑니다." },
+  2: { trait: "감정 조율과 공감력이 뛰어난 연결형", aptitude: ["상담/코칭", "HR/협업 직무", "파트너십 운영"], growthTip: "관계 피로를 줄이기 위해 경계선 설정을 함께 연습하세요." },
+  3: { trait: "표현력과 창의성이 강한 콘텐츠형", aptitude: ["콘텐츠 제작", "마케팅/PR", "디자인/크리에이티브"], growthTip: "아이디어를 주간 단위 실험으로 쪼개면 성장이 빨라집니다." },
+  4: { trait: "구조화와 책임감이 강한 빌더형", aptitude: ["운영/PM", "재무/관리", "프로세스 설계"], growthTip: "완벽주의보다 반복 개선 중심으로 가면 스트레스가 줄어듭니다." },
+  5: { trait: "변화 적응력과 실행력이 좋은 탐험형", aptitude: ["세일즈/사업개발", "트렌드 리서치", "프로젝트 런칭"], growthTip: "핵심 1가지를 고정하면 변동성 속에서도 성과가 유지됩니다." },
+  6: { trait: "돌봄과 조화 감각이 강한 하모니형", aptitude: ["교육/멘토링", "브랜드 경험 설계", "커뮤니티 운영"], growthTip: "타인 기대와 본인 목표를 분리해 우선순위를 정하세요." },
+  7: { trait: "분석력과 통찰력이 깊은 탐구형", aptitude: ["데이터/리서치", "전략/기획", "심층 상담"], growthTip: "혼자 정리한 통찰을 작은 피드백 루프로 외부 검증하세요." },
+  8: { trait: "성과지향과 현실 감각이 강한 매니지형", aptitude: ["경영/재무", "비즈니스 운영", "영업 전략"], growthTip: "단기 성과와 장기 평판 지표를 동시에 관리하면 더 강해집니다." },
+  9: { trait: "치유와 통합 감각이 강한 완성형", aptitude: ["심리/헬스케어", "사회 공헌", "스토리텔링"], growthTip: "과거 정리 루틴을 두면 새로운 기회를 더 빠르게 잡습니다." },
+  11: { trait: "직관과 영감 수신력이 높은 인사이트형", aptitude: ["브랜드 전략", "창작/예술", "코칭/가이드"], growthTip: "번뜩임을 문서화해 실행 구조로 바꾸면 영향력이 커집니다." },
+  22: { trait: "큰 그림을 현실화하는 아키텍트형", aptitude: ["대형 프로젝트 리드", "시스템 설계", "조직 구축"], growthTip: "큰 목표를 분기별 마일스톤으로 분해해 실행하세요." },
+  33: { trait: "치유적 공감과 헌신이 큰 케어형", aptitude: ["치유/복지", "교육 콘텐츠", "공익 기획"], growthTip: "과몰입 방지를 위한 회복 루틴을 성과 루틴만큼 중요하게 두세요." },
+};
+
 function createDays(month: string): string[] {
   const monthNumber = Number(month || "1");
   const max = [1, 3, 5, 7, 8, 10, 12].includes(monthNumber)
@@ -85,6 +126,26 @@ function createDays(month: string): string[] {
 
 function toText(value: unknown): string {
   return String(value || "").trim();
+}
+
+function getCardImageUrl(cardId?: number): string {
+  const file = Number.isFinite(Number(cardId)) ? TAROT_IMAGE_MAP[Number(cardId)] : "";
+  return `/tarot-cards/${file || "thefool.webp"}`;
+}
+
+function extractQuestionKeywords(question: string): string[] {
+  const stopWords = new Set(["오늘", "이번", "어떻게", "될까요", "해주세요", "저의", "나의", "그리고", "대한", "관련", "문제", "고민"]);
+  const words = (question || "")
+    .toLowerCase()
+    .match(/[가-힣a-zA-Z0-9]{2,}/g) || [];
+
+  const unique: string[] = [];
+  for (const word of words) {
+    if (stopWords.has(word)) continue;
+    if (!unique.includes(word)) unique.push(word);
+    if (unique.length >= 5) break;
+  }
+  return unique;
 }
 
 export default function NumerologyTarotClient() {
@@ -111,6 +172,14 @@ export default function NumerologyTarotClient() {
   const lifeData = useMemo(() => {
     const key = Number(numerology?.lifePathNumber || 0);
     return NUMEROLOGY_DATA[key as keyof typeof NUMEROLOGY_DATA] || null;
+  }, [numerology]);
+
+  const questionKeywords = useMemo(() => extractQuestionKeywords(question), [question]);
+
+  const freeProfile = useMemo(() => {
+    const lifePath = Number(numerology?.lifePathNumber || 0);
+    if (!lifePath) return null;
+    return FREE_TALENT_MAP[lifePath] || FREE_TALENT_MAP[(lifePath % 9) || 9] || null;
   }, [numerology]);
 
   const dayOptions = useMemo(() => createDays(birthMonth), [birthMonth]);
@@ -204,6 +273,7 @@ export default function NumerologyTarotClient() {
         birthDate,
         topic,
         question: toText(question),
+        questionKeywords,
         numerology,
         cards,
       }),
@@ -417,7 +487,15 @@ export default function NumerologyTarotClient() {
                           isOpen ? (
                             <>
                               <p className={styles.previewPosition}>{entry.positionLabel}</p>
-                              <div style={{ fontSize: 30 }}>{entry.card.emoji || "✦"}</div>
+                              <div className={styles.previewCardImageWrap}>
+                                <Image
+                                  src={getCardImageUrl(entry.card.id)}
+                                  alt={entry.card.nameKr || entry.card.name}
+                                  width={158}
+                                  height={248}
+                                  className={styles.previewCardImage}
+                                />
+                              </div>
                               <p className={styles.previewName}>{entry.card.nameKr || entry.card.name}</p>
                               <p className={styles.previewMeta}>{entry.orientation === "reversed" ? "역방향" : "정방향"}</p>
                             </>
@@ -459,17 +537,45 @@ export default function NumerologyTarotClient() {
               </section>
             ) : null}
 
+            {numerology && freeProfile ? (
+              <section className={styles.freeProfileCard}>
+                <h3>무료 타고난 성향 · 적성 리포트</h3>
+                <p className={styles.freeProfileLead}>
+                  생년월일 기준 생명수 {numerology.lifePathNumber} ({lifeData?.keyword || "핵심 기질"})의 기본 성향입니다.
+                </p>
+                <div className={styles.freeProfileGrid}>
+                  <article className={styles.resultBox}>
+                    <h4>타고난 성향</h4>
+                    <p>{freeProfile.trait}</p>
+                  </article>
+                  <article className={styles.resultBox}>
+                    <h4>적성 영역</h4>
+                    <p>{freeProfile.aptitude.join(" / ")}</p>
+                  </article>
+                  <article className={styles.resultBox}>
+                    <h4>성장 힌트</h4>
+                    <p>{freeProfile.growthTip}</p>
+                  </article>
+                </div>
+              </section>
+            ) : null}
+
             {reading ? (
               <section className={styles.resultCard}>
                 <h3>수비학 타로 해석</h3>
                 <p style={{ color: "rgba(247, 241, 225, 0.9)", lineHeight: 1.7 }}>{reading.numerologyReading}</p>
                 <p style={{ marginTop: 8, color: "#f4dca5" }}>핵심 메시지: {reading.coreMessage}</p>
+                {questionKeywords.length ? (
+                  <p className={styles.keywordLine}>질문 키워드 초점: {questionKeywords.join(" · ")}</p>
+                ) : null}
 
                 <div className={styles.resultGrid}>
                   {reading.cardReadings.map((item, idx) => (
                     <article key={`${item.title}-${idx}`} className={styles.resultBox}>
                       <h4>{item.title}</h4>
+                      {item.keywordFocus ? <p className={styles.keywordChip}>키워드: {item.keywordFocus}</p> : null}
                       <p>{item.interpretation}</p>
+                      {item.actionTip ? <p className={styles.actionTip}>실행 팁: {item.actionTip}</p> : null}
                     </article>
                   ))}
                 </div>
@@ -494,7 +600,7 @@ export default function NumerologyTarotClient() {
 
           <aside className={styles.sidePanel}>
             <div className={styles.sideTitle}>
-              <h3>MOBILE EXPERIENCE FLOW</h3>
+              <h3>MOBILE READING PREVIEW</h3>
               <p>간결하고 몰입감 있는 모바일 리딩 동행</p>
             </div>
 
@@ -515,7 +621,17 @@ export default function NumerologyTarotClient() {
                     const open = revealed.includes(idx);
                     return (
                       <div key={`mini-card-${idx}`} className={styles.miniCard}>
-                        {picked ? (open ? picked.card.emoji || "✦" : "🂠") : "🂠"}
+                        {picked ? (
+                          open ? (
+                            <Image
+                              src={getCardImageUrl(picked.card.id)}
+                              alt={picked.card.nameKr || picked.card.name}
+                              width={70}
+                              height={112}
+                              className={styles.miniCardImage}
+                            />
+                          ) : "🂠"
+                        ) : "🂠"}
                       </div>
                     );
                   })}
@@ -533,47 +649,6 @@ export default function NumerologyTarotClient() {
               </article>
             </div>
           </aside>
-        </section>
-
-        <section className={styles.flowGrid}>
-          <article className={styles.flowBlock}>
-            <h2 className={styles.blockTitle}>USER FLOW</h2>
-            <div className={styles.userFlowRow}>
-              <div className={styles.flowNode}>
-                <strong>1 입력</strong>
-                <p>생년월일과 이름 또는 핵심 질문을 설정하고 리딩 조건을 고정합니다.</p>
-              </div>
-              <div className={styles.flowNode}>
-                <strong>2 숫자 분석</strong>
-                <p>생명수, 개인수, 질문수가 계산되어 카드 선택의 기준 축이 됩니다.</p>
-              </div>
-              <div className={styles.flowNode}>
-                <strong>3 카드 뽑기</strong>
-                <p>과거, 현재, 미래 3장 카드가 배치되고 탭하여 순차 공개됩니다.</p>
-              </div>
-              <div className={styles.flowNode}>
-                <strong>4 해석 결과</strong>
-                <p>숫자와 카드 의미를 통합한 실전형 행동 가이드가 생성됩니다.</p>
-              </div>
-            </div>
-          </article>
-
-          <article className={styles.designBlock}>
-            <h2 className={styles.blockTitle}>DESIGN KEY POINT</h2>
-            <div className={styles.keyList}>
-              <div className={styles.keyItem}>신비로운 우주 톤</div>
-              <div className={styles.keyItem}>직관적 4단계 UX</div>
-              <div className={styles.keyItem}>프리미엄 카드 질감</div>
-              <div className={styles.keyItem}>개인화 인사이트</div>
-            </div>
-            <div className={styles.palette} aria-label="color palette">
-              <span className={styles.swatch} style={{ background: "#080D1A" }} />
-              <span className={styles.swatch} style={{ background: "#1B1433" }} />
-              <span className={styles.swatch} style={{ background: "#2F1B4F" }} />
-              <span className={styles.swatch} style={{ background: "#6F3DFF" }} />
-              <span className={styles.swatch} style={{ background: "#D4AF37" }} />
-            </div>
-          </article>
         </section>
       </div>
     </main>
