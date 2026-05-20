@@ -7,6 +7,17 @@ type Props = {
   result: FptiAnalysisResult;
 };
 
+function symbolPalette(code: string) {
+  const primary = code.includes("V") ? "#67E8F9" : "#F59E0B";
+  const secondary = code.includes("L") ? "#38BDF8" : "#F97316";
+  const glow = code.startsWith("M") ? "#A78BFA" : "#FDE68A";
+  return { primary, secondary, glow };
+}
+
+function typeBadgeText(result: FptiAnalysisResult) {
+  return `${result.code} | ${result.typeName}`;
+}
+
 export default function FptiShareCard({ result }: Props) {
   const [copied, setCopied] = useState(false);
 
@@ -14,6 +25,8 @@ export default function FptiShareCard({ result }: Props) {
     () => `내 사주 FPTI는 ${result.code} (${result.typeName})!\n${result.oneLiner}\n#사주FPTI #코드데스티니`,
     [result],
   );
+
+  const palette = useMemo(() => symbolPalette(result.code), [result.code]);
 
   const copy = async () => {
     try {
@@ -29,33 +42,49 @@ export default function FptiShareCard({ result }: Props) {
     <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="text-sm font-semibold text-slate-100">공유 카드</h4>
-        <span className="text-xs text-slate-300">1:1 / 9:16 / 16:9 미리보기</span>
+        <span className="text-xs text-slate-300">유형 상징 SVG 단일 카드</span>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <div className="aspect-square rounded-2xl border border-white/15 bg-[linear-gradient(145deg,#050617,#130A2A)] p-3 text-white">
-          <p className="text-[11px] text-slate-200">사주로 보는 FPTI 테스트</p>
-          <p className="mt-2 text-2xl font-bold text-[#F6D365]">{result.code}</p>
-          <p className="mt-1 text-sm">{result.typeName}</p>
-          <p className="mt-2 text-xs text-slate-300">Code:Destiny</p>
+      <div className="rounded-3xl border border-white/20 bg-[radial-gradient(circle_at_20%_10%,rgba(125,211,252,0.25),transparent_40%),radial-gradient(circle_at_90%_90%,rgba(245,158,11,0.2),transparent_45%),linear-gradient(145deg,#070d1f,#111c36)] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] tracking-[0.14em] text-cyan-200">SAJU FPTI SYMBOL CARD</p>
+            <p className="mt-1 text-xl font-bold text-amber-200">{result.code}</p>
+            <p className="text-sm text-slate-100">{result.typeName}</p>
+          </div>
+          <div className="rounded-full border border-white/25 px-2.5 py-1 text-[11px] text-slate-100">{typeBadgeText(result)}</div>
         </div>
-        <div className="aspect-[9/16] rounded-2xl border border-white/15 bg-[linear-gradient(165deg,#0b1026,#4c1d95)] p-3 text-white">
-          <p className="text-[11px] text-cyan-100">스토리 카드</p>
-          <p className="mt-2 text-xl font-bold text-[#F6D365]">{result.code}</p>
-          <p className="mt-2 text-xs leading-relaxed text-slate-100">깊은 통찰과 직관으로 가능성을 읽는 타입</p>
+
+        <div className="mt-3 overflow-hidden rounded-2xl border border-white/15 bg-black/20 p-3">
+          <svg viewBox="0 0 360 180" className="h-auto w-full" role="img" aria-label="FPTI symbol card graphic">
+            <defs>
+              <linearGradient id="fptiStroke" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={palette.primary} />
+                <stop offset="100%" stopColor={palette.secondary} />
+              </linearGradient>
+              <radialGradient id="fptiGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor={palette.glow} stopOpacity="0.7" />
+                <stop offset="100%" stopColor={palette.glow} stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <rect x="0" y="0" width="360" height="180" fill="url(#fptiGlow)" />
+            <circle cx="180" cy="90" r="52" fill="none" stroke="url(#fptiStroke)" strokeWidth="3" />
+            <circle cx="180" cy="90" r="30" fill="none" stroke="url(#fptiStroke)" strokeWidth="2" opacity="0.75" />
+            <path d="M60 126 C110 56, 250 56, 300 126" fill="none" stroke="url(#fptiStroke)" strokeWidth="2.5" opacity="0.9" />
+            <path d="M74 52 L180 24 L286 52 L180 80 Z" fill="none" stroke="url(#fptiStroke)" strokeWidth="2" opacity="0.8" />
+            <text x="180" y="97" textAnchor="middle" fill="#F8FAFC" fontSize="26" fontWeight="700">{result.code}</text>
+          </svg>
         </div>
-        <div className="aspect-video rounded-2xl border border-white/15 bg-[linear-gradient(145deg,#0b1026,#1f2937)] p-3 text-white">
-          <p className="text-[11px] text-amber-100">가로 카드</p>
-          <p className="mt-2 text-lg font-bold text-[#F6D365]">{result.typeName}</p>
-          <p className="mt-1 text-xs">{result.oneLiner}</p>
-        </div>
+
+        <p className="mt-3 text-sm text-slate-100">{result.oneLiner}</p>
+        <p className="mt-1 text-xs text-cyan-100">유형 설명: {result.summary}</p>
       </div>
 
-      <div className="sticky bottom-3 mt-4 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#050617]/70 p-2 backdrop-blur">
+      <div className="mt-4 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#050617]/70 p-2 backdrop-blur">
         <button
           type="button"
           onClick={copy}
-          className="rounded-full bg-[linear-gradient(120deg,#7C3AED,#4C1D95,#F6D365)] px-4 py-2 text-xs font-semibold text-white"
+          className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-4 py-2 text-xs font-semibold text-white"
         >
           {copied ? "복사 완료" : "내 FPTI 카드 저장하기"}
         </button>
@@ -66,12 +95,6 @@ export default function FptiShareCard({ result }: Props) {
           className="rounded-full border border-[#E9C46A]/55 px-4 py-2 text-xs text-[#F6D365]"
         >
           친구에게 공유하기
-        </a>
-        <a
-          href="/compatibility"
-          className="rounded-full border border-cyan-300/45 px-4 py-2 text-xs text-cyan-200"
-        >
-          궁합 FPTI 보기
         </a>
       </div>
     </section>

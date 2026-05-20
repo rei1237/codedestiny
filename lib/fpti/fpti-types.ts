@@ -48,10 +48,10 @@ export type FptiSourceData = {
 };
 
 export type FptiAxisCodes = {
-  temperament: "W" | "F" | "E" | "M" | "A";
-  behavior: "C" | "R" | "W" | "S" | "I";
-  relation: "O" | "D" | "L" | "F";
-  strategy: "B" | "G" | "P" | "H" | "S";
+  energy: "A" | "M";
+  judgment: "H" | "L";
+  execution: "F" | "B";
+  vision: "R" | "V";
 };
 
 export type FptiResultQuality = "full" | "partial" | "fallback";
@@ -69,10 +69,20 @@ export type FptiAnalysisResult = {
   fallbackUsed: boolean;
   axis: FptiAxisCodes;
   axisMeanings: {
-    temperament: string;
-    behavior: string;
-    relation: string;
-    strategy: string;
+    energy: string;
+    judgment: string;
+    execution: string;
+    vision: string;
+  };
+  axisScores: {
+    A: number;
+    M: number;
+    H: number;
+    L: number;
+    F: number;
+    B: number;
+    R: number;
+    V: number;
   };
   source: FptiSourceData;
   percentageElements: Record<FiveElementKey, number>;

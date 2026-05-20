@@ -10,192 +10,154 @@ type TypeCopy = {
 
 export type FptiCatalogItem = Pick<TypeCopy, "code" | "name" | "oneLiner">;
 
-const CURATED_TYPE_MAP: Record<string, Omit<TypeCopy, "code">> = {
-  "A-S-D-H": {
-    name: "심해의 예언자",
-    oneLiner: "깊은 통찰과 직관으로 보이지 않는 가능성을 읽어내는 타입",
-    summary: "생각의 깊이와 감정의 결을 오래 관찰한 뒤, 가장 정확한 방향을 제시하는 전략형 성향입니다.",
-    keywords: ["직관적", "통찰력", "독립적", "이상주의", "창의적"],
+const TYPE_MAP: Record<string, Omit<TypeCopy, "code">> = {
+  AHFV: {
+    name: "별빛 감응 창작자",
+    oneLiner: "감정과 영감을 빠르게 포착해 사람의 마음을 움직이는 타입",
+    summary: "관계 감수성과 창작 에너지가 강해 새로운 가능성을 먼저 발견하고 연결합니다.",
+    keywords: ["공감", "감각", "창작", "직관", "확장"],
   },
-  "A-S-D-B": {
-    name: "달빛의 분석가",
-    oneLiner: "조용히 패턴을 읽고 균형점을 찾아내는 타입",
-    summary: "감정과 정보의 흐름을 섬세하게 정리해 혼란한 상황에서도 기준을 만드는 성향입니다.",
-    keywords: ["분석력", "균형감", "신중함", "관찰력", "정리력"],
+  AHFR: {
+    name: "현실 감각형 분위기 메이커",
+    oneLiner: "사람의 분위기를 읽고 현실적인 해결책으로 연결하는 타입",
+    summary: "공감력과 생활 감각이 균형을 이루어 관계를 부드럽게 조율합니다.",
+    keywords: ["소통", "현실감", "조율", "유연성", "실행"],
   },
-  "A-C-O-S": {
-    name: "별빛 스토리텔러",
-    oneLiner: "감각적인 언어로 사람의 마음을 움직이는 타입",
-    summary: "통찰에서 끝나지 않고 메시지를 표현으로 연결해 공감과 확산을 동시에 만드는 성향입니다.",
-    keywords: ["표현력", "감성", "콘텐츠", "확산력", "공감력"],
+  AHBV: {
+    name: "사람을 이끄는 감성 리더",
+    oneLiner: "따뜻한 감정 리더십으로 팀과 관계를 정렬하는 타입",
+    summary: "공감 기반 판단과 구조화 능력이 결합되어 사람을 모으고 방향을 잡습니다.",
+    keywords: ["리더십", "공감", "책임", "신뢰", "비전"],
   },
-  "F-C-O-S": {
-    name: "태양의 크리에이터",
-    oneLiner: "에너지를 아이디어와 실행으로 빠르게 바꾸는 타입",
-    summary: "강한 추진력과 표현력이 결합되어 시작을 두려워하지 않고 결과물을 만들어내는 성향입니다.",
-    keywords: ["추진력", "창작력", "활동성", "리더십", "임팩트"],
+  AHBR: {
+    name: "따뜻한 실전 조율자",
+    oneLiner: "관계를 지키면서도 현실 결과를 만들어내는 타입",
+    summary: "사람을 배려하되 실행 기준이 분명해 갈등을 줄이고 결과를 확보합니다.",
+    keywords: ["관계", "안정", "실행", "중재", "현실"],
   },
-  "F-W-O-P": {
-    name: "무대 위의 승부사",
-    oneLiner: "기회를 실전 성과로 연결하는 타입",
-    summary: "현실 감각과 승부 근성이 강해 중요한 순간에 주도권을 잡는 성향입니다.",
-    keywords: ["성과지향", "결단력", "현실감", "속도감", "주도성"],
+  ALFV: {
+    name: "자유로운 전략 개척자",
+    oneLiner: "논리와 확장성을 결합해 새 길을 만드는 타입",
+    summary: "빠른 실험과 판단 전환에 강해 불확실한 환경에서도 기회를 찾습니다.",
+    keywords: ["전략", "개척", "민첩", "도전", "기회"],
   },
-  "E-R-L-B": {
-    name: "신뢰의 설계자",
-    oneLiner: "안정적 구조와 책임감으로 관계를 지켜내는 타입",
-    summary: "한 번 세운 기준을 꾸준히 지키며 팀과 관계를 장기적으로 안정시키는 성향입니다.",
-    keywords: ["책임감", "신뢰", "안정성", "원칙", "지속성"],
+  ALFR: {
+    name: "현실 돌파형 승부사",
+    oneLiner: "냉정한 판단으로 성과를 빠르게 끌어내는 타입",
+    summary: "실전 감각과 결단력이 높아 짧은 시간에 성과를 만드는 데 강합니다.",
+    keywords: ["돌파", "결단", "성과", "실전", "집중"],
   },
-  "E-W-L-P": {
-    name: "현실의 관리자",
-    oneLiner: "계획을 실제 결과로 완성하는 타입",
-    summary: "운영 감각이 뛰어나 복잡한 자원을 정리하고 실질적 성과를 쌓는 성향입니다.",
-    keywords: ["운영력", "실무형", "재무감각", "안정지향", "관리력"],
+  ALBV: {
+    name: "비전을 설계하는 리더",
+    oneLiner: "큰 그림을 구조화해 장기 전략으로 만드는 타입",
+    summary: "원칙 중심 판단과 확장 비전이 결합되어 시스템 구축 능력이 뛰어납니다.",
+    keywords: ["설계", "리더", "원칙", "장기전략", "비전"],
   },
-  "M-R-L-P": {
-    name: "차가운 전략가",
-    oneLiner: "정확한 판단과 원칙으로 승률을 끌어올리는 타입",
-    summary: "감정 소모를 줄이고 논리와 구조로 문제를 해결하는 고정밀 사고 성향입니다.",
-    keywords: ["판단력", "전략", "정밀함", "원칙", "집중력"],
+  ALBR: {
+    name: "질서를 세우는 현실 전략가",
+    oneLiner: "현실 문제를 구조로 해결해 안정적 성과를 만드는 타입",
+    summary: "판단 기준이 명확하고 책임 실행력이 높아 조직 운영에 강합니다.",
+    keywords: ["구조", "질서", "현실", "성과", "관리"],
   },
-  "M-S-D-B": {
-    name: "고요한 판단자",
-    oneLiner: "깊은 관찰과 냉정한 분석으로 본질을 짚는 타입",
-    summary: "급하게 결론 내리기보다 충분한 근거를 확보한 뒤 정확히 움직이는 성향입니다.",
-    keywords: ["관찰력", "냉정함", "사려", "근거중심", "신중함"],
+  MHFV: {
+    name: "고요한 영감 치유자",
+    oneLiner: "깊은 내면 관찰로 사람을 회복시키는 타입",
+    summary: "내면 축적형 에너지와 공감 직관이 강해 관계 회복과 정서 안정에 강점이 있습니다.",
+    keywords: ["치유", "영감", "내면", "회복", "직관"],
   },
-  "W-C-O-G": {
-    name: "숲의 개척자",
-    oneLiner: "새로운 기회를 빠르게 넓혀가는 성장형 타입",
-    summary: "확장 에너지가 강해 낯선 영역에서도 실험과 도전을 통해 길을 만드는 성향입니다.",
-    keywords: ["성장", "개척", "도전", "실험", "유연성"],
+  MHFR: {
+    name: "섬세한 생활 안정가",
+    oneLiner: "감정선을 세심하게 읽어 생활 리듬을 안정시키는 타입",
+    summary: "사소한 변화도 민감하게 포착해 관계와 일상의 균형을 잘 맞춥니다.",
+    keywords: ["안정", "배려", "세심함", "생활", "조화"],
   },
-  "W-I-F-G": {
-    name: "자유로운 성장가",
-    oneLiner: "자기 방식으로 영역을 확장하는 독립형 타입",
-    summary: "타인의 기준보다 자기 감각을 따를 때 퍼포먼스가 올라가는 성향입니다.",
-    keywords: ["독립성", "자율성", "창발성", "확장성", "실행력"],
+  MHBV: {
+    name: "내면 깊은 관계 설계자",
+    oneLiner: "깊은 신뢰를 바탕으로 오래 가는 관계를 설계하는 타입",
+    summary: "관계를 천천히 구축하지만 한 번 연결되면 매우 단단한 구조를 만듭니다.",
+    keywords: ["신뢰", "관계", "깊이", "안정", "지속"],
   },
-  "A-I-D-H": {
-    name: "고독한 탐구자",
-    oneLiner: "혼자 깊게 파고들며 정답을 찾아내는 타입",
-    summary: "고요한 환경에서 집중력이 극대화되며, 내면 정리를 통해 큰 도약을 준비하는 성향입니다.",
-    keywords: ["탐구", "몰입", "내면성", "집중력", "회복력"],
+  MHBR: {
+    name: "조용한 책임형 보호자",
+    oneLiner: "겉으로 조용하지만 끝까지 책임지는 타입",
+    summary: "과장 없는 실행과 배려 기반 운영으로 주변을 안정시키는 힘이 큽니다.",
+    keywords: ["보호", "책임", "성실", "안정", "헌신"],
+  },
+  MLFV: {
+    name: "은둔형 사색 창작자",
+    oneLiner: "혼자 깊이 파고들어 독창성을 만드는 타입",
+    summary: "내면 축적형 사고와 자유 탐색 성향이 강해 독창적 결과물을 만들어냅니다.",
+    keywords: ["사색", "독창성", "자율", "탐구", "집중"],
+  },
+  MLFR: {
+    name: "실속형 분석가",
+    oneLiner: "냉정한 분석으로 손실을 줄이고 효율을 높이는 타입",
+    summary: "현실 기준과 정밀 판단이 강해 리스크 관리와 최적화에 강점이 있습니다.",
+    keywords: ["분석", "효율", "실속", "리스크관리", "정밀"],
+  },
+  MLBV: {
+    name: "철학적 구조 설계자",
+    oneLiner: "의미와 원칙을 구조화해 시스템으로 만드는 타입",
+    summary: "깊은 사고와 체계화 능력으로 장기적 철학과 실행을 연결합니다.",
+    keywords: ["철학", "구조", "체계", "원칙", "장기"],
+  },
+  MLBR: {
+    name: "침착한 시스템 관리자",
+    oneLiner: "감정에 흔들리지 않고 시스템을 안정적으로 운영하는 타입",
+    summary: "정교한 운영 감각과 책임 실행력으로 큰 변동성 속에서도 안정성을 만듭니다.",
+    keywords: ["시스템", "관리", "안정", "책임", "운영"],
   },
 };
 
 export const FPTI_CURATED_TYPES: ReadonlyArray<FptiCatalogItem> = Object.freeze(
-  Object.entries(CURATED_TYPE_MAP).map(([code, value]) => ({
+  Object.entries(TYPE_MAP).map(([code, value]) => ({
     code,
     name: value.name,
     oneLiner: value.oneLiner,
   })),
 );
 
-const KEYWORD_BY_AXIS = {
-  temperament: {
-    W: "성장지향",
-    F: "표현력",
-    E: "안정감",
-    M: "판단력",
-    A: "통찰력",
-  },
-  behavior: {
-    C: "창작형",
-    R: "책임형",
-    W: "현실형",
-    S: "탐구형",
-    I: "독립형",
-  },
-  relation: {
-    O: "개방적",
-    D: "심층관계",
-    L: "신뢰중심",
-    F: "자유지향",
-  },
-  strategy: {
-    B: "균형회복",
-    G: "성장확장",
-    P: "성과집중",
-    H: "내면치유",
-    S: "표현발산",
-  },
-} as const;
-
-const TITLE_BY_TEMPERAMENT = {
-  W: "성장의",
-  F: "불꽃의",
-  E: "대지의",
-  M: "정밀한",
-  A: "깊은",
-} as const;
-
-const TITLE_BY_BEHAVIOR = {
-  C: "크리에이터",
-  R: "책임가",
-  W: "실행가",
-  S: "해석가",
-  I: "개척가",
-} as const;
-
 const AXIS_LABELS = {
-  temperament: {
-    W: "Wood · 성장형: 확장과 시도를 통해 기회를 키웁니다.",
-    F: "Fire · 표현형: 에너지를 표현과 실행으로 빠르게 전환합니다.",
-    E: "Earth · 안정형: 중심을 잡고 관계와 일의 균형을 맞춥니다.",
-    M: "Metal · 원칙형: 구조화와 판단을 통해 정확도를 높입니다.",
-    A: "Water · 지성형: 관찰과 통찰로 깊은 방향을 읽어냅니다.",
+  energy: {
+    A: "A 외향 발산형: 밖으로 표현하고 움직일 때 에너지가 상승합니다.",
+    M: "M 내면 축적형: 혼자 정리하고 깊이 몰입할 때 에너지가 회복됩니다.",
   },
-  behavior: {
-    C: "Creator · 창작형: 식신/상관 기반으로 표현과 제작이 빠릅니다.",
-    R: "Ruler · 책임형: 정관/편관 중심으로 역할 수행력이 높습니다.",
-    W: "Wealth · 현실형: 정재/편재 중심으로 실전 감각이 뛰어납니다.",
-    S: "Scholar · 통찰형: 정인/편인 중심으로 학습과 해석에 강합니다.",
-    I: "Independent · 독립형: 비견/겁재 기반으로 자기주도성이 강합니다.",
+  judgment: {
+    H: "H 감응 공감형: 감정과 관계 흐름을 먼저 읽고 판단합니다.",
+    L: "L 구조 판단형: 원칙, 논리, 기준을 먼저 세우고 판단합니다.",
   },
-  relation: {
-    O: "Open · 개방형: 빠르게 교류를 넓히고 공감 반응이 빠릅니다.",
-    D: "Deep · 심층형: 마음을 천천히 열지만 깊고 오래 연결됩니다.",
-    L: "Loyal · 신뢰형: 책임과 일관성을 통해 안정적 관계를 만듭니다.",
-    F: "Free · 자유형: 건강한 거리와 자율을 유지할 때 강해집니다.",
+  execution: {
+    F: "F 자유 탐색형: 가능성을 열어두고 유연하게 움직입니다.",
+    B: "B 질서 구축형: 계획과 책임을 통해 안정적으로 실행합니다.",
   },
-  strategy: {
-    B: "Balance · 균형 회복형",
-    G: "Growth · 성장 확장형",
-    P: "Power · 현실 성취형",
-    H: "Healing · 내면 치유형",
-    S: "Spark · 표현 발산형",
+  vision: {
+    R: "R 현실 감각형: 성과, 돈, 생활 기반의 현실 효율을 중시합니다.",
+    V: "V 비전 직관형: 의미, 가능성, 상징, 큰 그림을 중시합니다.",
   },
 } as const;
-
-const MATCHING = {
-  Open: ["W-C-O-B", "F-R-O-G", "W-I-F-S"],
-  Deep: ["A-S-D-H", "A-I-D-G", "F-I-D-S"],
-  Loyal: ["E-R-D-B", "E-W-L-P", "M-R-L-H"],
-  Free: ["M-C-F-P", "W-I-F-S", "A-W-O-H"],
-};
 
 function fallbackName(axis: FptiAxisCodes): TypeCopy {
-  const code = `${axis.temperament}-${axis.behavior}-${axis.relation}-${axis.strategy}`;
+  const code = `${axis.energy}${axis.judgment}${axis.execution}${axis.vision}`;
+  const energyWord = axis.energy === "A" ? "발산" : "축적";
+  const judgmentWord = axis.judgment === "H" ? "공감" : "구조";
   return {
     code,
-    name: `${TITLE_BY_TEMPERAMENT[axis.temperament]} ${TITLE_BY_BEHAVIOR[axis.behavior]}`,
-    oneLiner: "타고난 감각과 행동 패턴이 조화롭게 결합된 맞춤형 성향",
-    summary: "사주 원국의 축별 흐름을 조합한 결과로, 강점 축과 보완 축을 함께 쓰면 운의 효율이 높아집니다.",
+    name: `${energyWord} ${judgmentWord} 타입`,
+    oneLiner: "사주 에너지 구조를 기반으로 계산된 맞춤형 성향",
+    summary: "강점 에너지를 키우고 약점 에너지를 보완하면 삶의 효율이 크게 올라갑니다.",
     keywords: [
-      KEYWORD_BY_AXIS.temperament[axis.temperament],
-      KEYWORD_BY_AXIS.behavior[axis.behavior],
-      KEYWORD_BY_AXIS.relation[axis.relation],
-      KEYWORD_BY_AXIS.strategy[axis.strategy],
+      axis.energy === "A" ? "외향" : "내향",
+      axis.judgment === "H" ? "공감" : "구조",
+      axis.execution === "F" ? "탐색" : "구축",
+      axis.vision === "R" ? "현실" : "비전",
       "사주기반",
     ],
   };
 }
 
 export function resolveFptiTypeCopy(axis: FptiAxisCodes): TypeCopy {
-  const code = `${axis.temperament}-${axis.behavior}-${axis.relation}-${axis.strategy}`;
-  const curated = CURATED_TYPE_MAP[code];
+  const code = `${axis.energy}${axis.judgment}${axis.execution}${axis.vision}`;
+  const curated = TYPE_MAP[code];
   if (curated) {
     return {
       code,
@@ -207,19 +169,39 @@ export function resolveFptiTypeCopy(axis: FptiAxisCodes): TypeCopy {
 
 export function axisMeaning(axis: FptiAxisCodes) {
   return {
-    temperament: AXIS_LABELS.temperament[axis.temperament],
-    behavior: AXIS_LABELS.behavior[axis.behavior],
-    relation: AXIS_LABELS.relation[axis.relation],
-    strategy: AXIS_LABELS.strategy[axis.strategy],
+    energy: AXIS_LABELS.energy[axis.energy],
+    judgment: AXIS_LABELS.judgment[axis.judgment],
+    execution: AXIS_LABELS.execution[axis.execution],
+    vision: AXIS_LABELS.vision[axis.vision],
   };
 }
 
-export function recommendedMatches(relationStyle: "Open" | "Deep" | "Loyal" | "Free") {
-  const goodMatch = MATCHING[relationStyle] || [];
-  const cautionMatch = Object.keys(MATCHING)
-    .filter((key) => key !== relationStyle)
-    .flatMap((key) => MATCHING[key as keyof typeof MATCHING])
-    .slice(0, 3);
+const MATCHING_TABLE: Record<string, string[]> = {
+  AHFV: ["MHFV", "AHBV", "ALFV"],
+  AHFR: ["MHFR", "AHBR", "ALFR"],
+  AHBV: ["MHBV", "AHFV", "ALBV"],
+  AHBR: ["MHBR", "AHFR", "ALBR"],
+  ALFV: ["MLFV", "AHFV", "ALBV"],
+  ALFR: ["MLFR", "AHFR", "ALBR"],
+  ALBV: ["MLBV", "AHBV", "ALFV"],
+  ALBR: ["MLBR", "AHBR", "ALFR"],
+  MHFV: ["AHFV", "MHBV", "MLFV"],
+  MHFR: ["AHFR", "MHBR", "MLFR"],
+  MHBV: ["AHBV", "MHFV", "MLBV"],
+  MHBR: ["AHBR", "MHFR", "MLBR"],
+  MLFV: ["ALFV", "MHFV", "MLBV"],
+  MLFR: ["ALFR", "MHFR", "MLBR"],
+  MLBV: ["ALBV", "MHBV", "MLFV"],
+  MLBR: ["ALBR", "MHBR", "MLFR"],
+};
+
+export function recommendedMatches(code: string) {
+  const normalized = String(code || "").trim().toUpperCase();
+  const goodMatch = MATCHING_TABLE[normalized] || [];
+
+  const cautionMatch = Object.keys(TYPE_MAP)
+    .filter((item) => !goodMatch.includes(item) && item !== normalized)
+    .slice(0, 4);
 
   return {
     goodMatch,

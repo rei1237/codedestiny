@@ -26,6 +26,7 @@ import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
 import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
 import { handleBillingRoutes } from "./routes/billing.js";
+import { handleFptiRoutes } from "./routes/fpti.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -541,6 +542,10 @@ export default {
 
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/fpti" || url.pathname.startsWith("/api/fpti/")) {
+        return withCorsHeaders(request, env, await handleFptiRoutes(request, env));
       }
 
       if (url.pathname === "/api/subscription/status") {

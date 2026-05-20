@@ -1,7 +1,9 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
+import { authFetch } from "@/app/_lib/auth-client";
+import { purchaseFeature } from "@/app/_lib/billing-client";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
 import FptiElementChart from "./FptiElementChart";
 import FptiTenGodsPanel from "./FptiTenGodsPanel";
@@ -13,23 +15,29 @@ type Props = {
   result: FptiAnalysisResult;
 };
 
+type DeepReportSection = {
+  title: string;
+  content: string;
+};
+
+type DeepReportPayload = {
+  title: string;
+  summary: string;
+  sections: DeepReportSection[];
+  warning?: string;
+  source?: string;
+  model?: string;
+};
+
 const AXIS_CARD_LABELS: Record<string, string> = {
-  A: "Water / 지성형",
-  W: "Wood / 성장형",
-  F: "Fire / 표현형",
-  E: "Earth / 안정형",
-  M: "Metal / 원칙형",
-  C: "Creator / 식상형",
-  R: "Ruler / 관성형",
-  S: "Scholar / 통찰형",
-  I: "Independent / 자율형",
-  O: "Open / 개방형",
-  D: "Deep / 깊은 관계형",
-  L: "Loyal / 신뢰형",
-  B: "Balance / 균형형",
-  G: "Growth / 성장형",
-  P: "Power / 성취형",
-  H: "Healing / 치유형",
+  A: "외향 발산형",
+  M: "내면 축적형",
+  H: "감응 공감형",
+  L: "구조 판단형",
+  F: "자유 탐색형",
+  B: "질서 구축형",
+  R: "현실 감각형",
+  V: "비전 직관형",
 };
 
 const QUALITY_LABELS = {
@@ -48,7 +56,76 @@ function AxisChip({ label, value }: { label: string; value: string }) {
 }
 
 export default function FptiResultCard({ result }: Props) {
-  const codeParts = result.code.split("-").filter(Boolean);
+  const codeParts = result.code.split("").filter(Boolean);
+  const [deepLoading, setDeepLoading] = useState(false);
+  const [deepError, setDeepError] = useState("");
+  const [deepReport, setDeepReport] = useState<DeepReportPayload | null>(null);
+
+  const freeHighlights = useMemo(
+    () => [
+      `핵심 성향: ${result.strengths[0] || result.oneLiner}`,
+      `연애 스타일: ${result.loveSummary}`,
+      `일/재능: ${result.careerMoneySummary}`,
+      `돈을 다루는 방식: ${result.careerTips[0] || "주간 지표를 먼저 정하고 실행"}`,
+      `주의 약점: ${result.weaknesses[0] || "과열 구간에서 판단 편향 주의"}`,
+      `오늘의 성장 조언: ${result.growthTips[0] || "하루 1개 핵심 행동을 완수하세요."}`,
+    ],
+    [result],
+  );
+
+  const handleDeepReport = async () => {
+    if (deepLoading) return;
+    setDeepError("");
+    setDeepLoading(true);
+
+    try {
+      const requestId = `fpti-premium-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const purchase = await purchaseFeature({
+        featureKey: "premium-fpti-report",
+        reason: "FPTI 프리미엄 리포트 생성",
+        requestId,
+        forceDeduct: true,
+      });
+
+      if (!purchase.ok) {
+        if (purchase.status === 401) {
+          setDeepError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+          return;
+        }
+        if (purchase.status === 402) {
+          setDeepError("코인이 부족합니다. FPTI 프리미엄 리포트는 200코인이 필요합니다.");
+          return;
+        }
+        setDeepError(purchase.message || "코인 결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+
+      const response = await authFetch("/api/fpti/deep-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ result }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        message?: string;
+        data?: DeepReportPayload;
+      };
+
+      if (!response.ok || payload?.ok !== true || !payload?.data) {
+        setDeepError(payload?.message || "심층 리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+
+      setDeepReport(payload.data);
+    } catch {
+      setDeepError("네트워크 문제로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setDeepLoading(false);
+    }
+  };
 
   return (
     <motion.section
@@ -96,10 +173,10 @@ export default function FptiResultCard({ result }: Props) {
         </div>
 
         <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-          <AxisChip label="기질축" value={result.axisMeanings.temperament} />
-          <AxisChip label="행동축" value={result.axisMeanings.behavior} />
-          <AxisChip label="관계축" value={result.axisMeanings.relation} />
-          <AxisChip label="전략축" value={result.axisMeanings.strategy} />
+          <AxisChip label="에너지축" value={result.axisMeanings.energy} />
+          <AxisChip label="판단축" value={result.axisMeanings.judgment} />
+          <AxisChip label="실행축" value={result.axisMeanings.execution} />
+          <AxisChip label="전망축" value={result.axisMeanings.vision} />
         </div>
       </div>
 
@@ -123,7 +200,7 @@ export default function FptiResultCard({ result }: Props) {
             <li>강한 오행: {result.evidence.strongElements.join(", ")}</li>
             <li>약한 오행: {result.evidence.weakElements.join(", ")}</li>
             <li>강한 십성: {result.evidence.strongTenGods.join(", ")}</li>
-            <li>성격 축: {result.axisMeanings.temperament} / {result.axisMeanings.behavior} / {result.axisMeanings.relation} / {result.axisMeanings.strategy}</li>
+            <li>성격 축: {result.axisMeanings.energy} / {result.axisMeanings.judgment} / {result.axisMeanings.execution} / {result.axisMeanings.vision}</li>
           </ul>
           <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
             <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">계산 노트</p>
@@ -138,12 +215,13 @@ export default function FptiResultCard({ result }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">나를 설명하는 4가지 문장</h4>
+          <h4 className="text-sm font-semibold text-slate-100">무료 리포트 요약</h4>
           <div className="mt-2 space-y-2 text-sm text-slate-200">
-            <p>{result.essenceNarrative.hook}</p>
-            <p>{result.essenceNarrative.basis}</p>
-            <p>{result.essenceNarrative.balance}</p>
-            <p>{result.essenceNarrative.strategy}</p>
+            <p>유형: {result.typeName}</p>
+            <p>한 줄 정의: {result.oneLiner}</p>
+            {freeHighlights.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
           </div>
         </section>
 
@@ -160,9 +238,9 @@ export default function FptiResultCard({ result }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">나의 강점</h4>
+          <h4 className="text-sm font-semibold text-slate-100">핵심 성향 3가지</h4>
           <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            {result.strengths.map((item) => (
+            {result.strengths.slice(0, 3).map((item) => (
               <li key={item}>- {item}</li>
             ))}
           </ul>
@@ -205,21 +283,44 @@ export default function FptiResultCard({ result }: Props) {
         </section>
       </div>
 
-      <div className="rounded-3xl border border-[#E9C46A]/35 bg-[linear-gradient(145deg,rgba(245,158,11,0.14),rgba(14,165,233,0.1))] p-4">
+      <div className="rounded-3xl border border-[#E9C46A]/35 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.25),transparent_38%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,0.22),transparent_42%),linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.88))] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM</p>
-            <h4 className="text-lg font-semibold text-amber-100">내 성격이 왜 이렇게 나왔는지 더 깊게 알고 싶다면?</h4>
-            <p className="text-sm text-amber-50">일간 상세 분석, 대운 기반 성향 변화, 연애/직업/재물 심층 리포트와 PDF 저장까지 확장됩니다.</p>
+            <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM REPORT</p>
+            <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트(200코인)</h4>
+            <p className="text-sm text-amber-50">10개 챕터로 나의 연애, 일, 돈, 인간관계, 성장 루틴을 사주 근거와 함께 분석합니다.</p>
           </div>
-          <Link
-            href="/pricing"
-            className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-4 py-2 text-sm font-semibold text-white"
+          <button
+            type="button"
+            onClick={handleDeepReport}
+            disabled={deepLoading}
+            className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            FPTI 심층 리포트 보기
-          </Link>
+            {deepLoading ? "리포트 생성 중..." : "심층 리포트 열기 (200코인)"}
+          </button>
         </div>
+        {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
+
+      {deepReport && (
+        <section className="rounded-3xl border border-cyan-300/30 bg-[linear-gradient(140deg,rgba(8,47,73,0.7),rgba(30,41,59,0.8))] p-4 backdrop-blur-xl">
+          <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
+          <h4 className="mt-1 text-lg font-semibold text-sky-100">{deepReport.title}</h4>
+          <p className="mt-2 text-sm text-slate-200">{deepReport.summary}</p>
+          {deepReport.warning && (
+            <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/10 p-3 text-sm text-amber-100">{deepReport.warning}</p>
+          )}
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {deepReport.sections.map((section) => (
+              <article key={section.title} className="rounded-2xl border border-white/15 bg-black/20 p-3">
+                <h5 className="text-sm font-semibold text-sky-100">{section.title}</h5>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{section.content}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <FptiShareCard result={result} />
     </motion.section>

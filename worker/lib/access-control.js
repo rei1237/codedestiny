@@ -201,6 +201,23 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     ];
   }
 
+  if (reportType === "fptiPremium") {
+    return [
+      {
+        featureKey: "premium-fpti-report",
+        reason: "FPTI 프리미엄 리포트 생성",
+        minCost: 200,
+        windowMinutes: 45,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "FPTI 프리미엄 리포트 생성",
+        minCost: 200,
+        windowMinutes: 45,
+      },
+    ];
+  }
+
   return [];
 }
 

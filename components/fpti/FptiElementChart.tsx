@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { FiveElementKey } from "@/lib/fpti/fpti-types";
 
 const ELEMENTS: { key: FiveElementKey; label: string; color: string }[] = [
@@ -15,9 +16,32 @@ type Props = {
 };
 
 export default function FptiElementChart({ percentages }: Props) {
-  const ordered = [...ELEMENTS].sort((a, b) => percentages[b.key] - percentages[a.key]);
+  const normalized = useMemo(() => {
+    return ELEMENTS.reduce((acc, item) => {
+      const raw = Number(percentages?.[item.key]);
+      if (!Number.isFinite(raw)) {
+        acc[item.key] = 0;
+        return acc;
+      }
+      acc[item.key] = Math.max(0, Math.min(100, raw));
+      return acc;
+    }, {} as Record<FiveElementKey, number>);
+  }, [percentages]);
+
+  const ordered = [...ELEMENTS].sort((a, b) => normalized[b.key] - normalized[a.key]);
   const strong = ordered[0]?.label || "-";
   const weak = ordered[ordered.length - 1]?.label || "-";
+
+  const formatPercent = (value: number) => {
+    if (!Number.isFinite(value)) return "0";
+    const rounded = Math.round(value * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  };
+
+  const toBarWidth = (value: number) => {
+    if (value <= 0) return 0;
+    return Math.max(2.4, Math.min(100, value));
+  };
 
   return (
     <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
@@ -28,12 +52,12 @@ export default function FptiElementChart({ percentages }: Props) {
           <div key={item.key}>
             <div className="mb-1 flex items-center justify-between text-xs text-slate-300">
               <span>{item.label}</span>
-              <span>{percentages[item.key]}%</span>
+              <span>{formatPercent(normalized[item.key])}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/15">
               <div
                 className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
-                style={{ width: `${Math.max(4, Math.min(100, percentages[item.key]))}%` }}
+                style={{ width: `${toBarWidth(normalized[item.key])}%` }}
               />
             </div>
           </div>
