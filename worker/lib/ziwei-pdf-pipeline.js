@@ -125,6 +125,9 @@ const ZIWEI_CHAPTER_SPECS = Object.freeze(
   })),
 );
 
+const ZIWEI_CHAPTER_MIN_LENGTH = 4000;
+const ZIWEI_CHAPTER_MAX_LENGTH = 5000;
+
 function asText(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -826,7 +829,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "5. 별 강약 기호가 있으면 반드시 그 기호의 의미를 해석에 반영한다.",
     "6. 문체는 신비롭고 고급스럽되, 실제 상담처럼 구체적이어야 한다.",
     "7. 추상적인 말만 반복하지 말고 성격, 연애, 재물, 직업, 인간관계, 삶의 방향으로 연결해 설명한다.",
-    "8. 각 챕터는 매우 길고 깊어야 한다. sections의 각 body 항목은 반드시 공백 포함 최소 800자 이상(한글 기준)의 실전적이고 풍부한 상담 내용을 담아야 한다. 절대 요약형이나 짧은 개조식으로 끝내지 마라.",
+    "8. 각 챕터는 공백 포함 총 4000~5000자 범위를 목표로 깊이 있게 작성한다. sections의 각 body 항목은 공백 포함 450자 이상으로, 실제 상담처럼 구체적이어야 한다.",
     "9. 독자가 내 명반을 실제로 읽어준다고 느낄 정도로 구체적으로 작성한다.",
     "10. 무조건 JSON 형식으로만 응답한다.",
     "11. 마크다운 코드블록, 표, 파이프(|) 테이블, 불릿/번호 목록, HTML 태그를 출력하지 않는다.",
@@ -890,7 +893,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "[문체 및 분량 상세 기준]",
     "- 30년 경력 상담가가 직접 읽어주는 1:1 컨설팅 톤으로 쓰세요.",
     "- 별 강약 기호가 있으면 반드시 해석에 반영하세요.",
-    "- sections 내 각 body 항목은 반드시 800자 이상(공백 포함)의 풍부하고 유려한 문장들로 채워야 하며, 심화된 실전 처방을 포함해야 합니다.",
+    "- 챕터 총 분량은 공백 포함 4000~5000자 범위를 지키고, sections 내 각 body 항목은 450자 이상으로 작성하세요.",
     "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
     "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
   ].join("\n");
@@ -1141,14 +1144,42 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
   return lines.filter(Boolean).join("\n\n");
 }
 
-export function ensureZiweiChapterMarkdownLength(text, context, minLength = 5200) {
+function trimZiweiMarkdownToMaxLength(text, maxLength) {
+  const source = sanitizeZiweiOutputText(String(text || "").trim());
+  if (!source || source.length <= maxLength) return source;
+
+  let clipped = source.slice(0, maxLength);
+  const candidateCut = Math.max(
+    clipped.lastIndexOf("\n\n"),
+    clipped.lastIndexOf("다.\n"),
+    clipped.lastIndexOf("요.\n"),
+    clipped.lastIndexOf(". "),
+  );
+  if (candidateCut > Math.floor(maxLength * 0.75)) {
+    clipped = clipped.slice(0, candidateCut);
+  }
+  clipped = clipped.replace(/\n{3,}/g, "\n\n").trim();
+  if (clipped && !/[.!?。！？]$/.test(clipped)) {
+    clipped = `${clipped}.`;
+  }
+  return sanitizeZiweiOutputText(clipped);
+}
+
+export function ensureZiweiChapterMarkdownLength(
+  text,
+  context,
+  minLength = ZIWEI_CHAPTER_MIN_LENGTH,
+  maxLength = ZIWEI_CHAPTER_MAX_LENGTH,
+) {
   let output = sanitizeZiweiOutputText(String(text || "").trim());
+  const safeMin = Math.max(1200, Number.isFinite(Number(minLength)) ? Math.floor(Number(minLength)) : ZIWEI_CHAPTER_MIN_LENGTH);
+  const safeMax = Math.max(safeMin, Number.isFinite(Number(maxLength)) ? Math.floor(Number(maxLength)) : ZIWEI_CHAPTER_MAX_LENGTH);
   const bodyPalaceKey = asText(context?.chartMeta?.bodyPalaceKey);
   const palaceLoop = asArray(context?.palaces).slice(0, 12);
   const annualLabel = asText(context?.cycles?.annual?.stemBranch) || "당해 흐름";
 
   let guard = 0;
-  while (output.length < minLength && guard < 14) {
+  while (output.length < safeMin && guard < 14) {
     const palace = palaceLoop[guard % Math.max(1, palaceLoop.length)] || {};
     const palaceName = asText(palace?.name) || "핵심 궁";
     const keyStar = asText(asArray(palace?.mainStars)[0]?.name) || "핵심 주성";
@@ -1163,6 +1194,20 @@ export function ensureZiweiChapterMarkdownLength(text, context, minLength = 5200
     ].join("\n\n");
     output = `${output}\n\n${dynamicChunk}`;
     guard += 1;
+  }
+
+  output = sanitizeZiweiOutputText(output);
+  if (output.length > safeMax) {
+    output = trimZiweiMarkdownToMaxLength(output, safeMax);
+  }
+
+  while (output.length < safeMin && guard < 20) {
+    output = `${output}\n\n추가 실행 원칙: 핵심 행동 1개를 7일 단위로 고정하고, 주간 회고에서 유지/중단 항목을 분리해 운영하면 운의 손실을 줄일 수 있습니다.`;
+    guard += 1;
+  }
+
+  if (output.length > safeMax) {
+    output = trimZiweiMarkdownToMaxLength(output, safeMax);
   }
   return sanitizeZiweiOutputText(output);
 }

@@ -407,7 +407,8 @@ const ZIWEI_CHAPTER_META = [
 
 const ZIWEI_REPORT_TITLE = "나의 운명을 깨우는 심화 자미두수 리포트";
 const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 큰 방향";
-const ZIWEI_MIN_CHARS = 5200;
+const ZIWEI_MIN_CHARS = 4000;
+const ZIWEI_MAX_CHARS = 5000;
 
 const ZIWEI_CHAPTER_GUIDES = [
   "명궁의 주성/보성/사화/삼방사정/대궁을 세기와 함께 분석하고 상황별 강점 전략을 제시하세요.",
@@ -2336,10 +2337,293 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
   return base;
 }
 
+function toPremiumFiniteNumber(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function toPremiumBoundedInt(value, min, max) {
+  const n = toPremiumFiniteNumber(value);
+  if (!Number.isFinite(n)) return null;
+  const i = Math.floor(n);
+  if (i < min || i > max) return null;
+  return i;
+}
+
+function parsePremiumBirthDate(value) {
+  const text = String(value || "").trim();
+  const m = text.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (!m) return {};
+  const year = toPremiumBoundedInt(m[1], 1000, 9999);
+  const month = toPremiumBoundedInt(m[2], 1, 12);
+  const day = toPremiumBoundedInt(m[3], 1, 31);
+  return {
+    year,
+    month,
+    day,
+  };
+}
+
+function parsePremiumBirthTime(value) {
+  const text = String(value || "").trim();
+  const m = text.match(/^(\d{1,2})(?::(\d{1,2}))?$/);
+  if (!m) return {};
+  const hour = toPremiumBoundedInt(m[1], 0, 23);
+  const minute = toPremiumBoundedInt(m[2] == null ? 0 : m[2], 0, 59);
+  return {
+    hour,
+    minute,
+  };
+}
+
+function normalizePremiumCalendarType(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (!raw) return "";
+  if (["solar", "yang", "gregorian", "양력"].includes(raw)) return "solar";
+  if (["lunar", "yin", "음력"].includes(raw)) return "lunar";
+  return "";
+}
+
+function pickPremiumText(...values) {
+  for (let i = 0; i < values.length; i += 1) {
+    const text = String(values[i] ?? "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function pickPremiumNumber(...values) {
+  for (let i = 0; i < values.length; i += 1) {
+    const n = toPremiumFiniteNumber(values[i]);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function extractPremiumBirthCandidate(source = {}) {
+  if (!source || typeof source !== "object") return {};
+  const dateFromText = parsePremiumBirthDate(source.birthDate || source.solarBirthDate || source.date);
+  const timeFromText = parsePremiumBirthTime(source.birthTime || source.time);
+
+  const year = toPremiumBoundedInt(source.year ?? source.birthYear ?? dateFromText.year, 1000, 9999);
+  const month = toPremiumBoundedInt(source.month ?? source.birthMonth ?? dateFromText.month, 1, 12);
+  const day = toPremiumBoundedInt(source.day ?? source.birthDay ?? dateFromText.day, 1, 31);
+  const hour = toPremiumBoundedInt(source.hour ?? source.birthHour ?? timeFromText.hour, 0, 23);
+  const minute = toPremiumBoundedInt(source.minute ?? source.birthMinute ?? timeFromText.minute, 0, 59);
+
+  return {
+    name: pickPremiumText(source.name, source.fullName, source.displayName),
+    gender: pickPremiumText(source.gender, source.sex),
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    calType: normalizePremiumCalendarType(
+      source.calType
+      || source.calendarType
+      || source.calendar
+      || source.solarLunar,
+    ),
+    timezone: pickPremiumText(source.timezone, source.timezoneName, source.tz),
+    lat: pickPremiumNumber(source.lat, source.latitude),
+    lon: pickPremiumNumber(source.lon, source.lng, source.longitude),
+  };
+}
+
+function mergePremiumBirthFields(base = {}, incoming = {}) {
+  const merged = { ...(base && typeof base === "object" ? base : {}) };
+  const assignText = (key) => {
+    if (!pickPremiumText(merged[key]) && pickPremiumText(incoming[key])) {
+      merged[key] = pickPremiumText(incoming[key]);
+    }
+  };
+  const assignNumber = (key) => {
+    if (!Number.isFinite(toPremiumFiniteNumber(merged[key])) && Number.isFinite(toPremiumFiniteNumber(incoming[key]))) {
+      merged[key] = toPremiumFiniteNumber(incoming[key]);
+    }
+  };
+
+  assignText("name");
+  assignText("gender");
+  assignText("calType");
+  assignText("timezone");
+  assignNumber("year");
+  assignNumber("month");
+  assignNumber("day");
+  assignNumber("hour");
+  assignNumber("minute");
+  assignNumber("lat");
+  assignNumber("lon");
+  return merged;
+}
+
+function extractPremiumSelfBirth(normalized = {}) {
+  const sources = [
+    normalized,
+    normalized.birthData,
+    normalized.birth,
+    normalized.profile,
+    normalized.profile?.birth,
+    normalized.userProfile,
+    normalized.userProfile?.birth,
+    normalized.user,
+    normalized.user?.birth,
+    normalized.engineData,
+    normalized.engineData?.birth,
+  ];
+
+  return sources.reduce((acc, src) => mergePremiumBirthFields(acc, extractPremiumBirthCandidate(src)), {});
+}
+
+function extractPremiumPartnerBirth(normalized = {}) {
+  const topPartner = {
+    name: normalized.partnerName,
+    gender: normalized.partnerGender,
+    year: normalized.partnerYear,
+    month: normalized.partnerMonth,
+    day: normalized.partnerDay,
+    hour: normalized.partnerHour,
+    minute: normalized.partnerMinute,
+    calType: normalized.partnerCalType,
+    timezone: normalized.partnerTimezone || normalized.partnerTimezoneName,
+    lat: normalized.partnerLat,
+    lon: normalized.partnerLon,
+    birthDate: normalized.partnerBirthDate,
+    birthTime: normalized.partnerBirthTime,
+  };
+
+  const sources = [
+    topPartner,
+    normalized.partnerBirthData,
+    normalized.partnerBirth,
+    normalized.partner,
+    normalized.partner?.birth,
+    normalized.partner?.profile,
+    normalized.partner?.profile?.birth,
+    normalized.partnerData,
+    normalized.partnerData?.profile,
+    normalized.partnerData?.profile?.birth,
+  ];
+
+  return sources.reduce((acc, src) => mergePremiumBirthFields(acc, extractPremiumBirthCandidate(src)), {});
+}
+
+function applyPremiumSelfBirth(normalized = {}, selfBirth = {}) {
+  const year = toPremiumBoundedInt(selfBirth.year, 1000, 9999);
+  const month = toPremiumBoundedInt(selfBirth.month, 1, 12);
+  const day = toPremiumBoundedInt(selfBirth.day, 1, 31);
+  const hour = toPremiumBoundedInt(selfBirth.hour, 0, 23);
+  const minute = toPremiumBoundedInt(selfBirth.minute, 0, 59);
+  const calType = normalizePremiumCalendarType(selfBirth.calType);
+  const timezone = pickPremiumText(selfBirth.timezone);
+
+  if (!hasMeaningfulValue(normalized.name) && pickPremiumText(selfBirth.name)) normalized.name = String(selfBirth.name).trim();
+  if (!hasMeaningfulValue(normalized.gender) && pickPremiumText(selfBirth.gender)) normalized.gender = String(selfBirth.gender).trim();
+
+  if (!hasMeaningfulValue(normalized.year) && Number.isFinite(year)) normalized.year = year;
+  if (!hasMeaningfulValue(normalized.month) && Number.isFinite(month)) normalized.month = month;
+  if (!hasMeaningfulValue(normalized.day) && Number.isFinite(day)) normalized.day = day;
+  if (!hasMeaningfulValue(normalized.hour) && Number.isFinite(hour)) normalized.hour = hour;
+  if (!hasMeaningfulValue(normalized.minute) && Number.isFinite(minute)) normalized.minute = minute;
+
+  if (!hasMeaningfulValue(normalized.calType) && calType) normalized.calType = calType;
+  if (!hasMeaningfulValue(normalized.calendarType) && calType) normalized.calendarType = calType;
+  if (!hasMeaningfulValue(normalized.timezoneName) && timezone) normalized.timezoneName = timezone;
+  if (!hasMeaningfulValue(normalized.timezone) && timezone) normalized.timezone = timezone;
+  if (!hasMeaningfulValue(normalized.lat) && Number.isFinite(toPremiumFiniteNumber(selfBirth.lat))) normalized.lat = Number(selfBirth.lat);
+  if (!hasMeaningfulValue(normalized.lon) && Number.isFinite(toPremiumFiniteNumber(selfBirth.lon))) normalized.lon = Number(selfBirth.lon);
+
+  const birthDateParts = [normalized.year, normalized.month, normalized.day].map((v) => Number(v));
+  if (!hasMeaningfulValue(normalized.birthDate) && birthDateParts.every((v, idx) => idx === 0 ? Number.isFinite(v) && v >= 1000 : Number.isFinite(v))) {
+    normalized.birthDate = `${birthDateParts[0]}-${String(birthDateParts[1]).padStart(2, "0")}-${String(birthDateParts[2]).padStart(2, "0")}`;
+  }
+  const birthTimeParts = [normalized.hour, normalized.minute].map((v) => Number(v));
+  if (!hasMeaningfulValue(normalized.birthTime) && birthTimeParts.every((v) => Number.isFinite(v))) {
+    normalized.birthTime = `${String(birthTimeParts[0]).padStart(2, "0")}:${String(birthTimeParts[1]).padStart(2, "0")}`;
+  }
+
+  const existingBirthData = (normalized.birthData && typeof normalized.birthData === "object") ? normalized.birthData : {};
+  normalized.birthData = {
+    ...existingBirthData,
+    name: pickPremiumText(existingBirthData.name, normalized.name),
+    gender: pickPremiumText(existingBirthData.gender, normalized.gender),
+    year: Number.isFinite(Number(existingBirthData.year)) ? Number(existingBirthData.year) : (Number.isFinite(Number(normalized.year)) ? Number(normalized.year) : undefined),
+    month: Number.isFinite(Number(existingBirthData.month)) ? Number(existingBirthData.month) : (Number.isFinite(Number(normalized.month)) ? Number(normalized.month) : undefined),
+    day: Number.isFinite(Number(existingBirthData.day)) ? Number(existingBirthData.day) : (Number.isFinite(Number(normalized.day)) ? Number(normalized.day) : undefined),
+    hour: Number.isFinite(Number(existingBirthData.hour)) ? Number(existingBirthData.hour) : (Number.isFinite(Number(normalized.hour)) ? Number(normalized.hour) : undefined),
+    minute: Number.isFinite(Number(existingBirthData.minute)) ? Number(existingBirthData.minute) : (Number.isFinite(Number(normalized.minute)) ? Number(normalized.minute) : undefined),
+    calType: pickPremiumText(existingBirthData.calType, existingBirthData.calendarType, normalized.calType, normalized.calendarType),
+    timezoneName: pickPremiumText(existingBirthData.timezoneName, normalized.timezoneName),
+    timezone: pickPremiumText(existingBirthData.timezone, normalized.timezoneName, normalized.timezone),
+    lat: Number.isFinite(Number(existingBirthData.lat)) ? Number(existingBirthData.lat) : (Number.isFinite(Number(normalized.lat)) ? Number(normalized.lat) : undefined),
+    lon: Number.isFinite(Number(existingBirthData.lon)) ? Number(existingBirthData.lon) : (Number.isFinite(Number(normalized.lon)) ? Number(normalized.lon) : undefined),
+  };
+}
+
+function applyPremiumPartnerBirth(normalized = {}, partnerBirth = {}) {
+  const year = toPremiumBoundedInt(partnerBirth.year, 1000, 9999);
+  const month = toPremiumBoundedInt(partnerBirth.month, 1, 12);
+  const day = toPremiumBoundedInt(partnerBirth.day, 1, 31);
+  const hour = toPremiumBoundedInt(partnerBirth.hour, 0, 23);
+  const minute = toPremiumBoundedInt(partnerBirth.minute, 0, 59);
+  const calType = normalizePremiumCalendarType(partnerBirth.calType);
+  const timezone = pickPremiumText(partnerBirth.timezone);
+
+  if (!hasMeaningfulValue(normalized.partnerName) && pickPremiumText(partnerBirth.name)) normalized.partnerName = String(partnerBirth.name).trim();
+  if (!hasMeaningfulValue(normalized.partnerGender) && pickPremiumText(partnerBirth.gender)) normalized.partnerGender = String(partnerBirth.gender).trim();
+  if (!hasMeaningfulValue(normalized.partnerYear) && Number.isFinite(year)) normalized.partnerYear = year;
+  if (!hasMeaningfulValue(normalized.partnerMonth) && Number.isFinite(month)) normalized.partnerMonth = month;
+  if (!hasMeaningfulValue(normalized.partnerDay) && Number.isFinite(day)) normalized.partnerDay = day;
+  if (!hasMeaningfulValue(normalized.partnerHour) && Number.isFinite(hour)) normalized.partnerHour = hour;
+  if (!hasMeaningfulValue(normalized.partnerMinute) && Number.isFinite(minute)) normalized.partnerMinute = minute;
+  if (!hasMeaningfulValue(normalized.partnerCalType) && calType) normalized.partnerCalType = calType;
+  if (!hasMeaningfulValue(normalized.partnerTimezoneName) && timezone) normalized.partnerTimezoneName = timezone;
+  if (!hasMeaningfulValue(normalized.partnerTimezone) && timezone) normalized.partnerTimezone = timezone;
+  if (!hasMeaningfulValue(normalized.partnerLat) && Number.isFinite(toPremiumFiniteNumber(partnerBirth.lat))) normalized.partnerLat = Number(partnerBirth.lat);
+  if (!hasMeaningfulValue(normalized.partnerLon) && Number.isFinite(toPremiumFiniteNumber(partnerBirth.lon))) normalized.partnerLon = Number(partnerBirth.lon);
+
+  const existingPartnerBirthData = (normalized.partnerBirthData && typeof normalized.partnerBirthData === "object") ? normalized.partnerBirthData : {};
+  normalized.partnerBirthData = {
+    ...existingPartnerBirthData,
+    name: pickPremiumText(existingPartnerBirthData.name, normalized.partnerName),
+    gender: pickPremiumText(existingPartnerBirthData.gender, normalized.partnerGender),
+    year: Number.isFinite(Number(existingPartnerBirthData.year)) ? Number(existingPartnerBirthData.year) : (Number.isFinite(Number(normalized.partnerYear)) ? Number(normalized.partnerYear) : undefined),
+    month: Number.isFinite(Number(existingPartnerBirthData.month)) ? Number(existingPartnerBirthData.month) : (Number.isFinite(Number(normalized.partnerMonth)) ? Number(normalized.partnerMonth) : undefined),
+    day: Number.isFinite(Number(existingPartnerBirthData.day)) ? Number(existingPartnerBirthData.day) : (Number.isFinite(Number(normalized.partnerDay)) ? Number(normalized.partnerDay) : undefined),
+    hour: Number.isFinite(Number(existingPartnerBirthData.hour)) ? Number(existingPartnerBirthData.hour) : (Number.isFinite(Number(normalized.partnerHour)) ? Number(normalized.partnerHour) : undefined),
+    minute: Number.isFinite(Number(existingPartnerBirthData.minute)) ? Number(existingPartnerBirthData.minute) : (Number.isFinite(Number(normalized.partnerMinute)) ? Number(normalized.partnerMinute) : undefined),
+    calType: pickPremiumText(existingPartnerBirthData.calType, existingPartnerBirthData.calendarType, normalized.partnerCalType),
+    timezoneName: pickPremiumText(existingPartnerBirthData.timezoneName, normalized.partnerTimezoneName),
+    timezone: pickPremiumText(existingPartnerBirthData.timezone, normalized.partnerTimezoneName, normalized.partnerTimezone),
+    lat: Number.isFinite(Number(existingPartnerBirthData.lat)) ? Number(existingPartnerBirthData.lat) : (Number.isFinite(Number(normalized.partnerLat)) ? Number(normalized.partnerLat) : undefined),
+    lon: Number.isFinite(Number(existingPartnerBirthData.lon)) ? Number(existingPartnerBirthData.lon) : (Number.isFinite(Number(normalized.partnerLon)) ? Number(normalized.partnerLon) : undefined),
+  };
+}
+
 function normalizePremiumRequestBodyForPipeline(reportType, sourceInput = {}) {
   const normalized = {
     ...(sourceInput && typeof sourceInput === "object" ? sourceInput : {}),
   };
+
+  const selfBirth = extractPremiumSelfBirth(normalized);
+  applyPremiumSelfBirth(normalized, selfBirth);
+
+  const modeRaw = String(normalized.mode || normalized.reportMode || normalized.reportType || "").toLowerCase();
+  const isCompatibility = modeRaw.includes("compat") || modeRaw.includes("couple") || modeRaw.includes("partner");
+  const hasAnyPartnerField = [
+    normalized.partnerYear,
+    normalized.partnerMonth,
+    normalized.partnerDay,
+    normalized.partnerBirthData,
+    normalized.partner,
+  ].some((value) => hasMeaningfulValue(value));
+  if (isCompatibility || hasAnyPartnerField) {
+    const partnerBirth = extractPremiumPartnerBirth(normalized);
+    applyPremiumPartnerBirth(normalized, partnerBirth);
+  }
 
   const strictPayload = shouldEnforcePremiumStrictPayload(reportType);
   normalized._premiumStrictPayload = strictPayload;
@@ -8801,6 +9085,9 @@ function buildZiweiReportPayloadFromBasicResult(basicZiweiResult, dataQuality) {
       annual: luck?.annual || null,
       monthly: Array.isArray(luck?.monthly) ? luck.monthly : [],
     },
+    sourcePayload: (chart?.sourcePayload && typeof chart.sourcePayload === "object")
+      ? chart.sourcePayload
+      : ((basic?.ziweiStructured && typeof basic.ziweiStructured === "object") ? basic.ziweiStructured : null),
     diagnostics: {
       generatedAt: new Date().toISOString(),
       source: "basicZiweiResult",
@@ -9141,6 +9428,20 @@ function buildZiweiMonthlyFallbackPayload(annual = null, palaces = []) {
   });
 }
 
+function hasReliableZiweiBasicPayload(payload) {
+  const p = (payload && typeof payload === "object") ? payload : null;
+  if (!p) return false;
+  const ming = String(p?.chartMeta?.mingGong || "").trim();
+  const shen = String(p?.chartMeta?.shenGong || "").trim();
+  const palaces = Array.isArray(p?.palaces) ? p.palaces : [];
+  if (!ming || !shen || palaces.length < 12) return false;
+  return palaces.every((palace) => {
+    const key = String(palace?.key || palace?.palaceKey || palace?.nameKo || palace?.name || "").trim();
+    const main = Array.isArray(palace?.mainStars) ? palace.mainStars : [];
+    return Boolean(key) && main.length > 0;
+  });
+}
+
 function buildZiweiPdfReportPayload({
   basicZiweiResult,
   userProfile,
@@ -9148,6 +9449,7 @@ function buildZiweiPdfReportPayload({
   existingReportPayload,
   canonicalZiweiChart,
   dataQuality,
+  preferBasicEngine = false,
 } = {}) {
   const existing = (existingReportPayload && typeof existingReportPayload === "object") ? existingReportPayload : null;
   const fromCanonical = canonicalZiweiChart
@@ -9160,22 +9462,44 @@ function buildZiweiPdfReportPayload({
     ? mapZiweiCalculatedData(canonicalZiweiChart)
     : null;
 
-  const pickArray = (...values) => {
-    for (let i = 0; i < values.length; i += 1) {
-      if (Array.isArray(values[i]) && values[i].length > 0) return values[i];
+  const basicPreferred = Boolean(preferBasicEngine) && hasReliableZiweiBasicPayload(fromBasic);
+  const sourcePriority = basicPreferred
+    ? [fromBasic, fromCanonical, existing]
+    : [fromCanonical, fromBasic, existing];
+
+  const pickArrayFromSources = (selector) => {
+    for (const src of sourcePriority) {
+      const arr = selector(src || {});
+      if (Array.isArray(arr) && arr.length > 0) return arr;
     }
     return [];
   };
 
-  const pickText = (...values) => {
-    for (let i = 0; i < values.length; i += 1) {
-      const text = String(values[i] ?? "").trim();
+  const pickTextFromSources = (selector) => {
+    for (const src of sourcePriority) {
+      const text = String(selector(src || {}) ?? "").trim();
       if (text) return text;
     }
     return "";
   };
 
-  const mergedPalaces = pickArray(fromCanonical?.palaces, fromBasic?.palaces, existing?.palaces)
+  const pickObjectFromSources = (selector) => {
+    for (const src of sourcePriority) {
+      const obj = selector(src || {});
+      if (obj && typeof obj === "object") return obj;
+    }
+    return null;
+  };
+
+  const pickValueFromSources = (selector) => {
+    for (const src of sourcePriority) {
+      const value = selector(src || {});
+      if (value !== undefined && value !== null && String(value).trim() !== "") return value;
+    }
+    return null;
+  };
+
+  const mergedPalaces = pickArrayFromSources((src) => src?.palaces)
     .map((palace, idx) => {
       const source = palace && typeof palace === "object" ? palace : {};
       const key = String(source?.key || source?.palaceKey || normalizeZiweiPalaceKey(source?.nameKo || source?.name || "", idx) || "").trim();
@@ -9212,11 +9536,12 @@ function buildZiweiPdfReportPayload({
     : (Array.isArray(canonicalCalculatedData?.cycles?.daXian) && canonicalCalculatedData.cycles.daXian.length)
       ? canonicalCalculatedData.cycles.daXian
       : buildZiweiDaXianRows(canonicalZiweiChart || {}, mergedPalacesByKey);
-  const mergedAnnualLuck = fromCanonical?.luck?.annual || existing?.luck?.annual || fromBasic?.luck?.annual || null;
-  const mergedMonthlyLuck = pickArray(fromCanonical?.luck?.monthly, existing?.luck?.monthly, fromBasic?.luck?.monthly);
+  const mergedAnnualLuck = pickObjectFromSources((src) => src?.luck?.annual);
+  const mergedMonthlyLuck = pickArrayFromSources((src) => src?.luck?.monthly);
+  const mergedCurrentDecadeLuck = pickValueFromSources((src) => src?.luck?.currentDecadeLuck);
 
-  const mergedMingGong = pickText(fromCanonical?.chartMeta?.mingGong, existing?.chartMeta?.mingGong, fromBasic?.chartMeta?.mingGong) || null;
-  const mergedShenGong = pickText(fromCanonical?.chartMeta?.shenGong, existing?.chartMeta?.shenGong, fromBasic?.chartMeta?.shenGong) || null;
+  const mergedMingGong = pickTextFromSources((src) => src?.chartMeta?.mingGong) || null;
+  const mergedShenGong = pickTextFromSources((src) => src?.chartMeta?.shenGong) || null;
   const annualLuckNormalized = (mergedAnnualLuck && typeof mergedAnnualLuck === "object" && !Array.isArray(mergedAnnualLuck))
     ? mergedAnnualLuck
     : ((Array.isArray(mergedAnnualLuck) && mergedAnnualLuck[0] && typeof mergedAnnualLuck[0] === "object") ? mergedAnnualLuck[0] : null);
@@ -9230,41 +9555,46 @@ function buildZiweiPdfReportPayload({
 
   const profileBirthDate = String(birthInput?.birthDate || "").trim();
   const profileBirthTime = String(birthInput?.birthTime || "").trim();
+  const mergedSourcePayload = pickObjectFromSources((src) => src?.sourcePayload);
   const merged = {
     profile: {
-      name: String(fromCanonical?.profile?.name || existing?.profile?.name || fromBasic?.profile?.name || userProfile?.name || birthInput?.name || "사용자").trim() || "사용자",
-      gender: String(fromCanonical?.profile?.gender || existing?.profile?.gender || fromBasic?.profile?.gender || userProfile?.gender || birthInput?.gender || "").trim(),
+      name: String(pickTextFromSources((src) => src?.profile?.name) || userProfile?.name || birthInput?.name || "사용자").trim() || "사용자",
+      gender: String(pickTextFromSources((src) => src?.profile?.gender) || userProfile?.gender || birthInput?.gender || "").trim(),
       birth: {
-        solarDate: String(fromCanonical?.profile?.birth?.solarDate || existing?.profile?.birth?.solarDate || fromBasic?.profile?.birth?.solarDate || profileBirthDate || userProfile?.birthDate || "").trim() || null,
-        lunarDate: String(fromCanonical?.profile?.birth?.lunarDate || existing?.profile?.birth?.lunarDate || fromBasic?.profile?.birth?.lunarDate || "").trim() || null,
-        time: String(fromCanonical?.profile?.birth?.time || existing?.profile?.birth?.time || fromBasic?.profile?.birth?.time || profileBirthTime || userProfile?.birthTime || "").trim() || null,
-        timezone: String(fromCanonical?.profile?.birth?.timezone || existing?.profile?.birth?.timezone || fromBasic?.profile?.birth?.timezone || birthInput?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
-        isLeapMonth: fromCanonical?.profile?.birth?.isLeapMonth ?? existing?.profile?.birth?.isLeapMonth ?? fromBasic?.profile?.birth?.isLeapMonth ?? null,
+        solarDate: String(pickTextFromSources((src) => src?.profile?.birth?.solarDate) || profileBirthDate || userProfile?.birthDate || "").trim() || null,
+        lunarDate: String(pickTextFromSources((src) => src?.profile?.birth?.lunarDate)).trim() || null,
+        time: String(pickTextFromSources((src) => src?.profile?.birth?.time) || profileBirthTime || userProfile?.birthTime || "").trim() || null,
+        timezone: String(pickTextFromSources((src) => src?.profile?.birth?.timezone) || birthInput?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+        isLeapMonth: sourcePriority[0]?.profile?.birth?.isLeapMonth
+          ?? sourcePriority[1]?.profile?.birth?.isLeapMonth
+          ?? sourcePriority[2]?.profile?.birth?.isLeapMonth
+          ?? null,
       },
     },
     chartMeta: {
       mingGong: mergedMingGong,
       shenGong: mergedShenGong,
-      fiveElementBureau: pickText(fromCanonical?.chartMeta?.fiveElementBureau, existing?.chartMeta?.fiveElementBureau, fromBasic?.chartMeta?.fiveElementBureau) || null,
-      yearStemBranch: pickText(fromCanonical?.chartMeta?.yearStemBranch, existing?.chartMeta?.yearStemBranch, fromBasic?.chartMeta?.yearStemBranch) || null,
-      monthStemBranch: pickText(fromCanonical?.chartMeta?.monthStemBranch, existing?.chartMeta?.monthStemBranch, fromBasic?.chartMeta?.monthStemBranch) || null,
-      dayStemBranch: pickText(fromCanonical?.chartMeta?.dayStemBranch, existing?.chartMeta?.dayStemBranch, fromBasic?.chartMeta?.dayStemBranch) || null,
-      hourStemBranch: pickText(fromCanonical?.chartMeta?.hourStemBranch, existing?.chartMeta?.hourStemBranch, fromBasic?.chartMeta?.hourStemBranch) || null,
+      fiveElementBureau: pickTextFromSources((src) => src?.chartMeta?.fiveElementBureau) || null,
+      yearStemBranch: pickTextFromSources((src) => src?.chartMeta?.yearStemBranch) || null,
+      monthStemBranch: pickTextFromSources((src) => src?.chartMeta?.monthStemBranch) || null,
+      dayStemBranch: pickTextFromSources((src) => src?.chartMeta?.dayStemBranch) || null,
+      hourStemBranch: pickTextFromSources((src) => src?.chartMeta?.hourStemBranch) || null,
     },
     palaces: mergedPalaces,
-    sihua: pickArray(fromCanonical?.sihua, existing?.sihua, fromBasic?.sihua),
+    sihua: pickArrayFromSources((src) => src?.sihua),
     luck: {
-      decadeLuck: pickArray(fromCanonical?.luck?.decadeLuck, existing?.luck?.decadeLuck, fromBasic?.luck?.decadeLuck),
-      currentDecadeLuck: fromCanonical?.luck?.currentDecadeLuck || existing?.luck?.currentDecadeLuck || fromBasic?.luck?.currentDecadeLuck || null,
+      decadeLuck: pickArrayFromSources((src) => src?.luck?.decadeLuck),
+      currentDecadeLuck: mergedCurrentDecadeLuck || null,
       annual: annualLuck,
       monthly: monthlyLuck,
     },
+    sourcePayload: mergedSourcePayload,
     calculatedData: {
       ...(existing?.calculatedData && typeof existing.calculatedData === "object" ? existing.calculatedData : {}),
       chart: {
         ...(existing?.calculatedData?.chart && typeof existing.calculatedData.chart === "object" ? existing.calculatedData.chart : {}),
-        mingGong: pickText(existing?.calculatedData?.chart?.mingGong, canonicalCalculatedData?.chart?.mingGong, mergedMingGong),
-        shenGong: pickText(existing?.calculatedData?.chart?.shenGong, canonicalCalculatedData?.chart?.shenGong, mergedShenGong),
+        mingGong: pickTextFromSources((src) => src?.calculatedData?.chart?.mingGong) || pickTextFromSources((src) => src?.chartMeta?.mingGong),
+        shenGong: pickTextFromSources((src) => src?.calculatedData?.chart?.shenGong) || pickTextFromSources((src) => src?.chartMeta?.shenGong),
       },
       palaces: mergedPalaces.map((palace) => ({
         ...palace,
@@ -9293,7 +9623,7 @@ function buildZiweiPdfReportPayload({
     },
     diagnostics: {
       generatedAt: new Date().toISOString(),
-      source: existing ? "existing+fallback" : (fromBasic ? "basicZiweiResult" : "canonical"),
+      source: basicPreferred ? "basicZiweiResult+canonical" : (existing ? "existing+fallback" : (fromBasic ? "basicZiweiResult" : "canonical")),
       missingFields: Array.from(new Set([
         ...(Array.isArray(existing?.diagnostics?.missingFields) ? existing.diagnostics.missingFields : []),
         ...(Array.isArray(fromBasic?.diagnostics?.missingFields) ? fromBasic.diagnostics.missingFields : []),
@@ -9593,7 +9923,8 @@ function looksTruncatedMarkdown(text) {
 function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, hasStructured, reportType, focusKeywords = [], previousSentenceBanList = []) {
   const chapterGuide = ZIWEI_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 궁위·삼방사정·대운·세운 흐름을 함께 해석하세요.";
   const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
-  const chapterMinChars = chapter === 11 || chapter === 13 ? 5600 : 5200;
+  const chapterMinChars = ZIWEI_MIN_CHARS;
+  const chapterMaxChars = ZIWEI_MAX_CHARS;
   const chapterHeading = `## 챕터 ${chapter}. ${meta.title}`;
   const exactHeading = chapterRule?.exactHeading || chapterHeading;
   const prefaceHeading = chapterRule?.prefaceHeading || "";
@@ -9640,7 +9971,7 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     `[현재 생성 대상] ${chapterHeading}`,
     `[부제] ${meta.subtitle}`,
     `[리포트 타입] ${reportType === "compatibility" ? "compatibility" : "personal"}`,
-    `[최소 분량] ${chapterMinChars}자 이상 (권장 6000자)` ,
+    `[목표 분량] 총 ${chapterMinChars}~${chapterMaxChars}자 범위로 작성` ,
     focusKeywords.length ? `[focusKeywords] ${focusKeywords.join(", ")}` : "",
     previousSentenceBanList.length
       ? `[반복 금지 문장(이전 챕터)]\n- ${previousSentenceBanList.join("\n- ")}`
@@ -9983,11 +10314,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, chapter === 1),
     context,
     ZIWEI_MIN_CHARS,
+    ZIWEI_MAX_CHARS,
   );
 
   const repeatedSentences = detectCrossChapterRepeatedSentences(markdown, previousChapterTexts, 30);
   const finalText = repeatedSentences.length
-    ? ensureZiweiChapterMarkdownLength(markdown, context, ZIWEI_MIN_CHARS)
+    ? ensureZiweiChapterMarkdownLength(markdown, context, ZIWEI_MIN_CHARS, ZIWEI_MAX_CHARS)
     : markdown;
 
   console.info("[ZiweiPremium][Gemini] chapter end", {
@@ -14368,6 +14700,7 @@ async function handleZiweiBookSession(request, env) {
     _premiumStrictPayload: strictPayloadMode,
     _premiumStrictValidation: strictValidationMode || explicitStrictValidation,
   };
+  const strictValidationRequested = strictPayloadMode || strictValidationMode || explicitStrictValidation;
   const prepareOnly = asBool(strictBody.prepareOnly);
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
@@ -14419,7 +14752,7 @@ async function handleZiweiBookSession(request, env) {
     ? strictBody.basicZiweiResult
     : null;
 
-  if (!basicZiweiResult) {
+  if (!basicZiweiResult && !strictValidationRequested) {
     basicZiweiResult = readCachedZiweiBasicResult(profileId, birthInput);
     if (basicZiweiResult) {
       console.info("[ZiweiPremium][BasicResult] found in cache", { requestId, profileId });
@@ -14478,6 +14811,20 @@ async function handleZiweiBookSession(request, env) {
     }
   }
 
+  if (strictValidationRequested && !chartValidation.isValid) {
+    const friendlyMessage = "자미두수 명반 데이터를 다시 구성하는 중 문제가 발생했습니다. 기본 자미두수 분석을 먼저 실행한 뒤 다시 PDF 생성을 시도해 주세요.";
+    return json({
+      ok: false,
+      stage: "canonical-validation",
+      code: "ZIWEI_CORE_CHART_MISSING",
+      message: friendlyMessage,
+      missingFields: Array.isArray(chartValidation?.missingFields) ? chartValidation.missingFields : [],
+      validation: {
+        canonical: chartValidation,
+      },
+    }, { status: 422 });
+  }
+
   if (!basicZiweiResult && canonicalZiweiChart) {
     basicZiweiResult = buildZiweiStandardResultFromCanonical(canonicalZiweiChart, birthInput, profileId);
     console.info("[ZiweiPremium][BasicResult] built from canonical", { requestId, profileId });
@@ -14505,6 +14852,7 @@ async function handleZiweiBookSession(request, env) {
     birthInput,
     canonicalZiweiChart,
     dataQuality,
+    preferBasicEngine: Boolean(basicZiweiResult),
   });
 
   const payloadValidation = validateZiweiPdfPayload(reportPayload, birthInput);
@@ -14519,8 +14867,6 @@ async function handleZiweiBookSession(request, env) {
     missingOptionalFields: payloadValidation.missingOptionalFields,
     diagnostics: reportPayload?.diagnostics || null,
   };
-  const strictValidationRequested = strictPayloadMode || strictValidationMode || explicitStrictValidation;
-
   const canonicalSummary = {
     palaceCount: Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces.length : (Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0),
     mingGong: canonicalZiweiChart?.chartMeta?.mingGong || reportPayload?.chartMeta?.mingGong || null,
@@ -16845,6 +17191,7 @@ export const __premiumReportTestUtils = {
   normalizePremiumFeatureType,
   normalizePremiumReportType,
   resolvePremiumTypePair,
+  normalizePremiumRequestBodyForPipeline,
   getPremiumExpectedSchema,
   getPremiumNormalizedDataSummary,
   getPremiumRequiredChapters,

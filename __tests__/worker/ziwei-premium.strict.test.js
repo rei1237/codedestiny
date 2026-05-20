@@ -180,6 +180,48 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(validation.missingCriticalFields).toHaveLength(0);
   });
 
+  test("B3. preferBasicEngine=true면 기본 엔진 chartMeta를 우선 반영해야 한다", () => {
+    const q = makeQuality();
+    const canonical = buildCanonicalZiweiChart(makeBody(), makeInput(), makeStructuredPayload(), "personal", "", q);
+    const basicChart = JSON.parse(JSON.stringify(canonical));
+    basicChart.chartMeta = {
+      ...(basicChart.chartMeta || {}),
+      mingGong: "해",
+      shenGong: "축",
+      yearStemBranch: "을축",
+    };
+    basicChart.sourcePayload = {
+      ...(basicChart.sourcePayload || {}),
+      meng: "해",
+      shen: "축",
+      yearGan: "을축",
+    };
+
+    const merged = buildZiweiPdfReportPayload({
+      basicZiweiResult: {
+        input: {
+          name: "테스터",
+          gender: "F",
+          birthDate: "1992-06-15",
+          birthTime: "12:30",
+          timezone: "Asia/Seoul",
+        },
+        chart: basicChart,
+      },
+      userProfile: { name: "테스터", gender: "F", birthDate: "1992-06-15", birthTime: "12:30" },
+      birthInput: { name: "테스터", gender: "F", birthDate: "1992-06-15", birthTime: "12:30", timezone: "Asia/Seoul" },
+      existingReportPayload: null,
+      canonicalZiweiChart: canonical,
+      dataQuality: q,
+      preferBasicEngine: true,
+    });
+
+    expect(merged.chartMeta.mingGong).toBe("해");
+    expect(merged.chartMeta.shenGong).toBe("축");
+    expect(merged.diagnostics.source).toMatch(/basicZiweiResult/);
+    expect(merged.sourcePayload && typeof merged.sourcePayload).toBe("object");
+  });
+
   test("C. 요약표에 '-' 결측 셀이 있으면 invalid table로 감지해야 한다", () => {
     const invalidTableText = [
       "### 12궁 전체 요약표",
