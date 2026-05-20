@@ -4463,7 +4463,8 @@ function flattenPromptDataLines(source, prefix = "", out = [], depth = 0) {
     if (value == null) continue;
     if (Array.isArray(value)) {
       if (!value.length) continue;
-      out.push(`${path}: ${JSON.stringify(value).slice(0, 260)}`);
+      const packed = stringifyCompact(value, 260).replace(/\s+/g, " ").trim();
+      if (packed) out.push(`${path}: ${packed}`);
       continue;
     }
     if (typeof value === "object") {
@@ -14191,6 +14192,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   const body = await readJson(request);
   const requestedRequestId = String(body.requestId || "").trim();
   const requestId = requestedRequestId || createPremiumRequestId(`${authInfo.userId}|prepare`);
+  const includeContext = asBool(body.includeContext || body.includeDebugContext || body.debugContext);
   const typePair = resolvePremiumTypePair(body.reportType || body.type, body.featureType || body.feature || body.kind);
   const reportType = typePair.reportType;
   const featureType = typePair.featureType;
@@ -14304,7 +14306,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     }, { status: 422 });
   }
 
-  return json({
+  const responsePayload = {
     ok: true,
     cacheHit: Boolean(prepared.cacheHit),
     requestId,
@@ -14317,11 +14319,16 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     ...summary,
     chapterPlan,
     normalizedDataSummary,
-    input: context.input,
-    coreData: context.coreData,
-    derivedData: context.derivedData,
-    chapterData: context.chapterData,
-  });
+  };
+
+  if (includeContext) {
+    responsePayload.input = context.input;
+    responsePayload.coreData = context.coreData;
+    responsePayload.derivedData = context.derivedData;
+    responsePayload.chapterData = context.chapterData;
+  }
+
+  return json(responsePayload);
 }
 
 async function handlePremiumReportPreflight(request, env, authInfo) {
