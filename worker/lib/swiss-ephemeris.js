@@ -288,47 +288,82 @@ function julianDayFromInput(swe, input) {
   );
 }
 
-function resolveEpheBaseUrl(env, options = {}) {
+function normalizeEpheBaseCandidate(rawValue) {
+  const raw = clean(rawValue);
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    return parsed.toString().endsWith("/") ? parsed.toString() : `${parsed.toString()}/`;
+  } catch {
+    return "";
+  }
+}
+
+function resolveEpheBaseUrlCandidates(env, options = {}) {
+  const candidates = [];
+  const pushCandidate = (value) => {
+    const normalized = normalizeEpheBaseCandidate(value);
+    if (!normalized) return;
+    if (!candidates.includes(normalized)) candidates.push(normalized);
+  };
+
   const fromEnv = clean(
     getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
     || getEnv(env, "SWISS_EPHE_BASE_URL")
     || getEnv(env, "PUBLIC_EPHE_BASE_URL"),
   );
+
   if (fromEnv) {
+    pushCandidate(fromEnv);
     try {
-      const parsed = new URL(fromEnv);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-        return fromEnv.endsWith("/") ? fromEnv : `${fromEnv}/`;
+      const envUrl = new URL(fromEnv);
+      const envPathLower = String(envUrl.pathname || "").toLowerCase();
+      if (!envPathLower.includes("/ephe")) {
+        pushCandidate(new URL("ephe/", envUrl).toString());
       }
     } catch {
-      // Ignore malformed env URL and fallback to request origin below.
+      // Ignore malformed env URL and continue with request-origin candidate.
     }
   }
 
   const requestUrl = clean(options.requestUrl);
   if (requestUrl) {
     try {
-      return new URL("/ephe/", requestUrl).toString();
+      const requestOrigin = new URL(requestUrl).origin;
+      pushCandidate(new URL("/ephe/", requestOrigin).toString());
     } catch {
-      throw toStatusError(500, "Invalid request URL context for Swiss ephemeris base resolution.");
+      // Ignore malformed request URL context.
     }
   }
 
-  throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");
+  if (!candidates.length) {
+    throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");
+  }
+
+  return candidates;
 }
 
 async function createSwissInstance(env, options = {}) {
   const wasmPath = clean(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
   const swe = await SwissEPH.init(wasmPath || undefined);
-  const epheBaseUrl = resolveEpheBaseUrl(env, options);
+  const epheBaseCandidates = resolveEpheBaseUrlCandidates(env, options);
 
-  try {
-    await swe.swe_set_ephe_path(epheBaseUrl, EPHE_FILES);
-  } catch (error) {
-    throw toStatusError(500, `Swiss ephemeris load failed from ${epheBaseUrl}: ${error?.message || error}`);
+  let lastError = null;
+  for (const epheBaseUrl of epheBaseCandidates) {
+    try {
+      await swe.swe_set_ephe_path(epheBaseUrl, EPHE_FILES);
+      return swe;
+    } catch (error) {
+      lastError = error;
+    }
   }
 
-  return swe;
+  const errorMessage = lastError?.message || lastError || "unknown error";
+  throw toStatusError(
+    500,
+    `Swiss ephemeris load failed from all candidates (${epheBaseCandidates.join(", ")}): ${errorMessage}`,
+  );
 }
 
 async function getSwiss(env, options = {}) {
