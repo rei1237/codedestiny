@@ -737,7 +737,10 @@ async function handleConsume(auth) {
 }
 
 async function handleBalance(auth) {
-  const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
+  const user = await findUserByIdRaw(auth.userId, {
+    points: 1,
+    unlockedFeatures: 1,
+  });
   if (!user) {
     return json({
       ok: true,
@@ -751,7 +754,12 @@ async function handleBalance(auth) {
     });
   }
 
-  const unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+  let unlockedFeatures = [];
+  try {
+    unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+  } catch {
+    unlockedFeatures = normalizePersistentUnlockKeys(user.unlockedFeatures);
+  }
   const points = Number(user.points || 0);
 
   return json({
@@ -2675,8 +2683,14 @@ export async function handleFortuneRoutes(request, env) {
       }
       trace.dbConnected = true;
 
-      if (path === "/pig-coin/balance") return await handleBalance(auth);
-      return await handleSubscriptionStatus(request, env, auth);
+      try {
+        if (path === "/pig-coin/balance") return await handleBalance(auth);
+        return await handleSubscriptionStatus(request, env, auth);
+      } catch (error) {
+        const isBalanceRoute = path === "/pig-coin/balance";
+        if (isBalanceRoute) return buildDbFallbackBalance(auth, error);
+        return buildDbFallbackSubscriptionStatus(auth, error);
+      }
     }
 
     if (method === "POST" && path === "/pig-coin/unlock") {

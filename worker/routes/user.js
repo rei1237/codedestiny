@@ -85,7 +85,18 @@ async function handleGetDestinyProfiles(auth) {
     console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("query-destiny-profiles", error, {
       userId: String(auth?.userId || ""),
     })));
-    throw error;
+    return json({
+      ok: false,
+      degraded: true,
+      profiles: [],
+      currentId: "",
+      code: "DB_FALLBACK",
+      message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
+      debugMessage: String(error?.message || ""),
+      errorDetails: buildErrorDetails("query-destiny-profiles", error, {
+        userId: String(auth?.userId || ""),
+      }),
+    }, { status: 200 });
   }
 
   if (!user) {

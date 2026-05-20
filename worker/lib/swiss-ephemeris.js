@@ -288,82 +288,79 @@ function julianDayFromInput(swe, input) {
   );
 }
 
-function normalizeEpheBaseCandidate(rawValue) {
-  const raw = clean(rawValue);
-  if (!raw) return "";
-  try {
-    const parsed = new URL(raw);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
-    return parsed.toString().endsWith("/") ? parsed.toString() : `${parsed.toString()}/`;
-  } catch {
-    return "";
-  }
-}
-
-function resolveEpheBaseUrlCandidates(env, options = {}) {
-  const candidates = [];
-  const pushCandidate = (value) => {
-    const normalized = normalizeEpheBaseCandidate(value);
-    if (!normalized) return;
-    if (!candidates.includes(normalized)) candidates.push(normalized);
-  };
-
+function resolveEpheBaseUrl(env, options = {}) {
   const fromEnv = clean(
     getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
     || getEnv(env, "SWISS_EPHE_BASE_URL")
     || getEnv(env, "PUBLIC_EPHE_BASE_URL"),
   );
-
   if (fromEnv) {
-    pushCandidate(fromEnv);
     try {
-      const envUrl = new URL(fromEnv);
-      const envPathLower = String(envUrl.pathname || "").toLowerCase();
-      if (!envPathLower.includes("/ephe")) {
-        pushCandidate(new URL("ephe/", envUrl).toString());
+      const parsed = new URL(fromEnv);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return fromEnv.endsWith("/") ? fromEnv : `${fromEnv}/`;
       }
     } catch {
-      // Ignore malformed env URL and continue with request-origin candidate.
+      // Ignore malformed env URL and fallback to request origin below.
     }
   }
 
   const requestUrl = clean(options.requestUrl);
   if (requestUrl) {
     try {
-      const requestOrigin = new URL(requestUrl).origin;
-      pushCandidate(new URL("/ephe/", requestOrigin).toString());
+      return new URL("/ephe/", requestUrl).toString();
     } catch {
-      // Ignore malformed request URL context.
+      throw toStatusError(500, "Invalid request URL context for Swiss ephemeris base resolution.");
     }
   }
 
-  if (!candidates.length) {
-    throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");
+  throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");
+}
+
+function resolveSwissWasmPath(env, options = {}) {
+  const rawPath = clean(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
+  if (!rawPath) return undefined;
+
+  const requestUrl = clean(options.requestUrl);
+  const tryResolveFromRequest = () => {
+    if (!requestUrl) return "";
+    try {
+      return new URL(rawPath, requestUrl).toString();
+    } catch {
+      return "";
+    }
+  };
+
+  if (rawPath.startsWith("/")) {
+    const resolved = tryResolveFromRequest();
+    if (resolved) return resolved;
+    return undefined;
   }
 
-  return candidates;
+  try {
+    const parsed = new URL(rawPath);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
+  } catch {
+    const resolved = tryResolveFromRequest();
+    if (resolved) return resolved;
+    return undefined;
+  }
+
+  return undefined;
 }
 
 async function createSwissInstance(env, options = {}) {
-  const wasmPath = clean(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
+  const wasmPath = resolveSwissWasmPath(env, options);
   const swe = await SwissEPH.init(wasmPath || undefined);
-  const epheBaseCandidates = resolveEpheBaseUrlCandidates(env, options);
+  const epheBaseUrl = resolveEpheBaseUrl(env, options);
 
-  let lastError = null;
-  for (const epheBaseUrl of epheBaseCandidates) {
-    try {
-      await swe.swe_set_ephe_path(epheBaseUrl, EPHE_FILES);
-      return swe;
-    } catch (error) {
-      lastError = error;
-    }
+  try {
+    await swe.swe_set_ephe_path(epheBaseUrl, EPHE_FILES);
+  } catch (error) {
+    throw toStatusError(500, `Swiss ephemeris load failed from ${epheBaseUrl}: ${error?.message || error}`);
   }
 
-  const errorMessage = lastError?.message || lastError || "unknown error";
-  throw toStatusError(
-    500,
-    `Swiss ephemeris load failed from all candidates (${epheBaseCandidates.join(", ")}): ${errorMessage}`,
-  );
+  return swe;
 }
 
 async function getSwiss(env, options = {}) {
