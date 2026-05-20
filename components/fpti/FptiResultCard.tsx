@@ -57,7 +57,7 @@ export default function FptiResultCard({ result }: Props) {
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
-      <div className="rounded-[28px] border border-white/15 bg-[linear-gradient(150deg,rgba(11,16,38,0.9),rgba(19,10,42,0.88))] p-5 shadow-[0_18px_50px_rgba(2,6,22,0.55)] backdrop-blur-xl md:p-7">
+      <div className="rounded-[28px] border border-white/20 bg-[linear-gradient(150deg,rgba(5,18,36,0.92),rgba(14,34,58,0.9))] p-5 shadow-[0_18px_50px_rgba(2,8,25,0.58)] backdrop-blur-xl md:p-7">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs tracking-[0.2em] text-[#f6d365]">당신의 FPTI 코드</p>
@@ -87,7 +87,7 @@ export default function FptiResultCard({ result }: Props) {
 
         <div className="mt-4 grid gap-2 md:grid-cols-4">
           {codeParts.map((part, idx) => (
-            <div key={`${part}-${idx}`} className="rounded-2xl border border-[#E9C46A]/35 bg-[#0B1026]/70 p-3">
+            <div key={`${part}-${idx}`} className="rounded-2xl border border-[#E9C46A]/35 bg-[#0b2039]/70 p-3">
               <p className="text-[11px] text-slate-300">코드 {idx + 1}</p>
               <p className="mt-1 text-2xl font-bold text-[#F6D365]">{part}</p>
               <p className="mt-1 text-xs text-slate-200">{AXIS_CARD_LABELS[part] || "복합 의미"}</p>
@@ -205,7 +205,7 @@ export default function FptiResultCard({ result }: Props) {
         </section>
       </div>
 
-      <div className="rounded-3xl border border-[#E9C46A]/35 bg-[#F6D365]/10 p-4">
+      <div className="rounded-3xl border border-[#E9C46A]/35 bg-[linear-gradient(145deg,rgba(245,158,11,0.14),rgba(14,165,233,0.1))] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM</p>
@@ -214,7 +214,7 @@ export default function FptiResultCard({ result }: Props) {
           </div>
           <Link
             href="/pricing"
-            className="rounded-full bg-[linear-gradient(120deg,#7C3AED,#4C1D95,#F6D365)] px-4 py-2 text-sm font-semibold text-white"
+            className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-4 py-2 text-sm font-semibold text-white"
           >
             FPTI 심층 리포트 보기
           </Link>

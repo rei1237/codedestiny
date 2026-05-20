@@ -15,11 +15,11 @@ export default function FptiInputForm({ value, onChange, onSubmit, busy }: Props
   };
 
   const fieldClass =
-    "h-12 w-full rounded-2xl border border-[#E9C46A]/35 bg-[#0b1026]/60 px-4 text-[15px] text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-[#F6D365] focus:shadow-[0_0_0_3px_rgba(124,58,237,0.22)]";
+    "h-12 w-full rounded-2xl border border-[#E9C46A]/35 bg-[#0b2039]/60 px-4 text-[15px] text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-[#F6D365] focus:shadow-[0_0_0_3px_rgba(14,116,144,0.22)]";
 
   return (
-    <section className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(155deg,rgba(11,16,38,0.92),rgba(19,10,42,0.88))] p-5 shadow-[0_20px_55px_rgba(3,7,23,0.55)] backdrop-blur-xl md:p-7">
-      <div className="pointer-events-none absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_20%,rgba(96,165,250,0.28),transparent_45%),radial-gradient(circle_at_80%_80%,rgba(246,211,101,0.2),transparent_44%)]" />
+    <section className="relative overflow-hidden rounded-[30px] border border-white/20 bg-[linear-gradient(155deg,rgba(5,18,36,0.94),rgba(16,33,54,0.9))] p-5 shadow-[0_20px_55px_rgba(3,9,26,0.58)] backdrop-blur-xl md:p-7">
+      <div className="pointer-events-none absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.24),transparent_45%),radial-gradient(circle_at_80%_80%,rgba(246,211,101,0.2),transparent_44%)]" />
 
       <div className="relative mb-4">
         <h2 className="text-xl font-semibold text-[#F8FAFC]">출생 정보 입력</h2>
@@ -117,7 +117,7 @@ export default function FptiInputForm({ value, onChange, onSubmit, busy }: Props
           type="button"
           disabled={busy || !value.name || !value.birthDate}
           onClick={onSubmit}
-          className="h-12 rounded-full bg-[linear-gradient(120deg,#7C3AED,#4C1D95,#F6D365)] px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(124,58,237,0.4)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45"
+          className="h-12 rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,116,144,0.4)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {busy ? "분석 중..." : "성격 유형 분석 시작하기"}
         </button>

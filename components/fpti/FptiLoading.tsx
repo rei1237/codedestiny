@@ -13,8 +13,8 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
   const reducedMotion = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden rounded-[28px] border border-white/15 bg-[linear-gradient(145deg,rgba(11,16,38,0.95),rgba(19,10,42,0.9))] p-7 text-center shadow-[0_20px_60px_rgba(3,6,22,0.55)]">
-      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.35),transparent_42%),radial-gradient(circle_at_80%_80%,rgba(96,165,250,0.3),transparent_45%)]" />
+    <section className="relative overflow-hidden rounded-[28px] border border-white/20 bg-[linear-gradient(145deg,rgba(5,18,36,0.95),rgba(16,33,54,0.92))] p-7 text-center shadow-[0_20px_60px_rgba(3,9,26,0.58)]">
+      <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(circle_at_18%_24%,rgba(56,189,248,0.3),transparent_42%),radial-gradient(circle_at_82%_76%,rgba(245,158,11,0.22),transparent_46%)]" />
 
       <div className="relative mx-auto h-24 w-24">
         <motion.div
@@ -23,12 +23,12 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
           transition={reducedMotion ? { duration: 0 } : { duration: 6, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="absolute inset-3 rounded-full border-2 border-[#60A5FA]/45"
+          className="absolute inset-3 rounded-full border-2 border-[#38BDF8]/45"
           animate={reducedMotion ? { rotate: 0 } : { rotate: -360 }}
           transition={reducedMotion ? { duration: 0 } : { duration: 4.8, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,#F6D365_0%,#7C3AED_80%)]"
+          className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,#FDE68A_0%,#0EA5E9_85%)]"
           animate={reducedMotion ? { scale: 1 } : { scale: [1, 1.2, 1] }}
           transition={reducedMotion ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -56,7 +56,7 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
 
       <div className="relative mx-auto mt-4 h-2 w-full max-w-xs overflow-hidden rounded-full bg-white/15">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-[#7C3AED] via-[#60A5FA] to-[#F6D365]"
+          className="h-full rounded-full bg-gradient-to-r from-[#0EA5E9] via-[#2563EB] to-[#F6D365]"
           initial={{ width: "8%" }}
           animate={{ width: reducedMotion ? "80%" : "96%" }}
           transition={{ duration: reducedMotion ? 0.2 : 2.4, ease: "easeInOut" }}

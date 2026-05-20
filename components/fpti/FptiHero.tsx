@@ -13,10 +13,10 @@ export default function FptiHero({ onStart, onPreview }: Props) {
   const reducedMotion = useReducedMotion();
 
   return (
-    <section className="relative isolate overflow-hidden rounded-[32px] border border-white/15 bg-[radial-gradient(circle_at_14%_18%,rgba(124,58,237,0.34),transparent_46%),radial-gradient(circle_at_82%_22%,rgba(96,165,250,0.28),transparent_44%),radial-gradient(circle_at_60%_84%,rgba(246,211,101,0.17),transparent_52%),linear-gradient(135deg,#050617_0%,#0b1026_44%,#130a2a_100%)] p-6 text-slate-50 shadow-[0_28px_90px_rgba(4,8,28,0.62)] md:p-10">
-      <div className="pointer-events-none absolute inset-0 opacity-45 [background:radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.18)_1px,transparent_1px),radial-gradient(circle_at_78%_72%,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:26px_26px,32px_32px]" />
-      <div className="pointer-events-none absolute -left-24 top-10 h-60 w-60 rounded-full bg-[#7C3AED]/35 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-60 w-60 rounded-full bg-[#60A5FA]/30 blur-3xl" />
+    <section className="relative isolate overflow-hidden rounded-[32px] border border-white/20 bg-[radial-gradient(circle_at_14%_18%,rgba(56,189,248,0.28),transparent_46%),radial-gradient(circle_at_84%_20%,rgba(251,191,36,0.18),transparent_45%),radial-gradient(circle_at_58%_84%,rgba(148,163,184,0.2),transparent_54%),linear-gradient(135deg,#020617_0%,#0b1f38_48%,#1f2937_100%)] p-6 text-slate-50 shadow-[0_28px_90px_rgba(2,8,28,0.62)] md:p-10">
+      <div className="pointer-events-none absolute inset-0 opacity-45 [background:radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.18)_1px,transparent_1px),radial-gradient(circle_at_78%_72%,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:22px_22px,30px_30px]" />
+      <div className="pointer-events-none absolute -left-24 top-10 h-60 w-60 rounded-full bg-sky-400/30 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-60 w-60 rounded-full bg-amber-300/25 blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, y: 14 }}
@@ -30,7 +30,7 @@ export default function FptiHero({ onStart, onPreview }: Props) {
           </p>
           <h1
             className="mt-4 text-4xl leading-[1.02] text-[#F8FAFC] md:text-6xl"
-            style={{ fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif", textShadow: "0 8px 42px rgba(76,29,149,0.45)" }}
+            style={{ fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif", textShadow: "0 10px 38px rgba(14,116,144,0.38)" }}
           >
             사주로 보는 FPTI 테스트
           </h1>
@@ -43,14 +43,14 @@ export default function FptiHero({ onStart, onPreview }: Props) {
             <button
               type="button"
               onClick={onStart}
-              className="rounded-full bg-[linear-gradient(120deg,#7C3AED,#4C1D95,#F6D365)] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(124,58,237,0.45)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(246,211,101,0.35)]"
+              className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,116,144,0.45)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(245,158,11,0.34)]"
             >
               내 FPTI 확인하기
             </button>
             <button
               type="button"
               onClick={onPreview}
-              className="rounded-full border border-[#E9C46A]/60 bg-white/5 px-5 py-3 text-sm text-[#F6D365] transition hover:bg-[#F6D365]/10"
+              className="rounded-full border border-[#F6D365]/60 bg-white/5 px-5 py-3 text-sm text-[#F6D365] transition hover:bg-[#F6D365]/10"
             >
               샘플 결과 보기
             </button>
@@ -74,7 +74,7 @@ export default function FptiHero({ onStart, onPreview }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
           transition={{ delay: 0.15, duration: 0.45, y: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
-          className="rounded-[28px] border border-white/20 bg-white/10 p-5 backdrop-blur-xl"
+          className="rounded-[28px] border border-white/20 bg-[linear-gradient(145deg,rgba(8,18,38,0.84),rgba(17,32,55,0.78))] p-5 backdrop-blur-xl"
         >
           <p className="text-[11px] tracking-[0.2em] text-[#bfdbfe]">SAMPLE RESULT</p>
           <p className="mt-2 text-4xl font-bold text-[#F6D365]">A-S-D-H</p>
