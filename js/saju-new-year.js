@@ -572,6 +572,12 @@
     }
   }
 
+  function waitMs(ms) {
+    var delay = Number(ms || 0);
+    if (!Number.isFinite(delay) || delay <= 0) return Promise.resolve();
+    return new Promise(function (resolve) { setTimeout(resolve, delay); });
+  }
+
   async function premiumAuthJson(pathname, body, options) {
     if (typeof window.__cdPremiumAuthJson === 'function') {
       return window.__cdPremiumAuthJson(pathname, body || {}, options || {});
@@ -590,13 +596,38 @@
 
     if (!state.payload) state.payload = buildPayload();
 
-    var prepared = await premiumAuthJson('/api/premium-report/prepare', {
-      featureType: 'saju_new_year_pdf',
-      reportType: 'sajuNewYear',
-      requestBody: state.payload
-    }, {
+    var makePrepareBody = function (attemptLabel) {
+      return {
+        featureType: 'saju_new_year_pdf',
+        reportType: 'sajuNewYear',
+        requestBody: state.payload,
+        requestId: 'newyear:prepare:' + String(attemptLabel || Date.now().toString(36))
+      };
+    };
+
+    var prepared = await premiumAuthJson('/api/premium-report/prepare', makePrepareBody(Date.now().toString(36)), {
       maxAttempts: 3
     });
+
+    if (!prepared || !prepared.ok || !prepared.reportSessionId) {
+      var initialCode = String((prepared && prepared.code) || '').toUpperCase();
+      var hasRecentPayment = !!(state.paymentContext && Number(state.paymentContext.cost) > 0);
+      if (initialCode === 'PAYMENT_REQUIRED' && hasRecentPayment) {
+        var retryDelays = [450, 900, 1500];
+        for (var i = 0; i < retryDelays.length; i += 1) {
+          await waitMs(retryDelays[i]);
+          prepared = await premiumAuthJson(
+            '/api/premium-report/prepare',
+            makePrepareBody(Date.now().toString(36) + ':' + (i + 1)),
+            { maxAttempts: 2 }
+          );
+          if (prepared && prepared.ok && prepared.reportSessionId) break;
+
+          var retryCode = String((prepared && prepared.code) || '').toUpperCase();
+          if (retryCode && retryCode !== 'PAYMENT_REQUIRED') break;
+        }
+      }
+    }
 
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
       return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };

@@ -119,7 +119,7 @@ export const LIFE_BOOK_CHAPTERS = [
 ];
 
 export const LIFE_BOOK_TOTAL_CHAPTERS = LIFE_BOOK_CHAPTERS.length;
-export const LIFE_BOOK_MIN_TOTAL_CHARS = 65500;
+export const LIFE_BOOK_MIN_TOTAL_CHARS = 50000;
 
 export function getLifeBookChapterByNumber(chapterNumber) {
   const chapter = Number(chapterNumber || 1);

@@ -6,7 +6,7 @@
   var COIN_REASON = '인생의 책 생성 (13챕터)';
   var COIN_FEATURE_KEY = 'premium_pdf_saju_life_book';
   var API_TIMEOUT_MS = 140000;
-  var LIFEBOOK_MIN_TOTAL_CHARS = 65500;
+  var LIFEBOOK_MIN_TOTAL_CHARS = 50000;
   var LIFEBOOK_STATE_STORAGE_KEY = '__cd_lifebook_state_v3__';
   var LIFEBOOK_API_BASE_CANDIDATES = ['/api/premium/saju/life-book', '/api/lifebook'];
 

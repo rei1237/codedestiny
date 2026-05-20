@@ -51,7 +51,7 @@ export const LIFEBOOK_SYSTEM_PROMPT =
   "너는 30년 경력의 사주명리 해석자다. 너는 사주를 계산하지 않는다. 모든 해석은 canonicalSajuChart JSON에 있는 값만 사용한다. JSON에 없는 원국, 십성, 용신, 대운, 세운, 신살, 12운성, 합충형파해를 절대 만들어내지 않는다. 데이터가 부족하면 일반론으로 채우지 말고 해당 챕터를 생성하지 않는다. 각 챕터는 반드시 실제 원국 데이터 최소 5개 이상을 포함해야 한다. 반복 문장으로 분량을 채우는 것은 금지한다.";
 
 export const LIFEBOOK_MIN_CHAPTER_CHARS = 5050;
-export const LIFEBOOK_MIN_TOTAL_CHARS = 65500;
+export const LIFEBOOK_MIN_TOTAL_CHARS = 50000;
 
 export const LIFEBOOK_CHAPTERS = [
   { id: 1, title: "📜 사주 원국 완전 해설", purpose: "년주/월주/일주/시주와 지장간, 합충형파해를 원국 중심으로 해설" },
