@@ -197,6 +197,23 @@
     return '<p>' + safe + '</p>';
   }
 
+  function normalizeChapterSections(chapter) {
+    var rows = Array.isArray(chapter && chapter.sections) ? chapter.sections : [];
+    var normalized = rows
+      .map(function (section) {
+        var heading = String((section && (section.heading || section.title || section.name)) || '').trim();
+        var body = String((section && (section.body || section.content || section.text)) || '').trim();
+        return { heading: heading || '핵심 해석', body: body };
+      })
+      .filter(function (section) { return !!section.body; });
+
+    if (normalized.length > 0) return normalized;
+
+    var fallbackText = String((chapter && (chapter.content || chapter.text || chapter.markdown)) || '').trim();
+    if (!fallbackText) return [];
+    return [{ heading: '핵심 해석', body: fallbackText }];
+  }
+
   function normalizeGender(value) {
     var v = String(value || '').trim().toLowerCase();
     if (!v) return '';
@@ -799,6 +816,50 @@
     var resultDate = qs('zbResultDate');
     if (!toc || !content) return;
 
+    var PALACE_KOREAN = {
+      ming: '명궁(命宮)',
+      parents: '부모궁(父母宮)',
+      fuzang: '복덕궁(福德宮)',
+      house: '전택궁(田宅宮)',
+      career: '관록궁(官祿宮)',
+      friends: '노복궁(奴僕宮)',
+      travel: '천이궁(遷移宮)',
+      health: '질액궁(疾厄宮)',
+      wealth: '재백궁(財帛宮)',
+      children: '자녀궁(子女宮)',
+      spouse: '부처궁(夫妻宮)',
+      siblings: '형제궁(兄弟宮)',
+      body: '신궁(身宮)'
+    };
+
+    if (!document.getElementById('zb-premium-json-styles')) {
+      var style = document.createElement('style');
+      style.id = 'zb-premium-json-styles';
+      style.innerHTML = [
+        '.lb-result-article__badges { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0 24px 0; padding: 12px 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; }',
+        '.lb-badge-group { display: flex; align-items: center; gap: 8px; }',
+        '.lb-badge-label { font-size: 11px; color: #8892b0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; }',
+        '.lb-badge { display: inline-flex; align-items: center; padding: 4px 10px; font-size: 12px; font-weight: 500; border-radius: 20px; transition: all 0.2s ease; }',
+        '.lb-badge--star { background: rgba(138, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(138, 92, 246, 0.3); }',
+        '.lb-badge--palace { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }',
+        '.lb-result-article__list { margin: 24px 0; padding: 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); }',
+        '.lb-result-article__list h5 { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; display: flex; align-items: center; }',
+        '.lb-result-article__list--advice { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.04) 0%, rgba(0, 0, 0, 0) 100%); }',
+        '.lb-result-article__list--advice h5 { color: #34d399; }',
+        '.lb-result-article__list--caution { border-left: 4px solid #f59e0b; background: linear-gradient(90deg, rgba(245, 158, 11, 0.04) 0%, rgba(0, 0, 0, 0) 100%); }',
+        '.lb-result-article__list--caution h5 { color: #fbbf24; }',
+        '.lb-result-article__list ul { margin: 0; padding-left: 20px; }',
+        '.lb-result-article__list li { font-size: 14px; line-height: 1.6; color: #cbd5e1; margin-bottom: 8px; }',
+        '.lb-result-article__list li:last-child { margin-bottom: 0; }',
+        '.lb-result-article__conclusion { margin: 32px 0; padding: 24px; border-radius: 16px; background: linear-gradient(135deg, rgba(138, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%); border: 1px solid rgba(139, 92, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); position: relative; overflow: hidden; }',
+        '.lb-result-article__conclusion::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #8a5cf6, #ec4899); }',
+        '.lb-result-article__conclusion h5 { font-size: 16px; font-weight: 700; color: #f3e8ff; margin: 0 0 14px 0; }',
+        '.lb-result-article__conclusion-body p { font-size: 14.5px; line-height: 1.7; color: #e2e8f0; margin: 0 0 12px 0; }',
+        '.lb-result-article__conclusion-body p:last-child { margin-bottom: 0; }'
+      ].join('\n');
+      document.head.appendChild(style);
+    }
+
     var profile = getActiveProfile();
     var modeLabel = state.mode === 'compatibility' ? '자미두수 궁합 리포트' : '자미두수 인생 리포트';
     if (resultName) {
@@ -823,11 +884,35 @@
       var title = String(chapter.title || ('Chapter ' + chapterIndex));
       var subtitle = String(chapter.subtitle || '');
       var summary = String(chapter.summary || '');
-      var sections = Array.isArray(chapter.sections) ? chapter.sections : [];
-      var insights = Array.isArray(chapter.keyInsights) ? chapter.keyInsights : [];
+      var sections = normalizeChapterSections(chapter);
       var advice = Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : [];
+      var cautions = Array.isArray(chapter.cautions) ? chapter.cautions : [];
+      var masterConclusion = String(chapter.masterConclusion || '');
+      var coreStars = Array.isArray(chapter.coreStars) ? chapter.coreStars : [];
+      var corePalaces = Array.isArray(chapter.corePalaces) ? chapter.corePalaces : [];
 
       tocHtml.push('<button type="button" class="lb-toc-item" data-zb-chapter="' + chapterIndex + '"><span>Ch.' + chapterIndex + '</span><strong>' + escapeHtml(title) + '</strong></button>');
+
+      var badgesHtml = '';
+      if (coreStars.length > 0 || corePalaces.length > 0) {
+        badgesHtml += '<div class="lb-result-article__badges">';
+        if (coreStars.length > 0) {
+          badgesHtml += '<div class="lb-badge-group"><span class="lb-badge-label">핵심 주성</span>';
+          badgesHtml += coreStars.map(function(s) {
+            return '<span class="lb-badge lb-badge--star">🌌 ' + escapeHtml(s) + '</span>';
+          }).join('');
+          badgesHtml += '</div>';
+        }
+        if (corePalaces.length > 0) {
+          badgesHtml += '<div class="lb-badge-group"><span class="lb-badge-label">영향 궁위</span>';
+          badgesHtml += corePalaces.map(function(p) {
+            var ko = PALACE_KOREAN[p] || p;
+            return '<span class="lb-badge lb-badge--palace">🏛️ ' + escapeHtml(ko) + '</span>';
+          }).join('');
+          badgesHtml += '</div>';
+        }
+        badgesHtml += '</div>';
+      }
 
       var sectionHtml = sections.map(function (section) {
         return '<section class="lb-result-article__section">'
@@ -835,11 +920,17 @@
           + toParagraphHtml(section && section.body || '')
           + '</section>';
       }).join('');
-      var insightsHtml = insights.length
-        ? '<div class="lb-result-article__list"><h5>핵심 통찰</h5><ul>' + insights.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
-        : '';
+
       var adviceHtml = advice.length
-        ? '<div class="lb-result-article__list"><h5>실천 조언</h5><ul>' + advice.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        ? '<div class="lb-result-article__list lb-result-article__list--advice"><h5>🎯 실천 처방</h5><ul>' + advice.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        : '';
+
+      var cautionsHtml = cautions.length
+        ? '<div class="lb-result-article__list lb-result-article__list--caution"><h5>⚠️ 경계 지침</h5><ul>' + cautions.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        : '';
+        
+      var masterConclusionHtml = masterConclusion
+        ? '<div class="lb-result-article__conclusion"><h5>✍️ 거장의 최종 제언</h5><div class="lb-result-article__conclusion-body">' + toParagraphHtml(masterConclusion) + '</div></div>'
         : '';
 
       articleHtml.push(
@@ -847,8 +938,9 @@
           '<p class="lb-result-article__chapter">CHAPTER ' + chapterIndex + '</p>' +
           '<h3 class="lb-result-article__title">' + escapeHtml(title) + '</h3>' +
           (subtitle ? '<p class="lb-result-article__subtitle">' + escapeHtml(subtitle) + '</p>' : '') +
+          badgesHtml +
           (summary ? '<div class="lb-result-article__summary">' + toParagraphHtml(summary) + '</div>' : '') +
-          '<div class="lb-result-article__body">' + sectionHtml + insightsHtml + adviceHtml + '</div>' +
+          '<div class="lb-result-article__body">' + sectionHtml + adviceHtml + cautionsHtml + masterConclusionHtml + '</div>' +
         '</article>'
       );
     }
@@ -1123,14 +1215,48 @@
       return Number(a && a.chapterIndex || 0) - Number(b && b.chapterIndex || 0);
     });
 
+    var PALACE_KOREAN = {
+      ming: '명궁(命宮)',
+      parents: '부모궁(父母宮)',
+      fuzang: '복덕궁(福德宮)',
+      house: '전택궁(田宅宮)',
+      career: '관록궁(官祿宮)',
+      friends: '노복궁(奴僕宮)',
+      travel: '천이궁(遷移宮)',
+      health: '질액궁(疾厄宮)',
+      wealth: '재백궁(財帛宮)',
+      children: '자녀궁(子女宮)',
+      spouse: '부처궁(夫妻宮)',
+      siblings: '형제궁(兄弟宮)',
+      body: '신궁(身宮)'
+    };
+
     var chapterBlocks = chapters.map(function (chapter, i) {
       var chapterIndex = Number(chapter && chapter.chapterIndex || (i + 1));
       var title = String(chapter && chapter.title || ('Chapter ' + chapterIndex));
       var subtitle = String(chapter && chapter.subtitle || '');
       var summary = String(chapter && chapter.summary || '');
-      var sections = Array.isArray(chapter && chapter.sections) ? chapter.sections : [];
+      var sections = normalizeChapterSections(chapter);
       var advice = Array.isArray(chapter && chapter.practicalAdvice) ? chapter.practicalAdvice : [];
-      var cautions = Array.isArray(chapter && chapter.keyInsights) ? chapter.keyInsights : [];
+      var cautions = Array.isArray(chapter && chapter.cautions) ? chapter.cautions : [];
+      var masterConclusion = String(chapter && chapter.masterConclusion || '');
+      var coreStars = Array.isArray(chapter && chapter.coreStars) ? chapter.coreStars : [];
+      var corePalaces = Array.isArray(chapter && chapter.corePalaces) ? chapter.corePalaces : [];
+
+      var badgesHtml = '';
+      if (coreStars.length > 0 || corePalaces.length > 0) {
+        badgesHtml += '<div class="zb-print-badges">';
+        if (coreStars.length > 0) {
+          badgesHtml += '<span class="zb-print-badge-label">주성:</span> ' + coreStars.map(function (s) { return '<span class="zb-print-badge zb-print-badge--star">' + escapeHtml(s) + '</span>'; }).join(' ') + ' &nbsp; ';
+        }
+        if (corePalaces.length > 0) {
+          badgesHtml += '<span class="zb-print-badge-label">궁위:</span> ' + corePalaces.map(function (p) {
+            var ko = PALACE_KOREAN[p] || p;
+            return '<span class="zb-print-badge zb-print-badge--palace">' + escapeHtml(ko) + '</span>';
+          }).join(' ');
+        }
+        badgesHtml += '</div>';
+      }
 
       var sectionHtml = sections.map(function (section) {
         var heading = escapeHtml(section && section.heading || '핵심 해석');
@@ -1139,10 +1265,13 @@
       }).join('');
 
       var adviceHtml = advice.length
-        ? '<div class="zb-print-list"><h5>실천 조언</h5><ul>' + advice.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        ? '<div class="zb-print-list zb-print-list--advice"><h5>🎯 실천 처방</h5><ul>' + advice.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
         : '';
       var cautionHtml = cautions.length
-        ? '<div class="zb-print-list"><h5>핵심 포인트</h5><ul>' + cautions.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        ? '<div class="zb-print-list zb-print-list--caution"><h5>⚠️ 경계 지침</h5><ul>' + cautions.map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul></div>'
+        : '';
+      var conclusionHtml = masterConclusion
+        ? '<div class="zb-print-conclusion"><h5>✍️ 거장의 최종 제언</h5><div class="zb-print-conclusion-body">' + toParagraphHtml(masterConclusion) + '</div></div>'
         : '';
 
       return [
@@ -1150,10 +1279,12 @@
         '<p class="zb-print-chip">CHAPTER ' + chapterIndex + '</p>',
         '<h2>' + escapeHtml(title) + '</h2>',
         subtitle ? '<p class="zb-print-sub">' + escapeHtml(subtitle) + '</p>' : '',
+        badgesHtml,
         summary ? '<div class="zb-print-summary">' + toParagraphHtml(summary) + '</div>' : '',
         sectionHtml,
         adviceHtml,
         cautionHtml,
+        conclusionHtml,
         '</article>'
       ].join('');
     }).join('');
@@ -1177,10 +1308,23 @@
       '.zb-print-summary{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}',
       '.zb-print-section{margin:0 0 10px}',
       '.zb-print-section h4{margin:0 0 6px;font-size:16px;color:#1f2937}',
-      '.zb-print-list{margin-top:8px}',
+      '.zb-print-list{margin-top:8px;padding:10px;border-radius:8px}',
       '.zb-print-list h5{margin:0 0 6px;font-size:14px;color:#1f2937}',
       '.zb-print-list ul{margin:0 0 0 18px;padding:0}',
-      '.zb-print-list li{margin:0 0 5px}',
+      '.zb-print-list li{margin:0 0 5px;font-size:13px;color:#334155}',
+      '.zb-print-badges{margin:8px 0 12px;font-size:12px;color:#475569}',
+      '.zb-print-badge-label{font-weight:700;color:#1e293b}',
+      '.zb-print-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-weight:500;font-size:11px;margin-right:4px}',
+      '.zb-print-badge--star{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}',
+      '.zb-print-badge--palace{background:#fdf2f8;color:#be185d;border:1px solid #fbcfe8}',
+      '.zb-print-list--advice{border-left:3px solid #10b981;padding-left:12px;background:#f0fdf4}',
+      '.zb-print-list--advice h5{color:#047857}',
+      '.zb-print-list--caution{border-left:3px solid #f59e0b;padding-left:12px;background:#fffbeb}',
+      '.zb-print-list--caution h5{color:#b45309}',
+      '.zb-print-conclusion{margin-top:14px;padding:14px;border:1px solid #ddd6fe;border-radius:8px;background:#faf5ff;break-inside:avoid}',
+      '.zb-print-conclusion h5{margin:0 0 6px;font-size:13px;color:#6d28d9}',
+      '.zb-print-conclusion-body p{margin:0 0 6px;font-size:12.5px;color:#3730a3}',
+      '.zb-print-conclusion-body p:last-child{margin-bottom:0}',
       '@media print{body{padding:0;background:#fff}.zb-print-cover,.zb-print-chapter{border:none;border-radius:0;box-shadow:none}}',
       '</style>',
       '</head>',

@@ -419,6 +419,16 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     }
   }
 
+  const uiBindingsPath = resolve(publicDir, "js", "core", "uiBindings.js");
+  if (existsSync(uiBindingsPath)) {
+    const uiBindingsJs = readFileSync(uiBindingsPath, "utf8");
+    const bustedUiBindingsJs = uiBindingsJs.replace(/(gotoZiweiPremium:\s*\(\)\s*=>\s*__loadScriptOnce\('\/js\/ziwei-book\.js\?v=)[^']+('\))/g, `$1${buildTimestamp}$2`);
+    if (bustedUiBindingsJs !== uiBindingsJs) {
+      writeFileSync(uiBindingsPath, bustedUiBindingsJs);
+      console.log(`[sync-legacy-static-to-public] Auto cache-busted uiBindings.js ziwei loader with ${buildTimestamp}`);
+    }
+  }
+
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
   const indexBuf = Buffer.from(baseIndexHtml, "utf8");
   const currentPublicHtml = existsSync(publicIndex)
@@ -461,6 +471,16 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     if (bustedRootRuntimeJs !== rootRuntimeJs) {
       writeFileSync(rootInlineRuntimePath, bustedRootRuntimeJs);
       console.log(`[sync-legacy-static-to-public] Updated root index-inline-runtime.js with ${buildTimestamp}`);
+    }
+  }
+
+  const rootUiBindingsPath = resolve(rootDir, "js", "core", "uiBindings.js");
+  if (existsSync(rootUiBindingsPath)) {
+    const rootUiBindingsJs = readFileSync(rootUiBindingsPath, "utf8");
+    const bustedRootUiBindingsJs = rootUiBindingsJs.replace(/(gotoZiweiPremium:\s*\(\)\s*=>\s*__loadScriptOnce\('\/js\/ziwei-book\.js\?v=)[^']+('\))/g, `$1${buildTimestamp}$2`);
+    if (bustedRootUiBindingsJs !== rootUiBindingsJs) {
+      writeFileSync(rootUiBindingsPath, bustedRootUiBindingsJs);
+      console.log(`[sync-legacy-static-to-public] Updated root uiBindings.js ziwei loader with ${buildTimestamp}`);
     }
   }
 

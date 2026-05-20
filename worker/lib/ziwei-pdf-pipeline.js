@@ -98,6 +98,33 @@ const STEM_SIHUA_RULES = Object.freeze({
   계: [{ type: "화록", star: "파군" }, { type: "화권", star: "거문" }, { type: "화과", star: "태음" }, { type: "화기", star: "탐랑" }],
 });
 
+const ZIWEI_CHAPTER_CATEGORY_GUIDE = Object.freeze({
+  core: ["명궁 원형", "신궁 발현", "성향 구조", "삶의 방향"],
+  stars: ["주성 강약", "보조성 작동", "살성 조율", "실전 적용"],
+  transformations: ["화록 흐름", "화권 지점", "화과 확장", "화기 리스크"],
+  career: ["직업 적성", "성과 패턴", "조직 역학", "전환 전략"],
+  wealth: ["수익 구조", "누수 패턴", "자산 배분", "재정 습관"],
+  relationship: ["애착 패턴", "갈등 구조", "회복 대화", "경계 설정"],
+  health: ["체력 리듬", "스트레스 트리거", "회복 루틴", "생활 처방"],
+  timing: ["대운 분기점", "세운 키워드", "월간 운영", "타이밍 전략"],
+  decade1: ["초반 10년", "기회 창", "준비 과제", "실행 우선순위"],
+  decade2: ["중반 10년", "전환 구간", "성장 병목", "확장 전략"],
+  decade3: ["후반 10년", "축적 자산", "관계 재편", "장기 안정"],
+  compatibility: ["관계 시너지", "갈등 방아쇠", "협업 방식", "관계 합의"],
+  summary: ["핵심 통합", "90일 실행", "리스크 관리", "마스터플랜"],
+});
+
+const ZIWEI_CHAPTER_SPECS = Object.freeze(
+  ZIWEI_PDF_CHAPTERS.map((chapter, index) => ({
+    id: chapter.key || `ch_${index + 1}`,
+    chapterNo: index + 1,
+    title: chapter.title,
+    goal: chapter.goal,
+    sections: ZIWEI_CHAPTER_CATEGORY_GUIDE[chapter.key] || ["핵심 구조", "현실 적용", "주의점", "실천 전략"],
+    focus: chapter.key,
+  })),
+);
+
 function asText(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -475,10 +502,11 @@ function normalizePalace(sourcePalace, index, missingSummary) {
   const key = resolvePalaceKey(source.key || source.palaceKey, source.nameKo || source.name || source.palaceName, index);
   const meaning = ZIWEI_PALACE_MEANINGS[key] || null;
 
-  const branch = asText(source.branch || source.earthlyBranch);
+  let branch = asText(source.branch || source.earthlyBranch);
+  if (!branch) {
+    branch = BRANCH_ORDER[index] || "";
+  }
   const missingFields = [];
-
-  if (!branch) missingFields.push("branch");
 
   const mainSource = asArray(source.mainStars || source.stars);
   const auxSource = asArray(source.subStars || source.auxStars || source.auxiliaryStars || source.minorStars);
@@ -493,9 +521,12 @@ function normalizePalace(sourcePalace, index, missingSummary) {
   });
 
   const mainStars = mainSource.map((star, idx) => normalizeStar(star, "main", `palaces.${key}.mainStars[${idx}]`, missingSummary));
-  const subStars = auxSource
-    .concat(maleficSource)
-    .map((star, idx) => normalizeStar(star, idx < auxSource.length ? "sub" : "malefic", `palaces.${key}.subStars[${idx}]`, missingSummary));
+  const auxiliaryNormalized = auxSource
+    .map((star, idx) => normalizeStar(star, "unknown", `palaces.${key}.auxStars[${idx}]`, missingSummary));
+  const assistantStars = auxiliaryNormalized.filter((star) => star.role === "helper");
+  const minorStars = auxiliaryNormalized.filter((star) => star.role !== "helper");
+  const maleficStars = maleficSource.map((star, idx) => normalizeStar(star, "malefic", `palaces.${key}.maleficStars[${idx}]`, missingSummary));
+  const subStars = assistantStars.concat(minorStars, maleficStars);
   const sihua = sihuaSource.map((entry, idx) => normalizeSihuaEntry(entry, `palaces.${key}.sihua[${idx}]`, missingSummary));
 
   const oppositePalaceKey = asText(source.oppositePalaceKey);
@@ -507,12 +538,99 @@ function normalizePalace(sourcePalace, index, missingSummary) {
     branch: branch || null,
     description: meaning?.expanded || meaning?.meaning || "이 궁의 데이터가 부분적으로 누락되어 기본 궁 의미 중심으로 해석합니다.",
     mainStars,
+    assistantStars,
+    minorStars,
+    maleficStars,
     subStars,
     sihua,
+    transformations: sihua,
     oppositePalaceKey: oppositePalaceKey || null,
     trianglePalaceKeys,
     fallbackUsed: missingFields.length > 0,
     missingFields,
+  };
+}
+
+function buildFallbackAnnualFlow(chartMeta = {}, palaces = []) {
+  const mingPalaceKey = String(chartMeta.mingPalaceKey || "ming").trim() || "ming";
+  const mingPalace = asArray(palaces).find((palace) => palace?.key === mingPalaceKey) || asArray(palaces)[0] || {};
+  const stars = asArray(mingPalace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 3);
+  return {
+    year: 2026,
+    stemBranch: "병오(丙午)",
+    palaceKey: mingPalaceKey,
+    palaceName: ZIWEI_PALACE_MEANINGS[mingPalaceKey]?.name || asText(mingPalace?.name) || "명궁",
+    keyStars: stars,
+    guidance: "주도권 확보와 대외 실행 속도 조절이 핵심인 해입니다.",
+    fallbackUsed: true,
+  };
+}
+
+function buildFallbackMonthlyFlow(annualFlow = {}, palaces = []) {
+  const baseKey = String(annualFlow?.palaceKey || "ming").trim() || "ming";
+  const baseIndex = Math.max(0, PALACE_ORDER.indexOf(baseKey));
+  return Array.from({ length: 12 }, (_, idx) => {
+    const month = idx + 1;
+    const palaceKey = PALACE_ORDER[(baseIndex + idx) % PALACE_ORDER.length] || "ming";
+    const palace = asArray(palaces).find((row) => row?.key === palaceKey) || {};
+    return {
+      month,
+      palaceKey,
+      palaceName: ZIWEI_PALACE_MEANINGS[palaceKey]?.name || asText(palace?.name) || palaceKey,
+      keyStars: asArray(palace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 2),
+      guidance: `${month}월은 ${ZIWEI_PALACE_MEANINGS[palaceKey]?.name || palaceKey} 운영 원칙을 우선 점검하세요.`,
+      fallbackUsed: true,
+    };
+  });
+}
+
+function normalizeCyclesForPdf(rawChart = {}, chartMeta = {}, palaces = [], missingSummary = []) {
+  const chart = toPlainObject(rawChart);
+  const luck = toPlainObject(chart.luck);
+  const calcCycles = toPlainObject(toPlainObject(chart.calculatedData).cycles);
+  const annualFromLuck = toPlainObject(luck.annual);
+  const annualFromCycles = asArray(calcCycles.annual)[0];
+  const annual = Object.keys(annualFromLuck).length
+    ? annualFromLuck
+    : (annualFromCycles && typeof annualFromCycles === "object" ? annualFromCycles : null);
+  const monthly = asArray(luck.monthly).length
+    ? asArray(luck.monthly)
+    : asArray(calcCycles.monthly);
+  const daXian = asArray(calcCycles.daXian).length
+    ? asArray(calcCycles.daXian)
+    : asArray(luck.decadeLuck);
+
+  const normalizedAnnual = annual && Object.keys(toPlainObject(annual)).length
+    ? {
+      ...toPlainObject(annual),
+      fallbackUsed: false,
+    }
+    : buildFallbackAnnualFlow(chartMeta, palaces);
+  if (!annual || !Object.keys(toPlainObject(annual)).length) {
+    missingSummary.push("cycles.annual");
+  }
+
+  const normalizedMonthly = monthly.length
+    ? monthly.map((row, idx) => ({
+      month: Number(row?.month || idx + 1),
+      palaceKey: asText(row?.palaceKey || row?.key || row?.gong || row?.palace),
+      keyStars: asArray(row?.keyStars || row?.stars).map((name) => asText(name)).filter(Boolean).slice(0, 3),
+      guidance: asText(row?.guidance || row?.summary || row?.description),
+      fallbackUsed: false,
+    }))
+    : buildFallbackMonthlyFlow(normalizedAnnual, palaces);
+  if (!monthly.length) {
+    missingSummary.push("cycles.monthly");
+  }
+
+  if (!daXian.length) {
+    missingSummary.push("cycles.daXian");
+  }
+
+  return {
+    annual: normalizedAnnual,
+    monthly: normalizedMonthly,
+    daXian: daXian.length ? daXian : [],
   };
 }
 
@@ -551,11 +669,24 @@ function palaceArrayFromRaw(rawChart) {
 function findBodyPalaceKey(rawChart, normalizedPalaces) {
   const chart = toPlainObject(rawChart);
   const chartMeta = toPlainObject(chart.chartMeta);
-  const bodyBranch = normalizeBranchToken(chartMeta.shenGong || chartMeta.bodyPalace || chartMeta.bodyPalaceKey);
-  if (!bodyBranch) return null;
+  let bodyBranch = normalizeBranchToken(chartMeta.shenGong || chartMeta.bodyPalace || chartMeta.bodyPalaceKey);
+
+  // 1차 fallback: palaces를 순회하며 '신궁' 또는 '身' 이름이 포함된 궁 탐색
+  const foundByMeta = normalizedPalaces.find((p) => {
+    const name = String(p.name || "").trim();
+    return name.includes("신궁") || name.includes("身궁") || name.includes("身宮") || p.key === "shen";
+  });
+  if (foundByMeta) return foundByMeta.key;
+
+  if (!bodyBranch) {
+    // 2차 fallback: 명궁과 동일한 위치로 설정 (자오시생 기준)
+    const mingGongBranch = normalizeBranchToken(chartMeta.mingGong || "인");
+    const foundMing = normalizedPalaces.find((p) => normalizeBranchToken(p.branch) === mingGongBranch);
+    return foundMing?.key || "ming";
+  }
 
   const found = normalizedPalaces.find((palace) => normalizeBranchToken(palace.branch) === bodyBranch);
-  return found?.key || null;
+  return found?.key || "ming";
 }
 
 export function normalizeZiweiChartForPdf(rawChart = {}, userProfile = {}) {
@@ -574,6 +705,14 @@ export function normalizeZiweiChartForPdf(rawChart = {}, userProfile = {}) {
   const mingBranch = normalizeBranchToken(chartMeta.mingGong);
   const mingPalaceKey = normalizedPalaces.find((palace) => Boolean(palace.branch && normalizeBranchToken(palace.branch) === mingBranch))?.key || "ming";
   const bodyPalaceKey = findBodyPalaceKey(rawChart, normalizedPalaces);
+  const cycles = normalizeCyclesForPdf(rawChart, { mingPalaceKey, bodyPalaceKey }, normalizedPalaces, missingSummary);
+  const stars = {
+    mainStars: Array.from(new Set(normalizedPalaces.flatMap((palace) => asArray(palace.mainStars).map((star) => asText(star?.name))).filter(Boolean))),
+    assistantStars: Array.from(new Set(normalizedPalaces.flatMap((palace) => asArray(palace.assistantStars).map((star) => asText(star?.name))).filter(Boolean))),
+    minorStars: Array.from(new Set(normalizedPalaces.flatMap((palace) => asArray(palace.minorStars).map((star) => asText(star?.name))).filter(Boolean))),
+    maleficStars: Array.from(new Set(normalizedPalaces.flatMap((palace) => asArray(palace.maleficStars).map((star) => asText(star?.name))).filter(Boolean))),
+    sihua: Array.from(new Set(normalizedPalaces.flatMap((palace) => asArray(palace.sihua).map((item) => `${asText(item?.star)}:${asText(item?.type)}`)).filter(Boolean))),
+  };
 
   if (!bodyPalaceKey) {
     missingSummary.push("bodyPalace");
@@ -600,6 +739,13 @@ export function normalizeZiweiChartForPdf(rawChart = {}, userProfile = {}) {
       source: sourceLevel,
     },
     palaces: normalizedPalaces,
+    stars,
+    cycles,
+    relationships: {
+      opposite: ZIWEI_RELATIONSHIP_RULES.opposite,
+      triangle: ZIWEI_RELATIONSHIP_RULES.triangle,
+      sanfangsazheng: ZIWEI_RELATIONSHIP_RULES.sanfangsazheng,
+    },
     missingSummary: Array.from(new Set(missingSummary)),
     knowledgeBase: {
       palaceMeanings: ZIWEI_PALACE_MEANINGS,
@@ -664,8 +810,9 @@ function sanitizeZiweiOutputText(text) {
     .trim();
 }
 
-export function buildZiweiGeminiPrompt({ chapter, context }) {
-  const chapterSpec = chapter || ZIWEI_PDF_CHAPTERS[0];
+export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummaries = [] }) {
+  const chapterSpec = chapter || ZIWEI_CHAPTER_SPECS[0];
+  const chapterSections = asArray(chapterSpec?.sections).join(", ");
 
   const systemPrompt = [
     "너는 30년 경력의 최고급 자미두수 상담가다.",
@@ -679,7 +826,7 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     "5. 별 강약 기호가 있으면 반드시 그 기호의 의미를 해석에 반영한다.",
     "6. 문체는 신비롭고 고급스럽되, 실제 상담처럼 구체적이어야 한다.",
     "7. 추상적인 말만 반복하지 말고 성격, 연애, 재물, 직업, 인간관계, 삶의 방향으로 연결해 설명한다.",
-    "8. 각 챕터는 충분히 길고 깊어야 한다.",
+    "8. 각 챕터는 매우 길고 깊어야 한다. sections의 각 body 항목은 반드시 공백 포함 최소 800자 이상(한글 기준)의 실전적이고 풍부한 상담 내용을 담아야 한다. 절대 요약형이나 짧은 개조식으로 끝내지 마라.",
     "9. 독자가 내 명반을 실제로 읽어준다고 느낄 정도로 구체적으로 작성한다.",
     "10. 무조건 JSON 형식으로만 응답한다.",
     "11. 마크다운 코드블록, 표, 파이프(|) 테이블, 불릿/번호 목록, HTML 태그를 출력하지 않는다.",
@@ -688,7 +835,12 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     "14. 데이터 부족/보완/안내/메모 같은 메타 표현을 본문에 쓰지 않는다.",
     "15. 시스템 지침 문장, 프롬프트 규칙 문장, JSON 키 설명 문장을 본문으로 출력하지 않는다.",
     "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
+    "17. 이전 챕터들과 관점이나 내용이 절대 중복되지 않도록 하라. 제공된 [이전 챕터 요약 정보]를 참조하여, 이미 다른 챕터에서 다룬 해석을 반복하지 않고 이 챕터만의 고유한 관점(예: 성격 자아 -> 직업 자아 -> 재물 성향 등)을 확실히 보여줘라.",
   ].join("\n");
+
+  const duplicateAvoidanceText = previousChapterSummaries.length > 0
+    ? `\n[이전 챕터 요약 정보 (내용 중복 절대 금지 가이드)]\n${previousChapterSummaries.join("\n")}\n`
+    : "";
 
   const userPrompt = [
     "다음은 프리미엄 자미두수 PDF 생성을 위한 명반 데이터입니다.",
@@ -697,19 +849,29 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     JSON.stringify(context.userProfile || {}, null, 2),
     "",
     "[정규화된 자미두수 명반]",
-    JSON.stringify({ chartMeta: context.chartMeta, palaces: context.palaces, missingSummary: context.missingSummary }, null, 2),
+    JSON.stringify({
+      chartMeta: context.chartMeta,
+      palaces: context.palaces,
+      stars: context.stars,
+      cycles: context.cycles,
+      relationships: context.relationships,
+      missingSummary: context.missingSummary,
+    }, null, 2),
     "",
     "[자미두수 기본 해석 Knowledge Base]",
     JSON.stringify(context.knowledgeBase || {}, null, 2),
     "",
+    duplicateAvoidanceText,
     "[작성할 챕터]",
     chapterSpec.title,
     "",
-    "[챕터 작성 목표]",
+    "[챕터 작성 목표 및 세부 카테고리 가이드]",
     chapterSpec.goal,
+    chapterSections ? `챕터 카테고리: ${chapterSections}` : "",
+    "반드시 각 영역별 특징과 운의 활용도, 대안 행동 계획까지 연결하여 서술하세요.",
     "",
     "[출력 형식]",
-    "반드시 아래 JSON 형식으로만 응답하세요.",
+    "반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 출력하지 마세요.",
     "{",
     '  "chapterTitle": "string",',
     '  "chapterSubtitle": "string",',
@@ -719,12 +881,16 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     "  ],",
     '  "practicalAdvice": ["string"],',
     '  "cautions": ["string"],',
+    '  "masterConclusion": "string",',
+    '  "coreStars": ["string"],',
+    '  "corePalaces": ["string"],',
     '  "missingDataNotice": "string | null"',
     "}",
     "",
-    "[문체 기준]",
+    "[문체 및 분량 상세 기준]",
     "- 30년 경력 상담가가 직접 읽어주는 1:1 컨설팅 톤으로 쓰세요.",
     "- 별 강약 기호가 있으면 반드시 해석에 반영하세요.",
+    "- sections 내 각 body 항목은 반드시 800자 이상(공백 포함)의 풍부하고 유려한 문장들로 채워야 하며, 심화된 실전 처방을 포함해야 합니다.",
     "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
     "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
   ].join("\n");
@@ -734,6 +900,18 @@ export function buildZiweiGeminiPrompt({ chapter, context }) {
     userPrompt,
     prompt: `[SYSTEM]\n${systemPrompt}\n\n[USER]\n${userPrompt}`,
   };
+}
+
+export function generateZiweiChapterPrompt({ chapter, context, previousChapterSummaries = [] }) {
+  const chapterId = String(chapter?.key || chapter?.id || "").trim();
+  const chapterNo = Number(chapter?.chapterNo || chapter?.num || 0);
+  const byId = ZIWEI_CHAPTER_SPECS.find((row) => row.id === chapterId);
+  const byNo = chapterNo > 0 ? ZIWEI_CHAPTER_SPECS[chapterNo - 1] : null;
+  const chapterSpec = byId || byNo || {
+    ...(chapter || {}),
+    sections: asArray(chapter?.sections),
+  };
+  return buildZiweiGeminiPrompt({ chapter: chapterSpec, context, previousChapterSummaries });
 }
 
 function stripCodeFence(text) {
@@ -781,22 +959,45 @@ function repairJsonString(text) {
     .replace(/\t/g, "    ");
 }
 
+function hasValidZiweiChapterStructure(data) {
+  const chapter = toPlainObject(data);
+  const sections = asArray(chapter.sections)
+    .map((row) => toPlainObject(row))
+    .filter((row) => asText(row.heading || row.title) && asText(row.body));
+  if (sections.length < 2) return false;
+  const summary = asText(chapter.summary);
+  if (!summary) return false;
+  return true;
+}
+
 export function parseZiweiGeminiResponse(rawText) {
   const parsed = tryParseJson(rawText);
-  if (parsed) return { ok: true, data: parsed, repaired: false };
+  if (parsed && hasValidZiweiChapterStructure(parsed)) {
+    return { ok: true, data: parsed, repaired: false, structureValid: true };
+  }
+  if (parsed) {
+    return { ok: false, data: parsed, repaired: false, structureValid: false, error: "ZIWEI_JSON_SCHEMA_INVALID" };
+  }
 
   const repairedText = repairJsonString(rawText);
-  if (!repairedText) return { ok: false, data: null, repaired: false };
+  if (!repairedText) return { ok: false, data: null, repaired: false, structureValid: false, error: "ZIWEI_JSON_EMPTY" };
 
   try {
-    return { ok: true, data: JSON.parse(repairedText), repaired: true };
+    const repaired = JSON.parse(repairedText);
+    if (hasValidZiweiChapterStructure(repaired)) {
+      return { ok: true, data: repaired, repaired: true, structureValid: true };
+    }
+    return { ok: false, data: repaired, repaired: true, structureValid: false, error: "ZIWEI_JSON_SCHEMA_INVALID" };
   } catch (_) {
-    return { ok: false, data: null, repaired: true };
+    return { ok: false, data: null, repaired: true, structureValid: false, error: "ZIWEI_JSON_PARSE_FAILED" };
   }
 }
 
 export function createFallbackChapter(chapter, context) {
   const spec = chapter || { title: "기본 챕터", goal: "기본 해석" };
+  const mingPalace = asArray(context?.palaces).find((palace) => palace?.key === (context?.chartMeta?.mingPalaceKey || "ming")) || asArray(context?.palaces)[0] || {};
+  const mingStars = asArray(mingPalace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 3);
+  const annualFlow = toPlainObject(context?.cycles?.annual);
   return {
     chapterTitle: spec.title,
     chapterSubtitle: spec.goal || "챕터별 실행 해석",
@@ -804,11 +1005,11 @@ export function createFallbackChapter(chapter, context) {
     sections: [
       {
         heading: "운명의 구조",
-        body: "이 영역은 자미두수의 핵심 축을 이루므로, 제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 선택의 우선순위를 명확히 할수록 운의 체감이 빨라집니다.",
+        body: `이 영역은 자미두수의 핵심 축을 이루므로, 제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 현재 명반에서는 ${mingStars.join(", ") || "핵심 주성"}의 작동을 명궁 중심으로 읽는 것이 중요하며, 선택의 우선순위를 명확히 할수록 운의 체감이 빨라집니다.`,
       },
       {
         heading: "실전 운영 전략",
-        body: "단정형 예측보다 생활 리듬, 의사결정 기준, 관계 경계 설정처럼 실행 가능한 원칙을 먼저 고정하면 운의 손실을 줄이고 상승 구간을 안정적으로 확대할 수 있습니다.",
+        body: `단정형 예측보다 생활 리듬, 의사결정 기준, 관계 경계 설정처럼 실행 가능한 원칙을 먼저 고정하면 운의 손실을 줄이고 상승 구간을 안정적으로 확대할 수 있습니다. ${asText(annualFlow?.stemBranch) ? `${annualFlow.stemBranch} 흐름에서는` : "당해 흐름에서는"} 실행 속도보다 실행 일관성을 먼저 고정하세요.`,
       },
     ],
     practicalAdvice: [
@@ -818,6 +1019,9 @@ export function createFallbackChapter(chapter, context) {
     cautions: [
       "단기 감정에 반응해 장기 흐름을 훼손하는 결정을 피하세요.",
     ],
+    masterConclusion: "주어진 운명 설계도를 믿고, 매 순간 나에게 집중하는 선택을 하십시오. 그것이 가장 강력한 자미두수의 운명 개척법입니다.",
+    coreStars: ["자미", "천부"],
+    corePalaces: ["ming"],
     missingDataNotice: null,
   };
 }
@@ -833,6 +1037,10 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
 
   const practicalAdvice = asArray(chapter.practicalAdvice).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  
+  const masterConclusion = sanitizeZiweiOutputText(asText(chapter.masterConclusion)) || "인생의 매 순간을 주도적으로 이끌어가며, 지혜로운 선택으로 자신만의 길을 가꾸어가길 응원합니다.";
+  const coreStars = asArray(chapter.coreStars).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  const corePalaces = asArray(chapter.corePalaces).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
 
   return {
     chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle)) || chapterSpec?.title || "자미두수 해석",
@@ -841,6 +1049,9 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     sections,
     practicalAdvice,
     cautions,
+    masterConclusion,
+    coreStars: coreStars.length > 0 ? coreStars : ["자미"],
+    corePalaces: corePalaces.length > 0 ? corePalaces : ["ming"],
     missingDataNotice: null,
   };
 }
@@ -889,12 +1100,21 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
   const chapter = sanitizeZiweiChapterJson(chapterJson, chapterSpec);
   const lines = [];
 
-  void context;
-  void includePrelude;
+  if (includePrelude) {
+    lines.push(buildKnowledgePrelude(context));
+  }
 
   lines.push(`# ${chapter.chapterTitle}`);
   lines.push(`## ${chapter.chapterSubtitle}`);
   lines.push(chapter.summary);
+
+  if (chapter.coreStars.length || chapter.corePalaces.length) {
+    const starsText = chapter.coreStars.length ? chapter.coreStars.join(", ") : "미상";
+    const palacesText = chapter.corePalaces.length
+      ? chapter.corePalaces.map((key) => ZIWEI_PALACE_MEANINGS[key]?.name || key).join(", ")
+      : "미상";
+    lines.push(`### 핵심 별/궁 시그널\n- 핵심 별: ${starsText}\n- 핵심 궁: ${palacesText}`);
+  }
 
   if (chapter.sections.length) {
     chapter.sections.forEach((section, index) => {
@@ -913,26 +1133,33 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
     chapter.cautions.forEach((item) => lines.push(`- ${item}`));
   }
 
+  if (chapter.masterConclusion) {
+    lines.push("### 거장의 최종 제언");
+    lines.push(chapter.masterConclusion);
+  }
+
   return lines.filter(Boolean).join("\n\n");
 }
 
 export function ensureZiweiChapterMarkdownLength(text, context, minLength = 5200) {
   let output = sanitizeZiweiOutputText(String(text || "").trim());
   const bodyPalaceKey = asText(context?.chartMeta?.bodyPalaceKey);
+  const palaceLoop = asArray(context?.palaces).slice(0, 12);
+  const annualLabel = asText(context?.cycles?.annual?.stemBranch) || "당해 흐름";
 
   let guard = 0;
-  while (output.length < minLength && guard < 12) {
-    const blockNo = guard + 1;
+  while (output.length < minLength && guard < 14) {
+    const palace = palaceLoop[guard % Math.max(1, palaceLoop.length)] || {};
+    const palaceName = asText(palace?.name) || "핵심 궁";
+    const keyStar = asText(asArray(palace?.mainStars)[0]?.name) || "핵심 주성";
     const dynamicChunk = [
-      `### 심화 상담 ${blockNo}`,
-      "확인된 궁 배치와 주성 흐름을 기준으로, 판단 우선순위를 행동 단위로 재정렬하는 해석을 제공합니다.",
-      blockNo % 2 === 0
-        ? "명궁-관록궁-재백궁 연결은 직업과 자산 운영의 핵심 축이며, 복덕궁-질액궁 연결은 회복력 관리의 핵심 축으로 작동합니다."
-        : "명궁-천이궁-교우궁 연결은 대외 관계 운영의 핵심 축이며, 복덕궁-전택궁 연결은 정서 안정 기반의 핵심 축으로 작동합니다.",
+      `### 실행 확장 분석 ${guard + 1}: ${palaceName}`,
+      `${palaceName}에서 ${keyStar}의 작동은 단기 반응보다 중기 운영 원칙을 우선 고정할 때 안정적으로 발현됩니다. 특히 ${annualLabel} 구간에는 결정을 줄이고 실행 반복을 늘리는 방식이 체감 성과를 높입니다.`,
+      "실전 기준: 목표를 늘리기보다 손실을 먼저 줄이는 순서로 설계하면, 같은 운에서도 피로 누적과 관계 충돌을 동시에 낮출 수 있습니다.",
       bodyPalaceKey
-        ? `신궁 정보는 ${bodyPalaceKey} 축의 실행력과 후천적 선택 패턴을 구체화하는 데 사용합니다.`
-        : "신궁 정보가 제한적인 경우에는 명궁과 핵심 현실궁의 상호작용을 중심으로 실행 패턴을 제시합니다.",
-      "실행 권고: 이번 주에는 가장 반복 비용이 큰 선택 패턴 1개를 기록하고, 대체 행동 1개를 같은 시간대에 고정하세요.",
+        ? `신궁(${bodyPalaceKey}) 축은 외부 행동 표현을 보정하는 장치이므로, 관계 대화와 일정 운영의 기준 문장을 미리 정해두면 운의 소모를 줄일 수 있습니다.`
+        : "신궁 정보가 제한적일 때는 명궁-관록궁-복덕궁의 상호작용을 기준으로 실행 피로를 관리하세요.",
+      "주간 액션: 가장 소모가 큰 선택 패턴 1개를 기록하고, 대체 행동 1개를 같은 시간대에 7일 연속 고정하세요.",
     ].join("\n\n");
     output = `${output}\n\n${dynamicChunk}`;
     guard += 1;
@@ -940,4 +1167,4 @@ export function ensureZiweiChapterMarkdownLength(text, context, minLength = 5200
   return sanitizeZiweiOutputText(output);
 }
 
-export { ZIWEI_PDF_CHAPTERS };
+export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS };

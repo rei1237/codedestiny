@@ -43,10 +43,10 @@ import {
 import {
   ZIWEI_PDF_CHAPTERS as ZIWEI_PDF_CHAPTERS_V2,
   buildZiweiChapterMarkdown,
-  buildZiweiGeminiPrompt,
   buildZiweiPdfContext,
   createFallbackChapter,
   ensureZiweiChapterMarkdownLength,
+  generateZiweiChapterPrompt,
   parseZiweiGeminiResponse,
   sanitizeZiweiChapterJson,
 } from "../lib/ziwei-pdf-pipeline.js";
@@ -6555,6 +6555,7 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
     chapter,
     chapterMeta: chapterMeta || null,
     text: sanitizedText,
+    chapterJson: extra.chapterJson || null,
     updatedAt: new Date(now).toISOString(),
   };
   entry.extra = { ...(entry.extra || {}), ...(extra || {}) };
@@ -8992,6 +8993,51 @@ function buildZiweiPdfPipelineRawChart(reportPayload, canonicalZiweiChart, dataQ
   };
 }
 
+function buildZiweiAnnualFallbackPayload(chartMeta = {}, palaces = []) {
+  const mingToken = String(chartMeta?.mingGong || "").trim();
+  const palaceMatch = (Array.isArray(palaces) ? palaces : []).find((palace) => {
+    const key = String(palace?.key || palace?.palaceKey || "").trim();
+    const name = String(palace?.nameKo || palace?.name || "").trim();
+    return key === "ming" || name === "명궁" || normalizeZiweiBranchToken(palace?.branch) === normalizeZiweiBranchToken(mingToken);
+  }) || (Array.isArray(palaces) ? palaces[0] : null);
+  return {
+    year: 2026,
+    stemBranch: "병오(丙午)",
+    palaceKey: String(palaceMatch?.key || palaceMatch?.palaceKey || "ming").trim() || "ming",
+    palaceName: String(palaceMatch?.nameKo || palaceMatch?.name || "명궁").trim() || "명궁",
+    keyStars: (Array.isArray(palaceMatch?.mainStars) ? palaceMatch.mainStars : [])
+      .map((star) => String(star?.nameKo || star?.name || "").trim())
+      .filter(Boolean)
+      .slice(0, 3),
+    guidance: "2026년에는 실행의 일관성과 대외 확장 속도 조절을 동시에 관리하는 전략이 유효합니다.",
+    fallbackUsed: true,
+  };
+}
+
+function buildZiweiMonthlyFallbackPayload(annual = null, palaces = []) {
+  const rows = Array.isArray(palaces) ? palaces : [];
+  const baseKey = String(annual?.palaceKey || rows?.[0]?.key || "ming").trim() || "ming";
+  const order = Array.from(new Set(rows.map((row) => String(row?.key || row?.palaceKey || "").trim()).filter(Boolean)));
+  const baseIndex = Math.max(0, order.indexOf(baseKey));
+  const cycleOrder = order.length ? order : ["ming", "siblings", "spouse", "children", "wealth", "health", "travel", "friends", "career", "property", "fortune", "parents"];
+  return Array.from({ length: 12 }, (_, idx) => {
+    const month = idx + 1;
+    const key = cycleOrder[(baseIndex + idx) % cycleOrder.length] || "ming";
+    const palace = rows.find((row) => String(row?.key || row?.palaceKey || "").trim() === key) || {};
+    return {
+      month,
+      palaceKey: key,
+      palaceName: String(palace?.nameKo || palace?.name || key).trim() || key,
+      keyStars: (Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+        .map((star) => String(star?.nameKo || star?.name || "").trim())
+        .filter(Boolean)
+        .slice(0, 2),
+      guidance: `${month}월은 ${String(palace?.nameKo || palace?.name || key).trim() || key} 기반 루틴을 우선 점검하세요.`,
+      fallbackUsed: true,
+    };
+  });
+}
+
 function buildZiweiPdfReportPayload({
   basicZiweiResult,
   userProfile,
@@ -9068,6 +9114,16 @@ function buildZiweiPdfReportPayload({
 
   const mergedMingGong = pickText(fromCanonical?.chartMeta?.mingGong, existing?.chartMeta?.mingGong, fromBasic?.chartMeta?.mingGong) || null;
   const mergedShenGong = pickText(fromCanonical?.chartMeta?.shenGong, existing?.chartMeta?.shenGong, fromBasic?.chartMeta?.shenGong) || null;
+  const annualLuckNormalized = (mergedAnnualLuck && typeof mergedAnnualLuck === "object" && !Array.isArray(mergedAnnualLuck))
+    ? mergedAnnualLuck
+    : ((Array.isArray(mergedAnnualLuck) && mergedAnnualLuck[0] && typeof mergedAnnualLuck[0] === "object") ? mergedAnnualLuck[0] : null);
+  const annualLuck = annualLuckNormalized || buildZiweiAnnualFallbackPayload({ mingGong: mergedMingGong }, mergedPalaces);
+  const monthlyLuck = (Array.isArray(mergedMonthlyLuck) && mergedMonthlyLuck.length)
+    ? mergedMonthlyLuck
+    : buildZiweiMonthlyFallbackPayload(annualLuck, mergedPalaces);
+
+  if (!annualLuckNormalized) pushUnique(dataQuality?.supplementedFields, "luck.annual.2026Fallback");
+  if (!Array.isArray(mergedMonthlyLuck) || mergedMonthlyLuck.length === 0) pushUnique(dataQuality?.supplementedFields, "luck.monthly.2026Fallback");
 
   const profileBirthDate = String(birthInput?.birthDate || "").trim();
   const profileBirthTime = String(birthInput?.birthTime || "").trim();
@@ -9097,8 +9153,8 @@ function buildZiweiPdfReportPayload({
     luck: {
       decadeLuck: pickArray(fromCanonical?.luck?.decadeLuck, existing?.luck?.decadeLuck, fromBasic?.luck?.decadeLuck),
       currentDecadeLuck: fromCanonical?.luck?.currentDecadeLuck || existing?.luck?.currentDecadeLuck || fromBasic?.luck?.currentDecadeLuck || null,
-      annual: mergedAnnualLuck,
-      monthly: mergedMonthlyLuck,
+      annual: annualLuck,
+      monthly: monthlyLuck,
     },
     calculatedData: {
       ...(existing?.calculatedData && typeof existing.calculatedData === "object" ? existing.calculatedData : {}),
@@ -9124,12 +9180,12 @@ function buildZiweiPdfReportPayload({
           ? existing.calculatedData.cycles.annual
           : (Array.isArray(canonicalCalculatedData?.cycles?.annual) && canonicalCalculatedData.cycles.annual.length)
             ? canonicalCalculatedData.cycles.annual
-            : (mergedAnnualLuck ? [mergedAnnualLuck] : []),
+            : (annualLuck ? [annualLuck] : []),
         monthly: (Array.isArray(existing?.calculatedData?.cycles?.monthly) && existing.calculatedData.cycles.monthly.length)
           ? existing.calculatedData.cycles.monthly
           : (Array.isArray(canonicalCalculatedData?.cycles?.monthly) && canonicalCalculatedData.cycles.monthly.length)
             ? canonicalCalculatedData.cycles.monthly
-            : mergedMonthlyLuck,
+            : monthlyLuck,
       },
     },
     diagnostics: {
@@ -9179,16 +9235,16 @@ function validateZiweiPdfPayload(payload, birthInput = null) {
     || source?.profile?.birth?.solarDate
     || ""
   ).trim();
-  if (!birthDate) critical.push("birthInput");
+  if (!birthDate) optional.push("birthInput");
 
-  if (!String(chartMeta?.mingGong || "").trim()) critical.push("chartMeta.mingGong");
-  if (!String(chartMeta?.shenGong || "").trim()) critical.push("chartMeta.shenGong");
+  if (!String(chartMeta?.mingGong || "").trim()) optional.push("chartMeta.mingGong");
+  if (!String(chartMeta?.shenGong || "").trim()) optional.push("chartMeta.shenGong");
   if (!palaces.length) critical.push("palaces");
-  if (palaces.length > 0 && palaces.length < 12) critical.push("palaces.length");
+  if (palaces.length > 0 && palaces.length < 8) optional.push("palaces.length");
 
   const allMainStars = palaces.flatMap((palace) => Array.isArray(palace?.mainStars) ? palace.mainStars : []);
   const hasAnyMainStar = allMainStars.some((star) => String(star?.nameKo || star?.name || "").trim());
-  if (!hasAnyMainStar) critical.push("palaces.mainStars");
+  if (!hasAnyMainStar) optional.push("palaces.mainStars");
 
   if (!sihua.length) optional.push("sihua");
   if (!Array.isArray(luck?.decadeLuck) || luck.decadeLuck.length === 0) optional.push("luck.decadeLuck");
@@ -9742,9 +9798,16 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   (Array.isArray(context?.missingSummary) ? context.missingSummary : []).forEach((field) => pushUnique(dataQuality?.missingFields, field));
   (Array.isArray(context?.validation?.warnings) ? context.validation.warnings : []).forEach((warning) => pushUnique(dataQuality?.warnings, warning));
 
-  const promptBundle = buildZiweiGeminiPrompt({
+  const previousChapterSummaries = (previousChapterTexts || []).map((txt, idx) => {
+    if (!txt) return `Ch.${idx + 1}: [기록 없음]`;
+    const cleanText = txt.replace(/\s+/g, " ").trim();
+    return `Ch.${idx + 1}: ${cleanText.slice(0, 200)}...`;
+  });
+
+  const promptBundle = generateZiweiChapterPrompt({
     chapter: chapterSpec,
     context,
+    previousChapterSummaries,
   });
 
   console.info("[ZiweiPremium][DebugArtifact][geminiPromptPayload.json]", {
@@ -9771,20 +9834,24 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   let parsed = parseZiweiGeminiResponse(rawText);
 
   if (!parsed.ok) {
-    const repairPrompt = [
-      "아래 응답을 JSON 스키마에 맞춰 단 1개의 JSON 객체로만 재작성하세요.",
-      "마크다운 코드펜스 없이 JSON만 출력하세요.",
-      "",
-      "[원래 응답]",
-      String(rawText || "").trim(),
-    ].join("\n");
-    rawText = await callGemini(env, repairPrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
-      ...genOptions,
-      temperature: 0.2,
-      maxOutputTokens: 8192,
-      maxAttemptsPerPair: 1,
-    });
-    parsed = parseZiweiGeminiResponse(rawText);
+    for (let repairAttempt = 0; repairAttempt < 2 && !parsed.ok; repairAttempt += 1) {
+      const repairPrompt = [
+        "아래 응답을 지정 스키마에 맞는 단일 JSON 객체로만 복구하세요.",
+        "필수: chapterTitle/chapterSubtitle/summary/sections/practicalAdvice/cautions/masterConclusion/coreStars/corePalaces/missingDataNotice",
+        "sections는 최소 2개이며 각 heading/body를 채우세요.",
+        "마크다운 코드펜스 없이 JSON만 출력하세요.",
+        "",
+        "[원래 응답]",
+        String(rawText || "").trim(),
+      ].join("\n");
+      rawText = await callGemini(env, repairPrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
+        ...genOptions,
+        temperature: 0.1,
+        maxOutputTokens: 8192,
+        maxAttemptsPerPair: 1,
+      });
+      parsed = parseZiweiGeminiResponse(rawText);
+    }
   }
 
   let usedFallback = false;
@@ -14374,6 +14441,7 @@ async function handleZiweiBookSession(request, env) {
     meta,
     safeGeneratedText,
     {
+      chapterJson: generated.chapterJson,
       reportType,
       requestId,
       generationId,
@@ -14394,6 +14462,7 @@ async function handleZiweiBookSession(request, env) {
     chapter,
     totalChapters: 13,
     chapterMeta: meta,
+    chapterJson: generated.chapterJson || null,
     storage,
     dataQuality: {
       missingFields: dataQuality.missingFields,
@@ -14413,7 +14482,7 @@ async function handleZiweiBookSession(request, env) {
       "validateZiweiPdfPayload",
       "validateCanonicalZiweiChartStrict",
       "buildZiweiPdfContext",
-      "buildZiweiGeminiPrompt",
+      "generateZiweiChapterPrompt",
       "parseZiweiGeminiResponse",
       "createFallbackChapter",
       "buildZiweiChapterMarkdown",
@@ -15892,31 +15961,64 @@ function inferLegacySummary(text) {
 }
 
 function buildLegacyChapterPayload(row, includeText = false) {
+  const chapterJson = row?.chapterJson || null;
   const chapterIndex = Number(row?.chapter || 0);
   const chapterMeta = row?.chapterMeta || {};
   const text = String(row?.text || "");
-  const parsedSections = parseSections(text)
-    .map((section) => ({
-      heading: String(section?.title || "").trim(),
-      body: String(section?.body || "").trim(),
-    }))
-    .filter((section) => section.heading || section.body);
 
-  const sections = parsedSections.length
-    ? parsedSections
-    : (text
-      ? [{ heading: `Chapter ${chapterIndex}`, body: text }]
-      : []);
+  let sections = [];
+  let summary = "";
+  let keyInsights = [];
+  let practicalAdvice = [];
+  let cautions = [];
+  let masterConclusion = "";
+  let coreStars = [];
+  let corePalaces = [];
+
+  if (chapterJson) {
+    summary = chapterJson.summary || inferLegacySummary(text);
+    sections = Array.isArray(chapterJson.sections) ? chapterJson.sections.map(s => ({
+      heading: String(s?.heading || s?.title || "").trim(),
+      body: String(s?.body || "").trim()
+    })).filter(s => s.heading || s.body) : [];
+    
+    practicalAdvice = Array.isArray(chapterJson.practicalAdvice) ? chapterJson.practicalAdvice.map(String) : [];
+    cautions = Array.isArray(chapterJson.cautions) ? chapterJson.cautions.map(String) : [];
+    // cautions를 keyInsights 대용으로 맵핑
+    keyInsights = cautions.length > 0 ? cautions : (Array.isArray(chapterJson.keyInsights) ? chapterJson.keyInsights.map(String) : []);
+    masterConclusion = chapterJson.masterConclusion || "";
+    coreStars = Array.isArray(chapterJson.coreStars) ? chapterJson.coreStars.map(String) : [];
+    corePalaces = Array.isArray(chapterJson.corePalaces) ? chapterJson.corePalaces.map(String) : [];
+  } else {
+    const parsedSections = parseSections(text)
+      .map((section) => ({
+        heading: String(section?.title || "").trim(),
+        body: String(section?.body || "").trim(),
+      }))
+      .filter((section) => section.heading || section.body);
+
+    sections = parsedSections.length
+      ? parsedSections
+      : (text
+        ? [{ heading: `Chapter ${chapterIndex}`, body: text }]
+        : []);
+    summary = inferLegacySummary(text);
+  }
 
   const payload = {
     chapterIndex,
     title: String(chapterMeta?.title || `Chapter ${chapterIndex}`),
     subtitle: String(chapterMeta?.subtitle || ""),
-    summary: inferLegacySummary(text),
+    summary,
     sections,
-    keyInsights: [],
-    practicalAdvice: [],
+    keyInsights,
+    practicalAdvice,
+    cautions,
+    masterConclusion,
+    coreStars,
+    corePalaces,
     updatedAt: row?.updatedAt || null,
+    chapterJson,
   };
 
   if (includeText) payload.text = text;
@@ -15967,6 +16069,23 @@ function buildLegacyDownloadHtml(config, reportId) {
   const chapters = Array.isArray(status?.chapters) ? status.chapters : [];
   if (!chapters.length) return "";
 
+  const palaceKo = {
+    ming: "명궁(命宮)",
+    parents: "부모궁(父母宮)",
+    fuzang: "복덕궁(福德宮)",
+    house: "전택궁(田宅宮)",
+    property: "전택궁(田宅宮)",
+    career: "관록궁(官祿宮)",
+    friends: "노복궁(奴僕宮)",
+    travel: "천이궁(遷移宮)",
+    health: "질액궁(疾厄宮)",
+    wealth: "재백궁(財帛宮)",
+    children: "자녀궁(子女宮)",
+    spouse: "부처궁(夫妻宮)",
+    siblings: "형제궁(兄弟宮)",
+    body: "신궁(身宮)",
+  };
+
   const chapterBlocks = chapters.map((chapter) => {
     const sectionBlocks = (Array.isArray(chapter.sections) ? chapter.sections : [])
       .map((section) => {
@@ -15981,12 +16100,45 @@ function buildLegacyDownloadHtml(config, reportId) {
       })
       .join("\n");
 
+    const stars = Array.isArray(chapter.coreStars) ? chapter.coreStars : [];
+    const palaces = Array.isArray(chapter.corePalaces) ? chapter.corePalaces : [];
+    const practicalAdvice = Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : [];
+    const cautions = Array.isArray(chapter.cautions) ? chapter.cautions : [];
+    const conclusion = String(chapter.masterConclusion || "").trim();
+
+    const badgeBlocks = (stars.length || palaces.length)
+      ? [
+        '<div class="legacy-badges">',
+        stars.length
+          ? `<div class="legacy-badge-row"><strong>핵심 주성</strong><span>${stars.map((star) => `<em class="legacy-badge legacy-badge--star">${escapeLifebookHtml(star)}</em>`).join(" ")}</span></div>`
+          : "",
+        palaces.length
+          ? `<div class="legacy-badge-row"><strong>핵심 궁위</strong><span>${palaces.map((palace) => `<em class="legacy-badge legacy-badge--palace">${escapeLifebookHtml(palaceKo[String(palace).trim()] || String(palace))}</em>`).join(" ")}</span></div>`
+          : "",
+        "</div>",
+      ].join("\n")
+      : "";
+
+    const adviceBlock = practicalAdvice.length
+      ? `<section class="legacy-print-section legacy-print-section--advice"><h4>실천 처방</h4><ul>${practicalAdvice.map((item) => `<li>${escapeLifebookHtml(item)}</li>`).join("")}</ul></section>`
+      : "";
+    const cautionBlock = cautions.length
+      ? `<section class="legacy-print-section legacy-print-section--caution"><h4>경계 지침</h4><ul>${cautions.map((item) => `<li>${escapeLifebookHtml(item)}</li>`).join("")}</ul></section>`
+      : "";
+    const conclusionBlock = conclusion
+      ? `<section class="legacy-print-section legacy-print-section--conclusion"><h4>거장의 최종 제언</h4><pre>${escapeLifebookHtml(conclusion)}</pre></section>`
+      : "";
+
     return [
       '<article class="legacy-print-chapter">',
       `<h2>Chapter ${Number(chapter.chapterIndex || 0)}. ${escapeLifebookHtml(chapter.title || "")}</h2>`,
       chapter.subtitle ? `<p class="legacy-subtitle">${escapeLifebookHtml(chapter.subtitle)}</p>` : "",
+      badgeBlocks,
       chapter.summary ? `<p class="legacy-summary">${escapeLifebookHtml(chapter.summary)}</p>` : "",
       sectionBlocks,
+      adviceBlock,
+      cautionBlock,
+      conclusionBlock,
       "</article>",
     ].join("\n");
   }).join("\n");
@@ -16009,9 +16161,23 @@ function buildLegacyDownloadHtml(config, reportId) {
     '.legacy-print-chapter h2{margin:0 0 10px;font-size:24px;line-height:1.4;letter-spacing:-0.01em;color:#0f172a}',
     '.legacy-subtitle{margin:0 0 12px;color:#334155;font-size:14px}',
     '.legacy-summary{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#eef4ff;color:#0f172a;font-weight:600;font-size:14px;line-height:1.7}',
+    '.legacy-badges{margin:0 0 12px;padding:10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}',
+    '.legacy-badge-row{display:flex;align-items:flex-start;gap:8px;margin:4px 0;font-size:12px;color:#334155}',
+    '.legacy-badge-row strong{display:inline-block;min-width:64px;color:#0f172a}',
+    '.legacy-badge{display:inline-block;padding:2px 7px;border-radius:999px;margin:0 4px 4px 0;font-style:normal;font-weight:600;font-size:11px}',
+    '.legacy-badge--star{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}',
+    '.legacy-badge--palace{background:#fdf2f8;color:#be185d;border:1px solid #fbcfe8}',
     '.legacy-print-section{margin:0 0 14px}',
     '.legacy-print-section h4{margin:0 0 8px;font-size:17px;line-height:1.45;color:#0f172a;border-left:3px solid var(--legacy-accent);padding-left:9px}',
     '.legacy-print-section pre{white-space:pre-wrap;word-break:break-word;margin:0;font-family:"Noto Serif KR","Noto Sans KR",serif;font-size:15px;line-height:1.9;color:#111827}',
+    '.legacy-print-section ul{margin:0 0 0 18px;padding:0}',
+    '.legacy-print-section li{margin:0 0 6px;font-size:14px;line-height:1.7;color:#1f2937}',
+    '.legacy-print-section--advice{background:#f0fdf4;border-radius:10px;padding:10px 12px}',
+    '.legacy-print-section--advice h4{border-left-color:#10b981;color:#065f46}',
+    '.legacy-print-section--caution{background:#fffbeb;border-radius:10px;padding:10px 12px}',
+    '.legacy-print-section--caution h4{border-left-color:#f59e0b;color:#92400e}',
+    '.legacy-print-section--conclusion{background:#faf5ff;border-radius:10px;padding:10px 12px}',
+    '.legacy-print-section--conclusion h4{border-left-color:#8b5cf6;color:#5b21b6}',
     '@page{size:A4;margin:14mm}',
     '@media print{body{padding:0;background:#fff}.legacy-print-cover,.legacy-print-chapter{border:none;border-radius:0;box-shadow:none}.legacy-print-chapter{break-inside:avoid-page;page-break-inside:avoid}}',
     "</style>",
