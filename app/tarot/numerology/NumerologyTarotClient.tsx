@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
+import styles from "./numerology-tarot.module.css";
 import {
   NUMEROLOGY_DATA,
   TOPIC_LABELS,
@@ -61,6 +62,27 @@ const TOPIC_OPTIONS: Array<{ value: TopicKey; label: string }> = Object.entries(
   label,
 }));
 
+const STEP_LABELS = ["정보 입력", "타로 뽑기", "해석 준비", "결과 확인"];
+
+const PREVIEW_PLACEHOLDERS = [
+  { title: "과거", icon: "✶" },
+  { title: "현재", icon: "☽" },
+  { title: "미래", icon: "☀" },
+];
+
+const YEARS = Array.from({ length: 91 }, (_, idx) => String(new Date().getFullYear() - idx));
+const MONTHS = Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
+
+function createDays(month: string): string[] {
+  const monthNumber = Number(month || "1");
+  const max = [1, 3, 5, 7, 8, 10, 12].includes(monthNumber)
+    ? 31
+    : [4, 6, 9, 11].includes(monthNumber)
+      ? 30
+      : 29;
+  return Array.from({ length: max }, (_, idx) => String(idx + 1).padStart(2, "0"));
+}
+
 function toText(value: unknown): string {
   return String(value || "").trim();
 }
@@ -68,11 +90,16 @@ function toText(value: unknown): string {
 export default function NumerologyTarotClient() {
   const router = useRouter();
   const { ensurePaidAccess, isPaying } = useCoinGate();
+  const screenRef = useRef<HTMLElement | null>(null);
 
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
   const [topic, setTopic] = useState<TopicKey>("love");
   const [question, setQuestion] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [numerology, setNumerology] = useState<NumerologyContext | null>(null);
   const [cards, setCards] = useState<DrawnCard[]>([]);
@@ -85,6 +112,57 @@ export default function NumerologyTarotClient() {
     const key = Number(numerology?.lifePathNumber || 0);
     return NUMEROLOGY_DATA[key as keyof typeof NUMEROLOGY_DATA] || null;
   }, [numerology]);
+
+  const dayOptions = useMemo(() => createDays(birthMonth), [birthMonth]);
+
+  const activeStep = useMemo(() => {
+    if (reading) return 3;
+    if (cards.length && revealed.length === cards.length) return 2;
+    if (cards.length) return 1;
+    return 0;
+  }, [cards.length, reading, revealed.length]);
+
+  const revealProgress = `${Math.min(revealed.length, 3)}/3`;
+
+  const readingEnabled = cards.length > 0 && revealed.length === cards.length;
+
+  useEffect(() => {
+    if (birthDate && /^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+      const [y, m, d] = birthDate.split("-");
+      setBirthYear(y);
+      setBirthMonth(m);
+      setBirthDay(d);
+    }
+  }, [birthDate]);
+
+  useEffect(() => {
+    if (birthYear && birthMonth && birthDay) {
+      setBirthDate(`${birthYear}-${birthMonth}-${birthDay}`);
+    }
+  }, [birthDay, birthMonth, birthYear]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const sync = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    sync();
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
+  async function toggleFullscreen() {
+    if (typeof document === "undefined") return;
+    const root = screenRef.current;
+    if (!root) return;
+    try {
+      if (!document.fullscreenElement) {
+        await root.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      showToast("브라우저 정책으로 전체화면 전환이 제한되었습니다.", "warning");
+    }
+  }
 
   function startDraw() {
     if (!birthDate) {
@@ -197,184 +275,306 @@ export default function NumerologyTarotClient() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[radial-gradient(circle_at_15%_15%,#452f1e_0%,#100f17_45%,#09090f_100%)] px-4 py-10 text-amber-50">
-      <div className="mx-auto max-w-5xl space-y-5">
-        <section className="rounded-3xl border border-amber-300/35 bg-black/35 p-6 backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-amber-200/80">NUMBER TAROT</p>
-              <h1 className="mt-2 text-3xl font-semibold text-amber-100">수비학 타로 오라클</h1>
-              <p className="mt-2 text-sm text-amber-100/80">
-                생년월일과 질문 주제를 결합해 오늘의 숫자 진동과 3카드의 방향성을 함께 읽습니다.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="rounded-xl border border-amber-200/40 px-3 py-2 text-sm text-amber-100 hover:bg-amber-200/10"
-            >
-              홈으로
-            </button>
+    <main ref={screenRef} className={styles.screen}>
+      <div className={styles.container}>
+        <header className={styles.topBar}>
+          <strong className={styles.brand}>수비학 타로</strong>
+          <nav className={styles.topNav} aria-label="수비학 타로 메뉴">
+            <button type="button">홈</button>
+            <button type="button">리딩하기</button>
+            <button type="button">나의 리딩</button>
+            <button type="button">숫자 해석</button>
+            <button type="button">타로 가이드</button>
+            <button type="button">프리미엄</button>
+          </nav>
+          <div className={styles.actions}>
+            <button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>
+            <button type="button" className={styles.lightBtn} onClick={toggleFullscreen}>{isFullscreen ? "전체화면 해제" : "전체화면"}</button>
           </div>
-        </section>
+        </header>
 
-        <section className="grid gap-4 rounded-3xl border border-amber-400/25 bg-black/30 p-5 md:grid-cols-2">
-          <label className="space-y-2 text-sm">
-            <span className="text-amber-100/90">이름 (선택)</span>
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="예: 홍길동"
-              className="w-full rounded-xl border border-amber-200/30 bg-amber-950/20 px-3 py-2 text-sm outline-none placeholder:text-amber-100/35 focus:border-amber-300"
-            />
-          </label>
+        <section className={styles.heroGrid}>
+          <div className={styles.mainPanel}>
+            <h1 className={styles.title}>수비학 타로</h1>
+            <p className={styles.subtitle}>숫자와 카드가 들려주는 운명의 메시지</p>
 
-          <label className="space-y-2 text-sm">
-            <span className="text-amber-100/90">생년월일</span>
-            <input
-              type="date"
-              value={birthDate}
-              onChange={(event) => setBirthDate(event.target.value)}
-              className="w-full rounded-xl border border-amber-200/30 bg-amber-950/20 px-3 py-2 text-sm outline-none focus:border-amber-300"
-            />
-          </label>
-
-          <label className="space-y-2 text-sm">
-            <span className="text-amber-100/90">질문 주제</span>
-            <select
-              value={topic}
-              onChange={(event) => setTopic(event.target.value as TopicKey)}
-              className="w-full rounded-xl border border-amber-200/30 bg-amber-950/20 px-3 py-2 text-sm outline-none focus:border-amber-300"
-            >
-              {TOPIC_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+            <div className={styles.stepRail}>
+              {STEP_LABELS.map((label, idx) => (
+                <div key={label} className={`${styles.stepItem} ${activeStep >= idx ? styles.stepActive : ""}`}>
+                  {idx + 1}. {label}
+                </div>
               ))}
-            </select>
-          </label>
+            </div>
 
-          <label className="space-y-2 text-sm">
-            <span className="text-amber-100/90">질문 (선택)</span>
-            <input
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder="예: 이 관계가 앞으로 어떻게 흘러갈까요?"
-              className="w-full rounded-xl border border-amber-200/30 bg-amber-950/20 px-3 py-2 text-sm outline-none placeholder:text-amber-100/35 focus:border-amber-300"
-            />
-          </label>
+            <div className={styles.stage}>
+              <section className={styles.formCard}>
+                <h2 className={styles.formTitle}>당신에 대해 알려주세요</h2>
 
-          <div className="md:col-span-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={startDraw}
-              className="rounded-xl bg-amber-300 px-4 py-2 text-sm font-semibold text-stone-900 hover:bg-amber-200"
-            >
-              숫자와 카드 뽑기 시작
-            </button>
-            <button
-              type="button"
-              onClick={payAndRead}
-              disabled={!cards.length || loading || isPaying}
-              className="rounded-xl border border-amber-200/40 px-4 py-2 text-sm font-semibold text-amber-50 disabled:opacity-50"
-            >
-              {loading || isPaying ? "결제/리딩 진행 중..." : "해석 보기 (30코인)"}
-            </button>
-          </div>
+                <div className={styles.topicTabs}>
+                  {TOPIC_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`${styles.topicTab} ${topic === option.value ? styles.topicTabActive : ""}`}
+                      onClick={() => setTopic(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
 
-          {error ? <p className="md:col-span-2 text-sm text-rose-300">{error}</p> : null}
-        </section>
+                <div className={styles.formGrid}>
+                  <label className={`${styles.field} ${styles.fieldWide}`}>
+                    <span className={styles.label}>이름 (선택)</span>
+                    <input
+                      className={styles.input}
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder="이름"
+                    />
+                  </label>
 
-        {numerology ? (
-          <section className="grid gap-3 md:grid-cols-4">
-            <article className="rounded-2xl border border-amber-300/25 bg-black/30 p-4">
-              <p className="text-xs text-amber-100/70">생명수</p>
-              <p className="text-2xl font-semibold text-amber-200">{numerology.lifePathNumber}</p>
-              <p className="mt-1 text-xs text-amber-100/70">{lifeData?.keyword || "핵심 파동"}</p>
-            </article>
-            <article className="rounded-2xl border border-amber-300/25 bg-black/30 p-4">
-              <p className="text-xs text-amber-100/70">오늘의 개인수</p>
-              <p className="text-2xl font-semibold text-amber-200">{numerology.personalDayNumber}</p>
-            </article>
-            <article className="rounded-2xl border border-amber-300/25 bg-black/30 p-4">
-              <p className="text-xs text-amber-100/70">질문수</p>
-              <p className="text-2xl font-semibold text-amber-200">{numerology.questionNumber}</p>
-              <p className="mt-1 text-xs text-amber-100/70">{numerology.topicLabel}</p>
-            </article>
-            <article className="rounded-2xl border border-amber-300/25 bg-black/30 p-4">
-              <p className="text-xs text-amber-100/70">기본 해석 키워드</p>
-              <p className="mt-1 text-sm text-amber-100/90">{lifeData?.meaning || "이번 흐름은 정리와 재배치가 핵심입니다."}</p>
-            </article>
-          </section>
-        ) : null}
+                  <label className={styles.field}>
+                    <span className={styles.label}>출생연도</span>
+                    <select
+                      className={styles.select}
+                      value={birthYear}
+                      onChange={(event) => setBirthYear(event.target.value)}
+                    >
+                      <option value="">연도</option>
+                      {YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
+                    </select>
+                  </label>
 
-        {cards.length ? (
-          <section className="space-y-3 rounded-3xl border border-amber-300/25 bg-black/30 p-5">
-            <h2 className="text-lg font-semibold text-amber-100">3카드 스프레드</h2>
-            <p className="text-sm text-amber-100/75">카드를 눌러 뒤집고, 3장을 모두 공개한 뒤 30코인 리딩을 진행하세요.</p>
-            <div className="grid gap-3 md:grid-cols-3">
-              {cards.map((entry, idx) => {
-                const isOpen = revealed.includes(idx);
-                return (
-                  <button
-                    key={`${entry.card.id}-${idx}`}
-                    type="button"
-                    onClick={() => revealCard(idx)}
-                    className="group rounded-2xl border border-amber-300/30 bg-gradient-to-b from-amber-800/20 to-black/60 p-4 text-left transition hover:border-amber-200"
-                  >
-                    <p className="text-xs text-amber-100/70">{entry.positionLabel}</p>
-                    {isOpen ? (
-                      <>
-                        <p className="mt-3 text-2xl">{entry.card.emoji || "🜂"}</p>
-                        <p className="mt-2 text-base font-semibold text-amber-100">{entry.card.nameKr || entry.card.name}</p>
-                        <p className="mt-1 text-xs text-amber-100/75">{entry.orientation === "reversed" ? "역방향" : "정방향"}</p>
-                        <p className="mt-2 text-xs text-amber-100/70">
-                          {entry.orientation === "reversed" ? entry.card.reversed : entry.card.upright}
-                        </p>
-                      </>
-                    ) : (
-                      <div className="mt-5 flex h-32 items-center justify-center rounded-xl border border-amber-200/20 bg-black/40">
-                        <span className="text-sm tracking-[0.2em] text-amber-100/60">OPEN</span>
-                      </div>
-                    )}
+                  <label className={styles.field}>
+                    <span className={styles.label}>월</span>
+                    <select
+                      className={styles.select}
+                      value={birthMonth}
+                      onChange={(event) => {
+                        setBirthMonth(event.target.value);
+                        setBirthDay("");
+                      }}
+                    >
+                      <option value="">월</option>
+                      {MONTHS.map((month) => <option key={month} value={month}>{month}</option>)}
+                    </select>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span className={styles.label}>일</span>
+                    <select
+                      className={styles.select}
+                      value={birthDay}
+                      onChange={(event) => setBirthDay(event.target.value)}
+                    >
+                      <option value="">일</option>
+                      {dayOptions.map((day) => <option key={day} value={day}>{day}</option>)}
+                    </select>
+                  </label>
+
+                  <label className={`${styles.field} ${styles.fieldWide}`}>
+                    <span className={styles.label}>질문 (선택)</span>
+                    <input
+                      className={styles.input}
+                      value={question}
+                      onChange={(event) => setQuestion(event.target.value)}
+                      placeholder="예: 오늘 이 관계의 흐름은 어떻게 전개될까요?"
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.actions} style={{ marginTop: 12 }}>
+                  <button type="button" onClick={startDraw} className={styles.mainBtn}>리딩 시작하기 ✦</button>
+                  <button type="button" onClick={payAndRead} disabled={!readingEnabled || loading || isPaying} className={styles.lightBtn}>
+                    {loading || isPaying ? "결제/리딩 진행 중..." : "해석 보기 (30코인)"}
                   </button>
-                );
-              })}
+                </div>
+
+                {error ? <p className={styles.error}>{error}</p> : null}
+              </section>
+
+              <section className={styles.stageVisual}>
+                <div className={styles.moon} aria-hidden="true" />
+                <div className={styles.wheel} aria-hidden="true">
+                  <div className={styles.orbitCenter}>☾</div>
+                </div>
+
+                <div className={styles.previewSpread}>
+                  {(cards.length ? cards : PREVIEW_PLACEHOLDERS).map((entry, idx) => {
+                    const isRealCard = "card" in entry;
+                    const isOpen = revealed.includes(idx);
+                    return (
+                      <button
+                        type="button"
+                        key={isRealCard ? `${entry.card.id}-${idx}` : `${entry.title}-${idx}`}
+                        className={`${styles.previewCard} ${isRealCard && !isOpen ? styles.previewCardLocked : ""}`}
+                        onClick={() => {
+                          if (isRealCard) revealCard(idx);
+                        }}
+                      >
+                        {isRealCard ? (
+                          isOpen ? (
+                            <>
+                              <p className={styles.previewPosition}>{entry.positionLabel}</p>
+                              <div style={{ fontSize: 30 }}>{entry.card.emoji || "✦"}</div>
+                              <p className={styles.previewName}>{entry.card.nameKr || entry.card.name}</p>
+                              <p className={styles.previewMeta}>{entry.orientation === "reversed" ? "역방향" : "정방향"}</p>
+                            </>
+                          ) : (
+                            <span>OPEN</span>
+                          )
+                        ) : (
+                          <>
+                            <p className={styles.previewPosition}>{entry.title}</p>
+                            <div style={{ fontSize: 30 }}>{entry.icon}</div>
+                            <p className={styles.previewMeta}>카드 대기</p>
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
             </div>
-          </section>
-        ) : null}
 
-        {reading ? (
-          <section className="space-y-4 rounded-3xl border border-amber-200/30 bg-amber-950/20 p-5">
-            <h2 className="text-2xl font-semibold text-amber-100">수비학 타로 해석</h2>
-            <article className="rounded-2xl border border-amber-200/25 bg-black/30 p-4">
-              <p className="text-sm leading-relaxed text-amber-50/90">{reading.numerologyReading}</p>
-              <p className="mt-3 text-sm font-semibold text-amber-200">핵심 메시지: {reading.coreMessage}</p>
-            </article>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              {reading.cardReadings.map((item, idx) => (
-                <article key={`${item.title}-${idx}`} className="rounded-2xl border border-amber-200/25 bg-black/30 p-4">
-                  <h3 className="text-sm font-semibold text-amber-100">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-amber-50/85">{item.interpretation}</p>
+            {numerology ? (
+              <section className={styles.infoRail}>
+                <article className={styles.infoItem}>
+                  <h4>생명수</h4>
+                  <p>{numerology.lifePathNumber} · {lifeData?.keyword || "핵심 파동"}</p>
                 </article>
-              ))}
+                <article className={styles.infoItem}>
+                  <h4>개인수</h4>
+                  <p>{numerology.personalDayNumber} · 오늘의 흐름</p>
+                </article>
+                <article className={styles.infoItem}>
+                  <h4>질문수</h4>
+                  <p>{numerology.questionNumber} · {numerology.topicLabel}</p>
+                </article>
+                <article className={styles.infoItem}>
+                  <h4>해석 키워드</h4>
+                  <p>{lifeData?.meaning || "이번 흐름은 정리와 재배치가 핵심입니다."}</p>
+                </article>
+              </section>
+            ) : null}
+
+            {reading ? (
+              <section className={styles.resultCard}>
+                <h3>수비학 타로 해석</h3>
+                <p style={{ color: "rgba(247, 241, 225, 0.9)", lineHeight: 1.7 }}>{reading.numerologyReading}</p>
+                <p style={{ marginTop: 8, color: "#f4dca5" }}>핵심 메시지: {reading.coreMessage}</p>
+
+                <div className={styles.resultGrid}>
+                  {reading.cardReadings.map((item, idx) => (
+                    <article key={`${item.title}-${idx}`} className={styles.resultBox}>
+                      <h4>{item.title}</h4>
+                      <p>{item.interpretation}</p>
+                    </article>
+                  ))}
+                </div>
+
+                <div className={styles.resultGrid} style={{ marginTop: 10 }}>
+                  <article className={styles.resultBox}>
+                    <h4>흐름 요약</h4>
+                    <p>{reading.conclusion.summary}</p>
+                  </article>
+                  <article className={styles.resultBox}>
+                    <h4>지금 실행할 것</h4>
+                    <p>{reading.conclusion.doThis.join(" / ")}</p>
+                  </article>
+                  <article className={styles.resultBox}>
+                    <h4>피할 것</h4>
+                    <p>{reading.conclusion.avoidThis.join(" / ")}</p>
+                  </article>
+                </div>
+              </section>
+            ) : null}
+          </div>
+
+          <aside className={styles.sidePanel}>
+            <div className={styles.sideTitle}>
+              <h3>MOBILE EXPERIENCE FLOW</h3>
+              <p>간결하고 몰입감 있는 모바일 리딩 동행</p>
             </div>
 
-            <article className="rounded-2xl border border-amber-200/25 bg-black/30 p-4">
-              <p className="text-sm text-amber-100/90">{reading.conclusion.summary}</p>
-              <p className="mt-3 text-sm font-semibold text-emerald-200">지금 실행할 것</p>
-              <ul className="mt-1 list-disc pl-5 text-sm text-emerald-100/90">
-                {reading.conclusion.doThis.map((line, idx) => <li key={`do-${idx}`}>{line}</li>)}
-              </ul>
-              <p className="mt-3 text-sm font-semibold text-rose-200">피할 것</p>
-              <ul className="mt-1 list-disc pl-5 text-sm text-rose-100/90">
-                {reading.conclusion.avoidThis.map((line, idx) => <li key={`avoid-${idx}`}>{line}</li>)}
-              </ul>
-              <p className="mt-4 text-sm text-amber-200">{reading.conclusion.finalWord}</p>
-            </article>
-          </section>
-        ) : null}
+            <div className={styles.phoneGrid}>
+              <article className={styles.phone}>
+                <h4>1. 정보 입력</h4>
+                <div className={styles.miniField}>이름: {name || "이름"}</div>
+                <div className={styles.miniField}>생년월일: {birthDate || "YYYY-MM-DD"}</div>
+                <div className={styles.miniField}>주제: {TOPIC_LABELS[topic]}</div>
+                <div className={styles.miniField}>질문: {question || "질문을 입력하세요"}</div>
+              </article>
+
+              <article className={styles.phone}>
+                <h4>2. 타로 뽑기</h4>
+                <div className={styles.miniCardStack}>
+                  {[0, 1, 2].map((idx) => {
+                    const picked = cards[idx];
+                    const open = revealed.includes(idx);
+                    return (
+                      <div key={`mini-card-${idx}`} className={styles.miniCard}>
+                        {picked ? (open ? picked.card.emoji || "✦" : "🂠") : "🂠"}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className={styles.miniField}>공개 진행률: {revealProgress}</div>
+                <div className={styles.miniField}>결제 준비: {readingEnabled ? "완료" : "카드 공개 필요"}</div>
+              </article>
+
+              <article className={styles.phone}>
+                <h4>3. 결과 확인</h4>
+                <div className={styles.statPill}>생명수: {numerology?.lifePathNumber ?? "-"}</div>
+                <div className={styles.statPill}>개인수: {numerology?.personalDayNumber ?? "-"}</div>
+                <div className={styles.statPill}>질문수: {numerology?.questionNumber ?? "-"}</div>
+                <div className={styles.miniField}>{reading?.coreMessage || "결과가 준비되면 핵심 메시지가 표시됩니다."}</div>
+              </article>
+            </div>
+          </aside>
+        </section>
+
+        <section className={styles.flowGrid}>
+          <article className={styles.flowBlock}>
+            <h2 className={styles.blockTitle}>USER FLOW</h2>
+            <div className={styles.userFlowRow}>
+              <div className={styles.flowNode}>
+                <strong>1 입력</strong>
+                <p>생년월일과 이름 또는 핵심 질문을 설정하고 리딩 조건을 고정합니다.</p>
+              </div>
+              <div className={styles.flowNode}>
+                <strong>2 숫자 분석</strong>
+                <p>생명수, 개인수, 질문수가 계산되어 카드 선택의 기준 축이 됩니다.</p>
+              </div>
+              <div className={styles.flowNode}>
+                <strong>3 카드 뽑기</strong>
+                <p>과거, 현재, 미래 3장 카드가 배치되고 탭하여 순차 공개됩니다.</p>
+              </div>
+              <div className={styles.flowNode}>
+                <strong>4 해석 결과</strong>
+                <p>숫자와 카드 의미를 통합한 실전형 행동 가이드가 생성됩니다.</p>
+              </div>
+            </div>
+          </article>
+
+          <article className={styles.designBlock}>
+            <h2 className={styles.blockTitle}>DESIGN KEY POINT</h2>
+            <div className={styles.keyList}>
+              <div className={styles.keyItem}>신비로운 우주 톤</div>
+              <div className={styles.keyItem}>직관적 4단계 UX</div>
+              <div className={styles.keyItem}>프리미엄 카드 질감</div>
+              <div className={styles.keyItem}>개인화 인사이트</div>
+            </div>
+            <div className={styles.palette} aria-label="color palette">
+              <span className={styles.swatch} style={{ background: "#080D1A" }} />
+              <span className={styles.swatch} style={{ background: "#1B1433" }} />
+              <span className={styles.swatch} style={{ background: "#2F1B4F" }} />
+              <span className={styles.swatch} style={{ background: "#6F3DFF" }} />
+              <span className={styles.swatch} style={{ background: "#D4AF37" }} />
+            </div>
+          </article>
+        </section>
       </div>
     </main>
   );
