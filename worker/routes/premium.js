@@ -1106,6 +1106,7 @@ function zodiacBySeed(year, month, day, hour, offset = 0) {
   return {
     longitude: Math.round(longitude * 100) / 100,
     sign,
+    signName: VEDIC_SIGN_EN[sign],
     signKo: SIGN_KO[sign],
     signEmoji: "",
     degree: Math.round((longitude % 30) * 100) / 100,
@@ -6415,13 +6416,68 @@ async function fetchSwissSukuyoBasis(request, env, input) {
 function buildVedicChart(input) {
   const lagna = zodiacBySeed(input.year, input.month, input.day, input.hour, 21);
   const moon = zodiacBySeed(input.year, input.month, input.day, input.hour, 22);
-  const nakIndex = Math.floor(moon.longitude / (360 / 27));
-  const nakshatras = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishtha", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
+  const moonNak = getNakshatraFromLongitude(moon.longitude);
+  const now = new Date();
+  const currentPlanet = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"][input.year % 9];
+  const nextDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
+  const planets = Object.fromEntries(["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"].map((p, i) => {
+    const info = zodiacBySeed(input.year, input.month, input.day, input.hour, i + 30);
+    const nak = getNakshatraFromLongitude(info.longitude);
+    return [p, {
+      name: p,
+      nameKo: VEDIC_PLANET_KO[p] || p,
+      ...info,
+      signName: info.signName || VEDIC_SIGN_EN[info.sign],
+      house: ((i + lagna.sign) % 12) + 1,
+      nakshatra: nak.name,
+      nakshatraKo: nak.ko,
+      nakshatraPada: nak.pada,
+      dignity: getVedicDignity(p, info.sign),
+      isRetrograde: false,
+    }];
+  }));
+
+  const d9 = {};
+  const d10 = {};
+  Object.keys(planets).forEach((name) => {
+    d9[name] = calcNavamsaSign(planets[name].longitude).signName;
+    d10[name] = calcDashamsaSign(planets[name].longitude).signName;
+  });
+
   return {
-    lagna,
-    moonNakshatra: { name: nakshatras[nakIndex], ko: nakshatras[nakIndex], pada: (nakIndex % 4) + 1 },
-    planets: Object.fromEntries(["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"].map((p, i) => [p, { name: p, ...zodiacBySeed(input.year, input.month, input.day, input.hour, i + 30), house: ((i + lagna.sign) % 12) + 1 }])),
-    vimshottariDasha: { current: { planet: ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"][input.year % 9], remainYears: 4.8 }, antar: { planet: "Moon", remainYears: 0.8 } },
+    lagna: {
+      ...lagna,
+      signName: lagna.signName || VEDIC_SIGN_EN[lagna.sign],
+      lord: getRashiLord(lagna.sign),
+      house: 1,
+    },
+    moonNakshatra: {
+      name: moonNak.name,
+      ko: moonNak.ko,
+      pada: moonNak.pada,
+      lord: moonNak.lord,
+      degreeInNakshatra: moonNak.degreeInNakshatra,
+      moonSign: moonNak.moonSign,
+      moonSignKo: moonNak.moonSignKo,
+    },
+    planets,
+    vimshottariDasha: {
+      current: {
+        planet: currentPlanet,
+        startDate: now.toISOString().slice(0, 10),
+        endDate: nextDate.toISOString().slice(0, 10),
+        remainYears: 4.8,
+      },
+      antar: { planet: "Moon", remainYears: 0.8 },
+      upcoming: [{ planet: currentPlanet, years: 4.8 }],
+    },
+    d1: {
+      lagnaSign: lagna.signName || VEDIC_SIGN_EN[lagna.sign],
+      lagnaDegree: round1(lagna.degree),
+      ascendantSidereal: round1(lagna.longitude),
+    },
+    d9,
+    d10,
     yogas: [{ name: "Dharma Focus", nameKo: "다르마 정렬", description: "삶의 방향성을 실행으로 고정하는 조합입니다." }],
   };
 }
@@ -7493,6 +7549,8 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     maxAttemptsPerPair: Number(env.PREMIUM_VEDIC_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
 
+  try {
+
   let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
   if (!text || text.trim().length < 1200) {
     if (strictPayloadMode) {
@@ -7596,6 +7654,30 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     },
     warnings: [],
   };
+  } catch (error) {
+    const errorMessage = String(error?.message || error || "VEDIC_GEMINI_ERROR");
+    if (strictPayloadMode) {
+      return {
+        ok: false,
+        code: "VEDIC_CHAPTER_GENERATION_FAILED",
+        message: errorMessage,
+        warnings: [errorMessage],
+      };
+    }
+    const fallbackText = buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, [`VEDIC_GEMINI_EXCEPTION:${errorMessage}`]);
+    return {
+      ok: true,
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      actualChars: fallbackText.length,
+      usedFallback: true,
+      quality: {
+        missingMarkers: [],
+        repeatedSentenceCount: 0,
+      },
+      warnings: [errorMessage],
+    };
+  }
 }
 
 function normalizeZiweiField(value, fallback = "정보 없음") {
@@ -10485,7 +10567,7 @@ async function generateSukuyoNatalChapterStrict(env, canonicalSukuyoNatal, chapt
 
 async function handleSukuyoLife(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = usePremiumStrictPayload(body, env);
+  const strictPayloadMode = shouldEnforcePremiumStrictPayload("sookyoPremium") && usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -10502,6 +10584,7 @@ async function handleSukuyoLife(request, env) {
 
   let personASukuyo;
   let personAMissingFields = [];
+  let personASourceWarning = "";
   try {
     personASukuyo = await calcSukuyoStrict(request, env, input, {
       explicitLunar: parseSukuyoLunarHint(strictBody),
@@ -10512,6 +10595,15 @@ async function handleSukuyoLife(request, env) {
     personAMissingFields = Array.isArray(error?.missingFields)
       ? error.missingFields.map((f) => `personA.${f}`)
       : ["personA.birth.lunarDate", "personA.sukuyo.index"];
+    const fallbackSukuyo = await calcSukuyo(request, env, input).catch(() => null);
+    if (fallbackSukuyo) {
+      personASukuyo = {
+        ...fallbackSukuyo,
+        lunarYear: input.year,
+        source: String(fallbackSukuyo?.source || "engine-fallback"),
+      };
+      personASourceWarning = `PERSON_A_ENGINE_FALLBACK:${String(error?.code || error?.message || "KASI_CONVERSION_FAILED")}`;
+    }
   }
 
   if (reportType === "personal") {
@@ -10557,7 +10649,10 @@ async function handleSukuyoLife(request, env) {
         canonicalSukuyoNatal,
         validation: natalValidation,
         missingFields: Array.from(new Set([...(natalValidation?.missingFields || []), ...personAMissingFields])),
-        warnings: mismatchWarning ? ["natalSukuyo.nameKo_mismatch_with_basic_screen"] : [],
+        warnings: [
+          ...(mismatchWarning ? ["natalSukuyo.nameKo_mismatch_with_basic_screen"] : []),
+          ...(personASourceWarning ? [personASourceWarning] : []),
+        ],
       });
     }
 
@@ -10634,7 +10729,10 @@ async function handleSukuyoLife(request, env) {
       canonicalSukuyoNatal,
       validation: natalValidation,
       storage,
-      warnings: mismatchWarning ? ["natalSukuyo.nameKo_mismatch_with_basic_screen"] : [],
+      warnings: [
+        ...(mismatchWarning ? ["natalSukuyo.nameKo_mismatch_with_basic_screen"] : []),
+        ...(personASourceWarning ? [personASourceWarning] : []),
+      ],
       qualityGate: {
         hasNatalSukuyo: natalValidation.hasNatalSukuyo,
         hasIndex: natalValidation.hasIndex,
@@ -10678,6 +10776,7 @@ async function handleSukuyoLife(request, env) {
 
   let personBSukuyo;
   let personBMissingFields = [];
+  let personBSourceWarning = "";
   try {
     personBSukuyo = await calcSukuyoStrict(request, env, partnerInput, {
       explicitLunar: parseSukuyoLunarHint(strictBody, "partner"),
@@ -10688,6 +10787,15 @@ async function handleSukuyoLife(request, env) {
     personBMissingFields = Array.isArray(error?.missingFields)
       ? error.missingFields.map((f) => `personB.${f}`)
       : ["personB.birth.lunarDate", "personB.sukuyo.index"];
+    const fallbackSukuyo = await calcSukuyo(request, env, partnerInput).catch(() => null);
+    if (fallbackSukuyo) {
+      personBSukuyo = {
+        ...fallbackSukuyo,
+        lunarYear: partnerInput.year,
+        source: String(fallbackSukuyo?.source || "engine-fallback"),
+      };
+      personBSourceWarning = `PERSON_B_ENGINE_FALLBACK:${String(error?.code || error?.message || "KASI_CONVERSION_FAILED")}`;
+    }
   }
 
   const canonicalSukuyoCompatibility = buildCanonicalSukuyoCompatibility({
@@ -10714,6 +10822,10 @@ async function handleSukuyoLife(request, env) {
       canonicalSukuyoCompatibility,
       validation: chartValidation,
       missingFields: Array.from(new Set([...(chartValidation?.missingFields || []), ...personAMissingFields, ...personBMissingFields])),
+      warnings: [
+        ...(personASourceWarning ? [personASourceWarning] : []),
+        ...(personBSourceWarning ? [personBSourceWarning] : []),
+      ],
     });
   }
 
@@ -10783,6 +10895,10 @@ async function handleSukuyoLife(request, env) {
     canonicalSukuyoCompatibility,
     validation: chartValidation,
     storage,
+    warnings: [
+      ...(personASourceWarning ? [personASourceWarning] : []),
+      ...(personBSourceWarning ? [personBSourceWarning] : []),
+    ],
     ...generated,
     text: safeChapterText,
     sections: parseSections(safeChapterText),
@@ -11103,7 +11219,7 @@ async function handleAstroLife(request, env) {
 
 async function handleVedicLife(request, env) {
   const body = await readJson(request);
-  const strictPayloadMode = usePremiumStrictPayload(body, env);
+  const strictPayloadMode = shouldEnforcePremiumStrictPayload("vedicPremium") && usePremiumStrictPayload(body, env);
   const strictBody = {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
@@ -11123,7 +11239,14 @@ async function handleVedicLife(request, env) {
   input.isLeapMonth = strictBody.isLeapMonth ?? false;
   input.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
-  const chart = await getSwissVedicChart(request, env, input);
+  const engineWarnings = [];
+  let chart;
+  try {
+    chart = await getSwissVedicChart(request, env, input);
+  } catch (error) {
+    chart = buildVedicChart(input);
+    engineWarnings.push(`VEDIC_PRIMARY_ENGINE_FALLBACK:${String(error?.message || "SWISS_UNAVAILABLE")}`);
+  }
   let partnerChart = null;
   let ashtaKoota = chart.ashtaKoota || null;
 
@@ -11151,7 +11274,12 @@ async function handleVedicLife(request, env) {
       partnerInput.isLeapMonth = strictBody.partnerIsLeapMonth ?? false;
       partnerInput.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
-      partnerChart = await getSwissVedicChart(request, env, partnerInput);
+      try {
+        partnerChart = await getSwissVedicChart(request, env, partnerInput);
+      } catch (error) {
+        partnerChart = buildVedicChart(partnerInput);
+        engineWarnings.push(`VEDIC_PARTNER_ENGINE_FALLBACK:${String(error?.message || "SWISS_UNAVAILABLE")}`);
+      }
       ashtaKoota = computeAshtaKoota(chart, partnerChart);
       if (ashtaKoota) {
         chart.ashtaKoota = ashtaKoota;
@@ -11176,6 +11304,7 @@ async function handleVedicLife(request, env) {
       ashtaKoota,
       validation: strictValidation,
       missingFields: strictValidation?.missingFields || [],
+      warnings: engineWarnings,
     });
   }
 
@@ -11269,11 +11398,13 @@ async function handleVedicLife(request, env) {
       warnings: [
         ...(strictValidation.isValid ? [] : strictValidation.missingFields.map((f) => `MISSING_CANONICAL_FIELD:${f}`)),
         ...availabilityWarnings,
+        ...engineWarnings,
         ...(Array.isArray(generated?.warnings) ? generated.warnings : []),
       ],
     },
     dataQuality: {
       chartSource: String(chart?.source || "unknown"),
+      engineWarnings,
       validation: strictValidation,
       failOpenApplied: !strictValidation.isValid || Boolean(generated.usedFallback),
       strictPayloadMode,
