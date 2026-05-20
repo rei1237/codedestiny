@@ -34,6 +34,9 @@ export type DestinyMeetingPlaceResult = {
     name: string;
     type: DestinyPlaceType;
     element: DestinyElement;
+    sceneDescription?: string;
+    emotionalHook?: string;
+    conversationOpener?: string;
     reason: string;
     actionTip: string;
     romancePotential: number;
@@ -85,6 +88,8 @@ export type DestinyMeetingPlaceResult = {
     thisWeekAction: string;
     thisMonthAction: string;
     travelAction: string;
+    toneReminder?: string;
+    microActions?: string[];
   };
 };
 

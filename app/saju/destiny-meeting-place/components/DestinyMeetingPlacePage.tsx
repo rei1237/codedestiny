@@ -8,6 +8,10 @@ import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
 import DestinyMeetingPlaceResult from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceResult";
 import { generateDestinyMeetingPlaceResult } from "@/components/fortune/destiny-meeting-place/destinyMeetingPlaceEngine";
+import {
+  PREMIUM_DESTINY_MEETING_PLACE_DEMO,
+  premiumNarrativeToResult,
+} from "@/components/fortune/destiny-meeting-place/destinyMeetingPlacePremiumDemo";
 import type { DestinyMeetingPlaceResult as MeetingResult } from "@/components/fortune/destiny-meeting-place/destinyMeetingPlaceTypes";
 
 const FEATURE_KEY = "destiny_meeting_place";
@@ -46,9 +50,12 @@ export default function DestinyMeetingPlacePage() {
   const [isCharging, setIsCharging] = useState(false);
   const [chargedCoins, setChargedCoins] = useState(100);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showPremiumDemo, setShowPremiumDemo] = useState(false);
 
   const isLunar = (input.calendarType || "solar") === "lunar";
   const canSubmit = useMemo(() => Boolean(input.birthDate), [input.birthDate]);
+  const demoResult = useMemo(() => premiumNarrativeToResult(PREMIUM_DESTINY_MEETING_PLACE_DEMO), []);
+  const visibleResult = result || (showPremiumDemo ? demoResult : null);
 
   useEffect(() => {
     let mounted = true;
@@ -64,6 +71,11 @@ export default function DestinyMeetingPlacePage() {
       });
 
     try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("demo") === "1") {
+        setShowPremiumDemo(true);
+      }
+
       const raw = sessionStorage.getItem(PREFILL_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<AnimalDestinyInput>;
@@ -360,7 +372,13 @@ export default function DestinyMeetingPlacePage() {
           </section>
         ) : null}
 
-        {result ? <DestinyMeetingPlaceResult result={result} chargedCoins={chargedCoins} /> : null}
+        {showPremiumDemo && !result ? (
+          <section className="rounded-2xl border border-[#f0dbb6]/45 bg-[#f0dbb6]/12 px-4 py-3 text-sm text-[#f4e7d3]">
+            데모 모드: 풍부화된 샘플 리포트를 표시 중입니다. 실제 계산 결과를 보려면 출생 정보를 입력해 분석을 실행하세요.
+          </section>
+        ) : null}
+
+        {visibleResult ? <DestinyMeetingPlaceResult result={visibleResult} chargedCoins={chargedCoins} /> : null}
       </div>
     </main>
   );

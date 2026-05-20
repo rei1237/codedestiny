@@ -394,20 +394,66 @@ function buildMeetingPlaceTypes(profile: MeetingEnergyProfile) {
     {
       title: dominantStyle.title,
       description: dominantStyle.description,
-      whyItFits: `${ELEMENT_LABEL[profile.primaryElement]} 중심 기운과 ${profile.dayMasterLabel}의 관계 리듬이 맞아 만남의 밀도가 높아집니다.`,
+      whyItFits: `${ELEMENT_LABEL[profile.primaryElement]} 중심 기운과 ${profile.dayMasterLabel}의 관계 리듬이 맞물려, 첫 대화가 끊기지 않고 신뢰 형성 속도가 빨라집니다.`,
       examplePlaces: dominantStyle.examples,
       caution: dominantStyle.caution,
     },
     {
       title: `${ELEMENT_LABEL[profile.primaryElement]} 공명 루트`,
       description: "용신/희신 축의 오행을 공간으로 옮겨 인연 에너지를 키우는 방식입니다.",
-      whyItFits: `당신의 사주에서 ${ELEMENT_LABEL[profile.primaryElement]} 기운은 관계의 문을 여는 핵심 신호입니다.`,
+      whyItFits: `당신의 사주에서 ${ELEMENT_LABEL[profile.primaryElement]} 기운은 경계심을 낮추고 대화의 결을 맞추는 핵심 신호로 작동합니다.`,
       examplePlaces: PLACE_POOL_BY_ELEMENT[profile.primaryElement].slice(0, 3).map((item) => item.name),
       caution: "한 번에 많은 장소를 돌기보다 한 공간에 충분히 머무는 편이 더 유리합니다.",
     },
   ];
 
   return uniqueBy([...base, ...additional], (item) => item.title).slice(0, 4);
+}
+
+function buildSceneDescription(
+  placeName: string,
+  placeType: DestinyMeetingPlaceResult["recommendedPlaces"][number]["type"],
+  element: DestinyElement,
+): string {
+  const timeHint = ELEMENT_TIMING_MAP[element]?.times?.[0] || "오후 시간대";
+  const scenicByType: Record<DestinyMeetingPlaceResult["recommendedPlaces"][number]["type"], string> = {
+    city: `${timeHint}, 도시의 결이 살아나는 길목에서`,
+    nature: `${timeHint}, 공기가 부드럽게 열리는 산책 동선에서`,
+    cafe: `${timeHint}, 잔잔한 음악이 흐르는 창가 자리에서`,
+    culture: `${timeHint}, 조용한 전시 동선과 해설 포인트 사이에서`,
+    travel: `${timeHint}, 낯선 거리의 첫 장면이 펼쳐지는 순간`,
+    spiritual: `${timeHint}, 호흡이 느려지는 고요한 공간에서`,
+    water: `${timeHint}, 물결 반사가 부드럽게 흔들리는 자리에서`,
+    mountain: `${timeHint}, 시야가 트이는 오르막과 쉼 구간에서`,
+    night: `${timeHint}, 조명이 켜지며 분위기가 바뀌는 경계 시간에`,
+    daily: `${timeHint}, 익숙한 동선이 편안해지는 루틴 안에서`,
+  };
+
+  return `${scenicByType[placeType]} ${placeName}의 장면은 시선, 보폭, 말의 속도를 같은 템포로 맞춰 첫 대화를 자연스럽게 길게 이어 줍니다.`;
+}
+
+function buildConversationOpener(placeType: DestinyMeetingPlaceResult["recommendedPlaces"][number]["type"]): string {
+  const openerByType: Record<DestinyMeetingPlaceResult["recommendedPlaces"][number]["type"], string> = {
+    city: "이 거리에서 유독 끌리는 간판이나 공간 하나만 고른다면 어디예요?",
+    nature: "오늘 걸으면서 가장 마음이 편해진 지점이 어디였어요?",
+    cafe: "이 공간의 분위기를 한 단어로 표현하면 뭐라고 하고 싶어요?",
+    culture: "방금 본 작품 중 색감이 가장 오래 남는 건 어떤 장면이었어요?",
+    travel: "이 도시에서 하루만 더 머문다면 가장 먼저 가고 싶은 곳이 어디예요?",
+    spiritual: "요즘 마음을 진정시키는 루틴이 하나 있다면 뭐예요?",
+    water: "물가를 볼 때마다 떠오르는 기억이나 장소가 있어요?",
+    mountain: "오르막에서 숨 고를 때 드는 생각이 평소랑 좀 달라지나요?",
+    night: "해 질 무렵이 되면 하루 감정이 어떻게 바뀌는 편이에요?",
+    daily: "반복해서 찾게 되는 나만의 동네 루틴이 있어요?",
+  };
+  return openerByType[placeType];
+}
+
+function buildEmotionalHook(profile: MeetingEnergyProfile, placeElement: DestinyElement): string {
+  const base = `${ELEMENT_LABEL[placeElement]} 기운은 ${profile.relationshipPattern} 리듬을 강화해 상대의 경계심을 천천히 낮추고 대화의 안전지대를 만듭니다.`;
+  if (profile.primaryElement === placeElement) {
+    return `${base} 특히 당신의 핵심 인연 축과 직접 공명해, 디테일을 알아보는 사람을 안정적으로 끌어당기는 힘이 강해집니다.`;
+  }
+  return `${base} 보조 오행으로 작동해 과열된 감정 대신 오래 가는 호기심과 신뢰를 남기는 데 유리합니다.`;
 }
 
 function buildRecommendedPlaces(profile: MeetingEnergyProfile): DestinyMeetingPlaceResult["recommendedPlaces"] {
@@ -430,14 +476,18 @@ function buildRecommendedPlaces(profile: MeetingEnergyProfile): DestinyMeetingPl
     const avoidPenalty = profile.avoidElements.includes(item.element) ? 14 : 0;
 
     const romancePotential = Math.max(60, Math.min(98, 72 + usefulBoost + sinsalBoost - avoidPenalty + (4 - index) * 2));
+    const conversationOpener = buildConversationOpener(item.type);
 
     return {
       rank: index + 1,
       name: item.name,
       type: item.type,
       element: item.element,
-      reason: `${item.reason} ${profile.relationshipPattern} 흐름과도 잘 맞습니다.`,
-      actionTip: item.actionTip,
+      sceneDescription: buildSceneDescription(item.name, item.type, item.element),
+      emotionalHook: buildEmotionalHook(profile, item.element),
+      conversationOpener,
+      reason: `${item.reason} 이 공간은 ${profile.relationshipPattern} 흐름과 정확히 맞아, 첫 만남에서도 대화의 깊이를 빠르게 확보하기 좋습니다.`,
+      actionTip: `${item.actionTip} 도착 후 3분 안에 "${conversationOpener}"처럼 감각 질문으로 첫 문장을 열면 호감 형성 속도가 눈에 띄게 좋아집니다.`,
       romancePotential,
     };
   });
@@ -474,7 +524,7 @@ function buildLuckyTiming(profile: MeetingEnergyProfile): DestinyMeetingPlaceRes
     bestSeasons,
     bestMonths,
     bestTimeOfDay,
-    explanation: `${ELEMENT_LABEL[profile.primaryElement]} 기운이 강해지는 구간에 만남 운이 확실히 상승합니다. ${profile.sinsalSignals.yeokma ? "이동이 있는 일정에서 귀인운이 더 크게 열립니다." : "반복 방문 루틴을 만들면 인연 확률이 꾸준히 높아집니다."}`,
+    explanation: `${ELEMENT_LABEL[profile.primaryElement]} 기운이 강해지는 시간대에는 말의 톤과 표정 텐션이 안정되어 인연 운이 선명하게 상승합니다. ${profile.sinsalSignals.yeokma ? "이동이 포함된 일정은 우연한 접점을 크게 늘려 귀인운 체감이 빨라집니다." : "같은 요일·같은 시간대의 반복 방문 루틴은 관계 전개 확률을 꾸준히 높입니다."}`,
   };
 }
 
@@ -508,7 +558,7 @@ function buildAvoidGuide(profile: MeetingEnergyProfile): DestinyMeetingPlaceResu
     avoidPlaces,
     avoidTiming: ["과로 직후 심야 약속", "감정 소모가 큰 날의 즉흥 만남"],
     avoidPatterns,
-    reason: `${ELEMENT_LABEL[avoidElement]} 과열 구간에서는 상대의 신호를 오해하기 쉽습니다. 속도를 반 박자 늦추면 관계의 질이 훨씬 좋아집니다.`,
+    reason: `${ELEMENT_LABEL[avoidElement]} 과열 구간에서는 상대의 의도를 과해석하거나 결론을 서두르기 쉽습니다. 결정 속도를 반 박자 늦추면 관계의 질과 지속성이 동시에 좋아집니다.`,
   };
 }
 
@@ -517,10 +567,16 @@ function buildPracticalPlan(profile: MeetingEnergyProfile, places: DestinyMeetin
   const secondPlace = places[1]?.name || "전시 공간";
 
   return {
-    todayAction: `오늘은 ${topPlace}에 30분만 머물며 대화의 소재를 1개 기록해 보세요.`,
-    thisWeekAction: `이번 주에는 ${secondPlace} 포함 2곳을 방문해, 같은 시간대 반복 노출 루틴을 만드세요.`,
-    thisMonthAction: `이번 달엔 ${ELEMENT_LABEL[profile.primaryElement]} 무드를 유지하는 코디/향/동선을 3회 이상 실천해 보세요.`,
-    travelAction: `${COUNTRY_POOL_BY_ELEMENT[profile.primaryElement][0].country} · ${COUNTRY_POOL_BY_ELEMENT[profile.primaryElement][0].cities[0]} 스타일의 1박 2일 동선을 미리 설계해 두면 인연운 체감이 빨라집니다.`,
+    todayAction: `오늘은 ${topPlace}에서 최소 30분 머물며, 상대 반응이 좋았던 대화 키워드 1개를 메모해 다음 만남의 오프너로 저장하세요.`,
+    thisWeekAction: `이번 주에는 ${secondPlace}를 포함한 2곳을 같은 시간대에 방문해, 인연운이 잘 열리는 리듬을 몸에 고정하세요.`,
+    thisMonthAction: `이번 달에는 ${ELEMENT_LABEL[profile.primaryElement]} 무드를 유지하는 코디·향·동선을 3회 이상 반복해 첫인상 일관성을 강화하세요.`,
+    travelAction: `${COUNTRY_POOL_BY_ELEMENT[profile.primaryElement][0].country} · ${COUNTRY_POOL_BY_ELEMENT[profile.primaryElement][0].cities[0]} 스타일의 1박 2일 코스를 미리 설계해 두면, 우연한 만남을 관계 전개로 연결하기 쉬워집니다.`,
+    toneReminder: `${ELEMENT_LABEL[profile.primaryElement]} 무드를 유지하면 관계 속도를 무리하게 당기지 않고, 신뢰를 먼저 쌓는 건강한 흐름이 강해집니다.`,
+    microActions: [
+      "첫 대화는 취향 질문 1개로 시작하고, 바로 자신의 짧은 답을 덧붙이기",
+      "만남 후 10분 안에 기억에 남은 포인트 1줄을 메모해 다음 대화의 실마리로 쓰기",
+      "약속 시간보다 12분 먼저 도착해 호흡을 정리하고 표정 텐션을 안정시키기",
+    ],
   };
 }
 
@@ -540,10 +596,10 @@ export function generateDestinyMeetingPlaceResult(sajuResult: SajuEngineResult):
   return {
     summary: {
       title: "사주로 보는 인연의 장소",
-      oneLine: `당신의 인연은 ${ELEMENT_LABEL[profile.primaryElement]} 기운이 머무는 공간에서 특히 선명하게 열립니다. 천천히 대화를 쌓는 동선이 관계의 결을 깊게 만듭니다.`,
+      oneLine: `당신의 인연은 ${ELEMENT_LABEL[profile.primaryElement]} 기운이 머무는 공간에서 가장 선명하게 열립니다. 속도를 낮춘 대화 동선이 첫 호감을 신뢰로 바꾸며 관계의 결을 깊게 만듭니다.`,
       mainEnergy: ELEMENT_LABEL[profile.primaryElement],
       romanceKeyword: style.romanceKeyword,
-      placeTheme: `${ELEMENT_LABEL[profile.primaryElement]} 중심의 ${profile.meetingStyle}`,
+      placeTheme: `${ELEMENT_LABEL[profile.primaryElement]} 중심의 ${profile.meetingStyle} 루트`,
     },
     energyProfile: {
       dayMaster: profile.dayMasterLabel,
