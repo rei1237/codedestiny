@@ -1,8 +1,19 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
+import { callGeminiText } from "../lib/gemini.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
+import {
+  buildGeminiPrompt,
+  buildFallbackInterpretation,
+  buildNumerologyContext,
+  normalizeCardInput,
+  normalizeInterpretation,
+  normalizeTopic,
+  parseJsonCandidate,
+  selectCards,
+} from "../../lib/tarot/numerology-tarot.mjs";
 import {
   TarotInterpretationError,
   buildConsultingHighlights,
@@ -147,6 +158,78 @@ function mapInterpretationErrorToHttp(error) {
   return null;
 }
 
+async function buildNumerologyReadingPayload(body = {}, env = {}) {
+  const birthDate = asText(body?.birthDate);
+  if (!birthDate) {
+    throw createHttpError(400, "생년월일을 입력해 주세요.");
+  }
+
+  const topic = normalizeTopic(body?.topic);
+  const numerology = buildNumerologyContext({
+    birthDate,
+    topic,
+  });
+
+  let cards = normalizeCardInput(body?.cards, topic);
+  if (cards.length < 3) {
+    cards = selectCards({
+      birthDate,
+      topic,
+      name: asText(body?.name),
+      numerology,
+    });
+  }
+  cards = normalizeCardInput(cards, topic).slice(0, 3);
+
+  const fallback = buildFallbackInterpretation({
+    numerology,
+    cards,
+    topic,
+    name: asText(body?.name),
+  });
+
+  const prompt = buildGeminiPrompt({
+    numerology,
+    cards,
+    topic,
+    question: asText(body?.question),
+    name: asText(body?.name),
+  });
+
+  const aiResult = await callGeminiText(env, prompt, {
+    modelEnvKeys: ["NUMEROLOGY_TAROT_GEMINI_MODEL", "TAROT_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
+    maxOutputTokens: 2048,
+    timeoutMs: 12000,
+    totalTimeoutMs: 22000,
+  });
+
+  if (!aiResult?.ok || !asText(aiResult?.text)) {
+    return {
+      ok: true,
+      source: "fallback",
+      topic,
+      numerology,
+      cards,
+      interpretation: fallback,
+      model: asText(aiResult?.model),
+      warning: asText(aiResult?.message) || "gemini_unavailable",
+    };
+  }
+
+  const parsed = parseJsonCandidate(aiResult.text);
+  const interpretation = normalizeInterpretation(parsed, fallback, cards, topic);
+
+  return {
+    ok: true,
+    source: parsed ? "gemini" : "gemini_text_fallback",
+    topic,
+    numerology,
+    cards,
+    interpretation,
+    model: asText(aiResult.model),
+  };
+}
+
 export async function handleTarotRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
@@ -236,6 +319,11 @@ export async function handleTarotRoutes(request, env = {}) {
         );
       }
       return json(reading);
+    }
+
+    if (path === "/numerology-reading") {
+      const payload = await buildNumerologyReadingPayload(body, env);
+      return json(payload);
     }
 
     return notFound();
