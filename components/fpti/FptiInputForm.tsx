@@ -1,29 +1,39 @@
 "use client";
 
 import type { FptiFormInput } from "@/lib/fpti/fpti-types";
+import styles from "./FptiCosmic.module.css";
 
 type Props = {
   value: FptiFormInput;
   onChange: (next: FptiFormInput) => void;
   onSubmit: () => void;
   busy?: boolean;
+  autoReady?: boolean;
+  autoRunning?: boolean;
 };
 
-export default function FptiInputForm({ value, onChange, onSubmit, busy }: Props) {
+export default function FptiInputForm({ value, onChange, onSubmit, busy, autoReady, autoRunning }: Props) {
   const update = <K extends keyof FptiFormInput>(key: K, next: FptiFormInput[K]) => {
     onChange({ ...value, [key]: next });
   };
 
   const fieldClass =
-    "h-12 w-full rounded-2xl border border-[#E9C46A]/35 bg-[#0b2039]/60 px-4 text-[15px] text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-[#F6D365] focus:shadow-[0_0_0_3px_rgba(14,116,144,0.22)]";
+    `${styles.inputShell} h-12 w-full rounded-2xl px-4 text-[15px]`;
 
   return (
-    <section className="relative overflow-hidden rounded-[30px] border border-white/20 bg-[linear-gradient(155deg,rgba(5,18,36,0.94),rgba(16,33,54,0.9))] p-5 shadow-[0_20px_55px_rgba(3,9,26,0.58)] backdrop-blur-xl md:p-7">
-      <div className="pointer-events-none absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.24),transparent_45%),radial-gradient(circle_at_80%_80%,rgba(246,211,101,0.2),transparent_44%)]" />
+    <section className={`${styles.glassPanel} relative overflow-hidden rounded-[30px] p-5 md:p-7`}>
+      <div className={`${styles.starLayerSoft} absolute inset-0`} aria-hidden />
 
       <div className="relative mb-4">
-        <h2 className="text-xl font-semibold text-[#F8FAFC]">출생 정보 입력</h2>
-        <p className="mt-1 text-sm text-[#CBD5E1]">입력은 간단하게, 분석은 깊게 진행됩니다.</p>
+        <h2 className="text-xl font-semibold text-[#f8fbff]">출생 정보 입력</h2>
+        <p className="mt-1 text-sm text-[#d8d5ff]">입력값이 유효해지는 즉시 사주 계산이 자동 실행됩니다.</p>
+      </div>
+
+      <div className="relative mb-4 flex flex-wrap gap-2 text-xs">
+        <span className={`${styles.autoBadge} rounded-full px-3 py-1 text-violet-100`}>입력 감지 자동 모드</span>
+        <span className="rounded-full border border-indigo-200/35 bg-indigo-500/20 px-3 py-1 text-indigo-100">
+          {autoRunning ? "사주 계산 진행 중" : autoReady ? "자동 계산 준비 완료" : "필수 입력 대기 중"}
+        </span>
       </div>
 
       <div className="relative grid gap-4 md:grid-cols-2">
@@ -115,13 +125,13 @@ export default function FptiInputForm({ value, onChange, onSubmit, busy }: Props
       <div className="relative mt-5 flex flex-wrap gap-3">
         <button
           type="button"
-          disabled={busy || !value.name || !value.birthDate}
+          disabled={busy || !value.birthDate || (!value.timeUnknown && !value.birthTime)}
           onClick={onSubmit}
-          className="h-12 rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,116,144,0.4)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45"
+          className={`${styles.ctaButton} h-12 rounded-full px-6 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-45`}
         >
           {busy ? "분석 중..." : "성격 유형 분석 시작하기"}
         </button>
-        <p className="self-center text-xs text-[#CBD5E1]">무료 결과 + 공유 카드 제공, 심층 리포트는 하단에서 확장</p>
+        <p className="self-center text-xs text-[#d8d5ff]">무료 결과 + 공유 카드 제공, 심층 리포트는 하단에서 확장</p>
       </div>
     </section>
   );

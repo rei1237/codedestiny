@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FptiHero from "./FptiHero";
 import FptiInputForm from "./FptiInputForm";
 import FptiLoading from "./FptiLoading";
 import FptiResultCard from "./FptiResultCard";
-import { analyzeFptiFromBirth } from "@/lib/fpti/fpti-adapter";
-import type { FptiAnalysisResult, FptiFormInput } from "@/lib/fpti/fpti-types";
+import styles from "./FptiCosmic.module.css";
+import {
+  analyzeFptiFromSajuSource,
+  calculateSajuSourceFromBirth,
+  hasRequiredSajuFields,
+} from "@/lib/fpti/fpti-adapter";
+import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fpti/fpti-types";
 
 const LOADING_STEPS = [
   "사주 원국을 계산하는 중...",
@@ -157,15 +162,36 @@ function toFormInput(profile: DestinyProfile): FptiFormInput | null {
   };
 }
 
+function buildAutoSignature(input: FptiFormInput): string {
+  const keyBirthDate = String(input?.birthDate || "").trim();
+  const keyCalendarType = String(input?.calendarType || "").trim();
+  const keyTime = input?.timeUnknown ? "unknown" : String(input?.birthTime || "").trim();
+  const keyGender = String(input?.gender || "OTHER").trim();
+  return [keyBirthDate, keyCalendarType, keyTime, keyGender].join("|");
+}
+
 export default function FptiExperience() {
   const [phase, setPhase] = useState<"landing" | "input" | "loading" | "result">("landing");
   const [form, setForm] = useState<FptiFormInput>(DEFAULT_FORM);
   const [result, setResult] = useState<FptiAnalysisResult | null>(null);
+  const [sajuSource, setSajuSource] = useState<FptiSourceData | null>(null);
   const [error, setError] = useState("");
   const [stepIndex, setStepIndex] = useState(0);
   const [linkedProfileName, setLinkedProfileName] = useState("");
+  const [autoRunning, setAutoRunning] = useState(false);
+  const autoSignatureRef = useRef("");
 
   const loadingStep = useMemo(() => LOADING_STEPS[stepIndex] || LOADING_STEPS[0], [stepIndex]);
+  const autoReady = useMemo(() => hasRequiredSajuFields(form), [form]);
+
+  const toAnalysisInput = useCallback((input: FptiFormInput): FptiFormInput => {
+    const fallbackName = String(linkedProfileName || "프로필 사용자").trim() || "프로필 사용자";
+    return {
+      ...input,
+      name: String(input?.name || "").trim() || fallbackName,
+      birthRegion: String(input?.birthRegion || "").trim(),
+    };
+  }, [linkedProfileName]);
 
   const syncFormFromCurrentProfile = useCallback(() => {
     if (typeof window === "undefined") return null;
@@ -197,31 +223,59 @@ export default function FptiExperience() {
     };
   }, [syncFormFromCurrentProfile]);
 
-  const analyzeWith = async (input: FptiFormInput) => {
-    if (!input.name || !input.birthDate) {
-      setError("이름과 생년월일은 필수입니다.");
-      return;
+  const analyzeWith = useCallback(async (input: FptiFormInput, trigger: "manual" | "auto" = "manual") => {
+    const analysisInput = toAnalysisInput(input);
+    if (!hasRequiredSajuFields(analysisInput)) {
+      if (trigger === "manual") {
+        setError("생년월일과 양음력, 태어난 시간을 확인해 주세요.");
+      }
+      return false;
+    }
+
+    let computed: FptiSourceData;
+    try {
+      // 입력값을 사주 원천 데이터로 먼저 계산해 FPTI 상태와 동기화합니다.
+      computed = calculateSajuSourceFromBirth(analysisInput);
+      setSajuSource(computed);
+    } catch {
+      setError("사주 계산에 필요한 입력값이 올바르지 않습니다. 날짜/시간 형식을 확인해 주세요.");
+      setPhase("input");
+      return false;
     }
 
     setError("");
     setStepIndex(0);
     setPhase("loading");
+    setAutoRunning(trigger === "auto");
 
     const timer = window.setInterval(() => {
       setStepIndex((prev) => (prev + 1) % LOADING_STEPS.length);
     }, 620);
 
     try {
-      const [analysis] = await Promise.all([analyzeFptiFromBirth(input), sleep(2400)]);
+      const [analysis] = await Promise.all([
+        Promise.resolve(analyzeFptiFromSajuSource(computed)),
+        sleep(trigger === "auto" ? 1300 : 2200),
+      ]);
       setResult(analysis);
       setPhase("result");
+      autoSignatureRef.current = buildAutoSignature(analysisInput);
+      if (typeof window !== "undefined") {
+        window.requestAnimationFrame(() => {
+          const target = document.getElementById("fpti-result");
+          target?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+      return true;
     } catch {
       setError("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       setPhase("input");
+      return false;
     } finally {
+      setAutoRunning(false);
       window.clearInterval(timer);
     }
-  };
+  }, [toAnalysisInput]);
 
   const start = () => {
     setPhase("input");
@@ -242,75 +296,87 @@ export default function FptiExperience() {
       setPhase("input");
       return;
     }
-    await analyzeWith(profileForm);
-  };
-
-  const preview = () => {
-    setPhase("result");
-    const sample = analyzeFptiFromBirth({
-      name: "샘플 사용자",
-      gender: "OTHER",
-      birthDate: "1994-12-09",
-      calendarType: "solar",
-      birthTime: "23:20",
-      timeUnknown: false,
-      birthRegion: "서울",
-    });
-    Promise.resolve(sample)
-      .then((data) => {
-        setResult(data);
-        if (typeof window !== "undefined") {
-          window.requestAnimationFrame(() => {
-            const target = document.getElementById("fpti-result");
-            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-          });
-        }
-      })
-      .catch(() => {
-        setError("샘플 결과를 불러오지 못했습니다. 다시 시도해 주세요.");
-        setPhase("landing");
-      });
+    await analyzeWith(profileForm, "manual");
   };
 
   const onAnalyze = async () => {
-    await analyzeWith(form);
+    await analyzeWith(form, "manual");
   };
 
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#020817_0%,#07203c_42%,#1f2937_100%)] py-8 md:py-12">
-      <div className="pointer-events-none absolute inset-0 opacity-55 [background:radial-gradient(circle_at_16%_18%,rgba(14,165,233,0.28),transparent_43%),radial-gradient(circle_at_84%_22%,rgba(245,158,11,0.2),transparent_45%),radial-gradient(circle_at_50%_70%,rgba(147,197,253,0.14),transparent_54%),radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:auto,auto,auto,24px_24px]" />
-      <div className="pointer-events-none absolute -left-24 top-12 h-72 w-72 rounded-full bg-sky-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-12 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
-      <div className="relative mx-auto w-full max-w-6xl space-y-6 px-4 md:px-6">
-        <FptiHero onStart={start} onPreview={preview} />
+  useEffect(() => {
+    if (phase !== "input") return;
+    if (!autoReady) return;
 
-        <section id="fpti-intro" className="rounded-3xl border border-white/20 bg-[linear-gradient(145deg,rgba(8,16,35,0.88),rgba(18,37,63,0.86))] p-5 text-sm text-slate-200 shadow-[0_20px_65px_rgba(2,8,24,0.45)] backdrop-blur-xl">
+    const currentSignature = buildAutoSignature(form);
+    if (!currentSignature || currentSignature === autoSignatureRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      void analyzeWith(form, "auto");
+    }, 360);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [analyzeWith, autoReady, form, phase]);
+
+  const sourcePillars = useMemo(() => {
+    if (!sajuSource) return null;
+    return [
+      ["년주", sajuSource?.pillars?.year || "-"],
+      ["월주", sajuSource?.pillars?.month || "-"],
+      ["일주", sajuSource?.pillars?.day || "-"],
+      ["시주", sajuSource?.pillars?.hour || (form?.timeUnknown ? "미상" : "-")],
+    ] as const;
+  }, [form?.timeUnknown, sajuSource]);
+
+  return (
+    <main className={`${styles.cosmicPage} py-8 md:py-12`}>
+      <div className={styles.starLayer} aria-hidden />
+      <div className={styles.starLayerSoft} aria-hidden />
+      <div className={styles.nebulaLeft} aria-hidden />
+      <div className={styles.nebulaRight} aria-hidden />
+      <div className="relative mx-auto w-full max-w-6xl space-y-6 px-4 md:px-6">
+        <FptiHero onStart={start} />
+
+        <section id="fpti-intro" className={`${styles.glassPanel} rounded-3xl p-5 text-sm text-slate-200`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-slate-50">분석 기준</h2>
               <p className="mt-1 max-w-3xl">
                 4축(기질/행동/관계/전략)은 사주 오행, 십성 분포, 월지 계절, 용신/희신 정보를 기반으로 계산됩니다.
-                기존 사주 엔진 계산값을 재사용하는 결정론적 로직이며, 입력 누락 시에는 부분/기본 분석 품질 안내를 함께 제공합니다.
+                입력값 변경은 자동 감지되며, 계산된 만세력 데이터는 FPTI 상태에 즉시 주입됩니다.
               </p>
             </div>
             {linkedProfileName && (
-              <div className="rounded-2xl border border-emerald-300/35 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+              <div className={`${styles.autoBadge} rounded-2xl px-3 py-2 text-xs text-emerald-100`}>
                 현재 프로필 연동됨: <span className="font-semibold">{linkedProfileName}</span>
               </div>
             )}
           </div>
+
+          {sourcePillars && (
+            <div className="mt-4 grid gap-2 text-xs text-[#ecebff] md:grid-cols-4">
+              {sourcePillars.map(([label, value]) => (
+                <div key={label} className="rounded-xl border border-violet-200/25 bg-[#0d1434]/55 px-3 py-2">
+                  <p className="text-[11px] text-violet-200/85">{label}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#f6f3ff]">{value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={analyzeCurrentProfile}
-              className="rounded-full border border-sky-300/45 bg-sky-400/12 px-4 py-2 text-xs font-semibold text-sky-100 transition hover:bg-sky-300/18"
+              className={`${styles.softButton} rounded-full px-4 py-2 text-xs font-semibold`}
             >
               현재 프로필로 바로 분석
             </button>
             <button
               type="button"
               onClick={start}
-              className="rounded-full border border-amber-300/45 bg-amber-300/12 px-4 py-2 text-xs font-semibold text-amber-100 transition hover:bg-amber-300/18"
+              className={`${styles.softButton} rounded-full px-4 py-2 text-xs font-semibold`}
             >
               입력값 확인 후 분석
             </button>
@@ -319,7 +385,14 @@ export default function FptiExperience() {
 
         {phase === "input" && (
           <section id="fpti-input">
-          <FptiInputForm value={form} onChange={setForm} onSubmit={onAnalyze} busy={false} />
+            <FptiInputForm
+              value={form}
+              onChange={setForm}
+              onSubmit={onAnalyze}
+              busy={false}
+              autoReady={autoReady}
+              autoRunning={autoRunning}
+            />
           </section>
         )}
 

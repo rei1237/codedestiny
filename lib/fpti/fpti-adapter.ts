@@ -54,10 +54,16 @@ function monthBranchToSeason(branch: string) {
 
 function parseBirthDate(birthDate: string) {
   const [year, month, day] = String(birthDate || "").split("-").map((token) => Number(token));
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+  if (year <= 0 || month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
   return {
-    year: Number.isFinite(year) ? year : 1995,
-    month: Number.isFinite(month) ? month : 1,
-    day: Number.isFinite(day) ? day : 1,
+    year,
+    month,
+    day,
   };
 }
 
@@ -75,6 +81,12 @@ function parseBirthTime(input: FptiFormInput) {
     minute: Number.isFinite(minute) ? minute : 0,
     unknownTime: false,
   };
+}
+
+export function hasRequiredSajuFields(input: FptiFormInput | null | undefined): boolean {
+  if (!input?.birthDate || !input?.calendarType) return false;
+  if (!input?.timeUnknown && !String(input?.birthTime || "").trim()) return false;
+  return true;
 }
 
 function strengthToScore(strength?: "strong" | "weak" | "balanced") {
@@ -125,15 +137,22 @@ function toSourceData(profile: LegacySajuProfile, timeUnknown: boolean): FptiSou
   };
 }
 
-export async function analyzeFptiFromBirth(input: FptiFormInput): Promise<FptiAnalysisResult> {
-  const parsedDate = parseBirthDate(input.birthDate);
-  const parsedTime = parseBirthTime(input);
+export function calculateSajuSourceFromBirth(input: FptiFormInput): FptiSourceData {
+  if (!hasRequiredSajuFields(input)) {
+    throw new Error("필수 출생 정보가 누락되었습니다.");
+  }
 
+  const parsedDate = parseBirthDate(input.birthDate);
+  if (!parsedDate) {
+    throw new Error("생년월일 형식이 올바르지 않습니다.");
+  }
+
+  const parsedTime = parseBirthTime(input);
   const legacy = buildSajuProfile({
-    name: input.name || "사용자",
-    gender: input.gender || "OTHER",
+    name: String(input?.name || "사용자").trim() || "사용자",
+    gender: input?.gender || "OTHER",
     birth: {
-      calendarType: input.calendarType,
+      calendarType: input?.calendarType,
       year: parsedDate.year,
       month: parsedDate.month,
       day: parsedDate.day,
@@ -143,6 +162,14 @@ export async function analyzeFptiFromBirth(input: FptiFormInput): Promise<FptiAn
     },
   }) as LegacySajuProfile;
 
-  const source = toSourceData(legacy, parsedTime.unknownTime);
+  return toSourceData(legacy, parsedTime.unknownTime);
+}
+
+export function analyzeFptiFromSajuSource(source: FptiSourceData): FptiAnalysisResult {
   return analyzeFpti(source);
+}
+
+export async function analyzeFptiFromBirth(input: FptiFormInput): Promise<FptiAnalysisResult> {
+  const source = calculateSajuSourceFromBirth(input);
+  return analyzeFptiFromSajuSource(source);
 }

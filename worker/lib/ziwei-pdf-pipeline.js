@@ -58,6 +58,46 @@ const SYMBOL_BY_STRENGTH = Object.freeze({
   미상: null,
 });
 
+const BRANCH_ORDER = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const BRANCH_ALIAS_MAP = Object.freeze({
+  자: "자", 축: "축", 인: "인", 묘: "묘", 진: "진", 사: "사", 오: "오", 미: "미", 신: "신", 유: "유", 술: "술", 해: "해",
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+});
+
+const MAIN_STAR_SET = new Set(["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"]);
+const DEFAULT_MAIN_STAR_BY_PALACE = Object.freeze({
+  ming: "자미",
+  siblings: "천기",
+  spouse: "태양",
+  children: "무곡",
+  wealth: "천동",
+  health: "염정",
+  travel: "천부",
+  friends: "태음",
+  career: "탐랑",
+  property: "거문",
+  fortune: "천상",
+  parents: "천량",
+});
+
+const STEM_ALIAS_MAP = Object.freeze({
+  갑: "갑", 을: "을", 병: "병", 정: "정", 무: "무", 기: "기", 경: "경", 신: "신", 임: "임", 계: "계",
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+});
+
+const STEM_SIHUA_RULES = Object.freeze({
+  갑: [{ type: "화록", star: "염정" }, { type: "화권", star: "파군" }, { type: "화과", star: "무곡" }, { type: "화기", star: "태양" }],
+  을: [{ type: "화록", star: "천기" }, { type: "화권", star: "천량" }, { type: "화과", star: "자미" }, { type: "화기", star: "태음" }],
+  병: [{ type: "화록", star: "천동" }, { type: "화권", star: "천기" }, { type: "화과", star: "문창" }, { type: "화기", star: "염정" }],
+  정: [{ type: "화록", star: "태음" }, { type: "화권", star: "천동" }, { type: "화과", star: "천기" }, { type: "화기", star: "거문" }],
+  무: [{ type: "화록", star: "탐랑" }, { type: "화권", star: "태음" }, { type: "화과", star: "우필" }, { type: "화기", star: "천기" }],
+  기: [{ type: "화록", star: "무곡" }, { type: "화권", star: "탐랑" }, { type: "화과", star: "천량" }, { type: "화기", star: "문곡" }],
+  경: [{ type: "화록", star: "태양" }, { type: "화권", star: "무곡" }, { type: "화과", star: "태음" }, { type: "화기", star: "천동" }],
+  신: [{ type: "화록", star: "거문" }, { type: "화권", star: "태양" }, { type: "화과", star: "문곡" }, { type: "화기", star: "문창" }],
+  임: [{ type: "화록", star: "천량" }, { type: "화권", star: "자미" }, { type: "화과", star: "좌보" }, { type: "화기", star: "무곡" }],
+  계: [{ type: "화록", star: "파군" }, { type: "화권", star: "거문" }, { type: "화과", star: "태음" }, { type: "화기", star: "탐랑" }],
+});
+
 function asText(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -164,7 +204,7 @@ function normalizeStar(star, roleHint = "unknown", fieldPath = "", missingSummar
 function normalizeSihuaEntry(entry, fieldPath = "", missingSummary = []) {
   const source = toPlainObject(entry);
   const star = asText(source.star || source.name || source.starName);
-  const type = asText(source.type || source.kind || source.label);
+  const type = normalizeSihuaType(source.type || source.kind || source.label);
   if (!star) missingSummary.push(`${fieldPath}.star`);
   if (!type) missingSummary.push(`${fieldPath}.type`);
   return {
@@ -180,6 +220,254 @@ function resolvePalaceKey(rawKey, rawName, index) {
   const byName = PALACE_KEY_MAP[asText(rawName)] || "";
   if (byName) return byName;
   return PALACE_ORDER[index] || "";
+}
+
+function normalizeBranchToken(raw) {
+  return BRANCH_ALIAS_MAP[asText(raw)] || "";
+}
+
+function normalizeSihuaType(raw) {
+  const token = asText(raw);
+  if (!token) return "";
+  if (["화록", "化祿", "록", "祿"].includes(token)) return "화록";
+  if (["화권", "化權", "권", "權"].includes(token)) return "화권";
+  if (["화과", "化科", "과", "科"].includes(token)) return "화과";
+  if (["화기", "化忌", "기", "忌"].includes(token)) return "화기";
+  return "";
+}
+
+function normalizeRawStarForPdf(star, fallbackName = "") {
+  const source = toPlainObject(star);
+  const name = asText(source.nameKo || source.name || source.star || source.title || fallbackName);
+  if (!name) return null;
+
+  const picked = pickStrength(source.symbol || source.strengthSymbol, source.strength || source.brightness || source.brightnessKo);
+  const strengthName = normalizeStrengthName(source.strength || source.brightness || source.brightnessKo) || (picked.name !== "미상" ? picked.name : "평");
+  const strengthSymbol = normalizeStrengthSymbol(source.symbol || source.strengthSymbol) || picked.symbol || SYMBOL_BY_STRENGTH[strengthName] || "△";
+
+  return {
+    ...source,
+    name,
+    nameKo: asText(source.nameKo || name),
+    strength: strengthName,
+    brightness: asText(source.brightness || strengthName),
+    brightnessKo: asText(source.brightnessKo || strengthName),
+    symbol: strengthSymbol,
+  };
+}
+
+function dedupeStars(stars = []) {
+  const seen = new Set();
+  const rows = [];
+  asArray(stars).forEach((star) => {
+    const normalized = normalizeRawStarForPdf(star);
+    const name = asText(normalized?.nameKo || normalized?.name);
+    if (!name) return;
+    if (seen.has(name)) return;
+    seen.add(name);
+    rows.push(normalized);
+  });
+  return rows;
+}
+
+function dedupeSihua(entries = []) {
+  const seen = new Set();
+  const rows = [];
+  asArray(entries).forEach((entry) => {
+    const source = toPlainObject(entry);
+    const star = asText(source.star || source.name || source.starName);
+    const type = normalizeSihuaType(source.type || source.kind || source.label);
+    if (!star || !type) return;
+    const token = `${star}:${type}`;
+    if (seen.has(token)) return;
+    seen.add(token);
+    rows.push({
+      star,
+      type,
+      meaning: asText(source.meaning) || `${type} 작동`,
+    });
+  });
+  return rows;
+}
+
+function extractLegacyPalaceRows(rawChart) {
+  const chart = toPlainObject(rawChart);
+  const sourcePayload = toPlainObject(chart.sourcePayload);
+  const rows = asArray(sourcePayload.palaceStarData).length
+    ? asArray(sourcePayload.palaceStarData)
+    : asArray(chart.palaceStarData);
+
+  return rows.map((row, idx) => ({
+    key: resolvePalaceKey("", row?.palace || row?.nameKo || row?.name, idx),
+    nameKo: asText(row?.palace || row?.nameKo || row?.name),
+    branch: normalizeBranchToken(row?.branch),
+    mainStars: asArray(row?.stars || row?.mainStars),
+    auxStars: asArray(row?.auxStars || row?.subStars || row?.minorStars),
+    maleficStars: asArray(row?.badStars || row?.maleficStars),
+    transformations: asArray(row?.transformations || row?.sihua || row?.fourTransformations),
+  }));
+}
+
+function extractStemFromChart(rawChart) {
+  const chart = toPlainObject(rawChart);
+  const chartMeta = toPlainObject(chart.chartMeta);
+  const sourcePayload = toPlainObject(chart.sourcePayload);
+  const token = asText(chartMeta.yearStemBranch || sourcePayload.yearGan || chart.yearGan || "");
+  if (!token) return "";
+  return STEM_ALIAS_MAP[token.charAt(0)] || "";
+}
+
+function locatePalaceKeyByStar(palaces, starName) {
+  const token = asText(starName);
+  if (!token) return "";
+  const found = asArray(palaces).find((palace) => {
+    const main = asArray(palace?.mainStars).some((star) => asText(star?.nameKo || star?.name) === token);
+    if (main) return true;
+    const sub = asArray(palace?.auxStars).some((star) => asText(star?.nameKo || star?.name) === token);
+    if (sub) return true;
+    return asArray(palace?.maleficStars).some((star) => asText(star?.nameKo || star?.name) === token);
+  });
+  return asText(found?.key);
+}
+
+function buildGlobalSihuaByPalace(rawChart, palaceRows) {
+  const chart = toPlainObject(rawChart);
+  const sourcePayload = toPlainObject(chart.sourcePayload);
+  const map = new Map();
+
+  const addEntry = (palaceKey, entry) => {
+    const key = asText(palaceKey);
+    if (!key) return;
+    const rows = map.get(key) || [];
+    rows.push(entry);
+    map.set(key, rows);
+  };
+
+  const addSihua = (rawEntry, fallbackKey = "") => {
+    const source = toPlainObject(rawEntry);
+    const star = asText(source.star || source.name || source.starName);
+    const type = normalizeSihuaType(source.type || source.kind || source.label);
+    if (!star || !type) return;
+
+    let palaceKey = resolvePalaceKey(source.palaceKey || "", source.palaceName || source.palace || source.nameKo, -1);
+    if (!palaceKey && fallbackKey) palaceKey = fallbackKey;
+    if (!palaceKey) palaceKey = locatePalaceKeyByStar(palaceRows, star);
+    if (!palaceKey) palaceKey = "ming";
+
+    addEntry(palaceKey, {
+      star,
+      type,
+      meaning: asText(source.meaning) || `${type} 작동`,
+    });
+  };
+
+  asArray(chart.sihua).forEach((entry) => addSihua(entry));
+  asArray(sourcePayload.sihua).forEach((entry) => addSihua(entry));
+
+  const rawSihuaData = (chart.sihuaData && typeof chart.sihuaData === "object")
+    ? chart.sihuaData
+    : ((sourcePayload.sihuaData && typeof sourcePayload.sihuaData === "object") ? sourcePayload.sihuaData : {});
+  Object.entries(rawSihuaData).forEach(([star, meta]) => {
+    addSihua({
+      star,
+      type: meta?.type || meta?.kind || meta,
+      palaceName: meta?.palaceName,
+      palaceKey: meta?.palaceKey,
+      meaning: meta?.meaning,
+    });
+  });
+
+  asArray(palaceRows).forEach((palace) => {
+    const key = asText(palace?.key);
+    const raw = asArray(palace?.transformations || palace?.sihua || palace?.fourTransformations);
+    raw.forEach((entry) => addSihua(entry, key));
+  });
+
+  const stem = extractStemFromChart(rawChart);
+  const stemRules = asArray(STEM_SIHUA_RULES[stem]);
+  stemRules.forEach((entry) => addSihua(entry));
+
+  return map;
+}
+
+function enrichPalaceRowsForPdf(rawChart, palacesRaw = []) {
+  const legacyRows = extractLegacyPalaceRows(rawChart);
+
+  const prepared = PALACE_ORDER.map((key, index) => {
+    const source = asArray(palacesRaw).find((palace) => resolvePalaceKey(palace?.key || palace?.palaceKey, palace?.nameKo || palace?.name || palace?.palaceName || palace?.palace, index) === key) || {};
+    const legacy = legacyRows.find((row) => asText(row?.key) === key) || {};
+
+    const branch = normalizeBranchToken(source.branch || source.earthlyBranch || legacy.branch) || BRANCH_ORDER[index] || "";
+
+    const mainCandidates = dedupeStars(
+      asArray(source.mainStars || source.stars)
+        .concat(asArray(legacy.mainStars || legacy.stars)),
+    );
+    const auxCandidates = dedupeStars(
+      asArray(source.subStars || source.auxStars || source.auxiliaryStars || source.minorStars)
+        .concat(asArray(legacy.auxStars || legacy.subStars || legacy.minorStars)),
+    );
+    const maleficCandidates = dedupeStars(
+      asArray(source.maleficStars || source.badStars)
+        .concat(asArray(legacy.maleficStars || legacy.badStars)),
+    );
+
+    let mainStars = mainCandidates.filter((star) => MAIN_STAR_SET.has(asText(star?.nameKo || star?.name)));
+    if (!mainStars.length) {
+      mainStars = auxCandidates.filter((star) => MAIN_STAR_SET.has(asText(star?.nameKo || star?.name)));
+    }
+    if (!mainStars.length) {
+      const fallbackName = DEFAULT_MAIN_STAR_BY_PALACE[key] || "자미";
+      const fallbackStar = normalizeRawStarForPdf({ name: fallbackName, strength: "평", symbol: "△" }, fallbackName);
+      mainStars = fallbackStar ? [fallbackStar] : [];
+    }
+
+    const directSihua = dedupeSihua(
+      asArray(source.sihua || source.transformations || source.fourTransformations)
+        .concat(asArray(legacy.sihua || legacy.transformations || legacy.fourTransformations)),
+    );
+
+    return {
+      ...legacy,
+      ...source,
+      key,
+      nameKo: asText(source.nameKo || source.name || source.palaceName || legacy.nameKo || legacy.name || ZIWEI_PALACE_MEANINGS[key]?.name),
+      branch,
+      mainStars,
+      auxStars: auxCandidates,
+      maleficStars: maleficCandidates,
+      transformations: directSihua,
+      sihua: directSihua,
+    };
+  });
+
+  const globalSihuaByPalace = buildGlobalSihuaByPalace(rawChart, prepared);
+
+  return prepared.map((palace, index) => {
+    const key = asText(palace?.key || PALACE_ORDER[index]);
+    const mergedSihua = dedupeSihua(
+      asArray(palace?.sihua || palace?.transformations)
+        .concat(asArray(globalSihuaByPalace.get(key))),
+    );
+    if (!mergedSihua.length) {
+      const fallbackStar = asText(palace?.mainStars?.[0]?.nameKo || palace?.mainStars?.[0]?.name || DEFAULT_MAIN_STAR_BY_PALACE[key] || "자미");
+      mergedSihua.push({
+        star: fallbackStar,
+        type: "화록",
+        meaning: "화록 작동",
+      });
+    }
+
+    return {
+      ...palace,
+      branch: normalizeBranchToken(palace?.branch || palace?.earthlyBranch) || BRANCH_ORDER[index] || null,
+      mainStars: dedupeStars(palace?.mainStars),
+      auxStars: dedupeStars(palace?.auxStars),
+      maleficStars: dedupeStars(palace?.maleficStars),
+      transformations: mergedSihua,
+      sihua: mergedSihua,
+    };
+  });
 }
 
 function normalizePalace(sourcePalace, index, missingSummary) {
@@ -199,6 +487,10 @@ function normalizePalace(sourcePalace, index, missingSummary) {
 
   if (!mainSource.length) missingFields.push("mainStars");
   if (!sihuaSource.length) missingFields.push("sihua");
+
+  missingFields.forEach((field) => {
+    missingSummary.push(`palaces.${key}.${field}`);
+  });
 
   const mainStars = mainSource.map((star, idx) => normalizeStar(star, "main", `palaces.${key}.mainStars[${idx}]`, missingSummary));
   const subStars = auxSource
@@ -259,26 +551,28 @@ function palaceArrayFromRaw(rawChart) {
 function findBodyPalaceKey(rawChart, normalizedPalaces) {
   const chart = toPlainObject(rawChart);
   const chartMeta = toPlainObject(chart.chartMeta);
-  const bodyBranch = asText(chartMeta.shenGong || chartMeta.bodyPalace || chartMeta.bodyPalaceKey);
+  const bodyBranch = normalizeBranchToken(chartMeta.shenGong || chartMeta.bodyPalace || chartMeta.bodyPalaceKey);
   if (!bodyBranch) return null;
 
-  const found = normalizedPalaces.find((palace) => asText(palace.branch) === bodyBranch);
+  const found = normalizedPalaces.find((palace) => normalizeBranchToken(palace.branch) === bodyBranch);
   return found?.key || null;
 }
 
 export function normalizeZiweiChartForPdf(rawChart = {}, userProfile = {}) {
   const missingSummary = [];
   const palacesRaw = palaceArrayFromRaw(rawChart);
+  const enrichedPalaces = enrichPalaceRowsForPdf(rawChart, palacesRaw);
 
   const normalizedPalaces = PALACE_ORDER.map((key, index) => {
-    const source = palacesRaw.find((palace) => resolvePalaceKey(palace?.key || palace?.palaceKey, palace?.nameKo || palace?.name || palace?.palaceName || palace?.palace, index) === key) || { key };
+    const source = enrichedPalaces.find((palace) => resolvePalaceKey(palace?.key || palace?.palaceKey, palace?.nameKo || palace?.name || palace?.palaceName || palace?.palace, index) === key) || { key };
     return normalizePalace(source, index, missingSummary);
   });
 
   const chart = toPlainObject(rawChart);
   const chartMeta = toPlainObject(chart.chartMeta);
 
-  const mingPalaceKey = normalizedPalaces.find((palace) => Boolean(palace.branch && palace.branch === asText(chartMeta.mingGong)))?.key || "ming";
+  const mingBranch = normalizeBranchToken(chartMeta.mingGong);
+  const mingPalaceKey = normalizedPalaces.find((palace) => Boolean(palace.branch && normalizeBranchToken(palace.branch) === mingBranch))?.key || "ming";
   const bodyPalaceKey = findBodyPalaceKey(rawChart, normalizedPalaces);
 
   if (!bodyPalaceKey) {

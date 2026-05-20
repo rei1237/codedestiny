@@ -125,6 +125,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     const isCompat = modeToken.includes("compat");
     return [
       {
+        featureKey: isCompat ? "premium_pdf_western_astrology_compat" : "premium_pdf_western_astrology",
+        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
         featureKey: isCompat ? "premium-astrology-report-compat" : "premium-astrology-report",
         reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
         minCost: isCompat ? 490 : 390,
@@ -144,6 +150,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     const isCompat = modeToken.includes("compat");
     return [
       {
+        featureKey: isCompat ? "premium_pdf_sukyo_compat" : "premium_pdf_sukyo",
+        reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
         featureKey: isCompat ? "premium-sukuyo-report-compat" : "premium-sukuyo-report",
         reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
         minCost: isCompat ? 490 : 390,
@@ -162,6 +174,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     const modeToken = normalizeModeToken(requestBody);
     const isCompat = modeToken.includes("compat");
     return [
+      {
+        featureKey: isCompat ? "premium_pdf_vedic_compat" : "premium_pdf_vedic",
+        reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
       {
         featureKey: isCompat ? "premium-vedic-report-compat" : "premium-vedic-report",
         reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",

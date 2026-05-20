@@ -35,6 +35,11 @@ describe("Premium Report Canonical Validation", () => {
     expect(built.validation.canGeneratePdf).toBe(false);
     expect(Array.isArray(built.validation.requiredMissing)).toBe(true);
     expect(built.validation.requiredMissing.length).toBeGreaterThan(0);
+    expect(typeof built.canonicalJson.completenessScore).toBe("number");
+    expect(built.canonicalJson.completenessScore).toBeLessThan(80);
+    expect(Array.isArray(built.canonicalJson.blockingReasons)).toBe(true);
+    expect(built.canonicalJson.blockingReasons.length).toBeGreaterThan(0);
+    expect(built.canonicalJson.dataMarkers.requiredTotal).toBeGreaterThan(0);
   });
 
   test("ziweiPremium: adapter가 palace branch/mainStars를 배열 구조로 정확히 매핑", () => {
@@ -198,6 +203,12 @@ describe("Premium Report Canonical Validation", () => {
 
     expect(built.validation.canGeneratePdf).toBe(true);
     expect(built.validation.requiredMissing.length).toBe(0);
+    expect(built.canonicalJson.completenessScore).toBeGreaterThanOrEqual(85);
+    expect(Array.isArray(built.canonicalJson.blockingReasons)).toBe(true);
+    expect(built.canonicalJson.blockingReasons.length).toBe(0);
+    expect(built.canonicalJson.dataMarkers.requiredSatisfiedCount).toBe(
+      built.canonicalJson.dataMarkers.requiredTotal
+    );
     expect(built.canonicalJson.calculatedData.profile.birthDate).toBe("1992-06-15");
     expect(built.canonicalJson.calculatedData.natalChart.sunSign).toBe("Gemini");
     expect(built.canonicalJson.calculatedData.natalChart.moonSign).toBe("Virgo");

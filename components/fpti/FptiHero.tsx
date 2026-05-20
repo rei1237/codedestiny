@@ -1,22 +1,21 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import styles from "./FptiCosmic.module.css";
 
 type Props = {
   onStart: () => void;
-  onPreview: () => void;
 };
 
 const ELEMENTS = ["木", "火", "土", "金", "水"];
 
-export default function FptiHero({ onStart, onPreview }: Props) {
+export default function FptiHero({ onStart }: Props) {
   const reducedMotion = useReducedMotion();
 
   return (
-    <section className="relative isolate overflow-hidden rounded-[32px] border border-white/20 bg-[radial-gradient(circle_at_14%_18%,rgba(56,189,248,0.28),transparent_46%),radial-gradient(circle_at_84%_20%,rgba(251,191,36,0.18),transparent_45%),radial-gradient(circle_at_58%_84%,rgba(148,163,184,0.2),transparent_54%),linear-gradient(135deg,#020617_0%,#0b1f38_48%,#1f2937_100%)] p-6 text-slate-50 shadow-[0_28px_90px_rgba(2,8,28,0.62)] md:p-10">
-      <div className="pointer-events-none absolute inset-0 opacity-45 [background:radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.18)_1px,transparent_1px),radial-gradient(circle_at_78%_72%,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:22px_22px,30px_30px]" />
-      <div className="pointer-events-none absolute -left-24 top-10 h-60 w-60 rounded-full bg-sky-400/30 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-60 w-60 rounded-full bg-amber-300/25 blur-3xl" />
+    <section className={`${styles.glassPanelStrong} relative isolate overflow-hidden rounded-[32px] p-6 text-slate-50 md:p-10`}>
+      <div className={`${styles.starLayerSoft} absolute inset-0`} aria-hidden />
+      <div className={`${styles.auroraLine} absolute left-0 top-0 h-[2px] w-full`} aria-hidden />
 
       <motion.div
         initial={{ opacity: 0, y: 14 }}
@@ -25,34 +24,26 @@ export default function FptiHero({ onStart, onPreview }: Props) {
         className="relative z-10 grid gap-8 md:grid-cols-[1.15fr_0.85fr] md:items-end"
       >
         <div>
-          <p className="inline-flex rounded-full border border-[#E9C46A]/55 bg-[#E9C46A]/12 px-3 py-1 text-[11px] tracking-[0.22em] text-[#F6D365]">
-            운명은 타고나고, 성격은 발견된다
+          <p className={`${styles.autoBadge} inline-flex rounded-full px-3 py-1 text-[11px] tracking-[0.22em] text-[#efe5ff]`}>
+            COSMIC SAJU MATRIX
           </p>
           <h1
-            className="mt-4 text-4xl leading-[1.02] text-[#F8FAFC] md:text-6xl"
-            style={{ fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif", textShadow: "0 10px 38px rgba(14,116,144,0.38)" }}
+            className={`${styles.heroTitle} mt-4 text-4xl leading-[1.02] text-[#f8fbff] md:text-6xl`}
           >
             사주로 보는 FPTI 테스트
           </h1>
-          <p className="mt-4 text-base text-[#dbe5ff] md:text-lg">생년월일시로 읽는 나만의 성격 코드</p>
+          <p className="mt-4 text-base text-[#d8d5ff] md:text-lg">생년월일시로 열어보는 당신의 별자리 성향 코드</p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#CBD5E1] md:text-[15px]">
-            일간, 오행, 십성, 월지, 조후의 흐름을 분석해 당신의 타고난 기질과 관계 방식, 성장 전략을
-            하나의 FPTI 코드로 보여드립니다.
+            생년월일, 시간, 음양력 정보가 입력되면 사주 원국을 자동 계산하고 오행과 십성 데이터를 즉시 FPTI 알고리즘에 주입합니다.
+            계산이 끝나면 자동으로 다음 단계로 넘어가 결과를 확인할 수 있습니다.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={onStart}
-              className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,116,144,0.45)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(245,158,11,0.34)]"
+              className={`${styles.ctaButton} rounded-full px-5 py-3 text-sm font-semibold`}
             >
               내 FPTI 확인하기
-            </button>
-            <button
-              type="button"
-              onClick={onPreview}
-              className="rounded-full border border-[#F6D365]/60 bg-white/5 px-5 py-3 text-sm text-[#F6D365] transition hover:bg-[#F6D365]/10"
-            >
-              샘플 결과 보기
             </button>
           </div>
 
@@ -62,7 +53,7 @@ export default function FptiHero({ onStart, onPreview }: Props) {
                 key={item}
                 animate={reducedMotion ? { opacity: 1 } : { y: [0, -4, 0], opacity: [0.82, 1, 0.82] }}
                 transition={reducedMotion ? { duration: 0 } : { duration: 3.2, repeat: Infinity, delay: idx * 0.18 }}
-                className="rounded-xl border border-white/15 bg-white/5 py-2 backdrop-blur"
+                className="rounded-xl border border-violet-200/20 bg-white/5 py-2 backdrop-blur"
               >
                 {item}
               </motion.div>
@@ -74,26 +65,25 @@ export default function FptiHero({ onStart, onPreview }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
           transition={{ delay: 0.15, duration: 0.45, y: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
-          className="rounded-[28px] border border-white/20 bg-[linear-gradient(145deg,rgba(8,18,38,0.84),rgba(17,32,55,0.78))] p-5 backdrop-blur-xl"
+          className={`${styles.glassPanel} rounded-[28px] p-5`}
         >
-          <p className="text-[11px] tracking-[0.2em] text-[#bfdbfe]">SAMPLE RESULT</p>
-          <p className="mt-2 text-4xl font-bold text-[#F6D365]">A-S-D-H</p>
-          <p className="mt-1 text-base font-semibold text-white">심해의 예언자</p>
-          <p className="mt-1 text-sm text-[#d4dcff]">깊은 통찰과 직관으로 보이지 않는 가능성을 읽어내는 타입</p>
+          <p className="text-[11px] tracking-[0.2em] text-[#bfdbfe]">AUTO FLOW</p>
+          <p className="mt-2 text-2xl font-semibold text-[#f5ebff]">입력 즉시 사주 계산</p>
+          <p className="mt-1 text-sm text-[#d4dcff]">생년월일/시간/양음력 변경 시 원국 재계산 후 FPTI 결과 단계로 자동 전환</p>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#f8fafc]">
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">A: Water / 지성형</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">S: Scholar / 통찰형</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">D: Deep / 깊은 관계형</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">H: Healing / 치유 성장형</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">1. 입력 변경 감지</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">2. 사주 데이터 계산</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">3. 오행/십성 주입</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">4. 결과 자동 표시</div>
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[11px] text-[#CBD5E1]">
             {[
-              ["년주", "甲子"],
-              ["월주", "壬子"],
-              ["일주", "壬辰"],
-              ["시주", "乙卯"],
+              ["년주", "자동"],
+              ["월주", "자동"],
+              ["일주", "자동"],
+              ["시주", "자동"],
             ].map(([label, value]) => (
               <div key={label} className="rounded-lg border border-white/15 bg-black/25 p-2">
                 <p>{label}</p>
