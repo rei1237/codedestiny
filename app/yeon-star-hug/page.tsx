@@ -259,11 +259,11 @@ const FUZZY_KEYWORD_RULES: Array<{ category: ConcernCategory; domain: ConcernDom
   { category: "legal", domain: "legal", weight: 1.85, synonyms: ["송사", "소송", "법률", "법적분쟁", "분쟁", "재판", "법원", "판결", "합의", "조정", "중재", "변호사", "법무"] },
 ];
 
-const LEGAL_CONCERN_SAMPLES: string[] = [
-  "소송 가능성이 있는 분쟁이 생겼는데, 지금 무엇부터 정리하면 유리할까요?",
-  "법률 상담 전에 사건 타임라인과 증빙을 어떻게 준비하면 좋을까요?",
-  "합의와 재판 사이에서 고민 중인데, 오늘은 어떤 기준으로 판단하면 좋을까요?",
-  "송사 이슈로 불안한데, 차분하게 대응하기 위한 현실적인 첫 단계가 궁금해요.",
+const GENERAL_CONCERN_SAMPLES: string[] = [
+  "요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 어떻게 하면 좋을까요?",
+  "직장 동료와의 관계가 불편해서 매일 출근하는 게 스트레스예요.",
+  "돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요. 좋은 방법이 있을까요?",
+  "요즘따라 인간관계에 회의감이 들고 다 부질없게 느껴져요.",
 ];
 
 const DOMAIN_TIP: Record<ConcernDomain, string> = {
@@ -1399,21 +1399,21 @@ export default function YeonStarHugPage() {
               id="yeon-concern-input"
               value={concernText}
               onChange={(event) => setConcernText(event.target.value)}
-              placeholder="예: 요즘 이직 고민과 금전 압박 때문에 불안해요. 또는 소송/법률 문제에서 무엇부터 준비하면 좋을까요?"
+              placeholder="예: 요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 또는 돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요."
               className="mt-1 min-h-32 w-full resize-y rounded-xl border border-white/35 bg-white/90 px-3 py-3 text-sm leading-relaxed text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
               aria-label="고민 입력"
             />
 
             <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
-              <p className="text-xs font-semibold text-rose-500">법률 키워드 샘플 문장</p>
+              <p className="text-xs font-semibold text-rose-500">추천 고민 샘플 문장</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {LEGAL_CONCERN_SAMPLES.map((sample) => (
+                {GENERAL_CONCERN_SAMPLES.map((sample) => (
                   <button
                     key={sample}
                     type="button"
                     onClick={() => setConcernText(sample)}
                     className="min-h-9 rounded-full border border-rose-200 bg-white px-3 py-1 text-left text-[11px] font-medium leading-relaxed text-slate-700 transition hover:border-rose-300 hover:bg-rose-50"
-                    aria-label={`법률 샘플 문장 적용: ${sample}`}
+                    aria-label={`추천 샘플 문장 적용: ${sample}`}
                   >
                     {sample}
                   </button>
