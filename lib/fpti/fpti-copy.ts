@@ -8,6 +8,8 @@ type TypeCopy = {
   keywords: string[];
 };
 
+export type FptiCatalogItem = Pick<TypeCopy, "code" | "name" | "oneLiner">;
+
 const CURATED_TYPE_MAP: Record<string, Omit<TypeCopy, "code">> = {
   "A-S-D-H": {
     name: "심해의 예언자",
@@ -82,6 +84,14 @@ const CURATED_TYPE_MAP: Record<string, Omit<TypeCopy, "code">> = {
     keywords: ["탐구", "몰입", "내면성", "집중력", "회복력"],
   },
 };
+
+export const FPTI_CURATED_TYPES: ReadonlyArray<FptiCatalogItem> = Object.freeze(
+  Object.entries(CURATED_TYPE_MAP).map(([code, value]) => ({
+    code,
+    name: value.name,
+    oneLiner: value.oneLiner,
+  })),
+);
 
 const KEYWORD_BY_AXIS = {
   temperament: {

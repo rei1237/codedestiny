@@ -377,12 +377,31 @@ function formatDateLabel(y, m, d) {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+function resolveLunarMonthValue(lunar) {
+  if (!lunar || typeof lunar !== "object") return 1;
+  const monthRaw = typeof lunar.getMonth === "function" ? lunar.getMonth() : lunar.month;
+  const month = Number(monthRaw);
+  if (!Number.isFinite(month)) return 1;
+  return Math.max(1, Math.abs(Math.trunc(month)));
+}
+
+function resolveIsLeapMonth(lunar) {
+  if (!lunar || typeof lunar !== "object") return false;
+  if (typeof lunar.isLeap === "function") {
+    return Boolean(lunar.isLeap());
+  }
+  const monthRaw = typeof lunar.getMonth === "function" ? lunar.getMonth() : lunar.month;
+  const month = Number(monthRaw);
+  return Number.isFinite(month) ? month < 0 : false;
+}
+
 export function buildSajuProfile(rawPerson) {
   const name = normalizeName(rawPerson?.name, "사용자");
   const gender = normalizeGender(rawPerson?.gender);
   const birth = normalizeBirthPayload(rawPerson?.birth || {});
   const solar = createSolarFromBirth(birth);
   const lunar = solar.getLunar();
+  const lunarMonth = resolveLunarMonthValue(lunar);
   const eightChar = lunar.getEightChar();
 
   const includeHour = !birth.unknownTime;
@@ -406,8 +425,8 @@ export function buildSajuProfile(rawPerson) {
     birth,
     calendar: {
       solarDate: formatDateLabel(solar.getYear(), solar.getMonth(), solar.getDay()),
-      lunarDate: formatDateLabel(lunar.getYear(), lunar.getMonth(), lunar.getDay()),
-      isLeapMonth: lunar.isLeap(),
+      lunarDate: formatDateLabel(lunar.getYear(), lunarMonth, lunar.getDay()),
+      isLeapMonth: resolveIsLeapMonth(lunar),
       includeHour,
     },
     pillars,

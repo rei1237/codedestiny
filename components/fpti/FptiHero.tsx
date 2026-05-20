@@ -7,7 +7,13 @@ type Props = {
   onStart: () => void;
 };
 
-const ELEMENTS = ["木", "火", "土", "金", "水"];
+const ELEMENTS = [
+  { label: "木", className: "border-emerald-300/55 bg-emerald-500/10 text-emerald-100" },
+  { label: "火", className: "border-rose-300/55 bg-rose-500/10 text-rose-100" },
+  { label: "土", className: "border-amber-300/55 bg-amber-500/10 text-amber-100" },
+  { label: "金", className: "border-slate-300/55 bg-slate-300/10 text-slate-100" },
+  { label: "水", className: "border-sky-300/55 bg-sky-500/10 text-sky-100" },
+];
 
 export default function FptiHero({ onStart }: Props) {
   const reducedMotion = useReducedMotion();
@@ -50,12 +56,12 @@ export default function FptiHero({ onStart }: Props) {
           <div className="mt-6 grid max-w-xl grid-cols-5 gap-2 text-center text-sm">
             {ELEMENTS.map((item, idx) => (
               <motion.div
-                key={item}
+                key={item.label}
                 animate={reducedMotion ? { opacity: 1 } : { y: [0, -4, 0], opacity: [0.82, 1, 0.82] }}
                 transition={reducedMotion ? { duration: 0 } : { duration: 3.2, repeat: Infinity, delay: idx * 0.18 }}
-                className="rounded-xl border border-violet-200/20 bg-white/5 py-2 backdrop-blur"
+                className={`rounded-xl border py-2 backdrop-blur ${item.className}`}
               >
-                {item}
+                {item.label}
               </motion.div>
             ))}
           </div>

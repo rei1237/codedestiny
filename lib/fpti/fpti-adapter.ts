@@ -91,6 +91,13 @@ function parseBirthDate(
       year = Number(compact[1]);
       month = Number(compact[2]);
       day = Number(compact[3]);
+    } else {
+      const korean = source.match(/^(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일$/);
+      if (korean) {
+        year = Number(korean[1]);
+        month = Number(korean[2]);
+        day = Number(korean[3]);
+      }
     }
   }
 
@@ -122,13 +129,17 @@ function parseBirthTimeText(raw: string): { hour: number; minute: number } | nul
   const source = String(raw || "").trim();
   if (!source) return null;
 
-  const colon = source.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+  const sourceNoMillis = source.replace(/\.\d+Z?$/i, "");
+  const isoLike = sourceNoMillis.match(/T(\d{1,2}:\d{1,2}(?::\d{1,2})?)$/);
+  const timeSource = (isoLike ? isoLike[1] : sourceNoMillis).trim();
+
+  const colon = timeSource.match(/^(\d{1,2})\s*:\s*(\d{1,2})(?:\s*:\s*(\d{1,2}))?$/);
   if (colon) return parseHourMinute(Number(colon[1]), Number(colon[2]));
 
-  const compact = source.match(/^(\d{1,2})(\d{2})$/);
+  const compact = timeSource.match(/^(\d{1,2})(\d{2})$/);
   if (compact) return parseHourMinute(Number(compact[1]), Number(compact[2]));
 
-  const normalized = source.replace(/\s+/g, "");
+  const normalized = timeSource.replace(/\s+/g, "");
   const hasPm = /오후|pm/i.test(normalized);
   const hasAm = /오전|am/i.test(normalized);
   const cleaned = normalized.replace(/오전|오후|am|pm/gi, "");

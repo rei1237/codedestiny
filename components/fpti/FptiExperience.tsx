@@ -11,6 +11,7 @@ import {
   calculateSajuSourceFromBirth,
   hasRequiredSajuFields,
 } from "@/lib/fpti/fpti-adapter";
+import { FPTI_CURATED_TYPES } from "@/lib/fpti/fpti-copy";
 import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fpti/fpti-types";
 
 const LOADING_STEPS = [
@@ -20,6 +21,8 @@ const LOADING_STEPS = [
   "십성의 성격 패턴을 해석하는 중...",
   "당신만의 FPTI 코드를 생성하는 중...",
 ];
+
+const PREVIEW_TYPES = FPTI_CURATED_TYPES.slice(0, 6);
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -192,17 +195,21 @@ function parseBirthTimeFromText(raw: unknown): { hour: number; minute: number } 
   const source = String(raw || "").trim();
   if (!source) return null;
 
-  const colon = source.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+  const sourceNoMillis = source.replace(/\.\d+Z?$/i, "");
+  const isoLike = sourceNoMillis.match(/T(\d{1,2}:\d{1,2}(?::\d{1,2})?)$/);
+  const timeSource = (isoLike ? isoLike[1] : sourceNoMillis).trim();
+
+  const colon = timeSource.match(/^(\d{1,2})\s*:\s*(\d{1,2})(?:\s*:\s*(\d{1,2}))?$/);
   if (colon) {
     return normalizeHourMinute(Number(colon[1]), Number(colon[2]));
   }
 
-  const compact = source.match(/^(\d{1,2})(\d{2})$/);
+  const compact = timeSource.match(/^(\d{1,2})(\d{2})$/);
   if (compact) {
     return normalizeHourMinute(Number(compact[1]), Number(compact[2]));
   }
 
-  const normalized = source.replace(/\s+/g, "");
+  const normalized = timeSource.replace(/\s+/g, "");
   const hasPm = /오후|pm/i.test(normalized);
   const hasAm = /오전|am/i.test(normalized);
   const cleaned = normalized.replace(/오전|오후|am|pm/gi, "");
@@ -495,6 +502,22 @@ export default function FptiExperience() {
               ))}
             </div>
           )}
+
+          <div className="mt-4 rounded-2xl border border-indigo-200/20 bg-[#0a1432]/55 p-3">
+              <h3 className="text-sm font-semibold text-slate-50">이 서비스에서 계산되는 FPTI 유형 설명</h3>
+            <p className="mt-1 text-xs text-indigo-100/85">
+              아래 유형은 실제 서비스에 탑재된 대표 코드입니다. 입력값으로 사주 계산이 완료되면 축 조합에 맞는 코드/설명이 자동으로 매칭됩니다.
+            </p>
+            <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {PREVIEW_TYPES.map((item) => (
+                <div key={item.code} className="rounded-xl border border-indigo-200/20 bg-[#091029]/70 p-3">
+                  <p className="text-[11px] tracking-[0.12em] text-[#9dd8ff]">{item.code}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#f7f9ff]">{item.name}</p>
+                  <p className="mt-1 text-xs text-[#d8e2ff]">{item.oneLiner}</p>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <button
