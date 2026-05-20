@@ -4827,6 +4827,13 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
   const chapter = getSukyoChapterBlueprint(chapterId);
   const calculated = context?.coreData?.canonicalJson?.calculatedData || {};
   const strictPayloadMode = asBool(context?.input?._premiumStrictPayload);
+  const previousFromContext = Object.entries(context?.chapterTextById || {})
+    .filter(([key, value]) => Number(key) < Number(chapterId || 1) && String(value || "").trim())
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([, value]) => String(value || "").trim());
+  const previousChapterTexts = Array.isArray(context?.input?.previousChapterTexts) && context.input.previousChapterTexts.length
+    ? context.input.previousChapterTexts.map((row) => String(row || "")).filter(Boolean)
+    : (previousFromContext.length ? previousFromContext : getStoredChapterTexts("sukuyo", context?.reportId, Number(chapterId || 1)));
   const sukyoContext = calculated?.sukyoPdfContext || buildSukyoPdfContext({
     canonical: context?.coreData?.canonicalJson || {},
     requestBody: context?.input || {},
@@ -4868,6 +4875,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
   const prompt = buildSukyoGeminiPrompt({
     context: sukyoContext,
     chapter,
+    previousChapterTexts,
   });
 
   const options = {
@@ -4906,7 +4914,63 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     }
 
     const chapterJson = sanitizeSukyoChapterJson(chapter, parsed.parsed, sukyoContext);
-    const text = renderSukyoChapterMarkdown(chapterJson, chapter);
+    let text = renderSukyoChapterMarkdown(chapterJson, chapter);
+
+    let repeatedAcross = detectSukuyoCrossRepeats(text, previousChapterTexts, 30);
+    if (repeatedAcross.length > 0) {
+      const repeatedBan = collectPreviousSentenceBanList(previousChapterTexts, 12);
+      const refinePrompt = [
+        "아래 숙요 챕터 초안을 고품질로 재작성하세요.",
+        "목표: 이전 챕터와 중복되는 핵심 문장/해석 프레이밍을 제거하고, 이번 챕터 목적에 맞는 새로운 사례와 전략으로 바꾸세요.",
+        "출력: JSON 하나만 출력",
+        repeatedBan.length
+          ? `[이전 챕터 금지 문장]\n${JSON.stringify(repeatedBan, null, 2)}`
+          : "",
+        repeatedAcross.length
+          ? `[현재 초안의 중복 문장]\n${JSON.stringify(repeatedAcross.slice(0, 8), null, 2)}`
+          : "",
+        "",
+        "[초안]",
+        text,
+        "",
+        "[원본 프롬프트]",
+        prompt,
+      ].filter(Boolean).join("\n");
+
+      const refinedRaw = await callGemini(env, refinePrompt, ["PREMIUM_SUKUYO_GEMINI_MODEL"], options);
+      const refinedParsed = parseSukyoGeminiChapterResponse(refinedRaw);
+      if (refinedParsed?.ok && refinedParsed?.parsed) {
+        const refinedJson = sanitizeSukyoChapterJson(chapter, refinedParsed.parsed, sukyoContext);
+        const refinedText = renderSukyoChapterMarkdown(refinedJson, chapter);
+        if (refinedText && refinedText.length >= Math.floor(text.length * 0.8)) {
+          text = refinedText;
+        }
+      }
+      repeatedAcross = detectSukuyoCrossRepeats(text, previousChapterTexts, 30);
+    }
+
+    if (repeatedAcross.length > 0) {
+      if (strictPayloadMode) {
+        return {
+          ok: false,
+          code: "SUKYO_REPEATED_ACROSS_CHAPTERS",
+          message: "이전 챕터와 중복된 문장이 감지되어 생성을 중단했습니다.",
+          chapterMeta,
+          missingFields: sukyoContext?.missingSummary || [],
+        };
+      }
+      const fallback = createFallbackSukyoChapter(chapter, sukyoContext, "REPEATED_ACROSS_CHAPTERS");
+      const fallbackText = renderSukyoChapterMarkdown(fallback, chapter);
+      return {
+        ok: true,
+        text: fallbackText,
+        chapterMeta,
+        chapterSpecificSections: [],
+        usedFallback: true,
+        fallbackReason: "REPEATED_ACROSS_CHAPTERS",
+        missingFields: sukyoContext?.missingSummary || [],
+      };
+    }
 
     return {
       ok: true,
@@ -7316,7 +7380,7 @@ function hasForbiddenVedicPadding(text) {
   return VEDIC_FORBIDDEN_COMMON_SECTIONS.some((token) => source.includes(token));
 }
 
-function buildVedicPremiumPrompt(meta, chapter, reportType, context) {
+function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousChapterTexts = []) {
   const chapterGuide = VEDIC_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
   const reportTitle = reportType === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
   const reportSubtitle = reportType === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
@@ -7326,6 +7390,8 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context) {
   const roadmapRule = chapter === 12
     ? "챕터 12에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
     : "";
+
+  const banList = collectPreviousSentenceBanList(previousChapterTexts, 12);
 
   return [
     "너는 30년 경력의 베다 점성술 전문가이자, 주티쉬(Jyotish) 마스터, 인도 철학 연구가, 심리 상담가, 프리미엄 PDF 리포트 작가다.",
@@ -7355,6 +7421,9 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context) {
     monthlyRule,
     roadmapRule,
     "",
+    banList.length
+      ? `[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n문장 반복을 피하기 위해 다음 리스트에 있는 문장이나 이와 유사한 핵심 서술 방식은 이번 챕터 본문에 절대 출력하지 마세요:\n${JSON.stringify(banList, null, 2)}\n`
+      : "",
     "[입력 데이터]",
     context.dataText,
   ].filter(Boolean).join("\n");
@@ -7410,11 +7479,11 @@ function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, repo
   return text;
 }
 
-async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan) {
+async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan, previousChapterTexts = []) {
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const strictPayloadMode = usePremiumStrictPayload(body, env);
   const context = buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, premiumInput);
-  const prompt = buildVedicPremiumPrompt(meta, chapter, reportType, context);
+  const prompt = buildVedicPremiumPrompt(meta, chapter, reportType, context, previousChapterTexts);
   const options = {
     temperature: 0.86,
     topP: 0.95,
@@ -7455,14 +7524,15 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     const banned = hasBannedDeterministicExpression(text);
     const forbiddenPadding = hasForbiddenVedicPadding(text);
     const repeated = detectRepeatedLongSentences(text, 35);
-    if (!tooShort && missing.length === 0 && !truncated && !banned && !forbiddenPadding && repeated.length < 3) break;
+    const repeatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 35);
+    if (!tooShort && missing.length === 0 && !truncated && !banned && !forbiddenPadding && repeated.length < 3 && repeatedAcross.length < 3) break;
 
     const refinePrompt = [
       "아래 베다 점성술 챕터 초안을 고품질로 보강하세요.",
       `목표 길이: 최소 ${VEDIC_MIN_CHARS}자`,
       "오직 마크다운 본문만 출력하고, 기존 흐름을 유지하면서 누락 요소를 채우세요.",
       `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
-      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${forbiddenPadding ? "금지 공통 문구 포함" : ""}`.trim(),
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${forbiddenPadding ? "금지 공통 문구 포함" : ""} ${repeatedAcross.length ? "이전 챕터 문장 중복됨" : ""}`.trim(),
       "",
       "[초안]",
       text,
@@ -7480,13 +7550,14 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
 
   const finalMissing = vedicMissingMarkers(text, chapter);
   const finalRepeated = detectRepeatedLongSentences(text, 35);
+  const finalRepeatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 35);
   const failedChecks = [];
   if (text.length < VEDIC_MIN_CHARS) failedChecks.push("TOO_SHORT");
   if (finalMissing.length > 0) failedChecks.push(`MISSING_MARKERS:${finalMissing.join(",")}`);
   if (looksTruncatedMarkdown(text)) failedChecks.push("TRUNCATED_MARKDOWN");
   if (hasBannedDeterministicExpression(text)) failedChecks.push("BANNED_DETERMINISTIC_EXPRESSION");
   if (hasForbiddenVedicPadding(text)) failedChecks.push("FORBIDDEN_COMMON_PADDING");
-  if (finalRepeated.length >= 3) failedChecks.push("REPEATED_SENTENCES");
+  if (finalRepeated.length >= 3 || finalRepeatedAcross.length >= 3) failedChecks.push("REPEATED_SENTENCES");
 
   if (failedChecks.length > 0) {
     if (strictPayloadMode) {
@@ -10521,7 +10592,10 @@ async function handleSukuyoLife(request, env) {
         reportSessionId: strictBody?._premiumReportSessionId || "legacy",
         reportId,
         userId: "legacy",
-        input: strictBody,
+        input: {
+          ...strictBody,
+          previousChapterTexts,
+        },
         coreData: {
           canonicalJson: {
             calculatedData,
@@ -10669,7 +10743,10 @@ async function handleSukuyoLife(request, env) {
       reportSessionId: strictBody?._premiumReportSessionId || "legacy",
       reportId,
       userId: "legacy",
-      input: strictBody,
+      input: {
+        ...strictBody,
+        previousChapterTexts,
+      },
       coreData: {
         canonicalJson: {
           calculatedData: compatCalculatedData,
@@ -11098,6 +11175,18 @@ async function handleVedicLife(request, env) {
     ? strictBody._premiumLlmInput
     : buildLlmPromptInput("vedicPremium", chapter, canonicalVedicChart);
 
+  const reportId = vedicReportIdFromInput(strictBody, input, reportType);
+  const existingEntryForPrev = getStoredReportSession("vedic", reportId);
+  const existingChapterResultsByNumberForPrev = toPlainObject(existingEntryForPrev?.extra?.chapterResultsByNumber);
+  const previousChapterTexts = [];
+  for (let c = 1; c <= VEDIC_TOTAL_CHAPTERS; c += 1) {
+    const prevCh = existingChapterResultsByNumberForPrev[String(c)];
+    if (prevCh) {
+      const txt = prevCh.contentMarkdown || prevCh.text || "";
+      if (txt) previousChapterTexts.push(txt);
+    }
+  }
+
   let generated = await generateVedicPremiumChapter(
     env,
     { ...strictBody, _premiumLlmInput: runtimeLlmInput },
@@ -11107,6 +11196,7 @@ async function handleVedicLife(request, env) {
     canonicalVedicChart,
     reportType,
     chapterPlan,
+    previousChapterTexts,
   );
 
   if (!generated?.ok) {
@@ -11133,7 +11223,6 @@ async function handleVedicLife(request, env) {
     };
   }
 
-  const reportId = vedicReportIdFromInput(strictBody, input, reportType);
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
   const storage = writeReportSessionChapter(
     "vedic",
@@ -13448,20 +13537,78 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
     text += `\n\n### 12개월 월별 테이블\n${buildSajuNewYearMonthlyTable(monthlyLuck)}`;
   }
 
+  const deepDiveFrames = [
+    "실행 우선순위 재배치",
+    "리스크 컷오프 기준",
+    "관계-성과 균형 조정",
+    "에너지 관리 프로토콜",
+    "재정 의사결정 점검",
+  ];
+
   let idx = 1;
   while (text.length < minChars) {
-    const monthRow = monthlyLuck[(idx - 1) % Math.max(1, monthlyLuck.length)] || { month: 1, trend: "중립", action: "기록 습관을 유지하세요." };
-    text += `\n\n### 실행 보강 ${idx}`;
-    text += `\n${monthRow.month}월의 흐름(${monthRow.trend})에서는 목표를 늘리기보다 완료 기준을 명확히 두는 것이 중요합니다.`;
-    text += `\n실행: ${monthRow.action}`;
-    text += `\n점검 질문: 지금 선택이 3개월 뒤에도 유지 가능한가, 감정 반응이 아니라 데이터로 검증했는가.`;
+    const monthRow = monthlyLuck[(idx - 1) % Math.max(1, monthlyLuck.length)] || {
+      month: 1,
+      trend: "중립",
+      opportunity: "핵심 과제 점검",
+      caution: "과속 의사결정",
+      action: "기록 습관을 유지하세요.",
+    };
+    const frame = deepDiveFrames[(idx - 1) % deepDiveFrames.length];
+    text += `\n\n### 전략 심화 ${idx} - ${frame}`;
+    text += `\n${monthRow.month}월(${monthRow.trend})에는 "${monthRow.opportunity}"를 확장하되, ${focusLabel} 관점의 핵심 목표를 1~2개로 고정해 실행 밀도를 높이세요.`;
+    text += `\n실행 액션: ${monthRow.action}`;
+    text += `\n리스크 경고: ${monthRow.caution}`;
+    text += "\n점검 질문: 이번 선택이 90일 뒤에도 유지 가능한가, 감정 반응이 아니라 근거 데이터로 설명 가능한가, 리스크 발생 시 대체 행동이 준비되어 있는가.";
     idx += 1;
   }
 
   return text;
 }
 
-function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, premiumLlmInput = null) {
+function buildSajuNewYearRequiredMarkers(chapter) {
+  const base = [
+    "### 데이터 기준점",
+    "### 핵심 해석",
+    "### 실행 가이드",
+    "### 월별 우선순위",
+    "### 리스크 관리",
+  ];
+  if (Number(chapter) === 9) base.push("### 12개월 월별 테이블");
+  return base;
+}
+
+function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChapterTexts = []) {
+  const source = String(text || "").trim();
+  const requiredMarkers = buildSajuNewYearRequiredMarkers(chapter);
+  const missingMarkers = requiredMarkers.filter((marker) => !source.includes(marker));
+  const repeatedInside = detectRepeatedLongSentences(source, 30);
+  const repeatedAcross = detectCrossChapterRepeatedSentences(source, previousChapterTexts, 30);
+  const bannedExpression = hasBannedDeterministicExpression(source);
+  const hasMonthlyTable = Number(chapter) !== 9 || /\|\s*월\s*\|/.test(source);
+
+  const failedChecks = [];
+  if (source.length < minChars) failedChecks.push("TOO_SHORT");
+  if (missingMarkers.length > 0) failedChecks.push(`MISSING_MARKERS:${missingMarkers.join(",")}`);
+  if (repeatedInside.length > 0) failedChecks.push("REPEATED_SENTENCES_INSIDE");
+  if (repeatedAcross.length > 0) failedChecks.push("REPEATED_SENTENCES_ACROSS");
+  if (bannedExpression) failedChecks.push("BANNED_DETERMINISTIC_EXPRESSION");
+  if (!hasMonthlyTable) failedChecks.push("MISSING_MONTHLY_TABLE");
+
+  return {
+    ok: failedChecks.length === 0,
+    failedChecks,
+    missingMarkers,
+    repeatedInsideCount: repeatedInside.length,
+    repeatedAcrossCount: repeatedAcross.length,
+    bannedExpression,
+    hasMonthlyTable,
+    actualChars: source.length,
+    minChars,
+  };
+}
+
+function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, previousChapterTexts = [], premiumLlmInput = null) {
   const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
   const topMonths = monthlyLuck
     .slice()
@@ -13478,6 +13625,7 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
   const targetYear = Number(canonical?.targetYear || new Date().getFullYear());
   const chapterLabel = String(chapterMeta?.title || `Chapter ${chapter}`);
   const chapterSubtitle = String(chapterMeta?.subtitle || "");
+  const previousBan = collectPreviousSentenceBanList(previousChapterTexts, 12);
 
   return [
     "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF 전문 작가입니다.",
@@ -13485,9 +13633,13 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
     "과장된 운세 문구/공포 유도 문구/확정적 예언을 금지합니다.",
     `최소 길이: ${minChars}자`,
     "섹션마다 실제 행동 기준을 포함하고, 모호한 위로 문장만 반복하지 마세요.",
+    "이전 챕터의 동일 문장, 동일 비유, 동일 조언 프레이밍을 재사용하지 마세요.",
     "핵심은 월별 실행 전략이며, 데이터 기반 근거를 반드시 반영하세요.",
     Number(chapter) === 9
       ? "이 챕터는 반드시 12개월 월별 테이블을 마크다운 표 형식으로 포함하세요."
+      : "",
+    previousBan.length
+      ? `[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n${JSON.stringify(previousBan, null, 2)}`
       : "",
     "",
     `[챕터] ${chapterLabel}`,
@@ -13513,7 +13665,8 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
   ].filter(Boolean).join("\n");
 }
 
-function buildSajuNewYearRewritePrompt(basePrompt, currentText, minChars) {
+function buildSajuNewYearRewritePrompt(basePrompt, currentText, minChars, failedChecks = [], previousChapterTexts = []) {
+  const previousBan = collectPreviousSentenceBanList(previousChapterTexts, 12);
   return [
     basePrompt,
     "",
@@ -13521,6 +13674,10 @@ function buildSajuNewYearRewritePrompt(basePrompt, currentText, minChars) {
     `목표 길이: 최소 ${minChars}자`,
     "섹션별로 실행 문장(언제/무엇/어떻게)을 명시하세요.",
     "중복 문장을 줄이고 월별 전략의 차이를 분명히 쓰세요.",
+    failedChecks.length ? `품질 보강 포인트: ${failedChecks.join(" | ")}` : "",
+    previousBan.length
+      ? `[중복 금지 문장]\n${JSON.stringify(previousBan, null, 2)}`
+      : "",
     "",
     "[현재 원고]",
     String(currentText || "").trim(),
@@ -13532,6 +13689,7 @@ async function generateSajuNewYearChapterWithGemini(env, {
   chapterMeta,
   canonical,
   minChars,
+  previousChapterTexts,
   strictPayloadMode,
   premiumLlmInput,
 }) {
@@ -13544,9 +13702,13 @@ async function generateSajuNewYearChapterWithGemini(env, {
   };
   const modelEnvKeys = ["PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "LIFEBOOK_GEMINI_MODEL"];
   const qualityFloor = Math.max(1200, Math.floor(minChars * 0.65));
+  const normalizedPreviousTexts = Array.isArray(previousChapterTexts)
+    ? previousChapterTexts.map((row) => String(row || "")).filter(Boolean)
+    : [];
 
-  let prompt = buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, premiumLlmInput || null);
+  let prompt = buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, normalizedPreviousTexts, premiumLlmInput || null);
   let text = "";
+  let quality = null;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const candidate = String(await callGemini(env, prompt, modelEnvKeys, generationOptions) || "").trim();
     if (!candidate) continue;
@@ -13570,12 +13732,22 @@ async function generateSajuNewYearChapterWithGemini(env, {
       if (expanded && expanded.length > normalized.length) normalized = String(expanded).trim();
     }
 
-    if (normalized.length >= qualityFloor) {
+    quality = evaluateSajuNewYearChapterQuality(normalized, chapter, minChars, normalizedPreviousTexts);
+    if (normalized.length >= qualityFloor && quality.ok) {
       text = normalized;
       break;
     }
 
-    prompt = buildSajuNewYearRewritePrompt(prompt, normalized, minChars);
+    prompt = buildSajuNewYearRewritePrompt(
+      buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, normalizedPreviousTexts, premiumLlmInput || null),
+      normalized,
+      minChars,
+      [
+        ...(quality?.failedChecks || []),
+        ...((quality?.missingMarkers || []).map((marker) => `MISSING:${marker}`)),
+      ],
+      normalizedPreviousTexts,
+    );
   }
 
   if (!text) {
@@ -13591,24 +13763,28 @@ async function generateSajuNewYearChapterWithGemini(env, {
       ok: true,
       text: buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars),
       usedFallback: true,
+      quality: quality || evaluateSajuNewYearChapterQuality("", chapter, minChars, normalizedPreviousTexts),
     };
   }
 
-  if (text.length < minChars && strictPayloadMode) {
+  quality = evaluateSajuNewYearChapterQuality(text, chapter, minChars, normalizedPreviousTexts);
+
+  if (!quality.ok && strictPayloadMode) {
     return {
       ok: false,
       status: 422,
-      code: "SAJU_NEW_YEAR_CHAPTER_TOO_SHORT",
-      message: `신년운세 챕터 길이가 최소 기준(${minChars})에 미달합니다.`,
-      details: [`minChars:${minChars}`, `actualChars:${text.length}`],
+      code: "SAJU_NEW_YEAR_CHAPTER_QUALITY_FAILED",
+      message: "신년운세 챕터가 품질 기준(중복/구조/분량)을 통과하지 못했습니다.",
+      details: quality.failedChecks,
     };
   }
 
-  if (text.length < minChars) {
+  if (!quality.ok) {
     return {
       ok: true,
       text: buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars),
       usedFallback: true,
+      quality,
     };
   }
 
@@ -13616,6 +13792,7 @@ async function generateSajuNewYearChapterWithGemini(env, {
     ok: true,
     text,
     usedFallback: false,
+    quality,
   };
 }
 
@@ -13683,11 +13860,15 @@ async function handleSajuNewYearSession(request, env) {
 
   const chapterMeta = SAJU_NEW_YEAR_CHAPTERS[chapter - 1] || SAJU_NEW_YEAR_CHAPTERS[0];
   const minChars = chapter === 9 ? 3200 : 2600;
+  const previousChapterTexts = Array.isArray(strictBody?.previousChapterTexts) && strictBody.previousChapterTexts.length
+    ? strictBody.previousChapterTexts.map((row) => String(row || "")).filter(Boolean)
+    : getStoredChapterTexts("saju-new-year", reportId, chapter);
   const generated = await generateSajuNewYearChapterWithGemini(env, {
     chapter,
     chapterMeta,
     canonical,
     minChars,
+    previousChapterTexts,
     strictPayloadMode,
     premiumLlmInput: strictBody?._premiumLlmInput || buildLlmPromptInput("sajuNewYear", chapter, canonical),
   });
@@ -13741,6 +13922,7 @@ async function handleSajuNewYearSession(request, env) {
     text,
     sections: parseSections(text),
     usedFallback: Boolean(generated?.usedFallback),
+    quality: generated?.quality || null,
     dataQuality: {
       usedFallbackData: dataState.usedFallbackData,
       warning: dataState.warning,
@@ -13857,6 +14039,17 @@ async function handleLifebookSession(request, env) {
     });
   }
 
+  const existingEntryForPrev = getStoredReportSession("lifebook", reportId);
+  const existingChapterResultsByNumberForPrev = toPlainObject(existingEntryForPrev?.extra?.chapterResultsByNumber);
+  const previousTexts = [];
+  for (let c = 1; c <= LIFE_BOOK_TOTAL_CHAPTERS; c += 1) {
+    const prevCh = existingChapterResultsByNumberForPrev[String(c)];
+    if (prevCh) {
+      const txt = prevCh.contentMarkdown || prevCh.text || "";
+      if (txt) previousTexts.push(txt);
+    }
+  }
+
   const generated = await generateLifeBookPdf({
     env,
     body: strictBody,
@@ -13864,6 +14057,7 @@ async function handleLifebookSession(request, env) {
     strictMode: strictPayloadMode,
     reportId,
     requestedChapter: chapter,
+    previousTexts,
   });
 
   if (!generated?.ok) {

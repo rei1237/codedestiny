@@ -10,6 +10,14 @@ beforeAll(async () => {
 });
 
 describe("Premium access-control rules", () => {
+  test("sajuNewYear는 결제 검증 유효시간이 120분이어야 한다", () => {
+    const rules = utils.buildAlternativePaymentRules("sajuNewYear", {});
+    expect(rules.length).toBeGreaterThanOrEqual(3);
+    for (const rule of rules) {
+      expect(rule.windowMinutes).toBe(120);
+    }
+  });
+
   test("lifeBook은 최근 per-use 결제 증빙 규칙이 있어야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("lifeBook", {});
     expect(rules.length).toBeGreaterThanOrEqual(3);
@@ -18,16 +26,19 @@ describe("Premium access-control rules", () => {
         expect.objectContaining({
           featureKey: "premium_pdf_saju_life_book",
           minCost: 500,
+          windowMinutes: 120,
         }),
         expect.objectContaining({
           featureKey: "premium-lifebook-report",
           reason: "인생의 책 생성 (13챕터)",
           minCost: 500,
+          windowMinutes: 120,
         }),
         expect.objectContaining({
           featureKey: "coin-gate-per-use",
           reason: "인생의 책 생성 (13챕터)",
           minCost: 500,
+          windowMinutes: 120,
         }),
       ]),
     );
@@ -67,10 +78,12 @@ describe("Premium access-control rules", () => {
       expect.objectContaining({
         featureKey: "premium_pdf_saju_love_secret_compat",
         minCost: 400,
+        windowMinutes: 120,
       }),
       expect.objectContaining({
         featureKey: "premium-love-secret-couple",
         minCost: 400,
+        windowMinutes: 120,
       }),
     ]));
   });
@@ -91,6 +104,7 @@ describe("Premium access-control rules", () => {
       expect.objectContaining({
         featureKey: "premium-astrology-report-compat",
         minCost: 490,
+        windowMinutes: 120,
       }),
     ]));
   });
@@ -101,6 +115,7 @@ describe("Premium access-control rules", () => {
       expect.objectContaining({
         featureKey: "premium-sukuyo-report-compat",
         minCost: 490,
+        windowMinutes: 120,
       }),
     ]));
   });
@@ -111,6 +126,7 @@ describe("Premium access-control rules", () => {
       expect.objectContaining({
         featureKey: "premium-vedic-report-compat",
         minCost: 490,
+        windowMinutes: 120,
       }),
     ]));
   });

@@ -25,6 +25,7 @@ export async function generateLifeBookPdf(params = {}) {
   const requestedChapter = Number(params.requestedChapter || 0);
   const reportId = String(params.reportId || "").trim();
   const onProgress = typeof params.onProgress === "function" ? params.onProgress : null;
+  const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
 
   if (onProgress) onProgress({ code: "CALCULATING_SAJU", message: "사주 명식 계산 중" });
 
@@ -65,6 +66,10 @@ export async function generateLifeBookPdf(params = {}) {
       lifeBookInputData,
       strictMode,
       maxRetries: 2,
+      previousTexts: [
+        ...previousTexts,
+        ...chapters.map((c) => c.contentMarkdown || ""),
+      ],
     });
 
     if (!generated?.ok) {

@@ -159,7 +159,52 @@ const BANNED_PHRASES = [
   /실행\s*보강\s*메모/i,
 ];
 
-export function validateLifeBookChapter(chapterResult, chapterConfig) {
+function extractLongSentences(text, minLength = 30) {
+  return String(text || "")
+    .replace(/\r/g, "")
+    .split(/(?<=[.!?。！？])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= minLength);
+}
+
+function normalizeParagraphFingerprint(text) {
+  return String(text || "")
+    .replace(/[#>*`\-|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function detectRepeatedLongSentences(text, minLength = 30) {
+  const source = String(text || "");
+  const chunks = source
+    .split(/[\n\.\!\?。！？]/g)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= minLength);
+  const seen = new Set();
+  const duplicates = [];
+  for (const c of chunks) {
+    const fp = normalizeParagraphFingerprint(c);
+    if (!fp) continue;
+    if (seen.has(fp)) duplicates.push(c);
+    seen.add(fp);
+  }
+  return duplicates;
+}
+
+function detectCrossChapterRepeatedSentences(candidateText, previousTexts, minLength = 30) {
+  const previousSet = new Set();
+  (previousTexts || []).forEach((txt) => {
+    extractLongSentences(txt, minLength).forEach((line) => previousSet.add(line));
+  });
+  const repeated = [];
+  extractLongSentences(candidateText, minLength).forEach((line) => {
+    if (previousSet.has(line) && !repeated.includes(line)) repeated.push(line);
+  });
+  return repeated;
+}
+
+export function validateLifeBookChapter(chapterResult, chapterConfig, previousTexts = []) {
   const errors = [];
   const warnings = [];
 
@@ -183,6 +228,17 @@ export function validateLifeBookChapter(chapterResult, chapterConfig) {
     errors.push("BANNED_EXPRESSION_FOUND");
   }
 
+  // 중복 문장 검사 추가
+  const repeatedInside = detectRepeatedLongSentences(contentMarkdown, 30);
+  const repeatedAcross = detectCrossChapterRepeatedSentences(contentMarkdown, previousTexts, 30);
+
+  if (repeatedInside.length > 0) {
+    errors.push("REPEATED_SENTENCES_INSIDE_CHAPTER");
+  }
+  if (repeatedAcross.length > 0) {
+    errors.push("REPEATED_SENTENCES_ACROSS_CHAPTERS");
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -192,6 +248,8 @@ export function validateLifeBookChapter(chapterResult, chapterConfig) {
       minLength,
       headingCount,
       focusHits,
+      repeatedInsideCount: repeatedInside.length,
+      repeatedAcrossCount: repeatedAcross.length,
     },
   };
 }

@@ -33,19 +33,19 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: "premium_pdf_saju_new_year",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
-        windowMinutes: 45,
+        windowMinutes: 120,
       },
       {
         featureKey: "premium-saju-newyear-report",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
-        windowMinutes: 45,
+        windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
-        windowMinutes: 45,
+        windowMinutes: 120,
       },
     ];
   }
@@ -56,19 +56,19 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: "premium_pdf_saju_life_book",
         reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
-        windowMinutes: 30,
+        windowMinutes: 120,
       },
       {
         featureKey: "premium-lifebook-report",
         reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
-        windowMinutes: 30,
+        windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
-        windowMinutes: 30,
+        windowMinutes: 120,
       },
     ];
   }
@@ -81,19 +81,19 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: isCouple ? "premium_pdf_saju_love_secret_compat" : "premium_pdf_saju_love_secret",
         reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
         minCost: isCouple ? 400 : 300,
-        windowMinutes: 45,
+        windowMinutes: 120,
       },
       {
         featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
         reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
         minCost: isCouple ? 400 : 300,
-        windowMinutes: 45,
+        windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
         minCost: isCouple ? 400 : 300,
-        windowMinutes: 45,
+        windowMinutes: 120,
       },
     ];
   }

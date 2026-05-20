@@ -399,10 +399,33 @@ function buildSukyoPdfContext(input = {}) {
   return normalizeSukyoResultForPdf(input);
 }
 
-function buildSukyoGeminiPrompt({ context, chapter }) {
+function extractLongSentences(text, minLength = 30) {
+  return String(text || "")
+    .replace(/\r/g, "")
+    .split(/(?<=[.!?。！？])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= minLength);
+}
+
+function collectPreviousSentenceBanList(previousTexts = [], limit = 12) {
+  const freq = new Map();
+  (previousTexts || []).forEach((txt) => {
+    extractLongSentences(txt, 30).forEach((line) => {
+      const count = freq.get(line) || 0;
+      freq.set(line, count + 1);
+    });
+  });
+  return Array.from(freq.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([line]) => line);
+}
+
+function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] }) {
   const safeContext = context || {};
   const chapterTitle = chapter?.title || "Sukyo Chapter";
   const chapterGoal = chapter?.goal || "숙요 해석";
+  const previousBanList = collectPreviousSentenceBanList(previousChapterTexts, 12);
 
   const systemPrompt = [
     "너는 30년차 숙요점 전문가이자 27숙과 달의 리듬을 현대어로 해석하는 프리미엄 숙요점 PDF 작가다.",
@@ -410,6 +433,7 @@ function buildSukyoGeminiPrompt({ context, chapter }) {
     "본명숙/월상/삭망각/조도/관계유형/관계거리를 임의로 만들지 않는다.",
     "데이터가 부족하면 부족하다고 명시하되 생성을 중단하지 않는다.",
     "건강/가족/관계/위기/재물은 단정 예언이 아니라 경향과 전략으로 쓴다.",
+    "이전 챕터와 동일 문장/동일 해석 프레이밍 재사용을 금지한다.",
     "반드시 JSON 하나로만 응답한다.",
   ].join("\n");
 
@@ -433,6 +457,8 @@ function buildSukyoGeminiPrompt({ context, chapter }) {
     JSON.stringify(safeContext.rawBasicResult || {}, null, 2),
     "[누락 데이터 요약]",
     JSON.stringify(safeContext.missingSummary || [], null, 2),
+    previousBanList.length ? "[이전 챕터와 중복 금지 문장]" : null,
+    previousBanList.length ? JSON.stringify(previousBanList, null, 2) : null,
     "[숙요점 Knowledge Base]",
     JSON.stringify(safeContext.knowledgeBase || {}, null, 2),
     "[작성할 챕터]",

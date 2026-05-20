@@ -23,8 +23,31 @@ const SYSTEM_INSTRUCTION = [
   "- 동일 문장이나 단락을 반복해 분량을 채우지 마세요.",
 ].join("\n");
 
-function buildChapterPrompt(chapterConfig, lifeBookInputData) {
+function extractLongSentences(text, minLength = 30) {
+  return String(text || "")
+    .replace(/\r/g, "")
+    .split(/(?<=[.!?。！？])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= minLength);
+}
+
+function collectPreviousSentenceBanList(previousTexts = [], limit = 15) {
+  const freq = new Map();
+  (previousTexts || []).forEach((txt) => {
+    extractLongSentences(txt, 30).forEach((line) => {
+      const count = freq.get(line) || 0;
+      freq.set(line, count + 1);
+    });
+  });
+  return Array.from(freq.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([line]) => line);
+}
+
+function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []) {
   const safeInputJson = JSON.stringify(lifeBookInputData || {}, null, 2);
+  const banList = collectPreviousSentenceBanList(previousTexts, 15);
 
   return [
     SYSTEM_INSTRUCTION,
@@ -43,6 +66,9 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData) {
     "- 사용자의 사주 구조와 연결된 구체적인 해석을 작성하세요.",
     "- 마지막에는 \"핵심 요약\"과 \"실전 조언\"을 포함하세요.",
     "- JSON 형식으로만 출력하세요.",
+    banList.length
+      ? `\n[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n문장 반복을 피하기 위해 다음 리스트에 있는 문장이나 이와 유사한 핵심 서술 방식은 이번 챕터 본문에 절대 출력하지 마세요:\n${JSON.stringify(banList, null, 2)}`
+      : "",
     "",
     "[출력 JSON 형식]",
     "{",
@@ -74,6 +100,7 @@ function buildRepairPrompt(chapterConfig, previousOutput, validationErrors) {
     "- contentMarkdown은 최소 5개 이상의 소제목 포함",
     `- contentMarkdown은 최소 ${chapterConfig.minLength}자 이상`,
     "- summary, practicalAdvice(최소 3개) 반드시 포함",
+    "- 중복 문단, 중복 문장이나 이전 챕터 해석의 단순 반복은 반드시 제거",
     "",
     "[이전 출력]",
     String(previousOutput || "").slice(0, 12000),
@@ -86,6 +113,7 @@ export async function generateLifeBookChapter(params = {}) {
   const lifeBookInputData = params.lifeBookInputData || {};
   const strictMode = params.strictMode === true;
   const maxRetries = Math.max(0, Math.min(2, Number(params.maxRetries ?? 2)));
+  const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
 
   if (!chapterConfig || typeof chapterConfig !== "object") {
     return {
@@ -103,7 +131,7 @@ export async function generateLifeBookChapter(params = {}) {
     attempts += 1;
     try {
       const prompt = attempts === 1
-        ? buildChapterPrompt(chapterConfig, lifeBookInputData)
+        ? buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts)
         : buildRepairPrompt(chapterConfig, lastRawText, lastValidation.errors);
 
       const generated = await geminiLifeBookClient(env, prompt, {
@@ -113,7 +141,7 @@ export async function generateLifeBookChapter(params = {}) {
       lastRawText = generated.text;
 
       const parsed = parseLifeBookChapterResponse(lastRawText, chapterConfig);
-      const validation = validateLifeBookChapter(parsed, chapterConfig);
+      const validation = validateLifeBookChapter(parsed, chapterConfig, previousTexts);
       lastValidation = validation;
 
       if (validation.ok) {
