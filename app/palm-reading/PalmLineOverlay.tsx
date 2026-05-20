@@ -39,12 +39,14 @@ export default function PalmLineOverlay({
   imageAlt,
   pathMap,
   activeLine,
+  immersive,
   onSelectLine,
 }: {
   imageUrl: string | null;
   imageAlt: string;
   pathMap?: OverlayPathMap | null;
   activeLine: OverlayLineKey | null;
+  immersive?: boolean;
   onSelectLine: (line: OverlayLineKey) => void;
 }) {
   const [hoverLine, setHoverLine] = useState<OverlayLineKey | null>(null);
@@ -76,7 +78,7 @@ export default function PalmLineOverlay({
   }
 
   return (
-    <section className="cd-ink-card cd-hanji relative overflow-hidden rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(9,14,23,0.95),rgba(26,18,16,0.9))]">
+    <section className={`cd-ink-card cd-hanji relative overflow-hidden rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(9,14,23,0.95),rgba(26,18,16,0.9))] ${immersive ? "cd-overlay-immersive" : ""}`}>
       <span className="cd-seal-dot pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full border border-[#f3d888]/65 bg-[#8f1c1c]/85" />
       <div className="flex items-center justify-between border-b border-[#d8bf72]/25 px-3 py-2 md:px-4">
         <h3 className="text-sm font-black text-[#f3de9e] md:text-base">손바닥 흐름 오버레이</h3>
@@ -86,16 +88,17 @@ export default function PalmLineOverlay({
       </div>
 
       <div className="relative w-full bg-[#04070d]">
+        {immersive ? <div aria-hidden className="cd-overlay-noise pointer-events-none absolute inset-0 z-[1]" /> : null}
         <img
           src={imageUrl}
           alt={imageAlt}
-          className="block max-h-[70vh] w-full object-contain"
+          className={`block w-full object-contain ${immersive ? "max-h-[84vh]" : "max-h-[70vh]"}`}
         />
 
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 h-full w-full"
+          className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
         >
           {LINE_META.map((line) => {
             const isActive = activeLine === line.key || hoverLine === line.key;
@@ -111,8 +114,8 @@ export default function PalmLineOverlay({
                   opacity={isActive ? 0.98 : 0.88}
                   style={{
                     filter: isActive
-                      ? `drop-shadow(0 0 6px ${line.glow}) drop-shadow(0 0 12px ${line.glow})`
-                      : `drop-shadow(0 0 4px ${line.glow})`,
+                      ? `drop-shadow(0 0 8px ${line.glow}) drop-shadow(0 0 14px ${line.glow})`
+                      : `drop-shadow(0 0 5px ${line.glow})`,
                     transition: "all 200ms ease",
                   }}
                   className="pointer-events-none"
@@ -161,6 +164,29 @@ export default function PalmLineOverlay({
           현재 라인은 정밀 좌표가 아닌 상징적 안내선입니다. 정밀 인식 결과가 없을 때 흐름 이해를 돕기 위한 시각화입니다.
         </p>
       ) : null}
+
+      <style jsx>{`
+        .cd-overlay-immersive {
+          box-shadow:
+            0 0 0 1px rgba(216, 191, 114, 0.35),
+            0 20px 60px rgba(0, 0, 0, 0.5),
+            inset 0 0 34px rgba(216, 191, 114, 0.08);
+        }
+
+        .cd-overlay-noise {
+          background-image:
+            radial-gradient(circle at 10% 20%, rgba(255, 230, 160, 0.12) 0 1px, transparent 2px),
+            radial-gradient(circle at 70% 80%, rgba(255, 230, 160, 0.08) 0 1px, transparent 2px),
+            repeating-linear-gradient(0deg, rgba(216, 191, 114, 0.03) 0, rgba(216, 191, 114, 0.03) 1px, transparent 1px, transparent 8px);
+          opacity: 0.7;
+          animation: cdOverlayDrift 14s ease-in-out infinite alternate;
+        }
+
+        @keyframes cdOverlayDrift {
+          from { transform: translateY(0); }
+          to { transform: translateY(-5px); }
+        }
+      `}</style>
     </section>
   );
 }

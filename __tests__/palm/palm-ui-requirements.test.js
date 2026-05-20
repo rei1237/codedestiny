@@ -271,4 +271,18 @@ describe("Palm UI requirements", () => {
     expect(source).toContain("const uniqueCards = enforceCardSentenceUniqueness(sanitizedCards)");
     expect(source).toContain("cards: uniqueCards");
   });
+
+  test("Test T: 손금 화면에 전체화면 토글 버튼이 존재해야 한다", () => {
+    const source = fs.readFileSync(mainPath, "utf8");
+
+    expect(source).toContain("전체화면");
+    expect(source).toContain("기본 화면");
+  });
+
+  test("Test U: 손금 결과 화면에 특수 손금 감지 섹션이 존재해야 한다", () => {
+    const source = fs.readFileSync(mainPath, "utf8");
+
+    expect(source).toContain("특수 손금 감지");
+    expect(source).toContain("detectedSpecialPatterns");
+  });
 });

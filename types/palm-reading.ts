@@ -28,6 +28,16 @@ export type PalmFateEndArea = "saturnMount" | "middlePalm" | "unknown";
 export type PalmHandShapeType = "earth" | "fire" | "air" | "water" | "mixed" | "unknown";
 export type PalmMountFullness = "strong" | "medium" | "weak" | "unknown";
 
+export type PalmSpecialPatternCode = "m_shape" | "simian_line";
+
+export type PalmSpecialPattern = {
+  code: PalmSpecialPatternCode;
+  label: string;
+  detected: boolean;
+  confidence: number;
+  summary: string;
+};
+
 export type PalmLineBase = {
   detected: boolean;
   summary: string;
@@ -159,6 +169,10 @@ export type CanonicalPalmReading = {
     careerSummary: string;
     wealthSummary: string;
   };
+  specialPatterns: {
+    detected: PalmSpecialPattern[];
+    summary: string;
+  };
   validation: {
     hasPalm: boolean;
     hasEnoughQuality: boolean;
@@ -189,6 +203,7 @@ export type CreateCanonicalPalmReadingParams = {
   leftHandReading?: PalmHandReading | null;
   rightHandReading?: PalmHandReading | null;
   comparison?: Partial<CanonicalPalmReading["bothHandsComparison"]>;
+  specialPatterns?: Partial<CanonicalPalmReading["specialPatterns"]>;
   purposeAnalysis?: CanonicalPalmReading["purposeAnalysis"];
 };
 
@@ -329,6 +344,10 @@ export function createDefaultCanonicalPalmReading(
       loveSummary: params.comparison?.loveSummary ?? "",
       careerSummary: params.comparison?.careerSummary ?? "",
       wealthSummary: params.comparison?.wealthSummary ?? "",
+    },
+    specialPatterns: {
+      detected: Array.isArray(params.specialPatterns?.detected) ? params.specialPatterns?.detected : [],
+      summary: params.specialPatterns?.summary ?? "",
     },
     validation: {
       hasPalm: false,

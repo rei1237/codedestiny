@@ -1712,6 +1712,32 @@ export async function POST(req: NextRequest) {
       formatMissingForUser(missingData),
     ].filter(Boolean);
 
+    const specialPatternsRaw = (primaryAnalysis.recognitionData as Record<string, unknown> | null)?.specialPatterns as
+      | { detected?: unknown[]; summary?: unknown }
+      | undefined;
+    const specialPatterns = {
+      detected: Array.isArray(specialPatternsRaw?.detected)
+        ? specialPatternsRaw.detected
+            .filter((item) => Boolean(item) && typeof item === "object")
+            .map((item) => {
+              const row = item as Record<string, unknown>;
+              const confidence = Number(row.confidence || 0);
+              return {
+                code: String(row.code || "").trim() as "m_shape" | "simian_line",
+                label: String(row.label || "").trim() || "특수 손금",
+                detected: true,
+                confidence: Number.isFinite(confidence) ? Math.max(0, Math.min(1, confidence)) : 0,
+                summary: String(row.summary || "").trim(),
+              };
+            })
+            .filter((item) => item.code === "m_shape" || item.code === "simian_line")
+        : [],
+      summary:
+        typeof specialPatternsRaw?.summary === "string" && specialPatternsRaw.summary.trim().length > 0
+          ? specialPatternsRaw.summary.trim()
+          : "특수 손금은 이번 분석에서 명확히 감지되지 않았습니다.",
+    };
+
     const canonicalBase: CanonicalPalmReading = createDefaultCanonicalPalmReading({
       dominantHand,
       analysisPurpose,
@@ -1722,6 +1748,7 @@ export async function POST(req: NextRequest) {
       leftHandReading,
       rightHandReading,
       comparison: bothHandsComparison,
+      specialPatterns,
       purposeAnalysis: toPurposeAnalysis(primaryAnalysis.purposeAnalysis),
     });
 

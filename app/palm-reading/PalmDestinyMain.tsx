@@ -7,6 +7,7 @@ import {
   type PalmAnalysisPurpose,
   type PalmDominantHand,
   type PalmHandRole,
+  type PalmSpecialPattern,
 } from "@/types/palm-reading";
 import PalmLineOverlay, {
   type OverlayLineKey,
@@ -273,9 +274,18 @@ async function loadImageForValidation(file: File): Promise<{ image: HTMLImageEle
   image.decoding = "async";
 
   await new Promise<void>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error("IMAGE_LOAD_TIMEOUT")), 8000);
     image.onload = () => resolve();
     image.onerror = () => reject(new Error("IMAGE_LOAD_FAILED"));
     image.src = objectUrl;
+    image.onload = () => {
+      window.clearTimeout(timeout);
+      resolve();
+    };
+    image.onerror = () => {
+      window.clearTimeout(timeout);
+      reject(new Error("IMAGE_LOAD_FAILED"));
+    };
   });
 
   return { image, objectUrl };
@@ -349,22 +359,31 @@ async function resizeImageIfNeeded(file: File): Promise<File> {
       throw new Error("CANVAS_CONTEXT_UNAVAILABLE");
     }
 
-    renderer.draw(ctx, nextWidth, nextHeight);
+    try {
+      renderer.draw(ctx, nextWidth, nextHeight);
 
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((value) => resolve(value), "image/jpeg", 0.9);
-    });
+      const blob = await new Promise<Blob | null>((resolve) => {
+        const timeout = window.setTimeout(() => resolve(null), 8000);
+        canvas.toBlob((value) => {
+          window.clearTimeout(timeout);
+          resolve(value);
+        }, "image/jpeg", 0.9);
+      });
 
-    if (!blob) {
-      return file;
+      if (!blob) {
+        return file;
+      }
+
+      const dotIndex = file.name.lastIndexOf(".");
+      const baseName = dotIndex > 0 ? file.name.slice(0, dotIndex) : file.name;
+      return new File([blob], `${baseName}-optimized.jpg`, {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+    } finally {
+      canvas.width = 0;
+      canvas.height = 0;
     }
-
-    const dotIndex = file.name.lastIndexOf(".");
-    const baseName = dotIndex > 0 ? file.name.slice(0, dotIndex) : file.name;
-    return new File([blob], `${baseName}-optimized.jpg`, {
-      type: "image/jpeg",
-      lastModified: Date.now(),
-    });
   } finally {
     renderer.cleanup();
   }
@@ -769,6 +788,7 @@ function buildCategoryConsultations(input: {
 
 export default function PalmDestinyMain() {
   const router = useRouter();
+  const [isImmersiveView, setIsImmersiveView] = useState(false);
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [dominantHand, setDominantHand] = useState<DominantHand | "">("");
@@ -847,6 +867,9 @@ export default function PalmDestinyMain() {
   const mobileFocusedConsultation =
     categoryConsultations.find((item) => item.key === activeConsultationKey) || categoryConsultations[0] || null;
   const bothHandsComparison = analysisResult?.canonical.bothHandsComparison;
+  const detectedSpecialPatterns: PalmSpecialPattern[] = Array.isArray(analysisResult?.canonical.specialPatterns?.detected)
+    ? analysisResult.canonical.specialPatterns.detected
+    : [];
 
   const pickedOverlayImage = overlaySide === "left" ? leftHand.previewUrl : rightHand.previewUrl;
   const overlayImageUrl = pickedOverlayImage || leftHand.previewUrl || rightHand.previewUrl || null;
@@ -1271,6 +1294,9 @@ export default function PalmDestinyMain() {
       const purposeAnalysisFromPayload =
         (canonicalSource?.purposeAnalysis as ReturnType<typeof createDefaultCanonicalPalmReading>["purposeAnalysis"]) ||
         undefined;
+      const specialPatternsFromPayload =
+        (canonicalSource?.specialPatterns as ReturnType<typeof createDefaultCanonicalPalmReading>["specialPatterns"]) ||
+        undefined;
 
       const canonical = createDefaultCanonicalPalmReading({
         dominantHand: dominantForCanonical,
@@ -1282,6 +1308,7 @@ export default function PalmDestinyMain() {
         leftHandReading: leftHandReadingFromPayload,
         rightHandReading: rightHandReadingFromPayload,
         comparison: comparisonFromPayload,
+        specialPatterns: specialPatternsFromPayload,
         purposeAnalysis: purposeAnalysisFromPayload,
       });
 
@@ -1775,21 +1802,40 @@ export default function PalmDestinyMain() {
         </div>
       ) : null}
 
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1220px] items-start px-3 py-4 pb-[calc(env(safe-area-inset-bottom)+20px)] md:px-6 md:py-6">
-        <article aria-busy={isSubmitting} className="cd-ink-card cd-hanji relative w-full overflow-hidden rounded-[28px] border-2 border-[#c8a84b]/55 bg-[linear-gradient(148deg,rgba(8,6,12,0.97),rgba(14,9,9,0.97)_50%,rgba(10,5,8,0.97)_100%)] shadow-[0_0_0_1px_rgba(180,130,40,0.2),0_32px_80px_rgba(0,0,0,0.75),inset_0_0_60px_rgba(140,20,20,0.08)]">
+      <section className={`relative z-10 mx-auto flex min-h-screen w-full items-start pb-[calc(env(safe-area-inset-bottom)+20px)] ${
+        isImmersiveView ? "max-w-none px-0 py-0" : "max-w-[1220px] px-3 py-4 md:px-6 md:py-6"
+      } ${isImmersiveView ? "cd-immersive-shell" : ""}`}>
+        <article
+          aria-busy={isSubmitting}
+          className={`cd-ink-card cd-hanji relative w-full overflow-hidden border-2 border-[#c8a84b]/55 bg-[linear-gradient(148deg,rgba(8,6,12,0.97),rgba(14,9,9,0.97)_50%,rgba(10,5,8,0.97)_100%)] shadow-[0_0_0_1px_rgba(180,130,40,0.2),0_32px_80px_rgba(0,0,0,0.75),inset_0_0_60px_rgba(140,20,20,0.08)] ${
+            isImmersiveView ? "cd-immersive-card !rounded-none border-x-0 border-y-0 min-h-screen" : "rounded-[28px]"
+          }`}
+        >
+          {isImmersiveView ? <div aria-hidden className="cd-immersive-aura pointer-events-none absolute inset-0" /> : null}
           {/* 카드 상단 금빛 장식선 */}
           <div aria-hidden className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 20%, #f5d987 50%, #c8a84b 80%, transparent)" }} />
 
           <div className="relative border-b border-[#c8a84b]/25 px-5 py-8 md:px-10 md:py-12" style={{ background: "linear-gradient(180deg, rgba(120,15,15,0.18) 0%, transparent 60%)" }}>
             <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#c8a84b]/25 bg-[#0d0808]/70 p-3 md:flex-row md:items-center md:justify-between md:p-4">
-              <button
-                type="button"
-                onClick={handleBackToMain}
-                className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/45 bg-[#0b0606] px-3 py-2 text-sm font-bold text-[#f3dca0]"
-                aria-label="메인으로 이동"
-              >
-                ← 메인으로
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleBackToMain}
+                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/45 bg-[#0b0606] px-3 py-2 text-sm font-bold text-[#f3dca0]"
+                  aria-label="메인으로 이동"
+                >
+                  ← 메인으로
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsImmersiveView((prev) => !prev)}
+                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/45 bg-[#0b0606] px-3 py-2 text-sm font-bold text-[#f3dca0]"
+                  aria-pressed={isImmersiveView}
+                  aria-label="전체화면 보기 전환"
+                >
+                  {isImmersiveView ? "기본 화면" : "전체화면"}
+                </button>
+              </div>
               <div className="min-w-0">
                 <p className="text-sm font-black text-[#f5d987] md:text-base">🖐 손금 분석</p>
                 <p className="mt-1 text-xs leading-6 text-[#e7d6b5]/85 md:text-sm">
@@ -1801,7 +1847,7 @@ export default function PalmDestinyMain() {
             {/* 우상단 팔각 문양 */}
             <div
               aria-hidden
-              className="absolute right-6 top-6 h-20 w-20 opacity-30"
+              className="cd-orbital-mark absolute right-6 top-6 h-20 w-20 opacity-30"
               style={{
                 background: "conic-gradient(from 22.5deg, rgba(212,176,92,0.8) 0deg 45deg, transparent 45deg 90deg, rgba(212,176,92,0.8) 90deg 135deg, transparent 135deg 180deg, rgba(212,176,92,0.8) 180deg 225deg, transparent 225deg 270deg, rgba(212,176,92,0.8) 270deg 315deg, transparent 315deg 360deg)",
                 clipPath: "circle(50%)",
@@ -2190,8 +2236,10 @@ export default function PalmDestinyMain() {
                   </div>
                 </div>
 
-                <div className="grid w-full max-w-full gap-4 overflow-hidden md:grid-cols-[minmax(300px,420px)_1fr] md:gap-6">
-                  <aside className="w-full overflow-hidden md:sticky md:top-6 md:self-start">
+                <div className={`grid w-full max-w-full gap-4 overflow-hidden md:gap-6 ${
+                  isImmersiveView ? "md:grid-cols-[minmax(360px,48vw)_1fr]" : "md:grid-cols-[minmax(300px,420px)_1fr]"
+                }`}>
+                  <aside className={`w-full overflow-hidden md:sticky md:self-start ${isImmersiveView ? "md:top-3" : "md:top-6"}`}>
                     {leftHand.previewUrl && rightHand.previewUrl ? (
                       <div className="mb-3 grid grid-cols-2 gap-2">
                         <button
@@ -2226,11 +2274,12 @@ export default function PalmDestinyMain() {
                       imageAlt={overlayImageAlt}
                       pathMap={activeOverlayPaths}
                       activeLine={activeCardKey in LINE_TO_CARD_KEY ? (activeCardKey as OverlayLineKey) : null}
+                      immersive={isImmersiveView}
                       onSelectLine={handleOverlayLineSelect}
                     />
                   </aside>
 
-                  <div className="w-full max-w-full space-y-4 overflow-hidden">
+                  <div className={`w-full max-w-full overflow-hidden ${isImmersiveView ? "space-y-5" : "space-y-4"}`}>
                     <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-xs font-bold text-[#f5d987]">
@@ -2246,6 +2295,27 @@ export default function PalmDestinyMain() {
                             <li key={`warn-${warning}`}>• {warning}</li>
                           ))}
                         </ul>
+                      ) : null}
+
+                      {detectedSpecialPatterns.length > 0 ? (
+                        <section className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/75 px-3 py-3">
+                          <p className="text-xs font-black text-[#f5d987] md:text-sm">특수 손금 감지</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {detectedSpecialPatterns.map((pattern) => (
+                              <span
+                                key={`special-${pattern.code}`}
+                                className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-[11px] font-bold text-[#f5d987]"
+                              >
+                                {pattern.label} ({Math.round(Number(pattern.confidence || 0) * 100)}%)
+                              </span>
+                            ))}
+                          </div>
+                          <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                            {detectedSpecialPatterns.map((pattern) => (
+                              <li key={`special-summary-${pattern.code}`}>• {pattern.summary}</li>
+                            ))}
+                          </ul>
+                        </section>
                       ) : null}
 
                       {analysisResult.missingData.length > 0 ? (
@@ -2399,6 +2469,45 @@ export default function PalmDestinyMain() {
       </section>
 
       <style jsx global>{`
+        .cd-immersive-shell {
+          background:
+            radial-gradient(1200px 500px at 8% -10%, rgba(180, 40, 30, 0.16), transparent 60%),
+            radial-gradient(1000px 520px at 92% -6%, rgba(212, 176, 92, 0.16), transparent 62%),
+            linear-gradient(180deg, rgba(4, 4, 8, 0.95), rgba(10, 6, 6, 0.96));
+        }
+
+        .cd-immersive-card {
+          box-shadow:
+            0 0 0 1px rgba(180, 130, 40, 0.28),
+            0 38px 120px rgba(0, 0, 0, 0.78),
+            inset 0 0 80px rgba(140, 20, 20, 0.16);
+        }
+
+        .cd-immersive-aura {
+          background-image:
+            radial-gradient(circle at 14% 18%, rgba(212, 176, 92, 0.12) 0 2px, transparent 3px),
+            radial-gradient(circle at 82% 74%, rgba(212, 176, 92, 0.1) 0 1.8px, transparent 2.8px),
+            radial-gradient(circle at 68% 22%, rgba(180, 34, 34, 0.1) 0 2.2px, transparent 3px),
+            repeating-linear-gradient(90deg, rgba(212, 176, 92, 0.03) 0, rgba(212, 176, 92, 0.03) 1px, transparent 1px, transparent 28px);
+          opacity: 0.85;
+          animation: cdAuraDrift 16s ease-in-out infinite alternate;
+        }
+
+        @keyframes cdAuraDrift {
+          from { transform: translate3d(0, 0, 0) scale(1); }
+          to { transform: translate3d(0, -6px, 0) scale(1.012); }
+        }
+
+        .cd-orbital-mark {
+          animation: cdOrbitalSpin 19s linear infinite;
+          transform-origin: center;
+        }
+
+        @keyframes cdOrbitalSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
         /* ──────────── 동양 명품 카드 ──────────── */
         .cd-oriental-card {
           backdrop-filter: blur(4px);

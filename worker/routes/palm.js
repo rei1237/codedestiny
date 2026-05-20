@@ -96,6 +96,7 @@ function buildCanonical(params) {
     leftHandReading: params.leftHandReading,
     rightHandReading: params.rightHandReading,
     bothHandsComparison: params.bothHandsComparison,
+    specialPatterns: params.specialPatterns,
     validation: {
       hasPalm: false,
       hasEnoughQuality: false,
@@ -291,6 +292,38 @@ export async function handlePalmRoutes(request, env) {
     const primarySide = uploadedHands[0] || "right";
     const primaryRecognition = analyses.find((a) => a.side === primarySide)?.recognitionData || analyses[0]?.recognitionData || null;
 
+    const patternByCode = new Map();
+    for (const analysis of analyses) {
+      const list = analysis?.recognitionData?.specialPatterns?.detected;
+      if (!Array.isArray(list)) continue;
+      for (const item of list) {
+        if (!item || typeof item !== "object") continue;
+        const code = String(item.code || "").trim();
+        if (!code) continue;
+        const confidence = Number(item.confidence || 0);
+        const prev = patternByCode.get(code);
+        if (!prev || confidence > Number(prev.confidence || 0)) {
+          patternByCode.set(code, {
+            code,
+            label: String(item.label || code),
+            detected: true,
+            confidence: Number.isFinite(confidence) ? confidence : 0,
+            summary: String(item.summary || ""),
+          });
+        }
+      }
+    }
+
+    const specialPatterns = {
+      detected: Array.from(patternByCode.values()),
+      summary:
+        patternByCode.size > 0
+          ? Array.from(patternByCode.values())
+              .map((item) => String(item.label || item.code))
+              .join(", ")
+          : "특수 손금은 이번 분석에서 명확히 감지되지 않았습니다.",
+    };
+
     const canonical = buildCanonical({
       dominantHand: payload.dominantHand,
       analysisPurpose: payload.analysisPurpose,
@@ -301,6 +334,7 @@ export async function handlePalmRoutes(request, env) {
       leftHandReading,
       rightHandReading,
       bothHandsComparison,
+      specialPatterns,
     });
 
     const overlayPathsBySide = {
@@ -327,6 +361,7 @@ export async function handlePalmRoutes(request, env) {
       overlayPaths,
       overlayPathsBySide,
       recognitionData,
+      specialPatterns,
       resultSections,
     });
   } catch (error) {

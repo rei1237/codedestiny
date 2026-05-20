@@ -184,6 +184,88 @@ function makeLineRichInput({ dominantHand = "right", uploadedHandSide = "right" 
   };
 }
 
+function makeSimianInput() {
+  const handLandmarks = buildLandmarks({ palmLength: 122, palmWidth: 102, fingerAvg: 92, middleLen: 102 });
+  const ctx = normalizePalmCoordinateSystem({ handLandmarks, lineCandidates: [], uploadedHandSide: "right" });
+
+  const life = makeCandidate(
+    "life-simian",
+    [
+      { x: 0.35, y: 0.2 },
+      { x: 0.27, y: 0.34 },
+      { x: 0.24, y: 0.52 },
+      { x: 0.29, y: 0.76 },
+    ],
+    ctx,
+    { length: 0.58, depthScore: 0.79, curvatureScore: 0.56 },
+  );
+
+  const head = makeCandidate(
+    "head-simian",
+    [
+      { x: 0.82, y: 0.33 },
+      { x: 0.66, y: 0.34 },
+      { x: 0.5, y: 0.35 },
+      { x: 0.35, y: 0.36 },
+      { x: 0.21, y: 0.36 },
+    ],
+    ctx,
+    { length: 0.62, depthScore: 0.78, curvatureScore: 0.12, branches: 1, confidence: 0.92 },
+  );
+
+  const heart = makeCandidate(
+    "heart-simian",
+    [
+      { x: 0.83, y: 0.29 },
+      { x: 0.66, y: 0.32 },
+      { x: 0.5, y: 0.35 },
+      { x: 0.35, y: 0.36 },
+      { x: 0.22, y: 0.37 },
+    ],
+    ctx,
+    { length: 0.6, depthScore: 0.8, curvatureScore: 0.24, branches: 1, confidence: 0.91 },
+  );
+
+  const fate = makeCandidate(
+    "fate-simian",
+    [
+      { x: 0.5, y: 0.86 },
+      { x: 0.5, y: 0.68 },
+      { x: 0.5, y: 0.52 },
+      { x: 0.5, y: 0.34 },
+      { x: 0.5, y: 0.2 },
+    ],
+    ctx,
+    { length: 0.63, depthScore: 0.75, curvatureScore: 0.11, confidence: 0.86 },
+  );
+
+  const money = makeCandidate(
+    "money-simian",
+    [
+      { x: 0.66, y: 0.76 },
+      { x: 0.74, y: 0.62 },
+      { x: 0.81, y: 0.48 },
+      { x: 0.86, y: 0.34 },
+    ],
+    ctx,
+    { length: 0.44, depthScore: 0.76, curvatureScore: 0.28, branches: 3, confidence: 0.9 },
+  );
+
+  return {
+    dominantHand: "right",
+    uploadedHandSide: "right",
+    analysisPurpose: "general",
+    imageQuality: {
+      brightness: "good",
+      sharpness: "good",
+      contrast: "good",
+      palmCoverage: 0.89,
+    },
+    handLandmarks,
+    lineCandidates: [life, head, heart, fate, money],
+  };
+}
+
 describe("Palm map engine requirements", () => {
   test("Test A: 흙의 손 조건에 맞는 입력이면 handShape.type이 earth가 되어야 한다", () => {
     const result = analyzePalmHandInput(makeShapeInput("earth"));
@@ -323,5 +405,19 @@ describe("Palm map engine requirements", () => {
     expect(source).not.toContain("손금 용어 설명");
     expect(source).not.toContain("해석 섹션 아코디언");
     expect(source).not.toMatch(/palmRatio|fingerRatio|upperPalm|middlePalm|lowerPalm|검출 근거|보수적 해석|감지되지 않음/);
+  });
+
+  test("Test U: M자 손금 패턴이 감지되면 specialPatterns에 m_shape가 포함되어야 한다", () => {
+    const result = analyzePalmHandInput(makeLineRichInput());
+    const list = result?.specialPatterns?.detected || [];
+    const hasMShape = list.some((item) => item.code === "m_shape");
+    expect(hasMShape).toBe(true);
+  });
+
+  test("Test V: 막쥔 손금(시미안 라인) 패턴이 감지되면 specialPatterns에 simian_line이 포함되어야 한다", () => {
+    const result = analyzePalmHandInput(makeSimianInput());
+    const list = result?.specialPatterns?.detected || [];
+    const hasSimian = list.some((item) => item.code === "simian_line");
+    expect(hasSimian).toBe(true);
   });
 });
