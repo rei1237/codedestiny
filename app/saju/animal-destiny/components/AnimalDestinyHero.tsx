@@ -13,24 +13,30 @@ const STAR_POINTS = [
   { top: "84%", left: "48%", size: 2, delay: "3.3s" },
 ];
 
-export default function AnimalDestinyHero() {
+const PREVIEW_ANIMALS = ["🐭", "🐮", "🐯", "🐰", "🐉", "🐍", "🐴", "🐑", "🐵", "🐔", "🐶", "🐷"];
+
+interface Props {
+  onStart?: () => void;
+}
+
+export default function AnimalDestinyHero({ onStart }: Props) {
   return (
-    <section className="relative w-full overflow-hidden px-6 pb-14 pt-8 sm:pt-12">
+    <section className="relative w-full overflow-hidden px-5 pb-10 pt-6 sm:px-6 sm:pt-10">
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(180deg, rgba(255,247,233,0.82) 0%, rgba(252,241,255,0.72) 42%, rgba(255,248,236,0.92) 100%), url('/fuctionassets/동물점테스트.webp')",
+              "linear-gradient(180deg, rgba(255,247,233,0.9) 0%, rgba(254,242,218,0.83) 42%, rgba(250,231,197,0.9) 100%), url('/fuctionassets/동물점테스트.webp')",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "saturate(1.06)",
+            filter: "saturate(1.02)",
           }}
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_24%,rgba(255,193,107,0.34),transparent_42%),radial-gradient(circle_at_76%_72%,rgba(172,124,255,0.24),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_24%,rgba(255,193,107,0.34),transparent_42%),radial-gradient(circle_at_76%_72%,rgba(176,133,76,0.2),transparent_45%)]" />
       </div>
 
-      <div className="relative mx-auto max-w-5xl rounded-[34px] border border-[#efd6b2] bg-white/66 p-6 shadow-[0_24px_58px_rgba(103,76,158,0.2)] backdrop-blur-sm sm:p-10">
+      <div className="relative mx-auto max-w-5xl rounded-[34px] border border-[#e6cb9f] bg-white/74 p-6 shadow-[0_24px_58px_rgba(103,76,38,0.18)] backdrop-blur-sm sm:p-10">
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[34px]">
           {STAR_POINTS.map((star, index) => (
             <span
@@ -54,41 +60,66 @@ export default function AnimalDestinyHero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
-              className="inline-flex rounded-full bg-[#6f47a6]/88 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#fff1c7]"
+              className="inline-flex rounded-full bg-[#8a5a2b]/92 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#fff0d0]"
             >
-              CELESTIAL ANIMAL ORACLE
+              SAJU TWELVE STAGE ANIMAL
             </motion.p>
 
             <motion.h1
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.08 }}
-              className="text-balance text-3xl font-black leading-tight text-[#4f2c78] sm:text-5xl"
+              className="text-balance text-3xl font-black leading-tight text-[#6b3f1d] sm:text-5xl"
             >
-              사주 십이운성
-              <br />
-              동물점 테스트
+              사주 십이운성 동물점
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.18 }}
-              className="max-w-2xl text-sm font-semibold leading-relaxed text-[#6b4d96] sm:text-base"
+              className="max-w-2xl text-sm font-semibold leading-relaxed text-[#7d552f] sm:text-base"
             >
-              태어난 순간의 십이운성을 읽어, 당신의 기질과 관계 패턴을 동물 아키타입으로 해석합니다.
-              성격, 연애, 진로, 재물운까지 한 번에 보는 프리미엄 리포트입니다.
+              내 사주 속 생명의 흐름을 12가지 동물로 알아보세요.
+              성격, 관계, 일과 재물, 연애 흐름을 한 번에 읽는 직관형 리포트입니다.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.28 }}
-              className="grid gap-2 text-[12px] font-bold text-[#5a3f82] sm:grid-cols-3"
+              className="flex flex-wrap gap-2"
             >
-              <span className="rounded-full border border-[#edd2ff] bg-[#f7efff] px-3 py-2">12단계 운성 정규화</span>
-              <span className="rounded-full border border-[#f3d8a4] bg-[#fff4df] px-3 py-2">성격/연애/직업 분석</span>
-              <span className="rounded-full border border-[#ffd6ea] bg-[#fff1f9] px-3 py-2">두 사람 궁합 계산</span>
+              {PREVIEW_ANIMALS.map((animal, index) => (
+                <span
+                  key={`${animal}-${index}`}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#dfc197] bg-white/85 text-lg shadow-[0_6px_16px_rgba(121,84,35,0.1)]"
+                >
+                  {animal}
+                </span>
+              ))}
+            </motion.div>
+
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.34 }}
+              onClick={onStart}
+              className="mt-2 inline-flex min-h-[46px] items-center justify-center rounded-2xl bg-[linear-gradient(120deg,#8a5a2b,#d88a35)] px-6 py-3 text-sm font-black text-white shadow-[0_12px_26px_rgba(138,90,43,0.34)] transition hover:brightness-105 active:scale-[0.99]"
+            >
+              내 동물 알아보기
+            </motion.button>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.42 }}
+              className="grid gap-2 text-[12px] font-bold sm:grid-cols-3"
+            >
+              <span className="rounded-xl border border-[#e0c092] bg-[#fff4de] px-3 py-2 text-[#7b542c]">십이운성 기반</span>
+              <span className="rounded-xl border border-[#e0c092] bg-[#fff4de] px-3 py-2 text-[#7b542c]">12가지 동물 캐릭터</span>
+              <span className="rounded-xl border border-[#e0c092] bg-[#fff4de] px-3 py-2 text-[#7b542c]">성격 · 관계 · 운세 흐름 해석</span>
             </motion.div>
           </div>
 
@@ -98,12 +129,12 @@ export default function AnimalDestinyHero() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mx-auto w-full max-w-[260px]"
           >
-            <div className="relative rounded-[28px] border border-[#e2c28f] bg-[linear-gradient(145deg,#6f47a6,#9f59bc,#f08fb5)] p-5 shadow-[0_20px_46px_rgba(84,45,126,0.45)]">
+            <div className="relative rounded-[28px] border border-[#dfbf93] bg-[linear-gradient(145deg,#6b3f1d,#8a5a2b,#d88a35)] p-5 shadow-[0_20px_46px_rgba(84,45,22,0.38)]">
               <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-[#ffdca5]/30 blur-2xl" />
               <CosmicSigil className="mx-auto h-36 w-36 text-[#fff2ce]" />
               <p className="mt-3 text-center text-xs font-black tracking-[0.18em] text-[#ffe7b1]">ORACLE CORE</p>
-              <p className="mt-2 text-center text-sm font-semibold leading-relaxed text-[#fff2ff]">
-                입력한 생년월일을 바탕으로 대표 운성(일주 우선)을 선택해 동물 프로필을 완성합니다.
+              <p className="mt-2 text-center text-sm font-semibold leading-relaxed text-[#fff4e6]">
+                태어난 순간의 흐름을 읽어 대표 운성과 동물 캐릭터를 찾습니다.
               </p>
             </div>
           </motion.div>

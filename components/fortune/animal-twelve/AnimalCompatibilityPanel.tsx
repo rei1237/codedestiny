@@ -35,43 +35,43 @@ export default function AnimalCompatibilityPanel({
   const tone = useMemo(() => scoreLabel(partner.score || 0), [partner.score]);
 
   return (
-    <section className="rounded-[28px] border border-[#e7d7ff] bg-white/90 p-6 shadow-[0_16px_40px_rgba(42,18,72,0.14)]">
+    <section className="rounded-[28px] border border-[#dcc39b] bg-white/90 p-6 shadow-[0_16px_40px_rgba(82,54,24,0.12)]">
       <div className="mb-4 flex items-center justify-between gap-2">
-        <h4 className="text-xl font-black text-[#3d2957]">두 사람 동물 궁합</h4>
-        <span className="rounded-full bg-[#f2ebff] px-3 py-1 text-xs font-bold text-[#6b4aa0]">실전 매칭</span>
+        <h4 className="text-xl font-black text-[#6b3f1d]">두 사람 동물 궁합</h4>
+        <span className="rounded-full bg-[#fff1db] px-3 py-1 text-xs font-bold text-[#8a5a2b]">실전 매칭</span>
       </div>
 
-      <p className="mb-4 text-sm leading-relaxed text-[#5b4775]">
+      <p className="mb-4 text-sm leading-relaxed text-[#6b4a29]">
         상대 생년월일을 넣으면 당신의 {animal.animal_ko} 에너지와 상대 운명 동물의 파동을 비교해 궁합을 계산해요.
       </p>
 
       <div className="grid gap-3 md:grid-cols-3">
         <label className="space-y-1">
-          <span className="text-xs font-bold text-[#594372]">생년월일</span>
+          <span className="text-xs font-bold text-[#6b3f1d]">생년월일</span>
           <input
             type="date"
             value={input.birthDate}
             onChange={(e) => setInput((prev) => ({ ...prev, birthDate: e.target.value }))}
-            className="w-full rounded-xl border border-[#d9c7f7] bg-white px-3 py-2 text-sm outline-none focus:border-[#9d74dd]"
+            className="min-h-[44px] w-full rounded-xl border border-[#dcc39b] bg-white px-3 py-2 text-sm outline-none focus:border-[#8a5a2b]"
           />
         </label>
 
         <label className="space-y-1">
-          <span className="text-xs font-bold text-[#594372]">태어난 시간(선택)</span>
+          <span className="text-xs font-bold text-[#6b3f1d]">태어난 시간(선택)</span>
           <input
             type="time"
             value={input.birthTime || ""}
             onChange={(e) => setInput((prev) => ({ ...prev, birthTime: e.target.value }))}
-            className="w-full rounded-xl border border-[#d9c7f7] bg-white px-3 py-2 text-sm outline-none focus:border-[#9d74dd]"
+            className="min-h-[44px] w-full rounded-xl border border-[#dcc39b] bg-white px-3 py-2 text-sm outline-none focus:border-[#8a5a2b]"
           />
         </label>
 
         <label className="space-y-1">
-          <span className="text-xs font-bold text-[#594372]">성별</span>
+          <span className="text-xs font-bold text-[#6b3f1d]">성별</span>
           <select
             value={input.gender || "female"}
             onChange={(e) => setInput((prev) => ({ ...prev, gender: e.target.value as AnimalDestinyInput["gender"] }))}
-            className="w-full rounded-xl border border-[#d9c7f7] bg-white px-3 py-2 text-sm outline-none focus:border-[#9d74dd]"
+            className="min-h-[44px] w-full rounded-xl border border-[#dcc39b] bg-white px-3 py-2 text-sm outline-none focus:border-[#8a5a2b]"
           >
             <option value="female">여성</option>
             <option value="male">남성</option>
@@ -90,7 +90,7 @@ export default function AnimalCompatibilityPanel({
             setLoading(false);
           }
         }}
-        className="mt-4 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-black tracking-[0.06em] text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full px-5 py-2.5 text-sm font-black tracking-[0.06em] text-white disabled:cursor-not-allowed disabled:opacity-50"
         style={{
           background: `linear-gradient(135deg, ${animal.palette.primary}, ${animal.palette.accent})`,
         }}
@@ -99,19 +99,19 @@ export default function AnimalCompatibilityPanel({
       </button>
 
       {partner.summary ? (
-        <div className="mt-4 space-y-3 rounded-2xl bg-[#f7f1ff] p-4">
+        <div className="mt-4 space-y-3 rounded-2xl bg-[#fff5e5] p-4">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-bold text-[#6f5b8a]">궁합 점수</p>
-              <p className="text-3xl font-black text-[#3f2a5f]">{partner.score}</p>
+              <p className="text-xs font-bold text-[#8a5a2b]">궁합 점수</p>
+              <p className="text-3xl font-black text-[#6b3f1d]">{partner.score}</p>
             </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#6d49a8]">{tone}</span>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#8a5a2b]">{tone}</span>
           </div>
-          <p className="text-sm leading-relaxed text-[#4f3a6d]">{partner.summary}</p>
+          <p className="text-sm leading-relaxed text-[#5f3818]">{partner.summary}</p>
           {partner.goodPoints.length ? (
             <ul className="space-y-1.5">
               {partner.goodPoints.map((line) => (
-                <li key={line} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#584273]">
+                <li key={line} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#6b3f1d]">
                   {line}
                 </li>
               ))}
@@ -120,7 +120,7 @@ export default function AnimalCompatibilityPanel({
           {partner.tips.length ? (
             <ul className="space-y-1.5">
               {partner.tips.map((line) => (
-                <li key={line} className="rounded-lg border border-[#e6ddf5] bg-white px-3 py-2 text-xs font-semibold text-[#584273]">
+                <li key={line} className="rounded-lg border border-[#e5ccaa] bg-white px-3 py-2 text-xs font-semibold text-[#6b3f1d]">
                   {line}
                 </li>
               ))}

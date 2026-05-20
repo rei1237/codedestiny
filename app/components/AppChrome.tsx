@@ -5,7 +5,14 @@ import GlobalHeader from "./GlobalHeader";
 import SiteFooterHub from "./SiteFooterHub";
 import DisclaimerBanner from "./DisclaimerBanner";
 
-const CHROMELESS_ROUTES = ["/saju/destiny-bias", "/yeon-star-hug", "/saju-fpti", "/tarot/numerology"];
+const CHROMELESS_ROUTES = [
+  "/saju/destiny-bias",
+  "/yeon-star-hug",
+  "/saju-fpti",
+  "/tarot/numerology",
+  "/saju/animal-destiny",
+  "/saju/animal-test",
+];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
