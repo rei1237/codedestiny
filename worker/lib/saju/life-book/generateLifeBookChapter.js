@@ -1,69 +1,40 @@
 import { geminiLifeBookClient } from "./geminiLifeBookClient.js";
 import {
-  createLifeBookFallbackChapter,
   parseLifeBookChapterResponse,
   validateLifeBookChapter,
 } from "./validateLifeBookChapter.js";
 
 const SYSTEM_INSTRUCTION = [
-  "당신은 사주 인생설계 분야 최고 전문가이며, 30년 경력의 명리학자이자 프리미엄 사주 리포트 작가입니다.",
-  "당신의 역할은 주어진 사주 계산 데이터만을 근거로, 프리미엄 PDF 리포트에 들어갈 깊이 있는 해석문을 작성하는 것입니다.",
+  "너는 30년차 명리학자이자 프리미엄 사주 PDF 전문 작가다.",
+  "사용자의 사주 데이터와 프로필을 근거로 깊이 있고 구체적인 상담문을 작성한다.",
   "",
   "중요 규칙:",
-  "- 사주 계산을 새로 하지 마세요.",
-  "- 제공된 데이터에 없는 간지, 오행, 대운, 세운을 임의로 만들어내지 마세요.",
-  "- 부족한 데이터가 있으면 \"제공된 계산값 기준으로 볼 때\"라고 표현하세요.",
-  "- 단정적인 저주, 불안 조장, 질병 진단, 사망 예언, 극단적 표현은 금지합니다.",
-  "- 건강 파트는 의학적 진단이 아니라 생활 에너지와 회복 전략으로 작성하세요.",
-  "- 사용자를 겁주는 문장보다 현실적인 조언을 중심으로 작성하세요.",
-  "- 문체는 고급스럽고 따뜻하며, 깊이 있는 사주 상담 리포트처럼 작성하세요.",
-  "- 너무 짧은 일반론을 쓰지 말고, 반드시 사용자의 사주 데이터와 연결해서 설명하세요.",
-  "- 각 챕터는 소제목을 포함해 구조적으로 작성하세요.",
-  "- 시스템 지침 문장, 규칙 문장, 프롬프트 문장을 본문에 출력하지 마세요.",
-  "- 동일 문장이나 단락을 반복해 분량을 채우지 마세요.",
-  "- '반복 패턴과 주의점', '실전 행동 전략', '심화 실행 노트', '마무리 정리' 같은 템플릿 제목을 사용하지 마세요.",
-  "- 본문에서 **강조 마크다운 표기(**text**)를 남발하지 말고 읽기 쉬운 일반 문장으로 작성하세요.",
+  "- 제공된 데이터에서 확인 가능한 내용만 확정적으로 말한다.",
+  "- 사주 계산을 새로 하지 않는다.",
+  "- 없는 데이터를 사실처럼 만들지 않는다.",
+  "- 본문에는 JSON, 계산표, 내부 데이터명, 디버그 정보, payload, API 응답 원문을 절대 출력하지 않는다.",
+  "- 운명론적 단정보다 현실적인 선택 전략으로 연결한다.",
+  "- 각 챕터는 지정된 세부 카테고리를 모두 소제목으로 포함한다.",
+  "- 이전 챕터의 핵심 문장과 조언을 반복하지 않는다.",
 ].join("\n");
 
 function buildChapterHardRequirements(chapterConfig, lifeBookInputData) {
-  const id = String(chapterConfig?.id || "");
-  const chapterNo = Number(chapterConfig?.number || 0);
   const profileName = String(lifeBookInputData?.userProfile?.name || "").trim();
   const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
     ? chapterConfig.requiredCoverage.map((item) => String(item || "").trim()).filter(Boolean)
     : [];
   const lines = [
-    "- 본문은 제공된 userProfile.name을 그대로 사용하세요(별칭/가명 금지).",
-    "- 십성은 tenGods.verifiedStemTenGodMap 및 tenGods.verifiedByOccurrence 값만 기준으로 해석하세요.",
+    "- 본문은 자연스러운 상담문으로만 작성하고 내부 구조 설명 문장을 쓰지 마세요.",
+    "- 확인 가능한 사주 구조를 중심으로 해석하고 과장된 예언을 피하세요.",
   ];
 
   if (profileName) {
-    lines.push(`- 사용자 이름 표기는 '${profileName}' 그대로 유지하고, 'Test User' 또는 임의 이름으로 바꾸지 마세요.`);
+    lines.push(`- 사용자 이름 표기는 '${profileName}' 그대로 유지하고 임의 이름으로 바꾸지 마세요.`);
   }
 
   if (requiredCoverage.length > 0) {
-    lines.push("- 아래 [필수 작성 항목]의 각 문구를 소제목(###) 또는 본문 첫 문장으로 반드시 1회 이상 포함하세요.");
+    lines.push("- 아래 [필수 작성 항목]의 각 항목을 정확한 소제목(###)으로 반드시 포함하세요.");
     lines.push("- 항목 누락 시 재생성 대상입니다.");
-  }
-
-  if (id === "chapter-06-yongshin-heeshin-gishin" || chapterNo === 6) {
-    lines.push("- 챕터 6은 용신 판단 근거를 조후용신/억부용신/통관용신 관점으로 비교해 명시하세요.");
-  }
-
-  if (id === "chapter-10-health-energy" || chapterNo === 10) {
-    lines.push("- 챕터 10은 의학적 진단처럼 단정하지 말고 생활 리듬 조언 중심으로 작성하세요.");
-  }
-
-  if (id === "chapter-11-daeun-analysis" || chapterNo === 11) {
-    lines.push("- 챕터 11은 현재 대운/다음 대운/초년·청년기 흐름을 분리해 작성하세요.");
-  }
-
-  if (id === "chapter-12-seun-monthly-roadmap" || chapterNo === 12) {
-    lines.push("- 챕터 12는 분기별 전략과 월별 Go/Hold/Retreat를 반드시 포함하세요.");
-  }
-
-  if (id === "chapter-13-master-plan" || chapterNo === 13) {
-    lines.push("- 챕터 13은 5개 전략 묶음(핵심 패턴/성공/관계)을 구조적으로 분리해 최종 메시지로 마무리하세요.");
   }
 
   return lines;
@@ -91,35 +62,49 @@ function collectPreviousSentenceBanList(previousTexts = [], limit = 15) {
     .map(([line]) => line);
 }
 
-function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []) {
-  const safeInputJson = JSON.stringify(lifeBookInputData || {}, null, 2);
+function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = [], chapterMemories = []) {
+  const safeContextJson = JSON.stringify(lifeBookInputData?.lifeBookContext || lifeBookInputData || {}, null, 2);
   const banList = collectPreviousSentenceBanList(previousTexts, 15);
   const hardRequirements = buildChapterHardRequirements(chapterConfig, lifeBookInputData);
   const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
     ? chapterConfig.requiredCoverage.map((item) => String(item || "").trim()).filter(Boolean)
     : [];
+  const targetChars = Number(chapterConfig?.targetChars || 3000);
+  const minChars = Number(chapterConfig?.minLength || Math.floor(targetChars * 0.85));
+  const previousChapterSummaries = (Array.isArray(chapterMemories) ? chapterMemories : [])
+    .map((memo) => {
+      const title = String(memo?.title || "").trim();
+      const summary = String(memo?.summary || "").trim();
+      const themes = Array.isArray(memo?.usedThemes) ? memo.usedThemes.filter(Boolean).join(", ") : "";
+      const advice = Array.isArray(memo?.usedAdvice) ? memo.usedAdvice.filter(Boolean).join(" | ") : "";
+      return [title ? `- ${title}` : "", summary ? `  요약: ${summary}` : "", themes ? `  사용 주제: ${themes}` : "", advice ? `  사용 조언: ${advice}` : ""].filter(Boolean).join("\n");
+    })
+    .filter(Boolean)
+    .join("\n");
 
   return [
     SYSTEM_INSTRUCTION,
     "",
-    `아래 사용자의 사주 계산 데이터를 근거로 \"${chapterConfig.roman}. ${chapterConfig.title}\" 챕터를 작성하세요.`,
+    `다음 LifeBookContext를 바탕으로 \"${chapterConfig.roman}. ${chapterConfig.title}\" 챕터를 작성하라.`,
     "",
-    "[챕터 목표]",
-    chapterConfig.promptGuide,
+    "[조건]",
+    `- 목표 글자 수: ${targetChars}자 내외`,
+    `- 최소 글자 수: ${minChars}자 이상`,
+    "- 반드시 아래 세부 카테고리를 모두 포함한다.",
+    "- 각 세부 카테고리는 ### 소제목을 붙인다.",
+    "- 이전 챕터에서 다룬 핵심 표현을 반복하지 않는다.",
+    "- 데이터가 부족한 항목은 단정하지 말고 해석 가능한 범위에서 작성한다.",
+    "- 최종 문체는 프리미엄 상담 리포트 문체로 한다.",
     "",
     "[작성 규칙]",
-    "- 제공된 사주 데이터만 사용하세요.",
-    "- 없는 정보를 임의로 만들지 마세요.",
-    "- 계산을 새로 하지 마세요.",
-    `- 최소 ${chapterConfig.minLength}자 이상 작성하세요.`,
-    "- 최소 5개 이상의 소제목을 포함하세요.",
-    "- 사용자의 사주 구조와 연결된 구체적인 해석을 작성하세요.",
-    "- 마지막에는 \"핵심 요약\"과 \"실전 조언\"을 포함하세요.",
-    "- JSON 형식으로만 출력하세요.",
-    "- 본문(contentMarkdown) 안에 [필수 작성 항목] 문구를 빠짐없이 포함하세요.",
+    "- JSON 형식으로만 출력한다.",
+    "- 마지막에는 핵심 요약과 실전 조언을 포함한다.",
     ...hardRequirements,
     requiredCoverage.length
       ? `\n[필수 작성 항목]\n${requiredCoverage.map((item) => `- ${item}`).join("\n")}`
+      : "",
+    previousChapterSummaries
+      ? `\n[이전 챕터 요약]\n${previousChapterSummaries}`
       : "",
     banList.length
       ? `\n[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n문장 반복을 피하기 위해 다음 리스트에 있는 문장이나 이와 유사한 핵심 서술 방식은 이번 챕터 본문에 절대 출력하지 마세요:\n${JSON.stringify(banList, null, 2)}`
@@ -137,8 +122,8 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "  \"warnings\": [\"주의점 1\", \"주의점 2\"]",
     "}",
     "",
-    "[사주 계산 데이터]",
-    safeInputJson,
+    "[내부 참고 데이터: LifeBookContext]",
+    safeContextJson,
   ].join("\n");
 }
 
@@ -178,6 +163,7 @@ export async function generateLifeBookChapter(params = {}) {
   const strictMode = params.strictMode === true;
   const maxRetries = Math.max(0, Math.min(2, Number(params.maxRetries ?? 2)));
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
+  const chapterMemories = Array.isArray(params.chapterMemories) ? params.chapterMemories : [];
 
   if (!chapterConfig || typeof chapterConfig !== "object") {
     return {
@@ -195,7 +181,7 @@ export async function generateLifeBookChapter(params = {}) {
     attempts += 1;
     try {
       const prompt = attempts === 1
-        ? buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts)
+        ? buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts, chapterMemories)
         : buildRepairPrompt(chapterConfig, lastRawText, lastValidation.errors);
 
       const generated = await geminiLifeBookClient(env, prompt, {
@@ -233,25 +219,12 @@ export async function generateLifeBookChapter(params = {}) {
     }
   }
 
-  const fallback = createLifeBookFallbackChapter(
-    chapterConfig,
-    lifeBookInputData,
-    `${strictMode ? "strict-degraded" : "fallback-used"}:${chapterConfig.id}:${(lastValidation.errors || []).join("|")}`,
-  );
-
   return {
-    ok: true,
-    chapterResult: fallback,
+    ok: false,
+    code: "LIFEBOOK_CHAPTER_QUALITY_FAILED",
+    message: `챕터 품질 검증 실패: ${chapterConfig.id}`,
     attempts,
-    usedFallback: true,
-    validation: {
-      ok: true,
-      errors: [],
-      warnings: [strictMode ? "STRICT_MODE_DEGRADED_TO_FALLBACK" : "FALLBACK_CHAPTER_APPLIED", ...(lastValidation.errors || [])],
-      quality: {
-        length: String(fallback.contentMarkdown || "").length,
-        minLength: chapterConfig.minLength,
-      },
-    },
+    usedFallback: false,
+    validation: lastValidation,
   };
 }

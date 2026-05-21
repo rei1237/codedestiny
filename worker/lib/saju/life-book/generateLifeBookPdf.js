@@ -1,6 +1,8 @@
 import {
   LIFE_BOOK_CHAPTERS,
+  LIFE_BOOK_MIN_TOTAL_CHARS,
   LIFE_BOOK_TOTAL_CHAPTERS,
+  LIFE_BOOK_TARGET_TOTAL_CHARS,
   getLifeBookChapterByNumber,
 } from "./chapterConfig.js";
 import { buildLifeBookInputData } from "./buildLifeBookInputData.js";
@@ -14,6 +16,44 @@ function isStrictMissingCore(lifeBookInputData) {
   return {
     ok: missingCore.length === 0,
     missingCore,
+  };
+}
+
+function countChars(text) {
+  return [...String(text || "")].length;
+}
+
+function validateChapterLength(chapterText, targetChars) {
+  const length = countChars(chapterText);
+  const target = Number(targetChars || 0);
+  return {
+    length,
+    ok: target > 0 ? length >= Math.floor(target * 0.85) : length > 0,
+  };
+}
+
+function validateFullReport(fullText) {
+  const length = countChars(fullText);
+  return {
+    length,
+    ok: length >= LIFE_BOOK_MIN_TOTAL_CHARS,
+  };
+}
+
+function normalizeUsedThemes(chapterConfig, chapterResult) {
+  const source = String(chapterResult?.contentMarkdown || "");
+  const sections = Array.isArray(chapterConfig?.sections) ? chapterConfig.sections : [];
+  return sections.filter((section) => source.includes(String(section || "").trim()));
+}
+
+function buildChapterMemory(chapterConfig, chapterResult) {
+  const practicalAdvice = Array.isArray(chapterResult?.practicalAdvice) ? chapterResult.practicalAdvice : [];
+  return {
+    chapterId: String(chapterConfig?.id || chapterResult?.id || ""),
+    title: String(chapterResult?.title || chapterConfig?.title || "").trim(),
+    summary: String(chapterResult?.summary || "").trim(),
+    usedThemes: normalizeUsedThemes(chapterConfig, chapterResult),
+    usedAdvice: practicalAdvice.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 5),
   };
 }
 
@@ -32,11 +72,25 @@ export async function generateLifeBookPdf(params = {}) {
 
   const lifeBookInputData = buildLifeBookInputData(body, normalizedInput);
   const strictCheck = isStrictMissingCore(lifeBookInputData);
+  const missingRequired = Array.isArray(lifeBookInputData?.dataQuality?.missingRequired)
+    ? lifeBookInputData.dataQuality.missingRequired
+    : [];
+
+  if (missingRequired.length > 0) {
+    return {
+      ok: false,
+      code: "LIFEBOOK_REQUIRED_PROFILE_MISSING",
+      message: "인생의 책 생성을 위해 필수 프로필 정보가 필요합니다.",
+      detail: {
+        missingFields: missingRequired,
+      },
+    };
+  }
 
   if (strictMode && !strictCheck.ok) {
     warnings.push({
       chapterId: "input",
-      warning: "STRICT_MISSING_CORE_DEGRADED_TO_FALLBACK",
+      warning: "STRICT_MISSING_CORE",
       validation: { missingCore: strictCheck.missingCore },
     });
   }
@@ -48,6 +102,7 @@ export async function generateLifeBookPdf(params = {}) {
     : [...LIFE_BOOK_CHAPTERS];
 
   const chapters = [];
+  const chapterMemories = [];
 
   for (let index = 0; index < targetChapters.length; index += 1) {
     const chapterConfig = targetChapters[index];
@@ -69,48 +124,34 @@ export async function generateLifeBookPdf(params = {}) {
         ...previousTexts,
         ...chapters.map((c) => c.contentMarkdown || ""),
       ],
+      chapterMemories,
     });
 
     if (!generated?.ok) {
-      const fallbackGenerated = await generateLifeBookChapter({
-        env,
-        chapterConfig,
-        lifeBookInputData,
-        strictMode: false,
-        maxRetries: 0,
-        previousTexts: [
-          ...previousTexts,
-          ...chapters.map((c) => c.contentMarkdown || ""),
-        ],
-      });
-
-      if (!fallbackGenerated?.ok || !fallbackGenerated?.chapterResult) {
-        return {
-          ok: false,
-          code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
-          message: generated?.message || `챕터 생성 실패: ${chapterConfig.id}`,
-          detail: generated?.validation || null,
-        };
-      }
-
-      chapters.push(fallbackGenerated.chapterResult);
-      warnings.push({
-        chapterId: chapterConfig.id,
-        warning: "STRICT_FAILURE_DEGRADED_TO_FALLBACK",
-        validation: generated?.validation || null,
-      });
-      continue;
+      return {
+        ok: false,
+        code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
+        message: generated?.message || `챕터 생성 실패: ${chapterConfig.id}`,
+        detail: generated?.validation || null,
+      };
     }
 
     chapters.push(generated.chapterResult);
+    chapterMemories.push(buildChapterMemory(chapterConfig, generated.chapterResult));
 
-    if (generated.usedFallback) {
+    const chapterLength = validateChapterLength(generated.chapterResult?.contentMarkdown || "", chapterConfig?.targetChars);
+    if (!chapterLength.ok) {
       warnings.push({
         chapterId: chapterConfig.id,
-        warning: "FALLBACK_CHAPTER_APPLIED",
-        validation: generated.validation || null,
+        warning: "CHAPTER_LENGTH_BELOW_85_PERCENT",
+        validation: {
+          length: chapterLength.length,
+          targetChars: Number(chapterConfig?.targetChars || 0),
+          minRecommendedChars: Math.floor(Number(chapterConfig?.targetChars || 0) * 0.85),
+        },
       });
     }
+
   }
 
   if (requestedChapter >= 1) {
@@ -120,9 +161,67 @@ export async function generateLifeBookPdf(params = {}) {
       totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
       lifeBookInputData,
       chapters,
+      chapterMemories,
       warnings,
     };
   }
+
+  let fullText = chapters.map((chapter) => String(chapter?.contentMarkdown || "").trim()).filter(Boolean).join("\n\n");
+  let fullValidation = validateFullReport(fullText);
+
+  if (!fullValidation.ok && chapters.length > 0) {
+    const byNeed = chapters
+      .map((chapter, index) => {
+        const config = targetChapters[index] || {};
+        const target = Number(config?.targetChars || 0);
+        const length = countChars(chapter?.contentMarkdown || "");
+        return {
+          index,
+          score: target > 0 ? target - length : 0,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4);
+
+    for (const row of byNeed) {
+      if (fullValidation.ok) break;
+      const chapterConfig = targetChapters[row.index];
+      if (!chapterConfig) continue;
+
+      const regenerated = await generateLifeBookChapter({
+        env,
+        chapterConfig,
+        lifeBookInputData,
+        strictMode: false,
+        maxRetries: 1,
+        previousTexts: [
+          ...previousTexts,
+          ...chapters
+            .filter((_, index) => index !== row.index)
+            .map((entry) => entry?.contentMarkdown || ""),
+        ],
+        chapterMemories: chapterMemories.filter((_, index) => index !== row.index),
+      });
+
+      if (regenerated?.ok && regenerated?.chapterResult) {
+        chapters[row.index] = regenerated.chapterResult;
+        chapterMemories[row.index] = buildChapterMemory(chapterConfig, regenerated.chapterResult);
+      }
+
+      fullText = chapters.map((chapter) => String(chapter?.contentMarkdown || "").trim()).filter(Boolean).join("\n\n");
+      fullValidation = validateFullReport(fullText);
+    }
+  }
+
+  warnings.push({
+    chapterId: "full-report",
+    warning: fullValidation.ok ? "FULL_REPORT_LENGTH_OK" : "FULL_REPORT_LENGTH_BELOW_MIN",
+    validation: {
+      length: fullValidation.length,
+      minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS,
+      targetTotalChars: LIFE_BOOK_TARGET_TOTAL_CHARS,
+    },
+  });
 
   if (onProgress) onProgress({ code: "RENDERING_PDF", message: "PDF 편집 중" });
 
@@ -141,7 +240,9 @@ export async function generateLifeBookPdf(params = {}) {
     totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
     lifeBookInputData,
     chapters,
+    chapterMemories,
     warnings,
+    fullValidation,
     rendered,
   };
 }

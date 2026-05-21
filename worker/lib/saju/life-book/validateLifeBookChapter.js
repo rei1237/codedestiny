@@ -127,6 +127,7 @@ function buildMarkdownFallback(rawText, chapterConfig) {
       "무리한 확장보다 손실 방어 기준을 먼저 정한 뒤 확장하세요.",
     ],
     warnings: [],
+    parseFallbackUsed: true,
   };
 }
 
@@ -146,6 +147,7 @@ export function parseLifeBookChapterResponse(rawText, chapterConfig) {
         summary: sanitizeReadableText(parsed.summary),
         practicalAdvice: normalizeAdvice(parsed.practicalAdvice),
         warnings: normalizeAdvice(parsed.warnings),
+        parseFallbackUsed: false,
       };
     } catch {
       // JSON parse failure will fallback to markdown mode below.
@@ -250,6 +252,7 @@ export function validateLifeBookChapter(chapterResult, chapterConfig, previousTe
   const contentMarkdown = toStringSafe(chapterResult?.contentMarkdown);
   const summary = toStringSafe(chapterResult?.summary);
   const practicalAdvice = normalizeAdvice(chapterResult?.practicalAdvice);
+  const parseFallbackUsed = chapterResult?.parseFallbackUsed === true;
 
   const minLength = Number(chapterConfig?.minLength || 2500);
   const headingCount = countHeadings(contentMarkdown);
@@ -261,6 +264,7 @@ export function validateLifeBookChapter(chapterResult, chapterConfig, previousTe
   if (headingCount < 5) errors.push("NOT_ENOUGH_SUBHEADINGS");
   if (!summary) errors.push("MISSING_SUMMARY");
   if (practicalAdvice.length < 3) errors.push("MISSING_PRACTICAL_ADVICE");
+  if (parseFallbackUsed) errors.push("PARSE_FALLBACK_USED");
   if (focusAreas.length > 0 && focusHits.length < 2) warnings.push("LOW_FOCUS_AREA_COVERAGE");
 
   const missingRequiredCoverage = findMissingRequiredCoverage(contentMarkdown, chapterConfig);
@@ -337,8 +341,8 @@ function buildChapterSpecificSections(chapterConfig, profileName, lifeBookInputD
     : [];
 
   const common = [
-    `## 데이터 근거 정리\n년주 ${toStringSafe(pillars.yearPillar) || "미제공"}, 월주 ${toStringSafe(pillars.monthPillar) || "미제공"}, 일주 ${toStringSafe(pillars.dayPillar) || "미제공"}, 시주 ${toStringSafe(pillars.hourPillar) || "미제공"}, 일간 ${toStringSafe(pillars.dayMaster) || "미제공"}를 기준으로 해석합니다.`,
-    `## 오행과 십성 핵심\n오행 분포는 목 ${Number(elements.wood || 0)}, 화 ${Number(elements.fire || 0)}, 토 ${Number(elements.earth || 0)}, 금 ${Number(elements.metal || 0)}, 수 ${Number(elements.water || 0)}이며, 십성 기준표는 ${tenGodLine}입니다.`,
+    `## 핵심 진단\n${profileName}님의 사주에서 년주 ${toStringSafe(pillars.yearPillar) || "미제공"}, 월주 ${toStringSafe(pillars.monthPillar) || "미제공"}, 일주 ${toStringSafe(pillars.dayPillar) || "미제공"}, 일간 ${toStringSafe(pillars.dayMaster) || "미제공"}을 중심으로 해석합니다.`,
+    `## 에너지 요약\n오행은 목 ${Number(elements.wood || 0)}, 화 ${Number(elements.fire || 0)}, 토 ${Number(elements.earth || 0)}, 금 ${Number(elements.metal || 0)}, 수 ${Number(elements.water || 0)}의 균형으로 나타나며, 십성 흐름은 ${tenGodLine}을 기준으로 읽을 수 있습니다.`,
   ];
 
   const sections = [
@@ -347,7 +351,6 @@ function buildChapterSpecificSections(chapterConfig, profileName, lifeBookInputD
   ];
 
   if (requiredCoverage.length > 0) {
-    sections.push("## 필수 작성 항목 체크리스트\n아래 항목은 누락 없이 본문에 포함해야 하는 핵심 해석 지점입니다.");
     requiredCoverage.forEach((item) => {
       sections.push(`### ${item}\n${buildCoverageSectionBody(item, profileName, lifeBookInputData)}`);
     });
@@ -366,7 +369,12 @@ export function createLifeBookFallbackChapter(chapterConfig, lifeBookInputData, 
   const sections = buildChapterSpecificSections(chapterConfig, profileName, lifeBookInputData);
   let contentMarkdown = sections.join("\n\n");
   let depth = 1;
-  while (contentMarkdown.length < Math.max(2500, Number(chapterConfig?.minLength || 2500))) {
+  const desiredChars = Math.max(
+    2500,
+    Number(chapterConfig?.targetChars || 0),
+    Number(chapterConfig?.minLength || 2500),
+  );
+  while (contentMarkdown.length < desiredChars) {
     contentMarkdown += `\n\n### 데이터 확장 기록 ${depth}\n`;
     contentMarkdown += "해당 구간은 누락될 수 있는 근거를 보완하기 위한 기록입니다. 실제 적용에서는 일정, 관계, 지출, 회복 순서로 우선순위를 재정렬하세요.\n\n";
     contentMarkdown += "실행 문장: 이번 주 핵심 결정 1건을 선택하고, 결과를 7일 후 같은 기준으로 재평가해 수정안을 반영하세요.";
