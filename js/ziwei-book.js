@@ -73,8 +73,78 @@
     catch (_) { return ''; }
   }
 
+  function resolveApiUrl(input) {
+    var raw = String(input || '').trim();
+    if (!raw) return raw;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return raw;
+    if (raw.indexOf('//') === 0) {
+      try { return String(window.location.protocol || 'https:') + raw; }
+      catch (_) { return raw; }
+    }
+    if (raw.charAt(0) === '/') {
+      try {
+        var origin = String(window.location.origin || '').replace(/\/$/, '');
+        return origin ? (origin + raw) : raw;
+      } catch (_) {
+        return raw;
+      }
+    }
+    try { return new URL(raw, window.location.href).toString(); }
+    catch (_) { return raw; }
+  }
+
+  function buildApiCandidates(pathname) {
+    var p = String(pathname || '');
+    if (p.charAt(0) !== '/') p = '/' + p;
+    var seen = {};
+    var out = [];
+
+    function pushBase(raw) {
+      var b = String(raw || '').trim();
+      var u = b ? (b.replace(/\/+$/, '') + p) : p;
+      if (!u || seen[u]) return;
+      seen[u] = true;
+      out.push(u);
+    }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+
+    return out.length ? out : [p];
+  }
+
+  function readPremiumAccessToken() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
+  function normalizePremiumPayload(raw) {
+    var payload = (raw && typeof raw === 'object') ? raw : {};
+    var nested = (payload.data && typeof payload.data === 'object') ? payload.data : null;
+    if (!nested) return payload;
+
+    var hasTopLevelReportState = Boolean(payload.reportId || payload.status || payload.downloadUrl || Array.isArray(payload.chapters));
+    var hasNestedReportState = Boolean(nested.reportId || nested.status || nested.downloadUrl || Array.isArray(nested.chapters));
+    if (!hasTopLevelReportState && hasNestedReportState) {
+      var merged = Object.assign({}, nested);
+      if (merged.ok == null) merged.ok = payload.ok !== false;
+      return merged;
+    }
+    return payload;
+  }
+
   async function requestJson(url, options) {
     var opts = options || {};
+    var targetUrl = resolveApiUrl(url) || String(url || '');
     var headers = new Headers(opts.headers || {});
     headers.set('Content-Type', 'application/json');
 
@@ -86,7 +156,7 @@
     if (controller) timer = setTimeout(function () { controller.abort(); }, API_TIMEOUT_MS);
 
     try {
-      var res = await fetch(url, {
+      var res = await fetch(targetUrl, {
         method: opts.method || 'GET',
         credentials: 'include',
         headers: headers,
@@ -109,16 +179,34 @@
   }
 
   async function premiumAuthJson(pathname, body, options) {
-    if (typeof window.__cdPremiumAuthJson === 'function') {
-      return window.__cdPremiumAuthJson(pathname, body || {}, options || {});
+    var payload = body && typeof body === 'object' ? Object.assign({}, body) : {};
+    if (!payload.premiumAccessToken) {
+      var premiumAccessToken = readPremiumAccessToken();
+      if (premiumAccessToken) payload.premiumAccessToken = premiumAccessToken;
     }
-    var res = await requestJson(pathname, {
-      method: 'POST',
-      body: body || {}
-    });
-    var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
-    if (!res.ok) data.status = Number(data.status || res.status || 0);
-    return data;
+    var targetPath = resolveApiUrl(pathname) || pathname;
+
+    if (typeof window.__cdPremiumAuthJson === 'function') {
+      try {
+        return await window.__cdPremiumAuthJson(targetPath, payload, options || {});
+      } catch (error) {
+        try {
+          console.warn('[ZiweiBook] premium auth helper fallback:', error && error.message || error);
+        } catch (_) {}
+      }
+    }
+
+    var candidates = buildApiCandidates(pathname).map(function (u) { return resolveApiUrl(u) || u; });
+    for (var i = 0; i < candidates.length; i += 1) {
+      var res = await requestJson(candidates[i], {
+        method: 'POST',
+        body: payload
+      });
+      var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
+      if (res.ok) return data;
+    }
+
+    return { ok: false, code: 'PREMIUM_AUTH_FALLBACK_FAILED', message: '프리미엄 인증 API 호출에 실패했습니다.' };
   }
 
   function buildPreflightMessage(response, fallback) {
@@ -1063,12 +1151,13 @@
   }
 
   function applyStatus(statusData) {
-    if (!statusData || typeof statusData !== 'object') return;
-    if (statusData.reportId) state.reportId = String(statusData.reportId);
-    if (statusData.downloadUrl) state.downloadUrl = String(statusData.downloadUrl);
-    if (Array.isArray(statusData.chapters)) state.chapters = statusData.chapters.slice();
-    state.currentMessage = String(statusData.message || '');
-    setLoadingProgress(Number(statusData.currentChapter || 0), state.currentMessage);
+    var payload = normalizePremiumPayload(statusData);
+    if (!payload || typeof payload !== 'object') return;
+    if (payload.reportId) state.reportId = String(payload.reportId);
+    if (payload.downloadUrl) state.downloadUrl = String(payload.downloadUrl);
+    if (Array.isArray(payload.chapters)) state.chapters = payload.chapters.slice();
+    state.currentMessage = String(payload.message || '');
+    setLoadingProgress(Number(payload.currentChapter || 0), state.currentMessage);
   }
 
   async function pollStatusUntilDone() {
@@ -1078,15 +1167,16 @@
       if (state.stopPolling) throw new Error('생성이 중단되었습니다.');
       var url = '/api/premium/ziwei/status?reportId=' + encodeURIComponent(state.reportId) + '&includeChapters=1';
       var res = await requestJson(url, { method: 'GET' });
-      if (!res.ok || !res.data || !res.data.ok) {
-        throw new Error(String(res.data && res.data.message || '상태 조회에 실패했습니다.'));
+      var statusData = normalizePremiumPayload(res.data);
+      if (!res.ok || !statusData || !statusData.ok) {
+        throw new Error(String(statusData && statusData.message || '상태 조회에 실패했습니다.'));
       }
 
-      applyStatus(res.data);
-      if (String(res.data.status) === 'completed') return res.data;
-      if (String(res.data.status) === 'failed') {
+      applyStatus(statusData);
+      if (String(statusData.status) === 'completed') return statusData;
+      if (String(statusData.status) === 'failed') {
         await attemptZiweiAutoRefund('자미두수 프리미엄 PDF 생성 실패 자동 환불');
-        throw new Error(String(res.data.errorMessage || res.data.message || '리포트 생성에 실패했습니다.'));
+        throw new Error(String(statusData.errorMessage || statusData.message || '리포트 생성에 실패했습니다.'));
       }
 
       await delay(POLL_INTERVAL_MS);
@@ -1282,25 +1372,22 @@
 
       setLoadingProgress(0, '리포트 생성을 시작합니다...');
 
-      var genRes = await requestJson('/api/premium/ziwei/generate', {
-        method: 'POST',
-        body: payloadInfo.body
-      });
+      var genData = normalizePremiumPayload(await premiumAuthJson('/api/premium/ziwei/generate', payloadInfo.body, { maxAttempts: 2 }));
 
-      if (!genRes.ok || !genRes.data || !genRes.data.ok) {
+      if (!genData || genData.ok === false) {
         await attemptZiweiAutoRefund('자미두수 프리미엄 PDF 생성 시작 실패 자동 환불');
-        throw new Error(String(genRes.data && genRes.data.message || '리포트 생성 요청에 실패했습니다.'));
+        throw new Error(String(genData && genData.message || '리포트 생성 요청에 실패했습니다.'));
       }
 
-      state.reportId = String(genRes.data.reportId || '').trim();
+      state.reportId = String(genData.reportId || '').trim();
       if (!state.reportId) {
         await attemptZiweiAutoRefund('자미두수 프리미엄 PDF reportId 누락 자동 환불');
         throw new Error('리포트 식별자를 받지 못했습니다.');
       }
 
-      applyStatus(genRes.data);
-      var finalStatus = String(genRes.data.status || '').toLowerCase() === 'completed'
-        ? genRes.data
+      applyStatus(genData);
+      var finalStatus = String(genData.status || '').toLowerCase() === 'completed'
+        ? genData
         : await pollStatusUntilDone();
 
       applyStatus(finalStatus);
