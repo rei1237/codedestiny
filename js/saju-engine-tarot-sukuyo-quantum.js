@@ -3559,11 +3559,18 @@ function syCanonicalTokenize(text, fallbackText) {
     .replace(/[\r\n]+/g, ' ')
     .trim();
   if (!src) return [fallbackText || '정보 없음'];
-  var tokens = src
-    .split(/[.!?。！？,·]/)
-    .map(function (part) { return part.trim(); })
-    .filter(function (part) { return part.length >= 2; });
-  return tokens.length ? tokens.slice(0, 3) : [src.slice(0, 60)];
+  var rawTokens = src.match(/[^.!?。！？]+[.!?。！？]?/g) || [src];
+  var tokens = [];
+  var seen = {};
+  rawTokens.forEach(function(part) {
+    var cleaned = String(part || '').replace(/\s+/g, ' ').trim();
+    if (cleaned.length < 4) return;
+    var key = cleaned.replace(/[.!?。！？]+$/g, '').toLowerCase();
+    if (!key || seen[key]) return;
+    seen[key] = true;
+    tokens.push(cleaned);
+  });
+  return tokens.length ? tokens.slice(0, 3) : [src.slice(0, 120)];
 }
 
 function syCanonicalPhaseApproxFromDaily(dailyMoon) {
@@ -3655,9 +3662,46 @@ function syScoreBand(score) {
   return '회복 집중';
 }
 
+function syEnsureSentenceEnding(text) {
+  var str = String(text == null ? '' : text).trim();
+  if (!str) return '';
+  return /[.!?。！？]$/.test(str) ? str : (str + '.');
+}
+
 function syComposeFromTokens(tokens, fallbackText) {
-  if (!Array.isArray(tokens) || !tokens.length) return fallbackText;
-  return tokens.slice(0, 2).join(' · ');
+  if (!Array.isArray(tokens) || !tokens.length) return syEnsureSentenceEnding(fallbackText || '');
+  var merged = [];
+  var seen = {};
+  tokens.slice(0, 3).forEach(function(token) {
+    var cleaned = String(token || '').replace(/\s+/g, ' ').trim();
+    if (!cleaned) return;
+    var key = cleaned.replace(/[.!?。！？]+$/g, '').toLowerCase();
+    if (!key || seen[key]) return;
+    seen[key] = true;
+    merged.push(syEnsureSentenceEnding(cleaned));
+  });
+  if (!merged.length) return syEnsureSentenceEnding(fallbackText || '');
+  return merged.slice(0, 2).join(' ');
+}
+
+function syClampScore(value) {
+  var n = Number(value);
+  if (!Number.isFinite(n)) return 50;
+  return Math.max(50, Math.min(100, Math.round(n)));
+}
+
+function syPickDistinctText(candidates, fallbackText, usedMap) {
+  var pool = Array.isArray(candidates) ? candidates : [candidates];
+  for (var i = 0; i < pool.length; i += 1) {
+    var candidate = String(pool[i] == null ? '' : pool[i]).replace(/\s+/g, ' ').trim();
+    if (!candidate) continue;
+    var key = candidate.replace(/[.!?。！？]+$/g, '').toLowerCase();
+    if (!key) continue;
+    if (usedMap && usedMap[key]) continue;
+    if (usedMap) usedMap[key] = true;
+    return syEnsureSentenceEnding(candidate);
+  }
+  return syEnsureSentenceEnding(fallbackText || '정보 없음');
 }
 
 function syFirstToken(tokens, fallbackText) {
@@ -3685,7 +3729,7 @@ function syGuardianPlaceByIndex(index) {
  * @property {Array<{label:string,value:string,tone:string,note:string}>} summaryCards
  * @property {{firstImpression:string,innerRhythm:string,emotionalPattern:string,stressPattern:string,recoveryPattern:string}} moonProfile
  * @property {Array<{key:string,label:string,title:string,body:string}>} relationshipTabs
- * @property {Array<{label:string,value:number,description:string}>} relationMiniMap
+ * @property {Array<{label:string,value:number,trait:string,whenPositive:string,whenChallenged:string}>} relationMiniMap
  * @property {{attractionType:string,loveStyle:string,deepeningMoment:string,anxietyPoint:string,longTermAdvice:string,avoidPattern:string}} loveProfile
  * @property {{moneyFlow:string,spendingHabit:string,savingPoint:string,workStrength:string,workCaution:string,collaborationTip:string,talent:number}} workMoney
  * @property {{morning:string,day:string,night:string,trigger:string,balance:string}} emotionRhythm
@@ -3714,6 +3758,8 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   var wealthTokens = syCanonicalTokenize(traits.wealth, '작은 절약과 큰 집중이 재물 흐름을 지켜줍니다.');
   var relationTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.relationshipStyle, []);
   var recoveryTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.recoveryPattern, []);
+  var careerTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.careerStyle, []);
+  var wealthStyleTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.wealthStyle, []);
   var emotionTokens = syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), '감정 파도를 미리 알아차리면 하루가 부드러워집니다.');
   var ritual = daily.ritual || { color: '#c0a060', food: '따뜻한 차', action: '심호흡 10번' };
   var mansionLabel = sData.mansion || ((natal.nameKo || '미상') + '宿(' + (natal.nameHan || '?') + ')');
@@ -3723,9 +3769,41 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   var guardianEmoji = guardian && guardian.emoji ? guardian.emoji : '✨';
   var guardianColor = syGuardianColorByIndex(sData.mansionIdx);
   var guardianPlace = syGuardianPlaceByIndex(sData.mansionIdx);
-  var morningScore = Math.max(50, Math.min(100, Math.round((daily.overall + daily.relations) / 2)));
-  var dayScore = Math.max(50, Math.min(100, Math.round((daily.overall + daily.wealth) / 2)));
-  var nightScore = Math.max(50, Math.min(100, Math.round((daily.love + daily.relations) / 2)));
+  var scoreSeed = Number.isFinite(Number(sData.mansionIdx)) ? Math.abs(Number(sData.mansionIdx)) % 9 : 4;
+  var moonLabelText = String(moon && moon.label ? moon.label : '');
+  var moonBias = moonLabelText.indexOf('보름') >= 0 ? 6 : (moonLabelText.indexOf('그믐') >= 0 ? -4 : 0);
+  var morningScore = syClampScore((daily.relations * 0.57) + (daily.overall * 0.32) + (scoreSeed * 1.4) + moonBias);
+  var dayScore = syClampScore((daily.wealth * 0.55) + (daily.overall * 0.35) + ((8 - scoreSeed) * 1.3));
+  var nightScore = syClampScore((daily.love * 0.6) + (daily.relations * 0.24) + (daily.overall * 0.1) + (scoreSeed * 0.9) + (moonBias * 0.5));
+  var relationshipBodyUsed = {};
+  var loveTabBody = syPickDistinctText([
+    syComposeFromTokens(loveTokens, ''),
+    syComposeFromTokens(syCanonicalTokenize((traits.love || '') + '. ' + relationDirection, ''), ''),
+    syComposeFromTokens(syCanonicalTokenize((traits.love || '') + '. ' + (daily.insight || ''), ''), '')
+  ], '느린 신뢰와 따뜻한 표현이 사랑을 자라게 합니다.', relationshipBodyUsed);
+  var friendTabBody = syPickDistinctText([
+    syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + relationDirection, ''), ''),
+    syComposeFromTokens(karmaTokens, ''),
+    syComposeFromTokens(relationTokens, '')
+  ], '서로의 결을 존중할수록 관계가 깊어집니다.', relationshipBodyUsed);
+  var workTabBody = syPickDistinctText([
+    syComposeFromTokens(syCanonicalTokenize((traits.work || '') + '. ' + syComposeFromTokens(careerTokens, ''), ''), ''),
+    syComposeFromTokens(workTokens, ''),
+    syComposeFromTokens(careerTokens, '')
+  ], '역할이 분명할수록 힘이 모입니다.', relationshipBodyUsed);
+  var familyTabBody = syPickDistinctText([
+    syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + syComposeFromTokens(recoveryTokens, ''), ''), ''),
+    syComposeFromTokens(hiddenTokens.concat(recoveryTokens), '')
+  ], '가족과의 관계는 회복 리듬을 함께 맞출 때 안정됩니다.', relationshipBodyUsed);
+  var careTabBody = syPickDistinctText([
+    syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), ''), ''),
+    syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + (traits.hidden || ''), ''), '')
+  ], '지친 날에는 결론보다 휴식을 먼저 선택하세요.', relationshipBodyUsed);
+  var miniYoungchin = syClampScore((daily.relations * 0.92) + scoreSeed);
+  var miniUptae = syClampScore((daily.overall * 0.9) + (daily.wealth * 0.06));
+  var miniSeongwi = syClampScore((daily.wealth * 0.55) + (daily.overall * 0.35) + 4);
+  var miniAnkwe = syClampScore((daily.love * 0.86) + ((100 - daily.relations) * 0.1));
+  var miniMyeongsoe = syClampScore((daily.overall * 0.52) + (daily.relations * 0.3) + ((100 - daily.wealth) * 0.12));
 
   return {
     hero: {
@@ -3748,18 +3826,48 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
       recoveryPattern: syComposeFromTokens(recoveryTokens, '짧은 휴식과 호흡 루틴이 회복 속도를 높입니다.')
     },
     relationshipTabs: [
-      { key: 'love', label: '연인', title: '사랑의 온도', body: traits.love || '느린 신뢰와 따뜻한 표현이 사랑을 자라게 합니다.' },
-      { key: 'friend', label: '친구', title: '우정의 결', body: traits.karma || '서로의 결을 존중할수록 관계가 깊어집니다.' },
-      { key: 'work', label: '동료', title: '함께 일할 때', body: traits.work || '역할이 분명할수록 힘이 모입니다.' },
-      { key: 'family', label: '가족', title: '가까운 관계', body: syComposeFromTokens(hiddenTokens.concat(recoveryTokens), '가족과의 관계는 회복 리듬을 함께 맞출 때 안정됩니다.') },
-      { key: 'care', label: '주의', title: '지켜볼 포인트', body: syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), '지친 날에는 결론보다 휴식을 먼저 선택하세요.'), '지친 날에는 결론보다 휴식을 먼저 선택하세요.') }
+      { key: 'love', label: '연인', title: '사랑의 온도', body: loveTabBody },
+      { key: 'friend', label: '친구', title: '우정의 결', body: friendTabBody },
+      { key: 'work', label: '동료', title: '함께 일할 때', body: workTabBody },
+      { key: 'family', label: '가족', title: '가까운 관계', body: familyTabBody },
+      { key: 'care', label: '주의', title: '지켜볼 포인트', body: careTabBody }
     ],
     relationMiniMap: [
-      { label: '영친', value: daily.relations, description: daily.relations >= 78 ? '정서적 교감이 빠르게 이어지는 구간' : '천천히 마음을 맞춰 갈수록 안정되는 구간' },
-      { label: '업태', value: daily.overall, description: daily.overall >= 78 ? '함께 성장 과제를 완수하기 좋은 흐름' : '내 속도를 지키며 과제를 정리하는 흐름' },
-      { label: '성위', value: Math.round((daily.wealth + daily.overall) / 2), description: daily.wealth >= 75 ? '목표를 실무로 연결하기 좋은 타이밍' : '우선순위를 정돈하면 성과가 커지는 타이밍' },
-      { label: '안괴', value: daily.love, description: daily.love >= 80 ? '강렬한 감정이 오면 경계와 대화를 함께 세울 때' : '감정 파고를 낮추고 차분히 이해를 쌓을 때' },
-      { label: '명쇠', value: Math.max(50, Math.min(100, daily.overall - 5 + Math.floor(daily.relations / 10))), description: moon.label && moon.label.indexOf('보름') >= 0 ? '강한 발산기, 결정을 미루지 말기' : '리듬 조율기, 회복과 정리를 우선하기' }
+      {
+        label: '영친',
+        value: miniYoungchin,
+        trait: '정서 교감 속도와 심리적 친밀감 형성력을 보여주는 축입니다.',
+        whenPositive: miniYoungchin >= 78 ? '서로의 감정 신호를 빠르게 읽어 갈등을 짧게 끝냅니다.' : '작은 안부와 루틴 대화로 신뢰를 천천히 쌓으면 안정성이 커집니다.',
+        whenChallenged: miniYoungchin < 70 ? '표현이 늦어 오해가 쌓일 수 있으니 감정 상태를 먼저 언어화하세요.' : '과도한 공감으로 경계가 흐려질 수 있어 개인 시간을 분리해 두세요.'
+      },
+      {
+        label: '업태',
+        value: miniUptae,
+        trait: '함께 풀어야 할 성장 과제와 책임 분담의 밀도를 보여줍니다.',
+        whenPositive: miniUptae >= 78 ? '공동 목표를 세우면 서로의 성장을 밀어주는 파트너십이 강화됩니다.' : '작은 과제부터 체크리스트로 나누면 부담 없이 함께 성장할 수 있습니다.',
+        whenChallenged: miniUptae < 70 ? '역할이 모호하면 피로가 누적되니 권한과 마감 기준을 분리하세요.' : '성과 압박이 높아지면 관계가 경직되기 쉬워 중간 점검 대화를 넣으세요.'
+      },
+      {
+        label: '성위',
+        value: miniSeongwi,
+        trait: '실행력과 현실 감각이 실제 결과로 연결되는 정도를 보여줍니다.',
+        whenPositive: miniSeongwi >= 78 ? '아이디어를 실행 계획으로 빠르게 바꾸며 실무 성과가 안정됩니다.' : '우선순위 1개를 끝내는 방식으로도 충분히 성과를 만들 수 있습니다.',
+        whenChallenged: miniSeongwi < 70 ? '의욕 대비 실행량이 줄어들 수 있어 시작 시간을 고정하세요.' : '여러 일을 동시에 잡으면 집중이 분산되니 단일 프로젝트를 먼저 정리하세요.'
+      },
+      {
+        label: '안괴',
+        value: miniAnkwe,
+        trait: '강한 끌림과 심리적 자극이 관계에 미치는 파장을 보여줍니다.',
+        whenPositive: miniAnkwe >= 80 ? '솔직한 대화와 경계 설정을 병행하면 깊은 친밀감으로 전환됩니다.' : '감정 파고를 기록하며 대화 시점을 맞추면 관계 피로가 줄어듭니다.',
+        whenChallenged: miniAnkwe < 70 ? '즉각 반응이 반복되면 상처가 누적되니 감정 냉각 시간을 확보하세요.' : '자극 중심 대화가 길어지면 소모가 커져 의도와 사실을 분리해 말해야 합니다.'
+      },
+      {
+        label: '명쇠',
+        value: miniMyeongsoe,
+        trait: '관계 흐름의 변동성, 회복 탄력, 결론 타이밍 감각을 보여줍니다.',
+        whenPositive: moon.label && moon.label.indexOf('보름') >= 0 ? '확장 에너지가 강해 중요한 결정을 실행으로 옮기기 좋습니다.' : '리듬 조율에 유리한 구간이라 관계와 일정 정리를 동시에 잡기 좋습니다.',
+        whenChallenged: miniMyeongsoe < 70 ? '감정 기복이 커지면 의사결정 품질이 흔들리니 체크리스트를 먼저 보세요.' : '과신으로 속도를 높이면 누락이 생길 수 있어 마감 전 검토 루틴을 유지하세요.'
+      }
     ],
     loveProfile: {
       attractionType: syFirstToken(loveTokens, '따뜻한 공감형'),
@@ -3771,19 +3879,19 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
     },
     workMoney: {
       moneyFlow: syComposeFromTokens(wealthTokens, '현금 흐름을 가볍게 분산하면 안정이 빨라집니다.'),
-      spendingHabit: syFirstToken(syCanonicalTokenize((traits.wealth || '') + '. ' + (daily.insight || ''), '의미 있는 지출에는 과감하고 충동 지출은 줄이는 타입입니다.'), '의미 있는 지출에는 과감하고 충동 지출은 줄이는 타입입니다.'),
+      spendingHabit: syComposeFromTokens(syCanonicalTokenize((traits.wealth || '') + '. ' + (daily.insight || ''), '의미 있는 지출에는 과감하고 충동 지출은 줄이는 타입입니다.'), '의미 있는 지출에는 과감하고 충동 지출은 줄이는 타입입니다.'),
       savingPoint: syComposeFromTokens(syCanonicalTokenize((ritual.action || '') + '. ' + (traits.work || ''), '고정 지출을 먼저 정리하면 저축 속도가 빨라집니다.'), '고정 지출을 먼저 정리하면 저축 속도가 빨라집니다.'),
       workStrength: syComposeFromTokens(workTokens, '역할을 분명히 하면 성과가 안정됩니다.'),
       workCaution: syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (traits.work || ''), '과몰입으로 체력을 소진하지 않도록 휴식 타이밍을 먼저 확보하세요.'), '과몰입으로 체력을 소진하지 않도록 휴식 타이밍을 먼저 확보하세요.'),
-      collaborationTip: syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + (traits.work || ''), '역할과 마감 기준을 먼저 합의하면 협업 품질이 높아집니다.'), '역할과 마감 기준을 먼저 합의하면 협업 품질이 높아집니다.'),
+      collaborationTip: syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + (traits.work || '') + '. ' + syComposeFromTokens(careerTokens, ''), '역할과 마감 기준을 먼저 합의하면 협업 품질이 높아집니다.'), '역할과 마감 기준을 먼저 합의하면 협업 품질이 높아집니다.'),
       talent: Number(sData.talent) || 80
     },
     emotionRhythm: {
-      morning: '아침 ' + morningScore + '점 · ' + (morningScore >= 75 ? '차분한 집중이 잘 붙는 시간' : '속도를 낮추고 몸을 깨우는 시간이 필요'),
-      day: '낮 ' + dayScore + '점 · ' + (dayScore >= 75 ? '실행력과 판단력이 안정되는 구간' : '우선순위 한 가지에 집중하면 효율 회복'),
-      night: '밤 ' + nightScore + '점 · ' + (nightScore >= 75 ? '감정 공감과 대화가 부드럽게 열리는 시간' : '정리 루틴으로 감정 파도를 낮추는 시간'),
-      trigger: syFirstToken(syCanonicalTokenize((traits.hidden || '') + '. ' + (traits.karma || ''), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'),
-      balance: syFirstToken(recoveryTokens, '짧은 호흡 루틴으로 균형 회복')
+      morning: '아침 ' + morningScore + '점 · ' + (morningScore >= 75 ? '차분한 집중이 잘 붙는 시간입니다.' : '시동이 느릴 수 있어 루틴 워밍업이 필요합니다.') + ' 추천: 가장 작은 할 일 1개를 먼저 완료하세요.',
+      day: '낮 ' + dayScore + '점 · ' + (dayScore >= 75 ? '실행력과 판단력이 안정되는 구간입니다.' : '결정 피로가 올라오기 쉬운 시간대입니다.') + ' 추천: 우선순위 1개만 고정하고 나머지는 보류하세요.',
+      night: '밤 ' + nightScore + '점 · ' + (nightScore >= 75 ? '감정 공감과 대화가 부드럽게 열립니다.' : '감정 파고가 커질 수 있어 정리 대화가 유리합니다.') + ' 추천: 결론보다 의도 확인 질문을 먼저 하세요.',
+      trigger: syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (traits.karma || ''), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'),
+      balance: syComposeFromTokens(recoveryTokens, '짧은 호흡 루틴으로 균형 회복')
     },
     dailyPrescription: {
       moon: moon,
@@ -4216,6 +4324,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var workTokens = syCanonicalTokenize(workText, '역할을 분명히 할수록 성과가 안정됩니다.');
       var loveTokens = syCanonicalTokenize(loveText, '감정의 속도를 맞추는 대화가 중요합니다.');
       var wealthTokens = syCanonicalTokenize(wealthText, '지출 기준을 세우면 재물 리듬이 고르게 유지됩니다.');
+      var decisionActionAdvice = syComposeFromTokens(
+        syCanonicalTokenize(
+          (workText || '') + '. ' + (hiddenText || '') + '. ' + (legacyDaily && legacyDaily.insight ? legacyDaily.insight : ''),
+          '중요한 의사결정은 감정이 가라앉은 뒤 핵심 기준 1가지를 확인하고 실행하세요.'
+        ),
+        '중요한 의사결정은 감정이 가라앉은 뒤 핵심 기준 1가지를 확인하고 실행하세요.'
+      );
       var renderNarrCard = function(title, body) {
         return '<article class="sy-narr-card rounded-xl border border-slate-300/20 bg-slate-900/45 p-3 backdrop-blur-sm">'
           + '<h5 class="text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-200">' + syCanonicalEsc(title) + '</h5>'
@@ -4277,7 +4392,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 ${renderNarrCard('문장 해석', syFirstToken(syCanonicalTokenize(mantraText, mantraText), mantraText))}
                 ${renderNarrCard('실천 번역', '오늘은 마음이 흔들릴 때 이 문장을 기준점으로 삼아 한 가지 행동만 끝까지 완수해 보세요.')}
                 ${renderNarrCard('관계 적용', '대화 전에 내 의도를 한 줄로 정리하면 말의 온도와 정확도가 동시에 올라갑니다.')}
-                ${renderNarrCard('현실 적용', '일과 재물 의사결정에서 즉흥 선택을 줄이고, 24시간 숙성 후 실행하면 손실을 낮출 수 있습니다.')}
+                ${renderNarrCard('현실 적용', decisionActionAdvice)}
               </div>
             </div>
             <div class="sy-natal-panel" id="sy-panel-daily">
@@ -4403,7 +4518,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 return '<article class="sy-mini-node">'
                   + '<strong>' + syCanonicalEsc(node.label) + '</strong>'
                   + '<div class="v">' + syCanonicalEsc(node.value) + '</div>'
-                  + '<p>' + syCanonicalEsc(node.description) + '</p>'
+                  + '<p>특징: ' + syCanonicalEsc(node.trait) + '<br>좋게 발현: ' + syCanonicalEsc(node.whenPositive) + '<br>어렵게 발현: ' + syCanonicalEsc(node.whenChallenged) + '</p>'
                   + '</article>';
               }).join('')}
             </div>
@@ -4801,6 +4916,83 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return themes[typeKey] || themes.mirror;
     }
 
+    function archiveVariantByState(base, D) {
+      var score = Number(base && base.score) || 0;
+      var temp = Number(base && base.temperature) || 0;
+      var mg = Number(base && base.magnetism) || 0;
+      var key = (score >= 85 ? 'high' : (score >= 70 ? 'mid' : 'low')) + '_' + (temp >= 80 ? 'hot' : 'calm') + '_' + (mg >= 70 ? 'strong' : 'light');
+      var variants = {
+        high_hot_strong: {
+          archive: '이번 조합은 끌림과 실행력이 동시에 높아, 짧은 기간에도 관계 이벤트가 빠르게 전개되는 흐름을 보입니다.',
+          mission: '속도를 낮출 타이밍만 확보하면 관계 품질을 오래 유지할 수 있습니다.'
+        },
+        high_calm_strong: {
+          archive: '강한 결속이지만 겉으로는 차분하게 드러나는 타입이라, 주변에서는 뒤늦게 두 사람의 영향력을 체감하게 됩니다.',
+          mission: '침묵의 신뢰를 기본값으로 두되, 중요한 의도는 반드시 언어로 확인하세요.'
+        },
+        mid_hot_strong: {
+          archive: '온도는 높은데 합의 구조가 느슨해 감정 급등락이 생기기 쉬운 조합입니다. 강한 끌림이 바로 강한 소모로 번질 수 있습니다.',
+          mission: '갈등 직후 결론을 미루고, 사실 확인-감정 확인-합의 순서를 지키는 것이 핵심입니다.'
+        },
+        mid_calm_strong: {
+          archive: '기본 신뢰가 안정적이어서 시간이 갈수록 시너지가 커지는 조합입니다. 느린 편이지만 단단하게 쌓입니다.',
+          mission: '관계 목표를 분기 단위로 점검하면 성장 속도를 일정하게 유지할 수 있습니다.'
+        },
+        low_hot_strong: {
+          archive: '서로에게 미치는 자극은 크지만 운영 방식이 맞지 않아 밀고 당김이 반복될 가능성이 큽니다.',
+          mission: '경계선과 대화 규칙을 명문화하면 소모를 줄이고 장점을 살릴 수 있습니다.'
+        },
+        low_calm_strong: {
+          archive: '표면은 고요하지만 내면에서는 누적된 감정이 뒤늦게 터지기 쉬운 구조입니다.',
+          mission: '정기적으로 감정 상태를 공유해 잠복 갈등을 조기에 해소하세요.'
+        },
+        high_hot_light: {
+          archive: '단기 밀착력은 높지만 리듬 유지가 관건인 조합입니다. 일정이 어긋나면 체감 온도 차가 커질 수 있습니다.',
+          mission: '관계 리듬을 주간 루틴으로 고정하면 안정성이 크게 올라갑니다.'
+        },
+        high_calm_light: {
+          archive: '서로를 편안하게 만드는 조합이지만 표현이 적어 감정 전달이 늦어질 수 있습니다.',
+          mission: '칭찬·감사 같은 긍정 피드백을 의도적으로 자주 표현하세요.'
+        },
+        mid_hot_light: {
+          archive: '관계의 온도는 빠르게 오르지만 피로 회복이 늦어 중간 이완 구간이 반드시 필요합니다.',
+          mission: '충돌 후 재접속까지 최소 회복 루틴(휴식-정리-재대화)을 고정하세요.'
+        },
+        mid_calm_light: {
+          archive: '과도한 드라마 없이 현실적으로 운영하기 좋은 조합입니다. 다만 동력 유지 장치가 필요합니다.',
+          mission: '함께 성장하는 작은 프로젝트를 유지하면 관계 활력이 오래갑니다.'
+        },
+        low_hot_light: {
+          archive: '감정 표현 방식 차이가 크게 체감되는 조합입니다. 같은 말도 다르게 받아들일 가능성이 큽니다.',
+          mission: '표현 강도를 맞추는 합의 문장을 미리 정해 오해를 줄이세요.'
+        },
+        low_calm_light: {
+          archive: '서로를 무난하게 대하지만 깊은 연결이 늦게 형성될 수 있는 조합입니다.',
+          mission: '관계를 유지할 공통 의제와 만남 주기를 명확히 하면 신뢰가 천천히 깊어집니다.'
+        }
+      };
+      var picked = variants[key] || variants.mid_calm_light;
+      if (Number.isFinite(D) && D % 2 === 0) {
+        return {
+          archive: picked.archive + ' 짝수 거리 조합 특성상 합의가 빠르면 반등도 빠른 편입니다.',
+          mission: picked.mission
+        };
+      }
+      return picked;
+    }
+
+    function applyArchiveVariance(base, D) {
+      if (!base) return base;
+      var variant = archiveVariantByState(base, D);
+      if (variant && variant.archive) {
+        base.archiveStory = (base.archiveStory ? (base.archiveStory + ' ') : '') + variant.archive;
+      }
+      if (variant && variant.mission) {
+        base.mission = (base.mission ? (base.mission + ' ') : '') + variant.mission;
+      }
+      return base;
+    }
+
     // 관계 데이터 산출
     function resolve(D, distInfo) {
       var base = {};
@@ -4929,7 +5121,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           pastLife: { role: isDriving ? '제국을 건설한 군주와 책사' : '설계자와 시공자', karma: '거대한 목표를 완성하기 위한 역할의 결합' },
           advantages: [
             { icon: '🌌', label: '영적 동력', text: isDriving ? '당신의 비전이 상대를 통해 현실이 된다. 말로만 존재하던 꿈이 이 인연을 통해 물질 세계로 내려온다.' : '상대의 지도 아래 당신의 숨겨진 재능이 비로소 무대를 얻는다. 혼자였다면 평생 몰랐을 당신의 진짜 능력이 드러난다.' },
-            { icon: '💼', label: '현실적 보완', text: '완벽한 역할 분담이 이뤄진다. ' + (isDriving ? '당신의 방향 설정 능력과 상대의 실행력이 결합하여 1+1=11이 되는 시너지.' : '상대의 천기과 당신의 디테일한 실행이 맞물려 최고의 결과물을 만든다.') },
+            { icon: '💼', label: '현실적 보완', text: '완벽한 역할 분담이 이뤄진다. ' + (isDriving ? '당신의 방향 설정 능력과 상대의 실행력이 결합하여 1+1=11이 되는 시너지.' : '상대의 장기 기획력과 당신의 디테일한 실행이 맞물려 최고의 결과물을 만든다.') },
             { icon: '💜', label: '심리적 위안', text: '서로에게 \"가장 믿을 수 있는 사람\"이 된다. 이 관계 안에서 능력 있는 자신의 모습을 발견하며 자존감이 자란다.' }
           ],
           archiveStory: '전생의 어느 위대한 왕국, 두 사람은 함께 미완의 제국을 완성시켰다. ' + (isDriving ? '당신은 방향을 잡았고, 상대는 그 방향대로 세상을 조각했다.' : '상대가 제국의 청사진을 그렸고, 당신이 그것을 현실로 만들었다.') + ' 감정 없이, 순수한 목표만으로 달린 그 시절의 에너지가 현생에서 \"이 사람과 함께라면 무엇이든 될 것 같다\"는 근거 있는 확신으로 나타난다.',
@@ -4987,7 +5179,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         };
       }
 
-      return base;
+      return applyArchiveVariance(base, D);
     }
 
     return { resolve: resolve, calcDistance: calcDistance, tempLabel: tempLabel, ankaiRole: ankaiRole, magnetism: magnetism, visualTheme: visualTheme };
