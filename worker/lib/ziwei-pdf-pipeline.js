@@ -936,6 +936,79 @@ function sanitizeZiweiOutputText(text) {
     .trim();
 }
 
+function normalizeHeadingToken(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/ch\.?\s*\d+/g, "")
+    .replace(/[\s\-_/|:()\[\]{}.,]/g, "");
+}
+
+function normalizeZiweiSectionsByChapterSpec(sections, chapterSpec, chapterSummary, chapterSubtitle) {
+  const sourceSections = asArray(sections)
+    .map((row) => ({
+      heading: sanitizeZiweiOutputText(asText(row?.heading)) || "핵심 해석",
+      body: sanitizeZiweiOutputText(asText(row?.body)),
+    }))
+    .filter((row) => row.body);
+
+  const expectedHeadings = asArray(chapterSpec?.sections)
+    .map((heading) => sanitizeZiweiOutputText(asText(heading)))
+    .filter(Boolean);
+
+  if (!expectedHeadings.length) {
+    return sourceSections.length > 0
+      ? sourceSections
+      : [{ heading: "핵심 해석", body: sanitizeZiweiOutputText(asText(chapterSummary || chapterSubtitle || "핵심 해석 내용")) }];
+  }
+
+  const normalized = [];
+  const usedIndices = new Set();
+
+  expectedHeadings.forEach((expectedHeading) => {
+    const expectedToken = normalizeHeadingToken(expectedHeading);
+    let pickedIndex = -1;
+
+    for (let i = 0; i < sourceSections.length; i += 1) {
+      if (usedIndices.has(i)) continue;
+      const row = sourceSections[i];
+      const token = normalizeHeadingToken(row.heading);
+      if (token === expectedToken || token.includes(expectedToken) || expectedToken.includes(token)) {
+        pickedIndex = i;
+        break;
+      }
+    }
+
+    if (pickedIndex === -1) {
+      for (let i = 0; i < sourceSections.length; i += 1) {
+        if (!usedIndices.has(i)) {
+          pickedIndex = i;
+          break;
+        }
+      }
+    }
+
+    let body = "";
+    if (pickedIndex >= 0) {
+      usedIndices.add(pickedIndex);
+      body = sanitizeZiweiOutputText(asText(sourceSections[pickedIndex]?.body));
+    }
+
+    if (!body) {
+      body = sanitizeZiweiOutputText([
+        `${expectedHeading} 영역은 현재 챕터의 핵심 근거를 바탕으로 우선 해석합니다.`,
+        asText(chapterSummary || chapterSubtitle || "핵심 구조를 중심으로 해석을 이어갑니다."),
+      ].filter(Boolean).join("\n\n"));
+    }
+
+    normalized.push({
+      heading: expectedHeading,
+      body,
+    });
+  });
+
+  return normalized;
+}
+
 export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummaries = [] }) {
   const chapterSpec = chapter || ZIWEI_CHAPTER_SPECS[0];
   const chapterNo = Number(chapterSpec?.chapterNo || chapterSpec?.num || 0);
@@ -945,7 +1018,9 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
   const chapterContract = runtimeChapterContract || ZIWEI_CHAPTER_CONTRACTS[chapterNo] || null;
   const requiredHeadings = asArray(chapterContract?.requiredHeadings).map(asText).filter(Boolean);
   const requiredJsonFields = asArray(chapterContract?.requiredJsonFields).map(asText).filter(Boolean);
-  const chapterSections = asArray(chapterSpec?.sections).join(", ");
+  const chapterSectionHeadings = asArray(chapterSpec?.sections).map(asText).filter(Boolean);
+  const chapterSections = chapterSectionHeadings.join(", ");
+  const effectiveRequiredHeadings = chapterSectionHeadings.length ? chapterSectionHeadings : requiredHeadings;
   const premiumContext = toPlainObject(context?.premiumContext);
   const hasPremiumContext = Object.keys(premiumContext).length > 0;
 
@@ -972,7 +1047,9 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
     "17. 이전 챕터들과 관점이나 내용이 절대 중복되지 않도록 하라. 제공된 [이전 챕터 요약 정보]를 참조하여, 이미 다른 챕터에서 다룬 해석을 반복하지 않고 이 챕터만의 고유한 관점(예: 성격 자아 -> 직업 자아 -> 재물 성향 등)을 확실히 보여줘라.",
     "18. masterAdvice 또는 masterConclusion은 반드시 현재 챕터의 대상 궁위와 해석 목적에 맞게 작성하고, 다른 챕터에 재사용 가능한 일반론 문장을 금지한다.",
-    requiredHeadings.length ? `19. chapterContract.requiredHeadings를 sections.heading에 모두 반영한다: ${requiredHeadings.join(", ")}.` : "19. 챕터 구조 규칙을 누락 없이 반영한다.",
+    effectiveRequiredHeadings.length
+      ? `19. sections 배열은 다음 heading을 정확한 순서로 1회씩만 사용한다: ${effectiveRequiredHeadings.join(", ")}. 다른 heading 추가를 금지한다.`
+      : "19. 챕터 구조 규칙을 누락 없이 반영한다.",
     requiredJsonFields.length ? `20. chapterContract.requiredJsonFields를 응답 JSON에 모두 포함한다: ${requiredJsonFields.join(", ")}.` : "20. 출력 JSON의 필수 키를 누락하지 않는다.",
     hasPremiumContext
       ? "21. [기본/심화 통합 보조 데이터]가 제공되면 궁/주성/강약/대운/연월운/요약 근거를 최소 5개 이상 본문에 반영하고, 추상 문장만으로 분량을 채우지 않는다."
@@ -1017,7 +1094,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     chapterContract ? `[대상 궁위] ${chapterContract.targetPalace}` : "",
     chapterContract ? `[관련 궁위] ${chapterContract.relatedPalaces.join(", ")}` : "",
     chapterContract ? `[필수 커버리지]\n- ${chapterContract.mustCover.join("\n- ")}` : "",
-    requiredHeadings.length ? `[chapterContract.requiredHeadings]\n- ${requiredHeadings.join("\n- ")}` : "",
+    effectiveRequiredHeadings.length ? `[chapter 카테고리 고정 헤딩]\n- ${effectiveRequiredHeadings.join("\n- ")}` : "",
     requiredJsonFields.length ? `[chapterContract.requiredJsonFields]\n- ${requiredJsonFields.join("\n- ")}` : "",
     "",
     "[챕터 작성 목표 및 세부 카테고리 가이드]",
@@ -1027,6 +1104,9 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "",
     "[출력 형식]",
     "반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 출력하지 마세요.",
+    effectiveRequiredHeadings.length
+      ? `sections는 반드시 ${effectiveRequiredHeadings.length}개이며, heading은 위 [chapter 카테고리 고정 헤딩]과 완전히 동일하고 순서도 같아야 합니다.`
+      : "",
     "{",
     '  "chapterTitle": "string",',
     '  "chapterSubtitle": "string",',
@@ -1155,12 +1235,14 @@ export function parseZiweiGeminiResponse(rawText) {
 
 export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   const chapter = toPlainObject(rawChapter);
-  const sections = asArray(chapter.sections)
-    .map((row) => ({
-      heading: sanitizeZiweiOutputText(asText(row?.heading)) || "핵심 해석",
-      body: sanitizeZiweiOutputText(asText(row?.body)),
-    }))
-    .filter((row) => row.body);
+  const rawSummary = sanitizeZiweiOutputText(asText(chapter.summary));
+  const rawSubtitle = sanitizeZiweiOutputText(asText(chapter.chapterSubtitle));
+  const sections = normalizeZiweiSectionsByChapterSpec(
+    asArray(chapter.sections),
+    chapterSpec,
+    rawSummary,
+    rawSubtitle,
+  );
 
   const practicalAdvice = asArray(chapter.practicalAdvice).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
@@ -1176,8 +1258,8 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
 
   return {
     chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle)) || chapterSpec?.title || "자미두수 해석",
-    chapterSubtitle: sanitizeZiweiOutputText(asText(chapter.chapterSubtitle)) || "심층 해석",
-    summary: sanitizeZiweiOutputText(asText(chapter.summary)) || "핵심 데이터와 지식 베이스를 기반으로 챕터를 생성했습니다.",
+    chapterSubtitle: rawSubtitle || "심층 해석",
+    summary: rawSummary || "핵심 데이터와 지식 베이스를 기반으로 챕터를 생성했습니다.",
     sections,
     practicalAdvice,
     cautions,
