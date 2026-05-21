@@ -14,7 +14,7 @@ const ITEMS = [
   { key: "expression", label: "표현/창조 (식상)", color: "bg-fuchsia-500" },
   { key: "officer", label: "규범/책임 (관성)", color: "bg-indigo-500" },
   { key: "wealth", label: "성과/실리 (재성)", color: "bg-amber-500" },
-  { key: "resource", label: "학습/통찰 (인성)", color: "bg-sky-500" },
+  { key: "resource", label: "학습/통찰 (인성)", color: "bg-cyan-500" },
   { key: "peer", label: "독립/자율 (비겁)", color: "bg-emerald-500" },
 ] as const;
 
