@@ -244,6 +244,14 @@ function stripLegacyPublicBlocks(html) {
     .replace(/\n{3,}/g, "\n\n");
 }
 
+function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
+  const html = String(source || "");
+  return html.replace(
+    /(\/js\/(?:ziwei-book|astro-book|sukuyo-book|vedic-book|saju-new-year|life-book|love-secret-v2|core\/index-inline-runtime|mobile-backstack-navigation)\.js\?v=)[a-zA-Z0-9_-]+/g,
+    `$1${buildTimestamp}`,
+  );
+}
+
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const canonicalUrl = `https://code-destiny.com${localePath}`;
   return indexHtml
@@ -422,10 +430,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const uiBindingsPath = resolve(publicDir, "js", "core", "uiBindings.js");
   if (existsSync(uiBindingsPath)) {
     const uiBindingsJs = readFileSync(uiBindingsPath, "utf8");
-    const bustedUiBindingsJs = uiBindingsJs.replace(/(gotoZiweiPremium:\s*\(\)\s*=>\s*__loadScriptOnce\('\/js\/ziwei-book\.js\?v=)[^']+('\))/g, `$1${buildTimestamp}$2`);
+    const bustedUiBindingsJs = cacheBustUiBindingsScriptRefs(uiBindingsJs, buildTimestamp);
     if (bustedUiBindingsJs !== uiBindingsJs) {
       writeFileSync(uiBindingsPath, bustedUiBindingsJs);
-      console.log(`[sync-legacy-static-to-public] Auto cache-busted uiBindings.js ziwei loader with ${buildTimestamp}`);
+      console.log(`[sync-legacy-static-to-public] Auto cache-busted uiBindings.js PDF/runtime loaders with ${buildTimestamp}`);
     }
   }
 
@@ -477,10 +485,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const rootUiBindingsPath = resolve(rootDir, "js", "core", "uiBindings.js");
   if (existsSync(rootUiBindingsPath)) {
     const rootUiBindingsJs = readFileSync(rootUiBindingsPath, "utf8");
-    const bustedRootUiBindingsJs = rootUiBindingsJs.replace(/(gotoZiweiPremium:\s*\(\)\s*=>\s*__loadScriptOnce\('\/js\/ziwei-book\.js\?v=)[^']+('\))/g, `$1${buildTimestamp}$2`);
+    const bustedRootUiBindingsJs = cacheBustUiBindingsScriptRefs(rootUiBindingsJs, buildTimestamp);
     if (bustedRootUiBindingsJs !== rootUiBindingsJs) {
       writeFileSync(rootUiBindingsPath, bustedRootUiBindingsJs);
-      console.log(`[sync-legacy-static-to-public] Updated root uiBindings.js ziwei loader with ${buildTimestamp}`);
+      console.log(`[sync-legacy-static-to-public] Updated root uiBindings.js PDF/runtime loaders with ${buildTimestamp}`);
     }
   }
 
