@@ -55,6 +55,9 @@ describe("Premium PDF v2 chapter plans", () => {
     const plan = getPremiumPdfV2ChapterPlan("westernAstrologyPremium");
     const ch1 = plan[0];
 
+    expect(plan).toHaveLength(12);
+    expect(ch1.title).toContain("태양·달·상승궁");
+
     expect(ch1.requiredFields).toEqual(expect.arrayContaining([
       "natalChart.sunSign",
       "natalChart.moonSign",
@@ -62,6 +65,19 @@ describe("Premium PDF v2 chapter plans", () => {
       "natalChart.planets",
       "natalChart.houses",
       "natalChart.aspects",
+      "profile.birthDate",
+    ]));
+  });
+
+  test("점성술 compatibility 모드는 10챕터를 사용해야 한다", () => {
+    const plan = getPremiumPdfV2ChapterPlan("westernAstrologyPremium", "compatibility");
+    const ch1 = plan[0];
+
+    expect(plan).toHaveLength(10);
+    expect(ch1.title).toContain("두 사람의 우주적 첫인상");
+    expect(ch1.requiredFields).toEqual(expect.arrayContaining([
+      "relationshipData.synastry",
+      "relationshipData.composite",
     ]));
   });
 

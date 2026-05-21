@@ -197,7 +197,7 @@ describe("Love Secret Strict Tests", () => {
     );
 
     const ch7 = canonical.chapterPlanning.chapter7;
-    expect(ch7.title).toContain("조후");
+    expect(ch7.title).toContain("친밀감");
     expect(ch7.mustUseData).toContain("personA.johu");
     expect(ch7.mustUseData).toContain("personB.johu");
     expect(ch7.mustUseData).toContain("compatibility.johuCompatibility");
@@ -222,7 +222,7 @@ describe("Love Secret Strict Tests", () => {
       4200
     );
 
-    expect(payload.chapterTitle).toContain("조후");
+    expect(payload.chapterTitle).toContain("친밀감");
     expect(payload.johuData).toBeTruthy();
     expect(payload.requiredDataPoints).toContain("compatibility.johuCompatibility.temperatureBalance");
     expect(payload.chapterSpecificSections.length).toBeGreaterThan(0);
@@ -243,7 +243,7 @@ describe("Love Secret Strict Tests", () => {
     expect(quality.failedChecks).toContain("QUALITY_GATE_J_CH7_MIN_LENGTH_6000");
   });
 
-  test("I. Chapter7은 요약표 테이블이 없으면 QUALITY_GATE_K를 실패해야 한다", () => {
+  test("I. 궁합 모드 Chapter7은 압축 흐름이 없으면 QUALITY_GATE_S를 실패해야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -261,7 +261,7 @@ describe("Love Secret Strict Tests", () => {
       "### 핵심 요약 5줄",
     ].join("\n") + "\n" + "반복이 아닌 상세 분석 문장 ".repeat(400);
     const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(noTableText, 7, canonical, [], 4000);
-    expect(quality.failedChecks).toContain("QUALITY_GATE_K_CH7_DATA_TABLE");
+    expect(quality.failedChecks).toContain("QUALITY_GATE_S_COMPAT_COMPRESSED_FLOW");
   });
 
   test("J. Chapter7은 기후 키워드가 부족하면 QUALITY_GATE_M을 실패해야 한다", () => {

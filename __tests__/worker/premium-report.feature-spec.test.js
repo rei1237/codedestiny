@@ -54,6 +54,13 @@ describe("Premium Report Feature Spec", () => {
     expect(getPremiumRequiredChapters("sajuNewYear", "default")).toBe(10);
   });
 
+  test("westernAstrologyPremium은 개인 12챕터 / 궁합 10챕터를 사용한다", () => {
+    const { getPremiumRequiredChapters } = __premiumReportTestUtils;
+
+    expect(getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(12);
+    expect(getPremiumRequiredChapters("westernAstrologyPremium", "compatibility")).toBe(10);
+  });
+
   test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {
     const { getPremiumExpectedSchema } = __premiumReportTestUtils;
     const ziwei = getPremiumExpectedSchema("ziweiPremium");
@@ -91,8 +98,8 @@ describe("Premium Report Feature Spec", () => {
       calculatedData: {},
     });
 
-    expect(summary.ch1.chapterTitle).toBe("원국 기반 연간 전략 총론");
-    expect(summary.ch10.chapterTitle).toBe("최종 통합 액션 플랜");
+    expect(summary.ch1.chapterTitle).toBe("연간 파동 총론 - 올해의 기본 기조");
+    expect(summary.ch10.chapterTitle).toBe("최종 실행 로드맵 - 연말 회수 전략");
     expect(summary.ch9.requiredPaths).toContain("calculatedData.monthlyLuck");
   });
 

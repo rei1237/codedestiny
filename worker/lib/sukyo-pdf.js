@@ -2,56 +2,121 @@ const UNKNOWN = "unknown";
 
 const SUKYO_PDF_CHAPTERS = [
   {
-    key: "identity",
-    title: "Ch.1 본명숙 원형 해독 - 나의 27숙 정체성",
-    goal: "본명숙, 27숙 그룹, 기본 숙요점 결과를 바탕으로 타고난 정체성, 기질, 무의식적 반응 방식을 해석한다.",
+    key: "destiny_essence",
+    title: "Chapter 1. 나의 별이 말하는 운명의 본질",
+    goal: "타고난 성향의 원형, 겉과 속의 욕망, 반복되는 인생 방향, 강점/오해의 패턴을 통합해 운명의 본질을 정의한다.",
   },
   {
-    key: "emotion",
-    title: "Ch.2 달의 주기와 정서 리듬 - 월상/삭망각/조도 분석",
-    goal: "월상, 삭망각, 조도, 달의 차오름/기움 상태를 바탕으로 정서 리듬과 회복법을 해석한다.",
+    key: "personality_inner_texture",
+    title: "Chapter 2. 타고난 성격과 내면의 결",
+    goal: "감정 표현, 사고 방식, 대인 태도, 예민함과 자존심의 결을 섬세하게 풀고 성향을 활용하는 방향을 제시한다.",
   },
   {
-    key: "persona",
-    title: "Ch.3 페르소나와 첫인상 - 세상이 나를 기억하는 방식",
-    goal: "본명숙과 달의 리듬을 바탕으로 외부 인상과 사회적 가면을 해석한다.",
+    key: "talent_success",
+    title: "Chapter 3. 재능과 성공 가능성",
+    goal: "재능 유형과 성공 조건, 맞는 환경과 막히는 환경, 커리어/창작/사업/프리랜서 현실성을 구체적으로 해석한다.",
   },
   {
-    key: "wealth",
-    title: "Ch.4 자산 감각과 생활 기반 - 돈을 대하는 숙요적 태도",
-    goal: "본명숙 기질과 생활 리듬으로 돈을 모으고 쓰는 태도를 해석한다.",
+    key: "work_social_destiny",
+    title: "Chapter 4. 일과 사회적 운명",
+    goal: "사회적 역할, 조직/독립 적합성, 인정/오해 패턴, 반복 실패와 회피해야 할 구조, 장기 커리어 전략을 제시한다.",
   },
   {
-    key: "work",
-    title: "Ch.5 협업과 조직 적응 - 보이지 않는 톱니바퀴",
-    goal: "사회적 반응과 역할 감각을 기반으로 협업/조직 적응력을 해석한다.",
+    key: "money_reality",
+    title: "Chapter 5. 돈과 현실 감각",
+    goal: "돈을 다루는 심리와 습관, 수입 구조 적합성, 감정과 재물의 상호작용, 실행 가능한 재정 전략을 설명한다.",
   },
   {
-    key: "relationship",
-    title: "Ch.6 관계 감지력 - 인간관계 레이더와 거리 조절",
-    goal: "관계 감지력과 경계 설정을 해석하고, 데이터가 있으면 업태/안괴/영친 등을 반영한다.",
+    key: "love_destiny_pattern",
+    title: "Chapter 6. 사랑과 인연의 방식",
+    goal: "사랑에 빠지는 방식, 끌림과 적합성의 차이, 반복 문제, 경계선, 오래 가는 관계 운영법을 제시한다.",
   },
   {
-    key: "crisis",
-    title: "Ch.7 위기와 전환 - 무너질 때 다시 살아나는 방식",
-    goal: "본명숙 그림자와 달의 회복 리듬으로 위기 반응과 재기 전략을 해석한다.",
+    key: "relationships_benefactors",
+    title: "Chapter 7. 인간관계와 귀인운",
+    goal: "사람을 끌어들이고 밀어내는 패턴, 귀인/소모 관계 구분, 오해/이용 리스크, 인맥을 운으로 바꾸는 전략을 제시한다.",
   },
   {
-    key: "family",
-    title: "Ch.8 가족과 뿌리 - 정서적 기반과 소속감",
-    goal: "정서적 안정감과 소속 욕구를 숙요 관점으로 해석한다.",
+    key: "emotion_shadow_recovery",
+    title: "Chapter 8. 감정의 그림자와 마음의 회복",
+    goal: "불안·외로움·분노 반응, 소진 패턴, 회복 조건(시간/공간/사람/리듬), 실전 회복법을 안내한다.",
   },
   {
-    key: "desire",
-    title: "Ch.9 욕망과 추진력 - 내가 움직이는 진짜 이유",
-    goal: "인정 욕구/성취 욕구/행동 동기를 해석한다.",
+    key: "turning_points_flow",
+    title: "Chapter 9. 인생의 전환점과 운의 흐름",
+    goal: "시기별 인생 분위기, 막힘/개방 신호, 관계·일·돈·거주·마음 변화의 패턴, 밀어붙임/대기 기준을 제시한다.",
   },
   {
-    key: "spirituality",
-    title: "Ch.10 내면 회복과 영성 - 혼자 있을 때 살아나는 힘",
-    goal: "달의 리듬과 내면성으로 회복 루틴과 영적 감수성을 해석한다.",
+    key: "healthy_rhythm_energy",
+    title: "Chapter 10. 건강한 생활 리듬과 에너지 관리",
+    goal: "의학적 단정 없이 생활 리듬 관점에서 소모/회복 구조를 분석하고 수면·식사·운동·휴식 루틴을 제안한다.",
+  },
+  {
+    key: "near_future_strategy",
+    title: "Chapter 11. 올해와 가까운 미래의 운용 전략",
+    goal: "올해 집중 축, 확장/정비 시기 판단, 기회 신호, 주의 선택, 월별/분기별 실행 기준을 설계한다.",
+  },
+  {
+    key: "life_master_plan",
+    title: "Chapter 12. 숙요점 인생 마스터플랜",
+    goal: "앞선 챕터를 통합해 핵심 성향 한 줄 정의, 강점/약점, 사랑·일·돈·관계·마음의 최종 전략을 봉서형 결론으로 제시한다.",
   },
 ];
+
+const SUKYO_PDF_COMPAT_CHAPTERS = [
+  {
+    key: "compat_origin",
+    title: "Chapter 1. 두 별의 본질과 관계의 시작",
+    goal: "두 사람의 기본 기질, 첫 끌림, 관계의 핵심 테마를 압축해 설정한다.",
+  },
+  {
+    key: "compat_emotion_dialogue",
+    title: "Chapter 2. 감정 온도차와 대화 방식",
+    goal: "감정 속도 차이, 애정 표현, 오해 패턴, 대화 복구법을 해석한다.",
+  },
+  {
+    key: "compat_roles_balance",
+    title: "Chapter 3. 사랑의 역할과 관계 균형",
+    goal: "주도권과 책임, 기대 충돌, 역할 분담의 균형 전략을 제시한다.",
+  },
+  {
+    key: "compat_reality",
+    title: "Chapter 4. 현실 궁합",
+    goal: "일·돈·생활 조건에서의 현실 적합성과 장기 운영 가능성을 분석한다.",
+  },
+  {
+    key: "compat_surroundings_rhythm",
+    title: "Chapter 5. 주변 사람과 생활 리듬",
+    goal: "가족/친구/사회 관계의 영향, 회복 방식, 동거 리듬 적합성을 해석한다.",
+  },
+  {
+    key: "compat_conflict_breakup",
+    title: "Chapter 6. 갈등과 이별 위기",
+    goal: "상처 트리거, 갈등 반응, 이별 위기 신호, 회복 조건을 구체화한다.",
+  },
+  {
+    key: "compat_marriage_longterm",
+    title: "Chapter 7. 결혼과 장기 파트너 가능성",
+    goal: "결혼·동반자 구조의 현실 조건과 오래가기 위한 합의 원칙을 제시한다.",
+  },
+  {
+    key: "compat_yearly_final",
+    title: "Chapter 8. 올해 흐름과 최종 궁합 봉서",
+    goal: "올해 관계 흐름, 강점/약점 총정리, 최종 궁합 봉서 조언을 완성한다.",
+  },
+];
+
+function normalizeSukyoReportMode(value) {
+  const mode = String(value || "").trim().toLowerCase();
+  if (mode === "compatibility" || mode === "couple" || mode === "compat") return "compatibility";
+  return "personal";
+}
+
+function getSukyoPdfChapters(reportMode = "personal") {
+  return normalizeSukyoReportMode(reportMode) === "compatibility"
+    ? SUKYO_PDF_COMPAT_CHAPTERS
+    : SUKYO_PDF_CHAPTERS;
+}
 
 const SUKYO_GENERAL_MEANINGS = {
   system:
@@ -240,6 +305,14 @@ function normalizeSukyoResultForPdf(input = {}) {
   const rawBasicResult = input?.rawBasicResult || null;
 
   const isCompatibility = Boolean(canonical?.personA || canonical?.personB);
+  const reportMode = normalizeSukyoReportMode(
+    pickFirst(
+      requestBody?.mode,
+      requestBody?.reportMode,
+      requestBody?.reportType,
+      isCompatibility ? "compatibility" : "personal",
+    ),
+  );
   const profileSource = isCompatibility ? (canonical?.personA || {}) : canonical;
   const natal = canonical?.natalSukuyo || {};
   const personASukuyo = canonical?.personA?.sukuyo || {};
@@ -368,6 +441,7 @@ function normalizeSukyoResultForPdf(input = {}) {
   };
 
   return {
+    reportMode,
     userProfile,
     chartMeta,
     mainStar,
@@ -429,9 +503,26 @@ function collectPreviousSentenceBanList(previousTexts = [], limit = 12) {
 
 function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] }) {
   const safeContext = context || {};
+  const reportMode = normalizeSukyoReportMode(safeContext.reportMode);
   const chapterTitle = chapter?.title || "Sukyo Chapter";
   const chapterGoal = chapter?.goal || "숙요 해석";
   const previousBanList = collectPreviousSentenceBanList(previousChapterTexts, 12);
+  const chapterCatalog = getSukyoPdfChapters(reportMode)
+    .map((row, idx) => `${idx + 1}. ${row.title}`)
+    .join("\n");
+
+  const modeSpecificRules = reportMode === "compatibility"
+    ? [
+      "궁합 리포트에서는 관계 해석에 필요한 범위를 넘는 개인 인생 총론 반복을 금지한다.",
+      "반드시 다음 요소만으로 챕터를 구성한다: 두 사람 기질, 첫 끌림, 감정 온도차, 애정 표현, 성격 충돌, 대화 방식, 역할 분담, 주도권/책임, 일·돈 현실 궁합, 주변 사람 영향, 생활 리듬/동거 가능성, 갈등/상처 패턴, 이별 위기/회복 조건, 결혼/장기 파트너 가능성, 올해 흐름, 강점/약점, 최종 궁합 봉서.",
+      "A/B 개인 성향은 관계 해석에 필요한 만큼만 압축해 넣고 장문 개인 운세를 확장하지 않는다.",
+      "본문에서 계산 근거, 내부 JSON 키, 내부 데이터 구조를 직접 노출하지 않는다.",
+    ]
+    : [
+      "개인 리포트는 운명의 본질 → 성향 → 재능 → 사회/일 → 돈 → 사랑 → 인간관계 → 감정 회복 → 전환점 → 생활 리듬 → 올해 전략 → 마스터플랜 순서로 전개한다.",
+      "강점과 그림자를 동시에 다루고, 단정 예언 대신 실행 가능한 현실 전략으로 마무리한다.",
+      "본문에서 계산 근거, 내부 JSON 키, 내부 데이터 구조를 직접 노출하지 않는다.",
+    ];
 
   const systemPrompt = [
     "너는 30년차 숙요점 전문가이자 27숙과 달의 리듬을 현대어로 해석하는 프리미엄 숙요점 PDF 작가다.",
@@ -440,11 +531,16 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     "데이터가 부족하면 부족하다고 명시하되 생성을 중단하지 않는다.",
     "건강/가족/관계/위기/재물은 단정 예언이 아니라 경향과 전략으로 쓴다.",
     "이전 챕터와 동일 문장/동일 해석 프레이밍 재사용을 금지한다.",
+    "챕터는 반드시 단계적으로 쓴다: (1) 핵심 진단 (2) 패턴 해석 (3) 현실 적용 전략 (4) 행동 기준 요약.",
+    ...modeSpecificRules,
     "반드시 JSON 하나로만 응답한다.",
   ].join("\n");
 
   const userPrompt = [
     "다음은 프리미엄 숙요점 PDF 생성을 위한 정규화된 데이터다.",
+    `[리포트 모드] ${reportMode}`,
+    "[모드별 챕터 구성표]",
+    chapterCatalog,
     "[사용자 정보]",
     JSON.stringify(safeContext.userProfile || {}, null, 2),
     "[차트 메타 정보]",
@@ -471,6 +567,10 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     chapterTitle,
     "[챕터 작성 목표]",
     chapterGoal,
+    "[작성 제한]",
+    "- 본문은 완성형 상담문으로 작성한다.",
+    "- 본문에 계산 근거/내부 데이터/JSON 키를 직접 출력하지 않는다.",
+    "- 궁합 모드에서는 개인 인생 총론을 길게 반복하지 않는다.",
     "[출력 형식]",
     "{",
     '  "chapterKey": "string",',
@@ -555,10 +655,14 @@ function sanitizeSections(sections, fallbackSummary) {
 }
 
 function createFallbackSukyoChapter(chapter, context, reason = "") {
+  const reportMode = normalizeSukyoReportMode(context?.reportMode);
+  const subtitle = reportMode === "compatibility"
+    ? "궁합 리포트용 보완 해석"
+    : "기본 숙요점 결과 기반 보완 해석";
   return {
     chapterKey: String(chapter?.key || "unknown"),
     chapterTitle: String(chapter?.title || "숙요점 챕터"),
-    chapterSubtitle: "기본 숙요점 결과 기반 보완 해석",
+    chapterSubtitle: subtitle,
     summary:
       "이 챕터의 일부 세부 데이터가 확인되지 않아, 제공된 기본 숙요점 결과와 27숙 해석 체계를 바탕으로 보완 해석을 제공합니다.",
     coreReading:
@@ -581,7 +685,9 @@ function createFallbackSukyoChapter(chapter, context, reason = "") {
     ],
     masterKeyword: "기본 숙요점 기반 보완",
     missingDataNotice:
-      "일부 확장 데이터가 없어 기본 숙요점 결과 중심으로 생성된 챕터입니다.",
+      reportMode === "compatibility"
+        ? "일부 확장 데이터가 없어 관계 핵심 신호 중심으로 보완 생성된 궁합 챕터입니다."
+        : "일부 확장 데이터가 없어 기본 숙요점 결과 중심으로 생성된 챕터입니다.",
     fallbackUsed: true,
     fallbackReason: reason || "CHAPTER_FALLBACK",
     contextHint: {
@@ -669,12 +775,14 @@ function renderSukyoChapterMarkdown(chapterJson, chapterFallbackMeta = null) {
 
 export {
   SUKYO_PDF_CHAPTERS,
+  SUKYO_PDF_COMPAT_CHAPTERS,
   SUKYO_GENERAL_MEANINGS,
   SUKYO_27_STARS_GENERAL,
   SUKYO_MOON_PHASE_MEANINGS,
   SUKYO_RELATIONSHIP_MEANINGS,
   SUKYO_CHAPTER_FOCUS,
   SUKYO_PDF_KNOWLEDGE_BASE,
+  getSukyoPdfChapters,
   normalizeSukyoResultForPdf,
   validateSukyoPdfInput,
   buildSukyoPdfContext,

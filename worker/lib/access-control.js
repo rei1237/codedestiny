@@ -154,24 +154,60 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "sookyoPremium") {
     const modeToken = normalizeModeToken(requestBody);
     const isCompat = modeToken.includes("compat");
-    return [
+    const baseRules = [
       {
-        featureKey: isCompat ? "premium_pdf_sukyo_compat" : "premium_pdf_sukyo",
-        reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
-        windowMinutes: 120,
+        featureKey: "premium-sukuyo",
+        reason: "숙요점 인생 총람 생성",
+        minCost: 390,
+        windowMinutes: 240,
       },
       {
-        featureKey: isCompat ? "premium-sukuyo-report-compat" : "premium-sukuyo-report",
-        reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
-        windowMinutes: 120,
+        featureKey: "premium_pdf_sukyo",
+        reason: "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium-sukuyo-report",
+        reason: "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 240,
       },
       {
         featureKey: "coin-gate-per-use",
-        reason: isCompat ? "숙요점 프리미엄 PDF 궁합 리포트 생성" : "숙요점 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
-        windowMinutes: 120,
+        reason: "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 240,
+      },
+    ];
+
+    if (!isCompat) return baseRules;
+
+    return [
+      ...baseRules,
+      {
+        featureKey: "premium-sukuyo-compat-extra",
+        reason: "숙요점 궁합 확장 분석 추가",
+        minCost: 300,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium_pdf_sukyo_compat",
+        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+        minCost: 490,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium-sukuyo-report-compat",
+        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+        minCost: 490,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+        minCost: 490,
+        windowMinutes: 240,
       },
     ];
   }

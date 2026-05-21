@@ -1,60 +1,60 @@
 /**
  * 숙요점 프리미엄 (Sukuyo 宿曜占 — Premium Life Report)
- * CODE-DESTINY v1.0  •  27수 숙요 기반 13챕터 인생 총람
+ * CODE-DESTINY v1.1  •  개인 12챕터 / 궁합 8챕터 프리미엄 리포트
  */
 (function () {
   'use strict';
 
   var PERSONAL_CHAPTER_META = [
-    { title: '🌑 본명숙 원형 해독', subtitle: '나의 27숙 정체성' },
-    { title: '🌙 달의 주기와 정서 리듬', subtitle: '월상·삭망각·조도 분석' },
-    { title: '🎭 페르소나와 첫인상', subtitle: '세상이 나를 기억하는 방식' },
-    { title: '💰 자산 감각과 생활 기반', subtitle: '돈을 대하는 숙요적 태도' },
-    { title: '⚙️ 협업과 조직 적응', subtitle: '보이지 않는 톱니바퀴' },
-    { title: '📡 관계 감지력', subtitle: '인간관계 레이더와 거리 조절' },
-    { title: '💥 위기와 전환', subtitle: '무너질 때 다시 살아나는 방식' },
-    { title: '🏡 가족과 뿌리', subtitle: '정서적 기반과 소속감' },
-    { title: '🔥 욕망과 추진력', subtitle: '내가 움직이는 진짜 이유' },
-    { title: '🧘 내면 회복과 영성', subtitle: '혼자 있을 때 살아나는 힘' },
+    { title: 'Chapter 1. 나의 별이 말하는 운명의 본질', subtitle: '타고난 성향과 운명의 핵심 원형' },
+    { title: 'Chapter 2. 타고난 성격과 내면의 결', subtitle: '겉모습과 내면 패턴의 구조' },
+    { title: 'Chapter 3. 재능과 성공 가능성', subtitle: '강점과 성공 조건의 현실 해석' },
+    { title: 'Chapter 4. 일과 사회적 운명', subtitle: '사회 역할과 커리어 흐름' },
+    { title: 'Chapter 5. 돈과 현실 감각', subtitle: '재물 습관과 안정 전략' },
+    { title: 'Chapter 6. 사랑과 인연의 방식', subtitle: '연애 패턴과 관계 유지 전략' },
+    { title: 'Chapter 7. 인간관계와 귀인운', subtitle: '귀인/소모 관계 판별과 운영' },
+    { title: 'Chapter 8. 감정의 그림자와 마음의 회복', subtitle: '내면 소진 패턴과 회복법' },
+    { title: 'Chapter 9. 인생의 전환점과 운의 흐름', subtitle: '시기별 변화 신호와 대응' },
+    { title: 'Chapter 10. 건강한 생활 리듬과 에너지 관리', subtitle: '생활 루틴 기반 에너지 운영' },
+    { title: 'Chapter 11. 올해와 가까운 미래의 운용 전략', subtitle: '월별/분기별 실전 운용 가이드' },
+    { title: 'Chapter 12. 숙요점 인생 마스터플랜', subtitle: '최종 통합 전략 봉서' },
   ];
 
   var COMPAT_CHAPTER_META = [
-    { title: '🌑 본명숙 원형 해독', subtitle: '나의 27숙 정체성' },
-    { title: '🌙 달의 주기와 정서 리듬', subtitle: '월상·삭망각·조도 분석' },
-    { title: '🎭 페르소나와 첫인상', subtitle: '세상이 나를 기억하는 방식' },
-    { title: '💰 자산 감각과 생활 기반', subtitle: '돈을 대하는 숙요적 태도' },
-    { title: '⚙️ 협업과 조직 적응', subtitle: '보이지 않는 톱니바퀴' },
-    { title: '📡 관계 감지력', subtitle: '인간관계 레이더와 거리 조절' },
-    { title: '💥 위기와 전환', subtitle: '무너질 때 다시 살아나는 방식' },
-    { title: '🏡 가족과 뿌리', subtitle: '정서적 기반과 소속감' },
-    { title: '🔥 욕망과 추진력', subtitle: '내가 움직이는 진짜 이유' },
-    { title: '🧘 내면 회복과 영성', subtitle: '혼자 있을 때 살아나는 힘' },
+    { title: 'Chapter 1. 두 별의 본질과 관계의 시작', subtitle: '기질, 첫 끌림, 관계 테마' },
+    { title: 'Chapter 2. 감정 온도차와 대화 방식', subtitle: '감정 속도와 오해 복구법' },
+    { title: 'Chapter 3. 사랑의 역할과 관계 균형', subtitle: '주도권·기대·책임의 균형' },
+    { title: 'Chapter 4. 현실 궁합', subtitle: '일·돈·생활 조건의 적합성' },
+    { title: 'Chapter 5. 주변 사람과 생활 리듬', subtitle: '가족/친구 영향과 동거 리듬' },
+    { title: 'Chapter 6. 갈등과 이별 위기', subtitle: '상처 패턴과 회복 조건' },
+    { title: 'Chapter 7. 결혼과 장기 파트너 가능성', subtitle: '장기 합의와 현실 조건' },
+    { title: 'Chapter 8. 올해 흐름과 최종 궁합 봉서', subtitle: '관계 흐름 총정리와 최종 조언' },
   ];
 
   var PERSONAL_LOADING_MSGS = [
-    '본명숙 원형 해독 데이터를 정리하는 중...',
-    '달의 주기와 정서 리듬을 분석하는 중...',
-    '페르소나와 첫인상 코드를 해석하는 중...',
-    '자산 감각과 생활 기반을 정리하는 중...',
-    '협업과 조직 적응 패턴을 추출하는 중...',
-    '관계 감지력과 거리 조절법을 계산하는 중...',
-    '위기와 전환 리듬을 분석하는 중...',
-    '가족과 뿌리의 정서 기반을 구성하는 중...',
-    '욕망과 추진력의 동기를 분석하는 중...',
-    '내면 회복과 영성 루틴을 설계하는 중...',
+    '운명의 본질을 정밀하게 해석하는 중...',
+    '성격과 내면 결을 분석하는 중...',
+    '재능과 성공 조건을 추출하는 중...',
+    '일과 사회적 역할 패턴을 정리하는 중...',
+    '돈과 현실 감각 리듬을 해석하는 중...',
+    '사랑과 인연 패턴을 구성하는 중...',
+    '인간관계와 귀인운 흐름을 분석하는 중...',
+    '감정 그림자와 회복 루틴을 정리하는 중...',
+    '인생 전환점과 운의 흐름을 해석하는 중...',
+    '생활 리듬과 에너지 관리 전략을 설계하는 중...',
+    '올해와 가까운 미래 운용 전략을 작성하는 중...',
+    '마스터플랜 봉서를 완성하는 중...',
   ];
 
   var COMPAT_LOADING_MSGS = [
-    '본명숙 원형 해독 데이터를 정리하는 중...',
-    '달의 주기와 정서 리듬을 분석하는 중...',
-    '페르소나와 첫인상 코드를 해석하는 중...',
-    '자산 감각과 생활 기반을 정리하는 중...',
-    '협업과 조직 적응 패턴을 추출하는 중...',
-    '관계 감지력과 거리 조절법을 계산하는 중...',
-    '위기와 전환 리듬을 분석하는 중...',
-    '가족과 뿌리의 정서 기반을 구성하는 중...',
-    '욕망과 추진력의 동기를 분석하는 중...',
-    '내면 회복과 영성 루틴을 설계하는 중...',
+    '두 별의 본질과 관계 시작점을 분석하는 중...',
+    '감정 온도차와 대화 패턴을 해석하는 중...',
+    '역할 균형과 책임 구조를 정리하는 중...',
+    '현실 궁합(일·돈·생활)을 계산하는 중...',
+    '주변 영향과 생활 리듬을 분석하는 중...',
+    '갈등·이별 위기와 회복 조건을 정리하는 중...',
+    '결혼/장기 파트너 가능성을 해석하는 중...',
+    '올해 흐름과 최종 궁합 봉서를 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -95,6 +95,10 @@
 
   function _getActiveLoadingMessages() {
     return _reportMode === 'compatibility' ? COMPAT_LOADING_MSGS : PERSONAL_LOADING_MSGS;
+  }
+
+  function _getReportDisplayTitle() {
+    return _reportMode === 'compatibility' ? '숙요점 궁합 봉서' : '숙요점 인생 총람';
   }
 
   function _getChapterMetaAt(idx) {
@@ -623,7 +627,7 @@
       _showScreen('skResultScreen');
       _updateTocState(); _renderChapter(1); _bindToc();
       var nameEl=_qs('skResultName'),dateEl=_qs('skResultDate');
-      if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 인생 총람';
+      if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 '+_getReportDisplayTitle();
       if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
       modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
       document.body.classList.add('lb-modal-open');
@@ -817,7 +821,7 @@
         : '전체 챕터 정리를 완료했습니다.';
       _setStage(done < _totalChapters ? 5 : 6, _subtitle);
       if(chapterMsg&&done<_totalChapters)chapterMsg.textContent=activeLoading[done]||'분석 중...';
-      if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent='숙요점 인생 총람이 완성되었습니다 ✦';
+      if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent=_getReportDisplayTitle()+'이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<_totalChapters?'Chapter '+(done+1):'✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
@@ -1059,7 +1063,7 @@
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
         var _nameEl=_qs('skResultName'),_dateEl=_qs('skResultDate');
-        if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 인생 총람';
+        if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 '+_getReportDisplayTitle();
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _skSaveResult(prof);
         return;
@@ -1228,9 +1232,10 @@
   }
 
   window.downloadSukuyoBookPdf = function(){
-    if(!_chapters.some(Boolean)){alert('먼저 숙요점 인생 총람을 생성해 주세요.');return;}
+    if(!_chapters.some(Boolean)){alert('먼저 '+_getReportDisplayTitle()+'을(를) 생성해 주세요.');return;}
     var profile=window.__cdActiveBirthProfile||{};
-    var name=(profile.name||'사용자')+'님의 숙요점 인생 총람';
+    var reportTitle = _getReportDisplayTitle();
+    var name=(profile.name||'사용자')+'님의 '+reportTitle;
     var birth=profile.birth||{};
     var issued=new Date().toLocaleDateString('ko-KR');
     var tocItems='';
@@ -1275,14 +1280,13 @@
       '.page-footer:after{content:"Page " counter(page);}' +
       '</style></head><body>' +
       '<div class="cover"><p class="cover-badge">SUKUYO 宿曜占 PREMIUM</p>' +
-      '<h1 class="cover-title">숙요점 인생 총람</h1>' +
+      '<h1 class="cover-title">'+_escHtml(reportTitle)+'</h1>' +
       '<p style="font-size:15px;color:#bae6fd;margin-bottom:14px;">정확한 본명숙 계산값 기반 '+_totalChapters+'챕터 리포트</p>' +
       '<div style="width:64px;height:1px;background:rgba(125,211,252,0.45);margin:0 auto 16px;"></div>' +
       '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 숙요 리포트</p>' +
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
       '<p class="cover-info" style="margin-top:8px;">발행일 '+issued+'</p></div>' +
       '<section class="toc"><h2>목차</h2><ol>'+tocItems+'</ol></section>' +
-      _renderSukuyoCalcSummaryHtml(profile) +
       bodyHtml +
       '<div class="page-footer"></div>' +
       '</body></html>';

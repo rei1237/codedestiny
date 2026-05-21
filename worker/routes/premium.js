@@ -31,7 +31,7 @@ import {
   buildSukuyoDataSummaryTable,
 } from "../lib/sukuyo-premium.js";
 import {
-  SUKYO_PDF_CHAPTERS,
+  getSukyoPdfChapters,
   validateSukyoPdfInput,
   buildSukyoPdfContext,
   buildSukyoGeminiPrompt,
@@ -119,24 +119,30 @@ const SUKUYO_CHAPTER_GUIDES = [
 ];
 
 const ASTRO_PERSONAL_CHAPTER_META = [
-  { key: "C1", num: 1, title: "🌌 나의 우주적 첫인상 — ASC·Chart Ruler·1하우스", subtitle: "상승궁·차트룰러·1하우스", icon: "star" },
-  { key: "C2", num: 2, title: "☀️ 삶의 중심 엔진 — Sun Sign·House·Aspects", subtitle: "태양의 자아 실현 축", icon: "star" },
-  { key: "C3", num: 3, title: "🌙 감정의 뿌리 — Moon Sign·House·4하우스", subtitle: "달과 정서 안정 구조", icon: "star" },
-  { key: "C4", num: 4, title: "🧠 사고와 언어의 구조 — Mercury·3하우스·9하우스", subtitle: "수성·학습·커뮤니케이션", icon: "star" },
-  { key: "C5", num: 5, title: "💎 사랑과 가치의 미학 — Venus·2하우스·7하우스", subtitle: "금성·관계·가치·재정", icon: "star" },
-  { key: "C6", num: 6, title: "⚡ 욕망과 추진력 — Mars·1하우스·8하우스", subtitle: "화성·행동·충돌·회복", icon: "star" },
-  { key: "C7", num: 7, title: "🌠 확장과 기회의 문 — Jupiter·9하우스", subtitle: "목성·성장·전문성", icon: "star" },
-  { key: "C8", num: 8, title: "🪐 한계와 마스터의 길 — Saturn·10하우스·MC", subtitle: "토성·커리어·장기 성취", icon: "star" },
-  { key: "C9", num: 9, title: "🌀 세대 행성과 인생 변곡점 — Uranus·Neptune·Pluto", subtitle: "외행성 개인화 해석", icon: "star" },
-  { key: "C10", num: 10, title: "🧭 영혼의 성장축 — North Node·South Node", subtitle: "노드 축과 성장 과제", icon: "star" },
-  { key: "C11", num: 11, title: "🧬 차트 종합 구조 — Elements·Modalities·Dominants", subtitle: "차트 밸런스·지배성", icon: "star" },
-  { key: "C12", num: 12, title: "📡 현재 하늘의 흐름 — Transit·Progression·Solar Return", subtitle: "예측 데이터 기반 흐름", icon: "star" },
-  { key: "C13", num: 13, title: "🌟 코즈믹 마스터플랜 — 총결산·90일 실행 로드맵", subtitle: "핵심 강점·반복 과제·실행", icon: "star" },
+  { key: "C1", num: 1, mode: "personal", title: "🌌 나의 우주적 정체성 — 태양·달·상승궁의 핵심 구조", subtitle: "태양·달·상승궁 통합 정체성", icon: "star" },
+  { key: "C2", num: 2, mode: "personal", title: "🔥 에너지 밸런스 — 원소와 모드로 보는 삶의 리듬", subtitle: "원소·모달리티 균형", icon: "star" },
+  { key: "C3", num: 3, mode: "personal", title: "🧭 인생의 네 기둥 — ASC·IC·DSC·MC 완전 해석", subtitle: "각도축과 인생 방향", icon: "star" },
+  { key: "C4", num: 4, mode: "personal", title: "🧠 마음과 사고방식 — 달·수성으로 보는 내면과 언어", subtitle: "감정 반응과 사고/학습", icon: "star" },
+  { key: "C5", num: 5, mode: "personal", title: "💞 사랑과 욕망 — 금성·화성으로 보는 관계와 끌림", subtitle: "애정 표현과 욕망 패턴", icon: "star" },
+  { key: "C6", num: 6, mode: "personal", title: "📈 성장과 확장 — 목성·토성으로 보는 기회와 과제", subtitle: "확장과 제한의 균형", icon: "star" },
+  { key: "C7", num: 7, mode: "personal", title: "🌀 깊은 변화의 서사 — 천왕성·해왕성·명왕성의 인생 테마", subtitle: "외행성 전환점 해석", icon: "star" },
+  { key: "C8", num: 8, mode: "personal", title: "🏛 하우스별 인생 지도 — 삶의 12영역 해석", subtitle: "12하우스 집중 해석", icon: "star" },
+  { key: "C9", num: 9, mode: "personal", title: "🔗 애스펙트와 내면 패턴 — 재능, 갈등, 반복되는 운명", subtitle: "행성 각도의 내면 작동", icon: "star" },
+  { key: "C10", num: 10, mode: "personal", title: "💼 직업·돈·사회적 성공 — 현실에서 빛나는 방식", subtitle: "커리어·재정·사회적 포지션", icon: "star" },
+  { key: "C11", num: 11, mode: "personal", title: "📅 올해와 가까운 미래의 운세 로드맵", subtitle: "트랜짓 기반 실행 로드맵", icon: "star" },
+  { key: "C12", num: 12, mode: "personal", title: "🌟 점성술 인생 마스터플랜", subtitle: "전체 통합 마스터플랜", icon: "star" },
 ];
-const ASTRO_RELATION_CHAPTER_META = [
-  { key: "R1", num: "R1", title: "💞 Synastry — 두 사람의 행성 접점", subtitle: "상호 행성 접점과 오브", icon: "star" },
-  { key: "R2", num: "R2", title: "🧩 Composite Chart — 관계 자체의 운명 구조", subtitle: "관계 합성 차트 구조", icon: "star" },
-  { key: "R3", num: "R3", title: "❤️ 관계 운영 로드맵 — 갈등·회복·성장 전략", subtitle: "관계 운영 실전 전략", icon: "star" },
+const ASTRO_COMPAT_CHAPTER_META = [
+  { key: "K1", num: 1, mode: "compatibility", title: "💞 두 사람의 우주적 첫인상 — 관계가 시작된 이유", subtitle: "관계 시작의 핵심 테마", icon: "star" },
+  { key: "K2", num: 2, mode: "compatibility", title: "☀️🌙 태양과 달의 궁합 — 자아와 감정의 조화", subtitle: "정서적 안정과 긴장", icon: "star" },
+  { key: "K3", num: 3, mode: "compatibility", title: "❤️ 금성과 화성의 끌림 — 사랑, 욕망, 애정 표현", subtitle: "끌림과 열정의 작동 방식", icon: "star" },
+  { key: "K4", num: 4, mode: "compatibility", title: "🗣 수성과 대화 궁합 — 말, 생각, 오해의 구조", subtitle: "커뮤니케이션 궁합", icon: "star" },
+  { key: "K5", num: 5, mode: "compatibility", title: "🤝 7하우스와 파트너십 — 연애·결혼 관계의 핵심", subtitle: "파트너십 구조와 역할", icon: "star" },
+  { key: "K6", num: 6, mode: "compatibility", title: "⚠️ 갈등과 상처 패턴 — 충돌 애스펙트와 감정의 그림자", subtitle: "갈등 회복 설계", icon: "star" },
+  { key: "K7", num: 7, mode: "compatibility", title: "🏠 현실 궁합 — 돈, 일, 생활 리듬의 조화", subtitle: "생활/재정/일상 합의", icon: "star" },
+  { key: "K8", num: 8, mode: "compatibility", title: "🪐 장기 인연과 성장 가능성 — 토성·목성의 관계 과제", subtitle: "장기 안정성과 성장", icon: "star" },
+  { key: "K9", num: 9, mode: "compatibility", title: "🧭 올해 두 사람의 관계 흐름", subtitle: "가까운 미래 관계 로드맵", icon: "star" },
+  { key: "K10", num: 10, mode: "compatibility", title: "📜 최종 궁합 봉서 — 사랑, 성장, 동반자 가능성", subtitle: "최종 관계 마스터플랜", icon: "star" },
 ];
 const ASTRO_TOTAL_CHAPTERS = ASTRO_PERSONAL_CHAPTER_META.length;
 const ASTRO_REPORT_TITLE_PERSONAL = "Professional Edition: 서양 점성술 프리미엄 리포트";
@@ -156,22 +162,28 @@ const ASTRO_FORBIDDEN_REPEATED_PHRASES = [
   "이번 주에는 큰 결정보다 작은 루틴 고정을 우선하고, 월말에는 반드시 복기하세요.",
 ];
 const ASTRO_CHAPTER_FOCUS_KEYWORDS = {
-  C1: ["ASC", "Chart Ruler", "1하우스", "첫인상", "자기표현"],
-  C2: ["태양", "자아 실현", "존재감", "창조성", "태양 어스펙트"],
-  C3: ["달", "애착", "정서 안정", "4하우스", "무의식"],
-  C4: ["수성", "학습", "언어", "3하우스", "9하우스"],
-  C5: ["금성", "사랑", "가치", "2하우스", "7하우스"],
-  C6: ["화성", "추진력", "분노 처리", "1하우스", "8하우스"],
-  C7: ["목성", "확장", "전문성", "9하우스", "장기 비전"],
-  C8: ["토성", "MC", "10하우스", "책임", "성취"],
-  C9: ["천왕성", "해왕성", "명왕성", "변곡점", "개인화"],
-  C10: ["노스노드", "사우스노드", "성장축", "카르마", "인생 주제"],
-  C11: ["원소", "양식", "반구", "지배 행성", "지배 하우스"],
-  C12: ["트랜짓", "프로그레션", "솔라리턴", "오브", "기간별 전략"],
-  C13: ["총결산", "강점 5개", "과제 5개", "커리어 전략", "90일 루틴"],
-  R1: ["Synastry", "행성 접점", "오브", "긴장각", "조화각"],
-  R2: ["Composite", "관계 차트", "7하우스", "10하우스", "핵심 어스펙트"],
-  R3: ["갈등 회복", "관계 운영", "경계", "대화 프로토콜", "실천 계획"],
+  C1: ["태양", "달", "상승궁", "정체성", "내면/겉모습"],
+  C2: ["원소", "모드", "균형", "결핍", "보완 전략"],
+  C3: ["ASC", "IC", "DSC", "MC", "삶의 축"],
+  C4: ["달", "수성", "감정", "사고", "대화 패턴"],
+  C5: ["금성", "화성", "애정 표현", "욕망", "관계 패턴"],
+  C6: ["목성", "토성", "확장", "제한", "장기 성장"],
+  C7: ["천왕성", "해왕성", "명왕성", "전환", "재생"],
+  C8: ["1하우스", "7하우스", "10하우스", "12하우스", "영역별 해석"],
+  C9: ["애스펙트", "조화각", "긴장각", "반복 패턴", "갈등 전환"],
+  C10: ["MC", "2하우스", "6하우스", "11하우스", "수익 구조"],
+  C11: ["트랜짓", "분기 흐름", "Go/Hold/Retreat", "전환점", "실행 전략"],
+  C12: ["핵심 정체성", "강점 5", "약점 5", "관계 전략", "최종 봉서"],
+  K1: ["첫인상", "관계 시작", "심리적 역할", "기대", "핵심 테마"],
+  K2: ["태양 궁합", "달 궁합", "정서 안정", "상처 지점", "정서 회복"],
+  K3: ["금성", "화성", "끌림", "애정 표현", "열정 관리"],
+  K4: ["수성", "말투", "오해", "침묵/회피", "대화법"],
+  K5: ["7하우스", "파트너 역할", "주도권", "결혼/동거", "역할 분담"],
+  K6: ["갈등 트리거", "질투/통제", "회피", "회복 조건", "이별 위기"],
+  K7: ["돈", "일", "생활 리듬", "현실 합의", "장기 운영"],
+  K8: ["토성", "목성", "책임", "성장", "장기 파트너 조건"],
+  K9: ["연간 흐름", "가까워지는 시기", "예민 구간", "거리두기", "관계 선택"],
+  K10: ["강점 5", "약점 5", "사랑/성장/동반자", "원칙", "최종 메시지"],
 };
 
 const LOVE_SECRET_MODE_CONFIG = {
@@ -182,7 +194,7 @@ const LOVE_SECRET_MODE_CONFIG = {
     minTotalChars: 62000,
     chapterMinDefault: 4000,
     chapterMinByIndex: { 1: 5000, 2: 5000, 3: 5500, 4: 4500, 5: 5500, 6: 4500, 7: 4500, 8: 4500, 9: 5500, 10: 5000, 11: 4800, 12: 4800, 13: 5200 },
-    title: "프리미엄 사주 연애운 리포트",
+    title: "프리미엄 사주 연애 비책 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "일간/월지/일지/오행/십성으로 읽는 관계 자아", required: ["일간", "일지 배우자궁", "월지", "신강/신약", "오행 분포", "십성 분포", "관계 주도권"] },
       { title: "🌹 치명적 매력과 페로몬", subtitle: "도화/홍염/화개/역마가 만드는 매력 결", required: ["도화살", "홍염살", "화개살", "역마살", "기둥 위치", "매력 작동 상황", "과잉 리스크"] },
@@ -190,11 +202,11 @@ const LOVE_SECRET_MODE_CONFIG = {
       { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "식상·재성·관성·인성·비겁 기반 실전 대화법", required: ["식상", "재성", "관성", "인성", "비겁", "연락법", "갈등 대화법"] },
       { title: "📅 시기별 연애운 흐름", subtitle: "대운·세운·월운 기반 Go/Hold/Retreat", required: ["현재 대운", "다음 대운", "해당 연도 세운", "월운", "고백/정리 타이밍", "주의 시기", "선택 전략"] },
       { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "기신 과열·오행 불균형의 위기 패턴", required: ["기신", "오행 불균형", "일지 충형파해", "신살 역작용", "충돌 버튼", "이별 전조", "회복 프로토콜"] },
-      { title: "🔥 친밀감과 육체적 매력", subtitle: "관계 온도와 친밀 리듬의 데이터 기반 해석", required: ["화 기운", "수 기운", "식상", "재성/관성", "홍염/도화", "속도 차이", "안정감 조건"] },
+      { title: "🔥 친밀감과 감정 리듬", subtitle: "가까워질수록 안정되는 감정 속도 설계", required: ["화 기운", "수 기운", "식상", "재성/관성", "홍염/도화", "속도 차이", "안정감 조건"] },
       { title: "📱 현대적 상황별 연애 비책", subtitle: "카톡/DM/썸/재회/장거리 실전 운영", required: ["연락 템포", "썸 단계", "갈등 후 메시지", "재회/정리", "온라인 관계", "말투 전략", "맞춤 접근법"] },
       { title: "💍 결혼과 정착", subtitle: "배우자궁·배우자성·책임 구조로 보는 장기 안정성", required: ["배우자궁", "배우자성", "재성/관성", "결혼 시기", "역할 분담", "돈/생활 운영", "장기 안정성"] },
       { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "용신/희신 강화와 기신 절감의 7·30·90일 플랜", required: ["용신", "희신", "기신", "오행 개운", "말투/공간 처방", "7일/30일/90일", "최종 10계명"] },
-      { title: "♻️ 재회·이별·회복 시나리오", subtitle: "이별 가능성·재회 확률·회복 루틴 의사결정", required: ["관계 단절 신호", "재회 가능 구간", "손절 기준", "회복 대화", "감정 리셋", "현실 조건", "의사결정표"] },
+      { title: "♻️ 재회·이별·회복 시나리오", subtitle: "이별 위기 대응과 관계 회복 재설계", required: ["관계 단절 신호", "재회 가능 구간", "손절 기준", "회복 대화", "감정 리셋", "현실 조건", "의사결정표"] },
       { title: "🛠 장기 관계 운영 매뉴얼", subtitle: "장기 연애 유지 시스템과 재발 방지 설계", required: ["갈등 재발 패턴", "경계선", "역할 분담", "감정 점검", "재정/생활 합의", "루틴", "관계 유지 KPI"] },
       { title: "🌟 최종 사랑 마스터플랜", subtitle: "1년·3년·10년 관계 성장 로드맵", required: ["핵심 강점", "핵심 리스크", "우선순위", "90일 실행표", "1년 계획", "3년 계획", "10년 청사진"] },
     ],
@@ -206,7 +218,7 @@ const LOVE_SECRET_MODE_CONFIG = {
     minTotalChars: 78000,
     chapterMinDefault: 5500,
     chapterMinByIndex: { 1: 6000, 2: 6000, 3: 6500, 4: 5500, 5: 6500, 6: 5500, 7: 5500, 8: 5500, 9: 6500, 10: 6000, 11: 5800, 12: 5800, 13: 6200 },
-    title: "프리미엄 사주 궁합 리포트",
+    title: "프리미엄 사주 궁합 연애 비책 리포트",
     chapters: [
       { title: "💗 본연의 연애 자아", subtitle: "두 사람의 연애 자아와 수용 방식 비교" },
       { title: "🌹 치명적 매력과 페로몬", subtitle: "도화/홍염/화개/역마의 상호작용" },
@@ -214,13 +226,13 @@ const LOVE_SECRET_MODE_CONFIG = {
       { title: "⚔️ 실전 연애 전략 및 스킬", subtitle: "두 사람 명식에 맞춘 대화 운영 매뉴얼" },
       { title: "📅 시기별 연애운 흐름", subtitle: "대운·세운·월운 동시성 타이밍" },
       { title: "🌑 연애의 어두운 면과 위기 관리", subtitle: "충돌 버튼과 회복 프로토콜" },
-      { title: "🔥 친밀감과 육체적 매력", subtitle: "관계 온도와 친밀 속도 조율" },
+      { title: "🔥 친밀감과 감정 리듬", subtitle: "친밀 속도와 감정 리듬의 궁합 조율" },
       { title: "📱 현대적 상황별 연애 비책", subtitle: "상황별 맞춤 소통/거리 전략" },
       { title: "💍 결혼과 정착", subtitle: "장기 안정성·역할 분담·생활 리듬" },
       { title: "🧭 맞춤형 연애 개운 처방전", subtitle: "공동 7·30·90일 관계 강화 플랜" },
-      { title: "♻️ 재회·이별·회복 의사결정표", subtitle: "관계 단절/재회/복원 시나리오 판단 기준" },
+      { title: "♻️ 재회·이별·회복 시나리오", subtitle: "관계 단절/재회/복원 시나리오 판단 기준" },
       { title: "🛠 장기 관계 운영 매뉴얼", subtitle: "커플 루틴·경계선·갈등 재발 방지 체계" },
-      { title: "🌟 커플 사랑 마스터플랜", subtitle: "커플 1년·3년·10년 공동 성장 전략" },
+      { title: "🌟 최종 사랑 마스터플랜", subtitle: "커플 1년·3년·10년 공동 성장 전략" },
     ],
   },
 };
@@ -268,37 +280,84 @@ const VEDIC_NAKSHATRA_META = [
   { name: "Uttara Bhadrapada", lord: "Saturn", deity: "Ahir Budhnya", symbol: "뒷다리" },
   { name: "Revati", lord: "Mercury", deity: "Pushan", symbol: "탬버린" },
 ];
-const VEDIC_CHAPTER_GUIDES = [
-  "라그나·1하우스·핵심 행성 배치를 바탕으로 자기 인식의 기본 프레임을 정리하세요.",
-  "아트마카라카와 다르마 축을 연결해 반복되는 카르마 과제와 방향성을 제시하세요.",
-  "Moon Nakshatra(파다 포함)를 근거로 감정 반응 패턴과 회복 루틴을 설명하세요.",
-  "Maha/Antar Dasha 중심으로 현재 시기 우선순위와 행동 타이밍을 제시하세요.",
-  "2·11하우스, 목성, 금성을 근거로 재물 흐름과 실행 가능한 재정 루틴을 작성하세요.",
-  "10하우스와 D10 기반으로 커리어 역할·성과 방식·리스크 관리 전략을 제시하세요.",
-  "7하우스, 금성/화성, 관계 패턴을 근거로 경계선과 소통 전략을 제시하세요.",
-  "6·8·12하우스의 생활 리듬 관점에서 건강 관리 루틴을 단정 없이 작성하세요.",
-  "검출된 요가를 중심으로 강점 발현 조건과 적용 장면을 구체화하세요.",
-  "다샤+차트 기반 12개월 월별 행동 전략을 ### 1월~### 12월 블록으로 작성하세요.",
-  "우파야를 미신이 아닌 생활 행동(루틴/환경/습관) 중심으로 제시하세요.",
-  "90일 실행 로드맵(1~7일/8~30일/31~60일/61~90일)을 표로 작성하세요.",
-  "전체 해석을 통합해 핵심 메시지와 실행 선언문을 정리하세요.",
+const VEDIC_PERSONAL_CHAPTER_GUIDES = [
+  "라그나와 라그나 로드를 기반으로 인생의 기본 설계, 생존 방식, 외면/내면 차이를 상담문으로 정리하세요.",
+  "찬드라와 정서 패턴을 중심으로 불안/애착/회복 루틴을 현실 사례형으로 풀어 쓰세요.",
+  "수리야를 통해 자존감, 리더십, 책임, 상처받을 때의 반응과 재정렬 전략을 제시하세요.",
+  "문 나크샤트라와 파다를 중심으로 반복 기질, 운의 그림자, 현실 활용법을 구체적으로 설명하세요.",
+  "주요 그라하의 강약, 긴장/조화를 묶어 삶의 작동 원리와 무기화 전략을 작성하세요.",
+  "12하우스를 영역별로 해석하되 강조 하우스/비강조 하우스의 의미를 함께 설명하세요.",
+  "다르마/카르마 관점에서 반복 과제와 성장 전환법을 현실 행동 기준으로 제시하세요.",
+  "사랑/결혼 구조를 중심으로 끌림과 실제 궁합의 차이, 지속 전략을 관계 상담문으로 작성하세요.",
+  "직업/돈/성취 파트를 조직형·독립형 등 실무 성향과 수익화 전략으로 연결해 제시하세요.",
+  "다샤 기반 시기 해석에서 밀어붙일 때/기다릴 때를 구분해 행동 타이밍을 설계하세요.",
+  "올해 운용 전략은 반드시 ### 1월~### 12월 월별 블록과 Go/Hold/Retreat 방향을 포함하세요.",
+  "전체 차트를 인생 마스터플랜으로 통합하고 강점 5개/주의점 5개/최종 봉서로 마무리하세요.",
 ];
-const VEDIC_CHAPTER_META = [
-  { num: 1, title: "라그나와 핵심 성향", subtitle: "Lagna 기반 자기 인식", icon: "vedic" },
-  { num: 2, title: "카르마 과제와 영혼 목적", subtitle: "Atmakaraka · Dharma", icon: "vedic" },
-  { num: 3, title: "나크샤트라 심리 지도", subtitle: "Moon Nakshatra 기반 정서 패턴", icon: "vedic" },
-  { num: 4, title: "다샤 타임라인", subtitle: "Maha/Antar Dasha 전략", icon: "vedic" },
-  { num: 5, title: "재물과 가치 실현", subtitle: "2·11하우스 · 목성 · 금성", icon: "vedic" },
-  { num: 6, title: "천직과 커리어", subtitle: "10하우스 · D10 중심", icon: "vedic" },
-  { num: 7, title: "관계와 카르믹 패턴", subtitle: "7하우스 · 금성/화성", icon: "vedic" },
-  { num: 8, title: "건강 균형과 회복", subtitle: "6·8·12하우스 · 생활 리듬", icon: "vedic" },
-  { num: 9, title: "요가와 강점 증폭", subtitle: "차트 조합의 장점 활용", icon: "vedic" },
-  { num: 10, title: "향후 12개월 전략", subtitle: "Transit · 일정 기반 실행", icon: "vedic" },
-  { num: 11, title: "우파야 실천 가이드", subtitle: "현대형 Upaya 루틴", icon: "vedic" },
-  { num: 12, title: "90일 실행 로드맵", subtitle: "실행 우선순위와 점검 지표", icon: "vedic" },
-  { num: 13, title: "최종 카르마 블루프린트", subtitle: "통합 요약 · 선언문", icon: "vedic" },
+const VEDIC_COMPAT_CHAPTER_GUIDES = [
+  "두 사람의 관계 시작 신호를 첫 끌림, 낯섦, 기대와 착각 관점에서 관계 중심으로 압축 해석하세요.",
+  "감정 안정과 애착 구조를 A/B 반응 비교로 제시하고 정서적 안전장치를 설계하세요.",
+  "금성/화성 중심으로 사랑 방식, 욕망 표현, 열정 유지법을 충돌 예방형 조언으로 작성하세요.",
+  "말과 생각의 궁합을 오해 패턴, 싸움 방식, 금지 문장/권장 대화법으로 구체화하세요.",
+  "결혼/장기 파트너십 관점에서 책임·자유·가족관 차이를 조율하는 기준을 제시하세요.",
+  "현실 궁합(돈/일/생활리듬)에서 합의가 필요한 운영 규칙을 실천 체크리스트로 정리하세요.",
+  "갈등/상처 패턴을 반복 트리거, 위기 조건, 회복 조건 중심으로 상담형으로 제시하세요.",
+  "카르마와 성장 관점에서 서로에게 주는 배움과 성숙 경로를 현실적으로 설명하세요.",
+  "올해 관계 흐름은 반드시 ### 1분기~### 4분기 블록으로 작성하고 각 분기 행동 지침을 제시하세요.",
+  "최종 궁합 봉서는 강점 5개/약점 5개/유지 원칙/정리 기준까지 포함해 편지형으로 마무리하세요.",
 ];
-const VEDIC_TOTAL_CHAPTERS = VEDIC_CHAPTER_META.length;
+const VEDIC_PERSONAL_CHAPTER_META = [
+  { key: "VP1", num: 1, mode: "personal", title: "영혼의 출발점 — 라그나와 인생의 기본 설계", subtitle: "라그나 기반 인생 기본 구조", icon: "vedic" },
+  { key: "VP2", num: 2, mode: "personal", title: "마음의 별자리 — 찬드라와 감정의 본질", subtitle: "찬드라 중심 정서 해석", icon: "vedic" },
+  { key: "VP3", num: 3, mode: "personal", title: "태양과 자아의 빛 — 수리야로 보는 삶의 방향", subtitle: "수리야 중심 자아 전략", icon: "vedic" },
+  { key: "VP4", num: 4, mode: "personal", title: "나크샤트라의 비밀 — 타고난 기질과 운명의 결", subtitle: "나크샤트라 기질 지도", icon: "vedic" },
+  { key: "VP5", num: 5, mode: "personal", title: "행성들의 회의 — 그라하 배치와 인생 작동 방식", subtitle: "주요 그라하 작동 원리", icon: "vedic" },
+  { key: "VP6", num: 6, mode: "personal", title: "12하우스 인생 지도 — 삶의 영역별 운명 해석", subtitle: "12하우스 영역 해석", icon: "vedic" },
+  { key: "VP7", num: 7, mode: "personal", title: "다르마와 카르마 — 사명, 업, 인생의 숙제", subtitle: "사명과 과제의 통합", icon: "vedic" },
+  { key: "VP8", num: 8, mode: "personal", title: "사랑과 결혼의 구조 — 관계운과 배우자운", subtitle: "연애·결혼 구조 분석", icon: "vedic" },
+  { key: "VP9", num: 9, mode: "personal", title: "직업·돈·성취 — 현실에서 성공하는 방식", subtitle: "커리어·재정 전략", icon: "vedic" },
+  { key: "VP10", num: 10, mode: "personal", title: "다샤와 인생 타이밍 — 시기별 운의 흐름", subtitle: "다샤 기반 타이밍 설계", icon: "vedic" },
+  { key: "VP11", num: 11, mode: "personal", title: "올해와 가까운 미래의 운용 전략", subtitle: "연간·월간 실행 전략", icon: "vedic" },
+  { key: "VP12", num: 12, mode: "personal", title: "베다점 인생 마스터플랜", subtitle: "통합 상담 봉서", icon: "vedic" },
+];
+const VEDIC_COMPAT_CHAPTER_META = [
+  { key: "VC1", num: 1, mode: "compatibility", title: "두 영혼의 첫 만남 — 관계가 시작된 이유", subtitle: "관계 시작 테마", icon: "vedic" },
+  { key: "VC2", num: 2, mode: "compatibility", title: "마음의 궁합 — 감정 안정과 애착의 구조", subtitle: "감정·애착 궁합", icon: "vedic" },
+  { key: "VC3", num: 3, mode: "compatibility", title: "사랑과 끌림 — 금성·화성의 관계 에너지", subtitle: "사랑·욕망 에너지", icon: "vedic" },
+  { key: "VC4", num: 4, mode: "compatibility", title: "말과 생각의 궁합 — 소통, 오해, 이해의 방식", subtitle: "소통 구조 분석", icon: "vedic" },
+  { key: "VC5", num: 5, mode: "compatibility", title: "결혼과 파트너십 — 장기 관계의 가능성", subtitle: "장기 동반자 설계", icon: "vedic" },
+  { key: "VC6", num: 6, mode: "compatibility", title: "현실 궁합 — 돈, 일, 생활 리듬의 조화", subtitle: "현실 운영 궁합", icon: "vedic" },
+  { key: "VC7", num: 7, mode: "compatibility", title: "갈등과 상처 패턴 — 관계가 흔들리는 이유", subtitle: "갈등·회복 패턴", icon: "vedic" },
+  { key: "VC8", num: 8, mode: "compatibility", title: "카르마와 성장 — 두 사람이 서로에게 주는 배움", subtitle: "관계 성장 과제", icon: "vedic" },
+  { key: "VC9", num: 9, mode: "compatibility", title: "올해 두 사람의 관계 흐름", subtitle: "연간 관계 운영", icon: "vedic" },
+  { key: "VC10", num: 10, mode: "compatibility", title: "최종 궁합 봉서 — 사랑, 인연, 동반자 가능성", subtitle: "최종 관계 봉서", icon: "vedic" },
+];
+const VEDIC_PERSONAL_TOTAL_CHAPTERS = VEDIC_PERSONAL_CHAPTER_META.length;
+const VEDIC_COMPAT_TOTAL_CHAPTERS = VEDIC_COMPAT_CHAPTER_META.length;
+const VEDIC_MAX_TOTAL_CHAPTERS = Math.max(VEDIC_PERSONAL_TOTAL_CHAPTERS, VEDIC_COMPAT_TOTAL_CHAPTERS);
+const VEDIC_CHAPTER_META = VEDIC_PERSONAL_CHAPTER_META;
+const VEDIC_TOTAL_CHAPTERS = VEDIC_MAX_TOTAL_CHAPTERS;
+
+function normalizeVedicReportType(reportType) {
+  const mode = String(reportType || "personal").toLowerCase();
+  return mode === "compatibility" ? "compatibility" : "personal";
+}
+
+function getVedicChapterMetaList(reportType = "personal") {
+  return normalizeVedicReportType(reportType) === "compatibility"
+    ? VEDIC_COMPAT_CHAPTER_META
+    : VEDIC_PERSONAL_CHAPTER_META;
+}
+
+function getVedicChapterGuideList(reportType = "personal") {
+  return normalizeVedicReportType(reportType) === "compatibility"
+    ? VEDIC_COMPAT_CHAPTER_GUIDES
+    : VEDIC_PERSONAL_CHAPTER_GUIDES;
+}
+
+function getVedicTotalChapters(reportType = "personal") {
+  return getVedicChapterMetaList(reportType).length;
+}
 const VEDIC_MIN_CHARS = 4000;
 const VEDIC_REPORT_TITLE_PERSONAL = "Professional Edition: 베다 점성술 프리미엄 리포트";
 const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나·나크샤트라·다샤로 읽는 삶의 카르믹 전략 지도";
@@ -636,7 +695,7 @@ function normalizeBody(body) {
     timezone: Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9,
     lat: Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665,
     lon: Number.isFinite(Number(body.lon ?? body.lng)) ? Number(body.lon ?? body.lng) : 126.978,
-    chapter: clampInt(body.chapter ?? body.sessionId, 1, 1, VEDIC_TOTAL_CHAPTERS),
+    chapter: clampInt(body.chapter ?? body.sessionId, 1, 1, VEDIC_MAX_TOTAL_CHAPTERS),
     name: String(body.name || "사용자").slice(0, 80),
     gender: String(normalizedGender || "").slice(0, 20),
   };
@@ -1296,7 +1355,7 @@ const PREMIUM_REPORT_KIND_MAP = {
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 13,
   sookyoPremium: 13,
-  westernAstrologyPremium: 13,
+  westernAstrologyPremium: 12,
   vedicPremium: 13,
   lifeBook: 13,
   loveSecret: 13,
@@ -2200,16 +2259,16 @@ function getPremiumNormalizedDataSummary(reportType, canonicalJson) {
 
   if (reportType === "sajuNewYear") {
     return {
-      ch1: { chapterTitle: "원국 기반 연간 전략 총론", requiredPaths: ["calculatedData.profile.birth", "calculatedData.saju"] },
-      ch2: { chapterTitle: "연간 파동과 기회 창", requiredPaths: ["calculatedData.targetYear", "calculatedData.yearlySummary"] },
-      ch3: { chapterTitle: "커리어·사업 확장 전략", requiredPaths: ["calculatedData.yearlySummary.career", "calculatedData.monthlyLuck"] },
-      ch4: { chapterTitle: "재물·현금흐름 관리", requiredPaths: ["calculatedData.yearlySummary.wealth", "calculatedData.monthlyLuck"] },
-      ch5: { chapterTitle: "관계·인맥·파트너십", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
-      ch6: { chapterTitle: "건강·에너지 밸런스", requiredPaths: ["calculatedData.yearlySummary.health", "calculatedData.monthlyLuck"] },
-      ch7: { chapterTitle: "학습·성장·전환 기회", requiredPaths: ["calculatedData.actionPlan", "calculatedData.monthlyLuck"] },
-      ch8: { chapterTitle: "리스크 관리와 손실 방어", requiredPaths: ["calculatedData.actionPlan", "calculatedData.monthlyLuck"] },
-      ch9: { chapterTitle: "12개월 월별 실행 로드맵", requiredPaths: ["calculatedData.monthlyLuck"] },
-      ch10: { chapterTitle: "최종 통합 액션 플랜", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.actionPlan"] },
+      ch1: { chapterTitle: "연간 파동 총론 - 올해의 기본 기조", requiredPaths: ["calculatedData.profile.birth", "calculatedData.saju"] },
+      ch2: { chapterTitle: "커리어 전략 - 성과가 나는 월/주의 월", requiredPaths: ["calculatedData.yearlySummary.career", "calculatedData.monthlyLuck"] },
+      ch3: { chapterTitle: "재물 흐름 - 수익/지출 관리 타이밍", requiredPaths: ["calculatedData.yearlySummary.wealth", "calculatedData.monthlyLuck"] },
+      ch4: { chapterTitle: "관계·인맥 - 협업과 거리두기 전략", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
+      ch5: { chapterTitle: "연애·가정 - 감정 파동 관리법", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
+      ch6: { chapterTitle: "건강·에너지 - 번아웃 방지 설계", requiredPaths: ["calculatedData.yearlySummary.health", "calculatedData.monthlyLuck"] },
+      ch7: { chapterTitle: "분기별 핵심 의사결정 포인트", requiredPaths: ["calculatedData.actionPlan", "calculatedData.monthlyLuck"] },
+      ch8: { chapterTitle: "리스크 시나리오와 대응 플랜", requiredPaths: ["calculatedData.actionPlan", "calculatedData.monthlyLuck"] },
+      ch9: { chapterTitle: "12개월 Go/Stop 월별 테이블", requiredPaths: ["calculatedData.monthlyLuck"] },
+      ch10: { chapterTitle: "최종 실행 로드맵 - 연말 회수 전략", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.actionPlan"] },
     };
   }
 
@@ -4599,8 +4658,15 @@ function buildChapterDataMap(reportType, calculatedData) {
   }
 
   if (reportType === "sookyoPremium") {
+    const sukyoMode = resolveSukyoModeFromPayload({
+      reportMode: calculatedData?.reportMode,
+      reportType: calculatedData?.reportType,
+      _compatibilityRequired: calculatedData?._compatibilityRequired,
+      includeCompatibility: calculatedData?.includeCompatibility,
+    });
+    const sukyoChapters = getSukyoPdfChapters(sukyoMode);
     return Object.fromEntries(
-      SUKYO_PDF_CHAPTERS.map((chapter, idx) => [
+      sukyoChapters.map((chapter, idx) => [
         `ch${idx + 1}`,
         {
           chapterTitle: String(chapter?.title || `Chapter ${idx + 1}`),
@@ -4677,16 +4743,16 @@ function buildChapterDataMap(reportType, calculatedData) {
 
   if (reportType === "sajuNewYear") {
     return {
-      ch1: { chapterTitle: "원국 기반 연간 전략 총론", requiredPaths: ["calculatedData.sajuCore.pillars", "calculatedData.sajuCore.dayMaster", "calculatedData.sajuCore.monthCommand"] },
-      ch2: { chapterTitle: "연간 파동과 기회 창", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.luckFlow.sewoon"] },
-      ch3: { chapterTitle: "커리어·사업 확장 전략", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.sajuCore.tenGodEvidence"] },
-      ch4: { chapterTitle: "재물·현금흐름 관리", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.sajuCore.tenGodEvidence"] },
-      ch5: { chapterTitle: "관계·인맥·파트너십", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.luckFlow.sewoon"] },
-      ch6: { chapterTitle: "건강·에너지 밸런스", requiredPaths: ["calculatedData.sajuCore.monthCommand", "calculatedData.yearlySummary"] },
-      ch7: { chapterTitle: "학습·성장·전환 기회", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.yearlySummary"] },
-      ch8: { chapterTitle: "리스크 관리와 손실 방어", requiredPaths: ["calculatedData.luckFlow.sewoon", "calculatedData.yearlySummary"] },
-      ch9: { chapterTitle: "12개월 월별 실행 로드맵", requiredPaths: ["calculatedData.monthlyLuck"] },
-      ch10: { chapterTitle: "최종 통합 액션 플랜", requiredPaths: ["calculatedData.actionPlan", "calculatedData.sajuCore", "calculatedData.monthlyLuck"] },
+      ch1: { chapterTitle: "연간 파동 총론 - 올해의 기본 기조", requiredPaths: ["calculatedData.sajuCore.pillars", "calculatedData.sajuCore.dayMaster", "calculatedData.sajuCore.monthCommand"] },
+      ch2: { chapterTitle: "커리어 전략 - 성과가 나는 월/주의 월", requiredPaths: ["calculatedData.yearlySummary.career", "calculatedData.monthlyLuck"] },
+      ch3: { chapterTitle: "재물 흐름 - 수익/지출 관리 타이밍", requiredPaths: ["calculatedData.yearlySummary.wealth", "calculatedData.monthlyLuck"] },
+      ch4: { chapterTitle: "관계·인맥 - 협업과 거리두기 전략", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
+      ch5: { chapterTitle: "연애·가정 - 감정 파동 관리법", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
+      ch6: { chapterTitle: "건강·에너지 - 번아웃 방지 설계", requiredPaths: ["calculatedData.sajuCore.monthCommand", "calculatedData.yearlySummary"] },
+      ch7: { chapterTitle: "분기별 핵심 의사결정 포인트", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.yearlySummary"] },
+      ch8: { chapterTitle: "리스크 시나리오와 대응 플랜", requiredPaths: ["calculatedData.luckFlow.sewoon", "calculatedData.yearlySummary"] },
+      ch9: { chapterTitle: "12개월 Go/Stop 월별 테이블", requiredPaths: ["calculatedData.monthlyLuck"] },
+      ch10: { chapterTitle: "최종 실행 로드맵 - 연말 회수 전략", requiredPaths: ["calculatedData.actionPlan", "calculatedData.sajuCore", "calculatedData.monthlyLuck"] },
     };
   }
 
@@ -5112,6 +5178,12 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
   }
 
   if (reportType === "sookyoPremium") {
+    const sukyoMode = resolveSukyoModeFromPayload({
+      reportMode: calculatedData?.reportMode,
+      reportType: calculatedData?.reportType,
+      _compatibilityRequired: calculatedData?._compatibilityRequired,
+      includeCompatibility: calculatedData?.includeCompatibility,
+    });
     const sukyoContext = toPlainObject(calculatedData.sukyoPdfContext);
     return {
       chapterCore,
@@ -5127,7 +5199,7 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
       actions: {
         relationshipAdvice: toTopArray(calculatedData?.compatibility?.relationshipAdvice, 8),
         twentySevenSook: toTopArray(calculatedData.twentySevenSook, 12),
-        chapterBlueprint: SUKYO_PDF_CHAPTERS,
+        chapterBlueprint: getSukyoPdfChapters(sukyoMode),
       },
     };
   }
@@ -5318,12 +5390,21 @@ function summarizePreviousPremiumChapters(context, currentChapterId) {
 }
 
 function buildPromptEvidenceChecklist(reportType, chapterJsonPacks = {}) {
-  const isSajuReport = reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear";
+  const isSajuClassicReport = reportType === "lifeBook" || reportType === "loveSecret";
   const common = [
     "chapterJsonPacks.chapterCore.requiredPaths 중 최소 2개를 문장 내에 근거로 명시",
     "signals, timing, actions에서 최소 1개씩 근거를 반영",
   ];
-  if (!isSajuReport) return common;
+  if (reportType === "sajuNewYear") {
+    return [
+      ...common,
+      "내부 계산 근거(년주/월주/일주/시주, 오행/십성 분포, 용신/희신/기신 판단 과정)를 본문에 직접 노출하지 말 것",
+      "연간 전략, 분기 전략, 월별 실행표를 서로 다른 목적의 상담문으로 작성할 것",
+      "월별 표는 Go/Hold/Stop 판정과 행동 지침(일/돈/관계/건강)을 함께 제공할 것",
+    ];
+  }
+
+  if (!isSajuClassicReport) return common;
 
   const sajuCore = toPlainObject(chapterJsonPacks?.signals?.sajuCore);
   const pillars = toPlainObject(sajuCore?.pillars);
@@ -5355,7 +5436,18 @@ function buildPremiumPdfRenderGuide(reportType) {
       "과장·예언형 단정 문구 금지",
     ],
   };
-  if (reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear") {
+  if (reportType === "sajuNewYear") {
+    return {
+      ...base,
+      requiredSections: [
+        "연간 운영 전략",
+        "분기별 의사결정",
+        "12개월 Go/Hold/Stop 실행표",
+        "연말 회수 로드맵",
+      ],
+    };
+  }
+  if (reportType === "lifeBook" || reportType === "loveSecret") {
     return {
       ...base,
       requiredSections: [
@@ -5425,18 +5517,26 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
 
 function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null, dedupContext = {}) {
   const promptSourceData = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks);
-  const isSajuReport = reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear";
+  const isSajuClassicReport = reportType === "lifeBook" || reportType === "loveSecret";
+  const isSajuNewYearReport = reportType === "sajuNewYear";
   const previousChapterSummaries = Array.isArray(dedupContext.previousChapterSummaries)
     ? dedupContext.previousChapterSummaries
     : [];
   const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
-  const typeSpecificRules = isSajuReport
+  const typeSpecificRules = isSajuClassicReport
     ? [
       "원국(년월일시), 일간, 월령을 최소 1회 이상 명시할 것",
       "십성 근거(tenGodEvidence)에서 최소 2개를 명시할 것",
       "대운/세운 데이터가 있으면 시기 전략에 반드시 반영할 것",
       "원국·대운·세운 근거를 분리해 서술하고, 마지막에 통합 결론으로 연결할 것",
     ]
+    : isSajuNewYearReport
+      ? [
+        "신년운세는 계산 근거 노출이 아닌 연간 운영 전략 중심으로 작성할 것",
+        "년주/월주/일주/시주, 일간/월지/지장간, 오행/십성 분포 같은 내부 계산표를 본문에 직접 쓰지 말 것",
+        "분기별·월별 조언이 서로 중복되지 않게 구성할 것",
+        "12개월 Go/Hold/Stop 실행표를 제공할 때 월별 행동 지침을 구체적으로 분리할 것",
+      ]
     : [
       "해당 운세 체계의 핵심 근거 3개 이상을 분리해 제시할 것",
       "챕터별 실행 전략과 리스크 관리를 각각 1개 이상 포함할 것",
@@ -5466,9 +5566,24 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
   };
 }
 
-function getSukyoChapterBlueprint(chapterId) {
+function normalizeSukyoModeToken(rawMode) {
+  const mode = String(rawMode || "").trim().toLowerCase();
+  if (mode === "compatibility" || mode === "couple" || mode === "compat") return "compatibility";
+  return "personal";
+}
+
+function resolveSukyoModeFromPayload(payload = {}) {
+  const mode = String(payload?.mode || payload?.reportMode || payload?.reportType || "").trim().toLowerCase();
+  if (mode === "compatibility" || mode === "couple" || mode === "compat") return "compatibility";
+  if (payload?._compatibilityRequired === true) return "compatibility";
+  if (payload?.includeCompatibility === true) return "compatibility";
+  return "personal";
+}
+
+function getSukyoChapterBlueprint(chapterId, reportMode = "personal") {
+  const chapters = getSukyoPdfChapters(normalizeSukyoModeToken(reportMode));
   const idx = Math.max(0, Number(chapterId || 1) - 1);
-  return SUKYO_PDF_CHAPTERS[idx] || {
+  return chapters[idx] || {
     key: `chapter-${chapterId}`,
     title: `Ch.${chapterId} 숙요점 해석`,
     goal: "숙요점 데이터 기반 해석",
@@ -5476,7 +5591,12 @@ function getSukyoChapterBlueprint(chapterId) {
 }
 
 async function generateSukyoPremiumChapterFromContext({ env, context, chapterId, requestId }) {
-  const chapter = getSukyoChapterBlueprint(chapterId);
+  const sukyoMode = resolveSukyoModeFromPayload({
+    ...(context?.input || {}),
+    reportMode: context?.modeKey || context?.input?.reportMode || context?.input?.reportType,
+    _compatibilityRequired: context?.coreData?.canonicalJson?.calculatedData?._compatibilityRequired,
+  });
+  const chapter = getSukyoChapterBlueprint(chapterId, sukyoMode);
   const calculated = context?.coreData?.canonicalJson?.calculatedData || {};
   const strictPayloadMode = asBool(context?.input?._premiumStrictPayload);
   const previousFromContext = Object.entries(context?.chapterTextById || {})
@@ -5493,6 +5613,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       summary: calculated?.nativeSook?.name || calculated?.nativeSook?.coreNature || "",
     },
   });
+  sukyoContext.reportMode = sukyoMode;
 
   const inputValidation = validateSukyoPdfInput(sukyoContext);
   const chapterMeta = {
@@ -6475,6 +6596,21 @@ function buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, 
     },
     relationship: {
       hasPartner: reportType === "compatibility" && !!(partnerChart && synastry && composite),
+      partnerProfile: reportType === "compatibility"
+        ? {
+          name: String(body?.partnerName || "파트너").trim(),
+          birthDate: [body?.partnerYear, body?.partnerMonth, body?.partnerDay].every((v) => Number.isFinite(Number(v)))
+            ? `${Number(body.partnerYear)}-${String(Number(body.partnerMonth)).padStart(2, "0")}-${String(Number(body.partnerDay)).padStart(2, "0")}`
+            : "",
+          birthTime: [body?.partnerHour, body?.partnerMinute].every((v) => Number.isFinite(Number(v)))
+            ? `${String(Number(body.partnerHour)).padStart(2, "0")}:${String(Number(body.partnerMinute)).padStart(2, "0")}`
+            : "",
+          timezone: String(body?.partnerTimezoneName || body?.timezoneName || "Asia/Seoul"),
+          locationName: String(body?.partnerBirthPlace || body?.partnerPlace || body?.birthPlace || "정보 없음"),
+          latitude: Number(body?.partnerLat),
+          longitude: Number(body?.partnerLon ?? body?.partnerLng),
+        }
+        : null,
       partnerNatal: partnerChart || null,
       synastry: synastry || null,
       composite: composite || null,
@@ -6504,7 +6640,8 @@ function buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, 
   return canonical;
 }
 
-function buildAstroChapterPlan(canonical) {
+function buildAstroChapterPlan(canonical, reportType = "personal") {
+  const mode = String(reportType || "personal").toLowerCase() === "compatibility" ? "compatibility" : "personal";
   const out = [];
   const add = (meta) => {
     out.push({
@@ -6518,27 +6655,53 @@ function buildAstroChapterPlan(canonical) {
     });
   };
 
+  if (mode === "compatibility") {
+    if (!(canonical?.relationship?.hasPartner && canonical?.relationship?.synastry && canonical?.relationship?.composite)) {
+      return [];
+    }
+    for (const meta of ASTRO_COMPAT_CHAPTER_META) {
+      if (meta.key === "K9" && !canonical?.validation?.hasForecast) {
+        add({ ...meta, degraded: true, reasons: ["forecast"] });
+        continue;
+      }
+      add(meta);
+    }
+    return out;
+  }
+
   for (const meta of ASTRO_PERSONAL_CHAPTER_META) {
-    if (meta.key === "C10" && (!canonical?.nodes?.northNode || !canonical?.nodes?.southNode)) continue;
-    if (meta.key === "C12" && !canonical?.validation?.hasForecast) {
+    if (meta.key === "C11" && !canonical?.validation?.hasForecast) {
       add({ ...meta, degraded: true, reasons: ["forecast"] });
       continue;
     }
-    if (!canonical?.validation?.hasHouses && ["C1", "C3", "C4", "C5", "C6", "C7", "C8"].includes(meta.key)) continue;
+    if (!canonical?.validation?.hasHouses && ["C8", "C10"].includes(meta.key)) continue;
     add(meta);
-  }
-
-  if (canonical?.relationship?.hasPartner && canonical?.relationship?.partnerNatal && canonical?.relationship?.synastry && canonical?.relationship?.composite) {
-    for (const meta of ASTRO_RELATION_CHAPTER_META) add(meta);
   }
   return out;
 }
 
 function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], premiumInput = null) {
+  const chapterKey = String(chapterMeta?.key || "").trim();
+  const isCompatibilityChapter = String(chapterMeta?.mode || "").toLowerCase() === "compatibility" || chapterKey.startsWith("K");
   const focusKeywords = ASTRO_CHAPTER_FOCUS_KEYWORDS[chapterMeta?.key] || [];
   const premiumChapterJsonPacks = premiumInput && typeof premiumInput === "object"
     ? toPlainObject(premiumInput.chapterJsonPacks)
     : {};
+  const profileCard = {
+    name: String(canonical?.profile?.name || "").trim(),
+    gender: canonical?.profile?.gender,
+    birthDate: String(canonical?.profile?.birth?.date || "").trim(),
+    birthTime: String(canonical?.profile?.birth?.time || "").trim(),
+    timezone: String(canonical?.profile?.birth?.timezone || "").trim(),
+    locationName: String(canonical?.profile?.birth?.locationName || "").trim(),
+  };
+  const partnerProfileCard = {
+    name: String(canonical?.relationship?.partnerProfile?.name || "").trim(),
+    birthDate: String(canonical?.relationship?.partnerProfile?.birthDate || "").trim(),
+    birthTime: String(canonical?.relationship?.partnerProfile?.birthTime || "").trim(),
+    timezone: String(canonical?.relationship?.partnerProfile?.timezone || "").trim(),
+    locationName: String(canonical?.relationship?.partnerProfile?.locationName || "").trim(),
+  };
   const summary = {
     asc: canonical?.angles?.ascendant,
     mc: canonical?.angles?.mc,
@@ -6555,16 +6718,23 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     chartBalance: canonical?.chartBalance || null,
     forecast: canonical?.forecast || null,
     relationship: canonical?.relationship || null,
+    profileCard,
+    partnerProfileCard,
     premiumChapterJsonPacks,
   };
+  const coverageRule = isCompatibilityChapter
+    ? "각 챕터는 두 사람의 관계 역학을 중심으로 작성하고, 개인 인생 전체 설명을 반복하지 않는다."
+    : "각 챕터는 실제 별자리/하우스/애스펙트 근거를 충분히 반영해 독립적인 관점으로 완성한다.";
 
   return [
     "[SYSTEM]",
-    "너는 서양 점성술 해석자다. 너는 계산자가 아니다. 모든 해석은 제공된 canonicalAstroChart JSON의 값만 사용해야 한다. JSON에 없는 행성 위치, 하우스, 어스펙트, 트랜짓, 노드, 궁합 요소를 절대 만들어내지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 실제 별자리, 도수, 하우스, 어스펙트, 오브 중 최소 5개 이상의 구체 데이터를 포함해야 한다.",
+    "너는 서양 점성술 해석자다. 너는 계산자가 아니다. 모든 해석은 제공된 canonicalAstroChart JSON과 profileCard 정보의 값만 사용해야 한다. JSON에 없는 행성 위치, 하우스, 어스펙트, 트랜짓, 노드, 궁합 요소를 절대 만들어내지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다.",
+    coverageRule,
     "",
     "[USER_PROMPT]",
     `chapterTitle: ${chapterMeta.title}`,
     `chapterPurpose: ${chapterMeta.subtitle}`,
+    `reportMode: ${isCompatibilityChapter ? "compatibility" : "personal"}`,
     "relevantPlanets: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, NorthNode, SouthNode",
     "relevantHouses: 1~12 house cusps and occupied planets",
     "relevantAspects: use canonicalAstroChart.aspects sorted by orb asc",
@@ -6587,7 +6757,10 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     "### 7. 실천 전략",
     "### 8. 챕터 요약",
     "- 1번 섹션에는 반드시 Markdown 표를 포함한다.",
-    "- 개인 리포트에서 궁합(Synastry/Composite) 용어를 쓰지 않는다.",
+    "- 개인 리포트에서는 궁합(Synastry/Composite) 용어를 쓰지 않는다.",
+    "- 궁합 리포트에서는 개인 인생 전체 설명을 장문으로 반복하지 않는다.",
+    "- 궁합 리포트 본문에는 계산 근거 원시값(행성 좌표, 하우스 수치, 오브 수치, 시나스트리 목록, 컴포지트 계산 과정, 내부 JSON/payload 키)을 출력하지 않는다.",
+    "- profileCard 정보(이름/출생일/출생시간/출생지)를 문맥에 맞게 반영하되 개인정보 과다노출 없이 상담문으로 자연스럽게 녹여낸다.",
     "- 데이터가 비어 있는 항목은 단정하지 말고 확보된 근거 중심으로 해석한다.",
     "- premiumChapterJsonPacks.core/signals/timing/actions 중 최소 3개를 근거 문장으로 반영한다.",
     "- 실행 보강 메모, 패딩 문단, 동일 문장 반복을 금지한다.",
@@ -6608,7 +6781,7 @@ function astroMissingMarkers(text, chapterMeta) {
     "### 8. 챕터 요약",
     "| 항목 | 값 |",
   ];
-  if (chapterMeta?.key === "C12") {
+  if (chapterMeta?.key === "C11") {
     required.push("3개월");
     required.push("6개월");
     required.push("12개월");
@@ -6637,9 +6810,15 @@ function detectRepeatedLongSentences(text, minLength = 30) {
   return duplicates;
 }
 
-function hasAstroDataEvidence(text) {
+function hasAstroDataEvidence(text, reportMode = "personal") {
   const source = String(text || "");
+  const mode = String(reportMode || "personal").toLowerCase();
   const signHit = /(양자리|황소자리|쌍둥이자리|게자리|사자자리|처녀자리|천칭자리|전갈자리|사수자리|염소자리|물병자리|물고기자리)/.test(source);
+  if (mode === "compatibility") {
+    const relationHit = /(두\s*사람|상대|파트너|관계|궁합|애정|갈등|동반자)/.test(source);
+    const astroHit = /(태양|달|금성|화성|수성|목성|토성|애스펙트|시나스트리|컴포지트)/.test(source);
+    return signHit && relationHit && astroHit;
+  }
   const houseHit = /([1-9]|1[0-2])\s*하우스/.test(source);
   const aspectHit = /(conjunction|opposition|square|trine|sextile|quincunx|orb|오브)/i.test(source);
   return signHit && houseHit && aspectHit;
@@ -6647,6 +6826,17 @@ function hasAstroDataEvidence(text) {
 
 function hasBrokenPageCounter(text) {
   return /Page\s*0\s*of\s*0/i.test(String(text || ""));
+}
+
+function hasForbiddenAstroRawDataExposure(text, reportMode = "personal") {
+  if (String(reportMode || "personal").toLowerCase() !== "compatibility") return false;
+  const source = String(text || "");
+  return (
+    /chapterjsonpacks|reportpayload|payload|internal\s*json|raw\s*json/i.test(source)
+    || /(orb|오브)\s*[:=]?\s*\d/i.test(source)
+    || /(시나스트리|synastry)\s*(데이터|목록|raw|json)/i.test(source)
+    || /(컴포지트|composite)\s*(계산|formula|수식|raw)/i.test(source)
+  );
 }
 
 function buildBasicAstroSummaryFromChart(chart) {
@@ -6716,6 +6906,7 @@ function dedupeAstroParagraphs(text) {
 
 async function generateAstroPremiumChapter(env, body, input, chapter, meta, chart, reportType, partnerChart, synastry, composite, timingData) {
   const canonical = buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
+  const evidenceMode = String(reportType || "personal").toLowerCase() === "compatibility" ? "compatibility" : "personal";
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const prompt = buildAstroChapterPrompt(meta, canonical, body?.previousChapterTexts || [], premiumInput);
   const options = {
@@ -6742,8 +6933,9 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
     const duplicatedSentence = detectRepeatedLongSentences(text, 30).length > 0;
     const duplicatedAcross = detectCrossChapterRepeatedSentences(text, body?.previousChapterTexts || [], 30).length > 0;
     const forbiddenPhraseUsed = ASTRO_FORBIDDEN_REPEATED_PHRASES.some((p) => text.includes(p));
-    const dataEvidenceMissing = !hasAstroDataEvidence(text);
-    if (!tooShort && missing.length === 0 && !truncated && !banned && !duplicated && !forbiddenPadding && !duplicatedSentence && !duplicatedAcross && !forbiddenPhraseUsed && !dataEvidenceMissing) break;
+    const dataEvidenceMissing = !hasAstroDataEvidence(text, evidenceMode);
+    const rawExposure = hasForbiddenAstroRawDataExposure(text, evidenceMode);
+    if (!tooShort && missing.length === 0 && !truncated && !banned && !duplicated && !forbiddenPadding && !duplicatedSentence && !duplicatedAcross && !forbiddenPhraseUsed && !dataEvidenceMissing && !rawExposure) break;
 
     const refinePrompt = [
       "아래 서양 점성술 챕터 초안을 고품질로 보강하세요.",
@@ -6751,7 +6943,7 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
       "오직 마크다운 본문만 출력하고 기존 구조를 유지하면서 누락 요소를 채우세요. 표는 유지하세요.",
       "같은 문장/문단 반복, 실행 보강 메모, 금지 문구를 모두 제거하세요.",
       `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
-      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${duplicated ? "중복 문단 포함" : ""} ${forbiddenPadding ? "패딩 문구 포함" : ""} ${duplicatedSentence ? "장문 반복 포함" : ""} ${duplicatedAcross ? "이전 챕터 문장 재사용" : ""} ${forbiddenPhraseUsed ? "금지 고정문구 포함" : ""} ${dataEvidenceMissing ? "차트 근거 부족" : ""}`.trim(),
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${duplicated ? "중복 문단 포함" : ""} ${forbiddenPadding ? "패딩 문구 포함" : ""} ${duplicatedSentence ? "장문 반복 포함" : ""} ${duplicatedAcross ? "이전 챕터 문장 재사용" : ""} ${forbiddenPhraseUsed ? "금지 고정문구 포함" : ""} ${dataEvidenceMissing ? "차트 근거 부족" : ""} ${rawExposure ? "원시 데이터 노출" : ""}`.trim(),
       premiumInput ? "premiumChapterJsonPacks 근거를 더 많이 반영하세요." : "",
       "",
       "[초안]",
@@ -6769,6 +6961,7 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
   const finalRepeatedSentences = detectRepeatedLongSentences(text, 30);
   const finalAcross = detectCrossChapterRepeatedSentences(text, body?.previousChapterTexts || [], 30);
   const finalForbiddenPhraseUsed = ASTRO_FORBIDDEN_REPEATED_PHRASES.some((p) => text.includes(p));
+  const finalRawExposure = hasForbiddenAstroRawDataExposure(text, evidenceMode);
   if (
     text.length < ASTRO_MIN_CHARS
     || finalMissing.length > 0
@@ -6779,7 +6972,8 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
     || finalRepeatedSentences.length > 0
     || finalAcross.length > 0
     || finalForbiddenPhraseUsed
-    || !hasAstroDataEvidence(text)
+    || finalRawExposure
+    || !hasAstroDataEvidence(text, evidenceMode)
   ) {
     throw new Error("Astro chapter quality validation failed");
   }
@@ -7930,19 +8124,18 @@ function validateCanonicalVedicChartStrict(canonical, reportType = "personal") {
 }
 
 function buildVedicChapterPlan(canonicalVedicChart, reportType) {
-  return VEDIC_CHAPTER_META.map((meta) => {
-    const reasons = [];
-    if (meta.num === 7 && reportType === "compatibility" && !Number.isFinite(Number(canonicalVedicChart?.compatibility?.ashtaKoota?.total))) {
-      reasons.push("ASHTA_KOOTA_SCORE_MISSING");
-    }
-    return {
-      num: meta.num,
-      title: meta.title,
-      subtitle: meta.subtitle,
-      available: true,
-      reasons,
-    };
-  });
+  const mode = normalizeVedicReportType(reportType);
+  const metaList = getVedicChapterMetaList(mode);
+  const ashtaMissing = mode === "compatibility"
+    && !Number.isFinite(Number(canonicalVedicChart?.compatibility?.ashtaKoota?.total));
+
+  return metaList.map((meta) => ({
+    num: meta.num,
+    title: meta.title,
+    subtitle: meta.subtitle,
+    available: true,
+    reasons: ashtaMissing ? ["ASHTA_KOOTA_SCORE_MISSING"] : [],
+  }));
 }
 
 function buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, premiumInput = null) {
@@ -8019,30 +8212,31 @@ function buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, pr
   return { dataText };
 }
 
-function vedicMissingMarkers(text, chapter) {
+function vedicMissingMarkers(text, chapter, reportType = "personal") {
   const source = String(text || "");
+  const mode = normalizeVedicReportType(reportType);
   const required = [
-    "### 핵심 요약",
-    "### 데이터 근거",
-    "### 심화 해석",
-    "### 실행 전략",
-    "### 주의 포인트",
+    "### Step 1. 핵심 상담 진단",
+    "### Step 2. 차트 신호를 삶으로 번역",
+    "### Step 3. 반복 패턴과 전환 포인트",
+    "### Step 4. 실전 행동 가이드",
+    "### Step 5. 주의할 선택",
+    "### Step 6. 상담형 결론",
   ];
 
-  if (chapter === 10 || chapter === 13) {
+  if (mode === "personal" && chapter === 11) {
     required.push("### 1월");
     required.push("### 12월");
-    required.push("- 핵심 흐름:");
-    required.push("- 좋은 선택:");
-    required.push("- 주의할 점:");
-    required.push("- 개운 행동:");
+    required.push("- Go:");
+    required.push("- Hold:");
+    required.push("- Retreat:");
   }
-  if (chapter === 12 || chapter === 14) {
-    required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
-    required.push("| 1~7일 |  |  |  |  |");
-    required.push("| 8~30일 |  |  |  |  |");
-    required.push("| 31~60일 |  |  |  |  |");
-    required.push("| 61~90일 |  |  |  |  |");
+  if (mode === "compatibility" && chapter === 9) {
+    required.push("### 1분기");
+    required.push("### 4분기");
+    required.push("- 가까워지는 흐름:");
+    required.push("- 예민한 구간:");
+    required.push("- 관계 행동 가이드:");
   }
 
   return required.filter((m) => !source.includes(m));
@@ -8067,46 +8261,57 @@ function hasForbiddenVedicPadding(text) {
   return VEDIC_FORBIDDEN_COMMON_SECTIONS.some((token) => source.includes(token));
 }
 
+function countVedicStepSections(text) {
+  const source = String(text || "");
+  const matches = source.match(/^###\s*Step\s*\d+\./gim);
+  return Array.isArray(matches) ? matches.length : 0;
+}
+
 function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousChapterTexts = []) {
-  const chapterGuide = VEDIC_CHAPTER_GUIDES[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
-  const reportTitle = reportType === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
-  const reportSubtitle = reportType === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
-  const monthlyRule = chapter === 10
-    ? "챕터 10에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - 핵심 흐름/- 좋은 선택/- 주의할 점/- 개운 행동을 작성하세요."
+  const mode = normalizeVedicReportType(reportType);
+  const chapterGuides = getVedicChapterGuideList(mode);
+  const chapterGuide = chapterGuides[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
+  const reportTitle = mode === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
+  const reportSubtitle = mode === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
+  const monthlyRule = mode === "personal" && chapter === 11
+    ? "챕터 11에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - Go/- Hold/- Retreat를 포함하세요."
     : "";
-  const roadmapRule = chapter === 12
-    ? "챕터 12에서는 반드시 아래 90일 표를 포함하세요: | 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 | / | 1~7일 |  |  |  |  | / | 8~30일 |  |  |  |  | / | 31~60일 |  |  |  |  | / | 61~90일 |  |  |  |  |"
+  const quarterRule = mode === "compatibility" && chapter === 9
+    ? "챕터 9에서는 반드시 ### 1분기부터 ### 4분기까지 블록을 만들고, 각 분기마다 - 가까워지는 흐름/- 예민한 구간/- 관계 행동 가이드를 작성하세요."
     : "";
 
   const banList = collectPreviousSentenceBanList(previousChapterTexts, 12);
 
   return [
-    "너는 30년 경력의 베다 점성술 전문가이자, 주티쉬(Jyotish) 마스터, 인도 철학 연구가, 심리 상담가, 프리미엄 PDF 리포트 작가다.",
-    "사용자의 베다 점성술 차트 데이터를 바탕으로 단순한 운세 풀이가 아니라 카르마 구조와 실행 전략을 연결한다.",
-    "전문적이되 어렵지 않게 작성하고, 산스크리트 용어는 반드시 쉬운 한국어 설명을 붙인다.",
-    "공포 조장 문구와 단정 예언(결혼/이혼/사망/투자 보장/질병 진단)을 금지한다.",
-    "카르마를 저주가 아닌 성장 과제와 반복 패턴으로 설명한다.",
-    "제공된 canonicalVedicChart 데이터만 근거로 작성한다. 데이터에 없는 사실을 만들지 않는다.",
+    "너는 Code:Destiny 프로젝트의 베다 점성술 프리미엄 PDF 전문 상담가다.",
+    "반드시 사용자 프로필 카드 정보와 canonicalVedicChart 신호를 근거로, 챕터별 Step-by-Step 상담문을 작성한다.",
+    "전문 용어(라그나/찬드라/수리야/나크샤트라/다샤/그라하)는 쉬운 한국어 설명을 곁들여 해석한다.",
+    "공포 마케팅, 저주성 표현, 운명론적 단정(결혼/이혼/사망/질병 확정, 투자 보장)을 금지한다.",
+    "계산 근거(라그나 산출 과정, 행성 좌표, 하우스 계산값, 나크샤트라 산출 과정, 다샤 산출 과정, 궁합 점수 계산 과정)를 본문에 직접 노출하지 않는다.",
+    "내부 JSON, payload, engine result, score table, Ashta Koota 점수 숫자를 그대로 출력하지 않는다. 모든 결과는 상담형 문장으로 번역한다.",
+    "같은 문장과 같은 조언 구조를 반복하지 말고, 챕터별 주제/상담 목적/현실 조언을 분리한다.",
+    "각 챕터는 최소 5개 이상의 세부 섹션을 포함하고, 마지막에 상담형 결론 조언으로 마무리한다.",
     "오직 마크다운 본문만 출력한다.",
     "",
     `[리포트 제목] ${reportTitle}`,
     `[리포트 부제] ${reportSubtitle}`,
-    `[리포트 타입] ${reportType}`,
+    `[리포트 타입] ${mode}`,
     `[현재 챕터] ${chapter}. ${meta.title} — ${meta.subtitle}`,
     `[최소 분량] ${VEDIC_MIN_CHARS}자 이상 (권장 5000자 이상)`,
     "",
     "[반드시 지킬 구조]",
     `## 챕터 ${chapter}. ${meta.title}`,
-    "### 핵심 요약",
-    "### 데이터 근거",
-    "### 심화 해석",
-    "### 실행 전략",
-    "### 주의 포인트",
+    "### Step 1. 핵심 상담 진단",
+    "### Step 2. 차트 신호를 삶으로 번역",
+    "### Step 3. 반복 패턴과 전환 포인트",
+    "### Step 4. 실전 행동 가이드",
+    "### Step 5. 주의할 선택",
+    "### Step 6. 상담형 결론",
     "",
     "[챕터 전용 지시]",
     chapterGuide,
     monthlyRule,
-    roadmapRule,
+    quarterRule,
     "",
     banList.length
       ? `[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n문장 반복을 피하기 위해 다음 리스트에 있는 문장이나 이와 유사한 핵심 서술 방식은 이번 챕터 본문에 절대 출력하지 마세요:\n${JSON.stringify(banList, null, 2)}\n`
@@ -8117,6 +8322,7 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
 }
 
 function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, notes = []) {
+  const mode = normalizeVedicReportType(reportType);
   const lagna = canonicalVedicChart?.lagna?.signName || "N/A";
   const moonNak = canonicalVedicChart?.moonNakshatra?.name || "N/A";
   const currentDasha = canonicalVedicChart?.dasha?.current?.planet || "N/A";
@@ -8124,44 +8330,46 @@ function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, repo
 
   const lines = [
     `## 챕터 ${chapter}. ${meta?.title || "베다 프리미엄 해석"}`,
-    "### 핵심 요약",
+    "### Step 1. 핵심 상담 진단",
     `현재 차트의 핵심 신호는 라그나 ${lagna}, 문 나크샤트라 ${moonNak}, 현재 다샤 ${currentDasha}에 집중됩니다. 이 조합은 결과를 단정하기보다 선택 패턴과 실행 루틴을 조정하는 데 유효합니다.`,
     "이 리포트는 운세 단정이 아니라 행동 전략 문서입니다. 동일한 상황에서도 선택 방식이 바뀌면 체감되는 결과가 달라질 수 있으므로, 해석은 관찰 가능한 습관과 의사결정 기준으로 연결해야 합니다.",
-    "### 데이터 근거",
-    `근거 요약: Lagna=${lagna}, Moon Nakshatra=${moonNak}, Current Dasha=${currentDasha}, ReportType=${reportType}.`,
+    "### Step 2. 차트 신호를 삶으로 번역",
+    `근거 요약: Lagna=${lagna}, Moon Nakshatra=${moonNak}, Current Dasha=${currentDasha}, ReportType=${mode}.`,
     "사용 가능한 계산 데이터만 근거로 사용했으며, 누락 가능한 항목은 확정 진술 대신 보수적으로 해석했습니다. 해석 정확도를 높이려면 출생시각/출생지/타임존 정확도를 우선 점검하세요.",
-    "### 심화 해석",
+    "### Step 3. 반복 패턴과 전환 포인트",
     "장점은 반복 가능한 강점으로, 리스크는 소모 패턴으로 해석해야 합니다. 강점이 작동하는 조건(시간대, 사람, 환경, 업무 방식)을 구체화하면 성과가 안정되고, 리스크가 커지는 조건을 사전에 차단하면 변동 폭이 줄어듭니다.",
     "관계·커리어·재정·건강은 서로 분리된 주제가 아니라 하나의 리듬으로 연결됩니다. 감정 피로가 커지면 의사결정 품질이 낮아지고, 이는 일정 지연·커뮤니케이션 마찰·지출 왜곡으로 이어질 수 있습니다.",
-    "### 실행 전략",
+    "### Step 4. 실전 행동 가이드",
     "1주차는 관찰, 2주차는 정리, 3주차는 실험, 4주차는 고정 원칙을 권장합니다. 하루 한 가지 핵심 행동을 완수하고, 저녁에 실제 행동/감정 반응/결과를 3줄로 기록하면 개선 지점이 명확해집니다.",
     "이번 장의 실행 포인트는 과한 확장보다 손실 최소화와 재현 가능한 루틴 구축입니다. 작은 반복이 누적되면 운의 변동성보다 실력의 안정성이 먼저 올라옵니다.",
-    "### 주의 포인트",
+    "### Step 5. 주의할 선택",
     "건강, 관계, 투자, 법률 이슈는 점성 해석만으로 결론 내리면 안 됩니다. 필요 시 전문가 상담과 객관 자료를 함께 사용하세요.",
+    "### Step 6. 상담형 결론",
+    "이번 챕터의 핵심은 결과를 맞히는 것이 아니라 선택의 품질을 높이는 것입니다. 오늘 한 가지 루틴만 고정해도 다음 챕터에서 체감되는 안정감이 달라집니다.",
     `품질 메모: ${noteLine}`,
   ];
 
-  if (chapter === 10) {
+  if (mode === "personal" && chapter === 11) {
     for (let month = 1; month <= 12; month += 1) {
       lines.push(`### ${month}월`);
-      lines.push("- 핵심 흐름: 현재 루틴 유지 + 우선순위 1개 집중");
-      lines.push("- 좋은 선택: 짧은 피드백 주기로 실행 점검");
-      lines.push("- 주의할 점: 과도한 확장/감정적 결정");
-      lines.push("- 개운 행동: 기록-정리-실행 3단계 루틴");
+      lines.push("- Go: 현재 루틴 유지 + 우선순위 1개 집중");
+      lines.push("- Hold: 확신 없는 확장/지출/관계 결정");
+      lines.push("- Retreat: 감정 과열 상태의 단기 반응");
     }
   }
 
-  if (chapter === 12) {
-    lines.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
-    lines.push("| 1~7일 |  |  |  |  |");
-    lines.push("| 8~30일 |  |  |  |  |");
-    lines.push("| 31~60일 |  |  |  |  |");
-    lines.push("| 61~90일 |  |  |  |  |");
+  if (mode === "compatibility" && chapter === 9) {
+    for (let quarter = 1; quarter <= 4; quarter += 1) {
+      lines.push(`### ${quarter}분기`);
+      lines.push("- 가까워지는 흐름: 공감 확인 후 요청 제안 대화");
+      lines.push("- 예민한 구간: 피로 누적·돈/시간 우선순위 충돌");
+      lines.push("- 관계 행동 가이드: 감정 확인 1문장 + 사실 확인 1문장 + 요청 1문장");
+    }
   }
 
   let text = lines.join("\n\n");
   while (text.length < VEDIC_MIN_CHARS) {
-    text += "\n\n### 실행 메모\n핵심 행동 한 가지를 정해 7일 반복하고, 결과를 기록해 다음 주 전략에 반영하세요.";
+    text += "\n\n### Step 4. 실전 행동 가이드 보강\n핵심 행동 한 가지를 정해 7일 반복하고, 결과를 기록해 다음 주 전략에 반영하세요.";
   }
   return text;
 }
@@ -8205,21 +8413,22 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
   }
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const missing = vedicMissingMarkers(text, chapter);
+    const missing = vedicMissingMarkers(text, chapter, reportType);
     const tooShort = text.length < VEDIC_MIN_CHARS;
     const truncated = looksTruncatedMarkdown(text);
     const banned = hasBannedDeterministicExpression(text);
     const forbiddenPadding = hasForbiddenVedicPadding(text);
+    const insufficientSections = countVedicStepSections(text) < 6;
     const repeated = detectRepeatedLongSentences(text, 35);
     const repeatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 35);
-    if (!tooShort && missing.length === 0 && !truncated && !banned && !forbiddenPadding && repeated.length < 3 && repeatedAcross.length < 3) break;
+    if (!tooShort && missing.length === 0 && !truncated && !banned && !forbiddenPadding && !insufficientSections && repeated.length < 3 && repeatedAcross.length < 3) break;
 
     const refinePrompt = [
       "아래 베다 점성술 챕터 초안을 고품질로 보강하세요.",
       `목표 길이: 최소 ${VEDIC_MIN_CHARS}자`,
       "오직 마크다운 본문만 출력하고, 기존 흐름을 유지하면서 누락 요소를 채우세요.",
       `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
-      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${forbiddenPadding ? "금지 공통 문구 포함" : ""} ${repeatedAcross.length ? "이전 챕터 문장 중복됨" : ""}`.trim(),
+      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${forbiddenPadding ? "금지 공통 문구 포함" : ""} ${insufficientSections ? "Step 섹션 부족" : ""} ${repeatedAcross.length ? "이전 챕터 문장 중복됨" : ""}`.trim(),
       "",
       "[초안]",
       text,
@@ -8235,12 +8444,14 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     }
   }
 
-  const finalMissing = vedicMissingMarkers(text, chapter);
+  const finalMissing = vedicMissingMarkers(text, chapter, reportType);
+  const finalSectionCount = countVedicStepSections(text);
   const finalRepeated = detectRepeatedLongSentences(text, 35);
   const finalRepeatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 35);
   const failedChecks = [];
   if (text.length < VEDIC_MIN_CHARS) failedChecks.push("TOO_SHORT");
   if (finalMissing.length > 0) failedChecks.push(`MISSING_MARKERS:${finalMissing.join(",")}`);
+  if (finalSectionCount < 6) failedChecks.push("INSUFFICIENT_STEP_SECTIONS");
   if (looksTruncatedMarkdown(text)) failedChecks.push("TRUNCATED_MARKDOWN");
   if (hasBannedDeterministicExpression(text)) failedChecks.push("BANNED_DETERMINISTIC_EXPRESSION");
   if (hasForbiddenVedicPadding(text)) failedChecks.push("FORBIDDEN_COMMON_PADDING");
@@ -11600,7 +11811,7 @@ async function handleSukuyoLife(request, env) {
   }
 
   if (reportType === "personal") {
-    const chapterMetaList = SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+    const chapterMetaList = getSukyoPdfChapters("personal").map((chapter, idx) => ({
       num: idx + 1,
       title: chapter.title,
       subtitle: chapter.goal,
@@ -11740,7 +11951,7 @@ async function handleSukuyoLife(request, env) {
     }, { status: 422 });
   }
 
-  const chapterMetaList = SUKYO_PDF_CHAPTERS.map((chapterDef, idx) => ({
+  const chapterMetaList = getSukyoPdfChapters("compatibility").map((chapterDef, idx) => ({
     num: idx + 1,
     title: chapterDef.title,
     subtitle: chapterDef.goal,
@@ -11904,7 +12115,7 @@ async function handleAstroWestern(request, env) {
         canonicalAstroChart,
       }, { status: 422 });
     }
-    let chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
+    let chapterPlan = buildAstroChapterPlan(canonicalAstroChart, "personal");
     if (!chapterPlan.length && !strictValidationMode) {
       chapterPlan = ASTRO_PERSONAL_CHAPTER_META.map((meta, idx) => ({
         chapter: Number(meta?.num || idx + 1),
@@ -12025,7 +12236,7 @@ async function handleAstroLife(request, env) {
     }, { status: 422 });
   }
 
-  let chapterPlan = buildAstroChapterPlan(canonicalAstroChart);
+  let chapterPlan = buildAstroChapterPlan(canonicalAstroChart, reportType);
   if (!chapterPlan.length && strictValidationMode) {
     return json({
       ok: false,
@@ -12035,7 +12246,7 @@ async function handleAstroLife(request, env) {
     }, { status: 422 });
   }
   if (!chapterPlan.length) {
-    const fallbackMeta = reportType === "compatibility" ? ASTRO_RELATION_CHAPTER_META : ASTRO_PERSONAL_CHAPTER_META;
+    const fallbackMeta = reportType === "compatibility" ? ASTRO_COMPAT_CHAPTER_META : ASTRO_PERSONAL_CHAPTER_META;
     chapterPlan = fallbackMeta.map((meta, idx) => ({
       chapter: Number(meta?.num || idx + 1),
       num: Number(meta?.num || idx + 1),
@@ -12201,7 +12412,6 @@ async function handleVedicLife(request, env) {
     return json({ ok: false, message: "chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
   const input = normalizeBody(strictBody);
-  const chapter = clampInt(strictBody.chapter, 1, 1, VEDIC_TOTAL_CHAPTERS);
   const partnerIntent = strictBody.partnerName || strictBody.partnerYear || strictBody.partnerMonth || strictBody.partnerDay;
   const requestedReportType = String(strictBody.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
   let reportType = requestedReportType === "compatibility" ? "compatibility" : "personal";
@@ -12247,6 +12457,10 @@ async function handleVedicLife(request, env) {
     }
   }
 
+  const totalChapters = getVedicTotalChapters(reportType);
+  const chapter = clampInt(strictBody.chapter, 1, 1, totalChapters);
+  const chapterMetaList = getVedicChapterMetaList(reportType);
+
   const canonicalVedicChart = buildCanonicalVedicChart(strictBody, input, chart, reportType, partnerChart, ashtaKoota);
   const strictValidation = validateCanonicalVedicChartStrict(canonicalVedicChart, reportType);
   const chapterPlan = buildVedicChapterPlan(canonicalVedicChart, reportType);
@@ -12256,7 +12470,7 @@ async function handleVedicLife(request, env) {
       ok: true,
       prepared: true,
       reportType,
-      totalChapters: VEDIC_TOTAL_CHAPTERS,
+      totalChapters,
       chapterPlan,
       canonicalVedicChart,
       chart,
@@ -12272,7 +12486,7 @@ async function handleVedicLife(request, env) {
     ? []
     : [`CHAPTER_AVAILABILITY_DEGRADED:${(chapterAvailability?.reasons || []).join(",") || "UNKNOWN"}`];
 
-  const meta = VEDIC_CHAPTER_META[chapter - 1];
+  const meta = chapterMetaList[chapter - 1] || { num: chapter, title: `Chapter ${chapter}`, subtitle: "" };
   const runtimeLlmInput = strictBody?._premiumLlmInput && typeof strictBody._premiumLlmInput === "object"
     ? strictBody._premiumLlmInput
     : buildLlmPromptInput("vedicPremium", chapter, canonicalVedicChart);
@@ -12281,7 +12495,7 @@ async function handleVedicLife(request, env) {
   const existingEntryForPrev = getStoredReportSession("vedic", reportId);
   const existingChapterResultsByNumberForPrev = toPlainObject(existingEntryForPrev?.extra?.chapterResultsByNumber);
   const previousChapterTexts = [];
-  for (let c = 1; c <= VEDIC_TOTAL_CHAPTERS; c += 1) {
+  for (let c = 1; c <= totalChapters; c += 1) {
     const prevCh = existingChapterResultsByNumberForPrev[String(c)];
     if (prevCh) {
       const txt = prevCh.contentMarkdown || prevCh.text || "";
@@ -12330,7 +12544,7 @@ async function handleVedicLife(request, env) {
     "vedic",
     reportId,
     chapter,
-    VEDIC_TOTAL_CHAPTERS,
+    totalChapters,
     meta,
     safeGeneratedText,
     { reportType }
@@ -12341,7 +12555,7 @@ async function handleVedicLife(request, env) {
     reportId,
     reportType,
     chapter,
-    totalChapters: VEDIC_TOTAL_CHAPTERS,
+    totalChapters,
     chapterMeta: meta,
     chart,
     canonicalVedicChart,
@@ -12451,17 +12665,195 @@ const SAJU_NEW_YEAR_FOCUS_LABELS = {
   health: "건강/에너지",
 };
 const SAJU_NEW_YEAR_CHAPTERS = [
-  { num: 1, title: "원국 기반 연간 전략 총론", subtitle: "기본 체질과 연간 선택 축" },
-  { num: 2, title: "연간 파동과 기회 창", subtitle: "상반기·하반기 리듬" },
-  { num: 3, title: "커리어·사업 확장 전략", subtitle: "기회 포착과 실행 타이밍" },
-  { num: 4, title: "재물·현금흐름 관리", subtitle: "수익/지출 밸런스" },
-  { num: 5, title: "관계·인맥·파트너십", subtitle: "협업과 경계선 관리" },
-  { num: 6, title: "건강·에너지 밸런스", subtitle: "회복력과 집중력 설계" },
-  { num: 7, title: "학습·성장·전환 기회", subtitle: "능력 확장 로드맵" },
-  { num: 8, title: "리스크 관리와 손실 방어", subtitle: "실수 예방·회복 플랜" },
-  { num: 9, title: "12개월 월별 실행 로드맵", subtitle: "월별 Go/Stop 힌트" },
-  { num: 10, title: "최종 통합 액션 플랜", subtitle: "90일 우선 실행 계획" },
+  { num: 1, title: "연간 파동 총론 - 올해의 기본 기조", subtitle: "올해 운영의 중심축과 기본 태도" },
+  { num: 2, title: "커리어 전략 - 성과가 나는 월/주의 월", subtitle: "일의 성과 창과 주의 구간 운영" },
+  { num: 3, title: "재물 흐름 - 수익/지출 관리 타이밍", subtitle: "현금흐름 중심의 수익/지출 전략" },
+  { num: 4, title: "관계·인맥 - 협업과 거리두기 전략", subtitle: "사람을 통한 확장과 경계 설계" },
+  { num: 5, title: "연애·가정 - 감정 파동 관리법", subtitle: "가까운 관계의 감정 리듬 관리" },
+  { num: 6, title: "건강·에너지 - 번아웃 방지 설계", subtitle: "회복 루틴과 에너지 운영 시스템" },
+  { num: 7, title: "분기별 핵심 의사결정 포인트", subtitle: "1~4분기 선택 기준과 실행 체크" },
+  { num: 8, title: "리스크 시나리오와 대응 플랜", subtitle: "문제 발생 전후 대응 단계 설계" },
+  { num: 9, title: "12개월 Go/Stop 월별 테이블", subtitle: "월별 행동 판정과 즉시 실행 지침" },
+  { num: 10, title: "최종 실행 로드맵 - 연말 회수 전략", subtitle: "상하반기 운영과 연말 결과 회수" },
 ];
+
+const SAJU_NEW_YEAR_INTERNAL_DISCLOSURE_PATTERNS = [
+  /년주|월주|일주|시주/,
+  /일간|월지|지장간/,
+  /오행\s*분포|십성\s*분포/,
+  /대운\/?세운\/?월운\s*계산|합충형파해|용신|희신|기신/,
+  /chapterJsonPacks|reportPayload|payload|engine\s*result|JSON/i,
+  /내부\s*계산표|사용된\s*데이터는\s*다음과\s*같습니다/i,
+];
+
+function getSajuNewYearChapterPromptSpec(chapter) {
+  const num = Number(chapter || 1);
+  switch (num) {
+    case 1:
+      return {
+        markers: [
+          "### 1) 올해의 전체 분위기",
+          "### 2) 올해의 핵심 과제",
+          "### 3) 올해 강해지는 기운",
+          "### 4) 올해 흔들리기 쉬운 부분",
+          "### 5) 올해의 성공 키워드",
+          "### 6) 올해의 금지 키워드",
+          "### 7) 올해의 기본 운영 전략",
+        ],
+        checklist: [
+          "확장기/정리기/준비기/전환기 중 올해 기조를 명확히 분류",
+          "일·돈·관계·건강 중 핵심 과제를 우선순위로 제시",
+          "성공 키워드 3~5개와 금지 키워드를 행동 문장으로 제시",
+          "올해를 운영하는 기본 원칙을 상담형 조언으로 마무리",
+        ],
+      };
+    case 2:
+      return {
+        markers: [
+          "### 1) 올해 커리어 전체 흐름",
+          "### 2) 성과가 나는 시기",
+          "### 3) 주의해야 할 시기",
+          "### 4) 올해 일에서 강해지는 능력",
+          "### 5) 피해야 할 일의 방식",
+          "### 6) 직장인/사업자/프리랜서별 조언",
+          "### 7) 커리어 실행 전략",
+        ],
+        checklist: [
+          "성과 구간과 주의 구간을 월/분기 단위로 구분",
+          "직장인/사업자/프리랜서 조언을 각각 분리",
+          "연말 회수 전략까지 포함한 실행 계획 제시",
+        ],
+      };
+    case 3:
+      return {
+        markers: [
+          "### 1) 올해 재물운 전체 분위기",
+          "### 2) 수익이 열리는 시기",
+          "### 3) 지출이 커지는 시기",
+          "### 4) 돈이 들어오는 방식",
+          "### 5) 돈이 새는 패턴",
+          "### 6) 투자·사업·저축 조언",
+          "### 7) 재물 관리 실행 전략",
+        ],
+        checklist: [
+          "수익/지출 시기와 대응 행동을 연결",
+          "고위험 선택 경계와 현금흐름 관리 원칙 포함",
+          "월별 예산·비상금·연말 자산 목표까지 제시",
+        ],
+      };
+    case 4:
+      return {
+        markers: [
+          "### 1) 올해 관계운 전체 분위기",
+          "### 2) 귀인이 들어오는 방식",
+          "### 3) 조심해야 할 사람",
+          "### 4) 협업이 유리한 시기",
+          "### 5) 거리두기가 필요한 시기",
+          "### 6) 인간관계 반복 패턴",
+          "### 7) 관계 운영 전략",
+        ],
+        checklist: [
+          "가까이 둘 사람/거리 둘 사람/끊을 관계 기준 제시",
+          "오해/소문/감정 피로 대응 행동을 현실적으로 안내",
+        ],
+      };
+    case 5:
+      return {
+        markers: [
+          "### 1) 올해 연애·가정운 전체 분위기",
+          "### 2) 솔로의 연애운",
+          "### 3) 연애 중인 사람의 흐름",
+          "### 4) 기혼/장기 관계의 흐름",
+          "### 5) 가족운",
+          "### 6) 감정 파동 관리",
+          "### 7) 사랑과 가정의 실행 전략",
+        ],
+        checklist: [
+          "솔로/연애중/기혼(장기) 관점을 모두 포함",
+          "감정 조절과 관계 운영 기준을 실행 문장으로 제시",
+        ],
+      };
+    case 6:
+      return {
+        markers: [
+          "### 1) 올해 에너지 전체 흐름",
+          "### 2) 번아웃이 오기 쉬운 시기",
+          "### 3) 회복이 잘 되는 시기",
+          "### 4) 생활 리듬 취약점",
+          "### 5) 스트레스 반응",
+          "### 6) 건강 표현 가이드",
+          "### 7) 번아웃 방지 전략",
+        ],
+        checklist: [
+          "질병 단정 없이 생활 리듬/회복 중심으로 작성",
+          "주간 루틴과 월별 휴식 계획을 함께 제시",
+        ],
+      };
+    case 7:
+      return {
+        markers: [
+          "### 1) 1분기 전략",
+          "### 2) 2분기 전략",
+          "### 3) 3분기 전략",
+          "### 4) 4분기 전략",
+          "### 5) 분기별 핵심 질문",
+          "### 6) 분기별 금지 행동",
+          "### 7) 분기별 실행 체크리스트",
+        ],
+        checklist: [
+          "각 분기마다 해야 할 것/미룰 것/피할 것 분리",
+          "분기별 점검 질문을 실제 판단 문장으로 제시",
+        ],
+      };
+    case 8:
+      return {
+        markers: [
+          "### 1) 올해의 주요 리스크",
+          "### 2) 커리어 리스크",
+          "### 3) 재물 리스크",
+          "### 4) 관계 리스크",
+          "### 5) 감정·건강 리스크",
+          "### 6) 최악의 시나리오 방지법",
+          "### 7) 3단계 대응 플랜",
+        ],
+        checklist: [
+          "리스크를 예방/초기대응/회복 단계로 나눠 제시",
+          "멈춤-점검-조정-재실행 흐름을 명확히 안내",
+        ],
+      };
+    case 9:
+      return {
+        markers: [
+          "### 1) 월간 판정 기준",
+          "### 2) 12개월 Go/Stop 월별 테이블",
+          "### 3) 월별 실행 원칙",
+        ],
+        checklist: [
+          "각 월에 월간 키워드/판정/일/돈/관계/건강·에너지/해야 할 것/피해야 할 것 포함",
+          "12개월을 서로 다른 지침으로 작성",
+        ],
+      };
+    case 10:
+    default:
+      return {
+        markers: [
+          "### 1) 올해의 최종 정의",
+          "### 2) 반드시 잡아야 할 기회",
+          "### 3) 반드시 피해야 할 리스크",
+          "### 4) 상반기 운영법",
+          "### 5) 하반기 운영법",
+          "### 6) 연말에 남겨야 할 결과",
+          "### 7) 최종 실행 체크리스트",
+          "### 8) 마지막 상담형 조언",
+        ],
+        checklist: [
+          "상반기/하반기 운영 원칙을 분리",
+          "해야 할 행동 10개와 하지 말아야 할 행동 10개 포함",
+          "연말 회수 전략과 봉서형 마무리 조언 제공",
+        ],
+      };
+  }
+}
 
 const DEFAULT_BOOK_SECTION_HEADERS = [
   "핵심 해석",
@@ -12471,7 +12863,7 @@ const DEFAULT_BOOK_SECTION_HEADERS = [
   "실전 행동 가이드",
 ];
 
-const LOVE_SECRET_SYSTEM_PROMPT = "너는 30년 경력의 사주 연애·궁합 상담가다. 너는 사주를 계산하지 않는다. 모든 해석은 canonicalSajuLoveReport JSON에 있는 값만 사용한다. 특히 속궁합과 친밀감은 조후, 월지, 계절, 한난조습, 화수 균형, 일지 배우자궁, 실제 신살, 합충형파해를 기반으로 해석해야 한다. JSON에 없는 신살, 용신, 조후, 계절, 합충, 대운, 세운, 궁합 요소를 절대 만들어내지 않는다. 각 챕터의 소제목과 카테고리는 chapterPlanning.dataDrivenSections를 우선 사용하고, 실제 사주 데이터와 맞는 문장으로 작성해야 한다. 일반 연애 조언이나 반복 문장으로 분량을 채우는 것은 금지한다. 선정적 표현 없이 고급스럽고 구체적인 친밀감 리포트로 작성한다.";
+const LOVE_SECRET_SYSTEM_PROMPT = "너는 Code:Destiny의 프리미엄 사주 연애 비책 PDF를 작성하는 전문 상담가다. 계산은 하지 않고 canonicalSajuLoveReport JSON의 값만 해석한다. 내부 근거 데이터는 해석의 재료로만 쓰고 PDF 본문에는 노출하지 않는다. 사용된 사주 데이터 목록, 원국 계산 근거, 궁합 산출 과정, JSON/payload/engine result, 내부 점수표, 개발자용 문장(예: 이 데이터에 따르면)은 절대 출력하지 않는다. 개인 모드와 궁합 모드를 엄격히 분리하고, 각 챕터는 주제와 상담 목적이 겹치지 않게 작성한다. 궁합 모드는 A 성향, B 성향, 상호작용, 장점, 약점, 현실 패턴, 운영 전략, 최종 조언 흐름을 자연스럽게 녹인다. 자극적 표현·운명론적 단정·저주성 표현·공포 마케팅을 금지하고, 현실적인 관계 운영과 즉시 실행 가능한 행동 전략을 반드시 포함한다.";
 
 const LOVE_SECRET_FORBIDDEN_REPEATED_PHRASES = [
   "현재 챕터의 핵심은 상대를 바꾸는 기술이 아니라 관계 운영 방식을 정교화하는 것입니다.",
@@ -12520,70 +12912,102 @@ const LOVE_SECRET_BRANCH_HARMS = ["子未", "丑午", "寅巳", "卯辰", "申�
 const LOVE_SECRET_BRANCH_BREAKS = ["子酉", "卯午", "辰丑", "未戌", "寅亥", "巳申"];
 const LOVE_SECRET_BRANCH_PUNISHMENTS = ["寅巳", "巳申", "寅申", "丑戌", "戌未", "丑未", "子卯", "辰辰", "午午", "酉酉", "亥亥"];
 
+const LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS = {
+  1: ["연애 기본 성향", "마음 여는 속도", "좋아하는 사람 앞에서의 변화", "연애 핵심 가치", "사랑받고 싶은 방식", "상대에게 기대하는 태도", "반복 감정 패턴", "겉태도와 속마음 차이", "강점", "약점", "자기오해 지점", "관계 시작 전략"],
+  2: ["타고난 매력", "첫인상 분위기", "호감 유발 포인트", "도화/홍염/화개 해석", "말·눈빛·행동 매력", "무의식적 매력", "끌어당기는 방식", "불안 유발 요인", "과잉 매력 오해", "건강한 매력 활용", "스타일·프로필·대화 실전"],
+  3: ["끌리는 유형", "오래 맞는 유형", "안정적 파트너상", "위험 상대 유형", "좋은 인연 신호", "피해야 할 인연", "성격·직업관·돈관념·감정표현 조건", "연애와 결혼의 다른 기준", "성장형/소모형 구분", "이상형 현실 조정", "좋은 인연 판단 기준"],
+  4: ["호감 표현법", "고백·진전 타이밍", "연락 방식", "밀당 vs 솔직함", "호감 대화법", "소개팅·썸·장거리·재회 전략", "초반 금지 행동", "안정 전 경계선", "매력 극대화 데이트", "실수 감소 매뉴얼", "사랑 시작 원칙"],
+  5: ["현재 연애운 분위기", "기회 유입 시기", "썸·고백·진전 유리 시기", "감정 흔들림 시기", "이별·오해·거리 시기", "대운 흐름", "세운 주제", "월별/분기별 흐름", "Go/Hold/Retreat", "밀어붙일 때와 기다릴 때", "현실 행동 지침"],
+  6: ["반복 약점", "집착·회피·불안·의심 패턴", "불안 시 행동", "상처 반응", "시험/확인 습관", "감정 과부하 지점", "잘못된 상대 끌림 이유", "이별 유발 언행", "멈춰야 할 신호", "위기 행동 지침", "성장 전환 방법"],
+  7: ["친밀감 형성 방식", "중요 친밀감 요소", "혼자 시간 필요도", "과밀 친밀감 부담 여부", "의존 성향", "감정 리듬 속도", "안정 후 변화", "친밀감 붕괴 반응", "안정 리듬 설계", "감정 기복 완화"],
+  8: ["소개팅 전략", "썸 단계 전략", "연락 빈도와 메시지 스타일", "SNS·프로필 어필법", "장거리 가능성", "재회 연락 주의점", "바쁜 상대 전략", "감정표현 서툰 상대 전략", "연상/연하/동갑 주의점", "만남 경로별 조언", "현대 연애 핵심 원칙"],
+  9: ["결혼 기본 태도", "연애-결혼 구분", "정착 속도", "결혼 후 강점", "결혼 후 약점", "배우자 현실 조건", "가족·돈·집·책임 태도", "반복 문제", "결혼이 운을 좋게 하는 조건", "서두르면 안 되는 경우", "안정 결혼 준비"],
+  10: ["운을 막는 습관", "운을 살리는 행동", "맞는 만남 장소와 방식", "어울리는 이미지·말투·태도", "피해야 할 연애 패턴", "사전 정리 항목", "인연 유입 루틴", "감정 정리법", "소개팅·모임·온라인·지인 연결 활용", "운이 열릴 때 실행", "나쁜 인연 컷오프 기준"],
+  11: ["이별 감정 반응", "미련 패턴", "재회 시 금지 행동", "선연락 적합성", "기다림 vs 정리 판단", "재회 가능성 높이는 태도", "재회 후 반복 문제", "이별 후 회복 루틴", "새 인연 전 정리 감정", "재시작 준비 시점", "재회보다 회복이 필요한 경우"],
+  12: ["장기 강점", "장기 약점", "권태·거리 원인", "안정 후 태도 변화", "갈등 처리 방식", "지속 대화법", "돈·가족·생활리듬·개인시간 조정", "연애 감정 유지법", "관계 유지 습관", "절대 금지 행동", "평생 파트너 기준"],
+  13: ["연애 한 문장 정의", "강점 5가지", "약점 5가지", "맞는 상대 총정리", "피해야 할 상대 총정리", "초반 전략", "장기 전략", "결혼·정착 전략", "재회·회복 전략", "올해 핵심 조언", "최종 기준", "상담자 봉서"],
+};
+
+const LOVE_SECRET_COMPAT_CHAPTER_REQUIREMENTS = {
+  1: ["A의 연애 자아", "B의 연애 자아", "시작 방식 차이", "빠른 개방/신중 관찰", "상호 끌림 이유", "초반 기대와 착각", "안정감 vs 긴장감", "초반 운영 전략"],
+  2: ["A가 느끼는 B의 매력", "B가 느끼는 A의 매력", "설렘/편안함 구조", "한쪽 쏠림 여부", "이상화 착각", "질투·소유욕·불안 지점", "매력 유지법", "외모·말투·표현·데이트 궁합"],
+  3: ["A의 이상적 상대상", "B의 이상적 상대상", "서로 충족되는 부분", "실제 차이", "부족 체감 지점", "시간이 갈수록 좋아지는 부분", "시간이 갈수록 실망 지점", "성장형/소모형 판단", "좋은 인연으로 만드는 조건"],
+  4: ["A→B 접근법", "B→A 접근법", "적정 연락 빈도", "맞는 데이트 방식", "말 중심/행동 중심", "초반 주의 행동", "불안 완화 표현", "갈등 예방", "속도 차이 조율", "운영 매뉴얼"],
+  5: ["올해 관계 핵심 주제", "가까워지는 시기", "예민해지는 시기", "갈등 확대 시기", "진전 적기", "거리두기 시기", "고백·재회·동거·결혼 논의 흐름", "돈·일·가족 변수", "월/분기 흐름", "망치지 않는 기준"],
+  6: ["A의 불안 반응", "B의 불안 반응", "주요 충돌 감정 주제", "추격-회피 구조", "집착·회피·질투·통제·무심·침묵 패턴", "대표 흔들림 상황", "상처 언행", "이별 위기 흐름", "악화 행동", "회복 행동", "위기관리 매뉴얼"],
+  7: ["A의 친밀감 방식", "B의 친밀감 방식", "확인 욕구 차이", "개인시간 요구 차이", "함께 있을 때 에너지", "감정 리듬 속도 차이", "애정표현 빈도 차이", "가까워질수록 장점/부담", "리듬 맞추기"],
+  8: ["맞는 연락 방식", "맞는 데이트 패턴", "장거리/바쁜 일정 대응", "SNS·공개연애·주변 시선", "직장·가족·친구 이슈 대처", "표현 차이 조율", "갈등 후 연락 재개", "관계 애매할 때 확인", "썸→연애 전환"],
+  9: ["A의 결혼관", "B의 결혼관", "장기 관계 기대", "동거·결혼 장점", "동거·결혼 약점", "돈·집·가족·책임 차이", "정착 속도 차이", "서두를 위험", "결혼 전 필수 합의", "정착 조건"],
+  10: ["운을 막는 커플 습관", "운을 살리는 공동 행동", "맞는 데이트 공간·분위기", "호감 유지 표현", "피해야 할 반복 패턴", "흐름 회복 루틴", "상호 불안 완화", "돈·시간·연락·가족 조정", "지속 처방"],
+  11: ["멀어지는 이유", "A의 이별 반응", "B의 이별 반응", "재회 가능성", "재회 후 반복 가능성", "한쪽 과투입 구조", "연락 재개 타이밍", "사과·대화 순서", "거리두기 기간", "재회 전 교정", "정리가 나은 경우", "회복 시나리오"],
+  12: ["장기 강점", "장기 약점", "권태 발생 방식", "생활 패턴 차이", "돈·책임 분담", "가족·주변 변수", "개인시간·함께시간 균형", "갈등 후 회복 루틴", "공동 습관", "절대 피해야 할 행동", "약속 5가지"],
+  13: ["관계 한 문장 정의", "강점 5가지", "약점 5가지", "사랑으로 극복 가능한 문제", "반드시 조정할 현실 문제", "A가 B에게 해줄 것", "B가 A에게 해줄 것", "피해야 할 반복 패턴", "장기/결혼/재회 가능성", "올해 핵심 조언", "유지 기준", "정리 기준", "최종 봉서"],
+};
+
 const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
   1: {
     purpose: "연애 상황에서 드러나는 본연의 자아를 원국 기반으로 해석",
-    requiredSections: ["사용 데이터 요약표", "나의 연애 자아 한 문장 정의", "일간으로 보는 사랑의 기본 태도", "일지 배우자궁으로 보는 가까운 관계의 민낯", "오행 분포와 감정 표현 방식", "십성으로 보는 연애 주도권", "장점 5개", "반복 실수 5개", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[1],
     requiredDataPoints: ["일간", "일지", "월지", "년주", "월주", "일주", "시주", "오행 분포", "신강/신약", "십성 분포"],
   },
   2: {
     purpose: "도화/홍염/화개/역마를 근거로 매력의 질감과 작동 조건을 설명",
-    requiredSections: ["사용 신살 요약표", "매력의 핵심 키워드 7개", "도화/홍염/화개 각각의 매력 작동 방식", "상대가 처음 느끼는 인상", "가까워질수록 드러나는 매력", "매력이 과잉될 때의 위험", "매력을 좋은 관계로 연결하는 법", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[2],
     requiredDataPoints: ["도화살", "홍염살", "화개살", "역마살", "신살 위치", "일간", "일지", "오행 분포"],
   },
   3: {
     purpose: "배우자성/배우자궁/오행 보완 관점에서 이상형과 현실형의 차이를 분석",
-    requiredSections: ["배우자성/배우자궁 요약표", "내가 무의식적으로 끌리는 사람", "진짜 오래 갈 수 있는 사람", "피해야 할 관계 패턴", "결론: 이상형과 현실형의 차이", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[3],
     requiredDataPoints: ["배우자궁", "배우자성", "재성", "관성", "식상", "인성", "비겁", "오행 보완"],
   },
   4: {
     purpose: "십성 구조를 실제 연락/고백/갈등 대화 스킬로 번역",
-    requiredSections: ["연애 스킬 데이터 요약표", "연락 스타일", "호감 표현 방식", "갈등 시 말투", "고백/관계 진전 전략", "절대 하지 말아야 할 행동", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[4],
     requiredDataPoints: ["식상", "재성", "관성", "인성", "비겁", "오행 강약", "신강/신약"],
   },
   5: {
     purpose: "대운/세운/월운의 타이밍을 관계 의사결정 로드맵으로 제공",
-    requiredSections: ["대운·세운 요약표", "현재 대운의 연애 테마", "올해 세운의 연애 기류", "월별 로드맵 12개월", "중요한 선택 구간", "피해야 할 시기", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[5],
     requiredDataPoints: ["현재 대운", "다음 대운", "해당 연도 세운", "월별 흐름", "합/충 변화", "재성/관성 변화", "도화/홍염 변화"],
   },
   6: {
     purpose: "기신 과열과 오행 불균형의 위기 패턴을 회복 프로토콜로 연결",
-    requiredSections: ["위기 데이터 요약표", "연애에서 반복되는 그림자", "집착/회피/침묵/폭발 패턴", "이별 위기 전조", "회복 프로토콜", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[6],
     requiredDataPoints: ["기신", "오행 불균형", "일지 충형파해", "신살 역작용", "십성 충돌", "배우자궁", "대운/세운 압박"],
   },
   7: {
     purpose: "친밀감의 온도와 속도를 선정성 없이 데이터 중심으로 해석",
-    requiredSections: ["친밀감 데이터 요약표", "나의 관계 온도", "끌림이 생기는 조건", "가까워질수록 필요한 안정감", "친밀감을 건강하게 유지하는 법", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[7],
     requiredDataPoints: ["화 기운", "수 기운", "식상", "재성/관성", "도화/홍염", "일지", "신강/신약"],
   },
   8: {
     purpose: "현대 연애 상황(카톡/DM/썸/재회/장거리)별 맞춤 대응 전략 제시",
-    requiredSections: ["현대 연애 상황 요약표", "썸 단계 전략", "연락 템포", "갈등 후 메시지 예시", "재회/정리 상황 전략", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[8],
     requiredDataPoints: ["식상", "비겁", "인성", "오행 온도", "대운/세운 시기", "배우자궁", "신강/신약"],
   },
   9: {
     purpose: "결혼관·역할 분담·생활 리듬을 배우자궁/배우자성/운세 흐름으로 진단",
-    requiredSections: ["결혼 데이터 요약표", "결혼관", "안정되는 배우자 유형", "결혼 후 갈등 포인트", "돈과 생활 운영", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[9],
     requiredDataPoints: ["배우자궁", "배우자성", "재성/관성", "대운 결혼 시기", "오행 보완", "가족/책임", "장기 안정성"],
   },
   10: {
     purpose: "용신/희신 강화와 기신 절감을 위한 실행형 개운 처방전 작성",
-    requiredSections: ["개운 데이터 요약표", "나에게 필요한 연애 기운", "줄여야 할 연애 습관", "데이트/공간/말투/연락 처방", "7일 플랜", "30일 플랜", "90일 플랜", "최종 연애 비책 10계명", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[10],
     requiredDataPoints: ["용신", "희신", "기신", "오행 강약", "말투/환경 전략", "관계 루틴", "대운/세운 타이밍"],
   },
   11: {
     purpose: "재회/이별/회복 시나리오를 데이터 기반 의사결정으로 구조화",
-    requiredSections: ["관계 전환 데이터 요약표", "이별 전조와 단절 신호", "재회 가능 구간", "회복 대화 시나리오", "손절 기준", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[11],
     requiredDataPoints: ["배우자궁", "합/충/형/파/해", "대운", "세운", "월별 흐름", "십성 충돌", "조후 밸런스"],
   },
   12: {
     purpose: "장기 관계의 재발 패턴을 줄이는 운영 매뉴얼 수립",
-    requiredSections: ["장기 운영 데이터 요약표", "역할 분담 원칙", "갈등 재발 방지 규칙", "감정 점검 루틴", "생활/재정 운영 합의", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[12],
     requiredDataPoints: ["배우자궁", "배우자성", "오행 보완", "십성 분포", "조후", "대운 장기 흐름", "관계 경계선"],
   },
   13: {
     purpose: "전 챕터 데이터를 통합해 최종 사랑 마스터플랜 제시",
-    requiredSections: ["통합 데이터 요약표", "핵심 강점 5개", "핵심 리스크 5개", "90일 실행표", "1년·3년·10년 로드맵", "최종 선언문", "핵심 요약 5줄"],
+    requiredSections: LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS[13],
     requiredDataPoints: ["일간", "배우자궁", "오행", "십성", "용신/희신/기신", "대운/세운", "궁합 핵심 점수"],
   },
 };
@@ -13545,9 +13969,9 @@ function buildLoveChapterDataSections(canonical, chapter) {
 
   if (chapter === 7) {
     sections.push(
-      "속궁합 데이터 요약표",
-      "나의 친밀감 기후",
-      "상대의 친밀감 기후",
+      "친밀감의 핵심 진단",
+      "나의 친밀감 리듬",
+      "상대의 친밀감 리듬",
       "두 사람의 조후 보완성",
       "관계 온도와 속도",
       "끌림의 질감",
@@ -13588,7 +14012,7 @@ function buildLoveChapterPlanning(canonical) {
       );
     }
     if (i === 7) {
-      entry.title = "조후로 보는 속궁합과 친밀감의 리듬";
+      entry.title = "친밀감과 감정 리듬";
       entry.mustUseData = [
         "personA.johu",
         "personB.johu",
@@ -13773,14 +14197,31 @@ function countLoveDataEvidence(text, canonical, chapter) {
   return tokens.filter((token) => source.includes(token)).length;
 }
 
-function detectLoveMissingMarkers(text, chapter) {
+function detectLoveMissingMarkers(text, chapter, canonical = null) {
   const source = String(text || "");
-  const spec = LOVE_SECRET_CHAPTER_BLUEPRINTS[chapter] || { requiredSections: [] };
-  const required = ["사용 데이터 요약표", "핵심 요약 5줄", ...(spec.requiredSections || [])];
+  const compatMode = canonical?.mode === "compatibility";
+  const requiredSections = compatMode
+    ? (LOVE_SECRET_COMPAT_CHAPTER_REQUIREMENTS[chapter] || [])
+    : ((LOVE_SECRET_CHAPTER_BLUEPRINTS[chapter] || { requiredSections: [] }).requiredSections || []);
+  const required = ["핵심 요약 5줄", ...requiredSections];
   if (chapter === 5) required.push("대운", "세운", "월별", "|");
   if (chapter === 9) required.push("배우자궁", "배우자성", "안정성");
   if (chapter === 10) required.push("7일 플랜", "30일 플랜", "90일 플랜");
   return required.filter((token) => !source.includes(token));
+}
+
+function hasLoveCompatCompressedFlow(text) {
+  const source = String(text || "");
+  const needs = [
+    ["A의", "A :", "A:", "나"],
+    ["B의", "B :", "B:", "상대"],
+    ["상호작용", "관계 패턴"],
+    ["장점"],
+    ["약점"],
+    ["전략", "운영"],
+    ["최종 조언", "최종"]
+  ];
+  return needs.every((group) => group.some((token) => source.includes(token)));
 }
 
 function hasForbiddenLovePadding(text) {
@@ -13822,6 +14263,7 @@ function hasLoveCompatibilityCoverage(text, canonical) {
 
 function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonical, minChars, premiumInput = null) {
   const blueprint = LOVE_SECRET_CHAPTER_BLUEPRINTS[chapter] || LOVE_SECRET_CHAPTER_BLUEPRINTS[1];
+  const compatMode = canonical?.mode === "compatibility";
   const chapterPlan = canonical?.chapterPlanning?.[`chapter${chapter}`] || { dataDrivenSections: [], mustUseData: [] };
   const targetLength = Math.max(minChars + 300, chapter === 3 || chapter === 5 || chapter === 9 ? 5600 : 5000);
   const chapter7RequiredDataPoints = [
@@ -13842,7 +14284,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
   ];
 
   return {
-    chapterTitle: chapter === 7 ? "조후로 보는 속궁합과 친밀감의 리듬" : (chapterMeta?.title || `Chapter ${chapter}`),
+    chapterTitle: chapter === 7 ? "친밀감과 감정 리듬" : (chapterMeta?.title || `Chapter ${chapter}`),
     chapterPurpose: blueprint.purpose,
     mode: canonical?.mode || "single",
     personA: canonical?.personA || {},
@@ -13850,7 +14292,9 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
     compatibility: canonical?.compatibility?.enabled ? canonical.compatibility : null,
     chapterSpecificSections: chapterPlan.dataDrivenSections || [],
     requiredDataPoints: chapter === 7 ? chapter7RequiredDataPoints : blueprint.requiredDataPoints,
-    requiredSections: blueprint.requiredSections,
+    requiredSections: compatMode
+      ? (LOVE_SECRET_COMPAT_CHAPTER_REQUIREMENTS[chapter] || [])
+      : blueprint.requiredSections,
     johuData: chapter === 7
       ? {
         personA: canonical?.personA?.johu || null,
@@ -13877,6 +14321,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
 function buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts = [], premiumInput = null) {
   const payload = buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonical, minChars, premiumInput);
   const previousBan = collectPreviousSentenceBanList(previousTexts, 12);
+  const isCompat = canonical?.mode === "compatibility";
   return [
     "[System Prompt]",
     LOVE_SECRET_SYSTEM_PROMPT,
@@ -13886,11 +14331,16 @@ function buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minC
     "",
     "[추가 생성 규칙]",
     "- 문체는 상담가의 실제 상담 기록처럼 구체적으로 작성한다.",
+    "- PDF 독자가 읽는 완성형 상담문만 작성하고, 내부 계산/근거/데이터 나열은 본문에 절대 노출하지 않는다.",
+    "- '사용 데이터 요약표', '데이터 요약표', 'JSON', 'payload', 'engine result', '내부 점수표', '산출 과정' 같은 표현을 본문에 쓰지 않는다.",
+    "- '이 데이터에 따르면' 같은 개발자용 문장을 쓰지 않는다.",
     "- 장문 반복, 문장 복붙, 일반론 패딩을 금지한다.",
-    "- 각 챕터 첫머리에 '### 1. 사용 데이터 요약표'를 반드시 작성한다.",
     "- 각 챕터 마지막에 '### 핵심 요약 5줄'을 넣고 5개 문장으로 정리한다.",
     "- chapterSpecificSections는 실제 본문 소제목에 반영해야 한다.",
-    "- 궁합 모드일 때는 최소 2개 소제목에서 나/상대를 분리해 동시에 분석한다.",
+    "- 각 챕터는 이전 챕터와 주제/조언/문장 구조를 반복하지 않는다.",
+    isCompat
+      ? "- 궁합 모드는 A 성향, B 성향, 두 사람 상호작용, 장점, 약점, 현실 패턴, 운영 전략, 최종 조언 순서를 자연스럽게 녹여 작성한다."
+      : "- 개인 모드는 한 사람의 연애 성향, 실전 전략, 장기 관계 운용 중심으로 작성한다.",
     "- 노골적 성적 표현 금지, 확정 예언 금지.",
     "- JSON에 없는 신살/용신/대운/세운/궁합 요소를 쓰지 않는다.",
     "",
@@ -13945,7 +14395,7 @@ function ensureLoveSecretSourceData(body = {}) {
 function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [], minChars = 4000) {
   const source = String(text || "").trim();
   const failedChecks = [];
-  const missingMarkers = detectLoveMissingMarkers(source, chapter);
+  const missingMarkers = detectLoveMissingMarkers(source, chapter, canonical);
   const evidenceCount = countLoveDataEvidence(source, canonical, chapter);
   const repeatedInside = detectRepeatedLongSentences(source, 30);
   const repeatedAcross = detectCrossChapterRepeatedSentences(source, previousTexts || [], 30);
@@ -13968,9 +14418,6 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
 
   if (chapter === 7) {
     if (source.length < 6000) failedChecks.push("QUALITY_GATE_J_CH7_MIN_LENGTH_6000");
-
-    const hasDataTable = /###\s*1\.\s*사용\s*데이터\s*요약표/.test(source) && /\|.+\|.+\|/.test(source);
-    if (!hasDataTable) failedChecks.push("QUALITY_GATE_K_CH7_DATA_TABLE");
 
     if (canonical?.mode === "compatibility") {
       const hasA = /(나\s*[:：]|A\s*[:：]|personA|본인)/i.test(source);
@@ -14002,6 +14449,10 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
     }
   }
 
+  if (canonical?.mode === "compatibility" && !hasLoveCompatCompressedFlow(source)) {
+    failedChecks.push("QUALITY_GATE_S_COMPAT_COMPRESSED_FLOW");
+  }
+
   if (missingMarkers.length > 0) failedChecks.push("QUALITY_GATE_STRUCTURE");
   if (hasForbiddenLovePadding(source)) failedChecks.push("QUALITY_GATE_NO_FORBIDDEN_PHRASES");
 
@@ -14029,7 +14480,7 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
   const spousePalace = String(canonical?.personA?.spousePalace?.branch || "정보 확인");
   const qualityHint = Array.isArray(quality?.failedChecks) && quality.failedChecks.length
     ? `품질 보강 포인트: ${quality.failedChecks.join(", ")}`
-    : "품질 보강 포인트: 데이터 근거 밀도와 실행 구체성을 강화합니다.";
+    : "품질 보강 포인트: 상담문 밀도와 실행 구체성을 강화합니다.";
 
   const rows = [
     ["모드", mode === "compatibility" ? "2인 궁합" : "1인 연애"],
@@ -14040,11 +14491,9 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
     ["핵심 포커스", chapterSubtitle],
   ];
 
-  const table = [
-    "### 1. 사용 데이터 요약표",
-    "| 항목 | 값 |",
-    "|---|---|",
-    ...rows.map(([k, v]) => `| ${k} | ${String(v || "-")} |`),
+  const intro = [
+    "### 1. 상담 핵심 진단",
+    ...rows.map(([k, v]) => `- ${k}: ${String(v || "-")}`),
   ].join("\n");
 
   const chapterSpecific = [];
@@ -14086,7 +14535,7 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
   }
 
   let text = [
-    table,
+    intro,
     "",
     "### 2. 핵심 구조 진단",
     `${chapterTitle}은 단순한 조언 모음이 아니라 반복되는 선택 패턴을 재정렬하는 챕터입니다. ${chapterSubtitle}에 맞춰 감정 반응, 대화 흐름, 경계 설정, 회복 전략을 같은 프레임으로 정리합니다.`,
@@ -14106,7 +14555,7 @@ function buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canoni
     "",
     "### 핵심 요약 5줄",
     "1) 이번 챕터의 목적은 감정 해석이 아니라 실행 가능한 관계 운영 기준 확립입니다.",
-    "2) 데이터 근거는 일간/배우자궁/관계 리듬을 중심으로 읽고, 일반론 패딩을 배제합니다.",
+    "2) 개인의 관계 리듬과 현실 조건을 중심으로 읽고, 일반론 패딩을 배제합니다.",
     "3) 갈등은 회피보다 복구 프로토콜 고정이 효과적이며, 작은 규칙이 장기 안정을 만듭니다.",
     "4) 시기 운용은 대운·세운·월별 관찰을 분리해 판단해야 과속 결정을 줄일 수 있습니다.",
     "5) 오늘 바로 실행할 한 가지 행동을 정하고 7일간 기록하면 변화 속도가 크게 빨라집니다.",
@@ -14594,49 +15043,116 @@ function validateCanonicalSajuNewYear(canonical) {
 }
 
 function buildSajuNewYearMonthlyTable(monthlyLuck = []) {
-  const rows = ["| 월 | 점수 | 흐름 | 기회 포인트 | 주의 포인트 |", "|---|---:|---|---|---|"];
-  for (let i = 0; i < monthlyLuck.length; i += 1) {
+  const rows = [
+    "| 월 | 월간 키워드 | 판정(Go/Hold/Stop) | 일 | 돈 | 관계 | 건강·에너지 | 해야 할 것 | 피해야 할 것 |",
+    "|---|---|---|---|---|---|---|---|---|",
+  ];
+  const trendKeyword = {
+    강상승: "확장",
+    상승: "추진",
+    중립: "점검",
+    조정: "재정비",
+    주의: "방어",
+  };
+
+  for (let i = 0; i < 12; i += 1) {
     const row = monthlyLuck[i] || {};
-    rows.push(`| ${Number(row.month || i + 1)}월 | ${Number(row.score || 0)} | ${String(row.trend || "중립")} | ${String(row.opportunity || "")} | ${String(row.caution || "")} |`);
+    const month = Number(row.month || i + 1);
+    const score = Number(row.score || 0);
+    const keyword = trendKeyword[String(row.trend || "")] || "운영";
+    const verdict = score >= 20 ? "Go" : (score <= -20 ? "Stop" : "Hold");
+    const work = verdict === "Go"
+      ? "핵심 과제에 집중 실행"
+      : (verdict === "Hold" ? "진행 중 과제 점검" : "확장 대신 정리");
+    const money = verdict === "Go"
+      ? "수익 채널 테스트"
+      : (verdict === "Hold" ? "예산 균형 유지" : "지출 통제 우선");
+    const relation = verdict === "Go"
+      ? "협업 제안 수용"
+      : (verdict === "Hold" ? "관계 기대치 조율" : "불필요한 갈등 회피");
+    const energy = verdict === "Go"
+      ? "집중-회복 리듬 유지"
+      : (verdict === "Hold" ? "수면/루틴 점검" : "과로 차단 및 회복 강화");
+    const mustDo = String(row.action || "주간 점검 루틴 고정");
+    const avoid = String(row.caution || "감정적 의사결정");
+
+    rows.push(`| ${month}월 | ${keyword} | ${verdict} | ${work} | ${money} | ${relation} | ${energy} | ${mustDo} | ${avoid} |`);
   }
   return rows.join("\n");
 }
 
 function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars = 2600) {
   const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
-  const ranked = monthlyLuck.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+  const chapterSpec = getSajuNewYearChapterPromptSpec(chapter);
+  const markers = Array.isArray(chapterSpec?.markers) ? chapterSpec.markers : [];
+  const ranked = monthlyLuck.slice().sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0));
   const top = ranked.slice(0, 3);
-  const caution = ranked.slice(-3).sort((a, b) => Number(a.month || 0) - Number(b.month || 0));
+  const caution = ranked.slice(-3).sort((a, b) => Number(a?.month || 0) - Number(b?.month || 0));
   const focusLabel = SAJU_NEW_YEAR_FOCUS_LABELS[canonical?.focusArea] || "전체운";
+  const chapterLabel = String(chapterMeta?.title || `Chapter ${chapter}`);
+  const chapterSubtitle = String(chapterMeta?.subtitle || "");
+  const year = Number(canonical?.targetYear || new Date().getFullYear());
+  const yearlySummaryText = String(canonical?.yearlySummary?.summary || `${year}년은 속도보다 방향을 정교하게 조정할수록 성과가 커지는 흐름입니다.`);
+  const strongestText = top.map((row) => `${row.month}월`).join(", ") || "상대적 강점 구간 없음";
+  const cautionText = caution.map((row) => `${row.month}월`).join(", ") || "주의 구간 데이터 부족";
 
-  let text = [
-    `## ${chapterMeta?.title || `Chapter ${chapter}`}`,
-    `### 데이터 기준점`,
-    `- 대상 연도: ${Number(canonical?.targetYear || new Date().getFullYear())}년`,
-    `- 집중 영역: ${focusLabel}`,
-    `- 일간 힌트: ${String(canonical?.saju?.dayMaster || "정보 부족")}`,
-    `- 강한 구간: ${(top.map((row) => `${row.month}월`).join(", ")) || "산출 없음"}`,
-    `- 주의 구간: ${(caution.map((row) => `${row.month}월`).join(", ")) || "산출 없음"}`,
-    "",
-    "### 핵심 해석",
-    String(canonical?.yearlySummary?.summary || "연간 요약 데이터가 준비되지 않아 기본 전략으로 안내합니다."),
-    "",
-    "### 실행 가이드",
-    `- 커리어: ${String(canonical?.yearlySummary?.career || "핵심 과제를 줄이고 지속 가능한 속도로 추진하세요.")}`,
-    `- 재물: ${String(canonical?.yearlySummary?.wealth || "현금흐름 우선의 보수적 운영이 유효합니다.")}`,
-    `- 관계: ${String(canonical?.yearlySummary?.relationship || "중요 관계의 기대치를 명확히 합의하세요.")}`,
-    `- 건강: ${String(canonical?.yearlySummary?.health || "회복 루틴 고정이 성과를 지켜줍니다.")}`,
-    "",
-    "### 월별 우선순위",
-    top.map((row, idx) => `${idx + 1}. ${row.month}월: ${row.opportunity} 실행: ${row.action}`).join("\n"),
-    "",
-    "### 리스크 관리",
-    caution.map((row) => `- ${row.month}월: ${row.caution}`).join("\n"),
-  ].join("\n");
+  const lines = [
+    `## ${chapterLabel}`,
+    chapterSubtitle ? `> ${chapterSubtitle}` : "",
+    `${year}년 ${focusLabel} 기준으로 올해를 어떻게 운영할지에 초점을 맞춘 상담형 리포트입니다. ${yearlySummaryText}`,
+  ].filter(Boolean);
 
-  if (Number(chapter) === 9) {
-    text += `\n\n### 12개월 월별 테이블\n${buildSajuNewYearMonthlyTable(monthlyLuck)}`;
-  }
+  markers.forEach((marker, idx) => {
+    const markerTitle = String(marker || "").replace(/^###\s*\d+\)\s*/, "").trim();
+    lines.push("", marker);
+
+    if (Number(chapter) === 9 && marker.includes("12개월 Go/Stop 월별 테이블")) {
+      lines.push(
+        `월별 판단은 단순 길흉이 아니라 실행 방향을 정하는 운영 기준입니다. 강점 구간(${strongestText})은 추진력을 살리고, 주의 구간(${cautionText})은 손실을 줄이는 데 집중하세요.`,
+        "",
+        buildSajuNewYearMonthlyTable(monthlyLuck),
+      );
+      return;
+    }
+
+    if (Number(chapter) === 10 && marker.includes("최종 실행 체크리스트")) {
+      lines.push(
+        "#### 올해 반드시 해야 할 행동 10개",
+        "- 핵심 목표 1개와 보조 목표 2개를 분기 시작 전에 확정한다.",
+        "- 월 1회 수익/지출 점검 회의를 스스로 진행한다.",
+        "- 협업 기준(역할/기한/보상)을 문서로 고정한다.",
+        "- 피로 신호가 누적되기 전에 회복일을 선점한다.",
+        "- 중요한 관계는 기대치와 경계선을 먼저 합의한다.",
+        "- 분기마다 중단할 일 1개를 정하고 정리한다.",
+        "- 월별 Go/Hold/Stop 판정을 실제 일정에 반영한다.",
+        "- 리스크 발생 시 멈춤-점검-조정-재실행 순서를 지킨다.",
+        "- 상반기 말/하반기 말에 성과와 피로를 함께 리뷰한다.",
+        "- 연말 회수 목표(돈/일/관계/건강/습관)를 문장으로 남긴다.",
+        "",
+        "#### 올해 하지 말아야 할 행동 10개",
+        "- 감정이 격해진 상태에서 큰 결정을 내리지 않는다.",
+        "- 검증 없는 확장 투자에 즉시 진입하지 않는다.",
+        "- 불분명한 책임을 떠안은 채 프로젝트를 시작하지 않는다.",
+        "- 관계 피로를 무시하고 연락 빈도만 늘리지 않는다.",
+        "- 과로를 성실함으로 착각하지 않는다.",
+        "- 월별 경고 신호를 무시한 채 같은 실수를 반복하지 않는다.",
+        "- 지출 통제 없이 매출 증가만 기대하지 않는다.",
+        "- 갈등 상황에서 설명 과잉으로 문제를 키우지 않는다.",
+        "- 연말 정리를 미루고 다음 해로 부채를 넘기지 않는다.",
+        "- 비교 불안으로 전략을 자주 바꾸지 않는다.",
+      );
+      return;
+    }
+
+    lines.push(
+      `${markerTitle}에서는 ${focusLabel} 관점의 운영 기준을 선명하게 정하는 것이 핵심입니다. 강한 구간(${strongestText})은 기회를 확대하고, 주의 구간(${cautionText})은 손실을 줄이는 방향으로 분리해 대응하세요.`,
+      `실행 전략: ${String(canonical?.yearlySummary?.career || "핵심 목표를 줄이고 실행 밀도를 높이면 성과 변동이 줄어듭니다.")}`,
+      `리스크 대응: ${String(canonical?.yearlySummary?.relationship || "관계 변수는 속도보다 기준 합의로 관리할 때 손실이 작아집니다.")}`,
+      "점검 질문: 지금 선택이 90일 뒤에도 유지 가능한가, 감정 반응이 아니라 근거 있는 행동인가, 대체 시나리오를 준비했는가?",
+    );
+  });
+
+  let text = lines.join("\n");
 
   const deepDiveFrames = [
     "실행 우선순위 재배치",
@@ -14668,15 +15184,13 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
 }
 
 function buildSajuNewYearRequiredMarkers(chapter) {
-  const base = [
-    "### 데이터 기준점",
-    "### 핵심 해석",
-    "### 실행 가이드",
-    "### 월별 우선순위",
-    "### 리스크 관리",
-  ];
-  if (Number(chapter) === 9) base.push("### 12개월 월별 테이블");
-  return base;
+  const spec = getSajuNewYearChapterPromptSpec(chapter);
+  return Array.isArray(spec?.markers) ? spec.markers : [];
+}
+
+function hasSajuNewYearInternalDisclosure(text) {
+  const source = String(text || "");
+  return SAJU_NEW_YEAR_INTERNAL_DISCLOSURE_PATTERNS.some((pattern) => pattern.test(source));
 }
 
 function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChapterTexts = []) {
@@ -14686,7 +15200,12 @@ function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChap
   const repeatedInside = detectRepeatedLongSentences(source, 30);
   const repeatedAcross = detectCrossChapterRepeatedSentences(source, previousChapterTexts, 30);
   const bannedExpression = hasBannedDeterministicExpression(source);
-  const hasMonthlyTable = Number(chapter) !== 9 || /\|\s*월\s*\|/.test(source);
+  const internalDisclosure = hasSajuNewYearInternalDisclosure(source);
+  const monthRowCount = (source.match(/\|\s*(?:[1-9]|1[0-2])월\s*\|/g) || []).length;
+  const hasMonthlyTable = Number(chapter) !== 9
+    || (/\|\s*월\s*\|\s*월간\s*키워드\s*\|\s*판정\(Go\/Hold\/Stop\)\s*\|/.test(source) && monthRowCount >= 12);
+  const hasFinalChecklist = Number(chapter) !== 10
+    || (source.includes("#### 올해 반드시 해야 할 행동 10개") && source.includes("#### 올해 하지 말아야 할 행동 10개"));
 
   const failedChecks = [];
   if (source.length < minChars) failedChecks.push("TOO_SHORT");
@@ -14694,7 +15213,9 @@ function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChap
   if (repeatedInside.length > 0) failedChecks.push("REPEATED_SENTENCES_INSIDE");
   if (repeatedAcross.length > 0) failedChecks.push("REPEATED_SENTENCES_ACROSS");
   if (bannedExpression) failedChecks.push("BANNED_DETERMINISTIC_EXPRESSION");
+  if (internalDisclosure) failedChecks.push("INTERNAL_DISCLOSURE_FOUND");
   if (!hasMonthlyTable) failedChecks.push("MISSING_MONTHLY_TABLE");
+  if (!hasFinalChecklist) failedChecks.push("MISSING_FINAL_CHECKLIST");
 
   return {
     ok: failedChecks.length === 0,
@@ -14703,13 +15224,18 @@ function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChap
     repeatedInsideCount: repeatedInside.length,
     repeatedAcrossCount: repeatedAcross.length,
     bannedExpression,
+    internalDisclosure,
     hasMonthlyTable,
+    hasFinalChecklist,
     actualChars: source.length,
     minChars,
   };
 }
 
 function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars, previousChapterTexts = [], premiumLlmInput = null) {
+  const chapterSpec = getSajuNewYearChapterPromptSpec(chapter);
+  const markers = Array.isArray(chapterSpec?.markers) ? chapterSpec.markers : [];
+  const checklist = Array.isArray(chapterSpec?.checklist) ? chapterSpec.checklist : [];
   const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
   const topMonths = monthlyLuck
     .slice()
@@ -14731,13 +15257,16 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
   return [
     "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF 전문 작가입니다.",
     "응답은 한국어 마크다운 본문만 작성하세요.",
+    "완성형 상담문만 출력하고, 내부 계산 근거 목록이나 개발자 문장은 출력하지 마세요.",
     "과장된 운세 문구/공포 유도 문구/확정적 예언을 금지합니다.",
+    "출력 금지: 년주/월주/일주/시주 목록, 일간/월지/지장간/오행/십성 분포 목록, 대운/세운/월운 계산 과정, 합충형파해 산출 과정, 용신/희신/기신 판단 근거, JSON/payload/engine result/내부 계산표.",
     `최소 길이: ${minChars}자`,
     "섹션마다 실제 행동 기준을 포함하고, 모호한 위로 문장만 반복하지 마세요.",
     "이전 챕터의 동일 문장, 동일 비유, 동일 조언 프레이밍을 재사용하지 마세요.",
-    "핵심은 월별 실행 전략이며, 데이터 기반 근거를 반드시 반영하세요.",
+    "핵심은 올해를 어떻게 운영할지에 대한 실행 전략이며, 길흉 단정 대신 행동 설계로 작성하세요.",
+    checklist.length ? `[챕터 필수 커버리지]\n- ${checklist.join("\n- ")}` : "",
     Number(chapter) === 9
-      ? "이 챕터는 반드시 12개월 월별 테이블을 마크다운 표 형식으로 포함하세요."
+      ? "이 챕터는 반드시 12개월 월별 테이블을 마크다운 표 형식으로 포함하세요. 월별 테이블은 각 월마다 서로 다른 지침을 제공해야 합니다."
       : "",
     previousBan.length
       ? `[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n${JSON.stringify(previousBan, null, 2)}`
@@ -14757,12 +15286,8 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
     "",
     "필수 구조:",
     `## ${chapterLabel}`,
-    "### 데이터 기준점",
-    "### 핵심 해석",
-    "### 실행 가이드",
-    "### 월별 우선순위",
-    "### 리스크 관리",
-    Number(chapter) === 9 ? "### 12개월 월별 테이블" : "",
+    ...markers,
+    Number(chapter) === 9 ? "월별 표 헤더를 다음 순서로 고정하세요: | 월 | 월간 키워드 | 판정(Go/Hold/Stop) | 일 | 돈 | 관계 | 건강·에너지 | 해야 할 것 | 피해야 할 것 |" : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -14773,8 +15298,8 @@ function buildSajuNewYearRewritePrompt(basePrompt, currentText, minChars, failed
     "",
     "아래 원고를 같은 데이터 근거를 유지하면서 더 깊고 구체적으로 재작성하세요.",
     `목표 길이: 최소 ${minChars}자`,
-    "섹션별로 실행 문장(언제/무엇/어떻게)을 명시하세요.",
-    "중복 문장을 줄이고 월별 전략의 차이를 분명히 쓰세요.",
+    "섹션별로 실행 문장(언제/무엇/어떻게)을 명시하고, 계산 근거 노출 문장을 모두 제거하세요.",
+    "중복 문장을 줄이고 월별·분기별 전략의 차이를 분명히 쓰세요.",
     failedChecks.length ? `품질 보강 포인트: ${failedChecks.join(" | ")}` : "",
     previousBan.length
       ? `[중복 금지 문장]\n${JSON.stringify(previousBan, null, 2)}`
@@ -16024,8 +16549,11 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     ...(canonicalBuild.validation?.optionalMissing || []),
   ]));
   const status = missingData.length === 0 && canonicalBuild.validation?.canGeneratePdf ? "ready" : "needs-data";
+  const sukyoChapterBlueprint = reportType === "sookyoPremium"
+    ? getSukyoPdfChapters(normalizeSukyoModeToken(modeKey))
+    : [];
   const chapterPlan = reportType === "sookyoPremium"
-    ? SUKYO_PDF_CHAPTERS.map((chapter, idx) => ({
+    ? sukyoChapterBlueprint.map((chapter, idx) => ({
       num: idx + 1,
       title: chapter.title,
       subtitle: chapter.goal,
@@ -17331,7 +17859,7 @@ const LEGACY_PREMIUM_ALIAS_CONFIG = Object.freeze({
     statusPath: "/api/premium/vedic/status",
     generatePath: "/api/premium/vedic/generate",
     reportType: "vedicPremium",
-    defaultTotalChapters: 13,
+    defaultTotalChapters: 12,
   },
   ziwei: {
     alias: "ziwei",
@@ -17974,6 +18502,7 @@ export const __astroTestUtils = {
   hasForbiddenAstroPadding,
   detectRepeatedLongSentences,
   hasAstroDataEvidence,
+  hasForbiddenAstroRawDataExposure,
   hasBrokenPageCounter,
 };
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { VEDIC_PDF_CHAPTERS } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
+import { getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -56,13 +56,22 @@ type PremiumSectionProps = {
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
-const CHAPTER_META: ChapterMeta[] = VEDIC_PDF_CHAPTERS.map((chapter) => ({
+const PERSONAL_CHAPTER_META: ChapterMeta[] = getVedicPdfChapters("personal").map((chapter) => ({
   num: chapter.number,
   title: chapter.titleKo,
   subtitle: chapter.subtitleKo,
   icon: chapter.icon,
 }));
-const TOTAL_CHAPTERS = CHAPTER_META.length;
+const COMPAT_CHAPTER_META: ChapterMeta[] = getVedicPdfChapters("compatibility").map((chapter) => ({
+  num: chapter.number,
+  title: chapter.titleKo,
+  subtitle: chapter.subtitleKo,
+  icon: chapter.icon,
+}));
+
+function getChapterMetaByMode(mode: "personal" | "compatibility"): ChapterMeta[] {
+  return mode === "compatibility" ? COMPAT_CHAPTER_META : PERSONAL_CHAPTER_META;
+}
 
 const VEDIC_STORAGE_KEY = "premium:vedic:session:v1";
 const VEDIC_COMPAT_ADDON_COST = 300;
@@ -274,21 +283,23 @@ function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:Chap
 // PDF 다운로드 버튼
 // ─────────────────────────────────────────────────────────────────
 function PDFDownloadButton({
-  chapters, chart, userName, birthDate
+  chapters, chart, userName, birthDate, chapterMeta, totalChapters
 }: {
   chapters: Record<number, ChapterState>;
   chart: VedicChart | null;
   userName?: string;
   birthDate?: string;
+  chapterMeta: ChapterMeta[];
+  totalChapters: number;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
+  const doneChapters = chapterMeta.filter(m => chapters[m.num]?.step === "done");
 
   const handleDownload = useCallback(() => {
-    if (doneChapters.length !== TOTAL_CHAPTERS) {
-      setError(`전체 ${TOTAL_CHAPTERS}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
+    if (doneChapters.length !== totalChapters) {
+      setError(`전체 ${totalChapters}개 챕터 생성 완료 후 PDF를 다운로드할 수 있습니다.`);
       return;
     }
     setLoading(true); setError("");
@@ -346,7 +357,7 @@ ${chaptersHtml}
     } catch (e) {
       setError(e instanceof Error ? e.message : "PDF 생성 중 오류");
     } finally { setLoading(false); }
-  }, [doneChapters, chapters, chart, userName, birthDate]);
+  }, [doneChapters, chapters, chart, userName, birthDate, totalChapters]);
 
   // 모바일 스크롤 중 오작동 방지: touchmove 감지 시 클릭 방지
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -379,24 +390,24 @@ ${chaptersHtml}
       <button
         ref={btnRef}
         onClick={handleDownload}
-        disabled={loading || doneChapters.length !== TOTAL_CHAPTERS}
+        disabled={loading || doneChapters.length !== totalChapters}
         style={{
           display:"inline-flex", alignItems:"center", gap:8,
           borderRadius:12, padding:"12px 28px", fontSize:"0.9rem", fontWeight:800,
-          background: doneChapters.length !== TOTAL_CHAPTERS ? "rgba(100,116,139,0.3)" : loading ? "rgba(100,116,139,0.4)" : "linear-gradient(135deg,#d4a017,#8b6914)",
+          background: doneChapters.length !== totalChapters ? "rgba(100,116,139,0.3)" : loading ? "rgba(100,116,139,0.4)" : "linear-gradient(135deg,#d4a017,#8b6914)",
           border: "1px solid rgba(212,160,23,0.4)",
-          color: doneChapters.length !== TOTAL_CHAPTERS ? "rgba(148,163,184,0.5)" : "#fff",
-          cursor: doneChapters.length !== TOTAL_CHAPTERS || loading ? "not-allowed" : "pointer",
-          boxShadow: doneChapters.length === TOTAL_CHAPTERS && !loading ? "0 4px 20px rgba(212,160,23,0.25)" : "none",
+          color: doneChapters.length !== totalChapters ? "rgba(148,163,184,0.5)" : "#fff",
+          cursor: doneChapters.length !== totalChapters || loading ? "not-allowed" : "pointer",
+          boxShadow: doneChapters.length === totalChapters && !loading ? "0 4px 20px rgba(212,160,23,0.25)" : "none",
           transition:"all 0.2s",
         }}
       >
-        {loading ? "📄 PDF 생성 중…" : `📥 PDF 다운로드 (${doneChapters.length}/${TOTAL_CHAPTERS}챕터)`}
+        {loading ? "📄 PDF 생성 중…" : `📥 PDF 다운로드 (${doneChapters.length}/${totalChapters}챕터)`}
       </button>
       {error && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {error}</p>}
       {doneChapters.length > 0 && (
         <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>
-          전체 {TOTAL_CHAPTERS}개 챕터 완료 후 카르마 청사진 PDF를 생성할 수 있습니다 ({doneChapters.length}/{TOTAL_CHAPTERS})
+          전체 {totalChapters}개 챕터 완료 후 카르마 청사진 PDF를 생성할 수 있습니다 ({doneChapters.length}/{totalChapters})
         </p>
       )}
     </div>
@@ -412,9 +423,6 @@ export default function HPremiumVedicSection({
   generationLoading = false,
   onPdfFlowStateChange,
 }: PremiumSectionProps) {
-  const createEmptyChapters = () =>
-    Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
-
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
   const [birthDay,    setBirthDay]    = useState("");
@@ -425,6 +433,10 @@ export default function HPremiumVedicSection({
   const [lat,         setLat]         = useState("37.5665");
   const [lon,         setLon]         = useState("126.9780");
   const [reportMode,  setReportMode]  = useState<"personal" | "compatibility">("personal");
+  const chapterMeta = getChapterMetaByMode(reportMode);
+  const totalChapters = chapterMeta.length;
+  const createEmptyChapters = (mode: "personal" | "compatibility" = reportMode) =>
+    Object.fromEntries(getChapterMetaByMode(mode).map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
   const [partnerName, setPartnerName] = useState("");
   const [partnerYear, setPartnerYear] = useState("");
   const [partnerMonth, setPartnerMonth] = useState("");
@@ -438,7 +450,7 @@ export default function HPremiumVedicSection({
 
   const [chart,    setChart]    = useState<VedicChart|null>(null);
   const [chapters, setChapters] = useState<Record<number,ChapterState>>(
-    () => createEmptyChapters()
+    () => createEmptyChapters("personal")
   );
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
@@ -452,7 +464,7 @@ export default function HPremiumVedicSection({
   const resetVedicState = useCallback((resetInputs = false) => {
     reportIdRef.current = "";
     setChart(null);
-    setChapters(createEmptyChapters());
+    setChapters(createEmptyChapters(resetInputs ? "personal" : reportMode));
     setCalcError("");
     setCalcLoading(false);
     setRequestError("");
@@ -484,7 +496,7 @@ export default function HPremiumVedicSection({
         // ignore storage cleanup errors
       }
     }
-  }, []);
+  }, [reportMode]);
 
   useEffect(() => {
     if (showIntro) return;
@@ -554,8 +566,9 @@ export default function HPremiumVedicSection({
       if (saved.partnerLon) setPartnerLon(saved.partnerLon);
       if (saved.chart) setChart(saved.chart);
       if (saved.chapters) {
+        const savedMode = saved.reportMode === "compatibility" ? "compatibility" : "personal";
         const normalized = Object.fromEntries(
-          CHAPTER_META.map((meta) => {
+          getChapterMetaByMode(savedMode).map((meta) => {
             const state = saved.chapters?.[meta.num] ?? { step: "idle" as ChapterStep, result: null };
             return [meta.num, state.step === "loading" ? { step: "idle" as ChapterStep, result: state.result ?? null } : state];
           })
@@ -691,7 +704,7 @@ export default function HPremiumVedicSection({
   }, []);
 
   const buildRequestPayload = useCallback((chapterNum: number) => {
-    const previousChapterTexts = CHAPTER_META
+    const previousChapterTexts = chapterMeta
       .map((meta) => chapters[meta.num]?.result)
       .filter((result): result is ChapterResult => !!result && result.chapter < chapterNum)
       .sort((a, b) => a.chapter - b.chapter)
@@ -727,7 +740,7 @@ export default function HPremiumVedicSection({
       payload.partnerLon = parseFloat(partnerLon);
     }
     return payload;
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chapters]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chapterMeta, chapters]);
 
   const ensureCompatibilityAddonCharged = useCallback(async () => {
     if (reportMode !== "compatibility") return;
@@ -934,11 +947,11 @@ export default function HPremiumVedicSection({
 
   const handleGenerateAll = useCallback(async () => {
     // 현재 스냅샷 기준으로 미완료된 챘터만 순차 생성
-    const pending = CHAPTER_META.filter(m => chapters[m.num]?.step !== "done");
+    const pending = chapterMeta.filter(m => chapters[m.num]?.step !== "done");
     for (const meta of pending) {
       await handleGenerateChapter(meta.num);
     }
-  }, [chapters, handleGenerateChapter]);
+  }, [chapterMeta, chapters, handleGenerateChapter]);
 
   const inputStyle: React.CSSProperties = {
     background:"rgba(4,3,15,0.85)", border:"1px solid rgba(212,160,23,0.22)", borderRadius:9,
@@ -948,7 +961,7 @@ export default function HPremiumVedicSection({
     color:"rgba(212,160,23,0.65)", fontSize:"0.66rem", letterSpacing:"0.15em",
     textTransform:"uppercase", display:"block", marginBottom:4,
   };
-  const doneCount = Object.values(chapters).filter(c=>c.step==="done").length;
+  const doneCount = chapterMeta.filter((m) => chapters[m.num]?.step === "done").length;
   const birthDate = (birthYear&&birthMonth&&birthDay) ? `${birthYear}.${birthMonth}.${birthDay}` : undefined;
 
   if (showIntro) {
@@ -959,10 +972,10 @@ export default function HPremiumVedicSection({
           <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>JYOTISH MASTER · DETAIL INTRO</p>
           <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>Karmic Blueprint</h3>
           <p style={{ color:"rgba(203,213,225,0.72)", fontSize:"0.88rem", lineHeight:1.8, margin:0 }}>
-            베다 점성술 ${TOTAL_CHAPTERS}챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
+            베다 점성술 ${totalChapters}챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
           </p>
           <div style={{ display:"grid", gap:8, marginTop:12 }}>
-            {CHAPTER_META.map((ch) => (
+            {chapterMeta.map((ch) => (
               <div key={ch.num} style={{ borderRadius:12, border:"1px solid rgba(212,160,23,0.2)", background:"rgba(4,3,15,0.65)", padding:"10px 12px" }}>
                 <p style={{ margin:0, color:"rgba(253,230,138,0.92)", fontSize:"0.82rem", fontWeight:700 }}>
                   {ch.icon} CHAPTER {ch.num}. {ch.title}
@@ -1013,13 +1026,13 @@ export default function HPremiumVedicSection({
             🕉️ Karmic Blueprint
           </h2>
           <p style={{ color:"rgba(167,139,250,0.65)", fontSize:"0.84rem", marginTop:5, fontWeight:300, lineHeight:1.6 }}>
-            베다 점성술 프리미엄 리포트 · AI ${TOTAL_CHAPTERS}챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
+            베다 점성술 프리미엄 리포트 · AI ${totalChapters}챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
           </p>
         </div>
         {doneCount > 0 && (
           <div style={{ marginLeft:"auto", textAlign:"center", flexShrink:0 }}>
             <p style={{ color:"rgba(212,160,23,0.6)", fontSize:"0.62rem", letterSpacing:"0.15em" }}>완료</p>
-            <p style={{ color:"#d4a017", fontWeight:900, fontSize:"1.4rem" }}>{doneCount}/{TOTAL_CHAPTERS}</p>
+            <p style={{ color:"#d4a017", fontWeight:900, fontSize:"1.4rem" }}>{doneCount}/{totalChapters}</p>
           </div>
         )}
       </div>
@@ -1131,14 +1144,14 @@ export default function HPremiumVedicSection({
             {/* 전체 생성 버튼 */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, flexWrap:"wrap", gap:10 }}>
               <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.82rem", fontWeight:700 }}>
-                🕉️ 챕터 분석 ({doneCount}/{TOTAL_CHAPTERS})
+                🕉️ 챕터 분석 ({doneCount}/{totalChapters})
               </p>
               <div style={{ display:"flex", gap:8 }}>
                 <button
                   onClick={handleGenerateAll}
                   style={{ borderRadius:10, padding:"7px 16px", fontSize:"0.76rem", fontWeight:800, background:"linear-gradient(135deg,rgba(212,160,23,0.25),rgba(99,102,241,0.15))", border:"1px solid rgba(212,160,23,0.4)", color:"rgba(253,230,138,0.95)", cursor:"pointer" }}
                 >
-                  ✦ 전체 생성 (${TOTAL_CHAPTERS}챕터)
+                  ✦ 전체 생성 (${totalChapters}챕터)
                 </button>
                 <button
                   onClick={()=>{ resetVedicState(true); }}
@@ -1150,7 +1163,7 @@ export default function HPremiumVedicSection({
             </div>
 
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              {CHAPTER_META.map(meta => (
+              {chapterMeta.map(meta => (
                 <ChapterCard key={meta.num} meta={meta} state={chapters[meta.num]} onGenerate={()=>handleGenerateChapter(meta.num)} />
               ))}
             </div>
@@ -1161,9 +1174,9 @@ export default function HPremiumVedicSection({
                 <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:10, textAlign:"center" }}>KARMIC BLUEPRINT PDF</p>
                 <p style={{ color:"rgba(203,213,225,0.65)", fontSize:"0.82rem", lineHeight:1.7, marginBottom:14, textAlign:"center" }}>
                   완성된 챕터를 고급스러운 베다 점성술 PDF 리포트로 다운로드하세요.<br/>
-                  목차 · ${TOTAL_CHAPTERS}챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
+                  목차 · ${totalChapters}챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
                 </p>
-                <PDFDownloadButton chapters={chapters} chart={chart} birthDate={birthDate} />
+                <PDFDownloadButton chapters={chapters} chart={chart} birthDate={birthDate} chapterMeta={chapterMeta} totalChapters={totalChapters} />
               </div>
             )}
           </>

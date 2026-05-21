@@ -4,7 +4,7 @@ import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 import { normalizeVedicChartForPdf } from "@/app/_lib/vedic/pdf/normalizeVedicChartForPdf";
 import { buildVedicGeminiPrompt } from "@/app/_lib/vedic/pdf/buildVedicGeminiPrompt";
-import { VEDIC_PDF_CHAPTERS, getVedicChapterByNumber } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
+import { VEDIC_PDF_CHAPTERS, getVedicChapterByNumber, getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
 import type { VedicPdfChapterOutput } from "@/app/_lib/vedic/pdf/types";
 
 export const runtime = "nodejs";
@@ -1266,16 +1266,23 @@ export async function POST(req: NextRequest) {
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
+    const reportType = body.reportType === "compatibility" ? "compatibility" : "personal";
+    const modeChapterDefs = getVedicPdfChapters(reportType);
+    const modeChapterMeta = modeChapterDefs.map((chapterMeta) => ({
+      num: chapterMeta.number,
+      title: chapterMeta.titleKo,
+      subtitle: chapterMeta.subtitleKo,
+      icon: chapterMeta.icon,
+    }));
     const chapterRaw = Number(body.chapter ?? 1);
     const chapter = Number.isFinite(chapterRaw)
-      ? Math.max(1, Math.min(VEDIC_CHAPTER_META.length, Math.floor(chapterRaw)))
+      ? Math.max(1, Math.min(modeChapterMeta.length, Math.floor(chapterRaw)))
       : 1;
     const hour   = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
     const minute = Number.isFinite(Number(body.minute)) ? Number(body.minute) : 0;
     const tz     = Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9;
     const lat    = Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665;
     const lon    = Number.isFinite(Number(body.lon)) ? Number(body.lon) : 126.9780;
-    const reportType = body.reportType === "compatibility" ? "compatibility" : "personal";
 
     let swissData: SwissCorePayload | null = null;
     let swissWarning = "";
@@ -1315,7 +1322,7 @@ export async function POST(req: NextRequest) {
         })
       : baseChart;
 
-    const chapterDef = getVedicChapterByNumber(chapter);
+    const chapterDef = getVedicChapterByNumber(chapter, reportType);
     const normalizedContext = normalizeVedicChartForPdf({
       chart,
       reportMode: reportType === "compatibility" ? "compatibility" : "single",
@@ -1423,7 +1430,7 @@ export async function POST(req: NextRequest) {
       reportType,
       chart,
       chapter,
-      chapterMeta: VEDIC_CHAPTER_META[chapter - 1],
+      chapterMeta: modeChapterMeta[chapter - 1],
       text,
       sections,
       usedFallback,

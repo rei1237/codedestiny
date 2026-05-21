@@ -17,6 +17,7 @@ let buildAstroChapterPrompt;
 let hasForbiddenAstroPadding;
 let detectRepeatedLongSentences;
 let hasAstroDataEvidence;
+let hasForbiddenAstroRawDataExposure;
 let hasBrokenPageCounter;
 
 function clone(value) {
@@ -80,6 +81,7 @@ beforeAll(async () => {
     hasForbiddenAstroPadding,
     detectRepeatedLongSentences,
     hasAstroDataEvidence,
+    hasForbiddenAstroRawDataExposure,
     hasBrokenPageCounter,
   } = __astroTestUtils);
 });
@@ -128,7 +130,7 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(result.missingFields.some((f) => f.includes("planets.Sun.house"))).toBe(true);
   });
 
-  test("D. relationship.hasPartner=false이면 Synastry/Composite 챕터가 생성되지 않아야 한다", () => {
+  test("D. relationship.hasPartner=false이면 궁합 전용 챕터(K*)가 생성되지 않아야 한다", () => {
     const canonical = makeCanonical();
     canonical.relationship.hasPartner = false;
     canonical.relationship.partnerNatal = null;
@@ -137,12 +139,11 @@ describe("Astro Premium Strict Tests (A~J)", () => {
 
     const plan = buildAstroChapterPlan(canonical);
     const planText = plan.map((p) => `${p.key}:${p.title}`).join("\n");
-    expect(planText.includes("Synastry")).toBe(false);
-    expect(planText.includes("Composite")).toBe(false);
-    expect(plan.some((p) => String(p.key).startsWith("R"))).toBe(false);
+    expect(planText.includes("궁합")).toBe(false);
+    expect(plan.some((p) => String(p.key).startsWith("K"))).toBe(false);
   });
 
-  test("E. forecast 데이터가 없어도 Forecast 챕터(C12)는 유지되고 degraded 표시가 있어야 한다", () => {
+  test("E. forecast 데이터가 없어도 미래 로드맵 챕터(C11)는 유지되고 degraded 표시가 있어야 한다", () => {
     const canonical = makeCanonical();
     canonical.forecast.transits = null;
     canonical.forecast.secondaryProgressions = null;
@@ -152,11 +153,11 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     canonical.validation.hasForecast = revalidated.hasForecast;
 
     const plan = buildAstroChapterPlan(canonical);
-    const c12 = plan.find((p) => p.key === "C12");
-    expect(Boolean(c12)).toBe(true);
-    expect(c12.degraded).toBe(true);
-    expect(Array.isArray(c12.reasons)).toBe(true);
-    expect(c12.reasons.includes("forecast")).toBe(true);
+    const c11 = plan.find((p) => p.key === "C11");
+    expect(Boolean(c11)).toBe(true);
+    expect(c11.degraded).toBe(true);
+    expect(Array.isArray(c11.reasons)).toBe(true);
+    expect(c11.reasons.includes("forecast")).toBe(true);
   });
 
   test("F. 실행 보강 메모 패딩 문구는 탐지되어야 한다", () => {
@@ -198,5 +199,46 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     const promptB = buildAstroChapterPrompt(planB[0], canonicalB, []);
 
     expect(promptA).not.toEqual(promptB);
+  });
+
+  test("K. compatibility 모드는 K1~K10 챕터 플랜을 생성해야 한다", () => {
+    const inputA = makeInput({ year: 1992, month: 6, day: 15, hour: 12, minute: 30 });
+    const inputB = makeInput({ year: 1988, month: 12, day: 3, hour: 22, minute: 10 });
+    const body = makeBody({
+      partnerName: "파트너",
+      partnerYear: 1988,
+      partnerMonth: 12,
+      partnerDay: 3,
+      partnerHour: 22,
+      partnerMinute: 10,
+      partnerBirthPlace: "부산",
+    });
+
+    const chartA = makeChart(inputA);
+    const chartB = makeChart(inputB);
+    const canonical = buildCanonicalAstroChart(
+      body,
+      inputA,
+      chartA,
+      "compatibility",
+      chartB,
+      { aspects: [{ pair: "Sun-Moon", type: "conjunction", orb: 2.1 }] },
+      { summary: "composite" },
+      null,
+    );
+
+    const plan = buildAstroChapterPlan(canonical, "compatibility");
+    expect(plan).toHaveLength(10);
+    expect(plan.every((p) => String(p.key).startsWith("K"))).toBe(true);
+    expect(plan.map((p) => p.key)).toEqual(["K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9", "K10"]);
+  });
+
+  test("L. compatibility 본문의 원시 데이터 노출 패턴은 탐지되어야 한다", () => {
+    const exposed = "synastry raw json payload: { orb: 1.9, chapterJsonPacks: true }";
+    const safe = "두 사람은 감정 속도가 달라서 갈등 뒤 회복 대화를 먼저 설계하는 것이 중요합니다.";
+
+    expect(hasForbiddenAstroRawDataExposure(exposed, "compatibility")).toBe(true);
+    expect(hasForbiddenAstroRawDataExposure(safe, "compatibility")).toBe(false);
+    expect(hasForbiddenAstroRawDataExposure(exposed, "personal")).toBe(false);
   });
 });

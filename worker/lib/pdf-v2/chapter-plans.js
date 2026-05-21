@@ -88,32 +88,45 @@ const VEDIC_TITLES = [
   "마스터플랜 결론",
 ];
 
-const ASTRO_TITLES = [
-  "기본 차트 요약",
-  "자아와 정체성",
-  "감정과 무의식",
-  "사고/소통 스타일",
-  "사랑/관계 스타일",
-  "행동/에너지 패턴",
-  "확장/행운 포인트",
-  "책임/성취 구조",
-  "변화/성장 트리거",
-  "영혼 과제/노드 축",
-  "커리어/사회적 포지션",
-  "연간 흐름/실행 로드맵",
+const ASTRO_PERSONAL_TITLES = [
+  "나의 우주적 정체성 — 태양·달·상승궁의 핵심 구조",
+  "에너지 밸런스 — 원소와 모드로 보는 삶의 리듬",
+  "인생의 네 기둥 — ASC·IC·DSC·MC 완전 해석",
+  "마음과 사고방식 — 달·수성으로 보는 내면과 언어",
+  "사랑과 욕망 — 금성·화성으로 보는 관계와 끌림",
+  "성장과 확장 — 목성·토성으로 보는 기회와 과제",
+  "깊은 변화의 서사 — 천왕성·해왕성·명왕성의 인생 테마",
+  "하우스별 인생 지도 — 삶의 12영역 해석",
+  "애스펙트와 내면 패턴 — 재능, 갈등, 반복되는 운명",
+  "직업·돈·사회적 성공 — 현실에서 빛나는 방식",
+  "올해와 가까운 미래의 운세 로드맵",
+  "점성술 인생 마스터플랜",
+];
+
+const ASTRO_COMPAT_TITLES = [
+  "두 사람의 우주적 첫인상 — 관계가 시작된 이유",
+  "태양과 달의 궁합 — 자아와 감정의 조화",
+  "금성과 화성의 끌림 — 사랑, 욕망, 애정 표현",
+  "수성과 대화 궁합 — 말, 생각, 오해의 구조",
+  "7하우스와 파트너십 — 연애·결혼 관계의 핵심",
+  "갈등과 상처 패턴 — 충돌 애스펙트와 감정의 그림자",
+  "현실 궁합 — 돈, 일, 생활 리듬의 조화",
+  "장기 인연과 성장 가능성 — 토성·목성의 관계 과제",
+  "올해 두 사람의 관계 흐름",
+  "최종 궁합 봉서 — 사랑, 성장, 동반자 가능성",
 ];
 
 const NEW_YEAR_TITLES = [
-  "원국 기반 연간 전략 총론",
-  "연간 파동과 기회 창",
-  "커리어·사업 확장 전략",
-  "재물·현금흐름 관리",
-  "관계·인맥·파트너십",
-  "건강·에너지 밸런스",
-  "학습·성장·전환 기회",
-  "리스크 관리와 손실 방어",
-  "12개월 월별 실행 로드맵",
-  "최종 통합 액션 플랜",
+  "연간 파동 총론 - 올해의 기본 기조",
+  "커리어 전략 - 성과가 나는 월/주의 월",
+  "재물 흐름 - 수익/지출 관리 타이밍",
+  "관계·인맥 - 협업과 거리두기 전략",
+  "연애·가정 - 감정 파동 관리법",
+  "건강·에너지 - 번아웃 방지 설계",
+  "분기별 핵심 의사결정 포인트",
+  "리스크 시나리오와 대응 플랜",
+  "12개월 Go/Stop 월별 테이블",
+  "최종 실행 로드맵 - 연말 회수 전략",
 ];
 
 function chapter(order, prefix, title, minChars, maxChars, requiredFields) {
@@ -229,21 +242,61 @@ function buildVedicPlan() {
   ));
 }
 
-function buildAstroPlan() {
-  return ASTRO_TITLES.map((title, i) => chapter(
+function buildAstroRequiredFields(order, mode = "personal") {
+  const common = [
+    "natalChart.sunSign",
+    "natalChart.moonSign",
+    "natalChart.ascendant",
+    "natalChart.planets",
+    "natalChart.houses",
+    "natalChart.aspects",
+    "profile.birthDate",
+  ];
+
+  if (mode === "compatibility") {
+    const byChapter = {
+      1: ["relationshipData.synastry", "relationshipData.composite"],
+      2: ["relationshipData.synastry.sunMoonAspects"],
+      3: ["relationshipData.synastry.venusMarsAspects"],
+      4: ["relationshipData.synastry.aspects"],
+      5: ["relationshipData.synastry.house7Overlays"],
+      6: ["relationshipData.synastry.saturnHardAspects", "relationshipData.synastry.plutoHardAspects"],
+      7: ["relationshipData.reality", "careerData"],
+      8: ["relationshipData.synastry.saturnHardAspects", "relationshipData.synastry.nodeContacts"],
+      9: ["timingData", "relationshipData.transitFlow"],
+      10: ["relationshipData.summary", "relationshipData.advice"],
+    };
+    return [...common, ...(byChapter[order] || [])];
+  }
+
+  const byChapter = {
+    1: ["natalChart.sunSign", "natalChart.moonSign", "natalChart.ascendant"],
+    2: ["elementBalance", "modalityBalance"],
+    3: ["angles.ascendant", "angles.midheaven"],
+    4: ["planets.moon", "planets.mercury"],
+    5: ["planets.venus", "planets.mars"],
+    6: ["planets.jupiter", "planets.saturn"],
+    7: ["planets.uranus", "planets.neptune", "planets.pluto"],
+    8: ["natalChart.houses"],
+    9: ["natalChart.aspects"],
+    10: ["careerData", "natalChart.houses"],
+    11: ["timingData"],
+    12: ["natalChart.planets", "timingData", "careerData"],
+  };
+  return [...common, ...(byChapter[order] || [])];
+}
+
+function buildAstroPlan(mode = "personal") {
+  const normalizedMode = mode === "compatibility" ? "compatibility" : "personal";
+  const titles = normalizedMode === "compatibility" ? ASTRO_COMPAT_TITLES : ASTRO_PERSONAL_TITLES;
+  const prefix = normalizedMode === "compatibility" ? "astro-comp" : "astro-pers";
+  return titles.map((title, i) => chapter(
     i + 1,
-    "astro-ch",
+    prefix,
     title,
     3200,
     3900,
-    [
-      "natalChart.sunSign",
-      "natalChart.moonSign",
-      "natalChart.ascendant",
-      "natalChart.planets",
-      "natalChart.houses",
-      "natalChart.aspects",
-    ],
+    buildAstroRequiredFields(i + 1, normalizedMode),
   ));
 }
 
@@ -272,7 +325,7 @@ export function getPremiumPdfV2ChapterPlan(pdfType, mode = "default") {
   if (type === "ziweiPremium") return buildZiweiPlan();
   if (type === "sookyoPremium") return buildSookyoPlan();
   if (type === "vedicPremium") return buildVedicPlan();
-  if (type === "westernAstrologyPremium") return buildAstroPlan();
+  if (type === "westernAstrologyPremium") return buildAstroPlan(normalizedMode);
   if (type === "sajuNewYear") return buildNewYearPlan();
   return [];
 }
