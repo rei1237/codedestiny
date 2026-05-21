@@ -3,12 +3,12 @@
 import { useMemo } from "react";
 import type { FiveElementKey } from "@/lib/fpti/fpti-types";
 
-const ELEMENTS: { key: FiveElementKey; label: string; color: string }[] = [
-  { key: "wood", label: "목", color: "from-emerald-400 to-lime-400" },
-  { key: "fire", label: "화", color: "from-rose-400 to-orange-400" },
-  { key: "earth", label: "토", color: "from-amber-500 to-yellow-400" },
-  { key: "metal", label: "금", color: "from-slate-300 to-zinc-400" },
-  { key: "water", label: "수", color: "from-sky-400 to-indigo-500" },
+const ELEMENTS: { key: FiveElementKey; label: string; gradient: [string, string] }[] = [
+  { key: "wood", label: "목", gradient: ["#34d399", "#a3e635"] },
+  { key: "fire", label: "화", gradient: ["#fb7185", "#fb923c"] },
+  { key: "earth", label: "토", gradient: ["#f59e0b", "#facc15"] },
+  { key: "metal", label: "금", gradient: ["#64748b", "#3f3f46"] },
+  { key: "water", label: "수", gradient: ["#06b6d4", "#2563eb"] },
 ];
 
 type Props = {
@@ -56,8 +56,11 @@ export default function FptiElementChart({ percentages }: Props) {
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/15">
               <div
-                className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
-                style={{ width: `${toBarWidth(normalized[item.key])}%` }}
+                className="h-full rounded-full shadow-[0_0_8px_rgba(255,255,255,0.14)]"
+                style={{
+                  width: `${toBarWidth(normalized[item.key])}%`,
+                  backgroundImage: `linear-gradient(90deg, ${item.gradient[0]}, ${item.gradient[1]})`,
+                }}
               />
             </div>
           </div>

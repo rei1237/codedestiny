@@ -49,7 +49,7 @@ const __lazyActionLoaders = {
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779331939019'),
+  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779332032578'),
   gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=20260409-v1'),
   gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'),
   gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1'),
@@ -550,7 +550,6 @@ function __hydrateCollectionImagesChunked(collection) {
     return;
   }
 
-  const grid = collection.querySelector('.feat-collection__grid, .tarot-collection__grid');
   let observer = collection.__cdCollectionImageObserver;
   if (!observer) {
     observer = new IntersectionObserver((entries, obs) => {
@@ -564,8 +563,9 @@ function __hydrateCollectionImagesChunked(collection) {
         hydrateWrap(wrap);
       }
     }, {
-      root: grid || null,
-      rootMargin: '96px 0px',
+      // Use viewport root for stable behavior on mobile where container-root IO can miss callbacks.
+      root: null,
+      rootMargin: '120px 0px',
       threshold: 0.01
     });
     collection.__cdCollectionImageObserver = observer;
@@ -577,10 +577,27 @@ function __hydrateCollectionImagesChunked(collection) {
     if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
     observer.observe(wrap);
   }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
+
+  if (collection.__cdCollectionImageFallbackTimer) {
+    clearTimeout(collection.__cdCollectionImageFallbackTimer);
+  }
+  collection.__cdCollectionImageFallbackTimer = setTimeout(() => {
+    collection.__cdCollectionImageFallbackTimer = null;
+    if (collection.getAttribute('data-collection-open') !== 'true') return;
+    __runChunked(wraps, (wrap) => {
+      if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
+      if (wrap.dataset) delete wrap.dataset.cdImgObserved;
+      hydrateWrap(wrap);
+    }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
+  }, 420);
 }
 
 function __releaseCollectionImagesChunked(collection) {
   if (!collection) return;
+  if (collection.__cdCollectionImageFallbackTimer) {
+    clearTimeout(collection.__cdCollectionImageFallbackTimer);
+    collection.__cdCollectionImageFallbackTimer = null;
+  }
   const observer = collection.__cdCollectionImageObserver;
   if (observer && typeof observer.disconnect === 'function') {
     observer.disconnect();
