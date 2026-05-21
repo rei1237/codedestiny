@@ -171,6 +171,27 @@
     return yyyy + '.' + mm + '.' + dd;
   }
 
+  function normalizeCalType(value) {
+    var v = String(value || '').trim().toLowerCase();
+    if (v === 'lunar' || v === 'l' || v === '음력') return 'lunar';
+    if (v === 'lunar_leap' || v === 'leap' || v === '윤달' || v === '윤') return 'lunar_leap';
+    return 'solar';
+  }
+
+  function parseDateParts(raw) {
+    var src = String(raw || '').trim();
+    var m = src.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/);
+    if (!m) return null;
+    return { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
+  }
+
+  function parseTimeParts(raw) {
+    var src = String(raw || '').trim();
+    var m = src.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!m) return null;
+    return { hour: Number(m[1]), minute: Number(m[2]) };
+  }
+
   function normalizeBirthParts() {
     var profile = null;
     var snapshot = null;
@@ -183,16 +204,19 @@
     var fromProfile = profile && profile.birth ? profile.birth : null;
     var fromSnapshot = snapshot && snapshot.birth ? snapshot.birth : null;
 
-    var birthDate = String((authUser && authUser.birthDate) || '').trim();
-    var birthTime = String((authUser && authUser.birthTime) || '').trim();
-    var dateMatch = birthDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    var timeMatch = birthTime.match(/^(\d{1,2}):(\d{1,2})$/);
+    var parsedAuthDate = parseDateParts((authUser && (authUser.birthDate || authUser.dateOfBirth)) || '');
+    var parsedAuthTime = parseTimeParts((authUser && authUser.birthTime) || '');
 
-    var year = Number((fromProfile && fromProfile.year) || (fromSnapshot && fromSnapshot.year) || (dateMatch && dateMatch[1]) || 0);
-    var month = Number((fromProfile && fromProfile.month) || (fromSnapshot && fromSnapshot.month) || (dateMatch && dateMatch[2]) || 0);
-    var day = Number((fromProfile && fromProfile.day) || (fromSnapshot && fromSnapshot.day) || (dateMatch && dateMatch[3]) || 0);
-    var hour = Number((fromProfile && fromProfile.hour) || (fromSnapshot && fromSnapshot.hour) || (timeMatch && timeMatch[1]) || 12);
-    var minute = Number((fromProfile && fromProfile.minute) || (fromSnapshot && fromSnapshot.minute) || (timeMatch && timeMatch[2]) || 0);
+    var parsedProfileDate = parseDateParts((fromProfile && fromProfile.birthDate) || (profile && profile.birthDate));
+    var parsedProfileTime = parseTimeParts((fromProfile && fromProfile.birthTime) || (profile && profile.birthTime));
+    var parsedSnapshotDate = parseDateParts((fromSnapshot && fromSnapshot.birthDate) || (snapshot && snapshot.birthDate));
+    var parsedSnapshotTime = parseTimeParts((fromSnapshot && fromSnapshot.birthTime) || (snapshot && snapshot.birthTime));
+
+    var year = Number((fromProfile && fromProfile.year) || (parsedProfileDate && parsedProfileDate.year) || (fromSnapshot && fromSnapshot.year) || (parsedSnapshotDate && parsedSnapshotDate.year) || (parsedAuthDate && parsedAuthDate.year) || 0);
+    var month = Number((fromProfile && fromProfile.month) || (parsedProfileDate && parsedProfileDate.month) || (fromSnapshot && fromSnapshot.month) || (parsedSnapshotDate && parsedSnapshotDate.month) || (parsedAuthDate && parsedAuthDate.month) || 0);
+    var day = Number((fromProfile && fromProfile.day) || (parsedProfileDate && parsedProfileDate.day) || (fromSnapshot && fromSnapshot.day) || (parsedSnapshotDate && parsedSnapshotDate.day) || (parsedAuthDate && parsedAuthDate.day) || 0);
+    var hour = Number((fromProfile && fromProfile.hour) || (parsedProfileTime && parsedProfileTime.hour) || (fromSnapshot && fromSnapshot.hour) || (parsedSnapshotTime && parsedSnapshotTime.hour) || (parsedAuthTime && parsedAuthTime.hour) || 12);
+    var minute = Number((fromProfile && fromProfile.minute) || (parsedProfileTime && parsedProfileTime.minute) || (fromSnapshot && fromSnapshot.minute) || (parsedSnapshotTime && parsedSnapshotTime.minute) || (parsedAuthTime && parsedAuthTime.minute) || 0);
 
     if (!Number.isFinite(year) || year < 1900 || year > 2100) year = 0;
     if (!Number.isFinite(month) || month < 1 || month > 12) month = 0;
@@ -200,12 +224,58 @@
     if (!Number.isFinite(hour) || hour < 0 || hour > 23) hour = 12;
     if (!Number.isFinite(minute) || minute < 0 || minute > 59) minute = 0;
 
+    var calType = normalizeCalType(
+      (fromProfile && (fromProfile.calType || fromProfile.calendarType))
+      || (profile && (profile.calType || profile.calendarType))
+      || (fromSnapshot && (fromSnapshot.calType || fromSnapshot.calendarType))
+      || (snapshot && (snapshot.calType || snapshot.calendarType))
+      || (authUser && (authUser.calendarType || authUser.calType))
+      || 'solar'
+    );
+    var timeUnknownRaw = String(
+      (fromProfile && (fromProfile.timeUnknown || fromProfile.birthTimeUnknown || fromProfile.unknownTime))
+      || (profile && (profile.timeUnknown || profile.birthTimeUnknown || profile.unknownTime))
+      || (fromSnapshot && (fromSnapshot.timeUnknown || fromSnapshot.birthTimeUnknown || fromSnapshot.unknownTime))
+      || (snapshot && (snapshot.timeUnknown || snapshot.birthTimeUnknown || snapshot.unknownTime))
+      || (authUser && (authUser.timeUnknown || authUser.birthTimeUnknown))
+      || ''
+    ).trim().toLowerCase();
+    var timeUnknown = timeUnknownRaw === '1' || timeUnknownRaw === 'true' || timeUnknownRaw === 'y';
+
+    var location = (profile && profile.location && typeof profile.location === 'object') ? profile.location : {};
+    var timezone = String(location.tz || (authUser && (authUser.timezone || authUser.tz)) || 'Asia/Seoul').trim() || 'Asia/Seoul';
+    var lat = Number(location.lat);
+    var lon = Number(location.lng);
+    if (!Number.isFinite(lat)) lat = 37.5665;
+    if (!Number.isFinite(lon)) lon = 126.9780;
+
+    var profileId = String((profile && (profile.profileId || profile.id)) || (authUser && (authUser.profileId || authUser.id)) || '').trim();
+    var name = String((profile && profile.name) || (authUser && (authUser.name || authUser.nickname)) || '사용자').trim() || '사용자';
+    var gender = String((profile && profile.gender) || (authUser && authUser.gender) || 'unknown').trim() || 'unknown';
+    var birthPlace = String((profile && (profile.birthPlace || (profile.location && profile.location.birthPlace) || profile.place)) || (authUser && (authUser.birthPlace || authUser.place)) || '').trim();
+    var birthDate = [year, String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-');
+    var birthTime = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+
     return {
+      profileId: profileId,
+      name: name,
+      gender: gender,
       year: year,
       month: month,
       day: day,
       hour: hour,
       minute: minute,
+      birthDate: birthDate,
+      birthTime: birthTime,
+      calType: calType,
+      calendarType: calType,
+      isLunar: calType === 'lunar' || calType === 'lunar_leap',
+      timeUnknown: timeUnknown,
+      birthPlace: birthPlace || undefined,
+      timezoneName: timezone,
+      timezone: timezone,
+      lat: lat,
+      lon: lon,
       valid: year > 0 && month > 0 && day > 0
     };
   }
@@ -380,19 +450,64 @@
     }
 
     return {
-      name: String((profile && profile.name) || '사용자'),
-      gender: String((profile && profile.gender) || 'unknown'),
+      profileId: birth.profileId || undefined,
+      name: birth.name,
+      gender: birth.gender,
       year: Number(birth.year || 0),
       month: Number(birth.month || 0),
       day: Number(birth.day || 0),
       hour: Number(birth.hour || 12),
       minute: Number(birth.minute || 0),
+      birthDate: birth.birthDate,
+      birthTime: birth.birthTime,
+      calType: birth.calType,
+      calendarType: birth.calendarType,
+      isLunar: birth.isLunar,
+      timeUnknown: birth.timeUnknown,
+      birthPlace: birth.birthPlace || undefined,
+      timezoneName: birth.timezoneName,
+      timezone: birth.timezone,
+      lat: birth.lat,
+      lon: birth.lon,
       targetYear: targetYearInput,
       focusArea: 'overall',
-      _premiumStrictPayload: false,
-      _premiumStrictValidation: false,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       engineData: buildEngineData(),
-      sajuData: buildCompactSajuData()
+      sajuData: buildCompactSajuData(),
+      birthData: {
+        profileId: birth.profileId || undefined,
+        name: birth.name,
+        gender: birth.gender,
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        hour: birth.hour,
+        minute: birth.minute,
+        birthDate: birth.birthDate,
+        birthTime: birth.birthTime,
+        calType: birth.calType,
+        calendarType: birth.calendarType,
+        isLunar: birth.isLunar,
+        timeUnknown: birth.timeUnknown,
+        birthPlace: birth.birthPlace || undefined,
+        timezoneName: birth.timezoneName,
+        timezone: birth.timezone,
+        lat: birth.lat,
+        lon: birth.lon
+      },
+      profile: {
+        profileId: birth.profileId || undefined,
+        name: birth.name,
+        gender: birth.gender,
+        birthDate: birth.birthDate,
+        birthTime: birth.birthTime,
+        calendarType: birth.calendarType,
+        isLunar: birth.isLunar,
+        timeUnknown: birth.timeUnknown,
+        birthPlace: birth.birthPlace || undefined,
+        timezone: birth.timezone
+      }
     };
   }
 
@@ -651,6 +766,34 @@
       }
     }
 
+    var preflight = await premiumAuthJson('/api/premium-report/preflight', {
+      reportSessionId: state.reportSessionId,
+      reportType: 'sajuNewYear',
+      featureType: 'saju_new_year_pdf',
+      requestBody: state.payload,
+      requestId: 'newyear:preflight:' + Date.now().toString(36)
+    }, {
+      maxAttempts: 2
+    });
+
+    if (!preflight || !preflight.ok) {
+      var preflightCode = String((preflight && preflight.code) || '').toUpperCase();
+      if (preflightCode === 'REPORT_SESSION_NOT_FOUND') {
+        state.reportSessionId = '';
+        persistState();
+        prepared = await premiumAuthJson('/api/premium-report/prepare', makePrepareBody(Date.now().toString(36) + ':recover'), {
+          maxAttempts: 2
+        });
+        if (!prepared || !prepared.ok || !prepared.reportSessionId) {
+          return prepared || { ok: false, message: '프리미엄 세션 복구에 실패했습니다.' };
+        }
+        state.reportSessionId = String(prepared.reportSessionId || '');
+        if (prepared.reportId) state.reportId = String(prepared.reportId || state.reportId);
+      } else {
+        return preflight || { ok: false, message: '프리플라이트 검증에 실패했습니다.' };
+      }
+    }
+
     persistState();
     return prepared;
   }
@@ -725,8 +868,8 @@
         reportType: 'sajuNewYear',
         featureType: 'saju_new_year_pdf',
         requestBody: Object.assign({}, state.payload || {}, {
-          _premiumStrictPayload: false,
-          _premiumStrictValidation: false
+          _premiumStrictPayload: true,
+          _premiumStrictValidation: true
         }),
         requestId: 'newyear:chapter:' + chapter + ':' + Date.now().toString(36)
       }, {

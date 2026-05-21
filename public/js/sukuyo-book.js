@@ -867,10 +867,34 @@
 
     function _buildSukuyoChapterPayload(idx) {
       var lunarHint = _resolveExistingLunarHint(profile);
+      var profileId = String(profile.profileId || profile.id || '').trim();
+      var location = profile.location || {};
+      var calendarType = String(b.calType || b.calendarType || 'solar').trim().toLowerCase();
+      var birthDate = [
+        Number(b.year || 0),
+        String(Number(b.month || 0)).padStart(2, '0'),
+        String(Number(b.day || 0)).padStart(2, '0')
+      ].join('-');
+      var birthTime = String(Number.isFinite(Number(b.hour)) ? Number(b.hour) : 12).padStart(2, '0')
+        + ':' + String(Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0).padStart(2, '0');
+      var timeUnknown = !!(b.timeUnknown || b.birthTimeUnknown || b.unknownTime);
+      var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
       var previousChapterTexts = _chapters.slice(0, idx).filter(function (t) { return typeof t === 'string' && t.trim(); });
       return {
         year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
         name: profile.name || '사용자',
+        gender: profile.gender || undefined,
+        profileId: profileId || undefined,
+        birthDate: birthDate,
+        birthTime: birthTime,
+        calType: calendarType,
+        calendarType: calendarType,
+        isLunar: isLunar,
+        timeUnknown: timeUnknown,
+        timezoneName: String(location.tz || 'Asia/Seoul'),
+        timezone: String(location.tz || 'Asia/Seoul'),
+        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780),
         reportId:_reportId||undefined,
         reportType:_reportMode,
         reportMode:_reportMode,
@@ -887,9 +911,40 @@
         partnerMinute:partner.minute!==null?partner.minute:undefined,
         partnerGender:partner.gender||undefined,
         partnerCalType:partner.calType||undefined,
+        birthData: {
+          profileId: profileId || undefined,
+          name: profile.name || '사용자',
+          gender: profile.gender || undefined,
+          year: b.year,
+          month: b.month,
+          day: b.day,
+          hour: b.hour!==undefined?b.hour:12,
+          minute: b.minute!==undefined?b.minute:0,
+          birthDate: birthDate,
+          birthTime: birthTime,
+          calType: calendarType,
+          calendarType: calendarType,
+          isLunar: isLunar,
+          timeUnknown: timeUnknown,
+          timezoneName: String(location.tz || 'Asia/Seoul'),
+          timezone: String(location.tz || 'Asia/Seoul'),
+          lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+          lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
+        },
+        profile: {
+          profileId: profileId || undefined,
+          name: profile.name || '사용자',
+          gender: profile.gender || undefined,
+          birthDate: birthDate,
+          birthTime: birthTime,
+          calendarType: calendarType,
+          isLunar: isLunar,
+          timeUnknown: timeUnknown,
+          timezone: String(location.tz || 'Asia/Seoul')
+        },
         _premiumFailOpen: false,
-        _premiumStrictPayload: false,
-        _premiumStrictValidation: false
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true
       };
     }
 
