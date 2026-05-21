@@ -44,7 +44,6 @@ import {
   ZIWEI_PDF_CHAPTERS as ZIWEI_PDF_CHAPTERS_V2,
   buildZiweiChapterMarkdown,
   buildZiweiPdfContext,
-  createFallbackChapter,
   ensureZiweiChapterMarkdownLength,
   generateZiweiChapterPrompt,
   parseZiweiGeminiResponse,
@@ -11316,137 +11315,7 @@ function buildZiweiChapterZeroSummary(dataText) {
   ].join("\n\n");
 }
 
-function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotice) {
-  const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
-  const chapterHeading = chapterRule?.exactHeading || `## 챕터 ${chapter}. ${meta.title}`;
-  const topicChecklist = Array.isArray(chapterRule?.includes) && chapterRule.includes.length
-    ? chapterRule.includes.map((item) => `- ${item}: 명반 데이터 근거로 구체 해석합니다.`).join("\n")
-    : "- 챕터 핵심 항목을 명반 근거와 함께 해석합니다.";
-  const mustCoverChecklist = Array.isArray(chapterRule?.mustCover) && chapterRule.mustCover.length
-    ? chapterRule.mustCover.map((item) => `- ${item}: 본문에 직접 반영합니다.`).join("\n")
-    : "";
-  const cautionLine = String(chapterRule?.caution || "").trim();
-  const intro = chapter === 1
-    ? `# ${ZIWEI_REPORT_TITLE}\n\n# ${ZIWEI_PROLOGUE_TITLE}\n**이 명반의 가장 강한 기운은 타고난 책임감과 현실 대응력의 결합입니다.** 삶에서 반복되는 핵심 패턴은 중요한 순간에 스스로를 과도하게 압박한 뒤, 다시 균형을 회복하는 방식으로 나타납니다. 운이 열리는 방식은 큰 결심보다 작은 실행을 꾸준히 쌓을 때이며, 조심해야 할 심리적 함정은 완벽주의와 비교 의식입니다. 이 리포트는 정답을 강요하는 문서가 아니라 선택의 품질을 높이는 안내서입니다. **자미두수는 운명을 고정하는 도구가 아니라, 선택의 질을 높이는 나침반입니다.**\n\n`
-    : "";
-
-  const summaryList = [
-    "- **핵심 기운은 챕터 대상 궁위의 주성과 사화 작동에서 읽어야 합니다.**",
-    "- 명반 근거를 기반으로 성향, 행동, 결과를 분리해 해석합니다.",
-    "- 관련 궁위와의 연결 흐름을 통해 실전 선택 기준을 도출합니다.",
-    "- 과장된 예단 대신 데이터 기반 리스크 관리 원칙을 제시합니다.",
-    "- 당장 실행 가능한 주간 루틴으로 해석을 현실화합니다.",
-  ].join("\n");
-
-  const monthlyTemplate = "";
-
-  const roadmapTable = chapter === 13
-    ? "### 90일 실행 로드맵\n| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |\n|---|---|---|---|---|\n| 1~7일 |  |  |  |  |\n| 8~30일 |  |  |  |  |\n| 31~60일 |  |  |  |  |\n| 61~90일 |  |  |  |  |"
-    : "";
-
-  const chapterCategoryMap = {
-    1: ["명궁 기본 의미", "명궁 주성/보조성/살성", "명궁 사화", "명궁 삼방사정"],
-    2: ["신궁 기본 의미", "신궁 위치", "명궁-신궁 관계", "잠재 무기/성장 전략"],
-    3: ["복덕궁 기본 의미", "복덕궁 주성", "복덕-명궁 차이", "복덕-질액 회복"],
-    4: ["천이궁 기본 의미", "천이궁 주성/사화", "명궁-천이궁 대궁", "이동/이미지 전략"],
-    5: ["관록궁 기본 의미", "관록궁 주성", "관록-명궁/재백궁", "천직 운영 전략"],
-    6: ["재백궁 기본 의미", "재백궁 주성/사화", "재백-관록/복덕", "부의 운영 전략"],
-    7: ["부처궁 기본 의미", "부처궁 주성/사화", "명궁-부처궁", "관계 경계/유지 전략"],
-    8: ["교우궁 기본 의미", "교우궁 주성", "교우-명궁/관록", "귀인/악연 구분"],
-    9: ["전택궁 기본 의미", "전택궁 주성", "전택-복덕/재백", "공간 개선 전략"],
-    10: ["질액궁 기본 의미", "질액궁 주성", "질액-복덕/명궁", "건강 리듬 운영"],
-    11: ["대한 기본 의미", "현재 대한 위치/주성", "이전 대한과 비교", "다음 대한 준비"],
-    12: ["유년 기본 의미", "유년 주성/사화", "분기별 전략", "월별 Go/Hold/Retreat"],
-    13: ["명궁·신궁 통합", "핵심 패턴 5가지", "성공/관계 전략 5가지", "최종 봉서"],
-  };
-  const chapterCategories = chapterCategoryMap[chapter] || ["핵심 카테고리 1", "핵심 카테고리 2", "핵심 카테고리 3", "핵심 카테고리 4"];
-  const palaceDetailText = extractZiweiPalaceDetailFromDataText(dataText);
-  const categoryBlocks = chapterCategories
-    .map((cat) => `### 카테고리: ${cat}\n이 카테고리에서는 궁위와 별 조합의 실제 작동을 해석합니다. 명반의 강약 기호(묘/왕/리/평/함: ◎/○/△/▲/×)를 행동 우선순위로 번역해, 지금 당장 적용 가능한 선택 기준과 중장기 운영 원칙을 분리해 제시합니다.\n\n실전 적용: 이번 주 핵심 행동 1개와 중단할 행동 1개를 동시에 확정해 실행 피로를 줄이세요.`)
-    .join("\n\n");
-
-  let text = [
-    intro,
-    chapter === 1 ? buildZiweiChapterZeroSummary(dataText) : "",
-    chapterHeading,
-    "### 필수 포함 항목 점검",
-    topicChecklist,
-    mustCoverChecklist ? "### 챕터 필수 커버리지" : "",
-    mustCoverChecklist,
-    cautionLine ? `- 주의: ${cautionLine}.` : "",
-    "## 1. 이 챕터에서 보는 핵심",
-    "- 사용된 궁:",
-    "- 사용된 주성:",
-    "- 주성의 세기:",
-    "- 사용된 보성/잡성:",
-    "- 보성/잡성의 세기:",
-    "- 사용된 사화:",
-    "- 연결해서 본 궁:",
-    "- 핵심 키워드:",
-    summaryList,
-    "## 2. 별의 구조와 세기 분석",
-    `입력 정보(${input.year}-${input.month}-${input.day} ${input.hour}:${String(input.minute).padStart(2, "0")})와 제공된 궁위 단서를 기준으로 보면, 이 챕터의 핵심은 단일 별 해석이 아니라 궁위 간 연결 구조를 읽는 데 있습니다. 명궁·신궁·삼방사정·대한·유년·유월 흐름을 함께 고려하면 같은 사건도 전혀 다른 선택 결과를 만들 수 있습니다.`,
-    `명반 원자료 기반 해석 근거:\n${dataText}\n\n이 챕터는 별 배치와 강약(묘/왕/리/평/함), 궁의 기능, 사화·대한 흐름을 연결해 지금 실행 가능한 선택 기준으로 재구성합니다.`,
-    "### 12궁 별·강약 상세 해석",
-    palaceDetailText,
-    "### 강약 해석 보정 규칙",
-    "천동이 ▲/×이면 편안함 결핍과 예민함이 커질 수 있으므로, 휴식 강요보다 성취 중심 몰입 과제와 회복 루틴(명상·시각화·수면 고정)을 함께 제시해야 합니다.",
-    "경양은 흉으로 단정하지 않고 분리·절단·돌파의 기술 에너지로 해석합니다. 경양이 강할수록 인간관계 충돌 대신 업상대체(코드·분석·디버깅·설계)로 전환해야 길성화됩니다.",
-    "## 3. 별의 밝기로 본 강점과 약점",
-    "명궁은 삶의 기본 작동 원리와 자기 인식의 중심축입니다. 명궁 주성·보조성·살성의 배치를 강약 기호(◎/○/△/▲/×)와 함께 읽으면, 무엇을 확장하고 무엇을 제어해야 하는지 명확해집니다.",
-    "신궁은 실제 행동과 외부 환경에서 발현되는 패턴입니다. 신궁 별 조합을 명궁과 비교해 보면 내부 의도와 외부 실행의 불일치 구간을 찾을 수 있으며, 이 구간을 조정하면 관계·커리어·재정 성과가 동시에 개선됩니다.",
-    categoryBlocks,
-    "## 4. 심리적 의미",
-    "성향은 고정된 운명이 아니라 반복되는 반응 방식입니다. 현실 적용의 핵심은 내 반응 속도를 늦추고, 중요한 결정의 평가 기준을 명문화하는 것입니다. 예를 들어 관계에서는 감정 강도보다 경계의 일관성을, 커리어에서는 열정 강도보다 지속 가능성을 먼저 점검하면 리스크가 빠르게 줄어듭니다.",
-    "## 5. 현실에서 드러나는 모습",
-    "또한 궁위 해석은 영역별로 나눠 보되 결국 하나의 생활 시스템으로 통합해야 체감이 생깁니다. 아침 루틴, 주간 회고, 월간 점검의 3단계만 고정해도 운세 해석이 생활 운영 매뉴얼로 전환됩니다.",
-    "## 6. 강점 활용 전략",
-    "**이 명반의 장점은 위기 상황에서 구조를 재정렬하는 능력입니다.** 감정이 흔들리는 상황에서도 핵심을 다시 붙잡는 힘이 있어, 장기전에서 강점을 발휘합니다. 외부 확장 기회는 준비된 루틴 위에서 더 빠르게 현실화됩니다.",
-    "기회를 키우는 방법은 복잡하지 않습니다. 핵심 목표를 줄이고, 실행 단위를 작게 나누고, 반복 가능한 리듬으로 고정하는 것입니다. 이렇게 하면 기회가 들어올 때 과부하 없이 받아낼 수 있습니다.",
-    "## 7. 주의해야 할 패턴",
-    "약점은 저주가 아니라 관리해야 할 에너지입니다. 특히 과도한 자기압박, 완벽주의, 관계 과잉 책임은 성과를 늦추는 대표 패턴입니다. 이 시기에는 보수적으로 접근하는 것이 좋으며, 큰 결정보다 손실을 줄이는 운영이 유리합니다.",
-    "주의점은 실패를 두려워하는 태도 자체보다, 실패 후 회복 프로토콜이 없는 상태입니다. 회복 규칙이 있으면 동일한 실수도 다른 결과를 만듭니다.",
-    "## 8. 세기별 보완 전략",
-    "개운의 핵심은 생활 리듬 재정렬입니다. 아침에는 10분 계획 정리, 낮에는 핵심 1개 완수, 저녁에는 감정/행동 분리 회고를 실행하세요. 심리 안정이 필요한 날에는 5분 복식호흡(4초 들숨-4초 멈춤-6초 날숨)을 5회 반복하세요.",
-    "공간 개운은 과장된 풍수보다 동선 단순화가 효과적입니다. 현관-책상-침실 3구역의 잡음을 줄이고, 시선이 닿는 곳에 실행 체크리스트를 배치하면 행동 지속성이 올라갑니다.",
-    "## 9. 실천 가이드",
-    "### 실천 체크리스트",
-    "- [ ] 오늘 의사결정 1건을 감정/현실/장기효과로 분리 기록한다.",
-    "- [ ] 이번 주 가장 큰 소모 패턴 1개를 식별하고 대체 행동 1개를 정한다.",
-    "- [ ] 수면 시간을 기준선으로 고정해 체력 변동폭을 줄인다.",
-    "- [ ] 관계 경계 문장 1개를 만들어 실제 대화에 사용한다.",
-    "- [ ] 주간 회고에서 다음 주 중단할 행동 1개를 확정한다.",
-    "### 따뜻한 상담 메시지",
-    "지금까지의 흔들림은 실패의 증거가 아니라 방향을 미세 조정해 온 과정입니다. 당신의 강점은 이미 충분하며, 필요한 것은 더 큰 의지가 아니라 더 안정적인 리듬입니다. **지금의 작은 실행이 앞으로의 운을 바꾸는 가장 현실적인 시작점입니다.**",
-    monthlyTemplate,
-    roadmapTable,
-    chapter === 13 ? "### 엔딩 메시지\n운명은 고정된 판결문이 아닙니다. 명반은 나를 이해하기 위한 지도이며, 약점은 관리해야 할 에너지이고 강점은 실천할 때 현실이 되는 선물입니다. 지금부터의 선택이 앞으로의 운을 바꿉니다." : "",
-    "## 10. 챕터 핵심 요약",
-    "- 핵심 1:",
-    "- 핵심 2:",
-    "- 핵심 3:",
-    "### 오늘부터 실천할 3가지",
-    "1. 하루 10분, 내 선택 기준을 글로 남깁니다.",
-    "2. 이번 주 가장 큰 소모 패턴 1개를 멈추고 대체 행동을 고정합니다.",
-    "3. 월말에 관계·일·건강·재정 점검을 한 번에 정리합니다.",
-    "---",
-  ].filter(Boolean).join("\n\n");
-
-  let depth = 1;
-  while (text.length < ZIWEI_MIN_CHARS) {
-    const idx = (depth - 1) % chapterCategories.length;
-    const cat = chapterCategories[idx];
-    text += `\n\n### 카테고리 확장: ${cat} (${depth})\n`;
-    text += "궁·별·강약 기호를 함께 읽을 때 해석의 정확도가 올라갑니다. 이 확장 섹션은 해당 카테고리에서 발생하는 선택 오류를 줄이고, 실행 우선순위를 명확히 하는 데 목적이 있습니다.\n\n";
-    text += "실행 문장: 이번 주 의사결정 1건에 대해 기대효과·리스크·대체안 3가지를 기록하고, 결과를 주간 회고에 반영하세요.";
-    depth += 1;
-  }
-
-  return text;
-}
-
 async function generateZiweiPremiumChapter(env, body, input, chapter, meta, canonicalZiweiChart, reportPayload, reportType, partnerOverview, dataQuality, previousChapterTexts = [], ziweiPremiumPayload = null) {
-  const strictPayloadMode = usePremiumStrictPayload(body, env);
   const premiumReportType = "ziweiPremium";
   const chapterContract = body?._premiumLlmInput?.chapterContract
     && typeof body._premiumLlmInput.chapterContract === "object"
@@ -11545,16 +11414,6 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const promptContext = premiumContext
     ? { ...context, premiumContext, chapterContract }
     : { ...context, chapterContract };
-  const ziweiDataContext = buildZiweiDataContext(
-    body,
-    input,
-    canonicalZiweiChart,
-    reportType,
-    partnerOverview,
-    dataQuality,
-    ziweiPremiumPayload,
-  );
-
   (Array.isArray(context?.missingSummary) ? context.missingSummary : []).forEach((field) => pushUnique(dataQuality?.missingFields, field));
   (Array.isArray(context?.validation?.warnings) ? context.validation.warnings : []).forEach((warning) => pushUnique(dataQuality?.warnings, warning));
 
@@ -11622,25 +11481,29 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     }
   }
 
-  let usedFallback = false;
-  const generationWarnings = [];
-  let chapterJson;
-  let baseMarkdown = "";
   if (!parsed.ok) {
     console.error("[ZiweiPremium][Gemini] parse failed", {
       chapter,
       requestId: String(body?.requestId || body?.generationId || "").trim(),
       code: "ZIWEI_CHAPTER_PARSE_FAILED",
       stage: "gemini-parse",
+      detail: String(parsed.error || "JSON_PARSE_FAILED"),
     });
-    generationWarnings.push(`ZIWEI_CHAPTER_PARSE_FAILED:${String(parsed.error || "JSON_PARSE_FAILED")}`);
-    usedFallback = true;
-    chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
-    baseMarkdown = buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice);
-  } else {
-    chapterJson = sanitizeZiweiChapterJson(parsed.data, chapterSpec);
-    baseMarkdown = buildZiweiChapterMarkdown(chapterJson, chapterSpec, promptContext, chapter === 1);
+    return {
+      ok: false,
+      code: "ZIWEI_CHAPTER_PARSE_FAILED",
+      message: "Gemini 응답을 챕터 JSON으로 파싱하지 못했습니다.",
+      details: [String(parsed.error || "JSON_PARSE_FAILED")],
+      chapterMeta: {
+        num: Number(chapter || 0),
+        title: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
+        subtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
+      },
+    };
   }
+
+  const chapterJson = sanitizeZiweiChapterJson(parsed.data, chapterSpec);
+  const baseMarkdown = buildZiweiChapterMarkdown(chapterJson, chapterSpec, promptContext, chapter === 1);
 
   let markdown = ensureZiweiChapterMarkdownLength(
     baseMarkdown,
@@ -11660,16 +11523,28 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const qualityFailed = !qualityCheck.isValid || repeatedInside.length > 0 || repeatedAcross.length > 0;
 
   if (qualityFailed) {
-    generationWarnings.push("ZIWEI_CHAPTER_QUALITY_FAILED");
-    usedFallback = true;
-    chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
-    markdown = ensureZiweiChapterMarkdownLength(
-      buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice),
-      promptContext,
-      ZIWEI_MIN_CHARS,
-      ZIWEI_MAX_CHARS,
-    );
-    finalText = markdown;
+    const qualityDetails = [];
+    if (qualityCheck.tooShort) qualityDetails.push("TOO_SHORT");
+    if (qualityCheck.truncated) qualityDetails.push("TRUNCATED_MARKDOWN");
+    if (qualityCheck.banned) qualityDetails.push("BANNED_EXPRESSION");
+    if (qualityCheck.invalidSummaryTable) qualityDetails.push("INVALID_SUMMARY_TABLE");
+    if (Array.isArray(qualityCheck.missing) && qualityCheck.missing.length) {
+      qualityDetails.push(`MISSING_MARKERS:${qualityCheck.missing.join(",")}`);
+    }
+    if (repeatedInside.length > 0) qualityDetails.push("REPEATED_SENTENCES_IN_CHAPTER");
+    if (repeatedAcross.length > 0) qualityDetails.push("REPEATED_SENTENCES_ACROSS_CHAPTERS");
+
+    return {
+      ok: false,
+      code: "ZIWEI_CHAPTER_QUALITY_FAILED",
+      message: "생성된 자미두수 챕터가 품질 게이트를 통과하지 못했습니다.",
+      details: qualityDetails,
+      chapterMeta: {
+        num: Number(chapter || 0),
+        title: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
+        subtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
+      },
+    };
   }
 
   const chapterEnvelopeValidation = validatePremiumChapterResponseEnvelope({
@@ -11684,36 +11559,23 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   });
 
   if (!chapterEnvelopeValidation.ok) {
-    if (strictPayloadMode) {
-      return {
-        ok: false,
-        code: "ZIWEI_CHAPTER_CONTRACT_VIOLATION",
-        message: "자미두수 챕터가 chapterContract 요구사항을 충족하지 못했습니다.",
-        chapterMeta: {
-          num: Number(chapter || 0),
-          title: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
-          subtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
-        },
-        missingFields: chapterEnvelopeValidation.missingFields,
-      };
-    }
-
-    usedFallback = true;
-    generationWarnings.push("ZIWEI_CHAPTER_CONTRACT_VIOLATION");
-    chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
-    markdown = ensureZiweiChapterMarkdownLength(
-      buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice),
-      promptContext,
-      ZIWEI_MIN_CHARS,
-      ZIWEI_MAX_CHARS,
-    );
-    finalText = markdown;
+    return {
+      ok: false,
+      code: "ZIWEI_CHAPTER_CONTRACT_VIOLATION",
+      message: "자미두수 챕터가 chapterContract 요구사항을 충족하지 못했습니다.",
+      chapterMeta: {
+        num: Number(chapter || 0),
+        title: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
+        subtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
+      },
+      missingFields: chapterEnvelopeValidation.missingFields,
+    };
   }
 
   console.info("[ZiweiPremium][Gemini] chapter end", {
     chapter,
     requestId: String(body?.requestId || body?.generationId || "").trim(),
-    usedFallback,
+    usedFallback: false,
     repeatedSentenceCount: repeatedSentences.length,
   });
 
@@ -11721,11 +11583,9 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     ok: true,
     text: finalText,
     sections: parseSections(finalText),
-    usedFallback,
-    generationNotice: usedFallback
-      ? "일부 세부 명반 지표를 표준 해석 가이드로 통합해 챕터를 생성했습니다."
-      : null,
-    warnings: generationWarnings,
+    usedFallback: false,
+    generationNotice: null,
+    warnings: [],
     chapterJson,
   };
 }
@@ -16857,58 +16717,14 @@ async function handleZiweiBookSession(request, env) {
       ziweiPremiumPayload,
     );
   } catch (error) {
-    const chapterSpec = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
-      key: `ch_${chapter}`,
-      chapterNo: chapter,
-      title: meta?.title || `Chapter ${chapter}`,
-      goal: meta?.subtitle || "자미두수 핵심 해석",
-    };
-
-    const fallbackRawChart = buildZiweiPdfPipelineRawChart(reportPayload, chapterInputChart, dataQuality);
-    const fallbackContext = buildZiweiPdfContext({
-      userProfile: {
-        name: profileFromRequest?.name || input?.name || "사용자",
-        gender: profileFromRequest?.gender || input?.gender || "",
-        birthDate: profileFromRequest?.birthDate || `${input?.year || ""}-${String(input?.month || "").padStart(2, "0")}-${String(input?.day || "").padStart(2, "0")}`,
-        birthTime: profileFromRequest?.birthTime || `${String(input?.hour || 0).padStart(2, "0")}:${String(input?.minute || 0).padStart(2, "0")}`,
-        lunarDate: chapterInputChart?.profile?.birth?.lunarDate || "",
-        calendarType: profileFromRequest?.calendarType || input?.calendarType || "solar",
-        isLunar: asBool(profileFromRequest?.isLunar),
-        timeUnknown: asBool(profileFromRequest?.timeUnknown),
-        birthPlace: profileFromRequest?.birthPlace || "",
-      },
-      rawChart: fallbackRawChart,
-    });
-    const fallbackChapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, fallbackContext), chapterSpec);
-    const fallbackDataContext = buildZiweiDataContext(
-      strictBody,
-      input,
-      chapterInputChart,
-      reportType,
-      partnerOverview,
-      dataQuality,
-      ziweiPremiumPayload,
-    );
-    const fallbackText = ensureZiweiChapterMarkdownLength(
-      buildZiweiFallbackMarkdown(meta, chapter, input, fallbackDataContext.dataText, fallbackDataContext.missingNotice),
-      fallbackContext,
-      ZIWEI_MIN_CHARS,
-      ZIWEI_MAX_CHARS,
-    );
-
     generated = {
-      ok: true,
-      text: fallbackText,
-      sections: parseSections(fallbackText),
-      usedFallback: true,
-      generationNotice: "챕터 생성 중 예외가 발생해 프로필 기반 안전 모드로 자동 복구했습니다.",
-      warnings: [
-        `ZIWEI_CHAPTER_RUNTIME_FALLBACK:${String(error?.message || "UNKNOWN_ERROR")}`,
-      ],
-      chapterJson: fallbackChapterJson,
+      ok: false,
+      code: "ZIWEI_CHAPTER_RUNTIME_ERROR",
+      message: "자미두수 챕터 생성 중 런타임 오류가 발생했습니다.",
+      details: [String(error?.message || "UNKNOWN_ERROR")],
     };
 
-    console.error("[ZiweiPremium][Gemini] runtime failure recovered by fallback", {
+    console.error("[ZiweiPremium][Gemini] runtime failure", {
       chapter,
       requestId,
       message: String(error?.message || "unknown"),
@@ -16995,7 +16811,6 @@ async function handleZiweiBookSession(request, env) {
       "buildZiweiPdfContext",
       "generateZiweiChapterPrompt",
       "parseZiweiGeminiResponse",
-      "createFallbackChapter",
       "buildZiweiChapterMarkdown",
       "renderPdf",
       "savePdf",

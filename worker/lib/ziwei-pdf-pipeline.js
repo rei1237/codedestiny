@@ -238,22 +238,6 @@ const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
   },
 });
 
-const ZIWEI_FALLBACK_SECTION_HEADINGS = Object.freeze({
-  1: { structure: "명궁 캐릭터 구조", strategy: "명궁 운영 전략" },
-  2: { structure: "신궁 발현 구조", strategy: "후천 잠재력 전략" },
-  3: { structure: "복덕궁 회복 구조", strategy: "행복 루틴 전략" },
-  4: { structure: "천이궁 대외 흐름", strategy: "대외 이미지 전략" },
-  5: { structure: "관록궁 직업 구조", strategy: "커리어 실행 전략" },
-  6: { structure: "재백궁 수익 구조", strategy: "자산 운영 전략" },
-  7: { structure: "부처궁 관계 구조", strategy: "연애/결혼 운영 전략" },
-  8: { structure: "교우궁 네트워크 구조", strategy: "인맥 협업 전략" },
-  9: { structure: "전택궁 생활 기반 구조", strategy: "공간/자산 안정 전략" },
-  10: { structure: "질액궁 컨디션 구조", strategy: "회복 리듬 전략" },
-  11: { structure: "대한 10년 구조", strategy: "대한 전환 전략" },
-  12: { structure: "유년/유월 타이밍 구조", strategy: "월별 실행 전략" },
-  13: { structure: "13챕터 통합 구조", strategy: "최종 마스터플랜" },
-});
-
 function buildZiweiChapterMasterAdvice(chapterSpec, chapterData = {}) {
   const chapterNo = Number(chapterSpec?.chapterNo || chapterSpec?.num || 0);
   const corePalaces = asArray(chapterData?.corePalaces).map((token) => asText(token)).filter(Boolean);
@@ -1167,82 +1151,6 @@ export function parseZiweiGeminiResponse(rawText) {
   } catch (_) {
     return { ok: false, data: null, repaired: true, structureValid: false, error: "ZIWEI_JSON_PARSE_FAILED" };
   }
-}
-
-export function createFallbackChapter(chapter, context) {
-  const spec = chapter || { title: "기본 챕터", goal: "기본 해석" };
-  const chapterNo = Number(spec?.chapterNo || spec?.num || 0);
-  const chapterContract = ZIWEI_CHAPTER_CONTRACTS[chapterNo] || null;
-  const targetPalaceName = asText(chapterContract?.targetPalace);
-  const annualFlow = toPlainObject(context?.cycles?.annual);
-
-  let focusPalaceKey = "ming";
-  if (targetPalaceName.includes("신궁")) {
-    focusPalaceKey = asText(context?.chartMeta?.bodyPalaceKey || "body") || "body";
-  } else if (targetPalaceName.includes("대한") || targetPalaceName.includes("유년")) {
-    focusPalaceKey = asText(annualFlow?.palaceKey || context?.chartMeta?.mingPalaceKey || "ming") || "ming";
-  } else if (targetPalaceName && PALACE_KEY_MAP[targetPalaceName]) {
-    focusPalaceKey = PALACE_KEY_MAP[targetPalaceName];
-  }
-
-  const focusPalace = asArray(context?.palaces).find((palace) => palace?.key === focusPalaceKey)
-    || asArray(context?.palaces).find((palace) => palace?.key === (context?.chartMeta?.mingPalaceKey || "ming"))
-    || asArray(context?.palaces)[0]
-    || {};
-  const focusStars = asArray(focusPalace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 3);
-  const focusStarsLabel = focusStars.length ? focusStars.join("·") : "핵심 주성";
-  const focusPalaceName = asText(focusPalace?.name) || ZIWEI_PALACE_MEANINGS[focusPalaceKey]?.name || targetPalaceName || "핵심 궁위";
-  const relatedPalaces = asArray(chapterContract?.relatedPalaces).map(asText).filter(Boolean);
-  const relatedPalaceLabel = relatedPalaces.length ? relatedPalaces.join(", ") : "연관 궁위";
-  const mustCover = asArray(chapterContract?.mustCover).map(asText).filter(Boolean);
-  const mustCoverLabel = mustCover.length ? mustCover.slice(0, 3).join(" · ") : "핵심 커버리지";
-  const sectionHeadings = ZIWEI_FALLBACK_SECTION_HEADINGS[chapterNo] || {
-    structure: "운명의 구조",
-    strategy: "실전 운영 전략",
-  };
-  const annualStemBranch = asText(annualFlow?.stemBranch);
-  const corePalaces = (() => {
-    if (chapterNo === 2) {
-      const bodyKeys = ["body", focusPalaceKey].filter(Boolean);
-      return Array.from(new Set(bodyKeys));
-    }
-    if (chapterNo === 11 || chapterNo === 12) {
-      return [asText(annualFlow?.palaceKey || focusPalaceKey || "ming") || "ming"];
-    }
-    return [focusPalaceKey || "ming"];
-  })();
-  const fallbackMasterAdvice = buildZiweiChapterMasterAdvice(spec, {
-    corePalaces,
-    coreStars: focusStars,
-  });
-
-  return {
-    chapterTitle: spec.title,
-    chapterSubtitle: spec.goal || "챕터별 실행 해석",
-    summary: `${targetPalaceName || focusPalaceName}을 중심으로 ${relatedPalaceLabel}을 교차 검토해 이 챕터의 해석 목적에 맞는 핵심 흐름을 정리했습니다.`,
-    sections: [
-      {
-        heading: sectionHeadings.structure,
-        body: `${targetPalaceName || focusPalaceName}의 기본 의미를 축으로 ${focusStarsLabel}의 작동을 해석해야 합니다. 이 장에서는 ${relatedPalaceLabel}과의 연결을 통해 ${mustCoverLabel}를 중심으로 성향-행동-성과의 연결 구조를 점검합니다.`,
-      },
-      {
-        heading: sectionHeadings.strategy,
-        body: `실전 운영은 ${mustCoverLabel}를 점검 순서로 고정하는 방식이 효과적입니다. ${annualStemBranch ? `${annualStemBranch} 흐름에서는` : "당해 흐름에서는"} 핵심 목표를 줄이고 반복 가능한 행동 기준을 고정하면 ${targetPalaceName || focusPalaceName}의 성과를 안정적으로 확장할 수 있습니다.`,
-      },
-    ],
-    practicalAdvice: [
-      `${targetPalaceName || focusPalaceName} 기준으로 주간 우선순위 1개를 먼저 고정하세요.`,
-      `${mustCover[0] || "핵심 해석 포인트"}를 실행 체크리스트 첫 줄에 넣으세요.`,
-    ],
-    cautions: [
-      `${relatedPalaceLabel}를 무시한 단기 반응으로 핵심 계획을 자주 바꾸는 패턴을 피하세요.`,
-    ],
-    masterAdvice: fallbackMasterAdvice,
-    masterConclusion: fallbackMasterAdvice,
-    coreStars: focusStars.length > 0 ? focusStars : ["자미", "천부"],
-    corePalaces,
-    missingDataNotice: null,
-  };
 }
 
 export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
