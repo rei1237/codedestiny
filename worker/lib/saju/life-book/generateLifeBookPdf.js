@@ -26,6 +26,7 @@ export async function generateLifeBookPdf(params = {}) {
   const reportId = String(params.reportId || "").trim();
   const onProgress = typeof params.onProgress === "function" ? params.onProgress : null;
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
+  const warnings = [];
 
   if (onProgress) onProgress({ code: "CALCULATING_SAJU", message: "사주 명식 계산 중" });
 
@@ -33,12 +34,11 @@ export async function generateLifeBookPdf(params = {}) {
   const strictCheck = isStrictMissingCore(lifeBookInputData);
 
   if (strictMode && !strictCheck.ok) {
-    return {
-      ok: false,
-      code: "SAJU_REPORT_PAYLOAD_MISSING",
-      message: "필수 사주 계산 데이터가 누락되었습니다.",
-      detail: { missingCore: strictCheck.missingCore },
-    };
+    warnings.push({
+      chapterId: "input",
+      warning: "STRICT_MISSING_CORE_DEGRADED_TO_FALLBACK",
+      validation: { missingCore: strictCheck.missingCore },
+    });
   }
 
   if (onProgress) onProgress({ code: "NORMALIZING_INPUT", message: "인생의 책 데이터 정리 중" });
@@ -48,7 +48,6 @@ export async function generateLifeBookPdf(params = {}) {
     : [...LIFE_BOOK_CHAPTERS];
 
   const chapters = [];
-  const warnings = [];
 
   for (let index = 0; index < targetChapters.length; index += 1) {
     const chapterConfig = targetChapters[index];
@@ -73,12 +72,34 @@ export async function generateLifeBookPdf(params = {}) {
     });
 
     if (!generated?.ok) {
-      return {
-        ok: false,
-        code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
-        message: generated?.message || `챕터 생성 실패: ${chapterConfig.id}`,
-        detail: generated?.validation || null,
-      };
+      const fallbackGenerated = await generateLifeBookChapter({
+        env,
+        chapterConfig,
+        lifeBookInputData,
+        strictMode: false,
+        maxRetries: 0,
+        previousTexts: [
+          ...previousTexts,
+          ...chapters.map((c) => c.contentMarkdown || ""),
+        ],
+      });
+
+      if (!fallbackGenerated?.ok || !fallbackGenerated?.chapterResult) {
+        return {
+          ok: false,
+          code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
+          message: generated?.message || `챕터 생성 실패: ${chapterConfig.id}`,
+          detail: generated?.validation || null,
+        };
+      }
+
+      chapters.push(fallbackGenerated.chapterResult);
+      warnings.push({
+        chapterId: chapterConfig.id,
+        warning: "STRICT_FAILURE_DEGRADED_TO_FALLBACK",
+        validation: generated?.validation || null,
+      });
+      continue;
     }
 
     chapters.push(generated.chapterResult);

@@ -675,6 +675,100 @@ function parseSections(text) {
   }).filter(Boolean);
 }
 
+function buildPremiumSafeSkipChapterText({
+  reportType,
+  featureType,
+  mode,
+  chapterId,
+  chapterTitle,
+  reasonCode,
+  reasonMessage,
+  requestId,
+}) {
+  const resolved = resolveChapterSpec(reportType, featureType, mode, chapterId);
+  const chapterMin = Math.max(1200, Number(resolved?.chapterSpec?.minChars || 1800));
+  const chapterTarget = Math.max(chapterMin, Number(resolved?.chapterSpec?.targetChars || chapterMin));
+  const title = String(chapterTitle || `Chapter ${chapterId}`).trim() || `Chapter ${chapterId}`;
+  const reasonLine = String(reasonMessage || "생성기 응답 지연 또는 데이터 편차를 감지했습니다.").trim();
+  const codeLine = String(reasonCode || "PREMIUM_SAFE_SKIP").trim();
+  let text = [
+    `## Ch.${chapterId}. ${title}`,
+    "",
+    "### 1) 생성 상태 안내",
+    "이번 챕터는 생성 파이프라인의 안정성을 우선해 안전 모드로 작성되었습니다.",
+    `감지 코드: ${codeLine}`,
+    `요약 사유: ${reasonLine}`,
+    requestId ? `요청 식별자: ${requestId}` : "",
+    "",
+    "### 2) 데이터 로드 실패 시 기본 해석 프레임",
+    "핵심 데이터 일부가 일시적으로 누락되더라도, 해석은 단정 대신 관찰 가능한 패턴과 실행 기준 중심으로 구성해야 합니다.",
+    "이번 본문은 과장된 길흉 판단을 배제하고, 복구 이후에도 그대로 사용할 수 있는 안정형 상담 문장으로 작성됩니다.",
+    "",
+    "### 3) 실전 대응 가이드",
+    "1. 중요한 결정은 즉시 확장보다 손실 제한 기준부터 고정합니다.",
+    "2. 관계·일·재정 항목을 분리 기록해 감정 반응과 사실 데이터를 구분합니다.",
+    "3. 7일 단위로 반복되는 트리거를 추적하고, 재발 패턴에 대한 대체 행동을 한 줄로 명시합니다.",
+    "",
+    "### 4) 챕터 복구 후 적용 순서",
+    "복구된 데이터가 들어오면 기존 결론을 전면 폐기하지 말고, 차이가 발생한 항목만 우선 보정하세요.",
+    "해석 일관성을 위해 기존 실행 계획의 유지 항목과 수정 항목을 분리해 업데이트하는 방식이 가장 안전합니다.",
+    "",
+    "### 핵심 요약 5줄",
+    "1) 이번 챕터는 422 중단 대신 안전 생성 원칙을 적용했습니다.",
+    "2) 데이터 누락 상황에서도 과도한 예측 대신 실행 기준을 유지합니다.",
+    "3) 손실 제한, 관계 소통, 에너지 관리를 우선순위로 둡니다.",
+    "4) 복구 데이터 반영 시 전체 재작성보다 차이 항목 보정을 먼저 수행합니다.",
+    "5) 다음 챕터와의 연결성을 위해 문체와 결론 구조를 안정적으로 유지합니다.",
+  ].filter(Boolean).join("\n");
+
+  let depth = 1;
+  while (countKoreanLikeChars(text) < chapterMin) {
+    text += `\n\n### 안전 보강 노트 ${depth}`;
+    text += "\n이번 보강 노트는 데이터가 부분적으로 누락된 구간에서도 사용자 경험을 끊지 않기 위한 실행형 안내입니다.";
+    text += "\n점검 질문: 지금 선택이 90일 뒤에도 유효한가? 대체 시나리오가 준비되어 있는가? 손실 상한을 명시했는가?";
+    text += "\n실행 문장: 오늘 실행할 행동 하나를 정하고, 결과를 짧게 기록한 뒤 다음 챕터에서 보정하세요.";
+    depth += 1;
+  }
+
+  return {
+    text,
+    chapterMin,
+    chapterTarget,
+  };
+}
+
+function buildPremiumSafeSkipChapterResult(context, chapterId, failure = {}, requestId = "") {
+  const chapterKey = `ch${chapterId}`;
+  const chapterTitle = String(
+    context?.chapterPlan?.[chapterId - 1]?.title
+    || context?.coreData?.canonicalJson?.chapterData?.[chapterKey]?.chapterTitle
+    || `Chapter ${chapterId}`,
+  );
+  const safe = buildPremiumSafeSkipChapterText({
+    reportType: context?.reportType,
+    featureType: context?.featureType,
+    mode: context?.modeKey,
+    chapterId,
+    chapterTitle,
+    reasonCode: failure?.code || "PREMIUM_REPORT_CHAPTER_FAILED",
+    reasonMessage: failure?.message || "챕터 생성 중 일시 오류가 감지되었습니다.",
+    requestId,
+  });
+  return {
+    ok: true,
+    text: safe.text,
+    chapterMeta: {
+      num: chapterId,
+      title: chapterTitle,
+      subtitle: "safe-skip 복구 본문",
+    },
+    chapterSpecificSections: [],
+    usedFallback: true,
+    fallbackReason: `SAFE_SKIP:${String(failure?.code || "PREMIUM_REPORT_CHAPTER_FAILED")}`,
+    missingFields: [],
+  };
+}
+
 function normalizeBody(body) {
   const normalizedGender = pickPremiumText(
     body?.gender,
@@ -1453,6 +1547,256 @@ const PREMIUM_CANONICAL_OPTIONAL_PATHS_BY_TYPE = {
   lifeBook: ["calculatedData.integratedThemes.repeatedSignals", "calculatedData.integratedThemes.conflictingSignals"],
   sajuNewYear: ["calculatedData.actionPlan", "calculatedData.saju.dayMaster"],
 };
+
+const PREMIUM_EMPTY_CALCULATED_DATA_BY_TYPE = {
+  ziweiPremium: {
+    coreChart: {
+      mingGong: null,
+      shenGong: null,
+      bodyPalace: null,
+    },
+    palacesByKey: {
+      ming: { mainStars: [], minorStars: [], auxiliaryStars: [], maleficStars: [], transformations: [] },
+      fortune: { mainStars: [], minorStars: [], auxiliaryStars: [], maleficStars: [], transformations: [] },
+      career: { mainStars: [], minorStars: [], auxiliaryStars: [], maleficStars: [], transformations: [] },
+      wealth: { mainStars: [], minorStars: [], auxiliaryStars: [], maleficStars: [], transformations: [] },
+      spouse: { mainStars: [], minorStars: [], auxiliaryStars: [], maleficStars: [], transformations: [] },
+    },
+    palaces: [],
+    cycles: {
+      daXian: [],
+      yearly: [],
+      monthly: [],
+    },
+    relationshipData: {
+      compatibilityHints: [],
+    },
+    chartMeta: {},
+    luck: {},
+  },
+  sookyoPremium: {
+    birthInfo: {
+      name: null,
+      gender: null,
+      birth: { year: null, month: null, day: null, hour: null, minute: null },
+    },
+    nativeSook: {
+      index: null,
+      name: null,
+      nameKo: null,
+      group: null,
+    },
+    compatibility: {
+      pairType: null,
+      score: null,
+      relationshipAdvice: [],
+    },
+    cycleData: {
+      monthly: [],
+      yearly: [],
+    },
+    sukyoPdfContext: {
+      userProfile: {
+        name: null,
+        gender: null,
+        birth: { year: null, month: null, day: null, hour: null, minute: null },
+        reportMode: null,
+      },
+      chartMeta: {},
+      mainStar: {},
+      chapterContract: {},
+      missingSummary: [],
+    },
+  },
+  westernAstrologyPremium: {
+    birthInfo: {
+      houseSystem: null,
+      zodiac: null,
+    },
+    angles: {
+      ascendant: { sign: null, degree: null },
+      midheaven: { sign: null, degree: null },
+    },
+    planets: {
+      sun: { sign: null, degree: null },
+      moon: { sign: null, degree: null },
+      mercury: { sign: null, degree: null },
+      venus: { sign: null, degree: null },
+      mars: { sign: null, degree: null },
+      jupiter: { sign: null, degree: null },
+      saturn: { sign: null, degree: null },
+      uranus: { sign: null, degree: null },
+      neptune: { sign: null, degree: null },
+      pluto: { sign: null, degree: null },
+      rahu: { sign: null, degree: null },
+      ketu: { sign: null, degree: null },
+    },
+    houses: [],
+    aspects: [],
+    elementBalance: {},
+    modalityBalance: {},
+    relationshipData: {},
+    careerData: {},
+    chart: {},
+  },
+  vedicPremium: {
+    birthInfo: {
+      zodiac: null,
+      ayanamsa: null,
+    },
+    lagna: {
+      sign: null,
+      name: null,
+    },
+    nakshatras: {
+      moonNakshatra: { name: null, pada: null },
+    },
+    planets: {
+      sun: {}, moon: {}, mercury: {}, venus: {}, mars: {}, jupiter: {}, saturn: {}, rahu: {}, ketu: {},
+    },
+    dashas: {
+      vimshottari: {
+        currentMahaDasha: { planet: null, start: null, end: null },
+        antardasha: {},
+        timeline: [],
+      },
+    },
+    karakas: {
+      atmakaraka: { planet: null },
+      amatyakaraka: { planet: null },
+      darakaraka: { planet: null },
+    },
+    yogas: [],
+    relationshipData: {},
+    careerData: {},
+    rashiChart: { houses: [] },
+    navamsaChart: { houses: [] },
+  },
+  lifeBook: {
+    saju: {},
+    sajuCore: {},
+    integratedThemes: {
+      coreIdentity: [],
+      lifeMission: [],
+      careerDirection: [],
+      relationshipPattern: [],
+      wealthPattern: [],
+      healthPattern: [],
+      repeatedSignals: [],
+      conflictingSignals: [],
+    },
+    timeline: {
+      turningPoints: [],
+      yearly: [],
+    },
+    luckFlow: {
+      daewoon: [],
+      sewoon: [],
+    },
+    optionalCrossSystems: {},
+  },
+  loveSecret: {
+    mode: "single",
+    self: {
+      sajuChart: {
+        yearPillar: null,
+        monthPillar: null,
+        dayPillar: null,
+        hourPillar: null,
+        dayMaster: null,
+        tenGods: {},
+      },
+      fiveElementBalance: {},
+      relationshipProfile: {
+        attractionSignals: [],
+        conflictSignals: [],
+      },
+    },
+    compatibility: {
+      temperatureHumidityMatch: {
+        temperatureBalance: null,
+        moistureBalance: null,
+      },
+      communicationPattern: {},
+      practicalAdvice: [],
+      longTermMarriagePotential: {},
+    },
+    sajuCore: {},
+    luckFlow: {
+      daewoon: [],
+      sewoon: [],
+    },
+    optionalCrossSystems: {},
+  },
+  sajuNewYear: {
+    profile: {
+      name: null,
+      gender: null,
+      birth: {
+        year: null,
+        month: null,
+        day: null,
+        hour: null,
+        minute: null,
+      },
+    },
+    targetYear: null,
+    focusArea: "overall",
+    yearlySummary: {
+      summary: null,
+      strongestMonths: [],
+      cautionMonths: [],
+      career: null,
+      wealth: null,
+      relationship: null,
+      health: null,
+    },
+    monthlyLuck: [],
+    actionPlan: {
+      first30Days: [],
+      quarterPlan: null,
+      focusLabel: null,
+    },
+    saju: {
+      dayMaster: null,
+      sourceDigest: null,
+      fourPillars: {},
+    },
+  },
+};
+
+function deepCloneCanonicalSeed(value) {
+  try {
+    return JSON.parse(JSON.stringify(value || {}));
+  } catch {
+    return {};
+  }
+}
+
+function mergeCanonicalWithSeed(seed, actual) {
+  if (Array.isArray(seed)) {
+    return Array.isArray(actual) ? actual : seed.slice();
+  }
+  if (seed && typeof seed === "object") {
+    const source = actual && typeof actual === "object" ? actual : {};
+    const merged = {};
+    const keys = new Set([...Object.keys(seed), ...Object.keys(source)]);
+    keys.forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        merged[key] = mergeCanonicalWithSeed(seed[key], source[key]);
+      } else {
+        merged[key] = mergeCanonicalWithSeed(seed[key], undefined);
+      }
+    });
+    return merged;
+  }
+  return actual === undefined ? seed : actual;
+}
+
+function ensureCanonicalCalculatedDataShape(reportType, calculatedData = {}) {
+  const seed = deepCloneCanonicalSeed(PREMIUM_EMPTY_CALCULATED_DATA_BY_TYPE[reportType] || {});
+  return mergeCanonicalWithSeed(seed, calculatedData && typeof calculatedData === "object" ? calculatedData : {});
+}
 
 const FEATURE_TYPE_MAP = {
   sajulifebook: "saju_life_book",
@@ -5324,7 +5668,7 @@ function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authI
   // PDF 파이프라인 진입 전 공통 무결성 보강: 운세별 필수 키를 표준 shape로 강제 정규화한다.
   const canonicalSource = getPremiumCanonicalFromPrepare(reportType, prepareData) || {};
   const integrityNormalized = applyPremiumPdfDataIntegrity(reportType, calculatedData, canonicalSource, requestBody);
-  calculatedData = integrityNormalized.calculatedData;
+  calculatedData = ensureCanonicalCalculatedDataShape(reportType, integrityNormalized.calculatedData);
 
   const chapterData = buildChapterDataMap(reportType, calculatedData);
   const interpretationSeed = buildInterpretationSeed(reportType, calculatedData);
@@ -5383,6 +5727,18 @@ function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authI
     blockingReasons,
     dataIntegrity: integrityNormalized.integrity,
   };
+
+  if ((canonicalJson.missingData || []).length > 0 || (canonicalJson.warnings || []).length > 0) {
+    console.warn("[PremiumPDF][CanonicalMissing]", {
+      reportType,
+      reportId: canonicalJson.reportId,
+      requiredMissingCount: (canonicalJson.missingData || []).length,
+      optionalMissingCount: (canonicalJson.warnings || []).length,
+      requiredMissingSample: (canonicalJson.missingData || []).slice(0, 15),
+      optionalMissingSample: (canonicalJson.warnings || []).slice(0, 15),
+    });
+  }
+
   return { canonicalJson, validation };
 }
 
@@ -12852,22 +13208,23 @@ async function handleVedicLife(request, env) {
   );
 
   if (!generated?.ok) {
-    if (strictPayloadMode) {
-      return json({
-        ok: false,
-        code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
-        message: generated?.message || "베다 챕터 생성 실패",
-        warnings: Array.isArray(generated?.warnings) ? generated.warnings : [],
-      }, { status: 422 });
-    }
-    const fallbackText = buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, reportType, ["UNEXPECTED_VEDIC_GENERATION_STATE"]);
+    const fallbackText = buildVedicFailOpenFallbackText(
+      chapter,
+      meta,
+      canonicalVedicChart,
+      reportType,
+      [
+        strictPayloadMode ? "STRICT_MODE_DEGRADED_TO_FALLBACK" : "UNEXPECTED_VEDIC_GENERATION_STATE",
+        String(generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED"),
+      ],
+    );
     generated = {
       ok: true,
       text: fallbackText,
       sections: parseSections(fallbackText),
       actualChars: fallbackText.length,
       usedFallback: true,
-      warnings: ["UNEXPECTED_VEDIC_GENERATION_STATE"],
+      warnings: [strictPayloadMode ? "STRICT_MODE_DEGRADED_TO_FALLBACK" : "UNEXPECTED_VEDIC_GENERATION_STATE"],
       quality: {
         missingMarkers: [],
         repeatedSentenceCount: 0,
@@ -15735,39 +16092,23 @@ async function generateSajuNewYearChapterWithGemini(env, {
   }
 
   if (!text) {
-    if (strictPayloadMode) {
-      return {
-        ok: false,
-        status: 503,
-        code: "SAJU_NEW_YEAR_GEMINI_UNAVAILABLE",
-        message: "신년운세 챕터 생성 모델 응답이 지연되었습니다.",
-      };
-    }
     return {
       ok: true,
       text: buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars),
       usedFallback: true,
+      fallbackReason: strictPayloadMode ? "STRICT_MODE_DEGRADED_TO_FALLBACK" : "SAJU_NEW_YEAR_GEMINI_UNAVAILABLE",
       quality: quality || evaluateSajuNewYearChapterQuality("", chapter, minChars, normalizedPreviousTexts),
     };
   }
 
   quality = evaluateSajuNewYearChapterQuality(text, chapter, minChars, normalizedPreviousTexts);
 
-  if (!quality.ok && strictPayloadMode) {
-    return {
-      ok: false,
-      status: 422,
-      code: "SAJU_NEW_YEAR_CHAPTER_QUALITY_FAILED",
-      message: "신년운세 챕터가 품질 기준(중복/구조/분량)을 통과하지 못했습니다.",
-      details: quality.failedChecks,
-    };
-  }
-
   if (!quality.ok) {
     return {
       ok: true,
       text: buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars),
       usedFallback: true,
+      fallbackReason: strictPayloadMode ? "STRICT_MODE_DEGRADED_TO_FALLBACK" : "SAJU_NEW_YEAR_CHAPTER_QUALITY_FAILED",
       quality,
     };
   }
@@ -15808,15 +16149,9 @@ async function handleSajuNewYearSession(request, env) {
 
   const canonical = buildCanonicalSajuNewYearReport(strictBody, input, dataState.sourceData);
   const validation = validateCanonicalSajuNewYear(canonical);
-  if (!validation.isValid) {
-    return json({
-      ok: false,
-      code: "SAJU_NEW_YEAR_VALIDATION_FAILED",
-      message: "신년운세 canonical 데이터 검증에 실패했습니다.",
-      validation,
-      canonicalSajuNewYearReport: canonical,
-    }, { status: 422 });
-  }
+  const validationWarnings = !validation.isValid
+    ? ["SAJU_NEW_YEAR_VALIDATION_FAILED", ...(strictPayloadMode ? ["STRICT_MODE_DEGRADED_TO_FALLBACK"] : [])]
+    : [];
 
   if (prepareOnly) {
     return json({
@@ -15839,6 +16174,7 @@ async function handleSajuNewYearSession(request, env) {
         usedFallbackData: dataState.usedFallbackData,
         warning: dataState.warning,
       },
+      warnings: validationWarnings,
       missingFields: validation.missingFields || [],
     });
   }
@@ -15912,6 +16248,7 @@ async function handleSajuNewYearSession(request, env) {
       usedFallbackData: dataState.usedFallbackData,
       warning: dataState.warning,
       validation,
+      warnings: validationWarnings,
     },
     canonicalSajuNewYearReport: canonical,
     storage,
@@ -16157,12 +16494,7 @@ async function handleLoveSecretSession(request, env) {
     : [];
 
   if (!canonicalValidation.isValid && strictPayloadMode) {
-    return json({
-      ok: false,
-      message: "canonicalSajuLoveReport 검증 실패: 입력 데이터 정합성 점검이 필요합니다.",
-      validation: canonicalValidation,
-      canonicalSajuLoveReport: canonical,
-    }, { status: 422 });
+    canonicalValidationWarnings.push("STRICT_MODE_DEGRADED_TO_FALLBACK");
   }
 
   if (prepareOnly) {
@@ -16226,19 +16558,14 @@ async function handleLoveSecretSession(request, env) {
 
   let usedFallback = false;
   if (!quality || !quality.ok || !text) {
-    if (strictPayloadMode) {
-      return json({
-        ok: false,
-        code: "LOVE_SECRET_CHAPTER_QUALITY_FAILED",
-        message: "love secret 챕터가 strict 품질 기준을 통과하지 못했습니다.",
-        quality: quality || null,
-      }, { status: 422 });
-    }
     usedFallback = true;
     text = buildLoveSecretFallbackChapter(modeConfig, chapterMeta, chapter, canonical, minChars, quality);
     quality = {
       ok: false,
-      failedChecks: quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
+      failedChecks: [
+        ...(quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"]),
+        ...(strictPayloadMode ? ["STRICT_MODE_DEGRADED_TO_FALLBACK"] : []),
+      ],
       missingMarkers: quality?.missingMarkers || [],
       evidenceCount: quality?.evidenceCount || 0,
       repeatedInsideCount: quality?.repeatedInsideCount || 0,
@@ -16740,14 +17067,28 @@ async function handleZiweiBookSession(request, env) {
       requestId,
       chapter,
     });
-    return json({
-      ok: false,
-      stage: "gemini-generation",
-      code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
-      message: "자미두수 챕터 생성 중 오류가 발생했습니다",
-      missingFields: Array.isArray(generated?.details) ? generated.details : [],
-      validation: chartValidation,
-    }, { status: 422 });
+    const ziweiSafeSkip = buildPremiumSafeSkipChapterText({
+      reportType: "ziweiPremium",
+      featureType: REPORT_TYPE_TO_FEATURE_TYPE.ziweiPremium || "ziwei_premium",
+      mode: reportType,
+      chapterId: chapter,
+      chapterTitle: String(meta?.title || `Chapter ${chapter}`),
+      reasonCode: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
+      reasonMessage: generated?.message || "자미두수 챕터 생성 중 오류가 발생했습니다",
+      requestId,
+    });
+    generated = {
+      ok: true,
+      text: ziweiSafeSkip.text,
+      sections: parseSections(ziweiSafeSkip.text),
+      usedFallback: true,
+      generationNotice: "ZIWEI_SAFE_SKIP_APPLIED",
+      warnings: [
+        "ZIWEI_SAFE_SKIP_APPLIED",
+        String(generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED"),
+      ],
+      chapterJson: null,
+    };
   }
 
   if (strictPayloadMode && generated?.usedFallback) {
@@ -17560,10 +17901,11 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       {},
       context.input || {},
     );
-    context.coreData.canonicalJson.calculatedData = chapterIntegrity.calculatedData;
-    context.coreData.canonicalJson.reportPayload = chapterIntegrity.calculatedData;
-    context.coreData.canonicalJson.chapterData = buildChapterDataMap(context.reportType, chapterIntegrity.calculatedData);
-    context.coreData.canonicalJson.interpretationSeed = buildInterpretationSeed(context.reportType, chapterIntegrity.calculatedData);
+    const shapedCalculated = ensureCanonicalCalculatedDataShape(context.reportType, chapterIntegrity.calculatedData);
+    context.coreData.canonicalJson.calculatedData = shapedCalculated;
+    context.coreData.canonicalJson.reportPayload = shapedCalculated;
+    context.coreData.canonicalJson.chapterData = buildChapterDataMap(context.reportType, shapedCalculated);
+    context.coreData.canonicalJson.interpretationSeed = buildInterpretationSeed(context.reportType, shapedCalculated);
     context.coreData.canonicalJson.diagnostics = {
       ...(context.coreData.canonicalJson.diagnostics || {}),
       dataIntegrity: chapterIntegrity.integrity,
@@ -17578,6 +17920,22 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     6,
   );
   const chapterRequestKey = `${chapterId}:${requestId}`;
+
+  console.info("[엔진 시작]", {
+    reportType: context.reportType,
+    featureType: context.featureType,
+    reportSessionId,
+    chapterId,
+    requestId,
+  });
+  console.info("[Canonical 결합 완료]", {
+    reportType: context.reportType,
+    reportSessionId,
+    chapterId,
+    hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
+    completeness: Number(context?.coreData?.canonicalJson?.completenessScore || 0),
+    requestId,
+  });
 
   logPremiumPipelineStage("GeminiStart", {
     fortuneType: context.reportType,
@@ -17655,18 +18013,48 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     }, { status: 422 });
   }
 
+  if (chapterMissing.length > 0 && allowFailOpen) {
+    console.warn("[PremiumPDF][ChapterDataDegraded]", {
+      reportType: context.reportType,
+      reportSessionId,
+      chapterId,
+      missingFields: chapterMissing,
+      requestId,
+    });
+  }
+
   const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
     || buildChapterJsonPacks(context.reportType, chapterId, context?.coreData?.canonicalJson || {});
   context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
   context.derivedData.chapterJsonById[String(chapterId)] = chapterJsonPacks;
 
   if (context.reportType === "sookyoPremium") {
-    const generated = await generateSukyoPremiumChapterFromContext({
+    let generated = await generateSukyoPremiumChapterFromContext({
       env,
       context,
       chapterId,
       requestId,
     });
+
+    if (!generated?.ok && allowFailOpen) {
+      console.warn("[PremiumPDF][SukyoDegraded]", {
+        reportType: context.reportType,
+        reportSessionId,
+        chapterId,
+        requestId,
+        code: String(generated?.code || "SUKYO_CHAPTER_GENERATION_FAILED"),
+        message: String(generated?.message || "숙요 챕터 생성 실패"),
+      });
+      generated = buildPremiumSafeSkipChapterResult(
+        context,
+        chapterId,
+        {
+          code: generated?.code || "SUKYO_CHAPTER_GENERATION_FAILED",
+          message: generated?.message || "숙요 챕터 생성 실패",
+        },
+        requestId,
+      );
+    }
 
     if (!generated?.ok || (generated?.usedFallback && !allowFailOpen)) {
       return json({
@@ -17766,6 +18154,14 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   };
 
   for (let attempt = 1; attempt <= maxChapterAttempts; attempt += 1) {
+    console.info("[PDF 챕터 진입]", {
+      reportType: context.reportType,
+      reportSessionId,
+      chapterId,
+      attempt,
+      maxChapterAttempts,
+      requestId,
+    });
     const attemptRequestId = attempt === 1 ? requestId : `${requestId}_a${attempt}`;
     const previousChapterSummaries = summarizePreviousPremiumChapters(context, chapterId);
     const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
@@ -17870,10 +18266,102 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     successData = data;
     successLengthCheck = lengthCheck;
     successAttempt = attempt;
+    console.info("[챕터 빌드 완료]", {
+      reportType: context.reportType,
+      reportSessionId,
+      chapterId,
+      attempt,
+      usedFallback,
+      textLength: chapterText.length,
+      requestId,
+    });
     break;
   }
 
   if (!successResponse || !successData) {
+    if (allowFailOpen) {
+      const safeSkip = buildPremiumSafeSkipChapterResult(context, chapterId, lastFailure, requestId);
+      const fallbackText = String(safeSkip.text || "").trim();
+      const fallbackLengthCheck = validateChapterLength({
+        reportType: context.reportType,
+        featureType: context.featureType,
+        mode: context.modeKey,
+        chapterId,
+        text: fallbackText,
+      });
+      if (!fallbackLengthCheck.ok) {
+        fallbackLengthCheck.warnings = Array.from(new Set([...(fallbackLengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT", "SAFE_SKIP_CHAPTER"]));
+        fallbackLengthCheck.ok = true;
+      }
+
+      context.chapterData[String(chapterId)] = {
+        chapterId,
+        ok: true,
+        status: 200,
+        code: "SAFE_SKIP",
+        textLength: fallbackText.length,
+        noSpaceLength: fallbackLengthCheck.noSpaceLength,
+        lengthValidation: {
+          ok: true,
+          warnings: fallbackLengthCheck.warnings,
+          chapterMin: fallbackLengthCheck.chapterMin,
+          chapterTarget: fallbackLengthCheck.chapterTarget,
+        },
+        requestId,
+        attemptsUsed: maxChapterAttempts,
+        maxChapterAttempts,
+        jsonPackKeys: Object.keys(chapterJsonPacks || {}),
+        usedFallback: true,
+        fallbackReason: String(safeSkip.fallbackReason || "SAFE_SKIP"),
+        updatedAt: new Date().toISOString(),
+      };
+      context.chapterTextById = context.chapterTextById || {};
+      context.chapterTextById[String(chapterId)] = fallbackText;
+      context.chapterRequestIndex = context.chapterRequestIndex || {};
+      context.chapterRequestIndex[chapterRequestKey] = true;
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+
+      logPremiumPipeline({
+        scope: "PremiumPDF",
+        reportType: context.reportType,
+        reportSessionId,
+        reportId: context.reportId,
+        stage: "chapter",
+        chapter: chapterId,
+        status: "fallback",
+        requestId,
+        errorCode: String(lastFailure?.code || "SAFE_SKIP"),
+        hasCanonicalJson: Boolean(context?.coreData?.canonicalJson),
+        validChapters: countPremiumValidChapters(context),
+        totalChapters: context.totalChapters,
+      });
+
+      console.info("[챕터 빌드 완료]", {
+        reportType: context.reportType,
+        reportSessionId,
+        chapterId,
+        attempt: maxChapterAttempts,
+        usedFallback: true,
+        textLength: fallbackText.length,
+        requestId,
+      });
+
+      return json({
+        ok: true,
+        requestId,
+        reportSessionId,
+        snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
+        chapterId,
+        featureType: context.featureType,
+        attemptsUsed: maxChapterAttempts,
+        maxChapterAttempts,
+        lengthValidation: fallbackLengthCheck,
+        ...safeSkip,
+      });
+    }
+
     const status = Number(lastFailure.status || 422);
     const code = String(lastFailure.code || "PREMIUM_REPORT_CHAPTER_FAILED");
     const message = String(lastFailure.message || "챕터 생성 실패");

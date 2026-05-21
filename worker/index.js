@@ -481,6 +481,21 @@ export default {
         return jsonResponse(request, env, buildVersionPayload(env));
       }
 
+      // Legacy compatibility: 일부 런타임이 /api/status 상태 체크를 사용한다.
+      if (url.pathname === "/api/status") {
+        const version = buildVersionPayload(env);
+        const upstreamOrigin = getUpstreamOrigin(env);
+        return jsonResponse(request, env, {
+          ...version,
+          service: "code-destiny-api-worker",
+          mode: "worker-native",
+          backendOnly: true,
+          buildSource: version.source,
+          upstreamConfigured: Boolean(upstreamOrigin),
+          status: "ok",
+        });
+      }
+
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
       }

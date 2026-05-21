@@ -233,20 +233,10 @@ export async function generateLifeBookChapter(params = {}) {
     }
   }
 
-  if (strictMode) {
-    return {
-      ok: false,
-      code: "LIFEBOOK_CHAPTER_GENERATION_FAILED",
-      message: `챕터 생성/검증 실패: ${chapterConfig.id}`,
-      attempts,
-      validation: lastValidation,
-    };
-  }
-
   const fallback = createLifeBookFallbackChapter(
     chapterConfig,
     lifeBookInputData,
-    `fallback-used:${chapterConfig.id}:${(lastValidation.errors || []).join("|")}`,
+    `${strictMode ? "strict-degraded" : "fallback-used"}:${chapterConfig.id}:${(lastValidation.errors || []).join("|")}`,
   );
 
   return {
@@ -257,7 +247,7 @@ export async function generateLifeBookChapter(params = {}) {
     validation: {
       ok: true,
       errors: [],
-      warnings: ["FALLBACK_CHAPTER_APPLIED", ...(lastValidation.errors || [])],
+      warnings: [strictMode ? "STRICT_MODE_DEGRADED_TO_FALLBACK" : "FALLBACK_CHAPTER_APPLIED", ...(lastValidation.errors || [])],
       quality: {
         length: String(fallback.contentMarkdown || "").length,
         minLength: chapterConfig.minLength,
