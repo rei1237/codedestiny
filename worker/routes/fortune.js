@@ -1014,6 +1014,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const effectiveTier = renewState.effectiveTier;
   const policy = getPlanPolicy(effectiveTier);
   const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
+  const previousUnlockFeatures = normalizePersistentUnlockKeys(runtimeUser?.unlockedFeatures || []);
+  const newlyUnlockedFeatures = unlockKeysToPersist.filter((key) => !previousUnlockFeatures.includes(key));
 
   if (isIncludedBySubscription) {
     const premiumAccessToken = await createPremiumAccessToken(env, {
@@ -1144,37 +1146,103 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 402 });
   }
 
-  const history = await PointHistory.create({
-    userId: auth.userId,
-    kind: "deduct",
-    delta: -cost,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "fortune.pig-coin.consume",
-      ...(requestId ? { requestId } : {}),
-      ...(categoryKey ? { categoryKey } : {}),
-      ...(subFeatureKey ? { subFeatureKey } : {}),
-      ...(payloadHash ? { payloadHash } : {}),
-      ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
-      subscriptionTierAtConsume: effectiveTier || "free",
-    },
-  });
+  let history = null;
+  try {
+    history = await PointHistory.create({
+      userId: auth.userId,
+      kind: "deduct",
+      delta: -cost,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey,
+      metadata: {
+        source: "fortune.pig-coin.consume",
+        ...(requestId ? { requestId } : {}),
+        ...(categoryKey ? { categoryKey } : {}),
+        ...(subFeatureKey ? { subFeatureKey } : {}),
+        ...(payloadHash ? { payloadHash } : {}),
+        ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
+        subscriptionTierAtConsume: effectiveTier || "free",
+      },
+    });
+  } catch (error) {
+    let rollbackApplied = false;
+    try {
+      const rollbackPayload = {
+        $inc: { points: cost },
+      };
+      if (requestId || newlyUnlockedFeatures.length) {
+        rollbackPayload.$pull = {
+          ...(requestId ? { recentConsumeRequestIds: requestId } : {}),
+          ...(newlyUnlockedFeatures.length ? { unlockedFeatures: { $in: newlyUnlockedFeatures } } : {}),
+        };
+      }
+      await User.updateOne({ _id: auth.userId }, rollbackPayload);
+      rollbackApplied = true;
+    } catch (rollbackError) {
+      try {
+        console.error("[fortune][pig-coin-consume] rollback failed", {
+          userId: String(auth.userId || ""),
+          requestId,
+          featureKey,
+          message: String(rollbackError?.message || "unknown"),
+        });
+      } catch {
+        console.error("[fortune][pig-coin-consume] rollback failed", rollbackError);
+      }
+    }
+
+    try {
+      console.error("[fortune][pig-coin-consume] point history create failed", {
+        userId: String(auth.userId || ""),
+        requestId,
+        featureKey,
+        rollbackApplied,
+        message: String(error?.message || "unknown"),
+      });
+    } catch {
+      console.error("[fortune][pig-coin-consume] point history create failed", error);
+    }
+
+    return json({
+      message: rollbackApplied
+        ? "결제 검증 중 오류가 발생해 코인을 자동 복구했습니다. 잠시 후 다시 시도해 주세요."
+        : "결제 검증 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      code: rollbackApplied ? "COIN_DEDUCT_ROLLED_BACK" : "COIN_DEDUCT_UNKNOWN",
+      productId: productId || null,
+      requiredCoins: cost,
+      chargedCoins: 0,
+      autoRefunded: rollbackApplied,
+    }, { status: 500 });
+  }
 
   const unlockedFeatures = normalizePersistentUnlockKeys(
     (updatedUser && updatedUser.unlockedFeatures) || unlockKeysToPersist,
   );
 
-  const premiumAccessToken = await createPremiumAccessToken(env, {
-    userId: String(auth.userId || ""),
-    reportType: reportTypeForPremiumAccess,
-    featureKey,
-    reason,
-    transactionId: String(history?._id || requestId || ""),
-    chargedCoins: cost,
-    freeBySubscription: false,
-  });
+  let premiumAccessToken = "";
+  try {
+    premiumAccessToken = await createPremiumAccessToken(env, {
+      userId: String(auth.userId || ""),
+      reportType: reportTypeForPremiumAccess,
+      featureKey,
+      reason,
+      transactionId: String(history?._id || requestId || ""),
+      chargedCoins: cost,
+      freeBySubscription: false,
+    }) || "";
+  } catch (error) {
+    try {
+      console.warn("[fortune][pig-coin-consume] premium access token issue", {
+        userId: String(auth.userId || ""),
+        featureKey,
+        transactionId: String(history?._id || requestId || ""),
+        message: String(error?.message || "unknown"),
+      });
+    } catch {
+      console.warn("[fortune][pig-coin-consume] premium access token issue", error);
+    }
+  }
 
   return buildJsonWithPremiumAccessCookie({
     message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
